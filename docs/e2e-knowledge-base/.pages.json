@@ -1,0 +1,334 @@
+{
+ "dom:expense": {
+  "status": "待确认",
+  "scope": "业务域",
+  "title": "费用报销与部门预算",
+  "summary": "员工提交报销、财务审核、出纳付款，并按部门月度预算冻结/释放/消耗额度",
+  "anchors": {
+   "dom:expense": "cdf332640a51d006"
+  },
+  "updated": "2026-10-07 17:17",
+  "commit": "0959bbace3",
+  "by": "agent",
+  "pack_chars": 3278
+ },
+ "dom:leave": {
+  "status": "待确认",
+  "scope": "业务域",
+  "title": "请假管理",
+  "summary": "员工提交请假、审批人通过或驳回，超期未处理的单据由定时任务作废",
+  "anchors": {
+   "dom:leave": "57f39d8f66501b02"
+  },
+  "updated": "2026-10-07 17:17",
+  "commit": "0959bbace3",
+  "by": "agent",
+  "pack_chars": 3369
+ },
+ "dom:user": {
+  "status": "待确认",
+  "scope": "业务域",
+  "title": "用户管理",
+  "summary": "按工号新增员工用户、离职时停用，为其他域提供申请人身份",
+  "anchors": {
+   "dom:user": "0e567ffe4425f71a"
+  },
+  "updated": "2026-10-07 17:17",
+  "commit": "0959bbace3",
+  "by": "agent",
+  "pack_chars": 1699
+ },
+ "flow:post-expense-audit": {
+  "status": "待确认",
+  "scope": "核心业务流",
+  "title": "财务审核",
+  "summary": "财务对已提交报销单审核通过或驳回；驳回时释放部门预算冻结额，并记录审批日志。",
+  "anchors": {
+   "flow:post-expense-audit": "0e82fa6b43beefda",
+   "fn:ExpenseController.audit": "6386457271ceb9ee",
+   "fn:ExpenseService.audit": "75dccbbbfb301d89",
+   "fn:ExpenseMapper.selectById": "98296c5a7f584ccc",
+   "fn:ExpenseMapper.auditPass": "128481208513e3c9",
+   "fn:ExpenseMapper.auditReject": "0768e027b8034897",
+   "fn:BudgetMapper.release": "45b5408ce137090f",
+   "fn:ApprovalLogMapper.insert": "0f25151b347ff5d5",
+   "ep:POST /expense/audit": "b841f563d2e031da"
+  },
+  "updated": "2026-10-07 17:20",
+  "commit": "cbf8f6f3b5",
+  "by": "agent",
+  "pack_chars": 10944
+ },
+ "flow:post-expense-pay": {
+  "status": "待确认",
+  "scope": "核心业务流",
+  "title": "出纳付款",
+  "summary": "出纳对审核通过的报销单付款：调财务系统、置已付并把部门预算从冻结转已用",
+  "anchors": {
+   "flow:post-expense-pay": "0cc02496054d5803",
+   "fn:ExpenseController.pay": "7ef12dd74d9a0a57",
+   "fn:ExpenseService.pay": "49d61f3d56df5520",
+   "fn:ExpenseMapper.selectById": "98296c5a7f584ccc",
+   "fn:ExpenseMapper.markPaid": "2dbad8fa5350f75a",
+   "fn:BudgetMapper.consume": "14cfbb516600755b",
+   "ep:POST /expense/pay": "8f77cc67bdb4bf6f"
+  },
+  "updated": "2026-10-07 17:15",
+  "commit": "0959bbace3",
+  "by": "w2",
+  "pack_chars": 3034
+ },
+ "flow:post-expense-submit": {
+  "status": "待确认",
+  "scope": "核心业务流",
+  "title": "提交报销单",
+  "summary": "员工提交报销单，校验用户、5万限额与部门月预算，通过后建单并冻结预算",
+  "anchors": {
+   "flow:post-expense-submit": "f60070189d07de0f",
+   "fn:ExpenseController.submit": "689d1475e94a2afe",
+   "fn:ExpenseService.submit": "e66e2145c5135755",
+   "fn:UserMapper.selectById": "3054ad4824e247f3",
+   "fn:BudgetMapper.remaining": "3c101f5e9112a72b",
+   "fn:ExpenseMapper.nextId": "e01bb04b5f6810c9",
+   "fn:ExpenseMapper.insert": "577b8f85aed2296c",
+   "fn:BudgetMapper.freeze": "315a6e003d0d5686",
+   "fn:ApprovalLogMapper.insert": "0f25151b347ff5d5",
+   "ep:POST /expense/submit": "9593e2391f8308d3"
+  },
+  "updated": "2026-10-07 17:15",
+  "commit": "0959bbace3",
+  "by": "w3",
+  "pack_chars": 4698
+ },
+ "flow:post-leave-approve": {
+  "status": "待确认",
+  "scope": "核心业务流",
+  "title": "审批通过：记录审批人与审批时间",
+  "summary": "审批人将待审批请假单置为已批准，记录审批人/时间并写审批日志",
+  "anchors": {
+   "flow:post-leave-approve": "edd780ed14f89895",
+   "fn:LeaveController.approve": "e4686a13bc0bc333",
+   "fn:LeaveService.approve": "283990f08b181d81",
+   "fn:LeaveMapper.approve": "c9f69a870e31c77e",
+   "fn:ApprovalLogMapper.insert": "0f25151b347ff5d5",
+   "ep:POST /leave/approve": "9438057655d5d74e"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w2",
+  "pack_chars": 2742
+ },
+ "flow:post-leave-reject": {
+  "status": "待确认",
+  "scope": "核心业务流",
+  "title": "驳回",
+  "summary": "审批人驳回待审批请假单，记录审批人并写驳回日志。",
+  "anchors": {
+   "flow:post-leave-reject": "e3b07e954a79bd15",
+   "fn:LeaveController.reject": "2fdf4783cfbefa1d",
+   "fn:LeaveService.reject": "608447687ab9bacc",
+   "fn:LeaveMapper.reject": "f0596c5d7b07c276",
+   "fn:ApprovalLogMapper.insert": "0f25151b347ff5d5",
+   "ep:POST /leave/reject": "8e19caebd22fe7d6"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w1",
+  "pack_chars": 2348
+ },
+ "flow:post-leave-submit": {
+  "status": "待确认",
+  "scope": "核心业务流",
+  "title": "提交请假申请",
+  "summary": "员工提交请假申请，校验天数1到30后建单并记审批日志",
+  "anchors": {
+   "flow:post-leave-submit": "ab3f14ffb950675b",
+   "fn:LeaveController.submit": "d82ebbd45f5cb8e6",
+   "fn:LeaveService.submit": "841ca379149b8516",
+   "fn:LeaveMapper.nextId": "5e4a7f8d77714ef5",
+   "fn:LeaveMapper.insert": "502d29c70b3f3eba",
+   "fn:ApprovalLogMapper.insert": "0f25151b347ff5d5",
+   "ep:POST /leave/submit": "aa6a898501734028"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w3",
+  "pack_chars": 3031
+ },
+ "flow:post-user-add": {
+  "status": "待确认",
+  "scope": "核心业务流",
+  "title": "新增用户",
+  "summary": "按工号新增用户，工号重复则拒绝，新用户默认启用。",
+  "anchors": {
+   "flow:post-user-add": "a8b4e4599c7bab79",
+   "fn:UserController.add": "28d4f3a129092363",
+   "fn:UserService.add": "758653d082acecec",
+   "fn:UserMapper.selectById": "3054ad4824e247f3",
+   "fn:UserMapper.insert": "cc8ef0118b3221bc",
+   "ep:POST /user/add": "5734d52e26331939"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w1",
+  "pack_chars": 2279
+ },
+ "flow:post-user-disable": {
+  "status": "待确认",
+  "scope": "核心业务流",
+  "title": "停用用户（离职）",
+  "summary": "离职时将用户状态置为 DISABLED，不检查存在性和在途单据。",
+  "anchors": {
+   "flow:post-user-disable": "d2b978a49571823b",
+   "fn:UserController.disable": "29b5d546ff73a548",
+   "fn:UserService.disable": "4ea4692dbad427c6",
+   "fn:UserMapper.disable": "fc1dadc3829272fa",
+   "ep:POST /user/disable": "79f526c4e8be0caa"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w1",
+  "pack_chars": 1697
+ },
+ "flow:reportjob-expire": {
+  "status": "待确认",
+  "scope": "核心业务流",
+  "title": "作废超期请假单（定时任务）",
+  "summary": "每天01:30将提交超30天仍未处理的请假单置为EXPIRED",
+  "anchors": {
+   "flow:reportjob-expire": "692a0521a45d19e3",
+   "fn:ReportJob.expire": "213c14a4cfb1d630",
+   "fn:LeaveService.expireStale": "9ee413cd61ba1a2e",
+   "fn:LeaveMapper.expireStale": "d8bc84ceecda1aba",
+   "ep:@Scheduled cron = \"0 30 1 * * ?\"": "38830ce17173de55"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w3",
+  "pack_chars": 1836
+ },
+ "flow:reportjob-export": {
+  "status": "待确认",
+  "scope": "核心业务流",
+  "title": "每晚导出请假汇总",
+  "summary": "每晚 2 点定时导出请假汇总到共享盘，但实际仅写入 \"ok\"，且依赖 Windows。",
+  "anchors": {
+   "flow:reportjob-export": "260e71689d80090e",
+   "fn:ReportJob.export": "769b61d556dc7737",
+   "ep:@Scheduled cron = \"0 0 2 * * ?\"": "681487faadc13d64"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w1",
+  "pack_chars": 1540
+ },
+ "index": {
+  "status": "待确认",
+  "scope": "总览",
+  "title": "传统 OA 办公系统",
+  "summary": "单体 OA：请假审批、费用报销（含部门预算）、用户管理，Spring Boot + Oracle + WebLogic",
+  "anchors": {
+   "dom:expense": "cdf332640a51d006",
+   "dom:leave": "57f39d8f66501b02",
+   "dom:user": "0e567ffe4425f71a"
+  },
+  "updated": "2026-10-07 17:18",
+  "commit": "0959bbace3",
+  "by": "agent",
+  "pack_chars": 3730
+ },
+ "mod:.": {
+  "status": "待确认",
+  "scope": "代码模块",
+  "title": "OA 办公系统主模块",
+  "summary": "单体传统 OA 应用（Spring Boot + MyBatis + Oracle，WebLogic war），含请假、报销、用户。",
+  "anchors": {
+   "mod:.": "14e250f9331f3198"
+  },
+  "updated": "2026-10-07 17:17",
+  "commit": "0959bbace3",
+  "by": "agent",
+  "pack_chars": 6690
+ },
+ "tbl:OA_APPROVAL_LOG": {
+  "status": "待确认",
+  "scope": "被业务写入的表",
+  "title": "OA_APPROVAL_LOG",
+  "summary": "请假与报销共用的审批/操作日志表，只追加；字段名与 INSERT 语句不一致",
+  "anchors": {
+   "tbl:OA_APPROVAL_LOG": "3f95afc506327b43"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w2",
+  "pack_chars": 3251
+ },
+ "tbl:OA_BUDGET": {
+  "status": "待确认",
+  "scope": "被业务写入的表",
+  "title": "部门月度预算",
+  "summary": "按部门和月份记录预算总额、冻结额与已用额，支撑报销预算控制",
+  "anchors": {
+   "tbl:OA_BUDGET": "97ba6a6bcb3e01b7"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w3",
+  "pack_chars": 2788
+ },
+ "tbl:OA_DEPT": {
+  "status": "待确认",
+  "scope": "被业务写入的表",
+  "title": "部门",
+  "summary": "公司部门树表，目前仅用于请假列表显示部门名。",
+  "anchors": {
+   "tbl:OA_DEPT": "e56236b423f1e11e"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w1",
+  "pack_chars": 982
+ },
+ "tbl:OA_EXPENSE": {
+  "status": "待确认",
+  "scope": "被业务写入的表",
+  "title": "报销单",
+  "summary": "员工报销申请单，记录金额、类别、审核与付款信息及状态流转",
+  "anchors": {
+   "tbl:OA_EXPENSE": "b6813bf027c90173",
+   "sm:OA_EXPENSE.STATUS": "73751933f0b298fb"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w3",
+  "pack_chars": 3232
+ },
+ "tbl:OA_LEAVE": {
+  "status": "待确认",
+  "scope": "被业务写入的表",
+  "title": "OA_LEAVE",
+  "summary": "请假单主表：提交后待审批，可被批准、驳回，超30天未处理自动作废",
+  "anchors": {
+   "tbl:OA_LEAVE": "da799142fe04cdb0",
+   "sm:OA_LEAVE.STATUS": "69364924c1645287"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w2",
+  "pack_chars": 2977
+ },
+ "tbl:OA_USER": {
+  "status": "待确认",
+  "scope": "被业务写入的表",
+  "title": "用户",
+  "summary": "系统用户（员工）表，工号为主键，状态 ACTIVE/DISABLED。",
+  "anchors": {
+   "tbl:OA_USER": "eb42ddece4c94482",
+   "sm:OA_USER.STATUS": "6bcb6a9a697e3b3b"
+  },
+  "updated": "2026-10-07 17:16",
+  "commit": "0959bbace3",
+  "by": "w1",
+  "pack_chars": 2371
+ }
+}

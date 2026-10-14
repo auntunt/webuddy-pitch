@@ -1,0 +1,31 @@
+{
+ "_说明": "业务域划分。可以改 title（域名称）和 assign（业务流 → 域）；tmh 重建时保留这里的划分，只为新业务流分配域。",
+ "domains": {
+  "expense": {
+   "title": "费用报销与部门预算",
+   "key": "expense"
+  },
+  "leave": {
+   "title": "请假管理",
+   "key": "leave"
+  },
+  "user": {
+   "title": "用户管理",
+   "key": "user"
+  }
+ },
+ "assign": {
+  "get-expense-mine": "expense",
+  "get-leave-list": "leave",
+  "post-expense-audit": "expense",
+  "post-expense-pay": "expense",
+  "post-expense-submit": "expense",
+  "post-leave-approve": "leave",
+  "post-leave-reject": "leave",
+  "post-leave-submit": "leave",
+  "post-user-add": "user",
+  "post-user-disable": "user",
+  "reportjob-expire": "leave",
+  "reportjob-export": "leave"
+ }
+}

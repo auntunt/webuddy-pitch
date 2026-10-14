@@ -1,0 +1,623 @@
+{
+ "repo": "https://github.com/jeecgboot/JeecgBoot",
+ "snapshot": "84f46c214260780c02d6af085a1b2e44af224405",
+ "snapshot_day": "2025-02-06",
+ "cases": [
+  {
+   "issue": "9288",
+   "tier": "full",
+   "kind": "java",
+   "touches": "java",
+   "title": "SysDataSourceController的queryOptions建议添加权限检查",
+   "body": "[摘要] 作者指出，SysDataSourceController中的queryPageList方法带有@RequiresPermissions(\"system:datasource:list\")权限注解，而逻辑高度相似的queryOptions方法没有任何权限检查。作者询问，是否可能通过模拟接口意外获取queryPageList的返回数据。",
+   "summarized": true,
+   "fixed": "2026-01-22",
+   "base": "03f27067d4d8586300302d45dd3919ceea3905ad",
+   "gold": [
+    "jeecg-boot/jeecg-module-system/jeecg-system-biz/src/main/java/org/jeecg/modules/system/controller/SysDataSourceController.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9288"
+  },
+  {
+   "issue": "9228",
+   "tier": "full",
+   "kind": "java",
+   "touches": "java",
+   "title": "同步钉钉部门报错",
+   "body": "##### 版本号：\n3.9.0\n\n##### 分支：\n\n\n##### 问题描述：\n\n表SysDepart字段 SysDepart 对应数据类型为String\n表Department 字段parent_id对应数据类型为Interger\n\n运行存在parent_id为1开头的字符串时,存在查询错误的情况\n\n##### 错误截图：\n\n<img width=\"1619\" height=\"577\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/0bfc3e3f-cf22-453c-a8f2-a62fa6200070\" />\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2026-01-09",
+   "base": "de4a8ce652c65d91faf034eddd8353f5cc62ced0",
+   "gold": [
+    "jeecg-boot/jeecg-module-system/jeecg-system-biz/src/main/java/org/jeecg/modules/system/service/impl/ThirdAppDingtalkServiceImpl.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9228"
+  },
+  {
+   "issue": "9124",
+   "tier": "full",
+   "kind": "java",
+   "touches": "java",
+   "title": "“用于后端字典翻译”，同一枚举dictCode，keys传多个也只add第1个DictModel",
+   "body": "“用于后端字典翻译”，同一枚举dictCode，keys传多个也只add第1个DictModel\n\n##### 版本号：\n3.8.3\n\n##### 分支：\nmaster\n\n##### 问题描述：\n“用于后端字典翻译”，keys传多个也只add第1个。\n\n\n##### 错误截图：\n\n<img width=\"1920\" height=\"879\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/329e8cd7-7deb-4398-9b73-8d3399dfc42d\" />\n\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-12-15",
+   "base": "bcbf775756bfc0ee7379a291d1921acbed4a490a",
+   "gold": [
+    "jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/common/system/util/ResourceUtil.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9124"
+  },
+  {
+   "issue": "9107",
+   "tier": "full",
+   "kind": "java",
+   "touches": "java",
+   "title": "请求中附带非法或过期 Token 时，返回重复的 401 请求",
+   "body": "[摘要] 版本 3.8.3（master/springboot3 分支）。当请求头 X-Access-Token 携带非法或过期的 Token 时，访问任意 URL 都会连续返回两次 401 响应，提示内容分别为 Token 非法和 Token 失效；而 Token 为空时不会出现重复响应。作者定位到 JwtFilter 的 isAccessAllowed() 调用 executeLogin() 验证用户，ShiroRealm 的 doGetAuthenticationInfo() 中抛出的异常先写出第一次 401 响应；随后 JwtFilter 的 catch 块又捕获到 UnknownAccountException，再次写出第二次 401 响应。作者已提交 PR，并在 catch 块中加入判断（若已存在 401 响应则不再重复写出），实测可临时解决，但未查明第二个异常的来源。",
+   "summarized": true,
+   "fixed": "2025-11-17",
+   "base": "0be7d00eb241589f2ee59154187ce9c42059ac9a",
+   "gold": [
+    "jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/config/shiro/ShiroRealm.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9107"
+  },
+  {
+   "issue": "9032",
+   "tier": "full",
+   "kind": "java",
+   "touches": "mix",
+   "title": "功能菜单“系统管理”-“部门管理”，用户列表中，编辑用户界面-用户账号为空",
+   "body": "[摘要] 版本号为3.8.3，分支为master。在功能菜单“系统管理”-“部门管理”的用户列表中，编辑用户界面的用户账号字段为空，因此无法确认保存用户。帖子附有一张错误截图。页面中还包含发帖格式的友情提示（要求图文并茂、说明非master分支等）。",
+   "summarized": true,
+   "fixed": "2025-10-30",
+   "base": "7848d1fb337c5d2ec05e8aa93abd971e083d2f1f",
+   "gold": [
+    "jeecg-boot/jeecg-module-system/jeecg-system-biz/src/main/java/org/jeecg/modules/system/model/SysUserSysDepPostModel.java",
+    "jeecgboot-vue3/src/views/system/depart/depart.data.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9032"
+  },
+  {
+   "issue": "9039",
+   "tier": "full",
+   "kind": "java",
+   "touches": "java",
+   "title": "3.8.3-master分支：租户用户 菜单下 新增用户报错",
+   "body": "[摘要] 作者使用3.8.3版本的master分支，在“租户用户”菜单下新增用户时报错，提示“操作失败，No static resource sys/user/addTenantUser.”。作者认为系统中缺少该接口，并给出了本地请求地址（localhost:3100/jeecgboot/sys/user/addTenantUser）。帖子附有错误截图，末尾包含社区发帖格式的友情提示。",
+   "summarized": true,
+   "fixed": "2025-10-28",
+   "base": "c9fc9486585e2289a7e511c0d1cd1b0917367a9e",
+   "gold": [
+    "jeecg-boot/jeecg-module-system/jeecg-system-biz/src/main/java/org/jeecg/modules/system/controller/SysUserController.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9039"
+  },
+  {
+   "issue": "8859",
+   "tier": "full",
+   "kind": "java",
+   "touches": "java",
+   "title": "online表单java增强失效",
+   "body": "##### 版本号：\n3.8.2\n\n##### 问题描述：\nhttp-api 调用 总是返回 I/O error on POST request for \"http://localhost:8080/jeecg-boot/test/jeecgDemo/enhanceJavaFormHttp\": too many bytes written\nspring-key和java-class\n在按钮触发后，没有任何反应\n日志也没有任何输出\n\n是不是java增强重构了啊\n完全按照教程来做，好多引用都变了。\n\n##### 错误截图：\n\n\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-10-11",
+   "base": "0512b41b2b2f85584040c20e8bcc67274613ee7c",
+   "gold": [
+    "jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/common/util/RestUtil.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8859"
+  },
+  {
+   "issue": "8897",
+   "tier": "full",
+   "kind": "java",
+   "touches": "java",
+   "title": "Oracle11g数据库 多租户管理>>添加租户 报错",
+   "body": "[摘要] 作者使用的版本为3.8.3，在Oracle11g数据库的多租户管理中点击“添加租户”时报错，并附上两张错误截图。报错信息显示MyBatis在设置参数时失败，错误原因为“无效的列类型: 1111”，涉及SysTenantMapper对sys_tenant表的按id查询。页面底部有论坛的发帖格式提示。",
+   "summarized": true,
+   "fixed": "2025-09-25",
+   "base": "d3fa38a9e602e8edb96a21b5ade993e34a4f99d0",
+   "gold": [
+    "jeecg-boot/jeecg-module-system/jeecg-system-biz/src/main/java/org/jeecg/modules/system/controller/SysTenantController.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8897"
+  },
+  {
+   "issue": "9873",
+   "tier": "full",
+   "kind": "front",
+   "touches": "front",
+   "title": "严重问题，数据误删除！！！",
+   "body": "[摘要] 版本号为3.9.5，分支未填写。问题描述称：online ERP表单修改主表时，子表数据被全量删除，关联旧问题#7190，该问题再次出现。帖子附有错误截图，并列出发帖格式要求。",
+   "summarized": true,
+   "fixed": "2026-09-02",
+   "base": "169872c4b40012ec3ea650e7114dfabc3a0361cc",
+   "gold": [
+    "jeecgboot-vue3/src/views/super/online/cgform/auto/comp/OnlineForm.vue"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9873"
+  },
+  {
+   "issue": "9699",
+   "tier": "full",
+   "kind": "front",
+   "touches": "front",
+   "title": "JS增强写错了之后直接改不了了",
+   "body": "[摘要，非原文] 版本号：3.9.2。分支未填写。问题描述：JS增强代码写错后无法再修改，编辑JS增强代码的操作不生效，相关按钮也无法点击。附有错误截图。",
+   "summarized": true,
+   "fixed": "2026-06-24",
+   "base": "6f718f1d8f00700c1faa4d7390feeb08f45aff59",
+   "gold": [
+    "jeecgboot-vue3/src/components/Form/src/jeecg/components/JCodeEditor.vue"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9699"
+  },
+  {
+   "issue": "9420",
+   "tier": "full",
+   "kind": "front",
+   "touches": "front",
+   "title": "字典选择组件多选回显解析失败",
+   "body": "截至今天main分支最新代码，字典选择组件多选回显解析失败，比如选择多选性别男女回显直接1,2而不是男 女\n\n##### 版本号：3.9.1\n\n\n##### 分支：main\n\n\n##### 问题描述：\n字典选择组件多选回显解析失败，比如选择多选性别男女回显直接1,2而不是男 女\n\n配置参数：{\n    field: 'xldx',\n    component: 'JDictSelectTag',\n    label: '字典下拉多选',\n    colProps: { span: 12 },\n    componentProps: {\n      dictCode: 'sex',\n      mode: 'multiple',\n    },\n    defaultValue: '1,2',\n  },\n\n\n##### 错误截图：\n\n<img width=\"1384\" height=\"983\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/2fdd94c3-cf55-4167-8bdd-597a6eb3915a\" />\n\n<img width=\"1670\" height=\"785\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/e4459ffe-992d-4f79-80df-0d84b93a189f\" />\n\n\n##### 理想结果：\n\n<img width=\"1096\" height=\"50\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/bdb0bb73-4642-44d2-9e68-22abc4f89ac3\" />\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2026-05-13",
+   "base": "3582595317a8b0d4049eb1b6aaa1eb8d660b45e3",
+   "gold": [
+    "jeecgboot-vue3/src/components/Form/src/jeecg/components/JDictSelectTag.vue"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9420"
+  },
+  {
+   "issue": "9593",
+   "tier": "full",
+   "kind": "front",
+   "touches": "front",
+   "title": "3.9.2版本树表online表单测试页面添加子记录时自动变为主记录",
+   "body": "[摘要，非原文] 使用3.9.2版本master分支的树表online表单测试页面时出现异常。新建了一张test_tree表并添加name字段，同步数据库后录入一条根记录，然后对该记录执行添加子记录操作。添加的子记录没有按树形结构显示，而是变成了主记录。原帖附有多张截图。",
+   "summarized": true,
+   "fixed": "2026-05-06",
+   "base": "6f002502399a267c5a84688ce016c70db4e9c99c",
+   "gold": [
+    "jeecgboot-vue3/src/views/super/online/cgform/components/CgformModal.vue"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9593"
+  },
+  {
+   "issue": "9275",
+   "tier": "full",
+   "kind": "front",
+   "touches": "front",
+   "title": "前端问题-用户选择组件 选中回显问题",
+   "body": "##### 版本号：https://gitee.com/jeecg/JeecgBoot    3.9.0\n\n\n##### 分支：main\n\n\n##### 问题描述：第一次勾选点击取消，正常，我第二次勾选再取消，选择框会显示选中的数据，我没点确认不应该返回选中的数据\n\n\n\n##### 错误截图：\n\n<img width=\"1602\" height=\"849\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/b60854e6-f3ca-43df-aee1-c04923e29ba4\" />\n\n<img width=\"1299\" height=\"138\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/ad4f6e33-7d96-4c06-bab8-95d4a7c1b02f\" />\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": true,
+   "fixed": "2026-01-20",
+   "base": "b7a3da89ca4bfeaa6895f6d95e454b9c02f483a6",
+   "gold": [
+    "jeecgboot-vue3/src/components/Form/src/jeecg/components/modal/UserSelectModal.vue"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9275"
+  },
+  {
+   "issue": "9217",
+   "tier": "full",
+   "kind": "front",
+   "touches": "front",
+   "title": "当配置了pagination: true时,BasicTable组件自适应高度异常",
+   "body": "版本号：3.9.0\n\n\n分支：main\n\n\n问题描述：\n当配置中有`pagination: true`时,BasicTable组件自适应高度异常,高度没有减去分页组件的高度.\n异常出现在src/components/Table/src/hooks/useTableScroll.ts`计算分页组件高度时,当`pagination`为布尔值时,`paginationHeight`值直接等于-8了\n```\nasync function calcTableHeight() {\n   ..............\n\n    // Pager height\n    let paginationHeight = 2;\n    // 这个判断没有考虑pagination == true, 还不如直接改成pagination !== false\n    if (!isBoolean(pagination)) {\n      paginationEl = tableEl.querySelector('.ant-pagination') as HTMLElement;\n      if (paginationEl) {\n        const offsetHeight = paginationEl.offsetHeight;\n        paginationHeight += offsetHeight || 0;\n      } else {\n        // TODO First fix 24\n        paginationHeight += 24;\n      }\n    } else {\n      paginationHeight = -8;\n    }\n\n   ..............\n}\n```",
+   "summarized": false,
+   "fixed": "2025-12-31",
+   "base": "23dc7b3f0375585ce6bcec596436e2653a1b044a",
+   "gold": [
+    "jeecgboot-vue3/src/components/Table/src/hooks/useTableScroll.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9217"
+  },
+  {
+   "issue": "9209",
+   "tier": "full",
+   "kind": "front",
+   "touches": "front",
+   "title": "使用useListPage的导出异常",
+   "body": "[摘要] 作者在 3.9.0 版本（main 分支）中使用 useListPage，并在 tableProps 中配置了 beforeFetch 对查询参数做特殊处理。问题是导出请求没有经过 beforeFetch 的参数处理。作者建议修改 useListPage.ts 中的 onExportXls：在获取表单校验结果后，先执行 options.tableProps.beforeFetch 再组装导出参数，并给出了相应的代码示例。",
+   "summarized": true,
+   "fixed": "2025-12-26",
+   "base": "42087c0bf8d68779cbf21848a2e1cb450078c990",
+   "gold": [
+    "jeecgboot-vue3/src/hooks/system/useListPage.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9209"
+  },
+  {
+   "issue": "8705",
+   "tier": "plan",
+   "kind": "java",
+   "touches": "java",
+   "title": "swagger上选择的接口和实际接口不对应",
+   "body": "版本号：3.8.2\n\n问题描述：\nswagger上选择的接口和实际接口不对应\n\n错误截图：\n[图片]\n下面是版本截图,是单体启动的,试过微服务启动也有这个问题\n[图片]",
+   "summarized": false,
+   "fixed": "2025-08-13",
+   "base": "67d9865861530687887fc67b94bbac42e6c035ab",
+   "gold": [
+    "jeecg-boot/jeecg-boot-base-core/pom.xml",
+    "jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/config/Swagger3Config.java",
+    "jeecg-boot/pom.xml",
+    "jeecg-boot/jeecg-server-cloud/jeecg-cloud-gateway/pom.xml"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8705"
+  },
+  {
+   "issue": "8676",
+   "tier": "plan",
+   "kind": "java",
+   "touches": "java",
+   "title": "swagger请求头部没有X-Access-Token",
+   "body": "##### 版本号：3.8.0\n\n\n##### 问题描述：\nswagger请求头部不会自动带X-Access-Token,不能进行测试\n\n\n##### 错误截图：\n\n<img width=\"2039\" height=\"482\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/2e01daa5-79c1-4437-aacf-dad4753650ee\" />\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-08-07",
+   "base": "e795e03365daf8b83111133cf8abe9e4e5a64dc5",
+   "gold": [
+    "jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/config/Swagger3Config.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8676"
+  },
+  {
+   "issue": "8666",
+   "tier": "plan",
+   "kind": "java",
+   "touches": "java",
+   "title": "使用sql server数据库会报错",
+   "body": "使用sql server数据库会报错\n\n版本号：3.8.2\n\n\n问题描述：\n\n可能由于升级了mybatisPlus导致了sql server的分页改用了`OFFSET ？ ROWS FETCH NEXT ？ ROWS ONLY`，在未指定排序时就会报错,而Online报表查询的时候不带排序,即使地址中包含了`?column=age&order=desc`参数",
+   "summarized": false,
+   "fixed": "2025-08-02",
+   "base": "a638a93b65eb375e8e99ec2e13d1b87f561cccf5",
+   "gold": [
+    "jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/config/mybatis/MybatisPlusSaasConfig.java",
+    "jeecg-boot/pom.xml"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8666"
+  },
+  {
+   "issue": "8558",
+   "tier": "plan",
+   "kind": "java",
+   "touches": "java",
+   "title": "批量删除优化反馈",
+   "body": "##### 版本号：\n3.7.1\n##### 问题描述：\n当批量删除数量超过300时，会无法正常执行删除。原因推测，代码生成器生成的服务层删除事件，采取了单条循环删除逻辑，导致大事务超时。\n\n\n##### 错误截图：\n\nhttps://github.com/user-attachments/assets/107d90ec-055b-4d6e-abf8-33cb8d61c9b0\n\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-07-17",
+   "base": "37c62c3962d858da2c16ebc5eac5d8532bd0a833",
+   "gold": [
+    "jeecg-boot/jeecg-module-system/jeecg-system-biz/src/main/java/org/jeecg/config/init/UndertowConfiguration.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8558"
+  },
+  {
+   "issue": "8309",
+   "tier": "plan",
+   "kind": "java",
+   "touches": "java",
+   "title": "系统监控>请求追踪，列表每刷新一下，总数据就减一",
+   "body": "##### 版本号：\n3.7.3\n\n##### 问题描述：\n系统监控>请求追踪，列表每刷新一下，总数据就减一\n\n\n##### 错误截图：\n\n![Image](https://github.com/user-attachments/assets/05b060ad-0373-4f53-ae42-aff8ccc7e88a)\n\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-06-05",
+   "base": "5a215525d556d963d050ea3112566a52b6a4cb46",
+   "gold": [
+    "jeecg-boot/jeecg-module-system/jeecg-system-biz/src/main/java/org/jeecg/modules/monitor/actuator/httptrace/CustomInMemoryHttpTraceRepository.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8309"
+  },
+  {
+   "issue": "8211",
+   "tier": "plan",
+   "kind": "java",
+   "touches": "java",
+   "title": "【issues/8211】判断逻辑写的有问题--",
+   "body": "这边有代码逻辑bug，因为这边的loginUser一般都不为null，所以就永远获取不到hasRoles，以致admin以外的用户即使配置了低代码开发角色也无法进行低代码配置。\n\nhttps://github.com/jeecgboot/JeecgBoot/blob/21392c44f80d7fd0d710815f897cb19b07d890f7/jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/config/firewall/interceptor/LowCodeModeInterceptor.java#L74\n\n修改后如下：\n\n        Set<String> hasRoles = null;\n        commonAPI = ApplicationContextUtil.getContext().getBean(CommonAPI.class);\n        if (loginUser == null) {\n            loginUser = commonAPI.getUserByName(JwtUtil.getUserNameByToken(SpringContextUtils.getHttpServletRequest()));\n        }\n        if (loginUser != null) {\n            //当前登录人拥有的角色\n            hasRoles = commonAPI.queryUserRolesById(loginUser.getId());\n        }",
+   "summarized": false,
+   "fixed": "2025-05-06",
+   "base": "77ae25b86ac13a5cc44b58b2c8afa046460eee38",
+   "gold": [
+    "jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/config/firewall/interceptor/LowCodeModeInterceptor.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8211"
+  },
+  {
+   "issue": "8217",
+   "tier": "plan",
+   "kind": "java",
+   "touches": "java",
+   "title": "jeecg-boot-V3.8.0使用下拉树组件时高频率报错UT005071: Undertow request failed HttpServerExchange{ GET /sys/dict/loadTreeData}",
+   "body": "[摘要] 作者使用 jeecg-boot V3.8.0（node V22.0.0），在使用下拉树组件时频繁出现 UT005071 错误，请求 GET /sys/dict/loadTreeData 失败，异常为 IllegalStateException：会话 ID 已存在（UT000196），报错位置在 CustomUndertowMetricsHandler。前后端运行在同一台电脑上，操作为人工点击（如编辑新闻），并非高并发；加载下拉树时报错概率较高，约每6次出现2次。",
+   "summarized": true,
+   "fixed": "2025-05-04",
+   "base": "3b34276cf81ea691dc4da1fd89ab6f5b9e483684",
+   "gold": [
+    "jeecg-boot/jeecg-module-system/jeecg-system-biz/src/main/java/org/jeecg/modules/monitor/actuator/undertow/CustomUndertowMetricsHandler.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8217"
+  },
+  {
+   "issue": "9173",
+   "tier": "plan",
+   "kind": "front",
+   "touches": "front",
+   "title": "导出异常",
+   "body": "版本号：3.9.0\n\n\n分支：main\n\n\n错误截图：\n\n<img width=\"580\" height=\"64\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d000210b-104c-42ce-9b42-14ce98768606\" />\n\n<img width=\"1053\" height=\"523\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/c6af641d-e82a-49c0-962f-f88e1b64295e\" />",
+   "summarized": false,
+   "fixed": "2025-12-15",
+   "base": "462365890e42b694af931aa47fa6889042599bd4",
+   "gold": [
+    "jeecgboot-vue3/src/hooks/system/useListPage.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9173"
+  },
+  {
+   "issue": "9169",
+   "tier": "plan",
+   "kind": "front",
+   "touches": "front",
+   "title": "JVxeTable中的分页，切换pageSize时，pageChange事件加载了两次",
+   "body": "JVxeTable中的分页，切换pageSize时，pageChange事件加载了两次\n如果我pageChange调用接口，就会加载两次接口，影响性能\n\n\n##### 错误截图：\n\n<img width=\"383\" height=\"376\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/37a36511-d476-4cfc-821b-580da04e47e0\" />\n\n<img width=\"363\" height=\"177\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/e7b853f5-2832-485c-a3c3-8080b1fb9b5f\" />\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-12-10",
+   "base": "26087172df7ba5fed6647bded6d9c858d9d6ef8c",
+   "gold": [
+    "jeecgboot-vue3/src/components/jeecg/JVxeTable/src/hooks/usePagination.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9169"
+  },
+  {
+   "issue": "9098",
+   "tier": "plan",
+   "kind": "front",
+   "touches": "front",
+   "title": "标签页tabs关闭功能异常",
+   "body": "标签页tabs关闭功能异常\n\nhttps://github.com/user-attachments/assets/dff1120e-57e6-4ab0-ae3d-8241363d314d\n\n该bug与tabs的关闭全部、关闭其他等关闭tabs功能相关，主要场景将在附件的视频里面复现出来\n具体信息：\n1、使用版本：3.7.2，但是目前3.8版本经过测试仍有该问题  浏览器：chrome 141.0.7390.108（正式版本）（64 位）\n2、控制台报错：\nmultipleTab.ts:249 TypeError: Cannot read properties of undefined (reading 'path')\nat closeLeftDisabled (useTabDropdown.ts:51:32)\nat ComputedRefImpl.fn (useTabDropdown.ts:88:19)\nat Proxy._sfc_render (TabContent.vue:2:28)\n\n3、初步判断：在当前页使用关闭xxx功能之后，handleContextMenu 应该已经设置了 state.current\n   - 但由于 JavaScript 的异步特性，state.current 的更新可能还未完成\n   - getDropMenuList 就开始执行并尝试访问 state.current.path\n   - 此时 state.current 可能还是 null，导致访问 .path 出错\n4、当前解决方案：添加空值访问检查\nsrc/layouts/default/tabs/useTabDropdown.ts\ncloseLeftDisabled 函数\n// 修复前\n    return validTabList[0].path === state.current?.path;\n    \n    // 修复后\n    return validTabList.length > 0 && state.current && validTabList[0].path === state.current.path;\n我非常期待您和团队能够尽快解决这些问题，以提升 JEECG Boot Vue3 的稳定性和用户体验。\n感谢您和团队一直以来的努力和付出！",
+   "summarized": false,
+   "fixed": "2025-12-03",
+   "base": "526734c5a51c151af273c3ef759b09aa226ba743",
+   "gold": [
+    "jeecgboot-vue3/src/layouts/default/tabs/useTabDropdown.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/9098"
+  },
+  {
+   "issue": "8738",
+   "tier": "plan",
+   "kind": "front",
+   "touches": "front",
+   "title": "componentProps 当是一个箭头函数时，不能拿到里面的值，比如valueType",
+   "body": "##### 版本号：\n3.7.4\n\n##### 问题描述：\n{\n    label: '****',\n    field: 'collectAccount',\n    required: true,\n    component: 'ApiSelect',\n    componentProps: ({ formModel }) => {\n      return {\n        api: getAllTargeCultivateAccountListByType,\n        params: {\n          type: formModel.siteType,\n          subType: formModel.type,\n        },\n        mode: 'multiple',\n        labelField: 'name',\n        valueField: 'id',\n        valueType: 'Array',\n      };\n    },\n  },\n当componentProps是箭头函数时 调用getValueTypeBySchema没有判断componentProps是函数的情况，导致每次都是string格式\n\n##### 错误截图：\n\n\n<img width=\"977\" height=\"206\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/5a713ec6-97b6-4947-8410-3dc673f0fc06\" />\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-08-26",
+   "base": "d245ef30377edd6253a4ca428dd519810d47d199",
+   "gold": [
+    "jeecgboot-vue3/src/utils/index.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8738"
+  },
+  {
+   "issue": "8695",
+   "tier": "plan",
+   "kind": "front",
+   "touches": "front",
+   "title": "jvxetable 使用编辑的时候卡顿问题",
+   "body": "[摘要] 用户报告 jvxetable 3.7.3 版本编辑时严重卡顿，官网部署的程序同样存在。在官网高级示例表格中展开约200条数据后，下拉选择和输入框的响应延迟可达数秒，进度条也有明显卡顿。帖子附有录屏和错误截图。",
+   "summarized": true,
+   "fixed": "2025-08-22",
+   "base": "1b8a31f0d34f05eb1022d46c1a1554ec6ae7fa93",
+   "gold": [
+    "jeecgboot-vue3/src/components/jeecg/JVxeTable/src/hooks/useFinallyProps.ts",
+    "jeecgboot-vue3/src/components/jeecg/JVxeTable/src/JVxeTable.ts",
+    "jeecgboot-vue3/src/components/jeecg/JVxeTable/src/hooks/useColumns.ts",
+    "jeecgboot-vue3/src/components/jeecg/JVxeTable/src/hooks/useData.ts",
+    "jeecgboot-vue3/src/components/jeecg/JVxeTable/src/hooks/useDataSource.ts",
+    "jeecgboot-vue3/src/components/jeecg/JVxeTable/src/hooks/useMethods.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8695"
+  },
+  {
+   "issue": "8317",
+   "tier": "plan",
+   "kind": "front",
+   "touches": "front",
+   "title": "更改默认首页菜单名称适配国际化导致菜单管理页无法访问",
+   "body": "##### 版本号：\n3.8.0\n\n##### 问题描述：\n更改默认首页菜单名称适配国际化导致菜单管理页无法访问,只有去数据库里改回非t()的形式才恢复\n\n![Image](https://github.com/user-attachments/assets/cffbaba2-e33a-4dfe-b890-2cd20dc99349)\n\n\n##### 错误截图：\n![Image](https://github.com/user-attachments/assets/36dcdec0-65f3-448c-b61d-4dfe37f52e42)\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-07-19",
+   "base": "69b2e97935cdf06e1803c738544ad18f7ba3d6c7",
+   "gold": [
+    "jeecgboot-vue3/src/locales/lang/en/routes/basic.ts",
+    "jeecgboot-vue3/src/locales/lang/zh-CN/routes/basic.ts",
+    "jeecgboot-vue3/src/views/system/menu/index.vue"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8317"
+  },
+  {
+   "issue": "8564",
+   "tier": "plan",
+   "kind": "front",
+   "touches": "front",
+   "title": "BasicTable不支持TableLayout设置(默认写死fixed)",
+   "body": "##### 版本号：v3.7\n\n\n##### 问题描述：\nBasicTable不支持TableLayout设置(默认写死fixed)\n\n\n##### 错误截图：\n\n<img width=\"920\" height=\"451\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/965bf923-a9d3-44d9-8035-9f57cd8e0826\" />\n\n已经自己扩展实现getTableLayout方法\n\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-07-19",
+   "base": "967197d224ee3c4a49b33e63dcbb668dae79a56a",
+   "gold": [
+    "jeecgboot-vue3/src/components/Table/src/BasicTable.vue"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8564"
+  },
+  {
+   "issue": "8527",
+   "tier": "plan",
+   "kind": "front",
+   "touches": "front",
+   "title": "ApiSelect分页加载重复请求问题",
+   "body": "**版本号：**\n3.8.1\n\n**问题描述：**\nApiSelect分页加载接口重复请求\n\n**原因**\n```\nwatchEffect(() => {\n        props.immediate && fetch();\n        props.immediate && console.log('ApiSelect immediate change');\n  });\n```\n中`props.immediate`与`handlePopupScroll`相冲突，每次滚动加载后`watchEffect`中`props.immediate`始终为`true,`将再次请求。\n\n**错误截图：**\n\n![Image](https://github.com/user-attachments/assets/ad0991bc-7b01-4a11-8dba-97e01af0aa24)\n\n**友情提示：**\n修改为以下用法即可\n```\nwatch(\n        () => props.immediate,\n        (newval) => {\n          newval && fetch();\n        },\n        {\n          immediate: true\n        }\n      );\n```\n\n**效果**\n\n![Image](https://github.com/user-attachments/assets/42c29a72-bcef-4a53-a56d-0f6e49af7220)",
+   "summarized": false,
+   "fixed": "2025-07-08",
+   "base": "9c21f621c08f3cb6152976959291340d53b734e5",
+   "gold": [
+    "jeecgboot-vue3/src/components/Form/src/components/ApiSelect.vue"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8527"
+  },
+  {
+   "issue": "8181",
+   "tier": "entry",
+   "kind": "java",
+   "touches": "java",
+   "title": "同步部门(将钉钉部门同步到本地)",
+   "body": "##### 版本号：\n3.8\n\n##### 问题描述：\n\n同步钉钉部门到本地,钉钉部门Id无法更新到`sysDepart`的`ding_identifier`\n原因:钉钉部门字段与系统部门字段不一致,导致拷贝数据异常\n\n##### 错误截图：\n`ThirdAppDingtalkServiceImpl类下  private SysDepart dtDepartmentToSysDepart(Department department, SysDepart departTree) 方法.`\n\n![Image](https://github.com/user-attachments/assets/5b5373e7-6186-4117-b765-56f9adf2d415)\n\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-04-29",
+   "base": "2730d8e06ff823032072a7cd361be4c66191fdbe",
+   "gold": [
+    "jeecg-boot/jeecg-module-system/jeecg-system-biz/src/main/java/org/jeecg/modules/system/service/impl/ThirdAppDingtalkServiceImpl.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8181"
+  },
+  {
+   "issue": "8134",
+   "tier": "entry",
+   "kind": "java",
+   "touches": "java",
+   "title": "网关关闭knife4j接口文档没有生效",
+   "body": "##### 版本号：3.8.0\n\n\n##### 问题描述：微服务网关关闭knife4j接口文档没有生效 ，还是访问到了接口文档\n\n\n\n##### 错误截图：\n\n\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-04-22",
+   "base": "3e434ce6b4c52cad5b8ec4d9eaee30303d4a3ed8",
+   "gold": [
+    "jeecg-boot/jeecg-server-cloud/jeecg-cloud-gateway/src/main/java/org/jeecg/handler/swagger/SwaggerResourceController.java",
+    "jeecg-boot/jeecg-server-cloud/jeecg-cloud-gateway/src/main/resources/application.yml"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8134"
+  },
+  {
+   "issue": "7702",
+   "tier": "entry",
+   "kind": "java",
+   "touches": "java",
+   "title": "参数校验 @Valid 失败时异常处理器没有捕获 MethodArgumentNotValidException",
+   "body": "[摘要] 作者希望为 @Valid 注解的校验异常增加捕获处理，向前端返回友好提示。使用版本为3.7.1。问题是 JeecgBootExceptionHandler 类中没有处理这类校验异常，导致前端页面显示了后端 Java 包名等内部信息。作者建议在该类中新增一个处理 MethodArgumentNotValidException 的方法，记录系统日志，并把各字段的校验错误信息拼接后返回。帖子附有错误截图。",
+   "summarized": true,
+   "fixed": "2025-02-24",
+   "base": "45f905ddac4db0e29808d541d25a1002588e9820",
+   "gold": [
+    "jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/common/exception/JeecgBootExceptionHandler.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/7702"
+  },
+  {
+   "issue": "7703",
+   "tier": "entry",
+   "kind": "java",
+   "touches": "java",
+   "title": "AutoPoi Excel表格导入有问题，还会报个错。",
+   "body": "[摘要] 用户报告 AutoPoi 3.7.2 版本在导入 Excel 表格时出错。导入含图片的表格时，所设置的图片存放路径不生效，导入过程还会报错。帖子附有三张错误截图，并包含一段关于发帖格式和描述要求的友情提示。",
+   "summarized": true,
+   "fixed": "2025-02-07",
+   "base": "18166a3c69eddcd6d5ffccfc4a401d0f21f06636",
+   "gold": [
+    "jeecg-boot/jeecg-module-system/jeecg-system-biz/src/main/java/org/jeecg/modules/system/service/impl/ImportFileServiceImpl.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/7703"
+  },
+  {
+   "issue": "7288",
+   "tier": "entry",
+   "kind": "java",
+   "touches": "java",
+   "title": "数据权限，查看自己拥有部门的权限中存在问题",
+   "body": "数据权限，查看自己拥有部门的权限中存在问题\n\n##### 版本号：\n3.7.1\n\n##### 问题描述：\n我在一个菜单上配置数据规则时出现sql中单引号分割问题，按理来说应该是括号中的每个值都应该带单引号，而不是所有的值两头各一个单引号。\n\n\n##### 错误截图：\n![image](https://github.com/user-attachments/assets/44ece631-589e-49d1-a3eb-7e17fb16768a)\n![image](https://github.com/user-attachments/assets/e17e59dc-673b-45c9-805a-8789ad8bfb9d)\n\n\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-02-06",
+   "base": "84f46c214260780c02d6af085a1b2e44af224405",
+   "gold": [
+    "jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/common/system/query/QueryGenerator.java",
+    "jeecg-boot/jeecg-boot-base-core/src/main/java/org/jeecg/common/system/util/JwtUtil.java"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/7288"
+  },
+  {
+   "issue": "8532",
+   "tier": "entry",
+   "kind": "front",
+   "touches": "front",
+   "title": "低代码开发Online表单开发主子表ERP显示问题",
+   "body": "[摘要] 版本号3.8.1。在低代码开发的Online表单开发中，主子表ERP显示存在两个问题：1）添加主表记录后，主表记录的表格页面高度过高，几乎看不到子表记录的表格数据；2）进入主表的权限控制设置页面时，默认看不到权限按钮，需要翻页才能看到。帖子附有五张错误截图。页面还包含发帖格式提示，要求图文并茂描述问题，并说明所用分支。",
+   "summarized": true,
+   "fixed": "2025-07-07",
+   "base": "e00b25af42af569c9614560fdbf3c7424d0da101",
+   "gold": [
+    "jeecgboot-vue3/package.json",
+    "jeecgboot-vue3/src/components/Table/src/hooks/useTableScroll.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8532"
+  },
+  {
+   "issue": "8374",
+   "tier": "entry",
+   "kind": "front",
+   "touches": "front",
+   "title": "BasicTable 能否一劳永逸的调整控件代码，能让表格占满屏幕显示，以及分页始终显示在底部",
+   "body": "##### 版本号：\njeecg 版本： 3.7.3\nBasicTable 表格高度和分页无法铺满全屏显示，保持固定样式风格，更加符合企业系统的 UX 规范。\n\n\n##### 问题描述：\n\n官方也给了方案，但是这种打补丁的方式，始终有性能问题，并且让页面通过 iframe 嵌套到其他的系统中，高度也不好调整。\n\n官方给的补丁方案：\nhttps://help.jeecg.com/ui/2dev/jingyan/screen?_highlight=%E9%AB%98%E5%BA%A6\n\n##### 错误截图：\n想要的效果，可以参考jeesite 这个项目，用到的技术栈很像。代码相似度也很高。\n\n表格铺满，超过就出现滚动条，分页始终在底部\n![Image](https://github.com/user-attachments/assets/c264cb76-97f9-42ef-a9b7-97de01cca88b)\n\n![Image](https://github.com/user-attachments/assets/d3e0c819-33bb-4b6d-9809-fa4e04af944a)\n\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-06-10",
+   "base": "fc05fe1aff0c5ec3147dd6b6d8bb341c56d5fd1e",
+   "gold": [
+    "jeecgboot-vue3/src/components/Table/src/BasicTable.vue",
+    "jeecgboot-vue3/src/components/Table/src/hooks/useTableScroll.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8374"
+  },
+  {
+   "issue": "8233",
+   "tier": "entry",
+   "kind": "front",
+   "touches": "front",
+   "title": "JSelectPosition antd原生写法使用时，useForm 的 resetFields 不生效，且JSelectPosition 内部存在大量无用代码",
+   "body": "##### 版本号：3.8.0\n\n\n##### 问题描述：\nJSelectPosition antd原生写法使用时，useForm 的 resetFields 不生效，且JSelectPosition 内部存在大量无用代码需改进，按照下面的内容改完可以解决该组件的所有问题，亲测有效\n\n##### 解决方案：\n问题1: resetFields 不生效\n问题的原因是 formData 默认一般设置属性初始值为 undefined 或 '' 空字符串，而组件内部监听初始化的代码排除了这两种可能，导致数据错误，且selectValues应该在初始化前滞空。\n\n![Image](https://github.com/user-attachments/assets/4c59a516-aa37-4c4a-8874-9f0e44362e4d)\n\n![Image](https://github.com/user-attachments/assets/b14f90b6-98ac-40de-b31b-541f1a79cb79)\n\n问题2: 代码里面已经有了一段 selectValues 的监听副作用，用于处理 state 和 emitData 的变更，很多地方不需要做额外的赋值处理\n\n![Image](https://github.com/user-attachments/assets/fea46f9e-b21b-4a45-aae6-2abb5e52a1b4)\n\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-06-05",
+   "base": "25a71fa66c68d64ce92d122ab83cbdca58256c71",
+   "gold": [
+    "jeecgboot-vue3/src/components/Form/src/jeecg/components/JSelectPosition.vue"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8233"
+  },
+  {
+   "issue": "8232",
+   "tier": "entry",
+   "kind": "front",
+   "touches": "front",
+   "title": "BasicForm 的 JSelectDept组件rowKey不生效",
+   "body": "##### 版本号：3.8.0\n\n\n##### 问题描述：\nBasicForm 的 JSelectDept组件rowKey不生效，所属部门组件添加 rowKey 和 labelKey\n\n![Image](https://github.com/user-attachments/assets/eb5d8c95-f96c-4dd1-8be2-1c04698ef08b)\n\n当使用 onChange 给部门表单数据赋值后，JSelectBiz 无法正常渲染\n\n![Image](https://github.com/user-attachments/assets/d2e646fb-ca64-450f-b394-95808359578a)\n\n##### 错误截图：\n\n![Image](https://github.com/user-attachments/assets/33340281-311b-4b22-a531-7557b430e24f)\n\n##### 解决方法\n\n使用 props.rowKey 作为查询参数，而不是固定写死 ids\n![Image](https://github.com/user-attachments/assets/2b0b7220-9dc6-46c4-99fa-17b386d480da)\n\n后端接口补充基于code的查询支持\n\n\n#### 友情提示：\n  - 未按格式要求发帖、描述过于简单的，会被直接删掉;\n  - 描述问题请图文并茂，方便我们理解并快速定位问题;\n  - 如果使用的不是master，请说明你使用的分支;",
+   "summarized": false,
+   "fixed": "2025-06-05",
+   "base": "fdc02fa68a103b94e75fad54c2cbacdee480d453",
+   "gold": [
+    "jeecgboot-vue3/src/components/Form/src/jeecg/hooks/useTreeBiz.ts"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8232"
+  },
+  {
+   "issue": "8295",
+   "tier": "entry",
+   "kind": "front",
+   "touches": "front",
+   "title": "【日志管理】的异常日志列表显示不正常",
+   "body": "[摘要] 版本3.7.3。在“系统监控>日志管理”中，“异常日志”标签页的列表表头缺少“请求地址”和“请求参数”两列。先切换到“登录日志”或“操作日志”，再回到“异常日志”，这两列才会出现。原因是列表初始化时的schema定义了其他标签页的数据。附有三张错误截图。",
+   "summarized": true,
+   "fixed": "2025-06-05",
+   "base": "ec3c34969ab58b3644b84755f9d163eb7ff3678f",
+   "gold": [
+    "jeecgboot-vue3/src/views/monitor/log/index.vue"
+   ],
+   "url": "https://github.com/jeecgboot/JeecgBoot/issues/8295"
+  }
+ ]
+}
