@@ -18,6 +18,7 @@ TEMPLATE = """# {tid} {title}
 - 类型：{kind}
 - 创建：{created} · 基线提交 `{head}`
 - 状态：草稿（契约确认前不要改代码）
+- 验收状态：draft_contract（草拟契约）
 
 ## 1. 需求原文
 {request}
@@ -29,12 +30,16 @@ TEMPLATE = """# {tid} {title}
 - [ ] （老接口签名、报表口径、对外文件格式、权限规则……）
 
 ## 4. 验收标准与检查方式
-| # | 验收条款 | 检查方式（自动化测试 / 命令 / 人工） | 结果 |
-|---|---|---|---|
-| A1 |  |  | 未验证 |
+层级：L1 契约与业务流核对（读 diff/契约/图谱即可证明）· L2 独立环境复验（特征测试、tmh verify）·
+L3 部署后回测（要在可测构建上再跑一遍）· L4 真人/业务方确认（要真实库、真机、业务判断）。
+每条都要有条款、层级和检查方式，否则 `tmh accept advance <任务号> --to implementing` 会拒绝开工。
+
+| # | 验收条款 | 层级 | 检查方式（自动化测试 / 命令 / 人工） | 结果 |
+|---|---|---|---|---|
+| A1 |  |  |  | 未验证 |
 
 ## 5. 影响范围（用 tmh where / tmh impact 得到，附 文件:行号）
-- 入口：
+- 入口：（把入口写在反引号里，如 类名.方法名、GET /url 或业务流 id；tmh accept path-check 用它检查改动是否接上了入口）
 - 业务逻辑：
 - 数据表 / SQL：
 - 配置 / 前端：
@@ -44,9 +49,11 @@ TEMPLATE = """# {tid} {title}
 - [事实] / [推断] / [待确认] 分开写
 
 ## 7. 实施计划
-1. 先补“保持不变”的特征测试（characterization test），确认在旧代码上通过
-2. 再按最小改动实现
-3. 运行 `tmh verify`，把结果填回第 4 节
+1. 第 4 节写全后 `tmh accept advance {tid} --to implementing`（没有完整 AC 不能开工）
+2. 先补“保持不变”的特征测试（characterization test），确认在旧代码上通过
+3. 再按最小改动实现
+4. 运行 `tmh verify --task {tid}`（含入口路径检查），把结果填回第 4 节，再 `tmh accept advance {tid} --to verify_local`
+5. 之后由独立验收（acceptance-l2）复验；合并、部署、回测各推进一步；**关单只认用户确认**（tmh accept confirm / 平台“验收通过”，由人操作）
 
 ## 8. 验证记录
 """
@@ -67,6 +74,8 @@ def new_task(root: Path, title: str, kind: str = "feature", request: str = "") -
     p = d / ("%s-%s.md" % (tid, slug))
     p.write_text(TEMPLATE.format(tid=tid, title=title, kind=KINDS.get(kind, kind), created=now(),
                                  head=(git_head(root) or "未纳入 git")[:12], request=request or title), encoding="utf-8")
+    from .acceptance import start
+    start(root, tid)
     return p
 
 
@@ -78,5 +87,7 @@ def list_tasks(root: Path) -> list[dict]:
     for p in sorted(d.glob("T*.md")):
         text = p.read_text(encoding="utf-8")
         st = re.search(r"- 状态：(.+)", text)
-        out.append({"file": p.relative_to(root).as_posix(), "title": text.splitlines()[0].lstrip("# "), "status": st.group(1).strip() if st else "?"})
+        acc = re.search(r"- 验收状态：(\S+?)（", text)
+        out.append({"file": p.relative_to(root).as_posix(), "title": text.splitlines()[0].lstrip("# "), "status": st.group(1).strip() if st else "?",
+                    "acceptance": acc.group(1) if acc else ""})
     return out

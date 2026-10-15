@@ -20,6 +20,8 @@
 | 第一次接手、整体分析项目、建立/补全知识库 | `legacy-onboard` |
 | 梳理/讲解业务流，出可视化报告 | `business-flow` |
 | 老项目上实现新需求、改缺陷 | `legacy-feature` |
+| 给验收标准定层级（L1–L4）、改完做 L1 核对 | `acceptance-route` |
+| 独立验收（不改代码，重跑验证，对照 AC 给带证据的结论） | `acceptance-l2` |
 | 改完代码后增量更新知识库（修订过期页面） | `knowledge-upkeep` |
 | 信创评估、出改造方案 | `xinchuang-assess` |
 | 执行信创改造工作项（数据库/中间件/操作系统/架构/国密） | `xinchuang-migrate` |
@@ -33,7 +35,10 @@
 ### 硬性规则
 - **先契约后代码**：新需求和改造任务先用 `tmh task new` 写清“要改变 / 必须保持 / 验收方式 / 受影响的业务流”，契约里的问题没有答案前不动代码。
 - **不改基线测试与验证配置**：钩子会拦截。新增测试可以；旧测试确需修改时写进契约，由人工确认后手工改。
-- **完成前必须 `tmh verify`**，并用 `tmh flows --changed` 核对实际触及的业务流，结果写回任务契约“验证记录”。没有运行过的检查不能写成“通过”。
+- **没有验收标准（AC）不进实现**：契约第 4 节每条都要有条款、层级（L1–L4）和检查方式，`tmh accept advance <任务号> --to implementing` 会检查。
+- **完成前必须 `tmh verify --task <任务号>`**（含入口路径检查：改动要接上契约入口），并用 `tmh flows --changed` 核对实际触及的业务流，结果写回任务契约“验证记录”。没有运行过的检查不能写成“通过”。
+- **关单只认用户确认**：自测通过、CI 绿、已合并都不能关单。`tmh accept confirm|close` 只能由人执行（钩子会拦）；智能体最多推进到“待人工验收”。实现和验收分开：改代码的会话不给自己的改动下验收结论，交给 `acceptance-l2`。
+- **纠错走评审**：方向不对、改太多、误分诊用 `tmh accept correct` 记录，达到阈值后提评审 PR 改技能，不要只改会话记忆。
 - **把分析过程留下来**：关键发现、取舍、疑问用 `tmh note finding|decision|question "<一句话>"` 记录，团队会在报告里看到。
 - **区分事实与推断**：结论标明是读代码得到的事实、【推断】，还是需要业务方回答的【待确认】。业务说明只有人看过才能标“已确认”。
 - **需要人决定的事要停下来问**：改变对外接口或报表口径、改变状态流转、删除数据、数据库与中间件选型、无法替代的第三方组件。
@@ -52,7 +57,8 @@ tmh kb chain "需求" | read <id>…      # 读业务链路 / 指定页面的原
 tmh kb triage "需求" [--record] | questions | ask "问题" --pages <id> --to <人>   # 需求预判、待答问题（答复由人 tmh kb answer <号> "原话" --who <姓名>）
 tmh kb metrics      # 少找人统计；人认为预判不对时由人 tmh kb overrule <预判编号> --who <姓名> --reason "…"
 tmh status | flows [关键词] [--changed] | report | note finding|decision|question "…"
-tmh where 关键词 | impact 目标 | task new "标题" --kind feature | baseline | verify
+tmh where 关键词 | impact 目标 | task new "标题" --kind feature | baseline | verify [--task T001]
+tmh accept check|path-check|advance|reject|status T001 [--to 状态] [--note 原因]   # 验收状态机（confirm/close 只能由人）
 tmh assess | items [-v]            # 有信创等改造目标时
 tmh ticket 工单号 [--task] | build failure [job] | quality | doc search 词 | trace 工单号   # 运维工具
 tmh int list | types -v | add | test   # 运维工具接入

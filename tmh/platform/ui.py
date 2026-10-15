@@ -412,7 +412,7 @@ async function vTicket(key,sub){
   $('#main').innerHTML=`<div class="sub" style="margin-bottom:6px"><a href="#/">工单看板</a> / ${h(d.project.key)} / ${t.key}</div>
   <div class="hdr"><h1 class="grow" id="ttl" title="点击修改">${h(t.title)}</h1>${stPill(t.status)}<button onclick="A.toggle(true);A.enterTicket(S.cur.ticket)">在助手中讨论</button></div>
   <div class="props"><span class="tag">${h(d.project.key)}</span>
-   <label>状态<select id="fs" data-autosave="1">${opt(S.meta.statuses,t.status)}</select></label>
+   <label>状态<select id="fs" data-autosave="1">${opt(S.meta.statuses.filter(([k])=>k!=='closed'||t.status==='closed'),t.status)}</select></label>
    <label>类型<select id="fy" data-autosave="1">${opt(S.meta.types,t.type)}</select></label>
    <label>优先级<select id="fp" data-autosave="1">${opt(S.meta.priorities,t.priority)}</select></label>
    <label>经办人<input id="fa" data-autosave="1" value="${h(t.assignee)}" placeholder="无人" size="6"></label>

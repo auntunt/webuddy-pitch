@@ -29,6 +29,7 @@ DANGEROUS_BASH = [
     (r"\bdotnet\s+nuget\s+push\b", "发布制品属于人工操作"),
     (r"(?i)\b(drop\s+(table|database|schema|user)|truncate\s+table)\b", "破坏性数据库语句"),
     (r"(?i)\b(disql|sqlplus|ksql|gsql|obclient|isql)\b", "直接连库执行 SQL 需由人确认（可让人工在终端执行）"),
+    (r"\baccept\s+(confirm|close)\b|\baccept\s+advance\b.*--to[= ]\s*(user_confirmed_fix|closed)\b", "用户确认与关单只能由人操作（验收状态机）"),
 ]
 
 

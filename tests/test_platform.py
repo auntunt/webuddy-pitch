@@ -33,6 +33,8 @@ if mode == "fix":
     f = sorted(pathlib.Path(".").rglob("*.java"))[0]
     f.write_text(f.read_text(encoding="utf-8") + "\n// fixed by fake agent\n", encoding="utf-8")
     print("改了", f.as_posix())
+if mode == "plan":
+    print('```tmh-plan\n{"files": [], "ac": [{"id": "A1", "text": "审批后状态正确", "layer": "L2", "check": "跑请假测试"}]}\n```')
 print("结论：问题在请假审批流程【推断】")
 '''
 
@@ -47,7 +49,8 @@ S, C = %r, %r
 U = "src/main/java/com/acme/oa/controller/UserController.java"
 if mode == "plan":
     print("方案：提交时更新状态")
-    print("```tmh-plan\n" + json.dumps({"files": [{"path": S, "goal": "提交时更新状态"}]}) + "\n```")
+    print("```tmh-plan\n" + json.dumps({"files": [{"path": S, "goal": "提交时更新状态"}],
+                                        "ac": [{"id": "A1", "text": "提交后状态更新", "layer": "L2", "check": "跑请假测试"}]}) + "\n```")
 elif mode == "edit":
     t = re.search(r"目标文件：`([^`]+)`", p).group(1)
     f = pathlib.Path(t)
@@ -1258,6 +1261,9 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         _, d = self.call("GET", "/api/tickets/" + t["key"])
         self.assertEqual(d["ticket"]["status"], "new")  # asking does not move the ticket
         self.assertFalse([e for e in d["events"] if e["kind"].startswith("run")])
+        # closing is acceptance, not a status edit
+        code, e = self.call("POST", "/api/tickets/" + t["key"], {"status": "closed"})
+        self.assertEqual(code, 400)
         # only a person accepts; failing needs a reason
         code, e = self.call("POST", "/api/tickets/%s/accept" % t["key"], {"result": "fail"})
         self.assertEqual(code, 400)
