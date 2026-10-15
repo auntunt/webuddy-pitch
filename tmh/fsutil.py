@@ -146,7 +146,8 @@ def sha256_file(p: Path) -> str:
 
 def git(root: Path, *args: str) -> str | None:
     try:
-        r = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=60)
+        # quotepath off: Chinese file names come back as names, not as "\350\257..." escapes
+        r = subprocess.run(["git", "-C", str(root), "-c", "core.quotepath=off", *args], capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.TimeoutExpired):
         return None
     return r.stdout.strip() if r.returncode == 0 else None

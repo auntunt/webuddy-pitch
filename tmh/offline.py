@@ -18,7 +18,7 @@ from . import __version__
 from .install import HOME
 
 DIRS = ("tmh", "templates", "skills", "agents", "kb")
-FILES = ("tmh.py", "pyproject.toml", "README.md", "docs/platform.md", "docs/knowledge-base.md", "docs/integrations.md")
+FILES = ("tmh.py", "pyproject.toml", "README.md", "docs/platform.md", "docs/knowledge-base.md", "docs/integrations.md", "docs/acceptance.md")
 SKIP = ("__pycache__", ".pyc", ".DS_Store")
 
 README = """# tmh 内网离线安装包 {version}

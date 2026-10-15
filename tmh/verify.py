@@ -136,7 +136,7 @@ def new_findings(root: Path, cfg: dict, base: dict | None, changed: list[str] | 
     return [f for f in scan["findings"] if f["severity"] in BLOCKING_SEVERITIES and fingerprint(f) not in known]
 
 
-def verify(root: Path, run_tests: bool = True, timeout: int = 3600) -> dict:
+def verify(root: Path, run_tests: bool = True, timeout: int = 3600, task: str = "") -> dict:
     root = root.resolve()
     cfg = cfgmod.load(root)
     base = load_baseline(root)
@@ -160,8 +160,16 @@ def verify(root: Path, run_tests: bool = True, timeout: int = 3600) -> dict:
         result["commands"] = run_commands(root, cfg, timeout)
         if not result["commands"]:
             result["notes"].append("没有识别到构建/测试命令，请在 .tmh/config.json 的 commands 中配置。")
+    if task:  # the change must be on the path of the contract's entries (path.py)
+        from .acceptance import Refused
+        from .path import path_check
+        try:
+            result["path_check"] = dict(path_check(root, task), task=task)
+        except (Refused, OSError) as e:
+            result["path_check"] = {"ok": False, "task": task, "entries": [], "flows": [], "covered": [], "manual": [], "problems": [str(e)]}
     failed_cmds = [c for c in result["commands"] if c["exit_code"] != 0]
-    result["passed"] = not result["protected_violations"] and not result["new_findings"] and not failed_cmds
+    result["passed"] = not result["protected_violations"] and not result["new_findings"] and not failed_cmds \
+        and (result.get("path_check") or {"ok": True})["ok"]
     result["tests_ran"] = bool(result["commands"])
     _write_report(root, result)
     return result
@@ -193,6 +201,10 @@ def verify_md(r: dict) -> str:
         out.append("- %s `%s` 退出码 %s，%.1fs" % ("✅" if c["exit_code"] == 0 else "❌", c["command"], c["exit_code"], c["seconds"]))
         if c["exit_code"] != 0:
             out.append("\n```\n%s\n```" % c["tail"])
+    if r.get("path_check"):
+        from .path import path_text
+        out.append("\n## 入口路径（任务 %s）\n" % r["path_check"]["task"])
+        out.append(path_text(r["path_check"]).split("\n", 1)[-1])
     if r["notes"]:
         out.append("\n## 说明\n")
         out.extend("- " + n for n in r["notes"])

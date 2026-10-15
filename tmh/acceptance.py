@@ -1,0 +1,276 @@
+"""Acceptance state machine for change contracts (.tmh/tasks/T###-*.md).
+
+Closing a task is a person's act: the implementer's own tests, a green build and a merged branch are each
+evidence, never a verdict. So a task moves through explicit states, and each move checks what it needs:
+
+  draft_contract → implementing            only when every acceptance criterion (AC) has a check and a layer
+  implementing → verify_local              only after a passing `tmh verify` and a path check (path.py)
+  verify_local → merged → deployed_awaiting_verify → auto_verified | needs_human
+  auto_verified | needs_human → user_confirmed_fix → closed      a person only (confirm / close)
+  any check state → implementing           a failed check sends the task back, with the reason
+
+State, history and evidence pointers live in .tmh/acceptance/<task>.json; the contract's "验收状态" line mirrors
+the current state for people reading the contract. Layers: L1 contract and flow review, L2 independent rerun,
+L3 retest after deployment, L4 a person on the real system (docs/acceptance.md).
+"""
+from __future__ import annotations
+
+import json
+import os
+import re
+from pathlib import Path
+
+from . import config as cfgmod
+from .report import now
+
+STATES = [
+    ("draft_contract", "草拟契约"), ("implementing", "实现中"), ("verify_local", "本地验证通过"), ("merged", "已合并"),
+    ("deployed_awaiting_verify", "已部署待回测"), ("auto_verified", "自动证据齐全"), ("needs_human", "待人工验收"),
+    ("user_confirmed_fix", "用户已确认"), ("closed", "已关闭"),
+]
+LABEL = dict(STATES)
+CHECKING = ("verify_local", "merged", "deployed_awaiting_verify", "auto_verified", "needs_human")
+MOVES = {  # state -> states it may move to
+    "draft_contract": ("implementing",),
+    "implementing": ("verify_local",),
+    "verify_local": ("merged", "needs_human", "implementing"),
+    "merged": ("deployed_awaiting_verify", "needs_human", "implementing"),
+    "deployed_awaiting_verify": ("auto_verified", "needs_human", "implementing"),
+    "auto_verified": ("user_confirmed_fix", "needs_human", "implementing"),
+    "needs_human": ("user_confirmed_fix", "implementing"),
+    "user_confirmed_fix": ("closed", "implementing"),
+    "closed": ("implementing",),  # reopened by a person
+}
+HUMAN_ONLY = {"user_confirmed_fix", "closed"}
+LAYERS = ("L1", "L2", "L3", "L4")
+AGENT_NAMES = {"", "agent", "ai", "bot", "claude", "codex", "tmh", "assistant", "智能体", "助手"}
+AGENT_ENV = ("CLAUDECODE", "CODEX_SANDBOX", "TMH_RUN")  # set inside Claude Code, Codex sandboxes and platform runs
+PLACEHOLDER = re.compile(r"^\s*(（.*）)?\s*$")
+
+
+class Refused(Exception):
+    """A move the rules do not allow; the message says what is missing."""
+
+
+# ---------------------------------------------------------------- contract parsing
+def acc_dir(root: Path) -> Path:
+    return cfgmod.tmh_dir(root) / "acceptance"
+
+
+def find_contract(root: Path, tid: str) -> Path:
+    d = cfgmod.tmh_dir(root) / "tasks"
+    tid = tid.upper().split("-")[0]
+    hit = sorted(d.glob("%s-*.md" % tid)) + sorted(d.glob("%s.md" % tid)) if d.is_dir() else []
+    if not hit:
+        raise Refused("找不到任务契约 %s（.tmh/tasks/%s-*.md）" % (tid, tid))
+    return hit[0]
+
+
+def _section(text: str, num: int) -> str:
+    m = re.search(r"^## %d\..*?$(.*?)(?=^## \d+\.|\Z)" % num, text, re.M | re.S)
+    return m.group(1) if m else ""
+
+
+def _cells(line: str) -> list[str]:
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
+def ac_rows(text: str) -> list[dict]:
+    """The rows of section 4: id, clause, layer, check and result, whatever order the columns are in."""
+    rows, head = [], None
+    for line in _section(text, 4).splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        c = _cells(line)
+        if head is None:
+            if any("验收条款" in x for x in c):
+                head = c
+            continue
+        if set("".join(c)) <= set("-: "):
+            continue
+        get = lambda *names: next((c[i] for i, h in enumerate(head) if i < len(c) and any(n in h for n in names)), "")
+        rows.append({"id": c[0], "clause": get("验收条款"), "layer": get("层级").upper()[:2], "check": get("检查方式"), "result": get("结果")})
+    return rows
+
+
+def ac_problems(text: str) -> list[str]:
+    """Why this contract cannot enter implementation yet (empty when it can)."""
+    rows = ac_rows(text)
+    if not rows:
+        return ["第 4 节没有验收标准（AC）表"]
+    out = []
+    if not any("层级" in l for l in _section(text, 4).splitlines() if "验收条款" in l):
+        out.append("第 4 节的表没有“层级”列（旧契约：按 docs/acceptance.md 的迁移说明补一列 L1–L4）")
+    for r in rows:
+        if PLACEHOLDER.match(r["clause"]):
+            out.append("%s 没有写验收条款" % r["id"])
+        if PLACEHOLDER.match(r["check"]):
+            out.append("%s 没有写检查方式" % r["id"])
+        if out and "层级" in out[0]:
+            continue
+        if r["layer"] not in LAYERS:
+            out.append("%s 的层级要写 L1/L2/L3/L4（现在是“%s”）" % (r["id"], r["layer"] or "空"))
+    return out
+
+
+def entries(text: str) -> list[str]:
+    """Entry points the contract names (backticked, on the 入口 line of section 5)."""
+    for line in _section(text, 5).splitlines():
+        if re.match(r"\s*-\s*入口[：:]", line):
+            return [x.strip() for x in re.findall(r"`([^`]+)`", line) if x.strip()]
+    return []
+
+
+def passed(result: str) -> bool:
+    return result.strip().startswith(("通过", "✅", "pass", "PASS"))
+
+
+# ---------------------------------------------------------------- state record
+def _record_path(root: Path, tid: str) -> Path:
+    return acc_dir(root) / ("%s.json" % tid)
+
+
+def _tid(p: Path) -> str:
+    return re.match(r"(T\d+)", p.name).group(1)
+
+
+def load(root: Path, tid: str) -> dict:
+    c = find_contract(root, tid)
+    tid = _tid(c)
+    p = _record_path(root, tid)
+    rec = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+    base = {"task": tid, "file": c.relative_to(root).as_posix(), "state": "draft_contract", "build_id": None, "ref": None,
+            "evidence": [], "blockers": [], "confirmed_by": None, "confirmed_at": None, "history": []}
+    base.update(rec)
+    return base
+
+
+def _save(root: Path, rec: dict) -> None:
+    p = _record_path(root, rec["task"])
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(rec, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    c = root / rec["file"]
+    text = c.read_text(encoding="utf-8")
+    line = "- 验收状态：%s（%s）" % (rec["state"], LABEL[rec["state"]])
+    if re.search(r"^- 验收状态：.*$", text, re.M):
+        text = re.sub(r"^- 验收状态：.*$", line, text, count=1, flags=re.M)
+    elif re.search(r"^- 状态：.*$", text, re.M):
+        text = re.sub(r"^(- 状态：.*)$", r"\1\n" + line, text, count=1, flags=re.M)
+    c.write_text(text, encoding="utf-8")
+
+
+def start(root: Path, tid: str) -> dict:
+    """A new contract starts as draft_contract."""
+    rec = load(root, tid)
+    if not _record_path(root, rec["task"]).exists():
+        rec["history"].append({"at": now(), "from": None, "to": "draft_contract", "who": "tmh", "note": "建契约"})
+        _save(root, rec)
+    return rec
+
+
+def agent_session() -> str:
+    return next((k for k in AGENT_ENV if os.environ.get(k)), "")
+
+
+def _human(who: str, to: str) -> None:
+    env = agent_session()
+    if env:
+        raise Refused("“%s”只能由人做：当前是智能体会话（%s），请把结论交给人，由人在自己的终端或平台“验收通过”里操作" % (LABEL[to], env))
+    if (who or "").strip().lower() in AGENT_NAMES:
+        raise Refused("“%s”要写明是谁确认的：--who <姓名>（不能是 agent / 智能体）" % LABEL[to])
+
+
+# ---------------------------------------------------------------- moves
+def advance(root: Path, tid: str, to: str, who: str = "", note: str = "", ref: str = "", build: str = "",
+            path_result: dict | None = None) -> dict:
+    """Move a task to state `to` if the rules allow it; raises Refused with the reason otherwise."""
+    root = root.resolve()
+    rec = load(root, tid)
+    cur = rec["state"]
+    if to not in LABEL:
+        raise Refused("未知状态 %s，可选：%s" % (to, "、".join(LABEL)))
+    if to not in MOVES.get(cur, ()):
+        raise Refused("不能从“%s”直接到“%s”，可以去：%s" % (LABEL[cur], LABEL[to], "、".join(LABEL[x] for x in MOVES.get(cur, ())) or "无"))
+    text = (root / rec["file"]).read_text(encoding="utf-8")
+    ev = None
+    if to in HUMAN_ONLY or cur == "closed":
+        _human(who, to if to in HUMAN_ONLY else "closed")
+    if to == "implementing" and cur != "draft_contract" and not note.strip():
+        raise Refused("退回实现要写原因：--note \"哪条 AC 没过、证据在哪\"")
+    if to == "implementing" and cur == "draft_contract":
+        probs = ac_problems(text)
+        if probs:
+            raise Refused("没有完整的验收标准，不能进入实现：\n  - " + "\n  - ".join(probs))
+    if to == "verify_local":
+        rep = cfgmod.tmh_dir(root) / "reports" / "verify-latest.json"
+        v = json.loads(rep.read_text(encoding="utf-8")) if rep.exists() else None
+        if not v or not v.get("passed"):
+            raise Refused("先运行 tmh verify --task %s 并通过（%s）" % (rec["task"], "还没有验证报告" if not v else "最近一次未通过"))
+        if path_result is None:
+            from .path import path_check
+            path_result = path_check(root, rec["task"])
+        if not path_result["ok"]:
+            raise Refused("入口路径检查没通过：\n  - " + "\n  - ".join(path_result["problems"]))
+        ev = {"type": "tmh_verify", "at": v.get("time"), "ok": True, "report": ".tmh/reports/verify-latest.json",
+              "path_check": {"entries": path_result["entries"], "covered": len(path_result["covered"]), "manual": len(path_result["manual"])}}
+        rec["blockers"] = [b for b in rec["blockers"] if not b.startswith("path_unverified")]
+        rec["blockers"] += ["path_unverified: %s" % m for m in path_result["manual"]]
+    if to == "merged":
+        if not ref.strip():
+            raise Refused("写明合并到哪里：--ref <提交号或合并请求>")
+        rec["ref"] = ref.strip()
+        ev = {"type": "merge", "at": now(), "ref": rec["ref"]}
+    if to == "deployed_awaiting_verify":
+        if not build.strip():
+            raise Refused("写明部署的是哪个可测构建：--build <构建号或版本>")
+        rec["build_id"] = build.strip()
+        ev = {"type": "deploy", "at": now(), "build_id": rec["build_id"]}
+    if to == "auto_verified":
+        rows = ac_rows(text)
+        left = [r["id"] for r in rows if not passed(r["result"])]
+        l4 = [r["id"] for r in rows if r["layer"] == "L4"]
+        why = (["AC %s 还没有“通过”的结果" % "、".join(left)] if left else []) + (["AC %s 是 L4，要人验收" % "、".join(l4)] if l4 else []) \
+            + (["还有阻塞：%s" % "；".join(rec["blockers"])] if rec["blockers"] else [])
+        if why:
+            raise Refused("证据不齐，不能标“自动证据齐全”，请改去“待人工验收”（needs_human）：\n  - " + "\n  - ".join(why))
+        ev = {"type": "ac_results", "at": now(), "ok": True, "build_id": rec["build_id"]}
+    if to == "user_confirmed_fix":
+        rec["confirmed_by"], rec["confirmed_at"] = who.strip(), now()
+        ev = {"type": "user_confirmed", "at": rec["confirmed_at"], "by": rec["confirmed_by"], "note": note}
+    if to == "implementing" and cur != "draft_contract":
+        rec["confirmed_by"] = rec["confirmed_at"] = None
+    if ev:
+        rec["evidence"].append(ev)
+    rec["history"].append({"at": now(), "from": cur, "to": to, "who": who or "agent", "note": note})
+    rec["state"] = to
+    _save(root, rec)
+    return rec
+
+
+def correct(root: Path, tid: str, kind: str, note: str, who: str = "") -> dict:
+    """Record a correction (a mis-triage, a change that grew too big, a wrong direction). When one kind recurs,
+    the fix is a reviewed change to the acceptance skill, not a note in some session's memory."""
+    rec = load(root, tid)
+    p = acc_dir(root) / "corrections.jsonl"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    row = {"at": now(), "task": rec["task"], "kind": kind, "note": note, "who": who or "agent"}
+    with open(p, "a", encoding="utf-8") as f:
+        f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    n = sum(1 for l in p.read_text(encoding="utf-8").splitlines() if l.strip() and json.loads(l).get("kind") == kind)
+    th = int(cfgmod.load(root).get("correction_threshold", 3))
+    return dict(row, count=n, threshold=th, due=n >= th)
+
+
+def records(root: Path) -> list[dict]:
+    d = cfgmod.tmh_dir(root) / "tasks"
+    out = []
+    for c in sorted(d.glob("T*.md")) if d.is_dir() else []:
+        try:
+            out.append(load(root, _tid(c)))
+        except (Refused, AttributeError, ValueError):
+            continue
+    return out
+
+
+def by_build(root: Path, build: str) -> list[dict]:
+    return [r for r in records(root) if r.get("build_id") == build]

@@ -202,8 +202,58 @@ def cmd_task(a) -> int:
         a.summary = "创建变更契约：%s" % (a.title or "未命名任务")
     else:
         for t in task.list_tasks(root):
-            print("%-50s %s" % (t["title"][:50], t["status"]))
+            print("%-50s %-14s %s" % (t["title"][:50], t["status"][:14], t["acceptance"]))
     return 0
+
+
+def cmd_accept(a) -> int:
+    from . import acceptance as acc
+    root = _root(a)
+    try:
+        if a.action == "path-check":
+            from .path import path_check, path_text
+            r = path_check(root, a.task or "", a.entry or None)
+            print(path_text(r))
+            a.summary = "入口路径检查 %s：%s" % (a.task or "", "通过" if r["ok"] else "未通过")
+            return 0 if r["ok"] else 1
+        if a.action == "check":
+            text = acc.find_contract(root, a.task).read_text(encoding="utf-8")
+            probs = acc.ac_problems(text)
+            rows = acc.ac_rows(text)
+            for r in rows:
+                print("%-4s %-3s %-40s %s" % (r["id"], r["layer"] or "?", r["clause"][:40], r["result"][:30]))
+            print("入口：%s" % ("、".join(acc.entries(text)) or "未写"))
+            print("\n".join(["❌ " + x for x in probs]) or "✅ 验收标准完整，可以进入实现")
+            a.summary = "检查验收标准 %s：%s" % (a.task, "完整" if not probs else "缺 %d 项" % len(probs))
+            return 1 if probs else 0
+        if a.action in ("advance", "confirm", "close", "reject"):
+            to = {"confirm": "user_confirmed_fix", "close": "closed", "reject": "implementing"}.get(a.action, a.to)
+            if not to:
+                print("要推进到哪个状态：--to " + "|".join(acc.LABEL))
+                return 2
+            r = acc.advance(root, a.task, to, who=a.who or "", note=a.note or "", ref=a.ref or "", build=a.build or "")
+            print("%s → %s（%s）" % (r["task"], r["state"], acc.LABEL[r["state"]]))
+            for b in r["blockers"]:
+                print("  阻塞：" + b)
+            a.summary = "验收状态 %s → %s" % (r["task"], acc.LABEL[r["state"]])
+            return 0
+        if a.action == "correct":
+            r = acc.correct(root, a.task, a.kind or "other", a.note or "", a.who or "")
+            print("已记录纠错 %s（%s 类第 %d 次）" % (r["task"], r["kind"], r["count"]))
+            if r["due"]:
+                print("达到阈值 %d：请提一个评审 PR 更新 skills/acceptance-l2 的反模式检查项，不要只改会话记忆。" % r["threshold"])
+            return 0
+        rows = acc.by_build(root, a.build) if a.build else ([acc.load(root, a.task)] if a.task else acc.records(root))
+        if a.build:
+            print("构建 %s 可验收的任务 %d 个：" % (a.build, len(rows)))
+        for r in rows:
+            print("%-6s %-26s 构建 %-10s %s%s" % (r["task"], "%s（%s）" % (r["state"], acc.LABEL[r["state"]]), r.get("build_id") or "-",
+                                             r["file"], "  阻塞：" + "；".join(r["blockers"]) if r["blockers"] else ""))
+        return 0
+    except acc.Refused as e:
+        print("拒绝：%s" % e)
+        a.summary = "验收操作被拒绝：%s" % str(e).splitlines()[0]
+        return 1
 
 
 def cmd_baseline(a) -> int:
@@ -219,7 +269,7 @@ def cmd_baseline(a) -> int:
 
 def cmd_verify(a) -> int:
     from .verify import verify, verify_md
-    r = verify(_root(a), run_tests=not a.no_tests, timeout=a.timeout)
+    r = verify(_root(a), run_tests=not a.no_tests, timeout=a.timeout, task=a.task or "")
     print(verify_md(r))
     a.summary = "独立验证：%s" % ("通过" if r["passed"] else "未通过")
     return 0 if r["passed"] else 1
@@ -661,11 +711,24 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("title", nargs="?")
     p.add_argument("--kind", default="feature", choices=["feature", "migration", "bugfix", "refactor", "upgrade"])
     p.add_argument("--request", help="需求原文")
+    p = add("accept", cmd_accept, "验收状态机：检查 AC、入口路径检查、推进状态；关单只认用户确认（docs/acceptance.md）")
+    p.add_argument("action", choices=["status", "check", "path-check", "advance", "reject", "confirm", "close", "correct"],
+                   help="status 看状态（--build 按构建列）；check 检查 AC；path-check 改动是否接上契约入口；advance --to 推进；"
+                        "reject 退回实现；confirm/close 由人确认、关单；correct 记一次纠错")
+    p.add_argument("task", nargs="?", help="任务号，如 T001")
+    p.add_argument("--to", help="advance 的目标状态")
+    p.add_argument("--who", help="谁做的（confirm/close 必填姓名）")
+    p.add_argument("--note", help="说明；退回实现时写原因")
+    p.add_argument("--ref", help="合并：提交号或合并请求")
+    p.add_argument("--build", help="部署：可测构建号/版本；status 时按构建列出")
+    p.add_argument("--entry", action="append", help="path-check：不读契约，直接给入口（可多次）")
+    p.add_argument("--kind", help="correct：too-big / wrong-direction / misroute / other")
     p = add("baseline", cmd_baseline, "记录基线（受保护文件、已知不兼容点，可选跑测试）")
     p.add_argument("--with-tests", action="store_true")
     p = add("verify", cmd_verify, "独立验证闸门")
     p.add_argument("--no-tests", action="store_true")
     p.add_argument("--timeout", type=int, default=3600)
+    p.add_argument("--task", help="同时检查改动是否接上这个任务契约的入口（tmh accept path-check）")
     p = add("hook", cmd_hook, "智能体钩子入口（由 .claude/settings.json 调用）")
     p.add_argument("event", choices=["pre-edit", "post-edit", "pre-bash", "stop", "pre-commit", "agent-pre", "agent-post"])
     p = add("agent-config", cmd_agent_config, "生成 Claude Code / Codex 接第三方模型的配置")

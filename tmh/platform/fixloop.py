@@ -78,6 +78,17 @@ def plan_files(text: str, cap: int = 16) -> dict:
     return out
 
 
+def plan_ac(text: str) -> list:
+    """The acceptance criteria a plan names (```tmh-plan {"ac": [...]}```): only those with a criterion and a check."""
+    j = fenced("tmh-plan", text)
+    out = []
+    for a in ((j or {}).get("ac") if isinstance(j, dict) else None) or []:
+        if isinstance(a, dict) and str(a.get("text") or "").strip() and str(a.get("check") or "").strip():
+            out.append({"id": str(a.get("id") or "A%d" % (len(out) + 1)), "text": str(a["text"]).strip()[:300],
+                        "layer": str(a.get("layer") or "").upper()[:2], "check": str(a["check"]).strip()[:300]})
+    return out
+
+
 def settings(data_dir: Path) -> dict:
     conf = {"check": "", "rounds": 3, "check_timeout": 1200, "max_files": 16, "split_from": 5}
     f = Path(data_dir) / "autoflow.json"

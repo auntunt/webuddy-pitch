@@ -1544,6 +1544,9 @@ def api_ticket(P, req, key):
 def api_update_ticket(P, req, key):
     t = P.ticket(key)
     b = dict(req.body)
+    if b.get("status") == "closed" and t["status"] != "closed":
+        # closing is acceptance: a person's "验收通过" (POST /accept), never a status edit (docs/acceptance.md)
+        raise ApiError(400, "关单只能走验收：由人点“验收通过”（POST /api/tickets/%s/accept）" % t["key"])
     if "link_flow" in b or "unlink_flow" in b or "confirm_flows" in b:
         # flows the automatic flow linked stay "suggested" until a person links or confirms them (flows_ok)
         links = dict(t.get("links") or {})
