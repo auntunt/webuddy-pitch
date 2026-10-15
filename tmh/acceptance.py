@@ -226,6 +226,10 @@ def advance(root: Path, tid: str, to: str, who: str = "", note: str = "", ref: s
         rec["build_id"] = build.strip()
         ev = {"type": "deploy", "at": now(), "build_id": rec["build_id"]}
     if to == "auto_verified":
+        kinds = {e.get("type") for e in rec["evidence"]}
+        lack = [lb for k, lb in (("tmh_verify", "本地验证和入口路径检查"), ("deploy", "部署的构建号")) if k not in kinds]
+        if lack:
+            raise Refused("证据包缺 %s，不能标“自动证据齐全”" % "、".join(lack))
         rows = ac_rows(text)
         left = [r["id"] for r in rows if not passed(r["result"])]
         l4 = [r["id"] for r in rows if r["layer"] == "L4"]
@@ -244,7 +248,35 @@ def advance(root: Path, tid: str, to: str, who: str = "", note: str = "", ref: s
     rec["history"].append({"at": now(), "from": cur, "to": to, "who": who or "agent", "note": note})
     rec["state"] = to
     _save(root, rec)
+    _chain(root, rec, cur, to, who, note, text)
     return rec
+
+
+def evidence_path(root: Path, tid: str) -> Path:
+    return cfgmod.tmh_dir(root) / "evidence" / ("%s.jsonl" % tid)
+
+
+def _chain(root: Path, rec: dict, cur: str, to: str, who: str, note: str, text: str) -> None:
+    """The task's evidence package (tmh/evidence.py): a snapshot when it is handed over for acceptance, then the
+    person's confirmation (carrying the hash of what they confirmed), the close, or the send-back."""
+    import hashlib
+    from . import evidence as ev
+    path = evidence_path(root, rec["task"])
+    recs = ev.read(path)
+    if to in ("auto_verified", "needs_human"):
+        data = {"state": to, "contract": rec["file"], "contract_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                "ac": ac_rows(text), "entries": entries(text), "evidence": rec["evidence"], "blockers": rec["blockers"],
+                "build_id": rec.get("build_id"), "ref": rec.get("ref")}
+        kind = "pack"
+    elif to == "user_confirmed_fix":
+        data, kind = {"signer": who.strip(), "note": note, "package_hash": ev.head(recs), "via": "tmh accept confirm"}, "sign"
+    elif to == "closed":
+        data, kind = {"by": who.strip(), "note": note}, "close"
+    elif to == "implementing" and cur != "draft_contract" and recs:
+        data, kind = {"from": cur, "note": note}, "reject"
+    else:
+        return
+    ev.append(path, kind, who or "agent", data)
 
 
 def correct(root: Path, tid: str, kind: str, note: str, who: str = "") -> dict:

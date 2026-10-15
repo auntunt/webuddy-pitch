@@ -1505,8 +1505,24 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         rows = usage.read(root)
         self.assertEqual([(x["client"], x["ticket"], x.get("run")) for x in rows], [("Cursor 1.7", c["key"], None), ("Cursor 1.7", b["key"], "99")])
 
+        # no sealed baseline: measured numbers only, no comparison, no saving
         code, m = self.call("GET", "/api/projects/EF/metrics")
         self.assertEqual(code, 200, m)
+        self.assertFalse(m["gate"]["sealed"])
+        self.assertEqual((m["compare"][0]["baseline"], m["compare"][0]["change"], m["estimate"]["saved_days"]), ("未封存", None, None))
+        self.assertIn("还没有封存基线", report_md(m))
+        code, cand = self.call("GET", "/api/projects/EF/baseline?from=2026-03-01&to=2026-03-31")
+        self.assertEqual((cand["sealed"], cand["candidate"]["n"]), (None, 2))
+        self.assertIn("样本只有 2 张", cand["candidate"]["warning"])
+        self.assertEqual(self.call("POST", "/api/projects/EF/baseline/seal", {"from": "2026-04-01", "to": "2026-04-30"})[0], 409)  # empty window
+        code, sealed = self.call("POST", "/api/projects/EF/baseline/seal", {"from": "2026-03-01", "to": "2026-03-31", "note": "试点前三月"})
+        self.assertEqual(code, 200, sealed)
+        self.assertEqual((sealed["stats"]["n"], len(sealed["sample"]), sealed["sealed_by"]), (2, 2, "tester"))
+        self.assertEqual(self.call("POST", "/api/projects/EF/baseline/seal", {"from": "2026-03-01", "to": "2026-03-02"})[0], 409)  # sealed once
+
+        code, m = self.call("GET", "/api/projects/EF/metrics")
+        self.assertEqual(code, 200, m)
+        self.assertTrue(m["gate"]["sealed"])
         bl, pl = m["baseline"], m["pilot"]
         self.assertEqual((bl["n"], bl["cycle"]["median_h"], bl["systems"]), (2, 72.0, ["jira"]))
         self.assertEqual(pl["n"], 4)  # three platform tickets + the open imported one
@@ -1523,8 +1539,20 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual(self.call("GET", "/api/projects/EF/metrics?month=9")[0], 400)
 
         md = report_md(m)
-        for w in ("# AI 提效报告", "实测", "估算", "Cursor 1.7 1 次", "工单周期（中位数） | 3.0 天 | 2.0 天 | -33.3%"):
+        for w in ("# AI 提效报告", "实测", "估算", "Cursor 1.7 1 次", "工单周期（中位数） | 3.0 天 | 2.0 天 | -33.3%", "封存窗口 2026-03-01 至 2026-03-31",
+                  "## 账本（每单）", "标价折人民币 | 10.00 元", "实付 | 未录入"):
             self.assertIn(w, md)
+        # the ledger: one row per ticket handled, points priced, human time estimated
+        row = {x["key"]: x for x in m["ledger"]["rows"]}[a["key"]]
+        self.assertEqual((row["reworks"], row["ai_runs"], row["points"], row["list_yuan"], row["paid_yuan"], row["human_min"]), (1, 1, 10, 10.0, None, 20))
+        # a sealed baseline edited afterwards no longer counts
+        f = self.data / "baselines" / "EF.json"
+        f.chmod(0o644)
+        f.write_text(f.read_text(encoding="utf-8").replace('"n": 2', '"n": 20', 1), encoding="utf-8")
+        code, m2 = self.call("GET", "/api/projects/EF/metrics")
+        self.assertFalse(m2["gate"]["sealed"])
+        self.assertIn("被改过", m2["gate"]["reason"])
+        self.assertIsNone(m2["estimate"]["saved_days"])
         code, rep = self.call("GET", "/api/projects/EF/report?month=2026-09")
         self.assertEqual(rep["filename"], "AI提效报告-EF-2026-09.md")
         with urllib.request.urlopen(self.base + "/p/EF/efficiency?month=2026-09") as resp:
@@ -1672,6 +1700,121 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual(code, 404)  # not configured for this project
             code, r = self.call("POST", "/bot/api/NOPE", {"text": "x"}, headers={"Authorization": "Bearer k-9"})
             self.assertEqual(code, 404)
+
+    def test_evidence_package_sign_off_and_ledger(self):
+        """AI gathers the evidence, a person signs on a page without code, the ledger picks it up."""
+        import re as _re
+        from tmh import evidence
+        from tmh.graph import Graph
+        from tmh.platform import signoff
+        self.team()
+        try:
+            key = self.project()
+            g = Graph(self.repo)
+            fid = next(f["id"] for f in g.nodes("flow") if any((g.node(e["dst"]) or {}).get("file") == SVC for e in g.out(f["id"], "step")))
+            _, t = self.call("POST", "/api/tickets", {"project": key, "title": "请假提交后状态不更新", "body": "员工提交请假后，列表里状态还是草稿"})
+            self.call("POST", "/api/tickets/%s" % t["key"], {"link_flow": fid})
+            self.assertEqual(self.call("GET", "/api/tickets/%s/evidence" % t["key"])[1]["status"], "none")
+            for mode in ("plan", "fix"):
+                _, r = self.call("POST", "/api/tickets/%s/runs" % t["key"], {"agent": "team", "mode": mode})
+                r = self.wait_run(r["id"])
+            code, d = self.call("POST", "/api/runs/%d/decide" % r["id"], {"decision": "accept"})
+            self.assertEqual(code, 200, d)
+
+            # handed over for acceptance → packed, complete: AC, change, build, scope, flow, reviewer (the person who adopted it)
+            code, s = self.call("GET", "/api/tickets/%s/evidence" % t["key"])
+            self.assertEqual((s["status"], s["missing"], s["intact"]), ("ready", [], True), s)
+            snap = s["snapshot"]
+            self.assertEqual(snap["ac"][0]["id"], "A1")
+            self.assertEqual((snap["check"]["result"], snap["path"]["ok"], snap["change"]["files"]), ("pass", True, [SVC]))
+            self.assertEqual(s["review"]["by"], "tester")
+            self.assertIn("evidence", [e["kind"] for e in self.call("GET", "/api/tickets/%s" % t["key"])[1]["events"]])
+
+            # a screenshot for A1; only images, only small ones
+            png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+            self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "attach", "ac": "A1", "image": "data:text/html;base64,PGI+"})[0], 400)
+            code, a = self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "attach", "ac": "A1", "note": "提交后列表显示“审批中”", "image": png})
+            self.assertEqual(code, 200, a)
+            self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "nope"})[0], 400)
+
+            # a one-time link for the named signer
+            self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "link"})[0], 400)
+            code, ln = self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "link", "signer": "周敏", "role": "人事业务负责人"})
+            self.assertEqual(code, 200, ln)
+            with urllib.request.urlopen(self.base + ln["path"]) as resp:
+                page_html = resp.read().decode("utf-8")
+            for w in ("请假提交后状态不更新", "提交后状态更新", "签收", "退回", "证据包完整", "提交后列表显示"):
+                self.assertIn(w, page_html)
+            for code_word in (".java", "LeaveService", "diff", "src/main"):  # no code on the client's page
+                self.assertNotIn(code_word, page_html)
+            img = _re.search(r"src='(/sign/[^']+)'", page_html).group(1)
+            with urllib.request.urlopen(self.base + img) as resp:
+                self.assertEqual(resp.headers["Content-Type"], "image/png")
+            with self.assertRaises(urllib.error.HTTPError) as cm:
+                urllib.request.urlopen(self.base + "/sign/" + "x" * 32)
+            self.assertEqual(cm.exception.code, 404)
+
+            def post(form):
+                data = "&".join("%s=%s" % (k, urllib.request.quote(v)) for k, v in form.items()).encode()
+                req = urllib.request.Request(self.base + ln["path"], data=data, method="POST",
+                                             headers={"Content-Type": "application/x-www-form-urlencoded"})
+                try:
+                    with urllib.request.urlopen(req) as resp:
+                        return resp.status, resp.read().decode("utf-8")
+                except urllib.error.HTTPError as e:
+                    return e.code, e.read().decode("utf-8")
+            code, body = post({"action": "sign", "name": "别人", "ac_A1": "pass"})
+            self.assertEqual(code, 400)
+            self.assertIn("周敏", body)
+            self.assertEqual(post({"action": "sign", "name": "周敏"})[0], 400)  # every criterion has to be confirmed
+            self.assertEqual(post({"action": "reject", "name": "周敏"})[0], 400)  # a rejection needs a reason
+            code, body = post({"action": "sign", "name": "周敏", "ac_A1": "pass", "note": "已在测试环境操作确认"})
+            self.assertEqual(code, 200, body)
+            self.assertIn("已签收", body)
+            self.assertEqual(post({"action": "sign", "name": "周敏", "ac_A1": "pass"})[0], 410)  # one time only
+
+            t2 = self.call("GET", "/api/tickets/%s" % t["key"])[1]
+            self.assertEqual(t2["ticket"]["status"], "closed")
+            acc = [e for e in t2["events"] if e["kind"] == "accept"][-1]
+            self.assertEqual(acc["author"], "周敏（甲方人事业务负责人）")
+            self.assertEqual(t2["package"]["status"], "signed")
+            recs = signoff.records(self.data, t["key"])
+            self.assertEqual([x["kind"] for x in recs], ["pack", "attach", "link", "sign"])
+            self.assertEqual(recs[-1]["data"]["package_hash"], recs[-2]["hash"])  # the signature names the package it signed
+            with urllib.request.urlopen(self.base + "/e/%s" % t["key"]) as resp:
+                full = resp.read().decode("utf-8")
+            self.assertIn(SVC, full)  # the provider's copy keeps the code facts
+            self.assertIn("甲方签收", full)
+
+            # the ledger shows it signed through the client's link
+            row = {x["key"]: x for x in self.call("GET", "/api/projects/%s/ledger" % key)[1]["ledger"]["rows"]}[t["key"]]
+            self.assertEqual((row["evidence_status"], row["signer"], row["signed_via"]), ("signed", "周敏", "签收链接"))
+
+            # tampering breaks the seal, and nothing more can be added or signed
+            f = signoff.epath(self.data, t["key"])
+            f.write_text(f.read_text(encoding="utf-8").replace("已在测试环境操作确认", "随便"), encoding="utf-8")
+            ok, why = evidence.check(evidence.read(f))
+            self.assertFalse(ok)
+            self.assertIn("第 4 条", why)
+            code, s = self.call("GET", "/api/tickets/%s/evidence" % t["key"])
+            self.assertFalse(s["intact"])
+            self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "attach", "note": "再补"})[0], 409)
+
+            # a ticket handed over with nothing behind it: everything missing, a link only with a written reason
+            _, t3 = self.call("POST", "/api/tickets", {"project": key, "title": "导出按钮没反应"})
+            self.call("POST", "/api/tickets/%s" % t3["key"], {"status": "verify"})
+            s3 = self.call("GET", "/api/tickets/%s/evidence" % t3["key"])[1]
+            self.assertEqual(s3["status"], "incomplete")
+            self.assertIn("验收标准（AC）", s3["missing"])
+            code, e3 = self.call("POST", "/api/tickets/%s/evidence" % t3["key"], {"kind": "link", "signer": "周敏"})
+            self.assertEqual(code, 409)
+            self.assertIn("证据还缺", e3["error"])
+            self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t3["key"], {"kind": "link", "signer": "周敏", "note": "甲方要求先看现场"})[0], 200)
+            # the platform's own 验收 button also lands on the chain
+            self.assertEqual(self.call("POST", "/api/tickets/%s/accept" % t3["key"], {"result": "fail", "note": "还是没反应"})[0], 200)
+            self.assertEqual(signoff.records(self.data, t3["key"])[-1]["kind"], "reject")
+        finally:
+            self.untrain()
 
 
 if __name__ == "__main__":

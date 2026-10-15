@@ -119,6 +119,13 @@ class AcceptanceTest(unittest.TestCase):
             self.assertEqual((rec["confirmed_by"], rec["state"]), ("张三", "user_confirmed_fix"))
             self.assertEqual(acc.advance(self.root, "T001", "closed", who="张三")["state"], "closed")
         self.assertEqual([r["task"] for r in acc.by_build(self.root, "jenkins-42")], ["T001"])
+        # the evidence package: a snapshot at hand-over, the confirmation naming what it confirmed, the close
+        from tmh import evidence as ev
+        recs = ev.read(acc.evidence_path(self.root, "T001"))
+        self.assertEqual([r["kind"] for r in recs], ["pack", "sign", "close"])
+        self.assertEqual((recs[0]["data"]["build_id"], [a["id"] for a in recs[0]["data"]["ac"]]), ("jenkins-42", ["A1", "A2"]))
+        self.assertEqual((recs[1]["data"]["signer"], recs[1]["data"]["package_hash"]), ("张三", recs[0]["hash"]))
+        self.assertEqual(ev.check(recs), (True, ""))
         self.assertEqual([h["to"] for h in acc.load(self.root, "T001")["history"]],
                          ["draft_contract", "implementing", "verify_local", "merged", "deployed_awaiting_verify", "needs_human",
                           "user_confirmed_fix", "closed"])

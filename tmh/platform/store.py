@@ -76,6 +76,7 @@ class Store:
         self.lock = threading.RLock()
         self.db = open_db(self.path, check_same_thread=False)  # shared by the server's threads, guarded by self.lock
         self.db.row_factory = _row
+        self.on_status = []  # fn(ticket, old, new, author) after a status change; the platform packs evidence on 待验证
         with self.lock:
             self.db.executescript(SCHEMA)
             for table, cols in LATER_COLS.items():
@@ -220,7 +221,11 @@ class Store:
             sets.append("updated=?")
             args += [now(), tid]
             self.x("UPDATE tickets SET %s WHERE id=?" % ",".join(sets), args)
-        return self.ticket(tid)
+        after = self.ticket(tid)
+        if after["status"] != t["status"]:
+            for fn in self.on_status:
+                fn(after, t["status"], after["status"], author)
+        return after
 
     def touch(self, tid: int) -> None:
         self.x("UPDATE tickets SET updated=? WHERE id=?", (now(), tid))
