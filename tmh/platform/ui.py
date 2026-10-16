@@ -54,7 +54,7 @@ async function api(m,p,b){
 const apiErr=msg=>Object.assign(new Error(msg),{api:1});
 const HTTPMSG={401:'登录已过期，刷新页面重新登录。',403:'没有权限做这一步，需要的话找管理员开通。',404:'要找的内容不存在，可能已被删除或改名。',
   413:'文件太大了，换小一点的再试。',429:'操作太频繁，稍等一下再试。',502:'服务器暂时不可用，稍后再试。',503:'服务器暂时不可用，稍后再试。',504:'服务器响应超时，稍后再试；如果是长任务，它可能还在后台跑。',
-  500:'服务器出错了，没有做任何改动。稍后再试；一直这样请告诉管理员。'};
+  500:'服务器出错了，这一步没有完成。刷新看看结果再决定要不要重试；一直这样请告诉管理员。'};
 const get=p=>api('GET',p),post=(p,b)=>api('POST',p,b||{});
 function toast(t,ms){const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,ms||2600)}
 function modal(html,wide){$('#mbody').innerHTML=html;$('#modal').hidden=false;$('.mbox').classList.toggle('wide',!!wide)}
