@@ -188,7 +188,7 @@ class Platform:
                     {"key": "kb", "label": "知识库覆盖", "pct": pct(written, inscope), "sub": "已写 %d / %d 页" % (written, inscope) if built else "尚未构建"},
                 ],
                 "today": {"created": t_new, "closed": t_closed}, "insight": "，".join(facts) + "。",
-                "points": sum(self.balance(x) for x in ps), "projects": len(ps)}
+                "points": sum(self.balance(x) for x in ps), "projects": len(ps), "kb_built": built}
 
     # ------------------------------------------------------------ inbox
     # What is waiting for a person right now, one line per ticket with the one thing to do, most urgent and longest

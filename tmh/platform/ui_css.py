@@ -351,4 +351,8 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 .autoc.off{background:var(--warn-s);color:var(--warn)}
 .autoc button.link{border:0;background:transparent;color:var(--blue);padding:0 4px;font-size:12px;cursor:pointer;height:auto}
 .autoc button.link:hover{text-decoration:underline}
+.first{max-width:760px}.frs{display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.frn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.frs.done .frn{background:var(--ok)}.frs.done b{color:var(--mut)}
+@media (max-width:700px){.frs{flex-wrap:wrap}.frs>.grow{flex-basis:calc(100% - 42px)}.frs>.btn,.frs>button{margin-left:42px}}
 """
