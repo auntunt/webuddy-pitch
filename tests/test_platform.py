@@ -1021,6 +1021,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         code, allt = self.call("GET", "/api/tickets?project=OA")
         code, loop = self.call("GET", "/api/projects/OA/loop")
         self.assertEqual(loop["open"] + loop["closed"], len(ot))
+        self.assertIn("kb_built", loop)  # the first-run card on an empty board ticks this step off
         self.assertGreater(len(allt), len(ot))
 
     def test_reform_lead_goes_first_and_later_pieces_start_from_its_commit(self):

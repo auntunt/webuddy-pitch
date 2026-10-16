@@ -174,6 +174,7 @@ function gaugeSvg(p,col,sz){sz=sz||62;const r=sz/2-5,c=2*Math.PI*r;return `<svg 
 async function vHome(){
   const [L,ts]=await Promise.all([get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop'),get('/api/tickets?svc=ops&project='+encodeURIComponent(scopeQ()))]);
   S.loop=L;S.home=S.home||{view:'ring',sel:''};$('#ptsN').textContent=L.points.toLocaleString();
+  if(!L.total){$('#main').innerHTML=firstRun(L);poll(async()=>{if(!$('#first'))return;try{const n=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop');if(n.total||n.kb_built!==L.kb_built)vHome()}catch(e){}},15000,'page');return}
   const gc=['#52C41A','#4096FF','#9254DE','#36CFC9'];
   const ic=(bg,svg)=>`<div class="ic" style="background:${bg}"><svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg></div>`;
   $('#main').innerHTML=`<div id="inbox"></div><div class="band"><div class="gauges">${L.metrics.map((m,i)=>`<div class="gauge">${gaugeSvg(m.pct,gc[i])}<div style="min-width:0"><div class="gl">${h(m.label)}</div><div class="gs">${h(m.sub)}</div></div></div>`).join('')}</div>
@@ -195,6 +196,14 @@ async function vHome(){
   if(S.home.sel)homeList(S.home.sel,ts,true);
   paintInbox();
   poll(async()=>{if(!$('#hView'))return;try{const n=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop');if(JSON.stringify(n.by_status)!==JSON.stringify(S.loop.by_status)||n.failed!==S.loop.failed||n.waiting!==S.loop.waiting)vHome()}catch(e){}},15000,'page')}
+// A board with no tickets is a ring of zeros; a first visit gets the three steps to a first closed loop instead.
+function firstRun(L){const has=S.projects.length,kb=L.kb_built;
+  const step=(n,done,title,body,btn)=>`<div class="frs${done?' done':''}"><span class="frn">${done?'✓':n}</span><div class="grow" style="min-width:0"><b>${title}</b><div class="sub">${body}</div></div>${done?'':btn||''}</div>`;
+  return `<div class="card first" id="first"><h2>三步跑通第一张工单</h2><div class="sub" style="margin:-4px 0 12px">工单进来后，智能体先定位到业务和代码，再出方案和改动；需要人拍板的那一步会出现在首页“等你处理”。</div>
+   ${step(1,has,'接入项目代码',has?'已接入 '+S.projects.map(p=>h(p.name||p.key)).join('、'):'填本机项目目录，工单编号会用它的代号开头。','<button class="primary" onclick="newProject()">添加项目</button>')}
+   ${step(2,kb,'建设知识库（推荐）',kb?'已构建，工单会自动关联到业务流、表和代码位置。':'从代码解析出业务域、表和入口，分析会更准。不建也能先建工单。',has?'<a class="btn" href="#/kb">去建设</a>':'')}
+   ${step(3,false,'提交第一张工单','用一句话描述现象就行，比如“月结凭证没传到 NC”。系统会追问缺的信息，然后自动开始分析。',has?'<button class="primary" onclick="newTicket()">新建工单</button>':'')}
+   <div class="sub" style="margin-top:10px">也可以按 <kbd>Ctrl K</kbd> 打开 AI 助手，直接说“帮我建一张工单：……”。</div></div>`}
 // What waits for me right now, with the one thing to do on each; what waits on people outside the team, apart.
 // The board above says how the loop is doing; this says where to start.
 async function paintInbox(){
