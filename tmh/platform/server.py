@@ -1466,9 +1466,34 @@ def api_learn(P, req, key):
     al = [{"key": t["key"], "title": t["title"], "status": t["status"], "priority": t["priority"], "created": t["created"],
            "count": t["links"]["alert"].get("count", 1), "source": t["links"]["alert"].get("source", "")}
           for t in P.store.tickets(project_id=p["id"], limit=2000) if (t.get("links") or {}).get("alert")][:30]
-    return {"lessons": learn.lessons(P.data_dir, p["key"], 50), "cases": learn.cases(P.data_dir, p["key"]),
+    ls = learn.lessons(P.data_dir, p["key"], 500)
+    return {"lessons": ls[:80], "lesson_summary": learn.summary(ls), "cases": learn.cases(P.data_dir, p["key"]),
             "batches": learn.batches(P.data_dir, p["key"]), "running": learn.RUNNING.get(p["key"], ""),
             "alerts": dict(alerts.status(P.data_dir, p["key"]), tickets=al), "refix": P.flow.autoflow().get("refix")}
+
+
+@route("POST", "/api/projects/<key>/lessons/<lid>")
+def api_lesson(P, req, key, lid):
+    """A person looks after the experience cards: confirm a draft, edit it, take it out of the prompts or put it back."""
+    from . import learn
+    p, b = P.project(key), req.body
+    cur = learn.lesson(P.data_dir, lid)
+    if not cur or cur.get("project") != p["key"]:
+        raise ApiError(404, "没有这条经验")
+    try:
+        if b.get("fields"):
+            cur = learn.edit_lesson(P.data_dir, lid, b["fields"], req.user)
+        act = b.get("action") or ""
+        if act:
+            st = {"confirm": "active", "restore": "active", "retire": "retired"}.get(act)
+            if not st:
+                raise ValueError("action 只能是 confirm、restore、retire")
+            if act == "retire" and not (b.get("why") or "").strip():
+                raise ValueError("停用要写原因")
+            cur = learn.set_status(P.data_dir, lid, st, req.user, b.get("why") or {"confirm": "确认入库", "restore": "恢复使用"}.get(act, ""))
+    except ValueError as e:
+        raise ApiError(400, str(e))
+    return cur
 
 
 @route("POST", "/api/projects/<key>/evals/run")
