@@ -2291,8 +2291,12 @@ def make_handler(P: Platform, token: str = ""):
                     except FileNotFoundError as e:
                         return self._json(404, {"error": str(e)})
                     except Exception as e:  # noqa: BLE001 - report, keep serving
+                        # the person gets what to do and a reference to quote; the exception stays in the log
+                        ref = now()[5:19].replace("-", "").replace(" ", "-").replace(":", "")
+                        print("[error %s] %s %s" % (ref, method, path), flush=True)
                         traceback.print_exc()
-                        return self._json(500, {"error": "%s: %s" % (type(e).__name__, e)})
+                        return self._json(500, {"error": "服务器处理这一步时出错了，没有做任何改动。可以再试一次；还不行请把编号 %s 告诉管理员。" % ref,
+                                                "detail": "%s: %s" % (type(e).__name__, e), "ref": ref})
             return self._json(404, {"error": "没有这个接口：%s %s" % (method, path)})
 
         def _capture(self, method: str, path: str):
