@@ -479,6 +479,8 @@ def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
     if done:
         body.append("<div class=seal><b class=ok>%s</b><div class=sub>%s · 记录哈希 <code>%s</code></div></div>" % (
             "已签收，谢谢" if done["action"] == "sign" else "已退回，乙方会按您写的原因处理", E(done["ts"]), E(done["hash"])))
+        body.append("<p class=sub>请把上面这串哈希抄下或截图留存。<a href=\"/sign/%s/package.intoto.json\">下载证据包</a>自己保存；"
+                    "日后用 <code>tmh evidence-verify 文件 --hash 这串哈希</code> 可以独立核对，签收时看到的记录有没有被改过。</p>" % E(token))
     if msg:
         body.append("<p class=bad>%s</p>" % E(msg))
     if snap["ticket"]["body"]:
@@ -525,8 +527,9 @@ def package_page(P, key: str) -> str:
     if not snap:
         body.append("<p>还没有证据包：工单转到“待验证”时自动生成。</p>")
         return ev.page(title, "".join(body))
-    body.append("<p class=sub><a href=\"/e/%s.intoto.json\">下载证据包（in-toto 格式）</a>：自己留存；"
-                "日后用 <code>tmh evidence-verify %s.intoto.json --hash 上面的哈希</code> 可以离线核对它没被改过。</p>" % (E(t["key"]), E(t["key"])))
+    body.append("<p class=sub><a href=\"/e/%s.intoto.json\">下载证据包（in-toto 格式）</a>，交给甲方留存（含代码路径和检查命令，不要外传）。"
+                "甲方用 <code>tmh evidence-verify %s.intoto.json --hash 签收时记下的完整哈希</code> 离线核对：那条记录和它之前的都没被改过。"
+                "不带 --hash 只能说明文件自身一致，证明不了没被改。</p>" % (E(t["key"]), E(t["key"])))
     body.append("<h2>缺项</h2>" + ("<p class=ok>无，证据齐全。</p>" if not s["missing"] else "<ul>%s</ul>" % "".join("<li class=bad>%s</li>" % E(m) for m in s["missing"])))
     body += ["<h2>业务流</h2>", _flows_html(snap), "<h2>验收标准</h2>", _ac_table(s, form=False, img="/e/%s/f/" % t["key"])]
     if snap["contract"]:
@@ -643,7 +646,8 @@ def message_page(msg: str) -> str:
 
 
 def export(P, key: str) -> dict:
-    """The ticket's package as an in-toto Statement for the client's own records and tools."""
+    """The ticket's package as an in-toto Statement for the client's own records and tools. Everything is in it,
+    file paths and check commands included (they are the client's own code); it goes to the client, not out."""
     key = key.upper()
     recs = records(P.data_dir, key)
     if not recs:
@@ -655,8 +659,8 @@ def export(P, key: str) -> dict:
     if fx and "@" in fx["decision"]:
         try:
             p = P.store.project(t["project_id"])
-            commit = subprocess.run(["git", "rev-parse", fx["decision"].rsplit("@", 1)[1]], cwd=p["root"], capture_output=True,
-                                    text=True, timeout=10).stdout.strip()
+            commit = subprocess.run(["git", "rev-parse", "--verify", "--quiet", fx["decision"].rsplit("@", 1)[1] + "^{commit}"], cwd=p["root"],
+                                    capture_output=True, text=True, timeout=10).stdout.strip()
         except (OSError, subprocess.SubprocessError):
             commit = ""
     summary = {k: s.get(k) for k in ("status", "label", "missing", "gate_state", "decision")}

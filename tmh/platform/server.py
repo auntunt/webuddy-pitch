@@ -13,6 +13,7 @@ import json
 import mimetypes
 import os
 import re
+import secrets
 import threading
 import time
 import traceback
@@ -243,7 +244,7 @@ class Platform:
                                      action="去验收", since=t["updated"]))
             elif t["status"] == "confirm":
                 mine.append(dict(item, reason="confirm", label="分析出结论，等你确认", action="看结论", since=t["updated"]))
-            elif t["status"] in ("new", "analyzing") and not r and not idle_ok:
+            elif t["status"] in ("new", "analyzing") and not r and not idle_ok and not t["assignee"]:  # someone took it by hand
                 # nothing will pick it up by itself: the line is off, or no agent is installed on this machine
                 mine.append(dict(item, reason="stalled", label=stall, action="去处理", since=t["updated"]))
         order = lambda x: (self.PRI_RANK.get(x["priority"], 2), x["since"] or "")  # noqa: E731
@@ -2314,11 +2315,11 @@ def make_handler(P: Platform, token: str = ""):
                         return self._json(404, {"error": str(e)})
                     except Exception as e:  # noqa: BLE001 - report, keep serving
                         # the person gets what to do and a reference to quote; the exception stays in the log
-                        ref = now()[5:19].replace("-", "").replace(" ", "-").replace(":", "")
-                        print("[error %s] %s %s" % (ref, method, path), flush=True)
+                        ref = now()[5:19].replace("-", "").replace(" ", "-").replace(":", "") + "-" + secrets.token_hex(2)
+                        print("[error %s] %s %s %s: %s" % (ref, method, path, type(e).__name__, e), flush=True)
                         traceback.print_exc()
                         return self._json(500, {"error": "服务器处理这一步时出错了，这一步没有完成。刷新看看结果再决定要不要重试；还不行请把编号 %s 告诉管理员。" % ref,
-                                                "detail": "%s: %s" % (type(e).__name__, e), "ref": ref})
+                                                "ref": ref})
             return self._json(404, {"error": "没有这个接口：%s %s" % (method, path)})
 
         def _capture(self, method: str, path: str):
@@ -2351,6 +2352,15 @@ def make_handler(P: Platform, token: str = ""):
 
         def _sign(self, method: str, path: str):
             from . import signoff
+            m = re.match(r"^/sign/([A-Za-z0-9_\-]{20,64})/package\.intoto\.json$", path)
+            if m and method == "GET":  # the signer keeps their own copy, with the same link as the credential
+                try:
+                    key = signoff.link_of(P.data_dir, m.group(1))["key"]
+                    body = json.dumps(signoff.export(P, key), ensure_ascii=False, indent=1).encode("utf-8")
+                except ApiError as e:
+                    return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
+                return self._send(200, body, "application/json; charset=utf-8",
+                                  {"Content-Disposition": "attachment; filename=\"%s.intoto.json\"" % key})
             m = re.match(r"^/sign/([A-Za-z0-9_\-]{20,64})(?:/f/([0-9a-f]{64}\.[a-z]+))?$", path)
             html_t = "text/html; charset=utf-8"
             if not m:
