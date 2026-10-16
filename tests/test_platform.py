@@ -703,9 +703,23 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             # a related ticket's prompt carries the lesson; the ticket itself does not get its own lesson twice
             _, t2 = self.call("POST", "/api/tickets", {"project": "OA", "title": "请假审批提交后状态还是不刷新", "body": "LeaveService 提交"})
             p = self.P.store.project(t2["project_id"])
-            self.assertIn("以往的教训", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
+            self.assertIn("以往的经验", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
             self.assertIn("补充事务说明", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "fix"))
-            self.assertNotIn("以往的教训", build_prompt(self.P.store, p, self.P.store.ticket(t["id"]), "plan"))
+            self.assertNotIn("以往的经验", build_prompt(self.P.store, p, self.P.store.ticket(t["id"]), "plan"))
+            lid = ls[0]["id"]
+            self.assertEqual(learn.lesson(self.data, lid)["stats"]["used"], 1)  # two prompts before a verdict count once
+            # people look after the cards: a reason is needed to take one out, and then it stays out of prompts
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "retire"})
+            self.assertEqual(code, 400, r)
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "retire", "why": "事务问题已统一修掉"})
+            self.assertEqual((code, r["status"]), (200, "retired"), r)
+            self.assertNotIn("以往的经验", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "restore", "fields": {"cause": "刷新在事务提交前执行"}})
+            self.assertEqual((code, r["status"], r["cause"]), (200, "active", "刷新在事务提交前执行"), r)
+            self.assertIn("根因：刷新在事务提交前执行", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
+            self.assertEqual(self.call("POST", "/api/projects/OA/lessons/L999", {"action": "confirm"})[0], 404)
+            _, d = self.call("GET", "/api/projects/OA/learn")
+            self.assertEqual(d["lesson_summary"]["active"], len([x for x in d["lessons"] if x["status"] == "active"]))
 
             # failed acceptance of an automatic change: a lesson, and the change is redone on top of the rejected branch
             t3, branch3 = self.fixed("请假提交后列表状态不对")
@@ -731,6 +745,11 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             c3 = [c for c in learn.cases(self.data, "OA") if c["ticket"] == t3["key"]][0]
             first = [e["data"]["commit"] for e in self.P.store.events(t3["id"]) if e["kind"] == "adopt"][0]
             self.assertEqual(c3["base"], learn._resolve(self.repo, first + "^"))
+            # signed over failed gates: no draft of "what worked" (a person's call is not a pattern to copy); cards carry their package
+            ls = learn.lessons(self.data, "OA")
+            self.assertNotIn("pass", [l["kind"] for l in ls])
+            self.assertEqual(ls[0]["provenance"]["status"], "rejected")
+            self.assertEqual(len(ls[0]["provenance"]["package_hash"]), 64)
         finally:
             self.untrain()
 

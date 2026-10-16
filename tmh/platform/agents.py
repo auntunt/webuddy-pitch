@@ -203,9 +203,12 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         for r in prior[:2][::-1]:
             out += ["## 之前的%s结论（%s，%s）" % (dict(RUN_MODES)[r["mode"]], r["agent"], r["ended"][5:16]), r["result"].strip()[:3000], ""]
         if mode != "ask":
-            from .learn import lessons_text, relevant
+            from .learn import lessons_text, note_used, relevant
             try:
-                out.append(lessons_text(relevant(store.path.parent, project["key"], ticket, " ".join(r["result"] for r in prior[:2]))))
+                ls = relevant(store.path.parent, project["key"], ticket, " ".join(r["result"] for r in prior[:2]), root=root)
+                out.append(lessons_text(ls))
+                if ticket.get("id"):  # an eval case is not a real ticket: its prompts do not count as using a card
+                    note_used(store.path.parent, ticket, ls, mode)
             except OSError:
                 pass
         query = "%s %s %s %s" % (ticket["title"], search_words(ticket.get("body") or "")[:600], " ".join(flows), question)
