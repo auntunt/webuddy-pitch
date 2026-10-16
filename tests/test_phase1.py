@@ -226,7 +226,10 @@ class SimilarTicketTest(unittest.TestCase):
               {"id": 3, "key": "OA-3", "title": "请假审批流程卡住", "body": "部门经理审批后不流转", "status": "open"}]
         r = similar(ts, "请假列表部门筛选为空")
         self.assertEqual(r[0]["key"], "OA-1")
-        self.assertIn("筛选", r[0]["shared"])
+        self.assertIn("部门筛选", r[0]["shared"])  # shared words come back as the phrase, not its bigrams
+        # filler every complaint uses does not make two tickets alike
+        self.assertEqual(similar([{"id": 9, "key": "OA-9", "title": "付款还是一直失败", "body": "今天赶紧看一下", "status": "open"}],
+                                 "登录页面还是一直白屏", "今天赶紧看一下"), [])
         self.assertNotIn("OA-2", [x["key"] for x in r])
         self.assertNotIn("OA-1", [x["key"] for x in similar(ts, "请假单列表按部门筛选不出数据", exclude=1)])
         self.assertEqual(similar(ts, ""), [])

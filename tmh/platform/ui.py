@@ -203,7 +203,7 @@ function firstRun(L){const has=S.projects.length,kb=L.kb_built;
    ${step(1,has,'接入项目代码',has?'已接入 '+S.projects.map(p=>h(p.name||p.key)).join('、'):'填本机项目目录，工单编号会用它的代号开头。','<button class="primary" onclick="newProject()">添加项目</button>')}
    ${step(2,kb,'建设知识库（推荐）',kb?'已构建，工单会自动关联到业务流、表和代码位置。':'从代码解析出业务域、表和入口，分析会更准。不建也能先建工单。',has?'<a class="btn" href="#/kb">去建设</a>':'')}
    ${step(3,false,'提交第一张工单','用一句话描述现象就行，比如“月结凭证没传到 NC”。系统会追问缺的信息，然后自动开始分析。',has?'<button class="primary" onclick="newTicket()">新建工单</button>':'')}
-   <div class="sub" style="margin-top:10px">也可以按 <kbd>Ctrl K</kbd> 打开 AI 助手，直接说“帮我建一张工单：……”。</div></div>`}
+   <div class="sub frk" style="margin-top:10px">也可以按 <kbd>Ctrl K</kbd> 打开 AI 助手，直接说“帮我建一张工单：……”。</div></div>`}
 // What waits for me right now, with the one thing to do on each; what waits on people outside the team, apart.
 // The board above says how the loop is doing; this says where to start.
 async function paintInbox(){
@@ -487,7 +487,7 @@ async function vTicket(key,sub){
    ${mrBlock(d)}
    <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">相关业务</h2><a href="javascript:void 0" onclick="showContext()">智能体看到的上下文</a></div><div id="rel"><span class="spin"></span></div></div>
   </div></div></div>`;
-  get('/api/tickets/'+key+'/similar').then(r=>{const xs=r.similar.slice(0,3);if(xs.length){$('#simv').innerHTML=simList(xs);$('#simc').hidden=false}}).catch(()=>{});
+  get('/api/tickets/'+key+'/similar').then(r=>{const xs=r.similar.slice(0,3);if(xs.length){$('#simc h2').textContent=xs[0].score>=.4?'可能重复':'相似工单';$('#simv').innerHTML=simList(xs);$('#simc').hidden=false}}).catch(()=>{});
   if($('#tlf'))$('#tlf').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('#tlf').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#tl').dataset.f=b.dataset.f;if(b.dataset.f==='auto')$('#tl').querySelectorAll('details.evg').forEach(x=>x.open=true)});
   if($('#evOpen'))$('#evOpen').onclick=()=>{const c=$('#cbox');c.hidden=!c.hidden;$('#evOpen').textContent=c.hidden?'看完整'+(res.mode==='plan'?'方案':'分析')+'和代码位置':'收起'};
   const save=async(f)=>{try{await post('/api/tickets/'+key,f);vTicket(key)}catch(e){toast(e.message)}};
