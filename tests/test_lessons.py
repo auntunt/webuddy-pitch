@@ -89,6 +89,12 @@ class LessonCardsTest(unittest.TestCase):
         # a later verdict on the same ticket without new prompts credits nothing
         learn._credit(self.P, t, True, "li")
         self.assertEqual(learn.lesson(self.data, on["id"])["stats"]["passed"], 1)
+        # a person restores it: its record starts over, so the next failure alone does not pause it again
+        learn.set_status(self.data, on["id"], "active", "li", "核实过，是那张单验收人看错了")
+        t = ticket("OA-21", 21, "请假提交以后状态没刷新", "LeaveService")
+        learn.note_used(self.data, t, learn.relevant(self.data, "OA", t), "fix")
+        self.assertEqual(learn._credit(self.P, t, False, "li"), [])
+        self.assertEqual(learn.lesson(self.data, on["id"])["status"], "active")
 
     def test_edits_and_status_changes_are_logged_not_overwritten(self):
         on = self.card()
