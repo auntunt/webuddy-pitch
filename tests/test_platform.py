@@ -213,11 +213,27 @@ class PlatformApiTest(unittest.TestCase):
         self.assertEqual(code, 200, d)
         got = {x["key"]: x for x in d["mine"] if x["title"].startswith("收件箱")}
         reasons = {x["title"][4:]: x["reason"] for x in got.values()}
-        self.assertEqual(reasons, {"验收这单": "verify", "确认这单": "confirm", "跑挂了": "failed", "等审阅": "review"}, d["mine"])
+        want = {"验收这单": "verify", "确认这单": "confirm", "跑挂了": "failed", "等审阅": "review"}
+        if not (d["auto"] and d["agent"]):  # nothing will start 没人管 by itself here, so it waits for a person too
+            want["没人管"] = "stalled"
+        self.assertEqual(reasons, want, d["mine"])
         self.assertGreaterEqual(d["running"], 1)
         keys = [x["key"] for x in d["mine"]]
         self.assertLess(keys.index(made["跑挂了"]["key"]), keys.index(made["等审阅"]["key"]))  # urgent first
         self.assertEqual(self.call("GET", "/api/projects/*/inbox")[0], 200)
+        # with the automatic line off, a new ticket nobody started is the person's to pick up, and says why
+        f = self.P.data_dir / "autoflow.json"
+        old = f.read_text(encoding="utf-8") if f.exists() else None
+        f.write_text(json.dumps({"on": False}), encoding="utf-8")
+        try:
+            _, d = self.call("GET", "/api/projects/OA/inbox")
+            row = next((x for x in d["mine"] if x["key"] == made["没人管"]["key"]), None)
+            if not [r for r in st.runs(ticket_id=made["没人管"]["id"]) if r["mode"] != "ask"]:
+                self.assertEqual((row or {}).get("reason"), "stalled", d["mine"])
+                self.assertIn("自动处理关着", row["label"])
+            self.assertFalse(d["auto"])
+        finally:
+            f.write_text(old, encoding="utf-8") if old is not None else f.unlink()
         st.update_run(busy, status="done")
         for t in made.values():
             st.update_ticket(t["id"], "tester", status="closed")

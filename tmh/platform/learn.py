@@ -110,7 +110,8 @@ def _append_log(data_dir: Path, rows: list) -> None:
 
 def _fold(lessons_: list, log: list) -> list:
     by = {l["id"]: dict(l, status=l.get("status") or "active",
-                        stats={"used": 0, "passed": 0, "failed": 0, "cited": 0, "last_used": ""}, history=[]) for l in lessons_}
+                        stats={"used": 0, "passed": 0, "failed": 0, "cited": 0, "last_used": "", "recent_passed": 0, "recent_failed": 0},
+                        history=[]) for l in lessons_}
     for r in log:
         l = by.get(r.get("id"))
         if not l:
@@ -121,9 +122,12 @@ def _fold(lessons_: list, log: list) -> list:
             s["last_used"] = r.get("ts", "")
         elif k == "outcome":
             s["passed" if r.get("passed") else "failed"] += 1
+            s["recent_passed" if r.get("passed") else "recent_failed"] += 1  # since it was last put (back) into use
             s["cited"] += 1 if r.get("cited") else 0
         elif k == "status" and r.get("status") in STATUSES:
             l["status"] = r["status"]
+            if r["status"] == "active":  # a person confirmed or restored it: its record starts over
+                s["recent_passed"] = s["recent_failed"] = 0
             l["history"].append({k2: r.get(k2, "") for k2 in ("ts", "by", "status", "why")})
         elif k == "edit":
             l.update({f: str(v)[:800] for f, v in (r.get("fields") or {}).items() if f in FIELDS})
@@ -233,15 +237,16 @@ def _credit(P, t: dict, passed: bool, by: str) -> list:
     """A verdict on a ticket counts for every card its prompts carried since the last verdict; a card that keeps
     going along with failures leaves the prompts until a person looks at it."""
     log = _log(P.data_dir)
-    used = []
+    used, since = [], ""
     for r in log:
         if r.get("ticket") != t["key"]:
             continue
         if r.get("kind") == "inject" and r.get("id") not in used:
             used.append(r.get("id"))
         elif r.get("kind") == "verdict":
-            used = []
-    text = " ".join((r.get("result") or "") for r in P.store.runs(ticket_id=t["id"])) if t.get("id") else ""
+            used, since = [], r.get("ts", "")
+    # only what the agent wrote since the last verdict counts as citing a card now
+    text = " ".join((r.get("result") or "") for r in P.store.runs(ticket_id=t["id"]) if (r.get("created") or "") >= since) if t.get("id") else ""
     rows = [{"kind": "verdict", "ticket": t["key"], "passed": passed, "by": by}]
     rows += [{"kind": "outcome", "id": lid, "ticket": t["key"], "passed": passed,
               "cited": bool(re.search(r"(?<![A-Za-z0-9])%s(?!\d)" % re.escape(lid), text))} for lid in used]
@@ -250,8 +255,8 @@ def _credit(P, t: dict, passed: bool, by: str) -> list:
     for lid in used:
         l = lesson(P.data_dir, lid)
         st = l and l["stats"]
-        if l and l["status"] == "active" and st["failed"] >= DEMOTE_AFTER and st["failed"] > st["passed"]:
-            set_status(P.data_dir, lid, "probation", "平台", "带着它的工单 %d 次没通过验收、%d 次通过，先不再放进提示词，等人看" % (st["failed"], st["passed"]))
+        if l and l["status"] == "active" and st["recent_failed"] >= DEMOTE_AFTER and st["recent_failed"] > st["recent_passed"]:
+            set_status(P.data_dir, lid, "probation", "平台", "带着它的工单 %d 次没通过验收、%d 次通过，先不再放进提示词，等人看" % (st["recent_failed"], st["recent_passed"]))
             out.append(lid)
     return out
 
@@ -259,7 +264,7 @@ def _credit(P, t: dict, passed: bool, by: str) -> list:
 def lessons_text(ls: list) -> str:
     if not ls:
         return ""
-    out = ["## 以往的经验（相近工单验收后留下的，只作参考：先核实涉及的代码现在还是这样，再决定用不用；用了就在结论里写上编号，比如「用了经验 %s」）" % ls[0]["id"]]
+    out = ["## 以往的经验（相近工单验收后留下的，只作参考：先核实涉及的代码现在还是这样，再决定用不用；用了就在结论里写上编号，写法是「用了经验 」加上那条的 L 编号；没用就不写）"]
     for l in ls:
         st = l.get("stats") or {}
         track = "（用过 %d 次，之后通过验收 %d 次）" % (st["passed"] + st["failed"], st["passed"]) if st.get("passed", 0) + st.get("failed", 0) else ""

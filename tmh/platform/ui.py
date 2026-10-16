@@ -138,7 +138,7 @@ function setProj(k){if(!k||k===S.proj)return;S.proj=k;ls.set('tmh.proj',k);A.res
 const scopeQ=()=>S.scope==='*'?'*':S.scope;
 async function loadPoints(){if(!S.proj){$('#ptsN').textContent='-';return}try{const r=await get('/api/projects/'+S.proj+'/points');S.points=r;$('#ptsN').textContent=r.balance.toLocaleString();if(A.open)A.paintFoot()}catch(e){}}
 function render(){
-  stopPolls();const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'home';
+  stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'home';
   if(view!=='t')S.svc=svcOf(view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view);
   if(!S.proj&&view!=='settings'){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">先添加一个项目：选一个本机上的项目目录。项目已经建好知识库的话，工单会自动关联到业务流、表和代码。</p><button class="primary" onclick="newProject()">添加项目</button></div>`;return}
@@ -202,24 +202,26 @@ async function vHome(){
   else{$('#hView').innerHTML=boardHtml(ts);bindBoard()}
   if(S.home.sel)homeList(S.home.sel,ts,true);
   paintInbox();
-  poll(async()=>{if(!$('#hView'))return;try{const n=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop');if(JSON.stringify(n.by_status)!==JSON.stringify(S.loop.by_status)||n.failed!==S.loop.failed||n.waiting!==S.loop.waiting)vHome()}catch(e){}},15000,'page')}
+  poll(async()=>{if(!$('#hView'))return;try{const n=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop');if(JSON.stringify(n.by_status)!==JSON.stringify(S.loop.by_status)||n.failed!==S.loop.failed||n.waiting!==S.loop.waiting)vHome();else paintInbox()}catch(e){}},15000,'page')}
 // A board with no tickets is a ring of zeros; a first visit gets the three steps to a first closed loop instead.
-function firstRun(L){const has=S.projects.length,kb=L.kb_built;
+function firstRun(L){const has=S.projects.length,kb=L.kb_built,auto=(!S.meta.autoflow||S.meta.autoflow.on)&&(S.meta.agents||[]).some(a=>a.available);
   const step=(n,done,title,body,btn)=>`<div class="frs${done?' done':''}"><span class="frn">${done?'✓':n}</span><div class="grow" style="min-width:0"><b>${title}</b><div class="sub">${body}</div></div>${done?'':btn||''}</div>`;
   return `<div class="card first" id="first"><h2>三步跑通第一张工单</h2><div class="sub" style="margin:-4px 0 12px">工单进来后，智能体先定位到业务和代码，再出方案和改动；需要人拍板的那一步会出现在首页“等你处理”。</div>
    ${step(1,has,'接入项目代码',has?'已接入 '+S.projects.map(p=>h(p.name||p.key)).join('、'):'填本机项目目录，工单编号会用它的代号开头。','<button class="primary" onclick="newProject()">添加项目</button>')}
    ${step(2,kb,'建设知识库（推荐）',kb?'已构建，工单会自动关联到业务流、表和代码位置。':'从代码解析出业务域、表和入口，分析会更准。不建也能先建工单。',has?'<a class="btn" href="#/kb">去建设</a>':'')}
-   ${step(3,false,'提交第一张工单','用一句话描述现象就行，比如“月结凭证没传到 NC”。系统会追问缺的信息，然后自动开始分析。',has?'<button class="primary" onclick="newTicket()">新建工单</button>':'')}
+   ${step(3,false,'提交第一张工单','用一句话描述现象就行，比如“月结凭证没传到 NC”。'+(auto?'系统会追问缺的信息，然后自动开始分析。':'现在还不会自动分析：'+(S.meta.autoflow&&!S.meta.autoflow.on?'自动处理关着。':'这台机器上没有可用的智能体，到“设置”里配置一个。')),has?'<button class="primary" onclick="newTicket()">新建工单</button>':'')}
    <div class="sub frk" style="margin-top:10px">也可以按 <kbd>Ctrl K</kbd> 打开 AI 助手，直接说“帮我建一张工单：……”。</div></div>`}
 // What waits for me right now, with the one thing to do on each; what waits on people outside the team, apart.
 // The board above says how the loop is doing; this says where to start.
 async function paintInbox(){
   let d;try{d=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/inbox')}catch(e){return}
   const box=$('#inbox');if(!box)return;S.inbox=d;S.home.open=S.home.open||{};
+  // tickets nobody will start share one cause (the line is off / no agent): one line for the cause, not a row each
+  const stalled=d.mine.filter(x=>x.reason==='stalled');d=Object.assign({},d,{mine:d.mine.filter(x=>x.reason!=='stalled')});
   document.title=(d.mine.length?`(${d.mine.length}) `:'')+S.meta.brand;
   const PR={urgent:['bad','紧急'],high:['warn','高'],normal:['mute','中'],medium:['mute','中'],low:['mute','低']};
   // grouped by what is asked of you, the most pressing kind first; a group shows its 3 most urgent and folds the rest
-  const G=[['returned','bad','甲方退回'],['failed','bad','智能体没跑成'],['expired','warn','签收链接过期'],['verify','warn','等你验收'],['review','info','改好了，等你审阅'],['confirm','info','分析出结论，等你确认']];
+  const G=[['returned','bad','甲方退回'],['rejected','bad','验收没通过'],['failed','bad','智能体没跑成'],['expired','warn','签收链接过期'],['verify','warn','等你验收'],['review','info','改好了，等你审阅'],['confirm','info','分析出结论，等你确认']];
   const gname=k=>(G.find(g=>g[0]===k)||[])[2];
   const row=x=>{const sub=[x.label!==gname(x.reason)?h(x.label):'',x.note?'“'+h(x.note)+'”':'',x.since?'等了 '+waited(x.since):'',h(x.assignee)].filter(Boolean).join(' · ');
     return `<a class="ibx" href="#/t/${h(x.key)}"><span class="ev-tag ${(PR[x.priority]||PR.normal)[0]}">${(PR[x.priority]||PR.normal)[1]}</span>
@@ -228,7 +230,8 @@ async function paintInbox(){
     return `<div class="ibg"><div class="ibh"><span class="ev-tag ${tone}">${name}</span><span class="sub">${xs.length} 张</span></div>${(all?xs:xs.slice(0,3)).map(row).join('')}${all?'':`<button class="ghost ibmore" data-g="${k}">还有 ${xs.length-3} 张</button>`}</div>`}).join('');
   box.innerHTML=`<div class="card inbox"><div class="hdr" style="margin-bottom:4px"><h2 class="grow" style="margin:0">等你处理${d.mine.length?` <span class="ibn">${d.mine.length}</span>`:''}</h2>
      <span class="sub">${d.running?`<span class="spin"></span> 智能体正在处理 ${d.running} 张`:''}</span></div>
-   ${d.mine.length?groups:`<div class="sub" style="padding:6px 0">现在没有要你处理的事。${d.running?'智能体在跑的工单有结果后，需要你的会出现在这里。':d.open?'在流转的工单都还没到需要人的那一步。':'新工单进来后，需要人的那一步会出现在这里。'}</div>`}
+   ${stalled.length?`<a class="ibx ibst" href="#/settings"><span class="ev-tag warn">没人接手</span><span class="grow" style="min-width:0"><b>${stalled.length} 张新工单不会自动开始</b><span class="sub ibw">${h(stalled[0].label)}。打开后会从各自停下的那一步接着做；也可以逐张手动开始。</span></span><span class="ibgo">${d.auto?'配置智能体':'去打开'} ›</span></a>`:''}
+   ${d.mine.length?groups:`<div class="sub" style="padding:6px 0">现在没有要你处理的事。${d.running?'智能体在跑的工单有结果后，需要你的会出现在这里。':d.open?'在流转的工单都还没到需要人的那一步。':'新工单进来后，需要人的那一步会出现在这里。'}${!d.auto?' 自动处理现在关着，新工单要有人手动开始。':!d.agent?' 这台机器上还没有可用的智能体，新工单不会自动分析，到“设置”里配置一个。':''}</div>`}
    ${d.others.length?`<details class="ibo"><summary class="sub">等甲方签收 ${d.others.length} 张</summary>${d.others.map(row).join('')}</details>`:''}</div>`;
   box.querySelectorAll('.ibmore').forEach(b=>b.onclick=()=>{S.home.open[b.dataset.g]=1;paintInbox()})}
 function waited(ts){const m=Math.max(0,(Date.now()-new Date(ts.replace(' ','T')).getTime())/6e4);
@@ -421,7 +424,7 @@ function secOf(text,names){
 function firstPara(text){const t=(text||'').split(/\n\s*\n/).map(x=>x.replace(/[*_`>#]/g,'').replace(/\s+/g,' ').trim()).find(x=>x&&x.length>8);return t||''}
 // The first line that says something: skip greetings and "在吗" so the card shows the problem, not "各位好："
 function symptomOf(t){
-  const hi=/^(各位|大家|领导|老师|您|你|王|李|张|刘|陈)?(好|们好|老师好|领导好)[!！,，。:：~～ ]*$|^(在吗|在不在|hi|hello|您好|你好)[?？!！,，。:：~～ ]*/i;
+  const hi=/^(各位|大家|领导|老师|您|你|王|李|张|刘|陈)?(好|们好|老师好|领导好)[!！,，。:：~～ ]*$|^(在吗|在不在|hi|hello|您好|你好)(?![A-Za-z])[?？!！,，。:：~～ ]*/i;
   for(const raw of (t.body||'').split('\n')){let x=raw.trim();if(!x||/^——/.test(x))continue;
     x=x.replace(hi,'').trim();if(x.length>=4)return x}
   return t.title}

@@ -209,6 +209,10 @@ class Platform:
             "(SELECT ticket_id, MAX(id) m FROM runs WHERE project_id IN (%s) AND ticket_id IS NOT NULL AND mode!='ask' GROUP BY ticket_id) x "
             "ON r.id=x.m" % q, ids)}
         running = st.one("SELECT COUNT(*) n FROM runs WHERE project_id IN (%s) AND status IN ('queued','running') AND mode!='ask'" % q, ids)["n"]
+        conf = self.flow.autoflow()
+        agent = self.flow.agent(conf)
+        idle_ok = bool(conf.get("on") and agent)
+        stall = "自动处理关着，没人接手" if not conf.get("on") else "这台机器上没有可用的智能体"
         mine, others = [], []
         for t in tickets:
             key = "%s-%d" % (keys.get(t["project_id"], "?"), t["num"])
@@ -224,7 +228,9 @@ class Platform:
                 mine.append(dict(item, reason="review", label="改好了，等你审阅", action="审阅改动", since=r.get("ended") or t["updated"]))
             elif t["status"] == "doing" and ev.get("status") == "rejected":
                 d = ev.get("decision") or {}
-                mine.append(dict(item, reason="returned", label="%s退回了" % (d.get("signer") or "甲方"), action="看退回原因",
+                byclient = d.get("via") == "签收链接"  # the platform's own 验收不通过 is the team's verdict, not the client's
+                mine.append(dict(item, reason="returned" if byclient else "rejected",
+                                 label="%s退回了" % (d.get("signer") or "甲方") if byclient else "%s验收没通过" % (d.get("signer") or ""), action="看退回原因",
                                  note=(d.get("note") or "")[:80], since=d.get("ts") or t["updated"]))
             elif t["status"] == "verify":
                 link = (ev.get("links") or [None])[-1]
@@ -237,10 +243,13 @@ class Platform:
                                      action="去验收", since=t["updated"]))
             elif t["status"] == "confirm":
                 mine.append(dict(item, reason="confirm", label="分析出结论，等你确认", action="看结论", since=t["updated"]))
+            elif t["status"] in ("new", "analyzing") and not r and not idle_ok:
+                # nothing will pick it up by itself: the line is off, or no agent is installed on this machine
+                mine.append(dict(item, reason="stalled", label=stall, action="去处理", since=t["updated"]))
         order = lambda x: (self.PRI_RANK.get(x["priority"], 2), x["since"] or "")  # noqa: E731
         mine.sort(key=order)
         others.sort(key=order)
-        return {"mine": mine, "others": others, "running": running, "open": len(tickets)}
+        return {"mine": mine, "others": others, "running": running, "open": len(tickets), "agent": agent, "auto": bool(conf.get("on"))}
 
     # ------------------------------------------------------------ leader view
     # What the ops team got done, across every project, in numbers a manager can read at a glance. Everything is
@@ -1539,6 +1548,8 @@ def api_lesson(P, req, key, lid):
     if not cur or cur.get("project") != p["key"]:
         raise ApiError(404, "没有这条经验")
     try:
+        if b.get("fields") and not isinstance(b["fields"], dict):
+            raise ValueError("fields 要是 {字段: 内容}")
         if b.get("fields"):
             cur = learn.edit_lesson(P.data_dir, lid, b["fields"], req.user)
         act = b.get("action") or ""
