@@ -193,6 +193,35 @@ class PlatformApiTest(unittest.TestCase):
             self.assertEqual(code, 200, p)
         return "OA"
 
+    def test_inbox_lists_what_waits_for_a_person(self):
+        self.project()
+        st = self.P.store
+        made = {}
+        for title, status, pri in [("验收这单", "verify", "high"), ("确认这单", "confirm", "normal"), ("跑挂了", "doing", "urgent"),
+                                   ("等审阅", "doing", "normal"), ("还在跑", "analyzing", "high"), ("没人管", "new", "low")]:
+            _, t = self.call("POST", "/api/tickets", {"project": "OA", "title": "收件箱 " + title, "priority": pri})
+            st.update_ticket(t["id"], "tester", status=status)
+            made[title] = t
+        p = st.project(made["跑挂了"]["project_id"])
+        fail = st.create_run(p["id"], made["跑挂了"]["id"], "fake", "analyze", "tester", "")["id"]
+        st.update_run(fail, status="failed")
+        rev = st.create_run(p["id"], made["等审阅"]["id"], "fake", "fix", "tester", "")["id"]
+        st.update_run(rev, status="done", diff="diff --git a/x b/x\n+1\n")
+        busy = st.create_run(p["id"], made["还在跑"]["id"], "fake", "analyze", "tester", "")["id"]
+        st.update_run(busy, status="running")
+        code, d = self.call("GET", "/api/projects/OA/inbox")
+        self.assertEqual(code, 200, d)
+        got = {x["key"]: x for x in d["mine"] if x["title"].startswith("收件箱")}
+        reasons = {x["title"][4:]: x["reason"] for x in got.values()}
+        self.assertEqual(reasons, {"验收这单": "verify", "确认这单": "confirm", "跑挂了": "failed", "等审阅": "review"}, d["mine"])
+        self.assertGreaterEqual(d["running"], 1)
+        keys = [x["key"] for x in d["mine"]]
+        self.assertLess(keys.index(made["跑挂了"]["key"]), keys.index(made["等审阅"]["key"]))  # urgent first
+        self.assertEqual(self.call("GET", "/api/projects/*/inbox")[0], 200)
+        st.update_run(busy, status="done")
+        for t in made.values():
+            st.update_ticket(t["id"], "tester", status="closed")
+
     def test_page_and_guards(self):
         with urllib.request.urlopen(self.base + "/") as r:
             html = r.read().decode("utf-8")
