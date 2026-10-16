@@ -233,7 +233,7 @@ def state(data_dir: Path, key: str) -> dict:
                 "review": review, "have": have, "missing": [lb for k, lb in need if not have[k]],
                 "gates": gates, "gate_state": G.overall(gates) if gates is not None else "",
                 "links": [dict(r["data"], by=r["by"], ts=r["ts"]) for r in links],
-                "decision": signs and dict(signs[-1]["data"], kind=signs[-1]["kind"], ts=signs[-1]["ts"], hash=signs[-1]["hash"])})
+                "decision": dict(signs[-1]["data"], kind=signs[-1]["kind"], ts=signs[-1]["ts"], hash=signs[-1]["hash"]) if signs else None})
     out["complete"] = not out["missing"]
     out["status"] = signs[-1]["kind"] + "ed" if signs else ("ready" if out["complete"] else "incomplete")
     return _upstream(recs, out)
