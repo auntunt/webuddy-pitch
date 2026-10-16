@@ -28,6 +28,14 @@ body.svc-reform #top{background:var(--navy-rf)}body.svc-reform #svc a.on{color:v
 #tabs{display:flex;gap:26px;border-bottom:1px solid var(--line);margin:0 0 18px;overflow-x:auto}
 #tabs a{padding:16px 0 12px;color:var(--fg);border-bottom:2px solid transparent;white-space:nowrap}
 #tabs a:hover{text-decoration:none;color:var(--blue)}#tabs a.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+#tabs{overflow:visible}.tmore{position:relative}.tmore>summary{list-style:none;cursor:pointer;padding:16px 0 12px;border-bottom:2px solid transparent;white-space:nowrap;color:var(--fg)}
+.tmore>summary::-webkit-details-marker{display:none}.tmore>summary i{font-style:normal;font-size:11px;margin-left:4px;color:var(--mut)}
+.tmore>summary:hover,.tmore.on>summary{color:var(--blue)}.tmore.on>summary{border-bottom-color:var(--blue);font-weight:600}
+.tmp{position:absolute;top:100%;left:-12px;z-index:30;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:8px 0;min-width:180px;display:flex;flex-direction:column}
+.tmg{display:flex;flex-direction:column;padding:4px 0}.tmg+.tmg{border-top:1px solid var(--line)}.tmg span{font-size:12px;color:var(--mut);padding:4px 16px}
+#tabs .tmp a{padding:8px 16px;border:0}#tabs .tmp a:hover{background:var(--soft)}#tabs .tmp a.on{border:0;background:var(--soft)}
+.tmore>summary b{font-weight:inherit;display:inline-block;vertical-align:bottom;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:700px){#tabs{gap:12px}.tmp{left:auto;right:-8px}.tmore>summary b{max-width:3em}}
 #ast{width:384px;flex:none;position:sticky;top:56px;height:calc(100vh - 56px);background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column}
 @media (max-width:1100px){#ast{position:fixed;right:0;top:56px;z-index:7;box-shadow:-8px 0 30px rgba(16,24,40,.15)}}
 @media (max-width:700px){#ast{width:100%}#top{gap:8px;padding:0 10px}#top .me,#newBtn span,#astToggle,.pts .w{display:none}#projSel{max-width:96px}#svc a{padding:4px 8px}#svc a span{display:none}#top .brand{font-size:15px}#page{padding:12px 10px 40px}.sheet{padding:0 12px 14px}}

@@ -86,12 +86,18 @@ function diffHtml(d){return '<pre class="diff">'+d.split('\n').map(l=>{const c=l
 const SVC={ops:{name:'运维服务',tabs:[['home','工单看板','#/'],['tickets','工单列表','#/tickets'],['lead','运维成效','#/lead'],['overview','监控总览','#/overview'],['eff','提效报告','#/eff'],['learn','闭环改进','#/learn'],['int','外部系统','#/int']]},
   reform:{name:'重构服务',tabs:[['reform','改造计划','#/reform'],['rtickets','改造工单','#/rtickets'],['rdeps','依赖清单','#/rdeps']]}};
 const SHARED=[['atlas','项目图谱','#/atlas'],['kb','知识库','#/kb'],['map','架构与依据','#/map'],['runs','智能体运行','#/runs'],['settings','设置','#/settings']];
+const TOP=['home','tickets','lead','kb','reform','rtickets','rdeps'];
 S.svc=localStorage.getItem('tmh.svc')==='reform'?'reform':'ops';
 function svcOf(view){for(const k in SVC)if(SVC[k].tabs.some(t=>t[0]===view))return k;return S.svc}
+document.addEventListener('click',e=>{const d=document.querySelector('#tabs .tmore');if(d&&d.open&&!d.contains(e.target))d.open=false});
 function paintTabs(tab){const s=S.svc;document.body.classList.toggle('svc-reform',s==='reform');ls.set('tmh.svc',s);
   document.querySelectorAll('#svc a').forEach(a=>a.classList.toggle('on',a.dataset.s===s));
   const a=([k,l,u])=>`<a data-r="${k}" href="${u}" class="${k===tab?'on':''}">${l}</a>`;
-  $('#tabs').innerHTML=SVC[s].tabs.map(a).join('')+`<span class="tsep" title="两套服务共用的底座">共用</span>`+SHARED.map(a).join('');
+  // Four tabs people use daily stay in sight; the rest sit under 更多, which takes the open page's name.
+  const all=SVC[s].tabs.concat(SHARED),top=all.filter(t=>TOP.includes(t[0])),rest=all.filter(t=>!TOP.includes(t[0]));
+  const cur=rest.find(t=>t[0]===tab),grp=(n,ts)=>ts.length?`<div class="tmg"><span>${n}</span>${ts.map(a).join('')}</div>`:'';
+  $('#tabs').innerHTML=top.map(a).join('')+`<details class="tmore${cur?' on':''}"><summary><b>${cur?h(cur[1]):'更多'}</b><i>▾</i></summary><div class="tmp">${grp(SVC[s].name,rest.filter(t=>SVC[s].tabs.includes(t)))}${grp('共用',rest.filter(t=>SHARED.includes(t)))}</div></details>`;
+  const d=$('#tabs .tmore');d.querySelectorAll('a').forEach(x=>x.onclick=()=>setTimeout(()=>d.open=false));
   $('#newBtn').innerHTML=s==='reform'?'＋<span> 新建改造计划</span>':'＋<span> 新建工单</span>'}
 async function boot(){
   try{S.meta=await get('/api/meta')}catch(e){$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}
