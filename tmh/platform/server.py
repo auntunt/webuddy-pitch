@@ -2255,6 +2255,17 @@ def make_handler(P: Platform, token: str = ""):
                     except ApiError as e:
                         return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
                     return self._send(200, md_html(report_md(mt), "AI 提效报告 %s %s" % (p["key"], mt["period"])).encode("utf-8"), "text/html; charset=utf-8")
+                m = re.match(r"^/e/([A-Za-z0-9]+-\d+)\.intoto\.json$", path)
+                if m:  # the same package, as an in-toto Statement a client keeps and checks with `tmh evidence-verify`
+                    if not self._authorized(q):
+                        return self._send(401, b"unauthorized", "text/plain")
+                    from . import signoff
+                    try:
+                        body = json.dumps(signoff.export(P, m.group(1)), ensure_ascii=False, indent=1).encode("utf-8")
+                    except ApiError as e:
+                        return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
+                    return self._send(200, body, "application/json; charset=utf-8",
+                                      {"Content-Disposition": "attachment; filename=\"%s.intoto.json\"" % m.group(1).upper()})
                 m = re.match(r"^/e/([A-Za-z0-9]+-\d+)(?:/f/([0-9a-f]{64}\.[a-z]+))?$", path)
                 if m:  # a ticket's evidence package as one page (for the provider and the client's auditors)
                     if not self._authorized(q):

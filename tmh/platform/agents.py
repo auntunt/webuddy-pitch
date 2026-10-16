@@ -169,6 +169,22 @@ def available(data_dir: Path) -> list:
     return out
 
 
+# ---------------------------------------------------------------- provenance
+def trailers(r: dict, t: dict | None, reviewer: str | None) -> str:
+    """Git trailers that say, in the commit itself, that an agent wrote the change and who let it in: the
+    Linux kernel's Assisted-by form (agent:model, then the tool), the ticket and run it came from, and the
+    evidence package a client can check. A person is named only when one reviewed it."""
+    model = (r.get("model") or "").strip()
+    out = ["Assisted-by: %s%s webuddy" % (r["agent"], ":" + model if model else "")]
+    if reviewer:
+        out.append("Reviewed-by: %s" % reviewer)
+    if t:
+        out.append("Ticket: %s" % t["key"])
+        out.append("Evidence: /e/%s" % t["key"])
+    out.append("Webuddy-Run: %d" % r["id"])
+    return "\n".join(x.replace("\n", " ") for x in out)
+
+
 # ---------------------------------------------------------------- prompt
 
 def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None) -> str:
@@ -810,6 +826,7 @@ class Runner:
             auto = author == "自动流转"
             msg = "%s %s\n\n由 %s 修改，%s（tmh 运行 #%d）" % (t["key"] if t else p["key"], t["title"] if t else "", r["agent"],
                                                        "自动提交，待人工合并验收" if auto else author + " 审阅采纳", rid)
+            msg += "\n\n" + trailers(r, t, None if auto else author)
             git(wt, "-c", "user.name=tmh", "-c", "user.email=tmh@localhost", "commit", "-q", "-m", msg)
             sha = git(wt, "rev-parse", "--short", "HEAD").strip()
             git(root, "worktree", "remove", "--force", str(wt))
