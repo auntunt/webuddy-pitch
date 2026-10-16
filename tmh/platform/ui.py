@@ -46,8 +46,15 @@ async function api(m,p,b){
   const o={method:m,headers:{'X-TMH':'1'}};
   if(S.user)o.headers['X-TMH-User']=encodeURIComponent(S.user);
   if(b!==undefined){o.headers['Content-Type']='application/json';o.body=JSON.stringify(b)}
-  const r=await fetch(p,o);let j;try{j=await r.json()}catch(e){j={error:'服务器返回了无法解析的内容'}}
-  if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
+  // errors read as what happened and what to do; the raw cause goes to the console for whoever debugs it
+  let r;try{r=await fetch(p,o)}catch(e){console.warn(m,p,e);throw apiErr(navigator.onLine===false?'网络断了，连上后再试。':'连不上服务器：可能是网络问题，或服务没在运行。稍后再试。')}
+  let j;try{j=await r.json()}catch(e){j={}}
+  if(!r.ok){if(j.detail)console.warn(m,p,j.detail);throw apiErr(j.error&&r.status!==401?j.error:HTTPMSG[r.status]||HTTPMSG[Math.floor(r.status/100)*100]||'出错了（'+r.status+'），稍后再试。')}
+  return j}
+const apiErr=msg=>Object.assign(new Error(msg),{api:1});
+const HTTPMSG={401:'登录已过期，刷新页面重新登录。',403:'没有权限做这一步，需要的话找管理员开通。',404:'要找的内容不存在，可能已被删除或改名。',
+  413:'文件太大了，换小一点的再试。',429:'操作太频繁，稍等一下再试。',502:'服务器暂时不可用，稍后再试。',503:'服务器暂时不可用，稍后再试。',504:'服务器响应超时，稍后再试；如果是长任务，它可能还在后台跑。',
+  500:'服务器出错了，没有做任何改动。稍后再试；一直这样请告诉管理员。'};
 const get=p=>api('GET',p),post=(p,b)=>api('POST',p,b||{});
 function toast(t,ms){const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,ms||2600)}
 function modal(html,wide){$('#mbody').innerHTML=html;$('#modal').hidden=false;$('.mbox').classList.toggle('wide',!!wide)}
@@ -143,7 +150,7 @@ function render(){
   $('#main').innerHTML='<div class="empty"><span class="spin"></span></div>';
   // a slow page that finishes after the user already moved on would paint over the newer one: draw the current page again
   const rt=S.rt=(S.rt||0)+1;
-  S.renderP=Promise.resolve(V()).then(()=>{if(rt!==S.rt)return render();remember();A.paintCtx()}).catch(e=>{$('#main').innerHTML='<div class="empty">出错了：'+h(e.message)+'</div>'})}
+  S.renderP=Promise.resolve(V()).then(()=>{if(rt!==S.rt)return render();remember();A.paintCtx()}).catch(e=>{if(!e.api)console.error(e);$('#main').innerHTML='<div class="empty">'+h(e.api?e.message:'这一页没能显示出来，刷新试试；还不行请告诉管理员。')+'<div style="margin-top:12px"><button onclick="render()">再试一次</button></div></div>'})}
 // pages visited lately, per project: the assistant's jump list
 function remember(){const r=location.hash||'#/';const t=(($('#main h1')||{}).textContent||'').trim();if(!S.proj||!t)return;
   const k='tmh.recent.'+S.proj;let L=[];try{L=JSON.parse(ls.get(k)||'[]')}catch(e){}
