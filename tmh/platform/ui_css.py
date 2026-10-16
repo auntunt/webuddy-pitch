@@ -355,4 +355,6 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 .frn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
 .frs.done .frn{background:var(--ok)}.frs.done b{color:var(--mut)}
 @media (max-width:700px){.frs{flex-wrap:wrap}.frs>.grow{flex-basis:calc(100% - 42px)}.frs>.btn,.frs>button{margin-left:42px}}
+/* phones: no Ctrl K to show, and room at the bottom so the floating 助手 button never sits on the last buttons */
+@media (max-width:700px){#astOpen{padding:9px 14px;right:12px;bottom:14px}#astOpen kbd,.frk{display:none}#page{padding-bottom:76px}}
 """
