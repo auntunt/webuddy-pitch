@@ -1616,6 +1616,14 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual((pl["cycle"]["n"], pl["cycle"]["median_h"]), (1, 48.0))
         self.assertEqual(pl["locate"]["median_h"], 2.0)
         self.assertEqual((pl["reject"]["reviewed"], pl["reject"]["rejected"], pl["reject"]["rate"]), (1, 1, 100.0))
+        self.assertEqual(pl["cycle"]["p90_h"], 48.0)
+        self.assertEqual((pl["reopen"]["matured"], pl["reopen"]["reopened"]), (1, 0))  # its rejection came before the acceptance
+        from tmh.platform.metrics import _reopened
+        acc = "2026-09-01 10:00:00"
+        self.assertTrue(_reopened([{"ts": "2026-09-05 10:00:00", "kind": "status", "data": '{"from": "closed", "to": "doing"}'}], acc))
+        self.assertTrue(_reopened([{"ts": "2026-09-03 10:00:00", "kind": "reject", "data": "{}"}], acc))
+        self.assertFalse(_reopened([{"ts": "2026-09-20 10:00:00", "kind": "reject", "data": "{}"}], acc))  # past the 14 days
+        self.assertIn("P90", report_md(m))
         src = {x["key"]: x["n"] for x in pl["ai"]["by_source"]}
         self.assertEqual((pl["ai"]["tickets"], src["run"], src["mcp"]), (2, 1, 1))
         self.assertEqual((pl["cost"]["per_ticket"], pl["ide"]["calls"]), (10, 1))

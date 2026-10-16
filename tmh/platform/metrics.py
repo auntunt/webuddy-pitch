@@ -56,8 +56,11 @@ def _hours(a: str, b: str) -> float | None:
 def _stat(hs: list) -> dict:
     hs = [h for h in hs if h is not None]
     if not hs:
-        return {"n": 0, "median_h": None, "avg_h": None}
-    return {"n": len(hs), "median_h": round(median(hs), 1), "avg_h": round(sum(hs) / len(hs), 1)}
+        return {"n": 0, "median_h": None, "avg_h": None, "p90_h": None}
+    hs = sorted(hs)
+    # the tail next to the median: a few tickets stuck for weeks is what a client remembers, and a mean hides it
+    p90 = hs[min(len(hs) - 1, max(0, -(-len(hs) * 9 // 10) - 1))]
+    return {"n": len(hs), "median_h": round(median(hs), 1), "avg_h": round(sum(hs) / len(hs), 1), "p90_h": round(p90, 1)}
 
 
 def _in(ts: str, month: str) -> bool:
@@ -125,6 +128,27 @@ HUMAN_KINDS = ("comment", "accept", "reject", "adopt", "discard", "link", "edit"
 AGENT_AUTHORS = ("自动流转", "system", "告警", "平台", "")
 
 
+HOLD_DAYS = 14  # an accepted change counts as done only if nothing sends it back within this many days
+
+
+def _reopened(evs: list, accepted_at: str) -> bool:
+    """Sent back within HOLD_DAYS of its first acceptance: rejected again, or moved out of 已闭环."""
+    import json as _j
+    for e in evs:
+        if e["ts"] <= accepted_at or (_hours(accepted_at, e["ts"]) or 0) > HOLD_DAYS * 24:
+            continue
+        if e["kind"] == "reject":
+            return True
+        if e["kind"] == "status":
+            try:
+                d = _j.loads(e["data"] or "{}") if isinstance(e["data"], str) else (e["data"] or {})
+            except ValueError:
+                d = {}
+            if d.get("from") == "closed":
+                return True
+    return False
+
+
 def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None = None, sealed: dict | None = None,
             books: dict | None = None, packages: dict | None = None) -> dict:
     pid = p["id"]
@@ -134,7 +158,7 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
     ev = {}
     if ids:
         for e in store.q("SELECT e.ticket_id, e.ts, e.kind, e.data FROM events e JOIN tickets t ON t.id=e.ticket_id "
-                         "WHERE t.project_id=? AND e.kind IN ('accept','reject','prompt') ORDER BY e.id", (pid,)):
+                         "WHERE t.project_id=? AND e.kind IN ('accept','reject','prompt','status') ORDER BY e.id", (pid,)):
             ev.setdefault(e["ticket_id"], []).append(e)
     runs = {}
     for r in store.q("SELECT ticket_id, mode, status, ended FROM runs WHERE project_id=? AND ticket_id IS NOT NULL", (pid,)):
@@ -171,7 +195,7 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
             src.add("prompt")
         if t["id"] in mcp_by_ticket:
             src.add("mcp")
-        pilot.append({"t": t, "origin": origin, "done": accepted[0] if accepted else "", "cycle": _hours(origin, accepted[0]) if accepted else None,
+        pilot.append({"t": t, "origin": origin, "reopened": _reopened(evs, accepted[0]) if accepted else False, "done": accepted[0] if accepted else "", "cycle": _hours(origin, accepted[0]) if accepted else None,
                       "locate_at": loc[0] if loc else "", "locate": _hours(origin, loc[0]) if loc else None, "src": src,
                       "reviews": [e for e in evs if e["kind"] in ("accept", "reject")], "who": t["assignee"]})
 
@@ -202,6 +226,10 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
                 if e["kind"] == "reject":
                     rejected.add(r["t"]["id"])
                     reworks += 1
+    # speed next to stability: of the tickets accepted this period whose 14 days are up, how many came back
+    now_ = time.strftime("%Y-%m-%d %H:%M:%S")
+    matured = [r for r in closed if (_hours(r["done"], now_) or 0) >= HOLD_DAYS * 24]
+    back = [r for r in matured if r["reopened"]]
     handled = [r for r in pilot if _in(r["origin"], month) or (r["done"] and _in(r["done"], month))]
     with_ai = [r for r in handled if r["src"]]
     src_n = {k: sum(1 for r in handled if k in r["src"]) for k, _ in AI_SOURCES}
@@ -223,6 +251,8 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
         "n": len(pilot), "handled": len(handled), "closed": len(closed),
         "cycle": _stat([r["cycle"] for r in closed]), "cycle_by_type": by_type(closed),
         "locate": _stat([r["locate"] for r in located]),
+        "reopen": {"matured": len(matured), "reopened": len(back), "rate": pct(len(back), len(matured)), "pending": len(closed) - len(matured),
+                   "keys": [r["t"]["key"] for r in back]},
         "reject": {"reviewed": len(reviewed), "rejected": len(rejected), "rate": pct(len(rejected), len(reviewed)), "reworks": reworks},
         "ai": {"tickets": len(with_ai), "total": len(handled), "rate": pct(len(with_ai), len(handled)),
                "by_source": [{"key": k, "label": lb, "n": src_n[k]} for k, lb in AI_SOURCES]},
@@ -240,12 +270,15 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
     bpm = sb["per_person_month"] if sb else None
     NB = "未封存"
     compare = [
-        {"key": "cycle", "label": "工单周期（中位数）", "baseline": dur(bc) if sb else NB, "pilot": dur(pc), "change": pct(pc - bc, bc) if bc and pc is not None else None,
+        {"key": "cycle", "label": "工单周期（中位数）", "baseline": dur(bc) if sb else NB,
+         "pilot": dur(pc) + (" · P90 %s" % dur(pilot_out["cycle"]["p90_h"]) if pilot_out["cycle"]["n"] >= 5 else ""), "change": pct(pc - bc, bc) if bc and pc is not None else None,
          "better": "down", "basis": "实测"},
         {"key": "locate", "label": "首次定位耗时（中位数）", "baseline": "外部系统无记录", "pilot": dur(pilot_out["locate"]["median_h"]), "change": None,
          "better": "down", "basis": "实测"},
         {"key": "reject", "label": "验收退回率", "baseline": "外部系统无记录",
          "pilot": "—" if pilot_out["reject"]["rate"] is None else "%s%%" % pilot_out["reject"]["rate"], "change": None, "better": "down", "basis": "实测"},
+        {"key": "reopen", "label": "验收后 %d 天内返工率" % HOLD_DAYS, "baseline": "外部系统无记录",
+         "pilot": "—" if pilot_out["reopen"]["rate"] is None else "%s%%" % pilot_out["reopen"]["rate"], "change": None, "better": "down", "basis": "实测"},
         {"key": "ai", "label": "AI 参与率", "baseline": "0%（导入前无记录）", "pilot": "—" if pilot_out["ai"]["rate"] is None else "%s%%" % pilot_out["ai"]["rate"],
          "change": None, "better": "up", "basis": "实测"},
         {"key": "cost", "label": "每单 AI 成本", "baseline": "—", "pilot": "—" if pilot_out["cost"]["per_ticket"] is None else "%s 点" % pilot_out["cost"]["per_ticket"],
@@ -339,6 +372,13 @@ def report_md(m: dict) -> str:
         lines.append("首次定位耗时中位数 %s（%d 张）。" % (dur(p["locate"]["median_h"]), p["locate"]["n"]))
     if p["reject"]["reviewed"]:
         lines.append("验收 %d 张，退回 %d 张，退回率 %s%%。" % (p["reject"]["reviewed"], p["reject"]["rejected"], p["reject"]["rate"]))
+    if p["cycle"]["n"]:
+        lines.append("工单周期中位数 %s，最慢的一成在 %s 以上。" % (dur(p["cycle"]["median_h"]), dur(p["cycle"]["p90_h"])))
+    if p["reopen"]["matured"]:
+        lines.append("验收满 %d 天的 %d 张里，%d 张被退回或重开（%s%%）%s。" % (HOLD_DAYS, p["reopen"]["matured"], p["reopen"]["reopened"], p["reopen"]["rate"],
+                                                         "：" + "、".join(p["reopen"]["keys"][:8]) if p["reopen"]["keys"] else ""))
+    elif p["reopen"]["pending"]:
+        lines.append("本期验收的 %d 张还不满 %d 天，返工率下期再出。" % (p["reopen"]["pending"], HOLD_DAYS))
     u = m.get("upstream") or {}
     if u.get("submitted"):
         lines.append("向开源项目提交 PR %d 个，已被维护者合并 %d 个%s。" % (u["submitted"], u["merged"],
@@ -457,6 +497,8 @@ def report_md(m: dict) -> str:
           "- 证据包：工单转“待验证”时自动打包验收标准、方案、改动、构建测试、范围和入口路径检查结果；之后的补充、复核、签收都追加在后面，每条带前一条的哈希，改任何一条都会对不上。",
           "- 首次定位耗时：从工单创建到第一次“分析定位”或“修改方案”运行完成。",
           "- 验收退回率：本期有验收记录的工单中，至少被退回一次的比例。",
+          "- 周期：从工单创建（导入的取原系统创建时间）到第一次验收通过。报中位数和 P90（最慢一成的起点），不报平均数：少数卡住几周的单会把平均数拉得不像任何一张单。",
+          "- 验收后 %d 天内返工率：本期验收通过、且已满 %d 天的工单中，%d 天内又被退回或从“已闭环”改回其他状态的比例。不满 %d 天的不进分母，下期再算。只报速度不报稳定性，提速可能只是把问题推到了验收之后。" % ((HOLD_DAYS,) * 4),
           "- 少找人：每次需求预判（命令行、网页、群机器人、开放 API）都记一条；结论不是“需要人判断”的算直接答；有人用“改判”标记不对的，从采纳率里扣掉。",
           "- AI 参与：工单有智能体运行、助手对话、提示词使用，或 IDE 里有带该工单号的 MCP 调用（含开发者在平台上“写入项目”后的调用）。",
           ""]
