@@ -278,21 +278,26 @@ def cmd_baseline(a) -> int:
 
 
 def cmd_evidence_verify(a) -> int:
-    """Check an exported evidence package (<KEY>.intoto.json) without webuddy: chain, head hash, the hash you kept."""
+    """Check an exported evidence package (<KEY>.intoto.json) without webuddy, against the hash you kept when signing."""
     from . import evidence as ev
     try:
         st = json.loads(Path(a.file).read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         print("读不了这个文件：%s" % e)
         return 2
-    ok, notes = ev.verify_statement(st, a.hash or "")
-    for n in notes:
-        print(("✓ " if ok or n is not notes[-1] else "✗ ") + n)
+    if a.hash and len(a.hash.strip()) < ev.MIN_ANCHOR:
+        print("--hash 太短：请填签收页上显示的完整哈希（至少前 %d 位）。太短的前缀，改过记录的人可以凑出来。" % ev.MIN_ANCHOR)
+        return 2
+    verdict, notes = ev.verify_statement(st, a.hash or "")
+    for i, n in enumerate(notes):
+        print(("✗ " if verdict == "bad" and i == len(notes) - 1 else "! " if verdict == "consistent" and i == len(notes) - 1 else "✓ ") + n)
     summ = (st.get("predicate") or {}).get("summary") or {}
-    if ok and summ:
+    if summ:
         print("  %s %s · %s" % (summ.get("ticket", ""), summ.get("title", ""), summ.get("label", "")))
-    print("结论：%s" % ("可信，导出后没有被改过" if ok else "不可信"))
-    return 0 if ok else 1
+    print("结论：%s" % {"anchored": "可信：你签收时记下的那条及之前的记录都没被改过",
+                       "consistent": "未核实：加上 --hash 签收页上的完整哈希 再核对一次",
+                       "bad": "不可信"}[verdict])
+    return {"anchored": 0, "consistent": 3, "bad": 1}[verdict]
 
 
 def cmd_verify(a) -> int:
@@ -817,7 +822,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--password-stdin", action="store_true", help="从标准输入读一行作为密码（脚本用）")
     p = add("evidence-verify", cmd_evidence_verify, "离线核对导出的证据包（<工单>.intoto.json）：哈希链、摘要、你记下的哈希")
     p.add_argument("file")
-    p.add_argument("--hash", help="签收时记下的证据包哈希（前几位即可）")
+    p.add_argument("--hash", help="签收页上显示的记录哈希（至少前 32 位，最好整串）")
     p = add("offline-pack", cmd_offline_pack, "打内网离线安装包（工具、模板、技能、子代理、信创知识库，带 sha256 清单）")
     p.add_argument("--out", help="输出的 zip 路径（默认 tmh-offline-<版本>.zip）")
     p.add_argument("--verify", help="校验一个离线包，不打包")

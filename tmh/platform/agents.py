@@ -174,15 +174,17 @@ def trailers(r: dict, t: dict | None, reviewer: str | None) -> str:
     """Git trailers that say, in the commit itself, that an agent wrote the change and who let it in: the
     Linux kernel's Assisted-by form (agent:model, then the tool), the ticket and run it came from, and the
     evidence package a client can check. A person is named only when one reviewed it."""
-    model = (r.get("model") or "").strip()
-    out = ["Assisted-by: %s%s webuddy" % (r["agent"], ":" + model if model else "")]
-    if reviewer:
+    one = lambda v: re.sub(r"[\s:]+", "-", str(v or "").strip())  # noqa: E731 - agent:model is one token in this form
+    model = one(r.get("model"))
+    out = ["Assisted-by: %s%s webuddy" % (one(r["agent"]), ":" + model if model else "")]
+    from .signoff import human
+    if reviewer and human(reviewer):  # only a person reviews; system, 告警 or an agent adopting is not a review
         out.append("Reviewed-by: %s" % reviewer)
     if t:
         out.append("Ticket: %s" % t["key"])
         out.append("Evidence: /e/%s" % t["key"])
     out.append("Webuddy-Run: %d" % r["id"])
-    return "\n".join(x.replace("\n", " ") for x in out)
+    return "\n".join(re.sub(r"[\r\n]+", " ", x) for x in out)
 
 
 # ---------------------------------------------------------------- prompt

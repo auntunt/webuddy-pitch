@@ -264,8 +264,7 @@ class PlatformApiTest(unittest.TestCase):
         self.assertEqual(code, 500)
         self.assertIn("没有完成", e["error"])
         self.assertIn(e["ref"], e["error"])
-        self.assertNotIn("secret_column", e["error"])
-        self.assertIn("KeyError", e["detail"])
+        self.assertNotIn("secret_column", json.dumps(e))  # the exception stays in the server log
 
     def test_lead_reads_response_resolution_first_fix_and_backlog(self):
         key = self.project()
@@ -1920,10 +1919,27 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
                 stmt = json.loads(r.read())
             from tmh import evidence as ev
             self.assertEqual((stmt["_type"], stmt["predicateType"]), (ev.STATEMENT, ev.PREDICATE))
-            self.assertTrue(ev.verify_statement(stmt, self.call("GET", "/api/tickets/%s/evidence" % t["key"])[1]["hash"][:10])[0])
-            self.assertFalse(ev.verify_statement(stmt, "deadbeef")[0])
-            stmt["predicate"]["records"][0]["by"] = "别人"
-            self.assertFalse(ev.verify_statement(stmt)[0])
+            kept = self.call("GET", "/api/tickets/%s/evidence" % t["key"])[1]["hash"]
+            self.assertEqual(ev.verify_statement(stmt, kept)[0], "anchored")
+            self.assertEqual(ev.verify_statement(stmt)[0], "consistent")  # no kept hash: holds together, proves nothing more
+            self.assertEqual(ev.verify_statement(stmt, kept[:8])[0], "bad")  # a short prefix can be matched by trial edits
+            self.assertEqual(ev.verify_statement(stmt, "f" * 64)[0], "bad")
+            first = stmt["predicate"]["records"][0]["hash"]  # a hash kept earlier still anchors, and the later records are listed
+            v, notes = ev.verify_statement(stmt, first)
+            self.assertEqual(v, "anchored")
+            self.assertIn("之后又追加了", notes[-1])
+            # a forger who edits a record and recomputes every hash gets a consistent file, but not one with the kept hash in it
+            forged = json.loads(json.dumps(stmt))
+            recs = forged["predicate"]["records"]
+            recs[0]["by"] = "别人"
+            prev = ev.GENESIS
+            for r in recs:
+                r["prev"] = prev
+                r["hash"] = ev.digest(r)
+                prev = r["hash"]
+            forged["subject"][0]["digest"]["sha256"] = prev
+            self.assertEqual(ev.verify_statement(forged)[0], "consistent")
+            self.assertEqual(ev.verify_statement(forged, kept)[0], "bad")
             code, ln = self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "link", "signer": "周敏", "role": "人事业务负责人"})
             self.assertEqual(code, 200, ln)
             with urllib.request.urlopen(self.base + ln["path"]) as resp:
@@ -1935,6 +1951,10 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             img = _re.search(r"src='(/sign/[^']+)'", page_html).group(1)
             with urllib.request.urlopen(self.base + img) as resp:
                 self.assertEqual(resp.headers["Content-Type"], "image/png")
+            with urllib.request.urlopen(self.base + ln["path"] + "/package.intoto.json") as resp:  # the signer keeps their own copy
+                self.assertEqual(json.loads(resp.read())["predicateType"], ev.PREDICATE)
+            with self.assertRaises(urllib.error.HTTPError):
+                urllib.request.urlopen(self.base + "/sign/" + "x" * 32 + "/package.intoto.json")
             with self.assertRaises(urllib.error.HTTPError) as cm:
                 urllib.request.urlopen(self.base + "/sign/" + "x" * 32)
             self.assertEqual(cm.exception.code, 404)

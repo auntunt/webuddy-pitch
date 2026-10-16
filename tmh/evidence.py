@@ -112,10 +112,13 @@ def page(title: str, body: str, extra_css: str = "") -> str:
 # ---------------------------------------------------------------- export for third parties
 # The package leaves webuddy as an in-toto Statement v1 (https://in-toto.io/Statement/v1): the subject is the
 # chain's head hash (and the commit the change landed in, when known), the predicate carries every record, so
-# anyone can recompute the chain without webuddy. Unsigned for now: it proves the records were not changed after
-# export by matching the head hash someone kept (the sign-off page shows it), not who exported them.
+# anyone can recompute the chain without webuddy. The hashes carry no key: a file that is consistent with itself
+# proves nothing on its own, since whoever edits a record can recompute every hash after it. What proves the
+# records were not changed is a hash the client wrote down when it signed (the sign-off page shows it) still being
+# in the chain, with the same records before it.
 STATEMENT = "https://in-toto.io/Statement/v1"
 PREDICATE = "https://webuddy.ai/evidence/v1"
+MIN_ANCHOR = 32  # hex characters of a kept hash we accept: shorter prefixes can be matched by trial edits
 
 
 def statement(name: str, recs: list[dict], summary: dict, commit: str = "") -> dict:
@@ -126,23 +129,32 @@ def statement(name: str, recs: list[dict], summary: dict, commit: str = "") -> d
             "predicate": {"exported": now(), "summary": summary, "records": recs}}
 
 
-def verify_statement(st: dict, expect_head: str = "") -> tuple[bool, list[str]]:
-    """What a client's auditor runs on an exported package: is it ours, is the chain intact, does its head match
-    the subject (and, given, the head they wrote down when they signed)."""
+def verify_statement(st: dict, anchor: str = "") -> tuple[str, list[str]]:
+    """What a client's auditor runs on an exported package. Returns (verdict, notes): "bad" (not ours, broken, or
+    the kept hash is not in it), "consistent" (holds together, but nothing outside the file vouches for it), or
+    "anchored" (the hash the client kept is in the chain: every record up to it is exactly what was there then)."""
     notes = []
     if st.get("_type") != STATEMENT or st.get("predicateType") != PREDICATE:
-        return False, ["不是 webuddy 导出的证据包（类型不对）"]
+        return "bad", ["不是 webuddy 导出的证据包（类型不对）"]
     recs = (st.get("predicate") or {}).get("records") or []
     ok, why = check(recs)
     if not ok:
-        return False, [why]
-    notes.append("哈希链完整：%d 条记录，逐条重算一致" % len(recs))
+        return "bad", [why]
+    notes.append("哈希链自洽：%d 条记录，逐条重算一致" % len(recs))
     sha = next((x["digest"].get("sha256") for x in st.get("subject") or [] if "sha256" in (x.get("digest") or {})), "")
     if sha != head(recs):
-        return False, notes + ["声明里的摘要 %s 和记录算出来的 %s 对不上" % (sha[:12], head(recs)[:12])]
-    notes.append("声明摘要和记录一致：%s" % sha)
-    if expect_head:
-        if not sha.startswith(expect_head.lower()):
-            return False, notes + ["和你手里记下的哈希 %s 对不上：签收之后记录变过" % expect_head]
-        notes.append("和你记下的哈希一致")
-    return True, notes
+        return "bad", notes + ["声明里的摘要 %s 和记录算出来的 %s 对不上" % (sha[:12], head(recs)[:12])]
+    if not anchor:
+        return "consistent", notes + ["没有核对你另外记下的哈希：文件只证明自身前后一致，改过记录的人也能重算出一致的文件"]
+    anchor = anchor.strip().lower()
+    if len(anchor) < MIN_ANCHOR or any(c not in "0123456789abcdef" for c in anchor):
+        return "bad", notes + ["记下的哈希要至少 %d 位十六进制字符（签收页上显示的完整哈希）" % MIN_ANCHOR]
+    at = next((i for i, r in enumerate(recs) if r.get("hash", "").startswith(anchor)), None)
+    if at is None:
+        return "bad", notes + ["你记下的哈希不在这份记录里：签收时看到的记录被改过或被替换了"]
+    r = recs[at]
+    notes.append("你记下的哈希是第 %d 条（%s，%s %s）：它和之前的 %d 条记录与当时完全一致" % (at + 1, r.get("kind"), r.get("by", ""), r.get("ts", ""), at + 1))
+    later = recs[at + 1:]
+    if later:
+        notes.append("之后又追加了 %d 条：%s" % (len(later), "、".join("%s（%s）" % (x.get("kind"), x.get("ts", "")) for x in later[:8])))
+    return "anchored", notes
