@@ -437,6 +437,13 @@ class PlatformApiTest(unittest.TestCase):
             self.assertEqual(sorted(r["mode"] for r in d["runs"]), ["analyze", "fix", "plan"])
             fx = [r for r in d["runs"] if r["mode"] == "fix"][0]
             self.assertTrue(fx["decision"].startswith("accepted:tmh/%s-r" % t["key"]), fx["decision"])
+            # the commit says who wrote it and where it came from, in trailers git itself can read back
+            sha = fx["decision"].rsplit("@", 1)[1]
+            tr = subprocess.run(["git", "log", "-1", "--format=%(trailers:only,unfold)", sha], cwd=self.repo, capture_output=True, text=True).stdout
+            self.assertIn("Assisted-by: %s" % fx["agent"], tr)
+            self.assertIn("Ticket: %s" % t["key"], tr)
+            self.assertIn("Webuddy-Run: %d" % fx["id"], tr)
+            self.assertNotIn("Reviewed-by", tr)  # committed by the line, nobody reviewed it yet
             adopt = [e for e in d["events"] if e["kind"] == "adopt"]
             self.assertEqual(adopt[0]["author"], "自动流转")
             self.assertNotIn("accept", [e["kind"] for e in d["events"]], "committing a change is not passing acceptance")
@@ -1900,6 +1907,15 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
 
             # a one-time link for the named signer
             self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "link"})[0], 400)
+            # exported as an in-toto Statement that checks out offline, and stops checking out once a record is touched
+            with urllib.request.urlopen(self.base + "/e/%s.intoto.json" % t["key"]) as r:
+                stmt = json.loads(r.read())
+            from tmh import evidence as ev
+            self.assertEqual((stmt["_type"], stmt["predicateType"]), (ev.STATEMENT, ev.PREDICATE))
+            self.assertTrue(ev.verify_statement(stmt, self.call("GET", "/api/tickets/%s/evidence" % t["key"])[1]["hash"][:10])[0])
+            self.assertFalse(ev.verify_statement(stmt, "deadbeef")[0])
+            stmt["predicate"]["records"][0]["by"] = "别人"
+            self.assertFalse(ev.verify_statement(stmt)[0])
             code, ln = self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "link", "signer": "周敏", "role": "人事业务负责人"})
             self.assertEqual(code, 200, ln)
             with urllib.request.urlopen(self.base + ln["path"]) as resp:

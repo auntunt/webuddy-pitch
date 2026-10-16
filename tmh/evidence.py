@@ -107,3 +107,42 @@ def page(title: str, body: str, extra_css: str = "") -> str:
     import html as H
     return ("<!doctype html><html lang=zh><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
             "<meta name=robots content=noindex><title>%s</title><style>%s%s</style><body>%s</body></html>" % (H.escape(title), CSS, extra_css, body))
+
+
+# ---------------------------------------------------------------- export for third parties
+# The package leaves webuddy as an in-toto Statement v1 (https://in-toto.io/Statement/v1): the subject is the
+# chain's head hash (and the commit the change landed in, when known), the predicate carries every record, so
+# anyone can recompute the chain without webuddy. Unsigned for now: it proves the records were not changed after
+# export by matching the head hash someone kept (the sign-off page shows it), not who exported them.
+STATEMENT = "https://in-toto.io/Statement/v1"
+PREDICATE = "https://webuddy.ai/evidence/v1"
+
+
+def statement(name: str, recs: list[dict], summary: dict, commit: str = "") -> dict:
+    subject = [{"name": name, "digest": {"sha256": head(recs)}}]
+    if commit and len(commit) == 40:
+        subject.append({"name": name + " 的代码提交", "digest": {"gitCommit": commit}})
+    return {"_type": STATEMENT, "subject": subject, "predicateType": PREDICATE,
+            "predicate": {"exported": now(), "summary": summary, "records": recs}}
+
+
+def verify_statement(st: dict, expect_head: str = "") -> tuple[bool, list[str]]:
+    """What a client's auditor runs on an exported package: is it ours, is the chain intact, does its head match
+    the subject (and, given, the head they wrote down when they signed)."""
+    notes = []
+    if st.get("_type") != STATEMENT or st.get("predicateType") != PREDICATE:
+        return False, ["不是 webuddy 导出的证据包（类型不对）"]
+    recs = (st.get("predicate") or {}).get("records") or []
+    ok, why = check(recs)
+    if not ok:
+        return False, [why]
+    notes.append("哈希链完整：%d 条记录，逐条重算一致" % len(recs))
+    sha = next((x["digest"].get("sha256") for x in st.get("subject") or [] if "sha256" in (x.get("digest") or {})), "")
+    if sha != head(recs):
+        return False, notes + ["声明里的摘要 %s 和记录算出来的 %s 对不上" % (sha[:12], head(recs)[:12])]
+    notes.append("声明摘要和记录一致：%s" % sha)
+    if expect_head:
+        if not sha.startswith(expect_head.lower()):
+            return False, notes + ["和你手里记下的哈希 %s 对不上：签收之后记录变过" % expect_head]
+        notes.append("和你记下的哈希一致")
+    return True, notes

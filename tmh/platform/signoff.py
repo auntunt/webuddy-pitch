@@ -525,6 +525,8 @@ def package_page(P, key: str) -> str:
     if not snap:
         body.append("<p>还没有证据包：工单转到“待验证”时自动生成。</p>")
         return ev.page(title, "".join(body))
+    body.append("<p class=sub><a href=\"/e/%s.intoto.json\">下载证据包（in-toto 格式）</a>：自己留存；"
+                "日后用 <code>tmh evidence-verify %s.intoto.json --hash 上面的哈希</code> 可以离线核对它没被改过。</p>" % (E(t["key"]), E(t["key"])))
     body.append("<h2>缺项</h2>" + ("<p class=ok>无，证据齐全。</p>" if not s["missing"] else "<ul>%s</ul>" % "".join("<li class=bad>%s</li>" % E(m) for m in s["missing"])))
     body += ["<h2>业务流</h2>", _flows_html(snap), "<h2>验收标准</h2>", _ac_table(s, form=False, img="/e/%s/f/" % t["key"])]
     if snap["contract"]:
@@ -638,3 +640,25 @@ def owns(data_dir: Path, key: str, name: str) -> None:
 
 def message_page(msg: str) -> str:
     return ev.page("验收签收", "<h1>验收签收</h1><p>%s</p>" % E(msg))
+
+
+def export(P, key: str) -> dict:
+    """The ticket's package as an in-toto Statement for the client's own records and tools."""
+    key = key.upper()
+    recs = records(P.data_dir, key)
+    if not recs:
+        raise ApiError(404, "这张工单还没有证据包")
+    s = brief(P.data_dir, key)
+    commit = ""
+    t = P.ticket(key)
+    fx = next((r for r in P.store.runs(ticket_id=t["id"]) if r["mode"] == "fix" and (r.get("decision") or "").startswith("accepted")), None)
+    if fx and "@" in fx["decision"]:
+        try:
+            p = P.store.project(t["project_id"])
+            commit = subprocess.run(["git", "rev-parse", fx["decision"].rsplit("@", 1)[1]], cwd=p["root"], capture_output=True,
+                                    text=True, timeout=10).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            commit = ""
+    summary = {k: s.get(k) for k in ("status", "label", "missing", "gate_state", "decision")}
+    summary.update({"ticket": key, "title": t["title"]})
+    return ev.statement("%s 证据包" % key, recs, summary, commit)
