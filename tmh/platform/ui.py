@@ -300,7 +300,7 @@ function newTicket(prefill){
   <textarea id="nb" placeholder="详细描述：业务场景、操作步骤、期望和实际结果、报错信息…（写业务语言就行，平台会对照知识库找相关业务流）" style="min-height:160px"></textarea>
   <div class="row"><label>类型 <select id="ny">${types}</select></label><label>优先级 <select id="np">${pris}</select></label><label>经办人 <input id="na" value="${h(S.user)}" size="10"></label></div>
   ${af?'<div class="hint">创建后自动受理：关联涉及的业务，让本机智能体分析定位，有结论后进入“处理中”，不用再手动点。</div>':`<label><input type="checkbox" id="nr" checked> 创建后让 <select id="ng">${agentOptions()}</select> 先分析定位</label>`}
-  <div><button class="primary" id="ns">创建</button></div></div>
+  <div class="row" style="gap:8px"><button class="primary" id="ns">创建</button><button class="ghost" id="nIn">说不清楚？让平台帮你理清</button></div></div>
   <div><div id="nsim"></div><h3>可能相关的业务 <span class="sub">边写边找</span></h3><div id="nrel" class="sub">输入标题或描述后显示</div></div></div>`,true);
   const sel=new Set();let tmr;const pk=()=>$('#nproj')?$('#nproj').value:np;
   if($('#nproj'))$('#nproj').onchange=()=>{sel.clear();look()};
@@ -311,6 +311,7 @@ function newTicket(prefill){
        (r.tables.length?'<h3 style="margin-top:12px">相关表</h3><div class="chips">'+r.tables.map(t=>`<span class="tag">${h(t.name)}</span>`).join(' ')+'</div>':''):'<span class="sub">知识库里没找到相关业务流</span>';
       document.querySelectorAll('#nrel .chip').forEach(c=>c.onclick=()=>{const f=c.dataset.f;sel.has(f)?sel.delete(f):sel.add(f);c.classList.toggle('on')})}catch(e){$('#nrel').textContent=e.message}},350)};
   $('#nt').oninput=look;$('#nb').oninput=look;$('#nt').focus();
+  $('#nIn').onclick=()=>intakeModal(pk(),[$('#nt').value,$('#nb').value].filter(Boolean).join('\n'));
   if(prefill){$('#nt').value=prefill.title||'';$('#nb').value=prefill.body||'';look()}
   $('#ns').onclick=async()=>{const b={project:pk(),title:$('#nt').value,body:$('#nb').value,type:$('#ny').value,priority:$('#np').value,assignee:$('#na').value,flows:[...sel]};
     if($('#nr')){if($('#nr').checked){b.agent=$('#ng').value;b.mode='analyze'}else b.auto=false}
@@ -617,6 +618,35 @@ async function vLead(){
    <div class="card"><h2>每周新建与闭环</h2>${trend}</div></div></div>
   <div class="card" style="margin-top:16px"><h2>各项目</h2>${proj}</div>`;
   document.querySelectorAll('#ldD button').forEach(b=>b.onclick=()=>{ls.set('tmh.leadDays',b.dataset.d);vLead()})}
+
+// ---------- requirement conversation: split, restate on the business map, ask only what is missing, EARS criteria
+const IKIND={bug:'缺陷',feature:'新需求',question:'咨询',data:'数据问题'};
+function intakeModal(pk,text){
+  modal(`<h2>理清需求 · ${h(pk)}</h2><div class="sub">直接说现象或想要什么，几件事一起说也行。平台会拆开、复述理解、只问缺的，最后生成验收标准，你确认后才建单。</div>
+   <textarea id="inT" style="min-height:110px;width:100%;margin-top:8px" placeholder="例如：请假审批通过后状态还是草稿。另外希望请假列表能导出 Excel。">${h(text||'')}</textarea>
+   <div class="row" style="margin-top:8px"><button class="primary" id="inGo">开始</button></div><div id="inBox"></div>`,true);
+  $('#inGo').onclick=async()=>{try{intakePaint(await post('/api/projects/'+encodeURIComponent(pk)+'/intake',{text:$('#inT').value}))}catch(e){toast(e.message,5000)}}}
+function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true;$('#inGo').hidden=true;
+  const done=s.state==='confirmed';
+  B.innerHTML=s.items.map((it,i)=>`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">第 ${i+1} 件：${h(clip(it.text,60))}</b>
+     <select data-i="${i}" class="inK" ${done?'disabled':''}>${Object.entries(IKIND).map(([k,l])=>`<option value="${k}" ${k===it.kind?'selected':''}>${l}</option>`).join('')}</select></div>
+     ${it.kind==='question'?`<div class="sub" style="white-space:pre-wrap;margin-top:6px">${h(it.answer||'')}</div><div class="sub">咨询直接答复，不建单。</div>`:`
+     ${(it.questions||[]).map(q=>`<div style="margin-top:8px"><div>${h(q.q)}</div>${q.options.length?`<div class="chips" style="margin-top:4px">${q.options.map(o=>`<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="${h(o)}">${h(o)}</span>`).join('')}<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="不清楚">不清楚</span></div>`
+        :`<input class="inA" data-i="${i}" data-s="${h(q.slot)}" placeholder="写一句就行；不知道就写“不清楚”" style="width:100%;margin-top:4px">`}</div>`).join('')}
+     <div style="margin-top:10px"><b style="font-size:13px">验收标准草稿</b>${(it.ac||[]).map(a=>`<div style="font-size:13px;margin-top:3px"><span class="ev-tag ${a.open?'warn':'ok'}">${a.open?'待确认':'已确认'}</span> ${h(a.id)} ${h(a.text)}<div class="sub">怎么验：${h(a.check)}</div></div>`).join('')}</div>
+     ${it.ticket?`<div style="margin-top:6px">已建单 <a href="#/t/${h(it.ticket)}" onclick="closeModal()">${h(it.ticket)}</a></div>`:''}`}</div>`).join('')+
+   (done?'':`<div class="row" style="gap:8px;margin-top:10px">${s.state==='asking'?'<button class="primary" id="inAns">提交回答</button>':''}
+     <button class="${s.state==='asking'?'ghost':'primary'}" id="inOk">${s.state==='asking'?'先这样建单（没答的记为待确认）':'确认，建单'}</button><button class="ghost" id="inNo">放弃</button></div>`);
+  const pick={};B.querySelectorAll('.inO').forEach(c=>c.onclick=()=>{const i=c.dataset.i,sl=c.dataset.s;(pick[i]=pick[i]||{})[sl]=c.dataset.v;
+    B.querySelectorAll(`.inO[data-i="${i}"][data-s="${sl}"]`).forEach(x=>x.classList.toggle('on',x===c))});
+  const gather=()=>{const a=JSON.parse(JSON.stringify(pick));B.querySelectorAll('.inA').forEach(x=>{if(x.value.trim())(a[x.dataset.i]=a[x.dataset.i]||{})[x.dataset.s]=x.value.trim()});
+    B.querySelectorAll('.inK').forEach(x=>{const it=s.items[x.dataset.i];if(x.value!==it.kind)(a[x.dataset.i]=a[x.dataset.i]||{}).kind=x.value});return a};
+  const act=b=>post('/api/intake/'+s.id,b).then(intakePaint).catch(e=>toast(e.message,5000));
+  B.querySelectorAll('.inK').forEach(x=>x.onchange=()=>act({action:'answer',answers:gather()}));
+  if($('#inAns'))$('#inAns').onclick=()=>act({action:'answer',answers:gather()});
+  if($('#inOk'))$('#inOk').onclick=async()=>{const a=gather();try{if(Object.keys(a).length)await post('/api/intake/'+s.id,{action:'answer',answers:a});
+    const r=await post('/api/intake/'+s.id,{action:'confirm'});intakePaint(r);toast('已建单 '+r.tickets.join('、'),5000)}catch(e){toast(e.message,5000)}};
+  if($('#inNo'))$('#inNo').onclick=()=>act({action:'drop'}).then(closeModal)}
 
 // ---------- evidence package on a ticket, the ledger on the report
 const PKC={none:'mute',incomplete:'warn',ready:'info',signed:'ok',rejected:'bad',upstream_merged:'ok',upstream_closed:'bad'};

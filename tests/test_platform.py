@@ -39,6 +39,7 @@ print("结论：问题在请假审批流程【推断】")
 '''
 
 SVC = "src/main/java/com/acme/oa/service/LeaveService.java"
+UNSURE_WORD = "不清楚"
 CTL = "src/main/java/com/acme/oa/controller/LeaveController.java"
 # A planner that hands out files, per-file editors that message each other, and a diagnosis that reads the build.
 FAKE_TEAM = r'''
@@ -1700,6 +1701,45 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual(code, 404)  # not configured for this project
             code, r = self.call("POST", "/bot/api/NOPE", {"text": "x"}, headers={"Authorization": "Bearer k-9"})
             self.assertEqual(code, 404)
+
+    def test_requirement_conversation_turns_vague_words_into_tickets_with_criteria(self):
+        """One message with two asks and a question: split, ask only what is missing, EARS criteria, tickets on confirm."""
+        from tmh.platform import signoff
+        key = self.project()
+        msg = "请假审批通过后状态还是草稿，不对。另外希望请假列表能导出 Excel。还有，年假是怎么计算的？"
+        code, s = self.call("POST", "/api/projects/%s/intake" % key, {"text": msg, "model": False})
+        self.assertEqual(code, 200, s)
+        self.assertEqual([it["kind"] for it in s["items"]], ["bug", "feature", "question"])
+        bug, feat, q = s["items"]
+        self.assertEqual(s["state"], "asking")
+        self.assertTrue(q["answer"])  # a question is answered, never ticketed
+        self.assertEqual(q["questions"], [])
+        self.assertTrue(all(len(it["questions"]) <= 3 for it in s["items"]))
+        self.assertEqual(bug["slots"]["trigger"]["from"], "原话")  # "审批通过后" was said: not asked again
+        self.assertNotIn("trigger", [x["slot"] for x in bug["questions"]])
+        self.assertIn("待确认", bug["ac"][0]["text"] + bug["ac"][0]["check"])  # nothing guessed
+        self.assertTrue(any(a["text"].startswith("必须保持") for a in bug["ac"]))
+        ans = {"0": {"expected": "状态变成已通过", "who": "所有人", "since": "这周", "example": "张三提交 3 天年假，经理审批通过后列表显示已通过"},
+               "1": {"trigger": "在请假列表页点导出", "expected": "下载当前筛选结果的 Excel", "example": UNSURE_WORD}}
+        if bug["questions"] and bug["questions"][0]["slot"] == "flow":
+            ans["0"]["flow"] = bug["questions"][0]["options"][0]
+        code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "answer", "answers": ans})
+        self.assertEqual(code, 200, s)
+        bug, feat = s["items"][0], s["items"][1]
+        self.assertTrue(bug["ac"][0]["text"].startswith("当") and "系统应当状态变成已通过" in bug["ac"][0]["text"], bug["ac"])
+        self.assertFalse(bug["ac"][0]["open"])
+        self.assertTrue(feat["ac"][0]["open"])  # "不清楚" stays 待确认
+        self.assertEqual(self.call("POST", "/api/intake/%s" % s["id"], {"action": "answer", "answers": {"9": {"trigger": "x"}}})[0], 400)
+        code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})
+        self.assertEqual((code, len(s["tickets"]), s["state"]), (200, 2, "confirmed"), s)
+        _, t = self.call("GET", "/api/tickets/%s" % s["tickets"][0])
+        self.assertEqual(t["ticket"]["type"], "bug")
+        self.assertIn("验收标准", t["ticket"]["body"])
+        self.assertIn("张三提交 3 天年假", t["ticket"]["body"])
+        recs = signoff.records(self.data, s["tickets"][0])
+        self.assertEqual((recs[0]["kind"], recs[0]["data"]["confirmed_by"]), ("intake", "tester"))
+        self.assertEqual(self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})[0], 409)
+        self.assertEqual(self.call("GET", "/api/intake/nope")[0], 404)
 
     def test_evidence_package_sign_off_and_ledger(self):
         """AI gathers the evidence, a person signs on a page without code, the ledger picks it up."""

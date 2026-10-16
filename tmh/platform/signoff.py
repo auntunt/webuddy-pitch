@@ -560,7 +560,7 @@ def package_page(P, key: str) -> str:
     return ev.page(title, "".join(body))
 
 
-KIND = {"pack": "打包", "attach": "补充证据", "review": "乙方复核", "link": "发签收链接", "sign": "甲方签收", "reject": "甲方退回",
+KIND = {"intake": "需求确认", "pack": "打包", "attach": "补充证据", "review": "乙方复核", "link": "发签收链接", "sign": "甲方签收", "reject": "甲方退回",
         "upstream_draft": "上游 PR 草稿", "upstream_approve": "批准提交", "upstream_submit": "提交上游", "upstream_state": "上游状态",
         "upstream_review": "上游评审", "upstream_ci": "上游 CI", "upstream_outcome": "上游结局", "upstream_reason": "补记原因"}
 
@@ -571,6 +571,8 @@ def _summary(r: dict) -> str:
     if k == "pack":
         s = d.get("snapshot") or {}
         return "%s；%d 条 AC，%d 个文件" % (d.get("why", ""), len(s.get("ac") or []), len((s.get("change") or {}).get("files") or []))
+    if k == "intake":
+        return "%s 确认了 %d 条验收标准%s" % (d.get("confirmed_by", ""), len(d.get("ac") or []), "（%d 条待确认）" % len(d["open"]) if d.get("open") else "")
     if k == "attach":
         return "%s%s%s" % (d.get("ac") or "整单", "：" + d["note"][:60] if d.get("note") else "", "（截图）" if d.get("file") else "")
     if k == "review":

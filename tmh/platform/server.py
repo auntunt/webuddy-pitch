@@ -998,6 +998,44 @@ def api_kb_triage(P, req, key):
     return res
 
 
+def _chooser(P, p: dict):
+    """The routing model as a typed chooser for the requirement conversation, or None when not configured."""
+    from .. import kbqa
+    conf = kbqa.router_conf(P.root(p))
+    if not conf["ready"]:
+        return None
+    return lambda text, q, opts: kbqa.choose(conf, "需求原话：%s" % text, q, opts)["index"]
+
+
+@route("POST", "/api/projects/<key>/intake")
+def api_intake_start(P, req, key):
+    """A requirement conversation: split, classify, restate on the business map, ask only what is missing."""
+    from . import intake
+    p = P.project(key)
+    model = req.body.get("model", True) is not False
+    return intake.start(P, p, req.body.get("text", ""), req.user, req.body.get("channel") or "web", _chooser(P, p) if model else None)
+
+
+@route("GET", "/api/intake/<sid>")
+def api_intake_get(P, req, sid):
+    from . import intake
+    return intake.load(P.data_dir, sid)
+
+
+@route("POST", "/api/intake/<sid>")
+def api_intake_act(P, req, sid):
+    """answer: {"answers": {"0": {"trigger": "…"}}}; confirm: tickets from the items (all, or "items"); drop."""
+    from . import intake
+    a = req.body.get("action")
+    if a == "answer":
+        return intake.answer(P, sid, req.user, req.body.get("answers") or {})
+    if a == "confirm":
+        return intake.confirm(P, sid, req.user, req.body.get("items"))
+    if a == "drop":
+        return intake.drop(P, sid, req.user)
+    raise ApiError(400, "action 只能是 answer、confirm、drop")
+
+
 @route("GET", "/api/projects/<key>/kb/metrics")
 def api_kb_metrics(P, req, key):
     """少找人: requests answered without a person, overrules, handoffs per week, business answer wait."""
