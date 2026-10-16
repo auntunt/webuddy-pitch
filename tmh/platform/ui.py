@@ -620,12 +620,15 @@ async function vLead(){
 
 // ---------- evidence package on a ticket, the ledger on the report
 const PKC={none:'mute',incomplete:'warn',ready:'info',signed:'ok',rejected:'bad',upstream_merged:'ok',upstream_closed:'bad'};
+const GTC={pass:'ok',fail:'bad',unknown:'warn'},GTL={pass:'通过',fail:'没过',unknown:'未知'};
 function pkgCard(d){const k=d.package||{};if(!k.status)return '';const t=d.ticket;
   const dec=k.decision,ln=k.link;
   return `<div class="card" id="pkg"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">证据包</h2><span class="ev-tag ${PKC[k.status]}">${h(k.label)}</span></div>
    ${k.status==='none'?'<div class="sub">工单转到“待验证”时自动打包：验收标准、方案、改动、构建测试、范围和业务流检查。</div>':`
    ${k.intact?`<div class="sub">${k.records} 条记录，哈希 <code>${h(k.hash.slice(0,12))}</code>，追加式，改任何一条都会对不上。</div>`:`<div class="bad">证据包被改动过：${h(k.problem)}</div>`}
    ${k.missing.length?`<div style="margin-top:6px"><b style="font-size:13px">还缺</b> ${k.missing.map(x=>`<span class="ev-tag warn">${h(x)}</span>`).join(' ')}</div>`:'<div class="ok" style="margin-top:6px">证据齐全</div>'}
+   ${k.gates?`<div style="margin-top:8px"><b style="font-size:13px">验证门</b> <span class="sub">从便宜到贵，每道给出通过、没过或未知</span>
+     <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">${k.gates.map(g=>`<div style="font-size:13px"><span class="ev-tag ${GTC[g.state]}">${GTL[g.state]}</span> ${h(g.name)}<span class="sub"> ${h(clip(g.why,90))}${g.waived?` · ${h(g.waived.by)} 放行：${h(clip(g.waived.reason,40))}`:''}</span></div>`).join('')}</div></div>`:''}
    ${k.review?`<div class="sub" style="margin-top:4px">乙方复核：${h(k.review.by)} · ${h((k.review.ts||'').slice(5,16))}</div>`:''}
    ${dec?`<div style="margin-top:6px">${dec.kind==='sign'?'签收':'退回'}：<b>${h(dec.signer)}</b>${dec.role?'（'+h(dec.role)+'）':''} · ${h(dec.ts.slice(5,16))} · ${h(dec.via)}${dec.note?`<div class="sub">${h(dec.note)}</div>`:''}</div>`
      :ln?`<div class="sub" style="margin-top:4px">已发签收链接给 ${h(ln.signer)}，有效至 ${h(ln.expires.slice(5,16))}</div>`:''}
@@ -640,10 +643,15 @@ function pkgWire(d){const key=d.ticket.key,F=$('#pkForm');if(!F)return;
     $('#pkGo').onclick=async()=>{const f=$('#pkImg').files[0];let image='';
       if(f){if(f.size>3*1024*1024)return toast('截图不能超过 3MB');image=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)})}
       try{await P({kind:'attach',ac:$('#pkAc').value,note:$('#pkNote').value,image});toast('已加到证据包');vTicket(key)}catch(e){toast(e.message,5000)}}};
-  if($('#pkRev'))$('#pkRev').onclick=()=>{const m=(d.package||{}).missing||[];F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><textarea id="pkRn" placeholder="复核意见：看了什么、结论是什么" style="min-height:56px"></textarea>
-     ${m.includes('改动没超出方案')?'<label class="sub"><input type="checkbox" id="pkSc" style="width:auto"> 超出方案的改动我看过，认可（要写理由）</label>':''}
-     ${m.includes('改动落在本单的业务流上')?'<label class="sub"><input type="checkbox" id="pkPa" style="width:auto"> 不在业务流上的改动我看过，认可（要写理由）</label>':''}<button class="primary" id="pkRgo">记录复核</button></div>`;
-    $('#pkRgo').onclick=async()=>{try{await P({kind:'review',note:$('#pkRn').value,scope_ok:!!($('#pkSc')&&$('#pkSc').checked),path_ok:!!($('#pkPa')&&$('#pkPa').checked)});toast('已记录复核');vTicket(key)}catch(e){toast(e.message,5000)}}};
+  if($('#pkRev'))$('#pkRev').onclick=()=>{const k=d.package||{},m=k.missing||[];
+    const open=(k.gates||[]).filter(g=>g.state!=='pass'&&!(g.state==='fail'&&(g.id==='build'||g.id==='test')));
+    F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><textarea id="pkRn" placeholder="复核意见：看了什么、结论是什么" style="min-height:56px"></textarea>
+     ${!k.gates&&m.includes('改动没超出方案')?'<label class="sub"><input type="checkbox" id="pkSc" style="width:auto"> 超出方案的改动我看过，认可（要写理由）</label>':''}
+     ${!k.gates&&m.includes('改动落在本单的业务流上')?'<label class="sub"><input type="checkbox" id="pkPa" style="width:auto"> 不在业务流上的改动我看过，认可（要写理由）</label>':''}
+     ${open.length?`<div class="sub">要放行没通过的验证门，逐条写理由（不写就不放行；构建、测试没过只能改代码）：</div>${open.map(g=>`<input class="pkW" data-g="${h(g.id)}" placeholder="放行“${h(g.name)}”的理由">`).join('')}`:''}
+     <button class="primary" id="pkRgo">记录复核</button></div>`;
+    $('#pkRgo').onclick=async()=>{const waive={};document.querySelectorAll('.pkW').forEach(x=>{if(x.value.trim())waive[x.dataset.g]=x.value.trim()});
+      try{await P({kind:'review',note:$('#pkRn').value,waive,scope_ok:!!($('#pkSc')&&$('#pkSc').checked),path_ok:!!($('#pkPa')&&$('#pkPa').checked)});toast('已记录复核');vTicket(key)}catch(e){toast(e.message,5000)}}};
   if($('#pkLink'))$('#pkLink').onclick=()=>{const m=(d.package||{}).missing||[];F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><input id="pkS" placeholder="签收人姓名（甲方业务确认人）"><input id="pkR" placeholder="角色，如 人事业务负责人">
      ${m.length?`<textarea id="pkN" placeholder="证据还缺 ${h(m.join('、'))}，写明为什么现在就请甲方签" style="min-height:48px"></textarea>`:''}<button class="primary" id="pkLgo">生成链接</button><div id="pkOut"></div></div>`;
     $('#pkLgo').onclick=async()=>{try{const r=await P({kind:'link',signer:$('#pkS').value,role:$('#pkR').value,note:$('#pkN')?$('#pkN').value:''});const url=location.origin+r.path;
@@ -675,7 +683,14 @@ async function upWire(d){const t=d.ticket,box=$('#upc');if(!box)return;const key
    :'<div class="row" style="margin-top:8px"><button class="primary" id="upEd">起草 PR</button></div>'}</div>`;
   const edit=()=>modal(`<h2>上游 PR 草稿</h2><input class="full" id="dT" placeholder="标题（照项目的提交规范）" value="${h(dr?dr.title:t.title)}"><input class="full" id="dH" placeholder="分支，如 auntunt:fix-xxx" value="${h(dr?dr.head:'')}" style="margin-top:6px"><input class="full" id="dB" placeholder="目标分支" value="${h(dr?dr.base:'trunk')}" style="margin-top:6px"><textarea class="full" id="dD" style="min-height:200px;margin-top:6px" placeholder="描述：照项目的 PR 模板写，按项目规则写明 AI 辅助">${h(dr?dr.body:'')}</textarea><div style="margin-top:8px"><button class="primary" id="dS">保存草稿</button></div>`,true);
   if($('#upEd'))$('#upEd').onclick=()=>{edit();$('#dS').onclick=()=>P({action:'draft',title:$('#dT').value,head:$('#dH').value,base:$('#dB').value,body:$('#dD').value}).then(()=>{closeModal();vTicket(key)}).catch(e=>toast(e.message,5000))};
-  if($('#upOk'))$('#upOk').onclick=()=>P({action:'approve'}).then(()=>{toast('已批准');vTicket(key)}).catch(e=>toast(e.message,5000));
+  if($('#upOk'))$('#upOk').onclick=()=>{const k=d.package||{},bad=(k.gates||[]).filter(g=>g.state!=='pass');
+    const ask=!k.gates?'这单没有带验证门的证据包，写明为什么仍然提交':bad.some(g=>g.state==='fail')?'':bad.length?'验证门有未知：'+bad.map(g=>g.name).join('、')+'。写明为什么仍然提交':'';
+    if(k.gates&&bad.some(g=>g.state==='fail'))return toast('验证门没过，不能提交上游：'+bad.filter(g=>g.state==='fail').map(g=>g.name).join('、'),6000);
+    const go=note=>P({action:'approve',note}).then(()=>{toast('已批准');vTicket(key)}).catch(e=>toast(e.message,5000));
+    if(!ask)return go('');
+    modal(`<h2>批准提交上游 PR</h2><div class="sub">${h(ask)}</div><textarea id="upAn" style="min-height:60px;width:100%;margin-top:8px"></textarea>
+      <div class="row" style="gap:8px;margin-top:8px"><button class="primary" id="upAgo">批准</button><button id="upAno">取消</button></div>`);
+    $('#upAno').onclick=closeModal;$('#upAgo').onclick=()=>{const n=$('#upAn').value;closeModal();go(n)}};
   if($('#upGo'))$('#upGo').onclick=()=>P({action:'submit',confirm:true}).then(()=>{toast('已提交');vTicket(key)}).catch(e=>toast(e.message,6000));
   if($('#upSync'))$('#upSync').onclick=()=>P({action:'sync'}).then(()=>{toast('已同步');vTicket(key)}).catch(e=>toast(e.message,6000));
   if($('#upWhy'))$('#upWhy').onclick=()=>{modal(`<h2>为什么没合并</h2><select id="rW" class="full">${[['direction','方向不对'],['style','风格或规范'],['scope','范围太大'],['duplicate','重复或已修'],['stale','没人理、过期'],['policy','项目规则'],['other','其他']].map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select><textarea class="full" id="rN" placeholder="维护者原话或我们的判断" style="margin-top:6px"></textarea><div style="margin-top:8px"><button class="primary" id="rS">记下</button></div>`);

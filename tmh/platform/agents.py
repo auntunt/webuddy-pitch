@@ -125,9 +125,11 @@ MODE_TEXT = {
 1. 要求的行为实现了吗？只是绕过了表面症状吗？
 2. 构建、测试有没有失败，有没有引入新问题？跨文件的改动彼此一致吗（签名、调用、配置）？
 3. 没解决时，指出证据、最可能的原因、该改哪些文件（路径相对项目根目录）以及每个文件要做到什么，还有本轮漏掉的文件。
+4. 逐条对照方案里的验收标准，判断这次改动和工单要的是什么关系：equivalent（等价，每条都做到了）、partial（只做到一部分）、
+   different（方向不同，改了别的地方或别的行为）、wrong（改错了，或者是靠删功能、跳过测试绕过去的）。这只是推断，在 match_why 里写依据。
 构建或测试失败时不能判定通过。最后输出：
 ```tmh-diag
-{"verdict": "pass 或 fail", "evidence": "失败的证据", "cause": "原因", "files": [{"path": "相对路径", "goal": "要做到什么"}], "guide": "下一轮怎么改"}
+{"verdict": "pass 或 fail", "match": "equivalent / partial / different / wrong", "match_why": "对照验收标准的依据", "evidence": "失败的证据", "cause": "原因", "files": [{"path": "相对路径", "goal": "要做到什么"}], "guide": "下一轮怎么改"}
 ```""",
     "kb": """## 你的任务：撰写知识页
 1. 运行 `tmh kb next --page {target}` 领取页面，按它给出的说明阅读代码并填写页面（只改 .tmh/knowledge/ 下的这个页面）。

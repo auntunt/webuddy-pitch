@@ -1573,7 +1573,8 @@ def api_evidence_add(P, req, key):
     if kind == "attach":
         r = signoff.attach(P, t, req.user, b.get("ac", ""), b.get("note", ""), b.get("image", ""))
     elif kind == "review":
-        r = signoff.review(P, t, req.user, b.get("note", ""), bool(b.get("scope_ok")), bool(b.get("path_ok")))
+        r = signoff.review(P, t, req.user, b.get("note", ""), bool(b.get("scope_ok")), bool(b.get("path_ok")),
+                           b.get("waive") if isinstance(b.get("waive"), dict) else None)
     elif kind == "pack":
         r = signoff.pack(P, t, req.user, "手动重新打包") or {"unchanged": True}
     elif kind == "link":

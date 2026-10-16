@@ -74,7 +74,7 @@ elif mode == "fix":  # a plan this small is done by one agent
     print("一次改完状态更新")
 elif mode == "diagnose":
     bad = "BROKEN" in pathlib.Path(S).read_text(encoding="utf-8")
-    d = {"verdict": "fail" if bad else "pass", "cause": "LeaveService 里留了 BROKEN" if bad else "",
+    d = {"verdict": "fail" if bad else "pass", "match": "wrong" if bad else "equivalent", "cause": "LeaveService 里留了 BROKEN" if bad else "",
          "files": [{"path": S, "goal": "去掉 BROKEN 标记"}] if bad else []}
     print("诊断完毕\n```tmh-diag\n" + json.dumps(d, ensure_ascii=False) + "\n```")
 else:
@@ -1729,6 +1729,11 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual((snap["check"]["result"], snap["path"]["ok"], snap["change"]["files"]), ("pass", True, [SVC]))
             self.assertEqual(s["review"]["by"], "tester")
             self.assertIn("evidence", [e["kind"] for e in self.call("GET", "/api/tickets/%s" % t["key"])[1]["events"]])
+            # every verification gate passed, each with its reason; letting one through takes a gate that exists and a reason
+            self.assertEqual((s["gate_state"], [g["id"] for g in s["gates"] if g["state"] != "pass"]), ("pass", []), s["gates"])
+            self.assertIn("等价", next(g for g in s["gates"] if g["id"] == "match")["why"])
+            self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "review", "waive": {"nope": "随便写写理由"}})[0], 400)
+            self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "review", "waive": {"scope": "短"}})[0], 400)
 
             # a screenshot for A1; only images, only small ones
             png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
@@ -1743,7 +1748,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual(code, 200, ln)
             with urllib.request.urlopen(self.base + ln["path"]) as resp:
                 page_html = resp.read().decode("utf-8")
-            for w in ("请假提交后状态不更新", "提交后状态更新", "签收", "退回", "证据包完整", "提交后列表显示"):
+            for w in ("请假提交后状态不更新", "提交后状态更新", "签收", "退回", "证据包完整", "提交后列表显示", "验证门：9 道，通过 9 道"):
                 self.assertIn(w, page_html)
             for code_word in (".java", "LeaveService", "diff", "src/main"):  # no code on the client's page
                 self.assertNotIn(code_word, page_html)
@@ -1785,6 +1790,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
                 full = resp.read().decode("utf-8")
             self.assertIn(SVC, full)  # the provider's copy keeps the code facts
             self.assertIn("甲方签收", full)
+            self.assertIn("没有削弱测试", full)  # the gates, each with its reason
 
             # the ledger shows it signed through the client's link
             row = {x["key"]: x for x in self.call("GET", "/api/projects/%s/ledger" % key)[1]["ledger"]["rows"]}[t["key"]]
@@ -1831,12 +1837,14 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
                  "head": "auntunt:fix-order-perm", "base": "trunk"}
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, draft)[0], 200)
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve"}, {"X-TMH-User": "agent"})[0], 403)
-        code, u = self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve", "note": "看过了"})
+        # no evidence package with gates behind this ticket: approving takes a written reason
+        self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve", "note": "看过了"})[0], 409)
+        code, u = self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve", "note": "改动在测试机上验证过，三处页面都看过"})
         self.assertEqual((u["state"], u["approved"]["by"]), ("approved", "tester"))
         # the draft changed after approval: approve again
         self.call("POST", "/api/tickets/%s/upstream" % k, dict(draft, body="changed"))
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "submit"})[0], 409)
-        self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve"})
+        self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve", "note": "改动在测试机上验证过，三处页面都看过"})
 
         class FakeHub:
             sent = []
