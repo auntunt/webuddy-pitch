@@ -74,9 +74,11 @@ class Platform:
         apps.wire(self)
         self.user = user
         self.surveys = {}  # project id -> Survey (full-project analysis)
-        self.brand = brand or os.environ.get("TMH_BRAND", "") or "Webuddy"
+        self.brand = brand or os.environ.get("TMH_BRAND", "") or "webuddy"
         self.pricing = self._load_pricing()
         self.runner.charge = self._charge
+        from . import signoff
+        self.store.on_status.append(lambda t, old, new, who: signoff.on_status(self, t, old, new, who))
         from .survey import Survey
         Survey.resume_all(self)  # a full-project analysis the last process was in the middle of
 
@@ -639,8 +641,13 @@ class Platform:
         if month and not re.match(r"^\d{4}-\d\d$", month):
             raise ApiError(400, "月份写成 2026-10")
         from .. import kbqa
-        m = compute_metrics(self.store, p, usage.read(self.root(p)), month, self.kb.kb_overview(p))
+        from . import books
+        m = compute_metrics(self.store, p, usage.read(self.root(p)), month, self.kb.kb_overview(p),
+                            sealed=books.load_baseline(self.data_dir, p["key"]), books=books.settings(self.data_dir, self.pricing),
+                            packages=books.packages(self.data_dir))
         m["qa"] = kbqa.metrics(self.root(p), month=month)
+        from . import upstream
+        m["upstream"] = upstream.metrics(self, p, month)
         return m
 
     # ------------------------------------------------------------ ticket prompts
@@ -1355,8 +1362,10 @@ def api_accept(P, req, key):
         raise ApiError(400, "result 只能是 pass 或 fail")
     if res == "fail" and not note:
         raise ApiError(400, "验收不通过时必须写明原因")
+    from . import signoff
+    sealed = signoff.record_accept(P, t, req.user, res == "pass", note)
     P.store.event(t["id"], req.user, "accept" if res == "pass" else "reject", ("验收通过" if res == "pass" else "验收不通过") + ("：" + note if note else ""),
-                  {"result": res})
+                  dict({"result": res}, **({"evidence": sealed} if sealed else {})))
     P.store.update_ticket(t["id"], req.user, status="closed" if res == "pass" else "doing")
     P.flow.accepted(P.store.project(t["project_id"]), P.store.ticket(t["id"]), res == "pass", note, req.user)
     return P.store.ticket(t["id"])
@@ -1536,8 +1545,106 @@ def api_ticket(P, req, key):
             r["verify"] = {k: v.get(k) for k in ("check", "skip", "verdict", "rounds", "split", "beyond_plan")} if v else None
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
+    from . import signoff
     return {"ticket": t, "project": p, "events": P.store.events(t["id"]), "runs": [r for r in runs if r["mode"] != "ask"],
-            "evidence": P.ticket_evidence(p, t, runs), "auto_next": P.flow.next_step(t, retry=True)[0]}
+            "evidence": P.ticket_evidence(p, t, runs), "auto_next": P.flow.next_step(t, retry=True)[0],
+            "package": signoff.brief(P.data_dir, t["key"])}
+
+
+@route("GET", "/api/tickets/<key>/evidence")
+def api_evidence(P, req, key):
+    """The ticket's evidence package: latest snapshot, what was added, what is missing, the seal."""
+    from . import signoff
+    t = P.ticket(key)
+    s = signoff.state(P.data_dir, t["key"])
+    s["label"] = signoff.STATUS_LABEL[s["status"]]
+    s["page"] = "/e/%s" % t["key"]
+    return s
+
+
+@route("POST", "/api/tickets/<key>/evidence")
+def api_evidence_add(P, req, key):
+    """kind=attach (screenshot/note for one AC), review (provider's internal review), pack (re-pack now),
+    link (a one-time sign-off link for the client's signer)."""
+    from . import signoff
+    t = P.ticket(key)
+    b = req.body
+    kind = b.get("kind")
+    if kind == "attach":
+        r = signoff.attach(P, t, req.user, b.get("ac", ""), b.get("note", ""), b.get("image", ""))
+    elif kind == "review":
+        r = signoff.review(P, t, req.user, b.get("note", ""), bool(b.get("scope_ok")), bool(b.get("path_ok")))
+    elif kind == "pack":
+        r = signoff.pack(P, t, req.user, "手动重新打包") or {"unchanged": True}
+    elif kind == "link":
+        return signoff.issue(P, t, req.user, b.get("signer", ""), b.get("role", ""), int(b.get("days") or signoff.LINK_DAYS), b.get("note", ""))
+    else:
+        raise ApiError(400, "kind 只能是 attach、review、pack 或 link")
+    return {"record": {k: r.get(k) for k in ("seq", "hash", "ts", "unchanged") if k in r}, "state": signoff.brief(P.data_dir, t["key"])}
+
+
+@route("GET", "/api/tickets/<key>/upstream")
+def api_upstream(P, req, key):
+    from . import upstream
+    return upstream.view(P, P.ticket(key))
+
+
+@route("POST", "/api/tickets/<key>/upstream")
+def api_upstream_act(P, req, key):
+    """An external pull request: link (repo, issue, pr), draft (title, body, head, base), approve (a person),
+    submit (confirm=true to really open it; dry run otherwise), sync (read GitHub), reason (why it was closed)."""
+    from . import upstream
+    t, b = P.ticket(key), req.body
+    a = b.get("action")
+    if a == "link":
+        upstream.link(P, t, req.user, b.get("repo", ""), b.get("issue", ""), b.get("pr", ""))
+    elif a == "draft":
+        upstream.draft(P, t, req.user, b.get("title", ""), b.get("body", ""), b.get("head", ""), b.get("base", ""))
+    elif a == "approve":
+        upstream.approve(P, t, req.user, b.get("note", ""))
+    elif a == "submit":
+        r = upstream.submit(P, t, req.user, bool(b.get("confirm")))
+        if r.get("dry_run"):
+            return r
+    elif a == "sync":
+        from ..integrations.base import IntegrationError
+        try:
+            return upstream.sync(P, t, req.user)
+        except IntegrationError as e:
+            raise ApiError(502, "读 GitHub 失败：%s" % e)
+    elif a == "reason":
+        upstream.outcome_reason(P, t, req.user, b.get("reason", ""), b.get("note", ""))
+    else:
+        raise ApiError(400, "action 只能是 link、draft、approve、submit、sync、reason")
+    return upstream.view(P, P.ticket(t["id"]))
+
+
+@route("GET", "/api/projects/<key>/upstream")
+def api_upstream_list(P, req, key):
+    from . import upstream
+    return upstream.metrics(P, P.project(key), req.arg("month"))
+
+
+@route("GET", "/api/projects/<key>/baseline")
+def api_baseline(P, req, key):
+    from . import books
+    p = P.project(key)
+    return {"sealed": books.load_baseline(P.data_dir, p["key"]), "candidate": books.candidate(P.store, p, req.arg("from"), req.arg("to"))}
+
+
+@route("POST", "/api/projects/<key>/baseline/seal")
+def api_baseline_seal(P, req, key):
+    """Seal the baseline once: window, method and sample are written down and hashed; it cannot be changed after."""
+    from . import books
+    p = P.project(key)
+    b = req.body
+    return books.seal(P.store, P.data_dir, p, b.get("from", ""), b.get("to", ""), req.user, b.get("note", ""))
+
+
+@route("GET", "/api/projects/<key>/ledger")
+def api_ledger(P, req, key):
+    m = P.metrics(P.project(key), req.arg("month"))
+    return {"ledger": m["ledger"], "sealed": m["sealed"], "gate": m["gate"]}
 
 
 @route("POST", "/api/tickets/<key>")
@@ -1938,6 +2045,8 @@ def make_handler(P: Platform, token: str = ""):
                 return self._send(403, "只接受本机访问；对局域网开放请设置 TMH_TOKEN".encode("utf-8"), "text/plain; charset=utf-8")
             if path == "/login":
                 return self._login(method, q)
+            if path.startswith("/sign/"):  # the client's sign-off page: the one-time link is the credential, no account
+                return self._sign(method, path)
             if path == "/logout":
                 return self._send(303, b"", "text/plain", {"Location": "/login", "Set-Cookie": self._session_cookie("", 0)})
             if not path.startswith("/api/"):
@@ -1962,6 +2071,19 @@ def make_handler(P: Platform, token: str = ""):
                     except ApiError as e:
                         return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
                     return self._send(200, md_html(report_md(mt), "AI 提效报告 %s %s" % (p["key"], mt["period"])).encode("utf-8"), "text/html; charset=utf-8")
+                m = re.match(r"^/e/([A-Za-z0-9]+-\d+)(?:/f/([0-9a-f]{64}\.[a-z]+))?$", path)
+                if m:  # a ticket's evidence package as one page (for the provider and the client's auditors)
+                    if not self._authorized(q):
+                        return self._send(401, b"unauthorized", "text/plain")
+                    from . import signoff
+                    try:
+                        if m.group(2):
+                            signoff.owns(P.data_dir, m.group(1).upper(), m.group(2))
+                            data, ctype = signoff.file_bytes(P.data_dir, m.group(2))
+                            return self._send(200, data, ctype)
+                        return self._send(200, signoff.package_page(P, m.group(1)).encode("utf-8"), "text/html; charset=utf-8")
+                    except ApiError as e:
+                        return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
                 m = re.match(r"^/p/([^/]+)/report/(.*)$", path)
                 if m:
                     if not self._authorized(q):
@@ -1999,6 +2121,38 @@ def make_handler(P: Platform, token: str = ""):
                         traceback.print_exc()
                         return self._json(500, {"error": "%s: %s" % (type(e).__name__, e)})
             return self._json(404, {"error": "没有这个接口：%s %s" % (method, path)})
+
+        def _sign(self, method: str, path: str):
+            from . import signoff
+            m = re.match(r"^/sign/([A-Za-z0-9_\-]{20,64})(?:/f/([0-9a-f]{64}\.[a-z]+))?$", path)
+            html_t = "text/html; charset=utf-8"
+            if not m:
+                return self._send(404, "签收链接不对".encode("utf-8"), "text/plain; charset=utf-8")
+            token, f = m.group(1), m.group(2)
+            try:
+                if method == "GET" and f:
+                    signoff.owns(P.data_dir, signoff.link_of(P.data_dir, token)["key"], f)
+                    data, ctype = signoff.file_bytes(P.data_dir, f)
+                    return self._send(200, data, ctype)
+                if method == "GET":
+                    return self._send(200, signoff.sign_page(P, token).encode("utf-8"), html_t)
+                if method != "POST" or f:
+                    return self._send(405, b"method", "text/plain")
+                n = int(self.headers.get("Content-Length") or 0)
+                if n > 64 * 1024:
+                    return self._send(413, b"too large", "text/plain")
+                form = parse_qs(self.rfile.read(n).decode("utf-8", "replace") if n else "")
+                g = lambda k: (form.get(k) or [""])[0]
+                verdicts = {k[3:]: v[0] for k, v in form.items() if k.startswith("ac_")}
+                try:
+                    done = signoff.decide(P, token, g("action"), g("name"), verdicts, g("note"), self._client())
+                except ApiError as e:
+                    if e.code in (400,):
+                        return self._send(400, signoff.sign_page(P, token, msg=str(e)).encode("utf-8"), html_t)
+                    raise
+                return self._send(200, signoff.sign_page(P, token, done=done).encode("utf-8"), html_t)
+            except ApiError as e:
+                return self._send(e.code, signoff.message_page(str(e)).encode("utf-8"), html_t)
 
         def _report(self, key: str, rel: str):
             p = P.store.project(key)

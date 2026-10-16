@@ -237,6 +237,16 @@ def cmd_accept(a) -> int:
                 print("  阻塞：" + b)
             a.summary = "验收状态 %s → %s" % (r["task"], acc.LABEL[r["state"]])
             return 0
+        if a.action == "evidence":
+            from . import evidence as ev
+            path = acc.evidence_path(root, acc.load(root, a.task)["task"])
+            recs = ev.read(path)
+            ok, why = ev.check(recs)
+            for r in recs:
+                print("%2d %s %-6s %-12s %s" % (r.get("seq", 0), r.get("ts", ""), r.get("kind", ""), r.get("by", ""), (r.get("hash") or "")[:16]))
+            print(("✅ 证据包完整，%d 条记录，哈希 %s" % (len(recs), ev.head(recs))) if ok and recs else ("还没有证据包（进入待人工验收或自动证据齐全时生成）" if ok else "❌ " + why))
+            a.summary = "证据包 %s：%s" % (a.task, "完整" if ok else "被改动")
+            return 0 if ok else 1
         if a.action == "correct":
             r = acc.correct(root, a.task, a.kind or "other", a.note or "", a.who or "")
             print("已记录纠错 %s（%s 类第 %d 次）" % (r["task"], r["kind"], r["count"]))
@@ -712,9 +722,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--kind", default="feature", choices=["feature", "migration", "bugfix", "refactor", "upgrade"])
     p.add_argument("--request", help="需求原文")
     p = add("accept", cmd_accept, "验收状态机：检查 AC、入口路径检查、推进状态；关单只认用户确认（docs/acceptance.md）")
-    p.add_argument("action", choices=["status", "check", "path-check", "advance", "reject", "confirm", "close", "correct"],
+    p.add_argument("action", choices=["status", "check", "path-check", "advance", "reject", "confirm", "close", "correct", "evidence"],
                    help="status 看状态（--build 按构建列）；check 检查 AC；path-check 改动是否接上契约入口；advance --to 推进；"
-                        "reject 退回实现；confirm/close 由人确认、关单；correct 记一次纠错")
+                        "reject 退回实现；confirm/close 由人确认、关单；correct 记一次纠错；evidence 看证据包和哈希链")
     p.add_argument("task", nargs="?", help="任务号，如 T001")
     p.add_argument("--to", help="advance 的目标状态")
     p.add_argument("--who", help="谁做的（confirm/close 必填姓名）")
@@ -781,7 +791,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--key", default="", help="登记项目时用的代号，例如 TOG")
     p.add_argument("--user", default="", help="默认用户名（网页里可改）")
     p.add_argument("--open", action="store_true", help="启动后打开浏览器")
-    p.add_argument("--brand", help="界面上显示的产品名，例如 \"OA 闭环监控\"（默认“Webuddy”，也可用环境变量 TMH_BRAND）")
+    p.add_argument("--brand", help="界面上显示的产品名，例如 \"OA 闭环监控\"（默认“webuddy”，也可用环境变量 TMH_BRAND）")
     p = add("user", cmd_user, "管理平台登录账号：add（新建或改密码）/ del / list；有账号后网页改为账号密码登录")
     p.add_argument("action", choices=["add", "del", "list"])
     p.add_argument("name", nargs="?", default="")

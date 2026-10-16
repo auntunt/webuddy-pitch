@@ -437,6 +437,8 @@ async function vTicket(key,sub){
      ${d.runs.length>1?`<div style="margin-top:10px"><span class="sub">全部运行：</span> ${d.runs.map(r=>`<a href="javascript:void 0" onclick="showRun(${r.id})">#${r.id} ${moLabel(r.mode)}${r.status==='running'?' <span class=spin></span>':''}${r.points?' · '+r.points+' 点':''}</a>`).join('　')}</div>`:''}</details>
   </div><div style="display:flex;flex-direction:column;gap:12px;min-width:0">
    <div class="card" id="simc" hidden><h2>可能重复</h2><div id="simv"></div></div>
+   ${pkgCard(d)}
+   <div id="upc"></div>
    ${mrBlock(d)}
    <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">相关业务</h2><a href="javascript:void 0" onclick="showContext()">智能体看到的上下文</a></div><div id="rel"><span class="spin"></span></div></div>
   </div></div></div>`;
@@ -458,6 +460,7 @@ async function vTicket(key,sub){
   const go={naAn:'analyze',naPlan:'plan',naFix:'fix'};
   Object.entries(go).forEach(([id,m])=>{if($('#'+id))$('#'+id).onclick=()=>run(m,defAgent(),'auto')});
   if($('#naVerify'))$('#naVerify').onclick=()=>save({status:'verify'});
+  pkgWire(d);upWire(d);
   if($('#naGo'))$('#naGo').onclick=()=>save({auto:'go'}).then(()=>toast('已交给自动处理'));
   document.querySelectorAll('[data-hold]').forEach(b=>b.onclick=()=>save({hold:b.dataset.hold==='1'}).then(()=>toast(b.dataset.hold==='1'?'已接管，自动处理暂停':'已交回自动处理')));
   if($('#naReopen'))$('#naReopen').onclick=()=>save({status:'doing'});
@@ -615,12 +618,82 @@ async function vLead(){
   <div class="card" style="margin-top:16px"><h2>各项目</h2>${proj}</div>`;
   document.querySelectorAll('#ldD button').forEach(b=>b.onclick=()=>{ls.set('tmh.leadDays',b.dataset.d);vLead()})}
 
+// ---------- evidence package on a ticket, the ledger on the report
+const PKC={none:'mute',incomplete:'warn',ready:'info',signed:'ok',rejected:'bad',upstream_merged:'ok',upstream_closed:'bad'};
+function pkgCard(d){const k=d.package||{};if(!k.status)return '';const t=d.ticket;
+  const dec=k.decision,ln=k.link;
+  return `<div class="card" id="pkg"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">证据包</h2><span class="ev-tag ${PKC[k.status]}">${h(k.label)}</span></div>
+   ${k.status==='none'?'<div class="sub">工单转到“待验证”时自动打包：验收标准、方案、改动、构建测试、范围和业务流检查。</div>':`
+   ${k.intact?`<div class="sub">${k.records} 条记录，哈希 <code>${h(k.hash.slice(0,12))}</code>，追加式，改任何一条都会对不上。</div>`:`<div class="bad">证据包被改动过：${h(k.problem)}</div>`}
+   ${k.missing.length?`<div style="margin-top:6px"><b style="font-size:13px">还缺</b> ${k.missing.map(x=>`<span class="ev-tag warn">${h(x)}</span>`).join(' ')}</div>`:'<div class="ok" style="margin-top:6px">证据齐全</div>'}
+   ${k.review?`<div class="sub" style="margin-top:4px">乙方复核：${h(k.review.by)} · ${h((k.review.ts||'').slice(5,16))}</div>`:''}
+   ${dec?`<div style="margin-top:6px">${dec.kind==='sign'?'签收':'退回'}：<b>${h(dec.signer)}</b>${dec.role?'（'+h(dec.role)+'）':''} · ${h(dec.ts.slice(5,16))} · ${h(dec.via)}${dec.note?`<div class="sub">${h(dec.note)}</div>`:''}</div>`
+     :ln?`<div class="sub" style="margin-top:4px">已发签收链接给 ${h(ln.signer)}，有效至 ${h(ln.expires.slice(5,16))}</div>`:''}
+   <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn" href="/e/${h(t.key)}" target="_blank" rel="noopener">打开证据包</a>
+    <button class="ghost" id="pkShot">补截图</button><button class="ghost" id="pkRev">复核</button>${t.status==='verify'?'<button class="primary" id="pkLink">发签收链接</button>':''}</div>
+   <div id="pkForm"></div>`}</div>`}
+function pkgWire(d){const key=d.ticket.key,F=$('#pkForm');if(!F)return;
+  const P=b=>post('/api/tickets/'+key+'/evidence',b);
+  const acs=(()=>{const r=d.runs.find(x=>x.mode==='plan'&&x.status==='done');const m=r&&/```tmh-plan\s*([\s\S]*?)```/.exec(r.result||'');try{return m?(JSON.parse(m[1]).ac||[]):[]}catch(e){return []}})();
+  if($('#pkShot'))$('#pkShot').onclick=()=>{F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><select id="pkAc"><option value="">整单</option>${acs.map(a=>`<option value="${h(a.id)}">${h(a.id)} ${h(clip(a.text,30))}</option>`).join('')}</select>
+     <input type="file" id="pkImg" accept="image/png,image/jpeg,image/webp"><input id="pkNote" placeholder="说明：在哪个页面做了什么、看到了什么"><button class="primary" id="pkGo">加到证据包</button></div>`;
+    $('#pkGo').onclick=async()=>{const f=$('#pkImg').files[0];let image='';
+      if(f){if(f.size>3*1024*1024)return toast('截图不能超过 3MB');image=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)})}
+      try{await P({kind:'attach',ac:$('#pkAc').value,note:$('#pkNote').value,image});toast('已加到证据包');vTicket(key)}catch(e){toast(e.message,5000)}}};
+  if($('#pkRev'))$('#pkRev').onclick=()=>{const m=(d.package||{}).missing||[];F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><textarea id="pkRn" placeholder="复核意见：看了什么、结论是什么" style="min-height:56px"></textarea>
+     ${m.includes('改动没超出方案')?'<label class="sub"><input type="checkbox" id="pkSc" style="width:auto"> 超出方案的改动我看过，认可（要写理由）</label>':''}
+     ${m.includes('改动落在本单的业务流上')?'<label class="sub"><input type="checkbox" id="pkPa" style="width:auto"> 不在业务流上的改动我看过，认可（要写理由）</label>':''}<button class="primary" id="pkRgo">记录复核</button></div>`;
+    $('#pkRgo').onclick=async()=>{try{await P({kind:'review',note:$('#pkRn').value,scope_ok:!!($('#pkSc')&&$('#pkSc').checked),path_ok:!!($('#pkPa')&&$('#pkPa').checked)});toast('已记录复核');vTicket(key)}catch(e){toast(e.message,5000)}}};
+  if($('#pkLink'))$('#pkLink').onclick=()=>{const m=(d.package||{}).missing||[];F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><input id="pkS" placeholder="签收人姓名（甲方业务确认人）"><input id="pkR" placeholder="角色，如 人事业务负责人">
+     ${m.length?`<textarea id="pkN" placeholder="证据还缺 ${h(m.join('、'))}，写明为什么现在就请甲方签" style="min-height:48px"></textarea>`:''}<button class="primary" id="pkLgo">生成链接</button><div id="pkOut"></div></div>`;
+    $('#pkLgo').onclick=async()=>{try{const r=await P({kind:'link',signer:$('#pkS').value,role:$('#pkR').value,note:$('#pkN')?$('#pkN').value:''});const url=location.origin+r.path;
+      $('#pkOut').innerHTML=`<div class="sub">发给 ${h(r.signer)}，${h(r.expires.slice(0,16))} 前有效，只能用一次。对方打开就能签，不用登录，页面上没有代码：</div><input id="pkU" readonly value="${h(url)}"><button id="pkCp">复制链接</button>`;
+      $('#pkCp').onclick=()=>{navigator.clipboard.writeText(url).then(()=>toast('已复制')).catch(()=>{$('#pkU').select()})}}catch(e){toast(e.message,6000)}}};
+}
+function upCard(u){if(!u)return '';
+  const f=(v,unit)=>v==null?'—':v+(unit||'');
+  return `<div class="card"><h2>外部 PR <span class="ev-tag info">第三方验收</span></h2>${u.submitted?`<div class="grid2" style="gap:6px">
+    <div><div class="sub">合并率</div><b>${f(u.merge_rate,'%')}</b></div><div><div class="sub">已提交 / 合并</div><b>${u.submitted} / ${u.merged}</b></div>
+    <div><div class="sub">合并前评审轮次</div><b>${f(u.rounds_avg)}</b></div><div><div class="sub">提交到合并</div><b>${f(u.hours_to_merge_median,' 小时')}</b></div></div>
+    <div class="sub" style="margin-top:6px">维护者合并前又加提交 ${u.maintainer_edited} 个${u.reasons.length?'；关闭原因：'+u.reasons.map(r=>h(r.label)+' '+r.n).join('、'):''}</div>
+    ${u.rows.slice(0,8).map(r=>`<div class="srow"><a href="#/t/${h(r.key)}">${h(r.key)}</a><a class="grow" href="${h(r.url)}" target="_blank" rel="noopener">${h(r.repo)}#${h(r.pr)}</a><span class="ev-tag ${r.state==='merged'?'ok':r.state==='closed'?'bad':'info'}">${h(r.label)}</span></div>`).join('')}`
+    :'<div class="sub">还没有提交过外部 PR。给开源老项目提真实 PR、跟踪到维护者合并，是可以公开复查的验收证据。</div>'}</div>`}
+async function upWire(d){const t=d.ticket,box=$('#upc');if(!box)return;const key=t.key;
+  let u;try{u=await get('/api/tickets/'+key+'/upstream')}catch(e){return}
+  const up=u.upstream||{};const P=b=>post('/api/tickets/'+key+'/upstream',b);
+  if(!up.repo){box.innerHTML=`<details class="card"><summary><b>外部 PR</b> <span class="sub">把这单做成给开源项目的 PR</span></summary><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px"><input id="upR" placeholder="上游仓库，如 apache/ofbiz-framework"><input id="upI" placeholder="上游 issue 号（可空）"><input id="upP" placeholder="已有 PR 号（可空）"><button class="primary" id="upL">关联</button></div></details>`;
+    $('#upL').onclick=()=>P({action:'link',repo:$('#upR').value,issue:$('#upI').value,pr:$('#upP').value}).then(()=>vTicket(key)).catch(e=>toast(e.message,5000));return}
+  const s=u.summary||{},dr=u.draft,ap=u.approved;
+  box.innerHTML=`<div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">外部 PR</h2><span class="ev-tag ${u.state==='merged'?'ok':u.state==='closed'?'bad':'info'}">${h(u.label)}</span></div>
+   <div class="sub">${h(up.repo)}${up.issue?` · <a href="https://github.com/${h(up.repo)}/issues/${h(up.issue)}" target="_blank" rel="noopener">issue #${h(up.issue)}</a>`:''}${up.pr?` · <a href="${h(up.url)}" target="_blank" rel="noopener">PR #${h(up.pr)}</a>`:''}</div>
+   ${up.pr?`<div class="sub" style="margin-top:4px">CI ${h(u.ci||'—')} · 评审 ${s.rounds??'—'} 轮${s.maintainer_commits?' · 维护者加了 '+s.maintainer_commits+' 个提交':''}${u.synced?' · 同步于 '+h(u.synced.slice(5,16)):''}</div>
+     ${(u.reviews||[]).slice(-3).map(r=>`<div class="cbody sub" style="margin-top:4px"><b>${h(r.by)}</b> ${h(r.state)}：${h(clip(r.body||'',160))}</div>`).join('')}
+     <div class="row" style="gap:6px;margin-top:8px"><button id="upSync">从 GitHub 同步</button>${u.state==='closed'&&!(u.outcome||{}).reason?'<button class="ghost" id="upWhy">补记关闭原因</button>':''}</div>`
+   :dr?`<div style="margin-top:6px"><b>${h(dr.title)}</b><div class="sub">${h(dr.head)} → ${h(dr.base)}</div><div class="cbox">${md(dr.body)}</div>
+     ${ap?`<div class="ok" style="margin-top:4px">${h(ap.by)} 已批准提交（${h(ap.at.slice(5,16))}）</div>`:'<div class="warn" style="margin-top:4px">等人过目：这是用你的账号对外发布，批准后才能提交</div>'}
+     <div class="row" style="gap:6px;margin-top:8px">${ap?'<button class="primary" id="upGo">提交到 GitHub</button>':'<button class="primary" id="upOk">我看过了，批准提交</button>'}<button class="ghost" id="upEd">改草稿</button></div></div>`
+   :'<div class="row" style="margin-top:8px"><button class="primary" id="upEd">起草 PR</button></div>'}</div>`;
+  const edit=()=>modal(`<h2>上游 PR 草稿</h2><input class="full" id="dT" placeholder="标题（照项目的提交规范）" value="${h(dr?dr.title:t.title)}"><input class="full" id="dH" placeholder="分支，如 auntunt:fix-xxx" value="${h(dr?dr.head:'')}" style="margin-top:6px"><input class="full" id="dB" placeholder="目标分支" value="${h(dr?dr.base:'trunk')}" style="margin-top:6px"><textarea class="full" id="dD" style="min-height:200px;margin-top:6px" placeholder="描述：照项目的 PR 模板写，按项目规则写明 AI 辅助">${h(dr?dr.body:'')}</textarea><div style="margin-top:8px"><button class="primary" id="dS">保存草稿</button></div>`,true);
+  if($('#upEd'))$('#upEd').onclick=()=>{edit();$('#dS').onclick=()=>P({action:'draft',title:$('#dT').value,head:$('#dH').value,base:$('#dB').value,body:$('#dD').value}).then(()=>{closeModal();vTicket(key)}).catch(e=>toast(e.message,5000))};
+  if($('#upOk'))$('#upOk').onclick=()=>P({action:'approve'}).then(()=>{toast('已批准');vTicket(key)}).catch(e=>toast(e.message,5000));
+  if($('#upGo'))$('#upGo').onclick=()=>P({action:'submit',confirm:true}).then(()=>{toast('已提交');vTicket(key)}).catch(e=>toast(e.message,6000));
+  if($('#upSync'))$('#upSync').onclick=()=>P({action:'sync'}).then(()=>{toast('已同步');vTicket(key)}).catch(e=>toast(e.message,6000));
+  if($('#upWhy'))$('#upWhy').onclick=()=>{modal(`<h2>为什么没合并</h2><select id="rW" class="full">${[['direction','方向不对'],['style','风格或规范'],['scope','范围太大'],['duplicate','重复或已修'],['stale','没人理、过期'],['policy','项目规则'],['other','其他']].map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select><textarea class="full" id="rN" placeholder="维护者原话或我们的判断" style="margin-top:6px"></textarea><div style="margin-top:8px"><button class="primary" id="rS">记下</button></div>`);
+    $('#rS').onclick=()=>P({action:'reason',reason:$('#rW').value,note:$('#rN').value}).then(()=>{closeModal();vTicket(key)}).catch(e=>toast(e.message,5000))};
+}
+function ledgerCard(L){if(!L)return '';const T=L.totals;
+  return `<div class="card"><h2>账本（每单）</h2><div class="sub" style="margin-bottom:6px">本期经手 ${T.tickets} 张，关闭 ${T.closed} 张；证据包 ${T.packed} 张，已签收 ${T.signed} 张（甲方签收链接 ${T.client_signed} 张）；返工 ${T.reworks} 次；人工动作 ${T.human_actions} 次</div>
+   <div class="tw"><table class="t"><tr><th>工单</th><th>周期</th><th>返工</th><th>AI 运行</th><th>点数</th><th>标价（元）</th><th>人工动作</th><th>证据包</th></tr>
+   ${L.rows.slice(0,40).map(x=>`<tr><td><a href="#/t/${h(x.key)}">${h(x.key)}</a> <span class="sub">${h(clip(x.title,16))}</span></td><td>${dur(x.cycle_h)}</td><td class="num">${x.reworks}</td><td class="num">${x.ai_runs}</td><td class="num">${x.points}</td><td class="num">${x.list_yuan==null?'—':x.list_yuan.toFixed(2)}</td><td class="num">${x.human_actions}</td>
+     <td>${x.evidence_status==='none'?'<span class="sub">未生成</span>':`<a href="/e/${h(x.key)}" target="_blank" rel="noopener"><span class="ev-tag ${PKC[x.evidence_status]}">${h(x.evidence)}</span></a>`}${x.signer?' <span class="sub">'+h(x.signer)+'</span>':''}</td></tr>`).join('')||'<tr><td colspan="8" class="sub">本期还没有经手的工单</td></tr>'}</table></div>
+   <div class="sub" style="margin-top:6px">${h(L.method.list_yuan)}；${h(L.method.paid_yuan)}；${h(L.method.human_actions)}。</div></div>`}
 // ---------- efficiency dashboard and monthly report
 function dur(x){if(x==null)return '—';if(x<1)return Math.max(1,Math.round(x*60))+' 分钟';if(x<48)return x.toFixed(1)+' 小时';return (x/24).toFixed(1)+' 天'}
 function chg(c,better){if(c==null)return '';const good=better==='down'?c<0:c>0;return `<span class="ev-tag ${c===0?'mute':good?'ok':'bad'}">${c>0?'+':''}${c}%</span>`}
 async function vEff(){
   const mo=S.effMonth===undefined?new Date().toISOString().slice(0,7):S.effMonth;
-  const m=await get('/api/projects/'+S.proj+'/metrics?month='+mo);const b=m.baseline,p=m.pilot,k=m.kb;
+  const m=await get('/api/projects/'+S.proj+'/metrics?month='+mo);const cand=m.baseline,p=m.pilot,k=m.kb,G=m.gate,L=m.ledger;
+  const b=G.sealed?m.sealed.stats:{n:0,cycle:{},cycle_by_type:{},systems:[]};
   const months=[];const d0=new Date();for(let i=0;i<12;i++){const x=new Date(d0.getFullYear(),d0.getMonth()-i,1);months.push(x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0'))}
   const kpi=(l,v,sub,extra)=>`<div class="card kpi"><div class="l">${l} <span class="ev-tag mute" style="font-size:11px;padding:0 5px">实测</span></div><div class="n">${v}</div><div class="sub">${sub}</div>${extra||''}</div>`;
   const pc=x=>x==null?'—':x+'%';
@@ -629,17 +702,20 @@ async function vEff(){
   const srcMax=Math.max(1,...p.ai.by_source.map(x=>x.n));
   const tMax=Math.max(1,...m.trend.map(x=>x.closed));
   const trend=`<svg viewBox="0 0 600 170" class="trend" role="img" aria-label="近六个月关闭工单">${m.trend.map((x,i)=>{const bh=x.closed/tMax*100,X=20+i*96;return `<rect x="${X}" y="${118-bh}" width="56" height="${bh}" rx="3" class="tb"/><text x="${X+28}" y="${112-bh}" text-anchor="middle" class="tv">${x.closed}</text><text x="${X+28}" y="136" text-anchor="middle" class="tl">${x.month.slice(2).replace('-','/')}</text><text x="${X+28}" y="154" text-anchor="middle" class="ts">${dur(x.cycle_median_h)}</text><text x="${X+28}" y="168" text-anchor="middle" class="ts">AI ${x.ai_rate==null?'—':x.ai_rate+'%'}</text>`}).join('')}</svg>`;
-  $('#main').innerHTML=pageHead('AI 提效报告',`${m.period} · 本期经手 ${p.handled} 张、关闭 ${p.closed} 张 · 基线 ${b.n} 张历史工单`,right)+
+  $('#main').innerHTML=pageHead('AI 提效报告',`${m.period} · 本期经手 ${p.handled} 张、关闭 ${p.closed} 张 · ${G.sealed?'封存基线 '+b.n+' 张历史工单':'基线未封存，不出对比数'}`,right)+
   `<div class="grid5" style="margin-bottom:16px">
-    ${kpi('工单周期（中位数）',dur(p.cycle.median_h),`基线 ${dur(b.cycle.median_h)} ${chg(C.change,'down')}`,`<div class="sub">${p.cycle.n} 张验收通过</div>`)}
+    ${kpi('工单周期（中位数）',dur(p.cycle.median_h),G.sealed?`基线 ${dur(b.cycle.median_h)} ${chg(C.change,'down')}`:'基线未封存，不出对比',`<div class="sub">${p.cycle.n} 张验收通过</div>`)}
     ${kpi('首次定位耗时',dur(p.locate.median_h),`${p.locate.n} 张有定位结论`,'<div class="sub">基线：外部系统无记录</div>')}
     ${kpi('验收退回率',pc(p.reject.rate),`验收 ${p.reject.reviewed} 张 · 退回 ${p.reject.rejected} 张`,`<div class="sub">返工 ${p.reject.reworks} 次</div>`)}
     ${kpi('AI 参与率',pc(p.ai.rate),`${p.ai.tickets} / ${p.ai.total} 张`,`<div class="sub">含 IDE 里的 MCP 调用</div>`)}
-    ${kpi('每单 AI 成本',p.cost.per_ticket==null?'—':p.cost.per_ticket+' 点',`本期共 ${p.cost.total.toLocaleString()} 点`,`<div class="sub">${p.cost.tickets} 张工单消耗点数</div>`)}
+    ${kpi('每单 AI 成本',p.cost.per_ticket==null?'—':p.cost.per_ticket+' 点',`本期共 ${p.cost.total.toLocaleString()} 点 · 标价 ${L.totals.list_yuan==null?'—':L.totals.list_yuan+' 元'}`,`<div class="sub">实付 ${L.totals.paid_yuan==null?'未录入':L.totals.paid_yuan+' 元'}</div>`)}
   </div>
   <div class="grid2"><div style="display:flex;flex-direction:column;gap:16px;min-width:0">
     <div class="card"><h2>基线与本期对比</h2><div class="tw"><table class="t"><tr><th>指标</th><th>基线</th><th>本期</th><th>变化</th></tr>${m.compare.map(c=>`<tr><td>${h(c.label)}</td><td class="sub">${h(c.baseline)}</td><td><b>${h(c.pilot)}</b></td><td>${chg(c.change,c.better)||'<span class="sub">—</span>'}</td></tr>`).join('')}</table></div>
-      <div class="sub" style="margin-top:8px">${b.n?`基线：${b.n} 张从 ${h(b.systems.join('、')||'外部系统')} 导入、已在原系统关闭的工单（${b.range[0]} 至 ${b.range[1]}），用原系统的创建和解决时间。`:'还没有基线。在<a href="#/int">外部系统</a>里导入过去 3～6 个月的 Jira 或禅道工单，已关闭的会自动作为基线。'}</div></div>
+      <div class="sub" style="margin-top:8px">${G.sealed?`封存基线：${b.n} 张从 ${h(b.systems.join('、')||'外部系统')} 导入、已在原系统关闭的工单，窗口 ${h(m.sealed.window[0])} 至 ${h(m.sealed.window[1])}；${h(m.sealed.sealed_at.slice(0,16))} 由 ${h(m.sealed.sealed_by)} 封存，哈希 <code>${h(m.sealed.hash.slice(0,16))}</code>，之后不能改。`
+        :`<span class="bad">${h(G.reason)}。</span>${cand.n?`已导入 ${cand.n} 张已关闭的历史工单（${cand.range[0]} 至 ${cand.range[1]}）。选好窗口封存一次，之后口径和样本都不能改：
+        <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap"><input type="date" id="blF" value="${cand.range[0]}"><input type="date" id="blT" value="${cand.range[1]}"><input id="blN" placeholder="说明（如：试点前 6 个月）" size="16"><button class="primary" id="blSeal">封存基线</button></div>`
+        :'先在<a href="#/int">外部系统</a>里导入过去 3～6 个月的 Jira 或禅道工单，已关闭的可以封存为基线。'}`}</div></div>
     <div class="card"><h2>按类型的工单周期</h2><div class="tw"><table class="t"><tr><th>类型</th><th>基线中位数</th><th>本期中位数</th><th>本期样本</th></tr>${S.meta.types.filter(([c])=>b.cycle_by_type[c]||p.cycle_by_type[c]).map(([c,l])=>{const x=b.cycle_by_type[c],y=p.cycle_by_type[c];return `<tr><td>${l}</td><td class="sub">${dur(x&&x.median_h)}${x?` · ${x.n} 张`:''}</td><td><b>${dur(y&&y.median_h)}</b></td><td>${y?y.n:0}</td></tr>`}).join('')||'<tr><td colspan="4" class="sub">还没有验收通过的工单</td></tr>'}</table></div>
       <div class="sub" style="margin-top:8px">周期从工单创建算到人工验收通过。</div></div>
     <div class="card"><h2>近六个月</h2>${trend}<div class="sub">柱子是每月验收通过的工单数，下方是周期中位数和 AI 参与率。</div></div>
@@ -650,10 +726,15 @@ async function vEff(){
       ${p.ide.clients.map(([c,n])=>`<div class="srow"><span>${h(c)}</span><span class="grow"></span><b>${n}</b></div>`).join('')}
       <div class="tags" style="margin-top:8px">${p.ide.tools.map(([t,n])=>`<span class="tag">${h(t)} ${n}</span>`).join('')}</div>`
       :'<div class="sub">本期还没有记录。开发者在 Cursor 或 Claude Code 里接上 <code>tmh mcp</code> 后，每次调用都会记在项目的 <code>.tmh/usage.jsonl</code>；先在工单的“提示词”里写入项目，调用就能对上工单。</div>'}</div>
-    <div class="card est"><h2>节省人天 <span class="ev-tag warn">估算</span></h2><div class="n">${m.estimate.saved_days==null?'—':m.estimate.saved_days+' 天'}</div><div class="sub">${h(m.estimate.formula)}。</div></div>
+    ${upCard(m.upstream)}
     <div class="card"><h2>知识库</h2>${k.built?`<div class="sub">业务理解页已写 ${k.written} / ${k.scope} 页，过期 ${k.stale} 页；${k.flows} 条业务流中 ${k.flows_with_tables} 条能追到表。</div>`:'<div class="sub">项目尚未构建知识库。</div>'}</div>
-  </div></div>`;
+  </div></div><div style="margin-top:16px">${ledgerCard(L)}</div>`;
   $('#effM').onchange=e=>{S.effMonth=e.target.value;vEff()};
+  if($('#blSeal'))$('#blSeal').onclick=async()=>{const f=$('#blF').value,t=$('#blT').value;
+    try{const c=await get(`/api/projects/${S.proj}/baseline?from=${f}&to=${t}`);
+      const note=$('#blN').value;
+      modal(`<h2>封存基线</h2><p>把 ${h(f)} 至 ${h(t)} 的 <b>${c.candidate.n}</b> 张历史工单封存为基线，周期中位数 ${dur(c.candidate.cycle.median_h)}。${c.candidate.warning?'<br><span class="warn">'+h(c.candidate.warning)+'</span>':''}</p><p class="sub">封存后窗口、口径和样本清单都不能再改。</p><div class="row" style="gap:8px"><button class="primary" id="blOk">确认封存</button><button class="ghost" onclick="closeModal()">再想想</button></div>`);
+      $('#blOk').onclick=async()=>{closeModal();try{await post(`/api/projects/${S.proj}/baseline/seal`,{from:f,to:t,note});toast('基线已封存');vEff()}catch(e){toast(e.message,5000)}}}catch(e){toast(e.message,5000)}};
   $('#effMd').onclick=async()=>{try{const r=await get('/api/projects/'+S.proj+'/report?month='+mo);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.markdown],{type:'text/markdown;charset=utf-8'}));a.download=r.filename;document.body.appendChild(a);a.click();a.remove();toast('已导出 '+r.filename)}catch(e){toast(e.message)}}}
 
 // ---------- knowledge base: read on the left/right; review and building have their own tabs
