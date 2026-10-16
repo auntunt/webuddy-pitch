@@ -237,7 +237,7 @@ class PlatformApiTest(unittest.TestCase):
         self.project()
         with self.assertRaises(urllib.error.HTTPError):
             urllib.request.urlopen(self.base + "/p/OA/report/..%2F..%2Fpom.xml")
-        # a crash tells the person nothing changed and gives a reference to quote; the exception text stays out of the message
+        # a crash tells the person the step did not finish and gives a reference to quote; the exception text stays out of the message
         from tmh.platform import server as srv
         boom = lambda P, req: (_ for _ in ()).throw(KeyError("secret_column"))  # noqa: E731
         srv.ROUTES.insert(0, ("GET", __import__("re").compile("^/api/boom$"), boom))
@@ -246,7 +246,7 @@ class PlatformApiTest(unittest.TestCase):
         finally:
             srv.ROUTES.pop(0)
         self.assertEqual(code, 500)
-        self.assertIn("没有做任何改动", e["error"])
+        self.assertIn("没有完成", e["error"])
         self.assertIn(e["ref"], e["error"])
         self.assertNotIn("secret_column", e["error"])
         self.assertIn("KeyError", e["detail"])
