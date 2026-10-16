@@ -6,9 +6,9 @@ and the file cannot be changed afterwards (a changed file fails its hash and cou
 sealed baseline the report shows this period's measured numbers only, no comparison and no saving.
 
 The ledger is one row per ticket handled in the period: cycle, first localisation, rework, AI runs, points, the
-points priced in yuan (list price and what was actually paid, kept apart), and an estimate of human time.
+points priced in yuan (list price and what was actually paid, kept apart), and how often a person acted on it.
 Settings live in <data>/pricing.json next to the point prices:
-  {"yuan_per_point": 1.0, "paid_yuan_per_point": 0.6, "human_minutes_per_action": 10}
+  {"yuan_per_point": 1.0, "paid_yuan_per_point": 0.6}
 """
 from __future__ import annotations
 
@@ -87,14 +87,14 @@ def load_baseline(data_dir: Path, key: str) -> dict | None:
 
 
 def settings(data_dir: Path, pricing: dict | None = None) -> dict:
-    conf = {"yuan_per_point": 1.0, "paid_yuan_per_point": None, "human_minutes_per_action": 10, "yuan_default": True}
+    conf = {"yuan_per_point": 1.0, "paid_yuan_per_point": None, "yuan_default": True}
     f = Path(data_dir) / "pricing.json"
     if f.exists():
         try:
             j = json.loads(f.read_text(encoding="utf-8"))
         except ValueError:
             j = {}
-        for k in ("yuan_per_point", "paid_yuan_per_point", "human_minutes_per_action"):
+        for k in ("yuan_per_point", "paid_yuan_per_point"):
             if j.get(k) is not None:
                 try:
                     conf[k] = float(j[k])

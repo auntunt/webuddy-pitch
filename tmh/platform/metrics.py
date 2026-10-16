@@ -5,7 +5,8 @@ Two groups of tickets:
          dates come from the tool (stored in tickets.external by import_issues).
   试点 — tickets that went through the platform (created here, or imported and then accepted here).
 
-Every number says where it came from. Only 节省人天 is derived, and it is marked 估算.
+Every number says where it came from; nothing is estimated. There is no "person-days saved": the outside check is
+external pull requests merged by maintainers who do not know us (upstream.py).
 """
 from __future__ import annotations
 
@@ -188,7 +189,7 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
     sb = good["stats"] if good else None
     gate = {"sealed": bool(good), "reason": "" if good else (
         "基线文件被改过（%s），按没有基线处理" % sealed["broken"] if sealed and sealed.get("broken") else
-        "还没有封存基线：报告只出本期实测，不出对比数和节省估算")}
+        "还没有封存基线：报告只出本期实测，不出对比数")}
 
     # ---- pilot (this period)
     closed = [r for r in pilot if r["done"] and _in(r["done"], month)]
@@ -234,7 +235,7 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
                 "clients": sorted(clients.items(), key=lambda kv: -kv[1]), "tools": sorted(tools.items(), key=lambda kv: -kv[1])[:8]},
     }
 
-    # ---- comparison and the one estimate (only against a sealed baseline)
+    # ---- comparison (only against a sealed baseline)
     bc, pc = (sb["cycle"]["median_h"] if sb else None), pilot_out["cycle"]["median_h"]
     bpm = sb["per_person_month"] if sb else None
     NB = "未封存"
@@ -254,12 +255,9 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
          "change": pct(pilot_out["throughput"]["per_person"] - bpm, bpm)
          if bpm and pilot_out["throughput"]["per_person"] is not None and month else None, "better": "up", "basis": "实测"},
     ]
-    saved = round((bc - pc) / 24 * len(closed), 1) if bc and pc is not None and len(closed) else None
-    estimate = {"saved_days": saved, "basis": "估算",
-                "formula": "（封存基线周期中位数 − 本期周期中位数）× 本期关闭工单数；周期是日历时间，不等于实际投入工时"}
 
     # ---- ledger: one row per ticket handled in the period
-    bk = books or {"yuan_per_point": 1.0, "paid_yuan_per_point": None, "human_minutes_per_action": 10, "yuan_default": True}
+    bk = books or {"yuan_per_point": 1.0, "paid_yuan_per_point": None, "yuan_default": True}
     pk = packages or {}
     acts = {}
     for e in store.q("SELECT e.ticket_id, e.author, e.kind, e.ts FROM events e JOIN tickets t ON t.id=e.ticket_id WHERE t.project_id=? AND e.kind IN (%s)"
@@ -277,20 +275,20 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
                      "reworks": sum(1 for x in r["reviews"] if x["kind"] == "reject" and _in(x["ts"], month)),
                      "ai_runs": sum(1 for x in runs.get(t["id"], []) if x["mode"] != "ask" and x["status"] != "cancelled"),
                      "points": pts, "list_yuan": yuan(pts, bk["yuan_per_point"]), "paid_yuan": yuan(pts, bk["paid_yuan_per_point"]),
-                     "human_min": int(acts.get(t["id"], 0) * bk["human_minutes_per_action"]),
+                     "human_actions": acts.get(t["id"], 0),
                      "evidence": e.get("label") or "未生成", "evidence_status": e.get("status") or "none", "signer": e.get("signer", ""),
                      "signed_via": e.get("via", ""), "evidence_hash": e.get("hash", "")})
     tot_pts = sum(x["points"] for x in rows)
     ledger = {"rows": rows, "settings": bk,
               "totals": {"tickets": len(rows), "closed": sum(1 for x in rows if x["done"] and _in(x["done"], month)),
                          "points": tot_pts, "list_yuan": yuan(tot_pts, bk["yuan_per_point"]), "paid_yuan": yuan(tot_pts, bk["paid_yuan_per_point"]),
-                         "reworks": sum(x["reworks"] for x in rows), "human_min": sum(x["human_min"] for x in rows),
+                         "reworks": sum(x["reworks"] for x in rows), "human_actions": sum(x["human_actions"] for x in rows),
                          "packed": sum(1 for x in rows if x["evidence_status"] != "none"),
                          "signed": sum(1 for x in rows if x["evidence_status"] == "signed"),
                          "client_signed": sum(1 for x in rows if x["evidence_status"] == "signed" and x["signed_via"] == "签收链接")},
               "method": {"list_yuan": "点数 × 标价（每点 %s 元%s）" % (bk["yuan_per_point"], "，演示默认值，可在 pricing.json 里改" if bk.get("yuan_default") else ""),
                          "paid_yuan": "点数 × 实付单价" + ("（每点 %s 元）" % bk["paid_yuan_per_point"] if bk["paid_yuan_per_point"] is not None else "（未录入）"),
-                         "human_min": "估算：人工动作次数（评论、验收、采纳、补证据等，智能体和自动流转不算）× 每次 %d 分钟" % bk["human_minutes_per_action"]}}
+                         "human_actions": "人工动作次数：评论、验收、采纳、补证据等，智能体和自动流转不算"}}
 
     # ---- last six months of the pilot
     trend = []
@@ -312,7 +310,7 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
             "period": ("%s 年 %d 月" % (month[:4], int(month[5:7]))) if month else "全部时间",
             "generated": time.strftime("%Y-%m-%d %H:%M"),
             "baseline": baseline, "sealed": sealed, "gate": gate, "ledger": ledger,
-            "pilot": pilot_out, "compare": compare, "estimate": estimate, "trend": trend,
+            "pilot": pilot_out, "compare": compare, "trend": trend,
             "kb": {"built": bool((kb or {}).get("built")), "written": written,
                    "scope": written + cov.get("未分析", 0) + cov.get("过期", 0), "stale": cov.get("过期", 0),
                    "flows": (kb or {}).get("flows", 0), "flows_with_tables": (kb or {}).get("flows_with_tables", 0)}}
@@ -341,8 +339,10 @@ def report_md(m: dict) -> str:
         lines.append("首次定位耗时中位数 %s（%d 张）。" % (dur(p["locate"]["median_h"]), p["locate"]["n"]))
     if p["reject"]["reviewed"]:
         lines.append("验收 %d 张，退回 %d 张，退回率 %s%%。" % (p["reject"]["reviewed"], p["reject"]["rejected"], p["reject"]["rate"]))
-    if m["estimate"]["saved_days"] is not None:
-        lines.append("按周期缩短推算，本期约节省 %s 天（估算，口径见下）。" % m["estimate"]["saved_days"])
+    u = m.get("upstream") or {}
+    if u.get("submitted"):
+        lines.append("向开源项目提交 PR %d 个，已被维护者合并 %d 个%s。" % (u["submitted"], u["merged"],
+                                                          "（合并率 %s%%）" % u["merge_rate"] if u.get("merge_rate") is not None else ""))
     L += ["- " + x for x in lines or ["本期还没有可统计的数据。"]] + [""]
 
     L += ["## 二、基线与本期对比（实测）", "", "| 指标 | 基线 | 本期 | 变化 |", "|---|---|---|---|"]
@@ -354,7 +354,7 @@ def report_md(m: dict) -> str:
               % (b["n"], "、".join(b["systems"]) or "外部系统", sealed["window"][0], sealed["window"][1], sealed["sealed_at"], sealed["sealed_by"],
                  sealed["hash"][:16]), ""]
     else:
-        L += ["", "基线：%s。对比列和节省估算在封存基线以后才出。" % gate["reason"], ""]
+        L += ["", "基线：%s。对比列在封存基线以后才出。" % gate["reason"], ""]
 
     L += ["## 三、工单周期（按类型，实测）", "", "| 类型 | 基线中位数 | 基线样本 | 本期中位数 | 本期样本 |", "|---|---|---|---|---|"]
     for code, label in TYPES:
@@ -383,17 +383,32 @@ def report_md(m: dict) -> str:
               "| 标价折人民币 | %s |" % ycost(p["cost"]["total"], bk["yuan_per_point"]),
               "| 实付 | %s |" % ("未录入" if bk["paid_yuan_per_point"] is None else ycost(p["cost"]["total"], bk["paid_yuan_per_point"])), ""]
         L += ["## 账本（每单）", "",
-              "本期经手 %d 张：关闭 %d 张，生成证据包 %d 张，已签收 %d 张（其中甲方通过签收链接签 %d 张），返工 %d 次，人工介入约 %d 分钟（估算）。"
-              % (tt["tickets"], tt["closed"], tt["packed"], tt["signed"], tt["client_signed"], tt["reworks"], tt["human_min"]), "",
-              "| 工单 | 周期 | 首次定位 | 返工 | AI 运行 | 点数 | 标价（元） | 实付（元） | 人工（估算） | 证据包 |", "|---|---|---|---|---|---|---|---|---|---|"]
+              "本期经手 %d 张：关闭 %d 张，生成证据包 %d 张，已签收 %d 张（其中甲方通过签收链接签 %d 张），返工 %d 次，人工动作 %d 次。"
+              % (tt["tickets"], tt["closed"], tt["packed"], tt["signed"], tt["client_signed"], tt["reworks"], tt["human_actions"]), "",
+              "| 工单 | 周期 | 首次定位 | 返工 | AI 运行 | 点数 | 标价（元） | 实付（元） | 人工动作 | 证据包 |", "|---|---|---|---|---|---|---|---|---|---|"]
         for x in lg["rows"][:60]:
-            L.append("| %s %s | %s | %s | %d | %d | %d | %s | %s | %d 分钟 | %s |" % (
+            L.append("| %s %s | %s | %s | %d | %d | %d | %s | %s | %d | %s |" % (
                 x["key"], x["title"][:24].replace("|", "/"), dur(x["cycle_h"]), dur(x["locate_h"]), x["reworks"], x["ai_runs"], x["points"],
-                "—" if x["list_yuan"] is None else "%.2f" % x["list_yuan"], "—" if x["paid_yuan"] is None else "%.2f" % x["paid_yuan"], x["human_min"],
+                "—" if x["list_yuan"] is None else "%.2f" % x["list_yuan"], "—" if x["paid_yuan"] is None else "%.2f" % x["paid_yuan"], x["human_actions"],
                 x["evidence"] + ("（%s）" % x["signer"] if x["signer"] else "")))
         if len(lg["rows"]) > 60:
             L.append("| …… 另有 %d 张，见平台账本 | | | | | | | | | |" % (len(lg["rows"]) - 60))
         L += ["", "每单的证据包在平台 `/e/<工单号>` 打开，签收记录和哈希都在里面。", ""]
+        if u.get("submitted"):
+            f1 = lambda v, unit="": "—" if v is None else "%s%s" % (v, unit)
+            L += ["## 外部 PR（第三方验收）", "",
+                  "| 指标 | 数值 |", "|---|---|",
+                  "| 提交 | %d 个（在途 %d，已合并 %d，已关闭 %d） |" % (u["submitted"], u["open"], u["merged"], u["closed"]),
+                  "| 合并率（已有结局的） | %s |" % f1(u["merge_rate"], "%"),
+                  "| 合并前平均评审轮次 | %s |" % f1(u["rounds_avg"]),
+                  "| 提交到合并（中位数） | %s |" % f1(u["hours_to_merge_median"], " 小时"),
+                  "| 维护者合并前又加了提交 | %d 个 |" % u["maintainer_edited"],
+                  "| 每个合并 PR 的 AI 点数 | %s |" % f1(u["points_per_merged"]), ""]
+            if u["reasons"]:
+                L += ["关闭原因：" + "，".join("%s %d 个" % (r["label"], r["n"]) for r in u["reasons"]) + "。", ""]
+            L += ["| 工单 | PR | 状态 | 评审轮次 | 改动行数 |", "|---|---|---|---|---|"]
+            L += ["| %s | %s#%s | %s | %s | %d |" % (r["key"], r["repo"], r["pr"], r["label"], r["summary"].get("rounds", "—"), r["lines"]) for r in u["rows"][:40]]
+            L.append("")
         signed = [x for x in lg["rows"] if x["evidence_status"] == "signed"]
         L += ["## 验收证据抽样", ""]
         if signed:
@@ -433,12 +448,12 @@ def report_md(m: dict) -> str:
     L += ["| %s | %d | %s | %s |" % (t["month"], t["closed"], dur(t["cycle_median_h"]), "—" if t["ai_rate"] is None else "%s%%" % t["ai_rate"]) for t in m["trend"]]
     L += ["", "## 九、口径", "",
           "- **实测**：直接从平台记录计算，可以逐条追溯到工单事件、运行记录和点数流水。",
-          "- **估算**：节省天数 = %s。" % m["estimate"]["formula"],
+          "- 本报告不估算“节省人天”。外部验证看第三方：向开源项目提交的 PR 是否被维护者合并、评审几轮、维护者是否在合并前再改，全部可在 GitHub 上复查。",
           "- 基线来自 Jira 或禅道导入（平台“导入工单”或 `tmh issue` 适配器），只统计在原系统已关闭、且没有在平台上再处理的工单。"
           "基线在开工前按窗口封存一次（口径、样本清单、哈希写死），之后不能改；没有封存基线时不出对比数。",
-          "- 账本：%s；%s；人工介入为%s。" % ((m.get("ledger") or {}).get("method", {}).get("list_yuan", "点数 × 标价"),
+          "- 账本：%s；%s；%s。" % ((m.get("ledger") or {}).get("method", {}).get("list_yuan", "点数 × 标价"),
                                        (m.get("ledger") or {}).get("method", {}).get("paid_yuan", "实付另录"),
-                                       (m.get("ledger") or {}).get("method", {}).get("human_min", "估算")),
+                                       (m.get("ledger") or {}).get("method", {}).get("human_actions", "人工动作次数")),
           "- 证据包：工单转“待验证”时自动打包验收标准、方案、改动、构建测试、范围和入口路径检查结果；之后的补充、复核、签收都追加在后面，每条带前一条的哈希，改任何一条都会对不上。",
           "- 首次定位耗时：从工单创建到第一次“分析定位”或“修改方案”运行完成。",
           "- 验收退回率：本期有验收记录的工单中，至少被退回一次的比例。",

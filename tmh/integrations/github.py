@@ -1,9 +1,10 @@
-"""GitHub (github.com or Enterprise, REST v3): issues only, enough to import closed history for replay."""
+"""GitHub (github.com or Enterprise, REST v3): issues (to import closed history for replay) and pull requests
+(to track a change we proposed upstream until a maintainer merges or closes it)."""
 from __future__ import annotations
 
 import re
 
-from .base import Integration, IntegrationError, Issue
+from .base import Change, Integration, IntegrationError, Issue
 
 
 # "Fixes #12", "closes: #12", or the issue's URL after the keyword: GitHub's own closing keywords
@@ -19,7 +20,7 @@ def limited(e: Exception) -> bool:
 class GitHub(Integration):
     TYPE = "github"
     TITLE = "GitHub Issues（含 Enterprise）"
-    CAPABILITIES = ("issues",)
+    CAPABILITIES = ("issues", "changes")
     OPTIONS = {
         "url": "https://api.github.com；Enterprise 用 https://<主机>/api/v3",
         "repo": "仓库，如 QuantumNous/new-api",
@@ -97,3 +98,65 @@ class GitHub(Integration):
     def add_comment(self, key: str, body: str) -> dict:
         r = self.http.post("%s/issues/%s/comments" % (self.r, key.lstrip("#")), {"body": body})
         return {"ok": True, "id": r.get("id", ""), **({"dry_run": True} if r.get("dry_run") else {})}
+
+    # ------------------------------------------------------------ pull requests
+
+    def _pr(self, d: dict) -> Change:
+        st = "merged" if d.get("merged_at") else d.get("state", "")
+        return Change(id="#%s" % d.get("number"), title=d.get("title", ""), state=st, author=(d.get("user") or {}).get("login", ""),
+                      source_branch=(d.get("head") or {}).get("label", ""), target_branch=(d.get("base") or {}).get("ref", ""),
+                      url=d.get("html_url", ""), updated=d.get("updated_at", ""), description=d.get("body") or "", source=self.name)
+
+    def list_changes(self, state: str = "open", limit: int = 20) -> list:
+        d = self.http.get(self.r + "/pulls", {"state": state if state in ("open", "closed", "all") else "open",
+                                               "per_page": min(limit, 100), "sort": "updated", "direction": "desc"}) or []
+        return [self._pr(x) for x in d][:limit]
+
+    def get_change(self, cid: str) -> Change:
+        return self._pr(self.http.get("%s/pulls/%s" % (self.r, str(cid).lstrip("#"))))
+
+    def pr_status(self, cid: str) -> dict:
+        """Everything the tracker keeps about one pull request: where it stands, CI, every review round with its
+        text, the commits (so a maintainer's own commits on top of ours show), and how it ended."""
+        n = str(cid).lstrip("#")
+        d = self.http.get("%s/pulls/%s" % (self.r, n))
+        head = (d.get("head") or {}).get("sha", "")
+        reviews = [{"by": (x.get("user") or {}).get("login", ""), "state": x.get("state", ""), "at": x.get("submitted_at", ""),
+                    "body": (x.get("body") or "")[:4000]}
+                   for x in (self.http.get("%s/pulls/%s/reviews" % (self.r, n), {"per_page": 100}) or []) if x.get("state") != "PENDING"]
+        notes = [{"by": (x.get("user") or {}).get("login", ""), "at": x.get("created_at", ""), "path": x.get("path", ""),
+                  "body": (x.get("body") or "")[:2000]}
+                 for x in self.http.get("%s/pulls/%s/comments" % (self.r, n), {"per_page": 100}) or []]
+        talk = [{"by": (x.get("user") or {}).get("login", ""), "at": x.get("created_at", ""), "body": (x.get("body") or "")[:2000]}
+                for x in self.http.get("%s/issues/%s/comments" % (self.r, n), {"per_page": 100}) or []]
+        commits = [{"sha": x.get("sha", "")[:12], "author": ((x.get("author") or {}).get("login") or (x.get("commit") or {}).get("author", {}).get("name", "")),
+                    "at": ((x.get("commit") or {}).get("committer") or {}).get("date", ""),
+                    "message": ((x.get("commit") or {}).get("message") or "").split("\n")[0][:200]}
+                   for x in self.http.get("%s/pulls/%s/commits" % (self.r, n), {"per_page": 100}) or []]
+        ci = {"state": "none", "checks": []}
+        if head:
+            runs = (self.http.get("%s/commits/%s/check-runs" % (self.r, head), {"per_page": 100}) or {}).get("check_runs") or []
+            ci["checks"] = [{"name": x.get("name", ""), "status": x.get("status", ""), "conclusion": x.get("conclusion") or ""} for x in runs]
+            if runs:
+                if any(x["status"] != "completed" for x in ci["checks"]):
+                    ci["state"] = "pending"
+                elif any(x["conclusion"] in ("failure", "timed_out", "cancelled", "action_required") for x in ci["checks"]):
+                    ci["state"] = "failure"
+                else:
+                    ci["state"] = "success"
+        return {"number": int(n), "url": d.get("html_url", ""), "title": d.get("title", ""), "author": (d.get("user") or {}).get("login", ""),
+                "state": "merged" if d.get("merged_at") else d.get("state", ""), "draft": bool(d.get("draft")),
+                "created": d.get("created_at", ""), "updated": d.get("updated_at", ""), "closed": d.get("closed_at") or "",
+                "merged": d.get("merged_at") or "", "merged_by": (d.get("merged_by") or {}).get("login", ""),
+                "merge_commit": (d.get("merge_commit_sha") or "")[:12], "head": head[:12], "head_ref": (d.get("head") or {}).get("ref", ""),
+                "base": (d.get("base") or {}).get("ref", ""), "additions": d.get("additions", 0), "deletions": d.get("deletions", 0),
+                "changed_files": d.get("changed_files", 0), "ci": ci, "reviews": reviews, "review_comments": notes, "comments": talk,
+                "commits": commits}
+
+    def open_pr(self, head: str, base: str, title: str, body: str, draft: bool = False) -> dict:
+        """Write: dry-run unless the instance was made with dry_run=False (the platform only does that after a
+        person approved this exact title, body and branch)."""
+        r = self.http.post(self.r + "/pulls", {"head": head, "base": base, "title": title, "body": body, "draft": bool(draft)})
+        if r.get("dry_run"):
+            return {"dry_run": True}
+        return {"number": r.get("number"), "url": r.get("html_url", "")}

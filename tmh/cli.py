@@ -791,7 +791,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--key", default="", help="登记项目时用的代号，例如 TOG")
     p.add_argument("--user", default="", help="默认用户名（网页里可改）")
     p.add_argument("--open", action="store_true", help="启动后打开浏览器")
-    p.add_argument("--brand", help="界面上显示的产品名，例如 \"OA 闭环监控\"（默认“Webuddy”，也可用环境变量 TMH_BRAND）")
+    p.add_argument("--brand", help="界面上显示的产品名，例如 \"OA 闭环监控\"（默认“webuddy”，也可用环境变量 TMH_BRAND）")
     p = add("user", cmd_user, "管理平台登录账号：add（新建或改密码）/ del / list；有账号后网页改为账号密码登录")
     p.add_argument("action", choices=["add", "del", "list"])
     p.add_argument("name", nargs="?", default="")

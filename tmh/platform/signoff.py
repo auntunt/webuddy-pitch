@@ -183,7 +183,7 @@ def state(data_dir: Path, key: str) -> dict:
     out = {"records": len(recs), "intact": ok, "problem": why, "hash": ev.head(recs), "packed": bool(last)}
     if not last:
         out.update({"missing": [lb for _, lb in REQUIRED], "complete": False, "status": "none", "snapshot": None})
-        return out
+        return _upstream(recs, out)
     snap = last["data"]["snapshot"]
     after = ev.since(recs, last["seq"])
     shots = [dict(r["data"], by=r["by"], ts=r["ts"]) for r in recs if r["kind"] == "attach"]
@@ -202,10 +202,21 @@ def state(data_dir: Path, key: str) -> dict:
                 "decision": signs and dict(signs[-1]["data"], kind=signs[-1]["kind"], ts=signs[-1]["ts"], hash=signs[-1]["hash"])})
     out["complete"] = not out["missing"]
     out["status"] = signs[-1]["kind"] + "ed" if signs else ("ready" if out["complete"] else "incomplete")
+    return _upstream(recs, out)
+
+
+def _upstream(recs: list, out: dict) -> dict:
+    up = ev.latest(recs, "upstream_outcome")
+    if up:  # a maintainer's merge upstream is the third-party verdict
+        out["status"] = "upstream_" + up["data"]["state"]
+        out["decision"] = {"kind": "sign" if up["data"]["state"] == "merged" else "reject", "signer": up["data"].get("by") or "上游",
+                           "role": "上游维护者", "ts": up["ts"], "note": "", "via": "上游合并" if up["data"]["state"] == "merged" else "上游关闭",
+                           "hash": up["hash"], "ac": {}}
     return out
 
 
-STATUS_LABEL = {"none": "未生成", "incomplete": "证据不齐", "ready": "证据齐全，待签收", "signed": "甲方已签收", "rejected": "甲方已退回"}
+STATUS_LABEL = {"none": "未生成", "incomplete": "证据不齐", "ready": "证据齐全，待签收", "signed": "甲方已签收", "rejected": "甲方已退回",
+                "upstream_merged": "上游已合并", "upstream_closed": "上游已关闭"}
 
 
 # ---------------------------------------------------------------- people add to it
@@ -488,7 +499,9 @@ def package_page(P, key: str) -> str:
     return ev.page(title, "".join(body))
 
 
-KIND = {"pack": "打包", "attach": "补充证据", "review": "乙方复核", "link": "发签收链接", "sign": "甲方签收", "reject": "甲方退回"}
+KIND = {"pack": "打包", "attach": "补充证据", "review": "乙方复核", "link": "发签收链接", "sign": "甲方签收", "reject": "甲方退回",
+        "upstream_draft": "上游 PR 草稿", "upstream_approve": "批准提交", "upstream_submit": "提交上游", "upstream_state": "上游状态",
+        "upstream_review": "上游评审", "upstream_ci": "上游 CI", "upstream_outcome": "上游结局", "upstream_reason": "补记原因"}
 
 
 def _summary(r: dict) -> str:
@@ -503,6 +516,20 @@ def _summary(r: dict) -> str:
         return d.get("note", "")[:80]
     if k == "link":
         return "签收人 %s，有效至 %s" % (d.get("signer"), d.get("expires"))
+    if k == "upstream_draft":
+        return "%s（%s → %s）" % (d.get("title", ""), d.get("head", ""), d.get("base", ""))
+    if k in ("upstream_approve", "upstream_submit"):
+        return d.get("url") or d.get("note") or "草稿哈希 %s" % (d.get("hash") or "")[:12]
+    if k == "upstream_state":
+        return "%s → %s，CI %s" % (d.get("from") or "—", d.get("to"), d.get("ci"))
+    if k == "upstream_review":
+        return "%s %s：%s" % (d.get("by"), d.get("state"), (d.get("body") or "")[:60])
+    if k == "upstream_ci":
+        return d.get("state", "")
+    if k == "upstream_outcome":
+        return "%s%s，评审 %s 轮" % ("已合并" if d.get("state") == "merged" else "已关闭", "（%s）" % d["by"] if d.get("by") else "", d.get("rounds"))
+    if k == "upstream_reason":
+        return d.get("reason", "")
     if k in ("sign", "reject"):
         return "%s；签的证据包哈希 %s" % (d.get("note") or ("全部通过" if k == "sign" else ""), (d.get("package_hash") or "")[:12])
     return ""

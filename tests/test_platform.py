@@ -1509,7 +1509,8 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         code, m = self.call("GET", "/api/projects/EF/metrics")
         self.assertEqual(code, 200, m)
         self.assertFalse(m["gate"]["sealed"])
-        self.assertEqual((m["compare"][0]["baseline"], m["compare"][0]["change"], m["estimate"]["saved_days"]), ("未封存", None, None))
+        self.assertEqual((m["compare"][0]["baseline"], m["compare"][0]["change"]), ("未封存", None))
+        self.assertNotIn("estimate", m)  # no "person-days saved", ever
         self.assertIn("还没有封存基线", report_md(m))
         code, cand = self.call("GET", "/api/projects/EF/baseline?from=2026-03-01&to=2026-03-31")
         self.assertEqual((cand["sealed"], cand["candidate"]["n"]), (None, 2))
@@ -1533,7 +1534,6 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual((pl["ai"]["tickets"], src["run"], src["mcp"]), (2, 1, 1))
         self.assertEqual((pl["cost"]["per_ticket"], pl["ide"]["calls"]), (10, 1))
         self.assertEqual(m["compare"][0]["change"], -33.3)
-        self.assertEqual(m["estimate"]["saved_days"], 1.0)  # (72h - 48h) × 1 ticket
         code, sep = self.call("GET", "/api/projects/EF/metrics?month=2026-09")
         self.assertEqual((sep["pilot"]["closed"], sep["period"]), (1, "2026 年 9 月"))
         self.assertEqual(self.call("GET", "/api/projects/EF/metrics?month=9")[0], 400)
@@ -1542,9 +1542,9 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         for w in ("# AI 提效报告", "实测", "估算", "Cursor 1.7 1 次", "工单周期（中位数） | 3.0 天 | 2.0 天 | -33.3%", "封存窗口 2026-03-01 至 2026-03-31",
                   "## 账本（每单）", "标价折人民币 | 10.00 元", "实付 | 未录入"):
             self.assertIn(w, md)
-        # the ledger: one row per ticket handled, points priced, human time estimated
+        # the ledger: one row per ticket handled, points priced, people's actions counted
         row = {x["key"]: x for x in m["ledger"]["rows"]}[a["key"]]
-        self.assertEqual((row["reworks"], row["ai_runs"], row["points"], row["list_yuan"], row["paid_yuan"], row["human_min"]), (1, 1, 10, 10.0, None, 20))
+        self.assertEqual((row["reworks"], row["ai_runs"], row["points"], row["list_yuan"], row["paid_yuan"], row["human_actions"]), (1, 1, 10, 10.0, None, 2))
         # a sealed baseline edited afterwards no longer counts
         f = self.data / "baselines" / "EF.json"
         f.chmod(0o644)
@@ -1552,7 +1552,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         code, m2 = self.call("GET", "/api/projects/EF/metrics")
         self.assertFalse(m2["gate"]["sealed"])
         self.assertIn("被改过", m2["gate"]["reason"])
-        self.assertIsNone(m2["estimate"]["saved_days"])
+        self.assertIsNone(m2["compare"][0]["change"])
         code, rep = self.call("GET", "/api/projects/EF/report?month=2026-09")
         self.assertEqual(rep["filename"], "AI提效报告-EF-2026-09.md")
         with urllib.request.urlopen(self.base + "/p/EF/efficiency?month=2026-09") as resp:
@@ -1815,6 +1815,74 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual(signoff.records(self.data, t3["key"])[-1]["kind"], "reject")
         finally:
             self.untrain()
+
+    def test_external_pull_request_is_drafted_approved_and_tracked_to_merge(self):
+        """A change proposed upstream: a person approves the exact draft, GitHub's verdict lands in the evidence package."""
+        from unittest import mock
+        from tmh.platform import signoff, upstream
+        key = self.project()
+        _, t = self.call("POST", "/api/tickets", {"project": key, "title": "订单服务缺少权限检查"})
+        k = t["key"]
+        self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "link", "repo": "not a repo"})[0], 400)
+        code, u = self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "link", "repo": "apache/ofbiz-framework", "issue": "OFBIZ-1"})
+        self.assertEqual((code, u["upstream"]["repo"], u["label"]), (200, "apache/ofbiz-framework", "未开始"))
+        self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "submit"})[0], 409)  # nothing approved
+        draft = {"action": "draft", "title": "Fixed: missing permission check in OrderServices", "body": "AI-assisted, reviewed by a person.",
+                 "head": "auntunt:fix-order-perm", "base": "trunk"}
+        self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, draft)[0], 200)
+        self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve"}, {"X-TMH-User": "agent"})[0], 403)
+        code, u = self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve", "note": "看过了"})
+        self.assertEqual((u["state"], u["approved"]["by"]), ("approved", "tester"))
+        # the draft changed after approval: approve again
+        self.call("POST", "/api/tickets/%s/upstream" % k, dict(draft, body="changed"))
+        self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "submit"})[0], 409)
+        self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve"})
+
+        class FakeHub:
+            sent = []
+
+            def __init__(self, dry):
+                self.dry = dry
+
+            def open_pr(self, head, base, title, body, draft=False):
+                if self.dry:
+                    return {"dry_run": True}
+                FakeHub.sent.append((head, base, title))
+                return {"number": 2300, "url": "https://github.com/apache/ofbiz-framework/pull/2300"}
+        with mock.patch.object(upstream, "client", lambda repo, dry_run=True: FakeHub(dry_run)):
+            code, r = self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "submit"})
+            self.assertEqual((code, r["dry_run"], FakeHub.sent), (200, True, []))  # without confirm nothing goes out
+            with mock.patch.dict("os.environ", {"GITHUB_TOKEN": "x"}):
+                code, u = self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "submit", "confirm": True})
+        self.assertEqual((code, u["upstream"]["pr"], u["state"]), (200, "2300", "open"), u)
+        self.assertEqual(FakeHub.sent, [("auntunt:fix-order-perm", "trunk", draft["title"])])
+
+        def status(state, reviews, commits, merged=""):
+            return {"number": 2300, "url": "https://github.com/apache/ofbiz-framework/pull/2300", "title": draft["title"], "author": "auntunt",
+                    "state": state, "draft": False, "created": "2026-10-16T02:00:00Z", "updated": "", "closed": merged, "merged": merged,
+                    "merged_by": "jacopoc" if merged else "", "merge_commit": "", "head": "abc", "head_ref": "fix-order-perm", "base": "trunk",
+                    "additions": 6, "deletions": 1, "changed_files": 1, "ci": {"state": "success", "checks": []}, "reviews": reviews,
+                    "review_comments": [], "comments": [], "commits": commits}
+        ask = {"by": "jacopoc", "state": "CHANGES_REQUESTED", "at": "2026-10-16T05:00:00Z", "body": "Please use hasEntityPermission"}
+        c1 = {"sha": "a1", "author": "auntunt", "at": "2026-10-16T02:00:00Z", "message": "Fixed"}
+        u = upstream.sync(self.P, self.P.store.ticket(k), status=status("open", [ask], [c1]))
+        self.assertEqual((u["state"], u["summary"]["rounds"]), ("changes", 1))
+        c2 = {"sha": "a2", "author": "auntunt", "at": "2026-10-16T06:00:00Z", "message": "Use hasEntityPermission"}
+        ok = {"by": "jacopoc", "state": "APPROVED", "at": "2026-10-16T07:00:00Z", "body": ""}
+        c3 = {"sha": "a3", "author": "jacopoc", "at": "2026-10-16T07:30:00Z", "message": "Tidy"}
+        u = upstream.sync(self.P, self.P.store.ticket(k), status=status("merged", [ask, ok], [c1, c2, c3], "2026-10-16T08:00:00Z"))
+        self.assertEqual((u["state"], u["summary"]["maintainer_commits"], u["summary"]["hours_to_merge"]), ("merged", 1, 6.0))
+        t2 = self.call("GET", "/api/tickets/%s" % k)[1]
+        self.assertEqual(t2["ticket"]["status"], "closed")
+        self.assertEqual(t2["package"]["status"], "upstream_merged")
+        kinds = [r["kind"] for r in signoff.records(self.data, k)]
+        self.assertEqual(kinds[:4], ["upstream_draft", "upstream_approve", "upstream_draft", "upstream_approve"])
+        self.assertIn("upstream_review", kinds)
+        self.assertEqual(kinds[-1], "upstream_outcome")
+        m = self.call("GET", "/api/projects/%s/upstream" % key)[1]
+        self.assertEqual((m["submitted"], m["merged"], m["merge_rate"], m["rounds_avg"], m["maintainer_edited"]), (1, 1, 100.0, 1.0, 1))
+        from tmh.platform.metrics import report_md
+        self.assertIn("## 外部 PR（第三方验收）", report_md(self.P.metrics(self.P.store.project(key))))
 
 
 if __name__ == "__main__":

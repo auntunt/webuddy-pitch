@@ -74,7 +74,7 @@ class Platform:
         apps.wire(self)
         self.user = user
         self.surveys = {}  # project id -> Survey (full-project analysis)
-        self.brand = brand or os.environ.get("TMH_BRAND", "") or "Webuddy"
+        self.brand = brand or os.environ.get("TMH_BRAND", "") or "webuddy"
         self.pricing = self._load_pricing()
         self.runner.charge = self._charge
         from . import signoff
@@ -646,6 +646,8 @@ class Platform:
                             sealed=books.load_baseline(self.data_dir, p["key"]), books=books.settings(self.data_dir, self.pricing),
                             packages=books.packages(self.data_dir))
         m["qa"] = kbqa.metrics(self.root(p), month=month)
+        from . import upstream
+        m["upstream"] = upstream.metrics(self, p, month)
         return m
 
     # ------------------------------------------------------------ ticket prompts
@@ -1579,6 +1581,48 @@ def api_evidence_add(P, req, key):
     else:
         raise ApiError(400, "kind 只能是 attach、review、pack 或 link")
     return {"record": {k: r.get(k) for k in ("seq", "hash", "ts", "unchanged") if k in r}, "state": signoff.brief(P.data_dir, t["key"])}
+
+
+@route("GET", "/api/tickets/<key>/upstream")
+def api_upstream(P, req, key):
+    from . import upstream
+    return upstream.view(P, P.ticket(key))
+
+
+@route("POST", "/api/tickets/<key>/upstream")
+def api_upstream_act(P, req, key):
+    """An external pull request: link (repo, issue, pr), draft (title, body, head, base), approve (a person),
+    submit (confirm=true to really open it; dry run otherwise), sync (read GitHub), reason (why it was closed)."""
+    from . import upstream
+    t, b = P.ticket(key), req.body
+    a = b.get("action")
+    if a == "link":
+        upstream.link(P, t, req.user, b.get("repo", ""), b.get("issue", ""), b.get("pr", ""))
+    elif a == "draft":
+        upstream.draft(P, t, req.user, b.get("title", ""), b.get("body", ""), b.get("head", ""), b.get("base", ""))
+    elif a == "approve":
+        upstream.approve(P, t, req.user, b.get("note", ""))
+    elif a == "submit":
+        r = upstream.submit(P, t, req.user, bool(b.get("confirm")))
+        if r.get("dry_run"):
+            return r
+    elif a == "sync":
+        from ..integrations.base import IntegrationError
+        try:
+            return upstream.sync(P, t, req.user)
+        except IntegrationError as e:
+            raise ApiError(502, "读 GitHub 失败：%s" % e)
+    elif a == "reason":
+        upstream.outcome_reason(P, t, req.user, b.get("reason", ""), b.get("note", ""))
+    else:
+        raise ApiError(400, "action 只能是 link、draft、approve、submit、sync、reason")
+    return upstream.view(P, P.ticket(t["id"]))
+
+
+@route("GET", "/api/projects/<key>/upstream")
+def api_upstream_list(P, req, key):
+    from . import upstream
+    return upstream.metrics(P, P.project(key), req.arg("month"))
 
 
 @route("GET", "/api/projects/<key>/baseline")
