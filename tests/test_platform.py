@@ -1741,6 +1741,41 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual(self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})[0], 409)
         self.assertEqual(self.call("GET", "/api/intake/nope")[0], 404)
 
+    def test_box_on_the_page_finds_the_backend_and_starts_a_ticket(self):
+        """The client's bookmarklet posts a box; the requests in it lead to the flow; the location rides into the ticket."""
+        key = self.project()
+        code, tk = self.call("POST", "/api/projects/%s/capture-token" % key, {"base": "https://webuddy.example"})
+        self.assertEqual(code, 200, tk)
+        tok = tk["bookmarklet"].split("/capture/")[1].split("'")[0]
+        cap = {"url": "http://oa.local/leave/list", "title": "请假", "texts": ["提交"], "note": "点提交以后状态还是草稿",
+               "elements": [{"tag": "button", "text": "提交"}], "requests": ["http://oa.local/leave/submit"]}
+        post = lambda t, body: urllib.request.Request(self.base + "/capture/" + t, method="POST", data=body, headers={"Content-Type": "text/plain"})
+        with urllib.request.urlopen(post(tok, json.dumps(cap).encode())) as r:  # no account, no X-TMH: the token is all it has
+            self.assertEqual(r.headers.get("Access-Control-Allow-Origin"), "*")
+            got = json.loads(r.read())
+        self.assertIn("后端入口", got["message"])
+        with self.assertRaises(urllib.error.HTTPError) as e:
+            urllib.request.urlopen(post("x" * 24, json.dumps(cap).encode()))
+        self.assertEqual(e.exception.code, 401)
+        _, ps = self.call("GET", "/api/projects/%s/pins" % key)
+        pin = ps["pins"][0]
+        self.assertTrue(ps["has_token"])
+        self.assertEqual((pin["id"], pin["via"]), (got["id"], "bookmarklet"))
+        self.assertIn("/leave/submit", pin["found"]["layer3"][0]["entry"])
+        self.assertTrue(pin["found"]["layer3"][0]["flows"])
+        self.assertIn("后端：", pin["summary"])
+        code, s = self.call("POST", "/api/pins/%s/intake" % pin["id"], {"model": False})
+        self.assertEqual(code, 200, s)
+        self.assertEqual((s["text"], s["pin"]["id"]), ("点提交以后状态还是草稿", pin["id"]))
+        code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})
+        self.assertEqual(code, 200, s)
+        _, t = self.call("GET", "/api/tickets/%s" % s["tickets"][0])
+        self.assertIn("## 位置", t["ticket"]["body"])
+        self.assertIn("/leave/submit", t["ticket"]["body"])
+        self.assertEqual(self.call("GET", "/api/pins/000000000000")[0], 404)
+        code, x = self.call("POST", "/api/projects/%s/pins" % key, {"texts": []})
+        self.assertEqual(code, 400, x)
+
     def test_evidence_package_sign_off_and_ledger(self):
         """AI gathers the evidence, a person signs on a page without code, the ledger picks it up."""
         import re as _re

@@ -621,11 +621,12 @@ async function vLead(){
 
 // ---------- requirement conversation: split, restate on the business map, ask only what is missing, EARS criteria
 const IKIND={bug:'缺陷',feature:'新需求',question:'咨询',data:'数据问题'};
-function intakeModal(pk,text){
+function intakeModal(pk,text,pin){
   modal(`<h2>理清需求 · ${h(pk)}</h2><div class="sub">直接说现象或想要什么，几件事一起说也行。平台会拆开、复述理解、只问缺的，最后生成验收标准，你确认后才建单。</div>
+   ${pin?`<pre class="log" style="margin-top:8px;white-space:pre-wrap">${h(pin.summary)}</pre><div class="sub">框选的位置会写进工单（第 2、3 层是推断）。</div>`:''}
    <textarea id="inT" style="min-height:110px;width:100%;margin-top:8px" placeholder="例如：请假审批通过后状态还是草稿。另外希望请假列表能导出 Excel。">${h(text||'')}</textarea>
    <div class="row" style="margin-top:8px"><button class="primary" id="inGo">开始</button></div><div id="inBox"></div>`,true);
-  $('#inGo').onclick=async()=>{try{intakePaint(await post('/api/projects/'+encodeURIComponent(pk)+'/intake',{text:$('#inT').value}))}catch(e){toast(e.message,5000)}}}
+  $('#inGo').onclick=async()=>{try{intakePaint(await post(pin?'/api/pins/'+pin.id+'/intake':'/api/projects/'+encodeURIComponent(pk)+'/intake',{text:$('#inT').value}))}catch(e){toast(e.message,5000)}}}
 function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true;$('#inGo').hidden=true;
   const done=s.state==='confirmed';
   B.innerHTML=s.items.map((it,i)=>`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">第 ${i+1} 件：${h(clip(it.text,60))}</b>
@@ -1156,8 +1157,24 @@ async function vInt(){
    <div class="hint" style="margin-top:12px">接入在项目目录用命令配置，例如 <code>tmh int add jira --url https://jira.example.com --token-env JIRA_TOKEN</code> 或 <code>tmh int add zentao …</code>。凭据只从环境变量读，不写进文件。启动平台的终端里要有这些环境变量。</div></div>
   <div class="card"><h2>导入工单</h2>${iss.length?`<div class="form"><label>来源 <select id="iv">${iss.map(i=>`<option>${h(i.name)}</option>`).join('')}</select></label>
    <label>外部工单号（多个用逗号或空格分开）<input class="full" id="ik" placeholder="例如 OA-123, OA-124"></label><label>或搜索条件（Jira 用 JQL，禅道用关键词）<input class="full" id="iq"></label>
-   <div><button class="primary" id="ib">导入</button></div><div class="sub">已导入过的工单只更新外部状态，不会重复创建。导入后可在工单页把评论同步回去。</div></div>`:'<div class="sub">接入 Jira、禅道等能提供工单的系统后，可以在这里导入。</div>'}</div></div>`;
+   <div><button class="primary" id="ib">导入</button></div><div class="sub">已导入过的工单只更新外部状态，不会重复创建。导入后可在工单页把评论同步回去。</div></div>`:'<div class="sub">接入 Jira、禅道等能提供工单的系统后，可以在这里导入。</div>'}</div></div>
+  <div class="card" id="pinC" style="margin-top:14px"><h2>框选定位</h2><div class="sub">加载中…</div></div>`;
+  pinCard();
   if($('#ib'))$('#ib').onclick=async()=>{try{const r=await post(`/api/projects/${S.proj}/import`,{via:$('#iv').value,keys:$('#ik').value,query:$('#iq').value});toast('导入 '+r.imported.length+' 张：'+r.imported.join('、'),5000);location.hash='#/tickets'}catch(e){toast(e.message,6000)}}}
+// ---------- box-select on the client's page: a bookmarklet posts what is in the box, the platform finds the code
+async function pinCard(bm){const el=$('#pinC');if(!el)return;let d;try{d=await get(`/api/projects/${S.proj}/pins`)}catch(e){el.innerHTML='<h2>框选定位</h2><div class="sub">'+h(e.message)+'</div>';return}
+  const L=x=>(x.found.layer1.length?'源码标记 ':'')+(x.found.layer2.length?x.found.layer2.length+' 个候选文件 ':'')+(x.found.layer3.length?x.found.layer3.length+' 个后端入口':'')||'没找到，转人工';
+  el.innerHTML=`<h2>框选定位</h2><div class="sub">把书签拖到浏览器书签栏，在业务系统的页面上点它，拖一个框圈住有问题的地方，说一句话。框里的文字、字段和页面发出的接口会发到这里，平台按知识库找到代码位置：带源码标记的精确到行，老模板经标签文件反查，接口对到业务流和表。</div>
+   <div class="row" style="gap:8px;margin-top:8px;align-items:center">${bm?`<a class="btn primary" href="${h(bm)}" onclick="return false" draggable="true">框选报问题 · ${h(S.proj)}</a><span class="sub">拖到书签栏；旧书签已失效</span>`
+     :`<button id="pinT">${d.has_token?'重新生成书签（旧的会失效）':'生成书签'}</button>`}</div>
+   <div style="margin-top:10px">${d.pins.length?d.pins.map(x=>`<div class="flowrow" style="align-items:flex-start"><span class="grow" style="min-width:0"><b>${h(clip(x.capture.note||x.capture.texts.join(' '),50)||'（没写说明）')}</b>
+      <div class="sub">${h(clip(x.capture.url,70))} · ${h(x.at.slice(5,16))} · ${h(L(x))}</div>
+      <details><summary class="sub">定位结果</summary><pre class="log" style="white-space:pre-wrap">${h(x.summary)}
+
+${h(x.found.basis.join('\n'))}</pre></details></span>
+      <button class="ghost pinI" data-id="${h(x.id)}">理清需求并建单</button></div>`).join(''):'<div class="sub">还没有框选记录。</div>'}</div>`;
+  if($('#pinT'))$('#pinT').onclick=async()=>{try{const r=await post(`/api/projects/${S.proj}/capture-token`,{base:location.origin});pinCard(r.bookmarklet)}catch(e){toast(e.message,5000)}};
+  el.querySelectorAll('.pinI').forEach(b=>b.onclick=()=>{const x=d.pins.find(p=>p.id===b.dataset.id);intakeModal(S.proj,x.capture.note,x)})}
 async function pushExt(key,body){
   if(!body.trim()){toast('先在评论框写好要同步的内容');return}
   try{const r=await post(`/api/tickets/${key}/push`,{body,confirm:false});

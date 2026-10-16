@@ -1036,6 +1036,55 @@ def api_intake_act(P, req, sid):
     raise ApiError(400, "action 只能是 answer、confirm、drop")
 
 
+@route("POST", "/api/projects/<key>/pins")
+def api_pin_add(P, req, key):
+    """A box drawn on the system's page: texts, elements and requests in it, located in the code."""
+    from . import pinpoint
+    return pinpoint.save(P, P.project(key), req.body, req.user, "platform")
+
+
+@route("GET", "/api/projects/<key>/pins")
+def api_pins(P, req, key):
+    from . import pinpoint
+    p = P.project(key)
+    return {"pins": [dict(x, summary=pinpoint.summary(x)) for x in pinpoint.recent(P.data_dir, p["key"])],
+            "has_token": pinpoint.has_token(P.data_dir, p["key"])}
+
+
+@route("POST", "/api/projects/<key>/capture-token")
+def api_capture_token(P, req, key):
+    """The bookmarklet for the client's own pages. Issuing a new one switches the old one off."""
+    from . import pinpoint
+    p = P.project(key)
+    base = (req.body.get("base") or "").strip()
+    if not re.match(r"^https?://[^/\s]+$", base):
+        proto = req.h.headers.get("X-Forwarded-Proto") or "http"
+        base = "%s://%s" % (proto, req.h.headers.get("Host") or "127.0.0.1")
+    tok = pinpoint.issue_token(P.data_dir, p["key"], req.user)
+    return {"bookmarklet": pinpoint.bookmarklet(base, tok), "endpoint": base + "/capture/<token>"}
+
+
+@route("GET", "/api/pins/<pid>")
+def api_pin(P, req, pid):
+    from . import pinpoint
+    x = pinpoint.load(P.data_dir, pid)
+    return dict(x, summary=pinpoint.summary(x))
+
+
+@route("POST", "/api/pins/<pid>/intake")
+def api_pin_intake(P, req, pid):
+    """Start the requirement conversation from a box: the note is what they said, the location rides along."""
+    from . import intake, pinpoint
+    x = pinpoint.load(P.data_dir, pid)
+    p = P.project(x["project"])
+    text = (req.body.get("text") or x["capture"].get("note") or "").strip()
+    if len(text) < 4:
+        text = "页面上这里有问题：%s" % "、".join(x["capture"]["texts"][:3])
+    model = req.body.get("model", True) is not False
+    return intake.start(P, p, text, req.user, "pin", _chooser(P, p) if model else None,
+                        pin={"id": x["id"], "summary": pinpoint.summary(x)})
+
+
 @route("GET", "/api/projects/<key>/kb/metrics")
 def api_kb_metrics(P, req, key):
     """少找人: requests answered without a person, overrules, handoffs per week, business answer wait."""
@@ -2080,6 +2129,8 @@ def make_handler(P: Platform, token: str = ""):
                 return self._bot(method, path, q)
             if path.startswith("/hook/alert/"):  # monitoring webhooks: their own key, not our token
                 return self._alert(method, path, q)
+            if path.startswith("/capture/"):  # the bookmarklet on the client's page: its token can only add a capture
+                return self._capture(method, path)
             if not self._local_host():
                 return self._send(403, "只接受本机访问；对局域网开放请设置 TMH_TOKEN".encode("utf-8"), "text/plain; charset=utf-8")
             if path == "/login":
@@ -2160,6 +2211,34 @@ def make_handler(P: Platform, token: str = ""):
                         traceback.print_exc()
                         return self._json(500, {"error": "%s: %s" % (type(e).__name__, e)})
             return self._json(404, {"error": "没有这个接口：%s %s" % (method, path)})
+
+        def _capture(self, method: str, path: str):
+            from . import pinpoint
+            cors = {"Access-Control-Allow-Origin": "*"}
+            m = re.match(r"^/capture/([A-Za-z0-9_\-]{20,64})$", path)
+            if not m:
+                return self._send(404, b'{"error":"no"}', "application/json", cors)
+            if method != "POST":
+                return self._send(405, b'{"error":"method"}', "application/json", cors)
+            key = pinpoint.token_project(P.data_dir, m.group(1))
+            n = int(self.headers.get("Content-Length") or 0)
+            reply = lambda code, obj: self._send(code, json.dumps(obj, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8", cors)
+            if not key:
+                return reply(401, {"message": "这个书签已经失效，请到 webuddy 重新拖一个"})
+            if n > 512 * 1024:
+                return reply(413, {"message": "框得太大了，框小一点再试"})
+            try:
+                cap = json.loads(self.rfile.read(n).decode("utf-8") or "{}")
+                pin = pinpoint.save(P, P.project(key), cap if isinstance(cap, dict) else {}, "页面框选", "bookmarklet")
+            except ValueError:
+                return reply(400, {"message": "发送的内容不对"})
+            except ApiError as e:
+                return reply(e.code, {"message": str(e)})
+            except Exception as e:  # noqa: BLE001
+                traceback.print_exc()
+                return reply(500, {"message": "webuddy 出错了：%s" % type(e).__name__})
+            n1, n2 = len(pin["found"]["layer1"]) + len(pin["found"]["layer2"]), len(pin["found"]["layer3"])
+            return reply(200, {"id": pin["id"], "message": "已发送到 webuddy：找到 %d 个候选文件、%d 个后端入口" % (n1, n2)})
 
         def _sign(self, method: str, path: str):
             from . import signoff

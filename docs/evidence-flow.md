@@ -67,6 +67,18 @@
 
 接口：`GET /api/intake/<id>`，`POST /api/intake/<id>` 的 `action` 为 `answer`（`answers: {"0": {"trigger": "…"}}`）、`confirm`、`drop`。
 
+## 7. 框选定位：在页面上圈出问题，找到代码（`tmh/platform/pinpoint.py`）
+
+“外部系统”页的“框选定位”卡片生成一个书签（每个项目一个，只能往平台加框选记录；重新生成后旧的失效，平台只存它的哈希）。甲方在自己系统的页面上点书签，拖一个框，说一句话。框里的东西作为数据发过来，不是截图：页面地址、看得见的文字、元素的 id 和字段名、源码标记、页面发出的接口请求。平台分三层找代码：
+
+1. 源码标记。前端用 code-inspector-plugin 或 Vue inspector 构建的，元素上带 `文件:行`，精确到行。只有新前端有。
+2. 知识库匹配，给 JSP、FreeMarker、OFBiz 表单这类老模板用。框里的文字先在模板里找，再经标签文件（.properties、`*UiLabels.xml`、语言包 JSON）反查到标签键，再找用这个键的模板，例如“培训日期”→ HumanResTrainingDate → EmployeeTrainingForms.xml。字段名、id、页面地址也算分；越少见的文字分越高。结果是推断，列出每个候选文件靠什么匹配上的。
+3. 接口反查，给“数据不对”用。页面发出的请求对到调用图里的入口，再到业务流和它读写的表。
+
+都没找到就写明“转人工看”。每条框选记录可以点“理清需求并建单”，进入上一节的需求对话，定位结果写进工单的“位置”一节。
+
+接口：`POST /api/projects/<项目>/capture-token`（生成书签）、`GET|POST /api/projects/<项目>/pins`、`GET /api/pins/<id>`、`POST /api/pins/<id>/intake`；书签发到 `POST /capture/<书签令牌>`，不需要登录。
+
 ## 拍板结果（2026-10-16）
 
 - 产品名 webuddy；命令行内部名 tmh 不变。

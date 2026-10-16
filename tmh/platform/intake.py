@@ -144,13 +144,15 @@ def _consult(P, p: dict, text: str) -> str:
         return "知识库没能回答（%s），转人工答复。" % type(e).__name__
 
 
-def start(P, p: dict, text: str, by: str, channel: str = "web", chooser=None) -> dict:
+def start(P, p: dict, text: str, by: str, channel: str = "web", chooser=None, pin: dict | None = None) -> dict:
     text = (text or "").strip()
     if len(text) < 4:
         raise ApiError(400, "说一句发生了什么或想要什么")
     s = {"id": uuid.uuid4().hex[:12], "project": p["key"], "by": by, "channel": channel, "text": text[:4000],
          "created": time.strftime("%Y-%m-%d %H:%M:%S"), "state": "asking", "rounds": 0,
          "items": [_item(P, p, x, chooser) for x in split(text)[:6]], "tickets": []}
+    if pin:  # started from a box drawn on the page: where it is travels with every ticket
+        s["pin"] = pin
     _plan(s)
     return _save(P.data_dir, s)
 
@@ -267,6 +269,8 @@ def ticket_body(s: dict, it: dict) -> str:
            for k, n in facts if k in it["slots"]]
     if got:
         L += ["", "## 补充的信息"] + got
+    if s.get("pin"):
+        L += ["", "## 位置（框选定位，第 2、3 层是推断）", s["pin"]["summary"], "框选记录：%s" % s["pin"]["id"]]
     L += ["", "## 验收标准（EARS，待确认的不得进入实现）"]
     L += ["- %s %s%s；怎么验：%s" % (a["id"], a["text"], "【待确认】" if a["open"] else "", a["check"]) for a in it["ac"]]
     L += ["", "来源：需求对话 %s（%s，%s 发起，%d 轮）" % (s["id"], s["channel"], s["by"], s["rounds"])]
@@ -291,7 +295,8 @@ def confirm(P, sid: str, by: str, items: list | None = None) -> dict:
         t = P.store.create_ticket(p["id"], title, by, body=ticket_body(s, it), type=TICKET_TYPE[it["kind"]], links=links)
         _add(epath(P.data_dir, t["key"]), "intake", by, {"session": s["id"], "text": it["text"], "understanding": understanding(it),
                                                          "ac": it["ac"], "open": [a["id"] for a in it["ac"] if a["open"]],
-                                                         "confirmed_by": by, "requested_by": s["by"], "channel": s["channel"]})
+                                                         "confirmed_by": by, "requested_by": s["by"], "channel": s["channel"],
+                                                         "pin": (s.get("pin") or {}).get("id", "")})
         P.store.event(t["id"], by, "evidence", "需求对话确认后建单：%d 条验收标准%s" % (
             len(it["ac"]), "，%d 条待确认" % len([a for a in it["ac"] if a["open"]]) if any(a["open"] for a in it["ac"]) else ""))
         it["ticket"] = t["key"]
