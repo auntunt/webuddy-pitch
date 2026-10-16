@@ -327,6 +327,15 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 .ah .mset{display:flex;flex-direction:column;gap:6px;padding:4px 10px 8px}.ah .mset select{width:100%}
 #ast .menu{min-width:240px}
 .abar .tog.on{background:var(--blue-s);color:var(--blue);border-color:#C9DCFB}
+.inbox{margin-bottom:16px;border-left:3px solid var(--blue)}
+.ibx>.ev-tag:first-child{flex:none;min-width:44px;justify-content:center}
+.ibx{display:flex;gap:10px;align-items:center;padding:9px 6px;border-top:1px solid var(--line);color:var(--fg);border-radius:6px}.ibx:first-of-type{border-top:0}
+.ibx:hover{text-decoration:none;background:var(--soft)}.ibx:hover .ibgo{color:var(--blue)}
+.ibw{display:block;margin-top:3px;white-space:normal}.ibgo{flex:none;font-size:13px;color:var(--mut);font-weight:600}
+.ibn{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--blue);color:#fff;font-size:12px;text-align:center;vertical-align:2px}
+.ibg{margin-top:10px}.ibh{display:flex;gap:8px;align-items:center;margin-bottom:2px}.ibmore{margin:2px 0 0 6px;font-size:13px}
+.ibo{margin-top:8px}.ibo summary{cursor:pointer;padding:4px 0}
+@media (max-width:640px){.ibgo{display:none}}
 .catch{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--warn-s);color:var(--fg);font-size:13px}
 .catch span{flex:1;min-width:0}
 .autoc{display:inline-flex;align-items:center;gap:6px;padding:1px 4px 1px 8px;border-radius:999px;background:var(--ok-s);color:var(--ok);font-size:12px}

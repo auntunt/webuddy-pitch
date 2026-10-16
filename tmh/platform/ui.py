@@ -170,7 +170,7 @@ async function vHome(){
   S.loop=L;S.home=S.home||{view:'ring',sel:''};$('#ptsN').textContent=L.points.toLocaleString();
   const gc=['#52C41A','#4096FF','#9254DE','#36CFC9'];
   const ic=(bg,svg)=>`<div class="ic" style="background:${bg}"><svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg></div>`;
-  $('#main').innerHTML=`<div class="band"><div class="gauges">${L.metrics.map((m,i)=>`<div class="gauge">${gaugeSvg(m.pct,gc[i])}<div style="min-width:0"><div class="gl">${h(m.label)}</div><div class="gs">${h(m.sub)}</div></div></div>`).join('')}</div>
+  $('#main').innerHTML=`<div id="inbox"></div><div class="band"><div class="gauges">${L.metrics.map((m,i)=>`<div class="gauge">${gaugeSvg(m.pct,gc[i])}<div style="min-width:0"><div class="gl">${h(m.label)}</div><div class="gs">${h(m.sub)}</div></div></div>`).join('')}</div>
    <div class="caps"><div class="cap" data-sel="open">${ic('#1677FF','<path d="M2-10l-8 12h7l-2 8 8-12h-7z"/>')}<div><b>${L.open}</b><span>流转中</span></div></div>
     <div class="cap" data-sel="failed">${ic('#F5222D','<circle r="9"/><path d="M-3.5-3.5l7 7M3.5-3.5l-7 7"/>')}<div><b>${L.failed}</b><span>失败</span></div></div>
     <div class="cap" data-sel="closed">${ic('#52C41A','<circle r="9"/><path d="M-4 0l3 3 5.5-6"/>')}<div><b>${L.closed}</b><span>已关闭</span></div></div>
@@ -187,7 +187,30 @@ async function vHome(){
     document.querySelectorAll('.ring [data-s]').forEach(n=>n.addEventListener('click',()=>homeList(n.dataset.s,ts)))}
   else{$('#hView').innerHTML=boardHtml(ts);bindBoard()}
   if(S.home.sel)homeList(S.home.sel,ts,true);
+  paintInbox();
   poll(async()=>{if(!$('#hView'))return;try{const n=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop');if(JSON.stringify(n.by_status)!==JSON.stringify(S.loop.by_status)||n.failed!==S.loop.failed||n.waiting!==S.loop.waiting)vHome()}catch(e){}},15000,'page')}
+// What waits for me right now, with the one thing to do on each; what waits on people outside the team, apart.
+// The board above says how the loop is doing; this says where to start.
+async function paintInbox(){
+  let d;try{d=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/inbox')}catch(e){return}
+  const box=$('#inbox');if(!box)return;S.inbox=d;S.home.open=S.home.open||{};
+  document.title=(d.mine.length?`(${d.mine.length}) `:'')+S.meta.brand;
+  const PR={urgent:['bad','紧急'],high:['warn','高'],normal:['mute','中'],medium:['mute','中'],low:['mute','低']};
+  // grouped by what is asked of you, the most pressing kind first; a group shows its 3 most urgent and folds the rest
+  const G=[['returned','bad','甲方退回'],['failed','bad','智能体没跑成'],['expired','warn','签收链接过期'],['verify','warn','等你验收'],['review','info','改好了，等你审阅'],['confirm','info','分析出结论，等你确认']];
+  const gname=k=>(G.find(g=>g[0]===k)||[])[2];
+  const row=x=>{const sub=[x.label!==gname(x.reason)?h(x.label):'',x.note?'“'+h(x.note)+'”':'',x.since?'等了 '+waited(x.since):'',h(x.assignee)].filter(Boolean).join(' · ');
+    return `<a class="ibx" href="#/t/${h(x.key)}"><span class="ev-tag ${(PR[x.priority]||PR.normal)[0]}">${(PR[x.priority]||PR.normal)[1]}</span>
+    <span class="grow" style="min-width:0"><b>${h(x.key)}</b> ${h(x.title)}${sub?`<span class="sub ibw">${sub}</span>`:''}</span><span class="ibgo">${h(x.action)} ›</span></a>`};
+  const groups=G.map(([k,tone,name])=>{const xs=d.mine.filter(x=>x.reason===k);if(!xs.length)return '';const all=S.home.open[k]||xs.length<=3;
+    return `<div class="ibg"><div class="ibh"><span class="ev-tag ${tone}">${name}</span><span class="sub">${xs.length} 张</span></div>${(all?xs:xs.slice(0,3)).map(row).join('')}${all?'':`<button class="ghost ibmore" data-g="${k}">还有 ${xs.length-3} 张</button>`}</div>`}).join('');
+  box.innerHTML=`<div class="card inbox"><div class="hdr" style="margin-bottom:4px"><h2 class="grow" style="margin:0">等你处理${d.mine.length?` <span class="ibn">${d.mine.length}</span>`:''}</h2>
+     <span class="sub">${d.running?`<span class="spin"></span> 智能体正在处理 ${d.running} 张`:''}</span></div>
+   ${d.mine.length?groups:`<div class="sub" style="padding:6px 0">现在没有要你处理的事。${d.running?'智能体在跑的工单有结果后，需要你的会出现在这里。':d.open?'在流转的工单都还没到需要人的那一步。':'新工单进来后，需要人的那一步会出现在这里。'}</div>`}
+   ${d.others.length?`<details class="ibo"><summary class="sub">等甲方签收 ${d.others.length} 张</summary>${d.others.map(row).join('')}</details>`:''}</div>`;
+  box.querySelectorAll('.ibmore').forEach(b=>b.onclick=()=>{S.home.open[b.dataset.g]=1;paintInbox()})}
+function waited(ts){const m=Math.max(0,(Date.now()-new Date(ts.replace(' ','T')).getTime())/6e4);
+  return m<60?Math.max(1,Math.round(m))+' 分钟':m<1440?Math.round(m/60)+' 小时':Math.round(m/1440)+' 天'}
 function ringSvg(L){
   const W=620,cx=310,cy=300,R=215,by=L.by_status||{},pct=L.metrics[0].pct;
   let g=`<svg class="ring" viewBox="0 0 ${W} 610" role="img" aria-label="闭环视图：闭环完成率 ${pct}%">`;
@@ -374,6 +397,12 @@ function secOf(text,names){
     const t=out.join(' ').replace(/[*_`>#]/g,'').replace(/^\s*[-•]\s*/,'').replace(/\s+/g,' ').trim();if(t)return t}
   return ''}
 function firstPara(text){const t=(text||'').split(/\n\s*\n/).map(x=>x.replace(/[*_`>#]/g,'').replace(/\s+/g,' ').trim()).find(x=>x&&x.length>8);return t||''}
+// The first line that says something: skip greetings and "在吗" so the card shows the problem, not "各位好："
+function symptomOf(t){
+  const hi=/^(各位|大家|领导|老师|您|你|王|李|张|刘|陈)?(好|们好|老师好|领导好)[!！,，。:：~～ ]*$|^(在吗|在不在|hi|hello|您好|你好)[?？!！,，。:：~～ ]*/i;
+  for(const raw of (t.body||'').split('\n')){let x=raw.trim();if(!x||/^——/.test(x))continue;
+    x=x.replace(hi,'').trim();if(x.length>=4)return x}
+  return t.title}
 const clip=(t,n)=>t.length>n?t.slice(0,n)+'…':t;
 // Which linked flows a person stands behind; the rest were linked by the automatic flow and wait for a look.
 function okFlows(d){const ok=new Set(((d.ticket.links||{}).flows_ok)||[]);
@@ -389,7 +418,7 @@ async function vTicket(key,sub){
      <div class="row" style="gap:8px;margin-top:8px"><button class="primary" id="accOk">验收通过</button><button class="danger" id="accNo">验收不通过</button><button class="ghost" id="accDraft">让助手起草验收说明</button></div>`;
   const reviewing=f.fx&&f.fx.status==='done'&&!f.fx.decision;
   // the four lines a reader needs: what happens, why, how sure, and who acts next
-  const sym=clip((t.body||'').split('\n').map(x=>x.trim()).find(Boolean)||t.title,120);
+  const sym=clip(symptomOf(t),120);
   const an=f.an&&f.an.status==='done'?f.an.result:'';
   const cause=an?clip(secOf(an,['结论','原因分析','原因'])||firstPara(an),220):'';
   const plan=f.pl&&f.pl.status==='done'?clip(secOf(f.pl.result,['方案概要','修改方案','方案'])||firstPara(f.pl.result),220):'';

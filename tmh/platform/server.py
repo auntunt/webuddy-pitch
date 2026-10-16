@@ -190,6 +190,58 @@ class Platform:
                 "today": {"created": t_new, "closed": t_closed}, "insight": "，".join(facts) + "。",
                 "points": sum(self.balance(x) for x in ps), "projects": len(ps)}
 
+    # ------------------------------------------------------------ inbox
+    # What is waiting for a person right now, one line per ticket with the one thing to do, most urgent and longest
+    # waiting first; and, apart, what waits on someone outside the team (a client's sign-off link that is out).
+    PRI_RANK = {"urgent": 0, "high": 1, "normal": 2, "medium": 2, "low": 3}
+
+    def inbox(self, p: dict | None) -> dict:
+        from . import signoff
+        st = self.store
+        ps = [p] if p else st.projects()
+        ids = [x["id"] for x in ps] or [-1]
+        keys = {x["id"]: x["key"] for x in ps}
+        q = ",".join("?" * len(ids))
+        tickets = st.q("SELECT id, project_id, num, title, status, priority, assignee, updated FROM tickets WHERE project_id IN (%s) "
+                       "AND status!='closed' AND links NOT LIKE '%s'" % (q, REFORM_LIKE), ids)
+        last = {r["ticket_id"]: r for r in st.q(
+            "SELECT r.ticket_id, r.id, r.mode, r.status, r.decision, r.ended, length(r.diff) AS dl FROM runs r JOIN "
+            "(SELECT ticket_id, MAX(id) m FROM runs WHERE project_id IN (%s) AND ticket_id IS NOT NULL AND mode!='ask' GROUP BY ticket_id) x "
+            "ON r.id=x.m" % q, ids)}
+        running = st.one("SELECT COUNT(*) n FROM runs WHERE project_id IN (%s) AND status IN ('queued','running') AND mode!='ask'" % q, ids)["n"]
+        mine, others = [], []
+        for t in tickets:
+            key = "%s-%d" % (keys.get(t["project_id"], "?"), t["num"])
+            r = last.get(t["id"]) or {}
+            item = {"key": key, "title": t["title"], "priority": t["priority"], "assignee": t["assignee"] or "", "since": t["updated"]}
+            busy = r.get("status") in ("queued", "running")
+            ev = signoff.state(self.data_dir, key) if t["status"] in ("verify", "doing") and signoff.epath(self.data_dir, key).exists() else {}
+            if busy:
+                continue
+            if r.get("status") == "failed":
+                mine.append(dict(item, reason="failed", label="智能体没跑成", action="看原因", since=r.get("ended") or t["updated"]))
+            elif r.get("mode") == "fix" and r.get("status") == "done" and not r.get("decision") and r.get("dl"):
+                mine.append(dict(item, reason="review", label="改好了，等你审阅", action="审阅改动", since=r.get("ended") or t["updated"]))
+            elif t["status"] == "doing" and ev.get("status") == "rejected":
+                d = ev.get("decision") or {}
+                mine.append(dict(item, reason="returned", label="%s退回了" % (d.get("signer") or "甲方"), action="看退回原因",
+                                 note=(d.get("note") or "")[:80], since=d.get("ts") or t["updated"]))
+            elif t["status"] == "verify":
+                link = (ev.get("links") or [None])[-1]
+                if link and ev.get("status") in ("ready", "incomplete") and (link.get("expires") or "9") < now():
+                    mine.append(dict(item, reason="expired", label="给%s的签收链接过期了" % (link.get("signer") or "甲方"), action="重发链接", since=link.get("expires")))
+                elif link and ev.get("status") in ("ready", "incomplete"):
+                    others.append(dict(item, reason="signing", label="等%s签收" % (link.get("signer") or "甲方"), action="看证据包", since=link.get("ts") or t["updated"]))
+                else:
+                    mine.append(dict(item, reason="verify", label="等你验收" if ev.get("status") != "incomplete" else "等你验收（证据还不齐）",
+                                     action="去验收", since=t["updated"]))
+            elif t["status"] == "confirm":
+                mine.append(dict(item, reason="confirm", label="分析出结论，等你确认", action="看结论", since=t["updated"]))
+        order = lambda x: (self.PRI_RANK.get(x["priority"], 2), x["since"] or "")  # noqa: E731
+        mine.sort(key=order)
+        others.sort(key=order)
+        return {"mine": mine, "others": others, "running": running, "open": len(tickets)}
+
     # ------------------------------------------------------------ leader view
     # What the ops team got done, across every project, in numbers a manager can read at a glance. Everything is
     # counted from the ticket timeline, agent runs and the knowledge base; nothing here is estimated.
@@ -1212,6 +1264,12 @@ def api_catchup(P, req, key):
 @route("GET", "/api/projects/<key>/loop")
 def api_loop(P, req, key):
     return P.loop(None if key in ("*", "all") else P.project(key))
+
+
+@route("GET", "/api/projects/<key>/inbox")
+def api_inbox(P, req, key):
+    """What waits for a person now, and what waits on someone outside the team."""
+    return P.inbox(None if key in ("*", "all") else P.project(key))
 
 
 @route("GET", "/api/projects/<key>/points")
