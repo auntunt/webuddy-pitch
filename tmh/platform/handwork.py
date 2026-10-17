@@ -379,3 +379,28 @@ def heartbeat(P) -> None:
             except Exception as e:  # noqa: BLE001 - a bad repository must not stop the heartbeat
                 print("[handwork] %s" % e, flush=True)
     threading.Thread(target=loop, daemon=True).start()
+
+
+def claim(P, t: dict, who: str, on: bool = True) -> dict:
+    """我来写: the person takes the ticket. The automatic line lets go at once: steps it queued or is running on this
+    ticket are cancelled (a person's own runs are left alone), and it never picks the ticket up again until it is
+    handed back. on=False hands it back."""
+    st = P.store
+    if t["status"] == "closed":
+        raise ApiError(409, "这张单已经关了")
+    if not on:
+        return P.flow.take_over(t, False, who)
+    stopped = []
+    for r in st.runs(ticket_id=t["id"]):
+        if r["status"] in ("queued", "running") and r["author"] == P.flow.BY and r["mode"] in ("analyze", "plan", "fix"):
+            try:
+                P.runner.cancel(r["id"], who)
+                stopped.append(r["id"])
+            except ValueError:
+                pass
+    t = P.flow.take_over(t, True, who)
+    links = dict(t.get("links") or {}, handwork=who)
+    st.update_ticket(t["id"], who, assignee=who, links=links, **({"status": "doing"} if t["status"] in ("new", "analyzing", "confirm") else {}))
+    st.event(t["id"], who, "flow", "%s 认领：我来写%s。推到分支 %s%s 后平台自动构建、审查，通过就转待验证" % (
+        who, "（停掉了自动处理正在跑的 %d 步）" % len(stopped) if stopped else "", PREFIX, t["key"]), {"handwork": who, "stopped": stopped})
+    return st.ticket(t["id"])

@@ -129,7 +129,7 @@ def _route(P, p: dict, t: str, sender: str, conv: dict) -> str | None:
                 v = _value(t, q)
                 if not q.get("options") and v != intake.UNSURE and (re.fullmatch(r"\d{1,2}", v) or len(v) < 2):
                     return render(s, note="这个问题要用一句话回答。")
-                s = intake.answer(P, s["id"], sender, {"spec" if idx < 0 else str(idx): {q["slot"]: v}})
+                s = intake.answer(P, s["id"], sender, {"spec" if idx < 0 else str(idx): {q["slot"]: v}}, wait=True)
                 return render(s)
     if asks or len(t) < 6:
         return None  # a question: the knowledge base answers it as before
@@ -137,7 +137,7 @@ def _route(P, p: dict, t: str, sender: str, conv: dict) -> str | None:
     if not parts or all(intake.classify(x)[0] == "question" for x in parts):
         return None
     try:
-        s = intake.start(P, p, t, sender, kind)
+        s = intake.start(P, p, t, sender, kind, wait=True)  # replies are composed off the callback thread
     except ApiError:
         return None
     _draft(P, ck, sender, s["id"])
@@ -181,7 +181,7 @@ def render(s: dict, first: bool = False, note: str = "") -> str:
     L = [note] if note else []
     if first:
         if many:
-            L.append("收到，我理解是 %d 件事：\n%s" % (len(work), "\n".join("%d. %s（%s）" % (n, it["text"], intake.KINDS[it["kind"]])
+            L.append("收到，我理解是 %d 件事：\n%s" % (len(work), "\n".join("%d. %s（%s）" % (n, intake.title_of(it), intake.KINDS[it["kind"]])
                                                                    for n, it in enumerate(work, 1))))
         elif work:
             L.append("收到。" + intake.understanding(work[0]))
@@ -196,7 +196,7 @@ def render(s: dict, first: bool = False, note: str = "") -> str:
             it = s["items"][idx]
             text = q["q"][len(intake.understanding(it)):] if q["q"].startswith(intake.understanding(it)) else q["q"]
             if many:
-                text = "关于第 %d 件「%s」，%s" % (work.index(it) + 1, it["text"][:20], text)
+                text = "关于第 %d 件「%s」，%s" % (work.index(it) + 1, intake.title_of(it)[:20], text)
         L.append("**%s**" % text)
         if q.get("options"):
             L.append("\n".join("%d. %s" % (i + 1, o) for i, o in enumerate(q["options"])))
@@ -214,7 +214,7 @@ def render(s: dict, first: bool = False, note: str = "") -> str:
             _md(sp["goal"]), "\n".join("- %s%s" % (_md(d["text"]), "（待确认）" if d["open"] else "") for d in sp["done"]),
             _md(sp["keep"]), _md(sp["out"]), _md(sp["evidence"])))
         L.append("拆成 %d 个子单，每个子单有自己的验收标准，分批开工（每批 %d 个），一批验收通过再开下一批：\n%s" % (
-            len(work), epic.WAVE, "\n".join("%d. %s" % (n, _md(it["text"][:40])) for n, it in enumerate(work, 1))))
+            len(work), epic.WAVE, "\n".join("%d. %s" % (n, _md(intake.title_of(it)[:40])) for n, it in enumerate(work, 1))))
         L.append("回复「确认」就建父单和子单、开工第一批，回复「取消」就先放着。")
         return "\n\n".join(L)
     L.append("问清楚了。下面是按您说的写的验收标准，做完就按这些来验：")

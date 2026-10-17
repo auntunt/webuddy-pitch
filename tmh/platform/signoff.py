@@ -63,6 +63,26 @@ def human(name: str) -> bool:
     return bool(name) and name not in AGENTS
 
 
+def client_record(data_dir: Path, key: str) -> dict | None:
+    """The latest confirmation of what the client asked for (需求对话, or the client's own answers later)."""
+    try:
+        r = ev.latest(records(data_dir, key), "intake")
+    except (OSError, ValueError):
+        return None
+    return r["data"] if r and isinstance(r.get("data"), dict) else None
+
+
+def client_ac(data_dir: Path, key: str) -> list:
+    """The acceptance criteria the client confirmed for this ticket ([] when none were): the contract."""
+    d = client_record(data_dir, key) or {}
+    out = []
+    for a in d.get("ac") or []:
+        if isinstance(a, dict) and str(a.get("text") or "").strip():
+            out.append({"id": str(a.get("id") or "A%d" % (len(out) + 1))[:8], "text": str(a["text"])[:300], "layer": str(a.get("layer") or "")[:2],
+                        "check": str(a.get("check") or "")[:300], "open": bool(a.get("open"))})
+    return out
+
+
 # ---------------------------------------------------------------- packing
 
 def _flows(P, p: dict, t: dict) -> list[dict]:
@@ -150,7 +170,11 @@ def snapshot(P, t: dict) -> dict:
     plan = next((r for r in runs if r["mode"] == "plan" and r["status"] == "done"), None)
     fix = next((r for r in runs if r["mode"] == "fix" and (r.get("decision") or "").startswith("accepted")), None) \
         or next((r for r in runs if r["mode"] == "fix" and r["status"] == "done" and r.get("diff")), None)
-    ac = plan_ac(plan["result"] or "") if plan else []
+    pac = plan_ac(plan["result"] or "") if plan else []
+    asked = client_record(P.data_dir, t["key"])
+    cac = client_ac(P.data_dir, t["key"])
+    # the criteria the client confirmed are the contract; a plan's own only stand in when nobody confirmed any
+    ac = [dict(a, source="客户确认") for a in cac] if cac else [dict(a, source="方案") for a in pac]
     contract = plan_files(plan["result"] or "") if plan else {}
     flows = _flows(P, p, t)
     stat = _diff_stat(fix["diff"]) if fix else {"files": [], "added": 0, "removed": 0}
@@ -163,7 +187,9 @@ def snapshot(P, t: dict) -> dict:
                    "body": (t.get("body") or "")[:2000]},
         "project": {"key": p["key"], "name": p["name"]},
         "flows": [{k: f[k] for k in ("id", "name", "domain", "trigger")} for f in flows],
-        "ac": ac, "plan_run": plan and plan["id"],
+        "ac": ac, "ac_source": "客户确认" if cac else ("方案" if pac else ""), "plan_ac": pac if cac else [], "plan_run": plan and plan["id"],
+        "asked": asked and {"text": asked.get("text", ""), "understanding": asked.get("understanding", ""), "by": asked.get("confirmed_by", ""),
+                            "requested_by": asked.get("requested_by", ""), "via": asked.get("via", "")},
         "contract": [{"path": k, "goal": g} for k, g in contract.items()],
         "change": fix and {"run": fix["id"], "agent": fix["agent"], "decision": fix.get("decision") or "", **stat},
         "check": {"result": v.get("check") or ("none" if not fix else "unknown"), "skip": v.get("skip", ""), "verdict": v.get("verdict", ""),
@@ -221,7 +247,7 @@ def state(data_dir: Path, key: str) -> dict:
             if r.get(flag):
                 waive[g] = {"by": r["by"], "reason": r.get("note", "")}
     gates = G.waived(snap["gates"], waive) if snap.get("gates") is not None else None
-    have = {"ac": bool(snap["ac"]), "change": bool(snap.get("change") and snap["change"]["files"]),
+    have = {"ac": bool(snap["ac"]) and not any(a.get("open") for a in snap["ac"]), "change": bool(snap.get("change") and snap["change"]["files"]),
             "check": snap["check"]["result"] == "pass",
             "scope": not snap["scope"]["beyond_plan"] or "scope" in waive,
             "path": snap["path"]["ok"] or "path" in waive, "review": bool(review),
@@ -236,7 +262,45 @@ def state(data_dir: Path, key: str) -> dict:
                 "decision": dict(signs[-1]["data"], kind=signs[-1]["kind"], ts=signs[-1]["ts"], hash=signs[-1]["hash"]) if signs else None})
     out["complete"] = not out["missing"]
     out["status"] = signs[-1]["kind"] + "ed" if signs else ("ready" if out["complete"] else "incomplete")
+    out["proofs"] = proofs(snap, gates, shots, out["decision"])
     return _upstream(recs, out)
+
+
+PROOF_STATE = {"proven": "自动测试已证明", "todo": "等您确认", "pass": "已确认通过", "fail": "没通过", "open": "还没说清楚，不该开工"}
+
+
+def proofs(snap: dict, gates: list | None, shots: list, decision: dict | None) -> list:
+    """Each acceptance criterion with what proves it (the tests, the agent's reading of the change against it, a
+    try in the preview, screenshots) and where it stands."""
+    chk = snap["check"]["result"]
+    match = next((g for g in gates or [] if g["id"] == "match"), None)
+    said = (decision or {}).get("ac") or {}
+    out = []
+    for a in snap["ac"]:
+        keep = a["text"].startswith("必须保持")
+        ps = []
+        if snap.get("change"):
+            ps.append({"kind": "test", "label": "自动构建和测试", "state": {"pass": "pass", "fail": "fail"}.get(chk, "unknown")})
+            if match and not keep:
+                ps.append({"kind": "match", "label": "智能体对照这一条读了改动【推断】", "state": match["state"]})
+        if not keep:
+            ps.append({"kind": "preview", "label": "在改好的版本里按例子试一遍", "state": said.get(a["id"]) or "todo"})
+        for x in shots:
+            if x.get("ac") == a["id"]:
+                ps.append({"kind": "shot", "label": "截图" + ("：" + x["note"][:60] if x.get("note") else ""), "state": "pass", "file": x.get("file", "")})
+        if said.get(a["id"]) in ("pass", "fail"):
+            st = said[a["id"]]
+        elif a.get("open"):
+            st = "open"
+        elif any(p["state"] == "fail" for p in ps if p["kind"] == "test"):
+            st = "fail"
+        elif keep and chk == "pass":
+            st = "proven"
+        else:
+            st = "todo"
+        out.append({"id": a["id"], "text": a["text"], "check": a.get("check", ""), "source": a.get("source", ""), "proofs": ps,
+                    "state": st, "label": PROOF_STATE[st]})
+    return out
 
 
 def _upstream(recs: list, out: dict) -> dict:
@@ -407,7 +471,8 @@ def decide(P, token: str, action: str, name: str, verdicts: dict, note: str, cli
         raise ApiError(409, epic.refuse(t, "accept"))
     who = "%s（甲方%s）" % (name, x["role"] or "确认人")
     data = {"signer": name, "role": x["role"], "ac": res, "note": note, "pack_hash": s["pack_hash"], "package_hash": s["hash"],
-            "via": "签收链接", "client": client[:60]}
+            "via": "签收链接", "client": client[:60], "ac_source": (s["snapshot"] or {}).get("ac_source", ""),
+            "ac_text": {a["id"]: a["text"] for a in (s["snapshot"] or {}).get("ac") or []}}
     rec = _add(epath(P.data_dir, t["key"]), action, who, data)
     links = _links(P.data_dir)
     links[_th(token)]["used"] = rec["ts"]
@@ -428,29 +493,29 @@ CHECK_LABEL = {"pass": "通过", "fail": "没通过", "skip": "没跑", "none": 
 LAYER = {"L1": "自动测试", "L2": "智能体按步骤验证", "L3": "部署后自动检查", "L4": "人工确认"}
 
 
+PSTATE = {"pass": ("ok", "通过"), "fail": ("bad", "没过"), "unknown": ("warn", "未知"), "todo": ("mute", "待确认"), "proven": ("ok", "已证明"),
+          "open": ("warn", "待确认")}
+
+
 def _ac_table(s: dict, form: bool, img: str = "") -> str:
+    """The criteria with what proves each, for the provider's package page (and the sign page's technical details)."""
     snap = s["snapshot"]
-    shots = {}
-    for a in s.get("attachments") or []:
-        shots.setdefault(a.get("ac") or "", []).append(a)
     rows = []
-    auto = snap["check"]["result"] == "pass"
+    by_id = {p["id"]: p for p in s.get("proofs") or []}
     for a in snap["ac"]:
-        res = "自动化检查通过" if a.get("layer") == "L1" and auto else "待确认"
+        pf = by_id.get(a["id"]) or {"proofs": [], "label": "", "state": "todo"}
         sh = "".join(("<div>%s</div>" % E(x["note"]) if x.get("note") else "") +
-                     ("<img src='%s' alt='%s 截图'>" % (E(img + x["file"]), E(a["id"])) if x.get("file") else "") for x in shots.get(a["id"], []))
-        pick = ("<label><input type=radio name='ac_%s' value=pass required> 通过</label> <label><input type=radio name='ac_%s' value=fail> 不通过</label>"
-                % (E(a["id"]), E(a["id"]))) if form else ""
-        dec = s.get("decision") and (s["decision"].get("ac") or {}).get(a["id"])
-        if dec and not form:
-            res += "；签收人：%s" % ("通过" if dec == "pass" else "不通过")
-        rows.append("<tr><td>%s</td><td>%s</td><td>%s<div class=sub>%s</div></td><td>%s%s</td>%s</tr>" % (
-            E(a["id"]), E(a["text"]), E(LAYER.get(a.get("layer"), a.get("layer") or "")), E(a["check"]), E(res), sh,
-            "<td>%s</td>" % pick if form else ""))
+                     ("<img src='%s' alt='%s 截图'>" % (E(img + x["file"]), E(a["id"])) if x.get("file") else "")
+                     for x in s.get("attachments") or [] if x.get("ac") == a["id"])
+        how = "".join("<div class=sub>%s：<span class=%s>%s</span></div>" % (E(p["label"]), PSTATE.get(p["state"], ("", ""))[0], PSTATE.get(p["state"], ("", p["state"]))[1])
+                      for p in pf["proofs"] if p["kind"] != "shot")
+        rows.append("<tr><td>%s</td><td>%s%s</td><td>%s<div class=sub>%s</div></td><td><b>%s</b>%s%s</td></tr>" % (
+            E(a["id"]), E(a["text"]), "<div class=sub>来源：%s</div>" % E(a.get("source") or "") if a.get("source") else "",
+            E(LAYER.get(a.get("layer"), a.get("layer") or "")), E(a.get("check") or ""), E(pf["label"]), how, sh))
     if not rows:
-        return "<p class=bad>方案里没有验收标准，这单不能签收。</p>"
-    return ("<div class=wrap><table><thead><tr><th>#</th><th>验收标准</th><th>怎么验</th><th>结果与证据</th>%s</tr></thead><tbody>%s</tbody></table></div>"
-            % ("<th>您的确认</th>" if form else "", "".join(rows)))
+        return "<p class=bad>没有验收标准，这单不能签收。</p>"
+    return ("<div class=wrap><table><thead><tr><th>#</th><th>验收标准</th><th>怎么验</th><th>证明与状态</th></tr></thead><tbody>%s</tbody></table></div>"
+            % "".join(rows))
 
 
 def _flows_html(snap: dict) -> str:
@@ -467,34 +532,125 @@ def _seal(s: dict) -> str:
             % (s["records"], E(s["hash"])))
 
 
+def md(text: str) -> str:
+    """A ticket body as a person reads it: headings, lists and paragraphs, never "## 原话"."""
+    out, ul = [], False
+    for line in (text or "").splitlines():
+        s = line.strip()
+        if s.startswith(("- ", "* ")):
+            if not ul:
+                out.append("<ul>")
+                ul = True
+            out.append("<li>%s</li>" % E(s[2:]))
+            continue
+        if ul:
+            out.append("</ul>")
+            ul = False
+        m = re.match(r"^#{1,6}\s+(.*)$", s)
+        if m:
+            out.append("<h4>%s</h4>" % E(m.group(1)))
+        elif s:
+            out.append("<p>%s</p>" % E(s))
+    if ul:
+        out.append("</ul>")
+    return "".join(out)
+
+
+def _said(snap: dict) -> tuple[str, str]:
+    """(what the client asked, in their words; what was done, in their terms)."""
+    a = snap.get("asked") or {}
+    body = snap["ticket"].get("body") or ""
+    words = a.get("text") or ""
+    if not words:  # a ticket typed in: its description, or the part under 原话
+        m = re.search(r"##\s*(?:客户)?原话\s*\n(.+?)(?:\n##|\Z)", body, re.S)
+        words = (m.group(1) if m else re.split(r"\n##", body)[0]).strip() or snap["ticket"]["title"]
+    did = re.sub(r"^我理解的是[：:]", "", a.get("understanding") or "").strip()
+    did = re.sub(r"（(缺陷|新功能|新需求|改动|数据问题)）", "", did)
+    did = re.sub(r"，(涉及|可能涉及)业务流「[^」]*」(和表 [^。]*)?", "", did).strip("。 ")
+    return words[:600], did or snap["ticket"]["title"]
+
+
+SIGN_CSS = ("body{max-width:640px;padding:16px 16px 48px;background:#f6f7fa}h1{font-size:21px;line-height:1.4}"
+            ".card{background:#fff;border:1px solid #e3e7ef;border-radius:12px;padding:14px 16px;margin:14px 0}"
+            ".card h2{margin:0 0 8px;padding:0;border:0;font-size:16px}"
+            "blockquote{margin:0;padding:8px 12px;background:#f6f7fa;border-left:3px solid #c8cfdc;border-radius:4px}"
+            ".bigbtn{display:block;text-align:center;padding:14px;background:#1d4ed8;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:17px}"
+            ".ac{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid #eef1f6}.ac:first-of-type{border-top:0}"
+            ".ac input{width:22px;height:22px;margin-top:3px;flex:none}.ac .t{flex:1;min-width:0}.st{font-size:12px;border-radius:10px;padding:0 8px;background:#eef1f6;white-space:nowrap}"
+            ".st.ok{background:#e6f4ea}.st.bad{background:#fde8e8}.st.warn{background:#fff4d6}"
+            "textarea,input[name=name]{width:100%;font:inherit;padding:10px;border:1px solid #c8cfdc;border-radius:8px;margin-top:6px}"
+            ".acts{display:flex;flex-direction:column;gap:10px;margin-top:12px}.acts button{font:inherit;font-size:17px;font-weight:600;padding:14px;border-radius:10px}"
+            ".yes{background:#1a7f37;color:#fff;border:0}.no{background:#fff;color:#c62828;border:1.5px solid #c62828}"
+            "details.tech{margin-top:22px}details.tech summary{cursor:pointer;color:#5b6475;font-size:14px;padding:8px 0}"
+            "details.tech h3{font-size:15px;margin:16px 0 6px}details.tech h4{font-size:14px;margin:10px 0 2px}.done{border-color:#1a7f37;border-width:2px}"
+            "@media (min-width:700px){.acts{flex-direction:row}.acts button{flex:1}}")
+
+
 def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
-    """What the client's signer sees: business flows, criteria and results, the seal; no code, no file names."""
+    """What the client's signer sees, plain words first: what they asked for, what changed, a button to try it, the
+    criteria they confirmed with a box each, and one decision. Hashes, gates and the provider's review sit folded
+    under 技术细节. No code, no file names."""
     x = link_of(P.data_dir, token)
     t = P.store.ticket(x["key"])
     s = state(P.data_dir, x["key"])
     snap = s["snapshot"]
     title = "%s 验收签收" % x["key"]
     if not snap:
-        return ev.page(title, "<h1>%s</h1><p>这单还没有证据包。</p>" % E(title))
-    head = ("<h1>%s</h1><div class=sub>%s · %s · 签收人 %s%s</div>"
-            % (E(snap["ticket"]["title"]), E(snap["project"]["name"]), E(x["key"]), E(x["signer"]), "（%s）" % E(x["role"]) if x["role"] else ""))
-    body = [head]
-    from . import preview
-    pv = preview.status(P.data_dir, x["key"]).get("state")
-    if not done and t and t["status"] == "verify" and pv in ("up", "starting"):  # try the change itself before signing
-        body.append("<p class=pv><a href=\"/sign/%s/pv/\" target=_blank rel=noopener>打开这次改好的版本，先亲手试一试 ↗</a>%s</p>"
-                    % (E(token), "<span class=sub>（还在启动，稍等一会儿再点）</span>" if pv == "starting" else ""))
+        return ev.page(title, "<h1>%s</h1><p>这单还没有证据包。</p>" % E(title), SIGN_CSS)
+    open_form = not done and t and t["status"] == "verify" and not x.get("used")
+    words, did = _said(snap)
+    body = ["<div class=sub>%s · %s</div><h1>%s</h1><div class=sub>请 %s%s 确认这次改好的内容</div>" % (
+        E(snap["project"]["name"]), E(x["key"]), E(snap["ticket"]["title"]), E(x["signer"]), "（%s）" % E(x["role"]) if x["role"] else "")]
     if done:
-        body.append("<div class=seal><b class=ok>%s</b><div class=sub>%s · 记录哈希 <code>%s</code></div></div>" % (
-            "已签收，谢谢" if done["action"] == "sign" else "已退回，乙方会按您写的原因处理", E(done["ts"]), E(done["hash"])))
-        body.append("<p class=sub>请把上面这串哈希抄下或截图留存。<a href=\"/sign/%s/package.intoto.json\">下载证据包</a>自己保存；"
-                    "日后用 <code>tmh evidence-verify 文件 --hash 这串哈希</code> 可以独立核对，签收时看到的记录有没有被改过。%s</p>" % (E(token),
-                    "证据包由乙方签名，签名公钥指纹 <code>%s</code>，也请一并留存。" % E(signer_fingerprint(P)) if signer_fingerprint(P) else ""))
+        body.append("<div class='card done'><b class=ok>%s</b><div class=sub>%s · 记录哈希 <code>%s</code></div>"
+                    "<p class=sub>请把这串哈希截图留存，日后可以用它核对签收时看到的记录有没有被改过（方法见下面的技术细节）。</p></div>" % (
+                        "已签收，谢谢" if done["action"] == "sign" else "已退回，我们会按您写的原因重改", E(done["ts"]), E(done["hash"])))
     if msg:
         body.append("<p class=bad>%s</p>" % E(msg))
-    if snap["ticket"]["body"]:
-        body.append("<h2>问题描述</h2><p>%s</p>" % E(snap["ticket"]["body"][:600]).replace("\n", "<br>"))
-    body += ["<h2>这次改的是哪项业务</h2>", _flows_html(snap)]
+    body.append("<section class=card><h2>您提的</h2><blockquote>%s</blockquote><h2 style='margin-top:12px'>这次改了什么</h2><p>%s</p>%s</section>" % (
+        E(words).replace("\n", "<br>"), E(did),
+        "<div class=sub>涉及：%s</div>" % E("、".join(f["name"] for f in snap["flows"])) if snap["flows"] else ""))
+    from . import preview
+    pv = preview.status(P.data_dir, x["key"]).get("state")
+    if open_form:  # try the change itself before signing
+        if pv in ("up", "starting"):
+            body.append("<section class=card><h2>先亲手试一试</h2><p class=pv><a class=bigbtn href=\"/sign/%s/pv/\" target=_blank rel=noopener>"
+                        "打开这次改好的版本，先亲手试一试 ↗</a></p>%s<div class=sub>照着下面每一条，在里面操作一遍。</div></section>"
+                        % (E(token), "<div class=sub>还在启动，稍等一会儿再点。</div>" if pv == "starting" else ""))
+        else:
+            body.append("<section class=card><h2>先亲手试一试</h2><div class=sub>这次没有能直接打开的版本，请在测试环境里照下面每一条操作一遍，或联系工程师演示。</div></section>")
+    shots = {}
+    for a in s.get("attachments") or []:
+        shots.setdefault(a.get("ac") or "", []).append(a)
+    rows = []
+    for pf in s.get("proofs") or []:
+        cls = PSTATE.get(pf["state"], ("", ""))[0]
+        sh = "".join(("<div class=sub>%s</div>" % E(y["note"]) if y.get("note") else "") +
+                     ("<img src='%s' alt='%s 截图'>" % (E("/sign/%s/f/%s" % (token, y["file"])), E(pf["id"])) if y.get("file") else "")
+                     for y in shots.get(pf["id"], []))
+        auto = [p for p in pf["proofs"] if p["kind"] == "test" and p["state"] == "pass"]
+        box = ("<input type=checkbox name='ac_%s' value=pass aria-label='%s 做到了'>" % (E(pf["id"]), E(pf["id"]))) if open_form else ""
+        rows.append("<label class=ac>%s<span class=t>%s<div class=sub>怎么试：%s%s</div>%s</span><span class='st %s'>%s</span></label>" % (
+            box, E(pf["text"]), E(pf["check"] or "照这一条操作一遍"), "；自动测试已通过" if auto else "", sh, cls, E(pf["label"])))
+    src = snap.get("ac_source")
+    head = "这样算做对了" + ("（您确认过的标准）" if src == "客户确认" else "")
+    tip = "逐条试过、做到了就勾上；全部勾上才能签收。" if open_form else ""
+    ac_html = ("<section class=card><h2>%s</h2><div class=sub>%s</div>%s</section>" % (E(head), tip, "".join(rows))) if rows else \
+        "<section class=card><p class=bad>这单没有验收标准，不能签收。请联系工程师。</p></section>"
+    if open_form:
+        body.append("<form method=post>" + ac_html +
+                    "<section class=card><h2>您的结论</h2><label>您的姓名（确认身份）<input name=name required autocomplete=name></label>"
+                    "<textarea name=note rows=3 placeholder='不对的话，写一句哪里不对、看到了什么（退回时必填）'></textarea>"
+                    "<div class=acts><button class=yes name=action value=sign>通过，签收</button>"
+                    "<button class=no name=action value=reject formnovalidate>不对，退回重改</button></div>"
+                    "<div class=sub style='margin-top:8px'>签收会连同这次的证据记录一起留存。</div></section></form>")
+    else:
+        body.append(ac_html)
+        if not done:
+            d = s.get("decision")
+            body.append("<p class=sub>%s</p>" % (E("这单已由 %s 于 %s %s。" % (d["signer"], d["ts"][:16], "签收" if d["kind"] == "sign" else "退回"))
+                                                if d else "这个链接已经不能再签。"))
+    # everything an engineer or an auditor wants, folded away
     chk = snap["check"]["result"]
     facts = ["自动化构建和测试：%s" % CHECK_LABEL.get(chk, chk)]
     if s.get("gates") is not None:  # counts only: the reasons name files, and the client's page shows no code
@@ -503,23 +659,20 @@ def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
                                                  "，结果未知 %d 道" % n[G.UNKNOWN] if n[G.UNKNOWN] else ""))
     rv = s.get("review")
     facts.append("乙方复核：%s" % ("%s，%s" % (rv["by"], rv["ts"][:16]) if rv else "还没有"))
+    if src:
+        facts.append("验收标准来源：%s" % ("客户在需求对话里确认" if src == "客户确认" else "乙方的修改方案（客户没有逐条确认过）"))
     if s["missing"]:
-        facts.append("<span class=warn>证据还缺：%s</span>" % E("、".join(s["missing"])))
-    body += ["<h2>验收标准逐条</h2>", _ac_table(s, form=not done and t["status"] == "verify" and not x.get("used"), img="/sign/%s/f/" % token),
-             "<h2>乙方准备情况</h2><ul>%s</ul>" % "".join("<li>%s</li>" % f if f.startswith("<span") else "<li>%s</li>" % E(f) for f in facts),
-             _seal(s)]
-    if not done and t["status"] == "verify" and not x.get("used"):
-        body[-4] = "<form method=post>" + body[-4]
-        body.append("<h2>签收</h2><p class=sub>每条都确认“通过”才能签收；有一条不通过请点“退回”，并写清楚哪里不对。签收会连同上面的证据包哈希一起留存。</p>"
-                    "<p><label>请输入您的姓名确认身份：<input name=name required autocomplete=name style='font:inherit;padding:4px 8px'></label></p>"
-                    "<p><textarea name=note rows=3 style='width:100%%;font:inherit;padding:6px' placeholder='备注（退回时必填：哪条不对、现象是什么）'></textarea></p>"
-                    "<p style='display:flex;gap:12px;flex-wrap:wrap'><button name=action value=sign style='font:inherit;padding:8px 20px;background:#1a7f37;color:#fff;border:0;border-radius:6px'>签收</button>"
-                    "<button name=action value=reject formnovalidate style='font:inherit;padding:8px 20px;background:#fff;color:#c62828;border:1px solid #c62828;border-radius:6px'>退回</button></p></form>")
-    elif not done:
-        d = s.get("decision")
-        body.append("<p class=sub>%s</p>" % (E("这单已由 %s 于 %s %s。" % (d["signer"], d["ts"][:16], "签收" if d["kind"] == "sign" else "退回"))
-                                            if d else "这个链接已经不能再签。"))
-    return ev.page(title, "".join(body))
+        facts.append("证据还缺：%s" % "、".join(s["missing"]))
+    tech = ["<details class=tech><summary>技术细节（给工程师和审计看的）</summary>",
+            "<h3>乙方准备情况</h3><ul>%s</ul>" % "".join("<li>%s</li>" % E(f) for f in facts), _seal(s),
+            "<h3>这次改的是哪项业务</h3>", _flows_html(snap)]
+    if snap["ticket"]["body"]:
+        tech += ["<h3>完整的需求描述</h3>", md(snap["ticket"]["body"][:2000])]
+    tech.append("<p class=sub><a href=\"/sign/%s/package.intoto.json\">下载证据包</a>自己保存；日后用 <code>tmh evidence-verify 文件 --hash 签收时的哈希</code> "
+                "可以独立核对签收时看到的记录有没有被改过。%s</p></details>" % (E(token),
+                "证据包由乙方签名，签名公钥指纹 <code>%s</code>，也请一并留存。" % E(signer_fingerprint(P)) if signer_fingerprint(P) else ""))
+    body += tech
+    return ev.page(title, "".join(body), SIGN_CSS)
 
 
 def package_page(P, key: str) -> str:
@@ -542,7 +695,14 @@ def package_page(P, key: str) -> str:
                 "导出的文件带乙方签名，公钥指纹 <code>%s</code>，把它告诉甲方，核对时加 <code>--key</code>。" % E(signer_fingerprint(P)) if signer_fingerprint(P)
                 else "这台服务器上没有签名工具（Python cryptography 包或 ssh-keygen），导出的文件不带签名。"))
     body.append("<h2>缺项</h2>" + ("<p class=ok>无，证据齐全。</p>" if not s["missing"] else "<ul>%s</ul>" % "".join("<li class=bad>%s</li>" % E(m) for m in s["missing"])))
-    body += ["<h2>业务流</h2>", _flows_html(snap), "<h2>验收标准</h2>", _ac_table(s, form=False, img="/e/%s/f/" % t["key"])]
+    if snap.get("asked"):
+        body.append("<h2>客户原话</h2><blockquote>%s</blockquote><p class=sub>%s；%s 确认%s</p>" % (
+            E(snap["asked"]["text"]), E(snap["asked"]["understanding"]), E(snap["asked"]["by"]),
+            "（客户自己答复后更新）" if snap["asked"].get("via") == "客户答复" else ""))
+    src = {"客户确认": "客户确认过的，签收和检查都按它们", "方案": "修改方案里的（客户没有逐条确认过）"}.get(snap.get("ac_source") or "", "")
+    body += ["<h2>业务流</h2>", _flows_html(snap), "<h2>验收标准%s</h2>" % ("：" + E(src) if src else ""), _ac_table(s, form=False, img="/e/%s/f/" % t["key"])]
+    if snap.get("plan_ac"):
+        body.append("<p class=sub>方案里写的检查（供参考，不作为验收依据）：%s</p>" % E("；".join("%s %s" % (a["id"], a["text"]) for a in snap["plan_ac"])))
     if snap["contract"]:
         body.append("<h2>变更契约（方案列的文件）</h2><ul>%s</ul>" % "".join("<li><code>%s</code> %s</li>" % (E(c["path"]), E(c["goal"])) for c in snap["contract"]))
     ch = snap.get("change")
@@ -631,7 +791,8 @@ def brief(data_dir: Path, key: str) -> dict:
             "hash": s["hash"], "records": s["records"], "page": "/e/%s" % key.upper(),
             "attachments": len(s.get("attachments") or []), "review": s.get("review"),
             "link": (s.get("links") or [None])[-1], "decision": d and {k: d.get(k) for k in ("kind", "signer", "role", "ts", "note", "via")},
-            "gates": s.get("gates"), "gate_state": s.get("gate_state", "")}
+            "gates": s.get("gates"), "gate_state": s.get("gate_state", ""), "proofs": s.get("proofs") or [],
+            "ac_source": (s.get("snapshot") or {}).get("ac_source", "")}
 
 
 def record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:

@@ -127,7 +127,9 @@ def create(P, p: dict, s: dict, by: str, deps: dict | None = None, wave: int | N
             raise ValueError("第 %d 件最多依赖一件事；要等几件都做完，就把它排在最后一批" % (i + 1))
         after[i] = sorted(set(ds), key=lambda d: pos[d])
     spec = s["spec"]
-    title = "大需求：" + _clip(spec["goal"] if "待确认" not in spec["goal"] else s["text"], 50)
+    # named by what the client asked for (the heading of their list, or the agent's title), never by the answer to "目标"
+    first = next((intake.title_of(it) for _, it in work), s["text"])
+    title = "大需求：" + _clip(s.get("title") or (first if len(work) == 1 else "%s 等 %d 件" % (_clip(first, 30), len(work))), 50)
     items = [dict(it, after_n=[pos[d] for d in after.get(i, [])]) for i, it in work]
     w = max(1, min(10, int(wave or WAVE)))
     parent = P.store.create_ticket(p["id"], title, by, body=parent_body(s, spec, items), type="feature",
@@ -152,10 +154,8 @@ def create(P, p: dict, s: dict, by: str, deps: dict | None = None, wave: int | N
         opened = [a for a in it["ac"] if a["open"]]
         if opened:
             links["open_ac"] = len(opened)
-        t = P.store.create_ticket(p["id"], re.sub(r"\s+", " ", it["text"])[:60], by, body=body, type=intake.TICKET_TYPE[it["kind"]], links=links)
-        _add(epath(P.data_dir, t["key"]), "intake", by, {"session": s["id"], "text": it["text"], "understanding": intake.understanding(it),
-                                                         "ac": it["ac"], "open": [a["id"] for a in opened], "confirmed_by": by,
-                                                         "requested_by": s["by"], "channel": s["channel"], "parent": parent["key"]})
+        t = P.store.create_ticket(p["id"], intake.title_of(it), by, body=body, type=intake.TICKET_TYPE[it["kind"]], links=links)
+        _add(epath(P.data_dir, t["key"]), "intake", by, intake.intake_record(s, it, by, parent=parent["key"]))
         P.store.event(t["id"], by, "evidence", "大需求 %s 的第 %d 个子单，按规格卡建单：%d 条验收标准%s" % (
             parent["key"], n, len(it["ac"]), "，%d 条待确认" % len(opened) if opened else ""))
         it["ticket"] = t["key"]
@@ -295,7 +295,7 @@ def release(P, proj: dict, parent: dict, by: str, n: int | None = None, when_don
     for c in made:
         P.store.event(c["id"], by, "comment", "由大需求 %s 放出，第 %d 批" % (parent["key"], batch))
         if c["links"].get("open_ac"):
-            P.store.event(c["id"], by, "flow", "有验收标准还待确认，先不自动开始；和客户确认后点“交给自动处理”")
+            P.store.event(c["id"], by, "flow", "有验收标准还待确认，先不自动开始：把问题发给客户，答复回来就自动开始")
         else:
             P.flow.submit(proj, c)
     total = len(parent["links"].get("children") or [])
