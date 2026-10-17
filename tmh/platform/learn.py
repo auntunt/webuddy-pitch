@@ -39,6 +39,18 @@ _LOCK = threading.Lock()
 
 
 # ---------------------------------------------------------------- lessons
+#
+# A lesson is a card: 现象 (symptom), 根因 (cause), 改法 (fix), 验法 (verify) and 别这样改 (anti), anchored to the files
+# it is about and to the ticket and evidence package it came from. Cards are only written from verdicts people gave
+# (acceptance, the client's sign-off, a maintainer's merge), never from an agent judging its own work.
+#
+# What happens to a card afterwards is an append-only log (<data>/lesson_log.jsonl): which tickets' prompts carried it,
+# whether those tickets then passed acceptance, and every status change or edit with who made it. The card's current
+# state is that log folded up, so nothing about a card is ever overwritten and a bad edit can be read back.
+#
+# Status: candidate (drafted from a passed ticket, waits for a person) → active (goes into prompts) → probation (it went
+# along with failures more often than with passes; out of prompts until someone looks) or retired (a person took it out).
+# Lessons from a rejection or a human fix are active at once: a person's verdict already wrote them.
 
 def _grams(text: str) -> set:
     t = (text or "").lower()
@@ -52,61 +64,218 @@ def changed_files(diff: str) -> list:
     return list(dict.fromkeys(re.findall(r"^diff --git a/(\S+) b/", diff or "", re.M)))
 
 
-def lessons(data_dir: Path, project: str = "", limit: int = 200) -> list:
+KIND = {"reject": "验收没通过", "human-fix": "人工在自动提交之后又改过", "review": "对照官方修复复盘", "pass": "验收通过的做法"}
+LOG = "lesson_log.jsonl"
+STATUSES = ("candidate", "active", "probation", "retired")
+FIELDS = ("symptom", "cause", "fix", "verify", "anti")
+FIELD_LABEL = {"symptom": "现象", "cause": "根因", "fix": "改法", "verify": "验法", "anti": "别这样改"}
+DEMOTE_AFTER = 2  # failures a card went along with before it leaves the prompts (when they outnumber its passes)
+
+
+def _raw(data_dir: Path) -> list:
     f = Path(data_dir) / LESSONS
-    if not f.exists():
-        return []
     out = []
-    for line in f.read_text(encoding="utf-8").splitlines():
-        try:
-            d = json.loads(line)
-        except ValueError:
+    if f.exists():
+        for i, line in enumerate(f.read_text(encoding="utf-8").splitlines()):
+            try:
+                d = json.loads(line)
+            except ValueError:
+                continue
+            out.append(dict(d, id=d.get("id") or "L%d" % (i + 1)))  # older lessons get their line number, as add_lesson numbers new ones
+    return out
+
+
+def _log(data_dir: Path) -> list:
+    f = Path(data_dir) / LOG
+    out = []
+    if f.exists():
+        for line in f.read_text(encoding="utf-8").splitlines():
+            try:
+                out.append(json.loads(line))
+            except ValueError:
+                continue
+    return out
+
+
+def _append_log(data_dir: Path, rows: list) -> None:
+    if not rows:
+        return
+    with _LOCK:
+        f = Path(data_dir) / LOG
+        f.parent.mkdir(parents=True, exist_ok=True)
+        with f.open("a", encoding="utf-8") as fh:
+            for r in rows:
+                fh.write(json.dumps(dict(r, ts=r.get("ts") or now()), ensure_ascii=False) + "\n")
+
+
+def _fold(lessons_: list, log: list) -> list:
+    by = {l["id"]: dict(l, status=l.get("status") or "active",
+                        stats={"used": 0, "passed": 0, "failed": 0, "cited": 0, "last_used": "", "recent_passed": 0, "recent_failed": 0},
+                        history=[]) for l in lessons_}
+    for r in log:
+        l = by.get(r.get("id"))
+        if not l:
             continue
-        if not project or d.get("project") == project:
-            out.append(d)
+        s, k = l["stats"], r.get("kind")
+        if k == "inject":
+            s["used"] += 1
+            s["last_used"] = r.get("ts", "")
+        elif k == "outcome":
+            s["passed" if r.get("passed") else "failed"] += 1
+            s["recent_passed" if r.get("passed") else "recent_failed"] += 1  # since it was last put (back) into use
+            s["cited"] += 1 if r.get("cited") else 0
+        elif k == "status" and r.get("status") in STATUSES:
+            l["status"] = r["status"]
+            if r["status"] == "active":  # a person confirmed or restored it: its record starts over
+                s["recent_passed"] = s["recent_failed"] = 0
+            l["history"].append({k2: r.get(k2, "") for k2 in ("ts", "by", "status", "why")})
+        elif k == "edit":
+            l.update({f: str(v)[:800] for f, v in (r.get("fields") or {}).items() if f in FIELDS})
+            l["history"].append({"ts": r.get("ts", ""), "by": r.get("by", ""), "status": "edit", "why": "改了" + "、".join(FIELD_LABEL[f] for f in r.get("fields") or {} if f in FIELDS)})
+    return list(by.values())
+
+
+def lessons(data_dir: Path, project: str = "", limit: int = 200) -> list:
+    out = [l for l in _fold(_raw(data_dir), _log(data_dir)) if not project or l.get("project") == project]
     return out[::-1][:limit]
 
 
+def lesson(data_dir: Path, lid: str) -> dict | None:
+    return next((l for l in lessons(data_dir, "", 100000) if l["id"] == lid), None)
+
+
 def add_lesson(data_dir: Path, d: dict) -> dict:
-    d = dict(d, ts=now())
     with _LOCK:
         f = Path(data_dir) / LESSONS
         f.parent.mkdir(parents=True, exist_ok=True)
+        n = len(f.read_text(encoding="utf-8").splitlines()) if f.exists() else 0
+        d = dict(d, id="L%d" % (n + 1), ts=now())
+        d.setdefault("status", "active")
         with f.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(d, ensure_ascii=False) + "\n")
     return d
 
 
-def relevant(data_dir: Path, project: str, ticket: dict, extra: str = "", limit: int = 3) -> list:
-    """The lessons from other tickets closest to this one: shared business flows, shared files, similar words."""
+def set_status(data_dir: Path, lid: str, status: str, by: str, why: str = "") -> dict:
+    if status not in STATUSES:
+        raise ValueError("状态只能是 " + "、".join(STATUSES))
+    if not lesson(data_dir, lid):
+        raise ValueError("没有这条经验：" + lid)
+    _append_log(data_dir, [{"kind": "status", "id": lid, "status": status, "by": by, "why": (why or "").strip()[:300]}])
+    return lesson(data_dir, lid)
+
+
+def edit_lesson(data_dir: Path, lid: str, fields: dict, by: str) -> dict:
+    cur = lesson(data_dir, lid)
+    if not cur:
+        raise ValueError("没有这条经验：" + lid)
+    ch = {f: str(v).strip()[:800] for f, v in (fields or {}).items() if f in FIELDS and str(v).strip() != (cur.get(f) or "")}
+    if ch:
+        _append_log(data_dir, [{"kind": "edit", "id": lid, "fields": ch, "by": by}])
+    return lesson(data_dir, lid)
+
+
+def summary(ls: list) -> dict:
+    out = {s: 0 for s in STATUSES}
+    for l in ls:
+        out[l["status"]] = out.get(l["status"], 0) + 1
+    used = [l for l in ls if l["stats"]["passed"] + l["stats"]["failed"]]
+    p = sum(l["stats"]["passed"] for l in used)
+    f = sum(l["stats"]["failed"] for l in used)
+    out.update({"total": len(ls), "used": len(used), "pass_rate": round(p / (p + f), 3) if p + f else None})
+    return out
+
+
+def _anchored(l: dict, root: Path | None) -> bool:
+    """A card about files that are all gone from the code no longer says anything about it. Only the files that were
+    in the main code when the card was written count (a rejected branch may name files main never had)."""
+    files = l.get("anchors") or []
+    if not root or not files:
+        return True
+    return any((Path(root) / f).exists() for f in files)
+
+
+def relevant(data_dir: Path, project: str, ticket: dict, extra: str = "", limit: int = 3, root: Path | None = None) -> list:
+    """The active cards from other tickets closest to this one: shared business flows, shared files, similar words.
+    Fewer is better: an unrelated card costs more than a missing one, so a weak match is left out."""
     flows = set((ticket.get("links") or {}).get("flows") or [])
     text = "%s %s %s" % (ticket.get("title", ""), (ticket.get("body") or "")[:1500], extra[:3000])
     words, low = _grams(text), text.lower()
     scored = []
     for l in lessons(data_dir, project, 500):
-        if l.get("ticket") == ticket.get("key"):
+        if l.get("ticket") == ticket.get("key") or l["status"] != "active" or not _anchored(l, root):
             continue
         s = 3 * len(flows & set(l.get("flows") or []))
         s += 2 * sum(1 for f in l.get("files") or [] if f.lower() in low or f.rsplit("/", 1)[-1].lower() in low)
-        lw = _grams("%s %s" % (l.get("title", ""), l.get("note", "")))
+        lw = _grams(" ".join([l.get("title", ""), l.get("note", "")] + [l.get(f) or "" for f in FIELDS]))
         if lw and words:
             s += 4 * len(words & lw) / math.sqrt(len(words) * len(lw))
+        st = l["stats"]
+        s += 0.5 * (st["passed"] - st["failed"]) / (1 + st["passed"] + st["failed"])  # cards that went with passes rank a little higher
         if s >= 1.5:
             scored.append((s, l))
     scored.sort(key=lambda x: -x[0])
     return [l for _, l in scored[:limit]]
 
 
-KIND = {"reject": "验收没通过", "human-fix": "人工在自动提交之后又改过", "review": "对照官方修复复盘"}
+def note_used(data_dir: Path, ticket: dict, ls: list, mode: str) -> None:
+    """Remember which cards a ticket's prompt carried, once per card until the ticket's next verdict."""
+    if not ls or not ticket.get("key"):
+        return
+    seen = set()
+    for r in _log(data_dir):
+        if r.get("ticket") != ticket["key"]:
+            continue
+        if r.get("kind") == "inject":
+            seen.add(r.get("id"))
+        elif r.get("kind") == "verdict":
+            seen = set()
+    _append_log(data_dir, [{"kind": "inject", "id": l["id"], "ticket": ticket["key"], "mode": mode} for l in ls if l["id"] not in seen])
+
+
+def _credit(P, t: dict, passed: bool, by: str) -> list:
+    """A verdict on a ticket counts for every card its prompts carried since the last verdict; a card that keeps
+    going along with failures leaves the prompts until a person looks at it."""
+    log = _log(P.data_dir)
+    used, since = [], ""
+    for r in log:
+        if r.get("ticket") != t["key"]:
+            continue
+        if r.get("kind") == "inject" and r.get("id") not in used:
+            used.append(r.get("id"))
+        elif r.get("kind") == "verdict":
+            used, since = [], r.get("ts", "")
+    # only what the agent wrote since the last verdict counts as citing a card now
+    text = " ".join((r.get("result") or "") for r in P.store.runs(ticket_id=t["id"]) if (r.get("created") or "") >= since) if t.get("id") else ""
+    rows = [{"kind": "verdict", "ticket": t["key"], "passed": passed, "by": by}]
+    rows += [{"kind": "outcome", "id": lid, "ticket": t["key"], "passed": passed,
+              "cited": bool(re.search(r"(?<![A-Za-z0-9])%s(?!\d)" % re.escape(lid), text))} for lid in used]
+    _append_log(P.data_dir, rows)
+    out = []
+    for lid in used:
+        l = lesson(P.data_dir, lid)
+        st = l and l["stats"]
+        if l and l["status"] == "active" and st["recent_failed"] >= DEMOTE_AFTER and st["recent_failed"] > st["recent_passed"]:
+            set_status(P.data_dir, lid, "probation", "平台", "带着它的工单 %d 次没通过验收、%d 次通过，先不再放进提示词，等人看" % (st["recent_failed"], st["recent_passed"]))
+            out.append(lid)
+    return out
 
 
 def lessons_text(ls: list) -> str:
     if not ls:
         return ""
-    out = ["## 以往的教训（相近工单的验收结果，避免重犯）"]
+    out = ["## 以往的经验（相近工单验收后留下的，只作参考：先核实涉及的代码现在还是这样，再决定用不用；用了就在结论里写上编号，写法是「用了经验 」加上那条的 L 编号；没用就不写）"]
     for l in ls:
-        out.append("- %s %s「%s」：%s%s" % (l.get("ticket", ""), KIND.get(l.get("kind"), l.get("kind", "")), l.get("title", "")[:60],
-                                         (l.get("note") or "").strip()[:400], "（涉及 %s）" % "、".join(l["files"][:6]) if l.get("files") else ""))
+        st = l.get("stats") or {}
+        track = "（用过 %d 次，之后通过验收 %d 次）" % (st["passed"] + st["failed"], st["passed"]) if st.get("passed", 0) + st.get("failed", 0) else ""
+        out.append("- %s %s %s「%s」%s" % (l["id"], l.get("ticket", ""), KIND.get(l.get("kind"), l.get("kind", "")), l.get("title", "")[:60], track))
+        if l.get("note"):
+            out.append("  " + l["note"].strip()[:400])
+        for f in FIELDS:
+            if l.get(f):
+                out.append("  %s：%s" % (FIELD_LABEL[f], l[f].strip()[:400]))
+        if l.get("files"):
+            out.append("  涉及：" + "、".join(l["files"][:6]))
         if l.get("diff"):
             out += ["  人工改动片段：", "  ```diff", "  " + l["diff"][:1200].replace("\n", "\n  "), "  ```"]
     return "\n".join(out) + "\n"
@@ -130,19 +299,45 @@ def _resolve(root: Path, ref: str) -> str:
         return ""
 
 
+def _provenance(P, t: dict) -> dict:
+    """Where a card came from: the evidence package it was learned on, as it stood at the verdict."""
+    try:
+        from . import signoff
+        st = signoff.state(P.data_dir, t["key"])
+    except Exception:  # noqa: BLE001 - a ticket without a package still teaches
+        return {}
+    if not st.get("packed"):
+        return {}
+    d = st.get("decision") or {}
+    return {"package_hash": st.get("hash", ""), "status": st.get("status", ""), "gates": st.get("gate_state", ""),
+            "signer": d.get("signer", ""), "ac": [a.get("text", "")[:200] for a in (st.get("snapshot") or {}).get("ac") or []][:6]}
+
+
 def on_accept(P, p: dict, t: dict, passed: bool, note: str, by: str) -> dict:
     """Turn one acceptance into lessons and eval cases. Never raises: learning must not block acceptance."""
     out = {}
     try:
+        demoted = _credit(P, t, passed, by)
+        if demoted:
+            out["demoted"] = demoted
+    except Exception as e:  # noqa: BLE001
+        out["error"] = "%s: %s" % (type(e).__name__, e)
+    try:
         ad, run = _adopted(P.store, t["id"])
         files = changed_files(run.get("diff") or "") if run else []
-        base = {"project": p["key"], "ticket": t["key"], "title": t["title"], "flows": (t.get("links") or {}).get("flows") or [], "by": by}
+        prov = _provenance(P, t)
+        root = P.root(p)
+
+        def anchors(fs: list) -> dict:
+            return {"anchors": [f for f in fs if (Path(root) / f).exists()][:12]}
+        base = {"project": p["key"], "ticket": t["key"], "title": t["title"], "flows": (t.get("links") or {}).get("flows") or [], "by": by,
+                "symptom": ("%s。%s" % (t["title"], (t.get("body") or "").strip()[:200])).strip("。"), **({"provenance": prov} if prov else {})}
         if not passed:
-            out["lesson"] = add_lesson(P.data_dir, dict(base, kind="reject", note=note, files=files, run=ad.get("run") if ad else None))
+            out["lesson"] = add_lesson(P.data_dir, dict(base, kind="reject", note=note, files=files, run=ad.get("run") if ad else None,
+                                                        anti="这样改被退回：%s" % (note or "没写原因"), **anchors(files)))
             return out
         if not ad:
             return out
-        root = P.root(p)
         sha = _resolve(root, ad["commit"])
         tip = _resolve(root, ad.get("branch") or "") or sha
         if not sha:
@@ -151,7 +346,13 @@ def on_accept(P, p: dict, t: dict, passed: bool, note: str, by: str) -> dict:
         if later:
             d = git(root, "diff", sha, tip, check=False)
             out["lesson"] = add_lesson(P.data_dir, dict(base, kind="human-fix", note="自动提交之后人工又提交了：" + "；".join(later.splitlines()[:5]) + ("。验收说明：" + note if note else ""),
-                                                        files=changed_files(d), diff=d[:2000]))
+                                                        files=changed_files(d), diff=d[:2000], **anchors(changed_files(d))))
+        elif files and prov.get("status") in ("signed", "upstream_merged") and prov.get("gates") in ("pass", ""):
+            # passed as the agent made it, signed on a package whose gates did not fail: a draft of what worked, for a
+            # person to confirm before it is used (a pass over failed gates is a person's call, not a pattern to copy)
+            out["lesson"] = add_lesson(P.data_dir, dict(base, kind="pass", status="candidate", files=files, run=ad.get("run"),
+                                                        note=note, fix="改了 %s" % "、".join(files[:6]),
+                                                        verify="；".join(prov.get("ac") or []) or "按本单验收标准", **anchors(files)))
         parent = ""
         for e in P.store.events(t["id"]):  # a change redone after a rejection builds on the first one: start before that
             c = _resolve(root, (e.get("data") or {}).get("commit") or "") if e["kind"] == "adopt" else ""

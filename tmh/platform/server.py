@@ -13,6 +13,7 @@ import json
 import mimetypes
 import os
 import re
+import secrets
 import threading
 import time
 import traceback
@@ -188,7 +189,68 @@ class Platform:
                     {"key": "kb", "label": "知识库覆盖", "pct": pct(written, inscope), "sub": "已写 %d / %d 页" % (written, inscope) if built else "尚未构建"},
                 ],
                 "today": {"created": t_new, "closed": t_closed}, "insight": "，".join(facts) + "。",
-                "points": sum(self.balance(x) for x in ps), "projects": len(ps)}
+                "points": sum(self.balance(x) for x in ps), "projects": len(ps), "kb_built": built}
+
+    # ------------------------------------------------------------ inbox
+    # What is waiting for a person right now, one line per ticket with the one thing to do, most urgent and longest
+    # waiting first; and, apart, what waits on someone outside the team (a client's sign-off link that is out).
+    PRI_RANK = {"urgent": 0, "high": 1, "normal": 2, "medium": 2, "low": 3}
+
+    def inbox(self, p: dict | None) -> dict:
+        from . import signoff
+        st = self.store
+        ps = [p] if p else st.projects()
+        ids = [x["id"] for x in ps] or [-1]
+        keys = {x["id"]: x["key"] for x in ps}
+        q = ",".join("?" * len(ids))
+        tickets = st.q("SELECT id, project_id, num, title, status, priority, assignee, updated FROM tickets WHERE project_id IN (%s) "
+                       "AND status!='closed' AND links NOT LIKE '%s'" % (q, REFORM_LIKE), ids)
+        last = {r["ticket_id"]: r for r in st.q(
+            "SELECT r.ticket_id, r.id, r.mode, r.status, r.decision, r.ended, length(r.diff) AS dl FROM runs r JOIN "
+            "(SELECT ticket_id, MAX(id) m FROM runs WHERE project_id IN (%s) AND ticket_id IS NOT NULL AND mode!='ask' GROUP BY ticket_id) x "
+            "ON r.id=x.m" % q, ids)}
+        running = st.one("SELECT COUNT(*) n FROM runs WHERE project_id IN (%s) AND status IN ('queued','running') AND mode!='ask'" % q, ids)["n"]
+        conf = self.flow.autoflow()
+        agent = self.flow.agent(conf)
+        idle_ok = bool(conf.get("on") and agent)
+        stall = "自动处理关着，没人接手" if not conf.get("on") else "这台机器上没有可用的智能体"
+        mine, others = [], []
+        for t in tickets:
+            key = "%s-%d" % (keys.get(t["project_id"], "?"), t["num"])
+            r = last.get(t["id"]) or {}
+            item = {"key": key, "title": t["title"], "priority": t["priority"], "assignee": t["assignee"] or "", "since": t["updated"]}
+            busy = r.get("status") in ("queued", "running")
+            ev = signoff.state(self.data_dir, key) if t["status"] in ("verify", "doing") and signoff.epath(self.data_dir, key).exists() else {}
+            if busy:
+                continue
+            if r.get("status") == "failed":
+                mine.append(dict(item, reason="failed", label="智能体没跑成", action="看原因", since=r.get("ended") or t["updated"]))
+            elif r.get("mode") == "fix" and r.get("status") == "done" and not r.get("decision") and r.get("dl"):
+                mine.append(dict(item, reason="review", label="改好了，等你审阅", action="审阅改动", since=r.get("ended") or t["updated"]))
+            elif t["status"] == "doing" and ev.get("status") == "rejected":
+                d = ev.get("decision") or {}
+                byclient = d.get("via") == "签收链接"  # the platform's own 验收不通过 is the team's verdict, not the client's
+                mine.append(dict(item, reason="returned" if byclient else "rejected",
+                                 label="%s退回了" % (d.get("signer") or "甲方") if byclient else "%s验收没通过" % (d.get("signer") or ""), action="看退回原因",
+                                 note=(d.get("note") or "")[:80], since=d.get("ts") or t["updated"]))
+            elif t["status"] == "verify":
+                link = (ev.get("links") or [None])[-1]
+                if link and ev.get("status") in ("ready", "incomplete") and (link.get("expires") or "9") < now():
+                    mine.append(dict(item, reason="expired", label="给%s的签收链接过期了" % (link.get("signer") or "甲方"), action="重发链接", since=link.get("expires")))
+                elif link and ev.get("status") in ("ready", "incomplete"):
+                    others.append(dict(item, reason="signing", label="等%s签收" % (link.get("signer") or "甲方"), action="看证据包", since=link.get("ts") or t["updated"]))
+                else:
+                    mine.append(dict(item, reason="verify", label="等你验收" if ev.get("status") != "incomplete" else "等你验收（证据还不齐）",
+                                     action="去验收", since=t["updated"]))
+            elif t["status"] == "confirm":
+                mine.append(dict(item, reason="confirm", label="分析出结论，等你确认", action="看结论", since=t["updated"]))
+            elif t["status"] in ("new", "analyzing") and not r and not idle_ok and not t["assignee"]:  # someone took it by hand
+                # nothing will pick it up by itself: the line is off, or no agent is installed on this machine
+                mine.append(dict(item, reason="stalled", label=stall, action="去处理", since=t["updated"]))
+        order = lambda x: (self.PRI_RANK.get(x["priority"], 2), x["since"] or "")  # noqa: E731
+        mine.sort(key=order)
+        others.sort(key=order)
+        return {"mine": mine, "others": others, "running": running, "open": len(tickets), "agent": agent, "auto": bool(conf.get("on"))}
 
     # ------------------------------------------------------------ leader view
     # What the ops team got done, across every project, in numbers a manager can read at a glance. Everything is
@@ -998,6 +1060,93 @@ def api_kb_triage(P, req, key):
     return res
 
 
+def _chooser(P, p: dict):
+    """The routing model as a typed chooser for the requirement conversation, or None when not configured."""
+    from .. import kbqa
+    conf = kbqa.router_conf(P.root(p))
+    if not conf["ready"]:
+        return None
+    return lambda text, q, opts: kbqa.choose(conf, "需求原话：%s" % text, q, opts)["index"]
+
+
+@route("POST", "/api/projects/<key>/intake")
+def api_intake_start(P, req, key):
+    """A requirement conversation: split, classify, restate on the business map, ask only what is missing."""
+    from . import intake
+    p = P.project(key)
+    model = req.body.get("model", True) is not False
+    return intake.start(P, p, req.body.get("text", ""), req.user, req.body.get("channel") or "web", _chooser(P, p) if model else None)
+
+
+@route("GET", "/api/intake/<sid>")
+def api_intake_get(P, req, sid):
+    from . import intake
+    return intake.load(P.data_dir, sid)
+
+
+@route("POST", "/api/intake/<sid>")
+def api_intake_act(P, req, sid):
+    """answer: {"answers": {"0": {"trigger": "…"}}}; confirm: tickets from the items (all, or "items"); drop."""
+    from . import intake
+    a = req.body.get("action")
+    if a == "answer":
+        return intake.answer(P, sid, req.user, req.body.get("answers") or {})
+    if a == "confirm":
+        return intake.confirm(P, sid, req.user, req.body.get("items"))
+    if a == "drop":
+        return intake.drop(P, sid, req.user)
+    raise ApiError(400, "action 只能是 answer、confirm、drop")
+
+
+@route("POST", "/api/projects/<key>/pins")
+def api_pin_add(P, req, key):
+    """A box drawn on the system's page: texts, elements and requests in it, located in the code."""
+    from . import pinpoint
+    return pinpoint.save(P, P.project(key), req.body, req.user, "platform")
+
+
+@route("GET", "/api/projects/<key>/pins")
+def api_pins(P, req, key):
+    from . import pinpoint
+    p = P.project(key)
+    return {"pins": [dict(x, summary=pinpoint.summary(x)) for x in pinpoint.recent(P.data_dir, p["key"])],
+            "has_token": pinpoint.has_token(P.data_dir, p["key"])}
+
+
+@route("POST", "/api/projects/<key>/capture-token")
+def api_capture_token(P, req, key):
+    """The bookmarklet for the client's own pages. Issuing a new one switches the old one off."""
+    from . import pinpoint
+    p = P.project(key)
+    base = (req.body.get("base") or "").strip()
+    if not re.match(r"^https?://[^/\s]+$", base):
+        proto = req.h.headers.get("X-Forwarded-Proto") or "http"
+        base = "%s://%s" % (proto, req.h.headers.get("Host") or "127.0.0.1")
+    tok = pinpoint.issue_token(P.data_dir, p["key"], req.user)
+    return {"bookmarklet": pinpoint.bookmarklet(base, tok), "endpoint": base + "/capture/<token>"}
+
+
+@route("GET", "/api/pins/<pid>")
+def api_pin(P, req, pid):
+    from . import pinpoint
+    x = pinpoint.load(P.data_dir, pid)
+    return dict(x, summary=pinpoint.summary(x))
+
+
+@route("POST", "/api/pins/<pid>/intake")
+def api_pin_intake(P, req, pid):
+    """Start the requirement conversation from a box: the note is what they said, the location rides along."""
+    from . import intake, pinpoint
+    x = pinpoint.load(P.data_dir, pid)
+    p = P.project(x["project"])
+    text = (req.body.get("text") or x["capture"].get("note") or "").strip()
+    if len(text) < 4:
+        text = "页面上这里有问题：%s" % "、".join(x["capture"]["texts"][:3])
+    model = req.body.get("model", True) is not False
+    return intake.start(P, p, text, req.user, "pin", _chooser(P, p) if model else None,
+                        pin={"id": x["id"], "summary": pinpoint.summary(x)})
+
+
 @route("GET", "/api/projects/<key>/kb/metrics")
 def api_kb_metrics(P, req, key):
     """少找人: requests answered without a person, overrules, handoffs per week, business answer wait."""
@@ -1125,6 +1274,12 @@ def api_catchup(P, req, key):
 @route("GET", "/api/projects/<key>/loop")
 def api_loop(P, req, key):
     return P.loop(None if key in ("*", "all") else P.project(key))
+
+
+@route("GET", "/api/projects/<key>/inbox")
+def api_inbox(P, req, key):
+    """What waits for a person now, and what waits on someone outside the team."""
+    return P.inbox(None if key in ("*", "all") else P.project(key))
 
 
 @route("GET", "/api/projects/<key>/points")
@@ -1379,9 +1534,36 @@ def api_learn(P, req, key):
     al = [{"key": t["key"], "title": t["title"], "status": t["status"], "priority": t["priority"], "created": t["created"],
            "count": t["links"]["alert"].get("count", 1), "source": t["links"]["alert"].get("source", "")}
           for t in P.store.tickets(project_id=p["id"], limit=2000) if (t.get("links") or {}).get("alert")][:30]
-    return {"lessons": learn.lessons(P.data_dir, p["key"], 50), "cases": learn.cases(P.data_dir, p["key"]),
+    ls = learn.lessons(P.data_dir, p["key"], 500)
+    return {"lessons": ls[:80], "lesson_summary": learn.summary(ls), "cases": learn.cases(P.data_dir, p["key"]),
             "batches": learn.batches(P.data_dir, p["key"]), "running": learn.RUNNING.get(p["key"], ""),
             "alerts": dict(alerts.status(P.data_dir, p["key"]), tickets=al), "refix": P.flow.autoflow().get("refix")}
+
+
+@route("POST", "/api/projects/<key>/lessons/<lid>")
+def api_lesson(P, req, key, lid):
+    """A person looks after the experience cards: confirm a draft, edit it, take it out of the prompts or put it back."""
+    from . import learn
+    p, b = P.project(key), req.body
+    cur = learn.lesson(P.data_dir, lid)
+    if not cur or cur.get("project") != p["key"]:
+        raise ApiError(404, "没有这条经验")
+    try:
+        if b.get("fields") and not isinstance(b["fields"], dict):
+            raise ValueError("fields 要是 {字段: 内容}")
+        if b.get("fields"):
+            cur = learn.edit_lesson(P.data_dir, lid, b["fields"], req.user)
+        act = b.get("action") or ""
+        if act:
+            st = {"confirm": "active", "restore": "active", "retire": "retired"}.get(act)
+            if not st:
+                raise ValueError("action 只能是 confirm、restore、retire")
+            if act == "retire" and not (b.get("why") or "").strip():
+                raise ValueError("停用要写原因")
+            cur = learn.set_status(P.data_dir, lid, st, req.user, b.get("why") or {"confirm": "确认入库", "restore": "恢复使用"}.get(act, ""))
+    except ValueError as e:
+        raise ApiError(400, str(e))
+    return cur
 
 
 @route("POST", "/api/projects/<key>/evals/run")
@@ -1573,7 +1755,8 @@ def api_evidence_add(P, req, key):
     if kind == "attach":
         r = signoff.attach(P, t, req.user, b.get("ac", ""), b.get("note", ""), b.get("image", ""))
     elif kind == "review":
-        r = signoff.review(P, t, req.user, b.get("note", ""), bool(b.get("scope_ok")), bool(b.get("path_ok")))
+        r = signoff.review(P, t, req.user, b.get("note", ""), bool(b.get("scope_ok")), bool(b.get("path_ok")),
+                           b.get("waive") if isinstance(b.get("waive"), dict) else None)
     elif kind == "pack":
         r = signoff.pack(P, t, req.user, "手动重新打包") or {"unchanged": True}
     elif kind == "link":
@@ -2041,6 +2224,8 @@ def make_handler(P: Platform, token: str = ""):
                 return self._bot(method, path, q)
             if path.startswith("/hook/alert/"):  # monitoring webhooks: their own key, not our token
                 return self._alert(method, path, q)
+            if path.startswith("/capture/"):  # the bookmarklet on the client's page: its token can only add a capture
+                return self._capture(method, path)
             if not self._local_host():
                 return self._send(403, "只接受本机访问；对局域网开放请设置 TMH_TOKEN".encode("utf-8"), "text/plain; charset=utf-8")
             if path == "/login":
@@ -2071,6 +2256,17 @@ def make_handler(P: Platform, token: str = ""):
                     except ApiError as e:
                         return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
                     return self._send(200, md_html(report_md(mt), "AI 提效报告 %s %s" % (p["key"], mt["period"])).encode("utf-8"), "text/html; charset=utf-8")
+                m = re.match(r"^/e/([A-Za-z0-9]+-\d+)\.intoto\.json$", path)
+                if m:  # the same package, as an in-toto Statement a client keeps and checks with `tmh evidence-verify`
+                    if not self._authorized(q):
+                        return self._send(401, b"unauthorized", "text/plain")
+                    from . import signoff
+                    try:
+                        body = json.dumps(signoff.export(P, m.group(1)), ensure_ascii=False, indent=1).encode("utf-8")
+                    except ApiError as e:
+                        return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
+                    return self._send(200, body, "application/json; charset=utf-8",
+                                      {"Content-Disposition": "attachment; filename=\"%s.intoto.json\"" % m.group(1).upper()})
                 m = re.match(r"^/e/([A-Za-z0-9]+-\d+)(?:/f/([0-9a-f]{64}\.[a-z]+))?$", path)
                 if m:  # a ticket's evidence package as one page (for the provider and the client's auditors)
                     if not self._authorized(q):
@@ -2118,12 +2314,53 @@ def make_handler(P: Platform, token: str = ""):
                     except FileNotFoundError as e:
                         return self._json(404, {"error": str(e)})
                     except Exception as e:  # noqa: BLE001 - report, keep serving
+                        # the person gets what to do and a reference to quote; the exception stays in the log
+                        ref = now()[5:19].replace("-", "").replace(" ", "-").replace(":", "") + "-" + secrets.token_hex(2)
+                        print("[error %s] %s %s %s: %s" % (ref, method, path, type(e).__name__, e), flush=True)
                         traceback.print_exc()
-                        return self._json(500, {"error": "%s: %s" % (type(e).__name__, e)})
+                        return self._json(500, {"error": "服务器处理这一步时出错了，这一步没有完成。刷新看看结果再决定要不要重试；还不行请把编号 %s 告诉管理员。" % ref,
+                                                "ref": ref})
             return self._json(404, {"error": "没有这个接口：%s %s" % (method, path)})
+
+        def _capture(self, method: str, path: str):
+            from . import pinpoint
+            cors = {"Access-Control-Allow-Origin": "*"}
+            m = re.match(r"^/capture/([A-Za-z0-9_\-]{20,64})$", path)
+            if not m:
+                return self._send(404, b'{"error":"no"}', "application/json", cors)
+            if method != "POST":
+                return self._send(405, b'{"error":"method"}', "application/json", cors)
+            key = pinpoint.token_project(P.data_dir, m.group(1))
+            n = int(self.headers.get("Content-Length") or 0)
+            reply = lambda code, obj: self._send(code, json.dumps(obj, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8", cors)
+            if not key:
+                return reply(401, {"message": "这个书签已经失效，请到 webuddy 重新拖一个"})
+            if n > 512 * 1024:
+                return reply(413, {"message": "框得太大了，框小一点再试"})
+            try:
+                cap = json.loads(self.rfile.read(n).decode("utf-8") or "{}")
+                pin = pinpoint.save(P, P.project(key), cap if isinstance(cap, dict) else {}, "页面框选", "bookmarklet")
+            except ValueError:
+                return reply(400, {"message": "发送的内容不对"})
+            except ApiError as e:
+                return reply(e.code, {"message": str(e)})
+            except Exception as e:  # noqa: BLE001
+                traceback.print_exc()
+                return reply(500, {"message": "webuddy 出错了：%s" % type(e).__name__})
+            n1, n2 = len(pin["found"]["layer1"]) + len(pin["found"]["layer2"]), len(pin["found"]["layer3"])
+            return reply(200, {"id": pin["id"], "message": "已发送到 webuddy：找到 %d 个候选文件、%d 个后端入口" % (n1, n2)})
 
         def _sign(self, method: str, path: str):
             from . import signoff
+            m = re.match(r"^/sign/([A-Za-z0-9_\-]{20,64})/package\.intoto\.json$", path)
+            if m and method == "GET":  # the signer keeps their own copy, with the same link as the credential
+                try:
+                    key = signoff.link_of(P.data_dir, m.group(1))["key"]
+                    body = json.dumps(signoff.export(P, key), ensure_ascii=False, indent=1).encode("utf-8")
+                except ApiError as e:
+                    return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
+                return self._send(200, body, "application/json; charset=utf-8",
+                                  {"Content-Disposition": "attachment; filename=\"%s.intoto.json\"" % key})
             m = re.match(r"^/sign/([A-Za-z0-9_\-]{20,64})(?:/f/([0-9a-f]{64}\.[a-z]+))?$", path)
             html_t = "text/html; charset=utf-8"
             if not m:

@@ -277,6 +277,29 @@ def cmd_baseline(a) -> int:
     return 0
 
 
+def cmd_evidence_verify(a) -> int:
+    """Check an exported evidence package (<KEY>.intoto.json) without webuddy, against the hash you kept when signing."""
+    from . import evidence as ev
+    try:
+        st = json.loads(Path(a.file).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        print("读不了这个文件：%s" % e)
+        return 2
+    if a.hash and len(a.hash.strip()) < ev.MIN_ANCHOR:
+        print("--hash 太短：请填签收页上显示的完整哈希（至少前 %d 位）。太短的前缀，改过记录的人可以凑出来。" % ev.MIN_ANCHOR)
+        return 2
+    verdict, notes = ev.verify_statement(st, a.hash or "")
+    for i, n in enumerate(notes):
+        print(("✗ " if verdict == "bad" and i == len(notes) - 1 else "! " if verdict == "consistent" and i == len(notes) - 1 else "✓ ") + n)
+    summ = (st.get("predicate") or {}).get("summary") or {}
+    if summ:
+        print("  %s %s · %s" % (summ.get("ticket", ""), summ.get("title", ""), summ.get("label", "")))
+    print("结论：%s" % {"anchored": "可信：你签收时记下的那条及之前的记录都没被改过",
+                       "consistent": "未核实：加上 --hash 签收页上的完整哈希 再核对一次",
+                       "bad": "不可信"}[verdict])
+    return {"anchored": 0, "consistent": 3, "bad": 1}[verdict]
+
+
 def cmd_verify(a) -> int:
     from .verify import verify, verify_md
     r = verify(_root(a), run_tests=not a.no_tests, timeout=a.timeout, task=a.task or "")
@@ -797,6 +820,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("name", nargs="?", default="")
     p.add_argument("--data", default="~/.tmh/platform", help="平台数据目录（与 tmh serve --data 相同）")
     p.add_argument("--password-stdin", action="store_true", help="从标准输入读一行作为密码（脚本用）")
+    p = add("evidence-verify", cmd_evidence_verify, "离线核对导出的证据包（<工单>.intoto.json）：哈希链、摘要、你记下的哈希")
+    p.add_argument("file")
+    p.add_argument("--hash", help="签收页上显示的记录哈希（至少前 32 位，最好整串）")
     p = add("offline-pack", cmd_offline_pack, "打内网离线安装包（工具、模板、技能、子代理、信创知识库，带 sha256 清单）")
     p.add_argument("--out", help="输出的 zip 路径（默认 tmh-offline-<版本>.zip）")
     p.add_argument("--verify", help="校验一个离线包，不打包")
@@ -810,7 +836,7 @@ def main(argv=None) -> int:
     rc = a.fn(a) or 0
     quiet = a.cmd == "kb" and a.action in ("status", "show", "pack", "done", "read", "questions", "ask", "answer", "overrule", "metrics")  # done logs its own entry
     quiet = quiet or a.cmd == "mcp" or (a.cmd == "int" and a.action in ("list", "types"))
-    if a.cmd not in ("hook", "note", "status", "agent-config", "install", "verify", "serve", "offline-pack") and not quiet:  # verify writes its own report
+    if a.cmd not in ("hook", "note", "status", "agent-config", "install", "verify", "serve", "offline-pack", "evidence-verify") and not quiet:  # verify writes its own report
         from . import activity
         argv_s = " ".join(sys.argv[1:] if argv is None else argv)
         argv_s = re.sub(r"--repo\s+\S+\s*", "", argv_s).strip()

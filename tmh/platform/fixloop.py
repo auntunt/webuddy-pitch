@@ -457,7 +457,7 @@ class FixLoop:
             self.say("超出方案：改了方案没列的 %s" % "、".join(beyond[:6]))
         out = {"check": check, "skip": skip if check == "skip" else "", "verdict": verdict, "rounds": len(self.log), "beyond_plan": beyond,
                "split": bool(goals) and split, "files": files, "commands": res,
-               "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "evidence", "cause", "guide")}}
+               "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide")}}
         (self.r.data_dir / "runs" / str(self.rid) / "verify.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
         return (0 if self.ok else 1), self.summary(out, diag)
 

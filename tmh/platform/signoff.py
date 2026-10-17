@@ -3,7 +3,8 @@
 When a ticket is handed over for acceptance (status → 待验证) the platform packs what backs the change: the
 acceptance criteria the plan named and how each is checked, the plan's file list (the change contract), the
 changed files and their size, whether the change stayed inside the plan and on the ticket's business flows,
-the build and test result. People then add to it: screenshots per criterion, an internal review. The client's
+the build and test result, and the verification gates (tmh/platform/gates.py: PASS / FAIL / UNKNOWN each, from
+"there is a real change" to "it matches the acceptance criteria"). People then add to it: screenshots per criterion, an internal review. The client's
 business owner signs or rejects on a page that shows business flows, criteria and results, never code. Every
 record goes into the ticket's hash-chained package (tmh/evidence.py); the signature carries the hash of the
 package it signed.
@@ -19,10 +20,12 @@ import html
 import json
 import re
 import secrets
+import subprocess
 import time
 from pathlib import Path
 
 from .. import evidence as ev
+from . import gates as G
 from .errors import ApiError
 
 AGENTS = ("自动流转", "system", "告警", "agent", "智能体")
@@ -31,8 +34,10 @@ TEST_PATH = re.compile(r"(^|/)(src/test|tests?|__tests__|spec)/|(Tests?|Spec|IT)
 IMAGE = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}
 MAX_IMAGE = 3 * 1024 * 1024
 LINK_DAYS = 7
-REQUIRED = [("ac", "验收标准（AC）"), ("change", "代码改动"), ("check", "构建或测试结果"), ("scope", "改动没超出方案"),
-            ("path", "改动落在本单的业务流上"), ("review", "乙方复核人")]
+REQUIRED = [("ac", "验收标准（AC）"), ("change", "代码改动"), ("gates", "验证门全部通过（没有没过或未知的）"), ("review", "乙方复核人")]
+# packages sealed before the gates existed are judged by what they had then
+LEGACY = [("ac", "验收标准（AC）"), ("change", "代码改动"), ("check", "构建或测试结果"), ("scope", "改动没超出方案"),
+          ("path", "改动落在本单的业务流上"), ("review", "乙方复核人")]
 
 
 def edir(data_dir: Path) -> Path:
@@ -121,6 +126,22 @@ def _path_by_file(files: list[str], flows: list[dict]) -> dict:
     return res
 
 
+def _reader(p: dict, fix: dict):
+    """Reads a changed file as the change left it: from the adopted commit, else from the run's worktree."""
+    dec = fix.get("decision") or ""
+    if dec.startswith("accepted:") and "@" in dec:
+        sha, root = dec.rsplit("@", 1)[-1], Path(p["root"])
+
+        def read(path):
+            r = subprocess.run(["git", "-C", str(root), "show", "%s:%s" % (sha, path)], capture_output=True)
+            return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else None
+        return read
+    wt = Path(fix.get("workdir") or "")
+    if fix.get("workdir") and wt.is_dir():
+        return lambda path: (wt / path).read_text(encoding="utf-8", errors="replace") if (wt / path).is_file() else None
+    return None
+
+
 def snapshot(P, t: dict) -> dict:
     """What backs the ticket's latest change right now (read from runs, verify.json and the knowledge graph)."""
     from .fixloop import plan_ac, plan_files, verified
@@ -135,6 +156,8 @@ def snapshot(P, t: dict) -> dict:
     stat = _diff_stat(fix["diff"]) if fix else {"files": [], "added": 0, "removed": 0}
     v = verified(P.data_dir, fix["id"]) if fix else {}
     adopt = next((e for e in reversed(P.store.events(t["id"])) if e["kind"] == "adopt"), None)
+    path = _path_by_file(stat["files"], flows)
+    gates = G.evaluate(fix["diff"] or "", v, path, bool(contract), _reader(p, fix)) if fix else []
     return {
         "ticket": {"key": t["key"], "title": t["title"], "type": t["type"], "reporter": t["reporter"], "created": t["created"],
                    "body": (t.get("body") or "")[:2000]},
@@ -147,7 +170,8 @@ def snapshot(P, t: dict) -> dict:
                   "rounds": v.get("rounds"), "commands": [{"cmd": c.get("cmd") or c.get("name") or "", "exit_code": c.get("exit_code")}
                                                           for c in (v.get("commands") or [])][:12]},
         "scope": {"beyond_plan": list(v.get("beyond_plan") or [])},
-        "path": _path_by_file(stat["files"], flows),
+        "path": path,
+        "gates": gates,
         "adopted": adopt and {"by": adopt["author"], "at": adopt["ts"], "branch": (adopt.get("data") or {}).get("branch", ""),
                               "commit": (adopt.get("data") or {}).get("commit", "")},
     }
@@ -190,16 +214,26 @@ def state(data_dir: Path, key: str) -> dict:
     reviews = [dict(r["data"], by=r["by"], ts=r["ts"]) for r in after if r["kind"] == "review"]
     reviewer = (snap.get("adopted") or {}).get("by") if human((snap.get("adopted") or {}).get("by", "")) else ""
     review = reviews[-1] if reviews else ({"by": reviewer, "ts": snap["adopted"]["at"], "note": "审阅采纳了改动"} if reviewer else None)
+    waive = {}
+    for r in reviews:  # a later review overrides an earlier one gate by gate
+        waive.update({g: {"by": r["by"], "reason": why} for g, why in (r.get("waive") or {}).items()})
+        for flag, g in (("scope_ok", "scope"), ("path_ok", "path")):
+            if r.get(flag):
+                waive[g] = {"by": r["by"], "reason": r.get("note", "")}
+    gates = G.waived(snap["gates"], waive) if snap.get("gates") is not None else None
     have = {"ac": bool(snap["ac"]), "change": bool(snap.get("change") and snap["change"]["files"]),
             "check": snap["check"]["result"] == "pass",
-            "scope": not snap["scope"]["beyond_plan"] or bool(reviews and reviews[-1].get("scope_ok")),
-            "path": snap["path"]["ok"] or bool(reviews and reviews[-1].get("path_ok")), "review": bool(review)}
+            "scope": not snap["scope"]["beyond_plan"] or "scope" in waive,
+            "path": snap["path"]["ok"] or "path" in waive, "review": bool(review),
+            "gates": gates is not None and G.overall(gates) == G.PASS}
+    need = REQUIRED if gates is not None else LEGACY
     signs = [r for r in after if r["kind"] in ("sign", "reject")]
     links = [r for r in after if r["kind"] == "link"]
     out.update({"snapshot": snap, "pack_seq": last["seq"], "pack_hash": last["hash"], "packed_at": last["ts"], "attachments": shots,
-                "review": review, "have": have, "missing": [lb for k, lb in REQUIRED if not have[k]],
+                "review": review, "have": have, "missing": [lb for k, lb in need if not have[k]],
+                "gates": gates, "gate_state": G.overall(gates) if gates is not None else "",
                 "links": [dict(r["data"], by=r["by"], ts=r["ts"]) for r in links],
-                "decision": signs and dict(signs[-1]["data"], kind=signs[-1]["kind"], ts=signs[-1]["ts"], hash=signs[-1]["hash"])})
+                "decision": dict(signs[-1]["data"], kind=signs[-1]["kind"], ts=signs[-1]["ts"], hash=signs[-1]["hash"]) if signs else None})
     out["complete"] = not out["missing"]
     out["status"] = signs[-1]["kind"] + "ed" if signs else ("ready" if out["complete"] else "incomplete")
     return _upstream(recs, out)
@@ -246,16 +280,30 @@ def attach(P, t: dict, by: str, ac: str, note: str, image: str) -> dict:
     return rec
 
 
-def review(P, t: dict, by: str, note: str, scope_ok: bool = False, path_ok: bool = False) -> dict:
-    """The provider's internal review. Accepting a change outside the plan or off the flows takes a written reason."""
+def review(P, t: dict, by: str, note: str, scope_ok: bool = False, path_ok: bool = False, waive: dict | None = None) -> dict:
+    """The provider's internal review. Letting a gate through that did not pass (a change outside the plan, off the
+    flows, a test changed on purpose, no build environment) takes a written reason per gate; a failed build or
+    failed tests cannot be let through."""
     if not human(by):
         raise ApiError(403, "复核只能由人做")
     note = (note or "").strip()
     if (scope_ok or path_ok) and len(note) < 4:
         raise ApiError(400, "认可超出方案或不在业务流上的改动，要写明理由")
-    if not state(P.data_dir, t["key"])["packed"]:
+    s = state(P.data_dir, t["key"])
+    if not s["packed"]:
         raise ApiError(409, "还没有证据包：工单转到“待验证”时自动生成")
-    rec = _add(epath(P.data_dir, t["key"]), "review", by, {"note": note[:1000], "scope_ok": bool(scope_ok), "path_ok": bool(path_ok)})
+    w = {}
+    for g, why in (waive or {}).items():
+        why = str(why or "").strip()
+        if g not in G.NAMES:
+            raise ApiError(400, "没有这道验证门：%s" % g)
+        if len(why) < 4:
+            raise ApiError(400, "放行“%s”要写明理由" % G.NAMES[g])
+        cur = next((x for x in s.get("gates") or [] if x["id"] == g), None)
+        if g in G.NOT_WAIVABLE and cur and cur["state"] == G.FAIL:
+            raise ApiError(409, "%s没过，只能改代码，不能写理由放行" % G.NAMES[g])
+        w[g] = why[:500]
+    rec = _add(epath(P.data_dir, t["key"]), "review", by, {"note": note[:1000], "scope_ok": bool(scope_ok), "path_ok": bool(path_ok), "waive": w})
     P.store.event(t["id"], by, "evidence", "复核了证据包" + ("：" + note[:80] if note else ""), {"seq": rec["seq"]})
     return rec
 
@@ -431,6 +479,8 @@ def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
     if done:
         body.append("<div class=seal><b class=ok>%s</b><div class=sub>%s · 记录哈希 <code>%s</code></div></div>" % (
             "已签收，谢谢" if done["action"] == "sign" else "已退回，乙方会按您写的原因处理", E(done["ts"]), E(done["hash"])))
+        body.append("<p class=sub>请把上面这串哈希抄下或截图留存。<a href=\"/sign/%s/package.intoto.json\">下载证据包</a>自己保存；"
+                    "日后用 <code>tmh evidence-verify 文件 --hash 这串哈希</code> 可以独立核对，签收时看到的记录有没有被改过。</p>" % E(token))
     if msg:
         body.append("<p class=bad>%s</p>" % E(msg))
     if snap["ticket"]["body"]:
@@ -438,6 +488,10 @@ def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
     body += ["<h2>这次改的是哪项业务</h2>", _flows_html(snap)]
     chk = snap["check"]["result"]
     facts = ["自动化构建和测试：%s" % CHECK_LABEL.get(chk, chk)]
+    if s.get("gates") is not None:  # counts only: the reasons name files, and the client's page shows no code
+        n = {st: len([g for g in s["gates"] if g["state"] == st]) for st in (G.PASS, G.FAIL, G.UNKNOWN)}
+        facts.append("验证门：%d 道，通过 %d 道%s%s" % (len(s["gates"]), n[G.PASS], "，没过 %d 道" % n[G.FAIL] if n[G.FAIL] else "",
+                                                 "，结果未知 %d 道" % n[G.UNKNOWN] if n[G.UNKNOWN] else ""))
     rv = s.get("review")
     facts.append("乙方复核：%s" % ("%s，%s" % (rv["by"], rv["ts"][:16]) if rv else "还没有"))
     if s["missing"]:
@@ -473,6 +527,9 @@ def package_page(P, key: str) -> str:
     if not snap:
         body.append("<p>还没有证据包：工单转到“待验证”时自动生成。</p>")
         return ev.page(title, "".join(body))
+    body.append("<p class=sub><a href=\"/e/%s.intoto.json\">下载证据包（in-toto 格式）</a>，交给甲方留存（含代码路径和检查命令，不要外传）。"
+                "甲方用 <code>tmh evidence-verify %s.intoto.json --hash 签收时记下的完整哈希</code> 离线核对：那条记录和它之前的都没被改过。"
+                "不带 --hash 只能说明文件自身一致，证明不了没被改。</p>" % (E(t["key"]), E(t["key"])))
     body.append("<h2>缺项</h2>" + ("<p class=ok>无，证据齐全。</p>" if not s["missing"] else "<ul>%s</ul>" % "".join("<li class=bad>%s</li>" % E(m) for m in s["missing"])))
     body += ["<h2>业务流</h2>", _flows_html(snap), "<h2>验收标准</h2>", _ac_table(s, form=False, img="/e/%s/f/" % t["key"])]
     if snap["contract"]:
@@ -483,6 +540,15 @@ def package_page(P, key: str) -> str:
             len(ch["files"]), ch["added"], ch["removed"],
             "；分支 %s 提交 %s，%s 于 %s 采纳" % (E(snap["adopted"]["branch"]), E(snap["adopted"]["commit"]), E(snap["adopted"]["by"]), E(snap["adopted"]["at"]))
             if snap.get("adopted") else "", "".join("<li><code>%s</code></li>" % E(f) for f in ch["files"][:40])))
+    if s.get("gates") is not None:
+        word = {G.PASS: "<span class=ok>通过</span>", G.FAIL: "<span class=bad>没过</span>", G.UNKNOWN: "<span class=warn>未知</span>"}
+        body.append("<h2>验证门（按成本从低到高）</h2><div class=wrap><table><thead><tr><th>门</th><th>结论</th><th>依据</th></tr></thead><tbody>%s</tbody></table></div>"
+                    % "".join("<tr><td>%s</td><td>%s</td><td>%s%s%s</td></tr>" % (
+                        E(g["name"]), word[g["state"]], E(g["why"]),
+                        "<ul>%s</ul>" % "".join("<li>%s</li>" % E(str(x)) for x in sum([v for v in (g.get("detail") or {}).values() if isinstance(v, list)], []))
+                        if g.get("detail") else "",
+                        "<div class=warn>%s 放行（原来是%s）：%s</div>" % (E(g["waived"]["by"]), "没过" if g["waived"]["was"] == G.FAIL else "未知", E(g["waived"]["reason"]))
+                        if g.get("waived") else "") for g in s["gates"]))
     c = snap["check"]
     body.append("<h2>构建与测试</h2><p>%s%s</p>%s" % (E(CHECK_LABEL.get(c["result"], c["result"])), "（%s）" % E(c["skip"]) if c.get("skip") else "",
                                                  "<ul>%s</ul>" % "".join("<li><code>%s</code> → %s</li>" % (E(str(x["cmd"])), E(str(x["exit_code"]))) for x in c["commands"])
@@ -499,7 +565,7 @@ def package_page(P, key: str) -> str:
     return ev.page(title, "".join(body))
 
 
-KIND = {"pack": "打包", "attach": "补充证据", "review": "乙方复核", "link": "发签收链接", "sign": "甲方签收", "reject": "甲方退回",
+KIND = {"intake": "需求确认", "pack": "打包", "attach": "补充证据", "review": "乙方复核", "link": "发签收链接", "sign": "甲方签收", "reject": "甲方退回",
         "upstream_draft": "上游 PR 草稿", "upstream_approve": "批准提交", "upstream_submit": "提交上游", "upstream_state": "上游状态",
         "upstream_review": "上游评审", "upstream_ci": "上游 CI", "upstream_outcome": "上游结局", "upstream_reason": "补记原因"}
 
@@ -510,10 +576,13 @@ def _summary(r: dict) -> str:
     if k == "pack":
         s = d.get("snapshot") or {}
         return "%s；%d 条 AC，%d 个文件" % (d.get("why", ""), len(s.get("ac") or []), len((s.get("change") or {}).get("files") or []))
+    if k == "intake":
+        return "%s 确认了 %d 条验收标准%s" % (d.get("confirmed_by", ""), len(d.get("ac") or []), "（%d 条待确认）" % len(d["open"]) if d.get("open") else "")
     if k == "attach":
         return "%s%s%s" % (d.get("ac") or "整单", "：" + d["note"][:60] if d.get("note") else "", "（截图）" if d.get("file") else "")
     if k == "review":
-        return d.get("note", "")[:80]
+        w = d.get("waive") or {}
+        return d.get("note", "")[:80] + ("；放行：%s" % "、".join(G.NAMES.get(g, g) for g in w) if w else "")
     if k == "link":
         return "签收人 %s，有效至 %s" % (d.get("signer"), d.get("expires"))
     if k == "upstream_draft":
@@ -550,7 +619,8 @@ def brief(data_dir: Path, key: str) -> dict:
     return {"status": s["status"], "label": STATUS_LABEL[s["status"]], "missing": s["missing"], "intact": s["intact"], "problem": s["problem"],
             "hash": s["hash"], "records": s["records"], "page": "/e/%s" % key.upper(),
             "attachments": len(s.get("attachments") or []), "review": s.get("review"),
-            "link": (s.get("links") or [None])[-1], "decision": d and {k: d.get(k) for k in ("kind", "signer", "role", "ts", "note", "via")}}
+            "link": (s.get("links") or [None])[-1], "decision": d and {k: d.get(k) for k in ("kind", "signer", "role", "ts", "note", "via")},
+            "gates": s.get("gates"), "gate_state": s.get("gate_state", "")}
 
 
 def record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
@@ -573,3 +643,26 @@ def owns(data_dir: Path, key: str, name: str) -> None:
 
 def message_page(msg: str) -> str:
     return ev.page("验收签收", "<h1>验收签收</h1><p>%s</p>" % E(msg))
+
+
+def export(P, key: str) -> dict:
+    """The ticket's package as an in-toto Statement for the client's own records and tools. Everything is in it,
+    file paths and check commands included (they are the client's own code); it goes to the client, not out."""
+    key = key.upper()
+    recs = records(P.data_dir, key)
+    if not recs:
+        raise ApiError(404, "这张工单还没有证据包")
+    s = brief(P.data_dir, key)
+    commit = ""
+    t = P.ticket(key)
+    fx = next((r for r in P.store.runs(ticket_id=t["id"]) if r["mode"] == "fix" and (r.get("decision") or "").startswith("accepted")), None)
+    if fx and "@" in fx["decision"]:
+        try:
+            p = P.store.project(t["project_id"])
+            commit = subprocess.run(["git", "rev-parse", "--verify", "--quiet", fx["decision"].rsplit("@", 1)[1] + "^{commit}"], cwd=p["root"],
+                                    capture_output=True, text=True, timeout=10).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            commit = ""
+    summary = {k: s.get(k) for k in ("status", "label", "missing", "gate_state", "decision")}
+    summary.update({"ticket": key, "title": t["title"]})
+    return ev.statement("%s 证据包" % key, recs, summary, commit)

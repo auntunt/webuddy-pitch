@@ -8,7 +8,9 @@ happens to it goes into the ticket's evidence package (tmh/evidence.py): the dra
 submitting it, every state change, every review round with its text, and the outcome.
 
 Submitting is publishing under a person's account, so it is gated: a draft (title, body, branch) is approved by a
-person, the approval names the draft's hash, and only that exact draft can be submitted. Without `confirm` the
+person, the approval names the draft's hash, and only that exact draft can be submitted. Before approving and
+again before submitting, the ticket's verification gates (tmh/platform/gates.py) are read: a failed gate stops the
+PR, an unknown one needs the approver's written reason. Without `confirm` the
 adapter only records what it would send.
 
 The tracker's own state is in <data>/upstream/<KEY>.json (the last status read from GitHub); metrics over all
@@ -107,6 +109,25 @@ def draft(P, t: dict, by: str, title: str, body: str, head: str, base: str) -> d
     return st
 
 
+def gate_check(P, t: dict, note: str = "") -> str:
+    """The verification gates must pass before a PR goes upstream: any gate that failed stops it; gates that could
+    not tell (or no evidence package at all) need the approver's written reason. Returns the gate state."""
+    from . import gates as G
+    from .signoff import state
+    s = state(P.data_dir, t["key"])
+    gs = s.get("gates")
+    if gs is None:
+        if len((note or "").strip()) < 4:
+            raise ApiError(409, "这单没有带验证门的证据包。先让改动走完验证门，或在批准时写明为什么不需要")
+        return "none"
+    st = G.overall(gs)
+    if st == G.FAIL:
+        raise ApiError(409, "验证门没过，不能提交上游：%s" % G.summary([g for g in gs if g["state"] == G.FAIL]))
+    if st == G.UNKNOWN and len((note or "").strip()) < 4:
+        raise ApiError(409, "有验证门结果未知（%s）。补齐，或在批准时写明为什么仍然提交" % "、".join(g["name"] for g in gs if g["state"] == G.UNKNOWN))
+    return st
+
+
 def approve(P, t: dict, by: str, note: str = "") -> dict:
     from .signoff import human
     if not human(by):
@@ -115,7 +136,8 @@ def approve(P, t: dict, by: str, note: str = "") -> dict:
     d = st.get("draft")
     if not d:
         raise ApiError(409, "还没有 PR 草稿")
-    st["approved"] = {"by": by, "at": ev.now(), "hash": d["hash"], "note": (note or "")[:500]}
+    gst = gate_check(P, t, note)
+    st["approved"] = {"by": by, "at": ev.now(), "hash": d["hash"], "note": (note or "")[:500], "gates": gst}
     st["state"] = "approved"
     _save(P.data_dir, t["key"], st)
     _rec(P, t, "upstream_approve", by, st["approved"])
@@ -131,6 +153,7 @@ def submit(P, t: dict, by: str, confirm: bool = False) -> dict:
         raise ApiError(409, "PR 草稿还没有人批准，不能提交")
     if a["hash"] != _draft_hash(d) or a["hash"] != d.get("hash"):
         raise ApiError(409, "草稿在批准后改过，要重新批准")
+    gate_check(P, t, a.get("note", ""))  # a re-fix after approval may have broken a gate
     if confirm and not os.environ.get("GITHUB_TOKEN"):
         raise ApiError(409, "没有设置 GITHUB_TOKEN，不能真的提交")
     r = client(d["repo"], dry_run=not confirm).open_pr(d["head"], d["base"], d["title"], d["body"])

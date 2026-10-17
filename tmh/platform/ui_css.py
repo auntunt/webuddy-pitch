@@ -28,6 +28,14 @@ body.svc-reform #top{background:var(--navy-rf)}body.svc-reform #svc a.on{color:v
 #tabs{display:flex;gap:26px;border-bottom:1px solid var(--line);margin:0 0 18px;overflow-x:auto}
 #tabs a{padding:16px 0 12px;color:var(--fg);border-bottom:2px solid transparent;white-space:nowrap}
 #tabs a:hover{text-decoration:none;color:var(--blue)}#tabs a.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+#tabs{overflow:visible}.tmore{position:relative}.tmore>summary{list-style:none;cursor:pointer;padding:16px 0 12px;border-bottom:2px solid transparent;white-space:nowrap;color:var(--fg)}
+.tmore>summary::-webkit-details-marker{display:none}.tmore>summary i{font-style:normal;font-size:11px;margin-left:4px;color:var(--mut)}
+.tmore>summary:hover,.tmore.on>summary{color:var(--blue)}.tmore.on>summary{border-bottom-color:var(--blue);font-weight:600}
+.tmp{position:absolute;top:100%;left:-12px;z-index:30;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:8px 0;min-width:180px;display:flex;flex-direction:column}
+.tmg{display:flex;flex-direction:column;padding:4px 0}.tmg+.tmg{border-top:1px solid var(--line)}.tmg span{font-size:12px;color:var(--mut);padding:4px 16px}
+#tabs .tmp a{padding:8px 16px;border:0}#tabs .tmp a:hover{background:var(--soft)}#tabs .tmp a.on{border:0;background:var(--soft)}
+.tmore>summary b{font-weight:inherit;display:inline-block;vertical-align:bottom;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:700px){#tabs{gap:12px}.tmp{left:auto;right:-8px}.tmore>summary b{max-width:3em}}
 #ast{width:384px;flex:none;position:sticky;top:56px;height:calc(100vh - 56px);background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column}
 @media (max-width:1100px){#ast{position:fixed;right:0;top:56px;z-index:7;box-shadow:-8px 0 30px rgba(16,24,40,.15)}}
 @media (max-width:700px){#ast{width:100%}#top{gap:8px;padding:0 10px}#top .me,#newBtn span,#astToggle,.pts .w{display:none}#projSel{max-width:96px}#svc a{padding:4px 8px}#svc a span{display:none}#top .brand{font-size:15px}#page{padding:12px 10px 40px}.sheet{padding:0 12px 14px}}
@@ -327,6 +335,15 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 .ah .mset{display:flex;flex-direction:column;gap:6px;padding:4px 10px 8px}.ah .mset select{width:100%}
 #ast .menu{min-width:240px}
 .abar .tog.on{background:var(--blue-s);color:var(--blue);border-color:#C9DCFB}
+.inbox{margin-bottom:16px;border-left:3px solid var(--blue)}
+.ibx>.ev-tag:first-child{flex:none;min-width:44px;justify-content:center}
+.ibx{display:flex;gap:10px;align-items:center;padding:9px 6px;border-top:1px solid var(--line);color:var(--fg);border-radius:6px}.ibx:first-of-type{border-top:0}
+.ibx:hover{text-decoration:none;background:var(--soft)}.ibx:hover .ibgo{color:var(--blue)}
+.ibw{display:block;margin-top:3px;white-space:normal}.ibgo{flex:none;font-size:13px;color:var(--mut);font-weight:600}
+.ibn{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--blue);color:#fff;font-size:12px;text-align:center;vertical-align:2px}
+.ibg{margin-top:10px}.ibh{display:flex;gap:8px;align-items:center;margin-bottom:2px}.ibmore{margin:2px 0 0 6px;font-size:13px}
+.ibo{margin-top:8px}.ibo summary{cursor:pointer;padding:4px 0}
+@media (max-width:640px){.ibgo{display:none}}
 .catch{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--warn-s);color:var(--fg);font-size:13px}
 .catch span{flex:1;min-width:0}
 .autoc{display:inline-flex;align-items:center;gap:6px;padding:1px 4px 1px 8px;border-radius:999px;background:var(--ok-s);color:var(--ok);font-size:12px}
@@ -334,4 +351,10 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 .autoc.off{background:var(--warn-s);color:var(--warn)}
 .autoc button.link{border:0;background:transparent;color:var(--blue);padding:0 4px;font-size:12px;cursor:pointer;height:auto}
 .autoc button.link:hover{text-decoration:underline}
+.first{max-width:760px}.frs{display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.frn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.frs.done .frn{background:var(--ok)}.frs.done b{color:var(--mut)}
+@media (max-width:700px){.frs{flex-wrap:wrap}.frs>.grow{flex-basis:calc(100% - 42px)}.frs>.btn,.frs>button{margin-left:42px}}
+/* phones: no Ctrl K to show, and room at the bottom so the floating 助手 button never sits on the last buttons */
+@media (max-width:700px){#astOpen{padding:9px 14px;right:12px;bottom:14px}#astOpen kbd,.frk{display:none}#page{padding-bottom:76px}}
 """

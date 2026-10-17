@@ -39,6 +39,7 @@ print("结论：问题在请假审批流程【推断】")
 '''
 
 SVC = "src/main/java/com/acme/oa/service/LeaveService.java"
+UNSURE_WORD = "不清楚"
 CTL = "src/main/java/com/acme/oa/controller/LeaveController.java"
 # A planner that hands out files, per-file editors that message each other, and a diagnosis that reads the build.
 FAKE_TEAM = r'''
@@ -74,7 +75,7 @@ elif mode == "fix":  # a plan this small is done by one agent
     print("一次改完状态更新")
 elif mode == "diagnose":
     bad = "BROKEN" in pathlib.Path(S).read_text(encoding="utf-8")
-    d = {"verdict": "fail" if bad else "pass", "cause": "LeaveService 里留了 BROKEN" if bad else "",
+    d = {"verdict": "fail" if bad else "pass", "match": "wrong" if bad else "equivalent", "cause": "LeaveService 里留了 BROKEN" if bad else "",
          "files": [{"path": S, "goal": "去掉 BROKEN 标记"}] if bad else []}
     print("诊断完毕\n```tmh-diag\n" + json.dumps(d, ensure_ascii=False) + "\n```")
 else:
@@ -192,6 +193,51 @@ class PlatformApiTest(unittest.TestCase):
             self.assertEqual(code, 200, p)
         return "OA"
 
+    def test_inbox_lists_what_waits_for_a_person(self):
+        self.project()
+        st = self.P.store
+        made = {}
+        for title, status, pri in [("验收这单", "verify", "high"), ("确认这单", "confirm", "normal"), ("跑挂了", "doing", "urgent"),
+                                   ("等审阅", "doing", "normal"), ("还在跑", "analyzing", "high"), ("没人管", "new", "low")]:
+            _, t = self.call("POST", "/api/tickets", {"project": "OA", "title": "收件箱 " + title, "priority": pri})
+            st.update_ticket(t["id"], "tester", status=status)
+            made[title] = t
+        p = st.project(made["跑挂了"]["project_id"])
+        fail = st.create_run(p["id"], made["跑挂了"]["id"], "fake", "analyze", "tester", "")["id"]
+        st.update_run(fail, status="failed")
+        rev = st.create_run(p["id"], made["等审阅"]["id"], "fake", "fix", "tester", "")["id"]
+        st.update_run(rev, status="done", diff="diff --git a/x b/x\n+1\n")
+        busy = st.create_run(p["id"], made["还在跑"]["id"], "fake", "analyze", "tester", "")["id"]
+        st.update_run(busy, status="running")
+        code, d = self.call("GET", "/api/projects/OA/inbox")
+        self.assertEqual(code, 200, d)
+        got = {x["key"]: x for x in d["mine"] if x["title"].startswith("收件箱")}
+        reasons = {x["title"][4:]: x["reason"] for x in got.values()}
+        want = {"验收这单": "verify", "确认这单": "confirm", "跑挂了": "failed", "等审阅": "review"}
+        if not (d["auto"] and d["agent"]):  # nothing will start 没人管 by itself here, so it waits for a person too
+            want["没人管"] = "stalled"
+        self.assertEqual(reasons, want, d["mine"])
+        self.assertGreaterEqual(d["running"], 1)
+        keys = [x["key"] for x in d["mine"]]
+        self.assertLess(keys.index(made["跑挂了"]["key"]), keys.index(made["等审阅"]["key"]))  # urgent first
+        self.assertEqual(self.call("GET", "/api/projects/*/inbox")[0], 200)
+        # with the automatic line off, a new ticket nobody started is the person's to pick up, and says why
+        f = self.P.data_dir / "autoflow.json"
+        old = f.read_text(encoding="utf-8") if f.exists() else None
+        f.write_text(json.dumps({"on": False}), encoding="utf-8")
+        try:
+            _, d = self.call("GET", "/api/projects/OA/inbox")
+            row = next((x for x in d["mine"] if x["key"] == made["没人管"]["key"]), None)
+            if not [r for r in st.runs(ticket_id=made["没人管"]["id"]) if r["mode"] != "ask"]:
+                self.assertEqual((row or {}).get("reason"), "stalled", d["mine"])
+                self.assertIn("自动处理关着", row["label"])
+            self.assertFalse(d["auto"])
+        finally:
+            f.write_text(old, encoding="utf-8") if old is not None else f.unlink()
+        st.update_run(busy, status="done")
+        for t in made.values():
+            st.update_ticket(t["id"], "tester", status="closed")
+
     def test_page_and_guards(self):
         with urllib.request.urlopen(self.base + "/") as r:
             html = r.read().decode("utf-8")
@@ -207,6 +253,18 @@ class PlatformApiTest(unittest.TestCase):
         self.project()
         with self.assertRaises(urllib.error.HTTPError):
             urllib.request.urlopen(self.base + "/p/OA/report/..%2F..%2Fpom.xml")
+        # a crash tells the person the step did not finish and gives a reference to quote; the exception text stays out of the message
+        from tmh.platform import server as srv
+        boom = lambda P, req: (_ for _ in ()).throw(KeyError("secret_column"))  # noqa: E731
+        srv.ROUTES.insert(0, ("GET", __import__("re").compile("^/api/boom$"), boom))
+        try:
+            code, e = self.call("GET", "/api/boom")
+        finally:
+            srv.ROUTES.pop(0)
+        self.assertEqual(code, 500)
+        self.assertIn("没有完成", e["error"])
+        self.assertIn(e["ref"], e["error"])
+        self.assertNotIn("secret_column", json.dumps(e))  # the exception stays in the server log
 
     def test_lead_reads_response_resolution_first_fix_and_backlog(self):
         key = self.project()
@@ -378,6 +436,13 @@ class PlatformApiTest(unittest.TestCase):
             self.assertEqual(sorted(r["mode"] for r in d["runs"]), ["analyze", "fix", "plan"])
             fx = [r for r in d["runs"] if r["mode"] == "fix"][0]
             self.assertTrue(fx["decision"].startswith("accepted:tmh/%s-r" % t["key"]), fx["decision"])
+            # the commit says who wrote it and where it came from, in trailers git itself can read back
+            sha = fx["decision"].rsplit("@", 1)[1]
+            tr = subprocess.run(["git", "log", "-1", "--format=%(trailers:only,unfold)", sha], cwd=self.repo, capture_output=True, text=True).stdout
+            self.assertIn("Assisted-by: %s" % fx["agent"], tr)
+            self.assertIn("Ticket: %s" % t["key"], tr)
+            self.assertIn("Webuddy-Run: %d" % fx["id"], tr)
+            self.assertNotIn("Reviewed-by", tr)  # committed by the line, nobody reviewed it yet
             adopt = [e for e in d["events"] if e["kind"] == "adopt"]
             self.assertEqual(adopt[0]["author"], "自动流转")
             self.assertNotIn("accept", [e["kind"] for e in d["events"]], "committing a change is not passing acceptance")
@@ -702,9 +767,23 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             # a related ticket's prompt carries the lesson; the ticket itself does not get its own lesson twice
             _, t2 = self.call("POST", "/api/tickets", {"project": "OA", "title": "请假审批提交后状态还是不刷新", "body": "LeaveService 提交"})
             p = self.P.store.project(t2["project_id"])
-            self.assertIn("以往的教训", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
+            self.assertIn("以往的经验", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
             self.assertIn("补充事务说明", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "fix"))
-            self.assertNotIn("以往的教训", build_prompt(self.P.store, p, self.P.store.ticket(t["id"]), "plan"))
+            self.assertNotIn("以往的经验", build_prompt(self.P.store, p, self.P.store.ticket(t["id"]), "plan"))
+            lid = ls[0]["id"]
+            self.assertEqual(learn.lesson(self.data, lid)["stats"]["used"], 1)  # two prompts before a verdict count once
+            # people look after the cards: a reason is needed to take one out, and then it stays out of prompts
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "retire"})
+            self.assertEqual(code, 400, r)
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "retire", "why": "事务问题已统一修掉"})
+            self.assertEqual((code, r["status"]), (200, "retired"), r)
+            self.assertNotIn("以往的经验", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "restore", "fields": {"cause": "刷新在事务提交前执行"}})
+            self.assertEqual((code, r["status"], r["cause"]), (200, "active", "刷新在事务提交前执行"), r)
+            self.assertIn("根因：刷新在事务提交前执行", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
+            self.assertEqual(self.call("POST", "/api/projects/OA/lessons/L999", {"action": "confirm"})[0], 404)
+            _, d = self.call("GET", "/api/projects/OA/learn")
+            self.assertEqual(d["lesson_summary"]["active"], len([x for x in d["lessons"] if x["status"] == "active"]))
 
             # failed acceptance of an automatic change: a lesson, and the change is redone on top of the rejected branch
             t3, branch3 = self.fixed("请假提交后列表状态不对")
@@ -730,6 +809,11 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             c3 = [c for c in learn.cases(self.data, "OA") if c["ticket"] == t3["key"]][0]
             first = [e["data"]["commit"] for e in self.P.store.events(t3["id"]) if e["kind"] == "adopt"][0]
             self.assertEqual(c3["base"], learn._resolve(self.repo, first + "^"))
+            # signed over failed gates: no draft of "what worked" (a person's call is not a pattern to copy); cards carry their package
+            ls = learn.lessons(self.data, "OA")
+            self.assertNotIn("pass", [l["kind"] for l in ls])
+            self.assertEqual(ls[0]["provenance"]["status"], "rejected")
+            self.assertEqual(len(ls[0]["provenance"]["package_hash"]), 64)
         finally:
             self.untrain()
 
@@ -972,6 +1056,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         code, allt = self.call("GET", "/api/tickets?project=OA")
         code, loop = self.call("GET", "/api/projects/OA/loop")
         self.assertEqual(loop["open"] + loop["closed"], len(ot))
+        self.assertIn("kb_built", loop)  # the first-run card on an empty board ticks this step off
         self.assertGreater(len(allt), len(ot))
 
     def test_reform_lead_goes_first_and_later_pieces_start_from_its_commit(self):
@@ -1530,6 +1615,14 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual((pl["cycle"]["n"], pl["cycle"]["median_h"]), (1, 48.0))
         self.assertEqual(pl["locate"]["median_h"], 2.0)
         self.assertEqual((pl["reject"]["reviewed"], pl["reject"]["rejected"], pl["reject"]["rate"]), (1, 1, 100.0))
+        self.assertEqual(pl["cycle"]["p90_h"], 48.0)
+        self.assertEqual((pl["reopen"]["matured"], pl["reopen"]["reopened"]), (1, 0))  # its rejection came before the acceptance
+        from tmh.platform.metrics import _reopened
+        acc = "2026-09-01 10:00:00"
+        self.assertTrue(_reopened([{"ts": "2026-09-05 10:00:00", "kind": "status", "data": '{"from": "closed", "to": "doing"}'}], acc))
+        self.assertTrue(_reopened([{"ts": "2026-09-03 10:00:00", "kind": "reject", "data": "{}"}], acc))
+        self.assertFalse(_reopened([{"ts": "2026-09-20 10:00:00", "kind": "reject", "data": "{}"}], acc))  # past the 14 days
+        self.assertIn("P90", report_md(m))
         src = {x["key"]: x["n"] for x in pl["ai"]["by_source"]}
         self.assertEqual((pl["ai"]["tickets"], src["run"], src["mcp"]), (2, 1, 1))
         self.assertEqual((pl["cost"]["per_ticket"], pl["ide"]["calls"]), (10, 1))
@@ -1701,6 +1794,80 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             code, r = self.call("POST", "/bot/api/NOPE", {"text": "x"}, headers={"Authorization": "Bearer k-9"})
             self.assertEqual(code, 404)
 
+    def test_requirement_conversation_turns_vague_words_into_tickets_with_criteria(self):
+        """One message with two asks and a question: split, ask only what is missing, EARS criteria, tickets on confirm."""
+        from tmh.platform import signoff
+        key = self.project()
+        msg = "请假审批通过后状态还是草稿，不对。另外希望请假列表能导出 Excel。还有，年假是怎么计算的？"
+        code, s = self.call("POST", "/api/projects/%s/intake" % key, {"text": msg, "model": False})
+        self.assertEqual(code, 200, s)
+        self.assertEqual([it["kind"] for it in s["items"]], ["bug", "feature", "question"])
+        bug, feat, q = s["items"]
+        self.assertEqual(s["state"], "asking")
+        self.assertTrue(q["answer"])  # a question is answered, never ticketed
+        self.assertEqual(q["questions"], [])
+        self.assertTrue(all(len(it["questions"]) <= 3 for it in s["items"]))
+        self.assertEqual(bug["slots"]["trigger"]["from"], "原话")  # "审批通过后" was said: not asked again
+        self.assertNotIn("trigger", [x["slot"] for x in bug["questions"]])
+        self.assertIn("待确认", bug["ac"][0]["text"] + bug["ac"][0]["check"])  # nothing guessed
+        self.assertTrue(any(a["text"].startswith("必须保持") for a in bug["ac"]))
+        ans = {"0": {"expected": "状态变成已通过", "who": "所有人", "since": "这周", "example": "张三提交 3 天年假，经理审批通过后列表显示已通过"},
+               "1": {"trigger": "在请假列表页点导出", "expected": "下载当前筛选结果的 Excel", "example": UNSURE_WORD}}
+        if bug["questions"] and bug["questions"][0]["slot"] == "flow":
+            ans["0"]["flow"] = bug["questions"][0]["options"][0]
+        code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "answer", "answers": ans})
+        self.assertEqual(code, 200, s)
+        bug, feat = s["items"][0], s["items"][1]
+        self.assertTrue(bug["ac"][0]["text"].startswith("当") and "系统应当状态变成已通过" in bug["ac"][0]["text"], bug["ac"])
+        self.assertFalse(bug["ac"][0]["open"])
+        self.assertTrue(feat["ac"][0]["open"])  # "不清楚" stays 待确认
+        self.assertEqual(self.call("POST", "/api/intake/%s" % s["id"], {"action": "answer", "answers": {"9": {"trigger": "x"}}})[0], 400)
+        code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})
+        self.assertEqual((code, len(s["tickets"]), s["state"]), (200, 2, "confirmed"), s)
+        _, t = self.call("GET", "/api/tickets/%s" % s["tickets"][0])
+        self.assertEqual(t["ticket"]["type"], "bug")
+        self.assertIn("验收标准", t["ticket"]["body"])
+        self.assertIn("张三提交 3 天年假", t["ticket"]["body"])
+        recs = signoff.records(self.data, s["tickets"][0])
+        self.assertEqual((recs[0]["kind"], recs[0]["data"]["confirmed_by"]), ("intake", "tester"))
+        self.assertEqual(self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})[0], 409)
+        self.assertEqual(self.call("GET", "/api/intake/nope")[0], 404)
+
+    def test_box_on_the_page_finds_the_backend_and_starts_a_ticket(self):
+        """The client's bookmarklet posts a box; the requests in it lead to the flow; the location rides into the ticket."""
+        key = self.project()
+        code, tk = self.call("POST", "/api/projects/%s/capture-token" % key, {"base": "https://webuddy.example"})
+        self.assertEqual(code, 200, tk)
+        tok = tk["bookmarklet"].split("/capture/")[1].split("'")[0]
+        cap = {"url": "http://oa.local/leave/list", "title": "请假", "texts": ["提交"], "note": "点提交以后状态还是草稿",
+               "elements": [{"tag": "button", "text": "提交"}], "requests": ["http://oa.local/leave/submit"]}
+        post = lambda t, body: urllib.request.Request(self.base + "/capture/" + t, method="POST", data=body, headers={"Content-Type": "text/plain"})
+        with urllib.request.urlopen(post(tok, json.dumps(cap).encode())) as r:  # no account, no X-TMH: the token is all it has
+            self.assertEqual(r.headers.get("Access-Control-Allow-Origin"), "*")
+            got = json.loads(r.read())
+        self.assertIn("后端入口", got["message"])
+        with self.assertRaises(urllib.error.HTTPError) as e:
+            urllib.request.urlopen(post("x" * 24, json.dumps(cap).encode()))
+        self.assertEqual(e.exception.code, 401)
+        _, ps = self.call("GET", "/api/projects/%s/pins" % key)
+        pin = ps["pins"][0]
+        self.assertTrue(ps["has_token"])
+        self.assertEqual((pin["id"], pin["via"]), (got["id"], "bookmarklet"))
+        self.assertIn("/leave/submit", pin["found"]["layer3"][0]["entry"])
+        self.assertTrue(pin["found"]["layer3"][0]["flows"])
+        self.assertIn("后端：", pin["summary"])
+        code, s = self.call("POST", "/api/pins/%s/intake" % pin["id"], {"model": False})
+        self.assertEqual(code, 200, s)
+        self.assertEqual((s["text"], s["pin"]["id"]), ("点提交以后状态还是草稿", pin["id"]))
+        code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})
+        self.assertEqual(code, 200, s)
+        _, t = self.call("GET", "/api/tickets/%s" % s["tickets"][0])
+        self.assertIn("## 位置", t["ticket"]["body"])
+        self.assertIn("/leave/submit", t["ticket"]["body"])
+        self.assertEqual(self.call("GET", "/api/pins/000000000000")[0], 404)
+        code, x = self.call("POST", "/api/projects/%s/pins" % key, {"texts": []})
+        self.assertEqual(code, 400, x)
+
     def test_evidence_package_sign_off_and_ledger(self):
         """AI gathers the evidence, a person signs on a page without code, the ledger picks it up."""
         import re as _re
@@ -1724,11 +1891,19 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             # handed over for acceptance → packed, complete: AC, change, build, scope, flow, reviewer (the person who adopted it)
             code, s = self.call("GET", "/api/tickets/%s/evidence" % t["key"])
             self.assertEqual((s["status"], s["missing"], s["intact"]), ("ready", [], True), s)
+            # not signed yet: no decision at all (an empty list here once broke the ticket page, [] being truthy in the browser)
+            self.assertIsNone(s["decision"])
+            self.assertIsNone(self.call("GET", "/api/tickets/%s" % t["key"])[1]["package"]["decision"])
             snap = s["snapshot"]
             self.assertEqual(snap["ac"][0]["id"], "A1")
             self.assertEqual((snap["check"]["result"], snap["path"]["ok"], snap["change"]["files"]), ("pass", True, [SVC]))
             self.assertEqual(s["review"]["by"], "tester")
             self.assertIn("evidence", [e["kind"] for e in self.call("GET", "/api/tickets/%s" % t["key"])[1]["events"]])
+            # every verification gate passed, each with its reason; letting one through takes a gate that exists and a reason
+            self.assertEqual((s["gate_state"], [g["id"] for g in s["gates"] if g["state"] != "pass"]), ("pass", []), s["gates"])
+            self.assertIn("等价", next(g for g in s["gates"] if g["id"] == "match")["why"])
+            self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "review", "waive": {"nope": "随便写写理由"}})[0], 400)
+            self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "review", "waive": {"scope": "短"}})[0], 400)
 
             # a screenshot for A1; only images, only small ones
             png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
@@ -1739,17 +1914,47 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
 
             # a one-time link for the named signer
             self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "link"})[0], 400)
+            # exported as an in-toto Statement that checks out offline, and stops checking out once a record is touched
+            with urllib.request.urlopen(self.base + "/e/%s.intoto.json" % t["key"]) as r:
+                stmt = json.loads(r.read())
+            from tmh import evidence as ev
+            self.assertEqual((stmt["_type"], stmt["predicateType"]), (ev.STATEMENT, ev.PREDICATE))
+            kept = self.call("GET", "/api/tickets/%s/evidence" % t["key"])[1]["hash"]
+            self.assertEqual(ev.verify_statement(stmt, kept)[0], "anchored")
+            self.assertEqual(ev.verify_statement(stmt)[0], "consistent")  # no kept hash: holds together, proves nothing more
+            self.assertEqual(ev.verify_statement(stmt, kept[:8])[0], "bad")  # a short prefix can be matched by trial edits
+            self.assertEqual(ev.verify_statement(stmt, "f" * 64)[0], "bad")
+            first = stmt["predicate"]["records"][0]["hash"]  # a hash kept earlier still anchors, and the later records are listed
+            v, notes = ev.verify_statement(stmt, first)
+            self.assertEqual(v, "anchored")
+            self.assertIn("之后又追加了", notes[-1])
+            # a forger who edits a record and recomputes every hash gets a consistent file, but not one with the kept hash in it
+            forged = json.loads(json.dumps(stmt))
+            recs = forged["predicate"]["records"]
+            recs[0]["by"] = "别人"
+            prev = ev.GENESIS
+            for r in recs:
+                r["prev"] = prev
+                r["hash"] = ev.digest(r)
+                prev = r["hash"]
+            forged["subject"][0]["digest"]["sha256"] = prev
+            self.assertEqual(ev.verify_statement(forged)[0], "consistent")
+            self.assertEqual(ev.verify_statement(forged, kept)[0], "bad")
             code, ln = self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "link", "signer": "周敏", "role": "人事业务负责人"})
             self.assertEqual(code, 200, ln)
             with urllib.request.urlopen(self.base + ln["path"]) as resp:
                 page_html = resp.read().decode("utf-8")
-            for w in ("请假提交后状态不更新", "提交后状态更新", "签收", "退回", "证据包完整", "提交后列表显示"):
+            for w in ("请假提交后状态不更新", "提交后状态更新", "签收", "退回", "证据包完整", "提交后列表显示", "验证门：9 道，通过 9 道"):
                 self.assertIn(w, page_html)
             for code_word in (".java", "LeaveService", "diff", "src/main"):  # no code on the client's page
                 self.assertNotIn(code_word, page_html)
             img = _re.search(r"src='(/sign/[^']+)'", page_html).group(1)
             with urllib.request.urlopen(self.base + img) as resp:
                 self.assertEqual(resp.headers["Content-Type"], "image/png")
+            with urllib.request.urlopen(self.base + ln["path"] + "/package.intoto.json") as resp:  # the signer keeps their own copy
+                self.assertEqual(json.loads(resp.read())["predicateType"], ev.PREDICATE)
+            with self.assertRaises(urllib.error.HTTPError):
+                urllib.request.urlopen(self.base + "/sign/" + "x" * 32 + "/package.intoto.json")
             with self.assertRaises(urllib.error.HTTPError) as cm:
                 urllib.request.urlopen(self.base + "/sign/" + "x" * 32)
             self.assertEqual(cm.exception.code, 404)
@@ -1785,6 +1990,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
                 full = resp.read().decode("utf-8")
             self.assertIn(SVC, full)  # the provider's copy keeps the code facts
             self.assertIn("甲方签收", full)
+            self.assertIn("没有削弱测试", full)  # the gates, each with its reason
 
             # the ledger shows it signed through the client's link
             row = {x["key"]: x for x in self.call("GET", "/api/projects/%s/ledger" % key)[1]["ledger"]["rows"]}[t["key"]]
@@ -1831,12 +2037,14 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
                  "head": "auntunt:fix-order-perm", "base": "trunk"}
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, draft)[0], 200)
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve"}, {"X-TMH-User": "agent"})[0], 403)
-        code, u = self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve", "note": "看过了"})
+        # no evidence package with gates behind this ticket: approving takes a written reason
+        self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve", "note": "看过了"})[0], 409)
+        code, u = self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve", "note": "改动在测试机上验证过，三处页面都看过"})
         self.assertEqual((u["state"], u["approved"]["by"]), ("approved", "tester"))
         # the draft changed after approval: approve again
         self.call("POST", "/api/tickets/%s/upstream" % k, dict(draft, body="changed"))
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "submit"})[0], 409)
-        self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve"})
+        self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve", "note": "改动在测试机上验证过，三处页面都看过"})
 
         class FakeHub:
             sent = []
