@@ -152,7 +152,8 @@ def ship(P, p: dict, t: dict, by: str) -> dict:
             files = [x for x in mt.stdout.splitlines()[1:] if x.strip()]
             return {"state": "conflict", "branch": branch or sha[:10], "main": main, "files": files[:20],
                     "why": "和主干 %s 上后来的改动冲突%s" % (main, "：" + "、".join(files[:6]) if files else "")}
-        if mt.returncode != 0:
+        old_git = mt.returncode == 129 or "usage" in (mt.stderr or "").lower()  # git before 2.38 (Ubuntu 22.04, Kylin V10)
+        if mt.returncode != 0 and not old_git:
             return {"state": "waiting", "why": "算不出合并结果：%s" % (mt.stderr.strip()[:300] or "git merge-tree 失败")}
         head = git(root, "rev-parse", "HEAD").strip()
         version = _version(P.data_dir, p["key"], root)
@@ -164,8 +165,12 @@ def ship(P, p: dict, t: dict, by: str) -> dict:
             failed, err = True, "合并超过 %d 秒没做完（多半是仓库的 git hook 卡住了）" % MERGE_S
         if failed:
             ours = (gd / "MERGE_HEAD").exists() and git(root, "rev-parse", "MERGE_HEAD", check=False).strip() == sha
+            clash = [x for x in git(root, "diff", "--name-only", "--diff-filter=U", check=False).splitlines() if x.strip()] if ours else []
             if ours:
                 _run(root, "merge", "--abort")
+            if old_git and clash and git(root, "rev-parse", "HEAD", check=False).strip() == head and not (gd / "MERGE_HEAD").exists():
+                return {"state": "conflict", "branch": branch or sha[:10], "main": main, "files": clash[:20],
+                        "why": "和主干 %s 上后来的改动冲突：%s" % (main, "、".join(clash[:6]))}
             back = git(root, "rev-parse", "HEAD", check=False).strip() == head and not (gd / "MERGE_HEAD").exists()
             return {"state": "waiting", "why": ("合并没做成：%s" % err[:300]) if back else
                     "合并没做成，而且项目目录没能恢复原样，请人马上看一下（git status）：%s" % err[:300]}

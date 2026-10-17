@@ -716,12 +716,12 @@ async function pvLoad(key){const el=$('#pvc');if(!el)return;let d;try{d=await ge
   if(!d.branch&&!s){el.hidden=true;return}
   el.hidden=false;
   el.innerHTML=`<div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">预览版本</h2>${lb?`<span class="ev-tag ${lb[0]}">${lb[1]}</span>`:''}</div>
-   ${s==='up'?`<div class="sub">这次改动（提交 <code>${h(st.commit)}</code>）正跑在平台上，验收前先亲手试一遍。发出去的签收链接里也有这个入口。</div>
+   ${s==='up'?`<div class="sub">这次改动（提交 <code>${h(st.commit)}</code>）正跑在平台上，验收前先亲手试一遍。发出去的签收链接里也有这个入口。${d.own_address?'':'<br>它在浏览器的隔离环境里运行，碰不到平台。直接出页面的程序可以正常用；页面打开后再用脚本取数据的（单页应用）在这里取不到数据，要给预览配一个独立端口。'}</div>
      <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn primary" href="${h(d.url)}" target="_blank" rel="noopener">打开预览 ↗</a><button class="ghost" id="pvStop">停掉</button><button class="ghost" id="pvGo">重新启动</button></div>`
    :s==='starting'?`<div class="sub"><span class="spin"></span> 正在用 <code>${h(clip(st.cmd||'',80))}</code> 启动 ${h(st.branch||'')}，起来后这里会出现打开按钮。</div><div class="row" style="margin-top:8px"><button class="ghost" id="pvStop">停掉</button></div>`
    :s==='failed'?`<div class="bad" style="font-size:13px">${h(st.why||'')}</div>${st.tail?`<details style="margin-top:6px"><summary class="sub">启动日志最后几行</summary><pre class="log" style="max-height:200px;overflow:auto;font-size:12px;white-space:pre-wrap">${h(st.tail)}</pre></details>`:''}<div class="row" style="gap:6px;margin-top:8px"><button class="primary" id="pvGo">再启动一次</button><button class="ghost" id="pvCfg">改启动命令</button></div>`
    :d.cmd?`<div class="sub">还没启动。会用 <code>${h(clip(d.cmd,80))}</code>${d.configured?'':'（按项目结构猜的）'}把这次改动跑起来。</div><div class="row" style="gap:6px;margin-top:8px"><button class="primary" id="pvGo">启动预览</button><button class="ghost" id="pvCfg">改启动命令</button></div>`
-   :`<div class="sub">填一条能把这个项目跑起来的命令，以后每次自动改完都会起一个预览，客户在签收页就能点开试。用 <code>{port}</code> 表示端口，<code>{prefix}</code> 表示它挂在哪个路径下。</div><div class="row" style="margin-top:8px"><button class="primary" id="pvCfg">填启动命令</button></div>`}
+   :`<div class="sub">填一条能把这个项目跑起来的命令，以后每次自动改完都会起一个预览，客户在签收页就能点开试。用 <code>{port}</code> 表示端口，<code>{prefix}</code> 表示它挂在哪个路径下（程序要能挂在这个路径下运行，页面里的链接才不会断），只监听 127.0.0.1。</div><div class="row" style="margin-top:8px"><button class="primary" id="pvCfg">填启动命令</button></div>`}
    <div id="pvF"></div>`;
   const act=a=>post('/api/tickets/'+key+'/preview',{action:a}).then(()=>pvLoad(key)).catch(e=>toast(e.message,6000));
   if($('#pvGo'))$('#pvGo').onclick=()=>act('start');

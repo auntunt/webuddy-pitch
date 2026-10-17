@@ -231,11 +231,11 @@ class Orchestra:
 
     def ship_again(self, p: dict, t: dict, by: str) -> dict:
         """A person fixed what held the merge up (a dirty checkout, a lock): try again."""
-        if t["status"] != "closed" or not any(e["kind"] == "accept" for e in self.store.events(t["id"])):
-            raise ValueError("只有验收通过的工单可以合并")
-        if any(e["kind"] == "release" for e in self.store.events(t["id"])) and not any(
-                e["kind"] == "adopt" and e["id"] > max(x["id"] for x in self.store.events(t["id"]) if x["kind"] == "release")
-                for e in self.store.events(t["id"])):
+        evs = self.store.events(t["id"])
+        last = lambda *kinds: max([e["id"] for e in evs if e["kind"] in kinds] or [0])
+        if t["status"] != "closed" or last("accept") < max(last("adopt"), last("reject")):
+            raise ValueError("只有最近一次改动验收通过、之后没被退回的工单可以合并")
+        if last("release") > last("adopt"):
             raise ValueError("这次改动已经合并过了")
         return self._ship(p, t, self.autoflow(), by)
 
@@ -253,7 +253,7 @@ class Orchestra:
                      {"version": r["version"], "tag": r["tag"], "commit": r["commit"]})
         elif r["state"] == "conflict":
             st.update_ticket(t["id"], self.BY, status="doing")
-            n = sum(1 for e in st.events(t["id"]) if e["kind"] in ("reject", "conflict"))
+            n = 1 + sum(1 for e in st.events(t["id"]) if e["kind"] in ("reject", "conflict"))  # this one counts too, as a rejection does
             st.event(t["id"], self.BY, "conflict", "验收通过的改动（%s）和主干 %s 上后来的改动冲突，冲突的文件：%s。要在最新的主干上重做同样的改动，行为和验收通过的那版保持一致"
                      % (r["branch"], r["main"], "、".join(r["files"]) or "（没列出）"), {"branch": r["branch"], "files": r["files"]})
             agent = self._flow_agent(conf) if conf.get("on") and conf.get("fix") else ""
@@ -262,7 +262,8 @@ class Orchestra:
                 from .agents import git
                 self._flow_fix(p, t["id"], conf, agent, git(self.root(p), "rev-parse", r["main"]).strip())
             else:
-                why = ("有人接手" if self.held(t["id"]) else "重做次数用完了（%d 次）" % n if agent else "自动处理没开")
+                why = ("有人接手" if self.held(t["id"]) else "重做次数用完了（%d 次）" % (n - 1) if agent else
+                       "自动处理没开" if not (conf.get("on") and conf.get("fix")) else "没有可用的智能体")
                 st.event(t["id"], self.BY, "flow", "%s，需要有人在最新的主干上重做，或手动合并分支 %s" % (why, r["branch"]))
         elif r["state"] in ("waiting", "none"):
             st.event(t["id"], self.BY, "flow", ("验收通过了，还没合并进主干：%s。处理好后在工单上点“重试合并”" if r["state"] == "waiting" else
@@ -417,7 +418,8 @@ class Orchestra:
         out = []
         for x in ps:
             for t in self.store.tickets(x["id"]):
-                if t["status"] in ("new", "analyzing", "confirm", "doing") and self.next_step(t, conf)[0]:
+                if (t["status"] in ("new", "analyzing", "confirm", "doing") and not (t.get("links") or {}).get("open_ac")
+                        and self.next_step(t, conf)[0]):  # criteria still 待确认 are not swept up by "hand all over"
                     out.append(t)
         return out
 

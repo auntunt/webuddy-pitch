@@ -311,6 +311,7 @@ def _confirm(P, sid: str, by: str, items: list | None = None) -> dict:
         it["ticket"] = t["key"]
         made.append(t["key"])
         if any(a["open"] for a in it["ac"]):  # the ticket itself says open criteria must not be built: they wait for a person
+            P.store.update_ticket(t["id"], by, links=dict(links, open_ac=len([a for a in it["ac"] if a["open"]])))
             P.store.event(t["id"], by, "flow", "有验收标准还待确认，先不自动开始；和客户确认后点“交给自动处理”")
         else:
             P.flow.submit(p, P.store.ticket(t["id"]))  # like any new ticket: the line picks it up (or says why it waits)

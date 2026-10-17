@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import errno
 import hmac
+import http.client
 import json
 import mimetypes
 import os
@@ -82,6 +83,8 @@ class Platform:
         self.store.on_status.append(lambda t, old, new, who: signoff.on_status(self, t, old, new, who))
         from . import preview
         self.store.on_status.append(lambda t, old, new, who: preview.on_status(self, t, old, new, who))
+        self.preview_port = 0  # set by serve(): previews have an address of their own
+        preview.resume(self)
         from .survey import Survey
         Survey.resume_all(self)  # a full-project analysis the last process was in the middle of
 
@@ -1901,6 +1904,10 @@ def api_update_ticket(P, req, key):
         links["flows"], links["flows_ok"] = fl, ok
         b["links"] = links
     if b.get("auto") == "go":  # hand a ticket that is not on the automatic line yet over to it
+        lk = dict(t.get("links") or {})
+        if lk.pop("open_ac", None) is not None:  # a person handing it over one by one has settled what was 待确认
+            P.store.update_ticket(t["id"], req.user, links=lk)
+            t = P.store.ticket(t["id"])
         P.flow.resume(P.store.project(t["project_id"]), t)
         return P.store.ticket(t["id"])
     if "hold" in b:
@@ -1949,7 +1956,7 @@ def api_preview(P, req, key):
     cmd, ready, mine = preview.command(P.data_dir, p)
     st = preview.status(P.data_dir, t["key"])
     return {"preview": st, "url": "/pv/%s/" % t["key"] if st.get("state") == "up" else "", "branch": preview.branch_of(P, t),
-            "cmd": cmd, "configured": mine, "auto": preview.settings(P.data_dir)["preview"]}
+            "cmd": cmd, "configured": mine, "auto": preview.settings(P.data_dir)["preview"], "own_address": bool(P.preview_port)}
 
 
 @route("POST", "/api/tickets/<key>/preview")
@@ -1960,7 +1967,7 @@ def api_preview_do(P, req, key):
     p = P.store.project(t["project_id"])
     act = req.body.get("action")
     if act == "stop":
-        preview.stop(P, t["key"], "%s 停掉了" % req.user)
+        preview.stop(P, t["key"])
         P.store.event(t["id"], req.user, "preview", "停掉了预览", {"state": "stopped"})
     elif act == "start":
         b = preview.branch_of(P, t)
@@ -1994,7 +2001,7 @@ def api_preview_conf_set(P, req, key):
     if cmd.strip() and "{port}" not in cmd and "PORT" not in cmd:
         raise ApiError(400, "命令里要用 {port}（或环境变量 PORT）指定端口，平台才知道去哪里找它")
     try:
-        preview.set_conf(P.data_dir, p["key"], cmd, ready)
+        preview.set_conf(P.data_dir, p["key"], cmd, ready, req.user)
     except ValueError as e:
         raise ApiError(400, str(e))
     return api_preview_conf(P, req, key)
@@ -2208,6 +2215,101 @@ class Req:
         return (self.query.get(k) or [""])[0]
 
 
+def _length(h) -> int:
+    try:
+        n = int(h.headers.get("Content-Length") or 0)
+    except ValueError:
+        return -1
+    return n
+
+
+def serve_preview(h, P, method: str, u, sandboxed: bool) -> None:
+    """Answer one request for /pv/<ticket>/... on whichever address serves previews: a pass in the query (/__open)
+    becomes a cookie for that one preview; anything else needs that cookie and is passed to the running app."""
+    from . import preview
+    m = re.match(r"^/pv/([A-Za-z0-9]+-\d+)(/.*)?$", u.path)
+    if not m:
+        return h._send(404, "这里只有预览版本".encode("utf-8"), "text/plain; charset=utf-8")
+    key, rest = m.group(1).upper(), m.group(2) or ""
+    if m.group(1) != key or not rest:  # cookies are kept by exact path: one spelling only
+        return h._send(308, b"", "text/plain", {"Location": "/pv/%s%s" % (key, rest or "/") + ("?" + u.query if u.query else "")})
+    https = (h.headers.get("X-Forwarded-Proto") or "") == "https" or (h.headers.get("Host") or "").split(":")[0] in ("127.0.0.1", "localhost")
+    if rest == "/__open":
+        g = (parse_qs(u.query).get("g") or [""])[0]
+        if not preview.granted(P.data_dir, key, g):
+            return h._send(403, "这个预览入口已经失效：回到工单页或签收链接重新打开".encode("utf-8"), "text/plain; charset=utf-8")
+        # sandboxed pages are an origin of their own, so their requests count as cross-site: the pass must go with them
+        same = "SameSite=None; Secure" if sandboxed and https else "SameSite=Lax" + ("; Secure" if https else "")
+        return h._send(303, b"", "text/plain", {"Location": "/pv/%s/" % key, "Referrer-Policy": "no-referrer",
+                                               "Set-Cookie": "tmh_pv_%s=%s; Path=/pv/%s/; HttpOnly; %s" % (key, g, key, same)})
+    if not preview.granted(P.data_dir, key, _cookie(h.headers.get("Cookie", ""), "tmh_pv_" + key)):
+        return h._send(401, "请从 webuddy 的工单页或签收链接打开预览".encode("utf-8"), "text/plain; charset=utf-8")
+    n = _length(h)
+    if n < 0:
+        return h._send(400, b"bad length", "text/plain")
+    if n > 20 * 1024 * 1024:
+        return h._send(413, b"too large", "text/plain")
+    body = h.rfile.read(n) if n else b""
+    query = "&".join(x for x in u.query.split("&") if x and not x.startswith("token=")) if u.query else ""
+    path = "/pv/%s%s" % (key, rest) + ("?" + query if query else "")
+    try:
+        code, hdrs, resp, length = preview.forward(P.data_dir, key, method, path, h.headers, body, sandboxed, https)
+    except LookupError as e:
+        st = preview.status(P.data_dir, key)
+        msg = {"starting": "预览版本正在启动，稍等一会儿刷新这个页面", "failed": "预览没有起来：%s" % st.get("why", "")}.get(st.get("state"), str(e))
+        return h._send(503, msg.encode("utf-8"), "text/plain; charset=utf-8", {"Retry-After": "10"})
+    except (OSError, http.client.HTTPException) as e:
+        return h._send(502, ("预览版本没有响应：%s" % e).encode("utf-8"), "text/plain; charset=utf-8")
+    try:
+        h.send_response(code)
+        for k, v in hdrs:
+            h.send_header(k, v)
+        if method == "HEAD" or code in (204, 304):
+            h.end_headers()
+            return
+        if length is not None:
+            h.send_header("Content-Length", str(length))
+        else:  # unknown length (a stream): it ends when the connection closes
+            h.send_header("Connection", "close")
+            h.close_connection = True
+        h.end_headers()
+        while True:
+            chunk = resp.read1(64 * 1024) if hasattr(resp, "read1") else resp.read(64 * 1024)
+            if not chunk:
+                break
+            h.wfile.write(chunk)
+            h.wfile.flush()
+    except (OSError, http.client.HTTPException):
+        h.close_connection = True
+    finally:
+        resp.close()
+
+
+def make_preview_handler(P: Platform):
+    """The address of its own for previews (serve --preview-port): nothing of the platform is reachable here."""
+    class PV(BaseHTTPRequestHandler):
+        server_version = "webuddy-preview"
+
+        def log_message(self, fmt, *args):
+            pass
+
+        def _send(self, code: int, body: bytes, ctype: str, extra: dict | None = None):
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            for k, v in (extra or {}).items():
+                self.send_header(k, v)
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(body)
+
+        def _go(self):
+            serve_preview(self, P, self.command, urlparse(self.path), sandboxed=False)
+        do_GET = do_POST = do_PUT = do_DELETE = do_PATCH = do_HEAD = do_OPTIONS = _go
+    return PV
+
+
 def make_handler(P: Platform, token: str = ""):
     from . import login as L
     from .ui import page
@@ -2225,6 +2327,8 @@ def make_handler(P: Platform, token: str = ""):
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("X-Frame-Options", "DENY")  # no page (a preview's, say) may frame the platform and click for a person
+            self.send_header("Content-Security-Policy", "frame-ancestors 'none'")
             for k, v in (extra or {}).items():
                 self.send_header(k, v)
             self.end_headers()
@@ -2303,47 +2407,24 @@ def make_handler(P: Platform, token: str = ""):
         def do_PATCH(self):
             self._dispatch("PATCH")
 
-        def _pv_grant(self, key: str) -> bool:
-            """The client opened the preview from their sign-off link: that link, kept in a cookie for this preview only."""
-            from . import signoff
-            from .. import evidence as ev
-            tok = _cookie(self.headers.get("Cookie", ""), "tmh_pv_" + key)
-            try:
-                x = signoff.link_of(P.data_dir, tok)
-            except ApiError:
-                return False
-            return x["key"] == key and x["expires"] >= ev.now()
+        def do_OPTIONS(self):
+            self._dispatch("OPTIONS")
 
         def _preview(self, method: str, u, q: dict):
+            """/pv/ on the platform's own address. With a preview address of its own, a person who is logged in is
+            sent there with a pass; without one, the preview is served here, sandboxed by the browser."""
             from . import preview
             m = re.match(r"^/pv/([A-Za-z0-9]+-\d+)(/.*)?$", u.path)
             if not m:
                 return self._send(404, b"not found", "text/plain")
             key = m.group(1).upper()
-            if not m.group(2):
-                return self._send(303, b"", "text/plain", {"Location": "/pv/%s/" % key})
-            if not (self._authorized(q) or self._pv_grant(key)):
-                return self._send(401, "请从签收链接或 webuddy 的工单页打开预览".encode("utf-8"), "text/plain; charset=utf-8")
-            n = int(self.headers.get("Content-Length") or 0)
-            if n > 20 * 1024 * 1024:
-                return self._send(413, b"too large", "text/plain")
-            body = self.rfile.read(n) if n else b""
-            path = "/pv/%s%s" % (key, m.group(2)) + ("?" + u.query if u.query else "")
-            try:
-                code, hdrs, data = preview.forward(P.data_dir, key, method, path, self.headers, body)
-            except LookupError as e:
-                st = preview.status(P.data_dir, key)
-                msg = {"starting": "预览版本正在启动，稍等一会儿刷新这个页面", "failed": "预览没有起来：%s" % st.get("why", "")}.get(st.get("state"), str(e))
-                return self._send(503, msg.encode("utf-8"), "text/plain; charset=utf-8", {"Retry-After": "10"})
-            except OSError as e:
-                return self._send(502, ("预览版本没有响应：%s" % e).encode("utf-8"), "text/plain; charset=utf-8")
-            self.send_response(code)
-            for k, v in hdrs:
-                self.send_header(k, v)
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            if method != "HEAD":
-                self.wfile.write(data)
+            g = _cookie(self.headers.get("Cookie", ""), "tmh_pv_" + key)
+            if not P.preview_port and (m.group(2) or "").startswith("/__open") or (not P.preview_port and preview.granted(P.data_dir, key, g)):
+                return serve_preview(self, P, method, u, sandboxed=True)
+            if not self._authorized(q):
+                return self._send(401, "请从 webuddy 的工单页或签收链接打开预览".encode("utf-8"), "text/plain; charset=utf-8")
+            return self._send(303, b"", "text/plain", {"Location": "%s/pv/%s/__open?g=%s" % (
+                preview.base_url(self.headers, P.preview_port), key, preview.grant(P.data_dir, key)), "Referrer-Policy": "no-referrer"})
 
         def _bot(self, method: str, path: str, q: dict):
             from .. import bots
@@ -2469,7 +2550,7 @@ def make_handler(P: Platform, token: str = ""):
                 return self._send(404, b"not found", "text/plain")
             if not self._authorized(q):
                 return self._json(401, {"error": "需要访问令牌"})
-            if urlparse(self.headers.get("Referer") or "").path.startswith("/pv/"):  # a preview's page runs code nobody accepted yet
+            if urlparse(self.headers.get("Referer") or "").path.startswith("/pv/"):  # an extra check only: the boundary is the sandbox or the preview's own address
                 return self._json(403, {"error": "预览里的页面不能调用平台接口"})
             if method == "POST" and self.headers.get("X-TMH") != "1":
                 return self._json(403, {"error": "缺少 X-TMH 请求头"})
@@ -2536,14 +2617,19 @@ def make_handler(P: Platform, token: str = ""):
         def _sign(self, method: str, path: str):
             from . import signoff
             m = re.match(r"^/sign/([A-Za-z0-9_\-]{20,64})/pv/?$", path)
-            if m and method == "GET":  # the client opens the change itself: the link becomes a cookie for this preview only
+            if m and method == "GET":  # the client opens the change itself: a pass to this one preview, valid as long as the link
+                from . import preview
+                from .. import evidence as ev
                 try:
-                    key = signoff.link_of(P.data_dir, m.group(1))["key"]
+                    x = signoff.link_of(P.data_dir, m.group(1))
+                    if x.get("used") or x["expires"] < ev.now():
+                        raise ApiError(410, "这个签收链接已经用过、被替换或者过期了，预览也跟着关闭")
                 except ApiError as e:
                     return self._send(e.code, signoff.message_page(str(e)).encode("utf-8"), "text/html; charset=utf-8")
-                secure = "; Secure" if (self.headers.get("X-Forwarded-Proto") or "") == "https" else ""
-                return self._send(303, b"", "text/plain", {"Location": "/pv/%s/" % key, "Referrer-Policy": "no-referrer",
-                                                           "Set-Cookie": "tmh_pv_%s=%s; Path=/pv/%s/; HttpOnly; SameSite=Lax%s" % (key, m.group(1), key, secure)})
+                until = time.mktime(time.strptime(x["expires"][:19], "%Y-%m-%d %H:%M:%S"))
+                g = preview.grant(P.data_dir, x["key"], signoff._th(m.group(1)), until)
+                return self._send(303, b"", "text/plain", {"Location": "%s/pv/%s/__open?g=%s" % (preview.base_url(self.headers, P.preview_port), x["key"], g),
+                                                           "Referrer-Policy": "no-referrer"})
             m = re.match(r"^/sign/([A-Za-z0-9_\-]{20,64})/package\.intoto\.json$", path)
             if m and method == "GET":  # the signer keeps their own copy, with the same link as the credential
                 try:
@@ -2608,7 +2694,7 @@ def _cookie(header: str, name: str) -> str:
 
 
 def serve(data_dir: Path, host: str = "127.0.0.1", port: int = 8790, user: str = "", project: Path | None = None,
-          key: str = "", open_browser: bool = False, brand: str = "") -> int:
+          key: str = "", open_browser: bool = False, brand: str = "", preview_port: int = 0) -> int:
     P = Platform(data_dir, user, brand)
     token = os.environ.get("TMH_TOKEN", "")
     if host not in ("127.0.0.1", "localhost", "::1") and not token:
@@ -2637,6 +2723,17 @@ def serve(data_dir: Path, host: str = "127.0.0.1", port: int = 8790, user: str =
         print("端口 %d 已被占用：平台可能已经在另一个窗口运行。关掉那个窗口再启动，或用 --port 换一个端口。" % port)
         return 1
     httpd.daemon_threads = True
+    preview_port = preview_port or int(os.environ.get("TMH_PREVIEW_PORT") or 0)
+    if preview_port:  # previews on an address of their own: another origin, so the browser keeps them apart
+        try:
+            pv = ThreadingHTTPServer((host, preview_port), make_preview_handler(P))
+        except OSError as e:
+            print("预览端口 %d 用不了（%s），预览改为在平台地址下隔离运行" % (preview_port, e))
+        else:
+            pv.daemon_threads = True
+            P.preview_port = preview_port
+            threading.Thread(target=pv.serve_forever, daemon=True).start()
+            print("预览版本地址：%s" % (os.environ.get("TMH_PREVIEW_BASE") or "端口 %d" % preview_port))
     url = "http://%s:%d/" % ("127.0.0.1" if host in ("0.0.0.0", "::") else host, port)
     print("%s 已启动：%s%s" % (P.brand, url, "?token=<TMH_TOKEN>" if token else ""))
     print("数据目录：%s　按 Ctrl+C 停止" % P.data_dir)

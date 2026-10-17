@@ -1,6 +1,7 @@
 """The platform (`tmh serve`): tickets over the HTTP API, knowledge links, and agent runs with a stand-in agent."""
 from unittest import mock
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -831,7 +832,15 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             svc.write_text(svc.read_text(encoding="utf-8") + "// 主干上别人的改动\n", encoding="utf-8")  # the agent appends there too
             git_("-c", "user.name=w", "-c", "user.email=w@x", "commit", "-qam", "主干上别人的改动")
             head = git_("rev-parse", "HEAD")
-            self.call("POST", "/api/tickets/%s/accept" % t2["key"], {"result": "pass"})
+            real = release._run
+
+            def old_git(root, *a, **k):  # git before 2.38 has no merge-tree --write-tree: the merge is tried in place
+                if a and a[0] == "merge-tree":
+                    return subprocess.CompletedProcess(a, 129, "", "usage: git merge-tree <base-tree> <branch1> <branch2>")
+                return real(root, *a, **k)
+            from unittest import mock
+            with mock.patch.object(release, "_run", old_git):
+                self.call("POST", "/api/tickets/%s/accept" % t2["key"], {"result": "pass"})
             evs = self.P.store.events(t2["id"])
             self.assertEqual(git_("rev-parse", "HEAD"), head)
             self.assertEqual(git_("status", "--porcelain", "--untracked-files=no"), "")  # no half-done merge left behind
@@ -919,47 +928,119 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual(pv["preview"]["state"], "up", pv["preview"].get("tail"))
             self.assertEqual(pv["url"], "/pv/%s/" % t["key"])
 
-            def get(path, method="GET", data=None, headers=None):
+            def get(path, method="GET", data=None, headers=None, base=None):
                 class Keep(urllib.request.HTTPRedirectHandler):
                     def redirect_request(self, *a, **k):
                         return None
-                req = urllib.request.Request(self.base + path, method=method, data=data, headers=headers or {})
+                req = urllib.request.Request((base or self.base) + path, method=method, data=data, headers=headers or {})
                 try:
                     r = urllib.request.build_opener(Keep).open(req, timeout=20)
                     return r.status, r.headers, r.read().decode()
                 except urllib.error.HTTPError as e:
                     return e.code, e.headers, e.read().decode()
-            code, h, body = get(pv["url"], headers={"Cookie": "tmh_session=secret; theirs=1"})
+            key, url = t["key"], pv["url"]
+
+            def opened(path, base=None):  # follow the pass: /pv/<key>/__open?g=... becomes this preview's cookie
+                code, h, _ = get(path, base=base)
+                self.assertEqual(code, 303)
+                loc = h["Location"]
+                self.assertIn("/pv/%s/__open?g=" % key, loc)
+                code, h, _ = get(loc[loc.index("/pv/"):], base=base or loc[:loc.index("/pv/")] or None)
+                self.assertEqual((code, h["Location"]), (303, url))
+                return h["Set-Cookie"].split(";")[0], h["Set-Cookie"]
+
+            code, h, _ = get(url)
+            self.assertEqual(code, 303)  # logged in, no pass yet: one is issued
+            jar, cookie = opened(url)
+            self.assertIn("Path=%s" % url, cookie)
+            self.assertIn("SameSite=None; Secure", cookie)  # sandboxed pages count as another site: the pass must go with them
+            code, h, body = get(url, headers={"Cookie": "tmh_session=secret; theirs=1; " + jar})
             self.assertEqual(code, 200, body)
             self.assertIn("preview ok", body)
             self.assertIn("theirs=1", body)
             self.assertNotIn("secret", body)  # the platform's own login never reaches code nobody accepted yet
-            self.assertIn("Path=/pv/%s/" % t["key"], h["Set-Cookie"])  # its cookies cannot replace the platform's
-            code, h, body = get(pv["url"] + "form", "POST", b"a=1", {"Content-Type": "application/x-www-form-urlencoded"})
+            self.assertNotIn("tmh_pv", body)
+            self.assertIn("sandbox allow-scripts", h["Content-Security-Policy"])  # the browser runs it as an origin of its own
+            self.assertNotIn("allow-same-origin", h["Content-Security-Policy"])
+            self.assertIn("Path=%s" % url, h["Set-Cookie"])  # its cookies cannot replace the platform's
+            code, h, body = get(url + "form", "POST", b"a=1", {"Content-Type": "application/x-www-form-urlencoded", "Cookie": jar})
             self.assertIn("body=a=1", body)
-            code, h, _ = get(pv["url"] + "go")
-            self.assertEqual((code, h["Location"]), (302, "/pv/%s/done" % t["key"]))  # its redirects stay on the platform
-            code, _, _ = get("/api/projects", headers={"Referer": self.base + pv["url"]})
-            self.assertEqual(code, 403)  # a preview's page cannot drive the platform
+            code, h, _ = get(url + "go", headers={"Cookie": jar})
+            self.assertEqual((code, h["Location"]), (302, "/pv/%s/done" % key))  # its redirects stay on the platform
+            code, h, _ = get(url, "HEAD", headers={"Cookie": jar})
+            self.assertEqual(code, 200)
+            self.assertEqual(get(url, headers={"Cookie": "tmh_pv_%s=9999999999..%s" % (key, "0" * 32)})[0], 303)  # a forged pass is no pass
+            self.assertEqual(get(url.lower(), headers={"Cookie": jar})[0], 308)
+            self.assertEqual(get("/api/projects", headers={"Referer": self.base + url})[0], 403)
+            self.assertEqual(get("/")[1]["X-Frame-Options"], "DENY")  # no page may frame the platform
 
+            # the client: their link is the pass, for as long as it is the link to use
             link = signoff.issue(self.P, self.P.store.ticket(t["id"]), "tester", "王经理", "", 3, "测试：先看预览")
             self.assertIn("/sign/%s/pv/" % link["token"], signoff.sign_page(self.P, link["token"]))
-            code, h, _ = get("/sign/%s/pv/" % link["token"])
-            self.assertEqual((code, h["Location"]), (303, "/pv/%s/" % t["key"]))
-            self.assertIn("Path=/pv/%s/" % t["key"], h["Set-Cookie"])
+            cjar, _ = opened("/sign/%s/pv/" % link["token"])
+            code, _, body = get(url, headers={"Cookie": cjar})
+            self.assertIn("preview ok", body)
+            signoff.issue(self.P, self.P.store.ticket(t["id"]), "tester", "王经理", "", 3, "测试：换一个链接")
+            code, _, _ = get(url, headers={"Cookie": cjar})
+            self.assertEqual(code, 303)  # the replaced link no longer opens it (here a logged-in person is sent for a new pass)
+            self.assertEqual(get("/sign/%s/pv/" % link["token"])[0], 410)
 
-            pid = preview.status(self.data, t["key"])["pid"]
-            self.call("POST", "/api/tickets/%s/accept" % t["key"], {"result": "pass"})  # left 待验证: the preview goes
+            # an address of its own: another origin, and nothing of the platform there
+            from tmh.platform.server import make_preview_handler
+            pvs = ThreadingHTTPServer(("127.0.0.1", 0), make_preview_handler(self.P))
+            threading.Thread(target=pvs.serve_forever, daemon=True).start()
+            self.P.preview_port = pvs.server_address[1]
+            try:
+                code, h, _ = get(url)
+                self.assertTrue(h["Location"].startswith("http://127.0.0.1:%d/pv/" % self.P.preview_port), h["Location"])
+                ojar, _ = opened(url)
+                other = "http://127.0.0.1:%d" % self.P.preview_port
+                code, h, body = get(url, headers={"Cookie": ojar}, base=other)
+                self.assertEqual(code, 200, body)
+                self.assertIsNone(h["Content-Security-Policy"])  # no sandbox needed there
+                self.assertEqual(get("/api/projects", base=other)[0], 404)
+                self.assertEqual(get(url, headers={"Cookie": jar})[0], 303)  # and nothing is served on the platform's own address
+            finally:
+                self.P.preview_port = 0
+                pvs.shutdown()
+
+            # the app dies: the page says so instead of sending people to a dead preview
+            pid = preview.status(self.data, key)["pid"]
+            os.killpg(pid, 9)
             for _ in range(100):
-                if not preview.status(self.data, t["key"]):
+                if preview.status(self.data, key).get("state") == "failed":
                     break
                 time.sleep(0.1)
-            self.assertEqual(preview.status(self.data, t["key"]), {})
+            self.assertEqual(preview.status(self.data, key)["state"], "failed")
+            self.assertEqual(get(url, headers={"Cookie": jar})[0], 503)
+            for _ in range(100):  # the watcher records it and tidies the checkout away
+                if not (self.data / "previews" / key).exists():
+                    break
+                time.sleep(0.1)
+            self.assertFalse((self.data / "previews" / key).exists())
+
+            _, pv = self.call("POST", "/api/tickets/%s/preview" % key, {"action": "start"})
+            self.assertEqual(pv["preview"]["state"], "starting")
+            for _ in range(150):
+                if preview.status(self.data, key).get("state") == "up":
+                    break
+                time.sleep(0.1)
+            from unittest import mock
+            with mock.patch.dict(os.environ, {"TMH_TOKEN": "t", "ANTHROPIC_API_KEY": "k"}):
+                env = preview._env(1, "/pv/X-1")
+            self.assertFalse({"TMH_TOKEN", "ANTHROPIC_API_KEY"} & set(env))  # tools, not secrets
+            self.assertEqual((env["PORT"], env["HOST"]), ("1", "127.0.0.1"))
+            pid = preview.status(self.data, key)["pid"]
+            self.call("POST", "/api/tickets/%s/accept" % key, {"result": "pass"})  # left 待验证: the preview goes
+            for _ in range(100):
+                if not preview.status(self.data, key):
+                    break
+                time.sleep(0.1)
+            self.assertEqual(preview.status(self.data, key), {})
             time.sleep(0.3)
             self.assertFalse(preview._alive(pid))
-            self.assertFalse((self.data / "previews" / t["key"]).exists())
-            code, _, _ = get(pv["url"])
-            self.assertEqual(code, 503)
+            self.assertFalse((self.data / "previews" / key).exists())
+            self.assertEqual(get(url, headers={"Cookie": jar})[0], 503)
         finally:
             self.untrain()
             preview.set_conf(self.data, "PV", "")

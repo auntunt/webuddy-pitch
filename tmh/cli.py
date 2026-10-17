@@ -671,7 +671,8 @@ def cmd_serve(a) -> int:
     project = None
     if a.project or (_root(a) / ".tmh").is_dir():
         project = Path(a.project or a.repo).resolve()
-    return serve(Path(a.data).expanduser(), a.host, a.port, a.user or getpass.getuser(), project, a.key, a.open, a.brand or "")
+    return serve(Path(a.data).expanduser(), a.host, a.port, a.user or getpass.getuser(), project, a.key, a.open, a.brand or "",
+                 getattr(a, "preview_port", 0) or 0)
 
 
 def cmd_user(a) -> int:
@@ -821,6 +822,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--user", default="", help="默认用户名（网页里可改）")
     p.add_argument("--open", action="store_true", help="启动后打开浏览器")
     p.add_argument("--brand", help="界面上显示的产品名，例如 \"OA 闭环监控\"（默认“webuddy”，也可用环境变量 TMH_BRAND）")
+    p.add_argument("--preview-port", type=int, default=0, help="预览版本用的独立端口（另一个源，和平台完全隔开）；"
+                   "有反向代理给它起了名字时再设 TMH_PREVIEW_BASE=https://pv.example.com")
     p = add("user", cmd_user, "管理平台登录账号：add（新建或改密码）/ del / list；有账号后网页改为账号密码登录")
     p.add_argument("action", choices=["add", "del", "list"])
     p.add_argument("name", nargs="?", default="")
