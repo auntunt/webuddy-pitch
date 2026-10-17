@@ -115,3 +115,35 @@ class LessonCardsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SharingTest(unittest.TestCase):
+    setUp, card = LessonCardsTest.setUp, LessonCardsTest.card
+
+    def test_redact_takes_out_what_identifies_a_client(self):
+        t = learn.redact("连 jdbc:oracle:thin:@10.1.2.3:1521/ORCL 用 password=abc123 改 /opt/app/huaxin/conf/db.properties，"
+                         "找 zhang@corp.cn 或 13812345678，卡号 6222021234567890123，见 http://oa.corp.cn/x 华信OA", ["华信OA"])
+        for gone in ("10.1.2.3", "abc123", "huaxin", "zhang@", "13812345678", "6222021234567890123", "oa.corp.cn", "华信OA"):
+            self.assertNotIn(gone, t)
+        self.assertIn("db.properties", t)  # the file name stays: it says what kind of thing was wrong
+
+    def test_a_shared_card_reaches_other_projects_redacted_and_only_on_a_clear_match(self):
+        on = self.card(symptom="请假提交以后列表状态不刷新", cause="事务提交前就发了刷新事件", fix="把刷新放到事务提交之后")
+        prev = learn.share_preview(self.data, on["id"], ["OA"])
+        self.assertEqual(prev["fields"]["cause"], "事务提交前就发了刷新事件")
+        with self.assertRaises(ValueError):
+            learn.set_shared(self.data, on["id"], True, "li", fields={})
+        learn.set_shared(self.data, on["id"], True, "li", "提交后状态不刷新", dict(prev["fields"], fix="把刷新放到事务提交之后，见 http://wiki.x/1"))
+        sh = learn.shared(self.data, "TOG")
+        self.assertEqual([x["id"] for x in sh], [on["id"]])
+        self.assertNotIn("wiki.x", sh[0]["fix"])  # redacted again on the way out, whatever was typed
+        self.assertEqual((sh[0]["files"], sh[0]["ticket"]), ([], ""))
+        self.assertEqual(learn.shared(self.data, "OA"), [])  # its own project sees the card itself, not the copy
+        close = {"key": "TOG-1", "id": 101, "title": "审批提交以后列表状态不刷新", "body": "事务提交前刷新", "links": {}}
+        got = learn.relevant(self.data, "TOG", close)
+        self.assertEqual([l["id"] for l in got], [on["id"]])
+        self.assertIn("来自其他项目", learn.lessons_text(got))
+        far = {"key": "TOG-2", "id": 102, "title": "打印模板错位", "body": "金额栏偏移", "links": {}}
+        self.assertEqual(learn.relevant(self.data, "TOG", far), [])
+        learn.set_shared(self.data, on["id"], False, "li", why="客户不同意")
+        self.assertEqual(learn.shared(self.data, "TOG"), [])

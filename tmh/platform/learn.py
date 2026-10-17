@@ -109,7 +109,7 @@ def _append_log(data_dir: Path, rows: list) -> None:
 
 
 def _fold(lessons_: list, log: list) -> list:
-    by = {l["id"]: dict(l, status=l.get("status") or "active",
+    by = {l["id"]: dict(l, status=l.get("status") or "active", shared=None,
                         stats={"used": 0, "passed": 0, "failed": 0, "cited": 0, "last_used": "", "recent_passed": 0, "recent_failed": 0},
                         history=[]) for l in lessons_}
     for r in log:
@@ -129,6 +129,9 @@ def _fold(lessons_: list, log: list) -> list:
             if r["status"] == "active":  # a person confirmed or restored it: its record starts over
                 s["recent_passed"] = s["recent_failed"] = 0
             l["history"].append({k2: r.get(k2, "") for k2 in ("ts", "by", "status", "why")})
+        elif k == "share":  # a person shared it, as the reviewed redacted text, with the other projects (or took it back)
+            l["shared"] = {"by": r.get("by", ""), "ts": r.get("ts", ""), "fields": r.get("fields") or {}, "title": r.get("title", "")} if r.get("on") else None
+            l["history"].append({"ts": r.get("ts", ""), "by": r.get("by", ""), "status": "share" if r.get("on") else "unshare", "why": r.get("why", "")})
         elif k == "edit":
             l.update({f: str(v)[:800] for f, v in (r.get("fields") or {}).items() if f in FIELDS})
             l["history"].append({"ts": r.get("ts", ""), "by": r.get("by", ""), "status": "edit", "why": "改了" + "、".join(FIELD_LABEL[f] for f in r.get("fields") or {} if f in FIELDS)})
@@ -215,7 +218,87 @@ def relevant(data_dir: Path, project: str, ticket: dict, extra: str = "", limit:
         if s >= 1.5:
             scored.append((s, l))
     scored.sort(key=lambda x: -x[0])
-    return [l for _, l in scored[:limit]]
+    out = [l for _, l in scored[:limit]]
+    # at most one card shared from another project, on its words alone and only on a clear match: it was written
+    # about someone else's code, so it can only ever suggest a direction
+    if len(out) < limit:
+        best = None
+        for l in shared(data_dir, project):
+            if l["status"] != "active":
+                continue
+            lw = _grams(" ".join([l.get("title", "")] + [l.get(f) or "" for f in FIELDS]))
+            sc = 4 * len(words & lw) / math.sqrt(len(words) * len(lw)) if lw and words else 0
+            if sc >= 2.0 and (not best or sc > best[0]):
+                best = (sc, l)
+        if best:
+            out.append(best[1])
+    return out
+
+
+# ---------------------------------------------------------------- sharing across projects
+# A card belongs to its project. A person may share one with the other projects on this platform (often other
+# clients): what goes out is a redacted copy they read and edit first, never the code, the files or the ticket.
+REDACT = [
+    (re.compile(r"(?i)\b(password|passwd|pwd|secret|token|apikey|api_key|access_key)\s*[=:：]\s*\S+"), r"\1=［已隐去］"),
+    (re.compile(r"(?i)\bjdbc:[^\s'\"，。]+"), "［数据库连接］"),
+    (re.compile(r"(?i)\bhttps?://[^\s'\"，。）)]+"), "［链接］"),
+    (re.compile(r"[\w.+-]+@[\w-]+(\.[\w-]+)+"), "［邮箱］"),
+    (re.compile(r"\b\d{1,3}(\.\d{1,3}){3}(:\d+)?\b"), "［IP］"),
+    (re.compile(r"(?<!\d)\d{17}[\dXx](?!\d)"), "［证件号］"),
+    (re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)"), "［手机号］"),
+    (re.compile(r"(?<!\d)\d{12,19}(?!\d)"), "［长号码］"),
+    (re.compile(r"(?:[A-Za-z]:\\|/)(?:[\w.\-一-鿿]+[\\/])+([\w.\-一-鿿]+)"), r"…/\1"),  # paths keep only the file name
+]
+
+
+def redact(text: str, names: list | None = None) -> str:
+    """Take out what identifies a client or a system: secrets, connection strings, links, mail, IPs, ID and phone
+    numbers, long account numbers, directory names; plus any names given (the project's own name and key)."""
+    t = text or ""
+    for rx, rep in REDACT:
+        t = rx.sub(rep, t)
+    for n in sorted({n for n in names or [] if n and len(n) >= 2}, key=len, reverse=True):
+        t = t.replace(n, "［项目名］")
+    return t
+
+
+def share_preview(data_dir: Path, lid: str, names: list | None = None) -> dict:
+    l = lesson(data_dir, lid)
+    if not l:
+        raise ValueError("没有这条经验：" + lid)
+    src = {f: l.get(f) or "" for f in FIELDS}
+    if not any(src.values()) and l.get("note"):
+        src["fix"] = l["note"]
+    return {"title": redact(l.get("title", ""), names), "fields": {f: redact(v, names) for f, v in src.items() if v}}
+
+
+def set_shared(data_dir: Path, lid: str, on: bool, by: str, title: str = "", fields: dict | None = None, why: str = "") -> dict:
+    l = lesson(data_dir, lid)
+    if not l:
+        raise ValueError("没有这条经验：" + lid)
+    if on:
+        if l["status"] != "active":
+            raise ValueError("只有在用的经验能共享")
+        fields = {f: redact(str(v).strip()[:800]) for f, v in (fields or {}).items() if f in FIELDS and str(v).strip()}
+        if not fields:
+            raise ValueError("共享内容是空的")
+        _append_log(data_dir, [{"kind": "share", "id": lid, "on": True, "by": by, "title": redact(title.strip()[:120]), "fields": fields,
+                                "why": "共享给其他项目"}])
+    else:
+        _append_log(data_dir, [{"kind": "share", "id": lid, "on": False, "by": by, "why": (why or "收回共享").strip()[:300]}])
+    return lesson(data_dir, lid)
+
+
+def shared(data_dir: Path, exclude_project: str = "") -> list:
+    """The shared cards, as other projects see them: the redacted copy and the track record, nothing else."""
+    out = []
+    for l in lessons(data_dir, "", 100000):
+        sh = l.get("shared")
+        if not sh or l.get("project") == exclude_project:
+            continue
+        out.append(dict({f: sh["fields"].get(f, "") for f in FIELDS}, id=l["id"], title=sh.get("title") or "", kind=l.get("kind"),
+                        status=l["status"], stats=l["stats"], foreign=True, ticket="", files=[], diff="", note=""))
+    return out
 
 
 def note_used(data_dir: Path, ticket: dict, ls: list, mode: str) -> None:
@@ -268,7 +351,8 @@ def lessons_text(ls: list) -> str:
     for l in ls:
         st = l.get("stats") or {}
         track = "（用过 %d 次，之后通过验收 %d 次）" % (st["passed"] + st["failed"], st["passed"]) if st.get("passed", 0) + st.get("failed", 0) else ""
-        out.append("- %s %s %s「%s」%s" % (l["id"], l.get("ticket", ""), KIND.get(l.get("kind"), l.get("kind", "")), l.get("title", "")[:60], track))
+        out.append("- %s %s %s「%s」%s%s" % (l["id"], l.get("ticket", ""), KIND.get(l.get("kind"), l.get("kind", "")), l.get("title", "")[:60], track,
+                                          "（来自其他项目、已脱敏：只当思路，代码以本项目为准）" if l.get("foreign") else ""))
         if l.get("note"):
             out.append("  " + l["note"].strip()[:400])
         for f in FIELDS:

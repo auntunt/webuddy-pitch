@@ -1535,9 +1535,20 @@ def api_learn(P, req, key):
            "count": t["links"]["alert"].get("count", 1), "source": t["links"]["alert"].get("source", "")}
           for t in P.store.tickets(project_id=p["id"], limit=2000) if (t.get("links") or {}).get("alert")][:30]
     ls = learn.lessons(P.data_dir, p["key"], 500)
-    return {"lessons": ls[:80], "lesson_summary": learn.summary(ls), "cases": learn.cases(P.data_dir, p["key"]),
+    return {"lessons": ls[:80], "lesson_summary": learn.summary(ls), "shared_in": learn.shared(P.data_dir, p["key"])[:40], "cases": learn.cases(P.data_dir, p["key"]),
             "batches": learn.batches(P.data_dir, p["key"]), "running": learn.RUNNING.get(p["key"], ""),
             "alerts": dict(alerts.status(P.data_dir, p["key"]), tickets=al), "refix": P.flow.autoflow().get("refix")}
+
+
+@route("GET", "/api/projects/<key>/lessons/<lid>/share")
+def api_lesson_share_preview(P, req, key, lid):
+    """What would go out if this card were shared: the redacted text, for the person to read and edit first."""
+    from . import learn
+    p = P.project(key)
+    cur = learn.lesson(P.data_dir, lid)
+    if not cur or cur.get("project") != p["key"]:
+        raise ApiError(404, "没有这条经验")
+    return learn.share_preview(P.data_dir, lid, [p["key"], p.get("name", "")])
 
 
 @route("POST", "/api/projects/<key>/lessons/<lid>")
@@ -1551,13 +1562,16 @@ def api_lesson(P, req, key, lid):
     try:
         if b.get("fields") and not isinstance(b["fields"], dict):
             raise ValueError("fields 要是 {字段: 内容}")
-        if b.get("fields"):
+        if b.get("fields") and b.get("action") not in ("share", "unshare"):
             cur = learn.edit_lesson(P.data_dir, lid, b["fields"], req.user)
         act = b.get("action") or ""
+        if act in ("share", "unshare"):  # to the other projects on this platform: the redacted copy the person read
+            return learn.set_shared(P.data_dir, lid, act == "share", req.user, b.get("title") or "", b.get("fields") if isinstance(b.get("fields"), dict) else {},
+                                    b.get("why") or "")
         if act:
             st = {"confirm": "active", "restore": "active", "retire": "retired"}.get(act)
             if not st:
-                raise ValueError("action 只能是 confirm、restore、retire")
+                raise ValueError("action 只能是 confirm、restore、retire、share、unshare")
             if act == "retire" and not (b.get("why") or "").strip():
                 raise ValueError("停用要写原因")
             cur = learn.set_status(P.data_dir, lid, st, req.user, b.get("why") or {"confirm": "确认入库", "restore": "恢复使用"}.get(act, ""))
