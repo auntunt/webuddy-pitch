@@ -28,7 +28,7 @@ from .. import evidence as ev
 from . import gates as G
 from .errors import ApiError
 
-AGENTS = ("自动流转", "system", "告警", "agent", "智能体")
+AGENTS = ("自动流转", "system", "告警", "agent", "智能体", "我来写")
 CODE_EXT = (".java", ".cs", ".vb", ".go", ".kt", ".scala", ".py", ".xml", ".sql", ".js", ".ts", ".vue", ".jsx", ".tsx", ".jsp", ".html")
 TEST_PATH = re.compile(r"(^|/)(src/test|tests?|__tests__|spec)/|(Tests?|Spec|IT)\.(java|cs|kt)$|(_test\.go|\.spec\.[jt]sx?|\.test\.[jt]sx?)$")
 IMAGE = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}

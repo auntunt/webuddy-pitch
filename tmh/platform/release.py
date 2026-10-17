@@ -96,6 +96,9 @@ def _gitdir(root: Path) -> Path:
 
 def unsettled(P, t: dict, ad: dict) -> str:
     """Why the adopted change is not the one to ship now, or "": a newer attempt is running or waiting for review."""
+    from . import handwork
+    if handwork.busy(t["key"]):
+        return "这张工单有一次人工提交正在检查，等它定下来再合并"
     fixes = [r for r in P.store.runs(ticket_id=t["id"]) if r["mode"] == "fix"]
     if any(r["status"] in ("queued", "running") for r in fixes):
         return "这张工单还有一次修改正在进行，等它定下来再合并"

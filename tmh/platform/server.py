@@ -2594,7 +2594,11 @@ def make_handler(P: Platform, token: str = ""):
                         f = handwork.bundle(P, P.project(m.group(1).upper()))
                     except ApiError as e:
                         return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
-                    return self._send(200, f.read_bytes(), "application/octet-stream",
+                    try:
+                        data = f.read_bytes()
+                    finally:
+                        f.unlink(missing_ok=True)
+                    return self._send(200, data, "application/octet-stream",
                                       {"Content-Disposition": "attachment; filename=\"%s.bundle\"" % m.group(1).upper()})
                 m = re.match(r"^/p/([^/]+)/report/(.*)$", path)
                 if m:
