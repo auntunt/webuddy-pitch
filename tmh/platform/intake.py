@@ -301,6 +301,7 @@ def confirm(P, sid: str, by: str, items: list | None = None) -> dict:
             len(it["ac"]), "，%d 条待确认" % len([a for a in it["ac"] if a["open"]]) if any(a["open"] for a in it["ac"]) else ""))
         it["ticket"] = t["key"]
         made.append(t["key"])
+        P.flow.submit(p, P.store.ticket(t["id"]))  # like any new ticket: the line picks it up (or says why it waits)
     if not made:
         raise ApiError(409, "没有要建单的事：咨询类已经直接答复")
     s["tickets"] += made

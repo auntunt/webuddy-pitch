@@ -206,6 +206,7 @@ class Orchestra:
                     self.store.event(t["id"], self.BY, "flow", "验收结果没能通知到%s（%s）" % (getattr(fn, "app", "应用"), e))
             return out
         if passed:
+            out["release"] = self._ship(p, t, conf, by)
             return tell()
         if not conf.get("on") or self.held(t["id"]):
             return tell("有人接手，不自动重改" if conf.get("on") else "自动处理没开，不自动重改")
@@ -225,6 +226,30 @@ class Orchestra:
         self._flow_fix(p, t["id"], conf, agent, base)
         out["refix"] = True
         return tell()
+
+    def _ship(self, p: dict, t: dict, conf: dict, by: str) -> dict:
+        """Accepted: merge the change into the main line and give it a version. A conflict goes back to the agent to
+        redo on the current main line; anything else that stops the merge is said on the ticket for a person."""
+        from . import release
+        try:
+            r = release.ship(self, p, t, by)
+        except Exception as e:  # noqa: BLE001 - the verdict stands whatever happens to the merge
+            r = {"state": "waiting", "why": "合并时出错：%s" % e}
+        st = self.store
+        if r["state"] == "merged":
+            st.event(t["id"], self.BY, "release", "已合并进主干 %s，版本 %s（提交 %s）" % (r["main"], r["version"], r["commit"]),
+                     {"version": r["version"], "tag": r["tag"], "commit": r["commit"]})
+        elif r["state"] == "conflict":
+            agent = self._flow_agent(conf) if conf.get("on") else ""
+            st.update_ticket(t["id"], self.BY, status="doing")
+            if agent:
+                st.event(t["id"], self.BY, "flow", "验收通过了，但%s。交回智能体在最新的主干上重做这次改动，做完再验收" % r["why"])
+                self._flow_fix(p, t["id"], conf, agent, "")
+            else:
+                st.event(t["id"], self.BY, "flow", "验收通过了，但%s，需要有人在最新的主干上重做或手动合并分支 %s" % (r["why"], r["branch"]))
+        elif r["state"] == "waiting":
+            st.event(t["id"], self.BY, "flow", "验收通过了，还没合并进主干：%s" % r["why"])
+        return r
 
     def recheck(self, rid: int, by: str, wait: bool = False) -> dict:
         """Build a finished change again without redoing it (after the build setup was fixed, say). In the background

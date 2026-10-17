@@ -158,6 +158,8 @@ class PlatformApiTest(unittest.TestCase):
                                                           "writer": {"cmd": [sys.executable, str(writer), "{mode}", "{prompt_file}", str(HERE.parent)]}}),
                                               encoding="utf-8")
         (cls.data / "autoflow.json").write_text('{"on": false}', encoding="utf-8")  # tests drive runs by hand unless they turn it on
+        from tmh.platform import release
+        release.MERGE = "off"  # the shared test repo stays as it is; the release test turns merging on for its own project
         cls.P = Platform(cls.data, "tester")
         cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(cls.P))
         cls.base = "http://127.0.0.1:%d" % cls.httpd.server_address[1]
@@ -165,6 +167,8 @@ class PlatformApiTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        from tmh.platform import release
+        release.MERGE = "auto"
         cls.httpd.shutdown()
 
     def call(self, method, path, body=None, headers=None):
@@ -758,6 +762,69 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         code, d = self.call("POST", "/api/runs/%d/decide" % r["id"], {"decision": "accept"})
         self.assertEqual(code, 200, d)
         return t, d["decision"].split(":", 1)[1].split("@")[0]
+
+    def test_an_accepted_change_is_merged_given_a_version_and_a_conflict_goes_back(self):
+        from tmh.platform import release
+        self.team()
+        repo = git_repo(JAVA)
+        kb.build(repo)
+        from tmh import config as cfgmod
+        cfg = cfgmod.load(repo)
+        cfg["commands"]["test"] = "%s -c pass" % sys.executable
+        cfgmod.save(repo, cfg)
+        subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "kb"], check=True)
+        self.call("POST", "/api/projects", {"key": "SHIP", "name": "发版", "root": str(repo)})
+        conf = json.loads((self.data / "autoflow.json").read_text(encoding="utf-8"))
+        (self.data / "autoflow.json").write_text(json.dumps(dict(conf, merge="auto")), encoding="utf-8")
+
+        def fixed(title):
+            _, t = self.call("POST", "/api/tickets", {"project": "SHIP", "title": title, "body": "提交后状态没变", "auto": False})
+            for mode in ("plan", "fix"):
+                _, r = self.call("POST", "/api/tickets/%s/runs" % t["key"], {"agent": "team", "mode": mode})
+                r = self.wait_run(r["id"])
+            _, d = self.call("POST", "/api/runs/%d/decide" % r["id"], {"decision": "accept"})
+            return t, d["decision"].split(":", 1)[1].split("@")[0]
+
+        def git_(*a):
+            return subprocess.run(["git", "-C", str(repo)] + list(a), capture_output=True, text=True).stdout.strip()
+        try:
+            t, branch = fixed("请假审批提交后状态不刷新")
+            head = git_("rev-parse", "HEAD")
+            code, _ = self.call("POST", "/api/tickets/%s/accept" % t["key"], {"result": "pass"})
+            self.assertEqual(code, 200)
+            ev = [e for e in self.P.store.events(t["id"]) if e["kind"] == "release"]
+            self.assertEqual(len(ev), 1, self.P.store.events(t["id"])[-1])
+            self.assertEqual(git_("rev-parse", "HEAD^1"), head)  # a merge commit on the main line, nothing rewritten
+            self.assertIn("Ticket: " + t["key"], git_("log", "-1", "--format=%B"))
+            self.assertEqual(git_("branch", "--list", branch), "")  # merged branches are tidied away
+            rel = release.releases(self.data, "SHIP")
+            self.assertEqual((len(rel), rel[0]["tickets"][0]["key"]), (1, t["key"]))
+            self.assertIn(rel[0]["tag"], git_("tag"))
+            self.assertEqual(self.P.store.ticket(t["id"])["status"], "closed")
+
+            # someone changed the same lines on the main line meanwhile: nothing half-merged, the ticket goes back
+            t2, b2 = fixed("请假审批提交后状态还是不刷新")
+            svc = repo / SVC
+            svc.write_text(svc.read_text(encoding="utf-8") + "// 主干上别人的改动\n", encoding="utf-8")  # the agent appends there too
+            git_("-c", "user.name=w", "-c", "user.email=w@x", "commit", "-qam", "主干上别人的改动")
+            head = git_("rev-parse", "HEAD")
+            self.call("POST", "/api/tickets/%s/accept" % t2["key"], {"result": "pass"})
+            last = self.P.store.events(t2["id"])[-1]
+            self.assertEqual(git_("rev-parse", "HEAD"), head)
+            self.assertEqual(git_("status", "--porcelain", "--untracked-files=no"), "")  # no half-done merge left behind
+            self.assertIn("冲突", last["body"])
+            self.assertEqual(self.P.store.ticket(t2["id"])["status"], "doing")
+            self.assertIn(b2, last["body"])  # automatic handling is off here: a person is told which branch
+
+            # uncommitted work in the checkout: no merge, and the ticket says why
+            t3, _ = fixed("请假提交后列表状态不对")
+            (repo / "notes.txt").write_text("x", encoding="utf-8")
+            git_("add", "notes.txt")
+            self.call("POST", "/api/tickets/%s/accept" % t3["key"], {"result": "pass"})
+            self.assertIn("没提交", self.P.store.events(t3["id"])[-1]["body"])
+        finally:
+            self.untrain()
 
     def test_a_change_beyond_the_plan_is_flagged_and_left_to_a_person(self):
         self.team()
@@ -1855,8 +1922,11 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertFalse(bug["ac"][0]["open"])
         self.assertTrue(feat["ac"][0]["open"])  # "不清楚" stays 待确认
         self.assertEqual(self.call("POST", "/api/intake/%s" % s["id"], {"action": "answer", "answers": {"9": {"trigger": "x"}}})[0], 400)
-        code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})
+        from unittest import mock
+        with mock.patch.object(self.P.flow, "submit") as sub:
+            code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})
         self.assertEqual((code, len(s["tickets"]), s["state"]), (200, 2, "confirmed"), s)
+        self.assertEqual(sorted(c.args[1]["key"] for c in sub.call_args_list), sorted(s["tickets"]))  # straight onto the line
         _, t = self.call("GET", "/api/tickets/%s" % s["tickets"][0])
         self.assertEqual(t["ticket"]["type"], "bug")
         self.assertIn("验收标准", t["ticket"]["body"])

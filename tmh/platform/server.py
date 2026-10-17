@@ -1919,6 +1919,15 @@ def api_testbox(P, req):
     return {"conf": testbox.settings(P.data_dir), "last": last}
 
 
+@route("GET", "/api/projects/<key>/releases")
+def api_releases(P, req, key):
+    """Versions that went out: what each merged into the main line, newest first ("*": every project)."""
+    from . import release
+    if key != "*":
+        P.project(key)
+    return {"releases": release.releases(P.data_dir, "" if key == "*" else key.upper(), 20), "merge": release.settings(P.data_dir)["merge"]}
+
+
 @route("GET", "/api/readiness")
 def api_readiness(P, req):
     """上线体检: what on this machine would let a pilot down, each with its next step."""

@@ -365,4 +365,6 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 .rdi{width:1.4em;text-align:center;font-weight:700;flex:none}.rdy.ok .rdi{color:var(--ok)}.rdy.warn .rdi{color:var(--warn)}.rdy.bad .rdi{color:var(--bad)}
 .rdf{font-size:13px;margin-top:2px}
 .tag.bad{background:var(--bad-s);color:var(--bad);border-color:#F5C2C3}
+/* 最近出的版本 */
+.rel{margin-bottom:14px}.relr{display:flex;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line);flex-wrap:wrap}.relr .grow{overflow-wrap:anywhere}
 """

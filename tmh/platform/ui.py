@@ -184,7 +184,7 @@ async function vHome(){
   if(!L.total){$('#main').innerHTML=firstRun(L);poll(async()=>{if(!$('#first'))return;try{const n=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop');if(n.total||n.kb_built!==L.kb_built)vHome()}catch(e){}},15000,'page');return}
   const gc=['#52C41A','#4096FF','#9254DE','#36CFC9'];
   const ic=(bg,svg)=>`<div class="ic" style="background:${bg}"><svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg></div>`;
-  $('#main').innerHTML=`<div id="inbox"></div><div class="band"><div class="gauges">${L.metrics.map((m,i)=>`<div class="gauge">${gaugeSvg(m.pct,gc[i])}<div style="min-width:0"><div class="gl">${h(m.label)}</div><div class="gs">${h(m.sub)}</div></div></div>`).join('')}</div>
+  $('#main').innerHTML=`<div id="inbox"></div><div id="rels"></div><div class="band"><div class="gauges">${L.metrics.map((m,i)=>`<div class="gauge">${gaugeSvg(m.pct,gc[i])}<div style="min-width:0"><div class="gl">${h(m.label)}</div><div class="gs">${h(m.sub)}</div></div></div>`).join('')}</div>
    <div class="caps"><div class="cap" data-sel="open">${ic('#1677FF','<path d="M2-10l-8 12h7l-2 8 8-12h-7z"/>')}<div><b>${L.open}</b><span>流转中</span></div></div>
     <div class="cap" data-sel="failed">${ic('#F5222D','<circle r="9"/><path d="M-3.5-3.5l7 7M3.5-3.5l-7 7"/>')}<div><b>${L.failed}</b><span>失败</span></div></div>
     <div class="cap" data-sel="closed">${ic('#52C41A','<circle r="9"/><path d="M-4 0l3 3 5.5-6"/>')}<div><b>${L.closed}</b><span>已关闭</span></div></div>
@@ -194,7 +194,7 @@ async function vHome(){
   <div class="viewbar"><div class="seg"><button data-v="ring" class="${S.home.view==='ring'?'on':''}">闭环视图</button><button data-v="board" class="${S.home.view==='board'?'on':''}">列表看板</button></div><span class="grow"></span><span class="sub">最后更新 ${new Date().toTimeString().slice(0,8)}</span><button id="hRef">刷新</button></div>
   <div id="hView"></div><div id="hList" style="margin-top:14px"></div>`;
   document.querySelectorAll('.viewbar .seg button').forEach(b=>b.onclick=()=>{S.home.view=b.dataset.v;vHome()});
-  $('#hRef').onclick=()=>vHome();
+  $('#hRef').onclick=()=>vHome();rels();
   if($('#catchUp'))$('#catchUp').onclick=async()=>{try{const r=await post('/api/projects/'+encodeURIComponent(scopeQ())+'/catchup',{});toast(`已交给自动处理 ${r.queued} 张，按顺序开始`);vHome()}catch(e){toast(e.message)}};
   document.querySelectorAll('.cap').forEach(c=>c.onclick=()=>homeList(c.dataset.sel,ts));
   if(S.home.view==='ring'){$('#hView').innerHTML=ringSvg(L)+'<div class="ringhint">点击环上的数字看该节点的工单，再点单条工单看详情</div>';
@@ -403,10 +403,10 @@ function nextAction(d,f){
   if(auto&&d.auto_next&&!f.live&&!(d.events.slice(-1)[0]||{}).body?.startsWith('交给自动处理'))return {tone:'info',text:`这张工单还没走自动处理（自动处理只接新进来的工单）。交给它后从“${{analyze:'分析定位',plan:'修改方案',fix:'修改代码',commit:'提交改动'}[d.auto_next]}”接着做，停在等你验收。`,btns:B('naGo','交给自动处理','primary')+'<button class="ghost" data-hold="1">我自己处理</button>'};
   if(auto&&['new','analyzing'].includes(t.status)&&!f.an)return {tone:'info',text:'<span class="spin"></span> 已自动受理，智能体马上开始分析定位，之后会自动出方案、改代码并提交到独立分支，停在等你验收。',btns:'<button class="ghost" data-hold="1">接管</button>'};
   if(t.status==='closed')return {tone:'ok',text:`已闭环${f.acc&&f.acc.kind==='accept'?'：'+h(f.acc.author)+' 验收通过':''}。`,btns:B('naReopen','重新打开','ghost')};
-  if(t.status==='verify')return {tone:'warn',text:(f.fx&&f.fx.verify?vfy(f.fx)+' ':'')+(br?`改动${br.auto?'已自动':'已'}提交到分支 <code>${h(br.branch)}</code>（提交 ${h(br.commit)}，主干没动）。合并后`:'改动已就绪，')+'<b>等你验收</b>：按业务操作实际验证，通过就闭环，不通过写明原因退回处理中。',acc:true};
+  if(t.status==='verify')return {tone:'warn',text:(f.fx&&f.fx.verify?vfy(f.fx)+' ':'')+(br?`改动${br.auto?'已自动':'已'}提交到分支 <code>${h(br.branch)}</code>（提交 ${h(br.commit)}，主干还没动）。`:'改动已就绪，')+'<b>等你验收</b>：按业务操作实际验证。通过后自动合并进主干、出一个新版本；不通过写明原因，退回重改。',acc:true};
   if(f.fx&&f.fx.status==='done'&&!f.fx.decision&&f.fx.diff!==''){const why=d.events.filter(e=>e.kind==='flow'&&(e.data||{}).run===f.fx.id).pop();
     return {tone:'warn',text:vfy(f.fx)+(why?h(why.body.replace(/^改动已生成，/,'').replace(/，留给人审阅后再提交$/,''))+'，所以没有自动提交。':'智能体改好了代码，')+'<b>等你审阅</b>。采纳后提交到独立分支，不动你的工作目录。',btns:B('naReview','审阅改动','primary')}}
-  if(f.fx&&f.fx.decision&&f.fx.decision.startsWith('accepted'))return {tone:'info',text:`改动已提交到分支 <code>${h(f.fx.decision.slice(9).split('@')[0])}</code>。合并后转给验收人。`,btns:B('naVerify','转待验证','primary')};
+  if(f.fx&&f.fx.decision&&f.fx.decision.startsWith('accepted'))return {tone:'info',text:`改动已提交到分支 <code>${h(f.fx.decision.slice(9).split('@')[0])}</code>。转给验收人，验收通过后自动合并进主干。`,btns:B('naVerify','转待验证','primary')};
   if(f.pl&&f.pl.status==='done')return {tone:'info',text:'修改方案已经出来了（见下方结论）。下一步是改代码：可以交给智能体，也可以自己改完转待验证。',btns:B('naFix','让智能体改代码'+cost('fix'),'primary')+B('naVerify','我自己改，改完转待验证','ghost')};
   if(f.an&&f.an.status==='done')return {tone:'info',text:d.evidence.refs?`已定位到 ${d.evidence.refs} 处代码。下一步：起草修改方案，确认改法后再动代码。`:'分析没有找到代码证据，先在讨论里补充信息（单据号、截图、报错），再重新分析。',btns:d.evidence.refs?B('naPlan','起草修改方案'+cost('plan'),'primary')+B('naFix','直接改代码'+cost('fix'),'ghost'):B('naAn','重新分析定位'+cost('analyze'),'primary')};
   if(f.an&&f.an.status==='failed')return {tone:'bad',text:'上一次分析定位失败了（原因见执行记录）。',btns:B('naAn','重新分析定位'+cost('analyze'),'primary')+B('naLog','看失败原因','ghost')};
@@ -566,7 +566,7 @@ async function promptPane(t,scene){
 function mrBlock(d){
   const f=d.runs.find(r=>r.mode==='fix');if(!f)return '';
   const dec=f.decision||'';let st,msg;
-  if(dec.startsWith('accepted')){const [br,sha]=dec.slice(9).split('@');st='<span class="ev-tag ok">已提交到分支</span>';msg=`分支 <code>${h(br)}</code>，提交 <code>${h(sha||'')}</code>。合并到主干由人完成，合并后把工单改为“待验证”。`}
+  if(dec.startsWith('accepted')){const [br,sha]=dec.slice(9).split('@');st='<span class="ev-tag ok">已提交到分支</span>';msg=`分支 <code>${h(br)}</code>，提交 <code>${h(sha||'')}</code>。验收通过后自动合并进主干；如果主干上后来的改动和它冲突，会交回智能体重做。`}
   else if(dec==='discarded'){st='<span class="ev-tag mute">已放弃</span>';msg='这次改动已放弃，工作树和分支已删除。'}
   else if(f.status==='done'){st='<span class="ev-tag warn">待人工审阅</span>';msg=`在“执行过程”里看 #${f.id} 的代码改动，采纳后提交到独立分支，不会动你的工作目录。`}
   else{st=`<span class="ev-tag ${f.status==='failed'?'bad':'info'}">${{failed:'修改失败',running:'修改中',queued:'排队',cancelled:'已取消'}[f.status]||f.status}</span>`;msg=`运行 #${f.id}`}
@@ -613,7 +613,7 @@ async function showRun(rid,inline){
     let body='';
     if(r.result&&!live)body+=`<div class="tabs"><button class="on" data-tab="res">结论</button>${r.diff?'<button data-tab="diff">代码改动</button>':''}<button data-tab="log">过程</button></div><div data-pane="res">${md(r.result)}</div>${r.diff?`<div data-pane="diff" hidden>${diffHtml(r.diff)}</div>`:''}<div data-pane="log" hidden><pre class="log">${h(S.logs[r.id]||'')}</pre></div>`;
     else body+=`<pre class="log" id="log${r.id}">${h(S.logs[r.id]||'')}</pre>`;
-    if(r.mode==='fix'&&!live){if(r.decision)body+=`<div class="hint">${r.decision.startsWith('accepted')?'已采纳：'+h(r.decision.slice(9))+'。合并这个分支到主干后，把工单改为“待验证”或“已关闭”。':'已放弃这次改动。'}</div>`;
+    if(r.mode==='fix'&&!live){if(r.decision)body+=`<div class="hint">${r.decision.startsWith('accepted')?'已采纳：'+h(r.decision.slice(9))+'。把工单转为“待验证”，验收通过后自动合并进主干。':'已放弃这次改动。'}</div>`;
       else if(r.diff)body+=`<div class="row" style="margin-top:8px"><button class="primary" onclick="decide(${r.id},'accept')">采纳改动（提交到分支）</button><button class="danger" onclick="decide(${r.id},'discard')">放弃</button><button onclick="recheck(${r.id})" title="不改代码，只把这次的改动重新构建一遍（例如测试机修好以后）">重新验证</button><span class="sub">工作树：${h(r.workdir)}</span></div>`}
     return head+body};
   S.logs=S.logs||{};S.logs[rid]='';
@@ -1267,6 +1267,10 @@ async function vSettings(){
   <div class="card"><h2>数据</h2><div class="sub">工单、讨论和运行记录都在 <code>${h(S.meta.data_dir)}/platform.db</code>（SQLite），修改代码用的工作树在 <code>worktrees/</code>。备份这个目录即可。</div></div></div>`;
   $('#us').onclick=()=>{S.user=$('#un').value.trim();try{localStorage.setItem('tmh.user',S.user)}catch(e){}$('#me').textContent='当前用户：'+S.user;toast('已保存')};
   testbox();readiness()}
+// ---------- versions that went out: the end of the line a client cares about
+async function rels(){const el=$('#rels');if(!el)return;let d;try{d=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/releases')}catch(e){return}
+  if(!d.releases.length)return;const r=d.releases.slice(0,3);
+  el.innerHTML=`<div class="card rel"><div class="hdr" style="margin-bottom:4px"><h2 class="grow" style="margin:0">最近出的版本</h2><span class="sub">验收通过后自动合并进主干</span></div>${r.map(x=>`<div class="relr"><b class="key">${h(x.project)} ${h(x.version)}</b><span class="grow" style="min-width:0">${x.tickets.map(k=>`<a href="#/t/${h(k.key)}">${h(k.key)}</a> ${h(k.title)}`).join('；')}</span><span class="sub">${ago(x.ts)} · ${h(x.commit)}</span></div>`).join('')}</div>`}
 // ---------- 上线体检: the real state of this machine, worst first, each with what to do
 async function readiness(){
   const el=$('#rdy');if(!el)return;let r;try{r=await get('/api/readiness')}catch(e){el.innerHTML='<h2>上线体检</h2><div class="sub">'+h(e.message)+'</div>';return}
