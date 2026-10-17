@@ -288,7 +288,7 @@ def cmd_evidence_verify(a) -> int:
     if a.hash and len(a.hash.strip()) < ev.MIN_ANCHOR:
         print("--hash 太短：请填签收页上显示的完整哈希（至少前 %d 位）。太短的前缀，改过记录的人可以凑出来。" % ev.MIN_ANCHOR)
         return 2
-    verdict, notes = ev.verify_statement(st, a.hash or "")
+    verdict, notes = ev.verify_statement(st, a.hash or "", a.key or "")
     for i, n in enumerate(notes):
         print(("✗ " if verdict == "bad" and i == len(notes) - 1 else "! " if verdict == "consistent" and i == len(notes) - 1 else "✓ ") + n)
     summ = (st.get("predicate") or {}).get("summary") or {}
@@ -823,6 +823,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = add("evidence-verify", cmd_evidence_verify, "离线核对导出的证据包（<工单>.intoto.json）：哈希链、摘要、你记下的哈希")
     p.add_argument("file")
     p.add_argument("--hash", help="签收页上显示的记录哈希（至少前 32 位，最好整串）")
+    p.add_argument("--key", help="乙方公布的证据签名公钥指纹（SHA256:...），给了就要求签名出自这把钥匙")
     p = add("offline-pack", cmd_offline_pack, "打内网离线安装包（工具、模板、技能、子代理、信创知识库，带 sha256 清单）")
     p.add_argument("--out", help="输出的 zip 路径（默认 tmh-offline-<版本>.zip）")
     p.add_argument("--verify", help="校验一个离线包，不打包")

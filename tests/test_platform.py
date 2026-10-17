@@ -1938,8 +1938,16 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
                 r["hash"] = ev.digest(r)
                 prev = r["hash"]
             forged["subject"][0]["digest"]["sha256"] = prev
+            self.assertEqual(ev.verify_statement(forged)[0], "bad")  # the provider's signature no longer fits
+            forged.pop("signature", None)  # a forger drops it: holds together, but unsigned and not anchored
             self.assertEqual(ev.verify_statement(forged)[0], "consistent")
             self.assertEqual(ev.verify_statement(forged, kept)[0], "bad")
+            from tmh import sign
+            if sign.backend():  # signed by the platform's own key, whose fingerprint the package page shows
+                fp = stmt["signature"]["fingerprint"]
+                self.assertEqual(ev.verify_statement(stmt, kept, fp)[0], "anchored")
+                with urllib.request.urlopen(self.base + "/e/%s" % t["key"]) as r:
+                    self.assertIn(fp, r.read().decode("utf-8"))
             code, ln = self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "link", "signer": "周敏", "role": "人事业务负责人"})
             self.assertEqual(code, 200, ln)
             with urllib.request.urlopen(self.base + ln["path"]) as resp:

@@ -480,7 +480,8 @@ def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
         body.append("<div class=seal><b class=ok>%s</b><div class=sub>%s · 记录哈希 <code>%s</code></div></div>" % (
             "已签收，谢谢" if done["action"] == "sign" else "已退回，乙方会按您写的原因处理", E(done["ts"]), E(done["hash"])))
         body.append("<p class=sub>请把上面这串哈希抄下或截图留存。<a href=\"/sign/%s/package.intoto.json\">下载证据包</a>自己保存；"
-                    "日后用 <code>tmh evidence-verify 文件 --hash 这串哈希</code> 可以独立核对，签收时看到的记录有没有被改过。</p>" % E(token))
+                    "日后用 <code>tmh evidence-verify 文件 --hash 这串哈希</code> 可以独立核对，签收时看到的记录有没有被改过。%s</p>" % (E(token),
+                    "证据包由乙方签名，签名公钥指纹 <code>%s</code>，也请一并留存。" % E(signer_fingerprint(P)) if signer_fingerprint(P) else ""))
     if msg:
         body.append("<p class=bad>%s</p>" % E(msg))
     if snap["ticket"]["body"]:
@@ -529,7 +530,9 @@ def package_page(P, key: str) -> str:
         return ev.page(title, "".join(body))
     body.append("<p class=sub><a href=\"/e/%s.intoto.json\">下载证据包（in-toto 格式）</a>，交给甲方留存（含代码路径和检查命令，不要外传）。"
                 "甲方用 <code>tmh evidence-verify %s.intoto.json --hash 签收时记下的完整哈希</code> 离线核对：那条记录和它之前的都没被改过。"
-                "不带 --hash 只能说明文件自身一致，证明不了没被改。</p>" % (E(t["key"]), E(t["key"])))
+                "不带 --hash 只能说明文件自身一致，证明不了没被改。%s</p>" % (E(t["key"]), E(t["key"]),
+                "导出的文件带乙方签名，公钥指纹 <code>%s</code>，把它告诉甲方，核对时加 <code>--key</code>。" % E(signer_fingerprint(P)) if signer_fingerprint(P)
+                else "这台服务器上没有签名工具（Python cryptography 包或 ssh-keygen），导出的文件不带签名。"))
     body.append("<h2>缺项</h2>" + ("<p class=ok>无，证据齐全。</p>" if not s["missing"] else "<ul>%s</ul>" % "".join("<li class=bad>%s</li>" % E(m) for m in s["missing"])))
     body += ["<h2>业务流</h2>", _flows_html(snap), "<h2>验收标准</h2>", _ac_table(s, form=False, img="/e/%s/f/" % t["key"])]
     if snap["contract"]:
@@ -665,4 +668,23 @@ def export(P, key: str) -> dict:
             commit = ""
     summary = {k: s.get(k) for k in ("status", "label", "missing", "gate_state", "decision")}
     summary.update({"ticket": key, "title": t["title"]})
-    return ev.statement("%s 证据包" % key, recs, summary, commit)
+    st = ev.statement("%s 证据包" % key, recs, summary, commit)
+    from .. import sign
+    try:
+        sig = sign.sign(edir(P.data_dir), ev.payload(st))
+    except (OSError, subprocess.SubprocessError) as e:  # an export without a signature beats no export; it says so
+        print("证据包签名失败：%s" % e, flush=True)
+        sig = None
+    if sig:
+        st["signature"] = sig
+    return st
+
+
+def signer_fingerprint(P) -> str:
+    """The provider's evidence key, as a client writes it down to check exports against."""
+    from .. import sign
+    try:
+        pub = sign.ensure_key(edir(P.data_dir))
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return sign.fingerprint(pub) if pub else ""

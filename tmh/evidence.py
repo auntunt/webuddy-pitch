@@ -129,7 +129,29 @@ def statement(name: str, recs: list[dict], summary: dict, commit: str = "") -> d
             "predicate": {"exported": now(), "summary": summary, "records": recs}}
 
 
-def verify_statement(st: dict, anchor: str = "") -> tuple[str, list[str]]:
+def payload(st: dict) -> bytes:
+    """The bytes a signature covers: the statement without its signature, in canonical JSON."""
+    return canon({k: v for k, v in st.items() if k != "signature"}).encode("utf-8")
+
+
+def check_signature(st: dict, key: str = "") -> tuple[str, str]:
+    """("none" | "good" | "bad" | "other-key", note) for the statement's signature; key is the provider's fingerprint."""
+    sig = st.get("signature")
+    if not sig:
+        return "none", "没有签名：证明不了这份文件是谁导出的"
+    from . import sign
+    try:
+        ok, fp = sign.verify(sig, payload(st))
+    except RuntimeError as e:
+        return "bad", str(e)
+    if not ok:
+        return "bad", "签名不对：文件在签名之后被改过，或签名是伪造的"
+    if key and fp != key.strip():
+        return "other-key", "签名有效，但签名公钥是 %s，不是你给的 %s：不是你认识的那个乙方导出的" % (fp, key.strip())
+    return "good", "签名有效，签名公钥指纹 %s%s" % (fp, "，和你给的一致" if key else "（请和乙方公布的指纹对一下）")
+
+
+def verify_statement(st: dict, anchor: str = "", key: str = "") -> tuple[str, list[str]]:
     """What a client's auditor runs on an exported package. Returns (verdict, notes): "bad" (not ours, broken, or
     the kept hash is not in it), "consistent" (holds together, but nothing outside the file vouches for it), or
     "anchored" (the hash the client kept is in the chain: every record up to it is exactly what was there then)."""
@@ -141,6 +163,10 @@ def verify_statement(st: dict, anchor: str = "") -> tuple[str, list[str]]:
     if not ok:
         return "bad", [why]
     notes.append("哈希链自洽：%d 条记录，逐条重算一致" % len(recs))
+    sv, sn = check_signature(st, key)
+    if sv in ("bad", "other-key"):
+        return "bad", notes + [sn]
+    notes.append(sn)
     sha = next((x["digest"].get("sha256") for x in st.get("subject") or [] if "sha256" in (x.get("digest") or {})), "")
     if sha != head(recs):
         return "bad", notes + ["声明里的摘要 %s 和记录算出来的 %s 对不上" % (sha[:12], head(recs)[:12])]
