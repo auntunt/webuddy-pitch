@@ -1,6 +1,7 @@
 """The platform (`tmh serve`): tickets over the HTTP API, knowledge links, and agent runs with a stand-in agent."""
 from unittest import mock
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -1044,6 +1045,58 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         finally:
             self.untrain()
             preview.set_conf(self.data, "PV", "")
+
+    def test_a_requirement_said_in_the_group_chat_becomes_a_ticket_and_the_chat_hears_back(self):
+        from unittest import mock
+        from tmh import bots
+        from tmh.platform import chat, preview
+        key = self.project()
+        sent = []
+        conv = {"id": "oc_group1", "dest": {"kind": "feishu", "chat_id": "oc_group1"}}
+        old = (bots.INTAKE, bots.ASYNC, self.P.public_url)
+        bots.INTAKE, bots.ASYNC = (lambda *a: chat.route(self.P, *a)), False
+        self.P.public_url = "https://wb.example.com"
+        preview.set_conf(self.data, key, "%s -m http.server {port}" % sys.executable)
+        say = lambda text: bots.handle(self.repo, text, "feishu", "王经理", use_model=False, conv=conv)
+        try:
+            with mock.patch.object(bots, "send", lambda root, dest, text: sent.append((dest, text)) or True):
+                r = say("@运维助手 请假审批通过后列表里状态还是草稿，不对")
+                self.assertEqual(r["kind"], "intake")
+                self.assertIn("我理解的是", r["reply"])
+                asked = 0
+                while "验收标准" not in r["reply"] and asked < 10:  # one question at a time, by number or in words
+                    asked += 1
+                    r = say("1" if "\n1. " in r["reply"] else "张三提交 3 天年假，经理审批通过后列表显示已通过")
+                self.assertGreater(asked, 0)
+                self.assertIn("验收标准", r["reply"])
+                self.assertNotIn("我理解的是：我理解的是", r["reply"])
+                self.assertIn("确认", r["reply"])
+                self.assertIsNone(chat.route(self.P, self.repo, "年假是怎么计算的？", "feishu", "王经理", conv))  # a question: the knowledge base answers it as before
+                r = say("确认")
+                tk = re.search(r"\*\*([A-Z]+-\d+)\*\*", r["reply"]).group(1)
+                self.assertIn("已建单", r["reply"])
+                self.assertIn(tk, say("进度")["reply"])
+                t = self.P.store.ticket(tk)
+                self.assertIn("张三提交 3 天年假", t["body"])  # the criteria carry their own words
+                self.P.store.update_ticket(t["id"], "tester", status="verify")  # changed and committed: the chat gets the preview
+                dest, text = sent[-1]
+                self.assertEqual(dest["chat_id"], "oc_group1")
+                link = re.search(r"https://wb\.example\.com/pv/%s/__open\?g=(\S+)" % tk, text)
+                self.assertTrue(link, text)
+                self.assertTrue(preview.granted(self.data, tk, link.group(1)))
+                self.call("POST", "/api/tickets/%s/accept" % tk, {"result": "pass"})
+                self.assertIn("验收通过", sent[-1][1])
+                self.assertTrue(any(e["kind"] == "chat" for e in self.P.store.events(t["id"])))  # what was said is on the ticket
+
+                r = say("报销单导出 Excel 的时候，金额列格式不对")  # cancelled halfway: nothing is made
+                self.assertEqual(r["kind"], "intake")
+                self.assertIn("还有几个问题没问完", say("确认")["reply"])  # 确认 before the questions are done is not an answer
+                n = len(self.P.store.tickets(self.P.project(key)["id"]))
+                self.assertIn("先不建单", say("取消")["reply"])
+                self.assertEqual(len(self.P.store.tickets(self.P.project(key)["id"])), n)
+        finally:
+            bots.INTAKE, bots.ASYNC, self.P.public_url = old
+            preview.set_conf(self.data, key, "")
 
     def test_a_change_beyond_the_plan_is_flagged_and_left_to_a_person(self):
         self.team()

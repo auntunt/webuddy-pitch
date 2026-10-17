@@ -84,7 +84,10 @@ class Platform:
         from . import preview
         self.store.on_status.append(lambda t, old, new, who: preview.on_status(self, t, old, new, who))
         self.preview_port = 0  # set by serve(): previews have an address of their own
+        self.public_url = os.environ.get("TMH_PUBLIC_URL", "").rstrip("/")  # else learnt from requests, for links sent to chats
         preview.resume(self)
+        from . import chat
+        chat.wire(self)
         from .survey import Survey
         Survey.resume_all(self)  # a full-project analysis the last process was in the middle of
 
@@ -2550,6 +2553,10 @@ def make_handler(P: Platform, token: str = ""):
                 return self._send(404, b"not found", "text/plain")
             if not self._authorized(q):
                 return self._json(401, {"error": "需要访问令牌"})
+            if not os.environ.get("TMH_PUBLIC_URL"):  # where people reach us (learnt from them, not from strangers): chat links
+                host = (self.headers.get("X-Forwarded-Host") or self.headers.get("Host") or "").split(",")[0].strip()
+                if host and re.fullmatch(r"[A-Za-z0-9.\-\[\]:]+", host):
+                    P.public_url = "%s://%s" % ("https" if (self.headers.get("X-Forwarded-Proto") or "") == "https" else "http", host)
             if urlparse(self.headers.get("Referer") or "").path.startswith("/pv/"):  # an extra check only: the boundary is the sandbox or the preview's own address
                 return self._json(403, {"error": "预览里的页面不能调用平台接口"})
             if method == "POST" and self.headers.get("X-TMH") != "1":

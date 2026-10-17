@@ -18,9 +18,15 @@ variable names only, never values:
                    "aes_key_env": "TMH_WECOM_AES_KEY", "secret_env": "TMH_WECOM_SECRET", "agent_id": "1000002",
                    "base_url": "https://qyapi.weixin.qq.com"},
       "api":      {"key_env": "TMH_BOT_API_KEY"},
+      (钉钉 also "push_webhook_env" / "push_secret_env": the group robot's own webhook, for progress told after the
+       callback's session webhook has expired)
       "answerers": ["张三", "zhangsan"],
       "record": true
     }
+
+On the platform, a message that reports a defect or asks for something is not answered from the knowledge base
+but taken into a requirement conversation (platform/chat.py): asked out, confirmed, ticketed, and followed up in
+the same chat.
 
 Callback addresses on the platform (`tmh serve`): /bot/dingtalk/<项目代号>,
 /bot/feishu/<项目代号>, /bot/wecom/<项目代号>, /bot/api/<项目代号>. They do not
@@ -50,6 +56,7 @@ from .config import load as load_cfg
 KINDS = ("dingtalk", "feishu", "wecom", "api")
 CHANNEL = {"dingtalk": "钉钉", "feishu": "飞书", "wecom": "企业微信", "api": "开放接口"}
 ASYNC = True  # tests set False to run the reply inline
+INTAKE = None  # set by the platform: (root, text, channel, sender, conv) -> reply, or None to answer as a question
 
 
 class BotError(Exception):
@@ -85,7 +92,9 @@ def status(root: Path) -> dict:
 
 
 # ---- the conversation ---------------------------------------------------------------------
-HELP = ("直接发需求或问题原文，我按项目知识库预判能不能做、依据哪些页面；需要人判断的会转给业务方并记下问题编号。\n"
+HELP = ("直接说哪里不对、想要什么：我会说我的理解，一个一个问清楚缺的信息，写出验收标准，您回“确认”就建单开工；"
+        "改好了我在这里发能直接点开试的版本，验收通过后告诉您版本号。回“进度”看这个群提的事到哪了。\n"
+        "只是问问题的，我按项目知识库回答；需要人判断的会转给业务方并记下问题编号。\n"
         "答复人可以发“答复 #编号 答复原文”记录答复，发“改判 预判编号 理由”标记预判不对。")
 _MENTION = re.compile(r"@_user_\d+|^\s*@\S+\s+")
 
@@ -95,7 +104,7 @@ def clean(text: str) -> str:
     return " ".join(t.split())
 
 
-def handle(root: Path, text: str, channel: str, sender: str, use_model: bool = True) -> dict:
+def handle(root: Path, text: str, channel: str, sender: str, use_model: bool = True, conv: dict | None = None) -> dict:
     """One chat message in, one reply out. Returns {"reply": markdown, "kind": ..., ...}."""
     c = conf(root)
     t = clean(text)
@@ -121,6 +130,10 @@ def handle(root: Path, text: str, channel: str, sender: str, use_model: bool = T
         except (KeyError, ValueError) as e:
             return {"kind": "error", "reply": e.args[0]}
         return {"kind": "overrule", "reply": "已记录改判 %s。" % m.group(1)}
+    if INTAKE and conv and conv.get("id"):  # a requirement (or the answer to the robot's last question) goes to intake
+        r = INTAKE(root, t, channel, who, conv)
+        if r:
+            return {"kind": "intake", "reply": r}
     res = kbqa.triage(root, t, use_model=use_model, channel=channel, sender=who)
     rec = {"questions": [], "queued": []}
     if c.get("record", True) and (res["questions"] or res["to_write"]):
@@ -225,13 +238,16 @@ def dingtalk(root: Path, headers: dict, raw: bytes) -> tuple[int, dict]:
     _log_in(root, "钉钉", sender, text)
     hook = d.get("sessionWebhook") or ""
     host = urllib.parse.urlparse(hook).hostname or ""
-    if hook and host.endswith(".dingtalk.com") and urllib.parse.urlparse(hook).scheme == "https":
+    ok = hook and host.endswith(".dingtalk.com") and urllib.parse.urlparse(hook).scheme == "https"
+    conv = {"id": d.get("conversationId") or "", "title": d.get("conversationTitle") or "",
+            "dest": {"kind": "dingtalk", "hook": hook if ok else "", "exp": int(d.get("sessionWebhookExpiredTime") or 0)}}
+    if ok:
         def go():
-            r = handle(root, text, "dingtalk", sender)
+            r = handle(root, text, "dingtalk", sender, conv=conv)
             _http(hook, {"msgtype": "markdown", "markdown": {"title": "知识库预判", "text": r["reply"]}})
         _later(go)
         return 200, {}
-    r = handle(root, text, "dingtalk", sender)  # no session webhook: answer in the response body
+    r = handle(root, text, "dingtalk", sender, conv=conv)  # no session webhook: answer in the response body
     return 200, {"msgtype": "markdown", "markdown": {"title": "知识库预判", "text": r["reply"]}}
 
 
@@ -307,8 +323,10 @@ def feishu(root: Path, headers: dict, raw: bytes) -> tuple[int, dict]:
     sender = sid.get("user_id") or sid.get("open_id") or ""
     _log_in(root, "飞书", sender, text)
 
+    conv = {"id": msg.get("chat_id") or "", "dest": {"kind": "feishu", "chat_id": msg.get("chat_id") or ""}}
+
     def go():
-        r = handle(root, text, "feishu", sender)
+        r = handle(root, text, "feishu", sender, conv=conv)
         base = (c.get("base_url") or "https://open.feishu.cn").rstrip("/")
         card = {"config": {"wide_screen_mode": True}, "elements": [{"tag": "markdown", "content": r["reply"]}]}
         _http(base + "/open-apis/im/v1/messages/%s/reply" % urllib.parse.quote(msg.get("message_id", "")),
@@ -384,8 +402,10 @@ def wecom(root: Path, method: str, q: dict, raw: bytes) -> tuple[int, str]:
     agent = x.findtext("AgentID") or str(c.get("agent_id") or "")
     _log_in(root, "企业微信", sender, text)
 
+    conv = {"id": sender, "dest": {"kind": "wecom", "user": sender, "agent": agent}}
+
     def go():
-        r = handle(root, text, "wecom", sender)
+        r = handle(root, text, "wecom", sender, conv=conv)
         base = (c.get("base_url") or "https://qyapi.weixin.qq.com").rstrip("/")
         d = _http(base + "/cgi-bin/message/send?access_token=" + urllib.parse.quote(_wecom_token(c)),
                   {"touser": sender, "msgtype": "markdown", "agentid": int(agent) if agent.isdigit() else agent, "markdown": {"content": r["reply"]}})
@@ -412,10 +432,49 @@ def api(root: Path, headers: dict, raw: bytes) -> tuple[int, dict]:
     if not text:
         raise BotError(400, "text 不能为空")
     sender = str(d.get("sender") or "")[:80]
-    r = handle(root, text, str(d.get("channel") or "api")[:20], sender, use_model=d.get("model", True) is not False)
+    cid = str(d.get("conversation") or "")[:80]
+    r = handle(root, text, str(d.get("channel") or "api")[:20], sender, use_model=d.get("model", True) is not False,
+               conv={"id": cid, "dest": {"kind": "api"}} if cid else None)
     out = {"reply": r["reply"], "kind": r["kind"]}
     if r.get("triage"):
         t = r["triage"]
         out.update({"id": t["id"], "verdict": t["verdict"], "confidence": t["confidence"], "basis": t["basis"],
                     "chain": t["chain"], "questions": r["recorded"]["questions"]})
     return 200, out
+
+
+# ---- telling a conversation something later (progress on what it asked for) ------------------
+def send(root: Path, dest: dict, text: str) -> bool:
+    """Post `text` into the conversation `dest` came from. False when this channel cannot reach it any more (a
+    钉钉 session webhook expires; then the group robot's own webhook is used when one is configured)."""
+    c = conf(root)
+    kind = dest.get("kind")
+    if kind == "dingtalk":
+        hook = dest.get("hook") or ""
+        if not hook or (dest.get("exp") and dest["exp"] < time.time() * 1000 + 60000):
+            dc = c.get("dingtalk") or {}
+            hook = _env(dc, "push_webhook_env", "钉钉群机器人 Webhook", required=False) if dc.get("push_webhook_env") else ""
+            sec = _env(dc, "push_secret_env", "钉钉群机器人加签密钥", required=False) if dc.get("push_secret_env") else ""
+            if hook and sec:
+                ts = str(int(time.time() * 1000))
+                hook += ("&" if "?" in hook else "?") + urllib.parse.urlencode({"timestamp": ts, "sign": dingtalk_sign(sec, ts)})
+        if not hook:
+            return False
+        d = _http(hook, {"msgtype": "markdown", "markdown": {"title": "进度", "text": text}})
+        return not d.get("errcode")
+    if kind == "feishu" and dest.get("chat_id") and c.get("feishu") is not None:
+        fc = c["feishu"]
+        base = (fc.get("base_url") or "https://open.feishu.cn").rstrip("/")
+        card = {"config": {"wide_screen_mode": True}, "elements": [{"tag": "markdown", "content": text}]}
+        d = _http(base + "/open-apis/im/v1/messages?receive_id_type=chat_id",
+                  {"receive_id": dest["chat_id"], "msg_type": "interactive", "content": json.dumps(card, ensure_ascii=False)},
+                  {"Authorization": "Bearer " + _feishu_token(fc)})
+        return not d.get("code")
+    if kind == "wecom" and dest.get("user") and c.get("wecom") is not None:
+        wc = c["wecom"]
+        base = (wc.get("base_url") or "https://qyapi.weixin.qq.com").rstrip("/")
+        agent = str(dest.get("agent") or wc.get("agent_id") or "")
+        d = _http(base + "/cgi-bin/message/send?access_token=" + urllib.parse.quote(_wecom_token(wc)),
+                  {"touser": dest["user"], "msgtype": "markdown", "agentid": int(agent) if agent.isdigit() else agent, "markdown": {"content": text}})
+        return not d.get("errcode")
+    return False
