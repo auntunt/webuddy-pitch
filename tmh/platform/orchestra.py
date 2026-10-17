@@ -14,6 +14,8 @@ What an app may use, and nothing else:
   listen(fn)                                     hear every verdict: fn(project, ticket, verdict) -> dict | None, with
                                                  verdict = {passed, note, by, redo, gave_up}; gave_up says why nothing
                                                  will redo a rejected task automatically ("" when something will)
+  links.later                                    an app holds a ticket off the line (why, in words): no step starts on it
+                                                 until the app removes it, and its verdicts only go to the listeners
   BY                                             the author name the line writes events under
 The line reads the knowledge layer (related flows) and never calls into an app.
 """
@@ -196,7 +198,8 @@ class Orchestra:
         """A person's verdict on a task: keep what it teaches, send a rejected automatic change back to be redone,
         and tell every app that listens (for instance a reform plan moving on to its next wave)."""
         from . import learn
-        out = learn.on_accept(self, p, t, passed, note, by)
+        later = (t.get("links") or {}).get("later")
+        out = {} if later else learn.on_accept(self, p, t, passed, note, by)
         conf = self.autoflow()
 
         def tell(gave_up: str = "") -> dict:
@@ -207,6 +210,8 @@ class Orchestra:
                 except Exception as e:  # noqa: BLE001 - an app's trouble must not undo the verdict
                     self.store.event(t["id"], self.BY, "flow", "验收结果没能通知到%s（%s）" % (getattr(fn, "app", "应用"), e))
             return out
+        if later:  # an app's own ticket the line never worked on (a feature's parent): nothing to learn, merge or redo here
+            return tell()
         if passed:
             out["release"] = self._ship(p, t, conf, by)
             return tell()
@@ -368,7 +373,8 @@ class Orchestra:
         """Which automatic step an open ticket is waiting for ("" when none: done, taken over, running, or needs a person).
         A step that failed or was cancelled stops the line; with `retry` (a person handing the ticket on) it is run again."""
         conf = conf or self.autoflow()
-        if not conf.get("on") or (t.get("links") or {}).get("hold") or t["status"] not in ("new", "analyzing", "confirm", "doing"):
+        lk = t.get("links") or {}
+        if not conf.get("on") or lk.get("hold") or lk.get("later") or t["status"] not in ("new", "analyzing", "confirm", "doing"):
             return "", None
         runs = [r for r in self.store.runs(ticket_id=t["id"]) if r["mode"] in ("analyze", "plan", "fix")]
         if retry:

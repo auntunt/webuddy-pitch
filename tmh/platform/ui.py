@@ -401,6 +401,9 @@ function nextAction(d,f){
   const B=(id,label,cls)=>`<button id="${id}" class="${cls||''}">${label}</button>`;
   const auto=onAuto(d),br=adopted(d);
   if(f.live)return {tone:'info',text:`<span class="spin"></span> 智能体正在${h(moLabel(f.live.mode))}${auto&&f.live.author==='自动流转'?'，跑完会自动接着往下做，直到提交到独立分支等你验收':'，完成后这里会给出下一步'}。`,btns:B('naLog','看实时过程','ghost')+(auto?`<button class="ghost" data-hold="1">接管</button>`:'')};
+  const lt=(t.links||{}).later;  // held off the line by an app: a feature's parent, or a child waiting for its batch
+  if(lt&&t.status!=='closed'){if(d.epic&&t.status==='verify')return {tone:'warn',text:'全部子单都完成了，<b>等你整体验收</b>：对照规格卡的整体验收标准和每个子单的版本验证。通过就关闭这个大需求；不通过写明原因，会自动开一个跟进子单按原因重改。',acc:true};
+    return {tone:'info',text:d.epic?'大需求的父单不直接改代码：子单分批放出、各自验收，全部完成后回到这里整体验收。':h(lt)+'。'}}
   if(auto&&d.auto_next&&!f.live&&!(d.events.slice(-1)[0]||{}).body?.startsWith('交给自动处理'))return {tone:'info',text:`这张工单还没走自动处理（自动处理只接新进来的工单）。交给它后从“${{analyze:'分析定位',plan:'修改方案',fix:'修改代码',commit:'提交改动'}[d.auto_next]}”接着做，停在等你验收。`,btns:B('naGo','交给自动处理','primary')+'<button class="ghost" data-hold="1">我自己处理</button>'};
   if(auto&&['new','analyzing'].includes(t.status)&&!f.an)return {tone:'info',text:'<span class="spin"></span> 已自动受理，智能体马上开始分析定位，之后会自动出方案、改代码并提交到独立分支，停在等你验收。',btns:'<button class="ghost" data-hold="1">接管</button>'};
   if(t.status==='closed'){const ev=d.events||[],rl=ev.filter(e=>e.kind==='release').slice(-1)[0],wt=ev.filter(e=>e.kind==='flow'&&(e.data||{}).release==='waiting').slice(-1)[0];
@@ -475,7 +478,7 @@ async function vTicket(key,sub){
    <label>类型<select id="fy" data-autosave="1">${opt(S.meta.types,t.type)}</select></label>
    <label>优先级<select id="fp" data-autosave="1">${opt(S.meta.priorities,t.priority)}</select></label>
    <label>经办人<input id="fa" data-autosave="1" value="${h(t.assignee)}" placeholder="无人" size="6"></label>
-   ${autoChip(d)}${(t.links||{}).alert?`<span class="ev-tag bad" title="监控告警自动开的单，同一告警再触发只累计次数">告警 ×${t.links.alert.count||1}</span>`:''}
+   ${autoChip(d)}${d.parent?`<span class="tag">大需求 <a href="#/t/${h(d.parent.key)}">${h(d.parent.key)}</a> 的第 ${h(String((t.links||{}).order||''))} 个子单</span>`:''}${(t.links||{}).alert?`<span class="ev-tag bad" title="监控告警自动开的单，同一告警再触发只累计次数">告警 ×${t.links.alert.count||1}</span>`:''}
    <span class="sub">${h(t.reporter||'-')} 提交 · ${h(t.created.slice(5,16))}${ext.key?' · '+h(ext.system)+' '+(ext.url?`<a href="${h(ext.url)}" target="_blank" rel="noopener">${h(ext.key)}</a>`:h(ext.key)):''}</span></div>
   <nav class="ttabs"><a href="#/t/${t.key}" class="${sub==='prompt'?'':'on'}">工单详情</a><a href="#/t/${t.key}/prompt" class="${sub==='prompt'?'on':''}">提示词</a></nav>
   <div id="pp" ${sub==='prompt'?'':'hidden'}></div>
@@ -483,6 +486,7 @@ async function vTicket(key,sub){
   ${stepper(f)}
   <div class="detail"><div style="display:flex;flex-direction:column;gap:12px;min-width:0">
    ${concl}
+   ${d.epic?epicCard(d.epic):''}
    <div class="blk"><div class="hdr" style="margin-bottom:4px"><h3 class="grow" style="margin:0">问题描述</h3><button class="ghost" id="eb">编辑</button></div><div id="bodyv">${t.body?md(t.body):'<span class="sub">没有描述</span>'}</div></div>
    <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">动态与讨论</h2>${nAuto?`<div class="seg" id="tlf"><button data-f="" class="on">全部</button><button data-f="talk">只看讨论</button><button data-f="auto">只看自动记录</button></div>`:''}</div><div class="tl" id="tl">${tl}</div>
      <div style="margin-top:14px"><textarea id="cm" placeholder="写评论（支持 Markdown）。智能体下次运行会读到最近的讨论。"></textarea><div class="row" style="margin-top:6px"><button class="primary" id="cb">评论</button>${ext.key?'<button id="pb">同步到 '+h(ext.system)+'</button>':''}</div></div></div>
@@ -522,7 +526,7 @@ async function vTicket(key,sub){
   Object.entries(go).forEach(([id,m])=>{if($('#'+id))$('#'+id).onclick=()=>run(m,defAgent(),'auto')});
   if($('#naVerify'))$('#naVerify').onclick=()=>save({status:'verify'});
   if($('#naShip'))$('#naShip').onclick=()=>post('/api/tickets/'+key+'/release',{}).then(r=>{toast(r.state==='merged'?'已合并，版本 '+r.version:r.why,6000);vTicket(key)}).catch(e=>toast(e.message,6000));
-  pkgWire(d);upWire(d);pvLoad(key);hwLoad(d);
+  pkgWire(d);upWire(d);pvLoad(key);hwLoad(d);epicWire(d);
   if($('#naGo'))$('#naGo').onclick=()=>save({auto:'go'}).then(()=>toast('已交给自动处理'));
   document.querySelectorAll('[data-hold]').forEach(b=>b.onclick=()=>save({hold:b.dataset.hold==='1'}).then(()=>toast(b.dataset.hold==='1'?'已接管，自动处理暂停':'已交回自动处理')));
   if($('#naReopen'))$('#naReopen').onclick=()=>save({status:'doing'});
@@ -542,6 +546,20 @@ async function vTicket(key,sub){
   stopPolls('auto');if(onAuto(d)&&!f.live){const sig=s=>JSON.stringify([s.ticket.status,s.runs.map(r=>r.id+r.status)]),was=sig(d);
     poll(async()=>{if(!S.cur||S.cur.ticket.key!==key)return stopPolls('auto');try{const n=await get('/api/tickets/'+key);if(sig(n)!==was){stopPolls('auto');vTicket(key,sub)}}catch(e){}},3000,'auto')}
   loadRelated(t)}
+// ---------- 大需求: the parent's spec card, its children with status and version, and the batch it is on
+function epicCard(e){const c=e.counts,sp=e.spec,w=x=>c.total?x/c.total*100:0;
+  return `<div class="card" id="epc"><div class="hdr" style="margin-bottom:6px"><span class="ev-tag info">大需求</span><h2 class="grow" style="margin:0">规格卡与子单</h2>${e.status==='closed'?'<span class="ev-tag ok">整体验收通过</span>':e.status==='verify'?'<span class="ev-tag warn">子单都完成了，等整体验收</span>':`<span class="sub">第 ${e.batch} 批 · 每批 ${e.wave} 个</span>`}</div>
+   <dl class="c4"><dt>目标</dt><dd>${h(sp.goal)}</dd><dt>不能变</dt><dd>${h(sp.keep)}</dd><dt>不做</dt><dd>${h(sp.out)}</dd><dt>证据</dt><dd>${h(sp.evidence)}</dd></dl>
+   <div style="margin-top:8px"><b style="font-size:13px">整体验收标准</b>${sp.done.map(a=>`<div style="font-size:13px;margin-top:3px"><span class="ev-tag ${a.open?'warn':'ok'}">${a.open?'待确认':h(a.id)}</span> ${h(a.text)}<div class="sub">怎么验：${h(a.check)}</div></div>`).join('')}</div>
+   ${e.paused?`<div class="rfpz"><span class="grow"><b>已暂停自动推进：</b>${h(e.paused)}</span><button class="ghost" id="epRes">处理好了，恢复</button></div>`:''}
+   <div class="row" style="gap:10px;align-items:center;margin:10px 0"><div class="rfbar"><i class="ok" style="width:${w(c.closed)}%"></i><i class="vf" style="width:${w(c.verify)}%"></i><i class="rl" style="width:${w(c.released-c.closed-c.verify)}%"></i></div><span class="sub" style="white-space:nowrap">完成 ${c.closed} · 待验收 ${c.verify} · 已放出 ${c.released} / ${c.total}</span><label class="sub rfau"><input type="checkbox" id="epAuto" ${e.auto?'checked':''}> 通过一批自动放下一批</label></div>
+   <div class="tw"><table class="t"><tr><th class="num">#</th><th>子单</th><th>批次</th><th>依赖</th><th>状态</th><th>版本</th></tr>${e.children.map(x=>`<tr><td class="num">${x.order}</td><td><a href="#/t/${h(x.key)}">${h(x.key)}</a> ${h(x.title)}${x.follow_up?' <span class="ev-tag warn">整体验收退回的跟进</span>':''}${x.rejects?` <span class="ev-tag bad">退回 ${x.rejects}</span>`:''}${x.open_ac?' <span class="ev-tag warn">有待确认</span>':''}</td><td>${x.released?'第 '+x.batch+' 批':'<span class="sub">排队</span>'}</td><td>${x.after.length?x.after.map(h).join('、'):'<span class="sub">无</span>'}</td><td>${x.released?stPill(x.status):'<span class="sub">未放出</span>'}</td><td>${x.version?`<span class="key">${h(x.version)}</span>`:'<span class="sub">-</span>'}</td></tr>`).join('')}</table></div>
+   ${e.status!=='closed'&&e.children.some(x=>!x.released)?'<div class="row" style="margin-top:8px"><button class="ghost" id="epRel">现在放出下一批</button></div>':''}
+   ${e.log.length?`<div class="rflog">${e.log.slice(-6).reverse().map(x=>`<div><span class="sub">${h(x.at.slice(5,16))}</span> ${h(x.text)}</div>`).join('')}</div>`:''}</div>`}
+function epicWire(d){const e=d.epic;if(!e)return;const P='/api/tickets/'+e.key+'/epic',re=()=>vTicket(e.key);
+  if($('#epRes'))$('#epRes').onclick=()=>post(P,{action:'resume'}).then(()=>{toast('已恢复自动推进');re()}).catch(x=>toast(x.message));
+  if($('#epAuto'))$('#epAuto').onchange=ev=>post(P,{action:'auto',on:ev.target.checked}).then(re).catch(x=>toast(x.message));
+  if($('#epRel'))$('#epRel').onclick=()=>post(P,{action:'release'}).then(r=>{toast('已放出 '+r.opened.join('、'));re()}).catch(x=>toast(x.message,5000))}
 // ---------- ticket prompt tab: one prompt per scenario, to paste into any agent or write into the project
 async function promptPane(t,scene){
   if(!scene){try{scene=localStorage.getItem('tmh.scene')}catch(e){}}
@@ -688,17 +706,28 @@ function intakeModal(pk,text,pin){
    <textarea id="inT" style="min-height:110px;width:100%;margin-top:8px" placeholder="例如：请假审批通过后状态还是草稿。另外希望请假列表能导出 Excel。">${h(text||'')}</textarea>
    <div class="row" style="margin-top:8px"><button class="primary" id="inGo">开始</button></div><div id="inBox"></div>`,true);
   $('#inGo').onclick=async()=>{try{intakePaint(await post(pin?'/api/pins/'+pin.id+'/intake':'/api/projects/'+encodeURIComponent(pk)+'/intake',{text:$('#inT').value}))}catch(e){toast(e.message,5000)}}}
+function inQ(q,i){return `<div style="margin-top:8px"><div>${h(q.q)}</div>${q.options.length?`<div class="chips" style="margin-top:4px">${q.options.map(o=>`<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="${h(o)}">${h(o)}</span>`).join('')}<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="不清楚">不清楚</span></div>`
+   :`<input class="inA" data-i="${i}" data-s="${h(q.slot)}" placeholder="写一句就行；不知道就写“不清楚”" style="width:100%;margin-top:4px">`}</div>`}
+function inSpec(s,done){const sp=s.spec,work=s.items.map((it,i)=>[it,i]).filter(([it])=>it.kind!=='question');
+  return `<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">大需求规格卡</b><span class="ev-tag info">一张父单 + ${work.length} 个子单，分批上线，最后整体验收</span>${done?'':' <a href="javascript:void 0" id="inUnbig">不按大需求做</a>'}</div>
+   ${(s.spec_q||[]).map(q=>inQ(q,'spec')).join('')}
+   <dl class="c4" style="margin-top:8px"><dt>目标</dt><dd>${h(sp.goal)}</dd><dt>不能变</dt><dd>${h(sp.keep)}</dd><dt>不做</dt><dd>${h(sp.out)}</dd><dt>证据</dt><dd>${h(sp.evidence)}</dd></dl>
+   <div style="margin-top:8px"><b style="font-size:13px">整体验收标准</b>${sp.done.map(a=>`<div style="font-size:13px;margin-top:3px"><span class="ev-tag ${a.open?'warn':'ok'}">${a.open?'待确认':'已确认'}</span> ${h(a.id)} ${h(a.text)}<div class="sub">怎么验：${h(a.check)}</div></div>`).join('')}</div>
+   ${done?(s.epic?`<div style="margin-top:6px">已建父单 <a href="#/t/${h(s.epic)}" onclick="closeModal()">${h(s.epic)}</a>，子单 ${(s.children||[]).map(h).join('、')}</div>`:''):
+    `<div style="margin-top:10px"><b style="font-size:13px">顺序和分批</b><div class="sub">子单按顺序分批放出，一批全部验收通过再放下一批；依赖前面某件的，等它通过后从它的代码开始。</div>
+     ${work.slice(1).map(([it,i],n)=>`<div class="sub" style="margin-top:4px">第 ${n+2} 件「${h(clip(it.text,24))}」在 <select class="inDep" data-i="${i}"><option value="">不依赖</option>${work.slice(0,n+1).map(([x,j],m)=>`<option value="${j}">第 ${m+1} 件之后</option>`).join('')}</select></div>`).join('')}
+     <label class="sub" style="display:flex;gap:6px;align-items:center;margin-top:6px">每批 <input id="inWave" type="number" min="1" max="10" value="2" style="width:56px"> 个子单</label></div>`}</div>`}
 function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true;$('#inGo').hidden=true;
   const done=s.state==='confirmed';
   B.innerHTML=s.items.map((it,i)=>`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">第 ${i+1} 件：${h(clip(it.text,60))}</b>
      <select data-i="${i}" class="inK" ${done?'disabled':''}>${Object.entries(IKIND).map(([k,l])=>`<option value="${k}" ${k===it.kind?'selected':''}>${l}</option>`).join('')}</select></div>
      ${it.kind==='question'?`<div class="sub" style="white-space:pre-wrap;margin-top:6px">${h(it.answer||'')}</div><div class="sub">咨询直接答复，不建单。</div>`:`
-     ${(it.questions||[]).map(q=>`<div style="margin-top:8px"><div>${h(q.q)}</div>${q.options.length?`<div class="chips" style="margin-top:4px">${q.options.map(o=>`<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="${h(o)}">${h(o)}</span>`).join('')}<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="不清楚">不清楚</span></div>`
-        :`<input class="inA" data-i="${i}" data-s="${h(q.slot)}" placeholder="写一句就行；不知道就写“不清楚”" style="width:100%;margin-top:4px">`}</div>`).join('')}
+     ${(it.questions||[]).map(q=>inQ(q,i)).join('')}
      <div style="margin-top:10px"><b style="font-size:13px">验收标准草稿</b>${(it.ac||[]).map(a=>`<div style="font-size:13px;margin-top:3px"><span class="ev-tag ${a.open?'warn':'ok'}">${a.open?'待确认':'已确认'}</span> ${h(a.id)} ${h(a.text)}<div class="sub">怎么验：${h(a.check)}</div></div>`).join('')}</div>
      ${it.ticket?`<div style="margin-top:6px">已建单 <a href="#/t/${h(it.ticket)}" onclick="closeModal()">${h(it.ticket)}</a></div>`:''}`}</div>`).join('')+
+   (s.big?inSpec(s,done):s.suggest_big&&!done?`<div class="sub" style="margin-top:10px">这几件如果是一个整体、要一起验收：<button class="ghost" id="inBig">作为大需求</button> 写一张规格卡，拆成子单分批上线，最后整体验收。</div>`:'')+
    (done?'':`<div class="row" style="gap:8px;margin-top:10px">${s.state==='asking'?'<button class="primary" id="inAns">提交回答</button>':''}
-     <button class="${s.state==='asking'?'ghost':'primary'}" id="inOk">${s.state==='asking'?'先这样建单（没答的记为待确认）':'确认，建单'}</button><button class="ghost" id="inNo">放弃</button></div>`);
+     <button class="${s.state==='asking'?'ghost':'primary'}" id="inOk">${s.state==='asking'?'先这样建单（没答的记为待确认）':s.big?'确认规格卡，建父单和子单':'确认，建单'}</button><button class="ghost" id="inNo">放弃</button></div>`);
   const pick={};B.querySelectorAll('.inO').forEach(c=>c.onclick=()=>{const i=c.dataset.i,sl=c.dataset.s;(pick[i]=pick[i]||{})[sl]=c.dataset.v;
     B.querySelectorAll(`.inO[data-i="${i}"][data-s="${sl}"]`).forEach(x=>x.classList.toggle('on',x===c))});
   const gather=()=>{const a=JSON.parse(JSON.stringify(pick));B.querySelectorAll('.inA').forEach(x=>{if(x.value.trim())(a[x.dataset.i]=a[x.dataset.i]||{})[x.dataset.s]=x.value.trim()});
@@ -707,7 +736,10 @@ function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true
   B.querySelectorAll('.inK').forEach(x=>x.onchange=()=>act({action:'answer',answers:gather()}));
   if($('#inAns'))$('#inAns').onclick=()=>act({action:'answer',answers:gather()});
   if($('#inOk'))$('#inOk').onclick=async()=>{const a=gather();try{if(Object.keys(a).length)await post('/api/intake/'+s.id,{action:'answer',answers:a});
-    const r=await post('/api/intake/'+s.id,{action:'confirm'});intakePaint(r);toast('已建单 '+r.tickets.join('、'),5000)}catch(e){toast(e.message,5000)}};
+    const b={action:'confirm'};if(s.big){b.deps={};B.querySelectorAll('.inDep').forEach(x=>{if(x.value!=='')b.deps[x.dataset.i]=[+x.value]});b.wave=+($('#inWave')||{}).value||2}
+    const r=await post('/api/intake/'+s.id,b);intakePaint(r);toast(r.epic?'已建大需求 '+r.epic+'，第一批子单开工':'已建单 '+r.tickets.join('、'),5000)}catch(e){toast(e.message,5000)}};
+  if($('#inBig'))$('#inBig').onclick=()=>act({action:'big',on:true});
+  if($('#inUnbig'))$('#inUnbig').onclick=()=>act({action:'big',on:false});
   if($('#inNo'))$('#inNo').onclick=()=>act({action:'drop'}).then(closeModal)}
 
 // ---------- the change itself, running: a link the person and the client open before accepting

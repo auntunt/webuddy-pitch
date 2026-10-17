@@ -1083,7 +1083,8 @@ def api_intake_start(P, req, key):
     from . import intake
     p = P.project(key)
     model = req.body.get("model", True) is not False
-    return intake.start(P, p, req.body.get("text", ""), req.user, req.body.get("channel") or "web", _chooser(P, p) if model else None)
+    return intake.start(P, p, req.body.get("text", ""), req.user, req.body.get("channel") or "web", _chooser(P, p) if model else None,
+                        big=bool(req.body.get("big")))
 
 
 @route("GET", "/api/intake/<sid>")
@@ -1094,16 +1095,20 @@ def api_intake_get(P, req, sid):
 
 @route("POST", "/api/intake/<sid>")
 def api_intake_act(P, req, sid):
-    """answer: {"answers": {"0": {"trigger": "…"}}}; confirm: tickets from the items (all, or "items"); drop."""
+    """answer: {"answers": {"0": {"trigger": "…"}, "spec": {"goal": "…"}}}; big: {"on": true} makes it one feature with a
+    规格卡; confirm: tickets from the items (all, or "items"), or for a big one a parent and its children ("deps":
+    {"2": [0]}, "wave": 2); drop."""
     from . import intake
     a = req.body.get("action")
     if a == "answer":
         return intake.answer(P, sid, req.user, req.body.get("answers") or {})
+    if a == "big":
+        return intake.mark_big(P, sid, req.user, req.body.get("on", True) is not False)
     if a == "confirm":
-        return intake.confirm(P, sid, req.user, req.body.get("items"))
+        return intake.confirm(P, sid, req.user, req.body.get("items"), req.body.get("deps"), req.body.get("wave"))
     if a == "drop":
         return intake.drop(P, sid, req.user)
-    raise ApiError(400, "action 只能是 answer、confirm、drop")
+    raise ApiError(400, "action 只能是 answer、big、confirm、drop")
 
 
 @route("POST", "/api/projects/<key>/pins")
@@ -1774,10 +1779,32 @@ def api_ticket(P, req, key):
             r["verify"] = {k: v.get(k) for k in ("check", "skip", "verdict", "rounds", "split", "beyond_plan")} if v else None
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
-    from . import signoff
+    from . import epic, signoff
+    par = P.store.ticket(t["links"]["parent"]) if (t.get("links") or {}).get("parent") else None
     return {"ticket": t, "project": p, "events": P.store.events(t["id"]), "runs": [r for r in runs if r["mode"] != "ask"],
             "evidence": P.ticket_evidence(p, t, runs), "auto_next": P.flow.next_step(t, retry=True)[0],
-            "package": signoff.brief(P.data_dir, t["key"])}
+            "package": signoff.brief(P.data_dir, t["key"]), "epic": epic.view(P, t) if epic.is_parent(t) else None,
+            "parent": {"key": par["key"], "title": par["title"], "status": par["status"]} if par else None}
+
+
+@route("GET", "/api/tickets/<key>/epic")
+def api_epic(P, req, key):
+    """A big requirement's parent: the spec, every child with its status and version, and the batch it is on."""
+    from . import epic
+    t = P.ticket(key)
+    if not epic.is_parent(t):
+        raise ApiError(404, "这张工单不是大需求的父单")
+    return epic.view(P, t)
+
+
+@route("POST", "/api/tickets/<key>/epic")
+def api_epic_act(P, req, key):
+    """{"action": "release"} puts the next batch out by hand; "resume" after a pause; "auto" {"on"}; "wave" {"n"}."""
+    from . import epic
+    try:
+        return epic.act(P, P.ticket(key), req.body, req.user)
+    except ValueError as e:
+        raise ApiError(400, str(e))
 
 
 @route("GET", "/api/tickets/<key>/evidence")

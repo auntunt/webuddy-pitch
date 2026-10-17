@@ -2305,6 +2305,149 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual(self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})[0], 409)
         self.assertEqual(self.call("GET", "/api/intake/nope")[0], 404)
 
+    def _answer_all(self, s):
+        """Answer every open question of an intake conversation until its criteria (and spec) are written."""
+        for _ in range(8):
+            if s["state"] == "ready":
+                return s
+            ans = {}
+            for i, it in enumerate(s["items"]):
+                for q in it.get("questions") or []:
+                    ans.setdefault(str(i), {})[q["slot"]] = (q["options"][0] if q["options"] else
+                                                            "张三提交 2 小时事假，审批后显示 2 小时" if q["slot"] == "example" else "在请假页面提交的时候")
+            for q in s.get("spec_q") or []:
+                ans.setdefault("spec", {})[q["slot"]] = {"goal": "员工能按小时请假，审批和报表都按小时算", "out": "不改考勤机对接"}.get(
+                    q["slot"], q["options"][0] if q["options"] else "x")
+            code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "answer", "answers": ans})
+            self.assertEqual(code, 200, s)
+        self.fail("the conversation never got to its criteria")
+
+    def test_a_big_requirement_goes_from_a_spec_to_children_in_batches_and_an_overall_acceptance(self):
+        """Spec card, parent and children, batches on acceptance, a pause, the whole accepted, a rejected whole redone."""
+        from tmh.platform import signoff
+        key = self.project()
+        self.untrain()  # children wait for people; the feature-level loop is under test
+        msg = "1. 请假单支持按小时请假 2. 审批页面增加剩余年假显示 3. 请假报表支持按小时统计"
+        code, s = self.call("POST", "/api/projects/%s/intake" % key, {"text": msg, "model": False})
+        self.assertEqual((code, len(s["items"])), (200, 3), s)
+        self.assertTrue(s["suggest_big"] and not s.get("big"), "several asks: offered as one feature, not made one")
+        code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "big"})
+        self.assertEqual([q["slot"] for q in s["spec_q"]], ["goal", "keep", "out"], "only what is missing, three a round")
+        self.assertIn("待确认", s["spec"]["goal"])
+        s = self._answer_all(s)
+        sp = s["spec"]
+        self.assertEqual(sp["goal"], "员工能按小时请假，审批和报表都按小时算")
+        self.assertEqual(sp["out"], "不改考勤机对接")
+        self.assertEqual(len(sp["done"]), 5)  # one per child, the goal itself, and what must stay
+        self.assertIn("员工能按小时请假", sp["done"][3]["text"])
+        self.assertFalse(any(d["open"] for d in sp["done"]), sp["done"])
+        code, bad = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm", "deps": {"0": [2]}})
+        self.assertEqual(code, 400, "a child only depends on earlier ones")
+        code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm", "deps": {"2": [0]}, "wave": 2})
+        self.assertEqual(code, 200, s)
+        par = self.P.store.ticket(s["epic"])
+        k1, k2, k3 = s["children"]
+        self.assertEqual(s["tickets"], [par["key"]])
+        self.assertEqual((par["type"], par["links"]["children"], par["status"]), ("feature", [k1, k2, k3], "doing"))
+        self.assertIn("不改考勤机对接", par["body"])
+        c1, c3 = self.P.store.ticket(k1), self.P.store.ticket(k3)
+        self.assertEqual((c1["links"]["parent"], c3["links"]["after"]), (par["key"], [k1]))
+        self.assertIn("验收标准", c1["body"])
+        self.assertIn("员工能按小时请假", c1["body"])
+        on = dict(self.P.flow.autoflow(), on=True)
+        self.assertEqual(self.P.flow.next_step(c1, on)[0], "analyze", "batch 1 is on the line")
+        self.assertEqual(self.P.flow.next_step(c3, on)[0], "", "batch 2 waits off the line")
+        self.assertEqual(self.P.flow.next_step(par, on)[0], "", "the parent never goes on the line")
+        self.assertEqual(signoff.records(self.data, par["key"])[0]["data"]["ac"], sp["done"])
+        code, d = self.call("GET", "/api/tickets/%s" % par["key"])
+        self.assertEqual((d["epic"]["batch"], d["epic"]["counts"]["released"]), (1, 2))
+        self.assertEqual(self.call("GET", "/api/tickets/%s" % k1)[1]["parent"]["key"], par["key"])
+        self.assertEqual(self.call("POST", "/api/tickets/%s/epic" % par["key"], {"action": "release"})[0], 400, "the rest waits for batch 1")
+
+        # batch 1: the first child's change is committed, accepted; the second is rejected, which pauses the feature
+        head = subprocess.run(["git", "-C", str(self.repo), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+        self.P.store.event(c1["id"], "自动流转", "adopt", "x", {"commit": head})
+        self.call("POST", "/api/tickets/%s/accept" % k1, {"result": "pass", "note": "小时数的输入框放在日期后面"})
+        self.assertTrue(self.P.store.ticket(k3)["links"].get("later"), "the batch is not done yet")
+        self.call("POST", "/api/tickets/%s/accept" % k2, {"result": "fail", "note": "余额没扣掉已审批的"})
+        _, v = self.call("GET", "/api/tickets/%s/epic" % par["key"])
+        self.assertIn("余额没扣掉已审批的", v["paused"])
+        self.call("POST", "/api/tickets/%s/accept" % k2, {"result": "pass"})
+        self.assertTrue(self.P.store.ticket(k3)["links"].get("later"), "paused: no new batch")
+        _, v = self.call("POST", "/api/tickets/%s/epic" % par["key"], {"action": "resume"})
+        self.assertEqual((v["paused"], v["batch"]), ("", 2), "resumed: the finished batch moves on")
+        c3 = self.P.store.ticket(k3)
+        self.assertNotIn("later", c3["links"])
+        self.assertEqual(c3["links"]["base"], head, "it starts from the commit the child it depends on ended on")
+        self.assertIn("小时数的输入框放在日期后面", c3["body"], "what acceptance said carries to later children")
+        self.assertEqual(self.P.flow.next_step(c3, on)[0], "analyze")
+
+        # the last child closes: the whole goes to acceptance with what each child came to
+        self.call("POST", "/api/tickets/%s/accept" % k3, {"result": "pass"})
+        par = self.P.store.ticket(par["id"])
+        self.assertEqual(par["status"], "verify")
+        summ = [e for e in self.P.store.events(par["id"]) if e["kind"] == "evidence" and "等整体验收" in e["body"]][-1]
+        self.assertTrue(all(k in summ["body"] for k in (k1, k2, k3)), summ["body"])
+        self.assertIn("员工能按小时请假", summ["body"])
+        self.assertIn("退回过 1 次", summ["body"])
+        self.assertTrue(any(r["kind"] == "epic" for r in signoff.records(self.data, par["key"])))
+
+        # the whole rejected: the reason becomes a follow-up child on the line, and the whole comes back after it
+        self.call("POST", "/api/tickets/%s/accept" % par["key"], {"result": "fail", "note": "审批通知里没写小时数"})
+        par = self.P.store.ticket(par["id"])
+        self.assertEqual((par["status"], len(par["links"]["children"])), ("doing", 4))
+        k4 = par["links"]["children"][-1]
+        c4 = self.P.store.ticket(k4)
+        self.assertEqual(c4["links"]["parent"], par["key"])
+        self.assertIn("审批通知里没写小时数", c4["body"])
+        self.assertEqual(self.P.flow.next_step(c4, on)[0], "analyze", "the redo goes on the line by itself")
+        self.assertFalse([e for e in self.P.store.events(par["id"]) if e["kind"] == "release"], "a parent is never merged itself")
+        self.call("POST", "/api/tickets/%s/accept" % k4, {"result": "pass"})
+        self.assertEqual(self.P.store.ticket(par["id"])["status"], "verify")
+        code, r = self.call("POST", "/api/tickets/%s/accept" % par["key"], {"result": "pass"})
+        self.assertEqual((code, r["status"]), (200, "closed"))
+        _, v = self.call("GET", "/api/tickets/%s/epic" % par["key"])
+        self.assertEqual((v["counts"]["closed"], v["counts"]["total"], v["batch"]), (4, 4, 3))
+        self.assertIn("整体验收通过", v["log"][-1]["text"])
+
+    def test_a_big_requirement_from_the_group_chat_is_specced_there_and_hears_each_batch(self):
+        from unittest import mock
+        from tmh import bots
+        from tmh.platform import chat
+        self.project()
+        self.untrain()
+        sent = []
+        conv = {"id": "oc_group_big", "dest": {"kind": "feishu", "chat_id": "oc_group_big"}}
+        old = (bots.INTAKE, bots.ASYNC)
+        bots.INTAKE, bots.ASYNC = (lambda *a: chat.route(self.P, *a)), False
+        say = lambda text, who="王经理": bots.handle(self.repo, text, "feishu", who, use_model=False, conv=conv)
+        try:
+            with mock.patch.object(bots, "send", lambda root, dest, text: sent.append(text) or True):
+                r = say("@运维助手 1. 请假单支持按小时请假 2. 请假报表支持按小时统计")
+                self.assertEqual(r["kind"], "intake")
+                said = []
+                while "规格卡" not in r["reply"] and len(said) < 20:
+                    said.append(r["reply"])
+                    if "回复「大需求」" in r["reply"]:  # several asks: the chat offers to take them as one feature
+                        r = say("大需求")
+                        continue
+                    r = say("1" if "\n1. " in r["reply"] else "张三提交 2 小时事假，审批后显示 2 小时")
+                self.assertTrue(any("关于整体" in x for x in said), "the spec's questions are asked in the chat")
+                self.assertIn("整体验收标准", r["reply"])
+                r = say("确认")
+                self.assertIn("已建大需求", r["reply"])
+                self.assertIn("已开工", r["reply"])  # the first batch is under way
+                pk = re.search(r"\*\*([A-Z]+-\d+)\*\*", r["reply"]).group(1)
+                self.assertIn("第 1 批", say("进度")["reply"])
+                par = self.P.store.ticket(pk)
+                for k in par["links"]["children"]:
+                    self.call("POST", "/api/tickets/%s/accept" % k, {"result": "pass"})
+                self.assertIn("等整体验收", sent[-1])
+                self.call("POST", "/api/tickets/%s/accept" % pk, {"result": "pass"})
+                self.assertIn("整体验收通过", sent[-1])
+        finally:
+            bots.INTAKE, bots.ASYNC = old
+
     def test_box_on_the_page_finds_the_backend_and_starts_a_ticket(self):
         """The client's bookmarklet posts a box; the requests in it lead to the flow; the location rides into the ticket."""
         key = self.project()

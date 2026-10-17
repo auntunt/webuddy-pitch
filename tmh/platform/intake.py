@@ -18,6 +18,11 @@ things in one breath. The conversation goes:
 7. Only when the person confirms does each item become a ticket. Who confirmed and when goes into the ticket's
    evidence package, and the ticket enters the usual flow (no criteria, no implementation).
 
+A message that splits into several items may be one feature that is accepted as a whole. The person can say so
+(or start with "大需求"): then the conversation also writes a 规格卡 for the whole — goal, done conditions,
+what must stay, what is out, and the evidence — asking only what is missing, and confirming it makes a parent
+ticket with child tickets released in batches (epic.py).
+
 Classification uses the routing model when one is configured (one typed choice, never free text), otherwise
 keywords. Everything the criteria say comes from the person's own words.
 
@@ -39,6 +44,13 @@ KINDS = {"bug": "缺陷", "feature": "新需求", "question": "咨询", "data": 
 TICKET_TYPE = {"bug": "bug", "feature": "feature", "data": "ops"}
 MAX_Q = 3
 UNSURE = "不清楚"
+# the 规格卡 of a big requirement: what is asked about the whole, once its items are known
+SPEC_Q = [
+    ("goal", "整体做完以后，要达到什么效果？一句话说清，最后整体验收就按它判断。", []),
+    ("keep", "做的过程中，哪些现有的东西必须保持不变？", ["现有功能和数据都不变", "对外接口和数据格式不变", "页面和操作方式不变"]),
+    ("out", "这次明确不做什么？没有就说“没有”。", []),
+    ("evidence", "最后用什么证明整体做好了？", ["每个子单的验收记录和版本号", "按一个完整的业务例子从头走一遍", "两样都要"]),
+]
 
 # words that tell the kinds apart; the first kind with a hit wins, in this order
 KIND_WORDS = [
@@ -148,8 +160,11 @@ def _consult(P, p: dict, text: str) -> str:
         return "知识库没能回答（%s），转人工答复。" % type(e).__name__
 
 
-def start(P, p: dict, text: str, by: str, channel: str = "web", chooser=None, pin: dict | None = None) -> dict:
+def start(P, p: dict, text: str, by: str, channel: str = "web", chooser=None, pin: dict | None = None, big: bool = False) -> dict:
     text = (text or "").strip()
+    m = re.match(r"^大需求\s*[：:，,]?\s*", text)
+    if m:  # said in so many words: one feature, accepted as a whole
+        text, big = text[m.end():], True
     if len(text) < 4:
         raise ApiError(400, "说一句发生了什么或想要什么")
     s = {"id": uuid.uuid4().hex[:12], "project": p["key"], "by": by, "channel": channel, "text": text[:4000],
@@ -157,6 +172,9 @@ def start(P, p: dict, text: str, by: str, channel: str = "web", chooser=None, pi
          "items": [_item(P, p, x, chooser) for x in split(text)[:6]], "tickets": []}
     if pin:  # started from a box drawn on the page: where it is travels with every ticket
         s["pin"] = pin
+    s["suggest_big"] = sum(1 for it in s["items"] if it["kind"] != "question") > 1
+    if big:
+        s["big"], s["spec_slots"] = True, {}
     _plan(s)
     return _save(P.data_dir, s)
 
@@ -203,7 +221,50 @@ def _plan(s: dict) -> None:
         it["questions"] = _questions(it)
         it["ac"] = criteria(it)
     open_q = sum(len(it["questions"]) for it in s["items"])
+    if s.get("big"):
+        sl = s.setdefault("spec_slots", {})
+        s["spec_q"] = [{"slot": k, "q": q, "options": o} for k, q, o in SPEC_Q if k not in sl][:MAX_Q]
+        s["spec"] = spec(s)
+        open_q += len(s["spec_q"])
     s["state"] = "asking" if open_q else "ready"
+
+
+def mark_big(P, sid: str, by: str, on: bool = True) -> dict:
+    """The person says these asks are one feature (or not after all): the spec questions join the conversation."""
+    s = load(P.data_dir, sid)
+    if s["state"] in ("confirmed", "dropped"):
+        raise ApiError(409, "这段对话已经结束")
+    if on:
+        s["big"], s["big_by"] = True, by
+        s.setdefault("spec_slots", {})
+    else:
+        s.pop("big", None)
+        s.pop("spec", None)
+        s.pop("spec_q", None)
+    _plan(s)
+    return _save(P.data_dir, s)
+
+
+def spec(s: dict) -> dict:
+    """The 规格卡: the whole's done conditions are each item's main criterion plus the goal itself, in the person's
+    words; what nobody said yet is 待确认."""
+    sl = s.get("spec_slots") or {}
+    v = lambda k: "" if not sl.get(k) or sl[k].get("unsure") else sl[k]["value"]
+    goal, keep, out, ev = v("goal"), v("keep"), v("out"), v("evidence")
+    done = []
+    for it in s["items"]:
+        if it["kind"] == "question" or not it.get("ac"):
+            continue
+        a = it["ac"][0]
+        done.append({"id": "D%d" % (len(done) + 1), "text": "「%s」：%s" % (re.sub(r"\s+", " ", it["text"])[:40], a["text"]), "layer": a["layer"],
+                     "check": a["check"], "open": a["open"]})
+    done.append({"id": "D%d" % (len(done) + 1), "text": "当全部子单验收通过并合入主干时，%s" % (goal or "【待确认：整体要达到什么效果】"), "layer": "L3",
+                 "check": ev or "【待确认：用什么证明整体做好了】", "open": not (goal and ev)})
+    done.append({"id": "D%d" % (len(done) + 1), "text": "必须保持：%s" % (keep or "其他环节和其他用户的现有行为不变"), "layer": "L1",
+                 "check": "跑现有测试，并抽查相邻功能", "open": False})
+    return {"goal": goal or "【待确认：整体要达到什么效果】", "done": done, "keep": keep or "【待确认：哪些必须保持不变】",
+            "out": out or "【待确认：这次不做什么】", "evidence": ev or "【待确认：用什么证明做好了】",
+            "open": [k for k, _, _ in SPEC_Q if not v(k)]}
 
 
 def answer(P, sid: str, by: str, answers: dict) -> dict:
@@ -212,6 +273,16 @@ def answer(P, sid: str, by: str, answers: dict) -> dict:
     if s["state"] in ("confirmed", "dropped"):
         raise ApiError(409, "这段对话已经结束")
     for k, slots in (answers or {}).items():
+        if k == "spec":  # about the whole of a big requirement
+            if not s.get("big"):
+                raise ApiError(400, "这段对话没有标成大需求")
+            for slot, val in (slots or {}).items():
+                val = str(val or "").strip()[:600]
+                if slot not in dict((x[0], 1) for x in SPEC_Q):
+                    raise ApiError(400, "不认识的问题：%s" % slot)
+                if val:
+                    s["spec_slots"][slot] = {"value": val, "from": by, "unsure": val == UNSURE}
+            continue
         try:
             it = s["items"][int(k)]
         except (ValueError, IndexError):
@@ -284,18 +355,30 @@ def ticket_body(s: dict, it: dict) -> str:
 _CONFIRM = threading.Lock()  # a double click must not make every ticket twice (and start every agent twice)
 
 
-def confirm(P, sid: str, by: str, items: list | None = None) -> dict:
-    """The person confirms: each chosen item becomes a ticket, the confirmation goes into its evidence package."""
+def confirm(P, sid: str, by: str, items: list | None = None, deps: dict | None = None, wave: int | None = None) -> dict:
+    """The person confirms: each chosen item becomes a ticket, the confirmation goes into its evidence package.
+    A big requirement becomes a parent with its children instead (deps and wave say how they are released)."""
     with _CONFIRM:
-        return _confirm(P, sid, by, items)
+        return _confirm(P, sid, by, items, deps, wave)
 
 
-def _confirm(P, sid: str, by: str, items: list | None = None) -> dict:
+def _confirm(P, sid: str, by: str, items: list | None = None, deps: dict | None = None, wave: int | None = None) -> dict:
     from .signoff import _add, epath
     s = load(P.data_dir, sid)
     if s["state"] in ("confirmed", "dropped"):
         raise ApiError(409, "这段对话已经结束")
     p = P.project(s["project"])
+    if s.get("big"):
+        from . import epic
+        try:
+            r = epic.create(P, p, s, by, deps, wave)
+        except ValueError as e:
+            raise ApiError(400, str(e))
+        s["tickets"] += [r["parent"]]
+        s["epic"], s["children"] = r["parent"], r["children"]
+        s["state"] = "confirmed"
+        s["confirmed_by"], s["confirmed_at"] = by, time.strftime("%Y-%m-%d %H:%M:%S")
+        return _save(P.data_dir, s)
     pick = range(len(s["items"])) if items is None else [int(i) for i in items]
     made = []
     for i in pick:
