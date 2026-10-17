@@ -188,3 +188,57 @@ class SharingTest(unittest.TestCase):
         for gone in ("Abc@12345", "eyJhbGci", "zhonghang", "fe80", "AKIAIOSFODNN7EXAMPLE", "root:pw", "tog-12"):
             self.assertNotIn(gone, t)
         self.assertIn("12:30:45", t)  # a time is not an address
+
+
+class ImpactTest(unittest.TestCase):
+    setUp, card = LessonCardsTest.setUp, LessonCardsTest.card
+
+    def verdicts(self, rows):
+        learn._append_log(self.data, rows)
+
+    def test_only_each_tickets_first_verdict_counts_and_small_samples_give_no_rate(self):
+        rows = []
+        for n in range(1, 7):  # six tickets carried a card: five passed first time; OA-1 failed, then passed
+            k = "OA-%d" % n
+            rows += [{"kind": "inject", "id": "L1", "ticket": k, "mode": "fix"}, {"kind": "outcome", "id": "L1", "ticket": k, "passed": n > 1, "cited": n % 2 == 0},
+                     {"kind": "verdict", "ticket": k, "passed": n > 1}]
+        rows += [{"kind": "verdict", "ticket": "OA-1", "passed": True}]
+        rows += [{"kind": "verdict", "ticket": "OA-%d" % n, "passed": n % 2 == 0} for n in range(10, 13)]  # no card matched: 3 only
+        rows += [{"kind": "inject", "id": "L1", "ticket": "TOG-1", "mode": "fix"}, {"kind": "verdict", "ticket": "TOG-1", "passed": False}]
+        self.verdicts(rows)
+        im = learn.impact(self.data, "OA")
+        self.assertEqual((im["carried"]["n"], im["carried"]["passed"], im["carried"]["rate"]), (6, 5, round(5 / 6, 3)))
+        self.assertEqual((im["none"]["n"], im["none"]["rate"]), (3, None))  # too few to say anything
+        self.assertEqual((im["cited"]["n"], im["uncited"]["n"]), (3, 3))
+        self.assertIn("样本还不够", im["verdict"])
+
+    def test_the_comparison_group_is_fixed_per_ticket_and_keeps_cards_out_of_the_prompt(self):
+        self.assertFalse(learn.held_out(self.data, "OA-1"))  # off by default
+        (self.data / "autoflow.json").write_text(json.dumps({"holdout": 0.5}), encoding="utf-8")
+        keys = ["OA-%d" % n for n in range(200)]
+        held = [k for k in keys if learn.held_out(self.data, k)]
+        self.assertTrue(40 < len(held) < 160)
+        self.assertEqual(held, [k for k in keys if learn.held_out(self.data, k)])
+        (self.data / "autoflow.json").write_text(json.dumps({"holdout": 9}), encoding="utf-8")
+        self.assertEqual(learn.holdout_rate(self.data), 0.5)  # never more than half
+        t = {"key": held[0], "id": 1}
+        learn.note_held(self.data, t, [{"id": "L1"}])
+        learn.note_held(self.data, t, [{"id": "L1"}])  # once per verdict
+        self.assertEqual(sum(1 for r in learn._log(self.data) if r.get("kind") == "holdout"), 1)
+        rows = []
+        for n in range(5):
+            rows += [{"kind": "holdout", "ticket": "OA-h%d" % n, "would": ["L1"]}, {"kind": "verdict", "ticket": "OA-h%d" % n, "passed": n < 2}]
+            rows += [{"kind": "inject", "id": "L1", "ticket": "OA-c%d" % n, "mode": "fix"}, {"kind": "verdict", "ticket": "OA-c%d" % n, "passed": n < 4}]
+        self.verdicts(rows)
+        im = learn.impact(self.data, "OA")
+        self.assertEqual((im["carried"]["rate"], im["held"]["rate"]), (0.8, 0.4))
+        self.assertIn("对照组", im["verdict"])
+        self.assertIn("可能只是偶然", im["verdict"])  # 4 of 5 against 2 of 5 is well within luck
+
+    def test_a_gap_says_whether_luck_could_explain_it(self):
+        rows = []
+        for n in range(20):
+            rows += [{"kind": "holdout", "ticket": "OA-h%d" % n, "would": ["L1"]}, {"kind": "verdict", "ticket": "OA-h%d" % n, "passed": n < 5}]
+            rows += [{"kind": "inject", "id": "L1", "ticket": "OA-c%d" % n, "mode": "fix"}, {"kind": "verdict", "ticket": "OA-c%d" % n, "passed": True}]
+        self.verdicts(rows)
+        self.assertIn("不太像偶然", learn.impact(self.data, "OA")["verdict"])

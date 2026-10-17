@@ -279,6 +279,7 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
          "pilot": "—" if pilot_out["reject"]["rate"] is None else "%s%%" % pilot_out["reject"]["rate"], "change": None, "better": "down", "basis": "实测"},
         {"key": "reopen", "label": "验收后 %d 天内返工率" % HOLD_DAYS, "baseline": "外部系统无记录",
          "pilot": "—" if pilot_out["reopen"]["rate"] is None else "%s%%" % pilot_out["reopen"]["rate"], "change": None, "better": "down", "basis": "实测"},
+        _lesson_row(store, p),
         {"key": "ai", "label": "AI 参与率", "baseline": "0%（导入前无记录）", "pilot": "—" if pilot_out["ai"]["rate"] is None else "%s%%" % pilot_out["ai"]["rate"],
          "change": None, "better": "up", "basis": "实测"},
         {"key": "cost", "label": "每单 AI 成本", "baseline": "—", "pilot": "—" if pilot_out["cost"]["per_ticket"] is None else "%s 点" % pilot_out["cost"]["per_ticket"],
@@ -350,6 +351,19 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
 
 
 # ---------------------------------------------------------------- report
+
+MIN_LESSON_N = 5
+
+
+def _lesson_row(store, p: dict) -> dict:
+    """The experience cards against tickets like them that went without (the comparison group), on first-time acceptance."""
+    from . import learn
+    im = learn.impact(store.path.parent, p["key"])
+    c, h = im["carried"], im["held"]
+    show = lambda x: "—（%d 张，不足 %d）" % (x["n"], im["min_n"]) if x["rate"] is None else "%s%%（%d 张）" % (round(x["rate"] * 100), x["n"])
+    return {"key": "lessons", "label": "带经验的工单一次验收通过率", "baseline": show(h) + " 对照组" if im["holdout"] or h["n"] else "未开对照组",
+            "pilot": show(c), "change": None, "better": "up", "basis": "实测"}
+
 
 def report_md(m: dict) -> str:
     cand, p, k = m["baseline"], m["pilot"], m["kb"]
@@ -499,6 +513,7 @@ def report_md(m: dict) -> str:
           "- 验收退回率：本期有验收记录的工单中，至少被退回一次的比例。",
           "- 周期：从工单创建（导入的取原系统创建时间）到第一次验收通过。报中位数和 P90（最慢一成的起点），不报平均数：少数卡住几周的单会把平均数拉得不像任何一张单。",
           "- 验收后 %d 天内返工率：本期验收通过、且已满 %d 天的工单中，%d 天内又被退回或从“已闭环”改回其他状态的比例。不满 %d 天的不进分母，下期再算。只报速度不报稳定性，提速可能只是把问题推到了验收之后。" % ((HOLD_DAYS,) * 4),
+          "- 带经验的工单一次验收通过率：本期第一次验收就通过的比例，只看每张工单的第一次验收。“基线”一列在这一行是对照组：有相近经验、但按固定比例故意不放经验的工单，两组问题相近，差别才算经验的作用。每组不足 %d 张不给比例。" % MIN_LESSON_N,
           "- 少找人：每次需求预判（命令行、网页、群机器人、开放 API）都记一条；结论不是“需要人判断”的算直接答；有人用“改判”标记不对的，从采纳率里扣掉。",
           "- AI 参与：工单有智能体运行、助手对话、提示词使用，或 IDE 里有带该工单号的 MCP 调用（含开发者在平台上“写入项目”后的调用）。",
           ""]

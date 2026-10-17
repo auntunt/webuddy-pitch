@@ -1537,7 +1537,25 @@ def api_learn(P, req, key):
     ls = learn.lessons(P.data_dir, p["key"], 500)
     return {"lessons": ls[:80], "lesson_summary": learn.summary(ls), "shared_in": learn.shared(P.data_dir, p["key"])[:40], "cases": learn.cases(P.data_dir, p["key"]),
             "batches": learn.batches(P.data_dir, p["key"]), "running": learn.RUNNING.get(p["key"], ""),
-            "alerts": dict(alerts.status(P.data_dir, p["key"]), tickets=al), "refix": P.flow.autoflow().get("refix")}
+            "alerts": dict(alerts.status(P.data_dir, p["key"]), tickets=al), "refix": P.flow.autoflow().get("refix"),
+            "impact": learn.impact(P.data_dir, p["key"])}
+
+
+@route("POST", "/api/learn/holdout")
+def api_learn_holdout(P, req):
+    """The comparison group: the share of tickets (0–0.5) whose prompts carry no cards, to measure what the cards do."""
+    from . import learn
+    try:
+        rate = float(req.body.get("rate") or 0)
+    except (TypeError, ValueError):
+        raise ApiError(400, "rate 要是 0 到 0.5 之间的数")
+    if not 0 <= rate <= 0.5:
+        raise ApiError(400, "对照组最多一半的工单")
+    f = P.data_dir / "autoflow.json"
+    conf = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    conf["holdout"] = rate
+    f.write_text(json.dumps(conf, ensure_ascii=False, indent=1), encoding="utf-8")
+    return {"holdout": learn.holdout_rate(P.data_dir)}
 
 
 @route("GET", "/api/projects/<key>/lessons/<lid>/share")

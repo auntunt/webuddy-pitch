@@ -22,6 +22,7 @@ and left out unless asked for. Their source is "history", so their scores can be
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import re
@@ -195,6 +196,93 @@ def summary(ls: list) -> dict:
     p = sum(l["stats"]["passed"] for l in used)
     f = sum(l["stats"]["failed"] for l in used)
     out.update({"total": len(ls), "used": len(used), "pass_rate": round(p / (p + f), 3) if p + f else None})
+    return out
+
+
+MIN_N = 5  # fewer tickets than this on a side and a rate says more about luck than about the cards
+
+
+def holdout_rate(data_dir: Path) -> float:
+    """The share of tickets whose prompts are kept free of cards on purpose, so the cards can be measured against
+    tickets like them (0 = off, the default; a person turns it on, at most half)."""
+    try:
+        v = float(json.loads((Path(data_dir) / "autoflow.json").read_text(encoding="utf-8")).get("holdout") or 0)
+    except (OSError, ValueError, TypeError, AttributeError):
+        return 0.0
+    return min(max(v, 0.0), 0.5)
+
+
+def held_out(data_dir: Path, ticket_key: str) -> bool:
+    """Whether this ticket is one of the comparison group: fixed by its key, so every run of a ticket agrees."""
+    r = holdout_rate(data_dir)
+    return bool(r) and int(hashlib.sha256(ticket_key.encode()).hexdigest()[:8], 16) / 0xFFFFFFFF < r
+
+
+def note_held(data_dir: Path, ticket: dict, ls: list) -> None:
+    """A ticket that would have carried cards and did not, on purpose: once until its next verdict."""
+    if not ls or not ticket.get("key"):
+        return
+    seen = False
+    for r in _log(data_dir):
+        if r.get("ticket") == ticket["key"]:
+            seen = (seen or r.get("kind") == "holdout") and r.get("kind") != "verdict"
+    if not seen:
+        _append_log(data_dir, [{"kind": "holdout", "ticket": ticket["key"], "would": [l["id"] for l in ls]}])
+
+
+def impact(data_dir: Path, project: str) -> dict:
+    """Did the cards help? First-time acceptance of the tickets whose prompts carried cards, against the ones that
+    would have carried them but were held out (a fair comparison) and the ones no card matched (a rough one: those
+    tend to be newer kinds of problem). Only each ticket's first verdict counts: later rounds were already told why."""
+    pre = project + "-"
+    seen, groups = set(), {"carried": [], "held": [], "none": [], "cited": [], "uncited": []}
+    state = {}
+    for r in _log(data_dir):
+        k = r.get("ticket") or ""
+        if not k.startswith(pre) or k in seen:
+            continue
+        s = state.setdefault(k, {"carried": False, "held": False, "cited": False})
+        kind = r.get("kind")
+        if kind == "inject" and r.get("mode") != "ask":
+            s["carried"] = True
+        elif kind == "holdout":
+            s["held"] = True
+        elif kind == "outcome" and r.get("cited"):
+            s["cited"] = True
+        elif kind == "verdict":
+            seen.add(k)
+            ok = bool(r.get("passed"))
+            g = "carried" if s["carried"] else "held" if s["held"] else "none"
+            groups[g].append(ok)
+            if s["carried"]:
+                groups["cited" if s["cited"] else "uncited"].append(ok)
+
+    def chance(a, b):
+        """Two-sided Fisher exact p for "the two groups pass equally often": how easily luck alone gives a gap this wide."""
+        n1, k1, n2, k2 = len(a), sum(a), len(b), sum(b)
+        k, n = k1 + k2, n1 + n2
+        pr = lambda x: math.comb(n1, x) * math.comb(n2, k - x) / math.comb(n, k)
+        p0 = pr(k1)
+        return min(1.0, sum(pr(x) for x in range(max(0, k - n2), min(k, n1) + 1) if pr(x) <= p0 * (1 + 1e-9)))
+
+    def odds(a, b):
+        p_ = chance(a, b)
+        return ("，差别可能只是偶然（p=%.2f），再积累一些工单" % p_) if p_ >= 0.05 else ("，差别不太像偶然（p=%.3f）" % p_)
+
+    def side(xs):
+        return {"n": len(xs), "passed": sum(xs), "rate": round(sum(xs) / len(xs), 3) if len(xs) >= MIN_N else None}
+    out = {g: side(xs) for g, xs in groups.items()}
+    c, h, n = out["carried"], out["held"], out["none"]
+    if c["rate"] is not None and h["rate"] is not None:
+        out["verdict"] = "对照组：带经验的工单一次通过率 %s%%，同类但没放经验的 %s%%（各 %d、%d 张）" % (
+            round(c["rate"] * 100), round(h["rate"] * 100), c["n"], h["n"]) + odds(groups["carried"], groups["held"])
+    elif c["rate"] is not None and n["rate"] is not None:
+        out["verdict"] = "粗略对比：带经验的工单一次通过率 %s%%，没有相近经验的 %s%%（各 %d、%d 张）。两组问题本身不同，只能当参考；要确切的数，打开对照组" % (
+            round(c["rate"] * 100), round(n["rate"] * 100), c["n"], n["n"])
+    else:
+        out["verdict"] = "样本还不够：每组至少 %d 张验收过的工单才给比例（现在带经验 %d 张、对照 %d 张、没有相近经验 %d 张）" % (MIN_N, c["n"], h["n"], n["n"])
+    out["holdout"] = holdout_rate(data_dir)
+    out["min_n"] = MIN_N
     return out
 
 

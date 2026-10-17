@@ -221,9 +221,12 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         for r in prior[:2][::-1]:
             out += ["## 之前的%s结论（%s，%s）" % (dict(RUN_MODES)[r["mode"]], r["agent"], r["ended"][5:16]), r["result"].strip()[:3000], ""]
         if mode != "ask":
-            from .learn import lessons_text, note_used, relevant
+            from .learn import held_out, lessons_text, note_held, note_used, relevant
             try:
                 ls = relevant(store.path.parent, project["key"], ticket, " ".join(r["result"] for r in prior[:2]), root=root)
+                if ls and ticket.get("id") and held_out(store.path.parent, ticket.get("key") or ""):
+                    note_held(store.path.parent, ticket, ls)  # the comparison group: like the others, minus the cards
+                    ls = []
                 out.append(lessons_text(ls))
                 if ticket.get("id"):  # an eval case is not a real ticket: its prompts do not count as using a card
                     note_used(store.path.parent, ticket, ls, mode)

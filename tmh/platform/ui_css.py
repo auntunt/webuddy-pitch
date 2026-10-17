@@ -357,4 +357,7 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 @media (max-width:700px){.frs{flex-wrap:wrap}.frs>.grow{flex-basis:calc(100% - 42px)}.frs>.btn,.frs>button{margin-left:42px}}
 /* phones: no Ctrl K to show, and room at the bottom so the floating 助手 button never sits on the last buttons */
 @media (max-width:700px){#astOpen{padding:9px 14px;right:12px;bottom:14px}#astOpen kbd,.frk{display:none}#page{padding-bottom:76px}}
+/* 经验有没有用: three numbers side by side, wrapping on a phone */
+.imp{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.impg{display:flex;flex-wrap:wrap;gap:8px 24px;margin:6px 0}.impg>div{display:flex;flex-direction:column;min-width:7em}.impg b{font-size:16px;font-variant-numeric:tabular-nums}
 """
