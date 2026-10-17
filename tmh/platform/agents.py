@@ -217,6 +217,15 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
             out.append("## 验收没通过（之前提交的改动被退回，这次必须解决下面的问题）")
             out += ["- %s（%s）：%s" % (e["author"] or "-", e["ts"][5:16], e["body"].strip()[:800]) for e in rejects]
             out.append("")
+        clash = [e for e in evs if e["kind"] == "conflict"][-1:]
+        if clash and mode == "fix":
+            d = clash[0].get("data") or {}
+            out.append("## 这是一次冲突重做（上一版已经验收通过，但合不进主干）")
+            out.append(clash[0]["body"].strip()[:800])
+            if d.get("branch"):
+                out.append("上一版的改动在分支 %s，可以用 `git diff %s^1 %s` 或 `git show %s` 看它改了什么；在当前代码上做出同样的效果，不要扩大范围。"
+                           % (d["branch"], d["branch"], d["branch"], d["branch"]))
+            out.append("")
         prior = [r for r in store.runs(ticket_id=ticket["id"]) if r["status"] == "done" and r["mode"] in ("analyze", "plan") and r["result"]] if ticket.get("id") else []
         for r in prior[:2][::-1]:
             out += ["## 之前的%s结论（%s，%s）" % (dict(RUN_MODES)[r["mode"]], r["agent"], r["ended"][5:16]), r["result"].strip()[:3000], ""]

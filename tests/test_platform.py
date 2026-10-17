@@ -159,6 +159,7 @@ class PlatformApiTest(unittest.TestCase):
                                               encoding="utf-8")
         (cls.data / "autoflow.json").write_text('{"on": false}', encoding="utf-8")  # tests drive runs by hand unless they turn it on
         from tmh.platform import release
+        cls._merge = release.MERGE
         release.MERGE = "off"  # the shared test repo stays as it is; the release test turns merging on for its own project
         cls.P = Platform(cls.data, "tester")
         cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(cls.P))
@@ -168,7 +169,7 @@ class PlatformApiTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         from tmh.platform import release
-        release.MERGE = "auto"
+        release.MERGE = cls._merge
         cls.httpd.shutdown()
 
     def call(self, method, path, body=None, headers=None):
@@ -810,19 +811,59 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             git_("-c", "user.name=w", "-c", "user.email=w@x", "commit", "-qam", "主干上别人的改动")
             head = git_("rev-parse", "HEAD")
             self.call("POST", "/api/tickets/%s/accept" % t2["key"], {"result": "pass"})
-            last = self.P.store.events(t2["id"])[-1]
+            evs = self.P.store.events(t2["id"])
             self.assertEqual(git_("rev-parse", "HEAD"), head)
             self.assertEqual(git_("status", "--porcelain", "--untracked-files=no"), "")  # no half-done merge left behind
-            self.assertIn("冲突", last["body"])
+            clash = [e for e in evs if e["kind"] == "conflict"]
+            self.assertEqual(len(clash), 1)
+            self.assertIn(SVC.split("/")[-1], clash[0]["body"])  # which file, for whoever redoes it
             self.assertEqual(self.P.store.ticket(t2["id"])["status"], "doing")
-            self.assertIn(b2, last["body"])  # automatic handling is off here: a person is told which branch
+            self.assertIn(b2, evs[-1]["body"])  # automatic handling is off here: a person is told which branch
+            from tmh.platform.agents import build_prompt
+            self.assertIn("冲突重做", build_prompt(self.P.store, self.P.project("SHIP"), self.P.store.ticket(t2["id"]), "fix"))
 
-            # uncommitted work in the checkout: no merge, and the ticket says why
+            # uncommitted work in the checkout: no merge, the ticket says why, and once it is cleared a retry merges
             t3, _ = fixed("请假提交后列表状态不对")
             (repo / "notes.txt").write_text("x", encoding="utf-8")
             git_("add", "notes.txt")
             self.call("POST", "/api/tickets/%s/accept" % t3["key"], {"result": "pass"})
             self.assertIn("没提交", self.P.store.events(t3["id"])[-1]["body"])
+            git_("reset", "-q", "notes.txt")
+            (repo / "notes.txt").unlink()
+            git_("tag", "webuddy-SHIP-%s-2" % time.strftime("%Y.%m.%d"), "HEAD~1")  # a number already taken (a restored data folder)
+            code, r = self.call("POST", "/api/tickets/%s/release" % t3["key"], {})
+            self.assertEqual((code, r.get("state")), (200, "merged"), r)
+            self.assertTrue(r["version"].endswith("-3"), r)
+            code, r = self.call("POST", "/api/tickets/%s/release" % t3["key"], {})
+            self.assertEqual(code, 409)  # merged once is enough
+
+            # committed on after acceptance: nobody looked at that part, so nothing is merged
+            t4, b4 = fixed("请假列表排序不对")
+            git_("checkout", "-q", b4)
+            (repo / "extra.txt").write_text("没人看过的改动", encoding="utf-8")
+            git_("add", "extra.txt")
+            git_("-c", "user.name=w", "-c", "user.email=w@x", "commit", "-qm", "后加的")
+            main = git_("rev-parse", "--abbrev-ref", "@{-1}")
+            git_("checkout", "-q", main)
+            head = git_("rev-parse", "HEAD")
+            self.call("POST", "/api/tickets/%s/accept" % t4["key"], {"result": "pass"})
+            self.assertEqual(git_("rev-parse", "HEAD"), head)
+            self.assertIn("验收之后又有新提交", self.P.store.events(t4["id"])[-1]["body"])
+
+            # the checkout is on someone's own branch: the change does not go there
+            t5, _ = fixed("请假附件上传失败")
+            git_("checkout", "-q", "-b", "feature/mine")
+            self.call("POST", "/api/tickets/%s/accept" % t5["key"], {"result": "pass"})
+            self.assertIn("不在主干", self.P.store.events(t5["id"])[-1]["body"])
+            self.assertEqual(git_("rev-parse", "feature/mine"), head)
+            git_("checkout", "-q", main)
+
+            # someone's own merge in progress: left exactly as it is
+            (repo / ".git" / "MERGE_HEAD").write_text(head + "\n", encoding="utf-8")
+            code, r = self.call("POST", "/api/tickets/%s/release" % t5["key"], {})
+            self.assertEqual(r.get("state"), "waiting", r)
+            self.assertTrue((repo / ".git" / "MERGE_HEAD").exists())
+            (repo / ".git" / "MERGE_HEAD").unlink()
         finally:
             self.untrain()
 
@@ -1926,7 +1967,10 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         with mock.patch.object(self.P.flow, "submit") as sub:
             code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})
         self.assertEqual((code, len(s["tickets"]), s["state"]), (200, 2, "confirmed"), s)
-        self.assertEqual(sorted(c.args[1]["key"] for c in sub.call_args_list), sorted(s["tickets"]))  # straight onto the line
+        # the clear one goes straight onto the line; the one with a criterion still 待确认 waits for a person
+        self.assertEqual([c.args[1]["key"] for c in sub.call_args_list], s["tickets"][:1])
+        _, t2 = self.call("GET", "/api/tickets/%s" % s["tickets"][1])
+        self.assertIn("待确认", t2["events"][-1]["body"])
         _, t = self.call("GET", "/api/tickets/%s" % s["tickets"][0])
         self.assertEqual(t["ticket"]["type"], "bug")
         self.assertIn("验收标准", t["ticket"]["body"])

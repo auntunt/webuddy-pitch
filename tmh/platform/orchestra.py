@@ -64,6 +64,8 @@ class Orchestra:
                 conf.update({k: v for k, v in json.loads(f.read_text(encoding="utf-8")).items() if k in conf})
             except ValueError:
                 pass
+        from . import release
+        conf["merge"] = release.settings(self.data_dir)["merge"]  # derived, for the pages: say "merged automatically" only when it is
         return conf
 
     def submit(self, p: dict, t: dict, wait: bool = False) -> None:
@@ -227,6 +229,16 @@ class Orchestra:
         out["refix"] = True
         return tell()
 
+    def ship_again(self, p: dict, t: dict, by: str) -> dict:
+        """A person fixed what held the merge up (a dirty checkout, a lock): try again."""
+        if t["status"] != "closed" or not any(e["kind"] == "accept" for e in self.store.events(t["id"])):
+            raise ValueError("只有验收通过的工单可以合并")
+        if any(e["kind"] == "release" for e in self.store.events(t["id"])) and not any(
+                e["kind"] == "adopt" and e["id"] > max(x["id"] for x in self.store.events(t["id"]) if x["kind"] == "release")
+                for e in self.store.events(t["id"])):
+            raise ValueError("这次改动已经合并过了")
+        return self._ship(p, t, self.autoflow(), by)
+
     def _ship(self, p: dict, t: dict, conf: dict, by: str) -> dict:
         """Accepted: merge the change into the main line and give it a version. A conflict goes back to the agent to
         redo on the current main line; anything else that stops the merge is said on the ticket for a person."""
@@ -240,15 +252,21 @@ class Orchestra:
             st.event(t["id"], self.BY, "release", "已合并进主干 %s，版本 %s（提交 %s）" % (r["main"], r["version"], r["commit"]),
                      {"version": r["version"], "tag": r["tag"], "commit": r["commit"]})
         elif r["state"] == "conflict":
-            agent = self._flow_agent(conf) if conf.get("on") else ""
             st.update_ticket(t["id"], self.BY, status="doing")
-            if agent:
-                st.event(t["id"], self.BY, "flow", "验收通过了，但%s。交回智能体在最新的主干上重做这次改动，做完再验收" % r["why"])
-                self._flow_fix(p, t["id"], conf, agent, "")
+            n = sum(1 for e in st.events(t["id"]) if e["kind"] in ("reject", "conflict"))
+            st.event(t["id"], self.BY, "conflict", "验收通过的改动（%s）和主干 %s 上后来的改动冲突，冲突的文件：%s。要在最新的主干上重做同样的改动，行为和验收通过的那版保持一致"
+                     % (r["branch"], r["main"], "、".join(r["files"]) or "（没列出）"), {"branch": r["branch"], "files": r["files"]})
+            agent = self._flow_agent(conf) if conf.get("on") and conf.get("fix") else ""
+            if agent and not self.held(t["id"]) and n <= int(conf.get("refix") or 0):
+                st.event(t["id"], self.BY, "flow", "交回智能体在最新的主干上重做这次改动，做完再验收")
+                from .agents import git
+                self._flow_fix(p, t["id"], conf, agent, git(self.root(p), "rev-parse", r["main"]).strip())
             else:
-                st.event(t["id"], self.BY, "flow", "验收通过了，但%s，需要有人在最新的主干上重做或手动合并分支 %s" % (r["why"], r["branch"]))
-        elif r["state"] == "waiting":
-            st.event(t["id"], self.BY, "flow", "验收通过了，还没合并进主干：%s" % r["why"])
+                why = ("有人接手" if self.held(t["id"]) else "重做次数用完了（%d 次）" % n if agent else "自动处理没开")
+                st.event(t["id"], self.BY, "flow", "%s，需要有人在最新的主干上重做，或手动合并分支 %s" % (why, r["branch"]))
+        elif r["state"] in ("waiting", "none"):
+            st.event(t["id"], self.BY, "flow", ("验收通过了，还没合并进主干：%s。处理好后在工单上点“重试合并”" if r["state"] == "waiting" else
+                                                "验收通过了，没有自动合并：%s") % r["why"], {"release": r["state"]})
         return r
 
     def recheck(self, rid: int, by: str, wait: bool = False) -> dict:

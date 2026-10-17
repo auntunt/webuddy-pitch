@@ -1928,6 +1928,16 @@ def api_releases(P, req, key):
     return {"releases": release.releases(P.data_dir, "" if key == "*" else key.upper(), 20), "merge": release.settings(P.data_dir)["merge"]}
 
 
+@route("POST", "/api/tickets/<key>/release")
+def api_release_again(P, req, key):
+    """Try the merge again after a person cleared what held it up."""
+    t = P.ticket(key)
+    try:
+        return P.flow.ship_again(P.store.project(t["project_id"]), t, req.user)
+    except ValueError as e:
+        raise ApiError(409, str(e))
+
+
 @route("GET", "/api/readiness")
 def api_readiness(P, req):
     """上线体检: what on this machine would let a pilot down, each with its next step."""

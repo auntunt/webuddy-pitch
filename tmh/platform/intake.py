@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import json
 import re
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -277,8 +278,16 @@ def ticket_body(s: dict, it: dict) -> str:
     return "\n".join(L)
 
 
+_CONFIRM = threading.Lock()  # a double click must not make every ticket twice (and start every agent twice)
+
+
 def confirm(P, sid: str, by: str, items: list | None = None) -> dict:
     """The person confirms: each chosen item becomes a ticket, the confirmation goes into its evidence package."""
+    with _CONFIRM:
+        return _confirm(P, sid, by, items)
+
+
+def _confirm(P, sid: str, by: str, items: list | None = None) -> dict:
     from .signoff import _add, epath
     s = load(P.data_dir, sid)
     if s["state"] in ("confirmed", "dropped"):
@@ -301,7 +310,10 @@ def confirm(P, sid: str, by: str, items: list | None = None) -> dict:
             len(it["ac"]), "，%d 条待确认" % len([a for a in it["ac"] if a["open"]]) if any(a["open"] for a in it["ac"]) else ""))
         it["ticket"] = t["key"]
         made.append(t["key"])
-        P.flow.submit(p, P.store.ticket(t["id"]))  # like any new ticket: the line picks it up (or says why it waits)
+        if any(a["open"] for a in it["ac"]):  # the ticket itself says open criteria must not be built: they wait for a person
+            P.store.event(t["id"], by, "flow", "有验收标准还待确认，先不自动开始；和客户确认后点“交给自动处理”")
+        else:
+            P.flow.submit(p, P.store.ticket(t["id"]))  # like any new ticket: the line picks it up (or says why it waits)
     if not made:
         raise ApiError(409, "没有要建单的事：咨询类已经直接答复")
     s["tickets"] += made
