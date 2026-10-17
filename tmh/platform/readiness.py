@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import itertools
 import json
+import os
+import re
 import shlex
 import shutil
 from datetime import datetime, timedelta
@@ -59,6 +61,10 @@ def _projects(P) -> list:
             out.append(_item("project:" + p["key"], "项目 %s" % p["key"], "bad", "目录 %s 不存在" % root, "检查目录是否挂载，或在设置里改成正确的位置", "#/settings"))
             continue
         if not (root / ".git").exists():
+            ts = P.store.tickets(project_id=p["id"], limit=2000)
+            if ts and all((t.get("links") or {}).get("upstream") for t in ts):
+                out.append(_item("project:" + p["key"], "项目 %s" % p["key"], "ok", "跟踪上游 PR 的项目，代码在上游仓库，不需要本地 git"))
+                continue
             out.append(_item("project:" + p["key"], "项目 %s" % p["key"], "warn", "%s 不是 git 仓库" % root, "改动和证据要靠 git 提交追溯：在目录里 git init 并提交一次"))
             continue
         try:
@@ -158,7 +164,28 @@ def _build(P) -> list:
     return out
 
 
-CHECKS = (_agents, _projects, _flow, _evidence, _access, _disk, _build)
+def _links(P) -> list:
+    """Links that leave the platform (to a chat, to a client's sign page) need an address people outside can open."""
+    if os.environ.get("TMH_PUBLIC_URL") or getattr(P, "public_url", ""):
+        return [_item("url", "对外地址", "ok", "发给客户的链接用 %s" % (os.environ.get("TMH_PUBLIC_URL") or P.public_url))]
+    return [_item("url", "对外地址", "warn", "还不知道平台的对外地址：发进群里的预览和签收链接可能是内网地址",
+                  "启动前设置环境变量 TMH_PUBLIC_URL（例如 https://webuddy.example.com），或先从对外地址登录一次")]
+
+
+def _git(P) -> list:
+    import subprocess
+    try:
+        v = subprocess.run(["git", "--version"], capture_output=True, text=True, timeout=10).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return [_item("git", "git", "bad", "这台机器上没有 git", "装上 git：改动、合并、版本都靠它")]
+    m = re.search(r"(\d+)\.(\d+)", v)
+    if m and (int(m.group(1)), int(m.group(2))) < (2, 38):
+        return [_item("git", "git", "warn", "git 版本 %s.%s 较旧：合并前没法先在旁边试合，只能直接在项目目录里合，冲突时再撤回" % m.groups(),
+                      "升级到 git 2.38 或更新")]
+    return [_item("git", "git", "ok", v.strip())]
+
+
+CHECKS = (_agents, _projects, _flow, _evidence, _access, _disk, _build, _links, _git)
 
 
 def check(P) -> dict:

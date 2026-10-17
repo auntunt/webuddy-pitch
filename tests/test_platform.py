@@ -232,6 +232,18 @@ class PlatformApiTest(unittest.TestCase):
         self.assertEqual(by["auto"]["state"], "warn")  # these tests run with automatic handling off
         self.assertIn("project:" + key, by)
         self.assertEqual(by["build:" + key]["state"], "ok")  # the test repo says how it builds and tests
+        self.assertEqual(by["git"]["state"], "ok")
+        self.assertIn(by["url"]["state"], ("ok", "warn"))  # links to chats need an address outside can open
+        up = Path(tempfile.mkdtemp())  # a project that only follows an upstream PR has no local repository, and needs none
+        _, pu = self.call("POST", "/api/projects", {"key": "UPX", "name": "上游", "root": str(up)})
+        t = self.P.store.create_ticket(self.P.project("UPX")["id"], "跟踪上游", "t", links={"upstream": {"repo": "a/b", "pr": "1"}})
+        try:
+            _, r = self.call("GET", "/api/readiness")
+            self.assertEqual({x["key"]: x for x in r["items"]}["project:UPX"]["state"], "ok")
+        finally:
+            self.P.store.x("DELETE FROM events WHERE ticket_id=?", (t["id"],))
+            self.P.store.x("DELETE FROM tickets WHERE id=?", (t["id"],))
+            self.P.store.x("DELETE FROM projects WHERE key='UPX'")
         from tmh.platform import readiness
         pid = self.P.project(key)["id"]
         st = self.P.store
