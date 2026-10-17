@@ -360,4 +360,9 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 /* 经验有没有用: three numbers side by side, wrapping on a phone */
 .imp{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:10px}
 .impg{display:flex;flex-wrap:wrap;gap:8px 24px;margin:6px 0}.impg>div{display:flex;flex-direction:column;min-width:7em}.impg b{font-size:16px;font-variant-numeric:tabular-nums}
+/* 上线体检 rows: the mark carries the state, the fix sits under the finding */
+.rdy{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line)}.rdy .sub{white-space:normal;overflow-wrap:anywhere}.rdy>.grow{min-width:0}
+.rdi{width:1.4em;text-align:center;font-weight:700;flex:none}.rdy.ok .rdi{color:var(--ok)}.rdy.warn .rdi{color:var(--warn)}.rdy.bad .rdi{color:var(--bad)}
+.rdf{font-size:13px;margin-top:2px}
+.tag.bad{background:var(--bad-s);color:var(--bad);border-color:#F5C2C3}
 """

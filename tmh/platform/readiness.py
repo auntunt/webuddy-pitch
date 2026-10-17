@@ -1,0 +1,127 @@
+"""上线体检: before a client's first ticket, what on this machine would let them down, each with the next step.
+
+Every check looks at the real thing (the agent command on the PATH, the last runs, the project's directory, the
+signing key, the disk), never at a setting that only says it should work. "bad" stops a pilot, "warn" makes it
+weaker, "ok" is fine; the page lists bad first.
+"""
+from __future__ import annotations
+
+import itertools
+import shutil
+from datetime import datetime, timedelta
+from pathlib import Path
+
+STUCK_H = 2  # a run still "running" this long after it started is stuck, not slow
+
+
+def _item(key: str, label: str, state: str, detail: str, fix: str = "", link: str = "") -> dict:
+    return {"key": key, "label": label, "state": state, "detail": detail, "fix": fix, "link": link}
+
+
+def _agents(P) -> list:
+    from .agents import available
+    ags = available(P.data_dir)
+    ok = [a for a in ags if a["available"]]
+    if not ok:
+        return [_item("agent", "智能体", "bad", "这台机器上找不到 %s 命令" % "、".join(a["name"] for a in ags),
+                      "装好 Claude Code 或 Codex 并登录一次，再刷新这页", "#/settings")]
+    out = [_item("agent", "智能体", "ok", "可用：" + "、".join(a["title"] for a in ok))]
+    runs = P.store.q("SELECT status, output, result, ended FROM runs WHERE status IN ('done','failed') ORDER BY id DESC LIMIT 5")
+    if len(runs) >= 3 and all(r["status"] == "failed" for r in runs[:3]):  # the latest three in a row: it is not one bad ticket
+        tail = ((runs[0].get("output") or runs[0].get("result") or "").strip().splitlines() or [""])[-1][:160]
+        out.append(_item("runs", "最近的运行", "bad", "最近 %d 次连续失败%s" % (sum(1 for _ in itertools.takewhile(lambda r: r["status"] == "failed", runs)), "，最后一次：" + tail if tail else ""),
+                         "多半是智能体没登录或额度用完：在这台机器上手动跑一次 claude 或 codex 看提示"))
+    elif runs:
+        f = sum(1 for r in runs if r["status"] == "failed")
+        out.append(_item("runs", "最近的运行", "warn" if f >= 2 else "ok", "最近 %d 次里 %d 次失败" % (len(runs), f)))
+    else:
+        out.append(_item("runs", "最近的运行", "warn", "还没有跑过", "随便挑一张工单点一次“分析”，确认智能体真的能跑通"))
+    cut = (datetime.now() - timedelta(hours=STUCK_H)).strftime("%Y-%m-%d %H:%M:%S")
+    stuck = P.store.q("SELECT id FROM runs WHERE status='running' AND started!='' AND started<?", (cut,))
+    if stuck:
+        out.append(_item("stuck", "卡住的运行", "warn", "%d 个运行开始超过 %d 小时还没结束" % (len(stuck), STUCK_H), "到工单里停掉它们再重跑"))
+    return out
+
+
+def _projects(P) -> list:
+    ps = P.store.projects()
+    if not ps:
+        return [_item("project", "项目", "bad", "还没有接入项目", "在“设置 → 项目”里添加客户代码所在的目录", "#/settings")]
+    out = []
+    for p in ps:
+        root = Path(p["root"])
+        if not root.is_dir():
+            out.append(_item("project:" + p["key"], "项目 %s" % p["key"], "bad", "目录 %s 不存在" % root, "检查目录是否挂载，或在设置里改成正确的位置", "#/settings"))
+            continue
+        if not (root / ".git").exists():
+            out.append(_item("project:" + p["key"], "项目 %s" % p["key"], "warn", "%s 不是 git 仓库" % root, "改动和证据要靠 git 提交追溯：在目录里 git init 并提交一次"))
+            continue
+        try:
+            kb = P.kb.kb_overview(p) or {}
+        except Exception:  # noqa: BLE001 - a broken knowledge base is itself the finding
+            kb = {}
+        if not kb.get("built"):
+            out.append(_item("project:" + p["key"], "项目 %s" % p["key"], "warn", "知识库还没建，分析只能靠临时读代码，又慢又容易漏",
+                             "到首页按引导建知识库", "#/home"))
+        else:
+            out.append(_item("project:" + p["key"], "项目 %s" % p["key"], "ok", "目录、git、知识库都在"))
+    return out
+
+
+def _flow(P) -> list:
+    conf = P.flow.autoflow()
+    if not conf.get("on"):
+        return [_item("auto", "自动处理", "warn", "关着：新工单要人手点才开始分析", "需要的话把数据目录里 autoflow.json 的 on 改成 true")]
+    return [_item("auto", "自动处理", "ok", "开着：新工单会自动分析%s" % ("、出方案并改代码" if conf.get("fix") else ""))]
+
+
+def _evidence(P) -> list:
+    from .. import sign
+    from .signoff import edir
+    fp = sign.ready(edir(P.data_dir))
+    if fp:
+        return [_item("sign", "证据包签名", "ok", "导出带签名，指纹 %s" % fp)]
+    return [_item("sign", "证据包签名", "warn", "这台机器签不了名，导出的证据包证明不了是谁导出的",
+                  "装 Python 的 cryptography 包，或 OpenSSH 8.2 以上的 ssh-keygen，然后重启平台")]
+
+
+def _access(P) -> list:
+    from .login import load_users
+    users = load_users(P.data_dir)
+    if users:
+        return [_item("login", "登录", "ok", "已开账号登录，%d 个账号" % len(users))]
+    return [_item("login", "登录", "warn", "没有账号：只能本机或带令牌访问，签收记录里看不出是谁操作的",
+                  "用 tmh user add 给每个人建账号")]
+
+
+def _disk(P) -> list:
+    try:
+        free = shutil.disk_usage(P.data_dir).free / 2 ** 30
+    except OSError:
+        return []
+    st = "bad" if free < 1 else "warn" if free < 5 else "ok"
+    return [_item("disk", "磁盘", st, "数据目录所在磁盘还剩 %.1f GB" % free, "" if st == "ok" else "清理旧的工作树（worktrees/）或换更大的盘：写不进数据库时所有操作都会失败")]
+
+
+def _testbox(P) -> list:
+    from .testbox import settings
+    if settings(P.data_dir):
+        return [_item("testbox", "测试机", "ok", "已设置：改动会先编译和跑测试")]
+    return [_item("testbox", "测试机", "warn", "没设置：改动不经过编译和测试就交给人验收", "在下面“测试机”里填上 SSH 地址", "#/settings")]
+
+
+CHECKS = (_agents, _projects, _flow, _evidence, _access, _disk, _testbox)
+
+
+def check(P) -> dict:
+    items = []
+    for fn in CHECKS:
+        try:
+            items += fn(P)
+        except Exception as e:  # noqa: BLE001 - one broken check must not hide the others
+            items.append(_item(fn.__name__.strip("_"), fn.__name__.strip("_"), "warn", "检查没做完：%s" % e))
+    order = {"bad": 0, "warn": 1, "ok": 2}
+    items.sort(key=lambda x: order[x["state"]])
+    n = {s: sum(1 for x in items if x["state"] == s) for s in order}
+    return {"items": items, "counts": n,
+            "summary": "有 %d 项会挡住试点" % n["bad"] if n["bad"] else "可以开始试点%s" % ("，另有 %d 项建议改进" % n["warn"] if n["warn"] else "")}

@@ -1919,6 +1919,13 @@ def api_testbox(P, req):
     return {"conf": testbox.settings(P.data_dir), "last": last}
 
 
+@route("GET", "/api/readiness")
+def api_readiness(P, req):
+    """上线体检: what on this machine would let a pilot down, each with its next step."""
+    from . import readiness
+    return readiness.check(P)
+
+
 @route("POST", "/api/testbox")
 def api_testbox_save(P, req):
     """Where the test machine is: {host: "user@host" or an ~/.ssh/config alias, port (empty: the alias's own), dir}; an empty host turns it off. Key login only."""

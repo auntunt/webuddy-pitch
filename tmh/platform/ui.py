@@ -1259,14 +1259,21 @@ async function pushExt(key,body){
     modal(`<h2>同步评论到外部工单</h2><div class="sub">将发出的请求（预演，尚未发送）：</div><pre class="diff">${h(JSON.stringify(r.result,null,2))}</pre><button class="primary" id="pc">确认发送</button>`);
     $('#pc').onclick=async()=>{try{await post(`/api/tickets/${key}/push`,{body,confirm:true});closeModal();toast('已同步');vTicket(key)}catch(e){toast(e.message,5000)}}}catch(e){toast(e.message,5000)}}
 async function vSettings(){
-  $('#main').innerHTML=`<h1>设置</h1><div class="grid2" style="margin-top:14px"><div class="card form"><h2>我</h2><label>名字（写在评论、指派和审阅记录里）<input class="full" id="un" value="${h(S.user)}"></label><div><button class="primary" id="us">保存</button></div></div>
+  $('#main').innerHTML=`<h1>设置</h1><div class="card" id="rdy" style="margin-top:14px"><h2>上线体检</h2><div class="sub">检查中…</div></div><div class="grid2" style="margin-top:14px"><div class="card form"><h2>我</h2><label>名字（写在评论、指派和审阅记录里）<input class="full" id="un" value="${h(S.user)}"></label><div><button class="primary" id="us">保存</button></div></div>
   <div class="card"><h2>智能体</h2>${S.meta.agents.map(a=>`<div class="flowrow"><span>${h(a.title)} <span class="key">${h(a.name)}</span></span><span class="tag">${a.available?'可用':'本机未找到'}</span></div>`).join('')}
   <div class="hint" style="margin-top:10px">平台用本机已安装的 <code>claude</code>（Claude Code）和 <code>codex</code> 命令，沿用它们自己的登录或环境变量。接第三方模型用 <code>tmh agent-config</code> 生成配置。也可以在 <code>${h(S.meta.data_dir)}/agents.json</code> 里加自研智能体：<code>{"my": {"title":"自研","cmd":["my-agent","--dir","{workdir}","{prompt_file}"]}}</code></div></div>
   <div class="card"><h2>项目</h2>${S.projects.map(p=>`<div class="flowrow"><span><b>${h(p.key)}</b> ${h(p.name)}<div class="sub">${h(p.root)}${p.exists?'':'（目录不存在）'}</div></span><span class="sub">${p.open} 张未关闭</span></div>`).join('')}<div style="margin-top:10px"><button onclick="newProject()">＋ 添加项目</button></div></div>
   <div class="card form" id="tbx"><h2>测试机</h2><div class="sub">加载中…</div></div>
   <div class="card"><h2>数据</h2><div class="sub">工单、讨论和运行记录都在 <code>${h(S.meta.data_dir)}/platform.db</code>（SQLite），修改代码用的工作树在 <code>worktrees/</code>。备份这个目录即可。</div></div></div>`;
   $('#us').onclick=()=>{S.user=$('#un').value.trim();try{localStorage.setItem('tmh.user',S.user)}catch(e){}$('#me').textContent='当前用户：'+S.user;toast('已保存')};
-  testbox()}
+  testbox();readiness()}
+// ---------- 上线体检: the real state of this machine, worst first, each with what to do
+async function readiness(){
+  const el=$('#rdy');if(!el)return;let r;try{r=await get('/api/readiness')}catch(e){el.innerHTML='<h2>上线体检</h2><div class="sub">'+h(e.message)+'</div>';return}
+  const ic={bad:'✗',warn:'!',ok:'✓'};
+  el.innerHTML=`<div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">上线体检</h2><span class="tag ${r.counts.bad?'bad':r.counts.warn?'warn':''}">${h(r.summary)}</span><button class="ghost" id="rdyR">重新检查</button></div>
+   ${r.items.map(x=>`<div class="rdy ${x.state}"><span class="rdi">${ic[x.state]}</span><div class="grow"><b>${h(x.label)}</b> <span class="sub">${h(x.detail)}</span>${x.fix?`<div class="rdf">${h(x.fix)}${x.link&&x.link!==location.hash?` <a href="${h(x.link)}">去处理</a>`:''}</div>`:''}</div></div>`).join('')}`;
+  $('#rdyR').onclick=readiness}
 // ---------- the test machine: where the platform builds and tests changes, over SSH with key login
 async function testbox(d){
   const el=$('#tbx');if(!el)return;try{d=d||await get('/api/testbox')}catch(e){el.innerHTML='<h2>测试机</h2><div class="sub">'+h(e.message)+'</div>';return}

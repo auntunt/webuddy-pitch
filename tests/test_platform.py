@@ -193,6 +193,33 @@ class PlatformApiTest(unittest.TestCase):
             self.assertEqual(code, 200, p)
         return "OA"
 
+    def test_readiness_checks_the_real_machine_worst_first(self):
+        key = self.project()
+        code, r = self.call("GET", "/api/readiness")
+        self.assertEqual(code, 200, r)
+        states = [x["state"] for x in r["items"]]
+        self.assertEqual(states, sorted(states, key=["bad", "warn", "ok"].index))
+        by = {x["key"]: x for x in r["items"]}
+        self.assertEqual(by["agent"]["state"], "ok")  # the fake agents are real commands on the PATH
+        self.assertEqual(by["auto"]["state"], "warn")  # these tests run with automatic handling off
+        self.assertIn("project:" + key, by)
+        pid = self.P.project(key)["id"]
+        st = self.P.store
+        old = []
+        for _ in range(3):  # three failed runs in a row: the agent is not logged in or out of quota
+            rid = st.x("INSERT INTO runs(project_id, agent, mode, status, created, started, ended, output) VALUES(?,?,?,?,?,?,?,?)",
+                       (pid, "fake", "analyze", "failed", "2026-01-01 00:00:00", "2026-01-01 00:00:00", "2026-01-01 00:00:01", "Error: not logged in"))
+            old.append(rid)
+        try:
+            _, r = self.call("GET", "/api/readiness")
+            runs = next(x for x in r["items"] if x["key"] == "runs")
+            self.assertEqual((runs["state"], r["items"][0]["key"]), ("bad", "runs"))
+            self.assertIn("not logged in", runs["detail"])
+            self.assertIn("挡住试点", r["summary"])
+        finally:
+            for rid in old:
+                st.x("DELETE FROM runs WHERE id=?", (rid,))
+
     def test_inbox_lists_what_waits_for_a_person(self):
         self.project()
         st = self.P.store
