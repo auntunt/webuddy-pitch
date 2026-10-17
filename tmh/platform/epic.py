@@ -26,11 +26,14 @@ from __future__ import annotations
 import re
 import threading
 
+from pathlib import Path
+
 from .store import now
 
 WAVE = 2
 _LOCK = threading.RLock()
 HELD = "等大需求「%s」的前一批验收通过再开工"
+DEP = "在 %s 之后做：从它的改动开始，不要重做它已经做的。"
 PARENT_HELD = "大需求的父单：由子单分批完成，最后整体验收"
 
 
@@ -63,6 +66,11 @@ def _edit(P, parent: dict, fn) -> dict:
         fn(e, links)
         links["epic"] = e
         return P.store.update_ticket(cur["id"], P.flow.BY, links=links)
+
+
+def _md(text: str) -> str:
+    from .chat import _md
+    return _md(text)
 
 
 def _tell(P, parent: dict, text: str) -> None:
@@ -105,6 +113,8 @@ def create(P, p: dict, s: dict, by: str, deps: dict | None = None, wave: int | N
         raise ValueError("没有要做的事：咨询类已经直接答复")
     pos = {i: n for n, (i, _) in enumerate(work)}
     after = {}
+    if deps is not None and not isinstance(deps, dict):
+        raise ValueError("依赖要写成 {第几件: [它依赖的第几件]}")
     for k, v in (deps or {}).items():
         try:
             i = int(k)
@@ -113,6 +123,8 @@ def create(P, p: dict, s: dict, by: str, deps: dict | None = None, wave: int | N
             raise ValueError("依赖要写成 {第几件: [它依赖的第几件]}")
         if i not in pos or any(d not in pos or pos[d] >= pos[i] for d in ds):
             raise ValueError("第 %d 件只能依赖排在它前面的事" % (i + 1))
+        if len(set(ds)) > 1:  # a change starts from one commit: two unmerged dependencies cannot both be its start
+            raise ValueError("第 %d 件最多依赖一件事；要等几件都做完，就把它排在最后一批" % (i + 1))
         after[i] = sorted(set(ds), key=lambda d: pos[d])
     spec = s["spec"]
     title = "大需求：" + _clip(spec["goal"] if "待确认" not in spec["goal"] else s["text"], 50)
@@ -127,9 +139,13 @@ def create(P, p: dict, s: dict, by: str, deps: dict | None = None, wave: int | N
     keys, held = [], HELD % _clip(title[4:], 30)
     for n, (i, it) in enumerate(work, 1):
         dep_keys = [keys[pos[d]] for d in after.get(i, [])]
-        body = "\n".join(child_head(title[4:], parent["key"], n, len(work), spec)) + "\n" + intake.ticket_body(s, it)
+        own = intake.ticket_body(s, it)
+        m = re.search(r"\n## 验收标准[^\n]*\n(?:- [^\n]*\n?)*", own)
+        ac, rest = (m.group(0).strip(), own[:m.start()] + own[m.end():]) if m else ("", own)
+        L = ["大需求「%s」（父单 %s）的第 %d/%d 个子单。" % (title[4:], parent["key"], n, len(work)), "", ac]  # its own criteria first: they survive truncation
         if dep_keys:
-            body += "\n\n## 依赖\n在 %s 之后做：从它们的改动开始，不要重做它们已经做的。" % "、".join(dep_keys)
+            L += ["", "## 依赖", DEP % "、".join(dep_keys)]
+        body = "\n".join(L + [""] + child_head(title[4:], parent["key"], n, len(work), spec)[2:]) + "\n" + rest.strip()
         links = {"parent": parent["key"], "order": n, "after": dep_keys, "later": held}
         if it.get("flow") and it["flow"].get("id"):
             links["flows"] = [it["flow"]["id"]]
@@ -156,10 +172,56 @@ def create(P, p: dict, s: dict, by: str, deps: dict | None = None, wave: int | N
 
 # ---------------------------------------------------------------- batches
 
-def _merged(P, t: dict) -> bool:
+def _last(evs: list, *kinds) -> int:
+    return max([e["id"] for e in evs if e["kind"] in kinds] or [0])
+
+
+def _accepted_commit(P, proj: dict, t: dict) -> str:
+    """The commit a person accepted on this ticket ("" when the latest change was not accepted, or none was made
+    on the platform). Never a later commit on its branch: nobody looked at that."""
+    from . import learn
     evs = P.store.events(t["id"])
-    last = lambda k: max([e["id"] for e in evs if e["kind"] == k] or [0])
-    return last("release") > 0 and last("release") > last("reject")
+    if _last(evs, "accept") <= max(_last(evs, "adopt"), _last(evs, "reject")):
+        return ""
+    ad, _ = learn._adopted(P.store, t["id"])
+    return learn._resolve(Path(proj["root"]), (ad or {}).get("commit") or "") if ad else ""
+
+
+def _merged(P, proj: dict, t: dict) -> bool:
+    """On the main line already: merged by release.py, or its accepted commit is in main however it got there."""
+    from . import release
+    evs = P.store.events(t["id"])
+    if _last(evs, "release") > max(_last(evs, "reject"), _last(evs, "adopt")):
+        return True
+    sha = _accepted_commit(P, proj, t)
+    root = Path(proj["root"])
+    main = release.main_branch(root, P.data_dir, proj["key"]) if sha else ""
+    return bool(main) and release._run_ok(root, "merge-base", "--is-ancestor", sha, main)
+
+
+def start_of(P, proj: dict, t: dict) -> tuple[str | None, str]:
+    """Where a child's change starts: (commit, why). None for "no opinion" (not a child with a dependency), ""
+    for the main line: its dependency merged, or was not accepted (its commits must not reach main through here)."""
+    after = (t.get("links") or {}).get("after") or []
+    if not after:
+        return None, ""
+    d = P.store.ticket(after[-1])
+    if not d:
+        return "", "依赖的 %s 找不到了，从主干当前的代码开始" % after[-1]
+    if _merged(P, proj, d):
+        return "", "依赖的 %s 已经合入主干，从主干当前的代码开始" % d["key"]
+    sha = _accepted_commit(P, proj, d)
+    if sha:
+        return sha, "%s 还没合入主干，这次从它验收通过的提交 %s 开始" % (d["key"], sha[:10])
+    return "", "依赖的 %s 没有验收通过的平台提交，从主干当前的代码开始" % d["key"]
+
+
+def _settled(P, c: dict) -> bool:
+    """Closed and done with: its merge was tried after the last acceptance and did not conflict."""
+    evs = P.store.events(c["id"])
+    acc = _last(evs, "accept")
+    tried = max([e["id"] for e in evs if e["kind"] in ("release", "conflict") or (e["kind"] == "flow" and (e.get("data") or {}).get("release"))] or [0])
+    return c["status"] == "closed" and tried > acc and _last(evs, "conflict") < acc
 
 
 def _version(P, t: dict) -> str:
@@ -187,11 +249,10 @@ def _open(kids: list) -> bool:
     return any(c and not (c.get("links") or {}).get("later") and c["status"] != "closed" for c in kids)
 
 
-def release(P, proj: dict, parent: dict, by: str, n: int | None = None, when_done: bool = False) -> list:
+def release(P, proj: dict, parent: dict, by: str, n: int | None = None, when_done: bool = False, only: str = "") -> list:
     """Put the next batch on the line: children not yet released whose dependencies are all closed, up to the
     wave size (`when_done`: only if every released child is closed, checked under the lock so two acceptances at
     once release one batch, not two). Returns the keys released."""
-    from . import reform
     with _LOCK:
         parent = P.store.ticket(parent["id"])
         e = parent["links"]["epic"]
@@ -201,7 +262,7 @@ def release(P, proj: dict, parent: dict, by: str, n: int | None = None, when_don
             return []
         closed = {c["key"] for c in kids if c["status"] == "closed"}
         ready = [c for c in kids if (c.get("links") or {}).get("later") and all(d in closed for d in c["links"].get("after") or [])]
-        todo = ready[: (n or e.get("wave") or WAVE)]
+        todo = [c for c in ready if c["key"] == only] if only else ready[: (n or e.get("wave") or WAVE)]
         if not todo:
             return []
         batch = int(e.get("batch") or 0) + 1
@@ -212,15 +273,11 @@ def release(P, proj: dict, parent: dict, by: str, n: int | None = None, when_don
             links.pop("later", None)
             links["batch"] = batch
             body = c.get("body") or ""
-            start = ""
-            for d in links.get("after") or []:  # the last dependency not on the main line yet is where this one starts
-                dt = P.store.ticket(d)
-                if dt and not _merged(P, dt):
-                    tip = reform._tip(P, proj, dt)
-                    if tip:
-                        links["base"], start = tip, "%s 还没合入主干，这次从它的提交 %s 开始" % (d, tip[:10])
-            if links.get("after"):
-                body += "\n\n## 起点\n%s。" % (start or "依赖的 %s 已经合入主干，从主干当前的代码开始" % "、".join(links["after"]))
+            base, why = start_of(P, proj, c)
+            if base is not None:  # said here for the reader; the line asks again when the change starts (base_for)
+                links["base"] = base
+                dl = DEP % "、".join(links["after"])
+                body = body.replace(dl, dl + "\n起点：%s。" % why, 1) if dl in body else body + "\n\n## 起点\n%s。" % why
             if notes:
                 body += "\n\n## 前面子单验收时说的（照着避开同样的问题）\n" + "\n".join("- " + x for x in notes)
             P.store.update_ticket(c["id"], by, links=links, body=body)
@@ -243,7 +300,8 @@ def release(P, proj: dict, parent: dict, by: str, n: int | None = None, when_don
             P.flow.submit(proj, c)
     total = len(parent["links"].get("children") or [])
     _tell(P, parent, "大需求 **%s** 第 %d 批开工（共 %d 个子单）：\n%s" % (
-        parent["key"], batch, total, "\n".join("- %s %s" % (c["key"], _clip(c["title"], 40)) for c in made)))
+        parent["key"], batch, total, "\n".join("- %s %s%s" % (c["key"], _md(_clip(c["title"], 40)), "（验收标准还待确认，确认后开工）" if c["links"].get("open_ac") else "")
+                                             for c in made)))
     return keys
 
 
@@ -266,7 +324,7 @@ def _finish(P, proj: dict, parent: dict) -> None:
     parent = _edit(P, parent, put)
     P.store.event(parent["id"], P.flow.BY, "evidence", text, {"children": rows})
     P.store.update_ticket(parent["id"], P.flow.BY, status="verify")
-    _tell(P, parent, "大需求 **%s** 的 %d 个子单都做完了，等整体验收：\n%s" % (
+    _tell(P, parent, "大需求 **%s** 的 %d 个子单都做完了，等整体验收：\n%s" % (  # keys and versions only: nothing to escape
         parent["key"], len(rows), "\n".join("- %s %s" % (r["key"], "版本 " + r["version"] if r["version"] else "已验收") for r in rows)))
 
 
@@ -284,10 +342,10 @@ def _follow_up(P, proj: dict, parent: dict, note: str, by: str) -> str:
                               type="bug", links={"parent": parent["key"], "order": n, "after": [], "later": "跟进子单，马上放出", "follow_up": True})
 
     def put(e, links):
-        links["children"] = kids + [t["key"]]
+        links["children"] = list(links.get("children") or []) + [t["key"]]  # the current list, not the one read above
         _log(e, "%s 整体验收没通过，开跟进子单 %s：%s" % (by, t["key"], _clip(note, 80)))
     parent = _edit(P, parent, put)
-    release(P, proj, parent, P.flow.BY, n=1)
+    release(P, proj, parent, P.flow.BY, only=t["key"])
     return t["key"]
 
 
@@ -300,7 +358,7 @@ def outcome(P, proj: dict, t: dict, v: dict) -> list:
             _tell(P, t, "大需求 **%s** 整体验收通过，全部完成%s。" % (t["key"], "：版本 " + "、".join(vers) if vers else ""))
             return []
         k = _follow_up(P, proj, t, v["note"] or "没写原因", v["by"])
-        _tell(P, t, "大需求 **%s** 整体验收没通过：%s\n已开跟进子单 %s 按这个原因重改，改完再整体验收。" % (t["key"], _clip(v["note"], 200), k))
+        _tell(P, t, "大需求 **%s** 整体验收没通过：%s\n已开跟进子单 %s 按这个原因重改，改完再整体验收。" % (t["key"], _md(_clip(v["note"], 200)), k))
         return [k]
     parent = _parent_of(P, t)
     if not parent:
@@ -310,17 +368,24 @@ def outcome(P, proj: dict, t: dict, v: dict) -> list:
         if v.get("gave_up"):
             why = "%s验收没通过，%s。退回原因：%s" % (name, v["gave_up"], _clip(v["note"], 200))
             _edit(P, parent, lambda e, links: (e.update(paused=why), _log(e, "暂停自动推进：" + why)))
-            _tell(P, parent, "大需求 **%s** 暂停：%s" % (parent["key"], why))
+            _tell(P, parent, "大需求 **%s** 暂停：%s" % (parent["key"], _md(why)))
         else:
             _edit(P, parent, lambda e, links: _log(e, "%s验收没通过，正在自动重改" % name))
         return []
     ver = _version(P, t)
     with _LOCK:
+        t = P.store.ticket(t["id"])
+        if t["status"] != "closed":  # accepted, but the merge conflicted: it is being redone, the whole is not done
+            parent = _edit(P, parent, lambda e, links: _log(e, "%s验收通过但合并冲突，正在主干上重做" % name))
+            if parent["status"] == "verify":
+                P.store.update_ticket(parent["id"], P.flow.BY, status="doing")
+                P.store.event(parent["id"], P.flow.BY, "flow", "子单 %s 合并时冲突，退回重做：整体验收等它重新完成" % t["key"])
+            return []
         parent = _edit(P, parent, lambda e, links: _log(e, "%s验收通过%s" % (name, "，版本 " + ver if ver else "")))
         kids = [P.store.ticket(k) for k in parent["links"].get("children") or []]
         if all(c and c["status"] == "closed" for c in kids):
-            if parent["status"] not in ("verify", "closed"):
-                _finish(P, proj, parent)
+            if parent["status"] not in ("verify", "closed") and all(_settled(P, c) for c in kids):
+                _finish(P, proj, parent)  # a child whose merge is still under way finishes it when its own verdict lands
             return []
     e = parent["links"]["epic"]
     if not e.get("auto") or e.get("paused"):
@@ -334,7 +399,10 @@ def configure(P, parent: dict, by: str, auto: bool | None = None, resume: bool =
             e["auto"] = bool(auto)
             _log(e, "%s %s自动放下一批" % (by, "打开" if auto else "关闭"))
         if wave:
-            e["wave"] = max(1, min(10, int(wave)))
+            try:
+                e["wave"] = max(1, min(10, int(wave)))
+            except (TypeError, ValueError):
+                raise ValueError("每批数量要是 1 到 10 的数")
             _log(e, "%s 把每批改成 %d 个" % (by, e["wave"]))
         if resume and e.pop("paused", None):
             _log(e, "%s 恢复自动推进" % by)
@@ -347,11 +415,19 @@ def act(P, parent: dict, b: dict, by: str) -> dict:
         raise ValueError("这张工单不是大需求的父单")
     proj = P.store.project(parent["project_id"])
     a = b.get("action")
+    if parent["status"] == "closed":
+        raise ValueError("这个大需求已经整体验收通过了")
     if a == "release":
-        keys = release(P, proj, parent, by, int(b["n"]) if b.get("n") else None)
+        try:
+            n = max(1, min(10, int(b["n"]))) if b.get("n") else None
+        except (TypeError, ValueError):
+            raise ValueError("n 要是 1 到 10 的数")
+        keys = release(P, proj, parent, by, n)
         if not keys:
             raise ValueError("没有能放出的子单：要么都放出了，要么在等依赖的子单验收通过")
         return dict(view(P, P.store.ticket(parent["id"])), opened=keys)
+    if a == "auto" and not isinstance(b.get("on"), bool):
+        raise ValueError("on 只能是 true 或 false")
     if a in ("resume", "auto", "wave"):
         parent = configure(P, parent, by, bool(b.get("on")) if a == "auto" else None, a == "resume", b.get("n") if a == "wave" else None)
         if a == "resume" and parent["links"]["epic"].get("auto"):  # a batch that finished while paused moves on now
@@ -388,6 +464,27 @@ def brief(P, parent: dict) -> str:
     if parent["status"] == "verify":
         return "%d 个子单都做完了，等整体验收" % c["total"]
     return "第 %d 批进行中，子单完成 %d/%d%s" % (v["batch"], c["closed"], c["total"], "（已暂停：%s）" % _clip(v["paused"], 60) if v["paused"] else "")
+
+
+def refuse(t: dict, what: str) -> str:
+    """Why `what` cannot be done on this ticket ("" when it can): a parent is only accepted as a whole once its
+    children are done, and is never changed or merged itself; a child waiting for its batch is not accepted yet."""
+    lk = t.get("links") or {}
+    if lk.get("epic"):
+        if what == "accept":
+            return "" if t["status"] == "verify" else "大需求的父单要等全部子单完成、转到待验证后才能整体验收"
+        return "大需求的父单不直接改代码，也不合并：%s请在子单上做" % {"run": "运行智能体", "handwork": "手写的改动", "ship": "合并",
+                                                                      "status": "改状态"}.get(what, what)
+    if lk.get("parent") and lk.get("later") and what == "accept":
+        return "这个子单还没放出（%s），不能验收" % lk["later"]
+    return ""
+
+
+def base_for(P):
+    """Asked by the coding line when a child's change starts: its dependency's code as it stands now."""
+    def fn(p: dict, t: dict):
+        return start_of(P, p, t)[0] if (t.get("links") or {}).get("parent") else None
+    return fn
 
 
 def listener(P):

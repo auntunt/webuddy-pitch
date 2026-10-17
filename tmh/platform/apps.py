@@ -26,3 +26,4 @@ def wire(P) -> None:
     from . import epic, reform
     P.flow.listen(reform.listener(P))
     P.flow.listen(epic.listener(P))
+    P.flow.start_from(epic.base_for(P))

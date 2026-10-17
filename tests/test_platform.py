@@ -2324,9 +2324,13 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
 
     def test_a_big_requirement_goes_from_a_spec_to_children_in_batches_and_an_overall_acceptance(self):
         """Spec card, parent and children, batches on acceptance, a pause, the whole accepted, a rejected whole redone."""
-        from tmh.platform import signoff
+        from unittest import mock
+        from tmh.platform import epic, release, signoff
         key = self.project()
         self.untrain()  # children wait for people; the feature-level loop is under test
+        for text, big in (("大需求量的导出会超时，不对", False), ("大需求：请假单支持按小时请假", True)):  # said with a separator only
+            code, x = self.call("POST", "/api/projects/%s/intake" % key, {"text": text, "model": False})
+            self.assertEqual(bool(x.get("big")), big, text)
         msg = "1. 请假单支持按小时请假 2. 审批页面增加剩余年假显示 3. 请假报表支持按小时统计"
         code, s = self.call("POST", "/api/projects/%s/intake" % key, {"text": msg, "model": False})
         self.assertEqual((code, len(s["items"])), (200, 3), s)
@@ -2343,6 +2347,8 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertFalse(any(d["open"] for d in sp["done"]), sp["done"])
         code, bad = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm", "deps": {"0": [2]}})
         self.assertEqual(code, 400, "a child only depends on earlier ones")
+        self.assertEqual(self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm", "deps": [[2, 0]]})[0], 400, "not a 500")
+        self.assertEqual(self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm", "deps": {"2": [0, 1]}})[0], 400, "one start only")
         code, s = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm", "deps": {"2": [0]}, "wave": 2})
         self.assertEqual(code, 200, s)
         par = self.P.store.ticket(s["epic"])
@@ -2352,7 +2358,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertIn("不改考勤机对接", par["body"])
         c1, c3 = self.P.store.ticket(k1), self.P.store.ticket(k3)
         self.assertEqual((c1["links"]["parent"], c3["links"]["after"]), (par["key"], [k1]))
-        self.assertIn("验收标准", c1["body"])
+        self.assertTrue(c1["body"].split("\n", 3)[2].startswith("## 验收标准"), "its own criteria come first")
         self.assertIn("员工能按小时请假", c1["body"])
         on = dict(self.P.flow.autoflow(), on=True)
         self.assertEqual(self.P.flow.next_step(c1, on)[0], "analyze", "batch 1 is on the line")
@@ -2363,10 +2369,21 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual((d["epic"]["batch"], d["epic"]["counts"]["released"]), (1, 2))
         self.assertEqual(self.call("GET", "/api/tickets/%s" % k1)[1]["parent"]["key"], par["key"])
         self.assertEqual(self.call("POST", "/api/tickets/%s/epic" % par["key"], {"action": "release"})[0], 400, "the rest waits for batch 1")
+        self.assertEqual(self.call("POST", "/api/tickets/%s/accept" % par["key"], {"result": "pass"})[0], 409, "the whole waits for its children")
+        self.assertEqual(self.call("POST", "/api/tickets/%s/accept" % k3, {"result": "pass"})[0], 409, "a child not released yet")
+        self.assertEqual(self.call("POST", "/api/tickets/%s" % par["key"], {"status": "verify"})[0], 409, "its status follows its children")
+        self.assertEqual(self.call("POST", "/api/tickets/%s/runs" % par["key"], {"agent": "fake", "mode": "analyze"})[0], 409)
 
         # batch 1: the first child's change is committed, accepted; the second is rejected, which pauses the feature
-        head = subprocess.run(["git", "-C", str(self.repo), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
-        self.P.store.event(c1["id"], "自动流转", "adopt", "x", {"commit": head})
+        git_ = lambda *a, cwd=self.repo: subprocess.run(["git"] + list(a), cwd=cwd, capture_output=True, text=True, check=True).stdout.strip()
+        br = "tmh/%s-r1" % k1  # the first child's change, on its own branch and not in main
+        wt = Path(tempfile.mkdtemp()) / "wt"
+        git_("worktree", "add", "-q", "-b", br, str(wt), "HEAD")
+        (wt / "hours.txt").write_text("按小时", encoding="utf-8")
+        git_("add", "-A", cwd=wt)
+        git_("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "hours", cwd=wt)
+        head = git_("rev-parse", "HEAD", cwd=wt)
+        self.P.store.event(c1["id"], "自动流转", "adopt", "x", {"commit": head, "branch": br})
         self.call("POST", "/api/tickets/%s/accept" % k1, {"result": "pass", "note": "小时数的输入框放在日期后面"})
         self.assertTrue(self.P.store.ticket(k3)["links"].get("later"), "the batch is not done yet")
         self.call("POST", "/api/tickets/%s/accept" % k2, {"result": "fail", "note": "余额没扣掉已审批的"})
@@ -2381,6 +2398,36 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual(c3["links"]["base"], head, "it starts from the commit the child it depends on ended on")
         self.assertIn("小时数的输入框放在日期后面", c3["body"], "what acceptance said carries to later children")
         self.assertEqual(self.P.flow.next_step(c3, on)[0], "analyze")
+        # where its change starts is asked again when it starts: the dependency as it stands now
+        seen, orig = [], self.P.flow.runner.start
+        self.P.flow.runner.start = lambda *a, **k: seen.append(k.get("base")) or {"id": 0}
+        try:
+            fix = lambda: self.P.flow._flow_fix(self.P.project(key), c3["id"], {}, "fake")
+            fix()
+            self.P.store.event(c1["id"], "tester", "reject", "验收不通过：又不对了")  # the dependency no longer stands accepted
+            fix()
+            main_head = git_("rev-parse", "HEAD")
+            self.P.store.event(c1["id"], "自动流转", "adopt", "x", {"commit": main_head})  # its accepted change is in main
+            self.P.store.event(c1["id"], "tester", "accept", "验收通过")
+            fix()
+            self.P.store.event(c1["id"], "自动流转", "adopt", "x", {"commit": head, "branch": br})
+            self.P.store.event(c1["id"], "tester", "accept", "验收通过")
+            fix()
+            self.P.store.event(c1["id"], "自动流转", "flow", "没合并", {"release": "waiting"})  # as an acceptance's merge attempt does
+        finally:
+            self.P.flow.runner.start = orig
+        self.assertEqual(seen, [head, "", "", head], "its accepted commit; never an unaccepted one; main once it is in main")
+
+        # the last child's merge conflicts: it is redone, the whole does not go to acceptance, and is pulled back if it had
+        conflict = {"state": "conflict", "branch": "x", "main": "main", "files": []}
+        with mock.patch.object(release, "ship", lambda *a: conflict):
+            self.call("POST", "/api/tickets/%s/accept" % k3, {"result": "pass"})
+            self.assertEqual((self.P.store.ticket(k3)["status"], self.P.store.ticket(par["id"])["status"]), ("doing", "doing"))
+            self.P.store.update_ticket(par["id"], "自动流转", status="verify")  # it got there just before the conflict
+            self.P.store.update_ticket(c3["id"], "tester", status="verify")
+            self.call("POST", "/api/tickets/%s/accept" % k3, {"result": "pass"})
+        self.assertEqual(self.P.store.ticket(par["id"])["status"], "doing", "a conflict after the whole went to acceptance pulls it back")
+        self.P.store.update_ticket(c3["id"], "tester", status="verify")
 
         # the last child closes: the whole goes to acceptance with what each child came to
         self.call("POST", "/api/tickets/%s/accept" % k3, {"result": "pass"})
@@ -2394,6 +2441,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
 
         # the whole rejected: the reason becomes a follow-up child on the line, and the whole comes back after it
         self.call("POST", "/api/tickets/%s/accept" % par["key"], {"result": "fail", "note": "审批通知里没写小时数"})
+        self.assertEqual(self.call("POST", "/api/tickets/%s/accept" % par["key"], {"result": "fail", "note": "再退一次"})[0], 409, "rejected once is enough")
         par = self.P.store.ticket(par["id"])
         self.assertEqual((par["status"], len(par["links"]["children"])), ("doing", 4))
         k4 = par["links"]["children"][-1]

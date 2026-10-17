@@ -111,7 +111,9 @@ def _route(P, p: dict, t: str, sender: str, conv: dict) -> str | None:
             intake.drop(P, s["id"], sender)
             _draft(P, ck, sender, "")
             return "好的，这件事先不建单。想好了随时再说。"
-        if t.rstrip("。!！") in BIG and not s.get("big"):
+        if t.rstrip("。!！") in BIG:  # never an answer to a question
+            if s.get("big"):
+                return render(s, note="已经按大需求在理了。")
             return render(intake.mark_big(P, s["id"], sender), note="好的，按一个大需求来做：拆成子单分批上线，最后整体验收。")
         if s["state"] == "ready":
             if t.rstrip("。!！") in YES:
@@ -242,7 +244,8 @@ def _confirm(P, ck: str, c: dict, s: dict, sender: str) -> str:
         par = P.store.ticket(s["epic"])
         kids = [P.store.ticket(k) for k in s.get("children") or []]
         return "已建大需求 **%s** %s，拆成 %d 个子单：\n%s\n\n%s随时回「进度」看到哪了。" % (
-            par["key"], _md(par["title"]), len(kids), "\n".join("- **%s** %s：%s" % (k["key"], _md(k["title"]), "已开工" if not k["links"].get("later") else "排队")
+            par["key"], _md(par["title"]), len(kids), "\n".join("- **%s** %s：%s" % (k["key"], _md(k["title"]), "排队" if k["links"].get("later") else
+                                                         "已放出，有验收标准待确认，工程师先和您确认再开工" if k["links"].get("open_ac") else "已开工")
                                                          for k in kids),
             "每一批开工、做完和最后整体验收，我都会在这里说。" if later else "这个群我没法主动发消息，")
     L = []

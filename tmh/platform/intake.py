@@ -162,7 +162,7 @@ def _consult(P, p: dict, text: str) -> str:
 
 def start(P, p: dict, text: str, by: str, channel: str = "web", chooser=None, pin: dict | None = None, big: bool = False) -> dict:
     text = (text or "").strip()
-    m = re.match(r"^大需求\s*[：:，,]?\s*", text)
+    m = re.match(r"^大需求\s*[：:，,]\s*", text)  # a separator, so "大需求量的导出会超时" is just a message
     if m:  # said in so many words: one feature, accepted as a whole
         text, big = text[m.end():], True
     if len(text) < 4:

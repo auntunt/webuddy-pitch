@@ -402,6 +402,7 @@ function nextAction(d,f){
   const auto=onAuto(d),br=adopted(d);
   if(f.live)return {tone:'info',text:`<span class="spin"></span> 智能体正在${h(moLabel(f.live.mode))}${auto&&f.live.author==='自动流转'?'，跑完会自动接着往下做，直到提交到独立分支等你验收':'，完成后这里会给出下一步'}。`,btns:B('naLog','看实时过程','ghost')+(auto?`<button class="ghost" data-hold="1">接管</button>`:'')};
   const lt=(t.links||{}).later;  // held off the line by an app: a feature's parent, or a child waiting for its batch
+  if(d.epic&&t.status==='closed')return {tone:'ok',text:'大需求已整体验收通过，全部完成。要再改，请提一个新的需求。'};
   if(lt&&t.status!=='closed'){if(d.epic&&t.status==='verify')return {tone:'warn',text:'全部子单都完成了，<b>等你整体验收</b>：对照规格卡的整体验收标准和每个子单的版本验证。通过就关闭这个大需求；不通过写明原因，会自动开一个跟进子单按原因重改。',acc:true};
     return {tone:'info',text:d.epic?'大需求的父单不直接改代码：子单分批放出、各自验收，全部完成后回到这里整体验收。':h(lt)+'。'}}
   if(auto&&d.auto_next&&!f.live&&!(d.events.slice(-1)[0]||{}).body?.startsWith('交给自动处理'))return {tone:'info',text:`这张工单还没走自动处理（自动处理只接新进来的工单）。交给它后从“${{analyze:'分析定位',plan:'修改方案',fix:'修改代码',commit:'提交改动'}[d.auto_next]}”接着做，停在等你验收。`,btns:B('naGo','交给自动处理','primary')+'<button class="ghost" data-hold="1">我自己处理</button>'};
@@ -474,7 +475,7 @@ async function vTicket(key,sub){
   $('#main').innerHTML=`<div class="sub" style="margin-bottom:6px"><a href="#/">工单看板</a> / ${h(d.project.key)} / ${t.key}</div>
   <div class="hdr"><h1 class="grow" id="ttl" title="点击修改">${h(t.title)}</h1>${stPill(t.status)}<button onclick="A.toggle(true);A.enterTicket(S.cur.ticket)">在助手中讨论</button></div>
   <div class="props"><span class="tag">${h(d.project.key)}</span>
-   <label>状态<select id="fs" data-autosave="1">${opt(S.meta.statuses.filter(([k])=>k!=='closed'||t.status==='closed'),t.status)}</select></label>
+   <label>状态<select id="fs" data-autosave="1" ${d.epic?'disabled title="父单的状态跟着子单走"':''}>${opt(S.meta.statuses.filter(([k])=>k!=='closed'||t.status==='closed'),t.status)}</select></label>
    <label>类型<select id="fy" data-autosave="1">${opt(S.meta.types,t.type)}</select></label>
    <label>优先级<select id="fp" data-autosave="1">${opt(S.meta.priorities,t.priority)}</select></label>
    <label>经办人<input id="fa" data-autosave="1" value="${h(t.assignee)}" placeholder="无人" size="6"></label>

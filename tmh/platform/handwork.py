@@ -204,8 +204,8 @@ def scan(P, p: dict | None = None) -> list:
                 continue
             m = re.match(r"(?:origin/)?wb/([A-Za-z0-9]+-\d+)$", ref)
             t = P.store.ticket(m.group(1).upper()) if m else None
-            if not t or t["project_id"] != proj["id"] or t["status"] == "closed":
-                continue
+            if not t or t["project_id"] != proj["id"] or t["status"] == "closed" or (t.get("links") or {}).get("epic"):
+                continue  # a feature's parent is never changed itself: its children are
             if _seen(P, t, ref, sha):
                 continue
             try:

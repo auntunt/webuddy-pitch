@@ -14,6 +14,8 @@ What an app may use, and nothing else:
   listen(fn)                                     hear every verdict: fn(project, ticket, verdict) -> dict | None, with
                                                  verdict = {passed, note, by, redo, gave_up}; gave_up says why nothing
                                                  will redo a rejected task automatically ("" when something will)
+  start_from(fn)                                 say where a ticket's change starts, asked each time one starts:
+                                                 fn(project, ticket) -> commit, "" for the main line, or None
   links.later                                    an app holds a ticket off the line (why, in words): no step starts on it
                                                  until the app removes it, and its verdicts only go to the listeners
   BY                                             the author name the line writes events under
@@ -34,10 +36,14 @@ class Orchestra:
     def __init__(self, store, runner, data_dir: Path, knowledge):
         self.store, self.runner, self.data_dir, self.knowledge = store, runner, Path(data_dir), knowledge
         self.listeners = []
+        self.bases = []  # fn(project, ticket) -> commit | "" (the main line) | None (no opinion): where a change starts
         self.rechecking = set()  # fix runs being built again
 
     def listen(self, fn) -> None:
         self.listeners.append(fn)
+
+    def start_from(self, fn) -> None:
+        self.bases.append(fn)
 
     def agent(self, conf: dict | None = None) -> str:
         """The agent the line would use now ("" when none is available on this machine)."""
@@ -165,9 +171,19 @@ class Orchestra:
 
     def _flow_fix(self, p: dict, tid: int, conf: dict, agent: str, base: str = "") -> None:
         st, by = self.store, self.BY
-        if not base:  # a ticket can name the commit its change must start from (an app sets links.base)
+        if not base:  # a ticket can name the commit its change must start from: an app says so now, else links.base
             from . import learn
-            want = (st.ticket(tid).get("links") or {}).get("base") or ""
+            t = st.ticket(tid)
+            want = None
+            for fn in self.bases:
+                try:
+                    want = fn(p, t)
+                except Exception as e:  # noqa: BLE001 - an app's trouble must not stop the change
+                    st.event(tid, by, "flow", "没能问到这次改动从哪开始（%s），用工单记下的起点" % e)
+                if want is not None:
+                    break
+            if want is None:
+                want = (t.get("links") or {}).get("base") or ""
             base = want if want and learn._resolve(self.root(p), want) else ""
 
         def fixed(run):
@@ -236,6 +252,8 @@ class Orchestra:
 
     def ship_again(self, p: dict, t: dict, by: str) -> dict:
         """A person fixed what held the merge up (a dirty checkout, a lock): try again."""
+        if (t.get("links") or {}).get("later"):
+            raise ValueError("这张工单不在自动处理线上，没有要合并的改动")
         evs = self.store.events(t["id"])
         last = lambda *kinds: max([e["id"] for e in evs if e["kind"] in kinds] or [0])
         if t["status"] != "closed" or last("accept") < max(last("adopt"), last("reject")):

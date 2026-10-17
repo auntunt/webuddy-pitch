@@ -402,6 +402,9 @@ def decide(P, token: str, action: str, name: str, verdicts: dict, note: str, cli
             raise ApiError(400, "退回必须写明原因")
     else:
         raise ApiError(400, "action 只能是 sign 或 reject")
+    from . import epic
+    if epic.refuse(t, "accept"):
+        raise ApiError(409, epic.refuse(t, "accept"))
     who = "%s（甲方%s）" % (name, x["role"] or "确认人")
     data = {"signer": name, "role": x["role"], "ac": res, "note": note, "pack_hash": s["pack_hash"], "package_hash": s["hash"],
             "via": "签收链接", "client": client[:60]}

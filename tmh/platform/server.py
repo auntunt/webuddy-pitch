@@ -1530,7 +1530,10 @@ def api_accept(P, req, key):
         raise ApiError(400, "result 只能是 pass 或 fail")
     if res == "fail" and not note:
         raise ApiError(400, "验收不通过时必须写明原因")
-    from . import signoff
+    from . import epic, signoff
+    why = epic.refuse(t, "accept")
+    if why:
+        raise ApiError(409, why)
     sealed = signoff.record_accept(P, t, req.user, res == "pass", note)
     P.store.event(t["id"], req.user, "accept" if res == "pass" else "reject", ("验收通过" if res == "pass" else "验收不通过") + ("：" + note if note else ""),
                   dict({"result": res}, **({"evidence": sealed} if sealed else {})))
@@ -1908,6 +1911,9 @@ def api_ledger(P, req, key):
 def api_update_ticket(P, req, key):
     t = P.ticket(key)
     b = dict(req.body)
+    if (t.get("links") or {}).get("epic") and ((b.get("status") and b["status"] != t["status"]) or b.get("auto") == "go" or "hold" in b or "links" in b):
+        from . import epic  # its status follows its children; reopening a finished feature means a new requirement
+        raise ApiError(409, epic.refuse(t, "status"))
     if b.get("status") == "closed" and t["status"] != "closed":
         # closing is acceptance: a person's "验收通过" (POST /accept), never a status edit (docs/acceptance.md)
         raise ApiError(400, "关单只能走验收：由人点“验收通过”（POST /api/tickets/%s/accept）" % t["key"])
@@ -1970,7 +1976,10 @@ def api_releases(P, req, key):
 @route("POST", "/api/tickets/<key>/release")
 def api_release_again(P, req, key):
     """Try the merge again after a person cleared what held it up."""
+    from . import epic
     t = P.ticket(key)
+    if epic.refuse(t, "ship"):
+        raise ApiError(409, epic.refuse(t, "ship"))
     try:
         return P.flow.ship_again(P.store.project(t["project_id"]), t, req.user)
     except ValueError as e:
@@ -2050,8 +2059,10 @@ def api_starter(P, req, key):
 @route("POST", "/api/tickets/<key>/handwork")
 def api_handwork(P, req, key):
     """{"patch": "<git format-patch output>"}: a hand-written change from someone who cannot push."""
-    from . import handwork
+    from . import epic, handwork
     t = P.ticket(key)
+    if epic.refuse(t, "handwork"):
+        raise ApiError(409, epic.refuse(t, "handwork"))
     patch = req.body.get("patch")
     if not isinstance(patch, str) or len(patch) > 4 * 1024 * 1024:
         raise ApiError(400, "patch 要是补丁文件的文本，不超过 4MB")
@@ -2137,7 +2148,10 @@ def api_ticket_context(P, req, key):
 
 @route("POST", "/api/tickets/<key>/runs")
 def api_start_run(P, req, key):
+    from . import epic
     t = P.ticket(key)
+    if epic.refuse(t, "run"):
+        raise ApiError(409, epic.refuse(t, "run"))
     p = P.store.project(t["project_id"])
     mode, n = req.body.get("mode", "analyze"), int(req.body.get("kb_after") or 0)
     then = (lambda run: P.kb.kb_followup(p, P.store.ticket(t["id"]), run, n, req.user)) if n and mode == "analyze" else None

@@ -312,7 +312,8 @@ kbd{font:11px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;border:1px solid c
 .fsteps li.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}.fsteps li.cur .dot{border-color:var(--acc);color:var(--acc);box-shadow:0 0 0 4px rgba(22,119,255,.12)}
 .fsteps li.bad .dot{border-color:var(--bad);color:var(--bad)}.fsteps li.skip{opacity:.45}
 .fsteps b{font-size:13px}.fsteps li.cur b{color:var(--acc)}.fsteps small{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.concl .c4{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px 12px;margin:0}
+.concl .c4,dl.c4{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px 12px;margin:0}
+dl.c4 dt{font-size:12.5px;color:var(--mut);padding-top:2px}dl.c4 dd{margin:0;min-width:0;overflow-wrap:anywhere;line-height:1.6}
 .concl .c4 dt{font-size:12.5px;color:var(--mut);padding-top:2px}.concl .c4 dd{margin:0;min-width:0;overflow-wrap:anywhere;line-height:1.6}
 .concl .c4 dd.na{border-radius:6px;padding:2px 8px;margin-left:-8px;background:#F6F9FF}.concl .c4 dd.na.warn{background:#FFFBF0}.concl .c4 dd.na.ok{background:#F6FCF8}.concl .c4 dd.na.bad{background:#FFF6F6}
 .concl .cact{margin:12px 0 0 56px}.concl .cbox{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
