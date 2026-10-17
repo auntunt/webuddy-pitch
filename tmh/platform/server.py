@@ -1557,21 +1557,28 @@ def api_lesson(P, req, key, lid):
     from . import learn
     p, b = P.project(key), req.body
     cur = learn.lesson(P.data_dir, lid)
+    act = b.get("action") or ""
+    if act in ("take", "untake"):  # a card another project shared: whether this project's prompts may carry it
+        try:
+            return learn.take_shared(P.data_dir, lid, p["key"], act == "take", req.user)
+        except ValueError as e:
+            raise ApiError(404, str(e))
     if not cur or cur.get("project") != p["key"]:
         raise ApiError(404, "没有这条经验")
     try:
         if b.get("fields") and not isinstance(b["fields"], dict):
             raise ValueError("fields 要是 {字段: 内容}")
+        if not isinstance(b.get("title") or "", str) or not isinstance(b.get("why") or "", str):
+            raise ValueError("title、why 要是文字")
         if b.get("fields") and b.get("action") not in ("share", "unshare"):
             cur = learn.edit_lesson(P.data_dir, lid, b["fields"], req.user)
-        act = b.get("action") or ""
         if act in ("share", "unshare"):  # to the other projects on this platform: the redacted copy the person read
             return learn.set_shared(P.data_dir, lid, act == "share", req.user, b.get("title") or "", b.get("fields") if isinstance(b.get("fields"), dict) else {},
-                                    b.get("why") or "")
+                                    b.get("why") or "", [p["key"], p.get("name", "")])
         if act:
             st = {"confirm": "active", "restore": "active", "retire": "retired"}.get(act)
             if not st:
-                raise ValueError("action 只能是 confirm、restore、retire、share、unshare")
+                raise ValueError("action 只能是 confirm、restore、retire、share、unshare、take、untake")
             if act == "retire" and not (b.get("why") or "").strip():
                 raise ValueError("停用要写原因")
             cur = learn.set_status(P.data_dir, lid, st, req.user, b.get("why") or {"confirm": "确认入库", "restore": "恢复使用"}.get(act, ""))

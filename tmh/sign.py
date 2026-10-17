@@ -13,15 +13,23 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import os
 import shutil
 import struct
 import subprocess
 import tempfile
+import threading
 from pathlib import Path
 
 NAMESPACE = "webuddy-evidence@v1"
 KEY = "signing_ed25519"
 ARMOR = ("-----BEGIN SSH SIGNATURE-----", "-----END SSH SIGNATURE-----")
+_LOCK = threading.Lock()
+_CHECKED: dict = {}  # key directory -> public key line, once the pair was found to match
+
+
+class Unverifiable(RuntimeError):
+    """Nothing here can check the signature (no tool, or one too old): not the same as a bad signature."""
 
 
 def _lib():
@@ -51,25 +59,63 @@ def fingerprint(pub_line: str) -> str:
     return "SHA256:" + base64.b64encode(hashlib.sha256(blob).digest()).decode().rstrip("=")
 
 
+def _derive_pub(k: Path) -> str:
+    """The public key that belongs to the private key file, as "ssh-ed25519 AAAA…"."""
+    if _lib():
+        from cryptography.hazmat.primitives import serialization as s
+        key = s.load_ssh_private_key(k.read_bytes(), password=None)
+        return key.public_key().public_bytes(s.Encoding.OpenSSH, s.PublicFormat.OpenSSH).decode()
+    r = subprocess.run(["ssh-keygen", "-y", "-f", str(k)], capture_output=True, timeout=30, text=True)
+    if r.returncode:
+        raise RuntimeError("读不了签名私钥 %s：%s" % (k, r.stderr.strip()[:200]))
+    return " ".join(r.stdout.split()[:2])
+
+
+def _put(path: Path, data: bytes, mode: int) -> None:
+    """Write a file whole or not at all, created with its final permissions (a private key is never readable by others)."""
+    tmp = path.with_name(".%s.%d.tmp" % (path.name, os.getpid()))
+    fd = os.open(str(tmp), os.O_WRONLY | os.O_CREAT | os.O_EXCL, mode)
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(data)
+        os.replace(tmp, path)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
+
+
 def ensure_key(d: Path) -> str:
-    """The platform's signing key (made on first use, readable only by its owner). Returns the public key line."""
+    """The platform's signing key (made on first use, readable only by its owner). Returns the public key line, or ""
+    when nothing here can make one. Raises when the key files on disk do not belong together."""
     d = Path(d)
-    d.mkdir(parents=True, exist_ok=True)
     k, pub = d / KEY, d / (KEY + ".pub")
-    if not k.exists():
-        if _lib():
-            from cryptography.hazmat.primitives import serialization as s
-            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-            key = Ed25519PrivateKey.generate()
-            k.write_bytes(key.private_bytes(s.Encoding.PEM, s.PrivateFormat.OpenSSH, s.NoEncryption()))
-            k.chmod(0o600)
-            pub.write_text(key.public_key().public_bytes(s.Encoding.OpenSSH, s.PublicFormat.OpenSSH).decode() + " webuddy-evidence\n")
-        elif shutil.which("ssh-keygen"):
-            subprocess.run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", "webuddy-evidence", "-f", str(k)], check=True,
-                           capture_output=True, timeout=30)
-        else:
+    with _LOCK:
+        if str(d) in _CHECKED and k.exists():
+            return _CHECKED[str(d)]
+        if not backend():
             return ""
-    return pub.read_text(encoding="utf-8").strip() if pub.exists() else ""
+        d.mkdir(parents=True, exist_ok=True)
+        if not k.exists():
+            if _lib():
+                from cryptography.hazmat.primitives import serialization as s
+                from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+                key = Ed25519PrivateKey.generate()
+                priv = key.private_bytes(s.Encoding.PEM, s.PrivateFormat.OpenSSH, s.NoEncryption())
+            else:
+                with tempfile.TemporaryDirectory() as t:
+                    subprocess.run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", "webuddy-evidence", "-f", t + "/k"], check=True,
+                                   capture_output=True, timeout=30)
+                    priv = Path(t, "k").read_bytes()
+            _put(k, priv, 0o600)
+            pub.unlink(missing_ok=True)
+        line = _derive_pub(k)
+        if not pub.exists():
+            _put(pub, (line + " webuddy-evidence\n").encode(), 0o644)
+        have = pub.read_text(encoding="utf-8").strip()
+        if have.split()[:2] != line.split()[:2]:
+            raise RuntimeError("签名钥匙对不上：%s 不是 %s 的公钥。别动这两个文件，先查是谁改的" % (pub, k))
+        _CHECKED[str(d)] = have
+        return have
 
 
 def _signed_data(data: bytes) -> bytes:
@@ -94,7 +140,9 @@ def sign(d: Path, data: bytes) -> dict | None:
         with tempfile.TemporaryDirectory() as t:
             f = Path(t) / "data"
             f.write_bytes(data)
-            subprocess.run(["ssh-keygen", "-q", "-Y", "sign", "-f", str(k), "-n", NAMESPACE, str(f)], check=True, capture_output=True, timeout=30)
+            r = subprocess.run(["ssh-keygen", "-q", "-Y", "sign", "-f", str(k), "-n", NAMESPACE, str(f)], capture_output=True, timeout=30, text=True)
+            if r.returncode:
+                raise RuntimeError("ssh-keygen 签不了名（OpenSSH 8.0 起才支持 -Y sign）：%s" % r.stderr.strip()[:200])
             armored = (Path(t) / "data.sig").read_text(encoding="utf-8").strip()
     return {"format": "sshsig", "namespace": NAMESPACE, "publicKey": pub, "fingerprint": fingerprint(pub), "sig": armored}
 
@@ -133,5 +181,29 @@ def verify(sig: dict, data: bytes) -> tuple[bool, str]:
             sf = Path(t) / "data.sig"
             sf.write_text(armored + "\n", encoding="utf-8")
             r = subprocess.run(["ssh-keygen", "-Y", "check-novalidate", "-n", NAMESPACE, "-s", str(sf)], input=data, capture_output=True, timeout=30)
-            return r.returncode == 0, fp
-    raise RuntimeError("这台机器上没有能验签的工具：装 Python 的 cryptography 包，或 OpenSSH 的 ssh-keygen")
+            if r.returncode == 0:
+                return True, fp
+            if b"verification failed" in r.stderr.lower() or b"incorrect signature" in r.stderr.lower():
+                return False, fp
+            raise Unverifiable("这台机器的 ssh-keygen 验不了签（要 OpenSSH 8.2 以上）：%s" % r.stderr.decode(errors="replace").strip()[:200])
+    raise Unverifiable("这台机器上没有能验签的工具：装 Python 的 cryptography 包，或 OpenSSH 8.2 以上的 ssh-keygen")
+
+
+def ready(d: Path) -> str:
+    """The fingerprint exports from here are signed with, after signing and checking a test message once; "" when
+    signing does not work here (and so nothing should say exports are signed)."""
+    key = str(Path(d))
+    if key in _READY:
+        return _READY[key]
+    fp = ""
+    try:
+        s = sign(d, b"webuddy self-test")
+        if s and verify(s, b"webuddy self-test")[0]:
+            fp = s["fingerprint"]
+    except (RuntimeError, OSError, subprocess.SubprocessError, ValueError):
+        fp = ""
+    _READY[key] = fp
+    return fp
+
+
+_READY: dict = {}

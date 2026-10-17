@@ -672,7 +672,7 @@ def export(P, key: str) -> dict:
     from .. import sign
     try:
         sig = sign.sign(edir(P.data_dir), ev.payload(st))
-    except (OSError, subprocess.SubprocessError) as e:  # an export without a signature beats no export; it says so
+    except (OSError, subprocess.SubprocessError, RuntimeError, ValueError) as e:  # an export without a signature beats no export; it says so
         print("证据包签名失败：%s" % e, flush=True)
         sig = None
     if sig:
@@ -683,8 +683,4 @@ def export(P, key: str) -> dict:
 def signer_fingerprint(P) -> str:
     """The provider's evidence key, as a client writes it down to check exports against."""
     from .. import sign
-    try:
-        pub = sign.ensure_key(edir(P.data_dir))
-    except (OSError, subprocess.SubprocessError):
-        return ""
-    return sign.fingerprint(pub) if pub else ""
+    return sign.ready(edir(P.data_dir))  # checked once by signing a test message, so a page never promises a signature that fails

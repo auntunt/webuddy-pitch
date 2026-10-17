@@ -135,52 +135,69 @@ def payload(st: dict) -> bytes:
 
 
 def check_signature(st: dict, key: str = "") -> tuple[str, str]:
-    """("none" | "good" | "bad" | "other-key", note) for the statement's signature; key is the provider's fingerprint."""
+    """("none" | "good" | "bad" | "other-key" | "unverifiable", note) for the statement's signature; key is the
+    provider's fingerprint. Asking for a key makes a missing or uncheckable signature a failure, never a pass."""
     sig = st.get("signature")
+    key = (key or "").strip()
     if not sig:
+        if key:
+            return "bad", "你要求签名出自 %s，但文件里没有签名：签名可能被去掉了" % key
         return "none", "没有签名：证明不了这份文件是谁导出的"
+    if not isinstance(sig, dict) or not sig.get("sig"):
+        return "bad", "签名字段不完整：文件被改过"
     from . import sign
     try:
         ok, fp = sign.verify(sig, payload(st))
-    except RuntimeError as e:
-        return "bad", str(e)
+    except sign.Unverifiable as e:
+        return ("bad" if key else "unverifiable"), "%s；所以没法确认签名%s" % (e, "，按你的要求判为不可信" if key else "")
     if not ok:
         return "bad", "签名不对：文件在签名之后被改过，或签名是伪造的"
-    if key and fp != key.strip():
-        return "other-key", "签名有效，但签名公钥是 %s，不是你给的 %s：不是你认识的那个乙方导出的" % (fp, key.strip())
-    return "good", "签名有效，签名公钥指纹 %s%s" % (fp, "，和你给的一致" if key else "（请和乙方公布的指纹对一下）")
+    if key and fp != key:
+        return "other-key", "签名有效，但签名公钥是 %s，不是你给的 %s：不是你认识的那个乙方导出的" % (fp, key)
+    return "good", "签名有效，签名公钥指纹 %s%s" % (fp, "，和你给的一致" if key else "（请和乙方公布的指纹对一下，核对时加 --key 指纹）")
 
 
-def verify_statement(st: dict, anchor: str = "", key: str = "") -> tuple[str, list[str]]:
+def verify_statement(st: dict, anchor: str = "", key: str = "", marked: bool = False) -> tuple[str, list]:
     """What a client's auditor runs on an exported package. Returns (verdict, notes): "bad" (not ours, broken, or
     the kept hash is not in it), "consistent" (holds together, but nothing outside the file vouches for it), or
-    "anchored" (the hash the client kept is in the chain: every record up to it is exactly what was there then)."""
-    notes = []
+    "anchored" (the hash the client kept is in the chain: every record up to it is exactly what was there then).
+    With marked, each note comes as (mark, text): "✓" fine, "!" a gap to know about, "✗" why it failed."""
+    out = []
+
+    def done(verdict):
+        return verdict, (out if marked else [n for _, n in out])
+
     if st.get("_type") != STATEMENT or st.get("predicateType") != PREDICATE:
-        return "bad", ["不是 webuddy 导出的证据包（类型不对）"]
+        out.append(("✗", "不是 webuddy 导出的证据包（类型不对）"))
+        return done("bad")
     recs = (st.get("predicate") or {}).get("records") or []
     ok, why = check(recs)
     if not ok:
-        return "bad", [why]
-    notes.append("哈希链自洽：%d 条记录，逐条重算一致" % len(recs))
+        out.append(("✗", why))
+        return done("bad")
+    out.append(("✓", "哈希链自洽：%d 条记录，逐条重算一致" % len(recs)))
     sv, sn = check_signature(st, key)
+    out.append(({"good": "✓", "none": "!", "unverifiable": "!"}.get(sv, "✗"), sn))
     if sv in ("bad", "other-key"):
-        return "bad", notes + [sn]
-    notes.append(sn)
+        return done("bad")
     sha = next((x["digest"].get("sha256") for x in st.get("subject") or [] if "sha256" in (x.get("digest") or {})), "")
     if sha != head(recs):
-        return "bad", notes + ["声明里的摘要 %s 和记录算出来的 %s 对不上" % (sha[:12], head(recs)[:12])]
+        out.append(("✗", "声明里的摘要 %s 和记录算出来的 %s 对不上" % (sha[:12], head(recs)[:12])))
+        return done("bad")
     if not anchor:
-        return "consistent", notes + ["没有核对你另外记下的哈希：文件只证明自身前后一致，改过记录的人也能重算出一致的文件"]
+        out.append(("!", "没有核对你另外记下的哈希：文件只证明自身前后一致，改过记录的人也能重算出一致的文件"))
+        return done("consistent")
     anchor = anchor.strip().lower()
     if len(anchor) < MIN_ANCHOR or any(c not in "0123456789abcdef" for c in anchor):
-        return "bad", notes + ["记下的哈希要至少 %d 位十六进制字符（签收页上显示的完整哈希）" % MIN_ANCHOR]
+        out.append(("✗", "记下的哈希要至少 %d 位十六进制字符（签收页上显示的完整哈希）" % MIN_ANCHOR))
+        return done("bad")
     at = next((i for i, r in enumerate(recs) if r.get("hash", "").startswith(anchor)), None)
     if at is None:
-        return "bad", notes + ["你记下的哈希不在这份记录里：签收时看到的记录被改过或被替换了"]
+        out.append(("✗", "你记下的哈希不在这份记录里：签收时看到的记录被改过或被替换了"))
+        return done("bad")
     r = recs[at]
-    notes.append("你记下的哈希是第 %d 条（%s，%s %s）：它和之前的 %d 条记录与当时完全一致" % (at + 1, r.get("kind"), r.get("by", ""), r.get("ts", ""), at + 1))
+    out.append(("✓", "你记下的哈希是第 %d 条（%s，%s %s）：它和之前的 %d 条记录与当时完全一致" % (at + 1, r.get("kind"), r.get("by", ""), r.get("ts", ""), at + 1)))
     later = recs[at + 1:]
     if later:
-        notes.append("之后又追加了 %d 条：%s" % (len(later), "、".join("%s（%s）" % (x.get("kind"), x.get("ts", "")) for x in later[:8])))
-    return "anchored", notes
+        out.append(("!", "之后又追加了 %d 条：%s（这几条不在你记下的哈希之内，只由文件自身和签名担保）" % (len(later), "、".join("%s（%s）" % (x.get("kind"), x.get("ts", "")) for x in later[:8]))))
+    return done("anchored")

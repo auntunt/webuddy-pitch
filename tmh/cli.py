@@ -288,9 +288,15 @@ def cmd_evidence_verify(a) -> int:
     if a.hash and len(a.hash.strip()) < ev.MIN_ANCHOR:
         print("--hash 太短：请填签收页上显示的完整哈希（至少前 %d 位）。太短的前缀，改过记录的人可以凑出来。" % ev.MIN_ANCHOR)
         return 2
-    verdict, notes = ev.verify_statement(st, a.hash or "", a.key or "")
-    for i, n in enumerate(notes):
-        print(("✗ " if verdict == "bad" and i == len(notes) - 1 else "! " if verdict == "consistent" and i == len(notes) - 1 else "✓ ") + n)
+    verdict, notes = ev.verify_statement(st, a.hash or "", a.key or "", marked=True)
+    for mark, n in notes:
+        print(mark + " " + n)
+    if a.payload:  # for checking with plain OpenSSH: the exact signed bytes and the signature, side by side
+        Path(a.payload).write_bytes(ev.payload(st))
+        if isinstance(st.get("signature"), dict) and st["signature"].get("sig"):
+            Path(a.payload + ".sig").write_text(st["signature"]["sig"] + "\n", encoding="utf-8")
+            print("  已写出 %s 和 %s.sig，可用 ssh-keygen -Y check-novalidate -n webuddy-evidence@v1 -s %s.sig < %s 自行验签"
+                  % (a.payload, a.payload, a.payload, a.payload))
     summ = (st.get("predicate") or {}).get("summary") or {}
     if summ:
         print("  %s %s · %s" % (summ.get("ticket", ""), summ.get("title", ""), summ.get("label", "")))
@@ -824,6 +830,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("file")
     p.add_argument("--hash", help="签收页上显示的记录哈希（至少前 32 位，最好整串）")
     p.add_argument("--key", help="乙方公布的证据签名公钥指纹（SHA256:...），给了就要求签名出自这把钥匙")
+    p.add_argument("--payload", help="另存签名覆盖的原始字节到这个文件（及 .sig），方便只用 ssh-keygen 验签")
     p = add("offline-pack", cmd_offline_pack, "打内网离线安装包（工具、模板、技能、子代理、信创知识库，带 sha256 清单）")
     p.add_argument("--out", help="输出的 zip 路径（默认 tmh-offline-<版本>.zip）")
     p.add_argument("--verify", help="校验一个离线包，不打包")

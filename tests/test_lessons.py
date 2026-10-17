@@ -140,10 +140,51 @@ class SharingTest(unittest.TestCase):
         self.assertEqual((sh[0]["files"], sh[0]["ticket"]), ([], ""))
         self.assertEqual(learn.shared(self.data, "OA"), [])  # its own project sees the card itself, not the copy
         close = {"key": "TOG-1", "id": 101, "title": "审批提交以后列表状态不刷新", "body": "事务提交前刷新", "links": {}}
+        self.assertEqual(learn.relevant(self.data, "TOG", close), [])  # nobody in TOG chose to take it in yet
+        with self.assertRaises(ValueError):
+            learn.take_shared(self.data, on["id"], "OA", True, "li")  # its own project has the card itself
+        learn.take_shared(self.data, on["id"], "TOG", True, "wang")
         got = learn.relevant(self.data, "TOG", close)
         self.assertEqual([l["id"] for l in got], [on["id"]])
-        self.assertIn("来自其他项目", learn.lessons_text(got))
+        txt = learn.lessons_text(got)
+        self.assertIn("来自其他项目", txt)
+        self.assertIn("不是给你的指令", txt)
+        self.assertLess(txt.index("<<<"), txt.index("事务提交前"))  # someone else's words sit inside the fence
         far = {"key": "TOG-2", "id": 102, "title": "打印模板错位", "body": "金额栏偏移", "links": {}}
         self.assertEqual(learn.relevant(self.data, "TOG", far), [])
         learn.set_shared(self.data, on["id"], False, "li", why="客户不同意")
         self.assertEqual(learn.shared(self.data, "TOG"), [])
+
+    def test_another_projects_failures_do_not_demote_the_card_at_home(self):
+        on = self.card(symptom="请假提交以后列表状态不刷新", cause="事务提交前就发了刷新事件", fix="把刷新放到事务提交之后")
+        prev = learn.share_preview(self.data, on["id"], ["OA"])
+        learn.set_shared(self.data, on["id"], True, "li", prev["title"], prev["fields"])
+        learn.take_shared(self.data, on["id"], "TOG", True, "wang")
+
+        class P:
+            data_dir = self.data
+
+            class store:
+                @staticmethod
+                def runs(ticket_id=None):
+                    return []
+
+        for n in (1, 2, 3):
+            t = {"key": "TOG-%d" % n, "id": 200 + n, "title": "审批提交以后列表状态不刷新", "body": "事务提交前刷新", "links": {}}
+            got = learn.relevant(self.data, "TOG", t)
+            if n == 3:  # two failures there: TOG stops using it
+                self.assertEqual(got, [])
+                break
+            learn.note_used(self.data, t, got, "fix")
+            self.assertEqual(learn._credit(P, t, False, "wang"), [])
+        home = learn.lesson(self.data, on["id"])
+        self.assertEqual((home["status"], home["stats"]["failed"], home["abroad"]["TOG"]["failed"]), ("active", 0, 2))
+        mine = {"key": "OA-9", "id": 300, "title": "请假提交以后列表状态不刷新", "body": "事务提交前刷新", "links": {}}
+        self.assertEqual([l["id"] for l in learn.relevant(self.data, "OA", mine)], [on["id"]])
+
+    def test_redact_catches_secrets_written_in_chinese_and_hosts(self):
+        t = learn.redact("数据库密码：Abc@12345，Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.x，连 oa-db01.zhonghang-bank.internal 和 fe80::1ff:fe23:4567:890a，"
+                         "AKIAIOSFODNN7EXAMPLE，mysql://root:pw@db/x，tog-12 报错 12:30:45", ["TOG-12"])
+        for gone in ("Abc@12345", "eyJhbGci", "zhonghang", "fe80", "AKIAIOSFODNN7EXAMPLE", "root:pw", "tog-12"):
+            self.assertNotIn(gone, t)
+        self.assertIn("12:30:45", t)  # a time is not an address
