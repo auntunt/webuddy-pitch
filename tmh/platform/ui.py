@@ -7,10 +7,11 @@ from __future__ import annotations
 
 from .ui_atlas import ATLAS_CSS, ATLAS_JS
 from .ui_css import CSS
+from .ui_work import WORK_CSS, WORK_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS).replace("/*JS*/", JS + ATLAS_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS)
 
 
 HTML = r"""<!doctype html>
@@ -23,12 +24,12 @@ HTML = r"""<!doctype html>
   <nav id="svc" aria-label="服务"><a data-s="ops" href="#/">运维<span>服务</span></a><a data-s="reform" href="#/reform">重构<span>服务</span></a></nav>
   <span class="sp"></span>
   <div class="pts" id="ptsBtn" title="点卡：只有生成类动作扣点"><span class="dot"></span><span class="w">剩余</span> <b id="ptsN">-</b> 点</div>
-  <button class="primary" id="newBtn">＋<span> 新建工单</span></button>
+  <form id="say" autocomplete="off" onsubmit="event.preventDefault();sayOpen()"><input id="sayIn" placeholder="粘贴客户的话，AI 来理清…" aria-label="粘贴客户的话"><button class="primary" id="sayGo" type="submit">＋<span> 客户的话</span></button></form>
   <button id="astToggle" title="AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）">AI 助手 <kbd>Ctrl K</kbd></button>
   <span class="me" id="me"></span>
 </header>
 <div id="wrap">
-  <div id="page"><div class="sheet"><nav id="tabs"></nav><main id="main"></main></div></div>
+  <div id="page"><div class="sheet"><nav id="nav5" aria-label="主导航"></nav><nav id="tabs" aria-label="工程"></nav><main id="main"></main></div></div>
   <aside id="ast" hidden><div class="ah" id="astHead"></div><div id="amsg"></div><div class="sugg" id="astSugg"></div>
     <div class="ain"><div class="box"><textarea id="aq" placeholder="提问，或直接说要做什么：打开知识库、给这单写评论：……、把状态改成待验证" onkeydown="astKeys(event)" aria-label="输入问题"></textarea>
       <div class="abar"><button class="ghost tog" id="astDeep" onclick="A.setMode()" aria-pressed="false">深入分析</button><button class="ghost" onclick="A.draftTicket()" title="从当前会话起草工单，核对后才提交">起草工单</button><span class="grow"></span><button class="primary" id="astSend" onclick="astSend()">发送</button></div></div><div class="foot" id="astFoot"></div></div></aside>
@@ -90,14 +91,15 @@ function diffHtml(d){return '<pre class="diff">'+d.split('\n').map(l=>{const c=l
 // ---------- shell
 // Two services on one base: 运维 (tickets from people, monitoring and alerts) and 重构 (reform plans released in
 // waves). Each has its own pages and its own numbers; the knowledge base, the map, agent runs and settings serve both.
-const SVC={ops:{name:'运维服务',tabs:[['home','工单看板','#/'],['tickets','工单列表','#/tickets'],['lead','运维成效','#/lead'],['overview','监控总览','#/overview'],['eff','提效报告','#/eff'],['learn','闭环改进','#/learn'],['int','外部系统','#/int']]},
+const SVC={ops:{name:'运维服务',tabs:[['home','工单看板','#/board'],['tickets','工单列表','#/tickets'],['lead','运维成效','#/lead'],['overview','监控总览','#/overview'],['eff','提效报告','#/eff'],['learn','闭环改进','#/learn'],['int','外部系统','#/int']]},
   reform:{name:'重构服务',tabs:[['reform','改造计划','#/reform'],['rtickets','改造工单','#/rtickets'],['rdeps','依赖清单','#/rdeps']]}};
 const SHARED=[['atlas','项目图谱','#/atlas'],['kb','知识库','#/kb'],['map','架构与依据','#/map'],['runs','智能体运行','#/runs'],['settings','设置','#/settings']];
 const TOP=['home','tickets','lead','kb','reform','rtickets','rdeps'];
 S.svc=localStorage.getItem('tmh.svc')==='reform'?'reform':'ops';
 function svcOf(view){for(const k in SVC)if(SVC[k].tabs.some(t=>t[0]===view))return k;return S.svc}
 document.addEventListener('click',e=>{const d=document.querySelector('#tabs .tmore');if(d&&d.open&&!d.contains(e.target))d.open=false});
-function paintTabs(tab){const s=S.svc;document.body.classList.toggle('svc-reform',s==='reform');ls.set('tmh.svc',s);
+function paintTabs(tab){const s=S.svc,eng=isEng(curView());document.body.classList.toggle('svc-reform',s==='reform'&&eng);ls.set('tmh.svc',s);
+  paintNav();$('#tabs').hidden=!eng;$('#svc').hidden=!eng;
   document.querySelectorAll('#svc a').forEach(a=>a.classList.toggle('on',a.dataset.s===s));
   const a=([k,l,u])=>`<a data-r="${k}" href="${u}" class="${k===tab?'on':''}">${l}</a>`;
   // Four tabs people use daily stay in sight; the rest sit under 更多, which takes the open page's name.
@@ -105,7 +107,8 @@ function paintTabs(tab){const s=S.svc;document.body.classList.toggle('svc-reform
   const cur=rest.find(t=>t[0]===tab),grp=(n,ts)=>ts.length?`<div class="tmg"><span>${n}</span>${ts.map(a).join('')}</div>`:'';
   $('#tabs').innerHTML=top.map(a).join('')+`<details class="tmore${cur?' on':''}"><summary><b>${cur?h(cur[1]):'更多'}</b><i>▾</i></summary><div class="tmp">${grp(SVC[s].name,rest.filter(t=>SVC[s].tabs.includes(t)))}${grp('共用',rest.filter(t=>SHARED.includes(t)))}</div></details>`;
   const d=$('#tabs .tmore');d.querySelectorAll('a').forEach(x=>x.onclick=()=>setTimeout(()=>d.open=false));
-  $('#newBtn').innerHTML=s==='reform'?'＋<span> 新建改造计划</span>':'＋<span> 新建工单</span>'}
+  $('#tabs').insertAdjacentHTML('beforeend',`<button class="ghost tnew" id="newBtn">＋ ${s==='reform'?'新建改造计划':'新建工单'}</button>`);
+  $('#newBtn').onclick=()=>{if(S.svc!=='reform')return newTicket();S.rfNew=1;if(curView()==='reform')vReform();else location.hash='#/reform'}}
 async function boot(){
   try{S.meta=await get('/api/meta')}catch(e){$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}
   if(S.meta.login)S.user=S.meta.user;else if(!S.user)S.user=S.meta.user||'';
@@ -116,7 +119,7 @@ async function boot(){
   $('#projSel').onchange=e=>{const v=e.target.value;if(v==='__new'){newProject();paintSel();return}
     if(v==='*'){S.scope='*';ls.set('tmh.scope','*');if(!isCross())location.hash='#/';else render();return}
     if(isCross()){S.scope=v;ls.set('tmh.scope',v)}setProj(v);render()};
-  $('#newBtn').onclick=()=>{if(S.svc!=='reform')return newTicket();S.rfNew=1;if(curView()==='reform')vReform();else location.hash='#/reform'};$('#ptsBtn').onclick=showPoints;
+  $('#ptsBtn').onclick=showPoints;sayWire();
   $('#astToggle').onclick=()=>A.toggle();$('#astOpen').onclick=()=>{A.toggle(true);A.focus()};
   document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&!e.altKey&&e.key.toLowerCase()==='k'){e.preventDefault();if(A.open&&document.activeElement===$('#aq'))A.toggle(false);else{A.toggle(true);A.focus()}}});
   A.init();
@@ -128,8 +131,8 @@ async function loadProjects(){
   paintSel();loadPoints()}
 // Work that spans projects (board, list, 运维成效) shows every project unless narrowed; pages about one codebase
 // (knowledge base, map, runs…) follow the project of whatever you opened last, so nobody has to pick one by hand.
-const CROSS=['home','tickets','lead','t'];
-function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'home'}
+const CROSS=['home','board','tickets','lead','t','today','clients','c','reqs','versions'];
+function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'today'}
 function isCross(){return CROSS.includes(curView())}
 function paintSel(){const cross=isCross()&&curView()!=='t',v=cross?S.scope:S.proj;
   $('#projSel').innerHTML=(cross?`<option value="*" ${v==='*'?'selected':''}>全部项目（${S.projects.length}）</option>`:'')+S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===v?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')+(cross?'':'<option value="*">全部项目</option>')+'<option value="__new">＋ 添加项目…</option>';
@@ -138,11 +141,11 @@ function setProj(k){if(!k||k===S.proj)return;S.proj=k;ls.set('tmh.proj',k);A.res
 const scopeQ=()=>S.scope==='*'?'*':S.scope;
 async function loadPoints(){if(!S.proj){$('#ptsN').textContent='-';return}try{const r=await get('/api/projects/'+S.proj+'/points');S.points=r;$('#ptsN').textContent=r.balance.toLocaleString();if(A.open)A.paintFoot()}catch(e){}}
 function render(){
-  stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'home';
-  if(view!=='t')S.svc=svcOf(view);
-  paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view);
+  stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'today';
+  if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
+  paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
   if(!S.proj&&view!=='settings'){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">先添加一个项目：选一个本机上的项目目录。项目已经建好知识库的话，工单会自动关联到业务流、表和代码。</p><button class="primary" onclick="newProject()">添加项目</button></div>`;return}
-  const V={home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||vHome;
+  const V={today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||vHome;
   if(view!=='t')A.setTicket(null);
   paintSel();
   if(view==='atlas'&&$('#atl')){S.renderP=Promise.resolve(vAtlas(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}
@@ -433,7 +436,7 @@ function firstPara(text){const t=(text||'').split(/\n\s*\n/).map(x=>x.replace(/[
 // The first line that says something: skip greetings and "在吗" so the card shows the problem, not "各位好："
 function symptomOf(t){
   const hi=/^(各位|大家|领导|老师|您|你|王|李|张|刘|陈)?(好|们好|老师好|领导好)[!！,，。:：~～ ]*$|^(在吗|在不在|hi|hello|您好|你好)(?![A-Za-z])[?？!！,，。:：~～ ]*/i;
-  for(const raw of (t.body||'').split('\n')){let x=raw.trim();if(!x||/^——/.test(x))continue;
+  for(const raw of (t.body||'').split('\n')){let x=raw.trim();if(!x||/^——/.test(x)||/^#{1,6}\s/.test(x))continue;
     x=x.replace(hi,'').trim();if(x.length>=4)return x}
   return t.title}
 const clip=(t,n)=>t.length>n?t.slice(0,n)+'…':t;
@@ -454,7 +457,7 @@ async function vTicket(key,sub){
   const sym=clip(symptomOf(t),120);
   const an=f.an&&f.an.status==='done'?f.an.result:'';
   const cause=an?clip(secOf(an,['结论','原因分析','原因'])||firstPara(an),220):'';
-  const plan=f.pl&&f.pl.status==='done'?clip(secOf(f.pl.result,['方案概要','修改方案','方案'])||firstPara(f.pl.result),220):'';
+  const plan=f.pl&&f.pl.status==='done'?clip(secOf(planless(f.pl.result),['方案概要','修改方案','方案'])||firstPara(planless(f.pl.result)),220):'';
   const evi=[e.verified?`<span class="ev-tag ok">核实 ${e.verified}</span>`:'',e.guesses?`<span class="ev-tag warn">推断 ${e.guesses}</span>`:'',
     res?(e.refs?`<span class="ev-tag info">代码 ${e.refs} 处</span>`:'<span class="ev-tag warn">没找到代码证据</span>'):''].join(' ');
   const causeTxt=cause?h(cause):f.live&&f.live.mode==='analyze'?'<span class="sub"><span class="spin"></span> 智能体正在分析</span>':f.an&&f.an.status==='failed'?'<span class="sub">分析失败，见执行记录</span>':'<span class="sub">还没有分析</span>';
@@ -465,14 +468,14 @@ async function vTicket(key,sub){
      <dt>证据</dt><dd>${res?evi+` <a href="javascript:void 0" id="evOpen">看完整${res.mode==='plan'?'方案':'分析'}和代码位置</a>`:'<span class="sub">分析后在这里列出核实和推断的条数</span>'}</dd>
      <dt>等谁</dt><dd class="na ${na.tone}">${na.text}</dd></dl>
      ${na.acc?`<div class="cact">${accUi}</div>`:na.btns?`<div class="row cact" style="gap:8px">${na.btns}</div>`:''}
-     ${res?`<div class="cbox" id="cbox" hidden><div class="sub" style="margin-bottom:6px">${res.mode==='plan'?'修改方案':'分析结论'} · ${h(res.agent)}${mTag(res)} · ${ago(res.ended)}</div>${md(res.result)}</div>`:''}</div>`;
+     ${res?`<div class="cbox" id="cbox" hidden><div class="sub" style="margin-bottom:6px">${res.mode==='plan'?'修改方案':'分析结论'} · ${h(res.agent)}${mTag(res)} · ${ago(res.ended)}</div>${md(planReadable(res.result))}</div>`:''}</div>`;
   // the timeline: people's words stay in view; what the machines did folds into one line per run of steps
   const groups=[];d.events.forEach(ev=>{const m=isMachine(ev.author)&&ev.kind!=='comment';const g=groups[groups.length-1];if(m&&g&&g.auto)g.evs.push(ev);else groups.push({auto:m,evs:[ev]})});
   const tl=groups.map(g=>{if(!g.auto||g.evs.length<2)return g.evs.map(evHtml).join('');
     const a=g.evs[0].ts,z=g.evs[g.evs.length-1].ts,span=(new Date(z.replace(' ','T'))-new Date(a.replace(' ','T')))/36e5;
     return `<details class="evg"><summary><span class="dot"></span><b>自动处理</b> · ${g.evs.length} 步${span>0?' · 用时 '+dur(span):''}<span class="when">${ago(z)}</span></summary>${g.evs.map(evHtml).join('')}</details>`}).join('');
   const nAuto=d.events.filter(x=>isMachine(x.author)&&x.kind!=='comment').length;
-  $('#main').innerHTML=`<div class="sub" style="margin-bottom:6px"><a href="#/">工单看板</a> / ${h(d.project.key)} / ${t.key}</div>
+  $('#main').innerHTML=`<div class="sub" style="margin-bottom:6px"><a href="#/reqs">需求</a> / ${h(d.project.key)} / ${t.key}</div>
   <div class="hdr"><h1 class="grow" id="ttl" title="点击修改">${h(t.title)}</h1>${stPill(t.status)}<button onclick="A.toggle(true);A.enterTicket(S.cur.ticket)">在助手中讨论</button></div>
   <div class="props"><span class="tag">${h(d.project.key)}</span>
    <label>状态<select id="fs" data-autosave="1" ${d.epic?'disabled title="父单的状态跟着子单走"':''}>${opt(S.meta.statuses.filter(([k])=>k!=='closed'||t.status==='closed'),t.status)}</select></label>
@@ -481,6 +484,7 @@ async function vTicket(key,sub){
    <label>经办人<input id="fa" data-autosave="1" value="${h(t.assignee)}" placeholder="无人" size="6"></label>
    ${autoChip(d)}${d.parent?`<span class="tag">大需求 <a href="#/t/${h(d.parent.key)}">${h(d.parent.key)}</a> 的第 ${h(String((t.links||{}).order||''))} 个子单</span>`:''}${(t.links||{}).alert?`<span class="ev-tag bad" title="监控告警自动开的单，同一告警再触发只累计次数">告警 ×${t.links.alert.count||1}</span>`:''}
    <span class="sub">${h(t.reporter||'-')} 提交 · ${h(t.created.slice(5,16))}${ext.key?' · '+h(ext.system)+' '+(ext.url?`<a href="${h(ext.url)}" target="_blank" rel="noopener">${h(ext.key)}</a>`:h(ext.key)):''}</span></div>
+  <div id="tTop" ${sub==='prompt'?'hidden':''}>${ticketTop(d,f,na)}</div>
   <nav class="ttabs"><a href="#/t/${t.key}" class="${sub==='prompt'?'':'on'}">工单详情</a><a href="#/t/${t.key}/prompt" class="${sub==='prompt'?'on':''}">提示词</a></nav>
   <div id="pp" ${sub==='prompt'?'':'hidden'}></div>
   <div ${sub==='prompt'?'hidden':''}>
@@ -488,7 +492,7 @@ async function vTicket(key,sub){
   <div class="detail"><div style="display:flex;flex-direction:column;gap:12px;min-width:0">
    ${concl}
    ${d.epic?epicCard(d.epic):''}
-   <div class="blk"><div class="hdr" style="margin-bottom:4px"><h3 class="grow" style="margin:0">问题描述</h3><button class="ghost" id="eb">编辑</button></div><div id="bodyv">${t.body?md(t.body):'<span class="sub">没有描述</span>'}</div></div>
+   <details class="blk fold"><summary><b>完整描述</b><span class="sub">原话、理解、补充的信息和验收标准</span></summary><div class="hdr" style="margin:8px 0 4px"><span class="grow"></span><button class="ghost" id="eb">编辑</button></div><div id="bodyv">${t.body?md(t.body):'<span class="sub">没有描述</span>'}</div></details>
    <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">动态与讨论</h2>${nAuto?`<div class="seg" id="tlf"><button data-f="" class="on">全部</button><button data-f="talk">只看讨论</button><button data-f="auto">只看自动记录</button></div>`:''}</div><div class="tl" id="tl">${tl}</div>
      <div style="margin-top:14px"><textarea id="cm" placeholder="写评论（支持 Markdown）。智能体下次运行会读到最近的讨论。"></textarea><div class="row" style="margin-top:6px"><button class="primary" id="cb">评论</button>${ext.key?'<button id="pb">同步到 '+h(ext.system)+'</button>':''}</div></div></div>
    <details class="card adv" id="aiCard" ${f.live||reviewing||sub==='runs'?'open':''}><summary><b>执行记录与手动运行</b><span class="sub">${d.runs.length} 次运行${d.runs.reduce((a,r)=>a+(r.points||0),0)?' · 共 '+d.runs.reduce((a,r)=>a+(r.points||0),0)+' 点':''}</span></summary>
@@ -500,14 +504,16 @@ async function vTicket(key,sub){
      <div id="runv"></div>
      ${d.runs.length>1?`<div style="margin-top:10px"><span class="sub">全部运行：</span> ${d.runs.map(r=>`<a href="javascript:void 0" onclick="showRun(${r.id})">#${r.id} ${moLabel(r.mode)}${r.status==='running'?' <span class=spin></span>':''}${r.points?' · '+r.points+' 点':''}</a>`).join('　')}</div>`:''}</details>
   </div><div style="display:flex;flex-direction:column;gap:12px;min-width:0">
-   <div class="card" id="simc" hidden><h2>可能重复</h2><div id="simv"></div></div>
    <div class="card" id="pvc" hidden></div>
-   <div class="card" id="hwc" hidden></div>
    ${pkgCard(d)}
+   <details class="card eng" id="engc"><summary><b>工程细节</b><span class="sub">我来写、代码改动、外部 PR、相关业务、相似工单</span></summary><div class="engb">
+   <div class="card" id="simc" hidden><h2>可能重复</h2><div id="simv"></div></div>
+   <div class="card" id="hwc" hidden></div>
    <div id="upc"></div>
    ${mrBlock(d)}
-   <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">相关业务</h2><a href="javascript:void 0" onclick="showContext()">智能体看到的上下文</a></div><div id="rel"><span class="spin"></span></div></div>
+   <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">相关业务</h2><a href="javascript:void 0" onclick="showContext()">智能体看到的上下文</a></div><div id="rel"><span class="spin"></span></div></div></div></details>
   </div></div></div>`;
+  ticketTopWire(d,na);
   get('/api/tickets/'+key+'/similar').then(r=>{const xs=r.similar.slice(0,3);if(xs.length){$('#simc h2').textContent=xs[0].score>=.4?'可能重复':'相似工单';$('#simv').innerHTML=simList(xs);$('#simc').hidden=false}}).catch(()=>{});
   if($('#tlf'))$('#tlf').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('#tlf').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#tl').dataset.f=b.dataset.f;if(b.dataset.f==='auto')$('#tl').querySelectorAll('details.evg').forEach(x=>x.open=true)});
   if($('#evOpen'))$('#evOpen').onclick=()=>{const c=$('#cbox');c.hidden=!c.hidden;$('#evOpen').textContent=c.hidden?'看完整'+(res.mode==='plan'?'方案':'分析')+'和代码位置':'收起'};
@@ -1385,8 +1391,7 @@ const A={
   open:true,mode:'evidence',sid:null,sess:null,msgs:[],list:[],matters:[],hist:false,q:'',offer:null,view:null,timer:null,wall:null,running:{},pending:null,
   get ticket(){return this.sess&&this.sess.ticket?Object.assign({id:this.sess.ticket_id},this.sess.ticket):null},
   init(){
-    this.open=ls.get('tmh.ast')!=='0';const m=ls.get('tmh.astMode');this.mode=m==='draft'?'draft':'evidence';
-    if(window.innerWidth<1100&&ls.get('tmh.ast')===null)this.open=false;
+    this.open=ls.get('tmh.ast')==='1';const m=ls.get('tmh.astMode');this.mode=m==='draft'?'draft':'evidence';  // folded until asked for
     this.paint();this.reset()},
   async reset(){this.saveDraft();this.sid=null;this.sess=null;this.msgs=[];this.offer=null;this.hist=false;
     if(!S.proj)return;await this.loadList();const want=+ls.get('tmh.sess.'+S.proj);

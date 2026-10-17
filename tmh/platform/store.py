@@ -169,6 +169,8 @@ class Store:
         """By numeric id or by key like TOG-12."""
         if isinstance(tid, str) and "-" in tid:
             k, n = tid.upper().rsplit("-", 1)
+            if not n.isdigit():  # OA-main: the main line's standing preview, not a ticket
+                return None
             t = self.one("SELECT t.*, p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id WHERE p.key=? AND t.num=?", (k, int(n)))
         else:
             t = self.one("SELECT t.*, p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id WHERE t.id=?", (int(tid),))

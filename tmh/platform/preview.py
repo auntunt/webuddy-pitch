@@ -45,6 +45,7 @@ from pathlib import Path
 from .agents import git
 
 MAX = 3
+STANDING = "-main"  # <project>-main: the main line's current version, kept running between merges (workbench.py)
 READY_S = 600  # a Java app compiling for the first time can take minutes
 CONF = "previews.json"
 GRANT_H = 12  # a person's grant; the client's lasts as long as their link
@@ -290,8 +291,9 @@ def start(P, p: dict, t: dict, branch: str, by: str) -> dict:
     key = t["key"]
     with _LOCK:
         st = _load(P.data_dir)
-        live = sorted((v.get("started", ""), k) for k, v in st.items() if k != key and v.get("state") in ("starting", "up"))
-    for _, old in live[:max(0, len(live) - MAX + 1)]:  # in the background: the person who clicked does not wait for it
+        live = sorted((v.get("started", ""), k) for k, v in st.items() if k != key and v.get("state") in ("starting", "up")
+                      and not k.endswith(STANDING))  # the main line's standing preview is not one of the MAX
+    for _, old in ([] if key.endswith(STANDING) else live[:max(0, len(live) - MAX + 1)]):  # in the background: the person who clicked does not wait for it
         threading.Thread(target=stop, args=(P, old, "同时最多 %d 个预览，给 %s 腾地方；需要时在工单页重新启动" % (MAX, key)), daemon=True).start()
     root = Path(p["root"])
     with _key_lock(key):
@@ -424,6 +426,9 @@ def granted(data_dir: Path, key: str, g: str) -> bool:
     want = hmac.new(_secret(data_dir), ("%s|%s|%s" % (key, exp, lh)).encode(), hashlib.sha256).hexdigest()[:32]
     if not hmac.compare_digest(want, sig):
         return False
+    if lh.startswith("v"):  # a version link given to a client: only while it is not revoked or expired
+        from . import workbench
+        return workbench.share_ok(data_dir, key, lh)
     if lh:  # the client's: only while their link is still the one to use
         from . import signoff
         from .. import evidence as ev

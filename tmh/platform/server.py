@@ -88,6 +88,8 @@ class Platform:
         preview.resume(self)
         from . import chat
         chat.wire(self)
+        from . import workbench
+        workbench.wire(self)  # clients, versions and the main line's standing preview
         from .survey import Survey
         Survey.resume_all(self)  # a full-project analysis the last process was in the middle of
 
@@ -2277,6 +2279,128 @@ def api_stats(P, req):
     return P.store.stats(pid)
 
 
+# ---------------------------------------------------------------- workbench: clients, requirements, versions, today
+# (workbench.py) The owner's view: who asked for what, where each thing is in plain words, what went out, and what
+# the AI is doing right now.
+
+@route("GET", "/api/clients")
+def api_clients(P, req):
+    from . import workbench
+    return {"clients": workbench.summary(P) if req.arg("counts") else workbench.clients(P)}
+
+
+@route("POST", "/api/clients")
+def api_client_new(P, req):
+    from . import workbench
+    return workbench.create_client(P, req.body, req.user)
+
+
+@route("GET", "/api/clients/<cid>")
+def api_client(P, req, cid):
+    from . import workbench
+    return workbench.client_view(P, cid)
+
+
+@route("POST", "/api/clients/<cid>")
+def api_client_act(P, req, cid):
+    """{"action": "update", ...fields} | {"action": "delete"} | {"action": "link", "kind": "intake|chat|ticket", "ref": "..."} |
+    {"action": "unlink", "kind", "ref"}"""
+    from . import workbench
+    a = req.body.get("action") or "update"
+    if a == "update":
+        return workbench.update_client(P, cid, req.body)
+    if a == "delete":
+        return workbench.delete_client(P, cid)
+    if a == "link":
+        return workbench.link(P, cid, req.body.get("kind", ""), req.body.get("ref", ""), req.user)
+    if a == "unlink":
+        workbench.client(P, cid)
+        return workbench.unlink(P, req.body.get("kind", ""), req.body.get("ref", ""))
+    raise ApiError(400, "action 只能是 update、delete、link、unlink")
+
+
+@route("POST", "/api/workbench/intake")
+def api_workbench_intake(P, req):
+    """What a client said, pasted once: {"project", "text", "client": id | "client_name": "新客户"} starts the requirement
+    conversation (intake.py, unchanged) and records whose words they were."""
+    from . import intake, workbench
+    b = req.body
+    p = P.project(b.get("project") or "")
+    cid = b.get("client")
+    if cid:
+        workbench.client(P, cid)
+    elif (b.get("client_name") or "").strip():
+        name = b["client_name"].strip()[:40]
+        hit = next((c for c in workbench.clients(P) if c["name"] == name), None)
+        cid = hit["id"] if hit else workbench.create_client(P, {"name": name, "projects": [p["key"]]}, req.user)["id"]
+    s = intake.start(P, p, b.get("text", ""), req.user, b.get("channel") or "web", _chooser(P, p) if b.get("model", True) is not False else None,
+                     big=bool(b.get("big")))
+    if cid:
+        workbench.link(P, cid, "intake", s["id"], req.user)
+    return dict(s, client=int(cid) if cid else None)
+
+
+@route("GET", "/api/requirements")
+def api_requirements(P, req):
+    from . import workbench
+    pk = req.arg("project")
+    if pk not in ("", "*"):
+        P.project(pk)
+    return workbench.requirements(P, "" if pk in ("", "*") else pk)
+
+
+@route("GET", "/api/projects/<key>/versions")
+def api_versions(P, req, key):
+    from . import workbench
+    return workbench.versions(P, key)
+
+
+@route("POST", "/api/projects/<key>/standing")
+def api_standing(P, req, key):
+    """{"action": "start" | "stop"}: the main line's current version, running for people and clients to open."""
+    from . import preview, workbench
+    p = P.project(key)
+    a = req.body.get("action")
+    if a == "start":
+        return workbench.start_standing(P, p, req.user)
+    if a == "stop":
+        preview.stop(P, workbench.standing_key(p["key"]))
+        return workbench.standing(P, p)
+    raise ApiError(400, "action 只能是 start 或 stop")
+
+
+@route("POST", "/api/projects/<key>/shares")
+def api_share_new(P, req, key):
+    """A link to the current version for a client: {"client": id, "days": 30}. The link itself is only in this answer."""
+    from . import workbench
+    return workbench.share(P, key, req.user, req.body.get("client"), req.body.get("days") or workbench.SHARE_DAYS)
+
+
+@route("POST", "/api/projects/<key>/shares/<sid>/revoke")
+def api_share_revoke(P, req, key, sid):
+    from . import workbench
+    P.project(key)
+    return workbench.revoke(P, key, sid, req.user)
+
+
+@route("GET", "/api/today")
+def api_today(P, req):
+    """What needs the owner, what the AI did since ?since=, what it is doing now, new versions, open questions."""
+    from . import workbench
+    return workbench.today(P, req.arg("since"))
+
+
+@route("GET", "/api/chats")
+def api_chats(P, req):
+    """Group-chat conversations the robot has seen, for attaching one to a client."""
+    from . import workbench
+    out = []
+    for ck, c in workbench._convs(P).items():
+        out.append({"id": ck, "project": c.get("project"), "channel": c.get("channel"), "seen": c.get("seen"),
+                    "tickets": c.get("tickets") or [], "client": workbench.client_of(P, "chat", ck)})
+    return {"chats": sorted(out, key=lambda x: x.get("seen") or "", reverse=True)}
+
+
 # ---------------------------------------------------------------- HTTP
 
 class Req:
@@ -2307,14 +2431,20 @@ def _length(h) -> int:
     return n
 
 
+def _pvkey(s: str) -> str:
+    """OA-12 for a ticket's preview, OA-main for the main line's standing one: one spelling each."""
+    k, n = s.rsplit("-", 1)
+    return k.upper() + "-" + n.lower()
+
+
 def serve_preview(h, P, method: str, u, sandboxed: bool) -> None:
     """Answer one request for /pv/<ticket>/... on whichever address serves previews: a pass in the query (/__open)
     becomes a cookie for that one preview; anything else needs that cookie and is passed to the running app."""
     from . import preview
-    m = re.match(r"^/pv/([A-Za-z0-9]+-\d+)(/.*)?$", u.path)
+    m = re.match(r"^/pv/([A-Za-z0-9]+-(?:\d+|[Mm][Aa][Ii][Nn]))(/.*)?$", u.path)
     if not m:
         return h._send(404, "这里只有预览版本".encode("utf-8"), "text/plain; charset=utf-8")
-    key, rest = m.group(1).upper(), m.group(2) or ""
+    key, rest = _pvkey(m.group(1)), m.group(2) or ""
     if m.group(1) != key or not rest:  # cookies are kept by exact path: one spelling only
         return h._send(308, b"", "text/plain", {"Location": "/pv/%s%s" % (key, rest or "/") + ("?" + u.query if u.query else "")})
     https = (h.headers.get("X-Forwarded-Proto") or "") == "https" or (h.headers.get("Host") or "").split(":")[0] in ("127.0.0.1", "localhost")
@@ -2498,10 +2628,10 @@ def make_handler(P: Platform, token: str = ""):
             """/pv/ on the platform's own address. With a preview address of its own, a person who is logged in is
             sent there with a pass; without one, the preview is served here, sandboxed by the browser."""
             from . import preview
-            m = re.match(r"^/pv/([A-Za-z0-9]+-\d+)(/.*)?$", u.path)
+            m = re.match(r"^/pv/([A-Za-z0-9]+-(?:\d+|[Mm][Aa][Ii][Nn]))(/.*)?$", u.path)
             if not m:
                 return self._send(404, b"not found", "text/plain")
-            key = m.group(1).upper()
+            key = _pvkey(m.group(1))
             g = _cookie(self.headers.get("Cookie", ""), "tmh_pv_" + key)
             if not P.preview_port and (m.group(2) or "").startswith("/__open") or (not P.preview_port and preview.granted(P.data_dir, key, g)):
                 return serve_preview(self, P, method, u, sandboxed=True)
@@ -2576,6 +2706,8 @@ def make_handler(P: Platform, token: str = ""):
                 return self._login(method, q)
             if path.startswith("/pv/"):  # a change waiting for acceptance, running: people logged in, or the client's link
                 return self._preview(method, u, q)
+            if path.startswith("/v/"):  # a client's link to a project's current version: the link is the credential
+                return self._version_link(method, path)
             if path.startswith("/sign/"):  # the client's sign-off page: the one-time link is the credential, no account
                 return self._sign(method, path)
             if path == "/logout":
@@ -2771,6 +2903,22 @@ def make_handler(P: Platform, token: str = ""):
                 return self._send(200, signoff.sign_page(P, token, done=done).encode("utf-8"), html_t)
             except ApiError as e:
                 return self._send(e.code, signoff.message_page(str(e)).encode("utf-8"), html_t)
+
+        def _version_link(self, method: str, path: str):
+            """/v/<token>: the version and what changed, for the client; /v/<token>/open: into the running version."""
+            from . import preview, workbench
+            m = re.match(r"^/v/([A-Za-z0-9_\-]{20,64})(/open)?/?$", path)
+            html_t = "text/html; charset=utf-8"
+            if not m or method not in ("GET", "HEAD"):
+                return self._send(404, "链接不对".encode("utf-8"), "text/plain; charset=utf-8")
+            try:
+                if m.group(2):
+                    key, g = workbench.share_grant(P, m.group(1))
+                    return self._send(303, b"", "text/plain", {"Location": "%s/pv/%s/__open?g=%s" % (preview.base_url(self.headers, P.preview_port), key, g),
+                                                               "Referrer-Policy": "no-referrer"})
+                return self._send(200, workbench.share_page(P, m.group(1)).encode("utf-8"), html_t, {"Referrer-Policy": "no-referrer"})
+            except ApiError as e:
+                return self._send(e.code, workbench.message_page(str(e)).encode("utf-8"), html_t)
 
         def _report(self, key: str, rel: str):
             p = P.store.project(key)

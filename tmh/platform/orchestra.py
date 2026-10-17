@@ -36,6 +36,7 @@ class Orchestra:
     def __init__(self, store, runner, data_dir: Path, knowledge):
         self.store, self.runner, self.data_dir, self.knowledge = store, runner, Path(data_dir), knowledge
         self.listeners = []
+        self.on_release = []  # fn(project, ticket, release) after a change is merged and given a version
         self.bases = []  # fn(project, ticket) -> commit | "" (the main line) | None (no opinion): where a change starts
         self.rechecking = set()  # fix runs being built again
 
@@ -274,6 +275,11 @@ class Orchestra:
         if r["state"] == "merged":
             st.event(t["id"], self.BY, "release", "已合并进主干 %s，版本 %s（提交 %s）" % (r["main"], r["version"], r["commit"]),
                      {"version": r["version"], "tag": r["tag"], "commit": r["commit"]})
+            for fn in self.on_release:  # the standing preview of the main line follows the new version
+                try:
+                    fn(p, t, r)
+                except Exception as e:  # noqa: BLE001 - the merge stands whatever a listener does
+                    st.event(t["id"], self.BY, "flow", "新版本已合并，但后续处理没做成（%s）" % e)
         elif r["state"] == "conflict":
             st.update_ticket(t["id"], self.BY, status="doing")
             n = 1 + sum(1 for e in st.events(t["id"]) if e["kind"] in ("reject", "conflict"))  # this one counts too, as a rejection does
