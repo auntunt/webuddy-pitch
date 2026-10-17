@@ -2218,6 +2218,18 @@ class Req:
         return (self.query.get(k) or [""])[0]
 
 
+def _private(host: str) -> bool:
+    """An address only this machine or this network knows (an ssh tunnel, a LAN IP): no use in a link to a client."""
+    import ipaddress
+    h = host.rsplit(":", 1)[0].strip("[]") if not host.endswith("]") else host.strip("[]")
+    if h in ("localhost",) or h.endswith(".local"):
+        return True
+    try:
+        return not ipaddress.ip_address(h).is_global
+    except ValueError:
+        return False
+
+
 def _length(h) -> int:
     try:
         n = int(h.headers.get("Content-Length") or 0)
@@ -2554,8 +2566,8 @@ def make_handler(P: Platform, token: str = ""):
             if not self._authorized(q):
                 return self._json(401, {"error": "需要访问令牌"})
             if not os.environ.get("TMH_PUBLIC_URL"):  # where people reach us (learnt from them, not from strangers): chat links
-                host = (self.headers.get("X-Forwarded-Host") or self.headers.get("Host") or "").split(",")[0].strip()
-                if host and re.fullmatch(r"[A-Za-z0-9.\-\[\]:]+", host):
+                host = (self.headers.get("Host") or "").strip()
+                if host and re.fullmatch(r"[A-Za-z0-9.\-\[\]:]+", host) and not _private(host):
                     P.public_url = "%s://%s" % ("https" if (self.headers.get("X-Forwarded-Proto") or "") == "https" else "http", host)
             if urlparse(self.headers.get("Referer") or "").path.startswith("/pv/"):  # an extra check only: the boundary is the sandbox or the preview's own address
                 return self._json(403, {"error": "预览里的页面不能调用平台接口"})

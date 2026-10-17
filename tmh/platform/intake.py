@@ -26,6 +26,7 @@ Conversations are kept in <data>/intake/<id>.json.
 from __future__ import annotations
 
 import json
+import os
 import re
 import threading
 import time
@@ -72,7 +73,9 @@ def _save(data_dir: Path, s: dict) -> dict:
     f = idir(data_dir) / ("%s.json" % s["id"])
     f.parent.mkdir(parents=True, exist_ok=True)
     s["updated"] = time.strftime("%Y-%m-%d %H:%M:%S")
-    f.write_text(json.dumps(s, ensure_ascii=False, indent=1), encoding="utf-8")
+    tmp = f.with_name(f.name + ".%d.tmp" % threading.get_ident())  # a reader never sees half a file
+    tmp.write_text(json.dumps(s, ensure_ascii=False, indent=1), encoding="utf-8")
+    os.replace(tmp, f)
     return s
 
 

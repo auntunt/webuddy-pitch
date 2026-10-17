@@ -18,8 +18,8 @@ variable names only, never values:
                    "aes_key_env": "TMH_WECOM_AES_KEY", "secret_env": "TMH_WECOM_SECRET", "agent_id": "1000002",
                    "base_url": "https://qyapi.weixin.qq.com"},
       "api":      {"key_env": "TMH_BOT_API_KEY"},
-      (钉钉 also "push_webhook_env" / "push_secret_env": the group robot's own webhook, for progress told after the
-       callback's session webhook has expired)
+      (钉钉 also "app_key_env": the robot's app, so progress can be posted to the group days later, after the
+       callback's session webhook has expired; 企业微信 talks to one person at a time, not to a group)
       "answerers": ["张三", "zhangsan"],
       "record": true
     }
@@ -56,6 +56,7 @@ from .config import load as load_cfg
 KINDS = ("dingtalk", "feishu", "wecom", "api")
 CHANNEL = {"dingtalk": "钉钉", "feishu": "飞书", "wecom": "企业微信", "api": "开放接口"}
 ASYNC = True  # tests set False to run the reply inline
+TITLE = {"intake": "需求", "help": "帮助", "media": "需求"}
 INTAKE = None  # set by the platform: (root, text, channel, sender, conv) -> reply, or None to answer as a question
 
 
@@ -110,6 +111,8 @@ def handle(root: Path, text: str, channel: str, sender: str, use_model: bool = T
     t = clean(text)
     who = (sender or "").strip()
     can_answer = bool(who) and who in [str(x) for x in c.get("answerers") or []]
+    if t.startswith("\x00"):
+        return {"kind": "media", "reply": "图片和文件收到了，我这里还看不了。请用一句话说说哪里不对、或者想要什么，截图之后会由工程师查看。"}
     if not t or t in ("帮助", "help", "?", "？"):
         return {"kind": "help", "reply": HELP}
     m = re.match(r"^答复\s*#?(\d+)\s*[:：]?\s*(.+)$", t, re.S)
@@ -234,21 +237,24 @@ def dingtalk(root: Path, headers: dict, raw: bytes) -> tuple[int, dict]:
     if _dup(d.get("msgId", "")):
         return 200, {}
     text = ((d.get("text") or {}).get("content") or "").strip()
+    if d.get("msgtype") not in (None, "text"):  # a screenshot (the commonest thing a client sends) has no text
+        text = "\x00" + str(d.get("msgtype"))
     sender = d.get("senderNick") or d.get("senderStaffId") or ""
     _log_in(root, "钉钉", sender, text)
     hook = d.get("sessionWebhook") or ""
     host = urllib.parse.urlparse(hook).hostname or ""
     ok = hook and host.endswith(".dingtalk.com") and urllib.parse.urlparse(hook).scheme == "https"
     conv = {"id": d.get("conversationId") or "", "title": d.get("conversationTitle") or "",
-            "dest": {"kind": "dingtalk", "hook": hook if ok else "", "exp": int(d.get("sessionWebhookExpiredTime") or 0)}}
+            "dest": {"kind": "dingtalk", "hook": hook if ok else "", "exp": int(d.get("sessionWebhookExpiredTime") or 0),
+                     "conversation": d.get("conversationId") or "", "robot": d.get("robotCode") or ""}}
     if ok:
         def go():
             r = handle(root, text, "dingtalk", sender, conv=conv)
-            _http(hook, {"msgtype": "markdown", "markdown": {"title": "知识库预判", "text": r["reply"]}})
+            _http(hook, {"msgtype": "markdown", "markdown": {"title": TITLE.get(r["kind"], "知识库预判"), "text": r["reply"]}})
         _later(go)
         return 200, {}
     r = handle(root, text, "dingtalk", sender, conv=conv)  # no session webhook: answer in the response body
-    return 200, {"msgtype": "markdown", "markdown": {"title": "知识库预判", "text": r["reply"]}}
+    return 200, {"msgtype": "markdown", "markdown": {"title": TITLE.get(r["kind"], "知识库预判"), "text": r["reply"]}}
 
 
 # ---- 飞书 Feishu / Lark: event subscription, im.message.receive_v1 ---------------------------
@@ -313,10 +319,8 @@ def feishu(root: Path, headers: dict, raw: bytes) -> tuple[int, dict]:
     if h.get("event_type") != "im.message.receive_v1" or _dup(h.get("event_id", "")):
         return 200, {}
     msg = ev.get("message") or {}
-    if msg.get("message_type") != "text":
-        return 200, {}
     try:
-        text = json.loads(msg.get("content") or "{}").get("text", "")
+        text = json.loads(msg.get("content") or "{}").get("text", "") if msg.get("message_type") == "text" else "\x00" + str(msg.get("message_type"))
     except ValueError:
         text = ""
     sid = (ev.get("sender") or {}).get("sender_id") or {}
@@ -444,6 +448,26 @@ def api(root: Path, headers: dict, raw: bytes) -> tuple[int, dict]:
 
 
 # ---- telling a conversation something later (progress on what it asked for) ------------------
+def can_tell(root: Path, dest: dict) -> bool:
+    """Whether this conversation can be told something days from now, without anyone writing first."""
+    c, kind = conf(root), dest.get("kind")
+    if kind == "dingtalk":
+        return bool(dest.get("conversation") and (c.get("dingtalk") or {}).get("app_key_env"))
+    return (kind == "feishu" and c.get("feishu") is not None) or (kind == "wecom" and c.get("wecom") is not None)
+
+
+def _dingtalk_token(dc: dict) -> str:
+    key = _env(dc, "app_key_env", "钉钉应用 AppKey")
+    t = _tokens.get(("dingtalk", key))
+    if t and t[1] > time.time() + 60:
+        return t[0]
+    d = _http("https://api.dingtalk.com/v1.0/oauth2/accessToken", {"appKey": key, "appSecret": _env(dc, "secret_env", "钉钉机器人 AppSecret")})
+    if not d.get("accessToken"):
+        raise BotError(502, "钉钉取 token 失败：%s" % d.get("message"))
+    _tokens[("dingtalk", key)] = (d["accessToken"], time.time() + int(d.get("expireIn") or 7200))
+    return d["accessToken"]
+
+
 def send(root: Path, dest: dict, text: str) -> bool:
     """Post `text` into the conversation `dest` came from. False when this channel cannot reach it any more (a
     钉钉 session webhook expires; then the group robot's own webhook is used when one is configured)."""
@@ -451,17 +475,17 @@ def send(root: Path, dest: dict, text: str) -> bool:
     kind = dest.get("kind")
     if kind == "dingtalk":
         hook = dest.get("hook") or ""
-        if not hook or (dest.get("exp") and dest["exp"] < time.time() * 1000 + 60000):
-            dc = c.get("dingtalk") or {}
-            hook = _env(dc, "push_webhook_env", "钉钉群机器人 Webhook", required=False) if dc.get("push_webhook_env") else ""
-            sec = _env(dc, "push_secret_env", "钉钉群机器人加签密钥", required=False) if dc.get("push_secret_env") else ""
-            if hook and sec:
-                ts = str(int(time.time() * 1000))
-                hook += ("&" if "?" in hook else "?") + urllib.parse.urlencode({"timestamp": ts, "sign": dingtalk_sign(sec, ts)})
-        if not hook:
-            return False
-        d = _http(hook, {"msgtype": "markdown", "markdown": {"title": "进度", "text": text}})
-        return not d.get("errcode")
+        if hook and (not dest.get("exp") or dest["exp"] > time.time() * 1000 + 60000):
+            d = _http(hook, {"msgtype": "markdown", "markdown": {"title": "进度", "text": text}})
+            return not d.get("errcode")
+        dc = c.get("dingtalk") or {}
+        if not (dest.get("conversation") and dc.get("app_key_env")):
+            return False  # the session webhook has expired and the robot cannot speak first: say so at 确认 (can_tell)
+        d = _http("https://api.dingtalk.com/v1.0/robot/groupMessages/send",
+                  {"msgKey": "sampleMarkdown", "msgParam": json.dumps({"title": "进度", "text": text}, ensure_ascii=False),
+                   "openConversationId": dest["conversation"], "robotCode": dest.get("robot") or _env(dc, "app_key_env", "钉钉应用 AppKey")},
+                  {"x-acs-dingtalk-access-token": _dingtalk_token(dc)})
+        return bool(d.get("processQueryKey"))
     if kind == "feishu" and dest.get("chat_id") and c.get("feishu") is not None:
         fc = c["feishu"]
         base = (fc.get("base_url") or "https://open.feishu.cn").rstrip("/")

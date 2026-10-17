@@ -10,8 +10,9 @@ accepted and in which version it went out.
 A message that only asks something (no defect, no request) is not taken here: the knowledge-base answer the
 robot always gave still answers it.
 
-Commands in a conversation: 取消 (drop what is being clarified), 确认 (make the tickets), 进度 (where each ticket
-of this conversation stands), 开工 <单号> (start a ticket whose criteria were still 待确认 once they are settled).
+In a group each person has their own draft: only its author answers its questions, confirms it (确认) or drops it
+(取消), so a passer-by's "好的" makes nothing. Criteria still 待确认 are settled with the provider's engineer, not
+in the chat. A draft untouched for a day is forgotten. 进度 lists where this conversation's tickets stand.
 
 Conversations and which ticket came from which are kept in <data>/chat/.
 """
@@ -28,9 +29,10 @@ from . import intake
 from .errors import ApiError
 
 PREVIEW_DAYS = 7  # how long a preview link posted in the chat opens the preview
-YES = ("确认", "确定", "确认建单", "建单", "可以", "好的", "没问题", "对", "是的")
+DRAFT_H = 24  # a draft nobody touched for this long is forgotten
+YES = ("确认", "确定", "确认建单")
 NO = ("取消", "算了", "不用了", "先不用", "不建了")
-_LOCK = threading.Lock()
+_LOCK = threading.RLock()  # one message at a time: two answers at once must not overwrite each other
 
 
 def _f(data_dir: Path, name: str) -> Path:
@@ -70,64 +72,77 @@ def route(P, root: Path, text: str, channel: str, sender: str, conv: dict) -> st
     p = _project(P, root)
     if not p:
         return None
-    ck = "%s:%s:%s" % (p["key"], channel, conv["id"])
     with _LOCK:
-        cs = _load(P.data_dir, "convs.json")
-        c = cs.setdefault(ck, {"project": p["key"], "channel": channel, "tickets": []})
-        c["dest"], c["seen"] = conv.get("dest") or {}, time.strftime("%Y-%m-%d %H:%M:%S")
-        _save(P.data_dir, "convs.json", cs)
-    t = text.strip()
-    if t in ("进度", "进展", "到哪了"):
-        return progress(P, c) if c["tickets"] else None
-    m = re.match(r"^开工\s*([A-Za-z]+-\d+)$", t)
-    if m:
-        return _go(P, ck, c, m.group(1).upper(), sender)
-    s = None
-    if c.get("session"):
         try:
-            s = intake.load(P.data_dir, c["session"])
+            return _route(P, p, text.strip(), sender or "群成员", conv)
+        except (ApiError, ValueError, KeyError) as e:
+            return "这一步没处理成（%s），请再发一次。" % (e.args[0] if e.args else type(e).__name__)
+
+
+def _route(P, p: dict, t: str, sender: str, conv: dict) -> str | None:
+    kind = (conv.get("dest") or {}).get("kind") or "chat"  # the channel the message really came by, not what it says
+    ck = "%s:%s:%s" % (p["key"], kind, conv["id"])
+    cs = _load(P.data_dir, "convs.json")
+    c = cs.setdefault(ck, {"project": p["key"], "channel": kind, "tickets": [], "drafts": {}})
+    c["dest"], c["seen"] = conv.get("dest") or {}, time.strftime("%Y-%m-%d %H:%M:%S")
+    _save(P.data_dir, "convs.json", cs)
+    if t in ("进度", "进展", "到哪了"):
+        return progress(P, c) if c["tickets"] else "这个群里还没有提过要做的事。直接说哪里不对、想要什么就行。"
+    s = None
+    sid = (c.get("drafts") or {}).get(sender)
+    if sid:
+        try:
+            s = intake.load(P.data_dir, sid)
         except ApiError:
             s = None
-        if s and s["state"] in ("confirmed", "dropped"):
+        if s and (s["state"] in ("confirmed", "dropped") or
+                  time.time() - time.mktime(time.strptime(s.get("updated") or s["created"], "%Y-%m-%d %H:%M:%S")) > DRAFT_H * 3600):
             s = None
-    if s:
+        if not s:
+            _draft(P, ck, sender, "")
+    asks = t.endswith(("？", "?", "吗", "呢")) and all(intake.classify(x)[0] == "question" for x in intake.split(t))
+    if s and not asks:
         if t in NO:
-            intake.drop(P, s["id"], sender or "群成员")
-            _set(P, ck, session="")
+            intake.drop(P, s["id"], sender)
+            _draft(P, ck, sender, "")
             return "好的，这件事先不建单。想好了随时再说。"
         if s["state"] == "ready":
-            if t in YES or t.rstrip("。!！") in YES:
-                return _confirm(P, ck, s, sender)
+            if t.rstrip("。!！") in YES:
+                return _confirm(P, ck, c, s, sender)
             if len(t) < 8:
                 return "回复「确认」就建单开工，回复「取消」就先放着。要改哪里，直接把正确的说法发过来。"
             s = None  # a new message of its own: a new requirement replaces the one waiting for 确认
         else:
             idx, q = _pending(s)
             if q is not None:
-                if t in YES:
+                if t.rstrip("。!！") in YES:
                     return render(s, note="还有几个问题没问完，问完再确认；答不上来的回「不清楚」就跳过。")
                 v = _value(t, q)
                 if not q.get("options") and v != intake.UNSURE and (re.fullmatch(r"\d{1,2}", v) or len(v) < 2):
                     return render(s, note="这个问题要用一句话回答。")
-                s = intake.answer(P, s["id"], sender or "群成员", {str(idx): {q["slot"]: v}})
+                s = intake.answer(P, s["id"], sender, {str(idx): {q["slot"]: v}})
                 return render(s)
-    kinds = [intake.classify(x)[0] for x in intake.split(t)]
-    if not kinds or all(k == "question" for k in kinds) or len(t) < 6:
+    if asks or len(t) < 6:
         return None  # a question: the knowledge base answers it as before
+    parts = intake.split(t)
+    if not parts or all(intake.classify(x)[0] == "question" for x in parts):
+        return None
     try:
-        s = intake.start(P, p, t, sender or "群成员", channel)
+        s = intake.start(P, p, t, sender, kind)
     except ApiError:
         return None
-    _set(P, ck, session=s["id"])
-    return render(s, first=True)
+    _draft(P, ck, sender, s["id"])
+    return render(s, first=True, note="（一次最多理 %d 件，其余的请再发一条）" % len(s["items"]) if len(parts) > len(s["items"]) else "")
 
 
-def _set(P, ck: str, **kv) -> dict:
-    with _LOCK:
-        cs = _load(P.data_dir, "convs.json")
-        cs.setdefault(ck, {}).update(kv)
-        _save(P.data_dir, "convs.json", cs)
-        return cs[ck]
+def _draft(P, ck: str, who: str, sid: str) -> None:
+    cs = _load(P.data_dir, "convs.json")
+    d = cs.setdefault(ck, {}).setdefault("drafts", {})
+    if sid:
+        d[who] = sid
+    else:
+        d.pop(who, None)
+    _save(P.data_dir, "convs.json", cs)
 
 
 def _pending(s: dict) -> tuple[int, dict | None]:
@@ -140,7 +155,7 @@ def _pending(s: dict) -> tuple[int, dict | None]:
 def _value(text: str, q: dict) -> str:
     t = text.strip()
     if t in ("不清楚", "不知道", "不确定", "跳过", "不好说"):
-        return intake.UNSURE
+        return "都不是" if q.get("slot") == "flow" else intake.UNSURE
     opts = q.get("options") or []
     if opts and re.fullmatch(r"\d{1,2}", t) and 1 <= int(t) <= len(opts):
         return opts[int(t) - 1]
@@ -186,40 +201,30 @@ def render(s: dict, first: bool = False, note: str = "") -> str:
     return "\n\n".join(L)
 
 
-def _confirm(P, ck: str, s: dict, sender: str) -> str:
-    try:
-        s = intake.confirm(P, s["id"], sender or "群成员")
-    except ApiError as e:
-        return str(e)
-    c = _set(P, ck, session="")
-    with _LOCK:
-        cs, tk = _load(P.data_dir, "convs.json"), _load(P.data_dir, "tickets.json")
-        cs[ck]["tickets"] = list(dict.fromkeys((cs[ck].get("tickets") or []) + s["tickets"]))
-        for k in s["tickets"]:
-            tk[k] = ck
-        _save(P.data_dir, "convs.json", cs)
-        _save(P.data_dir, "tickets.json", tk)
+def _confirm(P, ck: str, c: dict, s: dict, sender: str) -> str:
+    from .. import bots
+    s = intake.confirm(P, s["id"], sender)
+    _draft(P, ck, sender, "")
+    cs, tk = _load(P.data_dir, "convs.json"), _load(P.data_dir, "tickets.json")
+    cs[ck]["tickets"] = list(dict.fromkeys((cs[ck].get("tickets") or []) + s["tickets"]))
+    for k in s["tickets"]:
+        tk[k] = ck
+    _save(P.data_dir, "convs.json", cs)
+    _save(P.data_dir, "tickets.json", tk)
     L = []
     for k in s["tickets"]:
         t = P.store.ticket(k)
         waits = (t.get("links") or {}).get("open_ac")
-        L.append("- **%s** %s：%s" % (k, t["title"], "有 %d 条标准待确认，确认后回「开工 %s」" % (waits, k) if waits else
+        L.append("- **%s** %s：%s" % (k, _md(t["title"]), "有 %d 条标准还待确认，工程师会先和您确认再开工" % waits if waits else
                                      "已经开始处理" if P.flow.autoflow().get("on") else "已交给工程师"))
-    return "已建单：\n" + "\n".join(L) + "\n\n改好了我会在这里发一个能直接点开试的版本。随时回「进度」看到哪了。"
+    later = bots.can_tell(P.root(P.project(c["project"])), c.get("dest") or {})
+    return "已建单：\n" + "\n".join(L) + ("\n\n改好了我会在这里发一个能直接点开试的版本。随时回「进度」看到哪了。" if later else
+                                        "\n\n这个群我没法主动发消息，进展请随时回「进度」查看。")
 
 
-def _go(P, ck: str, c: dict, key: str, sender: str) -> str:
-    if key not in (c.get("tickets") or []):
-        return "这个群里没有建过 %s。" % key
-    t = P.store.ticket(key)
-    if not t or t["status"] in ("verify", "closed"):
-        return "%s 已经不需要开工了（%s）。" % (key, _label(t["status"]) if t else "找不到")
-    lk = dict(t.get("links") or {})
-    lk.pop("open_ac", None)
-    P.store.update_ticket(t["id"], sender or "群成员", links=lk)
-    P.store.event(t["id"], sender or "群成员", "flow", "在群里确认了待确认的验收标准，开工")
-    P.flow.resume(P.store.project(t["project_id"]), P.store.ticket(t["id"]))
-    return "%s 开工了。改好了我在这里说。" % key
+def _md(text: str) -> str:
+    """A title shown in the chat: as text, not as markdown someone wrote into it."""
+    return re.sub(r"([\\`*_\[\]()#>!|~])", r"\\\1", text or "")
 
 
 STATUS = {"new": "刚建单", "analyzing": "正在分析", "confirm": "等确认", "doing": "正在改", "verify": "改好了，等验收", "closed": "已完成"}
@@ -234,7 +239,7 @@ def progress(P, c: dict) -> str:
     for k in (c.get("tickets") or [])[-10:]:
         t = P.store.ticket(k)
         if t:
-            L.append("- **%s** %s：%s" % (k, t["title"], _label(t["status"])))
+            L.append("- **%s** %s：%s" % (k, _md(t["title"]), _label(t["status"])))
     return "这个群里提的事：\n" + "\n".join(L)
 
 
@@ -272,38 +277,42 @@ def _later(fn, *a) -> None:
 
 
 def preview_link(P, key: str) -> str:
-    """A link anyone in the chat can open the preview with, for PREVIEW_DAYS."""
+    """A link anyone in the chat can open the preview with, for PREVIEW_DAYS. Needs to know the address people use:
+    TMH_PUBLIC_URL (or TMH_PREVIEW_BASE), else the one learnt from people who are logged in."""
     from . import preview
     t = P.store.ticket(key)
     p = P.store.project(t["project_id"]) if t else None
-    if not p or not preview.command(P.data_dir, p)[2] or preview.settings(P.data_dir)["preview"] != "auto":
+    if not p or not preview.command(P.data_dir, p)[2] or preview.settings(P.data_dir)["preview"] != "auto" or not preview.branch_of(P, t):
         return ""
-    base = os.environ.get("TMH_PREVIEW_BASE", "").rstrip("/") or getattr(P, "public_url", "")
+    base = os.environ.get("TMH_PREVIEW_BASE", "").rstrip("/")
+    if not base and getattr(P, "public_url", ""):
+        host = re.sub(r"^https?://", "", P.public_url)
+        base = "http://%s:%d" % (re.sub(r":\d+$", "", host), P.preview_port) if P.preview_port else P.public_url
     if not base:
         return ""
-    if P.preview_port and not os.environ.get("TMH_PREVIEW_BASE"):
-        base = re.sub(r":\d+$", "", base) + ":%d" % P.preview_port
     g = preview.grant(P.data_dir, key, "", time.time() + PREVIEW_DAYS * 86400)
     return "%s/pv/%s/__open?g=%s" % (base, key, g)
 
 
 def on_status(P, t: dict, old: str, new: str) -> None:
-    if not _load(P.data_dir, "tickets.json").get(t["key"]):
-        return
-    if new == "verify":
+    if new == "verify" and _load(P.data_dir, "tickets.json").get(t["key"]):
         link = preview_link(P, t["key"])
         _later(tell, P, t["key"], "**%s %s** 改好了，等验收。%s" % (
-            t["key"], t["title"], "先点开试一试（%d 天内有效）：\n%s" % (PREVIEW_DAYS, link) if link else "我们验收后会出新版本。"))
-    elif old == "verify" and new == "doing":
-        _later(tell, P, t["key"], "**%s %s** 验收没通过，正在按退回的原因重改。" % (t["key"], t["title"]))
+            t["key"], _md(t["title"]), "先点开试一试（%d 天内有效，请不要转给群外的人）：\n%s" % (PREVIEW_DAYS, link) if link
+            else "我们验收后会出新版本。"))
 
 
 def _accepted(P):
     def fn(p, t, v):
-        if v.get("passed") and _load(P.data_dir, "tickets.json").get(t["key"]):
+        if not _load(P.data_dir, "tickets.json").get(t["key"]):
+            return {}
+        head = "**%s %s**" % (t["key"], _md(t["title"]))
+        if v.get("passed"):
             rel = [e for e in P.store.events(t["id"]) if e["kind"] == "release"]
             ver = (rel[-1].get("data") or {}).get("version") if rel else ""
-            _later(tell, P, t["key"], "**%s %s** 验收通过%s。" % (t["key"], t["title"], "，已出新版本 %s" % ver if ver else ""))
+            _later(tell, P, t["key"], "%s 验收通过%s。" % (head, "，已出新版本 %s" % ver if ver else ""))
+        else:
+            _later(tell, P, t["key"], "%s 验收没通过，%s。" % (head, "正在按退回的原因重改" if v.get("redo") else "工程师会按退回的原因处理"))
         return {}
     fn.app = "群消息"
     return fn
