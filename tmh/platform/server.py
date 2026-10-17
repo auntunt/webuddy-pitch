@@ -80,6 +80,8 @@ class Platform:
         self.runner.charge = self._charge
         from . import signoff
         self.store.on_status.append(lambda t, old, new, who: signoff.on_status(self, t, old, new, who))
+        from . import preview
+        self.store.on_status.append(lambda t, old, new, who: preview.on_status(self, t, old, new, who))
         from .survey import Survey
         Survey.resume_all(self)  # a full-project analysis the last process was in the middle of
 
@@ -1938,6 +1940,66 @@ def api_release_again(P, req, key):
         raise ApiError(409, str(e))
 
 
+@route("GET", "/api/tickets/<key>/preview")
+def api_preview(P, req, key):
+    """The ticket's preview: whether it runs, where to open it, and the command that starts it."""
+    from . import preview
+    t = P.ticket(key)
+    p = P.store.project(t["project_id"])
+    cmd, ready, mine = preview.command(P.data_dir, p)
+    st = preview.status(P.data_dir, t["key"])
+    return {"preview": st, "url": "/pv/%s/" % t["key"] if st.get("state") == "up" else "", "branch": preview.branch_of(P, t),
+            "cmd": cmd, "configured": mine, "auto": preview.settings(P.data_dir)["preview"]}
+
+
+@route("POST", "/api/tickets/<key>/preview")
+def api_preview_do(P, req, key):
+    """{"action": "start" | "stop"}: run the ticket's latest committed change as a preview, or stop it."""
+    from . import preview
+    t = P.ticket(key)
+    p = P.store.project(t["project_id"])
+    act = req.body.get("action")
+    if act == "stop":
+        preview.stop(P, t["key"], "%s 停掉了" % req.user)
+        P.store.event(t["id"], req.user, "preview", "停掉了预览", {"state": "stopped"})
+    elif act == "start":
+        b = preview.branch_of(P, t)
+        if not b:
+            raise ApiError(409, "这张工单还没有提交过代码改动，没有可以预览的版本")
+        r = preview.start(P, p, t, b, req.user)
+        if r.get("state") == "none":
+            raise ApiError(409, r["why"])
+        P.store.event(t["id"], req.user, "preview", "启动预览（%s，提交 %s）" % (b, r["commit"]), {"state": "starting"})
+    else:
+        raise ApiError(400, "action 只能是 start 或 stop")
+    return api_preview(P, req, key)
+
+
+@route("GET", "/api/projects/<key>/preview-conf")
+def api_preview_conf(P, req, key):
+    from . import preview
+    p = P.project(key)
+    cmd, ready, mine = preview.command(P.data_dir, p)
+    return {"cmd": cmd if mine else "", "detected": "" if mine else cmd, "ready": ready}
+
+
+@route("POST", "/api/projects/<key>/preview-conf")
+def api_preview_conf_set(P, req, key):
+    """{"cmd": "...", "ready": "/"}: how this project starts; {port} and {prefix} are filled in. Empty cmd: back to detection."""
+    from . import preview
+    p = P.project(key)
+    cmd, ready = req.body.get("cmd", ""), req.body.get("ready", "/")
+    if not isinstance(cmd, str) or not isinstance(ready, str) or len(cmd) > 2000:
+        raise ApiError(400, "命令要是一行文字")
+    if cmd.strip() and "{port}" not in cmd and "PORT" not in cmd:
+        raise ApiError(400, "命令里要用 {port}（或环境变量 PORT）指定端口，平台才知道去哪里找它")
+    try:
+        preview.set_conf(P.data_dir, p["key"], cmd, ready)
+    except ValueError as e:
+        raise ApiError(400, str(e))
+    return api_preview_conf(P, req, key)
+
+
 @route("GET", "/api/readiness")
 def api_readiness(P, req):
     """上线体检: what on this machine would let a pilot down, each with its next step."""
@@ -2232,6 +2294,57 @@ def make_handler(P: Platform, token: str = ""):
         def do_POST(self):
             self._dispatch("POST")
 
+        def do_PUT(self):  # only a preview's own app uses these; the platform's API is GET and POST
+            self._dispatch("PUT")
+
+        def do_DELETE(self):
+            self._dispatch("DELETE")
+
+        def do_PATCH(self):
+            self._dispatch("PATCH")
+
+        def _pv_grant(self, key: str) -> bool:
+            """The client opened the preview from their sign-off link: that link, kept in a cookie for this preview only."""
+            from . import signoff
+            from .. import evidence as ev
+            tok = _cookie(self.headers.get("Cookie", ""), "tmh_pv_" + key)
+            try:
+                x = signoff.link_of(P.data_dir, tok)
+            except ApiError:
+                return False
+            return x["key"] == key and x["expires"] >= ev.now()
+
+        def _preview(self, method: str, u, q: dict):
+            from . import preview
+            m = re.match(r"^/pv/([A-Za-z0-9]+-\d+)(/.*)?$", u.path)
+            if not m:
+                return self._send(404, b"not found", "text/plain")
+            key = m.group(1).upper()
+            if not m.group(2):
+                return self._send(303, b"", "text/plain", {"Location": "/pv/%s/" % key})
+            if not (self._authorized(q) or self._pv_grant(key)):
+                return self._send(401, "请从签收链接或 webuddy 的工单页打开预览".encode("utf-8"), "text/plain; charset=utf-8")
+            n = int(self.headers.get("Content-Length") or 0)
+            if n > 20 * 1024 * 1024:
+                return self._send(413, b"too large", "text/plain")
+            body = self.rfile.read(n) if n else b""
+            path = "/pv/%s%s" % (key, m.group(2)) + ("?" + u.query if u.query else "")
+            try:
+                code, hdrs, data = preview.forward(P.data_dir, key, method, path, self.headers, body)
+            except LookupError as e:
+                st = preview.status(P.data_dir, key)
+                msg = {"starting": "预览版本正在启动，稍等一会儿刷新这个页面", "failed": "预览没有起来：%s" % st.get("why", "")}.get(st.get("state"), str(e))
+                return self._send(503, msg.encode("utf-8"), "text/plain; charset=utf-8", {"Retry-After": "10"})
+            except OSError as e:
+                return self._send(502, ("预览版本没有响应：%s" % e).encode("utf-8"), "text/plain; charset=utf-8")
+            self.send_response(code)
+            for k, v in hdrs:
+                self.send_header(k, v)
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            if method != "HEAD":
+                self.wfile.write(data)
+
         def _bot(self, method: str, path: str, q: dict):
             from .. import bots
             m = re.match(r"^/bot/(dingtalk|feishu|wecom|api)/([^/]+)$", path)
@@ -2296,6 +2409,8 @@ def make_handler(P: Platform, token: str = ""):
                 return self._send(403, "只接受本机访问；对局域网开放请设置 TMH_TOKEN".encode("utf-8"), "text/plain; charset=utf-8")
             if path == "/login":
                 return self._login(method, q)
+            if path.startswith("/pv/"):  # a change waiting for acceptance, running: people logged in, or the client's link
+                return self._preview(method, u, q)
             if path.startswith("/sign/"):  # the client's sign-off page: the one-time link is the credential, no account
                 return self._sign(method, path)
             if path == "/logout":
@@ -2354,6 +2469,8 @@ def make_handler(P: Platform, token: str = ""):
                 return self._send(404, b"not found", "text/plain")
             if not self._authorized(q):
                 return self._json(401, {"error": "需要访问令牌"})
+            if urlparse(self.headers.get("Referer") or "").path.startswith("/pv/"):  # a preview's page runs code nobody accepted yet
+                return self._json(403, {"error": "预览里的页面不能调用平台接口"})
             if method == "POST" and self.headers.get("X-TMH") != "1":
                 return self._json(403, {"error": "缺少 X-TMH 请求头"})
             body = {}
@@ -2418,6 +2535,15 @@ def make_handler(P: Platform, token: str = ""):
 
         def _sign(self, method: str, path: str):
             from . import signoff
+            m = re.match(r"^/sign/([A-Za-z0-9_\-]{20,64})/pv/?$", path)
+            if m and method == "GET":  # the client opens the change itself: the link becomes a cookie for this preview only
+                try:
+                    key = signoff.link_of(P.data_dir, m.group(1))["key"]
+                except ApiError as e:
+                    return self._send(e.code, signoff.message_page(str(e)).encode("utf-8"), "text/html; charset=utf-8")
+                secure = "; Secure" if (self.headers.get("X-Forwarded-Proto") or "") == "https" else ""
+                return self._send(303, b"", "text/plain", {"Location": "/pv/%s/" % key, "Referrer-Policy": "no-referrer",
+                                                           "Set-Cookie": "tmh_pv_%s=%s; Path=/pv/%s/; HttpOnly; SameSite=Lax%s" % (key, m.group(1), key, secure)})
             m = re.match(r"^/sign/([A-Za-z0-9_\-]{20,64})/package\.intoto\.json$", path)
             if m and method == "GET":  # the signer keeps their own copy, with the same link as the credential
                 try:

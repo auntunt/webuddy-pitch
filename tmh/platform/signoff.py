@@ -476,6 +476,11 @@ def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
     head = ("<h1>%s</h1><div class=sub>%s · %s · 签收人 %s%s</div>"
             % (E(snap["ticket"]["title"]), E(snap["project"]["name"]), E(x["key"]), E(x["signer"]), "（%s）" % E(x["role"]) if x["role"] else ""))
     body = [head]
+    from . import preview
+    pv = preview.status(P.data_dir, x["key"]).get("state")
+    if not done and t and t["status"] == "verify" and pv in ("up", "starting"):  # try the change itself before signing
+        body.append("<p class=pv><a href=\"/sign/%s/pv/\" target=_blank rel=noopener>打开这次改好的版本，先亲手试一试 ↗</a>%s</p>"
+                    % (E(token), "<span class=sub>（还在启动，稍等一会儿再点）</span>" if pv == "starting" else ""))
     if done:
         body.append("<div class=seal><b class=ok>%s</b><div class=sub>%s · 记录哈希 <code>%s</code></div></div>" % (
             "已签收，谢谢" if done["action"] == "sign" else "已退回，乙方会按您写的原因处理", E(done["ts"]), E(done["hash"])))

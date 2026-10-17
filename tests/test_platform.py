@@ -140,6 +140,27 @@ class StoreTest(unittest.TestCase):
         self.assertEqual(st["open_by_priority"], {"high": 1, "normal": 1})
 
 
+PREVIEW_APP = r"""
+import http.server, sys
+port, prefix = int(sys.argv[1]), sys.argv[2]
+class H(http.server.BaseHTTPRequestHandler):
+    def go(self):
+        if not self.path.startswith(prefix + "/"):
+            self.send_response(404); self.end_headers(); return
+        n = int(self.headers.get("Content-Length") or 0)
+        b = self.rfile.read(n) if n else b""
+        if self.path.endswith("/go"):
+            self.send_response(302); self.send_header("Location", "http://127.0.0.1:%d%s/done" % (port, prefix)); self.end_headers(); return
+        out = ("preview ok|cookie=%s|body=%s" % (self.headers.get("Cookie", ""), b.decode())).encode()
+        self.send_response(200); self.send_header("Set-Cookie", "app=1; Path=/"); self.send_header("Content-Length", str(len(out)))
+        self.end_headers(); self.wfile.write(out)
+    do_GET = do_POST = go
+    def log_message(self, *a):
+        pass
+http.server.ThreadingHTTPServer(("127.0.0.1", port), H).serve_forever()
+"""
+
+
 class PlatformApiTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -866,6 +887,82 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             (repo / ".git" / "MERGE_HEAD").unlink()
         finally:
             self.untrain()
+
+    def test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open(self):
+        from tmh.platform import preview, signoff
+        self.team()
+        repo = git_repo(JAVA)
+        (repo / "app.py").write_text(PREVIEW_APP, encoding="utf-8")
+        kb.build(repo)
+        from tmh import config as cfgmod
+        cfg = cfgmod.load(repo)
+        cfg["commands"]["test"] = "%s -c pass" % sys.executable
+        cfgmod.save(repo, cfg)
+        subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "app"], check=True)
+        self.call("POST", "/api/projects", {"key": "PV", "name": "预览", "root": str(repo)})
+        code, r = self.call("POST", "/api/projects/PV/preview-conf", {"cmd": "python3 app.py"})
+        self.assertEqual(code, 400)  # no port: the platform could not find it
+        code, r = self.call("POST", "/api/projects/PV/preview-conf", {"cmd": "%s app.py {port} {prefix}" % sys.executable})
+        self.assertEqual(code, 200, r)
+        try:
+            _, t = self.call("POST", "/api/tickets", {"project": "PV", "title": "请假审批提交后状态不刷新", "body": "提交后状态没变", "auto": False})
+            for mode in ("plan", "fix"):
+                _, run = self.call("POST", "/api/tickets/%s/runs" % t["key"], {"agent": "team", "mode": mode})
+                run = self.wait_run(run["id"])
+            self.call("POST", "/api/runs/%d/decide" % run["id"], {"decision": "accept"})  # committed: waiting for acceptance
+            for _ in range(150):
+                _, pv = self.call("GET", "/api/tickets/%s/preview" % t["key"])
+                if pv["preview"].get("state") in ("up", "failed"):
+                    break
+                time.sleep(0.1)
+            self.assertEqual(pv["preview"]["state"], "up", pv["preview"].get("tail"))
+            self.assertEqual(pv["url"], "/pv/%s/" % t["key"])
+
+            def get(path, method="GET", data=None, headers=None):
+                class Keep(urllib.request.HTTPRedirectHandler):
+                    def redirect_request(self, *a, **k):
+                        return None
+                req = urllib.request.Request(self.base + path, method=method, data=data, headers=headers or {})
+                try:
+                    r = urllib.request.build_opener(Keep).open(req, timeout=20)
+                    return r.status, r.headers, r.read().decode()
+                except urllib.error.HTTPError as e:
+                    return e.code, e.headers, e.read().decode()
+            code, h, body = get(pv["url"], headers={"Cookie": "tmh_session=secret; theirs=1"})
+            self.assertEqual(code, 200, body)
+            self.assertIn("preview ok", body)
+            self.assertIn("theirs=1", body)
+            self.assertNotIn("secret", body)  # the platform's own login never reaches code nobody accepted yet
+            self.assertIn("Path=/pv/%s/" % t["key"], h["Set-Cookie"])  # its cookies cannot replace the platform's
+            code, h, body = get(pv["url"] + "form", "POST", b"a=1", {"Content-Type": "application/x-www-form-urlencoded"})
+            self.assertIn("body=a=1", body)
+            code, h, _ = get(pv["url"] + "go")
+            self.assertEqual((code, h["Location"]), (302, "/pv/%s/done" % t["key"]))  # its redirects stay on the platform
+            code, _, _ = get("/api/projects", headers={"Referer": self.base + pv["url"]})
+            self.assertEqual(code, 403)  # a preview's page cannot drive the platform
+
+            link = signoff.issue(self.P, self.P.store.ticket(t["id"]), "tester", "王经理", "", 3, "测试：先看预览")
+            self.assertIn("/sign/%s/pv/" % link["token"], signoff.sign_page(self.P, link["token"]))
+            code, h, _ = get("/sign/%s/pv/" % link["token"])
+            self.assertEqual((code, h["Location"]), (303, "/pv/%s/" % t["key"]))
+            self.assertIn("Path=/pv/%s/" % t["key"], h["Set-Cookie"])
+
+            pid = preview.status(self.data, t["key"])["pid"]
+            self.call("POST", "/api/tickets/%s/accept" % t["key"], {"result": "pass"})  # left 待验证: the preview goes
+            for _ in range(100):
+                if not preview.status(self.data, t["key"]):
+                    break
+                time.sleep(0.1)
+            self.assertEqual(preview.status(self.data, t["key"]), {})
+            time.sleep(0.3)
+            self.assertFalse(preview._alive(pid))
+            self.assertFalse((self.data / "previews" / t["key"]).exists())
+            code, _, _ = get(pv["url"])
+            self.assertEqual(code, 503)
+        finally:
+            self.untrain()
+            preview.set_conf(self.data, "PV", "")
 
     def test_a_change_beyond_the_plan_is_flagged_and_left_to_a_person(self):
         self.team()

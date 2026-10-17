@@ -98,7 +98,8 @@ CSS = ("*{box-sizing:border-box}body{font:15px/1.7 -apple-system,'PingFang SC','
        "th,td{border:1px solid #dfe3eb;padding:6px 10px;text-align:left;vertical-align:top}th{background:#f4f6fa;font-weight:600}"
        ".wrap{overflow-x:auto}.ok{color:#1a7f37}.bad{color:#c62828}.warn{color:#9a6700}.tag{display:inline-block;padding:0 8px;border-radius:10px;"
        "font-size:12px;background:#eef1f6}.seal{border:2px solid #1a7f37;border-radius:8px;padding:12px 16px;margin:12px 0}"
-       ".seal.bad{border-color:#c62828}img{max-width:100%;border:1px solid #dfe3eb;border-radius:4px;margin:4px 0}"
+       ".seal.bad{border-color:#c62828}.pv a{display:inline-block;padding:10px 18px;background:#1d4ed8;color:#fff;border-radius:6px;text-decoration:none;font-weight:600}"
+       "img{max-width:100%;border:1px solid #dfe3eb;border-radius:4px;margin:4px 0}"
        "code{background:#f1f3f7;padding:0 4px;border-radius:3px;word-break:break-all}ul{padding-left:20px}"
        "@media print{body{padding:0}h2{break-after:avoid}table{break-inside:avoid}}")
 

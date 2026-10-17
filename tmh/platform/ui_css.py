@@ -187,6 +187,7 @@ svg text{fill:var(--mut);font-size:11px}
 .ph{display:flex;align-items:flex-end;gap:14px;margin:4px 0 18px;flex-wrap:wrap}.ph h1{font-size:26px;margin:2px 0 4px;letter-spacing:.5px}
 .eyebrow{font-size:11.5px;letter-spacing:2px;color:var(--mut);text-transform:uppercase}
 a.btn{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:5px 12px;color:var(--fg);background:var(--panel);white-space:nowrap}a.btn:hover{border-color:var(--blue);color:var(--blue);text-decoration:none}
+a.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}a.btn.primary:hover{filter:brightness(1.08);color:#fff}
 .crumb{font-size:12.5px;color:var(--mut);letter-spacing:.5px}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 0 18px}
 .kpis>div{padding:16px 4px;display:flex;flex-direction:column;gap:2px}.kpis b{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
