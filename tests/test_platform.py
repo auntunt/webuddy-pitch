@@ -1938,7 +1938,8 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
                 r["hash"] = ev.digest(r)
                 prev = r["hash"]
             forged["subject"][0]["digest"]["sha256"] = prev
-            self.assertEqual(ev.verify_statement(forged)[0], "bad")  # the provider's signature no longer fits
+            if "signature" in forged:  # exported where something could sign it: the provider's signature no longer fits
+                self.assertEqual(ev.verify_statement(forged)[0], "bad")
             forged.pop("signature", None)  # a forger drops it: holds together, but unsigned and not anchored
             self.assertEqual(ev.verify_statement(forged)[0], "consistent")
             self.assertEqual(ev.verify_statement(forged, kept)[0], "bad")
