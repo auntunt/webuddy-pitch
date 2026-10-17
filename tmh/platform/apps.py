@@ -9,7 +9,7 @@ from __future__ import annotations
 
 APPS = [
     {"key": "ops", "name": "运维服务", "desc": "报单、导入和告警来的问题：定位、修复、验收，统计响应和解决时长。",
-     "sources": ["人工报单", "Jira / 禅道导入", "助手会话", "告警和报错日志（alerts.py）"], "home": "#/"},
+     "sources": ["人工报单", "Jira / 禅道导入", "助手会话", "告警和报错日志（alerts.py）"], "home": "#/board"},
     {"key": "reform", "name": "重构服务", "desc": "老项目的结构重构、依赖升级、框架迁移、兼容适配：按业务域拆成改造工单，一批验收通过再放下一批。",
      "sources": ["改造计划（reform.py）"], "home": "#/reform"},
 ]

@@ -42,6 +42,9 @@ CREATE INDEX IF NOT EXISTS ix_client_links ON client_links(client_id);
 """
 KINDS = ("intake", "chat", "ticket")
 SHARE_DAYS = 30
+MAX_STANDING = int(os.environ.get("TMH_MAX_STANDING") or 2)  # main-line previews running at once, across projects
+IDLE_H = float(os.environ.get("TMH_STANDING_IDLE_H") or 12)  # one nobody opened for this long is stopped
+DEBOUNCE = 3.0  # seconds: merges in a row restart the main line's preview once, for the last of them
 _LOCK = threading.Lock()
 
 # a requirement's state, said the way one says it to a client
@@ -71,7 +74,7 @@ def _client_row(r: dict) -> dict:
 def clients(P) -> list:
     _db(P)
     rows = [_client_row(r) for r in P.store.q("SELECT * FROM clients ORDER BY updated DESC")]
-    n = {r["client_id"]: r["n"] for r in P.store.q("SELECT client_id, COUNT(*) n FROM client_links GROUP BY client_id")}
+    n = {r["client_id"]: r["n"] for r in P.store.q("SELECT client_id, COUNT(*) n FROM client_links WHERE kind!='noclient' GROUP BY client_id")}
     for r in rows:
         r["links"] = n.get(r["id"], 0)
     return rows
@@ -79,7 +82,6 @@ def clients(P) -> list:
 
 def summary(P) -> list:
     """Every client with how many of their things are owed, waiting on them, and shipped: the 客户 page."""
-    sync(P)
     rows = clients(P)
     ts = [t for t in _tickets(P) if (t.get("links") or {}).get("client")]
     st = states(P, ts)
@@ -175,8 +177,45 @@ def _add_project(P, c: dict, key: str) -> None:
         P.store.x("UPDATE clients SET projects=?, updated=? WHERE id=?", (json.dumps(sorted(c["projects"] + [key])), now(), c["id"]))
 
 
+def _set_client(P, t: dict, cid, by: str, why: str) -> None:
+    """Put a ticket under a client (or none), with a line on its timeline saying so."""
+    links = dict(t.get("links") or {})
+    old = links.get("client")
+    if old == cid:
+        return
+    if cid:
+        links["client"] = cid
+    else:
+        links.pop("client", None)
+    P.store.update_ticket(t["id"], by, links=links)
+    names = {c["id"]: c["name"] for c in clients(P)}
+    if cid:
+        text = "记为客户 %s 提的需求" % names.get(cid, cid) + ("（原先记在 %s 名下）" % names.get(old, old) if old else "") + (("，" + why) if why else "")
+    else:
+        text = "不再记为客户 %s 提的需求" % names.get(old, old) + (("，" + why) if why else "")
+    P.store.event(t["id"], by or "平台", "client", text, {"client": cid, "from": old})
+
+
+def _keys_of(P, kind: str, ref: str) -> list:
+    """The tickets made from a requirement talk or a group conversation."""
+    if kind == "intake":
+        s = _session(P, ref) or {}
+        keys = list(s.get("tickets") or []) + list(s.get("children") or []) + [it.get("ticket") for it in s.get("items") or []]
+    elif kind == "chat":
+        keys = list((_convs(P).get(ref) or {}).get("tickets") or [])
+    else:
+        keys = [ref]
+    return [k for k in dict.fromkeys(keys) if k]
+
+
+def _children(P, key: str) -> list:
+    return [P.store.ticket(r["id"]) for r in P.store.q("SELECT id, links FROM tickets WHERE links LIKE ?", ('%"parent": "' + key + '"%',))
+            if (r["links"] or {}).get("parent") == key]
+
+
 def link(P, cid, kind: str, ref: str, by: str = "") -> dict:
-    """This requirement talk / group conversation / ticket came from this client. A later link replaces an earlier one."""
+    """This requirement talk / group conversation / ticket came from this client. A later link replaces an earlier
+    one, and moves the tickets already made from that talk or conversation to the new client."""
     c = client(P, cid)
     if kind not in KINDS:
         raise ApiError(400, "只能关联到需求对话（intake）、群聊（chat）或工单（ticket）")
@@ -188,38 +227,59 @@ def link(P, cid, kind: str, ref: str, by: str = "") -> dict:
     elif kind == "ticket":
         t = P.ticket(ref)
         ref = t["key"]
-        if (t.get("links") or {}).get("client") != c["id"]:
-            P.store.update_ticket(t["id"], by, links=dict(t.get("links") or {}, client=c["id"]))
-            P.store.event(t["id"], by, "client", "记为客户 %s 提的需求" % c["name"], {"client": c["id"]})
+        _set_client(P, t, c["id"], by, "")
+        P.store.x("DELETE FROM client_links WHERE kind='noclient' AND ref=?", (ref,))
         _add_project(P, c, ref.rsplit("-", 1)[0])
     else:
         conv = _convs(P).get(ref)
         if not conv:
             raise ApiError(404, "没有这个群聊对话")
         _add_project(P, c, conv.get("project", ""))
+    prev = client_of(P, kind, ref)
     P.store.x("INSERT INTO client_links(client_id,kind,ref,ts,who) VALUES(?,?,?,?,?) "
               "ON CONFLICT(kind, ref) DO UPDATE SET client_id=excluded.client_id, ts=excluded.ts, who=excluded.who",
               (c["id"], kind, ref, now(), by or ""))
-    sync(P)
+    if kind != "ticket" and prev and prev != c["id"]:
+        for k in _keys_of(P, kind, ref):
+            for t in [P.store.ticket(k)] + _children(P, k):
+                if t and (t.get("links") or {}).get("client") == prev:
+                    _set_client(P, t, c["id"], by, "整段对话改记到新客户名下")
+    sync(P, by)
     return {"client": c["id"], "kind": kind, "ref": ref}
 
 
-def unlink(P, kind: str, ref: str) -> dict:
-    _db(P)
-    P.store.x("DELETE FROM client_links WHERE kind=? AND ref=?", (kind, str(ref)))
+def unlink(P, cid, kind: str, ref: str, by: str = "") -> dict:
+    """Take a talk, conversation or ticket off this client. A ticket taken off stays off: sync will not put the
+    client back from the talk it came from."""
+    c = client(P, cid)
+    ref = str(ref or "")
     if kind == "ticket":
         t = P.store.ticket(ref)
-        if t and (t.get("links") or {}).get("client"):
-            links = dict(t["links"])
-            links.pop("client")
-            P.store.update_ticket(t["id"], "", links=links)
+        if not t:
+            raise ApiError(404, "没有这个工单")
+        ref = t["key"]
+        row = P.store.one("SELECT client_id FROM client_links WHERE kind='ticket' AND ref=?", (ref,))
+        if (t.get("links") or {}).get("client") != c["id"] and not (row and row["client_id"] == c["id"]):
+            raise ApiError(409, "%s 没有记在 %s 名下" % (ref, c["name"]))
+        P.store.x("DELETE FROM client_links WHERE kind='ticket' AND ref=? AND client_id=?", (ref, c["id"]))
+        P.store.x("INSERT INTO client_links(client_id,kind,ref,ts,who) VALUES(0,'noclient',?,?,?) "
+                  "ON CONFLICT(kind, ref) DO UPDATE SET ts=excluded.ts, who=excluded.who", (ref, now(), by or ""))
+        if (t.get("links") or {}).get("client") == c["id"]:
+            _set_client(P, t, None, by, "")
+        return {"unlinked": ref}
+    if kind not in KINDS:
+        raise ApiError(400, "只能取消需求对话（intake）、群聊（chat）或工单（ticket）的关联")
+    row = P.store.one("SELECT client_id FROM client_links WHERE kind=? AND ref=?", (kind, ref))
+    if not row or row["client_id"] != c["id"]:
+        raise ApiError(409, "这段对话没有关联到 %s" % c["name"])
+    P.store.x("DELETE FROM client_links WHERE kind=? AND ref=? AND client_id=?", (kind, ref, c["id"]))
     return {"unlinked": ref}
 
 
 def _links(P, cid=None) -> list:
     _db(P)
     if cid is None:
-        return P.store.q("SELECT * FROM client_links ORDER BY id")
+        return P.store.q("SELECT * FROM client_links WHERE kind!='noclient' ORDER BY id")
     return P.store.q("SELECT * FROM client_links WHERE client_id=? ORDER BY id", (int(cid),))
 
 
@@ -244,33 +304,32 @@ def _session(P, sid: str) -> dict | None:
         return None
 
 
-def sync(P) -> int:
+def sync(P, by: str = "") -> int:
     """Hand a client on from a requirement talk or a group chat to the tickets made from it, and from a big
-    requirement's parent to its children. Only tickets with no client yet; returns how many were set."""
+    requirement's parent to its children. Runs when something is written (a link, a confirmed talk, a ticket made
+    in a group chat or under a parent), never on a read. Only tickets with no client yet and not taken off one by
+    hand; returns how many were set."""
+    _db(P)
     n = 0
     want = {}
     for r in _links(P):
-        if r["kind"] == "intake":
-            s = _session(P, r["ref"]) or {}
-            keys = list(s.get("tickets") or []) + list(s.get("children") or []) + [it.get("ticket") for it in s.get("items") or []]
-        elif r["kind"] == "chat":
-            keys = list((_convs(P).get(r["ref"]) or {}).get("tickets") or [])
-        else:
-            continue
-        for k in keys:
-            if k:
-                want.setdefault(k, r["client_id"])
+        if r["kind"] in ("intake", "chat"):
+            for k in _keys_of(P, r["kind"], r["ref"]):
+                want.setdefault(k, (r["client_id"], "来自%s" % ("需求对话" if r["kind"] == "intake" else "群聊")))
+    off = {r["ref"] for r in P.store.q("SELECT ref FROM client_links WHERE kind='noclient'")}
     for t in P.store.q("SELECT id, links FROM tickets WHERE links LIKE '%\"parent\"%'"):
         par = (t["links"] or {}).get("parent")
         if par:
             pt = P.store.ticket(par)
             pc = (pt.get("links") or {}).get("client") if pt else None
             if pc or (pt and pt["key"] in want):
-                want.setdefault(P.store.ticket(t["id"])["key"], pc or want[pt["key"]])
-    for k, cid in want.items():
+                want.setdefault(P.store.ticket(t["id"])["key"], (pc or want[pt["key"]][0], "跟着大需求 %s" % pt["key"]))
+    for k, (cid, why) in want.items():
+        if k in off:
+            continue
         t = P.store.ticket(k)
         if t and not (t.get("links") or {}).get("client"):
-            P.store.update_ticket(t["id"], "", links=dict(t.get("links") or {}, client=cid))
+            _set_client(P, t, cid, by or "平台", why)
             n += 1
     return n
 
@@ -359,7 +418,6 @@ def _open_questions(s: dict) -> int:
 
 def requirements(P, project=None) -> dict:
     """Every requirement, in plain-word columns: the talks still being understood, then the tickets."""
-    sync(P)
     project = (project or "").upper() or None
     cl = {c["id"]: c["name"] for c in clients(P)}
     cols = {k: [] for k, _ in STATES}
@@ -386,7 +444,6 @@ def requirements(P, project=None) -> dict:
 def client_view(P, cid) -> dict:
     """One client: what they asked (with dates), each requirement's state, the versions they got, what is owed."""
     c = client(P, cid)
-    sync(P)
     from . import release
     asked = []
     links = _links(P, c["id"])
@@ -463,7 +520,59 @@ def standing(P, p: dict) -> dict:
             "started": st.get("started", ""), "tail": st.get("tail", "") if st.get("state") == "failed" else ""}
 
 
-def start_standing(P, p: dict, by: str) -> dict:
+def _afile(data_dir: Path) -> Path:
+    return Path(data_dir) / "versions" / "standing.json"
+
+
+def _activity(data_dir: Path) -> dict:
+    try:
+        return json.loads(_afile(data_dir).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+_TOUCHED: dict = {}
+
+
+def touch(data_dir: Path, key: str, what: str = "opened", at: float | None = None) -> None:
+    """Someone opened (or a person started) the main line's preview: it is in use. Opening counts once a minute."""
+    at = time.time() if at is None else at
+    tk = (str(data_dir), key)
+    if what == "opened" and at - _TOUCHED.get(tk, 0) < 60:
+        return
+    if what == "opened":
+        _TOUCHED[tk] = at
+    with _LOCK:
+        d = _activity(data_dir)
+        d.setdefault(key, {})[what] = at
+        f = _afile(data_dir)
+        f.parent.mkdir(parents=True, exist_ok=True)
+        tmp = f.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d, indent=1), encoding="utf-8")
+        os.replace(tmp, f)
+
+
+def _last_used(data_dir: Path, key: str) -> float:
+    a = _activity(data_dir).get(key) or {}
+    return max(a.get("opened", 0), a.get("started", 0))
+
+
+def wanted(P, project: str) -> str:
+    """Why the main line's preview should follow each new version ("" when nobody would open it): a client has a
+    link that still works, or someone opened or started it lately."""
+    if shares(P, project):
+        return "有客户链接"
+    if time.time() - _last_used(P.data_dir, standing_key(project)) < IDLE_H * 3600:
+        return "最近有人打开过"
+    return ""
+
+
+def _live_standing(data_dir: Path) -> list:
+    from . import preview
+    return [k for k, v in preview._load(data_dir).items() if k.endswith(preview.STANDING) and v.get("state") in ("starting", "up")]
+
+
+def start_standing(P, p: dict, by: str, person: bool = True) -> dict:
     from . import preview, release
     key = standing_key(p["key"])
     cmd, _, mine = preview.command(P.data_dir, p)
@@ -472,31 +581,105 @@ def start_standing(P, p: dict, by: str) -> dict:
     main = release.main_branch(Path(p["root"]), P.data_dir, p["key"])
     if not main:
         raise ApiError(409, "找不到主干分支，在 autoflow.json 的 main 里写上它")
+    others = sorted((k for k in _live_standing(P.data_dir) if k != key), key=lambda k: _last_used(P.data_dir, k))
+    for old in others[:max(0, len(others) - MAX_STANDING + 1)]:  # the one used least lately makes room
+        preview.stop(P, old)
+    if person:
+        touch(P.data_dir, key, "started")
     r = preview.start(P, p, {"key": key}, main, by or "平台")
     if r.get("state") == "none":
         raise ApiError(409, r["why"])
     return standing(P, p)
 
 
+_SEQ: dict = {}
+_RUN: dict = {}
+
+
 def on_release(P):
     """After a merge: the standing preview moves to the new version, if the project has a command a person set
-    (as a ticket's preview starts by itself only then) and previews are on."""
+    (as a ticket's preview starts by itself only then), previews are on, and someone would open it. Merges in a
+    row restart it once, for the last."""
     def fn(p, t, r):
         from . import preview
-        if preview.settings(P.data_dir)["preview"] != "auto" or not preview.command(P.data_dir, p)[2]:
+        if preview.settings(P.data_dir)["preview"] != "auto" or not preview.command(P.data_dir, p)[2] or not wanted(P, p["key"]):
             return
+        pk = (str(P.data_dir), p["key"])
+        with _LOCK:
+            _SEQ[pk] = n = _SEQ.get(pk, 0) + 1
+            lock = _RUN.setdefault(pk, threading.Lock())
 
         def go():
-            try:
-                start_standing(P, p, "新版本 %s" % r.get("version", ""))
-            except Exception as e:  # noqa: BLE001 - the version is out whatever happens to its preview
-                P.store.event(t["id"], "预览", "preview", "当前版本的预览没有换上新版本：%s" % e, {"state": "failed"})
+            time.sleep(DEBOUNCE)
+            if _SEQ.get(pk) != n:  # a newer version came out meanwhile: that one restarts it
+                return
+            with lock:
+                if _SEQ.get(pk) != n:
+                    return
+                try:
+                    start_standing(P, P.project(p["key"]), "新版本 %s" % r.get("version", ""), person=False)
+                except Exception as e:  # noqa: BLE001 - the version is out whatever happens to its preview
+                    P.store.event(t["id"], "预览", "preview", "当前版本的预览没有换上新版本：%s" % e, {"state": "failed"})
         threading.Thread(target=go, daemon=True).start()
     return fn
 
 
+def _started_at(data_dir: Path, key: str) -> float:
+    from . import preview
+    s = (preview._load(data_dir).get(key) or {}).get("started") or ""
+    try:
+        return time.mktime(time.strptime(s[:19], "%Y-%m-%d %H:%M:%S"))
+    except ValueError:
+        return 0
+
+
+def reap(P, at: float | None = None) -> list:
+    """Stop main-line previews nobody opened for IDLE_H hours. Returns the keys stopped."""
+    from . import preview
+    at = time.time() if at is None else at
+    out = []
+    for key in _live_standing(P.data_dir):
+        last = _last_used(P.data_dir, key) or _started_at(P.data_dir, key)
+        if last and at - last > IDLE_H * 3600:
+            preview.stop(P, key)
+            out.append(key)
+    return out
+
+
+def _inherit(P, t: dict, who: str) -> None:
+    """A ticket made under a parent (a big requirement's child) is for the parent's client."""
+    par = (t.get("links") or {}).get("parent")
+    if not par or (t.get("links") or {}).get("client"):
+        return
+    pt = P.store.ticket(par)
+    cid = (pt.get("links") or {}).get("client") if pt else None
+    if cid:
+        _set_client(P, t, cid, who or "平台", "跟着大需求 %s" % pt["key"])
+
+
 def wire(P) -> None:
+    from .. import bots
     P.flow.on_release.append(on_release(P))
+    P.store.on_create.append(lambda t, who: _inherit(P, t, who))
+    inner = bots.INTAKE
+    if inner:
+        def intake_then_sync(*a, **kw):  # a group chat's talk made tickets: they get the chat's client now
+            out = inner(*a, **kw)
+            try:
+                sync(P, "群聊")
+            except Exception:  # noqa: BLE001 - the reply to the chat matters more
+                pass
+            return out
+        bots.INTAKE = intake_then_sync
+
+    def reaper():
+        while True:
+            time.sleep(600)
+            try:
+                reap(P)
+            except Exception:  # noqa: BLE001
+                pass
+    threading.Thread(target=reaper, daemon=True).start()
 
 
 def versions(P, project: str) -> dict:
@@ -612,7 +795,7 @@ def share_page(P, token: str) -> str:
     for rr in rels[:10]:
         for x in rr.get("tickets") or []:
             t = P.store.ticket(x.get("key", ""))
-            if r.get("client") and (not t or (t.get("links") or {}).get("client") != r["client"]):
+            if not r.get("client") or not t or (t.get("links") or {}).get("client") != r["client"]:
                 others += 1
                 continue
             mine.append((rr["version"], rr.get("ts", "")[:10], x.get("title", "")))
@@ -625,7 +808,7 @@ def share_page(P, token: str) -> str:
     body = ("<h1>%s · 现在的版本</h1>" % E(p["name"]) +
             ("<p class=sub>版本 %s · %s 出的</p>" % (E(cur["version"]), E((cur.get("ts") or "")[:16])) if cur else "<p class=sub>还没有出过版本</p>") +
             btn + ("<h2>%s这几版做了什么</h2><ul>%s</ul>" % ("给您" if r.get("client") else "", lis) if lis else "") +
-            ("<p class=sub>以及其他客户的 %d 项改进。</p>" % others if others else "") +
+            (("<p class=sub>以及其他客户的 %d 项改进。</p>" if r.get("client") else "<p>本版包含 %d 项改进。</p>") % others if others else "") +
             "<p class=sub>这个链接 %s 前有效。试用时有问题，直接告诉我们。</p>" % E(r["expires"][:10]))
     css = (".go{display:inline-block;background:#1677FF;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-size:16px}"
            ".sub{color:#666;font-size:13px}ul{padding-left:18px}li{margin:6px 0}")
@@ -641,6 +824,7 @@ def share_grant(P, token: str) -> tuple[str, str]:
     """(preview key, pass) for a good link: the pass lasts as long as the link."""
     from . import preview
     r = share_of(P.data_dir, token)
+    touch(P.data_dir, r["key"])
     until = time.mktime(time.strptime(r["expires"][:19], "%Y-%m-%d %H:%M:%S"))
     return r["key"], preview.grant(P.data_dir, r["key"], _sh(token), until)
 
@@ -650,14 +834,33 @@ def share_grant(P, token: str) -> tuple[str, str]:
 MACHINE_KINDS = ("release", "adopt", "conflict")
 
 
+_TODAY: dict = {}
+TODAY_TTL = 4.0  # seconds; every open page asks every few seconds
+
+
 def today(P, since: str = "") -> dict:
     """One screen: what needs the owner, what the AI did since `since`, what it is doing now, new versions, and the
-    requirement talks with questions still open."""
-    from . import release
-    sync(P)
-    st = P.store
+    requirement talks with questions still open. Reads only. The same answer is kept a few seconds while nothing
+    new was written to any ticket's timeline and no run started or ended."""
     since = since if re.fullmatch(r"\d{4}-\d\d-\d\d[ T]\d\d:\d\d(:\d\d)?", since or "") else ""
     since = since.replace("T", " ")
+    ev = P.store.one("SELECT MAX(id) m FROM events") or {}
+    ru = P.store.one("SELECT MAX(id) m, COUNT(*) n FROM runs WHERE status IN ('queued','running')") or {}
+    mark = (ev.get("m"), ru.get("m"), ru.get("n"))
+    ck = (str(P.data_dir), since)
+    hit = _TODAY.get(ck)
+    if hit and hit[1] == mark and time.time() - hit[0] < TODAY_TTL:
+        return hit[2]
+    out = _today(P, since)
+    if len(_TODAY) > 64:
+        _TODAY.clear()
+    _TODAY[ck] = (time.time(), mark, out)
+    return out
+
+
+def _today(P, since: str) -> dict:
+    from . import preview, release
+    st = P.store
     cl = {c["id"]: c["name"] for c in clients(P)}
     keys = {p["id"]: p["key"] for p in st.projects()}
     tickets = {}
@@ -711,6 +914,13 @@ def today(P, since: str = "") -> dict:
     for x in box["mine"] + box["others"]:
         t = st.ticket(x["key"])
         x["client_name"] = cl.get((t.get("links") or {}).get("client"), "") if t else ""
+    failed = []
+    for p in st.projects():
+        key = standing_key(p["key"])
+        s_ = preview.status(P.data_dir, key)
+        if s_.get("state") == "failed":
+            failed.append({"project": p["key"], "name": p["name"], "key": key, "why": s_.get("why", ""), "since": s_.get("started", "")})
     return {"now": now_, "mine": box["mine"], "others": box["others"], "did": did, "versions": vers, "talks": talks, "open_ac": waiting_ac,
+            "standing_failed": failed,
             "auto": box["auto"], "agent": box["agent"], "since": since, "server_time": now(),
             "handwork": handwork.settings(P.data_dir)["handwork"]}

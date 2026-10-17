@@ -61,7 +61,8 @@ details.fold>summary:before,details.eng>summary:before{content:"▸";color:var(-
   #nav5{position:fixed;left:0;right:0;bottom:0;z-index:8;margin:0;padding:0 4px calc(env(safe-area-inset-bottom) + 2px);background:#fff;border-top:1px solid var(--line);border-bottom:0;justify-content:space-around;gap:0}
   #nav5 a{flex-direction:column;gap:0;padding:6px 4px 4px;font-size:12px;border-bottom:0;border-top:2px solid transparent;flex:1;align-items:center}
   #nav5 a i{display:block;font-size:18px;line-height:22px}#nav5 a.on{border-top-color:var(--blue)}#nav5 a b{position:absolute;margin-left:22px}
-  #page{padding-bottom:84px}#nav5+#tabs[hidden]+main{margin-top:12px}
+  #page{padding-bottom:calc(84px + env(safe-area-inset-bottom))}#nav5+#tabs[hidden]+main{margin-top:12px}
+  #ast{z-index:9}#toast{bottom:calc(84px + env(safe-area-inset-bottom))}  /* the assistant covers the bottom bar; toasts sit above it */
   #say{flex:0 0 auto;max-width:none;margin:0 0 0 auto}#say input{display:none}#say button{border-radius:6px}#say button span{display:inline}
   .ttop dl{grid-template-columns:60px minmax(0,1fr)}#astOpen{bottom:78px;padding:6px 12px;font-size:13px}
   .hdr>h1.grow,.wkh>h1.grow{flex-basis:100%}.lnk{flex-wrap:wrap}.lnk select{flex:1;min-width:0}
@@ -128,7 +129,7 @@ async function vToday(){
     <div style="display:flex;flex-direction:column;gap:14px;min-width:0"><section class="card" id="tNow"></section><section class="card" id="tDid"></section></div></div></div>`;
   $('#sbGo').onclick=()=>pasteModal($('#sbT').value);
   todayPaint(d);
-  poll(async()=>{if(!$('#tNow'))return;try{todayPaint(await get('/api/today?since='+encodeURIComponent(since)))}catch(e){}},5000,'page')}
+  poll(async()=>{if(!$('#tNow')||document.hidden)return;try{todayPaint(await get('/api/today?since='+encodeURIComponent(since)))}catch(e){}},5000,'page')}
 function todayPaint(d){
   S.need=d.mine.length;paintNav();
   const cl=x=>x.client_name?` <span class="tag">${h(x.client_name)}</span>`:'';
@@ -136,6 +137,7 @@ function todayPaint(d){
   const need=d.mine.filter(x=>x.reason!=='stalled'),stalled=d.mine.filter(x=>x.reason==='stalled');
   $('#tNeed').innerHTML=`<h2>等你 ${need.length?`<span class="ibn">${need.length}</span>`:''}</h2>`+
     (stalled.length?row('#/settings','⚠',`${stalled.length} 件新需求不会自己开始`,h(stalled[0].label),'去处理'):'')+
+    (d.standing_failed||[]).map(x=>row('#/versions/'+h(x.project),'⚠',`${h(x.project)} 现在的版本没起来，客户的链接打不开`,h(x.why||'看看启动日志'),'去看')).join('')+
     (need.length?need.map(x=>row('#/t/'+h(x.key),'●',`${h(clip(x.title,60))}${cl(x)}`,`${h(x.label)}${x.note?' · “'+h(x.note)+'”':''} · ${h(x.key)} · 等了 ${waited(x.since||'')}`,h(x.action))).join('')
       :`<div class="wke">现在没有要你拍板的事。${d.now.length?'AI 做完需要你的，会出现在这里。':''}</div>`);
   const talks=d.talks,ac=d.open_ac,sign=d.others;
@@ -204,7 +206,7 @@ async function vReqs(){
     :`<a class="rqi" href="#/t/${h(x.key)}"><b>${h(x.title)}</b><span class="sub">${x.client_name?h(x.client_name)+' · ':''}${h(x.why||'')}${x.version?' · '+h(x.version):''}</span><span class="sub">${h(x.key)}${x.epic?' · 大需求':''}${x.parent?' · 属于 '+h(x.parent):''}</span></a>`;
   $('#main').innerHTML=`<div class="wk"><div class="wkh"><h1 class="grow">需求</h1><span class="sub">从听到客户的话，到出版本。工单是每件事里面的执行细节。</span><button class="primary" onclick="pasteModal('')">＋ 客户的话</button></div>
    <div class="rqb">${d.columns.map(c=>`<div class="rqc"><h3><span>${stChip(c.key)}</span><span class="sub">${c.items.length}</span></h3>${c.items.length?c.items.map(item).join(''):'<div class="wke">没有</div>'}</div>`).join('')}</div></div>`;
-  poll(async()=>{if(!$('.rqb'))return;try{const n=await get('/api/requirements?project='+encodeURIComponent(scopeQ()));if(JSON.stringify(n)!==JSON.stringify(d))vReqs()}catch(e){}},8000,'page')}
+  poll(async()=>{if(!$('.rqb')||document.hidden)return;try{const n=await get('/api/requirements?project='+encodeURIComponent(scopeQ()));if(JSON.stringify(n)!==JSON.stringify(d))vReqs()}catch(e){}},8000,'page')}
 
 // ---------- 版本: per project, the current version clients can open, and every version with what it held
 async function vVersions(key){
@@ -223,7 +225,7 @@ function versionCard(v,cs){const p=v.project,s=v.standing,K=h(p.key);
      ${s.why&&s.state==='failed'?`<div class="bad" style="font-size:13px;margin-top:6px">${h(s.why)}</div>`:''}
      ${s.fix?`<div class="sub" style="margin-top:8px">${h(s.fix)}</div><div class="lnk"><input data-vcmd placeholder="例如 python3 app.py {port} {prefix}" value="${h(s.configured?s.cmd:(s.cmd||''))}"><button data-vsave>保存命令</button></div>`:''}
      ${s.configured?`<div style="margin-top:10px"><b style="font-size:13px">发给客户</b> <span class="sub">客户打开链接，先看到这个版本给他做了什么，再点进去试。看不到平台的任何其他东西。</span>
-      <div class="lnk"><select data-vcl><option value="">不指定客户</option>${cs.filter(c=>!c.projects.length||c.projects.includes(p.key)).map(c=>`<option value="${c.id}">${h(c.name)}</option>`).join('')}</select><select data-vdays><option value="7">7 天有效</option><option value="30" selected>30 天有效</option><option value="90">90 天有效</option></select><button class="primary" data-vshare>生成链接</button></div><div data-vout></div>
+      <div class="lnk"><select data-vcl><option value="">不指定客户（只说改了几项）</option>${cs.filter(c=>!c.projects.length||c.projects.includes(p.key)).map(c=>`<option value="${c.id}">${h(c.name)}</option>`).join('')}</select><select data-vdays><option value="7">7 天有效</option><option value="30" selected>30 天有效</option><option value="90">90 天有效</option></select><button class="primary" data-vshare>生成链接</button></div><div data-vout></div>
       ${v.shares.length?`<div style="margin-top:8px">${v.shares.map(x=>`<div class="sub" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">给 ${h(x.client_name||'未指定')} · ${h(x.created.slice(5,16))} 发 · ${h(x.expires.slice(0,10))} 前有效 <button class="ghost" data-vrev="${h(x.id)}">收回</button></div>`).join('')}</div>`:''}</div>`:''}</div>
    <h3 style="margin-top:14px">出过的版本</h3>${v.versions.length?`<div class="vtl">${v.versions.map(x=>`<div><b>${h(x.version)}</b> <span class="sub">${h((x.ts||'').slice(0,16))} · 提交 ${h(x.commit||'')}</span><ul>${x.items.map(i=>`<li>${i.client_name?`<span class="tag">${h(i.client_name)}</span> `:''}${h(i.title)} <a href="#/t/${h(i.key)}" class="sub">${h(i.key)}</a></li>`).join('')}</ul></div>`).join('')}</div>`
     :'<div class="wke">还没有出过版本。需求验收通过、合进主干后，会出现在这里。</div>'}</section>`}
@@ -231,7 +233,7 @@ function versionWire(v){const box=$('#vc-'+v.project.key);if(!box)return;const P
   box.querySelectorAll('[data-vs]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await post(P+'/standing',{action:b.dataset.vs});toast(b.dataset.vs==='stop'?'已停掉':'正在启动现在的版本')}catch(e){toast(e.message,6000)}re()});
   const sv=box.querySelector('[data-vsave]');if(sv)sv.onclick=async()=>{try{await post(P+'/preview-conf',{cmd:box.querySelector('[data-vcmd]').value,ready:'/'});toast('已保存，之后每出一个版本都会自动换上');re()}catch(e){toast(e.message,6000)}};
   const sh=box.querySelector('[data-vshare]');if(sh)sh.onclick=async()=>{try{const r=await post(P+'/shares',{client:+box.querySelector('[data-vcl]').value||null,days:+box.querySelector('[data-vdays]').value});
-    const url=location.origin+r.path;box.querySelector('[data-vout]').innerHTML=`<div class="sub" style="margin-top:6px">${r.client_name?'给 '+h(r.client_name)+'，':''}${h(r.expires.slice(0,10))} 前有效。链接只显示这一次，复制后发到微信或群里：</div><div class="lnk"><input readonly value="${h(url)}"><button class="primary" data-vcp>复制</button></div>`;
+    const url=r.url||r.path;box.querySelector('[data-vout]').innerHTML=`<div class="sub" style="margin-top:6px">${r.client_name?'给 '+h(r.client_name)+'，':''}${h(r.expires.slice(0,10))} 前有效。链接只显示这一次，复制后发到微信或群里：</div>${r.client_name?'':'<div class="bad" style="font-size:13px;margin-top:4px">没选客户：打开的人只看到“本版包含几项改进”，看不到每一项是什么。要让客户看到给他做了什么，选上他再生成。</div>'}${r.private?`<div class="bad" style="font-size:13px;margin-top:4px">${h(r.warn)}</div>`:''}<div class="lnk"><input readonly value="${h(url)}"><button class="primary" data-vcp>复制</button></div>`;
     box.querySelector('[data-vcp]').onclick=()=>navigator.clipboard.writeText(url).then(()=>toast('已复制')).catch(()=>box.querySelector('[data-vout] input').select())}catch(e){toast(e.message,6000)}};
   box.querySelectorAll('[data-vrev]').forEach(b=>b.onclick=async()=>{try{await post(P+'/shares/'+b.dataset.vrev+'/revoke',{});toast('已收回，这个链接打不开了');re()}catch(e){toast(e.message)}})}
 

@@ -100,7 +100,7 @@ def _projects(P) -> list:
             kb = {}
         if not kb.get("built"):
             out.append(_item("project:" + p["key"], "项目 %s" % p["key"], "warn", "知识库还没建，分析只能靠临时读代码，又慢又容易漏",
-                             "到首页按引导建知识库", "#/home"))
+                             "到 工程 › 知识库 按引导建知识库", "#/kb"))
         else:
             out.append(_item("project:" + p["key"], "项目 %s" % p["key"], "ok", "目录、git、知识库都在"))
     return out

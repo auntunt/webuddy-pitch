@@ -77,6 +77,7 @@ class Store:
         self.db = open_db(self.path, check_same_thread=False)  # shared by the server's threads, guarded by self.lock
         self.db.row_factory = _row
         self.on_status = []  # fn(ticket, old, new, author) after a status change; the platform packs evidence on 待验证
+        self.on_create = []  # fn(ticket, author) after a ticket is made
         with self.lock:
             self.db.executescript(SCHEMA)
             for table, cols in LATER_COLS.items():
@@ -189,7 +190,10 @@ class Store:
                           json.dumps(f.get("labels") or [], ensure_ascii=False), json.dumps(f.get("links") or {}, ensure_ascii=False),
                           json.dumps(f.get("external") or {}, ensure_ascii=False), ts, ts))
         self.event(tid, author, "created", "创建工单")
-        return self.ticket(tid)
+        t = self.ticket(tid)
+        for fn in self.on_create:
+            fn(t, author)
+        return t
 
     def update_ticket(self, tid: int, author: str = "", **f) -> dict:
         t = self.ticket(tid)

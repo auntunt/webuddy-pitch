@@ -1107,7 +1107,10 @@ def api_intake_act(P, req, sid):
     if a == "big":
         return intake.mark_big(P, sid, req.user, req.body.get("on", True) is not False)
     if a == "confirm":
-        return intake.confirm(P, sid, req.user, req.body.get("items"), req.body.get("deps"), req.body.get("wave"))
+        from . import workbench
+        s = intake.confirm(P, sid, req.user, req.body.get("items"), req.body.get("deps"), req.body.get("wave"))
+        workbench.sync(P, req.user)  # the client of this talk goes on to the tickets it made
+        return s
     if a == "drop":
         return intake.drop(P, sid, req.user)
     raise ApiError(400, "action 只能是 answer、big、confirm、drop")
@@ -2314,8 +2317,7 @@ def api_client_act(P, req, cid):
     if a == "link":
         return workbench.link(P, cid, req.body.get("kind", ""), req.body.get("ref", ""), req.user)
     if a == "unlink":
-        workbench.client(P, cid)
-        return workbench.unlink(P, req.body.get("kind", ""), req.body.get("ref", ""))
+        return workbench.unlink(P, cid, req.body.get("kind", ""), req.body.get("ref", ""), req.user)
     raise ApiError(400, "action 只能是 update、delete、link、unlink")
 
 
@@ -2332,7 +2334,16 @@ def api_workbench_intake(P, req):
     elif (b.get("client_name") or "").strip():
         name = b["client_name"].strip()[:40]
         hit = next((c for c in workbench.clients(P) if c["name"] == name), None)
-        cid = hit["id"] if hit else workbench.create_client(P, {"name": name, "projects": [p["key"]]}, req.user)["id"]
+        if hit:
+            cid = hit["id"]
+        else:
+            try:
+                cid = workbench.create_client(P, {"name": name, "projects": [p["key"]]}, req.user)["id"]
+            except ApiError as e:  # someone else added the same name a moment ago: theirs is ours
+                hit = next((c for c in workbench.clients(P) if c["name"] == name), None) if e.code == 409 else None
+                if not hit:
+                    raise
+                cid = hit["id"]
     s = intake.start(P, p, b.get("text", ""), req.user, b.get("channel") or "web", _chooser(P, p) if b.get("model", True) is not False else None,
                      big=bool(b.get("big")))
     if cid:
@@ -2373,7 +2384,21 @@ def api_standing(P, req, key):
 def api_share_new(P, req, key):
     """A link to the current version for a client: {"client": id, "days": 30}. The link itself is only in this answer."""
     from . import workbench
-    return workbench.share(P, key, req.user, req.body.get("client"), req.body.get("days") or workbench.SHARE_DAYS)
+    r = workbench.share(P, key, req.user, req.body.get("client"), req.body.get("days") or workbench.SHARE_DAYS)
+    return dict(r, **_public_link(P, req, r["path"]))
+
+
+def _public_link(P, req, path: str) -> dict:
+    """The whole address for a link sent outside: TMH_PUBLIC_URL, else where people reach us, else this request's
+    host; with a warning when that is an address the client cannot reach."""
+    base = os.environ.get("TMH_PUBLIC_URL", "").rstrip("/") or getattr(P, "public_url", "")
+    if not base:
+        host = (req.h.headers.get("Host") or "127.0.0.1").strip()
+        base = "%s://%s" % ("https" if (req.h.headers.get("X-Forwarded-Proto") or "") == "https" else "http", host)
+    host = re.sub(r"^https?://", "", base).split("/")[0]
+    private = _private(host)
+    return {"url": base + path, "private": private,
+            "warn": "这个地址（%s）只有本机或内网能打开，客户点不开。启动前设置 TMH_PUBLIC_URL 为对外地址，或从对外地址登录一次再生成。" % host if private else ""}
 
 
 @route("POST", "/api/projects/<key>/shares/<sid>/revoke")
@@ -2458,6 +2483,9 @@ def serve_preview(h, P, method: str, u, sandboxed: bool) -> None:
                                                "Set-Cookie": "tmh_pv_%s=%s; Path=/pv/%s/; HttpOnly; %s" % (key, g, key, same)})
     if not preview.granted(P.data_dir, key, _cookie(h.headers.get("Cookie", ""), "tmh_pv_" + key)):
         return h._send(401, "请从 webuddy 的工单页或签收链接打开预览".encode("utf-8"), "text/plain; charset=utf-8")
+    if key.endswith(preview.STANDING):  # the main line's preview is in use: it keeps following new versions
+        from . import workbench
+        workbench.touch(P.data_dir, key)
     n = _length(h)
     if n < 0:
         return h._send(400, b"bad length", "text/plain")

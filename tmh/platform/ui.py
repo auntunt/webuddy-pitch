@@ -21,7 +21,7 @@ HTML = r"""<!doctype html>
 <header id="top">
   <div class="brand"><svg width="26" height="26" viewBox="-13 -13 26 26" fill="none" stroke="#5CDBD3" stroke-width="2.4" stroke-linecap="round"><path d="M-9 4a10 10 0 1 1 18 0"/><path d="M0 2l5-6"/><circle r="1.6" cy="2" fill="#5CDBD3"/></svg><span id="brandName">闭环工作台</span></div>
   <select id="projSel" title="切换项目"></select>
-  <nav id="svc" aria-label="服务"><a data-s="ops" href="#/">运维<span>服务</span></a><a data-s="reform" href="#/reform">重构<span>服务</span></a></nav>
+  <nav id="svc" aria-label="服务"><a data-s="ops" href="#/board">运维<span>服务</span></a><a data-s="reform" href="#/reform">重构<span>服务</span></a></nav>
   <span class="sp"></span>
   <div class="pts" id="ptsBtn" title="点卡：只有生成类动作扣点"><span class="dot"></span><span class="w">剩余</span> <b id="ptsN">-</b> 点</div>
   <form id="say" autocomplete="off" onsubmit="event.preventDefault();sayOpen()"><input id="sayIn" placeholder="粘贴客户的话，AI 来理清…" aria-label="粘贴客户的话"><button class="primary" id="sayGo" type="submit">＋<span> 客户的话</span></button></form>
@@ -1491,7 +1491,7 @@ const A={
     const grp=(title,inner,n,open)=>`<details class="hg" ${open?'open':''}><summary>${title}<small>${n}</small></summary>${inner||'<div class="sub" style="padding:4px 10px">没有</div>'}</details>`;
     const rc=recents();
     return `<div class="hist"><input id="hq" placeholder="搜索会话标题或工单号" value="${h(this.q)}" aria-label="搜索会话">
-      <div class="hg"><div class="hgt">跳转</div><div class="jump">${[['#/','工单看板'],['#/kb','知识库'],['#/map','架构与依据'],['#/eff','提效报告'],['#/settings','设置']].map(([r,t])=>`<a class="tag" href="${r}">${t}</a>`).join('')}</div>
+      <div class="hg"><div class="hgt">跳转</div><div class="jump">${[['#/','今天'],['#/board','工单看板'],['#/kb','知识库'],['#/map','架构与依据'],['#/eff','提效报告'],['#/settings','设置']].map(([r,t])=>`<a class="tag" href="${r}">${t}</a>`).join('')}</div>
        ${rc.length?`<div class="hgt">最近访问</div><div class="jump">${rc.map(x=>`<a class="tag" href="${h(x.r)}" title="${h(x.t)}">${h(x.t)}</a>`).join('')}</div>`:''}</div>
       ${grp('项目咨询',act.filter(s=>s.kind!=='ticket').map(row).join(''),act.filter(s=>s.kind!=='ticket').length,true)}
       ${grp('关联工单',act.filter(s=>s.kind==='ticket').map(s=>row(Object.assign({},s,{title:s.title}))).join(''),act.filter(s=>s.kind==='ticket').length,true)}

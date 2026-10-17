@@ -45,6 +45,8 @@ class WorkbenchTest(unittest.TestCase):
         from tmh.platform import release
         cls._merge, release.MERGE = release.MERGE, ""
         cls.P = Platform(cls.data, "tester")
+        from tmh.platform import workbench
+        workbench.DEBOUNCE = 0.3
         cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(cls.P))
         cls.base = "http://127.0.0.1:%d" % cls.httpd.server_address[1]
         threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
@@ -128,9 +130,9 @@ class WorkbenchTest(unittest.TestCase):
         code, done = self.call("POST", "/api/intake/%s" % s["id"], {"action": "confirm"})
         self.assertEqual(code, 200, done)
         key = done["tickets"][0]
-        self.assertEqual(self.P.store.ticket(key)["links"].get("client"), None)  # handed on lazily, when someone looks
+        self.assertEqual(self.P.store.ticket(key)["links"]["client"], li["id"])  # handed on when the talk made it, not when someone looks
+        self.assertTrue(any(e["kind"] == "client" and "李经理" in e["body"] for e in self.P.store.events(self.P.store.ticket(key)["id"])))
         _, v = self.call("GET", "/api/clients/%d" % li["id"])
-        self.assertEqual(self.P.store.ticket(key)["links"]["client"], li["id"])
         r = next(x for x in v["requirements"] if x["key"] == key)
         self.assertIn(r["label"], ("做着", "等客户确认", "等你看"))
         self.assertTrue(any(x.get("key") == key for x in v["owed"]))
@@ -155,6 +157,40 @@ class WorkbenchTest(unittest.TestCase):
         self.call("POST", "/api/clients/%d" % c["id"], {"action": "unlink", "kind": "ticket", "ref": t["key"]})
         self.assertNotIn("client", self.P.store.ticket(t["key"])["links"])
 
+        # taking a ticket off a client by hand: only the client it is under can, and the talk it came from does not put it back
+        self.assertEqual(self.call("POST", "/api/clients/%d" % c["id"], {"action": "unlink", "kind": "ticket", "ref": key})[0], 409)
+        self.assertEqual(self.P.store.ticket(key)["links"]["client"], li["id"])
+        self.assertEqual(self.call("POST", "/api/clients/%d" % c["id"], {"action": "unlink", "kind": "intake", "ref": s["id"]})[0], 409)
+        self.assertEqual(self.call("POST", "/api/clients/%d" % li["id"], {"action": "unlink", "kind": "ticket", "ref": key})[0], 200)
+        self.assertNotIn("client", self.P.store.ticket(key)["links"])
+        self.assertTrue(any(e["kind"] == "client" and e["body"].startswith("不再记为") for e in self.P.store.events(self.P.store.ticket(key)["id"])))
+        from tmh.platform import workbench
+        workbench.sync(self.P)
+        self.call("POST", "/api/clients/%d" % li["id"], {"action": "link", "kind": "intake", "ref": s["id"]})
+        self.assertNotIn("client", self.P.store.ticket(key)["links"])  # stays off
+        self.call("POST", "/api/clients/%d" % li["id"], {"action": "link", "kind": "ticket", "ref": key})
+        self.assertEqual(self.P.store.ticket(key)["links"]["client"], li["id"])  # until put back by hand
+
+        # a group conversation moved to another client takes the tickets made from it along
+        self.call("POST", "/api/clients/%d" % li["id"], {"action": "link", "kind": "chat", "ref": "WB:feishu:oc_1"})
+        self.assertEqual(self.P.store.ticket(t2["key"])["links"]["client"], li["id"])
+        self.call("POST", "/api/clients/%d" % c["id"], {"action": "link", "kind": "chat", "ref": "WB:feishu:oc_1"})
+        self.assertEqual(self.P.store.ticket(t2["key"])["links"]["client"], c["id"])
+
+        # reading never writes: a ticket the chat made since is not handed a client by someone looking
+        _, t3 = self.call("POST", "/api/tickets", {"project": "WB", "title": "群里又说：排班表打不开", "auto": False})
+        (self.data / "chat" / "convs.json").write_text(json.dumps({"WB:feishu:oc_1": {"project": "WB", "channel": "feishu", "tickets": [t2["key"], t3["key"]],
+                                                                                       "seen": "2026-10-17 09:00:00"}}), encoding="utf-8")
+        snap = lambda: [(x["id"], x["updated"], json.dumps(x["links"], sort_keys=True)) for x in self.P.store.q("SELECT id, updated, links FROM tickets ORDER BY id")]
+        before, nev = snap(), self.P.store.one("SELECT COUNT(*) n FROM events")["n"]
+        for path in ("/api/clients?counts=1", "/api/clients/%d" % c["id"], "/api/clients/%d" % li["id"], "/api/requirements?project=WB",
+                     "/api/today", "/api/today?since=2000-01-01T00:00", "/api/projects/WB/versions", "/api/chats"):
+            self.assertEqual(self.call("GET", path)[0], 200, path)
+        self.assertEqual(snap(), before)
+        self.assertEqual(self.P.store.one("SELECT COUNT(*) n FROM events")["n"], nev)
+        workbench.sync(self.P)  # what a write (a confirmed talk, a chat's new ticket) runs
+        self.assertEqual(self.P.store.ticket(t3["key"])["links"]["client"], c["id"])
+
         # deleting a client takes its links with it, not its tickets
         _, tmp = self.call("POST", "/api/clients", {"name": "临时客户"})
         self.call("POST", "/api/clients/%d" % tmp["id"], {"action": "link", "kind": "ticket", "ref": t["key"]})
@@ -171,6 +207,9 @@ class WorkbenchTest(unittest.TestCase):
         _, c = self.call("POST", "/api/clients", {"name": "赵总", "projects": ["WB"]})
         t = self.fixed("请假审批提交后状态不刷新")
         self.call("POST", "/api/clients/%d" % c["id"], {"action": "link", "kind": "ticket", "ref": t["key"]})
+        # a client holds a link to the current version: so it follows each merge
+        code, sh = self.call("POST", "/api/projects/WB/shares", {"client": c["id"], "days": 7})
+        self.assertEqual(code, 200, sh)
         code, r = self.call("POST", "/api/tickets/%s/accept" % t["key"], {"result": "pass"})
         self.assertEqual(code, 200, r)
         head = subprocess.run(["git", "-C", str(self.repo), "rev-parse", "--short=10", "HEAD"], capture_output=True, text=True).stdout.strip()
@@ -189,8 +228,6 @@ class WorkbenchTest(unittest.TestCase):
         self.assertEqual(cv["owed"], [])
 
         # the client's link: a page with the version and what it holds for them, then into the preview, nothing else
-        code, sh = self.call("POST", "/api/projects/WB/shares", {"client": c["id"], "days": 7})
-        self.assertEqual(code, 200, sh)
         code, _, page = self.raw(sh["path"])
         self.assertEqual(code, 200)
         self.assertIn(top["version"], page)
@@ -223,6 +260,24 @@ class WorkbenchTest(unittest.TestCase):
         code, s2 = self.call("POST", "/api/projects/WB/standing", {"action": "stop"})
         self.assertEqual((code, s2["state"]), (200, ""))
 
+        # a link for no one in particular says how much changed, not what other clients asked for
+        code, any_ = self.call("POST", "/api/projects/WB/shares", {"days": 3})
+        self.assertEqual((code, any_["client_name"]), (200, ""))
+        page = self.raw(any_["path"])[2]
+        self.assertIn("本版包含 2 项改进", page)
+        self.assertNotIn("请假审批提交后状态不刷新", page)
+        self.assertNotIn("请假列表排序不对", page)
+        # the whole address is made by the platform, with a warning when a client could not reach it
+        self.assertTrue(any_["url"].endswith(any_["path"]) and any_["url"].startswith("http"), any_)
+        self.assertTrue(any_["private"])  # 127.0.0.1
+        self.assertIn("TMH_PUBLIC_URL", any_["warn"])
+        old, self.P.public_url = self.P.public_url, "https://wb.example.com"
+        try:
+            _, pub = self.call("POST", "/api/projects/WB/shares", {"client": c["id"]})
+        finally:
+            self.P.public_url = old
+        self.assertEqual((pub["url"], pub["private"], pub["warn"]), ("https://wb.example.com" + pub["path"], False, ""))
+
         # today: what went out since the last look, and what the AI did
         _, td = self.call("GET", "/api/today?since=2000-01-01T00:00")
         self.assertTrue(any(x["version"] == top["version"] for x in td["versions"]))
@@ -236,7 +291,8 @@ class WorkbenchTest(unittest.TestCase):
         _, t = self.call("POST", "/api/tickets", {"project": "WB", "title": "考勤月报对不上", "auto": False})
         _, r = self.call("POST", "/api/tickets/%s/runs" % t["key"], {"agent": "team", "mode": "analyze"})
         _, td = self.call("GET", "/api/today")
-        self.assertEqual(sorted(td), sorted(["now", "mine", "others", "did", "versions", "talks", "open_ac", "auto", "agent", "since", "server_time", "handwork"]))
+        self.assertEqual(sorted(td), sorted(["now", "mine", "others", "did", "versions", "talks", "open_ac", "auto", "agent", "since", "server_time", "handwork",
+                                                  "standing_failed"]))
         talk = next(x for x in td["talks"] if x["id"] == s["id"])
         self.assertEqual(talk["client_name"], "孙总")
         if self.call("GET", "/api/runs/%d" % r["id"])[1]["status"] in ("queued", "running"):
@@ -245,6 +301,45 @@ class WorkbenchTest(unittest.TestCase):
         _, td = self.call("GET", "/api/today")
         self.assertFalse(any(x["key"] == t["key"] for x in td["now"]))
         self.assertEqual(self.call("GET", "/api/today?since=%3Cscript%3E")[1]["since"], "")
+
+    def test_4_main_line_previews_are_capped_debounced_and_stopped_when_idle(self):
+        from unittest import mock
+        from tmh.platform import preview, release, workbench
+        p = self.P.project("WB")
+        live = {"AA-main": {"state": "up", "started": "2026-10-17 08:00:00"}, "BB-main": {"state": "up", "started": "2026-10-17 08:00:00"}}
+        stopped, started = [], []
+        workbench.touch(self.data, "AA-main", "started", at=time.time() - 3600)
+        workbench.touch(self.data, "BB-main", "started", at=time.time() - 60)
+        with mock.patch.object(preview, "_load", lambda d: dict(live)), \
+                mock.patch.object(preview, "stop", lambda P, k, why="": stopped.append(k)), \
+                mock.patch.object(preview, "start", lambda P, p, t, b, by: started.append(t["key"]) or {"state": "starting"}), \
+                mock.patch.object(preview, "command", lambda d, p: ("x {port}", "/", True)), \
+                mock.patch.object(release, "main_branch", lambda *a: "master"):
+            self.assertEqual(workbench.MAX_STANDING, 2)
+            workbench.start_standing(self.P, p, "tester")
+            self.assertEqual((stopped, started), (["AA-main"], ["WB-main"]))  # two running already: the one used least lately makes room
+
+            calls = []
+            fn = workbench.on_release(self.P)
+            common = (mock.patch.object(workbench, "start_standing", lambda P, p, by, person=True: calls.append(by)),
+                      mock.patch.object(preview, "settings", lambda d: {"preview": "auto"}))
+            with common[0], common[1], mock.patch.object(workbench, "shares", lambda P, k: []), \
+                    mock.patch.object(workbench, "_last_used", lambda d, k: 0):
+                fn(p, {"id": 1}, {"version": "v9"})  # nobody opened it lately and no client holds a link: it stays down
+                time.sleep(0.6)
+                self.assertEqual(calls, [])
+            common = (mock.patch.object(workbench, "start_standing", lambda P, p, by, person=True: calls.append(by)),
+                      mock.patch.object(preview, "settings", lambda d: {"preview": "auto"}))
+            with common[0], common[1], mock.patch.object(workbench, "shares", lambda P, k: [{"id": "x"}]):
+                for v in ("v1", "v2", "v3"):  # three merges in a row: one restart, for the last
+                    fn(p, {"id": 1}, {"version": v})
+                time.sleep(0.9)
+                self.assertEqual(calls, ["新版本 v3"])
+
+            stopped.clear()
+            self.assertEqual(workbench.reap(self.P), [])  # used within the last IDLE_H hours
+            self.assertEqual(sorted(workbench.reap(self.P, at=time.time() + 13 * 3600)), ["AA-main", "BB-main"])  # idle longer: stopped
+            self.assertEqual(sorted(stopped), ["AA-main", "BB-main"])
 
 
 if __name__ == "__main__":
