@@ -1086,7 +1086,7 @@ def api_intake_start(P, req, key):
     p = P.project(key)
     model = req.body.get("model", True) is not False
     return intake.start(P, p, req.body.get("text", ""), req.user, req.body.get("channel") or "web", _chooser(P, p) if model else None,
-                        big=bool(req.body.get("big")))
+                        big=bool(req.body.get("big")), agent=model, wait=bool(req.body.get("wait")))
 
 
 @route("GET", "/api/intake/<sid>")
@@ -1103,17 +1103,33 @@ def api_intake_act(P, req, sid):
     from . import intake
     a = req.body.get("action")
     if a == "answer":
-        return intake.answer(P, sid, req.user, req.body.get("answers") or {})
+        return intake.answer(P, sid, req.user, req.body.get("answers") or {}, wait=bool(req.body.get("wait")))
     if a == "big":
         return intake.mark_big(P, sid, req.user, req.body.get("on", True) is not False)
     if a == "confirm":
         from . import workbench
-        s = intake.confirm(P, sid, req.user, req.body.get("items"), req.body.get("deps"), req.body.get("wave"))
+        s = intake.confirm(P, sid, req.user, req.body.get("items"), req.body.get("deps"), req.body.get("wave"), req.body.get("hand"))
         workbench.sync(P, req.user)  # the client of this talk goes on to the tickets it made
         return s
     if a == "drop":
         return intake.drop(P, sid, req.user)
-    raise ApiError(400, "action 只能是 answer、big、confirm、drop")
+    if a == "ask_client":  # the open questions on a link of the client's own
+        return intake.ask_client(P, sid, req.user, req.body.get("items"))
+    raise ApiError(400, "action 只能是 answer、big、confirm、drop、ask_client")
+
+
+@route("POST", "/api/tickets/<key>/ask-client")
+def api_ask_client(P, req, key):
+    """A ticket (or a big requirement's child) waiting on 待确认 criteria: its questions go to the client."""
+    from . import intake
+    t = P.ticket(key)
+    s = intake.session_of(P, t["key"])
+    if not s:
+        raise ApiError(409, "这张工单不是从需求对话来的，没有要问客户的问题；在评论里写清楚再交给自动处理")
+    only = [i for i, it in enumerate(s["items"]) if it.get("ticket") == t["key"]]
+    if not only and s.get("epic") != t["key"]:
+        raise ApiError(409, "在需求对话里找不到这张工单")
+    return intake.ask_client(P, s["id"], req.user, only or None)
 
 
 @route("POST", "/api/projects/<key>/pins")
@@ -1162,7 +1178,7 @@ def api_pin_intake(P, req, pid):
         text = "页面上这里有问题：%s" % "、".join(x["capture"]["texts"][:3])
     model = req.body.get("model", True) is not False
     return intake.start(P, p, text, req.user, "pin", _chooser(P, p) if model else None,
-                        pin={"id": x["id"], "summary": pinpoint.summary(x)})
+                        pin={"id": x["id"], "summary": pinpoint.summary(x)}, agent=model)
 
 
 @route("GET", "/api/projects/<key>/kb/metrics")
@@ -1182,7 +1198,12 @@ def api_ticket_similar(P, req, key):
     """Earlier tickets that read like this one (相似工单查重)."""
     from .similar import similar
     t = P.ticket(key)
-    return {"similar": similar(P.store.tickets(project_id=t["project_id"], limit=5000), t["title"], t["body"], exclude=t["id"])}
+    lk = t.get("links") or {}
+    family = {lk.get("parent"), t["key"]} | set(lk.get("children") or [])  # one feature's parts are not duplicates of each other
+    pool = [x for x in P.store.tickets(project_id=t["project_id"], limit=5000)
+            if not (x["key"] in family or (lk.get("parent") and (x.get("links") or {}).get("parent") == lk["parent"])
+                    or (x.get("links") or {}).get("parent") == t["key"])]
+    return {"similar": similar(pool, t["title"], t["body"], exclude=t["id"])}
 
 
 @route("POST", "/api/projects/<key>/similar")
@@ -1761,12 +1782,21 @@ def api_new_ticket(P, req):
         if not sha:
             raise ApiError(400, "代码版本 %s 在项目仓库里找不到" % b["code_at"])
         links["code_at"] = sha
+    body, typ = b.get("body", ""), b.get("type")
+    if not typ or typ == "auto":  # its kind from the words, and criteria from the description when it has none
+        from . import intake
+        typ, body = intake.direct(P, p, b.get("title", ""), body)
+    if b.get("handwork"):  # 我来写 from the start: the automatic line never picks it up
+        links["hold"] = links["handwork"] = req.user
     try:
-        t = P.store.create_ticket(p["id"], b.get("title", ""), req.user, body=b.get("body", ""), type=b.get("type"),
-                                  priority=b.get("priority"), assignee=b.get("assignee", ""), labels=b.get("labels") or [], links=links)
+        t = P.store.create_ticket(p["id"], b.get("title", ""), req.user, body=body, type=typ,
+                                  priority=b.get("priority"), assignee=b.get("assignee", "") or (req.user if b.get("handwork") else ""),
+                                  labels=b.get("labels") or [], links=links)
     except ValueError as e:
         raise ApiError(400, str(e))
-    if b.get("agent") and b.get("mode"):
+    if b.get("handwork"):
+        P.store.event(t["id"], req.user, "flow", "%s 认领：我来写。自动处理不会接这张单，推到分支 wb/%s 后平台自动构建、审查" % (req.user, t["key"]))
+    elif b.get("agent") and b.get("mode"):
         P.runner.start(p, t, b["agent"], b["mode"], req.user, model=b.get("model"))
     elif b.get("auto", True):
         P.flow.submit(p, t)
@@ -2059,6 +2089,16 @@ def api_starter(P, req, key):
     p = P.store.project(t["project_id"])
     return {"markdown": handwork.starter(P, t), "branch": handwork.PREFIX + t["key"], "remote": bool(handwork._origin(P.root(p))),
             "heartbeat": handwork.settings(P.data_dir)["handwork"]}
+
+
+@route("POST", "/api/tickets/<key>/claim")
+def api_claim(P, req, key):
+    """我来写: a person takes the ticket before (or instead of) the agents; queued or running automatic steps stop."""
+    from . import epic, handwork
+    t = P.ticket(key)
+    if epic.refuse(t, "handwork"):
+        raise ApiError(409, epic.refuse(t, "handwork"))
+    return handwork.claim(P, t, req.user, req.body.get("on", True) is not False)
 
 
 @route("POST", "/api/tickets/<key>/handwork")
@@ -2738,6 +2778,8 @@ def make_handler(P: Platform, token: str = ""):
                 return self._version_link(method, path)
             if path.startswith("/sign/"):  # the client's sign-off page: the one-time link is the credential, no account
                 return self._sign(method, path)
+            if path.startswith("/ask/"):  # the client answers open questions: the link is the credential, no account
+                return self._ask(method, path)
             if path == "/logout":
                 return self._send(303, b"", "text/plain", {"Location": "/login", "Set-Cookie": self._session_cookie("", 0)})
             if not path.startswith("/api/"):
@@ -2876,6 +2918,27 @@ def make_handler(P: Platform, token: str = ""):
                 return reply(500, {"message": "webuddy 出错了：%s" % type(e).__name__})
             n1, n2 = len(pin["found"]["layer1"]) + len(pin["found"]["layer2"]), len(pin["found"]["layer3"])
             return reply(200, {"id": pin["id"], "message": "已发送到 webuddy：找到 %d 个候选文件、%d 个后端入口" % (n1, n2)})
+
+        def _ask(self, method: str, path: str):
+            from . import intake
+            html_t = "text/html; charset=utf-8"
+            m = re.match(r"^/ask/([A-Za-z0-9_\-]{20,64})$", path)
+            if not m:
+                return self._send(404, "链接不对".encode("utf-8"), "text/plain; charset=utf-8")
+            token = m.group(1)
+            if method == "GET":
+                return self._send(200, intake.client_page(P, token).encode("utf-8"), html_t)
+            if method != "POST":
+                return self._send(405, b"method", "text/plain")
+            n = int(self.headers.get("Content-Length") or 0)
+            if n > 64 * 1024:
+                return self._send(413, b"too large", "text/plain")
+            form = parse_qs(self.rfile.read(n).decode("utf-8", "replace") if n else "")
+            try:
+                intake.client_answer(P, token, intake.form_answers(form), (form.get("name") or [""])[0])
+            except ApiError as e:
+                return self._send(e.code if e.code != 409 else 409, intake.client_page(P, token, msg=str(e)).encode("utf-8"), html_t)
+            return self._send(200, intake.client_page(P, token, done=True).encode("utf-8"), html_t)
 
         def _sign(self, method: str, path: str):
             from . import signoff

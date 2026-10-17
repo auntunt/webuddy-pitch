@@ -17,6 +17,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
+os.environ.setdefault("TMH_UNDERSTAND", "rules")  # no real agent reads clients' words in tests (see conftest.py)
 
 from tmh import kb  # noqa: E402
 from tmh.platform.server import Platform, make_handler  # noqa: E402

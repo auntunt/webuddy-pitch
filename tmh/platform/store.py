@@ -16,7 +16,7 @@ from ..fsutil import open_db
 STATUSES = [("new", "新建"), ("analyzing", "分析中"), ("confirm", "待确认"), ("doing", "处理中"), ("verify", "待验证"), ("closed", "已关闭")]
 TYPES = [("bug", "缺陷"), ("feature", "需求"), ("change", "变更"), ("question", "咨询"), ("ops", "运维")]
 PRIORITIES = [("urgent", "紧急"), ("high", "高"), ("normal", "中"), ("low", "低")]
-RUN_MODES = [("analyze", "分析定位"), ("plan", "修改方案"), ("fix", "修改代码"), ("kb", "撰写知识页"), ("ask", "助手问答")]
+RUN_MODES = [("analyze", "分析定位"), ("plan", "修改方案"), ("fix", "修改代码"), ("kb", "撰写知识页"), ("ask", "助手问答"), ("understand", "理解需求")]
 RUN_STATES = ("queued", "running", "done", "failed", "cancelled")
 
 SCHEMA = """

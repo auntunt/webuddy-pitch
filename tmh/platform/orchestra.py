@@ -92,7 +92,7 @@ class Orchestra:
     def _intake(self, p: dict, t: dict) -> None:
         st, by = self.store, self.BY
         conf = self.autoflow()
-        if not conf.get("on"):
+        if not conf.get("on") or self.mine(t["id"]):  # a person claimed it (我来写) before the line got to it
             return
         try:
             rel = self.knowledge.related(p, "%s %s" % (t["title"], (t.get("body") or "")[:400]), limit=3)
@@ -113,6 +113,10 @@ class Orchestra:
     def held(self, tid: int) -> bool:
         return bool((self.store.ticket(tid).get("links") or {}).get("hold"))
 
+    def mine(self, tid: int) -> bool:
+        """A person writes this one (我来写): the line does not even analyse it."""
+        return bool((self.store.ticket(tid).get("links") or {}).get("handwork"))
+
     def _flow_stop(self, tid: int, why: str) -> None:
         st = self.store
         if st.ticket(tid)["status"] in ("new", "analyzing", "confirm"):
@@ -121,13 +125,15 @@ class Orchestra:
 
     def _flow_analyze(self, p: dict, tid: int, conf: dict) -> None:
         st, by = self.store, self.BY
+        if self.mine(tid):  # claimed (我来写) while the line was getting to it
+            return
         agent = self._flow_agent(conf)
         if not agent:
             return self._flow_stop(tid, "本机没有可用的智能体，跳过自动分析，直接转人工处理")
 
         def analysed(run):
             cur = st.ticket(tid)
-            if cur["status"] not in ("new", "analyzing", "confirm"):
+            if self.held(tid) or cur["status"] not in ("new", "analyzing", "confirm"):
                 return  # someone already took it further by hand
             res = run.get("result") or ""
             if run["status"] != "done":
@@ -387,6 +393,7 @@ class Orchestra:
             links["hold"] = who
         else:
             links.pop("hold", None)
+            links.pop("handwork", None)
         t = st.update_ticket(t["id"], who, links=links)
         st.event(t["id"], who, "flow", "人工接管：自动处理暂停，正在跑的步骤跑完后不再接着往下走" if hold else "交回自动处理")
         if not hold:

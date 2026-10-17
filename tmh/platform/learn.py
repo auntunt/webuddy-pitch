@@ -53,6 +53,12 @@ _LOCK = threading.Lock()
 # along with failures more often than with passes; out of prompts until someone looks) or retired (a person took it out).
 # Lessons from a rejection or a human fix are active at once: a person's verdict already wrote them.
 
+def own_words(body: str) -> str:
+    """A ticket body without the criteria we derived from it ourselves: that boilerplate is the same on every
+    ticket typed in directly, so it would make unrelated tickets and cards look alike."""
+    return re.split(r"(?m)^## 验收标准（从描述推出", body or "")[0].strip()
+
+
 def _grams(text: str) -> set:
     t = (text or "").lower()
     out = set(w for w in re.findall(r"[a-z][a-z0-9_]{2,}", t))
@@ -383,7 +389,8 @@ def relevant(data_dir: Path, project: str, ticket: dict, extra: str = "", limit:
     """The active cards from other tickets closest to this one: shared business flows, shared files, similar words.
     Fewer is better: an unrelated card costs more than a missing one, so a weak match is left out."""
     flows = set((ticket.get("links") or {}).get("flows") or [])
-    text = "%s %s %s" % (ticket.get("title", ""), (ticket.get("body") or "")[:1500], extra[:3000])
+    body = own_words(ticket.get("body") or "")
+    text = "%s %s %s" % (ticket.get("title", ""), body[:1500], extra[:3000])
     words, low = _grams(text), text.lower()
     scored = []
     for l in lessons(data_dir, project, 500):
@@ -640,7 +647,7 @@ def on_accept(P, p: dict, t: dict, passed: bool, note: str, by: str) -> dict:
         def anchors(fs: list) -> dict:
             return {"anchors": [f for f in fs if (Path(root) / f).exists()][:12]}
         base = {"project": p["key"], "ticket": t["key"], "title": t["title"], "flows": (t.get("links") or {}).get("flows") or [], "by": by,
-                "symptom": ("%s。%s" % (t["title"], (t.get("body") or "").strip()[:200])).strip("。"), **({"provenance": prov} if prov else {})}
+                "symptom": ("%s。%s" % (t["title"], own_words(t.get("body") or "")[:200])).strip("。"), **({"provenance": prov} if prov else {})}
         if not passed:
             out["lesson"] = add_lesson(P.data_dir, dict(base, kind="reject", note=note, files=files, run=ad.get("run") if ad else None,
                                                         anti="这样改被退回：%s" % (note or "没写原因"), **anchors(files)))
