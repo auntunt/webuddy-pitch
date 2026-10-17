@@ -202,87 +202,171 @@ def summary(ls: list) -> dict:
 MIN_N = 5  # fewer tickets than this on a side and a rate says more about luck than about the cards
 
 
+HOLDOUT = 0.1  # the pilot's default: one in ten tickets with a matching card goes without, so the cards can be measured
+
+
 def holdout_rate(data_dir: Path) -> float:
     """The share of tickets whose prompts are kept free of cards on purpose, so the cards can be measured against
-    tickets like them (0 = off, the default; a person turns it on, at most half)."""
+    tickets like them (HOLDOUT unless a person changed it; 0 turns it off; at most half)."""
     try:
-        v = float(json.loads((Path(data_dir) / "autoflow.json").read_text(encoding="utf-8")).get("holdout") or 0)
-    except (OSError, ValueError, TypeError, AttributeError):
+        conf = json.loads((Path(data_dir) / "autoflow.json").read_text(encoding="utf-8"))
+        v = float(conf["holdout"]) if isinstance(conf, dict) and "holdout" in conf else HOLDOUT
+    except FileNotFoundError:
+        v = HOLDOUT
+    except (OSError, ValueError, TypeError):
         return 0.0
     return min(max(v, 0.0), 0.5)
 
 
+def _bucket(ticket_key: str) -> float:
+    return int(hashlib.sha256(ticket_key.encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
+
+
+def set_holdout(data_dir: Path, rate: float, by: str) -> float:
+    """Change the comparison group's share, and log when and by whom: a fair comparison starts when it was turned on."""
+    from .util_conf import update_autoflow
+    rate = min(max(float(rate), 0.0), 0.5)
+    old = holdout_rate(data_dir)
+    update_autoflow(data_dir, {"holdout": rate})
+    if rate != old:
+        _append_log(data_dir, [{"kind": "holdout_rate", "rate": rate, "was": old, "by": by}])
+    return rate
+
+
+def assigned(data_dir: Path, ticket_key: str) -> tuple[str, bool]:
+    """(group, judged): the group this ticket was put in the first time its prompt was built ("held", "carried",
+    "none" or "" if never), and whether it has had a verdict. A group, once given, does not change with the rate."""
+    g, judged = "", False
+    for r in _log(data_dir):
+        if r.get("ticket") != ticket_key:
+            continue
+        k = r.get("kind")
+        if k == "verdict":
+            judged = True
+        elif not g and k in ("holdout", "nomatch") or not g and k == "inject" and r.get("mode") != "ask":
+            g = {"holdout": "held", "nomatch": "none"}.get(k, "carried")
+    return g, judged
+
+
 def held_out(data_dir: Path, ticket_key: str) -> bool:
-    """Whether this ticket is one of the comparison group: fixed by its key, so every run of a ticket agrees."""
+    """Whether this ticket's prompts go without cards on purpose. Decided once, the first time cards would go in,
+    and only until its first verdict: after a rejection the ticket gets all the help there is."""
+    g, judged = assigned(data_dir, ticket_key)
+    if judged:
+        return False
+    if g:
+        return g == "held"
     r = holdout_rate(data_dir)
-    return bool(r) and int(hashlib.sha256(ticket_key.encode()).hexdigest()[:8], 16) / 0xFFFFFFFF < r
+    return bool(r) and _bucket(ticket_key) < r
+
+
+def _note_once(data_dir: Path, ticket: dict, kind: str, extra: dict) -> None:
+    seen = False
+    for r in _log(data_dir):
+        if r.get("ticket") == ticket["key"]:
+            seen = (seen or r.get("kind") == kind) and r.get("kind") != "verdict"
+    if not seen:
+        _append_log(data_dir, [dict({"kind": kind, "ticket": ticket["key"]}, **extra)])
 
 
 def note_held(data_dir: Path, ticket: dict, ls: list) -> None:
     """A ticket that would have carried cards and did not, on purpose: once until its next verdict."""
-    if not ls or not ticket.get("key"):
-        return
-    seen = False
+    if ls and ticket.get("key"):
+        _note_once(data_dir, ticket, "holdout", {"would": [l["id"] for l in ls]})
+
+
+def note_nomatch(data_dir: Path, ticket: dict) -> None:
+    """An agent worked on this ticket and no card matched: the third group (tickets nobody ran an agent on are in none)."""
+    if ticket.get("key"):
+        _note_once(data_dir, ticket, "nomatch", {})
+
+
+def _fisher(a: list, b: list) -> float:
+    """Two-sided Fisher exact p for "the two groups pass equally often": how easily luck alone gives a gap this wide."""
+    n1, k1, n2, k2 = len(a), sum(a), len(b), sum(b)
+    k, n = k1 + k2, n1 + n2
+    pr = lambda x: math.comb(n1, x) * math.comb(n2, k - x) / math.comb(n, k)  # noqa: E731
+    p0 = pr(k1)
+    return min(1.0, sum(pr(x) for x in range(max(0, k - n2), min(k, n1) + 1) if pr(x) <= p0 * (1 + 1e-9)))
+
+
+def _gap(a: list, b: list, what: str) -> str:
+    ra, rb = sum(a) / len(a), sum(b) / len(b)
+    p = _fisher(a, b)
+    if ra == rb:
+        return "，两组一样，看不出%s有作用" % what
+    if p >= 0.05:
+        return "，差别可能只是偶然（p=%.2f），再积累一些工单" % p
+    return "，%s%s，不太像偶然（p=%.3f）" % (what, "让一次通过率更高" if ra > rb else "反而让一次通过率更低，要看看是哪些经验在误导", p)
+
+
+def _since(data_dir: Path) -> str:
+    """When the comparison group was last turned on (empty if never): a fair comparison only counts tickets from then."""
+    start, changed, first_held = "", False, ""
     for r in _log(data_dir):
-        if r.get("ticket") == ticket["key"]:
-            seen = (seen or r.get("kind") == "holdout") and r.get("kind") != "verdict"
-    if not seen:
-        _append_log(data_dir, [{"kind": "holdout", "ticket": ticket["key"], "would": [l["id"] for l in ls]}])
+        if r.get("kind") == "holdout_rate":
+            changed = True
+            if r.get("rate") and not r.get("was"):
+                start = r.get("ts", "")
+        elif r.get("kind") == "holdout" and not first_held:
+            first_held = r.get("ts", "")
+    return start if changed else first_held  # on by default: from the first ticket it held out
 
 
-def impact(data_dir: Path, project: str) -> dict:
+def impact(data_dir: Path, project: str, month: str = "") -> dict:
     """Did the cards help? First-time acceptance of the tickets whose prompts carried cards, against the ones that
-    would have carried them but were held out (a fair comparison) and the ones no card matched (a rough one: those
-    tend to be newer kinds of problem). Only each ticket's first verdict counts: later rounds were already told why."""
-    pre = project + "-"
-    seen, groups = set(), {"carried": [], "held": [], "none": [], "cited": [], "uncited": []}
-    state = {}
+    would have carried them but were held out (a fair comparison) and the ones an agent worked on that no card
+    matched (a rough one: those tend to be newer kinds of problem). Only each ticket's first verdict counts: later
+    rounds were already told why. Each ticket stays in the group it was first put in; one that ended up in two is
+    left out. Once the comparison group has been on, only tickets put in a group since then count, so the two sides
+    are from the same weeks. With month ("2026-10"), only first verdicts in that month."""
+    pre, since = project + "-", _since(data_dir)
+    first = {}  # ticket -> {"g", "mixed", "at", "cited", "verdict"}
     for r in _log(data_dir):
         k = r.get("ticket") or ""
-        if not k.startswith(pre) or k in seen:
+        if not k.startswith(pre):
             continue
-        s = state.setdefault(k, {"carried": False, "held": False, "cited": False})
+        s = first.setdefault(k, {"g": "", "mixed": False, "at": "", "cited": False, "verdict": None})
         kind = r.get("kind")
-        if kind == "inject" and r.get("mode") != "ask":
-            s["carried"] = True
-        elif kind == "holdout":
-            s["held"] = True
-        elif kind == "outcome" and r.get("cited"):
-            s["cited"] = True
-        elif kind == "verdict":
-            seen.add(k)
-            ok = bool(r.get("passed"))
-            g = "carried" if s["carried"] else "held" if s["held"] else "none"
-            groups[g].append(ok)
-            if s["carried"]:
-                groups["cited" if s["cited"] else "uncited"].append(ok)
-
-    def chance(a, b):
-        """Two-sided Fisher exact p for "the two groups pass equally often": how easily luck alone gives a gap this wide."""
-        n1, k1, n2, k2 = len(a), sum(a), len(b), sum(b)
-        k, n = k1 + k2, n1 + n2
-        pr = lambda x: math.comb(n1, x) * math.comb(n2, k - x) / math.comb(n, k)
-        p0 = pr(k1)
-        return min(1.0, sum(pr(x) for x in range(max(0, k - n2), min(k, n1) + 1) if pr(x) <= p0 * (1 + 1e-9)))
-
-    def odds(a, b):
-        p_ = chance(a, b)
-        return ("，差别可能只是偶然（p=%.2f），再积累一些工单" % p_) if p_ >= 0.05 else ("，差别不太像偶然（p=%.3f）" % p_)
+        g = {"holdout": "held", "nomatch": "none"}.get(kind) or ("carried" if kind == "inject" and r.get("mode") != "ask" else "")
+        if s["verdict"] is None and g:
+            if not s["g"]:
+                s["g"], s["at"] = g, r.get("ts", "")
+            elif s["g"] != g and {s["g"], g} != {"carried", "none"}:  # a card matched on a later run: still the same side
+                s["mixed"] = True
+            if g == "carried" and s["g"] == "none":
+                s["g"] = "carried"
+        elif kind == "verdict" and s["verdict"] is None:
+            s["verdict"] = r
+        elif kind == "outcome" and r.get("cited") and s["verdict"] is not None and s["verdict"].get("ts") == r.get("ts"):
+            s["cited"] = True  # written in the same breath as the first verdict
+    groups = {"carried": [], "held": [], "none": [], "cited": [], "uncited": []}
+    for k, s in first.items():
+        v = s["verdict"]
+        if not v or not s["g"] or s["mixed"] or (month and not (v.get("ts") or "").startswith(month)) or (since and s["at"] < since):
+            continue
+        ok = bool(v.get("passed"))
+        groups[s["g"]].append(ok)
+        if s["g"] == "carried":
+            groups["cited" if s["cited"] else "uncited"].append(ok)
 
     def side(xs):
         return {"n": len(xs), "passed": sum(xs), "rate": round(sum(xs) / len(xs), 3) if len(xs) >= MIN_N else None}
     out = {g: side(xs) for g, xs in groups.items()}
     c, h, n = out["carried"], out["held"], out["none"]
+    pc_ = lambda x: round(x["rate"] * 100)  # noqa: E731
     if c["rate"] is not None and h["rate"] is not None:
-        out["verdict"] = "对照组：带经验的工单一次通过率 %s%%，同类但没放经验的 %s%%（各 %d、%d 张）" % (
-            round(c["rate"] * 100), round(h["rate"] * 100), c["n"], h["n"]) + odds(groups["carried"], groups["held"])
+        out["fair"] = True
+        out["verdict"] = "对照组：带经验的工单一次通过率 %s%%，同类但没放经验的 %s%%（各 %d、%d 张）%s" % (
+            pc_(c), pc_(h), c["n"], h["n"], _gap(groups["carried"], groups["held"], "经验"))
     elif c["rate"] is not None and n["rate"] is not None:
-        out["verdict"] = "粗略对比：带经验的工单一次通过率 %s%%，没有相近经验的 %s%%（各 %d、%d 张）。两组问题本身不同，只能当参考；要确切的数，打开对照组" % (
-            round(c["rate"] * 100), round(n["rate"] * 100), c["n"], n["n"])
+        out["fair"] = False
+        out["verdict"] = "粗略对比：带经验的工单一次通过率 %s%%，没有相近经验的 %s%%（各 %d、%d 张）%s。两组问题本身不同，只能当参考；要确切的数，打开对照组" % (
+            pc_(c), pc_(n), c["n"], n["n"], _gap(groups["carried"], groups["none"], "带经验"))
     else:
+        out["fair"] = False
         out["verdict"] = "样本还不够：每组至少 %d 张验收过的工单才给比例（现在带经验 %d 张、对照 %d 张、没有相近经验 %d 张）" % (MIN_N, c["n"], h["n"], n["n"])
-    out["holdout"] = holdout_rate(data_dir)
-    out["min_n"] = MIN_N
+    out.update(holdout=holdout_rate(data_dir), since=since, month=month, min_n=MIN_N)
     return out
 
 
@@ -457,10 +541,11 @@ def _credit(P, t: dict, passed: bool, by: str) -> list:
             used, abroad, since = [], {}, r.get("ts", "")
     # only what the agent wrote since the last verdict counts as citing a card now
     text = " ".join((r.get("result") or "") for r in P.store.runs(ticket_id=t["id"]) if (r.get("created") or "") >= since) if t.get("id") else ""
-    rows = [{"kind": "verdict", "ticket": t["key"], "passed": passed, "by": by}]
+    ts = now()  # the verdict and what it says about each card are one event: one time
+    rows = [{"kind": "verdict", "ticket": t["key"], "passed": passed, "by": by, "ts": ts}]
     rows += [dict({"kind": "outcome", "id": lid, "ticket": t["key"], "passed": passed,
                    "cited": bool(re.search(r"(?<![A-Za-z0-9])%s(?!\d)" % re.escape(lid), text))},
-                  **({"foreign": True, "project": abroad[lid]} if lid in abroad else {})) for lid in used]
+                  ts=ts, **({"foreign": True, "project": abroad[lid]} if lid in abroad else {})) for lid in used]
     _append_log(P.data_dir, rows)
     out = []
     for lid in used:

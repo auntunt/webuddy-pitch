@@ -1551,10 +1551,10 @@ def api_learn_holdout(P, req):
         raise ApiError(400, "rate 要是 0 到 0.5 之间的数")
     if not 0 <= rate <= 0.5:
         raise ApiError(400, "对照组最多一半的工单")
-    f = P.data_dir / "autoflow.json"
-    conf = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
-    conf["holdout"] = rate
-    f.write_text(json.dumps(conf, ensure_ascii=False, indent=1), encoding="utf-8")
+    try:
+        learn.set_holdout(P.data_dir, rate, req.user)
+    except ValueError as e:
+        raise ApiError(400, str(e))
     return {"holdout": learn.holdout_rate(P.data_dir)}
 
 
@@ -1932,13 +1932,14 @@ def api_testbox_save(P, req):
     host = str(req.body.get("host") or "").strip()
     if host and not re.match(r"^[\w.-]+@[\w.-]+$", host):
         raise ApiError(400, "地址写成 用户名@主机，比如 auntu@43.153.76.85")
-    f = P.data_dir / "autoflow.json"
-    conf = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
-    if host:
-        conf["testbox"] = {"host": host, "port": int(req.body.get("port") or 0), "dir": str(req.body.get("dir") or "").strip()}
-    else:
-        conf.pop("testbox", None)
-    f.write_text(json.dumps(conf, ensure_ascii=False, indent=1), encoding="utf-8")
+    from .util_conf import update_autoflow
+    try:
+        if host:
+            update_autoflow(P.data_dir, {"testbox": {"host": host, "port": int(req.body.get("port") or 0), "dir": str(req.body.get("dir") or "").strip()}})
+        else:
+            update_autoflow(P.data_dir, {}, drop=("testbox",))
+    except ValueError as e:
+        raise ApiError(400, str(e))
     return api_testbox(P, req)
 
 

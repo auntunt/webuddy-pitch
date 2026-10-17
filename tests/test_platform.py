@@ -203,6 +203,8 @@ class PlatformApiTest(unittest.TestCase):
         self.assertEqual(by["agent"]["state"], "ok")  # the fake agents are real commands on the PATH
         self.assertEqual(by["auto"]["state"], "warn")  # these tests run with automatic handling off
         self.assertIn("project:" + key, by)
+        self.assertEqual(by["build:" + key]["state"], "ok")  # the test repo says how it builds and tests
+        from tmh.platform import readiness
         pid = self.P.project(key)["id"]
         st = self.P.store
         old = []
@@ -210,6 +212,10 @@ class PlatformApiTest(unittest.TestCase):
             rid = st.x("INSERT INTO runs(project_id, agent, mode, status, created, started, ended, output) VALUES(?,?,?,?,?,?,?,?)",
                        (pid, "fake", "analyze", "failed", "2026-01-01 00:00:00", "2026-01-01 00:00:00", "2026-01-01 00:00:01", "Error: not logged in"))
             old.append(rid)
+        cut = []
+        for _ in range(3):  # the platform restarting cuts runs off: that says nothing about the agent
+            cut.append(st.x("INSERT INTO runs(project_id, agent, mode, status, created, started, ended, result) VALUES(?,?,?,?,?,?,?,?)",
+                            (pid, "fake", "analyze", "failed", "2026-01-01 00:00:00", "2026-01-01 00:00:00", "2026-01-01 00:00:02", readiness.INTERRUPTED)))
         try:
             _, r = self.call("GET", "/api/readiness")
             runs = next(x for x in r["items"] if x["key"] == "runs")
@@ -217,7 +223,7 @@ class PlatformApiTest(unittest.TestCase):
             self.assertIn("not logged in", runs["detail"])
             self.assertIn("挡住试点", r["summary"])
         finally:
-            for rid in old:
+            for rid in old + cut:
                 st.x("DELETE FROM runs WHERE id=?", (rid,))
 
     def test_inbox_lists_what_waits_for_a_person(self):

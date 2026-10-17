@@ -7,11 +7,14 @@ weaker, "ok" is fine; the page lists bad first.
 from __future__ import annotations
 
 import itertools
+import json
+import shlex
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 
-STUCK_H = 2  # a run still "running" this long after it started is stuck, not slow
+STUCK_H = 2
+INTERRUPTED = "平台重启时这个运行被中断"  # what Runner.recover writes  # a run still "running" this long after it started is stuck, not slow
 
 
 def _item(key: str, label: str, state: str, detail: str, fix: str = "", link: str = "") -> dict:
@@ -26,7 +29,9 @@ def _agents(P) -> list:
         return [_item("agent", "智能体", "bad", "这台机器上找不到 %s 命令" % "、".join(a["name"] for a in ags),
                       "装好 Claude Code 或 Codex 并登录一次，再刷新这页", "#/settings")]
     out = [_item("agent", "智能体", "ok", "可用：" + "、".join(a["title"] for a in ok))]
-    runs = P.store.q("SELECT status, output, result, ended FROM runs WHERE status IN ('done','failed') ORDER BY id DESC LIMIT 5")
+    # a run the platform cut off by restarting says nothing about the agent; only the end of the log is needed
+    runs = P.store.q("SELECT status, substr(output, -400) AS output, substr(result, 1, 400) AS result, ended FROM runs "
+                     "WHERE status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 5", (INTERRUPTED,))
     if len(runs) >= 3 and all(r["status"] == "failed" for r in runs[:3]):  # the latest three in a row: it is not one bad ticket
         tail = ((runs[0].get("output") or runs[0].get("result") or "").strip().splitlines() or [""])[-1][:160]
         out.append(_item("runs", "最近的运行", "bad", "最近 %d 次连续失败%s" % (sum(1 for _ in itertools.takewhile(lambda r: r["status"] == "failed", runs)), "，最后一次：" + tail if tail else ""),
@@ -103,14 +108,57 @@ def _disk(P) -> list:
     return [_item("disk", "磁盘", st, "数据目录所在磁盘还剩 %.1f GB" % free, "" if st == "ok" else "清理旧的工作树（worktrees/）或换更大的盘：写不进数据库时所有操作都会失败")]
 
 
-def _testbox(P) -> list:
-    from .testbox import settings
-    if settings(P.data_dir):
-        return [_item("testbox", "测试机", "ok", "已设置：改动会先编译和跑测试")]
-    return [_item("testbox", "测试机", "warn", "没设置：改动不经过编译和测试就交给人验收", "在下面“测试机”里填上 SSH 地址", "#/settings")]
+def _build(P) -> list:
+    """Will a change be built and tested before a person sees it? The test machine's last check if one is set,
+    otherwise whether this machine can run the project's own build and test commands."""
+    from .fixloop import settings as fl
+    from .testbox import settings as tb
+    v = fl(P.data_dir).get("check")
+    if v in ("none", False):
+        return [_item("build", "构建和测试", "warn", "设置为不跑构建测试：改动不经过编译就交给人验收", "去掉 autoflow.json 里的 \"check\": \"none\"")]
+    box = tb(P.data_dir)
+    if box:
+        try:
+            last = json.loads((Path(P.data_dir) / "testbox-check.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            last = None
+        where = "测试机 %s" % box.get("host", "")
+        if not last:
+            return [_item("build", "构建和测试", "warn", "%s 还没体检过" % where, "在下面“测试机”里点“体检”", "#/settings")]
+        if not last.get("ok", True) or last.get("error"):
+            return [_item("build", "构建和测试", "bad", "%s 上次体检连不上：%s" % (where, str(last.get("error", ""))[:160]),
+                          "检查 SSH 密钥和网络，再点“体检”", "#/settings")]
+        if last.get("missing"):
+            return [_item("build", "构建和测试", "warn", "%s 缺 %s" % (where, "、".join(last["missing"])), "在下面“测试机”里装上缺的工具", "#/settings")]
+        return [_item("build", "构建和测试", "ok", "改动先在%s编译和测试（%s 体检通过）" % (where, str(last.get("at", ""))[:16]))]
+    if isinstance(v, str) and v.strip():
+        return [_item("build", "构建和测试", "ok", "在本机运行设置的检查命令：%s" % v.strip()[:80])]
+    from .. import config as cfgmod
+    from ..verify import detect_commands
+    out = []
+    for p in P.store.projects():
+        root = Path(p["root"])
+        if not root.is_dir():
+            continue
+        try:
+            given = cfgmod.load(root).get("commands") or {}
+        except Exception:  # noqa: BLE001
+            given = {}
+        found = {k: given.get(k) or detect_commands(root).get(k) for k in ("build", "test")}
+        cmds = [c for c in found.values() if c]
+        missing = sorted({shlex.split(c)[0] for c in cmds if not shlex.split(c)[0].startswith("./") and not shutil.which(shlex.split(c)[0])})
+        label = "构建和测试 %s" % p["key"]
+        if not cmds:
+            out.append(_item("build:" + p["key"], label, "warn", "认不出这个项目怎么构建和测试，改动不经过编译就交给人验收",
+                             "在项目的 .tmh 配置里写上 build 和 test 命令，或设置测试机"))
+        elif missing:
+            out.append(_item("build:" + p["key"], label, "warn", "本机缺 %s，构建和测试跑不了" % "、".join(missing), "在这台机器上装好，或设置测试机", "#/settings"))
+        else:
+            out.append(_item("build:" + p["key"], label, "ok", "在本机构建和测试：%s" % "；".join(cmds)[:120]))
+    return out
 
 
-CHECKS = (_agents, _projects, _flow, _evidence, _access, _disk, _testbox)
+CHECKS = (_agents, _projects, _flow, _evidence, _access, _disk, _build)
 
 
 def check(P) -> dict:

@@ -57,7 +57,7 @@ class Orchestra:
     TEST_GLOBS = ["**/test/**", "**/tests/**", "**/__tests__/**", "**/test_*.py", "**/*_test.*", "**/*.test.*", "**/*.spec.*"]
 
     def autoflow(self) -> dict:
-        conf = {"on": True, "agent": "", "plan": True, "fix": True, "commit": True, "max_lines": 400, "assignee": "", "refix": 2, "holdout": 0}
+        conf = {"on": True, "agent": "", "plan": True, "fix": True, "commit": True, "max_lines": 400, "assignee": "", "refix": 2, "holdout": 0.1}
         f = self.data_dir / "autoflow.json"
         if f.exists():
             try:
