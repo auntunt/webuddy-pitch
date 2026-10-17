@@ -259,9 +259,19 @@ class PlatformApiTest(unittest.TestCase):
         try:
             _, r = self.call("GET", "/api/readiness")
             runs = next(x for x in r["items"] if x["key"] == "runs")
-            self.assertEqual((runs["state"], r["items"][0]["key"]), ("bad", "runs"))
+            self.assertEqual(runs["state"], "bad")
+            self.assertEqual({x["key"] for x in r["items"] if x["state"] == "bad"}, {"runs", "agent:fake"})  # and which agent
             self.assertIn("not logged in", runs["detail"])
             self.assertIn("挡住试点", r["summary"])
+            # the command is there but cannot sign in on this machine: that agent is named, with the page its own service gave
+            dev = st.x("INSERT INTO runs(project_id, agent, mode, status, created, started, ended, output) VALUES(?,?,?,?,?,?,?,?)",
+                       (pid, "fake", "analyze", "failed", "2026-01-01 00:00:00", "2026-01-01 00:00:00", "2026-01-01 00:00:03",
+                        "Error: 这台新电脑还没确认是你本人，请到 https://relay.example/devices 点「是我」"))
+            old.append(dev)
+            _, r = self.call("GET", "/api/readiness")
+            ag = next(x for x in r["items"] if x["key"] == "agent:fake")
+            self.assertEqual(ag["state"], "bad")
+            self.assertIn("https://relay.example/devices", ag["fix"])
         finally:
             for rid in old + cut:
                 st.x("DELETE FROM runs WHERE id=?", (rid,))

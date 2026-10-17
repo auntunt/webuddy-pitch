@@ -23,6 +23,27 @@ def _item(key: str, label: str, state: str, detail: str, fix: str = "", link: st
     return {"key": key, "label": label, "state": state, "detail": detail, "fix": fix, "link": link}
 
 
+SIGNIN = (
+    (re.compile(r"确认是你本人|新电脑|new device|verify (?:it'?s|that it is) you|devices?\b.*(?:confirm|approve)", re.I),
+     "这台机器还没确认是账号本人", "打开报错里给的设备确认页（%s），先核对这是你给这个智能体配的服务，再在这台机器上点「是我」，然后重跑失败的运行"),
+    (re.compile(r"not logged in|please (?:log|sign) ?in|login required|未登录|请先登录|/login|unauthori[sz]ed|invalid api key|\b401\b", re.I),
+     "没登录或登录过期了", "在这台机器上用运行平台的同一个账号执行一次 claude 或 codex 并登录，再重跑失败的运行"),
+    (re.compile(r"usage limit|rate limit|quota|额度|exceeded your|insufficient_quota|\b429\b", re.I),
+     "额度用完或被限流了", "等额度恢复或换一个账号，再重跑失败的运行"),
+)
+
+
+def signin(text: str) -> tuple:
+    """(what is wrong, what a person does) when an agent's output says it cannot sign in or has no quota left."""
+    for rx, what, fix in SIGNIN:
+        if rx.search(text or ""):
+            if "%s" in fix:  # the page to confirm on is whatever the agent's own service named, not one we guess
+                m = re.search(r"https?://[^\s\"'<>）)，。]+", text)
+                fix = fix % (m.group(0) if m else "地址见运行日志")
+            return what, fix
+    return ()
+
+
 def _agents(P) -> list:
     from .agents import available
     ags = available(P.data_dir)
@@ -30,7 +51,13 @@ def _agents(P) -> list:
     if not ok:
         return [_item("agent", "智能体", "bad", "这台机器上找不到 %s 命令" % "、".join(a["name"] for a in ags),
                       "装好 Claude Code 或 Codex 并登录一次，再刷新这页", "#/settings")]
-    out = [_item("agent", "智能体", "ok", "可用：" + "、".join(a["title"] for a in ok))]
+    out = [_item("agent", "智能体", "ok", "命令都在：" + "、".join(a["title"] for a in ok))]
+    for a in ok:  # a command on the PATH is not an agent that runs: its own latest run says whether it can sign in
+        last = P.store.one("SELECT id, status, substr(output, -1200) AS output, substr(result, 1, 600) AS result FROM runs "
+                           "WHERE agent=? AND status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 1", (a["name"], INTERRUPTED))
+        why = signin(" ".join((last.get("output") or "", last.get("result") or ""))) if last and last["status"] == "failed" else ""
+        if why:
+            out.append(_item("agent:" + a["name"], a["title"], "bad", "%s 跑不起来（运行 #%d）：%s" % (a["title"], last["id"], why[0]), why[1]))
     # a run the platform cut off by restarting says nothing about the agent; only the end of the log is needed
     runs = P.store.q("SELECT status, substr(output, -400) AS output, substr(result, 1, 400) AS result, ended FROM runs "
                      "WHERE status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 5", (INTERRUPTED,))
