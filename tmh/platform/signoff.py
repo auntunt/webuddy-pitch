@@ -79,7 +79,7 @@ def client_ac(data_dir: Path, key: str) -> list:
     for a in d.get("ac") or []:
         if isinstance(a, dict) and str(a.get("text") or "").strip():
             out.append({"id": str(a.get("id") or "A%d" % (len(out) + 1))[:8], "text": str(a["text"])[:300], "layer": str(a.get("layer") or "")[:2],
-                        "check": str(a.get("check") or "")[:300], "open": bool(a.get("open"))})
+                        "check": str(a.get("check") or "")[:300], "open": bool(a.get("open")), "keep": bool(a.get("keep"))})
     return out
 
 
@@ -215,6 +215,27 @@ def pack(P, t: dict, by: str, why: str = "转待验证") -> dict | None:
     return rec
 
 
+def contract_changed(P, t: dict, by: str) -> dict | None:
+    """A new intake record (the contract changed) on a ticket already waiting for its signature: the package is
+    made again against the new criteria, and a live sign link is replaced by one for the same signer (the old one
+    would have them sign the stale package). Returns the new link, if one was made."""
+    if not t or t["status"] != "verify":
+        return None
+    pack(P, t, by, why="验收标准改了")
+    live = [x for x in _links(P.data_dir).values() if x["key"] == t["key"] and not x.get("used")]
+    if not live:
+        return None
+    old = live[-1]
+    try:
+        ln = issue(P, t, by, old["signer"], old.get("role", ""), note="验收标准改了，按新标准重新签")
+    except ApiError as e:
+        P.store.event(t["id"], by, "evidence", "验收标准改了，旧的签收链接已不能签；没能自动重发：%s" % e)
+        return None
+    P.store.event(t["id"], by, "evidence", "验收标准改了：证据包已重新打包，旧签收链接作废；新的签收链接 %s，请发给 %s" % (ln["path"], ln["signer"]),
+                  {"path": ln["path"]})
+    return ln
+
+
 def on_status(P, t: dict, old: str, new: str, by: str) -> None:
     if new == "verify":
         try:
@@ -253,10 +274,12 @@ def state(data_dir: Path, key: str) -> dict:
             "path": snap["path"]["ok"] or "path" in waive, "review": bool(review),
             "gates": gates is not None and G.overall(gates) == G.PASS}
     need = REQUIRED if gates is not None else LEGACY
+    stale = [r for r in after if r["kind"] == "intake"]  # the contract changed after this package was made
     signs = [r for r in after if r["kind"] in ("sign", "reject")]
     links = [r for r in after if r["kind"] == "link"]
     out.update({"snapshot": snap, "pack_seq": last["seq"], "pack_hash": last["hash"], "packed_at": last["ts"], "attachments": shots,
-                "review": review, "have": have, "missing": [lb for k, lb in need if not have[k]],
+                "review": review, "have": have, "missing": [lb for k, lb in need if not have[k]] + (["验收标准在打包后改过（要重新打包）"] if stale else []),
+                "stale": bool(stale),
                 "gates": gates, "gate_state": G.overall(gates) if gates is not None else "",
                 "links": [dict(r["data"], by=r["by"], ts=r["ts"]) for r in links],
                 "decision": dict(signs[-1]["data"], kind=signs[-1]["kind"], ts=signs[-1]["ts"], hash=signs[-1]["hash"]) if signs else None})
@@ -277,7 +300,7 @@ def proofs(snap: dict, gates: list | None, shots: list, decision: dict | None) -
     said = (decision or {}).get("ac") or {}
     out = []
     for a in snap["ac"]:
-        keep = a["text"].startswith("必须保持")
+        keep = bool(a.get("keep"))  # what must keep working: proven by the tests, nothing to try by hand
         ps = []
         if snap.get("change"):
             ps.append({"kind": "test", "label": "自动构建和测试", "state": {"pass": "pass", "fail": "fail"}.get(chk, "unknown")})
@@ -455,8 +478,12 @@ def decide(P, token: str, action: str, name: str, verdicts: dict, note: str, cli
     s = state(P.data_dir, t["key"])
     if not s["intact"]:
         raise ApiError(409, "证据包被改动过，不能签：%s" % s["problem"])
+    if s.get("stale"):
+        raise ApiError(409, "验收标准在这个签收链接发出后改过了，这个链接作废；请等乙方按新标准重新发")
+    if any(a.get("open") for a in (s["snapshot"] or {}).get("ac") or []):
+        raise ApiError(409, "还有验收标准待确认，现在不能签收或退回；请联系乙方")
     acs = [a["id"] for a in (s["snapshot"] or {}).get("ac") or []]
-    res = {a: verdicts.get(a, "") for a in acs}
+    res = {a: verdicts.get(a, "") if verdicts.get(a, "") in ("pass", "fail") else "" for a in acs}
     if action == "sign":
         left = [a for a, v in res.items() if v != "pass"]
         if left:
@@ -576,7 +603,9 @@ SIGN_CSS = ("body{max-width:640px;padding:16px 16px 48px;background:#f6f7fa}h1{f
             "blockquote{margin:0;padding:8px 12px;background:#f6f7fa;border-left:3px solid #c8cfdc;border-radius:4px}"
             ".bigbtn{display:block;text-align:center;padding:14px;background:#1d4ed8;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:17px}"
             ".ac{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid #eef1f6}.ac:first-of-type{border-top:0}"
-            ".ac input{width:22px;height:22px;margin-top:3px;flex:none}.ac .t{flex:1;min-width:0}.st{font-size:12px;border-radius:10px;padding:0 8px;background:#eef1f6;white-space:nowrap}"
+            ".ac .t{flex:1;min-width:0}.pf{display:flex;gap:8px;margin-top:8px}.pf label{flex:1;display:flex;align-items:center;gap:6px;justify-content:center;"
+            "border:1px solid #c8cfdc;border-radius:8px;padding:8px;font-size:15px}.pf input{width:20px;height:20px;margin:0}"
+            ".pf label:has(input:checked).y{background:#e6f4ea;border-color:#1a7f37}.pf label:has(input:checked).n{background:#fde8e8;border-color:#c62828}.st{font-size:12px;border-radius:10px;padding:0 8px;background:#eef1f6;white-space:nowrap}"
             ".st.ok{background:#e6f4ea}.st.bad{background:#fde8e8}.st.warn{background:#fff4d6}"
             "textarea,input[name=name]{width:100%;font:inherit;padding:10px;border:1px solid #c8cfdc;border-radius:8px;margin-top:6px}"
             ".acts{display:flex;flex-direction:column;gap:10px;margin-top:12px}.acts button{font:inherit;font-size:17px;font-weight:600;padding:14px;border-radius:10px}"
@@ -629,12 +658,13 @@ def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
                      ("<img src='%s' alt='%s 截图'>" % (E("/sign/%s/f/%s" % (token, y["file"])), E(pf["id"])) if y.get("file") else "")
                      for y in shots.get(pf["id"], []))
         auto = [p for p in pf["proofs"] if p["kind"] == "test" and p["state"] == "pass"]
-        box = ("<input type=checkbox name='ac_%s' value=pass aria-label='%s 做到了'>" % (E(pf["id"]), E(pf["id"]))) if open_form else ""
-        rows.append("<label class=ac>%s<span class=t>%s<div class=sub>怎么试：%s%s</div>%s</span><span class='st %s'>%s</span></label>" % (
-            box, E(pf["text"]), E(pf["check"] or "照这一条操作一遍"), "；自动测试已通过" if auto else "", sh, cls, E(pf["label"])))
+        box = ("<div class=pf><label class=y><input type=radio name='ac_%s' value=pass> 做到了</label>"
+               "<label class=n><input type=radio name='ac_%s' value=fail> 没做到</label></div>" % (E(pf["id"]), E(pf["id"]))) if open_form else ""
+        rows.append("<div class=ac><span class=t>%s<div class=sub>怎么试：%s%s</div>%s%s</span><span class='st %s'>%s</span></div>" % (
+            E(pf["text"]), E(pf["check"] or "照这一条操作一遍"), "；自动测试已通过" if auto else "", sh, box, cls, E(pf["label"])))
     src = snap.get("ac_source")
     head = "这样算做对了" + ("（您确认过的标准）" if src == "客户确认" else "")
-    tip = "逐条试过、做到了就勾上；全部勾上才能签收。" if open_form else ""
+    tip = "逐条试过，每条选“做到了”或“没做到”；全部做到了才能签收，没做到的请退回并写原因。" if open_form else ""
     ac_html = ("<section class=card><h2>%s</h2><div class=sub>%s</div>%s</section>" % (E(head), tip, "".join(rows))) if rows else \
         "<section class=card><p class=bad>这单没有验收标准，不能签收。请联系工程师。</p></section>"
     if open_form:
