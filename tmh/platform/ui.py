@@ -497,6 +497,7 @@ async function vTicket(key,sub){
   </div><div style="display:flex;flex-direction:column;gap:12px;min-width:0">
    <div class="card" id="simc" hidden><h2>可能重复</h2><div id="simv"></div></div>
    <div class="card" id="pvc" hidden></div>
+   <div class="card" id="hwc" hidden></div>
    ${pkgCard(d)}
    <div id="upc"></div>
    ${mrBlock(d)}
@@ -521,7 +522,7 @@ async function vTicket(key,sub){
   Object.entries(go).forEach(([id,m])=>{if($('#'+id))$('#'+id).onclick=()=>run(m,defAgent(),'auto')});
   if($('#naVerify'))$('#naVerify').onclick=()=>save({status:'verify'});
   if($('#naShip'))$('#naShip').onclick=()=>post('/api/tickets/'+key+'/release',{}).then(r=>{toast(r.state==='merged'?'已合并，版本 '+r.version:r.why,6000);vTicket(key)}).catch(e=>toast(e.message,6000));
-  pkgWire(d);upWire(d);pvLoad(key);
+  pkgWire(d);upWire(d);pvLoad(key);hwLoad(d);
   if($('#naGo'))$('#naGo').onclick=()=>save({auto:'go'}).then(()=>toast('已交给自动处理'));
   document.querySelectorAll('[data-hold]').forEach(b=>b.onclick=()=>save({hold:b.dataset.hold==='1'}).then(()=>toast(b.dataset.hold==='1'?'已接管，自动处理暂停':'已交回自动处理')));
   if($('#naReopen'))$('#naReopen').onclick=()=>save({status:'doing'});
@@ -731,6 +732,18 @@ async function pvLoad(key){const el=$('#pvc');if(!el)return;let d;try{d=await ge
       <input id="pvReady" value="${h(c.ready||'/')}" placeholder="起来后能打开的路径，默认 /"><div class="row" style="gap:6px"><button class="primary" id="pvSave">保存</button><span class="sub">留空保存就回到按项目结构猜</span></div></div>`;
     $('#pvSave').onclick=async()=>{try{await post('/api/projects/'+pk+'/preview-conf',{cmd:$('#pvCmd').value,ready:$('#pvReady').value});toast('已保存启动命令');pvLoad(key)}catch(e){toast(e.message,6000)}}};
   if(s==='starting')setTimeout(()=>{if($('#pvc')&&location.hash.includes(key))pvLoad(key)},4000)}
+
+// ---------- 我来写: a person writes it (by hand or with their own tools); the platform checks it like any change
+async function hwLoad(d){const el=$('#hwc'),t=d.ticket;if(!el||t.status==='closed')return;let w;try{w=await get('/api/tickets/'+t.key+'/starter')}catch(e){return}
+  if(!$('#hwc'))return;const pk=t.key.split('-')[0];el.hidden=false;
+  el.innerHTML=`<div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">我来写</h2></div>
+   <div class="sub">自己写，或者用自己的 AI 工具写。${w.remote?`推到分支 <code>${h(w.branch)}</code>，平台${w.heartbeat==='auto'?'一分钟内':'点“现在检查”后'}会自己发现`:'把补丁传上来，平台会'}，构建测试、换一个模型对照验收标准审查，通过就转给验收人。</div>
+   <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><button class="primary" id="hwPack">下载开工包</button>
+    ${w.remote?'<button class="ghost" id="hwScan">现在检查</button>':`<a class="btn ghost" href="/p/${h(pk)}/code.bundle" download>下载代码</a><label class="btn ghost" style="cursor:pointer">上传补丁<input type="file" id="hwPatch" accept=".patch,.diff,.txt" hidden></label>`}</div>`;
+  $('#hwPack').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([w.markdown],{type:'text/markdown'}));a.download=t.key+'-开工包.md';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
+  if($('#hwScan'))$('#hwScan').onclick=()=>post('/api/projects/'+pk+'/scan',{}).then(r=>{toast(r.taken.length?'发现新提交，开始检查':'分支 '+w.branch+' 上没有新提交',5000);if(r.taken.length)vTicket(t.key)}).catch(e=>toast(e.message,6000));
+  if($('#hwPatch'))$('#hwPatch').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(f.size>4*1024*1024)return toast('补丁不能超过 4MB');
+    try{await post('/api/tickets/'+t.key+'/handwork',{patch:await f.text()});toast('收到补丁，开始构建和审查',5000);vTicket(t.key)}catch(err){toast(err.message,6000)}}}
 
 // ---------- evidence package on a ticket, the ledger on the report
 const PKC={none:'mute',incomplete:'warn',ready:'info',signed:'ok',rejected:'bad',upstream_merged:'ok',upstream_closed:'bad'};

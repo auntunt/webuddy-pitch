@@ -2010,6 +2010,34 @@ def api_preview_conf_set(P, req, key):
     return api_preview_conf(P, req, key)
 
 
+@route("GET", "/api/tickets/<key>/starter")
+def api_starter(P, req, key):
+    """我来写: the ticket as a starter pack (Markdown) for writing it by hand or with one's own tools."""
+    from . import handwork
+    t = P.ticket(key)
+    p = P.store.project(t["project_id"])
+    return {"markdown": handwork.starter(P, t), "branch": handwork.PREFIX + t["key"], "remote": bool(handwork._origin(P.root(p))),
+            "heartbeat": handwork.settings(P.data_dir)["handwork"]}
+
+
+@route("POST", "/api/tickets/<key>/handwork")
+def api_handwork(P, req, key):
+    """{"patch": "<git format-patch output>"}: a hand-written change from someone who cannot push."""
+    from . import handwork
+    t = P.ticket(key)
+    patch = req.body.get("patch")
+    if not isinstance(patch, str) or len(patch) > 4 * 1024 * 1024:
+        raise ApiError(400, "patch 要是补丁文件的文本，不超过 4MB")
+    return handwork.upload(P, t, patch, req.user)
+
+
+@route("POST", "/api/projects/<key>/scan")
+def api_handwork_scan(P, req, key):
+    """Look at wb/* branches now instead of waiting for the heartbeat."""
+    from . import handwork
+    return {"taken": handwork.scan(P, P.project(key))}
+
+
 @route("GET", "/api/readiness")
 def api_readiness(P, req):
     """上线体检: what on this machine would let a pilot down, each with its next step."""
@@ -2557,6 +2585,17 @@ def make_handler(P: Platform, token: str = ""):
                         return self._send(200, signoff.package_page(P, m.group(1)).encode("utf-8"), "text/html; charset=utf-8")
                     except ApiError as e:
                         return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
+                m = re.match(r"^/p/([A-Za-z0-9]+)/code\.bundle$", path)
+                if m:  # 我来写 without access to the repository: the main line as one file
+                    if not self._authorized(q):
+                        return self._send(401, b"unauthorized", "text/plain")
+                    from . import handwork
+                    try:
+                        f = handwork.bundle(P, P.project(m.group(1).upper()))
+                    except ApiError as e:
+                        return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
+                    return self._send(200, f.read_bytes(), "application/octet-stream",
+                                      {"Content-Disposition": "attachment; filename=\"%s.bundle\"" % m.group(1).upper()})
                 m = re.match(r"^/p/([^/]+)/report/(.*)$", path)
                 if m:
                     if not self._authorized(q):
@@ -2753,6 +2792,8 @@ def serve(data_dir: Path, host: str = "127.0.0.1", port: int = 8790, user: str =
             P.preview_port = preview_port
             threading.Thread(target=pv.serve_forever, daemon=True).start()
             print("预览版本地址：%s" % (os.environ.get("TMH_PREVIEW_BASE") or "端口 %d" % preview_port))
+    from . import handwork
+    handwork.heartbeat(P)  # 我来写: wb/* branches pushed by people are picked up every minute
     url = "http://%s:%d/" % ("127.0.0.1" if host in ("0.0.0.0", "::") else host, port)
     print("%s 已启动：%s%s" % (P.brand, url, "?token=<TMH_TOKEN>" if token else ""))
     print("数据目录：%s　按 Ctrl+C 停止" % P.data_dir)

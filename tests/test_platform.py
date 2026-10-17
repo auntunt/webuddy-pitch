@@ -1108,6 +1108,85 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             bots.INTAKE, bots.ASYNC, self.P.public_url = old
             preview.set_conf(self.data, key, "")
 
+    def test_a_person_writes_it_pushes_a_branch_and_the_platform_checks_reviews_and_ships_it(self):
+        from tmh.platform import handwork
+        self.team()
+        repo = git_repo(JAVA)
+        kb.build(repo)
+        from tmh import config as cfgmod
+        cfg = cfgmod.load(repo)
+        cfg["commands"]["test"] = "%s -c pass" % sys.executable
+        cfgmod.save(repo, cfg)
+        g = lambda where, *a: subprocess.run(["git", "-C", str(where), "-c", "user.name=小王", "-c", "user.email=w@x"] + list(a),
+                                             capture_output=True, text=True, check=True).stdout.strip()
+        g(repo, "add", "-A")
+        g(repo, "commit", "-qm", "kb")
+        origin = repo.parent / "origin.git"
+        subprocess.run(["git", "clone", "-q", "--bare", str(repo), str(origin)], check=True)
+        g(repo, "remote", "add", "origin", str(origin))
+        self.call("POST", "/api/projects", {"key": "HW", "name": "我来写", "root": str(repo)})
+        (self.data / "autoflow.json").write_text(json.dumps({"on": False, "merge": "auto", "review_agent": "team", "handwork": "off"}), encoding="utf-8")
+
+        def settle(t, until):
+            for _ in range(300):
+                evs = [e for e in self.P.store.events(t["id"]) if e["author"] == "我来写"]
+                if evs and until(evs[-1]):
+                    return evs[-1]
+                time.sleep(0.05)
+            self.fail("no verdict on %s: %s" % (t["key"], self.P.store.events(t["id"])[-1]))
+        try:
+            _, t = self.call("POST", "/api/tickets", {"project": "HW", "title": "请假提交后状态不刷新", "body": "提交后状态应变成待审批", "auto": False})
+            code, w = self.call("GET", "/api/tickets/%s/starter" % t["key"])
+            self.assertEqual((code, w["branch"], w["remote"]), (200, "wb/" + t["key"], True))
+            self.assertIn("git push origin wb/%s" % t["key"], w["markdown"])
+            self.assertIn("提交后状态应变成待审批", w["markdown"])  # the prompt for their own tool carries the requirement
+
+            work = repo.parent / "work"
+            subprocess.run(["git", "clone", "-q", str(origin), str(work)], check=True)
+            g(work, "checkout", "-q", "-b", "wb/" + t["key"])
+            svc = work / SVC
+            svc.write_text(svc.read_text(encoding="utf-8") + "// BROKEN\n", encoding="utf-8")
+            g(work, "commit", "-qam", "提交后刷新状态\n\nTicket: " + t["key"])
+            g(work, "push", "-q", "origin", "wb/" + t["key"])
+            code, r = self.call("POST", "/api/projects/HW/scan", {})
+            self.assertEqual((code, len(r["taken"])), (200, 1), r)
+            last = settle(t, lambda e: "还不行" in e["body"] or "转给验收人" in e["body"])
+            self.assertIn("还不行", last["body"])  # the second opinion found what is wrong, and says so for the person
+            self.assertIn("BROKEN", last["body"])
+            t1 = self.P.store.ticket(t["id"])
+            self.assertEqual((t1["status"], (t1["links"] or {}).get("hold")), ("doing", "小王"))  # a person has it: agents keep off
+            self.assertEqual(self.call("POST", "/api/projects/HW/scan", {})[1]["taken"], [])  # nothing new, nothing taken
+
+            svc.write_text(svc.read_text(encoding="utf-8").replace("// BROKEN\n", "// 提交后刷新\n"), encoding="utf-8")
+            g(work, "commit", "-qam", "去掉标记")
+            g(work, "push", "-q", "origin", "wb/" + t["key"])
+            sha = g(work, "rev-parse", "HEAD")
+            self.assertEqual(len(self.call("POST", "/api/projects/HW/scan", {})[1]["taken"]), 1)
+            last = settle(t, lambda e: "转给验收人" in e["body"])
+            self.assertIn("审查认为已解决", last["body"])
+            self.assertEqual(self.P.store.ticket(t["id"])["status"], "verify")
+            ad = [e for e in self.P.store.events(t["id"]) if e["kind"] == "adopt"][-1]
+            self.assertEqual(ad["data"]["by_hand"], "小王")
+            self.call("POST", "/api/tickets/%s/accept" % t["key"], {"result": "pass"})
+            self.assertTrue(any(e["kind"] == "release" for e in self.P.store.events(t["id"])), self.P.store.events(t["id"])[-1])
+            self.assertEqual(subprocess.run(["git", "-C", str(repo), "merge-base", "--is-ancestor", sha, "HEAD"]).returncode, 0)
+
+            # no push access: a patch uploaded on the ticket page goes the same way
+            _, t2 = self.call("POST", "/api/tickets", {"project": "HW", "title": "请假列表加导出", "auto": False})
+            g(work, "fetch", "-q", "origin")
+            g(work, "checkout", "-q", "-b", "mine", "origin/HEAD" if g(work, "branch", "-r").count("origin/HEAD") else "origin/master")
+            (work / "EXPORT.md").write_text("导出说明\n", encoding="utf-8")
+            g(work, "add", "EXPORT.md")
+            g(work, "commit", "-qm", "导出说明")
+            patch = g(work, "format-patch", "-1", "--stdout")
+            self.assertEqual(self.call("POST", "/api/tickets/%s/handwork" % t2["key"], {"patch": "不是补丁"})[0], 400)
+            code, r = self.call("POST", "/api/tickets/%s/handwork" % t2["key"], {"patch": patch + "\n"})
+            self.assertEqual(code, 200, r)
+            settle(t2, lambda e: "转给验收人" in e["body"] or "还不行" in e["body"])
+            self.assertEqual(self.P.store.ticket(t2["id"])["status"], "verify", self.P.store.events(t2["id"])[-1]["body"])
+        finally:
+            self.untrain()
+
     def test_a_change_beyond_the_plan_is_flagged_and_left_to_a_person(self):
         self.team()
         try:
