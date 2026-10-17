@@ -408,6 +408,8 @@ function nextAction(d,f){
   if(d.epic&&t.status==='closed')return {tone:'ok',text:'大需求已整体验收通过，全部完成。要再改，请提一个新的需求。'};
   if(lt&&t.status!=='closed'){if(d.epic&&t.status==='verify')return {tone:'warn',text:'全部子单都完成了，<b>等你整体验收</b>：对照规格卡的整体验收标准和每个子单的版本验证。通过就关闭这个大需求；不通过写明原因，会自动开一个跟进子单按原因重改。',acc:true};
     return {tone:'info',text:d.epic?'大需求的父单不直接改代码：子单分批放出、各自验收，全部完成后回到这里整体验收。':h(lt)+'。'}}
+  if((t.links||{}).client_change&&t.status!=='closed')return {tone:'warn',text:'客户的答复会<b>改动已经确认的验收标准</b>（改了什么见下面的动态）。采用后按新标准继续；不采用就按原来确认的标准。在你决定之前不自动开工。',
+    btns:B('naCcYes','采用客户的改动','primary')+B('naCcNo','不采用，按原标准','ghost')};
   const oa=(t.links||{}).open_ac;
   if(oa&&!(t.links||{}).hold&&!['verify','closed'].includes(t.status)&&!f.live)return {tone:'warn',text:`有 <b>${oa} 条验收标准还待确认</b>，答清楚之前不自动开始。把问题发给客户，客户答完验收标准自动补全${(S.meta.autoflow||{}).on?'、自动开始':''}；你已经和客户确认过，也可以直接交给自动处理。`,
     btns:B('naAsk','把问题发给客户','primary')+B('naGo','已确认，交给自动处理','ghost')+B('naClaim','我来写','ghost')};
@@ -537,6 +539,7 @@ async function vTicket(key,sub){
   if($('#naGo'))$('#naGo').onclick=()=>save({auto:'go'}).then(()=>toast('已交给自动处理'));
   if($('#naAsk'))$('#naAsk').onclick=async()=>{try{const r=await post('/api/tickets/'+key+'/ask-client',{});const url=location.origin+r.path;
     try{await navigator.clipboard.writeText(url)}catch(e){}modal(`<h2>把问题发给客户</h2><div class="sub">${r.questions} 个问题，${h(r.expires.slice(5,16))} 前有效${r.told_chat?'；已同时发到这单来源的群里':''}。客户用大白话回答，答复会写回验收标准，答清楚就自动开始。</div><input class="full" readonly value="${h(url)}" onclick="this.select()" style="margin-top:8px"><div class="sub" style="margin-top:6px">链接已复制，发给客户（微信、短信都行）。</div>`)}catch(e){toast(e.message,6000)}};
+  ['naCcYes','naCcNo'].forEach(id=>{if($('#'+id))$('#'+id).onclick=()=>post('/api/tickets/'+key+'/client-change',{accept:id==='naCcYes'}).then(()=>{toast(id==='naCcYes'?'已采用，验收标准已更新':'已保留原来的验收标准');vTicket(key)}).catch(e=>toast(e.message,6000))});
   if($('#naClaim'))$('#naClaim').onclick=()=>post('/api/tickets/'+key+'/claim',{}).then(()=>{toast('已认领：自动处理不会再接这张单');vTicket(key)}).catch(e=>toast(e.message,6000));
   document.querySelectorAll('[data-hold]').forEach(b=>b.onclick=()=>save({hold:b.dataset.hold==='1'}).then(()=>toast(b.dataset.hold==='1'?'已接管，自动处理暂停':'已交回自动处理')));
   if($('#naReopen'))$('#naReopen').onclick=()=>save({status:'doing'});

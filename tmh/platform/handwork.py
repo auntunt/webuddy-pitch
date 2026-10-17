@@ -39,6 +39,7 @@ from .errors import ApiError
 
 PREFIX = "wb/"
 EVERY_S = 60
+REMIND_DAYS = 3  # a claimed ticket with nothing pushed this long gets a reminder line
 _LOCK = threading.Lock()
 _BUSY: set = set()  # tickets whose change is being checked right now
 
@@ -50,7 +51,7 @@ def settings(data_dir: Path) -> dict:
     except (OSError, ValueError):
         c = {}
     return {"handwork": c.get("handwork") if c.get("handwork") in ("auto", "off") else "auto", "review_agent": c.get("review_agent") or "",
-            "clone_url": c.get("clone_url") or ""}
+            "clone_url": c.get("clone_url") or "", "remind_days": c.get("remind_days", REMIND_DAYS) if isinstance(c.get("remind_days", REMIND_DAYS), int) else REMIND_DAYS}
 
 
 def _origin(root: Path) -> str:
@@ -213,6 +214,27 @@ def scan(P, p: dict | None = None) -> list:
             except ApiError as e:
                 P.store.event(t["id"], "我来写", "flow", "没能接收分支 %s 上的提交：%s" % (ref, e))
                 _mark(P, t, ref, sha)
+        remind(P, proj)
+    return out
+
+
+def remind(P, p: dict, days: int | None = None) -> list:
+    """Tickets someone claimed (我来写) with nothing pushed for `days` days get a line saying so, once per stretch,
+    so a claim cannot quietly park a ticket off the automatic line."""
+    days = settings(P.data_dir).get("remind_days", REMIND_DAYS) if days is None else days
+    if not days:
+        return []
+    cut = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() - days * 86400))
+    out = []
+    for t in P.store.tickets(project_id=p["id"]):
+        who = (t.get("links") or {}).get("handwork")
+        if not who or t["status"] in ("closed", "verify"):
+            continue
+        evs = P.store.events(t["id"])
+        last = max([e["ts"] for e in evs if e["kind"] == "adopt" or (e["kind"] == "flow" and ("认领" in e["body"] or "还没推送" in e["body"]))] or [""])
+        if last and last < cut:
+            P.store.event(t["id"], "我来写", "flow", "%s 认领了 %d 天还没推送（分支 %s%s）：还在写就推一次，写不了就交回自动处理" % (who, days, PREFIX, t["key"]))
+            out.append(t["key"])
     return out
 
 
@@ -389,6 +411,13 @@ def claim(P, t: dict, who: str, on: bool = True) -> dict:
     if t["status"] == "closed":
         raise ApiError(409, "这张单已经关了")
     if not on:
+        lk = dict(t.get("links") or {})
+        if lk.get("handwork") and not lk.get("hold"):  # hold already gone: the 我来写 mark must not outlive it
+            lk.pop("handwork", None)
+            t = st.update_ticket(t["id"], who, links=lk)
+            st.event(t["id"], who, "flow", "交回自动处理")
+            P.flow.resume(st.project(t["project_id"]), st.ticket(t["id"]))
+            return st.ticket(t["id"])
         return P.flow.take_over(t, False, who)
     stopped = []
     for r in st.runs(ticket_id=t["id"]):

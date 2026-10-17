@@ -97,7 +97,7 @@ def _route(P, p: dict, t: str, sender: str, conv: dict) -> str | None:
     sid = (c.get("drafts") or {}).get(sender)
     if sid:
         try:
-            s = intake.load(P.data_dir, sid)
+            s = intake.load(P.data_dir, sid, P)
         except ApiError:
             s = None
         if s and (s["state"] in ("confirmed", "dropped") or
@@ -106,6 +106,8 @@ def _route(P, p: dict, t: str, sender: str, conv: dict) -> str | None:
         if not s:
             _draft(P, ck, sender, "")
     asks = t.endswith(("？", "?", "吗", "呢")) and all(intake.classify(x)[0] == "question" for x in intake.split(t))
+    if s and s["state"] == "understanding" and not asks:  # one reading at a time: not a second conversation
+        return "还在理解你上一条说的，稍等几秒再回我。"
     if s and not asks:
         if t in NO:
             intake.drop(P, s["id"], sender)
@@ -129,7 +131,8 @@ def _route(P, p: dict, t: str, sender: str, conv: dict) -> str | None:
                 v = _value(t, q)
                 if not q.get("options") and v != intake.UNSURE and (re.fullmatch(r"\d{1,2}", v) or len(v) < 2):
                     return render(s, note="这个问题要用一句话回答。")
-                s = intake.answer(P, s["id"], sender, {"spec" if idx < 0 else str(idx): {q["slot"]: v}}, wait=True)
+                # one answer a message: the agent reads them again once the round is answered, not after each
+                s = intake.answer(P, s["id"], sender, {"spec" if idx < 0 else str(idx): {q["slot"]: v}}, wait=True, gather=True)
                 return render(s)
     if asks or len(t) < 6:
         return None  # a question: the knowledge base answers it as before
@@ -137,10 +140,11 @@ def _route(P, p: dict, t: str, sender: str, conv: dict) -> str | None:
     if not parts or all(intake.classify(x)[0] == "question" for x in parts):
         return None
     try:
-        s = intake.start(P, p, t, sender, kind, wait=True)  # replies are composed off the callback thread
+        s = intake.start(P, p, t, sender, kind)
     except ApiError:
         return None
-    _draft(P, ck, sender, s["id"])
+    _draft(P, ck, sender, s["id"])  # before the reading finishes: a second message finds this conversation
+    s = intake.wait_for(P, s["id"])  # replies are composed off the callback thread
     return render(s, first=True, note="（一次最多理 %d 件，其余的请再发一条）" % len(s["items"]) if len(parts) > len(s["items"]) else "")
 
 

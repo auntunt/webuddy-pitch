@@ -1090,7 +1090,7 @@ def api_intake_start(P, req, key):
 @route("GET", "/api/intake/<sid>")
 def api_intake_get(P, req, sid):
     from . import intake
-    return intake.load(P.data_dir, sid)
+    return intake.load(P.data_dir, sid, P)
 
 
 @route("POST", "/api/intake/<sid>")
@@ -1125,6 +1125,14 @@ def api_ask_client(P, req, key):
     if not only and s.get("epic") != t["key"]:
         raise ApiError(409, "在需求对话里找不到这张工单")
     return intake.ask_client(P, s["id"], req.user, only or None)
+
+
+@route("POST", "/api/tickets/<key>/client-change")
+def api_client_change(P, req, key):
+    """A client's answer would change criteria already confirmed: the engineer takes it ({"accept": true}) or not."""
+    from . import intake
+    t = P.ticket(key)
+    return intake.accept_client_change(P, t["key"], req.user, bool(req.body.get("accept")))
 
 
 @route("POST", "/api/projects/<key>/pins")
@@ -2902,6 +2910,8 @@ def serve(data_dir: Path, host: str = "127.0.0.1", port: int = 8790, user: str =
             print("预览版本地址：%s" % (os.environ.get("TMH_PREVIEW_BASE") or "端口 %d" % preview_port))
     from . import handwork
     handwork.heartbeat(P)  # 我来写: wb/* branches pushed by people are picked up every minute
+    from . import intake
+    intake.watch(P)  # a reading left behind by a restart is settled by the rules, a client's answer with it
     url = "http://%s:%d/" % ("127.0.0.1" if host in ("0.0.0.0", "::") else host, port)
     print("%s 已启动：%s%s" % (P.brand, url, "?token=<TMH_TOKEN>" if token else ""))
     print("数据目录：%s　按 Ctrl+C 停止" % P.data_dir)

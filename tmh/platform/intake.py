@@ -34,6 +34,8 @@ import json
 import os
 import re
 import secrets
+import shutil
+import tempfile
 import threading
 import time
 import uuid
@@ -50,6 +52,7 @@ UNSURE = "不清楚"
 NEW_MODULE = "新模块"
 ASK_DAYS = 7
 UNDERSTAND_TIMEOUT = 180
+UNDERSTAND_PER_HOUR = 30  # agent readings per project per hour; past that the rules read alone
 # the 规格卡 of a big requirement: what is asked about the whole, once its items are known
 SPEC_Q = [
     ("goal", "整体做完以后，要达到什么效果？一句话说清，最后整体验收就按它判断。", []),
@@ -93,8 +96,9 @@ def idir(data_dir: Path) -> Path:
 
 
 def settings(data_dir: Path) -> dict:
-    """autoflow.json: "understand": "agent" (default) | "rules"; "understand_agent"; "understand_timeout" (seconds).
-    Without "understand" there, TMH_UNDERSTAND in the environment decides (the tests set it to rules)."""
+    """autoflow.json: "understand": "agent" | "rules"; "understand_agent"; "understand_timeout" (seconds);
+    "understand_per_hour". Without "understand" there, TMH_UNDERSTAND in the environment decides (the tests set it
+    to rules), and without that the automatic line's "on"."""
     try:
         c = json.loads((Path(data_dir) / "autoflow.json").read_text(encoding="utf-8"))
         c = c if isinstance(c, dict) else {}
@@ -104,11 +108,31 @@ def settings(data_dir: Path) -> dict:
         to = max(10, int(c.get("understand_timeout") or UNDERSTAND_TIMEOUT))
     except (TypeError, ValueError):
         to = UNDERSTAND_TIMEOUT
-    mode = c.get("understand") if c.get("understand") in ("agent", "rules") else os.environ.get("TMH_UNDERSTAND", "agent")
-    return {"understand": "rules" if mode == "rules" else "agent", "agent": c.get("understand_agent") or "", "timeout": to}
+    try:
+        per = max(0, int(c.get("understand_per_hour", UNDERSTAND_PER_HOUR)))
+    except (TypeError, ValueError):
+        per = UNDERSTAND_PER_HOUR
+    if c.get("understand") in ("agent", "rules"):
+        mode = c["understand"]
+    elif os.environ.get("TMH_UNDERSTAND") in ("agent", "rules"):
+        mode = os.environ["TMH_UNDERSTAND"]
+    else:  # follows the automatic line: an agent reads when it is on, the rules alone when it is off
+        mode = "agent" if c.get("on", True) else "rules"
+    return {"understand": mode, "agent": c.get("understand_agent") or "", "timeout": to, "per_hour": per}
 
 
-def load(data_dir: Path, sid: str) -> dict:
+def deadline(data_dir: Path) -> float:
+    """How long a reading may take before it is given up: every try the runner may make (a session that cannot be
+    continued is started over, a busy model service is waited out and retried), plus a margin."""
+    from .agents import BUSY_WAITS
+    to = settings(data_dir)["timeout"]
+    return 2 * to * (1 + len(BUSY_WAITS)) + sum(BUSY_WAITS) + 120
+
+
+def load(data_dir: Path, sid: str, P=None) -> dict:
+    """A conversation. One whose agent reading outlived every try (or whose process is gone: a restart) is read by
+    the rules, and a client's answer waiting on that reading still lands (that takes `P`; without it such a
+    conversation is left for a caller that has it)."""
     if not re.fullmatch(r"[0-9a-f]{12}", sid or ""):
         raise ApiError(404, "没有这段需求对话")
     f = idir(data_dir) / ("%s.json" % sid)
@@ -116,18 +140,71 @@ def load(data_dir: Path, sid: str) -> dict:
         raise ApiError(404, "没有这段需求对话")
     s = json.loads(f.read_text(encoding="utf-8"))
     u = s.get("understanding_job") or {}
-    if s.get("state") == "understanding" and time.time() - u.get("t0", 0) > settings(data_dir)["timeout"] + 60:
-        with _LOCK:  # the process that was asking the agent is gone (a restart): the rules' reading stands
+    if s.get("state") == "understanding" and time.time() - u.get("t0", 0) > deadline(data_dir) and (P is not None or not s.get("client_pending")):
+        with _LOCK:
             s = json.loads(f.read_text(encoding="utf-8"))
             if s.get("state") == "understanding":
-                s["understood"] = dict(s.get("understood") or {}, by="规则", why="智能体没有及时回答")
-                s.pop("understanding_job", None)
-                _plan(s)
-                if s.get("state_before") == "confirmed":
-                    s["state"] = "confirmed"
-                s.pop("state_before", None)
+                _give_up(P, s, "智能体没有及时回答")
                 _save(data_dir, s)
     return s
+
+
+def _give_up(P, s: dict, why: str) -> None:
+    """The agent's reading is not coming: the rules' reading stands, and a client's answer waiting on it lands."""
+    job = s.pop("understanding_job", None) or {}
+    if job.get("refine"):
+        for i in job["refine"]:  # the answers still count: they are written next to the criteria they settle
+            if i < len(s["items"]):
+                s["items"][i]["refined"] = False
+        s["understood"] = dict(s.get("understood") or {}, why=why)
+    else:
+        s["understood"] = dict(s.get("understood") or {}, by="规则", why=why)
+    if s.get("client_pending") and P is not None:
+        _plan(s)
+        _land_client(P, s)
+    else:
+        _plan(s)
+        if s.get("state_before") == "confirmed":
+            s["state"] = "confirmed"
+        s.pop("state_before", None)
+    if P is not None:
+        _note(P, s, "需求理解：%s，按规则处理%s" % (why, "（客户的答复照样记上了）" if job.get("client") else ""))
+
+
+def _note(P, s: dict, text: str) -> None:
+    """A line on every ticket the conversation made."""
+    for k in list(s.get("tickets") or []) + list(s.get("children") or []):
+        try:
+            t = P.store.ticket(k)
+            if t:
+                P.store.event(t["id"], "需求理解", "flow", text)
+        except Exception:  # noqa: BLE001 - a note must never break the conversation
+            pass
+
+
+def sweep(P) -> int:
+    """Conversations left waiting on a reading that is not coming (the server restarted meanwhile): settled now."""
+    n = 0
+    for f in sorted(idir(P.data_dir).glob("*.json")):
+        if re.fullmatch(r"[0-9a-f]{12}", f.stem):
+            try:
+                if json.loads(f.read_text(encoding="utf-8")).get("state") == "understanding" and \
+                        load(P.data_dir, f.stem, P).get("state") != "understanding":
+                    n += 1
+            except (ApiError, OSError, ValueError):
+                pass
+    return n
+
+
+def watch(P, every: int = 300) -> None:
+    def loop():
+        while True:
+            try:
+                sweep(P)
+            except Exception as e:  # noqa: BLE001
+                print("[intake] %s" % e, flush=True)
+            time.sleep(every)
+    threading.Thread(target=loop, daemon=True).start()
 
 
 def _save(data_dir: Path, s: dict) -> dict:
@@ -360,7 +437,7 @@ def start(P, p: dict, text: str, by: str, channel: str = "web", chooser=None, pi
     if big:
         s["big"], s["spec_slots"] = True, {}
     _plan(s)
-    name = understander(P) if agent else ""
+    name = understander(P, p) if agent else ""
     if name:
         s["state"] = "understanding"
         s["understanding_job"] = {"agent": name, "t0": time.time(), "id": uuid.uuid4().hex[:8]}
@@ -368,7 +445,17 @@ def start(P, p: dict, text: str, by: str, channel: str = "web", chooser=None, pi
     if name:
         _spawn(P, p, s, name, wait)
         if wait:
-            s = load(P.data_dir, s["id"])
+            s = load(P.data_dir, s["id"], P)
+    return s
+
+
+def wait_for(P, sid: str, limit: float | None = None) -> dict:
+    """The conversation once the agent's reading is in (or given up on)."""
+    end = time.time() + (deadline(P.data_dir) + 5 if limit is None else limit)
+    s = load(P.data_dir, sid, P)
+    while s["state"] == "understanding" and time.time() < end:
+        time.sleep(0.1)
+        s = load(P.data_dir, sid, P)
     return s
 
 
@@ -439,7 +526,7 @@ def _busy(s: dict) -> None:
 def mark_big(P, sid: str, by: str, on: bool = True) -> dict:
     """The person says these asks are one feature (or not after all): the spec questions join the conversation."""
     with _LOCK:
-        s = load(P.data_dir, sid)
+        s = load(P.data_dir, sid, P)
         _busy(s)
         if on:
             s["big"], s["big_by"] = True, by
@@ -477,17 +564,24 @@ def spec(s: dict) -> dict:
 RULE_SLOTS = ("trigger", "expected", "who", "since", "record", "example")
 
 
-def _apply(s: dict, answers: dict, by: str, client: bool = False) -> list:
-    """Answers into the conversation; returns the indices of agent-read items that got new answers."""
+def one_line(v) -> str:
+    """An answer or a criterion as one line: a newline in it would break the ticket's "- A1 …" list."""
+    return re.sub(r"\s+", " ", str(v or "")).strip()
+
+
+def _apply(s: dict, answers: dict, by: str, client: dict | None = None, got: dict | None = None) -> list:
+    """Answers into the conversation; returns the indices of agent-read items that got new answers. `client`:
+    {"<item>": [slots]} a client's link asked; only those, and only while still unanswered, are taken. `got`
+    collects {item: [slots answered]}."""
     fresh = []
     for k, slots in (answers or {}).items():
         if k == "spec":  # about the whole of a big requirement
-            if client:
+            if client is not None:
                 continue
             if not s.get("big"):
                 raise ApiError(400, "这段对话没有标成大需求")
             for slot, val in (slots or {}).items():
-                val = str(val or "").strip()[:600]
+                val = one_line(val)[:600]
                 if slot not in dict((x[0], 1) for x in SPEC_Q):
                     raise ApiError(400, "不认识的问题：%s" % slot)
                 if val:
@@ -500,14 +594,19 @@ def _apply(s: dict, answers: dict, by: str, client: bool = False) -> list:
         if not isinstance(slots, dict):
             raise ApiError(400, "回答要写成 {问题: 回答}")
         for slot, val in slots.items():
-            val = str(val or "").strip()[:600]
-            if slot == "flow" and not client:
+            val = one_line(val)[:600]
+            if client is not None:
+                if slot not in (client.get(str(k)) or []) or (slot in it["slots"] and not it["slots"][slot].get("unsure")):
+                    continue  # not asked on this link, or settled meanwhile
+                if slot in ("flow", "kind"):
+                    continue
+            if slot == "flow":
                 it["asked"].append("flow")
                 it["flow"] = next((f for f in it["flows"] if f["name"] == val), None) or ({"id": "", "name": val, "tables": []} if val and val not in ("都不是", NEW_MODULE) else None)
                 if val in ("都不是", NEW_MODULE):
                     it["flows"], it["new_module"] = [], True
                 continue
-            if slot == "kind" and not client:
+            if slot == "kind":
                 if val not in KINDS:
                     raise ApiError(400, "类型只能是：%s" % "、".join(KINDS))
                 it["kind"], it["kind_by"] = val, by
@@ -519,21 +618,33 @@ def _apply(s: dict, answers: dict, by: str, client: bool = False) -> list:
                 continue
             it["asked"].append(slot)
             it["slots"][slot] = {"value": val, "from": by, "unsure": val == UNSURE}
+            if got is not None:
+                got.setdefault(int(k), []).append(slot)
             if it.get("by") == "智能体" and val != UNSURE:
                 fresh.append(int(k))
     return sorted(set(fresh))
 
 
-def answer(P, sid: str, by: str, answers: dict, wait: bool = False) -> dict:
+def answer(P, sid: str, by: str, answers: dict, wait: bool = False, gather: bool = False) -> dict:
     """answers: {"<item index>": {"<slot>": "value"}}; "不清楚" leaves it as 待确认. Items the agent read are read
-    again with the answers (in the background; `wait` to block), so the criteria say what was answered."""
+    again with the answers (in the background; `wait` to block), so the criteria say what was answered. `gather`
+    (a chat, one answer a message): the reading waits until the round's questions are all answered.
+    A link sent to the client for these questions stops working: the engineer answered first."""
     with _LOCK:
-        s = load(P.data_dir, sid)
+        s = load(P.data_dir, sid, P)
         _busy(s)
         fresh = _apply(s, answers, by)
         s["rounds"] += 1
         _plan(s)
-        name = understander(P) if fresh and (s.get("understood") or {}).get("by") == "智能体" else ""
+        _void_links(P.data_dir, sid, "stale")
+        if gather:
+            pend = set(s.get("gathered_items") or []) | set(fresh)
+            if any(s["items"][i].get("questions") for i in pend):  # the rest of the round first: one reading for all of it
+                s["gathered_items"], fresh = sorted(pend), []
+            else:
+                s.pop("gathered_items", None)
+                fresh = sorted(pend)
+        name = understander(P, P.project(s["project"])) if fresh and (s.get("understood") or {}).get("by") == "智能体" else ""
         if name:
             s["state"] = "understanding"
             s["understanding_job"] = {"agent": name, "t0": time.time(), "id": uuid.uuid4().hex[:8], "refine": fresh}
@@ -541,7 +652,7 @@ def answer(P, sid: str, by: str, answers: dict, wait: bool = False) -> dict:
     if name:
         _spawn(P, P.project(s["project"]), s, name, wait)
         if wait:
-            s = load(P.data_dir, sid)
+            s = load(P.data_dir, sid, P)
     return s
 
 
@@ -571,8 +682,8 @@ def criteria(it: dict) -> list:
         out.append({"id": "A2", "text": "当修正完成时，%s 应当和正确值一致，并留下修改前后的记录" % (rec or "【待确认：哪几条数据】"),
                     "layer": "L4", "check": "逐条核对修正前后的值", "open": not rec})
     out.append({"id": "A%d" % (len(out) + 1), "text": "必须保持：%s其他环节和其他用户的现有行为不变" % ("「%s」的" % flow if flow else ""),
-                "layer": "L1", "check": "跑现有测试，并抽查相邻功能", "open": False})
-    return out
+                "layer": "L1", "check": "跑现有测试，并抽查相邻功能", "open": False, "keep": True})
+    return [dict(a, text=one_line(a["text"]), check=one_line(a["check"])) for a in out]
 
 
 def _agent_criteria(it: dict) -> list:
@@ -585,21 +696,27 @@ def _agent_criteria(it: dict) -> list:
         check = a["check"] + ("（按补充：%s）" % "；".join(got) if got and not it.get("refined") else "")
         out.append({"id": a["id"], "text": a["text"], "layer": a.get("layer") or "L2", "check": check, "open": bool(blocked)})
     for k in it.get("keep") or []:
-        out.append({"id": "A%d" % (len(out) + 1), "text": "必须保持：%s" % k, "layer": "L1", "check": "跑现有测试，并抽查相邻功能", "open": False})
+        out.append({"id": "A%d" % (len(out) + 1), "text": "必须保持：%s" % k, "layer": "L1", "check": "跑现有测试，并抽查相邻功能", "open": False,
+                    "keep": True})
     if not it.get("keep"):
         flow = (it.get("flow") or {}).get("name", "")
         out.append({"id": "A%d" % (len(out) + 1), "text": "必须保持：%s其他环节和其他用户的现有行为不变" % ("「%s」的" % flow if flow else ""),
-                    "layer": "L1", "check": "跑现有测试，并抽查相邻功能", "open": False})
-    return out
+                    "layer": "L1", "check": "跑现有测试，并抽查相邻功能", "open": False, "keep": True})
+    return [dict(a, text=one_line(a["text"]), check=one_line(a["check"])) for a in out]
 
 
 # ---------------------------------------------------------------- understanding by an agent
 
-def understander(P) -> str:
-    """The agent that reads clients' words ("" for the rules only)."""
+def understander(P, p: dict | None = None) -> str:
+    """The agent that reads clients' words ("" for the rules only: so set, or this project used its hour's share)."""
     st = settings(P.data_dir)
     if st["understand"] == "rules":
         return ""
+    if p and st["per_hour"] and P.store:
+        since = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() - 3600))
+        recent = [r for r in P.store.runs(project_id=p["id"], limit=max(200, st["per_hour"] * 4)) if r["mode"] == "understand" and r["created"] >= since]
+        if len(recent) >= st["per_hour"]:
+            return ""
     from .agents import available
     names = [a["name"] for a in available(P.data_dir) if a["available"]]
     if st["agent"] in names:
@@ -689,17 +806,14 @@ def parse(text: str) -> dict:
     from .fixloop import fenced
     j = fenced("tmh-intake", text)
     if j is None:
-        m = re.search(r"\{.*\}", text or "", re.S)
-        if not m:
-            raise ValueError("没有 JSON")
-        j = json.loads(m.group(0))
+        raise ValueError("没有 tmh-intake 代码块")
     if not isinstance(j, dict) or not isinstance(j.get("items"), list) or not 1 <= len(j["items"]) <= MAX_ITEMS:
         raise ValueError("items 要是 1 到 %d 件事" % MAX_ITEMS)
 
     def s(v, lo, hi, what):
-        if not isinstance(v, str) or not lo <= len(v.strip()) <= hi:
+        if not isinstance(v, str) or not lo <= len(one_line(v)) <= hi:
             raise ValueError("%s 不合要求" % what)
-        return v.strip()
+        return one_line(v)
 
     out = {"title": s(j.get("title") or "需求", 1, 60, "title"), "drop": [], "items": [], "big": j.get("big") is True}
     for d in j.get("drop") or []:
@@ -804,6 +918,44 @@ def _merge_answers(old: list, new: list, refine: list) -> list:
     return out
 
 
+def _merge_confirmed(old: list, new: list, refine: list, answered: dict) -> tuple[list, dict]:
+    """A second reading after the tickets were made: the contract is settled, so only the criteria this answer
+    unblocked take the new reading's words. Everything else stays as confirmed; what the reading would have changed
+    besides is returned ({item: [what]}) so the tickets can say it was left out."""
+    out, ignored = [], {}
+    for i, o in enumerate(old):
+        if i not in refine or i >= len(new) or o.get("by") != "智能体":
+            out.append(o)
+            continue
+        n = new[i]
+        qs = [q for q in o.get("agent_q") or [] if q["slot"] in (answered.get(str(i)) or answered.get(i) or [])]
+        # the questions answered were open until now (a client answers only those), so what they blocked was 待确认
+        unblocked = {a["id"] for a in o.get("agent_ac") or [] if any(not q.get("blocks") or a["id"] in q["blocks"] for q in qs)}
+        keep = json.loads(json.dumps(o))
+        nac = {a["id"]: a for a in n.get("agent_ac") or []}
+        diff, took = [], False
+        for a in keep.get("agent_ac") or []:
+            na = nac.get(a["id"])
+            if a["id"] in unblocked and na:
+                a["text"], a["check"], took = na["text"], na["check"], True
+            elif na and na["text"] != a["text"]:
+                diff.append("%s 的说法" % a["id"])
+        if set(nac) != {a["id"] for a in keep.get("agent_ac") or []}:
+            diff.append("验收标准的条数和编号")
+        if n.get("title") != o.get("title"):
+            diff.append("标题")
+        if n.get("restated") != o.get("restated"):
+            diff.append("我们的理解")
+        if n.get("agent_q"):
+            diff.append("又提了 %d 个新问题" % len(n["agent_q"]))
+        if took:
+            keep["refined"] = True
+        out.append(keep)
+        if diff:
+            ignored[i] = diff
+    return out, ignored
+
+
 def _spawn(P, p: dict, s: dict, name: str, wait: bool) -> None:
     th = threading.Thread(target=_understand, args=(P, p, s["id"], s["understanding_job"]["id"], name), daemon=True)
     th.start()
@@ -812,20 +964,22 @@ def _spawn(P, p: dict, s: dict, name: str, wait: bool) -> None:
 
 
 def _understand(P, p: dict, sid: str, job: str, name: str) -> None:
-    """Ask the agent; apply its reading if it validates and the conversation still waits for it, else keep the rules'."""
+    """Ask the agent; apply its reading if it validates and the conversation still waits for it, else keep the rules'.
+    The agent gets no tools and an empty directory: it reads the words it is given, nothing else."""
     from .agents import load_config
     st = P.store
-    s = load(P.data_dir, sid)
-    refine = (s.get("understanding_job") or {}).get("refine") or []
-    rid, got, why = None, None, ""
+    rid, got, why, refine, cwd = None, None, "", [], None
     try:
+        s = load(P.data_dir, sid, P)
+        refine = (s.get("understanding_job") or {}).get("refine") or []
         conf = load_config(P.data_dir)
         conf[name] = dict(conf[name], timeout=settings(P.data_dir)["timeout"])
         text = prompt(P, p, s)
         run = st.create_run(p["id"], None, name, "understand", s["by"], text, ("再读：" if refine else "") + s["text"][:180])
         rid = run["id"]
-        st.update_run(rid, status="running", started=time.strftime("%Y-%m-%d %H:%M:%S"), workdir=str(P.root(p)))
-        code, result = P.runner.invoke(rid, p, None, name, conf, "understand", text, P.root(p), (conf[name].get("defaults") or {}).get("understand", ""))
+        cwd = Path(tempfile.mkdtemp(prefix="tmh-understand-"))
+        st.update_run(rid, status="running", started=time.strftime("%Y-%m-%d %H:%M:%S"), workdir=str(cwd))
+        code, result = P.runner.invoke(rid, p, None, name, conf, "understand", text, cwd, (conf[name].get("defaults") or {}).get("understand", ""))
         st.update_run(rid, status="done" if code == 0 else "failed", ended=time.strftime("%Y-%m-%d %H:%M:%S"), exit_code=code, result=(result or "")[:6000])
         if code != 0:
             raise ValueError("智能体退出码 %s" % code)
@@ -840,14 +994,31 @@ def _understand(P, p: dict, sid: str, job: str, name: str) -> None:
                 st.append_output(rid, "— 没用上这次理解：%s，按规则\n" % why)
             except Exception:  # noqa: BLE001
                 pass
+    finally:
+        if cwd:
+            shutil.rmtree(cwd, ignore_errors=True)
     with _LOCK:
-        s = load(P.data_dir, sid)
-        if s.get("state") != "understanding" or (s.get("understanding_job") or {}).get("id") != job:
-            return  # dropped, or a newer reading was asked for meanwhile
+        try:
+            s = load(P.data_dir, sid, P)
+        except ApiError:
+            return
+        jb = s.get("understanding_job") or {}
+        if s.get("state") != "understanding" or jb.get("id") != job:
+            # dropped, given up on (too late: the rules already read it), or a newer reading was asked for meanwhile
+            if got and s.get("state") != "dropped":
+                _note(P, s, "智能体的理解来得太晚（这段需求已经%s），没有用上" % ("按规则处理过" if s.get("state") != "understanding" else "又有了新的答复"))
+            return
         s.pop("understanding_job", None)
         if got:
             items = _agent_items(P, p, s, got)
-            if refine:
+            if refine and s.get("state_before") == "confirmed":
+                items, ignored = _merge_confirmed(s["items"], items, refine, jb.get("slots") or {})
+                for i, what in ignored.items():
+                    t = P.store.ticket(s["items"][i]["ticket"]) if s["items"][i].get("ticket") else None
+                    if t:
+                        P.store.event(t["id"], "需求理解", "flow", "智能体按客户答复再读时，还改了%s；单子已经确认过，这些改动没有用上，原样保留"
+                                      % "、".join(what))
+            elif refine:
                 items = _merge_answers(s["items"], items, refine)
             s["items"] = items
             if got["title"] and not refine:
@@ -902,8 +1073,10 @@ def confirm(P, sid: str, by: str, items: list | None = None, deps: dict | None =
     """The person confirms: each chosen item becomes a ticket, the confirmation goes into its evidence package.
     A big requirement becomes a parent with its children instead (deps and wave say how they are released).
     `hand`: items the person writes themselves (我来写): claimed before the automatic line can pick them up."""
-    with _CONFIRM:
-        return _confirm(P, sid, by, items, deps, wave, hand)
+    with _CONFIRM, _LOCK:  # nobody else writes the conversation meanwhile (an answer, the agent's reading)
+        s = _confirm(P, sid, by, items, deps, wave, hand)
+        _void_links(P.data_dir, sid, "stale")  # questions sent before confirming were about a draft
+        return s
 
 
 def intake_record(s: dict, it: dict, by: str, **more) -> dict:
@@ -915,7 +1088,7 @@ def intake_record(s: dict, it: dict, by: str, **more) -> dict:
 def _confirm(P, sid: str, by: str, items: list | None = None, deps: dict | None = None, wave: int | None = None,
              hand: list | None = None) -> dict:
     from .signoff import _add, epath
-    s = load(P.data_dir, sid)
+    s = load(P.data_dir, sid, P)
     _busy(s)
     p = P.project(s["project"])
     if s.get("big"):
@@ -967,7 +1140,7 @@ def _confirm(P, sid: str, by: str, items: list | None = None, deps: dict | None 
 
 def drop(P, sid: str, by: str) -> dict:
     with _LOCK:
-        s = load(P.data_dir, sid)
+        s = load(P.data_dir, sid, P)
         s["state"], s["dropped_by"] = "dropped", by
         s.pop("understanding_job", None)
         return _save(P.data_dir, s)
@@ -1026,16 +1199,45 @@ def _th(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-def client_questions(s: dict, only: list | None = None) -> list:
-    """[(item index, item, [questions])] the client can answer: what blocks building, never "which flow"."""
+def client_questions(s: dict, only: list | None = None, slots: dict | None = None) -> list:
+    """[(item index, item, [questions])] the client can answer: what blocks building, never "which flow". `slots`
+    ({"<item>": [slot]}, a link's own questions): only those, and only while still unanswered."""
     out = []
     for i, it in enumerate(s["items"]):
         if it["kind"] == "question" or (only is not None and i not in only):
             continue
         qs = [q for q in it.get("questions") or [] if q["slot"] != "flow"]
+        if slots is not None:
+            qs = [q for q in qs if q["slot"] in (slots.get(str(i)) or [])]
         if qs:
             out.append((i, it, qs))
     return out
+
+
+def _started(P, it: dict) -> bool:
+    """Work on this item's ticket has begun (or it is someone's 我来写): the client's answers no longer reach it."""
+    t = P.store.ticket(it["ticket"]) if it.get("ticket") else None
+    return bool(t) and t["status"] not in ("new", "confirm")
+
+
+def _void_links(data_dir: Path, sid: str, why: str) -> None:
+    """Every live question link of a conversation stops working ("replaced" by a new one, "stale": the engineer
+    answered or confirmed meanwhile). Called with _LOCK held."""
+    asks = _asks(data_dir)
+    hit = False
+    for x in asks.values():
+        if x["session"] == sid and not x.get("used"):
+            x["used"], hit = why, True
+    if hit:
+        _save_asks(data_dir, asks)
+
+
+USED = {"replaced": "这个链接已被新链接替换，请打开工程师最新发给您的链接。",
+        "stale": "这些问题工程师已经处理了，这个链接不用再答。有新情况请直接联系工程师。"}
+
+
+def _used_text(x: dict) -> str:
+    return USED.get(x.get("used") or "", "这个链接已经答过了，谢谢！要补充请联系工程师。")
 
 
 def session_of(P, key: str) -> dict | None:
@@ -1044,29 +1246,29 @@ def session_of(P, key: str) -> dict | None:
     for r in reversed(records(P.data_dir, key)):
         if r.get("kind") == "intake" and (r.get("data") or {}).get("session"):
             try:
-                return load(P.data_dir, r["data"]["session"])
+                return load(P.data_dir, r["data"]["session"], P)
             except ApiError:
                 return None
     return None
 
 
 def ask_client(P, sid: str, by: str, items: list | None = None, days: int = ASK_DAYS, tell: bool = True) -> dict:
-    """A link the client answers the open questions on, in plain words (one live link per conversation)."""
+    """A link the client answers the open questions on, in plain words (one live link per conversation). Items
+    whose work has begun are not asked about."""
     with _LOCK:
-        s = load(P.data_dir, sid)
+        s = load(P.data_dir, sid, P)
         if s["state"] in ("dropped", "understanding"):
             raise ApiError(409, "这段对话现在不能发问题")
-        qs = client_questions(s, items)
+        qs = [x for x in client_questions(s, items) if not _started(P, x[1])]
         if not qs:
             raise ApiError(409, "没有要问客户的问题")
         token = secrets.token_urlsafe(24)
         days = max(1, min(30, int(days or ASK_DAYS)))
         exp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() + days * 86400))
+        _void_links(P.data_dir, sid, "replaced")
         asks = _asks(P.data_dir)
-        for x in asks.values():
-            if x["session"] == sid and not x.get("used"):
-                x["used"] = "replaced"
-        asks[_th(token)] = {"session": sid, "items": [i for i, _, _ in qs], "expires": exp, "by": by, "used": ""}
+        asks[_th(token)] = {"session": sid, "items": [i for i, _, _ in qs], "slots": {str(i): [q["slot"] for q in q_] for i, _, q_ in qs},
+                            "expires": exp, "by": by, "used": ""}
         _save_asks(P.data_dir, asks)
         s.setdefault("asked_client", []).append({"by": by, "at": time.strftime("%Y-%m-%d %H:%M:%S"), "expires": exp,
                                                  "questions": sum(len(q) for _, _, q in qs)})
@@ -1077,11 +1279,16 @@ def ask_client(P, sid: str, by: str, items: list | None = None, days: int = ASK_
             t = P.store.ticket(it["ticket"])
             if t:
                 P.store.event(t["id"], by, "flow", "把 %d 个问题发给客户（链接 %d 天内有效），答复回来就补全验收标准%s" % (
-                    len(q), days, "、自动开始" if P.flow.autoflow().get("on") else ""))
+                    len(q), days, "、自动开始" if P.flow.autoflow().get("on") and not _held(t) else ""))
     told = False
     if tell:
         told = _tell_chat(P, s, path, qs)
     return {"token": token, "path": path, "expires": exp, "questions": sum(len(q) for _, _, q in qs), "told_chat": told}
+
+
+def _held(t: dict) -> str:
+    lk = t.get("links") or {}
+    return lk.get("handwork") or lk.get("hold") or ""
 
 
 def _tell_chat(P, s: dict, path: str, qs: list) -> bool:
@@ -1109,28 +1316,36 @@ def ask_of(data_dir: Path, token: str) -> dict:
 
 
 def client_answer(P, token: str, answers: dict, name: str = "", wait: bool = False) -> dict:
-    """The client's answers: into the conversation, the criteria rewritten (by the agent when it read the items),
-    then into the tickets already made, which go on the automatic line once nothing is 待确认."""
+    """The client's answers: only the questions their link asked and nobody answered since, while the work has not
+    begun. They go into the conversation, the criteria are rewritten (by the agent when it read the items), then
+    reach the tickets already made: a criterion that was 待确认 is filled in; anything that would change what was
+    already confirmed waits for the engineer (accept_client_change)."""
     from .. import evidence as ev
-    x = ask_of(P.data_dir, token)
-    if x.get("used"):
-        raise ApiError(410, "这个链接已经答过或被新链接替换了")
-    if x["expires"] < ev.now():
-        raise ApiError(410, "链接已过期，请联系工程师重新发送")
-    who = "%s（客户）" % (name.strip()[:30] or "客户")
-    with _LOCK:
-        s = load(P.data_dir, x["session"])
+    ask_of(P.data_dir, token)  # a wrong link is a 404 before anything else
+    who = "%s（客户）" % (one_line(name)[:30] or "客户")
+    with _LOCK:  # read again under the lock: a second submit of the same form finds the link used
+        x = _asks(P.data_dir).get(_th(token))
+        if not x:
+            raise ApiError(404, "链接不对或已作废")
+        if x.get("used"):
+            raise ApiError(410, _used_text(x))
+        if x["expires"] < ev.now():
+            raise ApiError(410, "链接已过期，请联系工程师重新发送")
+        s = load(P.data_dir, x["session"], P)
         if s["state"] in ("dropped", "understanding"):
             raise ApiError(409, "这段需求现在不能回答，稍后再试")
+        if any(_started(P, s["items"][i]) for i in x["items"] if i < len(s["items"])):
+            raise ApiError(409, "工程师已经开始做了，这些问题不用再答；有新情况请直接联系工程师")
+        slots = x.get("slots") or {str(i): [q["slot"] for q in s["items"][i].get("questions") or []] for i in x["items"] if i < len(s["items"])}
         clean_ans = {}
-        for k, slots in (answers or {}).items():
-            if not k.isdigit() or int(k) not in x["items"]:
-                continue
-            clean_ans[k] = {sl: v for sl, v in (slots or {}).items() if str(v or "").strip()}
-        if not any(clean_ans.values()):
-            raise ApiError(400, "至少回答一个问题；不知道的写“不清楚”")
+        for k, sl in (answers or {}).items():
+            if str(k).isdigit() and str(k) in slots and isinstance(sl, dict):
+                clean_ans[str(k)] = {a: v for a, v in sl.items() if one_line(v)}
+        got = {}
         was = s["state"]
-        fresh = _apply(s, clean_ans, who, client=True)
+        fresh = _apply(s, clean_ans, who, client=slots, got=got)
+        if not got:
+            raise ApiError(400, "至少回答一个问题；不知道的写“不清楚”")
         s["rounds"] += 1
         asks = _asks(P.data_dir)
         asks[_th(token)]["used"] = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -1138,24 +1353,38 @@ def client_answer(P, token: str, answers: dict, name: str = "", wait: bool = Fal
         _plan(s)
         if was == "confirmed":
             s["state"] = "confirmed"
-        s["client_pending"] = {"by": who, "items": [int(k) for k in clean_ans]}
-        name_ = understander(P) if fresh and (s.get("understood") or {}).get("by") == "智能体" else ""
+        s["client_pending"] = {"by": who, "items": sorted(got)}
+        name_ = understander(P, P.project(s["project"])) if fresh and (s.get("understood") or {}).get("by") == "智能体" else ""
         if name_:
             s["state_before"] = s["state"]
             s["state"] = "understanding"
-            s["understanding_job"] = {"agent": name_, "t0": time.time(), "id": uuid.uuid4().hex[:8], "refine": fresh}
+            s["understanding_job"] = {"agent": name_, "t0": time.time(), "id": uuid.uuid4().hex[:8], "refine": fresh,
+                                      "slots": {str(i): v for i, v in got.items()}, "client": True}
         else:
             _land_client(P, s)
         _save(P.data_dir, s)
     if name_:
         _spawn(P, P.project(s["project"]), s, name_, wait)
-    return {"ok": True, "answered": sum(len(v) for v in clean_ans.values())}
+    return {"ok": True, "answered": sum(len(v) for v in got.values())}
+
+
+def beyond(old: list, new: list) -> list:
+    """What `new` criteria change of the confirmed `old` beyond filling in what was 待确认 ([] when nothing)."""
+    if not old:
+        return []
+    out = []
+    if [a["id"] for a in old] != [a["id"] for a in new]:
+        out.append("验收标准的条数和编号")
+    nt = {a["id"]: a["text"] for a in new}
+    out += ["%s 的说法" % a["id"] for a in old if not a.get("open") and a["id"] in nt and one_line(nt[a["id"]]) != one_line(a["text"])]
+    return out
 
 
 def _land_client(P, s: dict) -> None:
-    """The client's answers reach the tickets: criteria rewritten in the body and the evidence package, and a
-    ticket with nothing 待确认 left goes on the line. Called with _LOCK held and `s` about to be saved."""
-    from .signoff import _add, epath
+    """The client's answers reach the tickets. A criterion that was 待确认 is filled in (body, evidence, and the
+    ticket goes on the line once nothing is 待确认); a change to what was already confirmed is held for the engineer.
+    Called with _LOCK held and `s` about to be saved."""
+    from .signoff import client_ac
     cp = s.pop("client_pending", None) or {}
     if s.get("state_before"):
         s["state"] = s.pop("state_before")
@@ -1163,36 +1392,75 @@ def _land_client(P, s: dict) -> None:
             _plan(s)
     if s["state"] != "confirmed":
         return
-    p = P.project(s["project"])
+    who = cp.get("by") or "客户"
     for i in cp.get("items") or []:
         it = s["items"][i]
-        k = it.get("ticket")
-        t = P.store.ticket(k) if k else None
+        t = P.store.ticket(it["ticket"]) if it.get("ticket") else None
         if not t or t["status"] == "closed":
             continue
-        body = t.get("body") or ""
-        new = ticket_body(s, it)
-        if (t.get("links") or {}).get("parent"):  # a child keeps its own head; only the criteria section changes
-            sec = re.search(r"## 验收标准[^\n]*\n(?:- [^\n]*\n?)*", new)
-            body = re.sub(r"## 验收标准[^\n]*\n(?:- [^\n]*\n?)*", lambda m: sec.group(0).rstrip("\n") + "\n", body, count=1) if sec else body
+        bad = beyond(client_ac(P.data_dir, t["key"]), it["ac"])
+        if bad:
+            it["held_change"] = {"by": who, "at": time.strftime("%Y-%m-%d %H:%M:%S"), "what": bad, "ac": it["ac"]}
+            P.store.update_ticket(t["id"], who, links=dict(t.get("links") or {}, client_change=s["id"]))
+            P.store.event(t["id"], who, "flow", "客户的答复会改动已经确认的验收标准（%s）：要工程师确认后才生效，在这之前按原来的标准，不自动开工"
+                          % "、".join(bad))
+            continue
+        _land_item(P, s, it, t, who, "客户答复")
+
+
+def _land_item(P, s: dict, it: dict, t: dict, who: str, via: str) -> None:
+    """An item's criteria into its ticket: body, evidence (the new contract), and on the line when nothing is open."""
+    from .signoff import _add, contract_changed, epath
+    body = t.get("body") or ""
+    new = ticket_body(s, it)
+    if (t.get("links") or {}).get("parent"):  # a child keeps its own head; only the criteria section changes
+        sec = re.search(r"## 验收标准[^\n]*\n(?:- [^\n]*\n?)*", new)
+        body = re.sub(r"## 验收标准[^\n]*\n(?:- [^\n]*\n?)*", lambda m: sec.group(0).rstrip("\n") + "\n", body, count=1) if sec else body
+    else:
+        body = new
+    opened = [a for a in it["ac"] if a["open"]]
+    links = dict(t.get("links") or {})
+    links.pop("client_change", None)
+    if opened:
+        links["open_ac"] = len(opened)
+    else:
+        links.pop("open_ac", None)
+    P.store.update_ticket(t["id"], who, body=body, links=links)
+    _add(epath(P.data_dir, t["key"]), "intake", who, intake_record(s, it, who, via=via))
+    P.store.event(t["id"], who, "evidence", "%s：验收标准更新为 %d 条%s" % (
+        "客户答复了问题" if via == "客户答复" else via, len(it["ac"]), "，还有 %d 条待确认" % len(opened) if opened else "，都已确认"))
+    contract_changed(P, P.store.ticket(t["id"]), who)
+    if opened or links.get("later"):
+        return
+    held = _held(dict(t, links=links))
+    if held:
+        P.store.event(t["id"], "自动流转", "flow", "验收标准都已确认；这张单由 %s 手写，不交给自动处理" % held)
+    elif P.flow.autoflow().get("on"):
+        P.store.event(t["id"], "自动流转", "flow", "验收标准都已确认，交给自动处理")
+        P.flow.resume(P.project(s["project"]), P.store.ticket(t["id"]))
+    else:
+        P.store.event(t["id"], "自动流转", "flow", "验收标准都已确认，可以开工了")
+
+
+def accept_client_change(P, key: str, by: str, accept: bool = True) -> dict:
+    """The engineer decides on a client's answer that would change confirmed criteria: take it (it becomes the
+    contract, and the ticket goes on as usual) or keep the confirmed ones."""
+    t = P.store.ticket(key)
+    if not t:
+        raise ApiError(404, "没有这张单")
+    with _LOCK:
+        s = session_of(P, key)
+        it = next((x for x in (s or {}).get("items") or [] if x.get("ticket") == t["key"] and x.get("held_change")), None)
+        if not s or not it:
+            raise ApiError(409, "这张单没有等确认的客户改动")
+        hc = it.pop("held_change")
+        if accept:
+            _land_item(P, s, it, t, by, "工程师确认了客户答复带来的改动")
         else:
-            body = new
-        opened = [a for a in it["ac"] if a["open"]]
-        links = dict(t.get("links") or {})
-        if opened:
-            links["open_ac"] = len(opened)
-        else:
-            links.pop("open_ac", None)
-        P.store.update_ticket(t["id"], cp.get("by") or "客户", body=body, links=links)
-        _add(epath(P.data_dir, t["key"]), "intake", cp.get("by") or "客户", intake_record(s, it, cp.get("by") or "客户", via="客户答复"))
-        P.store.event(t["id"], cp.get("by") or "客户", "evidence", "客户答复了问题，验收标准更新为 %d 条%s" % (
-            len(it["ac"]), "，还有 %d 条待确认" % len(opened) if opened else "，都已确认"))
-        if not opened and not links.get("later"):
-            if P.flow.autoflow().get("on"):
-                P.store.event(t["id"], "自动流转", "flow", "客户答复后验收标准都已确认，交给自动处理")
-                P.flow.resume(p, P.store.ticket(t["id"]))
-            else:
-                P.store.event(t["id"], "自动流转", "flow", "客户答复后验收标准都已确认，可以开工了")
+            P.store.update_ticket(t["id"], by, links={k: v for k, v in (t.get("links") or {}).items() if k != "client_change"})
+            P.store.event(t["id"], by, "flow", "没有采用客户答复带来的改动（%s），按原来确认的验收标准" % "、".join(hc.get("what") or []))
+        _save(P.data_dir, s)
+    return P.store.ticket(t["id"])
 
 
 def client_page(P, token: str, msg: str = "", done: bool = False) -> str:
@@ -1204,10 +1472,13 @@ def client_page(P, token: str, msg: str = "", done: bool = False) -> str:
         x = ask_of(P.data_dir, token)
     except ApiError as e:
         return ev.page("需求确认", "<h1>需求确认</h1><p>%s</p>" % E(str(e)), CLIENT_CSS)
-    s = load(P.data_dir, x["session"])
+    s = load(P.data_dir, x["session"], P)
     p = P.store.project(s["project"]) if P.store else None
     title = s.get("title") or "需求确认"
     body = ["<h1>%s</h1><p class=sub>%s · 请帮我们确认几个问题，答完就开工</p>" % (E(title), E((p or {}).get("name", "")))]
+    if x.get("used") in USED:
+        body.append("<p class=bad>%s</p>" % E(USED[x["used"]]))
+        return ev.page("需求确认", "".join(body), CLIENT_CSS)
     if done or x.get("used"):
         body.append("<div class=done><b>收到，谢谢！</b><p>我们会按您的答复写好验收标准并开工，做好了会请您试用。</p></div>")
         return ev.page("需求确认", "".join(body), CLIENT_CSS)
@@ -1218,7 +1489,7 @@ def client_page(P, token: str, msg: str = "", done: bool = False) -> str:
         body.append("<p class=bad>%s</p>" % E(msg))
     body.append("<form method=post>")
     n = 0
-    for i, it, qs in client_questions(s, x["items"]):
+    for i, it, qs in client_questions(s, x["items"], x.get("slots")):
         body.append("<section class=item><div class=lbl>您说的</div><blockquote>%s</blockquote><div class=lbl>我们的理解</div><p>%s</p>" % (
             E(it["text"]), E(re.sub(r"^我理解的是[：:]", "", it.get("restated") or "") or "%s（%s）" % (it.get("title") or it["text"], KINDS[it["kind"]]))))
         for q in qs:
