@@ -166,7 +166,7 @@ def delete_client(P, cid) -> dict:
         links = dict(t["links"] or {})
         if links.get("client") == c["id"]:
             links.pop("client")
-            P.store.update_ticket(t["id"], "", links=links)
+            P.store.update_ticket(t["id"], "", links=links, drop_client=True)
     P.store.x("DELETE FROM client_links WHERE client_id=?", (c["id"],))
     P.store.x("DELETE FROM clients WHERE id=?", (c["id"],))
     return {"deleted": c["id"]}
@@ -187,7 +187,7 @@ def _set_client(P, t: dict, cid, by: str, why: str) -> None:
         links["client"] = cid
     else:
         links.pop("client", None)
-    P.store.update_ticket(t["id"], by, links=links)
+    P.store.update_ticket(t["id"], by, links=links, drop_client=not cid)
     names = {c["id"]: c["name"] for c in clients(P)}
     if cid:
         text = "记为客户 %s 提的需求" % names.get(cid, cid) + ("（原先记在 %s 名下）" % names.get(old, old) if old else "") + (("，" + why) if why else "")
@@ -404,6 +404,8 @@ def _talks(P) -> list:
     out = []
     if d.is_dir():
         for f in d.glob("*.json"):
+            if not re.fullmatch(r"[0-9a-f]{12}", f.stem):  # asks.json (the client question links) is not a talk
+                continue
             try:
                 out.append(json.loads(f.read_text(encoding="utf-8")))
             except (OSError, ValueError):
@@ -602,7 +604,9 @@ def on_release(P):
     row restart it once, for the last."""
     def fn(p, t, r):
         from . import preview
-        if preview.settings(P.data_dir)["preview"] != "auto" or not preview.command(P.data_dir, p)[2] or not wanted(P, p["key"]):
+        if preview.settings(P.data_dir)["preview"] != "auto" or not preview.command(P.data_dir, p)[2]:
+            return
+        if not wanted(P, p["key"]) and not (t.get("links") or {}).get("client"):  # a client's own change: they will want to open it
             return
         pk = (str(P.data_dir), p["key"])
         with _LOCK:
@@ -888,13 +892,15 @@ def _today(P, since: str) -> dict:
             did.append({"key": "%s-%d" % (keys.get(e["project_id"], "?"), e["num"]), "title": e["title"], "ts": e["ts"], "kind": e["kind"],
                         "text": e["body"], "by": e["author"], "client_name": cl.get(links.get("client"), "")})
     vers = []
+    from . import preview
     for p in st.projects():
+        up = preview.status(P.data_dir, standing_key(p["key"])).get("state") == "up"
         for r in release.releases(P.data_dir, p["key"], 20):
             if since and (r.get("ts") or "") <= since:
                 break
             vers.append({"project": p["key"], "version": r["version"], "ts": r.get("ts"),
                          "items": [{"key": x.get("key"), "title": x.get("title")} for x in r.get("tickets") or []],
-                         "standing": "/pv/%s/" % standing_key(p["key"])})
+                         "standing": "/pv/%s/" % standing_key(p["key"]) if up else ""})
     vers.sort(key=lambda v: v.get("ts") or "", reverse=True)
     if not since:
         vers = vers[:5]

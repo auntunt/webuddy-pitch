@@ -106,10 +106,15 @@ def starter(P, t: dict) -> str:
         cmds = {}
     body = (t.get("body") or "").strip()
     L = ["# %s %s" % (t["key"], t["title"]), "", "这是 webuddy 的开工包：自己（或用自己的 AI 工具）写这张单。写完推上来，平台会自动构建、"
-         "对照验收标准审查，通过就转给验收人，验收通过后合进主干、出版本。", "", "## 要做什么", "", body or "（工单没有写描述，以标题为准）", ""]
+         "对照验收标准审查，通过就转给验收人，验收通过后合进主干、出版本。", ""] + \
+        ([body, ""] if body.startswith("## ") else ["## 要做什么", "", body or "（工单没有写描述，以标题为准）", ""])
     L += ["## 代码在哪里", ""]
     if origin:
         L += ["```sh", "git clone %s   # 已经有就跳过，改成 git fetch origin" % origin, "git checkout -b %s origin/%s" % (branch, main or "main"), "```", ""]
+        ahead = git(root, "rev-list", "--count", "origin/%s..%s" % (main, main), check=False).strip() if main else ""
+        if ahead.isdigit() and int(ahead) > 0:  # versions the platform merged here are not pushed (release.py never pushes)
+            L += ["> 注意：平台这里的主干比 origin/%s 新 %s 个提交（已出的版本还没推到远程）。先请管理员 `git push origin %s`，"
+                  "否则你会在旧代码上改，合并时可能冲突。" % (main, ahead, main), ""]
     else:
         L += ["这个项目没有远程仓库。在工单页点“下载代码”拿到 %s.bundle，然后：" % p["key"], "", "```sh",
               "git clone -b %s %s.bundle %s && cd %s" % (main or "main", p["key"], p["key"].lower(), p["key"].lower()),

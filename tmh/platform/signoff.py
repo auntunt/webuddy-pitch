@@ -482,10 +482,13 @@ def decide(P, token: str, action: str, name: str, verdicts: dict, note: str, cli
         raise ApiError(409, "验收标准在这个签收链接发出后改过了，这个链接作废；请等乙方按新标准重新发")
     if any(a.get("open") for a in (s["snapshot"] or {}).get("ac") or []):
         raise ApiError(409, "还有验收标准待确认，现在不能签收或退回；请联系乙方")
-    acs = [a["id"] for a in (s["snapshot"] or {}).get("ac") or []]
-    res = {a: verdicts.get(a, "") if verdicts.get(a, "") in ("pass", "fail") else "" for a in acs}
+    snap = s["snapshot"] or {}
+    acs = [a["id"] for a in snap.get("ac") or []]
+    # what must keep working, with the tests passing, is shown as 自动测试已证明: nothing for the client to try by hand
+    proven = {a["id"] for a in snap.get("ac") or [] if a.get("keep")} if ((snap.get("check") or {}).get("result") == "pass" and snap.get("change")) else set()
+    res = {a: verdicts.get(a, "") if verdicts.get(a, "") in ("pass", "fail") else ("proven" if a in proven else "") for a in acs}
     if action == "sign":
-        left = [a for a, v in res.items() if v != "pass"]
+        left = [a for a, v in res.items() if v not in ("pass", "proven")]
         if left:
             raise ApiError(400, "每条验收标准都确认“通过”才能签收；%s 没确认通过（不通过请点“退回”并写原因）" % "、".join(left))
     elif action == "reject":

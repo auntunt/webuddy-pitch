@@ -396,7 +396,7 @@ const MERGE_ON=()=>(S.meta.autoflow||{}).merge==='auto';
 function onAuto(d){return !!((S.meta.autoflow||{}).on)&&!(d.ticket.links||{}).hold&&!['verify','closed'].includes(d.ticket.status)}
 // what the change went through before anyone looks at it: per-file agents, build and tests, diagnosis rounds
 function vfy(r){const v=r&&r.verify;if(!v)return '';const c={pass:'构建测试通过',fail:'构建测试没通过',skip:'没跑构建测试'}[v.check]||'';
-  return `${v.split?`${v.files} 个文件分工改，`:''}${c}${v.check==='skip'&&v.skip?'（'+h(v.skip)+'）':''}，诊断${{pass:'认为已解决',fail:'认为还没解决',unknown:'没给结论'}[v.verdict]||''}，共 ${v.rounds} 轮。`}
+  return `${v.split?`${v.files} 个文件分工改，`:''}${c}${v.check==='skip'&&v.skip?'（'+h(v.skip)+'）':''}，${v.by_hand?h(v.reviewer||'')+' 审查':'诊断'}${{pass:'认为已解决',fail:'认为还没解决',unknown:'没给结论'}[v.verdict]||''}${v.rounds?'，共 '+v.rounds+' 轮':''}。`}
 function adopted(d){const e=d.events.filter(x=>x.kind==='adopt').pop();return e&&{branch:(e.data||{}).branch||'',commit:(e.data||{}).commit||'',auto:e.author==='自动流转'}}
 function autoChip(d){const t=d.ticket;if(!(S.meta.autoflow||{}).on||['verify','closed'].includes(t.status))return '';const lk=t.links||{},held=lk.hold;
   if(!held&&lk.open_ac)return `<span class="autoc off" title="验收标准有待确认的，答清楚前不自动开始">等客户确认</span>`;
@@ -413,6 +413,12 @@ function nextAction(d,f){
     return {tone:'info',text:d.epic?'大需求的父单不直接改代码：子单分批放出、各自验收，全部完成后回到这里整体验收。':h(lt)+'。'}}
   if((t.links||{}).client_change&&t.status!=='closed')return {tone:'warn',text:'客户的答复会<b>改动已经确认的验收标准</b>（改了什么见下面的动态）。采用后按新标准继续；不采用就按原来确认的标准。在你决定之前不自动开工。',
     btns:B('naCcYes','采用客户的改动','primary')+B('naCcNo','不采用，按原标准','ghost')};
+  const hw=(t.links||{}).handwork;
+  const hwe=(d.events||[]).filter(e=>e.author==='我来写').pop();
+  if(hw&&!['verify','closed'].includes(t.status)&&hwe&&hwe.kind==='flow'&&/^收到/.test(hwe.body||''))return {tone:'info',text:`<span class="spin"></span> ${h(hwe.body)}：构建测试、对照验收标准审查，通过就转待验证。`};
+  if(hw&&!['verify','closed'].includes(t.status)&&hwe&&/还不行|没检查完/.test(hwe.body||''))return {tone:'bad',text:h(hwe.body),btns:B('naHwScan','改好推上去了，现在检查','primary')};
+  if(hw&&!['verify','closed'].includes(t.status))return {tone:'info',text:`<b>${h(hw)} 在写</b>：按开工包在自己电脑上改（Claude Code、Codex 或手写都行），提交到分支 <code>wb/${h(t.key)}</code> 推上去。平台一分钟内发现，自动构建测试、换一个模型对照验收标准审查，通过就转待验证；自动处理不会接这张单。`,
+    btns:B('naHwPack','下载开工包','primary')+B('naHwScan','推好了，现在检查','ghost')};
   const oa=(t.links||{}).open_ac;
   if(oa&&!(t.links||{}).hold&&!['verify','closed'].includes(t.status)&&!f.live)return {tone:'warn',text:`有 <b>${oa} 条验收标准还待确认</b>，答清楚之前不自动开始。把问题发给客户，客户答完验收标准自动补全${(S.meta.autoflow||{}).on?'、自动开始':''}；你已经和客户确认过，也可以直接交给自动处理。`,
     btns:B('naAsk','把问题发给客户','primary')+B('naGo','已确认，交给自动处理','ghost')+B('naClaim','我来写','ghost')};
@@ -546,6 +552,8 @@ async function vTicket(key,sub){
   if($('#naAsk'))$('#naAsk').onclick=async()=>{try{const r=await post('/api/tickets/'+key+'/ask-client',{});const url=location.origin+r.path;
     try{await navigator.clipboard.writeText(url)}catch(e){}modal(`<h2>把问题发给客户</h2><div class="sub">${r.questions} 个问题，${h(r.expires.slice(5,16))} 前有效${r.told_chat?'；已同时发到这单来源的群里':''}。客户用大白话回答，答复会写回验收标准，答清楚就自动开始。</div><input class="full" readonly value="${h(url)}" onclick="this.select()" style="margin-top:8px"><div class="sub" style="margin-top:6px">链接已复制，发给客户（微信、短信都行）。</div>`)}catch(e){toast(e.message,6000)}};
   ['naCcYes','naCcNo'].forEach(id=>{if($('#'+id))$('#'+id).onclick=()=>post('/api/tickets/'+key+'/client-change',{accept:id==='naCcYes'}).then(()=>{toast(id==='naCcYes'?'已采用，验收标准已更新':'已保留原来的验收标准');vTicket(key)}).catch(e=>toast(e.message,6000))});
+  const hwBtn=id=>()=>{const b=$(id);if(b)return b.click();$('#engc').open=true;toast('稍等，开工包还在准备')};
+  if($('#naHwPack'))$('#naHwPack').onclick=hwBtn('#hwPack');if($('#naHwScan'))$('#naHwScan').onclick=hwBtn('#hwScan');
   if($('#naClaim'))$('#naClaim').onclick=()=>post('/api/tickets/'+key+'/claim',{}).then(()=>{toast('已认领：自动处理不会再接这张单');vTicket(key)}).catch(e=>toast(e.message,6000));
   document.querySelectorAll('[data-hold]').forEach(b=>b.onclick=()=>save({hold:b.dataset.hold==='1'}).then(()=>toast(b.dataset.hold==='1'?'已接管，自动处理暂停':'已交回自动处理')));
   if($('#naReopen'))$('#naReopen').onclick=()=>save({status:'doing'});
@@ -731,7 +739,7 @@ function inSpec(s,done){const sp=s.spec,work=s.items.map((it,i)=>[it,i]).filter(
   return `<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">大需求规格卡</b><span class="ev-tag info">一张父单 + ${work.length} 个子单，分批上线，最后整体验收</span>${done?'':' <a href="javascript:void 0" id="inUnbig">不按大需求做</a>'}</div>
    ${(s.spec_q||[]).map(q=>inQ(q,'spec')).join('')}
    <dl class="c4" style="margin-top:8px"><dt>目标</dt><dd>${h(sp.goal)}</dd><dt>不能变</dt><dd>${h(sp.keep)}</dd><dt>不做</dt><dd>${h(sp.out)}</dd><dt>证据</dt><dd>${h(sp.evidence)}</dd></dl>
-   <div style="margin-top:8px"><b style="font-size:13px">整体验收标准</b>${sp.done.map(a=>`<div style="font-size:13px;margin-top:3px"><span class="ev-tag ${a.open?'warn':'ok'}">${a.open?'待确认':'已确认'}</span> ${h(a.id)} ${h(a.text)}<div class="sub">怎么验：${h(a.check)}</div></div>`).join('')}</div>
+   <div style="margin-top:8px"><b style="font-size:13px">整体验收标准</b>${sp.done.map(a=>`<div style="font-size:13px;margin-top:3px"><span class="ev-tag ${a.open?'warn':'ok'}">${a.open?'待确认':done?'已确认':'写清了'}</span> ${h(a.id)} ${h(a.text)}<div class="sub">怎么验：${h(a.check)}</div></div>`).join('')}</div>
    ${done?(s.epic?`<div style="margin-top:6px">已建父单 <a href="#/t/${h(s.epic)}" onclick="closeModal()">${h(s.epic)}</a>，子单 ${(s.children||[]).map(h).join('、')}</div>`:''):
     `<div style="margin-top:10px"><b style="font-size:13px">顺序和分批</b><div class="sub">子单按顺序分批放出，一批全部验收通过再放下一批；依赖前面某件的，等它通过后从它的代码开始。</div>
      ${work.slice(1).map(([it,i],n)=>`<div class="sub" style="margin-top:4px">第 ${n+2} 件「${h(clip(it.text,24))}」在 <select class="inDep" data-i="${i}"><option value="">不依赖</option>${work.slice(0,n+1).map(([x,j],m)=>`<option value="${j}">第 ${m+1} 件之后</option>`).join('')}</select></div>`).join('')}
@@ -751,7 +759,7 @@ function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true
      <div style="margin-top:4px">${h(it.restated?(it.restated.startsWith('我理解的是')?it.restated:'我理解的是：'+it.restated):'我理解的是：'+it.text)}${it.flow?` <span class="ev-tag info">${h(it.flow.name)}</span>`:it.new_module?' <span class="ev-tag warn">新模块</span>':''}</div>
      ${it.kind==='question'?`<div class="sub" style="white-space:pre-wrap;margin-top:6px">${h(it.answer||'')}</div><div class="sub">咨询直接答复，不建单。</div>`:`
      ${(it.questions||[]).map(q=>inQ(q,i)).join('')}
-     <div style="margin-top:10px"><b style="font-size:13px">验收标准（客户确认后就是合同）</b>${(it.ac||[]).map(a=>`<div style="font-size:13px;margin-top:3px"><span class="ev-tag ${a.open?'warn':'ok'}">${a.open?'待确认':'已确认'}</span> ${h(a.id)} ${h(a.text)}<div class="sub">怎么验：${h(a.check)}</div></div>`).join('')}</div>
+     <div style="margin-top:10px"><b style="font-size:13px">验收标准（客户确认后就是合同）</b>${(it.ac||[]).map(a=>`<div style="font-size:13px;margin-top:3px"><span class="ev-tag ${a.open?'warn':'ok'}">${a.open?'待确认':done?'已确认':'写清了'}</span> ${h(a.id)} ${h(a.text)}<div class="sub">怎么验：${h(a.check)}</div></div>`).join('')}</div>
      ${it.ticket?`<div style="margin-top:6px">已建单 <a href="#/t/${h(it.ticket)}" onclick="closeModal()">${h(it.ticket)}</a></div>`:done||s.big?'':`<label class="sub" style="display:flex;gap:6px;align-items:center;margin-top:8px"><input type="checkbox" class="inHand" data-i="${i}"> 这件我来写（自动处理不接，开工包给我）</label>`}`}</div>`).join('')+
    (s.big?inSpec(s,done):s.suggest_big&&!done?`<div class="sub" style="margin-top:10px">这几件如果是一个整体、要一起验收：<button class="ghost" id="inBig">作为大需求</button> 写一张规格卡，拆成子单分批上线，最后整体验收。</div>`:'')+
    (hasQ&&s.state!=='dropped'?`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">问题让客户自己答</b>${asks.length?`<span class="sub">已发过 ${asks.length} 次</span>`:''}</div><div class="sub">生成一个链接发给客户（微信、短信都行），客户用大白话回答；答复会写回验收标准${done?'，等着的工单自动开工':''}。</div><div class="row" style="margin-top:6px"><button class="ghost" id="inAsk">把问题发给客户</button></div><div id="inAskOut"></div></div>`:'')+

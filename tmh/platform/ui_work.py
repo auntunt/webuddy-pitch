@@ -86,7 +86,7 @@ function nowStr(d){d=d||new Date();const p=n=>String(n).padStart(2,'0');return `
 // ---------- 粘贴客户的话: one box on every page, the requirement conversation with the client recorded
 function sayWire(){const i=$('#sayIn');if(!i)return;
   i.addEventListener('paste',()=>setTimeout(()=>{if(i.value.trim().length>=4)sayOpen()},0))}
-function sayOpen(){const i=$('#sayIn'),v=i?i.value:'';if(i)i.value='';pasteModal(v)}
+function sayOpen(){const i=$('#sayIn'),v=i?i.value:'';if(i)i.value='';const c=location.hash.match(/^#\/c\/(\d+)/);pasteModal(v,c?+c[1]:undefined)}
 async function pasteModal(text,cid){
   if(!S.projects.length)return newProject();
   let cs=[];try{cs=(await get('/api/clients')).clients}catch(e){}
@@ -127,7 +127,7 @@ async function vToday(){
     <div class="row"><button class="primary" id="sbGo">交给 AI 理清</button><span class="sub">你确认一次，AI 就开工；出了版本，这里会告诉你，链接直接发给客户。</span></div></form>
    <div class="wkg"><div style="display:flex;flex-direction:column;gap:14px;min-width:0"><section class="card" id="tNeed"></section><section class="card" id="tCl"></section></div>
     <div style="display:flex;flex-direction:column;gap:14px;min-width:0"><section class="card" id="tNow"></section><section class="card" id="tDid"></section></div></div></div>`;
-  $('#sbGo').onclick=()=>pasteModal($('#sbT').value);
+  $('#sbGo').onclick=()=>{const v=$('#sbT').value;$('#sbT').value='';pasteModal(v)};
   todayPaint(d);
   poll(async()=>{if(!$('#tNow')||document.hidden)return;try{todayPaint(await get('/api/today?since='+encodeURIComponent(since)))}catch(e){}},5000,'page')}
 function todayPaint(d){
@@ -152,7 +152,7 @@ function todayPaint(d){
       :`<div class="wke">现在没有在跑的。${d.auto?'新需求一确认，AI 就会开始。':'自动处理关着，到 工程 › 设置 打开。'}</div>`);
   const did=d.did,vs=d.versions,KD={release:'✓',adopt:'⇡',conflict:'!',status:'→'};
   $('#tDid').innerHTML=`<h2>上次之后</h2>`+
-    (vs.length?vs.map(v=>`<div class="wr"><span class="ico">◆</span><span class="grow"><b>${h(v.project)} 出了版本 ${h(v.version)}</b><span class="sub">${v.items.map(i=>h(i.title)).join('；')} · ${h(ago(v.ts))}</span></span><span class="go"><a href="${h(v.standing)}" target="_blank" rel="noopener">打开</a> · <a href="#/versions/${h(v.project)}">发给客户 ›</a></span></div>`).join(''):'')+
+    (vs.length?vs.map(v=>`<div class="wr"><span class="ico">◆</span><span class="grow"><b>${h(v.project)} 出了版本 ${h(v.version)}</b><span class="sub">${v.items.map(i=>h(i.title)).join('；')} · ${h(ago(v.ts))}</span></span><span class="go">${v.standing?`<a href="${h(v.standing)}" target="_blank" rel="noopener">打开</a>`:`<a href="#/versions/${h(v.project)}">启动</a>`} · <a href="#/versions/${h(v.project)}">发给客户 ›</a></span></div>`).join(''):'')+
     (did.length?(()=>{const by={};did.forEach(x=>(by[x.key]=by[x.key]||[]).push(x));  // one line per requirement: its latest step
       return Object.values(by).slice(0,10).map(xs=>{const x=xs[0];return row('#/t/'+h(x.key),KD[x.kind]||'·',`${h(clip(x.title,60))}${cl(x)}`,`${h(x.text)}${xs.length>1?' · 之前还有 '+(xs.length-1)+' 步':''} · ${h(ago(x.ts))}`,'')}).join('')})():'')+
     (vs.length||did.length?'':`<div class="wke">上次之后还没有新进展。</div><div class="steps3"><div><b>1 粘贴客户的话</b>上面的框，或者顶栏的“客户的话”。</div><div><b>2 你确认一次</b>AI 把话拆开、问清楚，写好验收标准，你点确认它就开工。</div><div><b>3 出版本，发链接</b>做好后合进主干、出版本，在“版本”里把链接发给客户。</div></div>`)}
@@ -217,7 +217,7 @@ async function vVersions(key){
    ${all.map(v=>versionCard(v,cs)).join('')}</div>`;
   all.forEach(v=>versionWire(v));
   if(all.some(v=>v.standing.state==='starting'))setTimeout(()=>{if(curView()==='versions')vVersions(key)},4000)}
-function versionCard(v,cs){const p=v.project,s=v.standing,K=h(p.key);
+function versionCard(v,cs){const p=v.project,s=v.standing,K=h(p.key),last=(((v.versions||[])[0]||{}).items||[]).map(i=>i.client_name).find(Boolean)||'';
   const st=s.state==='up'?'<span class="ev-tag ok">开着</span>':s.state==='starting'?'<span class="ev-tag info"><span class="spin"></span> 正在启动</span>':s.state==='failed'?'<span class="ev-tag bad">没起来</span>':'<span class="ev-tag mute">没开</span>';
   return `<section class="card" style="margin-bottom:14px" id="vc-${K}"><div class="hdr" style="margin-bottom:8px"><h2 class="grow" style="margin:0">${K} · ${h(p.name)}</h2><span class="sub">${v.merge==='auto'?'验收通过后自动合并、出版本':'自动合并关着，合并要有人做'}</span></div>
    <div class="card" style="background:var(--soft)"><div class="vcur"><b>现在的版本</b>${st}<span class="sub">${s.commit?'提交 '+h(s.commit):''}${s.main?' · 主干 '+h(s.main):''}${s.stale?' · 主干已经有更新，重启后换上':''}</span><span class="grow"></span>
@@ -225,7 +225,7 @@ function versionCard(v,cs){const p=v.project,s=v.standing,K=h(p.key);
      ${s.why&&s.state==='failed'?`<div class="bad" style="font-size:13px;margin-top:6px">${h(s.why)}</div>`:''}
      ${s.fix?`<div class="sub" style="margin-top:8px">${h(s.fix)}</div><div class="lnk"><input data-vcmd placeholder="例如 python3 app.py {port} {prefix}" value="${h(s.configured?s.cmd:(s.cmd||''))}"><button data-vsave>保存命令</button></div>`:''}
      ${s.configured?`<div style="margin-top:10px"><b style="font-size:13px">发给客户</b> <span class="sub">客户打开链接，先看到这个版本给他做了什么，再点进去试。看不到平台的任何其他东西。</span>
-      <div class="lnk"><select data-vcl><option value="">不指定客户（只说改了几项）</option>${cs.filter(c=>!c.projects.length||c.projects.includes(p.key)).map(c=>`<option value="${c.id}">${h(c.name)}</option>`).join('')}</select><select data-vdays><option value="7">7 天有效</option><option value="30" selected>30 天有效</option><option value="90">90 天有效</option></select><button class="primary" data-vshare>生成链接</button></div><div data-vout></div>
+      <div class="lnk"><select data-vcl><option value="">不指定客户（只说改了几项）</option>${cs.filter(c=>!c.projects.length||c.projects.includes(p.key)).map(c=>`<option value="${c.id}" ${c.name===last?'selected':''}>${h(c.name)}</option>`).join('')}</select><select data-vdays><option value="7">7 天有效</option><option value="30" selected>30 天有效</option><option value="90">90 天有效</option></select><button class="primary" data-vshare>生成链接</button></div><div data-vout></div>
       ${v.shares.length?`<div style="margin-top:8px">${v.shares.map(x=>`<div class="sub" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">给 ${h(x.client_name||'未指定')} · ${h(x.created.slice(5,16))} 发 · ${h(x.expires.slice(0,10))} 前有效 <button class="ghost" data-vrev="${h(x.id)}">收回</button></div>`).join('')}</div>`:''}</div>`:''}</div>
    <h3 style="margin-top:14px">出过的版本</h3>${v.versions.length?`<div class="vtl">${v.versions.map(x=>`<div><b>${h(x.version)}</b> <span class="sub">${h((x.ts||'').slice(0,16))} · 提交 ${h(x.commit||'')}</span><ul>${x.items.map(i=>`<li>${i.client_name?`<span class="tag">${h(i.client_name)}</span> `:''}${h(i.title)} <a href="#/t/${h(i.key)}" class="sub">${h(i.key)}</a></li>`).join('')}</ul></div>`).join('')}</div>`
     :'<div class="wke">还没有出过版本。需求验收通过、合进主干后，会出现在这里。</div>'}</section>`}
@@ -245,6 +245,7 @@ function planReadable(s){return String(s||'').replace(/```tmh-plan\s*([\s\S]*?)`
 function plainState(d,f){const t=d.ticket,ev=d.events||[],k=d.package||{};
   if(t.status==='closed'){const r=ev.filter(e=>e.kind==='release').pop();return r?['shipped','已出版本 '+((r.data||{}).version||'')]:['done','已关闭']}
   if(f.live)return ['doing','AI 正在'+(MODE[f.live.mode]||moLabel(f.live.mode))];
+  if((t.links||{}).handwork&&t.status!=='verify')return ['doing',t.links.handwork+' 在写'];
   if((t.links||{}).open_ac)return ['client','有 '+t.links.open_ac+' 条验收标准要和客户确认'];
   if(t.status==='verify')return k.link&&!k.decision&&['ready','incomplete'].includes(k.status)?['client','等 '+(k.link.signer||'客户')+' 签收']:['you','改好了，等你看'];
   if(f.fx&&f.fx.status==='done'&&!f.fx.decision&&f.fx.diff!=='')return ['you','改好了，等你审阅'];
@@ -252,7 +253,7 @@ function plainState(d,f){const t=d.ticket,ev=d.events||[],k=d.package||{};
 function ticketTop(d,f,na){const t=d.ticket,[s,why]=plainState(d,f);const said=secOf(t.body||'',['原话'])||symptomOf(t);
   return `<div class="card ttop"><div class="row" style="margin:0;align-items:center;gap:8px">${stChip(s)}<span class="sub">${h(why)}</span><span id="ttCl"></span></div>
    <dl><dt>客户要的</dt><dd>${h(clip(said,240))}</dd><dt>下一步</dt><dd class="na ${na.tone}">${na.text}</dd></dl>
-   <div class="row"><span id="ttPv"></span>${na.acc?'<button class="primary" id="ttOk">验收通过</button><button class="danger" id="ttNo">退回重改</button>':''}${t.status==='verify'&&(d.package||{}).status&&d.package.status!=='none'?'<button id="ttSend">发给客户签收</button>':''}${!['closed','verify'].includes(t.status)?'<button class="ghost" id="ttHw">我来写</button>':''}</div></div>`}
+   <div class="row"><span id="ttPv"></span>${na.acc?'<button class="primary" id="ttOk">验收通过</button><button class="danger" id="ttNo">退回重改</button>':''}${t.status==='verify'&&(d.package||{}).status&&d.package.status!=='none'?'<button id="ttSend">发给客户签收</button>':''}${!['closed','verify'].includes(t.status)&&!(t.links||{}).handwork?'<button class="ghost" id="ttHw">我来写</button>':''}</div></div>`}
 async function ticketTopWire(d,na){const t=d.ticket,key=t.key;
   if($('#ttOk'))$('#ttOk').onclick=()=>$('#accOk').click();
   if($('#ttNo'))$('#ttNo').onclick=()=>{const n=$('#accNote');n.scrollIntoView({block:'center',behavior:'smooth'});n.focus();n.placeholder='写明哪里不对，写好后点“验收不通过”';toast('写明哪里不对，再点“验收不通过”',4000)};

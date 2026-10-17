@@ -400,14 +400,16 @@ class UnderstandTest(unittest.TestCase):
         self.assertIn("<h4>客户原话</h4>", html)  # the body as headings, not raw markdown
         self.assertNotIn(".java", html)
         self.assertIn("name='ac_A1' value=pass", html)
+        code, body = self.page(ln["path"], {"action": "sign", "name": "王总", "ac_A2": "pass"})
+        self.assertEqual(code, 400, "every criterion to try by hand is ticked")
+        # what must keep working, shown as 自动测试已证明, is not one more thing for the client to tick
         code, body = self.page(ln["path"], {"action": "sign", "name": "王总", "ac_A1": "pass"})
-        self.assertEqual(code, 400, "every criterion is ticked")
-        code, body = self.page(ln["path"], {"action": "sign", "name": "王总", "ac_A1": "pass", "ac_A2": "pass"})
         self.assertEqual(code, 200, body)
         self.assertIn("已签收", body)
         rec = signoff.records(self.data, key)[-1]
         self.assertEqual((rec["kind"], rec["data"]["ac_source"]), ("sign", "客户确认"))
         self.assertEqual(rec["data"]["ac_text"]["A1"], confirmed[0]["text"])
+        self.assertEqual(rec["data"]["ac"], {"A1": "pass", "A2": "proven"})
         self.assertEqual(self.P.store.ticket(key)["status"], "closed")
         with urllib.request.urlopen(self.base + "/e/%s" % key) as r:
             full = r.read().decode("utf-8")

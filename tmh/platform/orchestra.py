@@ -98,7 +98,7 @@ class Orchestra:
             rel = self.knowledge.related(p, "%s %s" % (t["title"], (t.get("body") or "")[:400]), limit=3)
         except Exception:  # noqa: BLE001 - no knowledge base yet is not a reason to stop the flow
             rel = {"flows": []}
-        links = dict(t.get("links") or {})
+        links = dict((st.ticket(t["id"]) or t).get("links") or {})  # not the copy it was submitted with: a client may be on it since
         have = list(links.get("flows") or [])
         add = [f for f in rel["flows"] if f["id"] not in have][:max(0, 3 - len(have))]
         if add:

@@ -205,6 +205,8 @@ class Store:
             if k not in f or f[k] is None:
                 continue
             v = f[k]
+            if k == "links" and isinstance(v, dict) and (t.get("links") or {}).get("client") and "client" not in v and not f.get("drop_client"):
+                v = dict(v, client=t["links"]["client"])  # written from an older copy of the ticket: whose it is stays
             if k == "status":
                 v = _pick(v, STATUSES, None)
                 if not v:

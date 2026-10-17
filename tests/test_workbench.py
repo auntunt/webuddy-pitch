@@ -290,7 +290,15 @@ class WorkbenchTest(unittest.TestCase):
         _, s = self.call("POST", "/api/workbench/intake", {"project": "WB", "client_name": "孙总", "text": "希望请假单能导出"})
         _, t = self.call("POST", "/api/tickets", {"project": "WB", "title": "考勤月报对不上", "auto": False})
         _, r = self.call("POST", "/api/tickets/%s/runs" % t["key"], {"agent": "team", "mode": "analyze"})
-        _, td = self.call("GET", "/api/today")
+        (self.data / "intake").mkdir(exist_ok=True)
+        (self.data / "intake" / "asks.json").write_text("{}", encoding="utf-8")  # the client question links live beside the talks
+        code, td = self.call("GET", "/api/today")
+        self.assertEqual(code, 200, td)
+        self.assertEqual(self.call("GET", "/api/clients")[0], 200)
+        # a ticket written from an older copy (the line taking it in while the client was put on it) stays the client's
+        self.call("POST", "/api/clients/%d" % s["client"], {"action": "link", "kind": "ticket", "ref": t["key"]})
+        self.P.store.update_ticket(t["id"], "自动流转", links={"flows": ["flow:x"]})
+        self.assertEqual(self.P.store.ticket(t["id"])["links"], {"flows": ["flow:x"], "client": s["client"]})
         self.assertEqual(sorted(td), sorted(["now", "mine", "others", "did", "versions", "talks", "open_ac", "auto", "agent", "since", "server_time", "handwork",
                                                   "standing_failed"]))
         talk = next(x for x in td["talks"] if x["id"] == s["id"])
@@ -328,6 +336,10 @@ class WorkbenchTest(unittest.TestCase):
                 fn(p, {"id": 1}, {"version": "v9"})  # nobody opened it lately and no client holds a link: it stays down
                 time.sleep(0.6)
                 self.assertEqual(calls, [])
+                fn(p, {"id": 1, "links": {"client": 1}}, {"version": "v8"})  # but a client's own change: they will want to open it
+                time.sleep(0.6)
+                self.assertEqual(calls, ["新版本 v8"])
+                calls.clear()
             common = (mock.patch.object(workbench, "start_standing", lambda P, p, by, person=True: calls.append(by)),
                       mock.patch.object(preview, "settings", lambda d: {"preview": "auto"}))
             with common[0], common[1], mock.patch.object(workbench, "shares", lambda P, k: [{"id": "x"}]):

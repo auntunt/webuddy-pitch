@@ -467,7 +467,8 @@ def forward(data_dir: Path, key: str, method: str, path: str, headers, body: byt
     (and closes it), so a download or a server-sent stream is not held in memory."""
     st = _load(data_dir).get(key)
     if not st or st.get("state") != "up" or not _alive(st.get("pid") or 0, st.get("dir", "")):
-        raise LookupError("这张工单现在没有在运行的预览")
+        raise LookupError("这个项目现在的版本没有开着：在“版本”页点“启动”，或者重新生成客户链接" if key.endswith(STANDING)
+                          else "这张工单现在没有在运行的预览")
     port, inner = st["port"], st["prefix"]
     out = {}
     for k, v in headers.items():

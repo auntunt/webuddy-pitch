@@ -545,6 +545,7 @@ def recheck(runner, rid: int) -> dict:
     v.update({"check": check, "skip": skip if check == "skip" else "", "commands": res,
               "rechecked": time.strftime("%Y-%m-%d %H:%M:%S")})
     v.pop("diagnosis_dropped", None)
+    (runner.data_dir / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)  # a change taken from a branch has no run folder yet
     (runner.data_dir / "runs" / str(rid) / "verify.json").write_text(json.dumps(v, ensure_ascii=False, indent=1), encoding="utf-8")
     fl.say("重新验证：%s" % {"pass": "构建通过", "fail": "构建没通过", "skip": "没有跑构建（%s）" % skip}[check])
     return v

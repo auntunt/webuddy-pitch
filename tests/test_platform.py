@@ -1190,6 +1190,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual(len(self.call("POST", "/api/projects/HW/scan", {})[1]["taken"]), 1)
             last = settle(t, lambda e: "转给验收人" in e["body"])
             self.assertIn("审查认为已解决", last["body"])
+            self.assertIn("构建测试通过", last["body"])  # the person's change was built, not skipped for want of a run folder
             self.assertEqual(self.P.store.ticket(t["id"])["status"], "verify")
             ad = [e for e in self.P.store.events(t["id"]) if e["kind"] == "adopt"][-1]
             self.assertEqual((ad["data"]["by_hand"], ad["author"]), ("小王", "我来写"))  # the writer is not their own reviewer
