@@ -1,0 +1,7 @@
+The bundle contains these 3 refs:
+601944d1b518f18c6d5f3844e4e2d9d1364ad4f9 refs/heads/fixture/candidate
+f19d7990fb1251f0178c8f4d824e0fd49b009bf5 refs/heads/main
+f19d7990fb1251f0178c8f4d824e0fd49b009bf5 HEAD
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/source-2026-10-18/fixture-repo.bundle is okay

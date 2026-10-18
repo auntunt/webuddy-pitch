@@ -556,6 +556,19 @@ def granted(data_dir: Path, key: str, g: str, *, expected_commit: str = "") -> b
         x = signoff._links(data_dir).get(lh)
         if not x or x.get("key") != key or x.get("used") or x["expires"] < ev.now():
             return False
+        try:
+            state = signoff.state(data_dir, key)
+            signoff._require_current_binding(state)
+            if not state.get("intact") or state.get("stale") or not signoff._link_matches(x, state):
+                return False
+            binding = (state.get("snapshot") or {}).get("delivery_binding")
+            if binding is not None:
+                bound_commit = binding.get("commit") if isinstance(binding, dict) else ""
+                if (not isinstance(bound_commit, str) or not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", bound_commit)
+                        or bound_commit != expected_commit):
+                    return False
+        except (ApiError, OSError, ValueError, KeyError, TypeError):
+            return False
     return True
 
 

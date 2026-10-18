@@ -3011,11 +3011,25 @@ def make_handler(P: Platform, token: str = ""):
                     x = signoff.link_of(P.data_dir, m.group(1))
                     if x.get("used") or x["expires"] < ev.now():
                         raise ApiError(410, "这个签收链接已经用过、被替换或者过期了，预览也跟着关闭")
+                    state = signoff.state(P.data_dir, x["key"])
+                    signoff._require_current_binding(state)
+                    if not state.get("intact") or state.get("stale"):
+                        raise ApiError(409, "签收依据已经变化或损坏，请联系乙方重新核对并发送链接")
+                    if not signoff._link_matches(x, state):
+                        raise ApiError(409, "证据包版本已变化，这个签收链接不能打开新版本；请联系乙方重新发送")
+                    binding = (state.get("snapshot") or {}).get("delivery_binding")
+                    expected = ""
+                    if binding is not None:
+                        expected = binding.get("commit") if isinstance(binding, dict) else ""
+                        if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", expected):
+                            raise ApiError(409, "这次签收尚未绑定可预览的完整代码提交")
+                        preview.require_bound(P.data_dir, x["key"], expected)
                 except ApiError as e:
                     return self._send(e.code, signoff.message_page(str(e)).encode("utf-8"), "text/html; charset=utf-8")
                 until = time.mktime(time.strptime(x["expires"][:19], "%Y-%m-%d %H:%M:%S"))
-                g = preview.grant(P.data_dir, x["key"], signoff._th(m.group(1)), until)
-                return self._send(303, b"", "text/plain", {"Location": "%s/pv/%s/__open?g=%s" % (preview.base_url(self.headers, P.preview_port), x["key"], g),
+                g = preview.grant(P.data_dir, x["key"], signoff._th(m.group(1)), until, expected_commit=expected)
+                prefix = preview.bound_prefix(x["key"], expected) if expected else "/pv/" + x["key"]
+                return self._send(303, b"", "text/plain", {"Location": "%s%s/__open?g=%s" % (preview.base_url(self.headers, P.preview_port), prefix, g),
                                                            "Referrer-Policy": "no-referrer"})
             m = re.match(r"^/sign/([A-Za-z0-9_\-]{20,64})/package\.intoto\.json$", path)
             if m and method == "GET":  # the signer keeps their own copy, with the same link as the credential

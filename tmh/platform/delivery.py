@@ -71,6 +71,8 @@ def _db(P) -> None:
         return
     with P.store.lock:
         P.store.db.executescript(SCHEMA)
+        if "binding" not in {r["name"] for r in P.store.db.execute("PRAGMA table_info(delivery_runs)")}:
+            P.store.db.execute("ALTER TABLE delivery_runs ADD COLUMN binding TEXT NOT NULL DEFAULT '{}'")
         P.store.db.commit()
         P.store._delivery_ready = True
 
@@ -120,7 +122,47 @@ def _inputs(rows: dict, key: str, selected: list) -> dict:
         review = row.get("review") if row["state"] == "approved" else None
         result[k] = {"artifact": (row.get("artifact") or {}).get("id"),
                      "review": (review or {}).get("id"), "inputs": (review or {}).get("inputs", {})}
+    if key in ("quality", "security", "release", "feedback") and "develop" in rows:
+        result["$source"] = rows["develop"].get("source") or {}
     return result
+
+
+def _json_object(value) -> dict:
+    try:
+        result = json.loads(value)
+        return result if isinstance(result, dict) else {}
+    except (TypeError, ValueError):
+        return {}
+
+
+def _source_receipt(data_dir: Path, rid: int) -> dict:
+    try:
+        return _json_object((Path(data_dir) / "runs" / str(rid) / "source.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeError):
+        return {}
+
+
+def _accepted_source(root: str, run: dict) -> tuple[str, str]:
+    """Resolve the adopted object and its actual diff, never a moving branch name."""
+    from .agents import git
+    from .preview import _commit
+    decision = run.get("decision") or ""
+    if not decision.startswith("accepted:") or "@" not in decision:
+        return "", "先在实现运行中采纳已验证改动，固定待检查的代码提交"
+    try:
+        sha = _commit(Path(root), decision.rsplit("@", 1)[1])
+        if not sha or git(Path(root), "diff", sha + "^", sha) != run.get("diff"):
+            return "", "已采纳提交与实现运行的改动不一致，请核对原运行"
+        v = run.get("verification") or {}
+        if not isinstance(v, dict):
+            return "", "实现验证记录不可读，请核对原运行"
+        if v.get("checked_commit") and v["checked_commit"] != sha:
+            return "", "实现验证绑定了不同的代码提交，请重新检查"
+        if "checked_diff" in v and v["checked_diff"] != run.get("diff"):
+            return "", "实际验证与已采纳改动不一致，请重新检查"
+        return sha, ""
+    except (OSError, ValueError, RuntimeError):
+        return "", "待检查的已采纳提交不可读取，请核对原运行"
 
 
 def _records(db, d: dict, data_dir: Path) -> tuple[dict, dict, dict]:
@@ -139,14 +181,52 @@ def _records(db, d: dict, data_dir: Path) -> tuple[dict, dict, dict]:
         r["inputs"] = json.loads(r["inputs"])
         reviews[r["artifact_id"]] = r
     runs = {k: [] for k in d["stages"]}
-    for raw in db.execute("SELECT dr.stage,dr.base_version,dr.inputs,r.* FROM delivery_runs dr JOIN runs r ON r.id=dr.run_id "
+    binding_column = "dr.binding" if "binding" in {r["name"] for r in db.execute("PRAGMA table_info(delivery_runs)")} else "'{}' AS binding"
+    project = db.execute("SELECT root FROM projects WHERE id=?", (d["project_id"],)).fetchone()
+    for raw in db.execute("SELECT dr.stage,dr.base_version,dr.inputs," + binding_column + ",r.* FROM delivery_runs dr JOIN runs r ON r.id=dr.run_id "
                           "WHERE dr.delivery_id=? ORDER BY dr.id DESC", (d["id"],)).fetchall():
         r = dict(raw)
         r["inputs"] = json.loads(r["inputs"])
+        r["binding"] = _json_object(r["binding"])
+        r["source_receipt"] = _source_receipt(data_dir, r["id"]) if r["binding"].get("commit") else {}
         r["collected"] = any(a["source_run"] == r["id"] for a in arts[r["stage"]])
         r["verification"] = verified(data_dir, r["id"]) if r["mode"] == "fix" else None
+        if r["mode"] == "fix":
+            r["accepted_commit"], r["source_error"] = _accepted_source(project["root"] if project else "", r)
         runs[r["stage"]].append(r)
     return arts, reviews, runs
+
+
+def _implementation_source(row: dict, reviews: dict) -> tuple[dict, list]:
+    a = row["artifact"]
+    run = next((r for r in row["runs"] if a and r["id"] == a["source_run"]), None)
+    if row["state"] != "approved" or not run or run["mode"] != "fix":
+        return {}, ["先完成并复核当前实现，再固定受检版本"]
+    if not run.get("accepted_commit"):
+        return {}, [run.get("source_error") or "实现尚未固定到已采纳提交"]
+    binding = run.get("binding") or {}
+    plan_art = next((x for x in row["history"] if x["id"] == binding.get("plan_artifact")), None)
+    plan = next((x for x in row["runs"] if x["id"] == binding.get("plan_run")), None)
+    review = reviews.get(binding.get("plan_artifact"))
+    if (not plan_art or plan_art["source_run"] != binding.get("plan_run") or not plan or plan["mode"] != "plan"
+            or plan["status"] != "done" or plan["exit_code"] != 0 or not review
+            or review["id"] != binding.get("plan_review") or review["inputs"] != run["inputs"]):
+        return {}, ["实现缺少对应已复核方案的固定记录，请从当前方案重新执行实现"]
+    return {"commit": run["accepted_commit"], "implementation_run": run["id"], "plan_run": plan["id"],
+            "plan_artifact": plan_art["id"], "plan_review": review["id"],
+            "implementation_artifact": a["id"], "implementation_review": row["review"]["id"]}, []
+
+
+def _bound_run_block(run: dict, expected: dict) -> list:
+    if run.get("status") != "done" or run.get("exit_code") != 0:
+        return ["受检运行尚未成功结束"]
+    if not expected or run.get("binding") != expected:
+        return ["运行受检版本与当前实现不一致，请基于当前版本重新执行"]
+    receipt = run.get("source_receipt") or {}
+    if (receipt.get("code_unchanged") is not True or receipt.get("actual_commit") != expected["commit"]
+            or receipt.get("binding") != expected):
+        return ["运行缺少可核对的固定版本回执，或检查期间代码已变化"]
+    return []
 
 
 def _implementation_block(source: dict | None) -> list:
@@ -177,9 +257,31 @@ def _review_inputs(rows: dict, key: str, selected: list) -> dict:
     a = row["artifact"]
     source = next((r for r in row["runs"] if a and r["id"] == a["source_run"]), None)
     if key == "develop" and source and source["mode"] == "fix":
-        evidence = json.dumps({"verification": source["verification"], "diff": source["diff"]}, ensure_ascii=False, sort_keys=True)
+        evidence = json.dumps({"verification": source["verification"], "diff": source["diff"],
+                               "binding": source.get("binding") or {}}, ensure_ascii=False, sort_keys=True)
         result["$execution"] = hashlib.sha256(evidence.encode()).hexdigest()
+    elif source and result.get("$source"):
+        evidence = json.dumps({"receipt": source.get("source_receipt"), "result": source.get("result"),
+                               "binding": source.get("binding")}, ensure_ascii=False, sort_keys=True)
+        result["$inspection"] = hashlib.sha256(evidence.encode()).hexdigest()
     return result
+
+
+def _collection_block(rows: dict, key: str, selected: list, run: dict) -> list:
+    row = rows[key]
+    if run["collected"]:
+        return ["运行已经采集为产物"]
+    if run["status"] != "done" or run["exit_code"] != 0:
+        return ["只有成功结束的运行才能收集为草稿；失败或未完成不能算成功"]
+    if run["inputs"] != _inputs(rows, key, selected) or (row["artifact"] or {}).get("version", 0) != run["base_version"]:
+        return ["运行依据或阶段正文已更新，不能用旧输出覆盖；请查看原运行并基于当前版本重新执行"]
+    if key in ("quality", "security", "release", "feedback") and "develop" in rows:
+        reasons = _bound_run_block(run, row.get("source") or {})
+        if reasons:
+            return reasons
+    if not ((run.get("result") or "").strip() or (run.get("output") or "").strip()):
+        return ["这次运行没有可收集的输出"]
+    return []
 
 
 def _stage_rows(d: dict, arts: dict, reviews: dict, runs: dict) -> dict:
@@ -196,7 +298,12 @@ def _stage_rows(d: dict, arts: dict, reviews: dict, runs: dict) -> dict:
         bound_code = bool(source and source["mode"] in ("plan", "fix") and source["status"] == "done"
                           and source["exit_code"] == 0 and source["inputs"] == inputs)
         implementation_block = _implementation_block(source) if key == "develop" else []
-        if r and r["inputs"] == _review_inputs(rows, key, d["stages"]) and not missing:
+        bound_stage = key in ("quality", "security", "release", "feedback") and "develop" in rows
+        source_block = list(rows["develop"].get("source_blocked") or []) if bound_stage else []
+        row["source"] = rows["develop"].get("source") or {} if bound_stage else {}
+        if bound_stage and source:
+            source_block += _bound_run_block(source, row["source"])
+        if r and r["inputs"] == _review_inputs(rows, key, d["stages"]) and not missing and not source_block:
             if key != "develop" or (bound_code and not implementation_block):
                 row["review"] = dict(r, version=a["version"])
                 if key == "develop" and source["mode"] == "plan":
@@ -218,18 +325,28 @@ def _stage_rows(d: dict, arts: dict, reviews: dict, runs: dict) -> dict:
             if latest["status"] == "done" and latest["exit_code"] == 0:
                 row["state"] = "review"
                 row["issue"] = "运行结果尚未收集为草稿" if latest["inputs"] == inputs else "运行依据已变化，需要基于当前依据重新执行"
+                if bound_stage and latest["inputs"] == inputs:
+                    bad_receipt = _bound_run_block(latest, row["source"])
+                    if bad_receipt:
+                        row["issue"] = "；".join(bad_receipt) + "；请重新运行当前阶段"
             else:
                 row["state"] = "draft" if a else "not_started"
                 row["issue"] = "最近一次运行没有成功，尚无可复核的新结果"
             row["review"] = None
             row["plan_approved"] = False
         row["blocked"] = ["先复核：" + "、".join(missing)] if missing else []
+        # Missing candidate blocks execution. A stale past run only blocks its review;
+        # a new run must remain possible to recover against the current candidate.
+        if bound_stage:
+            row["blocked"] += rows["develop"].get("source_blocked") or []
         if latest and latest["status"] in BUSY:
             row["blocked"].append("这个阶段正在运行")
-        elif unsettled and latest["status"] == "done" and latest["exit_code"] == 0 and latest["inputs"] == inputs:
+        elif (unsettled and latest["status"] == "done" and latest["exit_code"] == 0 and latest["inputs"] == inputs
+              and not _collection_block(rows, key, d["stages"], latest)):
             row["blocked"].append("先收集已完成的运行结果")
         row["review_blocked"] = list(row["blocked"])
         row["review_blocked"].extend(implementation_block)
+        row["review_blocked"].extend(x for x in source_block if x not in row["review_blocked"])
         if key == "develop" and not bound_code:
             row["review_blocked"].append("先执行并收集基于当前需求、设计的成功方案或实现结果；手写说明不能代替实际运行")
             if a and not row["issue"]:
@@ -239,6 +356,13 @@ def _stage_rows(d: dict, arts: dict, reviews: dict, runs: dict) -> dict:
         row["can_review"] = bool(a) and not row["review_blocked"] and row["state"] != "running"
         if implementation_block:
             row["issue"] = "；".join(implementation_block)
+        if source_block and a:
+            row["issue"] = "；".join(source_block)
+        if key == "develop":
+            row["source"], row["source_blocked"] = _implementation_source(row, reviews)
+        for run in row["runs"]:
+            run["collect_blocked"] = _collection_block(rows, key, d["stages"], run)
+            run["can_collect"] = not run["collect_blocked"]
     return rows
 
 
@@ -467,15 +591,19 @@ def _start(P, d: dict, key: str, b: dict, by: str) -> int:
         # This immutable request packet survives unrelated plans started on the same ticket while
         # the runner waits for a slot. Never persist the pin as a generic ticket instruction.
         ticket = dict(ticket, links=dict(ticket.get("links") or {}, delivery_plan_run=row["artifact"]["source_run"]))
+    binding = ({"plan_run": row["artifact"]["source_run"], "plan_artifact": row["artifact"]["id"],
+                "plan_review": row["review"]["id"]} if mode == "fix" else row.get("source") or {})
+    if mode == "ask" and binding:
+        ticket = dict(ticket, links=dict(ticket.get("links") or {}, delivery_source=binding))
     extra = _text(b.get("question", ""), "补充请求", 1_000, required=False)
     try:
         run = P.runner.start(P.project(P.store.project(d["project_id"])["key"]), ticket, agent, mode, by,
                              question=_question(d, key, extra), model=b.get("model"))
     except (ValueError, OSError) as e:
         raise ApiError(400, str(e)) from e
-    P.store.x("INSERT INTO delivery_runs(delivery_id,stage,run_id,base_version,inputs,created) VALUES(?,?,?,?,?,?)",
+    P.store.x("INSERT INTO delivery_runs(delivery_id,stage,run_id,base_version,inputs,created,binding) VALUES(?,?,?,?,?,?,?)",
               (d["id"], key, run["id"], (row["artifact"] or {}).get("version", 0),
-               json.dumps(_inputs(rows, key, d["stages"]), sort_keys=True), now()))
+               json.dumps(_inputs(rows, key, d["stages"]), sort_keys=True), now(), json.dumps(binding, sort_keys=True)))
     _touch(P, d["id"])
     return run["id"]
 
@@ -491,10 +619,9 @@ def _collect(P, d: dict, key: str, b: dict, by: str) -> None:
     r = next((x for x in row["runs"] if x["id"] == rid), None)
     if not r:
         raise ApiError(404, "这个阶段没有这次运行")
-    if r["status"] != "done" or r["exit_code"] != 0:
-        raise ApiError(409, "只有成功结束的运行才能收集为草稿；失败或未完成不能算成功")
-    if r["inputs"] != _inputs(rows, key, d["stages"]) or (row["artifact"] or {}).get("version", 0) != r["base_version"]:
-        raise ApiError(409, "运行依据或阶段正文已更新，不能用旧输出覆盖；请查看原运行并基于当前版本重新执行")
+    blocked = _collection_block(rows, key, d["stages"], r)
+    if blocked:
+        raise ApiError(409, "；".join(blocked))
     body = r["result"] if (r.get("result") or "").strip() else r.get("output") or ""
     if not body.strip():
         raise ApiError(409, "这次运行没有可收集的输出")
@@ -528,6 +655,56 @@ def act(P, did: str, b: dict, by: str) -> dict:
     if started is not None:
         result["started_run"] = started
     return result
+
+
+def signoff_binding(data_dir: Path, ticket_key: str) -> dict | None:
+    """Read the current delivery chain without migrating or writing the business database."""
+    path = Path(data_dir) / "platform.db"
+    if not path.exists() or not re.fullmatch(r"[A-Za-z][A-Za-z0-9]{0,9}-[1-9][0-9]*", ticket_key):
+        return None
+    did = ""
+    try:
+        with closing(sqlite3.connect("file:" + quote(str(path.resolve()), safe="/") + "?mode=ro", uri=True)) as db:
+            db.row_factory = sqlite3.Row
+            db.execute("BEGIN")  # one consistent dependency snapshot
+            project_key, number = ticket_key.upper().rsplit("-", 1)
+            t = db.execute("SELECT t.* FROM tickets t JOIN projects p ON p.id=t.project_id WHERE p.key=? AND t.num=?",
+                           (project_key, int(number))).fetchone()
+            if not t:
+                return None
+            did = _json_object(t["links"]).get("delivery") or ""
+            if not did:
+                return None
+            d = db.execute("SELECT * FROM delivery_items WHERE id=?", (did,)).fetchone()
+            if not d or d["ticket_id"] != t["id"] or d["project_id"] != t["project_id"]:
+                raise ValueError("交付工作项与工单关联已变化")
+            d = dict(d)
+            d["stages"] = json.loads(d["stages"])
+            rows = _stage_rows(d, *_records(db, d, data_dir))
+            develop = rows.get("develop") or {}
+            source = develop.get("source") or {}
+            blocked = list(develop.get("source_blocked") or [])
+            if not source:
+                blocked.append("交付尚无可追溯的已复核实现版本")
+            stages = {}
+            for key, row in rows.items():
+                a, review = row.get("artifact") or {}, row.get("review") or {}
+                stages[key] = {"artifact_id": a.get("id"), "version": a.get("version"),
+                               "source_run": a.get("source_run"), "review_id": review.get("id"),
+                               "state": row["state"], "inputs": review.get("inputs") or {}}
+                if key in ("quality", "security") and row["state"] != "approved":
+                    blocked.append(STAGE[key]["name"] + "尚未针对当前实现复核")
+            identity = {"delivery_id": did, "ticket_id": t["id"], "source": source, "stages": stages}
+            return {"delivery_id": did, "valid": not blocked, "blocked": blocked,
+                    "plan_run": source.get("plan_run"), "fix_run": source.get("implementation_run"),
+                    "commit": source.get("commit") or "", "identity": identity, "stages": stages}
+    except (sqlite3.Error, ValueError, KeyError, TypeError) as e:
+        if not did:
+            # Unknown schema cannot be silently treated as a valid ordinary ticket.
+            return {"delivery_id": "", "valid": False, "blocked": ["无法核对交付关联：" + str(e)],
+                    "plan_run": None, "fix_run": None, "commit": "", "identity": {}, "stages": {}}
+        return {"delivery_id": did, "valid": False, "blocked": ["交付依据不可读：" + str(e)],
+                "plan_run": None, "fix_run": None, "commit": "", "identity": {}, "stages": {}}
 
 
 def prompt_context(data_dir: Path, did: str) -> str:

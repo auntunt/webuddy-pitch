@@ -104,6 +104,49 @@ for(const id of ['dlArtifactForm','dlRunForm','dlReviewForm','dlStageError','dlC
 }
 """)
 
+    def test_missing_source_receipt_offers_retry_instead_of_impossible_collection(self):
+        self.check_js(r"""
+const missing='运行缺少可核对的固定版本回执';
+const actual={...stage,key:'quality',state:'review',can_start:true,
+ issue:missing+'；请重新运行当前阶段',
+ runs:[{id:4,mode:'ask',status:'done',exit_code:0,collected:false,base_version:0,
+ can_collect:false,collect_blocked:[missing],result:'完整的旧运行输出'}]};
+const next=dlNextStep(actual),html=dlStageBody({id:'source-fixture'},actual);
+assert.equal(next.target,'dlRunTools');
+assert.ok(!next.label.includes('采集'));
+assert.ok(!html.includes('data-dl-collect='),'invalid evidence cannot offer collection');
+assert.match(html,/<span class="dl-muted">运行缺少可核对的固定版本回执。请基于当前版本重新运行。<\/span>/);
+for(const [,value] of html.matchAll(/class="([^"]*)"/g)){
+ assert.ok(!value.includes('<')&&!value.includes('>'),'recovery prose must not be inserted into a class attribute');
+}
+assert.ok(html.includes('完整的旧运行输出'),'failed evidence remains inspectable');
+const ready={...actual,issue:'',runs:[{...actual.runs[0],can_collect:true,collect_blocked:[]}]};
+assert.equal(dlNextStep(ready).target,'dlRuns');
+assert.ok(dlStageBody({id:'source-fixture'},ready).includes('data-dl-collect="4"'));
+""")
+
+    def test_source_identity_is_complete_and_untrusted_receipt_text_is_escaped(self):
+        self.check_js(r"""
+const commit='0123456789abcdef0123456789abcdef01234567';
+const hostile='<script>alert("wrong evidence")</script>';
+const source={commit,implementation_run:2,plan_run:1};
+const actual={...stage,key:'quality',source,state:'review',
+ runs:[{id:4,mode:'ask',status:'done',exit_code:0,collected:false,base_version:0,
+ can_collect:false,collect_blocked:[hostile],binding:source,
+ source_receipt:{actual_commit:commit,code_unchanged:false,error:hostile},result:hostile}]};
+let html=dlStageBody({id:'source-fixture'},actual);
+assert.ok(html.includes('<code>'+commit+'</code>'),'the full SHA must be visible');
+assert.ok(html.includes('实现运行 #2 · 已复核方案 #1'));
+assert.ok(html.includes('实现 #2 · 方案 #1'));
+assert.ok(html.includes(h(JSON.stringify(actual.runs[0].source_receipt,null,2))),'the full receipt remains readable');
+assert.ok(html.includes(h(hostile)));
+assert.ok(!html.includes('<script>'));
+const hostileSource={...source,commit:hostile,plan_run:hostile,implementation_run:hostile};
+html=dlStageBody({id:'source-fixture'},{...actual,source:hostileSource,runs:[{...actual.runs[0],binding:hostileSource}]});
+assert.ok(!html.includes('<script>'));
+assert.ok(html.includes('<code>'+h(hostile)+'</code>'));
+""")
+
 
 if __name__ == "__main__":
     unittest.main()

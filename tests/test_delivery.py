@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from tmh.platform import delivery
-from tmh.platform.agents import Runner
+from tmh.platform.agents import Runner, git
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
 
@@ -114,6 +114,24 @@ class DeliveryTest(unittest.TestCase):
         self.review(did, "develop")
         return did
 
+    def adopt_fixture(self, rid):
+        """Real immutable Git object for downstream checks; synthetic run/review remains explicit."""
+        root = self.data / ("source-%d" % rid)
+        root.mkdir()
+        git(root, "init", "-q")
+        (root / "app.py").write_text("old\n")
+        git(root, "add", "app.py")
+        git(root, "-c", "user.name=fixture", "-c", "user.email=fixture@localhost", "commit", "-qm", "baseline")
+        (root / "app.py").write_text("new\n")
+        actual = git(root, "diff", "HEAD")
+        git(root, "add", "app.py")
+        git(root, "-c", "user.name=fixture", "-c", "user.email=fixture@localhost", "commit", "-qm", "candidate")
+        commit = git(root, "rev-parse", "HEAD").strip()
+        r = self.store.run(rid)
+        self.store.x("UPDATE projects SET root=? WHERE id=?", (str(root), r["project_id"]))
+        self.store.update_run(rid, diff=actual, decision="accepted:fixture@" + commit)
+        return root, commit
+
     def test_catalog_all_types_persist_and_create_does_not_run(self):
         cat = delivery.catalog()
         self.assertEqual(len(cat["stages"]), 8)
@@ -215,6 +233,7 @@ class DeliveryTest(unittest.TestCase):
         self.assertEqual(delivery.view(self.P, did)["delivery"]["current_stage"], "develop")
         self.assertIn("方案已复核，尚未实现", delivery.prompt_context(self.data, did))
         fix = self.collected(did, "develop", "fix", result="实际实现结果")
+        self.adopt_fixture(fix)
         self.assertFalse(self.rows(did)["quality"]["can_start"])
         self.review(did, "develop")
         rows = self.rows(did)
@@ -269,6 +288,7 @@ class DeliveryTest(unittest.TestCase):
     def test_recheck_changes_revoke_implementation_and_downstream_reviews(self):
         did = self.plan_ready()
         rid = self.collected(did, "develop", "fix", result="实现证据正文")
+        self.adopt_fixture(rid)
         self.review(did, "develop")
         self.reviewed(did, "quality", "质量证据正文")
         changed = copy.deepcopy(GOOD_VERIFY)
@@ -286,7 +306,8 @@ class DeliveryTest(unittest.TestCase):
 
     def test_updated_spec_requires_new_code_run_not_review_of_old_code(self):
         did = self.plan_ready()
-        self.collected(did, "develop", "fix")
+        rid = self.collected(did, "develop", "fix")
+        self.adopt_fixture(rid)
         self.review(did, "develop")
         self.reviewed(did, "quality")
         self.reviewed(did, "requirements", "更新的验收约定")

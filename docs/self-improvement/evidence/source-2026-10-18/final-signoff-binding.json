@@ -1,0 +1,172 @@
+{
+  "delivery_id": "2110f703e4b6",
+  "valid": false,
+  "blocked": [
+    "测试与质量尚未针对当前实现复核",
+    "安全检查尚未针对当前实现复核"
+  ],
+  "plan_run": 1,
+  "fix_run": 2,
+  "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+  "identity": {
+    "delivery_id": "2110f703e4b6",
+    "ticket_id": 1,
+    "source": {
+      "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+      "implementation_run": 2,
+      "plan_run": 1,
+      "plan_artifact": 3,
+      "plan_review": 3,
+      "implementation_artifact": 4,
+      "implementation_review": 4
+    },
+    "stages": {
+      "requirements": {
+        "artifact_id": 1,
+        "version": 1,
+        "source_run": null,
+        "review_id": 1,
+        "state": "approved",
+        "inputs": {}
+      },
+      "design": {
+        "artifact_id": 2,
+        "version": 1,
+        "source_run": null,
+        "review_id": 2,
+        "state": "approved",
+        "inputs": {
+          "requirements": {
+            "artifact": 1,
+            "inputs": {},
+            "review": 1
+          }
+        }
+      },
+      "develop": {
+        "artifact_id": 4,
+        "version": 2,
+        "source_run": 2,
+        "review_id": 4,
+        "state": "approved",
+        "inputs": {
+          "$execution": "a07823dd0fc7e6aeee0f5c8ba98162ce509bd0c146f4f9eccc19632b62b5e596",
+          "design": {
+            "artifact": 2,
+            "inputs": {
+              "requirements": {
+                "artifact": 1,
+                "inputs": {},
+                "review": 1
+              }
+            },
+            "review": 2
+          },
+          "requirements": {
+            "artifact": 1,
+            "inputs": {},
+            "review": 1
+          }
+        }
+      },
+      "quality": {
+        "artifact_id": 5,
+        "version": 1,
+        "source_run": 4,
+        "review_id": null,
+        "state": "review",
+        "inputs": {}
+      },
+      "security": {
+        "artifact_id": 7,
+        "version": 2,
+        "source_run": 7,
+        "review_id": null,
+        "state": "review",
+        "inputs": {}
+      },
+      "release": {
+        "artifact_id": null,
+        "version": null,
+        "source_run": null,
+        "review_id": null,
+        "state": "not_started",
+        "inputs": {}
+      }
+    }
+  },
+  "stages": {
+    "requirements": {
+      "artifact_id": 1,
+      "version": 1,
+      "source_run": null,
+      "review_id": 1,
+      "state": "approved",
+      "inputs": {}
+    },
+    "design": {
+      "artifact_id": 2,
+      "version": 1,
+      "source_run": null,
+      "review_id": 2,
+      "state": "approved",
+      "inputs": {
+        "requirements": {
+          "artifact": 1,
+          "inputs": {},
+          "review": 1
+        }
+      }
+    },
+    "develop": {
+      "artifact_id": 4,
+      "version": 2,
+      "source_run": 2,
+      "review_id": 4,
+      "state": "approved",
+      "inputs": {
+        "$execution": "a07823dd0fc7e6aeee0f5c8ba98162ce509bd0c146f4f9eccc19632b62b5e596",
+        "design": {
+          "artifact": 2,
+          "inputs": {
+            "requirements": {
+              "artifact": 1,
+              "inputs": {},
+              "review": 1
+            }
+          },
+          "review": 2
+        },
+        "requirements": {
+          "artifact": 1,
+          "inputs": {},
+          "review": 1
+        }
+      }
+    },
+    "quality": {
+      "artifact_id": 5,
+      "version": 1,
+      "source_run": 4,
+      "review_id": null,
+      "state": "review",
+      "inputs": {}
+    },
+    "security": {
+      "artifact_id": 7,
+      "version": 2,
+      "source_run": 7,
+      "review_id": null,
+      "state": "review",
+      "inputs": {}
+    },
+    "release": {
+      "artifact_id": null,
+      "version": null,
+      "source_run": null,
+      "review_id": null,
+      "state": "not_started",
+      "inputs": {}
+    }
+  }
+}

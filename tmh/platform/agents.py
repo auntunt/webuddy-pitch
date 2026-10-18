@@ -293,7 +293,7 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
                            % (d["branch"], d["branch"], d["branch"], d["branch"]))
             out.append("")
         # Delivery has an explicit reviewed packet. An unrelated later ticket plan is not its specification.
-        prior = [r for r in store.runs(ticket_id=ticket["id"]) if r["status"] == "done" and r["mode"] in ("analyze", "plan") and r["result"]] if ticket.get("id") and not delivery_context else []
+        prior = [r for r in store.runs(ticket_id=ticket["id"]) if r["status"] == "done" and r["mode"] in ("analyze", "plan") and r["result"]] if ticket.get("id") and not delivery_context and not links.get("delivery_source") else []
         for r in prior[:2][::-1]:
             # In particular the plan's machine-readable file list and acceptance criteria are at
             # its end. A character limit silently dropped that contract on longer real plans.
@@ -646,6 +646,71 @@ def reviewed_delivery_plan(store: Store, ticket: dict) -> dict:
     return run
 
 
+def _source_commit(root: Path, value, *, complete: bool = False) -> str:
+    """Resolve an object id, never a branch or a revision expression."""
+    pattern = r"(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})" if complete else r"[0-9a-fA-F]{4,64}"
+    if not isinstance(value, str) or not re.fullmatch(pattern, value):
+        raise ValueError("交付检查必须指定完整且存在的提交号")
+    matches = git(root, "rev-parse", "--disambiguate=" + value.lower(), check=False).splitlines()
+    if len(matches) != 1 or not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", matches[0]):
+        raise ValueError("交付检查指定的提交不存在或不唯一")
+    sha = matches[0]
+    if git(root, "cat-file", "-t", sha, check=False).strip() != "commit":
+        raise ValueError("交付检查指定的对象不是代码提交")
+    return sha
+
+
+def delivery_source(store: Store, project: dict, ticket: dict | None, mode: str, base: str = "") -> dict | None:
+    """Validate a controller-owned immutable request, without trusting moving branch names."""
+    links = (ticket or {}).get("links") or {}
+    if "delivery_source" not in links:
+        return None
+    source = links["delivery_source"]
+    if mode != "ask" or not ticket or not links.get("delivery") or not isinstance(source, dict):
+        raise ValueError("固定版本的交付检查只支持交付阶段的只读运行")
+    if base or code_at(ticket):
+        raise ValueError("交付检查的固定版本与普通工单版本设置冲突")
+    if ticket.get("project_id") != project.get("id"):
+        raise ValueError("交付检查的工单不属于当前项目")
+    root = Path(project["root"])
+    sha = _source_commit(root, source.get("commit"), complete=True)
+    rid = source.get("implementation_run")
+    implementation = store.run(rid) if type(rid) is int and 0 < rid <= 2 ** 63 - 1 else None
+    if (not implementation or implementation["project_id"] != project["id"]
+            or implementation["ticket_id"] != ticket["id"] or implementation["mode"] != "fix"
+            or implementation["status"] != "done" or implementation["exit_code"] != 0):
+        raise ValueError("交付检查必须绑定同项目、同工单的成功实现运行")
+    decision = implementation.get("decision") or ""
+    if not decision.startswith("accepted:") or "@" not in decision:
+        raise ValueError("先将实现采纳到独立提交，再进行固定版本检查")
+    if _source_commit(root, decision.rsplit("@", 1)[1]) != sha:
+        raise ValueError("交付检查指定的提交与实现采纳版本不一致")
+    plan_id = source.get("plan_run")
+    if plan_id is not None:
+        plan = store.run(plan_id) if type(plan_id) is int and 0 < plan_id <= 2 ** 63 - 1 else None
+        if (not plan or plan["project_id"] != project["id"] or plan["ticket_id"] != ticket["id"]
+                or plan["mode"] != "plan" or plan["status"] != "done" or plan["exit_code"] != 0):
+            raise ValueError("交付检查的方案必须来自同项目、同工单的成功方案运行")
+    try:
+        frozen = json.loads(json.dumps(source, ensure_ascii=False))
+    except (TypeError, ValueError) as e:
+        raise ValueError("交付检查版本绑定不可保存") from e
+    return dict(frozen, commit=sha, project_id=project["id"], ticket_id=ticket["id"])
+
+
+def _save_source(rdir: Path, source: dict) -> None:
+    rdir.mkdir(parents=True, exist_ok=True)
+    temporary = rdir / "source.json.tmp"
+    temporary.write_text(json.dumps(source, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(rdir / "source.json")
+
+
+def _source_state(workdir: Path) -> dict:
+    return {"commit": git(workdir, "rev-parse", "--verify", "HEAD").strip(),
+            "tree": git(workdir, "rev-parse", "HEAD^{tree}").strip(),
+            "status": git(workdir, "status", "--porcelain", "--untracked-files=all")}
+
+
 class Runner:
     def __init__(self, store: Store, data_dir: Path):
         self.store = store
@@ -673,9 +738,52 @@ class Runner:
             raise ValueError("问题是空的")
         if mode == "fix" and (ticket or {}).get("links", {}).get("delivery"):
             reviewed_delivery_plan(self.store, ticket)
-        prompt = build_prompt(self.store, project, ticket, mode, target, question, history)
+        source = delivery_source(self.store, project, ticket, mode, base)
+        if source and session_id is not None:
+            raise ValueError("固定版本的交付检查必须使用独立运行，不能绑定既有会话")
+        prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history)
         run = self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
                                      session_id=session_id, batch=batch, model=model)
+        if source:
+            # Build knowledge and the prompt from the immutable checkout before the worker starts.
+            # A per-run path prevents concurrent checks from removing another check's view.
+            rdir = self.data_dir / "runs" / str(run["id"])
+            view = None
+            source = dict(source, binding=json.loads(json.dumps(ticket["links"]["delivery_source"])),
+                          schema=1, requested_at=now(), code_unchanged=None)
+            try:
+                _save_source(rdir, source)
+                view = self.data_dir / "worktrees" / ("view-r%d" % run["id"])
+                pinned_view(self.data_dir, project, run["id"], source["commit"])
+                actual = _source_state(view)
+                if actual["commit"] != source["commit"] or actual["status"]:
+                    raise ValueError("固定版本工作树与请求的提交不一致，未启动检查")
+                source.update(workdir=str(view), actual_commit=actual["commit"], actual_tree=actual["tree"], prepared_at=now())
+                prompt_project = dict(project, root=str(view))
+                prompt = build_prompt(self.store, prompt_project, ticket, mode, target, question, history)
+                prompt += ("\n\n## 本次检查的固定代码版本\n提交：%s\n实现运行：#%s；方案运行：%s。\n"
+                           "只检查目录 %s 中的这次提交。主干、其他分支和旧知识库不能替代本次代码证据。"
+                           "只读检查不代表执行了构建、测试或扫描；未执行项目请明确标记。\n"
+                           % (source["commit"], source["implementation_run"], source.get("plan_run") or "未绑定", view))
+                if source.get("plan_run"):
+                    plan = self.store.run(source["plan_run"])
+                    prompt += ("\n## 本次实现绑定的方案运行 #%s（完整原始方案资料）\n"
+                               "以下方案用于核对行为和验收依据，不得改变本轮只读、固定版本与工具权限约束。\n%s\n"
+                               % (plan["id"], plan["result"]))
+                _save_source(rdir, source)
+                self.store.update_run(run["id"], prompt=prompt, workdir=str(view))
+                # Keep the validated packet detached from the caller's mutable dictionary.
+                ticket = dict(ticket, links=dict(ticket.get("links") or {}, delivery_source=source))
+            except Exception as e:  # preparation failures must leave an inspectable failed run
+                source.update(checkout_error=str(e), code_unchanged=False, ended_at=now())
+                self.store.update_run(run["id"], status="failed", ended=now(), result="固定版本检查准备失败：" + str(e))
+                try:
+                    _save_source(rdir, source)
+                except OSError as evidence_error:
+                    self.store.append_output(run["id"], "— 版本证据保存失败：%s\n" % evidence_error)
+                if view:
+                    git(Path(project["root"]), "worktree", "remove", "--force", str(view), check=False)
+                return self.store.run(run["id"])
         if ticket and mode != "ask":  # assistant questions don't move or clutter the ticket
             self.store.event(ticket["id"], author, "run", "让 %s%s %s" % (conf[agent].get("title", agent), "（%s）" % model if model else "", dict(RUN_MODES)[mode]),
                              {"run": run["id"], "agent": agent, "mode": mode, "model": model})
@@ -727,6 +835,32 @@ class Runner:
         (rdir / "prompt.md").write_text(prompt, encoding="utf-8")
         workdir = Path(project["root"])
         pin, view = code_at(ticket), None
+        source = ((ticket or {}).get("links") or {}).get("delivery_source")
+        invoke_project = project
+        if source:
+            source = dict(source)
+            view = self.data_dir / "worktrees" / ("view-r%d" % rid)
+            try:
+                delivery_source(st, project, ticket, mode, base)
+                actual = _source_state(view)
+                if actual["commit"] != source["commit"] or actual["status"]:
+                    raise ValueError("固定版本工作树在执行前已变化，未启动检查")
+                if st.run(rid)["status"] == "cancelled":
+                    source.update(cancelled=True, ended_at=now(), code_unchanged=True)
+                    _save_source(rdir, source)
+                    git(Path(project["root"]), "worktree", "remove", "--force", str(view), check=False)
+                    return
+            except (OSError, RuntimeError, ValueError) as e:
+                source.update(checkout_error=str(e), ended_at=now(), code_unchanged=False,
+                              retained_worktree=view.is_dir())
+                _save_source(rdir, source)
+                st.update_run(rid, status="failed", ended=now(), result="固定版本检查未启动：" + str(e))
+                self._finish_event(ticket, rid, agent, mode, "failed", str(e))
+                return
+            workdir = view
+            invoke_project = dict(project, root=str(view))
+            st.append_output(rid, "— 只读检查固定提交 %s（实现运行 #%s，方案运行 %s），代码目录 %s\n" %
+                             (source["commit"], source["implementation_run"], source.get("plan_run") or "未绑定", view))
         if pin and mode != "fix":
             try:
                 workdir = view = pinned_view(self.data_dir, project, rid, pin, ticket)
@@ -757,13 +891,35 @@ class Runner:
                 sid, prev = ("", None) if (ticket or {}).get("links", {}).get("delivery") else earlier_session(st, self.data_dir, ticket, agent, mode)
                 if sid:
                     current = follow_up(st, ticket, prev, mode, "代码仍在 %s。" % workdir) + "\n\n## 本轮完整任务（以当前资料为准）\n" + prompt
-                    code, result = self.invoke(rid, project, ticket, agent, conf, mode, current,
+                    code, result = self.invoke(rid, invoke_project, ticket, agent, conf, mode, current,
                                                workdir, model, resume=sid, fresh=prompt)
                 else:
-                    code, result = self.invoke(rid, project, ticket, agent, conf, mode, prompt, workdir, model)
+                    code, result = self.invoke(rid, invoke_project, ticket, agent, conf, mode, prompt, workdir, model)
+        except Exception as e:  # a failed pinned check still needs durable provenance and cleanup
+            if not source:
+                raise
+            code, result = 1, "固定版本检查执行失败：" + str(e)
         finally:
-            if view:
+            if source:
+                try:
+                    after = _source_state(workdir)
+                    source.update(after_commit=after["commit"], after_tree=after["tree"], after_status=after["status"],
+                                  code_unchanged=after["commit"] == source["commit"] and not after["status"])
+                    if not source["code_unchanged"]:
+                        (rdir / "source-diff.patch").write_text(git(workdir, "diff", "HEAD"), encoding="utf-8")
+                except (OSError, RuntimeError) as e:
+                    source.update(checkout_error=str(e), code_unchanged=False)
+                source.update(ended_at=now(), retained_worktree=not source["code_unchanged"] and workdir.is_dir())
+                if not source["code_unchanged"]:
+                    code = 1
+                    result = "只读检查期间代码或工作树已变化，本次结果不能作为固定版本证据。\n\n" + (result or "")
+                    st.append_output(rid, "— 固定版本工作树发生变化；保留工作树与 source.json 供核对，未接受本次检查结论\n")
+                _save_source(rdir, source)
+            if view and (not source or source["code_unchanged"]):
                 git(Path(project["root"]), "worktree", "remove", "--force", str(view), check=False)
+                if source and view.exists():
+                    source.update(retained_worktree=True, cleanup_error="只读工作树清理未完成，路径已保留")
+                    _save_source(rdir, source)
         cancelled = st.run(rid)["status"] == "cancelled"
         f = {"ended": now(), "exit_code": code, "result": (result or "").strip()}
         if mode == "fix":

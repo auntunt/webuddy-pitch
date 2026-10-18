@@ -146,11 +146,11 @@ def _path_by_file(files: list[str], flows: list[dict]) -> dict:
     return res
 
 
-def _reader(p: dict, fix: dict):
+def _reader(p: dict, fix: dict, commit: str = ""):
     """Reads a changed file as the change left it: from the adopted commit, else from the run's worktree."""
     dec = fix.get("decision") or ""
-    if dec.startswith("accepted:") and "@" in dec:
-        sha, root = dec.rsplit("@", 1)[-1], Path(p["root"])
+    if commit or dec.startswith("accepted:") and "@" in dec:
+        sha, root = commit or dec.rsplit("@", 1)[-1], Path(p["root"])
 
         def read(path):
             r = subprocess.run(["git", "-C", str(root), "show", "%s:%s" % (sha, path)], capture_output=True)
@@ -164,12 +164,20 @@ def _reader(p: dict, fix: dict):
 
 def snapshot(P, t: dict) -> dict:
     """What backs the ticket's latest change right now (read from runs, verify.json and the knowledge graph)."""
+    from .delivery import signoff_binding
     from .fixloop import plan_ac, plan_files, verified
     p = P.store.project(t["project_id"])
     runs = [P.store.run(r["id"]) for r in P.store.runs(ticket_id=t["id"]) if r["mode"] in ("plan", "fix")]  # newest first, full rows
-    plan = next((r for r in runs if r["mode"] == "plan" and r["status"] == "done"), None)
-    fix = next((r for r in runs if r["mode"] == "fix" and (r.get("decision") or "").startswith("accepted")), None) \
-        or next((r for r in runs if r["mode"] == "fix" and r["status"] == "done" and r.get("diff")), None)
+    binding = signoff_binding(P.data_dir, t["key"])
+    if binding is not None:
+        # A delivery owns its exact reviewed plan and implementation. An unrelated
+        # ordinary run on the ticket must never replace either source.
+        plan = next((r for r in runs if r["id"] == binding.get("plan_run") and r["mode"] == "plan"), None)
+        fix = next((r for r in runs if r["id"] == binding.get("fix_run") and r["mode"] == "fix"), None)
+    else:
+        plan = next((r for r in runs if r["mode"] == "plan" and r["status"] == "done"), None)
+        fix = next((r for r in runs if r["mode"] == "fix" and (r.get("decision") or "").startswith("accepted")), None) \
+            or next((r for r in runs if r["mode"] == "fix" and r["status"] == "done" and r.get("diff")), None)
     pac = plan_ac(plan["result"] or "") if plan else []
     asked = client_record(P.data_dir, t["key"])
     cac = client_ac(P.data_dir, t["key"])
@@ -179,10 +187,13 @@ def snapshot(P, t: dict) -> dict:
     flows = _flows(P, p, t)
     stat = _diff_stat(fix["diff"]) if fix else {"files": [], "added": 0, "removed": 0}
     v = verified(P.data_dir, fix["id"]) if fix else {}
-    adopt = next((e for e in reversed(P.store.events(t["id"])) if e["kind"] == "adopt"), None)
+    adopt = next((e for e in reversed(P.store.events(t["id"])) if e["kind"] == "adopt" and
+                  (binding is None or (fix is not None and (e.get("data") or {}).get("run") == fix["id"]) or
+                   (binding.get("commit") and (e.get("data") or {}).get("commit") == binding["commit"]))), None)
     path = _path_by_file(stat["files"], flows)
-    gates = G.evaluate(fix["diff"] or "", v, path, bool(contract), _reader(p, fix)) if fix else []
-    return {
+    gates = G.evaluate(fix["diff"] or "", v, path, bool(contract),
+                       _reader(p, fix, (binding or {}).get("commit", ""))) if fix else []
+    result = {
         "ticket": {"key": t["key"], "title": t["title"], "type": t["type"], "reporter": t["reporter"], "created": t["created"],
                    "body": (t.get("body") or "")[:2000]},
         "project": {"key": p["key"], "name": p["name"]},
@@ -191,7 +202,8 @@ def snapshot(P, t: dict) -> dict:
         "asked": asked and {"text": asked.get("text", ""), "understanding": asked.get("understanding", ""), "by": asked.get("confirmed_by", ""),
                             "requested_by": asked.get("requested_by", ""), "via": asked.get("via", "")},
         "contract": [{"path": k, "goal": g} for k, g in contract.items()],
-        "change": fix and {"run": fix["id"], "agent": fix["agent"], "decision": fix.get("decision") or "", **stat},
+        "change": fix and {"run": fix["id"], "agent": fix["agent"], "decision": fix.get("decision") or "", **stat,
+                           **({"commit": binding.get("commit", "")} if binding is not None else {})},
         "check": {"result": v.get("check") or ("none" if not fix else "unknown"), "skip": v.get("skip", ""), "verdict": v.get("verdict", ""),
                   "rounds": v.get("rounds"), "commands": [{"cmd": c.get("cmd") or c.get("name") or "", "exit_code": c.get("exit_code")}
                                                           for c in (v.get("commands") or [])][:12]},
@@ -201,6 +213,9 @@ def snapshot(P, t: dict) -> dict:
         "adopted": adopt and {"by": adopt["author"], "at": adopt["ts"], "branch": (adopt.get("data") or {}).get("branch", ""),
                               "commit": (adopt.get("data") or {}).get("commit", "")},
     }
+    if binding is not None:
+        result["delivery_binding"] = binding
+    return result
 
 
 def pack(P, t: dict, by: str, why: str = "转待验证") -> dict | None:
@@ -246,6 +261,48 @@ def on_status(P, t: dict, old: str, new: str, by: str) -> None:
 
 # ---------------------------------------------------------------- state
 
+def _binding_state(data_dir: Path, key: str, out: dict) -> dict:
+    """Validate current delivery evidence without rewriting any historical package."""
+    from .delivery import signoff_binding
+    previous = (out.get("snapshot") or {}).get("delivery_binding")
+    try:
+        current = signoff_binding(data_dir, key)
+    except (OSError, ValueError) as error:
+        current = {"valid": False, "blocked": ["无法读取当前交付依据：%s" % error]}
+    if current is None and previous is None:
+        return out
+    problems = []
+    if current is None:
+        problems.append("工单的交付关联已变化，原签收依据失效")
+    elif not current.get("valid"):
+        problems.extend(current.get("blocked") or ["当前交付的实现、质量或安全依据尚未有效复核"])
+    if previous is None or ev.canon(previous) != ev.canon(current):
+        problems.append("交付依据在打包后已变化，需要按当前已复核版本重新打包")
+    out["delivery_binding"] = current
+    out["binding_blocked"] = list(dict.fromkeys(problems))
+    if not problems:
+        return out
+    out["missing"] = list(dict.fromkeys(out.get("missing", []) + problems))
+    out.update(stale=True, complete=False, status="incomplete")
+    # Preserve the historical signature, but do not present it as current.
+    if out.get("decision"):
+        out["previous_decision"] = out["decision"]
+        out["decision"] = None
+        if out.get("snapshot"):
+            out["proofs"] = proofs(out["snapshot"], out.get("gates"), out.get("attachments", []), None)
+    return out
+
+
+def _require_current_binding(s: dict) -> None:
+    if s.get("binding_blocked"):
+        raise ApiError(409, "交付签收依据已失效或尚未齐备：%s" % "；".join(s["binding_blocked"]))
+
+
+def _link_matches(x: dict, s: dict) -> bool:
+    bound = (s.get("snapshot") or {}).get("delivery_binding") is not None
+    return x.get("pack_hash") == s.get("pack_hash") if (bound or x.get("pack_hash")) else True
+
+
 def state(data_dir: Path, key: str) -> dict:
     """The package as it stands: the latest snapshot, what was added since, what is missing, who signed."""
     recs = records(data_dir, key)
@@ -254,7 +311,7 @@ def state(data_dir: Path, key: str) -> dict:
     out = {"records": len(recs), "intact": ok, "problem": why, "hash": ev.head(recs), "packed": bool(last)}
     if not last:
         out.update({"missing": [lb for _, lb in REQUIRED], "complete": False, "status": "none", "snapshot": None})
-        return _upstream(recs, out)
+        return _binding_state(data_dir, key, _upstream(recs, out))
     snap = last["data"]["snapshot"]
     after = ev.since(recs, last["seq"])
     shots = [dict(r["data"], by=r["by"], ts=r["ts"]) for r in recs if r["kind"] == "attach"]
@@ -286,7 +343,7 @@ def state(data_dir: Path, key: str) -> dict:
     out["complete"] = not out["missing"]
     out["status"] = signs[-1]["kind"] + "ed" if signs else ("ready" if out["complete"] else "incomplete")
     out["proofs"] = proofs(snap, gates, shots, out["decision"])
-    return _upstream(recs, out)
+    return _binding_state(data_dir, key, _upstream(recs, out))
 
 
 PROOF_STATE = {"proven": "自动测试已证明", "todo": "等您确认", "pass": "已确认通过", "fail": "没通过", "open": "还没说清楚，不该开工"}
@@ -377,6 +434,7 @@ def review(P, t: dict, by: str, note: str, scope_ok: bool = False, path_ok: bool
     if (scope_ok or path_ok) and len(note) < 4:
         raise ApiError(400, "认可超出方案或不在业务流上的改动，要写明理由")
     s = state(P.data_dir, t["key"])
+    _require_current_binding(s)
     if not s["packed"]:
         raise ApiError(409, "还没有证据包：工单转到“待验证”时自动生成")
     w = {}
@@ -429,6 +487,7 @@ def issue(P, t: dict, by: str, signer: str, role: str = "", days: int = LINK_DAY
     if t["status"] != "verify":
         raise ApiError(409, "工单在“待验证”时才能发签收链接（现在是 %s）" % t["status"])
     s = state(P.data_dir, t["key"])
+    _require_current_binding(s)
     if not s["intact"]:
         raise ApiError(409, "证据包被改动过：%s" % s["problem"])
     if not s["packed"]:
@@ -442,7 +501,8 @@ def issue(P, t: dict, by: str, signer: str, role: str = "", days: int = LINK_DAY
     for h, x in links.items():  # one live link per ticket: a new one replaces the old
         if x["key"] == t["key"] and not x.get("used"):
             x["used"] = "replaced"
-    links[_th(token)] = {"key": t["key"], "signer": signer, "role": role, "expires": exp, "by": by, "used": ""}
+    links[_th(token)] = {"key": t["key"], "signer": signer, "role": role, "expires": exp, "by": by, "used": "",
+                         "pack_hash": s["pack_hash"]}
     _save_links(P.data_dir, links)
     rec = _add(epath(P.data_dir, t["key"]), "link", by, {"signer": signer, "role": role, "expires": exp, "token_sha": _th(token)[:16],
                                                               "missing": s["missing"], "note": note})
@@ -478,6 +538,9 @@ def decide(P, token: str, action: str, name: str, verdicts: dict, note: str, cli
     s = state(P.data_dir, t["key"])
     if not s["intact"]:
         raise ApiError(409, "证据包被改动过，不能签：%s" % s["problem"])
+    _require_current_binding(s)
+    if not _link_matches(x, s):
+        raise ApiError(409, "证据包版本已变化，这个签收链接不能签署新版本；请联系乙方重新发送")
     if s.get("stale"):
         raise ApiError(409, "验收标准在这个签收链接发出后改过了，这个链接作废；请等乙方按新标准重新发")
     if any(a.get("open") for a in (s["snapshot"] or {}).get("ac") or []):
@@ -629,7 +692,7 @@ def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
     title = "%s 验收签收" % x["key"]
     if not snap:
         return ev.page(title, "<h1>%s</h1><p>这单还没有证据包。</p>" % E(title), SIGN_CSS)
-    open_form = not done and t and t["status"] == "verify" and not x.get("used")
+    open_form = not done and t and t["status"] == "verify" and not x.get("used") and not s.get("stale") and _link_matches(x, s)
     words, did = _said(snap)
     body = ["<div class=sub>%s · %s</div><h1>%s</h1><div class=sub>请 %s%s 确认这次改好的内容</div>" % (
         E(snap["project"]["name"]), E(x["key"]), E(snap["ticket"]["title"]), E(x["signer"]), "（%s）" % E(x["role"]) if x["role"] else "")]
@@ -639,13 +702,22 @@ def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
                         "已签收，谢谢" if done["action"] == "sign" else "已退回，我们会按您写的原因重改", E(done["ts"]), E(done["hash"])))
     if msg:
         body.append("<p class=bad>%s</p>" % E(msg))
+    if s.get("binding_blocked") or not _link_matches(x, s):
+        body.append("<p class=bad>交付依据或证据包版本已变化，这个链接不能继续签收。请联系乙方核对当前版本并重新发送。</p>")
     body.append("<section class=card><h2>您提的</h2><blockquote>%s</blockquote><h2 style='margin-top:12px'>这次改了什么</h2><p>%s</p>%s</section>" % (
         E(words).replace("\n", "<br>"), E(did),
         "<div class=sub>涉及：%s</div>" % E("、".join(f["name"] for f in snap["flows"])) if snap["flows"] else ""))
     from . import preview
-    pv = preview.status(P.data_dir, x["key"]).get("state")
+    pv_status = preview.status(P.data_dir, x["key"])
+    pv = pv_status.get("state")
+    expected_commit = (snap.get("delivery_binding") or {}).get("commit", "")
+    preview_mismatch = bool(expected_commit and pv in ("up", "starting") and
+                            not preview.bound_matches(pv_status, x["key"], expected_commit))
     if open_form:  # try the change itself before signing
-        if pv in ("up", "starting"):
+        if preview_mismatch:
+            body.append("<section class=card><h2>先亲手试一试</h2><p class=bad>当前预览版本与这次签收的实现不匹配。</p>"
+                        "<div class=sub>请联系工程师启动这次已复核实现的预览，再按验收标准操作。</div></section>")
+        elif pv in ("up", "starting"):
             body.append("<section class=card><h2>先亲手试一试</h2><p class=pv><a class=bigbtn href=\"/sign/%s/pv/\" target=_blank rel=noopener>"
                         "打开这次改好的版本，先亲手试一试 ↗</a></p>%s<div class=sub>照着下面每一条，在里面操作一遍。</div></section>"
                         % (E(token), "<div class=sub>还在启动，稍等一会儿再点。</div>" if pv == "starting" else ""))
@@ -831,6 +903,10 @@ def brief(data_dir: Path, key: str) -> dict:
 def record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
     """The 验收 button inside the platform writes into the package too, so every verdict is on the chain."""
     s = state(P.data_dir, t["key"])
+    if passed:
+        _require_current_binding(s)
+        if s.get("delivery_binding") is not None and not s["intact"]:
+            raise ApiError(409, "交付证据包被改动过，不能签收：%s" % s["problem"])
     if not s["packed"] or not s["intact"]:
         return ""
     acs = [a["id"] for a in (s["snapshot"] or {}).get("ac") or []]
