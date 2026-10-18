@@ -18,6 +18,8 @@
 
 ## 全站页面改版轮（当前）
 
+实现、回归和完整浏览器证据提交：`20b4fe8`（`Redesign Webuddy workbench and preserve actionable evidence`），仍在本地 `codex/self-evolution-resume` 分支，未推送或部署。
+
 按用户指定的 Impeccable 与 Design Visual Frontend，完成六个主页面、交付详情及工程子页面的统一改版：浅色工作面、森林绿强调色、统一导航/表单/弹窗/状态，手机底部导航、平板两行顶栏、宽屏内容边界。产品和设计约定已存入 `PRODUCT.md` / `DESIGN.md`，参考仓库的固定版本及取舍见 `docs/design/redesign-2026-10-18.md`。
 
 交付搜索与状态筛选、阶段侧轨、下一步定位、完整草稿恢复、运行及产物入口均已实操；补上弹窗焦点循环、助手覆盖隔离和关闭恢复。浏览器验收发现阶段研究运行被列表过滤、历史输出被截断，两处已修复，旧模型输出明确标为历史记录，当前结果仍以实际验证为准。

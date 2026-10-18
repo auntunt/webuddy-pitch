@@ -2,6 +2,8 @@
 
 基线 `07cdb21`，分支 `codex/self-evolution-resume`。依据用户指定的 Impeccable 与 Design Visual Frontend 改造现有 Python 单页工作台，不更换技术栈、不引入外部字体或 CDN。
 
+实现与证据提交：`20b4fe8678621947ea1433c4553a0575c669f120`。本文件随后单独补记提交号；本地工作台已重启加载最终实现。
+
 固定参考版本、具体设计决策与适用边界见 [设计依据](../design/redesign-2026-10-18.md)。产品与视觉约定写入根目录 `PRODUCT.md` / `DESIGN.md`，供后续自进化延续。本记录为本地技术验收，不是客户签收或生产发布。
 
 ## 实现
