@@ -1,6 +1,6 @@
 # Python 候选版本的代码入口与技术证据
 
-日期：2026-10-19。分支：`codex/self-evolution-resume`。本轮起点：`2713ce5853a7d89aaa44d2464a5c0183010db629`。本轮只在本地工作台接续 BOOTV2，未调用新模型、合并应用主干或操作生产。
+日期：2026-10-19。分支：`codex/self-evolution-resume`。本轮起点：`2713ce5853a7d89aaa44d2464a5c0183010db629`。本轮只在本地工作台接续 BOOTV2，未调用新模型、合并应用主干或操作生产。实现与完整原始证据提交：`efb23a872d28580dfe0878ce24788bb9dc777fce`（`Bind Python code paths to candidates and synchronize delivery evidence`），仅本地、未推送；本段随后由文档提交补记。
 
 ## 修复的实际阻塞
 
@@ -46,9 +46,9 @@ BOOTV2 已有真实 Codex 沟通、方案、代码、外部测试和固定版本
 
 主代理已实际打开最终[证据包截图](evidence/python-flow-2026-10-19/browser-final-evidence-panel.png)及[版本面板截图](evidence/python-flow-2026-10-19/browser-final-version-panel.png)，核对文字可读。所有截图保持工具返回的原始字节，没有压缩、缩像素或重编码。浏览器工具不提供文件内容读取；本轮通过原生文件选择、页面文件名保持和同DOM节点测试验证选择保留，不宣称测试附件已上传。
 
-最终完整命令：`NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhost python3 -m unittest discover -s tests -v`。**541项，539通过、2项可选依赖跳过，187.119秒，退出码0**，日志为 [platform-full-ui-sync-final.log](evidence/python-flow-2026-10-19/platform-full-ui-sync-final.log)。仍有既有socket/HTTP资源警告，不宣称无警告。只对子进程设置回环代理绕过，未修改系统代理。
+最终完整命令：`NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhost python3 -m unittest discover -s tests -v`。**541项，539通过、2项可选依赖跳过，187.119秒，退出码0**，日志为 [platform-full-ui-sync-final.log](evidence/python-flow-2026-10-19/platform-full-ui-sync-final.log)。完整套件后仅去掉测试文件末尾一个空行，12项页面测试再跑通过，产品源码未变化，回执保留前后摘要。仍有既有socket/HTTP资源警告，不宣称无警告。只对子进程设置回环代理绕过，未修改系统代理。
 
-此前539项全绿的 `platform-full-final.log` 早于浏览器同步补修，保留为中间证据。随后两个同步红灯见 `ui-package-sync-red.log`，补修后52项相关回归通过、独立20项通过，再完成上述最终541项。独立首次UI命令有模块名称导入错误，保留原日志 `independent-ui-package-sync.log`；正确模块复跑见 `independent-ui-package-sync-final.log`，不能把命令错误计为产品缺陷。
+此前539项无失败、2项跳过的 `platform-full-final.log` 早于浏览器同步补修，保留为中间证据。随后两个同步红灯见 `ui-package-sync-red.log`，补修后52项相关回归通过、独立20项通过，再完成上述最终541项。独立首次UI命令有模块名称导入错误，保留原日志 `independent-ui-package-sync.log`；正确模块复跑见 `independent-ui-package-sync-final.log`，不能把命令错误计为产品缺陷。
 
 最终源码摘要见 [tested-sources-final.json](evidence/python-flow-2026-10-19/tested-sources-final.json)，原始证据清单见 [SHA256SUMS](evidence/python-flow-2026-10-19/SHA256SUMS)。此前源码回执和失败日志全部保留。完整前后平台/应用SQLite备份也在证据目录；只新增3次技术关联及3次追加证据记录，原模型运行、应用数据和已附业务证据未改变。
 

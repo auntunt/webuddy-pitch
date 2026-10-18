@@ -18,6 +18,8 @@
 
 ## Python 候选入口与证据同步轮（当前）
 
+实现与完整证据提交：`efb23a872d28580dfe0878ce24788bb9dc777fce`（`Bind Python code paths to candidates and synchronize delivery evidence`），仅本地、未推送。
+
 2026-10-19 接续 `2713ce5`，完成 BOOTV2 的候选版本代码入口关联：从完整Git对象核对新增/删除行和实际内层函数，支持已注册的Python/http.server分派入口与确定的本地调用；不借主干旧图或文件命中冒充具体URL和业务验收。候选变化、错误入口、不可达改动、未知装饰器/动态替换等保持unknown。
 
 浏览器在真实BOOTV2记录POST关联，改选GET立即显示unknown，再恢复POST显示静态关联pass；原评论草稿、附件说明和已选图片保留。浏览器发现的证据包陈旧问题已修复并留红绿回归。最终证据包7条，仍缺真实乙方复核人；没有代替客户签收。固定候选预览、三条业务数据和原模型运行保持。
