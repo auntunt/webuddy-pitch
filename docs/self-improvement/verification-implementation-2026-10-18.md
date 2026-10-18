@@ -71,3 +71,5 @@
 - 工作台入口：`http://127.0.0.1:8791/#/t/BOOTV2-1`。固定版本入口：`http://127.0.0.1:8791/pv/BOOTV2-1/__commit/6c7787b3de7d308120b9c2e298b3629b588a47c9/`。它们仅是本机开发服务；服务停止后可按前述命令恢复。
 
 证据：`run-3-model-final.json`、`original-run-2/`、`original-run-3/`、`candidate-integration.json`、`run-3-independent-rechecked.json`、`run-3-adopted.json`、`adopted-preview-verification.json`、`ticket-final.json`。浏览器最终可操作截图为 `browser-adopted-list.jpg`。本轮平台提交记录在 Git 日志中，本文件随平台改动同一次提交保存。
+
+平台实现及证据已提交为 `812bbb1`。93 份证据合计 6,884,194 字节，清单逐一读回校验 SHA256。原始日志和补丁正文中的行末空白完整保留，因此对整个证据目录执行 Git whitespace check 会有告警；源码、测试和本轮说明文档的 whitespace check 通过。没有为消除归档告警改写原始证据。
