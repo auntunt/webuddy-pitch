@@ -1,0 +1,11 @@
+Started owned Platform 40009
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/crash-recovery-2026-10-19/browser-fixture.py", line 220, in <module>
+    setup()
+    ~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/crash-recovery-2026-10-19/browser-fixture.py", line 156, in setup
+    wait(ready)
+    ~~~~^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/crash-recovery-2026-10-19/browser-fixture.py", line 92, in wait
+    raise RuntimeError("Fixture readiness timeout")
+RuntimeError: Fixture readiness timeout

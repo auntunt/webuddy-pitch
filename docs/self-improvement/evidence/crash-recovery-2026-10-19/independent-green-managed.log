@@ -1,0 +1,8 @@
+test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture) ... ok
+test_second_runner_cannot_fail_or_recover_a_live_service_owners_run (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_second_runner_cannot_fail_or_recover_a_live_service_owners_run) ... ok
+test_service_sigkill_reclaims_descendants_and_recovers_preserved_work (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_service_sigkill_reclaims_descendants_and_recovers_preserved_work) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.980s
+
+OK

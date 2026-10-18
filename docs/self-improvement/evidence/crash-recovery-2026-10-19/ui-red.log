@@ -1,0 +1,184 @@
+test_blocked_receipt_has_no_spinner_or_retry_and_preserves_full_errors (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_blocked_receipt_has_no_spinner_or_retry_and_preserves_full_errors) ... FAIL
+test_incomplete_or_malformed_receipts_never_offer_retry_even_if_flag_is_true (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_incomplete_or_malformed_receipts_never_offer_retry_even_if_flag_is_true) ... FAIL
+test_manual_receipt_recheck_posts_once_and_preserves_ticket_drafts (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_manual_receipt_recheck_posts_once_and_preserves_ticket_drafts) ... FAIL
+test_manual_recheck_error_and_late_response_keep_the_current_view (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_manual_recheck_error_and_late_response_keep_the_current_view) ... FAIL
+test_owner_loss_and_restart_explain_process_cleanup_without_claiming_success (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_owner_loss_and_restart_explain_process_cleanup_without_claiming_success) ... FAIL
+test_pending_recovery_polls_read_only_then_stops_when_blocked (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_pending_recovery_polls_read_only_then_stops_when_blocked) ... FAIL
+test_cancelled_run_keeps_polling_until_collection_finishes (tests.test_run_recovery_ui.RunRecoveryUiTest.test_cancelled_run_keeps_polling_until_collection_finishes) ... ok
+test_complete_receipt_is_escaped_without_truncating_failure_details (tests.test_run_recovery_ui.RunRecoveryUiTest.test_complete_receipt_is_escaped_without_truncating_failure_details) ... ok
+test_delivery_recovery_never_offers_generic_retry (tests.test_run_recovery_ui.RunRecoveryUiTest.test_delivery_recovery_never_offers_generic_retry) ... ok
+test_failed_changes_have_no_recheck_button_but_done_changes_do (tests.test_run_recovery_ui.RunRecoveryUiTest.test_failed_changes_have_no_recheck_button_but_done_changes_do) ... ok
+test_late_retry_does_not_replace_a_different_open_run (tests.test_run_recovery_ui.RunRecoveryUiTest.test_late_retry_does_not_replace_a_different_open_run) ... ok
+test_malformed_attempts_leave_the_original_receipt_visible (tests.test_run_recovery_ui.RunRecoveryUiTest.test_malformed_attempts_leave_the_original_receipt_visible) ... ok
+test_retry_double_click_creates_one_run_and_opens_its_record (tests.test_run_recovery_ui.RunRecoveryUiTest.test_retry_double_click_creates_one_run_and_opens_its_record) ... ok
+test_retry_failure_keeps_original_record_and_allows_retry (tests.test_run_recovery_ui.RunRecoveryUiTest.test_retry_failure_keeps_original_record_and_allows_retry) ... ok
+test_stopping_toast_is_a_request_not_a_claim_of_cleanup (tests.test_run_recovery_ui.RunRecoveryUiTest.test_stopping_toast_is_a_request_not_a_claim_of_cleanup) ... ok
+
+======================================================================
+FAIL: test_blocked_receipt_has_no_spinner_or_retry_and_preserves_full_errors (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_blocked_receipt_has_no_spinner_or_retry_and_preserves_full_errors)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_crash_recovery_ui.py", line 25, in test_blocked_receipt_has_no_spinner_or_retry_and_preserves_full_errors
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    const error='完整回收错误'.repeat(900)+'<script>最后</script>';
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    assert.ok(body.innerHTML.includes(h(JSON.stringify(receipt,null,2))));assert.ok(body.innerHTML.includes('输出尚未确认完整'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery_ui.py", line 113, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:109:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+======================================================================
+FAIL: test_incomplete_or_malformed_receipts_never_offer_retry_even_if_flag_is_true (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_incomplete_or_malformed_receipts_never_offer_retry_even_if_flag_is_true)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_crash_recovery_ui.py", line 37, in test_incomplete_or_malformed_receipts_never_offer_retry_even_if_flag_is_true
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    for(const lifecycle of [null,{finished:true},{finished:true,attempts:[{pid:99}]},{finished:true,attempts:[{pid:99,cleanup:{complete:false}}]},
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    }
+    ^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery_ui.py", line 113, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: null
+    at [stdin]:111:9
+    at [stdin]:114:3
+    at runScriptInThisContext (node:internal/vm:218:10)
+    at node:internal/process/execution:451:12
+    at [stdin]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:449:60)
+    at evalFunction (node:internal/process/execution:283:30)
+    at evalTypeScript (node:internal/process/execution:295:3)
+    at node:internal/main/eval_stdin:51:5
+    at Socket.<anonymous> (node:internal/process/execution:205:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+======================================================================
+FAIL: test_manual_receipt_recheck_posts_once_and_preserves_ticket_drafts (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_manual_receipt_recheck_posts_once_and_preserves_ticket_drafts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_crash_recovery_ui.py", line 58, in test_manual_receipt_recheck_posts_once_and_preserves_ticket_drafts
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    const draft={comment:'保留未发送评论',note:'保留截图说明',file:{name:'原始截图.png'}};S.cur={ticket:{key:'APP-7'},draft};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    assert.equal(S.cur.draft,draft);assert.equal(draft.comment,'保留未发送评论');assert.equal(draft.file.name,'原始截图.png');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery_ui.py", line 113, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : TypeError: Cannot read properties of null (reading 'onclick')
+    at [stdin]:110:93
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+
+======================================================================
+FAIL: test_manual_recheck_error_and_late_response_keep_the_current_view (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_manual_recheck_error_and_late_response_keep_the_current_view)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_crash_recovery_ui.py", line 70, in test_manual_recheck_error_and_late_response_keep_the_current_view
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    const blocked={...stopped,status:'failed',lifecycle:{...stopped.lifecycle,recovery:{state:'blocked',reason:'回执不完整',output_complete:false,errors:[]}}};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    assert.ok(body.innerHTML.includes('#9 '));assert.ok(!body.innerHTML.includes('#7 '));assert.ok(!body.querySelector('[data-run-resume]'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery_ui.py", line 113, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : TypeError: Cannot read properties of null (reading 'onclick')
+    at [stdin]:108:139
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+
+======================================================================
+FAIL: test_owner_loss_and_restart_explain_process_cleanup_without_claiming_success (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_owner_loss_and_restart_explain_process_cleanup_without_claiming_success)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_crash_recovery_ui.py", line 13, in test_owner_loss_and_restart_explain_process_cleanup_without_claiming_success
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    for(const [reason,label] of [['owner_lost','平台连接中断，受管进程已停止'],['restarted','平台重启后恢复停止记录']]){
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    }
+    ^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery_ui.py", line 113, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:110:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+======================================================================
+FAIL: test_pending_recovery_polls_read_only_then_stops_when_blocked (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_pending_recovery_polls_read_only_then_stops_when_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_crash_recovery_ui.py", line 48, in test_pending_recovery_polls_read_only_then_stops_when_blocked
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    let current={...stopped,status:'failed',can_retry:true,lifecycle:{...stopped.lifecycle,stopped_reason:'recovery_pending'}};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    assert.ok(calls.every(url=>url.startsWith('/api/runs/7?')));assert.ok(body.innerHTML.includes('缺少持久回执'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery_ui.py", line 113, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:108:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.664s
+
+FAILED (failures=6)

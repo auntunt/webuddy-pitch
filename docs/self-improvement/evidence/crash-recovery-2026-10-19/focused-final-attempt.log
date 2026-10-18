@@ -1,0 +1,81 @@
+test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout) ... ok
+test_busy_backoff_cannot_outlive_the_total_run_budget (tests.test_run_lifecycle.RunLifecycleTest.test_busy_backoff_cannot_outlive_the_total_run_budget) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-9cyn1_pm/runs/1/owner.lock'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_cancel_also_stops_an_active_baseline_build_tree (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_also_stops_an_active_baseline_build_tree) ... ok
+test_cancel_before_invoke_cannot_launch_any_process (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_before_invoke_cannot_launch_any_process) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-v9mv05co/runs/1/owner.lock'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-s8f0hjc3/runs/1/owner.lock'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree (tests.test_run_lifecycle.RunLifecycleTest.test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree) ... ok
+test_normal_completion_retains_evidence_without_false_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_normal_completion_retains_evidence_without_false_timeout) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-ozxw9tjd/runs/1/owner.lock'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_retries_keep_separate_original_outputs_instead_of_overwriting_evidence (tests.test_run_lifecycle.RunLifecycleTest.test_retries_keep_separate_original_outputs_instead_of_overwriting_evidence) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-hdbzty9t/runs/1/owner.lock'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_timeout_does_not_signal_a_separate_process_started_by_this_test (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_does_not_signal_a_separate_process_started_by_this_test) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-tkueb5c0/runs/1/owner.lock'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-v_a0jsbz/runs/1/owner.lock'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_timeout_preserves_every_output_line_and_unterminated_tail (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_preserves_every_output_line_and_unterminated_tail) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-10fxk90i/runs/1/owner.lock'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts (tests.test_run_lifecycle.RunLifecycleTest.test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-xjra4ryk/runs/1/owner.lock'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe (tests.test_run_lifecycle.RunLifecycleTest.test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:84: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-grilln3n/runs/1/owner.lock'>
+  return self.run(*args, **kwds)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_active_run_and_other_work_on_same_ticket_prevent_recovery (tests.test_run_recovery.RunRecoveryTest.test_active_run_and_other_work_on_same_ticket_prevent_recovery) ... ok
+test_closed_ticket_and_delivery_stage_cannot_bypass_their_workflow (tests.test_run_recovery.RunRecoveryTest.test_closed_ticket_and_delivery_stage_cannot_bypass_their_workflow) ... ok
+test_concurrent_retry_clicks_create_exactly_one_new_run (tests.test_run_recovery.RunRecoveryTest.test_concurrent_retry_clicks_create_exactly_one_new_run) ... ok
+test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene (tests.test_run_recovery.RunRecoveryTest.test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene) ... ok
+test_missing_or_unmanaged_worktree_never_silently_restarts_from_main (tests.test_run_recovery.RunRecoveryTest.test_missing_or_unmanaged_worktree_never_silently_restarts_from_main) ... ok
+test_new_run_gets_a_fresh_budget_without_resetting_old_timeout_or_logs (tests.test_run_recovery.RunRecoveryTest.test_new_run_gets_a_fresh_budget_without_resetting_old_timeout_or_logs) ... ok
+test_uncertain_cleanup_or_malformed_receipts_never_allow_recovery (tests.test_run_recovery.RunRecoveryTest.test_uncertain_cleanup_or_malformed_receipts_never_allow_recovery) ... ok
+test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs) ... ok
+test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle) ... ok
+test_evaluation_exception_records_error_and_finishes_its_created_run (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_exception_records_error_and_finishes_its_created_run) ... ok
+test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree) ... ok
+test_evaluation_timeout_or_cancel_never_reports_successful_execution (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_timeout_or_cancel_never_reports_successful_execution) ... ok
+test_intake_cancelled_then_invoke_exception_still_seals_lifecycle (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_cancelled_then_invoke_exception_still_seals_lifecycle) ... ok
+test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence) ... ok
+test_intake_success_seals_lifecycle_and_applies_actual_reader_output (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_success_seals_lifecycle_and_applies_actual_reader_output) ... ok
+test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer) ... ok
+test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers) ... ok
+test_success_is_finished_and_later_wall_time_does_not_reclassify_it (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_success_is_finished_and_later_wall_time_does_not_reclassify_it) ... ok
+test_timeout_after_zero_exit_overrides_success_before_direct_finalize (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_timeout_after_zero_exit_overrides_success_before_direct_finalize) ... ok
+test_build_timeout_closes_lifecycle_without_starting_review (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_build_timeout_closes_lifecycle_without_starting_review) ... ok
+test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded) ... ok
+test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption) ... ok
+test_review_shares_time_spent_on_baseline_and_candidate_checks (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_review_shares_time_spent_on_baseline_and_candidate_checks) ... ok
+test_successful_direct_review_finishes_before_adoption (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_successful_direct_review_finishes_before_adoption) ... ok
+test_failed_lifecycle_retry_link_still_returns_one_durable_successor (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_failed_lifecycle_retry_link_still_returns_one_durable_successor) ... ok
+test_failed_supplemental_retry_receipt_keeps_database_idempotency (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_failed_supplemental_retry_receipt_keeps_database_idempotency) ... ok
+test_independent_runners_commit_and_dispatch_only_one_retry (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_independent_runners_commit_and_dispatch_only_one_retry) ... ok
+test_accepted_cancel_before_finalization_cannot_become_done (tests.test_runtime_review.RuntimeReviewTest.test_accepted_cancel_before_finalization_cannot_become_done) ... ok
+test_cancel_during_worktree_preparation_cannot_become_running (tests.test_runtime_review.RuntimeReviewTest.test_cancel_during_worktree_preparation_cannot_become_running) ... ok
+test_failed_binary_readback_preserves_original_evidence_and_cleanup (tests.test_runtime_review.RuntimeReviewTest.test_failed_binary_readback_preserves_original_evidence_and_cleanup) ... ok
+test_failed_process_receipt_write_does_not_leave_a_phantom_process (tests.test_runtime_review.RuntimeReviewTest.test_failed_process_receipt_write_does_not_leave_a_phantom_process) ... ok
+test_final_commit_and_cancel_are_serialized_across_threads (tests.test_runtime_review.RuntimeReviewTest.test_final_commit_and_cancel_are_serialized_across_threads) ... ok
+test_missing_text_evidence_path_preserves_raw_bytes_and_cleanup (tests.test_runtime_review.RuntimeReviewTest.test_missing_text_evidence_path_preserves_raw_bytes_and_cleanup) ... ok
+
+----------------------------------------------------------------------
+Ran 46 tests in 40.579s
+
+OK

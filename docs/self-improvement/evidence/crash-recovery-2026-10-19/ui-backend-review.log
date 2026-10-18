@@ -1,0 +1,6 @@
+receipt: {"finished": true, "attempts": [], "recovery": "damaged"}
+AttributeError: 'str' object has no attribute 'get'
+receipt: {"finished": true, "attempts": [], "recovery": ["damaged"]}
+AttributeError: 'list' object has no attribute 'get'
+receipt: {"finished": true}
+result: {"can_retry": true, "retry_blocked": []}

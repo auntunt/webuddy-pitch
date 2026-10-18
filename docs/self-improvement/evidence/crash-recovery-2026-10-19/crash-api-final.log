@@ -1,0 +1,9 @@
+test_get_is_read_only_and_malformed_proof_never_enables_retry (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_get_is_read_only_and_malformed_proof_never_enables_retry) ... ok
+test_interruption_during_recovery_never_seals_before_database_write (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_interruption_during_recovery_never_seals_before_database_write) ... ok
+test_missing_final_receipt_blocks_then_post_collects_real_receipt (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_missing_final_receipt_blocks_then_post_collects_real_receipt) ... ok
+test_recovery_post_cannot_take_a_live_owner (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_recovery_post_cannot_take_a_live_owner) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.184s
+
+OK

@@ -1,0 +1,11 @@
+test_blocked_receipt_has_no_spinner_or_retry_and_preserves_full_errors (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_blocked_receipt_has_no_spinner_or_retry_and_preserves_full_errors) ... ok
+test_incomplete_or_malformed_receipts_never_offer_retry_even_if_flag_is_true (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_incomplete_or_malformed_receipts_never_offer_retry_even_if_flag_is_true) ... ok
+test_manual_receipt_recheck_posts_once_and_preserves_ticket_drafts (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_manual_receipt_recheck_posts_once_and_preserves_ticket_drafts) ... ok
+test_manual_recheck_error_and_late_response_keep_the_current_view (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_manual_recheck_error_and_late_response_keep_the_current_view) ... ok
+test_owner_loss_and_restart_explain_process_cleanup_without_claiming_success (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_owner_loss_and_restart_explain_process_cleanup_without_claiming_success) ... ok
+test_pending_recovery_polls_read_only_then_stops_when_blocked (tests.test_crash_recovery_ui.CrashRecoveryUiTest.test_pending_recovery_polls_read_only_then_stops_when_blocked) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.346s
+
+OK

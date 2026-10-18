@@ -1,0 +1,18 @@
+test_get_is_read_only_and_malformed_proof_never_enables_retry (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_get_is_read_only_and_malformed_proof_never_enables_retry) ... ok
+test_interruption_during_recovery_never_seals_before_database_write (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_interruption_during_recovery_never_seals_before_database_write) ... ok
+test_missing_final_receipt_blocks_then_post_collects_real_receipt (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_missing_final_receipt_blocks_then_post_collects_real_receipt) ... ok
+test_recovery_post_cannot_take_a_live_owner (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_recovery_post_cannot_take_a_live_owner) ... ERROR
+
+======================================================================
+ERROR: test_recovery_post_cannot_take_a_live_owner (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_recovery_post_cannot_take_a_live_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_crash_recovery_api.py", line 61, in test_recovery_post_cannot_take_a_live_owner
+    self.assertEqual(caught.exception.status, 409)
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ApiError' object has no attribute 'status'
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.150s
+
+FAILED (errors=1)
