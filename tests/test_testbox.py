@@ -10,6 +10,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tmh.platform import testbox  # noqa: E402
+from tmh.platform.agents import Runner  # noqa: E402
+from tmh.platform.store import Store  # noqa: E402
 
 FAKE_SSH = """#!/bin/sh
 # ssh -p PORT -o .. -o .. -o .. -o .. HOST COMMAND: run COMMAND here
@@ -53,6 +55,16 @@ class TestBoxTest(unittest.TestCase):
         if self.home is not None:
             os.environ["HOME"] = self.home
 
+    def runner_fixture(self, name):
+        data = self.tmp / name
+        store = Store(data / "platform.db")
+        self.addCleanup(store.db.close)
+        project = store.add_project("JB", "本地测试机验证", str(self.repo))
+        ticket = store.create_ticket(project["id"], "核对未修改代码", "test", auto=False)
+        run = store.create_run(project["id"], ticket["id"], "fixture", "fix", "test", "")
+        store.update_run(run["id"], status="running")
+        return Runner(store, data), project, run["id"]
+
     def test_an_ssh_config_alias_keeps_its_own_port(self):
         seen = self.tmp / "args"
         (self.tmp / "bin" / "ssh").write_text('#!/bin/sh\necho "$@" > %s\n' % seen)
@@ -73,7 +85,6 @@ class TestBoxTest(unittest.TestCase):
         self.assertTrue(testbox.runs_on(self.repo, "cd app && mvn -B -q compile -DskipTests -pl core -am"))
 
     def test_a_failed_hand_over_is_not_remembered_as_the_code_failing(self):
-        from types import SimpleNamespace
         from tmh.platform.fixloop import FixLoop
         calls = []
 
@@ -82,7 +93,8 @@ class TestBoxTest(unittest.TestCase):
             if len(calls) == 1:
                 return [{"kind": "setup", "command": "准备测试机", "exit_code": -2, "seconds": 0, "tail": "Remove-Item: 文件被占用"}]
             return [{"kind": k, "command": c, "exit_code": 0, "seconds": 1, "tail": ""} for k, c in seq]
-        fl = SimpleNamespace(wt=self.repo, r=SimpleNamespace(data_dir=self.tmp / "data"), p={"key": "JB"}, say=lambda s: None, execute=execute)
+        runner, project, rid = self.runner_fixture("data")
+        fl = SimpleNamespace(wt=self.repo, r=runner, p=project, rid=rid, say=lambda s: None, execute=execute)
         seq = [("build", "cd app && mvn -B -q compile -DskipTests -pl core -am")]
         why = FixLoop.baseline(fl, seq)
         self.assertIn("测试机没准备好", why)
@@ -104,8 +116,8 @@ class TestBoxTest(unittest.TestCase):
         base_ok = [("build", "grep -q 'class A {}' app/core/A.java")]
         for box in (testbox.TestBox({"host": "u@h", "port": 22, "dir": str(self.tmp / "remote"), "timeout": 60}, self.tmp), None):
             fl = FixLoop.__new__(FixLoop)
-            fl.wt, fl.r, fl.p, fl.rid, fl.box, fl.base, fl.set = self.repo, SimpleNamespace(data_dir=self.tmp / ("data%d" % bool(box))), \
-                {"key": "JB", "root": str(self.repo)}, 7, box, self.base, {"check_timeout": 60}
+            runner, project, rid = self.runner_fixture("data%d" % bool(box))
+            fl.wt, fl.r, fl.p, fl.rid, fl.box, fl.base, fl.set = self.repo, runner, project, rid, box, self.base, {"check_timeout": 60}
             fl.say = lambda s: None
             self.assertEqual(fl.baseline(base_ok + [("build", "cd java && mvn -B -q compile -DskipTests")]), "", "box" if box else "local")
             self.assertEqual(fl.execute(base_ok)[0]["exit_code"], 1)  # the change itself is what the build then sees

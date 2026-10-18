@@ -1,0 +1,20 @@
+{
+ "check": "skip",
+ "skip": "设置为不跑构建测试",
+ "verdict": "unknown",
+ "rounds": 1,
+ "beyond_plan": [],
+ "split": false,
+ "files": [
+  "app.py"
+ ],
+ "commands": [],
+ "diagnosis": {
+  "verdict": null,
+  "match": null,
+  "match_why": null,
+  "evidence": null,
+  "cause": null,
+  "guide": null
+ }
+}

@@ -996,6 +996,7 @@ def _run_case(P, p, c, agent, model, conf, by, batch) -> dict:
             shutil.rmtree(wt, ignore_errors=True)
         wt.parent.mkdir(parents=True, exist_ok=True)
         git(root, "worktree", "add", "--detach", str(wt), c["base"])
+    run = None
     try:
         fake = {"key": c.get("ticket") or "EVAL-" + c["id"], "title": c["title"], "body": c.get("body", ""), "type": "bug", "priority": "normal",
                 "reporter": "", "links": {"flows": c.get("flows") or []}}
@@ -1005,9 +1006,19 @@ def _run_case(P, p, c, agent, model, conf, by, batch) -> dict:
         run = st.create_run(p["id"], None, agent, "plan", by, prompt, "评测 %s：%s" % (c["id"], c["title"][:60]), batch=batch, model=model)
         st.update_run(run["id"], status="running", started=now(), workdir=str(wt or root))
         code, result = P.runner.invoke(run["id"], p, None, agent, conf, "plan", prompt, wt or root, model)
-        st.update_run(run["id"], status="done" if code == 0 else "failed", ended=now(), exit_code=code, result=(result or "").strip())
+        if hasattr(P.runner, "finish_invocation"):
+            code = P.runner.finish_invocation(run["id"], code, result)["exit_code"]
+        else:
+            st.update_run(run["id"], status="done" if code == 0 else "failed", ended=now(), exit_code=code, result=(result or "").strip())
         pred = predicted(result, [wt or root, root])
         return dict(score(pred, c["gold"]), case=c["id"], run=run["id"], predicted=pred[:40], gold=c["gold"], ok=code == 0)
+    except Exception as error:
+        if run and st.run(run["id"])["status"] in ("queued", "running", "cancelled"):
+            if hasattr(P.runner, "finish_invocation"):
+                P.runner.finish_invocation(run["id"], 1, str(error))
+            else:
+                st.update_run(run["id"], status="failed", ended=now(), exit_code=1, result=str(error))
+        raise
     finally:
         if wt:
             git(root, "worktree", "remove", "--force", str(wt), check=False)

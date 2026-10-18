@@ -1,0 +1,18 @@
+test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe (tests.test_run_lifecycle.RunLifecycleTest.test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe) ... FAIL
+
+======================================================================
+FAIL: test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe (tests.test_run_lifecycle.RunLifecycleTest.test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 123, in test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe
+    (code, _), elapsed = self.bounded(lambda: self.invoke(rid, self.conf("parent-exits")))
+                         ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 113, in bounded
+    self.assertFalse(stuck, "run remained blocked by its own inherited stdout past the lifecycle budget")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : run remained blocked by its own inherited stdout past the lifecycle budget
+
+----------------------------------------------------------------------
+Ran 1 test in 2.758s
+
+FAILED (failures=1)

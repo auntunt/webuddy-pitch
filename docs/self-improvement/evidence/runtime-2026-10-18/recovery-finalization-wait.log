@@ -1,0 +1,12 @@
+test_active_run_and_other_work_on_same_ticket_prevent_recovery (tests.test_run_recovery.RunRecoveryTest.test_active_run_and_other_work_on_same_ticket_prevent_recovery) ... ok
+test_closed_ticket_and_delivery_stage_cannot_bypass_their_workflow (tests.test_run_recovery.RunRecoveryTest.test_closed_ticket_and_delivery_stage_cannot_bypass_their_workflow) ... ok
+test_concurrent_retry_clicks_create_exactly_one_new_run (tests.test_run_recovery.RunRecoveryTest.test_concurrent_retry_clicks_create_exactly_one_new_run) ... ok
+test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene (tests.test_run_recovery.RunRecoveryTest.test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene) ... ok
+test_missing_or_unmanaged_worktree_never_silently_restarts_from_main (tests.test_run_recovery.RunRecoveryTest.test_missing_or_unmanaged_worktree_never_silently_restarts_from_main) ... ok
+test_new_run_gets_a_fresh_budget_without_resetting_old_timeout_or_logs (tests.test_run_recovery.RunRecoveryTest.test_new_run_gets_a_fresh_budget_without_resetting_old_timeout_or_logs) ... ok
+test_uncertain_cleanup_or_malformed_receipts_never_allow_recovery (tests.test_run_recovery.RunRecoveryTest.test_uncertain_cleanup_or_malformed_receipts_never_allow_recovery) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 3.716s
+
+OK

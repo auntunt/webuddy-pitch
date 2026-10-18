@@ -110,6 +110,7 @@ class FixLoop:
         self.models = {"fix": model, "edit": model if explicit else d.get("edit", model), "diagnose": model if explicit else d.get("diagnose", model)}
         self.n = 0
         self.ok = False  # at least one agent call finished normally
+        self.failed_call = False
         self.notes = {}  # file -> what its agent said it did
         self.sid = ""  # the session of the agent making the whole change, continued in the next round
         self.brought = set()  # files the per-file agents asked to bring in
@@ -124,7 +125,7 @@ class FixLoop:
         self.st.append_output(self.rid, "— %s\n" % s)
 
     def cancelled(self) -> bool:
-        return self.st.run(self.rid)["status"] == "cancelled"
+        return self.st.run(self.rid)["status"] == "cancelled" or bool(self.r.stop_reason(self.rid)) or getattr(self, "failed_call", False)
 
     def call(self, mode: str, prompt: str, resume: str = "", fresh: str = "") -> str:
         self.n += 1
@@ -134,6 +135,7 @@ class FixLoop:
             f = self.r.data_dir / "runs" / str(self.rid) / ("session-%d.txt" % self.n)
             self.sid = f.read_text(encoding="utf-8").strip() if f.exists() else ""
         self.ok = self.ok or code == 0
+        self.failed_call = self.failed_call or code != 0
         return out or ""
 
     def context(self) -> str:
@@ -254,16 +256,16 @@ class FixLoop:
     def _local(self, seq: list, where: Path) -> list:
         out = []
         for kind, cmd in seq:
+            if self.r.stop_reason(self.rid):
+                break
             self.say("构建测试：%s" % cmd)
             t0 = time.time()
-            try:
-                r = subprocess.run(cmd, shell=True, cwd=str(where), capture_output=True, text=True, errors="replace",
-                                   timeout=int(self.set.get("check_timeout") or 1200))
-                code, text = r.returncode, r.stdout + "\n" + r.stderr
-            except subprocess.TimeoutExpired:
-                code, text = -1, "超时（%s 秒）" % self.set.get("check_timeout")
+            r, folder = self.r.run_command(self.rid, ["/bin/sh", "-c", cmd], where,
+                timeout=float(self.set.get("check_timeout") or 1200), kind="check:" + kind)
+            code, text = r.returncode, r.output
             res = {"kind": kind, "command": cmd, "exit_code": code, "seconds": round(time.time() - t0, 1),
-                   "tail": "\n".join(text.strip().splitlines()[-60:])}
+                   "tail": "\n".join(text.strip().splitlines()[-60:]), "output": text,
+                   "reason": r.reason, "evidence": str(folder.relative_to(self.r.data_dir)), "cleanup": r.cleanup}
             out.append(res)
             self.say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, res["seconds"]))
             if code != 0:
@@ -286,7 +288,7 @@ class FixLoop:
         else:
             self.say("先在没改过的代码上跑一遍构建测试，确认这台机器能跑通")
             res = self.execute(seq, untouched=True)
-            if not any(x.get("kind") == "setup" for x in res):  # only what the code did is worth keeping for the next ticket
+            if not self.r.stop_reason(self.rid) and not any(x.get("kind") == "setup" for x in res):  # interruption says nothing about baseline code
                 f.parent.mkdir(parents=True, exist_ok=True)
                 f.write_text(json.dumps(res, ensure_ascii=False), encoding="utf-8")
         bad = [x for x in res if x["exit_code"] != 0]
@@ -348,6 +350,8 @@ class FixLoop:
                 before = self.dirty()
                 instruction = GREENFIELD_EDIT if GREENFIELD_FIX in self.prompt else MODE_TEXT["edit"]
                 out = self.call("edit", self.context() + "\n\n" + fb + self.nobuild + ask + instruction.replace("{target}", path))
+                if self.cancelled():
+                    return  # Preserve even incomplete edits for inspection and a new run.
                 self.keep_to(path, before)
                 self.notes[path] = clean(out)[:800]
                 for m in fenced("tmh-msg", out) or []:
@@ -447,6 +451,8 @@ class FixLoop:
                 self.log.append("第 %d 轮：没有改出代码" % (rnd + 1))
                 break
             res = self.execute(seq) if seq else []
+            if self.cancelled():
+                break
             broke = any(x["exit_code"] != 0 for x in res)
             if not review:
                 self.log.append("第 %d 轮：改了 %d 个文件；没跑构建测试，改动不大，不另做诊断，交给人验收" % (rnd + 1, len(files)))
@@ -471,8 +477,11 @@ class FixLoop:
         out = {"check": check, "skip": skip if check == "skip" else "", "verdict": verdict, "rounds": len(self.log), "beyond_plan": beyond,
                "split": bool(goals) and split, "files": files, "commands": res,
                "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide")}}
+        stopped = self.r.stop_reason(self.rid) if hasattr(self.r, "stop_reason") else ""
+        if stopped:
+            out.update(stopped_reason=stopped, verdict="unknown", interrupted=True)
         (self.r.data_dir / "runs" / str(self.rid) / "verify.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
-        return (0 if self.ok else 1), self.summary(out, diag)
+        return (124 if stopped == "timeout" else 125 if stopped else 0 if self.ok and not getattr(self, "failed_call", False) else 1), self.summary(out, diag)
 
     def summary(self, v: dict, diag) -> str:
         head = {"pass": "构建测试通过", "fail": "构建测试没通过", "skip": "没有跑构建测试（%s）" % v["skip"]}[v["check"]]
@@ -502,7 +511,7 @@ def verified(data_dir: Path, rid: int) -> dict:
         return {}
 
 
-def recheck(runner, rid: int) -> dict:
+def recheck(runner, rid: int, *, allow_running: bool = False) -> dict:
     """Build an earlier change again without changing it: the same baseline and build the fix loop runs, on the
     change as it stands (its worktree, or for an adopted change its commit). Overwrites the run's verify.json and
     returns it. The diagnosis stays as it was for unchanged code. If someone corrects the worktree after the
@@ -511,7 +520,7 @@ def recheck(runner, rid: int) -> dict:
     r = st.run(rid)
     if not r or r["mode"] != "fix":
         raise ValueError("只有修改代码的运行可以重新验证")
-    if r["status"] != "done":
+    if r["status"] != "done" and not (allow_running and r["status"] == "running"):
         raise ValueError("这次运行没有正常结束，没有可验证的改动")
     if not r["diff"]:
         raise ValueError("这次运行没有改出代码")

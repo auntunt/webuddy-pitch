@@ -1,0 +1,7 @@
+test_intake_cancelled_then_invoke_exception_still_seals_lifecycle (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_cancelled_then_invoke_exception_still_seals_lifecycle) ... ok
+test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.858s
+
+OK

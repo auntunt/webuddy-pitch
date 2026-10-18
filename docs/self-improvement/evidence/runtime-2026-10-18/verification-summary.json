@@ -1,0 +1,20 @@
+{
+  "platform_tests": {
+    "total": 452,
+    "passed": 450,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 171.109,
+    "exit_code": 0,
+    "log": "unittest-final-452.log"
+  },
+  "business_tests": {
+    "application": 26,
+    "independent": 12,
+    "candidate_commit": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4"
+  },
+  "production_deployed": false,
+  "customer_signed": false,
+  "synthetic_service_stopped": true
+}

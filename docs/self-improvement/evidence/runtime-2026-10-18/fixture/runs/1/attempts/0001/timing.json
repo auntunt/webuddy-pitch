@@ -1,0 +1,17 @@
+{
+  "seconds": 0.1,
+  "startup": 0.1,
+  "commands": 0,
+  "command_seconds": 0.0,
+  "hook_seconds": 0.0,
+  "model_seconds": 0.0,
+  "tokens": null,
+  "resumed": false,
+  "busy": false,
+  "reconnects": 0,
+  "reconnect_seconds": 0.0,
+  "process_reason": "timeout",
+  "process_seconds": 2.0297746249707416,
+  "total_remaining_seconds": 0.0,
+  "evidence": "runs/1/attempts/0001"
+}

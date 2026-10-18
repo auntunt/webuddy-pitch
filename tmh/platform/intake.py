@@ -980,7 +980,10 @@ def _understand(P, p: dict, sid: str, job: str, name: str) -> None:
         cwd = Path(tempfile.mkdtemp(prefix="tmh-understand-"))
         st.update_run(rid, status="running", started=time.strftime("%Y-%m-%d %H:%M:%S"), workdir=str(cwd))
         code, result = P.runner.invoke(rid, p, None, name, conf, "understand", text, cwd, (conf[name].get("defaults") or {}).get("understand", ""))
-        st.update_run(rid, status="done" if code == 0 else "failed", ended=time.strftime("%Y-%m-%d %H:%M:%S"), exit_code=code, result=(result or "")[:6000])
+        if hasattr(P.runner, "finish_invocation"):
+            code = P.runner.finish_invocation(rid, code, result)["exit_code"]
+        else:  # embedded adapters used by callers which do not own subprocesses
+            st.update_run(rid, status="done" if code == 0 else "failed", ended=time.strftime("%Y-%m-%d %H:%M:%S"), exit_code=code, result=result or "")
         if code != 0:
             raise ValueError("智能体退出码 %s" % code)
         got = parse(result)
@@ -990,6 +993,11 @@ def _understand(P, p: dict, sid: str, job: str, name: str) -> None:
         why = str(e)[:200] or type(e).__name__
         got = None
         if rid:
+            if st.run(rid)["status"] in ("queued", "running", "cancelled"):
+                if hasattr(P.runner, "finish_invocation"):
+                    P.runner.finish_invocation(rid, 1, str(e))
+                else:
+                    st.update_run(rid, status="failed", ended=time.strftime("%Y-%m-%d %H:%M:%S"), exit_code=1, result=str(e))
             try:
                 st.append_output(rid, "— 没用上这次理解：%s，按规则\n" % why)
             except Exception:  # noqa: BLE001

@@ -2284,6 +2284,20 @@ def api_run(P, req, rid):
     t = P.store.ticket(r["ticket_id"]) if r["ticket_id"] else None
     r["ticket_key"] = t["key"] if t else ""
     r["verification"] = verified(P.data_dir, r["id"]) if r["mode"] == "fix" else None
+    r["lifecycle"], r["lifecycle_error"] = None, ""
+    try:
+        receipt = Path(P.data_dir) / "runs" / str(r["id"]) / "lifecycle.json"
+        if receipt.exists():
+            record = json.loads(receipt.read_text(encoding="utf-8"))
+            if not isinstance(record, dict):
+                raise ValueError("停止回执应为对象")
+            r["lifecycle"] = record
+    except (OSError, ValueError) as e:
+        r["lifecycle_error"] = "运行停止回执不可读：%s" % e
+    r.update(P.runner.retry_state(r["id"]))
+    if r["lifecycle_error"]:
+        r["can_retry"] = False
+        r["retry_blocked"] = list(r.get("retry_blocked") or []) + [r["lifecycle_error"]]
     since = int(req.arg("since") or 0)
     r["output_len"] = len(r["output"])
     r["output"] = r["output"][since:]
@@ -2298,6 +2312,16 @@ def api_cancel(P, req, rid):
         return P.runner.cancel(int(rid), req.user)
     except ValueError as e:
         raise ApiError(400, str(e))
+
+
+@route("POST", "/api/runs/<rid>/retry")
+def api_retry_run(P, req, rid):
+    if not P.store.run(int(rid)):
+        raise ApiError(404, "没有这个运行")
+    try:
+        return P.runner.retry(int(rid), req.user)
+    except (ValueError, RuntimeError, OSError) as e:
+        raise ApiError(409, str(e))
 
 
 @route("POST", "/api/runs/<rid>/decide")

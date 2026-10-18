@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import threading
 import time
+import sqlite3
 from pathlib import Path
 
 from ..fsutil import open_db
@@ -62,7 +63,7 @@ REFORM_LIKE = '%"reform":%'  # tickets released by a reform plan carry links.ref
 JSON_COLS = {"labels", "links", "external", "data"}
 SESSION_KINDS = [("consult", "项目咨询"), ("matter", "维护事项"), ("ticket", "关联工单")]
 # columns added after the first release; older platform.db files get them on open
-LATER_COLS = {"chats": [("session_id", "INTEGER")], "runs": [("session_id", "INTEGER"), ("batch", "TEXT DEFAULT ''"), ("model", "TEXT DEFAULT ''")]}
+LATER_COLS = {"chats": [("session_id", "INTEGER")], "runs": [("session_id", "INTEGER"), ("batch", "TEXT DEFAULT ''"), ("model", "TEXT DEFAULT ''"), ("retry_of", "INTEGER")]}
 
 
 def now() -> str:
@@ -86,6 +87,7 @@ class Store:
                     if name not in have:
                         self.db.execute("ALTER TABLE %s ADD COLUMN %s %s" % (table, name, typ))
             self.db.execute("CREATE INDEX IF NOT EXISTS ix_chats_session ON chats(session_id)")
+            self.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_runs_retry_of ON runs(retry_of) WHERE retry_of IS NOT NULL")
             # adopting a code change used to be logged as "accept", the same kind as passing acceptance
             self.db.execute("UPDATE events SET kind='adopt' WHERE kind='accept' AND data LIKE '%\"branch\"%'")
             self.db.commit()
@@ -120,9 +122,13 @@ class Store:
 
     def x(self, sql: str, args=()) -> int:
         with self.lock:
-            cur = self.db.execute(sql, args)
-            self.db.commit()
-            return cur.lastrowid
+            try:
+                cur = self.db.execute(sql, args)
+                self.db.commit()
+                return cur.lastrowid
+            except sqlite3.Error:
+                self.db.rollback()
+                raise
 
     # ---- projects
     def projects(self) -> list:
@@ -248,9 +254,15 @@ class Store:
 
     # ---- runs
     def create_run(self, project_id: int, ticket_id, agent: str, mode: str, author: str, prompt: str, target: str = "",
-                   session_id=None, batch: str = "", model: str = "") -> dict:
-        rid = self.x("INSERT INTO runs(ticket_id,project_id,agent,mode,status,author,created,prompt,target,session_id,batch,model) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-                     (ticket_id, project_id, agent, mode, "queued", author, now(), prompt, target, session_id, batch or "", model or ""))
+                   session_id=None, batch: str = "", model: str = "", retry_of=None) -> dict:
+        try:
+            rid = self.x("INSERT INTO runs(ticket_id,project_id,agent,mode,status,author,created,prompt,target,session_id,batch,model,retry_of) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                         (ticket_id, project_id, agent, mode, "queued", author, now(), prompt, target, session_id, batch or "", model or "", retry_of))
+        except sqlite3.IntegrityError:
+            successor = self.one("SELECT id FROM runs WHERE retry_of=?", (retry_of,)) if retry_of is not None else None
+            if successor:
+                raise ValueError("已创建后续运行 #%s，请查看该运行" % successor["id"]) from None
+            raise
         return self.run(rid)
 
     def run(self, rid: int) -> dict | None:

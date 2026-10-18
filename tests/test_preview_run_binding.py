@@ -13,6 +13,7 @@ from unittest import mock
 from urllib.parse import parse_qs, urljoin, urlparse
 
 from tmh.platform import preview, server
+from tmh.platform.agents import Runner
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
 
@@ -42,7 +43,8 @@ class PreviewRunBindingTest(unittest.TestCase):
         self.other_project = self.store.add_project("OTHER", "Other", str(self.repo))
         self.ticket = self.store.create_ticket(self.project["id"], "First ticket", "自动流转")
         self.other_ticket = self.store.create_ticket(self.project["id"], "Other ticket", "自动流转")
-        self.P = SimpleNamespace(store=self.store, data_dir=self.data, preview_port=0, ticket=self.store.ticket)
+        self.P = SimpleNamespace(store=self.store, data_dir=self.data, preview_port=0, ticket=self.store.ticket,
+                                 runner=Runner(self.store, self.data))
         self.r1 = self.run_record(self.first, "tmh/first")
         self.r2 = self.run_record(self.second, "tmh/second")
         preview.set_conf(self.data, "APP", "python3 app.py {port} {prefix}", "/health", "自动流转")

@@ -1,0 +1,30 @@
+test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout) ... ok
+test_busy_backoff_cannot_outlive_the_total_run_budget (tests.test_run_lifecycle.RunLifecycleTest.test_busy_backoff_cannot_outlive_the_total_run_budget) ... ok
+test_cancel_also_stops_an_active_baseline_build_tree (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_also_stops_an_active_baseline_build_tree) ... ok
+test_cancel_before_invoke_cannot_launch_any_process (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_before_invoke_cannot_launch_any_process) ... ok
+test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout) ... ok
+test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree (tests.test_run_lifecycle.RunLifecycleTest.test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree) ... FAIL
+test_normal_completion_retains_evidence_without_false_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_normal_completion_retains_evidence_without_false_timeout) ... ok
+test_retries_keep_separate_original_outputs_instead_of_overwriting_evidence (tests.test_run_lifecycle.RunLifecycleTest.test_retries_keep_separate_original_outputs_instead_of_overwriting_evidence) ... ok
+test_timeout_does_not_signal_a_separate_process_started_by_this_test (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_does_not_signal_a_separate_process_started_by_this_test) ... ok
+test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs) ... ok
+test_timeout_preserves_every_output_line_and_unterminated_tail (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_preserves_every_output_line_and_unterminated_tail) ... ok
+test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts (tests.test_run_lifecycle.RunLifecycleTest.test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts) ... ok
+test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe (tests.test_run_lifecycle.RunLifecycleTest.test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe) ... ok
+
+======================================================================
+FAIL: test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree (tests.test_run_lifecycle.RunLifecycleTest.test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 266, in test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree
+    _, elapsed = self.bounded(lambda: self.start_fix(rid, self.conf("fix-then-timeout", timeout=.8)))
+                 ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 132, in bounded
+    self.assertFalse(stuck, "run remained blocked by its own inherited stdout past the lifecycle budget")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : run remained blocked by its own inherited stdout past the lifecycle budget
+
+----------------------------------------------------------------------
+Ran 13 tests in 10.834s
+
+FAILED (failures=1)

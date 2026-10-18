@@ -1,0 +1,22 @@
+{
+  "1": {
+    "app.py": "VALUE = 1\n",
+    "retained-note.txt": "SYNTHETIC partially completed work, retain on retry\n"
+  },
+  "2": {
+    "app.py": "VALUE = 2\n",
+    "retained-note.txt": "SYNTHETIC partially completed work, retain on retry\n"
+  },
+  "3": {
+    "app.py": "VALUE = 1\n",
+    "retained-note.txt": "SYNTHETIC partially completed work, retain on retry\n"
+  },
+  "4": {
+    "app.py": "VALUE = 2\n",
+    "retained-note.txt": "SYNTHETIC partially completed work, retain on retry\n"
+  },
+  "last_child": {
+    "pid": 9174,
+    "alive": false
+  }
+}

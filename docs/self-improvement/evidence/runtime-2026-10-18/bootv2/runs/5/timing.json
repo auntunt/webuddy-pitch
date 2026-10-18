@@ -1,0 +1,1 @@
+{"seconds": 245.3, "startup": 9.3, "commands": 11, "command_seconds": 0.0, "hook_seconds": 1.8, "model_seconds": 234.2, "tokens": 48137, "resumed": false, "busy": false, "reconnects": 0, "reconnect_seconds": 0.0, "process_reason": "exited", "process_seconds": 245.29316079092678, "total_remaining_seconds": 354.416, "evidence": "runs/5/attempts/0001"}

@@ -1,0 +1,49 @@
+test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout) ... ok
+test_cancel_also_stops_an_active_baseline_build_tree (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_also_stops_an_active_baseline_build_tree) ... ok
+test_cancel_before_invoke_cannot_launch_any_process (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_before_invoke_cannot_launch_any_process) ... ok
+test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout) ... ok
+test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree (tests.test_run_lifecycle.RunLifecycleTest.test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree) ... FAIL
+test_normal_completion_retains_evidence_without_false_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_normal_completion_retains_evidence_without_false_timeout) ... ok
+test_timeout_does_not_signal_a_separate_process_started_by_this_test (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_does_not_signal_a_separate_process_started_by_this_test) ... ok
+test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs) ... ok
+test_timeout_preserves_every_output_line_and_unterminated_tail (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_preserves_every_output_line_and_unterminated_tail) ... ok
+test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts (tests.test_run_lifecycle.RunLifecycleTest.test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts) ... ok
+test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe (tests.test_run_lifecycle.RunLifecycleTest.test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe) ... ok
+test_accepted_recheck_test_mutations_do_not_replace_adopted_diff_or_erase_history (tests.test_run_handoff.RunHandoffTest.test_accepted_recheck_test_mutations_do_not_replace_adopted_diff_or_erase_history) ... ok
+test_accepted_recheck_uses_commit_object_even_with_hex_named_branch (tests.test_run_handoff.RunHandoffTest.test_accepted_recheck_uses_commit_object_even_with_hex_named_branch) ... ok
+test_adopt_existing_unreadable_verification_rejects_before_git_mutation (tests.test_run_handoff.RunHandoffTest.test_adopt_existing_unreadable_verification_rejects_before_git_mutation) ... ok
+test_adopt_legacy_without_verification_still_requires_displayed_diff (tests.test_run_handoff.RunHandoffTest.test_adopt_legacy_without_verification_still_requires_displayed_diff) ... ok
+test_adopt_rechecks_the_snapshot_staged_after_the_initial_diff_read (tests.test_run_handoff.RunHandoffTest.test_adopt_rechecks_the_snapshot_staged_after_the_initial_diff_read) ... ok
+test_adopt_rejects_changed_code_even_if_shown_diff_was_updated_without_recheck (tests.test_run_handoff.RunHandoffTest.test_adopt_rejects_changed_code_even_if_shown_diff_was_updated_without_recheck) ... ok
+test_adopt_rejects_code_changed_after_passing_check (tests.test_run_handoff.RunHandoffTest.test_adopt_rejects_code_changed_after_passing_check) ... ok
+test_adopt_rejects_unverified_changed_baseline_even_when_diff_is_identical (tests.test_run_handoff.RunHandoffTest.test_adopt_rejects_unverified_changed_baseline_even_when_diff_is_identical) ... ok
+test_failed_runs_or_checks_cannot_commit_or_remove_the_worktree (tests.test_run_handoff.RunHandoffTest.test_failed_runs_or_checks_cannot_commit_or_remove_the_worktree) ... ok
+test_long_request_plan_and_failure_feedback_survive_handoff (tests.test_run_handoff.RunHandoffTest.test_long_request_plan_and_failure_feedback_survive_handoff) ... ok
+test_passing_commands_do_not_invent_a_missing_diagnosis (tests.test_run_handoff.RunHandoffTest.test_passing_commands_do_not_invent_a_missing_diagnosis) ... ok
+test_recheck_refreshes_changed_code_and_invalidates_old_diagnosis (tests.test_run_handoff.RunHandoffTest.test_recheck_refreshes_changed_code_and_invalidates_old_diagnosis) ... ok
+test_resumed_plan_and_fix_receive_current_full_contract (tests.test_run_handoff.RunHandoffTest.test_resumed_plan_and_fix_receive_current_full_contract) ... ok
+test_unadopted_recheck_refreshes_test_mutations_but_blocks_acceptance (tests.test_run_handoff.RunHandoffTest.test_unadopted_recheck_refreshes_test_mutations_but_blocks_acceptance) ... ok
+test_concurrent_checks_have_independent_paths_and_caller_packet_is_frozen (tests.test_delivery_source_runner.DeliverySourceRunnerTest.test_concurrent_checks_have_independent_paths_and_caller_packet_is_frozen) ... ok
+test_hex_named_branch_does_not_replace_the_requested_commit (tests.test_delivery_source_runner.DeliverySourceRunnerTest.test_hex_named_branch_does_not_replace_the_requested_commit) ... ok
+test_invalid_or_unowned_bindings_fail_before_starting_a_run (tests.test_delivery_source_runner.DeliverySourceRunnerTest.test_invalid_or_unowned_bindings_fail_before_starting_a_run) ... ok
+test_mutating_reader_fails_and_retains_full_dirty_worktree (tests.test_delivery_source_runner.DeliverySourceRunnerTest.test_mutating_reader_fails_and_retains_full_dirty_worktree) ... ok
+test_preparation_failure_never_invokes_agent_or_falls_back_to_main (tests.test_delivery_source_runner.DeliverySourceRunnerTest.test_preparation_failure_never_invokes_agent_or_falls_back_to_main) ... ok
+test_prepared_checkout_changes_are_rejected_before_invoke (tests.test_delivery_source_runner.DeliverySourceRunnerTest.test_prepared_checkout_changes_are_rejected_before_invoke) ... ok
+test_real_process_reads_detached_candidate_and_keeps_provenance (tests.test_delivery_source_runner.DeliverySourceRunnerTest.test_real_process_reads_detached_candidate_and_keeps_provenance) ... ok
+
+======================================================================
+FAIL: test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree (tests.test_run_lifecycle.RunLifecycleTest.test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 243, in test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree
+    followup.assert_not_called()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 947, in assert_not_called
+    raise AssertionError(msg)
+AssertionError: Expected 'mock' to not have been called. Called 1 times.
+Calls: [call({'id': 1, 'ticket_id': 1, 'project_id': 1, 'agent': 'fixture', 'mode': 'fix', 'status': 'failed', 'author': 'tester', 'created': '2026-10-18 23:29:52', 'started': '2026-10-18 23:29:52', 'ended': '2026-10-18 23:29:53', 'prompt': 'fixture prompt', 'output': '— 在独立工作树 /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-3nwjpm__/worktrees/LIFE-1-r1（分支 tmh/LIFE-1-r1）里修改\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 -c \'print(\'"\'"\'actual-build-passed\'"\'"\')\'\n— 通过，0.0 秒\n— 第 1 轮\n— 由一个智能体完成整个改动\nfixture-start:fix-then-timeout:fix\nfixture-edit-completed\n— 用时 0 秒：启动 0 秒，模型 0 秒，命令 0 条共 0.0 秒，钩子 0.0 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 -c \'print(\'"\'"\'actual-build-passed\'"\'"\')\'\n— 通过，0.0 秒\n— 诊断这一轮的改动（默认模型）\nfixture-start:fix-then-timeout:diagnose\nfixture-diagnosis-started-but-not-completed\n— 运行停止：达到整次任务总时限。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。\n— 用时 0 秒：启动 0 秒，模型 0 秒，命令 0 条共 0.0 秒，钩子 0.0 秒\n— 第 1 轮：改了 1 个文件；构建测试通过；诊断未给出结论\n', 'result': '运行停止：达到整次任务总时限。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。\n\n验证：构建测试通过，诊断没有给出结论（1 轮）\n\n## 每一轮\n- 第 1 轮：改了 1 个文件；构建测试通过；诊断未给出结论\n\n## 改了什么\n\nfixture-start:fix-then-timeout:fix\nfixture-edit-completed\n\n## 诊断说明\n运行停止：达到整次任务总时限。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。\n\nfixture-start:fix-then-timeout:diagnose\nfixture-diagnosis-started-but-not-completed', 'diff': 'diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n', 'exit_code': 124, 'workdir': '/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-3nwjpm__/worktrees/LIFE-1-r1', 'target': '', 'decision': '', 'session_id': None, 'batch': '', 'model': ''})].
+
+----------------------------------------------------------------------
+Ran 32 tests in 19.639s
+
+FAILED (failures=1)

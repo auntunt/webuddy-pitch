@@ -299,8 +299,8 @@ def take(P, p: dict, t: dict, ref: str, sha: str, by: str, wait: bool = False) -
             st.update_ticket(t["id"], by, status="doing")
         prev = [r for r in st.runs(ticket_id=t["id"]) if r["mode"] == "fix" and r.get("diff")]
         r = st.create_run(p["id"], t["id"], "人工", "fix", by, "（%s 自己写的，分支 %s）" % (by, ref))
-        st.update_run(r["id"], status="done", started=time.strftime("%Y-%m-%d %H:%M:%S"), ended=time.strftime("%Y-%m-%d %H:%M:%S"),
-                      diff=diff, decision="accepted:%s@%s" % (ref, sha[:10]), result="%s 在分支 %s 上提交的改动（%s）" % (by, ref, sha[:10]))
+        st.update_run(r["id"], diff=diff, decision="accepted:%s@%s" % (ref, sha[:10]),
+                      result="%s 在分支 %s 上提交的改动（%s）" % (by, ref, sha[:10]))
         st.event(t["id"], "我来写", "flow", "收到 %s 在分支 %s 上的提交 %s，开始构建和审查%s" % (
             by, ref, sha[:10], "（它替换了%s的运行 #%d，那份改动不再等验收）" % ("正在等验收" if was == "verify" else "之前", prev[-1]["id"]) if prev else ""),
             {"run": r["id"], "branch": ref, "commit": sha[:10]})
@@ -331,25 +331,54 @@ def reviewer(P) -> str:
 def _check(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str) -> None:
     st = P.store
     try:
-        _check1(P, p, key, rid, ref, sha, by)
+        agent, conf = reviewer(P), load_config(P.data_dir)
+        P.runner._control(rid, conf, agent)
+        with P.runner.lock:
+            if P.runner.stop_reason(rid):
+                raise RuntimeError(P.runner.stop_message(rid))
+            st.update_run(rid, status="running", started=time.strftime("%Y-%m-%d %H:%M:%S"))
+        _check1(P, p, key, rid, ref, sha, by, agent, conf)
     except Exception as e:  # noqa: BLE001 - say so, and look at the commit again on the next heartbeat
+        from .fixloop import verified
         t = st.ticket(key)
-        _mark(P, t, ref, None)
-        st.event(t["id"], "我来写", "flow", "%s 在分支 %s 上的提交 %s 没检查完：%s。下一次心跳会重新检查" % (by, ref, sha[:10], str(e)[:300]),
-                 {"run": rid, "verdict": "unknown"})
+        stopped = P.runner.stop_reason(rid)
+        message = "%s 在分支 %s 上的提交 %s 没检查完：%s。" % (by, ref, sha[:10], e)
+        if stopped:
+            message += "原始证据保留，未采用或转交验收。"
+        else:
+            _mark(P, t, ref, None)
+            message += "下一次心跳会重新检查。"
+        v = verified(P.data_dir, rid)
+        v.update(verdict="unknown", review_error=str(e), interrupted=bool(stopped))
+        if stopped:
+            v["stopped_reason"] = stopped
+        P.runner.finish_invocation(rid, 1, message)
+        try:
+            (Path(P.data_dir) / "runs" / str(rid) / "verify.json").write_text(json.dumps(v, ensure_ascii=False, indent=1), encoding="utf-8")
+        except OSError as evidence_error:
+            st.append_output(rid, "— 检查中断记录保存失败：%s\n" % evidence_error)
+        st.event(t["id"], "我来写", "flow", message, {"run": rid, "verdict": "unknown"})
     finally:
-        with _LOCK:
-            _BUSY.discard(key)
+        # This path invokes the reviewer directly, without Runner._go owning its
+        # lifetime. Even preparation/receipt failures must close that lifecycle.
+        try:
+            control = P.runner.controls.get(rid)
+            if control and not control["finished"]:
+                P.runner.finish_invocation(rid, 1, st.run(rid)["result"])
+        finally:
+            with _LOCK:
+                _BUSY.discard(key)
 
 
-def _check1(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str) -> None:
+def _check1(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str, agent: str, conf: dict) -> None:
     from .fixloop import FixLoop, recheck, verified
     st = P.store
     try:
-        v = recheck(P.runner, rid)
+        v = recheck(P.runner, rid, allow_running=True)
     except Exception as e:  # noqa: BLE001
-        v = {"check": "skip", "skip": "构建没跑起来：%s" % e}
-    agent = reviewer(P)
+        raise RuntimeError("构建没跑起来：%s" % e) from e
+    if P.runner.stop_reason(rid):
+        raise RuntimeError(P.runner.stop_message(rid))
     diag = {}
     if agent:
         root = Path(p["root"])
@@ -359,13 +388,14 @@ def _check1(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str) -> None
         try:
             _strip_agent_files(wt)
             fl = FixLoop.__new__(FixLoop)
-            conf = load_config(P.data_dir)
             fl.r, fl.st, fl.rid, fl.p, fl.t, fl.wt = P.runner, st, rid, p, st.ticket(key), wt
-            fl.agent, fl.conf, fl.n, fl.ok = agent, conf, 0, False
+            fl.agent, fl.conf, fl.n, fl.ok, fl.failed_call = agent, conf, 0, False, False
             fl.models = {"diagnose": (conf.get(agent, {}).get("defaults") or {}).get("diagnose", "")}
             diag = fl.diagnose(st.run(rid)["diff"], v.get("commands") or [], v.get("skip") or "", None)
+            if fl.failed_call or P.runner.stop_reason(rid):
+                raise RuntimeError(P.runner.stop_message(rid) or "审查执行器没有正常完成，请查看原始运行证据")
         except Exception as e:  # noqa: BLE001
-            diag = {"text": "审查没做成：%s" % e}
+            raise RuntimeError("审查没做成：%s" % e) from e
         finally:
             git(root, "worktree", "remove", "--force", str(wt), check=False)
     said = str(diag.get("verdict", "")).lower()
@@ -381,17 +411,21 @@ def _check1(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str) -> None
     build = {"pass": "构建测试通过", "fail": "构建测试没通过", "skip": "没跑构建（%s）" % (v.get("skip") or "没有构建命令")}[v.get("check", "skip")]
     if verdict == "fail":
         why = diag.get("cause") or diag.get("evidence") or ("构建测试没通过" if v.get("check") == "fail" else "")
-        st.event(t["id"], "我来写", "flow", "%s 的改动还不行：%s；%s审查认为没解决：%s。%s改好后再推一次分支就会重新检查" % (
-            by, build, agent + " " if agent else "", str(why)[:300], ("建议：" + str(diag.get("guide"))[:300] + "。") if diag.get("guide") else ""),
-            {"run": rid, "verdict": "fail"})
+        message = "%s 的改动还不行：%s；%s审查认为没解决：%s。%s改好后再推一次分支就会重新检查" % (
+            by, build, agent + " " if agent else "", str(why)[:300], ("建议：" + str(diag.get("guide"))[:300] + "。") if diag.get("guide") else "")
+        P.runner.finish_invocation(rid, 1, message)
+        st.event(t["id"], "我来写", "flow", message, {"run": rid, "verdict": "fail"})
         return
+    message = "%s 的改动：%s；%s。转给验收人" % (
+        by, build, "%s 审查认为已解决（%s）" % (agent, diag.get("match") or "") if verdict == "pass" else "没有审查结论，请验收人细看")
+    final = P.runner.finish_invocation(rid, 0, message)
+    if final["status"] != "done":
+        raise RuntimeError(P.runner.stop_message(rid) or "检查没有正常完成，不能采用或转交验收")
     st.event(t["id"], "我来写", "adopt", "采用 %s 自己写的改动：分支 %s（提交 %s）" % (by, ref, sha[:10]),
              {"run": rid, "branch": ref, "commit": sha[:10], "by_hand": by})
     if t["status"] != "verify":  # first: the record says 转给验收人 only once it is so
         st.update_ticket(t["id"], by, status="verify")
-    st.event(t["id"], "我来写", "flow", "%s 的改动：%s；%s。转给验收人" % (
-        by, build, "%s 审查认为已解决（%s）" % (agent, diag.get("match") or "") if verdict == "pass" else "没有审查结论，请验收人细看"),
-        {"run": rid, "verdict": verdict})
+    st.event(t["id"], "我来写", "flow", message, {"run": rid, "verdict": verdict})
 
 
 def heartbeat(P) -> None:

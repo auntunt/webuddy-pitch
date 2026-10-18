@@ -1,0 +1,14 @@
+diff --git a/app.py b/app.py
+index 61313a6..b15b1b0 100644
+--- a/app.py
++++ b/app.py
+@@ -1 +1 @@
+-VALUE = 0
++VALUE = 1
+diff --git a/retained-note.txt b/retained-note.txt
+new file mode 100644
+index 0000000..787a469
+--- /dev/null
++++ b/retained-note.txt
+@@ -0,0 +1 @@
++SYNTHETIC partially completed work, retain on retry
