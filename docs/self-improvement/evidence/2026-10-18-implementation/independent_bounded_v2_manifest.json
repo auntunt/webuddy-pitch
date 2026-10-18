@@ -1,0 +1,52 @@
+{
+  "recorded_utc": "2026-10-18T08:58:34.725891+00:00",
+  "candidate_directory": "/tmp/webuddy-bounded-edit-20261018",
+  "previous_manifest": "independent_bounded_manifest.json",
+  "change": "parse_qs errors=strict: malformed percent-encoded UTF-8 returns 400 rather than replacing characters and saving corrupted input.",
+  "application_sha256": "7b3f7f05591c4e473a421ee9334d1bb716a280d87c79c69fa77737fb73fd2b76",
+  "test_sha256": "d2945d5ca29c5a81a8099652364cff41d3887d656d6f33cc85424b486c890eb7",
+  "previous_candidate_sha256": "f0d52b8202901955b4a02e4e6217166ff84ecdc6e874e8a9993d362ce4957b0a",
+  "commands": {
+    "unittest": {
+      "exit": 0,
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-v"
+      ]
+    },
+    "http": {
+      "exit": 0,
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/2026-10-18-implementation/independent_bounded_v2_http.py",
+        "--app-path",
+        "/tmp/webuddy-bounded-edit-20261018/app.py",
+        "--output",
+        "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/2026-10-18-implementation/independent_bounded_v2_http_result.json"
+      ]
+    }
+  },
+  "unittest": {
+    "tests": 23,
+    "passed": true,
+    "all_previous_22_test_methods_ast_unchanged": true,
+    "new_regression": "%FF / %E4%B8 with valid CSRF below save limit and inside recovery window => 400 and all SQLite records unchanged"
+  },
+  "independent_http": {
+    "passed": true,
+    "checks_passed": 495,
+    "checks_total": 495,
+    "http_requests": 150,
+    "source_unchanged": true,
+    "source_sha256_after": "7b3f7f05591c4e473a421ee9334d1bb716a280d87c79c69fa77737fb73fd2b76"
+  },
+  "scope": "Previous independent_bounded_* files retained without changes; live run3 and platform/preview instances untouched; only disposable test databases used.",
+  "known_existing_warning": "Full unittest log retains inherited sqlite3 ResourceWarnings on Python3.14; no unrelated connection-lifecycle changes."
+}

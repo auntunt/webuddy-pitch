@@ -2068,37 +2068,23 @@ def api_release_again(P, req, key):
 
 @route("GET", "/api/tickets/<key>/preview")
 def api_preview(P, req, key):
-    """The ticket's preview: whether it runs, where to open it, and the command that starts it."""
+    """The ticket's preview, optionally bound to one adopted fix run with ?run_id=N."""
     from . import preview
-    t = P.ticket(key)
-    p = P.store.project(t["project_id"])
-    cmd, ready, mine = preview.command(P.data_dir, p)
-    st = preview.status(P.data_dir, t["key"])
-    return {"preview": st, "url": "/pv/%s/" % t["key"] if st.get("state") == "up" else "", "branch": preview.branch_of(P, t),
-            "cmd": cmd, "configured": mine, "auto": preview.settings(P.data_dir)["preview"], "own_address": bool(P.preview_port)}
+    return preview.ticket_view(P, P.ticket(key), req.arg("run_id") if "run_id" in req.query else None)
 
 
 @route("POST", "/api/tickets/<key>/preview")
 def api_preview_do(P, req, key):
-    """{"action": "start" | "stop"}: run the ticket's latest committed change as a preview, or stop it."""
+    """{"action": "start" | "stop", "run_id": N?}: preview the specified run's exact adopted commit."""
     from . import preview
     t = P.ticket(key)
-    p = P.store.project(t["project_id"])
-    act = req.body.get("action")
+    act, run_id = req.body.get("action"), req.body.get("run_id")
     if act == "stop":
-        preview.stop(P, t["key"])
-        P.store.event(t["id"], req.user, "preview", "停掉了预览", {"state": "stopped"})
+        return preview.stop_for_ticket(P, t, req.user, run_id)
     elif act == "start":
-        b = preview.branch_of(P, t)
-        if not b:
-            raise ApiError(409, "这张工单还没有提交过代码改动，没有可以预览的版本")
-        r = preview.start(P, p, t, b, req.user)
-        if r.get("state") == "none":
-            raise ApiError(409, r["why"])
-        P.store.event(t["id"], req.user, "preview", "启动预览（%s，提交 %s）" % (b, r["commit"]), {"state": "starting"})
+        return preview.start_for_ticket(P, t, req.user, run_id)
     else:
         raise ApiError(400, "action 只能是 start 或 stop")
-    return api_preview(P, req, key)
 
 
 @route("GET", "/api/projects/<key>/preview-conf")
@@ -2294,6 +2280,10 @@ def api_run(P, req, rid):
     r = P.store.run(int(rid))
     if not r:
         raise ApiError(404, "没有这个运行")
+    from .fixloop import verified
+    t = P.store.ticket(r["ticket_id"]) if r["ticket_id"] else None
+    r["ticket_key"] = t["key"] if t else ""
+    r["verification"] = verified(P.data_dir, r["id"]) if r["mode"] == "fix" else None
     since = int(req.arg("since") or 0)
     r["output_len"] = len(r["output"])
     r["output"] = r["output"][since:]
@@ -2557,17 +2547,35 @@ def serve_preview(h, P, method: str, u, sandboxed: bool) -> None:
     key, rest = _pvkey(m.group(1)), m.group(2) or ""
     if m.group(1) != key or not rest:  # cookies are kept by exact path: one spelling only
         return h._send(308, b"", "text/plain", {"Location": "/pv/%s%s" % (key, rest or "/") + ("?" + u.query if u.query else "")})
+    try:
+        prefix, rest, expected = preview.route(key, rest)
+        preview.require_bound(P.data_dir, key, expected)
+    except ApiError as e:
+        return h._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
+    if not rest:
+        return h._send(308, b"", "text/plain", {"Location": prefix + "/" + ("?" + u.query if u.query else "")})
     https = (h.headers.get("X-Forwarded-Proto") or "") == "https" or (h.headers.get("Host") or "").split(":")[0] in ("127.0.0.1", "localhost")
-    if rest == "/__open":
-        g = (parse_qs(u.query).get("g") or [""])[0]
-        if not preview.granted(P.data_dir, key, g):
-            return h._send(403, "这个预览入口已经失效：回到工单页或签收链接重新打开".encode("utf-8"), "text/plain; charset=utf-8")
+    opening = rest == "/__open"
+    g = ((parse_qs(u.query).get("g") or [""])[0] if opening else
+         _cookie(h.headers.get("Cookie", ""), preview.cookie_name(key, expected)))
+    if not preview.granted(P.data_dir, key, g, expected_commit=expected):
+        msg = "这个预览入口已经失效：回到工单页或签收链接重新打开" if opening else "请从 webuddy 的工单页或签收链接打开预览"
+        return h._send(403 if opening else 401, msg.encode("utf-8"), "text/plain; charset=utf-8")
+    if not expected and (opening or (rest == "/" and method in ("GET", "HEAD"))):
+        # Legacy entries still open the current preview, even with a pre-existing
+        # cookie. Preserve expiry and sign-off restrictions when pinning the entry.
+        st = preview.status(P.data_dir, key)
+        commit = st.get("commit_full") or ""
+        if commit and preview.bound_matches(st, key, commit):
+            exp, lh = g.split(".")[:2]
+            pin = preview.grant(P.data_dir, key, lh, int(exp), expected_commit=commit)
+            return h._send(303, b"", "text/plain", {"Location": preview.bound_prefix(key, commit) + "/__open?g=" + pin,
+                                                   "Referrer-Policy": "no-referrer"})
+    if opening:
         # sandboxed pages are an origin of their own, so their requests count as cross-site: the pass must go with them
         same = "SameSite=None; Secure" if sandboxed and https else "SameSite=Lax" + ("; Secure" if https else "")
-        return h._send(303, b"", "text/plain", {"Location": "/pv/%s/" % key, "Referrer-Policy": "no-referrer",
-                                               "Set-Cookie": "tmh_pv_%s=%s; Path=/pv/%s/; HttpOnly; %s" % (key, g, key, same)})
-    if not preview.granted(P.data_dir, key, _cookie(h.headers.get("Cookie", ""), "tmh_pv_" + key)):
-        return h._send(401, "请从 webuddy 的工单页或签收链接打开预览".encode("utf-8"), "text/plain; charset=utf-8")
+        return h._send(303, b"", "text/plain", {"Location": prefix + "/", "Referrer-Policy": "no-referrer",
+                                               "Set-Cookie": "%s=%s; Path=%s/; HttpOnly; %s" % (preview.cookie_name(key, expected), g, prefix, same)})
     if key.endswith(preview.STANDING):  # the main line's preview is in use: it keeps following new versions
         from . import workbench
         workbench.touch(P.data_dir, key)
@@ -2578,9 +2586,11 @@ def serve_preview(h, P, method: str, u, sandboxed: bool) -> None:
         return h._send(413, b"too large", "text/plain")
     body = h.rfile.read(n) if n else b""
     query = "&".join(x for x in u.query.split("&") if x and not x.startswith("token=")) if u.query else ""
-    path = "/pv/%s%s" % (key, rest) + ("?" + query if query else "")
+    path = prefix + rest + ("?" + query if query else "")
     try:
-        code, hdrs, resp, length = preview.forward(P.data_dir, key, method, path, h.headers, body, sandboxed, https)
+        code, hdrs, resp, length = preview.forward(P.data_dir, key, method, path, h.headers, body, sandboxed, https, expected_commit=expected)
+    except ApiError as e:
+        return h._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
     except LookupError as e:
         st = preview.status(P.data_dir, key)
         msg = {"starting": "预览版本正在启动，稍等一会儿刷新这个页面", "failed": "预览没有起来：%s" % st.get("why", "")}.get(st.get("state"), str(e))
@@ -2745,13 +2755,19 @@ def make_handler(P: Platform, token: str = ""):
             if not m:
                 return self._send(404, b"not found", "text/plain")
             key = _pvkey(m.group(1))
-            g = _cookie(self.headers.get("Cookie", ""), "tmh_pv_" + key)
-            if not P.preview_port and (m.group(2) or "").startswith("/__open") or (not P.preview_port and preview.granted(P.data_dir, key, g)):
+            try:
+                prefix, rest, expected = preview.route(key, m.group(2) or "")
+                preview.require_bound(P.data_dir, key, expected)
+            except ApiError as e:
+                return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
+            g = _cookie(self.headers.get("Cookie", ""), preview.cookie_name(key, expected))
+            if not P.preview_port and (rest == "/__open" or preview.granted(P.data_dir, key, g, expected_commit=expected)):
                 return serve_preview(self, P, method, u, sandboxed=True)
             if not self._authorized(q):
                 return self._send(401, "请从 webuddy 的工单页或签收链接打开预览".encode("utf-8"), "text/plain; charset=utf-8")
-            return self._send(303, b"", "text/plain", {"Location": "%s/pv/%s/__open?g=%s" % (
-                preview.base_url(self.headers, P.preview_port), key, preview.grant(P.data_dir, key)), "Referrer-Policy": "no-referrer"})
+            return self._send(303, b"", "text/plain", {"Location": "%s%s/__open?g=%s" % (
+                preview.base_url(self.headers, P.preview_port), prefix, preview.grant(P.data_dir, key, expected_commit=expected)),
+                "Referrer-Policy": "no-referrer"})
 
         def _bot(self, method: str, path: str, q: dict):
             from .. import bots

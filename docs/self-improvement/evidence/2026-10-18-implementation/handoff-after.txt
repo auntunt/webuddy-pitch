@@ -1,0 +1,10 @@
+test_failed_runs_or_checks_cannot_commit_or_remove_the_worktree (test_run_handoff.RunHandoffTest.test_failed_runs_or_checks_cannot_commit_or_remove_the_worktree) ... ok
+test_long_request_plan_and_failure_feedback_survive_handoff (test_run_handoff.RunHandoffTest.test_long_request_plan_and_failure_feedback_survive_handoff) ... ok
+test_passing_commands_do_not_invent_a_missing_diagnosis (test_run_handoff.RunHandoffTest.test_passing_commands_do_not_invent_a_missing_diagnosis) ... ok
+test_recheck_refreshes_changed_code_and_invalidates_old_diagnosis (test_run_handoff.RunHandoffTest.test_recheck_refreshes_changed_code_and_invalidates_old_diagnosis) ... ok
+test_resumed_plan_and_fix_receive_current_full_contract (test_run_handoff.RunHandoffTest.test_resumed_plan_and_fix_receive_current_full_contract) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.385s
+
+OK

@@ -1,0 +1,14 @@
+{
+  "time_utc": "2026-10-18T10:48:15.481668+00:00",
+  "reason": "Independent bounded standard-form candidate chosen over final model iframe/JSON variant; preserves normal 1-200 character UI, finite full error recovery and strict percent-decoding. Model originals archived. Technical agent intervention, not human customer approval.",
+  "files": {
+    "app.py": {
+      "model_sha256": "92dfb7484d7ca698a1fb798525611b7f55d0b88082fa1c865228fcd7b3a635d7",
+      "adopt_candidate_sha256": "7b3f7f05591c4e473a421ee9334d1bb716a280d87c79c69fa77737fb73fd2b76"
+    },
+    "tests/test_app.py": {
+      "model_sha256": "5ddbd8d00f5d9e5db9e51bea9304d734e10c5d41188c9a96e56ca4000feebd1c",
+      "adopt_candidate_sha256": "d2945d5ca29c5a81a8099652364cff41d3887d656d6f33cc85424b486c890eb7"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+test_a_ticket_s_steps_continue_one_agent_session (test_platform.PlatformApiTest.test_a_ticket_s_steps_continue_one_agent_session) ... ok
+test_ticket_flow_with_agent (test_platform.PlatformApiTest.test_ticket_flow_with_agent) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+test_an_accepted_change_is_merged_given_a_version_and_a_conflict_goes_back (test_platform.PlatformApiTest.test_an_accepted_change_is_merged_given_a_version_and_a_conflict_goes_back) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 409: 'Conflict'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 5.637s
+
+OK
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=4, family=2, type=1, proto=0, laddr=('127.0.0.1', 60787)>

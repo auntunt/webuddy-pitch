@@ -318,7 +318,8 @@ class FixLoop:
                      "# 再改一轮\n\n" + self.feedback_text(diag) + "还是在 %s 里改。\n\n" % self.wt + MODE_TEXT["fix"])
             short = short.replace(MODE_TEXT["fix"], self.nobuild + MODE_TEXT["fix"], 1) if self.nobuild else short
             self.say("由一个智能体完成整个改动（接着%s的会话）" % ("方案" if prev and prev["mode"] == "plan" else "上一轮" if not prev else "分析"))
-            out = self.call("fix", short, resume=sid, fresh=full)
+            # Session reuse is a performance choice, not permission to omit the current contract.
+            out = self.call("fix", short + "\n\n## 本轮完整任务（以当前资料为准）\n" + full, resume=sid, fresh=full)
         else:
             self.say("由一个智能体完成整个改动")
             out = self.call("fix", full)
@@ -453,11 +454,12 @@ class FixLoop:
                 break
             diag = self.diagnose(diff, res, skip, diag)
             said = str(diag.get("verdict", "")).lower()
-            # a failed build or test is a fail whatever the diagnosis says; without a readable verdict the commands decide
-            verdict = "fail" if broke or said == "fail" else ("pass" if said == "pass" or res else "unknown")
+            # Commands prove their own checks, not a missing model diagnosis. Keep timeout/unreadable
+            # reviews unknown even when compilation/tests are green; never invent an implementation verdict.
+            verdict = "fail" if broke or said == "fail" else ("pass" if said == "pass" else "unknown")
             self.log.append("第 %d 轮：改了 %d 个文件；%s；诊断%s" % (
                 rnd + 1, len(files), ("构建测试" + ("失败" if broke else "通过")) if res else "没跑构建测试",
-                "认为已解决" if verdict == "pass" else "认为还没解决" + ("：" + str(diag.get("cause"))[:120] if diag.get("cause") else "")))
+                "认为已解决" if verdict == "pass" else "未给出结论" if verdict == "unknown" else "认为还没解决" + ("：" + str(diag.get("cause"))[:120] if diag.get("cause") else "")))
             self.say(self.log[-1])
             if verdict != "fail":
                 break
@@ -503,8 +505,8 @@ def verified(data_dir: Path, rid: int) -> dict:
 def recheck(runner, rid: int) -> dict:
     """Build an earlier change again without changing it: the same baseline and build the fix loop runs, on the
     change as it stands (its worktree, or for an adopted change its commit). Overwrites the run's verify.json and
-    returns it. The diagnosis stays as it was: one made without a build result may still name something the build
-    cannot see (a missing endpoint compiles fine), so a change it judged unsolved still waits for a person."""
+    returns it. The diagnosis stays as it was for unchanged code. If someone corrects the worktree after the
+    model finished, preserve the old evidence but invalidate its diagnosis and refresh the visible diff."""
     st = runner.store
     r = st.run(rid)
     if not r or r["mode"] != "fix":
@@ -516,18 +518,21 @@ def recheck(runner, rid: int) -> dict:
     p = st.project(r["project_id"])
     root = Path(p["root"])
     t = st.ticket(r["ticket_id"]) if r["ticket_id"] else None
-    temp = None
+    temp, sha = None, ""
     if not r["decision"]:
         wt = Path(r["workdir"])
         if not wt.is_dir():
             raise ValueError("改动的工作树已经不在了")
     elif r["decision"].startswith("accepted:"):
-        sha = r["decision"].rsplit("@", 1)[-1]
+        from .preview import _commit
+        sha = _commit(root, r["decision"].rsplit("@", 1)[-1])
+        if not sha:
+            raise ValueError("已采纳的提交不存在或短提交号不唯一，不能改为验证其他版本")
         parent = git(root, "rev-parse", sha + "^").strip()
         temp = wt = runner.data_dir / "worktrees" / ("recheck-%d" % rid)
         git(root, "worktree", "remove", "--force", str(wt), check=False)
         git(root, "worktree", "add", "--detach", "-f", str(wt), parent)
-        change = subprocess.run(["git", "-C", str(root), "diff", "--binary", parent, sha], capture_output=True).stdout
+        change = subprocess.run(["git", "-C", str(root), "diff", "--binary", parent, sha], capture_output=True, check=True).stdout
         subprocess.run(["git", "-C", str(wt), "apply", "--whitespace=nowarn", "-"], input=change, check=True, capture_output=True)
     else:
         raise ValueError("这次改动已经放弃了")
@@ -537,6 +542,8 @@ def recheck(runner, rid: int) -> dict:
     tb = testbox.settings(runner.data_dir)
     fl.box = testbox.TestBox(tb, runner.data_dir) if tb else None
     fl.base = git(wt, "rev-parse", "HEAD").strip()
+    checked_diff = worktree_diff(wt)
+    changed = checked_diff != r["diff"]
     try:
         fl.say("重新验证（不改代码）：在%s上构建这次的改动" % ("测试机" if fl.box else "本机"))
         files = sorted(set(re.findall(r"(?m)^diff --git a/(\S+) b/", worktree_diff(wt))))
@@ -549,12 +556,35 @@ def recheck(runner, rid: int) -> dict:
         if seq:
             res = fl.execute(seq)
         check = ("fail" if any(x["exit_code"] != 0 for x in res) else "pass") if res else "skip"
+        final_diff = worktree_diff(wt)
+        stale = final_diff != checked_diff
+        if stale:
+            check = "fail"
     finally:
         if temp:
             git(root, "worktree", "remove", "--force", str(temp), check=False)
     v = verified(runner.data_dir, rid)
+    # Keep every superseded check, including a failed temporary test mutation followed
+    # by a clean rerun. Its diff/output/diagnosis must not disappear when current fields refresh.
+    previous = dict(v)
+    history = list(previous.pop("previous_verifications", []))
+    if previous:
+        history.append({"diff": r["diff"], "verification": previous})
+    if changed or stale:
+        v.update(verdict="unknown", diagnosis={},
+                 diagnosis_invalidated="代码在模型运行后发生变化，旧诊断不再适用于当前改动")
+        # An adopted run represents the immutable commit. Tests may edit its temporary
+        # checkout, but those edits are neither adopted nor part of that run's visible diff.
+        st.update_run(rid, diff=checked_diff if temp else final_diff)
     v.update({"check": check, "skip": skip if check == "skip" else "", "commands": res,
+              "files": files, "code_changed_during_check": stale, "checked_commit": sha, "checked_base": fl.base,
+              "checked_diff": checked_diff, "previous_verifications": history,
               "rechecked": time.strftime("%Y-%m-%d %H:%M:%S")})
+    if stale:
+        v["after_check_diff"] = final_diff
+        v["diagnosis_invalidated"] = "代码在重新验证期间变化，当前结果不能证明新改动；请重新验证"
+    else:
+        v.pop("after_check_diff", None)  # the previous value remains in previous_verifications
     v.pop("diagnosis_dropped", None)
     (runner.data_dir / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)  # a change taken from a branch has no run folder yet
     (runner.data_dir / "runs" / str(rid) / "verify.json").write_text(json.dumps(v, ensure_ascii=False, indent=1), encoding="utf-8")

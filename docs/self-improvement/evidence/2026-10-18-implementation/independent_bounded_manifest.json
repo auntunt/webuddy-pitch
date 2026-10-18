@@ -1,0 +1,66 @@
+{
+  "recorded_utc": "2026-10-18T08:42:02.536603+00:00",
+  "candidate_directory": "/tmp/webuddy-bounded-edit-20261018",
+  "python": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 17.0.0 (clang-1700.6.4.2)]",
+  "files": {
+    "app.py": {
+      "source": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/worktrees/BOOTV2-1-r3/app.py",
+      "bytes": 16124,
+      "sha256": "82226ca58fcb6261bb27eca0db43b0e25926afc36274c5d5067f01dbc002d570",
+      "source_sha256_after": "97810a5fa328603989d4f3b768139caef23061a08e017e3a92b58308f1d7b541",
+      "source_still_matches_snapshot": false,
+      "candidate_sha256": "f0d52b8202901955b4a02e4e6217166ff84ecdc6e874e8a9993d362ce4957b0a",
+      "candidate_bytes": 13007
+    },
+    "tests/test_app.py": {
+      "source": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/worktrees/BOOTV2-1-r3/tests/test_app.py",
+      "bytes": 34562,
+      "sha256": "ba076d2a13f548c989952fe98c4a3a2eb09380d955667d02e32ba7ebabddb8a6",
+      "source_sha256_after": "82d4b98c50c376545cbd49a3e5763bed16503902b249903ee6ba266e9e148f69",
+      "source_still_matches_snapshot": false,
+      "candidate_sha256": "63d8e063f6255ac532089e56a46a4add6ad8faf6c1f5061a34e5e038fca97c37",
+      "candidate_bytes": 33224
+    },
+    "project.json": {
+      "source": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/worktrees/BOOTV2-1-r3/project.json",
+      "bytes": 139,
+      "sha256": "62caaef2f75ff8b94fac080b01168b8b56df8565e2368e32a3414c90abc3c2c1",
+      "source_sha256_after": "62caaef2f75ff8b94fac080b01168b8b56df8565e2368e32a3414c90abc3c2c1",
+      "source_still_matches_snapshot": true,
+      "candidate_sha256": "62caaef2f75ff8b94fac080b01168b8b56df8565e2368e32a3414c90abc3c2c1",
+      "candidate_bytes": 139
+    }
+  },
+  "unittest": {
+    "exit": 0,
+    "tests": 22,
+    "log": "independent_bounded_unittest.log",
+    "original_five_methods_ast_unchanged": true,
+    "other_existing_behavior_tests_ast_unchanged": true,
+    "removed_implementation_specific_methods": [
+      "test_oversized_edit_reads_bounded_chunks_and_handles_short_reads",
+      "test_oversized_edit_temporary_storage_failures_are_visible_and_closed"
+    ],
+    "replacements": "three real HTTP tests for 64KiB recovery, header-only hard refusal, malformed/incomplete requests"
+  },
+  "independent_http": {
+    "passed": true,
+    "assertions": 459,
+    "requests": 138,
+    "prefixes": [
+      "",
+      "/demo",
+      "/pv/BOOTV2/independent"
+    ],
+    "report": "independent_bounded_http_result.json"
+  },
+  "resource_policy": {
+    "save_limit_bytes": 8192,
+    "edit_recovery_limit_bytes": 65536,
+    "above_recovery_window": "413 + Connection: close before body read; no original input is claimed recovered",
+    "within_recovery_window": "standard parse_qs; complete input returned; CSRF / missing id / database failure semantics retained; body >8192 never saves"
+  },
+  "frontend": "No new JavaScript: existing maxlength=200 constrains the normal edit UI; 1000-character invalid HTTP input fits the bounded recovery window. Hard-refusal page explicitly says no body was received and no edit was saved, with the same prefix-aware edit link. It does not claim arbitrary client input was preserved.",
+  "scope": "Only independent candidate and independent_bounded_* evidence changed; no platform or preview service touched; disposable test databases only.",
+  "known_existing_warning": "Python 3.14 reports ResourceWarning from original sqlite3 connection context-manager use. Full unfiltered warning log is retained. This bounded-body candidate does not broaden scope to existing connection lifecycle behavior."
+}

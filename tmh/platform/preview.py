@@ -32,6 +32,7 @@ import hmac
 import http.client
 import json
 import os
+import re
 import secrets
 import signal
 import socket
@@ -43,6 +44,7 @@ import urllib.request
 from pathlib import Path
 
 from .agents import git
+from .errors import ApiError
 
 MAX = 3
 STANDING = "-main"  # <project>-main: the main line's current version, kept running between merges (workbench.py)
@@ -161,6 +163,84 @@ def branch_of(P, t: dict) -> str:
     return c if c and p and _resolve(Path(p["root"]), c) else ""
 
 
+def _commit(root: Path, value) -> str:
+    """Resolve a stored commit id, including an older abbreviated id; never resolve a branch here."""
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9a-fA-F]{4,64}", value):
+        return ""
+    try:
+        # Revision syntax can prefer a hex-named branch over an abbreviated object id.
+        # Enumerate objects instead, and reject an ambiguous prefix rather than guessing.
+        objects = git(root, "rev-parse", "--disambiguate=" + value.lower(), check=False).splitlines()
+        if len(objects) != 1 or not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", objects[0]):
+            return ""
+        commit = objects[0]
+        return commit if git(root, "cat-file", "-t", commit, check=False).strip() == "commit" else ""
+    except (OSError, RuntimeError):
+        return ""
+
+
+def run_binding(P, t: dict, run_id) -> dict:
+    """The accepted commit of exactly this run, independent of newer adoptions or moving branches."""
+    if not ((type(run_id) is int and run_id > 0) or
+            (isinstance(run_id, str) and re.fullmatch(r"[1-9][0-9]{0,18}", run_id))):
+        raise ApiError(400, "run_id 必须是正整数")
+    rid = int(run_id)
+    if rid > 2 ** 63 - 1:
+        raise ApiError(400, "run_id 超出有效范围")
+    with P.store.lock:
+        r = P.store.run(rid)
+        if not r or r["ticket_id"] != t["id"] or r["project_id"] != t["project_id"]:
+            raise ApiError(404, "这张工单没有这次运行")
+        decision = re.fullmatch(r"accepted:(.+)@([0-9a-fA-F]{4,64})", r.get("decision") or "")
+        if r["mode"] != "fix" or not decision:
+            raise ApiError(409, "这次运行还没有已采纳的代码提交，暂时不能预览")
+        p = P.store.project(t["project_id"])
+        commit = _commit(Path(p["root"]), decision.group(2)) if p else ""
+    if not commit:
+        raise ApiError(409, "这次运行采纳的提交已经无法找到，不能替换成别的版本预览")
+    return {"run_id": rid, "expected_commit": commit, "branch": decision.group(1)}
+
+
+def ticket_view(P, t: dict, run_id=None) -> dict:
+    binding = run_binding(P, t, run_id) if run_id is not None else None
+    p = P.store.project(t["project_id"])
+    cmd, ready, mine = command(P.data_dir, p)
+    st = status(P.data_dir, t["key"])
+    matches = bound_matches(st, t["key"], binding["expected_commit"]) if binding else None
+    url = bound_prefix(t["key"], binding["expected_commit"]) + "/" if binding else "/pv/%s/" % t["key"]
+    return {"preview": st, "url": url if st.get("state") == "up" and matches is not False else "",
+            "branch": binding["branch"] if binding else branch_of(P, t), "cmd": cmd, "configured": mine,
+            "auto": settings(P.data_dir)["preview"], "own_address": bool(getattr(P, "preview_port", 0)),
+            "run_id": binding["run_id"] if binding else None,
+            "expected_commit": binding["expected_commit"] if binding else "", "matches_run": matches}
+
+
+def start_for_ticket(P, t: dict, by: str, run_id=None) -> dict:
+    binding = run_binding(P, t, run_id) if run_id is not None else None
+    target = binding["expected_commit"] if binding else branch_of(P, t)
+    if not target:
+        raise ApiError(409, "这张工单还没有提交过代码改动，没有可以预览的版本")
+    p = P.store.project(t["project_id"])
+    r = start(P, p, t, target, by, expected_commit=target) if binding else start(P, p, t, target, by)
+    if r.get("state") == "none":
+        raise ApiError(409, r["why"])
+    event = {"state": "starting"}
+    if binding:
+        event.update(run=binding["run_id"], commit=binding["expected_commit"])
+    P.store.event(t["id"], by, "preview", "启动预览（%s，提交 %s）" % (target, r["commit"]), event)
+    return ticket_view(P, t, run_id)
+
+
+def stop_for_ticket(P, t: dict, by: str, run_id=None) -> dict:
+    binding = run_binding(P, t, run_id) if run_id is not None else None
+    if binding:
+        stop(P, t["key"], expected_commit=binding["expected_commit"])
+    else:
+        stop(P, t["key"])
+    P.store.event(t["id"], by, "preview", "停掉了预览", {"state": "stopped"})
+    return ticket_view(P, t, run_id)
+
+
 def on_status(P, t: dict, old: str, new: str, by: str) -> None:
     """Waiting for acceptance with a committed change: start its preview. Left that state: stop it."""
     if new == "verify":
@@ -255,12 +335,17 @@ def _clean(rec: dict) -> None:
         git(Path(rec["root"]), "worktree", "remove", "--force", str(wt), check=False)
 
 
-def stop(P, key: str, why: str = "") -> None:
+def stop(P, key: str, why: str = "", *, expected_commit: str = "") -> None:
     """Stop a preview and remove its worktree; `why` goes on the ticket when someone else's action stopped it."""
     with _key_lock(key):
         with _LOCK:
             st = _load(P.data_dir)
-            cur = st.pop(key, None)
+            cur = st.get(key)
+            # Check while holding the same lock as start. A replacement preview must never be
+            # killed between a run-specific request's preliminary read and its actual stop.
+            if expected_commit and (not cur or _commit(Path(cur.get("root") or ""), cur.get("commit_full") or cur.get("commit")) != expected_commit):
+                raise ApiError(409, "当前预览不是指定运行，未停止其他版本的预览")
+            st.pop(key, None)
             _save(P.data_dir, st)
         if not cur:
             return
@@ -283,7 +368,7 @@ def _env(port: int, prefix: str) -> dict:
     return env
 
 
-def start(P, p: dict, t: dict, branch: str, by: str) -> dict:
+def start(P, p: dict, t: dict, branch: str, by: str, *, expected_commit: str = "") -> dict:
     """Run the branch as a preview. Returns its state; the app comes up in the background."""
     cmd, ready, _ = command(P.data_dir, p)
     if not cmd:
@@ -297,13 +382,15 @@ def start(P, p: dict, t: dict, branch: str, by: str) -> dict:
         threading.Thread(target=stop, args=(P, old, "同时最多 %d 个预览，给 %s 腾地方；需要时在工单页重新启动" % (MAX, key)), daemon=True).start()
     root = Path(p["root"])
     with _key_lock(key):
+        commit = _commit(root, expected_commit) if expected_commit else git(root, "rev-parse", "--verify", branch + "^{commit}").strip()
+        if not commit or (expected_commit and commit != expected_commit):
+            raise ApiError(409, "指定运行的提交已经无法找到")
         with _LOCK:  # the same ticket's older preview (a newer change, or two clicks at once) goes first
             st = _load(P.data_dir)
             cur = st.pop(key, None)
             _save(P.data_dir, st)
         if cur:
             _kill(cur)
-        commit = git(root, "rev-parse", "--verify", branch + "^{commit}").strip()
         base = Path(P.data_dir) / "previews"
         wt = base / key
         git(root, "worktree", "prune", check=False)
@@ -311,7 +398,7 @@ def start(P, p: dict, t: dict, branch: str, by: str) -> dict:
             git(root, "worktree", "remove", "--force", str(wt), check=False)
         base.mkdir(parents=True, exist_ok=True)
         git(root, "worktree", "add", "--detach", "-f", str(wt), commit)
-        port, prefix = _free_port(), "/pv/" + key
+        port, prefix = _free_port(), bound_prefix(key, commit) if expected_commit else "/pv/" + key
         log = base / (key + ".log")
         line = cmd.replace("{port}", str(port)).replace("{prefix}", prefix)
         with log.open("w", encoding="utf-8") as fh:
@@ -319,7 +406,8 @@ def start(P, p: dict, t: dict, branch: str, by: str) -> dict:
             fh.flush()
             proc = subprocess.Popen(line, shell=True, cwd=str(wt), stdout=fh, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                     env=_env(port, prefix), start_new_session=True)
-        rec = {"key": key, "project": p["key"], "branch": branch, "commit": commit[:10], "port": port, "prefix": prefix, "pid": proc.pid,
+        rec = {"key": key, "project": p["key"], "branch": branch, "commit": commit[:10], "commit_full": commit,
+               "port": port, "prefix": prefix, "pid": proc.pid,
                "dir": str(wt), "root": str(root), "log": str(log), "cmd": line, "ready": ready, "state": "starting",
                "started": time.strftime("%Y-%m-%d %H:%M:%S"), "by": by}
         with _LOCK:
@@ -408,22 +496,55 @@ def _secret(data_dir: Path) -> bytes:
         return f.read_text().strip().encode()
 
 
-def grant(data_dir: Path, key: str, link_hash: str = "", until: float = 0) -> str:
-    """A signed pass to one preview: until when, and the sign-off link it came from (checked again on each use)."""
+def bound_prefix(key: str, commit: str) -> str:
+    return "/pv/%s/__commit/%s" % (key, commit)
+
+
+def bound_matches(st: dict, key: str, commit: str) -> bool:
+    # Prefix is part of the binding: an older process serving /pv/<ticket>/ must be
+    # restarted so its forms, links, cookies and assets keep the immutable address.
+    return st.get("commit_full") == commit and st.get("prefix") == bound_prefix(key, commit)
+
+
+def require_bound(data_dir: Path, key: str, commit: str, st=None) -> None:
+    current = (_load(data_dir).get(key) or {}) if st is None else st
+    if commit and not bound_matches(current, key, commit):
+        raise ApiError(409, "预览版本已经切换或停止：请回到这次运行重新启动，旧地址不会打开其他版本")
+
+
+def route(key: str, rest: str) -> tuple[str, str, str]:
+    """Return (prefix, app-relative path, expected commit), preserving legacy paths."""
+    if not rest.startswith("/__commit"):
+        return "/pv/" + key, rest, ""
+    m = re.fullmatch(r"/__commit/([0-9a-f]{40}|[0-9a-f]{64})(/.*)?", rest)
+    if not m:
+        raise ApiError(404, "无效的运行预览地址")
+    return bound_prefix(key, m.group(1)), m.group(2) or "", m.group(1)
+
+
+def cookie_name(key: str, expected_commit: str = "") -> str:
+    return "tmh_pv_" + key + ("_" + expected_commit if expected_commit else "")
+
+
+def grant(data_dir: Path, key: str, link_hash: str = "", until: float = 0, *, expected_commit: str = "") -> str:
+    """A signed pass to one preview, optionally scoped to its immutable commit path."""
     exp = int(until or time.time() + GRANT_H * 3600)
-    msg = "%s|%d|%s" % (key, exp, link_hash)
+    fields = [str(exp), link_hash] + ([expected_commit] if expected_commit else [])
+    msg = "|".join([key] + fields)
     sig = hmac.new(_secret(data_dir), msg.encode(), hashlib.sha256).hexdigest()[:32]
-    return "%d.%s.%s" % (exp, link_hash, sig)
+    return ".".join(fields + [sig])
 
 
-def granted(data_dir: Path, key: str, g: str) -> bool:
+def granted(data_dir: Path, key: str, g: str, *, expected_commit: str = "") -> bool:
     try:
-        exp, lh, sig = (g or "").split(".")
-        if int(exp) < time.time():
+        parts = (g or "").split(".")
+        exp, lh, sig = parts[0], parts[1], parts[-1]
+        commit = parts[2] if len(parts) == 4 else ""
+        if len(parts) not in (3, 4) or commit != expected_commit or int(exp) < time.time():
             return False
-    except ValueError:
+    except (ValueError, IndexError):
         return False
-    want = hmac.new(_secret(data_dir), ("%s|%s|%s" % (key, exp, lh)).encode(), hashlib.sha256).hexdigest()[:32]
+    want = hmac.new(_secret(data_dir), ("|".join([key] + parts[:-1])).encode(), hashlib.sha256).hexdigest()[:32]
     if not hmac.compare_digest(want, sig):
         return False
     if lh.startswith("v"):  # a version link given to a client: only while it is not revoked or expired
@@ -461,15 +582,25 @@ def _app_cookies(header: str) -> str:
     return "; ".join(keep)
 
 
-def forward(data_dir: Path, key: str, method: str, path: str, headers, body: bytes, sandboxed: bool = False, https: bool = False):
+def forward(data_dir: Path, key: str, method: str, path: str, headers, body: bytes, sandboxed: bool = False, https: bool = False, *, expected_commit: str = ""):
     """Pass one request to the preview of `key`. `path` is the full path asked for (under /pv/<key>/), which is
     also where the app was told it lives. Returns (status, headers, response): the caller streams the response
     (and closes it), so a download or a server-sent stream is not held in memory."""
-    st = _load(data_dir).get(key)
-    if not st or st.get("state") != "up" or not _alive(st.get("pid") or 0, st.get("dir", "")):
-        raise LookupError("这个项目现在的版本没有开着：在“版本”页点“启动”，或者重新生成客户链接" if key.endswith(STANDING)
-                          else "这张工单现在没有在运行的预览")
-    port, inner = st["port"], st["prefix"]
+    # Connect while start/stop cannot replace the process. Once connected, a later
+    # replacement can close this socket but cannot redirect it to the new version.
+    with _key_lock(key):
+        st = _load(data_dir).get(key) or {}
+        require_bound(data_dir, key, expected_commit, st)
+        if not st or st.get("state") != "up" or not _alive(st.get("pid") or 0, st.get("dir", "")):
+            raise LookupError("这个项目现在的版本没有开着：在“版本”页点“启动”，或者重新生成客户链接" if key.endswith(STANDING)
+                              else "这张工单现在没有在运行的预览")
+        port, inner = st["port"], st["prefix"]
+        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=120)
+        try:
+            conn.connect()
+        except Exception:
+            conn.close()
+            raise
     out = {}
     for k, v in headers.items():
         lk = k.lower()
@@ -481,7 +612,6 @@ def forward(data_dir: Path, key: str, method: str, path: str, headers, body: byt
                 continue
         out[k] = v
     out.update({"Host": "127.0.0.1:%d" % port, "X-Forwarded-Prefix": inner, "Accept-Encoding": "identity"})
-    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=120)
     conn.request(method, path, body=body if body or method not in ("GET", "HEAD") else None, headers=out)
     r = conn.getresponse()
     hdrs = []

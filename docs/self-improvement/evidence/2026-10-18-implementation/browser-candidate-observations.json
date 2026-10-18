@@ -1,0 +1,47 @@
+{
+  "recorded_at": "2026-10-18T08:52:25.277254+00:00",
+  "environment": "isolated local candidate, actual browser with SQLite; not customer acceptance",
+  "url": "http://127.0.0.1:8877/preview/edit/",
+  "source_sha256": "f0d52b8202901955b4a02e4e6217166ff84ecdc6e874e8a9993d362ce4957b0a",
+  "observations": [
+    {
+      "step": "create and complete",
+      "observed": "item 1, done 1"
+    },
+    {
+      "step": "submit three spaces",
+      "observed": "error shown, three spaces retained and retry on same /items/1/edit"
+    },
+    {
+      "step": "save script-like text, refresh",
+      "observed": "literal <script>测试</script> & quotes rendered as text; completion unchanged"
+    },
+    {
+      "step": "make isolated browser.db unavailable using reversible rename and empty-directory placeholder",
+      "observed": "503 page retained full pending title, retry submits same edit route"
+    },
+    {
+      "step": "restore original SQLite file and retry",
+      "observed": "item 1 updated once, count remains 1, done 1"
+    },
+    {
+      "step": "cancel unsaved edit",
+      "observed": "original title retained"
+    },
+    {
+      "step": "320px and 375px viewport",
+      "observed": "scrollWidth equals innerWidth, 320px button height 46.5px, viewport restored"
+    }
+  ],
+  "final_rows": [
+    [
+      1,
+      "数据库恢复后重试：仍是同一事项",
+      1
+    ]
+  ],
+  "screenshots_original_bytes": [
+    "browser-edit-503.jpg",
+    "browser-app-320.jpg"
+  ]
+}

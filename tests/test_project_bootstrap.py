@@ -29,7 +29,7 @@ class BootstrapTest(unittest.TestCase):
         root = Path(result["project"]["root"])
         self.assertEqual(root, (self.P.data_dir / "projects" / "DEMO").resolve())
         self.assertEqual(result["checks"]["test"]["exit_code"], 0)
-        self.assertIn("Ran 5 tests", result["checks"]["test"]["output"])
+        self.assertIn("Ran 23 tests", result["checks"]["test"]["output"])
         self.assertTrue(config.load(root)["commands"]["test"])
         self.assertEqual(subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True), "")
         self.assertEqual(subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip(), result["commit"])
