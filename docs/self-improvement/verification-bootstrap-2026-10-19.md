@@ -2,6 +2,8 @@
 
 2026-10-19，接续 `a75113c`。本轮处理上一轮已经复现的缺口：BOOTV2 候选修好了 CRLF 长度边界，但从零创建项目仍生成旧实现。现在新项目的编辑路径与已验证的 BOOTV2 #6 保持一致。
 
+实现与完整证据提交：`012c0ae47829da3faddbc35624ed515505bb8129`（`Carry verified newline handling into new project templates`），仅本地，未推送；此记录随后单独补记提交号。
+
 ## 实现与失败回归
 
 只修改 `tmh/platform/project_bootstrap.py` 的应用及测试模板，以及已有创建集成测试中的应用测试数量断言。编辑标题按 `len(raw_title) - raw_title.count("\r\n")` 检查逻辑长度，数据库保存和错误回显继续使用完整原文；8 KiB 保存上限、64 KiB 错误恢复窗口、CSRF、原 id 和完成状态保持原有约束。创建、Git、预览配置及部署逻辑没有改动。
