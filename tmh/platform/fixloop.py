@@ -37,7 +37,7 @@ import time
 from pathlib import Path
 
 from . import testbox
-from .agents import MODE_TEXT, build_prompt, earlier_session, follow_up, git, worktree_diff
+from .agents import GREENFIELD_EDIT, GREENFIELD_FIX, MODE_TEXT, build_prompt, earlier_session, follow_up, git, reviewed_delivery_plan, worktree_diff
 
 FENCE = r"```%s[ \t]*\n(.*?)```"
 
@@ -138,8 +138,9 @@ class FixLoop:
 
     def context(self) -> str:
         if not hasattr(self, "_ctx"):
-            full = build_prompt(self.st, self.p, self.t, "fix")
-            self._ctx = full[:full.rfind(MODE_TEXT["fix"])].rstrip() if MODE_TEXT["fix"] in full else full
+            full = self.prompt if (self.t or {}).get("links", {}).get("delivery") else build_prompt(self.st, self.p, self.t, "fix")
+            instruction = GREENFIELD_FIX if GREENFIELD_FIX in full else MODE_TEXT["fix"]
+            self._ctx = full[:full.rfind(instruction)].rstrip() if instruction in full else full
         return self._ctx
 
     def dirty(self) -> dict:
@@ -306,8 +307,11 @@ class FixLoop:
     def whole(self, diag) -> None:
         """One agent makes the whole change. It continues the session that analysed and planned the ticket (or, in a
         later round, its own session), so it does not read the code all over again."""
-        full = self.prompt.replace(MODE_TEXT["fix"], self.feedback_text(diag) + self.nobuild + MODE_TEXT["fix"])
-        sid, prev = (self.sid, None) if self.sid else earlier_session(self.st, self.r.data_dir, self.t, self.agent, "fix")
+        instruction = GREENFIELD_FIX if GREENFIELD_FIX in self.prompt else MODE_TEXT["fix"]
+        full = self.prompt.replace(instruction, self.feedback_text(diag) + self.nobuild + instruction)
+        # Delivery inputs are versioned. Always send the full reviewed packet, including retry evidence.
+        delivery = (self.t or {}).get("links", {}).get("delivery")
+        sid, prev = ("", None) if delivery else ((self.sid, None) if self.sid else earlier_session(self.st, self.r.data_dir, self.t, self.agent, "fix"))
         if sid and (prev or self.sid):
             where = ("现在到了可以修改的独立 git 工作树 %s（分支从工单针对的代码版本开出，和刚才看的代码相同），只在这里改。" % self.wt)
             short = (follow_up(self.st, self.t, prev, "fix", where) if prev else
@@ -341,7 +345,8 @@ class FixLoop:
                     ask += "## 其他文件发来的要求\n" + "\n".join("- " + m for m in inbox[path]) + "\n\n"
                 self.say("改 %s（%s）" % (path, self.models["edit"] or "默认模型"))
                 before = self.dirty()
-                out = self.call("edit", self.context() + "\n\n" + fb + self.nobuild + ask + MODE_TEXT["edit"].replace("{target}", path))
+                instruction = GREENFIELD_EDIT if GREENFIELD_FIX in self.prompt else MODE_TEXT["edit"]
+                out = self.call("edit", self.context() + "\n\n" + fb + self.nobuild + ask + instruction.replace("{target}", path))
                 self.keep_to(path, before)
                 self.notes[path] = clean(out)[:800]
                 for m in fenced("tmh-msg", out) or []:
@@ -381,8 +386,14 @@ class FixLoop:
     def run(self) -> tuple[int, str]:
         plan = ""
         if self.t:
-            done = [r for r in self.st.runs(ticket_id=self.t["id"]) if r["mode"] == "plan" and r["status"] == "done"]
-            plan = self.st.run(done[0]["id"])["result"] if done else ""
+            if (self.t.get("links") or {}).get("delivery"):
+                try:
+                    plan = reviewed_delivery_plan(self.st, self.t)["result"]
+                except ValueError as e:
+                    return 1, str(e)
+            else:
+                done = [r for r in self.st.runs(ticket_id=self.t["id"]) if r["mode"] == "plan" and r["status"] == "done"]
+                plan = self.st.run(done[0]["id"])["result"] if done else ""
         goals = plan_files(plan, int(self.set.get("max_files") or 16))
         seq, skip = self.commands(goals)
         if seq:

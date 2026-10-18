@@ -8,10 +8,11 @@ from __future__ import annotations
 from .ui_atlas import ATLAS_CSS, ATLAS_JS
 from .ui_css import CSS
 from .ui_work import WORK_CSS, WORK_JS
+from .ui_delivery import DELIVERY_CSS, DELIVERY_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS)
 
 
 HTML = r"""<!doctype html>
@@ -36,7 +37,7 @@ HTML = r"""<!doctype html>
 </div>
 <button id="astOpen" hidden>AI 助手 <kbd>Ctrl K</kbd></button>
 <div id="modal" hidden><div class="mbox"><button class="mx" onclick="closeModal()">×</button><div id="mbody"></div></div></div>
-<div id="toast" hidden></div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
 <script>/*JS*/</script></body></html>"""
 
 JS = r"""
@@ -131,21 +132,22 @@ async function loadProjects(){
   paintSel();loadPoints()}
 // Work that spans projects (board, list, 运维成效) shows every project unless narrowed; pages about one codebase
 // (knowledge base, map, runs…) follow the project of whatever you opened last, so nobody has to pick one by hand.
-const CROSS=['home','board','tickets','lead','t','today','clients','c','reqs','versions'];
-function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'today'}
+const CROSS=['home','board','tickets','lead','t','today','clients','c','reqs','versions','deliveries','delivery'];
+function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'deliveries'}
 function isCross(){return CROSS.includes(curView())}
-function paintSel(){const cross=isCross()&&curView()!=='t',v=cross?S.scope:S.proj;
+function paintSel(){const cross=isCross()&&!['t','delivery'].includes(curView()),v=cross?S.scope:S.proj;
   $('#projSel').innerHTML=(cross?`<option value="*" ${v==='*'?'selected':''}>全部项目（${S.projects.length}）</option>`:'')+S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===v?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')+(cross?'':'<option value="*">全部项目</option>')+'<option value="__new">＋ 添加项目…</option>';
-  $('#projSel').title=cross?'看哪些项目的工单（默认全部）':'这一页属于哪个项目'}
+  $('#projSel').title=cross?(['deliveries','delivery'].includes(curView())?'查看项目范围（默认全部）':'看哪些项目的工单（默认全部）'):'这一页属于哪个项目'}
 function setProj(k){if(!k||k===S.proj)return;S.proj=k;ls.set('tmh.proj',k);A.reset();loadPoints()}
 const scopeQ=()=>S.scope==='*'?'*':S.scope;
 async function loadPoints(){if(!S.proj){$('#ptsN').textContent='-';return}try{const r=await get('/api/projects/'+S.proj+'/points');S.points=r;$('#ptsN').textContent=r.balance.toLocaleString();if(A.open)A.paintFoot()}catch(e){}}
 function render(){
-  stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'today';
+  stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'deliveries';
+  document.body.classList.toggle('delivery-surface',['deliveries','delivery'].includes(view));
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
-  if(!S.proj&&view!=='settings'){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">先添加一个项目：选一个本机上的项目目录。项目已经建好知识库的话，工单会自动关联到业务流、表和代码。</p><button class="primary" onclick="newProject()">添加项目</button></div>`;return}
-  const V={today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||vHome;
+  if(!S.proj&&!['settings','deliveries','delivery'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
+  const V={deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||(()=>{location.hash='#/deliveries'});
   if(view!=='t')A.setTicket(null);
   paintSel();
   if(view==='atlas'&&$('#atl')){S.renderP=Promise.resolve(vAtlas(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}

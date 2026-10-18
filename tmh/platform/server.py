@@ -964,6 +964,42 @@ def api_project(P, req, key):
             "recent": P.store.tickets(project_id=p["id"], limit=8)}
 
 
+@route("POST", "/api/projects/bootstrap")
+def api_bootstrap_project(P, req):
+    from .project_bootstrap import create
+    return create(P, req.body, req.user)
+
+
+@route("GET", "/api/delivery/catalog")
+def api_delivery_catalog(P, req):
+    from .delivery import catalog
+    return catalog()
+
+
+@route("GET", "/api/deliveries")
+def api_deliveries(P, req):
+    from .delivery import list_deliveries
+    return list_deliveries(P, req.arg("project"))
+
+
+@route("POST", "/api/deliveries")
+def api_create_delivery(P, req):
+    from .delivery import create
+    return create(P, req.body, req.user)
+
+
+@route("GET", "/api/deliveries/<did>")
+def api_delivery(P, req, did):
+    from .delivery import view
+    return view(P, did)
+
+
+@route("POST", "/api/deliveries/<did>")
+def api_delivery_action(P, req, did):
+    from .delivery import act
+    return act(P, did, req.body, req.user)
+
+
 @route("GET", "/api/projects/<key>/related")
 def api_related(P, req, key):
     return P.kb.related(P.project(key), req.arg("q"), int(req.arg("limit") or 8))

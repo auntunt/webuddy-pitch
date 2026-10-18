@@ -71,10 +71,10 @@ details.fold>summary:before,details.eng>summary:before{content:"▸";color:var(-
 
 WORK_JS = r"""
 // ---------- the workbench: 今天 / 客户 / 需求 / 版本; everything else is 工程
-const NAV=[['today','今天','#/','◎'],['clients','客户','#/clients','☺'],['reqs','需求','#/reqs','☰'],['versions','版本','#/versions','◆'],['eng','工程','','⚙']];
-const WK=['today','clients','c','reqs','versions','t'];
+const NAV=[['deliveries','交付','#/deliveries','◇'],['today','今天','#/today','◎'],['clients','客户','#/clients','☺'],['reqs','需求','#/reqs','☰'],['versions','版本','#/versions','◆'],['eng','工程','','⚙']];
+const WK=['deliveries','delivery','today','clients','c','reqs','versions','t'];
 function isEng(v){return !WK.includes(v)}
-function navOf(v){return v==='today'?'today':v==='clients'||v==='c'?'clients':v==='reqs'||v==='t'?'reqs':v==='versions'?'versions':'eng'}
+function navOf(v){return v==='deliveries'||v==='delivery'?'deliveries':v==='today'?'today':v==='clients'||v==='c'?'clients':v==='reqs'||v==='t'?'reqs':v==='versions'?'versions':'eng'}
 function paintNav(){const v=curView(),cur=navOf(v);if(cur==='eng')ls.set('tmh.eng',location.hash||'#/board');
   $('#nav5').innerHTML=NAV.map(([k,l,u,ic])=>`<a href="${k==='eng'?h(ls.get('tmh.eng')||'#/board'):u}" class="${k===cur?'on':''}" data-n="${k}"><i aria-hidden="true">${ic}</i><span>${l}</span>${k==='today'&&S.need?`<b>${S.need}</b>`:''}</a>`).join('')}
 const STL={talk:'理解中',doing:'做着',you:'等你看',client:'等客户确认',shipped:'已出版本',done:'已完成'};

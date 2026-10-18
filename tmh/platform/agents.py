@@ -149,6 +149,41 @@ KB_MANY = """## 你的任务：撰写知识页（这次一共几页，都在同�
 3. 不要修改业务代码。最后用中文逐页概括写了什么、有哪些【推断】需要人确认。"""
 
 
+DELIVERY_ASK = """## 你的任务：产出当前交付阶段的草稿（只读，不修改文件）
+围绕本次明确请求的阶段，读取实际项目和已复核资料，输出可供下一阶段使用的完整产物。
+调研给出问题、来源和待核实假设；需求给出场景、范围和可检查的验收标准；设计给出交互、数据、接口与取舍。
+测试、安全、发布和反馈阶段逐条核对实际证据；没有执行记录的检查必须写“待执行”，没有部署回执不得写已上线。
+新建软件可以提出新行为和新文件，不要求捏造不存在的代码行号；现有行为和缺陷判断须给文件位置或运行证据。
+给出产物正文、依据、尚未解决项和下一步。输出中文，保留所有验收标准编号。
+只做当前阶段；不替人签收、不提交或推送代码、不部署、不操作生产系统。"""
+
+GREENFIELD_PLAN = """## 你的任务：新产品实现方案（只读，不修改文件）
+依据已复核的需求和设计，为第一个可运行的业务闭环列出必要文件、行为、数据保存、异常处理和真实验收步骤。
+先读取已有代码。新增文件明确标“新增”，不要编造行号；已有位置给真实文件和行号。
+可以规划必要的新测试和构建配置，测试必须有实际执行命令。不要修改 .tmh/、泄露凭据、安排未授权部署。
+范围保持可实现，覆盖本轮所有验收标准；没能覆盖的明确列为未完成，不能把基础模板当业务完成。
+说明风险、回退及如何通过真实操作验收。最后输出机器可读的计划：
+```tmh-plan
+{"files":[{"path":"app.py","goal":"具体业务行为","role":"改动|调用方|配置|测试"}],"ac":[{"id":"A1","text":"可观察的行为","layer":"L1|L2|L3|L4","check":"实际验证方法或命令"}]}
+```
+路径相对项目根目录；文件列表必须完整且仅限本轮所需；沿用已复核验收标准的编号。"""
+
+GREENFIELD_FIX = """## 你的任务：按已复核方案实现新产品
+在独立 Git 工作树里实现本轮业务闭环。只修改方案列出的文件；允许创建已规划的测试和构建配置。
+实现真实的数据保存、交互和错误状态，不用静态演示替代业务逻辑。运行方案中的测试及相关构建，保留失败证据。
+不要修改 .tmh/、跳过或削弱失败的测试、提交或推送代码、部署或操作生产系统。
+结束时说明改动、实际执行命令及结果、逐条验收覆盖与尚未完成项；未执行的检查不得写通过。"""
+
+GREENFIELD_EDIT = """## 你的任务：只实现新产品方案中 `{target}` 这一个文件
+目标文件：`{target}`。只修改这个文件；不存在则新建。可以读其他文件确认契约，但不要修改它们。
+允许创建已规划的新测试或构建配置；不要修改 .tmh/、弱化测试、提交、推送或部署。
+与其他文件需要配合的地方不要偷偷代改，给出机器可读消息：
+```tmh-msg
+[{"to":"相对路径","need":"对方要做到什么"}]
+```
+实现真实业务行为，报告实际完成、验证和仍缺的内容。"""
+
+
 def load_config(data_dir: Path) -> dict:
     p = Path(data_dir) / "agents.json"
     conf = {k: dict(v) for k, v in BUILTIN.items()}
@@ -201,6 +236,11 @@ def _fence(text: str) -> str:
 
 def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None) -> str:
     root = Path(project["root"])
+    links = (ticket or {}).get("links") or {}
+    delivery_context = ""
+    if links.get("delivery"):
+        from .delivery import prompt_context
+        delivery_context = prompt_context(store.path.parent, links["delivery"])
     out = ["你在维护项目「%s」（目录 %s）。这个项目接入了 tmh：业务知识库在 %s，"
            "查业务流、表和影响面用 `python3 %s <子命令> --repo %s`（下文写作 `tmh <子命令>`）。"
            % (project["name"], root, root / ".tmh" / "knowledge", root / ".tmh" / "tool" / "tmh.py", root), ""]
@@ -248,7 +288,8 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
                 out.append("上一版的改动在分支 %s，可以用 `git diff %s^1 %s` 或 `git show %s` 看它改了什么；在当前代码上做出同样的效果，不要扩大范围。"
                            % (d["branch"], d["branch"], d["branch"], d["branch"]))
             out.append("")
-        prior = [r for r in store.runs(ticket_id=ticket["id"]) if r["status"] == "done" and r["mode"] in ("analyze", "plan") and r["result"]] if ticket.get("id") else []
+        # Delivery has an explicit reviewed packet. An unrelated later ticket plan is not its specification.
+        prior = [r for r in store.runs(ticket_id=ticket["id"]) if r["status"] == "done" and r["mode"] in ("analyze", "plan") and r["result"]] if ticket.get("id") and not delivery_context else []
         for r in prior[:2][::-1]:
             out += ["## 之前的%s结论（%s，%s）" % (dict(RUN_MODES)[r["mode"]], r["agent"], r["ended"][5:16]), r["result"].strip()[:3000], ""]
         if mode != "ask":
@@ -277,10 +318,18 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         out.append("")
     if question:
         out += ["## 问题", question.strip()[:2000], ""]
+    if delivery_context:
+        out += [delivery_context, ""]
     if mode == "kb" and len(target.split()) > 1:  # several small pages of one source file in one run (see survey.py)
         out.append(KB_MANY.replace("{targets}", "\n".join("- " + t for t in target.split())).replace("{first}", target.split()[0]))
     else:
-        out.append(MODE_TEXT[mode].replace("{target}", target or "<页面 id>"))
+        instruction = MODE_TEXT[mode]
+        if delivery_context:
+            if mode == "ask":
+                instruction = DELIVERY_ASK
+            elif links.get("greenfield") and mode in ("plan", "fix"):
+                instruction = GREENFIELD_PLAN if mode == "plan" else GREENFIELD_FIX
+        out.append(instruction.replace("{target}", target or "<页面 id>"))
     return "\n".join(out)
 
 
@@ -582,6 +631,15 @@ def worktree_diff(wt: Path) -> str:
 
 # ---------------------------------------------------------------- runner
 
+def reviewed_delivery_plan(store: Store, ticket: dict) -> dict:
+    """Resolve the plan pinned by the delivery controller, never the ticket's latest unrelated plan."""
+    rid = (ticket.get("links") or {}).get("delivery_plan_run")
+    run = store.run(rid) if type(rid) is int and rid > 0 else None
+    if not run or run["ticket_id"] != ticket.get("id") or run["mode"] != "plan" or run["status"] != "done" or run["exit_code"] != 0:
+        raise ValueError("交付实现必须绑定已复核的成功方案；请从交付工作项执行修改代码")
+    return run
+
+
 class Runner:
     def __init__(self, store: Store, data_dir: Path):
         self.store = store
@@ -607,6 +665,8 @@ class Runner:
             raise ValueError("撰写知识页需要指定页面 id")
         if mode == "ask" and not question.strip():
             raise ValueError("问题是空的")
+        if mode == "fix" and (ticket or {}).get("links", {}).get("delivery"):
+            reviewed_delivery_plan(self.store, ticket)
         prompt = build_prompt(self.store, project, ticket, mode, target, question, history)
         run = self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
                                      session_id=session_id, batch=batch, model=model)
@@ -686,7 +746,9 @@ class Runner:
                 from .fixloop import FixLoop
                 code, result = FixLoop(self, rid, project, ticket, agent, conf, model, explicit, prompt, workdir).run()
             else:
-                sid, prev = earlier_session(st, self.data_dir, ticket, agent, mode)
+                # A lifecycle step must receive its current reviewed artifacts and stage request in full.
+                # The ordinary continuation prompt only carries ticket deltas and would silently lose those.
+                sid, prev = ("", None) if (ticket or {}).get("links", {}).get("delivery") else earlier_session(st, self.data_dir, ticket, agent, mode)
                 if sid:
                     code, result = self.invoke(rid, project, ticket, agent, conf, mode, follow_up(st, ticket, prev, mode, "代码仍在 %s。" % workdir),
                                                workdir, model, resume=sid, fresh=prompt)

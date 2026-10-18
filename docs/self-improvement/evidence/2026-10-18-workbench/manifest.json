@@ -1,0 +1,77 @@
+[
+  {
+    "file": "bootstrap-regression.txt",
+    "bytes": 1718,
+    "sha256": "29edb5a30b7fe71004a63d2c3737de9e0726d47f4ccb63acf7203fb4293c9563"
+  },
+  {
+    "file": "bootstrap-verified.json",
+    "bytes": 1725,
+    "sha256": "ab0c0ffc6098664a009e060e0fd0831184071b520a65ff5e3edefabe8772f504"
+  },
+  {
+    "file": "browser-acceptance.json",
+    "bytes": 1953,
+    "sha256": "be78e8a9a508f09a564c6f9cc59da79bb87083bb400c0f44019d2edc2107ddab"
+  },
+  {
+    "file": "delivery-home-desktop.jpg",
+    "bytes": 75094,
+    "sha256": "5736a1363d464ebc3325453e35c4769eccbb505ac6859cc7ab142952d9745262"
+  },
+  {
+    "file": "delivery-home-mobile.jpg",
+    "bytes": 48706,
+    "sha256": "77886f7ebfea83f2a0d092196967ad662e02e6085d27379110de30e1050db742"
+  },
+  {
+    "file": "delivery-invalid-project-key.jpg",
+    "bytes": 79529,
+    "sha256": "337861c62f1c9c65824230fc10ef60f90ee3cf35d20f9e585f68c85b10affe2a"
+  },
+  {
+    "file": "delivery-recovery.jpg",
+    "bytes": 30593,
+    "sha256": "d9a55bde1ec7b1504b33d7aab5ebf83c46ba5f959c7e0b30f68148f154ef3f4b"
+  },
+  {
+    "file": "delivery-research-desktop.jpg",
+    "bytes": 81893,
+    "sha256": "763ae0155dad5fca1f7490da06a774d6ab174c04141c0cdaa813aea16ab376c4"
+  },
+  {
+    "file": "delivery-research-mobile.jpg",
+    "bytes": 49905,
+    "sha256": "163943972eef81f49c873c014b13327bad1d8b21bb9ea936000994037c3a7afe"
+  },
+  {
+    "file": "full-regression.txt",
+    "bytes": 58152,
+    "sha256": "63133745a24f9f456fa6b90e583166b66135bd6d892c03550cee0baa799802f9"
+  },
+  {
+    "file": "live-application-after-restart.jpg",
+    "bytes": 32407,
+    "sha256": "d83350588e731bd65786a857d56b5a6328d76392b0690ed6e44c79f4491cb446"
+  },
+  {
+    "file": "live-application.jpg",
+    "bytes": 29704,
+    "sha256": "344cbdd140828fed4e2ef2ffa003d459a567f4d98e347b02c1e7cd2cced6b7c4"
+  },
+  {
+    "file": "preview-restart.json",
+    "bytes": 1172,
+    "sha256": "33196b492c7926497e6c2519ae5c121c96902725f3e952d078bfb052286724f9"
+  },
+  {
+    "file": "real-codex-collected.json",
+    "bytes": 39936,
+    "sha256": "cd9a8a4f95b89902c1f8cd05e12fb39bdb289e51ae71a05a849e92c500811f75"
+  },
+  {
+    "file": "real-codex-research.json",
+    "bytes": 38176,
+    "sha256": "62d9e17f0d8a8711e3ff0f851bf419b39cfd7bfa111752b189c5f0955c1cac58"
+  }
+]

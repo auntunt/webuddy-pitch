@@ -1,0 +1,40 @@
+{
+  "project": {
+    "id": 3,
+    "key": "BOOTV2",
+    "name": "反馈后修复的应用起点",
+    "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2",
+    "description": "本地验收：数据持久保存、存储故障恢复和真实健康检查。",
+    "created": "2026-10-18 15:33:59"
+  },
+  "template": "web",
+  "commit": "547e4447b6921bcbfaa555b26a4391d1fc33d3ab",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "output": "",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-m",
+        "py_compile",
+        "app.py"
+      ]
+    },
+    "test": {
+      "exit_code": 0,
+      "output": "test_create_persist_and_complete (test_app.ApplicationTest.test_create_persist_and_complete) ... ok\ntest_data_survives_server_restart (test_app.ApplicationTest.test_data_survives_server_restart) ... ok\ntest_storage_failure_is_visible_and_keeps_pending_input (test_app.ApplicationTest.test_storage_failure_is_visible_and_keeps_pending_input) ... ok\ntest_user_text_is_escaped_and_health_is_real (test_app.ApplicationTest.test_user_text_is_escaped_and_health_is_real) ... ok\ntest_validation_and_csrf (test_app.ApplicationTest.test_validation_and_csrf) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 3.047s\n\nOK\n",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-v"
+      ]
+    }
+  },
+  "preview_configured": true,
+  "warnings": [],
+  "note": "基础应用和测试已就绪；业务目标仍需按交付阶段实现，未部署生产。"
+}

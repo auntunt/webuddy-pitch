@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-18",
+  "url": "http://127.0.0.1:8791/#/deliveries",
+  "project": "BOOTUI",
+  "delivery": "a188af81aaa9",
+  "ticket": "BOOTUI-1",
+  "checks": [
+    "Browser created BOOTUI via bootstrap and delivery via real HTTP endpoints.",
+    "Create draft title/goal/project fields survived full page reload.",
+    "12-paragraph marked demo artifact rendered its end marker and escaped script sample; full page reload preserved it.",
+    "Version 1 demo review was explicitly labeled automated UI fixture, not business approval; saving v2 cleared active review and retained v1 history.",
+    "Missing reviewed requirements/design disabled implementation. Final allowed_modes rendered waiting prerequisite option, start isEnabled false.",
+    "Real Codex research run 1 collected into REALRUN delivery 384b3c34d0e2 artifact v1, source_run=1, left unreviewed.",
+    "Missing delivery gave explicit error and working return action; browser error log was empty after recovery.",
+    "Invalid PORTAL-1 showed Chinese inline and native error, patternMismatch true, valid false, maxLength10; project count remained2 and inputs survived.",
+    "390x844 home/detail had documentWidth390 without horizontal page overflow."
+  ],
+  "pending": [],
+  "artifacts_dir": "docs/self-improvement/evidence/2026-10-18-workbench",
+  "image_format": "Original browser JPEG bytes, no conversion, no pixel resize.",
+  "not_tested": [
+    "Did not start an agent from child UI; parent owned real run.",
+    "Did not claim human review as test/security/deployment evidence."
+  ],
+  "final_responsive_check": {
+    "viewport": 390,
+    "documentWidth": 390,
+    "rowWidth": 344,
+    "titleWidth": 308,
+    "restoredViewport": 1280
+  },
+  "final_screenshots": [
+    "delivery-home-desktop.jpg",
+    "delivery-home-mobile.jpg",
+    "delivery-research-desktop.jpg",
+    "delivery-research-mobile.jpg",
+    "delivery-invalid-project-key.jpg",
+    "delivery-recovery.jpg"
+  ]
+}
