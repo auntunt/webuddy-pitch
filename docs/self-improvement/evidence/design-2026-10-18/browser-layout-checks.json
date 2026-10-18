@@ -1,0 +1,217 @@
+[
+  {
+    "name": "deliveries-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/deliveries",
+    "title": "交付工作台",
+    "width": 390
+  },
+  {
+    "name": "today-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/today",
+    "title": "今天",
+    "width": 390
+  },
+  {
+    "name": "clients-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/clients",
+    "title": "客户",
+    "width": 390
+  },
+  {
+    "name": "client-form-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/clients",
+    "title": "客户",
+    "width": 390
+  },
+  {
+    "name": "requirements-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/reqs",
+    "title": "需求",
+    "width": 390
+  },
+  {
+    "name": "versions-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/versions",
+    "title": "版本",
+    "width": 390
+  },
+  {
+    "name": "engineering-settings-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/settings",
+    "title": "设置",
+    "width": 390
+  },
+  {
+    "name": "engineering-board-1440",
+    "documentWidth": 1440,
+    "height": 900,
+    "route": "#/board",
+    "width": 1440
+  },
+  {
+    "name": "knowledge-1440",
+    "documentWidth": 1440,
+    "height": 900,
+    "route": "#/kb",
+    "title": "知识库",
+    "width": 1440
+  },
+  {
+    "name": "versions-1440",
+    "documentWidth": 1440,
+    "height": 900,
+    "route": "#/versions",
+    "title": "版本",
+    "width": 1440
+  },
+  {
+    "name": "requirements-1440",
+    "documentWidth": 1440,
+    "height": 900,
+    "route": "#/reqs",
+    "title": "需求",
+    "width": 1440
+  },
+  {
+    "name": "today-1440",
+    "documentWidth": 1440,
+    "height": 900,
+    "route": "#/today",
+    "title": "今天",
+    "width": 1440
+  },
+  {
+    "name": "clients-1440",
+    "documentWidth": 1440,
+    "height": 900,
+    "route": "#/clients",
+    "title": "客户",
+    "width": 1440
+  },
+  {
+    "name": "deliveries-1440",
+    "documentWidth": 1440,
+    "height": 900,
+    "route": "#/deliveries",
+    "title": "交付工作台",
+    "width": 1440
+  },
+  {
+    "name": "deliveries-768",
+    "documentWidth": 768,
+    "height": 1024,
+    "route": "#/deliveries",
+    "title": "交付工作台",
+    "width": 768
+  },
+  {
+    "name": "deliveries-1920",
+    "documentWidth": 1920,
+    "height": 1080,
+    "route": "#/deliveries",
+    "title": "交付工作台",
+    "width": 1920
+  },
+  {
+    "name": "deliveries-2560",
+    "documentWidth": 2560,
+    "height": 1080,
+    "route": "#/deliveries",
+    "title": "交付工作台",
+    "width": 2560
+  },
+  {
+    "name": "delivery-detail-1440",
+    "documentWidth": 1440,
+    "height": 900,
+    "route": "#/delivery/384b3c34d0e2",
+    "title": "【本地验收】真实智能体审查可运行应用",
+    "width": 1440
+  },
+  {
+    "name": "delivery-detail-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/delivery/384b3c34d0e2",
+    "title": "【本地验收】真实智能体审查可运行应用",
+    "width": 390
+  },
+  {
+    "name": "delivery-next-action-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/delivery/384b3c34d0e2/requirements",
+    "title": "【本地验收】真实智能体审查可运行应用",
+    "width": 390
+  },
+  {
+    "name": "run-dialog-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/runs",
+    "title": "智能体运行",
+    "width": 390
+  },
+  {
+    "name": "assistant-overlay-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/runs",
+    "title": "智能体运行",
+    "width": 390
+  },
+  {
+    "name": "stage-run-visible-390",
+    "documentWidth": 390,
+    "height": 844,
+    "route": "#/runs",
+    "title": "智能体运行",
+    "width": 390
+  },
+  {
+    "name": "deliveries-768-final",
+    "documentWidth": 768,
+    "height": 1024,
+    "route": "#/deliveries",
+    "title": "交付工作台",
+    "width": 768
+  },
+  {
+    "name": "delivery-detail-768",
+    "documentWidth": 768,
+    "height": 1024,
+    "route": "#/delivery/384b3c34d0e2",
+    "title": "【本地验收】真实智能体审查可运行应用",
+    "width": 768
+  },
+  {
+    "name": "delivery-detail-1920",
+    "documentWidth": 1920,
+    "height": 1080,
+    "route": "#/delivery/384b3c34d0e2",
+    "title": "【本地验收】真实智能体审查可运行应用",
+    "width": 1920
+  },
+  {
+    "name": "delivery-detail-2560",
+    "documentWidth": 2560,
+    "height": 1080,
+    "route": "#/delivery/384b3c34d0e2",
+    "title": "【本地验收】真实智能体审查可运行应用",
+    "width": 2560
+  }
+]

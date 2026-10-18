@@ -1,7 +1,7 @@
 """The platform's web UI: one self-contained page (no build step, no CDN — works offline on an intranet).
 
-Layout follows the closed-loop workbench people already know: a navy bar, tabs, the ticket ring as the
-home page, and the assistant docked on the right. The product name comes from --brand.
+Shared product shell, delivery workflows, engineering pages and a docked assistant.
+The product name comes from --brand; the visual contract is recorded in DESIGN.md.
 """
 from __future__ import annotations
 
@@ -9,34 +9,36 @@ from .ui_atlas import ATLAS_CSS, ATLAS_JS
 from .ui_css import CSS
 from .ui_work import WORK_CSS, WORK_JS
 from .ui_delivery import DELIVERY_CSS, DELIVERY_JS
+from .ui_theme import THEME_CSS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS)
 
 
 HTML = r"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>闭环工作台</title><style>/*CSS*/</style></head>
 <body>
+<a class="skip-link" href="#main" onclick="event.preventDefault();document.getElementById('main').focus()">跳到主要内容</a>
 <header id="top">
-  <div class="brand"><svg width="26" height="26" viewBox="-13 -13 26 26" fill="none" stroke="#5CDBD3" stroke-width="2.4" stroke-linecap="round"><path d="M-9 4a10 10 0 1 1 18 0"/><path d="M0 2l5-6"/><circle r="1.6" cy="2" fill="#5CDBD3"/></svg><span id="brandName">闭环工作台</span></div>
-  <select id="projSel" title="切换项目"></select>
+  <a class="brand" href="#/deliveries" aria-label="Webuddy 交付工作台"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="m7 10 4 12 5-8 5 8 4-12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="brandName">闭环工作台</span></a>
+  <select id="projSel" title="切换项目" aria-label="项目范围"></select>
   <nav id="svc" aria-label="服务"><a data-s="ops" href="#/board">运维<span>服务</span></a><a data-s="reform" href="#/reform">重构<span>服务</span></a></nav>
   <span class="sp"></span>
-  <div class="pts" id="ptsBtn" title="点卡：只有生成类动作扣点"><span class="dot"></span><span class="w">剩余</span> <b id="ptsN">-</b> 点</div>
-  <form id="say" autocomplete="off" onsubmit="event.preventDefault();sayOpen()"><input id="sayIn" placeholder="粘贴客户的话，AI 来理清…" aria-label="粘贴客户的话"><button class="primary" id="sayGo" type="submit">＋<span> 客户的话</span></button></form>
-  <button id="astToggle" title="AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）">AI 助手 <kbd>Ctrl K</kbd></button>
-  <span class="me" id="me"></span>
+  <button class="pts" id="ptsBtn" title="点卡：只有生成类动作扣点"><span class="dot"></span><span class="w">剩余</span> <b id="ptsN">-</b> 点</button>
+  <form id="say" autocomplete="off" onsubmit="event.preventDefault();sayOpen()"><input id="sayIn" placeholder="粘贴客户的话…" aria-label="粘贴客户的话"><button id="sayGo" type="submit" aria-label="录入客户需求">＋<span> 录入需求</span></button></form>
+  <button id="astToggle" title="AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）" aria-controls="ast" aria-expanded="false">AI 助手 <kbd>Ctrl K</kbd></button>
+  <div id="account"><button class="me" id="me" title="用户与设置"></button><a id="logout" href="/logout" hidden>退出</a></div>
 </header>
 <div id="wrap">
-  <div id="page"><div class="sheet"><nav id="nav5" aria-label="主导航"></nav><nav id="tabs" aria-label="工程"></nav><main id="main"></main></div></div>
-  <aside id="ast" hidden><div class="ah" id="astHead"></div><div id="amsg"></div><div class="sugg" id="astSugg"></div>
+  <div id="page"><div class="sheet"><nav id="nav5" aria-label="主导航"></nav><nav id="tabs" aria-label="工程"></nav><main id="main" tabindex="-1"></main></div></div>
+  <aside id="ast" aria-label="AI 助手" hidden><div class="ah" id="astHead"></div><div id="amsg"></div><div class="sugg" id="astSugg"></div>
     <div class="ain"><div class="box"><textarea id="aq" placeholder="提问，或直接说要做什么：打开知识库、给这单写评论：……、把状态改成待验证" onkeydown="astKeys(event)" aria-label="输入问题"></textarea>
       <div class="abar"><button class="ghost tog" id="astDeep" onclick="A.setMode()" aria-pressed="false">深入分析</button><button class="ghost" onclick="A.draftTicket()" title="从当前会话起草工单，核对后才提交">起草工单</button><span class="grow"></span><button class="primary" id="astSend" onclick="astSend()">发送</button></div></div><div class="foot" id="astFoot"></div></div></aside>
 </div>
 <button id="astOpen" hidden>AI 助手 <kbd>Ctrl K</kbd></button>
-<div id="modal" hidden><div class="mbox"><button class="mx" onclick="closeModal()">×</button><div id="mbody"></div></div></div>
+<div id="modal" hidden><div class="mbox" role="dialog" aria-label="详情与操作" aria-modal="true" tabindex="-1"><button class="mx" aria-label="关闭对话框" onclick="closeModal()">×</button><div id="mbody"></div></div></div>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <script>/*JS*/</script></body></html>"""
 
@@ -59,10 +61,37 @@ const HTTPMSG={401:'登录已过期，刷新页面重新登录。',403:'没有�
   500:'服务器出错了，这一步没有完成。刷新看看结果再决定要不要重试；一直这样请告诉管理员。'};
 const get=p=>api('GET',p),post=(p,b)=>api('POST',p,b||{});
 function toast(t,ms){const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,ms||2600)}
-function modal(html,wide){$('#mbody').innerHTML=html;$('#modal').hidden=false;$('.mbox').classList.toggle('wide',!!wide)}
-function closeModal(){$('#modal').hidden=true;stopPolls('modal')}
+let modalReturnFocus=null;
+function modal(html,wide){
+  const opening=$('#modal').hidden;if(opening)modalReturnFocus=document.activeElement;
+  $('#mbody').innerHTML=html;$('#modal').hidden=false;$('.mbox').classList.toggle('wide',!!wide);
+  $('.mbox').setAttribute('aria-label',($('#mbody h2')||$('#mbody h1'))?.textContent||'详情与操作');
+  syncDialogScope();if(opening){if($('.mbox').inert)$('#aq').focus();else $('.mbox').focus()}
+}
+function syncDialogScope(){
+  const active=!$('#modal').hidden;document.body.classList.toggle('dialog-open',active);
+  $('#page').inert=active;$('#top').inert=active;$('#astOpen').inert=active;
+  const skip=$('.skip-link');if(skip)skip.inert=active;
+  // The assistant can fill dialog fields, so it remains an explicit part of the keyboard scope.
+  $('.mbox').inert=active&&!$('#ast').hidden&&window.matchMedia('(max-width:1100px)').matches;
+  $('.mbox').setAttribute('aria-modal',String(active&&$('#ast').hidden));
+}
+window.addEventListener('resize',()=>{syncDialogScope();if($('.mbox').inert&&$('.mbox').contains(document.activeElement))$('#aq').focus()});
+function closeModal(){const active=!$('#modal').hidden;$('#modal').hidden=true;stopPolls('modal');syncDialogScope();
+  if(active){const target=modalReturnFocus;modalReturnFocus=null;if(target&&target.isConnected&&!target.closest('[hidden],[inert]'))target.focus();else $('#main').focus()}}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+document.addEventListener('keydown',e=>{
+  if($('#modal').hidden)return;
+  if(e.key==='Escape'){e.preventDefault();if($('.mbox').inert)A.toggle(false);else closeModal();return}
+  if(e.key!=='Tab')return;
+  const selector='button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex="0"]';
+  const scopes=$('.mbox').inert?[]:[$('.mbox')];if(!$('#ast').hidden)scopes.push($('#ast'));
+  const items=scopes.flatMap(x=>Array.from(x.querySelectorAll(selector))).filter(x=>x.tabIndex>=0&&x.getClientRects().length&&!x.closest('[hidden],[inert]'));
+  if(!items.length){e.preventDefault();$('.mbox').focus();return}
+  const index=items.indexOf(document.activeElement);
+  // DOM order puts the assistant before the modal; explicitly move every step across both scopes.
+  e.preventDefault();items[index<0?(e.shiftKey?items.length-1:0):(index+(e.shiftKey?-1:1)+items.length)%items.length].focus();
+});
 const L=(pairs,k)=>{const f=(pairs||[]).find(x=>x[0]===k);return f?f[1]:k};
 const stLabel=k=>L(S.meta.statuses,k),tyLabel=k=>L(S.meta.types,k),prLabel=k=>L(S.meta.priorities,k),moLabel=k=>L(S.meta.modes,k);
 const stPill=k=>`<span class="pill" style="background:var(--s-${k})">${h(stLabel(k))}</span>`;
@@ -102,7 +131,7 @@ document.addEventListener('click',e=>{const d=document.querySelector('#tabs .tmo
 function paintTabs(tab){const s=S.svc,eng=isEng(curView());document.body.classList.toggle('svc-reform',s==='reform'&&eng);ls.set('tmh.svc',s);
   paintNav();$('#tabs').hidden=!eng;$('#svc').hidden=!eng;
   document.querySelectorAll('#svc a').forEach(a=>a.classList.toggle('on',a.dataset.s===s));
-  const a=([k,l,u])=>`<a data-r="${k}" href="${u}" class="${k===tab?'on':''}">${l}</a>`;
+  const a=([k,l,u])=>`<a data-r="${k}" href="${u}" class="${k===tab?'on':''}" ${k===tab?'aria-current="page"':''}>${l}</a>`;
   // Four tabs people use daily stay in sight; the rest sit under 更多, which takes the open page's name.
   const all=SVC[s].tabs.concat(SHARED),top=all.filter(t=>TOP.includes(t[0])),rest=all.filter(t=>!TOP.includes(t[0]));
   const cur=rest.find(t=>t[0]===tab),grp=(n,ts)=>ts.length?`<div class="tmg"><span>${n}</span>${ts.map(a).join('')}</div>`:'';
@@ -114,8 +143,8 @@ async function boot(){
   try{S.meta=await get('/api/meta')}catch(e){$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}
   if(S.meta.login)S.user=S.meta.user;else if(!S.user)S.user=S.meta.user||'';
   document.title=S.meta.brand;$('#brandName').textContent=S.meta.brand;
-  if(S.meta.login){$('#me').innerHTML=h(S.user)+' · <a href="/logout" style="color:#AEB7C4">退出</a>'}
-  else{$('#me').textContent=S.user||'未设置用户';$('#me').onclick=()=>location.hash='#/settings'}
+  $('#me').textContent=S.user||'未设置用户';$('#me').onclick=()=>location.hash='#/settings';
+  $('#me').setAttribute('aria-label',(S.user||'当前用户')+'，用户与设置');$('#logout').hidden=!S.meta.login;
   await loadProjects();
   $('#projSel').onchange=e=>{const v=e.target.value;if(v==='__new'){newProject();paintSel();return}
     if(v==='*'){S.scope='*';ls.set('tmh.scope','*');if(!isCross())location.hash='#/';else render();return}
@@ -1148,16 +1177,16 @@ async function vRuns(){
   const rs=await get('/api/runs?project='+S.proj);const f=sessionStorage.getItem('tmh.rf')||'all';
   const ST={queued:'排队',running:'运行中',done:'完成',failed:'失败',cancelled:'已取消'};const SC={queued:'mute',running:'info',done:'ok',failed:'bad',cancelled:'mute'};
   const items=[];const bat={};
-  rs.filter(r=>r.mode!=='ask'||r.session_id).forEach(r=>{if(r.batch){if(!bat[r.batch]){bat[r.batch]={batch:r.batch,runs:[],created:r.created};items.push(bat[r.batch])}bat[r.batch].runs.push(r)}else items.push(r)});
+  rs.forEach(r=>{if(r.batch){if(!bat[r.batch]){bat[r.batch]={batch:r.batch,runs:[],created:r.created};items.push(bat[r.batch])}bat[r.batch].runs.push(r)}else items.push(r)});
   const live=rs.filter(r=>['queued','running'].includes(r.status)).length,bad=rs.filter(r=>r.status==='failed').length;
   const lastB=items.find(x=>x.batch);const lastOk=lastB?lastB.runs.filter(r=>r.status==='done').length:0;
   const review=rs.filter(r=>r.mode==='fix'&&r.status==='done'&&!r.decision).length;
   const src=r=>r.ticket?`工单 <a href="#/t/${h(r.ticket)}" onclick="event.stopPropagation()">${h(r.ticket)}</a> ${h(r.ticket_title)}`:r.session_id?`会话「${h(r.session_title||'')}」`:r.mode==='kb'?'知识库 · 单页撰写':'项目';
-  const obj=r=>r.mode==='kb'?`<span class="key">${h(r.target)}</span>`:r.mode==='ask'?h((r.target||'').slice(0,40)):'';
+  const obj=r=>r.mode==='kb'?`<span class="key">${h(r.target)}</span>`:r.mode==='ask'?h(r.target||''):'';
   const one=r=>{const rev=r.mode==='fix'&&r.status==='done'?(r.decision?(r.decision.startsWith('acc')?'<span class="ev-tag ok">已采纳</span>':'<span class="ev-tag mute">已放弃</span>'):'<span class="ev-tag warn">待审阅改动</span>'):'';
     return `<div class="ri"><div class="grow" style="min-width:0"><div class="rt"><span class="ev-tag ${SC[r.status]}">${ST[r.status]}${r.status==='running'?' <span class="spin"></span>':''}</span><b>${h(moLabel(r.mode))}</b>${rev}</div>
       <div class="sub">来源：${src(r)}${obj(r)?' · 对象：'+obj(r):''} · ${h(r.agent)}${mTag(r)} · 发起人 ${h(r.author)} · ${ago(r.created)}</div>
-      ${r.status!=='running'&&r.result?`<div class="out">产出：${h(r.result.replace(/\s+/g,' ').slice(0,140))}</div>`:''}</div>
+      ${r.status!=='running'&&r.result?`<details class="run-check"><summary>原运行输出 · 历史记录</summary><p class="sub">当前代码与实际验证请点击「查看运行」。历史输出中的判断不代表当前验证结果。</p>${md(r.result)}</details>`:''}</div>
      <div class="ra"><button onclick="showRun(${r.id})">查看运行</button>${r.session_id?`<button class="ghost" onclick="A.toggle(true);A.switchTo(${r.session_id})">打开所属会话</button>`:''}</div></div>`};
   const batch=b=>{const n=b.runs.length,ok=b.runs.filter(r=>r.status==='done').length,ko=b.runs.filter(r=>r.status==='failed'),run=b.runs.filter(r=>['queued','running'].includes(r.status)).length;
     const st=run?'running':ko.length&&ok?'part':ko.length?'failed':'done';const lab={running:'进行中',part:'部分失败',failed:'失败',done:'完成'}[st];
@@ -1471,7 +1500,8 @@ const A={
     if(!S.proj)return;await this.loadList();const want=+ls.get('tmh.sess.'+S.proj);
     const s=this.list.find(x=>x.id===want&&!x.archived_at)||this.list.find(x=>!x.archived_at);
     if(s)await this.switchTo(s.id,true);else this.paint()},
-  toggle(on){this.open=on===undefined?!this.open:on;ls.set('tmh.ast',this.open?'1':'0');this.paint();if(this.open&&this.sid)this.load()},
+  toggle(on){const wasOpen=this.open;this.open=on===undefined?!this.open:on;ls.set('tmh.ast',this.open?'1':'0');this.paint();if(this.open&&this.sid)this.load();
+    if(wasOpen&&!this.open){if(!$('#modal').hidden)$('.mbox').focus();else $('#astToggle').focus()}},
   focus(){setTimeout(()=>{const t=$('#aq');if(t)t.focus()},50)},
   saveDraft(){const t=$('#aq');if(this.sid&&t)ls.set('tmh.draft.'+this.sid,t.value||null)},
   async loadList(){if(!S.proj)return;try{const r=await get('/api/projects/'+S.proj+'/sessions');this.list=r.sessions;this.matters=r.matters;this.checkDone()}catch(e){}},
@@ -1498,7 +1528,7 @@ const A={
   checkDone(){const now={};this.list.forEach(s=>{now[s.id]=s.running});
     Object.keys(this.running).forEach(id=>{if(this.running[id]&&!now[id]&&+id!==this.sid){const s=this.list.find(x=>x.id===+id);if(s)toastAct(`「${s.title}」的回答好了`,'查看',()=>{this.toggle(true);this.switchTo(s.id)})}});
     this.running=now;clearTimeout(this.wall);if(this.list.some(s=>s.running))this.wall=setTimeout(()=>this.loadList(),4000)},
-  paint(){$('#ast').hidden=!this.open;document.body.classList.toggle('ast-on',this.open);$('#astOpen').hidden=this.open;if(this.open){this.paintHead();this.paintMsgs();this.paintSugg();this.paintFoot()}},
+  paint(){$('#ast').hidden=!this.open;document.body.classList.toggle('ast-on',this.open);$('#astOpen').hidden=this.open;$('#astToggle').setAttribute('aria-expanded',String(this.open));syncDialogScope();if(this.open){this.paintHead();this.paintMsgs();this.paintSugg();this.paintFoot()}},
   chips(s){if(!s)return'';const c=[`<span class="tag on">${h(S.proj)}</span>`];
     if(s.ticket)c.push(`<a class="tag" href="#/t/${h(s.ticket.key)}" title="${h(s.ticket.title)}">工单 ${h(s.ticket.key)}</a>`);
     if(!s.ticket)c.push(`<span class="tag">${KIND[s.kind]||'会话'}</span>`);
