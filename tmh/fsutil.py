@@ -19,7 +19,7 @@ TEXT_SUFFIXES = {
     ".cs", ".vb", ".fs", ".cshtml", ".vbhtml", ".razor", ".aspx", ".ascx", ".asax", ".ashx", ".asmx",
     ".master", ".svc", ".config", ".csproj", ".vbproj", ".fsproj", ".sln", ".props", ".targets",
     ".gradle", ".kts", ".sh", ".bat", ".cmd", ".ps1", ".conf", ".ini", ".txt", ".md", ".jrxml",
-    ".pkb", ".pks", ".prc", ".trg", ".xmi", ".asp", ".dockerfile", ".toml", ".edmx", ".go", ".mod",
+    ".pkb", ".pks", ".prc", ".trg", ".xmi", ".asp", ".dockerfile", ".toml", ".edmx", ".go", ".mod", ".py",
 }
 TEXT_NAMES = {"Dockerfile", "Jenkinsfile", "Makefile", "packages.config", "pom.xml", "mvnw", "gradlew"}
 MAX_FILE_BYTES = 2 * 1024 * 1024

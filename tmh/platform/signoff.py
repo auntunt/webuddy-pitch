@@ -184,15 +184,30 @@ def snapshot(P, t: dict) -> dict:
     # the criteria the client confirmed are the contract; a plan's own only stand in when nobody confirmed any
     ac = [dict(a, source="客户确认") for a in cac] if cac else [dict(a, source="方案") for a in pac]
     contract = plan_files(plan["result"] or "") if plan else {}
-    flows = _flows(P, p, t)
     stat = _diff_stat(fix["diff"]) if fix else {"files": [], "added": 0, "removed": 0}
     v = verified(P.data_dir, fix["id"]) if fix else {}
     adopt = next((e for e in reversed(P.store.events(t["id"])) if e["kind"] == "adopt" and
                   (binding is None or (fix is not None and (e.get("data") or {}).get("run") == fix["id"]) or
                    (binding.get("commit") and (e.get("data") or {}).get("commit") == binding["commit"]))), None)
-    path = _path_by_file(stat["files"], flows)
+    python_mapping = None
+    if fix and any(f.endswith(".py") and not G.TEST_FILE.search(f) for f in stat["files"]):
+        from . import pathmap
+        python_mapping = pathmap.for_change(p, fix, (binding or {}).get("commit", ""))
+        recorded = (t.get("links") or {}).get("code_path")
+        selected_flows = recorded.get("flows", []) if recorded else (t.get("links") or {}).get("flows", [])
+        path = pathmap.path_result(python_mapping, selected_flows)
+        if recorded and (recorded.get("commit") != python_mapping["source"]["commit"] or recorded.get("digest") != python_mapping["digest"]):
+            path.update(ok=False, why="候选版本或差异已变化，原代码关联已过期；需重新核对当前代码入口")
+        # These flow facts come from the same immutable candidate as the diff,
+        # not from a graph generated against the project's main checkout.
+        selected = set(selected_flows)
+        flows = [{"id": f["id"], "name": f.get("name") or f["trigger"], "domain": "", "trigger": f["trigger"]}
+                 for f in python_mapping["flows"] if f["id"] in selected]
+    else:
+        flows = _flows(P, p, t)
+        path = _path_by_file(stat["files"], flows)
     gates = G.evaluate(fix["diff"] or "", v, path, bool(contract),
-                       _reader(p, fix, (binding or {}).get("commit", ""))) if fix else []
+                       _reader(p, fix, (python_mapping or {}).get("source", {}).get("commit") or (binding or {}).get("commit", ""))) if fix else []
     result = {
         "ticket": {"key": t["key"], "title": t["title"], "type": t["type"], "reporter": t["reporter"], "created": t["created"],
                    "body": (t.get("body") or "")[:2000]},

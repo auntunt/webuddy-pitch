@@ -255,8 +255,8 @@ def map_sql_file(rp: str, text: str, m: dict) -> None:
         m["db_objects"].append({"kind": mm.group(1).upper(), "name": _norm_table(mm.group(2)), "file": rp, "line": line})
 
 
-MAP_SUFFIXES = (".go", ".java", ".xml", ".cs", ".vb", ".aspx", ".ascx", ".asmx", ".svc", ".sql", ".properties", ".yml", ".yaml", ".config", ".json")
-LIST_KEYS = ("endpoints", "entrypoints", "jobs", "listeners", "services", "entities", "data_access", "db_objects", "configs")
+MAP_SUFFIXES = (".go", ".java", ".xml", ".cs", ".vb", ".aspx", ".ascx", ".asmx", ".svc", ".sql", ".properties", ".yml", ".yaml", ".config", ".json", ".py")
+LIST_KEYS = ("endpoints", "entrypoints", "jobs", "listeners", "services", "entities", "data_access", "db_objects", "configs", "diagnostics")
 
 
 def map_file(rp: str, name: str, suf: str, text: str | None) -> dict:
@@ -264,6 +264,24 @@ def map_file(rp: str, name: str, suf: str, text: str | None) -> dict:
     m: dict = {k: [] for k in LIST_KEYS}
     m["tables"] = defaultdict(set)
     m["symbols"] = defaultdict(list)
+    if suf == ".py":
+        from .python_index import parse
+        part = parse(rp, text)
+        m["diagnostics"].extend(part["diagnostics"])
+        m["endpoints"].extend(part["endpoints"])
+        for cls in part["classes"]:
+            for name, methods in cls["methods"].items():
+                for method in methods:
+                    m["symbols"][name].append({"file": rp, "line": method["line"], "class": cls["name"],
+                                                "kind": "function", "fqn": cls["name"] + "." + name})
+                    for sql in method["python_sql"]:
+                        for table in _tables_in(sql["sql"]):
+                            m["tables"][table].add(rp)
+                        ddl = re.match(r"\s*CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_]\w*)", sql["sql"], re.I)
+                        if ddl:
+                            table = _norm_table(ddl.group(1))
+                            m["tables"][table].add(rp)
+                            m["db_objects"].append({"kind": "TABLE", "name": table, "file": rp, "line": sql["line"]})
     if text is not None:
         if suf == ".java":
             map_java(rp, text, m)
@@ -307,7 +325,7 @@ def build_map(root: Path, cache=None) -> dict:
         if not part:
             continue
         for k in LIST_KEYS:
-            m[k].extend(part[k])
+            m[k].extend(part.get(k, []))
         for t, files in part["tables"].items():
             tables[t].update(files)
         for k, v in part["symbols"].items():

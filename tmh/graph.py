@@ -139,14 +139,18 @@ def build(root: Path, use_cache: bool = True) -> dict:
     line_count = {}
     for d, info in mods.items():
         node("mod:" + (d or "."), "mod", info["name"], info["name"], info["build"], 0)
-    src_suffix = (".go", ".java", ".cs", ".xml", ".jsp", ".aspx", ".cshtml", ".sql", ".vb", ".js", ".vue", ".ts", ".properties", ".yml", ".yaml", ".config")
+    src_suffix = (".go", ".java", ".cs", ".xml", ".jsp", ".aspx", ".cshtml", ".sql", ".vb", ".js", ".vue", ".ts", ".properties", ".yml", ".yaml", ".config", ".py")
     for f in files:
         if not f.endswith(src_suffix):
             continue
         md = module_of(f, mod_dirs)
         n = node("file:" + f, "file", f.rsplit("/", 1)[-1], f, f, 1)
         n["module"] = md or "."
-        is_test = bool(re.search(r"(^|/)(src/test|[^/]*\.Tests?|test|tests)/|Tests?\.(java|cs)$|_test\.go$", f))
+        if f.endswith(".py"):
+            diagnostics = [d for d in idx.get("diagnostics", []) if d["file"] == f]
+            n["data"].update(analysis_status="unknown" if diagnostics else "parsed", diagnostics=diagnostics,
+                              analysis_scope="Python AST 静态索引；不执行项目代码")
+        is_test = bool(re.search(r"(^|/)(src/test|[^/]*\.Tests?|test|tests)/|Tests?\.(java|cs)$|_test\.go$|(^|/)(test_[^/]+|[^/]+_test)\.py$", f))
         n["data"].update({"churn": churn.get(f, 0), "test": is_test} if churn.get(f) or is_test else {})
         edge("mod:" + (md or "."), "file:" + f, "contains")
 
@@ -246,7 +250,8 @@ def build(root: Path, use_cache: bool = True) -> dict:
     # entries
     for f in flows:
         epid = "ep:" + f["trigger"]
-        node(epid, "ep", f["trigger"], f["trigger"], f["file"], f["line"], h=_h(f["trigger"], f["handler"]), entry_kind=f["kind"], handler=f["handler"])
+        node(epid, "ep", f["trigger"], f["trigger"], f["file"], f["line"], h=_h(f["trigger"], f["handler"]), entry_kind=f["kind"], handler=f["handler"],
+             scope=f.get("scope"), limitations=f.get("limitations"), registration=f.get("registration"))
         edge(epid, "fn:" + f["handler"], "handles")
 
     # flows
@@ -256,7 +261,8 @@ def build(root: Path, use_cache: bool = True) -> dict:
         tabs = sorted(f["crud"])
         node(fid, "flow", f["name"] or f["trigger"], f["name"] or f["trigger"], f["file"], f["line"], trigger=f["trigger"], entry_kind=f["kind"],
              handler=f["handler"], crud=f["crud"], rules=len(f["rules"]), states=len(f["states"]), effects=sorted({s["kind"] for s in f["side_effects"]}),
-             unresolved=len(f["unresolved"]), steps=len(steps))
+             unresolved=len(f["unresolved"]), steps=len(steps), scope=f.get("scope"), limitations=f.get("limitations"),
+             registration=f.get("registration"))
         edge(fid, "ep:" + f["trigger"], "entry")
         for s in steps:
             edge(fid, s, "step")
@@ -321,13 +327,18 @@ def build(root: Path, use_cache: bool = True) -> dict:
             n["data"].update({"files": len(mfiles), "tests": sum(1 for x in mfiles if x["data"].get("test"))})
             n["hash"] = _h(sorted(x["id"] for x in mfiles), sorted(k for k in mdeps if d in k))
 
-    _write_db(root, nodes, edges, {"flows": len(flows), **stats})
+    diagnostics = idx.get("diagnostics", [])
+    python_files = [f for f in files if f.endswith(".py")]
+    failed_python = sorted({d["file"] for d in diagnostics})
+    analysis = {"python": {"files": len(python_files), "parsed": len(python_files) - len(failed_python),
+                           "unknown": failed_python}, "diagnostics": diagnostics}
+    _write_db(root, nodes, edges, {"flows": len(flows), "analysis": analysis, **stats})
     x = tmh_dir(root)
     (x / "map.json").write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
     (x / "flows.json").write_text(json.dumps(fdata, ensure_ascii=False), encoding="utf-8")
     cnt = Counter(n["kind"] for n in nodes.values())
     return {"nodes": len(nodes), "edges": len(edges), "kinds": dict(cnt), "domains": len(dres["domains"]), **stats,
-            "map": m, "flows": fdata}
+            "map": m, "flows": fdata, "diagnostics": diagnostics, "analysis": analysis}
 
 
 def _common_package(fqns: list[str]) -> list[str]:

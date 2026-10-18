@@ -1,0 +1,17 @@
+test_package_only_transition_with_same_status_and_records_is_not_ignored (tests.test_python_pathmap_ui.PythonPathMapPackageUiTest.test_package_only_transition_with_same_status_and_records_is_not_ignored) ... ok
+test_record_updates_package_then_get_only_selection_reverts_gate_without_losing_drafts (tests.test_python_pathmap_ui.PythonPathMapPackageUiTest.test_record_updates_package_then_get_only_selection_reverts_gate_without_losing_drafts) ... ok
+test_a_departed_page_does_not_receive_late_load_or_summary_error (tests.test_python_pathmap_ui.PythonPathMapUiTest.test_a_departed_page_does_not_receive_late_load_or_summary_error) ... ok
+test_deleted_lines_keep_complete_old_function_location_evidence (tests.test_python_pathmap_ui.PythonPathMapUiTest.test_deleted_lines_keep_complete_old_function_location_evidence) ... ok
+test_duplicate_actions_and_late_results_cannot_mutate_another_ticket (tests.test_python_pathmap_ui.PythonPathMapUiTest.test_duplicate_actions_and_late_results_cannot_mutate_another_ticket) ... ok
+test_full_mapping_evidence_is_escaped_without_truncation (tests.test_python_pathmap_ui.PythonPathMapUiTest.test_full_mapping_evidence_is_escaped_without_truncation) ... ok
+test_full_request_error_is_readable_and_retry_loads_again (tests.test_python_pathmap_ui.PythonPathMapUiTest.test_full_request_error_is_readable_and_retry_loads_again) ... ok
+test_loading_is_on_demand_cached_and_manually_refreshable (tests.test_python_pathmap_ui.PythonPathMapUiTest.test_loading_is_on_demand_cached_and_manually_refreshable) ... ok
+test_records_current_selection_with_version_and_only_refreshes_summary (tests.test_python_pathmap_ui.PythonPathMapUiTest.test_records_current_selection_with_version_and_only_refreshes_summary) ... ok
+test_server_policy_and_nonempty_selection_control_recording (tests.test_python_pathmap_ui.PythonPathMapUiTest.test_server_policy_and_nonempty_selection_control_recording) ... ok
+test_successful_record_is_not_reclassified_when_summary_refresh_fails (tests.test_python_pathmap_ui.PythonPathMapUiTest.test_successful_record_is_not_reclassified_when_summary_refresh_fails) ... ok
+test_unavailable_mapping_does_not_claim_no_business_impact (tests.test_python_pathmap_ui.PythonPathMapUiTest.test_unavailable_mapping_does_not_claim_no_business_impact) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.571s
+
+OK

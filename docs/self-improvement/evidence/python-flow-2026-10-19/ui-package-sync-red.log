@@ -1,0 +1,64 @@
+test_package_only_transition_with_same_status_and_records_is_not_ignored (tests.test_python_pathmap_ui.PythonPathMapPackageUiTest.test_package_only_transition_with_same_status_and_records_is_not_ignored) ... FAIL
+test_record_updates_package_then_get_only_selection_reverts_gate_without_losing_drafts (tests.test_python_pathmap_ui.PythonPathMapPackageUiTest.test_record_updates_package_then_get_only_selection_reverts_gate_without_losing_drafts) ... FAIL
+
+======================================================================
+FAIL: test_package_only_transition_with_same_status_and_records_is_not_ignored (tests.test_python_pathmap_ui.PythonPathMapPackageUiTest.test_package_only_transition_with_same_status_and_records_is_not_ignored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_pathmap_ui.py", line 223, in test_package_only_transition_with_same_status_and_records_is_not_ignored
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    latest=state(4,'pass');await S.ticketRefresh();assert.ok(nodes.pkSummary.innerHTML.includes('>通过</span>'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    latest=state(4,'unknown');await S.ticketRefresh();assert.ok(nodes.pkSummary.innerHTML.includes('>未知</span>'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    assert.ok(!nodes.pkSummary.innerHTML.includes('>通过</span>'));assert.equal(refreshes,2);preserved();
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_pathmap_ui.py", line 207, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:160:55
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+======================================================================
+FAIL: test_record_updates_package_then_get_only_selection_reverts_gate_without_losing_drafts (tests.test_python_pathmap_ui.PythonPathMapPackageUiTest.test_record_updates_package_then_get_only_selection_reverts_gate_without_losing_drafts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_pathmap_ui.py", line 210, in test_record_updates_package_then_get_only_selection_reverts_gate_without_losing_drafts
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    nodes.pathMapDetails.open=true;await nodes.pathMapDetails.ontoggle();
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    assert.equal(nodes.pkDraftNotice.hidden,false);preserved();
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_pathmap_ui.py", line 207, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: recording must update the visible package, not only the ticket summary
+    at [stdin]:162:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.203s
+
+FAILED (failures=2)

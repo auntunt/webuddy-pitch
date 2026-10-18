@@ -1,0 +1,105 @@
+test_bootv2_dispatchers_reach_real_local_calls_and_sql (tests.test_python_flows.PythonFlowTest.test_bootv2_dispatchers_reach_real_local_calls_and_sql) ... FAIL
+test_cached_rebuild_matches_uncached_python_graph (tests.test_python_flows.PythonFlowTest.test_cached_rebuild_matches_uncached_python_graph) ... ERROR
+test_dispatcher_is_not_an_invented_edit_url (tests.test_python_flows.PythonFlowTest.test_dispatcher_is_not_an_invented_edit_url) ... FAIL
+test_dynamic_sql_and_calls_are_unresolved_without_fake_tables (tests.test_python_flows.PythonFlowTest.test_dynamic_sql_and_calls_are_unresolved_without_fake_tables) ... ERROR
+test_graph_has_python_file_methods_calls_and_table_edges (tests.test_python_flows.PythonFlowTest.test_graph_has_python_file_methods_calls_and_table_edges) ... FAIL
+test_invalid_python_is_unknown_in_map_flow_and_graph (tests.test_python_flows.PythonFlowTest.test_invalid_python_is_unknown_in_map_flow_and_graph) ... ERROR
+test_nested_unreachable_function_is_not_a_dispatcher_step (tests.test_python_flows.PythonFlowTest.test_nested_unreachable_function_is_not_a_dispatcher_step) ... ERROR
+test_same_names_in_modules_and_classes_never_cross_link (tests.test_python_flows.PythonFlowTest.test_same_names_in_modules_and_classes_never_cross_link) ... FAIL
+test_shadowed_function_and_duplicate_defs_are_not_guessed (tests.test_python_flows.PythonFlowTest.test_shadowed_function_and_duplicate_defs_are_not_guessed) ... ERROR
+test_static_local_import_alias_resolves_to_exact_module (tests.test_python_flows.PythonFlowTest.test_static_local_import_alias_resolves_to_exact_module) ... ERROR
+
+======================================================================
+ERROR: test_cached_rebuild_matches_uncached_python_graph (tests.test_python_flows.PythonFlowTest.test_cached_rebuild_matches_uncached_python_graph)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 164, in test_cached_rebuild_matches_uncached_python_graph
+    self.assertEqual(a['diagnostics'], b['diagnostics'])
+                     ~^^^^^^^^^^^^^^^
+KeyError: 'diagnostics'
+
+======================================================================
+ERROR: test_dynamic_sql_and_calls_are_unresolved_without_fake_tables (tests.test_python_flows.PythonFlowTest.test_dynamic_sql_and_calls_are_unresolved_without_fake_tables)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 106, in test_dynamic_sql_and_calls_are_unresolved_without_fake_tables
+    f = flow.build_flows(self.root)['flows'][0]
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+======================================================================
+ERROR: test_invalid_python_is_unknown_in_map_flow_and_graph (tests.test_python_flows.PythonFlowTest.test_invalid_python_is_unknown_in_map_flow_and_graph)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 90, in test_invalid_python_is_unknown_in_map_flow_and_graph
+    for d in result['diagnostics']))
+             ~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'diagnostics'
+
+======================================================================
+ERROR: test_nested_unreachable_function_is_not_a_dispatcher_step (tests.test_python_flows.PythonFlowTest.test_nested_unreachable_function_is_not_a_dispatcher_step)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 123, in test_nested_unreachable_function_is_not_a_dispatcher_step
+    f = flow.build_flows(self.root)['flows'][0]
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+======================================================================
+ERROR: test_shadowed_function_and_duplicate_defs_are_not_guessed (tests.test_python_flows.PythonFlowTest.test_shadowed_function_and_duplicate_defs_are_not_guessed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 142, in test_shadowed_function_and_duplicate_defs_are_not_guessed
+    f = flow.build_flows(self.root)['flows'][0]
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+======================================================================
+ERROR: test_static_local_import_alias_resolves_to_exact_module (tests.test_python_flows.PythonFlowTest.test_static_local_import_alias_resolves_to_exact_module)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 155, in test_static_local_import_alias_resolves_to_exact_module
+    f = flow.build_flows(self.root)['flows'][0]
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+======================================================================
+FAIL: test_bootv2_dispatchers_reach_real_local_calls_and_sql (tests.test_python_flows.PythonFlowTest.test_bootv2_dispatchers_reach_real_local_calls_and_sql)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 29, in test_bootv2_dispatchers_reach_real_local_calls_and_sql
+    self.assertEqual(len(result['flows']), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_dispatcher_is_not_an_invented_edit_url (tests.test_python_flows.PythonFlowTest.test_dispatcher_is_not_an_invented_edit_url)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 45, in test_dispatcher_is_not_an_invented_edit_url
+    self.assertEqual(len(m['endpoints']), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_graph_has_python_file_methods_calls_and_table_edges (tests.test_python_flows.PythonFlowTest.test_graph_has_python_file_methods_calls_and_table_edges)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 59, in test_graph_has_python_file_methods_calls_and_table_edges
+    self.assertIsNotNone(g.node('file:app.py'))
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: unexpectedly None
+
+======================================================================
+FAIL: test_same_names_in_modules_and_classes_never_cross_link (tests.test_python_flows.PythonFlowTest.test_same_names_in_modules_and_classes_never_cross_link)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 80, in test_same_names_in_modules_and_classes_never_cross_link
+    self.assertEqual(len(result['flows']), 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.053s
+
+FAILED (failures=4, errors=6)

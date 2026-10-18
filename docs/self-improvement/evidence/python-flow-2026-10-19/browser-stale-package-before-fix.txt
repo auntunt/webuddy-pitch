@@ -1,0 +1,279 @@
+- link "跳到主要内容":
+  - /url: "#main"
+- banner:
+  - link "Webuddy 交付工作台":
+    - /url: "#/deliveries"
+    - generic: Webuddy · 全周期工作台
+  - combobox "项目范围":
+    - option "REALRUN · 真实运行验证"
+    - option "BOOTUI · 【本地验收】事项管理项目"
+    - option "BOOTV2 · 反馈后修复的应用起点" [selected]
+    - option "全部项目"
+    - option "＋ 添加项目…"
+  - button "19,917 点":
+    - generic: 19,917
+    - text: 点
+  - button "录入客户需求": ＋ 录入需求
+  - button "AI 助手"
+  - button "自动流转，用户与设置": 自动流转
+- navigation "主导航":
+  - link "交付":
+    - /url: "#/deliveries"
+    - generic: 交付
+  - link "今天":
+    - /url: "#/today"
+    - generic: 今天
+  - link "客户":
+    - /url: "#/clients"
+    - generic: 客户
+  - link "需求":
+    - /url: "#/reqs"
+    - generic: 需求
+  - link "版本":
+    - /url: "#/versions"
+    - generic: 版本
+  - link "工程":
+    - /url: "#/board"
+    - generic: 工程
+- main:
+  - link "需求":
+    - /url: "#/reqs"
+  - text: / BOOTV2 / BOOTV2-1
+  - heading "【RSI技术验收】事项编辑、数据保存与失败恢复" [level=1]
+  - generic: 待验证
+  - button "在助手中讨论"
+  - generic: BOOTV2
+  - text: 状态
+  - combobox "状态":
+    - option "新建"
+    - option "分析中"
+    - option "待确认"
+    - option "处理中"
+    - option "待验证" [selected]
+  - text: 类型
+  - combobox "类型":
+    - option "缺陷"
+    - option "需求" [selected]
+    - option "变更"
+    - option "咨询"
+    - option "运维"
+  - text: 优先级
+  - combobox "优先级":
+    - option "紧急"
+    - option "高"
+    - option "中" [selected]
+    - option "低"
+  - text: 经办人
+  - textbox "经办人":
+    - /placeholder: 无人
+  - generic: Codex-RSI 提交 · 10-18 15:45
+  - generic: 待复核
+  - generic: 等你验收（证据还不齐）
+  - term: 客户要的
+  - definition: 为当前事项应用增加编辑标题能力。这是本地 RSI 技术验收，不能记录为客户签收，不部署生产。
+  - term: 下一步
+  - definition:
+    - text: 构建测试通过，诊断认为已解决，共 1 轮。 改动已自动提交到分支
+    - code: tmh/BOOTV2-1-r6
+    - text: （提交 8be50de，主干还没动）。等你验收：按业务操作实际验证。通过后由人合并分支；不通过写明原因，退回重改。
+  - link "打开预览 ↗":
+    - /url: /pv/BOOTV2-1/
+  - button "验收通过"
+  - button "退回重改"
+  - button "发给客户签收"
+  - navigation:
+    - link "工单详情":
+      - /url: "#/t/BOOTV2-1"
+    - link "提示词":
+      - /url: "#/t/BOOTV2-1/prompt"
+  - list:
+    - generic: ✓
+    - generic: 受理
+    - generic: Codex-RSI · 12 小时前
+    - generic: "2"
+    - generic: 分析定位
+    - generic: 跳过
+    - generic: ✓
+    - generic: 修改方案
+    - generic: codex · 已出方案
+    - generic: ✓
+    - generic: 修改代码
+    - generic: 已自动提交
+    - generic: "5"
+    - generic: 人工验收
+    - generic: 等验收
+    - generic: "6"
+    - generic: 闭环
+  - term: 现象
+  - definition: 为当前事项应用增加编辑标题能力。这是本地 RSI 技术验收，不能记录为客户签收，不部署生产。
+  - term: 根因
+  - definition: 还没有分析
+  - term: 方案
+  - definition: 本轮只修复 CRLF 导致编辑标题长度多算一个字符的问题，仅修改 app.py 和现有 tests/testapp.py。当前候选已具备编辑、持久化和失败恢复流程，无需重复实现。
+  - term: 证据
+  - definition:
+    - generic: 代码 24 处
+    - link "看完整方案和代码位置":
+      - /url: javascript:void 0
+  - term: 等谁
+  - definition:
+    - text: 构建测试通过，诊断认为已解决，共 1 轮。 改动已自动提交到分支
+    - code: tmh/BOOTV2-1-r6
+    - text: （提交 8be50de，主干还没动）。等你验收：按业务操作实际验证。通过后由人合并分支；不通过写明原因，退回重改。
+  - textbox "验收说明（不通过时必填）"
+  - button "验收通过"
+  - button "验收不通过"
+  - button "让助手起草验收说明"
+  - generic "▸ 完整描述 原话、理解、补充的信息和验收标准":
+    - text: ▸
+    - generic: 完整描述
+    - generic: 原话、理解、补充的信息和验收标准
+  - heading "动态与讨论" [level=2]
+  - button "全部"
+  - button "只看讨论"
+  - button "只看自动记录"
+  - generic: Codex-RSI 创建工单12 小时前
+  - text: Codex-RSI 让 Codex 修改方案
+  - link "#2":
+    - /url: javascript:void 0
+  - text: 12 小时前
+  - generic: Codex-RSI 新建 → 分析中12 小时前
+  - generic "自动处理 · 10 步 · 用时 3.0 小时 9 小时前":
+    - generic: 自动处理
+    - text: · 10 步 · 用时 3.0 小时
+    - generic: 9 小时前
+  - generic: 预览 预览版本已经可以打开9 小时前
+  - text: 自动流转 启动预览（6c7787b3de7d308120b9c2e298b3629b588a47c9，提交 6c7787b3de）
+  - link "#3":
+    - /url: javascript:void 0
+  - text: 9 小时前
+  - generic: 预览 预览版本已经可以打开9 小时前
+  - generic "自动处理 · 8 步 · 用时 16 分钟 4 小时前":
+    - generic: 自动处理
+    - text: · 8 步 · 用时 16 分钟
+    - generic: 4 小时前
+  - generic: 预览 预览版本已经可以打开4 小时前
+  - generic "自动处理 · 2 步 4 小时前":
+    - generic: 自动处理
+    - text: · 2 步
+    - generic: 4 小时前
+  - generic: 预览 预览版本已经可以打开4 小时前
+  - generic "自动处理 · 3 步 4 小时前":
+    - generic: 自动处理
+    - text: · 3 步
+    - generic: 4 小时前
+  - textbox "写评论（支持 Markdown）。智能体下次运行会读到最近的讨论。": 【未发送技术验收草稿】代码入口关联后仍须独立验证；原事项编号和完成状态保持。
+  - button "评论"
+  - generic "▸ 执行记录与手动运行 4 次运行 · 共 80 点":
+    - text: ▸
+    - generic: 执行记录与手动运行
+    - generic: 4 次运行 · 共 80 点
+  - option "Claude Code（本机未安装）"
+  - option "Codex" [selected]
+  - option "自动：沿用本机设置" [selected]
+  - option "使用本机默认模型"
+  - option "沿用本机设置"
+  - heading "预览版本" [level=2]
+  - generic: 可以打开
+  - text: 这次改动（提交
+  - code: 8be50de6b4
+  - text: ）正跑在平台上，验收前先亲手试一遍。发出去的签收链接里也有这个入口。
+  - link "打开预览 ↗":
+    - /url: /pv/BOOTV2-1/
+  - button "停掉"
+  - button "重新启动"
+  - heading "证据包" [level=2]
+  - generic: 证据不齐
+  - text: 4 条记录，哈希
+  - code: 33a929e67bdf
+  - text: ，追加式，改任何一条都会对不上。
+  - text: 还缺
+  - generic: 验证门全部通过（没有没过或未知的）
+  - generic: 乙方复核人
+  - text: 验证门 从便宜到贵，每道给出通过、没过或未知
+  - generic: 通过
+  - text: 有实际改动 2 个文件有实际改动
+  - generic: 通过
+  - text: 改后的文件能解析 解析了 2 个文件
+  - generic: 通过
+  - text: "没有削弱测试 没有删测试、删断言、加跳过或 `|| true`"
+  - generic: 通过
+  - text: 没超出方案 只改了方案列出的文件
+  - generic: 未知
+  - text: 落在本单的业务流上 工单没有关联业务流，判断不了改动是否落在入口路径上
+  - generic: 通过
+  - text: 原代码在这台机器上能构建 原代码先构建测试过一遍，能跑通
+  - generic: 通过
+  - text: "构建通过 `/opt/homebrew/opt/python@3.14/bin/python3.14 -m py_compile app.py` 通过"
+  - generic: 通过
+  - text: "测试通过 `/opt/homebrew/opt/python@3.14/bin/python3.14 -m unittest discover -s tests -v` 通过"
+  - generic: 通过
+  - text: 对照验收标准，改对了【推断】 等价【推断】：基于代码、测试覆盖及提供的运行结果推断实现等价。A1：新增测试覆盖原id、完成状态、其他记录、刷新和同库重启。A2：保留原校验，补充逻辑201字拒绝、完整回显及修正重…
+  - link "打开证据包":
+    - /url: /e/BOOTV2-1
+  - link "下载":
+    - /url: /e/BOOTV2-1.intoto.json
+  - button "补截图"
+  - button "复核"
+  - button "发签收链接"
+  - generic "▾ 工程细节 我来写、代码改动、候选代码入口、相关业务":
+    - text: ▾
+    - generic: 工程细节
+    - generic: 我来写、代码改动、候选代码入口、相关业务
+  - heading "我来写" [level=2]
+  - button "认领：我来写"
+  - generic: 自己写，或者用自己的 AI 工具写。把补丁传上来，平台会，构建测试、换一个模型对照验收标准审查，通过就转给验收人。
+  - button "下载开工包"
+  - link "下载代码":
+    - /url: /p/BOOTV2/code.bundle
+  - generic: 上传补丁
+  - generic "外部 PR 把这单做成给开源项目的 PR"
+  - heading "代码改动 已提交到分支" [level=3]:
+    - text: 代码改动
+    - generic: 已提交到分支
+  - text: 分支
+  - code: tmh/BOOTV2-1-r6
+  - text: ，提交
+  - code: 8be50de
+  - text: 。验收通过后由人合并这个分支到主干。
+  - generic "候选代码入口固定版本、改动函数与静态分析限制"
+  - status: 代码关联已记录；仍需独立验证和业务验收。
+  - status: 已定位静态入口
+  - paragraph: 已定位候选版本中的静态函数关联
+  - paragraph: Python HTTP dispatcher 整方法的静态调用关联；不是某条 URL 的运行轨迹或业务验收。
+  - paragraph: 这是方法级静态关联；HTTP 分派方法中的多个 URL 可能共用调用链，不能据此认定某个 URL 已被精确验证，也不代表业务验收通过。
+  - generic: 候选提交
+  - code: 8be50de6b4b4200dc6d792c2a7f0b871f9288da4
+  - generic "版本与映射指纹"
+  - heading "静态分析限制" [level=3]
+  - list:
+    - listitem: 同一 HTTP 方法中的不同 URL/条件分支可能走不同路径；此处不证明具体请求经过修改行。
+    - listitem: 动态调用、反射、运行时注册和外部依赖不能凭静态索引确认。
+    - listitem: 代码关联、实际测试、人工复核与客户签收是独立证据。
+  - heading "改动函数与入口" [level=3]
+  - code: app.py
+  - generic: mapped
+  - generic: 改动所在函数可从列出的 HTTP 方法入口静态到达；尚未证明具体请求行为
+  - generic: 新增或修改行（候选版本）：160、161、162
+  - generic: 删除行（旧版本）：160
+  - generic: 函数：py:app.py::make_server.Handler.post
+  - generic: 关联入口：flow:post-dispatcher-py-app-py-make_server-handler-do_post
+  - generic "查看新旧行定位证据"
+  - heading "可记录的代码入口" [level=3]
+  - checkbox "GET <dispatcher:py:app.py::make_server.Handler.do_GET> py:app.py::make_server.Handler.do_GET flow:get-dispatcher-py-app-py-make_server-handler-do_get"
+  - text: GET <dispatcher:py:app.py::make_server.Handler.do_GET>
+  - code: py:app.py::make_server.Handler.do_GET
+  - text: flow:get-dispatcher-py-app-py-make_server-handler-do_get
+  - generic "查看方法与静态断点"
+  - checkbox "POST <dispatcher:py:app.py::make_server.Handler.do_POST> py:app.py::make_server.Handler.do_POST flow:post-dispatcher-py-app-py-make_server-handler-do_post" [checked]
+  - text: POST <dispatcher:py:app.py::make_server.Handler.do_POST>
+  - code: py:app.py::make_server.Handler.do_POST
+  - text: flow:post-dispatcher-py-app-py-make_server-handler-do_post
+  - generic "查看方法与静态断点"
+  - paragraph: 记录只保存此候选版本的技术关联，不增加人工复核，也不确认业务范围。
+  - button "记录代码关联"
+  - button "重新加载入口"
+  - heading "相关业务" [level=2]
+  - link "智能体看到的上下文":
+    - /url: javascript:void 0
+  - generic: 知识库里没找到相关内容（或这个项目还没有知识库）。

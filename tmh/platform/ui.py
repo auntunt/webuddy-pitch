@@ -507,7 +507,7 @@ function isMachine(a){return !a||['自动流转','system','知识库','agent','�
 function ticketRunCount(runs){const points=runs.reduce((a,r)=>a+(r.points||0),0);return `${runs.length} 次运行${points?' · 共 '+points+' 点':''}`}
 function ticketRunHistory(runs){return runs.length>1?'<span class="sub">全部运行：</span> '+runs.map(r=>`<a href="javascript:void 0" onclick="showRun(${r.id})">#${r.id} ${h(moLabel(r.mode))}${['queued','running'].includes(r.status)?' <span class="spin"></span>':''}${r.points?' · '+h(r.points)+' 点':''}</a>`).join('　'):''}
 function ticketSummarySync(initial,changed){
-  const key=initial.ticket.key,anchor=$('#tTop'),signature=d=>JSON.stringify([d.ticket,d.plain_state,d.intake_recovery,d.runs.map(r=>[r.id,r.status,r.decision,r.points,r.verify,r.result]),d.events.length,d.evidence,d.auto_next,d.package?.status]);
+  const key=initial.ticket.key,anchor=$('#tTop'),signature=d=>JSON.stringify([d.ticket,d.plain_state,d.intake_recovery,d.runs.map(r=>[r.id,r.status,r.decision,r.points,r.verify,r.result]),d.events.length,d.evidence,d.auto_next,d.package]);
   let applied=signature(initial),request=0;
   return async()=>{const seq=++request,n=await get('/api/tickets/'+encodeURIComponent(key));
     if(seq!==request||!anchor?.isConnected||$('#tTop')!==anchor||S.cur?.ticket?.key!==key)return null;
@@ -520,8 +520,16 @@ function ticketSummarySync(initial,changed){
     $('#tRunCount').textContent=ticketRunCount(n.runs);$('#tRunHistory').innerHTML=ticketRunHistory(n.runs);$('#tStatus').innerHTML=stPill(n.ticket.status);
     const status=$('#fs');if(status&&document.activeElement!==status&&status.value===prior.ticket.status)status.value=n.ticket.status;
     if(n.ticket.body!==prior.ticket.body&&$('#bodyv')&&!$('#be'))$('#bodyv').innerHTML=md(n.ticket.body||'');
+    if(JSON.stringify(n.package)!==JSON.stringify(prior.package)||n.ticket.status!==prior.ticket.status)pkgSync(n);
     changed(n);ticketTopWire(n,na);if(focused)$('#'+focused)?.focus({preventScroll:true});applied=next;return n;
   }
+}
+function pkgSync(d){
+  const summary=$('#pkSummary'),actions=$('#pkActions');if(!summary||!actions)return;
+  summary.innerHTML=pkgSummary(d);actions.innerHTML=pkgActions(d);
+  const notice=$('#pkDraftNotice'),form=$('#pkForm');if(notice)notice.hidden=!form?.childElementCount;
+  // Keep the actual form and file input nodes: selected FileLists cannot be restored from HTML.
+  pkgWire(d);
 }
 function watchIntakeRecovery(key){
   stopPolls('intake');const refresh=S.ticketRefresh;
@@ -529,6 +537,64 @@ function watchIntakeRecovery(key){
   poll(async()=>{if(S.ticketRefresh!==refresh||S.cur?.ticket?.key!==key)return stopPolls('intake');
     try{const n=await refresh();if(n?.intake_recovery?.status!=='running')stopPolls('intake')}catch(e){}},1500,'intake');
 }
+// ---------- candidate code paths: inspect on demand, never an acceptance decision
+function pathMapContent(m,selected){
+  const text=v=>typeof v==='string'?v:JSON.stringify(v??'',null,2),source=m.source||{},flows=m.flows||[];
+  const label={mapped:'已定位静态入口',partial:'仅部分定位',unsupported:'当前解析不支持',blocked:'暂不可关联',unavailable:'暂无可用映射',failed:'解析未完成'};
+  const loc=n=>h(n.file||'')+(n.line?':'+h(n.line)+(n.end_line&&n.end_line!==n.line?'–'+h(n.end_line):''):'');
+  const list=xs=>xs.map(x=>'<li style="white-space:pre-wrap;overflow-wrap:anywhere">'+h(text(x))+'</li>').join('');
+  return `<p role="status"><b>${h(label[m.status]||m.status||'解析状态未知')}</b></p>
+    ${m.why?'<p style="white-space:pre-wrap;overflow-wrap:anywhere">'+h(text(m.why))+'</p>':''}
+    <p class="sub" style="white-space:pre-wrap;overflow-wrap:anywhere">${h(text(m.scope||'当前候选提交的静态代码入口与函数关联。'))}</p>
+    <p class="sub">这是方法级静态关联；HTTP 分派方法中的多个 URL 可能共用调用链，不能据此认定某个 URL 已被精确验证，也不代表业务验收通过。</p>
+    <div class="sub">候选提交</div><code style="display:block;overflow-wrap:anywhere">${h(source.commit||'未提供，无法绑定候选版本')}</code>
+    <details style="margin-top:8px"><summary>版本与映射指纹</summary><div class="sub">差异 SHA-256</div><code style="display:block;overflow-wrap:anywhere">${h(source.diff_sha256||'未提供')}</code><div class="sub">映射摘要</div><code style="display:block;overflow-wrap:anywhere">${h(m.digest||'未提供')}</code></details>
+    ${(m.limitations||[]).length?'<h3 style="margin-top:14px">静态分析限制</h3><ul>'+list(m.limitations)+'</ul>':''}
+    ${(m.diagnostics||[]).length?'<h3 style="margin-top:14px">解析诊断</h3><ul>'+m.diagnostics.map(x=>`<li><code style="overflow-wrap:anywhere">${loc(x)}</code><div style="white-space:pre-wrap;overflow-wrap:anywhere">${h(x.message||'')}</div></li>`).join('')+'</ul>':''}
+    <h3 style="margin-top:14px">改动函数与入口</h3>${(m.changes||[]).length?m.changes.map(c=>`<div style="padding:10px 0;border-bottom:1px solid var(--line)"><code style="overflow-wrap:anywhere">${h(c.file||'')}</code><span class="tag">${h(c.status||'未知')}</span>
+      ${c.why?'<div style="white-space:pre-wrap;overflow-wrap:anywhere">'+h(c.why)+'</div>':''}<div class="sub" style="overflow-wrap:anywhere">新增或修改行（候选版本）：${h(Array.isArray(c.lines)?c.lines.join('、')||'无':'未提供')}</div>
+      <div class="sub" style="overflow-wrap:anywhere">删除行（旧版本）：${h(Array.isArray(c.removed_lines)?c.removed_lines.join('、')||'无':'未提供')}</div>
+      <div style="white-space:pre-wrap;overflow-wrap:anywhere">函数：${h((c.functions||[]).join('\n')||'未定位到函数')}</div><div class="sub" style="white-space:pre-wrap;overflow-wrap:anywhere">关联入口：${h((c.flow_ids||[]).join('\n')||'未定位到入口')}</div>
+      ${(c.locations||[]).length?'<details style="margin-top:8px"><summary>查看新旧行定位证据</summary><p class="sub">old 为旧版本，new 为候选版本；保留每行对应的函数与入口。</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere">'+h(text(c.locations))+'</pre></details>':''}</div>`).join(''):'<p class="sub">没有可显示的改动函数；这不表示业务没有影响。</p>'}
+    <h3 style="margin-top:14px">可记录的代码入口</h3>${flows.length?flows.map((f,i)=>`<div style="padding:10px 0;border-bottom:1px solid var(--line)"><label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" data-path-flow="${i}" style="width:auto;margin-top:4px" ${selected.has(f.id)?'checked':''}><span style="min-width:0;overflow-wrap:anywhere"><b>${h(f.trigger||f.id)}</b><br><code>${h(f.handler||'')}</code><br><small>${h(f.id)}</small></span></label>
+      <details style="margin-top:6px"><summary>查看方法与静态断点</summary>${(f.nodes||[]).map(n=>`<div style="margin-top:6px;overflow-wrap:anywhere"><code>${h(n.key||'')}</code><div class="sub">${loc(n)}</div></div>`).join('')||'<p class="sub">没有已解析的方法节点。</p>'}
+      ${(f.unresolved||[]).length?'<h4>未解析部分</h4><ul>'+list(f.unresolved)+'</ul>':'<p class="sub">已解析范围内未报告静态断点；未解析范围不作结论。</p>'}</details></div>`).join(''):'<p class="sub">没有可选的代码入口，请核对解析诊断和限制。</p>'}
+    <p class="sub">记录只保存此候选版本的技术关联，不增加人工复核，也不确认业务范围。</p>
+    <div class="row" style="gap:8px;margin-top:10px"><button data-path-record ${m.can_record===true&&source.commit&&m.digest&&selected.size?'':'disabled'}>记录代码关联</button><button class="ghost" data-path-reload>重新加载入口</button></div>`;
+}
+function ticketPathMapWire(key){
+  const fold=$('#pathMapDetails'),panel=$('#pathMapPanel');if(!fold||!panel)return;
+  const url='/api/tickets/'+encodeURIComponent(key)+'/path-map',refresh=S.ticketRefresh;
+  let mapping=null,selected=new Set(),loaded=false,loading=false,saving=false;
+  const current=()=>panel.isConnected&&$('#pathMapPanel')===panel&&S.cur?.ticket?.key===key;
+  const errorText=e=>String(e?.message??e);
+  const selection=(value,fallback)=>{const choices=new Set((value.flows||[]).map(f=>f.id));return new Set((value.selected?.length?value.selected:fallback?value.suggested||[]:[]).filter(id=>choices.has(id)));};
+  function paint(message='',error=''){
+    if(!current())return;
+    panel.innerHTML=(message?'<p role="status">'+h(message)+'</p>':'')+(error?'<div role="alert" style="white-space:pre-wrap;overflow-wrap:anywhere">'+h(error)+'</div>':'')+
+      (mapping?pathMapContent(mapping,selected):'<button data-path-reload style="margin-top:8px">重试加载候选入口</button>');
+    const reload=panel.querySelector('[data-path-reload]');if(reload)reload.onclick=load;
+    const record=panel.querySelector('[data-path-record]');if(record){if(error)record.disabled=true;record.onclick=save;}
+    panel.querySelectorAll('[data-path-flow]').forEach(box=>{box.onchange=()=>{const id=mapping.flows[Number(box.dataset.pathFlow)]?.id;if(!id)return;
+      box.checked?selected.add(id):selected.delete(id);if(record)record.disabled=!!error||mapping.can_record!==true||!mapping.source?.commit||!mapping.digest||!selected.size;};});
+  }
+  async function load(){
+    if(loading||saving||!current())return;loading=true;panel.innerHTML='<p role="status"><span class="spin"></span> 正在读取候选代码入口…</p>';
+    try{const value=await get(url);if(!current())return;mapping=value;selected=selection(value,true);loaded=true;paint();}
+    catch(e){loaded=false;paint('',errorText(e));}finally{loading=false;}
+  }
+  async function save(){
+    if(saving||loading||!current()||mapping?.can_record!==true||!mapping.source?.commit||!mapping.digest||!selected.size)return;
+    const button=panel.querySelector('[data-path-record]');if(button?.disabled)return;saving=true;if(button)button.disabled=true;
+    panel.querySelectorAll('[data-path-flow]').forEach(box=>box.disabled=true);
+    try{const value=await post(url,{commit:mapping.source.commit,digest:mapping.digest,flows:[...selected]});if(!current())return;
+      mapping=value;selected=selection(value,false);paint('代码关联已记录；仍需独立验证和业务验收。');
+      try{if(S.ticketRefresh===refresh)await refresh();}catch(e){paint('代码关联已记录；工单摘要刷新未完成。',errorText(e));}
+    }catch(e){paint('',errorText(e));}finally{saving=false;}
+  }
+  fold.ontoggle=()=>{if(fold.open&&!loaded&&!loading)return load();};
+}
+// ---------- ticket page
 async function vTicket(key,sub){
   let d=await get('/api/tickets/'+key);const t=d.ticket;S.cur=d;setProj(d.project.key);paintSel();A.setTicket(t);
   S.svc=(t.links||{}).reform?'reform':'ops';paintTabs(S.svc==='reform'?'rtickets':'home');
@@ -591,11 +657,12 @@ async function vTicket(key,sub){
   </div><div style="display:flex;flex-direction:column;gap:12px;min-width:0">
    <div class="card" id="pvc" hidden></div>
    ${pkgCard(d)}
-   <details class="card eng" id="engc"><summary><b>工程细节</b><span class="sub">我来写、代码改动、外部 PR、相关业务、相似工单</span></summary><div class="engb">
+   <details class="card eng" id="engc"><summary><b>工程细节</b><span class="sub">我来写、代码改动、候选代码入口、相关业务</span></summary><div class="engb">
    <div class="card" id="simc" hidden><h2>可能重复</h2><div id="simv"></div></div>
    <div class="card" id="hwc" hidden></div>
    <div id="upc"></div>
    ${mrBlock(d)}
+   <details class="card" id="pathMapDetails"><summary><b>候选代码入口</b><span class="sub">固定版本、改动函数与静态分析限制</span></summary><div id="pathMapPanel" style="margin-top:12px"><p class="sub">展开后读取当前候选提交的代码入口；不会自动运行模型。</p></div></details>
    <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">相关业务</h2><a href="javascript:void 0" onclick="showContext()">智能体看到的上下文</a></div><div id="rel"><span class="spin"></span></div></div></div></details>
   </div></div></div>`;
   ticketTopWire(d,na);
@@ -635,6 +702,7 @@ async function vTicket(key,sub){
   if($('#naLog'))$('#naLog').onclick=()=>{const r=f.live||d.runs[0];if(r)showRun(r.id,true);openLog()};if($('#naReview'))$('#naReview').onclick=()=>{showRun(f.fx.id,true);openLog()};};
   wireNext();pkgWire(d);upWire(d);pvLoad(key);hwLoad(d);epicWire(d);
   S.ticketRefresh=ticketSummarySync(d,n=>{d=n;f=flowState(n);na=nextAction(n,f);wireNext()});
+  ticketPathMapWire(key);
   watchIntakeRecovery(key);
   document.querySelectorAll('#aiCard .seg button').forEach(b=>b.onclick=()=>{
     if(b.dataset.m==='fix'&&!d.runs.some(r=>r.mode!=='fix'&&r.status==='done')){if(!window.confirmFix){window.confirmFix=1;toast('还没有分析或方案结论，建议先分析定位。再点一次直接修改。',4000);return}}
@@ -948,9 +1016,9 @@ async function hwLoad(d){const el=$('#hwc'),t=d.ticket;if(!el||t.status==='close
 // ---------- evidence package on a ticket, the ledger on the report
 const PKC={none:'mute',incomplete:'warn',ready:'info',signed:'ok',rejected:'bad',upstream_merged:'ok',upstream_closed:'bad'};
 const GTC={pass:'ok',fail:'bad',unknown:'warn'},GTL={pass:'通过',fail:'没过',unknown:'未知'};
-function pkgCard(d){const k=d.package||{};if(!k.status)return '';const t=d.ticket;
+function pkgSummary(d){const k=d.package||{};if(!k.status)return '';
   const dec=k.decision,ln=k.link;
-  return `<div class="card" id="pkg"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">证据包</h2><span class="ev-tag ${PKC[k.status]}">${h(k.label)}</span></div>
+  return `<div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">证据包</h2><span class="ev-tag ${PKC[k.status]}">${h(k.label)}</span></div>
    ${k.status==='none'?'<div class="sub">工单转到“待验证”时自动打包：验收标准、方案、改动、构建测试、范围和业务流检查。</div>':`
    ${k.intact?`<div class="sub">${k.records} 条记录，哈希 <code>${h(k.hash.slice(0,12))}</code>，追加式，改任何一条都会对不上。</div>`:`<div class="bad">证据包被改动过：${h(k.problem)}</div>`}
    ${k.missing.length?`<div style="margin-top:6px"><b style="font-size:13px">还缺</b> ${k.missing.map(x=>`<span class="ev-tag warn">${h(x)}</span>`).join(' ')}</div>`:'<div class="ok" style="margin-top:6px">证据齐全</div>'}
@@ -958,10 +1026,12 @@ function pkgCard(d){const k=d.package||{};if(!k.status)return '';const t=d.ticke
      <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">${k.gates.map(g=>`<div style="font-size:13px"><span class="ev-tag ${GTC[g.state]}">${GTL[g.state]}</span> ${h(g.name)}<span class="sub"> ${h(clip(g.why,90))}${g.waived?` · ${h(g.waived.by)} 放行：${h(clip(g.waived.reason,40))}`:''}</span></div>`).join('')}</div></div>`:''}
    ${k.review?`<div class="sub" style="margin-top:4px">乙方复核：${h(k.review.by)} · ${h((k.review.ts||'').slice(5,16))}</div>`:''}
    ${dec?`<div style="margin-top:6px">${dec.kind==='sign'?'签收':'退回'}：<b>${h(dec.signer)}</b>${dec.role?'（'+h(dec.role)+'）':''} · ${h(dec.ts.slice(5,16))} · ${h(dec.via)}${dec.note?`<div class="sub">${h(dec.note)}</div>`:''}</div>`
-     :ln?`<div class="sub" style="margin-top:4px">已发签收链接给 ${h(ln.signer)}，有效至 ${h(ln.expires.slice(5,16))}</div>`:''}
-   <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn" href="/e/${h(t.key)}" target="_blank" rel="noopener">打开证据包</a><a class="btn ghost" href="/e/${h(t.key)}.intoto.json" download title="in-toto 格式，甲方可以离线核对">下载</a>
-    <button class="ghost" id="pkShot">补截图</button><button class="ghost" id="pkRev">复核</button>${t.status==='verify'?'<button class="primary" id="pkLink">发签收链接</button>':''}</div>
-   <div id="pkForm"></div>`}</div>`}
+     :ln?`<div class="sub" style="margin-top:4px">已发签收链接给 ${h(ln.signer)}，有效至 ${h(ln.expires.slice(5,16))}</div>`:''}`}`}
+function pkgActions(d){const t=d.ticket;if(!d.package?.status||d.package.status==='none')return '';
+  return `<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn" href="/e/${h(t.key)}" target="_blank" rel="noopener">打开证据包</a><a class="btn ghost" href="/e/${h(t.key)}.intoto.json" download title="in-toto 格式，甲方可以离线核对">下载</a>
+    <button class="ghost" id="pkShot">补截图</button><button class="ghost" id="pkRev">复核</button>${t.status==='verify'?'<button class="primary" id="pkLink">发签收链接</button>':''}</div>`;}
+function pkgCard(d){if(!d.package?.status)return '';
+  return `<div class="card" id="pkg"><div id="pkSummary">${pkgSummary(d)}</div><div id="pkActions">${pkgActions(d)}</div><p class="sub" id="pkDraftNotice" hidden>证据状态已更新；表单草稿与所选文件已保留，请按最新验证门核对后提交。</p><div id="pkForm"></div></div>`;}
 function pkgWire(d){const key=d.ticket.key,F=$('#pkForm');if(!F)return;
   const P=b=>post('/api/tickets/'+key+'/evidence',b);
   const acs=(()=>{const r=d.runs.find(x=>x.mode==='plan'&&x.status==='done');const m=r&&/```tmh-plan\s*([\s\S]*?)```/.exec(r.result||'');try{return m?(JSON.parse(m[1]).ac||[]):[]}catch(e){return []}})();

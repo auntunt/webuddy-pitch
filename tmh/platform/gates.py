@@ -158,8 +158,11 @@ def scope(beyond: list, planned: bool) -> dict:
 def path(res: dict | None) -> dict:
     if not res:
         return gate("path", UNKNOWN, "没有入口路径检查结果")
+    if res.get("manual"):
+        return gate("path", UNKNOWN, res.get("why") or "部分改动缺少可识别的路径证据", basis=res.get("basis", ""))
     if res.get("ok"):
-        return gate("path", PASS, "改动的代码都在本单关联的业务流上")
+        return gate("path", PASS, res.get("why") or "代码文件与关联业务流有静态关联；不代表业务行为通过",
+                    basis=res.get("basis", ""), source=res.get("source", {}))
     if res.get("off"):
         return gate("path", FAIL, res.get("why") or "有代码改动不在关联业务流上")
     return gate("path", UNKNOWN, res.get("why") or "判断不了改动是否落在业务流上")

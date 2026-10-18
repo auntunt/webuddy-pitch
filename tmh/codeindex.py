@@ -1,17 +1,18 @@
-"""Lightweight structural index of Java, C# and Go sources: classes, fields, methods, calls.
+"""Lightweight structural index of Java, C#, Go and Python sources.
 
 This is not a compiler front end. It masks comments and string literals, follows
 brace depth to find class members, and records enough type information (fields,
 constructor/method parameters, simple locals) to resolve `receiver.method(...)`
 calls to classes in the same repository. That is what business-flow tracing
 needs, and it stays fast and dependency-free on very large legacy repositories.
+Python uses the standard-library AST and keeps lexical scopes and diagnostics.
 """
 from __future__ import annotations
 
 import re
 from pathlib import Path
 
-from . import golang
+from . import golang, python_index
 from .fsutil import iter_files, read_text, rel
 
 CONTROL = {"if", "for", "while", "switch", "catch", "synchronized", "using", "lock", "foreach", "return",
@@ -254,11 +255,19 @@ def _first_code_line(lines: list[str], decl_line: int) -> int:
 def build_index(root: Path, cache=None) -> dict:
     root = root.resolve()
     classes: dict[str, list[dict]] = {}
+    diagnostics = []
     for p in iter_files(root):
         suf = p.suffix.lower()
-        if suf not in (".java", ".cs", ".go") or p.name.endswith("_test.go"):
+        if suf not in (".java", ".cs", ".go", ".py") or p.name.endswith("_test.go"):
             continue
         rp = rel(root, p)
+        if suf == ".py":
+            part = cache.get("python-index", rp, p, lambda text: python_index.parse(rp, text)) if cache is not None else python_index.parse(rp, read_text(p))
+            part = part or python_index.parse(rp, None)
+            diagnostics.extend(part["diagnostics"])
+            for c in part["classes"]:
+                classes.setdefault(c["name"], []).append(c)
+            continue
         lang = {".java": "java", ".cs": "cs", ".go": "go"}[suf]
         fn = golang.parse if lang == "go" else lambda r, t: parse_source(r, t, lang)
         if cache is not None:
@@ -275,4 +284,5 @@ def build_index(root: Path, cache=None) -> dict:
             for b in c["bases"]:
                 impls.setdefault(b, []).append(name)
     golang.implements(classes, impls)
-    return {"classes": classes, "impls": impls, "go_files": go_files}
+    python_index.link(classes)
+    return {"classes": classes, "impls": impls, "go_files": go_files, "diagnostics": diagnostics}

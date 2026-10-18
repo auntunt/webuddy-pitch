@@ -1,0 +1,47 @@
+test_abbreviated_adoption_commit_is_an_object_identity_not_a_branch_name (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_abbreviated_adoption_commit_is_an_object_identity_not_a_branch_name) ... FAIL
+test_dirty_checkout_does_not_replace_candidate_source (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_dirty_checkout_does_not_replace_candidate_source) ... ok
+test_dynamic_dispatch_stays_unknown_even_if_method_name_exists (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_dynamic_dispatch_stays_unknown_even_if_method_name_exists) ... ok
+test_full_hash_object_cannot_be_shadowed_by_a_named_branch (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_full_hash_object_cannot_be_shadowed_by_a_named_branch) ... ok
+test_method_reachability_does_not_claim_specific_url_or_correct_behavior (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_method_reachability_does_not_claim_specific_url_or_correct_behavior) ... ok
+test_missing_commit_or_valid_but_wrong_candidate_cannot_verify_diff (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_missing_commit_or_valid_but_wrong_candidate_cannot_verify_diff) ... ok
+test_no_selected_entry_cannot_be_silently_replaced_with_suggestions (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_no_selected_entry_cannot_be_silently_replaced_with_suggestions) ... ok
+test_only_reachable_half_of_product_changes_cannot_pass (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_only_reachable_half_of_product_changes_cannot_pass) ... ok
+test_outer_factory_span_cannot_cover_an_uninvoked_nested_function (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_outer_factory_span_cannot_cover_an_uninvoked_nested_function) ... ok
+test_parse_failure_elsewhere_in_product_is_visible_and_blocks_complete_mapping (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_parse_failure_elsewhere_in_product_is_visible_and_blocks_complete_mapping) ... ok
+test_reachable_addition_cannot_hide_a_deletion_in_an_unreachable_function (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_reachable_addition_cannot_hide_a_deletion_in_an_unreachable_function) ... FAIL
+test_registered_class_method_replaced_before_server_is_unknown (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_registered_class_method_replaced_before_server_is_unknown) ... ok
+test_registered_dispatcher_reaches_changed_method_with_complete_source_identity (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_registered_dispatcher_reaches_changed_method_with_complete_source_identity) ... ok
+test_same_file_unreachable_method_does_not_pass (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_same_file_unreachable_method_does_not_pass) ... ok
+test_tests_only_changes_do_not_count_as_product_reachability (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_tests_only_changes_do_not_count_as_product_reachability) ... ok
+test_unknown_decorator_cannot_be_assumed_to_call_original_method (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_unknown_decorator_cannot_be_assumed_to_call_original_method) ... ok
+test_unregistered_protocol_handler_is_not_a_verified_entry (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_unregistered_protocol_handler_is_not_a_verified_entry) ... ok
+
+======================================================================
+FAIL: test_abbreviated_adoption_commit_is_an_object_identity_not_a_branch_name (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_abbreviated_adoption_commit_is_an_object_identity_not_a_branch_name)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_pathmap_independent.py", line 179, in test_abbreviated_adoption_commit_is_an_object_identity_not_a_branch_name
+    self.assertEqual(mapping["source"]["commit"], self.candidate,
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     "the accepted abbreviated object must not silently resolve to a same-named ref")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'a4282091186f002b7a0086885bc93aa36707f9c5' != 'd05002dd7bb1395340a42e099465f986fd2b5b90'
+- a4282091186f002b7a0086885bc93aa36707f9c5
++ d05002dd7bb1395340a42e099465f986fd2b5b90
+ : the accepted abbreviated object must not silently resolve to a same-named ref
+
+======================================================================
+FAIL: test_reachable_addition_cannot_hide_a_deletion_in_an_unreachable_function (tests.test_python_pathmap_independent.IndependentPythonPathMapTest.test_reachable_addition_cannot_hide_a_deletion_in_an_unreachable_function)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_pathmap_independent.py", line 170, in test_reachable_addition_cannot_hide_a_deletion_in_an_unreachable_function
+    self.assertFalse(self.result(mapping, "do_POST")["ok"],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     "a separate deleted location cannot be covered by this file's reachable replacement")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : a separate deleted location cannot be covered by this file's reachable replacement
+
+----------------------------------------------------------------------
+Ran 17 tests in 2.298s
+
+FAILED (failures=2)

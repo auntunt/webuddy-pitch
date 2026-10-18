@@ -1184,6 +1184,44 @@ def api_intake_retry(P, req, key):
     return intake.retry_understanding(P, t["key"], req.user, wait=bool(req.body.get("wait")))
 
 
+@route("GET", "/api/tickets/<key>/path-map")
+def api_path_map(P, req, key):
+    from . import pathmap
+    return pathmap.for_ticket(P, P.ticket(key))
+
+
+@route("POST", "/api/tickets/<key>/path-map")
+def api_path_map_record(P, req, key):
+    from . import pathmap, signoff
+    # Serialize selection against ticket/run updates. Recompute the candidate
+    # receipt before recording so stale pages cannot bind another code version.
+    with P.store.lock:
+        ticket = P.ticket(key)
+        if ticket["status"] == "closed":
+            raise ApiError(409, "工单已关闭，不能记录新的代码关联")
+        mapping = pathmap.for_ticket(P, ticket)
+        body = req.body
+        if not mapping["can_record"] or body.get("commit") != mapping["source"]["commit"] or body.get("digest") != mapping["digest"]:
+            raise ApiError(409, "候选版本或代码关联已变化，请重新加载后核对")
+        selected = body.get("flows")
+        valid = {f["id"] for f in mapping["flows"]}
+        if not isinstance(selected, list) or not selected or any(not isinstance(f, str) or f not in valid for f in selected):
+            raise ApiError(400, "请选择当前候选版本中可核对的代码入口")
+        selected = list(dict.fromkeys(selected))
+        links = dict(ticket.get("links") or {})
+        # Keep existing human confirmations intact, but do not manufacture one.
+        prior = set((links.get("code_path") or {}).get("flows", [])) - set(links.get("flows_ok") or [])
+        links["flows"] = list(dict.fromkeys([f for f in links.get("flows", []) if f not in prior] + selected))
+        links["code_path"] = {"commit": mapping["source"]["commit"], "digest": mapping["digest"], "flows": selected,
+                              "basis": "python-static-functions", "by": req.user}
+        ticket = P.store.update_ticket(ticket["id"], req.user, links=links)
+        P.store.event(ticket["id"], req.user, "code-map", "记录候选版本的静态代码关联；不代表业务验收或人工复核", links["code_path"])
+        if ticket["status"] == "verify":
+            signoff.pack(P, ticket, req.user, "更新候选代码关联")
+        mapping["selected"] = selected
+        return mapping
+
+
 @route("POST", "/api/projects/<key>/pins")
 def api_pin_add(P, req, key):
     """A box drawn on the system's page: texts, elements and requests in it, located in the code."""

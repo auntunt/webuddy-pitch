@@ -16,7 +16,7 @@ from . import config as cfgmod
 from .fsutil import iter_files, read_text, rel
 from .mapper import build_map
 
-SOURCE_SUFFIXES = {".go", ".java", ".cs", ".vb", ".xml", ".jsp", ".aspx", ".ascx", ".cshtml", ".js", ".ts", ".vue", ".html", ".sql", ".properties", ".yml", ".yaml", ".config", ".ftl"}
+SOURCE_SUFFIXES = {".go", ".java", ".cs", ".vb", ".xml", ".jsp", ".aspx", ".ascx", ".cshtml", ".js", ".ts", ".vue", ".html", ".sql", ".properties", ".yml", ".yaml", ".config", ".ftl", ".py"}
 
 
 def load_map(root: Path, rebuild: bool = False) -> dict:

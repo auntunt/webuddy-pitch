@@ -275,7 +275,7 @@ class FlowBuilder:
         return []
 
     def _layer(self, cls: dict) -> str:
-        if cls.get("lang") == "go":
+        if cls.get("lang") in ("go", "python"):
             return cls.get("layer") or "service"
         n, a = cls["name"], cls.get("annos", "")
         if self._is_mapper(n) or "DbContext" in cls["bases"] or re.search(r"(Mapper|Dao|DAO|Repository|Repo|Rep|DbHelper|SqlHelper|DataAccess)$", n) or "@Repository" in a:
@@ -303,12 +303,13 @@ class FlowBuilder:
             if n["key"] == node["key"]:
                 return n["id"]
         node["id"] = "n%d" % len(flow["nodes"])
+        node.setdefault("end_line", node.get("end", node.get("line", 0)))
         flow["nodes"].append(node)
         return node["id"]
 
     def _noise(self, owner: dict, m: dict) -> bool:
         """Steps that say nothing about the business: accessors, entity/POJO methods, generic utilities."""
-        if "body" not in m:
+        if owner.get("lang") == "python" or "body" not in m:
             return False
         body = m["masked"]
         if _sql_literals(m["body"]):
@@ -334,6 +335,18 @@ class FlowBuilder:
         if key in self._seen or depth > self._max_depth or "body" not in m:
             return nid
         self._seen.add(key)
+        if owner.get("lang") == "python":
+            for sql in m.get("python_sql", []):
+                first = len(flow["data_ops"])
+                self._record_sql(sql["sql"], key, nid, flow, sql["file"], sql["line"])
+                for operation in flow["data_ops"][first:]:
+                    operation["sql"] = sql["sql"]  # preserve the complete AST literal, including whitespace
+            flow["unresolved"].extend(m.get("python_unresolved", []))
+            for call in m.get("python_calls", []):
+                target, name = call["target"].rsplit(".", 1)
+                if call["target"] != key:
+                    self._visit(target, name, flow, depth + 1, nid)
+            return nid
         if ("@Transactional" in m.get("annos", "") or "@Transactional" in owner.get("annos", "") or "TransactionScope" in m["body"]
                 or owner.get("lang") == "go" and re.search(r"\.\s*(Transaction|Begin)\s*\(", m["masked"])):
             flow["transactions"].append({"method": key, "file": m["file"], "line": m["line"]})
@@ -754,11 +767,12 @@ def build_flows(root: Path, project_map: dict | None = None, index: dict | None 
         return (gofiles.get(file) or {}).get("aliases", {}).get(cls, cls)
     entries = []
     for e in m["endpoints"]:
-        cls, meth = _split_handler(e["handler"])
+        cls, meth = e["handler"].rsplit(".", 1) if e["file"].endswith(".py") else _split_handler(e["handler"])
         if e["file"].endswith(".go"):
             cls = go_cls(e["file"], cls)
         trig = "%s %s" % (e["method"], e["path"]) if e["stack"] != "wcf/asmx" else "SOAP %s" % e["path"]
-        entries.append({"kind": "接口", "trigger": trig, "class": cls, "method": meth, "file": e["file"], "line": e["line"]})
+        entries.append({"kind": "接口", "trigger": trig, "class": cls, "method": meth, "file": e["file"], "line": e["line"],
+                        **{k: e[k] for k in ("scope", "url", "limitations", "registration") if k in e}})
     for j in m["jobs"]:
         if j["class"] and j["file"].endswith(".go"):
             cls, meth = _split_handler(j["class"])
@@ -795,8 +809,10 @@ def build_flows(root: Path, project_map: dict | None = None, index: dict | None 
             crud.setdefault(op["table"], set()).add(op["op"])
         flows.append({"id": fid, "kind": e["kind"], "trigger": e["trigger"], "handler": "%s.%s" % (e["class"], e["method"]),
                       "name": name, "name_source": "代码注释" if name else "", "file": e["file"], "line": e["line"],
-                      "crud": {k: "".join(sorted(v, key="CRUDP".index)) for k, v in sorted(crud.items())}, **t})
-    return {"flows": flows, "state_machines": state_machines(flows), "matrix": crud_matrix(flows)}
+                      "crud": {k: "".join(sorted(v, key="CRUDP".index)) for k, v in sorted(crud.items())},
+                      **{k: e[k] for k in ("scope", "url", "limitations", "registration") if k in e}, **t})
+    return {"flows": flows, "state_machines": state_machines(flows), "matrix": crud_matrix(flows),
+            "diagnostics": fb.idx.get("diagnostics", [])}
 
 
 QUARTZ_BASES = {"Job", "StatefulJob", "InterruptableJob", "QuartzJobBean"}

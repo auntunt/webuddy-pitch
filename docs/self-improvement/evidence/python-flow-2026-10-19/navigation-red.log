@@ -1,0 +1,17 @@
+test_python_navigation_returns_real_definitions_and_table_users (tests.test_python_flows.PythonFlowTest.test_python_navigation_returns_real_definitions_and_table_users) ... ERROR
+
+======================================================================
+ERROR: test_python_navigation_returns_real_definitions_and_table_users (tests.test_python_flows.PythonFlowTest.test_python_navigation_returns_real_definitions_and_table_users)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 212, in test_python_navigation_returns_real_definitions_and_table_users
+    found = query.where(self.root, ['edit_page'])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/query.py", line 54, in where
+    bump(d["file"], 4, "定义 %s %s (行 %s)" % (d["kind"], name, d["line"]))
+                                               ~^^^^^^^^
+KeyError: 'kind'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.185s
+
+FAILED (errors=1)
