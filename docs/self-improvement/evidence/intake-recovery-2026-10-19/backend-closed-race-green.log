@@ -1,0 +1,6 @@
+test_ticket_closed_while_reader_runs_is_not_reported_as_recovered (tests.test_intake_recovery_independent.IndependentIntakeRecoveryTest.test_ticket_closed_while_reader_runs_is_not_reported_as_recovered) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.131s
+
+OK

@@ -1,0 +1,12 @@
+Purpose: transport-only owned fixture; no product/test source changed; no model invoked.
+python /opt/homebrew/opt/python@3.14/bin/python3.14
+owned_server ('127.0.0.1', 51916)
+proxy https {"scheme": "http", "host": "127.0.0.1", "port": 7897, "credentials_present": false}
+proxy http {"scheme": "http", "host": "127.0.0.1", "port": 7897, "credentials_present": false}
+mode original_environment proxy_bypass False
+{"host": "evil.example", "status": 502, "response_bytes": 0, "socket_destinations": [["127.0.0.1", 7897]], "fixture_received": []}
+{"host": "bot.example.com", "status": 502, "response_bytes": 0, "socket_destinations": [["127.0.0.1", 7897]], "fixture_received": []}
+mode loopback_bypass proxy_bypass True
+{"host": "evil.example", "status": 403, "response_bytes": 49, "socket_destinations": [["127.0.0.1", 51916]], "fixture_received": [{"host": "evil.example", "path": "/check"}]}
+{"host": "bot.example.com", "status": 200, "response_bytes": 49, "socket_destinations": [["127.0.0.1", 51916]], "fixture_received": [{"host": "bot.example.com", "path": "/check"}]}
+Owned diagnostic server closed; environment changes were process-local only.

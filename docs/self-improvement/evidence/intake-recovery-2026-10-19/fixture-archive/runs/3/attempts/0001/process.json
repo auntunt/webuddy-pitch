@@ -1,0 +1,32 @@
+{
+  "attempt": 1,
+  "kind": "model:understand",
+  "started_at": "2026-10-19 02:37:22",
+  "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-understand-dnwlrzr8",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/intake-recovery-2026-10-19/fixture-reader.py",
+    "understand",
+    "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/intake-recovery-verification-2026-10-19/runs/3/prompt.md",
+    "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/intake-recovery-verification-2026-10-19/reader-control.txt"
+  ],
+  "timeout_seconds": 9.9928257499123,
+  "evidence": "runs/3/attempts/0001",
+  "pid": 76353,
+  "pgid": 76353,
+  "returncode": 0,
+  "reason": "exited",
+  "elapsed_seconds": 3.0741417079698294,
+  "cleanup": {
+    "trigger": null,
+    "term_sent": false,
+    "kill_sent": false,
+    "signals": [],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "ended_at": "2026-10-19 02:37:25"
+}

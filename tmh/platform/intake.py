@@ -129,6 +129,18 @@ def deadline(data_dir: Path) -> float:
     return 2 * to * (1 + len(BUSY_WAITS)) + sum(BUSY_WAITS) + 120
 
 
+def _new_job(name: str, **more) -> dict:
+    return dict(agent=name, t0=time.time(), id=uuid.uuid4().hex[:8], managed=True,
+                run=None, invocation_started=False, **more)
+
+
+def _reading(s: dict) -> bool:
+    job = s.get("understanding_job") or {}
+    recovery = s.get("understanding_recovery") or {}
+    return s.get("state") == "understanding" or (s.get("state") == "confirmed" and
+            recovery.get("status") == "running" and job.get("id") == recovery.get("job"))
+
+
 def load(data_dir: Path, sid: str, P=None) -> dict:
     """A conversation. One whose agent reading outlived every try (or whose process is gone: a restart) is read by
     the rules, and a client's answer waiting on that reading still lands (that takes `P`; without it such a
@@ -140,10 +152,12 @@ def load(data_dir: Path, sid: str, P=None) -> dict:
         raise ApiError(404, "没有这段需求对话")
     s = json.loads(f.read_text(encoding="utf-8"))
     u = s.get("understanding_job") or {}
-    if s.get("state") == "understanding" and time.time() - u.get("t0", 0) > deadline(data_dir) and (P is not None or not s.get("client_pending")):
+    if _reading(s) and time.time() - u.get("t0", 0) > deadline(data_dir) and (P is not None or not s.get("client_pending")):
         with _LOCK:
             s = json.loads(f.read_text(encoding="utf-8"))
-            if s.get("state") == "understanding":
+            current = s.get("understanding_job") or {}
+            if (_reading(s) and current.get("id") == u.get("id") and current.get("t0") == u.get("t0")
+                    and time.time() - current.get("t0", 0) > deadline(data_dir)):
                 _give_up(P, s, "智能体没有及时回答")
                 _save(data_dir, s)
     return s
@@ -152,6 +166,9 @@ def load(data_dir: Path, sid: str, P=None) -> dict:
 def _give_up(P, s: dict, why: str) -> None:
     """The agent's reading is not coming: the rules' reading stands, and a client's answer waiting on it lands."""
     job = s.pop("understanding_job", None) or {}
+    if P is not None and _block_changed_recovery(P, s, job):
+        return
+    _remember_recovery(s, job, why, job.get("run"))
     if job.get("refine"):
         for i in job["refine"]:  # the answers still count: they are written next to the criteria they settle
             if i < len(s["items"]):
@@ -161,13 +178,15 @@ def _give_up(P, s: dict, why: str) -> None:
         s["understood"] = dict(s.get("understood") or {}, by="规则", why=why)
     if s.get("client_pending") and P is not None:
         _plan(s)
-        _land_client(P, s)
+        if _land_client(P, s, job.get("contracts")) is False:
+            _block_changed_recovery(P, s, job, "落地时合同或工单状态发生变化，本次未完成恢复；当前合同已保留，请工程师核对")
     else:
         _plan(s)
         if s.get("state_before") == "confirmed":
             s["state"] = "confirmed"
         s.pop("state_before", None)
     if P is not None:
+        _bind_recovery(P, s)
         _note(P, s, "需求理解：%s，按规则处理%s" % (why, "（客户的答复照样记上了）" if job.get("client") else ""))
 
 
@@ -188,8 +207,7 @@ def sweep(P) -> int:
     for f in sorted(idir(P.data_dir).glob("*.json")):
         if re.fullmatch(r"[0-9a-f]{12}", f.stem):
             try:
-                if json.loads(f.read_text(encoding="utf-8")).get("state") == "understanding" and \
-                        load(P.data_dir, f.stem, P).get("state") != "understanding":
+                if _reading(json.loads(f.read_text(encoding="utf-8"))) and not _reading(load(P.data_dir, f.stem, P)):
                     n += 1
             except (ApiError, OSError, ValueError):
                 pass
@@ -440,7 +458,7 @@ def start(P, p: dict, text: str, by: str, channel: str = "web", chooser=None, pi
     name = understander(P, p) if agent else ""
     if name:
         s["state"] = "understanding"
-        s["understanding_job"] = {"agent": name, "t0": time.time(), "id": uuid.uuid4().hex[:8]}
+        s["understanding_job"] = _new_job(name)
     _save(P.data_dir, s)
     if name:
         _spawn(P, p, s, name, wait)
@@ -453,7 +471,7 @@ def wait_for(P, sid: str, limit: float | None = None) -> dict:
     """The conversation once the agent's reading is in (or given up on)."""
     end = time.time() + (deadline(P.data_dir) + 5 if limit is None else limit)
     s = load(P.data_dir, sid, P)
-    while s["state"] == "understanding" and time.time() < end:
+    while _reading(s) and time.time() < end:
         time.sleep(0.1)
         s = load(P.data_dir, sid, P)
     return s
@@ -517,6 +535,8 @@ def _plan(s: dict) -> None:
 
 
 def _busy(s: dict) -> None:
+    if _reading(s):
+        raise ApiError(409, "智能体正在理解已保存的答复，请等待这次理解完成")
     if s["state"] in ("confirmed", "dropped"):
         raise ApiError(409, "这段对话已经结束")
     if s["state"] == "understanding":
@@ -647,7 +667,7 @@ def answer(P, sid: str, by: str, answers: dict, wait: bool = False, gather: bool
         name = understander(P, P.project(s["project"])) if fresh and (s.get("understood") or {}).get("by") == "智能体" else ""
         if name:
             s["state"] = "understanding"
-            s["understanding_job"] = {"agent": name, "t0": time.time(), "id": uuid.uuid4().hex[:8], "refine": fresh}
+            s["understanding_job"] = _new_job(name, refine=fresh)
         _save(P.data_dir, s)
     if name:
         _spawn(P, P.project(s["project"]), s, name, wait)
@@ -706,6 +726,232 @@ def _agent_criteria(it: dict) -> list:
 
 
 # ---------------------------------------------------------------- understanding by an agent
+
+def _open_contract(P, s: dict, indexes: list) -> dict:
+    from .signoff import client_ac
+    return {str(i): [a["id"] for a in client_ac(P.data_dir, s["items"][i].get("ticket", "")) if a.get("open")]
+            for i in indexes if 0 <= i < len(s["items"])}
+
+
+def _contract_snapshot(P, s: dict, indexes: list) -> dict:
+    from .signoff import client_ac
+    return {s["items"][i]["ticket"]: client_ac(P.data_dir, s["items"][i]["ticket"])
+            for i in indexes if s["items"][i].get("ticket")}
+
+
+def _remember_recovery(s: dict, job: dict, why: str, rid=None) -> None:
+    if not (job.get("client") and job.get("refine") and s.get("state_before") == "confirmed"):
+        return
+    old = s.get("understanding_recovery") or {}
+    if job.get("recovery_id") == old.get("id") and old:
+        rec = old
+    else:
+        if old:
+            s.setdefault("understanding_recovery_history", []).append(dict(old, status="superseded"))
+        rec = {"id": job["id"], "refine": list(job["refine"]), "slots": copy_json(job.get("slots") or {}),
+               "open_ac": copy_json(job.get("open_ac") or {}),
+               "client": copy_json(s.get("client_pending") or {}), "attempts": []}
+    rec.update(status="failed", reason=why, run=rid, job=job["id"],
+               no_spawn=job.get("managed") is True and not job.get("invocation_started"))
+    rec["attempts"].append({"job": job["id"], "run": rid, "status": "failed", "reason": why,
+                            "at": time.strftime("%Y-%m-%d %H:%M:%S"), "requested_by": job.get("requested_by", "")})
+    s["understanding_recovery"] = rec
+
+
+def copy_json(value):
+    return json.loads(json.dumps(value, ensure_ascii=False))
+
+
+def _recovery_binding(P, s: dict, rec: dict) -> str:
+    from .signoff import client_ac
+    value = []
+    for i in rec["refine"]:
+        it = s["items"][i]
+        value.append({"item": {k: it.get(k) for k in ("ticket", "title", "kind", "agent_ac", "agent_q", "slots", "keep")},
+                      "contract": client_ac(P.data_dir, it.get("ticket", ""))})
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
+
+
+def _bind_recovery(P, s: dict) -> None:
+    rec = s.get("understanding_recovery")
+    if rec and rec.get("status") == "failed" and not rec.get("blocked_reason"):
+        rec["binding"] = _recovery_binding(P, s, rec)
+
+
+def _block_changed_recovery(P, s: dict, job: dict, reason: str = "") -> bool:
+    """A result may only land against the exact answers and contract it started with.
+
+    Keep the old binding when this fails: silently rebinding would let a second
+    retry replay the same stale contract over an engineer's newer decisions.
+    """
+    if not reason and (not job.get("binding") or job["binding"] == _recovery_binding(P, s, job)):
+        return False
+    reason = reason or "再理解期间客户答案或已确认合同发生变化，未应用旧结果；请工程师核对，当前合同已保留"
+    s["state_before"] = "confirmed"
+    _remember_recovery(s, job, reason, job.get("run"))
+    rec = s.get("understanding_recovery")
+    if rec:
+        rec.update(binding=job.get("binding", rec.get("binding", "")), blocked_reason=reason)
+    s.pop("understanding_job", None)
+    s.pop("client_pending", None)
+    s.pop("state_before", None)
+    s["state"] = "confirmed"
+    _note(P, s, reason)
+    return True
+
+
+def _recovery_session(P, key: str) -> tuple[dict | None, dict | None]:
+    """Read only: status views must never sweep or mutate an expired conversation."""
+    from .signoff import records
+    ticket = P.store.ticket(key)
+    if not ticket:
+        return None, None
+    sid = (ticket.get("links") or {}).get("intake")
+    if not sid:
+        sid = next(((r.get("data") or {}).get("session") for r in reversed(records(P.data_dir, ticket["key"]))
+                    if r.get("kind") == "intake" and (r.get("data") or {}).get("session")), None)
+    if not re.fullmatch(r"[0-9a-f]{12}", sid or ""):
+        return ticket, None
+    try:
+        value = json.loads((idir(P.data_dir) / (sid + ".json")).read_text(encoding="utf-8"))
+        return ticket, value if isinstance(value, dict) else None
+    except (OSError, ValueError, UnicodeError):
+        return ticket, None
+
+
+def _recovery_recipe(P, s: dict) -> dict | None:
+    if s.get("understanding_recovery"):
+        return copy_json(s["understanding_recovery"])
+    job = s.get("understanding_job") or {}
+    if _reading(s) and job.get("client"):
+        return dict(job, status="running", job=job.get("id"), reason="正在根据已保存的客户答复重新理解", attempts=[],
+                    client=copy_json(s.get("client_pending") or {}))
+    # Older failed sessions have no recovery packet. Reconstruct only the
+    # still-open criteria and their stored, concrete customer answer slots.
+    refine, slots, opened, authors = [], {}, {}, set()
+    for i, it in enumerate(s.get("items") or []):
+        if it.get("by") != "智能体" or not it.get("ticket"):
+            continue
+        ids = {a["id"] for a in it.get("ac") or [] if a.get("open")}
+        answered = [q["slot"] for q in it.get("agent_q") or [] if _v(it, q["slot"]) and
+                    it["slots"][q["slot"]].get("from") != "原话" and
+                    (not q.get("blocks") or ids.intersection(q["blocks"]))]
+        if ids and answered:
+            refine.append(i)
+            slots[str(i)], opened[str(i)] = answered, sorted(ids)
+            authors.update(it["slots"][k].get("from", "") for k in answered)
+    if not refine:
+        return None
+    understood = s.get("understood") or {}
+    run = P.store.run(understood["run"]) if understood.get("run") else None
+    # A previous successful first reading is not evidence that a subsequent
+    # customer-answer process was reaped. Unknown legacy state stays blocked.
+    rid = run["id"] if run and run["mode"] == "understand" and run["status"] in ("failed", "cancelled") and run.get("target", "").startswith("再读：") else None
+    return {"id": "legacy-" + s["id"], "status": "failed", "job": "legacy", "run": rid, "no_spawn": False,
+            "reason": understood.get("why") or "旧记录的客户答案已保存，但再理解未完成", "refine": refine,
+            "slots": slots, "open_ac": opened, "attempts": [], "legacy": True,
+            "client": {"by": next(iter(authors)) if len(authors) == 1 else "", "items": refine}}
+
+
+def _recovery_view(P, ticket, s, rec) -> dict:
+    out = {"session": (s or {}).get("id", ""), "status": "none", "can_retry": False, "blocked": [],
+           "reason": "", "run": None, "job": "", "attempts": [], "items": []}
+    if not s or not ticket:
+        return out
+    if not rec:
+        history = s.get("understanding_recovery_history") or []
+        if history and history[-1].get("status") == "resolved":
+            out.update(status="resolved", reason="已根据保存的客户答复完成再理解", attempts=history[-1].get("attempts", []))
+        return out
+    out.update({k: rec.get(k, out[k]) for k in ("status", "reason", "run", "job", "attempts")})
+    blocked = out["blocked"]
+    if rec.get("blocked_reason"):
+        blocked.append(rec["blocked_reason"])
+    try:
+        for i in rec.get("refine") or []:
+            it = s["items"][i]
+            answers = [{"slot": q["slot"], "question": q["q"], "value": it["slots"][q["slot"]]["value"],
+                        "from": it["slots"][q["slot"]].get("from", "")}
+                       for q in it.get("agent_q") or [] if q["slot"] in rec.get("slots", {}).get(str(i), []) and _v(it, q["slot"])]
+            out["items"].append({"index": i, "ticket": it.get("ticket", ""), "answers": answers,
+                                 "open_ac": [a["id"] for a in it.get("ac") or [] if a.get("open")]})
+        if ticket["key"] not in [it["ticket"] for it in out["items"]]:
+            return dict(out, status="none", items=[], reason="")
+        if rec.get("binding") and rec["binding"] != _recovery_binding(P, s, rec):
+            blocked.append("客户答案或已确认合同已变化，请先由工程师核对，不能重放旧恢复记录")
+    except (KeyError, IndexError, TypeError, ValueError):
+        blocked.append("恢复记录缺少完整的原问题、答案或合同绑定，请由工程师核对")
+    if _reading(s):
+        out["status"] = "running"
+        blocked.append("已有一次再理解正在处理，请等待完成")
+    elif s.get("state") != "confirmed":
+        blocked.append("只有仍已确认的需求可以从客户答复恢复")
+    if ticket.get("status") == "closed":
+        blocked.append("工单已关闭，请先明确新的需求")
+    if not rec.get("client", {}).get("by"):
+        blocked.append("旧记录缺少唯一的客户答复来源，不能冒用操作人的身份")
+    if not any(it["answers"] and it["open_ac"] for it in out["items"]):
+        blocked.append("没有可恢复的已答待确认标准；不清楚的答案不能默认通过")
+    rid = rec.get("run")
+    run = P.store.run(rid) if rid else None
+    if rid and (not run or run["mode"] != "understand"):
+        blocked.append("原需求理解运行不存在或类型不匹配")
+    elif run and run["status"] in ("queued", "running"):
+        blocked.append("原需求理解运行尚未结束，不能启动重复运行")
+    elif not rec.get("no_spawn"):
+        try:
+            if not rid:
+                raise ValueError("缺少原失败运行绑定")
+            life = json.loads((Path(P.data_dir) / "runs" / str(rid) / "lifecycle.json").read_text(encoding="utf-8"))
+            if not isinstance(life, dict) or life.get("finished") is not True or not isinstance(life.get("attempts"), list):
+                raise ValueError("生命周期尚未完整封存")
+            if any(not isinstance(a, dict) or (a.get("pid") is not None and
+                   (not isinstance(a.get("cleanup"), dict) or a["cleanup"].get("complete") is not True)) for a in life["attempts"]):
+                raise ValueError("有进程尚未确认回收")
+        except (OSError, ValueError, UnicodeError) as error:
+            blocked.append("无法确认原运行安全结束：%s" % error)
+    if not blocked and not understander(P, P.project(s["project"])):
+        blocked.append("当前没有可用的需求理解智能体，或已达本小时配额，请恢复配置后重试")
+    out["can_retry"] = out["status"] == "failed" and not blocked
+    return out
+
+
+def recovery_state(P, key: str) -> dict:
+    """Read-only recovery projection for a ticket, with no implicit sweep."""
+    ticket, s = _recovery_session(P, key)
+    return _recovery_view(P, ticket, s, _recovery_recipe(P, s) if s else None)
+
+
+def retry_understanding(P, key: str, by: str, wait: bool = False) -> dict:
+    with _LOCK:
+        ticket, s = _recovery_session(P, key)
+        rec = _recovery_recipe(P, s) if s else None
+        state = _recovery_view(P, ticket, s, rec)
+        if not state["can_retry"]:
+            raise ApiError(409, "；".join(state["blocked"]) or "这次客户答复没有待恢复的再理解")
+        name = understander(P, P.project(s["project"]))
+        if not name:
+            raise ApiError(409, "当前没有可用的需求理解智能体")
+        job = _new_job(name, refine=list(rec["refine"]), slots=copy_json(rec["slots"]),
+                       open_ac=copy_json(rec["open_ac"]), client=True, recovery_id=rec["id"], requested_by=by,
+                       binding=_recovery_binding(P, s, rec), contracts=_contract_snapshot(P, s, rec["refine"]))
+        rec.update(status="running", job=job["id"], run=None, no_spawn=True, requested_by=by)
+        s["understanding_recovery"] = rec
+        s["understanding_job"] = job
+        s["client_pending"] = copy_json(rec["client"])
+        s["state_before"] = "confirmed"
+        _save(P.data_dir, s)
+        _note(P, s, "%s 请求按已保存的客户答复重新理解；客户来源保留，不代表验收通过" % by)
+    try:
+        _spawn(P, P.project(s["project"]), s, name, wait)
+    except Exception as error:
+        with _LOCK:
+            s = load(P.data_dir, s["id"], P)
+            if (s.get("understanding_job") or {}).get("id") == job["id"]:
+                _give_up(P, s, "再理解未能启动：%s" % error)
+                _save(P.data_dir, s)
+        raise ApiError(409, "再理解未能启动：%s" % error) from error
+    return recovery_state(P, key)
 
 def understander(P, p: dict | None = None) -> str:
     """The agent that reads clients' words ("" for the rules only: so set, or this project used its hour's share)."""
@@ -918,7 +1164,7 @@ def _merge_answers(old: list, new: list, refine: list) -> list:
     return out
 
 
-def _merge_confirmed(old: list, new: list, refine: list, answered: dict) -> tuple[list, dict]:
+def _merge_confirmed(old: list, new: list, refine: list, answered: dict, allowed: dict | None = None) -> tuple[list, dict]:
     """A second reading after the tickets were made: the contract is settled, so only the criteria this answer
     unblocked take the new reading's words. Everything else stays as confirmed; what the reading would have changed
     besides is returned ({item: [what]}) so the tickets can say it was left out."""
@@ -928,9 +1174,11 @@ def _merge_confirmed(old: list, new: list, refine: list, answered: dict) -> tupl
             out.append(o)
             continue
         n = new[i]
-        qs = [q for q in o.get("agent_q") or [] if q["slot"] in (answered.get(str(i)) or answered.get(i) or [])]
+        qs = [q for q in o.get("agent_q") or [] if q["slot"] in (answered.get(str(i)) or answered.get(i) or []) and _v(o, q["slot"])]
         # the questions answered were open until now (a client answers only those), so what they blocked was 待确认
         unblocked = {a["id"] for a in o.get("agent_ac") or [] if any(not q.get("blocks") or a["id"] in q["blocks"] for q in qs)}
+        if allowed is not None:
+            unblocked.intersection_update(allowed.get(str(i)) or [])
         keep = json.loads(json.dumps(o))
         nac = {a["id"]: a for a in n.get("agent_ac") or []}
         diff, took = [], False
@@ -970,27 +1218,47 @@ def _understand(P, p: dict, sid: str, job: str, name: str) -> None:
     st = P.store
     rid, got, why, refine, cwd = None, None, "", [], None
     try:
-        s = load(P.data_dir, sid, P)
-        refine = (s.get("understanding_job") or {}).get("refine") or []
-        conf = load_config(P.data_dir)
-        conf[name] = dict(conf[name], timeout=settings(P.data_dir)["timeout"])
-        text = prompt(P, p, s)
-        run = st.create_run(p["id"], None, name, "understand", s["by"], text, ("再读：" if refine else "") + s["text"][:180])
-        rid = run["id"]
+        with _LOCK:
+            s = load(P.data_dir, sid, P)
+            jb = s.get("understanding_job") or {}
+            if not _reading(s) or jb.get("id") != job:
+                if s.get("state") != "dropped":
+                    _note(P, s, "智能体的理解来得太晚（当前任务已变化），没有用上，也未创建新运行")
+                return
+            refine = jb.get("refine") or []
+            conf = load_config(P.data_dir)
+            conf[name] = dict(conf[name], timeout=settings(P.data_dir)["timeout"])
+            text = prompt(P, p, s)
+            run = st.create_run(p["id"], None, name, "understand", jb.get("requested_by") or s["by"], text,
+                                ("再读：" if refine else "") + s["text"][:180])
+            rid = run["id"]
+            jb["run"] = rid
+            if jb.get("recovery_id"):
+                s["understanding_recovery"]["run"] = rid
+            _save(P.data_dir, s)
         cwd = Path(tempfile.mkdtemp(prefix="tmh-understand-"))
         st.update_run(rid, status="running", started=time.strftime("%Y-%m-%d %H:%M:%S"), workdir=str(cwd))
+        with _LOCK:
+            s = load(P.data_dir, sid, P)
+            current = s.get("understanding_job") or {}
+            if not _reading(s) or current.get("id") != job:
+                raise ValueError("需求理解任务在启动前已变化，未调用执行器")
+            current["invocation_started"] = True
+            if current.get("recovery_id"):
+                s["understanding_recovery"]["no_spawn"] = False
+            _save(P.data_dir, s)
         code, result = P.runner.invoke(rid, p, None, name, conf, "understand", text, cwd, (conf[name].get("defaults") or {}).get("understand", ""))
         if hasattr(P.runner, "finish_invocation"):
             code = P.runner.finish_invocation(rid, code, result)["exit_code"]
         else:  # embedded adapters used by callers which do not own subprocesses
             st.update_run(rid, status="done" if code == 0 else "failed", ended=time.strftime("%Y-%m-%d %H:%M:%S"), exit_code=code, result=result or "")
         if code != 0:
-            raise ValueError("智能体退出码 %s" % code)
+            raise ValueError("智能体退出码 %s：%s" % (code, result or "没有结果"))
         got = parse(result)
         if refine and len(got["items"]) != len(s["items"]):
             raise ValueError("再读时件数变了")
     except Exception as e:  # noqa: BLE001 - any failure: the rules' reading stands
-        why = str(e)[:200] or type(e).__name__
+        why = str(e) or type(e).__name__
         got = None
         if rid:
             if st.run(rid)["status"] in ("queued", "running", "cancelled"):
@@ -1005,22 +1273,25 @@ def _understand(P, p: dict, sid: str, job: str, name: str) -> None:
     finally:
         if cwd:
             shutil.rmtree(cwd, ignore_errors=True)
-    with _LOCK:
+    with _LOCK, P.store.lock:
         try:
             s = load(P.data_dir, sid, P)
         except ApiError:
             return
         jb = s.get("understanding_job") or {}
-        if s.get("state") != "understanding" or jb.get("id") != job:
+        if not _reading(s) or jb.get("id") != job:
             # dropped, given up on (too late: the rules already read it), or a newer reading was asked for meanwhile
             if got and s.get("state") != "dropped":
                 _note(P, s, "智能体的理解来得太晚（这段需求已经%s），没有用上" % ("按规则处理过" if s.get("state") != "understanding" else "又有了新的答复"))
+            return
+        if _block_changed_recovery(P, s, jb):
+            _save(P.data_dir, s)
             return
         s.pop("understanding_job", None)
         if got:
             items = _agent_items(P, p, s, got)
             if refine and s.get("state_before") == "confirmed":
-                items, ignored = _merge_confirmed(s["items"], items, refine, jb.get("slots") or {})
+                items, ignored = _merge_confirmed(s["items"], items, refine, jb.get("slots") or {}, jb.get("open_ac"))
                 for i, what in ignored.items():
                     t = P.store.ticket(s["items"][i]["ticket"]) if s["items"][i].get("ticket") else None
                     if t:
@@ -1042,9 +1313,29 @@ def _understand(P, p: dict, sid: str, job: str, name: str) -> None:
                 for i in refine:  # the answers still count: they are written next to the criteria they settle
                     s["items"][i]["refined"] = False
             s["understood"] = dict(s.get("understood") or {}, why=why, run=rid) if refine else {"by": "规则", "why": why, "run": rid}
+            _remember_recovery(s, jb, why, rid)
         _plan(s)
+        resolved_recovery = False
+        if got and jb.get("client") and s.get("state_before") == "confirmed":
+            pending = any(a.get("open") for i in refine for a in s["items"][i]["ac"]
+                          if a["id"] in (jb.get("open_ac") or {}).get(str(i), []))
+            if pending:
+                _remember_recovery(s, jb, "再理解完成，但仍有原待确认标准未补全；已保存答案，不能默认通过", rid)
+            elif jb.get("recovery_id"):
+                resolved_recovery = True
         if s.get("client_pending"):
-            _land_client(P, s)
+            if _land_client(P, s, jb.get("contracts")) is False:
+                _block_changed_recovery(P, s, jb, "落地时合同或工单状态发生变化，本次未完成恢复；当前合同已保留，请工程师核对")
+                _save(P.data_dir, s)
+                return
+        if resolved_recovery:
+            recovered = s.pop("understanding_recovery", None)
+            if recovered:
+                recovered.update(status="resolved", run=rid)
+                recovered["attempts"].append({"job": job, "run": rid, "status": "resolved", "reason": "已补全原待确认标准",
+                                               "at": time.strftime("%Y-%m-%d %H:%M:%S"), "requested_by": jb.get("requested_by", "")})
+                s.setdefault("understanding_recovery_history", []).append(recovered)
+        _bind_recovery(P, s)
         _save(P.data_dir, s)
 
 
@@ -1265,7 +1556,7 @@ def ask_client(P, sid: str, by: str, items: list | None = None, days: int = ASK_
     whose work has begun are not asked about."""
     with _LOCK:
         s = load(P.data_dir, sid, P)
-        if s["state"] in ("dropped", "understanding"):
+        if s["state"] == "dropped" or _reading(s):
             raise ApiError(409, "这段对话现在不能发问题")
         qs = [x for x in client_questions(s, items) if not _started(P, x[1])]
         if not qs:
@@ -1340,7 +1631,7 @@ def client_answer(P, token: str, answers: dict, name: str = "", wait: bool = Fal
         if x["expires"] < ev.now():
             raise ApiError(410, "链接已过期，请联系工程师重新发送")
         s = load(P.data_dir, x["session"], P)
-        if s["state"] in ("dropped", "understanding"):
+        if s["state"] == "dropped" or _reading(s):
             raise ApiError(409, "这段需求现在不能回答，稍后再试")
         if any(_started(P, s["items"][i]) for i in x["items"] if i < len(s["items"])):
             raise ApiError(409, "工程师已经开始做了，这些问题不用再答；有新情况请直接联系工程师")
@@ -1366,10 +1657,19 @@ def client_answer(P, token: str, answers: dict, name: str = "", wait: bool = Fal
         if name_:
             s["state_before"] = s["state"]
             s["state"] = "understanding"
-            s["understanding_job"] = {"agent": name_, "t0": time.time(), "id": uuid.uuid4().hex[:8], "refine": fresh,
-                                      "slots": {str(i): v for i, v in got.items()}, "client": True}
+            s["understanding_job"] = _new_job(name_, refine=fresh, slots={str(i): v for i, v in got.items()}, client=True,
+                                               open_ac=_open_contract(P, s, fresh) if was == "confirmed" else {})
+            if was == "confirmed":
+                s["understanding_job"]["binding"] = _recovery_binding(P, s, s["understanding_job"])
+                s["understanding_job"]["contracts"] = _contract_snapshot(P, s, fresh)
         else:
+            if fresh and was == "confirmed" and (s.get("understood") or {}).get("by") == "智能体":
+                s["state_before"] = "confirmed"
+                job = _new_job("", refine=fresh, slots={str(i): v for i, v in got.items()}, client=True,
+                               open_ac=_open_contract(P, s, fresh))
+                _remember_recovery(s, job, "客户答案已保存；需求理解智能体当前不可用或已达配额，本次未启动执行器")
             _land_client(P, s)
+            _bind_recovery(P, s)
         _save(P.data_dir, s)
     if name_:
         _spawn(P, P.project(s["project"]), s, name_, wait)
@@ -1388,7 +1688,7 @@ def beyond(old: list, new: list) -> list:
     return out
 
 
-def _land_client(P, s: dict) -> None:
+def _land_client(P, s: dict, contracts: dict | None = None) -> bool | None:
     """The client's answers reach the tickets. A criterion that was 待确认 is filled in (body, evidence, and the
     ticket goes on the line once nothing is 待确认); a change to what was already confirmed is held for the engineer.
     Called with _LOCK held and `s` about to be saved."""
@@ -1405,9 +1705,15 @@ def _land_client(P, s: dict) -> None:
         it = s["items"][i]
         t = P.store.ticket(it["ticket"]) if it.get("ticket") else None
         if not t or t["status"] == "closed":
+            if contracts is not None:
+                s["client_pending"] = cp
+                return False
             continue
         bad = beyond(client_ac(P.data_dir, t["key"]), it["ac"])
         if bad:
+            if contracts is not None:
+                s["client_pending"] = cp
+                return False
             with P.store.lock:
                 t = P.store.ticket(t["id"])
                 if not t or t["status"] == "closed":
@@ -1417,19 +1723,23 @@ def _land_client(P, s: dict) -> None:
             P.store.event(t["id"], who, "flow", "客户的答复会改动已经确认的验收标准（%s）：要工程师确认后才生效，在这之前按原来的标准，不自动开工"
                           % "、".join(bad))
             continue
-        _land_item(P, s, it, t, who, "客户答复")
+        if _land_item(P, s, it, t, who, "客户答复", (contracts or {}).get(t["key"])) is False:
+            s["client_pending"] = cp
+            return False
 
 
-def _land_item(P, s: dict, it: dict, t: dict, who: str, via: str) -> None:
+def _land_item(P, s: dict, it: dict, t: dict, who: str, via: str, expected_contract: list | None = None) -> bool | None:
     """An item's criteria into its ticket: body, evidence (the new contract), and on the line when nothing is open."""
-    from .signoff import _add, contract_changed, epath
+    from .signoff import _add, client_ac, contract_changed, epath
     new = ticket_body(s, it)
     opened = [a for a in it["ac"] if a["open"]]
     with P.store.lock:
         # links are replaced, not merged. A takeover or dependency set since the caller's snapshot must survive.
         t = P.store.ticket(t["id"])
         if not t or t["status"] == "closed":
-            return
+            return False if expected_contract is not None else None
+        if expected_contract is not None and client_ac(P.data_dir, t["key"]) != expected_contract:
+            return False
         body = t.get("body") or ""
         if (t.get("links") or {}).get("parent"):  # a child keeps its latest head; only its criteria section changes
             sec = re.search(r"## 验收标准[^\n]*\n(?:- [^\n]*\n?)*", new)
@@ -1490,8 +1800,12 @@ def accept_client_change(P, key: str, by: str, accept: bool = True) -> dict:
 
 def _client_next(P, s: dict, items: list) -> str:
     """Explain what follows the answer without promising work that is still waiting for confirmation or a person."""
-    if s["state"] == "understanding":
+    if _reading(s):
         return "正在根据您的答复补全需求，处理完成后会按确认结果安排后续工作。"
+    if (s.get("understanding_recovery") or {}).get("status") == "failed":
+        if s["understanding_recovery"].get("blocked_reason"):
+            return "您的答复已完整记录；需求或工单状态发生变化，需要工程师核对后继续，无需重复回答。"
+        return "您的答复已完整记录，但再理解未完成；工程师可按已保存的答复重试，无需重复回答。"
     if s["state"] != "confirmed":
         return "答复已记录，工程师确认需求后再安排开工。"
     tickets = [P.store.ticket(s["items"][i]["ticket"]) for i in items
@@ -1530,6 +1844,7 @@ def client_page(P, token: str, msg: str = "", done: bool = False) -> str:
         return ev.page("需求确认", "".join(body), CLIENT_CSS)
     if done or x.get("used"):
         body.append("<div class=done><b>收到，谢谢！</b><p>%s</p></div>" % E(_client_next(P, s, x["items"])))
+        body.append("<p><a href='/ask/%s'>刷新处理状态</a></p>" % E(token, quote=True))
         return ev.page("需求确认", "".join(body), CLIENT_CSS)
     if x["expires"] < ev.now():
         body.append("<p class=bad>这个链接已过期，请联系工程师重新发送。</p>")

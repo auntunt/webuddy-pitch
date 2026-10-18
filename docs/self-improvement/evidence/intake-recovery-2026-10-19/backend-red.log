@@ -1,0 +1,136 @@
+test_changed_answer_or_contract_requires_explicit_review (tests.test_intake_recovery.IntakeRecoveryTest.test_changed_answer_or_contract_requires_explicit_review) ... ERROR
+test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute (tests.test_intake_recovery.IntakeRecoveryTest.test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute) ... ERROR
+test_legacy_failure_is_recovered_only_with_original_answers_and_finished_run (tests.test_intake_recovery.IntakeRecoveryTest.test_legacy_failure_is_recovered_only_with_original_answers_and_finished_run) ... ERROR
+test_repeated_failure_and_cancel_remain_retryable_with_history (tests.test_intake_recovery.IntakeRecoveryTest.test_repeated_failure_and_cancel_remain_retryable_with_history) ... ERROR
+test_retry_success_keeps_confirmed_contract_and_customer_source (tests.test_intake_recovery.IntakeRecoveryTest.test_retry_success_keeps_confirmed_contract_and_customer_source) ... ERROR
+test_running_recovery_blocks_old_session_actions (tests.test_intake_recovery.IntakeRecoveryTest.test_running_recovery_blocks_old_session_actions) ... ERROR
+test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) ... 
+  test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) (blocker='hold') ... ERROR
+  test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) (blocker='handwork') ... ERROR
+  test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) (blocker='later') ... ERROR
+  test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) (blocker='closed') ... ERROR
+  test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) (blocker='off') ... ERROR
+test_timeout_preserves_answer_and_exposes_a_bound_read_only_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_timeout_preserves_answer_and_exposes_a_bound_read_only_recovery) ... ERROR
+test_unknown_answers_and_unverified_cleanup_do_not_become_executable (tests.test_intake_recovery.IntakeRecoveryTest.test_unknown_answers_and_unverified_cleanup_do_not_become_executable) ... ERROR
+
+======================================================================
+ERROR: test_changed_answer_or_contract_requires_explicit_review (tests.test_intake_recovery.IntakeRecoveryTest.test_changed_answer_or_contract_requires_explicit_review)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 232, in test_changed_answer_or_contract_requires_explicit_review
+    state = intake.recovery_state(self.P, key)
+            ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'recovery_state'
+
+======================================================================
+ERROR: test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute (tests.test_intake_recovery.IntakeRecoveryTest.test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 151, in test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute
+    old_job = intake.recovery_state(self.P, key)["job"]
+              ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'recovery_state'
+
+======================================================================
+ERROR: test_legacy_failure_is_recovered_only_with_original_answers_and_finished_run (tests.test_intake_recovery.IntakeRecoveryTest.test_legacy_failure_is_recovered_only_with_original_answers_and_finished_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 220, in test_legacy_failure_is_recovered_only_with_original_answers_and_finished_run
+    state = intake.recovery_state(self.P, key)
+            ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'recovery_state'
+
+======================================================================
+ERROR: test_repeated_failure_and_cancel_remain_retryable_with_history (tests.test_intake_recovery.IntakeRecoveryTest.test_repeated_failure_and_cancel_remain_retryable_with_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 139, in test_repeated_failure_and_cancel_remain_retryable_with_history
+    intake.retry_understanding(self.P, key, "工程师")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'retry_understanding'
+
+======================================================================
+ERROR: test_retry_success_keeps_confirmed_contract_and_customer_source (tests.test_intake_recovery.IntakeRecoveryTest.test_retry_success_keeps_confirmed_contract_and_customer_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 117, in test_retry_success_keeps_confirmed_contract_and_customer_source
+    state = intake.retry_understanding(self.P, key, "恢复操作员")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'retry_understanding'
+
+======================================================================
+ERROR: test_running_recovery_blocks_old_session_actions (tests.test_intake_recovery.IntakeRecoveryTest.test_running_recovery_blocks_old_session_actions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 174, in test_running_recovery_blocks_old_session_actions
+    intake.retry_understanding(self.P, key, "工程师")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'retry_understanding'
+
+======================================================================
+ERROR: test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) (blocker='hold')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 208, in test_takeover_dependency_closed_and_global_off_survive_recovery
+    intake.retry_understanding(self.P, key, "工程师")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'retry_understanding'
+
+======================================================================
+ERROR: test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) (blocker='handwork')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 208, in test_takeover_dependency_closed_and_global_off_survive_recovery
+    intake.retry_understanding(self.P, key, "工程师")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'retry_understanding'
+
+======================================================================
+ERROR: test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) (blocker='later')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 208, in test_takeover_dependency_closed_and_global_off_survive_recovery
+    intake.retry_understanding(self.P, key, "工程师")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'retry_understanding'
+
+======================================================================
+ERROR: test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) (blocker='closed')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 203, in test_takeover_dependency_closed_and_global_off_survive_recovery
+    intake.retry_understanding(self.P, key, "工程师")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'retry_understanding'
+
+======================================================================
+ERROR: test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) (blocker='off')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 208, in test_takeover_dependency_closed_and_global_off_survive_recovery
+    intake.retry_understanding(self.P, key, "工程师")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'retry_understanding'
+
+======================================================================
+ERROR: test_timeout_preserves_answer_and_exposes_a_bound_read_only_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_timeout_preserves_answer_and_exposes_a_bound_read_only_recovery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 104, in test_timeout_preserves_answer_and_exposes_a_bound_read_only_recovery
+    state = intake.recovery_state(self.P, key)
+            ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'recovery_state'
+
+======================================================================
+ERROR: test_unknown_answers_and_unverified_cleanup_do_not_become_executable (tests.test_intake_recovery.IntakeRecoveryTest.test_unknown_answers_and_unverified_cleanup_do_not_become_executable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 185, in test_unknown_answers_and_unverified_cleanup_do_not_become_executable
+    self.assertFalse(intake.recovery_state(self.P, key)["can_retry"])
+                     ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'tmh.platform.intake' has no attribute 'recovery_state'
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.183s
+
+FAILED (errors=13)

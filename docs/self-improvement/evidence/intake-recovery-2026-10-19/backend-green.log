@@ -1,0 +1,14 @@
+test_changed_answer_or_contract_requires_explicit_review (tests.test_intake_recovery.IntakeRecoveryTest.test_changed_answer_or_contract_requires_explicit_review) ... ok
+test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute (tests.test_intake_recovery.IntakeRecoveryTest.test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute) ... ok
+test_legacy_failure_is_recovered_only_with_original_answers_and_finished_run (tests.test_intake_recovery.IntakeRecoveryTest.test_legacy_failure_is_recovered_only_with_original_answers_and_finished_run) ... ok
+test_repeated_failure_and_cancel_remain_retryable_with_history (tests.test_intake_recovery.IntakeRecoveryTest.test_repeated_failure_and_cancel_remain_retryable_with_history) ... ok
+test_retry_success_keeps_confirmed_contract_and_customer_source (tests.test_intake_recovery.IntakeRecoveryTest.test_retry_success_keeps_confirmed_contract_and_customer_source) ... ok
+test_running_recovery_blocks_old_session_actions (tests.test_intake_recovery.IntakeRecoveryTest.test_running_recovery_blocks_old_session_actions) ... ok
+test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) ... ok
+test_timeout_preserves_answer_and_exposes_a_bound_read_only_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_timeout_preserves_answer_and_exposes_a_bound_read_only_recovery) ... ok
+test_unknown_answers_and_unverified_cleanup_do_not_become_executable (tests.test_intake_recovery.IntakeRecoveryTest.test_unknown_answers_and_unverified_cleanup_do_not_become_executable) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.258s
+
+OK

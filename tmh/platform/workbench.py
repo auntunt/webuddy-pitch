@@ -352,7 +352,7 @@ def states(P, tickets: list) -> dict:
     """
     if not tickets:
         return {}
-    from . import handwork
+    from . import handwork, intake
     from .store import RUN_MODES
     box = P.inbox(None)
     mine = {x["key"]: x for x in box["mine"]}
@@ -379,6 +379,7 @@ def states(P, tickets: list) -> dict:
     out = {}
     for t in tickets:
         k, links = t["key"], t.get("links") or {}
+        recovery = intake.recovery_state(P, k) if links.get("open_ac") else {}
         v = rel.get(t["id"], "")
         last, live = latest.get(t["id"], {}), running.get(t["id"])
         manual = links.get("handwork") or (links.get("hold") if last.get("agent") == "人工" else "")
@@ -393,6 +394,10 @@ def states(P, tickets: list) -> dict:
             s, why = "doing", "正在构建和审查%s的提交" % (manual or "人工")
         elif links.get("client_change"):
             s, why = "you", "客户的答复改动了已确认的验收标准，等你决定"
+        elif recovery.get("status") == "running":
+            s, why = "doing", "正在根据已保存答复补全验收标准"
+        elif recovery.get("status") in ("failed", "blocked"):
+            s, why = "you", "客户答复已保存，再理解未完成，等工程师处理"
         elif links.get("open_ac"):
             s, why = "client", "有 %d 条验收标准要和客户确认" % links["open_ac"]
         elif k in others:

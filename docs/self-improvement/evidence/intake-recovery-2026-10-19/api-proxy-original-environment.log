@@ -1,0 +1,32 @@
+test_page_and_guards (tests.test_platform.PlatformApiTest.test_page_and_guards) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 403: 'Forbidden'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+FAIL
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 502: 'Bad Gateway'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+test_similar_metrics_overrule_and_bot_api (tests.test_platform.PlatformApiTest.test_similar_metrics_overrule_and_bot_api) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ERROR
+
+======================================================================
+ERROR: test_similar_metrics_overrule_and_bot_api (tests.test_platform.PlatformApiTest.test_similar_metrics_overrule_and_bot_api)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_platform.py", line 2279, in test_similar_metrics_overrule_and_bot_api
+    self.assertEqual((code, r["kind"]), (200, "triage"))
+                            ~^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+FAIL: test_page_and_guards (tests.test_platform.PlatformApiTest.test_page_and_guards)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_platform.py", line 336, in test_page_and_guards
+    self.assertEqual(cm.exception.code, 403)  # DNS-rebinding guard
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 502 != 403
+
+----------------------------------------------------------------------
+Ran 2 tests in 3.788s
+
+FAILED (failures=1, errors=1)
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=4, family=2, type=1, proto=0, laddr=('127.0.0.1', 49936)>

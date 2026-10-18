@@ -1,0 +1,16 @@
+{
+  "baseline": "66c03493e0f6fd19a9e92a5decc4a05fe4d9d3a8",
+  "independent_tests": 12,
+  "compatibility_tests": 7,
+  "total": 19,
+  "passed": 19,
+  "real_model": false,
+  "production": false,
+  "source_sha256": {
+    "tmh/platform/intake.py": "bd66411bcc9751579a1aec56d4185ce9ab00f83c4618f7bce688217331ce3e43",
+    "tests/test_intake_recovery_independent.py": "1533cf5495b4e0e0d5e00ba017d643b9c27890662dc46c2e7a8d9332adf7e594",
+    "docs/self-improvement/evidence/intake-recovery-2026-10-19/independent-first.log": "a7765c152592981c81499544deabee186302fdae81c4246cd4c82fbdeb211600",
+    "docs/self-improvement/evidence/intake-recovery-2026-10-19/independent-closed-race-red.log": "95da20699c4caf1b44f45d741f64d81e60531866d4aa3b992e21b38d30b5eff9",
+    "docs/self-improvement/evidence/intake-recovery-2026-10-19/independent-final-closed-fix.log": "e7cb6a2640820ebecb77de36d802a1c009f4978466e4f8f5c6e50962516a5490"
+  }
+}

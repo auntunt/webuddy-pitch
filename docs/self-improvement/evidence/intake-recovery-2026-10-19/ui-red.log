@@ -1,0 +1,134 @@
+test_blocked_retry_and_closed_ticket_never_offer_execution (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_blocked_retry_and_closed_ticket_never_offer_execution) ... FAIL
+test_recovery_only_transition_refreshes_summary (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_recovery_only_transition_refreshes_summary) ... FAIL
+test_retry_posts_once_and_follows_success_without_clearing_drafts (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_retry_posts_once_and_follows_success_without_clearing_drafts) ... FAIL
+test_saved_answers_offer_recovery_instead_of_asking_the_customer_again (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_saved_answers_offer_recovery_instead_of_asking_the_customer_again) ... FAIL
+test_current_adopted_fix_never_uses_another_runs_branch_or_auto_claim (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_current_adopted_fix_never_uses_another_runs_branch_or_auto_claim) ... ok
+test_failure_retry_and_completion_refresh_summary_and_preserve_typed_drafts (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_failure_retry_and_completion_refresh_summary_and_preserve_typed_drafts) ... ok
+test_new_unadopted_fix_takes_precedence_over_old_verify_state (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_new_unadopted_fix_takes_precedence_over_old_verify_state) ... ok
+test_refresh_for_departed_ticket_does_not_touch_new_page (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_refresh_for_departed_ticket_does_not_touch_new_page) ... ok
+test_slow_older_refresh_cannot_replace_newer_summary (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_slow_older_refresh_cannot_replace_newer_summary) ... ok
+test_summary_refresh_does_not_overwrite_an_unsaved_status_choice (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_summary_refresh_does_not_overwrite_an_unsaved_status_choice) ... ok
+test_unchanged_summary_does_not_repaint_or_clear_focus (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_unchanged_summary_does_not_repaint_or_clear_focus) ... ok
+test_unrelated_run_modal_does_not_refresh_the_ticket (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_unrelated_run_modal_does_not_refresh_the_ticket) ... ok
+
+======================================================================
+FAIL: test_blocked_retry_and_closed_ticket_never_offer_execution (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_blocked_retry_and_closed_ticket_never_offer_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_ui.py", line 47, in test_blocked_retry_and_closed_ticket_never_offer_execution
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    const value=ticket([]);value.ticket.links={open_ac:1};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    assert.ok(!(action.btns||'').includes('naIntakeRetry'));assert.ok(action.text.includes('已闭环'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_run_sync.py", line 69, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:275:8
+    at [stdin]:280:3
+    at runScriptInThisContext (node:internal/vm:218:10)
+    at node:internal/process/execution:451:12
+    at [stdin]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:449:60)
+    at evalFunction (node:internal/process/execution:283:30)
+    at evalTypeScript (node:internal/process/execution:295:3)
+    at node:internal/main/eval_stdin:51:5
+    at Socket.<anonymous> (node:internal/process/execution:205:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+======================================================================
+FAIL: test_recovery_only_transition_refreshes_summary (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_recovery_only_transition_refreshes_summary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_ui.py", line 58, in test_recovery_only_transition_refreshes_summary
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    latest=ticket([]);latest.ticket.links={open_ac:1};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    assert.ok(nodes.tNextText.innerHTML.includes('再次失败'));assert.ok(nodes.tNextActions.innerHTML.includes('naIntakeRetry'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_run_sync.py", line 69, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+1 !== 2
+
+    at [stdin]:276:32
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 2,
+  operator: 'strictEqual'
+}
+
+
+======================================================================
+FAIL: test_retry_posts_once_and_follows_success_without_clearing_drafts (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_retry_posts_once_and_follows_success_without_clearing_drafts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_ui.py", line 28, in test_retry_posts_once_and_follows_success_without_clearing_drafts
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    latest=ticket([],'you','客户答复已保存，再理解未完成');latest.ticket.links={open_ac:1};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<13 lines>...
+    assert.equal(nodes.cm.value,'未发送评论');assert.equal(document.activeElement,nodes.cm);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_run_sync.py", line 69, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : TypeError: Cannot read properties of null (reading 'onclick')
+    at [stdin]:277:32
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+
+======================================================================
+FAIL: test_saved_answers_offer_recovery_instead_of_asking_the_customer_again (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_saved_answers_offer_recovery_instead_of_asking_the_customer_again)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_ui.py", line 13, in test_saved_answers_offer_recovery_instead_of_asking_the_customer_again
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    latest=ticket([],'you','客户答复已保存，再理解未完成');latest.ticket.links={open_ac:1};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    assert.ok(!nodes.tNextText.innerHTML.includes('<script>'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_run_sync.py", line 69, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:276:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.665s
+
+FAILED (failures=4)

@@ -1,0 +1,6 @@
+test_expired_retry_does_not_overwrite_a_newer_contract_during_fallback (tests.test_intake_recovery_independent.IndependentIntakeRecoveryTest.test_expired_retry_does_not_overwrite_a_newer_contract_during_fallback) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.126s
+
+OK

@@ -1,0 +1,192 @@
+{
+  "ticket": {
+    "id": 1,
+    "project_id": 1,
+    "num": 1,
+    "title": "事项编辑后保留原编号",
+    "body": "## 客户原话\n编辑已有事项后保存失败，希望修改完成后还能找到原事项\n\n## 我们的理解\n我理解的是：编辑已有事项后应能保存，并保留原事项编号和完成状态（缺陷），这是系统里还没有的新模块。\n\n## 补充的信息\n- 从什么时候：昨天（原话）\n- 影响谁：所有用户（原话）\n- 什么操作时：编辑已有事项后（原话）\n- 期望结果：保存并保留原事项（原话）\n- 保存遇到故障时，希望保留什么，恢复后怎么操作？ 完整保留输入；恢复后重试保存到原事项。原编号、完成状态和其他事项不变。（合成验收客户（客户） 答）\n\n## 验收标准（客户确认的，待确认的不得进入实现）\n- A1 当保存遇到故障时，系统应当完整保留输入；恢复后重试保存到原事项；怎么验：模拟保存失败，核对输入保留，恢复后重试并检查原事项编号及完成状态\n- A2 当用户取消编辑时，系统应当保留原事项内容；怎么验：修改输入后取消，重新打开事项并核对原内容\n- A3 必须保持：原事项编号、完成状态和其他事项保持不变；怎么验：跑现有测试，并抽查相邻功能\n\n来源：需求对话 86762c2a002d（web，自动流转 发起，1 轮，智能体理解）",
+    "type": "bug",
+    "status": "new",
+    "priority": "normal",
+    "assignee": "",
+    "reporter": "自动流转",
+    "labels": [],
+    "links": {
+      "intake": "86762c2a002d"
+    },
+    "external": {},
+    "created": "2026-10-19 02:29:27",
+    "updated": "2026-10-19 02:37:25",
+    "key": "INTREC-1"
+  },
+  "project": {
+    "id": 1,
+    "key": "INTREC",
+    "name": "事项编辑恢复 · 隔离技术验收",
+    "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/intake-recovery-verification-2026-10-19/sample-project",
+    "description": "",
+    "created": "2026-10-19 02:29:27"
+  },
+  "events": [
+    {
+      "id": 1,
+      "ticket_id": 1,
+      "ts": "2026-10-19 02:29:27",
+      "author": "自动流转",
+      "kind": "created",
+      "body": "创建工单",
+      "data": {}
+    },
+    {
+      "id": 2,
+      "ticket_id": 1,
+      "ts": "2026-10-19 02:29:27",
+      "author": "自动流转",
+      "kind": "evidence",
+      "body": "需求对话确认后建单：3 条验收标准，1 条待确认",
+      "data": {}
+    },
+    {
+      "id": 3,
+      "ticket_id": 1,
+      "ts": "2026-10-19 02:29:27",
+      "author": "自动流转",
+      "kind": "flow",
+      "body": "有验收标准还待确认，先不自动开始：把问题发给客户，答复回来就自动开始",
+      "data": {}
+    },
+    {
+      "id": 4,
+      "ticket_id": 1,
+      "ts": "2026-10-19 02:29:27",
+      "author": "自动流转",
+      "kind": "flow",
+      "body": "把 1 个问题发给客户（链接 7 天内有效），答复回来就补全验收标准",
+      "data": {}
+    },
+    {
+      "id": 5,
+      "ticket_id": 1,
+      "ts": "2026-10-19 02:32:40",
+      "author": "合成验收客户（客户）",
+      "kind": "edit",
+      "body": "修改了描述",
+      "data": {}
+    },
+    {
+      "id": 6,
+      "ticket_id": 1,
+      "ts": "2026-10-19 02:32:40",
+      "author": "合成验收客户（客户）",
+      "kind": "evidence",
+      "body": "客户答复了问题：验收标准更新为 3 条，还有 1 条待确认",
+      "data": {}
+    },
+    {
+      "id": 7,
+      "ticket_id": 1,
+      "ts": "2026-10-19 02:37:22",
+      "author": "需求理解",
+      "kind": "flow",
+      "body": "自动流转 请求按已保存的客户答复重新理解；客户来源保留，不代表验收通过",
+      "data": {}
+    },
+    {
+      "id": 8,
+      "ticket_id": 1,
+      "ts": "2026-10-19 02:37:25",
+      "author": "合成验收客户（客户）",
+      "kind": "edit",
+      "body": "修改了描述",
+      "data": {}
+    },
+    {
+      "id": 9,
+      "ticket_id": 1,
+      "ts": "2026-10-19 02:37:25",
+      "author": "合成验收客户（客户）",
+      "kind": "evidence",
+      "body": "客户答复了问题：验收标准更新为 3 条，都已确认",
+      "data": {}
+    },
+    {
+      "id": 10,
+      "ticket_id": 1,
+      "ts": "2026-10-19 02:37:25",
+      "author": "自动流转",
+      "kind": "flow",
+      "body": "验收标准都已确认，可以开工了",
+      "data": {}
+    }
+  ],
+  "runs": [],
+  "intake_recovery": {
+    "session": "86762c2a002d",
+    "status": "resolved",
+    "can_retry": false,
+    "blocked": [],
+    "reason": "已根据保存的客户答复完成再理解",
+    "run": null,
+    "job": "",
+    "attempts": [
+      {
+        "job": "a84526ea",
+        "run": 2,
+        "status": "failed",
+        "reason": "智能体退出码 124：运行停止：达到整次任务总时限。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。\n\nSYNTHETIC timeout fixture; child PID 74134; original answer remains in prompt\n",
+        "at": "2026-10-19 02:32:40",
+        "requested_by": ""
+      },
+      {
+        "job": "7af882ea",
+        "run": 3,
+        "status": "resolved",
+        "reason": "已补全原待确认标准",
+        "at": "2026-10-19 02:37:25",
+        "requested_by": "自动流转"
+      }
+    ],
+    "items": []
+  },
+  "plain_state": {
+    "state": "you",
+    "label": "等你看",
+    "why": "自动处理关着，没人接手",
+    "version": ""
+  },
+  "evidence": {
+    "analysis": null,
+    "fix": null,
+    "refs": 0,
+    "verified": 0,
+    "guesses": 0,
+    "flows": 0,
+    "flows_written": 0
+  },
+  "auto_next": "",
+  "package": {
+    "status": "none",
+    "label": "未生成",
+    "missing": [
+      "验收标准（AC）",
+      "代码改动",
+      "验证门全部通过（没有没过或未知的）",
+      "乙方复核人"
+    ],
+    "intact": true,
+    "problem": "",
+    "hash": "b587b8be555c9a190c00505dee330d3d159601056f705340cc3fa18616eb9efe",
+    "records": 3,
+    "page": "/e/INTREC-1",
+    "attachments": 0,
+    "review": null,
+    "link": null,
+    "decision": null,
+    "gates": null,
+    "gate_state": "",
+    "proofs": [],
+    "ac_source": ""
+  },
+  "epic": null,
+  "parent": null
+}

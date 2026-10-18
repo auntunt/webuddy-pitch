@@ -1,0 +1,11 @@
+test_closed_ticket_stays_closed_everywhere_and_rejects_retry_without_writes (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_closed_ticket_stays_closed_everywhere_and_rejects_retry_without_writes) ... ok
+test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages) ... ok
+test_http_retry_requires_write_header_and_missing_ticket_does_not_delegate (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_http_retry_requires_write_header_and_missing_ticket_does_not_delegate) ... ok
+test_missing_executor_blocks_retry_with_a_409_and_keeps_saved_answers (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_missing_executor_blocks_retry_with_a_409_and_keeps_saved_answers) ... ok
+test_real_http_retry_has_running_state_and_blocks_duplicate_until_complete (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_real_http_retry_has_running_state_and_blocks_duplicate_until_complete) ... ok
+test_retry_delegates_canonical_key_actor_and_wait_without_replacing_customer_words (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_retry_delegates_canonical_key_actor_and_wait_without_replacing_customer_words) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 3.863s
+
+OK

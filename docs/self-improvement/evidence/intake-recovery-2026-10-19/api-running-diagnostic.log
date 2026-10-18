@@ -1,0 +1,249 @@
+{
+  "http": 200,
+  "response": {
+    "session": "13b4af9ff028",
+    "status": "resolved",
+    "can_retry": false,
+    "blocked": [],
+    "reason": "已根据保存的客户答复完成再理解",
+    "run": null,
+    "job": "",
+    "attempts": [
+      {
+        "job": "bcafefd1",
+        "run": 2,
+        "status": "failed",
+        "reason": "智能体退出码 7：SYNTHETIC interpretation failed; saved answers must survive\n",
+        "at": "2026-10-19 02:32:26",
+        "requested_by": ""
+      },
+      {
+        "job": "f133deea",
+        "run": 3,
+        "status": "resolved",
+        "reason": "已补全原待确认标准",
+        "at": "2026-10-19 02:32:26",
+        "requested_by": "恢复操作员"
+      }
+    ],
+    "items": []
+  },
+  "session": {
+    "id": "13b4af9ff028",
+    "project": "RECAPI",
+    "by": "工程师",
+    "channel": "web",
+    "text": "保存后列表看不到记录",
+    "created": "2026-10-19 02:32:26",
+    "state": "confirmed",
+    "rounds": 1,
+    "items": [
+      {
+        "text": "保存后列表看不到记录",
+        "title": "保存后列表可见",
+        "kind": "bug",
+        "kind_by": "智能体",
+        "by": "智能体",
+        "restated": "我理解的是：保存后列表应出现记录",
+        "flows": [],
+        "flow": null,
+        "new_module": true,
+        "slots": {
+          "q1": {
+            "value": "马上显示 <保留客户原文>",
+            "from": "王总（客户）",
+            "unsure": false
+          }
+        },
+        "asked": [
+          "q1"
+        ],
+        "answer": "",
+        "agent_q": [
+          {
+            "q": "保存后应该多久可见？",
+            "options": [],
+            "blocks": [
+              "A1"
+            ],
+            "slot": "q1"
+          }
+        ],
+        "agent_ac": [
+          {
+            "id": "A1",
+            "text": "保存后应当马上看到记录",
+            "check": "保存一条记录并检查列表",
+            "layer": "L2"
+          },
+          {
+            "id": "A2",
+            "text": "旧记录内容保持不变",
+            "check": "核对旧记录原文",
+            "layer": "L2"
+          }
+        ],
+        "keep": [
+          "权限范围保持不变"
+        ],
+        "questions": [],
+        "ac": [
+          {
+            "id": "A1",
+            "text": "保存后应当马上看到记录",
+            "layer": "L2",
+            "check": "保存一条记录并检查列表",
+            "open": false
+          },
+          {
+            "id": "A2",
+            "text": "旧记录内容保持不变",
+            "layer": "L2",
+            "check": "核对旧记录原文",
+            "open": false
+          },
+          {
+            "id": "A3",
+            "text": "必须保持：权限范围保持不变",
+            "layer": "L1",
+            "check": "跑现有测试，并抽查相邻功能",
+            "open": false,
+            "keep": true
+          }
+        ],
+        "ticket": "RECAPI-1",
+        "refined": true
+      }
+    ],
+    "tickets": [
+      "RECAPI-1"
+    ],
+    "title": "保存后可见",
+    "dropped": [],
+    "understood": {
+      "by": "智能体",
+      "agent": "reader",
+      "run": 3
+    },
+    "suggest_big": false,
+    "updated": "2026-10-19 02:32:26",
+    "confirmed_by": "工程师",
+    "confirmed_at": "2026-10-19 02:32:26",
+    "asked_client": [
+      {
+        "by": "工程师",
+        "at": "2026-10-19 02:32:26",
+        "expires": "2026-10-26 02:32:26",
+        "questions": 1
+      }
+    ],
+    "understanding_recovery_history": [
+      {
+        "id": "bcafefd1",
+        "refine": [
+          0
+        ],
+        "slots": {
+          "0": [
+            "q1"
+          ]
+        },
+        "open_ac": {
+          "0": [
+            "A1"
+          ]
+        },
+        "client": {
+          "by": "王总（客户）",
+          "items": [
+            0
+          ]
+        },
+        "attempts": [
+          {
+            "job": "bcafefd1",
+            "run": 2,
+            "status": "failed",
+            "reason": "智能体退出码 7：SYNTHETIC interpretation failed; saved answers must survive\n",
+            "at": "2026-10-19 02:32:26",
+            "requested_by": ""
+          },
+          {
+            "job": "f133deea",
+            "run": 3,
+            "status": "resolved",
+            "reason": "已补全原待确认标准",
+            "at": "2026-10-19 02:32:26",
+            "requested_by": "恢复操作员"
+          }
+        ],
+        "status": "resolved",
+        "reason": "智能体退出码 7：SYNTHETIC interpretation failed; saved answers must survive\n",
+        "run": 3,
+        "job": "f133deea",
+        "no_spawn": false,
+        "binding": "16d5dba7d0639a0b0c64c9095542c1dce9f5af803478d7e63d8d568895a622c1",
+        "requested_by": "恢复操作员"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "id": 3,
+      "ticket_id": null,
+      "project_id": 1,
+      "agent": "reader",
+      "mode": "understand",
+      "status": "done",
+      "author": "工程师",
+      "created": "2026-10-19 02:32:26",
+      "started": "2026-10-19 02:32:26",
+      "ended": "2026-10-19 02:32:26",
+      "exit_code": 0,
+      "target": "再读：保存后列表看不到记录",
+      "decision": "",
+      "result": "```tmh-intake\n{\"title\": \"保存后可见\", \"items\": [{\"title\": \"保存后列表可见\", \"quote\": \"保存后列表看不到记录\", \"kind\": \"缺陷\", \"restated\": \"我理解的是：保存后列表应出现记录\", \"flow\": \"新模块\", \"questions\": [], \"ac\": [{\"id\": \"A1\", \"text\": \"保存后应当马上看到记录\", \"check\": \"保存一条记录并检查列表\"}, {\"id\": \"A2\", \"text\": \"旧记录内容保持不变\", \"check\": \"核对旧记录原文\"}], \"keep\": [\"权限范围保持不变\"]}]}\n```",
+      "session_id": null,
+      "batch": "",
+      "model": ""
+    },
+    {
+      "id": 2,
+      "ticket_id": null,
+      "project_id": 1,
+      "agent": "reader",
+      "mode": "understand",
+      "status": "failed",
+      "author": "工程师",
+      "created": "2026-10-19 02:32:26",
+      "started": "2026-10-19 02:32:26",
+      "ended": "2026-10-19 02:32:26",
+      "exit_code": 7,
+      "target": "再读：保存后列表看不到记录",
+      "decision": "",
+      "result": "SYNTHETIC interpretation failed; saved answers must survive",
+      "session_id": null,
+      "batch": "",
+      "model": ""
+    },
+    {
+      "id": 1,
+      "ticket_id": null,
+      "project_id": 1,
+      "agent": "reader",
+      "mode": "understand",
+      "status": "done",
+      "author": "工程师",
+      "created": "2026-10-19 02:32:26",
+      "started": "2026-10-19 02:32:26",
+      "ended": "2026-10-19 02:32:26",
+      "exit_code": 0,
+      "target": "保存后列表看不到记录",
+      "decision": "",
+      "result": "```tmh-intake\n{\"title\": \"保存后可见\", \"items\": [{\"title\": \"保存后列表可见\", \"quote\": \"保存后列表看不到记录\", \"kind\": \"缺陷\", \"restated\": \"我理解的是：保存后列表应出现记录\", \"flow\": \"新模块\", \"questions\": [{\"q\": \"保存后应该多久可见？\", \"blocks\": [\"A1\"]}], \"ac\": [{\"id\": \"A1\", \"text\": \"保存后应当【待确认：多久】看到记录\", \"check\": \"保存一条记录并检查列表\"}, {\"id\": \"A2\", \"text\": \"旧记录内容保持不变\", \"check\": \"核对旧记录原文\"}], \"keep\": [\"权限范围保持不变\"]}]}\n```",
+      "session_id": null,
+      "batch": "",
+      "model": ""
+    }
+  ]
+}

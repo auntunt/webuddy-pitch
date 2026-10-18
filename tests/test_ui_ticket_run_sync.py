@@ -49,7 +49,7 @@ function ticket(runs,state='doing',why='AI 正在修改代码'){
  return {ticket:{key:'APP-7',status:'doing',links:{},body:'保留事项编辑内容',title:'修改事项',created:'2026-10-18 21:00:00'},
   project:{key:'APP'},runs,events:[],evidence:{refs:0},plain_state:{state,why},package:{status:'none'}};
 }
-let d=ticket([initialRun]),latest=d,current=initialRun,summaryReads=0,applied=0;
+const key='APP-7';let d=ticket([initialRun]),latest=d,current=initialRun,summaryReads=0,applied=0;
 let f,na;
 const save=()=>{},run=()=>{},pvLoad=()=>{},hwLoad=()=>{};
 getHandler=async url=>{

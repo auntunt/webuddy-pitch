@@ -441,6 +441,16 @@ function nextAction(d,f){
   const B=(id,label,cls)=>`<button id="${id}" class="${cls||''}">${label}</button>`;
   const auto=onAuto(d),br=adopted(d);
   if(f.live)return {tone:'info',text:`<span class="spin"></span> 智能体正在${h(moLabel(f.live.mode))}${auto&&f.live.author==='自动流转'?'，跑完会自动接着往下做，直到提交到独立分支等你验收':'，完成后这里会给出下一步'}。`,btns:B('naLog','看实时过程','ghost')+(auto?`<button class="ghost" data-hold="1">接管</button>`:'')};
+  const ir=d.intake_recovery;
+  if(t.status!=='closed'&&ir&&['failed','blocked','running'].includes(ir.status)){
+    const answers=(ir.items||[]).flatMap(it=>(it.answers||[]).map(a=>`<div style="margin-top:6px;white-space:pre-wrap">${h(a.question)}<br><b>${h(a.value)}</b> <span class="sub">${h(a.from||'')}</span></div>`)).join('');
+    const history=(ir.attempts||[]).map(a=>`<div style="margin-top:6px;white-space:pre-wrap">${h(a.at||'')}${a.run?' · 运行 #'+h(a.run):''}：${h(a.reason||a.status||'')}</div>`).join('');
+    return {tone:ir.status==='running'?'info':'warn',text:(ir.status==='running'?'<span class="spin"></span> 正在根据已保存答复补全验收标准。':'<b>客户答复已保存，再理解未完成。</b> 请处理已保存的答复。')+
+      '<div class="sub">已有答案无需重复填写；已确认的标准继续保留。</div>'+
+      (ir.status!=='running'&&(ir.blocked||[]).length?'<div style="white-space:pre-wrap">'+ir.blocked.map(h).join('<br>')+'</div>':'')+
+      (answers||history||ir.reason?'<details style="margin-top:8px"><summary>查看已保存答复与处理记录</summary>'+(ir.reason?'<div style="white-space:pre-wrap">'+h(ir.reason)+'</div>':'')+answers+history+'</details>':''),
+      btns:(ir.can_retry?B('naIntakeRetry','重试理解已保存答复','primary'):'')+(ir.run?B('naIntakeLog','查看理解运行','ghost'):'')};
+  }
   const lt=(t.links||{}).later;  // held off the line by an app: a feature's parent, or a child waiting for its batch
   if(d.epic&&t.status==='closed')return {tone:'ok',text:'大需求已整体验收通过，全部完成。要再改，请提一个新的需求。'};
   if(lt&&t.status!=='closed'){if(d.epic&&t.status==='verify')return {tone:'warn',text:'全部子单都完成了，<b>等你整体验收</b>：对照规格卡的整体验收标准和每个子单的版本验证。通过就关闭这个大需求；不通过写明原因，会自动开一个跟进子单按原因重改。',acc:true};
@@ -497,7 +507,7 @@ function isMachine(a){return !a||['自动流转','system','知识库','agent','�
 function ticketRunCount(runs){const points=runs.reduce((a,r)=>a+(r.points||0),0);return `${runs.length} 次运行${points?' · 共 '+points+' 点':''}`}
 function ticketRunHistory(runs){return runs.length>1?'<span class="sub">全部运行：</span> '+runs.map(r=>`<a href="javascript:void 0" onclick="showRun(${r.id})">#${r.id} ${h(moLabel(r.mode))}${['queued','running'].includes(r.status)?' <span class="spin"></span>':''}${r.points?' · '+h(r.points)+' 点':''}</a>`).join('　'):''}
 function ticketSummarySync(initial,changed){
-  const key=initial.ticket.key,anchor=$('#tTop'),signature=d=>JSON.stringify([d.ticket,d.plain_state,d.runs.map(r=>[r.id,r.status,r.decision,r.points,r.verify,r.result]),d.events.length,d.evidence,d.auto_next,d.package?.status]);
+  const key=initial.ticket.key,anchor=$('#tTop'),signature=d=>JSON.stringify([d.ticket,d.plain_state,d.intake_recovery,d.runs.map(r=>[r.id,r.status,r.decision,r.points,r.verify,r.result]),d.events.length,d.evidence,d.auto_next,d.package?.status]);
   let applied=signature(initial),request=0;
   return async()=>{const seq=++request,n=await get('/api/tickets/'+encodeURIComponent(key));
     if(seq!==request||!anchor?.isConnected||$('#tTop')!==anchor||S.cur?.ticket?.key!==key)return null;
@@ -509,8 +519,15 @@ function ticketSummarySync(initial,changed){
     $('#tNextActions').innerHTML=na.btns||'';$('#tNextActions').hidden=!na.btns;
     $('#tRunCount').textContent=ticketRunCount(n.runs);$('#tRunHistory').innerHTML=ticketRunHistory(n.runs);$('#tStatus').innerHTML=stPill(n.ticket.status);
     const status=$('#fs');if(status&&document.activeElement!==status&&status.value===prior.ticket.status)status.value=n.ticket.status;
+    if(n.ticket.body!==prior.ticket.body&&$('#bodyv')&&!$('#be'))$('#bodyv').innerHTML=md(n.ticket.body||'');
     changed(n);ticketTopWire(n,na);if(focused)$('#'+focused)?.focus({preventScroll:true});applied=next;return n;
   }
+}
+function watchIntakeRecovery(key){
+  stopPolls('intake');const refresh=S.ticketRefresh;
+  if(S.cur?.ticket?.key!==key||S.cur?.intake_recovery?.status!=='running')return;
+  poll(async()=>{if(S.ticketRefresh!==refresh||S.cur?.ticket?.key!==key)return stopPolls('intake');
+    try{const n=await refresh();if(n?.intake_recovery?.status!=='running')stopPolls('intake')}catch(e){}},1500,'intake');
 }
 async function vTicket(key,sub){
   let d=await get('/api/tickets/'+key);const t=d.ticket;S.cur=d;setProj(d.project.key);paintSel();A.setTicket(t);
@@ -605,6 +622,10 @@ async function vTicket(key,sub){
   if($('#naAsk'))$('#naAsk').onclick=async()=>{try{const r=await post('/api/tickets/'+key+'/ask-client',{});const url=location.origin+r.path;
     try{await navigator.clipboard.writeText(url)}catch(e){}modal(`<h2>把问题发给客户</h2><div class="sub">${r.questions} 个问题，${h(r.expires.slice(5,16))} 前有效${r.told_chat?'；已同时发到这单来源的群里':''}。客户用大白话回答，答复会写回验收标准，答清楚就自动开始。</div><input class="full" readonly value="${h(url)}" onclick="this.select()" style="margin-top:8px"><div class="sub" style="margin-top:6px">链接已复制，发给客户（微信、短信都行）。</div>`)}catch(e){toast(e.message,6000)}};
   ['naCcYes','naCcNo'].forEach(id=>{if($('#'+id))$('#'+id).onclick=()=>post('/api/tickets/'+key+'/client-change',{accept:id==='naCcYes'}).then(()=>{toast(id==='naCcYes'?'已采用，验收标准已更新':'已保留原来的验收标准');vTicket(key)}).catch(e=>toast(e.message,6000))});
+  if($('#naIntakeRetry')){const button=$('#naIntakeRetry');button.onclick=async()=>{if(button.disabled)return;button.disabled=true;const refresh=S.ticketRefresh;
+    try{await post('/api/tickets/'+key+'/intake-retry',{});if(S.ticketRefresh===refresh&&S.cur?.ticket?.key===key){await refresh();watchIntakeRecovery(key)}}
+    catch(e){toast(e.message,6000)}finally{button.disabled=false}};}
+  if($('#naIntakeLog'))$('#naIntakeLog').onclick=()=>showRun(d.intake_recovery.run);
   const hwBtn=id=>()=>{const b=$(id);if(b)return b.click();$('#engc').open=true;toast('稍等，开工包还在准备')};
   if($('#naHwPack'))$('#naHwPack').onclick=hwBtn('#hwPack');if($('#naHwScan'))$('#naHwScan').onclick=hwBtn('#hwScan');
   if($('#naClaim'))$('#naClaim').onclick=()=>post('/api/tickets/'+key+'/claim',{}).then(()=>{toast('已认领：自动处理不会再接这张单');vTicket(key)}).catch(e=>toast(e.message,6000));
@@ -614,6 +635,7 @@ async function vTicket(key,sub){
   if($('#naLog'))$('#naLog').onclick=()=>{const r=f.live||d.runs[0];if(r)showRun(r.id,true);openLog()};if($('#naReview'))$('#naReview').onclick=()=>{showRun(f.fx.id,true);openLog()};};
   wireNext();pkgWire(d);upWire(d);pvLoad(key);hwLoad(d);epicWire(d);
   S.ticketRefresh=ticketSummarySync(d,n=>{d=n;f=flowState(n);na=nextAction(n,f);wireNext()});
+  watchIntakeRecovery(key);
   document.querySelectorAll('#aiCard .seg button').forEach(b=>b.onclick=()=>{
     if(b.dataset.m==='fix'&&!d.runs.some(r=>r.mode!=='fix'&&r.status==='done')){if(!window.confirmFix){window.confirmFix=1;toast('还没有分析或方案结论，建议先分析定位。再点一次直接修改。',4000);return}}
     run(b.dataset.m,$('#ag').value,$('#md').value)});
