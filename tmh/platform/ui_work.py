@@ -242,14 +242,7 @@ function planless(s){return String(s||'').replace(/```tmh-[a-z]+[\s\S]*?```/g,''
 function planReadable(s){return String(s||'').replace(/```tmh-plan\s*([\s\S]*?)```/g,(m,j)=>{let p;try{p=JSON.parse(j)}catch(e){return m}
   const fs=(p.files||[]).map(f=>`- \`${f.path}\`：${f.goal||''}`).join('\n'),ac=(p.ac||[]).map(a=>`- ${a.id||''} ${a.text||''}${a.check?'（怎么验：'+a.check+'）':''}`).join('\n');
   return (fs?'**要改的文件**\n\n'+fs+'\n\n':'')+(ac?'**方案自己的检查项**\n\n'+ac+'\n':'')})}
-function plainState(d,f){const t=d.ticket,ev=d.events||[],k=d.package||{};
-  if(t.status==='closed'){const r=ev.filter(e=>e.kind==='release').pop();return r?['shipped','已出版本 '+((r.data||{}).version||'')]:['done','已关闭']}
-  if(f.live)return ['doing','AI 正在'+(MODE[f.live.mode]||moLabel(f.live.mode))];
-  if((t.links||{}).handwork&&t.status!=='verify')return ['doing',t.links.handwork+' 在写'];
-  if((t.links||{}).open_ac)return ['client','有 '+t.links.open_ac+' 条验收标准要和客户确认'];
-  if(t.status==='verify')return k.link&&!k.decision&&['ready','incomplete'].includes(k.status)?['client','等 '+(k.link.signer||'客户')+' 签收']:['you','改好了，等你看'];
-  if(f.fx&&f.fx.status==='done'&&!f.fx.decision&&f.fx.diff!=='')return ['you','改好了，等你审阅'];
-  return ['doing',{new:'刚收到',analyzing:'在分析',confirm:'在定方案，等你确认',doing:'在改'}[t.status]||'']}
+function plainState(d){const s=d.plain_state;return s?[s.state,s.why]:['you','状态尚未加载，请刷新']}
 function ticketTop(d,f,na){const t=d.ticket,[s,why]=plainState(d,f);const said=secOf(t.body||'',['原话'])||symptomOf(t);
   return `<div class="card ttop"><div class="row" style="margin:0;align-items:center;gap:8px">${stChip(s)}<span class="sub">${h(why)}</span><span id="ttCl"></span></div>
    <dl><dt>客户要的</dt><dd>${h(clip(said,240))}</dd><dt>下一步</dt><dd class="na ${na.tone}">${na.text}</dd></dl>

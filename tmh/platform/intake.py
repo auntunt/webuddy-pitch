@@ -1400,8 +1400,12 @@ def _land_client(P, s: dict) -> None:
             continue
         bad = beyond(client_ac(P.data_dir, t["key"]), it["ac"])
         if bad:
-            it["held_change"] = {"by": who, "at": time.strftime("%Y-%m-%d %H:%M:%S"), "what": bad, "ac": it["ac"]}
-            P.store.update_ticket(t["id"], who, links=dict(t.get("links") or {}, client_change=s["id"]))
+            with P.store.lock:
+                t = P.store.ticket(t["id"])
+                if not t or t["status"] == "closed":
+                    continue
+                it["held_change"] = {"by": who, "at": time.strftime("%Y-%m-%d %H:%M:%S"), "what": bad, "ac": it["ac"]}
+                P.store.update_ticket(t["id"], who, links=dict(t.get("links") or {}, client_change=s["id"]))
             P.store.event(t["id"], who, "flow", "客户的答复会改动已经确认的验收标准（%s）：要工程师确认后才生效，在这之前按原来的标准，不自动开工"
                           % "、".join(bad))
             continue
@@ -1411,35 +1415,46 @@ def _land_client(P, s: dict) -> None:
 def _land_item(P, s: dict, it: dict, t: dict, who: str, via: str) -> None:
     """An item's criteria into its ticket: body, evidence (the new contract), and on the line when nothing is open."""
     from .signoff import _add, contract_changed, epath
-    body = t.get("body") or ""
     new = ticket_body(s, it)
-    if (t.get("links") or {}).get("parent"):  # a child keeps its own head; only the criteria section changes
-        sec = re.search(r"## 验收标准[^\n]*\n(?:- [^\n]*\n?)*", new)
-        body = re.sub(r"## 验收标准[^\n]*\n(?:- [^\n]*\n?)*", lambda m: sec.group(0).rstrip("\n") + "\n", body, count=1) if sec else body
-    else:
-        body = new
     opened = [a for a in it["ac"] if a["open"]]
-    links = dict(t.get("links") or {})
-    links.pop("client_change", None)
-    if opened:
-        links["open_ac"] = len(opened)
-    else:
-        links.pop("open_ac", None)
-    P.store.update_ticket(t["id"], who, body=body, links=links)
-    _add(epath(P.data_dir, t["key"]), "intake", who, intake_record(s, it, who, via=via))
-    P.store.event(t["id"], who, "evidence", "%s：验收标准更新为 %d 条%s" % (
-        "客户答复了问题" if via == "客户答复" else via, len(it["ac"]), "，还有 %d 条待确认" % len(opened) if opened else "，都已确认"))
+    with P.store.lock:
+        # links are replaced, not merged. A takeover or dependency set since the caller's snapshot must survive.
+        t = P.store.ticket(t["id"])
+        if not t or t["status"] == "closed":
+            return
+        body = t.get("body") or ""
+        if (t.get("links") or {}).get("parent"):  # a child keeps its latest head; only its criteria section changes
+            sec = re.search(r"## 验收标准[^\n]*\n(?:- [^\n]*\n?)*", new)
+            body = re.sub(r"## 验收标准[^\n]*\n(?:- [^\n]*\n?)*", lambda m: sec.group(0).rstrip("\n") + "\n", body, count=1) if sec else body
+        else:
+            body = new
+        links = dict(t.get("links") or {})
+        links.pop("client_change", None)
+        if opened:
+            links["open_ac"] = len(opened)
+        else:
+            links.pop("open_ac", None)
+        t = P.store.update_ticket(t["id"], who, body=body, links=links)
+        _add(epath(P.data_dir, t["key"]), "intake", who, intake_record(s, it, who, via=via))
+        P.store.event(t["id"], who, "evidence", "%s：验收标准更新为 %d 条%s" % (
+            "客户答复了问题" if via == "客户答复" else via, len(it["ac"]), "，还有 %d 条待确认" % len(opened) if opened else "，都已确认"))
     contract_changed(P, P.store.ticket(t["id"]), who)
-    if opened or links.get("later"):
-        return
-    held = _held(dict(t, links=links))
-    if held:
-        P.store.event(t["id"], "自动流转", "flow", "验收标准都已确认；这张单由 %s 手写，不交给自动处理" % held)
-    elif P.flow.autoflow().get("on"):
-        P.store.event(t["id"], "自动流转", "flow", "验收标准都已确认，交给自动处理")
-        P.flow.resume(P.project(s["project"]), P.store.ticket(t["id"]))
-    else:
-        P.store.event(t["id"], "自动流转", "flow", "验收标准都已确认，可以开工了")
+    with P.store.lock:
+        # Packing may take time. Re-read before starting, and let a takeover and this handoff serialize here.
+        t = P.store.ticket(t["id"])
+        if not t or t["status"] not in ("new", "analyzing", "confirm", "doing"):
+            return
+        links = t.get("links") or {}
+        if opened or links.get("open_ac") or links.get("client_change") or links.get("later"):
+            return
+        held = _held(t)
+        if held:
+            P.store.event(t["id"], "自动流转", "flow", "验收标准都已确认；这张单已由 %s 接管，不交给自动处理" % held)
+        elif P.flow.autoflow().get("on"):
+            P.store.event(t["id"], "自动流转", "flow", "验收标准都已确认，交给自动处理")
+            P.flow.resume(P.project(s["project"]), t)
+        else:
+            P.store.event(t["id"], "自动流转", "flow", "验收标准都已确认，可以开工了")
 
 
 def accept_client_change(P, key: str, by: str, accept: bool = True) -> dict:
@@ -1457,10 +1472,36 @@ def accept_client_change(P, key: str, by: str, accept: bool = True) -> dict:
         if accept:
             _land_item(P, s, it, t, by, "工程师确认了客户答复带来的改动")
         else:
-            P.store.update_ticket(t["id"], by, links={k: v for k, v in (t.get("links") or {}).items() if k != "client_change"})
+            with P.store.lock:
+                t = P.store.ticket(t["id"])
+                P.store.update_ticket(t["id"], by, links={k: v for k, v in (t.get("links") or {}).items() if k != "client_change"})
             P.store.event(t["id"], by, "flow", "没有采用客户答复带来的改动（%s），按原来确认的验收标准" % "、".join(hc.get("what") or []))
         _save(P.data_dir, s)
     return P.store.ticket(t["id"])
+
+
+def _client_next(P, s: dict, items: list) -> str:
+    """Explain what follows the answer without promising work that is still waiting for confirmation or a person."""
+    if s["state"] == "understanding":
+        return "正在根据您的答复补全需求，处理完成后会按确认结果安排后续工作。"
+    if s["state"] != "confirmed":
+        return "答复已记录，工程师确认需求后再安排开工。"
+    tickets = [P.store.ticket(s["items"][i]["ticket"]) for i in items
+               if i < len(s["items"]) and s["items"][i].get("ticket")]
+    tickets = [t for t in tickets if t]
+    if tickets and all(t["status"] == "closed" for t in tickets):
+        return "这项工作已完成验收，您的补充已记录，后续调整请联系工程师确认。"
+    if any((t.get("links") or {}).get("client_change") for t in tickets):
+        return "您的补充涉及已确认内容的变更，需要工程师确认后再安排。"
+    if any((t.get("links") or {}).get("open_ac") for t in tickets):
+        return "答复已记录，仍有验收标准需要确认，补齐后再安排开工。"
+    if any(_held(t) for t in tickets):
+        return "这项工作已由工程师接管，会结合您的答复安排后续工作。"
+    if any((t.get("links") or {}).get("later") for t in tickets):
+        return "答复已记录，前面的任务完成后会按顺序安排这项工作。"
+    if not tickets or not P.flow.autoflow().get("on"):
+        return "答复已记录，工程师会根据已确认的需求安排后续工作。"
+    return "答复已记录，我们会按已确认的验收标准继续处理，做好了会请您试用。"
 
 
 def client_page(P, token: str, msg: str = "", done: bool = False) -> str:
@@ -1475,12 +1516,12 @@ def client_page(P, token: str, msg: str = "", done: bool = False) -> str:
     s = load(P.data_dir, x["session"], P)
     p = P.store.project(s["project"]) if P.store else None
     title = s.get("title") or "需求确认"
-    body = ["<h1>%s</h1><p class=sub>%s · 请帮我们确认几个问题，答完就开工</p>" % (E(title), E((p or {}).get("name", "")))]
+    body = ["<h1>%s</h1><p class=sub>%s · 请帮我们补全需求，确认验收标准后安排开工</p>" % (E(title), E((p or {}).get("name", "")))]
     if x.get("used") in USED:
         body.append("<p class=bad>%s</p>" % E(USED[x["used"]]))
         return ev.page("需求确认", "".join(body), CLIENT_CSS)
     if done or x.get("used"):
-        body.append("<div class=done><b>收到，谢谢！</b><p>我们会按您的答复写好验收标准并开工，做好了会请您试用。</p></div>")
+        body.append("<div class=done><b>收到，谢谢！</b><p>%s</p></div>" % E(_client_next(P, s, x["items"])))
         return ev.page("需求确认", "".join(body), CLIENT_CSS)
     if x["expires"] < ev.now():
         body.append("<p class=bad>这个链接已过期，请联系工程师重新发送。</p>")

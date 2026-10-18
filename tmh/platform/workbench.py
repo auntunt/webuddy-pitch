@@ -345,32 +345,85 @@ def _released(P, tids: list) -> dict:
 
 
 def states(P, tickets: list) -> dict:
-    """ticket key -> {"state", "label", "why", "version"} in plain words, from the inbox's view of what waits on whom."""
+    """The shared state for requirements, clients and ticket details: who is actually working or waiting.
+
+    A paused or failed run is not work in progress. A hand-written submission has already finished its synthetic
+    run while its real build/review is still busy, so look at the handwork check as well as agent runs.
+    """
+    if not tickets:
+        return {}
+    from . import handwork
+    from .store import RUN_MODES
     box = P.inbox(None)
     mine = {x["key"]: x for x in box["mine"]}
     others = {x["key"]: x for x in box["others"]}
-    rel = _released(P, [t["id"] for t in tickets])
-    running = {r["ticket_id"] for r in P.store.q("SELECT DISTINCT ticket_id FROM runs WHERE status IN ('queued','running') AND ticket_id IS NOT NULL")}
+    ids = [t["id"] for t in tickets]
+    rel = _released(P, ids)
+    marks = ",".join("?" * len(ids))
+    latest = {r["ticket_id"]: r for r in P.store.q(
+        "SELECT r.id, r.ticket_id, r.agent, r.mode, r.status FROM runs r JOIN "
+        "(SELECT ticket_id, MAX(id) id FROM runs WHERE ticket_id IN (%s) AND mode!='ask' GROUP BY ticket_id) x "
+        "ON r.id=x.id" % marks, ids)}
+    running = {r["ticket_id"]: r for r in P.store.q(
+        "SELECT ticket_id, mode, status FROM runs WHERE ticket_id IN (%s) AND status IN ('queued','running') "
+        "AND mode!='ask' ORDER BY id" % marks, ids)}
+    checks = {}
+    for e in P.store.q("SELECT ticket_id, data FROM events WHERE ticket_id IN (%s) "
+                       "AND author='我来写' AND kind='flow' ORDER BY id" % marks, ids):
+        data, run = e.get("data") or {}, latest.get(e["ticket_id"], {})
+        # Reminders are also flow events. Keep the actual check for the current submission, never an older
+        # submission's failure after a new one arrives, nor a reminder in place of the latest verdict.
+        if run.get("agent") == "人工" and data.get("run") == run["id"] and data.get("verdict") in ("pass", "fail", "unknown"):
+            checks[e["ticket_id"]] = data
+    modes = dict(RUN_MODES)
     out = {}
     for t in tickets:
         k, links = t["key"], t.get("links") or {}
         v = rel.get(t["id"], "")
+        last, live = latest.get(t["id"], {}), running.get(t["id"])
+        manual = links.get("handwork") or (links.get("hold") if last.get("agent") == "人工" else "")
+        check = checks.get(t["id"], {})
         if t["status"] == "closed":
-            s, why = ("shipped", "已合进主干") if v else ("done", "已关闭")
-        elif t["id"] in running:
-            s, why = "doing", "AI 正在做"
-        elif k in others:
-            s, why = "client", others[k]["label"]
+            s, why = ("shipped", "已出版本 " + v) if v else ("done", "已关闭")
+        elif live:
+            s, why = "doing", "等待智能体开始%s" % modes.get(live["mode"], "处理") if live["status"] == "queued" else "AI 正在%s" % modes.get(live["mode"], "处理")
+            if links.get("hold"):
+                why += "；当前步骤结束后暂停"
+        elif handwork.busy(k):
+            s, why = "doing", "正在构建和审查%s的提交" % (manual or "人工")
+        elif links.get("client_change"):
+            s, why = "you", "客户的答复改动了已确认的验收标准，等你决定"
         elif links.get("open_ac"):
             s, why = "client", "有 %d 条验收标准要和客户确认" % links["open_ac"]
-        elif k in mine and mine[k]["reason"] != "stalled":
-            s, why = "you", mine[k]["label"]
+        elif k in others:
+            s, why = "client", others[k]["label"]
+        elif t["status"] == "verify":
+            s, why = "you", mine[k]["label"] if k in mine else "改好了，等你验收"
+        elif manual:
+            if check.get("verdict") in ("fail", "unknown"):
+                s, why = "you", ("提交检查没通过" if check["verdict"] == "fail" else "提交还没检查完") + "，等 %s 处理" % manual
+            else:
+                s, why = "doing", "%s 在写" % manual
+        elif links.get("hold"):
+            s, why = "you", "%s 已接管，自动处理暂停" % links["hold"]
+        elif (links.get("epic") or {}).get("paused"):
+            s, why = "you", "大需求暂停：" + links["epic"]["paused"]
         elif links.get("later"):
-            s, why = "doing", "排队，等前面的做完"
+            s, why = "doing", links["later"]
+        elif k in mine:
+            s, why = "you", mine[k]["label"]
+        elif last.get("status") in ("failed", "cancelled"):
+            s, why = "you", "智能体没跑成，等你处理" if last["status"] == "failed" else "运行已取消，等你继续"
+        elif not box.get("auto"):
+            s, why = "you", "自动处理已关闭，等人继续"
+        elif not box.get("agent"):
+            s, why = "you", "没有可用的智能体，等你处理"
         else:
-            s, why = "doing", {"new": "刚收到", "analyzing": "在分析", "confirm": "在定方案", "doing": "在改", "verify": "改好了"}.get(t["status"], "")
-            if k in mine:
-                why = mine[k]["label"]
+            step, _ = P.flow.next_step(t)
+            if step:
+                s, why = "doing", "等待自动处理继续"
+            else:
+                s, why = "you", {"analyze": "分析已完成，等你确认下一步", "plan": "方案已完成，等你决定如何实现"}.get(last.get("mode"), "没有可自动执行的下一步，等你处理")
         out[k] = {"state": s, "label": STATE_LABEL[s], "why": why, "version": v}
     return out
 

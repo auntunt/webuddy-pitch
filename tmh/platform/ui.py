@@ -415,8 +415,9 @@ function nextAction(d,f){
     btns:B('naCcYes','采用客户的改动','primary')+B('naCcNo','不采用，按原标准','ghost')};
   const hw=(t.links||{}).handwork;
   const hwe=(d.events||[]).filter(e=>e.author==='我来写').pop();
+  const hwr=(d.runs||[]).find(r=>r.mode!=='ask'),hwc=hwr&&hwr.agent==='人工'&&(d.events||[]).filter(e=>e.author==='我来写'&&e.kind==='flow'&&(e.data||{}).run===hwr.id&&['pass','fail','unknown'].includes((e.data||{}).verdict)).pop();
   if(hw&&!['verify','closed'].includes(t.status)&&hwe&&hwe.kind==='flow'&&/^收到/.test(hwe.body||''))return {tone:'info',text:`<span class="spin"></span> ${h(hwe.body)}：构建测试、对照验收标准审查，通过就转待验证。`};
-  if(hw&&!['verify','closed'].includes(t.status)&&hwe&&/还不行|没检查完/.test(hwe.body||''))return {tone:'bad',text:h(hwe.body),btns:B('naHwScan','改好推上去了，现在检查','primary')};
+  if(hw&&!['verify','closed'].includes(t.status)&&hwc&&['fail','unknown'].includes(hwc.data.verdict))return {tone:'bad',text:h(hwc.body),btns:B('naHwScan','改好推上去了，现在检查','primary')};
   if(hw&&!['verify','closed'].includes(t.status))return {tone:'info',text:`<b>${h(hw)} 在写</b>：按开工包在自己电脑上改（Claude Code、Codex 或手写都行），提交到分支 <code>wb/${h(t.key)}</code> 推上去。平台一分钟内发现，自动构建测试、换一个模型对照验收标准审查，通过就转待验证；自动处理不会接这张单。`,
     btns:B('naHwPack','下载开工包','primary')+B('naHwScan','推好了，现在检查','ghost')};
   const oa=(t.links||{}).open_ac;
@@ -846,7 +847,10 @@ function pkgWire(d){const key=d.ticket.key,F=$('#pkForm');if(!F)return;
       try{await P({kind:'attach',ac:$('#pkAc').value,note:$('#pkNote').value,image});toast('已加到证据包');vTicket(key)}catch(e){toast(e.message,5000)}}};
   if($('#pkRev'))$('#pkRev').onclick=()=>{const k=d.package||{},m=k.missing||[];
     const open=(k.gates||[]).filter(g=>g.state!=='pass'&&!(g.state==='fail'&&(g.id==='build'||g.id==='test')));
-    F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><textarea id="pkRn" placeholder="复核意见：看了什么、结论是什么" style="min-height:56px"></textarea>
+    const exception=open.length||(!k.gates&&(m.includes('改动没超出方案')||m.includes('改动落在本单的业务流上')));
+    if(!exception){const b=$('#pkRev');b.disabled=true;
+      return P({kind:'review',note:''}).then(()=>{toast('已记录复核');vTicket(key)}).catch(e=>{b.disabled=false;toast(e.message,5000)})}
+    F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><div class="sub">有需要确认的例外；只需为要放行的项目写明理由。</div><details><summary>${!k.gates?'复核意见（认可范围例外时必填）':'补充复核意见（可选）'}</summary><textarea id="pkRn" placeholder="看了什么、为什么认可这项例外" style="min-height:56px"></textarea></details>
      ${!k.gates&&m.includes('改动没超出方案')?'<label class="sub"><input type="checkbox" id="pkSc" style="width:auto"> 超出方案的改动我看过，认可（要写理由）</label>':''}
      ${!k.gates&&m.includes('改动落在本单的业务流上')?'<label class="sub"><input type="checkbox" id="pkPa" style="width:auto"> 不在业务流上的改动我看过，认可（要写理由）</label>':''}
      ${open.length?`<div class="sub">要放行没通过的验证门，逐条写理由（不写就不放行；构建、测试没过只能改代码）：</div>${open.map(g=>`<input class="pkW" data-g="${h(g.id)}" placeholder="放行“${h(g.name)}”的理由">`).join('')}`:''}

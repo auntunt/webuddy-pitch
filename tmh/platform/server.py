@@ -1825,9 +1825,10 @@ def api_ticket(P, req, key):
             r["verify"] = {k: v.get(k) for k in ("check", "skip", "verdict", "rounds", "split", "beyond_plan")} if v else None
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
-    from . import epic, signoff
+    from . import epic, signoff, workbench
     par = P.store.ticket(t["links"]["parent"]) if (t.get("links") or {}).get("parent") else None
     return {"ticket": t, "project": p, "events": P.store.events(t["id"]), "runs": [r for r in runs if r["mode"] != "ask"],
+            "plain_state": workbench.states(P, [t])[t["key"]],
             "evidence": P.ticket_evidence(p, t, runs), "auto_next": P.flow.next_step(t, retry=True)[0],
             "package": signoff.brief(P.data_dir, t["key"]), "epic": epic.view(P, t) if epic.is_parent(t) else None,
             "parent": {"key": par["key"], "title": par["title"], "status": par["status"]} if par else None}
