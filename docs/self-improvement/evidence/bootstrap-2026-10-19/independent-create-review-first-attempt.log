@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/bootstrap-2026-10-19/independent_create_review.py", line 113, in <module>
+    main()
+    ~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/bootstrap-2026-10-19/independent_create_review.py", line 61, in main
+    assert root == data / "projects" / "INDCREATE"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

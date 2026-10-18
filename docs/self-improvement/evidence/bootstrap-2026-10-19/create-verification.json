@@ -1,0 +1,25 @@
+{
+  "fixture": "isolated temporary platform created through project_bootstrap.create; no real service/data used",
+  "temporary_fixture_deleted_after_verification": true,
+  "generated_files": {
+    "app.py": {
+      "bytes": 13173,
+      "sha256": "a5bc89078052bc070b96e46255408721e88ce92750c91eef01fa973d7739a009"
+    },
+    "tests/test_app.py": {
+      "bytes": 40250,
+      "sha256": "6c3c1764893238ba21814da34cee7f99acc3bc90807c65a1a42075d83027b208"
+    }
+  },
+  "build_exit_code": 0,
+  "test_exit_code": 0,
+  "application_tests": 26,
+  "previous_tests_preserved_verbatim": 23,
+  "new_tests": [
+    "test_edit_crlf_database_failure_retries_original_item",
+    "test_edit_crlf_logical_length_boundaries",
+    "test_edit_crlf_preserves_record_across_restart_and_prefixes"
+  ],
+  "git_status_porcelain": "",
+  "generated_project_commit": "6c2269dd8b0a7fba769704e48e21718b044ea813"
+}

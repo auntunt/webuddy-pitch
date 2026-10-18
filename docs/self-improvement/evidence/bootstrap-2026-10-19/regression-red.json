@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "unittest",
+    "-v",
+    "test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries",
+    "test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes",
+    "test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item"
+  ],
+  "isolated_temporary_fixture": true,
+  "app": "unchanged project_bootstrap.APP at a75113c",
+  "tests": "three previously verified BOOTV2 CRLF methods",
+  "exit_code": 1,
+  "test_methods": [
+    "test_edit_crlf_logical_length_boundaries",
+    "test_edit_crlf_preserves_record_across_restart_and_prefixes",
+    "test_edit_crlf_database_failure_retries_original_item"
+  ]
+}

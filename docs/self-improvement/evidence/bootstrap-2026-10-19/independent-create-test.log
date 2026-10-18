@@ -1,0 +1,1261 @@
+test_create_failure_form_still_retries_creation (test_app.ApplicationTest.test_create_failure_form_still_retries_creation) ... ok
+test_create_persist_and_complete (test_app.ApplicationTest.test_create_persist_and_complete) ... ok
+test_data_survives_server_restart (test_app.ApplicationTest.test_data_survives_server_restart) ... ok
+test_edit_above_recovery_window_rejects_headers_without_reading_body (test_app.ApplicationTest.test_edit_above_recovery_window_rejects_headers_without_reading_body) ... ok
+test_edit_accepts_boundary_lengths_and_preserves_original_text (test_app.ApplicationTest.test_edit_accepts_boundary_lengths_and_preserves_original_text) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f597b0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a2f0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f59e40>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a4d0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a6b0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a980>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a7a0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f59d50>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b100>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b1f0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a890>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b2e0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5ab60>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f59b70>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b5b0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b790>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5aa70>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b880>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a5c0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b6a0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bb50>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5ba60>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b3d0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5be20>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bd30>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bc40>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bf10>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c130>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c040>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c220>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c310>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b4c0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_edit_body_limit_preserves_exact_8192_byte_boundary (test_app.ApplicationTest.test_edit_body_limit_preserves_exact_8192_byte_boundary) ... ok
+test_edit_crlf_database_failure_retries_original_item (test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item) ... ok
+test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b970>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c4f0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c400>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c5e0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c6d0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ce50>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d3f0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d6c0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d4e0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d8a0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d5d0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26cd60>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26db70>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26da80>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d990>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26df30>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26de40>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e110>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e200>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e4d0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e3e0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e6b0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26dd50>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e020>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e890>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e7a0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ea70>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e5c0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26eb60>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e980>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ec50>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e2f0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ef20>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ee30>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ed40>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f010>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f2e0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f1f0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f4c0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f100>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f5b0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f790>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f6a0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f970>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f880>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fb50>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d7b0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38040>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38130>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fe20>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38310>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38220>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ff10>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38400>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab386d0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab385e0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab384f0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab389a0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab387c0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38b80>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab388b0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38a90>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38e50>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38d60>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39120>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38c70>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39300>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38f40>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39030>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab394e0>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/parser.py:49: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39210>
+  feedparser = FeedParser(self._class, policy=self.policy)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) ... ok
+test_edit_csrf_and_missing_item_errors_keep_input_without_writes (test_app.ApplicationTest.test_edit_csrf_and_missing_item_errors_keep_input_without_writes) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ff10>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fb50>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d7b0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f970>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fe20>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f790>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f880>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f6a0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f4c0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f5b0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f2e0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f100>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f1f0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ee30>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ed40>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e2f0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f010>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e980>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ef20>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ec50>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ea70>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26eb60>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e890>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e5c0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e7a0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e6b0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26dd50>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e4d0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e020>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e110>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e3e0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e200>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d990>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26de40>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26db70>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26df30>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26da80>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d8a0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d5d0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d6c0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fc40>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c130>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d4e0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d3f0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26cf40>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ce50>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26cd60>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fa60>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c040>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c220>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c6d0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c400>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c310>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a6b0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c5e0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f597b0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f3d0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f59e40>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a980>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fd30>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5ab60>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a2f0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b970>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f59d50>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b100>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a7a0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b1f0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b2e0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a890>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f59b70>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5aa70>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c4f0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5ba60>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b5b0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a4d0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b880>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bf10>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b6a0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b790>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bc40>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b3d0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5be20>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38040>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38130>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38220>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bd30>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38400>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bb50>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab385e0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38310>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a5c0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab388b0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab386d0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab387c0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38b80>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38a90>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab389a0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38e50>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38d60>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38f40>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38c70>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39210>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b4c0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab393f0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39120>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab384f0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39030>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab397b0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab396c0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39300>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39a80>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39990>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab398a0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39d50>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39c60>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39e40>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39b70>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a110>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab395d0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a2f0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a020>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab394e0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a5c0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a3e0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a4d0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a890>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a7a0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a6b0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3ab60>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3aa70>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3ac50>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a980>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3af20>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39f30>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b100>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3ae30>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a200>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b010>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b4c0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b3d0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b1f0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b5b0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b6a0>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b880>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3ba60>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/email/message.py:156: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b790>
+  def __init__(self, policy=compat32):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_edit_escaping_and_links_work_with_empty_and_preview_prefixes (test_app.ApplicationTest.test_edit_escaping_and_links_work_with_empty_and_preview_prefixes) ... ok
+test_edit_failure_retains_empty_and_invalid_input_before_revalidation (test_app.ApplicationTest.test_edit_failure_retains_empty_and_invalid_input_before_revalidation) ... ok
+test_edit_preserves_id_state_and_other_items_across_restart (test_app.ApplicationTest.test_edit_preserves_id_state_and_other_items_across_restart) ... ok
+test_edit_recovery_rejects_malformed_or_incomplete_body_without_write (test_app.ApplicationTest.test_edit_recovery_rejects_malformed_or_incomplete_body_without_write) ... ok
+test_edit_recovery_window_retains_complete_input_at_boundary (test_app.ApplicationTest.test_edit_recovery_window_retains_complete_input_at_boundary) ... ok
+test_edit_rejects_invalid_input_and_retries_original_item (test_app.ApplicationTest.test_edit_rejects_invalid_input_and_retries_original_item) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b4c0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bb50>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5be20>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bd30>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a5c0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b790>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bf10>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5bc40>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b880>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b6a0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a4d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b3d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5ba60>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b5b0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f59b70>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5aa70>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b1f0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b2e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a890>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f59d50>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b970>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f597b0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f59e40>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a2f0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a6b0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f3d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fd30>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c5e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c400>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c310>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c6d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c220>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c040>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ce50>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c4f0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5ab60>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d3f0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26cf40>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a980>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d4e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d6c0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fc40>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d5d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26da80>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d8a0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26df30>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26db70>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26de40>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e3e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26c130>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fa60>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e020>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e110>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26cd60>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e4d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e7a0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e6b0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e5c0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26eb60>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e890>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ea70>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ec50>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ef20>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e2f0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26dd50>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5a7a0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ed40>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f010>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e980>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ee30>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f2e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f5b0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f1f0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f100>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f4c0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f6a0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f880>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f594e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fe20>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26e200>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d990>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26d7b0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f970>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26f790>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38040>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38130>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26fb50>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38310>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38220>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38400>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10a26ff10>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab386d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab385e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab389a0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109f5b100>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38a90>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x109b796c0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38c70>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab387c0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38d60>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38b80>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39030>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38f40>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab38e50>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39120>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab393f0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39300>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39210>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab396c0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab395d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab394e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39a80>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39b70>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39990>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab397b0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39d50>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39c60>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39f30>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab384f0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a110>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab388b0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a2f0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab39e40>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a3e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a200>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a6b0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a5c0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a4d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a7a0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a020>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3ab60>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3aa70>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a980>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3ac50>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3ae30>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3a890>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b100>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b010>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3af20>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b3d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b2e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b1f0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b4c0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b790>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b6a0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b5b0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b970>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3bb50>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3b880>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3ba60>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3bc40>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3ad40>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab80040>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab80130>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3be20>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab80310>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab80220>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab3bf10>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab80400>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab806d0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/html/parser.py:443: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10ab805e0>
+  m = attrfind_tolerant.match(rawdata, k)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_edit_rejects_invalid_percent_encoded_utf8_without_changing_records (test_app.ApplicationTest.test_edit_rejects_invalid_percent_encoded_utf8_without_changing_records) ... ok
+test_edit_storage_failure_keeps_actual_action_and_retries_only_target (test_app.ApplicationTest.test_edit_storage_failure_keeps_actual_action_and_retries_only_target) ... ok
+test_oversized_body_cannot_save_valid_edit_or_create (test_app.ApplicationTest.test_oversized_body_cannot_save_valid_edit_or_create) ... ok
+test_oversized_edit_checks_csrf_and_retains_full_input (test_app.ApplicationTest.test_oversized_edit_checks_csrf_and_retains_full_input) ... ok
+test_oversized_edit_keeps_complete_input_and_retries_original_item (test_app.ApplicationTest.test_oversized_edit_keeps_complete_input_and_retries_original_item) ... ok
+test_oversized_edit_missing_item_and_database_failure_keep_recovery (test_app.ApplicationTest.test_oversized_edit_missing_item_and_database_failure_keep_recovery) ... ok
+test_oversized_edit_uses_first_values_and_decodes_field_names (test_app.ApplicationTest.test_oversized_edit_uses_first_values_and_decodes_field_names) ... ok
+test_storage_failure_is_visible_and_keeps_pending_input (test_app.ApplicationTest.test_storage_failure_is_visible_and_keeps_pending_input) ... ok
+test_user_text_is_escaped_and_health_is_real (test_app.ApplicationTest.test_user_text_is_escaped_and_health_is_real) ... ok
+test_validation_and_csrf (test_app.ApplicationTest.test_validation_and_csrf) ... ok
+
+----------------------------------------------------------------------
+Ran 26 tests in 1.422s
+
+OK

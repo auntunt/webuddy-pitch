@@ -1,0 +1,55 @@
+{"candidate": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/bootstrap-2026-10-19/before-app.py", "sha256": "7b3f7f05591c4e473a421ee9334d1bb716a280d87c79c69fa77737fb73fd2b76", "database": "temporary per test", "port": "random loopback per server", "existing_services_used": false, "browser_acceptance_performed": false}
+test_201_rejected_complete_input_retained_then_same_item_retried (__main__.NoPrefixAcceptance.test_201_rejected_complete_input_retained_then_same_item_retried) ... ok
+test_blank_csrf_and_missing_item_rejections_leave_database_unchanged (__main__.NoPrefixAcceptance.test_blank_csrf_and_missing_item_rejections_leave_database_unchanged) ... ok
+test_database_failure_retains_boundary_input_and_retries_only_original (__main__.NoPrefixAcceptance.test_database_failure_retains_boundary_input_and_retries_only_original) ... FAIL
+test_escape_cancel_and_existing_completion_behaviors_survive (__main__.NoPrefixAcceptance.test_escape_cancel_and_existing_completion_behaviors_survive) ... ok
+test_invalid_utf8_is_rejected_without_silent_replacement (__main__.NoPrefixAcceptance.test_invalid_utf8_is_rejected_without_silent_replacement) ... ok
+test_native_crlf_200_saves_exact_text_id_state_refresh_and_restart (__main__.NoPrefixAcceptance.test_native_crlf_200_saves_exact_text_id_state_refresh_and_restart) ... FAIL
+test_201_rejected_complete_input_retained_then_same_item_retried (__main__.PreviewPrefixAcceptance.test_201_rejected_complete_input_retained_then_same_item_retried) ... ok
+test_blank_csrf_and_missing_item_rejections_leave_database_unchanged (__main__.PreviewPrefixAcceptance.test_blank_csrf_and_missing_item_rejections_leave_database_unchanged) ... ok
+test_database_failure_retains_boundary_input_and_retries_only_original (__main__.PreviewPrefixAcceptance.test_database_failure_retains_boundary_input_and_retries_only_original) ... FAIL
+test_escape_cancel_and_existing_completion_behaviors_survive (__main__.PreviewPrefixAcceptance.test_escape_cancel_and_existing_completion_behaviors_survive) ... ok
+test_invalid_utf8_is_rejected_without_silent_replacement (__main__.PreviewPrefixAcceptance.test_invalid_utf8_is_rejected_without_silent_replacement) ... ok
+test_native_crlf_200_saves_exact_text_id_state_refresh_and_restart (__main__.PreviewPrefixAcceptance.test_native_crlf_200_saves_exact_text_id_state_refresh_and_restart) ... FAIL
+
+======================================================================
+FAIL: test_database_failure_retains_boundary_input_and_retries_only_original (__main__.NoPrefixAcceptance.test_database_failure_retains_boundary_input_and_retries_only_original)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/runtime-2026-10-18/bootv2/independent_acceptance.py", line 204, in test_database_failure_retains_boundary_input_and_retries_only_original
+    self.assertEqual(status, 303, "Recovery must save the full 200-character title, not create another item")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 400 != 303 : Recovery must save the full 200-character title, not create another item
+
+======================================================================
+FAIL: test_native_crlf_200_saves_exact_text_id_state_refresh_and_restart (__main__.NoPrefixAcceptance.test_native_crlf_200_saves_exact_text_id_state_refresh_and_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/runtime-2026-10-18/bootv2/independent_acceptance.py", line 174, in test_native_crlf_200_saves_exact_text_id_state_refresh_and_restart
+    self.assertEqual(status, 303, "200 textarea characters must save after native CRLF serialization")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 400 != 303 : 200 textarea characters must save after native CRLF serialization
+
+======================================================================
+FAIL: test_database_failure_retains_boundary_input_and_retries_only_original (__main__.PreviewPrefixAcceptance.test_database_failure_retains_boundary_input_and_retries_only_original)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/runtime-2026-10-18/bootv2/independent_acceptance.py", line 204, in test_database_failure_retains_boundary_input_and_retries_only_original
+    self.assertEqual(status, 303, "Recovery must save the full 200-character title, not create another item")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 400 != 303 : Recovery must save the full 200-character title, not create another item
+
+======================================================================
+FAIL: test_native_crlf_200_saves_exact_text_id_state_refresh_and_restart (__main__.PreviewPrefixAcceptance.test_native_crlf_200_saves_exact_text_id_state_refresh_and_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/runtime-2026-10-18/bootv2/independent_acceptance.py", line 174, in test_native_crlf_200_saves_exact_text_id_state_refresh_and_restart
+    self.assertEqual(status, 303, "200 textarea characters must save after native CRLF serialization")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 400 != 303 : 200 textarea characters must save after native CRLF serialization
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.266s
+
+FAILED (failures=4)
+{"tests": 12, "failures": 4, "errors": 0, "successful": false, "source_unchanged": true}

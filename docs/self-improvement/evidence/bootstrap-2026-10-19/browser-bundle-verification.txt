@@ -1,0 +1,5 @@
+The bundle contains this ref:
+eecdee9054beb07e1517c735d1d14a1cb862d298 refs/heads/main
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/bootstrap-2026-10-19/BOOTNEW-source.bundle is okay

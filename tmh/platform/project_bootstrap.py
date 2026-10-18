@@ -177,7 +177,9 @@ def make_server(address, database, prefix="", title="我的应用"):
                         return self.edit_page(item_id, raw_title, 404, '事项不存在')
                     if n > SAVE_BODY_LIMIT:
                         return self.edit_page(item_id, raw_title, 413, '表单内容超过 8192 字节，事项应为 1 到 200 字；请修改后重试。')
-                    if not raw_title.strip() or len(raw_title) > 200:
+                    # Native textarea forms encode one line break as CRLF.
+                    title_length = len(raw_title) - raw_title.count("\r\n")
+                    if not raw_title.strip() or title_length > 200:
                         return self.edit_page(item_id, raw_title, 400, '事项应为 1 到 200 字，不能全为空白')
                     cur = db.execute('UPDATE items SET title=? WHERE id=?', (raw_title, item_id))
                     if not cur.rowcount:
@@ -878,6 +880,111 @@ class ApplicationTest(unittest.TestCase):
                     self.assertEqual(status, 400)
                     self.assertIn("表单格式错误", page)
                     self.assertEqual(self.rows(), before)
+
+
+    def test_edit_crlf_logical_length_boundaries(self):
+        item_id = self.create("换行边界前标题")
+        self.create("其他事项保持原样")
+        accepted = "事" * 100 + "\r\n" + "项" * 99
+        cases = (
+            ("native_200", accepted, 303),
+            ("native_201", accepted + "项", 400),
+            ("lf_200", "事" * 100 + "\n" + "项" * 99, 303),
+            ("cr_200", "事" * 100 + "\r" + "项" * 99, 303),
+            ("two_crlf_200", "事" * 99 + "\r\n" + "项" * 99 + "\r\n", 303),
+            ("separate_cr_and_crlf_201", "事" * 199 + "\r\r\n", 400),
+            # Keep Python's existing code-point semantics beyond the CRLF fix.
+            ("supplementary_200", "🙂" * 200, 303),
+            ("supplementary_201", "🙂" * 201, 400),
+            ("combining_200", "e\u0301" * 100, 303),
+            ("combining_201", "e\u0301" * 100 + "e", 400),
+        )
+        for label, title, expected_status in cases:
+            with self.subTest(case=label):
+                before = self.rows()
+                body = urlencode({"csrf": self.csrf(), "title": title}).encode("ascii")
+                if label.startswith("native_"):
+                    # These are the bytes a native textarea form sends for its LF value.
+                    self.assertIn(b"%0D%0A", body)
+                    self.assertEqual(len(title), 201 if expected_status == 303 else 202)
+                self.assertLessEqual(len(body), 8192)
+                status, headers, page = self.call_raw_response("POST", self.edit_path(item_id), body)
+                self.assertEqual(status, expected_status)
+                if expected_status == 400:
+                    self.assertIn("200", "".join(Page(page).text))
+                    action, fields = self.edit_form(page, item_id, title)
+                    self.assertEqual(self.rows(), before)
+                    fields["title"] = accepted
+                    status, headers, _ = self.call_response("POST", action, fields)
+                    self.assertEqual(status, 303)
+                    title = accepted
+                self.assertEqual(headers.get("Location"), self.prefix + "/")
+                self.assertEqual(self.rows(), [(i, title if i == item_id else text, done)
+                                               for i, text, done in before])
+                self.edit_form(self.call("GET", self.edit_path(item_id))[1], item_id, title)
+
+    def test_edit_crlf_preserves_record_across_restart_and_prefixes(self):
+        self.create("其他事项保持原样")
+        title = "事" * 100 + "\r\n" + "项" * 99
+        for prefix in ("", "/demo", "/pv/BOOTV2/session"):
+            self.stop()
+            self.start(prefix)
+            for done in (0, 1):
+                with self.subTest(prefix=prefix, done=done):
+                    item_id = self.create("换行编辑前标题")
+                    self.assertEqual(self.call("POST", prefix + "/items/%d" % item_id,
+                                               {"csrf": self.csrf(), "done": str(done)})[0], 303)
+                    before = self.rows()
+                    path = self.edit_path(item_id)
+                    self.assertIn(path, Page(self.call("GET", prefix + "/")[1]).links)
+                    status, page = self.call("GET", path)
+                    self.assertEqual(status, 200)
+                    action, fields = self.edit_form(page, item_id, "换行编辑前标题")
+                    fields["title"] = title
+                    status, headers, _ = self.call_response("POST", action, fields)
+                    self.assertEqual(status, 303)
+                    self.assertEqual(headers.get("Location"), prefix + "/")
+                    expected = [(i, title if i == item_id else text, state)
+                                for i, text, state in before]
+                    self.assertEqual(self.rows(), expected)
+                    self.assertIn(title, self.call("GET", prefix + "/")[1])
+                    self.stop()
+                    self.start()
+                    self.assertIn(title, self.call("GET", prefix + "/")[1])
+                    self.edit_form(self.call("GET", path)[1], item_id, title)
+                    self.assertEqual(self.rows(), expected)
+
+    def test_edit_crlf_database_failure_retries_original_item(self):
+        self.stop()
+        self.start("/pv/BOOTV2/session")
+        self.create("故障期间其他事项保持原样")
+        accepted = "事" * 100 + "\r\n" + "项" * 99
+        for done in (0, 1):
+            item_id = self.create("换行故障前标题")
+            token = self.csrf()
+            self.assertEqual(self.call("POST", self.prefix + "/items/%d" % item_id,
+                                       {"csrf": token, "done": str(done)})[0], 303)
+            for title in (accepted, accepted + "项"):
+                with self.subTest(done=done, raw_length=len(title)):
+                    before = self.rows()
+                    with self.unavailable_database():
+                        status, page = self.call("POST", self.edit_path(item_id),
+                                                 {"csrf": token, "title": title})
+                        self.assertEqual(status, 503)
+                        action, fields = self.edit_form(page, item_id, title)
+                    self.assertEqual(self.rows(), before)
+                    status, headers, page = self.call_response("POST", action, fields)
+                    if title != accepted:
+                        self.assertEqual(status, 400)
+                        action, fields = self.edit_form(page, item_id, title)
+                        self.assertEqual(self.rows(), before)
+                        fields["title"] = accepted
+                        status, headers, _ = self.call_response("POST", action, fields)
+                    self.assertEqual(status, 303)
+                    self.assertEqual(headers.get("Location"), self.prefix + "/")
+                    self.assertEqual(self.rows(), [(i, accepted if i == item_id else text, state)
+                                                   for i, text, state in before])
+                    self.edit_form(self.call("GET", self.edit_path(item_id))[1], item_id, accepted)
 
 
 if __name__ == "__main__":

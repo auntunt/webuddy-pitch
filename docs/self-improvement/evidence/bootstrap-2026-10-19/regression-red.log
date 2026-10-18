@@ -1,0 +1,582 @@
+test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) ... 
+  test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='native_200') ... FAIL
+  test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='native_201') ... FAIL
+  test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='two_crlf_200') ... FAIL
+  test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='separate_cr_and_crlf_201') ... FAIL
+  test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='supplementary_201') ... FAIL
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1075496c0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x107929d50>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x107929b70>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x107929e40>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a4d0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a5c0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a7a0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a2f0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a890>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a6b0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b100>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b2e0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b5b0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b1f0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b790>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b4c0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b880>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792bb50>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b6a0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792bc40>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b3d0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792bd30>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b970>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792ba60>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0040>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0130>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0400>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0310>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792be20>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e05e0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0220>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792bf10>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e07c0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e06d0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e09a0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e04f0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e08b0>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0c70>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0a90>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0e50>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0b80>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0d60>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1120>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1030>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1300>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0f40>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1308: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1210>
+  def _make_invoke_excepthook():
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+  test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='combining_201') ... FAIL
+test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) ... 
+  test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='', done=0) ... FAIL
+  test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='', done=1) ... FAIL
+  test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='/demo', done=0) ... FAIL
+  test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='/demo', done=1) ... FAIL
+  test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='/pv/BOOTV2/session', done=0) ... FAIL
+  test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='/pv/BOOTV2/session', done=1) ... FAIL
+test_edit_crlf_database_failure_retries_original_item (test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item) ... 
+  test_edit_crlf_database_failure_retries_original_item (test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item) (done=0, raw_length=201) ... FAIL
+  test_edit_crlf_database_failure_retries_original_item (test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item) (done=0, raw_length=202) ... FAIL
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792bf10>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792ba60>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792bd30>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b970>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792be20>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b6a0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1079286d0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b4c0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b880>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b3d0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792bc40>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a6b0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b100>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b2e0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a7a0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a2f0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a890>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x107929e40>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792a4d0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x107929b70>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e14e0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e13f0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x107929d50>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1300>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1120>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1210>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0b80>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0f40>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0d60>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b790>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0c70>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0e50>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x10792b1f0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e09a0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e04f0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e08b0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0220>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e07c0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e05e0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0310>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0400>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e06d0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1b70>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1d50>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0130>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e22f0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0040>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e2200>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1030>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e25c0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e23e0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e0a90>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e2890>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e27a0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e26b0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e2c50>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e2b60>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e2d40>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e2e30>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e2980>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e2f20>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e31f0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e33d0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e3010>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e35b0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e3100>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e34c0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e3790>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e1c60>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e3a60>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e3970>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e32e0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e3d30>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e3c40>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e3b50>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108574040>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108574130>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e3e20>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1084e3f10>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108574400>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108574310>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1085744f0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1085746d0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1085745e0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1085749a0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108574a90>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1085748b0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x1085747c0>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108574c70>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108574b80>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_weakrefset.py:45: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x108574220>
+  def add(self, item):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+  test_edit_crlf_database_failure_retries_original_item (test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item) (done=1, raw_length=201) ... FAIL
+  test_edit_crlf_database_failure_retries_original_item (test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item) (done=1, raw_length=202) ... FAIL
+
+======================================================================
+FAIL: test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='native_200')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 692, in test_edit_crlf_logical_length_boundaries
+    self.assertEqual(status, expected_status)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='native_201')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 699, in test_edit_crlf_logical_length_boundaries
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='two_crlf_200')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 692, in test_edit_crlf_logical_length_boundaries
+    self.assertEqual(status, expected_status)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='separate_cr_and_crlf_201')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 699, in test_edit_crlf_logical_length_boundaries
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='supplementary_201')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 699, in test_edit_crlf_logical_length_boundaries
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_logical_length_boundaries (test_app.ApplicationTest.test_edit_crlf_logical_length_boundaries) (case='combining_201')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 699, in test_edit_crlf_logical_length_boundaries
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='', done=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 725, in test_edit_crlf_preserves_record_across_restart_and_prefixes
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='', done=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 725, in test_edit_crlf_preserves_record_across_restart_and_prefixes
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='/demo', done=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 725, in test_edit_crlf_preserves_record_across_restart_and_prefixes
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='/demo', done=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 725, in test_edit_crlf_preserves_record_across_restart_and_prefixes
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='/pv/BOOTV2/session', done=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 725, in test_edit_crlf_preserves_record_across_restart_and_prefixes
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_preserves_record_across_restart_and_prefixes (test_app.ApplicationTest.test_edit_crlf_preserves_record_across_restart_and_prefixes) (prefix='/pv/BOOTV2/session', done=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 725, in test_edit_crlf_preserves_record_across_restart_and_prefixes
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_database_failure_retries_original_item (test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item) (done=0, raw_length=201)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 763, in test_edit_crlf_database_failure_retries_original_item
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_database_failure_retries_original_item (test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item) (done=0, raw_length=202)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 763, in test_edit_crlf_database_failure_retries_original_item
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_database_failure_retries_original_item (test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item) (done=1, raw_length=201)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 763, in test_edit_crlf_database_failure_retries_original_item
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+======================================================================
+FAIL: test_edit_crlf_database_failure_retries_original_item (test_app.ApplicationTest.test_edit_crlf_database_failure_retries_original_item) (done=1, raw_length=202)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-bootstrap-red-pl04eyad/test_app.py", line 763, in test_edit_crlf_database_failure_retries_original_item
+    self.assertEqual(status, 303)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: 400 != 303
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.175s
+
+FAILED (failures=16)

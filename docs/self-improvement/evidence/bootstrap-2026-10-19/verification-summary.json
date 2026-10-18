@@ -1,0 +1,21 @@
+{
+  "platform_tests": {
+    "total": 452,
+    "passed": 450,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 196.368,
+    "exit_code": 0
+  },
+  "generated_application_tests": 26,
+  "independent_acceptance_tests": 12,
+  "browser_created_project": "BOOTNEW",
+  "browser_created_commit": "eecdee9054beb07e1517c735d1d14a1cb862d298",
+  "existing_BOOTV2_data_unchanged": true,
+  "model_invocations": 0,
+  "production_deployed": false,
+  "human_review_added": false,
+  "test_preview_stopped": true,
+  "test_workbench_stopped": true
+}
