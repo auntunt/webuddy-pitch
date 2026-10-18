@@ -10,6 +10,7 @@ from unittest import mock
 from tests import test_run_lifecycle as helpers
 from tests import test_run_recovery as recovery_helpers
 from tmh.platform import agents
+from tmh.platform import supervised_process
 from tmh.platform.store import Store
 
 
@@ -129,15 +130,36 @@ class RuntimeReviewTest(unittest.TestCase):
         output = f.data / life["attempts"][0]["evidence"] / "output.bin"
         self.assertIn(b"completed-within-budget", output.read_bytes())
 
-    def storage_failure(self, failed_name, preserved_name):
+    def output_evidence_failure(self, failed_name, missing=False):
         f = self.f
         rid = f.new_run()
-        original = Path.write_bytes
-        def fail_output(path, *args, **kwargs):
-            if path.name == failed_name:
-                raise OSError("synthetic " + failed_name + " storage failure")
-            return original(path, *args, **kwargs)
-        with mock.patch.object(Path, "write_bytes", fail_output):
+        original_run = supervised_process.run_supervised
+        original_read = Path.read_bytes
+        original_write = Path.write_bytes
+        captured, writes = {}, []
+        def after_supervisor(*args, **kwargs):
+            result = original_run(*args, **kwargs)
+            folder = kwargs["folder"]
+            captured.update(folder=folder, result=result,
+                            binary=original_read(folder / "output.bin"),
+                            text=original_read(folder / "output.txt"),
+                            receipt=original_read(folder / "supervisor-result.json"))
+            if missing:
+                # Simulate loss of the expected path, preserving the complete
+                # original file as forensic evidence rather than deleting it.
+                (folder / failed_name).rename(folder / (failed_name + ".before-readback-loss"))
+            return result
+        def fail_readback(path, *args, **kwargs):
+            if captured and not missing and path == captured["folder"] / failed_name:
+                raise OSError("synthetic " + failed_name + " readback failure")
+            return original_read(path, *args, **kwargs)
+        def record_write(path, *args, **kwargs):
+            if path.name in ("output.bin", "output.txt"):
+                writes.append(path)
+            return original_write(path, *args, **kwargs)
+        with mock.patch.object(supervised_process, "run_supervised", side_effect=after_supervisor), \
+                mock.patch.object(Path, "read_bytes", fail_readback), \
+                mock.patch.object(Path, "write_bytes", record_write):
             self.go(rid)
         self.assertEqual(f.store.run(rid)["status"], "failed")
         self.assertNotIn(rid, f.runner.procs)
@@ -148,14 +170,22 @@ class RuntimeReviewTest(unittest.TestCase):
         self.assertEqual(attempt["returncode"], 0)
         self.assertEqual(attempt["reason"], "error")
         self.assertIn(failed_name, attempt["evidence_error"])
-        output = f.data / attempt["evidence"] / preserved_name
-        self.assertIn(b"completed-within-budget", output.read_bytes())
+        self.assertEqual(writes, [], "the caller must never truncate a supervisor-owned output file")
+        folder = captured["folder"]
+        self.assertEqual((folder / "supervisor-result.json").read_bytes(), captured["receipt"])
+        self.assertEqual((folder / "output.bin").read_bytes(), captured["binary"])
+        self.assertIn(b"completed-within-budget", captured["binary"])
+        if missing:
+            self.assertFalse((folder / failed_name).exists())
+            self.assertEqual((folder / (failed_name + ".before-readback-loss")).read_bytes(), captured["text"])
+        else:
+            self.assertEqual((folder / "output.txt").read_bytes(), captured["text"])
 
-    def test_failed_binary_output_write_preserves_text_and_cleanup(self):
-        self.storage_failure("output.bin", "output.txt")
+    def test_failed_binary_readback_preserves_original_evidence_and_cleanup(self):
+        self.output_evidence_failure("output.bin")
 
-    def test_failed_text_output_write_preserves_original_bytes_and_cleanup(self):
-        self.storage_failure("output.txt", "output.bin")
+    def test_missing_text_evidence_path_preserves_raw_bytes_and_cleanup(self):
+        self.output_evidence_failure("output.txt", missing=True)
 
 
 @unittest.skipUnless(os.name == "posix", "requires POSIX owned process groups")

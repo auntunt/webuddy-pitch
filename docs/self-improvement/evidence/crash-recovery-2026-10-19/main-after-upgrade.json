@@ -1,0 +1,34 @@
+{
+  "active_runs": [],
+  "BOOTV2_tables": {
+    "items": [
+      [
+        1,
+        "预览停止并重建后，数据仍保留",
+        1
+      ],
+      [
+        2,
+        "已验证：编辑保存后，原编号和完成状态不变",
+        1
+      ],
+      [
+        3,
+        "已验证：编辑保存、重启与失败重试",
+        1
+      ]
+    ]
+  },
+  "rows_equal": true,
+  "api_status": 200,
+  "main_pid": "55423",
+  "preview_browser": "Authorized existing tab9 reloaded unchanged 3 rows",
+  "source_sha256": {
+    "tmh/platform/agents.py": "64520da8ba19169b98bc450f2822e9f618519f2e51e9c1dfb30875c56b244bb6",
+    "tmh/platform/crash_recovery.py": "fb7ca916fc079bcf5051e98788c3ac07d63777d56a9ca35c51af5061cc6c7245",
+    "tmh/platform/supervised_process.py": "8ad59a81adf853c0bf39974f4ffb43c163b585926890e4b49033b52702393a1c",
+    "tmh/platform/process_control.py": "44b692746a94b0a3540d021ce72898e56f774fee8dd1df0ac54dc99394830be3",
+    "tmh/platform/server.py": "e9a8a7b9b02563457fdac4d1b47640704bd5a85ff85806cf386eb65d6f4959fd",
+    "tmh/platform/ui.py": "36f459da9e74d934acb6561c9e20599415a40fd17ae4e083fd4dc8d681a5e416"
+  }
+}

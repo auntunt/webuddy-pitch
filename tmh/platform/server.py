@@ -2371,6 +2371,17 @@ def api_retry_run(P, req, rid):
         raise ApiError(409, str(e))
 
 
+@route("POST", "/api/runs/<rid>/recover")
+def api_recover_run(P, req, rid):
+    if not P.store.run(int(rid)):
+        raise ApiError(404, "没有这个运行")
+    try:
+        P.runner.recover_run(int(rid))
+        return api_run(P, req, rid)
+    except (ValueError, RuntimeError, OSError) as e:
+        raise ApiError(409, str(e))
+
+
 @route("POST", "/api/runs/<rid>/decide")
 def api_decide(P, req, rid):
     try:

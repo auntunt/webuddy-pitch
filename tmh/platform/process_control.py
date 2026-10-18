@@ -30,6 +30,7 @@ class ProcessResult:
     output_bytes: bytes
     cleanup: dict
     process_returncode: Optional[int] = None
+    error: str = ""
 
 
 def _group_exists(pgid):
@@ -43,10 +44,11 @@ def _group_exists(pgid):
 
 
 class _OwnedProcess:
-    def __init__(self, proc, started, deadline, cancel_event, callback, stdin, grace, selector):
+    def __init__(self, proc, started, deadline, cancel_event, callback, stdin, grace, selector, bytes_callback=None):
         self.proc, self.started, self.deadline = proc, started, deadline
         self.cancel_event, self.callback, self.grace = cancel_event, callback, grace
         self.selector = selector
+        self.bytes_callback = bytes_callback
         self.decoder = codecs.getincrementaldecoder("utf-8")("replace")
         self.raw = bytearray()
         self.pending = memoryview(stdin)
@@ -111,6 +113,8 @@ class _OwnedProcess:
             return
         if chunk:
             self.raw.extend(chunk)
+            if self.bytes_callback is not None:
+                self.bytes_callback(chunk)
             text = self.decoder.decode(chunk)
         else:
             self.eof = True
@@ -199,7 +203,7 @@ class _OwnedProcess:
 
 
 def run_process(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None,
-                on_output=None, stdin=None, on_spawn=None, terminate_grace=.3):
+                on_output=None, stdin=None, on_spawn=None, terminate_grace=.3, on_bytes=None):
     """Run argv in its own session, returning complete output and cleanup evidence.
 
     ``timeout`` is a remaining wall-clock allowance, including pipe I/O. stdin
@@ -207,6 +211,8 @@ def run_process(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None,
     ``on_spawn(pid, pgid)`` runs after spawn. Both callbacks must return promptly.
     Callback/OS exceptions are re-raised *after* owned-group cleanup; when
     possible, the exception carries ``process_result`` with retained output.
+    ``on_bytes`` receives each original byte chunk before decoding or the text
+    callback, allowing a durable sink without losing invalid UTF-8.
     Root exit with remaining group members yields ``orphaned`` and status 125,
     even if the root returned zero. Timeout/cancellation yield 124/130.
     """
@@ -233,7 +239,7 @@ def run_process(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None,
     selector = selectors.DefaultSelector()
     try:
         owned = _OwnedProcess(None, started, started + timeout if timeout is not None else None,
-                              cancel_event, on_output, data, terminate_grace, selector)
+                              cancel_event, on_output, data, terminate_grace, selector, on_bytes)
         proc = subprocess.Popen(cmd, cwd=cwd, env=env, stdin=subprocess.PIPE if stdin is not None else subprocess.DEVNULL,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0, start_new_session=True)
     except BaseException:
@@ -249,6 +255,7 @@ def run_process(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None,
     except BaseException as exc:
         # A failed output sink must never strand its model/build subprocess.
         owned.callback = None
+        owned.bytes_callback = None
         owned.stop("exception")
         try:
             owned.pump()

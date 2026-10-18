@@ -1,0 +1,5 @@
+{
+  "tmh/platform/process_control.py": "104309263d9943c8232428be316c6cb66192fb191f60459177c374a67c93250e",
+  "tmh/platform/supervised_process.py": "06d3e624c137bb85be18eb37f90a02231be7da3538351bc1ac72f957c83ae4e2",
+  "tests/test_supervised_process.py": "d843ba6cafb020180cfa7c09c8a05c8e43fc7a228b5cbcda0e6429f4a72c51b7"
+}

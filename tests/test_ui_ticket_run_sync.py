@@ -42,7 +42,7 @@ const stPill=h;
 let topWires=0;const ticketTopWire=()=>{topWires++};
 S.meta={autoflow:{on:false},agents:[]};
 const initialRun={...detail(7),status:'running',ticket_key:'APP-7',lifecycle:{finished:false}};
-const stoppedRun={...initialRun,status:'failed',can_retry:true,retry_blocked:[],lifecycle:{finished:true,stopped_reason:'timeout'}};
+const stoppedRun={...initialRun,status:'failed',can_retry:true,retry_blocked:[],lifecycle:{finished:true,stopped_reason:'timeout',attempts:[{attempt:1,pid:12345,cleanup:{complete:true}}]}};
 const secondRun={...detail(8),ticket_key:'APP-7',status:'running',lifecycle:{finished:false}};
 const doneRun={...secondRun,status:'done',lifecycle:{finished:true}};
 function ticket(runs,state='doing',why='AI 正在修改代码'){

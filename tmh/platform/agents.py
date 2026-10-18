@@ -719,12 +719,26 @@ class Runner:
         self.data_dir = Path(data_dir)
         self.procs = {}
         self.controls = {}  # one execution budget across calls, retries and local checks
+        self.owners = {}  # per-run OS leases; a second service cannot recover a live owner
         self.after = {}  # run id -> callback(run) once it finished successfully
         self.charge = None  # callback(run) for every successful run: usage points
         self.lock = threading.RLock()
         self.slots = threading.Condition()  # at most max_agents agent runs at once; the rest wait their turn
         self.busy = set()
         self.waiting = []  # (priority, run id)
+
+    def _claim(self, rid):
+        from .crash_recovery import claim
+        with self.lock:
+            if rid not in self.owners:
+                self.owners[rid] = claim(self.data_dir, rid)
+            return self.owners[rid].owner
+
+    def _release(self, rid):
+        with self.lock:
+            lease = self.owners.pop(rid, None)
+            if lease:
+                lease.close()
 
     def _control(self, rid, conf=None, agent=""):
         with self.lock:
@@ -733,9 +747,10 @@ class Runner:
                 limit = float(settings.get("run_timeout") or settings.get("timeout") or 1800)
                 if not math.isfinite(limit) or limit <= 0:
                     raise ValueError("运行总时限必须是正数秒")
+                owner = self._claim(rid)
                 self.controls[rid] = {"event": threading.Event(), "start": time.monotonic(),
                     "started_at": now(), "timeout_seconds": limit, "stopped_reason": "",
-                    "attempts": [], "finished": False}
+                    "attempts": [], "finished": False, "owner": owner}
                 self._save_lifecycle(rid)
             return self.controls[rid]
 
@@ -750,10 +765,14 @@ class Runner:
                 c.setdefault("elapsed_seconds", elapsed)
             record["elapsed_seconds"] = c.get("elapsed_seconds", elapsed)
             folder = self.data_dir / "runs" / str(rid)
-            folder.mkdir(parents=True, exist_ok=True)
-            temp = folder / "lifecycle.json.tmp"
-            temp.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
-            temp.replace(folder / "lifecycle.json")
+            try:
+                folder.mkdir(parents=True, exist_ok=True)
+                temp = folder / "lifecycle.json.tmp"
+                temp.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+                temp.replace(folder / "lifecycle.json")
+            finally:
+                if c["finished"]:
+                    self._release(rid)
 
     def remaining(self, rid):
         c = self.controls.get(rid)
@@ -786,6 +805,7 @@ class Runner:
         reason = self.stop_reason(rid)
         label = {"timeout": "达到整次任务总时限", "cancelled": "已请求取消",
                  "orphaned": "启动器退出后仍有子进程存活", "cleanup_failed": "进程回收未完成",
+                 "owner_lost": "平台连接中断，受管进程已停止",
                  "error": "执行或证据保存发生错误"}.get(reason, reason)
         return "运行停止：%s。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。" % label if reason else ""
 
@@ -825,6 +845,7 @@ class Runner:
         prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history)
         run = self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
                                      session_id=session_id, batch=batch, model=model, **({"retry_of": retry_of} if retry_of is not None else {}))
+        self._claim(run["id"])
         if source:
             # Build knowledge and the prompt from the immutable checkout before the worker starts.
             # A per-run path prevents concurrent checks from removing another check's view.
@@ -864,6 +885,7 @@ class Runner:
                     self.store.append_output(run["id"], "— 版本证据保存失败：%s\n" % evidence_error)
                 if view:
                     git(Path(project["root"]), "worktree", "remove", "--force", str(view), check=False)
+                self._release(run["id"])
                 return self.store.run(run["id"])
         if ticket and mode != "ask":  # assistant questions don't move or clutter the ticket
             self.store.event(ticket["id"], author, "run", "让 %s%s %s" % (conf[agent].get("title", agent), "（%s）" % model if model else "", dict(RUN_MODES)[mode]),
@@ -882,6 +904,7 @@ class Runner:
         """Waits for a free slot (ticket steps go before knowledge pages), then runs."""
         if mode == "ask" or not self._take(rid, mode):  # a question someone is waiting on never queues
             if mode != "ask":
+                self._release(rid)
                 return
             return self._go(rid, project, ticket, agent, mode, prompt, conf, model, explicit, base)
         try:
@@ -943,6 +966,7 @@ class Runner:
                 if rid in self.controls and not self.controls[rid]["finished"]:
                     self.controls[rid].update(finished=True, ended_at=now())
                     self._save_lifecycle(rid)
+                self._release(rid)
 
     def _execute_run(self, rid, project, ticket, agent, mode, prompt, conf, model="", explicit=False, base=""):
         st = self.store
@@ -1125,9 +1149,10 @@ class Runner:
 
     def run_command(self, rid, cmd, workdir, *, timeout=None, env=None, stdin=None, on_output=None, kind="command", prompt=None):
         """Execute only an owned process group; keep every attempt and its original bytes."""
-        from .process_control import run_process
+        from .supervised_process import run_supervised
         c = self.controls.get(rid)
         active = c is not None and not c["finished"]
+        owner = self._claim(rid)
         event = c["event"] if active else threading.Event()
         if active:
             self.stop_reason(rid)
@@ -1141,7 +1166,8 @@ class Runner:
             if prompt is not None:
                 (folder / "prompt.md").write_text(prompt, encoding="utf-8")
             record = {"attempt": index, "kind": kind, "started_at": now(), "cwd": str(workdir),
-                      "command": cmd, "timeout_seconds": timeout, "evidence": str(folder.relative_to(self.data_dir))}
+                      "command": cmd, "timeout_seconds": timeout, "evidence": str(folder.relative_to(self.data_dir)),
+                      "supervised": True}
             if active:
                 c["attempts"].append(record)
                 self._save_lifecycle(rid)
@@ -1151,22 +1177,25 @@ class Runner:
                 record.update(pid=pid, pgid=pgid)
                 if active:
                     self._save_lifecycle(rid)
-        def save_output(process):
+        def verify_output(process):
             errors = []
             for name, content in (("output.bin", process.output_bytes), ("output.txt", process.output.encode("utf-8"))):
                 try:
-                    (folder / name).write_bytes(content)
+                    if (folder / name).read_bytes() != content:
+                        raise OSError("独立监管已保存的输出与返回内容不一致")
                 except OSError as error:
                     errors.append(name + ": " + str(error))
             if errors:
                 raise OSError("；".join(errors))
         result = None
         try:
-            result = run_process(cmd, cwd=str(workdir), env=env, timeout=timeout,
+            result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
                                  cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
             record.update(returncode=result.returncode, reason=result.reason, elapsed_seconds=result.elapsed,
                           cleanup=result.cleanup, ended_at=now())
-            save_output(result)
+            if getattr(result, "error", ""):
+                record["error"] = result.error
+            verify_output(result)
             if active and result.reason != "exited":
                 self._stopped(rid, result.reason)
             return result, folder
@@ -1175,7 +1204,7 @@ class Runner:
             if partial is not None:
                 record.update(returncode=partial.returncode, cleanup=partial.cleanup, elapsed_seconds=partial.elapsed)
                 try:
-                    save_output(partial)
+                    verify_output(partial)
                 except OSError as storage_error:
                     record["evidence_error"] = str(storage_error)
             record.update(reason="error", error=str(e), ended_at=now())
@@ -1190,6 +1219,8 @@ class Runner:
                     self.procs.pop(rid, None)
                     if active:
                         self._save_lifecycle(rid)
+                    else:
+                        self._release(rid)
 
     def _spawn(self, rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume):
         st = self.store
@@ -1244,6 +1275,11 @@ class Runner:
             shutil.copyfile(lm, folder / "last-message.md")
             if lm.read_text(encoding="utf-8").strip():
                 result = lm.read_text(encoding="utf-8")
+        if getattr(process, "error", ""):
+            failure = "%s %s：%s。请检查执行器 %s 及本地证据目录。" % (
+                agent, "启动失败" if process.pid is None else "执行失败", process.error, cmd[0])
+            st.append_output(rid, "— " + failure + "\n")
+            result = (result + "\n" + failure).strip()
         timing = clock.done()
         timing.update(process_reason=process.reason, process_seconds=process.elapsed,
                       total_remaining_seconds=round(self.remaining(rid), 3), evidence=str(folder.relative_to(self.data_dir)))
@@ -1309,15 +1345,19 @@ class Runner:
         if retry_run:
             state["retry_run"] = retry_run
             blocked.append("已创建后续运行 #%s，请查看该运行" % retry_run)
-        if rid in self.procs or (life and not life.get("finished")):
+        recovery = life.get("recovery")
+        recovery_blocked = isinstance(recovery, dict) and recovery.get("state") == "blocked"
+        if rid in self.procs or (life and not life.get("finished") and not recovery_blocked):
             blocked.append("原运行仍在回收，请稍后刷新")
+        if recovery is not None and (not isinstance(recovery, dict) or recovery.get("state") != "complete"):
+            blocked.append("服务中断后的停止证据尚不完整，请重新检查停止回执")
         if not life and r.get("started"):
             blocked.append("旧运行缺少进程回收回执，不能确认可以安全续跑")
-        attempts = life.get("attempts", [])
+        attempts = life.get("attempts", [] if not life else None)
         if not isinstance(attempts, list) or any(not isinstance(a, dict) for a in attempts):
             blocked.append("进程回收回执格式损坏，不能确认安全续跑")
             attempts = []
-        if any(a.get("pid") is not None and (not isinstance(a.get("cleanup"), dict) or a["cleanup"].get("complete") is not True)
+        if any((a.get("pid") is not None or a.get("supervised")) and (not isinstance(a.get("cleanup"), dict) or a["cleanup"].get("complete") is not True)
                for a in attempts):
             blocked.append("存在尚未确认回收的进程，请先检查完整生命周期回执")
         if r["mode"] == "fix" and r.get("workdir") and not Path(r["workdir"]).is_dir():
@@ -1459,6 +1499,19 @@ class Runner:
         return self.store.run(rid)
 
     def recover(self) -> None:
-        """Runs left 'running' by a previous server process can no longer finish."""
-        for r in self.store.q("SELECT id FROM runs WHERE status IN ('queued','running')"):
-            self.store.update_run(r["id"], status="failed", ended=now(), result="平台重启时这个运行被中断")
+        """Collect lost owners' receipts without signalling historical PID numbers."""
+        for r in self.store.q("SELECT id FROM runs WHERE status IN ('queued','running','failed','cancelled','done')"):
+            try:
+                self.recover_run(r["id"])
+            except (ValueError, OSError):
+                # Missing legacy proof and live owners must never be guessed at.
+                continue
+
+    def recover_run(self, rid):
+        from .crash_recovery import reconcile
+        with self.lock:
+            if not self.store.run(rid):
+                raise ValueError("没有这个运行")
+            if rid in self.owners:
+                raise ValueError("运行仍由活跃服务持有，未修改它的状态")
+            return reconcile(self.store, self.data_dir, rid)

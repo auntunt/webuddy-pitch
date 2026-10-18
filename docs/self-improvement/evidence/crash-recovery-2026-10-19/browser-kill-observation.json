@@ -1,0 +1,21 @@
+{
+  "signal": "SIGKILL",
+  "service": {
+    "pid": 40009,
+    "alive": false,
+    "ps": ""
+  },
+  "workers": [
+    {
+      "pid": 40021,
+      "alive": false,
+      "ps": ""
+    },
+    {
+      "pid": 40023,
+      "alive": false,
+      "ps": ""
+    }
+  ],
+  "raw_output_base64": "U1lOVEhFVElDIE9SSUdJTkFMIE9VVFBVVDog5Lit5pat5YmN5a6M5pW06L6T5Ye644CC5L+d55WZ5Luj56CB44CB5pyq6Lef6Liq5paH5Lu25ZKM6K+l6L6T5Ye677yb6L+Z5LiN5piv5a6M5oiQ5oiW6aqM5pS244CCClNZTlRIRVRJQyBDSElMRCBSRUFEWTogaW5oZXJpdHMgc3Rkb3V0IGFuZCBpZ25vcmVzIFRFUk0K"
+}

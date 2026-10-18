@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "owner": {
+    "token": "4a6c475c32dc443f9b33bd6052af5b72",
+    "run_id": 1,
+    "data_dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19"
+  },
+  "nonce": "64800cc52dc9421986ffe9003d990e7f",
+  "folder": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19/runs/1/attempts/0001",
+  "phase": "finished",
+  "supervisor_pid": 40016,
+  "pid": 40021,
+  "pgid": 40021,
+  "reason": "owner_lost",
+  "returncode": 125,
+  "process_returncode": -9,
+  "elapsed_seconds": 51.5619616669137,
+  "cleanup": {
+    "trigger": "owner_lost",
+    "term_sent": true,
+    "kill_sent": true,
+    "signals": [
+      {
+        "signal": "SIGTERM",
+        "at": 51.168446250027046,
+        "sent": true
+      },
+      {
+        "signal": "SIGKILL",
+        "at": 51.480918082990684,
+        "sent": true
+      }
+    ],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "ended_at": 1792362769.51071,
+  "output": {
+    "file": "output.bin",
+    "bytes": 180,
+    "sha256": "d4c61e8d2a2af1555164a0ec4a063144bd2089274b196e98d825f82623555198"
+  }
+}

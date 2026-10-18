@@ -1,0 +1,224 @@
+Browser tab: 6, Title: "Webuddy · 全周期工作台", URL: "http://127.0.0.1:8791/#/t/BOOTV2-1".
+0 AXWebArea Webuddy · 全周期工作台, URL: 127.0.0.1:8791/#/t/BOOTV2-1
+	1 link Description: 跳到主要内容, Value: 127.0.0.1:8791/#main
+	2 container top
+		3 link Description: Webuddy 交付工作台, Value: 127.0.0.1:8791/#/deliveries
+		4 pop up button (collapsed, settable) Description: 项目范围, Help: 这一页属于哪个项目, Value: BOOTV2 · 反馈后修复的应用起点, ID: projSel, Secondary Actions: Expand
+			5 menu
+				6 REALRUN · 真实运行验证
+				7 BOOTUI · 【本地验收】事项管理项目
+				8 (selected) BOOTV2 · 反馈后修复的应用起点
+				9 全部项目
+				10 ＋ 添加项目…
+		11 button 19,917 点, Help: 点卡：只有生成类动作扣点, ID: ptsBtn
+			12 text 19,917
+			13 text 点
+		14 button Description: 录入客户需求, ID: sayGo
+			15 text ＋
+			16 text  录入需求
+		17 button (collapsed) AI 助手, Help: AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）, ID: astToggle, Secondary Actions: Expand
+		18 button Description: 自动流转，用户与设置, Help: 用户与设置, ID: me
+	19 container page
+		20 container Description: 主导航, ID: nav5
+			21 link Description: 交付, Value: 127.0.0.1:8791/#/deliveries
+			22 link Description: 今天, Value: 127.0.0.1:8791/#/today
+			23 link Description: 客户, Value: 127.0.0.1:8791/#/clients
+			24 link Description: 需求, Value: 127.0.0.1:8791/#/reqs
+			25 link Description: 版本, Value: 127.0.0.1:8791/#/versions
+			26 link Description: 工程, Value: 127.0.0.1:8791/#/board
+		27 container main
+			28 container
+				29 link Description: 需求, Value: 127.0.0.1:8791/#/reqs
+				30 text  / BOOTV2 / BOOTV2-1
+			31 heading 【RSI技术验收】事项编辑、数据保存与失败恢复, Help: 点击修改, Value: 1, ID: ttl
+				32 text 【RSI技术验收】事项编辑、数据保存与失败恢复
+			33 text 待验证
+			34 button 在助手中讨论
+			35 text BOOTV2
+			36 container
+				37 text 状态
+				38 pop up button (collapsed, settable) 状态, Value: 待验证, ID: fs, Secondary Actions: Expand
+					39 menu
+						40 新建
+						41 分析中
+						42 待确认
+						43 处理中
+						44 (selected) 待验证
+			45 container
+				46 text 类型
+				47 pop up button (collapsed, settable) 类型, Value: 需求, ID: fy, Secondary Actions: Expand
+					48 menu
+						49 缺陷
+						50 (selected) 需求
+						51 变更
+						52 咨询
+						53 运维
+			54 container
+				55 text 优先级
+				56 pop up button (collapsed, settable) 优先级, Value: 中, ID: fp, Secondary Actions: Expand
+					57 menu
+						58 紧急
+						59 高
+						60 (selected) 中
+						61 低
+			62 container
+				63 text 经办人
+				64 text field (settable) 经办人, ID: fa
+			65 text Codex-RSI 提交 · 10-18 15:45
+			66 container tTop
+				67 text 待复核 等你验收（证据还不齐）
+				68 definition list
+					69 container 客户要的
+						70 text 客户要的
+					71 text 为当前事项应用增加编辑标题能力。这是本地 RSI 技术验收，不能记录为客户签收，不部署生产。
+					72 container 下一步
+						73 text 下一步
+					74 container
+						75 text 构建测试通过，诊断认为已解决，共 1 轮。 改动已自动提交到分支  tmh/BOOTV2-1-r6 （提交 8be50de，主干还没动）。 等你验收 ：按业务操作实际验证。通过后由人合并分支；不通过写明原因，退回重改。
+				76 link Description: 打开预览 ↗, Value: 127.0.0.1:8791/pv/BOOTV2-1/
+				77 button 验收通过, ID: ttOk
+				78 button 退回重改, ID: ttNo
+				79 button 发给客户签收, ID: ttSend
+			80 container
+				81 link Description: 工单详情, Value: 127.0.0.1:8791/#/t/BOOTV2-1
+				82 link Description: 提示词, Value: 127.0.0.1:8791/#/t/BOOTV2-1/prompt
+			83 content list
+				84 container
+					85 text ✓ 受理 Codex-RSI · 14 小时前
+				86 container
+					87 text 2 分析定位 跳过
+				88 container
+					89 text ✓ 修改方案 codex · 已出方案
+				90 container
+					91 text ✓ 修改代码 已自动提交
+				92 container
+					93 text 5 人工验收 等验收
+				94 container
+					95 text 6 闭环
+			96 definition list
+				97 container 现象
+					98 text 现象
+				99 text 为当前事项应用增加编辑标题能力。这是本地 RSI 技术验收，不能记录为客户签收，不部署生产。
+				100 container 根因
+					101 text 根因
+				102 text 还没有分析
+				103 container 方案
+					104 text 方案
+				105 text 本轮只修复 CRLF 导致编辑标题长度多算一个字符的问题，仅修改 app.py 和现有 tests/testapp.py。当前候选已具备编辑、持久化和失败恢复流程，无需重复实现。
+				106 container 证据
+					107 text 证据
+				108 container
+					109 text 代码 24 处
+					110 link Description: 看完整方案和代码位置, Value: javascript:void%200, ID: evOpen
+				111 container 等谁
+					112 text 等谁
+				113 container tNextText
+					114 text 构建测试通过，诊断认为已解决，共 1 轮。 改动已自动提交到分支 
+					115 text tmh/BOOTV2-1-r6
+					116 text （提交 8be50de，主干还没动）。 等你验收 ：按业务操作实际验证。通过后由人合并分支；不通过写明原因，退回重改。
+			117 text entry area (settable) accNote
+			118 button 验收通过, ID: accOk
+			119 button 验收不通过, ID: accNo
+			120 button 让助手起草验收说明, ID: accDraft
+			121 button (collapsed) ▸ 完整描述 原话、理解、补充的信息和验收标准, Secondary Actions: Expand
+				122 text ▸
+				123 text 完整描述
+				124 text 原话、理解、补充的信息和验收标准
+			125 heading 动态与讨论, Value: 2
+				126 text 动态与讨论
+			127 container tlf
+				128 button 全部
+				129 button 只看讨论
+				130 button 只看自动记录
+			131 container tl
+				132 container
+					133 text Codex-RSI  创建工单 14 小时前
+				134 container
+					135 text Codex-RSI  让 Codex 修改方案 
+					136 link Description: #2, Value: javascript:void%200
+					137 text 14 小时前
+				138 container
+					139 text Codex-RSI  新建 → 分析中 14 小时前
+				140 button (collapsed) 自动处理 · 10 步 · 用时 3.0 小时 11 小时前, Secondary Actions: Expand
+					141 text 自动处理
+					142 text · 10 步 · 用时 3.0 小时
+					143 text 11 小时前
+				144 container
+					145 text 预览  预览版本已经可以打开 11 小时前
+				146 container
+					147 text 自动流转  启动预览（6c7787b3de7d308120b9c2e298b3629b588a47c9，提交 6c7787b3de） 
+					148 link Description: #3, Value: javascript:void%200
+					149 text 11 小时前
+				150 container
+					151 text 预览  预览版本已经可以打开 11 小时前
+				152 button (collapsed) 自动处理 · 8 步 · 用时 16 分钟 6 小时前, Secondary Actions: Expand
+					153 text 自动处理
+					154 text · 8 步 · 用时 16 分钟
+					155 text 6 小时前
+				156 container
+					157 text 预览  预览版本已经可以打开 6 小时前
+				158 button (collapsed) 自动处理 · 2 步 6 小时前, Secondary Actions: Expand
+					159 text 自动处理
+					160 text · 2 步
+					161 text 6 小时前
+				162 container
+					163 text 预览  预览版本已经可以打开 6 小时前
+				164 button (collapsed) 自动处理 · 9 步 · 用时 4.6 小时 1 小时前, Secondary Actions: Expand
+					165 text 自动处理
+					166 text · 9 步 · 用时 4.6 小时
+					167 text 1 小时前
+			168 text entry area (settable) cm
+			169 button 评论, ID: cb
+			170 button (collapsed) ▸ 执行记录与手动运行 4 次运行 · 共 80 点, Secondary Actions: Expand
+				171 text ▸
+				172 text 执行记录与手动运行
+				173 text 4 次运行 · 共 80 点
+			174 container pvc
+				175 heading 预览版本, Value: 2
+					218 text 预览版本
+				176 text 可以打开
+				219 container
+					220 text 这次改动（提交  8be50de6b4 ）正跑在平台上，验收前先亲手试一遍。发出去的签收链接里也有这个入口。
+				177 link Description: 打开预览 ↗, Value: 127.0.0.1:8791/pv/BOOTV2-1/
+				178 button 停掉, ID: pvStop
+				179 button 重新启动, ID: pvGo
+			180 container pkg
+				181 container pkSummary
+					182 heading 证据包, Value: 2
+						183 text 证据包
+					184 text 证据不齐
+					185 container
+						186 text 7 条记录，哈希  69865a86ce1c ，追加式，改任何一条都会对不上。
+					187 container
+						188 text 还缺 乙方复核人
+					189 text 验证门 从便宜到贵，每道给出通过、没过或未知
+					190 container
+						191 text 通过  有实际改动  2 个文件有实际改动
+					192 container
+						193 text 通过  改后的文件能解析  解析了 2 个文件
+					194 container
+						195 text 通过  没有削弱测试  没有删测试、删断言、加跳过或 `|| true`
+					196 container
+						197 text 通过  没超出方案  只改了方案列出的文件
+					198 container
+						199 text 通过  落在本单的业务流上  候选版本的改动函数可从已关联 HTTP 方法入口静态到达；不代表具体 URL 或业务测试通过
+					200 container
+						201 text 通过  原代码在这台机器上能构建  原代码先构建测试过一遍，能跑通
+					202 container
+						203 text 通过  构建通过  `/opt/homebrew/opt/python@3.14/bin/python3.14 -m py_compile app.py` 通过
+					204 container
+						205 text 通过  测试通过  `/opt/homebrew/opt/python@3.14/bin/python3.14 -m unittest discover -s tests -v` 通过
+					206 container
+						207 text 通过  对照验收标准，改对了【推断】  等价【推断】：基于代码、测试覆盖及提供的运行结果推断实现等价。A1：新增测试覆盖原id、完成状态、其他记录、刷新和同库重启。A2：保留原校验，补充逻辑201字拒绝、完整回显及修正重…
+				208 container pkActions
+					209 link Description: 打开证据包, Value: 127.0.0.1:8791/e/BOOTV2-1
+					210 link Description: 下载, Help: in-toto 格式，甲方可以离线核对, Value: 127.0.0.1:8791/e/BOOTV2-1.intoto.json
+					211 button 补截图, ID: pkShot
+					212 button 复核, ID: pkRev
+					213 button 发签收链接, ID: pkLink
+			214 button (collapsed) ▸ 工程细节 我来写、代码改动、候选代码入口、相关业务, Secondary Actions: Expand
+				215 text ▸
+				216 text 工程细节
+				217 text 我来写、代码改动、候选代码入口、相关业务
+
+The focused UI element is 0 AXWebArea Webuddy · 全周期工作台, URL: 127.0.0.1:8791/#/t/BOOTV2-1

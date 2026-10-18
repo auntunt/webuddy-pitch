@@ -1,0 +1,12 @@
+{
+  "captured_at_utc": "2026-10-18T22:23:39.873308+00:00",
+  "head": "0428c1ca771f0d53f54310806fd782e99675ab78",
+  "command": "TMH_CRASH_EVIDENCE=docs/self-improvement/evidence/crash-recovery-2026-10-19/independent-red python3 -m unittest tests.test_crash_recovery_independent -v",
+  "result": "3 tests; 2 product failures, 1 passed",
+  "sources": {
+    "tmh/platform/agents.py": "5a6e643294e904cf98d48ae4ae457e0a09e67ffc113258a88794a38ddbbf8f4b",
+    "tmh/platform/process_control.py": "104309263d9943c8232428be316c6cb66192fb191f60459177c374a67c93250e",
+    "tests/test_crash_recovery_independent.py": "6ed18bd3ec067b8b14cf2c0f3a855d381907b9dab92fe4cc8eed764daac46aec"
+  },
+  "source_snapshot_note": "Hashes captured immediately after the red run, while collaborators could edit shared product files; they are a readback snapshot, not an exact execution freeze. Runner.recover still matched baseline at capture. Full red observations and command output are primary evidence."
+}

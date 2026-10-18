@@ -1,0 +1,47 @@
+{
+  "runs/1/prompt.md": {
+    "bytes": 2132,
+    "sha256": "384d14def7062a90d26a29489cb3760caf39bc7ab7466f68fa9851403158e3ae"
+  },
+  "runs/1/prompt-1.md": {
+    "bytes": 2417,
+    "sha256": "4a38d33649782fe5af505d49ac8c010e685ebf26a244df5d333998b4c00087a3"
+  },
+  "runs/1/lifecycle.json": {
+    "bytes": 2425,
+    "sha256": "a7bc4adce6d3051bf0fd3dadb0c02623fc88dd7185f5da41928fbb3b54d41ede"
+  },
+  "runs/1/owner.json": {
+    "bytes": 184,
+    "sha256": "c62931b8a0e4d07967e0e94a108fbf03526c64a550ce70f2a49e8bb51e749560"
+  },
+  "runs/1/attempts/0001/output.bin": {
+    "bytes": 180,
+    "sha256": "d4c61e8d2a2af1555164a0ec4a063144bd2089274b196e98d825f82623555198"
+  },
+  "runs/1/attempts/0001/supervisor-result.json": {
+    "bytes": 1219,
+    "sha256": "01c52e3723b864308281a7b88ea4ce4c2ace7291729b0fc047ed0cedf472cf87"
+  },
+  "runs/1/restart-recovery/original-run.json": {
+    "bytes": 3162,
+    "sha256": "7cc087eb4c61b289487c8a64ebc6f45a32388abd9e6e9d8c83767a3811f3a09c"
+  },
+  "runs/1/restart-recovery/original-lifecycle.json": {
+    "bytes": 1371,
+    "sha256": "abaa6b4ca73aab93166f901b19b25cf590a5fedd21d80e599250b07334343d86"
+  },
+  "worktrees/CRASH-1-r1/draft.py": {
+    "bytes": 58,
+    "sha256": "c7268a4513d9d10ed8b43a3b18c1f3e24c02ab082009fa81075df45159a87404"
+  },
+  "worktrees/CRASH-1-r1/retained-note.txt": {
+    "bytes": 73,
+    "sha256": "47eda4ccfb6b7b6f34769eb73fabd9340ed8b7d2a18676caab3069206c2fd3ed"
+  },
+  "health": {
+    "page_bytes": 486749,
+    "api_run_status": "failed",
+    "can_retry": true
+  }
+}

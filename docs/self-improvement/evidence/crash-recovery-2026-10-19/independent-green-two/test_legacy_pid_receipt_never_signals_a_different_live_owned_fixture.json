@@ -1,0 +1,158 @@
+{
+  "test": "tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture",
+  "temporary_directory": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-w2g89g61",
+  "after_legacy_recover": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "running",
+      "author": "fixture",
+      "created": "2026-10-19 06:28:55",
+      "started": "2026-10-19 06:28:55",
+      "ended": "",
+      "prompt": "完整原始任务",
+      "output": "",
+      "result": "",
+      "diff": "",
+      "exit_code": null,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-w2g89g61/project",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:28:55",
+      "finished": false,
+      "stopped_reason": "",
+      "attempts": [
+        {
+          "attempt": 1,
+          "pid": 35574,
+          "pgid": 35574,
+          "command": [
+            "old-unverifiable-command"
+          ]
+        }
+      ]
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {}
+  },
+  "unrelated_process": {
+    "pid": 35574,
+    "alive": true,
+    "ps": "35574 35565 35574 Ss   Mon Oct 19 06:28:55 2026     /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-w2g89g61/owned-worker.py unrelated /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-w2g89g61/project /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-w2g89g61"
+  },
+  "retry_state": {
+    "can_retry": false,
+    "retry_blocked": [
+      "只有失败或取消的运行可以重新执行",
+      "原运行仍在回收，请稍后刷新",
+      "存在尚未确认回收的进程，请先检查完整生命周期回执"
+    ],
+    "delivery_id": "",
+    "delivery_stage": ""
+  },
+  "before_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "running",
+      "author": "fixture",
+      "created": "2026-10-19 06:28:55",
+      "started": "2026-10-19 06:28:55",
+      "ended": "",
+      "prompt": "完整原始任务",
+      "output": "",
+      "result": "",
+      "diff": "",
+      "exit_code": null,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-w2g89g61/project",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:28:55",
+      "finished": false,
+      "stopped_reason": "",
+      "attempts": [
+        {
+          "attempt": 1,
+          "pid": 35574,
+          "pgid": 35574,
+          "command": [
+            "old-unverifiable-command"
+          ]
+        }
+      ]
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {}
+  },
+  "fixture_cleanup_signals": [
+    {
+      "pid": 35574,
+      "signal": "SIGKILL",
+      "matching_command": "35574 35565 35574 Ss   Mon Oct 19 06:28:55 2026     /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-w2g89g61/owned-worker.py unrelated /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-w2g89g61/project /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-w2g89g61"
+    }
+  ],
+  "after_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "running",
+      "author": "fixture",
+      "created": "2026-10-19 06:28:55",
+      "started": "2026-10-19 06:28:55",
+      "ended": "",
+      "prompt": "完整原始任务",
+      "output": "",
+      "result": "",
+      "diff": "",
+      "exit_code": null,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-w2g89g61/project",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:28:55",
+      "finished": false,
+      "stopped_reason": "",
+      "attempts": [
+        {
+          "attempt": 1,
+          "pid": 35574,
+          "pgid": 35574,
+          "command": [
+            "old-unverifiable-command"
+          ]
+        }
+      ]
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {}
+  }
+}
