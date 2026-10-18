@@ -1,6 +1,6 @@
 # SI-001：客户答复后的再理解恢复
 
-日期：2026-10-19。工作分支：`codex/self-evolution-resume`。本轮开始时的提交：`66c03493e0f6fd19a9e92a5decc4a05fe4d9d3a8`。本记录对应此后的实现与验证，提交号在封存后补记。
+日期：2026-10-19。工作分支：`codex/self-evolution-resume`。本轮开始时的提交：`66c03493e0f6fd19a9e92a5decc4a05fe4d9d3a8`。实现与完整原始证据提交：`ba5dab7c225a15b3e3f79ea22c49a575736a1b4c`（`Recover saved customer answers after interpretation failures`）。仅本地、未推送；本段随后以文档提交补记。
 
 **当前结论：已打通保存答复 → 理解超时 → 保留现场 → 重启服务 → 工程师重试 → 补全标准的本地恢复路径。** 独立复核发现的并发合同覆盖、运行操作者归因及关闭工单后误报成功已修复，并保留每次失败的回归日志。浏览器采用明确标注的合成客户和本地 reader；不是一次真实模型交付或客户签收。
 
