@@ -1,6 +1,6 @@
 # SI-007：受检实现、方案与签收版本绑定
 
-日期：2026-10-18。基线 `01ff29a`，工作分支 `codex/self-evolution-resume`。本轮实现提交号在提交后补记。
+日期：2026-10-18。基线 `01ff29a`，工作分支 `codex/self-evolution-resume`。实现与完整证据提交：`7962a2f92bb8fc82a9f021dd00465f116524d4e7`（`Bind delivery checks and signoff to reviewed source versions`）。
 
 ## 结果与范围
 
