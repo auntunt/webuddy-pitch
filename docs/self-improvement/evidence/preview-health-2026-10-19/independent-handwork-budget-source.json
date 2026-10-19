@@ -1,0 +1,14 @@
+{
+  "head": "d21e4f4da680b6649e06abd0517ca7200c714359",
+  "sha256": {
+    "tests/test_handwork_lifecycle.py": "68028f584390b2634bb282a1a6137d6dd544dad6457e776d2db762c1f7383fb3",
+    "tmh/platform/agents.py": "4df57cdfc031b46b41a4899635fd0cb2253d0b8c0428a7ee64ef039633698101",
+    "tmh/platform/handwork.py": "22146f0cbf96b4c1fea468d5eee09661ebae1de06227b91c549e5a6c72a5f8ad",
+    "tmh/platform/fixloop.py": "0c5718b0b0efa0f803d72359786da5c6cdbc57d8c4aeeb7e480fc7c76d3ad1e1"
+  },
+  "product_matches_round_base": {
+    "tmh/platform/agents.py": true,
+    "tmh/platform/handwork.py": true,
+    "tmh/platform/fixloop.py": true
+  }
+}

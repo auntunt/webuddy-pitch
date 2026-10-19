@@ -1,0 +1,11 @@
+{
+  "head": "d21e4f4da680b6649e06abd0517ca7200c714359",
+  "sha256": {
+    "tests/test_recheck_operations.py": "2e37e5443800effce7b0300bed64dd3af9ce9dc742549312bd8d61a0b6820d35",
+    "tmh/platform/recheck_operations.py": "90e8d3a2e1102b28405cdbaeba43d0a74693c035217fce81f5f0608eff6076ef",
+    "tmh/platform/agents.py": "4df57cdfc031b46b41a4899635fd0cb2253d0b8c0428a7ee64ef039633698101",
+    "tmh/platform/supervised_process.py": "8ad59a81adf853c0bf39974f4ffb43c163b585926890e4b49033b52702393a1c",
+    "tmh/platform/process_control.py": "44b692746a94b0a3540d021ce72898e56f774fee8dd1df0ac54dc99394830be3"
+  },
+  "historical_failure_log": "full-platform-fourth.log"
+}

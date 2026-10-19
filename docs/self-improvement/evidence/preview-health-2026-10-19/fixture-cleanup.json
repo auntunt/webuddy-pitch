@@ -1,0 +1,25 @@
+{
+  "checked_at_unix": 1792393908.274755,
+  "processes": {
+    "72332": {
+      "exists": false
+    },
+    "72756": {
+      "exists": false
+    },
+    "92125": {
+      "exists": false
+    },
+    "92173": {
+      "exists": false
+    }
+  },
+  "ports": {
+    "8798": {
+      "accepts_connections": false
+    },
+    "8799": {
+      "accepts_connections": false
+    }
+  }
+}

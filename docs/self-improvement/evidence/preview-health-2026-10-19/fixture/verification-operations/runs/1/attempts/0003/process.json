@@ -1,0 +1,31 @@
+{
+  "attempt": 3,
+  "kind": "check:build",
+  "started_at": "2026-10-19 14:35:36",
+  "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/verification-operations/worktrees/candidate-1",
+  "command": [
+    "/bin/sh",
+    "-c",
+    "'/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python' -m py_compile app.py"
+  ],
+  "timeout_seconds": 1198.1107184579596,
+  "evidence": "runs/1/attempts/0003",
+  "supervised": true,
+  "pid": 72607,
+  "pgid": 72607,
+  "returncode": 0,
+  "reason": "exited",
+  "elapsed_seconds": 0.11795574997086078,
+  "cleanup": {
+    "trigger": null,
+    "term_sent": false,
+    "kill_sent": false,
+    "signals": [],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "ended_at": "2026-10-19 14:35:36"
+}

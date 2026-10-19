@@ -1,0 +1,169 @@
+Baseline product module copied from Git HEAD 7310a820080b562e56fc16e6a958bf99c8818383; no product file overwritten.
+test_completed_error_responses_release_keepalive_connections (test_preview_health_independent.PreviewHealthIndependentTest.test_completed_error_responses_release_keepalive_connections) ... FAIL
+test_http_401_404_and_503_cannot_be_reported_up (test_preview_health_independent.PreviewHealthIndependentTest.test_http_401_404_and_503_cannot_be_reported_up) ... 
+  test_http_401_404_and_503_cannot_be_reported_up (test_preview_health_independent.PreviewHealthIndependentTest.test_http_401_404_and_503_cannot_be_reported_up) (code=401) ... FAIL
+  test_http_401_404_and_503_cannot_be_reported_up (test_preview_health_independent.PreviewHealthIndependentTest.test_http_401_404_and_503_cannot_be_reported_up) (code=404) ... FAIL
+  test_http_401_404_and_503_cannot_be_reported_up (test_preview_health_independent.PreviewHealthIndependentTest.test_http_401_404_and_503_cannot_be_reported_up) (code=503) ... FAIL
+test_incomplete_200_is_unhealthy_bounded_and_closes_connection (test_preview_health_independent.PreviewHealthIndependentTest.test_incomplete_200_is_unhealthy_bounded_and_closes_connection) ... FAIL
+test_old_preview_binding_is_rejected_before_any_application_request (test_preview_health_independent.PreviewHealthIndependentTest.test_old_preview_binding_is_rejected_before_any_application_request) ... ok
+test_only_the_exact_prefixed_endpoint_is_checked (test_preview_health_independent.PreviewHealthIndependentTest.test_only_the_exact_prefixed_endpoint_is_checked) ... FAIL
+test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) ... 
+  test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) (code=301) ... FAIL
+  test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) (code=302) ... FAIL
+  test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) (code=303) ... FAIL
+  test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) (code=307) ... FAIL
+  test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) (code=308) ... FAIL
+test_status_ignores_environment_proxy (test_preview_health_independent.PreviewHealthIndependentTest.test_status_ignores_environment_proxy) ... FAIL
+test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview (test_preview_health_independent.PreviewHealthIndependentTest.test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview) ... FAIL
+test_watcher_does_not_promote_from_an_unrelated_successful_root (test_preview_health_independent.PreviewHealthIndependentTest.test_watcher_does_not_promote_from_an_unrelated_successful_root) ... FAIL
+
+======================================================================
+FAIL: test_completed_error_responses_release_keepalive_connections (test_preview_health_independent.PreviewHealthIndependentTest.test_completed_error_responses_release_keepalive_connections)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 183, in test_completed_error_responses_release_keepalive_connections
+    self.assertEqual(self.app.requests, [self.health_path] * 12)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [] != ['/pv/INDEP-1/__commit/1111111111111111111[817 chars]lth']
+
+Second list contains 12 additional elements.
+First extra element 0:
+'/pv/INDEP-1/__commit/1111111111111111111111111111111111111111/health'
+
+Diff is 905 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_http_401_404_and_503_cannot_be_reported_up (test_preview_health_independent.PreviewHealthIndependentTest.test_http_401_404_and_503_cannot_be_reported_up) (code=401)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 124, in test_http_401_404_and_503_cannot_be_reported_up
+    self.assertNotEqual(state.get("state"), "up", "HTTP %d was treated as a usable preview" % code)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up' : HTTP 401 was treated as a usable preview
+
+======================================================================
+FAIL: test_http_401_404_and_503_cannot_be_reported_up (test_preview_health_independent.PreviewHealthIndependentTest.test_http_401_404_and_503_cannot_be_reported_up) (code=404)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 124, in test_http_401_404_and_503_cannot_be_reported_up
+    self.assertNotEqual(state.get("state"), "up", "HTTP %d was treated as a usable preview" % code)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up' : HTTP 404 was treated as a usable preview
+
+======================================================================
+FAIL: test_http_401_404_and_503_cannot_be_reported_up (test_preview_health_independent.PreviewHealthIndependentTest.test_http_401_404_and_503_cannot_be_reported_up) (code=503)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 124, in test_http_401_404_and_503_cannot_be_reported_up
+    self.assertNotEqual(state.get("state"), "up", "HTTP %d was treated as a usable preview" % code)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up' : HTTP 503 was treated as a usable preview
+
+======================================================================
+FAIL: test_incomplete_200_is_unhealthy_bounded_and_closes_connection (test_preview_health_independent.PreviewHealthIndependentTest.test_incomplete_200_is_unhealthy_bounded_and_closes_connection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 175, in test_incomplete_200_is_unhealthy_bounded_and_closes_connection
+    self.assertNotEqual(state.get("state"), "up", "incomplete HTTP 200 was accepted")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up' : incomplete HTTP 200 was accepted
+
+======================================================================
+FAIL: test_only_the_exact_prefixed_endpoint_is_checked (test_preview_health_independent.PreviewHealthIndependentTest.test_only_the_exact_prefixed_endpoint_is_checked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 131, in test_only_the_exact_prefixed_endpoint_is_checked
+    self.assertEqual(self.app.requests, [self.health_path])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [] != ['/pv/INDEP-1/__commit/1111111111111111111111111111111111111111/health']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'/pv/INDEP-1/__commit/1111111111111111111111111111111111111111/health'
+
+- []
++ ['/pv/INDEP-1/__commit/1111111111111111111111111111111111111111/health']
+
+======================================================================
+FAIL: test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) (code=301)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 141, in test_redirects_do_not_inherit_success_or_contact_the_target
+    self.assertNotEqual(self.status().get("state"), "up")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up'
+
+======================================================================
+FAIL: test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) (code=302)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 141, in test_redirects_do_not_inherit_success_or_contact_the_target
+    self.assertNotEqual(self.status().get("state"), "up")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up'
+
+======================================================================
+FAIL: test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) (code=303)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 141, in test_redirects_do_not_inherit_success_or_contact_the_target
+    self.assertNotEqual(self.status().get("state"), "up")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up'
+
+======================================================================
+FAIL: test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) (code=307)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 141, in test_redirects_do_not_inherit_success_or_contact_the_target
+    self.assertNotEqual(self.status().get("state"), "up")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up'
+
+======================================================================
+FAIL: test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) (code=308)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 141, in test_redirects_do_not_inherit_success_or_contact_the_target
+    self.assertNotEqual(self.status().get("state"), "up")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up'
+
+======================================================================
+FAIL: test_status_ignores_environment_proxy (test_preview_health_independent.PreviewHealthIndependentTest.test_status_ignores_environment_proxy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 167, in test_status_ignores_environment_proxy
+    self.assertEqual(self.app.requests, [self.health_path])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [] != ['/pv/INDEP-1/__commit/1111111111111111111111111111111111111111/health']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'/pv/INDEP-1/__commit/1111111111111111111111111111111111111111/health'
+
+- []
++ ['/pv/INDEP-1/__commit/1111111111111111111111111111111111111111/health']
+
+======================================================================
+FAIL: test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview (test_preview_health_independent.PreviewHealthIndependentTest.test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 150, in test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview
+    self.assertNotEqual(self.status().get("state"), "up")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up'
+
+======================================================================
+FAIL: test_watcher_does_not_promote_from_an_unrelated_successful_root (test_preview_health_independent.PreviewHealthIndependentTest.test_watcher_does_not_promote_from_an_unrelated_successful_root)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_independent.py", line 229, in test_watcher_does_not_promote_from_an_unrelated_successful_root
+    self.assertNotEqual(state.get("state"), "up", "root-page success bypassed configured readiness")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'up' == 'up' : root-page success bypassed configured readiness
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.358s
+
+FAILED (failures=14)

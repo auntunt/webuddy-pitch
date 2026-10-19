@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "source_run": 1,
+    "project_id": 1,
+    "ticket_id": null,
+    "author": "new-reviewer",
+    "status": "failed",
+    "created": "2026-10-19 15:17:49",
+    "started": "2026-10-19 15:17:49",
+    "ended": "2026-10-19 15:17:53",
+    "exit_code": 124,
+    "result": "不能用最后调用参数覆盖总时限",
+    "output": ""
+  }
+]

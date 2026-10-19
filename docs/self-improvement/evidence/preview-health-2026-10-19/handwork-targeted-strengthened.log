@@ -1,0 +1,10 @@
+test_build_timeout_closes_lifecycle_without_starting_review (test_handwork_lifecycle.HandworkLifecycleTest.test_build_timeout_closes_lifecycle_without_starting_review) ... ok
+test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded (test_handwork_lifecycle.HandworkLifecycleTest.test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded) ... ok
+test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption (test_handwork_lifecycle.HandworkLifecycleTest.test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption) ... ok
+test_review_shares_time_spent_on_baseline_and_candidate_checks (test_handwork_lifecycle.HandworkLifecycleTest.test_review_shares_time_spent_on_baseline_and_candidate_checks) ... ok
+test_successful_direct_review_finishes_before_adoption (test_handwork_lifecycle.HandworkLifecycleTest.test_successful_direct_review_finishes_before_adoption) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 7.637s
+
+OK

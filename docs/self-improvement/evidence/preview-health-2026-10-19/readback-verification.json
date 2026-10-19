@@ -1,0 +1,45 @@
+{
+  "manifest_entries_verified": 242,
+  "original_bytes_verified": true,
+  "private_credential_files_excluded": true,
+  "sqlite_integrity": {
+    "fixture/platform.db": [
+      "ok"
+    ],
+    "fixture/projects/HP/app.db": [
+      "ok"
+    ],
+    "live-app-before.db": [
+      "ok"
+    ],
+    "live-app-recovered.db": [
+      "ok"
+    ],
+    "live-final-before.db": [
+      "ok"
+    ],
+    "live-final-recovered.db": [
+      "ok"
+    ],
+    "live-platform-after-stop.db": [
+      "ok"
+    ],
+    "live-platform-before-stop.db": [
+      "ok"
+    ],
+    "main-bootv2-after.db": [
+      "ok"
+    ],
+    "main-bootv2-before.db": [
+      "ok"
+    ],
+    "main-platform-after.db": [
+      "ok"
+    ],
+    "main-platform-before.db": [
+      "ok"
+    ]
+  },
+  "bundle_exit_code": 0,
+  "bundle_verification": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/preview-health-2026-10-19/fixture-candidate.bundle is okay\nThe bundle contains these 3 refs:\n9425cf6ba6c1a0deccb015fc00e549f317f79902 refs/heads/main\n9425cf6ba6c1a0deccb015fc00e549f317f79902 refs/webuddy/candidates/833bdf413d59e3b3830b146101d8340af98449e2206adf181e62ca359f45e140\n9425cf6ba6c1a0deccb015fc00e549f317f79902 HEAD\nThe bundle records a complete history.\nThe bundle uses this hash algorithm: sha1\n"
+}

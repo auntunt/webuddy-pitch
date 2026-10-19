@@ -1,0 +1,199 @@
+- link "跳到主要内容":
+  - /url: "#main"
+- banner:
+  - link "Webuddy 交付工作台":
+    - /url: "#/deliveries"
+    - generic: Webuddy · 预览健康验收夹具
+  - combobox "项目范围":
+    - option "HP · 预览健康恢复夹具" [selected]
+    - option "全部项目"
+    - option "＋ 添加项目…"
+  - button "20,000 点":
+    - generic: 20,000
+    - text: 点
+  - button "录入客户需求": ＋ 录入需求
+  - button "AI 助手 Ctrl K"
+  - button "隔离健康验收，用户与设置": 隔离健康验收
+- navigation "主导航":
+  - link "交付":
+    - /url: "#/deliveries"
+    - generic: 交付
+  - link "今天":
+    - /url: "#/today"
+    - generic: 今天
+  - link "客户":
+    - /url: "#/clients"
+    - generic: 客户
+  - link "需求":
+    - /url: "#/reqs"
+    - generic: 需求
+  - link "版本":
+    - /url: "#/versions"
+    - generic: 版本
+  - link "工程":
+    - /url: "#/board"
+    - generic: 工程
+- main:
+  - link "需求":
+    - /url: "#/reqs"
+  - text: / HP / HP-1
+  - heading "预览健康失效和恢复验收夹具" [level=1]
+  - generic: 处理中
+  - button "在助手中讨论"
+  - generic: HP
+  - text: 状态
+  - combobox "状态":
+    - option "新建"
+    - option "分析中"
+    - option "待确认"
+    - option "处理中" [selected]
+    - option "待验证"
+  - text: 类型
+  - combobox "类型":
+    - option "缺陷"
+    - option "需求" [selected]
+    - option "变更"
+    - option "咨询"
+    - option "运维"
+  - text: 优先级
+  - combobox "优先级":
+    - option "紧急"
+    - option "高"
+    - option "中" [selected]
+    - option "低"
+  - text: 经办人
+  - textbox "经办人":
+    - /placeholder: 无人
+    - text: agent:health-fixture
+  - generic: agent:health-fixture 提交 · 10-19 14:35
+  - generic: 待复核
+  - generic: CLI / MCP 已接续，等待明确的下一步
+  - term: 客户要的
+  - definition: 保存事项后模拟数据库临时不可用。预览不可用时不能验收，恢复后同一进程读回原数据。
+  - term: 下一步
+  - definition: 已接入 CLI / MCP。 需求和沟通记录已保存，等待助手明确启动下一步。可从外部助手读取任务、留言交接、启动运行并查看证据；不会自动接收分支或把消息当作人工验收。 已有实现结果，请在执行记录中核对测试与改动。
+  - link "打开预览 ↗":
+    - /url: /pv/HP-1/
+  - navigation:
+    - link "工单详情":
+      - /url: "#/t/HP-1"
+    - link "提示词":
+      - /url: "#/t/HP-1/prompt"
+  - list:
+    - generic: ✓
+    - generic: 受理
+    - generic: agent:health-fixture · 12 分钟前
+    - generic: "2"
+    - generic: 分析定位
+    - generic: "3"
+    - generic: 修改方案
+    - generic: "4"
+    - generic: 修改代码
+    - generic: 待审阅
+    - generic: "5"
+    - generic: 人工验收
+    - generic: 等待审阅最新改动
+    - generic: "6"
+    - generic: 闭环
+  - term: 现象
+  - definition: 保存事项后模拟数据库临时不可用。预览不可用时不能验收，恢复后同一进程读回原数据。
+  - term: 根因
+  - definition: 还没有分析
+  - term: 证据
+  - definition: 分析后在这里列出核实和推断的条数
+  - term: 等谁
+  - definition: 已接入 CLI / MCP。 需求和沟通记录已保存，等待助手明确启动下一步。可从外部助手读取任务、留言交接、启动运行并查看证据；不会自动接收分支或把消息当作人工验收。 已有实现结果，请在执行记录中核对测试与改动。
+  - generic "▸ 完整描述 原话、理解、补充的信息和验收标准":
+    - text: ▸
+    - generic: 完整描述
+    - generic: 原话、理解、补充的信息和验收标准
+  - heading "动态与讨论" [level=2]
+  - generic: agent:health-fixture 创建工单12 分钟前
+  - text: agent:health-fixture 登记外部代码候选，等待平台独立验证
+  - link "#1":
+    - /url: javascript:void 0
+  - text: 12 分钟前
+  - text: "agent:health-fixture 重新验证了运行 #1 的改动（没改代码）：构建通过"
+  - link "#1":
+    - /url: javascript:void 0
+  - text: 12 分钟前
+  - generic: agent:health-fixture 启动独立验证后的外部候选预览12 分钟前
+  - generic: 预览 预览版本已经可以打开12 分钟前
+  - generic: agent:health-fixture 启动独立验证后的外部候选预览刚刚
+  - generic: 预览 预览版本已经可以打开刚刚
+  - status: 评论草稿已保存在本标签页，刷新后可恢复。
+  - textbox "评论草稿":
+    - /placeholder: 写评论（支持 Markdown）。智能体下次运行会读到最近的讨论。
+    - text: 尚未发送：预览健康恢复后继续核对原事项。
+  - button "评论"
+  - paragraph: 仅保存本标签页的评论文字；不同标签页各自保存，关闭标签页后不保证恢复。证据截图及其他表单不包含在内，整页刷新后需重新选择或填写。
+  - generic "▾ 执行记录与手动运行 1 次运行":
+    - text: ▾
+    - generic: 执行记录与手动运行
+    - generic: 1 次运行
+  - generic: 手动指派：
+  - combobox:
+    - option "Claude Code" [selected]
+    - option "Codex"
+  - combobox "模型":
+    - option "自动（方案改码 Opus · 分析 Sonnet）" [selected]
+    - option "Opus（最强，适合方案和改码）"
+    - option "Sonnet（均衡，适合分析和写知识页）"
+    - option "Haiku（最快最省）"
+    - option "沿用本机设置"
+  - button "分析定位"
+  - button "修改方案"
+  - button "修改代码"
+  - checkbox "分析定位后，顺手补写涉及的业务流知识页（最多 2 页，只补还没写的）" [checked]
+  - text: 分析定位后，顺手补写涉及的业务流知识页（最多 2 页，只补还没写的）
+  - generic: 分析定位、修改方案只读代码；修改代码在独立的 git 工作树里进行，改动经你审阅后才采纳。
+  - text: 人工验收 通常在“待验证”时做；也可以直接在这里验收
+  - textbox "验收说明（不通过时必填）"
+  - button "验收通过"
+  - button "验收不通过"
+  - button "让助手起草验收说明"
+  - generic: "#1 external:health-fixture · 修改代码"
+  - generic: 完成
+  - generic: agent:health-fixture 12 分钟前
+  - link "提示词":
+    - /url: javascript:void 0
+  - region "重新验证运行":
+    - 'heading "重新验证记录 #1" [level=3]'
+    - status: 重新验证已结束，构建与测试结论以本次实际验证记录为准。
+    - paragraph: "原实现运行 #1 的状态保留。重新验证是独立过程，进程收尾不代表业务成功。"
+    - generic: 重新验证：通过
+    - generic "查看完整重新验证输出"
+    - region "运行时限与停止状态":
+      - status: 本轮执行已结束，进程回收完成。
+      - paragraph: 开始：2026-10-19 14:35:34 · 整次任务总时限：1200 秒 · 已记录耗时：3.61 秒
+      - generic "查看每次执行的退出与回收结果（4 次）"
+      - generic "查看完整运行停止回执"
+    - generic "查看完整重新验证记录"
+  - tablist "运行记录":
+    - tab "结论" [selected]
+    - tab "代码改动"
+    - tab "实际验证"
+    - tab "过程"
+  - paragraph: "Fixture only: same starter application, documented health regression."
+  - heading "试用本次改动" [level=3]
+  - paragraph: 代码与验证结果在上方。将改动保存到独立分支后，就可以启动对应版本的预览。
+  - button "采纳到独立分支"
+  - button "放弃改动"
+  - button "重新验证本次改动"
+  - paragraph: 先核对代码与验证结果，再采纳到独立分支，才能预览这次改动。采纳不会合并主干，也不代表用户已验收。
+  - heading "预览版本" [level=2]
+  - generic: 可以打开
+  - text: 这次改动（提交
+  - code: 9425cf6ba6
+  - text: ）正跑在平台上，验收前先亲手试一遍。发出去的签收链接里也有这个入口。
+  - link "打开预览 ↗":
+    - /url: /pv/HP-1/
+  - button "停掉"
+  - button "重新启动"
+  - heading "证据包" [level=2]
+  - generic: 未生成
+  - generic: 工单转到“待验证”时自动打包：验收标准、方案、改动、构建测试、范围和业务流检查。
+  - generic "▸ 工程细节 我来写、代码改动、候选代码入口、相关业务":
+    - text: ▸
+    - generic: 工程细节
+    - generic: 我来写、代码改动、候选代码入口、相关业务

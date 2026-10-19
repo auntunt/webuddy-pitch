@@ -1,0 +1,94 @@
+test_late_response_cannot_paint_a_different_ticket_or_reopened_page (test_ui_ticket_preview.TicketPreviewUiTest.test_late_response_cannot_paint_a_different_ticket_or_reopened_page) ... ok
+test_older_health_response_cannot_replace_a_newer_refresh (test_ui_ticket_preview.TicketPreviewUiTest.test_older_health_response_cannot_replace_a_newer_refresh) ... FAIL
+test_read_failure_removes_old_open_links_in_both_views_and_can_retry (test_ui_ticket_preview.TicketPreviewUiTest.test_read_failure_removes_old_open_links_in_both_views_and_can_retry) ... FAIL
+test_refresh_updates_both_views_without_replacing_drafts (test_ui_ticket_preview.TicketPreviewUiTest.test_refresh_updates_both_views_without_replacing_drafts) ... FAIL
+
+======================================================================
+FAIL: test_older_health_response_cannot_replace_a_newer_refresh (test_ui_ticket_preview.TicketPreviewUiTest.test_older_health_response_cannot_replace_a_newer_refresh)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_preview.py", line 49, in test_older_health_response_cannot_replace_a_newer_refresh
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    const delayed=later();getHandler=()=>delayed.promise;const older=ticketTopWire(S.cur,{});
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    getHandler=async()=>healthy;await pvLoad('APP-1');delayed.resolve(failed);await older;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    for(const id of ['ttPv','pvc']){assert.ok(nodes[id].innerHTML.includes('href="/pv/'));assert.ok(!nodes[id].innerHTML.includes('503'))}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_preview.py", line 34, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:57:40
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+======================================================================
+FAIL: test_read_failure_removes_old_open_links_in_both_views_and_can_retry (test_ui_ticket_preview.TicketPreviewUiTest.test_read_failure_removes_old_open_links_in_both_views_and_can_retry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_preview.py", line 65, in test_read_failure_removes_old_open_links_in_both_views_and_can_retry
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    getHandler=async()=>healthy;await pvLoad('APP-1');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    for(const id of ['ttPv','pvc'])assert.ok(nodes[id].innerHTML.includes('href="/pv/'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_preview.py", line 34, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:57:95
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+======================================================================
+FAIL: test_refresh_updates_both_views_without_replacing_drafts (test_ui_ticket_preview.TicketPreviewUiTest.test_refresh_updates_both_views_without_replacing_drafts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_preview.py", line 37, in test_refresh_updates_both_views_without_replacing_drafts
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    const comment=nodes.cm,note=nodes.accNote;comment.value='完整未发送评论';note.value='尚未提交验收';
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    for(const id of ['ttPv','pvc'])assert.ok(!nodes[id].innerHTML.includes('href="/pv/'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_preview.py", line 34, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:57:40
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.576s
+
+FAILED (failures=3)

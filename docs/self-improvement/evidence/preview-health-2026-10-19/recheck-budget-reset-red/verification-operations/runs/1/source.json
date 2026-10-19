@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "operation_id": 1,
+  "source_run": 1,
+  "source": {
+    "source_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "base": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "diffhash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "decision": "accepted",
+    "fixture": "synthetic identity; no claim of repository verification"
+  },
+  "bound_at": "2026-10-19 15:17:49"
+}

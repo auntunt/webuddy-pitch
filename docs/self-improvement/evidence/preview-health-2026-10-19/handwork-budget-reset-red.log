@@ -1,0 +1,15 @@
+test_review_shares_time_spent_on_baseline_and_candidate_checks (handwork_fixture.HandworkLifecycleTest.test_review_shares_time_spent_on_baseline_and_candidate_checks) ... FAIL
+
+======================================================================
+FAIL: test_review_shares_time_spent_on_baseline_and_candidate_checks (handwork_fixture.HandworkLifecycleTest.test_review_shares_time_spent_on_baseline_and_candidate_checks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_handwork_lifecycle.py", line 141, in test_review_shares_time_spent_on_baseline_and_candidate_checks
+    self.assertLess(model["timeout_seconds"], budget - .2)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2.984016166999936 not less than 2.8
+
+----------------------------------------------------------------------
+Ran 1 test in 5.319s
+
+FAILED (failures=1)

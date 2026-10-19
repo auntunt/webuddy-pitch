@@ -1,0 +1,24 @@
+test_total_operation_budget_covers_multiple_commands (operation_budget_fixture.RecheckOperationsTest.test_total_operation_budget_covers_multiple_commands) ... FAIL
+
+======================================================================
+FAIL: test_total_operation_budget_covers_multiple_commands (operation_budget_fixture.RecheckOperationsTest.test_total_operation_budget_covers_multiple_commands)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_operations.py", line 223, in test_total_operation_budget_covers_multiple_commands
+    self.assertLessEqual(life["attempts"][1]["timeout_seconds"] + first.elapsed, budget + .02)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3.3568891669856384 not less than or equal to 3.02
+
+----------------------------------------------------------------------
+Ran 1 test in 3.927s
+
+FAILED (failures=1)
+{
+  "mode": "reset",
+  "test_file": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_operations.py",
+  "test_sha256": "bb236c2684e79de7c2e3fef0451efe2e5a6a448b94b2d891e7d2d55bb6e0f5b7",
+  "tests_run": 1,
+  "failures": 1,
+  "errors": 0,
+  "successful": false
+}

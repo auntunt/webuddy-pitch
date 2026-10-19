@@ -1,0 +1,14 @@
+- main:
+  - text: WEB 应用起点
+  - heading "预览健康恢复夹具" [level=1]
+  - paragraph: 应用已经可以运行。先添加一项内容，刷新后仍会保留。具体业务能力将在交付流程中实现和验证。
+  - generic: 新事项
+  - textbox "新事项":
+    - /placeholder: 写下一件要做的事
+  - button "添加"
+  - list:
+    - generic: 浏览器验收：503 恢复后同一事项完整保留
+    - button "完成"
+    - link "编辑":
+      - /url: /pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902/items/1/edit
+  - paragraph: 仅用于本地开发；正式发布前需要按实际业务配置身份验证、数据保护和部署环境。

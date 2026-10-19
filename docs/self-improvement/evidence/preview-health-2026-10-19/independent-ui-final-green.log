@@ -1,0 +1,7 @@
+PASS retained preview configuration nodes, values, save handler and exact submitted values
+PASS detached old form cannot submit against a new ticket
+PASS late configuration response cannot fill another ticket
+PASS one initial read, stale startup timer ignored, current startup poll updates both views
+PASS startup timers stop after view change, same-key DOM replacement, or another ticket
+
+EXIT_CODE=0

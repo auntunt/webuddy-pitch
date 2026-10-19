@@ -1,0 +1,14 @@
+test_completed_error_responses_release_keepalive_connections (test_preview_health_independent.PreviewHealthIndependentTest.test_completed_error_responses_release_keepalive_connections) ... ok
+test_http_401_404_and_503_cannot_be_reported_up (test_preview_health_independent.PreviewHealthIndependentTest.test_http_401_404_and_503_cannot_be_reported_up) ... ok
+test_incomplete_200_is_unhealthy_bounded_and_closes_connection (test_preview_health_independent.PreviewHealthIndependentTest.test_incomplete_200_is_unhealthy_bounded_and_closes_connection) ... ok
+test_old_preview_binding_is_rejected_before_any_application_request (test_preview_health_independent.PreviewHealthIndependentTest.test_old_preview_binding_is_rejected_before_any_application_request) ... ok
+test_only_the_exact_prefixed_endpoint_is_checked (test_preview_health_independent.PreviewHealthIndependentTest.test_only_the_exact_prefixed_endpoint_is_checked) ... ok
+test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) ... ok
+test_status_ignores_environment_proxy (test_preview_health_independent.PreviewHealthIndependentTest.test_status_ignores_environment_proxy) ... ok
+test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview (test_preview_health_independent.PreviewHealthIndependentTest.test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview) ... ok
+test_watcher_does_not_promote_from_an_unrelated_successful_root (test_preview_health_independent.PreviewHealthIndependentTest.test_watcher_does_not_promote_from_an_unrelated_successful_root) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 3.506s
+
+OK

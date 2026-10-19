@@ -1,0 +1,857 @@
+diff --git a/tests/test_handwork_lifecycle.py b/tests/test_handwork_lifecycle.py
+index 108dc62..edf4ecb 100644
+--- a/tests/test_handwork_lifecycle.py
++++ b/tests/test_handwork_lifecycle.py
+@@ -119,18 +119,29 @@ class HandworkLifecycleTest(unittest.TestCase):
+         self.assert_not_adopted()
+ 
+     def test_review_shares_time_spent_on_baseline_and_candidate_checks(self):
+-        rid = self.start("review-timeout", 1.2)
++        # Allow the real Git worktree and Python processes to start. The
++        # assertion below still rejects a fresh budget for the reviewer: both
++        # checks sleep .15s and their spent time must reduce its timeout.
++        budget = 3.0
++        rid = self.start("review-timeout", budget)
+         run, life = self.wait(rid)
+         self.assertEqual(run["status"], "failed", run["result"])
+         self.assertEqual(run["exit_code"], 124)
+         self.assertEqual(life["stopped_reason"], "timeout")
+         self.assertTrue(self.reviewed.exists())
+         attempts = life["attempts"]
+-        self.assertGreaterEqual(len([a for a in attempts if a["kind"].startswith("check:")]), 2)
++        checks = [a for a in attempts if a["kind"].startswith("check:")]
++        self.assertGreaterEqual(len(checks), 2)
++        for check in checks:
++            self.assertEqual(check["returncode"], 0)
++            self.assertGreaterEqual(check["elapsed_seconds"], .15)
++            self.assertTrue(check["cleanup"]["complete"])
+         model = next(a for a in attempts if a["kind"].startswith("model:"))
+-        self.assertLess(model["timeout_seconds"], 1.0)
++        self.assertEqual(life["timeout_seconds"], budget)
++        self.assertLess(model["timeout_seconds"], budget - .2)
++        self.assertLessEqual(model["timeout_seconds"] + sum(c["elapsed_seconds"] for c in checks), budget + .02)
+         self.assertTrue(model["cleanup"]["complete"])
+-        self.assertLess(life["elapsed_seconds"], 2.5)
++        self.assertLess(life["elapsed_seconds"], budget + 1.3)
+         self.assert_not_adopted()
+ 
+     def test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption(self):
+diff --git a/tests/test_preview_health_flow.py b/tests/test_preview_health_flow.py
+new file mode 100644
+index 0000000..acaac96
+--- /dev/null
++++ b/tests/test_preview_health_flow.py
+@@ -0,0 +1,141 @@
++"""Real starter HTTP/SQLite failure, candidate gating, and same-process recovery.
++
++The candidate is an explicit test fixture, not a new model-written feature or a
++human acceptance. Its bundled application tests and preview run for real.
++"""
++import http.client
++import json
++from pathlib import Path
++import re
++import sqlite3
++import subprocess
++import tempfile
++import time
++from types import SimpleNamespace
++import unittest
++from urllib.parse import urlencode
++
++from tmh.platform import agent_api, candidates, preview, project_bootstrap
++from tmh.platform.errors import ApiError
++from tmh.platform.server import Platform, Req
++
++
++def call(P, op, args, actor="health-fixture"):
++    return agent_api.dispatch(P, Req(SimpleNamespace(headers={
++        "X-Webuddy-Agent": actor, "X-Webuddy-Execution": "1"}), {}, args, "health-fixture"), op)
++
++
++def prepare(P):
++    created = project_bootstrap.create(P, {"key": "HP", "name": "预览健康恢复夹具",
++        "brief": "隔离的 HTTP/SQLite 验收场景，不计新业务实现或人工签收。"}, "health-fixture")
++    repo = Path(created["project"]["root"])
++    with (repo / "README.md").open("a") as f:
++        f.write("\nThis candidate is a preview health regression fixture.\n")
++    subprocess.run(["git", "-C", str(repo), "-c", "user.name=Health fixture", "-c",
++        "user.email=health@localhost", "commit", "-qam", "Add health scenario provenance"], check=True, capture_output=True)
++    sha = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
++    ticket = call(P, "ticket_create", {"project": "HP", "title": "预览健康失效和恢复验收夹具",
++        "body": "保存事项后模拟数据库临时不可用。预览不可用时不能验收，恢复后同一进程读回原数据。",
++        "request_id": "health-create"})["ticket"]
++    packet = call(P, "ticket_get", {"ticket": ticket["key"]})
++    sub = call(P, "candidate_submit", {"ticket": ticket["key"], "base_commit": created["commit"],
++        "commit": sha, "requirement_hash": packet["requirement_hash"], "request_id": "health-submit",
++        "criteria": [{"id": "A1", "text": "数据库故障阻止就绪，恢复后原事项保持", "check": "真实 HTTP/SQLite 故障与恢复"}],
++        "summary": "Fixture only: same starter application, documented health regression."})
++    started = call(P, "candidate_verify", {"candidate_id": sub["candidate_id"], "request_id": "health-verify"})
++    deadline = time.monotonic() + 30
++    while time.monotonic() < deadline:
++        state = P.flow.rechecks.status(started["run"])
++        if state and not state["running"]:
++            break
++        time.sleep(.02)
++    v = candidates.view(P, sub["candidate_id"])
++    if not v["verification_passed"]:
++        raise AssertionError(v["verification"])
++    call(P, "candidate_preview", {"candidate_id": sub["candidate_id"], "request_id": "health-preview"})
++    deadline = time.monotonic() + 10
++    while time.monotonic() < deadline:
++        if preview.status(P.data_dir, ticket["key"]).get("state") == "up":
++            return {"project": created, "ticket": ticket, "candidate": sub, "commit": sha}
++        time.sleep(.05)
++    raise AssertionError(preview.status(P.data_dir, ticket["key"]))
++
++
++def request(rec, path="/", method="GET", fields=None, cookie=""):
++    conn = http.client.HTTPConnection("127.0.0.1", rec["port"], timeout=5)
++    try:
++        conn.request(method, rec["prefix"] + path,
++            body=urlencode(fields).encode() if fields is not None else None,
++            headers={"Content-Type": "application/x-www-form-urlencoded", "Cookie": cookie})
++        r = conn.getresponse()
++        return r.status, dict(r.getheaders()), r.read()
++    finally:
++        conn.close()
++
++
++class PreviewHealthFlowTest(unittest.TestCase):
++    def setUp(self):
++        tmp = tempfile.TemporaryDirectory(prefix="webuddy-health-flow-")
++        self.addCleanup(tmp.cleanup)
++        data = Path(tmp.name) / "data"
++        data.mkdir()
++        (data / "autoflow.json").write_text('{"on":false,"preview":"off"}')
++        self.P = Platform(data, "health-fixture")
++        self.addCleanup(self.P.store.db.close)
++        self.addCleanup(lambda: preview.stop(self.P, "HP-1"))
++
++    def test_real_database_failure_blocks_assessment_and_recovers_same_preview(self):
++        fixture = prepare(self.P)
++        cid, key = fixture["candidate"]["candidate_id"], fixture["ticket"]["key"]
++        db = Path(fixture["project"]["project"]["root"]) / "app.db"
++        rec = preview.status(self.P.data_dir, key)
++        code, headers, body = request(rec)
++        self.assertEqual(code, 200)
++        token = re.search(rb'name="csrf" value="([^"]+)"', body)[1].decode()
++        cookie = headers.get("Set-Cookie", "").split(";", 1)[0]
++        title = "故障恢复后仍保留：中文、% 与完整内容"
++        self.assertEqual(request(rec, "/items", "POST", {"csrf": token, "title": title}, cookie)[0], 303)
++        before = db.read_bytes()
++        v = candidates.view(self.P, cid)
++        assessment = {"candidate_id": cid, "verification_hash": v["verification_hash"],
++            "preview_hash": v["preview_hash"], "results": [{"id": "A1", "status": "pass",
++                "evidence": "Explicit test fixture observation; no human approval."}],
++            "note": "Test fixture only", "request_id": "health-assess"}
++        call(self.P, "candidate_assess", assessment, "independent-fixture")
++        healthy = candidates.view(self.P, cid)
++        self.assertTrue(healthy["technical_acceptance"])
++        self.assertFalse(healthy["human_accepted"])
++        saved_state = (self.P.data_dir / "previews/state.json").read_bytes()
++        saved_rows = {t: self.P.store.q("SELECT * FROM " + t) for t in
++            ("events", "runs", "candidate_assessments", "candidate_decisions")}
++        backup = db.with_suffix(".held")
++        db.rename(backup)
++        db.mkdir()
++        try:
++            broken = candidates.view(self.P, cid)
++            self.assertEqual(broken["preview"]["health"]["status_code"], 503)
++            self.assertEqual(broken["preview"]["state"], "unhealthy")
++            self.assertFalse(broken["preview_ready"])
++            self.assertFalse(broken["technical_acceptance"])
++            self.assertFalse(broken["ready_for_human"])
++            self.assertEqual(broken["preview_url"], "")
++            with self.assertRaises(ApiError) as rejected:
++                call(self.P, "candidate_assess", dict(assessment, request_id="health-refuse"), "independent-fixture")
++            self.assertEqual(rejected.exception.code, 409)
++        finally:
++            db.rmdir()
++            backup.rename(db)
++        recovered = candidates.view(self.P, cid)
++        self.assertTrue(recovered["preview_ready"])
++        self.assertTrue(recovered["technical_acceptance"])
++        self.assertEqual(recovered["evidence_hash"], healthy["evidence_hash"])
++        self.assertEqual(recovered["preview"]["pid"], rec["pid"])
++        self.assertIn(title.encode(), request(rec)[2])
++        self.assertEqual(db.read_bytes(), before)
++        self.assertEqual((self.P.data_dir / "previews/state.json").read_bytes(), saved_state)
++        self.assertEqual({t: self.P.store.q("SELECT * FROM " + t) for t in saved_rows}, saved_rows)
++        self.assertNotEqual(recovered["preview"]["health"]["checked_at"], healthy["preview"]["health"]["checked_at"])
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/test_preview_health_independent.py b/tests/test_preview_health_independent.py
+new file mode 100644
+index 0000000..240b4ec
+--- /dev/null
++++ b/tests/test_preview_health_independent.py
+@@ -0,0 +1,239 @@
++"""Independent HTTP health contracts; temporary state and local fixture servers only.
++
++The HTTP responses are real. PID ownership is represented by the current test
++process (which owns the HTTP server), except the watcher test's explicit process
++double. No production processes or business databases are touched.
++"""
++import os
++from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
++from pathlib import Path
++import socket
++import subprocess
++import tempfile
++import threading
++import time
++from types import SimpleNamespace
++import unittest
++from unittest.mock import patch
++
++from tmh.platform import preview
++from tmh.platform.errors import ApiError
++from tmh.platform.store import Store
++
++
++class HTTPFixture:
++    def __init__(self):
++        self.routes = {}
++        self.requests = []
++        self.active = 0
++        self.condition = threading.Condition()
++        self.partial_closed = threading.Event()
++        fixture = self
++
++        class Handler(BaseHTTPRequestHandler):
++            protocol_version = "HTTP/1.1"
++
++            def setup(self):
++                super().setup()
++                with fixture.condition:
++                    fixture.active += 1
++
++            def finish(self):
++                try:
++                    super().finish()
++                finally:
++                    with fixture.condition:
++                        fixture.active -= 1
++                        fixture.condition.notify_all()
++
++            def log_message(self, *_):
++                pass
++
++            def do_GET(self):
++                with fixture.condition:
++                    fixture.requests.append(self.path)
++                    fixture.condition.notify_all()
++                code, body, headers = fixture.routes.get(self.path, (404, b"missing", {}))
++                self.send_response(code)
++                self.send_header("Content-Length", str(len(body) + (20 if headers.get("partial") else 0)))
++                for name, value in headers.items():
++                    if name != "partial":
++                        self.send_header(name, value)
++                self.end_headers()
++                try:
++                    self.wfile.write(body)
++                    self.wfile.flush()
++                    if headers.get("partial"):
++                        self.connection.settimeout(4)
++                        if not self.connection.recv(1):
++                            fixture.partial_closed.set()
++                        self.close_connection = True
++                except (BrokenPipeError, ConnectionResetError):
++                    fixture.partial_closed.set()
++                    self.close_connection = True
++                except socket.timeout:
++                    self.close_connection = True
++
++        self.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
++        self.server.daemon_threads = True
++        self.worker = threading.Thread(target=self.server.serve_forever, kwargs={"poll_interval": .02}, daemon=True)
++        self.worker.start()
++
++    @property
++    def port(self):
++        return self.server.server_address[1]
++
++    def close(self):
++        self.server.shutdown()
++        self.server.server_close()
++        self.worker.join(2)
++
++
++class PreviewHealthIndependentTest(unittest.TestCase):
++    def setUp(self):
++        tmp = tempfile.TemporaryDirectory(prefix="webuddy-preview-health-independent-")
++        self.addCleanup(tmp.cleanup)
++        self.base = Path(tmp.name)
++        self.data = self.base / "data"
++        self.store = Store(self.data / "platform.db")
++        self.addCleanup(self.store.db.close)
++        project = self.store.add_project("INDEP", "Independent health fixture", str(self.base))
++        self.ticket = self.store.create_ticket(project["id"], "Preview health", "fixture-owner")
++        self.P = SimpleNamespace(data_dir=self.data, store=self.store)
++        self.app = HTTPFixture()
++        self.addCleanup(self.app.close)
++        self.key = self.ticket["key"]
++        self.commit = "1" * 40
++        self.prefix = preview.bound_prefix(self.key, self.commit)
++        self.health_path = self.prefix + "/health"
++        self.record = {"key": self.key, "project": "INDEP", "commit_full": self.commit,
++            "commit": self.commit[:10], "prefix": self.prefix, "ready": "/health",
++            "port": self.app.port, "pid": os.getpid(), "dir": str(Path.cwd()),
++            "state": "up", "started": "fixture-start", "cmd": "fixture HTTP server"}
++        self.app.routes[self.health_path] = (200, b'{"status":"ok"}', {})
++        preview._save(self.data, {self.key: self.record})
++
++    def status(self):
++        return preview.status(self.data, self.key)
++
++    def test_http_401_404_and_503_cannot_be_reported_up(self):
++        for code in (401, 404, 503):
++            with self.subTest(code=code):
++                self.app.routes[self.health_path] = (code, b"not available", {})
++                state = self.status()
++                self.assertNotEqual(state.get("state"), "up", "HTTP %d was treated as a usable preview" % code)
++                self.assertTrue(state.get("why"), state)
++
++    def test_only_the_exact_prefixed_endpoint_is_checked(self):
++        self.app.routes["/"] = (503, b"unrelated root", {})
++        self.app.routes["/health"] = (401, b"unprefixed application", {})
++        self.assertEqual(self.status()["state"], "up")
++        self.assertEqual(self.app.requests, [self.health_path])
++
++    def test_redirects_do_not_inherit_success_or_contact_the_target(self):
++        target = HTTPFixture()
++        self.addCleanup(target.close)
++        target.routes["/login"] = (200, b"login is not the configured health endpoint", {})
++        for code in (301, 302, 303, 307, 308):
++            with self.subTest(code=code):
++                self.app.routes[self.health_path] = (code, b"", {
++                    "Location": "http://127.0.0.1:%d/login" % target.port})
++                self.assertNotEqual(self.status().get("state"), "up")
++        self.assertEqual(target.requests, [], "health followed a redirect to another origin")
++
++    def test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview(self):
++        before_records = list(self.store.db.iterdump())
++        state_path = self.data / "previews/state.json"
++        before_state = state_path.read_bytes()
++        self.assertEqual(self.status()["state"], "up")
++        self.app.routes[self.health_path] = (503, b"database temporarily unavailable", {})
++        self.assertNotEqual(self.status().get("state"), "up")
++        self.app.routes[self.health_path] = (200, b'{"status":"ok"}', {})
++        recovered = self.status()
++        self.assertEqual(recovered["state"], "up")
++        self.assertTrue(preview.bound_matches(recovered, self.key, self.commit))
++        self.assertEqual(list(self.store.db.iterdump()), before_records)
++        self.assertEqual(state_path.read_bytes(), before_state)
++
++    def test_status_ignores_environment_proxy(self):
++        proxy = HTTPFixture()
++        self.addCleanup(proxy.close)
++        address = "http://127.0.0.1:%d" % proxy.port
++        with patch.dict(os.environ, {"HTTP_PROXY": address, "http_proxy": address,
++                                     "ALL_PROXY": address, "all_proxy": address,
++                                     "NO_PROXY": "", "no_proxy": ""}):
++            state = self.status()
++        self.assertEqual(state["state"], "up")
++        self.assertEqual(self.app.requests, [self.health_path])
++        self.assertEqual(proxy.requests, [], "preview health was sent through an environment proxy")
++
++    def test_incomplete_200_is_unhealthy_bounded_and_closes_connection(self):
++        self.app.routes[self.health_path] = (200, b"partial-body", {"partial": True})
++        started = time.monotonic()
++        state = self.status()
++        elapsed = time.monotonic() - started
++        self.assertNotEqual(state.get("state"), "up", "incomplete HTTP 200 was accepted")
++        self.assertLess(elapsed, 2.5, "a health read exceeded its bounded wait")
++        self.assertTrue(self.app.partial_closed.wait(2), "timed-out health connection stayed open")
++
++    def test_completed_error_responses_release_keepalive_connections(self):
++        self.app.routes[self.health_path] = (404, b"a full error response", {})
++        for _ in range(12):
++            self.status()
++        self.assertEqual(self.app.requests, [self.health_path] * 12)
++        with self.app.condition:
++            self.assertTrue(self.app.condition.wait_for(lambda: self.app.active == 0, timeout=2),
++                            "health checks leaked persistent HTTP connections")
++
++    def test_old_preview_binding_is_rejected_before_any_application_request(self):
++        newer = "2" * 40
++        replacement = dict(self.record, commit_full=newer, commit=newer[:10],
++                           prefix=preview.bound_prefix(self.key, newer))
++        preview._save(self.data, {self.key: replacement})
++        with self.assertRaises(ApiError) as rejected:
++            preview.forward(self.data, self.key, "GET", self.prefix + "/", {}, b"", expected_commit=self.commit)
++        self.assertEqual(rejected.exception.code, 409)
++        self.assertEqual(self.app.requests, [], "old version request reached the replacement application")
++
++    def test_watcher_does_not_promote_from_an_unrelated_successful_root(self):
++        self.app.routes[self.health_path] = (503, b"configured endpoint unavailable", {})
++        self.app.routes["/"] = (200, b"unrelated root page", {})
++        ended = threading.Event()
++
++        class ProcessDouble:
++            returncode = 0
++
++            def poll(self):
++                return 0 if ended.is_set() else None
++
++            def wait(self, timeout=None):
++                if ended.wait(min(timeout or .02, .02)):
++                    return 0
++                raise subprocess.TimeoutExpired("independent process fixture", timeout)
++
++        # No real process has this fixture PID. HTTP is real; this double only
++        # lets the watcher finish without launching or killing an application.
++        record = dict(self.record, pid=2 ** 29, dir=str(self.base / "not-a-worktree"), state="starting")
++        preview._save(self.data, {self.key: record})
++        with patch.object(preview, "READY_S", .2):
++            worker = threading.Thread(target=preview._watch, args=(self.P, record, ProcessDouble()), daemon=True)
++            worker.start()
++            try:
++                deadline = time.monotonic() + 4
++                state = {}
++                while time.monotonic() < deadline:
++                    state = preview._load(self.data).get(self.key, {})
++                    if state.get("state") in ("up", "failed"):
++                        break
++                    time.sleep(.01)
++                self.assertNotEqual(state.get("state"), "up", "root-page success bypassed configured readiness")
++                self.assertTrue(self.app.requests, "watcher did not issue a real health request")
++                self.assertNotIn("/", self.app.requests)
++            finally:
++                ended.set()
++                worker.join(5)
++                self.assertFalse(worker.is_alive(), "watcher fixture did not finish")
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/test_preview_run_binding.py b/tests/test_preview_run_binding.py
+index 0cc5a2c..55b4a39 100644
+--- a/tests/test_preview_run_binding.py
++++ b/tests/test_preview_run_binding.py
+@@ -247,7 +247,10 @@ class PreviewRunBindingTest(unittest.TestCase):
+ 
+     def test_open_url_and_existing_tab_requests_reject_a_replacement_preview(self):
+         preview._save(self.data, {"APP-1": self.state()})
+-        with mock.patch.object(preview, "_alive", return_value=True):
++        # This binding-only fixture has no HTTP server; explicitly supply its
++        # health observation. Real HTTP health failures have separate coverage.
++        with mock.patch.object(preview, "_alive", return_value=True), \
++                mock.patch.object(preview, "_health", return_value={"ok": True}):
+             old_url = preview.ticket_view(self.P, self.ticket, self.r1["id"])["url"]
+         h = self.handler()
+         h._preview("GET", urlparse(old_url), {})
+diff --git a/tests/test_process_control.py b/tests/test_process_control.py
+index 2f237e5..01a3891 100644
+--- a/tests/test_process_control.py
++++ b/tests/test_process_control.py
+@@ -42,7 +42,11 @@ class ProcessControlTest(unittest.TestCase):
+         self.assert_clean(result)
+ 
+     def test_blocked_stdin_and_no_newline_output_do_not_block_deadline(self):
+-        result = self.run_python("import os,signal,time\nsignal.signal(signal.SIGTERM,signal.SIG_IGN)\nos.write(1,b'partial-without-newline')\ntime.sleep(20)", stdin=b"x" * 4_000_000, timeout=.25, terminate_grace=.1)
++        # This checks blocked pipes and escalation, not whether a cold Python
++        # interpreter starts within 250ms. Shell builtins emit the exact bytes
++        # before exec; ignored SIGTERM survives exec into the sleeping process.
++        result = run_process(["/bin/sh", "-c", "trap '' TERM; printf %s partial-without-newline; exec /bin/sleep 20"],
++                             stdin=b"x" * 4_000_000, timeout=.25, terminate_grace=.1)
+         self.assertEqual(result.reason, "timeout")
+         self.assertEqual(result.returncode, 124)
+         self.assertEqual(result.output_bytes, b"partial-without-newline")
+diff --git a/tests/test_ui_run_preview.py b/tests/test_ui_run_preview.py
+index 4087d8f..d6dfd50 100644
+--- a/tests/test_ui_run_preview.py
++++ b/tests/test_ui_run_preview.py
+@@ -100,6 +100,20 @@ assert.ok(!failedRead.includes('data-run-preview-start'));
+ const unknown=runPreviewHtml(run,{...ready,run_id:null},'');
+ assert.ok(unknown.includes('无法确认'));
+ assert.ok(unknown.includes('data-run-preview-refresh'));
++""")
++
++    def test_unhealthy_preview_hides_open_but_preserves_refresh_and_recovery(self):
++        self.run_js(r"""
++for (const state of ['unhealthy', 'checking']) {
++  const html=runPreviewHtml(run,{...ready,url:'',preview:{state,commit:'abc123',why:'HTTP 503 <db>'}},'');
++  assert.ok(html.includes('预览暂不可用'));
++  assert.ok(html.includes('HTTP 503 &lt;db&gt;'));
++  assert.ok(html.includes('data-run-preview-refresh'));
++  assert.ok(html.includes('重新启动本次预览'));
++  assert.ok(!html.includes('打开本次改动预览'));
++  assert.ok(!html.includes('预览尚未启动'));
++}
++assert.ok(runPreviewHtml(run,ready,'').includes('打开本次改动预览'));
+ """)
+ 
+     def test_preview_request_target_is_bound_to_run_ticket_not_active_page(self):
+diff --git a/tests/test_ui_ticket_preview.py b/tests/test_ui_ticket_preview.py
+new file mode 100644
+index 0000000..b88c826
+--- /dev/null
++++ b/tests/test_ui_ticket_preview.py
+@@ -0,0 +1,96 @@
++"""Exercise the shipped ticket preview handlers with deferred HTTP responses."""
++import shutil
++import subprocess
++import unittest
++
++from tmh.platform.ui import JS
++from tmh.platform.ui_work import WORK_JS
++
++
++@unittest.skipUnless(shutil.which("node"), "Node.js needed for shipped preview handlers")
++class TicketPreviewUiTest(unittest.TestCase):
++    def run_js(self, checks):
++        preview = "const PVL=" + JS.split("const PVL=", 1)[1].split("// ---------- 我来写", 1)[0]
++        top = "async function ticketTopWire" + WORK_JS.split("async function ticketTopWire", 1)[1]
++        script = r'''
++const assert=require('node:assert/strict');
++const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
++class Element {
++ constructor(id){this.id=id;this.html='';this.hidden=false;this.controls=[];this.value=''}
++ unregister(){for(const c of this.controls)c.unregister();if(nodes[this.id]===this)delete nodes[this.id]}
++ register(){nodes[this.id]=this;for(const c of this.controls)c.register()}
++ set innerHTML(value){for(const c of this.controls)c.unregister();this.controls=[];this.html=value;
++   for(const m of value.matchAll(/\bid="([^"]+)"/g)){const c=new Element(m[1]);c.parent=this;c.register();this.controls.push(c)}}
++ get innerHTML(){return this.html}
++ querySelector(s){for(const c of this.controls){if('#'+c.id===s)return c;const n=c.querySelector(s);if(n)return n}return null}
++ replaceWith(other){this.unregister();this.parent.controls[this.parent.controls.indexOf(this)]=other;other.parent=this.parent;other.register()}
++}
++const nodes={},$=s=>nodes[s.slice(1)]||null;
++function page(key){for(const id of Object.keys(nodes))delete nodes[id];for(const id of ['pvc','ttPv','cm','accNote'])nodes[id]=new Element(id);S.cur={ticket:{key,links:{}}}}
++const S={};page('APP-1');let view='t';const curView=()=>view,clip=(s,n)=>s.slice(0,n),toast=()=>{};
++const get=url=>getHandler(url),post=async()=>({}),timers=[];const setTimeout=fn=>timers.push(fn);
++const later=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b});return{promise,resolve,reject}};
++const healthy={preview:{state:'up',commit:'abc'},url:'/pv/APP-1/__commit/abc/',cmd:'python app.py',branch:'candidate',own_address:true};
++const failed={...healthy,url:'',preview:{state:'unhealthy',commit:'abc',why:'HTTP 503 <db>'}};
++let getHandler=async()=>failed;
++''' + preview + top + "\n(async()=>{\n" + checks + "\n})().catch(e=>{console.error(e);process.exitCode=1});"
++        result = subprocess.run([shutil.which("node"), "-"], input=script, text=True, capture_output=True)
++        self.assertEqual(result.returncode, 0, result.stderr)
++
++    def test_refresh_updates_both_views_without_replacing_drafts(self):
++        self.run_js(r'''
++const comment=nodes.cm,note=nodes.accNote;comment.value='完整未发送评论';note.value='尚未提交验收';
++await ticketTopWire(S.cur,{});
++for(const id of ['ttPv','pvc']){assert.ok(nodes[id].innerHTML.includes('503'));assert.ok(!nodes[id].innerHTML.includes('href="/pv/'));assert.ok(!nodes[id].innerHTML.includes('<db>'))}
++getHandler=async()=>healthy;await nodes.pvRefresh.onclick();
++for(const id of ['ttPv','pvc']){assert.ok(nodes[id].innerHTML.includes('href="/pv/APP-1/__commit/abc/"'));assert.ok(!nodes[id].innerHTML.includes('503'))}
++assert.equal(nodes.cm,comment);assert.equal(nodes.accNote,note);assert.equal(comment.value,'完整未发送评论');assert.equal(note.value,'尚未提交验收');
++getHandler=async()=>failed;await pvLoad('APP-1');
++for(const id of ['ttPv','pvc'])assert.ok(!nodes[id].innerHTML.includes('href="/pv/'));
++''')
++
++    def test_older_health_response_cannot_replace_a_newer_refresh(self):
++        self.run_js(r'''
++const delayed=later();getHandler=()=>delayed.promise;const older=ticketTopWire(S.cur,{});
++getHandler=async()=>healthy;await pvLoad('APP-1');delayed.resolve(failed);await older;
++for(const id of ['ttPv','pvc']){assert.ok(nodes[id].innerHTML.includes('href="/pv/'));assert.ok(!nodes[id].innerHTML.includes('503'))}
++''')
++
++    def test_late_response_cannot_paint_a_different_ticket_or_reopened_page(self):
++        self.run_js(r'''
++for(const key of ['APP-2','APP-1']){
++ page('APP-1');const delayed=later();getHandler=()=>delayed.promise;const older=pvLoad('APP-1');
++ page(key);nodes.ttPv.innerHTML='new summary';nodes.pvc.innerHTML='new preview';delayed.resolve(failed);await older;
++ assert.equal(nodes.ttPv.innerHTML,'new summary');assert.equal(nodes.pvc.innerHTML,'new preview');
++}
++''')
++
++    def test_read_failure_removes_old_open_links_in_both_views_and_can_retry(self):
++        self.run_js(r'''
++getHandler=async()=>healthy;await pvLoad('APP-1');
++getHandler=async()=>{throw Error('connection closed <unsafe>')};await pvLoad('APP-1');
++for(const id of ['ttPv','pvc']){assert.ok(!nodes[id].innerHTML.includes('href="/pv/'));assert.ok(nodes[id].innerHTML.includes('connection closed'));assert.ok(!nodes[id].innerHTML.includes('<unsafe>'))}
++getHandler=async()=>healthy;await nodes.pvRefresh.onclick();
++for(const id of ['ttPv','pvc'])assert.ok(nodes[id].innerHTML.includes('href="/pv/'));
++''')
++
++    def test_background_summary_refresh_preserves_preview_configuration_draft(self):
++        self.run_js(r'''
++const stopped={...healthy,url:'',preview:{state:'stopped'}};
++getHandler=async url=>url.endsWith('/preview-conf')?{cmd:'python app.py',ready:'/health'}:stopped;
++await ticketTopWire(S.cur,{});await nodes.pvCfg.onclick();
++const form=nodes.pvF,cmd=nodes.pvCmd,ready=nodes.pvReady,save=nodes.pvSave.onclick;
++cmd.value='完整未保存启动命令';ready.value='/尚未保存的健康路径';
++nodes.ttPv=new Element('ttPv');await ticketTopWire(S.cur,{});
++assert.equal(nodes.pvF,form);assert.equal(nodes.pvCmd,cmd);assert.equal(nodes.pvReady,ready);assert.equal(nodes.pvSave.onclick,save);
++assert.equal(cmd.value,'完整未保存启动命令');assert.equal(ready.value,'/尚未保存的健康路径');
++''')
++
++    def test_delayed_configuration_load_does_not_fill_another_ticket(self):
++        self.run_js(r'''
++getHandler=async()=>({...healthy,url:'',preview:{state:'stopped'}});await pvLoad('APP-1');
++const delayed=later();getHandler=()=>delayed.promise;const pending=nodes.pvCfg.onclick();
++page('APP-2');getHandler=async()=>({...healthy,url:'',preview:{state:'stopped'}});await pvLoad('APP-2');
++delayed.resolve({cmd:'old command',ready:'/old-health'});await pending;
++assert.equal(nodes.pvF.innerHTML,'');assert.equal(nodes.pvCmd,undefined);
++''')
+diff --git a/tmh/platform/candidates.py b/tmh/platform/candidates.py
+index fb19017..66131f5 100644
+--- a/tmh/platform/candidates.py
++++ b/tmh/platform/candidates.py
+@@ -238,7 +238,7 @@ def view(P, cid, *, include_probe=True):
+     if not probe_ok:
+         needs.append("业务探测尚未通过、仍有未知项或证据已失效；读取harness_probe_get核对")
+     if not preview_ok:
+-        needs.append("固定版本预览尚未就绪")
++        needs.append("固定版本预览尚未就绪" + ("：" + pv["why"] if pv.get("why") else ""))
+     if not technical_ok:
+         needs.append("缺少当前验证对应的独立逐项技术验收，或仍有失败/未知项")
+     return {"id": cid, "ticket": t["key"], "run_id": row["run_id"], "author": row["agent"],
+diff --git a/tmh/platform/preview.py b/tmh/platform/preview.py
+index 134b5ca..9c72925 100644
+--- a/tmh/platform/preview.py
++++ b/tmh/platform/preview.py
+@@ -39,8 +39,7 @@ import socket
+ import subprocess
+ import threading
+ import time
+-import urllib.error
+-import urllib.request
++import urllib.parse
+ from pathlib import Path
+ 
+ from .agents import git
+@@ -49,6 +48,7 @@ from .errors import ApiError
+ MAX = 3
+ STANDING = "-main"  # <project>-main: the main line's current version, kept running between merges (workbench.py)
+ READY_S = 600  # a Java app compiling for the first time can take minutes
++HEALTH_S = 1.0  # total deadline, including a slow header or response body
+ CONF = "previews.json"
+ GRANT_H = 12  # a person's grant; the client's lasts as long as their link
+ _LOCK = threading.Lock()  # state.json and previews.json
+@@ -306,6 +306,20 @@ def status(data_dir: Path, key: str) -> dict:
+     st = _load(data_dir).get(key) or {}
+     if st and st.get("state") in ("starting", "up") and not _alive(st.get("pid") or 0, st.get("dir", "")):
+         st = dict(st, state="failed", why=st.get("why") or "预览进程已经退出，看日志")
++    elif st.get("state") in ("starting", "up"):
++        health = _health(st)
++        current = _load(data_dir).get(key) or {}
++        identity = ("pid", "port", "prefix", "commit_full", "started", "cmd", "ready", "state")
++        if any(current.get(k) != st.get(k) for k in identity):
++            # Never publish a healthy response for a preview replaced mid-request.
++            return dict(current, state="checking", why="预览已更换，刷新后重新核对") if current else {}
++        st = dict(st, health=health)
++        if not _alive(st.get("pid") or 0, st.get("dir", "")):
++            st.update(state="failed", why="预览进程已经退出，看日志")
++        elif not health["ok"]:
++            st.update(state="unhealthy" if st["state"] == "up" else "starting", why=health["reason"])
++        # Health observations are read-only. Recovery of the same process does
++        # not restart it, alter its data, or erase an earlier human decision.
+     if st.get("log"):
+         try:
+             st["tail"] = Path(st["log"]).read_text(encoding="utf-8", errors="replace")[-1500:]
+@@ -425,16 +439,17 @@ def _watch(P, rec: dict, proc=None) -> None:
+     (found running after a restart of the platform): then it is watched through /proc."""
+     key, pid = rec["key"], rec["pid"]
+     gone = (lambda: proc.poll() is not None) if proc else (lambda: not _alive(pid, rec["dir"]))
+-    url = "http://127.0.0.1:%d%s" % (rec["port"], _join(rec["prefix"], rec.get("ready", "/")))
+     state, why = ("up" if rec.get("state") == "up" else "failed"), "%d 秒内没有起来，看日志" % READY_S
+-    deadline = time.time() + READY_S
+-    while state != "up" and time.time() < deadline:
++    deadline = time.monotonic() + READY_S
++    while state != "up" and time.monotonic() < deadline:
+         if gone():
+             why = "启动命令退出了%s，看日志" % ("（退出码 %s）" % proc.returncode if proc else "")
+             break
+-        if _answers(url) or _answers("http://127.0.0.1:%d/" % rec["port"]):
++        health = _health(rec)
++        if health["ok"] and not gone() and time.monotonic() < deadline:
+             state = "up"
+             break
++        why = "%d 秒内健康检查未通过：%s" % (READY_S, health["reason"])
+         time.sleep(2)
+     if state == "up":
+         if rec.get("state") != "up" and _set(P.data_dir, key, pid, state="up", why=""):
+@@ -476,13 +491,83 @@ def _join(prefix: str, path: str) -> str:
+ 
+ 
+ def _answers(url: str) -> bool:
++    return _http_health(url)["ok"]
++
++
++def _health(rec: dict) -> dict:
+     try:
+-        with urllib.request.urlopen(url, timeout=3) as r:
+-            return r.status < 500
+-    except urllib.error.HTTPError as e:
+-        return e.code < 500
+-    except (OSError, ValueError):
+-        return False
++        port = rec["port"]
++        if type(port) is not int or not 0 < port < 65536:
++            raise ValueError("invalid port")
++        url = "http://127.0.0.1:%d%s" % (port, _join(rec["prefix"], rec.get("ready") or "/"))
++    except (KeyError, TypeError, ValueError, AttributeError):
++        return {"ok": False, "reason": "预览健康检查配置无效", "checked_at": time.time()}
++    return _http_health(url)
++
++
++def _http_health(url: str) -> dict:
++    """Direct local GET, no redirects/proxy, complete 2xx response by one deadline.
++
++    This is endpoint availability, not proof of the application's business rules.
++    The caller keeps the process/configuration identity separate from this volatile
++    observation so successful polling cannot invalidate an unchanged approval.
++    """
++    started = time.monotonic()
++    result = {"ok": False, "url": url, "checked_at": time.time(), "timeout_s": HEALTH_S,
++              "status_code": None, "reason": "预览健康检查未通过"}
++    conn, timer, response = None, None, None
++    expired = threading.Event()
++    try:
++        parsed = urllib.parse.urlsplit(url)
++        if (parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or not parsed.port
++                or parsed.username or parsed.password or parsed.fragment):
++            raise ValueError("only the configured local preview endpoint is supported")
++        conn = http.client.HTTPConnection("127.0.0.1", parsed.port, timeout=HEALTH_S)
++        conn.connect()
++        sock = conn.sock
++
++        def expire():
++            expired.set()
++            try:
++                sock.shutdown(socket.SHUT_RDWR)
++            except OSError:
++                pass
++
++        remaining = HEALTH_S - (time.monotonic() - started)
++        if remaining <= 0:
++            raise TimeoutError("health deadline")
++        sock.settimeout(remaining)
++        timer = threading.Timer(remaining, expire)
++        timer.daemon = True
++        timer.start()
++        path = parsed.path + ("?" + parsed.query if parsed.query else "")
++        conn.request("GET", path, headers={"Accept-Encoding": "identity", "Connection": "close"})
++        response = conn.getresponse()
++        result["status_code"] = response.status
++        if not 200 <= response.status < 300:
++            result["reason"] = "预览健康检查未通过：HTTP %d（需要约定路径直接返回 2xx）" % response.status
++            return result
++        digest, size = hashlib.sha256(), 0
++        while chunk := response.read(64 * 1024):
++            digest.update(chunk)
++            size += len(chunk)
++        if response.length not in (None, 0):
++            raise http.client.IncompleteRead(b"", response.length)
++        if expired.is_set() or time.monotonic() - started >= HEALTH_S:
++            raise TimeoutError("health deadline")
++        result.update(ok=True, reason="约定健康端点已响应", body_bytes=size, body_sha256=digest.hexdigest())
++    except (OSError, ValueError, http.client.HTTPException) as exc:
++        result["reason"] = ("预览健康检查超时" if expired.is_set() or isinstance(exc, TimeoutError)
++                            else "预览健康检查未通过：" + type(exc).__name__)
++    finally:
++        if timer:
++            timer.cancel()
++        if response:
++            response.close()
++        if conn:
++            conn.close()
++        result["elapsed_ms"] = round((time.monotonic() - started) * 1000, 3)
++    return result
+ 
+ 
+ # ---------------------------------------------------------------- who may open a preview
+diff --git a/tmh/platform/ui.py b/tmh/platform/ui.py
+index a8da663..29d3424 100644
+--- a/tmh/platform/ui.py
++++ b/tmh/platform/ui.py
+@@ -722,7 +722,7 @@ async function vTicket(key,sub){
+   if($('#naReopen'))$('#naReopen').onclick=()=>save({status:'doing'});
+   const openLog=()=>{$('#aiCard').open=true;$('#runv').scrollIntoView({behavior:'smooth',block:'start'})};
+   if($('#naLog'))$('#naLog').onclick=()=>{const r=f.live||d.runs[0];if(r)showRun(r.id,true);openLog()};if($('#naReview'))$('#naReview').onclick=()=>{showRun(f.fx.id,true);openLog()};};
+-  wireNext();pkgWire(d);upWire(d);pvLoad(key);hwLoad(d);epicWire(d);
++  wireNext();pkgWire(d);upWire(d);hwLoad(d);epicWire(d);
+   S.ticketRefresh=ticketSummarySync(d,n=>{d=n;f=flowState(n);na=nextAction(n,f);wireNext()});
+   ticketPathMapWire(key);
+   watchIntakeRecovery(key);
+@@ -876,9 +876,9 @@ function runPreviewHtml(r,d,error){
+   if(!d)return '<p class="sub" role="status"><span class="spin"></span> 正在核对本次改动的预览状态…</p>';
+   if(Number(d.run_id)!==Number(r.id)||!d.expected_commit)return `<div class="hint">暂时无法确认预览对应本次运行，没有提供打开入口。请刷新状态后再试。</div><div class="row">${refresh}</div>`;
+   const p=d.preview||{},same=d.matches_run===true,ready=same&&p.state==='up'&&typeof d.url==='string'&&d.url.startsWith('/pv/'),starting=same&&p.state==='starting';
+-  const mismatch=!!p.commit&&!same,failed=p.state==='failed';
+-  const why=ready?'本次改动已启动，可以打开实际操作。请核对需求与验收场景；打开预览不代表验收通过。':starting?'本次改动正在启动，准备好后会出现打开入口。':mismatch?'当前预览无法确认对应本次改动。请启动本次预览，再验证当前实现。':failed?'本次预览未能启动，请查看原因后重试。':'本次改动已保存到独立分支，预览尚未启动。';
+-  return `<p class="${mismatch||failed?'hint':'sub'}" role="status">${starting?'<span class="spin"></span> ':''}${why}</p>${failed&&p.why?`<div class="bad">${h(p.why)}</div>`:''}${p.tail?`<details class="run-check" ${failed?'open':''}><summary>预览启动日志（服务返回的最近记录）</summary><pre class="log">${h(p.tail)}</pre></details>`:''}<div class="row run-actions">${ready?`<a class="btn primary" href="${h(d.url)}" target="_blank" rel="noopener">打开本次改动预览 ↗</a>`:''}${!starting&&d.cmd?`<button type="button" data-run-preview-start ${ready?'':'class="primary"'}>${ready?'重新启动本次预览':mismatch?'切换到本次预览':failed?'重试本次预览':'启动本次预览'}</button>`:''}${refresh}</div>${!d.cmd?`<p class="sub">尚未配置项目的预览命令。<a href="#/t/${encodeURIComponent(r.ticket_key)}" onclick="closeModal()">到执行工单配置</a></p>`:''}${!d.own_address?'<p class="sub">当前预览使用浏览器隔离环境。需要脚本读写数据的应用应先配置独立预览端口。</p>':''}<details class="run-check"><summary>核对代码版本</summary><p class="sub">本次改动：<code>${h(d.expected_commit)}</code><br>当前预览：<code>${h(p.commit||'尚无')}</code></p></details>`}
++  const mismatch=!!p.commit&&!same,unhealthy=p.state==='unhealthy'||p.state==='checking',failed=p.state==='failed';
++  const why=ready?'本次改动已启动，可以打开实际操作。请核对需求与验收场景；打开预览不代表验收通过。':starting?'本次改动正在启动，准备好后会出现打开入口。':mismatch?'当前预览无法确认对应本次改动。请启动本次预览，再验证当前实现。':unhealthy?'预览暂不可用。进程可能仍在运行，请修复健康检查显示的问题后刷新状态。':failed?'本次预览未能启动，请查看原因后重试。':'本次改动已保存到独立分支，预览尚未启动。';
++  return `<p class="${mismatch||failed||unhealthy?'hint':'sub'}" role="status">${starting?'<span class="spin"></span> ':''}${why}</p>${(failed||unhealthy||starting)&&p.why?`<div class="bad">${h(p.why)}</div>`:''}${p.tail?`<details class="run-check" ${failed?'open':''}><summary>预览启动日志（服务返回的最近记录）</summary><pre class="log">${h(p.tail)}</pre></details>`:''}<div class="row run-actions">${ready?`<a class="btn primary" href="${h(d.url)}" target="_blank" rel="noopener">打开本次改动预览 ↗</a>`:''}${!starting&&d.cmd?`<button type="button" data-run-preview-start ${ready?'':'class="primary"'}>${ready||unhealthy?'重新启动本次预览':mismatch?'切换到本次预览':failed?'重试本次预览':'启动本次预览'}</button>`:''}${refresh}</div>${!d.cmd?`<p class="sub">尚未配置项目的预览命令。<a href="#/t/${encodeURIComponent(r.ticket_key)}" onclick="closeModal()">到执行工单配置</a></p>`:''}${!d.own_address?'<p class="sub">当前预览使用浏览器隔离环境。需要脚本读写数据的应用应先配置独立预览端口。</p>':''}<details class="run-check"><summary>核对代码版本</summary><p class="sub">本次改动：<code>${h(d.expected_commit)}</code><br>当前预览：<code>${h(p.commit||'尚无')}</code></p></details>`}
+ async function showRun(rid,inline){
+   const target=inline?$('#runv'):$('#mbody'),tag=inline?'run':'modal';if(!target)return;
+   const token=String(S.runViewSeq=(S.runViewSeq||0)+1);let since=0,last=null,pane='res',busy=false,checking=false,preview=null,previewError='',checkError='',watcher=null,previewSeq=0,previewMutating=false,ticketSig='';
+@@ -1023,27 +1023,38 @@ function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true
+   if($('#inNo'))$('#inNo').onclick=()=>act({action:'drop'}).then(closeModal)}
+ 
+ // ---------- the change itself, running: a link the person and the client open before accepting
+-const PVL={up:['ok','可以打开'],starting:['info','启动中'],failed:['bad','没起来']};
+-async function pvLoad(key){const el=$('#pvc');if(!el)return;let d;try{d=await get('/api/tickets/'+key+'/preview')}catch(e){return}
+-  if(!$('#pvc')||curView()!=='t')return;const st=d.preview||{},s=st.state,lb=PVL[s];
++const PVL={up:['ok','可以打开'],starting:['info','启动中'],unhealthy:['bad','暂不可用'],checking:['info','待重新核对'],failed:['bad','没起来']};
++async function pvLoad(key){const el=$('#pvc'),top=$('#ttPv');if((!el&&!top)||S.cur?.ticket?.key!==key||curView()!=='t')return;
++  const seq=S.ticketPreviewSeq=(S.ticketPreviewSeq||0)+1;
++  const current=()=>seq===S.ticketPreviewSeq&&S.cur?.ticket?.key===key&&curView()==='t'&&el===$('#pvc')&&top===$('#ttPv');
++  let d;try{d=await get('/api/tickets/'+key+'/preview')}catch(e){d={preview:{state:'checking',why:'无法读取预览状态：'+e.message}}}
++  if(!current())return;const st=d.preview||{},s=st.state,lb=PVL[s];
++  if(top)top.innerHTML=s==='up'&&d.url?`<a class="btn primary" href="${h(d.url)}" target="_blank" rel="noopener">打开预览 ↗</a>`:s==='starting'?'<span class="ev-tag info"><span class="spin"></span> 预览启动中</span>':['unhealthy','checking'].includes(s)?`<span class="ev-tag bad" role="status">预览暂不可用</span><span class="sub">${h(st.why||'请刷新预览状态')}</span>`:'';
++  if(!el)return;
+   if(!d.branch&&!s){el.hidden=true;return}
++  const form=$('#pvF'),editing=form?.querySelector('#pvCmd');
+   el.hidden=false;
+   el.innerHTML=`<div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">预览版本</h2>${lb?`<span class="ev-tag ${lb[0]}">${lb[1]}</span>`:''}</div>
+    ${s==='up'?`<div class="sub">这次改动（提交 <code>${h(st.commit)}</code>）正跑在平台上，验收前先亲手试一遍。发出去的签收链接里也有这个入口。${d.own_address?'':'<br>它在浏览器的隔离环境里运行，碰不到平台。直接出页面的程序可以正常用；页面打开后再用脚本取数据的（单页应用）在这里取不到数据，要给预览配一个独立端口。'}</div>
+      <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn primary" href="${h(d.url)}" target="_blank" rel="noopener">打开预览 ↗</a><button class="ghost" id="pvStop">停掉</button><button class="ghost" id="pvGo">重新启动</button></div>`
+    :s==='starting'?`<div class="sub"><span class="spin"></span> 正在用 <code>${h(clip(st.cmd||'',80))}</code> 启动 ${h(st.branch||'')}，起来后这里会出现打开按钮。</div><div class="row" style="margin-top:8px"><button class="ghost" id="pvStop">停掉</button></div>`
++   :s==='unhealthy'||s==='checking'?`<div class="bad" role="status">${h(st.why||'预览暂不可用，请刷新状态')}</div><p class="sub">健康恢复后可重新打开；本次检查不会重启进程或清除数据。</p><div class="row"><button id="pvRefresh">刷新预览状态</button>${d.cmd?'<button class="ghost" id="pvStop">停掉</button><button class="ghost" id="pvGo">重新启动</button>':''}</div>`
+    :s==='failed'?`<div class="bad" style="font-size:13px">${h(st.why||'')}</div>${st.tail?`<details style="margin-top:6px"><summary class="sub">启动日志最后几行</summary><pre class="log" style="max-height:200px;overflow:auto;font-size:12px;white-space:pre-wrap">${h(st.tail)}</pre></details>`:''}<div class="row" style="gap:6px;margin-top:8px"><button class="primary" id="pvGo">再启动一次</button><button class="ghost" id="pvCfg">改启动命令</button></div>`
+    :d.cmd?`<div class="sub">还没启动。会用 <code>${h(clip(d.cmd,80))}</code>${d.configured?'':'（按项目结构猜的）'}把这次改动跑起来。</div><div class="row" style="gap:6px;margin-top:8px"><button class="primary" id="pvGo">启动预览</button><button class="ghost" id="pvCfg">改启动命令</button></div>`
+    :`<div class="sub">填一条能把这个项目跑起来的命令，以后每次自动改完都会起一个预览，客户在签收页就能点开试。用 <code>{port}</code> 表示端口，<code>{prefix}</code> 表示它挂在哪个路径下（程序要能挂在这个路径下运行，页面里的链接才不会断），只监听 127.0.0.1。</div><div class="row" style="margin-top:8px"><button class="primary" id="pvCfg">填启动命令</button></div>`}
+    <div id="pvF"></div>`;
++  if(editing)$('#pvF').replaceWith(form);
+   const act=a=>post('/api/tickets/'+key+'/preview',{action:a}).then(()=>pvLoad(key)).catch(e=>toast(e.message,6000));
+   if($('#pvGo'))$('#pvGo').onclick=()=>act('start');
+   if($('#pvStop'))$('#pvStop').onclick=()=>act('stop');
+-  if($('#pvCfg'))$('#pvCfg').onclick=async()=>{const pk=key.split('-')[0];let c={};try{c=await get('/api/projects/'+pk+'/preview-conf')}catch(e){}
+-    $('#pvF').innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><input id="pvCmd" value="${h(c.cmd||c.detected||'')}" placeholder="例如 python3 -m http.server {port} 或 mvn spring-boot:run -Dserver.port={port}">
++  if($('#pvRefresh'))$('#pvRefresh').onclick=()=>pvLoad(key);
++  if($('#pvCfg'))$('#pvCfg').onclick=async()=>{const pk=key.split('-')[0],box=$('#pvF');
++    const active=()=>box===$('#pvF')&&S.cur?.ticket?.key===key&&curView()==='t';
++    let c={};try{c=await get('/api/projects/'+pk+'/preview-conf')}catch(e){}if(!active())return;
++    box.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><input id="pvCmd" value="${h(c.cmd||c.detected||'')}" placeholder="例如 python3 -m http.server {port} 或 mvn spring-boot:run -Dserver.port={port}">
+       <input id="pvReady" value="${h(c.ready||'/')}" placeholder="起来后能打开的路径，默认 /"><div class="row" style="gap:6px"><button class="primary" id="pvSave">保存</button><span class="sub">留空保存就回到按项目结构猜</span></div></div>`;
+-    $('#pvSave').onclick=async()=>{try{await post('/api/projects/'+pk+'/preview-conf',{cmd:$('#pvCmd').value,ready:$('#pvReady').value});toast('已保存启动命令');pvLoad(key)}catch(e){toast(e.message,6000)}}};
+-  if(s==='starting')setTimeout(()=>{if($('#pvc')&&location.hash.includes(key))pvLoad(key)},4000)}
++    $('#pvSave').onclick=async()=>{if(!active())return;try{await post('/api/projects/'+pk+'/preview-conf',{cmd:box.querySelector('#pvCmd').value,ready:box.querySelector('#pvReady').value});if(active()){toast('已保存启动命令');pvLoad(key)}}catch(e){if(active())toast(e.message,6000)}}};
++  if(s==='starting')setTimeout(()=>{if(current())pvLoad(key)},4000)}
+ 
+ // ---------- 我来写: a person writes it (by hand or with their own tools); the platform checks it like any change
+ async function hwLoad(d){const el=$('#hwc'),t=d.ticket;if(!el||t.status==='closed')return;
+diff --git a/tmh/platform/ui_work.py b/tmh/platform/ui_work.py
+index ec3bf00..aadee8b 100644
+--- a/tmh/platform/ui_work.py
++++ b/tmh/platform/ui_work.py
+@@ -244,11 +244,11 @@ async function vVersions(key){
+   all.forEach(v=>versionWire(v));
+   if(all.some(v=>v.standing.state==='starting'))setTimeout(()=>{if(curView()==='versions')vVersions(key)},4000)}
+ function versionCard(v,cs){const p=v.project,s=v.standing,K=h(p.key),last=(((v.versions||[])[0]||{}).items||[]).map(i=>i.client_name).find(Boolean)||'';
+-  const st=s.state==='up'?'<span class="ev-tag ok">预览运行中</span>':s.state==='starting'?'<span class="ev-tag info"><span class="spin"></span> 正在启动</span>':s.state==='failed'?'<span class="ev-tag bad">启动失败</span>':'<span class="ev-tag mute">尚未启动</span>';
++  const st=s.state==='up'?'<span class="ev-tag ok">预览运行中</span>':s.state==='starting'?'<span class="ev-tag info"><span class="spin"></span> 正在启动</span>':s.state==='unhealthy'||s.state==='checking'?'<span class="ev-tag bad">预览暂不可用</span>':s.state==='failed'?'<span class="ev-tag bad">启动失败</span>':'<span class="ev-tag mute">尚未启动</span>';
+   return `<section class="card version-card" id="vc-${K}"><div class="hdr"><h2 class="grow" style="margin:0">${K} · ${h(p.name)}</h2><span class="st done">${v.merge==='auto'?'自动合并已开启':'自动合并已关闭'}</span></div>
+    <div class="version-preview"><div class="vcur"><b>当前预览</b>${st}<span class="sub">${s.commit?'提交 '+h(s.commit):''}${s.main?' · 主干 '+h(s.main):''}${s.stale?' · 主干有更新，可重新启动预览':''}</span><span class="grow"></span>
+-     ${s.url?`<a class="btn primary" href="${h(s.url)}" target="_blank" rel="noopener">打开预览 ↗</a>`:''}${s.configured&&s.state!=='starting'?`<button class="${s.url?'ghost':'primary'}" data-vs="start">${s.url?'重新启动':'启动预览'}</button>`:''}${s.url||s.state==='starting'?'<button class="ghost" data-vs="stop">停止预览</button>':''}</div>
+-     ${s.why&&s.state==='failed'?`<div class="bad" style="font-size:13px;margin-top:6px">${h(s.why)}</div>`:''}
++     ${s.url?`<a class="btn primary" href="${h(s.url)}" target="_blank" rel="noopener">打开预览 ↗</a>`:''}${s.configured&&s.state!=='starting'?`<button class="${s.url?'ghost':'primary'}" data-vs="start">${s.url||['unhealthy','checking'].includes(s.state)?'重新启动':'启动预览'}</button>`:''}${s.url||['starting','unhealthy','checking'].includes(s.state)?'<button class="ghost" data-vs="stop">停止预览</button>':''}</div>
++     ${s.why&&['failed','unhealthy','checking'].includes(s.state)?`<div class="bad" style="font-size:13px;margin-top:6px">${h(s.why)}</div>`:''}
+      ${s.fix?`<div class="sub" style="margin-top:8px">${h(s.fix)}</div><div class="lnk"><label class="wk-field" for="vcmd-${K}">预览启动命令<input id="vcmd-${K}" data-vcmd placeholder="例如 python3 app.py {port} {prefix}" value="${h(s.configured?s.cmd:(s.cmd||''))}"></label><button data-vsave>保存命令</button></div>`:''}
+      ${s.configured?`<div class="version-share"><h3 style="margin:0">分享预览</h3><div class="sub">为客户生成带有效期的版本链接；可随时撤销。分享不代表客户已经验收。</div>
+       <div class="lnk"><label class="wk-field" for="vcl-${K}">接收客户<select id="vcl-${K}" data-vcl><option value="">不指定客户（仅展示改进数量）</option>${cs.filter(c=>!c.projects.length||c.projects.includes(p.key)).map(c=>`<option value="${c.id}" ${c.name===last?'selected':''}>${h(c.name)}</option>`).join('')}</select></label><label class="wk-field" for="vdays-${K}">链接有效期<select id="vdays-${K}" data-vdays><option value="7">7 天</option><option value="30" selected>30 天</option><option value="90">90 天</option></select></label><button class="primary" data-vshare>生成分享链接</button></div><div data-vout></div>
+@@ -282,6 +282,5 @@ async function ticketTopWire(d,na){const t=d.ticket,key=t.key;
+   if($('#ttHw'))$('#ttHw').onclick=()=>{$('#engc').open=true;setTimeout(()=>{const c=$('#hwc');if(c&&!c.hidden)c.scrollIntoView({block:'start',behavior:'smooth'})},300)};
+   S.ttClient='';const cid=(t.links||{}).client;
+   if(cid)get('/api/clients').then(r=>{const c=r.clients.find(x=>x.id===cid);if(c&&$('#ttCl')){S.ttClient=c.name;$('#ttCl').innerHTML=`<a class="tag" href="#/c/${c.id}">${h(c.name)}</a>`}}).catch(()=>{});
+-  try{const p=await get('/api/tickets/'+key+'/preview');const el=$('#ttPv');if(!el||!S.cur||S.cur.ticket.key!==key)return;const st=(p.preview||{}).state;
+-    el.innerHTML=p.url?`<a class="btn primary" href="${h(p.url)}" target="_blank" rel="noopener">打开预览 ↗</a>`:st==='starting'?'<span class="ev-tag info"><span class="spin"></span> 预览启动中</span>':''}catch(e){}}
++  if($('#ttPv'))await pvLoad(key)}
+ """

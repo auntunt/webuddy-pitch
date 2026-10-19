@@ -1,0 +1,15 @@
+test_review_shares_time_spent_on_baseline_and_candidate_checks (handwork_fixture.HandworkLifecycleTest.test_review_shares_time_spent_on_baseline_and_candidate_checks) ... FAIL
+
+======================================================================
+FAIL: test_review_shares_time_spent_on_baseline_and_candidate_checks (handwork_fixture.HandworkLifecycleTest.test_review_shares_time_spent_on_baseline_and_candidate_checks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/test-handwork-lifecycle-before.py", line 127, in test_review_shares_time_spent_on_baseline_and_candidate_checks
+    self.assertTrue(self.reviewed.exists())
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 1 test in 2.374s
+
+FAILED (failures=1)

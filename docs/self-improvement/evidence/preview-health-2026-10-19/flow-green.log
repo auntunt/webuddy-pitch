@@ -1,0 +1,6 @@
+test_real_database_failure_blocks_assessment_and_recovers_same_preview (test_preview_health_flow.PreviewHealthFlowTest.test_real_database_failure_blocks_assessment_and_recovers_same_preview) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 10.517s
+
+OK

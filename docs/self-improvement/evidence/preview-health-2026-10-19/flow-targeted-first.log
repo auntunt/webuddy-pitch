@@ -1,0 +1,53 @@
+test_real_database_failure_blocks_assessment_and_recovers_same_preview (test_preview_health_flow.PreviewHealthFlowTest.test_real_database_failure_blocks_assessment_and_recovers_same_preview) ... ERROR
+test_completed_error_responses_release_keepalive_connections (test_preview_health_independent.PreviewHealthIndependentTest.test_completed_error_responses_release_keepalive_connections) ... ok
+test_http_401_404_and_503_cannot_be_reported_up (test_preview_health_independent.PreviewHealthIndependentTest.test_http_401_404_and_503_cannot_be_reported_up) ... ok
+test_incomplete_200_is_unhealthy_bounded_and_closes_connection (test_preview_health_independent.PreviewHealthIndependentTest.test_incomplete_200_is_unhealthy_bounded_and_closes_connection) ... ok
+test_old_preview_binding_is_rejected_before_any_application_request (test_preview_health_independent.PreviewHealthIndependentTest.test_old_preview_binding_is_rejected_before_any_application_request) ... ok
+test_only_the_exact_prefixed_endpoint_is_checked (test_preview_health_independent.PreviewHealthIndependentTest.test_only_the_exact_prefixed_endpoint_is_checked) ... ok
+test_redirects_do_not_inherit_success_or_contact_the_target (test_preview_health_independent.PreviewHealthIndependentTest.test_redirects_do_not_inherit_success_or_contact_the_target) ... ok
+test_status_ignores_environment_proxy (test_preview_health_independent.PreviewHealthIndependentTest.test_status_ignores_environment_proxy) ... ok
+test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview (test_preview_health_independent.PreviewHealthIndependentTest.test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview) ... ok
+test_watcher_does_not_promote_from_an_unrelated_successful_root (test_preview_health_independent.PreviewHealthIndependentTest.test_watcher_does_not_promote_from_an_unrelated_successful_root) ... ok
+test_bound_grants_and_forwarding_preserve_prefix_and_form_body (test_preview_run_binding.PreviewRunBindingTest.test_bound_grants_and_forwarding_preserve_prefix_and_form_body) ... ok
+test_bound_stop_does_not_stop_another_runs_preview (test_preview_run_binding.PreviewRunBindingTest.test_bound_stop_does_not_stop_another_runs_preview) ... ok
+test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit (test_preview_run_binding.PreviewRunBindingTest.test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit) ... ok
+test_concurrent_preview_replacement_is_rechecked_before_bound_stop (test_preview_run_binding.PreviewRunBindingTest.test_concurrent_preview_replacement_is_rechecked_before_bound_stop) ... ok
+test_exact_old_run_is_resolved_without_latest_adopt_event (test_preview_run_binding.PreviewRunBindingTest.test_exact_old_run_is_resolved_without_latest_adopt_event) ... ok
+test_forward_connects_to_pinned_process_under_start_stop_lock (test_preview_run_binding.PreviewRunBindingTest.test_forward_connects_to_pinned_process_under_start_stop_lock) ... ok
+test_get_binding_does_not_mutate_business_state (test_preview_run_binding.PreviewRunBindingTest.test_get_binding_does_not_mutate_business_state) ... ok
+test_hex_named_branch_cannot_override_adopted_commit_object (test_preview_run_binding.PreviewRunBindingTest.test_hex_named_branch_cannot_override_adopted_commit_object) ... ok
+test_invalid_ids_and_non_owned_runs_are_rejected (test_preview_run_binding.PreviewRunBindingTest.test_invalid_ids_and_non_owned_runs_are_rejected) ... ok
+test_legacy_grant_opens_current_bound_prefix_without_extending_expiry (test_preview_run_binding.PreviewRunBindingTest.test_legacy_grant_opens_current_bound_prefix_without_extending_expiry) ... ok
+test_legacy_preview_response_and_start_keep_latest_branch_behavior (test_preview_run_binding.PreviewRunBindingTest.test_legacy_preview_response_and_start_keep_latest_branch_behavior) ... ok
+test_matching_commit_alone_does_not_claim_preview_is_up (test_preview_run_binding.PreviewRunBindingTest.test_matching_commit_alone_does_not_claim_preview_is_up) ... ok
+test_open_url_and_existing_tab_requests_reject_a_replacement_preview (test_preview_run_binding.PreviewRunBindingTest.test_open_url_and_existing_tab_requests_reject_a_replacement_preview) ... ok
+test_real_http_bound_page_links_form_and_two_tabs_do_not_cross_versions (test_preview_run_binding.PreviewRunBindingTest.test_real_http_bound_page_links_form_and_two_tabs_do_not_cross_versions) ... ok
+test_run_detail_exposes_ticket_key_and_actual_verification (test_preview_run_binding.PreviewRunBindingTest.test_run_detail_exposes_ticket_key_and_actual_verification) ... ok
+test_running_old_preview_does_not_expose_url_for_second_fix (test_preview_run_binding.PreviewRunBindingTest.test_running_old_preview_does_not_expose_url_for_second_fix) ... ok
+test_same_commit_legacy_prefix_must_restart_before_exposing_bound_url (test_preview_run_binding.PreviewRunBindingTest.test_same_commit_legacy_prefix_must_restart_before_exposing_bound_url) ... ok
+test_unadopted_non_fix_missing_and_malformed_commit_are_rejected (test_preview_run_binding.PreviewRunBindingTest.test_unadopted_non_fix_missing_and_malformed_commit_are_rejected) ... ok
+test_commit_bound_open_path_is_preserved (test_ui_run_preview.RunPreviewUiTest.test_commit_bound_open_path_is_preserved) ... ok
+test_current_conclusion_without_invalidation_keeps_existing_presentation (test_ui_run_preview.RunPreviewUiTest.test_current_conclusion_without_invalidation_keeps_existing_presentation) ... ok
+test_failed_and_unavailable_preview_keep_diagnostics_and_recovery (test_ui_run_preview.RunPreviewUiTest.test_failed_and_unavailable_preview_keep_diagnostics_and_recovery) ... ok
+test_invalidated_conclusion_shows_current_checks_before_preserved_history (test_ui_run_preview.RunPreviewUiTest.test_invalidated_conclusion_shows_current_checks_before_preserved_history) ... ok
+test_old_failed_decision_does_not_enable_new_views_busy_buttons (test_ui_run_preview.RunPreviewUiTest.test_old_failed_decision_does_not_enable_new_views_busy_buttons) ... ok
+test_open_link_requires_same_run_and_ready_matching_commit (test_ui_run_preview.RunPreviewUiTest.test_open_link_requires_same_run_and_ready_matching_commit) ... ok
+test_preview_request_target_is_bound_to_run_ticket_not_active_page (test_ui_run_preview.RunPreviewUiTest.test_preview_request_target_is_bound_to_run_ticket_not_active_page) ... ok
+test_slow_preview_read_cannot_overwrite_a_later_start_response (test_ui_run_preview.RunPreviewUiTest.test_slow_preview_read_cannot_overwrite_a_later_start_response) ... ok
+test_unaccepted_and_discarded_changes_never_reuse_ticket_preview (test_ui_run_preview.RunPreviewUiTest.test_unaccepted_and_discarded_changes_never_reuse_ticket_preview) ... ok
+test_unhealthy_preview_hides_open_but_preserves_refresh_and_recovery (test_ui_run_preview.RunPreviewUiTest.test_unhealthy_preview_hides_open_but_preserves_refresh_and_recovery) ... ok
+test_verification_distinguishes_missing_skipped_failed_and_real_commands (test_ui_run_preview.RunPreviewUiTest.test_verification_distinguishes_missing_skipped_failed_and_real_commands) ... ok
+
+======================================================================
+ERROR: test_real_database_failure_blocks_assessment_and_recovers_same_preview (test_preview_health_flow.PreviewHealthFlowTest.test_real_database_failure_blocks_assessment_and_recovers_same_preview)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_preview_health_flow.py", line 95, in test_real_database_failure_blocks_assessment_and_recovers_same_preview
+    cookie = headers["Set-Cookie"].split(";", 1)[0]
+             ~~~~~~~^^^^^^^^^^^^^^
+KeyError: 'Set-Cookie'
+
+----------------------------------------------------------------------
+Ran 39 tests in 17.552s
+
+FAILED (errors=1)

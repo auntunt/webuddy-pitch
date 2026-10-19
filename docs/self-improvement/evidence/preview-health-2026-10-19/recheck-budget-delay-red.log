@@ -1,0 +1,24 @@
+test_total_operation_budget_covers_multiple_commands (operation_budget_fixture.RecheckOperationsTest.test_total_operation_budget_covers_multiple_commands) ... FAIL
+
+======================================================================
+FAIL: test_total_operation_budget_covers_multiple_commands (operation_budget_fixture.RecheckOperationsTest.test_total_operation_budget_covers_multiple_commands)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/test-recheck-operations-before.py", line 206, in test_total_operation_budget_covers_multiple_commands
+    self.assertEqual(first.returncode, 0)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 124 != 0
+
+----------------------------------------------------------------------
+Ran 1 test in 0.759s
+
+FAILED (failures=1)
+{
+  "mode": "delay",
+  "test_file": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/test-recheck-operations-before.py",
+  "test_sha256": "2e37e5443800effce7b0300bed64dd3af9ce9dc742549312bd8d61a0b6820d35",
+  "tests_run": 1,
+  "failures": 1,
+  "errors": 0,
+  "successful": false
+}

@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "owner": {
+    "token": "75bf99d3e804425a8ef1fa8afa5fb364",
+    "run_id": 1,
+    "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-8dwuq8lv/verification-operations"
+  },
+  "nonce": "1d8c18975bc547fdbff257a45ba7bb79",
+  "folder": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-8dwuq8lv/verification-operations/runs/1/attempts/0002",
+  "phase": "finished",
+  "supervisor_pid": 27212,
+  "pid": 27213,
+  "pgid": 27213,
+  "reason": "timeout",
+  "returncode": 124,
+  "process_returncode": -9,
+  "elapsed_seconds": 3.3309246249264106,
+  "cleanup": {
+    "trigger": "timeout",
+    "term_sent": true,
+    "kill_sent": true,
+    "signals": [
+      {
+        "signal": "SIGTERM",
+        "at": 2.9244348329957575,
+        "sent": true
+      },
+      {
+        "signal": "SIGKILL",
+        "at": 3.2372611250029877,
+        "sent": true
+      }
+    ],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "ended_at": 1792394273.091151,
+  "output": {
+    "file": "output.bin",
+    "bytes": 7,
+    "sha256": "480c2336b410f1ad5f8bf1b28944490255804b65350c527787e74ebdd511e3a4"
+  }
+}

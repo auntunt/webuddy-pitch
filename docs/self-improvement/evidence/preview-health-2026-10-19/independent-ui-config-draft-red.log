@@ -1,0 +1,27 @@
+{
+  "commandFieldExists": false,
+  "readyFieldExists": false,
+  "commandDraft": "python NEW-unsaved.py --keep-everything",
+  "readyDraft": "/custom-unsaved-health",
+  "panel": "<div class=\"hdr\" style=\"margin-bottom:6px\"><h2 class=\"grow\" style=\"margin:0\">预览版本</h2><span class=\"ev-tag bad\">没起来</span></div>\n   <div class=\"bad\" style=\"font-size:13px\">not ready</div><div class=\"row\" style=\"gap:6px;margin-top:8px\"><button class=\"primary\" id=\"pvGo\">再启动一次</button><button class=\"ghost\" id=\"pvCfg\">改启动命令</button></div>\n   <div id=\"pvF\"></div>"
+}
+AssertionError [ERR_ASSERTION]: Background summary refresh must retain the unsaved preview command field
++ actual - expected
+
++ undefined
+- Element {
+-   controls: [],
+-   hidden: false,
+-   html: '',
+-   value: 'python NEW-unsaved.py --keep-everything'
+- }
+
+    at /Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/independent-ui-config-draft-repro.js:67:9 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: [Element],
+  operator: 'strictEqual'
+}
+
+EXIT_CODE=1

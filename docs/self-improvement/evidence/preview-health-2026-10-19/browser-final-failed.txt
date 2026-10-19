@@ -1,0 +1,36 @@
+- link "跳到主要内容":
+  - /url: "#main"
+- banner:
+  - link "Webuddy 交付工作台":
+    - /url: "#/deliveries"
+    - generic: Webuddy · 预览健康验收夹具
+  - combobox "项目范围":
+    - option "HP · 预览健康恢复夹具" [selected]
+    - option "全部项目"
+    - option "＋ 添加项目…"
+  - button "20,000 点":
+    - generic: 20,000
+    - text: 点
+  - button "录入客户需求": ＋ 录入需求
+  - button "AI 助手 Ctrl K"
+  - button "隔离健康验收，用户与设置": 隔离健康验收
+- navigation "主导航":
+  - link "交付":
+    - /url: "#/deliveries"
+    - generic: 交付
+  - link "今天":
+    - /url: "#/today"
+    - generic: 今天
+  - link "客户":
+    - /url: "#/clients"
+    - generic: 客户
+  - link "需求":
+    - /url: "#/reqs"
+    - generic: 需求
+  - link "版本":
+    - /url: "#/versions"
+    - generic: 版本
+  - link "工程":
+    - /url: "#/board"
+    - generic: 工程
+- main

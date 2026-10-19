@@ -1,0 +1,15 @@
+test_total_operation_budget_covers_multiple_commands (operation_budget_fixture.RecheckOperationsTest.test_total_operation_budget_covers_multiple_commands) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.366s
+
+OK
+{
+  "mode": "delay",
+  "test_file": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_operations.py",
+  "test_sha256": "bb236c2684e79de7c2e3fef0451efe2e5a6a448b94b2d891e7d2d55bb6e0f5b7",
+  "tests_run": 1,
+  "failures": 0,
+  "errors": 0,
+  "successful": true
+}

@@ -1,0 +1,6 @@
+test_blocked_stdin_and_no_newline_output_do_not_block_deadline (process_fixture.ProcessControlTest.test_blocked_stdin_and_no_newline_output_do_not_block_deadline) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.360s
+
+OK

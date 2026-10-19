@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "owner": {
+    "token": "75bf99d3e804425a8ef1fa8afa5fb364",
+    "run_id": 1,
+    "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-8dwuq8lv/verification-operations"
+  },
+  "nonce": "e373a0eab8ed4197859a7da6156c0629",
+  "folder": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-8dwuq8lv/verification-operations/runs/1/attempts/0001",
+  "phase": "finished",
+  "supervisor_pid": 27210,
+  "pid": 27211,
+  "pgid": 27211,
+  "reason": "exited",
+  "returncode": 0,
+  "process_returncode": 0,
+  "elapsed_seconds": 0.3570509999990463,
+  "cleanup": {
+    "trigger": null,
+    "term_sent": false,
+    "kill_sent": false,
+    "signals": [],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "ended_at": 1792394269.734428,
+  "output": {
+    "file": "output.bin",
+    "bytes": 15,
+    "sha256": "4f4b5162051fc3928b46077f2b6ac994b3c30b38d1d846297790eac535cd78b5"
+  }
+}
