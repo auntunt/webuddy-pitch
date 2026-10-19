@@ -1,0 +1,53 @@
+{
+  "candidate_id": 1,
+  "ticket_id": 5,
+  "ticket": "BOOTV2-3",
+  "project_id": 3,
+  "base": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+  "commit": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+  "requirement_hash": "4392b3e914f8171df184bcade9d35d7093f43c1e959091cf36e380d9b0415be3",
+  "criteria": [
+    {
+      "check": "真实HTTP新增样本，分别搜索中文、英文大小写、百分号、下划线和引号，对照返回的事项ID。",
+      "id": "A1",
+      "text": "按关键词搜索事项标题，大小写不敏感，中文可匹配，特殊字符按字面含义搜索。"
+    },
+    {
+      "check": "用相同样本分别筛选三种状态与组合条件，检查空结果和清除入口。",
+      "id": "A2",
+      "text": "提供全部、未完成、已完成筛选，可与关键词叠加；清除后显示全部；空结果给出提示。"
+    },
+    {
+      "check": "真实浏览器操作筛选、编辑和取消；验证带前缀表单及重定向，验证未知状态。",
+      "id": "A3",
+      "text": "筛选条件存在URL中，刷新、预览前缀访问、编辑/取消/完成切换后仍可用，非法状态不导致服务错误。"
+    },
+    {
+      "check": "保留并运行现有26项测试，补新增HTTP/SQLite回归；核对原始三条事项及状态不变。",
+      "id": "A4",
+      "text": "保留事项编辑、200字符含换行、数据库故障重试、转义、CSRF和持久保存；读取筛选不修改数据。"
+    }
+  ],
+  "configuration_hash": "8b1553b05da5d87f4c4bdd563d2767aa3f32354a88fbcb3f2862279190aae360",
+  "verification_digest": "d500c30c91746095a2cc1582b5b393abdfe5de2e902cadc4c8346b97762cd0c2",
+  "recipe": {
+    "id": "bootv2-items-search-v1",
+    "name": "事项管理搜索、筛选及持久保存",
+    "checks": {
+      "A1": "中文、Unicode 大小写及特殊字符按字面搜索",
+      "A2": "全部/未完成/已完成与关键词组合筛选、空结果及清除",
+      "A3": "固定路径、刷新、编辑取消及保存保持筛选条件",
+      "A4": "原编号/状态、200字换行、失败重试和重启后持久保存"
+    },
+    "scope": "Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier",
+    "source_sha256": "98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee",
+    "runner_sha256": "f36061111150acdfc350776954e9c89813c884b5eecfa4da4425551a89ea5a10",
+    "total_seconds": 90,
+    "upstream": {
+      "repository": "https://github.com/google-research/harness2",
+      "commit": "1cfe254e8d25b15f37048c3730134686abe60335",
+      "license": "Apache-2.0"
+    },
+    "version": "9ee97372cb36ef415954944d60950eb2aa039eeab2bb5ef84f186ab1cb98e372"
+  }
+}

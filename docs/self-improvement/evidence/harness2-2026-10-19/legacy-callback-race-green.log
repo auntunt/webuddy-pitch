@@ -1,0 +1,7 @@
+test_acceptance_teaches_and_grows_the_eval_set (tests.test_platform.PlatformApiTest.test_acceptance_teaches_and_grows_the_eval_set) ... SECOND_REJECTION_RESPONSE (200, {'id': 3, 'project_id': 1, 'num': 3, 'title': '请假提交后列表状态不对', 'body': '提交后状态没变\n\n## 验收标准（从描述推出，验收前和提单人确认）\n- A1 当请假提交后，系统应当不再出现「请假提交后列表状态不对」；怎么验：按描述的场景操作一遍并核对\n- A2 必须保持：其他环节和其他用户的现有行为不变；怎么验：跑现有测试，并抽查相邻功能', 'type': 'bug', 'status': 'doing', 'priority': 'normal', 'assignee': '', 'reporter': 'tester', 'labels': [], 'links': {}, 'external': {}, 'created': '2026-10-19 14:01:44', 'updated': '2026-10-19 14:01:46', 'key': 'OA-3'})
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 6.396s
+
+OK

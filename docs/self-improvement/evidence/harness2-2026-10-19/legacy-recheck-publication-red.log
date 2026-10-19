@@ -1,0 +1,18 @@
+test_multicommand_recheck_holds_lease_between_real_commands_across_instances (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_multicommand_recheck_holds_lease_between_real_commands_across_instances) ... FAIL
+
+======================================================================
+FAIL: test_multicommand_recheck_holds_lease_between_real_commands_across_instances (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_multicommand_recheck_holds_lease_between_real_commands_across_instances)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_crash_independent.py", line 497, in test_multicommand_recheck_holds_lease_between_real_commands_across_instances
+    self.assertEqual(done['verify']['check'],'pass')
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'unknown' != 'pass'
+- unknown
++ pass
+
+
+----------------------------------------------------------------------
+Ran 1 test in 2.960s
+
+FAILED (failures=1)

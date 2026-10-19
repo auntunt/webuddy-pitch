@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "project": {
+    "name": "反馈后修复的应用起点",
+    "description": "本地验收：数据持久保存、存储故障恢复和真实健康检查。"
+  },
+  "source": {
+    "db": "unknown",
+    "appserver": "unknown",
+    "os": "unknown",
+    "arch": "x86_64"
+  },
+  "target": {
+    "db": "unknown",
+    "appserver": "unknown",
+    "os": "kylin",
+    "arch": "unknown",
+    "crypto": "none",
+    "mq": "unknown",
+    "cache": "unknown",
+    "browser": "chromium",
+    "jdk": "unknown"
+  },
+  "commands": {
+    "build": "/opt/homebrew/opt/python@3.14/bin/python3.14 -m py_compile app.py",
+    "test": "/opt/homebrew/opt/python@3.14/bin/python3.14 -m unittest discover -s tests -v",
+    "extra_checks": []
+  },
+  "protected": [
+    "**/src/test/**",
+    "**/*Test.java",
+    "**/*Tests.java",
+    "**/*Tests.cs",
+    "**/*.Tests/**",
+    "**/*.UnitTests/**",
+    ".tmh/config.json",
+    ".tmh/baseline.json",
+    ".claude/settings.json"
+  ],
+  "allow_protected_edits": false,
+  "allow_db_cli": false,
+  "integrations": {
+    "tools": {},
+    "defaults": {},
+    "agent_writes": false
+  },
+  "scan": {
+    "exclude": [
+      "**/vendor/**",
+      "**/*.min.js",
+      "**/static/lib/**",
+      "**/wwwroot/lib/**"
+    ],
+    "disabled_rules": []
+  }
+}

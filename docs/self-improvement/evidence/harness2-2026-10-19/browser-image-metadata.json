@@ -1,0 +1,11 @@
+{
+  "format": "JPEG",
+  "width": 1280,
+  "height": 805,
+  "bytes": 53190,
+  "sha256": "d4f73203de7f8ae215cc08762cf5ea1319a6c1b82e865b6d8c185277b3be7a8e",
+  "source": "cua browser screenshot; original returned bytes",
+  "original_mislabeled_filename": "browser-preview.png",
+  "archived_filename": "browser-preview.jpg",
+  "transform": "filename extension correction only; no encoding or pixel change"
+}

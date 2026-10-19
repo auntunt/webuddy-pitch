@@ -1,0 +1,14 @@
+[
+  {
+    "arm": "baseline",
+    "pgid": 42063,
+    "group_exists_now": false,
+    "receipt_cleanup_complete": true
+  },
+  {
+    "arm": "candidate",
+    "pgid": 42124,
+    "group_exists_now": false,
+    "receipt_cleanup_complete": true
+  }
+]

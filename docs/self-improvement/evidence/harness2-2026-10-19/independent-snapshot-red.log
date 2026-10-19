@@ -1,0 +1,27 @@
+test_snapshot_never_expands_export_subst_in_tracked_source (test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_never_expands_export_subst_in_tracked_source) ... FAIL
+test_snapshot_preserves_export_ignored_tracked_source (test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_preserves_export_ignored_tracked_source) ... FAIL
+
+======================================================================
+FAIL: test_snapshot_never_expands_export_subst_in_tracked_source (test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_never_expands_export_subst_in_tracked_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_harness_probes_independent.py", line 49, in test_snapshot_never_expands_export_subst_in_tracked_source
+    self.assertEqual((target / "app.py").read_bytes(), source,
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     "probe must execute the same blob bytes as the fixed candidate")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b"VERSION = 'eaed44ed49131cb1acfd1cfcd34f74e17e3c224d'\n" != b"VERSION = '$Format:%H$'\n" : probe must execute the same blob bytes as the fixed candidate
+
+======================================================================
+FAIL: test_snapshot_preserves_export_ignored_tracked_source (test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_preserves_export_ignored_tracked_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_harness_probes_independent.py", line 39, in test_snapshot_preserves_export_ignored_tracked_source
+    self.assertTrue((target / "runtime.json").exists(), "probe snapshot omitted tracked runtime source")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : probe snapshot omitted tracked runtime source
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.199s
+
+FAILED (failures=2)

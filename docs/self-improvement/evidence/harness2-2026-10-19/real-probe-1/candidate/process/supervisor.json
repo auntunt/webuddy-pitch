@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "owner": {
+    "token": "f57723da58ad49bf9c03a42bd19160de",
+    "run_id": 1,
+    "data_dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/harness-probes"
+  },
+  "nonce": "10fc99466f31480b855dd02cb6ec9deb",
+  "folder": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/harness-probes/1/candidate/process",
+  "phase": "running",
+  "supervisor_pid": 42114,
+  "pid": 42124,
+  "pgid": 42124
+}

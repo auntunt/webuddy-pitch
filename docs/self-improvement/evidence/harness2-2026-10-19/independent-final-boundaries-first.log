@@ -1,0 +1,23 @@
+test_legacy_source_without_verification_digest_is_readable_and_stale (test_harness_probes_independent.HarnessProbeIndependentTest.test_legacy_source_without_verification_digest_is_readable_and_stale) ... ok
+test_optimized_python_cannot_turn_broken_search_into_a_pass (test_harness_probes_independent.HarnessProbeIndependentTest.test_optimized_python_cannot_turn_broken_search_into_a_pass) ... ok
+test_requirement_change_at_last_process_completion_blocks_pass (test_harness_probes_independent.HarnessProbeIndependentTest.test_requirement_change_at_last_process_completion_blocks_pass) ... ok
+test_second_store_cannot_launch_duplicate_probe (test_harness_probes_independent.HarnessProbeIndependentTest.test_second_store_cannot_launch_duplicate_probe) ... ok
+test_snapshot_never_expands_export_subst_in_tracked_source (test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_never_expands_export_subst_in_tracked_source) ... ok
+test_snapshot_preserves_export_ignored_tracked_source (test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_preserves_export_ignored_tracked_source) ... ok
+test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass (test_harness_probes_independent.HarnessProbeIndependentTest.test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass) ... FAIL
+test_timeout_preserves_application_output_without_a_final_newline (test_harness_probes_independent.HarnessProbeIndependentTest.test_timeout_preserves_application_output_without_a_final_newline) ... ok
+test_verification_replacement_invalidates_current_pass_but_retains_history (test_harness_probes_independent.HarnessProbeIndependentTest.test_verification_replacement_invalidates_current_pass_but_retains_history) ... ok
+
+======================================================================
+FAIL: test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass (test_harness_probes_independent.HarnessProbeIndependentTest.test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_harness_probes_independent.py", line 278, in test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass
+    self.assertFalse(state["passed"], "acknowledged stop was published as a passing experiment")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : acknowledged stop was published as a passing experiment
+
+----------------------------------------------------------------------
+Ran 9 tests in 11.845s
+
+FAILED (failures=1)
