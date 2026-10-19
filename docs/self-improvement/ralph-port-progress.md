@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：构建树测试偶发 2 秒就绪失败定位与修复；状态：done（240 次稳定性验证通过；全量 820 tests，805 通过、15 跳过；既有 P1–P6 和最终审查均保留）
+- 当前项：复审 `552eab9` 的 fork 夹具与时序覆盖；状态：done（修复就绪标记发布竞态；7 组故障被捕获，定向 47/47、稳定性 150/150；全量 821 tests，806 通过、15 跳过）
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -222,3 +222,22 @@
 - 最终核对：测试文件 SHA256 `f6625c87113382f20fcdbf74862575ca035346aa676cd3040207edea035178ea` 与稳定性开始、全量前后完全一致；原函数 AST 仍全部相同，生产 tmh/ 无 diff，`git diff --check` 通过。读回保留现场的监管回执，身份/nonce/原始输出哈希校验通过，三代完整日志均存在，失败后的进程清理为 complete；未把这个 cleanup 导致的 orphaned 回执冒充自然 timeout。
 - 日志校验：`failure-083.json` 7488 字节 / SHA256 `6aa9f6dd27656f945b1253ca13398e231030c92ac046d943971ed034e257b876`；`trace-083.json` 152026 字节 / SHA256 `a6f0adf6233bed8039617f628edfcfc83a36a3ca336e5f7a91ac6b0d3f92c6c5`；`stability.log` 55954 字节 / SHA256 `917960e399a0a24278cc0bb4022fc28da24770e94d81c8fb2e6d45e4892b1bb1`；`full-unittest.log` 23049 字节 / SHA256 `c2e97c334265b3b64e640f05d3febbda6cadc92f57fc14d1fed7afdc8e9797fb`。其余日志哈希在同目录 `evidence-manifest.json`，没有压缩或截断文件。
 - 收尾：只提交测试夹具/新回归和本进度文件；原 stash 保留，不 push。建议审阅本次真实三代 fork、每代 PID/信号/管道语义，以及新增回归的父子关系和真实 deadline 断言；P5 guard/人工确认、P6 锁语义与 Windows 待确认清单保持上一轮结论。
+
+## 后续：复审 552eab9
+
+- 状态：done；开工 `git status --short --branch` 干净，已读本文件和 `git log --oneline -10`；继续在 `feat/ralph-port`，原 stash 保留。独立提交标题：`test: 修复 fork 夹具就绪标记的发布竞态`。
+- 范围：`tests/test_run_lifecycle.py`、监管器/进程控制与相关测试；仅本地合成进程、真实时钟，原 2 秒就绪、3 秒总预算和 5.5 秒清理边界不变。
+- 计划：核查真实父子关系、信号与管道继承；用故障注入检查覆盖敏感性；先复现 `.ready` 创建与 PID 写入之间的发布窗口，再做最小修复、稳定性验证和全量。
+- 已知边界：前轮慢启动注入针对再次启动子解释器；fork 后不会执行这段初始化延时，它验证消除串行初始化，不证明任意子进程调度延时都能满足就绪约束。实际超时与收尾仍由真实时钟检验。
+- 待确认：无。人工确认/guard/锁的既有结论及 Windows 待确认清单保持不变；不 push。
+- 发现并复现：`ready()` 原先先创建最终文件，再写 PID；新三代关系断言会读到空串。将真实孙进程暂停在 `open` 之后、`write` 之前，三代 PID 均存活，`.leaf.ready` 已存在且内容为空，回归准确失败（0.244s）。完整现场 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-re_vrdn6/` 和写入前快照保留在 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/ralph-fork-audit-mtcvk_k2/`。
+- 修复：夹具先写同目录、带 PID 的临时文件，关闭后 `os.replace` 原子发布就绪标记；新增真实孙进程发布屏障回归，释放后复用原三代取消测试的全部断言。红灯后同用例通过（0.652s）；原有时间限制和生产代码未改。慢解释器回归补注释明确其覆盖边界，不改行为。
+- 故障注入：只在临时文件/测试进程内替换夹具或监管 worker，共 7 组：缺少孙进程、恢复默认 TERM、只杀 leader、忽略 invoke 取消、忽略构建取消、忽略真实 deadline、将真实 deadline 减半。全部由预期断言拒绝，非偶发错误；各轮正常清理后注册的活进程均为空，脚本/完整失败日志/现场在同目录，汇总 `mutation-summary.json`。生产文件没有写入故障代码。
+- 审查结论：未发现真实三代进程、取消、超时和清理覆盖退化；发现的就绪标记发布窗口已修复。fork 发生在独立、无线程的夹具进程；每代独立登记 PID、忽略 TERM、持有原输出管道；三代真实 parent/PPID/PGID 断言保留。底层测试仍验证 TERM 忽略跨 exec、父退出而孙代持管道、输出 EOF 后清理、外部进程组不受影响、服务退出后的监管清理，以及监管启动时间计入 deadline。
+- 定向验证：`NO_PROXY='*' no_proxy='*' PYTHONPATH=<审查目录>:tests:. python3 -m unittest -v test_run_lifecycle test_process_control test_supervised_process test_run_early_stop`，**47/47 通过**，34.532s、0 跳过，退出码 0；完整日志 `targeted.log`。原红灯场景注册的三个 PID 再次用精确 PID 查询，均已不存在。
+- 差异验证：相对 `552eab9`，既有 **32 个函数（含 14 个测试）AST 全部不变**；FIXTURE 除 `ready` 函数外 AST 全部不变，生产 `tmh/` 无 diff，`git diff --check` 通过。受测文件 SHA256 `3151a3ab5ef58c16a13d71d2b90a2e22d3caf9edeb27b128f763cd67c1cb0f76` 写入 `validated-files.json`，稳定性和全量结束再次核对。
+- 稳定性：`NO_PROXY='*' no_proxy='*' PYTHONPATH=<审查目录>:. python3 <审查目录>/stability.py`，**150/150 通过**，205.006s、0 跳过/失败/错误，退出码 0。包括新发布屏障 50 次，以及原构建超时、新三代关系/真实 deadline、构建取消、invoke 取消、父退出清理各 20 次。保留完整 `stability.log`、逐次耗时与汇总；130 次就绪等待中位数 0.111s、最大 0.281s（发布屏障用例的该采样从释放后开始；其屏障等待另有 2 秒真实上限）。前后受测文件哈希一致，随后才跑全量。
+- 全量：`NO_PROXY='*' no_proxy='*' PYTHONPATH=<审查目录>:. python3 -m unittest discover -s tests`，**821 tests，299.133s，OK（skipped=15）**，即 **806 通过、15 跳过、0 失败/错误，退出码 0**。跳过原因仍为 2 项缺 cryptography、13 项缺可选 MCP SDK（逐项清单 `optional-skips.json`）；没有联网安装。资源关闭警告原样保留。父进程失败诊断未触发，子解释器仅继承离线保护。
+- 最终核对：受测文件哈希在定向、稳定性、全量前后相同；审阅完整测试及本文件 diff，`git diff --check` 通过，生产目录无 diff。只提交这两个文件，原 stash 保留，不 push；提交号绑定至审查目录的 `validated-files.json`，完整文件哈希见 `evidence-manifest.json`。
+- 日志校验：`publication-before-write.json` 376 字节 / SHA256 `9a0cee84a0f7a1a98ab607e0caffdcac4b71624ce5ead4a7aa2eae3a30cfefc0`；`mutation-summary.json` 2037 字节 / SHA256 `0c5503ea0a0bcbeafa756878d9aa5d636cf0bbed5501d311d47f9cfadb736648`；`stability.log` 29595 字节 / SHA256 `987b46e1cf997f6d62a194473c9f9a302ddfae3e1ab817cc999eb10b53c044cb`；`full-unittest.log` 23022 字节 / SHA256 `5a6dd94a8d8fc336da1ace364c6f832bddd501e85f4ff0459992decef8f1943a`。
+- 人工审阅建议：`ready()` 的同目录原子发布；新发布屏障用例在真实孙进程写 PID 前检查标记不可见，释放后执行原取消断言；慢解释器回归注释的覆盖边界。无新增待确认，P5 guard/人工确认、P6 锁语义和 Windows 剩余阻塞点保留原清单。

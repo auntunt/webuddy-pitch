@@ -26,8 +26,11 @@ import os, signal, sys, time
 scenario, token, registry, mode, prompt_file, workdir = sys.argv[1:]
 
 def ready(name):
-    with open(registry + "." + name + ".ready", "w") as f:
+    path = registry + "." + name + ".ready"
+    staging = path + "." + str(os.getpid()) + ".tmp"
+    with open(staging, "w") as f:
         f.write(str(os.getpid()))
+    os.replace(staging, path)
 
 # This standalone POSIX fixture has no threads. Fork real descendants without
 # serial interpreter/import startup consuming the readiness allowance. Each
@@ -270,6 +273,58 @@ class RunLifecycleTest(unittest.TestCase):
         self.assertFalse(self.registry.exists())
         self.assertEqual(self.store.run(rid)["status"], "cancelled")
 
+    def test_ready_marker_publishes_complete_pid_before_cancellation(self):
+        # Pause the real leaf after opening its output file but before writing
+        # its PID. Existence must not advertise a partially written handshake.
+        self.script.write_text(r'''
+import builtins, os, time
+original_open = builtins.open
+
+class PausedWriter:
+    def __init__(self, file):
+        self.file = file
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return self.file.__exit__(*args)
+
+    def write(self, text):
+        with original_open(registry + ".leaf.paused", "w") as marker:
+            marker.write(str(os.getpid()))
+        while not os.path.exists(registry + ".leaf.release"):
+            time.sleep(.01)
+        return self.file.write(text)
+
+def gated_open(path, mode="r", *args, **kwargs):
+    file = original_open(path, mode, *args, **kwargs)
+    if ".leaf.ready" in str(path) and mode == "w":
+        return PausedWriter(file)
+    return file
+
+builtins.open = gated_open
+''' + FIXTURE)
+        paused = Path(str(self.registry) + ".leaf.paused")
+        release = Path(str(self.registry) + ".leaf.release")
+        marker = Path(str(self.registry) + ".leaf.ready")
+        wait_ready = self.wait_ready
+
+        def check_publication(*scenarios, **kwargs):
+            until = time.monotonic() + 2
+            try:
+                while not paused.exists() and time.monotonic() < until:
+                    time.sleep(.01)
+                self.assertTrue(paused.exists(), "leaf did not reach the publication barrier")
+                self.assertFalse(marker.exists(), "ready marker became visible before PID write")
+            finally:
+                release.write_text("release")
+            wait_ready(*scenarios, **kwargs)
+            self.assertIn(int(marker.read_text()), self.owned_live())
+
+        with mock.patch.object(self, "wait_ready", side_effect=check_publication):
+            self.test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout()
+
     def test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts(self):
         rid = self.new_run()
         conf = self.shell_conf('sleep 1.2\nprintf "completed-within-budget\\n"', timeout=2)
@@ -364,8 +419,10 @@ class RunLifecycleTest(unittest.TestCase):
         self.assertTrue(Path(run["workdir"]).is_dir())
 
     def test_build_tree_with_slow_descendant_startup_keeps_real_deadline(self):
-        # Reproduce startup contention with real time: restarting Python for
-        # both descendants costs at least 2.1s before the leaf is ready.
+        # Reproduce repeated interpreter startup with real time: restarting
+        # Python for both descendants costs at least 2.1s before leaf readiness.
+        # Fork descendants do not rerun this prefix; this is a regression for
+        # serial interpreter initialization, not arbitrary scheduling delays.
         # A single initialized fixture can create the same tree without that
         # serial startup cost. Neither readiness nor the run budget is extended.
         self.script.write_text("import sys, time\nif sys.argv[1] in ('child', 'leaf'):\n    time.sleep(1.05)\n" + FIXTURE)
