@@ -212,6 +212,12 @@ def scan(P, p: dict | None = None) -> list:
             t = P.store.ticket(m.group(1).upper()) if m else None
             if not t or t["project_id"] != proj["id"] or t["status"] == "closed" or (t.get("links") or {}).get("epic"):
                 continue  # a feature's parent is never changed itself: its children are
+            if "agent_request" in (t.get("links") or {}):
+                # CLI/MCP ticket creation has no execution authority. A stale or
+                # coincidentally named wb/* branch must not turn its held ticket
+                # into an implicit build/review request. External candidate
+                # submission is not supported by the agent API yet.
+                continue
             if _seen(P, t, ref, sha):
                 continue
             try:
@@ -232,6 +238,8 @@ def remind(P, p: dict, days: int | None = None) -> list:
     cut = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() - days * 86400))
     out = []
     for t in P.store.tickets(project_id=p["id"]):
+        if "agent_request" in (t.get("links") or {}):
+            continue  # do not invite an unsupported branch-submission workflow
         who = (t.get("links") or {}).get("handwork")
         if not who or t["status"] in ("closed", "verify"):
             continue

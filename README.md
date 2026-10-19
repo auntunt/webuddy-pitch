@@ -1,5 +1,7 @@
 # tmh：传统 toB 软件项目维护 harness
 
+**Webuddy CLI / MCP 已提供工作台入口：** 编程助手可读取需求与证据、沟通交接、启动受控运行及查看候选预览。见 [CLI、Claude Code、Cursor、Codex 接入说明](docs/workbench-agent.md)。
+
 装在 Codex / Claude Code 上的一套“老项目维护工作台”，可以接 DeepSeek、Kimi、GLM、Qwen 等国产模型。适用对象是国内 toB 软件公司长期维护的 Java / .NET 业务系统，比如 OA、ERP、CRM、财务和政务审批。
 
 这类项目的维护难点几乎都一样：

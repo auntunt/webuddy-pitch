@@ -461,6 +461,7 @@ function nextAction(d,f){
   if((t.links||{}).client_change&&t.status!=='closed')return {tone:'warn',text:'客户的答复会<b>改动已经确认的验收标准</b>（改了什么见下面的动态）。采用后按新标准继续；不采用就按原来确认的标准。在你决定之前不自动开工。',
     btns:B('naCcYes','采用客户的改动','primary')+B('naCcNo','不采用，按原标准','ghost')};
   const hw=(t.links||{}).handwork;
+  if((t.links||{}).agent_request&&!['verify','closed'].includes(t.status))return {tone:'info',text:'<b>已接入 CLI / MCP。</b> 需求和沟通记录已保存，等待助手明确启动下一步。可从外部助手读取任务、留言交接、启动运行并查看证据；不会自动接收分支或把消息当作人工验收。'+(f.fx?' 已有实现结果，请在执行记录中核对测试与改动。':'')};
   const hwe=(d.events||[]).filter(e=>e.author==='我来写').pop();
   const hwr=(d.runs||[]).find(r=>r.mode!=='ask'),hwc=hwr&&hwr.agent==='人工'&&(d.events||[]).filter(e=>e.author==='我来写'&&e.kind==='flow'&&(e.data||{}).run===hwr.id&&['pass','fail','unknown'].includes((e.data||{}).verdict)).pop();
   if(hw&&!['verify','closed'].includes(t.status)&&hwe&&hwe.kind==='flow'&&/^收到/.test(hwe.body||''))return {tone:'info',text:`<span class="spin"></span> ${h(hwe.body)}：构建测试、对照验收标准审查，通过就转待验证。`};
@@ -1045,7 +1046,9 @@ async function pvLoad(key){const el=$('#pvc');if(!el)return;let d;try{d=await ge
   if(s==='starting')setTimeout(()=>{if($('#pvc')&&location.hash.includes(key))pvLoad(key)},4000)}
 
 // ---------- 我来写: a person writes it (by hand or with their own tools); the platform checks it like any change
-async function hwLoad(d){const el=$('#hwc'),t=d.ticket;if(!el||t.status==='closed')return;let w;try{w=await get('/api/tickets/'+t.key+'/starter')}catch(e){return}
+async function hwLoad(d){const el=$('#hwc'),t=d.ticket;if(!el||t.status==='closed')return;
+  if((t.links||{}).agent_request){el.hidden=false;el.innerHTML='<h2>CLI / MCP 交接</h2><div class="sub">本工单由外部助手接续。沟通与执行记录共享；分支自动接收未启用。人工复核与验收继续使用当前证据和明确决定。</div>';return}
+  let w;try{w=await get('/api/tickets/'+t.key+'/starter')}catch(e){return}
   if(!$('#hwc'))return;const pk=t.key.split('-')[0];el.hidden=false;
   const mine=(t.links||{}).hold;
   el.innerHTML=`<div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">我来写</h2>${mine?`<span class="ev-tag info">${h(mine)} 在写</span>`:'<button class="primary" id="hwClaim">认领：我来写</button>'}</div>

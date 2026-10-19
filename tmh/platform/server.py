@@ -941,6 +941,12 @@ def api_meta(P, req):
             "apps": __import__("tmh.platform.apps", fromlist=["APPS"]).APPS}
 
 
+@route("POST", "/api/agent/<operation>")
+def api_agent(P, req, operation):
+    from .agent_api import dispatch
+    return dispatch(P, req, operation)
+
+
 @route("GET", "/api/projects")
 def api_projects(P, req):
     out = []

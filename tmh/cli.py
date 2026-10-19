@@ -839,10 +839,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--verify", help="校验一个离线包，不打包")
     from .opscli import register
     register(add)
+    add("workbench", lambda a: 0, "Webuddy CLI / MCP：连接正在运行的交付工作台（workbench --help）")
     return ap
 
 
 def main(argv=None) -> int:
+    raw = list(sys.argv[1:] if argv is None else argv)
+    if raw and raw[0] == "workbench":
+        from .workbench import main as workbench_main
+        return workbench_main(raw[1:])
     a = build_parser().parse_args(argv)
     rc = a.fn(a) or 0
     quiet = a.cmd == "kb" and a.action in ("status", "show", "pack", "done", "read", "questions", "ask", "answer", "overrule", "metrics")  # done logs its own entry

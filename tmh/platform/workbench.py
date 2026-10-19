@@ -406,6 +406,8 @@ def states(P, tickets: list) -> dict:
             s, why = "client", others[k]["label"]
         elif t["status"] == "verify":
             s, why = "you", mine[k]["label"] if k in mine else "改好了，等你验收"
+        elif links.get("agent_request"):
+            s, why = "you", "CLI / MCP 已接续，等待明确的下一步"
         elif manual:
             if check.get("verdict") in ("fail", "unknown"):
                 s, why = "you", ("提交检查没通过" if check["verdict"] == "fail" else "提交还没检查完") + "，等 %s 处理" % manual
