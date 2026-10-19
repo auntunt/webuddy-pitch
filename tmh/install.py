@@ -166,6 +166,8 @@ def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]
     gi.write_text("\n".join(lines) + "\n", encoding="utf-8")
     # 3. Agent entry files.
     agents_block = (HOME / "templates" / "AGENTS.block.md").read_text(encoding="utf-8")
+    (x / "docs").mkdir(exist_ok=True)
+    shutil.copy(HOME / "docs" / "agent-commands.md", x / "docs" / "agent-commands.md")
     _upsert_block(repo / "AGENTS.md", agents_block, "# AGENTS.md")
     done.append("AGENTS.md（插入 tmh 区块，保留原有内容）")
     skills = sorted(p for p in (HOME / "skills").iterdir() if (p / "SKILL.md").exists())

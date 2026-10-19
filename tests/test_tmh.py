@@ -196,6 +196,18 @@ class GuardAndVerifyTest(unittest.TestCase):
 
 
 class InstallTest(unittest.TestCase):
+    def test_agents_block_budget_keeps_hard_rules_and_command_reference(self):
+        block = (ROOT / "templates/AGENTS.block.md").read_bytes()
+        self.assertLessEqual(len(block), 3584)
+        for rule in ("关单只认用户确认", "不改基线测试", "没有验收标准（AC）不进实现", "完成前必须 tmh verify"):
+            self.assertIn(rule, block.decode("utf-8"))
+        with tempfile.TemporaryDirectory(prefix="tmh-install-budget-") as tmp:
+            repo = Path(tmp)
+            install.install(repo, ["claude", "codex"])
+            self.assertIn(block.decode("utf-8").strip(), (repo / "AGENTS.md").read_text(encoding="utf-8"))
+            self.assertEqual((repo / ".tmh/docs/agent-commands.md").read_bytes(),
+                             (ROOT / "docs/agent-commands.md").read_bytes())
+
     def test_install_is_idempotent_and_keeps_user_content(self):
         repo = copy_repo(JAVA)
         (repo / "AGENTS.md").write_text("# 团队约定\n\n用 4 空格缩进。\n", encoding="utf-8")
