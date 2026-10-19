@@ -1,0 +1,1 @@
+外部 Codex 是主要实现者，协调者提供隔离预览启动器并修复独立复核发现的迟到读取竞态。独立子代理 /root/candidate_chain_review 复核最终源码；本条由协调者记录实际浏览器与保留性观察。A3 的浏览器后半段未知，技术验收与人工验收必须保持 false。合成数据预览关闭真实 OCR；未合入原仓库、未推送、未部署。完整证据归档 docs/self-improvement/evidence/weighbill-pilot-2026-10-19/。

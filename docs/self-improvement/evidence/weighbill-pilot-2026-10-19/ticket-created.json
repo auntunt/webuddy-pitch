@@ -1,0 +1,26 @@
+{
+  "ticket": {
+    "id": 6,
+    "project_id": 4,
+    "num": 1,
+    "title": "磅单协作编辑：版本冲突保留草稿并按所见版本审核",
+    "body": "来源：既有磅单系统 docs/开发任务清单.xlsx 的“多人同时编辑冲突保护”，结合原HEAD 60d6422ee898959557fc529a8e0335524b5ee2c0真实HTTP/SQLite失败。用户授权用既往开发任务验证独立Coding能力；不要求与办公WorkBuddy同步。\n\n真实失败：A/B打开相同的净重1000、总重11000记录；B保存净重900、总重10900；A只改货名却发旧全量fields，200并覆盖B重量。A旧页面还能审核B新值；未知保存回执后重试也可能覆盖。\n\n本轮完成台账详情编辑、条件保存、冲突保留草稿、明确核对最新数据、保存后审核的路径。固定原基线，外部Codex在独立克隆实现，协调者提交，Webuddy独立验证，浏览器操作两个页面；使用独立SQLite和ScriptedVision数据，不调用外部OCR，不复制生产数据。\n\n验收标准：\nA1 条件保存：读取记录版本；顺序并发保存及保存ACK丢失后的旧条件重试返回409，不覆盖他人数据，不新增修改历史；基于已核对最新版本能继续保存。\nA2 条件审核：详情和批量审核带所见版本，旧版本不能审核新数据；保存后审核使用保存返回的版本；失败/skipped不得显示成功；已审核内容修改仍要求重审。\nA3 真实页面冲突恢复：A完整草稿保留，提示并展示最新记录供显式核对，用户作出选择后可再次保存；不因冲突自动更新版本并盲重试，不静默丢弃草稿。\nA4 原功能与数据保持：权限、来源隔离、原图和Excel原编码、历史记录及原仓库保持；无版本旧API兼容，但明确旧客户端不享有端到端客户端防覆盖，提供非法版本必须拒绝。\nA5 可打开的版本预览：应用在完整Git SHA前缀下运行，资源/API/原图和写操作正常，跨站写保护保留，版本证据可通过CLI/MCP查询；最终用户验收与技术观察区分。\n\n不合并原主干，不推送或发布生产。模型及OCR实际账单、节省人工分钟未测得，不发布组织ROI或修对率。本轮预览是隔离测试业务数据，OCR使用脚本适配器，不代表真实识别服务接入。\n",
+    "type": "bug",
+    "status": "new",
+    "priority": "normal",
+    "assignee": "agent:codex-coordinator",
+    "reporter": "agent:codex-coordinator",
+    "labels": [],
+    "links": {
+      "hold": "agent:codex-coordinator",
+      "handwork": "agent:codex-coordinator",
+      "agent_request": "weighbill-concurrency-create-20261019"
+    },
+    "external": {},
+    "created": "2026-10-19 16:36:10",
+    "updated": "2026-10-19 16:36:10",
+    "key": "WBILL-1"
+  },
+  "execution_started": false,
+  "request_id": "weighbill-concurrency-create-20261019"
+}

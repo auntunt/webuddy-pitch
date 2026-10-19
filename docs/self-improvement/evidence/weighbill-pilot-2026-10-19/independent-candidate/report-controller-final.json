@@ -1,0 +1,194 @@
+{
+  "scope": "actual shipped functions with isolated DOM/fetch; no real browser claim",
+  "source_sha256": "2e2d86850f1777ec1868206bbc1a50f8d378bf250820d2eb1b8a2f03a39294f7",
+  "passed": 8,
+  "total": 8,
+  "results": [
+    {
+      "name": "conflict_requires_explicit_confirm_and_preserves_full_draft",
+      "passed": true,
+      "calls": [
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": {
+            "method": "PATCH",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": "{\"fields\":{\"总重\":\"11000\",\"皮重\":\"10000\",\"净重\":\"1000\",\"货名\":\"A edit\",\"备注\":\"完整草稿\"},\"expected_version\":0,\"doc_type\":\"site_in\",\"customer\":\"\",\"origin_id\":\"legacy\"}"
+          }
+        },
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": null
+        },
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": {
+            "method": "PATCH",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": "{\"fields\":{\"总重\":\"10900\",\"皮重\":\"10000\",\"净重\":\"900\",\"货名\":\"A edit\",\"备注\":\"完整草稿\"},\"expected_version\":1,\"doc_type\":\"site_in\",\"customer\":\"\",\"origin_id\":\"legacy\"}"
+          }
+        }
+      ],
+      "notices": [
+        "请先读取最新数据并明确确认核对结果",
+        "已保存。"
+      ],
+      "confirms": []
+    },
+    {
+      "name": "lost_ack_and_latest_read_failure_cannot_replay",
+      "passed": true,
+      "calls": [
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": {
+            "method": "PATCH",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": "{\"fields\":{\"总重\":\"11000\",\"皮重\":\"10000\",\"净重\":\"1000\",\"货名\":\"A edit\",\"备注\":\"完整草稿\"},\"expected_version\":0,\"doc_type\":\"site_in\",\"customer\":\"\",\"origin_id\":\"legacy\"}"
+          }
+        },
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": null
+        }
+      ],
+      "notices": [
+        "请先读取最新数据并明确确认核对结果",
+        "请先读取最新数据并明确确认核对结果"
+      ],
+      "confirms": []
+    },
+    {
+      "name": "malformed_success_ack_does_not_approve",
+      "passed": true,
+      "calls": [
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": {
+            "method": "PATCH",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": "{\"fields\":{\"总重\":\"11000\",\"皮重\":\"10000\",\"净重\":\"1000\",\"货名\":\"A edit\",\"备注\":\"完整草稿\"},\"expected_version\":0,\"doc_type\":\"site_in\",\"customer\":\"\",\"origin_id\":\"legacy\"}"
+          }
+        },
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": null
+        }
+      ],
+      "notices": [],
+      "confirms": []
+    },
+    {
+      "name": "save_then_approve_uses_exact_save_ack_version",
+      "passed": true,
+      "calls": [
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": {
+            "method": "PATCH",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": "{\"fields\":{\"总重\":\"11000\",\"皮重\":\"10000\",\"净重\":\"1000\",\"货名\":\"A edit\",\"备注\":\"完整草稿\"},\"expected_version\":0,\"doc_type\":\"site_in\",\"customer\":\"\",\"origin_id\":\"legacy\"}"
+          }
+        },
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/approve",
+          "options": {
+            "method": "POST",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": "{\"ids\":[\"r1\"],\"versions\":{\"r1\":5}}"
+          }
+        }
+      ],
+      "notices": [
+        "已审核。"
+      ],
+      "confirms": []
+    },
+    {
+      "name": "partial_batch_reports_skipped",
+      "passed": true,
+      "calls": [
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/approve",
+          "options": {
+            "method": "POST",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": "{\"ids\":[\"r1\",\"r2\"],\"versions\":{\"r1\":0,\"r2\":4}}"
+          }
+        }
+      ],
+      "notices": [
+        "已审核 1 张；1 张没审：newer revision"
+      ],
+      "confirms": [
+        "选中的单据里有 2 张带校验提示（重量对不上或字段可疑）。\n确定都已对照纸质磅单核对过，一起审核？"
+      ]
+    },
+    {
+      "name": "rejected_approval_keeps_draft_and_cannot_advance",
+      "passed": true,
+      "calls": [
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/approve",
+          "options": {
+            "method": "POST",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": "{\"ids\":[\"r1\"],\"versions\":{\"r1\":0}}"
+          }
+        },
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": null
+        }
+      ],
+      "notices": [],
+      "confirms": []
+    },
+    {
+      "name": "late_latest_success_does_not_touch_new_record",
+      "passed": true,
+      "calls": [
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": null
+        }
+      ],
+      "notices": [],
+      "confirms": []
+    },
+    {
+      "name": "older_latest_response_must_not_replace_confirmed_newer_view",
+      "passed": true,
+      "calls": [
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": null
+        },
+        {
+          "url": "__WB_BASE_PATH__/api/v1/records/r1",
+          "options": null
+        }
+      ],
+      "notices": [],
+      "confirms": [
+        "确认已逐项核对最新版本 2？下一次保存将使用当前表单中的全部内容。"
+      ]
+    }
+  ]
+}

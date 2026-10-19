@@ -1,0 +1,12 @@
+AssertionError [ERR_ASSERTION]: late response replaced newer snapshot
+
+1 !== 2
+
+    at /Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/external-agents/weighbill-concurrency/tests/client_editor_state.cjs:79:12 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 2,
+  operator: 'strictEqual',
+  diff: 'simple'
+}

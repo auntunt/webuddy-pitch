@@ -1,0 +1,14 @@
+Copied verbatim from the exec tool's combined output for the actual API reproduction.
+Command: PYTHONDONTWRITEBYTECODE=1 NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhost /Users/auntlee/workspace/weighbill-system/.venv/bin/python /Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent/reproduce-stale-client-edits.py
+Process exit code: 0
+Tool elapsed wall time: 0.688143 seconds
+
+/Users/auntlee/workspace/weighbill-system/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{
+  "source_unchanged": true,
+  "head": "60d6422ee898959557fc529a8e0335524b5ee2c0",
+  "stale_edit_overwrote_b": true,
+  "approved_unseen_weight": true,
+  "lost_ack_retry_overwrote_b": true
+}

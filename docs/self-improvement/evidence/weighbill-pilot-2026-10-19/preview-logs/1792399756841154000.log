@@ -1,0 +1,33 @@
+$ /Users/auntlee/workspace/weighbill-system/.venv/bin/python -B tools/webuddy_preview.py --port 52417 --prefix /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f --data-dir '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/preview-data'
+INFO:     Started server process [51821]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:52417 (Press CTRL+C to quit)
+INFO:     127.0.0.1:52430 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52534 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52696 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52704 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/static/app.css?v=0.3.0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52707 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52708 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/schema HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52710 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/sw.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52715 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/static/app.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52721 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/records?limit=200&date_from=2026-10-17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52722 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52853 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/report HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52855 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/static/app.css?v=0.3.0 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52858 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52859 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/schema HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52861 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52874 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/sw.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53092 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53301 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53304 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53420 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53447 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53544 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53609 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53610 - "GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [51821]

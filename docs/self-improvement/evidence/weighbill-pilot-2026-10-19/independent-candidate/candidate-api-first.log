@@ -1,0 +1,64 @@
+/Users/auntlee/workspace/weighbill-system/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{"name": "stale_save", "passed": true}
+{"name": "stale_approve", "passed": true}
+{"name": "lost_ack", "passed": true}
+{"name": "reconcile_approve_reopen", "passed": false, "traceback": "Traceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 212, in <module>\n    try: case(c);result={'name':case.__name__,'passed':True}\n         ^^^^^^^\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 120, in reconcile_approve_reopen\n    assert any(h['detail'].get('changes',{}).get('货名',{}).get('to')=='A deliberate goods' for h in history),history\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 120, in <genexpr>\n    assert any(h['detail'].get('changes',{}).get('货名',{}).get('to')=='A deliberate goods' for h in history),history\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'list' object has no attribute 'get'\n"}
+{"name": "mixed_batch", "passed": true}
+{"name": "invalid_conditions", "passed": true}
+{"name": "permissions", "passed": true}
+{"name": "zero_and_compatibility", "passed": true}
+{"name": "concurrent_instances", "passed": true}
+{"name": "prefix_and_csrf", "passed": false, "traceback": "Traceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 212, in <module>\n    try: case(c);result={'name':case.__name__,'passed':True}\n         ^^^^^^^\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 202, in prefix_and_csrf\n    assert c.req('GET','/api/v1/export.csv').status_code==200\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"}
+{
+  "baseline": false,
+  "explicit_conditions_in_all_protection_cases": true,
+  "baseline_version_fallback": null,
+  "passed": 8,
+  "total": 10,
+  "source_unchanged": true,
+  "results": [
+    {
+      "name": "stale_save",
+      "passed": true
+    },
+    {
+      "name": "stale_approve",
+      "passed": true
+    },
+    {
+      "name": "lost_ack",
+      "passed": true
+    },
+    {
+      "name": "reconcile_approve_reopen",
+      "passed": false,
+      "traceback": "Traceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 212, in <module>\n    try: case(c);result={'name':case.__name__,'passed':True}\n         ^^^^^^^\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 120, in reconcile_approve_reopen\n    assert any(h['detail'].get('changes',{}).get('货名',{}).get('to')=='A deliberate goods' for h in history),history\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 120, in <genexpr>\n    assert any(h['detail'].get('changes',{}).get('货名',{}).get('to')=='A deliberate goods' for h in history),history\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'list' object has no attribute 'get'\n"
+    },
+    {
+      "name": "mixed_batch",
+      "passed": true
+    },
+    {
+      "name": "invalid_conditions",
+      "passed": true
+    },
+    {
+      "name": "permissions",
+      "passed": true
+    },
+    {
+      "name": "zero_and_compatibility",
+      "passed": true
+    },
+    {
+      "name": "concurrent_instances",
+      "passed": true
+    },
+    {
+      "name": "prefix_and_csrf",
+      "passed": false,
+      "traceback": "Traceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 212, in <module>\n    try: case(c);result={'name':case.__name__,'passed':True}\n         ^^^^^^^\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 202, in prefix_and_csrf\n    assert c.req('GET','/api/v1/export.csv').status_code==200\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    }
+  ]
+}

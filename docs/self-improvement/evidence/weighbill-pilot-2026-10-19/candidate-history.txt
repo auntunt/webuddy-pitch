@@ -1,0 +1,15 @@
+commit ab9601e305bf9efdf908554174c56ca101194405
+Author:     auntunt <auntunt@gmail.com>
+AuthorDate: Mon Oct 19 16:51:19 2026 +0800
+Commit:     auntunt <auntunt@gmail.com>
+CommitDate: Mon Oct 19 16:51:19 2026 +0800
+
+    fix: ignore stale conflict reconciliation responses
+
+commit 8da19e034bdba47e0cb43b610526fc74131ffb9f
+Author:     auntunt <auntunt@gmail.com>
+AuthorDate: Mon Oct 19 16:44:54 2026 +0800
+Commit:     auntunt <auntunt@gmail.com>
+CommitDate: Mon Oct 19 16:44:54 2026 +0800
+
+    fix: protect weighbill editing and approval with client versions

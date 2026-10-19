@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "project": {
+    "name": "磅单系统：协作编辑试点",
+    "description": "独立Coding真实历史业务接入；隔离数据，本地验证"
+  },
+  "commands": {
+    "build": "env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/auntlee TMPDIR=/tmp LANG=en_US.UTF-8 PYTHONDONTWRITEBYTECODE=1 WB_TEST_STACK= PYTEST_ADDOPTS= /Users/auntlee/workspace/weighbill-system/.venv/bin/python -m compileall -q weighbill",
+    "test": "env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/auntlee TMPDIR=/tmp LANG=en_US.UTF-8 PYTHONDONTWRITEBYTECODE=1 WB_TEST_STACK= PYTEST_ADDOPTS= /Users/auntlee/workspace/weighbill-system/.venv/bin/python -m pytest -q -ra -p no:cacheprovider",
+    "extra_checks": []
+  }
+}

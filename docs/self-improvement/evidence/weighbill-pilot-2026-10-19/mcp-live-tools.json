@@ -1,0 +1,18 @@
+[
+  "webuddy_status",
+  "webuddy_projects_list",
+  "webuddy_tickets_list",
+  "webuddy_ticket_get",
+  "webuddy_ticket_create",
+  "webuddy_message_send",
+  "webuddy_messages_list",
+  "webuddy_request_get",
+  "webuddy_run_get",
+  "webuddy_preview_get",
+  "webuddy_candidates_list",
+  "webuddy_candidate_get",
+  "webuddy_candidate_assess",
+  "webuddy_harness_recipes",
+  "webuddy_harness_probe_get",
+  "webuddy_harness_library"
+]

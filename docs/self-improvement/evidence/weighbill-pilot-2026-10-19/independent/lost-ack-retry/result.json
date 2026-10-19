@@ -1,0 +1,108 @@
+{
+  "case": "A save commits but its response is lost; B corrects weights; A retries the identical body",
+  "transport_scope": "lost ACK is explicitly modeled; no real browser network drop was injected",
+  "first_save_status": 200,
+  "b_save_status": 200,
+  "retry_status": 200,
+  "retry_overwrote_b": true,
+  "final": {
+    "id": "synthetic-concurrent-record",
+    "created_at": "2026-10-19T08:20:00",
+    "uploader": "synthetic-uploader",
+    "batch_id": "synthetic-batch",
+    "seq_in_batch": 1,
+    "origin_id": "legacy",
+    "origin_name": "厂商",
+    "orig_path": null,
+    "crop_path": null,
+    "sig_path": null,
+    "fields": {
+      "客户名": "隔离测试客户",
+      "序号": "WB202610190001",
+      "日期": "2026-10-19",
+      "入站时间": "08:00",
+      "出站时间": "08:20",
+      "车号": "鲁A12345",
+      "货名": "甲待重试的货名",
+      "收费": "",
+      "总重": "11000",
+      "皮重": "10000",
+      "净重": "1000"
+    },
+    "warnings": [],
+    "weight_ok": 1,
+    "weight_msg": "通过 11000-10000=1000",
+    "status": "reviewed",
+    "model": null,
+    "error": null,
+    "seg_model": null,
+    "reviewed_by": "reviewer-A",
+    "reviewed_at": "2026-10-19T16:29:29",
+    "doc_type": "site_in",
+    "doc_type_label": "本场进场",
+    "customer": null,
+    "stage": "submitted",
+    "stage_label": "未审核",
+    "submitted_by": "synthetic-uploader",
+    "submitted_at": "2026-10-19T08:20:00",
+    "approved_by": null,
+    "approved_at": null,
+    "ref_no": "JC-20261019-0001",
+    "voided_by": null,
+    "voided_at": null,
+    "void_reason": null,
+    "flag_note": null,
+    "thumb_path": null,
+    "preview_path": null
+  },
+  "history": [
+    {
+      "at": "2026-10-19T16:29:29",
+      "actor": "reviewer-A",
+      "action": "修改",
+      "detail": {
+        "changes": {
+          "货名": [
+            "原料甲",
+            "甲待重试的货名"
+          ]
+        }
+      }
+    },
+    {
+      "at": "2026-10-19T16:29:29",
+      "actor": "reviewer-B",
+      "action": "修改",
+      "detail": {
+        "changes": {
+          "总重": [
+            "11000",
+            "10900"
+          ],
+          "净重": [
+            "1000",
+            "900"
+          ]
+        }
+      }
+    },
+    {
+      "at": "2026-10-19T16:29:29",
+      "actor": "reviewer-A",
+      "action": "修改",
+      "detail": {
+        "changes": {
+          "总重": [
+            "10900",
+            "11000"
+          ],
+          "净重": [
+            "900",
+            "1000"
+          ]
+        }
+      }
+    }
+  ],
+  "scripted_vision_calls": []
+}

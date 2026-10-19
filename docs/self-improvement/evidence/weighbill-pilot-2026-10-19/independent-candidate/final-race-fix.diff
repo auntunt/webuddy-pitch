@@ -1,0 +1,68 @@
+diff --git a/tests/client_editor_state.cjs b/tests/client_editor_state.cjs
+index 9411876..be1e6f3 100644
+--- a/tests/client_editor_state.cjs
++++ b/tests/client_editor_state.cjs
+@@ -64,5 +64,28 @@ const response=(status,body)=>({ok:status>=200&&status<300,status,json:async()=>
+     const f=harness();f.form.find(i=>i.name==='货名').value='old';f.queue.push(result,response(200,latest));
+     await f.ctx.act('approve',false);assert.ok(!f.notices.includes('已审核。'));assert.ok(f.ctx.conflict);assert.equal(JSON.parse(f.calls[0].opts.body).versions.r1,0);
+   }
+-  console.log('7 editor scenarios passed; report/capture/service-worker scripts parse');
++  // Repeated reads can resolve out of order. A late old success OR error must
++  // not replace a newer snapshot that the user has already explicitly checked.
++  for (const status of [200, 503]) {
++    const r=harness();r.ctx.conflict={draft:r.ctx.formVals(),latest:null,reviewed:false};
++    let finishOld;
++    const oldResponse=new Promise(resolve=>{finishOld=resolve;});
++    const newer={...latest,version:2,fields:{...latest.fields,'净重':'800','总重':'10800'}};
++    r.queue.push(oldResponse,response(200,newer));
++    const oldRead=r.ctx.readLatest();await r.ctx.readLatest();
++    r.$('#d-confirm-version').onclick();
++    const shown=r.$('#d-compare').innerHTML, message=r.$('#d-compare').textContent;
++    finishOld(response(status,latest));await oldRead;
++    assert.equal(r.ctx.conflict.latest.version,2,'late response replaced newer snapshot');
++    assert.equal(r.ctx.cur.version,2);assert.equal(r.ctx.conflict.reviewed,true);
++    assert.equal(r.$('#d-compare').innerHTML,shown);assert.equal(r.$('#d-compare').textContent,message);
++  }
++  const switched=harness();switched.ctx.conflict={draft:switched.ctx.formVals(),latest:null,reviewed:false};
++  let failOld;switched.queue.push(new Promise(resolve=>{failOld=resolve;}));
++  const oldRead=switched.ctx.readLatest();
++  switched.ctx.cur={...base,id:'r2'};switched.ctx.conflict={draft:{},latest:null,reviewed:false};
++  switched.$('#d-compare').textContent='another record';
++  failOld(response(503,{}));await oldRead;
++  assert.equal(switched.$('#d-compare').textContent,'another record');
++  console.log('Editor checks passed, including stale success/error responses; report/capture/service-worker scripts parse');
+ })().catch(e=>{console.error(e);process.exitCode=1;});
+diff --git a/weighbill/static/report.html b/weighbill/static/report.html
+index fc4ae67..12fa7c8 100644
+--- a/weighbill/static/report.html
++++ b/weighbill/static/report.html
+@@ -1158,6 +1158,9 @@ async function showConflict(message) {
+ async function readLatest() {
+   if (!cur || !conflict) return;
+   const id = cur.id, session = conflict;
++  const sequence = (session.readSequence || 0) + 1;
++  session.readSequence = sequence;
++  const currentRead = () => cur && cur.id === id && conflict === session && session.readSequence === sequence;
+   session.latest = null; session.reviewed = false;
+   $("#d-confirm-version").hidden = true;
+   $("#d-compare").textContent = "读取中…";
+@@ -1165,7 +1168,7 @@ async function readLatest() {
+     const r = await fetch("__WB_BASE_PATH__/api/v1/records/" + encodeURIComponent(id));
+     if (!r.ok) throw new Error(`HTTP ${r.status}`);
+     const latest = await r.json();
+-    if (!cur || cur.id !== id || conflict !== session) return;
++    if (!currentRead()) return;
+     if (!Number.isInteger(latest.version)) throw new Error("缺少版本信息");
+     session.latest = latest;
+     const values = recordVals(latest);
+@@ -1177,7 +1180,9 @@ async function readLatest() {
+       input.value = values[b.dataset.latestField] ?? ""; liveCheck();
+     });
+     $("#d-confirm-version").hidden = false;
+-  } catch (e) { $("#d-compare").textContent = `最新数据读取失败：${e.message}。草稿未改动，不能继续保存或审核。`; }
++  } catch (e) {
++    if (currentRead()) $("#d-compare").textContent = `最新数据读取失败：${e.message}。草稿未改动，不能继续保存或审核。`;
++  }
+ }
+ $("#d-latest").onclick = readLatest;
+ $("#d-confirm-version").onclick = () => {

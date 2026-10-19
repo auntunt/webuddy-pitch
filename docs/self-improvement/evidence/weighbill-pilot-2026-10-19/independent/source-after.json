@@ -1,0 +1,11 @@
+{
+  "head": "60d6422ee898959557fc529a8e0335524b5ee2c0",
+  "status": "?? .DS_Store\n?? \"docs/\\345\\274\\200\\345\\217\\221\\344\\273\\273\\345\\212\\241\\346\\270\\205\\345\\215\\225.xlsx\"\n",
+  "sha256": {
+    "weighbill/http_api.py": "4810e10686bc244b73482fb1139976f3e5ac9f53b501c7ccd7646dfc69a1570f",
+    "weighbill/service.py": "a448502443b159eb8f0b13a68a1cb44a8cef85ceb44aa30231af26f552de81be",
+    "weighbill/domain.py": "b8a1bc19958053dce92f26bfb46512c92ffa9096f8dc7c2643a5deeadc342df7",
+    "weighbill/adapters/store_sqlite.py": "f8850e88a360ba9b71a031f8e3477d957dcc8546608dc578ada5c379f7e39e98",
+    "weighbill/static/report.html": "c9131c37abec4a9d743b17ea8076f7fe0bcee39be522af362aa39f458f8f3624"
+  }
+}

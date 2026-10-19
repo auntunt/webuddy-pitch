@@ -1,0 +1,4 @@
+{
+  "cmd": "/Users/auntlee/workspace/weighbill-system/.venv/bin/python -B tools/webuddy_preview.py --port {port} --prefix {prefix} --data-dir '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/preview-data'",
+  "ready": "/api/v1/health"
+}
