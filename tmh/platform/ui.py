@@ -255,7 +255,7 @@ async function paintInbox(){
   document.title=(d.mine.length?`(${d.mine.length}) `:'')+S.meta.brand;
   const PR={urgent:['bad','紧急'],high:['warn','高'],normal:['mute','中'],medium:['mute','中'],low:['mute','低']};
   // grouped by what is asked of you, the most pressing kind first; a group shows its 3 most urgent and folds the rest
-  const G=[['returned','bad','甲方退回'],['rejected','bad','验收没通过'],['failed','bad','智能体没跑成'],['expired','warn','签收链接过期'],['verify','warn','等你验收'],['review','info','改好了，等你审阅'],['confirm','info','分析出结论，等你确认']];
+  const G=[['recheck','warn','重新验证待处理'],['returned','bad','甲方退回'],['rejected','bad','验收没通过'],['failed','bad','智能体没跑成'],['expired','warn','签收链接过期'],['verify','warn','等你验收'],['review','info','改好了，等你审阅'],['confirm','info','分析出结论，等你确认']];
   const gname=k=>(G.find(g=>g[0]===k)||[])[2];
   const row=x=>{const sub=[x.label!==gname(x.reason)?h(x.label):'',x.note?'“'+h(x.note)+'”':'',x.since?'等了 '+waited(x.since):'',h(x.assignee)].filter(Boolean).join(' · ');
     return `<a class="ibx" href="#/t/${h(x.key)}"><span class="ev-tag ${(PR[x.priority]||PR.normal)[0]}">${(PR[x.priority]||PR.normal)[1]}</span>
@@ -408,7 +408,7 @@ const FLOW=[['intake','受理'],['analyze','分析定位'],['plan','修改方案
 function flowState(d){
   const t=d.ticket,R=m=>d.runs.find(r=>r.mode===m),ev=k=>d.events.filter(e=>e.kind===k).pop();
   const an=R('analyze'),pl=R('plan'),fx=R('fix'),live=d.runs.find(r=>r.status==='running'||r.status==='queued');
-  const review=t.status!=='closed'&&fx&&fx.status==='done'&&!fx.decision&&fx.diff!=='';
+  const review=t.status!=='closed'&&fx&&fx.verify?.verification_current!==false&&fx.status==='done'&&!fx.decision&&fx.diff!=='';
   const acc=d.events.filter(e=>e.kind==='accept'||e.kind==='reject').pop(),it=ev('intake');
   const rs=r=>!r?'todo':r.status==='done'?'done':(r.status==='running'||r.status==='queued')?'cur':r.status==='failed'?'bad':'todo';
   const st={intake:'done',analyze:rs(an),plan:rs(pl),fix:fx?(fx.decision&&fx.decision.startsWith('accepted')?'done':fx.decision==='discarded'?'todo':rs(fx)==='done'?'cur':rs(fx)):'todo',
@@ -420,6 +420,7 @@ function flowState(d){
     plan:pl?h(pl.agent)+' · '+({done:'已出方案',running:'进行中',queued:'排队',failed:'失败',cancelled:'已取消'}[pl.status]||''):'',
     fix:fx?(fx.decision?(fx.decision.startsWith('accepted')?(adopted(d)&&adopted(d).auto?'已自动提交':'已采纳'):'已放弃'):fx.status==='done'?(fx.diff===''?'无改动':'待审阅'):({running:'进行中',queued:'排队',failed:'失败',cancelled:'已取消'}[fx.status]||'')):'',
     verify:review?'等待审阅最新改动':acc?h(acc.author)+' · '+(acc.kind==='accept'?'通过':'不通过'):t.status==='verify'?'等验收':'',closed:t.status==='closed'?ago(t.updated):''};
+  if(t.status!=='closed'&&fx?.verify?.verification_current===false){sub.fix='实现记录保留';sub.verify=fx.recheck_wait?.status==='running'?'等待当前重新验证':'旧结果失效，检查回执';st.verify='todo'}
   return {st,sub,an,pl,fx,live,acc,review}}
 function stepper(f){return `<ol class="fsteps">${FLOW.map(([k,l],i)=>`<li class="${f.st[k]}"><span class="dot">${f.st[k]==='done'?'✓':f.st[k]==='bad'?'!':i+1}</span><b>${l}</b><small>${f.sub[k]||(f.st[k]==='skip'?'跳过':'')}</small></li>`).join('')}</ol>`}
 function defAgent(){let a='';try{a=localStorage.getItem('tmh.agent')||''}catch(e){}const ags=S.meta.agents;return (ags.find(x=>x.name===a&&x.available)||ags.find(x=>x.available)||ags[0]||{}).name}
@@ -427,7 +428,7 @@ function defAgent(){let a='';try{a=localStorage.getItem('tmh.agent')||''}catch(e
 const MERGE_ON=()=>(S.meta.autoflow||{}).merge==='auto';
 function onAuto(d){return !!((S.meta.autoflow||{}).on)&&!(d.ticket.links||{}).hold&&!['verify','closed'].includes(d.ticket.status)}
 // what the change went through before anyone looks at it: per-file agents, build and tests, diagnosis rounds
-function vfy(r){const v=r&&r.verify;if(!v)return '';const c={pass:'构建测试通过',fail:'构建测试没通过',skip:'没跑构建测试'}[v.check]||'';
+function vfy(r){const v=r&&r.verify;if(!v)return '';if(v.verification_current===false)return '旧验证结果已失效，需重新验证或检查停止回执。';const c={pass:'构建测试通过',fail:'构建测试没通过',skip:'没跑构建测试'}[v.check]||'';
   return `${v.split?`${v.files} 个文件分工改，`:''}${c}${v.check==='skip'&&v.skip?'（'+h(v.skip)+'）':''}，${v.by_hand?h(v.reviewer||'')+' 审查':'诊断'}${{pass:'认为已解决',fail:'认为还没解决',unknown:'没给结论'}[v.verdict]||''}${v.rounds?'，共 '+v.rounds+' 轮':''}。`}
 function adopted(d){const r=d.runs.find(x=>x.mode==='fix');if(!r?.decision?.startsWith('accepted:'))return null;
   const e=d.events.filter(x=>x.kind==='adopt'&&String((x.data||{}).run)===String(r.id)).pop(),[branch,commit]=r.decision.slice(9).split('@');
@@ -441,6 +442,7 @@ function nextAction(d,f){
   const B=(id,label,cls)=>`<button id="${id}" class="${cls||''}">${label}</button>`;
   const auto=onAuto(d),br=adopted(d);
   if(f.live)return {tone:'info',text:`<span class="spin"></span> 智能体正在${h(moLabel(f.live.mode))}${auto&&f.live.author==='自动流转'?'，跑完会自动接着往下做，直到提交到独立分支等你验收':'，完成后这里会给出下一步'}。`,btns:B('naLog','看实时过程','ghost')+(auto?`<button class="ghost" data-hold="1">接管</button>`:'')};
+  if(t.status!=='closed'&&f.fx?.verify?.verification_current===false){const waiting=f.fx.recheck_wait;return {tone:waiting?.status==='running'?'info':'warn',text:h(waiting?.why||'旧验证结果已失效；请查看当前重新验证记录或检查停止回执。')+'。原实现记录保留，当前不能按旧结果采纳或签收。',btns:B('naReview','查看当前重新验证','primary')}};
   const ir=d.intake_recovery;
   if(t.status!=='closed'&&ir&&['failed','blocked','running'].includes(ir.status)){
     const answers=(ir.items||[]).flatMap(it=>(it.answers||[]).map(a=>`<div style="margin-top:6px;white-space:pre-wrap">${h(a.question)}<br><b>${h(a.value)}</b> <span class="sub">${h(a.from||'')}</span></div>`)).join('');
@@ -507,7 +509,7 @@ function isMachine(a){return !a||['自动流转','system','知识库','agent','�
 function ticketRunCount(runs){const points=runs.reduce((a,r)=>a+(r.points||0),0);return `${runs.length} 次运行${points?' · 共 '+points+' 点':''}`}
 function ticketRunHistory(runs){return runs.length>1?'<span class="sub">全部运行：</span> '+runs.map(r=>`<a href="javascript:void 0" onclick="showRun(${r.id})">#${r.id} ${h(moLabel(r.mode))}${['queued','running'].includes(r.status)?' <span class="spin"></span>':''}${r.points?' · '+h(r.points)+' 点':''}</a>`).join('　'):''}
 function ticketSummarySync(initial,changed){
-  const key=initial.ticket.key,anchor=$('#tTop'),signature=d=>JSON.stringify([d.ticket,d.plain_state,d.intake_recovery,d.runs.map(r=>[r.id,r.status,r.decision,r.points,r.verify,r.result]),d.events.length,d.evidence,d.auto_next,d.package]);
+  const key=initial.ticket.key,anchor=$('#tTop'),signature=d=>JSON.stringify([d.ticket,d.plain_state,d.intake_recovery,d.runs.map(r=>[r.id,r.status,r.decision,r.points,r.verify,r.recheck_wait,r.result]),d.events.length,d.evidence,d.auto_next,d.package]);
   let applied=signature(initial),request=0;
   return async()=>{const seq=++request,n=await get('/api/tickets/'+encodeURIComponent(key));
     if(seq!==request||!anchor?.isConnected||$('#tTop')!==anchor||S.cur?.ticket?.key!==key)return null;
@@ -521,9 +523,23 @@ function ticketSummarySync(initial,changed){
     const status=$('#fs');if(status&&document.activeElement!==status&&status.value===prior.ticket.status)status.value=n.ticket.status;
     if(n.ticket.body!==prior.ticket.body&&$('#bodyv')&&!$('#be'))$('#bodyv').innerHTML=md(n.ticket.body||'');
     if(JSON.stringify(n.package)!==JSON.stringify(prior.package)||n.ticket.status!==prior.ticket.status)pkgSync(n);
-    changed(n);ticketTopWire(n,na);if(focused)$('#'+focused)?.focus({preventScroll:true});applied=next;return n;
+    changed(n);ticketTopWire(n,na);ticketSignoffSync(n);if(focused)$('#'+focused)?.focus({preventScroll:true});applied=next;return n;
   }
 }
+function ticketVerificationReason(d){
+  const r=(d?.runs||[]).find(x=>x.mode==='fix'&&x.status==='done');
+  if(d?.recheck?.invalid===true||r?.verify?.verification_current===false||r?.verification?.verification_current===false||r?.recheck?.invalid===true||r?.recheck?.running||r?.recheck?.read_error||r?.recheck&&typeof runRecheckInvalid==='function'&&runRecheckInvalid({...r,verification:r.verification||r.verify}))return '旧验证结果已失效，请先重新验证或检查停止回执';
+  return '';
+}
+function ticketSignoffReason(d){const blocked=d?.package?.binding_blocked;
+  if(Array.isArray(blocked)?blocked.length:blocked)return Array.isArray(blocked)?blocked.join('；'):String(blocked);
+  return ticketVerificationReason(d);
+}
+function ticketSignoffAttrs(d){const reason=ticketSignoffReason(d);return reason?' disabled title="'+h(reason)+'"':''}
+function ticketSignoffSync(d){const reason=ticketSignoffReason(d);for(const id of ['ttSend','ttOk','pkLink','pkLgo','accOk']){const b=$('#'+id);if(b){b.disabled=!!reason;b.title=reason}}pkgRepackSync(d)}
+function ticketSignoffGuard(d){if(S.cur?.ticket?.key!==d.ticket.key)return false;const reason=ticketSignoffReason(S.cur);if(reason){toast(reason,6000);return false}return true}
+function pkgRepackReason(d){return ticketVerificationReason(d)||((d.runs||[]).some(r=>r.mode==='fix'&&['queued','running'].includes(r.status))?'实现仍在运行，请等待当前验证完成':'')}
+function pkgRepackSync(d){const b=$('#pkPack');if(!b)return;const reason=pkgRepackReason(d),busy=!!S.pkgPacking?.[d.ticket.key];b.disabled=busy||!!reason;b.title=reason;b.textContent=busy?'正在重新打包…':'按当前验证重新打包'}
 function pkgSync(d){
   const summary=$('#pkSummary'),actions=$('#pkActions');if(!summary||!actions)return;
   summary.innerHTML=pkgSummary(d);actions.innerHTML=pkgActions(d);
@@ -602,7 +618,7 @@ async function vTicket(key,sub){
   const ext=t.external||{},e=d.evidence||{};let f=flowState(d),na=nextAction(d,f);
   const res=f.pl&&f.pl.status==='done'?f.pl:f.an&&f.an.status==='done'?f.an:null;
   const accUi=`<textarea id="accNote" placeholder="验收说明（不通过时必填）" style="min-height:64px"></textarea>
-     <div class="row" style="gap:8px;margin-top:8px"><button class="primary" id="accOk">验收通过</button><button class="danger" id="accNo">验收不通过</button><button class="ghost" id="accDraft">让助手起草验收说明</button></div>`;
+     <div class="row" style="gap:8px;margin-top:8px"><button class="primary" id="accOk"${ticketSignoffAttrs(d)}>验收通过</button><button class="danger" id="accNo">验收不通过</button><button class="ghost" id="accDraft">让助手起草验收说明</button></div>`;
   const reviewing=f.fx&&f.fx.status==='done'&&!f.fx.decision;
   // the four lines a reader needs: what happens, why, how sure, and who acts next
   const sym=clip(symptomOf(t),120);
@@ -675,7 +691,7 @@ async function vTicket(key,sub){
   $('#eb').onclick=()=>{$('#bodyv').innerHTML=`<textarea id="be" style="min-height:200px">${h(t.body)}</textarea><button class="primary" id="bs">保存</button>`;$('#bs').onclick=()=>save({body:$('#be').value})};
   $('#cb').onclick=async()=>{const b=$('#cm').value.trim();if(!b)return;try{await post('/api/tickets/'+key+'/comments',{body:b});vTicket(key)}catch(e){toast(e.message)}};
   if($('#pb'))$('#pb').onclick=()=>pushExt(key,$('#cm').value);
-  const acc=async res=>{try{await post('/api/tickets/'+key+'/accept',{result:res,note:$('#accNote').value});toast(res==='pass'?'已验收通过，工单关闭':'已记录不通过，工单退回处理中');vTicket(key)}catch(e){toast(e.message)}};
+  const acc=async res=>{if(res==='pass'&&!ticketSignoffGuard(d))return;try{await post('/api/tickets/'+key+'/accept',{result:res,note:$('#accNote').value});toast(res==='pass'?'已验收通过，工单关闭':'已记录不通过，工单退回处理中');vTicket(key)}catch(e){toast(e.message)}};
   $('#accOk').onclick=()=>acc('pass');$('#accNo').onclick=()=>acc('fail');
   $('#accDraft').onclick=()=>{A.askTicket(t,'起草这张工单的人工验收说明：列出要验证的业务操作、预期结果，以及分析和改动里还没核实的点。只写说明，不要替人判断通过。','draft')};
   const run=async(mode,agent,model)=>{
@@ -821,13 +837,27 @@ function runRecoveryHtml(r){
   const reasons=Array.isArray(r.retry_blocked)?r.retry_blocked:[],ready=runStopReceiptReady(r),details=(reasons.length?`<p class="sub">${h(reasons.join('；'))}</p>`:'')+(!ready?'<p class="sub">停止回执尚不完整，不能重新运行；请检查完整回执。</p>':'')+(runRecoveryBlocked(r)?'<button type="button" data-run-recover>重新检查停止回执</button>':'');
   if(r.delivery_id)return `<section class="run-review"><h3>继续这个交付阶段</h3><p>已有改动和失败记录保留。请在交付阶段页核对当前资料与复核条件后重新执行。</p>${details}<a class="btn" href="#/delivery/${encodeURIComponent(r.delivery_id)}/${encodeURIComponent(r.delivery_stage||'')}" onclick="closeModal()">返回交付阶段</a></section>`;
   return `<section class="run-review"><h3>继续处理</h3><p class="sub">原运行和已有改动保留；重新运行会创建新的记录，不代表原运行已经成功。</p>${details}${r.can_retry===true&&ready&&!runStillActive(r)?'<button type="button" class="primary" data-run-resume>保留改动并重新运行</button>':''}</section>`}
+function runRecheckOperation(r){const op=r.recheck?.operation;if(!op||typeof op!=='object'||Array.isArray(op))return null;
+  return op.recovery&&!op.lifecycle?.recovery?{...op,lifecycle:{...(op.lifecycle||{}),recovery:op.recovery}}:op}
+function runRecheckBlocked(r){const op=runRecheckOperation(r);return !!op&&(runRecoveryBlocked(op)||op.owner_active!==true&&['done','failed','cancelled','blocked'].includes(op.status)&&Array.isArray(op.blocked)&&op.blocked.length>0)}
+function runRecheckActive(r){const op=runRecheckOperation(r);return op?!runRecheckBlocked(r)&&(!!r.recheck?.running||runStillActive(op)):!!r.recheck?.running}
+function runRecheckInvalid(r){const op=runRecheckOperation(r),v=r.verification,currentFailure=op?.status==='failed'&&v?.verification_current===true&&v.recheck_operation?.id===op.id&&v.check!=='pass';return !!r.recheck?.read_error||v?.verification_current===false||runRecheckActive(r)||!!op&&(op.status!=='done'&&!currentFailure||op.can_retry!==true||!runStopReceiptReady(op))}
+function runRecheckAdoptBlocked(r){return runRecheckInvalid(r)||runRecheckOperation(r)?.status==='failed'}
+function runRecheckCanStart(r){const op=runRecheckOperation(r);return !r.recheck?.read_error&&!runRecheckActive(r)&&(!op||op.can_retry===true&&runStopReceiptReady(op))}
+function runRecheckHtml(r){const op=runRecheckOperation(r);if(!op)return '';
+  const blocked=runRecheckBlocked(r),active=runRecheckActive(r),ready=runStopReceiptReady(op),phase=blocked?'重新验证停止回执不完整，不能继续验证或采纳。':active?'重新验证正在执行，旧验证结果已失效。':!ready?'重新验证缺少完整停止回执，不能继续验证或采纳。':op.status==='done'?'重新验证已结束，构建与测试结论以本次实际验证记录为准。':!runRecheckInvalid(r)?'重新验证已结束，实际检查未通过。':'重新验证已中断，本次不能证明构建或测试通过。';
+  return `<section class="run-review" aria-label="重新验证运行"><h3>重新验证记录 #${h(op.id)}</h3><p role="status">${active?'<span class="spin"></span> ':''}${h(phase)}</p><p class="sub">原实现运行 #${h(op.source_run||r.id)} 的状态保留。重新验证是独立过程，进程收尾不代表业务成功。</p>${op.result?`<pre class="log">${h(op.result)}</pre>`:''}${Array.isArray(op.blocked)&&op.blocked.length?'<ul>'+op.blocked.map(why=>'<li>'+h(why)+'</li>').join('')+'</ul>':''}${op.output?`<details class="run-check" ${op.status==='failed'?'open':''}><summary>查看完整重新验证输出</summary><pre class="log">${h(op.output)}</pre></details>`:''}${runLifecycleHtml(op)}${blocked?'<button type="button" data-run-recheck-recover>重新检查验证停止回执</button>':''}<details class="run-check"><summary>查看完整重新验证记录</summary><pre class="log">${h(JSON.stringify(op,null,2))}</pre></details></section>`}
 function runVerificationHtml(r){
+  if(!runRecheckInvalid(r))return runVerificationRecordHtml(r);
+  const v=r.verification,previous=v?.previous_current_verification;
+  return '<div class="hint" role="status"><b>旧验证结果已失效</b><p>本次重新验证尚未形成有效结论，不能据此采纳或签收。请查看重新验证过程与停止回执。</p></div>'+(!previous&&v?.verification_current===false?runVerificationRecordHtml(r):'')+'<details class="run-check"><summary>上次验证记录（仅供历史参考）</summary>'+runVerificationRecordHtml({...r,verification:previous||v})+'</details>'}
+function runVerificationRecordHtml(r){
   const v=r.verification,labels={pass:'通过',fail:'失败',skip:'未执行',unknown:'未知'};
   if(!v||typeof v!=='object')return '<div class="hint">没有实际验证记录。运行完成不代表构建或测试通过；请先重新验证，或检查项目的验证命令。</div>';
   const commands=Array.isArray(v.commands)?v.commands:[];
   return `<p>命令检查：<b>${h(labels[v.check]||'尚无结论')}</b> · 实现诊断：<b>${h(v.diagnosis_invalidated?'未知（待重新诊断）':labels[v.verdict]||'尚无结论')}</b></p><p class="sub">以下是实际执行的命令。构建、测试和其他检查各自以记录为准；人工复核不会改变这些结果。</p>${v.skip?`<div class="hint">${h(v.skip)}</div>`:''}${commands.length?commands.map(c=>`<details class="run-check" ${c.exit_code!==0?'open':''}><summary>${h(c.kind||'检查')} · ${c.exit_code===0?'通过':'未通过'} · 退出码 ${h(c.exit_code==null?'未记录':c.exit_code)}</summary><pre>${h(Array.isArray(c.command)?c.command.join(' '):c.command||'命令未记录')}</pre>${c.output||c.tail?`<pre class="log">${h(c.output||c.tail)}</pre>`:''}</details>`).join(''):'<div class="hint">没有执行命令的记录，不能据此判断测试通过。</div>'}<details class="run-check"><summary>查看完整验证记录</summary><pre class="log">${h(JSON.stringify(v,null,2))}</pre></details>`}
 function runConclusionHtml(r){
-  const original=r.result?md(r.result):'<p class="sub">这次运行没有单独的结论，请查看过程和代码改动。</p>',reason=r.verification?.diagnosis_invalidated;
+  const original=r.result?md(r.result):'<p class="sub">这次运行没有单独的结论，请查看过程和代码改动。</p>',reason=r.verification?.diagnosis_invalidated||(runRecheckAdoptBlocked(r)?'重新验证尚未通过，原实现输出仅供历史参考。':'');
   if(!reason)return original;
   return `<div class="hint" role="status"><b>当前结论已失效</b><p>${h(typeof reason==='string'?reason:'原运行诊断不再适用于当前改动。')}</p><p>请以当前实际验证记录为准。原运行输出中的判断仅供历史参考，不能证明当前改动已解决问题。</p></div><h3>当前实际验证</h3>${runVerificationHtml(r)}<details class="run-check"><summary>原运行历史输出（仅供参考）</summary>${original}</details>`}
 function runPreviewPath(r){return r.mode==='fix'&&r.ticket_key&&String(r.decision||'').startsWith('accepted:')?'/api/tickets/'+encodeURIComponent(r.ticket_key)+'/preview':''}
@@ -854,9 +884,9 @@ async function showRun(rid,inline){
   const draw=r=>{
     const live=runStillActive(r),cancelable=['running','queued'].includes(r.status)&&!r.lifecycle?.stopped_reason,fix=r.mode==='fix',accepted=String(r.decision||'').startsWith('accepted:'),discarded=r.decision==='discarded';
     const tabs=[['res','结论'],...(r.diff?[['diff','代码改动']]:[]),...(fix?[['verify','实际验证']]:[]),['log','过程']];if(!tabs.some(t=>t[0]===pane))pane='res';
-    return `<div class="run-detail" data-run-view="${token}"><div class="hdr" style="margin:10px 0 0"><b>#${r.id} ${h(r.agent)}${mTag(r)} · ${moLabel(r.mode)}</b><span class="tag">${h(runRecoveryBlocked(r)?'恢复受阻':live&&!cancelable?'正在停止':{queued:'排队',running:'运行中',done:'完成',failed:'失败',cancelled:'已取消'}[r.status]||r.status)}</span>${live?'<span class="spin"></span>':''}<span class="sub grow">${h(r.author)} ${ago(r.created)}</span>${cancelable?`<button type="button" class="danger" data-run-cancel>停止</button>`:''}<a href="javascript:void 0" onclick="showPrompt(${r.id})">提示词</a></div><div class="bad" data-run-error role="alert" hidden></div>${runLifecycleHtml(r)}${runRecoveryHtml(r)}
+    return `<div class="run-detail" data-run-view="${token}"><div class="hdr" style="margin:10px 0 0"><b>#${r.id} ${h(r.agent)}${mTag(r)} · ${moLabel(r.mode)}</b><span class="tag">${h(runRecoveryBlocked(r)?'恢复受阻':live&&!cancelable?'正在停止':{queued:'排队',running:'运行中',done:'完成',failed:'失败',cancelled:'已取消'}[r.status]||r.status)}</span>${live?'<span class="spin"></span>':''}<span class="sub grow">${h(r.author)} ${ago(r.created)}</span>${cancelable?`<button type="button" class="danger" data-run-cancel>停止</button>`:''}<a href="javascript:void 0" onclick="showPrompt(${r.id})">提示词</a></div><div class="bad" data-run-error role="alert" hidden></div>${runLifecycleHtml(r)}${runRecoveryHtml(r)}${runRecheckHtml(r)}
     ${live?`<pre class="log" data-run-log>${h(S.logs[r.id]||'')}</pre>`:`<div class="tabs" role="tablist" aria-label="运行记录">${tabs.map(([key,label])=>`<button type="button" role="tab" aria-selected="${pane===key}" class="${pane===key?'on':''}" data-tab="${key}">${label}</button>`).join('')}</div><div data-pane="res" ${pane==='res'?'':'hidden'}>${runConclusionHtml(r)}</div>${r.diff?`<div data-pane="diff" ${pane==='diff'?'':'hidden'}>${diffHtml(r.diff)}</div>`:''}${fix?`<div data-pane="verify" ${pane==='verify'?'':'hidden'}>${runVerificationHtml(r)}</div>`:''}<div data-pane="log" ${pane==='log'?'':'hidden'}><pre class="log" data-run-log>${h(S.logs[r.id]||'')}</pre></div>`}
-    ${fix&&!live?`<section class="run-review"><h3>试用本次改动</h3><p class="sub">代码与验证结果在上方。将改动保存到独立分支后，就可以启动对应版本的预览。</p>${checking?'<p role="status"><span class="spin"></span> 正在重新验证，完成后会更新实际验证记录…</p>':''}${checkError?`<div class="bad" role="alert">${h(checkError)}</div>`:''}${accepted?'<p class="hint">本次改动已采纳到独立分支。主干合并和用户验收仍需各自完成。</p>':discarded?'<p class="hint">这次改动已放弃。</p>':r.status==='done'&&r.exit_code===0&&r.diff?`<div class="row run-actions"><button type="button" class="primary" data-run-decision="accept" ${checking?'disabled':''}>采纳到独立分支</button><button type="button" class="danger" data-run-decision="discard" ${checking?'disabled':''}>放弃改动</button></div>`:'<p class="hint">本次运行未成功产生可采纳的改动。请查看失败原因与过程，再决定下一步。</p>'}${r.status==='done'&&!discarded&&r.diff?`<div class="row run-actions"><button type="button" data-run-recheck ${checking?'disabled':''}>${checking?'正在重新验证…':'重新验证本次改动'}</button></div>`:''}<div data-run-preview>${runPreviewHtml(r,preview,previewError)}</div></section>`:''}</div>`};
+    ${fix&&!live?`<section class="run-review"><h3>试用本次改动</h3><p class="sub">代码与验证结果在上方。将改动保存到独立分支后，就可以启动对应版本的预览。</p>${checking&&!runRecheckOperation(r)?'<p role="status"><span class="spin"></span> 正在重新验证，完成后会更新实际验证记录…</p>':''}${checkError?`<div class="bad" role="alert">${h(checkError)}</div><button type="button" data-run-recheck-refresh>重新读取验证状态</button>`:''}${accepted?'<p class="hint">本次改动已采纳到独立分支。主干合并和用户验收仍需各自完成。</p>':discarded?'<p class="hint">这次改动已放弃。</p>':r.status==='done'&&r.exit_code===0&&r.diff?`<div class="row run-actions"><button type="button" class="primary" data-run-decision="accept" ${checking||runRecheckAdoptBlocked(r)?'disabled':''}>采纳到独立分支</button><button type="button" class="danger" data-run-decision="discard" ${checking||!runRecheckCanStart(r)?'disabled':''}>放弃改动</button></div>`:'<p class="hint">本次运行未成功产生可采纳的改动。请查看失败原因与过程，再决定下一步。</p>'}${r.status==='done'&&!discarded&&r.diff?`<div class="row run-actions"><button type="button" data-run-recheck ${checking||!runRecheckCanStart(r)?'disabled':''}>${checking?'正在重新验证…':'重新验证本次改动'}</button></div>`:''}<div data-run-preview>${runPreviewHtml(r,preview,previewError)}</div></section>`:''}</div>`};
   const paintPreview=()=>{if(!current())return;const el=target.querySelector('[data-run-preview]');if(el){el.innerHTML=runPreviewHtml(last,preview,previewError);wirePreview()}};
   const loadPreview=async()=>{if(!current()||previewMutating||!runPreviewPath(last))return;const request=++previewSeq;try{const d=await get(runPreviewPath(last)+'?run_id='+encodeURIComponent(rid));if(!current()||request!==previewSeq)return;preview=d;previewError=''}catch(e){if(!current()||request!==previewSeq)return;preview=null;previewError=e.message}paintPreview()};
   const wirePreview=()=>{
@@ -865,19 +895,21 @@ async function showRun(rid,inline){
   const paint=()=>{
     if(!current())return;target.innerHTML=draw(last);
     const tabs=Array.from(target.querySelectorAll('[data-tab]'));tabs.forEach((b,i)=>{b.onclick=()=>{pane=b.dataset.tab;tabs.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-selected',String(x===b))});target.querySelectorAll('[data-pane]').forEach(p=>p.hidden=p.dataset.pane!==pane)};b.onkeydown=e=>{const n=e.key==='ArrowRight'?(i+1)%tabs.length:e.key==='ArrowLeft'?(i+tabs.length-1)%tabs.length:e.key==='Home'?0:e.key==='End'?tabs.length-1:null;if(n!==null){e.preventDefault();tabs[n].focus();tabs[n].click()}}});
-    target.querySelectorAll('[data-run-decision]').forEach(b=>b.onclick=async()=>{if(busy||checking)return;busy=true;target.querySelectorAll('[data-run-decision]').forEach(x=>x.disabled=true);try{await post(`/api/runs/${rid}/decide`,{decision:b.dataset.runDecision});if(!current())return;toast(b.dataset.runDecision==='accept'?'已采纳到独立分支，可以启动本次预览':'已放弃这次改动');await read();watch()}catch(e){if(!current())return;error(e.message);target.querySelectorAll('[data-run-decision]').forEach(x=>x.disabled=false)}finally{busy=false}});
+    target.querySelectorAll('[data-run-decision]').forEach(b=>b.onclick=async()=>{if(busy||checking||!current()||!runRecheckCanStart(last)||b.dataset.runDecision==='accept'&&runRecheckAdoptBlocked(last))return;busy=true;target.querySelectorAll('[data-run-decision]').forEach(x=>x.disabled=true);try{await post(`/api/runs/${rid}/decide`,{decision:b.dataset.runDecision});if(!current())return;toast(b.dataset.runDecision==='accept'?'已采纳到独立分支，可以启动本次预览':'已放弃这次改动');await read();watch()}catch(e){if(!current())return;error(e.message);target.querySelectorAll('[data-run-decision]').forEach(x=>x.disabled=checking||!runRecheckCanStart(last)||x.dataset.runDecision==='accept'&&runRecheckAdoptBlocked(last))}finally{busy=false}});
     const cancel=target.querySelector('[data-run-cancel]');if(cancel)cancel.onclick=async()=>{if(busy||!current())return;busy=true;cancel.disabled=true;try{await post(`/api/runs/${rid}/cancel`,{});if(!current())return;toast('已请求停止');await read();watch()}catch(e){if(current()){error(e.message);cancel.disabled=false}}finally{busy=false}};
     const retry=target.querySelector('[data-run-resume]');if(retry)retry.onclick=async()=>{if(busy||checking||!current())return;busy=true;retry.disabled=true;retry.textContent='正在创建继续运行…';try{const next=await post(`/api/runs/${rid}/retry`,{});if(!current())return;if(!next||!Number.isInteger(next.id)||next.id===Number(rid))throw new Error('未能取得新的运行记录，请刷新后核对。');await showRun(next.id,inline)}catch(e){if(current()){error(e.message);retry.disabled=false;retry.textContent='保留改动并重新运行'}}finally{busy=false}};
     const recover=target.querySelector('[data-run-recover]');if(recover)recover.onclick=async()=>{if(busy||!current())return;busy=true;recover.disabled=true;try{await post(`/api/runs/${rid}/recover`,{});if(!current())return;await read();watch()}catch(e){if(current()){error(e.message);recover.disabled=false}}finally{busy=false}};
-    const re=target.querySelector('[data-run-recheck]');if(re)re.onclick=async()=>{if(busy||checking)return;busy=true;re.disabled=true;try{await post(`/api/runs/${rid}/recheck`,{});if(!current())return;checking=true;checkError='';paint();watch()}catch(e){if(!current())return;error(e.message);re.disabled=false}finally{busy=false}};
+    const re=target.querySelector('[data-run-recheck]');if(re)re.onclick=async()=>{if(busy||checking||!current()||!runRecheckCanStart(last))return;busy=true;re.disabled=true;try{await post(`/api/runs/${rid}/recheck`,{});if(!current())return;checking=true;checkError='';last={...last,recheck:{...last.recheck,running:true}};paint();await read();watch()}catch(e){if(!current())return;error(e.message);re.disabled=!runRecheckCanStart(last)}finally{busy=false}};
+    const recoverCheck=target.querySelector('[data-run-recheck-recover]');if(recoverCheck)recoverCheck.onclick=async()=>{if(busy||!current())return;busy=true;recoverCheck.disabled=true;try{await post(`/api/runs/${rid}/recheck/recover`,{});if(!current())return;await read();watch()}catch(e){if(current()){error(e.message);recoverCheck.disabled=false}}finally{busy=false}};
+    const refreshCheck=target.querySelector('[data-run-recheck-refresh]');if(refreshCheck)refreshCheck.onclick=async()=>{if(busy||!current())return;busy=true;refreshCheck.disabled=true;try{await read();watch()}catch(e){error(e.message)}finally{busy=false;if(current())refreshCheck.disabled=false}};
     wirePreview();if(runStillActive(last)){const lg=target.querySelector('[data-run-log]');if(lg)lg.scrollTop=lg.scrollHeight}};
   const read=async()=>{const r=await get(`/api/runs/${rid}?since=${since}`);if(!current())return;S.logs[rid]+=r.output||'';since=r.output_len;last=r;
-    if(r.mode==='fix'&&r.status==='done'&&!runStillActive(r)&&r.decision!=='discarded'){try{const c=await get(`/api/runs/${rid}/recheck`);if(!current())return;checking=!!c.running;checkError=''}catch(e){checkError='无法读取重新验证状态：'+e.message}}
+    if(r.mode==='fix'&&r.status==='done'&&!runStillActive(r)&&r.decision!=='discarded'){try{const c=await get(`/api/runs/${rid}/recheck`);if(!current())return;last={...r,recheck:c};checking=runRecheckActive(last);checkError=''}catch(e){if(!current())return;checkError='无法读取重新验证状态：'+e.message;last={...r,recheck:{...r.recheck,read_error:checkError}};checking=false}}
     paint();await loadPreview();if(!current())return;
-    if(r.ticket_key&&S.cur?.ticket?.key===r.ticket_key&&S.ticketRefresh){const sig=JSON.stringify([r.id,r.status,r.decision,r.lifecycle?.finished]);if(sig!==ticketSig){try{if(await S.ticketRefresh())ticketSig=sig}catch(e){error('运行记录已更新，但工单摘要未同步：'+e.message)}}}};
+    if(r.ticket_key&&S.cur?.ticket?.key===r.ticket_key&&S.ticketRefresh){const sig=JSON.stringify([r.id,r.status,r.decision,r.lifecycle?.finished,last.recheck?.operation?.id,last.recheck?.operation?.status,last.recheck?.operation?.lifecycle?.finished,last.recheck?.operation?.lifecycle?.recovery?.state,last.recheck?.operation?.can_retry,last.recheck?.operation?.blocked,last.recheck?.read_error]);if(sig!==ticketSig){try{if(await S.ticketRefresh())ticketSig=sig}catch(e){error('运行记录已更新，但工单摘要未同步：'+e.message)}}}};
   const stopWatch=()=>{if(watcher!==null){clearInterval(watcher);S.polls=S.polls.filter(p=>p.id!==watcher);watcher=null}};
   const watch=()=>{stopWatch();if(!current()||!last)return;const live=runStillActive(last),starting=preview?.matches_run===true&&preview?.preview?.state==='starting';if(!live&&!checking&&!starting)return;
-    watcher=poll(async()=>{if(!current()){stopWatch();return}if(busy)return;busy=true;try{if(runStillActive(last))await read();else if(checking){const c=await get(`/api/runs/${rid}/recheck`);if(!current())return;if(!c.running){checking=false;await read()}else await loadPreview()}else await loadPreview();watch()}catch(e){error(e.message)}finally{busy=false}},1800,tag)};
+    watcher=poll(async()=>{if(!current()){stopWatch();return}if(busy)return;busy=true;try{if(runStillActive(last))await read();else if(checking)await read();else await loadPreview();watch()}catch(e){error(e.message)}finally{busy=false}},1800,tag)};
   try{await read();watch()}catch(e){error(e.message)}}
 async function showPrompt(rid){const r=await get(`/api/runs/${rid}?prompt=1&since=999999999`);modal('<h2>交给智能体的提示词 #'+rid+'</h2>'+md(r.prompt),true)}
 async function cancelRun(rid){try{await post(`/api/runs/${rid}/cancel`);toast('已请求停止')}catch(e){toast(e.message)}}
@@ -1029,6 +1061,7 @@ function pkgSummary(d){const k=d.package||{};if(!k.status)return '';
   return `<div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">证据包</h2><span class="ev-tag ${PKC[k.status]}">${h(k.label)}</span></div>
    ${k.status==='none'?'<div class="sub">工单转到“待验证”时自动打包：验收标准、方案、改动、构建测试、范围和业务流检查。</div>':`
    ${k.intact?`<div class="sub">${k.records} 条记录，哈希 <code>${h(k.hash.slice(0,12))}</code>，追加式，改任何一条都会对不上。</div>`:`<div class="bad">证据包被改动过：${h(k.problem)}</div>`}
+   ${k.stale?`<div class="warn" role="status" style="margin-top:6px;white-space:pre-wrap">证据包已陈旧。请按当前验证重新打包，之后仍需独立复核和客户验收。${Array.isArray(k.binding_blocked)&&k.binding_blocked.length?'\n'+h(k.binding_blocked.join('\n')):''}</div>`:''}
    ${k.missing.length?`<div style="margin-top:6px"><b style="font-size:13px">还缺</b> ${k.missing.map(x=>`<span class="ev-tag warn">${h(x)}</span>`).join(' ')}</div>`:'<div class="ok" style="margin-top:6px">证据齐全</div>'}
    ${k.gates?`<div style="margin-top:8px"><b style="font-size:13px">验证门</b> <span class="sub">从便宜到贵，每道给出通过、没过或未知</span>
      <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">${k.gates.map(g=>`<div style="font-size:13px"><span class="ev-tag ${GTC[g.state]}">${GTL[g.state]}</span> ${h(g.name)}<span class="sub"> ${h(clip(g.why,90))}${g.waived?` · ${h(g.waived.by)} 放行：${h(clip(g.waived.reason,40))}`:''}</span></div>`).join('')}</div></div>`:''}
@@ -1037,11 +1070,20 @@ function pkgSummary(d){const k=d.package||{};if(!k.status)return '';
      :ln?`<div class="sub" style="margin-top:4px">已发签收链接给 ${h(ln.signer)}，有效至 ${h(ln.expires.slice(5,16))}</div>`:''}`}`}
 function pkgActions(d){const t=d.ticket;if(!d.package?.status||d.package.status==='none')return '';
   return `<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn" href="/e/${h(t.key)}" target="_blank" rel="noopener">打开证据包</a><a class="btn ghost" href="/e/${h(t.key)}.intoto.json" download title="in-toto 格式，甲方可以离线核对">下载</a>
-    <button class="ghost" id="pkShot">补截图</button><button class="ghost" id="pkRev">复核</button>${t.status==='verify'?'<button class="primary" id="pkLink">发签收链接</button>':''}</div>`;}
+    <button class="ghost" id="pkShot">补截图</button><button class="ghost" id="pkRev">复核</button>${d.package.stale===true?'<button id="pkPack"'+(pkgRepackReason(d)||S.pkgPacking?.[t.key]?' disabled':'')+'>按当前验证重新打包</button>':''}${t.status==='verify'?'<button class="primary" id="pkLink"'+ticketSignoffAttrs(d)+'>发签收链接</button>':''}</div>`;}
 function pkgCard(d){if(!d.package?.status)return '';
   return `<div class="card" id="pkg"><div id="pkSummary">${pkgSummary(d)}</div><div id="pkActions">${pkgActions(d)}</div><p class="sub" id="pkDraftNotice" hidden>证据状态已更新；表单草稿与所选文件已保留，请按最新验证门核对后提交。</p><div id="pkForm"></div></div>`;}
-function pkgWire(d){const key=d.ticket.key,F=$('#pkForm');if(!F)return;
+function pkgWire(d){ticketSignoffSync(d);const key=d.ticket.key,F=$('#pkForm');if(!F)return;
   const P=b=>post('/api/tickets/'+key+'/evidence',b);
+  if($('#pkPack'))$('#pkPack').onclick=async()=>{
+    if(S.cur?.ticket?.key!==key||$('#pkForm')!==F||S.cur.package?.stale!==true||S.pkgPacking?.[key])return;
+    const reason=pkgRepackReason(S.cur);if(reason)return toast(reason,6000);const refresh=S.ticketRefresh;if(typeof refresh!=='function')return toast('页面状态尚未就绪，请刷新后重试',6000);
+    (S.pkgPacking??={})[key]=true;pkgRepackSync(S.cur);let packed=false;
+    const current=()=>S.cur?.ticket?.key===key&&$('#pkForm')===F&&S.ticketRefresh===refresh;
+    try{await P({kind:'pack'});packed=true;if(current()){await refresh();if(current())toast('已按当前验证重新打包；仍需独立复核和客户验收',6000)}}
+    catch(e){if(current())toast((packed?'已重新打包，但页面刷新失败：':'重新打包失败：')+e.message,6000)}
+    finally{delete S.pkgPacking[key];if(current())pkgRepackSync(S.cur)}
+  };
   const acs=(()=>{const r=d.runs.find(x=>x.mode==='plan'&&x.status==='done');const m=r&&/```tmh-plan\s*([\s\S]*?)```/.exec(r.result||'');try{return m?(JSON.parse(m[1]).ac||[]):[]}catch(e){return []}})();
   if($('#pkShot'))$('#pkShot').onclick=()=>{F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><select id="pkAc"><option value="">整单</option>${acs.map(a=>`<option value="${h(a.id)}">${h(a.id)} ${h(clip(a.text,30))}</option>`).join('')}</select>
      <input type="file" id="pkImg" accept="image/png,image/jpeg,image/webp"><input id="pkNote" placeholder="说明：在哪个页面做了什么、看到了什么"><button class="primary" id="pkGo">加到证据包</button></div>`;
@@ -1060,9 +1102,9 @@ function pkgWire(d){const key=d.ticket.key,F=$('#pkForm');if(!F)return;
      <button class="primary" id="pkRgo">记录复核</button></div>`;
     $('#pkRgo').onclick=async()=>{const waive={};document.querySelectorAll('.pkW').forEach(x=>{if(x.value.trim())waive[x.dataset.g]=x.value.trim()});
       try{await P({kind:'review',note:$('#pkRn').value,waive,scope_ok:!!($('#pkSc')&&$('#pkSc').checked),path_ok:!!($('#pkPa')&&$('#pkPa').checked)});toast('已记录复核');vTicket(key)}catch(e){toast(e.message,5000)}}};
-  if($('#pkLink'))$('#pkLink').onclick=()=>{const m=(d.package||{}).missing||[];F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><input id="pkS" placeholder="签收人姓名（甲方业务确认人）"><input id="pkR" placeholder="角色，如 人事业务负责人">
+  if($('#pkLink'))$('#pkLink').onclick=()=>{if(!ticketSignoffGuard(d))return;const m=(S.cur.package||{}).missing||[];F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><input id="pkS" placeholder="签收人姓名（甲方业务确认人）"><input id="pkR" placeholder="角色，如 人事业务负责人">
      ${m.length?`<textarea id="pkN" placeholder="证据还缺 ${h(m.join('、'))}，写明为什么现在就请甲方签" style="min-height:48px"></textarea>`:''}<button class="primary" id="pkLgo">生成链接</button><div id="pkOut"></div></div>`;
-    $('#pkLgo').onclick=async()=>{try{const r=await P({kind:'link',signer:$('#pkS').value,role:$('#pkR').value,note:$('#pkN')?$('#pkN').value:''});const url=location.origin+r.path;
+    $('#pkLgo').onclick=async()=>{if(!ticketSignoffGuard(d))return;try{const r=await P({kind:'link',signer:$('#pkS').value,role:$('#pkR').value,note:$('#pkN')?$('#pkN').value:''});const url=location.origin+r.path;
       $('#pkOut').innerHTML=`<div class="sub">发给 ${h(r.signer)}，${h(r.expires.slice(0,16))} 前有效，只能用一次。对方打开就能签，不用登录，页面上没有代码：</div><input id="pkU" readonly value="${h(url)}"><button id="pkCp">复制链接</button>`;
       $('#pkCp').onclick=()=>{navigator.clipboard.writeText(url).then(()=>toast('已复制')).catch(()=>{$('#pkU').select()})}}catch(e){toast(e.message,6000)}}};
 }

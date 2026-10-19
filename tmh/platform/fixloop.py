@@ -90,7 +90,7 @@ def plan_ac(text: str) -> list:
 
 
 def settings(data_dir: Path) -> dict:
-    conf = {"check": "", "rounds": 3, "check_timeout": 1200, "max_files": 16, "split_from": 5}
+    conf = {"check": "", "rounds": 3, "check_timeout": 1200, "recheck_timeout": 0, "max_files": 16, "split_from": 5}
     f = Path(data_dir) / "autoflow.json"
     if f.exists():
         try:
@@ -265,7 +265,7 @@ class FixLoop:
             code, text = r.returncode, r.output
             res = {"kind": kind, "command": cmd, "exit_code": code, "seconds": round(time.time() - t0, 1),
                    "tail": "\n".join(text.strip().splitlines()[-60:]), "output": text,
-                   "reason": r.reason, "evidence": str(folder.relative_to(self.r.data_dir)), "cleanup": r.cleanup}
+                   "reason": r.reason, "evidence": str(folder.relative_to(getattr(self.r, "evidence_root", self.r.data_dir))), "cleanup": r.cleanup}
             out.append(res)
             self.say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, res["seconds"]))
             if code != 0:
@@ -503,15 +503,99 @@ class FixLoop:
         return "\n".join(x for x in L if x is not None).strip()
 
 
-def verified(data_dir: Path, rid: int) -> dict:
+def _verification(data_dir: Path, rid: int) -> dict:
     f = Path(data_dir) / "runs" / str(rid) / "verify.json"
     try:
-        return json.loads(f.read_text(encoding="utf-8"))
+        value = json.loads(f.read_text(encoding="utf-8"))
+        return value if isinstance(value, dict) else {}
     except (OSError, ValueError):
         return {}
 
 
-def recheck(runner, rid: int, *, allow_running: bool = False) -> dict:
+def verified(data_dir: Path, rid: int) -> dict:
+    """A previous pass is historical as soon as a newer verification begins."""
+    v = _verification(data_dir, rid)
+    from .recheck_operations import read_status
+    try:
+        operation = read_status(data_dir, rid)
+    except (OSError, ValueError) as exc:
+        operation = {"status": "blocked", "result": str(exc), "can_retry": False}
+    if not operation:
+        return v
+    bound = v.get("recheck_operation") or {}
+    current = (isinstance(bound, dict) and bound.get("id") == operation.get("id")
+               and bound.get("source_run") == rid and operation.get("source_run") == rid
+               and (operation.get("lifecycle") or {}).get("finished") is True
+               and operation.get("can_retry") is True and operation.get("status") in ("done", "failed")
+               and (v.get("check") != "pass" or (operation.get("status") == "done" and operation.get("exit_code") == 0)))
+    if current:
+        # A copied or later edited verify.json cannot inherit a sealed operation.
+        try:
+            artifact = json.loads((Path(data_dir) / "verification-operations" / "runs" / str(operation["id"]) / "verification.json").read_text(encoding="utf-8"))
+            source = operation.get("source") or {}
+            digest = source.get("diff_sha256") or source.get("diffhash")
+            current = (artifact == v and source.get("run") == rid
+                       and source.get("source_commit", source.get("commit")) == v.get("checked_commit")
+                       and source.get("base") == v.get("checked_base")
+                       and digest == hashlib.sha256(v.get("checked_diff", "").encode("utf-8")).hexdigest())
+        except (OSError, ValueError, TypeError, AttributeError):
+            current = False
+    if current:
+        return dict(v, verification_current=True)
+    return {"check": "unknown", "verdict": "unknown", "commands": [], "diagnosis": {},
+            "verification_current": False, "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+            "recheck_operation": {"id": operation.get("id"), "status": operation.get("status"), "result": operation.get("result", "")},
+            "previous_current_verification": v}
+
+
+def recheck_operations(runner):
+    from .recheck_operations import Operations
+    with runner.lock:
+        if not hasattr(runner, "rechecks"):
+            runner.rechecks = Operations(runner.store, runner.data_dir)
+        return runner.rechecks
+
+
+def start_recheck(runner, rid, by=""):
+    r = runner.store.run(rid)
+    if not r or r["mode"] != "fix" or r["status"] != "done" or not r["diff"]:
+        raise ValueError("这次运行没有可以重新验证的改动")
+    if r["decision"] and not r["decision"].startswith("accepted:"):
+        raise ValueError("这次改动已经放弃了")
+    config = settings(runner.data_dir)
+    return recheck_operations(runner).start(rid, by, float(config.get("recheck_timeout") or config.get("check_timeout") or 1200))
+
+
+def recheck(runner, rid: int, *, allow_running: bool = False, operation=None, by="") -> dict:
+    # Handwork invokes this inside its already-active run and shared budget.
+    if allow_running:
+        return _recheck(runner, rid, allow_running=True)
+    operations = recheck_operations(runner)
+    operation = operation or start_recheck(runner, rid, by)
+    oid = operation["id"]
+    folder = operations.runner.data_dir / "runs" / str(oid)
+    from .crash_recovery import _original_bytes
+    before = runner.data_dir / "runs" / str(rid) / "verify.json"
+    try:
+        if before.exists():
+            _original_bytes(folder / "verification.before.json", before.read_bytes())
+        v = _recheck(runner, rid, operation=operation)
+        operations.finish(oid, 1 if v["check"] == "fail" else 0, "重新验证：" + {"pass": "通过", "fail": "失败", "skip": "未执行"}[v["check"]])
+        return verified(runner.data_dir, rid)
+    except BaseException as exc:
+        try:
+            operations.runner.store.append_output(oid, "\n重新验证执行失败：%s\n" % exc)
+            if oid in operations.runner.owners:
+                operations.finish(oid, 1, "重新验证执行失败：%s" % exc)
+        except BaseException as sealing_error:
+            try:
+                operations.runner.store.append_output(oid, "\n重新验证封存失败：%s\n" % sealing_error)
+            except Exception:
+                pass  # retain the initiating error; unfinished evidence remains blocked
+        raise
+
+
+def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -> dict:
     """Build an earlier change again without changing it: the same baseline and build the fix loop runs, on the
     change as it stands (its worktree, or for an adopted change its commit). Overwrites the run's verify.json and
     returns it. The diagnosis stays as it was for unchanged code. If someone corrects the worktree after the
@@ -538,7 +622,7 @@ def recheck(runner, rid: int, *, allow_running: bool = False) -> dict:
         if not sha:
             raise ValueError("已采纳的提交不存在或短提交号不唯一，不能改为验证其他版本")
         parent = git(root, "rev-parse", sha + "^").strip()
-        temp = wt = runner.data_dir / "worktrees" / ("recheck-%d" % rid)
+        temp = wt = (recheck_operations(runner).runner.data_dir if operation else runner.data_dir) / "worktrees" / ("recheck-%d" % (operation["id"] if operation else rid))
         git(root, "worktree", "remove", "--force", str(wt), check=False)
         git(root, "worktree", "add", "--detach", "-f", str(wt), parent)
         change = subprocess.run(["git", "-C", str(root), "diff", "--binary", parent, sha], capture_output=True, check=True).stdout
@@ -546,13 +630,18 @@ def recheck(runner, rid: int, *, allow_running: bool = False) -> dict:
     else:
         raise ValueError("这次改动已经放弃了")
     fl = FixLoop.__new__(FixLoop)
-    fl.r, fl.st, fl.rid, fl.p, fl.t, fl.wt = runner, st, rid, p, t, wt
+    executor = recheck_operations(runner).runner if operation else runner
+    fl.r, fl.st, fl.rid, fl.p, fl.t, fl.wt = executor, executor.store, operation["id"] if operation else rid, p, t, wt
     fl.set = settings(runner.data_dir)
     tb = testbox.settings(runner.data_dir)
     fl.box = testbox.TestBox(tb, runner.data_dir) if tb else None
     fl.base = git(wt, "rev-parse", "HEAD").strip()
     checked_diff = worktree_diff(wt)
     changed = checked_diff != r["diff"]
+    if operation:
+        recheck_operations(runner).bind(operation["id"], {"run": rid, "decision": r["decision"], "commit": sha,
+            "base": fl.base, "workdir": str(wt), "diff": checked_diff,
+            "diff_sha256": hashlib.sha256(checked_diff.encode("utf-8")).hexdigest()})
     try:
         fl.say("重新验证（不改代码）：在%s上构建这次的改动" % ("测试机" if fl.box else "本机"))
         files = sorted(set(re.findall(r"(?m)^diff --git a/(\S+) b/", worktree_diff(wt))))
@@ -572,7 +661,7 @@ def recheck(runner, rid: int, *, allow_running: bool = False) -> dict:
     finally:
         if temp:
             git(root, "worktree", "remove", "--force", str(temp), check=False)
-    v = verified(runner.data_dir, rid)
+    v = _verification(runner.data_dir, rid)
     # Keep every superseded check, including a failed temporary test mutation followed
     # by a clean rerun. Its diff/output/diagnosis must not disappear when current fields refresh.
     previous = dict(v)
@@ -596,6 +685,15 @@ def recheck(runner, rid: int, *, allow_running: bool = False) -> dict:
         v.pop("after_check_diff", None)  # the previous value remains in previous_verifications
     v.pop("diagnosis_dropped", None)
     (runner.data_dir / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)  # a change taken from a branch has no run folder yet
-    (runner.data_dir / "runs" / str(rid) / "verify.json").write_text(json.dumps(v, ensure_ascii=False, indent=1), encoding="utf-8")
-    fl.say("重新验证：%s" % {"pass": "构建通过", "fail": "构建没通过", "skip": "没有跑构建（%s）" % skip}[check])
+    if operation:
+        from .supervised_process import _atomic_json
+        stopped = executor.stop_reason(operation["id"])
+        if stopped:
+            v.update(check="fail", verdict="unknown", diagnosis={}, interruption=stopped)
+        v.update(recheck_operation={"id": operation["id"], "source_run": rid}, verification_current=True)
+        _atomic_json(executor.data_dir / "runs" / str(operation["id"]) / "verification.json", v)
+        _atomic_json(runner.data_dir / "runs" / str(rid) / "verify.json", v)
+    else:
+        (runner.data_dir / "runs" / str(rid) / "verify.json").write_text(json.dumps(v, ensure_ascii=False, indent=1), encoding="utf-8")
+    fl.say("重新验证：%s" % {"pass": "构建通过", "fail": "构建没通过", "skip": "没有跑构建（%s）" % skip}[v["check"]])
     return v

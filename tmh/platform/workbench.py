@@ -400,6 +400,8 @@ def states(P, tickets: list) -> dict:
             s, why = "you", "客户答复已保存，再理解未完成，等工程师处理"
         elif links.get("open_ac"):
             s, why = "client", "有 %d 条验收标准要和客户确认" % links["open_ac"]
+        elif k in mine and mine[k].get("reason") == "recheck":
+            s, why = mine[k].get("state", "you"), mine[k]["label"]
         elif k in others:
             s, why = "client", others[k]["label"]
         elif t["status"] == "verify":

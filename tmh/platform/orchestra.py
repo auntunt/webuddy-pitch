@@ -38,7 +38,12 @@ class Orchestra:
         self.listeners = []
         self.on_release = []  # fn(project, ticket, release) after a change is merged and given a version
         self.bases = []  # fn(project, ticket) -> commit | "" (the main line) | None (no opinion): where a change starts
-        self.rechecking = set()  # fix runs being built again
+        self.rechecking = set()  # legacy in-process notification only; durable operations own the lease
+
+    @property
+    def rechecks(self):
+        from .fixloop import recheck_operations
+        return recheck_operations(self.runner)
 
     def listen(self, fn) -> None:
         self.listeners.append(fn)
@@ -309,7 +314,7 @@ class Orchestra:
         """Build a finished change again without redoing it (after the build setup was fixed, say). In the background
         unless `wait`; when the build passes and the ticket is still on the automatic line, the change is committed
         as if its own run had just passed; a failed build leaves it for a person."""
-        from .fixloop import recheck
+        from .fixloop import recheck, start_recheck
         r = self.store.run(rid)
         if not r or r["mode"] != "fix":
             raise ValueError("只有修改代码的运行可以重新验证")
@@ -317,12 +322,13 @@ class Orchestra:
             raise ValueError("这次改动正在重新验证")
         if r["status"] != "done" or not r["diff"] or (r["decision"] and not r["decision"].startswith("accepted:")):
             raise ValueError("这次运行没有可以重新验证的改动")
+        operation = start_recheck(self.runner, rid, by)
         self.rechecking.add(rid)
         tid = r["ticket_id"]
 
         def go():
             try:
-                v = recheck(self.runner, rid)
+                v = recheck(self.runner, rid, operation=operation, by=by)
             except Exception as e:  # noqa: BLE001
                 if tid:
                     self.store.event(tid, by, "flow", "重新验证没做成（%s）" % e, {"run": rid})
@@ -330,7 +336,7 @@ class Orchestra:
             finally:
                 self.rechecking.discard(rid)
             run = self.store.run(rid)
-            said = {"pass": "构建通过", "fail": "构建没通过", "skip": "没有跑构建（%s）" % v.get("skip")}[v["check"]]
+            said = {"pass": "构建通过", "fail": "构建没通过", "skip": "没有跑构建（%s）" % v.get("skip")}.get(v["check"], v.get("skip") or "当前验证尚未完整结束")
             if tid:
                 self.store.event(tid, by, "flow", "重新验证了运行 #%d 的改动（没改代码）：%s" % (rid, said), {"run": rid, "check": v["check"]})
                 conf = self.autoflow()
@@ -340,14 +346,21 @@ class Orchestra:
             return v
         if wait:
             return go()
-        threading.Thread(target=go, daemon=True).start()
-        return {"started": True, "run": rid}
+        try:
+            threading.Thread(target=go, daemon=True).start()
+        except BaseException as exc:
+            self.rechecking.discard(rid)
+            self.rechecks.finish(operation["id"], 125, "重新验证未能启动：%s" % exc)
+            raise
+        return {"started": True, "run": rid, "operation": operation["id"]}
 
     def fix_gate(self, p: dict, diff: str, conf: dict, rid: int | None = None) -> str:
         """Why a change should wait for a person instead of being committed unattended ("" when it need not)."""
         from .. import config as cfgmod
         from .fixloop import verified
         v = verified(self.data_dir, rid) if rid else {}
+        if v.get("verification_current") is False:
+            return "当前重新验证尚未有效完成，先检查停止回执或重新验证"
         if v.get("check") == "fail":
             bad = [c for c in v.get("commands") or [] if c.get("exit_code")]
             return "%d 轮修改后构建测试仍没通过（%s）" % (v.get("rounds") or 0, bad[0]["command"] if bad else "构建测试")
@@ -382,6 +395,27 @@ class Orchestra:
         if touched:
             return "改了已有的测试或受保护文件 %s" % "、".join(touched[:3])
         return ""
+
+    def verification_wait(self, rid: int) -> dict:
+        """Read-only next action; a completed implementation is not a current verification."""
+        from .fixloop import verified
+        from .recheck_operations import read_status
+        if verified(self.data_dir, rid).get("verification_current") is not False:
+            return {}
+        try:
+            op = read_status(self.data_dir, rid) or {}
+        except (OSError, ValueError):
+            op = {}
+        life = op.get("lifecycle") if isinstance(op.get("lifecycle"), dict) else {}
+        recovery = life.get("recovery") if isinstance(life.get("recovery"), dict) else {}
+        blocked = (recovery.get("state") == "blocked" or
+                   (not op.get("owner_active") and op.get("status") in ("done", "failed", "cancelled", "blocked") and op.get("blocked")))
+        running = not blocked and (op.get("status") in ("queued", "running") or life.get("finished") is False)
+        why = ("正在重新验证，等待本次检查完成；旧结果已失效" if running else
+               "重新验证已中断，旧结果已失效；请查看记录后重新验证" if op.get("can_retry") is True else
+               "旧验证结果已失效；请检查停止回执，当前不能采纳或签收")
+        return {"state": "doing" if running else "you", "status": "running" if running else "failed" if op.get("can_retry") else "blocked",
+                "why": why, "run": rid, "operation": op.get("id")}
 
     def take_over(self, t: dict, hold: bool, who: str) -> dict:
         """A person takes the ticket off the automatic line, or hands it back so it carries on from where it stopped."""

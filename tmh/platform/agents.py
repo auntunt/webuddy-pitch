@@ -1426,6 +1426,14 @@ class Runner:
 
     def decide(self, rid: int, decision: str, author: str) -> dict:
         """accept: commit the worktree on its branch (ready to merge) and drop the worktree; discard: drop both."""
+        from .recheck_operations import source_guard, read_status
+        with source_guard(self.data_dir, rid):
+            operation = read_status(self.data_dir, rid)
+            if operation and (operation.get("running") or not operation.get("can_retry")):
+                raise ValueError("重新验证尚未结束或停止证据不完整，不能采纳或放弃当前工作树")
+            return self._decide(rid, decision, author)
+
+    def _decide(self, rid: int, decision: str, author: str) -> dict:
         r = self.store.run(rid)
         if not r or r["mode"] != "fix":
             raise ValueError("只有修改代码的运行需要审阅")
@@ -1445,6 +1453,10 @@ class Runner:
                 raise ValueError("验证记录不可读，先重新验证再采纳") from e
             if not isinstance(v, dict):
                 raise ValueError("验证记录不可读，先重新验证再采纳")
+            from .fixloop import verified
+            current = verified(self.data_dir, rid)
+            if current.get("verification_current") is False:
+                raise ValueError("当前重新验证没有有效结论，先重新验证再采纳")
             commands = v.get("commands", [])
             if (v.get("check") == "fail" or not isinstance(commands, list)
                     or any(not isinstance(c, dict) or c.get("exit_code") != 0 for c in commands)):

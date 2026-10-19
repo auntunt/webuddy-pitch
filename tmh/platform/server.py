@@ -72,6 +72,7 @@ class Platform:
         # apps on top that decide where tasks come from (apps.py wires them to the line)
         self.kb = Knowledge(self.store, self.runner)
         self.flow = Orchestra(self.store, self.runner, self.data_dir, self.kb)
+        self.flow.rechecks.recover()
         from . import apps
         apps.wire(self)
         self.user = user
@@ -233,7 +234,11 @@ class Platform:
             ev = signoff.state(self.data_dir, key) if t["status"] in ("verify", "doing") and signoff.epath(self.data_dir, key).exists() else {}
             if busy:
                 continue
-            if r.get("status") == "failed":
+            verification_wait = self.flow.verification_wait(r["id"]) if r.get("mode") == "fix" else {}
+            if verification_wait:
+                mine.append(dict(item, reason="recheck", label=verification_wait["why"], action="查看当前重新验证",
+                                 state=verification_wait["state"], since=r.get("ended") or t["updated"]))
+            elif r.get("status") == "failed":
                 mine.append(dict(item, reason="failed", label="智能体没跑成", action="看原因", since=r.get("ended") or t["updated"]))
             elif r.get("mode") == "fix" and r.get("status") == "done" and not r.get("decision") and r.get("dl"):
                 mine.append(dict(item, reason="review", label="改好了，等你审阅", action="审阅改动", since=r.get("ended") or t["updated"]))
@@ -1650,12 +1655,13 @@ def api_accept(P, req, key):
     why = epic.refuse(t, "accept")
     if why:
         raise ApiError(409, why)
-    sealed = signoff.record_accept(P, t, req.user, res == "pass", note)
-    P.store.event(t["id"], req.user, "accept" if res == "pass" else "reject", ("验收通过" if res == "pass" else "验收不通过") + ("：" + note if note else ""),
-                  dict({"result": res}, **({"evidence": sealed} if sealed else {})))
-    P.store.update_ticket(t["id"], req.user, status="closed" if res == "pass" else "doing")
-    P.flow.accepted(P.store.project(t["project_id"]), P.store.ticket(t["id"]), res == "pass", note, req.user)
-    return P.store.ticket(t["id"])
+    with signoff.verification_guard(P, key):
+        sealed = signoff._record_accept(P, t, req.user, res == "pass", note)
+        P.store.event(t["id"], req.user, "accept" if res == "pass" else "reject", ("验收通过" if res == "pass" else "验收不通过") + ("：" + note if note else ""),
+                      dict({"result": res}, **({"evidence": sealed} if sealed else {})))
+        P.store.update_ticket(t["id"], req.user, status="closed" if res == "pass" else "doing")
+        P.flow.accepted(P.store.project(t["project_id"]), P.store.ticket(t["id"]), res == "pass", note, req.user)
+        return P.store.ticket(t["id"])
 
 
 @route("GET", "/api/projects/<key>/learn")
@@ -1904,7 +1910,8 @@ def api_ticket(P, req, key):
         r["points"] = pts.get(r["id"], 0)
         if r["mode"] == "fix":
             v = verified(P.data_dir, r["id"])
-            r["verify"] = {k: v.get(k) for k in ("check", "skip", "verdict", "rounds", "split", "beyond_plan")} if v else None
+            r["verify"] = {k: v.get(k) for k in ("check", "skip", "verdict", "rounds", "split", "beyond_plan", "verification_current", "recheck_operation")} if v else None
+            r["recheck_wait"] = P.flow.verification_wait(r["id"]) if v.get("verification_current") is False else None
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
     from . import epic, signoff, workbench, intake
@@ -2331,6 +2338,7 @@ def api_run(P, req, rid):
     t = P.store.ticket(r["ticket_id"]) if r["ticket_id"] else None
     r["ticket_key"] = t["key"] if t else ""
     r["verification"] = verified(P.data_dir, r["id"]) if r["mode"] == "fix" else None
+    r["recheck"] = api_recheck_state(P, req, rid) if r["mode"] == "fix" else None
     r["lifecycle"], r["lifecycle_error"] = None, ""
     try:
         receipt = Path(P.data_dir) / "runs" / str(r["id"]) / "lifecycle.json"
@@ -2405,8 +2413,27 @@ def api_recheck_state(P, req, rid):
     if not r:
         raise ApiError(404, "没有这个运行")
     v = verified(P.data_dir, int(rid))
-    return {"running": int(rid) in P.flow.rechecking, "decision": r["decision"],
-            "verify": {k: v.get(k) for k in ("check", "skip", "verdict", "rechecked")} if v else None}
+    from .recheck_operations import read_status
+    try:
+        operation = read_status(P.data_dir, int(rid))
+    except (ValueError, OSError) as exc:
+        operation = {"status": "blocked", "running": False, "can_retry": False, "blocked": [str(exc)], "result": str(exc)}
+    return {"running": bool(operation and operation.get("running")), "decision": r["decision"],
+            "operation": operation, "verify": v or None}
+
+
+@route("POST", "/api/runs/<rid>/recheck/recover")
+def api_recheck_recover(P, req, rid):
+    if not P.store.run(int(rid)):
+        raise ApiError(404, "没有这个运行")
+    try:
+        operation = P.flow.rechecks.status(int(rid))
+        if not operation:
+            raise ValueError("这次运行还没有重新验证记录")
+        P.flow.rechecks.recover_one(operation["id"])
+        return api_recheck_state(P, req, rid)
+    except (ValueError, RuntimeError, OSError) as exc:
+        raise ApiError(409, str(exc))
 
 
 

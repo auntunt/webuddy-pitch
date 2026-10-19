@@ -23,6 +23,7 @@ import secrets
 import subprocess
 import time
 from pathlib import Path
+from contextlib import contextmanager
 
 from .. import evidence as ev
 from . import gates as G
@@ -228,6 +229,8 @@ def snapshot(P, t: dict) -> dict:
         "adopted": adopt and {"by": adopt["author"], "at": adopt["ts"], "branch": (adopt.get("data") or {}).get("branch", ""),
                               "commit": (adopt.get("data") or {}).get("commit", "")},
     }
+    if v.get("recheck_operation"):
+        result["verification_identity"] = _verification_identity(v)
     if binding is not None:
         result["delivery_binding"] = binding
     return result
@@ -276,36 +279,97 @@ def on_status(P, t: dict, old: str, new: str, by: str) -> None:
 
 # ---------------------------------------------------------------- state
 
+def _verification_identity(verification: dict) -> dict:
+    return {"operation": (verification.get("recheck_operation") or {}).get("id"),
+            "current": verification.get("verification_current") is True,
+            "digest": hashlib.sha256(ev.canon(verification).encode("utf-8")).hexdigest()}
+
+
 def _binding_state(data_dir: Path, key: str, out: dict) -> dict:
-    """Validate current delivery evidence without rewriting any historical package."""
+    """Check current sources without rewriting any historical package or signature."""
     from .delivery import signoff_binding
-    previous = (out.get("snapshot") or {}).get("delivery_binding")
+    from .fixloop import verified
+    snap = out.get("snapshot") or {}
+    previous = snap.get("delivery_binding")
+    problems = []
+    run_id = (snap.get("change") or {}).get("run")
+    if run_id:
+        verification = verified(data_dir, run_id)
+        if verification.get("recheck_operation") or snap.get("verification_identity"):
+            current_identity = _verification_identity(verification)
+            out["verification_identity"] = current_identity
+            if not current_identity["current"]:
+                problems.append("当前重新验证尚未形成有效结论，旧验证仅供查阅")
+            if snap.get("verification_identity") != current_identity:
+                problems.append("验证依据在打包后已变化，需要按最新验证重新打包")
+            if problems:
+                if out.get("have") is not None:
+                    out["have"]["check"] = False
+                    out["have"]["gates"] = False
+                out["gate_state"] = "unknown"
+                if out.get("gates") is not None:
+                    out["gates"] = [dict(gate, state=G.UNKNOWN,
+                        why="验证依据已变化，旧结果仅供历史查阅；请重新验证并打包")
+                        if gate.get("id") in ("parse", "baseline", "build", "test", "match") else dict(gate)
+                        for gate in out["gates"]]
+            if current_identity["current"] and verification.get("check") == "fail":
+                problems.append("本次实际构建或测试未通过，需要修复并重新验证，不能签收")
+                if snap.get("verification_identity") == current_identity:
+                    out["gate_state"] = G.FAIL
+                    if out.get("have") is not None:
+                        out["have"]["check"] = False
+                        out["have"]["gates"] = False
     try:
         current = signoff_binding(data_dir, key)
     except (OSError, ValueError) as error:
         current = {"valid": False, "blocked": ["无法读取当前交付依据：%s" % error]}
-    if current is None and previous is None:
+    if current is not None or previous is not None:
+        if current is None:
+            problems.append("工单的交付关联已变化，原签收依据失效")
+        elif not current.get("valid"):
+            problems.extend(current.get("blocked") or ["当前交付的实现、质量或安全依据尚未有效复核"])
+        if previous is None or ev.canon(previous) != ev.canon(current):
+            problems.append("交付依据在打包后已变化，需要按当前已复核版本重新打包")
+        out["delivery_binding"] = current
+    if current is None and previous is None and "verification_identity" not in out:
         return out
-    problems = []
-    if current is None:
-        problems.append("工单的交付关联已变化，原签收依据失效")
-    elif not current.get("valid"):
-        problems.extend(current.get("blocked") or ["当前交付的实现、质量或安全依据尚未有效复核"])
-    if previous is None or ev.canon(previous) != ev.canon(current):
-        problems.append("交付依据在打包后已变化，需要按当前已复核版本重新打包")
-    out["delivery_binding"] = current
     out["binding_blocked"] = list(dict.fromkeys(problems))
     if not problems:
         return out
     out["missing"] = list(dict.fromkeys(out.get("missing", []) + problems))
-    out.update(stale=True, complete=False, status="incomplete")
-    # Preserve the historical signature, but do not present it as current.
+    only_current_failure = problems == ["本次实际构建或测试未通过，需要修复并重新验证，不能签收"]
+    out.update(stale=out.get("stale", False) if only_current_failure else True, complete=False, status="incomplete")
     if out.get("decision"):
         out["previous_decision"] = out["decision"]
         out["decision"] = None
-        if out.get("snapshot"):
-            out["proofs"] = proofs(out["snapshot"], out.get("gates"), out.get("attachments", []), None)
+    if snap:
+        proof_snapshot = dict(snap, check=dict(snap["check"], result="fail" if only_current_failure else "unknown"))
+        out["proofs"] = proofs(proof_snapshot, None, out.get("attachments", []), None)
     return out
+
+
+@contextmanager
+def verification_guard(P, key):
+    """Serialize sign-off effects with verification of their source run."""
+    from .recheck_operations import source_guard
+    before = state(P.data_dir, key)
+    rid = ((before.get("snapshot") or {}).get("change") or {}).get("run")
+    if not rid:
+        yield
+        return
+    guard = source_guard(P.data_dir, rid)
+    try:
+        guard.__enter__()
+    except (ValueError, OSError) as exc:
+        raise ApiError(409, "验证依据正在使用，稍后再处理签收：%s" % exc) from exc
+    try:
+        current = state(P.data_dir, key)
+        actual = ((current.get("snapshot") or {}).get("change") or {}).get("run")
+        if actual != rid:
+            raise ApiError(409, "签收依据的运行已变化，请重新读取当前证据包")
+        yield
+    finally:
+        guard.__exit__(None, None, None)
 
 
 def _require_current_binding(s: dict) -> None:
@@ -440,6 +504,11 @@ def attach(P, t: dict, by: str, ac: str, note: str, image: str) -> dict:
 
 
 def review(P, t: dict, by: str, note: str, scope_ok: bool = False, path_ok: bool = False, waive: dict | None = None) -> dict:
+    with verification_guard(P, t["key"]):
+        return _review(P, t, by, note, scope_ok, path_ok, waive)
+
+
+def _review(P, t: dict, by: str, note: str, scope_ok: bool = False, path_ok: bool = False, waive: dict | None = None) -> dict:
     """The provider's internal review. Letting a gate through that did not pass (a change outside the plan, off the
     flows, a test changed on purpose, no build environment) takes a written reason per gate; a failed build or
     failed tests cannot be let through."""
@@ -495,6 +564,11 @@ def _th(token: str) -> str:
 
 
 def issue(P, t: dict, by: str, signer: str, role: str = "", days: int = LINK_DAYS, note: str = "") -> dict:
+    with verification_guard(P, t["key"]):
+        return _issue(P, t, by, signer, role, days, note)
+
+
+def _issue(P, t: dict, by: str, signer: str, role: str = "", days: int = LINK_DAYS, note: str = "") -> dict:
     """A one-time link for the client's named signer. Issuing one for a package that is not complete takes a reason."""
     signer, role, note = (signer or "").strip()[:40], (role or "").strip()[:40], (note or "").strip()[:500]
     if not signer:
@@ -537,6 +611,12 @@ def link_of(data_dir: Path, token: str) -> dict:
 
 
 def decide(P, token: str, action: str, name: str, verdicts: dict, note: str, client: str = "") -> dict:
+    link = link_of(P.data_dir, token)
+    with verification_guard(P, link["key"]):
+        return _decide(P, token, action, name, verdicts, note, client)
+
+
+def _decide(P, token: str, action: str, name: str, verdicts: dict, note: str, client: str = "") -> dict:
     """The signer's decision: sign when every criterion passed, otherwise reject with a reason. Closes or reopens
     the ticket through the same path as the 验收 button (POST /api/tickets/<key>/accept)."""
     x = link_of(P.data_dir, token)
@@ -912,10 +992,16 @@ def brief(data_dir: Path, key: str) -> dict:
             "attachments": len(s.get("attachments") or []), "review": s.get("review"),
             "link": (s.get("links") or [None])[-1], "decision": d and {k: d.get(k) for k in ("kind", "signer", "role", "ts", "note", "via")},
             "gates": s.get("gates"), "gate_state": s.get("gate_state", ""), "proofs": s.get("proofs") or [],
+            "binding_blocked": s.get("binding_blocked", []), "stale": s.get("stale", False),
             "ac_source": (s.get("snapshot") or {}).get("ac_source", "")}
 
 
 def record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
+    with verification_guard(P, t["key"]):
+        return _record_accept(P, t, by, passed, note)
+
+
+def _record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
     """The 验收 button inside the platform writes into the package too, so every verdict is on the chain."""
     s = state(P.data_dir, t["key"])
     if passed:
