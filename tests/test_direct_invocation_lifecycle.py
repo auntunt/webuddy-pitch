@@ -1,4 +1,9 @@
-"""Intake/evaluation callers must seal direct invoke lifecycles on every outcome."""
+"""Direct-call lifecycle ordering, with real process output and a controlled run clock.
+
+The 0.5s logical deadline advances only at the result-consumption boundary.
+Real supervisor startup/cleanup has a separate fixture watchdog; real wall-clock
+deadline enforcement remains covered by test_run_lifecycle/test_supervised_process.
+"""
 import json
 import sys
 import tempfile
@@ -8,7 +13,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from tmh.platform import intake, learn
+from tmh.platform import agents, intake, learn, supervised_process
 from tmh.platform.agents import Runner, git
 from tmh.platform.store import Store
 
@@ -51,6 +56,28 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.conf = {"reader": {"timeout": .5, "cmd": [sys.executable, str(self.script), "{mode}"]}}
         (self.data / "agents.json").write_text(json.dumps(self.conf))
         (self.data / "autoflow.json").write_text(json.dumps({"on": False, "understand": "rules"}))
+        self.logical_time = 0.
+        clock = mock.Mock(wraps=time)
+        clock.monotonic.side_effect = lambda: self.logical_time
+        clock_patch = mock.patch.object(agents, "time", clock)
+        clock_patch.start()
+        self.addCleanup(clock_patch.stop)
+        supervise = supervised_process.run_supervised
+        def run_fixture(*args, **kwargs):
+            # Keep checking the actual Runner budget handoff. Only the real
+            # subprocess watchdog uses wall time; it must not choose the event
+            # ordering that this caller-level test deliberately controls.
+            self.assertEqual(kwargs["timeout"], .5)
+            return supervise(*args, **dict(kwargs, timeout=5))
+        process_patch = mock.patch.object(supervised_process, "run_supervised", side_effect=run_fixture)
+        process_patch.start()
+        self.addCleanup(process_patch.stop)
+
+    def expire(self, rid):
+        remaining = self.runner.remaining(rid)
+        self.assertGreater(remaining, 0)
+        self.logical_time += remaining  # Exactly at the deadline, not a sleep/poll race.
+        self.assertEqual(self.runner.remaining(rid), 0)
 
     def new_run(self):
         run = self.store.create_run(self.project["id"], None, "reader", "plan", "tester", "fixture prompt")
@@ -70,8 +97,10 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.assertNotEqual(run["exit_code"], None)
         record = self.receipt(rid)
         self.assertTrue(record["finished"])
+        self.assertEqual(record["timeout_seconds"], .5)
         self.assertEqual(record["stopped_reason"], reason)
         self.assertTrue(record["attempts"])
+        self.assertTrue(record["attempts"][0]["cleanup"]["complete"])
         raw = self.data / record["attempts"][0]["evidence"] / "output.bin"
         self.assertIn(b"fixture-original-output", raw.read_bytes())
         return run
@@ -81,8 +110,11 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         def call(*args, **kwargs):
             code, result = invoke(*args, **kwargs)
             self.assertEqual(code, 0, result)
+            attempt = self.receipt(args[0])["attempts"][-1]
+            self.assertEqual(attempt["reason"], "exited")
+            self.assertEqual(attempt["returncode"], 0)
             if action == "timeout":
-                time.sleep(self.runner.remaining(args[0]) + .02)
+                self.expire(args[0])
             elif action in ("cancelled", "cancel-exception"):
                 self.runner.cancel(args[0], "tester")
             if action in ("exception", "cancel-exception"):
@@ -118,7 +150,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.runner.finish_invocation(rid, code, result)
         self.assert_finished(rid, "done")
         before = self.receipt(rid)
-        time.sleep(self.runner.remaining(rid) + .02)
+        self.expire(rid)
         self.assertEqual(self.runner.stop_reason(rid), "")
         self.assertEqual(self.receipt(rid), before)
 
@@ -126,7 +158,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         rid = self.new_run()
         code, result = self.invoke(rid)
         self.assertEqual(code, 0)
-        time.sleep(self.runner.remaining(rid) + .02)
+        self.expire(rid)
         self.runner.finish_invocation(rid, code, result)
         run = self.assert_finished(rid, "failed", "timeout")
         self.assertEqual(run["exit_code"], 124)
@@ -138,11 +170,35 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.runner.finish_invocation(rid, code, result)
         self.assertNotEqual(self.assert_finished(rid, "cancelled", "cancelled")["exit_code"], 0)
 
+    def test_cancel_before_deadline_stays_cancelled_when_deadline_also_expires(self):
+        rid = self.new_run()
+        code, result = self.invoke(rid)
+        self.assertEqual(code, 0, result)
+        self.runner.cancel(rid, "tester")
+        self.expire(rid)
+        self.runner.finish_invocation(rid, code, result)
+        self.assertEqual(self.assert_finished(rid, "cancelled", "cancelled")["exit_code"], 125)
+
     def test_intake_success_seals_lifecycle_and_applies_actual_reader_output(self):
         updated = self.understand(self.conversation())
         self.assertEqual(updated["understood"]["by"], "智能体")
         run = self.assert_finished(updated["understood"]["run"], "done")
         self.assertFalse(Path(run["workdir"]).exists())
+
+    def test_intake_answer_just_before_deadline_is_still_accepted(self):
+        state = self.conversation()
+        invoke = self.runner.invoke
+        def almost_expired(*args, **kwargs):
+            code, result = invoke(*args, **kwargs)
+            self.assertEqual(code, 0, result)
+            self.logical_time += self.runner.remaining(args[0]) - .001
+            return code, result
+        with mock.patch.object(self.runner, "invoke", side_effect=almost_expired):
+            updated = self.understand(state)
+        self.assertEqual(updated["understood"]["by"], "智能体")
+        rid = updated["understood"]["run"]
+        self.assert_finished(rid, "done")
+        self.assertEqual(self.receipt(rid)["elapsed_seconds"], .499)
 
     def test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer(self):
         for action, status in (("timeout", "failed"), ("cancelled", "cancelled")):
@@ -152,6 +208,23 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
                     updated = self.understand(state)
                 self.assertEqual(updated["understood"]["by"], "规则")
                 self.assert_finished(updated["understood"]["run"], status, action)
+
+    def test_intake_cancel_after_slow_supervisor_startup_keeps_successful_process_evidence(self):
+        state = self.conversation()
+        spawn = supervised_process.subprocess.Popen
+        delays = []
+        def slow_spawn(*args, **kwargs):
+            started = time.monotonic()
+            time.sleep(.6)  # Deliberately exceed the 0.5s logical run budget.
+            delays.append(time.monotonic() - started)
+            return spawn(*args, **kwargs)
+        with mock.patch.object(supervised_process.subprocess, "Popen", side_effect=slow_spawn):
+            with self.interruption("cancelled"):
+                updated = self.understand(state)
+        self.assertTrue(delays)
+        self.assertGreaterEqual(delays[0], .5)
+        self.assertEqual(updated["understood"]["by"], "规则")
+        self.assert_finished(updated["understood"]["run"], "cancelled", "cancelled")
 
     def test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence(self):
         state = self.conversation()

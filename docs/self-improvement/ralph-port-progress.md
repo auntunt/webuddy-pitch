@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：交接；状态：done（P1–P6 均 done；全量唯一失败已在起点原样复现）
+- 当前项：intake 取消测试基线时序修复交接；状态：done（P1–P6 保持 done；后续全量 809 tests，OK，15 skipped）
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -112,7 +112,7 @@
 5. `candidates.py` Git 的 `core.hooksPath=/dev/null`，以及硬链接、POSIX 可执行位/0600/0444 权限语义，需要在 Windows/Git for Windows/目标文件系统实测；这些属于条件兼容风险，不断言 NTFS 不支持硬链接。
 6. 本次默认排他锁满足所有现有调用点；`exclusive=False` 使用 CRT read-lock 模式，Windows 可能比 POSIX LOCK_SH 更严格，不能保证多个读者并行。若后续需要真共享锁，应单独设计 Windows 原生共享后端；当前无该生产调用点。
 
-## 最终全量回归
+## P1–P6 首次全量回归（历史记录）
 
 - 状态：done；测试实现提交 `a06c09e`；运行 `python3 -m unittest discover -s tests`。仅测试进程设置 NO_PROXY，并通过临时 PYTHONPATH 的 sitecustomize 禁止非回环 socket/DNS；不改机器配置、产品代码或测试断言。
 - 完整原始日志：`/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/ralph-port-validation-i4mv6w0e/full-unittest.log`；离线辅助文件也仅在该临时目录。执行前 `git status --short --branch` 干净。
@@ -130,4 +130,24 @@
 - P5 平台接入：建议新增人工待审入口，不直接从结构反馈调用 `_follow_up` 自动派发；本次不接平台。
 - P5 异常中断若留下 proposals/.write-lock，需要人先核实无活跃操作再清理；不自动猜测所有权。
 - P6：上列 Windows 剩余阻塞；需 Windows 实机验证默认排他锁自动释放，尤其不同文件系统与进程退出路径。共享读锁的并行性不在已证明范围。
-- 基线回归：另行评估 direct invocation 测试的 0.5 秒时序预算及取消/超时先后语义；本分支没有改动该测试或对应监管实现。
+- intake 基线时序失败已在下节修复并通过全量；没有新增待确认事项，生产监管实现保持原样。
+
+## 后续：intake 取消测试基线时序修复
+
+- 状态：done；起点 `db4e957`，继续在 `feat/ralph-port`；开工 `git status --short --branch` 干净，原 stash 保留。独立提交标题：`test: 消除 intake 取消用例的墙钟竞态`（本记录与修复一起提交）。
+- 用户授权：修复基线时序失败，不能削弱断言或简单放宽超时；先验证稳定性，再跑全量，更新本文件并单独提交；不 push，全程自动推进。
+- 定位结论：原 fixture 给真实进程与最终结果处理共用 0.5 秒预算，只有 invoke 已返回 0 才注入 cancel；若系统调度/监管收尾先耗尽预算，cancel 根本没有执行。生产超时行为符合规则，缺陷在测试未确定“成功退出→取消/超时→最终采纳”的事件先后；用测试时钟固定该顺序。
+- 阅读范围：`tests/test_direct_invocation_lifecycle.py`、`tmh/platform/agents.py`、`intake.py` 及底层监管/生命周期测试。
+- 待确认：无。
+- 修复范围：只改 `tests/test_direct_invocation_lifecycle.py` 与本文件；生产 Runner/intake/监管器没有修改。测试局部替换 `agents.time` 的单调时钟，其他墙钟及全局 time 模块保持真实；原 0.5 秒逻辑预算和传递给监管器的预算均保留并断言。真实监管器/子进程照常执行，测试适配层仅给它独立的 5 秒墙钟 watchdog，避免进程启动决定调用者测试的事件先后。
+- 原 sleep 改为把逻辑时钟精确推进到 deadline，未延长被验证的逻辑超时；新增 deadline 前 1ms 成功、取消先发生后 deadline 到达、真实监管启动延迟 0.6 秒三个场景。原断言全部保留，另增加原进程 exited/0、预算值与 cleanup.complete 的断言。
+- 红灯：先只加“慢监管启动”用例，在旧夹具下运行对应 `-k test_intake_cancel_after_slow_supervisor_startup_keeps_successful_process_evidence`，1 test，0.862s，按预期失败（failed != cancelled，124 != 0）。随后应用可控时钟夹具。
+- 首次绿灯：`python3 -m unittest discover -s tests -p 'test_direct_invocation_lifecycle.py' -v`，15 tests，6.893s，OK；日志位于 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/intake-lifecycle-validation-vx3ag9qb/direct-green.log`。全部后续验证继承进程级 NO_PROXY 与该临时目录的离线 sitecustomize。
+- 稳定性计划：原失败用例连续 100 次，完整 direct invocation 模块连续 10 轮；任何失败立即停下修复。再核对真实墙钟监管相关测试和完整回归；不修改已有真实超时用例。
+- 稳定性结果：上述 100 次原用例 + 10 轮完整模块（150 tests），合计 **250 次测试执行全部通过**，119.306s，无跳过；每轮还验证两个 patch 已正确恢复，未泄漏给后续测试。命令为 `python3 <临时目录>/stability.py`，脚本与完整 `stability.log` 保留在同一临时目录。
+- 回归敏感性：临时脚本 `regression_guards.py` 分别在内存禁用 Runner.stop_reason / Runner.cancel，原用例分别按预期产生 2 / 1 个断言失败，均直接拒绝“迟到智能体答案被采纳”；脚本确认失败类型后退出 0。没有改磁盘上的生产代码。这些是有意注入错误的负向实验，完整记录在 `regression-guards.log`。
+- 审阅：逐段查看测试 diff；AST 对比 `db4e957` 确认原 **42 条断言全部原样保留**；`git diff --check` 通过，生产 tmh/ 内容未变。以下真实墙钟验证、全量均已完成。
+- 真实墙钟验证：分别运行 `python3 -m unittest discover -s tests -p <文件> -v`：`test_process_control.py` 14 tests / 6.808s，`test_supervised_process.py` 14 / 4.535s，`test_run_lifecycle.py` 13 / 23.677s，合计 **41/41 通过**。没有应用本次测试夹具的 clock/supervisor patch；包含监管启动计入超时、真实进程树超时/取消和总预算跨调用等既有断言。日志 `real-deadlines.log`。
+- 后续全量：**809 tests，374.241s，OK（skipped=15）**，即 794 通过、15 因可选依赖缺失跳过、0 失败/错误，退出码 0。运行 `python3 -m unittest discover -s tests`，仅继承进程级 NO_PROXY 和临时离线 sitecustomize。受测基线 `db4e957`，唯一测试改动文件 SHA256 `f1354cf3b708bffe8e838a0c8994fb6679b68ef6561fdcc7f3d7f7b65448d7c1`；测试结束后再次核对相同 hash。原始输出保存到同临时目录 `full-unittest.log`，既有资源关闭警告原样保留。
+- 日志校验：`stability.log` 13563 字节 / SHA256 `aa31f211063c92fcb07eb37b93c88d4821772a3c149bf72d52ae746043e7bf22`；`full-unittest.log` 22075 字节 / SHA256 `b6510cbf468941461eafefd46f0fa92e7a9093156e5796b7822b0cd6d679dc34`。临时脚本、其他验证日志均保留，无压缩/截断。
+- 收尾：只提交上述测试文件和本记录；无生产代码修改、无新的失败待处理，不 push，保留原 stash。
