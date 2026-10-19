@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：intake 取消测试基线时序修复交接；状态：done（P1–P6 保持 done；后续全量 809 tests，OK，15 skipped）
+- 当前项：feat/ralph-port 最终审查；状态：doing（起点 11078c5，既有工作均保留）
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -151,3 +151,26 @@
 - 后续全量：**809 tests，374.241s，OK（skipped=15）**，即 794 通过、15 因可选依赖缺失跳过、0 失败/错误，退出码 0。运行 `python3 -m unittest discover -s tests`，仅继承进程级 NO_PROXY 和临时离线 sitecustomize。受测基线 `db4e957`，唯一测试改动文件 SHA256 `f1354cf3b708bffe8e838a0c8994fb6679b68ef6561fdcc7f3d7f7b65448d7c1`；测试结束后再次核对相同 hash。原始输出保存到同临时目录 `full-unittest.log`，既有资源关闭警告原样保留。
 - 日志校验：`stability.log` 13563 字节 / SHA256 `aa31f211063c92fcb07eb37b93c88d4821772a3c149bf72d52ae746043e7bf22`；`full-unittest.log` 22075 字节 / SHA256 `b6510cbf468941461eafefd46f0fa92e7a9093156e5796b7822b0cd6d679dc34`。临时脚本、其他验证日志均保留，无压缩/截断。
 - 收尾：只提交上述测试文件和本记录；无生产代码修改、无新的失败待处理，不 push，保留原 stash。
+
+## 最终审查
+
+- 状态：doing；起点 `11078c5`，`feat/ralph-port` 开工干净。用户授权发现问题直接修复、验证、单独提交，不 push；原离线与不触碰真实数据/凭据的限制继续适用。
+- 审查重点：P5 人工确认及 guard 可接受的命令形式、草稿与恢复边界；P6 所有权释放/Windows 字节锁/错误处理；11078c5 的测试时钟与 5 秒 watchdog 是否丢失真实超时覆盖。
+- 已读进度与最近 10 条提交，开始按实际代码和本地合成测试核对；待确认：无。
+
+### P5 审查修复
+
+- 状态：done；修改 `tmh/acceptance.py`、`tmh/guard.py`、`tests/test_acceptance.py` 和本记录。以下确认行为全部是临时仓库内的合成测试，没有替人确认真实任务。
+- 复现：5 个新增用例在修复前出现 11 个断言失败、1 个错误。① 当前 Codex 无沙箱环境仅有 `CODEX_THREAD_ID`，旧 `_human` 未识别；② guard 漏过前置选项、引号、转义和 `--to` 缩写等有效 CLI 命令；③ 引用原话的 `## 4.` 可被解析成新任务 AC；④ 确认回执失败后修改草稿，重试仍复用过期任务；⑤ proposals 目录符号链接可先写出仓库，最后才报路径异常。
+- 修复：AGENT_ENV 只追加 `CODEX_THREAD_ID`；保留全部原始 DANGEROUS_BASH，新增 shell 分词和真实 CLI 参数解析的补充拦截；采纳原文逐行加 blockquote 前缀（测试反向去前缀逐字相等），不再参与契约章节解析；重试必须匹配原文快照；读写前拒绝草稿存储路径及文件符号链接。既有 MOVES/HUMAN_ONLY、保护清单、证据绑定不变。
+- 验证：`python3 -m unittest discover -s tests -p 'test_acceptance.py' -v` **26/26**（5.872s）；`... -p 'test_tmh.py' -k GuardAndVerifyTest -k AgentHookTest -v` **10/10**（1.675s）。完整日志在 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/ralph-final-review-b2e6yow4/` 的 `p5-red.log`、`p5-green.log`、`p5-hooks.log`。所有验证使用进程级 NO_PROXY 和临时离线 sitecustomize。
+- 已亲自逐段审阅 diff，`git diff --check` 通过；原有测试方法和断言未改。guard 解析明确限于可见的字面命令，不宣称是任意 shell 求值的安全沙箱，运行时 `_human` 独立拦截仍保留。
+- 待确认：旧版本回执中断留下的任务使用未引用的快照，升级后重试将保守拒绝，需人核对后处理；不自动改写旧任务或推定已确认。
+
+### P6 审查修复
+
+- 状态：doing；已复现 KB 原生锁获取把 ENOSPC 错误重试 1200 次并报“被占用”，以及 KeyboardInterrupt 时句柄未关闭。只收紧 `tmh/kb.py` 的异常分类/清理，保留内核所有权锁和无后端的 O_EXCL 旧回退；新增 3 个 `tests/test_filelock.py` 用例。锁后端和生产所有权回执没有改动。
+
+### 11078c5 超时覆盖审查
+
+- 状态：doing；可控时钟与 5 秒 watchdog 只用于调用者事件顺序，不能单独证明真实 0.5 秒超时。补独立的 `tests/test_intake_wall_clock.py`：Runner/监管器使用真实 time，透传原 timeout，仅故意延迟真实 Popen 0.6 秒；必须 failed/124、规则回退、reader 未启动且清理完整。正在验证稳定性和回归敏感性。

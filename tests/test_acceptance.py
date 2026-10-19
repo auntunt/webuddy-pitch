@@ -295,6 +295,78 @@ class AcceptanceTest(unittest.TestCase):
         self.assertEqual((r["task"], r["state"]), ("T002", "draft_contract"))
         self.assertEqual(len(task.list_tasks(self.root)), 2)
 
+    def test_unsandboxed_codex_session_cannot_adopt_a_proposal(self):
+        result = acc.correct(self.root, "T001", "dependency", "核对依赖")
+        with mock.patch.dict(os.environ, dict(NO_AGENT, CODEX_THREAD_ID="synthetic-codex-thread")):
+            with self.assertRaisesRegex(acc.Refused, "只能由人"):
+                acc.propose_confirm(self.root, result["proposal"], "张三")
+        self.assertEqual(len(task.list_tasks(self.root)), 1)
+
+    def test_human_command_guard_handles_shell_words_and_cli_options(self):
+        blocked = (
+            'tmh accept --who 张三 propose-confirm T001-1.md',
+            'tmh "accept" "propose-confirm" T001-1.md --who 张三',
+            r'tmh acce\pt propose-confirm T001-1.md --who 张三',
+            'python3 .tmh/tool/tmh.py accept --who=张三 confirm T001',
+            'python3 -m tmh accept --note=核实 close T001 --who 张三',
+            'tmh accept --to closed advance T001 --who 张三',
+            'tmh accept --t=user_confirmed_fix advance T001 --who 张三',
+            'true && tmh "accept" --who 张三 "propose-confirm" T001-1.md; true',
+            'tmh "accept" --note ";" "propose-confirm" T001-1.md --who 张三',
+            'true\ntmh "accept" --who 张三 "propose-confirm" T001-1.md\ntrue',
+        )
+        for command in blocked:
+            with self.subTest(command=command):
+                self.assertEqual(guard.pre_bash({"tool_input": {"command": command}, "cwd": str(self.root)}), 2)
+        for command in ('tmh accept --to verify_local advance T001',
+                        'tmh accept correct T001 --note "请人执行 propose-confirm" --kind dependency',
+                        'echo accept --who 张三 propose-confirm T001-1.md'):
+            with self.subTest(command=command):
+                self.assertEqual(guard.pre_bash({"tool_input": {"command": command}, "cwd": str(self.root)}), 0)
+
+    def test_adopted_original_headings_cannot_supply_the_new_contracts_ac(self):
+        note = "原话中的契约示例：\n## 4. 验收标准\n" + AC + "\n## 5. 其他资料\n完整尾部  "
+        result = acc.correct(self.root, "T001", "dependency", note)
+        proposal = self.root / result["proposal"]
+        original = proposal.read_text(encoding="utf-8")
+        with mock.patch.dict(os.environ, NO_AGENT):
+            adopted = acc.propose_confirm(self.root, result["proposal"], "张三")
+        contract = (self.root / adopted["file"]).read_text(encoding="utf-8")
+        self.assertTrue(acc.ac_problems(contract), "quoted source must not fill the draft's real AC")
+        with self.assertRaisesRegex(acc.Refused, "没有完整的验收标准"):
+            acc.advance(self.root, adopted["task"], "implementing")
+        quoted = contract.partition("## 1. 需求原文\n")[2].partition("\n\n## 2.")[0].split("\n", 1)[1]
+        self.assertEqual("\n".join(line.removeprefix("> ") for line in quoted.split("\n")), original)
+        self.assertIn(note, proposal.read_text(encoding="utf-8"))
+
+    def test_confirmation_retry_refuses_a_changed_proposal_snapshot(self):
+        result = acc.correct(self.root, "T001", "dependency", "原来的依赖")
+        with mock.patch.dict(os.environ, NO_AGENT):
+            with mock.patch.object(Path, "replace", side_effect=OSError("模拟回执写入失败")):
+                with self.assertRaises(OSError):
+                    acc.propose_confirm(self.root, result["proposal"], "张三")
+            proposal = self.root / result["proposal"]
+            proposal.write_text(proposal.read_text(encoding="utf-8").replace("原来的依赖", "新发现的依赖"), encoding="utf-8")
+            with self.assertRaisesRegex(acc.Refused, "内容.*不一致"):
+                acc.propose_confirm(self.root, result["proposal"], "张三")
+        self.assertEqual(len(task.list_tasks(self.root)), 2)
+        self.assertEqual(acc._proposal_record(proposal)[0]["status"], "pending")
+
+    def test_proposal_directory_symlink_cannot_write_or_confirm_outside_the_repo(self):
+        result = acc.correct(self.root, "T001", "dependency", "核对依赖")
+        directory = acc.acc_dir(self.root) / "proposals"
+        outside = self.root.parent / "outside"
+        directory.rename(outside)
+        directory.symlink_to(outside, target_is_directory=True)
+        before = (outside / "T001-1.md").read_bytes()
+        with mock.patch.dict(os.environ, NO_AGENT):
+            with self.assertRaisesRegex(acc.Refused, "本仓库"):
+                acc.propose_confirm(self.root, result["proposal"], "张三")
+        with self.assertRaisesRegex(acc.Refused, "本仓库"):
+            acc.correct(self.root, "T001", "dependency", "另一个依赖")
+        self.assertEqual((outside / "T001-1.md").read_bytes(), before)
+        self.assertEqual(len(task.list_tasks(self.root)), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

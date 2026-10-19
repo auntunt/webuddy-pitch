@@ -46,7 +46,7 @@ MOVES = {  # state -> states it may move to
 HUMAN_ONLY = {"user_confirmed_fix", "closed"}
 LAYERS = ("L1", "L2", "L3", "L4")
 AGENT_NAMES = {"", "agent", "ai", "bot", "claude", "codex", "tmh", "assistant", "智能体", "助手"}
-AGENT_ENV = ("CLAUDECODE", "CODEX_SANDBOX", "TMH_RUN")  # set inside Claude Code, Codex sandboxes and platform runs
+AGENT_ENV = ("CLAUDECODE", "CODEX_SANDBOX", "TMH_RUN", "CODEX_THREAD_ID")  # Includes unsandboxed Codex sessions.
 PLACEHOLDER = re.compile(r"^\s*(（.*）)?\s*$")
 
 
@@ -323,10 +323,19 @@ PROPOSAL_KINDS = {"missing-requirement": "补充需求", "dependency": "澄清�
 PROPOSAL_HEADER = "<!-- tmh-proposal "
 
 
+def _proposal_directory(root: Path) -> Path:
+    directory = acc_dir(root) / "proposals"
+    # Resolve the repo itself (e.g. macOS /var alias), but never follow a
+    # redirected proposal store when reading or writing confirmation records.
+    if any(p.is_symlink() for p in (cfgmod.tmh_dir(root), acc_dir(root), directory)):
+        raise Refused("草稿目录必须位于本仓库，不能使用符号链接")
+    return directory
+
+
 @contextmanager
 def _proposal_guard(root: Path):
     """Serialize proposal creation/confirmation across CLI processes; fail closed on a stale lock."""
-    directory = acc_dir(root) / "proposals"
+    directory = _proposal_directory(root)
     directory.mkdir(parents=True, exist_ok=True)
     lock = directory / ".write-lock"
     try:
@@ -341,6 +350,8 @@ def _proposal_guard(root: Path):
 
 def _proposal_record(path: Path) -> tuple[dict, str]:
     try:
+        if path.is_symlink() or not re.fullmatch(r"T\d+-[1-9]\d*\.md", path.name):
+            raise ValueError("path")
         text = path.read_text(encoding="utf-8")
         line = text.splitlines()[0]
         if not line.startswith(PROPOSAL_HEADER) or not line.endswith(" -->"):
@@ -388,7 +399,7 @@ def propose_confirm(root: Path, proposal: str, who: str = "") -> dict:
     _human(who, "user_confirmed_fix")
     from .task import new_task
     root = root.resolve()
-    directory = (acc_dir(root) / "proposals").resolve()
+    directory = _proposal_directory(root).resolve()
     given = Path(proposal)
     path = given if given.is_absolute() else (directory / given if given.parent == Path(".") else root / given)
     if path.is_symlink() or path.resolve().parent != directory or not re.fullmatch(r"T\d+-[1-9]\d*\.md", path.name):
@@ -403,12 +414,18 @@ def propose_confirm(root: Path, proposal: str, who: str = "") -> dict:
         if not title or not title.group(1).strip():
             raise Refused("草稿缺少建议标题，请由人补齐")
         marker = "<!-- tmh-proposal-source: %s -->" % path.name
+        # Section parsing is line-based, so fences alone cannot isolate quoted
+        # headings. Prefix every source line; removing the prefix is lossless.
+        request = marker + "\n> " + text.replace("\n", "\n> ")
         # If a prior confirmation stopped after new_task, reuse that draft on retry.
         drafts = [p for p in (cfgmod.tmh_dir(root) / "tasks").glob("T*.md")
                   if p.read_text(encoding="utf-8").partition("## 1. 需求原文\n")[2].startswith(marker + "\n")]
         if len(drafts) > 1:
             raise Refused("草稿对应多个任务，请由人核对，不再创建")
-        contract = drafts[0] if drafts else new_task(root, title.group(1).strip(), "feature", marker + "\n" + text)
+        if drafts and not drafts[0].read_text(encoding="utf-8").partition("## 1. 需求原文\n")[2].startswith(
+                request + "\n\n## 2. 要改变的行为\n"):
+            raise Refused("草稿内容与已生成任务不一致，请由人核对，不再确认或创建")
+        contract = drafts[0] if drafts else new_task(root, title.group(1).strip(), "feature", request)
         tid = _tid(contract)
         if start(root, tid)["state"] != "draft_contract":
             raise Refused("草稿对应的任务已不在 draft_contract，请由人核对")

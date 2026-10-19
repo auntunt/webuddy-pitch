@@ -8,10 +8,13 @@ can correct course.
 """
 from __future__ import annotations
 
+import io
 import json
 import os
 import re
+import shlex
 import sys
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from . import config as cfgmod
@@ -120,6 +123,51 @@ def _mark_stale(root: Path, rp: str) -> None:
         f.write(rp + "\n")
 
 
+def _human_accept_command(command: str) -> bool:
+    """Supplement raw patterns with shell-word and actual CLI option parsing.
+
+    This recognizes literal tmh invocations, not arbitrary shell evaluation;
+    acceptance._human remains the independent runtime identity check.
+    """
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|()<>\n")
+    lexer.whitespace = " \t\r"
+    lexer.whitespace_split = True
+    try:
+        words = list(lexer)
+    except ValueError:
+        return False  # Invalid shell quoting; the original raw checks still apply.
+    segments, segment = [], []
+    for word in words:
+        if word and set(word) <= set(";&|()<>\n"):
+            segments.append(segment)
+            segment = []
+        else:
+            segment.append(word)
+    segments.append(segment)
+    # shlex removes quotes: a quoted ";" may be a CLI option's value.
+    # Also parse the unsplit words so that value cannot hide a human action.
+    segments.append(words)
+    from .acceptance import HUMAN_ONLY
+    from .cli import build_parser
+    parser = None
+    for segment in segments:
+        for i, word in enumerate(segment):
+            if word != "accept" or i == 0 or Path(segment[i - 1]).name not in ("tmh", "tmh.py"):
+                continue
+            parser = parser or build_parser()
+            # Parse only, never dispatch. CLI parsing covers option order,
+            # --key=value and argparse's supported option abbreviations.
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                try:
+                    args, _ = parser.parse_known_args(segment[i:])
+                except SystemExit:
+                    continue
+            if args.action in ("confirm", "close", "propose-confirm") or (
+                    args.action == "advance" and args.to in HUMAN_ONLY):
+                return True
+    return False
+
+
 def pre_bash(payload: dict | None = None) -> int:
     payload = payload if payload is not None else _read_payload()
     cmd = (payload.get("tool_input") or {}).get("command", "")
@@ -139,6 +187,9 @@ def pre_bash(payload: dict | None = None) -> int:
         if re.search(rx, cmd):
             sys.stderr.write("[tmh] 已拦截命令：%s（%s）。如确需执行，请告诉用户由人工在终端操作。\n" % (cmd[:200], why))
             return 2
+    if _human_accept_command(cmd):
+        sys.stderr.write("[tmh] 已拦截人工验收/草稿确认命令；只能由人在正常终端操作。\n")
+        return 2
     return 0
 
 
