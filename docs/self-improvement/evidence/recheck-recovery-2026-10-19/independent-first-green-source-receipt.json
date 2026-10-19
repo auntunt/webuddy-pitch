@@ -1,0 +1,31 @@
+{
+  "at": "2026-10-19T01:27:34.897146+00:00",
+  "head": "64f2385cd3a8364362cef326827d52007861ea41",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "unittest",
+    "tests.test_recheck_crash_independent",
+    "-v"
+  ],
+  "exit_code": 0,
+  "source_before": {
+    "tmh/platform/fixloop.py": "588391f545154dd397fb03e41c870b0675fd3e4180e1ff580359d30980ca0507",
+    "tmh/platform/orchestra.py": "bb0f86575cea96d9ad2f463ad1c21f88e93504b22abba676e8d34a61eb7b633c",
+    "tmh/platform/agents.py": "71e44d5104f1568e0e079294c60f0615fc040ca2810bd99908bb5d7c4786331f",
+    "tmh/platform/signoff.py": "ac01a11a7afdaf75f734cd09d3898630cf51a19baafbf48e622f4ff80c415b3d",
+    "tmh/platform/recheck_operations.py": "db14d54b9c71e2dc2372045682cba1515b83ed457055028afb2b924a416c41ee",
+    "tmh/platform/server.py": "0c15155044a2de0c30fd8a8a5152c54d6a4010855783cbbcd929c77b8bfe0c80",
+    "tests/test_recheck_crash_independent.py": "02c5d37c77fb327c9a832e2059c10ed37b12cf1bab3adc4cbc01de783ad93b12"
+  },
+  "source_after": {
+    "tmh/platform/fixloop.py": "588391f545154dd397fb03e41c870b0675fd3e4180e1ff580359d30980ca0507",
+    "tmh/platform/orchestra.py": "bb0f86575cea96d9ad2f463ad1c21f88e93504b22abba676e8d34a61eb7b633c",
+    "tmh/platform/agents.py": "71e44d5104f1568e0e079294c60f0615fc040ca2810bd99908bb5d7c4786331f",
+    "tmh/platform/signoff.py": "ac01a11a7afdaf75f734cd09d3898630cf51a19baafbf48e622f4ff80c415b3d",
+    "tmh/platform/recheck_operations.py": "db14d54b9c71e2dc2372045682cba1515b83ed457055028afb2b924a416c41ee",
+    "tmh/platform/server.py": "0c15155044a2de0c30fd8a8a5152c54d6a4010855783cbbcd929c77b8bfe0c80",
+    "tests/test_recheck_crash_independent.py": "02c5d37c77fb327c9a832e2059c10ed37b12cf1bab3adc4cbc01de783ad93b12"
+  },
+  "source_unchanged": true
+}

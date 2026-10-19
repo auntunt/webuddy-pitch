@@ -1,0 +1,16 @@
+{
+  "tests": "python3 -m unittest tests.test_recheck_publication tests.test_recheck_operations tests.test_run_handoff -v",
+  "result": "34 tests passed in 9.293s",
+  "files": {
+    "tmh/platform/fixloop.py": "23487dabbcdffc07845591292a94358729b5da95d6e4a703b79bf87e26102ba9",
+    "tmh/platform/recheck_operations.py": "90e8d3a2e1102b28405cdbaeba43d0a74693c035217fce81f5f0608eff6076ef",
+    "tests/test_recheck_publication.py": "3ad2dab2202e35fc20ca3d0e4dd41537cd5549723ecf890de6c166952601f0df",
+    "tests/test_recheck_operations.py": "2e37e5443800effce7b0300bed64dd3af9ce9dc742549312bd8d61a0b6820d35"
+  },
+  "red_evidence": {
+    "publication-red.log": "Initial run: 2 actual binding failures and 2 fixture errors (mock lacked exclusive kwarg). Preserved unchanged.",
+    "publication-red-confirmed.log": "After fixture correction, 6 tests: 2 actual binding failures; other 4 pass."
+  },
+  "green_evidence": "publication-green.log",
+  "scope": "Real temporary Git repositories and managed local Python build commands; no model or production calls."
+}

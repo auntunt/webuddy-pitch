@@ -1,0 +1,43 @@
+test_current_verification_publication_failure_keeps_sealed_artifact_and_old_bytes (tests.test_recheck_publication.RecheckPublicationTest.test_current_verification_publication_failure_keeps_sealed_artifact_and_old_bytes) ... ok
+test_matching_artifacts_with_wrong_checked_commit_do_not_inherit_operation (tests.test_recheck_publication.RecheckPublicationTest.test_matching_artifacts_with_wrong_checked_commit_do_not_inherit_operation) ... FAIL
+test_matching_artifacts_with_wrong_source_run_do_not_inherit_operation (tests.test_recheck_publication.RecheckPublicationTest.test_matching_artifacts_with_wrong_source_run_do_not_inherit_operation) ... FAIL
+test_operation_artifact_publication_failure_cannot_revive_old_pass (tests.test_recheck_publication.RecheckPublicationTest.test_operation_artifact_publication_failure_cannot_revive_old_pass) ... ok
+test_sealed_artifact_tamper_fails_closed (tests.test_recheck_publication.RecheckPublicationTest.test_sealed_artifact_tamper_fails_closed) ... ok
+test_thread_start_failure_seals_without_mutating_original_run (tests.test_recheck_publication.RecheckPublicationTest.test_thread_start_failure_seals_without_mutating_original_run) ... ok
+
+======================================================================
+FAIL: test_matching_artifacts_with_wrong_checked_commit_do_not_inherit_operation (tests.test_recheck_publication.RecheckPublicationTest.test_matching_artifacts_with_wrong_checked_commit_do_not_inherit_operation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_publication.py", line 125, in test_matching_artifacts_with_wrong_checked_commit_do_not_inherit_operation
+    self.assert_changed_binding_is_rejected(lambda value: value.update(checked_commit="d" * 40))
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_publication.py", line 121, in assert_changed_binding_is_rejected
+    self.assertEqual(current["check"], "unknown")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'pass' != 'unknown'
+- pass
++ unknown
+
+
+======================================================================
+FAIL: test_matching_artifacts_with_wrong_source_run_do_not_inherit_operation (tests.test_recheck_publication.RecheckPublicationTest.test_matching_artifacts_with_wrong_source_run_do_not_inherit_operation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_publication.py", line 128, in test_matching_artifacts_with_wrong_source_run_do_not_inherit_operation
+    self.assert_changed_binding_is_rejected(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        lambda value: value["recheck_operation"].update(source_run=self.rid + 100))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_publication.py", line 121, in assert_changed_binding_is_rejected
+    self.assertEqual(current["check"], "unknown")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'pass' != 'unknown'
+- pass
++ unknown
+
+
+----------------------------------------------------------------------
+Ran 6 tests in 2.561s
+
+FAILED (failures=2)

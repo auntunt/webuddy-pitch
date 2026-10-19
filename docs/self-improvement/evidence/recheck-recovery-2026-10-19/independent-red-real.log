@@ -1,0 +1,36 @@
+test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run) ... FAIL
+
+======================================================================
+FAIL: test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_crash_independent.py", line 207, in test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run
+    self.assertEqual(failures,[],'\n'.join(failures))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['active recheck still exposes previous ve[466 chars]ode'] != []
+
+First list contains 8 additional elements.
+First extra element 0:
+'active recheck still exposes previous verification as current pass'
+
++ []
+- ['active recheck still exposes previous verification as current pass',
+-  'live signoff snapshot still claims old build passed during recheck',
+-  'old ordinary package remains current while recheck is active',
+-  'interrupted recheck leaves previous verification current pass after restart',
+-  'old ordinary package remains current after interrupted recheck',
+-  'recheck recovery rewrites original completed run status',
+-  'recheck recovery overwrites original run result',
+-  'recheck recovery overwrites original run exit_code'] : active recheck still exposes previous verification as current pass
+live signoff snapshot still claims old build passed during recheck
+old ordinary package remains current while recheck is active
+interrupted recheck leaves previous verification current pass after restart
+old ordinary package remains current after interrupted recheck
+recheck recovery rewrites original completed run status
+recheck recovery overwrites original run result
+recheck recovery overwrites original run exit_code
+
+----------------------------------------------------------------------
+Ran 1 test in 2.019s
+
+FAILED (failures=1)

@@ -1,0 +1,7 @@
+{
+  "comment": "未发送草稿：重打包后继续保留。",
+  "fileValue": "C:\\fakepath\\browser-interrupted.png",
+  "note": "合成验收图片草稿，重打包不应提交或清空。",
+  "repackButton": false,
+  "summary": "证据包\n证据不齐\n2 条记录，哈希 597d924c598e，追加式，改任何一条都会对不上。\n还缺 验收标准（AC） 验证门全部通过（没有没过或未知的） 乙方复核人\n验证门 从便宜到贵，每道给出通过、没过或未知\n通过 有实际改动 1 个文件有实际改动\n通过 改后的文件能解析 解析了 1 个文件\n通过 没有削弱测试 没有删测试、删断言、加跳过或 `|| true`\n未知 没超出方案 方案没有列出要改的文件，判断不了是否超出\n未知 落在本单的业务流上 候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试\n通过 原代码在这台机器上能构建 原代码先构建测试过一遍，能跑通\n通过 构建通过 `/opt/homebrew/opt/python@3.14/bin/python3.14 '/Users/auntlee/Desktop/workspace/运维智能体/tob-…\n通过 测试通过 `/opt/homebrew/opt/python@3.14/bin/python3.14 '/Users/auntlee/Desktop/workspace/运维智能体/tob-…\n未知 对照验收标准，改对了【推断】 没有对照验收标准的判定"
+}

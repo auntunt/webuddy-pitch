@@ -1,0 +1,35 @@
+{
+  "started_at": "2026-10-19T01:34:51.782954+00:00",
+  "finished_at": "2026-10-19T01:35:07.287208+00:00",
+  "head": "64f2385cd3a8364362cef326827d52007861ea41",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "unittest",
+    "tests.test_recheck_crash_independent",
+    "-v"
+  ],
+  "exit_code": 0,
+  "source_before": {
+    "tmh/platform/fixloop.py": "ad2e59cf0322d8616837ce7525e3df7becaad6514d6e39fbf34c8943e9d1ac14",
+    "tmh/platform/orchestra.py": "2cf32a8da8f970b7b653366067612c4cf2c7327b373c7539fe800a5d36e2d7c3",
+    "tmh/platform/agents.py": "71e44d5104f1568e0e079294c60f0615fc040ca2810bd99908bb5d7c4786331f",
+    "tmh/platform/signoff.py": "a88569316590bb0a0ae74d2e617eaa6496b7792c77ae939f8f3d491f8a34fe46",
+    "tmh/platform/recheck_operations.py": "90e8d3a2e1102b28405cdbaeba43d0a74693c035217fce81f5f0608eff6076ef",
+    "tmh/platform/server.py": "8a99f56b93d3233d82385448b2ff2101e29d0673eca80bbeb673c6f9be02e331",
+    "tmh/platform/ui.py": "0af4c43c30365369cc2e820df93492a710ecdea5450c825c6e7f00e2d56ba9fa",
+    "tests/test_recheck_crash_independent.py": "707a44c879970dcca9fc37501fefe63fd6baa8f5d22773c8b543509b40f1ae8b"
+  },
+  "source_after": {
+    "tmh/platform/fixloop.py": "ad2e59cf0322d8616837ce7525e3df7becaad6514d6e39fbf34c8943e9d1ac14",
+    "tmh/platform/orchestra.py": "2cf32a8da8f970b7b653366067612c4cf2c7327b373c7539fe800a5d36e2d7c3",
+    "tmh/platform/agents.py": "71e44d5104f1568e0e079294c60f0615fc040ca2810bd99908bb5d7c4786331f",
+    "tmh/platform/signoff.py": "bf8aad6cf1dee82de819c149ec04d3c6ce53a3750c595026f7e26456bbcbcd09",
+    "tmh/platform/recheck_operations.py": "90e8d3a2e1102b28405cdbaeba43d0a74693c035217fce81f5f0608eff6076ef",
+    "tmh/platform/server.py": "8a99f56b93d3233d82385448b2ff2101e29d0673eca80bbeb673c6f9be02e331",
+    "tmh/platform/ui.py": "0af4c43c30365369cc2e820df93492a710ecdea5450c825c6e7f00e2d56ba9fa",
+    "tests/test_recheck_crash_independent.py": "707a44c879970dcca9fc37501fefe63fd6baa8f5d22773c8b543509b40f1ae8b"
+  },
+  "source_unchanged": false,
+  "log_sha256": "59d9f1584111603ed30feb75ede520078970ab82559ba46c8b8ed91a44c973be"
+}

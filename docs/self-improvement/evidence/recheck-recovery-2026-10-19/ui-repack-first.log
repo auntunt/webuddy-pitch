@@ -1,0 +1,77 @@
+test_binding_failure_disables_and_guards_every_signoff_entry (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_binding_failure_disables_and_guards_every_signoff_entry) ... ok
+test_known_recheck_invalid_blocks_without_package_flag_and_old_history_does_not (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_known_recheck_invalid_blocks_without_package_flag_and_old_history_does_not) ... ok
+test_refresh_blocks_an_already_open_link_form_without_replacing_draft_nodes (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_refresh_blocks_an_already_open_link_form_without_replacing_draft_nodes) ... ok
+test_repack_busy_survives_rewiring_and_errors_are_retryable_without_late_page_mutation (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_repack_busy_survives_rewiring_and_errors_are_retryable_without_late_page_mutation) ... FAIL
+test_repack_is_visible_only_for_stale_package_and_requires_current_stopped_verification (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_repack_is_visible_only_for_stale_package_and_requires_current_stopped_verification) ... FAIL
+test_repack_refreshes_only_summary_preserves_file_and_retains_customer_missing_items (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_repack_refreshes_only_summary_preserves_file_and_retains_customer_missing_items) ... FAIL
+
+======================================================================
+FAIL: test_repack_busy_survives_rewiring_and_errors_are_retryable_without_late_page_mutation (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_repack_busy_survives_rewiring_and_errors_are_retryable_without_late_page_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 122, in test_repack_busy_survives_rewiring_and_errors_are_retryable_without_late_page_mutation
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    d.package.stale=true;await paint();const first=later();postHandler=()=>first.promise;const pending=nodes.pkPack.onclick();
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    assert.equal(refreshes,0);assert.equal(nodes.pkForm,other);assert.equal(other.innerHTML,'');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 59, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : TypeError: Cannot read properties of undefined (reading 'onclick')
+    at [stdin]:137:113
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+
+======================================================================
+FAIL: test_repack_is_visible_only_for_stale_package_and_requires_current_stopped_verification (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_repack_is_visible_only_for_stale_package_and_requires_current_stopped_verification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 98, in test_repack_is_visible_only_for_stale_package_and_requires_current_stopped_verification
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    await paint();assert.equal(nodes.pkPack,undefined);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    const summary=pkgSummary(d);assert.ok(!summary.includes('<script>'));assert.ok(summary.includes('&lt;script&gt;'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 59, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : TypeError: Cannot read properties of undefined (reading 'disabled')
+    at [stdin]:139:27
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+
+======================================================================
+FAIL: test_repack_refreshes_only_summary_preserves_file_and_retains_customer_missing_items (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_repack_refreshes_only_summary_preserves_file_and_retains_customer_missing_items)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 109, in test_repack_refreshes_only_summary_preserves_file_and_retains_customer_missing_items
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    d.package.stale=true;d.package.binding_blocked=['旧包需重新生成'];await paint();
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    assert.equal(file.files[0],image);assert.equal(note.value,'图片证据草稿');assert.equal(comment.value,'未发送评论');assert.equal(accept.value,'验收草稿');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 59, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : TypeError: Cannot read properties of undefined (reading 'onclick')
+    at [stdin]:141:20
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.305s
+
+FAILED (failures=3)

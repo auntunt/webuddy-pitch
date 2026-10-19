@@ -1,0 +1,37 @@
+{
+  "started_at": "2026-10-19T01:43:19.177966+00:00",
+  "finished_at": "2026-10-19T01:43:36.478772+00:00",
+  "head": "64f2385cd3a8364362cef326827d52007861ea41",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "unittest",
+    "tests.test_recheck_crash_independent",
+    "-v"
+  ],
+  "exit_code": 0,
+  "source_before": {
+    "tmh/platform/fixloop.py": "23487dabbcdffc07845591292a94358729b5da95d6e4a703b79bf87e26102ba9",
+    "tmh/platform/orchestra.py": "da5d5affb780e076d6e4e8479860bf4aaa0fdc3e64344b0198a25957c548723a",
+    "tmh/platform/agents.py": "71e44d5104f1568e0e079294c60f0615fc040ca2810bd99908bb5d7c4786331f",
+    "tmh/platform/signoff.py": "2ee72a709b57072ff159a336950452767571e0299a1e011d723c22bb77ca1fc9",
+    "tmh/platform/recheck_operations.py": "90e8d3a2e1102b28405cdbaeba43d0a74693c035217fce81f5f0608eff6076ef",
+    "tmh/platform/server.py": "0f81da706cfec9fad5f3f37f5650dac3f41b94813e2b642f6d96cefb7bf44b5d",
+    "tmh/platform/ui.py": "8fa6febaffa6290dc360388f7c98ceb1fe41fe830860655bd278882f20dcdb95",
+    "tmh/platform/workbench.py": "5c4c5940b4f54de4ea703deb5755437232456ec5916cdf64fd8f7999bf597e88",
+    "tests/test_recheck_crash_independent.py": "3c833c380d6e9be82288b935f1d23ea4d2722dd2d4722e26798e0cc2cac83e8a"
+  },
+  "source_after": {
+    "tmh/platform/fixloop.py": "23487dabbcdffc07845591292a94358729b5da95d6e4a703b79bf87e26102ba9",
+    "tmh/platform/orchestra.py": "da5d5affb780e076d6e4e8479860bf4aaa0fdc3e64344b0198a25957c548723a",
+    "tmh/platform/agents.py": "71e44d5104f1568e0e079294c60f0615fc040ca2810bd99908bb5d7c4786331f",
+    "tmh/platform/signoff.py": "2ee72a709b57072ff159a336950452767571e0299a1e011d723c22bb77ca1fc9",
+    "tmh/platform/recheck_operations.py": "90e8d3a2e1102b28405cdbaeba43d0a74693c035217fce81f5f0608eff6076ef",
+    "tmh/platform/server.py": "0f81da706cfec9fad5f3f37f5650dac3f41b94813e2b642f6d96cefb7bf44b5d",
+    "tmh/platform/ui.py": "8fa6febaffa6290dc360388f7c98ceb1fe41fe830860655bd278882f20dcdb95",
+    "tmh/platform/workbench.py": "5c4c5940b4f54de4ea703deb5755437232456ec5916cdf64fd8f7999bf597e88",
+    "tests/test_recheck_crash_independent.py": "3c833c380d6e9be82288b935f1d23ea4d2722dd2d4722e26798e0cc2cac83e8a"
+  },
+  "source_unchanged": true,
+  "log_sha256": "843f3c30999bcecf8c1c62c2c643a0e7787bc09636771a5e7c0910e577580f7c"
+}

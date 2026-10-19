@@ -1,0 +1,28 @@
+{
+  "at": "2026-10-19T01:12:02.790859+00:00",
+  "head": "64f2385cd3a8364362cef326827d52007861ea41",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "unittest",
+    "tests.test_recheck_crash_independent",
+    "-v"
+  ],
+  "exit_code": 1,
+  "source_before": {
+    "tmh/platform/fixloop.py": "57ed7f827ce506c41a03821a36aa99c97136afa3660dffd6cb42e3c7646742fb",
+    "tmh/platform/orchestra.py": "64b6ce442c7fed017b456fdeb57dc48167665f8dc98e64a151c9072a18a301d9",
+    "tmh/platform/agents.py": "64520da8ba19169b98bc450f2822e9f618519f2e51e9c1dfb30875c56b244bb6",
+    "tmh/platform/signoff.py": "f7d314057a9d11405266b7e9a5f62959d31cf47bb58bb30025147c5b20f458ca",
+    "tmh/platform/crash_recovery.py": "fb7ca916fc079bcf5051e98788c3ac07d63777d56a9ca35c51af5061cc6c7245",
+    "tests/test_recheck_crash_independent.py": "3af9673dc273be98f87fd65557c860dc30fd1c1c40532030b50cd11549c0f357"
+  },
+  "source_after": {
+    "tmh/platform/fixloop.py": "57ed7f827ce506c41a03821a36aa99c97136afa3660dffd6cb42e3c7646742fb",
+    "tmh/platform/orchestra.py": "64b6ce442c7fed017b456fdeb57dc48167665f8dc98e64a151c9072a18a301d9",
+    "tmh/platform/agents.py": "64520da8ba19169b98bc450f2822e9f618519f2e51e9c1dfb30875c56b244bb6",
+    "tmh/platform/signoff.py": "f7d314057a9d11405266b7e9a5f62959d31cf47bb58bb30025147c5b20f458ca",
+    "tmh/platform/crash_recovery.py": "fb7ca916fc079bcf5051e98788c3ac07d63777d56a9ca35c51af5061cc6c7245",
+    "tests/test_recheck_crash_independent.py": "3af9673dc273be98f87fd65557c860dc30fd1c1c40532030b50cd11549c0f357"
+  }
+}

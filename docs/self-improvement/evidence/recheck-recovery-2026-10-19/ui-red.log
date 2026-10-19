@@ -1,0 +1,233 @@
+test_blocked_recheck_stops_polling_preserves_full_escaped_receipts_and_disables_actions (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_blocked_recheck_stops_polling_preserves_full_escaped_receipts_and_disables_actions) ... FAIL
+test_explicit_receipt_recovery_posts_once_and_keeps_drafts (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_explicit_receipt_recovery_posts_once_and_keeps_drafts) ... FAIL
+test_failed_recheck_keeps_original_done_but_invalidates_old_proof_and_adoption (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_failed_recheck_keeps_original_done_but_invalidates_old_proof_and_adoption) ... FAIL
+test_manual_recheck_creates_new_operation_and_preserves_old_receipts (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_manual_recheck_creates_new_operation_and_preserves_old_receipts) ... FAIL
+test_missing_cleanup_never_allows_new_recheck_even_when_server_flag_is_true (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_missing_cleanup_never_allows_new_recheck_even_when_server_flag_is_true) ... FAIL
+test_operation_free_legacy_state_keeps_existing_actions (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_operation_free_legacy_state_keeps_existing_actions) ... ok
+test_recheck_read_failure_is_actionable_and_old_view_cannot_override_navigation (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_recheck_read_failure_is_actionable_and_old_view_cannot_override_navigation) ... FAIL
+test_running_recheck_polls_get_only_and_updates_interruption_without_infinite_spinner (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_running_recheck_polls_get_only_and_updates_interruption_without_infinite_spinner) ... FAIL
+
+======================================================================
+FAIL: test_blocked_recheck_stops_polling_preserves_full_escaped_receipts_and_disables_actions (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_blocked_recheck_stops_polling_preserves_full_escaped_receipts_and_disables_actions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 35, in test_blocked_recheck_stops_polling_preserves_full_escaped_receipts_and_disables_actions
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    const full='完整输出'.repeat(1000)+'<script>不可执行</script>';
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    assert.ok(body.querySelector('[data-run-recheck-recover]'));assert.ok(body.innerHTML.includes('不代表业务成功'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 19, in run_js
+    preview_tests.RunPreviewUiTest.run_js(self, setup + checks, controller=True)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_run_preview.py", line 48, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+1 !== 0
+
+    at [stdin]:120:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual'
+}
+
+
+======================================================================
+FAIL: test_explicit_receipt_recovery_posts_once_and_keeps_drafts (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_explicit_receipt_recovery_posts_once_and_keeps_drafts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 67, in test_explicit_receipt_recovery_posts_once_and_keeps_drafts
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    state={running:false,operation:{...operation,lifecycle:{...receipt,finished:false,recovery:{state:'blocked',reason:'缺少回执',errors:[]}}}};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    assert.equal(S.cur.drafts,drafts);assert.equal(drafts.comment,'未发送评论');assert.equal(drafts.file.name,'完整图片.png');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 19, in run_js
+    preview_tests.RunPreviewUiTest.run_js(self, setup + checks, controller=True)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_run_preview.py", line 48, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : TypeError: Cannot read properties of null (reading 'onclick')
+    at [stdin]:120:101
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+
+======================================================================
+FAIL: test_failed_recheck_keeps_original_done_but_invalidates_old_proof_and_adoption (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_failed_recheck_keeps_original_done_but_invalidates_old_proof_and_adoption)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 22, in test_failed_recheck_keeps_original_done_but_invalidates_old_proof_and_adoption
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    await showRun(7);
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    let posts=0;postHandler=async()=>{posts++};await body.querySelector('[data-run-decision="accept"]').onclick();assert.equal(posts,0);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 19, in run_js
+    preview_tests.RunPreviewUiTest.run_js(self, setup + checks, controller=True)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_run_preview.py", line 48, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:119:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+======================================================================
+FAIL: test_manual_recheck_creates_new_operation_and_preserves_old_receipts (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_manual_recheck_creates_new_operation_and_preserves_old_receipts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 78, in test_manual_recheck_creates_new_operation_and_preserves_old_receipts
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    const original=JSON.stringify(operation);let posts=0;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    assert.equal(body.querySelector('[data-run-decision="accept"]').disabled,false);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 19, in run_js
+    preview_tests.RunPreviewUiTest.run_js(self, setup + checks, controller=True)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_run_preview.py", line 48, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:120:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+======================================================================
+FAIL: test_missing_cleanup_never_allows_new_recheck_even_when_server_flag_is_true (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_missing_cleanup_never_allows_new_recheck_even_when_server_flag_is_true)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 58, in test_missing_cleanup_never_allows_new_recheck_even_when_server_flag_is_true
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    for(const lifecycle of [null,{finished:true},{finished:true,attempts:[{pid:99}]},{finished:true,attempts:[{pid:99,cleanup:{complete:false}}]}]){
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    }
+    ^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 19, in run_js
+    preview_tests.RunPreviewUiTest.run_js(self, setup + checks, controller=True)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_run_preview.py", line 48, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: null
+
+false !== true
+
+    at [stdin]:119:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual'
+}
+
+
+======================================================================
+FAIL: test_recheck_read_failure_is_actionable_and_old_view_cannot_override_navigation (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_recheck_read_failure_is_actionable_and_old_view_cannot_override_navigation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 90, in test_recheck_read_failure_is_actionable_and_old_view_cannot_override_navigation
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    getHandler=async url=>{if(url.endsWith('/recheck'))throw new Error('完整读取错误 <保留>');return current};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    assert.ok(body.innerHTML.includes('#9 '));assert.ok(!body.innerHTML.includes('重新验证记录 #21'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 19, in run_js
+    preview_tests.RunPreviewUiTest.run_js(self, setup + checks, controller=True)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_run_preview.py", line 48, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+false !== true
+
+    at [stdin]:118:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual'
+}
+
+
+======================================================================
+FAIL: test_running_recheck_polls_get_only_and_updates_interruption_without_infinite_spinner (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_running_recheck_polls_get_only_and_updates_interruption_without_infinite_spinner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 48, in test_running_recheck_polls_get_only_and_updates_interruption_without_infinite_spinner
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    state={running:true,operation:{...operation,status:'running',can_retry:false,lifecycle:{finished:false,attempts:[]},output:'进行中输出'}};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    assert.ok(body.innerHTML.includes('重新验证已中断'));assert.equal(body.querySelector('[data-run-recheck]').disabled,false);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 19, in run_js
+    preview_tests.RunPreviewUiTest.run_js(self, setup + checks, controller=True)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_run_preview.py", line 48, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:120:87
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.469s
+
+FAILED (failures=7)

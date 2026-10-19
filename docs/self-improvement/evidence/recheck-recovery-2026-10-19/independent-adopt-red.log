@@ -1,0 +1,20 @@
+test_active_recheck_rejects_adoption_without_removing_its_worktree (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_active_recheck_rejects_adoption_without_removing_its_worktree) ... FAIL
+
+======================================================================
+FAIL: test_active_recheck_rejects_adoption_without_removing_its_worktree (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_active_recheck_rejects_adoption_without_removing_its_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_crash_independent.py", line 210, in test_active_recheck_rejects_adoption_without_removing_its_worktree
+    self.start_recheck()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_crash_independent.py", line 156, in start_recheck
+    self.assertTrue(self.wait_for(lambda:len(self.workers())==2),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        'actual candidate check never blocked: '+(self.data/'service-output.bin').read_text(errors='replace'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None is not true : actual candidate check never blocked: 
+
+----------------------------------------------------------------------
+Ran 1 test in 9.082s
+
+FAILED (failures=1)

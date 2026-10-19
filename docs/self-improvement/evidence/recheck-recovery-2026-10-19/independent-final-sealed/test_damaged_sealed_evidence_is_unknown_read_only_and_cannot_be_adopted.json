@@ -1,0 +1,2243 @@
+{
+  "test": "tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_damaged_sealed_evidence_is_unknown_read_only_and_cannot_be_adopted",
+  "temporary_directory": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+  "original_run": {
+    "id": 1,
+    "ticket_id": 1,
+    "project_id": 1,
+    "agent": "local-fixture",
+    "mode": "fix",
+    "status": "done",
+    "author": "independent-fixture",
+    "created": "2026-10-19 09:43:23",
+    "started": "2026-10-19 09:43:23",
+    "ended": "2026-10-19 09:43:24",
+    "prompt": "保留完整原始任务",
+    "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 重新验证：构建通过\n",
+    "result": "original completed run; real local checks, no model verdict",
+    "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+    "exit_code": 0,
+    "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+    "target": "",
+    "decision": "",
+    "session_id": null,
+    "batch": "",
+    "model": "",
+    "retry_of": null
+  },
+  "original_verify_base64": "ewogImNoZWNrIjogInBhc3MiLAogInNraXAiOiAiIiwKICJjb21tYW5kcyI6IFsKICB7CiAgICJraW5kIjogImJ1aWxkIiwKICAgImNvbW1hbmQiOiAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8iLAogICAiZXhpdF9jb2RlIjogMCwKICAgInNlY29uZHMiOiAwLjEsCiAgICJ0YWlsIjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwiYnVpbGRcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcImJ1aWxkXCIsIFwidmFsdWVcIjogMSwgXCJjd2RcIjogXCIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMVwifVxuIiwKICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDMiLAogICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogICB9CiAgfSwKICB7CiAgICJraW5kIjogInRlc3QiLAogICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIiwKICAgImV4aXRfY29kZSI6IDAsCiAgICJzZWNvbmRzIjogMC4xLAogICAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAicmVhc29uIjogImV4aXRlZCIsCiAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgIH0KICB9CiBdLAogImZpbGVzIjogWwogICJhcHAucHkiCiBdLAogImNvZGVfY2hhbmdlZF9kdXJpbmdfY2hlY2siOiBmYWxzZSwKICJjaGVja2VkX2NvbW1pdCI6ICIiLAogImNoZWNrZWRfYmFzZSI6ICIwY2I5YmFmYzMwMzk1YTI1ODRkM2RhMjRjMTE0ODQxNWUzODlhYmEwIiwKICJjaGVja2VkX2RpZmYiOiAiZGlmZiAtLWdpdCBhL2FwcC5weSBiL2FwcC5weVxuaW5kZXggNjEzMTNhNi4uYjE1YjFiMCAxMDA2NDRcbi0tLSBhL2FwcC5weVxuKysrIGIvYXBwLnB5XG5AQCAtMSArMSBAQFxuLVZBTFVFID0gMFxuK1ZBTFVFID0gMVxuIiwKICJwcmV2aW91c192ZXJpZmljYXRpb25zIjogW10sCiAicmVjaGVja2VkIjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiCn0=",
+  "original_lifecycle_base64": "ewogICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjMiLAogICJ0aW1lb3V0X3NlY29uZHMiOiAzMC4wLAogICJzdG9wcGVkX3JlYXNvbiI6ICIiLAogICJhdHRlbXB0cyI6IFsKICAgIHsKICAgICAgImF0dGVtcHQiOiAxLAogICAgICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjMiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9iYXNlLTEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8iCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS45MTM0OTA2NjU5NjAxMjYsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MTg5LAogICAgICAicGdpZCI6IDc3MTg5LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTA1OTg3NDU4MDI0MTczOTcsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0IgogICAgfSwKICAgIHsKICAgICAgImF0dGVtcHQiOiAyLAogICAgICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL2Jhc2UtMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNzk2OTQ2NTQxMDU2OTcsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MTkyLAogICAgICAicGdpZCI6IDc3MTkyLAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDkwOTA2NzkxOTcxMDY1MSwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDMsCiAgICAgICJraW5kIjogImNoZWNrOmJ1aWxkIiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8iCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS42ODA4MDE5NTc5NjIxMDMsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MTk1LAogICAgICAicGdpZCI6IDc3MTk1LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDg5MjU4MTY2OTYxMzcxOSwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDQsCiAgICAgICJraW5kIjogImNoZWNrOnRlc3QiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNTc0ODYyODMzMDE4NDE1LAogICAgICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDQiLAogICAgICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgICAgICJwaWQiOiA3NzE5NywKICAgICAgInBnaWQiOiA3NzE5NywKICAgICAgInJldHVybmNvZGUiOiAwLAogICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICJlbGFwc2VkX3NlY29uZHMiOiAwLjEwMDQ2ODA0MTAyNjAzMzQ2LAogICAgICAiY2xlYW51cCI6IHsKICAgICAgICAidHJpZ2dlciI6IG51bGwsCiAgICAgICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICAgICAic2lnbmFscyI6IFtdLAogICAgICAgICJlcnJvcnMiOiBbXSwKICAgICAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAgICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAgICAgInJlYXBlZCI6IHRydWUsCiAgICAgICAgImNvbXBsZXRlIjogdHJ1ZQogICAgICB9LAogICAgICAiZW5kZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIKICAgIH0KICBdLAogICJmaW5pc2hlZCI6IHRydWUsCiAgIm93bmVyIjogewogICAgInRva2VuIjogIjdjZGQwMzcyODUyZjQyNmQ5YWE5MDg0ZDE0YzExYTBhIiwKICAgICJydW5faWQiOiAxLAogICAgImRhdGFfZGlyIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjU2Cn0=",
+  "original_package_records": [
+    {
+      "seq": 1,
+      "ts": "2026-10-19 09:43:24",
+      "kind": "pack",
+      "by": "independent-fixture",
+      "data": {
+        "why": "隔离测试中的真实构建快照，不代表人工验收",
+        "snapshot": {
+          "ticket": {
+            "key": "RECHK-1",
+            "title": "验证当前候选值",
+            "type": "bug",
+            "reporter": "independent-fixture",
+            "created": "2026-10-19 09:43:23",
+            "body": ""
+          },
+          "project": {
+            "key": "RECHK",
+            "name": "隔离真实重验"
+          },
+          "flows": [],
+          "ac": [],
+          "ac_source": "",
+          "plan_ac": [],
+          "plan_run": null,
+          "asked": null,
+          "contract": [],
+          "change": {
+            "run": 1,
+            "agent": "local-fixture",
+            "decision": "",
+            "files": [
+              "app.py"
+            ],
+            "added": 1,
+            "removed": 1
+          },
+          "check": {
+            "result": "pass",
+            "skip": "",
+            "verdict": "",
+            "rounds": null,
+            "commands": [
+              {
+                "cmd": "",
+                "exit_code": 0
+              },
+              {
+                "cmd": "",
+                "exit_code": 0
+              }
+            ]
+          },
+          "scope": {
+            "beyond_plan": []
+          },
+          "path": {
+            "ok": false,
+            "covered": [],
+            "off": [],
+            "manual": [],
+            "basis": "python-static-functions",
+            "source": {
+              "commit": "",
+              "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5",
+              "blobs": {}
+            },
+            "mapping_digest": "da11071360136d24d8621687a1da29f5ac48989a48f4e5db80b34982be2b469f",
+            "changes": [],
+            "diagnostics": [
+              {
+                "file": "",
+                "line": 0,
+                "status": "unknown",
+                "message": "没有已采纳的确定提交；不能使用当前工作目录替代候选版本"
+              }
+            ],
+            "limitations": [
+              "同一 HTTP 方法中的不同 URL/条件分支可能走不同路径；此处不证明具体请求经过修改行。",
+              "动态调用、反射、运行时注册和外部依赖不能凭静态索引确认。",
+              "代码关联、实际测试、人工复核与客户签收是独立证据。"
+            ],
+            "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+          },
+          "gates": [
+            {
+              "id": "changed",
+              "name": "有实际改动",
+              "state": "pass",
+              "why": "1 个文件有实际改动"
+            },
+            {
+              "id": "parse",
+              "name": "改后的文件能解析",
+              "state": "pass",
+              "why": "解析了 1 个文件"
+            },
+            {
+              "id": "weaken",
+              "name": "没有削弱测试",
+              "state": "pass",
+              "why": "没有删测试、删断言、加跳过或 `|| true`"
+            },
+            {
+              "id": "scope",
+              "name": "没超出方案",
+              "state": "unknown",
+              "why": "方案没有列出要改的文件，判断不了是否超出"
+            },
+            {
+              "id": "path",
+              "name": "落在本单的业务流上",
+              "state": "unknown",
+              "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+            },
+            {
+              "id": "baseline",
+              "name": "原代码在这台机器上能构建",
+              "state": "pass",
+              "why": "原代码先构建测试过一遍，能跑通"
+            },
+            {
+              "id": "build",
+              "name": "构建通过",
+              "state": "pass",
+              "why": "`/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao` 通过"
+            },
+            {
+              "id": "test",
+              "name": "测试通过",
+              "state": "pass",
+              "why": "`/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao` 通过"
+            },
+            {
+              "id": "match",
+              "name": "对照验收标准，改对了【推断】",
+              "state": "unknown",
+              "why": "没有对照验收标准的判定"
+            }
+          ],
+          "adopted": null
+        }
+      },
+      "prev": "0000000000000000000000000000000000000000000000000000000000000000",
+      "hash": "85a021997c07da71e109c31d031c5a2bec300ee045e90eac4cba1b0b54840d12"
+    }
+  ],
+  "damaged_evidence_reads": [
+    {
+      "missing": "lifecycle.json",
+      "status": 200,
+      "body": {
+        "running": false,
+        "decision": "",
+        "operation": {
+          "id": 1,
+          "source_run": 1,
+          "project_id": 1,
+          "ticket_id": 1,
+          "author": "independent-test-operator",
+          "status": "done",
+          "created": "2026-10-19 09:43:24",
+          "started": "2026-10-19 09:43:24",
+          "ended": "2026-10-19 09:43:25",
+          "exit_code": 0,
+          "result": "重新验证：通过",
+          "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 重新验证：构建通过\n",
+          "lifecycle": {},
+          "source": {
+            "run": 1,
+            "decision": "",
+            "commit": "",
+            "base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+            "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+            "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+            "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+          },
+          "source_manifest": {
+            "schema": 1,
+            "operation_id": 1,
+            "source_run": 1,
+            "source": {
+              "run": 1,
+              "decision": "",
+              "commit": "",
+              "base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+              "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+              "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+              "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+            },
+            "bound_at": "2026-10-19 09:43:24"
+          },
+          "owner_active": false,
+          "running": false,
+          "can_retry": false,
+          "blocked": [
+            "复检停止证据不可验证：[Errno 2] No such file or directory: '/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations/runs/1/lifecycle.json'"
+          ],
+          "retry_blocked": [
+            "复检停止证据不可验证：[Errno 2] No such file or directory: '/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations/runs/1/lifecycle.json'"
+          ],
+          "recovery": null,
+          "evidence": "verification-operations/runs/1"
+        },
+        "verify": {
+          "check": "unknown",
+          "verdict": "unknown",
+          "commands": [],
+          "diagnosis": {},
+          "verification_current": false,
+          "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+          "recheck_operation": {
+            "id": 1,
+            "status": "done",
+            "result": "重新验证：通过"
+          },
+          "previous_current_verification": {
+            "check": "pass",
+            "skip": "",
+            "commands": [
+              {
+                "kind": "build",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0003",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              },
+              {
+                "kind": "test",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0004",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              }
+            ],
+            "files": [
+              "app.py"
+            ],
+            "code_changed_during_check": false,
+            "checked_commit": "",
+            "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+            "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+            "previous_verifications": [
+              {
+                "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+                "verification": {
+                  "check": "pass",
+                  "skip": "",
+                  "commands": [
+                    {
+                      "kind": "build",
+                      "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                      "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                      "reason": "exited",
+                      "evidence": "runs/1/attempts/0003",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    },
+                    {
+                      "kind": "test",
+                      "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                      "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                      "reason": "exited",
+                      "evidence": "runs/1/attempts/0004",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    }
+                  ],
+                  "files": [
+                    "app.py"
+                  ],
+                  "code_changed_during_check": false,
+                  "checked_commit": "",
+                  "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+                  "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+                  "rechecked": "2026-10-19 09:43:24"
+                }
+              }
+            ],
+            "rechecked": "2026-10-19 09:43:25",
+            "recheck_operation": {
+              "id": 1,
+              "source_run": 1
+            },
+            "verification_current": true
+          }
+        }
+      }
+    },
+    {
+      "missing": "verification.json",
+      "status": 200,
+      "body": {
+        "running": false,
+        "decision": "",
+        "operation": {
+          "id": 1,
+          "source_run": 1,
+          "project_id": 1,
+          "ticket_id": 1,
+          "author": "independent-test-operator",
+          "status": "done",
+          "created": "2026-10-19 09:43:24",
+          "started": "2026-10-19 09:43:24",
+          "ended": "2026-10-19 09:43:25",
+          "exit_code": 0,
+          "result": "重新验证：通过",
+          "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 重新验证：构建通过\n",
+          "lifecycle": {
+            "started_at": "2026-10-19 09:43:24",
+            "timeout_seconds": 30.0,
+            "stopped_reason": "",
+            "attempts": [
+              {
+                "attempt": 1,
+                "kind": "check:build",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations/worktrees/base-1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.901807290967554,
+                "evidence": "runs/1/attempts/0001",
+                "supervised": true,
+                "pid": 77218,
+                "pgid": 77218,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.10204150003846735,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:24"
+              },
+              {
+                "attempt": 2,
+                "kind": "check:test",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations/worktrees/base-1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.78545025002677,
+                "evidence": "runs/1/attempts/0002",
+                "supervised": true,
+                "pid": 77221,
+                "pgid": 77221,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.10465241596102715,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:24"
+              },
+              {
+                "attempt": 3,
+                "kind": "check:build",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.65619379095733,
+                "evidence": "runs/1/attempts/0003",
+                "supervised": true,
+                "pid": 77224,
+                "pgid": 77224,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.1041297089541331,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:25"
+              },
+              {
+                "attempt": 4,
+                "kind": "check:test",
+                "started_at": "2026-10-19 09:43:25",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.53714970801957,
+                "evidence": "runs/1/attempts/0004",
+                "supervised": true,
+                "pid": 77226,
+                "pgid": 77226,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.0996696250513196,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:25"
+              }
+            ],
+            "finished": true,
+            "owner": {
+              "token": "4f65323378b44800a23d401974d08e55",
+              "run_id": 1,
+              "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations"
+            },
+            "ended_at": "2026-10-19 09:43:25",
+            "elapsed_seconds": 0.593
+          },
+          "source": {
+            "run": 1,
+            "decision": "",
+            "commit": "",
+            "base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+            "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+            "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+            "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+          },
+          "source_manifest": {
+            "schema": 1,
+            "operation_id": 1,
+            "source_run": 1,
+            "source": {
+              "run": 1,
+              "decision": "",
+              "commit": "",
+              "base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+              "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+              "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+              "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+            },
+            "bound_at": "2026-10-19 09:43:24"
+          },
+          "owner_active": false,
+          "running": false,
+          "can_retry": true,
+          "blocked": [],
+          "retry_blocked": [],
+          "recovery": null,
+          "evidence": "verification-operations/runs/1"
+        },
+        "verify": {
+          "check": "unknown",
+          "verdict": "unknown",
+          "commands": [],
+          "diagnosis": {},
+          "verification_current": false,
+          "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+          "recheck_operation": {
+            "id": 1,
+            "status": "done",
+            "result": "重新验证：通过"
+          },
+          "previous_current_verification": {
+            "check": "pass",
+            "skip": "",
+            "commands": [
+              {
+                "kind": "build",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0003",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              },
+              {
+                "kind": "test",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0004",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              }
+            ],
+            "files": [
+              "app.py"
+            ],
+            "code_changed_during_check": false,
+            "checked_commit": "",
+            "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+            "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+            "previous_verifications": [
+              {
+                "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+                "verification": {
+                  "check": "pass",
+                  "skip": "",
+                  "commands": [
+                    {
+                      "kind": "build",
+                      "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                      "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                      "reason": "exited",
+                      "evidence": "runs/1/attempts/0003",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    },
+                    {
+                      "kind": "test",
+                      "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                      "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                      "reason": "exited",
+                      "evidence": "runs/1/attempts/0004",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    }
+                  ],
+                  "files": [
+                    "app.py"
+                  ],
+                  "code_changed_during_check": false,
+                  "checked_commit": "",
+                  "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+                  "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+                  "rechecked": "2026-10-19 09:43:24"
+                }
+              }
+            ],
+            "rechecked": "2026-10-19 09:43:25",
+            "recheck_operation": {
+              "id": 1,
+              "source_run": 1
+            },
+            "verification_current": true
+          }
+        }
+      }
+    },
+    {
+      "missing": "source.json",
+      "status": 200,
+      "body": {
+        "running": false,
+        "decision": "",
+        "operation": {
+          "id": 1,
+          "source_run": 1,
+          "project_id": 1,
+          "ticket_id": 1,
+          "author": "independent-test-operator",
+          "status": "done",
+          "created": "2026-10-19 09:43:24",
+          "started": "2026-10-19 09:43:24",
+          "ended": "2026-10-19 09:43:25",
+          "exit_code": 0,
+          "result": "重新验证：通过",
+          "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 重新验证：构建通过\n",
+          "lifecycle": {
+            "started_at": "2026-10-19 09:43:24",
+            "timeout_seconds": 30.0,
+            "stopped_reason": "",
+            "attempts": [
+              {
+                "attempt": 1,
+                "kind": "check:build",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations/worktrees/base-1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.901807290967554,
+                "evidence": "runs/1/attempts/0001",
+                "supervised": true,
+                "pid": 77218,
+                "pgid": 77218,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.10204150003846735,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:24"
+              },
+              {
+                "attempt": 2,
+                "kind": "check:test",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations/worktrees/base-1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.78545025002677,
+                "evidence": "runs/1/attempts/0002",
+                "supervised": true,
+                "pid": 77221,
+                "pgid": 77221,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.10465241596102715,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:24"
+              },
+              {
+                "attempt": 3,
+                "kind": "check:build",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.65619379095733,
+                "evidence": "runs/1/attempts/0003",
+                "supervised": true,
+                "pid": 77224,
+                "pgid": 77224,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.1041297089541331,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:25"
+              },
+              {
+                "attempt": 4,
+                "kind": "check:test",
+                "started_at": "2026-10-19 09:43:25",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.53714970801957,
+                "evidence": "runs/1/attempts/0004",
+                "supervised": true,
+                "pid": 77226,
+                "pgid": 77226,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.0996696250513196,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:25"
+              }
+            ],
+            "finished": true,
+            "owner": {
+              "token": "4f65323378b44800a23d401974d08e55",
+              "run_id": 1,
+              "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations"
+            },
+            "ended_at": "2026-10-19 09:43:25",
+            "elapsed_seconds": 0.593
+          },
+          "source": null,
+          "source_manifest": null,
+          "owner_active": false,
+          "running": false,
+          "can_retry": false,
+          "blocked": [
+            "复检版本证据不可验证：成功复检缺少代码版本绑定"
+          ],
+          "retry_blocked": [
+            "复检版本证据不可验证：成功复检缺少代码版本绑定"
+          ],
+          "recovery": null,
+          "evidence": "verification-operations/runs/1"
+        },
+        "verify": {
+          "check": "unknown",
+          "verdict": "unknown",
+          "commands": [],
+          "diagnosis": {},
+          "verification_current": false,
+          "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+          "recheck_operation": {
+            "id": 1,
+            "status": "done",
+            "result": "重新验证：通过"
+          },
+          "previous_current_verification": {
+            "check": "pass",
+            "skip": "",
+            "commands": [
+              {
+                "kind": "build",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0003",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              },
+              {
+                "kind": "test",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0004",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              }
+            ],
+            "files": [
+              "app.py"
+            ],
+            "code_changed_during_check": false,
+            "checked_commit": "",
+            "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+            "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+            "previous_verifications": [
+              {
+                "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+                "verification": {
+                  "check": "pass",
+                  "skip": "",
+                  "commands": [
+                    {
+                      "kind": "build",
+                      "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                      "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                      "reason": "exited",
+                      "evidence": "runs/1/attempts/0003",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    },
+                    {
+                      "kind": "test",
+                      "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                      "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                      "reason": "exited",
+                      "evidence": "runs/1/attempts/0004",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    }
+                  ],
+                  "files": [
+                    "app.py"
+                  ],
+                  "code_changed_during_check": false,
+                  "checked_commit": "",
+                  "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+                  "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+                  "rechecked": "2026-10-19 09:43:24"
+                }
+              }
+            ],
+            "rechecked": "2026-10-19 09:43:25",
+            "recheck_operation": {
+              "id": 1,
+              "source_run": 1
+            },
+            "verification_current": true
+          }
+        }
+      }
+    },
+    {
+      "matching_corrupt_artifacts": "commit",
+      "status": 200,
+      "body": {
+        "running": false,
+        "decision": "",
+        "operation": {
+          "id": 1,
+          "source_run": 1,
+          "project_id": 1,
+          "ticket_id": 1,
+          "author": "independent-test-operator",
+          "status": "done",
+          "created": "2026-10-19 09:43:24",
+          "started": "2026-10-19 09:43:24",
+          "ended": "2026-10-19 09:43:25",
+          "exit_code": 0,
+          "result": "重新验证：通过",
+          "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 重新验证：构建通过\n",
+          "lifecycle": {
+            "started_at": "2026-10-19 09:43:24",
+            "timeout_seconds": 30.0,
+            "stopped_reason": "",
+            "attempts": [
+              {
+                "attempt": 1,
+                "kind": "check:build",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations/worktrees/base-1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.901807290967554,
+                "evidence": "runs/1/attempts/0001",
+                "supervised": true,
+                "pid": 77218,
+                "pgid": 77218,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.10204150003846735,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:24"
+              },
+              {
+                "attempt": 2,
+                "kind": "check:test",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations/worktrees/base-1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.78545025002677,
+                "evidence": "runs/1/attempts/0002",
+                "supervised": true,
+                "pid": 77221,
+                "pgid": 77221,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.10465241596102715,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:24"
+              },
+              {
+                "attempt": 3,
+                "kind": "check:build",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.65619379095733,
+                "evidence": "runs/1/attempts/0003",
+                "supervised": true,
+                "pid": 77224,
+                "pgid": 77224,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.1041297089541331,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:25"
+              },
+              {
+                "attempt": 4,
+                "kind": "check:test",
+                "started_at": "2026-10-19 09:43:25",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.53714970801957,
+                "evidence": "runs/1/attempts/0004",
+                "supervised": true,
+                "pid": 77226,
+                "pgid": 77226,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.0996696250513196,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:25"
+              }
+            ],
+            "finished": true,
+            "owner": {
+              "token": "4f65323378b44800a23d401974d08e55",
+              "run_id": 1,
+              "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations"
+            },
+            "ended_at": "2026-10-19 09:43:25",
+            "elapsed_seconds": 0.593
+          },
+          "source": {
+            "run": 1,
+            "decision": "",
+            "commit": "",
+            "base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+            "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+            "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+            "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+          },
+          "source_manifest": {
+            "schema": 1,
+            "operation_id": 1,
+            "source_run": 1,
+            "source": {
+              "run": 1,
+              "decision": "",
+              "commit": "",
+              "base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+              "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+              "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+              "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+            },
+            "bound_at": "2026-10-19 09:43:24"
+          },
+          "owner_active": false,
+          "running": false,
+          "can_retry": true,
+          "blocked": [],
+          "retry_blocked": [],
+          "recovery": null,
+          "evidence": "verification-operations/runs/1"
+        },
+        "verify": {
+          "check": "unknown",
+          "verdict": "unknown",
+          "commands": [],
+          "diagnosis": {},
+          "verification_current": false,
+          "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+          "recheck_operation": {
+            "id": 1,
+            "status": "done",
+            "result": "重新验证：通过"
+          },
+          "previous_current_verification": {
+            "check": "pass",
+            "skip": "",
+            "commands": [
+              {
+                "kind": "build",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0003",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              },
+              {
+                "kind": "test",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0004",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              }
+            ],
+            "files": [
+              "app.py"
+            ],
+            "code_changed_during_check": false,
+            "checked_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+            "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+            "previous_verifications": [
+              {
+                "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+                "verification": {
+                  "check": "pass",
+                  "skip": "",
+                  "commands": [
+                    {
+                      "kind": "build",
+                      "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                      "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                      "reason": "exited",
+                      "evidence": "runs/1/attempts/0003",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    },
+                    {
+                      "kind": "test",
+                      "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                      "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                      "reason": "exited",
+                      "evidence": "runs/1/attempts/0004",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    }
+                  ],
+                  "files": [
+                    "app.py"
+                  ],
+                  "code_changed_during_check": false,
+                  "checked_commit": "",
+                  "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+                  "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+                  "rechecked": "2026-10-19 09:43:24"
+                }
+              }
+            ],
+            "rechecked": "2026-10-19 09:43:25",
+            "recheck_operation": {
+              "id": 1,
+              "source_run": 1
+            },
+            "verification_current": true
+          }
+        }
+      }
+    },
+    {
+      "matching_corrupt_artifacts": "source_run",
+      "status": 200,
+      "body": {
+        "running": false,
+        "decision": "",
+        "operation": {
+          "id": 1,
+          "source_run": 1,
+          "project_id": 1,
+          "ticket_id": 1,
+          "author": "independent-test-operator",
+          "status": "done",
+          "created": "2026-10-19 09:43:24",
+          "started": "2026-10-19 09:43:24",
+          "ended": "2026-10-19 09:43:25",
+          "exit_code": 0,
+          "result": "重新验证：通过",
+          "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 重新验证：构建通过\n",
+          "lifecycle": {
+            "started_at": "2026-10-19 09:43:24",
+            "timeout_seconds": 30.0,
+            "stopped_reason": "",
+            "attempts": [
+              {
+                "attempt": 1,
+                "kind": "check:build",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations/worktrees/base-1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.901807290967554,
+                "evidence": "runs/1/attempts/0001",
+                "supervised": true,
+                "pid": 77218,
+                "pgid": 77218,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.10204150003846735,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:24"
+              },
+              {
+                "attempt": 2,
+                "kind": "check:test",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations/worktrees/base-1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.78545025002677,
+                "evidence": "runs/1/attempts/0002",
+                "supervised": true,
+                "pid": 77221,
+                "pgid": 77221,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.10465241596102715,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:24"
+              },
+              {
+                "attempt": 3,
+                "kind": "check:build",
+                "started_at": "2026-10-19 09:43:24",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.65619379095733,
+                "evidence": "runs/1/attempts/0003",
+                "supervised": true,
+                "pid": 77224,
+                "pgid": 77224,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.1041297089541331,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:25"
+              },
+              {
+                "attempt": 4,
+                "kind": "check:test",
+                "started_at": "2026-10-19 09:43:25",
+                "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao"
+                ],
+                "timeout_seconds": 29.53714970801957,
+                "evidence": "runs/1/attempts/0004",
+                "supervised": true,
+                "pid": 77226,
+                "pgid": 77226,
+                "returncode": 0,
+                "reason": "exited",
+                "elapsed_seconds": 0.0996696250513196,
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                },
+                "ended_at": "2026-10-19 09:43:25"
+              }
+            ],
+            "finished": true,
+            "owner": {
+              "token": "4f65323378b44800a23d401974d08e55",
+              "run_id": 1,
+              "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/verification-operations"
+            },
+            "ended_at": "2026-10-19 09:43:25",
+            "elapsed_seconds": 0.593
+          },
+          "source": {
+            "run": 1,
+            "decision": "",
+            "commit": "",
+            "base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+            "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+            "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+            "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+          },
+          "source_manifest": {
+            "schema": 1,
+            "operation_id": 1,
+            "source_run": 1,
+            "source": {
+              "run": 1,
+              "decision": "",
+              "commit": "",
+              "base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+              "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+              "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+              "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+            },
+            "bound_at": "2026-10-19 09:43:24"
+          },
+          "owner_active": false,
+          "running": false,
+          "can_retry": true,
+          "blocked": [],
+          "retry_blocked": [],
+          "recovery": null,
+          "evidence": "verification-operations/runs/1"
+        },
+        "verify": {
+          "check": "unknown",
+          "verdict": "unknown",
+          "commands": [],
+          "diagnosis": {},
+          "verification_current": false,
+          "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+          "recheck_operation": {
+            "id": 1,
+            "status": "done",
+            "result": "重新验证：通过"
+          },
+          "previous_current_verification": {
+            "check": "pass",
+            "skip": "",
+            "commands": [
+              {
+                "kind": "build",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0003",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              },
+              {
+                "kind": "test",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0004",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              }
+            ],
+            "files": [
+              "app.py"
+            ],
+            "code_changed_during_check": false,
+            "checked_commit": "",
+            "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+            "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+            "previous_verifications": [
+              {
+                "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+                "verification": {
+                  "check": "pass",
+                  "skip": "",
+                  "commands": [
+                    {
+                      "kind": "build",
+                      "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                      "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                      "reason": "exited",
+                      "evidence": "runs/1/attempts/0003",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    },
+                    {
+                      "kind": "test",
+                      "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                      "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                      "reason": "exited",
+                      "evidence": "runs/1/attempts/0004",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    }
+                  ],
+                  "files": [
+                    "app.py"
+                  ],
+                  "code_changed_during_check": false,
+                  "checked_commit": "",
+                  "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+                  "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+                  "rechecked": "2026-10-19 09:43:24"
+                }
+              }
+            ],
+            "rechecked": "2026-10-19 09:43:25",
+            "recheck_operation": {
+              "id": 1,
+              "source_run": 101
+            },
+            "verification_current": true
+          }
+        }
+      }
+    }
+  ],
+  "before_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "local-fixture",
+      "mode": "fix",
+      "status": "done",
+      "author": "independent-fixture",
+      "created": "2026-10-19 09:43:23",
+      "started": "2026-10-19 09:43:23",
+      "ended": "2026-10-19 09:43:24",
+      "prompt": "保留完整原始任务",
+      "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao\n— 通过，0.1 秒\n— 重新验证：构建通过\n",
+      "result": "original completed run; real local checks, no model verdict",
+      "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+      "exit_code": 0,
+      "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "verified": {
+      "check": "pass",
+      "skip": "",
+      "commands": [
+        {
+          "kind": "build",
+          "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+          "exit_code": 0,
+          "seconds": 0.1,
+          "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+          "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+          "reason": "exited",
+          "evidence": "verification-operations/runs/1/attempts/0003",
+          "cleanup": {
+            "trigger": null,
+            "term_sent": false,
+            "kill_sent": false,
+            "signals": [],
+            "errors": [],
+            "remaining_group": false,
+            "output_complete": true,
+            "reaped": true,
+            "complete": true
+          }
+        },
+        {
+          "kind": "test",
+          "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+          "exit_code": 0,
+          "seconds": 0.1,
+          "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+          "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+          "reason": "exited",
+          "evidence": "verification-operations/runs/1/attempts/0004",
+          "cleanup": {
+            "trigger": null,
+            "term_sent": false,
+            "kill_sent": false,
+            "signals": [],
+            "errors": [],
+            "remaining_group": false,
+            "output_complete": true,
+            "reaped": true,
+            "complete": true
+          }
+        }
+      ],
+      "files": [
+        "app.py"
+      ],
+      "code_changed_during_check": false,
+      "checked_commit": "",
+      "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+      "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+      "previous_verifications": [
+        {
+          "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+          "verification": {
+            "check": "pass",
+            "skip": "",
+            "commands": [
+              {
+                "kind": "build",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "runs/1/attempts/0003",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              },
+              {
+                "kind": "test",
+                "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}",
+                "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/worktrees/RECHK-1-r1\"}\n",
+                "reason": "exited",
+                "evidence": "runs/1/attempts/0004",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              }
+            ],
+            "files": [
+              "app.py"
+            ],
+            "code_changed_during_check": false,
+            "checked_commit": "",
+            "checked_base": "0cb9bafc30395a2584d3da24c1148415e389aba0",
+            "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+            "rechecked": "2026-10-19 09:43:24"
+          }
+        }
+      ],
+      "rechecked": "2026-10-19 09:43:25",
+      "recheck_operation": {
+        "id": 1,
+        "source_run": 1
+      },
+      "verification_current": true
+    },
+    "package": {
+      "records": 1,
+      "intact": true,
+      "problem": "",
+      "hash": "85a021997c07da71e109c31d031c5a2bec300ee045e90eac4cba1b0b54840d12",
+      "packed": true,
+      "snapshot": {
+        "ticket": {
+          "key": "RECHK-1",
+          "title": "验证当前候选值",
+          "type": "bug",
+          "reporter": "independent-fixture",
+          "created": "2026-10-19 09:43:23",
+          "body": ""
+        },
+        "project": {
+          "key": "RECHK",
+          "name": "隔离真实重验"
+        },
+        "flows": [],
+        "ac": [],
+        "ac_source": "",
+        "plan_ac": [],
+        "plan_run": null,
+        "asked": null,
+        "contract": [],
+        "change": {
+          "run": 1,
+          "agent": "local-fixture",
+          "decision": "",
+          "files": [
+            "app.py"
+          ],
+          "added": 1,
+          "removed": 1
+        },
+        "check": {
+          "result": "pass",
+          "skip": "",
+          "verdict": "",
+          "rounds": null,
+          "commands": [
+            {
+              "cmd": "",
+              "exit_code": 0
+            },
+            {
+              "cmd": "",
+              "exit_code": 0
+            }
+          ]
+        },
+        "scope": {
+          "beyond_plan": []
+        },
+        "path": {
+          "ok": false,
+          "covered": [],
+          "off": [],
+          "manual": [],
+          "basis": "python-static-functions",
+          "source": {
+            "commit": "",
+            "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5",
+            "blobs": {}
+          },
+          "mapping_digest": "da11071360136d24d8621687a1da29f5ac48989a48f4e5db80b34982be2b469f",
+          "changes": [],
+          "diagnostics": [
+            {
+              "file": "",
+              "line": 0,
+              "status": "unknown",
+              "message": "没有已采纳的确定提交；不能使用当前工作目录替代候选版本"
+            }
+          ],
+          "limitations": [
+            "同一 HTTP 方法中的不同 URL/条件分支可能走不同路径；此处不证明具体请求经过修改行。",
+            "动态调用、反射、运行时注册和外部依赖不能凭静态索引确认。",
+            "代码关联、实际测试、人工复核与客户签收是独立证据。"
+          ],
+          "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+        },
+        "gates": [
+          {
+            "id": "changed",
+            "name": "有实际改动",
+            "state": "pass",
+            "why": "1 个文件有实际改动"
+          },
+          {
+            "id": "parse",
+            "name": "改后的文件能解析",
+            "state": "pass",
+            "why": "解析了 1 个文件"
+          },
+          {
+            "id": "weaken",
+            "name": "没有削弱测试",
+            "state": "pass",
+            "why": "没有删测试、删断言、加跳过或 `|| true`"
+          },
+          {
+            "id": "scope",
+            "name": "没超出方案",
+            "state": "unknown",
+            "why": "方案没有列出要改的文件，判断不了是否超出"
+          },
+          {
+            "id": "path",
+            "name": "落在本单的业务流上",
+            "state": "unknown",
+            "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+          },
+          {
+            "id": "baseline",
+            "name": "原代码在这台机器上能构建",
+            "state": "pass",
+            "why": "原代码先构建测试过一遍，能跑通"
+          },
+          {
+            "id": "build",
+            "name": "构建通过",
+            "state": "pass",
+            "why": "`/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao` 通过"
+          },
+          {
+            "id": "test",
+            "name": "测试通过",
+            "state": "pass",
+            "why": "`/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao` 通过"
+          },
+          {
+            "id": "match",
+            "name": "对照验收标准，改对了【推断】",
+            "state": "unknown",
+            "why": "没有对照验收标准的判定"
+          }
+        ],
+        "adopted": null
+      },
+      "pack_seq": 1,
+      "pack_hash": "85a021997c07da71e109c31d031c5a2bec300ee045e90eac4cba1b0b54840d12",
+      "packed_at": "2026-10-19 09:43:24",
+      "attachments": [],
+      "review": null,
+      "have": {
+        "ac": false,
+        "change": true,
+        "check": false,
+        "scope": true,
+        "path": false,
+        "review": false,
+        "gates": false
+      },
+      "missing": [
+        "验收标准（AC）",
+        "验证门全部通过（没有没过或未知的）",
+        "乙方复核人",
+        "验证依据在打包后已变化，需要按最新验证重新打包"
+      ],
+      "stale": true,
+      "gates": [
+        {
+          "id": "changed",
+          "name": "有实际改动",
+          "state": "pass",
+          "why": "1 个文件有实际改动"
+        },
+        {
+          "id": "parse",
+          "name": "改后的文件能解析",
+          "state": "unknown",
+          "why": "验证依据已变化，旧结果仅供历史查阅；请重新验证并打包"
+        },
+        {
+          "id": "weaken",
+          "name": "没有削弱测试",
+          "state": "pass",
+          "why": "没有删测试、删断言、加跳过或 `|| true`"
+        },
+        {
+          "id": "scope",
+          "name": "没超出方案",
+          "state": "unknown",
+          "why": "方案没有列出要改的文件，判断不了是否超出"
+        },
+        {
+          "id": "path",
+          "name": "落在本单的业务流上",
+          "state": "unknown",
+          "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+        },
+        {
+          "id": "baseline",
+          "name": "原代码在这台机器上能构建",
+          "state": "unknown",
+          "why": "验证依据已变化，旧结果仅供历史查阅；请重新验证并打包"
+        },
+        {
+          "id": "build",
+          "name": "构建通过",
+          "state": "unknown",
+          "why": "验证依据已变化，旧结果仅供历史查阅；请重新验证并打包"
+        },
+        {
+          "id": "test",
+          "name": "测试通过",
+          "state": "unknown",
+          "why": "验证依据已变化，旧结果仅供历史查阅；请重新验证并打包"
+        },
+        {
+          "id": "match",
+          "name": "对照验收标准，改对了【推断】",
+          "state": "unknown",
+          "why": "验证依据已变化，旧结果仅供历史查阅；请重新验证并打包"
+        }
+      ],
+      "gate_state": "unknown",
+      "links": [],
+      "decision": null,
+      "complete": false,
+      "status": "incomplete",
+      "proofs": [],
+      "verification_identity": {
+        "operation": 1,
+        "current": true,
+        "digest": "301020bd8c204365d87d85cdf9ab7aa1e9628cdf0070127fc4ce6a443b40af06"
+      },
+      "binding_blocked": [
+        "验证依据在打包后已变化，需要按最新验证重新打包"
+      ]
+    },
+    "snapshot": {
+      "ticket": {
+        "key": "RECHK-1",
+        "title": "验证当前候选值",
+        "type": "bug",
+        "reporter": "independent-fixture",
+        "created": "2026-10-19 09:43:23",
+        "body": ""
+      },
+      "project": {
+        "key": "RECHK",
+        "name": "隔离真实重验"
+      },
+      "flows": [],
+      "ac": [],
+      "ac_source": "",
+      "plan_ac": [],
+      "plan_run": null,
+      "asked": null,
+      "contract": [],
+      "change": {
+        "run": 1,
+        "agent": "local-fixture",
+        "decision": "",
+        "files": [
+          "app.py"
+        ],
+        "added": 1,
+        "removed": 1
+      },
+      "check": {
+        "result": "pass",
+        "skip": "",
+        "verdict": "",
+        "rounds": null,
+        "commands": [
+          {
+            "cmd": "",
+            "exit_code": 0
+          },
+          {
+            "cmd": "",
+            "exit_code": 0
+          }
+        ]
+      },
+      "scope": {
+        "beyond_plan": []
+      },
+      "path": {
+        "ok": false,
+        "covered": [],
+        "off": [],
+        "manual": [],
+        "basis": "python-static-functions",
+        "source": {
+          "commit": "",
+          "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5",
+          "blobs": {}
+        },
+        "mapping_digest": "da11071360136d24d8621687a1da29f5ac48989a48f4e5db80b34982be2b469f",
+        "changes": [],
+        "diagnostics": [
+          {
+            "file": "",
+            "line": 0,
+            "status": "unknown",
+            "message": "没有已采纳的确定提交；不能使用当前工作目录替代候选版本"
+          }
+        ],
+        "limitations": [
+          "同一 HTTP 方法中的不同 URL/条件分支可能走不同路径；此处不证明具体请求经过修改行。",
+          "动态调用、反射、运行时注册和外部依赖不能凭静态索引确认。",
+          "代码关联、实际测试、人工复核与客户签收是独立证据。"
+        ],
+        "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+      },
+      "gates": [
+        {
+          "id": "changed",
+          "name": "有实际改动",
+          "state": "pass",
+          "why": "1 个文件有实际改动"
+        },
+        {
+          "id": "parse",
+          "name": "改后的文件能解析",
+          "state": "pass",
+          "why": "解析了 1 个文件"
+        },
+        {
+          "id": "weaken",
+          "name": "没有削弱测试",
+          "state": "pass",
+          "why": "没有删测试、删断言、加跳过或 `|| true`"
+        },
+        {
+          "id": "scope",
+          "name": "没超出方案",
+          "state": "unknown",
+          "why": "方案没有列出要改的文件，判断不了是否超出"
+        },
+        {
+          "id": "path",
+          "name": "落在本单的业务流上",
+          "state": "unknown",
+          "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+        },
+        {
+          "id": "baseline",
+          "name": "原代码在这台机器上能构建",
+          "state": "pass",
+          "why": "原代码先构建测试过一遍，能跑通"
+        },
+        {
+          "id": "build",
+          "name": "构建通过",
+          "state": "pass",
+          "why": "`/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao` 通过"
+        },
+        {
+          "id": "test",
+          "name": "测试通过",
+          "state": "pass",
+          "why": "`/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-cb5dalao` 通过"
+        },
+        {
+          "id": "match",
+          "name": "对照验收标准，改对了【推断】",
+          "state": "unknown",
+          "why": "没有对照验收标准的判定"
+        }
+      ],
+      "adopted": null,
+      "verification_identity": {
+        "operation": 1,
+        "current": true,
+        "digest": "301020bd8c204365d87d85cdf9ab7aa1e9628cdf0070127fc4ce6a443b40af06"
+      }
+    },
+    "workers": [],
+    "run_files": {
+      "verify.json": "ewogICJjaGVjayI6ICJwYXNzIiwKICAic2tpcCI6ICIiLAogICJjb21tYW5kcyI6IFsKICAgIHsKICAgICAgImtpbmQiOiAiYnVpbGQiLAogICAgICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSBidWlsZCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIsCiAgICAgICJleGl0X2NvZGUiOiAwLAogICAgICAic2Vjb25kcyI6IDAuMSwKICAgICAgInRhaWwiOiAiUkVBTF9DSEVDSyB7XCJhY3Rpb25cIjogXCJidWlsZFwiLCBcInZhbHVlXCI6IDEsIFwiY3dkXCI6IFwiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjFcIn0iLAogICAgICAib3V0cHV0IjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwiYnVpbGRcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICJldmlkZW5jZSI6ICJ2ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0KICAgIH0sCiAgICB7CiAgICAgICJraW5kIjogInRlc3QiLAogICAgICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIiwKICAgICAgImV4aXRfY29kZSI6IDAsCiAgICAgICJzZWNvbmRzIjogMC4xLAogICAgICAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICJldmlkZW5jZSI6ICJ2ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0KICAgIH0KICBdLAogICJmaWxlcyI6IFsKICAgICJhcHAucHkiCiAgXSwKICAiY29kZV9jaGFuZ2VkX2R1cmluZ19jaGVjayI6IGZhbHNlLAogICJjaGVja2VkX2NvbW1pdCI6ICIiLAogICJjaGVja2VkX2Jhc2UiOiAiMGNiOWJhZmMzMDM5NWEyNTg0ZDNkYTI0YzExNDg0MTVlMzg5YWJhMCIsCiAgImNoZWNrZWRfZGlmZiI6ICJkaWZmIC0tZ2l0IGEvYXBwLnB5IGIvYXBwLnB5XG5pbmRleCA2MTMxM2E2Li5iMTViMWIwIDEwMDY0NFxuLS0tIGEvYXBwLnB5XG4rKysgYi9hcHAucHlcbkBAIC0xICsxIEBAXG4tVkFMVUUgPSAwXG4rVkFMVUUgPSAxXG4iLAogICJwcmV2aW91c192ZXJpZmljYXRpb25zIjogWwogICAgewogICAgICAiZGlmZiI6ICJkaWZmIC0tZ2l0IGEvYXBwLnB5IGIvYXBwLnB5XG5pbmRleCA2MTMxM2E2Li5iMTViMWIwIDEwMDY0NFxuLS0tIGEvYXBwLnB5XG4rKysgYi9hcHAucHlcbkBAIC0xICsxIEBAXG4tVkFMVUUgPSAwXG4rVkFMVUUgPSAxXG4iLAogICAgICAidmVyaWZpY2F0aW9uIjogewogICAgICAgICJjaGVjayI6ICJwYXNzIiwKICAgICAgICAic2tpcCI6ICIiLAogICAgICAgICJjb21tYW5kcyI6IFsKICAgICAgICAgIHsKICAgICAgICAgICAgImtpbmQiOiAiYnVpbGQiLAogICAgICAgICAgICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSBidWlsZCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIsCiAgICAgICAgICAgICJleGl0X2NvZGUiOiAwLAogICAgICAgICAgICAic2Vjb25kcyI6IDAuMSwKICAgICAgICAgICAgInRhaWwiOiAiUkVBTF9DSEVDSyB7XCJhY3Rpb25cIjogXCJidWlsZFwiLCBcInZhbHVlXCI6IDEsIFwiY3dkXCI6IFwiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjFcIn0iLAogICAgICAgICAgICAib3V0cHV0IjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwiYnVpbGRcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAgICAgICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgICAgICAgICAgICJjbGVhbnVwIjogewogICAgICAgICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICAgIH0sCiAgICAgICAgICB7CiAgICAgICAgICAgICJraW5kIjogInRlc3QiLAogICAgICAgICAgICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIiwKICAgICAgICAgICAgImV4aXRfY29kZSI6IDAsCiAgICAgICAgICAgICJzZWNvbmRzIjogMC4xLAogICAgICAgICAgICAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgICAgICAgICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAgICAgICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICAgICAgICAgICJjbGVhbnVwIjogewogICAgICAgICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJmaWxlcyI6IFsKICAgICAgICAgICJhcHAucHkiCiAgICAgICAgXSwKICAgICAgICAiY29kZV9jaGFuZ2VkX2R1cmluZ19jaGVjayI6IGZhbHNlLAogICAgICAgICJjaGVja2VkX2NvbW1pdCI6ICIiLAogICAgICAgICJjaGVja2VkX2Jhc2UiOiAiMGNiOWJhZmMzMDM5NWEyNTg0ZDNkYTI0YzExNDg0MTVlMzg5YWJhMCIsCiAgICAgICAgImNoZWNrZWRfZGlmZiI6ICJkaWZmIC0tZ2l0IGEvYXBwLnB5IGIvYXBwLnB5XG5pbmRleCA2MTMxM2E2Li5iMTViMWIwIDEwMDY0NFxuLS0tIGEvYXBwLnB5XG4rKysgYi9hcHAucHlcbkBAIC0xICsxIEBAXG4tVkFMVUUgPSAwXG4rVkFMVUUgPSAxXG4iLAogICAgICAgICJyZWNoZWNrZWQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIKICAgICAgfQogICAgfQogIF0sCiAgInJlY2hlY2tlZCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAicmVjaGVja19vcGVyYXRpb24iOiB7CiAgICAiaWQiOiAxLAogICAgInNvdXJjZV9ydW4iOiAxCiAgfSwKICAidmVyaWZpY2F0aW9uX2N1cnJlbnQiOiB0cnVlCn0=",
+      "owner.json": "ewogICJ0b2tlbiI6ICI3Y2RkMDM3Mjg1MmY0MjZkOWFhOTA4NGQxNGMxMWEwYSIsCiAgInJ1bl9pZCI6IDEsCiAgImRhdGFfZGlyIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgp9",
+      "lifecycle.json": "ewogICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjMiLAogICJ0aW1lb3V0X3NlY29uZHMiOiAzMC4wLAogICJzdG9wcGVkX3JlYXNvbiI6ICIiLAogICJhdHRlbXB0cyI6IFsKICAgIHsKICAgICAgImF0dGVtcHQiOiAxLAogICAgICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjMiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9iYXNlLTEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8iCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS45MTM0OTA2NjU5NjAxMjYsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MTg5LAogICAgICAicGdpZCI6IDc3MTg5LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTA1OTg3NDU4MDI0MTczOTcsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0IgogICAgfSwKICAgIHsKICAgICAgImF0dGVtcHQiOiAyLAogICAgICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL2Jhc2UtMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNzk2OTQ2NTQxMDU2OTcsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MTkyLAogICAgICAicGdpZCI6IDc3MTkyLAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDkwOTA2NzkxOTcxMDY1MSwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDMsCiAgICAgICJraW5kIjogImNoZWNrOmJ1aWxkIiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8iCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS42ODA4MDE5NTc5NjIxMDMsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MTk1LAogICAgICAicGdpZCI6IDc3MTk1LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDg5MjU4MTY2OTYxMzcxOSwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDQsCiAgICAgICJraW5kIjogImNoZWNrOnRlc3QiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNTc0ODYyODMzMDE4NDE1LAogICAgICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDQiLAogICAgICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgICAgICJwaWQiOiA3NzE5NywKICAgICAgInBnaWQiOiA3NzE5NywKICAgICAgInJldHVybmNvZGUiOiAwLAogICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICJlbGFwc2VkX3NlY29uZHMiOiAwLjEwMDQ2ODA0MTAyNjAzMzQ2LAogICAgICAiY2xlYW51cCI6IHsKICAgICAgICAidHJpZ2dlciI6IG51bGwsCiAgICAgICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICAgICAic2lnbmFscyI6IFtdLAogICAgICAgICJlcnJvcnMiOiBbXSwKICAgICAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAgICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAgICAgInJlYXBlZCI6IHRydWUsCiAgICAgICAgImNvbXBsZXRlIjogdHJ1ZQogICAgICB9LAogICAgICAiZW5kZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIKICAgIH0KICBdLAogICJmaW5pc2hlZCI6IHRydWUsCiAgIm93bmVyIjogewogICAgInRva2VuIjogIjdjZGQwMzcyODUyZjQyNmQ5YWE5MDg0ZDE0YzExYTBhIiwKICAgICJydW5faWQiOiAxLAogICAgImRhdGFfZGlyIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjU2Cn0=",
+      "owner.lock": "",
+      "attempts/0003/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI3Y2RkMDM3Mjg1MmY0MjZkOWFhOTA4NGQxNGMxMWEwYSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIKICB9LAogICJub25jZSI6ICI1YTZmMWYzN2YwYTQ0YmJkYjQyYzAzNmFjNTU1NGY1NCIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9ydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MTk0LAogICJwaWQiOiA3NzE5NSwKICAicGdpZCI6IDc3MTk1Cn0=",
+      "attempts/0003/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI3Y2RkMDM3Mjg1MmY0MjZkOWFhOTA4NGQxNGMxMWEwYSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIKICB9LAogICJub25jZSI6ICI1YTZmMWYzN2YwYTQ0YmJkYjQyYzAzNmFjNTU1NGY1NCIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9ydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzE5NCwKICAicGlkIjogNzcxOTUsCiAgInBnaWQiOiA3NzE5NSwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA4OTI1ODE2Njk2MTM3MTksCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6IDE3OTIzNzQyMDQuMzE2ODk0LAogICJvdXRwdXQiOiB7CiAgICAiZmlsZSI6ICJvdXRwdXQuYmluIiwKICAgICJieXRlcyI6IDE2NCwKICAgICJzaGEyNTYiOiAiMmZjYTM5N2M5MTI1NTY0ZWJjOWQ1MjUwODU5MmU5NzQ4NzkyYTUyNGZmY2Y4ZTNiZjhjNmI5NzdmMGJiOTdkZiIKICB9Cn0=",
+      "attempts/0003/process.json": "ewogICJhdHRlbXB0IjogMywKICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIsCiAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgImNvbW1hbmQiOiBbCiAgICAiL2Jpbi9zaCIsCiAgICAiLWMiLAogICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL293bmVkLWNoZWNrLnB5IGJ1aWxkIC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogIF0sCiAgInRpbWVvdXRfc2Vjb25kcyI6IDI5LjY4MDgwMTk1Nzk2MjEwMywKICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDMiLAogICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAicGlkIjogNzcxOTUsCiAgInBnaWQiOiA3NzE5NSwKICAicmV0dXJuY29kZSI6IDAsCiAgInJlYXNvbiI6ICJleGl0ZWQiLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA4OTI1ODE2Njk2MTM3MTksCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0Igp9",
+      "attempts/0003/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDEsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjEifQo=",
+      "attempts/0003/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDEsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjEifQo=",
+      "attempts/0004/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI3Y2RkMDM3Mjg1MmY0MjZkOWFhOTA4NGQxNGMxMWEwYSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIKICB9LAogICJub25jZSI6ICJlM2ZjYjRkNjc2OWE0ODdlYTMzNDM3ZDYxZjYzY2IzZSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9ydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MTk2LAogICJwaWQiOiA3NzE5NywKICAicGdpZCI6IDc3MTk3Cn0=",
+      "attempts/0004/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI3Y2RkMDM3Mjg1MmY0MjZkOWFhOTA4NGQxNGMxMWEwYSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIKICB9LAogICJub25jZSI6ICJlM2ZjYjRkNjc2OWE0ODdlYTMzNDM3ZDYxZjYzY2IzZSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9ydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzE5NiwKICAicGlkIjogNzcxOTcsCiAgInBnaWQiOiA3NzE5NywKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjEwMDQ2ODA0MTAyNjAzMzQ2LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA0LjQzMzkyNDIsCiAgIm91dHB1dCI6IHsKICAgICJmaWxlIjogIm91dHB1dC5iaW4iLAogICAgImJ5dGVzIjogMTYzLAogICAgInNoYTI1NiI6ICJkZWI1NjFjMzRkNTJhN2FiYjE5OWJkZjhhODQ3MmZkNjU0NjA1MDgwNDJlYWFhYWRlNTlmMjAxNmE1ZGNhYWQyIgogIH0KfQ==",
+      "attempts/0004/process.json": "ewogICJhdHRlbXB0IjogNCwKICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0IiwKICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxIiwKICAiY29tbWFuZCI6IFsKICAgICIvYmluL3NoIiwKICAgICItYyIsCiAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgdGVzdCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIKICBdLAogICJ0aW1lb3V0X3NlY29uZHMiOiAyOS41NzQ4NjI4MzMwMTg0MTUsCiAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDA0IiwKICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgInBpZCI6IDc3MTk3LAogICJwZ2lkIjogNzcxOTcsCiAgInJldHVybmNvZGUiOiAwLAogICJyZWFzb24iOiAiZXhpdGVkIiwKICAiZWxhcHNlZF9zZWNvbmRzIjogMC4xMDA0NjgwNDEwMjYwMzM0NiwKICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiCn0=",
+      "attempts/0004/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMSwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMSJ9Cg==",
+      "attempts/0004/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMSwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMSJ9Cg==",
+      "attempts/0002/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI3Y2RkMDM3Mjg1MmY0MjZkOWFhOTA4NGQxNGMxMWEwYSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIKICB9LAogICJub25jZSI6ICJjMDRkZThlMmE3MWI0OGIxOGQ5NmYwNmU3ZDU4NTA0MiIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9ydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MTkxLAogICJwaWQiOiA3NzE5MiwKICAicGdpZCI6IDc3MTkyCn0=",
+      "attempts/0002/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI3Y2RkMDM3Mjg1MmY0MjZkOWFhOTA4NGQxNGMxMWEwYSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIKICB9LAogICJub25jZSI6ICJjMDRkZThlMmE3MWI0OGIxOGQ5NmYwNmU3ZDU4NTA0MiIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9ydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzE5MSwKICAicGlkIjogNzcxOTIsCiAgInBnaWQiOiA3NzE5MiwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5MDkwNjc5MTk3MTA2NTEsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6IDE3OTIzNzQyMDQuMjAyMjg5OCwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAxNTksCiAgICAic2hhMjU2IjogImQ0MTBlZTlmYTJmODE3NzlkMjNmYmMxNzEzYTgzYWU5ODNkNTMwMjg0ZWMzMmYyOWFkNTA5M2FjYWM4MGU2NzEiCiAgfQp9",
+      "attempts/0002/process.json": "ewogICJhdHRlbXB0IjogMiwKICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0IiwKICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9iYXNlLTEiLAogICJjb21tYW5kIjogWwogICAgIi9iaW4vc2giLAogICAgIi1jIiwKICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogIF0sCiAgInRpbWVvdXRfc2Vjb25kcyI6IDI5Ljc5Njk0NjU0MTA1Njk3LAogICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgInN1cGVydmlzZWQiOiB0cnVlLAogICJwaWQiOiA3NzE5MiwKICAicGdpZCI6IDc3MTkyLAogICJyZXR1cm5jb2RlIjogMCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDkwOTA2NzkxOTcxMDY1MSwKICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiCn0=",
+      "attempts/0002/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMCwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvYmFzZS0xIn0K",
+      "attempts/0002/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMCwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvYmFzZS0xIn0K",
+      "attempts/0001/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI3Y2RkMDM3Mjg1MmY0MjZkOWFhOTA4NGQxNGMxMWEwYSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIKICB9LAogICJub25jZSI6ICIwZTQ3NWE2MWY0ODI0OTk5OTlmYTM1YjI4MzMxMTYyMSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9ydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MTg0LAogICJwaWQiOiA3NzE4OSwKICAicGdpZCI6IDc3MTg5Cn0=",
+      "attempts/0001/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI3Y2RkMDM3Mjg1MmY0MjZkOWFhOTA4NGQxNGMxMWEwYSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIKICB9LAogICJub25jZSI6ICIwZTQ3NWE2MWY0ODI0OTk5OTlmYTM1YjI4MzMxMTYyMSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9ydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzE4NCwKICAicGlkIjogNzcxODksCiAgInBnaWQiOiA3NzE4OSwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjEwNTk4NzQ1ODAyNDE3Mzk3LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA0LjEwMTAwNDEsCiAgIm91dHB1dCI6IHsKICAgICJmaWxlIjogIm91dHB1dC5iaW4iLAogICAgImJ5dGVzIjogMTYwLAogICAgInNoYTI1NiI6ICI1ZmYwNDQ3N2Q0YjFmZmM3OTQ3YzZmM2I5ZjRiZTlmZGRkZGQ3MTk3ZDM2YTk1YzI5ZDcyOGMxM2MyZmJhNDc0IgogIH0KfQ==",
+      "attempts/0001/process.json": "ewogICJhdHRlbXB0IjogMSwKICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyMyIsCiAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvYmFzZS0xIiwKICAiY29tbWFuZCI6IFsKICAgICIvYmluL3NoIiwKICAgICItYyIsCiAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8iCiAgXSwKICAidGltZW91dF9zZWNvbmRzIjogMjkuOTEzNDkwNjY1OTYwMTI2LAogICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInN1cGVydmlzZWQiOiB0cnVlLAogICJwaWQiOiA3NzE4OSwKICAicGdpZCI6IDc3MTg5LAogICJyZXR1cm5jb2RlIjogMCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTA1OTg3NDU4MDI0MTczOTcsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0Igp9",
+      "attempts/0001/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDAsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL2Jhc2UtMSJ9Cg==",
+      "attempts/0001/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDAsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL2Jhc2UtMSJ9Cg=="
+    },
+    "operation_files": {
+      "checks/RECHK-6beae3075085e9c2.json": "W3sia2luZCI6ICJidWlsZCIsICJjb21tYW5kIjogIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL293bmVkLWNoZWNrLnB5IGJ1aWxkIC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIiwgImV4aXRfY29kZSI6IDAsICJzZWNvbmRzIjogMC4xLCAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcImJ1aWxkXCIsIFwidmFsdWVcIjogMCwgXCJjd2RcIjogXCIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xXCJ9IiwgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcImJ1aWxkXCIsIFwidmFsdWVcIjogMCwgXCJjd2RcIjogXCIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xXCJ9XG4iLCAicmVhc29uIjogImV4aXRlZCIsICJldmlkZW5jZSI6ICJ2ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMSIsICJjbGVhbnVwIjogeyJ0cmlnZ2VyIjogbnVsbCwgInRlcm1fc2VudCI6IGZhbHNlLCAia2lsbF9zZW50IjogZmFsc2UsICJzaWduYWxzIjogW10sICJlcnJvcnMiOiBbXSwgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLCAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwgInJlYXBlZCI6IHRydWUsICJjb21wbGV0ZSI6IHRydWV9fSwgeyJraW5kIjogInRlc3QiLCAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIiwgImV4aXRfY29kZSI6IDAsICJzZWNvbmRzIjogMC4xLCAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAwLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3ZlcmlmaWNhdGlvbi1vcGVyYXRpb25zL3dvcmt0cmVlcy9iYXNlLTFcIn0iLCAib3V0cHV0IjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwidGVzdFwiLCBcInZhbHVlXCI6IDAsIFwiY3dkXCI6IFwiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vdmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMvd29ya3RyZWVzL2Jhc2UtMVwifVxuIiwgInJlYXNvbiI6ICJleGl0ZWQiLCAiZXZpZGVuY2UiOiAidmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMvcnVucy8xL2F0dGVtcHRzLzAwMDIiLCAiY2xlYW51cCI6IHsidHJpZ2dlciI6IG51bGwsICJ0ZXJtX3NlbnQiOiBmYWxzZSwgImtpbGxfc2VudCI6IGZhbHNlLCAic2lnbmFscyI6IFtdLCAiZXJyb3JzIjogW10sICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsICJyZWFwZWQiOiB0cnVlLCAiY29tcGxldGUiOiB0cnVlfX1d",
+      "source-locks/1.lock": "",
+      "runs/1/verification.before.json": "ewogImNoZWNrIjogInBhc3MiLAogInNraXAiOiAiIiwKICJjb21tYW5kcyI6IFsKICB7CiAgICJraW5kIjogImJ1aWxkIiwKICAgImNvbW1hbmQiOiAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8iLAogICAiZXhpdF9jb2RlIjogMCwKICAgInNlY29uZHMiOiAwLjEsCiAgICJ0YWlsIjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwiYnVpbGRcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcImJ1aWxkXCIsIFwidmFsdWVcIjogMSwgXCJjd2RcIjogXCIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMVwifVxuIiwKICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDMiLAogICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogICB9CiAgfSwKICB7CiAgICJraW5kIjogInRlc3QiLAogICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIiwKICAgImV4aXRfY29kZSI6IDAsCiAgICJzZWNvbmRzIjogMC4xLAogICAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAicmVhc29uIjogImV4aXRlZCIsCiAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgIH0KICB9CiBdLAogImZpbGVzIjogWwogICJhcHAucHkiCiBdLAogImNvZGVfY2hhbmdlZF9kdXJpbmdfY2hlY2siOiBmYWxzZSwKICJjaGVja2VkX2NvbW1pdCI6ICIiLAogImNoZWNrZWRfYmFzZSI6ICIwY2I5YmFmYzMwMzk1YTI1ODRkM2RhMjRjMTE0ODQxNWUzODlhYmEwIiwKICJjaGVja2VkX2RpZmYiOiAiZGlmZiAtLWdpdCBhL2FwcC5weSBiL2FwcC5weVxuaW5kZXggNjEzMTNhNi4uYjE1YjFiMCAxMDA2NDRcbi0tLSBhL2FwcC5weVxuKysrIGIvYXBwLnB5XG5AQCAtMSArMSBAQFxuLVZBTFVFID0gMFxuK1ZBTFVFID0gMVxuIiwKICJwcmV2aW91c192ZXJpZmljYXRpb25zIjogW10sCiAicmVjaGVja2VkIjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiCn0=",
+      "runs/1/source.json": "ewogICJzY2hlbWEiOiAxLAogICJvcGVyYXRpb25faWQiOiAxLAogICJzb3VyY2VfcnVuIjogMSwKICAic291cmNlIjogewogICAgInJ1biI6IDEsCiAgICAiZGVjaXNpb24iOiAiIiwKICAgICJjb21taXQiOiAiIiwKICAgICJiYXNlIjogIjBjYjliYWZjMzAzOTVhMjU4NGQzZGEyNGMxMTQ4NDE1ZTM4OWFiYTAiLAogICAgIndvcmtkaXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjEiLAogICAgImRpZmYiOiAiZGlmZiAtLWdpdCBhL2FwcC5weSBiL2FwcC5weVxuaW5kZXggNjEzMTNhNi4uYjE1YjFiMCAxMDA2NDRcbi0tLSBhL2FwcC5weVxuKysrIGIvYXBwLnB5XG5AQCAtMSArMSBAQFxuLVZBTFVFID0gMFxuK1ZBTFVFID0gMVxuIiwKICAgICJkaWZmX3NoYTI1NiI6ICI5NjI0ZmYzYTI0MTE0NGJjMGY0ZjkwNjdjNDUxZjBlNGI3NzZlYmY4ZWNhOGE4NjI5YjliYjA2YzcwMTE0MmM1IgogIH0sCiAgImJvdW5kX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiCn0=",
+      "runs/1/owner.json": "ewogICJ0b2tlbiI6ICI0ZjY1MzIzMzc4YjQ0ODAwYTIzZDQwMTk3NGQwOGU1NSIsCiAgInJ1bl9pZCI6IDEsCiAgImRhdGFfZGlyIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3ZlcmlmaWNhdGlvbi1vcGVyYXRpb25zIgp9",
+      "runs/1/lifecycle.json": "ewogICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiLAogICJ0aW1lb3V0X3NlY29uZHMiOiAzMC4wLAogICJzdG9wcGVkX3JlYXNvbiI6ICIiLAogICJhdHRlbXB0cyI6IFsKICAgIHsKICAgICAgImF0dGVtcHQiOiAxLAogICAgICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3ZlcmlmaWNhdGlvbi1vcGVyYXRpb25zL3dvcmt0cmVlcy9iYXNlLTEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8iCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS45MDE4MDcyOTA5Njc1NTQsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MjE4LAogICAgICAicGdpZCI6IDc3MjE4LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTAyMDQxNTAwMDM4NDY3MzUsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0IgogICAgfSwKICAgIHsKICAgICAgImF0dGVtcHQiOiAyLAogICAgICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vdmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMvd29ya3RyZWVzL2Jhc2UtMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNzg1NDUwMjUwMDI2NzcsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MjIxLAogICAgICAicGdpZCI6IDc3MjIxLAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTA0NjUyNDE1OTYxMDI3MTUsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0IgogICAgfSwKICAgIHsKICAgICAgImF0dGVtcHQiOiAzLAogICAgICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjQiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxIiwKICAgICAgImNvbW1hbmQiOiBbCiAgICAgICAgIi9iaW4vc2giLAogICAgICAgICItYyIsCiAgICAgICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL293bmVkLWNoZWNrLnB5IGJ1aWxkIC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNjU2MTkzNzkwOTU3MzMsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MjI0LAogICAgICAicGdpZCI6IDc3MjI0LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTA0MTI5NzA4OTU0MTMzMSwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDQsCiAgICAgICJraW5kIjogImNoZWNrOnRlc3QiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNTM3MTQ5NzA4MDE5NTcsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MjI2LAogICAgICAicGdpZCI6IDc3MjI2LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDk5NjY5NjI1MDUxMzE5NiwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiCiAgICB9CiAgXSwKICAiZmluaXNoZWQiOiB0cnVlLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI0ZjY1MzIzMzc4YjQ0ODAwYTIzZDQwMTk3NGQwOGU1NSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAiZWxhcHNlZF9zZWNvbmRzIjogMC41OTMKfQ==",
+      "runs/1/owner.lock": "",
+      "runs/1/verification.json": "ewogICJjaGVjayI6ICJwYXNzIiwKICAic2tpcCI6ICIiLAogICJjb21tYW5kcyI6IFsKICAgIHsKICAgICAgImtpbmQiOiAiYnVpbGQiLAogICAgICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSBidWlsZCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIsCiAgICAgICJleGl0X2NvZGUiOiAwLAogICAgICAic2Vjb25kcyI6IDAuMSwKICAgICAgInRhaWwiOiAiUkVBTF9DSEVDSyB7XCJhY3Rpb25cIjogXCJidWlsZFwiLCBcInZhbHVlXCI6IDEsIFwiY3dkXCI6IFwiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjFcIn0iLAogICAgICAib3V0cHV0IjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwiYnVpbGRcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICJldmlkZW5jZSI6ICJ2ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0KICAgIH0sCiAgICB7CiAgICAgICJraW5kIjogInRlc3QiLAogICAgICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIiwKICAgICAgImV4aXRfY29kZSI6IDAsCiAgICAgICJzZWNvbmRzIjogMC4xLAogICAgICAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICJldmlkZW5jZSI6ICJ2ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0KICAgIH0KICBdLAogICJmaWxlcyI6IFsKICAgICJhcHAucHkiCiAgXSwKICAiY29kZV9jaGFuZ2VkX2R1cmluZ19jaGVjayI6IGZhbHNlLAogICJjaGVja2VkX2NvbW1pdCI6ICIiLAogICJjaGVja2VkX2Jhc2UiOiAiMGNiOWJhZmMzMDM5NWEyNTg0ZDNkYTI0YzExNDg0MTVlMzg5YWJhMCIsCiAgImNoZWNrZWRfZGlmZiI6ICJkaWZmIC0tZ2l0IGEvYXBwLnB5IGIvYXBwLnB5XG5pbmRleCA2MTMxM2E2Li5iMTViMWIwIDEwMDY0NFxuLS0tIGEvYXBwLnB5XG4rKysgYi9hcHAucHlcbkBAIC0xICsxIEBAXG4tVkFMVUUgPSAwXG4rVkFMVUUgPSAxXG4iLAogICJwcmV2aW91c192ZXJpZmljYXRpb25zIjogWwogICAgewogICAgICAiZGlmZiI6ICJkaWZmIC0tZ2l0IGEvYXBwLnB5IGIvYXBwLnB5XG5pbmRleCA2MTMxM2E2Li5iMTViMWIwIDEwMDY0NFxuLS0tIGEvYXBwLnB5XG4rKysgYi9hcHAucHlcbkBAIC0xICsxIEBAXG4tVkFMVUUgPSAwXG4rVkFMVUUgPSAxXG4iLAogICAgICAidmVyaWZpY2F0aW9uIjogewogICAgICAgICJjaGVjayI6ICJwYXNzIiwKICAgICAgICAic2tpcCI6ICIiLAogICAgICAgICJjb21tYW5kcyI6IFsKICAgICAgICAgIHsKICAgICAgICAgICAgImtpbmQiOiAiYnVpbGQiLAogICAgICAgICAgICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSBidWlsZCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIsCiAgICAgICAgICAgICJleGl0X2NvZGUiOiAwLAogICAgICAgICAgICAic2Vjb25kcyI6IDAuMSwKICAgICAgICAgICAgInRhaWwiOiAiUkVBTF9DSEVDSyB7XCJhY3Rpb25cIjogXCJidWlsZFwiLCBcInZhbHVlXCI6IDEsIFwiY3dkXCI6IFwiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjFcIn0iLAogICAgICAgICAgICAib3V0cHV0IjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwiYnVpbGRcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAgICAgICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgICAgICAgICAgICJjbGVhbnVwIjogewogICAgICAgICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICAgIH0sCiAgICAgICAgICB7CiAgICAgICAgICAgICJraW5kIjogInRlc3QiLAogICAgICAgICAgICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIiwKICAgICAgICAgICAgImV4aXRfY29kZSI6IDAsCiAgICAgICAgICAgICJzZWNvbmRzIjogMC4xLAogICAgICAgICAgICAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgICAgICAgICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAgICAgICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICAgICAgICAgICJjbGVhbnVwIjogewogICAgICAgICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgICAgICAgIH0KICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJmaWxlcyI6IFsKICAgICAgICAgICJhcHAucHkiCiAgICAgICAgXSwKICAgICAgICAiY29kZV9jaGFuZ2VkX2R1cmluZ19jaGVjayI6IGZhbHNlLAogICAgICAgICJjaGVja2VkX2NvbW1pdCI6ICIiLAogICAgICAgICJjaGVja2VkX2Jhc2UiOiAiMGNiOWJhZmMzMDM5NWEyNTg0ZDNkYTI0YzExNDg0MTVlMzg5YWJhMCIsCiAgICAgICAgImNoZWNrZWRfZGlmZiI6ICJkaWZmIC0tZ2l0IGEvYXBwLnB5IGIvYXBwLnB5XG5pbmRleCA2MTMxM2E2Li5iMTViMWIwIDEwMDY0NFxuLS0tIGEvYXBwLnB5XG4rKysgYi9hcHAucHlcbkBAIC0xICsxIEBAXG4tVkFMVUUgPSAwXG4rVkFMVUUgPSAxXG4iLAogICAgICAgICJyZWNoZWNrZWQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIKICAgICAgfQogICAgfQogIF0sCiAgInJlY2hlY2tlZCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAicmVjaGVja19vcGVyYXRpb24iOiB7CiAgICAiaWQiOiAxLAogICAgInNvdXJjZV9ydW4iOiAxCiAgfSwKICAidmVyaWZpY2F0aW9uX2N1cnJlbnQiOiB0cnVlCn0=",
+      "runs/1/attempts/0003/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI0ZjY1MzIzMzc4YjQ0ODAwYTIzZDQwMTk3NGQwOGU1NSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICJmNjk2NWNlMjhhMWY0NGNlYWU4NDM3NzY0MmJiODQzNSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MjIzLAogICJwaWQiOiA3NzIyNCwKICAicGdpZCI6IDc3MjI0Cn0=",
+      "runs/1/attempts/0003/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI0ZjY1MzIzMzc4YjQ0ODAwYTIzZDQwMTk3NGQwOGU1NSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICJmNjk2NWNlMjhhMWY0NGNlYWU4NDM3NzY0MmJiODQzNSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzIyMywKICAicGlkIjogNzcyMjQsCiAgInBnaWQiOiA3NzIyNCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjEwNDEyOTcwODk1NDEzMzEsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6IDE3OTIzNzQyMDUuMDc2MjQyLAogICJvdXRwdXQiOiB7CiAgICAiZmlsZSI6ICJvdXRwdXQuYmluIiwKICAgICJieXRlcyI6IDE2NCwKICAgICJzaGEyNTYiOiAiMmZjYTM5N2M5MTI1NTY0ZWJjOWQ1MjUwODU5MmU5NzQ4NzkyYTUyNGZmY2Y4ZTNiZjhjNmI5NzdmMGJiOTdkZiIKICB9Cn0=",
+      "runs/1/attempts/0003/process.json": "ewogICJhdHRlbXB0IjogMywKICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIsCiAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgImNvbW1hbmQiOiBbCiAgICAiL2Jpbi9zaCIsCiAgICAiLWMiLAogICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL293bmVkLWNoZWNrLnB5IGJ1aWxkIC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogIF0sCiAgInRpbWVvdXRfc2Vjb25kcyI6IDI5LjY1NjE5Mzc5MDk1NzMzLAogICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgInN1cGVydmlzZWQiOiB0cnVlLAogICJwaWQiOiA3NzIyNCwKICAicGdpZCI6IDc3MjI0LAogICJyZXR1cm5jb2RlIjogMCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTA0MTI5NzA4OTU0MTMzMSwKICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiCn0=",
+      "runs/1/attempts/0003/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDEsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjEifQo=",
+      "runs/1/attempts/0003/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDEsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vd29ya3RyZWVzL1JFQ0hLLTEtcjEifQo=",
+      "runs/1/attempts/0004/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI0ZjY1MzIzMzc4YjQ0ODAwYTIzZDQwMTk3NGQwOGU1NSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICJlM2Y3NTBhZDhlNDc0NTNhOWFmNjAxZGM1MWZkMDNiYyIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MjI1LAogICJwaWQiOiA3NzIyNiwKICAicGdpZCI6IDc3MjI2Cn0=",
+      "runs/1/attempts/0004/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI0ZjY1MzIzMzc4YjQ0ODAwYTIzZDQwMTk3NGQwOGU1NSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICJlM2Y3NTBhZDhlNDc0NTNhOWFmNjAxZGM1MWZkMDNiYyIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzIyNSwKICAicGlkIjogNzcyMjYsCiAgInBnaWQiOiA3NzIyNiwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5OTY2OTYyNTA1MTMxOTYsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6IDE3OTIzNzQyMDUuMTkwNzM4LAogICJvdXRwdXQiOiB7CiAgICAiZmlsZSI6ICJvdXRwdXQuYmluIiwKICAgICJieXRlcyI6IDE2MywKICAgICJzaGEyNTYiOiAiZGViNTYxYzM0ZDUyYTdhYmIxOTliZGY4YTg0NzJmZDY1NDYwNTA4MDQyZWFhYWFkZTU5ZjIwMTZhNWRjYWFkMiIKICB9Cn0=",
+      "runs/1/attempts/0004/process.json": "ewogICJhdHRlbXB0IjogNCwKICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3dvcmt0cmVlcy9SRUNISy0xLXIxIiwKICAiY29tbWFuZCI6IFsKICAgICIvYmluL3NoIiwKICAgICItYyIsCiAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgdGVzdCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhbyIKICBdLAogICJ0aW1lb3V0X3NlY29uZHMiOiAyOS41MzcxNDk3MDgwMTk1NywKICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDQiLAogICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAicGlkIjogNzcyMjYsCiAgInBnaWQiOiA3NzIyNiwKICAicmV0dXJuY29kZSI6IDAsCiAgInJlYXNvbiI6ICJleGl0ZWQiLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5OTY2OTYyNTA1MTMxOTYsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1Igp9",
+      "runs/1/attempts/0004/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMSwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMSJ9Cg==",
+      "runs/1/attempts/0004/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMSwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby93b3JrdHJlZXMvUkVDSEstMS1yMSJ9Cg==",
+      "runs/1/attempts/0002/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI0ZjY1MzIzMzc4YjQ0ODAwYTIzZDQwMTk3NGQwOGU1NSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICIzNmE1ZTE1ODE3NWM0N2FiYTJmNjUwMWY2ZDJjYWZiNyIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MjIwLAogICJwaWQiOiA3NzIyMSwKICAicGdpZCI6IDc3MjIxCn0=",
+      "runs/1/attempts/0002/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI0ZjY1MzIzMzc4YjQ0ODAwYTIzZDQwMTk3NGQwOGU1NSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICIzNmE1ZTE1ODE3NWM0N2FiYTJmNjUwMWY2ZDJjYWZiNyIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzIyMCwKICAicGlkIjogNzcyMjEsCiAgInBnaWQiOiA3NzIyMSwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjEwNDY1MjQxNTk2MTAyNzE1LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA0Ljk0NzM2NiwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAxODMsCiAgICAic2hhMjU2IjogImQ2ZGRmNzlmNDQxYmJmYTRkMDNkZjBjMmMxMmNmMmU0NzhhYWFhZjc5MTQwOTJkNWQ5ZmEwMTllNzczYjE2ZWYiCiAgfQp9",
+      "runs/1/attempts/0002/process.json": "ewogICJhdHRlbXB0IjogMiwKICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0IiwKICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvL3ZlcmlmaWNhdGlvbi1vcGVyYXRpb25zL3dvcmt0cmVlcy9iYXNlLTEiLAogICJjb21tYW5kIjogWwogICAgIi9iaW4vc2giLAogICAgIi1jIiwKICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWNiNWRhbGFvIgogIF0sCiAgInRpbWVvdXRfc2Vjb25kcyI6IDI5Ljc4NTQ1MDI1MDAyNjc3LAogICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgInN1cGVydmlzZWQiOiB0cnVlLAogICJwaWQiOiA3NzIyMSwKICAicGdpZCI6IDc3MjIxLAogICJyZXR1cm5jb2RlIjogMCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTA0NjUyNDE1OTYxMDI3MTUsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0Igp9",
+      "runs/1/attempts/0002/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMCwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xIn0K",
+      "runs/1/attempts/0002/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMCwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xIn0K",
+      "runs/1/attempts/0001/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI0ZjY1MzIzMzc4YjQ0ODAwYTIzZDQwMTk3NGQwOGU1NSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICI0NWE3ZTMxZGZiNDY0MzhjYmIwMjg4NzI3OWQ5MGE3OCIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MjE2LAogICJwaWQiOiA3NzIxOCwKICAicGdpZCI6IDc3MjE4Cn0=",
+      "runs/1/attempts/0001/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI0ZjY1MzIzMzc4YjQ0ODAwYTIzZDQwMTk3NGQwOGU1NSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICI0NWE3ZTMxZGZiNDY0MzhjYmIwMjg4NzI3OWQ5MGE3OCIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzIxNiwKICAicGlkIjogNzcyMTgsCiAgInBnaWQiOiA3NzIxOCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjEwMjA0MTUwMDAzODQ2NzM1LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA0LjgyODU5NCwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAxODQsCiAgICAic2hhMjU2IjogIjczYjAxMDQwMGQzMDU4MDIxNTQ0ZmFkMmE2ZGFjOGVmMzE0ZjFiODEyMzYxODdkMDUwZmY1MjZkZDE0NTk5MjMiCiAgfQp9",
+      "runs/1/attempts/0001/process.json": "ewogICJhdHRlbXB0IjogMSwKICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNCIsCiAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1jYjVkYWxhby92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xIiwKICAiY29tbWFuZCI6IFsKICAgICIvYmluL3NoIiwKICAgICItYyIsCiAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8iCiAgXSwKICAidGltZW91dF9zZWNvbmRzIjogMjkuOTAxODA3MjkwOTY3NTU0LAogICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInN1cGVydmlzZWQiOiB0cnVlLAogICJwaWQiOiA3NzIxOCwKICAicGdpZCI6IDc3MjE4LAogICJyZXR1cm5jb2RlIjogMCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTAyMDQxNTAwMDM4NDY3MzUsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI0Igp9",
+      "runs/1/attempts/0001/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDAsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vdmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMvd29ya3RyZWVzL2Jhc2UtMSJ9Cg==",
+      "runs/1/attempts/0001/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDAsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtY2I1ZGFsYW8vdmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMvd29ya3RyZWVzL2Jhc2UtMSJ9Cg=="
+    }
+  },
+  "fixture_cleanup_signals": [],
+  "after_fixture_cleanup_workers": []
+}

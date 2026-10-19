@@ -1,0 +1,7 @@
+test_real_failed_recheck_is_current_failure_and_never_overwrites_source_success (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_real_failed_recheck_is_current_failure_and_never_overwrites_source_success) ... ok
+test_damaged_sealed_evidence_is_unknown_read_only_and_cannot_be_adopted (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_damaged_sealed_evidence_is_unknown_read_only_and_cannot_be_adopted) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 3.211s
+
+OK

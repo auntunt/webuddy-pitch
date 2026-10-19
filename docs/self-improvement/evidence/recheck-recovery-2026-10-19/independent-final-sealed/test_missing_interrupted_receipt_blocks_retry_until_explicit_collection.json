@@ -1,0 +1,1291 @@
+{
+  "test": "tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_missing_interrupted_receipt_blocks_retry_until_explicit_collection",
+  "temporary_directory": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd",
+  "original_run": {
+    "id": 1,
+    "ticket_id": 1,
+    "project_id": 1,
+    "agent": "local-fixture",
+    "mode": "fix",
+    "status": "done",
+    "author": "independent-fixture",
+    "created": "2026-10-19 09:43:25",
+    "started": "2026-10-19 09:43:25",
+    "ended": "2026-10-19 09:43:25",
+    "prompt": "保留完整原始任务",
+    "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 重新验证：构建通过\n",
+    "result": "original completed run; real local checks, no model verdict",
+    "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+    "exit_code": 0,
+    "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1",
+    "target": "",
+    "decision": "",
+    "session_id": null,
+    "batch": "",
+    "model": "",
+    "retry_of": null
+  },
+  "original_verify_base64": "ewogImNoZWNrIjogInBhc3MiLAogInNraXAiOiAiIiwKICJjb21tYW5kcyI6IFsKICB7CiAgICJraW5kIjogImJ1aWxkIiwKICAgImNvbW1hbmQiOiAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiLAogICAiZXhpdF9jb2RlIjogMCwKICAgInNlY29uZHMiOiAwLjEsCiAgICJ0YWlsIjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwiYnVpbGRcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcImJ1aWxkXCIsIFwidmFsdWVcIjogMSwgXCJjd2RcIjogXCIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMVwifVxuIiwKICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDMiLAogICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogICB9CiAgfSwKICB7CiAgICJraW5kIjogInRlc3QiLAogICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIiwKICAgImV4aXRfY29kZSI6IDAsCiAgICJzZWNvbmRzIjogMC4xLAogICAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAicmVhc29uIjogImV4aXRlZCIsCiAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgIH0KICB9CiBdLAogImZpbGVzIjogWwogICJhcHAucHkiCiBdLAogImNvZGVfY2hhbmdlZF9kdXJpbmdfY2hlY2siOiBmYWxzZSwKICJjaGVja2VkX2NvbW1pdCI6ICIiLAogImNoZWNrZWRfYmFzZSI6ICJmMmVjZWU1ZTNkYmY3NzdlMGFhMzlkMzI0ODQwMzJkYjI1ZDgwZmNiIiwKICJjaGVja2VkX2RpZmYiOiAiZGlmZiAtLWdpdCBhL2FwcC5weSBiL2FwcC5weVxuaW5kZXggNjEzMTNhNi4uYjE1YjFiMCAxMDA2NDRcbi0tLSBhL2FwcC5weVxuKysrIGIvYXBwLnB5XG5AQCAtMSArMSBAQFxuLVZBTFVFID0gMFxuK1ZBTFVFID0gMVxuIiwKICJwcmV2aW91c192ZXJpZmljYXRpb25zIjogW10sCiAicmVjaGVja2VkIjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiCn0=",
+  "original_lifecycle_base64": "ewogICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiLAogICJ0aW1lb3V0X3NlY29uZHMiOiAzMC4wLAogICJzdG9wcGVkX3JlYXNvbiI6ICIiLAogICJhdHRlbXB0cyI6IFsKICAgIHsKICAgICAgImF0dGVtcHQiOiAxLAogICAgICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9iYXNlLTEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS45MDU4MDEwNDEwNTE3NDUsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MjY5LAogICAgICAicGdpZCI6IDc3MjY5LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDk5NzcwMDgzOTA3MDYwMzMsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IgogICAgfSwKICAgIHsKICAgICAgImF0dGVtcHQiOiAyLAogICAgICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL2Jhc2UtMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNzkyNjc2NTAwMDQ0NzYzLAogICAgICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDIiLAogICAgICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgICAgICJwaWQiOiA3NzI3MSwKICAgICAgInBnaWQiOiA3NzI3MSwKICAgICAgInJldHVybmNvZGUiOiAwLAogICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5MDQzMjc1MDA2MTE1NDM3LAogICAgICAiY2xlYW51cCI6IHsKICAgICAgICAidHJpZ2dlciI6IG51bGwsCiAgICAgICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICAgICAic2lnbmFscyI6IFtdLAogICAgICAgICJlcnJvcnMiOiBbXSwKICAgICAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAgICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAgICAgInJlYXBlZCI6IHRydWUsCiAgICAgICAgImNvbXBsZXRlIjogdHJ1ZQogICAgICB9LAogICAgICAiZW5kZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIKICAgIH0sCiAgICB7CiAgICAgICJhdHRlbXB0IjogMywKICAgICAgImtpbmQiOiAiY2hlY2s6YnVpbGQiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSBidWlsZCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICAgICAgXSwKICAgICAgInRpbWVvdXRfc2Vjb25kcyI6IDI5LjY4MDg0NTQ1ODA2MDUwMywKICAgICAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAzIiwKICAgICAgInN1cGVydmlzZWQiOiB0cnVlLAogICAgICAicGlkIjogNzcyNzQsCiAgICAgICJwZ2lkIjogNzcyNzQsCiAgICAgICJyZXR1cm5jb2RlIjogMCwKICAgICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAgICAiZWxhcHNlZF9zZWNvbmRzIjogMC4wODkzODI2MjQ5NTIxMjI1NywKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDQsCiAgICAgICJraW5kIjogImNoZWNrOnRlc3QiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNTcyOTc0NTgzMDE3NjQsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3Mjc2LAogICAgICAicGdpZCI6IDc3Mjc2LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDg1OTc2MTI0OTczOTY3NjcsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IgogICAgfQogIF0sCiAgImZpbmlzaGVkIjogdHJ1ZSwKICAib3duZXIiOiB7CiAgICAidG9rZW4iOiAiY2JlZDhiYTE0NDEyNGY0N2E0M2UyZGQ1NDg3ZmMwMTAiLAogICAgInJ1bl9pZCI6IDEsCiAgICAiZGF0YV9kaXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgfSwKICAiZW5kZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIsCiAgImVsYXBzZWRfc2Vjb25kcyI6IDAuNTUxCn0=",
+  "original_package_records": [
+    {
+      "seq": 1,
+      "ts": "2026-10-19 09:43:25",
+      "kind": "pack",
+      "by": "independent-fixture",
+      "data": {
+        "why": "隔离测试中的真实构建快照，不代表人工验收",
+        "snapshot": {
+          "ticket": {
+            "key": "RECHK-1",
+            "title": "验证当前候选值",
+            "type": "bug",
+            "reporter": "independent-fixture",
+            "created": "2026-10-19 09:43:25",
+            "body": ""
+          },
+          "project": {
+            "key": "RECHK",
+            "name": "隔离真实重验"
+          },
+          "flows": [],
+          "ac": [],
+          "ac_source": "",
+          "plan_ac": [],
+          "plan_run": null,
+          "asked": null,
+          "contract": [],
+          "change": {
+            "run": 1,
+            "agent": "local-fixture",
+            "decision": "",
+            "files": [
+              "app.py"
+            ],
+            "added": 1,
+            "removed": 1
+          },
+          "check": {
+            "result": "pass",
+            "skip": "",
+            "verdict": "",
+            "rounds": null,
+            "commands": [
+              {
+                "cmd": "",
+                "exit_code": 0
+              },
+              {
+                "cmd": "",
+                "exit_code": 0
+              }
+            ]
+          },
+          "scope": {
+            "beyond_plan": []
+          },
+          "path": {
+            "ok": false,
+            "covered": [],
+            "off": [],
+            "manual": [],
+            "basis": "python-static-functions",
+            "source": {
+              "commit": "",
+              "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5",
+              "blobs": {}
+            },
+            "mapping_digest": "da11071360136d24d8621687a1da29f5ac48989a48f4e5db80b34982be2b469f",
+            "changes": [],
+            "diagnostics": [
+              {
+                "file": "",
+                "line": 0,
+                "status": "unknown",
+                "message": "没有已采纳的确定提交；不能使用当前工作目录替代候选版本"
+              }
+            ],
+            "limitations": [
+              "同一 HTTP 方法中的不同 URL/条件分支可能走不同路径；此处不证明具体请求经过修改行。",
+              "动态调用、反射、运行时注册和外部依赖不能凭静态索引确认。",
+              "代码关联、实际测试、人工复核与客户签收是独立证据。"
+            ],
+            "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+          },
+          "gates": [
+            {
+              "id": "changed",
+              "name": "有实际改动",
+              "state": "pass",
+              "why": "1 个文件有实际改动"
+            },
+            {
+              "id": "parse",
+              "name": "改后的文件能解析",
+              "state": "pass",
+              "why": "解析了 1 个文件"
+            },
+            {
+              "id": "weaken",
+              "name": "没有削弱测试",
+              "state": "pass",
+              "why": "没有删测试、删断言、加跳过或 `|| true`"
+            },
+            {
+              "id": "scope",
+              "name": "没超出方案",
+              "state": "unknown",
+              "why": "方案没有列出要改的文件，判断不了是否超出"
+            },
+            {
+              "id": "path",
+              "name": "落在本单的业务流上",
+              "state": "unknown",
+              "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+            },
+            {
+              "id": "baseline",
+              "name": "原代码在这台机器上能构建",
+              "state": "pass",
+              "why": "原代码先构建测试过一遍，能跑通"
+            },
+            {
+              "id": "build",
+              "name": "构建通过",
+              "state": "pass",
+              "why": "`/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd` 通过"
+            },
+            {
+              "id": "test",
+              "name": "测试通过",
+              "state": "pass",
+              "why": "`/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd` 通过"
+            },
+            {
+              "id": "match",
+              "name": "对照验收标准，改对了【推断】",
+              "state": "unknown",
+              "why": "没有对照验收标准的判定"
+            }
+          ],
+          "adopted": null
+        }
+      },
+      "prev": "0000000000000000000000000000000000000000000000000000000000000000",
+      "hash": "8345e5d1aefdcce6af1194e96012662508aca9024542794c6db1d47e9684449e"
+    }
+  ],
+  "start_http": {
+    "status": 200,
+    "body": {
+      "started": true,
+      "run": 1,
+      "operation": 1
+    }
+  },
+  "missing_receipt_state": {
+    "running": true,
+    "decision": "",
+    "operation": {
+      "id": 1,
+      "source_run": 1,
+      "project_id": 1,
+      "ticket_id": 1,
+      "author": "independent-test-operator",
+      "status": "failed",
+      "created": "2026-10-19 09:43:26",
+      "started": "2026-10-19 09:43:26",
+      "ended": "2026-10-19 09:43:30",
+      "exit_code": 125,
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n\n— 服务恢复核对：过程 1 完整原始输出（可能与中断前流式日志重叠）\nREAL_CHECK {\"action\": \"build\", \"value\": 0, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/verification-operations/worktrees/base-1\"}\n\n— 服务恢复核对：过程 2 完整原始输出（可能与中断前流式日志重叠）\nREAL_CHECK {\"action\": \"test\", \"value\": 0, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/verification-operations/worktrees/base-1\"}\n\n— 服务恢复核对：过程 3 完整原始输出（可能与中断前流式日志重叠）\nREAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}\n\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n过程 4：独立监管停止回执尚未到达；不能根据旧 PID 判断结束\n",
+      "lifecycle": {
+        "started_at": "2026-10-19 09:43:26",
+        "timeout_seconds": 30.0,
+        "stopped_reason": "owner_lost",
+        "attempts": [
+          {
+            "attempt": 1,
+            "kind": "check:build",
+            "started_at": "2026-10-19 09:43:26",
+            "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/verification-operations/worktrees/base-1",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd"
+            ],
+            "timeout_seconds": 29.90523250005208,
+            "evidence": "runs/1/attempts/0001",
+            "supervised": true,
+            "pid": 77297,
+            "pgid": 77297,
+            "returncode": 0,
+            "reason": "exited",
+            "elapsed_seconds": 0.11098429199773818,
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            },
+            "ended_at": 1792374206.3525991,
+            "supervisor_receipt": "runs/1/attempts/0001/supervisor-result.json"
+          },
+          {
+            "attempt": 2,
+            "kind": "check:test",
+            "started_at": "2026-10-19 09:43:26",
+            "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/verification-operations/worktrees/base-1",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd"
+            ],
+            "timeout_seconds": 29.776133125065826,
+            "evidence": "runs/1/attempts/0002",
+            "supervised": true,
+            "pid": 77304,
+            "pgid": 77304,
+            "returncode": 0,
+            "reason": "exited",
+            "elapsed_seconds": 0.0999880830058828,
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            },
+            "ended_at": 1792374206.4705322,
+            "supervisor_receipt": "runs/1/attempts/0002/supervisor-result.json"
+          },
+          {
+            "attempt": 3,
+            "kind": "check:build",
+            "started_at": "2026-10-19 09:43:26",
+            "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd"
+            ],
+            "timeout_seconds": 29.65325841703452,
+            "evidence": "runs/1/attempts/0003",
+            "supervised": true,
+            "pid": 77307,
+            "pgid": 77307,
+            "returncode": 0,
+            "reason": "exited",
+            "elapsed_seconds": 0.10679150000214577,
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            },
+            "ended_at": 1792374206.600245,
+            "supervisor_receipt": "runs/1/attempts/0003/supervisor-result.json"
+          },
+          {
+            "attempt": 4,
+            "kind": "check:test",
+            "started_at": "2026-10-19 09:43:26",
+            "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd"
+            ],
+            "timeout_seconds": 29.52357545797713,
+            "evidence": "runs/1/attempts/0004",
+            "supervised": true,
+            "pid": 77309,
+            "pgid": 77309
+          }
+        ],
+        "finished": false,
+        "owner": {
+          "token": "0e987cffe6b44b56bf4469f2ed49d7f2",
+          "run_id": 1,
+          "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/verification-operations"
+        },
+        "elapsed_seconds": 0.549,
+        "recovery": {
+          "state": "blocked",
+          "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+          "evidence": "runs/1/restart-recovery",
+          "output_complete": false,
+          "errors": [
+            "过程 4：独立监管停止回执尚未到达；不能根据旧 PID 判断结束"
+          ]
+        }
+      },
+      "source": {
+        "run": 1,
+        "decision": "",
+        "commit": "",
+        "base": "f2ecee5e3dbf777e0aa39d32484032db25d80fcb",
+        "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1",
+        "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+        "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+      },
+      "source_manifest": {
+        "schema": 1,
+        "operation_id": 1,
+        "source_run": 1,
+        "source": {
+          "run": 1,
+          "decision": "",
+          "commit": "",
+          "base": "f2ecee5e3dbf777e0aa39d32484032db25d80fcb",
+          "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1",
+          "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+          "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+        },
+        "bound_at": "2026-10-19 09:43:26"
+      },
+      "owner_active": false,
+      "running": true,
+      "can_retry": false,
+      "blocked": [
+        "复检尚未封存停止回执，请等待完成或检查停止回执",
+        "中断复检尚未确认全部进程与输出已收完"
+      ],
+      "retry_blocked": [
+        "复检尚未封存停止回执，请等待完成或检查停止回执",
+        "中断复检尚未确认全部进程与输出已收完"
+      ],
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "过程 4：独立监管停止回执尚未到达；不能根据旧 PID 判断结束"
+        ]
+      },
+      "evidence": "verification-operations/runs/1"
+    },
+    "verify": {
+      "check": "unknown",
+      "verdict": "unknown",
+      "commands": [],
+      "diagnosis": {},
+      "verification_current": false,
+      "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+      "recheck_operation": {
+        "id": 1,
+        "status": "failed",
+        "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。"
+      },
+      "previous_current_verification": {
+        "check": "pass",
+        "skip": "",
+        "commands": [
+          {
+            "kind": "build",
+            "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd",
+            "exit_code": 0,
+            "seconds": 0.1,
+            "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}",
+            "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}\n",
+            "reason": "exited",
+            "evidence": "runs/1/attempts/0003",
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            }
+          },
+          {
+            "kind": "test",
+            "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd",
+            "exit_code": 0,
+            "seconds": 0.1,
+            "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}",
+            "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}\n",
+            "reason": "exited",
+            "evidence": "runs/1/attempts/0004",
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            }
+          }
+        ],
+        "files": [
+          "app.py"
+        ],
+        "code_changed_during_check": false,
+        "checked_commit": "",
+        "checked_base": "f2ecee5e3dbf777e0aa39d32484032db25d80fcb",
+        "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+        "previous_verifications": [],
+        "rechecked": "2026-10-19 09:43:25"
+      }
+    }
+  },
+  "missing_receipt_start": {
+    "status": 400,
+    "body": {
+      "error": "复检尚未封存停止回执，请等待完成或检查停止回执；中断复检尚未确认全部进程与输出已收完"
+    }
+  },
+  "collected_restored_receipt": {
+    "running": false,
+    "decision": "",
+    "operation": {
+      "id": 1,
+      "source_run": 1,
+      "project_id": 1,
+      "ticket_id": 1,
+      "author": "independent-test-operator",
+      "status": "failed",
+      "created": "2026-10-19 09:43:26",
+      "started": "2026-10-19 09:43:26",
+      "ended": "2026-10-19 09:43:30",
+      "exit_code": 125,
+      "result": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+      "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n\n— 服务恢复核对：过程 1 完整原始输出（可能与中断前流式日志重叠）\nREAL_CHECK {\"action\": \"build\", \"value\": 0, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/verification-operations/worktrees/base-1\"}\n\n— 服务恢复核对：过程 2 完整原始输出（可能与中断前流式日志重叠）\nREAL_CHECK {\"action\": \"test\", \"value\": 0, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/verification-operations/worktrees/base-1\"}\n\n— 服务恢复核对：过程 3 完整原始输出（可能与中断前流式日志重叠）\nREAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}\n\n— 服务恢复核对：过程 4 完整原始输出（可能与中断前流式日志重叠）\nrecheck-candidate-started\u0000�\n\n— 平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。\n",
+      "lifecycle": {
+        "started_at": "2026-10-19 09:43:26",
+        "timeout_seconds": 30.0,
+        "stopped_reason": "owner_lost",
+        "attempts": [
+          {
+            "attempt": 1,
+            "kind": "check:build",
+            "started_at": "2026-10-19 09:43:26",
+            "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/verification-operations/worktrees/base-1",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd"
+            ],
+            "timeout_seconds": 29.90523250005208,
+            "evidence": "runs/1/attempts/0001",
+            "supervised": true,
+            "pid": 77297,
+            "pgid": 77297,
+            "returncode": 0,
+            "reason": "exited",
+            "elapsed_seconds": 0.11098429199773818,
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            },
+            "ended_at": 1792374206.3525991,
+            "supervisor_receipt": "runs/1/attempts/0001/supervisor-result.json"
+          },
+          {
+            "attempt": 2,
+            "kind": "check:test",
+            "started_at": "2026-10-19 09:43:26",
+            "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/verification-operations/worktrees/base-1",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd"
+            ],
+            "timeout_seconds": 29.776133125065826,
+            "evidence": "runs/1/attempts/0002",
+            "supervised": true,
+            "pid": 77304,
+            "pgid": 77304,
+            "returncode": 0,
+            "reason": "exited",
+            "elapsed_seconds": 0.0999880830058828,
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            },
+            "ended_at": 1792374206.4705322,
+            "supervisor_receipt": "runs/1/attempts/0002/supervisor-result.json"
+          },
+          {
+            "attempt": 3,
+            "kind": "check:build",
+            "started_at": "2026-10-19 09:43:26",
+            "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd"
+            ],
+            "timeout_seconds": 29.65325841703452,
+            "evidence": "runs/1/attempts/0003",
+            "supervised": true,
+            "pid": 77307,
+            "pgid": 77307,
+            "returncode": 0,
+            "reason": "exited",
+            "elapsed_seconds": 0.10679150000214577,
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            },
+            "ended_at": 1792374206.600245,
+            "supervisor_receipt": "runs/1/attempts/0003/supervisor-result.json"
+          },
+          {
+            "attempt": 4,
+            "kind": "check:test",
+            "started_at": "2026-10-19 09:43:26",
+            "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd"
+            ],
+            "timeout_seconds": 29.52357545797713,
+            "evidence": "runs/1/attempts/0004",
+            "supervised": true,
+            "pid": 77309,
+            "pgid": 77309,
+            "returncode": 125,
+            "reason": "owner_lost",
+            "elapsed_seconds": 0.5102953750174493,
+            "cleanup": {
+              "trigger": "owner_lost",
+              "term_sent": true,
+              "kill_sent": true,
+              "signals": [
+                {
+                  "signal": "SIGTERM",
+                  "at": 0.14144725003279746,
+                  "sent": true
+                },
+                {
+                  "signal": "SIGKILL",
+                  "at": 0.4476106249494478,
+                  "sent": true
+                }
+              ],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            },
+            "ended_at": 1792374207.133425,
+            "supervisor_receipt": "runs/1/attempts/0004/supervisor-result.json"
+          }
+        ],
+        "finished": true,
+        "owner": {
+          "token": "0e987cffe6b44b56bf4469f2ed49d7f2",
+          "run_id": 1,
+          "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/verification-operations"
+        },
+        "elapsed_seconds": 0.549,
+        "recovery": {
+          "state": "complete",
+          "reason": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+          "evidence": "runs/1/restart-recovery",
+          "output_complete": true,
+          "errors": []
+        },
+        "ended_at": "2026-10-19 09:43:30"
+      },
+      "source": {
+        "run": 1,
+        "decision": "",
+        "commit": "",
+        "base": "f2ecee5e3dbf777e0aa39d32484032db25d80fcb",
+        "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1",
+        "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+        "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+      },
+      "source_manifest": {
+        "schema": 1,
+        "operation_id": 1,
+        "source_run": 1,
+        "source": {
+          "run": 1,
+          "decision": "",
+          "commit": "",
+          "base": "f2ecee5e3dbf777e0aa39d32484032db25d80fcb",
+          "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1",
+          "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+          "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5"
+        },
+        "bound_at": "2026-10-19 09:43:26"
+      },
+      "owner_active": false,
+      "running": false,
+      "can_retry": true,
+      "blocked": [],
+      "retry_blocked": [],
+      "recovery": {
+        "state": "complete",
+        "reason": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": true,
+        "errors": []
+      },
+      "evidence": "verification-operations/runs/1"
+    },
+    "verify": {
+      "check": "unknown",
+      "verdict": "unknown",
+      "commands": [],
+      "diagnosis": {},
+      "verification_current": false,
+      "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+      "recheck_operation": {
+        "id": 1,
+        "status": "failed",
+        "result": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。"
+      },
+      "previous_current_verification": {
+        "check": "pass",
+        "skip": "",
+        "commands": [
+          {
+            "kind": "build",
+            "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd",
+            "exit_code": 0,
+            "seconds": 0.1,
+            "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}",
+            "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}\n",
+            "reason": "exited",
+            "evidence": "runs/1/attempts/0003",
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            }
+          },
+          {
+            "kind": "test",
+            "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd",
+            "exit_code": 0,
+            "seconds": 0.1,
+            "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}",
+            "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}\n",
+            "reason": "exited",
+            "evidence": "runs/1/attempts/0004",
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            }
+          }
+        ],
+        "files": [
+          "app.py"
+        ],
+        "code_changed_during_check": false,
+        "checked_commit": "",
+        "checked_base": "f2ecee5e3dbf777e0aa39d32484032db25d80fcb",
+        "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+        "previous_verifications": [],
+        "rechecked": "2026-10-19 09:43:25"
+      }
+    }
+  },
+  "before_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "local-fixture",
+      "mode": "fix",
+      "status": "done",
+      "author": "independent-fixture",
+      "created": "2026-10-19 09:43:25",
+      "started": "2026-10-19 09:43:25",
+      "ended": "2026-10-19 09:43:25",
+      "prompt": "保留完整原始任务",
+      "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 构建测试：/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd\n— 通过，0.1 秒\n— 重新验证：构建通过\n",
+      "result": "original completed run; real local checks, no model verdict",
+      "diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+      "exit_code": 0,
+      "workdir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "verified": {
+      "check": "unknown",
+      "verdict": "unknown",
+      "commands": [],
+      "diagnosis": {},
+      "verification_current": false,
+      "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+      "recheck_operation": {
+        "id": 1,
+        "status": "failed",
+        "result": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。"
+      },
+      "previous_current_verification": {
+        "check": "pass",
+        "skip": "",
+        "commands": [
+          {
+            "kind": "build",
+            "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd",
+            "exit_code": 0,
+            "seconds": 0.1,
+            "tail": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}",
+            "output": "REAL_CHECK {\"action\": \"build\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}\n",
+            "reason": "exited",
+            "evidence": "runs/1/attempts/0003",
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            }
+          },
+          {
+            "kind": "test",
+            "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd",
+            "exit_code": 0,
+            "seconds": 0.1,
+            "tail": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}",
+            "output": "REAL_CHECK {\"action\": \"test\", \"value\": 1, \"cwd\": \"/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/worktrees/RECHK-1-r1\"}\n",
+            "reason": "exited",
+            "evidence": "runs/1/attempts/0004",
+            "cleanup": {
+              "trigger": null,
+              "term_sent": false,
+              "kill_sent": false,
+              "signals": [],
+              "errors": [],
+              "remaining_group": false,
+              "output_complete": true,
+              "reaped": true,
+              "complete": true
+            }
+          }
+        ],
+        "files": [
+          "app.py"
+        ],
+        "code_changed_during_check": false,
+        "checked_commit": "",
+        "checked_base": "f2ecee5e3dbf777e0aa39d32484032db25d80fcb",
+        "checked_diff": "diff --git a/app.py b/app.py\nindex 61313a6..b15b1b0 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 0\n+VALUE = 1\n",
+        "previous_verifications": [],
+        "rechecked": "2026-10-19 09:43:25"
+      }
+    },
+    "package": {
+      "records": 1,
+      "intact": true,
+      "problem": "",
+      "hash": "8345e5d1aefdcce6af1194e96012662508aca9024542794c6db1d47e9684449e",
+      "packed": true,
+      "snapshot": {
+        "ticket": {
+          "key": "RECHK-1",
+          "title": "验证当前候选值",
+          "type": "bug",
+          "reporter": "independent-fixture",
+          "created": "2026-10-19 09:43:25",
+          "body": ""
+        },
+        "project": {
+          "key": "RECHK",
+          "name": "隔离真实重验"
+        },
+        "flows": [],
+        "ac": [],
+        "ac_source": "",
+        "plan_ac": [],
+        "plan_run": null,
+        "asked": null,
+        "contract": [],
+        "change": {
+          "run": 1,
+          "agent": "local-fixture",
+          "decision": "",
+          "files": [
+            "app.py"
+          ],
+          "added": 1,
+          "removed": 1
+        },
+        "check": {
+          "result": "pass",
+          "skip": "",
+          "verdict": "",
+          "rounds": null,
+          "commands": [
+            {
+              "cmd": "",
+              "exit_code": 0
+            },
+            {
+              "cmd": "",
+              "exit_code": 0
+            }
+          ]
+        },
+        "scope": {
+          "beyond_plan": []
+        },
+        "path": {
+          "ok": false,
+          "covered": [],
+          "off": [],
+          "manual": [],
+          "basis": "python-static-functions",
+          "source": {
+            "commit": "",
+            "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5",
+            "blobs": {}
+          },
+          "mapping_digest": "da11071360136d24d8621687a1da29f5ac48989a48f4e5db80b34982be2b469f",
+          "changes": [],
+          "diagnostics": [
+            {
+              "file": "",
+              "line": 0,
+              "status": "unknown",
+              "message": "没有已采纳的确定提交；不能使用当前工作目录替代候选版本"
+            }
+          ],
+          "limitations": [
+            "同一 HTTP 方法中的不同 URL/条件分支可能走不同路径；此处不证明具体请求经过修改行。",
+            "动态调用、反射、运行时注册和外部依赖不能凭静态索引确认。",
+            "代码关联、实际测试、人工复核与客户签收是独立证据。"
+          ],
+          "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+        },
+        "gates": [
+          {
+            "id": "changed",
+            "name": "有实际改动",
+            "state": "pass",
+            "why": "1 个文件有实际改动"
+          },
+          {
+            "id": "parse",
+            "name": "改后的文件能解析",
+            "state": "pass",
+            "why": "解析了 1 个文件"
+          },
+          {
+            "id": "weaken",
+            "name": "没有削弱测试",
+            "state": "pass",
+            "why": "没有删测试、删断言、加跳过或 `|| true`"
+          },
+          {
+            "id": "scope",
+            "name": "没超出方案",
+            "state": "unknown",
+            "why": "方案没有列出要改的文件，判断不了是否超出"
+          },
+          {
+            "id": "path",
+            "name": "落在本单的业务流上",
+            "state": "unknown",
+            "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+          },
+          {
+            "id": "baseline",
+            "name": "原代码在这台机器上能构建",
+            "state": "pass",
+            "why": "原代码先构建测试过一遍，能跑通"
+          },
+          {
+            "id": "build",
+            "name": "构建通过",
+            "state": "pass",
+            "why": "`/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py build /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd` 通过"
+          },
+          {
+            "id": "test",
+            "name": "测试通过",
+            "state": "pass",
+            "why": "`/opt/homebrew/opt/python@3.14/bin/python3.14 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd/owned-check.py test /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recheck-independent-d0t9a3dd` 通过"
+          },
+          {
+            "id": "match",
+            "name": "对照验收标准，改对了【推断】",
+            "state": "unknown",
+            "why": "没有对照验收标准的判定"
+          }
+        ],
+        "adopted": null
+      },
+      "pack_seq": 1,
+      "pack_hash": "8345e5d1aefdcce6af1194e96012662508aca9024542794c6db1d47e9684449e",
+      "packed_at": "2026-10-19 09:43:25",
+      "attachments": [],
+      "review": null,
+      "have": {
+        "ac": false,
+        "change": true,
+        "check": false,
+        "scope": true,
+        "path": false,
+        "review": false,
+        "gates": false
+      },
+      "missing": [
+        "验收标准（AC）",
+        "验证门全部通过（没有没过或未知的）",
+        "乙方复核人",
+        "当前重新验证尚未形成有效结论，旧验证仅供查阅",
+        "验证依据在打包后已变化，需要按最新验证重新打包"
+      ],
+      "stale": true,
+      "gates": [
+        {
+          "id": "changed",
+          "name": "有实际改动",
+          "state": "pass",
+          "why": "1 个文件有实际改动"
+        },
+        {
+          "id": "parse",
+          "name": "改后的文件能解析",
+          "state": "unknown",
+          "why": "验证依据已变化，旧结果仅供历史查阅；请重新验证并打包"
+        },
+        {
+          "id": "weaken",
+          "name": "没有削弱测试",
+          "state": "pass",
+          "why": "没有删测试、删断言、加跳过或 `|| true`"
+        },
+        {
+          "id": "scope",
+          "name": "没超出方案",
+          "state": "unknown",
+          "why": "方案没有列出要改的文件，判断不了是否超出"
+        },
+        {
+          "id": "path",
+          "name": "落在本单的业务流上",
+          "state": "unknown",
+          "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+        },
+        {
+          "id": "baseline",
+          "name": "原代码在这台机器上能构建",
+          "state": "unknown",
+          "why": "验证依据已变化，旧结果仅供历史查阅；请重新验证并打包"
+        },
+        {
+          "id": "build",
+          "name": "构建通过",
+          "state": "unknown",
+          "why": "验证依据已变化，旧结果仅供历史查阅；请重新验证并打包"
+        },
+        {
+          "id": "test",
+          "name": "测试通过",
+          "state": "unknown",
+          "why": "验证依据已变化，旧结果仅供历史查阅；请重新验证并打包"
+        },
+        {
+          "id": "match",
+          "name": "对照验收标准，改对了【推断】",
+          "state": "unknown",
+          "why": "验证依据已变化，旧结果仅供历史查阅；请重新验证并打包"
+        }
+      ],
+      "gate_state": "unknown",
+      "links": [],
+      "decision": null,
+      "complete": false,
+      "status": "incomplete",
+      "proofs": [],
+      "verification_identity": {
+        "operation": 1,
+        "current": false,
+        "digest": "f8fa0de6f1eeb4178ef5462b72664457a17b2c08d53f145b35e2e71797f060cf"
+      },
+      "binding_blocked": [
+        "当前重新验证尚未形成有效结论，旧验证仅供查阅",
+        "验证依据在打包后已变化，需要按最新验证重新打包"
+      ]
+    },
+    "snapshot": {
+      "ticket": {
+        "key": "RECHK-1",
+        "title": "验证当前候选值",
+        "type": "bug",
+        "reporter": "independent-fixture",
+        "created": "2026-10-19 09:43:25",
+        "body": ""
+      },
+      "project": {
+        "key": "RECHK",
+        "name": "隔离真实重验"
+      },
+      "flows": [],
+      "ac": [],
+      "ac_source": "",
+      "plan_ac": [],
+      "plan_run": null,
+      "asked": null,
+      "contract": [],
+      "change": {
+        "run": 1,
+        "agent": "local-fixture",
+        "decision": "",
+        "files": [
+          "app.py"
+        ],
+        "added": 1,
+        "removed": 1
+      },
+      "check": {
+        "result": "unknown",
+        "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+        "verdict": "unknown",
+        "rounds": null,
+        "commands": []
+      },
+      "scope": {
+        "beyond_plan": []
+      },
+      "path": {
+        "ok": false,
+        "covered": [],
+        "off": [],
+        "manual": [],
+        "basis": "python-static-functions",
+        "source": {
+          "commit": "",
+          "diff_sha256": "9624ff3a241144bc0f4f9067c451f0e4b776ebf8eca8a8629b9bb06c701142c5",
+          "blobs": {}
+        },
+        "mapping_digest": "da11071360136d24d8621687a1da29f5ac48989a48f4e5db80b34982be2b469f",
+        "changes": [],
+        "diagnostics": [
+          {
+            "file": "",
+            "line": 0,
+            "status": "unknown",
+            "message": "没有已采纳的确定提交；不能使用当前工作目录替代候选版本"
+          }
+        ],
+        "limitations": [
+          "同一 HTTP 方法中的不同 URL/条件分支可能走不同路径；此处不证明具体请求经过修改行。",
+          "动态调用、反射、运行时注册和外部依赖不能凭静态索引确认。",
+          "代码关联、实际测试、人工复核与客户签收是独立证据。"
+        ],
+        "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+      },
+      "gates": [
+        {
+          "id": "changed",
+          "name": "有实际改动",
+          "state": "pass",
+          "why": "1 个文件有实际改动"
+        },
+        {
+          "id": "parse",
+          "name": "改后的文件能解析",
+          "state": "pass",
+          "why": "解析了 1 个文件"
+        },
+        {
+          "id": "weaken",
+          "name": "没有削弱测试",
+          "state": "pass",
+          "why": "没有删测试、删断言、加跳过或 `|| true`"
+        },
+        {
+          "id": "scope",
+          "name": "没超出方案",
+          "state": "unknown",
+          "why": "方案没有列出要改的文件，判断不了是否超出"
+        },
+        {
+          "id": "path",
+          "name": "落在本单的业务流上",
+          "state": "unknown",
+          "why": "候选版本尚有未关联或未解析的代码路径；记录关联后仍需实际业务测试"
+        },
+        {
+          "id": "baseline",
+          "name": "原代码在这台机器上能构建",
+          "state": "unknown",
+          "why": "没有跑构建测试：新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录"
+        },
+        {
+          "id": "build",
+          "name": "构建通过",
+          "state": "unknown",
+          "why": "没有跑构建"
+        },
+        {
+          "id": "test",
+          "name": "测试通过",
+          "state": "unknown",
+          "why": "没有跑测试"
+        },
+        {
+          "id": "match",
+          "name": "对照验收标准，改对了【推断】",
+          "state": "unknown",
+          "why": "没有对照验收标准的判定"
+        }
+      ],
+      "adopted": null,
+      "verification_identity": {
+        "operation": 1,
+        "current": false,
+        "digest": "f8fa0de6f1eeb4178ef5462b72664457a17b2c08d53f145b35e2e71797f060cf"
+      }
+    },
+    "workers": [
+      {
+        "pid": 77309,
+        "alive": false,
+        "ps": ""
+      },
+      {
+        "pid": 77310,
+        "alive": false,
+        "ps": ""
+      }
+    ],
+    "run_files": {
+      "verify.json": "ewogImNoZWNrIjogInBhc3MiLAogInNraXAiOiAiIiwKICJjb21tYW5kcyI6IFsKICB7CiAgICJraW5kIjogImJ1aWxkIiwKICAgImNvbW1hbmQiOiAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiLAogICAiZXhpdF9jb2RlIjogMCwKICAgInNlY29uZHMiOiAwLjEsCiAgICJ0YWlsIjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwiYnVpbGRcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcImJ1aWxkXCIsIFwidmFsdWVcIjogMSwgXCJjd2RcIjogXCIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMVwifVxuIiwKICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDMiLAogICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogICB9CiAgfSwKICB7CiAgICJraW5kIjogInRlc3QiLAogICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIiwKICAgImV4aXRfY29kZSI6IDAsCiAgICJzZWNvbmRzIjogMC4xLAogICAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAicmVhc29uIjogImV4aXRlZCIsCiAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgIH0KICB9CiBdLAogImZpbGVzIjogWwogICJhcHAucHkiCiBdLAogImNvZGVfY2hhbmdlZF9kdXJpbmdfY2hlY2siOiBmYWxzZSwKICJjaGVja2VkX2NvbW1pdCI6ICIiLAogImNoZWNrZWRfYmFzZSI6ICJmMmVjZWU1ZTNkYmY3NzdlMGFhMzlkMzI0ODQwMzJkYjI1ZDgwZmNiIiwKICJjaGVja2VkX2RpZmYiOiAiZGlmZiAtLWdpdCBhL2FwcC5weSBiL2FwcC5weVxuaW5kZXggNjEzMTNhNi4uYjE1YjFiMCAxMDA2NDRcbi0tLSBhL2FwcC5weVxuKysrIGIvYXBwLnB5XG5AQCAtMSArMSBAQFxuLVZBTFVFID0gMFxuK1ZBTFVFID0gMVxuIiwKICJwcmV2aW91c192ZXJpZmljYXRpb25zIjogW10sCiAicmVjaGVja2VkIjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiCn0=",
+      "owner.json": "ewogICJ0b2tlbiI6ICJjYmVkOGJhMTQ0MTI0ZjQ3YTQzZTJkZDU0ODdmYzAxMCIsCiAgInJ1bl9pZCI6IDEsCiAgImRhdGFfZGlyIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgp9",
+      "lifecycle.json": "ewogICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiLAogICJ0aW1lb3V0X3NlY29uZHMiOiAzMC4wLAogICJzdG9wcGVkX3JlYXNvbiI6ICIiLAogICJhdHRlbXB0cyI6IFsKICAgIHsKICAgICAgImF0dGVtcHQiOiAxLAogICAgICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9iYXNlLTEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS45MDU4MDEwNDEwNTE3NDUsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MjY5LAogICAgICAicGdpZCI6IDc3MjY5LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDk5NzcwMDgzOTA3MDYwMzMsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IgogICAgfSwKICAgIHsKICAgICAgImF0dGVtcHQiOiAyLAogICAgICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL2Jhc2UtMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNzkyNjc2NTAwMDQ0NzYzLAogICAgICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDIiLAogICAgICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgICAgICJwaWQiOiA3NzI3MSwKICAgICAgInBnaWQiOiA3NzI3MSwKICAgICAgInJldHVybmNvZGUiOiAwLAogICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5MDQzMjc1MDA2MTE1NDM3LAogICAgICAiY2xlYW51cCI6IHsKICAgICAgICAidHJpZ2dlciI6IG51bGwsCiAgICAgICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICAgICAic2lnbmFscyI6IFtdLAogICAgICAgICJlcnJvcnMiOiBbXSwKICAgICAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAgICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAgICAgInJlYXBlZCI6IHRydWUsCiAgICAgICAgImNvbXBsZXRlIjogdHJ1ZQogICAgICB9LAogICAgICAiZW5kZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIKICAgIH0sCiAgICB7CiAgICAgICJhdHRlbXB0IjogMywKICAgICAgImtpbmQiOiAiY2hlY2s6YnVpbGQiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSBidWlsZCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICAgICAgXSwKICAgICAgInRpbWVvdXRfc2Vjb25kcyI6IDI5LjY4MDg0NTQ1ODA2MDUwMywKICAgICAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAzIiwKICAgICAgInN1cGVydmlzZWQiOiB0cnVlLAogICAgICAicGlkIjogNzcyNzQsCiAgICAgICJwZ2lkIjogNzcyNzQsCiAgICAgICJyZXR1cm5jb2RlIjogMCwKICAgICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAgICAiZWxhcHNlZF9zZWNvbmRzIjogMC4wODkzODI2MjQ5NTIxMjI1NywKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDQsCiAgICAgICJraW5kIjogImNoZWNrOnRlc3QiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNTcyOTc0NTgzMDE3NjQsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3Mjc2LAogICAgICAicGdpZCI6IDc3Mjc2LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDg1OTc2MTI0OTczOTY3NjcsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IgogICAgfQogIF0sCiAgImZpbmlzaGVkIjogdHJ1ZSwKICAib3duZXIiOiB7CiAgICAidG9rZW4iOiAiY2JlZDhiYTE0NDEyNGY0N2E0M2UyZGQ1NDg3ZmMwMTAiLAogICAgInJ1bl9pZCI6IDEsCiAgICAiZGF0YV9kaXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgfSwKICAiZW5kZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIsCiAgImVsYXBzZWRfc2Vjb25kcyI6IDAuNTUxCn0=",
+      "owner.lock": "",
+      "attempts/0003/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICJjYmVkOGJhMTQ0MTI0ZjQ3YTQzZTJkZDU0ODdmYzAxMCIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICB9LAogICJub25jZSI6ICI0ZmRhNjNkNDY2NDU0ZTUxOWRiZTExMmYyMTkxODBhNSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9ydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MjczLAogICJwaWQiOiA3NzI3NCwKICAicGdpZCI6IDc3Mjc0Cn0=",
+      "attempts/0003/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICJjYmVkOGJhMTQ0MTI0ZjQ3YTQzZTJkZDU0ODdmYzAxMCIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICB9LAogICJub25jZSI6ICI0ZmRhNjNkNDY2NDU0ZTUxOWRiZTExMmYyMTkxODBhNSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9ydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzI3MywKICAicGlkIjogNzcyNzQsCiAgInBnaWQiOiA3NzI3NCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA4OTM4MjYyNDk1MjEyMjU3LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA1Ljg0MjIzLAogICJvdXRwdXQiOiB7CiAgICAiZmlsZSI6ICJvdXRwdXQuYmluIiwKICAgICJieXRlcyI6IDE2NCwKICAgICJzaGEyNTYiOiAiNTY2YTM2ZTVmYWQ1YjM4MDlkZTYyMzcyNTIzM2IwN2NkMWNkMzI3NTI2N2I0ODQ2N2VhNjQ5OTFhOTVkY2ExYiIKICB9Cn0=",
+      "attempts/0003/process.json": "ewogICJhdHRlbXB0IjogMywKICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIsCiAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgImNvbW1hbmQiOiBbCiAgICAiL2Jpbi9zaCIsCiAgICAiLWMiLAogICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IGJ1aWxkIC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogIF0sCiAgInRpbWVvdXRfc2Vjb25kcyI6IDI5LjY4MDg0NTQ1ODA2MDUwMywKICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDMiLAogICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAicGlkIjogNzcyNzQsCiAgInBnaWQiOiA3NzI3NCwKICAicmV0dXJuY29kZSI6IDAsCiAgInJlYXNvbiI6ICJleGl0ZWQiLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA4OTM4MjYyNDk1MjEyMjU3LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIKfQ==",
+      "attempts/0003/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDEsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL1JFQ0hLLTEtcjEifQo=",
+      "attempts/0003/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDEsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL1JFQ0hLLTEtcjEifQo=",
+      "attempts/0004/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICJjYmVkOGJhMTQ0MTI0ZjQ3YTQzZTJkZDU0ODdmYzAxMCIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICB9LAogICJub25jZSI6ICIzZDJiMmQ2NTUxNzY0NDk0YjQ4YjBhNjkwZjM4MmM1YSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9ydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3Mjc1LAogICJwaWQiOiA3NzI3NiwKICAicGdpZCI6IDc3Mjc2Cn0=",
+      "attempts/0004/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICJjYmVkOGJhMTQ0MTI0ZjQ3YTQzZTJkZDU0ODdmYzAxMCIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICB9LAogICJub25jZSI6ICIzZDJiMmQ2NTUxNzY0NDk0YjQ4YjBhNjkwZjM4MmM1YSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9ydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzI3NSwKICAicGlkIjogNzcyNzYsCiAgInBnaWQiOiA3NzI3NiwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA4NTk3NjEyNDk3Mzk2NzY3LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA1Ljk0NjQ2OCwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAxNjMsCiAgICAic2hhMjU2IjogIjQwYmJhYTJjZDE4ZTdjZjgzZDM2ZjhkZGZiMDExZmZmMzg4OWI5OGUwNjQ5ZjgzZDdjZTFkMzM0NzIwNjFlODgiCiAgfQp9",
+      "attempts/0004/process.json": "ewogICJhdHRlbXB0IjogNCwKICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxIiwKICAiY29tbWFuZCI6IFsKICAgICIvYmluL3NoIiwKICAgICItYyIsCiAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgdGVzdCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICBdLAogICJ0aW1lb3V0X3NlY29uZHMiOiAyOS41NzI5NzQ1ODMwMTc2NCwKICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDQiLAogICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAicGlkIjogNzcyNzYsCiAgInBnaWQiOiA3NzI3NiwKICAicmV0dXJuY29kZSI6IDAsCiAgInJlYXNvbiI6ICJleGl0ZWQiLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA4NTk3NjEyNDk3Mzk2NzY3LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIKfQ==",
+      "attempts/0004/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMSwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMSJ9Cg==",
+      "attempts/0004/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMSwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMSJ9Cg==",
+      "attempts/0002/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICJjYmVkOGJhMTQ0MTI0ZjQ3YTQzZTJkZDU0ODdmYzAxMCIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICB9LAogICJub25jZSI6ICI2ZGM4NTVjNGVmMTk0YzgxYjE4ZmEyOTgyOGRkZmVlYSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9ydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MjcwLAogICJwaWQiOiA3NzI3MSwKICAicGdpZCI6IDc3MjcxCn0=",
+      "attempts/0002/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICJjYmVkOGJhMTQ0MTI0ZjQ3YTQzZTJkZDU0ODdmYzAxMCIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICB9LAogICJub25jZSI6ICI2ZGM4NTVjNGVmMTk0YzgxYjE4ZmEyOTgyOGRkZmVlYSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9ydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzI3MCwKICAicGlkIjogNzcyNzEsCiAgInBnaWQiOiA3NzI3MSwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5MDQzMjc1MDA2MTE1NDM3LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA1LjczMTE5NiwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAxNTksCiAgICAic2hhMjU2IjogImQ4OTY5ZWNmYzQ3MDNhMDA4YzQ0NmQ1MWU3MzU5MGEwNWYzZTliOGRiN2RhOWNmYjIyOTU1NzAzMWIwODgzMGIiCiAgfQp9",
+      "attempts/0002/process.json": "ewogICJhdHRlbXB0IjogMiwKICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1IiwKICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9iYXNlLTEiLAogICJjb21tYW5kIjogWwogICAgIi9iaW4vc2giLAogICAgIi1jIiwKICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogIF0sCiAgInRpbWVvdXRfc2Vjb25kcyI6IDI5Ljc5MjY3NjUwMDA0NDc2MywKICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDIiLAogICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAicGlkIjogNzcyNzEsCiAgInBnaWQiOiA3NzI3MSwKICAicmV0dXJuY29kZSI6IDAsCiAgInJlYXNvbiI6ICJleGl0ZWQiLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5MDQzMjc1MDA2MTE1NDM3LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIKfQ==",
+      "attempts/0002/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMCwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvYmFzZS0xIn0K",
+      "attempts/0002/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMCwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvYmFzZS0xIn0K",
+      "attempts/0001/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICJjYmVkOGJhMTQ0MTI0ZjQ3YTQzZTJkZDU0ODdmYzAxMCIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICB9LAogICJub25jZSI6ICI5OTNhYjI3ZGNlOTU0MmM0OGRmYThmZmI5NWVjY2QwMCIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9ydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MjY2LAogICJwaWQiOiA3NzI2OSwKICAicGdpZCI6IDc3MjY5Cn0=",
+      "attempts/0001/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICJjYmVkOGJhMTQ0MTI0ZjQ3YTQzZTJkZDU0ODdmYzAxMCIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZCIKICB9LAogICJub25jZSI6ICI5OTNhYjI3ZGNlOTU0MmM0OGRmYThmZmI5NWVjY2QwMCIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9ydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzI2NiwKICAicGlkIjogNzcyNjksCiAgInBnaWQiOiA3NzI2OSwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5OTc3MDA4MzkwNzA2MDMzLAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA1LjYyNzY1MSwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAxNjAsCiAgICAic2hhMjU2IjogIjg0MGU0ODUyODhlZWU2N2I1NWEzYjc2YmQ2ZGIzM2VlYmNhODYyMjQ0OGQ1NzIzODQ5ZjIyMjViOTg2Nzc1MTQiCiAgfQp9",
+      "attempts/0001/process.json": "ewogICJhdHRlbXB0IjogMSwKICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNSIsCiAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvYmFzZS0xIiwKICAiY29tbWFuZCI6IFsKICAgICIvYmluL3NoIiwKICAgICItYyIsCiAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgXSwKICAidGltZW91dF9zZWNvbmRzIjogMjkuOTA1ODAxMDQxMDUxNzQ1LAogICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInN1cGVydmlzZWQiOiB0cnVlLAogICJwaWQiOiA3NzI2OSwKICAicGdpZCI6IDc3MjY5LAogICJyZXR1cm5jb2RlIjogMCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDk5NzcwMDgzOTA3MDYwMzMsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI1Igp9",
+      "attempts/0001/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDAsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL2Jhc2UtMSJ9Cg==",
+      "attempts/0001/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDAsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL2Jhc2UtMSJ9Cg=="
+    },
+    "operation_files": {
+      "checks/RECHK-a4cb3cbb578514eb.json": "W3sia2luZCI6ICJidWlsZCIsICJjb21tYW5kIjogIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IGJ1aWxkIC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIiwgImV4aXRfY29kZSI6IDAsICJzZWNvbmRzIjogMC4xLCAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcImJ1aWxkXCIsIFwidmFsdWVcIjogMCwgXCJjd2RcIjogXCIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xXCJ9IiwgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcImJ1aWxkXCIsIFwidmFsdWVcIjogMCwgXCJjd2RcIjogXCIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xXCJ9XG4iLCAicmVhc29uIjogImV4aXRlZCIsICJldmlkZW5jZSI6ICJ2ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMSIsICJjbGVhbnVwIjogeyJ0cmlnZ2VyIjogbnVsbCwgInRlcm1fc2VudCI6IGZhbHNlLCAia2lsbF9zZW50IjogZmFsc2UsICJzaWduYWxzIjogW10sICJlcnJvcnMiOiBbXSwgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLCAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwgInJlYXBlZCI6IHRydWUsICJjb21wbGV0ZSI6IHRydWV9fSwgeyJraW5kIjogInRlc3QiLCAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIiwgImV4aXRfY29kZSI6IDAsICJzZWNvbmRzIjogMC4xLCAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAwLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3ZlcmlmaWNhdGlvbi1vcGVyYXRpb25zL3dvcmt0cmVlcy9iYXNlLTFcIn0iLCAib3V0cHV0IjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwidGVzdFwiLCBcInZhbHVlXCI6IDAsIFwiY3dkXCI6IFwiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvdmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMvd29ya3RyZWVzL2Jhc2UtMVwifVxuIiwgInJlYXNvbiI6ICJleGl0ZWQiLCAiZXZpZGVuY2UiOiAidmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMvcnVucy8xL2F0dGVtcHRzLzAwMDIiLCAiY2xlYW51cCI6IHsidHJpZ2dlciI6IG51bGwsICJ0ZXJtX3NlbnQiOiBmYWxzZSwgImtpbGxfc2VudCI6IGZhbHNlLCAic2lnbmFscyI6IFtdLCAiZXJyb3JzIjogW10sICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsICJyZWFwZWQiOiB0cnVlLCAiY29tcGxldGUiOiB0cnVlfX1d",
+      "source-locks/1.lock": "",
+      "runs/1/verification.before.json": "ewogImNoZWNrIjogInBhc3MiLAogInNraXAiOiAiIiwKICJjb21tYW5kcyI6IFsKICB7CiAgICJraW5kIjogImJ1aWxkIiwKICAgImNvbW1hbmQiOiAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiLAogICAiZXhpdF9jb2RlIjogMCwKICAgInNlY29uZHMiOiAwLjEsCiAgICJ0YWlsIjogIlJFQUxfQ0hFQ0sge1wiYWN0aW9uXCI6IFwiYnVpbGRcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcImJ1aWxkXCIsIFwidmFsdWVcIjogMSwgXCJjd2RcIjogXCIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMVwifVxuIiwKICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDMiLAogICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogICB9CiAgfSwKICB7CiAgICJraW5kIjogInRlc3QiLAogICAiY29tbWFuZCI6ICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIiwKICAgImV4aXRfY29kZSI6IDAsCiAgICJzZWNvbmRzIjogMC4xLAogICAidGFpbCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9IiwKICAgIm91dHB1dCI6ICJSRUFMX0NIRUNLIHtcImFjdGlvblwiOiBcInRlc3RcIiwgXCJ2YWx1ZVwiOiAxLCBcImN3ZFwiOiBcIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxXCJ9XG4iLAogICAicmVhc29uIjogImV4aXRlZCIsCiAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgIH0KICB9CiBdLAogImZpbGVzIjogWwogICJhcHAucHkiCiBdLAogImNvZGVfY2hhbmdlZF9kdXJpbmdfY2hlY2siOiBmYWxzZSwKICJjaGVja2VkX2NvbW1pdCI6ICIiLAogImNoZWNrZWRfYmFzZSI6ICJmMmVjZWU1ZTNkYmY3NzdlMGFhMzlkMzI0ODQwMzJkYjI1ZDgwZmNiIiwKICJjaGVja2VkX2RpZmYiOiAiZGlmZiAtLWdpdCBhL2FwcC5weSBiL2FwcC5weVxuaW5kZXggNjEzMTNhNi4uYjE1YjFiMCAxMDA2NDRcbi0tLSBhL2FwcC5weVxuKysrIGIvYXBwLnB5XG5AQCAtMSArMSBAQFxuLVZBTFVFID0gMFxuK1ZBTFVFID0gMVxuIiwKICJwcmV2aW91c192ZXJpZmljYXRpb25zIjogW10sCiAicmVjaGVja2VkIjogIjIwMjYtMTAtMTkgMDk6NDM6MjUiCn0=",
+      "runs/1/source.json": "ewogICJzY2hlbWEiOiAxLAogICJvcGVyYXRpb25faWQiOiAxLAogICJzb3VyY2VfcnVuIjogMSwKICAic291cmNlIjogewogICAgInJ1biI6IDEsCiAgICAiZGVjaXNpb24iOiAiIiwKICAgICJjb21taXQiOiAiIiwKICAgICJiYXNlIjogImYyZWNlZTVlM2RiZjc3N2UwYWEzOWQzMjQ4NDAzMmRiMjVkODBmY2IiLAogICAgIndvcmtkaXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL1JFQ0hLLTEtcjEiLAogICAgImRpZmYiOiAiZGlmZiAtLWdpdCBhL2FwcC5weSBiL2FwcC5weVxuaW5kZXggNjEzMTNhNi4uYjE1YjFiMCAxMDA2NDRcbi0tLSBhL2FwcC5weVxuKysrIGIvYXBwLnB5XG5AQCAtMSArMSBAQFxuLVZBTFVFID0gMFxuK1ZBTFVFID0gMVxuIiwKICAgICJkaWZmX3NoYTI1NiI6ICI5NjI0ZmYzYTI0MTE0NGJjMGY0ZjkwNjdjNDUxZjBlNGI3NzZlYmY4ZWNhOGE4NjI5YjliYjA2YzcwMTE0MmM1IgogIH0sCiAgImJvdW5kX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiCn0=",
+      "runs/1/owner.json": "ewogICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgInJ1bl9pZCI6IDEsCiAgImRhdGFfZGlyIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3ZlcmlmaWNhdGlvbi1vcGVyYXRpb25zIgp9",
+      "runs/1/lifecycle.json": "ewogICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiLAogICJ0aW1lb3V0X3NlY29uZHMiOiAzMC4wLAogICJzdG9wcGVkX3JlYXNvbiI6ICJvd25lcl9sb3N0IiwKICAiYXR0ZW1wdHMiOiBbCiAgICB7CiAgICAgICJhdHRlbXB0IjogMSwKICAgICAgImtpbmQiOiAiY2hlY2s6YnVpbGQiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI2IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xIiwKICAgICAgImNvbW1hbmQiOiBbCiAgICAgICAgIi9iaW4vc2giLAogICAgICAgICItYyIsCiAgICAgICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IGJ1aWxkIC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuOTA1MjMyNTAwMDUyMDgsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3Mjk3LAogICAgICAicGdpZCI6IDc3Mjk3LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTEwOTg0MjkxOTk3NzM4MTgsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6IDE3OTIzNzQyMDYuMzUyNTk5MSwKICAgICAgInN1cGVydmlzb3JfcmVjZWlwdCI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMS9zdXBlcnZpc29yLXJlc3VsdC5qc29uIgogICAgfSwKICAgIHsKICAgICAgImF0dGVtcHQiOiAyLAogICAgICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNiIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvdmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMvd29ya3RyZWVzL2Jhc2UtMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNzc2MTMzMTI1MDY1ODI2LAogICAgICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDIiLAogICAgICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgICAgICJwaWQiOiA3NzMwNCwKICAgICAgInBnaWQiOiA3NzMwNCwKICAgICAgInJldHVybmNvZGUiOiAwLAogICAgICAicmVhc29uIjogImV4aXRlZCIsCiAgICAgICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5OTk4ODA4MzAwNTg4MjgsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6IDE3OTIzNzQyMDYuNDcwNTMyMiwKICAgICAgInN1cGVydmlzb3JfcmVjZWlwdCI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMi9zdXBlcnZpc29yLXJlc3VsdC5qc29uIgogICAgfSwKICAgIHsKICAgICAgImF0dGVtcHQiOiAzLAogICAgICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxIiwKICAgICAgImNvbW1hbmQiOiBbCiAgICAgICAgIi9iaW4vc2giLAogICAgICAgICItYyIsCiAgICAgICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IGJ1aWxkIC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNjUzMjU4NDE3MDM0NTIsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MzA3LAogICAgICAicGdpZCI6IDc3MzA3LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTA2NzkxNTAwMDAyMTQ1NzcsCiAgICAgICJjbGVhbnVwIjogewogICAgICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAgICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgICAgICJzaWduYWxzIjogW10sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6IDE3OTIzNzQyMDYuNjAwMjQ1LAogICAgICAic3VwZXJ2aXNvcl9yZWNlaXB0IjogInJ1bnMvMS9hdHRlbXB0cy8wMDAzL3N1cGVydmlzb3ItcmVzdWx0Lmpzb24iCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDQsCiAgICAgICJraW5kIjogImNoZWNrOnRlc3QiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI2IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNTIzNTc1NDU3OTc3MTMsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MzA5LAogICAgICAicGdpZCI6IDc3MzA5LAogICAgICAicmV0dXJuY29kZSI6IDEyNSwKICAgICAgInJlYXNvbiI6ICJvd25lcl9sb3N0IiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuNTEwMjk1Mzc1MDE3NDQ5MywKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiAib3duZXJfbG9zdCIsCiAgICAgICAgInRlcm1fc2VudCI6IHRydWUsCiAgICAgICAgImtpbGxfc2VudCI6IHRydWUsCiAgICAgICAgInNpZ25hbHMiOiBbCiAgICAgICAgICB7CiAgICAgICAgICAgICJzaWduYWwiOiAiU0lHVEVSTSIsCiAgICAgICAgICAgICJhdCI6IDAuMTQxNDQ3MjUwMDMyNzk3NDYsCiAgICAgICAgICAgICJzZW50IjogdHJ1ZQogICAgICAgICAgfSwKICAgICAgICAgIHsKICAgICAgICAgICAgInNpZ25hbCI6ICJTSUdLSUxMIiwKICAgICAgICAgICAgImF0IjogMC40NDc2MTA2MjQ5NDk0NDc4LAogICAgICAgICAgICAic2VudCI6IHRydWUKICAgICAgICAgIH0KICAgICAgICBdLAogICAgICAgICJlcnJvcnMiOiBbXSwKICAgICAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAgICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAgICAgInJlYXBlZCI6IHRydWUsCiAgICAgICAgImNvbXBsZXRlIjogdHJ1ZQogICAgICB9LAogICAgICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA3LjEzMzQyNSwKICAgICAgInN1cGVydmlzb3JfcmVjZWlwdCI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNC9zdXBlcnZpc29yLXJlc3VsdC5qc29uIgogICAgfQogIF0sCiAgImZpbmlzaGVkIjogdHJ1ZSwKICAib3duZXIiOiB7CiAgICAidG9rZW4iOiAiMGU5ODdjZmZlNmI0NGI1NmJmNDQ2OWYyZWQ0OWQ3ZjIiLAogICAgInJ1bl9pZCI6IDEsCiAgICAiZGF0YV9kaXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvdmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMiCiAgfSwKICAiZWxhcHNlZF9zZWNvbmRzIjogMC41NDksCiAgInJlY292ZXJ5IjogewogICAgInN0YXRlIjogImNvbXBsZXRlIiwKICAgICJyZWFzb24iOiAi5bmz5Y+w5pyN5Yqh5Lit5pat77yb54us56uL55uR566h5bey5YGc5q2i5YWo6YOo5Y+X566h6L+b56iL5bm25L+d55WZ5Y6f5aeL6L6T5Ye677yM5Y+v5LuO5L+d55WZ5bel5L2c5qCR5paw5bu66L+Q6KGM44CCIiwKICAgICJldmlkZW5jZSI6ICJydW5zLzEvcmVzdGFydC1yZWNvdmVyeSIsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJlcnJvcnMiOiBbXQogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MzAiCn0=",
+      "runs/1/owner.lock": "",
+      "runs/1/restart-recovery/original-run.json": "ewogICJpZCI6IDEsCiAgInNvdXJjZV9ydW4iOiAxLAogICJwcm9qZWN0X2lkIjogMSwKICAidGlja2V0X2lkIjogMSwKICAiYXV0aG9yIjogImluZGVwZW5kZW50LXRlc3Qtb3BlcmF0b3IiLAogICJzdGF0dXMiOiAicnVubmluZyIsCiAgImNyZWF0ZWQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNiIsCiAgInN0YXJ0ZWQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNiIsCiAgImVuZGVkIjogIiIsCiAgImV4aXRfY29kZSI6IG51bGwsCiAgInJlc3VsdCI6ICIiLAogICJvdXRwdXQiOiAi4oCUIOmHjeaWsOmqjOivge+8iOS4jeaUueS7o+egge+8ie+8muWcqOacrOacuuS4iuaehOW7uui/measoeeahOaUueWKqFxu4oCUIOWFiOWcqOayoeaUuei/h+eahOS7o+eggeS4iui3keS4gOmBjeaehOW7uua1i+ivle+8jOehruiupOi/meWPsOacuuWZqOiDvei3kemAmlxu4oCUIOaehOW7uua1i+ivle+8mi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IGJ1aWxkIC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkXG7igJQg6YCa6L+H77yMMC4xIOenklxu4oCUIOaehOW7uua1i+ivle+8mi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IHRlc3QgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGRcbuKAlCDpgJrov4fvvIwwLjEg56eSXG7igJQg5p6E5bu65rWL6K+V77yaL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGRcbuKAlCDpgJrov4fvvIwwLjEg56eSXG7igJQg5p6E5bu65rWL6K+V77yaL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgdGVzdCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZFxuIgp9",
+      "runs/1/restart-recovery/check-1792374210242242000.json": "ewogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJyZWNvdmVyeSI6IHsKICAgICJzdGF0ZSI6ICJibG9ja2VkIiwKICAgICJyZWFzb24iOiAi5bmz5Y+w5pyN5Yqh5Lit5pat77yb5bCa5peg5rOV56Gu6K6k5YWo6YOo6L+b56iL5ZKM6L6T5Ye65bey5pS25a6M77yM5L+d55WZ546w5Zy65bm26Zi75q2i57ut6LeR44CCIiwKICAgICJldmlkZW5jZSI6ICJydW5zLzEvcmVzdGFydC1yZWNvdmVyeSIsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogZmFsc2UsCiAgICAiZXJyb3JzIjogWwogICAgICAi6L+H56iLIDTvvJrni6znq4vnm5HnrqHlgZzmraLlm57miaflsJrmnKrliLDovr7vvJvkuI3og73moLnmja7ml6cgUElEIOWIpOaWree7k+adnyIKICAgIF0KICB9LAogICJhdHRlbXB0cyI6IFsKICAgIHsKICAgICAgImF0dGVtcHQiOiAxLAogICAgICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3ZlcmlmaWNhdGlvbi1vcGVyYXRpb25zL3dvcmt0cmVlcy9iYXNlLTEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS45MDUyMzI1MDAwNTIwOCwKICAgICAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAgICAgInN1cGVydmlzZWQiOiB0cnVlLAogICAgICAicGlkIjogNzcyOTcsCiAgICAgICJwZ2lkIjogNzcyOTcsCiAgICAgICJyZXR1cm5jb2RlIjogMCwKICAgICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAgICAiZWxhcHNlZF9zZWNvbmRzIjogMC4xMTA5ODQyOTE5OTc3MzgxOCwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogMTc5MjM3NDIwNi4zNTI1OTkxLAogICAgICAic3VwZXJ2aXNvcl9yZWNlaXB0IjogInJ1bnMvMS9hdHRlbXB0cy8wMDAxL3N1cGVydmlzb3ItcmVzdWx0Lmpzb24iCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDIsCiAgICAgICJraW5kIjogImNoZWNrOnRlc3QiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI2IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xIiwKICAgICAgImNvbW1hbmQiOiBbCiAgICAgICAgIi9iaW4vc2giLAogICAgICAgICItYyIsCiAgICAgICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IHRlc3QgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS43NzYxMzMxMjUwNjU4MjYsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MzA0LAogICAgICAicGdpZCI6IDc3MzA0LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDk5OTg4MDgzMDA1ODgyOCwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogMTc5MjM3NDIwNi40NzA1MzIyLAogICAgICAic3VwZXJ2aXNvcl9yZWNlaXB0IjogInJ1bnMvMS9hdHRlbXB0cy8wMDAyL3N1cGVydmlzb3ItcmVzdWx0Lmpzb24iCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDMsCiAgICAgICJraW5kIjogImNoZWNrOmJ1aWxkIiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNiIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL1JFQ0hLLTEtcjEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS42NTMyNTg0MTcwMzQ1MiwKICAgICAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAzIiwKICAgICAgInN1cGVydmlzZWQiOiB0cnVlLAogICAgICAicGlkIjogNzczMDcsCiAgICAgICJwZ2lkIjogNzczMDcsCiAgICAgICJyZXR1cm5jb2RlIjogMCwKICAgICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAgICAiZWxhcHNlZF9zZWNvbmRzIjogMC4xMDY3OTE1MDAwMDIxNDU3NywKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogMTc5MjM3NDIwNi42MDAyNDUsCiAgICAgICJzdXBlcnZpc29yX3JlY2VpcHQiOiAicnVucy8xL2F0dGVtcHRzLzAwMDMvc3VwZXJ2aXNvci1yZXN1bHQuanNvbiIKICAgIH0sCiAgICB7CiAgICAgICJhdHRlbXB0IjogNCwKICAgICAgImtpbmQiOiAiY2hlY2s6dGVzdCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxIiwKICAgICAgImNvbW1hbmQiOiBbCiAgICAgICAgIi9iaW4vc2giLAogICAgICAgICItYyIsCiAgICAgICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IHRlc3QgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS41MjM1NzU0NTc5NzcxMywKICAgICAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDA0IiwKICAgICAgInN1cGVydmlzZWQiOiB0cnVlLAogICAgICAicGlkIjogNzczMDksCiAgICAgICJwZ2lkIjogNzczMDkKICAgIH0KICBdLAogICJjaGVja2VkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MzAiCn0=",
+      "runs/1/restart-recovery/check-1792374210435511000.json": "ewogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJyZWNvdmVyeSI6IHsKICAgICJzdGF0ZSI6ICJjb21wbGV0ZSIsCiAgICAicmVhc29uIjogIuW5s+WPsOacjeWKoeS4reaWre+8m+eLrOeri+ebkeeuoeW3suWBnOatouWFqOmDqOWPl+euoei/m+eoi+W5tuS/neeVmeWOn+Wni+i+k+WHuu+8jOWPr+S7juS/neeVmeW3peS9nOagkeaWsOW7uui/kOihjOOAgiIsCiAgICAiZXZpZGVuY2UiOiAicnVucy8xL3Jlc3RhcnQtcmVjb3ZlcnkiLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAiZXJyb3JzIjogW10KICB9LAogICJhdHRlbXB0cyI6IFsKICAgIHsKICAgICAgImF0dGVtcHQiOiAxLAogICAgICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3ZlcmlmaWNhdGlvbi1vcGVyYXRpb25zL3dvcmt0cmVlcy9iYXNlLTEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS45MDUyMzI1MDAwNTIwOCwKICAgICAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAgICAgInN1cGVydmlzZWQiOiB0cnVlLAogICAgICAicGlkIjogNzcyOTcsCiAgICAgICJwZ2lkIjogNzcyOTcsCiAgICAgICJyZXR1cm5jb2RlIjogMCwKICAgICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAgICAiZWxhcHNlZF9zZWNvbmRzIjogMC4xMTA5ODQyOTE5OTc3MzgxOCwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogMTc5MjM3NDIwNi4zNTI1OTkxLAogICAgICAic3VwZXJ2aXNvcl9yZWNlaXB0IjogInJ1bnMvMS9hdHRlbXB0cy8wMDAxL3N1cGVydmlzb3ItcmVzdWx0Lmpzb24iCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDIsCiAgICAgICJraW5kIjogImNoZWNrOnRlc3QiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI2IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xIiwKICAgICAgImNvbW1hbmQiOiBbCiAgICAgICAgIi9iaW4vc2giLAogICAgICAgICItYyIsCiAgICAgICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IHRlc3QgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS43NzYxMzMxMjUwNjU4MjYsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MzA0LAogICAgICAicGdpZCI6IDc3MzA0LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDk5OTg4MDgzMDA1ODgyOCwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogMTc5MjM3NDIwNi40NzA1MzIyLAogICAgICAic3VwZXJ2aXNvcl9yZWNlaXB0IjogInJ1bnMvMS9hdHRlbXB0cy8wMDAyL3N1cGVydmlzb3ItcmVzdWx0Lmpzb24iCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDMsCiAgICAgICJraW5kIjogImNoZWNrOmJ1aWxkIiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNiIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL1JFQ0hLLTEtcjEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS42NTMyNTg0MTcwMzQ1MiwKICAgICAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAzIiwKICAgICAgInN1cGVydmlzZWQiOiB0cnVlLAogICAgICAicGlkIjogNzczMDcsCiAgICAgICJwZ2lkIjogNzczMDcsCiAgICAgICJyZXR1cm5jb2RlIjogMCwKICAgICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAgICAiZWxhcHNlZF9zZWNvbmRzIjogMC4xMDY3OTE1MDAwMDIxNDU3NywKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogMTc5MjM3NDIwNi42MDAyNDUsCiAgICAgICJzdXBlcnZpc29yX3JlY2VpcHQiOiAicnVucy8xL2F0dGVtcHRzLzAwMDMvc3VwZXJ2aXNvci1yZXN1bHQuanNvbiIKICAgIH0sCiAgICB7CiAgICAgICJhdHRlbXB0IjogNCwKICAgICAgImtpbmQiOiAiY2hlY2s6dGVzdCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3dvcmt0cmVlcy9SRUNISy0xLXIxIiwKICAgICAgImNvbW1hbmQiOiBbCiAgICAgICAgIi9iaW4vc2giLAogICAgICAgICItYyIsCiAgICAgICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IHRlc3QgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS41MjM1NzU0NTc5NzcxMywKICAgICAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDA0IiwKICAgICAgInN1cGVydmlzZWQiOiB0cnVlLAogICAgICAicGlkIjogNzczMDksCiAgICAgICJwZ2lkIjogNzczMDksCiAgICAgICJyZXR1cm5jb2RlIjogMTI1LAogICAgICAicmVhc29uIjogIm93bmVyX2xvc3QiLAogICAgICAiZWxhcHNlZF9zZWNvbmRzIjogMC41MTAyOTUzNzUwMTc0NDkzLAogICAgICAiY2xlYW51cCI6IHsKICAgICAgICAidHJpZ2dlciI6ICJvd25lcl9sb3N0IiwKICAgICAgICAidGVybV9zZW50IjogdHJ1ZSwKICAgICAgICAia2lsbF9zZW50IjogdHJ1ZSwKICAgICAgICAic2lnbmFscyI6IFsKICAgICAgICAgIHsKICAgICAgICAgICAgInNpZ25hbCI6ICJTSUdURVJNIiwKICAgICAgICAgICAgImF0IjogMC4xNDE0NDcyNTAwMzI3OTc0NiwKICAgICAgICAgICAgInNlbnQiOiB0cnVlCiAgICAgICAgICB9LAogICAgICAgICAgewogICAgICAgICAgICAic2lnbmFsIjogIlNJR0tJTEwiLAogICAgICAgICAgICAiYXQiOiAwLjQ0NzYxMDYyNDk0OTQ0NzgsCiAgICAgICAgICAgICJzZW50IjogdHJ1ZQogICAgICAgICAgfQogICAgICAgIF0sCiAgICAgICAgImVycm9ycyI6IFtdLAogICAgICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAiY29tcGxldGUiOiB0cnVlCiAgICAgIH0sCiAgICAgICJlbmRlZF9hdCI6IDE3OTIzNzQyMDcuMTMzNDI1LAogICAgICAic3VwZXJ2aXNvcl9yZWNlaXB0IjogInJ1bnMvMS9hdHRlbXB0cy8wMDA0L3N1cGVydmlzb3ItcmVzdWx0Lmpzb24iCiAgICB9CiAgXSwKICAiY2hlY2tlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjMwIgp9",
+      "runs/1/restart-recovery/original-lifecycle.json": "ewogICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiLAogICJ0aW1lb3V0X3NlY29uZHMiOiAzMC4wLAogICJzdG9wcGVkX3JlYXNvbiI6ICIiLAogICJhdHRlbXB0cyI6IFsKICAgIHsKICAgICAgImF0dGVtcHQiOiAxLAogICAgICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgICAgICJzdGFydGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiLAogICAgICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3ZlcmlmaWNhdGlvbi1vcGVyYXRpb25zL3dvcmt0cmVlcy9iYXNlLTEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS45MDUyMzI1MDAwNTIwOCwKICAgICAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAgICAgInN1cGVydmlzZWQiOiB0cnVlLAogICAgICAicGlkIjogNzcyOTcsCiAgICAgICJwZ2lkIjogNzcyOTcsCiAgICAgICJyZXR1cm5jb2RlIjogMCwKICAgICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAgICAiZWxhcHNlZF9zZWNvbmRzIjogMC4xMTA5ODQyOTE5OTc3MzgxOCwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDIsCiAgICAgICJraW5kIjogImNoZWNrOnRlc3QiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI2IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xIiwKICAgICAgImNvbW1hbmQiOiBbCiAgICAgICAgIi9iaW4vc2giLAogICAgICAgICItYyIsCiAgICAgICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IHRlc3QgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS43NzYxMzMxMjUwNjU4MjYsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MzA0LAogICAgICAicGdpZCI6IDc3MzA0LAogICAgICAicmV0dXJuY29kZSI6IDAsCiAgICAgICJyZWFzb24iOiAiZXhpdGVkIiwKICAgICAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDk5OTg4MDgzMDA1ODgyOCwKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDMsCiAgICAgICJraW5kIjogImNoZWNrOmJ1aWxkIiwKICAgICAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNiIsCiAgICAgICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL1JFQ0hLLTEtcjEiLAogICAgICAiY29tbWFuZCI6IFsKICAgICAgICAiL2Jpbi9zaCIsCiAgICAgICAgIi1jIiwKICAgICAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgICAgIF0sCiAgICAgICJ0aW1lb3V0X3NlY29uZHMiOiAyOS42NTMyNTg0MTcwMzQ1MiwKICAgICAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAzIiwKICAgICAgInN1cGVydmlzZWQiOiB0cnVlLAogICAgICAicGlkIjogNzczMDcsCiAgICAgICJwZ2lkIjogNzczMDcsCiAgICAgICJyZXR1cm5jb2RlIjogMCwKICAgICAgInJlYXNvbiI6ICJleGl0ZWQiLAogICAgICAiZWxhcHNlZF9zZWNvbmRzIjogMC4xMDY3OTE1MDAwMDIxNDU3NywKICAgICAgImNsZWFudXAiOiB7CiAgICAgICAgInRyaWdnZXIiOiBudWxsLAogICAgICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAgICAgInNpZ25hbHMiOiBbXSwKICAgICAgICAiZXJyb3JzIjogW10sCiAgICAgICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJjb21wbGV0ZSI6IHRydWUKICAgICAgfSwKICAgICAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiCiAgICB9LAogICAgewogICAgICAiYXR0ZW1wdCI6IDQsCiAgICAgICJraW5kIjogImNoZWNrOnRlc3QiLAogICAgICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI2IiwKICAgICAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgICAgICJjb21tYW5kIjogWwogICAgICAgICIvYmluL3NoIiwKICAgICAgICAiLWMiLAogICAgICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogICAgICBdLAogICAgICAidGltZW91dF9zZWNvbmRzIjogMjkuNTIzNTc1NDU3OTc3MTMsCiAgICAgICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgICAgICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAgICAgInBpZCI6IDc3MzA5LAogICAgICAicGdpZCI6IDc3MzA5CiAgICB9CiAgXSwKICAiZmluaXNoZWQiOiBmYWxzZSwKICAib3duZXIiOiB7CiAgICAidG9rZW4iOiAiMGU5ODdjZmZlNmI0NGI1NmJmNDQ2OWYyZWQ0OWQ3ZjIiLAogICAgInJ1bl9pZCI6IDEsCiAgICAiZGF0YV9kaXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvdmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMiCiAgfSwKICAiZWxhcHNlZF9zZWNvbmRzIjogMC41NDkKfQ==",
+      "runs/1/attempts/0003/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICJkZTQ2YTYwMzAwY2E0ZmQ2ODhjYzZkZTdiZDY3MTY0MiIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MzA2LAogICJwaWQiOiA3NzMwNywKICAicGdpZCI6IDc3MzA3Cn0=",
+      "runs/1/attempts/0003/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICJkZTQ2YTYwMzAwY2E0ZmQ2ODhjYzZkZTdiZDY3MTY0MiIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzMwNiwKICAicGlkIjogNzczMDcsCiAgInBnaWQiOiA3NzMwNywKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjEwNjc5MTUwMDAwMjE0NTc3LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA2LjYwMDI0NSwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAxNjQsCiAgICAic2hhMjU2IjogIjU2NmEzNmU1ZmFkNWIzODA5ZGU2MjM3MjUyMzNiMDdjZDFjZDMyNzUyNjdiNDg0NjdlYTY0OTkxYTk1ZGNhMWIiCiAgfQp9",
+      "runs/1/attempts/0003/process.json": "ewogICJhdHRlbXB0IjogMywKICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNiIsCiAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC93b3JrdHJlZXMvUkVDSEstMS1yMSIsCiAgImNvbW1hbmQiOiBbCiAgICAiL2Jpbi9zaCIsCiAgICAiLWMiLAogICAgIi9vcHQvaG9tZWJyZXcvb3B0L3B5dGhvbkAzLjE0L2Jpbi9weXRob24zLjE0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL293bmVkLWNoZWNrLnB5IGJ1aWxkIC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogIF0sCiAgInRpbWVvdXRfc2Vjb25kcyI6IDI5LjY1MzI1ODQxNzAzNDUyLAogICJldmlkZW5jZSI6ICJydW5zLzEvYXR0ZW1wdHMvMDAwMyIsCiAgInN1cGVydmlzZWQiOiB0cnVlLAogICJwaWQiOiA3NzMwNywKICAicGdpZCI6IDc3MzA3LAogICJyZXR1cm5jb2RlIjogMCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMTA2NzkxNTAwMDAyMTQ1NzcsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI2Igp9",
+      "runs/1/attempts/0003/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDEsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL1JFQ0hLLTEtcjEifQo=",
+      "runs/1/attempts/0003/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDEsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvd29ya3RyZWVzL1JFQ0hLLTEtcjEifQo=",
+      "runs/1/attempts/0004/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICI2YzZkZDE2ODY3Yzc0NTM1OWNiN2YxMjk0MGViNTQyNiIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MzA4LAogICJwaWQiOiA3NzMwOSwKICAicGdpZCI6IDc3MzA5Cn0=",
+      "runs/1/attempts/0004/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICI2YzZkZDE2ODY3Yzc0NTM1OWNiN2YxMjk0MGViNTQyNiIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwNCIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzMwOCwKICAicGlkIjogNzczMDksCiAgInBnaWQiOiA3NzMwOSwKICAicmVhc29uIjogIm93bmVyX2xvc3QiLAogICJyZXR1cm5jb2RlIjogMTI1LAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAtOSwKICAiZWxhcHNlZF9zZWNvbmRzIjogMC41MTAyOTUzNzUwMTc0NDkzLAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiAib3duZXJfbG9zdCIsCiAgICAidGVybV9zZW50IjogdHJ1ZSwKICAgICJraWxsX3NlbnQiOiB0cnVlLAogICAgInNpZ25hbHMiOiBbCiAgICAgIHsKICAgICAgICAic2lnbmFsIjogIlNJR1RFUk0iLAogICAgICAgICJhdCI6IDAuMTQxNDQ3MjUwMDMyNzk3NDYsCiAgICAgICAgInNlbnQiOiB0cnVlCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic2lnbmFsIjogIlNJR0tJTEwiLAogICAgICAgICJhdCI6IDAuNDQ3NjEwNjI0OTQ5NDQ3OCwKICAgICAgICAic2VudCI6IHRydWUKICAgICAgfQogICAgXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA3LjEzMzQyNSwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAyOCwKICAgICJzaGEyNTYiOiAiMjVhYTJlMjEwMWNmYmFlZTUwOThlZGEzYjhmOTRkYjA4MmRjNWY3YzgxMTNjYmUwY2NlZWNiM2MzNjY5ODJmZiIKICB9Cn0=",
+      "runs/1/attempts/0004/output.txt": "cmVjaGVjay1jYW5kaWRhdGUtc3RhcnRlZADvv70K",
+      "runs/1/attempts/0004/output.bin": "cmVjaGVjay1jYW5kaWRhdGUtc3RhcnRlZAD/Cg==",
+      "runs/1/attempts/0002/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICIwMTEwMjk1NWJkMGM0YmFiOGNjYmQ3MDU1YTVjNGQzMSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3MzAwLAogICJwaWQiOiA3NzMwNCwKICAicGdpZCI6IDc3MzA0Cn0=",
+      "runs/1/attempts/0002/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICIwMTEwMjk1NWJkMGM0YmFiOGNjYmQ3MDU1YTVjNGQzMSIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMiIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzMwMCwKICAicGlkIjogNzczMDQsCiAgInBnaWQiOiA3NzMwNCwKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5OTk4ODA4MzAwNTg4MjgsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6IDE3OTIzNzQyMDYuNDcwNTMyMiwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAxODMsCiAgICAic2hhMjU2IjogImM2NjhmMDdiNzM1YTMwZjc5ZTY0NGMzYTM4NGU0N2YyNWI3YzI1ZTk2Yjk2Y2YyYWQ4N2IwNjcxZTQxZTFjMzAiCiAgfQp9",
+      "runs/1/attempts/0002/process.json": "ewogICJhdHRlbXB0IjogMiwKICAia2luZCI6ICJjaGVjazp0ZXN0IiwKICAic3RhcnRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI2IiwKICAiY3dkIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkL3ZlcmlmaWNhdGlvbi1vcGVyYXRpb25zL3dvcmt0cmVlcy9iYXNlLTEiLAogICJjb21tYW5kIjogWwogICAgIi9iaW4vc2giLAogICAgIi1jIiwKICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCAvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC9vd25lZC1jaGVjay5weSB0ZXN0IC9wcml2YXRlL3Zhci9mb2xkZXJzL3MxL3c4ZnM4X2gxNWRkM2NmOG56cWN2NzYxNDAwMDBnbi9UL3RtaC1yZWNoZWNrLWluZGVwZW5kZW50LWQwdDlhM2RkIgogIF0sCiAgInRpbWVvdXRfc2Vjb25kcyI6IDI5Ljc3NjEzMzEyNTA2NTgyNiwKICAiZXZpZGVuY2UiOiAicnVucy8xL2F0dGVtcHRzLzAwMDIiLAogICJzdXBlcnZpc2VkIjogdHJ1ZSwKICAicGlkIjogNzczMDQsCiAgInBnaWQiOiA3NzMwNCwKICAicmV0dXJuY29kZSI6IDAsCiAgInJlYXNvbiI6ICJleGl0ZWQiLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjA5OTk4ODA4MzAwNTg4MjgsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6ICIyMDI2LTEwLTE5IDA5OjQzOjI2Igp9",
+      "runs/1/attempts/0002/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMCwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xIn0K",
+      "runs/1/attempts/0002/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJ0ZXN0IiwgInZhbHVlIjogMCwgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xIn0K",
+      "runs/1/attempts/0001/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICI3NzRhYjk4YzVhZWU0NzIzODYxODFmMzIxNWIzZTUzZCIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInBoYXNlIjogInJ1bm5pbmciLAogICJzdXBlcnZpc29yX3BpZCI6IDc3Mjk2LAogICJwaWQiOiA3NzI5NywKICAicGdpZCI6IDc3Mjk3Cn0=",
+      "runs/1/attempts/0001/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIwZTk4N2NmZmU2YjQ0YjU2YmY0NDY5ZjJlZDQ5ZDdmMiIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucyIKICB9LAogICJub25jZSI6ICI3NzRhYjk4YzVhZWU0NzIzODYxODFmMzIxNWIzZTUzZCIsCiAgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy9ydW5zLzEvYXR0ZW1wdHMvMDAwMSIsCiAgInBoYXNlIjogImZpbmlzaGVkIiwKICAic3VwZXJ2aXNvcl9waWQiOiA3NzI5NiwKICAicGlkIjogNzcyOTcsCiAgInBnaWQiOiA3NzI5NywKICAicmVhc29uIjogImV4aXRlZCIsCiAgInJldHVybmNvZGUiOiAwLAogICJwcm9jZXNzX3JldHVybmNvZGUiOiAwLAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjExMDk4NDI5MTk5NzczODE4LAogICJjbGVhbnVwIjogewogICAgInRyaWdnZXIiOiBudWxsLAogICAgInRlcm1fc2VudCI6IGZhbHNlLAogICAgImtpbGxfc2VudCI6IGZhbHNlLAogICAgInNpZ25hbHMiOiBbXSwKICAgICJlcnJvcnMiOiBbXSwKICAgICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwKICAgICJvdXRwdXRfY29tcGxldGUiOiB0cnVlLAogICAgInJlYXBlZCI6IHRydWUsCiAgICAiY29tcGxldGUiOiB0cnVlCiAgfSwKICAiZW5kZWRfYXQiOiAxNzkyMzc0MjA2LjM1MjU5OTEsCiAgIm91dHB1dCI6IHsKICAgICJmaWxlIjogIm91dHB1dC5iaW4iLAogICAgImJ5dGVzIjogMTg0LAogICAgInNoYTI1NiI6ICI0ZWU4NWY0MTQxYzdjZjU1NzFkODUwNzVlMDA0MzA3MTc1NjY0ODIyNWY0OTMyZTk2ZDM3MjdhYmU4Mjg1YWFiIgogIH0KfQ==",
+      "runs/1/attempts/0001/process.json": "ewogICJhdHRlbXB0IjogMSwKICAia2luZCI6ICJjaGVjazpidWlsZCIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwOTo0MzoyNiIsCiAgImN3ZCI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtcmVjaGVjay1pbmRlcGVuZGVudC1kMHQ5YTNkZC92ZXJpZmljYXRpb24tb3BlcmF0aW9ucy93b3JrdHJlZXMvYmFzZS0xIiwKICAiY29tbWFuZCI6IFsKICAgICIvYmluL3NoIiwKICAgICItYyIsCiAgICAiL29wdC9ob21lYnJldy9vcHQvcHl0aG9uQDMuMTQvYmluL3B5dGhvbjMuMTQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvb3duZWQtY2hlY2sucHkgYnVpbGQgL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQiCiAgXSwKICAidGltZW91dF9zZWNvbmRzIjogMjkuOTA1MjMyNTAwMDUyMDgsCiAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgInBpZCI6IDc3Mjk3LAogICJwZ2lkIjogNzcyOTcsCiAgInJldHVybmNvZGUiOiAwLAogICJyZWFzb24iOiAiZXhpdGVkIiwKICAiZWxhcHNlZF9zZWNvbmRzIjogMC4xMTA5ODQyOTE5OTc3MzgxOCwKICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDk6NDM6MjYiCn0=",
+      "runs/1/attempts/0001/output.txt": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDAsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvdmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMvd29ya3RyZWVzL2Jhc2UtMSJ9Cg==",
+      "runs/1/attempts/0001/output.bin": "UkVBTF9DSEVDSyB7ImFjdGlvbiI6ICJidWlsZCIsICJ2YWx1ZSI6IDAsICJjd2QiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLXJlY2hlY2staW5kZXBlbmRlbnQtZDB0OWEzZGQvdmVyaWZpY2F0aW9uLW9wZXJhdGlvbnMvd29ya3RyZWVzL2Jhc2UtMSJ9Cg=="
+    }
+  },
+  "fixture_cleanup_signals": [],
+  "after_fixture_cleanup_workers": [
+    {
+      "pid": 77309,
+      "alive": false,
+      "ps": ""
+    },
+    {
+      "pid": 77310,
+      "alive": false,
+      "ps": ""
+    }
+  ]
+}

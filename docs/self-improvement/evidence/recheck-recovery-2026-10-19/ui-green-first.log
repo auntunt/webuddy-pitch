@@ -1,0 +1,13 @@
+test_blocked_recheck_stops_polling_preserves_full_escaped_receipts_and_disables_actions (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_blocked_recheck_stops_polling_preserves_full_escaped_receipts_and_disables_actions) ... ok
+test_explicit_receipt_recovery_posts_once_and_keeps_drafts (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_explicit_receipt_recovery_posts_once_and_keeps_drafts) ... ok
+test_failed_recheck_keeps_original_done_but_invalidates_old_proof_and_adoption (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_failed_recheck_keeps_original_done_but_invalidates_old_proof_and_adoption) ... ok
+test_manual_recheck_creates_new_operation_and_preserves_old_receipts (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_manual_recheck_creates_new_operation_and_preserves_old_receipts) ... ok
+test_missing_cleanup_never_allows_new_recheck_even_when_server_flag_is_true (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_missing_cleanup_never_allows_new_recheck_even_when_server_flag_is_true) ... ok
+test_operation_free_legacy_state_keeps_existing_actions (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_operation_free_legacy_state_keeps_existing_actions) ... ok
+test_recheck_read_failure_is_actionable_and_old_view_cannot_override_navigation (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_recheck_read_failure_is_actionable_and_old_view_cannot_override_navigation) ... ok
+test_running_recheck_polls_get_only_and_updates_interruption_without_infinite_spinner (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_running_recheck_polls_get_only_and_updates_interruption_without_infinite_spinner) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.449s
+
+OK
