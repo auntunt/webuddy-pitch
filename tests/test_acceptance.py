@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import re
 import shutil
@@ -194,6 +195,105 @@ class AcceptanceTest(unittest.TestCase):
             self.assertEqual(cli.main(["accept", "advance", "T001", "--to", "implementing", "--repo", str(self.root)]), 0)
         self.assertEqual(out.getvalue().count("提示：AC 超过 8 条"), 2)
         self.assertEqual(acc.load(self.root, "T001")["state"], "implementing")
+
+    def test_structural_corrections_create_proposals_outside_the_state_machine(self):
+        note = "  缺少导出的分页边界。\n```\n- 状态：confirmed\n原话末尾  "
+        for n, kind in enumerate(("missing-requirement", "dependency"), 1):
+            result = acc.correct(self.root, "T001", kind, note)
+            self.assertEqual(result["proposal"], ".tmh/acceptance/proposals/T001-%d.md" % n)
+            draft = (self.root / result["proposal"]).read_text(encoding="utf-8")
+            self.assertIn(note, draft)
+            for required in ("待人确认", "来源任务：T001", "建议标题", "建议 AC 草稿"):
+                self.assertIn(required, draft)
+        self.assertEqual([r["task"] for r in acc.records(self.root)], ["T001"])
+        self.assertEqual(len(task.list_tasks(self.root)), 1)
+        self.assertIn(note, [json.loads(line)["note"] for line in
+                            (acc.acc_dir(self.root) / "corrections.jsonl").read_text(encoding="utf-8").splitlines()])
+
+    def test_proposal_confirmation_requires_a_person_and_creates_only_a_draft(self):
+        result = acc.correct(self.root, "T001", "dependency", "先明确服务依赖")
+        for env in acc.AGENT_ENV:
+            with mock.patch.dict(os.environ, dict(NO_AGENT, **{env: "1"})):
+                with self.assertRaisesRegex(acc.Refused, "只能由人"):
+                    acc.propose_confirm(self.root, result["proposal"], "张三")
+        with mock.patch.dict(os.environ, NO_AGENT):
+            for who in ("", "agent", "codex", "智能体"):
+                with self.assertRaisesRegex(acc.Refused, "--who"):
+                    acc.propose_confirm(self.root, result["proposal"], who)
+            r = acc.propose_confirm(self.root, str(self.root / result["proposal"]), "张三")
+            self.assertEqual((r["task"], r["state"]), ("T002", "draft_contract"))
+            self.assertIn("先明确服务依赖", (self.root / r["file"]).read_text(encoding="utf-8"))
+            self.assertIn("确认人：张三", (self.root / r["proposal"]).read_text(encoding="utf-8"))
+            self.assertIn("生成任务：T002", (self.root / r["proposal"]).read_text(encoding="utf-8"))
+            with self.assertRaisesRegex(acc.Refused, "重复确认"):
+                acc.propose_confirm(self.root, result["proposal"], "张三")
+        self.assertEqual(acc.load(self.root, "T001")["state"], "draft_contract")
+        self.assertIsNone(acc.load(self.root, "T002")["confirmed_by"])
+        with self.assertRaisesRegex(acc.Refused, "没有完整的验收标准"):
+            acc.advance(self.root, "T002", "implementing")
+
+    def test_pending_proposals_are_capped_per_source_and_old_corrections_are_unchanged(self):
+        first = acc.correct(self.root, "T001", "missing-requirement", "遗漏甲")
+        acc.correct(self.root, "T001", "dependency", "依赖乙")
+        before = (acc.acc_dir(self.root) / "corrections.jsonl").read_bytes()
+        with self.assertRaisesRegex(acc.Refused, "先处理已有草稿"):
+            acc.correct(self.root, "T001", "dependency", "依赖丙")
+        self.assertEqual((acc.acc_dir(self.root) / "corrections.jsonl").read_bytes(), before)
+        old = acc.correct(self.root, "T001", "other", "原有反馈")
+        self.assertNotIn("proposal", old)
+        with mock.patch.dict(os.environ, NO_AGENT):
+            acc.propose_confirm(self.root, first["proposal"], "张三")
+        again = acc.correct(self.root, "T001", "dependency", "依赖丙")
+        self.assertTrue(again["proposal"].endswith("T001-3.md"))
+        self.assertEqual(len(list((acc.acc_dir(self.root) / "proposals").glob("*.md"))), 3)
+
+    def test_proposal_confirmation_rejects_paths_outside_the_proposal_directory(self):
+        with mock.patch.dict(os.environ, NO_AGENT):
+            for path in ("../T001-1.md", str(self.c), ".tmh/tasks/T001-1.md"):
+                with self.assertRaisesRegex(acc.Refused, "本仓库"):
+                    acc.propose_confirm(self.root, path, "张三")
+
+    def test_proposal_cli_and_agent_hook(self):
+        from tmh import cli
+        out = io.StringIO()
+        with redirect_stdout(out):
+            self.assertEqual(cli.main(["accept", "correct", "T001", "--kind", "missing-requirement", "--note", "漏了导出",
+                                       "--repo", str(self.root)]), 0)
+            with mock.patch.dict(os.environ, NO_AGENT):
+                self.assertEqual(cli.main(["accept", "propose-confirm", "T001-1.md", "--who", "测试审阅者",
+                                           "--repo", str(self.root)]), 0)
+        self.assertIn("待人确认的草稿：", out.getvalue())
+        self.assertIn("T002（draft_contract）", out.getvalue())
+        for command in ("tmh accept propose-confirm T001-1.md --who 张三",
+                        "python3 .tmh/tool/tmh.py accept propose-confirm T001-1.md --who 张三"):
+            self.assertEqual(guard.pre_bash({"tool_input": {"command": command}, "cwd": str(self.root)}), 2)
+        self.assertEqual(guard.pre_bash({"tool_input": {"command": "tmh accept correct T001 --kind dependency --note 缺依赖"},
+                                         "cwd": str(self.root)}), 0)
+
+    def test_concurrent_proposals_cannot_exceed_two_pending(self):
+        from concurrent.futures import ThreadPoolExecutor
+        acc.correct(self.root, "T001", "dependency", "已有草稿")
+
+        def submit(n):
+            try:
+                return acc.correct(self.root, "T001", "dependency", "依赖 %d" % n)
+            except acc.Refused:
+                return None
+
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            results = list(pool.map(submit, range(4)))
+        self.assertEqual(sum(r is not None for r in results), 1)
+        self.assertEqual(len(list((acc.acc_dir(self.root) / "proposals").glob("*.md"))), 2)
+
+    def test_confirmation_retry_after_receipt_failure_reuses_the_new_draft(self):
+        result = acc.correct(self.root, "T001", "dependency", "核对依赖")
+        with mock.patch.dict(os.environ, NO_AGENT):
+            with mock.patch.object(Path, "replace", side_effect=OSError("模拟确认回执写入失败")):
+                with self.assertRaises(OSError):
+                    acc.propose_confirm(self.root, result["proposal"], "张三")
+            r = acc.propose_confirm(self.root, result["proposal"], "张三")
+        self.assertEqual((r["task"], r["state"]), ("T002", "draft_contract"))
+        self.assertEqual(len(task.list_tasks(self.root)), 2)
 
 
 if __name__ == "__main__":

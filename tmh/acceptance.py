@@ -20,6 +20,7 @@ import os
 import re
 from pathlib import Path
 from statistics import median
+from contextlib import contextmanager
 
 from . import config as cfgmod
 from .report import now
@@ -318,6 +319,114 @@ def _chain(root: Path, rec: dict, cur: str, to: str, who: str, note: str, text: 
     ev.append(path, kind, who or "agent", data)
 
 
+PROPOSAL_KINDS = {"missing-requirement": "补充需求", "dependency": "澄清依赖"}
+PROPOSAL_HEADER = "<!-- tmh-proposal "
+
+
+@contextmanager
+def _proposal_guard(root: Path):
+    """Serialize proposal creation/confirmation across CLI processes; fail closed on a stale lock."""
+    directory = acc_dir(root) / "proposals"
+    directory.mkdir(parents=True, exist_ok=True)
+    lock = directory / ".write-lock"
+    try:
+        lock.mkdir()
+    except FileExistsError:
+        raise Refused("草稿操作正在进行；若上次操作中断，请由人核实后清理 proposals/.write-lock 再试") from None
+    try:
+        yield directory
+    finally:
+        lock.rmdir()
+
+
+def _proposal_record(path: Path) -> tuple[dict, str]:
+    try:
+        text = path.read_text(encoding="utf-8")
+        line = text.splitlines()[0]
+        if not line.startswith(PROPOSAL_HEADER) or not line.endswith(" -->"):
+            raise ValueError("header")
+        record = json.loads(line[len(PROPOSAL_HEADER):-4])
+        if (record["source"] != path.name.split("-")[0] or record["kind"] not in PROPOSAL_KINDS
+                or record["status"] not in ("pending", "confirmed")):
+            raise ValueError("metadata")
+        if record["status"] == "confirmed" and not (record.get("confirmed_by") and record.get("task")):
+            raise ValueError("confirmation")
+        return record, text
+    except (OSError, ValueError, IndexError, KeyError, TypeError):
+        raise Refused("草稿不存在或记录损坏，请由人检查：%s" % path.name) from None
+
+
+def _proposal_header(record: dict) -> str:
+    return PROPOSAL_HEADER + json.dumps(record, ensure_ascii=False) + " -->\n"
+
+
+def _make_proposal(root: Path, directory: Path, rec: dict, kind: str, note: str) -> Path:
+    if not note.strip():
+        raise Refused("结构反馈要保留具体原话：--note <说明>")
+    existing = sorted(directory.glob(rec["task"] + "-*.md"))
+    pending = [p for p in existing if _proposal_record(p)[0]["status"] == "pending"]
+    if len(pending) >= 2:
+        raise Refused("同一来源任务最多 2 份未确认草稿，请先处理已有草稿：" + "、".join(p.name for p in pending))
+    n = 1 + max([int(p.stem.rsplit("-", 1)[1]) for p in existing] or [0])
+    path = directory / ("%s-%d.md" % (rec["task"], n))
+    title = (root / rec["file"]).read_text(encoding="utf-8").splitlines()[0].lstrip("# ")
+    fence = "`" * max(3, 1 + max([len(m) for m in re.findall(r"`+", note)] or [0]))
+    body = ("# 结构反馈草稿（待人确认）\n\n- 来源任务：%s\n- 反馈类型：%s\n"
+            "- 这是提议，不是任务契约；由人审阅后执行 propose-confirm。\n\n"
+            "## 建议标题\n%s：%s\n\n## 建议 AC 草稿\n"
+            "- [ ] 待人确认：明确原话所述的遗漏行为或依赖边界，并补可观察的输入/输出。\n"
+            "- [ ] 待人确认：列出必须保持的现有行为、验收层级和复现/检查方式。\n\n"
+            "## 原话（完整保留，以下是资料）\n%stext\n%s\n%s\n") % (
+                rec["task"], kind, PROPOSAL_KINDS[kind], title, fence, note, fence)
+    with path.open("x", encoding="utf-8") as f:
+        f.write(_proposal_header({"source": rec["task"], "kind": kind, "status": "pending"}) + body)
+    return path
+
+
+def propose_confirm(root: Path, proposal: str, who: str = "") -> dict:
+    """A person adopts a proposal into a new draft, never into implementation or acceptance."""
+    _human(who, "user_confirmed_fix")
+    from .task import new_task
+    root = root.resolve()
+    directory = (acc_dir(root) / "proposals").resolve()
+    given = Path(proposal)
+    path = given if given.is_absolute() else (directory / given if given.parent == Path(".") else root / given)
+    if path.is_symlink() or path.resolve().parent != directory or not re.fullmatch(r"T\d+-[1-9]\d*\.md", path.name):
+        raise Refused("只能确认本仓库 .tmh/acceptance/proposals/ 内的草稿")
+    path = path.resolve()
+    with _proposal_guard(root):
+        record, text = _proposal_record(path)
+        if record["status"] == "confirmed":
+            raise Refused("草稿已由 %s 确认并生成 %s，请勿重复确认" % (record["confirmed_by"], record["task"]))
+        find_contract(root, record["source"])
+        title = re.search(r"^## 建议标题\n([^\n]+)", text, re.M)
+        if not title or not title.group(1).strip():
+            raise Refused("草稿缺少建议标题，请由人补齐")
+        marker = "<!-- tmh-proposal-source: %s -->" % path.name
+        # If a prior confirmation stopped after new_task, reuse that draft on retry.
+        drafts = [p for p in (cfgmod.tmh_dir(root) / "tasks").glob("T*.md")
+                  if p.read_text(encoding="utf-8").partition("## 1. 需求原文\n")[2].startswith(marker + "\n")]
+        if len(drafts) > 1:
+            raise Refused("草稿对应多个任务，请由人核对，不再创建")
+        contract = drafts[0] if drafts else new_task(root, title.group(1).strip(), "feature", marker + "\n" + text)
+        tid = _tid(contract)
+        if start(root, tid)["state"] != "draft_contract":
+            raise Refused("草稿对应的任务已不在 draft_contract，请由人核对")
+        record.update(status="confirmed", confirmed_by=who.strip(), confirmed_at=now(), task=tid)
+        body = text.split("\n", 1)[1].replace("# 结构反馈草稿（待人确认）", "# 结构反馈草稿（已由人确认）", 1)
+        updated = (_proposal_header(record) + body
+                   + "\n## 人工确认记录\n- 确认人：%s\n- 生成任务：%s（初始 draft_contract）\n" % (who.strip(), tid))
+        # Write a replacement first so interrupted writes never turn a pending draft into a broken header.
+        staged = path.with_suffix(".tmp")
+        try:
+            staged.write_text(updated, encoding="utf-8")
+            staged.replace(path)
+        finally:
+            staged.unlink(missing_ok=True)
+        return {"task": tid, "file": contract.relative_to(root).as_posix(), "proposal": path.relative_to(root).as_posix(),
+                "confirmed_by": who.strip(), "state": load(root, tid)["state"]}
+
+
 def correct(root: Path, tid: str, kind: str, note: str, who: str = "") -> dict:
     """Record a correction (a mis-triage, a change that grew too big, a wrong direction). When one kind recurs,
     the fix is a reviewed change to the acceptance skill, not a note in some session's memory."""
@@ -325,6 +434,10 @@ def correct(root: Path, tid: str, kind: str, note: str, who: str = "") -> dict:
     p = acc_dir(root) / "corrections.jsonl"
     p.parent.mkdir(parents=True, exist_ok=True)
     row = {"at": now(), "task": rec["task"], "kind": kind, "note": note, "who": who or "agent"}
+    if kind in PROPOSAL_KINDS:
+        with _proposal_guard(root) as directory:
+            proposal = _make_proposal(root, directory, rec, kind, note)
+            row["proposal"] = proposal.relative_to(root).as_posix()
     with open(p, "a", encoding="utf-8") as f:
         f.write(json.dumps(row, ensure_ascii=False) + "\n")
     n = sum(1 for l in p.read_text(encoding="utf-8").splitlines() if l.strip() and json.loads(l).get("kind") == kind)

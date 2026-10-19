@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：P4；状态：done
+- 当前项：P5；状态：done
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -15,8 +15,8 @@
 | P1 | done | `407d196` | AGENTS 区块预算与命令路由 |
 | P2 | done | `eac0e2f` | 非阻塞任务尺寸提示 |
 | P3 | done | `d761bb6` | 经验卡固定开销 lint |
-| P4 | done | 见 `P4:` 提交 | 已知死路及来源验证 |
-| P5 | todo | — | 结构反馈草稿与人确认 |
+| P4 | done | `ff532c8` | 已知死路及来源验证 |
+| P5 | done | 见 `P5:` 提交 | 结构反馈草稿与人确认 |
 | P6 | todo | — | 可替换文件锁与 Windows 阻塞盘点 |
 
 ## P1
@@ -73,6 +73,22 @@
 - 差异/假设：规格举例提到 Node/原生 Codex，表使用证据直接证明的“POSIX 包装父进程”表述，不推断特定包装器；沙箱限制仅针对记录中的 workspace-write 环境。
 - 审阅：读回完整表并核对 5 列，无客户名、地址、报价、凭据；逐段审阅 diff，`git diff --check` 通过。未访问链接或证据目录之外的运行数据。
 - 验证：`NO_PROXY='*' no_proxy='*' python3 -m unittest discover -s tests -p 'test_tmh.py'`：47 tests，OK（6.079s）；修复 0 轮。
+
+## P5
+
+- 状态：done。
+- 范围：`tmh/acceptance.py`、`tmh/cli.py`、`tmh/guard.py`、`tests/test_acceptance.py`；只读规格列出的 `tmh/task.py` 与指定钩子测试。
+- 计划：missing-requirement/dependency 产生非任务草稿；同源最多两份未确认；人确认入口复用 `_human`，guard 增加拦截；不改 MOVES/HUMAN_ONLY、不接平台。
+- 命令/结果：待跑 test_acceptance 和指定 guard 钩子，临时仓库模拟上报→人工确认。
+- 待确认：平台接入留作建议，不在本次实现。
+- 首轮：19 个 acceptance 测试、10 个 GuardAndVerifyTest/AgentHookTest 均通过。补并发及确认回执失败恢复两例后 21 个测试待读结果。
+- 手工流程发现绝对草稿路径 `/var/...` 与 root.resolve() 的 `/private/var/...` 别名不一致，确认后返回相对路径报 ValueError；修复第 1 轮：先检查限定目录和符号链接，再规范化 path；新增用绝对路径确认的覆盖，重新跑指定测试和手工流程。
+- 最终验证：`NO_PROXY='*' no_proxy='*' python3 -m unittest discover -s tests -p 'test_acceptance.py'`：21 tests，OK（3.611s）；此前新增两例的中间版 21 tests 也通过（3.003s）。`... -p 'test_tmh.py' -k GuardAndVerifyTest -k AgentHookTest`：10 tests，OK（1.530s），包括 dangerous_bash 及 Codex hook。
+- 临时 Git 仓库 CLI 手工流程复跑成功：上报→读回完整 Markdown→用测试夹具模拟人工入口→读回确认人/新任务号；新任务 T002 为 draft_contract、confirmed_by=None，源任务未迁移。不是实际任务或真人验收操作。
+- 实际改动：4 个授权文件。草稿示例 `.tmh/acceptance/proposals/T001-1.md`，首行 JSON 注释标记来源/类型/状态，正文含建议标题、待补 AC 与完整原话（围栏长度避开原话反引号）；确认后原文保留并追加人名和任务号。
+- 收敛：同来源两类合计最多 2 份 pending；跨进程 mkdir 写锁防并发穿透，异常释放；损坏草稿保守拒绝；重复确认拒绝；回执写失败重试复用已建 draft。进程被强杀可能留下 `.write-lock`，需人核实后清理（不把该锁用作崩溃恢复所有权证明）。
+- 审阅：已逐段看实现/测试 diff，`git diff --check` 通过；guard 仅追加 propose-confirm 模式；MOVES/HUMAN_ONLY/AGENT_ENV、ALWAYS_PROTECTED、原确认/关闭拦截及证据链未改。共 1 轮实现修复。
+- 平台建议：以后在父单展示结构反馈待审列表，人在正常身份验证入口选择采纳，生成 draft 后再走原有规格/AC 确认；不直接调用 `_follow_up` 自动放单。
 
 ## 待确认
 

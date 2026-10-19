@@ -260,8 +260,16 @@ def cmd_accept(a) -> int:
         if a.action == "correct":
             r = acc.correct(root, a.task, a.kind or "other", a.note or "", a.who or "")
             print("已记录纠错 %s（%s 类第 %d 次）" % (r["task"], r["kind"], r["count"]))
+            if r.get("proposal"):
+                print("待人确认的草稿：" + r["proposal"])
             if r["due"]:
                 print("达到阈值 %d：请提一个评审 PR 更新 skills/acceptance-l2 的反模式检查项，不要只改会话记忆。" % r["threshold"])
+            return 0
+        if a.action == "propose-confirm":
+            if not a.task:
+                raise acc.Refused("请指定要确认的草稿路径")
+            r = acc.propose_confirm(root, a.task, a.who or "")
+            print("%s 确认草稿 → %s（%s）：%s" % (r["confirmed_by"], r["task"], r["state"], r["file"]))
             return 0
         rows = acc.by_build(root, a.build) if a.build else ([acc.load(root, a.task)] if a.task else acc.records(root))
         if a.build:
@@ -762,17 +770,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--kind", default="feature", choices=["feature", "migration", "bugfix", "refactor", "upgrade"])
     p.add_argument("--request", help="需求原文")
     p = add("accept", cmd_accept, "验收状态机：检查 AC、入口路径检查、推进状态；关单只认用户确认（docs/acceptance.md）")
-    p.add_argument("action", choices=["status", "check", "path-check", "advance", "reject", "confirm", "close", "correct", "evidence"],
+    p.add_argument("action", choices=["status", "check", "path-check", "advance", "reject", "confirm", "close", "correct", "propose-confirm", "evidence"],
                    help="status 看状态（--build 按构建列）；check 检查 AC；path-check 改动是否接上契约入口；advance --to 推进；"
-                        "reject 退回实现；confirm/close 由人确认、关单；correct 记一次纠错；evidence 看证据包和哈希链")
-    p.add_argument("task", nargs="?", help="任务号，如 T001")
+                        "reject 退回实现；confirm/close 由人确认、关单；correct 记一次纠错；propose-confirm 由人确认草稿；evidence 看证据包和哈希链")
+    p.add_argument("task", nargs="?", help="任务号，如 T001；propose-confirm 时为草稿路径")
     p.add_argument("--to", help="advance 的目标状态")
-    p.add_argument("--who", help="谁做的（confirm/close 必填姓名）")
+    p.add_argument("--who", help="谁做的（confirm/close/propose-confirm 必填姓名）")
     p.add_argument("--note", help="说明；退回实现时写原因")
     p.add_argument("--ref", help="合并：提交号或合并请求")
     p.add_argument("--build", help="部署：可测构建号/版本；status 时按构建列出")
     p.add_argument("--entry", action="append", help="path-check：不读契约，直接给入口（可多次）")
-    p.add_argument("--kind", help="correct：too-big / wrong-direction / misroute / other")
+    p.add_argument("--kind", help="correct：too-big / wrong-direction / misroute / other / missing-requirement / dependency")
     p = add("baseline", cmd_baseline, "记录基线（受保护文件、已知不兼容点，可选跑测试）")
     p.add_argument("--with-tests", action="store_true")
     p = add("verify", cmd_verify, "独立验证闸门")
