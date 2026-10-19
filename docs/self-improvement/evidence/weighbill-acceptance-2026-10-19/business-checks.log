@@ -1,0 +1,22 @@
+{
+  "commit": "ab9601e305bf9efdf908554174c56ca101194405",
+  "versions": [
+    1,
+    2,
+    3
+  ],
+  "history_counts": [
+    1,
+    2,
+    3
+  ],
+  "approved_gross": "10900",
+  "approved_net": "900",
+  "full_goods_and_remarks_retained": true,
+  "stale_approval_zero_state_and_history_change": true,
+  "two_other_records_unchanged": true,
+  "original_image_bytes_unchanged": true,
+  "bootv2_acceptance_unchanged": true,
+  "sqlite_backup_integrity": "ok",
+  "business_source_unchanged": true
+}

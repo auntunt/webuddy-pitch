@@ -1,0 +1,50 @@
+{
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-acceptance-20261019/starting-version.json": {
+    "bytes": 168,
+    "sha256": "a7b90a0ebc035e772d555ad8bbc4824d5b5a52fbb850bc954a89b567ecbbe321"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-acceptance-20261019/candidate-before.json": {
+    "bytes": 105402,
+    "sha256": "a9065dc73d53eb41d36bb4b8ae98f2219c1296c9a8946f90ae4a1ef8f7d0c662"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-acceptance-20261019/independent/candidate-live.json": {
+    "bytes": 105398,
+    "sha256": "9c1cffcfeafa01dc54caf2b61dcb7970957cd0e4168554a4c37c07325313a2c3"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/state.json": {
+    "bytes": 3413,
+    "sha256": "d3ceab7e2a9ca51e1566f8fde4689b483840e3c813e9d7efe7476896d87bdb14"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-acceptance-20261019/preview-before-resume.json": {
+    "bytes": 8264,
+    "sha256": "0fe49a7ec992614b409175da7c8d6c91af53530f5df7b3ce59b45392e9fe4b10"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-acceptance-20261019/preview-after-reconciled-save.json": {
+    "bytes": 8832,
+    "sha256": "94cbc72fe960ec505e158de43325bc1daca6b8284ce747e58360c68bc36c0293"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-acceptance-20261019/preview-after-approval.json": {
+    "bytes": 9006,
+    "sha256": "995484c2c8108be41a8938b966fffa49be0b7c1a3626024d7509dc39cd4b38c8"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-acceptance-20261019/preview-after-stale-approval.json": {
+    "bytes": 9006,
+    "sha256": "995484c2c8108be41a8938b966fffa49be0b7c1a3626024d7509dc39cd4b38c8"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/preview-before-browser.json": {
+    "bytes": 7561,
+    "sha256": "db2320c8fd808c2292330487cb9c79d68acb5f5890e79b74acfd0d48f000d906"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/preview-after-a-conflict.json": {
+    "bytes": 8264,
+    "sha256": "0fe49a7ec992614b409175da7c8d6c91af53530f5df7b3ce59b45392e9fe4b10"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/preview-data/webuddy-preview.json": {
+    "bytes": 825,
+    "sha256": "921714af0ab5c3d172a031efd1eb7a045ed6c1000046f3ff56a77ba649d4550a"
+  },
+  "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-acceptance-20261019/browser-timeline.json": {
+    "bytes": 65096,
+    "sha256": "c2d3a3d937628170d7f12d5f2cbba2fff9d5ccd4f3f658ea9dcb1ae17e26ea2b"
+  }
+}

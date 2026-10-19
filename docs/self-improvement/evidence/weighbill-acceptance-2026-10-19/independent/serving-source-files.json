@@ -1,0 +1,527 @@
+{
+  ".gitignore": {
+    "actual_sha256": "73c0b864a0d85fe74d6efa3264486540fd05b2eec395a0757152d0c5aed74d1d",
+    "commit_sha256": "73c0b864a0d85fe74d6efa3264486540fd05b2eec395a0757152d0c5aed74d1d",
+    "equal": true
+  },
+  "README.md": {
+    "actual_sha256": "5411dbd5b54fa0106cd30f8e9944e1fdc00026663605ae301d24ce524cedea6e",
+    "commit_sha256": "5411dbd5b54fa0106cd30f8e9944e1fdc00026663605ae301d24ce524cedea6e",
+    "equal": true
+  },
+  "app.py": {
+    "actual_sha256": "82f4b958f6bb9614b06676f1550c8eea148a43fd9910c7dbcb4c1042ac2033ac",
+    "commit_sha256": "82f4b958f6bb9614b06676f1550c8eea148a43fd9910c7dbcb4c1042ac2033ac",
+    "equal": true
+  },
+  "bench/cpu_ocr_acceptance.py": {
+    "actual_sha256": "57d039095615bf051ca93fee52be23eff08e7c2f8498391a8ac8f6fd7c8d954f",
+    "commit_sha256": "57d039095615bf051ca93fee52be23eff08e7c2f8498391a8ac8f6fd7c8d954f",
+    "equal": true
+  },
+  "bench/cpu_ocr_eval.py": {
+    "actual_sha256": "4701d249549ea26e12b6ae10852c19b5963773d91b94bc71f712e9526d6994d8",
+    "commit_sha256": "4701d249549ea26e12b6ae10852c19b5963773d91b94bc71f712e9526d6994d8",
+    "equal": true
+  },
+  "bench/dedupe_eval.py": {
+    "actual_sha256": "e51c80cb0f7c122414f12a77bada5f49767812b0e100acf73f8fc3c88205a582",
+    "commit_sha256": "e51c80cb0f7c122414f12a77bada5f49767812b0e100acf73f8fc3c88205a582",
+    "equal": true
+  },
+  "bench/final.py": {
+    "actual_sha256": "c174851ada2940c8f687a00a836880f3857d13f011077944f662ccf2ef020681",
+    "commit_sha256": "c174851ada2940c8f687a00a836880f3857d13f011077944f662ccf2ef020681",
+    "equal": true
+  },
+  "bench/gen_images.py": {
+    "actual_sha256": "91d75921dbf4ee3cb50eb2c13ffc9d35fe5327ec6449e89f1462e0f06866a68a",
+    "commit_sha256": "91d75921dbf4ee3cb50eb2c13ffc9d35fe5327ec6449e89f1462e0f06866a68a",
+    "equal": true
+  },
+  "bench/make_images.py": {
+    "actual_sha256": "a9dff26fd79a573ccd1f6709ce8ac59891f7593a3fa56d15bf59b933c2390cb1",
+    "commit_sha256": "a9dff26fd79a573ccd1f6709ce8ac59891f7593a3fa56d15bf59b933c2390cb1",
+    "equal": true
+  },
+  "bench/repeat.py": {
+    "actual_sha256": "fa16de473b50a9bcc9a91ca98b3cb09302b20c98643336137b60750c1df6abc1",
+    "commit_sha256": "fa16de473b50a9bcc9a91ca98b3cb09302b20c98643336137b60750c1df6abc1",
+    "equal": true
+  },
+  "bench/run.py": {
+    "actual_sha256": "ac9b9c37f8405b2dd3fbc4b8434656706a6141b3eb5e09cae8cd972f03bb6f59",
+    "commit_sha256": "ac9b9c37f8405b2dd3fbc4b8434656706a6141b3eb5e09cae8cd972f03bb6f59",
+    "equal": true
+  },
+  "bench/seed_demo.py": {
+    "actual_sha256": "9e77db0d4376becbe9ce834d4d221516221eb70e1295cdf1aad7885c14ae1ba2",
+    "commit_sha256": "9e77db0d4376becbe9ce834d4d221516221eb70e1295cdf1aad7885c14ae1ba2",
+    "equal": true
+  },
+  "bench/truth.json": {
+    "actual_sha256": "14fc910ca67e8835acd8faf2fc027b5e5f856695800dce832cb1e9658f2b67d0",
+    "commit_sha256": "14fc910ca67e8835acd8faf2fc027b5e5f856695800dce832cb1e9658f2b67d0",
+    "equal": true
+  },
+  "bench/truth_gen.json": {
+    "actual_sha256": "5efe4014e8fe476d45356946e3e9f709a25943d5c123ef3a4ab3140b91fa85cd",
+    "commit_sha256": "5efe4014e8fe476d45356946e3e9f709a25943d5c123ef3a4ab3140b91fa85cd",
+    "equal": true
+  },
+  "config.json.example": {
+    "actual_sha256": "ceb7c5030824d364fc2d525d3c6bcafb94a72f3c2111207bfb035d756939ef08",
+    "commit_sha256": "ceb7c5030824d364fc2d525d3c6bcafb94a72f3c2111207bfb035d756939ef08",
+    "equal": true
+  },
+  "deploy/DEPLOY.md": {
+    "actual_sha256": "1609fefb83d886b989141e4290ba705136aa59cfb2dd2d92e396958cf0a8c266",
+    "commit_sha256": "1609fefb83d886b989141e4290ba705136aa59cfb2dd2d92e396958cf0a8c266",
+    "equal": true
+  },
+  "deploy/PRIVATE-DEPLOY.md": {
+    "actual_sha256": "259393b8221a4ccc197630115ae2df720188dad24f20cad7391481e79634ddca",
+    "commit_sha256": "259393b8221a4ccc197630115ae2df720188dad24f20cad7391481e79634ddca",
+    "equal": true
+  },
+  "deploy/caddy-weighbill.caddy": {
+    "actual_sha256": "2497012ac9209deb43a2bff78889ad88b82b3dba804107129596c100ee903b91",
+    "commit_sha256": "2497012ac9209deb43a2bff78889ad88b82b3dba804107129596c100ee903b91",
+    "equal": true
+  },
+  "deploy/cert-check.sh": {
+    "actual_sha256": "738d05538ae980baf74a4498de52d4aa01b9082c8bcd77749533e642f9b7be15",
+    "commit_sha256": "738d05538ae980baf74a4498de52d4aa01b9082c8bcd77749533e642f9b7be15",
+    "equal": true
+  },
+  "deploy/nginx-weighbill.conf": {
+    "actual_sha256": "6e306e6c6a8d75b8f257fa007794ba6bddeaee541d1162a8d0a446c28a0f7f61",
+    "commit_sha256": "6e306e6c6a8d75b8f257fa007794ba6bddeaee541d1162a8d0a446c28a0f7f61",
+    "equal": true
+  },
+  "deploy/preflight.sh": {
+    "actual_sha256": "756387f27a4423dfd3cd7bfcfd1c99a3c17aff7b1e3e00a3f6607f2fa7e1f548",
+    "commit_sha256": "756387f27a4423dfd3cd7bfcfd1c99a3c17aff7b1e3e00a3f6607f2fa7e1f548",
+    "equal": true
+  },
+  "deploy/release.sh": {
+    "actual_sha256": "e97084015200e9b083b0ed65f14e0ee0d0e80f38dfe82294329dc17811e2c08f",
+    "commit_sha256": "e97084015200e9b083b0ed65f14e0ee0d0e80f38dfe82294329dc17811e2c08f",
+    "equal": true
+  },
+  "deploy/weighbill-backup.service": {
+    "actual_sha256": "674b30fb5489e66c2dad8101cd87a620c1fc92783519209d5025a89278fb277d",
+    "commit_sha256": "674b30fb5489e66c2dad8101cd87a620c1fc92783519209d5025a89278fb277d",
+    "equal": true
+  },
+  "deploy/weighbill-backup.sh": {
+    "actual_sha256": "12d286c6c53783178d25aea0ad732c5185a272673c6b94d3d68f70baab2bb62e",
+    "commit_sha256": "12d286c6c53783178d25aea0ad732c5185a272673c6b94d3d68f70baab2bb62e",
+    "equal": true
+  },
+  "deploy/weighbill-backup.timer": {
+    "actual_sha256": "a2bce055bec5d0e2a484d199c00282d7592b07b73c6da4dca3e84851bd9bab86",
+    "commit_sha256": "a2bce055bec5d0e2a484d199c00282d7592b07b73c6da4dca3e84851bd9bab86",
+    "equal": true
+  },
+  "deploy/weighbill-verify.service": {
+    "actual_sha256": "ece21a9e5f897b02f6412a8427f0a50f37875ff60c01a0fe013953e887243a65",
+    "commit_sha256": "ece21a9e5f897b02f6412a8427f0a50f37875ff60c01a0fe013953e887243a65",
+    "equal": true
+  },
+  "deploy/weighbill-verify.timer": {
+    "actual_sha256": "09e56adbab9568291d20203377dbd6d13784f14a6dae3752c001eb252da3d5d2",
+    "commit_sha256": "09e56adbab9568291d20203377dbd6d13784f14a6dae3752c001eb252da3d5d2",
+    "equal": true
+  },
+  "deploy/weighbill.service": {
+    "actual_sha256": "8f17fcfc72cc9f0dd980c80b234cb1aca3fd965354008621847d56d42e21d48c",
+    "commit_sha256": "8f17fcfc72cc9f0dd980c80b234cb1aca3fd965354008621847d56d42e21d48c",
+    "equal": true
+  },
+  "docs/ACCEPTANCE.md": {
+    "actual_sha256": "5ac9b6286ad860ad576bffb2f741fd4854e808c6b6323eb50f7ff7b7fe8395e0",
+    "commit_sha256": "5ac9b6286ad860ad576bffb2f741fd4854e808c6b6323eb50f7ff7b7fe8395e0",
+    "equal": true
+  },
+  "docs/ADAPTERS.md": {
+    "actual_sha256": "37f5bd6d6ce69b998acc99fb8d11a056c123224734f0233a7fb9c8f3564418fd",
+    "commit_sha256": "37f5bd6d6ce69b998acc99fb8d11a056c123224734f0233a7fb9c8f3564418fd",
+    "equal": true
+  },
+  "docs/CPU-ACCEPTANCE.md": {
+    "actual_sha256": "88f9a75f6dd8d40d2fe9c5c6e6ecb573c252be5a9ccf18710864df4d39e6adda",
+    "commit_sha256": "88f9a75f6dd8d40d2fe9c5c6e6ecb573c252be5a9ccf18710864df4d39e6adda",
+    "equal": true
+  },
+  "docs/MULTI-ORIGIN.md": {
+    "actual_sha256": "005a30f6d0f21ab90c4f012f327e98897d5a639e7e348f239170b930fa621927",
+    "commit_sha256": "005a30f6d0f21ab90c4f012f327e98897d5a639e7e348f239170b930fa621927",
+    "equal": true
+  },
+  "pyproject.toml": {
+    "actual_sha256": "7356cde5af1e3d8295ce7cefc6ff1721f3f7e2a1467eaab08cb8183e4c381dea",
+    "commit_sha256": "7356cde5af1e3d8295ce7cefc6ff1721f3f7e2a1467eaab08cb8183e4c381dea",
+    "equal": true
+  },
+  "requirements.txt": {
+    "actual_sha256": "114b0af7e1bbfbd1d7afa7b058a0eab4fb530cfd64bce4dff61ad7aee3cf9309",
+    "commit_sha256": "114b0af7e1bbfbd1d7afa7b058a0eab4fb530cfd64bce4dff61ad7aee3cf9309",
+    "equal": true
+  },
+  "tests/__init__.py": {
+    "actual_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "commit_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "equal": true
+  },
+  "tests/_legacy/app_v01.py": {
+    "actual_sha256": "9ddaa6c1984fbecfc2201cd02eb3b95e846ab26067fa8dd871b9d91b300f1873",
+    "commit_sha256": "9ddaa6c1984fbecfc2201cd02eb3b95e846ab26067fa8dd871b9d91b300f1873",
+    "equal": true
+  },
+  "tests/client_editor_state.cjs": {
+    "actual_sha256": "09c478c529d5739b382101bf56e16e2623fe01c46fcd5866a88e43ee96bf36f1",
+    "commit_sha256": "09c478c529d5739b382101bf56e16e2623fe01c46fcd5866a88e43ee96bf36f1",
+    "equal": true
+  },
+  "tests/conftest.py": {
+    "actual_sha256": "31df9e8b57f43fb9c0bbc47aca15da9b2bef624fce41c2b1fcccf46038405272",
+    "commit_sha256": "31df9e8b57f43fb9c0bbc47aca15da9b2bef624fce41c2b1fcccf46038405272",
+    "equal": true
+  },
+  "tests/fixtures.py": {
+    "actual_sha256": "748d449e67bd1c261788b362b16f168efeb9e81c342e025d9cf5c17fa1f530de",
+    "commit_sha256": "748d449e67bd1c261788b362b16f168efeb9e81c342e025d9cf5c17fa1f530de",
+    "equal": true
+  },
+  "tests/test_blob_s3.py": {
+    "actual_sha256": "d61fd4011092f9abaeb3108c8225f2d0427a39658e6e6c2eee45eb34cfc4f75d",
+    "commit_sha256": "d61fd4011092f9abaeb3108c8225f2d0427a39658e6e6c2eee45eb34cfc4f75d",
+    "equal": true
+  },
+  "tests/test_client_versions.py": {
+    "actual_sha256": "18da61ef97d2f15245b616a0a3ebc30bf4478621551e3f5bbc82a8cef3d2c609",
+    "commit_sha256": "18da61ef97d2f15245b616a0a3ebc30bf4478621551e3f5bbc82a8cef3d2c609",
+    "equal": true
+  },
+  "tests/test_concurrency.py": {
+    "actual_sha256": "c459cc3aea3f4e7e4d5664452c13bc646eca75d5e365ba4df02dafec167396c7",
+    "commit_sha256": "c459cc3aea3f4e7e4d5664452c13bc646eca75d5e365ba4df02dafec167396c7",
+    "equal": true
+  },
+  "tests/test_contracts.py": {
+    "actual_sha256": "a3d967274cf28fedbb0c6e32888dac4a1e16c6bea0973c3cd23722af1b053136",
+    "commit_sha256": "a3d967274cf28fedbb0c6e32888dac4a1e16c6bea0973c3cd23722af1b053136",
+    "equal": true
+  },
+  "tests/test_cpu_acceptance.py": {
+    "actual_sha256": "c0131e2bf97224b24b0f528551fce9d7559a5ddeb70bbbd21d5e4d56b626eb06",
+    "commit_sha256": "c0131e2bf97224b24b0f528551fce9d7559a5ddeb70bbbd21d5e4d56b626eb06",
+    "equal": true
+  },
+  "tests/test_cpu_ocr.py": {
+    "actual_sha256": "a81748cf934e608522526ac8ee7d66fa242445db88a298b8bf5792b9058ad8ce",
+    "commit_sha256": "a81748cf934e608522526ac8ee7d66fa242445db88a298b8bf5792b9058ad8ce",
+    "equal": true
+  },
+  "tests/test_cross_node_dedupe.py": {
+    "actual_sha256": "2491eee16c5412a16aa27fc45621897c692f85233b3d89169f9554f84ea9cba2",
+    "commit_sha256": "2491eee16c5412a16aa27fc45621897c692f85233b3d89169f9554f84ea9cba2",
+    "equal": true
+  },
+  "tests/test_dedupe.py": {
+    "actual_sha256": "ad758cfa062ed5d87dfc2887fb85e925e880ab151edb5f51dbfe400a033ebf8e",
+    "commit_sha256": "ad758cfa062ed5d87dfc2887fb85e925e880ab151edb5f51dbfe400a033ebf8e",
+    "equal": true
+  },
+  "tests/test_equivalence.py": {
+    "actual_sha256": "0b545ee7c3aa7bffc70c7101cc18e320970a7bd58093278cd2e5a04de01db098",
+    "commit_sha256": "0b545ee7c3aa7bffc70c7101cc18e320970a7bd58093278cd2e5a04de01db098",
+    "equal": true
+  },
+  "tests/test_http_and_wiring.py": {
+    "actual_sha256": "6b367aa9c5052dc7d2317ddc64efbb0919b1a855786f5ec48ffa9d85930f1eff",
+    "commit_sha256": "6b367aa9c5052dc7d2317ddc64efbb0919b1a855786f5ec48ffa9d85930f1eff",
+    "equal": true
+  },
+  "tests/test_intended_differences.py": {
+    "actual_sha256": "a8446b78bffc3ed353cb477fb7891a685aba8d2133cb5e792c0aa69a8a042eb4",
+    "commit_sha256": "a8446b78bffc3ed353cb477fb7891a685aba8d2133cb5e792c0aa69a8a042eb4",
+    "equal": true
+  },
+  "tests/test_ledger_import.py": {
+    "actual_sha256": "0c288c7f0364d789c8340a691afd36420c6c23650673cd3aad8028ded88cc603",
+    "commit_sha256": "0c288c7f0364d789c8340a691afd36420c6c23650673cd3aad8028ded88cc603",
+    "equal": true
+  },
+  "tests/test_migrate.py": {
+    "actual_sha256": "a0b306672f693116fddb5032d8c69f37a6eb270322337e9290ecffc28f7f13b2",
+    "commit_sha256": "a0b306672f693116fddb5032d8c69f37a6eb270322337e9290ecffc28f7f13b2",
+    "equal": true
+  },
+  "tests/test_mobile_outbox.py": {
+    "actual_sha256": "6df8be0d362c2eda5527a609a68bbb61803307c16a061184008f1570199382b6",
+    "commit_sha256": "6df8be0d362c2eda5527a609a68bbb61803307c16a061184008f1570199382b6",
+    "equal": true
+  },
+  "tests/test_multi_instance.py": {
+    "actual_sha256": "15d3423af0ac9d49cbb94f0f5edbae0c43dd7122f825a28704fbd50804ff4ab6",
+    "commit_sha256": "15d3423af0ac9d49cbb94f0f5edbae0c43dd7122f825a28704fbd50804ff4ab6",
+    "equal": true
+  },
+  "tests/test_naming.py": {
+    "actual_sha256": "a1963246d400abb0828b2454d4f880f7b0f17280ecdeaa3bb8f0e00270451b95",
+    "commit_sha256": "a1963246d400abb0828b2454d4f880f7b0f17280ecdeaa3bb8f0e00270451b95",
+    "equal": true
+  },
+  "tests/test_original_integrity.py": {
+    "actual_sha256": "71bd7f54a99eccbaecd4f23f46442f335bdcf267028debf3ee4b0b69dcb17559",
+    "commit_sha256": "71bd7f54a99eccbaecd4f23f46442f335bdcf267028debf3ee4b0b69dcb17559",
+    "equal": true
+  },
+  "tests/test_origins.py": {
+    "actual_sha256": "4997033f2a4423c1d2c78fd453c91338c1e59717458d5ee8be3b6f5f63820032",
+    "commit_sha256": "4997033f2a4423c1d2c78fd453c91338c1e59717458d5ee8be3b6f5f63820032",
+    "equal": true
+  },
+  "tests/test_preview.py": {
+    "actual_sha256": "ce57c0baef0a6381044ad1e4c1de71709224512a48b51b71121c0dcb7fb1bd70",
+    "commit_sha256": "ce57c0baef0a6381044ad1e4c1de71709224512a48b51b71121c0dcb7fb1bd70",
+    "equal": true
+  },
+  "tests/test_reconcile.py": {
+    "actual_sha256": "46f0553f41d4074b1d678ba6d00d5a6c14efb56cabaf3a1c85e4f5378cc63418",
+    "commit_sha256": "46f0553f41d4074b1d678ba6d00d5a6c14efb56cabaf3a1c85e4f5378cc63418",
+    "equal": true
+  },
+  "tests/test_ref_no.py": {
+    "actual_sha256": "54db500b3faf729b2c280850f40a9ec311c497cf0ab7accabe57257c5f7cf912",
+    "commit_sha256": "54db500b3faf729b2c280850f40a9ec311c497cf0ab7accabe57257c5f7cf912",
+    "equal": true
+  },
+  "tests/test_security.py": {
+    "actual_sha256": "598ac74abdba46c90f0ce7c6307c1d600160df06944b6ee13dbc4bdd77ff8325",
+    "commit_sha256": "598ac74abdba46c90f0ce7c6307c1d600160df06944b6ee13dbc4bdd77ff8325",
+    "equal": true
+  },
+  "tests/test_spool.py": {
+    "actual_sha256": "2bfef1a33f476addf8ea4b777e8c811fff35e46fbf7031003c66dab33469fd12",
+    "commit_sha256": "2bfef1a33f476addf8ea4b777e8c811fff35e46fbf7031003c66dab33469fd12",
+    "equal": true
+  },
+  "tests/test_stats.py": {
+    "actual_sha256": "b802d36b39a22ac6d5b6a85932751890c6064cebbb94060e1739eb4029b30c99",
+    "commit_sha256": "b802d36b39a22ac6d5b6a85932751890c6064cebbb94060e1739eb4029b30c99",
+    "equal": true
+  },
+  "tests/test_store_oceanbase.py": {
+    "actual_sha256": "246c3f535aa65eeec31088ea9b7cd8a9fdd88b085a9cd76532ec129a82c68ef2",
+    "commit_sha256": "246c3f535aa65eeec31088ea9b7cd8a9fdd88b085a9cd76532ec129a82c68ef2",
+    "equal": true
+  },
+  "tests/test_verify.py": {
+    "actual_sha256": "de75c90d58416f95815be065d9ba554b6a13acab36a9548ae5d5acae7fb92dab",
+    "commit_sha256": "de75c90d58416f95815be065d9ba554b6a13acab36a9548ae5d5acae7fb92dab",
+    "equal": true
+  },
+  "tests/test_void_flag_history.py": {
+    "actual_sha256": "91cb0d44ce56859211841d461ee9a35038a00164e766ab1e00aa3d096a56fb45",
+    "commit_sha256": "91cb0d44ce56859211841d461ee9a35038a00164e766ab1e00aa3d096a56fb45",
+    "equal": true
+  },
+  "tests/test_workflow.py": {
+    "actual_sha256": "562758db9277b1aa90906ddd35ab62a3c15b4fe5c1aec244850545e8beeef3b3",
+    "commit_sha256": "562758db9277b1aa90906ddd35ab62a3c15b4fe5c1aec244850545e8beeef3b3",
+    "equal": true
+  },
+  "tools/__init__.py": {
+    "actual_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "commit_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "equal": true
+  },
+  "tools/load_ledgers.py": {
+    "actual_sha256": "12aab13bf43950d061f838ed7226973ba9c0390d5f3b7ab3ae450353b98a4af3",
+    "commit_sha256": "12aab13bf43950d061f838ed7226973ba9c0390d5f3b7ab3ae450353b98a4af3",
+    "equal": true
+  },
+  "tools/webuddy_preview.py": {
+    "actual_sha256": "41aae89ab43c91507a3d0dcec3ebe33ee065be319ae2297c59551abefa884471",
+    "commit_sha256": "41aae89ab43c91507a3d0dcec3ebe33ee065be319ae2297c59551abefa884471",
+    "equal": true
+  },
+  "weighbill/__init__.py": {
+    "actual_sha256": "eaa5113097c9fd68fc0a730dd22501bdb1c66900416d57d52343c9fd811cd1f6",
+    "commit_sha256": "eaa5113097c9fd68fc0a730dd22501bdb1c66900416d57d52343c9fd811cd1f6",
+    "equal": true
+  },
+  "weighbill/__main__.py": {
+    "actual_sha256": "f35124e530c67e144b61bdfca212301084982fc1408a2315f382617faa6e920f",
+    "commit_sha256": "f35124e530c67e144b61bdfca212301084982fc1408a2315f382617faa6e920f",
+    "equal": true
+  },
+  "weighbill/adapters/__init__.py": {
+    "actual_sha256": "caa6cb4e8425eee679c9cc2cb1e90454b54528c8e12ef0e7c07e7791dc1f2935",
+    "commit_sha256": "caa6cb4e8425eee679c9cc2cb1e90454b54528c8e12ef0e7c07e7791dc1f2935",
+    "equal": true
+  },
+  "weighbill/adapters/blob_local.py": {
+    "actual_sha256": "eafd402327255303dd4312267abaf4450edb32556258fa4a23fa012eb1f6ca6e",
+    "commit_sha256": "eafd402327255303dd4312267abaf4450edb32556258fa4a23fa012eb1f6ca6e",
+    "equal": true
+  },
+  "weighbill/adapters/blob_s3.py": {
+    "actual_sha256": "c5fbf7eef9a5a83046fcc7cad52a3900da9317430329231fb72da33f841ff768",
+    "commit_sha256": "c5fbf7eef9a5a83046fcc7cad52a3900da9317430329231fb72da33f841ff768",
+    "equal": true
+  },
+  "weighbill/adapters/events.py": {
+    "actual_sha256": "1bbe7947872df25cfcce7df7a821bb37492f598661f99dc557e0b6209a2596b1",
+    "commit_sha256": "1bbe7947872df25cfcce7df7a821bb37492f598661f99dc557e0b6209a2596b1",
+    "equal": true
+  },
+  "weighbill/adapters/identity.py": {
+    "actual_sha256": "b0603e74c4637a4f3f3d1658d36f3ac820a13061b2c7d7bb91f11949606c6bd3",
+    "commit_sha256": "b0603e74c4637a4f3f3d1658d36f3ac820a13061b2c7d7bb91f11949606c6bd3",
+    "equal": true
+  },
+  "weighbill/adapters/store_oceanbase.py": {
+    "actual_sha256": "d11100568f560b03d7ca7663ac9e5cf471a9baf3095d5c40606edbd2f4be7769",
+    "commit_sha256": "d11100568f560b03d7ca7663ac9e5cf471a9baf3095d5c40606edbd2f4be7769",
+    "equal": true
+  },
+  "weighbill/adapters/store_sqlite.py": {
+    "actual_sha256": "f8850e88a360ba9b71a031f8e3477d957dcc8546608dc578ada5c379f7e39e98",
+    "commit_sha256": "f8850e88a360ba9b71a031f8e3477d957dcc8546608dc578ada5c379f7e39e98",
+    "equal": true
+  },
+  "weighbill/adapters/vision_cpu_ocr.py": {
+    "actual_sha256": "dd626fa912782e8e7b1640fc6a4e17f6fd3d9fdb09ea91c094bce0adac5312bf",
+    "commit_sha256": "dd626fa912782e8e7b1640fc6a4e17f6fd3d9fdb09ea91c094bce0adac5312bf",
+    "equal": true
+  },
+  "weighbill/adapters/vision_openai.py": {
+    "actual_sha256": "c678267921a914cd1a3ef76f02508b211176ddb43d02d789fd6c69e2ac2da925",
+    "commit_sha256": "c678267921a914cd1a3ef76f02508b211176ddb43d02d789fd6c69e2ac2da925",
+    "equal": true
+  },
+  "weighbill/adapters/vision_scripted.py": {
+    "actual_sha256": "b91bc9f3a017c3fbbe64bb93ff4a17c1fcbcbfab5e80fee3b5c165124157928c",
+    "commit_sha256": "b91bc9f3a017c3fbbe64bb93ff4a17c1fcbcbfab5e80fee3b5c165124157928c",
+    "equal": true
+  },
+  "weighbill/blob_keys.py": {
+    "actual_sha256": "6e07545503fd6f90fae946734627dfb50eeb042385cca00234988a3b98fd2826",
+    "commit_sha256": "6e07545503fd6f90fae946734627dfb50eeb042385cca00234988a3b98fd2826",
+    "equal": true
+  },
+  "weighbill/bootstrap.py": {
+    "actual_sha256": "a3c136ab4e54e6275e91436d88a85450f4b14bdd1b4e2bbfd8a873eaa44e6ec2",
+    "commit_sha256": "a3c136ab4e54e6275e91436d88a85450f4b14bdd1b4e2bbfd8a873eaa44e6ec2",
+    "equal": true
+  },
+  "weighbill/cli.py": {
+    "actual_sha256": "8dffb93ae5abb9e07499cd605edf0639be903ea63a8693589033ed153042e08c",
+    "commit_sha256": "8dffb93ae5abb9e07499cd605edf0639be903ea63a8693589033ed153042e08c",
+    "equal": true
+  },
+  "weighbill/config.py": {
+    "actual_sha256": "970e5f876747bed9c82cd95763d29f26b6eab57737d4c8f7437d44749b48d9d3",
+    "commit_sha256": "970e5f876747bed9c82cd95763d29f26b6eab57737d4c8f7437d44749b48d9d3",
+    "equal": true
+  },
+  "weighbill/domain.py": {
+    "actual_sha256": "b8a1bc19958053dce92f26bfb46512c92ffa9096f8dc7c2643a5deeadc342df7",
+    "commit_sha256": "b8a1bc19958053dce92f26bfb46512c92ffa9096f8dc7c2643a5deeadc342df7",
+    "equal": true
+  },
+  "weighbill/export_xlsx.py": {
+    "actual_sha256": "bd02cc34991d8174dad6a64704efd64ed4ba31a8d206e8d1decc8198f40eaf89",
+    "commit_sha256": "bd02cc34991d8174dad6a64704efd64ed4ba31a8d206e8d1decc8198f40eaf89",
+    "equal": true
+  },
+  "weighbill/http_api.py": {
+    "actual_sha256": "a7210d4eec2d3c25411cbd25d3a56d3c3bf300403c1cae3ca8f3bbbc97abb211",
+    "commit_sha256": "a7210d4eec2d3c25411cbd25d3a56d3c3bf300403c1cae3ca8f3bbbc97abb211",
+    "equal": true
+  },
+  "weighbill/imaging.py": {
+    "actual_sha256": "32458695339b400a7762aac168ca231eefb9bb0efc67165e05d0acc691545b45",
+    "commit_sha256": "32458695339b400a7762aac168ca231eefb9bb0efc67165e05d0acc691545b45",
+    "equal": true
+  },
+  "weighbill/manifest.py": {
+    "actual_sha256": "f22c307d82351af2237cfd8845e9c55fea8306206535a12a43b3522d8339c331",
+    "commit_sha256": "f22c307d82351af2237cfd8845e9c55fea8306206535a12a43b3522d8339c331",
+    "equal": true
+  },
+  "weighbill/migrate.py": {
+    "actual_sha256": "9502c394f5ac533ff6dbfd22ee8335542e30285d609629113b6d807583c38401",
+    "commit_sha256": "9502c394f5ac533ff6dbfd22ee8335542e30285d609629113b6d807583c38401",
+    "equal": true
+  },
+  "weighbill/ocr_fields.py": {
+    "actual_sha256": "340348c40ec685aa060127042678656b372895da24791034db7fa22829718ad4",
+    "commit_sha256": "340348c40ec685aa060127042678656b372895da24791034db7fa22829718ad4",
+    "equal": true
+  },
+  "weighbill/ports.py": {
+    "actual_sha256": "d120626cf21bc0f2de0a5c4ed47e906570f80e7f6915298e44078b0180325207",
+    "commit_sha256": "d120626cf21bc0f2de0a5c4ed47e906570f80e7f6915298e44078b0180325207",
+    "equal": true
+  },
+  "weighbill/prompts.py": {
+    "actual_sha256": "0bacb25e8c11c9f29ccb35b0304b640ad0c0bedd608acf01c661ea11441c2be9",
+    "commit_sha256": "0bacb25e8c11c9f29ccb35b0304b640ad0c0bedd608acf01c661ea11441c2be9",
+    "equal": true
+  },
+  "weighbill/reconcile.py": {
+    "actual_sha256": "b2dba1c684192bf74a06dc7ba70e6f68d11084c94a72cdd18d7531ad1a230fa6",
+    "commit_sha256": "b2dba1c684192bf74a06dc7ba70e6f68d11084c94a72cdd18d7531ad1a230fa6",
+    "equal": true
+  },
+  "weighbill/service.py": {
+    "actual_sha256": "578848df05d5724e6e8c5ef1d0f47b411749bbf23e20a1e3be624fec0e2e5cf4",
+    "commit_sha256": "578848df05d5724e6e8c5ef1d0f47b411749bbf23e20a1e3be624fec0e2e5cf4",
+    "equal": true
+  },
+  "weighbill/spool.py": {
+    "actual_sha256": "33b3fc7e77b48a8e5e1d4d3f2f4e21f7f8211b74bd3059483f7396d9a6b90210",
+    "commit_sha256": "33b3fc7e77b48a8e5e1d4d3f2f4e21f7f8211b74bd3059483f7396d9a6b90210",
+    "equal": true
+  },
+  "weighbill/static/app.css": {
+    "actual_sha256": "262dfd9d01627f9feca21437c8306bed587c524069419420b2498fd63a934eb2",
+    "commit_sha256": "262dfd9d01627f9feca21437c8306bed587c524069419420b2498fd63a934eb2",
+    "equal": true
+  },
+  "weighbill/static/capture.html": {
+    "actual_sha256": "68d7a0bec00008d002af45eeefbf3d96e3c98b7509f62343672ca3a56df4fec4",
+    "commit_sha256": "68d7a0bec00008d002af45eeefbf3d96e3c98b7509f62343672ca3a56df4fec4",
+    "equal": true
+  },
+  "weighbill/static/report.html": {
+    "actual_sha256": "2e2d86850f1777ec1868206bbc1a50f8d378bf250820d2eb1b8a2f03a39294f7",
+    "commit_sha256": "2e2d86850f1777ec1868206bbc1a50f8d378bf250820d2eb1b8a2f03a39294f7",
+    "equal": true
+  },
+  "weighbill/static/sw.js": {
+    "actual_sha256": "4ba14af028b93899fe7b86457ab2b67a87f310d99f85faf0d5c41ee18e3b1bd9",
+    "commit_sha256": "4ba14af028b93899fe7b86457ab2b67a87f310d99f85faf0d5c41ee18e3b1bd9",
+    "equal": true
+  },
+  "weighbill/stats.py": {
+    "actual_sha256": "8a09c16844624fb36ca192ba2948ea79fb1c18140d5008c3f3f695e51afb9b13",
+    "commit_sha256": "8a09c16844624fb36ca192ba2948ea79fb1c18140d5008c3f3f695e51afb9b13",
+    "equal": true
+  },
+  "weighbill/testing/__init__.py": {
+    "actual_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "commit_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "equal": true
+  },
+  "weighbill/testing/contracts.py": {
+    "actual_sha256": "93927aba68a063bc2dced4ef7fc15dae08b87c56dcf5e2e3b6b17d625758c8e2",
+    "commit_sha256": "93927aba68a063bc2dced4ef7fc15dae08b87c56dcf5e2e3b6b17d625758c8e2",
+    "equal": true
+  }
+}
