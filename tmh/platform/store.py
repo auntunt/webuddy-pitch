@@ -51,6 +51,10 @@ CREATE TABLE IF NOT EXISTS sessions (
   id INTEGER PRIMARY KEY, project_id INTEGER NOT NULL, matter_id INTEGER, ticket_id INTEGER, kind TEXT NOT NULL DEFAULT 'consult',
   title TEXT NOT NULL, created_by TEXT DEFAULT '', created TEXT NOT NULL, updated TEXT NOT NULL, archived_at TEXT DEFAULT '');
 CREATE TABLE IF NOT EXISTS idem (key TEXT PRIMARY KEY, result TEXT NOT NULL, ts TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS comment_receipts (
+  ticket_id INTEGER NOT NULL, author TEXT NOT NULL, request_id TEXT NOT NULL,
+  body TEXT NOT NULL, event_id INTEGER NOT NULL, ts TEXT NOT NULL,
+  PRIMARY KEY(ticket_id, author, request_id));
 CREATE INDEX IF NOT EXISTS ix_sessions ON sessions(project_id, created_by);
 CREATE INDEX IF NOT EXISTS ix_points_project ON points(project_id);
 CREATE INDEX IF NOT EXISTS ix_chats ON chats(project_id, ticket_id);
@@ -248,6 +252,42 @@ class Store:
     def event(self, tid: int, author: str, kind: str, body: str = "", data: dict | None = None) -> int:
         return self.x("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
                       (tid, now(), author or "", kind, body or "", json.dumps(data or {}, ensure_ascii=False)))
+
+    def comment(self, tid: int, author: str, body: str, request_id: str | None = None) -> dict:
+        """Atomically append a comment, touch its ticket, and seal an optional retry receipt.
+
+        SQLite's writer lock also serializes separate server processes. A retry never
+        changes the timeline or timestamp. Keep full text here, including whitespace:
+        same request ID with even a small text change is a conflict, not a new comment.
+        """
+        author = author or ""
+        with self.lock:
+            try:
+                self.db.execute("BEGIN IMMEDIATE")
+                if request_id is not None:
+                    receipt = self.db.execute(
+                        "SELECT body,event_id FROM comment_receipts WHERE ticket_id=? AND author=? AND request_id=?",
+                        (tid, author, request_id)).fetchone()
+                    if receipt:
+                        if receipt["body"] != body:
+                            raise ValueError("这次评论已用不同内容发送，原评论已保留；请核对后作为新评论发送")
+                        self.db.commit()
+                        return {"ok": True, "event_id": receipt["event_id"], "request_id": request_id}
+                ts = now()
+                event_id = self.db.execute(
+                    "INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+                    (tid, ts, author, "comment", body, "{}")).lastrowid
+                self.db.execute("UPDATE tickets SET updated=? WHERE id=?", (ts, tid))
+                if request_id is not None:
+                    self.db.execute(
+                        "INSERT INTO comment_receipts(ticket_id,author,request_id,body,event_id,ts) VALUES(?,?,?,?,?,?)",
+                        (tid, author, request_id, body, event_id, ts))
+                self.db.commit()
+                return ({"ok": True, "event_id": event_id, "request_id": request_id}
+                        if request_id is not None else {"ok": True})
+            except BaseException:
+                self.db.rollback()
+                raise
 
     def events(self, tid: int) -> list:
         return self.q("SELECT * FROM events WHERE ticket_id=? ORDER BY id", (tid,))

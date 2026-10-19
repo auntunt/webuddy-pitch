@@ -2252,13 +2252,21 @@ def api_testbox_act(P, req, action):
 
 @route("POST", "/api/tickets/<key>/comments")
 def api_comment(P, req, key):
+    if "expected_workspace" in req.body and req.body["expected_workspace"] != str(P.data_dir):
+        raise ApiError(409, "当前工作区已变化，本次请求未写入；请回到原工作区后核对或重试")
+    if "expected_author" in req.body and req.body["expected_author"] != req.user:
+        raise ApiError(409, "当前登录身份已变化，本次请求未写入；请切回原身份后核对或重试")
     t = P.ticket(key)
-    body = (req.body.get("body") or "").strip()
-    if not body:
+    body = req.body.get("body")
+    if not isinstance(body, str) or not body.strip():
         raise ApiError(400, "评论不能为空")
-    P.store.event(t["id"], req.user, "comment", body)
-    P.store.touch(t["id"])
-    return {"ok": True}
+    request_id = req.body.get("request_id")
+    if "request_id" in req.body and (not isinstance(request_id, str) or not request_id.strip()):
+        raise ApiError(400, "评论请求编号不能为空，且必须是字符串")
+    try:
+        return P.store.comment(t["id"], req.user, body, request_id)
+    except ValueError as exc:
+        raise ApiError(409, str(exc)) from exc
 
 
 @route("GET", "/api/tickets/<key>/related")

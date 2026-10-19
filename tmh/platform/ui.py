@@ -10,10 +10,11 @@ from .ui_css import CSS
 from .ui_work import WORK_CSS, WORK_JS
 from .ui_delivery import DELIVERY_CSS, DELIVERY_JS
 from .ui_theme import THEME_CSS
+from .ui_drafts import DRAFT_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS)
 
 
 HTML = r"""<!doctype html>
@@ -508,6 +509,12 @@ function okFlows(d){const ok=new Set(((d.ticket.links||{}).flows_ok)||[]);
 function isMachine(a){return !a||['自动流转','system','知识库','agent','告警'].includes(a)||(S.meta.agents||[]).some(x=>x.name===a)}
 function ticketRunCount(runs){const points=runs.reduce((a,r)=>a+(r.points||0),0);return `${runs.length} 次运行${points?' · 共 '+points+' 点':''}`}
 function ticketRunHistory(runs){return runs.length>1?'<span class="sub">全部运行：</span> '+runs.map(r=>`<a href="javascript:void 0" onclick="showRun(${r.id})">#${r.id} ${h(moLabel(r.mode))}${['queued','running'].includes(r.status)?' <span class="spin"></span>':''}${r.points?' · '+h(r.points)+' 点':''}</a>`).join('　'):''}
+function ticketTimeline(events){
+  const groups=[];events.forEach(ev=>{const m=isMachine(ev.author)&&ev.kind!=='comment',g=groups[groups.length-1];if(m&&g&&g.auto)g.evs.push(ev);else groups.push({auto:m,evs:[ev]})});
+  return groups.map(g=>{if(!g.auto||g.evs.length<2)return g.evs.map(evHtml).join('');
+    const a=g.evs[0].ts,z=g.evs[g.evs.length-1].ts,span=(new Date(z.replace(' ','T'))-new Date(a.replace(' ','T')))/36e5;
+    return `<details class="evg"><summary><span class="dot"></span><b>自动处理</b> · ${g.evs.length} 步${span>0?' · 用时 '+dur(span):''}<span class="when">${ago(z)}</span></summary>${g.evs.map(evHtml).join('')}</details>`}).join('');
+}
 function ticketSummarySync(initial,changed){
   const key=initial.ticket.key,anchor=$('#tTop'),signature=d=>JSON.stringify([d.ticket,d.plain_state,d.intake_recovery,d.runs.map(r=>[r.id,r.status,r.decision,r.points,r.verify,r.recheck_wait,r.result]),d.events.length,d.evidence,d.auto_next,d.package]);
   let applied=signature(initial),request=0;
@@ -522,6 +529,7 @@ function ticketSummarySync(initial,changed){
     $('#tRunCount').textContent=ticketRunCount(n.runs);$('#tRunHistory').innerHTML=ticketRunHistory(n.runs);$('#tStatus').innerHTML=stPill(n.ticket.status);
     const status=$('#fs');if(status&&document.activeElement!==status&&status.value===prior.ticket.status)status.value=n.ticket.status;
     if(n.ticket.body!==prior.ticket.body&&$('#bodyv')&&!$('#be'))$('#bodyv').innerHTML=md(n.ticket.body||'');
+    const timeline=$('#tl');if(timeline&&JSON.stringify(n.events)!==JSON.stringify(prior.events)){timeline.innerHTML=ticketTimeline(n.events);if(timeline.dataset.f==='auto')timeline.querySelectorAll('details.evg').forEach(x=>x.open=true)}
     if(JSON.stringify(n.package)!==JSON.stringify(prior.package)||n.ticket.status!==prior.ticket.status)pkgSync(n);
     changed(n);ticketTopWire(n,na);ticketSignoffSync(n);if(focused)$('#'+focused)?.focus({preventScroll:true});applied=next;return n;
   }
@@ -637,10 +645,7 @@ async function vTicket(key,sub){
      ${na.acc?`<div class="cact">${accUi}</div>`:''}<div id="tNextActions" class="row cact" style="gap:8px" ${na.btns?'':'hidden'}>${na.btns||''}</div>
      ${res?`<div class="cbox" id="cbox" hidden><div class="sub" style="margin-bottom:6px">${res.mode==='plan'?'修改方案':'分析结论'} · ${h(res.agent)}${mTag(res)} · ${ago(res.ended)}</div>${md(planReadable(res.result))}</div>`:''}</div>`;
   // the timeline: people's words stay in view; what the machines did folds into one line per run of steps
-  const groups=[];d.events.forEach(ev=>{const m=isMachine(ev.author)&&ev.kind!=='comment';const g=groups[groups.length-1];if(m&&g&&g.auto)g.evs.push(ev);else groups.push({auto:m,evs:[ev]})});
-  const tl=groups.map(g=>{if(!g.auto||g.evs.length<2)return g.evs.map(evHtml).join('');
-    const a=g.evs[0].ts,z=g.evs[g.evs.length-1].ts,span=(new Date(z.replace(' ','T'))-new Date(a.replace(' ','T')))/36e5;
-    return `<details class="evg"><summary><span class="dot"></span><b>自动处理</b> · ${g.evs.length} 步${span>0?' · 用时 '+dur(span):''}<span class="when">${ago(z)}</span></summary>${g.evs.map(evHtml).join('')}</details>`}).join('');
+  const tl=ticketTimeline(d.events);
   const nAuto=d.events.filter(x=>isMachine(x.author)&&x.kind!=='comment').length;
   $('#main').innerHTML=`<div class="sub" style="margin-bottom:6px"><a href="#/reqs">需求</a> / ${h(d.project.key)} / ${t.key}</div>
   <div class="hdr"><h1 class="grow" id="ttl" title="点击修改">${h(t.title)}</h1><span id="tStatus">${stPill(t.status)}</span><button onclick="A.toggle(true);A.enterTicket(S.cur.ticket)">在助手中讨论</button></div>
@@ -661,7 +666,7 @@ async function vTicket(key,sub){
    ${d.epic?epicCard(d.epic):''}
    <details class="blk fold"><summary><b>完整描述</b><span class="sub">原话、理解、补充的信息和验收标准</span></summary><div class="hdr" style="margin:8px 0 4px"><span class="grow"></span><button class="ghost" id="eb">编辑</button></div><div id="bodyv">${t.body?md(t.body):'<span class="sub">没有描述</span>'}</div></details>
    <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">动态与讨论</h2>${nAuto?`<div class="seg" id="tlf"><button data-f="" class="on">全部</button><button data-f="talk">只看讨论</button><button data-f="auto">只看自动记录</button></div>`:''}</div><div class="tl" id="tl">${tl}</div>
-     <div style="margin-top:14px"><textarea id="cm" placeholder="写评论（支持 Markdown）。智能体下次运行会读到最近的讨论。"></textarea><div class="row" style="margin-top:6px"><button class="primary" id="cb">评论</button>${ext.key?'<button id="pb">同步到 '+h(ext.system)+'</button>':''}</div></div></div>
+     <div style="margin-top:14px"><p class="sub" id="cmDraft" role="status" aria-live="polite"></p><pre id="cmPending" hidden style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><textarea id="cm" aria-label="评论草稿" aria-describedby="cmDraft cmScope" placeholder="写评论（支持 Markdown）。智能体下次运行会读到最近的讨论。"></textarea><div class="row" style="margin-top:6px"><button class="primary" id="cb">评论</button>${ext.key?'<button id="pb">同步到 '+h(ext.system)+'</button>':''}</div><p class="sub" id="cmScope">仅保存本标签页的评论文字；不同标签页各自保存，关闭标签页后不保证恢复。证据截图及其他表单不包含在内，整页刷新后需重新选择或填写。</p></div></div>
    <details class="card adv" id="aiCard" ${f.live||reviewing||sub==='runs'?'open':''}><summary><b>执行记录与手动运行</b><span class="sub" id="tRunCount">${ticketRunCount(d.runs)}</span></summary>
      <div class="hdr" style="margin:10px 0"><span class="sub grow">手动指派：</span><select id="ag">${agentOptions()}</select><span id="mdw"></span>
      <div class="seg">${S.meta.modes.filter(([k])=>k!=='kb'&&k!=='ask'&&k!=='understand').map(([k,l])=>`<button data-m="${k}">${l}</button>`).join('')}</div></div>
@@ -689,7 +694,7 @@ async function vTicket(key,sub){
   $('#fs').onchange=e=>save({status:e.target.value});$('#fy').onchange=e=>save({type:e.target.value});$('#fp').onchange=e=>save({priority:e.target.value});$('#fa').onchange=e=>save({assignee:e.target.value});
   $('#ttl').onclick=()=>{prompt2('修改标题',t.title,v=>save({title:v}))};
   $('#eb').onclick=()=>{$('#bodyv').innerHTML=`<textarea id="be" style="min-height:200px">${h(t.body)}</textarea><button class="primary" id="bs">保存</button>`;$('#bs').onclick=()=>save({body:$('#be').value})};
-  $('#cb').onclick=async()=>{const b=$('#cm').value.trim();if(!b)return;try{await post('/api/tickets/'+key+'/comments',{body:b});vTicket(key)}catch(e){toast(e.message)}};
+  ticketCommentWire(d);
   if($('#pb'))$('#pb').onclick=()=>pushExt(key,$('#cm').value);
   const acc=async res=>{if(res==='pass'&&!ticketSignoffGuard(d))return;try{await post('/api/tickets/'+key+'/accept',{result:res,note:$('#accNote').value});toast(res==='pass'?'已验收通过，工单关闭':'已记录不通过，工单退回处理中');vTicket(key)}catch(e){toast(e.message)}};
   $('#accOk').onclick=()=>acc('pass');$('#accNo').onclick=()=>acc('fail');
