@@ -119,18 +119,29 @@ class HandworkLifecycleTest(unittest.TestCase):
         self.assert_not_adopted()
 
     def test_review_shares_time_spent_on_baseline_and_candidate_checks(self):
-        rid = self.start("review-timeout", 1.2)
+        # Allow the real Git worktree and Python processes to start. The
+        # assertion below still rejects a fresh budget for the reviewer: both
+        # checks sleep .15s and their spent time must reduce its timeout.
+        budget = 3.0
+        rid = self.start("review-timeout", budget)
         run, life = self.wait(rid)
         self.assertEqual(run["status"], "failed", run["result"])
         self.assertEqual(run["exit_code"], 124)
         self.assertEqual(life["stopped_reason"], "timeout")
         self.assertTrue(self.reviewed.exists())
         attempts = life["attempts"]
-        self.assertGreaterEqual(len([a for a in attempts if a["kind"].startswith("check:")]), 2)
+        checks = [a for a in attempts if a["kind"].startswith("check:")]
+        self.assertGreaterEqual(len(checks), 2)
+        for check in checks:
+            self.assertEqual(check["returncode"], 0)
+            self.assertGreaterEqual(check["elapsed_seconds"], .15)
+            self.assertTrue(check["cleanup"]["complete"])
         model = next(a for a in attempts if a["kind"].startswith("model:"))
-        self.assertLess(model["timeout_seconds"], 1.0)
+        self.assertEqual(life["timeout_seconds"], budget)
+        self.assertLess(model["timeout_seconds"], budget - .2)
+        self.assertLessEqual(model["timeout_seconds"] + sum(c["elapsed_seconds"] for c in checks), budget + .02)
         self.assertTrue(model["cleanup"]["complete"])
-        self.assertLess(life["elapsed_seconds"], 2.5)
+        self.assertLess(life["elapsed_seconds"], budget + 1.3)
         self.assert_not_adopted()
 
     def test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption(self):

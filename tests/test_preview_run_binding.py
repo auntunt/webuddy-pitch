@@ -247,7 +247,10 @@ class PreviewRunBindingTest(unittest.TestCase):
 
     def test_open_url_and_existing_tab_requests_reject_a_replacement_preview(self):
         preview._save(self.data, {"APP-1": self.state()})
-        with mock.patch.object(preview, "_alive", return_value=True):
+        # This binding-only fixture has no HTTP server; explicitly supply its
+        # health observation. Real HTTP health failures have separate coverage.
+        with mock.patch.object(preview, "_alive", return_value=True), \
+                mock.patch.object(preview, "_health", return_value={"ok": True}):
             old_url = preview.ticket_view(self.P, self.ticket, self.r1["id"])["url"]
         h = self.handler()
         h._preview("GET", urlparse(old_url), {})

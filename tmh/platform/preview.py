@@ -39,8 +39,7 @@ import socket
 import subprocess
 import threading
 import time
-import urllib.error
-import urllib.request
+import urllib.parse
 from pathlib import Path
 
 from .agents import git
@@ -49,6 +48,7 @@ from .errors import ApiError
 MAX = 3
 STANDING = "-main"  # <project>-main: the main line's current version, kept running between merges (workbench.py)
 READY_S = 600  # a Java app compiling for the first time can take minutes
+HEALTH_S = 1.0  # total deadline, including a slow header or response body
 CONF = "previews.json"
 GRANT_H = 12  # a person's grant; the client's lasts as long as their link
 _LOCK = threading.Lock()  # state.json and previews.json
@@ -306,6 +306,20 @@ def status(data_dir: Path, key: str) -> dict:
     st = _load(data_dir).get(key) or {}
     if st and st.get("state") in ("starting", "up") and not _alive(st.get("pid") or 0, st.get("dir", "")):
         st = dict(st, state="failed", why=st.get("why") or "预览进程已经退出，看日志")
+    elif st.get("state") in ("starting", "up"):
+        health = _health(st)
+        current = _load(data_dir).get(key) or {}
+        identity = ("pid", "port", "prefix", "commit_full", "started", "cmd", "ready", "state")
+        if any(current.get(k) != st.get(k) for k in identity):
+            # Never publish a healthy response for a preview replaced mid-request.
+            return dict(current, state="checking", why="预览已更换，刷新后重新核对") if current else {}
+        st = dict(st, health=health)
+        if not _alive(st.get("pid") or 0, st.get("dir", "")):
+            st.update(state="failed", why="预览进程已经退出，看日志")
+        elif not health["ok"]:
+            st.update(state="unhealthy" if st["state"] == "up" else "starting", why=health["reason"])
+        # Health observations are read-only. Recovery of the same process does
+        # not restart it, alter its data, or erase an earlier human decision.
     if st.get("log"):
         try:
             st["tail"] = Path(st["log"]).read_text(encoding="utf-8", errors="replace")[-1500:]
@@ -425,16 +439,17 @@ def _watch(P, rec: dict, proc=None) -> None:
     (found running after a restart of the platform): then it is watched through /proc."""
     key, pid = rec["key"], rec["pid"]
     gone = (lambda: proc.poll() is not None) if proc else (lambda: not _alive(pid, rec["dir"]))
-    url = "http://127.0.0.1:%d%s" % (rec["port"], _join(rec["prefix"], rec.get("ready", "/")))
     state, why = ("up" if rec.get("state") == "up" else "failed"), "%d 秒内没有起来，看日志" % READY_S
-    deadline = time.time() + READY_S
-    while state != "up" and time.time() < deadline:
+    deadline = time.monotonic() + READY_S
+    while state != "up" and time.monotonic() < deadline:
         if gone():
             why = "启动命令退出了%s，看日志" % ("（退出码 %s）" % proc.returncode if proc else "")
             break
-        if _answers(url) or _answers("http://127.0.0.1:%d/" % rec["port"]):
+        health = _health(rec)
+        if health["ok"] and not gone() and time.monotonic() < deadline:
             state = "up"
             break
+        why = "%d 秒内健康检查未通过：%s" % (READY_S, health["reason"])
         time.sleep(2)
     if state == "up":
         if rec.get("state") != "up" and _set(P.data_dir, key, pid, state="up", why=""):
@@ -476,13 +491,83 @@ def _join(prefix: str, path: str) -> str:
 
 
 def _answers(url: str) -> bool:
+    return _http_health(url)["ok"]
+
+
+def _health(rec: dict) -> dict:
     try:
-        with urllib.request.urlopen(url, timeout=3) as r:
-            return r.status < 500
-    except urllib.error.HTTPError as e:
-        return e.code < 500
-    except (OSError, ValueError):
-        return False
+        port = rec["port"]
+        if type(port) is not int or not 0 < port < 65536:
+            raise ValueError("invalid port")
+        url = "http://127.0.0.1:%d%s" % (port, _join(rec["prefix"], rec.get("ready") or "/"))
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return {"ok": False, "reason": "预览健康检查配置无效", "checked_at": time.time()}
+    return _http_health(url)
+
+
+def _http_health(url: str) -> dict:
+    """Direct local GET, no redirects/proxy, complete 2xx response by one deadline.
+
+    This is endpoint availability, not proof of the application's business rules.
+    The caller keeps the process/configuration identity separate from this volatile
+    observation so successful polling cannot invalidate an unchanged approval.
+    """
+    started = time.monotonic()
+    result = {"ok": False, "url": url, "checked_at": time.time(), "timeout_s": HEALTH_S,
+              "status_code": None, "reason": "预览健康检查未通过"}
+    conn, timer, response = None, None, None
+    expired = threading.Event()
+    try:
+        parsed = urllib.parse.urlsplit(url)
+        if (parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or not parsed.port
+                or parsed.username or parsed.password or parsed.fragment):
+            raise ValueError("only the configured local preview endpoint is supported")
+        conn = http.client.HTTPConnection("127.0.0.1", parsed.port, timeout=HEALTH_S)
+        conn.connect()
+        sock = conn.sock
+
+        def expire():
+            expired.set()
+            try:
+                sock.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+
+        remaining = HEALTH_S - (time.monotonic() - started)
+        if remaining <= 0:
+            raise TimeoutError("health deadline")
+        sock.settimeout(remaining)
+        timer = threading.Timer(remaining, expire)
+        timer.daemon = True
+        timer.start()
+        path = parsed.path + ("?" + parsed.query if parsed.query else "")
+        conn.request("GET", path, headers={"Accept-Encoding": "identity", "Connection": "close"})
+        response = conn.getresponse()
+        result["status_code"] = response.status
+        if not 200 <= response.status < 300:
+            result["reason"] = "预览健康检查未通过：HTTP %d（需要约定路径直接返回 2xx）" % response.status
+            return result
+        digest, size = hashlib.sha256(), 0
+        while chunk := response.read(64 * 1024):
+            digest.update(chunk)
+            size += len(chunk)
+        if response.length not in (None, 0):
+            raise http.client.IncompleteRead(b"", response.length)
+        if expired.is_set() or time.monotonic() - started >= HEALTH_S:
+            raise TimeoutError("health deadline")
+        result.update(ok=True, reason="约定健康端点已响应", body_bytes=size, body_sha256=digest.hexdigest())
+    except (OSError, ValueError, http.client.HTTPException) as exc:
+        result["reason"] = ("预览健康检查超时" if expired.is_set() or isinstance(exc, TimeoutError)
+                            else "预览健康检查未通过：" + type(exc).__name__)
+    finally:
+        if timer:
+            timer.cancel()
+        if response:
+            response.close()
+        if conn:
+            conn.close()
+        result["elapsed_ms"] = round((time.monotonic() - started) * 1000, 3)
+    return result
 
 
 # ---------------------------------------------------------------- who may open a preview

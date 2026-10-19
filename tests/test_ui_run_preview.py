@@ -102,6 +102,20 @@ assert.ok(unknown.includes('无法确认'));
 assert.ok(unknown.includes('data-run-preview-refresh'));
 """)
 
+    def test_unhealthy_preview_hides_open_but_preserves_refresh_and_recovery(self):
+        self.run_js(r"""
+for (const state of ['unhealthy', 'checking']) {
+  const html=runPreviewHtml(run,{...ready,url:'',preview:{state,commit:'abc123',why:'HTTP 503 <db>'}},'');
+  assert.ok(html.includes('预览暂不可用'));
+  assert.ok(html.includes('HTTP 503 &lt;db&gt;'));
+  assert.ok(html.includes('data-run-preview-refresh'));
+  assert.ok(html.includes('重新启动本次预览'));
+  assert.ok(!html.includes('打开本次改动预览'));
+  assert.ok(!html.includes('预览尚未启动'));
+}
+assert.ok(runPreviewHtml(run,ready,'').includes('打开本次改动预览'));
+""")
+
     def test_preview_request_target_is_bound_to_run_ticket_not_active_page(self):
         self.run_js(r"""
 assert.equal(runPreviewPath(run),'/api/tickets/APP-1/preview');

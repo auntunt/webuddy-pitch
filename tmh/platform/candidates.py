@@ -238,7 +238,7 @@ def view(P, cid, *, include_probe=True):
     if not probe_ok:
         needs.append("业务探测尚未通过、仍有未知项或证据已失效；读取harness_probe_get核对")
     if not preview_ok:
-        needs.append("固定版本预览尚未就绪")
+        needs.append("固定版本预览尚未就绪" + ("：" + pv["why"] if pv.get("why") else ""))
     if not technical_ok:
         needs.append("缺少当前验证对应的独立逐项技术验收，或仍有失败/未知项")
     return {"id": cid, "ticket": t["key"], "run_id": row["run_id"], "author": row["agent"],

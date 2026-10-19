@@ -42,7 +42,11 @@ class ProcessControlTest(unittest.TestCase):
         self.assert_clean(result)
 
     def test_blocked_stdin_and_no_newline_output_do_not_block_deadline(self):
-        result = self.run_python("import os,signal,time\nsignal.signal(signal.SIGTERM,signal.SIG_IGN)\nos.write(1,b'partial-without-newline')\ntime.sleep(20)", stdin=b"x" * 4_000_000, timeout=.25, terminate_grace=.1)
+        # This checks blocked pipes and escalation, not whether a cold Python
+        # interpreter starts within 250ms. Shell builtins emit the exact bytes
+        # before exec; ignored SIGTERM survives exec into the sleeping process.
+        result = run_process(["/bin/sh", "-c", "trap '' TERM; printf %s partial-without-newline; exec /bin/sleep 20"],
+                             stdin=b"x" * 4_000_000, timeout=.25, terminate_grace=.1)
         self.assertEqual(result.reason, "timeout")
         self.assertEqual(result.returncode, 124)
         self.assertEqual(result.output_bytes, b"partial-without-newline")

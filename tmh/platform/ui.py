@@ -722,7 +722,7 @@ async function vTicket(key,sub){
   if($('#naReopen'))$('#naReopen').onclick=()=>save({status:'doing'});
   const openLog=()=>{$('#aiCard').open=true;$('#runv').scrollIntoView({behavior:'smooth',block:'start'})};
   if($('#naLog'))$('#naLog').onclick=()=>{const r=f.live||d.runs[0];if(r)showRun(r.id,true);openLog()};if($('#naReview'))$('#naReview').onclick=()=>{showRun(f.fx.id,true);openLog()};};
-  wireNext();pkgWire(d);upWire(d);pvLoad(key);hwLoad(d);epicWire(d);
+  wireNext();pkgWire(d);upWire(d);hwLoad(d);epicWire(d);
   S.ticketRefresh=ticketSummarySync(d,n=>{d=n;f=flowState(n);na=nextAction(n,f);wireNext()});
   ticketPathMapWire(key);
   watchIntakeRecovery(key);
@@ -876,9 +876,9 @@ function runPreviewHtml(r,d,error){
   if(!d)return '<p class="sub" role="status"><span class="spin"></span> 正在核对本次改动的预览状态…</p>';
   if(Number(d.run_id)!==Number(r.id)||!d.expected_commit)return `<div class="hint">暂时无法确认预览对应本次运行，没有提供打开入口。请刷新状态后再试。</div><div class="row">${refresh}</div>`;
   const p=d.preview||{},same=d.matches_run===true,ready=same&&p.state==='up'&&typeof d.url==='string'&&d.url.startsWith('/pv/'),starting=same&&p.state==='starting';
-  const mismatch=!!p.commit&&!same,failed=p.state==='failed';
-  const why=ready?'本次改动已启动，可以打开实际操作。请核对需求与验收场景；打开预览不代表验收通过。':starting?'本次改动正在启动，准备好后会出现打开入口。':mismatch?'当前预览无法确认对应本次改动。请启动本次预览，再验证当前实现。':failed?'本次预览未能启动，请查看原因后重试。':'本次改动已保存到独立分支，预览尚未启动。';
-  return `<p class="${mismatch||failed?'hint':'sub'}" role="status">${starting?'<span class="spin"></span> ':''}${why}</p>${failed&&p.why?`<div class="bad">${h(p.why)}</div>`:''}${p.tail?`<details class="run-check" ${failed?'open':''}><summary>预览启动日志（服务返回的最近记录）</summary><pre class="log">${h(p.tail)}</pre></details>`:''}<div class="row run-actions">${ready?`<a class="btn primary" href="${h(d.url)}" target="_blank" rel="noopener">打开本次改动预览 ↗</a>`:''}${!starting&&d.cmd?`<button type="button" data-run-preview-start ${ready?'':'class="primary"'}>${ready?'重新启动本次预览':mismatch?'切换到本次预览':failed?'重试本次预览':'启动本次预览'}</button>`:''}${refresh}</div>${!d.cmd?`<p class="sub">尚未配置项目的预览命令。<a href="#/t/${encodeURIComponent(r.ticket_key)}" onclick="closeModal()">到执行工单配置</a></p>`:''}${!d.own_address?'<p class="sub">当前预览使用浏览器隔离环境。需要脚本读写数据的应用应先配置独立预览端口。</p>':''}<details class="run-check"><summary>核对代码版本</summary><p class="sub">本次改动：<code>${h(d.expected_commit)}</code><br>当前预览：<code>${h(p.commit||'尚无')}</code></p></details>`}
+  const mismatch=!!p.commit&&!same,unhealthy=p.state==='unhealthy'||p.state==='checking',failed=p.state==='failed';
+  const why=ready?'本次改动已启动，可以打开实际操作。请核对需求与验收场景；打开预览不代表验收通过。':starting?'本次改动正在启动，准备好后会出现打开入口。':mismatch?'当前预览无法确认对应本次改动。请启动本次预览，再验证当前实现。':unhealthy?'预览暂不可用。进程可能仍在运行，请修复健康检查显示的问题后刷新状态。':failed?'本次预览未能启动，请查看原因后重试。':'本次改动已保存到独立分支，预览尚未启动。';
+  return `<p class="${mismatch||failed||unhealthy?'hint':'sub'}" role="status">${starting?'<span class="spin"></span> ':''}${why}</p>${(failed||unhealthy||starting)&&p.why?`<div class="bad">${h(p.why)}</div>`:''}${p.tail?`<details class="run-check" ${failed?'open':''}><summary>预览启动日志（服务返回的最近记录）</summary><pre class="log">${h(p.tail)}</pre></details>`:''}<div class="row run-actions">${ready?`<a class="btn primary" href="${h(d.url)}" target="_blank" rel="noopener">打开本次改动预览 ↗</a>`:''}${!starting&&d.cmd?`<button type="button" data-run-preview-start ${ready?'':'class="primary"'}>${ready||unhealthy?'重新启动本次预览':mismatch?'切换到本次预览':failed?'重试本次预览':'启动本次预览'}</button>`:''}${refresh}</div>${!d.cmd?`<p class="sub">尚未配置项目的预览命令。<a href="#/t/${encodeURIComponent(r.ticket_key)}" onclick="closeModal()">到执行工单配置</a></p>`:''}${!d.own_address?'<p class="sub">当前预览使用浏览器隔离环境。需要脚本读写数据的应用应先配置独立预览端口。</p>':''}<details class="run-check"><summary>核对代码版本</summary><p class="sub">本次改动：<code>${h(d.expected_commit)}</code><br>当前预览：<code>${h(p.commit||'尚无')}</code></p></details>`}
 async function showRun(rid,inline){
   const target=inline?$('#runv'):$('#mbody'),tag=inline?'run':'modal';if(!target)return;
   const token=String(S.runViewSeq=(S.runViewSeq||0)+1);let since=0,last=null,pane='res',busy=false,checking=false,preview=null,previewError='',checkError='',watcher=null,previewSeq=0,previewMutating=false,ticketSig='';
@@ -1023,27 +1023,38 @@ function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true
   if($('#inNo'))$('#inNo').onclick=()=>act({action:'drop'}).then(closeModal)}
 
 // ---------- the change itself, running: a link the person and the client open before accepting
-const PVL={up:['ok','可以打开'],starting:['info','启动中'],failed:['bad','没起来']};
-async function pvLoad(key){const el=$('#pvc');if(!el)return;let d;try{d=await get('/api/tickets/'+key+'/preview')}catch(e){return}
-  if(!$('#pvc')||curView()!=='t')return;const st=d.preview||{},s=st.state,lb=PVL[s];
+const PVL={up:['ok','可以打开'],starting:['info','启动中'],unhealthy:['bad','暂不可用'],checking:['info','待重新核对'],failed:['bad','没起来']};
+async function pvLoad(key){const el=$('#pvc'),top=$('#ttPv');if((!el&&!top)||S.cur?.ticket?.key!==key||curView()!=='t')return;
+  const seq=S.ticketPreviewSeq=(S.ticketPreviewSeq||0)+1;
+  const current=()=>seq===S.ticketPreviewSeq&&S.cur?.ticket?.key===key&&curView()==='t'&&el===$('#pvc')&&top===$('#ttPv');
+  let d;try{d=await get('/api/tickets/'+key+'/preview')}catch(e){d={preview:{state:'checking',why:'无法读取预览状态：'+e.message}}}
+  if(!current())return;const st=d.preview||{},s=st.state,lb=PVL[s];
+  if(top)top.innerHTML=s==='up'&&d.url?`<a class="btn primary" href="${h(d.url)}" target="_blank" rel="noopener">打开预览 ↗</a>`:s==='starting'?'<span class="ev-tag info"><span class="spin"></span> 预览启动中</span>':['unhealthy','checking'].includes(s)?`<span class="ev-tag bad" role="status">预览暂不可用</span><span class="sub">${h(st.why||'请刷新预览状态')}</span>`:'';
+  if(!el)return;
   if(!d.branch&&!s){el.hidden=true;return}
+  const form=$('#pvF'),editing=form?.querySelector('#pvCmd');
   el.hidden=false;
   el.innerHTML=`<div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">预览版本</h2>${lb?`<span class="ev-tag ${lb[0]}">${lb[1]}</span>`:''}</div>
    ${s==='up'?`<div class="sub">这次改动（提交 <code>${h(st.commit)}</code>）正跑在平台上，验收前先亲手试一遍。发出去的签收链接里也有这个入口。${d.own_address?'':'<br>它在浏览器的隔离环境里运行，碰不到平台。直接出页面的程序可以正常用；页面打开后再用脚本取数据的（单页应用）在这里取不到数据，要给预览配一个独立端口。'}</div>
      <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn primary" href="${h(d.url)}" target="_blank" rel="noopener">打开预览 ↗</a><button class="ghost" id="pvStop">停掉</button><button class="ghost" id="pvGo">重新启动</button></div>`
    :s==='starting'?`<div class="sub"><span class="spin"></span> 正在用 <code>${h(clip(st.cmd||'',80))}</code> 启动 ${h(st.branch||'')}，起来后这里会出现打开按钮。</div><div class="row" style="margin-top:8px"><button class="ghost" id="pvStop">停掉</button></div>`
+   :s==='unhealthy'||s==='checking'?`<div class="bad" role="status">${h(st.why||'预览暂不可用，请刷新状态')}</div><p class="sub">健康恢复后可重新打开；本次检查不会重启进程或清除数据。</p><div class="row"><button id="pvRefresh">刷新预览状态</button>${d.cmd?'<button class="ghost" id="pvStop">停掉</button><button class="ghost" id="pvGo">重新启动</button>':''}</div>`
    :s==='failed'?`<div class="bad" style="font-size:13px">${h(st.why||'')}</div>${st.tail?`<details style="margin-top:6px"><summary class="sub">启动日志最后几行</summary><pre class="log" style="max-height:200px;overflow:auto;font-size:12px;white-space:pre-wrap">${h(st.tail)}</pre></details>`:''}<div class="row" style="gap:6px;margin-top:8px"><button class="primary" id="pvGo">再启动一次</button><button class="ghost" id="pvCfg">改启动命令</button></div>`
    :d.cmd?`<div class="sub">还没启动。会用 <code>${h(clip(d.cmd,80))}</code>${d.configured?'':'（按项目结构猜的）'}把这次改动跑起来。</div><div class="row" style="gap:6px;margin-top:8px"><button class="primary" id="pvGo">启动预览</button><button class="ghost" id="pvCfg">改启动命令</button></div>`
    :`<div class="sub">填一条能把这个项目跑起来的命令，以后每次自动改完都会起一个预览，客户在签收页就能点开试。用 <code>{port}</code> 表示端口，<code>{prefix}</code> 表示它挂在哪个路径下（程序要能挂在这个路径下运行，页面里的链接才不会断），只监听 127.0.0.1。</div><div class="row" style="margin-top:8px"><button class="primary" id="pvCfg">填启动命令</button></div>`}
    <div id="pvF"></div>`;
+  if(editing)$('#pvF').replaceWith(form);
   const act=a=>post('/api/tickets/'+key+'/preview',{action:a}).then(()=>pvLoad(key)).catch(e=>toast(e.message,6000));
   if($('#pvGo'))$('#pvGo').onclick=()=>act('start');
   if($('#pvStop'))$('#pvStop').onclick=()=>act('stop');
-  if($('#pvCfg'))$('#pvCfg').onclick=async()=>{const pk=key.split('-')[0];let c={};try{c=await get('/api/projects/'+pk+'/preview-conf')}catch(e){}
-    $('#pvF').innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><input id="pvCmd" value="${h(c.cmd||c.detected||'')}" placeholder="例如 python3 -m http.server {port} 或 mvn spring-boot:run -Dserver.port={port}">
+  if($('#pvRefresh'))$('#pvRefresh').onclick=()=>pvLoad(key);
+  if($('#pvCfg'))$('#pvCfg').onclick=async()=>{const pk=key.split('-')[0],box=$('#pvF');
+    const active=()=>box===$('#pvF')&&S.cur?.ticket?.key===key&&curView()==='t';
+    let c={};try{c=await get('/api/projects/'+pk+'/preview-conf')}catch(e){}if(!active())return;
+    box.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><input id="pvCmd" value="${h(c.cmd||c.detected||'')}" placeholder="例如 python3 -m http.server {port} 或 mvn spring-boot:run -Dserver.port={port}">
       <input id="pvReady" value="${h(c.ready||'/')}" placeholder="起来后能打开的路径，默认 /"><div class="row" style="gap:6px"><button class="primary" id="pvSave">保存</button><span class="sub">留空保存就回到按项目结构猜</span></div></div>`;
-    $('#pvSave').onclick=async()=>{try{await post('/api/projects/'+pk+'/preview-conf',{cmd:$('#pvCmd').value,ready:$('#pvReady').value});toast('已保存启动命令');pvLoad(key)}catch(e){toast(e.message,6000)}}};
-  if(s==='starting')setTimeout(()=>{if($('#pvc')&&location.hash.includes(key))pvLoad(key)},4000)}
+    $('#pvSave').onclick=async()=>{if(!active())return;try{await post('/api/projects/'+pk+'/preview-conf',{cmd:box.querySelector('#pvCmd').value,ready:box.querySelector('#pvReady').value});if(active()){toast('已保存启动命令');pvLoad(key)}}catch(e){if(active())toast(e.message,6000)}}};
+  if(s==='starting')setTimeout(()=>{if(current())pvLoad(key)},4000)}
 
 // ---------- 我来写: a person writes it (by hand or with their own tools); the platform checks it like any change
 async function hwLoad(d){const el=$('#hwc'),t=d.ticket;if(!el||t.status==='closed')return;

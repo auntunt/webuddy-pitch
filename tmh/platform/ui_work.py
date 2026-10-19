@@ -244,11 +244,11 @@ async function vVersions(key){
   all.forEach(v=>versionWire(v));
   if(all.some(v=>v.standing.state==='starting'))setTimeout(()=>{if(curView()==='versions')vVersions(key)},4000)}
 function versionCard(v,cs){const p=v.project,s=v.standing,K=h(p.key),last=(((v.versions||[])[0]||{}).items||[]).map(i=>i.client_name).find(Boolean)||'';
-  const st=s.state==='up'?'<span class="ev-tag ok">预览运行中</span>':s.state==='starting'?'<span class="ev-tag info"><span class="spin"></span> 正在启动</span>':s.state==='failed'?'<span class="ev-tag bad">启动失败</span>':'<span class="ev-tag mute">尚未启动</span>';
+  const st=s.state==='up'?'<span class="ev-tag ok">预览运行中</span>':s.state==='starting'?'<span class="ev-tag info"><span class="spin"></span> 正在启动</span>':s.state==='unhealthy'||s.state==='checking'?'<span class="ev-tag bad">预览暂不可用</span>':s.state==='failed'?'<span class="ev-tag bad">启动失败</span>':'<span class="ev-tag mute">尚未启动</span>';
   return `<section class="card version-card" id="vc-${K}"><div class="hdr"><h2 class="grow" style="margin:0">${K} · ${h(p.name)}</h2><span class="st done">${v.merge==='auto'?'自动合并已开启':'自动合并已关闭'}</span></div>
    <div class="version-preview"><div class="vcur"><b>当前预览</b>${st}<span class="sub">${s.commit?'提交 '+h(s.commit):''}${s.main?' · 主干 '+h(s.main):''}${s.stale?' · 主干有更新，可重新启动预览':''}</span><span class="grow"></span>
-     ${s.url?`<a class="btn primary" href="${h(s.url)}" target="_blank" rel="noopener">打开预览 ↗</a>`:''}${s.configured&&s.state!=='starting'?`<button class="${s.url?'ghost':'primary'}" data-vs="start">${s.url?'重新启动':'启动预览'}</button>`:''}${s.url||s.state==='starting'?'<button class="ghost" data-vs="stop">停止预览</button>':''}</div>
-     ${s.why&&s.state==='failed'?`<div class="bad" style="font-size:13px;margin-top:6px">${h(s.why)}</div>`:''}
+     ${s.url?`<a class="btn primary" href="${h(s.url)}" target="_blank" rel="noopener">打开预览 ↗</a>`:''}${s.configured&&s.state!=='starting'?`<button class="${s.url?'ghost':'primary'}" data-vs="start">${s.url||['unhealthy','checking'].includes(s.state)?'重新启动':'启动预览'}</button>`:''}${s.url||['starting','unhealthy','checking'].includes(s.state)?'<button class="ghost" data-vs="stop">停止预览</button>':''}</div>
+     ${s.why&&['failed','unhealthy','checking'].includes(s.state)?`<div class="bad" style="font-size:13px;margin-top:6px">${h(s.why)}</div>`:''}
      ${s.fix?`<div class="sub" style="margin-top:8px">${h(s.fix)}</div><div class="lnk"><label class="wk-field" for="vcmd-${K}">预览启动命令<input id="vcmd-${K}" data-vcmd placeholder="例如 python3 app.py {port} {prefix}" value="${h(s.configured?s.cmd:(s.cmd||''))}"></label><button data-vsave>保存命令</button></div>`:''}
      ${s.configured?`<div class="version-share"><h3 style="margin:0">分享预览</h3><div class="sub">为客户生成带有效期的版本链接；可随时撤销。分享不代表客户已经验收。</div>
       <div class="lnk"><label class="wk-field" for="vcl-${K}">接收客户<select id="vcl-${K}" data-vcl><option value="">不指定客户（仅展示改进数量）</option>${cs.filter(c=>!c.projects.length||c.projects.includes(p.key)).map(c=>`<option value="${c.id}" ${c.name===last?'selected':''}>${h(c.name)}</option>`).join('')}</select></label><label class="wk-field" for="vdays-${K}">链接有效期<select id="vdays-${K}" data-vdays><option value="7">7 天</option><option value="30" selected>30 天</option><option value="90">90 天</option></select></label><button class="primary" data-vshare>生成分享链接</button></div><div data-vout></div>
@@ -282,6 +282,5 @@ async function ticketTopWire(d,na){const t=d.ticket,key=t.key;
   if($('#ttHw'))$('#ttHw').onclick=()=>{$('#engc').open=true;setTimeout(()=>{const c=$('#hwc');if(c&&!c.hidden)c.scrollIntoView({block:'start',behavior:'smooth'})},300)};
   S.ttClient='';const cid=(t.links||{}).client;
   if(cid)get('/api/clients').then(r=>{const c=r.clients.find(x=>x.id===cid);if(c&&$('#ttCl')){S.ttClient=c.name;$('#ttCl').innerHTML=`<a class="tag" href="#/c/${c.id}">${h(c.name)}</a>`}}).catch(()=>{});
-  try{const p=await get('/api/tickets/'+key+'/preview');const el=$('#ttPv');if(!el||!S.cur||S.cur.ticket.key!==key)return;const st=(p.preview||{}).state;
-    el.innerHTML=p.url?`<a class="btn primary" href="${h(p.url)}" target="_blank" rel="noopener">打开预览 ↗</a>`:st==='starting'?'<span class="ev-tag info"><span class="spin"></span> 预览启动中</span>':''}catch(e){}}
+  if($('#ttPv'))await pvLoad(key)}
 """
