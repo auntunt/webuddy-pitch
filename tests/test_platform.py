@@ -2365,6 +2365,30 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual(code, 200, s)
         self.fail("the conversation never got to its criteria")
 
+    def test_big_requirement_size_warning_is_logged_before_children_without_blocking(self):
+        from tmh.platform import epic
+        key = self.project()
+        self.untrain()
+        _, s = self.call("POST", "/api/projects/%s/intake" % key,
+                         {"text": "大需求：请假单支持按小时请假", "model": False})
+        s = self._answer_all(s)
+        s["items"][0]["title"] = "请假与审批"
+        s["items"][0]["ac"] += [dict(s["items"][0]["ac"][0], id="W%d" % n) for n in range(9)]
+        seen = []
+        original = self.P.store.create_ticket
+
+        def create_ticket(*args, **kwargs):
+            parent_key = kwargs.get("links", {}).get("parent")
+            if parent_key:
+                seen.extend(self.P.store.ticket(parent_key)["links"]["epic"]["log"])
+            return original(*args, **kwargs)
+
+        with mock.patch.object(self.P.store, "create_ticket", side_effect=create_ticket):
+            made = epic.create(self.P, self.P.project(key), s, "tester")
+        self.assertEqual(len(made["children"]), 1)
+        self.assertTrue(any("提示：第 1 个子单：AC 超过 8 条" in e["text"] for e in seen), seen)
+        self.assertTrue(any("并列结构" in e["text"] for e in seen), seen)
+
     def test_a_big_requirement_goes_from_a_spec_to_children_in_batches_and_an_overall_acceptance(self):
         """Spec card, parent and children, batches on acceptance, a pause, the whole accepted, a rejected whole redone."""
         from unittest import mock

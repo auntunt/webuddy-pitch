@@ -108,6 +108,7 @@ def create(P, p: dict, s: dict, by: str, deps: dict | None = None, wave: int | N
     deps: {"<item index>": [earlier item indices]}. Returns {"parent": key, "children": [keys]}."""
     from . import intake
     from .signoff import _add, epath
+    from ..acceptance import size_warnings
     work = [(i, it) for i, it in enumerate(s["items"]) if it["kind"] != "question"]
     if not work:
         raise ValueError("没有要做的事：咨询类已经直接答复")
@@ -138,6 +139,22 @@ def create(P, p: dict, s: dict, by: str, deps: dict | None = None, wave: int | N
     _add(epath(P.data_dir, parent["key"]), "intake", by, {"session": s["id"], "text": s["text"], "understanding": "大需求规格卡：" + spec["goal"],
                                                           "ac": spec["done"], "open": [d["id"] for d in spec["done"] if d["open"]],
                                                           "confirmed_by": by, "requested_by": s["by"], "channel": s["channel"], "spec": spec})
+    # Adapt each item's criteria to the same advisory checks used for contracts.
+    def size_text(it):
+        cell = lambda s: str(s).replace("|", "／").replace("\n", " ")
+        rows = ["| %s | %s | %s |" % (a["id"], cell(a["text"]), cell(a["check"])) for a in it["ac"]]
+        return "# %s\n%s\n## 4. AC\n| # | 验收条款 | 检查方式 |\n|---|---|---|\n%s\n" % (
+            intake.title_of(it), it["text"], "\n".join(rows))
+
+    sizes = [size_text(it) for _, it in work]
+    warnings = ["提示：第 %d 个子单：%s" % (n + 1, warning)
+                for n, text in enumerate(sizes)
+                for warning in size_warnings(text, sizes[:n] + sizes[n + 1:])]
+    if warnings:
+        def log_warnings(e, links):
+            for warning in warnings:
+                _log(e, warning)
+        parent = _edit(P, parent, log_warnings)
     keys, held = [], HELD % _clip(title[4:], 30)
     for n, (i, it) in enumerate(work, 1):
         dep_keys = [keys[pos[d]] for d in after.get(i, [])]

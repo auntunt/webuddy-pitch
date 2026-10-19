@@ -1,3 +1,4 @@
+import io
 import os
 import re
 import shutil
@@ -6,6 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
+from contextlib import redirect_stdout
 
 from tmh import acceptance as acc, guard, task
 from tmh.path import path_check
@@ -21,6 +23,37 @@ AC = """| # | 验收条款 | 层级 | 检查方式（自动化测试 / 命令 / 
 | A2 | 真实库上筛选结果正确 | L4 | 业务方在测试环境查一次 | 未验证 |
 """
 NO_AGENT = {k: "" for k in acc.AGENT_ENV}
+
+
+class SizeWarningsTest(unittest.TestCase):
+    @staticmethod
+    def contract(n=2, title="请假列表筛选", clause="筛选正确"):
+        return "# " + title + "\n## 4. AC\n| # | 验收条款 | 层级 | 检查方式 |\n|---|---|---|---|\n" + "".join(
+            "| A%d | %s | L2 | 运行测试 |\n" % (i, clause) for i in range(n))
+
+    def test_parallel_titles_warn(self):
+        for title in ("审批与导出", "审批 和 导出", "审批及导出"):
+            self.assertTrue(any("并列" in w for w in acc.size_warnings(self.contract(title=title))))
+
+    def test_count_and_characters_compare_to_five_peer_medians(self):
+        peers = [self.contract() for _ in range(5)]
+        self.assertTrue(any("AC 条数" in w for w in acc.size_warnings(self.contract(4), peers)))
+        self.assertTrue(any("AC 字符量" in w for w in acc.size_warnings(self.contract(clause="正确" * 20), peers)))
+
+    def test_small_samples_use_absolute_limits(self):
+        peers = [self.contract(1) for _ in range(4)]
+        self.assertEqual(acc.size_warnings(self.contract(4), peers), [])
+        self.assertTrue(any("超过 8 条" in w for w in acc.size_warnings(self.contract(9), peers)))
+        self.assertTrue(any("超过 1600" in w for w in acc.size_warnings(self.contract(1, clause="字" * 1601))))
+
+    def test_normal_contract_has_no_warning(self):
+        self.assertEqual(acc.size_warnings(self.contract(), [self.contract() for _ in range(5)]), [])
+
+    def test_explicit_new_file_estimates_warn_only_above_three(self):
+        for estimate in ("预计新建 4 个文件", "新增 4 个模块", "add 4 new files",
+                         "预计新建文件：`a.py`、`b.py`、`c.py`、`d.py`"):
+            self.assertTrue(any("超过 3 个" in w for w in acc.size_warnings(self.contract() + estimate)))
+        self.assertEqual(acc.size_warnings(self.contract() + "预计新建 3 个文件"), [])
 
 
 class AcceptanceTest(unittest.TestCase):
@@ -151,6 +184,16 @@ class AcceptanceTest(unittest.TestCase):
             r = acc.correct(self.root, "T001", "too-big", "改了 %d 个无关文件" % (i + 2))
         self.assertTrue(r["due"])
         self.assertEqual(r["count"], 3)
+
+    def test_size_warnings_are_visible_without_blocking_check_or_advance(self):
+        from tmh import cli
+        self.c.write_text(SizeWarningsTest.contract(9, "审批与导出"), encoding="utf-8")
+        out = io.StringIO()
+        with redirect_stdout(out):
+            self.assertEqual(cli.main(["accept", "check", "T001", "--repo", str(self.root)]), 0)
+            self.assertEqual(cli.main(["accept", "advance", "T001", "--to", "implementing", "--repo", str(self.root)]), 0)
+        self.assertEqual(out.getvalue().count("提示：AC 超过 8 条"), 2)
+        self.assertEqual(acc.load(self.root, "T001")["state"], "implementing")
 
 
 if __name__ == "__main__":

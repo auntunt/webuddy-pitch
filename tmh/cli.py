@@ -209,6 +209,13 @@ def cmd_task(a) -> int:
 def cmd_accept(a) -> int:
     from . import acceptance as acc
     root = _root(a)
+
+    def print_size_warnings():
+        contract = acc.find_contract(root, a.task)
+        peers = [p.read_text(encoding="utf-8") for p in sorted(contract.parent.glob("T*.md")) if p != contract]
+        for warning in acc.size_warnings(contract.read_text(encoding="utf-8"), peers):
+            print("提示：" + warning)
+
     try:
         if a.action == "path-check":
             from .path import path_check, path_text
@@ -224,6 +231,7 @@ def cmd_accept(a) -> int:
                 print("%-4s %-3s %-40s %s" % (r["id"], r["layer"] or "?", r["clause"][:40], r["result"][:30]))
             print("入口：%s" % ("、".join(acc.entries(text)) or "未写"))
             print("\n".join(["❌ " + x for x in probs]) or "✅ 验收标准完整，可以进入实现")
+            print_size_warnings()
             a.summary = "检查验收标准 %s：%s" % (a.task, "完整" if not probs else "缺 %d 项" % len(probs))
             return 1 if probs else 0
         if a.action in ("advance", "confirm", "close", "reject"):
@@ -233,6 +241,8 @@ def cmd_accept(a) -> int:
                 return 2
             r = acc.advance(root, a.task, to, who=a.who or "", note=a.note or "", ref=a.ref or "", build=a.build or "")
             print("%s → %s（%s）" % (r["task"], r["state"], acc.LABEL[r["state"]]))
+            if to == "implementing":
+                print_size_warnings()
             for b in r["blockers"]:
                 print("  阻塞：" + b)
             a.summary = "验收状态 %s → %s" % (r["task"], acc.LABEL[r["state"]])

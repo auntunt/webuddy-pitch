@@ -19,6 +19,7 @@ import json
 import os
 import re
 from pathlib import Path
+from statistics import median
 
 from . import config as cfgmod
 from .report import now
@@ -110,6 +111,44 @@ def ac_problems(text: str) -> list[str]:
             continue
         if r["layer"] not in LAYERS:
             out.append("%s 的层级要写 L1/L2/L3/L4（现在是“%s”）" % (r["id"], r["layer"] or "空"))
+    return out
+
+
+def _ac_size(text: str) -> tuple[int, int]:
+    rows = [r for r in ac_rows(text) if not PLACEHOLDER.match(r["clause"])]
+    return len(rows), sum(len(r["clause"]) + len(r["check"]) for r in rows)
+
+
+def size_warnings(text: str, peers=None) -> list[str]:
+    """Advisory only. peers are other contract texts (excluding this contract).
+
+    With >=5 nonempty peers, compare AC count and clause/check character count to
+    their medians. Otherwise use absolute limits of 8 ACs and 1600 characters.
+    Titles and explicit new-file/module estimates are independent warning signals.
+    """
+    count, chars = _ac_size(text)
+    sizes = [size for p in (peers or []) if (size := _ac_size(p))[0]]
+    out = []
+    if len(sizes) >= 5:
+        for value, typical, label in ((count, median(s[0] for s in sizes), "AC 条数"),
+                                      (chars, median(s[1] for s in sizes), "AC 字符量")):
+            if typical > 0 and value >= 2 * typical:
+                out.append("%s %d 达到同批中位数 %g 的 2 倍，建议检查是否需要拆分" % (label, value, typical))
+    else:
+        if count > 8:
+            out.append("AC 超过 8 条（%d 条），建议检查任务尺寸" % count)
+        if chars > 1600:
+            out.append("AC 字符量超过 1600（%d 字），建议检查任务尺寸" % chars)
+    title = re.search(r"^#\s+(.+)$", text, re.M)
+    if title and re.search(r"\S\s*[与和及]\s*\S", title.group(1)):
+        out.append("标题有并列结构，建议确认是否包含多件独立任务")
+    estimates = re.findall(r"(?:新建|新增)\s*(\d+)\s*(?:个)?\s*(?:模块|文件)", text)
+    estimates += re.findall(r"\b(?:create|add)\s+(\d+)\s+(?:new\s+)?(?:modules?|files?)\b", text, re.I)
+    for line in text.splitlines():
+        if re.search(r"(?:预计)?(?:新建|新增)(?:模块|文件)\s*[：:]", line):
+            estimates.append(str(len(set(re.findall(r"`([^`]+)`", line)))))
+    if any(int(n) > 3 for n in estimates):
+        out.append("预计新建模块或文件超过 3 个，建议检查边界及依赖")
     return out
 
 
