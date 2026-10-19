@@ -1,0 +1,87 @@
+{
+  "read_at": "2026-10-19T07:54:11.991451+00:00",
+  "platform_head": "cfbed01997201bb59963b16ced9e5635afd1b4fa",
+  "source_opened_mode": "ro",
+  "snapshot_integrity": "ok",
+  "project": "BOOTV2",
+  "legacy_events_by_kind": [
+    {
+      "kind": "adopt",
+      "n": 2
+    },
+    {
+      "kind": "candidate",
+      "n": 1
+    },
+    {
+      "kind": "candidate_assessment",
+      "n": 2
+    },
+    {
+      "kind": "candidate_decision",
+      "n": 2
+    },
+    {
+      "kind": "code-map",
+      "n": 3
+    },
+    {
+      "kind": "comment",
+      "n": 2
+    },
+    {
+      "kind": "created",
+      "n": 3
+    },
+    {
+      "kind": "edit",
+      "n": 2
+    },
+    {
+      "kind": "evidence",
+      "n": 7
+    },
+    {
+      "kind": "flow",
+      "n": 2
+    },
+    {
+      "kind": "preview",
+      "n": 11
+    },
+    {
+      "kind": "run",
+      "n": 4
+    },
+    {
+      "kind": "run-done",
+      "n": 4
+    },
+    {
+      "kind": "status",
+      "n": 4
+    }
+  ],
+  "candidate_decisions": [
+    {
+      "candidate_id": 1,
+      "ticket_id": 5,
+      "decision_id": 1,
+      "decision": "accept",
+      "created": "2026-10-19 13:44:34"
+    },
+    {
+      "candidate_id": 1,
+      "ticket_id": 5,
+      "decision_id": 2,
+      "decision": "accept",
+      "created": "2026-10-19 14:04:50"
+    }
+  ],
+  "limits": [
+    "Read-only snapshot; historical decision rows are not distinct accepted tasks.",
+    "Legacy accept and candidate acceptance have different meanings; no automatic ticket-close bug inferred.",
+    "No actual human active minutes or provider bills measured; this is not an ROI calculation."
+  ],
+  "snapshot_sha256": "ab1f1d528cd01bd773724d03fe8626941a27048314ab2cfff8b96e74cc2d07f4"
+}

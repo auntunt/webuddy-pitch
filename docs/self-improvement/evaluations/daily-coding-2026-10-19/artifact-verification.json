@@ -1,0 +1,16 @@
+{
+  "validation": "passed",
+  "cases": 18,
+  "project_entries": 18,
+  "browser_checks": 7,
+  "original_test_logs_equal": true,
+  "product_source_changed": false,
+  "local_links": 6,
+  "screenshots_original_jpeg": 5,
+  "not_run": [
+    "full platform suite (no product source changes)",
+    "new business task delivery",
+    "productivity A/B experiment",
+    "print preview"
+  ]
+}
