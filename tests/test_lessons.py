@@ -67,6 +67,45 @@ class LessonCardsTest(unittest.TestCase):
         (root / "src" / "LeaveService.java").write_text("class LeaveService {}", encoding="utf-8")
         self.assertIn(on["id"], [l["id"] for l in learn.relevant(self.data, "OA", t, root=root)])
 
+    def test_fixed_overhead_is_kept_verbatim_but_not_in_prompts_until_rewritten(self):
+        said = "  每次开工前先扫描全部文件。\n每轮都要检查所有入口。  "
+        on = self.card(fix=said)
+        self.assertEqual(on["flags"], ["每次开工前先扫描全部文件。", "每轮都要检查所有入口。"])
+        t = ticket("OA-9", 9, "请假提交以后状态没刷新", "LeaveService")
+        for _ in range(2):
+            self.assertEqual(learn.lessons_text(learn.relevant(self.data, "OA", t)), "")
+        raw = json.loads((self.data / learn.LESSONS).read_text(encoding="utf-8"))
+        self.assertEqual(raw["fix"], said)
+        self.assertNotIn("flags", raw)
+        self.assertEqual(learn.lesson(self.data, on["id"])["status"], "active")
+        logs = [r for r in learn._log(self.data) if r["kind"] == "overhead"]
+        self.assertEqual(len(logs), 1)
+        self.assertEqual(logs[0]["cards"][on["id"]], on["flags"])
+        changed = learn.edit_lesson(self.data, on["id"], {"fix": "提交状态不刷新时核对事务后的刷新事件"}, "li")
+        self.assertEqual(changed["flags"], [])
+        self.assertIn(on["id"], [l["id"] for l in learn.relevant(self.data, "OA", t)])
+        self.assertEqual(json.loads((self.data / learn.LESSONS).read_text(encoding="utf-8"))["fix"], said)
+
+    def test_overhead_rules_cover_english_and_preserve_conditional_advice(self):
+        for phrase in ("开工前先检查环境", "改完一律扫一遍", "一律运行全量测试", "Always run the full suite.",
+                       "Before every task, read the whole repository.", "After each change, scan all files."):
+            for field in ("fix", "verify", "anti"):
+                self.assertEqual(learn.overhead_flags({field: phrase}), [phrase])
+        for phrase in ("拆文件时在原文件 re-export", "每次提交请假单时刷新列表", "When splitting a file, always check its exports.",
+                       "The endpoint always returns 200.", "如果拆文件，一律检查 re-export"):
+            self.assertEqual(learn.overhead_flags({"fix": phrase}), [], phrase)
+        on = self.card(fix="拆文件时在原文件 re-export")
+        self.assertIn(on["id"], [l["id"] for l in learn.relevant(self.data, "OA", ticket("OA-9", 9, "拆文件"))])
+
+    def test_edits_preserve_long_human_text_and_flag_the_end(self):
+        on = self.card()
+        said = "  " + "原文。" * 300 + "\n每轮都要检查全部入口。  "
+        edited = learn.edit_lesson(self.data, on["id"], {"anti": said}, "li")
+        self.assertEqual(edited["anti"], said)
+        self.assertEqual(edited["flags"], ["每轮都要检查全部入口。"])
+        self.assertEqual(learn.lesson(self.data, on["id"])["anti"], said)
+        self.assertEqual(learn._log(self.data)[-1]["fields"]["anti"], said)
+
     def test_verdicts_credit_the_cards_used_and_repeated_failures_pause_a_card(self):
         on = self.card()
         for i, passed in enumerate([True, False]):

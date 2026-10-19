@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：P2；状态：done
+- 当前项：P3；状态：done
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -13,8 +13,8 @@
 | 项目 | 状态 | 提交 | 说明 |
 |---|---|---|---|
 | P1 | done | `407d196` | AGENTS 区块预算与命令路由 |
-| P2 | done | 见 `P2:` 提交 | 非阻塞任务尺寸提示 |
-| P3 | todo | — | 经验卡固定开销 lint |
+| P2 | done | `eac0e2f` | 非阻塞任务尺寸提示 |
+| P3 | done | 见 `P3:` 提交 | 经验卡固定开销 lint |
 | P4 | todo | — | 已知死路及来源验证 |
 | P5 | todo | — | 结构反馈草稿与人确认 |
 | P6 | todo | — | 可替换文件锁与 Windows 阻塞盘点 |
@@ -47,6 +47,19 @@
 - 实际改动：上述 5 个文件。`size_warnings` 与 `ac_problems`/`advance` 放行条件隔离；CLI check/成功进入 implementing 打印提示；epic 在建子单之前用 `_edit`/`_log` 记录，保留正常创建流程。
 - 假设/阈值：peers 传其他契约原文、排除自身与无有效 AC 的样本；≥5 份时按条数或“条款+检查方式”字符量达到中位数 2 倍提示；少于 5 份用 >8 条 / >1600 字。后者相当于 8 条较长的约 200 字条款。标题并列、新建数 >3 独立提示；文件数量只匹配明确数字或反引号列表，避免猜测。epic 同一批其他 item 作为 peers。
 - 审阅：已逐段检查 git diff；`git diff --check` 通过；基线断言、状态机、人确认和证据逻辑未改。失败处理：环境修复 1 轮，无实现修复。
+
+## P3
+
+- 状态：done。
+- 范围：`tmh/platform/learn.py`、`tests/test_lessons.py`。
+- 计划：只过滤含全局固定动作的经验卡提示注入，返回命中原句；保留人的原文与现有状态，不改变存储格式。
+- 命令/结果：待跑 `test_lessons.py`。
+- 待确认：无。
+- 实际改动：`overhead_flags` 匹配 fix/verify/anti 的每次/每轮必须、开工前先、改完一律，以及 always + 动作、before/after every/each task/run/session/change/iteration/commit；排除有场景条件的建议和非指令的事实句。匹配原句仅在 add/edit 返回值携带 flags，不写入 lessons.jsonl 新字段。
+- `relevant` 对本项目与已采纳共享卡均过滤；按既有 `_note_once` 模式每工单每轮人裁决前记录一次 overhead 日志。状态、信任和失败计数规则不变。
+- 代码差异：原 edit 和日志折叠均截断到 800 字，edit 还 strip；为满足“人的原文逐字保留”移除这些处理，字段/存储格式不变。长文本测试覆盖末尾命中句及空白/换行完整保存。
+- 验证：`NO_PROXY='*' no_proxy='*' python3 -m unittest discover -s tests -p 'test_lessons.py'`：16 tests，OK（0.040s）；已审阅 git diff，`git diff --check` 通过；实现修复 0 轮。
+- 边界：规则有意偏保守，未显式表达全局动作的说法可能漏报；未改页面/CLI 展示层（返回值已提供 flags）。
 
 ## 待确认
 

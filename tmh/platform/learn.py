@@ -79,6 +79,31 @@ FIELD_LABEL = {"symptom": "现象", "cause": "根因", "fix": "改法", "verify"
 DEMOTE_AFTER = 2  # failures a card went along with before it leaves the prompts (when they outnumber its passes)
 
 
+def overhead_flags(card: dict) -> list[str]:
+    """Return original sentences prescribing work on every task, without editing the card.
+
+    Match explicit workflow instructions, not facts such as 'always returns 200' or
+    conditional advice ('拆文件时…', 'when splitting…'). Prefer missing a vague rule
+    to suppressing useful advice tied to a concrete situation.
+    """
+    global_action = re.compile(
+        r"(?:每次|每轮)(?:(?:开工|任务|会话|工作|改动)(?:前|后)?)?(?:都)?(?:必须|要|应当|应|先)"
+        r"|开工前(?:都)?先|改完(?:后)?(?:一律|都要|必须)"
+        r"|一律(?:先|都|必须|要)?(?:检查|扫描|扫|运行|执行|核对|审查|测试|阅读|读)"
+        r"|\balways\s+(?:first\s+)?(?:run|check|scan|read|verify|inspect|review|test|execute)\b"
+        r"|\b(?:before|after)\s+(?:every|each)\s+(?:task|run|session|change|iteration|commit)\b",
+        re.I)
+    scoped = re.compile(r"(?:如果|若|当|时[，,：:]?)|\b(?:when|if|while|whenever)\b", re.I)
+    out = []
+    for field in ("fix", "verify", "anti"):
+        for match in re.finditer(r".+?(?:[。！？!?；;\n]|\.(?=\s|$)|$)", card.get(field) or "", re.S):
+            sentence = match.group().strip()
+            hit = global_action.search(sentence)
+            if hit and not scoped.search(sentence[:hit.start()]) and sentence not in out:
+                out.append(sentence)
+    return out
+
+
 def _raw(data_dir: Path) -> list:
     f = Path(data_dir) / LESSONS
     out = []
@@ -149,7 +174,7 @@ def _fold(lessons_: list, log: list) -> list:
                 l["taken"].pop(r.get("project", ""), None)
             l["history"].append({"ts": r.get("ts", ""), "by": r.get("by", ""), "status": "share" if r.get("on") else "unshare", "why": r.get("why", "")})
         elif k == "edit":
-            l.update({f: str(v)[:800] for f, v in (r.get("fields") or {}).items() if f in FIELDS})
+            l.update({f: str(v) for f, v in (r.get("fields") or {}).items() if f in FIELDS})
             l["history"].append({"ts": r.get("ts", ""), "by": r.get("by", ""), "status": "edit", "why": "改了" + "、".join(FIELD_LABEL[f] for f in r.get("fields") or {} if f in FIELDS)})
     return list(by.values())
 
@@ -172,7 +197,7 @@ def add_lesson(data_dir: Path, d: dict) -> dict:
         d.setdefault("status", "active")
         with f.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(d, ensure_ascii=False) + "\n")
-    return d
+    return dict(d, flags=overhead_flags(d))
 
 
 def set_status(data_dir: Path, lid: str, status: str, by: str, why: str = "") -> dict:
@@ -188,10 +213,11 @@ def edit_lesson(data_dir: Path, lid: str, fields: dict, by: str) -> dict:
     cur = lesson(data_dir, lid)
     if not cur:
         raise ValueError("没有这条经验：" + lid)
-    ch = {f: str(v).strip()[:800] for f, v in (fields or {}).items() if f in FIELDS and str(v).strip() != (cur.get(f) or "")}
+    ch = {f: str(v) for f, v in (fields or {}).items() if f in FIELDS and str(v) != (cur.get(f) or "")}
     if ch:
         _append_log(data_dir, [{"kind": "edit", "id": lid, "fields": ch, "by": by}])
-    return lesson(data_dir, lid)
+    card = lesson(data_dir, lid)
+    return dict(card, flags=overhead_flags(card))
 
 
 def summary(ls: list) -> dict:
@@ -392,7 +418,7 @@ def relevant(data_dir: Path, project: str, ticket: dict, extra: str = "", limit:
     body = own_words(ticket.get("body") or "")
     text = "%s %s %s" % (ticket.get("title", ""), body[:1500], extra[:3000])
     words, low = _grams(text), text.lower()
-    scored = []
+    scored, skipped = [], {}
     for l in lessons(data_dir, project, 500):
         if l.get("ticket") == ticket.get("key") or l["status"] != "active" or not _anchored(l, root):
             continue
@@ -404,7 +430,11 @@ def relevant(data_dir: Path, project: str, ticket: dict, extra: str = "", limit:
         st = l["stats"]
         s += 0.5 * (st["passed"] - st["failed"]) / (1 + st["passed"] + st["failed"])  # cards that went with passes rank a little higher
         if s >= 1.5:
-            scored.append((s, l))
+            flags = overhead_flags(l)
+            if flags:
+                skipped[l["id"]] = flags
+            else:
+                scored.append((s, l))
     scored.sort(key=lambda x: -x[0])
     out = [l for _, l in scored[:limit]]
     # at most one card shared from another project, on its words alone and only on a clear match: it was written
@@ -417,10 +447,16 @@ def relevant(data_dir: Path, project: str, ticket: dict, extra: str = "", limit:
                 continue
             lw = _grams(" ".join([l.get("title", "")] + [l.get(f) or "" for f in FIELDS]))
             sc = 4 * len(words & lw) / math.sqrt(len(words) * len(lw)) if lw and words else 0
-            if sc >= 2.0 and (not best or sc > best[0]):
-                best = (sc, l)
+            if sc >= 2.0:
+                flags = overhead_flags(l)
+                if flags:
+                    skipped[l["id"]] = flags
+                elif not best or sc > best[0]:
+                    best = (sc, l)
         if best:
             out.append(best[1])
+    if skipped and ticket.get("key"):
+        _note_once(data_dir, ticket, "overhead", {"why": "因固定开销被跳过；请改写成：做 X 时用 Y", "cards": skipped})
     return out
 
 
