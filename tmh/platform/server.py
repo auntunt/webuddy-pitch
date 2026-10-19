@@ -65,6 +65,8 @@ class Platform:
     def __init__(self, data_dir: Path, user: str = "", brand: str = ""):
         self.data_dir = Path(data_dir).expanduser().resolve()
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        from .operator_access import initialize
+        self.operator_key_path = initialize(self.data_dir)
         self.store = Store(self.data_dir / "platform.db")
         self.runner = Runner(self.store, self.data_dir)
         self.runner.recover()

@@ -61,7 +61,7 @@ def _add(path: Path, kind: str, by: str, data: dict) -> dict:
 
 
 def human(name: str) -> bool:
-    return bool(name) and name not in AGENTS
+    return bool(name) and name not in AGENTS and not name.startswith(("agent:", "external:"))
 
 
 def client_record(data_dir: Path, key: str) -> dict | None:

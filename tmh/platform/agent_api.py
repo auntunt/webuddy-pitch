@@ -23,12 +23,14 @@ BOUNDARIES = {
     "identity": "agent audit labels are self-declared; server authentication is separate",
     "messages": "durable ticket messages, not delivery to an external running assistant; recipients poll messages_list",
     "approval": "agent actions never record human acceptance, review, merge, or release",
-    "candidate": "external candidate submission is not supported by this API yet",
+    "candidate": "immutable external candidates support independent verification, preview and technical assessment; human decisions use the operator CLI",
     "execution": "execution requires X-Webuddy-Execution: 1; runs remain subject to existing lifecycle and verification controls",
 }
 
 
 def _schema(st):
+    from .candidates import schema
+    schema(st)
     with st.lock:
         st.db.execute("""CREATE TABLE IF NOT EXISTS agent_requests (
           agent TEXT NOT NULL, request_id TEXT NOT NULL, operation TEXT NOT NULL,
@@ -101,6 +103,9 @@ def _req(req, actor, body=None, query=None):
 
 
 def _resource(P, operation, args):
+    if "candidate_id" in args:
+        from .candidates import _row
+        return "ticket:%d" % _row(P, args["candidate_id"])["ticket_id"]
     if "ticket" in args:
         return "ticket:%d" % _ticket(P, args["ticket"])["id"]
     if "run_id" in args:
@@ -147,8 +152,8 @@ def _write(P, req, actor, operation, args):
             # prevent stopping that run or discussing what happened. Cancellation
             # and message receipts do not themselves own an execution resource.
             pending = None
-            if operation not in ("run_cancel", "message_send"):
-                pending = st.db.execute("SELECT request_id FROM agent_requests WHERE resource=? AND state IN ('pending','uncertain') AND operation IN ('ticket_create','run_start','run_retry','run_recheck','preview_start') LIMIT 1", (resource,)).fetchone()
+            if operation not in ("run_cancel", "candidate_cancel", "message_send"):
+                pending = st.db.execute("SELECT request_id FROM agent_requests WHERE resource=? AND state IN ('pending','uncertain') AND operation IN ('ticket_create','run_start','run_retry','run_recheck','preview_start','candidate_submit','candidate_verify','candidate_preview','candidate_decide','candidate_assess') LIMIT 1", (resource,)).fetchone()
             if pending:
                 raise ApiError(409, "needs_reconcile: 此对象还有未确认的请求 %s；先核对原始回执，不会开始重复操作" % pending["request_id"])
             ts = now()
@@ -182,7 +187,18 @@ def _write(P, req, actor, operation, args):
 
 def dispatch(P, req, operation):
     from ..agent_contract import validate
-    actor = _actor(req)
+    operator = bool(SPECS.get(operation, {}).get("operator"))
+    if operator:
+        if req.h.headers.get("X-Webuddy-Operator") != "1" or req.h.headers.get("X-Webuddy-Agent"):
+            raise ApiError(403, "此操作仅供明确确认的操作者终端，Agent/MCP不能代签")
+        from .operator_access import require
+        require(P, req.h.headers)
+        from .signoff import human
+        if not human(req.user):
+            raise ApiError(403, "当前登录身份不是人工操作者")
+        actor = "operator:" + req.user
+    else:
+        actor = _actor(req)
     try:
         args = validate(operation, req.body)
     except ValueError as exc:
@@ -248,6 +264,12 @@ def _ready(P, t):
 def _execute(P, req, actor, operation, a):
     from . import server
     st = P.store
+    if operation.startswith("candidate_") or operation == "candidates_list":
+        from .candidates import execute
+        try:
+            return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
+        except ValueError as exc:
+            raise ApiError(409, str(exc)) from exc
     if operation == "status":
         meta = server.api_meta(P, _req(req, actor))
         return {"version": meta["version"], "agent": actor, "workspace": str(P.data_dir),
@@ -286,7 +308,9 @@ def _execute(P, req, actor, operation, a):
         packet["preview"] = server.api_preview(P, _req(req, actor), t["key"])
         packet["evidence_state"] = server.api_evidence(P, _req(req, actor), t["key"])
         packet["boundaries"] = dict(BOUNDARIES)
-        packet["supported_actions"] = ["message_send", "messages_list", "run_get", "preview_get"] + ([] if t["status"] == "closed" or (t.get("links") or {}).get("delivery") else ["run_start"])
+        packet["requirement_hash"] = _requirement(t, st)
+        packet["external_candidates"] = st.q("SELECT id,run_id,commit_sha,base_commit,agent,created FROM code_candidates WHERE ticket_id=? ORDER BY id DESC", (t["id"],))
+        packet["supported_actions"] = ["message_send", "messages_list", "run_get", "preview_get", "candidates_list", "candidate_get"] + ([] if t["status"] == "closed" or (t.get("links") or {}).get("delivery") else ["run_start", "candidate_submit"])
         return packet
     if operation == "ticket_create":
         p = _project(P, a["project"])

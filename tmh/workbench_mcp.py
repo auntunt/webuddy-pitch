@@ -54,6 +54,7 @@ def build_server(client, read_only=False, allow_execution=False):
         for operation, spec in SPECS.items()
         if not (read_only and spec.get("write"))
         and not (spec.get("execution") and not allow_execution)
+        and not spec.get("operator")
     }
     client.allow_execution = bool(allow_execution and not read_only)
     server = Server("webuddy_mcp", version=__version__, instructions=INSTRUCTIONS)

@@ -23,7 +23,7 @@ class ClientError(Exception):
 
 
 class Client:
-    def __init__(self, endpoint=None, agent="cli", token=None, timeout=15, allow_execution=False):
+    def __init__(self, endpoint=None, agent="cli", token=None, timeout=15, allow_execution=False, operator=False, operator_token=""):
         self.endpoint = (endpoint or os.environ.get("WEBUDDY_URL") or "http://127.0.0.1:8791").rstrip("/")
         try:
             u = urllib.parse.urlsplit(self.endpoint)
@@ -39,6 +39,8 @@ class Client:
         if not isinstance(timeout, (int, float)) or not 0 < timeout <= 60:
             raise ClientError("HTTP 超时必须大于 0 且不超过 60 秒", "invalid_timeout")
         self.agent, self.timeout, self.allow_execution = agent, timeout, allow_execution
+        self.operator = operator
+        self.operator_token = operator_token
         self.token = token if token is not None else os.environ.get("WEBUDDY_TOKEN", "")
         self.address = u
 
@@ -48,9 +50,17 @@ class Client:
         except ValueError as e:
             raise ClientError(str(e), "invalid_arguments") from e
         spec = SPECS[operation]
+        if spec.get("operator") and not self.operator:
+            raise ClientError("需要操作者在终端明确确认；Agent/MCP不能代签", "operator_required")
+        if spec.get("operator") and not self.operator_token:
+            raise ClientError("缺少独立操作者凭据，工作区Agent令牌不能代替", "operator_credential_required")
         if spec["execution"] and not self.allow_execution:
             raise ClientError("此连接未启用执行。MCP 启动时添加 --allow-execution；CLI 使用明确的 start/retry/recheck/preview --start 命令。", "execution_disabled")
         headers = {"Content-Type": "application/json", "X-TMH": "1", "X-Webuddy-Agent": self.agent}
+        if spec.get("operator"):
+            headers.pop("X-Webuddy-Agent")
+            headers["X-Webuddy-Operator"] = "1"
+            headers["X-Webuddy-Operator-Token"] = self.operator_token
         if self.token:
             headers["X-TMH-Token"] = self.token
         if self.allow_execution:
@@ -97,6 +107,11 @@ class Client:
                     raise ValueError("response must be an object")
                 payload = {}
             if 200 <= response.status < 300:
+                # The server gives a workbench-relative authenticated entry;
+                # never send users directly to the cookie-protected preview port.
+                for item in [payload, *(payload.get("items", []) if isinstance(payload.get("items"), list) else [])]:
+                    if isinstance(item, dict) and isinstance(item.get("preview_entry_path"), str) and item["preview_entry_path"].startswith("/pv/"):
+                        item["preview_url"] = self.endpoint + item["preview_entry_path"]
                 return payload
             message = payload.get("error") or "工作台返回 HTTP %s" % response.status
             if response.status == 401:

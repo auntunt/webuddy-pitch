@@ -612,7 +612,24 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -
     root = Path(p["root"])
     t = st.ticket(r["ticket_id"]) if r["ticket_id"] else None
     temp, sha = None, ""
-    if not r["decision"]:
+    from .candidates import for_run
+    external = for_run(st, rid)
+    if external:
+        # External registration is not adoption. Check the exact submitted
+        # commit against its explicit base in a disposable verification tree.
+        sha = external["commit_sha"]
+        parent = external["base_commit"]
+        if git(root, "rev-parse", external["ref"]).strip() != sha:
+            raise ValueError("外部候选固定引用发生变化")
+        temp = wt = (recheck_operations(runner).runner.data_dir if operation else runner.data_dir) / "worktrees" / ("candidate-%d" % (operation["id"] if operation else rid))
+        git(root, "worktree", "add", "--detach", str(wt), parent)
+        change = subprocess.run(["git", "-C", str(root), "diff", "--binary", "--no-ext-diff", "--no-textconv", parent, sha], capture_output=True, check=True).stdout
+        try:
+            subprocess.run(["git", "-C", str(wt), "apply", "--whitespace=nowarn", "-"], input=change, check=True, capture_output=True)
+        except BaseException:
+            git(root, "worktree", "remove", "--force", str(wt), check=False)
+            raise
+    elif not r["decision"]:
         wt = Path(r["workdir"])
         if not wt.is_dir():
             raise ValueError("改动的工作树已经不在了")

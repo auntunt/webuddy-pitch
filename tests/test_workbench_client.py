@@ -58,6 +58,38 @@ class WorkbenchClientTest(unittest.TestCase):
     def normal_response(self, h, body):
         self.reply(h, {'ok': True, 'body': body, 'status': 'done'})
 
+    def test_candidate_link_uses_actual_workbench_endpoint(self):
+        entry = '/pv/EXT-1/__commit/' + 'a' * 40 + '/'
+        self.respond = lambda h, body: self.reply(h, {'preview_entry_path': entry, 'preview_url': entry})
+        value = Client(self.endpoint).call('candidate_get', {'candidate_id': 1})
+        self.assertEqual(value['preview_url'], self.endpoint + entry)
+
+    def test_operator_secret_is_required_and_never_sent_with_agent_calls(self):
+        args = dict(candidate_id=1, evidence_hash='a' * 64, decision='reject', note='isolated fixture', request_id='decision')
+        with self.assertRaises(ClientError):
+            Client(self.endpoint, operator=True).call('candidate_decide', args)
+        self.assertEqual(self.requests, [])
+        client = Client(self.endpoint, operator=True, operator_token='fixture-operator-token')
+        client.call('status')
+        self.assertNotIn('x-webuddy-operator-token', self.requests[-1]['headers'])
+        client.call('candidate_decide', args)
+        self.assertNotIn('x-webuddy-agent', self.requests[-1]['headers'])
+        self.assertEqual(self.requests[-1]['headers']['x-webuddy-operator-token'], 'fixture-operator-token')
+
+    def test_noninteractive_cli_cannot_create_human_decision(self):
+        r = self.cli('approve', '1', '--evidence-hash', 'a' * 64, '--body', 'fixture', '--request-id', 'approval', input=b'accept\n')
+        self.assertEqual(r.returncode, 1)
+        self.assertEqual(json.loads(r.stderr)['code'], 'interactive_operator_required')
+        self.assertEqual(self.requests, [])
+
+    def test_nested_candidate_schema_rejects_unknown_and_empty_criteria(self):
+        from tmh.agent_contract import validate
+        args = dict(ticket='EXT-1', base_commit='a' * 40, commit='b' * 40, requirement_hash='c' * 64,
+                    criteria=[{'id': 'A1', 'text': 'Business behavior', 'check': 'HTTP observation'}], summary='fixture', request_id='submit')
+        for criteria in ([], [dict(args['criteria'][0], arbitrary_url='http://other')], [dict(args['criteria'][0], text=' ')], [True]):
+            with self.assertRaises(ValueError):
+                validate('candidate_submit', dict(args, criteria=criteria))
+
     def cli(self, *args, input=None, cwd=None):
         env = dict(os.environ, PYTHONPATH=str(ROOT), WEBUDDY_TOKEN='fixture-secret-token')
         return subprocess.run([sys.executable, '-m', 'tmh.workbench', '--endpoint', self.endpoint, *args],
@@ -212,6 +244,24 @@ class WorkbenchClientTest(unittest.TestCase):
         self.assertTrue(self.requests)
         self.assertTrue(all(x['path'] == '/api/agent/run_get' for x in self.requests))
         self.assertTrue(all('x-webuddy-execution' not in x['headers'] for x in self.requests))
+
+    def test_cli_wait_does_not_poll_again_after_deadline(self):
+        from contextlib import redirect_stdout, redirect_stderr
+        import io
+        from unittest.mock import patch, Mock
+        from tmh.workbench import main
+        clock = [0.0]
+        def sleep(seconds):
+            clock[0] += seconds
+        client = Mock()
+        client.call.side_effect = [{'id': 17, 'status': 'running', 'output': '真实最新快照'},
+                                   ClientError('expired second poll', 'connection_error')]
+        out, err = io.StringIO(), io.StringIO()
+        with patch('tmh.workbench.Client', return_value=client), patch('tmh.workbench.time.monotonic', side_effect=lambda: clock[0]), patch('tmh.workbench.time.sleep', side_effect=sleep), redirect_stdout(out), redirect_stderr(err):
+            result = main(['run', '17', '--wait', '.12'])
+        self.assertEqual(result, 0, err.getvalue())
+        self.assertEqual(client.call.call_count, 1)
+        self.assertEqual(json.loads(out.getvalue())['output'], '真实最新快照')
 
     def test_cli_preview_start_requires_run_and_request_id_before_http(self):
         for flags in ([], ['--run-id', '17'], ['--request-id', 'preview']):

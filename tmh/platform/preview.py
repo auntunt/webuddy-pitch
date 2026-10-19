@@ -399,9 +399,11 @@ def start(P, p: dict, t: dict, branch: str, by: str, *, expected_commit: str = "
         base.mkdir(parents=True, exist_ok=True)
         git(root, "worktree", "add", "--detach", "-f", str(wt), commit)
         port, prefix = _free_port(), bound_prefix(key, commit) if expected_commit else "/pv/" + key
-        log = base / (key + ".log")
+        logs = base / "logs" / key
+        logs.mkdir(parents=True, exist_ok=True)
+        log = logs / (str(time.time_ns()) + ".log")
         line = cmd.replace("{port}", str(port)).replace("{prefix}", prefix)
-        with log.open("w", encoding="utf-8") as fh:
+        with log.open("x", encoding="utf-8") as fh:
             fh.write("$ %s\n" % line)
             fh.flush()
             proc = subprocess.Popen(line, shell=True, cwd=str(wt), stdout=fh, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,

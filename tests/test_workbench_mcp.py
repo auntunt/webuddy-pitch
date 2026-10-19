@@ -143,7 +143,7 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                         initialized = await session.initialize()
                         self.assertEqual(initialized.serverInfo.name, "webuddy_mcp")
                         tools = (await session.list_tools()).tools
-                        self.assertEqual(len(tools), 8)
+                        self.assertEqual(len(tools), 10)
                         self.assertTrue(all(tool.annotations.readOnlyHint for tool in tools))
                         reply = await session.call_tool("webuddy_status", {})
                         self.assertFalse(reply.isError)
@@ -168,7 +168,7 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
         from tmh.agent_contract import SPECS, schema
         async with self.session() as session:
             discovered = (await session.list_tools()).tools
-            expected = {"webuddy_" + op for op, spec in SPECS.items() if not spec["execution"]}
+            expected = {"webuddy_" + op for op, spec in SPECS.items() if not spec["execution"] and not spec.get("operator")}
             self.assertEqual({tool.name for tool in discovered}, expected)
             for tool in discovered:
                 op = tool.name[len("webuddy_"):]
@@ -235,6 +235,12 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
         async with self.session("--allow-execution") as session:
             names = {tool.name for tool in (await session.list_tools()).tools}
             self.assertIn("webuddy_run_start", names)
+            self.assertIn("webuddy_candidate_submit", names)
+            self.assertIn("webuddy_candidate_assess", names)
+            self.assertNotIn("webuddy_candidate_decide", names)
+            forbidden = await session.call_tool("webuddy_candidate_decide", {"candidate_id": 1, "evidence_hash": "a" * 64, "decision": "accept", "note": "fixture", "request_id": "forbidden"})
+            self.assertTrue(forbidden.isError)
+            self.assertEqual(forbidden.structuredContent["code"], "tool_not_enabled")
             reply = await session.call_tool("webuddy_run_start", {
                 "ticket": "BOOTV2-1", "mode": "analyze", "engine": "codex",
                 "request_id": "start-once",

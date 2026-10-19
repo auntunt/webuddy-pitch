@@ -43,6 +43,27 @@ SPECS = {
     "preview_start": spec("启动已采纳运行所绑定的本地候选预览，复用平台版本检查；可能启动应用进程。没有已采纳候选时拒绝。", {"ticket": KEY, "run_id": RID, "request_id": REQUEST}, ["ticket", "run_id", "request_id"], write=True, execution=True),
 }
 
+CID = integer("外部候选编号", minimum=1)
+SHA = text("完整Git提交编号", pattern=r"^[0-9a-f]{40}$")
+DIGEST = text("读取接口返回的完整版本哈希", pattern=r"^[0-9a-f]{64}$")
+CRITERIA = dict(type="array", minItems=1, maxItems=100, items=dict(type="object", additionalProperties=False,
+    properties={"id": text("验收编号", pattern=r"^[A-Za-z0-9_-]{1,32}$"), "text": text("完整验收要求", minLength=1),
+                "check": text("实际验证方式", minLength=1)}, required=["id", "text", "check"]))
+RESULTS = dict(type="array", minItems=1, maxItems=100, items=dict(type="object", additionalProperties=False,
+    properties={"id": text("验收编号", minLength=1), "status": text("实际结论", enum=["pass", "fail", "unknown"]),
+                "evidence": text("实际操作、结果与完整证据引用；不得以退出码替代业务行为", minLength=1)},
+    required=["id", "status", "evidence"]))
+SPECS.update({
+    "candidates_list": spec("分页读取工单外部候选与验收状态。", dict(PAGE, ticket=KEY), ["ticket"]),
+    "candidate_get": spec("读取完整固定候选、平台验证、预览、逐项技术验收与人工决定；ready_for_human不是已签收。", {"candidate_id": CID}, ["candidate_id"]),
+    "candidate_submit": spec("登记已在项目Git仓库中的完整外部提交，不启动构建、不自动采纳。先读取ticket_get的requirement_hash；传入完整基线和验收条件。", {"ticket": KEY, "base_commit": SHA, "commit": SHA, "requirement_hash": DIGEST, "criteria": CRITERIA, "summary": text("完整实现说明", minLength=1), "request_id": REQUEST}, ["ticket", "base_commit", "commit", "requirement_hash", "criteria", "summary", "request_id"], write=True, execution=True),
+    "candidate_verify": spec("在独立工作树验证固定候选，复用受管总时限与进程回收。立即返回操作编号，用candidate_get跟进；新验证使旧验收失效。", {"candidate_id": CID, "request_id": REQUEST}, ["candidate_id", "request_id"], write=True, execution=True),
+    "candidate_cancel": spec("停止该候选当前的独立验证；保留代码与过程证据，随后读取停止回执。", {"candidate_id": CID, "request_id": REQUEST}, ["candidate_id", "request_id"], write=True, execution=True),
+    "candidate_preview": spec("启动已通过当前独立构建/测试的固定候选预览；不需要提前伪造人工采纳。", {"candidate_id": CID, "request_id": REQUEST}, ["candidate_id", "request_id"], write=True, execution=True),
+    "candidate_assess": spec("独立复核者记录全部验收条件的实际结果，绑定当前verification_hash与preview_hash。属于技术证据，不是人的批准。", {"candidate_id": CID, "verification_hash": DIGEST, "preview_hash": DIGEST, "results": RESULTS, "note": text("完整复核说明", minLength=1), "request_id": REQUEST}, ["candidate_id", "verification_hash", "preview_hash", "results", "note", "request_id"], write=True),
+    "candidate_decide": dict(spec("仅供操作者终端明确签收或退回当前证据包；不合并、不部署。MCP永不提供此操作。", {"candidate_id": CID, "evidence_hash": DIGEST, "decision": text("决定", enum=["accept", "reject"]), "note": text("操作者说明", minLength=1), "request_id": REQUEST}, ["candidate_id", "evidence_hash", "decision", "note", "request_id"], write=True), operator=True),
+})
+
 
 def schema(operation):
     s = SPECS[operation]
@@ -73,17 +94,31 @@ def validate(operation, args):
                 out[name] = prop["default"]
             continue
         v = out[name]
-        if prop["type"] == "string":
-            if not isinstance(v, str):
-                raise ValueError("%s 必须是字符串" % name)
-            if len(v) < prop.get("minLength", 0) or len(v) > prop.get("maxLength", float("inf")):
-                raise ValueError("%s 长度不在允许范围内" % name)
-            if prop.get("minLength") and not v.strip():
-                raise ValueError("%s 不能为空白" % name)
-            if "pattern" in prop and not re.fullmatch(prop["pattern"], v):
-                raise ValueError("%s 格式不正确" % name)
-        elif type(v) is not int or v < prop.get("minimum", 0) or v > prop.get("maximum", float("inf")):
-            raise ValueError("%s 必须是允许范围内的整数" % name)
-        if "enum" in prop and v not in prop["enum"]:
-            raise ValueError("%s 只能是 %s" % (name, "/".join(prop["enum"])))
+        _validate_value(name, prop, v)
     return out
+
+
+def _validate_value(name, prop, v):
+    if prop["type"] == "object":
+        if not isinstance(v, dict) or set(v) - set(prop["properties"]) or set(prop["required"]) - set(v):
+            raise ValueError("%s 对象字段不正确" % name)
+        for key, value in v.items():
+            _validate_value(name + "." + key, prop["properties"][key], value)
+    elif prop["type"] == "array":
+        if not isinstance(v, list) or not prop.get("minItems", 0) <= len(v) <= prop.get("maxItems", float("inf")):
+            raise ValueError("%s 列表数量不在允许范围内" % name)
+        for index, item in enumerate(v):
+            _validate_value("%s[%d]" % (name, index), prop["items"], item)
+    elif prop["type"] == "string":
+        if not isinstance(v, str):
+            raise ValueError("%s 必须是字符串" % name)
+        if len(v) < prop.get("minLength", 0) or len(v) > prop.get("maxLength", float("inf")):
+            raise ValueError("%s 长度不在允许范围内" % name)
+        if prop.get("minLength") and not v.strip():
+            raise ValueError("%s 不能为空白" % name)
+        if "pattern" in prop and not re.fullmatch(prop["pattern"], v):
+            raise ValueError("%s 格式不正确" % name)
+    elif type(v) is not int or v < prop.get("minimum", 0) or v > prop.get("maximum", float("inf")):
+        raise ValueError("%s 必须是允许范围内的整数" % name)
+    if "enum" in prop and v not in prop["enum"]:
+        raise ValueError("%s 只能是 %s" % (name, "/".join(prop["enum"])))

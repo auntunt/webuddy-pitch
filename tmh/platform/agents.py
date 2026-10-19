@@ -1426,6 +1426,9 @@ class Runner:
 
     def decide(self, rid: int, decision: str, author: str) -> dict:
         """accept: commit the worktree on its branch (ready to merge) and drop the worktree; discard: drop both."""
+        from .candidates import for_run
+        if for_run(self.store, rid):
+            raise ValueError("外部固定候选请使用候选验收入口；登记提交不等于人工采纳")
         from .recheck_operations import source_guard, read_status
         with source_guard(self.data_dir, rid):
             operation = read_status(self.data_dir, rid)

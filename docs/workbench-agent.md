@@ -125,7 +125,48 @@ webuddy preview "$TASK" --run-id '<已采纳运行编号>' --start \
   --agent codex --request-id search-preview-001
 ```
 
-外部助手可以依据任务包在自己的环境工作，并通过消息提交结果和证据引用；当前接口尚不支持把外部任意 Git 提交直接登记为候选。它也不提供人工批准、合并、发布或生产接入操作。
+## 外部 Agent 从代码到验收
+
+外部助手可以在项目自己的 Git 工作树实现需求，然后登记完整候选提交。候选必须已经存在于登记项目的本地 Git 对象库；接口不接受任意仓库地址、路径或 shell 命令。不同机器上的提交需先按团队现有 Git 方式取回本地。登记不修改主干，不启动模型，也不代表采纳。
+
+1. `ticket TASK` 读取完整需求、`requirement_hash`、项目路径和配置，明确基线及验收条件。
+2. 在隔离工作树实现并提交。基线必须是候选祖先，且与工单明确固定的 `base` / `code_at` 一致。
+3. `submit` 登记固定候选；`verify` 由平台在独立工作树运行真实构建与测试，受现有总预算、取消和进程回收约束。
+4. 验证通过后 `candidate-preview` 启动固定提交；`candidate` 返回经工作台授权的可打开入口。
+5. 独立复核会话逐项观察实际结果，用 `assess` 提交全部标准的证据。实现者不能用同一身份自签；标签本身仍是自声明，不能当身份认证。
+6. `acceptance` 读取是否具备最终签收条件。操作者可以在终端完成最后一次确认，无需回网页找按钮。
+
+用实际返回值替换以下占位符；所有写操作都需稳定的请求编号：
+
+```sh
+webuddy submit BOOTV2-3 --agent codex-external \
+  --base '<完整基线SHA>' --commit '<完整候选SHA>' \
+  --requirement-hash '<ticket返回的哈希>' --criteria-file criteria.json \
+  --summary '实现说明和测试限制' --request-id external-submit-001
+webuddy verify '<候选ID>' --agent codex-external --request-id external-verify-001
+webuddy candidate '<候选ID>'
+webuddy candidate-preview '<候选ID>' --agent codex-external --request-id external-preview-001
+webuddy assess '<候选ID>' --agent independent-reviewer \
+  --verification-hash '<当前验证哈希>' --preview-hash '<当前预览哈希>' \
+  --results-file results.json --body-file review.md --request-id external-review-001
+webuddy acceptance '<候选ID>'
+```
+
+`criteria.json` 是完整数组，例如 `[{"id":"A1","text":"中文关键词能筛出对应事项","check":"用真实HTTP和浏览器核对事项编号"}]`。`results.json` 必须逐项对应全部编号，每项包含 `id`、`status`（`pass` / `fail` / `unknown`）、`evidence`（实际观察和证据引用）。缺项、重复项、自签和过期哈希都会拒绝。没有真实测试命令、测试失败或预览未就绪时不能进入签收。
+
+`candidate` / `acceptance` 返回 `verification_passed`、`preview_ready`、`technical_acceptance`、`ready_for_human`、`human_accepted` 和 `missing`。重新验证、预览重启、需求沟通/配置变化或更新候选都会使相关旧结论失效；历史原样保留。每次预览使用独立日志文件。`cancel-verification` 仅停止当前验证，不删除代码；停止后读取候选的验证回执。
+
+最终确认仅在操作者的交互终端提供，MCP 永远不公开此工具：
+
+```sh
+webuddy approve '<候选ID>' --evidence-hash '<当前完整证据哈希>' \
+  --operator-key-file data/product-workbench/operator-approval.key \
+  --body '已核对该版本和逐项证据，同意本地验收' --request-id operator-accept-001
+```
+
+终端展示完整证据后要求输入 `accept <完整证据哈希>`；`reject` 使用同样方式记录退回。它们**不合并、不发布、不关闭工单**。服务启动时在数据目录创建独立 `0600` 操作者凭据，普通 Agent 令牌不能代替，MCP 客户端也不会发送它。远程操作者可自行通过专用 `WEBUDDY_OPERATOR_TOKEN` 环境变量注入；不要把值写入聊天、代码、Agent 配置或日志。此机制隔离共享工作区凭据，不能隔离运行在同一操作系统用户下、拥有全文件访问权的程序，也不证明持有者是真人。
+
+本轮真实 BOOTV2-3：外部 Codex 生成搜索和状态筛选代码；其沙箱无法监听测试端口或写共享 Git 元数据，失败完整保留。协调者运行真实测试后本地提交，平台再独立验证，另一个审查会话复核。最终技术验收及人工状态以 `webuddy acceptance 1` 的当前返回为准。
 
 ## Agent 间沟通与交接
 
@@ -188,8 +229,14 @@ CLI、HTTP Agent API 与 MCP 共享 [`tmh/agent_contract.py`](../tmh/agent_contr
 | `webuddy_run_recheck` | `recheck` | 执行：重新构建、验证已有改动 |
 | `webuddy_preview_get` | `preview` | 读取指定候选预览与版本 |
 | `webuddy_preview_start` | `preview --start` | 执行：启动已采纳候选的本地预览 |
+| `webuddy_candidates_list` / `webuddy_candidate_get` | `candidates` / `candidate` / `acceptance` | 读取外部候选和完整验收状态 |
+| `webuddy_candidate_submit` | `submit` | 执行权限：登记项目仓库中的固定提交 |
+| `webuddy_candidate_verify` | `verify` | 执行：独立工作树构建与测试 |
+| `webuddy_candidate_cancel` | `cancel-verification` | 执行：停止本次验证并保留回执 |
+| `webuddy_candidate_preview` | `candidate-preview` | 执行：启动已通过验证的候选预览 |
+| `webuddy_candidate_assess` | `assess` | 逐项技术观察，不是人工决定 |
 
-默认 MCP 提供 10 个工具；只读配置提供 8 个；显式开放执行后提供 15 个。执行类写操作也都要求 `request_id`。工具隐藏之外，桥接调用和 HTTP 入口仍检查参数与执行标志，不能靠猜工具名越过当前连接的权限配置。
+默认 MCP 提供 13 个工具；只读配置提供 10 个；显式开放执行后提供 22 个。人工决定不在任何 MCP 配置中。执行类写操作也都要求 `request_id`。工具隐藏之外，桥接调用和 HTTP 入口仍检查参数与执行标志，不能靠猜工具名越过当前连接的权限配置。
 
 ## 身份与连接边界
 
@@ -215,9 +262,9 @@ data/agent-venv/bin/python -m unittest tests.test_workbench_mcp -v
 
 | 评估问题 | 预期条件 |
 |---|---|
-| 默认连接公开哪些工具？ | `tools/list` 返回 10 个工具；没有任何执行类工具。 |
-| 只读连接公开哪些工具？ | 仅 8 个读取工具，没有 `ticket_create` 或 `message_send`。 |
-| 同时传入只读和执行标志时采用哪种配置？ | 仍然只有 8 个读取工具。 |
+| 默认连接公开哪些工具？ | `tools/list` 返回 13 个工具；没有任何执行类工具。 |
+| 只读连接公开哪些工具？ | 仅 10 个读取工具，没有 `ticket_create` 或 `message_send`。 |
+| 同时传入只读和执行标志时采用哪种配置？ | 仍然只有 10 个读取工具。 |
 | 如何区分夹具与真实工作台？ | 夹具 `webuddy_status` 的 `scope` 为 `fixture`，不能据此声称真实服务已验收。 |
 | 工单的完整原文是否保留？ | 夹具 `webuddy_ticket_get` 返回的正文与测试的 `long_text` 逐字符一致，包括中文、空格、换行和制表符。 |
 | 工单夹具是否代表已通过验收？ | 证据的 `verdict` 是 `not_accepted`，`commit` 是 `fixture-only`。 |

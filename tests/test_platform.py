@@ -1291,8 +1291,18 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertIn("列表页还是显示待提交", redo["prompt"])
             self.assertIn("接着被退回的分支 " + branch3, redo["output"])
             # the second rejection is past the limit: a person takes over
-            code, _ = self.call("POST", "/api/tickets/%s/accept" % t3["key"], {"result": "fail", "note": "还是不对"})
-            self.assertIn("不再自动重改", self.P.store.events(t3["id"])[-1]["body"])
+            last_event = self.P.store.events(t3["id"])[-1]["id"]
+            before_runs = [r["id"] for r in self.P.store.runs(ticket_id=t3["id"])]
+            with mock.patch.object(self.P.flow, "_flow_fix", wraps=self.P.flow._flow_fix) as restart:
+                code, rejected = self.call("POST", "/api/tickets/%s/accept" % t3["key"], {"result": "fail", "note": "还是不对"})
+                restart.assert_not_called()
+            self.assertEqual((code, rejected["status"]), (200, "doing"))
+            self.assertEqual([r["id"] for r in self.P.store.runs(ticket_id=t3["id"])], before_runs)
+            # The preceding verification's evidence-pack callback can append
+            # concurrently. Match this rejection's event, not whichever event
+            # happened to be last, and prove no automatic rework was started.
+            stopped = [e for e in self.P.store.events(t3["id"]) if e["id"] > last_event and e["kind"] == "flow" and "不再自动重改" in e["body"]]
+            self.assertEqual(len(stopped), 1)
             # passing later: the case starts before the first automatic change, not from the rejected one
             self.P.store.update_ticket(t3["id"], "tester", status="verify")
             self.call("POST", "/api/tickets/%s/accept" % t3["key"], {"result": "pass"})
