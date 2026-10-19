@@ -22,17 +22,28 @@ from tmh.platform.store import Store
 
 
 FIXTURE = r'''
-import json, os, pathlib, signal, subprocess, sys, time
+import os, signal, sys, time
 scenario, token, registry, mode, prompt_file, workdir = sys.argv[1:]
-with open(registry, "a") as f:
-    f.write(str(os.getpid()) + "\n")
-    f.flush()
-signal.signal(signal.SIGTERM, signal.SIG_IGN)
-print("fixture-start:" + scenario + ":" + mode, flush=True)
-pathlib.Path(registry + "." + scenario + ".ready").write_text(str(os.getpid()))
-if scenario in ("parent-exits", "tree", "child"):
+
+def ready(name):
+    with open(registry + "." + name + ".ready", "w") as f:
+        f.write(str(os.getpid()))
+
+# This standalone POSIX fixture has no threads. Fork real descendants without
+# serial interpreter/import startup consuming the readiness allowance. Each
+# child still registers its own PID, ignores TERM and holds the output pipe.
+while True:
+    with open(registry, "a") as f:
+        f.write(str(os.getpid()) + "\n")
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    print("fixture-start:" + scenario + ":" + mode, flush=True)
+    ready(scenario)
+    if scenario not in ("parent-exits", "tree", "child"):
+        break
     next_scenario = "leaf" if scenario == "child" else "child"
-    subprocess.Popen([sys.executable, __file__, next_scenario, token, registry, mode, prompt_file, workdir])
+    if os.fork():
+        break
+    scenario = next_scenario
 if scenario == "parent-exits":
     print("wrapper-exiting-with-child-pipe-open", flush=True)
     sys.exit(0)
@@ -48,16 +59,17 @@ if scenario == "busy":
     sys.exit(1)
 if scenario == "fix-then-timeout":
     if mode == "fix":
-        pathlib.Path(workdir, "app.py").write_text("VALUE = 1\n")
+        with open(os.path.join(workdir, "app.py"), "w") as f:
+            f.write("VALUE = 1\n")
         print("fixture-edit-completed", flush=True)
         sys.exit(0)
     print("fixture-diagnosis-started-but-not-completed", flush=True)
-    pathlib.Path(registry + ".diagnosis.ready").write_text(str(os.getpid()))
+    ready("diagnosis")
 if scenario == "long-log":
     for n in range(160):
         print("retained-log-%03d:" % n + "evidence" * 12, flush=True)
     print("partial-line-must-survive", end="", flush=True)
-    pathlib.Path(registry + ".long-log-output.ready").write_text(str(os.getpid()))
+    ready("long-log-output")
 time.sleep(60)
 '''
 
@@ -350,6 +362,45 @@ class RunLifecycleTest(unittest.TestCase):
         self.assertNotIn("fixture-start:success:fix", self.all_evidence(rid))
         self.assertEqual(self.owned_live(), [])
         self.assertTrue(Path(run["workdir"]).is_dir())
+
+    def test_build_tree_with_slow_descendant_startup_keeps_real_deadline(self):
+        # Reproduce startup contention with real time: restarting Python for
+        # both descendants costs at least 2.1s before the leaf is ready.
+        # A single initialized fixture can create the same tree without that
+        # serial startup cost. Neither readiness nor the run budget is extended.
+        self.script.write_text("import sys, time\nif sys.argv[1] in ('child', 'leaf'):\n    time.sleep(1.05)\n" + FIXTURE)
+        wait_ready = self.wait_ready
+
+        def check_tree(*scenarios, **kwargs):
+            wait_ready(*scenarios, **kwargs)
+            pids = {name: int(Path(str(self.registry) + "." + name + ".ready").read_text())
+                    for name in ("tree", "child", "leaf")}
+            result = subprocess.run(["ps", "-p", ",".join(str(pid) for pid in pids.values()),
+                                     "-o", "pid=", "-o", "ppid=", "-o", "pgid="],
+                                    capture_output=True, text=True, check=True)
+            lineage = {pid: (parent, group) for pid, parent, group in
+                       (map(int, line.split()) for line in result.stdout.splitlines())}
+            self.assertEqual(len(set(pids.values())), 3)
+            self.assertEqual(set(lineage), set(pids.values()))
+            self.assertEqual(lineage[pids["child"]][0], pids["tree"])
+            self.assertEqual(lineage[pids["leaf"]][0], pids["child"])
+            self.assertEqual(len({group for parent, group in lineage.values()}), 1)
+
+        with mock.patch.object(self, "wait_ready", side_effect=check_tree):
+            self.test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout()
+        runs = self.store.runs(project_id=self.project["id"])
+        self.assertEqual(len(runs), 1)
+        record = self.lifecycle(runs[0]["id"])
+        self.assertEqual(record["timeout_seconds"], 3)
+        self.assertGreaterEqual(record["elapsed_seconds"], 3)
+        self.assertEqual(len(record["attempts"]), 1)
+        attempt = record["attempts"][0]
+        self.assertEqual(attempt["kind"], "check:check")
+        self.assertEqual((attempt["reason"], attempt["returncode"]), ("timeout", 124))
+        for field in ("term_sent", "kill_sent", "complete"):
+            self.assertTrue(attempt["cleanup"][field], field)
+        for scenario in ("tree", "child", "leaf"):
+            self.assertIn("fixture-start:" + scenario + ":check", self.all_evidence(runs[0]["id"]))
 
     def test_cancel_also_stops_an_active_baseline_build_tree(self):
         rid = self.new_run("fix")

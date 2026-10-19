@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：feat/ralph-port 最终审查；状态：done（最终全量 819 tests，804 通过、15 跳过；既有工作均保留）
+- 当前项：构建树测试偶发 2 秒就绪失败定位与修复；状态：done（240 次稳定性验证通过；全量 820 tests，805 通过、15 跳过；既有 P1–P6 和最终审查均保留）
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -132,7 +132,7 @@
 - P5 升级前若确认回执写入失败，已有任务使用旧版未引用的草稿快照，升级后重试会保守拒绝；需人工核对草稿和任务内容，不自动迁移或推定已确认。
 - P6：上列 Windows 剩余阻塞；需 Windows 实机验证默认排他锁自动释放，尤其不同文件系统与进程退出路径。共享读锁的并行性不在已证明范围。
 - intake 基线时序失败已在下节修复并通过全量；没有新增待确认事项，生产监管实现保持原样。
-- 最终审查首轮另见构建树用例的 2 秒就绪失败；当前分支/起点各 20 次对照及最终全量均通过，尚未复现根因，不能声称已修复。完整记录在末节；未放宽任何时间限制或断言。
+- 构建树 2 秒就绪竞态已在末节自然复现、保留完整现场并修复，通过稳定性与全量回归；本次没有新增待确认事项，原时间限制和断言均保留。更早那次无现场的具体启动阶段仍不作推断。
 
 ## 后续：intake 取消测试基线时序修复
 
@@ -200,3 +200,25 @@
 - 最终全量的临时 sitecustomize 阻止非回环网络；仅父 unittest 进程的 addFailure 附加只读诊断，在 run_lifecycle 失败时于清理前记录合成运行回执，不改用例/结果/断言，也不向子解释器增加 unittest 导入。最终没有失败，诊断快照未触发。
 - 日志校验：`full-unittest.log` 24630 字节 / SHA256 `784f142238cfeed97351ef88097fd6844962e3e091b69d926dc6b770b256568c`；`full-final.log` 23014 字节 / SHA256 `e45a2ecb2403510eb6ffe71ca163a190d2c921af26f55ea767152f9d7df838e3`；`stability.log` 2959 字节 / SHA256 `cf340b7e96057c77d4f2417d85122daf8d15da65ba83d7ac1813455a45302f82`。其余复现/负向/对照日志及脚本同目录原样保留。
 - 交接重点：`guard.py:_human_accept_command` 及 acceptance 的 agent 标记、引用/快照/路径/临时文件边界；`kb.py:_Lock` 的重试分类与失败释放，以及 `filelock.py` Windows 字节锁/共享读锁限制；`test_intake_wall_clock.py` 的真实 0.5 秒约束和未启动证据。P1–P6 均保持 done，原 stash 保留，不 push。
+
+## 后续：构建树 2 秒就绪失败
+
+- 状态：done；起点 `baaf980`；已读本文件和最近 10 条提交；开工 `git status --short --branch` 干净，继续使用 `feat/ralph-port`，原 stash 保留。修复和本记录一起独立提交，标题 `test: 消除构建树夹具的串行解释器启动竞态`。
+- 用户授权：保留失败现场确认根因，不削弱断言或简单放宽超时；稳定性验证后再跑全量，更新本文件、单独提交、不 push，全程自动推进。
+- 计划：临时诊断脚本记录原用例各阶段真实耗时与工作线程栈，失败时保留整个合成临时仓库、进程回执和数据库，同时正常清理本测试所属进程。先定位，再针对根因修复，验证红绿灯与稳定性，最后全量。
+- 阅读范围：`tests/test_run_lifecycle.py`、`tmh/platform/agents.py`、`fixloop.py`、`supervised_process.py` 与相关本地监管实现；沿用进程级离线保护和 NO_PROXY。未接触真实 data/ 或凭据。
+- 待确认：无；原 2 秒就绪、3 秒总预算和 5.5 秒收尾限制保留。上一轮失败没有完整现场，不能用已通过的复跑代替根因证据。
+- 自然复现：临时 `diagnose.py` 只包装阶段计时/观察回执和线程栈，测试、夹具、时间限制未改，也未注入延时或外加负载。完整生命周期模块 5 轮 **65/65**（122.470s）后，原构建树单例连续诊断在第 **18 次**失败（前 17 次通过）。日志、完整逐轮 trace 与诊断脚本保存在 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/ralph-build-tree-zypem_4_/`。
+- 失败现场：原合成仓库、数据库和全部回执保留在 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-7_36wxhl/`，清理前快照 `failure-083.json`、完整时间线 `trace-083.json`。未删改现场；仍执行所属进程清理，之后只查询 PID 注册表中的 39874/39875/39878，`ps` 返回 1、输出为空，无这些进程遗留（`failure-cleanup-check.txt`）。
+- 根因证据：以原 `wait_ready` 开始为零点，工作树准备结束约 0.540s，本地构建进入监管约 0.735s，监管器 ready/running 约 1.620/1.687s；tree/child/leaf 标记观察于约 2.031/2.271/2.325s。约 2.042s 就绪检查失败时只看到 tree 标记，run 仍为 running，`stopped_reason` 为空，工作线程正常在监管轮询中，3 秒总预算尚余约 0.96 秒。逐代 `Popen(sys.executable, ...)` 重复 Python 初始化/导入，把真实启动抖动串行叠加进 2 秒夹具握手。失败后的 cleanup 杀父进程导致最终 `orphaned/125`，不能把这个收尾结果倒因为生产超时。原先那次“全无标记”现场未保留，本次证明的是同一就绪竞态的自然复现，不臆测旧现场的具体阶段或 OS 调度原因。
+- 修复：仅修改 `tests/test_run_lifecycle.py` 夹具，使用无线程的独立 POSIX 进程内 `os.fork()` 创建真实父/子/孙，每代仍独立登记 PID、设置忽略 TERM、写就绪标记和输出并持有日志管道；去掉不必要的 json/pathlib/subprocess 导入。生产代码、控制时钟、超时和监管器均未改；原 **13 个测试及全部原有辅助方法 AST 完全未变**。
+- 新回归：仅对子代重新启动 Python 注入真实 1.05 秒延时（两代合计至少 2.1 秒），复用原构建树测试的全部断言和原时间限制；就绪时用 `ps` 验证三个不同活 PID、真实 parent→child→leaf 关系和同一进程组，结束后校验真实运行至少 3 秒、只有一个构建 attempt、timeout/124、TERM/KILL/完整清理和三代原始输出。没有伪造时钟、扩大 watchdog 或只重标失败状态。
+- 初次验证：完整模块 **14/14**（27.546s，`lifecycle-green.log`）；最初慢启动红灯在旧夹具下就绪失败（2.529s，`slow-start-red.log`）。随后把延时限定为子解释器启动，以准确回归重复初始化；最终版本见下方红绿对照与稳定性记录。
+- 最终回归红绿对照：临时 Python 脚本只在进程内将 `FIXTURE` 替换为 `git show baaf980:tests/test_run_lifecycle.py` 中原字符串，最终新增用例于 2 秒就绪处按预期失败（3.058s）；恢复修复后字符串，同一用例通过（3.449s）。`descendant-red-green.log` 完整保存，脚本检查失败类型后退出 0；磁盘生产代码从未改动。
+- 稳定性阶段一：原失败用例连续 **100/100**，356.078s；命令 `NO_PROXY='*' no_proxy='*' PYTHONPATH=<诊断目录>:. python3 <诊断目录>/diagnose.py stability 100`。仍使用真实监管器、真实时钟与原始时间限制；随后顺序执行完整模块 10 轮，失败立即停止并保留合成现场，全部通过后才运行全量。
+- 审阅：亲自逐段查看测试 diff；AST 检查原 30 个函数（含 13 个原测试方法）全部相同；`git diff --check` 通过，`git diff --name-only -- tmh` 为空。失败现场 `owned-fixture.py` 与 `baaf980` 原 FIXTURE 逐字相同，SHA256 `ef831e1336ab4cb4136427098f01ce8384e54138b816759cb332f6477627c1e0`。当前受测文件 SHA256 已保存至 `validated-files.json`，后续验证结束再次核对。
+- 稳定性完成：原用例 100 次 + 完整模块 10 轮 × 14 次，合计 **240/240**，621.312s、0 跳过/失败/错误，进程退出码 0。其中模块阶段 **140/140**，265.234s；原用例总共 110 次就绪时间中位数 0.226s、最大 1.134s（原限制 2s）。完整 `stability.log` 和逐次 trace 均保留；受测测试文件哈希与阶段开始一致。随后才执行以下全量。
+- 全量：`NO_PROXY='*' no_proxy='*' PYTHONPATH=<诊断目录>:. python3 -m unittest discover -s tests`，**820 tests，307.188s，OK（skipped=15）**，即 **805 通过、15 跳过、0 失败/错误，退出码 0**。仍为 2 项缺 cryptography、13 项缺可选 MCP SDK；没有联网安装依赖。既有资源关闭警告原样保留，未改断言或屏蔽警告。离线 sitecustomize 仅在 unittest 主进程安装失败现场保留回调，本次未触发；子解释器只有离线保护，没有增加诊断导入。
+- 最终核对：测试文件 SHA256 `f6625c87113382f20fcdbf74862575ca035346aa676cd3040207edea035178ea` 与稳定性开始、全量前后完全一致；原函数 AST 仍全部相同，生产 tmh/ 无 diff，`git diff --check` 通过。读回保留现场的监管回执，身份/nonce/原始输出哈希校验通过，三代完整日志均存在，失败后的进程清理为 complete；未把这个 cleanup 导致的 orphaned 回执冒充自然 timeout。
+- 日志校验：`failure-083.json` 7488 字节 / SHA256 `6aa9f6dd27656f945b1253ca13398e231030c92ac046d943971ed034e257b876`；`trace-083.json` 152026 字节 / SHA256 `a6f0adf6233bed8039617f628edfcfc83a36a3ca336e5f7a91ac6b0d3f92c6c5`；`stability.log` 55954 字节 / SHA256 `917960e399a0a24278cc0bb4022fc28da24770e94d81c8fb2e6d45e4892b1bb1`；`full-unittest.log` 23049 字节 / SHA256 `c2e97c334265b3b64e640f05d3febbda6cadc92f57fc14d1fed7afdc8e9797fb`。其余日志哈希在同目录 `evidence-manifest.json`，没有压缩或截断文件。
+- 收尾：只提交测试夹具/新回归和本进度文件；原 stash 保留，不 push。建议审阅本次真实三代 fork、每代 PID/信号/管道语义，以及新增回归的父子关系和真实 deadline 断言；P5 guard/人工确认、P6 锁语义与 Windows 待确认清单保持上一轮结论。
