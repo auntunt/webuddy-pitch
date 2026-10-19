@@ -1,0 +1,22 @@
+test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor (test_external_candidates_independent.ExternalCandidateIndependentTest.test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor) ... ok
+test_new_requirement_message_invalidates_existing_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_new_requirement_message_invalidates_existing_acceptance) ... ok
+test_other_process_closing_ticket_during_submission_cannot_be_reopened (test_external_candidates_independent.ExternalCandidateIndependentTest.test_other_process_closing_ticket_during_submission_cannot_be_reopened) ... FAIL
+test_preview_command_change_invalidates_previous_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_preview_command_change_invalidates_previous_acceptance) ... ok
+test_preview_restart_invalidates_previous_technical_observations (test_external_candidates_independent.ExternalCandidateIndependentTest.test_preview_restart_invalidates_previous_technical_observations) ... ok
+test_restarting_candidate_preview_preserves_previous_raw_log (test_external_candidates_independent.ExternalCandidateIndependentTest.test_restarting_candidate_preview_preserves_previous_raw_log) ... ok
+test_same_implementer_cannot_record_independent_assessment (test_external_candidates_independent.ExternalCandidateIndependentTest.test_same_implementer_cannot_record_independent_assessment) ... ok
+test_shared_agent_credential_cannot_become_operator_by_adding_headers (test_external_candidates_independent.ExternalCandidateIndependentTest.test_shared_agent_credential_cannot_become_operator_by_adding_headers) ... ok
+
+======================================================================
+FAIL: test_other_process_closing_ticket_during_submission_cannot_be_reopened (test_external_candidates_independent.ExternalCandidateIndependentTest.test_other_process_closing_ticket_during_submission_cannot_be_reopened)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 186, in test_other_process_closing_ticket_during_submission_cannot_be_reopened
+    with self.assertRaises(ApiError):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.602s
+
+FAILED (failures=1)

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "A1",
+    "status": "pass",
+    "evidence": "固定提交8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd：真实HTTP/SQLite用例覆盖中文、Unicode casefold、%、_、引号的字面搜索且不截断；平台独立构建/35项测试通过。独立会话另跑35项通过。见候选verification完整commands、bootv2-tests-coordinator.log、independent-review-bootv2.log。"
+  },
+  {
+    "id": "A2",
+    "status": "pass",
+    "evidence": "真实HTTP用例核对全部/未完成/已完成、关键词交集、顺序和空结果；真实浏览器以原三条事项操作编辑+已完成得到2条，未完成得到空结果，清除后恢复3条。见browser-checks.json、browser-filter-empty.png及browser-filter-desktop.png。"
+  },
+  {
+    "id": "A3",
+    "status": "pass",
+    "evidence": "真实浏览器经工作台授权入口进入完整SHA前缀；关键词和状态在刷新、进入编辑及取消后保持，实际URL和DOM保存在browser-checks.json。HTTP用例覆盖新增/保存/切换完成后的重定向及未知/重复状态安全归一。修正了直接预览端口401入口，并保留原失败说明。"
+  },
+  {
+    "id": "A4",
+    "status": "pass",
+    "evidence": "原26项测试完整保留并通过，新增9项通过，覆盖200字符含换行、CSRF、转义、数据库503完整输入及重试、存储与重启。主数据原3行的id/title/done不变，既有3项目/4工单/45事件/6运行原行不变。见preservation-report.json；独立复核报告independent-review-final-diff.json。"
+  }
+]

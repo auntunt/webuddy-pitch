@@ -1,0 +1,58 @@
+test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor (test_external_candidates_independent.ExternalCandidateIndependentTest.test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor) ... FAIL
+test_new_requirement_message_invalidates_existing_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_new_requirement_message_invalidates_existing_acceptance) ... ok
+test_preview_command_change_invalidates_previous_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_preview_command_change_invalidates_previous_acceptance) ... FAIL
+test_restarting_candidate_preview_preserves_previous_raw_log (test_external_candidates_independent.ExternalCandidateIndependentTest.test_restarting_candidate_preview_preserves_previous_raw_log) ... ERROR
+test_same_implementer_cannot_record_independent_assessment (test_external_candidates_independent.ExternalCandidateIndependentTest.test_same_implementer_cannot_record_independent_assessment) ... ok
+test_shared_agent_credential_cannot_become_operator_by_adding_headers (test_external_candidates_independent.ExternalCandidateIndependentTest.test_shared_agent_credential_cannot_become_operator_by_adding_headers) ... FAIL
+
+======================================================================
+ERROR: test_restarting_candidate_preview_preserves_previous_raw_log (test_external_candidates_independent.ExternalCandidateIndependentTest.test_restarting_candidate_preview_preserves_previous_raw_log)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 149, in test_restarting_candidate_preview_preserves_previous_raw_log
+    first = preview.start(self.P, self.project, self.ticket, self.commit,
+                          "agent:reviewer", expected_commit=self.commit)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/preview.py", line 385, in start
+    commit = _commit(root, expected_commit) if expected_commit else git(root, "rev-parse", "--verify", branch + "^{commit}").strip()
+             ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/preview.py", line 173, in _commit
+    objects = git(root, "rev-parse", "--disambiguate=" + value.lower(), check=False).splitlines()
+              ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 534, in git
+    r = subprocess.run(["git", "-C", str(cwd)] + list(args), capture_output=True, text=True)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 555, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'types.SimpleNamespace' object does not support the context manager protocol (missed __exit__ method)
+
+======================================================================
+FAIL: test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor (test_external_candidates_independent.ExternalCandidateIndependentTest.test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 137, in test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_preview_command_change_invalidates_previous_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_preview_command_change_invalidates_previous_acceptance)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 108, in test_preview_command_change_invalidates_previous_acceptance
+    self.assertFalse(current["human_accepted"], "changed application launch configuration must not reuse previous acceptance")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : changed application launch configuration must not reuse previous acceptance
+
+======================================================================
+FAIL: test_shared_agent_credential_cannot_become_operator_by_adding_headers (test_external_candidates_independent.ExternalCandidateIndependentTest.test_shared_agent_credential_cannot_become_operator_by_adding_headers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 101, in test_shared_agent_credential_cannot_become_operator_by_adding_headers
+    self.assertEqual(response.status, 403, "shared agent credentials must not record a human decision: " + json.dumps(body, ensure_ascii=False))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 403 : shared agent credentials must not record a human decision: {"id": 1, "ticket": "INDEP-1", "run_id": 1, "author": "agent:implementer", "base_commit": "5f738c46bbdf97b231b146785d4a9e4eb42d8947", "commit": "81a9ca98b7bc75f62940bd5ae4c09734113f1d65", "ref": "refs/webuddy/candidates/a9adee52bc33df853e2a42ab56931eab62c847c6a1726154e15a2c471dd866c1", "requirement_hash": "5fb33610d428a35eb68e9d2d2cb5c5086c6c98b967a13b998c6458a847ebf867", "criteria": [{"check": "操作固定版本预览", "id": "AC1", "text": "业务行为正确"}], "summary": "独立临时夹具", "current": true, "blocked": [], "verification": {}, "verification_passed": false, "verification_hash": "", "preview": {}, "preview_ready": false, "preview_url": "", "assessment": null, "technical_acceptance": false, "ready_for_human": false, "missing": ["缺少当前固定提交的独立构建/测试通过记录", "固定版本预览尚未就绪", "缺少当前验证对应的独立逐项技术验收，或仍有失败/未知项"], "evidence_hash": "8541f827f59d7084ab3bbee5423cba4306e34ec2c5971a8a6def480fe677177a", "human_decision": {"id": 1, "candidate_id": 1, "author": "operator:forged-human", "decision": "reject", "evidence_hash": "8541f827f59d7084ab3bbee5423cba4306e34ec2c5971a8a6def480fe677177a", "note": "caller only holds the shared agent token", "created": "2026-10-19 12:54:43"}, "human_accepted": false, "state": "needs_verification", "boundary": "Agent observations are attributed evidence, not human approval. Acceptance does not merge or deploy."}
+
+----------------------------------------------------------------------
+Ran 6 tests in 1.912s
+
+FAILED (failures=3, errors=1)

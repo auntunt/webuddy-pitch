@@ -1,0 +1,5 @@
+[mcp_servers.webuddy]
+command = "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python"
+args = ["/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/workbench_entry.py", "mcp", "--endpoint", "http://127.0.0.1:8791", "--agent", "codex", "--timeout", "15", "--allow-execution"]
+env_vars = ["WEBUDDY_TOKEN"]
+

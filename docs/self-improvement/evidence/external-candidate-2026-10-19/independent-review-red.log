@@ -1,0 +1,27 @@
+test_new_requirement_message_invalidates_existing_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_new_requirement_message_invalidates_existing_acceptance) ... ok
+test_preview_command_change_invalidates_previous_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_preview_command_change_invalidates_previous_acceptance) ... FAIL
+test_same_implementer_cannot_record_independent_assessment (test_external_candidates_independent.ExternalCandidateIndependentTest.test_same_implementer_cannot_record_independent_assessment) ... ok
+test_shared_agent_credential_cannot_become_operator_by_adding_headers (test_external_candidates_independent.ExternalCandidateIndependentTest.test_shared_agent_credential_cannot_become_operator_by_adding_headers) ... FAIL
+
+======================================================================
+FAIL: test_preview_command_change_invalidates_previous_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_preview_command_change_invalidates_previous_acceptance)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 108, in test_preview_command_change_invalidates_previous_acceptance
+    self.assertFalse(current["human_accepted"], "changed application launch configuration must not reuse previous acceptance")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : changed application launch configuration must not reuse previous acceptance
+
+======================================================================
+FAIL: test_shared_agent_credential_cannot_become_operator_by_adding_headers (test_external_candidates_independent.ExternalCandidateIndependentTest.test_shared_agent_credential_cannot_become_operator_by_adding_headers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 101, in test_shared_agent_credential_cannot_become_operator_by_adding_headers
+    self.assertEqual(response.status, 403, "shared agent credentials must not record a human decision: " + json.dumps(body, ensure_ascii=False))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 403 : shared agent credentials must not record a human decision: {"id": 1, "ticket": "INDEP-1", "run_id": 1, "author": "agent:implementer", "base_commit": "7a93bc615761561d69221a72d5749f7cc435e216", "commit": "154e4fa11f368bd91a83146026a6f7772d236369", "ref": "refs/webuddy/candidates/40f27975130b68a102225404aff74a0a1bc58d2be0f2ce780f6c2687ee453142", "requirement_hash": "5fb33610d428a35eb68e9d2d2cb5c5086c6c98b967a13b998c6458a847ebf867", "criteria": [{"check": "操作固定版本预览", "id": "AC1", "text": "业务行为正确"}], "summary": "独立临时夹具", "current": true, "blocked": [], "verification": {}, "verification_passed": false, "verification_hash": "", "preview": {}, "preview_ready": false, "preview_url": "", "assessment": null, "technical_acceptance": false, "ready_for_human": false, "missing": ["缺少当前固定提交的独立构建/测试通过记录", "固定版本预览尚未就绪", "缺少当前验证对应的独立逐项技术验收，或仍有失败/未知项"], "evidence_hash": "edbb8ff4f6b605b69274cebcaa895f80d729b57e7dcd2c23115a8122937673c3", "human_decision": {"id": 1, "candidate_id": 1, "author": "operator:forged-human", "decision": "reject", "evidence_hash": "edbb8ff4f6b605b69274cebcaa895f80d729b57e7dcd2c23115a8122937673c3", "note": "caller only holds the shared agent token", "created": "2026-10-19 12:10:46"}, "human_accepted": false, "state": "needs_verification", "boundary": "Agent observations are attributed evidence, not human approval. Acceptance does not merge or deploy."}
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.474s
+
+FAILED (failures=2)

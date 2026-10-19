@@ -1,0 +1,14 @@
+{
+  "verified_archive_files": 115,
+  "all_manifest_hashes_and_sizes_match": true,
+  "sqlite_integrity_check": [
+    "platform-after.db",
+    "platform-before.db",
+    "bootv2-final.db"
+  ],
+  "git_bundle_verify": "passed",
+  "source_tar_readable": true,
+  "original_png_byte_equality": true,
+  "archived_desktop_png_visually_opened": true,
+  "credential_files_included": false
+}

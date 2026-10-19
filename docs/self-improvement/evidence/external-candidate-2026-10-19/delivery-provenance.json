@@ -1,0 +1,13 @@
+{
+  "app_commit": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+  "app_base": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+  "implementation": "external Codex workspace-write session",
+  "coordinator_commit": true,
+  "codex_sandbox_tests": "failed: TCP listen PermissionError; unchanged full failures preserved in implementation-process/output.bin",
+  "coordinator_tests": "35 passed",
+  "platform_independent_tests": "build and 35 tests passed in isolated worktree",
+  "independent_agent_tests": "35 passed, candidate_chain_review",
+  "browser_entry_issue": "Initial direct preview-port URL rejected (401; browser net::ERR_BLOCKED_BY_CLIENT). Fixed returned link to normal authenticated workbench entry. Browser then successfully followed authorized grant and rendered candidate; no browser protection disabled.",
+  "human_accepted": false,
+  "production_changed": false
+}

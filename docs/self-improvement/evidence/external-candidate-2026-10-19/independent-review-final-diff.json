@@ -1,0 +1,34 @@
+{
+  "recorded_at": "2026-10-19T05:06:05.371684+00:00",
+  "reviewer": "candidate_chain_review",
+  "product_or_test_changes": false,
+  "blocking_findings": [],
+  "delta": "Reviewed authenticated workbench preview entry and actual client endpoint binding, operator credential separation, noninteractive decision refusal, nested schema and MCP operator exclusion.",
+  "targeted_tests": {
+    "passed": 6,
+    "total": 6,
+    "environment": "Python 3.14 optional SDK venv",
+    "log": "independent-review-final-diff.log"
+  },
+  "business_evidence_read": [
+    "browser-checks.json",
+    "original-items-now.json",
+    "paths.json"
+  ],
+  "business_observations": "Root browser evidence contains search+completed, reload, edit/cancel, pending-empty and clear-to-three on commit 8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd. Recorded original three IDs, titles and completion flags match the prior original data. This was review of preserved evidence, not a second browser execution.",
+  "files_sha256": {
+    "tmh/platform/candidates.py": "d88f8f1201f5c0e84d90f8fe8237f0c84b98e95f7e07b236f1be9092f38390ff",
+    "tmh/platform/agent_api.py": "564d0c8e33074bfeb48bf3991ddf850959ed1ae2bcc4e76db88666adeebc5170",
+    "tmh/platform/preview.py": "fdf383a68b9ea3d780a76d4316048fb4a605bb8ec921c99d990be791699d5cd5",
+    "tmh/platform/operator_access.py": "78a91c10d1dc29660780ccf46bfdb47ed8b22453c0029e9899a98c32df1831aa",
+    "tmh/platform/server.py": "2185047d3f7660946feb9f243e8e98b90956af3c7894d40fa188ba8b1ddaba46",
+    "tmh/agent_contract.py": "28614a8631ac10626b6d34c48beb4c2787b99fa7cdc485ffdc1815d560a13287",
+    "tmh/workbench.py": "69406ef7f831476ee07d095c7f659234338443e88fc243e99885727baafff05c",
+    "tmh/workbench_client.py": "3a7fcdcda487f96e8adc83c29dc97bd97783861495b6341b477a4cf7218da6dc",
+    "tmh/workbench_mcp.py": "4ad98f82914930c216e88651d27d489ce82cd6771dd5592619a6d190078306d0",
+    "tests/test_workbench_client.py": "5624170b5bbc0fdf6c4dbd3391712ef3fefde4594025718172b61989471d5e2d",
+    "tests/test_workbench_mcp.py": "fd0a3573adb26fb263d093e41fa38aadbf7e1d5f8d2a7071d4f3d22c8a253176",
+    "tests/test_external_candidates.py": "0bc27b5df2443321249b3af19f032cb8d12e180a473af984d2244d0d3583e6f0",
+    "tests/test_external_candidates_independent.py": "9764a039d6101c8f94751c99ad42abb4d378dcb8f3e31baff3c9fba96cbf509f"
+  }
+}

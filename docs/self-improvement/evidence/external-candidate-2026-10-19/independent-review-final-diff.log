@@ -1,0 +1,12 @@
+test_candidate_link_uses_actual_workbench_endpoint (test_workbench_client.WorkbenchClientTest.test_candidate_link_uses_actual_workbench_endpoint) ... ok
+test_operator_secret_is_required_and_never_sent_with_agent_calls (test_workbench_client.WorkbenchClientTest.test_operator_secret_is_required_and_never_sent_with_agent_calls) ... ok
+test_noninteractive_cli_cannot_create_human_decision (test_workbench_client.WorkbenchClientTest.test_noninteractive_cli_cannot_create_human_decision) ... ok
+test_nested_candidate_schema_rejects_unknown_and_empty_criteria (test_workbench_client.WorkbenchClientTest.test_nested_candidate_schema_rejects_unknown_and_empty_criteria) ... ok
+test_preview_link_enters_authenticated_workbench_before_preview_port (test_external_candidates.ExternalCandidateTest.test_preview_link_enters_authenticated_workbench_before_preview_port) ... ok
+test_enabled_execution_returns_durable_receipt_without_waiting_for_model (test_workbench_mcp.WorkbenchMCPTest.test_enabled_execution_returns_durable_receipt_without_waiting_for_model) ... Executing <Task pending name='Task-2' coro=<WorkbenchMCPTest.test_enabled_execution_returns_durable_receipt_without_waiting_for_model() running at /Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py:235> cb=[_run_until_complete_cb() at /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py:181] created at /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:110> took 0.306 seconds
+ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 1.557s
+
+OK

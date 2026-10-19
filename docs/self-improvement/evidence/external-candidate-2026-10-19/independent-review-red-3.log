@@ -1,0 +1,47 @@
+test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor (test_external_candidates_independent.ExternalCandidateIndependentTest.test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor) ... FAIL
+test_new_requirement_message_invalidates_existing_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_new_requirement_message_invalidates_existing_acceptance) ... ok
+test_preview_command_change_invalidates_previous_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_preview_command_change_invalidates_previous_acceptance) ... FAIL
+test_restarting_candidate_preview_preserves_previous_raw_log (test_external_candidates_independent.ExternalCandidateIndependentTest.test_restarting_candidate_preview_preserves_previous_raw_log) ... FAIL
+test_same_implementer_cannot_record_independent_assessment (test_external_candidates_independent.ExternalCandidateIndependentTest.test_same_implementer_cannot_record_independent_assessment) ... ok
+test_shared_agent_credential_cannot_become_operator_by_adding_headers (test_external_candidates_independent.ExternalCandidateIndependentTest.test_shared_agent_credential_cannot_become_operator_by_adding_headers) ... FAIL
+
+======================================================================
+FAIL: test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor (test_external_candidates_independent.ExternalCandidateIndependentTest.test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 137, in test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_preview_command_change_invalidates_previous_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_preview_command_change_invalidates_previous_acceptance)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 108, in test_preview_command_change_invalidates_previous_acceptance
+    self.assertFalse(current["human_accepted"], "changed application launch configuration must not reuse previous acceptance")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : changed application launch configuration must not reuse previous acceptance
+
+======================================================================
+FAIL: test_restarting_candidate_preview_preserves_previous_raw_log (test_external_candidates_independent.ExternalCandidateIndependentTest.test_restarting_candidate_preview_preserves_previous_raw_log)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 161, in test_restarting_candidate_preview_preserves_previous_raw_log
+    self.assertEqual(first_log.read_bytes(), original, "restarting must preserve every byte of the original preview log")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'$ python fixture.py 63224\n' != b'$ python fixture.py 63223\nfirst preview evidence\x00\xff\n' : restarting must preserve every byte of the original preview log
+
+======================================================================
+FAIL: test_shared_agent_credential_cannot_become_operator_by_adding_headers (test_external_candidates_independent.ExternalCandidateIndependentTest.test_shared_agent_credential_cannot_become_operator_by_adding_headers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_external_candidates_independent.py", line 101, in test_shared_agent_credential_cannot_become_operator_by_adding_headers
+    self.assertEqual(response.status, 403, "shared agent credentials must not record a human decision: " + json.dumps(body, ensure_ascii=False))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 403 : shared agent credentials must not record a human decision: {"id": 1, "ticket": "INDEP-1", "run_id": 1, "author": "agent:implementer", "base_commit": "96354d842d255d656b9d4e4115e32e0af73f6a02", "commit": "032fc9fc6a96b6a968f8ec1b284f1a826f2c7984", "ref": "refs/webuddy/candidates/d1f389d15de95f395ca6043784913cd395642358f5796c439c8a3ecd8eee643a", "requirement_hash": "5fb33610d428a35eb68e9d2d2cb5c5086c6c98b967a13b998c6458a847ebf867", "criteria": [{"check": "操作固定版本预览", "id": "AC1", "text": "业务行为正确"}], "summary": "独立临时夹具", "current": true, "blocked": [], "verification": {}, "verification_passed": false, "verification_hash": "", "preview": {}, "preview_ready": false, "preview_url": "", "assessment": null, "technical_acceptance": false, "ready_for_human": false, "missing": ["缺少当前固定提交的独立构建/测试通过记录", "固定版本预览尚未就绪", "缺少当前验证对应的独立逐项技术验收，或仍有失败/未知项"], "evidence_hash": "483c1bf0e4dc538a0b8786ccf42c405cc92b1c45b30e64429e2b326d4947f02d", "human_decision": {"id": 1, "candidate_id": 1, "author": "operator:forged-human", "decision": "reject", "evidence_hash": "483c1bf0e4dc538a0b8786ccf42c405cc92b1c45b30e64429e2b326d4947f02d", "note": "caller only holds the shared agent token", "created": "2026-10-19 12:55:04"}, "human_accepted": false, "state": "needs_verification", "boundary": "Agent observations are attributed evidence, not human approval. Acceptance does not merge or deploy."}
+
+----------------------------------------------------------------------
+Ran 6 tests in 2.388s
+
+FAILED (failures=4)
