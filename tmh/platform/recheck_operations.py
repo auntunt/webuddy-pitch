@@ -6,9 +6,9 @@ written here; the source run and its original artifacts are never rewritten.
 """
 from __future__ import annotations
 
-import fcntl
 import json
 import math
+import os
 import re
 import sqlite3
 from contextlib import contextmanager
@@ -16,6 +16,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from .agents import Runner
+from . import filelock
 from .store import now
 from .supervised_process import _atomic_json, read_receipt
 
@@ -65,13 +66,13 @@ def source_guard(data_dir, rid):
     folder.mkdir(parents=True, exist_ok=True)
     with (folder / (str(rid) + ".lock")).open("a+b") as stream:
         try:
-            fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            filelock.try_lock(stream)
         except BlockingIOError as exc:
             raise ValueError("该来源正在复检或处理采纳决定，请稍后再试") from exc
         try:
             yield
         finally:
-            fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+            filelock.unlock(stream)
 
 
 class _OperationStore:
@@ -130,12 +131,12 @@ class Operations:
         lock_path = folder / "owner.lock"
         if not lock_path.exists():
             return False
-        with lock_path.open("rb") as stream:
+        with lock_path.open("r+b" if os.name == "nt" else "rb") as stream:
             try:
-                fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                filelock.try_lock(stream)
             except BlockingIOError:
                 return True
-            fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+            filelock.unlock(stream)
         return False
 
     def _view(self, row):

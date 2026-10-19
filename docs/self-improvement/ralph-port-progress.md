@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：P5；状态：done
+- 当前项：P6；状态：done（待最终全量回归）
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -16,8 +16,8 @@
 | P2 | done | `eac0e2f` | 非阻塞任务尺寸提示 |
 | P3 | done | `d761bb6` | 经验卡固定开销 lint |
 | P4 | done | `ff532c8` | 已知死路及来源验证 |
-| P5 | done | 见 `P5:` 提交 | 结构反馈草稿与人确认 |
-| P6 | todo | — | 可替换文件锁与 Windows 阻塞盘点 |
+| P5 | done | `c594ee5` | 结构反馈草稿与人确认 |
+| P6 | done | 见 `P6:` 实现提交 | 可替换文件锁与 Windows 阻塞盘点 |
 
 ## P1
 
@@ -90,6 +90,34 @@
 - 审阅：已逐段看实现/测试 diff，`git diff --check` 通过；guard 仅追加 propose-confirm 模式；MOVES/HUMAN_ONLY/AGENT_ENV、ALWAYS_PROTECTED、原确认/关闭拦截及证据链未改。共 1 轮实现修复。
 - 平台建议：以后在父单展示结构反馈待审列表，人在正常身份验证入口选择采纳，生成 draft 后再走原有规格/AC 确认；不直接调用 `_follow_up` 自动放单。
 
+## P6
+
+- 状态：done。
+- 范围：`tmh/platform/crash_recovery.py`、`recheck_operations.py`、`candidates.py`、`harness_probes.py`、`tmh/kb.py`，新增 `tmh/platform/filelock.py` 和 `tests/test_filelock.py`；只读指定相关测试及 Windows 剩余阻塞所需静态定位。
+- 计划：POSIX flock / Windows msvcrt 第 0 字节锁统一接口，句柄/进程退出释放；保留 kb 的无原生后端 O_EXCL 回退；回执格式和恢复门槛不改。
+- 命令/结果：待跑 filelock、新旧恢复/候选/探测指定测试与 KB 队列用例。
+- 待确认：最终记录 Windows 余项，不扩展进程监管实现。
+- 实际改动：新增 filelock + 12 个测试，4 个平台模块全部改用统一接口，KB 仅替换原生分支并保留 O_EXCL 回退。锁后端延迟加载，不存在 fcntl 时走 msvcrt；非阻塞竞争统一 BlockingIOError；Windows 在持有第 0 字节范围锁后初始化空文件，避免竞争写入；保留位置、非竞争错误和既有业务提示。
+- 锁语义：当前所有调用点均排他；OS 句柄关闭/进程退出释放。Windows blocking=True 以非阻塞调用循环等待，避免 CRT 内建重试上限。所有权判断不使用 O_EXCL、历史 PID 或残留文件存在性。回执/数据库结构未改，process_control/supervised_process 未改。
+- 验证：所有命令仅带进程级 `NO_PROXY='*' no_proxy='*'`，使用 `python3 -m unittest discover -s tests -p <文件>`：test_filelock.py **12/12**（0.148s）；test_crash_recovery_api.py **6/6**（0.612s）；test_crash_recovery_independent.py **8/8**（2.875s）；test_recheck_operations.py **14/14**（3.901s）；test_external_candidates.py **11/11**（8.724s）；test_harness_probes.py **7/7**（13.909s）；test_harness_probes_independent.py **9/9**（10.721s）；`test_tmh.py -k test_queue_is_bottom_up_and_parallel_safe` **1/1**（0.141s）。修复 0 轮。
+- 实测边界：macOS/POSIX 真锁、真子进程 kill 后释放；Windows 使用 mock fcntl=None/msvcrt 验证 4 模块实际导入与锁调用、竞争/阻塞/错误/初始化。没有 Windows 实机，不把 mock 当实机结果。
+- 审阅：逐段查看全部 git diff（含新文件），`git diff --check` 通过。AST 对比起点 `422d9bf`：MOVES/HUMAN_ONLY/AGENT_ENV/ALWAYS_PROTECTED 完全相同，DANGEROUS_BASH 仅追加一条；4 个有改动的既有测试文件中所有原 test_* 方法 AST 均未变。
+
+## Windows 剩余阻塞（只盘点，不改）
+
+1. 已知范围外：process_control.run_process / supervised_process.run_supervised 仍显式拒绝非 POSIX，受管组、管道传递等仍需另行移植。
+2. `tmh/platform/preview.py` 的 `_kill` 使用 os.killpg/SIGKILL，启动依赖 shell=True/start_new_session；默认 Django 命令为 POSIX 环境变量前缀语法。预览进程身份与退出判断也需要 Windows 专门验证。
+3. `tmh/platform/fixloop.py:_local` 写死 `/bin/sh -c`；命令拼装使用 shlex.quote/POSIX cd 语法。Windows 本地构建需要平台适配。
+4. `tmh/install.py` 的 Codex hook/MCP 使用 sh、`$(...)`、`/dev/null` 与 python3；pre-commit 为 `/bin/sh`。`project_bootstrap.py` 用 shlex.quote 生成测试/预览命令；原生 cmd/PowerShell 不能直接视作兼容。
+5. `candidates.py` Git 的 `core.hooksPath=/dev/null`，以及硬链接、POSIX 可执行位/0600/0444 权限语义，需要在 Windows/Git for Windows/目标文件系统实测；这些属于条件兼容风险，不断言 NTFS 不支持硬链接。
+6. 本次默认排他锁满足所有现有调用点；`exclusive=False` 使用 CRT read-lock 模式，Windows 可能比 POSIX LOCK_SH 更严格，不能保证多个读者并行。若后续需要真共享锁，应单独设计 Windows 原生共享后端；当前无该生产调用点。
+
+## 最终全量回归
+
+- 状态：todo；六项实现已分别完成，接着运行一次 `python3 -m unittest discover -s tests`，记录完整结果后最终提交进度。
+
 ## 待确认
 
-- 暂无。P6 完成时在这里列出 Windows 剩余阻塞点。
+- P5 平台接入：建议新增人工待审入口，不直接从结构反馈调用 `_follow_up` 自动派发；本次不接平台。
+- P5 异常中断若留下 proposals/.write-lock，需要人先核实无活跃操作再清理；不自动猜测所有权。
+- P6：上列 Windows 剩余阻塞；需 Windows 实机验证默认排他锁自动释放，尤其不同文件系统与进程退出路径。共享读锁的并行性不在已证明范围。

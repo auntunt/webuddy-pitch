@@ -9,9 +9,9 @@ is installed. See docs/harness2-integration.md for provenance and boundaries.
 from __future__ import annotations
 
 from contextlib import contextmanager
-import fcntl
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 import subprocess
 import sys
@@ -20,6 +20,7 @@ import time
 import uuid
 
 from .errors import ApiError
+from . import filelock
 from .store import now
 from .supervised_process import _atomic_json, read_receipt, run_supervised
 
@@ -71,9 +72,9 @@ def _active(path):
     if not path.is_file():
         return False
     try:
-        with path.open("rb") as stream:
-            fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-            fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+        with path.open("r+b" if os.name == "nt" else "rb") as stream:
+            filelock.try_lock(stream)
+            filelock.unlock(stream)
             return False
     except BlockingIOError:
         return True
@@ -83,11 +84,11 @@ def _active(path):
 def _completion(root):
     # Serializes a stop receipt and publication across service/store instances.
     with (root / "completion.lock").open("a+b") as stream:
-        fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+        filelock.try_lock(stream, blocking=True)
         try:
             yield
         finally:
-            fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+            filelock.unlock(stream)
 
 
 def _source_current(P, source):
@@ -199,12 +200,12 @@ def start(P, actor, args, mutation):
         root = folder(P, pid)
         root.mkdir(parents=True, exist_ok=True)
         lock = (root / "owner.lock").open("a+b")
-        fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        filelock.try_lock(lock)
         owner = {"token": uuid.uuid4().hex, "run_id": pid, "data_dir": str(root.parent)}
         _atomic_json(root / "owner.json", owner, exclusive=True)
         recipe_bytes = PROBE.read_bytes()
         if hashlib.sha256(recipe_bytes).hexdigest() != recipe["source_sha256"]:
-            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+            filelock.unlock(lock)
             lock.close()
             raise ApiError(409, "配方在启动时发生变化，请核对本次请求回执")
         (root / "recipe.py").write_bytes(recipe_bytes)
@@ -336,7 +337,7 @@ def _run(P, pid, source, lock, owner):
                 P.store.x("UPDATE harness_probe_runs SET status=?,ended=?,result_hash=? WHERE id=?",
                           ("failed" if result.get("error") else "done", now(), hash_, pid))
         finally:
-            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+            filelock.unlock(lock)
             lock.close()
 
 

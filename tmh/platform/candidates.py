@@ -7,13 +7,13 @@ the operator endpoint records a human decision, without merging or deploying.
 from __future__ import annotations
 
 from contextlib import contextmanager
-import fcntl
 import hashlib
 import json
 from pathlib import Path
 import subprocess
 
 from .errors import ApiError
+from . import filelock
 from .store import now
 
 
@@ -83,13 +83,13 @@ def guard(P, ticket_id):
     folder.mkdir(parents=True, exist_ok=True)
     with (folder / (str(int(ticket_id)) + ".lock")).open("a+b") as stream:
         try:
-            fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            filelock.try_lock(stream)
         except BlockingIOError as exc:
             raise ApiError(409, "此工单的候选操作正在处理，请稍后读取回执") from exc
         try:
             yield
         finally:
-            fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+            filelock.unlock(stream)
 
 
 def for_run(store, rid):

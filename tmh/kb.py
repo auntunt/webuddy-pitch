@@ -99,22 +99,19 @@ def page_kind(pid: str) -> str:
 
 
 class _Lock:
-    """Inter-process lock on the knowledge base. Uses flock where available, so a
+    """Inter-process lock on the knowledge base. Uses kernel locks where available, so a
     lock file that cannot be deleted (restricted mounts) never blocks later runs."""
 
     def __init__(self, p: Path):
         self.p = p
 
     def __enter__(self):
-        try:
-            import fcntl
-        except ImportError:
-            fcntl = None
-        if fcntl:
+        from .platform import filelock
+        if filelock.available():
             self.fd = os.open(str(self.p), os.O_CREAT | os.O_WRONLY)
             for _ in range(1200):
                 try:
-                    fcntl.flock(self.fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    filelock.try_lock(self.fd)
                     return self
                 except OSError:
                     time.sleep(0.05)

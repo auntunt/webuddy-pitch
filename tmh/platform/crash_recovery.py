@@ -1,7 +1,6 @@
 """Reconcile a lost service owner using durable supervisor receipts, never old PIDs."""
 from __future__ import annotations
 
-import fcntl
 import json
 import os
 import time
@@ -9,6 +8,7 @@ import uuid
 from pathlib import Path
 
 from .store import now
+from . import filelock
 from .supervised_process import _atomic_json, read_receipt
 
 
@@ -17,7 +17,7 @@ class OwnerLease:
         self.stream, self.owner = stream, owner
 
     def close(self):
-        self.stream.close()  # close releases flock even when an owner process dies
+        self.stream.close()  # the kernel releases ownership when the handle/process closes
 
     def __del__(self):
         self.close()
@@ -27,10 +27,13 @@ def _lock(folder):
     folder.mkdir(parents=True, exist_ok=True)
     stream = (folder / "owner.lock").open("a+b")
     try:
-        fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        filelock.try_lock(stream)
     except BlockingIOError:
         stream.close()
         return None
+    except BaseException:
+        stream.close()
+        raise
     return stream
 
 
@@ -73,7 +76,7 @@ def _original_bytes(path, raw):
 
 
 def reconcile(store, data_dir, rid, wait_seconds=3):
-    """A live flock owner is untouched. Unknown/mismatched evidence fails closed.
+    """A live kernel-lock owner is untouched. Unknown/mismatched evidence fails closed.
 
     The supervisor responds to its caller's pipe EOF independently. This code
     only waits for its receipt and hashes the original output; it sends no signal.
