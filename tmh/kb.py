@@ -109,14 +109,19 @@ class _Lock:
         from .platform import filelock
         if filelock.available():
             self.fd = os.open(str(self.p), os.O_CREAT | os.O_WRONLY)
-            for _ in range(1200):
-                try:
-                    filelock.try_lock(self.fd)
-                    return self
-                except OSError:
-                    time.sleep(0.05)
-            os.close(self.fd)
-            raise TimeoutError("知识库被占用：%s" % self.p)
+            try:
+                for _ in range(1200):
+                    try:
+                        filelock.try_lock(self.fd)
+                        return self
+                    except BlockingIOError:
+                        time.sleep(0.05)
+                raise TimeoutError("知识库被占用：%s" % self.p)
+            except BaseException:
+                # __exit__ is not called when acquisition fails or is interrupted.
+                # Only contention is retryable; preserve I/O errors from the backend.
+                os.close(self.fd)
+                raise
         for _ in range(200):
             try:
                 self.fd = os.open(str(self.p), os.O_CREAT | os.O_EXCL | os.O_WRONLY)

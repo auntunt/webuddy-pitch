@@ -218,6 +218,57 @@ class FileLockTest(unittest.TestCase):
                 with candidates.guard(SimpleNamespace(data_dir=self.root), 1):
                     self.fail("busy candidate entered")
 
+    def test_kb_windows_initialization_error_is_not_reported_as_contention(self):
+        from tmh.kb import _Lock
+        lock = _Lock(self.path)
+        api = self.windows_api()
+        try:
+            with mock.patch.dict(sys.modules, {"fcntl": None, "msvcrt": api}), \
+                    mock.patch.object(filelock.os, "write", side_effect=OSError(errno.ENOSPC, "full")), \
+                    mock.patch.object(filelock.time, "sleep") as sleep:
+                with self.assertRaises(OSError) as raised:
+                    lock.__enter__()
+            self.assertEqual(raised.exception.errno, errno.ENOSPC)
+            sleep.assert_not_called()
+            self.assertEqual([call.args[1] for call in api.locking.call_args_list], [2, 0])
+            with self.assertRaises(OSError) as closed:
+                os.fstat(lock.fd)
+            self.assertEqual(closed.exception.errno, errno.EBADF)
+        finally:
+            try:
+                os.close(lock.fd)
+            except OSError:
+                pass
+
+    def test_kb_interrupted_native_acquisition_closes_its_descriptor(self):
+        from tmh.kb import _Lock
+        lock = _Lock(self.path)
+        try:
+            with mock.patch.object(filelock, "try_lock", side_effect=KeyboardInterrupt):
+                with self.assertRaises(KeyboardInterrupt):
+                    lock.__enter__()
+            with self.assertRaises(OSError) as closed:
+                os.fstat(lock.fd)
+            self.assertEqual(closed.exception.errno, errno.EBADF)
+        finally:
+            try:
+                os.close(lock.fd)
+            except OSError:
+                pass
+
+    def test_kb_native_contention_still_retries_and_times_out_with_closed_descriptor(self):
+        from tmh.kb import _Lock
+        lock = _Lock(self.path)
+        with mock.patch.object(filelock, "try_lock", side_effect=BlockingIOError(errno.EAGAIN, "busy")) as acquire, \
+                mock.patch.object(filelock.time, "sleep") as sleep:
+            with self.assertRaisesRegex(TimeoutError, "知识库被占用"):
+                lock.__enter__()
+        self.assertEqual(acquire.call_count, 1200)
+        self.assertEqual(sleep.call_count, 1200)
+        with self.assertRaises(OSError) as closed:
+            os.fstat(lock.fd)
+        self.assertEqual(closed.exception.errno, errno.EBADF)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -169,7 +169,9 @@
 
 ### P6 审查修复
 
-- 状态：doing；已复现 KB 原生锁获取把 ENOSPC 错误重试 1200 次并报“被占用”，以及 KeyboardInterrupt 时句柄未关闭。只收紧 `tmh/kb.py` 的异常分类/清理，保留内核所有权锁和无后端的 O_EXCL 旧回退；新增 3 个 `tests/test_filelock.py` 用例。锁后端和生产所有权回执没有改动。
+- 状态：done；已复现 KB 原生锁获取把 ENOSPC 错误重试 1200 次并报“被占用”，以及 KeyboardInterrupt 时句柄未关闭。只收紧 `tmh/kb.py` 的异常分类/清理，保留内核所有权锁和无后端的 O_EXCL 旧回退；新增 3 个 `tests/test_filelock.py` 用例。锁后端和生产所有权回执没有改动。
+- 红灯：`test_filelock.py -k kb_` 4 tests，2 failed；ENOSPC 被隐藏为 TimeoutError，打断后 fstat 仍成功。绿灯：`python3 -m unittest discover -s tests -p 'test_filelock.py' -v` **15/15**（0.396s），涵盖真实 POSIX 互斥/阻塞/关句柄/进程杀死释放、Windows mock 初始化及异常路径；`... -p 'test_tmh.py' -k test_queue_is_bottom_up_and_parallel_safe -v` **1/1**（0.404s），并行 KB 队列仍正确。日志 `p6-red.log`、`p6-green.log`、`p6-kb-queue.log`。
+- 已逐段审阅两文件 diff，`git diff --check` 通过；只对规范化的 BlockingIOError 重试，其他异常立即抛出并关 fd。竞争的 1200 次/0.05 秒策略未放宽，底层字节锁/O_EXCL 回退未改。待确认仍为前文 Windows 实机验证/进程监管等剩余阻塞，没有把 mock 结果当实机证明。
 
 ### 11078c5 超时覆盖审查
 
