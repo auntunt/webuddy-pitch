@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import tempfile
 from pathlib import Path
 from statistics import median
 from contextlib import contextmanager
@@ -434,12 +435,18 @@ def propose_confirm(root: Path, proposal: str, who: str = "") -> dict:
         updated = (_proposal_header(record) + body
                    + "\n## 人工确认记录\n- 确认人：%s\n- 生成任务：%s（初始 draft_contract）\n" % (who.strip(), tid))
         # Write a replacement first so interrupted writes never turn a pending draft into a broken header.
-        staged = path.with_suffix(".tmp")
+        staged = None
         try:
-            staged.write_text(updated, encoding="utf-8")
+            # An existing predictable .tmp path may be a symlink. Create a new
+            # file exclusively, then close it before replacement (also on Windows).
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent,
+                                             prefix=path.name + ".", suffix=".tmp", delete=False) as stream:
+                staged = Path(stream.name)
+                stream.write(updated)
             staged.replace(path)
         finally:
-            staged.unlink(missing_ok=True)
+            if staged is not None:
+                staged.unlink(missing_ok=True)
         return {"task": tid, "file": contract.relative_to(root).as_posix(), "proposal": path.relative_to(root).as_posix(),
                 "confirmed_by": who.strip(), "state": load(root, tid)["state"]}
 

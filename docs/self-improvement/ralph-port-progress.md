@@ -129,6 +129,7 @@
 
 - P5 平台接入：建议新增人工待审入口，不直接从结构反馈调用 `_follow_up` 自动派发；本次不接平台。
 - P5 异常中断若留下 proposals/.write-lock，需要人先核实无活跃操作再清理；不自动猜测所有权。
+- P5 升级前若确认回执写入失败，已有任务使用旧版未引用的草稿快照，升级后重试会保守拒绝；需人工核对草稿和任务内容，不自动迁移或推定已确认。
 - P6：上列 Windows 剩余阻塞；需 Windows 实机验证默认排他锁自动释放，尤其不同文件系统与进程退出路径。共享读锁的并行性不在已证明范围。
 - intake 基线时序失败已在下节修复并通过全量；没有新增待确认事项，生产监管实现保持原样。
 
@@ -160,7 +161,7 @@
 
 ### P5 审查修复
 
-- 状态：done；修改 `tmh/acceptance.py`、`tmh/guard.py`、`tests/test_acceptance.py` 和本记录。以下确认行为全部是临时仓库内的合成测试，没有替人确认真实任务。
+- 状态：done；提交 `1a11236`；修改 `tmh/acceptance.py`、`tmh/guard.py`、`tests/test_acceptance.py` 和本记录。以下确认行为全部是临时仓库内的合成测试，没有替人确认真实任务。
 - 复现：5 个新增用例在修复前出现 11 个断言失败、1 个错误。① 当前 Codex 无沙箱环境仅有 `CODEX_THREAD_ID`，旧 `_human` 未识别；② guard 漏过前置选项、引号、转义和 `--to` 缩写等有效 CLI 命令；③ 引用原话的 `## 4.` 可被解析成新任务 AC；④ 确认回执失败后修改草稿，重试仍复用过期任务；⑤ proposals 目录符号链接可先写出仓库，最后才报路径异常。
 - 修复：AGENT_ENV 只追加 `CODEX_THREAD_ID`；保留全部原始 DANGEROUS_BASH，新增 shell 分词和真实 CLI 参数解析的补充拦截；采纳原文逐行加 blockquote 前缀（测试反向去前缀逐字相等），不再参与契约章节解析；重试必须匹配原文快照；读写前拒绝草稿存储路径及文件符号链接。既有 MOVES/HUMAN_ONLY、保护清单、证据绑定不变。
 - 验证：`python3 -m unittest discover -s tests -p 'test_acceptance.py' -v` **26/26**（5.872s）；`... -p 'test_tmh.py' -k GuardAndVerifyTest -k AgentHookTest -v` **10/10**（1.675s）。完整日志在 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/ralph-final-review-b2e6yow4/` 的 `p5-red.log`、`p5-green.log`、`p5-hooks.log`。所有验证使用进程级 NO_PROXY 和临时离线 sitecustomize。
@@ -169,10 +170,26 @@
 
 ### P6 审查修复
 
-- 状态：done；已复现 KB 原生锁获取把 ENOSPC 错误重试 1200 次并报“被占用”，以及 KeyboardInterrupt 时句柄未关闭。只收紧 `tmh/kb.py` 的异常分类/清理，保留内核所有权锁和无后端的 O_EXCL 旧回退；新增 3 个 `tests/test_filelock.py` 用例。锁后端和生产所有权回执没有改动。
-- 红灯：`test_filelock.py -k kb_` 4 tests，2 failed；ENOSPC 被隐藏为 TimeoutError，打断后 fstat 仍成功。绿灯：`python3 -m unittest discover -s tests -p 'test_filelock.py' -v` **15/15**（0.396s），涵盖真实 POSIX 互斥/阻塞/关句柄/进程杀死释放、Windows mock 初始化及异常路径；`... -p 'test_tmh.py' -k test_queue_is_bottom_up_and_parallel_safe -v` **1/1**（0.404s），并行 KB 队列仍正确。日志 `p6-red.log`、`p6-green.log`、`p6-kb-queue.log`。
+- 状态：done；提交 `21e68cd`；已复现 KB 原生锁获取把 ENOSPC 错误重试 1200 次并报“被占用”，以及 KeyboardInterrupt 时句柄未关闭。只收紧 `tmh/kb.py` 的异常分类/清理，保留内核所有权锁和无后端的 O_EXCL 旧回退；新增 3 个 `tests/test_filelock.py` 用例。锁后端和生产所有权回执没有改动。
+- 红灯：`test_filelock.py -k kb_` 4 tests，2 failed；ENOSPC 被隐藏为 TimeoutError，打断后 fstat 仍成功。绿灯：`python3 -m unittest discover -s tests -p 'test_filelock.py' -v` **15/15**（0.396s），涵盖真实 POSIX 互斥/阻塞/关句柄/进程杀死释放、Windows mock 初始化及异常路径；`... -p 'test_tmh.py' -k test_queue_is_bottom_up_and_parallel_safe -v` **1/1**（0.210s），并行 KB 队列仍正确。日志 `p6-red.log`、`p6-green.log`、`p6-kb-queue.log`。
 - 已逐段审阅两文件 diff，`git diff --check` 通过；只对规范化的 BlockingIOError 重试，其他异常立即抛出并关 fd。竞争的 1200 次/0.05 秒策略未放宽，底层字节锁/O_EXCL 回退未改。待确认仍为前文 Windows 实机验证/进程监管等剩余阻塞，没有把 mock 结果当实机证明。
 
 ### 11078c5 超时覆盖审查
 
 - 状态：doing；可控时钟与 5 秒 watchdog 只用于调用者事件顺序，不能单独证明真实 0.5 秒超时。补独立的 `tests/test_intake_wall_clock.py`：Runner/监管器使用真实 time，透传原 timeout，仅故意延迟真实 Popen 0.6 秒；必须 failed/124、规则回退、reader 未启动且清理完整。正在验证稳定性和回归敏感性。
+- 新用例最初按 `no_spawn` 字段检查时报 KeyError；核对真实 process_control 回执后改为断言 `cleanup.trigger == timeout_before_spawn`、完整校验的监管回执 `pid is None` 及 reader marker 不存在，验证意图未变。独立测试 **1/1**（0.865s）通过。原文件只补说明，原方法和 0.5 秒逻辑预算/5 秒测试 watchdog 均未改。
+- 稳定性：临时 `stability.py` 交替执行完整 direct invocation 模块（15 tests）和独立墙钟模块（1 test），共 10 轮 **160/160**，88.079s；每个模块执行完检查 agents.time 与监管函数均恢复，未污染后续真实时钟用例。完整 `stability.log` 保留。
+- 负向实验：临时 `watchdog_sensitivity.py` 在内存将真实监管执行预算替换为 5 秒；新用例按预期失败，原始监管回执为 `exited/0` 而非 `timeout/124`。脚本核对这一失败后退出 0，说明 Runner 最后标记 124 不能掩盖越过真实截止时间的 reader 执行；没有修改磁盘生产代码。完整 `watchdog-sensitivity.log` 保留。
+- 审阅：已读回整个新增测试；AST 对比 `11078c5`，acceptance/filelock/direct invocation 的所有原方法均未改；对比起点 `422d9bf`，MOVES/HUMAN_ONLY/ALWAYS_PROTECTED 相同，AGENT_ENV/DANGEROUS_BASH 仅追加。`git diff --check` 通过。
+- 全量：开始执行 `python3 -m unittest discover -s tests`，仍仅设置进程级 NO_PROXY 与临时离线 sitecustomize。日志 `full-unittest.log`；完成后填写结果并提交本节测试与记录。
+
+### P5 回执临时文件追加审查
+
+- 状态：doing；全量运行期间只在临时夹具中继续核对写入边界，未修改受测实现。复现预先创建 `T001-1.tmp` 符号链接时，旧 staging.write_text 会先覆写仓库外合成文件，再把链接移至草稿路径；`p5-staging-reproduction.log` 保留失败断言。
+- 计划：改为同目录独占创建唯一临时文件，关闭后再原子 replace，保留失败清理/重试语义；新增不触碰旧临时链接目标的测试。等待当前全量结束后修改实现并再跑完整回归，避免受测代码中途变化。待确认：无。
+- 完成：首轮全量结束后才改实现；`NamedTemporaryFile(delete=False)` 独占创建、关闭后 replace、finally 清理，不读写旧 `.tmp` 链接。新增回归检查仓库外合成文件字节不变、旧链接未动、确认后草稿为普通文件、无新临时文件遗留。验收测试 **27/27**（4.746s），含原回执失败恢复测试；`p5-staging-green.log` 保留。亲自审阅 diff，`git diff --check` 通过。状态：done。
+
+### 最终审查全量与构建树失败对照
+
+- 首轮全量：**818 tests，408.143s，FAILED（failures=1, skipped=15）**；唯一失败 `test_run_lifecycle.RunLifecycleTest.test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout`，在 2 秒 `wait_ready` 内三个合成进程树标记均未出现，尚未进入后续 3 秒总预算/5.5 秒收尾断言。intake、P5、P6 新用例没有失败。日志 `full-unittest.log`，受测 8 个实现/测试文件运行前后 SHA256 完全一致（`validated-files.json`）。
+- 正在对照：该测试及 `agents.py`/`process_control.py`/`supervised_process.py` 与 `422d9bf` 没有差异。不能仅凭字节相同或复跑转绿判定根因；临时 `build_tree_diagnostics.py` 连续跑原单例，失败时在清理前保存合成 run/lifecycle/监管回执，未改其断言或时间限制。另导出起点 tmh/templates/skills 与该测试，逐个核对 Git blob，用于独立对照；没有导出真实 data/ 或凭据。

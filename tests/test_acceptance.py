@@ -367,6 +367,22 @@ class AcceptanceTest(unittest.TestCase):
         self.assertEqual((outside / "T001-1.md").read_bytes(), before)
         self.assertEqual(len(task.list_tasks(self.root)), 1)
 
+    def test_confirmation_receipt_does_not_follow_a_preexisting_staging_symlink(self):
+        result = acc.correct(self.root, "T001", "dependency", "核对依赖")
+        proposal = self.root / result["proposal"]
+        outside = self.root.parent / "outside-receipt"
+        outside.write_bytes(b"must remain untouched")
+        old_staging = proposal.with_suffix(".tmp")
+        old_staging.symlink_to(outside)
+        with mock.patch.dict(os.environ, NO_AGENT):
+            adopted = acc.propose_confirm(self.root, result["proposal"], "张三")
+        self.assertEqual(outside.read_bytes(), b"must remain untouched")
+        self.assertTrue(old_staging.is_symlink())
+        self.assertFalse(proposal.is_symlink())
+        self.assertEqual(acc._proposal_record(proposal)[0]["status"], "confirmed")
+        self.assertEqual(adopted["state"], "draft_contract")
+        self.assertEqual(list(proposal.parent.glob(proposal.name + ".*.tmp")), [])
+
 
 if __name__ == "__main__":
     unittest.main()
