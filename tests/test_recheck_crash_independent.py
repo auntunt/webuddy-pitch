@@ -491,7 +491,14 @@ Runner.run_command=pause_after_real_candidate_build
         self.assertEqual(second.store.run(self.rid),self.original)
         (self.data/'release-command-gap').write_text('allow existing operation to continue')
         done=self.wait_for(lambda:(state if (state:=self.http('GET','/api/runs/%d/recheck'%self.rid)[1])
-                                   .get('operation',{}).get('status')=='done' else None))
+                                   .get('operation',{}).get('status')=='done' and not state.get('running') else None))
+        self.assertTrue(done)
+        # The row reaches done before lifecycle sealing releases ownership.
+        # Read the verification after observing that completion boundary; the
+        # earlier response may have sampled verification while still active.
+        code,done=self.http('GET','/api/runs/%d/recheck'%self.rid)
+        self.assertEqual(code,200,done)
+        self.assertFalse(done['running'],done)
         self.observations['after_command_gap']=done
         self.assertTrue(done)
         self.assertEqual(done['verify']['check'],'pass')
