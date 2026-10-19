@@ -1,0 +1,5 @@
+{
+  "pid": 14376,
+  "command": "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python -u docs/self-improvement/evidence/comment-drafts-2026-10-19/browser_fixture.py data/comment-drafts-round",
+  "signal": "SIGTERM"
+}

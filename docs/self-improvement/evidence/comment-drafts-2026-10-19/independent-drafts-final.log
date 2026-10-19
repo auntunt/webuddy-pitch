@@ -1,0 +1,14 @@
+test_corrupt_pending_metadata_never_overwrites_original_record (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_corrupt_pending_metadata_never_overwrites_original_record) ... ok
+test_edit_away_and_back_during_send_is_a_new_draft_even_when_text_matches (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_edit_away_and_back_during_send_is_a_new_draft_even_when_text_matches) ... ok
+test_failure_to_remove_completed_record_retries_same_receipt_without_loss (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_failure_to_remove_completed_record_retries_same_receipt_without_loss) ... ok
+test_identity_change_blocks_old_handler_and_keeps_both_scoped_bodies (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_identity_change_blocks_old_handler_and_keeps_both_scoped_bodies) ... ok
+test_late_receipt_after_leaving_and_returning_refreshes_the_current_ticket (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_late_receipt_after_leaving_and_returning_refreshes_the_current_ticket) ... ok
+test_pending_retry_never_sends_new_draft_and_new_send_gets_new_receipt (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_pending_retry_never_sends_new_draft_and_new_send_gets_new_receipt) ... ok
+test_quota_failure_never_posts_unrecoverable_request_or_truncates_body (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_quota_failure_never_posts_unrecoverable_request_or_truncates_body) ... ok
+test_real_summary_refresh_updates_discussion_without_replacing_selected_file (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_real_summary_refresh_updates_discussion_without_replacing_selected_file) ... ok
+test_unmatched_receipt_preserves_pending_and_edited_body_after_reload (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_unmatched_receipt_preserves_pending_and_edited_body_after_reload) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.446s
+
+OK

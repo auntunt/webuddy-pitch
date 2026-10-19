@@ -1,0 +1,97 @@
+Browser tab: 17, Title: "Webuddy · 全周期工作台", URL: "http://127.0.0.1:8791/#/t/BOOTV2-1".
+1 AXWebArea Webuddy · 全周期工作台, URL: 127.0.0.1:8791/#/t/BOOTV2-1
+	2 link Description: 跳到主要内容, Value: 127.0.0.1:8791/#main
+	3 container top
+		4 link Description: Webuddy 交付工作台, Value: 127.0.0.1:8791/#/deliveries
+		5 pop up button (collapsed, settable) Description: 项目范围, Help: 这一页属于哪个项目, Value: BOOTV2 · 反馈后修复的应用起点, ID: projSel, Secondary Actions: Expand
+			6 menu
+				7 REALRUN · 真实运行验证
+				8 BOOTUI · 【本地验收】事项管理项目
+				9 (selected) BOOTV2 · 反馈后修复的应用起点
+				10 全部项目
+				11 ＋ 添加项目…
+		12 button 19,917 点, Help: 点卡：只有生成类动作扣点, ID: ptsBtn
+			13 text 19,917
+			14 text 点
+		15 button Description: 录入客户需求, ID: sayGo
+			16 text ＋
+			17 text  录入需求
+		18 button (collapsed) AI 助手 Ctrl K, Help: AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）, ID: astToggle, Secondary Actions: Expand
+			19 text AI 助手 
+			20 text Ctrl K
+		21 button Description: 自动流转，用户与设置, Help: 用户与设置, ID: me
+	22 container page
+		23 container Description: 主导航, ID: nav5
+			24 link Description: 交付, Value: 127.0.0.1:8791/#/deliveries
+			25 link Description: 今天, Value: 127.0.0.1:8791/#/today
+			26 link Description: 客户, Value: 127.0.0.1:8791/#/clients
+			27 link Description: 需求, Value: 127.0.0.1:8791/#/reqs
+			28 link Description: 版本, Value: 127.0.0.1:8791/#/versions
+			29 link Description: 工程, Value: 127.0.0.1:8791/#/board
+		30 container main
+			31 container
+				32 link 127.0.0.1:8791/#/reqs
+			33 heading 【RSI技术验收】事项编辑、数据保存与失败恢复, Value: 1
+			34 button 在助手中讨论
+			35 text BOOTV2
+			36 container
+				37 pop up button (collapsed) Secondary Actions: Expand
+					38 menu
+						39 (selected)
+			40 container
+				41 pop up button (collapsed) Secondary Actions: Expand
+					42 menu
+						43 (selected)
+			44 container
+				45 pop up button (collapsed) Secondary Actions: Expand
+					46 menu
+						47 (selected)
+			48 container
+				49 text field (settable)
+			50 text Codex-RSI 提交 · 10-18 15:45
+			51 container
+				52 link 127.0.0.1:8791/pv/BOOTV2-1/
+				53 button
+				54 button
+				55 button
+			56 container
+				57 link 127.0.0.1:8791/#/t/BOOTV2-1
+				58 link 127.0.0.1:8791/#/t/BOOTV2-1/prompt
+			59 definition list
+				60 container
+					61 link javascript:void%200
+			62 text entry area (settable)
+			63 button 验收通过
+			64 button 验收不通过
+			65 button 让助手起草验收说明
+			66 button (collapsed) Secondary Actions: Expand
+			67 heading 动态与讨论, Value: 2
+			68 container
+				69 button
+				70 button
+				71 button
+			72 container
+				73 link javascript:void%200
+				74 button (collapsed) Secondary Actions: Expand
+				75 link javascript:void%200
+				76 button (collapsed) Secondary Actions: Expand
+				77 button (collapsed) Secondary Actions: Expand
+				78 button (collapsed) Secondary Actions: Expand
+			79 text entry area (settable) 评论草稿
+			80 button 评论
+			81 button (collapsed) Secondary Actions: Expand
+			82 container
+				83 heading 2
+				84 link 127.0.0.1:8791/pv/BOOTV2-1/
+				85 button
+				86 button
+			87 container
+				88 heading 2
+				89 link 127.0.0.1:8791/e/BOOTV2-1
+				90 link 127.0.0.1:8791/e/BOOTV2-1.intoto.json
+				91 button
+				92 button
+				93 button
+			94 button (collapsed) Secondary Actions: Expand
+
+The focused UI element is 1 AXWebArea Webuddy · 全周期工作台, URL: 127.0.0.1:8791/#/t/BOOTV2-1
