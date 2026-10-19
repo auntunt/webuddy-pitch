@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：feat/ralph-port 最终审查；状态：doing（起点 11078c5，既有工作均保留）
+- 当前项：feat/ralph-port 最终审查；状态：done（最终全量 819 tests，804 通过、15 跳过；既有工作均保留）
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -132,6 +132,7 @@
 - P5 升级前若确认回执写入失败，已有任务使用旧版未引用的草稿快照，升级后重试会保守拒绝；需人工核对草稿和任务内容，不自动迁移或推定已确认。
 - P6：上列 Windows 剩余阻塞；需 Windows 实机验证默认排他锁自动释放，尤其不同文件系统与进程退出路径。共享读锁的并行性不在已证明范围。
 - intake 基线时序失败已在下节修复并通过全量；没有新增待确认事项，生产监管实现保持原样。
+- 最终审查首轮另见构建树用例的 2 秒就绪失败；当前分支/起点各 20 次对照及最终全量均通过，尚未复现根因，不能声称已修复。完整记录在末节；未放宽任何时间限制或断言。
 
 ## 后续：intake 取消测试基线时序修复
 
@@ -155,9 +156,9 @@
 
 ## 最终审查
 
-- 状态：doing；起点 `11078c5`，`feat/ralph-port` 开工干净。用户授权发现问题直接修复、验证、单独提交，不 push；原离线与不触碰真实数据/凭据的限制继续适用。
+- 状态：done；起点 `11078c5`，`feat/ralph-port` 开工干净。用户授权发现问题直接修复、验证、单独提交，不 push；原离线与不触碰真实数据/凭据的限制继续适用。
 - 审查重点：P5 人工确认及 guard 可接受的命令形式、草稿与恢复边界；P6 所有权释放/Windows 字节锁/错误处理；11078c5 的测试时钟与 5 秒 watchdog 是否丢失真实超时覆盖。
-- 已读进度与最近 10 条提交，开始按实际代码和本地合成测试核对；待确认：无。
+- 已读进度与最近 10 条提交，完成代码审查、本地复现、修复与最终全量；待确认/已知限制见前文清单及各节。
 
 ### P5 审查修复
 
@@ -176,20 +177,26 @@
 
 ### 11078c5 超时覆盖审查
 
-- 状态：doing；可控时钟与 5 秒 watchdog 只用于调用者事件顺序，不能单独证明真实 0.5 秒超时。补独立的 `tests/test_intake_wall_clock.py`：Runner/监管器使用真实 time，透传原 timeout，仅故意延迟真实 Popen 0.6 秒；必须 failed/124、规则回退、reader 未启动且清理完整。正在验证稳定性和回归敏感性。
+- 状态：done；可控时钟与 5 秒 watchdog 只用于调用者事件顺序，不能单独证明真实 0.5 秒超时。补独立的 `tests/test_intake_wall_clock.py`：Runner/监管器使用真实 time，透传原 timeout，仅故意延迟真实 Popen 0.6 秒；必须 failed/124、规则回退、reader 未启动且清理完整。稳定性、回归敏感性及最终全量已通过；与本记录独立提交。
 - 新用例最初按 `no_spawn` 字段检查时报 KeyError；核对真实 process_control 回执后改为断言 `cleanup.trigger == timeout_before_spawn`、完整校验的监管回执 `pid is None` 及 reader marker 不存在，验证意图未变。独立测试 **1/1**（0.865s）通过。原文件只补说明，原方法和 0.5 秒逻辑预算/5 秒测试 watchdog 均未改。
 - 稳定性：临时 `stability.py` 交替执行完整 direct invocation 模块（15 tests）和独立墙钟模块（1 test），共 10 轮 **160/160**，88.079s；每个模块执行完检查 agents.time 与监管函数均恢复，未污染后续真实时钟用例。完整 `stability.log` 保留。
 - 负向实验：临时 `watchdog_sensitivity.py` 在内存将真实监管执行预算替换为 5 秒；新用例按预期失败，原始监管回执为 `exited/0` 而非 `timeout/124`。脚本核对这一失败后退出 0，说明 Runner 最后标记 124 不能掩盖越过真实截止时间的 reader 执行；没有修改磁盘生产代码。完整 `watchdog-sensitivity.log` 保留。
 - 审阅：已读回整个新增测试；AST 对比 `11078c5`，acceptance/filelock/direct invocation 的所有原方法均未改；对比起点 `422d9bf`，MOVES/HUMAN_ONLY/ALWAYS_PROTECTED 相同，AGENT_ENV/DANGEROUS_BASH 仅追加。`git diff --check` 通过。
-- 全量：开始执行 `python3 -m unittest discover -s tests`，仍仅设置进程级 NO_PROXY 与临时离线 sitecustomize。日志 `full-unittest.log`；完成后填写结果并提交本节测试与记录。
+- 全量：运行 `python3 -m unittest discover -s tests`，仅设置进程级 NO_PROXY 与临时离线 sitecustomize。首轮及最终结果完整保留于末节。
 
 ### P5 回执临时文件追加审查
 
-- 状态：doing；全量运行期间只在临时夹具中继续核对写入边界，未修改受测实现。复现预先创建 `T001-1.tmp` 符号链接时，旧 staging.write_text 会先覆写仓库外合成文件，再把链接移至草稿路径；`p5-staging-reproduction.log` 保留失败断言。
-- 计划：改为同目录独占创建唯一临时文件，关闭后再原子 replace，保留失败清理/重试语义；新增不触碰旧临时链接目标的测试。等待当前全量结束后修改实现并再跑完整回归，避免受测代码中途变化。待确认：无。
+- 状态：done；提交 `3a16a62`。首轮全量运行期间只在临时夹具中继续核对写入边界，未修改受测实现。复现预先创建 `T001-1.tmp` 符号链接时，旧 staging.write_text 会先覆写仓库外合成文件，再把链接移至草稿路径；`p5-staging-reproduction.log` 保留失败断言。
+- 执行顺序：首轮全量结束后改为同目录独占创建唯一临时文件，关闭后再原子 replace，保留失败清理/重试语义；新增不触碰旧临时链接目标的测试，再跑最终全量。待确认：无。
 - 完成：首轮全量结束后才改实现；`NamedTemporaryFile(delete=False)` 独占创建、关闭后 replace、finally 清理，不读写旧 `.tmp` 链接。新增回归检查仓库外合成文件字节不变、旧链接未动、确认后草稿为普通文件、无新临时文件遗留。验收测试 **27/27**（4.746s），含原回执失败恢复测试；`p5-staging-green.log` 保留。亲自审阅 diff，`git diff --check` 通过。状态：done。
 
 ### 最终审查全量与构建树失败对照
 
 - 首轮全量：**818 tests，408.143s，FAILED（failures=1, skipped=15）**；唯一失败 `test_run_lifecycle.RunLifecycleTest.test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout`，在 2 秒 `wait_ready` 内三个合成进程树标记均未出现，尚未进入后续 3 秒总预算/5.5 秒收尾断言。intake、P5、P6 新用例没有失败。日志 `full-unittest.log`，受测 8 个实现/测试文件运行前后 SHA256 完全一致（`validated-files.json`）。
-- 正在对照：该测试及 `agents.py`/`process_control.py`/`supervised_process.py` 与 `422d9bf` 没有差异。不能仅凭字节相同或复跑转绿判定根因；临时 `build_tree_diagnostics.py` 连续跑原单例，失败时在清理前保存合成 run/lifecycle/监管回执，未改其断言或时间限制。另导出起点 tmh/templates/skills 与该测试，逐个核对 Git blob，用于独立对照；没有导出真实 data/ 或凭据。
+- 对照方法：该测试及 `agents.py`/`process_control.py`/`supervised_process.py` 与 `422d9bf` 没有差异。不能仅凭字节相同或复跑转绿判定根因；临时 `build_tree_diagnostics.py` 连续跑原单例，失败时在清理前保存合成 run/lifecycle/监管回执，未改其断言或时间限制。另导出起点 tmh/templates/skills 与该测试，逐个核对 Git blob，用于独立对照；没有导出真实 data/ 或凭据。
+- 对照结果：当前分支原单例 **20/20**（72.072s），起点原样副本 **20/20**（69.255s），均未复现。起点目录 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/ralph-review-baseline-422d9bf-15ak0872` 的 132 文件逐个等于起点 blob；日志 `build-tree-current.log`、`build-tree-baseline.log`。本轮不宣称已证明该偶发失败的根因或修复它；原 2/3/5.5 秒限制和全部断言保留。
+- 最终全量：在 P5 staging 修复提交 `3a16a62` 和本节测试改动上运行 `python3 -m unittest discover -s tests`，**819 tests，400.354s，OK（skipped=15）**，即 **804 通过、15 跳过、0 失败/错误，退出码 0**。8 个受测实现/测试文件的运行前后 SHA256 一致（`validated-files-final.json`），最终再次检查全部原测试方法 AST 未变、`git diff --check` 通过。原生监管代码没有修改。
+- 跳过原因只读核对（没有再执行测试）：1 项 cryptography not installed；1 项 needs both（cryptography 与 ssh-keygen，当前缺前者）；13 项 optional MCP SDK not installed。没有联网补依赖。既有资源关闭警告保留在日志中。
+- 最终全量的临时 sitecustomize 阻止非回环网络；仅父 unittest 进程的 addFailure 附加只读诊断，在 run_lifecycle 失败时于清理前记录合成运行回执，不改用例/结果/断言，也不向子解释器增加 unittest 导入。最终没有失败，诊断快照未触发。
+- 日志校验：`full-unittest.log` 24630 字节 / SHA256 `784f142238cfeed97351ef88097fd6844962e3e091b69d926dc6b770b256568c`；`full-final.log` 23014 字节 / SHA256 `e45a2ecb2403510eb6ffe71ca163a190d2c921af26f55ea767152f9d7df838e3`；`stability.log` 2959 字节 / SHA256 `cf340b7e96057c77d4f2417d85122daf8d15da65ba83d7ac1813455a45302f82`。其余复现/负向/对照日志及脚本同目录原样保留。
+- 交接重点：`guard.py:_human_accept_command` 及 acceptance 的 agent 标记、引用/快照/路径/临时文件边界；`kb.py:_Lock` 的重试分类与失败释放，以及 `filelock.py` Windows 字节锁/共享读锁限制；`test_intake_wall_clock.py` 的真实 0.5 秒约束和未启动证据。P1–P6 均保持 done，原 stash 保留，不 push。

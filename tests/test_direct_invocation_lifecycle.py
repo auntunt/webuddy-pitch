@@ -2,7 +2,9 @@
 
 The 0.5s logical deadline advances only at the result-consumption boundary.
 Real supervisor startup/cleanup has a separate fixture watchdog; real wall-clock
-deadline enforcement remains covered by test_run_lifecycle/test_supervised_process.
+deadline enforcement remains covered by test_intake_wall_clock and the
+test_run_lifecycle/test_supervised_process suites. This watchdog is not evidence
+that a real intake invocation still honors its 0.5s budget.
 """
 import json
 import sys
