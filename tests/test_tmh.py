@@ -229,6 +229,23 @@ class InstallTest(unittest.TestCase):
             self.assertTrue(text.startswith("---\nname: %s\n" % s.name), s)
             self.assertIn("\ndescription: ", text)
 
+    def test_dead_ends_sources_exist(self):
+        import re
+        doc = ROOT / "docs/dead-ends.md"
+        lines = doc.read_text(encoding="utf-8").splitlines()
+        self.assertLessEqual(len(lines), 25)
+        rows = [line for line in lines if line.startswith("|")][2:]
+        self.assertTrue(rows)
+        for row in rows:
+            cells = row.strip("|").split("|")
+            self.assertEqual(len(cells), 5, row)
+            links = re.findall(r"\]\(([^)]+)\)", cells[-1])
+            self.assertTrue(links, row)
+            for link in links:
+                source = doc.parent / link.split("#")[0]
+                self.assertTrue(source.is_file(), row)
+                self.assertTrue(source.name.startswith("verification-"), row)
+
 
 class FlowTest(unittest.TestCase):
     @classmethod

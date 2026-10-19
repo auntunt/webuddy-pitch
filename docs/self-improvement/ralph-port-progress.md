@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：P3；状态：done
+- 当前项：P4；状态：done
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -14,8 +14,8 @@
 |---|---|---|---|
 | P1 | done | `407d196` | AGENTS 区块预算与命令路由 |
 | P2 | done | `eac0e2f` | 非阻塞任务尺寸提示 |
-| P3 | done | 见 `P3:` 提交 | 经验卡固定开销 lint |
-| P4 | todo | — | 已知死路及来源验证 |
+| P3 | done | `d761bb6` | 经验卡固定开销 lint |
+| P4 | done | 见 `P4:` 提交 | 已知死路及来源验证 |
 | P5 | todo | — | 结构反馈草稿与人确认 |
 | P6 | todo | — | 可替换文件锁与 Windows 阻塞盘点 |
 
@@ -60,6 +60,19 @@
 - 代码差异：原 edit 和日志折叠均截断到 800 字，edit 还 strip；为满足“人的原文逐字保留”移除这些处理，字段/存储格式不变。长文本测试覆盖末尾命中句及空白/换行完整保存。
 - 验证：`NO_PROXY='*' no_proxy='*' python3 -m unittest discover -s tests -p 'test_lessons.py'`：16 tests，OK（0.040s）；已审阅 git diff，`git diff --check` 通过；实现修复 0 轮。
 - 边界：规则有意偏保守，未显式表达全局动作的说法可能漏报；未改页面/CLI 展示层（返回值已提供 flags）。
+
+## P4
+
+- 状态：done。
+- 范围：只读 `docs/self-improvement/` 的 verification 记录及规格允许的 STATUS，修改 `skills/legacy-feature/SKILL.md`、`skills/acceptance-l2/SKILL.md`、`tests/test_tmh.py`，新增 `docs/dead-ends.md`。
+- 计划：只纳入验证记录能直接支持的结论；保留环境限定；表格不含客户标识、地址、报价或凭据。
+- 命令/结果：待运行 test_tmh 并抽查 3 条来源。
+- 待确认：无。
+- 实际改动：新增 15 行文档、9 条死路；两个技能正文各增加按场景指向，description 未改；新增来源文件存在和行数预算测试。
+- 来源抽查：① external-candidate 的“保留的失败与修复”第 1 条直接记录沙箱 TCP/Git 拒绝；② runtime 的问题表第 1 条记录父退出 0 仍有子孙与管道阻塞，配原始红灯日志；③ harness2 的基线/候选表及后文明确双方进程退出 0 但基线业务失败。另逐条核对 preview-health 的直接 2xx/无重定向约束、裸预览 401、Git archive 和优化模式 assert，来源均支持表述。
+- 差异/假设：规格举例提到 Node/原生 Codex，表使用证据直接证明的“POSIX 包装父进程”表述，不推断特定包装器；沙箱限制仅针对记录中的 workspace-write 环境。
+- 审阅：读回完整表并核对 5 列，无客户名、地址、报价、凭据；逐段审阅 diff，`git diff --check` 通过。未访问链接或证据目录之外的运行数据。
+- 验证：`NO_PROXY='*' no_proxy='*' python3 -m unittest discover -s tests -p 'test_tmh.py'`：47 tests，OK（6.079s）；修复 0 轮。
 
 ## 待确认
 
