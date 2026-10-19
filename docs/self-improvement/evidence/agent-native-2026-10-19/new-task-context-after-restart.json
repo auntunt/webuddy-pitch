@@ -1,0 +1,183 @@
+{
+  "ticket": {
+    "id": 4,
+    "project_id": 3,
+    "num": 2,
+    "title": "通过 CLI 与 MCP 接续事项管理交付",
+    "body": "来源：用户要求提供 CLI / MCP，让 Claude Code、Cursor、Codex 能使用 Webuddy。\n验收：读取 BOOTV2-1 的真实需求、候选版本和证据；两种入口的交接与回复落在同一工单；重试不重复写入。\n本任务是入口集成验证，不代表 BOOTV2 已由客户签收。",
+    "type": "feature",
+    "status": "new",
+    "priority": "normal",
+    "assignee": "agent:codex",
+    "reporter": "agent:codex",
+    "labels": [],
+    "links": {
+      "hold": "agent:codex",
+      "handwork": "agent:codex",
+      "agent_request": "agent-native-20261019-create"
+    },
+    "external": {},
+    "created": "2026-10-19 11:24:14",
+    "updated": "2026-10-19 11:33:45",
+    "key": "BOOTV2-2"
+  },
+  "project": {
+    "id": 3,
+    "key": "BOOTV2",
+    "name": "反馈后修复的应用起点",
+    "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2",
+    "description": "本地验收：数据持久保存、存储故障恢复和真实健康检查。",
+    "created": "2026-10-18 15:33:59"
+  },
+  "events": [
+    {
+      "id": 42,
+      "ticket_id": 4,
+      "ts": "2026-10-19 11:24:14",
+      "author": "agent:codex",
+      "kind": "created",
+      "body": "创建工单",
+      "data": {}
+    },
+    {
+      "id": 43,
+      "ticket_id": 4,
+      "ts": "2026-10-19 11:24:14",
+      "author": "agent:codex",
+      "kind": "comment",
+      "body": "请通过 MCP 读取 BOOTV2-1 的实际候选与证据状态，再回复本工单。明确区分验证、预览与客户签收；不要修改业务数据。",
+      "data": {
+        "agent_message": true,
+        "from_agent": "codex",
+        "to_agent": "codex-native",
+        "message_kind": "handoff",
+        "reply_to": null,
+        "request_id": "agent-native-20261019-handoff"
+      }
+    },
+    {
+      "id": 44,
+      "ticket_id": 4,
+      "ts": "2026-10-19 11:33:45",
+      "author": "agent:sdk-verifier",
+      "kind": "comment",
+      "body": "官方 MCP SDK 已通过 stdio 连接真实工作台，读到 BOOTV2-1 的工单、运行和固定候选预览资料。此为协议与共享数据验收，不代表三个编程产品均已验证，也不是客户签收。",
+      "data": {
+        "agent_message": true,
+        "from_agent": "sdk-verifier",
+        "to_agent": "codex",
+        "message_kind": "result",
+        "reply_to": 43,
+        "request_id": "agent-native-sdk-reply"
+      }
+    }
+  ],
+  "runs": [],
+  "intake_recovery": {
+    "session": "",
+    "status": "none",
+    "can_retry": false,
+    "blocked": [],
+    "reason": "",
+    "run": null,
+    "job": "",
+    "attempts": [],
+    "items": []
+  },
+  "plain_state": {
+    "state": "you",
+    "label": "等你看",
+    "why": "CLI / MCP 已接续，等待明确的下一步",
+    "version": ""
+  },
+  "evidence": {
+    "analysis": null,
+    "fix": null,
+    "refs": 0,
+    "verified": 0,
+    "guesses": 0,
+    "flows": 0,
+    "flows_written": 0
+  },
+  "auto_next": "",
+  "package": {
+    "status": "none",
+    "label": "未生成",
+    "missing": [
+      "验收标准（AC）",
+      "代码改动",
+      "验证门全部通过（没有没过或未知的）",
+      "乙方复核人"
+    ],
+    "intact": true,
+    "problem": "",
+    "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "records": 0,
+    "page": "/e/BOOTV2-2",
+    "attachments": 0,
+    "review": null,
+    "link": null,
+    "decision": null,
+    "gates": null,
+    "gate_state": "",
+    "proofs": [],
+    "binding_blocked": [],
+    "stale": false,
+    "ac_source": ""
+  },
+  "epic": null,
+  "parent": null,
+  "repository": {
+    "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2",
+    "head": "547e4447b6921bcbfaa555b26a4391d1fc33d3ab",
+    "commands": {
+      "build": "/opt/homebrew/opt/python@3.14/bin/python3.14 -m py_compile app.py",
+      "test": "/opt/homebrew/opt/python@3.14/bin/python3.14 -m unittest discover -s tests -v",
+      "extra_checks": []
+    }
+  },
+  "preview": {
+    "preview": {},
+    "url": "",
+    "branch": "",
+    "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 app.py {port} {prefix} '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'",
+    "configured": true,
+    "auto": "off",
+    "own_address": true,
+    "run_id": null,
+    "expected_commit": "",
+    "matches_run": null
+  },
+  "evidence_state": {
+    "records": 0,
+    "intact": true,
+    "problem": "",
+    "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "packed": false,
+    "missing": [
+      "验收标准（AC）",
+      "代码改动",
+      "验证门全部通过（没有没过或未知的）",
+      "乙方复核人"
+    ],
+    "complete": false,
+    "status": "none",
+    "snapshot": null,
+    "label": "未生成",
+    "page": "/e/BOOTV2-2"
+  },
+  "boundaries": {
+    "identity": "agent audit labels are self-declared; server authentication is separate",
+    "messages": "durable ticket messages, not delivery to an external running assistant; recipients poll messages_list",
+    "approval": "agent actions never record human acceptance, review, merge, or release",
+    "candidate": "external candidate submission is not supported by this API yet",
+    "execution": "execution requires X-Webuddy-Execution: 1; runs remain subject to existing lifecycle and verification controls"
+  },
+  "supported_actions": [
+    "message_send",
+    "messages_list",
+    "run_get",
+    "preview_get",
+    "run_start"
+  ]
+}

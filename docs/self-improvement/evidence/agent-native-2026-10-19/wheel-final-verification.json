@@ -1,0 +1,13 @@
+{
+  "wheel": "data/agent-build-final/tmh_harness-0.2.0-py3-none-any.whl",
+  "sha256": "15f3724437caab19bbb03cb43b6137deaa5304ce5ea8abbfec10548bee35bc01",
+  "modules_match_source": {
+    "tmh/workbench.py": true,
+    "tmh/workbench_entry.py": true,
+    "tmh/workbench_mcp.py": true,
+    "tmh/workbench_client.py": true,
+    "tmh/agent_contract.py": true,
+    "tmh/platform/agent_api.py": true
+  },
+  "entry_points": "[console_scripts]\ntmh = tmh.cli:main\nwebuddy = tmh.workbench:main\n"
+}

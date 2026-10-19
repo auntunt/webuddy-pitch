@@ -1,0 +1,16 @@
+test_complete_multiline_context_and_message_survive_stdio (test_workbench_mcp.WorkbenchMCPTest.test_complete_multiline_context_and_message_survive_stdio) ... Executing <Task pending name='Task-2' coro=<WorkbenchMCPTest.test_complete_multiline_context_and_message_survive_stdio() running at /Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py:123> cb=[_run_until_complete_cb() at /Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/base_events.py:181] created at /Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/runners.py:100> took 0.272 seconds
+ok
+test_enabled_execution_returns_durable_receipt_without_waiting_for_model (test_workbench_mcp.WorkbenchMCPTest.test_enabled_execution_returns_durable_receipt_without_waiting_for_model) ... ok
+test_http_conflict_is_structured_tool_error_not_protocol_success (test_workbench_mcp.WorkbenchMCPTest.test_http_conflict_is_structured_tool_error_not_protocol_success) ... ok
+test_invalid_arguments_and_disabled_execution_never_reach_http (test_workbench_mcp.WorkbenchMCPTest.test_invalid_arguments_and_disabled_execution_never_reach_http) ... ok
+test_invalid_write_response_preserves_uncertain_outcome (test_workbench_mcp.WorkbenchMCPTest.test_invalid_write_response_preserves_uncertain_outcome) ... ok
+test_lost_write_response_is_uncertain_and_never_automatically_retried (test_workbench_mcp.WorkbenchMCPTest.test_lost_write_response_is_uncertain_and_never_automatically_retried) ... ok
+test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter (test_workbench_mcp.WorkbenchMCPTest.test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter) ... ok
+test_read_only_hides_writes_and_rejects_direct_calls_before_http (test_workbench_mcp.WorkbenchMCPTest.test_read_only_hides_writes_and_rejects_direct_calls_before_http) ... ok
+test_cancellation_waits_for_bounded_http_worker_and_does_not_retry (test_workbench_mcp.WorkbenchMCPWorkersTest.test_cancellation_waits_for_bounded_http_worker_and_does_not_retry) ... ok
+test_http_workers_are_bounded_and_do_not_block_protocol_loop (test_workbench_mcp.WorkbenchMCPWorkersTest.test_http_workers_are_bounded_and_do_not_block_protocol_loop) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 6.447s
+
+OK

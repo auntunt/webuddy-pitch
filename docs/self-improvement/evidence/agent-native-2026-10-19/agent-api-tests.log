@@ -1,0 +1,24 @@
+test_active_closed_delivery_and_unreleased_tickets_refuse_runs (test_agent_api.AgentAPITest.test_active_closed_delivery_and_unreleased_tickets_refuse_runs) ... ok
+test_actor_header_is_required_and_cannot_be_human_identity (test_agent_api.AgentAPITest.test_actor_header_is_required_and_cannot_be_human_identity) ... ok
+test_create_is_held_agent_attributed_and_replayed_exactly (test_agent_api.AgentAPITest.test_create_is_held_agent_attributed_and_replayed_exactly) ... ok
+test_cross_process_retry_creates_one_ticket (test_agent_api.AgentAPITest.test_cross_process_retry_creates_one_ticket) ... ok
+test_cross_ticket_reply_is_refused_without_message (test_agent_api.AgentAPITest.test_cross_ticket_reply_is_refused_without_message) ... ok
+test_executions_require_explicit_transport_capability (test_agent_api.AgentAPITest.test_executions_require_explicit_transport_capability) ... ok
+test_fix_fails_closed_when_upstream_baseline_callback_fails (test_agent_api.AgentAPITest.test_fix_fails_closed_when_upstream_baseline_callback_fails) ... ok
+test_fix_requires_bound_successful_plan_and_resolves_base_without_adoption (test_agent_api.AgentAPITest.test_fix_requires_bound_successful_plan_and_resolves_base_without_adoption) ... ok
+test_message_cursor_has_no_loss_or_duplicate_with_broadcast (test_agent_api.AgentAPITest.test_message_cursor_has_no_loss_or_duplicate_with_broadcast) ... ok
+test_message_preserves_complete_text_and_replay_with_reply_chain (test_agent_api.AgentAPITest.test_message_preserves_complete_text_and_replay_with_reply_chain) ... ok
+test_pending_or_uncertain_request_never_reexecutes (test_agent_api.AgentAPITest.test_pending_or_uncertain_request_never_reexecutes) ... ok
+test_plan_binds_requirement_and_fix_refuses_stale_body (test_agent_api.AgentAPITest.test_plan_binds_requirement_and_fix_refuses_stale_body) ... ok
+test_real_http_preserves_auth_and_agent_identity (test_agent_api.AgentAPITest.test_real_http_preserves_auth_and_agent_identity) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 401: 'Unauthorized'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+test_receipts_are_scoped_to_agent_not_caller_human (test_agent_api.AgentAPITest.test_receipts_are_scoped_to_agent_not_caller_human) ... ok
+test_recheck_unheld_ticket_cannot_trigger_automatic_adoption (test_agent_api.AgentAPITest.test_recheck_unheld_ticket_cannot_trigger_automatic_adoption) ... ok
+test_same_request_different_payload_or_operation_conflicts (test_agent_api.AgentAPITest.test_same_request_different_payload_or_operation_conflicts) ... ok
+test_ticket_list_pagination_and_literal_search (test_agent_api.AgentAPITest.test_ticket_list_pagination_and_literal_search) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 2.553s
+
+OK
