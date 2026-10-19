@@ -1290,13 +1290,22 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             redo = self.P.store.run(self.P.store.runs(ticket_id=t3["id"])[0]["id"])
             self.assertIn("列表页还是显示待提交", redo["prompt"])
             self.assertIn("接着被退回的分支 " + branch3, redo["output"])
+            # "verify" is written inside the adoption callback, while its
+            # source lock can still be held. This scenario tests a later human
+            # decision, so wait for that callback's actual completion. Racing
+            # it correctly returns 409 and is covered by source-lock tests.
+            with self.P.runner.slots:
+                self.assertTrue(self.P.runner.slots.wait_for(
+                    lambda: redo["id"] not in self.P.runner.busy, timeout=10),
+                    "automatic adoption callback did not finish")
             # the second rejection is past the limit: a person takes over
             last_event = self.P.store.events(t3["id"])[-1]["id"]
             before_runs = [r["id"] for r in self.P.store.runs(ticket_id=t3["id"])]
             with mock.patch.object(self.P.flow, "_flow_fix", wraps=self.P.flow._flow_fix) as restart:
                 code, rejected = self.call("POST", "/api/tickets/%s/accept" % t3["key"], {"result": "fail", "note": "还是不对"})
                 restart.assert_not_called()
-            self.assertEqual((code, rejected["status"]), (200, "doing"))
+            self.assertEqual(code, 200, rejected)
+            self.assertEqual(rejected["status"], "doing")
             self.assertEqual([r["id"] for r in self.P.store.runs(ticket_id=t3["id"])], before_runs)
             # The preceding verification's evidence-pack callback can append
             # concurrently. Match this rejection's event, not whichever event

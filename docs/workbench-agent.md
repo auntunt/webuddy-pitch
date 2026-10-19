@@ -168,6 +168,10 @@ webuddy approve '<候选ID>' --evidence-hash '<当前完整证据哈希>' \
 
 本轮真实 BOOTV2-3：外部 Codex 生成搜索和状态筛选代码；其沙箱无法监听测试端口或写共享 Git 元数据，失败完整保留。协调者运行真实测试后本地提交，平台再独立验证，另一个审查会话复核。最终技术验收及人工状态以 `webuddy acceptance 1` 的当前返回为准。
 
+## 候选外部的业务探测
+
+新增 [Harness² 探测接入](harness2-integration.md)：`harness-recipes` 查看适用范围，`harness-probe <候选ID> --recipe bootv2-items-search-v1 --request-id <唯一编号>` 在独立数据上对照固定基线与候选，`harness-report <探测ID>` 读取完整行为证据。启动后旧技术观察失效，失败或未知阻止签收；通过后重新 `assess`，再读取 `acceptance`。这不替代真实用户确认，也不因进程退出 0 而通过。`harness-library BOOTV2` 的历史记录同时进入 `ticket` 任务包，供后续 Agent 核对复用。
+
 ## Agent 间沟通与交接
 
 消息进入工单时间线，记录发送连接、接收连接、消息类型、可选回复事件和请求编号。`--kind` 支持 `note`、`question`、`handoff`、`result`；省略 `--to` 时广播给 `*`。
@@ -235,8 +239,13 @@ CLI、HTTP Agent API 与 MCP 共享 [`tmh/agent_contract.py`](../tmh/agent_contr
 | `webuddy_candidate_cancel` | `cancel-verification` | 执行：停止本次验证并保留回执 |
 | `webuddy_candidate_preview` | `candidate-preview` | 执行：启动已通过验证的候选预览 |
 | `webuddy_candidate_assess` | `assess` | 逐项技术观察，不是人工决定 |
+| `webuddy_harness_recipes` | `harness-recipes` | 读取维护者版本化的业务探测配方 |
+| `webuddy_harness_probe_start` | `harness-probe` | 执行：独立数据对照基线和候选；旧技术观察失效 |
+| `webuddy_harness_probe_get` | `harness-report` | 读取真实行为结果、完整证据和回收状态 |
+| `webuddy_harness_probe_cancel` | `harness-stop` | 执行：请求停止，保留部分结果 |
+| `webuddy_harness_library` | `harness-library` | 读取项目有证据支持的历史验证策略 |
 
-默认 MCP 提供 13 个工具；只读配置提供 10 个；显式开放执行后提供 22 个。人工决定不在任何 MCP 配置中。执行类写操作也都要求 `request_id`。工具隐藏之外，桥接调用和 HTTP 入口仍检查参数与执行标志，不能靠猜工具名越过当前连接的权限配置。
+默认 MCP 提供 16 个工具；只读配置提供 13 个；显式开放执行后提供 27 个。人工决定不在任何 MCP 配置中。执行类写操作也都要求 `request_id`。工具隐藏之外，桥接调用和 HTTP 入口仍检查参数与执行标志，不能靠猜工具名越过当前连接的权限配置。
 
 ## 身份与连接边界
 
@@ -262,9 +271,9 @@ data/agent-venv/bin/python -m unittest tests.test_workbench_mcp -v
 
 | 评估问题 | 预期条件 |
 |---|---|
-| 默认连接公开哪些工具？ | `tools/list` 返回 13 个工具；没有任何执行类工具。 |
-| 只读连接公开哪些工具？ | 仅 10 个读取工具，没有 `ticket_create` 或 `message_send`。 |
-| 同时传入只读和执行标志时采用哪种配置？ | 仍然只有 10 个读取工具。 |
+| 默认连接公开哪些工具？ | `tools/list` 返回 16 个工具；没有任何执行类工具。 |
+| 只读连接公开哪些工具？ | 仅 13 个读取工具，没有 `ticket_create` 或 `message_send`。 |
+| 同时传入只读和执行标志时采用哪种配置？ | 仍然只有 13 个读取工具。 |
 | 如何区分夹具与真实工作台？ | 夹具 `webuddy_status` 的 `scope` 为 `fixture`，不能据此声称真实服务已验收。 |
 | 工单的完整原文是否保留？ | 夹具 `webuddy_ticket_get` 返回的正文与测试的 `long_text` 逐字符一致，包括中文、空格、换行和制表符。 |
 | 工单夹具是否代表已通过验收？ | 证据的 `verdict` 是 `not_accepted`，`commit` 是 `fixture-only`。 |

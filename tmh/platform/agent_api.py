@@ -31,6 +31,8 @@ BOUNDARIES = {
 def _schema(st):
     from .candidates import schema
     schema(st)
+    from .harness_probes import schema as probe_schema
+    probe_schema(st)
     with st.lock:
         st.db.execute("""CREATE TABLE IF NOT EXISTS agent_requests (
           agent TEXT NOT NULL, request_id TEXT NOT NULL, operation TEXT NOT NULL,
@@ -103,6 +105,10 @@ def _req(req, actor, body=None, query=None):
 
 
 def _resource(P, operation, args):
+    if "probe_id" in args:
+        from .harness_probes import row
+        from .candidates import _row
+        return "ticket:%d" % _row(P, row(P, args["probe_id"])["candidate_id"])["ticket_id"]
     if "candidate_id" in args:
         from .candidates import _row
         return "ticket:%d" % _row(P, args["candidate_id"])["ticket_id"]
@@ -152,8 +158,8 @@ def _write(P, req, actor, operation, args):
             # prevent stopping that run or discussing what happened. Cancellation
             # and message receipts do not themselves own an execution resource.
             pending = None
-            if operation not in ("run_cancel", "candidate_cancel", "message_send"):
-                pending = st.db.execute("SELECT request_id FROM agent_requests WHERE resource=? AND state IN ('pending','uncertain') AND operation IN ('ticket_create','run_start','run_retry','run_recheck','preview_start','candidate_submit','candidate_verify','candidate_preview','candidate_decide','candidate_assess') LIMIT 1", (resource,)).fetchone()
+            if operation not in ("run_cancel", "candidate_cancel", "harness_probe_cancel", "message_send"):
+                pending = st.db.execute("SELECT request_id FROM agent_requests WHERE resource=? AND state IN ('pending','uncertain') AND operation IN ('ticket_create','run_start','run_retry','run_recheck','preview_start','candidate_submit','candidate_verify','candidate_preview','candidate_decide','candidate_assess','harness_probe_start') LIMIT 1", (resource,)).fetchone()
             if pending:
                 raise ApiError(409, "needs_reconcile: 此对象还有未确认的请求 %s；先核对原始回执，不会开始重复操作" % pending["request_id"])
             ts = now()
@@ -264,6 +270,9 @@ def _ready(P, t):
 def _execute(P, req, actor, operation, a):
     from . import server
     st = P.store
+    if operation.startswith("harness_"):
+        from .harness_probes import execute
+        return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
     if operation.startswith("candidate_") or operation == "candidates_list":
         from .candidates import execute
         try:
@@ -309,6 +318,8 @@ def _execute(P, req, actor, operation, a):
         packet["evidence_state"] = server.api_evidence(P, _req(req, actor), t["key"])
         packet["boundaries"] = dict(BOUNDARIES)
         packet["requirement_hash"] = _requirement(t, st)
+        from .harness_probes import library
+        packet["harness_library"] = library(P, p["key"])
         packet["external_candidates"] = st.q("SELECT id,run_id,commit_sha,base_commit,agent,created FROM code_candidates WHERE ticket_id=? ORDER BY id DESC", (t["id"],))
         packet["supported_actions"] = ["message_send", "messages_list", "run_get", "preview_get", "candidates_list", "candidate_get"] + ([] if t["status"] == "closed" or (t.get("links") or {}).get("delivery") else ["run_start", "candidate_submit"])
         return packet

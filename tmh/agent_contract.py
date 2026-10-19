@@ -64,6 +64,15 @@ SPECS.update({
     "candidate_decide": dict(spec("仅供操作者终端明确签收或退回当前证据包；不合并、不部署。MCP永不提供此操作。", {"candidate_id": CID, "evidence_hash": DIGEST, "decision": text("决定", enum=["accept", "reject"]), "note": text("操作者说明", minLength=1), "request_id": REQUEST}, ["candidate_id", "evidence_hash", "decision", "note", "request_id"], write=True), operator=True),
 })
 
+PID = integer("业务探测实验编号", minimum=1)
+SPECS.update({
+    "harness_recipes": spec("读取版本化业务探测配方及适用边界；只提供维护者内置的配方，不执行模型或外部命令。"),
+    "harness_probe_start": spec("用同一固定配方对照候选基线与候选的真实HTTP/SQLite行为。独立数据、整次时限、完整日志；会使旧技术验收失效，不代替人工签收。", {"candidate_id": CID, "recipe": text("harness_recipes 返回的配方ID", minLength=1), "request_id": REQUEST}, ["candidate_id", "recipe", "request_id"], write=True, execution=True),
+    "harness_probe_get": spec("读取完整业务探测对照和回收证据。done不等于passed；unknown不等于fail或通过。", {"probe_id": PID}, ["probe_id"]),
+    "harness_probe_cancel": spec("请求停止探测并回收受管进程；保留原数据和日志，用harness_probe_get确认停止回执。", {"probe_id": PID, "request_id": REQUEST}, ["probe_id", "request_id"], write=True, execution=True),
+    "harness_library": spec("读取项目中有完整探测证据的历史验证策略及适用范围；不是新版本通过证明，不会更改权限或默认执行策略。", {"project": PROJECT}, ["project"]),
+})
+
 
 def schema(operation):
     s = SPECS[operation]

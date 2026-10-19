@@ -181,7 +181,7 @@ def submit(P, actor, args, mutation):
     return {"candidate_id": cid, "run_id": run, "commit": args["commit"], "execution_started": False, "human_acceptance": False}
 
 
-def view(P, cid):
+def view(P, cid, *, include_probe=True):
     from .agent_api import _requirement
     from .fixloop import verified
     from . import preview
@@ -212,13 +212,18 @@ def view(P, cid):
         and v.get("checked_diff") == run["diff"] and v.get("commands")
         and all(c.get("exit_code") == 0 for c in v["commands"])
         and any(c.get("kind") == "test" for c in v["commands"]))
-    vh = _hash(v) if verification_ok else ""
+    from .harness_probes import current
+    probe = current(P, cid) if include_probe else None
+    # Probe failures and unknowns block technical acceptance. Starting a new
+    # probe also invalidates earlier observations, even before it finishes.
+    probe_ok = probe is None or probe["passed"]
+    vh = _hash({"verification": v, "probe_id": probe["id"], "probe_evidence": probe["evidence_hash"]}) if verification_ok and probe else _hash(v) if verification_ok else ""
     pv = preview.status(P.data_dir, t["key"])
     preview_ok = pv.get("state") == "up" and preview.bound_matches(pv, t["key"], row["commit_sha"])
     ph = _hash({k: pv.get(k) for k in ("commit_full", "prefix", "started", "pid", "log", "cmd", "ready")}) if preview_ok else ""
     assessment = st.one("SELECT * FROM candidate_assessments WHERE candidate_id=? ORDER BY id DESC LIMIT 1", (cid,))
     results = json.loads(assessment["results"]) if assessment else []
-    technical_ok = bool(verification_ok and preview_ok and assessment and assessment["verification_hash"] == vh
+    technical_ok = bool(verification_ok and probe_ok and preview_ok and assessment and assessment["verification_hash"] == vh
                         and assessment["preview_hash"] == ph
                         and assessment["author"] != row["agent"] and all(r["status"] == "pass" for r in results))
     evidence = {"candidate": cid, "commit": row["commit_sha"], "base": row["base_commit"],
@@ -230,6 +235,8 @@ def view(P, cid):
     needs = list(blocked)
     if not verification_ok:
         needs.append("缺少当前固定提交的独立构建/测试通过记录")
+    if not probe_ok:
+        needs.append("业务探测尚未通过、仍有未知项或证据已失效；读取harness_probe_get核对")
     if not preview_ok:
         needs.append("固定版本预览尚未就绪")
     if not technical_ok:
@@ -238,7 +245,7 @@ def view(P, cid):
             "base_commit": row["base_commit"], "commit": row["commit_sha"], "ref": row["ref"],
             "requirement_hash": row["requirement_hash"], "criteria": json.loads(row["criteria"]), "summary": row["summary"],
             "current": not blocked, "blocked": blocked, "verification": v, "verification_passed": verification_ok,
-            "verification_hash": vh, "preview": pv, "preview_ready": preview_ok, "preview_hash": ph,
+            "verification_hash": vh, "harness_probe": probe, "preview": pv, "preview_ready": preview_ok, "preview_hash": ph,
             # Enter through the authenticated workbench, which grants a scoped
             # cookie before redirecting to the separate preview origin.
             "preview_url": getattr(P, "public_url", "") + preview.bound_prefix(t["key"], row["commit_sha"]) + "/" if preview_ok else "",

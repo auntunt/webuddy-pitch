@@ -119,6 +119,18 @@ def parser():
         q.add_argument("--operator-key-file", help="服务主机上的独立0600操作者凭据文件；不要交给Agent")
         body(q)
         request(q)
+    add("harness-recipes", "读取版本化业务探测配方及适用范围")
+    q = add("harness-probe", "对照基线与候选的真实业务行为；独立数据，不自动签收")
+    q.add_argument("candidate_id", type=int)
+    q.add_argument("--recipe", required=True)
+    request(q)
+    q = add("harness-report", "读取探测日志、行为结果与进程回收证据")
+    q.add_argument("probe_id", type=int)
+    q = add("harness-stop", "停止业务探测；保留所有证据")
+    q.add_argument("probe_id", type=int)
+    request(q)
+    q = add("harness-library", "读取项目有证据支持的历史验证策略")
+    q.add_argument("project")
     q = add("mcp", "运行官方 SDK stdio MCP 服务")
     q.add_argument("--read-only", action="store_true", help="仅提供读取工具")
     q.add_argument("--allow-execution", action="store_true", help="开放模型运行、停止、重验与预览启动工具")
@@ -148,6 +160,7 @@ def configuration(a):
 def _arguments(a):
     names = {"projects": "projects_list", "tickets": "tickets_list", "ticket": "ticket_get", "create": "ticket_create", "send": "message_send", "inbox": "messages_list", "request": "request_get", "run": "run_get", "start": "run_start", "cancel": "run_cancel", "retry": "run_retry", "recheck": "run_recheck"}
     names.update({"candidates": "candidates_list", "candidate": "candidate_get", "acceptance": "candidate_get", "submit": "candidate_submit", "verify": "candidate_verify", "cancel-verification": "candidate_cancel", "candidate-preview": "candidate_preview", "assess": "candidate_assess", "approve": "candidate_decide", "reject": "candidate_decide"})
+    names.update({"harness-recipes": "harness_recipes", "harness-probe": "harness_probe_start", "harness-report": "harness_probe_get", "harness-stop": "harness_probe_cancel", "harness-library": "harness_library"})
     op = names.get(a.command, a.command)
     args = {k: v for k, v in vars(a).items() if k not in ("command", "endpoint", "agent", "timeout", "wait", "start", "body_file", "criteria_file", "results_file", "operator_key_file") and v is not None}
     if getattr(a, "body_file", None):
@@ -184,7 +197,7 @@ def main(argv=None):
             Client(a.endpoint, a.agent, timeout=a.timeout)
             print(configuration(a))
             return 0
-        execution = a.command in ("start", "cancel", "retry", "recheck", "submit", "verify", "cancel-verification", "candidate-preview") or (a.command == "preview" and a.start) or (a.command == "mcp" and a.allow_execution and not a.read_only)
+        execution = a.command in ("start", "cancel", "retry", "recheck", "submit", "verify", "cancel-verification", "candidate-preview", "harness-probe", "harness-stop") or (a.command == "preview" and a.start) or (a.command == "mcp" and a.allow_execution and not a.read_only)
         client = Client(a.endpoint, a.agent, timeout=a.timeout, allow_execution=execution)
         if a.command == "mcp":
             try:
