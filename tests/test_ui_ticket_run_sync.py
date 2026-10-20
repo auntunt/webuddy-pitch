@@ -65,7 +65,7 @@ nodes.tNextText.innerHTML=na.text;nodes.tNextActions.innerHTML=na.btns;nodes.tRu
 S.ticketRefresh=ticketSummarySync(d,n=>{applied++;d=n;f=flowState(n);na=nextAction(n,f);wireNext()});
 wireNext();
 """ + "\n(async()=>{\n" + checks + "\n})().catch(e=>{console.error(e);process.exitCode=1});"
-        result = subprocess.run([shutil.which("node"), "-"], input=script, text=True, capture_output=True)
+        result = subprocess.run([shutil.which("node"), "-"], input=script, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_failure_retry_and_completion_refresh_summary_and_preserve_typed_drafts(self):

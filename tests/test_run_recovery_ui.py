@@ -109,7 +109,7 @@ const stopped={...detail(7),status:'cancelled',exit_code:124,can_retry:false,ret
 const finished={...stopped,can_retry:true,retry_blocked:[],lifecycle:{...stopped.lifecycle,finished:true,
  attempts:[{attempt:1,kind:'model',returncode:124,cleanup:{complete:true}}]}};
 """ + "\n(async()=>{\n" + checks + "\n})().catch(e=>{console.error(e);process.exitCode=1});"
-        result = subprocess.run([shutil.which("node"), "-"], input=script, text=True, capture_output=True)
+        result = subprocess.run([shutil.which("node"), "-"], input=script, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_cancelled_run_keeps_polling_until_collection_finishes(self):

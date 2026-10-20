@@ -48,7 +48,7 @@ const later=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;
 const open=async()=>{fold.open=true;await fold.ontoggle()};
 const tick=()=>new Promise(setImmediate);
 ''' + source + "\n(async()=>{\n" + checks + "\n})().catch(e=>{console.error(e);process.exitCode=1});"
-        result = subprocess.run([shutil.which("node"), "-"], input=harness, text=True, capture_output=True)
+        result = subprocess.run([shutil.which("node"), "-"], input=harness, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_loading_is_on_demand_cached_and_manually_refreshable(self):
@@ -203,7 +203,7 @@ function preserved(){for(const [id,node] of stableDrafts)assert.equal(nodes[id],
  assert.equal(nodes.pkImg.files[0],selectedFile);assert.equal(nodes.pkAc.value,'A2');assert.equal(nodes.pkNote.value,'截图说明草稿');
  assert.equal(nodes.pkRn.value,'复核草稿');assert.equal(nodes.pkWaive.value,'尚未提交的例外理由');assert.equal(nodes.pkWaive.checked,true);assert.equal(nodes.pkGo.onclick,fixedSubmit)}
 ''' + "\n(async()=>{\n" + checks + "\n})().catch(e=>{console.error(e);process.exitCode=1});"
-        result = subprocess.run([shutil.which("node"), "-"], input=harness, text=True, capture_output=True)
+        result = subprocess.run([shutil.which("node"), "-"], input=harness, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_record_updates_package_then_get_only_selection_reverts_gate_without_losing_drafts(self):

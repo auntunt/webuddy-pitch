@@ -25,7 +25,10 @@ function input(text){nodes.cm.value=text;nodes.cm.oninput()}
 ''' + checks + r'''
 })().catch(e=>{console.error(e);process.exitCode=1});
 '''
-        r=subprocess.run([shutil.which('node'),'-'],input=script,text=True,capture_output=True)
+        # Windows defaults subprocess text mode to the ANSI code page (GBK here); the page
+        # copy below contains emoji/Chinese that GBK cannot encode, so pin UTF-8 on both
+        # directions instead of letting the locale decide. Assertions stay unchanged.
+        r=subprocess.run([shutil.which('node'),'-'],input=script,encoding='utf-8',errors='replace',capture_output=True)
         self.assertEqual(r.returncode,0,r.stdout+r.stderr)
 
     def test_shipped_page_includes_wiring(self):

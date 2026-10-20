@@ -67,7 +67,7 @@ class DialogBehaviorTest(unittest.TestCase):
         result = subprocess.run(
             [shutil.which("node"), "-"],
             input=HARNESS + "\nlet modalReturnFocus=null;\n" + source + assistant + "\n" + checks,
-            text=True,
+            encoding="utf-8", errors="replace",
             capture_output=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)

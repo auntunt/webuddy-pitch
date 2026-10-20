@@ -1,0 +1,73 @@
+name: CI
+
+# Wave-0 acceptance for roadmap G5 "tests are trustworthy": Linux is the production-shaped gate,
+# Windows is covered by the same matrix so the platform branch in tmh/platform/operator_access.py
+# cannot silently regress. Details and the current failure classes: audit/ci-test-report.md.
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+env:
+  # The repo contains Chinese/emoji fixtures; the Windows runner must not fall back to a legacy code page.
+  PYTHONIOENCODING: utf-8
+  PYTHONUTF8: "1"
+  # Loopback test servers must not be routed through a runner/developer proxy (see tests/conftest.py).
+  NO_PROXY: "127.0.0.1,localhost,::1"
+  no_proxy: "127.0.0.1,localhost,::1"
+
+jobs:
+  fast:
+    name: fast gate (${{ matrix.os }} / py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install pytest
+        run: python -m pip install --upgrade pip pytest
+      # There are no pytest markers (no slow/fast marks) in this repo, so the fast gate is a curated
+      # list of pure unit modules that stay well under the 60s budget. Full coverage runs in `full`.
+      - name: Fast gate
+        run: >-
+          python -m pytest -q -p no:cacheprovider
+          tests/test_command.py
+          tests/test_gates.py
+          tests/test_golang.py
+          tests/test_jpa.py
+          tests/test_lessons.py
+          tests/test_filelock.py
+          tests/test_comment_drafts.py
+
+  full:
+    name: full suite (${{ matrix.os }} / py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    # Windows still carries documented platform-limit failures (audit/ci-test-report.md §4.3/§5).
+    # Keep the signal without blocking the Linux production-shaped gate until that backlog is burned down.
+    continue-on-error: ${{ matrix.os == 'windows-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install pytest
+        run: python -m pip install --upgrade pip pytest
+      - name: Full test suite
+        run: python -m pytest tests -q -p no:cacheprovider

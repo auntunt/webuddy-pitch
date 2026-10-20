@@ -39,7 +39,7 @@ class RunsListBehaviorTest(unittest.TestCase):
         # Keep batch rendering real too; it is called by vRuns for evaluation batches.
         batches = "function evBatch(" + JS.split("function evBatch(", 1)[1].split("// ---------- 重构升级", 1)[0]
         script = HARNESS + markdown + listing + batches + "\n(async()=>{\n" + checks + "\n})().catch(e=>{console.error(e);process.exitCode=1});"
-        result = subprocess.run([shutil.which("node"), "-"], input=script, text=True, capture_output=True)
+        result = subprocess.run([shutil.which("node"), "-"], input=script, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_delivery_ask_without_session_is_visible_and_opens_actual_run(self):

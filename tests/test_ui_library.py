@@ -61,7 +61,7 @@ class LibraryUiTest(unittest.TestCase):
             [shutil.which("node"), "-"],
             input=HARNESS + LIBRARY_JS + "\n(async()=>{\n" + checks +
                   "\n})().catch(error=>{console.error(error);process.exitCode=1});",
-            text=True,
+            encoding="utf-8", errors="replace",
             capture_output=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -75,7 +75,7 @@ class LibraryUiTest(unittest.TestCase):
         result = subprocess.run(
             [shutil.which("node"), "--check"],
             input=html.split("<script>", 1)[1].split("</script>", 1)[0],
-            text=True,
+            encoding="utf-8", errors="replace",
             capture_output=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -227,7 +227,7 @@ await vLibrary();$('#libOperator').value='page-secret';libraryWorkspace(LIB.view
                   "const fetch=async(p,o)=>{calls.push({p,o});return {ok:true,json:async()=>({ok:true})}};\n" + helper + r"""
 (async()=>{await post('/ordinary',{action:'build'});await post('/sensitive',{action:'configure'},{'X-Webuddy-Operator-Token':'ephemeral'});await get('/ordinary-read');assert.equal(calls.length,3);for(const {o} of calls){assert.equal(o.headers['X-TMH'],'1');assert.equal(o.headers['X-TMH-User'],encodeURIComponent('测试者'))}assert.equal(calls[0].o.headers['X-Webuddy-Operator-Token'],undefined);assert.equal(calls[1].o.headers['X-Webuddy-Operator-Token'],'ephemeral');assert.deepEqual(JSON.parse(calls[1].o.body),{action:'configure'});assert.equal(calls[2].o.headers['X-Webuddy-Operator-Token'],undefined);assert.equal(calls[2].o.body,undefined)})().catch(error=>{console.error(error);process.exitCode=1});
 """,
-            text=True, capture_output=True,
+            encoding="utf-8", errors="replace", capture_output=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
 

@@ -34,7 +34,7 @@ const healthy={preview:{state:'up',commit:'abc'},url:'/pv/APP-1/__commit/abc/',c
 const failed={...healthy,url:'',preview:{state:'unhealthy',commit:'abc',why:'HTTP 503 <db>'}};
 let getHandler=async()=>failed;
 ''' + preview + top + "\n(async()=>{\n" + checks + "\n})().catch(e=>{console.error(e);process.exitCode=1});"
-        result = subprocess.run([shutil.which("node"), "-"], input=script, text=True, capture_output=True)
+        result = subprocess.run([shutil.which("node"), "-"], input=script, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_refresh_updates_both_views_without_replacing_drafts(self):

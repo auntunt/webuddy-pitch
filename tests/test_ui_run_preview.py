@@ -44,7 +44,7 @@ const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;'
 const run = {id:7,mode:'fix',ticket_key:'APP-1',decision:'accepted:tmh/APP-1@abc123'};
 const ready = {run_id:7,expected_commit:'abc123',matches_run:true,preview:{state:'up',commit:'abc123'},url:'/pv/APP-1/',cmd:'python3 app.py',own_address:true};
 """ + (ASYNC_HARNESS if controller else "") + helpers + "\n(async()=>{\n" + checks + "\n})().catch(e=>{console.error(e);process.exitCode=1});"
-        result = subprocess.run([shutil.which("node"), "-"], input=script, text=True, capture_output=True)
+        result = subprocess.run([shutil.which("node"), "-"], input=script, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_unaccepted_and_discarded_changes_never_reuse_ticket_preview(self):

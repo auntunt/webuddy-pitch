@@ -70,5 +70,5 @@ for(const status of ['running','failed','blocked'])for(const decision of ['', 'a
  assert.ok(!flow.sub.verify.includes('等验收'));
 }
 '''
-        result = subprocess.run([shutil.which("node"), "-"], input=script, text=True, capture_output=True)
+        result = subprocess.run([shutil.which("node"), "-"], input=script, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)

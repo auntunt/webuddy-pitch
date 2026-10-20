@@ -20,8 +20,10 @@ const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const md=h;
 const stage={key:'research',name:'研究调研',state:'not_started',artifact:null,review:null,runs:[],blocked:[],run_blocked:[],review_blocked:[],can_start:true,can_review:false,allowed_modes:['ask']};
 """
+        # Node reads stdin as UTF-8; the shipped JS + fixtures contain Chinese, and Windows default
+        # text mode would encode them with the ANSI code page (GBK) and corrupt the source.
         result = subprocess.run([shutil.which("node"), "-"], input=helpers+DELIVERY_JS+"\n"+checks,
-                                text=True, capture_output=True)
+                                encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_running_work_links_to_observation_not_review(self):

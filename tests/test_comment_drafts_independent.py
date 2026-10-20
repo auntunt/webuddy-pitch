@@ -46,7 +46,7 @@ class CommentDraftIndependentTest(unittest.TestCase):
         runner = ('const vm=require("node:vm"),assert=require("node:assert/strict");\n'
                   'Promise.resolve(vm.runInNewContext(' + json.dumps(source) + ', '
                   '{assert,structuredClone,console})).catch(error=>{console.error(error);process.exitCode=1});')
-        result = subprocess.run([shutil.which('node'), '-'], input=runner, text=True, capture_output=True)
+        result = subprocess.run([shutil.which('node'), '-'], input=runner, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_late_receipt_after_leaving_and_returning_refreshes_the_current_ticket(self):

@@ -55,7 +55,7 @@ return accUi}
 ''' + checks + r'''
 })().catch(e=>{console.error(e);process.exitCode=1});
 '''
-        result = subprocess.run([shutil.which("node"), "-"], input=script, text=True, capture_output=True)
+        result = subprocess.run([shutil.which("node"), "-"], input=script, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_binding_failure_disables_and_guards_every_signoff_entry(self):
