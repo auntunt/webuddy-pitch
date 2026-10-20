@@ -372,3 +372,18 @@
 - 收尾：在 `feat/ralph-port` 独立提交，标题 `fix: 修复候选证据绑定与事务读取隔离`；提交号写入本轮外部证据 `validation.json` 并核对提交字节，不 push。原 `ralph-port-preflight-2026-10-19` stash 保留；不访问真实 data/凭据，不更改 Git 配置，不启动日常服务。
 - 人工重点审阅：候选登记内工作区/需求/授权复查与输入同事务写入；旧指纹只在证据有效时重放；`run_current` 的读取 SAVEPOINT 及其在外层写事务中的释放语义；缺失历史绑定不得补写、换工作区后即使 Git 引用相同也须重新登记。无新增待确认；P5 人工确认/guard、P6 锁的原审阅重点及 Windows 六项剩余阻塞清单保持，不宣称已完成 Windows 实机验证。
 - 日志校验：`review-red.log` 7598 字节 / SHA256 `5f3400ec562d582a6514dc4662306558ab6bf8a72f4e9eb6f19133fd5cb864e2`；`legacy-replay-red.log` 965 字节 / SHA256 `7e73e5081f1a8dcf799df7ebda4b4e63ee4be70995132d4cb196d644402a0f7e`；`targeted-final.log` 25664 字节 / SHA256 `4ff193e6aa5f61c73edf9010f98c862aaad6d8d481a2650960b6eb8a2f103a1f`；`mutations-final.log` 6635 字节 / SHA256 `82ed869d847562fcf0a889ca2c3c1ee8f48f97caa423e0afd207bfebd7a6b5b7`；`stability-final.log` 57438 字节 / SHA256 `77a34d3565026c5c8b82bb0c70d512147ea511acbbefd93fc2ae3fdfdc42595f`；`full-final.log` 23185 字节 / SHA256 `a604236817de8f6df8bb077aa6b14ace3c09a450934b41606e511a834c3842d2`。全部原始失败场景、脚本、首轮/最终日志保留，完整文件清单见 `evidence-manifest.json`，没有压缩或截断原文件。
+
+## 后续：发布 9ba7a3a（2026-10-20）
+
+- 状态：doing；用户明确要求“上线吧”，授权本次生产发布及必要接入检查。继续 `feat/ralph-port`，源码固定为 `9ba7a3a41605602dbae07ad1d82d89a73d86bb2e`；不开新分支，不 push，不更新本地日常 8791/8793，不读取或打包真实 data/。
+- 已读本文件、`git log --oneline -10`、生产接入记忆及部署脚本。开工工作区干净，原 stash 保留。
+- 目标核对：本仓库脚本使用 `webuddy.bbstack.date` / `webuddy.service` / `/opt/webuddy/app`，现存旧记忆中的 `factory-web.service` 属于另一仓库，不能混用。直连目标域名的 TLS 校验通过、IP 为 `43.153.76.85`、首页 303 跳转 `/login`；不把可达性视为当前版本已上线。
+- 待接入：本机 `/Users/auntlee/.codex/memories/webuddy-production-access.md` 明确记录临时部署授权于 2026-09-30 18:23:35 CST 到期，本项目的历史部署脚本也沿用该凭据名称。已异步询问有效 SSH 配置或本机凭据路径；不索取私钥内容，不使用过期/撤销凭据，不借用其他用途账号绕过。此项是缺少有效接入信息，用户无需重复授权上线。
+- 发布准备目录：`/Users/auntlee/Desktop/workspace/运维智能体/部署包/ralph-9ba7a3a-20261020/`。固定 Git blob 导出 164 个运行时文件，生成未压缩 `webuddy-9ba7a3a.tar`（3,112,960 字节，SHA256 `e2d125acc9d3aa407dfb930a077e0f72c404e2a739d04dcd534fe94ee8e815b2`）；含完整运行依赖的模板、技能、知识库及 `install()` 所需 `docs/agent-commands.md`，无生产数据、私钥、证书或环境文件。
+- `python3 prepare.py` 成功；实际打开 tar、解包并逐项读回，287 个运行时及测试支持文件的字节和模式与提交一致，清单在 `package-verification.json`。发布/回滚步骤及接入阻塞写入外部 `上线记录.md`，具体服务器布局和备份锚点仍待登录后实测。
+- 正在从实际发布包解包的代码运行完整回归：`NO_PROXY='*' no_proxy='*' PYTHONPATH='../diagnostics:.' python3 -m unittest discover -s tests`。完整输出保存 `full-unittest.log`；仅合成数据、临时仓库与回环连接，原断言、时钟及测试文件不改。
+- 首轮导出回归：**925 tests / 907 通过 / 2 失败 / 16 可选依赖跳过，336.439s，退出 1**，原包、导出树及完整日志原样保留。失败之一为 `examples/legacy-dotnet-erp/Erp.Core/Data/ErpContext.cs` 在本地存在但被大小写不敏感的 `data/` 忽略规则排除、从未纳入提交，干净导出缺少 `Customer` 实体；另一项是发布清单遗漏 `docs/dead-ends.md` 引用的四份验证文档。这是对发布物的实际验证发现，不能用原工作树通过结果覆盖。
+- 修复：只为上述合成 `.cs` 文件增加窄范围忽略例外并将原字节纳入提交，其他 Data 文件及真实 data/ 继续忽略；导出清单加入四份既有验证文档。未改产品代码、原测试、断言或超时。修正后独立导出副本运行 `test_tmh.DotnetTest test_tmh.InstallTest`，**5/5 通过，0.404s，退出 0**（`export-fix-targeted.log`）。失败原因和补齐文件哈希在 `export-failure-analysis.json`。
+- 包启动验证：从实际解包目录在系统分配的回环端口启动真实 `serve()`，合成账号/令牌、空数据库；登录页 200、匿名项目 API 401、带令牌项目/API 元信息/主页面 200，共五项检查通过。共享令牌未获得人工身份；服务退出码 0、临时数据清理，日志在 `smoke-server.log` / `smoke-result.json`。未启动日常端口或连接模型。
+- 接入续期：用户已明确回复“这个锁已经手动延期了，你也可以更新一下我们的信息”，已更新本机接入记忆，注明确切新到期时间未提供。两处已有本机凭据均为 0600、指纹与登记公钥一致；未输出私钥。
+- 实测 SSH：严格主机检查通过并显式提交登记的部署公钥，但 `ubuntu@43.153.76.85:22` 返回 `Permission denied (publickey)`、退出 255；详细诊断已保存 `ssh-check.stderr`。尚未执行远端命令，不能断言拒绝仍因过期；已异步请用户核对服务端授权或提供当前接入信息，不重复询问上线许可。
