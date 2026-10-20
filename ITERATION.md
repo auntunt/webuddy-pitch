@@ -32,8 +32,9 @@
 
 ```bash
 cd webuddy-pitch
-python -m pytest tests/test_context_pack.py -q          # 12 passed
+python -m pytest tests/test_context_pack.py -q          # 13 passed
 python -m pytest tests/test_tmh.py -k "context or knowledge or report_has" -q   # 17 passed
+python -m pytest tests/test_phase1.py tests/test_command.py -q                  # 9 + 6 passed
 
 # 端到端（在已 kb build 的仓库上）：
 python -m tmh context "报销单财务审核驳回后预算" --repo <repo> --json --budget 4000
@@ -41,8 +42,13 @@ python -m tmh context "..." --repo <repo> --pack --budget 1200     # 预算不�
 python -m tmh context "..." --repo <repo> --source <参考项目目录> --json   # 多来源，id 不合并
 ```
 
-预算 1200 的真实输出（节选）：保留 8 个知识页，列出 1 条未展开 + "另有 24 条未列出（--json 查看完整清单）"，
-`used <= budget`，每条未展开项都带 `full_text` 句柄。
+预算 1200 的真实输出（节选，完整对照见 `D:\DSH_project\iteration\context-pack-demo.md`）：
+保留 8 个知识页，列出 1 条未展开 + "另有 24 条未列出（--json 查看完整清单）"，`used <= budget`，
+每条未展开项都带 `full_text` 句柄。
+
+**已知 Windows 限制（非本轮改动引起）**：`tests/test_platform.py` 在 Windows 上 setup 即报
+`AttributeError: module 'os' has no attribute 'O_NOFOLLOW'`（58 errors），这是该测试面向 Linux 的设计；
+本轮改动未触碰该文件。Linux/WSL 下应正常，待 WSL 侧复跑确认。
 
 ## 已确认的边界
 

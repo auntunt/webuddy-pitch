@@ -303,6 +303,19 @@ def assemble(sources, query: str, budget: int = 8000, json_mode: bool = False,
     """
     query = (query or "").strip()
     specs = [_source(s, i) for i, s in enumerate(sources or [])]
+    # Two projects may share a directory name (e.g. two checkouts of the same
+    # product). Labels and ids are namespaced so their facts can never collide.
+    seen_ids: dict[str, int] = {}
+    seen_labels: dict[str, int] = {}
+    for i, spec in enumerate(specs):
+        n = seen_ids.get(spec["id"], 0)
+        seen_ids[spec["id"]] = n + 1
+        if n:
+            spec["id"] = "%s#%d" % (spec["id"], i)
+        m = seen_labels.get(spec["label"], 0)
+        seen_labels[spec["label"]] = m + 1
+        if m:
+            spec["label"] = "%s#%d" % (spec["label"], i)
     if not specs:
         raise ValueError("至少需要一个知识来源")
     unavailable = [s for s in specs if not s["available"]]

@@ -139,6 +139,16 @@ class ContextPackTest(unittest.TestCase):
         self.assertEqual(res["items"][0]["source"], "oa", "current project should rank first on equal scores")
         self.assertTrue(all(i["source_version"] for i in res["items"]))
 
+    def test_duplicate_directory_names_still_get_unique_namespaces(self):
+        res = assemble([
+            {"root": str(self.repo), "label": "legacy-java-oa", "current": True},
+            {"root": str(self.reference), "label": "legacy-java-oa", "current": False},
+        ], QUERY, budget=60000, json_mode=True, log=False)
+        ids = [i["id"] for i in res["items"]]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertEqual(len({s["id"] for s in res["sources"]}), 2)
+        self.assertEqual(len({s["label"] for s in res["sources"]}), 2)
+
     def test_unavailable_source_is_explicit_and_can_fail_closed(self):
         missing = Path(tempfile.mkdtemp(prefix="tmh-ctx-missing-")) / "nope"
         res = assemble([
