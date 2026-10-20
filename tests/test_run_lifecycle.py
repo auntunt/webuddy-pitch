@@ -128,13 +128,28 @@ class RunLifecycleTest(unittest.TestCase):
         return live
 
     def cleanup_owned(self):
-        for pid in self.owned_live():
-            try:
-                os.kill(pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-        for thread in self.workers:
-            thread.join(2)
+        # Revoke pending launches before taking the PID snapshot. A worker may
+        # still be preparing its supervisor when a readiness assertion fails.
+        try:
+            if any(thread.is_alive() for thread in self.workers):
+                for run in self.store.runs(project_id=self.project["id"]):
+                    if run["status"] not in ("queued", "running"):
+                        continue
+                    try:
+                        self.runner.cancel(run["id"], "test cleanup")
+                    except ValueError:
+                        # The worker may finish between the read and cancel.
+                        if self.store.run(run["id"])["status"] in ("queued", "running"):
+                            raise
+        finally:
+            # A cancellation error must not bypass the existing PID cleanup.
+            for pid in self.owned_live():
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+            for thread in self.workers:
+                thread.join(2)
 
     def async_call(self, operation):
         result = {}
@@ -273,9 +288,38 @@ class RunLifecycleTest(unittest.TestCase):
         self.assertFalse(self.registry.exists())
         self.assertEqual(self.store.run(rid)["status"], "cancelled")
 
+    def test_cleanup_prevents_launch_after_its_pid_snapshot(self):
+        rid = self.new_run()
+        entered, release = threading.Event(), threading.Event()
+
+        def delayed_invoke():
+            entered.set()
+            release.wait()
+            return self.invoke(rid, self.conf("tree", timeout=20))
+
+        owned_live = self.owned_live
+
+        def snapshot_then_start():
+            pids = owned_live()
+            release.set()
+            return pids
+
+        try:
+            thread, result = self.async_call(delayed_invoke)
+            self.assertTrue(entered.wait(2), "worker did not reach the launch barrier")
+            with mock.patch.object(self, "owned_live", side_effect=snapshot_then_start):
+                self.cleanup_owned()
+        finally:
+            release.set()
+        self.assertFalse(thread.is_alive(), "cleanup allowed a late fixture launch")
+        self.assertNotIn("error", result)
+        self.assertNotEqual(result["value"][0], 0)
+        self.assertFalse(self.registry.exists(), "cancelled cleanup must prevent new fixture processes")
+        self.assertEqual(self.runner.stop_reason(rid), "cancelled")
+
     def test_ready_marker_publishes_complete_pid_before_cancellation(self):
-        # Pause the real leaf after opening its output file but before writing
-        # its PID. Existence must not advertise a partially written handshake.
+        # Pause the real leaf after writing its PID but before closing the file.
+        # This also catches a rename incorrectly moved inside the with block.
         self.script.write_text(r'''
 import builtins, os, time
 original_open = builtins.open
@@ -288,13 +332,13 @@ class PausedWriter:
         return self
 
     def __exit__(self, *args):
-        return self.file.__exit__(*args)
-
-    def write(self, text):
         with original_open(registry + ".leaf.paused", "w") as marker:
             marker.write(str(os.getpid()))
         while not os.path.exists(registry + ".leaf.release"):
             time.sleep(.01)
+        return self.file.__exit__(*args)
+
+    def write(self, text):
         return self.file.write(text)
 
 def gated_open(path, mode="r", *args, **kwargs):
@@ -316,7 +360,7 @@ builtins.open = gated_open
                 while not paused.exists() and time.monotonic() < until:
                     time.sleep(.01)
                 self.assertTrue(paused.exists(), "leaf did not reach the publication barrier")
-                self.assertFalse(marker.exists(), "ready marker became visible before PID write")
+                self.assertFalse(marker.exists(), "ready marker became visible before PID file closed")
             finally:
                 release.write_text("release")
             wait_ready(*scenarios, **kwargs)

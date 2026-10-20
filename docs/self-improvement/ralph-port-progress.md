@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：复审 `552eab9` 的 fork 夹具与时序覆盖；状态：done（修复就绪标记发布竞态；7 组故障被捕获，定向 47/47、稳定性 150/150；全量 821 tests，806 通过、15 跳过）
+- 当前项：复审 `7bce98f` 的原子发布与屏障测试；状态：done（修复屏障漏检和迟启动清理竞态；定向 48/48、稳定性 148/148；全量 822 tests，807 通过、15 跳过）
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -241,3 +241,25 @@
 - 最终核对：受测文件哈希在定向、稳定性、全量前后相同；审阅完整测试及本文件 diff，`git diff --check` 通过，生产目录无 diff。只提交这两个文件，原 stash 保留，不 push；提交号绑定至审查目录的 `validated-files.json`，完整文件哈希见 `evidence-manifest.json`。
 - 日志校验：`publication-before-write.json` 376 字节 / SHA256 `9a0cee84a0f7a1a98ab607e0caffdcac4b71624ce5ead4a7aa2eae3a30cfefc0`；`mutation-summary.json` 2037 字节 / SHA256 `0c5503ea0a0bcbeafa756878d9aa5d636cf0bbed5501d311d47f9cfadb736648`；`stability.log` 29595 字节 / SHA256 `987b46e1cf997f6d62a194473c9f9a302ddfae3e1ab817cc999eb10b53c044cb`；`full-unittest.log` 23022 字节 / SHA256 `5a6dd94a8d8fc336da1ace364c6f832bddd501e85f4ff0459992decef8f1943a`。
 - 人工审阅建议：`ready()` 的同目录原子发布；新发布屏障用例在真实孙进程写 PID 前检查标记不可见，释放后执行原取消断言；慢解释器回归注释的覆盖边界。无新增待确认，P5 guard/人工确认、P6 锁语义和 Windows 剩余阻塞点保留原清单。
+
+## 后续：复审 7bce98f
+
+- 状态：done；开工 `git status --short --branch` 干净，已读本文件与最近 10 条提交，继续在 `feat/ralph-port`，不 push，原 stash 保留。独立提交标题：`test: 加强发布屏障并修复迟启动清理竞态`。
+- 范围：夹具原子发布、屏障握手与断言失败时的所属进程清理；只用合成临时仓库和进程、真实时钟，不放宽断言或超时。
+- 计划：检查关闭/替换顺序及发布前后屏障；在临时脚本中注入关闭前发布、缺失/失败握手和迟启动，检查是否误通过或遗留进程；有实际问题再做最小修复并验证。
+- 待确认：无新增；原 P5/P6 和 Windows 待确认清单保留。
+- 审查发现一：原子发布实现本身顺序正确，但新增屏障只停在写入前，无法稳定检验关闭顺序。在临时夹具里把 `os.replace` 移入 `with`、放在关闭前，同一屏障用例 **5/5 错误通过**（3.061s），日志 `early-publish-before.log`。改为在真实孙进程写 PID 后、关闭前暂停，要求此时最终标记仍不存在；原夹具的原子发布实现不变。
+- 审查发现二：原有 `cleanup_owned` 在 PID 快照后才启动的进程不会被清理，新屏障断言失败也会走这条路径。用 Event 将启动延后至空 PID 快照之后，真实屏障在原 2 秒处失败，原清理返回后仍有 **3 个活 PID 和 1 个活工作线程**。诊断脚本随后取消/回收它们，确认全无遗留；这是复用的旧辅助函数缺陷，不是 rename 引起。现场 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-zsf4jhdy/` 原样保留。
+- 修复：测试清理先取消本测试库中尚未结束的运行，再取 PID 快照并保留原精确 PID 清理、2 秒线程 join；并发结束仅在状态已变为终态时忽略 cancel 的 ValueError。新增迟启动回归，不替换真实监管器或时钟：旧辅助函数准确失败（2.144s），修复后和屏障正常路径一起通过。
+- 证据目录：`/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/ralph-publication-audit-0oj1565f/`。保留 `probe-before.py`、关闭前发布的错误夹具、原清理后与诊断救援后的 PID/线程快照 `late-launch-cleanup.json`、`cleanup-red.log` 及失败现场；后续日志另命名，不覆盖红灯证据。
+- 红绿核对：两条正向回归 **2/2**（0.780s）；错误的“关闭前发布”夹具由此前 5/5 误通过变为 **5/5 准确失败**（0.928s，全部命中关闭前标记可见断言）。同一迟启动/屏障超时诊断在修复后不再启动任何夹具进程，清理返回时 PID 为空、工作线程已结束，后置诊断救援无需再杀进程（`late-launch-cleanup-after.json`）。
+- 异常路径：释放标记写入失败、缺失暂停标记、孙进程在屏障处退出、rename 失败，四种情况都保留原错误/失败，清理后所属 PID 和工作线程均为空；现场/完整日志与 `negative-paths-summary.json` 保留。取消本身出错时仍在 `finally` 执行原精确 PID 回收和 join，合成 OSError 原样上抛，实测三个活进程全部回收、线程结束（`cancel-error.json`）。
+- 初步定向：4 个相关模块 **48/48 通过**（34.562s）；随后补上上述取消异常的 finally 保证，针对最终字节重新跑同一组和稳定性。原 `FIXTURE` 字节完全未变；原 14 个其他测试方法 AST 不变，只加强清理辅助函数、屏障用例并新增迟启动回归。
+- 最终定向：`NO_PROXY='*' no_proxy='*' PYTHONPATH=<审查目录>:tests:. python3 -m unittest -v test_run_lifecycle test_process_control test_supervised_process test_run_early_stop`，**48/48 通过**，34.480s、0 跳过，退出码 0，日志 `targeted-final.log`。最终受测文件 SHA256 `bb203df83d78697333344bb8713319a7defc968c84f1485e3f50fb2fb0d7ddd3` 保存至 `validated-files.json`。
+- 清理复核：13 个保留的负向合成现场，逐个按注册表的精确 PID 查询，均已不存在；没有按进程名或端口查杀。`final-negative-cleanup.json` 保留核对结果。原超时/取消断言在清理前判定（或记录失败条件后明确 fail），新增清理不能把这些失败改为通过。
+- 屏障语义：`.paused`/`.release` 仅用存在性握手，不读取其内容，不依赖它们的 PID 文本完整性；每个用例使用全新的私有临时目录。屏障位于真实文件关闭前，释放后才允许 close 与原子替换；最终 `.ready` 继续读取 PID 并校验活进程，原 2 秒就绪/取消和其他运行预算不变。
+- 稳定性：`NO_PROXY='*' no_proxy='*' PYTHONPATH=<审查目录>:. python3 <审查目录>/stability.py`，**148/148 通过**（两条重点回归各 50 次 + 完整模块 3 轮 × 16 项），115.961s、0 跳过/失败/错误，退出码 0。77 次就绪等待最大 0.838s；屏障用例的这个采样从释放后开始，暂停握手另有原 2 秒上限。真实时钟与超时不变，文件哈希前后一致；完整日志/逐次记录保留。随后才执行全量。
+- 全量：`NO_PROXY='*' no_proxy='*' PYTHONPATH=<审查目录>:. python3 -m unittest discover -s tests`，**822 tests，355.484s，OK（skipped=15）**，即 **807 通过、15 跳过、0 失败/错误，退出码 0**。逐项核对仍是缺 cryptography 的 2 项和缺可选 MCP SDK 的 13 项（`optional-skips.json`），未联网安装；原资源关闭警告保留。此前 5 份故意制造的失败快照保留，全量没有新增失败快照。
+- 最终审查：原子发布实现无需改动；修复了屏障漏检和复用清理函数的迟启动漏洞。取消异常仍上抛，原精确 PID 清理和 2 秒 join 在 finally 中执行；没有扩大进程筛选范围，也没有放宽任一原时间限制。原 14 项其他测试 AST、整个 FIXTURE 字节及生产 `tmh/` 均无改动；最终代码哈希在定向、稳定性、全量前后相同，`git diff --check` 通过。只提交测试与本进度文件，提交号绑定到 `validated-files.json`。
+- 日志校验：`early-publish-before.log` 1031 字节 / SHA256 `4e7e47ed0e1013982443f55e513c66fa76d3f2351a3bcecc9c94d4bd159f4338`；`early-publish-after.log` 11903 字节 / SHA256 `4360229eca2e626b3420b7d68d46ad6bd3e8d2fbdda7c2052da397ffe94fdf5a`；`late-launch-cleanup.json` 424 字节 / SHA256 `6024632cc93340ef4a325f28c524699112648e8402f21a0ebedf966c962a7df3`；`stability.log` 28555 字节 / SHA256 `b9cf73907def93a1e73b7da171617fb8669176aa16318c7729a95a142585bb52`；`full-unittest.log` 22988 字节 / SHA256 `c59c8b328de94bd64297cecaccfd5c273033980873c2a1d697f1303eef0621b6`。其余原始文件哈希在同目录 `evidence-manifest.json`。
+- 人工重点：屏障从 write 前移到 close 前，是否准确捕获关闭前发布；`cleanup_owned` 先取消再取 PID 快照、并在取消出错时仍清理的顺序；迟启动回归的 Event 释放与 finally。无新增待确认，P5/P6 与 Windows 剩余阻塞点沿用原清单。
