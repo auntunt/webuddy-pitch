@@ -375,7 +375,7 @@
 
 ## 后续：发布 9ba7a3a，候选更新为 0788a52（2026-10-20）
 
-- 状态：doing（发布包已验证，待恢复 SSH 授权）；用户明确要求“上线吧”，授权本次生产发布及必要接入检查。继续 `feat/ralph-port`，初始源码为 `9ba7a3a41605602dbae07ad1d82d89a73d86bb2e`，最终发布候选为下方 `0788a52`；不开新分支，不 push，不更新本地日常 8791/8793，不读取或打包真实 data/。
+- 状态：doing（SSH 已恢复，正在隔离验证及备份）；用户明确要求“上线吧”，授权本次生产发布及必要接入检查。继续 `feat/ralph-port`，初始源码为 `9ba7a3a41605602dbae07ad1d82d89a73d86bb2e`，最终发布候选为下方 `0788a52`；不开新分支，不 push，不更新本地日常 8791/8793，不读取或打包本地真实 data/。生产数据仅在服务器上做一致性备份、迁移和保全核验。
 - 已读本文件、`git log --oneline -10`、生产接入记忆及部署脚本。开工工作区干净，原 stash 保留。
 - 目标核对：本仓库脚本使用 `webuddy.bbstack.date` / `webuddy.service` / `/opt/webuddy/app`，现存旧记忆中的 `factory-web.service` 属于另一仓库，不能混用。直连目标域名的 TLS 校验通过、IP 为 `43.153.76.85`、首页 303 跳转 `/login`；不把可达性视为当前版本已上线。
 - 待接入：本机 `/Users/auntlee/.codex/memories/webuddy-production-access.md` 明确记录临时部署授权于 2026-09-30 18:23:35 CST 到期，本项目的历史部署脚本也沿用该凭据名称。已异步询问有效 SSH 配置或本机凭据路径；不索取私钥内容，不使用过期/撤销凭据，不借用其他用途账号绕过。此项是缺少有效接入信息，用户无需重复授权上线。
@@ -392,3 +392,13 @@
 - 最终包全量：**925 tests，352.660s，OK（skipped=16）**，即 **909 通过、16 跳过、0 失败/错误，退出 0**；14 项缺可选 MCP SDK、2 项缺 cryptography。`full-unittest.log` SHA256 `574661a9239c5db43e9a7b08121390c8f27ec51985d878fde74a163970fc1c63`，完整跳过身份/原因见 `diagnostics/optional-skips.json`；292 个文件执行前后字节/模式一致，结果绑定 `0788a52` 与发布包的 `validation.json`。失败捕获未触发，原资源关闭警告完整保留。
 - 本轮实际结果：发布准备与验证完成；生产 SSH 仍拒绝已登记公钥，尚未上传、执行远端命令、备份/迁移生产数据库或重启服务，因此**未上线**。待服务器恢复对应公钥权限或提供新的有效接入信息；已有上线授权继续有效，不再重复询问部署许可。恢复后先按新发布目录的 `上线记录.md` 核对远端实际布局与数据，再进行切换与线上验收。
 - 收尾仅追加本进度记录并单独提交，不改变受测发布源码。续期及本机实测拒绝均已写入 owner-only 接入记忆（0600）。原 stash、首轮失败包、全量日志、SSH 诊断和最终包均保留，不 push。
+- 恢复推进：用户再次回复“已经更新了授权”；严格主机校验、显式已登记公钥登录成功，免密 sudo 可用。先读本文件与最近 10 条提交，工作区干净、HEAD `654c73b`，不重做已完成的本地发布包全量验证。接入记忆已更新；新到期时间未知，不假定永久授权。
+- 服务器只读预检：`webuddy.service` active/running，`/opt/webuddy/app` 为普通目录、无 `.git`，端口 8790，外部配置 `/etc/webuddy.env`；Python 3.12.3、Git 2.43.0。应用 6.1M、数据 57M、磁盘空闲约 34GB。SQLite quick_check=ok；3 个项目、49 张工单、254 次运行（done 243 / failed 11），无 queued/running；自动流转 `on=false`，无调查状态、无服务子进程。`factory-web.service` inactive，Caddy active，均不属于本次变更。证据续存 `../部署包/ralph-0788a52-20261020/production-resume/`，此前拒绝记录保持。
+- 隔离发布目录：`/opt/webuddy/releases/0788a52-20261020`。通过 SSH 上传原始发布包及只含固定提交源码/测试和离线诊断的验证包；首次未压缩传输较慢，停止本任务上传后用 SSH 无损传输压缩重传，服务器逐包 SHA256 和 168 个运行文件 / 292 个验证文件的字节、模式全部一致。未压缩 tar 原文件不变，旧服务仍运行。
+- 迁移演练：SQLite backup API 在服务器创建 0700 隔离目录下的一致性副本，执行真实 Store、复检及候选 schema，然后再次执行。`integrity_check=ok`；原 9 张表全部原列与原行哈希一致，第二次执行后所有表一致；13 张新表仅项目档案和来源各 3 行，其他均空，未补写历史输入或人工决定。副本及明细留在服务器 `migration-rehearsal/`，本地仅保存计数、模式和哈希；没有将真实业务数据下载进仓库。
+- Linux 验证：正在服务器隔离的 `verification/test-source/` 执行完整 `python3 -m unittest discover -s tests`；独立合成数据，Python 子进程只允许回环连接，原测试、断言、超时均保持。验证及真实服务启动检查均通过后才切换；服务器生产目录尚未迁移或停服。
+- Linux 首轮完整结果：**925 tests / 902 通过 / 9 errors / 14 跳过，415.194s，远端退出 1**。9 项均在三个测试模块调用 `Store.db.iterdump()` 时抛出 `no such table: name`，尚未运行到对应的数据库不变断言。Python 3.12 的标准库导出器沿用 Store 的字典 row_factory，把 `name/type/sql` 键误当作行值；本机 Python 3.14 已在导出器游标上设 `row_factory=None`，故原本通过。完整失败日志 `production-resume/linux-full-first.log`，SHA256 `defbbc3f2142c8f25aa1b129c8388d52aa3f454ca0caa573afba24c83bf3f8ac`，原 292 个验证文件前后未变。
+- 此轮远端测试已退出并写入结果文件，但原 SSH 响应连接停滞；通过新的严格校验连接读回结果、确认测试进程不存在后，仅关闭该本机旧 SSH 客户端。后续连接增加会话级保活参数，不改 SSH/Git 配置；没有把传输失败混作测试成功。
+- 兼容修复：新增 `tests/sqlite_snapshot.py`，持有 Store 锁把整个已提交数据库备份到独立内存连接，再用默认行格式完整导出；不修改活连接的 row_factory，不删表/字段/记录。遇到未提交事务立即报错，不隐式提交或忽略变化。三个原测试模块仅替换快照取法，原相等性/证据/人工确认断言、超时及产品代码保持。新增两个测试验证文本/二进制/NULL、触发器/视图/索引/序列完整保留、数据或结构变化能被发现，以及未提交写入不会被隐藏。
+- 定向命令：`python3 -m unittest -v tests.test_sqlite_snapshot tests.test_intake_recovery_api tests.test_preview_health_independent tests.test_python_pathmap_api`；同样的离线保护下，本机 Python 3.14 **25/25，11.581s，退出 0**，服务器 Python 3.12 **25/25，17.760s，退出 0**。服务器使用独立 `verification-fix/`，原失败树和日志完整保留；定向日志及修复五文件 SHA256 在 `production-resume/`。准备单独提交 `test: 兼容 Python 3.12 的数据库快照断言`，随后从该提交重新导出并在两端执行完整回归；当前仍未切换生产服务。
+- 启动行为复核：旧版和新版人工分支扫描的 heartbeat 完全相同，settings 只增加提醒天数，原启动默认值不变；三个既有项目当前没有 `wb/*` 引用，没有未验收的手工认领记录，调查配置为空。首个检查错误地要求整个 settings AST 完全相同，失败后保留原记录，再按实际差异做精确核对；没有改产品行为或放宽基线测试。

@@ -16,6 +16,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
+from tests.sqlite_snapshot import dump_store
 from tmh.platform import preview
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
@@ -142,7 +143,7 @@ class PreviewHealthIndependentTest(unittest.TestCase):
         self.assertEqual(target.requests, [], "health followed a redirect to another origin")
 
     def test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview(self):
-        before_records = list(self.store.db.iterdump())
+        before_records = list(dump_store(self.store))
         state_path = self.data / "previews/state.json"
         before_state = state_path.read_bytes()
         self.assertEqual(self.status()["state"], "up")
@@ -152,7 +153,7 @@ class PreviewHealthIndependentTest(unittest.TestCase):
         recovered = self.status()
         self.assertEqual(recovered["state"], "up")
         self.assertTrue(preview.bound_matches(recovered, self.key, self.commit))
-        self.assertEqual(list(self.store.db.iterdump()), before_records)
+        self.assertEqual(list(dump_store(self.store)), before_records)
         self.assertEqual(state_path.read_bytes(), before_state)
 
     def test_status_ignores_environment_proxy(self):

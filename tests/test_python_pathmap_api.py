@@ -10,6 +10,7 @@ import urllib.request
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 
+from tests.sqlite_snapshot import dump_store
 from tmh.platform import gates, pathmap, signoff
 from tmh.platform.server import Platform, make_handler
 from tests import test_python_pathmap_independent as fixture
@@ -68,9 +69,9 @@ class PythonPathMapApiTest(unittest.TestCase):
         return body
 
     def test_read_is_pure_and_record_is_technical_not_human_confirmation(self):
-        before = "\n".join(self.P.store.db.iterdump())
+        before = "\n".join(dump_store(self.P.store))
         code, value = self.call(); self.assertEqual((code, value["status"]), (200, "mapped"))
-        self.assertEqual(before, "\n".join(self.P.store.db.iterdump()))
+        self.assertEqual(before, "\n".join(dump_store(self.P.store)))
         self.assertFalse((self.repo / ".tmh").exists())
         self.record()
         t = self.P.store.ticket(self.t["id"])

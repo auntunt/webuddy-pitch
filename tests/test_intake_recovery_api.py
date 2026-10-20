@@ -16,6 +16,7 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 from unittest import mock
 
+from tests.sqlite_snapshot import dump_store
 from tmh.platform import intake, signoff, workbench
 from tmh.platform.server import Platform, make_handler
 
@@ -124,7 +125,7 @@ class IntakeRecoveryApiTest(unittest.TestCase):
 
     def snapshot(self):
         with self.P.store.lock:
-            database = tuple(self.P.store.db.iterdump())
+            database = dump_store(self.P.store)
         files = {str(p.relative_to(self.data)): p.read_bytes() for p in self.data.rglob("*")
                  if p.is_file() and not p.name.startswith("platform.db")}
         return database, files
