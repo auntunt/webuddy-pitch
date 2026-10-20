@@ -143,7 +143,7 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                         initialized = await session.initialize()
                         self.assertEqual(initialized.serverInfo.name, "webuddy_mcp")
                         tools = (await session.list_tools()).tools
-                        self.assertEqual(len(tools), 13)
+                        self.assertEqual(len(tools), 16)
                         self.assertTrue(all(tool.annotations.readOnlyHint for tool in tools))
                         reply = await session.call_tool("webuddy_status", {})
                         self.assertFalse(reply.isError)

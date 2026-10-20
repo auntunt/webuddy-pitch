@@ -383,6 +383,12 @@ def _env(port: int, prefix: str) -> dict:
 
 
 def start(P, p: dict, t: dict, branch: str, by: str, *, expected_commit: str = "") -> dict:
+    from .project_library import project_guard
+    with project_guard(P.store, p, execution=True):
+        return _start(P, P.store.project(p['id']), t, branch, by, expected_commit=expected_commit)
+
+
+def _start(P, p: dict, t: dict, branch: str, by: str, *, expected_commit: str = "") -> dict:
     """Run the branch as a preview. Returns its state; the app comes up in the background."""
     cmd, ready, _ = command(P.data_dir, p)
     if not cmd:

@@ -131,6 +131,36 @@ def parser():
     request(q)
     q = add("harness-library", "读取项目有证据支持的历史验证策略")
     q.add_argument("project")
+    q = add("library", "读取项目知识来源、固定版本、覆盖范围与引用")
+    q.add_argument("project")
+    q = add("knowledge-search", "检索当前项目和已授权的固定参考知识")
+    q.add_argument("project")
+    q.add_argument("query")
+    q.add_argument("--limit", type=int, default=20)
+    q.add_argument("--offset", type=int, default=0)
+    q = add("knowledge-read", "按固定知识修订读取获准的完整来源原文")
+    q.add_argument("project")
+    q.add_argument("revision_id")
+    q.add_argument("path")
+    q = add("knowledge-build", "明确为固定 Git 版本启动静态知识构建")
+    q.add_argument("project")
+    q.add_argument("--commit", default="HEAD")
+    request(q)
+    for name in ("knowledge-cancel", "knowledge-resume"):
+        q = add(name, "明确取消或继续固定版本的知识构建")
+        q.add_argument("project")
+        q.add_argument("revision_id")
+        request(q)
+    q = add("knowledge-reference", "引用来源已授权共享的固定知识修订；不授予共享权限")
+    q.add_argument("project")
+    q.add_argument("revision_id")
+    q.add_argument("--scope", dest="scopes", action="append", default=[])
+    q.add_argument("--purpose", required=True, help="完整引用用途与适用范围")
+    request(q)
+    q = add("knowledge-unlink", "移除本项目的知识引用，保留历史回执")
+    q.add_argument("project")
+    q.add_argument("binding_id", type=int)
+    request(q)
     q = add("mcp", "运行官方 SDK stdio MCP 服务")
     q.add_argument("--read-only", action="store_true", help="仅提供读取工具")
     q.add_argument("--allow-execution", action="store_true", help="开放模型运行、停止、重验与预览启动工具")
@@ -161,6 +191,7 @@ def _arguments(a):
     names = {"projects": "projects_list", "tickets": "tickets_list", "ticket": "ticket_get", "create": "ticket_create", "send": "message_send", "inbox": "messages_list", "request": "request_get", "run": "run_get", "start": "run_start", "cancel": "run_cancel", "retry": "run_retry", "recheck": "run_recheck"}
     names.update({"candidates": "candidates_list", "candidate": "candidate_get", "acceptance": "candidate_get", "submit": "candidate_submit", "verify": "candidate_verify", "cancel-verification": "candidate_cancel", "candidate-preview": "candidate_preview", "assess": "candidate_assess", "approve": "candidate_decide", "reject": "candidate_decide"})
     names.update({"harness-recipes": "harness_recipes", "harness-probe": "harness_probe_start", "harness-report": "harness_probe_get", "harness-stop": "harness_probe_cancel", "harness-library": "harness_library"})
+    names.update({"library": "library_get", "knowledge-search": "library_search", "knowledge-read": "library_read", "knowledge-build": "library_build", "knowledge-cancel": "library_cancel", "knowledge-resume": "library_resume", "knowledge-reference": "library_reference", "knowledge-unlink": "library_unlink"})
     op = names.get(a.command, a.command)
     args = {k: v for k, v in vars(a).items() if k not in ("command", "endpoint", "agent", "timeout", "wait", "start", "body_file", "criteria_file", "results_file", "operator_key_file") and v is not None}
     if getattr(a, "body_file", None):
@@ -197,7 +228,7 @@ def main(argv=None):
             Client(a.endpoint, a.agent, timeout=a.timeout)
             print(configuration(a))
             return 0
-        execution = a.command in ("start", "cancel", "retry", "recheck", "submit", "verify", "cancel-verification", "candidate-preview", "harness-probe", "harness-stop") or (a.command == "preview" and a.start) or (a.command == "mcp" and a.allow_execution and not a.read_only)
+        execution = a.command in ("start", "cancel", "retry", "recheck", "submit", "verify", "cancel-verification", "candidate-preview", "harness-probe", "harness-stop", "knowledge-build", "knowledge-cancel", "knowledge-resume") or (a.command == "preview" and a.start) or (a.command == "mcp" and a.allow_execution and not a.read_only)
         client = Client(a.endpoint, a.agent, timeout=a.timeout, allow_execution=execution)
         if a.command == "mcp":
             try:

@@ -236,7 +236,10 @@ def _fence(text: str) -> str:
     return (text or "").replace("<<<", "‹‹‹").replace(">>>", "›››").replace("```", "ˋˋˋ")
 
 
-def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None) -> str:
+def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None) -> str:
+    from . import project_library as library
+    if reference_inputs is None:
+        reference_inputs = library.bindings(store, project)
     root = Path(project["root"])
     links = (ticket or {}).get("links") or {}
     delivery_context = ""
@@ -296,6 +299,7 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
             out.append("")
         # Delivery has an explicit reviewed packet. An unrelated later ticket plan is not its specification.
         prior = [r for r in store.runs(ticket_id=ticket["id"]) if r["status"] == "done" and r["mode"] in ("analyze", "plan") and r["result"]] if ticket.get("id") and not delivery_context and not links.get("delivery_source") else []
+        prior = [r for r in prior if library.run_current(store, project, r['id'])]
         for r in prior[:2][::-1]:
             # In particular the plan's machine-readable file list and acceptance criteria are at
             # its end. A character limit silently dropped that contract on longer real plans.
@@ -320,6 +324,8 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         out.append("")
     elif question:
         out += [knowledge(root, question), ""]
+    reference_query = ' '.join(str(x or '') for x in ((ticket or {}).get('title'), (ticket or {}).get('body'), question, target))
+    out += [_fence(library.context(store, project, reference_query or project['name'], reference_inputs)), '']
     if history:
         out.append("## 之前的对话")
         out += ["- %s：%s" % ("问" if m["role"] == "user" else "答", m["body"].strip()) for m in history[-6:]]
@@ -645,6 +651,8 @@ def reviewed_delivery_plan(store: Store, ticket: dict) -> dict:
     run = store.run(rid) if type(rid) is int and rid > 0 else None
     if not run or run["ticket_id"] != ticket.get("id") or run["mode"] != "plan" or run["status"] != "done" or run["exit_code"] != 0:
         raise ValueError("交付实现必须绑定已复核的成功方案；请从交付工作项执行修改代码")
+    from .project_library import require_run_current
+    require_run_current(store, store.project(ticket['project_id']), run['id'])
     return run
 
 
@@ -682,6 +690,8 @@ def delivery_source(store: Store, project: dict, ticket: dict | None, mode: str,
             or implementation["ticket_id"] != ticket["id"] or implementation["mode"] != "fix"
             or implementation["status"] != "done" or implementation["exit_code"] != 0):
         raise ValueError("交付检查必须绑定同项目、同工单的成功实现运行")
+    from .project_library import require_run_current
+    require_run_current(store, project, implementation['id'])
     decision = implementation.get("decision") or ""
     if not decision.startswith("accepted:") or "@" not in decision:
         raise ValueError("先将实现采纳到独立提交，再进行固定版本检查")
@@ -693,6 +703,7 @@ def delivery_source(store: Store, project: dict, ticket: dict | None, mode: str,
         if (not plan or plan["project_id"] != project["id"] or plan["ticket_id"] != ticket["id"]
                 or plan["mode"] != "plan" or plan["status"] != "done" or plan["exit_code"] != 0):
             raise ValueError("交付检查的方案必须来自同项目、同工单的成功方案运行")
+        require_run_current(store, project, plan['id'])
     try:
         frozen = json.loads(json.dumps(source, ensure_ascii=False))
     except (TypeError, ValueError) as e:
@@ -826,6 +837,16 @@ class Runner:
 
     def start(self, project: dict, ticket: dict | None, agent: str, mode: str, author: str, target: str = "", then=None,
               question: str = "", history: list | None = None, session_id=None, batch: str = "", model=None, base: str = "", retry_of=None) -> dict:
+        from . import project_library as library
+        project = self.store.project(project['id'])
+        library.require_development(self.store, project)
+        reference_inputs = library.bindings(self.store, project)
+        if any(not r['available'] for r in reference_inputs):
+            raise ValueError('项目参考授权已变化，请先处理不可用引用')
+        if mode == 'fix' and ticket:
+            plans = [r for r in self.store.runs(ticket_id=ticket['id']) if r['mode'] in ('plan', 'analyze') and r['status'] == 'done']
+            if plans:
+                library.require_run_current(self.store, project, plans[0]['id'])
         if mode not in dict(RUN_MODES) or mode == "understand":  # understanding is started by the requirement conversation
             raise ValueError("未知模式：%s" % mode)
         conf = load_config(self.data_dir)
@@ -842,9 +863,13 @@ class Runner:
         source = delivery_source(self.store, project, ticket, mode, base)
         if source and session_id is not None:
             raise ValueError("固定版本的交付检查必须使用独立运行，不能绑定既有会话")
-        prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history)
+        prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
+        if library.bindings(self.store, project) != reference_inputs:
+            raise ValueError('组装提示词期间参考知识已变化，请重新启动任务')
         run = self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
-                                     session_id=session_id, batch=batch, model=model, **({"retry_of": retry_of} if retry_of is not None else {}))
+                                     session_id=session_id, batch=batch, model=model, expected_root=project['root'],
+                                     **({"retry_of": retry_of} if retry_of is not None else {}))
+        library.bind_run(self.store, project, run['id'], reference_inputs)
         self._claim(run["id"])
         if source:
             # Build knowledge and the prompt from the immutable checkout before the worker starts.
@@ -862,7 +887,7 @@ class Runner:
                     raise ValueError("固定版本工作树与请求的提交不一致，未启动检查")
                 source.update(workdir=str(view), actual_commit=actual["commit"], actual_tree=actual["tree"], prepared_at=now())
                 prompt_project = dict(project, root=str(view))
-                prompt = build_prompt(self.store, prompt_project, ticket, mode, target, question, history)
+                prompt = build_prompt(self.store, prompt_project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
                 prompt += ("\n\n## 本次检查的固定代码版本\n提交：%s\n实现运行：#%s；方案运行：%s。\n"
                            "只检查目录 %s 中的这次提交。主干、其他分支和旧知识库不能替代本次代码证据。"
                            "只读检查不代表执行了构建、测试或扫描；未执行项目请明确标记。\n"
@@ -970,6 +995,9 @@ class Runner:
 
     def _execute_run(self, rid, project, ticket, agent, mode, prompt, conf, model="", explicit=False, base=""):
         st = self.store
+        from . import project_library as library
+        library.require_development(st, st.project(project['id']))
+        library.require_run_current(st, project, rid)
         rdir = self.data_dir / "runs" / str(rid)
         rdir.mkdir(parents=True, exist_ok=True)
         (rdir / "prompt.md").write_text(prompt, encoding="utf-8")
@@ -1065,6 +1093,9 @@ class Runner:
                     source.update(retained_worktree=True, cleanup_error="只读工作树清理未完成，路径已保留")
                     _save_source(rdir, source)
         f = {"ended": now(), "exit_code": code, "result": (result or "").strip()}
+        if not library.run_current(st, project, rid):
+            f['exit_code'] = 1
+            f['result'] = '运行期间参考知识版本、范围或授权发生变化，本次结果不能沿用。\n\n' + f['result']
         if mode == "fix":
             try:
                 f["diff"] = worktree_diff(workdir)
@@ -1445,6 +1476,8 @@ class Runner:
         if r["decision"]:
             raise ValueError("已经%s过了" % ("采纳" if r["decision"].startswith("accept") else "放弃"))
         if decision == "accept":
+            from .project_library import require_run_current
+            require_run_current(self.store, self.store.project(r['project_id']), rid)
             if r["status"] != "done" or r.get("exit_code") != 0:
                 raise ValueError("这次运行没有正常完成，不能采纳；先修复失败或重新执行")
             verification_file = self.data_dir / "runs" / str(rid) / "verify.json"

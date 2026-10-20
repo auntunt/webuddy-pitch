@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：项目资产与知识库复用设计；状态：done（设计及现状核对完成；功能实现为 BACKLOG SI-015，状态 todo，不计入已实现能力）
+- 当前项：SI-015 项目资产与知识库复用实现；状态：doing（从 `60d96e7` 开始；先固定版本知识、引用及派生，再验证页面/Agent 入口和规模边界）
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -275,3 +275,46 @@
 - 验证：`cat docs/design/project-knowledge-library-2026-10-20.md` 完整读回 163 行 / 17326 UTF-8 字节；临时 Python 检查 5 条相对文档链接有效，9 个实现落点的文件/函数或类实际存在；检查代码围栏闭合与“设计/未实现”声明。`git diff --check` 通过；逐段审阅新文档与两份记录 diff。本轮仅文档，未运行或重报产品测试。
 - 交接：单独文档提交 `docs: 设计标品与参考项目的版本化知识复用`，不 push。继续实施时先读 SI-015 与设计，按 A→B→C→D 验证；不重复 P1–P6，也不将当前文档视为真实项目接入或迁移授权。
 - 待确认：没有阻塞设计的问题；真实仓库、分享范围与性能目标在后续接入时明确，保留为实施输入，不凭空编造。
+
+## SI-015 实施
+
+- 状态：done（首版交付；精细依赖分析和真实标品试点仍待续）；用户已明确“然后开始实现吧”。起点 `60d96e7`，`feat/ralph-port` 开工干净；原 stash 保持。不 push，不访问网络/真实 data/凭据，不启动日常服务，不改 Git 配置。
+- 范围：兼容旧项目的来源/角色/工作区、不可变知识修订、多个固定引用及全文读取、从标品派生和同项目开始维护、任务输入绑定、网页及 CLI/MCP、失败恢复和规模验证。
+- 执行：主线程实现知识构建/存储/引用/派生；按 executing-plans 技能的分工要求，由子代理独立处理页面与 Agent 接口，各自限定文件，统一审查与验收。其引用的附属技能本机未安装，使用现有 Git 分支及验证流程完成同类工作，不影响用户已授权范围。
+- 合理假设：首版固定版本来自本地 Git；非 Git 项目沿用旧功能，版本化共享明确报告不支持，不伪造提交。权限范围是现有可信本地平台，跨项目共享须明确授予；不宣称组织级账号隔离。真实大型标品尚未指定，先用临时多仓库和数十万行合成项目验证，实际标品列为剩余验证项。
+- 计划验证：来源不改写、同名隔离/固定引用/全文保留、更新与撤权失效、取消/失败恢复、派生字节与知识确认边界、UI/CLI/API；相关定向回归后全量。所有测试使用临时目录或临时仓库。
+- 待确认：无阻塞实现的问题；真实试点仓库保留为后续接入输入。
+- 初步实现：新增 `tmh/project_knowledge.py` 静态 worker 和 `tmh/platform/project_library.py`；来源原文与分析产物分目录，发布固定提交/分析器/配置/文件/索引摘要。Store 增量迁移来源与角色；知识引用、派生/维护、API/CLI/MCP/页面接入；任务与方案记录引用输入摘要。
+- 第一轮定向：`python3 -m unittest -v tests.test_project_library tests.test_library_lifecycle tests.test_knowledge_agent_api tests.test_ui_library tests.test_ui_dialog`：55 tests，9.473s，OK（54 通过、1 缺 MCP SDK 跳过）。真实临时仓库/监督子进程覆盖固定版本、双来源、授权范围、全文、派生、迁移、失败/取消恢复；UI 为执行 JS 回归，尚不能替代浏览器验证。
+- 自审修复：拿锁后重读 ready 状态；初次启动不抹掉 queued 取消；worker 核对真实分析器；禁用 Git replace/外部协议/继承索引配置；原文与生成知识命名空间分离；检索校验索引摘要并关闭连接。两项竞态测试注入旧行为均在预期断言失败，恢复新版通过。
+- 后续加固进行中：旧执行入口拒绝 reference 工作流；共享/派生须真实登录会话或独立操作者凭据；归档来源任务/验收/验证报告，保留原始导入提交，客户知识重新确认；交付方案检查准确绑定的 run，不能由新无关方案替代。完整定向/浏览器/规模/全量尚待最终字节验证。
+- 本轮验证资料目录：`/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-library-validation-_aov13wg/`；后续完整日志保存在此目录，离线保护仅允许测试回环连接，不修改机器设置。
+- 实现范围：`tmh/project_knowledge.py`、`platform/project_library.py` 实现静态版本构建、分阶段恢复、范围授权、检索原文、独立派生与维护；Store/server/knowledge 接入兼容迁移与旧路径限制；agents/agent_api/fixloop/preview 绑定引用与执行边界；agent_contract/workbench 接 CLI/MCP；ui_library/ui 接网页。新增 6 个行为测试模块，既有测试只适配只读工具数及最小 mock fixture，原断言含义保持。
+- 授权与输入：普通 API token 加人的显示名不能授予共享或创建工作区，7 类管理操作需真实签名会话或独立操作者凭据；Agent 仅能引用已有授权。任务包明确返回固定引用及摘要，与 requirement_hash 使用同一份引用输入；无引用时旧需求摘要逐字兼容。固定交付方案检查其实际 run，不能由新无关方案替代；提示词检索捕获 A→B→A 切换并拒绝启动。
+- 工作流：SQLite 短事务原子核验工作流并登记 Runner；项目内核锁串行化工作流切换与预览、复检登记。后台迟到预览必须重新读工作流，仍有活动预览/运行/复检时拒绝切换。只读来源的旧 project/ticket/run/session 写入入口被拒绝，不会先写聊天再报错。
+- 文件与确认：源 Git 对象原样导出到 source，分析产物在 analysis，生成页使用独立 `@knowledge/` 命名空间。派生先写精确导入提交，再另写初始化提交；来源任务/验收/报告完整归档，来源确认保留为历史并改为当前项目待确认。有排除文件的快照拒绝完整派生，未静默复制不完整工程。
+- 实际排查记录：最初一组回归误写不存在的 `test_candidates` 模块（145 tests，1 导入错误、13 skips），改用真实模块；另一组 46 tests 发现既有方案选择单测的最小 Mock 缺 `project_id`，补夹具并单独模拟新增引用门槛，仍保留原方案选择全部断言并断言检查 run 10，真实边界另有集成测试。新增首次锁 I/O 错误用例时一次插入位置错误导致 NameError，恢复原取消断言位置后通过；这三次均属测试命令/夹具问题，原日志保留，没有改超时或弱化断言。
+- 最终加固：首次 try_lock 的 I/O 错误关闭句柄、保留原异常且不登记/启动构建；`lease-mutation.log` 中运行期换回旧代码准确命中句柄未关闭断言，修复后同用例通过。就绪后恢复、queued 取消、分析器变更、破坏索引/监管回执、同分分页、固定方案失效及引用切换均有反例；内核锁和进程监管沿用 P6/P5 边界。
+- 定向命令统一为 `NO_PROXY='*' no_proxy='*' PYTHONPATH=<资料目录>:tests:. python3 -m unittest -v <模块>`：`related-final.log` 9 组既有/新功能 **132/132**，151.319s；`feature-final.log` 新知识/生命周期/边界/集成/Agent/UI/dialog **73 tests，72 通过、1 MCP SDK 缺失跳过**，24.819s；最后锁和布局调整 `final-adjustments.log` **38/38**，4.312s；最终任务包与 UI 时序、既有 Agent API/client `packet-and-ui-final.log` **88/88**，20.969s。
+- 稳定性：`python3 <资料目录>/stability.py`，queued 取消、发布后恢复、迟到预览、提示词引用 A→B→A 四条各 20 次，**80/80**，36.441s、0 跳过/失败/错误。保持真实 Git、监督子进程、内核锁与时钟，屏障只控制特定顺序；20 秒测试看门狗不改变产品 1800 秒构建预算。最后锁失败关闭修复不改变这些成功路径，随后完整生命周期模块再次通过。
+- 浏览器：用合成帐号和临时回环服务实际登记 STD/REF/CLIENT → 两来源固定构建 → 分范围绑定两份引用 → 同名审批检索 → 完整原文 → 派生客户 → 原项目开始维护 → 客户改模块后与固定标品比较 → 移除引用。DOM、原始截图与全文保存在资料目录；脚本标签按文本呈现，控制台没有 error，全文逐字等于原文件。回执表实际渲染发现长路径挤窄中文列，修正列宽和横向滚动后再次截图亲自查看，未删减内容。
+- 浏览器读回：三个原仓库 HEAD/状态保持，三个独立工作区干净，所有导入 blob 等于来源清单；归档报告原字节保留、当前知识待确认，原项目 id 仍为 1、两个旧引用保持、两份监管回执完整，0 模型运行/工单。最后从 CLIENT 移除 STD 后只剩 REF，旧对照消失，搜索只剩 1 条 REF 文档；`browser-verification.json`、`browser-final-state.json` 分别保留两阶段结果。临时服务与浏览器页均已关闭，日常 8791/8793 未启动。
+- 网页时序：新增参考卡的比较入口；引用变化清除已有对照，迟到比较成功或错误均不能覆盖新范围；连续比较不同来源以最新请求为准。对应新增回调用例在原行为下先失败后通过；UI 不缓存独立操作者凭据，来源撤权会清除旧搜索/全文/对照，不只改提示文字。
+- 规模：`scale.py` 冷/热/单文件变更三次真实构建，**286,780 行 Java、260 源文件、13 个目录组**，耗时 **9.576 / 6.355 / 6.113 秒**；解析文件 **260 / 0 / 1**，缓存条目 **0 / 520 / 518**（每文件两类解析）；峰值 **110018560 / 113344512 / 114147328 字节**；查询耗时 **0.092539 / 0.063672 / 0.061732 秒**。原文与源仓库未改变，分析器摘要与最终代码核对一致（`scale-analyzer-verified.json`）。
+- 规模边界：原始脚本输出的 `modules:13` 只是目录组，`one_module_changed` 实际只改一个文件；解析器只识别 **1 个模块、0 业务域/流**。检索词包含宽泛 approval，26,522 命中是词法统计，不代表业务相关性质量。`scale-results.json` 原样保留，不能将合成速度当真实复杂标品的完整理解或多模块精度证明。
+- 文档：新增 `docs/project-library.md`（82 行、8533 字节）说明网页/API/CLI/MCP、失败恢复、授权、无损归档和支持边界；设计与 BACKLOG 改为首版已实现，明确 C 的精细依赖/业务冲突与 D 的真实标品试点未完成。逐字读回，链接与代码围栏检查通过；非 Git/外部文档适配器保留后续扩展。
+- 首次全量前：已记录 217 个源码/测试/模板/技能文件的 SHA256（`validated-files-before-full.json`），随后运行 `NO_PROXY='*' no_proxy='*' PYTHONPATH=<资料目录>:. python3 -m unittest discover -s tests`。仅父 unittest 进程安装既有生命周期失败现场保留回调；不改变断言、结果或子进程启动时序。首次失败和最终复跑结果、哈希复核见下方。
+- 待确认/后续输入：无阻塞首版交付的问题。真实标品路径、允许共享范围与目标性能需实际试点时明确；精细业务依赖传播与升级冲突分析、非 Git/外部文档适配为后续能力。Windows 仍有上文六项阻塞，尤其 POSIX 进程监管、预览/本地 shell、hook 命令、权限/文件系统及原生锁实机验证；本轮静态 worker 复用 POSIX 监管，没有宣称 Windows 可运行。
+- 审阅重点：`server.py:api_library_action` 的真实操作者认证与共享范围；`project_library.py:derive/_initialize_workspace` 的原始提交、完整归档和当前项目确认；`agents.py:reviewed_delivery_plan` 与任务包实际引用输入；`project_library.py:_lease/project_guard/resume` 的锁所有权、拿锁后重读和错误释放。`invariants.json` 核对 acceptance/guard/filelock/process_control/supervised_process 五文件与起点逐字一致；MOVES/HUMAN_ONLY/AGENT_ENV/ALWAYS_PROTECTED/DANGEROUS_BASH 的 AST 相同。P5 guard 与 P6 锁的既有人工审阅建议继续有效。
+
+- 首次全量：895 tests，415.697s，FAILED（1 failure、16 skips），退出 1。唯一失败 `test_runtime_review.RuntimeRecoveryReviewTest.test_independent_runners_commit_and_dispatch_only_one_retry` 是本轮引入：Runner 在提示词准备至启动期间独占项目锁，阻止第二个 Runner 到达既有数据库重试去重屏障，两个均未获胜。完整 `full-unittest.log` 保留，SHA256 `8551eda86042e3acc5d4dcac11b54257b51453235db6f234e309dd466e980048`；不归因为环境或基线，也没有修改原测试屏障、断言和时限。
+- 并发修复：移除 Runner 准备阶段的整段项目锁；`Store.create_run` 与工作流切换/工作区发布用 `BEGIN IMMEDIATE` 把当前工作流核验和登记置于同一短事务，唯一重试索引仍裁决两个独立 Runner。拒绝路径自动回滚，预览/复检的项目内核锁保持。运行还在事务内核对生成提示词时的工作区，阻止查阅→维护切换后用旧目录提示词启动。
+- 新回归：独立连接在提示词完成后切换只读，必须不登记、不认领、不启动；真实 SQLite 写锁探针分别检查运行先登记、工作流先切换时的核验至发布原子性，以及失败后锁已释放；真实固定版本维护后旧工作区提示词拒绝启动。只有最后调度模型的 Thread 被拦截，Git、SQLite、工作流、提示词与派生仍执行真实路径。定向与稳定性结果见下方。
+- 并发定向：`python3 -m unittest -v test_runtime_review test_library_boundaries test_library_integration test_run_lifecycle`，**42/42**，43.290s，退出 0（相同离线环境）。原失败的独立 Runner 重试测试逐字未改，现已通过；新三项边界回归均通过。
+- 并发反例：只在诊断进程内分别移除运行事务、切换事务、登记时工作流检查、登记时工作区校验，四组均在预期断言准确失败，恢复后均通过（`registration-mutations-final.log`、JSON）。最初诊断函数复制了 globals 导致切换事务的暂停探针未接上，未把这次错误算作有效红灯；旧脚本及日志保留，改为使用原模块 globals 后重新验证。生产源码从未写入故障代码。
+- 并发稳定性：上述原重试用例和三项新边界各 20 轮，**80/80**，32.052s，0 失败/错误/跳过，退出 0。真实独立连接、Git 派生、时钟及原重试屏障/时限保留；受测 5 个文件前后 SHA256 一致。最终全量前另存全部 217 文件摘要到 `validated-files-before-full-final.json`，首次失败日志和首轮摘要不覆盖。
+- 最终全量：`NO_PROXY='*' no_proxy='*' PYTHONPATH=<资料目录>:. python3 -m unittest discover -s tests`，**898 tests，305.777s，OK（skipped=16）**，即 **882 通过、16 跳过、0 失败/错误，退出 0**。逐项核对 14 项缺可选 MCP SDK（含 1 项新增协议用例）、2 项缺 cryptography；没有联网安装。资源关闭警告原样保留，未屏蔽。仅加载测试列出的完整跳过清单为 `optional-skips-final.json`。
+- 最终字节与不变量：全量前后 217 个源码/测试/模板/技能文件 SHA256 一致（`validated-files-after-full-final.json`）；acceptance/guard/filelock/process_control/supervised_process 五个文件与 `60d96e7` 逐字一致。对比起点 1,196 个原测试/辅助函数 AST，仅两处已说明的 fixture/工具数适配；原独立 Runner 重试测试完整不变，原真实超时/取消/进程清理测试不变。`invariants-final.json` 保留结果。
+- 验证日志摘要：`full-final.log` 22972 字节 / SHA256 `ce437d50b9b26a8928235b2246e6126102e60986e5227069418fc4a7b5e2b1ee`；`registration-targeted.log` 7962 字节 / `7aa55eb98ed2804c62774164d1cf2d89ba0816d94ba383a78f3488074da595e8`；`registration-stability.log` 17723 字节 / `f4707f8722a7b82c4a6163503325a4a70671dbed190ecb6c56374a5c8aae3c53`；`registration-mutations-final.log` 6092 字节 / `11844e6f15d598f13d2491bbd636eedba722abf923f887b451892d15101f83f3`。首次全量失败、反例、浏览器原图/DOM、原文、规模脚本与原始测量全部保留，无压缩或截断。
+- 收尾：亲自审阅新增实现及全部集成 diff、最后四文件并发修复、基线两处夹具适配和文档；浏览器最终原图再次打开确认可读，文档链接/围栏与 `git diff --check` 通过。使用说明 [project-library.md](../project-library.md) 已读回；设计与 BACKLOG 明确首版及未完成范围。提交标题 `feat: 支持标品与参考项目的固定版本知识复用`，在 `feat/ralph-port` 独立提交，不 push，原 stash 保留。
+- 新增人工审阅重点：`Store.create_run`、`project_library.configure/derive` 的短事务、回滚和工作区绑定；共享操作的真实操作者认证；来源确认的完整归档及客户重新确认。P5 guard / 人工确认和 P6 原生锁实现未改，原人工审阅建议及 Windows 六项剩余阻塞清单保持。

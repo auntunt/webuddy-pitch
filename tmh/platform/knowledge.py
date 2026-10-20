@@ -24,6 +24,11 @@ class Knowledge:
         self._ov = {}
 
     def root(self, p: dict) -> Path:
+        from .project_library import require_development
+        try:
+            require_development(self.store, p)
+        except ValueError as exc:
+            raise ApiError(409, str(exc)) from exc
         return Path(p["root"])
 
     def forget(self, project_id: int) -> None:
@@ -32,6 +37,9 @@ class Knowledge:
 
     def kb_overview(self, p: dict) -> dict:
         """Knowledge-base numbers for one project, cached on graph.db's mtime."""
+        from .project_library import profile
+        if profile(self.store, p)['workflow'] == 'reference':
+            return {'built': False, 'workflow': 'reference', 'notice': '固定知识版本请在“知识与引用”查看'}
         from ..graph import Graph, graph_path
         root = self.root(p)
         gp = graph_path(root)

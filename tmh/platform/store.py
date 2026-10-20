@@ -96,6 +96,8 @@ class Store:
             self.db.execute("UPDATE events SET kind='adopt' WHERE kind='accept' AND data LIKE '%\"branch\"%'")
             self.db.commit()
         self._migrate_chats()
+        from .project_library import schema as library_schema
+        library_schema(self)
 
     def _migrate_chats(self) -> None:
         """Assistant messages from before sessions existed: one session per ticket, one '旧版未分类会话' per project.
@@ -141,7 +143,10 @@ class Store:
     def project(self, pid) -> dict | None:
         return self.one("SELECT * FROM projects WHERE id=? OR key=?", (pid, str(pid).upper()))
 
-    def add_project(self, key: str, name: str, root: str, description: str = "") -> dict:
+    def add_project(self, key: str, name: str, root: str, description: str = "", *, roles=None, workflow='development') -> dict:
+        from .project_library import validate_profile
+        roles = [] if roles is None else roles
+        validate_profile(roles, workflow)
         key = key.upper()
         if not key.isalnum() or not key[0].isalpha() or len(key) > 10:
             raise ValueError("项目代号只能是字母开头的字母数字，最多 10 位，例如 TOG")
@@ -149,8 +154,12 @@ class Store:
             raise ValueError("目录不存在：%s" % root)
         if self.project(key):
             raise ValueError("项目代号已存在：%s" % key)
-        pid = self.x("INSERT INTO projects(key,name,root,description,created) VALUES(?,?,?,?,?)",
-                     (key, name or key, str(Path(root).resolve()), description, now()))
+        root = str(Path(root).resolve())
+        with self.lock, self.db:
+            pid = self.db.execute("INSERT INTO projects(key,name,root,description,created) VALUES(?,?,?,?,?)",
+                                  (key, name or key, root, description, now())).lastrowid
+            self.db.execute('INSERT INTO project_profiles VALUES(?,?,?)', (pid, json.dumps(roles), workflow))
+            self.db.execute('INSERT INTO project_sources(project_id,root,label,created) VALUES(?,?,?,?)', (pid, root, '主仓库', now()))
         return self.project(pid)
 
     # ---- tickets
@@ -294,10 +303,19 @@ class Store:
 
     # ---- runs
     def create_run(self, project_id: int, ticket_id, agent: str, mode: str, author: str, prompt: str, target: str = "",
-                   session_id=None, batch: str = "", model: str = "", retry_of=None) -> dict:
+                   session_id=None, batch: str = "", model: str = "", retry_of=None, *, expected_root=None) -> dict:
+        from .project_library import require_development
         try:
-            rid = self.x("INSERT INTO runs(ticket_id,project_id,agent,mode,status,author,created,prompt,target,session_id,batch,model,retry_of) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                         (ticket_id, project_id, agent, mode, "queued", author, now(), prompt, target, session_id, batch or "", model or "", retry_of))
+            # Only eligibility and registration share the writer transaction.
+            # Prompt preparation stays concurrent; UNIQUE retry_of still decides
+            # the winner across independent Runner / Store instances.
+            with self.lock, self.db:
+                self.db.execute("BEGIN IMMEDIATE")
+                require_development(self, {"id": project_id})
+                if expected_root is not None and self.project(project_id)['root'] != expected_root:
+                    raise ValueError('准备运行期间项目工作区已变化，请重新启动任务')
+                rid = self.db.execute("INSERT INTO runs(ticket_id,project_id,agent,mode,status,author,created,prompt,target,session_id,batch,model,retry_of) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                                      (ticket_id, project_id, agent, mode, "queued", author, now(), prompt, target, session_id, batch or "", model or "", retry_of)).lastrowid
         except sqlite3.IntegrityError:
             successor = self.one("SELECT id FROM runs WHERE retry_of=?", (retry_of,)) if retry_of is not None else None
             if successor:

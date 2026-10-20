@@ -563,7 +563,11 @@ def start_recheck(runner, rid, by=""):
     if r["decision"] and not r["decision"].startswith("accepted:"):
         raise ValueError("这次改动已经放弃了")
     config = settings(runner.data_dir)
-    return recheck_operations(runner).start(rid, by, float(config.get("recheck_timeout") or config.get("check_timeout") or 1200))
+    from .project_library import project_guard, require_run_current
+    p = runner.store.project(r['project_id'])
+    with project_guard(runner.store, p, execution=True):
+        require_run_current(runner.store, p, rid)
+        return recheck_operations(runner).start(rid, by, float(config.get("recheck_timeout") or config.get("check_timeout") or 1200))
 
 
 def recheck(runner, rid: int, *, allow_running: bool = False, operation=None, by="") -> dict:

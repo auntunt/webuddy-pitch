@@ -110,6 +110,11 @@ class Platform:
         return t
 
     def root(self, p: dict) -> Path:
+        from .project_library import require_development
+        try:
+            require_development(self.store, p)
+        except ValueError as exc:
+            raise ApiError(409, str(exc)) from exc
         return Path(p["root"])
 
     # ------------------------------------------------------------ points
@@ -938,7 +943,8 @@ def route(method: str, pattern: str):
 @route("GET", "/api/meta")
 def api_meta(P, req):
     from .login import load_users
-    return {"version": __version__, "user": req.user, "login": bool(load_users(P.data_dir)), "brand": P.brand, "statuses": STATUSES, "types": TYPES, "priorities": PRIORITIES,
+    return {"version": __version__, "user": req.user, "login": bool(load_users(P.data_dir)),
+            "operator_authenticated": bool(getattr(req.h, '_who', '')), "brand": P.brand, "statuses": STATUSES, "types": TYPES, "priorities": PRIORITIES,
             "modes": RUN_MODES, "agents": available(P.data_dir), "data_dir": str(P.data_dir), "autoflow": P.flow.autoflow(),
             "apps": __import__("tmh.platform.apps", fromlist=["APPS"]).APPS}
 
@@ -963,10 +969,59 @@ def api_projects(P, req):
 @route("POST", "/api/projects")
 def api_add_project(P, req):
     b = req.body
+    from . import project_library as library
+    roles, workflow = b.get('roles', []), b.get('workflow', 'development')
+    library.validate_profile(roles, workflow)
     try:
-        return P.store.add_project(b.get("key", ""), b.get("name", ""), os.path.expanduser(b.get("root", "")), b.get("description", ""))
+        return P.store.add_project(b.get("key", ""), b.get("name", ""), os.path.expanduser(b.get("root", "")),
+                                   b.get("description", ""), roles=roles, workflow=workflow)
     except ValueError as e:
         raise ApiError(400, str(e))
+
+
+@route("GET", "/api/projects/<key>/library")
+def api_library(P, req, key):
+    from .project_library import view
+    return view(P.store, P.project(key))
+
+
+@route("POST", "/api/projects/<key>/library")
+def api_library_action(P, req, key):
+    from .project_library import act
+    if req.h.headers.get('X-Webuddy-Agent') or req.user.startswith('agent:'):
+        raise ApiError(403, '智能体请使用专用知识接口；共享授权与工作区创建由操作者发起')
+    sensitive = req.body.get('action') in ('configure', 'add_source', 'grant', 'revoke', 'derive', 'maintain') or req.body.get('grant') is True
+    if sensitive:
+        # X-TMH-User is an audit label, not operator authentication. A valid
+        # signed login session or the existing independent credential is needed.
+        if not getattr(req.h, '_who', ''):
+            from .operator_access import require
+            require(P, req.h.headers)
+        from .signoff import human
+        if not human(getattr(req.h, '_who', '') or req.user):
+            raise ApiError(403, '请由已登录的操作者管理共享与开发工作区')
+    try:
+        return act(P, P.project(key), req.body, req.user)
+    except ValueError as exc:
+        raise ApiError(409, str(exc)) from exc
+
+
+@route("GET", "/api/projects/<key>/knowledge/search")
+def api_knowledge_search(P, req, key):
+    from .project_library import search
+    try:
+        return search(P.store, P.project(key), req.arg('q'), int(req.arg('limit') or 20), int(req.arg('offset') or 0))
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
+@route("GET", "/api/projects/<key>/knowledge/file")
+def api_knowledge_file(P, req, key):
+    from .project_library import read
+    try:
+        return read(P.store, P.project(key), req.arg('revision_id'), req.arg('path'))
+    except ValueError as exc:
+        raise ApiError(409, str(exc)) from exc
 
 
 @route("GET", "/api/projects/<key>")
@@ -3062,6 +3117,31 @@ def make_handler(P: Platform, token: str = ""):
                 m = rx.match(path)
                 if m:
                     try:
+                        # Reference-only repositories are never executable or
+                        # writable through legacy project/ticket/run endpoints.
+                        if method == 'POST':
+                            from .project_library import require_development
+                            target = None
+                            project_path = re.fullmatch(r'/api/projects/([^/]+)/(.*)', path)
+                            ticket_path = re.match(r'^/api/tickets/([^/]+)(?:/|$)', path)
+                            run_path = re.match(r'^/api/runs/(\d+)(?:/|$)', path)
+                            session_path = re.match(r'^/api/sessions/(\d+)(?:/|$)', path)
+                            if project_path and project_path[2] != 'library':
+                                target = P.store.project(unquote(project_path[1]))
+                            elif ticket_path:
+                                ticket = P.store.ticket(unquote(ticket_path[1]))
+                                target = P.store.project(ticket['project_id']) if ticket else None
+                            elif run_path:
+                                run = P.store.run(int(run_path[1]))
+                                target = P.store.project(run['project_id']) if run else None
+                            elif session_path:
+                                session = P.store.session(int(session_path[1]))
+                                target = P.store.project(session['project_id']) if session else None
+                            if target:
+                                try:
+                                    require_development(P.store, target)
+                                except ValueError as exc:
+                                    raise ApiError(409, str(exc)) from exc
                         res = fn(P, Req(self, q, body, user[:40]), **{k: unquote(v) for k, v in m.groupdict().items()})
                         return self._json(200, res)
                     except ApiError as e:

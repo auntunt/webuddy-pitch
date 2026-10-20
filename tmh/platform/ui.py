@@ -11,10 +11,11 @@ from .ui_work import WORK_CSS, WORK_JS
 from .ui_delivery import DELIVERY_CSS, DELIVERY_JS
 from .ui_theme import THEME_CSS
 from .ui_drafts import DRAFT_JS
+from .ui_library import LIBRARY_CSS, LIBRARY_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS)
 
 
 HTML = r"""<!doctype html>
@@ -47,8 +48,8 @@ JS = r"""
 const S={meta:null,proj:localStorage.getItem('tmh.proj')||'',scope:localStorage.getItem('tmh.scope')||'*',user:localStorage.getItem('tmh.user')||'',projects:[],polls:[]};
 const $=s=>document.querySelector(s);
 const h=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function api(m,p,b){
-  const o={method:m,headers:{'X-TMH':'1'}};
+async function api(m,p,b,extraHeaders={}){
+  const o={method:m,headers:{'X-TMH':'1',...extraHeaders}};
   if(S.user)o.headers['X-TMH-User']=encodeURIComponent(S.user);
   if(b!==undefined){o.headers['Content-Type']='application/json';o.body=JSON.stringify(b)}
   // errors read as what happened and what to do; the raw cause goes to the console for whoever debugs it
@@ -60,7 +61,7 @@ const apiErr=msg=>Object.assign(new Error(msg),{api:1});
 const HTTPMSG={401:'登录已过期，刷新页面重新登录。',403:'没有权限做这一步，需要的话找管理员开通。',404:'要找的内容不存在，可能已被删除或改名。',
   413:'文件太大了，换小一点的再试。',429:'操作太频繁，稍等一下再试。',502:'服务器暂时不可用，稍后再试。',503:'服务器暂时不可用，稍后再试。',504:'服务器响应超时，稍后再试；如果是长任务，它可能还在后台跑。',
   500:'服务器出错了，这一步没有完成。刷新看看结果再决定要不要重试；一直这样请告诉管理员。'};
-const get=p=>api('GET',p),post=(p,b)=>api('POST',p,b||{});
+const get=p=>api('GET',p),post=(p,b,headers)=>api('POST',p,b||{},headers);
 function toast(t,ms){const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,ms||2600)}
 let modalReturnFocus=null;
 function modal(html,wide){
@@ -124,7 +125,7 @@ function diffHtml(d){return '<pre class="diff">'+d.split('\n').map(l=>{const c=l
 // waves). Each has its own pages and its own numbers; the knowledge base, the map, agent runs and settings serve both.
 const SVC={ops:{name:'运维服务',tabs:[['home','工单看板','#/board'],['tickets','工单列表','#/tickets'],['lead','运维成效','#/lead'],['overview','监控总览','#/overview'],['eff','提效报告','#/eff'],['learn','闭环改进','#/learn'],['int','外部系统','#/int']]},
   reform:{name:'重构服务',tabs:[['reform','改造计划','#/reform'],['rtickets','改造工单','#/rtickets'],['rdeps','依赖清单','#/rdeps']]}};
-const SHARED=[['atlas','项目图谱','#/atlas'],['kb','知识库','#/kb'],['map','架构与依据','#/map'],['runs','智能体运行','#/runs'],['settings','设置','#/settings']];
+const SHARED=[['atlas','项目图谱','#/atlas'],['kb','知识库','#/kb'],['library','知识与引用','#/library'],['map','架构与依据','#/map'],['runs','智能体运行','#/runs'],['settings','设置','#/settings']];
 const TOP=['home','tickets','lead','kb','reform','rtickets','rdeps'];
 S.svc=localStorage.getItem('tmh.svc')==='reform'?'reform':'ops';
 function svcOf(view){for(const k in SVC)if(SVC[k].tabs.some(t=>t[0]===view))return k;return S.svc}
@@ -177,7 +178,7 @@ function render(){
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
   if(!S.proj&&!['settings','deliveries','delivery'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
-  const V={deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||(()=>{location.hash='#/deliveries'});
+  const V={deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||(()=>{location.hash='#/deliveries'});
   if(view!=='t')A.setTicket(null);
   paintSel();
   if(view==='atlas'&&$('#atl')){S.renderP=Promise.resolve(vAtlas(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}
@@ -1646,10 +1647,11 @@ async function vSettings(){
   $('#main').innerHTML=`<h1>设置</h1><div class="card" id="rdy" style="margin-top:14px"><h2>上线体检</h2><div class="sub">检查中…</div></div><div class="grid2" style="margin-top:14px"><div class="card form"><h2>我</h2><label>名字（写在评论、指派和审阅记录里）<input class="full" id="un" value="${h(S.user)}"></label><div><button class="primary" id="us">保存</button></div></div>
   <div class="card"><h2>智能体</h2>${S.meta.agents.map(a=>`<div class="flowrow"><span>${h(a.title)} <span class="key">${h(a.name)}</span></span><span class="tag">${a.available?'可用':'本机未找到'}</span></div>`).join('')}
   <div class="hint" style="margin-top:10px">平台用本机已安装的 <code>claude</code>（Claude Code）和 <code>codex</code> 命令，沿用它们自己的登录或环境变量。接第三方模型用 <code>tmh agent-config</code> 生成配置。也可以在 <code>${h(S.meta.data_dir)}/agents.json</code> 里加自研智能体：<code>{"my": {"title":"自研","cmd":["my-agent","--dir","{workdir}","{prompt_file}"]}}</code></div></div>
-  <div class="card"><h2>项目</h2>${S.projects.map(p=>`<div class="flowrow"><span><b>${h(p.key)}</b> ${h(p.name)}<div class="sub">${h(p.root)}${p.exists?'':'（目录不存在）'}</div></span><span class="sub">${p.open} 张未关闭</span></div>`).join('')}<div style="margin-top:10px"><button onclick="newProject()">＋ 添加项目</button></div></div>
+  <div class="card"><h2>项目</h2>${S.projects.map(p=>`<div class="flowrow"><span><b>${h(p.key)}</b> ${h(p.name)}<div class="sub">${h(p.root)}${p.exists?'':'（目录不存在）'}</div></span><span class="sub">${p.open} 张未关闭</span><button data-project-library="${h(p.key)}">知识与引用</button></div>`).join('')}<div style="margin-top:10px"><button onclick="newProject()">＋ 登记已有项目</button></div></div>
   <div class="card form" id="tbx"><h2>测试机</h2><div class="sub">加载中…</div></div>
   <div class="card"><h2>数据</h2><div class="sub">工单、讨论和运行记录都在 <code>${h(S.meta.data_dir)}/platform.db</code>（SQLite），修改代码用的工作树在 <code>worktrees/</code>。备份这个目录即可。</div></div></div>`;
   $('#us').onclick=()=>{S.user=$('#un').value.trim();try{localStorage.setItem('tmh.user',S.user)}catch(e){}$('#me').textContent='当前用户：'+S.user;toast('已保存')};
+  document.querySelectorAll('[data-project-library]').forEach(button=>button.onclick=()=>libraryOpen(button.dataset.projectLibrary));
   testbox();readiness()}
 // ---------- versions that went out: the end of the line a client cares about
 async function rels(){const el=$('#rels');if(!el)return;let d;try{d=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/releases')}catch(e){return}
@@ -1679,12 +1681,7 @@ async function testbox(d){
   if($('#tbI1'))$('#tbI1').onclick=()=>{$('#tbI').innerHTML=`<div class="sub">会在测试机上下载并解压：${h(L.missing.join('、'))}，可能要几分钟到几十分钟。</div><div class="row" style="gap:8px"><button class="primary" id="tbI2">确认下载安装</button><button id="tbI3">取消</button></div>`;
     $('#tbI3').onclick=()=>testbox();
     $('#tbI2').onclick=async()=>{$('#tbI2').disabled=true;$('#tbI2').textContent='正在下载安装…';try{await post('/api/testbox/install',{})}catch(e){toast(e.message,5000)}testbox()}}}
-function newProject(){
-  modal(`<h2>添加项目</h2><div class="form"><label>项目目录（本机绝对路径）<input class="full" id="pr" placeholder="/Users/me/workspace/together-project"></label>
-  <div class="row"><label>代号（工单编号前缀）<input id="pk" placeholder="TOG" size="8"></label><label class="grow">名称 <input class="full" id="pn" placeholder="together 协同办公"></label></div>
-  <div><button class="primary" id="pa">添加</button></div><div class="sub">目录里已有 .tmh/（运行过 tmh kb build）就能用上知识库和业务全景。</div></div>`);
-  $('#pr').oninput=()=>{const n=$('#pr').value.split('/').filter(Boolean).pop()||'';if(!$('#pk').dataset.t)$('#pk').value=n.replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase()};$('#pk').oninput=()=>$('#pk').dataset.t=1;
-  $('#pa').onclick=async()=>{try{const p=await post('/api/projects',{root:$('#pr').value.trim(),key:$('#pk').value.trim(),name:$('#pn').value.trim()});S.proj=p.key;try{localStorage.setItem('tmh.proj',p.key)}catch(e){}closeModal();await loadProjects();location.hash='#/';render()}catch(e){toast(e.message,5000)}}}
+function newProject(){return libraryRegisterProject()}
 
 // ---------- closed-loop assistant (right drawer)
 // ---------- maintenance assistant: one session at a time; each session keeps its own messages, draft and context

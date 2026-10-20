@@ -25,6 +25,7 @@ BOUNDARIES = {
     "approval": "agent actions never record human acceptance, review, merge, or release",
     "candidate": "immutable external candidates support independent verification, preview and technical assessment; human decisions use the operator CLI",
     "execution": "execution requires X-Webuddy-Execution: 1; runs remain subject to existing lifecycle and verification controls",
+    "knowledge": "references remain pinned to authorized source revisions; agents cannot grant sharing, derive workspaces, or turn source confirmation into current-project acceptance",
 }
 
 
@@ -53,7 +54,7 @@ def _digest(value):
     return hashlib.sha256(_json(value).encode("utf-8")).hexdigest()
 
 
-def _requirement(t, store):
+def _requirement(t, store, *, reference_inputs=None):
     """Bind requirement sources, including conversation and the client contract.
 
     This is deliberately conservative: even an informational comment invalidates
@@ -64,10 +65,15 @@ def _requirement(t, store):
     links = t.get("links") or {}
     discussion = store.q("SELECT * FROM events WHERE ticket_id=? AND kind IN ('comment','reject','conflict') ORDER BY id", (t["id"],))
     contracts = [record for record in records(store.path.parent, t["key"]) if record["kind"] == "intake"]
-    return _digest({"schema": 2, "ticket": t["id"], "title": t["title"], "body": t["body"], "type": t["type"],
+    value = {"schema": 2, "ticket": t["id"], "title": t["title"], "body": t["body"], "type": t["type"],
                     "priority": t["priority"], "reporter": t.get("reporter"), "external": t.get("external"),
                     "discussion": discussion, "client_contract": contracts[-1] if contracts else None,
-                    "source": {k: links.get(k) for k in ("base", "code_at", "flows", "delivery", "delivery_plan_run")}})
+             "source": {k: links.get(k) for k in ("base", "code_at", "flows", "delivery", "delivery_plan_run")}}
+    from .project_library import bindings
+    references = bindings(store, store.project(t['project_id'])) if reference_inputs is None else reference_inputs
+    if references:  # Keep the exact legacy identity for projects without references.
+        value['knowledge_references'] = references
+    return _digest(value)
 
 
 def _actor(req):
@@ -105,6 +111,8 @@ def _req(req, actor, body=None, query=None):
 
 
 def _resource(P, operation, args):
+    if operation.startswith("library_"):
+        return "project:%d:library" % _project(P, args["project"])["id"]
     if "probe_id" in args:
         from .harness_probes import row
         from .candidates import _row
@@ -158,8 +166,8 @@ def _write(P, req, actor, operation, args):
             # prevent stopping that run or discussing what happened. Cancellation
             # and message receipts do not themselves own an execution resource.
             pending = None
-            if operation not in ("run_cancel", "candidate_cancel", "harness_probe_cancel", "message_send"):
-                pending = st.db.execute("SELECT request_id FROM agent_requests WHERE resource=? AND state IN ('pending','uncertain') AND operation IN ('ticket_create','run_start','run_retry','run_recheck','preview_start','candidate_submit','candidate_verify','candidate_preview','candidate_decide','candidate_assess','harness_probe_start') LIMIT 1", (resource,)).fetchone()
+            if operation not in ("run_cancel", "candidate_cancel", "harness_probe_cancel", "library_cancel", "message_send"):
+                pending = st.db.execute("SELECT request_id FROM agent_requests WHERE resource=? AND state IN ('pending','uncertain') AND operation IN ('ticket_create','run_start','run_retry','run_recheck','preview_start','candidate_submit','candidate_verify','candidate_preview','candidate_decide','candidate_assess','harness_probe_start','library_build','library_resume','library_reference','library_unlink') LIMIT 1", (resource,)).fetchone()
             if pending:
                 raise ApiError(409, "needs_reconcile: 此对象还有未确认的请求 %s；先核对原始回执，不会开始重复操作" % pending["request_id"])
             ts = now()
@@ -212,6 +220,21 @@ def dispatch(P, req, operation):
     if operation in EXECUTIONS and req.h.headers.get("X-Webuddy-Execution") != "1":
         raise ApiError(403, "此操作会启动模型、构建或预览进程；客户端需显式启用执行权限 X-Webuddy-Execution: 1")
     _schema(P.store)
+    if operation in EXECUTIONS and not operation.startswith('library_') and not operation.endswith('_cancel'):
+        from .project_library import require_development
+        resource = _resource(P, operation, args)
+        target = None
+        if resource.startswith('ticket:'):
+            target = P.store.project(P.store.ticket(int(resource.split(':')[1]))['project_id'])
+        elif resource.startswith('run:'):
+            target = P.store.project(P.store.run(int(resource.split(':')[1]))['project_id'])
+        elif args.get('project'):
+            target = _project(P, args['project'])
+        if target:
+            try:
+                require_development(P.store, target)
+            except ValueError as exc:
+                raise ApiError(409, str(exc)) from exc
     if operation in WRITES:
         return _write(P, req, actor, operation, args)
     return _execute(P, req, actor, operation, args)
@@ -225,6 +248,11 @@ def _page(rows, limit, after=0):
 
 def _ready(P, t):
     from . import epic
+    from .project_library import require_development
+    try:
+        require_development(P.store, P.store.project(t['project_id']))
+    except ValueError as exc:
+        raise ApiError(409, str(exc)) from exc
     if t["status"] == "closed":
         raise ApiError(409, "工单已关闭，请先明确新的需求")
     why = epic.refuse(t, "run")
@@ -270,6 +298,9 @@ def _ready(P, t):
 def _execute(P, req, actor, operation, a):
     from . import server
     st = P.store
+    if operation.startswith("library_"):
+        from .project_library import execute
+        return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
     if operation.startswith("harness_"):
         from .harness_probes import execute
         return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
@@ -317,7 +348,18 @@ def _execute(P, req, actor, operation, a):
         packet["preview"] = server.api_preview(P, _req(req, actor), t["key"])
         packet["evidence_state"] = server.api_evidence(P, _req(req, actor), t["key"])
         packet["boundaries"] = dict(BOUNDARIES)
-        packet["requirement_hash"] = _requirement(t, st)
+        from . import project_library
+        reference_state = project_library.reference_state(st, p)
+        reference_inputs = project_library._binding_values(reference_state)
+        packet["knowledge"] = {
+            "workflow": project_library.profile(st, p)['workflow'],
+            "references": reference_state,
+            "references_hash": project_library.digest(reference_inputs),
+            "search": {"operation": "library_search", "project": p['key']},
+            "read": {"operation": "library_read", "project": p['key']},
+            "notice": "固定参考资料；当前项目适用性待核对，来源不可用时不能继续执行。完整原文通过 library_read 读取。",
+        }
+        packet["requirement_hash"] = _requirement(t, st, reference_inputs=reference_inputs)
         from .harness_probes import library
         packet["harness_library"] = library(P, p["key"])
         packet["external_candidates"] = st.q("SELECT id,run_id,commit_sha,base_commit,agent,created FROM code_candidates WHERE ticket_id=? ORDER BY id DESC", (t["id"],))

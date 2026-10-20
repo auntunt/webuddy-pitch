@@ -114,7 +114,7 @@ class BootstrapTest(unittest.TestCase):
 class DeliveryExecutionPromptTest(unittest.TestCase):
     def test_fix_uses_reviewed_plan_binding_even_when_a_newer_plan_exists(self):
         loop = self.loop()
-        loop.t.update(id=7)
+        loop.t.update(id=7, project_id=1)
         loop.t["links"]["delivery_plan_run"] = 10
         reviewed = {"id": 10, "ticket_id": 7, "mode": "plan", "status": "done", "exit_code": 0,
                     "result": '```tmh-plan\n{"files":[{"path":"app.py","goal":"已复核的业务行为"}],"ac":[]}\n```'}
@@ -122,8 +122,12 @@ class DeliveryExecutionPromptTest(unittest.TestCase):
         loop.st.runs.return_value = [{"id": 99, "mode": "plan", "status": "done"}]
         loop.set = {"max_files": 16}
         loop.commands = mock.Mock(side_effect=RuntimeError("stop after selecting plan"))
-        with self.assertRaisesRegex(RuntimeError, "stop after selecting plan"):
-            loop.run()
+        # This unit tests selection of the reviewed plan; real reference-input
+        # validity is covered by test_library_integration with a real Store.
+        with mock.patch('tmh.platform.project_library.require_run_current') as current:
+            with self.assertRaisesRegex(RuntimeError, "stop after selecting plan"):
+                loop.run()
+        current.assert_called_once_with(loop.st, loop.st.project.return_value, 10)
         loop.st.run.assert_called_once_with(10)
         loop.st.runs.assert_not_called()
         loop.commands.assert_called_once_with({"app.py": "已复核的业务行为"})
