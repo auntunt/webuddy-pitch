@@ -1,6 +1,6 @@
 # Ralph port 执行进度
 
-- 当前项：复审 `7bce98f` 的原子发布与屏障测试；状态：done（修复屏障漏检和迟启动清理竞态；定向 48/48、稳定性 148/148；全量 822 tests，807 通过、15 跳过）
+- 当前项：项目资产与知识库复用设计；状态：done（设计及现状核对完成；功能实现为 BACKLOG SI-015，状态 todo，不计入已实现能力）
 - 仓库：`tob-maintenance-harness`；分支：`feat/ralph-port`
 - 起点：`422d9bf`（原分支 `codex/self-evolution-resume`）。
 - 只读规格：`/Users/auntlee/Downloads/ralph-learn-pack/codex-prompts.md`，不复制进仓库。
@@ -263,3 +263,15 @@
 - 最终审查：原子发布实现无需改动；修复了屏障漏检和复用清理函数的迟启动漏洞。取消异常仍上抛，原精确 PID 清理和 2 秒 join 在 finally 中执行；没有扩大进程筛选范围，也没有放宽任一原时间限制。原 14 项其他测试 AST、整个 FIXTURE 字节及生产 `tmh/` 均无改动；最终代码哈希在定向、稳定性、全量前后相同，`git diff --check` 通过。只提交测试与本进度文件，提交号绑定到 `validated-files.json`。
 - 日志校验：`early-publish-before.log` 1031 字节 / SHA256 `4e7e47ed0e1013982443f55e513c66fa76d3f2351a3bcecc9c94d4bd159f4338`；`early-publish-after.log` 11903 字节 / SHA256 `4360229eca2e626b3420b7d68d46ad6bd3e8d2fbdda7c2052da397ffe94fdf5a`；`late-launch-cleanup.json` 424 字节 / SHA256 `6024632cc93340ef4a325f28c524699112648e8402f21a0ebedf966c962a7df3`；`stability.log` 28555 字节 / SHA256 `b9cf73907def93a1e73b7da171617fb8669176aa16318c7729a95a142585bb52`；`full-unittest.log` 22988 字节 / SHA256 `c59c8b328de94bd64297cecaccfd5c273033980873c2a1d697f1303eef0621b6`。其余原始文件哈希在同目录 `evidence-manifest.json`。
 - 人工重点：屏障从 write 前移到 close 前，是否准确捕获关闭前发布；`cleanup_owned` 先取消再取 PID 快照、并在取消出错时仍清理的顺序；迟启动回归的 Event 释放与 finally。无新增待确认，P5/P6 与 Windows 剩余阻塞点沿用原清单。
+
+## 后续：项目资产与知识库复用设计
+
+- 状态：done；起点 `663b98e`，`feat/ralph-port` 开工干净。P1–P6 和既有后续修复保持 done；本条是新需求设计，不将设计完成计作功能实现完成。
+- 需求：标品及一个或多个参考项目可先作为知识来源，客户项目从已有标品派生；参考项目以后也能作为待修改老项目。底层需支持数十万行代码、灵活组合与知识复用。
+- 已读：项目 Store/API/UI、Knowledge、graph/kb/context/parsecache、survey、Agent 上下文入口、现有相关测试与知识库/待办说明；只读本地源码和文档，不接触真实 data/ 或凭据，不启动服务。
+- 发现：目前 project 主要绑定一个 root；解析按文件缓存、知识页锚点和队列可复用，但没有固定版本的跨项目引用/派生关系。图谱仍整体重建，检索缓存一次只保留一个项目；既有能力不能直接证明复杂标品规模下可用。
+- 实际产物：`docs/design/project-knowledge-library-2026-10-20.md`、`docs/self-improvement/BACKLOG.md` 与本进度文件。设计包含统一实体、版本/来源/权限边界、现有落点、分段交付和行为验收；SI-015 实现仍为待办。
+- 假设：角色可组合；引用默认固定版本、只提供资料；同项目继续维护与从标品派生客户项目均支持；已有人工确认和代码证据边界不变。不假定用户已指定某个真实参考仓库或授权导入。
+- 验证：`cat docs/design/project-knowledge-library-2026-10-20.md` 完整读回 163 行 / 17326 UTF-8 字节；临时 Python 检查 5 条相对文档链接有效，9 个实现落点的文件/函数或类实际存在；检查代码围栏闭合与“设计/未实现”声明。`git diff --check` 通过；逐段审阅新文档与两份记录 diff。本轮仅文档，未运行或重报产品测试。
+- 交接：单独文档提交 `docs: 设计标品与参考项目的版本化知识复用`，不 push。继续实施时先读 SI-015 与设计，按 A→B→C→D 验证；不重复 P1–P6，也不将当前文档视为真实项目接入或迁移授权。
+- 待确认：没有阻塞设计的问题；真实仓库、分享范围与性能目标在后续接入时明确，保留为实施输入，不凭空编造。
