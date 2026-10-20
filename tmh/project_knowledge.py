@@ -260,9 +260,15 @@ def build(folder):
     summary = {'files': len(manifest), 'excluded': len(state['excluded']), 'indexed': count,
                'seconds': round(time.monotonic() - started, 3), 'analysis': state['analysis'],
                'unindexed': unindexed, 'exclusions': state['excluded']}
-    import resource
-    rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    summary['peak_rss_bytes'] = rss if sys.platform == 'darwin' else rss * 1024
+    try:
+        import resource
+        rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        summary['peak_rss_bytes'] = rss if sys.platform == 'darwin' else rss * 1024
+    except (ImportError, AttributeError):
+        # Windows has no `resource` module; the snapshot stays valid, only the
+        # peak-memory field is unknown. Missing measurement must not fail a build.
+        summary['peak_rss_bytes'] = None
+        summary['peak_rss_note'] = '当前平台不提供 peak RSS 计量（resource 模块不可用）'
     summary['history'] = '静态快照不读取来源 Git 历史；churn 不作为知识证据'
     if analyzer_version() != actual_analyzer:
         raise ValueError('构建期间分析器发生变化，拒绝发布')

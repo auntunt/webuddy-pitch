@@ -356,5 +356,16 @@ def build_context(root: Path, query: str, budget: int = 8000) -> str:
         out.append("- 这些页面还没写说明，任务里弄清楚后用 `tmh kb next --page <id>` 补上：" + "、".join(unwritten[:5]))
     text = "\n".join(out)
     if len(text) > budget:
-        text = text[:budget] + "\n…（已按预算截断）"
+        # Never cut silently: the caller must be able to tell that evidence was
+        # left out and where to read it. The notice is counted against the
+        # budget, so the returned pack still honours its own limit.
+        dropped_chars = len(text) - budget
+        marker = ("\n\n…（预算 %d 字符已满：省略 %d 字符未展开；加大 --budget、用 `tmh context --json` "
+                  "查看结构化清单，或按页面 id 用 `tmh kb read <id>` 读全文。需求原文与原始证据不受影响。）"
+                  % (budget, dropped_chars))
+        keep = max(0, budget - len(marker))
+        cut = text[:keep]
+        if "\n" in cut:
+            cut = cut[: cut.rfind("\n")]
+        text = cut + marker
     return text

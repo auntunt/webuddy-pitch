@@ -664,8 +664,23 @@ def cmd_context(a) -> int:
     if not graph_path(root).exists():
         print("还没有知识库，先运行 tmh kb build")
         return 1
-    print(build_context(root, " ".join(a.query), a.budget))
-    a.summary = "查询项目知识：" + " ".join(a.query)[:60]
+    query = " ".join(a.query)
+    extra = [Path(s).resolve() for s in (getattr(a, "source", None) or [])]
+    if getattr(a, "json", False) or getattr(a, "pack", False) or extra:
+        from .context_pack import assemble
+        sources = [{"root": root, "label": getattr(a, "label", None) or root.name or "当前项目", "current": True}]
+        sources += [{"root": p, "label": p.name, "current": False} for p in extra]
+        try:
+            result = assemble(sources, query, budget=a.budget, json_mode=getattr(a, "json", False),
+                              require_all=getattr(a, "require_all", False))
+        except ValueError as exc:
+            print(exc.args[0])
+            return 1
+        print(result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, indent=1))
+        a.summary = "结构化上下文包（context pack v2）：" + query[:60]
+        return 0
+    print(build_context(root, query, a.budget))
+    a.summary = "查询项目知识：" + query[:60]
     return 0
 
 
@@ -831,6 +846,11 @@ def build_parser() -> argparse.ArgumentParser:
     p = add("context", cmd_context, "按需求/关键词取出相关的知识页、业务流、表和代码位置（任务开始时先用它）")
     p.add_argument("query", nargs="+")
     p.add_argument("--budget", type=int, default=8000)
+    p.add_argument("--json", action="store_true", help="输出结构化 context pack（来源/版本/逐条溯源/遗漏清单）")
+    p.add_argument("--pack", action="store_true", help="按 context pack v2 渲染文本：每条带来源与版本，预算不足时列出未展开项")
+    p.add_argument("--source", action="append", default=[], help="参考项目目录（可重复；与当前项目分开检索，不合并同名符号）")
+    p.add_argument("--label", help="当前项目在上下文包里的显示名")
+    p.add_argument("--require-all", action="store_true", help="任一来源不可用时报错，不静默降级")
     p = add("serve", cmd_serve, "启动 tmh 运维平台（网页）：工单、看板、业务全景、知识库，内置 Claude Code / Codex")
     p.add_argument("--port", type=int, default=8790)
     p.add_argument("--host", default="127.0.0.1", help="对局域网开放用 0.0.0.0，需先设置 TMH_TOKEN")
