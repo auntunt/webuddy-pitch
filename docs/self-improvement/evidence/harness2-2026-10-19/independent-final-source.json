@@ -1,0 +1,24 @@
+{
+  "head": "1d2ea889d5dbfb76ff26c2e8e16d86dfe0cd6135",
+  "command": "NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhost data/agent-venv314/bin/python -m unittest discover -s tests -p test_harness_probes_independent.py -v",
+  "exit_code": 0,
+  "source_unchanged": true,
+  "before": {
+    "tmh/platform/harness_probes.py": "f36061111150acdfc350776954e9c89813c884b5eecfa4da4425551a89ea5a10",
+    "tmh/probes/items_search.py": "98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee",
+    "tmh/platform/candidates.py": "ab1f39449db97f7f02550adec12b94970bd53dd543eabab10aad3d649abb5af6",
+    "tmh/platform/agent_api.py": "e3ea8b04116da3f2fd2166e22b58075e3ebce066da24d8cca6087de3f5d1d59f",
+    "tmh/agent_contract.py": "4fe5860829d2ef86c5d4a39fe4db8d7da9f92a38f6a92fde5504d3873455ca79",
+    "tmh/workbench.py": "6769bb7c0ab233cba398d822ec2142b2b55c741992993488cfa3fd6cf6fd8c91",
+    "tests/test_harness_probes_independent.py": "13c9941d2d041f36a6f0cbf7cb963dd28c60367637b1f3a089c1a4da7195811f"
+  },
+  "after": {
+    "tmh/platform/harness_probes.py": "f36061111150acdfc350776954e9c89813c884b5eecfa4da4425551a89ea5a10",
+    "tmh/probes/items_search.py": "98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee",
+    "tmh/platform/candidates.py": "ab1f39449db97f7f02550adec12b94970bd53dd543eabab10aad3d649abb5af6",
+    "tmh/platform/agent_api.py": "e3ea8b04116da3f2fd2166e22b58075e3ebce066da24d8cca6087de3f5d1d59f",
+    "tmh/agent_contract.py": "4fe5860829d2ef86c5d4a39fe4db8d7da9f92a38f6a92fde5504d3873455ca79",
+    "tmh/workbench.py": "6769bb7c0ab233cba398d822ec2142b2b55c741992993488cfa3fd6cf6fd8c91",
+    "tests/test_harness_probes_independent.py": "13c9941d2d041f36a6f0cbf7cb963dd28c60367637b1f3a089c1a4da7195811f"
+  }
+}

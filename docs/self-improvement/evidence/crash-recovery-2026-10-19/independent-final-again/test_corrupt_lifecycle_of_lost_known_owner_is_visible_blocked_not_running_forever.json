@@ -1,0 +1,209 @@
+{
+  "test": "tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_corrupt_lifecycle_of_lost_known_owner_is_visible_blocked_not_running_forever",
+  "temporary_directory": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-xd0gn_x0",
+  "after_corrupt_lifecycle": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:37:59",
+      "started": "2026-10-19 06:37:59",
+      "ended": "2026-10-19 06:37:59",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n原始生命周期不可验证：'utf-8' codec can't decode byte 0xff in position 29: invalid start byte\n",
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-xd0gn_x0/worktrees/CRASH-1-r1",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "owner": {
+        "token": "723876d2834e411ea59f92bf66663b03",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-xd0gn_x0"
+      },
+      "attempts": [],
+      "finished": false,
+      "stopped_reason": "owner_lost",
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "原始生命周期不可验证：'utf-8' codec can't decode byte 0xff in position 29: invalid start byte"
+        ]
+      }
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {}
+  },
+  "retry_state": {
+    "can_retry": false,
+    "retry_blocked": [
+      "服务中断后的停止证据尚不完整，请重新检查停止回执"
+    ],
+    "delivery_id": "",
+    "delivery_stage": ""
+  },
+  "damaged_original_base64": "eyJmaW5pc2hlZCI6ZmFsc2UsImF0dGVtcHRzIjr/IGluY29tcGxldGUgb3JpZ2luYWwgcmVjZWlwdA==",
+  "retained_corrupt_files": {
+    "restart-recovery/original-lifecycle.json": "eyJmaW5pc2hlZCI6ZmFsc2UsImF0dGVtcHRzIjr/IGluY29tcGxldGUgb3JpZ2luYWwgcmVjZWlwdA=="
+  },
+  "after_corrupt_lifecycle_recheck": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:37:59",
+      "started": "2026-10-19 06:37:59",
+      "ended": "2026-10-19 06:37:59",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n原始生命周期不可验证：'utf-8' codec can't decode byte 0xff in position 29: invalid start byte\n",
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-xd0gn_x0/worktrees/CRASH-1-r1",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "owner": {
+        "token": "723876d2834e411ea59f92bf66663b03",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-xd0gn_x0"
+      },
+      "attempts": [],
+      "finished": false,
+      "stopped_reason": "owner_lost",
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "原始生命周期不可验证：'utf-8' codec can't decode byte 0xff in position 29: invalid start byte"
+        ]
+      }
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {}
+  },
+  "before_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:37:59",
+      "started": "2026-10-19 06:37:59",
+      "ended": "2026-10-19 06:37:59",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n原始生命周期不可验证：'utf-8' codec can't decode byte 0xff in position 29: invalid start byte\n",
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-xd0gn_x0/worktrees/CRASH-1-r1",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "owner": {
+        "token": "723876d2834e411ea59f92bf66663b03",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-xd0gn_x0"
+      },
+      "attempts": [],
+      "finished": false,
+      "stopped_reason": "owner_lost",
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "原始生命周期不可验证：'utf-8' codec can't decode byte 0xff in position 29: invalid start byte"
+        ]
+      }
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {}
+  },
+  "fixture_cleanup_signals": [],
+  "after_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:37:59",
+      "started": "2026-10-19 06:37:59",
+      "ended": "2026-10-19 06:37:59",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n原始生命周期不可验证：'utf-8' codec can't decode byte 0xff in position 29: invalid start byte\n",
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-xd0gn_x0/worktrees/CRASH-1-r1",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "owner": {
+        "token": "723876d2834e411ea59f92bf66663b03",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-xd0gn_x0"
+      },
+      "attempts": [],
+      "finished": false,
+      "stopped_reason": "owner_lost",
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "原始生命周期不可验证：'utf-8' codec can't decode byte 0xff in position 29: invalid start byte"
+        ]
+      }
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {}
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "candidate": [
+    {
+      "id": 4,
+      "ticket_id": 6,
+      "run_id": 10,
+      "agent": "agent:codex-external",
+      "base_commit": "60d6422ee898959557fc529a8e0335524b5ee2c0",
+      "commit_sha": "ab9601e305bf9efdf908554174c56ca101194405",
+      "requirement_hash": "5e1cf89822471ef4d0f3cdca54b1844e981f57a2a3f3c048f4427ffcac8a109e",
+      "configuration_hash": "c8b2ed36c716fcd552d9e75be478579d3ea7bcaa03ff7c931322e89cd56b9068",
+      "criteria": "[{\"check\":\"真实双客户端HTTP、SQLite字段与history前后值；409无副作用\",\"id\":\"A1\",\"text\":\"条件保存拒绝旧版本及未知回执的旧请求重试，核对新版本后能继续\"},{\"check\":\"旧版本审核skipped、部分成功、保存返回版本及重审回归\",\"id\":\"A2\",\"text\":\"按所见版本审核，失败不报成功，修改已审核记录要求重审\"},{\"check\":\"两个真实浏览器页面，草稿/重量/提示/操作记录与原始截图\",\"id\":\"A3\",\"text\":\"真实页面冲突后完整草稿保留、显式核对最新数据后继续保存审核\"},{\"check\":\"完整应用回归、原仓库/数据摘要、无版本兼容和非法版本测试\",\"id\":\"A4\",\"text\":\"原权限、来源、原图及Excel保真与历史数据保持，明确旧API兼容边界\"},{\"check\":\"固定候选独立构建测试、前缀实测与跨站拦截、原始日志和协议回执\",\"id\":\"A5\",\"text\":\"完整Git SHA前缀预览能读写和打开原图，CLI/MCP交付证据可查询\"}]",
+      "summary": "真实外部Codex实现条件编辑/审核与前缀支持；协调者提供隔离合成预览启动器并实测251通过11外部集成跳过。旧无版本API兼容边界明确；独立复核及浏览器验收继续。",
+      "fingerprint": "ab13d4394bc1b02a86f5c3eae8b22e20c53dc1bfa27b46ef57c582d29d4ff5d2",
+      "ref": "refs/webuddy/candidates/ab13d4394bc1b02a86f5c3eae8b22e20c53dc1bfa27b46ef57c582d29d4ff5d2",
+      "artifact_dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/candidates/ab13d4394bc1b02a86f5c3eae8b22e20c53dc1bfa27b46ef57c582d29d4ff5d2",
+      "created": "2026-10-19 16:51:55"
+    }
+  ],
+  "decisions": [],
+  "assessments": [
+    {
+      "id": 3,
+      "candidate_id": 4,
+      "author": "agent:codex-acceptance",
+      "verification_hash": "22d374336720166d3aed1073b225050b880cc15de0ca0e7a9e6b2da605e3b3df",
+      "preview_hash": "f36415bec2d488d05b0b21e933b226a1baf439b4e6996fed270bef40b7a6c41b",
+      "results": "[{\"evidence\":\"独立真实 HTTP/SQLite：旧版本保存 409 且记录/版本/history 不变；模拟客户端未接收已提交 ACK 后，旧条件重放不能覆盖 B 后续更改；明确核对后可保存。两个实例 CAS 只有一个成功。基线显式条件协议 2/9，候选 10/10，详见 independent-candidate/REVIEW-FINAL.md 与完整 API 请求响应。真实浏览器 A 旧草稿保存被拒绝，preview-after-b-save.json 与 preview-after-a-conflict.json 完全相等。\",\"id\":\"A1\",\"status\":\"pass\"},{\"evidence\":\"独立 API 验证旧版本审核跳过、混合批次部分成功、不改变失败项及历史、修改已审核记录要求重审；真实发货页面函数独立 8/8，审核绑定 PATCH 成功返回版本，失败不跳下一条或报成功。这些 API/控制函数结果不替代 A3 的真实浏览器后半段。\",\"id\":\"A2\",\"status\":\"pass\"},{\"evidence\":\"真实双页面已执行 B 保存 10900/900、A 旧全量草稿 409、完整货名/备注草稿保留，并在比较表选择采用 B 新重量。点击“已核对”后原生确认框使 IAB 控制超时；getJsDialog 返回 undefined，后续 DOM/键盘/关闭均超时。不能宣称实际浏览器完成核对后的保存和审核。用户手动处理确认框的请求待答复。见 browser-timeline.json、browser-conflict.jpg、preview-after-a-conflict.json。独立控制函数 8/8 只是补充证据。\",\"id\":\"A3\",\"status\":\"unknown\"},{\"evidence\":\"最终候选平台独立构建通过、应用 251 passed / 11 skipped / 2 dependency warnings；跳过明确为未配置真实 S3/OceanBase，未声称这些集成验证。原权限/来源/原图及 Excel 原编码回归通过；原仓库 102 个跟踪文件、253 个本地文件及原 Git 状态不变，原平台各表既有行不变。preservation-report.json 全部 true；显式非法版本拒绝，省略版本旧 API 仍兼容且不受客户端条件保护。\",\"id\":\"A4\",\"status\":\"pass\"},{\"evidence\":\"固定完整 SHA 的授权入口经 8791→8793 实际进入采集/台账页，真实页面读取与 B 保存成功；完整前缀 3 张原图实际 HTTP 200，字节与 SHA256 均等于生成原图，已打开渲染。独立检查前缀静态/历史/CSV、跨站拒绝及预览重启。官方 MCP 读取当前候选并记录本条部分技术观察，CLI 可读完整版本/验证/预览与缺项；A3 未完成，不能最终签收。\",\"id\":\"A5\",\"status\":\"pass\"}]",
+      "note": "外部 Codex 是主要实现者，协调者提供隔离预览启动器并修复独立复核发现的迟到读取竞态。独立子代理 /root/candidate_chain_review 复核最终源码；本条由协调者记录实际浏览器与保留性观察。A3 的浏览器后半段未知，技术验收与人工验收必须保持 false。合成数据预览关闭真实 OCR；未合入原仓库、未推送、未部署。完整证据归档 docs/self-improvement/evidence/weighbill-pilot-2026-10-19/。",
+      "created": "2026-10-19 17:07:29"
+    }
+  ]
+}

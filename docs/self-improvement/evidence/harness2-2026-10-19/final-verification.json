@@ -1,0 +1,18 @@
+{
+  "source_commit": "a32e8a64750b1f13d9e9bb0ec638db2e2a17329c",
+  "product_commit": "1ac19f116ac982a134635659e24edf9bc6cb0115",
+  "source_files": 183,
+  "source_unchanged": true,
+  "full_suite": {
+    "tests": 758,
+    "seconds": 306.496,
+    "result": "OK",
+    "process_exit_code": 0,
+    "socket_resource_warnings": 5,
+    "all_resource_warning_lines": 84
+  },
+  "prior_failed_full_runs_preserved": [
+    "full-platform-final.log",
+    "full-platform-second.log"
+  ]
+}

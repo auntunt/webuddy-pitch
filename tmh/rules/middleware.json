@@ -1,0 +1,76 @@
+[
+  {
+    "id": "MW-AS-001",
+    "category": "middleware",
+    "title": "WebLogic 专有部署描述符或 API",
+    "severity": "high",
+    "files": ["*.xml", "*.java", "*.properties"],
+    "path_patterns": ["weblogic(-application)?\\.xml$"],
+    "patterns": ["\\bweblogic\\.", "<weblogic-web-app", "prefer-web-inf-classes", "t3://"],
+    "requires": ["target.appserver not in weblogic"],
+    "advice": "改为目标中间件描述符（东方通 TongWeb 的 tongweb-web.xml、金蝶 Apusic、宝兰德 BES 各有对应文件）。类加载优先级（prefer-web-inf-classes）、JNDI 数据源名、会话与集群配置要逐项映射；t3 协议的 EJB/JMS 远程调用需改为 HTTP/MQ。",
+    "kb": "middleware.md#应用服务器",
+    "effort": "M"
+  },
+  {
+    "id": "MW-AS-002",
+    "category": "middleware",
+    "title": "WebSphere / JBoss 专有描述符或 API",
+    "severity": "high",
+    "files": ["*.xml", "*.xmi", "*.java"],
+    "path_patterns": ["ibm-web-(bnd|ext)\\.(xml|xmi)$", "jboss-(web|deployment-structure)\\.xml$"],
+    "patterns": ["com\\.ibm\\.websphere", "com\\.ibm\\.ws\\.", "org\\.jboss\\."],
+    "requires": ["target.appserver not in websphere,jboss"],
+    "advice": "同 WebLogic：映射到目标中间件的描述符；com.ibm.* / org.jboss.* API 需替换为标准 Jakarta EE / Spring 能力。",
+    "kb": "middleware.md#应用服务器",
+    "effort": "M"
+  },
+  {
+    "id": "MW-AS-003",
+    "category": "middleware",
+    "title": "Spring Boot 内嵌 Tomcat/Jetty/Undertow（信创中间件要求时需替换）",
+    "severity": "medium",
+    "files": ["pom.xml", "*.gradle", "*.kts"],
+    "patterns": ["spring-boot-starter-web\\b", "spring-boot-starter-tomcat", "spring-boot-starter-jetty", "spring-boot-starter-undertow"],
+    "requires": ["target.appserver in tongweb,apusic,bes,inforsuite"],
+    "advice": "若甲方要求信创中间件：排除 spring-boot-starter-tomcat，引入厂商提供的嵌入式 starter（如 TongWeb 嵌入版），或打 war 部署到信创中间件；注意 Spring Boot 版本与 starter 版本对应。",
+    "kb": "middleware.md#spring-boot-嵌入式容器",
+    "effort": "S"
+  },
+  {
+    "id": "MW-AS-004",
+    "category": "middleware",
+    "title": "JNDI 数据源/资源查找",
+    "severity": "medium",
+    "files": ["*.xml", "*.java", "*.properties", "*.yml", "*.yaml"],
+    "patterns": ["java:comp/env", "jndi-name", "\\bInitialContext\\s*\\(", "<resource-ref>", "jndi:"],
+    "requires": ["target.appserver not in unknown"],
+    "advice": "JNDI 名在目标中间件中重新配置（控制台或描述符），数据源连接池参数（最大连接、校验 SQL：达梦 select 1 / 金仓 select 1）同步调整。",
+    "kb": "middleware.md#应用服务器",
+    "effort": "S"
+  },
+  {
+    "id": "MW-MQ-001",
+    "category": "middleware",
+    "title": "商业消息中间件（IBM MQ / TIBCO / WebLogic JMS）",
+    "severity": "high",
+    "files": ["*.java", "*.xml", "*.properties", "*.yml", "*.yaml", "pom.xml", "*.cs", "*.config"],
+    "patterns": ["com\\.ibm\\.mq", "com\\.ibm\\.msg\\.client", "com\\.tibco\\.", "weblogic\\.jms", "IBM\\.XMS", "amqmdnet"],
+    "requires": ["target.mq not in ibmmq"],
+    "advice": "替换为目标 MQ（东方通 TongLINK/Q、RocketMQ 等），优先通过 JMS/Spring 抽象层隔离，消息格式、事务与重试语义需回归。",
+    "kb": "middleware.md#消息与缓存",
+    "effort": "L"
+  },
+  {
+    "id": "MW-CACHE-001",
+    "category": "middleware",
+    "title": "Redis/缓存客户端（替换为国产缓存时需核对协议兼容）",
+    "severity": "info",
+    "files": ["pom.xml", "*.gradle", "*.csproj", "packages.config"],
+    "patterns": ["spring-boot-starter-data-redis", "\\bjedis\\b", "redisson", "StackExchange\\.Redis"],
+    "requires": ["target.cache in tongrds,other"],
+    "advice": "东方通 TongRDS 等国产缓存宣称兼容 Redis 协议，但集群/哨兵/Lua/部分命令需按厂商文档核对。",
+    "kb": "middleware.md#消息与缓存",
+    "effort": "S"
+  }
+]

@@ -1,0 +1,119 @@
+{
+  "id": "86762c2a002d",
+  "project": "INTREC",
+  "by": "自动流转",
+  "channel": "web",
+  "text": "编辑已有事项后保存失败，希望修改完成后还能找到原事项。昨天开始的，所有用户都有此问题。",
+  "created": "2026-10-19 02:29:27",
+  "state": "confirmed",
+  "rounds": 0,
+  "items": [
+    {
+      "text": "编辑已有事项后保存失败，希望修改完成后还能找到原事项",
+      "title": "事项编辑后保留原编号",
+      "kind": "bug",
+      "kind_by": "智能体",
+      "by": "智能体",
+      "restated": "编辑已有事项后应能保存，并保留原事项编号和完成状态",
+      "flows": [],
+      "flow": null,
+      "new_module": true,
+      "slots": {
+        "since": {
+          "value": "昨天",
+          "from": "原话"
+        },
+        "who": {
+          "value": "所有用户",
+          "from": "原话"
+        },
+        "trigger": {
+          "value": "编辑已有事项后",
+          "from": "原话"
+        },
+        "expected": {
+          "value": "保存并保留原事项",
+          "from": "原话"
+        }
+      },
+      "asked": [],
+      "answer": "",
+      "agent_q": [
+        {
+          "q": "保存遇到故障时，希望保留什么，恢复后怎么操作？",
+          "options": [],
+          "blocks": [
+            "A1"
+          ],
+          "slot": "q1"
+        }
+      ],
+      "agent_ac": [
+        {
+          "id": "A1",
+          "text": "当保存遇到故障时，系统应当【待确认：如何恢复】",
+          "check": "模拟保存失败，核对输入保留，恢复后重试并检查原事项编号及完成状态",
+          "layer": "L2"
+        },
+        {
+          "id": "A2",
+          "text": "当用户取消编辑时，系统应当保留原事项内容",
+          "check": "修改输入后取消，重新打开事项并核对原内容",
+          "layer": "L2"
+        }
+      ],
+      "keep": [
+        "原事项编号、完成状态和其他事项保持不变"
+      ],
+      "questions": [
+        {
+          "q": "保存遇到故障时，希望保留什么，恢复后怎么操作？",
+          "options": [],
+          "blocks": [
+            "A1"
+          ],
+          "slot": "q1"
+        }
+      ],
+      "ac": [
+        {
+          "id": "A1",
+          "text": "当保存遇到故障时，系统应当【待确认：如何恢复】",
+          "layer": "L2",
+          "check": "模拟保存失败，核对输入保留，恢复后重试并检查原事项编号及完成状态",
+          "open": true
+        },
+        {
+          "id": "A2",
+          "text": "当用户取消编辑时，系统应当保留原事项内容",
+          "layer": "L2",
+          "check": "修改输入后取消，重新打开事项并核对原内容",
+          "open": false
+        },
+        {
+          "id": "A3",
+          "text": "必须保持：原事项编号、完成状态和其他事项保持不变",
+          "layer": "L1",
+          "check": "跑现有测试，并抽查相邻功能",
+          "open": false,
+          "keep": true
+        }
+      ],
+      "ticket": "INTREC-1"
+    }
+  ],
+  "tickets": [
+    "INTREC-1"
+  ],
+  "title": "事项编辑故障恢复 · SYNTHETIC",
+  "dropped": [],
+  "understood": {
+    "by": "智能体",
+    "agent": "intake-fixture",
+    "run": 1
+  },
+  "suggest_big": false,
+  "updated": "2026-10-19 02:29:27",
+  "confirmed_by": "自动流转",
+  "confirmed_at": "2026-10-19 02:29:27"
+}

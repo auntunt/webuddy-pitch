@@ -1,0 +1,68 @@
+{
+  "started_at": "2026-10-19 06:31:57",
+  "timeout_seconds": 120.0,
+  "stopped_reason": "owner_lost",
+  "attempts": [
+    {
+      "attempt": 1,
+      "kind": "model:fix-1",
+      "started_at": "2026-10-19 06:31:57",
+      "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19/worktrees/CRASH-1-r1",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19/worker.py",
+        "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19/worktrees/CRASH-1-r1",
+        "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19",
+        "worker",
+        "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19/runs/1/prompt-1.md"
+      ],
+      "timeout_seconds": 119.9387327079894,
+      "evidence": "runs/1/attempts/0001",
+      "supervised": true,
+      "pid": 40021,
+      "pgid": 40021,
+      "returncode": 125,
+      "reason": "owner_lost",
+      "elapsed_seconds": 51.5619616669137,
+      "cleanup": {
+        "trigger": "owner_lost",
+        "term_sent": true,
+        "kill_sent": true,
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "at": 51.168446250027046,
+            "sent": true
+          },
+          {
+            "signal": "SIGKILL",
+            "at": 51.480918082990684,
+            "sent": true
+          }
+        ],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": 1792362769.51071,
+      "supervisor_receipt": "runs/1/attempts/0001/supervisor-result.json"
+    }
+  ],
+  "finished": true,
+  "owner": {
+    "token": "4a6c475c32dc443f9b33bd6052af5b72",
+    "run_id": 1,
+    "data_dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19"
+  },
+  "elapsed_seconds": 0.153,
+  "recovery": {
+    "state": "complete",
+    "reason": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+    "evidence": "runs/1/restart-recovery",
+    "output_complete": true,
+    "errors": []
+  },
+  "ended_at": "2026-10-19 06:33:07"
+}

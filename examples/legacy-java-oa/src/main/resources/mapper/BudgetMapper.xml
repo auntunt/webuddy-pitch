@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.acme.oa.mapper.BudgetMapper">
+  <select id="remaining" resultType="java.math.BigDecimal">
+    SELECT TOTAL - FROZEN - USED FROM OA_BUDGET WHERE DEPT_ID = #{deptId} AND MONTH = TO_CHAR(SYSDATE, 'yyyymm')
+  </select>
+  <update id="freeze">
+    UPDATE OA_BUDGET SET FROZEN = FROZEN + #{amount} WHERE DEPT_ID = #{deptId} AND MONTH = TO_CHAR(SYSDATE, 'yyyymm')
+  </update>
+  <update id="release">
+    UPDATE OA_BUDGET SET FROZEN = FROZEN - #{amount} WHERE DEPT_ID = #{deptId} AND MONTH = TO_CHAR(SYSDATE, 'yyyymm')
+  </update>
+  <update id="consume">
+    UPDATE OA_BUDGET SET FROZEN = FROZEN - #{amount}, USED = USED + #{amount} WHERE DEPT_ID = #{deptId} AND MONTH = TO_CHAR(SYSDATE, 'yyyymm')
+  </update>
+</mapper>

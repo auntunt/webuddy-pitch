@@ -1,0 +1,67 @@
+{
+  "reviewed_at_utc": "2026-10-18T16:26:44.104479+00:00",
+  "scope": "Isolated temporary Store/data_dir; real project_bootstrap.create; no existing service or data",
+  "bootstrap_sha256": "271c2c3e31cbd1a853aa45059cd327010f21238add62661fe08f0ee9cb24b760",
+  "create_receipt": "independent-create-receipt.json",
+  "generated_commit": "88d4749773cbf73a395b550418294b2d6d6e1364",
+  "build_exit_code": 0,
+  "app_tests_exit_code": 0,
+  "app_test_count": 26,
+  "source_sha256": {
+    "app.py": "a5bc89078052bc070b96e46255408721e88ce92750c91eef01fa973d7739a009",
+    "tests/test_app.py": "6c3c1764893238ba21814da34cee7f99acc3bc90807c65a1a42075d83027b208"
+  },
+  "generated_files": {
+    ".gitignore": {
+      "bytes": 36,
+      "sha256": "7cc5d015ee57d7b870b0c356ff3c38db14fb3f3dbe29a54d1b02a9771a710b3c"
+    },
+    ".tmh/config.json": {
+      "bytes": 1287,
+      "sha256": "021c222536969072f233b87f7ccbdbd80e8cb486cb336a49e21f2ae6d5b8d2ae"
+    },
+    "README.md": {
+      "bytes": 288,
+      "sha256": "3d28ea3b0ee2fea2885dd53c47e5ceb838fc87a99f5b89f21ecba4497b7719d6"
+    },
+    "app.py": {
+      "bytes": 13173,
+      "sha256": "a5bc89078052bc070b96e46255408721e88ce92750c91eef01fa973d7739a009"
+    },
+    "project.json": {
+      "bytes": 148,
+      "sha256": "53d6dcc88f0a0f143bba928c68a7a2d2d070f6304b090ef358972072ff24c7ab"
+    },
+    "tests/test_app.py": {
+      "bytes": 40250,
+      "sha256": "6c3c1764893238ba21814da34cee7f99acc3bc90807c65a1a42075d83027b208"
+    }
+  },
+  "original_test_methods_unchanged": 23,
+  "removed_or_modified_original_methods": [],
+  "added_methods": [
+    "test_edit_crlf_database_failure_retries_original_item",
+    "test_edit_crlf_logical_length_boundaries",
+    "test_edit_crlf_preserves_record_across_restart_and_prefixes"
+  ],
+  "entire_source_matches_previously_verified_BOOTV2_run6": true,
+  "independent_acceptance": {
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "successful": true,
+    "source_unchanged": true,
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/runtime-2026-10-18/bootv2/independent_acceptance.py",
+      "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-independent-bootstrap-review-o1vdoqyq/projects/INDCREATE"
+    ],
+    "exit_code": 0,
+    "log": "independent-acceptance-green.log"
+  },
+  "created_checkout_remained_clean": true,
+  "project_app_db_created": false,
+  "browser_performed_by_this_reviewer": false,
+  "review_decision": "No blocking finding in the frozen template change or its generated app.",
+  "temporary_data_removed": true
+}

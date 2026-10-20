@@ -1,0 +1,1 @@
+Fixed BOOTV2 behavioral test fixture. Original app.py bytes from local application commit `8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd` (2026-10-19). The test mutates only disposable copies to verify independent behavior checks catch failures even when candidate tests exit zero. No production data is included.

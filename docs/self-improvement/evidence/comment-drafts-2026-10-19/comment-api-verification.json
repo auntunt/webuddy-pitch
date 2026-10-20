@@ -1,0 +1,63 @@
+{
+  "baseline": "ccd059d649342d880d9245e076242da91734289b",
+  "files_at_backend_handoff": {
+    "tmh/platform/store.py": "9ceb4d050d2304f04a1d4dc73e6c793787f540292e0409b7b8c34848d6799842",
+    "tmh/platform/server.py": "4b821d4417493a805968a8217b0516bac18ee538e687169d67d58a541aeb759c",
+    "tests/test_comment_idempotency.py": "88b1141d1c8a67db9b4c7c394b9b72fa52a1cceba291f77314def9689e407e33"
+  },
+  "note": "Backend-specific source hash at handoff only. Parent may still change server.py metadata for client draft isolation; final integrated suite belongs to parent.",
+  "red": {
+    "tests": 11,
+    "failures": 18,
+    "errors": 3,
+    "log": "comment-api-red.log"
+  },
+  "green_initial": {
+    "tests": 11,
+    "passed": 11,
+    "log": "comment-api-green-initial.log"
+  },
+  "green_final": {
+    "tests": 12,
+    "passed": 12,
+    "seconds": 1.391,
+    "log": "comment-api-green.log",
+    "label": "intermediate before workspace guard request"
+  },
+  "coverage": [
+    "same retry keeps one comment and one touch",
+    "different text with same token conflicts",
+    "legacy response and exact text preserved",
+    "distinct request IDs allow intentional repeats",
+    "ticket author and DB scoping",
+    "expected author mismatch prevents new writes",
+    "HTTP cookie author overrides header/body spoof",
+    "real independent process after committed response loss",
+    "five processes start from a shared barrier",
+    "process dies before receipt/transaction commit then clean retry",
+    "receipt SQL failure rolls back all side effects",
+    "expected workspace mismatch rejected before write/replay; old page cannot write same ticket key in switched workspace",
+    "No expected_author/workspace/request_id remains compatible"
+  ],
+  "files_at_final_backend_handoff": {
+    "tmh/platform/store.py": "9ceb4d050d2304f04a1d4dc73e6c793787f540292e0409b7b8c34848d6799842",
+    "tmh/platform/server.py": "11a4880c5bb9e95ad9af716a833966ad8ee5ad3d5393a1a4d8496ee66d9ecbbc",
+    "tests/test_comment_idempotency.py": "2557403e83f4ff6cca9c07aa550deef735e907980137606ea9c0dc8b5e7f8d0a"
+  },
+  "workspace_guard_red": {
+    "tests": 2,
+    "log": "comment-api-workspace-red.log"
+  },
+  "final": {
+    "tests": 14,
+    "passed": 14,
+    "log": "comment-api-final.log"
+  },
+  "legacy_compatibility": {
+    "tests": 2,
+    "passed": 2,
+    "seconds": 1.653,
+    "log": "comment-api-compatibility.log",
+    "note": "Existing test resource warnings retained in full log."
+  }
+}

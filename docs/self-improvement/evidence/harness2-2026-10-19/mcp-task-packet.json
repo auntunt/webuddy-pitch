@@ -1,0 +1,348 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"ticket\": {\"id\": 5, \"project_id\": 3, \"num\": 3, \"title\": \"事项关键词搜索与状态筛选\", \"body\": \"## 需求\\n为BOOTV2事项管理增加关键词搜索与全部/未完成/已完成筛选，让已有事项较多时能快速找到并继续编辑。\\n这是用户要求接续BOOTV2的本地真实功能验证，不是生产发布或客户代签。\\n## 验收条件\\nA1：按关键词搜索事项标题，大小写不敏感，中文可匹配，特殊字符按字面含义搜索。 验证：真实HTTP新增样本，分别搜索中文、英文大小写、百分号、下划线和引号，对照返回的事项ID。\\nA2：提供全部、未完成、已完成筛选，可与关键词叠加；清除后显示全部；空结果给出提示。 验证：用相同样本分别筛选三种状态与组合条件，检查空结果和清除入口。\\nA3：筛选条件存在URL中，刷新、预览前缀访问、编辑/取消/完成切换后仍可用，非法状态不导致服务错误。 验证：真实浏览器操作筛选、编辑和取消；验证带前缀表单及重定向，验证未知状态。\\nA4：保留事项编辑、200字符含换行、数据库故障重试、转义、CSRF和持久保存；读取筛选不修改数据。 验证：保留并运行现有26项测试，补新增HTTP/SQLite回归；核对原始三条事项及状态不变。\\n## 保持与范围\\n从当前已验证候选 8be50de6b4b4200dc6d792c2a7f0b871f9288da4 接续；只修改 app.py 和 tests/test_app.py，保留全部原有测试和三条既有数据。不改.tmh配置、依赖或部署配置（.tmh目录保持原样）。不删除或截断业务数据。遵循当前表单与前缀路由机制，使用可访问标签；窄屏无横向溢出。\\n\", \"type\": \"feature\", \"status\": \"doing\", \"priority\": \"normal\", \"assignee\": \"agent:codex-coordinator\", \"reporter\": \"agent:codex-coordinator\", \"labels\": [], \"links\": {\"hold\": \"agent:codex-coordinator\", \"handwork\": \"agent:codex-coordinator\", \"agent_request\": \"external-filter-create-20261019\"}, \"external\": {}, \"created\": \"2026-10-19 12:02:24\", \"updated\": \"2026-10-19 12:59:27\", \"key\": \"BOOTV2-3\"}, \"project\": {\"id\": 3, \"key\": \"BOOTV2\", \"name\": \"反馈后修复的应用起点\", \"root\": \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2\", \"description\": \"本地验收：数据持久保存、存储故障恢复和真实健康检查。\", \"created\": \"2026-10-18 15:33:59\"}, \"events\": [{\"id\": 45, \"ticket_id\": 5, \"ts\": \"2026-10-19 12:02:24\", \"author\": \"agent:codex-coordinator\", \"kind\": \"created\", \"body\": \"创建工单\", \"data\": {}}, {\"id\": 46, \"ticket_id\": 5, \"ts\": \"2026-10-19 12:59:27\", \"author\": \"agent:codex-external\", \"kind\": \"candidate\", \"body\": \"登记外部代码候选，等待平台独立验证\", \"data\": {\"candidate\": 1, \"commit\": \"8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd\", \"run\": 7}}, {\"id\": 47, \"ticket_id\": 5, \"ts\": \"2026-10-19 12:59:35\", \"author\": \"agent:codex-external\", \"kind\": \"flow\", \"body\": \"重新验证了运行 #7 的改动（没改代码）：构建通过\", \"data\": {\"run\": 7, \"check\": \"pass\"}}, {\"id\": 48, \"ticket_id\": 5, \"ts\": \"2026-10-19 13:00:03\", \"author\": \"agent:codex-external\", \"kind\": \"preview\", \"body\": \"启动独立验证后的外部候选预览\", \"data\": {\"candidate\": 1, \"commit\": \"8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd\"}}, {\"id\": 49, \"ticket_id\": 5, \"ts\": \"2026-10-19 13:00:06\", \"author\": \"预览\", \"kind\": \"preview\", \"body\": \"预览版本已经可以打开\", \"data\": {\"state\": \"up\", \"commit\": \"8b6cb6da90\"}}, {\"id\": 50, \"ticket_id\": 5, \"ts\": \"2026-10-19 13:07:55\", \"author\": \"agent:codex-acceptance\", \"kind\": \"candidate_assessment\", \"body\": \"记录逐项技术验收（不是人工签收）\", \"data\": {\"candidate\": 1, \"record\": 1}}, {\"id\": 51, \"ticket_id\": 5, \"ts\": \"2026-10-19 13:44:34\", \"author\": \"operator:本地验收\", \"kind\": \"candidate_decision\", \"body\": \"操作者确认候选：accept\", \"data\": {\"candidate\": 1, \"record\": 1}}], \"runs\": [{\"id\": 7, \"ticket_id\": 5, \"project_id\": 3, \"agent\": \"external:codex-external\", \"mode\": \"fix\", \"status\": \"done\", \"author\": \"agent:codex-external\", \"created\": \"2026-10-19 12:59:27\", \"started\": \"\", \"ended\": \"2026-10-19 12:59:27\", \"exit_code\": 0, \"target\": \"8be50de6b4b4200dc6d792c2a7f0b871f9288da4\", \"decision\": \"\", \"result\": \"外部 Codex 实现关键词搜索与状态筛选；保留原26项并新增9项回归。Codex沙箱测试/提交受限已保留原始失败；协调者实际运行35项通过并本地提交，等待平台独立验证。\", \"session_id\": null, \"batch\": \"\", \"model\": \"\", \"points\": 0, \"verify\": {\"check\": \"pass\", \"skip\": \"\", \"verdict\": null, \"rounds\": null, \"split\": null, \"beyond_plan\": null, \"verification_current\": true, \"recheck_operation\": {\"id\": 1, \"source_run\": 7}, \"files\": 2}, \"recheck_wait\": null}], \"intake_recovery\": {\"session\": \"\", \"status\": \"none\", \"can_retry\": false, \"blocked\": [], \"reason\": \"\", \"run\": null, \"job\": \"\", \"attempts\": [], \"items\": []}, \"plain_state\": {\"state\": \"you\", \"label\": \"等你看\", \"why\": \"CLI / MCP 已接续，等待明确的下一步\", \"version\": \"\"}, \"evidence\": {\"analysis\": null, \"fix\": {\"run\": 7, \"status\": \"done\", \"decision\": \"\", \"has_diff\": null}, \"refs\": 0, \"verified\": 0, \"guesses\": 0, \"flows\": 0, \"flows_written\": 0}, \"auto_next\": \"\", \"package\": {\"status\": \"none\", \"label\": \"未生成\", \"missing\": [\"验收标准（AC）\", \"代码改动\", \"验证门全部通过（没有没过或未知的）\", \"乙方复核人\"], \"intact\": true, \"problem\": \"\", \"hash\": \"0000000000000000000000000000000000000000000000000000000000000000\", \"records\": 0, \"page\": \"/e/BOOTV2-3\", \"attachments\": 0, \"review\": null, \"link\": null, \"decision\": null, \"gates\": null, \"gate_state\": \"\", \"proofs\": [], \"binding_blocked\": [], \"stale\": false, \"ac_source\": \"\"}, \"epic\": null, \"parent\": null, \"repository\": {\"root\": \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2\", \"head\": \"547e4447b6921bcbfaa555b26a4391d1fc33d3ab\", \"commands\": {\"build\": \"/opt/homebrew/opt/python@3.14/bin/python3.14 -m py_compile app.py\", \"test\": \"/opt/homebrew/opt/python@3.14/bin/python3.14 -m unittest discover -s tests -v\", \"extra_checks\": []}}, \"preview\": {\"preview\": {\"key\": \"BOOTV2-3\", \"project\": \"BOOTV2\", \"branch\": \"8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd\", \"commit\": \"8b6cb6da90\", \"commit_full\": \"8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd\", \"port\": 51177, \"prefix\": \"/pv/BOOTV2-3/__commit/8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd\", \"pid\": 75046, \"dir\": \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/BOOTV2-3\", \"root\": \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2\", \"log\": \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/logs/BOOTV2-3/1792386003980647000.log\", \"cmd\": \"/opt/homebrew/opt/python@3.14/bin/python3.14 app.py 51177 /pv/BOOTV2-3/__commit/8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'\", \"ready\": \"/health\", \"state\": \"up\", \"started\": \"2026-10-19 13:00:03\", \"by\": \"agent:codex-external\", \"why\": \"\", \"at\": \"2026-10-19 13:00:06\", \"tail\": \"$ /opt/homebrew/opt/python@3.14/bin/python3.14 app.py 51177 /pv/BOOTV2-3/__commit/8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'\\nReady on http://127.0.0.1:51177\\n\"}, \"url\": \"/pv/BOOTV2-3/\", \"branch\": \"\", \"cmd\": \"/opt/homebrew/opt/python@3.14/bin/python3.14 app.py {port} {prefix} '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'\", \"configured\": true, \"auto\": \"off\", \"own_address\": true, \"run_id\": null, \"expected_commit\": \"\", \"matches_run\": null}, \"evidence_state\": {\"records\": 0, \"intact\": true, \"problem\": \"\", \"hash\": \"0000000000000000000000000000000000000000000000000000000000000000\", \"packed\": false, \"missing\": [\"验收标准（AC）\", \"代码改动\", \"验证门全部通过（没有没过或未知的）\", \"乙方复核人\"], \"complete\": false, \"status\": \"none\", \"snapshot\": null, \"label\": \"未生成\", \"page\": \"/e/BOOTV2-3\"}, \"boundaries\": {\"identity\": \"agent audit labels are self-declared; server authentication is separate\", \"messages\": \"durable ticket messages, not delivery to an external running assistant; recipients poll messages_list\", \"approval\": \"agent actions never record human acceptance, review, merge, or release\", \"candidate\": \"immutable external candidates support independent verification, preview and technical assessment; human decisions use the operator CLI\", \"execution\": \"execution requires X-Webuddy-Execution: 1; runs remain subject to existing lifecycle and verification controls\"}, \"requirement_hash\": \"4392b3e914f8171df184bcade9d35d7093f43c1e959091cf36e380d9b0415be3\", \"harness_library\": {\"project\": \"BOOTV2\", \"entries\": [{\"probe_id\": 1, \"recipe\": {\"id\": \"bootv2-items-search-v1\", \"name\": \"事项管理搜索、筛选及持久保存\", \"checks\": {\"A1\": \"中文、Unicode 大小写及特殊字符按字面搜索\", \"A2\": \"全部/未完成/已完成与关键词组合筛选、空结果及清除\", \"A3\": \"固定路径、刷新、编辑取消及保存保持筛选条件\", \"A4\": \"原编号/状态、200字换行、失败重试和重启后持久保存\"}, \"scope\": \"Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier\", \"source_sha256\": \"98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee\", \"runner_sha256\": \"f36061111150acdfc350776954e9c89813c884b5eecfa4da4425551a89ea5a10\", \"total_seconds\": 90, \"upstream\": {\"repository\": \"https://github.com/google-research/harness2\", \"commit\": \"1cfe254e8d25b15f37048c3730134686abe60335\", \"license\": \"Apache-2.0\"}, \"version\": \"9ee97372cb36ef415954944d60950eb2aa039eeab2bb5ef84f186ab1cb98e372\"}, \"ticket\": \"BOOTV2-3\", \"commit\": \"8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd\", \"base\": \"8be50de6b4b4200dc6d792c2a7f0b871f9288da4\", \"evidence_hash\": \"0bf0e38df86f5b489eb53ad9934903f155314182cc66872e792b7c9970e523ba\", \"source_current\": true, \"comparison\": \"improved\", \"lesson\": \"此版本通过候选外部的HTTP/SQLite检查。后续事项管理改动应复用该配方，并核对适用的验收标准；历史通过不能代替新版本重验。\", \"scope\": \"historical technical evidence, not human acceptance or a general success rate\"}], \"automatic_policy_changes\": false}, \"external_candidates\": [{\"id\": 1, \"run_id\": 7, \"commit_sha\": \"8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd\", \"base_commit\": \"8be50de6b4b4200dc6d792c2a7f0b871f9288da4\", \"agent\": \"agent:codex-external\", \"created\": \"2026-10-19 12:59:27\"}], \"supported_actions\": [\"message_send\", \"messages_list\", \"run_get\", \"preview_get\", \"candidates_list\", \"candidate_get\", \"run_start\", \"candidate_submit\"]}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "ticket": {
+      "id": 5,
+      "project_id": 3,
+      "num": 3,
+      "title": "事项关键词搜索与状态筛选",
+      "body": "## 需求\n为BOOTV2事项管理增加关键词搜索与全部/未完成/已完成筛选，让已有事项较多时能快速找到并继续编辑。\n这是用户要求接续BOOTV2的本地真实功能验证，不是生产发布或客户代签。\n## 验收条件\nA1：按关键词搜索事项标题，大小写不敏感，中文可匹配，特殊字符按字面含义搜索。 验证：真实HTTP新增样本，分别搜索中文、英文大小写、百分号、下划线和引号，对照返回的事项ID。\nA2：提供全部、未完成、已完成筛选，可与关键词叠加；清除后显示全部；空结果给出提示。 验证：用相同样本分别筛选三种状态与组合条件，检查空结果和清除入口。\nA3：筛选条件存在URL中，刷新、预览前缀访问、编辑/取消/完成切换后仍可用，非法状态不导致服务错误。 验证：真实浏览器操作筛选、编辑和取消；验证带前缀表单及重定向，验证未知状态。\nA4：保留事项编辑、200字符含换行、数据库故障重试、转义、CSRF和持久保存；读取筛选不修改数据。 验证：保留并运行现有26项测试，补新增HTTP/SQLite回归；核对原始三条事项及状态不变。\n## 保持与范围\n从当前已验证候选 8be50de6b4b4200dc6d792c2a7f0b871f9288da4 接续；只修改 app.py 和 tests/test_app.py，保留全部原有测试和三条既有数据。不改.tmh配置、依赖或部署配置（.tmh目录保持原样）。不删除或截断业务数据。遵循当前表单与前缀路由机制，使用可访问标签；窄屏无横向溢出。\n",
+      "type": "feature",
+      "status": "doing",
+      "priority": "normal",
+      "assignee": "agent:codex-coordinator",
+      "reporter": "agent:codex-coordinator",
+      "labels": [],
+      "links": {
+        "hold": "agent:codex-coordinator",
+        "handwork": "agent:codex-coordinator",
+        "agent_request": "external-filter-create-20261019"
+      },
+      "external": {},
+      "created": "2026-10-19 12:02:24",
+      "updated": "2026-10-19 12:59:27",
+      "key": "BOOTV2-3"
+    },
+    "project": {
+      "id": 3,
+      "key": "BOOTV2",
+      "name": "反馈后修复的应用起点",
+      "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2",
+      "description": "本地验收：数据持久保存、存储故障恢复和真实健康检查。",
+      "created": "2026-10-18 15:33:59"
+    },
+    "events": [
+      {
+        "id": 45,
+        "ticket_id": 5,
+        "ts": "2026-10-19 12:02:24",
+        "author": "agent:codex-coordinator",
+        "kind": "created",
+        "body": "创建工单",
+        "data": {}
+      },
+      {
+        "id": 46,
+        "ticket_id": 5,
+        "ts": "2026-10-19 12:59:27",
+        "author": "agent:codex-external",
+        "kind": "candidate",
+        "body": "登记外部代码候选，等待平台独立验证",
+        "data": {
+          "candidate": 1,
+          "commit": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+          "run": 7
+        }
+      },
+      {
+        "id": 47,
+        "ticket_id": 5,
+        "ts": "2026-10-19 12:59:35",
+        "author": "agent:codex-external",
+        "kind": "flow",
+        "body": "重新验证了运行 #7 的改动（没改代码）：构建通过",
+        "data": {
+          "run": 7,
+          "check": "pass"
+        }
+      },
+      {
+        "id": 48,
+        "ticket_id": 5,
+        "ts": "2026-10-19 13:00:03",
+        "author": "agent:codex-external",
+        "kind": "preview",
+        "body": "启动独立验证后的外部候选预览",
+        "data": {
+          "candidate": 1,
+          "commit": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd"
+        }
+      },
+      {
+        "id": 49,
+        "ticket_id": 5,
+        "ts": "2026-10-19 13:00:06",
+        "author": "预览",
+        "kind": "preview",
+        "body": "预览版本已经可以打开",
+        "data": {
+          "state": "up",
+          "commit": "8b6cb6da90"
+        }
+      },
+      {
+        "id": 50,
+        "ticket_id": 5,
+        "ts": "2026-10-19 13:07:55",
+        "author": "agent:codex-acceptance",
+        "kind": "candidate_assessment",
+        "body": "记录逐项技术验收（不是人工签收）",
+        "data": {
+          "candidate": 1,
+          "record": 1
+        }
+      },
+      {
+        "id": 51,
+        "ticket_id": 5,
+        "ts": "2026-10-19 13:44:34",
+        "author": "operator:本地验收",
+        "kind": "candidate_decision",
+        "body": "操作者确认候选：accept",
+        "data": {
+          "candidate": 1,
+          "record": 1
+        }
+      }
+    ],
+    "runs": [
+      {
+        "id": 7,
+        "ticket_id": 5,
+        "project_id": 3,
+        "agent": "external:codex-external",
+        "mode": "fix",
+        "status": "done",
+        "author": "agent:codex-external",
+        "created": "2026-10-19 12:59:27",
+        "started": "",
+        "ended": "2026-10-19 12:59:27",
+        "exit_code": 0,
+        "target": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+        "decision": "",
+        "result": "外部 Codex 实现关键词搜索与状态筛选；保留原26项并新增9项回归。Codex沙箱测试/提交受限已保留原始失败；协调者实际运行35项通过并本地提交，等待平台独立验证。",
+        "session_id": null,
+        "batch": "",
+        "model": "",
+        "points": 0,
+        "verify": {
+          "check": "pass",
+          "skip": "",
+          "verdict": null,
+          "rounds": null,
+          "split": null,
+          "beyond_plan": null,
+          "verification_current": true,
+          "recheck_operation": {
+            "id": 1,
+            "source_run": 7
+          },
+          "files": 2
+        },
+        "recheck_wait": null
+      }
+    ],
+    "intake_recovery": {
+      "session": "",
+      "status": "none",
+      "can_retry": false,
+      "blocked": [],
+      "reason": "",
+      "run": null,
+      "job": "",
+      "attempts": [],
+      "items": []
+    },
+    "plain_state": {
+      "state": "you",
+      "label": "等你看",
+      "why": "CLI / MCP 已接续，等待明确的下一步",
+      "version": ""
+    },
+    "evidence": {
+      "analysis": null,
+      "fix": {
+        "run": 7,
+        "status": "done",
+        "decision": "",
+        "has_diff": null
+      },
+      "refs": 0,
+      "verified": 0,
+      "guesses": 0,
+      "flows": 0,
+      "flows_written": 0
+    },
+    "auto_next": "",
+    "package": {
+      "status": "none",
+      "label": "未生成",
+      "missing": [
+        "验收标准（AC）",
+        "代码改动",
+        "验证门全部通过（没有没过或未知的）",
+        "乙方复核人"
+      ],
+      "intact": true,
+      "problem": "",
+      "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "records": 0,
+      "page": "/e/BOOTV2-3",
+      "attachments": 0,
+      "review": null,
+      "link": null,
+      "decision": null,
+      "gates": null,
+      "gate_state": "",
+      "proofs": [],
+      "binding_blocked": [],
+      "stale": false,
+      "ac_source": ""
+    },
+    "epic": null,
+    "parent": null,
+    "repository": {
+      "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2",
+      "head": "547e4447b6921bcbfaa555b26a4391d1fc33d3ab",
+      "commands": {
+        "build": "/opt/homebrew/opt/python@3.14/bin/python3.14 -m py_compile app.py",
+        "test": "/opt/homebrew/opt/python@3.14/bin/python3.14 -m unittest discover -s tests -v",
+        "extra_checks": []
+      }
+    },
+    "preview": {
+      "preview": {
+        "key": "BOOTV2-3",
+        "project": "BOOTV2",
+        "branch": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+        "commit": "8b6cb6da90",
+        "commit_full": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+        "port": 51177,
+        "prefix": "/pv/BOOTV2-3/__commit/8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+        "pid": 75046,
+        "dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/BOOTV2-3",
+        "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2",
+        "log": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/logs/BOOTV2-3/1792386003980647000.log",
+        "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 app.py 51177 /pv/BOOTV2-3/__commit/8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'",
+        "ready": "/health",
+        "state": "up",
+        "started": "2026-10-19 13:00:03",
+        "by": "agent:codex-external",
+        "why": "",
+        "at": "2026-10-19 13:00:06",
+        "tail": "$ /opt/homebrew/opt/python@3.14/bin/python3.14 app.py 51177 /pv/BOOTV2-3/__commit/8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'\nReady on http://127.0.0.1:51177\n"
+      },
+      "url": "/pv/BOOTV2-3/",
+      "branch": "",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 app.py {port} {prefix} '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'",
+      "configured": true,
+      "auto": "off",
+      "own_address": true,
+      "run_id": null,
+      "expected_commit": "",
+      "matches_run": null
+    },
+    "evidence_state": {
+      "records": 0,
+      "intact": true,
+      "problem": "",
+      "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "packed": false,
+      "missing": [
+        "验收标准（AC）",
+        "代码改动",
+        "验证门全部通过（没有没过或未知的）",
+        "乙方复核人"
+      ],
+      "complete": false,
+      "status": "none",
+      "snapshot": null,
+      "label": "未生成",
+      "page": "/e/BOOTV2-3"
+    },
+    "boundaries": {
+      "identity": "agent audit labels are self-declared; server authentication is separate",
+      "messages": "durable ticket messages, not delivery to an external running assistant; recipients poll messages_list",
+      "approval": "agent actions never record human acceptance, review, merge, or release",
+      "candidate": "immutable external candidates support independent verification, preview and technical assessment; human decisions use the operator CLI",
+      "execution": "execution requires X-Webuddy-Execution: 1; runs remain subject to existing lifecycle and verification controls"
+    },
+    "requirement_hash": "4392b3e914f8171df184bcade9d35d7093f43c1e959091cf36e380d9b0415be3",
+    "harness_library": {
+      "project": "BOOTV2",
+      "entries": [
+        {
+          "probe_id": 1,
+          "recipe": {
+            "id": "bootv2-items-search-v1",
+            "name": "事项管理搜索、筛选及持久保存",
+            "checks": {
+              "A1": "中文、Unicode 大小写及特殊字符按字面搜索",
+              "A2": "全部/未完成/已完成与关键词组合筛选、空结果及清除",
+              "A3": "固定路径、刷新、编辑取消及保存保持筛选条件",
+              "A4": "原编号/状态、200字换行、失败重试和重启后持久保存"
+            },
+            "scope": "Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier",
+            "source_sha256": "98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee",
+            "runner_sha256": "f36061111150acdfc350776954e9c89813c884b5eecfa4da4425551a89ea5a10",
+            "total_seconds": 90,
+            "upstream": {
+              "repository": "https://github.com/google-research/harness2",
+              "commit": "1cfe254e8d25b15f37048c3730134686abe60335",
+              "license": "Apache-2.0"
+            },
+            "version": "9ee97372cb36ef415954944d60950eb2aa039eeab2bb5ef84f186ab1cb98e372"
+          },
+          "ticket": "BOOTV2-3",
+          "commit": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+          "base": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+          "evidence_hash": "0bf0e38df86f5b489eb53ad9934903f155314182cc66872e792b7c9970e523ba",
+          "source_current": true,
+          "comparison": "improved",
+          "lesson": "此版本通过候选外部的HTTP/SQLite检查。后续事项管理改动应复用该配方，并核对适用的验收标准；历史通过不能代替新版本重验。",
+          "scope": "historical technical evidence, not human acceptance or a general success rate"
+        }
+      ],
+      "automatic_policy_changes": false
+    },
+    "external_candidates": [
+      {
+        "id": 1,
+        "run_id": 7,
+        "commit_sha": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+        "base_commit": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+        "agent": "agent:codex-external",
+        "created": "2026-10-19 12:59:27"
+      }
+    ],
+    "supported_actions": [
+      "message_send",
+      "messages_list",
+      "run_get",
+      "preview_get",
+      "candidates_list",
+      "candidate_get",
+      "run_start",
+      "candidate_submit"
+    ]
+  },
+  "isError": false
+}

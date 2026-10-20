@@ -1,0 +1,24 @@
+{
+  "synthetic_only": true,
+  "url": "http://127.0.0.1:8797/#/t/CRASH-1",
+  "health_api": "http://127.0.0.1:8797/api/meta",
+  "first_run_api": "http://127.0.0.1:8797/api/runs/1?prompt=1",
+  "blocked_ticket": "http://127.0.0.1:8797/#/t/CRASH-2",
+  "blocked_run_api": "http://127.0.0.1:8797/api/runs/2?prompt=1",
+  "data_dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19",
+  "service_pid": 41937,
+  "killed_service_pid": 40009,
+  "worker_pids": [
+    40021,
+    40023
+  ],
+  "worker_pgid": 40021,
+  "original_worktree": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19/worktrees/CRASH-1-r1",
+  "source_head": "0428c1ca771f0d53f54310806fd782e99675ab78",
+  "source_sha256": {
+    "tmh/platform/agents.py": "126f044e2ea270be66dd5db0515fe1c63174974347e2f0f20c0b1238cb04e6c8",
+    "tmh/platform/crash_recovery.py": "93cf8220220361b579d40fb59b6cf340e79e5f7bf7bccee8adf9dba5dcf93144",
+    "tmh/platform/supervised_process.py": "06d3e624c137bb85be18eb37f90a02231be7da3538351bc1ac72f957c83ae4e2",
+    "tmh/platform/ui.py": "36f459da9e74d934acb6561c9e20599415a40fd17ae4e083fd4dc8d681a5e416"
+  }
+}

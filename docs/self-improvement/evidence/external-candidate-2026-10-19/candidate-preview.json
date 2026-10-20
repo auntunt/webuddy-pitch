@@ -1,0 +1,21 @@
+{
+  "candidate_id": 1,
+  "preview": {
+    "key": "BOOTV2-3",
+    "project": "BOOTV2",
+    "branch": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+    "commit": "8b6cb6da90",
+    "commit_full": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+    "port": 51177,
+    "prefix": "/pv/BOOTV2-3/__commit/8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+    "pid": 75046,
+    "dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/BOOTV2-3",
+    "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2",
+    "log": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/logs/BOOTV2-3/1792386003980647000.log",
+    "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 app.py 51177 /pv/BOOTV2-3/__commit/8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'",
+    "ready": "/health",
+    "state": "starting",
+    "started": "2026-10-19 13:00:03",
+    "by": "agent:codex-external"
+  }
+}

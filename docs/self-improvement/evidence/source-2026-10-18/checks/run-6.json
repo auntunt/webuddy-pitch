@@ -1,0 +1,20 @@
+{
+  "kind": "deterministic synthetic-fixture behavior check; not model or customer acceptance",
+  "run_id": "6",
+  "stage": "security",
+  "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/worktrees/view-r6",
+  "expected_commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+  "actual_commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+  "expected_file_sha256": "2948c9f08b240608881d51a7f31f4461f67085a5463dcc0f101ae470000870a5",
+  "actual_file_sha256": "2948c9f08b240608881d51a7f31f4461f67085a5463dcc0f101ae470000870a5",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-B",
+    "test_security.py"
+  ],
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": "test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed) ... ok\ntest_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+  "source_status_after": "",
+  "matches_candidate": true
+}

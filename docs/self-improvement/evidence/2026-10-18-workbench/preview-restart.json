@@ -1,0 +1,41 @@
+{
+  "operations": [
+    {
+      "key": "BOOTV2-main",
+      "state": "",
+      "why": "",
+      "commit": "",
+      "head": "547e444",
+      "main": "main",
+      "stale": false,
+      "url": "",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 app.py {port} {prefix} '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'",
+      "configured": true,
+      "fix": "",
+      "started": "",
+      "tail": ""
+    },
+    {
+      "key": "BOOTV2-main",
+      "state": "starting",
+      "why": "",
+      "commit": "547e4447b6",
+      "head": "547e444",
+      "main": "main",
+      "stale": false,
+      "url": "",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 app.py {port} {prefix} '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'",
+      "configured": true,
+      "fix": "",
+      "started": "2026-10-18 15:38:05",
+      "tail": ""
+    }
+  ],
+  "stable_database": "data/product-workbench/projects/BOOTV2/app.db",
+  "rows_after_restart": [
+    [
+      "预览停止并重建后，数据仍保留",
+      0
+    ]
+  ]
+}

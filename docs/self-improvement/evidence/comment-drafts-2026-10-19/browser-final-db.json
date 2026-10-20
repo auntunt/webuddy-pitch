@@ -1,0 +1,40 @@
+{
+  "comments": [
+    {
+      "id": 3,
+      "ticket_id": 1,
+      "ts": "2026-10-19 10:42:51",
+      "author": "草稿验收员",
+      "kind": "comment",
+      "body": "  真实操作验收：刷新、重启后保留完整评论。\n中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；\n末尾空白保留  ",
+      "data": "{}"
+    },
+    {
+      "id": 6,
+      "ticket_id": 1,
+      "ts": "2026-10-19 10:44:30",
+      "author": "草稿验收员",
+      "kind": "comment",
+      "body": "  上次评论等待确认时写的新草稿。\n不要随确认一起发送，也不要被清空。  ",
+      "data": "{}"
+    }
+  ],
+  "receipts": [
+    {
+      "ticket_id": 1,
+      "author": "草稿验收员",
+      "request_id": "f518a440-be8c-4b43-a83a-7041422d6c9b",
+      "body": "  真实操作验收：刷新、重启后保留完整评论。\n中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；\n末尾空白保留  ",
+      "event_id": 3,
+      "ts": "2026-10-19 10:42:51"
+    },
+    {
+      "ticket_id": 1,
+      "author": "草稿验收员",
+      "request_id": "8f67adb0-0795-4b16-9e9b-1cc655bfd647",
+      "body": "  上次评论等待确认时写的新草稿。\n不要随确认一起发送，也不要被清空。  ",
+      "event_id": 6,
+      "ts": "2026-10-19 10:44:30"
+    }
+  ]
+}

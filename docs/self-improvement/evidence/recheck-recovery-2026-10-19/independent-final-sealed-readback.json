@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-10-19T01:44:48.953385+00:00",
+  "tests": 8,
+  "all_fixture_cleanup_signals_empty": true,
+  "all_owned_workers_gone": true,
+  "original_run_exactly_unchanged_after_restart": true,
+  "original_lifecycle_exactly_unchanged": true,
+  "raw_invalid_utf8_bytes_preserved": true,
+  "explicit_retry_new_operation": 2,
+  "current_check": "pass",
+  "old_package_stale_after_crash": true,
+  "explicit_repack_current": true,
+  "known_failure_signed": false,
+  "known_failure_test_gate": "fail",
+  "known_failure_not_misreported_stale": true,
+  "remaining_owned_commands": {
+    "test_multicommand_recheck_holds_lease_between_real_commands_across_instances": [],
+    "test_synthetic_signoff_serializes_current_proof_check_and_commit_against_recheck": [],
+    "test_damaged_sealed_evidence_is_unknown_read_only_and_cannot_be_adopted": [],
+    "test_active_recheck_rejects_adoption_without_removing_its_worktree": [],
+    "test_missing_interrupted_receipt_blocks_retry_until_explicit_collection": [],
+    "test_synthetic_signer_cannot_accept_freshly_repacked_real_failed_checks": [],
+    "test_real_failed_recheck_is_current_failure_and_never_overwrites_source_success": [],
+    "test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run": []
+  },
+  "record_sha256": {
+    "test_active_recheck_rejects_adoption_without_removing_its_worktree.json": "03c68304f494a8046c75ee97a63baad3b93d17326adacf2291d8f2c531b03bf1",
+    "test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run.json": "f9b52727dea8f78af84c10e2f08c7be3a42297effed3da37ad5452087f334197",
+    "test_damaged_sealed_evidence_is_unknown_read_only_and_cannot_be_adopted.json": "e4562b0fd988622c74923ad3e2b0b9065a582acfd099d0c4fb8d204437048f07",
+    "test_missing_interrupted_receipt_blocks_retry_until_explicit_collection.json": "ff31b2547c2053ce155abc35648bfcffc3380da88cc66c7405144a3ad4ace83f",
+    "test_multicommand_recheck_holds_lease_between_real_commands_across_instances.json": "c5c875b7c163cd52d5c652d25838ec50d7ff6499f303e9f430630c352e91453b",
+    "test_real_failed_recheck_is_current_failure_and_never_overwrites_source_success.json": "e3e518f8dcc58b118c9f6c3e4b476f5165a9c878578b6e6434673219b337d404",
+    "test_synthetic_signer_cannot_accept_freshly_repacked_real_failed_checks.json": "a2fdf1b742540664c55566a9ee9afff367cc28edf12427d2c5ff5426c6931047",
+    "test_synthetic_signoff_serializes_current_proof_check_and_commit_against_recheck.json": "a496f7de17fb94755af23a61f8acec1db9a52a3bc80e821e16d6c2091680a5a8"
+  }
+}

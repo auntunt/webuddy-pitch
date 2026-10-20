@@ -1,0 +1,57 @@
+{
+  "version": "0.3.0",
+  "agent": "agent:codex",
+  "workspace": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench",
+  "engines": [
+    {
+      "name": "claude",
+      "title": "Claude Code",
+      "available": false,
+      "custom": false,
+      "models": [
+        [
+          "opus",
+          "Opus（最强，适合方案和改码）"
+        ],
+        [
+          "sonnet",
+          "Sonnet（均衡，适合分析和写知识页）"
+        ],
+        [
+          "haiku",
+          "Haiku（最快最省）"
+        ]
+      ],
+      "defaults": {
+        "plan": "opus",
+        "fix": "opus",
+        "analyze": "sonnet",
+        "kb": "sonnet",
+        "ask": "sonnet",
+        "edit": "sonnet",
+        "diagnose": "opus",
+        "understand": "sonnet"
+      }
+    },
+    {
+      "name": "codex",
+      "title": "Codex",
+      "available": true,
+      "custom": false,
+      "models": [
+        [
+          "",
+          "使用本机默认模型"
+        ]
+      ],
+      "defaults": {}
+    }
+  ],
+  "boundaries": {
+    "identity": "agent audit labels are self-declared; server authentication is separate",
+    "messages": "durable ticket messages, not delivery to an external running assistant; recipients poll messages_list",
+    "approval": "agent actions never record human acceptance, review, merge, or release",
+    "candidate": "external candidate submission is not supported by this API yet",
+    "execution": "execution requires X-Webuddy-Execution: 1; runs remain subject to existing lifecycle and verification controls"
+  }
+}

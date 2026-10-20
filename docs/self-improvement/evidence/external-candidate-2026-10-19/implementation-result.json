@@ -1,0 +1,15 @@
+{
+  "returncode": 0,
+  "reason": "exited",
+  "cleanup": {
+    "trigger": null,
+    "term_sent": false,
+    "kill_sent": false,
+    "signals": [],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  }
+}

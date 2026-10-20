@@ -1,0 +1,14 @@
+{
+  "head": true,
+  "status": true,
+  "tracked": true,
+  "local": true,
+  "platform_existing_rows": {
+    "projects": true,
+    "tickets": true,
+    "events": true,
+    "runs": true,
+    "code_candidates": true,
+    "candidate_decisions": true
+  }
+}

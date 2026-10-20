@@ -1,0 +1,15 @@
+{
+  "head": "7310a820080b562e56fc16e6a958bf99c8818383",
+  "before": {
+    "tmh/platform/ui.py": "2fd01cf0963daa38405c9dc91c95dd3402af62df213b4d743f82a371e01f030f",
+    "tmh/platform/ui_work.py": "77e29e86a6e74da52a5f9ab5e6ae29ebc19e35321a40c0d0111f00ff24647976",
+    "tests/test_ui_ticket_preview.py": "e32f60bb7dfe7ef0b9bc9d1e56446a9a4b84f6b9fa4b40a49a8ad2c9096586bd"
+  },
+  "after": {
+    "tmh/platform/ui.py": "2fd01cf0963daa38405c9dc91c95dd3402af62df213b4d743f82a371e01f030f",
+    "tmh/platform/ui_work.py": "77e29e86a6e74da52a5f9ab5e6ae29ebc19e35321a40c0d0111f00ff24647976",
+    "tests/test_ui_ticket_preview.py": "e32f60bb7dfe7ef0b9bc9d1e56446a9a4b84f6b9fa4b40a49a8ad2c9096586bd"
+  },
+  "unchanged": true,
+  "node_exit_code": 0
+}

@@ -1,0 +1,31 @@
+{
+  "checked_at": "2026-10-18T22:38:26.780735+00:00",
+  "tests": 8,
+  "main_service_returncode": -9,
+  "main_workers_already_gone_before_fixture_cleanup": true,
+  "main_fixture_cleanup_signals": [],
+  "raw_binary_matches": true,
+  "retried_run_status": "done",
+  "corrupt_original_preserved": true,
+  "corrupt_repeat_blocked": true,
+  "remaining_owned_commands": {
+    "test_corrupt_lifecycle_of_lost_known_owner_is_visible_blocked_not_running_forever": [],
+    "test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture": [],
+    "test_queued_owned_run_with_no_attempts_can_end_without_inventing_a_process": [],
+    "test_service_sigkill_reclaims_descendants_and_recovers_preserved_work": [],
+    "test_receipt_from_another_real_run_cannot_prove_this_run_was_cleaned": [],
+    "test_service_crash_after_done_row_before_lifecycle_seal_is_reconciled": [],
+    "test_second_runner_cannot_fail_or_recover_a_live_service_owners_run": [],
+    "test_unlisted_attempt_directory_prevents_no_attempt_shortcut": []
+  },
+  "evidence_record_sha256": {
+    "test_corrupt_lifecycle_of_lost_known_owner_is_visible_blocked_not_running_forever.json": "2520c7de57faaf097267590fd69d6a1fdc631578cf1b35b636864de06b500578",
+    "test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture.json": "8d667d5f8f8f69a8c1d0fae1b648bb2219b87eafb26ebf82a750797612debb54",
+    "test_queued_owned_run_with_no_attempts_can_end_without_inventing_a_process.json": "7808b962dd3450c7163aeef8c5ff7a1a5f28bba356b87921ebff3ea3700c3e8c",
+    "test_receipt_from_another_real_run_cannot_prove_this_run_was_cleaned.json": "4b9c4ef3fc5bf87446240c70ff7f37ac888b369452e33e29a05c4aa9e6af1661",
+    "test_second_runner_cannot_fail_or_recover_a_live_service_owners_run.json": "a125bc43e26411602a2d3ba98649aa24be5153ca23757252665dc13d316945ee",
+    "test_service_crash_after_done_row_before_lifecycle_seal_is_reconciled.json": "5ed0573798c7dee6316b99c1e52fd89802e9e3442727a6bfcededeb47e5762c7",
+    "test_service_sigkill_reclaims_descendants_and_recovers_preserved_work.json": "187cbea73e3e85b92a5b4a13d52723d4703f27e51b050be785f1bfecbf82615d",
+    "test_unlisted_attempt_directory_prevents_no_attempt_shortcut.json": "35d0965b3134c45d7a51051e45a2f0c6e9763be15b49a2beb6765ba45eb69ba0"
+  }
+}

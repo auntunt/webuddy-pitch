@@ -1,0 +1,8 @@
+{
+  "probe_id": 1,
+  "candidate_id": 1,
+  "status": "running",
+  "recipe_version": "9ee97372cb36ef415954944d60950eb2aa039eeab2bb5ef84f186ab1cb98e372",
+  "total_seconds": 90,
+  "human_acceptance": false
+}

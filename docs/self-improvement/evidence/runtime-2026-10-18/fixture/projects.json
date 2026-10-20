@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "key": "RUNTIME",
+    "name": "SYNTHETIC 运行恢复验收",
+    "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/runtime-verification/source",
+    "description": "",
+    "created": "2026-10-18 23:38:27"
+  }
+]

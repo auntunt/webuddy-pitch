@@ -1,0 +1,45 @@
+Browser tab: 19, Title: "Webuddy · 草稿隔离验收", URL: "http://127.0.0.1:8797/#/t/DRAFT-1".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 53-55, 78, 94-115, 129, 135-143, 147
++			173 text 待验证
++				174 text 待复核 等你验收（证据还不齐）
++				175 definition list
++					176 container 客户要的
++						177 text 客户要的
++					178 text 本地隔离验收，不触发模型或客户签收。
++					179 container 下一步
++						180 text 下一步
++					181 container
++						182 text 改动已就绪， 等你验收 ：按业务操作实际验证。通过后由人合并分支；不通过写明原因，退回重改。
++				183 button 验收通过, ID: ttOk
++				184 button 退回重改, ID: ttNo
++				185 button 发给客户签收, ID: ttSend
++			186 content list
++				187 container
++					188 text ✓ 受理 合成夹具 · 15 分钟前
++				189 container
++					190 text 2 分析定位 跳过
++				191 container
++					192 text 3 修改方案 跳过
++				193 container
++					194 text 4 修改代码 跳过
++				195 container
++					196 text 5 人工验收 等验收
++				197 container
++					198 text 6 闭环
++					199 text 改动已就绪， 等你验收 ：按业务操作实际验证。通过后由人合并分支；不通过写明原因，退回重改。
++				200 container
++					201 text 合成夹具  创建工单 15 分钟前
++				202 text 草稿验收员 1 分钟前
++				203 text 真实操作验收：刷新、重启后保留完整评论。 中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>； 末尾空白保留
++				204 container
++					205 text 草稿验收员  新建 → 待验证 刚刚
++				206 container
++					207 text 草稿验收员  生成证据包（第 1 条记录，哈希 05721407c43b） 刚刚
++				208 text 草稿验收员 刚刚
++				209 text 上次评论等待确认时写的新草稿。 不要随确认一起发送，也不要被清空。
++			210 text 评论草稿自动保存在本标签页，不会自动发送。
+~			65 text entry area (settable) Description: 评论草稿, ID: cm
++				211 text 0 次运行
++	212 text 评论已发送
+The focused UI element is 1 AXWebArea Webuddy · 草稿隔离验收, URL: 127.0.0.1:8797/#/t/DRAFT-1

@@ -1,0 +1,15 @@
+{
+  "source_sha256": "7b3f7f05591c4e473a421ee9334d1bb716a280d87c79c69fa77737fb73fd2b76",
+  "observed_in_actual_browser": [
+    "Reload after actual process restart retained item 1 and done 1",
+    "Edited title containing a literal U+FFFD, saved and reloaded, item id and completion unchanged"
+  ],
+  "final_rows": [
+    [
+      1,
+      "最终版本：重启后编辑仍可用 �",
+      1
+    ]
+  ],
+  "screenshot_original_bytes": "browser-app-v2.jpg"
+}

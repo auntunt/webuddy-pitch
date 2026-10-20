@@ -1,0 +1,31 @@
+{
+  "attempt": 4,
+  "kind": "check:test",
+  "started_at": "2026-10-19 14:35:36",
+  "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/verification-operations/worktrees/candidate-1",
+  "command": [
+    "/bin/sh",
+    "-c",
+    "'/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python' -m unittest discover -s tests -v"
+  ],
+  "timeout_seconds": 1197.9825073329266,
+  "evidence": "runs/1/attempts/0004",
+  "supervised": true,
+  "pid": 72620,
+  "pgid": 72620,
+  "returncode": 0,
+  "reason": "exited",
+  "elapsed_seconds": 1.5407840419793501,
+  "cleanup": {
+    "trigger": null,
+    "term_sent": false,
+    "kill_sent": false,
+    "signals": [],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "ended_at": "2026-10-19 14:35:38"
+}

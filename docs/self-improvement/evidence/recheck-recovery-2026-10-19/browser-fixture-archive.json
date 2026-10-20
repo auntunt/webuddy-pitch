@@ -1,0 +1,8 @@
+{
+  "path": "browser-fixture-complete.tar",
+  "compression": "none",
+  "sha256": "72b2a3e4cb83771fc2a7082a043d8670bcbbf41f2340428c971affd41f823375",
+  "bytes": 757760,
+  "verified_files": 177,
+  "includes": "complete stopped fixture including Git metadata, original/new evidence, database, logs and generated files"
+}

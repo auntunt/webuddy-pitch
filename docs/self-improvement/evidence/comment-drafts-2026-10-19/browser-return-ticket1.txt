@@ -1,0 +1,16 @@
+Browser tab: 19, Title: "Webuddy · 草稿隔离验收", URL: "http://127.0.0.1:8797/#/t/DRAFT-1".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 136
+~1 AXWebArea Webuddy · 草稿隔离验收, URL: 127.0.0.1:8797/#/t/DRAFT-1
+~				34 text  / DRAFT / DRAFT-1
+~			35 heading 全页刷新与发送重试, Help: 点击修改, Value: 1, ID: ttl
+~				36 text 全页刷新与发送重试
+~				81 link Description: 工单详情, Value: 127.0.0.1:8797/#/t/DRAFT-1
+~				82 link Description: 提示词, Value: 127.0.0.1:8797/#/t/DRAFT-1/prompt
+~					85 text ✓ 受理 合成夹具 · 9 分钟前
+~				117 text 合成夹具  创建工单 9 分钟前
++			118 text 评论草稿已保存在本标签页，刷新后可恢复。
+~			119 text entry area (settable) Description: 评论草稿, ID: cm, Value:   真实操作验收：刷新、重启后保留完整评论。
+中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；
+末尾空白保留  
+The focused UI element is 1 AXWebArea Webuddy · 草稿隔离验收, URL: 127.0.0.1:8797/#/t/DRAFT-1

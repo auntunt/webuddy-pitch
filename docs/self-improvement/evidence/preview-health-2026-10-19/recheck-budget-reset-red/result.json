@@ -1,0 +1,70 @@
+{
+  "mode": "reset",
+  "test_file": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_operations.py",
+  "test_sha256": "bb236c2684e79de7c2e3fef0451efe2e5a6a448b94b2d891e7d2d55bb6e0f5b7",
+  "tests_run": 1,
+  "failures": 1,
+  "errors": 0,
+  "successful": false,
+  "commands": [
+    {
+      "returncode": 0,
+      "reason": "exited",
+      "elapsed": 0.3570509999990463,
+      "pid": 27211,
+      "pgid": 27211,
+      "output": "first complete\n",
+      "cleanup": {
+        "trigger": null,
+        "term_sent": false,
+        "kill_sent": false,
+        "signals": [],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "process_returncode": 0,
+      "error": "",
+      "output_base64": "Zmlyc3QgY29tcGxldGUK",
+      "command_number": 1,
+      "evidence": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-8dwuq8lv/verification-operations/runs/1/attempts/0001"
+    },
+    {
+      "returncode": 124,
+      "reason": "timeout",
+      "elapsed": 3.3309246249264106,
+      "pid": 27213,
+      "pgid": 27213,
+      "output": "second\n",
+      "cleanup": {
+        "trigger": "timeout",
+        "term_sent": true,
+        "kill_sent": true,
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "at": 2.9244348329957575,
+            "sent": true
+          },
+          {
+            "signal": "SIGKILL",
+            "at": 3.2372611250029877,
+            "sent": true
+          }
+        ],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "process_returncode": -9,
+      "error": "",
+      "output_base64": "c2Vjb25kCg==",
+      "command_number": 2,
+      "evidence": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-8dwuq8lv/verification-operations/runs/1/attempts/0002"
+    }
+  ]
+}

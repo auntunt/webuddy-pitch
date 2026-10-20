@@ -1,0 +1,42 @@
+{
+  "attempt": 2,
+  "kind": "command",
+  "started_at": "2026-10-19 15:17:49",
+  "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-8dwuq8lv/project",
+  "command": [
+    "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python",
+    "-c",
+    "import signal,time;signal.signal(signal.SIGTERM,signal.SIG_IGN);print('second',flush=True);time.sleep(20)"
+  ],
+  "timeout_seconds": 2.999838166986592,
+  "evidence": "runs/1/attempts/0002",
+  "supervised": true,
+  "pid": 27213,
+  "pgid": 27213,
+  "returncode": 124,
+  "reason": "timeout",
+  "elapsed_seconds": 3.3309246249264106,
+  "cleanup": {
+    "trigger": "timeout",
+    "term_sent": true,
+    "kill_sent": true,
+    "signals": [
+      {
+        "signal": "SIGTERM",
+        "at": 2.9244348329957575,
+        "sent": true
+      },
+      {
+        "signal": "SIGKILL",
+        "at": 3.2372611250029877,
+        "sent": true
+      }
+    ],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "ended_at": "2026-10-19 15:17:53"
+}

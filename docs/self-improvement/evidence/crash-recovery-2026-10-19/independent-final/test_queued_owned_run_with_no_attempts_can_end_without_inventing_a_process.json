@@ -1,0 +1,146 @@
+{
+  "test": "tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_queued_owned_run_with_no_attempts_can_end_without_inventing_a_process",
+  "temporary_directory": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-efew8ymc",
+  "queued_recovered": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:31:27",
+      "started": "",
+      "ended": "2026-10-19 06:31:27",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。\n",
+      "result": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "owner": {
+        "token": "5be4d73717c94075b7a5f4fbf201bf8c",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-efew8ymc"
+      },
+      "attempts": [],
+      "finished": true,
+      "stopped_reason": "owner_lost",
+      "recovery": {
+        "state": "complete",
+        "reason": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": true,
+        "errors": []
+      },
+      "ended_at": "2026-10-19 06:31:27"
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {}
+  },
+  "before_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:31:27",
+      "started": "",
+      "ended": "2026-10-19 06:31:27",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。\n",
+      "result": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "owner": {
+        "token": "5be4d73717c94075b7a5f4fbf201bf8c",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-efew8ymc"
+      },
+      "attempts": [],
+      "finished": true,
+      "stopped_reason": "owner_lost",
+      "recovery": {
+        "state": "complete",
+        "reason": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": true,
+        "errors": []
+      },
+      "ended_at": "2026-10-19 06:31:27"
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {}
+  },
+  "fixture_cleanup_signals": [],
+  "after_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:31:27",
+      "started": "",
+      "ended": "2026-10-19 06:31:27",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。\n",
+      "result": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "owner": {
+        "token": "5be4d73717c94075b7a5f4fbf201bf8c",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-efew8ymc"
+      },
+      "attempts": [],
+      "finished": true,
+      "stopped_reason": "owner_lost",
+      "recovery": {
+        "state": "complete",
+        "reason": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": true,
+        "errors": []
+      },
+      "ended_at": "2026-10-19 06:31:27"
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {}
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "id": "86762c2a002d",
+  "project": "INTREC",
+  "by": "自动流转",
+  "channel": "web",
+  "text": "编辑已有事项后保存失败，希望修改完成后还能找到原事项。昨天开始的，所有用户都有此问题。",
+  "created": "2026-10-19 02:29:27",
+  "state": "confirmed",
+  "rounds": 1,
+  "items": [
+    {
+      "text": "编辑已有事项后保存失败，希望修改完成后还能找到原事项",
+      "title": "事项编辑后保留原编号",
+      "kind": "bug",
+      "kind_by": "智能体",
+      "by": "智能体",
+      "restated": "编辑已有事项后应能保存，并保留原事项编号和完成状态",
+      "flows": [],
+      "flow": null,
+      "new_module": true,
+      "slots": {
+        "since": {
+          "value": "昨天",
+          "from": "原话"
+        },
+        "who": {
+          "value": "所有用户",
+          "from": "原话"
+        },
+        "trigger": {
+          "value": "编辑已有事项后",
+          "from": "原话"
+        },
+        "expected": {
+          "value": "保存并保留原事项",
+          "from": "原话"
+        },
+        "q1": {
+          "value": "完整保留输入；恢复后重试保存到原事项。原编号、完成状态和其他事项不变。",
+          "from": "合成验收客户（客户）",
+          "unsure": false
+        }
+      },
+      "asked": [
+        "q1"
+      ],
+      "answer": "",
+      "agent_q": [
+        {
+          "q": "保存遇到故障时，希望保留什么，恢复后怎么操作？",
+          "options": [],
+          "blocks": [
+            "A1"
+          ],
+          "slot": "q1"
+        }
+      ],
+      "agent_ac": [
+        {
+          "id": "A1",
+          "text": "当保存遇到故障时，系统应当完整保留输入；恢复后重试保存到原事项",
+          "check": "模拟保存失败，核对输入保留，恢复后重试并检查原事项编号及完成状态",
+          "layer": "L2"
+        },
+        {
+          "id": "A2",
+          "text": "当用户取消编辑时，系统应当保留原事项内容",
+          "check": "修改输入后取消，重新打开事项并核对原内容",
+          "layer": "L2"
+        }
+      ],
+      "keep": [
+        "原事项编号、完成状态和其他事项保持不变"
+      ],
+      "questions": [],
+      "ac": [
+        {
+          "id": "A1",
+          "text": "当保存遇到故障时，系统应当完整保留输入；恢复后重试保存到原事项",
+          "layer": "L2",
+          "check": "模拟保存失败，核对输入保留，恢复后重试并检查原事项编号及完成状态",
+          "open": false
+        },
+        {
+          "id": "A2",
+          "text": "当用户取消编辑时，系统应当保留原事项内容",
+          "layer": "L2",
+          "check": "修改输入后取消，重新打开事项并核对原内容",
+          "open": false
+        },
+        {
+          "id": "A3",
+          "text": "必须保持：原事项编号、完成状态和其他事项保持不变",
+          "layer": "L1",
+          "check": "跑现有测试，并抽查相邻功能",
+          "open": false,
+          "keep": true
+        }
+      ],
+      "ticket": "INTREC-1",
+      "refined": true
+    }
+  ],
+  "tickets": [
+    "INTREC-1"
+  ],
+  "title": "事项编辑故障恢复 · SYNTHETIC",
+  "dropped": [],
+  "understood": {
+    "by": "智能体",
+    "agent": "intake-fixture",
+    "run": 3
+  },
+  "suggest_big": false,
+  "updated": "2026-10-19 02:37:25",
+  "confirmed_by": "自动流转",
+  "confirmed_at": "2026-10-19 02:29:27",
+  "asked_client": [
+    {
+      "by": "自动流转",
+      "at": "2026-10-19 02:29:27",
+      "expires": "2026-10-26 02:29:27",
+      "questions": 1
+    }
+  ],
+  "understanding_recovery_history": [
+    {
+      "id": "a84526ea",
+      "refine": [
+        0
+      ],
+      "slots": {
+        "0": [
+          "q1"
+        ]
+      },
+      "open_ac": {
+        "0": [
+          "A1"
+        ]
+      },
+      "client": {
+        "by": "合成验收客户（客户）",
+        "items": [
+          0
+        ]
+      },
+      "attempts": [
+        {
+          "job": "a84526ea",
+          "run": 2,
+          "status": "failed",
+          "reason": "智能体退出码 124：运行停止：达到整次任务总时限。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。\n\nSYNTHETIC timeout fixture; child PID 74134; original answer remains in prompt\n",
+          "at": "2026-10-19 02:32:40",
+          "requested_by": ""
+        },
+        {
+          "job": "7af882ea",
+          "run": 3,
+          "status": "resolved",
+          "reason": "已补全原待确认标准",
+          "at": "2026-10-19 02:37:25",
+          "requested_by": "自动流转"
+        }
+      ],
+      "status": "resolved",
+      "reason": "智能体退出码 124：运行停止：达到整次任务总时限。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。\n\nSYNTHETIC timeout fixture; child PID 74134; original answer remains in prompt\n",
+      "run": 3,
+      "job": "7af882ea",
+      "no_spawn": false,
+      "binding": "bd3da2d99237adedeb10af20fc4f7058974e49493dbfe1358470f6503b5b62b0",
+      "requested_by": "自动流转"
+    }
+  ]
+}

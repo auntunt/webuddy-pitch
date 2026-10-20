@@ -1,0 +1,1 @@
+{"id": 2, "project_id": 3, "matter_id": null, "ticket_id": 3, "kind": "ticket", "title": "BOOTV2：真实编辑边界与可恢复交付", "created_by": "自动流转", "created": "2026-10-18 23:54:08", "updated": "2026-10-18 23:54:08", "archived_at": "", "ticket": {"key": "BOOTV2-1", "title": "【RSI技术验收】事项编辑、数据保存与失败恢复", "status": "verify"}}

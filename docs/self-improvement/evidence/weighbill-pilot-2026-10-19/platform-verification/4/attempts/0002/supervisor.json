@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "owner": {
+    "token": "d77800a31ca94b24bf17ce27445207eb",
+    "run_id": 4,
+    "data_dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations"
+  },
+  "nonce": "0875a760e78a48c7bf066453d34b9082",
+  "folder": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/runs/4/attempts/0002",
+  "phase": "running",
+  "supervisor_pid": 53441,
+  "pid": 53442,
+  "pgid": 53442
+}

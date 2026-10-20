@@ -1,0 +1,27 @@
+{
+  "commit": "e6b28dbb689a6a84acfcb0566a366c0fbe7e2c4b",
+  "product_commit": "d21e4f4da680b6649e06abd0517ca7200c714359",
+  "started_utc": "2026-10-19T07:21:49.892250+00:00",
+  "finished_utc": "2026-10-19T07:27:17.279117+00:00",
+  "command": [
+    "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-v"
+  ],
+  "python": "3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 17.0.0 (clang-1700.6.4.2)]",
+  "mcp_sdk": "1.30.0",
+  "exit_code": 0,
+  "tests": 775,
+  "test_runtime_seconds": 326.275,
+  "wall_runtime_seconds": 327.3333519169828,
+  "ok_line": true,
+  "source_files": 186,
+  "source_unchanged": true,
+  "source_differences": [],
+  "resource_warning_lines": 84,
+  "log_sha256": "b055201dd7ea2f75b75930e064d87bab5c05a5eb49d0fa6b9be35216b0bfc224"
+}

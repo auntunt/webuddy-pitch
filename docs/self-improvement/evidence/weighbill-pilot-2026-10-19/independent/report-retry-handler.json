@@ -1,0 +1,87 @@
+{
+  "scope": "Actual shipped act() function with isolated DOM/fetch fixtures; not a browser acceptance",
+  "network_and_conflict_keep_draft": true,
+  "same_full_old_payload_retried": true,
+  "refreshes_before_success": 0,
+  "messages": [
+    "没有成功：Failed to fetch。修改还在，可以再点一次。",
+    "没有成功：这张单刚被别人改过。修改还在，可以再点一次。"
+  ],
+  "fetches": [
+    {
+      "path": "/api/v1/records/synthetic-concurrent-record",
+      "method": "PATCH",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "fields": {
+          "客户名": "隔离测试客户",
+          "序号": "WB202610190001",
+          "日期": "2026-10-19",
+          "入站时间": "08:00",
+          "出站时间": "08:20",
+          "车号": "鲁A12345",
+          "货名": "甲只想改货名",
+          "收费": "",
+          "总重": "11000",
+          "皮重": "10000",
+          "净重": "1000"
+        },
+        "doc_type": "site_in",
+        "customer": "",
+        "origin_id": "legacy"
+      }
+    },
+    {
+      "path": "/api/v1/records/synthetic-concurrent-record",
+      "method": "PATCH",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "fields": {
+          "客户名": "隔离测试客户",
+          "序号": "WB202610190001",
+          "日期": "2026-10-19",
+          "入站时间": "08:00",
+          "出站时间": "08:20",
+          "车号": "鲁A12345",
+          "货名": "甲只想改货名",
+          "收费": "",
+          "总重": "11000",
+          "皮重": "10000",
+          "净重": "1000"
+        },
+        "doc_type": "site_in",
+        "customer": "",
+        "origin_id": "legacy"
+      }
+    },
+    {
+      "path": "/api/v1/records/synthetic-concurrent-record",
+      "method": "PATCH",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "fields": {
+          "客户名": "隔离测试客户",
+          "序号": "WB202610190001",
+          "日期": "2026-10-19",
+          "入站时间": "08:00",
+          "出站时间": "08:20",
+          "车号": "鲁A12345",
+          "货名": "甲只想改货名",
+          "收费": "",
+          "总重": "11000",
+          "皮重": "10000",
+          "净重": "1000"
+        },
+        "doc_type": "site_in",
+        "customer": "",
+        "origin_id": "legacy"
+      }
+    }
+  ]
+}

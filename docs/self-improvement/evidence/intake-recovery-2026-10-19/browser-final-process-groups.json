@@ -1,0 +1,56 @@
+[
+  {
+    "run": 1,
+    "pgid": 72632,
+    "exists": false,
+    "cleanup": {
+      "trigger": null,
+      "term_sent": false,
+      "kill_sent": false,
+      "signals": [],
+      "errors": [],
+      "remaining_group": false,
+      "output_complete": true,
+      "reaped": true,
+      "complete": true
+    }
+  },
+  {
+    "run": 3,
+    "pgid": 76353,
+    "exists": false,
+    "cleanup": {
+      "trigger": null,
+      "term_sent": false,
+      "kill_sent": false,
+      "signals": [],
+      "errors": [],
+      "remaining_group": false,
+      "output_complete": true,
+      "reaped": true,
+      "complete": true
+    }
+  },
+  {
+    "run": 2,
+    "pgid": 74129,
+    "exists": false,
+    "cleanup": {
+      "trigger": "timeout",
+      "term_sent": true,
+      "kill_sent": false,
+      "signals": [
+        {
+          "signal": "SIGTERM",
+          "at": 9.995323457987979,
+          "sent": true
+        }
+      ],
+      "errors": [],
+      "remaining_group": false,
+      "output_complete": true,
+      "reaped": true,
+      "complete": true
+    }
+  }
+]

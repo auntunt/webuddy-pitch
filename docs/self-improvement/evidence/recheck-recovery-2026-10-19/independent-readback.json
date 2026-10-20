@@ -1,0 +1,32 @@
+{
+  "checked_at": "2026-10-19T01:37:40.214036+00:00",
+  "tests": 7,
+  "all_fixture_cleanup_signals_empty": true,
+  "all_owned_workers_gone": true,
+  "original_run_exactly_unchanged_after_restart": true,
+  "original_lifecycle_exactly_unchanged": true,
+  "raw_invalid_utf8_bytes_preserved": true,
+  "explicit_retry_new_operation": 2,
+  "current_check": "pass",
+  "old_package_stale_after_crash": true,
+  "explicit_repack_current": true,
+  "remaining_owned_commands": {
+    "test_multicommand_recheck_holds_lease_between_real_commands_across_instances": [],
+    "test_synthetic_signoff_serializes_current_proof_check_and_commit_against_recheck": [],
+    "test_damaged_sealed_evidence_is_unknown_read_only_and_cannot_be_adopted": [],
+    "test_active_recheck_rejects_adoption_without_removing_its_worktree": [],
+    "test_missing_interrupted_receipt_blocks_retry_until_explicit_collection": [],
+    "test_real_failed_recheck_is_current_failure_and_never_overwrites_source_success": [],
+    "test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run": []
+  },
+  "record_sha256": {
+    "test_active_recheck_rejects_adoption_without_removing_its_worktree.json": "f5ff3c49440cc09b672d085b18df54600f8c8ab32bc958352a64c1b41b6b8124",
+    "test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run.json": "ac1c2ea5903452db28b66b6da5d7151a851329460a8d9b07cdb5762ab7854dbf",
+    "test_damaged_sealed_evidence_is_unknown_read_only_and_cannot_be_adopted.json": "3823591c5ba122b6968308c582d44a2eec25ea91c471ddd1a7e88d158c241b17",
+    "test_missing_interrupted_receipt_blocks_retry_until_explicit_collection.json": "8ff954f5c904ac8b7449c72448148f3d4b34ea8b4aaaeb36b255f44fd9a36da0",
+    "test_multicommand_recheck_holds_lease_between_real_commands_across_instances.json": "e59ab2a5889d4f08b7c630dad9a7a247a3a19df91ac64815bfeb9e5394c0912d",
+    "test_real_failed_recheck_is_current_failure_and_never_overwrites_source_success.json": "85bd08146a278f5ae2f8bd60617d4c8c67b72373a285ec4f7dddb30b76044881",
+    "test_synthetic_signoff_serializes_current_proof_check_and_commit_against_recheck.json": "d64513a767eb1fb3761ef315783408a10f12f8bd840b5761d52f393cc8eeab35"
+  },
+  "note": "All seven passed; signoff.py changed during this execution. See source receipt; a later frozen rerun is required."
+}

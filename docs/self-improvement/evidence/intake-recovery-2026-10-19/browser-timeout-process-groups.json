@@ -1,0 +1,73 @@
+{
+  "lifecycle": {
+    "started_at": "2026-10-19 02:32:30",
+    "timeout_seconds": 10.0,
+    "stopped_reason": "timeout",
+    "attempts": [
+      {
+        "attempt": 1,
+        "kind": "model:understand",
+        "started_at": "2026-10-19 02:32:30",
+        "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-understand-6e_77l5d",
+        "command": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/intake-recovery-2026-10-19/fixture-reader.py",
+          "understand",
+          "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/intake-recovery-verification-2026-10-19/runs/2/prompt.md",
+          "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/intake-recovery-verification-2026-10-19/reader-control.txt"
+        ],
+        "timeout_seconds": 9.99436966702342,
+        "evidence": "runs/2/attempts/0001",
+        "pid": 74129,
+        "pgid": 74129,
+        "returncode": 124,
+        "reason": "timeout",
+        "elapsed_seconds": 9.997002540971152,
+        "cleanup": {
+          "trigger": "timeout",
+          "term_sent": true,
+          "kill_sent": false,
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "at": 9.995323457987979,
+              "sent": true
+            }
+          ],
+          "errors": [],
+          "remaining_group": false,
+          "output_complete": true,
+          "reaped": true,
+          "complete": true
+        },
+        "ended_at": "2026-10-19 02:32:40"
+      }
+    ],
+    "finished": true,
+    "ended_at": "2026-10-19 02:32:40",
+    "elapsed_seconds": 10.01
+  },
+  "actual_checks": [
+    {
+      "pgid": 74129,
+      "exists": false,
+      "cleanup": {
+        "trigger": "timeout",
+        "term_sent": true,
+        "kill_sent": false,
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "at": 9.995323457987979,
+            "sent": true
+          }
+        ],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      }
+    }
+  ]
+}

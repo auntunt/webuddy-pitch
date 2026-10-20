@@ -1,0 +1,49 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"project\": \"BOOTV2\", \"entries\": [{\"probe_id\": 1, \"recipe\": {\"id\": \"bootv2-items-search-v1\", \"name\": \"事项管理搜索、筛选及持久保存\", \"checks\": {\"A1\": \"中文、Unicode 大小写及特殊字符按字面搜索\", \"A2\": \"全部/未完成/已完成与关键词组合筛选、空结果及清除\", \"A3\": \"固定路径、刷新、编辑取消及保存保持筛选条件\", \"A4\": \"原编号/状态、200字换行、失败重试和重启后持久保存\"}, \"scope\": \"Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier\", \"source_sha256\": \"98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee\", \"runner_sha256\": \"f36061111150acdfc350776954e9c89813c884b5eecfa4da4425551a89ea5a10\", \"total_seconds\": 90, \"upstream\": {\"repository\": \"https://github.com/google-research/harness2\", \"commit\": \"1cfe254e8d25b15f37048c3730134686abe60335\", \"license\": \"Apache-2.0\"}, \"version\": \"9ee97372cb36ef415954944d60950eb2aa039eeab2bb5ef84f186ab1cb98e372\"}, \"ticket\": \"BOOTV2-3\", \"commit\": \"8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd\", \"base\": \"8be50de6b4b4200dc6d792c2a7f0b871f9288da4\", \"evidence_hash\": \"0bf0e38df86f5b489eb53ad9934903f155314182cc66872e792b7c9970e523ba\", \"source_current\": true, \"comparison\": \"improved\", \"lesson\": \"此版本通过候选外部的HTTP/SQLite检查。后续事项管理改动应复用该配方，并核对适用的验收标准；历史通过不能代替新版本重验。\", \"scope\": \"historical technical evidence, not human acceptance or a general success rate\"}], \"automatic_policy_changes\": false}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "project": "BOOTV2",
+    "entries": [
+      {
+        "probe_id": 1,
+        "recipe": {
+          "id": "bootv2-items-search-v1",
+          "name": "事项管理搜索、筛选及持久保存",
+          "checks": {
+            "A1": "中文、Unicode 大小写及特殊字符按字面搜索",
+            "A2": "全部/未完成/已完成与关键词组合筛选、空结果及清除",
+            "A3": "固定路径、刷新、编辑取消及保存保持筛选条件",
+            "A4": "原编号/状态、200字换行、失败重试和重启后持久保存"
+          },
+          "scope": "Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier",
+          "source_sha256": "98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee",
+          "runner_sha256": "f36061111150acdfc350776954e9c89813c884b5eecfa4da4425551a89ea5a10",
+          "total_seconds": 90,
+          "upstream": {
+            "repository": "https://github.com/google-research/harness2",
+            "commit": "1cfe254e8d25b15f37048c3730134686abe60335",
+            "license": "Apache-2.0"
+          },
+          "version": "9ee97372cb36ef415954944d60950eb2aa039eeab2bb5ef84f186ab1cb98e372"
+        },
+        "ticket": "BOOTV2-3",
+        "commit": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd",
+        "base": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+        "evidence_hash": "0bf0e38df86f5b489eb53ad9934903f155314182cc66872e792b7c9970e523ba",
+        "source_current": true,
+        "comparison": "improved",
+        "lesson": "此版本通过候选外部的HTTP/SQLite检查。后续事项管理改动应复用该配方，并核对适用的验收标准；历史通过不能代替新版本重验。",
+        "scope": "historical technical evidence, not human acceptance or a general success rate"
+      }
+    ],
+    "automatic_policy_changes": false
+  },
+  "isError": false
+}

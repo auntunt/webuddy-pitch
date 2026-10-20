@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "operation_id": 1,
+  "source_run": 1,
+  "source": {
+    "run": 1,
+    "decision": "",
+    "commit": "9425cf6ba6c1a0deccb015fc00e549f317f79902",
+    "base": "de005fb67b93eee7c3c8a5325f3702db8256cbef",
+    "workdir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/verification-operations/worktrees/candidate-1",
+    "diff": "diff --git a/README.md b/README.md\nindex 8096c76..18c002e 100644\n--- a/README.md\n+++ b/README.md\n@@ -11,3 +11,5 @@\n `python3 -m unittest discover -s tests -v`\n \n 这是可运行的开发起点，具体业务目标仍需实现并验收。\n+\n+This candidate is a preview health regression fixture.\n",
+    "diff_sha256": "674f6ed67c209805e3cf50b201c0bfc1e401c18e7052d6ecbb80a76aa78d3d98"
+  },
+  "bound_at": "2026-10-19 14:35:34"
+}

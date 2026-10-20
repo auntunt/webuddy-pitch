@@ -1,0 +1,5 @@
+{
+  "name": "mixed_batch",
+  "passed": false,
+  "traceback": "Traceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 216, in <module>\n    try: case(c);result={'name':case.__name__,'passed':True}\n         ^^^^^^^\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 128, in mixed_batch\n    assert res['approved']==['synthetic-3'],res\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'approved': ['synthetic-1', 'synthetic-2', 'synthetic-3'], 'skipped': []}\n"
+}

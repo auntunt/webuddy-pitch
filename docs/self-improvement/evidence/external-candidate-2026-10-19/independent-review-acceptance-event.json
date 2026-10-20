@@ -1,0 +1,21 @@
+{
+  "recorded_at": "2026-10-19T05:20:17.379266+00:00",
+  "reviewer": "candidate_chain_review",
+  "scope": "Review of test-only change to rejection/evaluation integration regression; reviewer changed no source.",
+  "blocking_findings": [],
+  "conclusion": "The old assertion selected the last event from a concurrently populated timeline. The replacement requires exactly one matching flow event newer than the POST pre-cursor, checks successful HTTP and doing status, unchanged run IDs, and wraps the real synchronous _flow_fix to prove it was not invoked. This removes an invalid global event-order assumption while strengthening the no-rework behavior check.",
+  "test": {
+    "name": "test_platform.PlatformApiTest.test_acceptance_teaches_and_grows_the_eval_set",
+    "passed": true,
+    "log": "independent-review-acceptance-event-local.log",
+    "environment": "Python 3.14 optional SDK venv; NO_PROXY and no_proxy include 127.0.0.1,localhost"
+  },
+  "prior_probe": {
+    "log": "independent-review-acceptance-event.log",
+    "result": "Environment failure before tested behavior: inherited HTTP_PROXY routed urllib loopback request through proxy and returned 502; proxy_bypass(127.0.0.1) was false. Original failure preserved."
+  },
+  "sha256": {
+    "tests/test_platform.py": "23a4d2da280d99cb636965f3e0414273debf976a9533af57b400b920ba5466fc",
+    "tmh/platform/orchestra.py": "fda0b103e6d8c62643d07d2bbf92bbcbad62d2ecba572233ac66d1797380dd3a"
+  }
+}

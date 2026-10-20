@@ -1,0 +1,27 @@
+[
+  {
+    "id": "A1",
+    "status": "pass",
+    "evidence": "前轮同版本证据：docs/self-improvement/evidence/weighbill-pilot-2026-10-19/。独立真实 HTTP/SQLite：旧版本保存 409 且记录/版本/history 不变；模拟客户端未接收已提交 ACK 后，旧条件重放不能覆盖 B 后续更改；明确核对后可保存。两个实例 CAS 只有一个成功。基线显式条件协议 2/9，候选 10/10，详见 independent-candidate/REVIEW-FINAL.md 与完整 API 请求响应。真实浏览器 A 旧草稿保存被拒绝，preview-after-b-save.json 与 preview-after-a-conflict.json 完全相等。"
+  },
+  {
+    "id": "A2",
+    "status": "pass",
+    "evidence": "前轮同版本证据：docs/self-improvement/evidence/weighbill-pilot-2026-10-19/。独立 API 验证旧版本审核跳过、混合批次部分成功、不改变失败项及历史、修改已审核记录要求重审；真实发货页面函数独立 8/8，审核绑定 PATCH 成功返回版本，失败不跳下一条或报成功。这些 API/控制函数结果不替代 A3 的真实浏览器后半段。"
+  },
+  {
+    "id": "A3",
+    "status": "pass",
+    "evidence": "本轮真实浏览器续跑同SHA：恢复时DOM明确显示已核对v1，完整A草稿和B重量保持；点击保存后真实记录v2/history2、净重900和完整货名备注；单独审核后v3/history3 approved。B旧页审核被拒，完整HTTP/SQLite前后快照相等。刷新已审核台账仍可读到同一内容，打开原图成功。browser-timeline.json、browser-approved.jpg、business-checks.json及独立复核见docs/self-improvement/evidence/weighbill-acceptance-2026-10-19/。前轮冲突/草稿原始证据保留；恢复原因未知，不推断人工处理情况，不称全程无人值守。"
+  },
+  {
+    "id": "A4",
+    "status": "pass",
+    "evidence": "前轮同版本证据：docs/self-improvement/evidence/weighbill-pilot-2026-10-19/。最终候选平台独立构建通过、应用 251 passed / 11 skipped / 2 dependency warnings；跳过明确为未配置真实 S3/OceanBase，未声称这些集成验证。原权限/来源/原图及 Excel 原编码回归通过；原仓库 102 个跟踪文件、253 个本地文件及原 Git 状态不变，原平台各表既有行不变。preservation-report.json 全部 true；显式非法版本拒绝，省略版本旧 API 仍兼容且不受客户端条件保护。 本轮业务源码无修改，沿用同SHA的operation4完整应用回归（不是新跑251项）；本轮重新核对原102跟踪文件/253本地文件和既有平台行相等，BOOTV2原验收不变，两条未操作的合成记录完整保持，三个原图SHA/字节保持。"
+  },
+  {
+    "id": "A5",
+    "status": "pass",
+    "evidence": "完整SHA预览8791→8793保持，真实页面完成保存/审核/刷新，并在新标签打开原图（860×1100）；原始截图和HTTP/SQLite及精确版本证据已保存。本轮官方MCP重新读取当前候选、绑定同verification_hash/preview_hash写全部技术观察，再由CLI读取。源码/验证/预览身份不变，未调用人工批准工具。"
+  }
+]

@@ -1,0 +1,22 @@
+{
+ "BOOTNEW-main": {
+  "key": "BOOTNEW-main",
+  "project": "BOOTNEW",
+  "branch": "main",
+  "commit": "eecdee9054",
+  "commit_full": "eecdee9054beb07e1517c735d1d14a1cb862d298",
+  "port": 54884,
+  "prefix": "/pv/BOOTNEW-main",
+  "pid": 56964,
+  "dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/bootstrap-verification-2026-10-19/previews/BOOTNEW-main",
+  "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/bootstrap-verification-2026-10-19/projects/BOOTNEW",
+  "log": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/bootstrap-verification-2026-10-19/previews/BOOTNEW-main.log",
+  "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 app.py 54884 /pv/BOOTNEW-main '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/bootstrap-verification-2026-10-19/projects/BOOTNEW/app.db'",
+  "ready": "/health",
+  "state": "up",
+  "started": "2026-10-19 00:27:23",
+  "by": "自动流转",
+  "why": "",
+  "at": "2026-10-19 00:27:25"
+ }
+}

@@ -1,0 +1,60 @@
+Browser tab: 16, Title: "Webuddy · 重新验证隔离验收", URL: "http://127.0.0.1:8797/#/t/RECHK-1".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 229-280
++					312 text #1 local-fixture · 修改代码
++					313 text 完成 合成验证准备 5 分钟前
++					314 link Description: 提示词, Value: javascript:void%200
++					315 container 运行时限与停止状态
++						316 text 本轮执行已结束，进程回收完成。
++						317 text 开始：2026-10-19 09:28:28 · 整次任务总时限：120 秒 · 已记录耗时：0.61 秒
++						318 button (collapsed) 查看每次执行的退出与回收结果（4 次）, Secondary Actions: Expand
++							319 text 查看每次执行的退出与回收结果（4 次）
++						320 button (collapsed) 查看完整运行停止回执, Secondary Actions: Expand
++							321 text 查看完整运行停止回执
++					322 container 重新验证运行
++						323 heading 重新验证记录 #1, Value: 3
++							324 text 重新验证记录 #1
++						325 text  重新验证正在执行，旧验证结果已失效。
++						326 text 原实现运行 #1 的状态保留。重新验证是独立过程，进程收尾不代表业务成功。
++						327 content list
++							328 container
++								329 AXListMarker • 
++								330 text 该来源已有进行中的复检
++							331 container
++								332 AXListMarker • 
++								333 text 复检尚未封存停止回执，请等待完成或检查停止回执
++						334 button (collapsed) 查看完整重新验证输出, Secondary Actions: Expand
++							335 text 查看完整重新验证输出
++						336 container 运行时限与停止状态
++							337 text 本轮运行尚未结束。
++							338 text 开始：2026-10-19 09:33:43 · 整次任务总时限：120 秒 · 已记录耗时：0.7 秒
++							339 button (collapsed) 查看每次执行的退出与回收结果（4 次）, Secondary Actions: Expand
++								340 text 查看每次执行的退出与回收结果（4 次）
++							341 button (collapsed) 查看完整运行停止回执, Secondary Actions: Expand
++								342 text 查看完整运行停止回执
++						343 button (collapsed) 查看完整重新验证记录, Secondary Actions: Expand
++							344 text 查看完整重新验证记录
++					345 tab group 运行记录
++						346 tab (selected, settable, boolean) 结论, Value: 1
++						347 tab (selectable, settable, boolean) 代码改动, Value: 0
++						348 tab (selectable, settable, boolean) 实际验证, Value: 0
++						349 tab (selectable, settable, boolean) 过程, Value: 0
++					350 container
++						351 text 当前结论已失效 重新验证尚未通过，原实现输出仅供历史参考。 请以当前实际验证记录为准。原运行输出中的判断仅供历史参考，不能证明当前改动已解决问题。
++					352 heading 当前实际验证, Value: 3
++						353 text 当前实际验证
++					354 container
++						355 text 旧验证结果已失效 本次重新验证尚未形成有效结论，不能据此采纳或签收。请查看重新验证过程与停止回执。
++					356 button (collapsed) 上次验证记录（仅供历史参考）, Secondary Actions: Expand
++						357 text 上次验证记录（仅供历史参考）
++					358 button (collapsed) 原运行历史输出（仅供参考）, Secondary Actions: Expand
++						359 text 原运行历史输出（仅供参考）
++					360 container
++						361 heading 试用本次改动, Value: 3
++							362 text 试用本次改动
++						363 text 代码与验证结果在上方。将改动保存到独立分支后，就可以启动对应版本的预览。
++						364 button (disabled) 采纳到独立分支
++						365 button (disabled) 放弃改动
++						366 button (disabled) 正在重新验证…
++						367 text 先核对代码与验证结果，再采纳到独立分支，才能预览这次改动。采纳不会合并主干，也不代表用户已验收。
+The focused UI element is 0 AXWebArea Webuddy · 重新验证隔离验收, URL: 127.0.0.1:8797/#/t/RECHK-1

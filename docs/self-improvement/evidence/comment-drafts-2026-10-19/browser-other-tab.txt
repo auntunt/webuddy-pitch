@@ -1,0 +1,6 @@
+Browser tab: 20, Title: "Webuddy · 草稿隔离验收", URL: "http://127.0.0.1:8797/#/t/DRAFT-1".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 114
++			132 text 评论草稿已保存在本标签页，刷新后可恢复。
+~			115 text entry area (settable) Description: 评论草稿, Value: 第二个标签页自己的草稿，不能覆盖第一个。, ID: cm
+The focused UI element is 115 text entry area (settable) Description: 评论草稿, Value: 第二个标签页自己的草稿，不能覆盖第一个。, ID: cm

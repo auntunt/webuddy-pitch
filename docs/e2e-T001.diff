@@ -1,0 +1,62 @@
+diff --git a/src/main/java/com/acme/oa/controller/LeaveController.java b/src/main/java/com/acme/oa/controller/LeaveController.java
+index ce30c1d..f731938 100644
+--- a/src/main/java/com/acme/oa/controller/LeaveController.java
++++ b/src/main/java/com/acme/oa/controller/LeaveController.java
+@@ -17,8 +17,9 @@ public class LeaveController {
+ 
+     /** 查询请假单列表 */
+     @GetMapping("/list")
+-    public List<Map<String, Object>> list(@RequestParam(defaultValue = "1") int page) {
+-        return leaveService.list(page);
++    public List<Map<String, Object>> list(@RequestParam(defaultValue = "1") int page,
++                                          @RequestParam(required = false) String status) {
++        return leaveService.list(page, status);
+     }
+ 
+     @PostMapping("/approve")
+diff --git a/src/main/java/com/acme/oa/mapper/LeaveMapper.java b/src/main/java/com/acme/oa/mapper/LeaveMapper.java
+index 762acb5..e379efc 100644
+--- a/src/main/java/com/acme/oa/mapper/LeaveMapper.java
++++ b/src/main/java/com/acme/oa/mapper/LeaveMapper.java
+@@ -7,6 +7,7 @@ import java.util.Map;
+ 
+ @Mapper
+ public interface LeaveMapper {
+-    List<Map<String, Object>> selectPage(@Param("start") int start, @Param("end") int end);
++    List<Map<String, Object>> selectPage(@Param("start") int start, @Param("end") int end,
++                                         @Param("status") String status);
+     void approve(@Param("id") long id, @Param("approver") String approver);
+ }
+diff --git a/src/main/java/com/acme/oa/service/LeaveService.java b/src/main/java/com/acme/oa/service/LeaveService.java
+index 93f34bd..774326e 100644
+--- a/src/main/java/com/acme/oa/service/LeaveService.java
++++ b/src/main/java/com/acme/oa/service/LeaveService.java
+@@ -15,7 +15,13 @@ public class LeaveService {
+     }
+ 
+     public List<Map<String, Object>> list(int page) {
+-        return mapper.selectPage((page - 1) * 20, page * 20);
++        return list(page, null);
++    }
++
++    /** status 为空或空白时不筛选；否则按审批状态精确匹配 */
++    public List<Map<String, Object>> list(int page, String status) {
++        String s = status == null ? null : status.trim();
++        return mapper.selectPage((page - 1) * 20, page * 20, s == null || s.isEmpty() ? null : s);
+     }
+ 
+     /** 审批通过：记录审批人与审批时间 */
+diff --git a/src/main/resources/mapper/LeaveMapper.xml b/src/main/resources/mapper/LeaveMapper.xml
+index 9448405..a5fad1d 100644
+--- a/src/main/resources/mapper/LeaveMapper.xml
++++ b/src/main/resources/mapper/LeaveMapper.xml
+@@ -8,6 +8,9 @@
+                d.DEPT_NAME
+         FROM OA_LEAVE l, OA_DEPT d
+         WHERE l.DEPT_ID = d.ID(+)
++        <if test="status != null and status != ''">
++          AND l.STATUS = #{status}
++        </if>
+         ORDER BY l.CREATED DESC
+       ) t WHERE ROWNUM &lt;= #{end}
+     ) WHERE rn &gt; #{start}

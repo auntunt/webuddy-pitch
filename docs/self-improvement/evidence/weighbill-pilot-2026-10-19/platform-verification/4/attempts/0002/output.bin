@@ -1,0 +1,27 @@
+ssss.................................................................... [ 27%]
+........................................................................ [ 54%]
+........................................................................ [ 82%]
+..................sssssss.....................                           [100%]
+=============================== warnings summary ===============================
+../../../../../../../../../workspace/weighbill-system/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /Users/auntlee/workspace/weighbill-system/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+../../../../../../../../../workspace/weighbill-system/.venv/lib/python3.12/site-packages/starlette/testclient.py:53
+  /Users/auntlee/workspace/weighbill-system/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_blob_s3.py:36: 没配 WB_S3_ENDPOINT(真实对象存储)
+SKIPPED [1] tests/test_blob_s3.py:41: 没配 WB_S3_ENDPOINT(真实对象存储)
+SKIPPED [1] tests/test_blob_s3.py:54: 没配 WB_S3_ENDPOINT(真实对象存储)
+SKIPPED [1] tests/test_blob_s3.py:62: 没配 WB_S3_ENDPOINT(真实对象存储)
+SKIPPED [1] tests/test_store_oceanbase.py:39: 没配 WB_OB(真实 OceanBase)
+SKIPPED [1] tests/test_store_oceanbase.py:59: 没配 WB_OB(真实 OceanBase)
+SKIPPED [1] tests/test_store_oceanbase.py:81: 没配 WB_OB(真实 OceanBase)
+SKIPPED [1] tests/test_store_oceanbase.py:112: 没配 WB_OB(真实 OceanBase)
+SKIPPED [1] tests/test_store_oceanbase.py:135: 没配 WB_OB(真实 OceanBase)
+SKIPPED [1] tests/test_store_oceanbase.py:146: 没配 WB_OB(真实 OceanBase)
+SKIPPED [1] tests/test_store_oceanbase.py:161: 没配 WB_OB(真实 OceanBase)
+251 passed, 11 skipped, 2 warnings in 22.41s

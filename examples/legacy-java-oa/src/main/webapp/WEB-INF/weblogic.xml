@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<weblogic-web-app xmlns="http://xmlns.oracle.com/weblogic/weblogic-web-app">
+  <container-descriptor><prefer-web-inf-classes>true</prefer-web-inf-classes></container-descriptor>
+  <context-root>/oa</context-root>
+</weblogic-web-app>

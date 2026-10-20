@@ -1,0 +1,385 @@
+--- a/app.py
++++ b/app.py
+@@ -1,5 +1,4 @@
+ """Local web starter: persistent items, accessible forms and a health endpoint."""
+-import codecs
+ import hmac
+ import html
+ import json
+@@ -7,11 +6,13 @@
+ import secrets
+ import sqlite3
+ import sys
+-import tempfile
+-from contextlib import ExitStack
+ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+ from pathlib import Path
+-from urllib.parse import parse_qs, unquote_to_bytes, urlsplit
++from urllib.parse import parse_qs, urlsplit
++
++
++SAVE_BODY_LIMIT = 8192
++EDIT_RECOVERY_LIMIT = 64 * 1024
+ 
+ 
+ def make_server(address, database, prefix="", title="我的应用"):
+@@ -33,28 +34,24 @@
+         def log_message(self, *args):
+             pass
+ 
+-        def send(self, status, body, kind="text/html; charset=utf-8"):
++        def send(self, status, body, kind="text/html; charset=utf-8", close=False):
+             parts = (body,) if isinstance(body, str) else body
+-            parts = tuple(part.encode("utf-8") if isinstance(part, str) else part for part in parts)
+-            size = sum(len(part) if isinstance(part, bytes) else part.seek(0, 2) for part in parts)
++            body = b"".join(part.encode("utf-8") if isinstance(part, str) else part for part in parts)
+             self.send_response(status)
+             self.send_header("Content-Type", kind)
+-            self.send_header("Content-Length", str(size))
++            self.send_header("Content-Length", str(len(body)))
+             self.send_header("Cache-Control", "no-store")
+             self.send_header("X-Content-Type-Options", "nosniff")
++            if close:
++                self.close_connection = True
++                self.send_header("Connection", "close")
+             self.end_headers()
+-            for part in parts:
+-                if isinstance(part, bytes):
+-                    self.wfile.write(part)
+-                else:
+-                    part.seek(0)
+-                    while chunk := part.read(8192):
+-                        self.wfile.write(chunk)
++            self.wfile.write(body)
+ 
+-        def page(self, status, heading, content):
++        def page(self, status, heading, content, close=False):
+             parts = (content,) if isinstance(content, str) else content
+             return self.send(status, ('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+-                             '<title>' + html.escape(heading) + '</title><style>' + style + '</style><main><h1>' + html.escape(heading) + '</h1>', *parts, '</main></html>'))
++                             '<title>' + html.escape(heading) + '</title><style>' + style + '</style><main><h1>' + html.escape(heading) + '</h1>', *parts, '</main></html>'), close=close)
+ 
+         def edit_id(self, path):
+             match = re.fullmatch(re.escape(prefix) + r'/items/([0-9]{1,19})/edit', path)
+@@ -63,7 +60,7 @@
+ 
+         def edit_page(self, item_id, raw_title, status=200, error=""):
+             # The extra leading newline is consumed by HTML; preserve the user's first newline.
+-            value = html.escape(raw_title, quote=True).replace('\r', '&#13;') if isinstance(raw_title, str) else raw_title
++            value = html.escape(raw_title, quote=True).replace('\r', '&#13;')
+             field = ('<label for="edit-title">事项标题</label><textarea id="edit-title" name="title" rows="2" maxlength="200" required' + (' readonly' if status == 404 else '') + (' aria-describedby="edit-error"' if error else '') + '>\n', value, '</textarea>')
+             message = '<p id="edit-error" role="alert">' + html.escape(error) + '</p>' if error else ''
+             back = '<a href="' + html.escape(prefix + '/', quote=True) + '">' + ('返回应用' if error else '取消') + '</a>'
+@@ -73,66 +70,6 @@
+                 action = html.escape(prefix + '/items/%d/edit' % item_id, quote=True)
+                 content = (message + '<form class="edit-form" method="post" action="' + action + '"><input type="hidden" name="csrf" value="' + token + '">', *field, '<button>' + ('重试保存' if error else '保存') + '</button> ' + back + '</form>')
+             return self.page(status, '编辑事项', content)
+-
+-        def read_large_edit(self, remaining, title_file):
+-            # Keep only the first title/CSRF, like parse_qs(...)[0], without a large allocation.
+-            name, field, tail, csrf = b'', None, b'', ''
+-            seen = set()
+-            decoder = None
+-            while remaining:
+-                chunk = self.rfile.read(min(8192, remaining))
+-                if not chunk:
+-                    raise ValueError('incomplete form')
+-                remaining -= len(chunk)
+-                pieces = chunk.split(b'&')
+-                for index, piece in enumerate(pieces):
+-                    final = index < len(pieces) - 1 or remaining == 0
+-                    if field is None:
+-                        key, separator, piece = piece.partition(b'=')
+-                        # Even fully percent-encoded "title" is only 15 bytes long.
+-                        name = (name + key)[:16]
+-                        if not separator and not final:
+-                            continue
+-                        key = unquote_to_bytes(name.replace(b'+', b' '))
+-                        field = key if key in (b'title', b'csrf') and key not in seen else b''
+-                        seen.add(field)
+-                        decoder = codecs.getincrementaldecoder('utf-8')(errors='replace')
+-                    if field:
+-                        data, tail = tail + piece, b''
+-                        if not final:
+-                            last_percent = data.rfind(b'%')
+-                            if last_percent >= 0 and len(data) - last_percent < 3:
+-                                data, tail = data[:last_percent], data[last_percent:]
+-                        text = decoder.decode(unquote_to_bytes(data.replace(b'+', b' ')), final=final)
+-                        if field == b'title':
+-                            title_file.write(html.escape(text, quote=True).replace('\r', '&#13;').encode('utf-8'))
+-                        else:
+-                            csrf = (csrf + text)[:len(token) + 1]
+-                    if final:
+-                        name, field, tail = b'', None, b''
+-            return csrf
+-
+-        def oversized_edit(self, item_id, size):
+-            # Rejected bodies never write items. Disk-backed recovery keeps memory bounded.
+-            with ExitStack() as cleanup:
+-                try:
+-                    title_file = cleanup.enter_context(tempfile.TemporaryFile())
+-                    csrf = self.read_large_edit(size, title_file)
+-                    title_file.flush()
+-                except OSError:
+-                    self.close_connection = True
+-                    back = html.escape(prefix + '/items/%d/edit' % item_id, quote=True)
+-                    return self.page(503, '暂时无法保留编辑内容', '<p>此次编辑未保存，未能保留完整输入。请返回编辑页重试。</p><a href="' + back + '">返回编辑页</a>')
+-                if not hmac.compare_digest(csrf.encode('utf-8'), token.encode('ascii')):
+-                    return self.edit_page(item_id, title_file, 403, '页面已过期，请确认内容后重试')
+-                try:
+-                    with sqlite3.connect(database) as db:
+-                        row = db.execute('SELECT id FROM items WHERE id=?', (item_id,)).fetchone()
+-                    if row is None:
+-                        return self.edit_page(item_id, title_file, 404, '事项不存在')
+-                except sqlite3.Error:
+-                    return self.edit_page(item_id, title_file, 503, '数据暂时不可用，请稍后重试；此次编辑尚未保存。')
+-                return self.edit_page(item_id, title_file, 413, '表单内容超过 8192 字节，事项应为 1 到 200 字；请修改后重试。')
+ 
+         def unavailable(self):
+             if urlsplit(self.path).path == prefix + "/health":
+@@ -190,11 +127,17 @@
+             item_id = self.edit_id(path)
+             try:
+                 n = int(self.headers.get("Content-Length", "0"))
+-                if not 0 < n <= 8192:
+-                    if n > 8192 and item_id is not None:
+-                        return self.oversized_edit(item_id, n)
+-                    return self.send(413, "表单内容过大或为空")
+-                values = parse_qs(self.rfile.read(n).decode("utf-8"), keep_blank_values=True)
++                # The recovery window is finite and never grants permission to save.
++                # Refuse larger bodies before reading any bytes or opening the database.
++                if item_id is not None and n > EDIT_RECOVERY_LIMIT:
++                    back = html.escape(prefix + '/items/%d/edit' % item_id, quote=True)
++                    return self.page(413, '请求内容过大', '<p>本次请求超过 64 KiB，正文未接收，编辑未保存。请返回编辑页，将标题改为 1 到 200 字后重试。</p><a href="' + back + '">返回编辑页</a>', close=True)
++                if n <= 0 or (n > SAVE_BODY_LIMIT and item_id is None):
++                    return self.send(413, "表单内容过大或为空", close=True)
++                body = self.rfile.read(n)
++                if len(body) != n:
++                    raise ValueError('incomplete form')
++                values = parse_qs(body.decode("utf-8"), keep_blank_values=True)
+             except (ValueError, UnicodeError):
+                 return self.send(400, "表单格式错误")
+             raw_title = values.get("title", [""])[0]
+@@ -212,6 +155,8 @@
+                 if item_id is not None:
+                     if db.execute('SELECT id FROM items WHERE id=?', (item_id,)).fetchone() is None:
+                         return self.edit_page(item_id, raw_title, 404, '事项不存在')
++                    if n > SAVE_BODY_LIMIT:
++                        return self.edit_page(item_id, raw_title, 413, '表单内容超过 8192 字节，事项应为 1 到 200 字；请修改后重试。')
+                     if not raw_title.strip() or len(raw_title) > 200:
+                         return self.edit_page(item_id, raw_title, 400, '事项应为 1 到 200 字，不能全为空白')
+                     cur = db.execute('UPDATE items SET title=? WHERE id=?', (raw_title, item_id))
+--- a/tests/test_app.py
++++ b/tests/test_app.py
+@@ -2,13 +2,13 @@
+ import json
+ import re
+ import sqlite3
++import socket
+ import tempfile
+ import threading
+ import unittest
+ from contextlib import contextmanager
+ from html.parser import HTMLParser
+ from pathlib import Path
+-from unittest.mock import patch
+ from urllib.parse import urlencode
+ from app import make_server
+ 
+@@ -434,8 +434,7 @@
+         self.assertEqual(self.call("POST", self.prefix + "/items/%d" % item_id,
+                                    {"csrf": token, "done": "1"})[0], 303)
+         suffix = '\n"\' & % + </textarea><script>alert("长文本")</script>🙂\r\n'
+-        # Changing the offset exercises splits inside %HH escapes and inside the
+-        # three escaped UTF-8 bytes of a character at the 8192-byte boundary.
++        # Exercise encoded text crossing the save limit without losing any input.
+         cases = [("exact_1000", "字" * 1000)]
+         cases.extend(("offset_" + str(len(offset)), offset + "字" * 1000 + suffix)
+                      for offset in ("", "a", "ab"))
+@@ -578,120 +577,74 @@
+                     self.edit_form(page, item_id, title)
+                     self.assertEqual(self.rows(), before)
+ 
+-    def test_oversized_edit_reads_bounded_chunks_and_handles_short_reads(self):
+-        item_id = self.create("分块前标题")
+-        before = self.rows()
+-        token = self.csrf()
+-        title = "字" * 1000 + '\n🙂\" & % + </textarea><script>alert(1)</script>\r\n'
+-        tail = urlencode([("title", title), ("csrf", token)]).encode("ascii")
+-        tail = tail.replace(b"title=", b"%74%69%74%6C%65=", 1)
+-        tail = tail.replace(b"csrf=", b"%63%73%72%66=", 1)
+-        # An encoded field name itself crosses the normal 8192-byte read boundary.
+-        padding_size = 8192 - len(b"padding=") - len(b"&") - 5
+-        encoded = b"padding=" + b"x" * padding_size + b"&" + tail
+-        self.assertGreater(len(encoded), 8192)
+-        requests = []
+-        handler_class = self.server.RequestHandlerClass
+-        original_setup = handler_class.setup
+-
+-        class ShortReader:
+-            def __init__(self, stream):
+-                self.stream = stream
+-
+-            def read(self, size=-1):
+-                requests.append(size)
+-                if not 0 < size <= 8192:
+-                    raise AssertionError("body reads must be positive and at most 8192 bytes")
+-                return self.stream.read(min(size, 17))
+-
+-            def __getattr__(self, name):
+-                return getattr(self.stream, name)
+-
+-        def setup_with_short_reader(handler):
+-            original_setup(handler)
+-            handler.rfile = ShortReader(handler.rfile)
+-
+-        # First verify the encoded key crossing a full-size read, then exercise
+-        # short reads over the same HTTP request without replacing the transport.
+-        status, _, page = self.call_raw_response("POST", self.edit_path(item_id), encoded)
+-        self.assertEqual(status, 413)
+-        self.edit_form(page, item_id, title)
+-        with patch.object(handler_class, "setup", setup_with_short_reader):
+-            status, _, page = self.call_raw_response("POST", self.edit_path(item_id), encoded)
+-        self.assertEqual(status, 413)
+-        self.edit_form(page, item_id, title)
+-        self.assert_safe_markup(page)
+-        self.assertGreater(len(requests), 2)
+-        self.assertTrue(all(0 < size <= 8192 for size in requests))
+-        self.assertEqual(self.rows(), before)
+-
+-    def test_oversized_edit_temporary_storage_failures_are_visible_and_closed(self):
++    def test_edit_recovery_window_retains_complete_input_at_boundary(self):
++        item_id = self.create("恢复边界不应修改原文")
++        self.create("保留其他事项")
++        before = self.rows()
++        title = "字" * 1000 + '\n🙂" & % + </textarea><script>alert(1)</script>\r\n'
++        for size in (65535, 65536):
++            for csrf, expected in ((self.csrf(), 413), ("非法令牌", 403)):
++                with self.subTest(size=size, status=expected):
++                    submitted = [("title", title), ("csrf", csrf), ("padding", "")]
++                    base = len(urlencode(submitted).encode("ascii"))
++                    submitted[-1] = ("padding", "x" * (size - base))
++                    encoded = urlencode(submitted).encode("ascii")
++                    self.assertEqual(len(encoded), size)
++                    status, _, page = self.call_raw_response("POST", self.edit_path(item_id), encoded)
++                    self.assertEqual(status, expected)
++                    self.edit_form(page, item_id, title)
++                    self.assert_safe_markup(page)
++                    self.assertEqual(self.rows(), before)
++
++    def test_edit_above_recovery_window_rejects_headers_without_reading_body(self):
+         self.stop()
+         self.start("/pv/BOOTV2/session")
+-        item_id = self.create("暂存失败不能改变原文")
+-        self.create("其他事项保持不变")
+-        before = self.rows()
+-        path = self.edit_path(item_id)
+-        submitted = [("title", "字" * 1000), ("csrf", self.csrf())]
+-        self.assertGreater(len(urlencode(submitted).encode("ascii")), 8192)
+-        real_temporary_file = tempfile.TemporaryFile
+-
+-        class FailingTemporaryFile:
+-            def __init__(self, stream, stage):
+-                self.stream = stream
+-                self.stage = stage
+-                self.closed_event = threading.Event()
+-
+-            def __enter__(self):
+-                self.stream.__enter__()
+-                return self
+-
+-            def __exit__(self, *exc):
+-                try:
+-                    return self.stream.__exit__(*exc)
+-                finally:
+-                    self.closed_event.set()
+-
+-            def write(self, data):
+-                if self.stage == "write":
+-                    self.stream.write(data[:4])
+-                    raise OSError("simulated temporary storage write failure")
+-                return self.stream.write(data)
+-
+-            def flush(self):
+-                if self.stage == "flush":
+-                    raise OSError("simulated temporary storage flush failure")
+-                return self.stream.flush()
+-
+-            def __getattr__(self, name):
+-                return getattr(self.stream, name)
+-
+-        for stage in ("create", "write", "flush"):
+-            with self.subTest(failure=stage):
+-                created = []
+-
+-                def failing_factory(*args, **kwargs):
+-                    if stage == "create":
+-                        raise OSError("simulated temporary storage creation failure")
+-                    resource = FailingTemporaryFile(real_temporary_file(*args, **kwargs), stage)
+-                    created.append(resource)
+-                    return resource
+-
+-                with patch("app.tempfile.TemporaryFile", side_effect=failing_factory) as factory:
+-                    status, page = self.call("POST", path, submitted)
+-                factory.assert_called_once()
+-                self.assertEqual(status, 503)
+-                parsed = Page(page)
+-                self.assertIn("此次编辑未保存", "".join(parsed.text))
+-                self.assertIn("未能保留完整输入", "".join(parsed.text))
+-                self.assertIn(path, parsed.links)
+-                self.assertFalse(any(control.get("name") == "title" for control in parsed.controls))
+-                self.assert_safe_markup(page)
+-                self.assertEqual(self.rows(), before)
+-                self.assertEqual(len(created), 0 if stage == "create" else 1)
+-                for resource in created:
+-                    self.assertTrue(resource.closed_event.wait(timeout=1))
+-                    self.assertTrue(resource.stream.closed)
++        item_id = self.create("未经接收不得修改")
++        self.create("另一条仍在")
++        before = self.rows()
++        # No request body is sent. Waiting for body bytes would time out this test.
++        for size in (65537, 2**40):
++            for target in (item_id, item_id + 1000):
++                with self.subTest(size=size, target=target):
++                    connection = http.client.HTTPConnection("127.0.0.1", self.server.server_address[1], timeout=2)
++                    try:
++                        connection.putrequest("POST", self.edit_path(target))
++                        connection.putheader("Content-Type", "application/x-www-form-urlencoded")
++                        connection.putheader("Content-Length", str(size))
++                        connection.endheaders()
++                        response = connection.getresponse()
++                        page = response.read().decode("utf-8")
++                        self.assertEqual(response.status, 413)
++                        self.assertEqual(response.getheader("Connection"), "close")
++                        self.assertEqual(int(response.getheader("Content-Length")), len(page.encode("utf-8")))
++                        self.assertIn("正文未接收", page)
++                        self.assertIn("编辑未保存", page)
++                        self.assertIn(self.edit_path(target), Page(page).links)
++                        self.assertFalse(any(control.get("name") == "title" for control in Page(page).controls))
++                        self.assert_safe_markup(page)
++                    finally:
++                        connection.close()
++                    self.assertEqual(self.rows(), before)
++
++    def test_edit_recovery_rejects_malformed_or_incomplete_body_without_write(self):
++        item_id = self.create("错误正文不能修改")
++        before = self.rows()
++        invalid = b"title=" + b"x" * 9000 + b"\xff&csrf=invalid"
++        status, _, _ = self.call_raw_response("POST", self.edit_path(item_id), invalid)
++        self.assertEqual(status, 400)
++        connection = http.client.HTTPConnection("127.0.0.1", self.server.server_address[1], timeout=2)
++        try:
++            connection.putrequest("POST", self.edit_path(item_id))
++            connection.putheader("Content-Type", "application/x-www-form-urlencoded")
++            connection.putheader("Content-Length", "9000")
++            connection.endheaders(b"title=incomplete&csrf=invalid")
++            connection.sock.shutdown(socket.SHUT_WR)
++            response = connection.getresponse()
++            response.read()
++            self.assertEqual(response.status, 400)
++        finally:
++            connection.close()
++        self.assertEqual(self.rows(), before)
+ 
+ 
+ if __name__ == "__main__":

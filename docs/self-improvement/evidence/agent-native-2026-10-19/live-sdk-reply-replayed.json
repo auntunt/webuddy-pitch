@@ -1,0 +1,27 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"body\": \"官方 MCP SDK 已通过 stdio 连接真实工作台，读到 BOOTV2-1 的工单、运行和固定候选预览资料。此为协议与共享数据验收，不代表三个编程产品均已验证，也不是客户签收。\", \"data\": {\"agent_message\": true, \"from_agent\": \"sdk-verifier\", \"message_kind\": \"result\", \"reply_to\": 43, \"request_id\": \"agent-native-sdk-reply\", \"to_agent\": \"codex\"}, \"delivery\": \"persisted; recipient must poll messages_list\", \"event_id\": 44, \"request_id\": \"agent-native-sdk-reply\", \"ticket\": \"BOOTV2-2\"}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "body": "官方 MCP SDK 已通过 stdio 连接真实工作台，读到 BOOTV2-1 的工单、运行和固定候选预览资料。此为协议与共享数据验收，不代表三个编程产品均已验证，也不是客户签收。",
+    "data": {
+      "agent_message": true,
+      "from_agent": "sdk-verifier",
+      "message_kind": "result",
+      "reply_to": 43,
+      "request_id": "agent-native-sdk-reply",
+      "to_agent": "codex"
+    },
+    "delivery": "persisted; recipient must poll messages_list",
+    "event_id": 44,
+    "request_id": "agent-native-sdk-reply",
+    "ticket": "BOOTV2-2"
+  },
+  "isError": false
+}

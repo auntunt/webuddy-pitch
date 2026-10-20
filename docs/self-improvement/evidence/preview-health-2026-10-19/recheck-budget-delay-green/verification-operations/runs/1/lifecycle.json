@@ -1,0 +1,88 @@
+{
+  "started_at": "2026-10-19 15:17:45",
+  "timeout_seconds": 3.0,
+  "stopped_reason": "timeout",
+  "attempts": [
+    {
+      "attempt": 1,
+      "kind": "command",
+      "started_at": "2026-10-19 15:17:45",
+      "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-frq7ffxk/project",
+      "command": [
+        "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python",
+        "-c",
+        "import time;time.sleep(.8)\nimport time;time.sleep(.25);print('first complete')"
+      ],
+      "timeout_seconds": 2.998930749949068,
+      "evidence": "runs/1/attempts/0001",
+      "supervised": true,
+      "pid": 27177,
+      "pgid": 27177,
+      "returncode": 0,
+      "reason": "exited",
+      "elapsed_seconds": 1.160796458949335,
+      "cleanup": {
+        "trigger": null,
+        "term_sent": false,
+        "kill_sent": false,
+        "signals": [],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 15:17:46"
+    },
+    {
+      "attempt": 2,
+      "kind": "command",
+      "started_at": "2026-10-19 15:17:46",
+      "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-frq7ffxk/project",
+      "command": [
+        "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python",
+        "-c",
+        "import signal,time;signal.signal(signal.SIGTERM,signal.SIG_IGN);print('second',flush=True);time.sleep(20)"
+      ],
+      "timeout_seconds": 1.8095544589450583,
+      "evidence": "runs/1/attempts/0002",
+      "supervised": true,
+      "pid": 27180,
+      "pgid": 27180,
+      "returncode": 124,
+      "reason": "timeout",
+      "elapsed_seconds": 2.120685833040625,
+      "cleanup": {
+        "trigger": "timeout",
+        "term_sent": true,
+        "kill_sent": true,
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "at": 1.7345714590046555,
+            "sent": true
+          },
+          {
+            "signal": "SIGKILL",
+            "at": 2.04058166698087,
+            "sent": true
+          }
+        ],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 15:17:49"
+    }
+  ],
+  "finished": true,
+  "owner": {
+    "token": "1f65801e751d40fc864229353be04dff",
+    "run_id": 1,
+    "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-frq7ffxk/verification-operations"
+  },
+  "ended_at": "2026-10-19 15:17:49",
+  "elapsed_seconds": 3.343
+}

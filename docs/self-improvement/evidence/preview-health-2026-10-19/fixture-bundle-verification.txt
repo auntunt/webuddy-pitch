@@ -1,0 +1,7 @@
+The bundle contains these 3 refs:
+9425cf6ba6c1a0deccb015fc00e549f317f79902 refs/heads/main
+9425cf6ba6c1a0deccb015fc00e549f317f79902 refs/webuddy/candidates/833bdf413d59e3b3830b146101d8340af98449e2206adf181e62ca359f45e140
+9425cf6ba6c1a0deccb015fc00e549f317f79902 HEAD
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/fixture-candidate.bundle is okay

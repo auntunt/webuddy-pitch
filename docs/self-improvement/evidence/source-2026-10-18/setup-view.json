@@ -1,0 +1,682 @@
+{
+  "delivery": {
+    "id": "2110f703e4b6",
+    "type": "feature",
+    "title": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）",
+    "goal": "只证明质量/安全检查读取指定候选提交；所有预置复核为 synthetic，不代表真人或客户审批。",
+    "created": "2026-10-18 19:34:38",
+    "updated": "2026-10-18 19:34:38",
+    "ticket_id": 1,
+    "project": "SRCFIX",
+    "project_name": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）",
+    "type_name": "新功能",
+    "by": "自动流转",
+    "ticket": "SRCFIX-1",
+    "state": "draft",
+    "current_stage": "quality",
+    "reviewed_stages": 3,
+    "total_stages": 6
+  },
+  "stages": [
+    {
+      "key": "requirements",
+      "name": "需求与验收标准",
+      "kind": "document",
+      "description": "明确用户、场景、范围、约束及逐条验收标准。",
+      "artifact": {
+        "id": 1,
+        "delivery_id": "2110f703e4b6",
+        "stage": "requirements",
+        "version": 1,
+        "title": "需求与验收标准",
+        "body": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）\n\nA1 数量乘单价得到总额；A2 公开资料仅包含 id/name 字段。",
+        "created": "2026-10-18 19:34:38",
+        "source_run": null,
+        "inputs": {},
+        "by": "自动流转"
+      },
+      "review": {
+        "id": 1,
+        "artifact_id": 1,
+        "evidence": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）；程序直接预置测试状态，没有真人审批。",
+        "created": "2026-10-18 19:34:38",
+        "inputs": {},
+        "by": "SYNTHETIC fixture (not human)",
+        "version": 1
+      },
+      "runs": [],
+      "history": [],
+      "state": "approved",
+      "blocked": [],
+      "issue": "",
+      "plan_approved": false,
+      "source": {},
+      "review_blocked": [],
+      "can_review": true,
+      "run_blocked": [],
+      "allowed_modes": [
+        "ask"
+      ],
+      "can_start": true
+    },
+    {
+      "key": "design",
+      "name": "设计与架构",
+      "kind": "document",
+      "description": "形成交互、架构、接口、数据与验证方案，并对照需求复核。",
+      "artifact": {
+        "id": 2,
+        "delivery_id": "2110f703e4b6",
+        "stage": "design",
+        "version": 1,
+        "title": "设计与架构",
+        "body": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）\n\napp.py 维护两个纯函数；质量和安全测试分别验证 A1/A2；不得读取分支最新提交替代候选。",
+        "created": "2026-10-18 19:34:38",
+        "source_run": null,
+        "inputs": {
+          "requirements": {
+            "artifact": 1,
+            "inputs": {},
+            "review": 1
+          }
+        },
+        "by": "自动流转"
+      },
+      "review": {
+        "id": 2,
+        "artifact_id": 2,
+        "evidence": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）；程序直接预置测试状态，没有真人审批。",
+        "created": "2026-10-18 19:34:38",
+        "inputs": {
+          "requirements": {
+            "artifact": 1,
+            "inputs": {},
+            "review": 1
+          }
+        },
+        "by": "SYNTHETIC fixture (not human)",
+        "version": 1
+      },
+      "runs": [],
+      "history": [],
+      "state": "approved",
+      "blocked": [],
+      "issue": "",
+      "plan_approved": false,
+      "source": {},
+      "review_blocked": [],
+      "can_review": true,
+      "run_blocked": [],
+      "allowed_modes": [
+        "ask"
+      ],
+      "can_start": true
+    },
+    {
+      "key": "develop",
+      "name": "实现",
+      "kind": "code",
+      "description": "先起草方案，人工复核后再在独立工作树实现。",
+      "artifact": {
+        "id": 4,
+        "delivery_id": "2110f703e4b6",
+        "stage": "develop",
+        "version": 2,
+        "title": "实现",
+        "body": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）\n\n夹具生成器写入候选代码；两个实际 Python 检查进程均通过。此结论不代表模型表现。\n\n[\n  {\n    \"name\": \"test_quality.py\",\n    \"cmd\": \"/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_quality.py\",\n    \"exit_code\": 0,\n    \"output\": \"test_total_multiplies_quantity_and_price (__main__.QualityBehavior.test_total_multiplies_quantity_and_price) ... ok\\ntest_zero_quantity_has_zero_total (__main__.QualityBehavior.test_zero_quantity_has_zero_total) ... ok\\n\\n----------------------------------------------------------------------\\nRan 2 tests in 0.000s\\n\\nOK\\n\",\n    \"commit\": \"33ff44aa230e1f1d7818663b2a9172d8942543d4\"\n  },\n  {\n    \"name\": \"test_security.py\",\n    \"cmd\": \"/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_security.py\",\n    \"exit_code\": 0,\n    \"output\": \"test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed) ... ok\\ntest_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed) ... ok\\n\\n----------------------------------------------------------------------\\nRan 2 tests in 0.000s\\n\\nOK\\n\",\n    \"commit\": \"33ff44aa230e1f1d7818663b2a9172d8942543d4\"\n  }\n]",
+        "created": "2026-10-18 19:34:38",
+        "source_run": 2,
+        "inputs": {
+          "design": {
+            "artifact": 2,
+            "inputs": {
+              "requirements": {
+                "artifact": 1,
+                "inputs": {},
+                "review": 1
+              }
+            },
+            "review": 2
+          },
+          "requirements": {
+            "artifact": 1,
+            "inputs": {},
+            "review": 1
+          }
+        },
+        "by": "自动流转"
+      },
+      "review": {
+        "id": 4,
+        "artifact_id": 4,
+        "evidence": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）；程序直接预置测试状态，没有真人审批。",
+        "created": "2026-10-18 19:34:38",
+        "inputs": {
+          "$execution": "a07823dd0fc7e6aeee0f5c8ba98162ce509bd0c146f4f9eccc19632b62b5e596",
+          "design": {
+            "artifact": 2,
+            "inputs": {
+              "requirements": {
+                "artifact": 1,
+                "inputs": {},
+                "review": 1
+              }
+            },
+            "review": 2
+          },
+          "requirements": {
+            "artifact": 1,
+            "inputs": {},
+            "review": 1
+          }
+        },
+        "by": "SYNTHETIC fixture (not human)",
+        "version": 2
+      },
+      "runs": [
+        {
+          "stage": "develop",
+          "base_version": 1,
+          "inputs": {
+            "design": {
+              "artifact": 2,
+              "inputs": {
+                "requirements": {
+                  "artifact": 1,
+                  "inputs": {},
+                  "review": 1
+                }
+              },
+              "review": 2
+            },
+            "requirements": {
+              "artifact": 1,
+              "inputs": {},
+              "review": 1
+            }
+          },
+          "binding": {
+            "plan_artifact": 3,
+            "plan_review": 3,
+            "plan_run": 1
+          },
+          "id": 2,
+          "ticket_id": 1,
+          "project_id": 1,
+          "agent": "fixture-checker",
+          "mode": "fix",
+          "status": "done",
+          "author": "自动流转",
+          "created": "2026-10-18 19:34:38",
+          "started": "",
+          "ended": "2026-10-18 19:34:38",
+          "prompt": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）\n当前只执行交付工作项「SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）」的「实现」阶段。\n先起草方案，人工复核后再在独立工作树实现。\n交付类型：新功能。\n目标和已复核资料以本工作项的版本记录为准。请给出实际产物，分清证据与推断，列出仍缺的依据。不要宣称未执行的测试、安全扫描或部署成功，也不要替人完成复核。\n补充请求：\n",
+          "output": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）\n\n夹具生成器写入候选代码；两个实际 Python 检查进程均通过。此结论不代表模型表现。\n\n[\n  {\n    \"name\": \"test_quality.py\",\n    \"cmd\": \"/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_quality.py\",\n    \"exit_code\": 0,\n    \"output\": \"test_total_multiplies_quantity_and_price (__main__.QualityBehavior.test_total_multiplies_quantity_and_price) ... ok\\ntest_zero_quantity_has_zero_total (__main__.QualityBehavior.test_zero_quantity_has_zero_total) ... ok\\n\\n----------------------------------------------------------------------\\nRan 2 tests in 0.000s\\n\\nOK\\n\",\n    \"commit\": \"33ff44aa230e1f1d7818663b2a9172d8942543d4\"\n  },\n  {\n    \"name\": \"test_security.py\",\n    \"cmd\": \"/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_security.py\",\n    \"exit_code\": 0,\n    \"output\": \"test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed) ... ok\\ntest_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed) ... ok\\n\\n----------------------------------------------------------------------\\nRan 2 tests in 0.000s\\n\\nOK\\n\",\n    \"commit\": \"33ff44aa230e1f1d7818663b2a9172d8942543d4\"\n  }\n]",
+          "result": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）\n\n夹具生成器写入候选代码；两个实际 Python 检查进程均通过。此结论不代表模型表现。\n\n[\n  {\n    \"name\": \"test_quality.py\",\n    \"cmd\": \"/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_quality.py\",\n    \"exit_code\": 0,\n    \"output\": \"test_total_multiplies_quantity_and_price (__main__.QualityBehavior.test_total_multiplies_quantity_and_price) ... ok\\ntest_zero_quantity_has_zero_total (__main__.QualityBehavior.test_zero_quantity_has_zero_total) ... ok\\n\\n----------------------------------------------------------------------\\nRan 2 tests in 0.000s\\n\\nOK\\n\",\n    \"commit\": \"33ff44aa230e1f1d7818663b2a9172d8942543d4\"\n  },\n  {\n    \"name\": \"test_security.py\",\n    \"cmd\": \"/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_security.py\",\n    \"exit_code\": 0,\n    \"output\": \"test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed) ... ok\\ntest_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed) ... ok\\n\\n----------------------------------------------------------------------\\nRan 2 tests in 0.000s\\n\\nOK\\n\",\n    \"commit\": \"33ff44aa230e1f1d7818663b2a9172d8942543d4\"\n  }\n]",
+          "diff": "diff --git a/app.py b/app.py\nindex 05b674f..d3fb305 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,6 +1,6 @@\n-\"\"\"SYNTHETIC regression fixture, deliberately incorrect main branch.\"\"\"\n-VERSION = \"main-broken\"\n+\"\"\"SYNTHETIC regression fixture, verified candidate commit.\"\"\"\n+VERSION = \"candidate-verified\"\n def quote_total(quantity, unit_price):\n-    return quantity + unit_price\n+    return quantity * unit_price\n def public_profile(record):\n-    return dict(record)\n+    return {key: record[key] for key in (\"id\", \"name\") if key in record}\n",
+          "exit_code": 0,
+          "workdir": "",
+          "target": "",
+          "decision": "accepted:fixture/candidate@33ff44aa230e1f1d7818663b2a9172d8942543d4",
+          "session_id": null,
+          "batch": "",
+          "model": "",
+          "source_receipt": {},
+          "collected": true,
+          "verification": {
+            "check": "pass",
+            "verdict": "pass",
+            "files": [
+              "app.py"
+            ],
+            "beyond_plan": [],
+            "commands": [
+              {
+                "name": "test_quality.py",
+                "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_quality.py",
+                "exit_code": 0,
+                "output": "test_total_multiplies_quantity_and_price (__main__.QualityBehavior.test_total_multiplies_quantity_and_price) ... ok\ntest_zero_quantity_has_zero_total (__main__.QualityBehavior.test_zero_quantity_has_zero_total) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+                "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4"
+              },
+              {
+                "name": "test_security.py",
+                "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_security.py",
+                "exit_code": 0,
+                "output": "test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed) ... ok\ntest_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+                "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4"
+              }
+            ],
+            "checked_commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+            "checked_diff": "diff --git a/app.py b/app.py\nindex 05b674f..d3fb305 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,6 +1,6 @@\n-\"\"\"SYNTHETIC regression fixture, deliberately incorrect main branch.\"\"\"\n-VERSION = \"main-broken\"\n+\"\"\"SYNTHETIC regression fixture, verified candidate commit.\"\"\"\n+VERSION = \"candidate-verified\"\n def quote_total(quantity, unit_price):\n-    return quantity + unit_price\n+    return quantity * unit_price\n def public_profile(record):\n-    return dict(record)\n+    return {key: record[key] for key in (\"id\", \"name\") if key in record}\n",
+            "fixture_notice": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）；诊断 verdict 是 synthetic 设置，commands 来自真实 subprocess 执行。"
+          },
+          "accepted_commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+          "source_error": ""
+        },
+        {
+          "stage": "develop",
+          "base_version": 0,
+          "inputs": {
+            "design": {
+              "artifact": 2,
+              "inputs": {
+                "requirements": {
+                  "artifact": 1,
+                  "inputs": {},
+                  "review": 1
+                }
+              },
+              "review": 2
+            },
+            "requirements": {
+              "artifact": 1,
+              "inputs": {},
+              "review": 1
+            }
+          },
+          "binding": {},
+          "id": 1,
+          "ticket_id": 1,
+          "project_id": 1,
+          "agent": "fixture-checker",
+          "mode": "plan",
+          "status": "done",
+          "author": "自动流转",
+          "created": "2026-10-18 19:34:38",
+          "started": "",
+          "ended": "2026-10-18 19:34:38",
+          "prompt": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）\n当前只执行交付工作项「SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）」的「实现」阶段。\n先起草方案，人工复核后再在独立工作树实现。\n交付类型：新功能。\n目标和已复核资料以本工作项的版本记录为准。请给出实际产物，分清证据与推断，列出仍缺的依据。不要宣称未执行的测试、安全扫描或部署成功，也不要替人完成复核。\n补充请求：\n",
+          "output": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）\n\n这是确定性的夹具方案，不是模型生成。\n```tmh-plan\n{\"files\": [{\"path\": \"app.py\", \"goal\": \"修正总额并过滤公开资料字段\", \"role\": \"改动\"}], \"ac\": [{\"id\": \"A1\", \"text\": \"数量乘单价得到总额\", \"layer\": \"L2\", \"check\": \"python3 -B test_quality.py\"}, {\"id\": \"A2\", \"text\": \"公开资料仅包含 id/name 字段\", \"layer\": \"L2\", \"check\": \"python3 -B test_security.py\"}]}\n```",
+          "result": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）\n\n这是确定性的夹具方案，不是模型生成。\n```tmh-plan\n{\"files\": [{\"path\": \"app.py\", \"goal\": \"修正总额并过滤公开资料字段\", \"role\": \"改动\"}], \"ac\": [{\"id\": \"A1\", \"text\": \"数量乘单价得到总额\", \"layer\": \"L2\", \"check\": \"python3 -B test_quality.py\"}, {\"id\": \"A2\", \"text\": \"公开资料仅包含 id/name 字段\", \"layer\": \"L2\", \"check\": \"python3 -B test_security.py\"}]}\n```",
+          "diff": "",
+          "exit_code": 0,
+          "workdir": "",
+          "target": "",
+          "decision": "",
+          "session_id": null,
+          "batch": "",
+          "model": "",
+          "source_receipt": {},
+          "collected": true,
+          "verification": null
+        }
+      ],
+      "history": [
+        {
+          "id": 3,
+          "delivery_id": "2110f703e4b6",
+          "stage": "develop",
+          "version": 1,
+          "title": "实现",
+          "body": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）\n\n这是确定性的夹具方案，不是模型生成。\n```tmh-plan\n{\"files\": [{\"path\": \"app.py\", \"goal\": \"修正总额并过滤公开资料字段\", \"role\": \"改动\"}], \"ac\": [{\"id\": \"A1\", \"text\": \"数量乘单价得到总额\", \"layer\": \"L2\", \"check\": \"python3 -B test_quality.py\"}, {\"id\": \"A2\", \"text\": \"公开资料仅包含 id/name 字段\", \"layer\": \"L2\", \"check\": \"python3 -B test_security.py\"}]}\n```",
+          "created": "2026-10-18 19:34:38",
+          "source_run": 1,
+          "inputs": {
+            "design": {
+              "artifact": 2,
+              "inputs": {
+                "requirements": {
+                  "artifact": 1,
+                  "inputs": {},
+                  "review": 1
+                }
+              },
+              "review": 2
+            },
+            "requirements": {
+              "artifact": 1,
+              "inputs": {},
+              "review": 1
+            }
+          },
+          "by": "自动流转"
+        }
+      ],
+      "state": "approved",
+      "blocked": [],
+      "issue": "",
+      "plan_approved": false,
+      "source": {
+        "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+        "implementation_run": 2,
+        "plan_run": 1,
+        "plan_artifact": 3,
+        "plan_review": 3,
+        "implementation_artifact": 4,
+        "implementation_review": 4
+      },
+      "review_blocked": [],
+      "can_review": true,
+      "source_blocked": [],
+      "run_blocked": [],
+      "allowed_modes": [
+        "plan"
+      ],
+      "can_start": true
+    },
+    {
+      "key": "quality",
+      "name": "测试与质量",
+      "kind": "review",
+      "description": "核对真实测试记录、验收覆盖和缺陷；未执行的测试必须明确标出。",
+      "artifact": null,
+      "review": null,
+      "runs": [],
+      "history": [],
+      "state": "not_started",
+      "blocked": [],
+      "issue": "",
+      "plan_approved": false,
+      "source": {
+        "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+        "implementation_run": 2,
+        "plan_run": 1,
+        "plan_artifact": 3,
+        "plan_review": 3,
+        "implementation_artifact": 4,
+        "implementation_review": 4
+      },
+      "review_blocked": [],
+      "can_review": false,
+      "run_blocked": [],
+      "allowed_modes": [
+        "ask"
+      ],
+      "can_start": true
+    },
+    {
+      "key": "security",
+      "name": "安全检查",
+      "kind": "review",
+      "description": "审查安全边界、扫描证据与未解决风险；审查文字不等于扫描通过。",
+      "artifact": null,
+      "review": null,
+      "runs": [],
+      "history": [],
+      "state": "not_started",
+      "blocked": [],
+      "issue": "",
+      "plan_approved": false,
+      "source": {
+        "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+        "implementation_run": 2,
+        "plan_run": 1,
+        "plan_artifact": 3,
+        "plan_review": 3,
+        "implementation_artifact": 4,
+        "implementation_review": 4
+      },
+      "review_blocked": [],
+      "can_review": false,
+      "run_blocked": [],
+      "allowed_modes": [
+        "ask"
+      ],
+      "can_start": true
+    },
+    {
+      "key": "release",
+      "name": "交付与运行",
+      "kind": "delivery",
+      "description": "组织版本、部署说明、运行检查与回退依据；这里只关联真实版本，不自动部署。",
+      "artifact": null,
+      "review": null,
+      "runs": [],
+      "history": [],
+      "state": "not_started",
+      "blocked": [
+        "先复核：测试与质量、安全检查"
+      ],
+      "issue": "",
+      "plan_approved": false,
+      "source": {
+        "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+        "implementation_run": 2,
+        "plan_run": 1,
+        "plan_artifact": 3,
+        "plan_review": 3,
+        "implementation_artifact": 4,
+        "implementation_review": 4
+      },
+      "review_blocked": [
+        "先复核：测试与质量、安全检查"
+      ],
+      "can_review": false,
+      "run_blocked": [
+        "先复核：测试与质量、安全检查"
+      ],
+      "allowed_modes": [],
+      "can_start": false
+    }
+  ],
+  "versions": [],
+  "catalog": {
+    "stages": [
+      {
+        "key": "research",
+        "name": "研究与调研",
+        "kind": "document",
+        "description": "记录问题、资料来源、核实结果与尚未验证的假设。"
+      },
+      {
+        "key": "requirements",
+        "name": "需求与验收标准",
+        "kind": "document",
+        "description": "明确用户、场景、范围、约束及逐条验收标准。"
+      },
+      {
+        "key": "design",
+        "name": "设计与架构",
+        "kind": "document",
+        "description": "形成交互、架构、接口、数据与验证方案，并对照需求复核。"
+      },
+      {
+        "key": "develop",
+        "name": "实现",
+        "kind": "code",
+        "description": "先起草方案，人工复核后再在独立工作树实现。"
+      },
+      {
+        "key": "quality",
+        "name": "测试与质量",
+        "kind": "review",
+        "description": "核对真实测试记录、验收覆盖和缺陷；未执行的测试必须明确标出。"
+      },
+      {
+        "key": "security",
+        "name": "安全检查",
+        "kind": "review",
+        "description": "审查安全边界、扫描证据与未解决风险；审查文字不等于扫描通过。"
+      },
+      {
+        "key": "release",
+        "name": "交付与运行",
+        "kind": "delivery",
+        "description": "组织版本、部署说明、运行检查与回退依据；这里只关联真实版本，不自动部署。"
+      },
+      {
+        "key": "feedback",
+        "name": "反馈与改进",
+        "kind": "review",
+        "description": "收集使用反馈、运行问题和评测证据，形成下一轮改进任务。"
+      }
+    ],
+    "types": [
+      {
+        "key": "new_product",
+        "name": "新建软件",
+        "stages": [
+          "research",
+          "requirements",
+          "design",
+          "develop",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "feature",
+        "name": "新功能",
+        "stages": [
+          "research",
+          "requirements",
+          "design",
+          "develop",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "ux",
+        "name": "体验改进",
+        "stages": [
+          "research",
+          "requirements",
+          "design",
+          "develop",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "bugfix",
+        "name": "缺陷修复",
+        "stages": [
+          "research",
+          "requirements",
+          "design",
+          "develop",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "refactor",
+        "name": "重构迁移",
+        "stages": [
+          "research",
+          "requirements",
+          "design",
+          "develop",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "security",
+        "name": "安全改进",
+        "stages": [
+          "research",
+          "requirements",
+          "design",
+          "develop",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "performance",
+        "name": "性能优化",
+        "stages": [
+          "research",
+          "requirements",
+          "design",
+          "develop",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "release",
+        "name": "发布交付",
+        "stages": [
+          "requirements",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "research",
+        "name": "研究调研",
+        "stages": [
+          "research",
+          "requirements",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "docs",
+        "name": "文档建设",
+        "stages": [
+          "research",
+          "requirements",
+          "design",
+          "develop",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "data",
+        "name": "数据工作",
+        "stages": [
+          "research",
+          "requirements",
+          "design",
+          "develop",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      },
+      {
+        "key": "ops",
+        "name": "运行维护",
+        "stages": [
+          "research",
+          "requirements",
+          "design",
+          "develop",
+          "quality",
+          "security",
+          "release",
+          "feedback"
+        ]
+      }
+    ],
+    "states": {
+      "not_started": "未开始",
+      "draft": "草稿",
+      "running": "运行中",
+      "review": "待复核",
+      "approved": "已复核"
+    },
+    "limits": {
+      "title": 160,
+      "goal": 24000,
+      "body": 200000,
+      "evidence": 12000
+    },
+    "notice": "已复核表示人工确认了当前产物，不表示测试、安全扫描或生产部署已经通过。"
+  }
+}

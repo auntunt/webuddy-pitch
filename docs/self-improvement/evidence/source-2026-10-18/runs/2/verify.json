@@ -1,0 +1,27 @@
+{
+  "check": "pass",
+  "verdict": "pass",
+  "files": [
+    "app.py"
+  ],
+  "beyond_plan": [],
+  "commands": [
+    {
+      "name": "test_quality.py",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_quality.py",
+      "exit_code": 0,
+      "output": "test_total_multiplies_quantity_and_price (__main__.QualityBehavior.test_total_multiplies_quantity_and_price) ... ok\ntest_zero_quantity_has_zero_total (__main__.QualityBehavior.test_zero_quantity_has_zero_total) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+      "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4"
+    },
+    {
+      "name": "test_security.py",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_security.py",
+      "exit_code": 0,
+      "output": "test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed) ... ok\ntest_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+      "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4"
+    }
+  ],
+  "checked_commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+  "checked_diff": "diff --git a/app.py b/app.py\nindex 05b674f..d3fb305 100644\n--- a/app.py\n+++ b/app.py\n@@ -1,6 +1,6 @@\n-\"\"\"SYNTHETIC regression fixture, deliberately incorrect main branch.\"\"\"\n-VERSION = \"main-broken\"\n+\"\"\"SYNTHETIC regression fixture, verified candidate commit.\"\"\"\n+VERSION = \"candidate-verified\"\n def quote_total(quantity, unit_price):\n-    return quantity + unit_price\n+    return quantity * unit_price\n def public_profile(record):\n-    return dict(record)\n+    return {key: record[key] for key in (\"id\", \"name\") if key in record}\n",
+  "fixture_notice": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）；诊断 verdict 是 synthetic 设置，commands 来自真实 subprocess 执行。"
+}

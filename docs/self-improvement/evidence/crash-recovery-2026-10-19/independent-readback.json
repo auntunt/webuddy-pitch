@@ -1,0 +1,48 @@
+{
+  "checked_at": "2026-10-18T22:34:12.152941+00:00",
+  "tests": 8,
+  "main_service_returncode": -9,
+  "main_workers_already_gone_before_fixture_cleanup": true,
+  "main_fixture_cleanup_signals": [],
+  "main_lifecycle_finished": true,
+  "main_recovery": {
+    "state": "complete",
+    "reason": "平台服务中断；独立监管已停止全部受管进程并保留原始输出，可从保留工作树新建运行。",
+    "evidence": "runs/1/restart-recovery",
+    "output_complete": true,
+    "errors": []
+  },
+  "main_raw_output_sha256": [
+    "747859558aebf4a54a359c6e3c8820b45d2b59eddd5de6140f76017dcefc4853"
+  ],
+  "retried_run": {
+    "id": 2,
+    "status": "done",
+    "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-fn6ubysn/worktrees/CRASH-1-r2",
+    "output": "— 接续运行 #1；旧运行和工作树原样保留。恢复快照 410dc0a350a782ef62c31fefa451378aab3cd70d 尚未验证。\n— 在独立工作树 /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-fn6ubysn/worktrees/CRASH-1-r2（分支 tmh/CRASH-1-r2，接着被退回的分支 410dc0a350a782ef62c31fefa451378aab3cd70d）里修改\n— 不跑构建测试：设置为不跑构建测试\n— 第 1 轮\n— 由一个智能体完成整个改动\nRETRY_OBS {\"draft\": \"VkFMVUUgPSAxCiMgY29tcGxldGUgaW50ZXJtZWRpYXRlIGNoYW5nZSBtdXN0IHN1cnZpdmUK\", \"cwd\": \"/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-fn6ubysn/worktrees/CRASH-1-r2\"}\n— 用时 0 秒：启动 0 秒，模型 0 秒，命令 0 条共 0.0 秒，钩子 0.0 秒\n"
+  },
+  "corrupt_original_files": {
+    "restart-recovery/original-lifecycle.json": "eyJmaW5pc2hlZCI6ZmFsc2UsImF0dGVtcHRzIjr/IGluY29tcGxldGUgb3JpZ2luYWwgcmVjZWlwdA=="
+  },
+  "repeated_corrupt_check_stays_blocked": true,
+  "post_test_owned_worker_commands": {
+    "test_corrupt_lifecycle_of_lost_known_owner_is_visible_blocked_not_running_forever": [],
+    "test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture": [],
+    "test_queued_owned_run_with_no_attempts_can_end_without_inventing_a_process": [],
+    "test_service_sigkill_reclaims_descendants_and_recovers_preserved_work": [],
+    "test_receipt_from_another_real_run_cannot_prove_this_run_was_cleaned": [],
+    "test_service_crash_after_done_row_before_lifecycle_seal_is_reconciled": [],
+    "test_second_runner_cannot_fail_or_recover_a_live_service_owners_run": [],
+    "test_unlisted_attempt_directory_prevents_no_attempt_shortcut": []
+  },
+  "evidence_record_sha256": {
+    "test_corrupt_lifecycle_of_lost_known_owner_is_visible_blocked_not_running_forever.json": "0a33df2d6faf98802561758c2b9b8982d801aebffdfde43ae6cbc5f35668540c",
+    "test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture.json": "2a0b4f63c7974618eeee83354de26033f7af6c357402f7b9c50831944b35392b",
+    "test_queued_owned_run_with_no_attempts_can_end_without_inventing_a_process.json": "0a1f9be9ed728917d15d0c0e03fab831fe9f451ffc44e49b89ea9e1679851407",
+    "test_receipt_from_another_real_run_cannot_prove_this_run_was_cleaned.json": "4477d4c361ffe84e4add3d180411368c689f629559c5af3da81ff9f6f4540150",
+    "test_second_runner_cannot_fail_or_recover_a_live_service_owners_run.json": "4d8d7675e49113b9d3aa7e6d7993c1556f9efaacf18480c4560eddb409543bea",
+    "test_service_crash_after_done_row_before_lifecycle_seal_is_reconciled.json": "adc98c714d7d4034339fcfd0acb0ad9fff11dd8ff25a502acc9c4def42856c69",
+    "test_service_sigkill_reclaims_descendants_and_recovers_preserved_work.json": "23f9fac129c9347a8bb59078d4db8c53ba093b26fad6fe4041075c945ab19f1e",
+    "test_unlisted_attempt_directory_prevents_no_attempt_shortcut.json": "2080562303d1135798ce1b0f0ba693a4f5db33404a6119b9d406477464526eb0"
+  }
+}

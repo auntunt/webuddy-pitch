@@ -1,0 +1,2302 @@
+{
+  "date": "2026-10-19",
+  "platform_head": "cfbed01997201bb59963b16ced9e5635afd1b4fa",
+  "registered_project_entries": 43,
+  "recent_thread_summaries": 50,
+  "pinned_thread_summaries": 1,
+  "archived_thread_summaries": 32,
+  "thread_limits": "Summaries are an inventory, not full transcripts. One imported historical thread could not be read with thread/items/list.",
+  "local_inventory": {
+    "scope": "Static manifest discovery only; not an executed application or complete account history. Hidden, ignored, vendor, generated, fixture evidence and unpacked benchmark directories excluded. Top-level folders and manifests may be copies or nested components.",
+    "roots": [
+      "/Users/auntlee/Desktop/workspace",
+      "/Users/auntlee/workspace",
+      "/Users/auntlee/localcode",
+      "/Users/auntlee/Documents/ChatGPT/围棋数字人",
+      "/Users/auntlee/Documents/ChatGPT/团队基建",
+      "/Users/auntlee/Desktop/自动化harness构建",
+      "/Users/auntlee/yunyong-tongshi",
+      "/Users/auntlee/Documents/批量素材修改工具",
+      "/Users/auntlee/Documents/最终的大论文",
+      "/Users/auntlee/Desktop/毕业论文修改与PPT构建",
+      "/Users/auntlee/Documents/个人AI提效工具",
+      "/Users/auntlee/Desktop/边老师智能体"
+    ],
+    "rg_exit": 0,
+    "manifest_count": 419,
+    "folders": [
+      {
+        "path": "/Users/auntlee/Desktop/workspace/AI科普知识",
+        "name": "AI科普知识",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/FESCO",
+        "name": "FESCO",
+        "manifest_count": 4,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/FESCO/fesco/backend/go.mod",
+          "/Users/auntlee/Desktop/workspace/FESCO/fesco/frontend/package.json",
+          "/Users/auntlee/Desktop/workspace/FESCO/fesco_backpack/backend/go.mod",
+          "/Users/auntlee/Desktop/workspace/FESCO/fesco_backpack/frontend/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/MoneyPrinterAICreate",
+        "name": "MoneyPrinterAICreate",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/MoneyPrinterAICreate/MoneyPrinterAICreate/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/MoneyPrinterAICreate/MoneyPrinterAICreate/sites/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/NEWAPI",
+        "name": "NEWAPI",
+        "manifest_count": 5,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/NEWAPI/newapi/new-api/electron/package.json",
+          "/Users/auntlee/Desktop/workspace/NEWAPI/newapi/new-api/go.mod",
+          "/Users/auntlee/Desktop/workspace/NEWAPI/newapi/new-api/web/classic/package.json",
+          "/Users/auntlee/Desktop/workspace/NEWAPI/newapi/new-api/web/default/package.json",
+          "/Users/auntlee/Desktop/workspace/NEWAPI/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/PPT",
+        "name": "PPT",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/Vibefilming",
+        "name": "Vibefilming",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/Vibefilming/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/ai-seat-gateway",
+        "name": "ai-seat-gateway",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/ai-seat-gateway/go.mod",
+          "/Users/auntlee/Desktop/workspace/ai-seat-gateway/web/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/choutuan",
+        "name": "choutuan",
+        "manifest_count": 3,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/choutuan/server_pull_20260710/api/package.json",
+          "/Users/auntlee/Desktop/workspace/choutuan/server_pull_20260712/api/package.json",
+          "/Users/auntlee/Desktop/workspace/choutuan/server_pull_20260713/api/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/deepseek-tui测试",
+        "name": "deepseek-tui测试",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/flowlab_手工补稿",
+        "name": "flowlab_手工补稿",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/marriage",
+        "name": "marriage",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/marriage/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/marriage-备份妇联版",
+        "name": "marriage-备份妇联版",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/mfd2xml",
+        "name": "mfd2xml",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/relay-pricing",
+        "name": "relay-pricing",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/scenario-harness",
+        "name": "scenario-harness",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/scenario-harness/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/tafang",
+        "name": "tafang",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/webuddy-desktop",
+        "name": "webuddy-desktop",
+        "manifest_count": 19,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/cloud/apps/push/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/cloud/apps/relay-fence-broker/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/cloud/apps/relay-ops/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/cloud/apps/relay/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/cloud/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/cloud/packages/postgres-schema/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/cloud/packages/push-contract/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/cloud/packages/relay-contract/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/docs/site/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/mobile/modules/orca-mobile-web-shell/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/mobile/modules/orca-notification-dismissal/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/mobile/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/mobile/packages/expo-two-way-audio/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/native/computer-use-macos/Package.swift",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/native/windows-registry/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/tools/webuddy-agent/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/tools/webuddy-server/package.json",
+          "/Users/auntlee/Desktop/workspace/webuddy-desktop/tools/webuddy-server/web/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/webuddy-dist",
+        "name": "webuddy-dist",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/webuddy2",
+        "name": "webuddy2",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/webuddy2/app/Package.swift",
+          "/Users/auntlee/Desktop/workspace/webuddy2/server/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/yuliu",
+        "name": "yuliu",
+        "manifest_count": 5,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/yuliu/api/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/yuliu/frontend/package.json",
+          "/Users/auntlee/Desktop/workspace/yuliu/frontend/packages/miniapp/package.json",
+          "/Users/auntlee/Desktop/workspace/yuliu/frontend/packages/pc/package.json",
+          "/Users/auntlee/Desktop/workspace/yuliu/frontend/packages/shared/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/专家知识提取harness",
+        "name": "专家知识提取harness",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/专家知识提取harness/TACIT-专家直觉工作台-v5-2026-07-30/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/世纪互联陪跑",
+        "name": "世纪互联陪跑",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/世纪互联陪跑/topic-collection/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/会议纪要",
+        "name": "会议纪要",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/全自动workflow-package",
+        "name": "全自动workflow-package",
+        "manifest_count": 6,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/全自动workflow-package/recipes/ecom_claw/video/ecom-claw-explainer/package.json",
+          "/Users/auntlee/Desktop/workspace/全自动workflow-package/wf_platform/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/全自动workflow-package/公众号自动发布_副本4/codex-plugin-cc/package.json",
+          "/Users/auntlee/Desktop/workspace/全自动workflow-package/公众号自动发布_副本4/ref_project/pyproject.toml",
+          "/Users/auntlee/Desktop/workspace/全自动workflow-package/公众号自动发布_副本4/ref_project/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/全自动workflow-package/公众号自动发布_副本4/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/公众号自动发布",
+        "name": "公众号自动发布",
+        "manifest_count": 5,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/公众号自动发布/api/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布/frontend/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布/frontend/packages/miniapp/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布/frontend/packages/pc/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布/frontend/packages/shared/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/公众号自动发布_副本",
+        "name": "公众号自动发布_副本",
+        "manifest_count": 4,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本/codex-plugin-cc/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本/ref_project/pyproject.toml",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本/ref_project/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/公众号自动发布_副本2",
+        "name": "公众号自动发布_副本2",
+        "manifest_count": 4,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本2/codex-plugin-cc/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本2/ref_project/pyproject.toml",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本2/ref_project/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本2/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/公众号自动发布_副本3",
+        "name": "公众号自动发布_副本3",
+        "manifest_count": 5,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本3/api/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本3/frontend/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本3/frontend/packages/miniapp/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本3/frontend/packages/pc/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本3/frontend/packages/shared/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/公众号自动发布_副本7",
+        "name": "公众号自动发布_副本7",
+        "manifest_count": 6,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本7/api/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本7/frontend/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本7/frontend/packages/miniapp/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本7/frontend/packages/pc/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本7/frontend/packages/shared/package.json",
+          "/Users/auntlee/Desktop/workspace/公众号自动发布_副本7/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/公司交接项目情况",
+        "name": "公司交接项目情况",
+        "manifest_count": 15,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/Educational-Agent/client/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/Educational-Agent/server/go.mod",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/cloudwaveai-official-site/frontend/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/yunyongshangcheng-production-source/backend/go.mod",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/yunyongshangcheng-production-source/frontend/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/apps/admin-web/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/apps/api/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/apps/face-service/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/apps/face-service/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/apps/parent-miniprogram/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/apps/teacher-h5/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/apps/worker/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/packages/shared/package.json",
+          "/Users/auntlee/Desktop/workspace/公司交接项目情况/可复用代码参考-多语言/typescript/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/公司首页",
+        "name": "公司首页",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/公司首页/jiusi-hotfix-20260718/src-tree/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/医院信息收集相关",
+        "name": "医院信息收集相关",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/医院信息收集相关/medgov-pro/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/司马彦电商自动化",
+        "name": "司马彦电商自动化",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/司马彦电商自动化/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/吃点啥菜单",
+        "name": "吃点啥菜单",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/吃点啥菜单/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/同行信息查找",
+        "name": "同行信息查找",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/围棋数字人",
+        "name": "围棋数字人",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/围棋数字人/go-avatar-coach-prompts/frontend/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/图片处理",
+        "name": "图片处理",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/备案资料记录",
+        "name": "备案资料记录",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/官网",
+        "name": "官网",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/官网/frontend/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/录音工具",
+        "name": "录音工具",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/录音工具/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/微信助手",
+        "name": "微信助手",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/微信助手/wechat-helper/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/政策通",
+        "name": "政策通",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/政策通/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/测试",
+        "name": "测试",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/网梯harness",
+        "name": "网梯harness",
+        "manifest_count": 5,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/网梯harness/WhatyTerm/package.json",
+          "/Users/auntlee/Desktop/workspace/网梯harness/WhatyTerm/server/package.json",
+          "/Users/auntlee/Desktop/workspace/网梯harness/我的新的版本/WhatyTerm/package.json",
+          "/Users/auntlee/Desktop/workspace/网梯harness/我的新的版本/WhatyTerm/server/package.json",
+          "/Users/auntlee/Desktop/workspace/网梯harness/我的新的版本/jargon-explainer/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/网梯智能体",
+        "name": "网梯智能体",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/网梯智能体/oa-monitor-clone/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/老年人demo",
+        "name": "老年人demo",
+        "manifest_count": 3,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/老年人demo/app/package.json",
+          "/Users/auntlee/Desktop/workspace/老年人demo/server/package.json",
+          "/Users/auntlee/Desktop/workspace/老年人demo/voice/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/自动化电商作图",
+        "name": "自动化电商作图",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/自动化电商作图/smy-image-batch-studio/backend/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/自动化电商作图/smy-image-batch-studio/frontend/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/自动化电商作图_副本",
+        "name": "自动化电商作图_副本",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/自动化电商作图_副本/smy-image-batch-studio/backend/requirements.txt",
+          "/Users/auntlee/Desktop/workspace/自动化电商作图_副本/smy-image-batch-studio/frontend/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/自动化电商视频生成",
+        "name": "自动化电商视频生成",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/自动化电商视频生成/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/自动化视频生成剪辑",
+        "name": "自动化视频生成剪辑",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/自动运维",
+        "name": "自动运维",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/自动运维/adaptergen/pyproject.toml",
+          "/Users/auntlee/Desktop/workspace/自动运维/issuebot/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/边老师智能体_副本",
+        "name": "边老师智能体_副本",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/边老师智能体_副本/Open-LLM-VTuber/pyproject.toml",
+          "/Users/auntlee/Desktop/workspace/边老师智能体_副本/Open-LLM-VTuber/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/运维智能体",
+        "name": "运维智能体",
+        "manifest_count": 5,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/examples/legacy-dotnet-erp/Erp.Core/Erp.Core.csproj",
+          "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/examples/legacy-dotnet-erp/Erp.Web/Erp.Web.csproj",
+          "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/examples/legacy-dotnet-erp/Erp.sln",
+          "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/examples/legacy-java-oa/pom.xml",
+          "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/集团数据收集分析系统",
+        "name": "集团数据收集分析系统",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Desktop/workspace/集团数据收集分析系统/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/workspace/项目需求记录",
+        "name": "项目需求记录",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/workspace/FESCO",
+        "name": "FESCO",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/workspace/artipub-publishers",
+        "name": "artipub-publishers",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/workspace/artipub-publishers/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/ccswitch日志分析",
+        "name": "ccswitch日志分析",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/workspace/claude_workspace",
+        "name": "claude_workspace",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/workspace/cursor",
+        "name": "cursor",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/workspace/deepseek-harness",
+        "name": "deepseek-harness",
+        "manifest_count": 242,
+        "manifests": [
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/apps/cli/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/apps/web/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/examples/acp-agent/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/examples/headless-agent/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/examples/jsonrpc-agent/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/examples/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/native/landlock-run/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/native/landlock-run/packages/entry/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/native/landlock-run/packages/linux-arm64/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/native/landlock-run/packages/linux-x64/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/acp/acp/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/api/gateway/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/api/remotes/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/attachment/attachment-local/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/attachment/attachment/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/boot/app-boot/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/boot/cmdline/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/bundle/base/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/bundle/headless/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/bundle/tui/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/bundle/web-app/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/connection/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/hmr/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/locale/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/modules/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/runtime/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/schema-form/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-agent-preset/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-attachment/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-commands/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-conversation/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-deliverables/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-directory-picker-browse/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-directory-picker-native/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-goal/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-input-trigger/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-jobs/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-layout/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-message-feedback/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-model-selection/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-permission-presets/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-plan/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-primitives/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-settings-general/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-settings-models/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-settings-plugin-inventory/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-settings-plugins/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-settings/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-sidebar/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-skill/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-slots/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-subagent/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-theme/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-tool/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-trajectory/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-user-questions/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-workflow-run/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/ui-workspace/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/web-react/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/client/web/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/code-runtime/code-runtime-worker-thread/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/code-runtime/code-runtime/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/compaction/command-compact/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/compaction/compaction-basic/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/compaction/compaction-tool-result-pruner/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/compaction/compaction/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/context/agent-instructions/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/context/session-reference/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/context/time-context/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/context/tmux-context/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/core/agent-default-model/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/core/agent-loop/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/core/agent-tool-presentation/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/core/agent/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/core/scope/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/core/session/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/core/system-prompt/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/core/tools/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/credentials/credentials-local/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/credentials/credentials/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/e2b/e2b/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/e2b/fs-e2b/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/e2b/subprocess-e2b/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/examples/acp-demo/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/examples/agent-spine-demo/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/examples/jsonrpc-demo/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/extensions/cordis-client-runner/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/extensions/cordis-host-runner/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/extensions/tool-cordis/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/extensions/ui-cordis/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/feedback/command-feedback/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/feedback/message-feedback/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/fs/fs-local/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/fs/fs-observation-policy/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/fs/fs-sandbox/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/fs/fs/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/fs/tool-fs-search/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/fs/tool-fs/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/fs/tool-str-replace-editor/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/goal/command-goal/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/goal/goal-round-driver/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/goal/goal/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/goal/tool-goal/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/guard/repeat-tool-reminder/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/guard/timeout-policy/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/hooks/hook-protocol/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/hooks/hooks-claude-code/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/hooks/hooks-codex/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/host/apiproxy/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/host/directory-picker-auto/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/host/directory-picker-browse/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/host/directory-picker-native/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/host/directory-picker/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/host/frontend-static/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/host/plugin-inventory/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/host/webserver/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/identity/anonymous-user-id/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/interaction/commands/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/interaction/permission-presets/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/interaction/tool-ask-user/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/interaction/user-approval/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/interaction/user-questions/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/jobs/jobs-local/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/jobs/jobs/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/jobs/tool-jobs/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/llm/llm-deepseek/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/llm/llm-pi-ai/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/llm/llm-retry/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/llm/llm/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/llm/token-meter/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/lsp/lsp-stdio/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/lsp/lsp/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/lsp/tool-lsp/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/mcp/mcp-client/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/plan/plan-mode/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/preset/agent-presets/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/preset/persona/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/runtime-diagnostics/invariants/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/sandbox/sandbox-local/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/sandbox/sandbox-policy/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/sandbox/sandbox-windows-acl/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/sandbox/sandbox/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/schedule/schedule/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/sdk/client/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/sdk/protocol/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/sdk/server/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session-query/session-log-export/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session-query/session-query-sqlite/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session-query/session-query/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session-query/tool-session-query/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-checkpoint-policy/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-persistence-jsonl/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-persistence-sqlite/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-persistence/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-projection-cache/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-projection/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-stats/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-telemetry-otel/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-telemetry/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-title-all-prompts-llm/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-title-first-prompt-llm/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-title-llm/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/session/session-title/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/settings/settings-file/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/settings/settings/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/shell/bash-local/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/shell/bash-sandbox/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/shell/pwsh-local/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/shell/pwsh-sandbox/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/shell/shell-env/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/shell/shell/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/shell/tool-bash-persistent/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/shell/tool-bash/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/shell/tool-pwsh/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/skill/skill-badge/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/skill/skill-filesystem/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/skill/skill/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/skill/tool-skill/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/spill/spill-local/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/spill/spill-policy/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/spill/spill/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/storage/storage-domain/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/storage/storage-json/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/storage/storage-sqlite/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/storage/storage/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/subagent-acp/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/subagent-claude-code/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/subagent-codex/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/subagent-dsh-sdk/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/subagent-fork-in-process/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/subagent-in-process-driver/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/subagent-spawn-in-process/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/subagent/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/tool-subagent-control/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/tool-subagent-report/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subagent/tool-subagent/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subprocess/subprocess-local/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/subprocess/subprocess/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/terminal/terminal-bash/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/terminal/terminal/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/terminal/tool-terminal/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/test-support/acp-snapshot/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/test-support/agent-loop-testkit/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/test-support/client-runtime/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/test-support/llm-mock-server/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/test-support/llm-replay/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/test-support/loader-smoke/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/todo/tool-todo/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/generator/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/generator/tests/fixtures/remote-model/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/generator/tests/fixtures/remote-model/packages/domain/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/generator/tests/fixtures/remote-model/packages/remote/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/generator/tests/fixtures/type-model/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/generator/tests/fixtures/type-model/packages/client/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/generator/tests/fixtures/type-model/packages/host/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/generator/tests/fixtures/type-model/packages/write/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/loader/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/protocol/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/typert/registry/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/util/atomic-write/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/util/brand/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/util/home-paths/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/util/launch-environment/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/util/native-command/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/util/output-retention/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/util/timeout/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/web/tool-web/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/web/web-fetch-http/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/web/web-search-deepseek/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/web/web-search-exa/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/web/web-search-perplexity/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/web/web/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/workflow/tool-ralph/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/workflow/tool-workflow/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/workflow/workflow-worker-thread/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/workflow/workflow/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/packages/workspace/workspace/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/python/sdk-runtime/package.json",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/python/sdk-runtime/pyproject.toml",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/python/sdk/pyproject.toml",
+          "/Users/auntlee/workspace/deepseek-harness/deepseek-harness/website/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/douyin-pipeline",
+        "name": "douyin-pipeline",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/workspace/douyin-pipeline/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/helloworld",
+        "name": "helloworld",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/workspace/intel-engine",
+        "name": "intel-engine",
+        "manifest_count": 5,
+        "manifests": [
+          "/Users/auntlee/workspace/intel-engine/field/package.json",
+          "/Users/auntlee/workspace/intel-engine/mirofish/backend/pyproject.toml",
+          "/Users/auntlee/workspace/intel-engine/mirofish/backend/requirements.txt",
+          "/Users/auntlee/workspace/intel-engine/mirofish/frontend/package.json",
+          "/Users/auntlee/workspace/intel-engine/mirofish/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/mbti小程序",
+        "name": "mbti小程序",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/workspace/mbti小程序/mbti-app/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/pmp-review",
+        "name": "pmp-review",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/workspace/pmp-review/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/social-auto-upload",
+        "name": "social-auto-upload",
+        "manifest_count": 3,
+        "manifests": [
+          "/Users/auntlee/workspace/social-auto-upload/pyproject.toml",
+          "/Users/auntlee/workspace/social-auto-upload/requirements.txt",
+          "/Users/auntlee/workspace/social-auto-upload/sau_frontend/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/video-mix",
+        "name": "video-mix",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/workspace/video-mixer",
+        "name": "video-mixer",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/workspace/video-mixer/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/video-parser",
+        "name": "video-parser",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/workspace/video-parser/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/webuddy",
+        "name": "webuddy",
+        "manifest_count": 4,
+        "manifests": [
+          "/Users/auntlee/workspace/webuddy/package.json",
+          "/Users/auntlee/workspace/webuddy/packs/software-engineering/fixtures/broken/package.json",
+          "/Users/auntlee/workspace/webuddy/packs/software-engineering/fixtures/good/package.json",
+          "/Users/auntlee/workspace/webuddy/test/fixtures/inverted/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/weighbill-system",
+        "name": "weighbill-system",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/workspace/weighbill-system/pyproject.toml",
+          "/Users/auntlee/workspace/weighbill-system/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/xhs-batch-publisher",
+        "name": "xhs-batch-publisher",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/workspace/xhs-batch-publisher/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/zo2",
+        "name": "zo2",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/workspace/zo2/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/制度计划",
+        "name": "制度计划",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/workspace/自动化无人工厂实践",
+        "name": "自动化无人工厂实践",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/workspace/自动化无人工厂实践/pyproject.toml",
+          "/Users/auntlee/workspace/自动化无人工厂实践/web/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/自动化电商作图",
+        "name": "自动化电商作图",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/workspace/自动化电商作图/smy-image-batch-studio/backend/requirements.txt",
+          "/Users/auntlee/workspace/自动化电商作图/smy-image-batch-studio/frontend/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/课程项目",
+        "name": "课程项目",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/workspace/课程项目/webuddy-console/package.json",
+          "/Users/auntlee/workspace/课程项目/今天吃点啥/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/workspace/面试系统",
+        "name": "面试系统",
+        "manifest_count": 3,
+        "manifests": [
+          "/Users/auntlee/workspace/面试系统/go.mod",
+          "/Users/auntlee/workspace/面试系统/package.json",
+          "/Users/auntlee/workspace/面试系统/sidecar/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/localcode",
+        "name": "localcode",
+        "manifest_count": 6,
+        "manifests": [
+          "/Users/auntlee/localcode/douyin-favorites-miner/pyproject.toml",
+          "/Users/auntlee/localcode/example/experiment_code/requirements.txt",
+          "/Users/auntlee/localcode/paper1/paper重构/第三章/explainer/requirements.txt",
+          "/Users/auntlee/localcode/paper1/paper重构/第三章/explainer/scripts/相关模型信息示例/刘冉/温室模型v3(1)/requirements.txt",
+          "/Users/auntlee/localcode/paper1/paper重构/第三章/explainer/scripts/相关模型信息示例/李明/刘凯歌-日光温室黄瓜霜霉病发生预测模型/日光温室黄瓜霜霉病发生预测模型/requirements.txt",
+          "/Users/auntlee/localcode/paper1/paper重构/第三章/explainer/scripts/相关模型信息示例/韩佳伟/add_obj/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Documents/ChatGPT/围棋数字人",
+        "name": "围棋数字人",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Documents/ChatGPT/团队基建",
+        "name": "团队基建",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Documents/ChatGPT/团队基建/workbuddy/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/自动化harness构建",
+        "name": "自动化harness构建",
+        "manifest_count": 7,
+        "manifests": [
+          "/Users/auntlee/Desktop/自动化harness构建/artifacts/legacy-modernization-product-20260928/harness/adapter-dependencies/codex/package.json",
+          "/Users/auntlee/Desktop/自动化harness构建/artifacts/legacy-modernization-product-20260928/harness/adapter-dependencies/pi/package.json",
+          "/Users/auntlee/Desktop/自动化harness构建/artifacts/legacy-modernization-product-20260928/harness/pyproject.toml",
+          "/Users/auntlee/Desktop/自动化harness构建/frontend/package.json",
+          "/Users/auntlee/Desktop/自动化harness构建/pyproject.toml",
+          "/Users/auntlee/Desktop/自动化harness构建/runtime/project-browser/package.json",
+          "/Users/auntlee/Desktop/自动化harness构建/video-to-brief/pyproject.toml"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/yunyong-tongshi",
+        "name": "yunyong-tongshi",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Documents/批量素材修改工具",
+        "name": "批量素材修改工具",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Documents/批量素材修改工具/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Documents/最终的大论文",
+        "name": "最终的大论文",
+        "manifest_count": 0,
+        "manifests": []
+      },
+      {
+        "path": "/Users/auntlee/Desktop/毕业论文修改与PPT构建",
+        "name": "毕业论文修改与PPT构建",
+        "manifest_count": 3,
+        "manifests": [
+          "/Users/auntlee/Desktop/毕业论文修改与PPT构建/outputs/019eb558-a12c-7563-8b43-c7473be44748/presentations/liyibin-green-style-redesign/package.json",
+          "/Users/auntlee/Desktop/毕业论文修改与PPT构建/大论文修改盲审/outputs/manual-20260530-defense/presentations/defense-rebuild/package.json",
+          "/Users/auntlee/Desktop/毕业论文修改与PPT构建/大论文修改盲审/outputs/manual-20260530-defense/presentations/defense-rebuild/test-api/package.json"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Documents/个人AI提效工具",
+        "name": "个人AI提效工具",
+        "manifest_count": 1,
+        "manifests": [
+          "/Users/auntlee/Documents/个人AI提效工具/requirements.txt"
+        ]
+      },
+      {
+        "path": "/Users/auntlee/Desktop/边老师智能体",
+        "name": "边老师智能体",
+        "manifest_count": 2,
+        "manifests": [
+          "/Users/auntlee/Desktop/边老师智能体/Open-LLM-VTuber/pyproject.toml",
+          "/Users/auntlee/Desktop/边老师智能体/Open-LLM-VTuber/requirements.txt"
+        ]
+      }
+    ]
+  },
+  "github_repository_metadata": [
+    {
+      "description": "TMH-project",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "webuddy-pitch",
+      "nameWithOwner": "auntunt/webuddy-pitch",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-10-17T18:25:19Z",
+      "url": "https://github.com/auntunt/webuddy-pitch"
+    },
+    {
+      "description": "Apache OFBiz is an open source product for the automation of enterprise processes. It includes framework components and business applications for ERP, CRM, E-Business/E-Commerce, Supply Chain Management and Manufacturing Resource Planning. OFBiz provides a foundation and starting point for reliable, secure and scalable enterprise solutions.",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "ofbiz-framework",
+      "nameWithOwner": "auntunt/ofbiz-framework",
+      "primaryLanguage": {
+        "name": "Java"
+      },
+      "pushedAt": "2026-10-16T07:16:01Z",
+      "url": "https://github.com/auntunt/ofbiz-framework"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "harness2",
+      "nameWithOwner": "auntunt/harness2",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-10-14T02:22:51Z",
+      "url": "https://github.com/auntunt/harness2"
+    },
+    {
+      "description": "Reverse engineer anything with agents, from app behavior down to native binaries.",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "rea",
+      "nameWithOwner": "auntunt/rea",
+      "primaryLanguage": {
+        "name": "TypeScript"
+      },
+      "pushedAt": "2026-10-10T08:03:54Z",
+      "url": "https://github.com/auntunt/rea"
+    },
+    {
+      "description": "自动化无人工厂实践：调度层 + 审计层 + 13 道闸门",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "unmanned-factory",
+      "nameWithOwner": "auntunt/unmanned-factory",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-09-30T06:45:59Z",
+      "url": "https://github.com/auntunt/unmanned-factory"
+    },
+    {
+      "description": "Webuddy —— ORCA 的内部二次开发分支（公司内部使用）",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "webuddy-desktop",
+      "nameWithOwner": "auntunt/webuddy-desktop",
+      "primaryLanguage": {
+        "name": "TypeScript"
+      },
+      "pushedAt": "2026-09-26T00:20:26Z",
+      "url": "https://github.com/auntunt/webuddy-desktop"
+    },
+    {
+      "description": "Turn presentation videos into transcripts, timelines, unique slide images, and reconstructed PowerPoints — locally.",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "video-to-brief",
+      "nameWithOwner": "auntunt/video-to-brief",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-09-25T16:47:28Z",
+      "url": "https://github.com/auntunt/video-to-brief"
+    },
+    {
+      "description": "客户与供应商风险排查数据填报系统",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "group-risk-data-system",
+      "nameWithOwner": "auntunt/group-risk-data-system",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-09-23T14:57:58Z",
+      "url": "https://github.com/auntunt/group-risk-data-system"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "webuddy-acceptance-counter-b0407128",
+      "nameWithOwner": "auntunt/webuddy-acceptance-counter-b0407128",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-09-20T08:51:39Z",
+      "url": "https://github.com/auntunt/webuddy-acceptance-counter-b0407128"
+    },
+    {
+      "description": "Synthetic webuddy acceptance evidence; no customer data",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "webuddy-acceptance-20260919-172853",
+      "nameWithOwner": "auntunt/webuddy-acceptance-20260919-172853",
+      "primaryLanguage": null,
+      "pushedAt": "2026-09-19T09:28:56Z",
+      "url": "https://github.com/auntunt/webuddy-acceptance-20260919-172853"
+    },
+    {
+      "description": "38 editorial diagram types for Claude Code, Codex, and Pi. Self-contained HTML + SVG. No shadows. No Mermaid slop.",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "diagram-design",
+      "nameWithOwner": "auntunt/diagram-design",
+      "primaryLanguage": {
+        "name": "HTML"
+      },
+      "pushedAt": "2026-09-15T20:39:25Z",
+      "url": "https://github.com/auntunt/diagram-design"
+    },
+    {
+      "description": "Stop letting AI code blind. Map the architecture before every change with Birdview.",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "birdview",
+      "nameWithOwner": "auntunt/birdview",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2026-09-13T10:53:42Z",
+      "url": "https://github.com/auntunt/birdview"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "webuddy-hoursum-cli",
+      "nameWithOwner": "auntunt/webuddy-hoursum-cli",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-09-11T09:51:11Z",
+      "url": "https://github.com/auntunt/webuddy-hoursum-cli"
+    },
+    {
+      "description": "需求单驱动的本地改码 CLI 机器人：解析→判重→分流→Claude Code headless 改码→验证→分支/补丁交付",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "issuebot",
+      "nameWithOwner": "auntunt/issuebot",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-09-10T16:28:58Z",
+      "url": "https://github.com/auntunt/issuebot"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "huangli-testwebuddy",
+      "nameWithOwner": "auntunt/huangli-testwebuddy",
+      "primaryLanguage": null,
+      "pushedAt": "2026-09-10T06:10:12Z",
+      "url": "https://github.com/auntunt/huangli-testwebuddy"
+    },
+    {
+      "description": "工时、人天、成本与报价测算工具，包含 CLI、Web UI 与项目拆分助手",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "gongshi-calculator",
+      "nameWithOwner": "auntunt/gongshi-calculator",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-09-10T03:11:53Z",
+      "url": "https://github.com/auntunt/gongshi-calculator"
+    },
+    {
+      "description": "AI-powered news aggregation, processing and distribution pipeline",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "NewsFlow",
+      "nameWithOwner": "auntunt/NewsFlow",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-09-06T16:50:44Z",
+      "url": "https://github.com/auntunt/NewsFlow"
+    },
+    {
+      "description": "Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack AI-powered routing + On-demand toolchain bootstrapping + Self-evolving knowledge base  Supports Claude Code, Kiro, Cursor, Cline, and other AI coding clients 逆向/渗透/安全技能路由包 - AI 自动路由 + 按需自举工具链 + 自动进化经验库 | 支持 Claude Code / Kiro / Cursor / Cline 等代码 AI 客户端",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "reverse-skill",
+      "nameWithOwner": "auntunt/reverse-skill",
+      "primaryLanguage": {
+        "name": "PowerShell"
+      },
+      "pushedAt": "2026-09-05T04:00:36Z",
+      "url": "https://github.com/auntunt/reverse-skill"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "tokendance-field",
+      "nameWithOwner": "auntunt/tokendance-field",
+      "primaryLanguage": {
+        "name": "TypeScript"
+      },
+      "pushedAt": "2026-09-02T18:32:48Z",
+      "url": "https://github.com/auntunt/tokendance-field"
+    },
+    {
+      "description": "Autonomous Systems & Security Toolkit for OpenAI Codex CLI. Deterministic binary analysis, decoupled pipeline, and zero-friction execution.",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "codex-cli-portable-setup-kit",
+      "nameWithOwner": "auntunt/codex-cli-portable-setup-kit",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-08-31T15:19:12Z",
+      "url": "https://github.com/auntunt/codex-cli-portable-setup-kit"
+    },
+    {
+      "description": "行业无关的验收内核 + 可插拔担架包。零依赖纯 Node ESM。",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "webuddy-core",
+      "nameWithOwner": "auntunt/webuddy-core",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2026-08-23T16:08:11Z",
+      "url": "https://github.com/auntunt/webuddy-core"
+    },
+    {
+      "description": "让 AI 写的代码可以被验收。91 道门禁按八步卡住流程，进度是读文件算出来的，不是你填的。",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "webuddy-console",
+      "nameWithOwner": "auntunt/webuddy-console",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2026-08-17T03:42:24Z",
+      "url": "https://github.com/auntunt/webuddy-console"
+    },
+    {
+      "description": "Open-source, self-hosted AI vulnerability research tool that orchestrates agents to find and validate security issues in code.",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "open-kritt",
+      "nameWithOwner": "auntunt/open-kritt",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2026-08-16T17:33:06Z",
+      "url": "https://github.com/auntunt/open-kritt"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "deepseek-harness",
+      "nameWithOwner": "auntunt/deepseek-harness",
+      "primaryLanguage": {
+        "name": "TypeScript"
+      },
+      "pushedAt": "2026-08-13T13:00:21Z",
+      "url": "https://github.com/auntunt/deepseek-harness"
+    },
+    {
+      "description": "20分钟研究 / 5分钟准备 / 1分钟讲明白 — 一个逼你把知识说出口的计时训练场",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "pitch2051",
+      "nameWithOwner": "auntunt/pitch2051",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2026-08-08T11:56:33Z",
+      "url": "https://github.com/auntunt/pitch2051"
+    },
+    {
+      "description": "A Simple and Universal Swarm Intelligence Engine, Predicting Anything. 简洁通用的群体智能引擎，预测万物",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "MiroFish",
+      "nameWithOwner": "auntunt/MiroFish",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-08-03T10:19:15Z",
+      "url": "https://github.com/auntunt/MiroFish"
+    },
+    {
+      "description": "AI 智能终端管理工具 - 路由重构 + 安全加固版",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "WhatyTerm",
+      "nameWithOwner": "auntunt/WhatyTerm",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2026-08-01T07:30:20Z",
+      "url": "https://github.com/auntunt/WhatyTerm"
+    },
+    {
+      "description": "版本一",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "WX--autoarticle",
+      "nameWithOwner": "auntunt/WX--autoarticle",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-07-16T06:59:25Z",
+      "url": "https://github.com/auntunt/WX--autoarticle"
+    },
+    {
+      "description": "Helping AI Agent become an awesome practical hacker!",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "hack-skills",
+      "nameWithOwner": "auntunt/hack-skills",
+      "primaryLanguage": {
+        "name": "CSS"
+      },
+      "pushedAt": "2026-06-16T16:11:53Z",
+      "url": "https://github.com/auntunt/hack-skills"
+    },
+    {
+      "description": "FESCO项目",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "fesco",
+      "nameWithOwner": "auntunt/fesco",
+      "primaryLanguage": {
+        "name": "TypeScript"
+      },
+      "pushedAt": "2026-06-02T13:34:26Z",
+      "url": "https://github.com/auntunt/fesco"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "jinhun",
+      "nameWithOwner": "auntunt/jinhun",
+      "primaryLanguage": {
+        "name": "TypeScript"
+      },
+      "pushedAt": "2026-06-01T08:00:53Z",
+      "url": "https://github.com/auntunt/jinhun"
+    },
+    {
+      "description": "AI-friendly PPT builder skill: 17 hand-polished Chinese PPTX templates + non-destructive text-only editing tools (python-pptx based). Pick a template, write edits.json, build a real .pptx with the layout intact. Personal/research use only.",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "GordenPPTSkill",
+      "nameWithOwner": "auntunt/GordenPPTSkill",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-06-01T04:24:24Z",
+      "url": "https://github.com/auntunt/GordenPPTSkill"
+    },
+    {
+      "description": "Windows desktop cat pet that reacts to coding workflow and AI sessions",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "cat_pet",
+      "nameWithOwner": "auntunt/cat_pet",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-05-31T13:31:56Z",
+      "url": "https://github.com/auntunt/cat_pet"
+    },
+    {
+      "description": "婚恋配对小程序，支持pc/移动端/尚未完成数据库接入和用户管理部分",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "marriage",
+      "nameWithOwner": "auntunt/marriage",
+      "primaryLanguage": {
+        "name": "TypeScript"
+      },
+      "pushedAt": "2026-05-31T13:25:24Z",
+      "url": "https://github.com/auntunt/marriage"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "iterative-research-agent-platform",
+      "nameWithOwner": "auntunt/iterative-research-agent-platform",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-05-12T08:39:16Z",
+      "url": "https://github.com/auntunt/iterative-research-agent-platform"
+    },
+    {
+      "description": "总是收藏了就不看？这就是为了解决这个问题的",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": false,
+      "name": "ReviewOfWatchlist",
+      "nameWithOwner": "auntunt/ReviewOfWatchlist",
+      "primaryLanguage": {
+        "name": "TypeScript"
+      },
+      "pushedAt": "2026-05-12T08:38:01Z",
+      "url": "https://github.com/auntunt/ReviewOfWatchlist"
+    },
+    {
+      "description": "用于结合熟练各种技术的结合使用，langgraph、记忆、路由、多agent、纯本地数据搜索抓取、数据清洗等等agent开发部分的技术实践",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "iterative_deep_research",
+      "nameWithOwner": "auntunt/iterative_deep_research",
+      "primaryLanguage": null,
+      "pushedAt": "2026-05-07T02:45:11Z",
+      "url": "https://github.com/auntunt/iterative_deep_research"
+    },
+    {
+      "description": "自用知识点复习",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "tech-review",
+      "nameWithOwner": "auntunt/tech-review",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2026-04-20T19:31:00Z",
+      "url": "https://github.com/auntunt/tech-review"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "eve-bot",
+      "nameWithOwner": "auntunt/eve-bot",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2026-03-31T08:37:40Z",
+      "url": "https://github.com/auntunt/eve-bot"
+    },
+    {
+      "description": "CodeMap Hotel，用于提升情绪价值，可以看到自己的多个cli 终端来源是否工作",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "observatory",
+      "nameWithOwner": "auntunt/observatory",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2026-03-30T03:40:26Z",
+      "url": "https://github.com/auntunt/observatory"
+    },
+    {
+      "description": "个人毕设工作",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "AI-servin-system",
+      "nameWithOwner": "auntunt/AI-servin-system",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2025-05-26T08:14:31Z",
+      "url": "https://github.com/auntunt/AI-servin-system"
+    },
+    {
+      "description": "李毅斌的github仓库--实验室仓库",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "Li-yibin",
+      "nameWithOwner": "auntunt/Li-yibin",
+      "primaryLanguage": null,
+      "pushedAt": "2025-04-07T08:02:57Z",
+      "url": "https://github.com/auntunt/Li-yibin"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "ai-serving-system",
+      "nameWithOwner": "auntunt/ai-serving-system",
+      "primaryLanguage": null,
+      "pushedAt": "2025-03-26T08:24:54Z",
+      "url": "https://github.com/auntunt/ai-serving-system"
+    },
+    {
+      "description": "基于AI的图片/视频硬字幕去除、文本水印去除，无损分辨率生成去字幕、去水印后的图片/视频文件。无需申请第三方API，本地实现。AI-based tool for removing hard-coded subtitles and text-like watermarks from videos or Pictures.",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "video-subtitle-remover",
+      "nameWithOwner": "auntunt/video-subtitle-remover",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2025-02-19T01:34:38Z",
+      "url": "https://github.com/auntunt/video-subtitle-remover"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "plantformV2",
+      "nameWithOwner": "auntunt/plantformV2",
+      "primaryLanguage": null,
+      "pushedAt": "2024-11-26T06:21:50Z",
+      "url": "https://github.com/auntunt/plantformV2"
+    },
+    {
+      "description": "可视化模型结构",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "netron",
+      "nameWithOwner": "auntunt/netron",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2024-09-26T02:13:08Z",
+      "url": "https://github.com/auntunt/netron"
+    },
+    {
+      "description": "#1 Locally hosted web application that allows you to perform various operations on PDF files",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "Stirling-PDF",
+      "nameWithOwner": "auntunt/Stirling-PDF",
+      "primaryLanguage": {
+        "name": "Java"
+      },
+      "pushedAt": "2024-09-17T21:40:04Z",
+      "url": "https://github.com/auntunt/Stirling-PDF"
+    },
+    {
+      "description": "Gomoon 基于大模型的桌面端效率工具",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "Gomoon",
+      "nameWithOwner": "auntunt/Gomoon",
+      "primaryLanguage": {
+        "name": "TypeScript"
+      },
+      "pushedAt": "2024-07-24T05:20:00Z",
+      "url": "https://github.com/auntunt/Gomoon"
+    },
+    {
+      "description": "农业监控系统的后端。",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "agricultureFlask",
+      "nameWithOwner": "auntunt/agricultureFlask",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2024-04-16T03:23:06Z",
+      "url": "https://github.com/auntunt/agricultureFlask"
+    },
+    {
+      "description": "Official Repository for LEURN: Learning Explainable Univariate Rules with Neural Networks-一个独立的基于神经网络的神经网络解释器",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "LEURN",
+      "nameWithOwner": "auntunt/LEURN",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2024-03-14T10:01:55Z",
+      "url": "https://github.com/auntunt/LEURN"
+    },
+    {
+      "description": "",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "xai-cassava-agriculture",
+      "nameWithOwner": "auntunt/xai-cassava-agriculture",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2024-01-03T10:36:18Z",
+      "url": "https://github.com/auntunt/xai-cassava-agriculture"
+    },
+    {
+      "description": "selftraining-resampling",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "SSL-rebalancingtest",
+      "nameWithOwner": "auntunt/SSL-rebalancingtest",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2023-12-21T08:20:26Z",
+      "url": "https://github.com/auntunt/SSL-rebalancingtest"
+    },
+    {
+      "description": "收录及复现的高光谱遥感图像分类模型",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "Hyperspectral-Image-Classification-Models",
+      "nameWithOwner": "auntunt/Hyperspectral-Image-Classification-Models",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2023-11-12T07:35:48Z",
+      "url": "https://github.com/auntunt/Hyperspectral-Image-Classification-Models"
+    },
+    {
+      "description": "一款在线图像标注工具（矩形、多边形、持续更新中……），可用于深度学习实例分割模型训练（Mask R-CNN）等。",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "LabelImage",
+      "nameWithOwner": "auntunt/LabelImage",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2023-09-26T06:10:41Z",
+      "url": "https://github.com/auntunt/LabelImage"
+    },
+    {
+      "description": "Xi method",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "xi-method",
+      "nameWithOwner": "auntunt/xi-method",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2023-09-22T15:32:31Z",
+      "url": "https://github.com/auntunt/xi-method"
+    },
+    {
+      "description": "😱 从源码层面，剖析挖掘互联网行业主流技术的底层实现原理，为广大开发者 “提升技术深度” 提供便利。目前开放 Spring 全家桶，Mybatis、Netty、Dubbo 框架，及 Redis、Tomcat 中间件等",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "source-code-hunter",
+      "nameWithOwner": "auntunt/source-code-hunter",
+      "primaryLanguage": {
+        "name": "Java"
+      },
+      "pushedAt": "2023-05-11T01:52:23Z",
+      "url": "https://github.com/auntunt/source-code-hunter"
+    },
+    {
+      "description": "Cassava spectral dataset",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "spectral-dataset",
+      "nameWithOwner": "auntunt/spectral-dataset",
+      "primaryLanguage": null,
+      "pushedAt": "2023-04-24T09:15:41Z",
+      "url": "https://github.com/auntunt/spectral-dataset"
+    },
+    {
+      "description": "CV deeplearning demo",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "deeplearningdemo",
+      "nameWithOwner": "auntunt/deeplearningdemo",
+      "primaryLanguage": {
+        "name": "JavaScript"
+      },
+      "pushedAt": "2023-03-24T23:44:50Z",
+      "url": "https://github.com/auntunt/deeplearningdemo"
+    },
+    {
+      "description": "消息推送平台:fire:推送下发【邮件】【短信】【微信服务号】【微信小程序】【企业微信】【钉钉】等消息类型。",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "austin",
+      "nameWithOwner": "auntunt/austin",
+      "primaryLanguage": {
+        "name": "Java"
+      },
+      "pushedAt": "2023-02-23T13:53:52Z",
+      "url": "https://github.com/auntunt/austin"
+    },
+    {
+      "description": "一个病虫害检测项目ResNet",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "FFSSD-ResNet",
+      "nameWithOwner": "auntunt/FFSSD-ResNet",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2022-07-30T12:58:02Z",
+      "url": "https://github.com/auntunt/FFSSD-ResNet"
+    },
+    {
+      "description": "personal_work",
+      "isArchived": false,
+      "isFork": false,
+      "isPrivate": true,
+      "name": "workspace",
+      "nameWithOwner": "auntunt/workspace",
+      "primaryLanguage": null,
+      "pushedAt": "2022-03-19T06:04:56Z",
+      "url": "https://github.com/auntunt/workspace"
+    },
+    {
+      "description": "使用ICNet模型对航拍图片(遥感图像)进行图像分割",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "ICNet-paddlepaddle",
+      "nameWithOwner": "auntunt/ICNet-paddlepaddle",
+      "primaryLanguage": {
+        "name": "Python"
+      },
+      "pushedAt": "2021-11-15T06:37:56Z",
+      "url": "https://github.com/auntunt/ICNet-paddlepaddle"
+    },
+    {
+      "description": "基于卷积神经网络的遥感图像分类",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "SAT",
+      "nameWithOwner": "auntunt/SAT",
+      "primaryLanguage": {
+        "name": "Jupyter Notebook"
+      },
+      "pushedAt": "2021-10-02T07:10:56Z",
+      "url": "https://github.com/auntunt/SAT"
+    },
+    {
+      "description": "Code for \"DECE: decision explorer with counterfactual explanations for machine learning models.\"",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "DECE-research",
+      "nameWithOwner": "auntunt/DECE-research",
+      "primaryLanguage": {
+        "name": "TypeScript"
+      },
+      "pushedAt": "2021-08-23T16:12:58Z",
+      "url": "https://github.com/auntunt/DECE-research"
+    },
+    {
+      "description": "This is the data we used in our manuscript title: Matrix relevance learning from spectral data for diagnosing cassava diseases",
+      "isArchived": false,
+      "isFork": true,
+      "isPrivate": false,
+      "name": "IEEE_ACCESS_Cassava_Spectral_Data",
+      "nameWithOwner": "auntunt/IEEE_ACCESS_Cassava_Spectral_Data",
+      "primaryLanguage": null,
+      "pushedAt": "2021-06-09T04:56:47Z",
+      "url": "https://github.com/auntunt/IEEE_ACCESS_Cassava_Spectral_Data"
+    }
+  ],
+  "representative_discovery": [
+    {
+      "path": "/Users/auntlee/workspace/weighbill-system",
+      "exists": true,
+      "docs": [
+        "README.md",
+        "tests/test_cpu_acceptance.py",
+        "bench/cpu_ocr_acceptance.py"
+      ],
+      "git_root": "/Users/auntlee/workspace/weighbill-system",
+      "head": "60d6422ee898959557fc529a8e0335524b5ee2c0",
+      "recent_commits": [
+        "60d6422 Add reproducible CPU OCR model comparison profiles",
+        "bb3799e Add CPU original-image acceptance benchmark and flag missing business dates",
+        "5faa932 Support multiple business origins across capture, reconciliation and exports",
+        "9218a92 fix: preserve original photos and harden upload recovery and exports",
+        "69465e2 feat: 0.8.0 迁移工具 weighbill migrate,核对测试支持目标栈"
+      ]
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/ai-seat-gateway",
+      "exists": true,
+      "docs": [
+        "deck/README.md",
+        "README.md",
+        "docs/verification/README.md"
+      ],
+      "git_root": "/Users/auntlee/Desktop/workspace/ai-seat-gateway",
+      "head": "b3aebc572849dc8fd6da06bbf584a9371462d78d",
+      "recent_commits": [
+        "b3aebc5 Lock an account only when its quota is used up, not on every 429",
+        "1146e36 Live admin pages; no 5-hour meter for weekly-only plans",
+        "b489877 Work board: everyone's token use and daily work summaries for admins",
+        "5574bef Take an account's plan from its traffic",
+        "2692892 Have CPA refresh a credential when an api-call gets 401"
+      ]
+    },
+    {
+      "path": "/Users/auntlee/workspace/intel-engine",
+      "exists": true,
+      "docs": [
+        "mirofish/README-ZH.md",
+        "mirofish/README.md",
+        "field/AGENTS.md",
+        "field/README.md",
+        "field/docs/acceptance-report.md",
+        "field/docs/loops/loop-02-ontology-acceptance.md",
+        "field/docs/loops/loop-01-acceptance.md"
+      ],
+      "git_root": null,
+      "head": null,
+      "recent_commits": []
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/录音工具",
+      "exists": true,
+      "docs": [
+        "README.md"
+      ],
+      "git_root": "/Users/auntlee/Desktop/workspace/录音工具",
+      "head": "142723561ec245b4fb576b9c1c24fb641ba7c786",
+      "recent_commits": [
+        "1427235 修正占位符判断：不再把中文值一律当模板占位符",
+        "ccff434 录音笔纪要工作台：BLE 设备控制、本地转写、智能路由与纪要生成"
+      ]
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/集团数据收集分析系统",
+      "exists": true,
+      "docs": [
+        "README.md",
+        "docs/交付文档/README.md",
+        "deploy/offline/README-离线部署.md"
+      ],
+      "git_root": "/Users/auntlee/Desktop/workspace/集团数据收集分析系统",
+      "head": "ebe97890626f8f9ee28c7875f455429aa00a83c0",
+      "recent_commits": [
+        "ebe9789 fix: 14 份交付 Word 目录打开是空白(pandoc 的 TOC 域不合规范且无缓存结果)",
+        "b2e6e0d build: 离线包 20260828-141221(一名多行填报 + 问题清单回填)",
+        "c843f99 chore: 问题清单生成脚本(按甲方16列模板回填13条问题及处理结果)",
+        "4ccf699 docs: 需求规格说明书补 14 张真机截图,概要设计补 5 张架构图,14 份 Word 统一加标题页与目录",
+        "99a97f4 feat: 一名多行填报(同一客户指定多家供应商 / 同一供应商多个项目)"
+      ]
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/医院信息收集相关/medgov-pro",
+      "exists": true,
+      "docs": [
+        "README.md"
+      ],
+      "git_root": null,
+      "head": null,
+      "recent_commits": []
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/网梯harness/WhatyTerm",
+      "exists": true,
+      "docs": [
+        "docs/ui-issues/README.md",
+        "README.md",
+        "docs/prompt-library/README.md"
+      ],
+      "git_root": "/Users/auntlee/Desktop/workspace/网梯harness/WhatyTerm",
+      "head": "87924f38ef2833dc8b3b4f02c3b8ed834e114f3b",
+      "recent_commits": [
+        "87924f3 feat: 公司流程八步编排——PRD/工单/webhook/QA/canvas/拜访入向 + 交付引擎加固",
+        "e6b03c6 feat: 自主开发引擎重构（拆解先行 + 白名单 + 监控插件内联化）",
+        "1ca4389 docs(readme): 加灵感来源(Ralph/Orca) + 相关开源项目对比 + 更新测试命令",
+        "de8de68 docs: 手册增「快速上手」章节 + README 链接架构手册",
+        "901ce0c docs(book): 新增 HTML 架构手册（图文+动画的补充说明文档）"
+      ]
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/公司交接项目情况/yunyongshangcheng-production-source",
+      "exists": true,
+      "docs": [],
+      "git_root": null,
+      "head": null,
+      "recent_commits": []
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records",
+      "exists": true,
+      "docs": [
+        "README.md",
+        "docs/prd-acceptance-matrix.md"
+      ],
+      "git_root": null,
+      "head": null,
+      "recent_commits": []
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/自动化电商作图/smy-image-batch-studio",
+      "exists": true,
+      "docs": [
+        "README.md"
+      ],
+      "git_root": null,
+      "head": null,
+      "recent_commits": []
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/围棋数字人/go-avatar-coach-prompts",
+      "exists": true,
+      "docs": [
+        "AGENTS.md",
+        "README.md",
+        "docs/DEPLOYMENT_STATUS.md",
+        "docs/STATUS.md",
+        "deploy/katago/README.txt",
+        "deploy/README.md"
+      ],
+      "git_root": null,
+      "head": null,
+      "recent_commits": []
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/choutuan",
+      "exists": true,
+      "docs": [
+        "miniprogram/README.md"
+      ],
+      "git_root": "/Users/auntlee/Desktop/workspace/choutuan",
+      "head": "331196726b1f398272615c82d1dbfd31b17b8a7c",
+      "recent_commits": [
+        "3311967 chore: 初始化项目"
+      ]
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/yuliu",
+      "exists": true,
+      "docs": [
+        "api/engine/knowledge/README.md",
+        "api/README.md"
+      ],
+      "git_root": null,
+      "head": null,
+      "recent_commits": []
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/tafang",
+      "exists": true,
+      "docs": [],
+      "git_root": null,
+      "head": null,
+      "recent_commits": []
+    },
+    {
+      "path": "/Users/auntlee/workspace/面试系统",
+      "exists": true,
+      "docs": [
+        "sidecar/README.md",
+        "HANDOFF-散户付费-20260803.md",
+        "HANDOFF-部署-20260801.md",
+        "README.md",
+        "docs/rewrite/README.md",
+        "HANDOFF-简历模块.md"
+      ],
+      "git_root": "/Users/auntlee/workspace/面试系统",
+      "head": "28f35c53b5a946f3add1230392d708ca097ee80e",
+      "recent_commits": [
+        "28f35c5 deploy: --force-local 按 tar 实现探测，macOS 的 bsdtar 不认这个选项",
+        "2f8b058 接入 deepseek 官方 API 前的修复：env 覆盖、推理模型判定、测试自带样本",
+        "bba521a 初始提交：从服务器 ~/interview 拉取的 AI 面试系统"
+      ]
+    },
+    {
+      "path": "/Users/auntlee/Documents/个人AI提效工具",
+      "exists": true,
+      "docs": [
+        "README.md"
+      ],
+      "git_root": "/Users/auntlee/Documents/个人AI提效工具",
+      "head": null,
+      "recent_commits": []
+    },
+    {
+      "path": "/Users/auntlee/Documents/Codex/2026-10-17/ken/outputs/workbuddy",
+      "exists": true,
+      "docs": [
+        "README.md",
+        "templates/cloudwave-project/README.md",
+        "deploy/README.md",
+        "docs/server-acceptance-2026-10-18/webuddy-server-acceptance.txt",
+        "docs/acceptance-2026-10-18/README.md"
+      ],
+      "git_root": "/Users/auntlee/Documents/Codex/2026-10-17/ken/outputs/workbuddy",
+      "head": "9a741033a08fc37ecca472ead65a5675f191c081",
+      "recent_commits": [
+        "9a74103 Build internal workbench with grounded workflows and durable office jobs",
+        "44f1d1d Verify live bot exchange and fix graceful CLI consumer restart",
+        "a81c1a8 Connect owner-only Feishu bot through verified CLI profile",
+        "f3b574d Pin Feishu caller identity and record verified independent app release",
+        "6e614cf Add first webuddy cloud-wave logo and original generation notes"
+      ]
+    },
+    {
+      "path": "/Users/auntlee/workspace/自动化无人工厂实践",
+      "exists": true,
+      "docs": [
+        "README.md"
+      ],
+      "git_root": "/Users/auntlee/workspace/自动化无人工厂实践",
+      "head": "3dc6ac90b6cdbd667d9b527be0a00e2bd12f5179",
+      "recent_commits": [
+        "3dc6ac9 文档：技术报告对齐到 6723b47，并改掉「14 道闸门」这个错",
+        "6723b47 dashboard: 深链进来时不许让 sticky 导航压住那一栏标题",
+        "f03b36a gitignore: 忽略 --demo 生成的队列目录",
+        "b70597c verdict_probe: 金丝雀落点取「测试最多的那个目录」，不是第一个存在的",
+        "dd5996c dashboard: 单页堆叠改成分栏导航"
+      ]
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness",
+      "exists": true,
+      "docs": [
+        "README.md",
+        "docs/acceptance.md",
+        "tmh/acceptance.py",
+        "docs/e2e-knowledge-base/README.md",
+        "scripts/realworld_test/spec/README.md",
+        "tests/test_intake_handoff.py",
+        "tests/test_run_handoff.py",
+        "tests/test_acceptance.py",
+        "docs/self-improvement/STATUS.md"
+      ],
+      "git_root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness",
+      "head": "cfbed01997201bb59963b16ced9e5635afd1b4fa",
+      "recent_commits": [
+        "cfbed01 Record live preview failure recovery and complete verification evidence",
+        "e6b28db Make shared operation budget regression independent of cold startup",
+        "d21e4f4 Verify live preview health and synchronize recovery across agent and UI flows",
+        "7310a82 Record Harness2 probe evidence and confirmed BOOTV2 acceptance",
+        "a32e8a6 Wait for sealed recheck evidence in lifecycle regression"
+      ]
+    }
+  ],
+  "coding_assessment_entries": 18,
+  "excluded_from_coding_requirements": [
+    "WorkBuddy"
+  ],
+  "sources": [
+    {
+      "path": "/Users/auntlee/workspace/weighbill-system/README.md",
+      "bytes": 21781,
+      "sha256": "cc450d2bdf529a463c8bf4cc0ddce62e6df38906dd7870cb679d79505b412130",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/ai-seat-gateway/README.md",
+      "bytes": 3619,
+      "sha256": "f044f2a6269de15db203b88fbe2448a3bbd2a6980b7b2ecdf5a3e7b05132be8c",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/录音工具/README.md",
+      "bytes": 4389,
+      "sha256": "574faa9c3648dfce934ceca9edf86768a98b8cc4be39ef8b10400284f1932bb7",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/集团数据收集分析系统/README.md",
+      "bytes": 4514,
+      "sha256": "f6dc7e97a08e4216e491739068414570f26e6b9286fa61688791825254017f7c",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/医院信息收集相关/medgov-pro/README.md",
+      "bytes": 6539,
+      "sha256": "acf32450534a5d8b01d4eb29c35efd8272a0e41307e88a9c3fb227edf44f3e5c",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/网梯harness/WhatyTerm/README.md",
+      "bytes": 6731,
+      "sha256": "13c9768f06a78a0ab36dc533229c9dbd9773523f23f695f512a3d358b605b723",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/README.md",
+      "bytes": 20057,
+      "sha256": "a7b83fa77a7d66434e57fa8a1e413da9b4edb7760ce106f3f813844a9728ff0e",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/公司交接项目情况/zg-growth-records/docs/prd-acceptance-matrix.md",
+      "bytes": 6284,
+      "sha256": "03d83f9d1e5433e592dcd40fe66a2e09eb6ca9d7439d5210bef82bde5ece0d23",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/自动化电商作图/smy-image-batch-studio/README.md",
+      "bytes": 8165,
+      "sha256": "983e96895bdbcf98b5e5e824848013f21bea0402368cd9ba4b53ec0e916c0a02",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/围棋数字人/go-avatar-coach-prompts/README.md",
+      "bytes": 5642,
+      "sha256": "79e23f537249d4ec623bbad2c38c7d50e5219b31fc4168ed4f3783dfe8df30d0",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/choutuan/miniprogram/README.md",
+      "bytes": 4521,
+      "sha256": "1ec2a946fb3af1699aa03acfe9d429caa041865b484dd7ea586542a35e4c585d",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/yuliu/api/README.md",
+      "bytes": 27725,
+      "sha256": "7324e3a10c2f8312ff6167fd11f8f42e7565f52ca8f611dfb14f32e47c25bbb7",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/workspace/面试系统/README.md",
+      "bytes": 6532,
+      "sha256": "70ba7c2b37276e7ce263330d413aa7edf9760d92722d58f6ed7362dce93f80c8",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Documents/个人AI提效工具/README.md",
+      "bytes": 1102,
+      "sha256": "e5bdfc6e981419d0722e17171c37ebd0443dcda88f0867fd9ea4c9041c13ba37",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Documents/Codex/2026-10-17/ken/outputs/workbuddy/README.md",
+      "bytes": 11814,
+      "sha256": "4e345bcc5245c823b76724e5f87493f53bfe180259694a40e5628b259b3dcdfc",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/workspace/自动化无人工厂实践/README.md",
+      "bytes": 7440,
+      "sha256": "9648c1b176af4b337cfedf9d04525d85a25a03ab94671fc351c778ec76bf0574",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/README.md",
+      "bytes": 22625,
+      "sha256": "664f266ed030f4cae900a62a8220234aae9335e012dc8b81321f6c12cacef07c",
+      "scope": "Reference file identity; discovery/hash alone does not mean complete audit."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/metrics.py",
+      "bytes": 36700,
+      "sha256": "97d6e24f8a91348199dbefd73f1977e327ccb626320ded8869933bee1d527b59",
+      "scope": "Read for current platform evidence or capability boundary."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/workbench_client.py",
+      "bytes": 7218,
+      "sha256": "3a7fcdcda487f96e8adc83c29dc97bd97783861495b6341b477a4cf7218da6dc",
+      "scope": "Read for current platform evidence or capability boundary."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/server.py",
+      "bytes": 171244,
+      "sha256": "2185047d3f7660946feb9f243e8e98b90956af3c7894d40fa188ba8b1ddaba46",
+      "scope": "Read for current platform evidence or capability boundary."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/workbench-agent.md",
+      "bytes": 22394,
+      "sha256": "12d9dedc2801e7cb9b22f1871b35397400b0d11c210512466f1d1b3015913827",
+      "scope": "Read for current platform evidence or capability boundary."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/verification-external-candidate-2026-10-19.md",
+      "bytes": 7986,
+      "sha256": "5b2bdbea69e15560b821b251c12a2fe08c4bb3a793fefdb4858e40528329b41d",
+      "scope": "Read for current platform evidence or capability boundary."
+    },
+    {
+      "path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/verification-preview-health-2026-10-19.md",
+      "bytes": 11319,
+      "sha256": "36517af5553d2102841c55e62dab78d3e74c3a00a3d37efeea2998b2ea121723",
+      "scope": "Read for current platform evidence or capability boundary."
+    }
+  ],
+  "limitations": [
+    "Manifest count is not project count; duplicates and nested components remain visible.",
+    "GitHub default-account metadata is not an exhaustive organization or historical account audit.",
+    "The complete source projects, credentials and live database are not included in this report.",
+    "No multi-project delivery or productivity experiment was conducted in this assessment."
+  ]
+}

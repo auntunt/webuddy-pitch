@@ -1,0 +1,9 @@
+diff --git a/app.py b/app.py
+index 2562c3c..cd57ccd 100644
+--- a/app.py
++++ b/app.py
+@@ -160 +160,3 @@ def make_server(address, database, prefix="", title="我的应用"):
+-                    if not raw_title.strip() or len(raw_title) > 200:
++                    # Native textarea forms encode one line break as CRLF.
++                    title_length = len(raw_title) - raw_title.count("\r\n")
++                    if not raw_title.strip() or title_length > 200:

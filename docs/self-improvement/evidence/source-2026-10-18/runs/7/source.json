@@ -1,0 +1,32 @@
+{
+  "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+  "implementation_run": 2,
+  "plan_run": 1,
+  "plan_artifact": 3,
+  "plan_review": 3,
+  "implementation_artifact": 4,
+  "implementation_review": 4,
+  "project_id": 1,
+  "ticket_id": 1,
+  "binding": {
+    "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+    "implementation_run": 2,
+    "plan_run": 1,
+    "plan_artifact": 3,
+    "plan_review": 3,
+    "implementation_artifact": 4,
+    "implementation_review": 4
+  },
+  "schema": 1,
+  "requested_at": "2026-10-18 19:49:26",
+  "code_unchanged": true,
+  "workdir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/worktrees/view-r7",
+  "actual_commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+  "actual_tree": "9407a77a2fa8c9340b7e44bc63d3366585d9d749",
+  "prepared_at": "2026-10-18 19:49:27",
+  "after_commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+  "after_tree": "9407a77a2fa8c9340b7e44bc63d3366585d9d749",
+  "after_status": "",
+  "ended_at": "2026-10-18 19:49:27",
+  "retained_worktree": false
+}

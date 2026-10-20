@@ -1,0 +1,143 @@
+{
+  "scope": "dedicated TemporaryDirectory only; no original project data or config accessed",
+  "source_sha256": "41aae89ab43c91507a3d0dcec3ebe33ee065be319ae2297c59551abefa884471",
+  "passed": 4,
+  "total": 4,
+  "results": [
+    {
+      "name": "new_synthetic_originals_and_restart",
+      "passed": true,
+      "detail": {
+        "saved_response": {
+          "id": "wbill-preview-3",
+          "version": 1,
+          "created_at": "2026-10-19T08:13:00",
+          "uploader": "验收夹具",
+          "batch_id": "000000000003",
+          "seq_in_batch": 1,
+          "origin_id": "legacy",
+          "origin_name": "合成来源",
+          "orig_path": "/pv/INDEPENDENT-2/__commit/cccccccccccccccccccccccccccccccccccccccc/files/images/20261019/000000000003_orig.jpg",
+          "crop_path": "/pv/INDEPENDENT-2/__commit/cccccccccccccccccccccccccccccccccccccccc/files/images/20261019/000000000003_orig.jpg",
+          "sig_path": null,
+          "fields": {
+            "序号": "SYNTHETIC-003",
+            "日期": "2026-10-19",
+            "入站时间": "08:03",
+            "出站时间": "08:13",
+            "车号": "验收003",
+            "货名": "协作验收原料",
+            "总重": "11000",
+            "皮重": "10000",
+            "净重": "1000",
+            "供应商": "合成来源",
+            "备注": "retained on restart"
+          },
+          "warnings": [
+            "车号格式异常:验收003",
+            "序号字符集异常(注意O/0、I/1、S/5、B/8混淆)",
+            "序号中未找到日期码261019:序号或日期二者之一识别有误"
+          ],
+          "weight_ok": 1,
+          "weight_msg": "通过 11000-10000=1000",
+          "status": "reviewed",
+          "model": "synthetic-fixture",
+          "error": null,
+          "seg_model": null,
+          "reviewed_by": "reviewer-A",
+          "reviewed_at": "2026-10-19T16:51:08",
+          "doc_type": "site_in",
+          "doc_type_label": "协作验收 · 合成台账",
+          "customer": null,
+          "stage": "submitted",
+          "stage_label": "未审核",
+          "submitted_by": "验收夹具",
+          "submitted_at": "2026-10-19T08:00:00",
+          "approved_by": null,
+          "approved_at": null,
+          "ref_no": "WB-20261019-0003",
+          "voided_by": null,
+          "voided_at": null,
+          "void_reason": null,
+          "flag_note": null,
+          "thumb_path": "/pv/INDEPENDENT-2/__commit/cccccccccccccccccccccccccccccccccccccccc/files/images/20261019/000000000003_orig_t.jpg",
+          "preview_path": "/pv/INDEPENDENT-2/__commit/cccccccccccccccccccccccccccccccccccccccc/files/images/20261019/000000000003_orig_m.jpg"
+        },
+        "marker": {
+          "kind": "weighbill-synthetic-preview-v1",
+          "records": [
+            {
+              "id": "wbill-preview-1",
+              "original_key": "images/20261019/000000000001_orig.jpg",
+              "original_sha256": "b8185abc3679efab0078eabe6cfd7a8c4e1e1f1a8542eae1de19329e23e6469e",
+              "bytes": 61894
+            },
+            {
+              "id": "wbill-preview-2",
+              "original_key": "images/20261019/000000000002_orig.jpg",
+              "original_sha256": "f23f6115bd026571f7ada423a4f5fb68ca5251f71bc0a266324dc1a66b8e41a3",
+              "bytes": 63299
+            },
+            {
+              "id": "wbill-preview-3",
+              "original_key": "images/20261019/000000000003_orig.jpg",
+              "original_sha256": "3f26b394b7a87380ef8e53c74595e943507562923aa42071c6c33486899569b7",
+              "bytes": 59835
+            }
+          ],
+          "origin": "new synthetic fixtures; no source business data copied",
+          "ocr_available": false
+        },
+        "raw_images_verified": [
+          {
+            "id": "wbill-preview-1",
+            "bytes": 61894,
+            "sha256": "b8185abc3679efab0078eabe6cfd7a8c4e1e1f1a8542eae1de19329e23e6469e"
+          },
+          {
+            "id": "wbill-preview-2",
+            "bytes": 63299,
+            "sha256": "f23f6115bd026571f7ada423a4f5fb68ca5251f71bc0a266324dc1a66b8e41a3"
+          },
+          {
+            "id": "wbill-preview-3",
+            "bytes": 59835,
+            "sha256": "3f26b394b7a87380ef8e53c74595e943507562923aa42071c6c33486899569b7"
+          }
+        ],
+        "same_record_and_history_after_restart": true,
+        "vision_calls": []
+      }
+    },
+    {
+      "name": "existing_nonpreview_rejected",
+      "passed": true,
+      "detail": {
+        "rejection": "已有非预览数据，拒绝初始化；请指定新的专用目录",
+        "unchanged_files": {
+          "sentinel-business-like.txt": "004578edd2dbeb29f2cb7dc42137eec5e405c62c81a5ece6ba957a9fcf1d1faf"
+        }
+      }
+    },
+    {
+      "name": "symlink_root_rejected",
+      "passed": true,
+      "detail": {
+        "rejection": "预览数据目录不能是符号链接",
+        "unchanged_files": {
+          "sentinel": "d59c2a5f721ce135ce54628b1ad8ad8b8eb26c8bbe2e2abe1cdca97e2d6ab446"
+        }
+      }
+    },
+    {
+      "name": "incorrect_marker_rejected",
+      "passed": true,
+      "detail": {
+        "rejection": "预览数据标记不匹配",
+        "unchanged_files": {
+          "webuddy-preview.json": "ff918a0483c2dfa2c8818946cb22fad653653a3fa16dd12cff2a946ca91ffe7b"
+        }
+      }
+    }
+  ]
+}

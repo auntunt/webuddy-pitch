@@ -1,0 +1,25 @@
+{
+  "kind": "weighbill-synthetic-preview-v1",
+  "records": [
+    {
+      "id": "wbill-preview-1",
+      "original_key": "images/20261019/000000000001_orig.jpg",
+      "original_sha256": "b8185abc3679efab0078eabe6cfd7a8c4e1e1f1a8542eae1de19329e23e6469e",
+      "bytes": 61894
+    },
+    {
+      "id": "wbill-preview-2",
+      "original_key": "images/20261019/000000000002_orig.jpg",
+      "original_sha256": "f23f6115bd026571f7ada423a4f5fb68ca5251f71bc0a266324dc1a66b8e41a3",
+      "bytes": 63299
+    },
+    {
+      "id": "wbill-preview-3",
+      "original_key": "images/20261019/000000000003_orig.jpg",
+      "original_sha256": "3f26b394b7a87380ef8e53c74595e943507562923aa42071c6c33486899569b7",
+      "bytes": 59835
+    }
+  ],
+  "origin": "new synthetic fixtures; no source business data copied",
+  "ocr_available": false
+}

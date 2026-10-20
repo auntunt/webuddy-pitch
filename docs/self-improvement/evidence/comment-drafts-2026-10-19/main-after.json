@@ -1,0 +1,113 @@
+{
+  "tables": {
+    "projects": {
+      "original_rows": 3,
+      "current_rows": 3,
+      "original_rows_unchanged": true
+    },
+    "tickets": {
+      "original_rows": 3,
+      "current_rows": 3,
+      "original_rows_unchanged": true
+    },
+    "events": {
+      "original_rows": 41,
+      "current_rows": 41,
+      "original_rows_unchanged": true
+    },
+    "runs": {
+      "original_rows": 6,
+      "current_rows": 6,
+      "original_rows_unchanged": true
+    },
+    "points": {
+      "original_rows": 9,
+      "current_rows": 9,
+      "original_rows_unchanged": true
+    },
+    "chats": {
+      "original_rows": 2,
+      "current_rows": 2,
+      "original_rows_unchanged": true
+    },
+    "matters": {
+      "original_rows": 0,
+      "current_rows": 0,
+      "original_rows_unchanged": true
+    },
+    "sessions": {
+      "original_rows": 2,
+      "current_rows": 2,
+      "original_rows_unchanged": true
+    },
+    "idem": {
+      "original_rows": 1,
+      "current_rows": 1,
+      "original_rows_unchanged": true
+    },
+    "delivery_items": {
+      "original_rows": 2,
+      "current_rows": 2,
+      "original_rows_unchanged": true
+    },
+    "delivery_artifacts": {
+      "original_rows": 3,
+      "current_rows": 3,
+      "original_rows_unchanged": true
+    },
+    "delivery_reviews": {
+      "original_rows": 1,
+      "current_rows": 1,
+      "original_rows_unchanged": true
+    },
+    "delivery_runs": {
+      "original_rows": 1,
+      "current_rows": 1,
+      "original_rows_unchanged": true
+    },
+    "clients": {
+      "original_rows": 0,
+      "current_rows": 0,
+      "original_rows_unchanged": true
+    },
+    "client_links": {
+      "original_rows": 0,
+      "current_rows": 0,
+      "original_rows_unchanged": true
+    },
+    "verification_operations": {
+      "original_rows": 0,
+      "current_rows": 0,
+      "original_rows_unchanged": true
+    },
+    "sqlite_sequence": {
+      "original_rows": 0,
+      "current_rows": 0,
+      "original_rows_unchanged": true
+    }
+  },
+  "all_original_rows_unchanged": true,
+  "new_comment_receipts": 0,
+  "active_runs": [],
+  "bootv2_unchanged": true,
+  "bootv2_tables": {
+    "items": [
+      [
+        1,
+        "预览停止并重建后，数据仍保留",
+        1
+      ],
+      [
+        2,
+        "已验证：编辑保存后，原编号和完成状态不变",
+        1
+      ],
+      [
+        3,
+        "已验证：编辑保存、重启与失败重试",
+        1
+      ]
+    ]
+  },
+  "implementation_commit": "e2b7d137e86cba01d2700760df0842a94bac02b8"
+}

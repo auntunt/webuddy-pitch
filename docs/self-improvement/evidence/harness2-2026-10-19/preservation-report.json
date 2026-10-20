@@ -1,0 +1,143 @@
+{
+  "platform-before.db": {
+    "projects": {
+      "before": 3,
+      "after": 3,
+      "all_original_rows_preserved": true
+    },
+    "tickets": {
+      "before": 5,
+      "after": 5,
+      "all_original_rows_preserved": true
+    },
+    "events": {
+      "before": 51,
+      "after": 53,
+      "all_original_rows_preserved": true
+    },
+    "runs": {
+      "before": 7,
+      "after": 7,
+      "all_original_rows_preserved": true
+    },
+    "points": {
+      "before": 9,
+      "after": 9,
+      "all_original_rows_preserved": true
+    },
+    "chats": {
+      "before": 2,
+      "after": 2,
+      "all_original_rows_preserved": true
+    },
+    "matters": {
+      "before": 0,
+      "after": 0,
+      "all_original_rows_preserved": true
+    },
+    "sessions": {
+      "before": 2,
+      "after": 2,
+      "all_original_rows_preserved": true
+    },
+    "idem": {
+      "before": 1,
+      "after": 1,
+      "all_original_rows_preserved": true
+    },
+    "delivery_items": {
+      "before": 2,
+      "after": 2,
+      "all_original_rows_preserved": true
+    },
+    "delivery_artifacts": {
+      "before": 3,
+      "after": 3,
+      "all_original_rows_preserved": true
+    },
+    "delivery_reviews": {
+      "before": 1,
+      "after": 1,
+      "all_original_rows_preserved": true
+    },
+    "delivery_runs": {
+      "before": 1,
+      "after": 1,
+      "all_original_rows_preserved": true
+    },
+    "clients": {
+      "before": 0,
+      "after": 0,
+      "all_original_rows_preserved": true
+    },
+    "client_links": {
+      "before": 0,
+      "after": 0,
+      "all_original_rows_preserved": true
+    },
+    "verification_operations": {
+      "before": 1,
+      "after": 1,
+      "all_original_rows_preserved": true
+    },
+    "comment_receipts": {
+      "before": 0,
+      "after": 0,
+      "all_original_rows_preserved": true
+    },
+    "agent_requests": {
+      "before": 9,
+      "after": 12,
+      "all_original_rows_preserved": true
+    },
+    "agent_run_sources": {
+      "before": 0,
+      "after": 0,
+      "all_original_rows_preserved": true
+    },
+    "code_candidates": {
+      "before": 1,
+      "after": 1,
+      "all_original_rows_preserved": true
+    },
+    "candidate_assessments": {
+      "before": 1,
+      "after": 2,
+      "all_original_rows_preserved": true
+    },
+    "candidate_decisions": {
+      "before": 1,
+      "after": 2,
+      "all_original_rows_preserved": true
+    }
+  },
+  "app-before.db": {
+    "items": {
+      "before": 3,
+      "after": 3,
+      "all_original_rows_preserved": true
+    }
+  },
+  "app_rows_identical": true,
+  "app_raw_sha256_before": "ed73b7e8d201a41b5848202925ac165ab86ba91412588ce3ae6d03a3e7b40435",
+  "app_raw_sha256_after": "ed73b7e8d201a41b5848202925ac165ab86ba91412588ce3ae6d03a3e7b40435",
+  "actual_items": [
+    {
+      "id": 1,
+      "title": "预览停止并重建后，数据仍保留",
+      "done": 1
+    },
+    {
+      "id": 2,
+      "title": "已验证：编辑保存后，原编号和完成状态不变",
+      "done": 1
+    },
+    {
+      "id": 3,
+      "title": "已验证：编辑保存、重启与失败重试",
+      "done": 1
+    }
+  ],
+  "application_main": "547e4447b6921bcbfaa555b26a4391d1fc33d3ab",
+  "main_unchanged": true
+}

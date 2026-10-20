@@ -1,0 +1,15 @@
+{
+  "event_id": 43,
+  "ticket": "BOOTV2-2",
+  "body": "请通过 MCP 读取 BOOTV2-1 的实际候选与证据状态，再回复本工单。明确区分验证、预览与客户签收；不要修改业务数据。",
+  "data": {
+    "agent_message": true,
+    "from_agent": "codex",
+    "to_agent": "codex-native",
+    "message_kind": "handoff",
+    "reply_to": null,
+    "request_id": "agent-native-20261019-handoff"
+  },
+  "delivery": "persisted; recipient must poll messages_list",
+  "request_id": "agent-native-20261019-handoff"
+}

@@ -1,0 +1,1 @@
+外部Codex是实现者；本条由协调验收会话记录自己的浏览器/主数据观察，并引用独立子代理 /root/candidate_chain_review 的代码和实测复核。外部Codex沙箱不能监听TCP或提交共享Git元数据的失败已完整保留；本地协调者提交不伪称模型沙箱测试成功。技术验收不是客户/人的最终签收，不合并、不部署。完整证据归档 docs/self-improvement/evidence/external-candidate-2026-10-19/。

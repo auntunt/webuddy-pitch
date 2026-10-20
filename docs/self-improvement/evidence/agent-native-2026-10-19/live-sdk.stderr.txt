@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/workbench_entry.py", line 11, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/workbench.py", line 150, in main
+    return serve(client, read_only=a.read_only, allow_execution=a.allow_execution and not a.read_only) or 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/workbench_mcp.py", line 142, in serve
+    asyncio.run(_serve(client, read_only, allow_execution))
+  File "/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/workbench_mcp.py", line 133, in _serve
+    server = build_server(client, read_only=read_only, allow_execution=allow_execution)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/workbench_mcp.py", line 49, in build_server
+    types, Server = _sdk()
+                    ^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/workbench_mcp.py", line 35, in _sdk
+    import mcp.types as types
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/mcp.py", line 20, in <module>
+    from . import __version__
+ImportError: attempted relative import with no known parent package

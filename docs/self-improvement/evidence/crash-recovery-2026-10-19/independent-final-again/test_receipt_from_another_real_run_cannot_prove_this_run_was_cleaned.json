@@ -1,0 +1,365 @@
+{
+  "test": "tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_receipt_from_another_real_run_cannot_prove_this_run_was_cleaned",
+  "temporary_directory": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de",
+  "original_target": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "done",
+      "author": "fixture",
+      "created": "2026-10-19 06:38:00",
+      "started": "2026-10-19 06:38:00",
+      "ended": "2026-10-19 06:38:00",
+      "prompt": "完整原始任务",
+      "output": "",
+      "result": "actual local proof",
+      "diff": "",
+      "exit_code": 0,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de/worktrees/CRASH-1-r1",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:38:00",
+      "timeout_seconds": 10.0,
+      "stopped_reason": "",
+      "attempts": [
+        {
+          "attempt": 1,
+          "kind": "independent-proof",
+          "started_at": "2026-10-19 06:38:00",
+          "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de/worktrees/CRASH-1-r1",
+          "command": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-c",
+            "print('actual local proof')"
+          ],
+          "timeout_seconds": 5.0,
+          "evidence": "runs/1/attempts/0001",
+          "supervised": true,
+          "pid": 49390,
+          "pgid": 49390,
+          "returncode": 0,
+          "reason": "exited",
+          "elapsed_seconds": 0.08145545795559883,
+          "cleanup": {
+            "trigger": null,
+            "term_sent": false,
+            "kill_sent": false,
+            "signals": [],
+            "errors": [],
+            "remaining_group": false,
+            "output_complete": true,
+            "reaped": true,
+            "complete": true
+          },
+          "ended_at": "2026-10-19 06:38:00"
+        }
+      ],
+      "finished": true,
+      "owner": {
+        "token": "8dd13e5f91074c08bd3ba431f7ebc9d8",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de"
+      },
+      "ended_at": "2026-10-19 06:38:00",
+      "elapsed_seconds": 0.091
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {
+      "runs/1/attempts/0001/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI4ZGQxM2U1ZjkxMDc0YzA4YmQzYmE0MzFmN2ViYzlkOCIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUiCiAgfSwKICAibm9uY2UiOiAiNWVjNjU5Yjk5NTUyNDdjMTk1YThmNThjN2Y0NTg5NjQiLAogICJmb2xkZXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LWdwYXNsNmRlL3J1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAicGhhc2UiOiAicnVubmluZyIsCiAgInN1cGVydmlzb3JfcGlkIjogNDkzODksCiAgInBpZCI6IDQ5MzkwLAogICJwZ2lkIjogNDkzOTAKfQ==",
+      "runs/1/attempts/0001/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICI4ZGQxM2U1ZjkxMDc0YzA4YmQzYmE0MzFmN2ViYzlkOCIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUiCiAgfSwKICAibm9uY2UiOiAiNWVjNjU5Yjk5NTUyNDdjMTk1YThmNThjN2Y0NTg5NjQiLAogICJmb2xkZXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LWdwYXNsNmRlL3J1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAicGhhc2UiOiAiZmluaXNoZWQiLAogICJzdXBlcnZpc29yX3BpZCI6IDQ5Mzg5LAogICJwaWQiOiA0OTM5MCwKICAicGdpZCI6IDQ5MzkwLAogICJyZWFzb24iOiAiZXhpdGVkIiwKICAicmV0dXJuY29kZSI6IDAsCiAgInByb2Nlc3NfcmV0dXJuY29kZSI6IDAsCiAgImVsYXBzZWRfc2Vjb25kcyI6IDAuMDgxNDU1NDU3OTU1NTk4ODMsCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6IG51bGwsCiAgICAidGVybV9zZW50IjogZmFsc2UsCiAgICAia2lsbF9zZW50IjogZmFsc2UsCiAgICAic2lnbmFscyI6IFtdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6IDE3OTIzNjMwODAuNTAzNzQ5MSwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAxOSwKICAgICJzaGEyNTYiOiAiY2I0YmZmNzhiNmE3M2FkZDc3ZTU5ZGRlNDc4ZTM3NDgyYTI4ZTg2NGYwYjEwY2RhMWUxMTExYjNjOWU3NzhjMiIKICB9Cn0=",
+      "runs/1/attempts/0001/process.json": "ewogICJhdHRlbXB0IjogMSwKICAia2luZCI6ICJpbmRlcGVuZGVudC1wcm9vZiIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwNjozODowMCIsCiAgImN3ZCI6ICIvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LWdwYXNsNmRlL3dvcmt0cmVlcy9DUkFTSC0xLXIxIiwKICAiY29tbWFuZCI6IFsKICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCIsCiAgICAiLWMiLAogICAgInByaW50KCdhY3R1YWwgbG9jYWwgcHJvb2YnKSIKICBdLAogICJ0aW1lb3V0X3NlY29uZHMiOiA1LjAsCiAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgInBpZCI6IDQ5MzkwLAogICJwZ2lkIjogNDkzOTAsCiAgInJldHVybmNvZGUiOiAwLAogICJyZWFzb24iOiAiZXhpdGVkIiwKICAiZWxhcHNlZF9zZWNvbmRzIjogMC4wODE0NTU0NTc5NTU1OTg4MywKICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDY6Mzg6MDAiCn0=",
+      "runs/1/attempts/0001/output.txt": "YWN0dWFsIGxvY2FsIHByb29mCg==",
+      "runs/1/attempts/0001/output.bin": "YWN0dWFsIGxvY2FsIHByb29mCg=="
+    }
+  },
+  "after_wrong_run_proof": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:38:00",
+      "started": "2026-10-19 06:38:00",
+      "ended": "2026-10-19 06:38:00",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n过程 1：supervised receipt belongs to a different run owner\n",
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de/worktrees/CRASH-1-r1",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:38:00",
+      "timeout_seconds": 10.0,
+      "stopped_reason": "owner_lost",
+      "attempts": [
+        {
+          "attempt": 1,
+          "kind": "independent-proof",
+          "started_at": "2026-10-19 06:38:00",
+          "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de/worktrees/CRASH-1-r1",
+          "command": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-c",
+            "print('actual local proof')"
+          ],
+          "timeout_seconds": 5.0,
+          "evidence": "runs/1/attempts/0001",
+          "supervised": true,
+          "pid": 49390,
+          "pgid": 49390,
+          "returncode": 0,
+          "reason": "exited",
+          "elapsed_seconds": 0.08145545795559883,
+          "cleanup": {
+            "trigger": null,
+            "term_sent": false,
+            "kill_sent": false,
+            "signals": [],
+            "errors": [],
+            "remaining_group": false,
+            "output_complete": true,
+            "reaped": true,
+            "complete": true
+          },
+          "ended_at": "2026-10-19 06:38:00"
+        }
+      ],
+      "finished": false,
+      "owner": {
+        "token": "8dd13e5f91074c08bd3ba431f7ebc9d8",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de"
+      },
+      "ended_at": "2026-10-19 06:38:00",
+      "elapsed_seconds": 0.091,
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "过程 1：supervised receipt belongs to a different run owner"
+        ]
+      }
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {
+      "runs/1/attempts/0001/supervisor.json": "eyJzY2hlbWEiOiAxLCAib3duZXIiOiB7InRva2VuIjogIjE2OWI5MThjMGQyNzRkNzdhZjVhZDA1ODE3MmM0ZDBmIiwgInJ1bl9pZCI6IDIsICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUifSwgIm5vbmNlIjogIjQ0NzI2NjcwYjk0MzQ5NWQ4ZWQyMmYzMjRmYTk5NDliIiwgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUvcnVucy8xL2F0dGVtcHRzLzAwMDEiLCAicGhhc2UiOiAicnVubmluZyIsICJzdXBlcnZpc29yX3BpZCI6IDQ5MzkxLCAicGlkIjogNDkzOTIsICJwZ2lkIjogNDkzOTJ9",
+      "runs/1/attempts/0001/supervisor-result.json": "eyJzY2hlbWEiOiAxLCAib3duZXIiOiB7InRva2VuIjogIjE2OWI5MThjMGQyNzRkNzdhZjVhZDA1ODE3MmM0ZDBmIiwgInJ1bl9pZCI6IDIsICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUifSwgIm5vbmNlIjogIjQ0NzI2NjcwYjk0MzQ5NWQ4ZWQyMmYzMjRmYTk5NDliIiwgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUvcnVucy8xL2F0dGVtcHRzLzAwMDEiLCAicGhhc2UiOiAiZmluaXNoZWQiLCAic3VwZXJ2aXNvcl9waWQiOiA0OTM5MSwgInBpZCI6IDQ5MzkyLCAicGdpZCI6IDQ5MzkyLCAicmVhc29uIjogImV4aXRlZCIsICJyZXR1cm5jb2RlIjogMCwgInByb2Nlc3NfcmV0dXJuY29kZSI6IDAsICJlbGFwc2VkX3NlY29uZHMiOiAwLjA4NzQ4MDYyNTAyMTI3MTQxLCAiY2xlYW51cCI6IHsidHJpZ2dlciI6IG51bGwsICJ0ZXJtX3NlbnQiOiBmYWxzZSwgImtpbGxfc2VudCI6IGZhbHNlLCAic2lnbmFscyI6IFtdLCAiZXJyb3JzIjogW10sICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsICJyZWFwZWQiOiB0cnVlLCAiY29tcGxldGUiOiB0cnVlfSwgImVuZGVkX2F0IjogMTc5MjM2MzA4MC42MDE3ODQsICJvdXRwdXQiOiB7ImZpbGUiOiAib3V0cHV0LmJpbiIsICJieXRlcyI6IDE5LCAic2hhMjU2IjogImNiNGJmZjc4YjZhNzNhZGQ3N2U1OWRkZTQ3OGUzNzQ4MmEyOGU4NjRmMGIxMGNkYTFlMTExMWIzYzllNzc4YzIifX0=",
+      "runs/1/attempts/0001/process.json": "ewogICJhdHRlbXB0IjogMSwKICAia2luZCI6ICJpbmRlcGVuZGVudC1wcm9vZiIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwNjozODowMCIsCiAgImN3ZCI6ICIvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LWdwYXNsNmRlL3dvcmt0cmVlcy9DUkFTSC0xLXIxIiwKICAiY29tbWFuZCI6IFsKICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCIsCiAgICAiLWMiLAogICAgInByaW50KCdhY3R1YWwgbG9jYWwgcHJvb2YnKSIKICBdLAogICJ0aW1lb3V0X3NlY29uZHMiOiA1LjAsCiAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgInBpZCI6IDQ5MzkwLAogICJwZ2lkIjogNDkzOTAsCiAgInJldHVybmNvZGUiOiAwLAogICJyZWFzb24iOiAiZXhpdGVkIiwKICAiZWxhcHNlZF9zZWNvbmRzIjogMC4wODE0NTU0NTc5NTU1OTg4MywKICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDY6Mzg6MDAiCn0=",
+      "runs/1/attempts/0001/output.txt": "YWN0dWFsIGxvY2FsIHByb29mCg==",
+      "runs/1/attempts/0001/output.bin": "YWN0dWFsIGxvY2FsIHByb29mCg=="
+    }
+  },
+  "retry_state": {
+    "can_retry": false,
+    "retry_blocked": [
+      "服务中断后的停止证据尚不完整，请重新检查停止回执"
+    ],
+    "delivery_id": "",
+    "delivery_stage": ""
+  },
+  "donor_run": 2,
+  "before_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:38:00",
+      "started": "2026-10-19 06:38:00",
+      "ended": "2026-10-19 06:38:00",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n过程 1：supervised receipt belongs to a different run owner\n",
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de/worktrees/CRASH-1-r1",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:38:00",
+      "timeout_seconds": 10.0,
+      "stopped_reason": "owner_lost",
+      "attempts": [
+        {
+          "attempt": 1,
+          "kind": "independent-proof",
+          "started_at": "2026-10-19 06:38:00",
+          "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de/worktrees/CRASH-1-r1",
+          "command": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-c",
+            "print('actual local proof')"
+          ],
+          "timeout_seconds": 5.0,
+          "evidence": "runs/1/attempts/0001",
+          "supervised": true,
+          "pid": 49390,
+          "pgid": 49390,
+          "returncode": 0,
+          "reason": "exited",
+          "elapsed_seconds": 0.08145545795559883,
+          "cleanup": {
+            "trigger": null,
+            "term_sent": false,
+            "kill_sent": false,
+            "signals": [],
+            "errors": [],
+            "remaining_group": false,
+            "output_complete": true,
+            "reaped": true,
+            "complete": true
+          },
+          "ended_at": "2026-10-19 06:38:00"
+        }
+      ],
+      "finished": false,
+      "owner": {
+        "token": "8dd13e5f91074c08bd3ba431f7ebc9d8",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de"
+      },
+      "ended_at": "2026-10-19 06:38:00",
+      "elapsed_seconds": 0.091,
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "过程 1：supervised receipt belongs to a different run owner"
+        ]
+      }
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {
+      "runs/1/attempts/0001/supervisor.json": "eyJzY2hlbWEiOiAxLCAib3duZXIiOiB7InRva2VuIjogIjE2OWI5MThjMGQyNzRkNzdhZjVhZDA1ODE3MmM0ZDBmIiwgInJ1bl9pZCI6IDIsICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUifSwgIm5vbmNlIjogIjQ0NzI2NjcwYjk0MzQ5NWQ4ZWQyMmYzMjRmYTk5NDliIiwgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUvcnVucy8xL2F0dGVtcHRzLzAwMDEiLCAicGhhc2UiOiAicnVubmluZyIsICJzdXBlcnZpc29yX3BpZCI6IDQ5MzkxLCAicGlkIjogNDkzOTIsICJwZ2lkIjogNDkzOTJ9",
+      "runs/1/attempts/0001/supervisor-result.json": "eyJzY2hlbWEiOiAxLCAib3duZXIiOiB7InRva2VuIjogIjE2OWI5MThjMGQyNzRkNzdhZjVhZDA1ODE3MmM0ZDBmIiwgInJ1bl9pZCI6IDIsICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUifSwgIm5vbmNlIjogIjQ0NzI2NjcwYjk0MzQ5NWQ4ZWQyMmYzMjRmYTk5NDliIiwgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUvcnVucy8xL2F0dGVtcHRzLzAwMDEiLCAicGhhc2UiOiAiZmluaXNoZWQiLCAic3VwZXJ2aXNvcl9waWQiOiA0OTM5MSwgInBpZCI6IDQ5MzkyLCAicGdpZCI6IDQ5MzkyLCAicmVhc29uIjogImV4aXRlZCIsICJyZXR1cm5jb2RlIjogMCwgInByb2Nlc3NfcmV0dXJuY29kZSI6IDAsICJlbGFwc2VkX3NlY29uZHMiOiAwLjA4NzQ4MDYyNTAyMTI3MTQxLCAiY2xlYW51cCI6IHsidHJpZ2dlciI6IG51bGwsICJ0ZXJtX3NlbnQiOiBmYWxzZSwgImtpbGxfc2VudCI6IGZhbHNlLCAic2lnbmFscyI6IFtdLCAiZXJyb3JzIjogW10sICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsICJyZWFwZWQiOiB0cnVlLCAiY29tcGxldGUiOiB0cnVlfSwgImVuZGVkX2F0IjogMTc5MjM2MzA4MC42MDE3ODQsICJvdXRwdXQiOiB7ImZpbGUiOiAib3V0cHV0LmJpbiIsICJieXRlcyI6IDE5LCAic2hhMjU2IjogImNiNGJmZjc4YjZhNzNhZGQ3N2U1OWRkZTQ3OGUzNzQ4MmEyOGU4NjRmMGIxMGNkYTFlMTExMWIzYzllNzc4YzIifX0=",
+      "runs/1/attempts/0001/process.json": "ewogICJhdHRlbXB0IjogMSwKICAia2luZCI6ICJpbmRlcGVuZGVudC1wcm9vZiIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwNjozODowMCIsCiAgImN3ZCI6ICIvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LWdwYXNsNmRlL3dvcmt0cmVlcy9DUkFTSC0xLXIxIiwKICAiY29tbWFuZCI6IFsKICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCIsCiAgICAiLWMiLAogICAgInByaW50KCdhY3R1YWwgbG9jYWwgcHJvb2YnKSIKICBdLAogICJ0aW1lb3V0X3NlY29uZHMiOiA1LjAsCiAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgInBpZCI6IDQ5MzkwLAogICJwZ2lkIjogNDkzOTAsCiAgInJldHVybmNvZGUiOiAwLAogICJyZWFzb24iOiAiZXhpdGVkIiwKICAiZWxhcHNlZF9zZWNvbmRzIjogMC4wODE0NTU0NTc5NTU1OTg4MywKICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDY6Mzg6MDAiCn0=",
+      "runs/1/attempts/0001/output.txt": "YWN0dWFsIGxvY2FsIHByb29mCg==",
+      "runs/1/attempts/0001/output.bin": "YWN0dWFsIGxvY2FsIHByb29mCg=="
+    }
+  },
+  "fixture_cleanup_signals": [],
+  "after_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:38:00",
+      "started": "2026-10-19 06:38:00",
+      "ended": "2026-10-19 06:38:00",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n过程 1：supervised receipt belongs to a different run owner\n",
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de/worktrees/CRASH-1-r1",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:38:00",
+      "timeout_seconds": 10.0,
+      "stopped_reason": "owner_lost",
+      "attempts": [
+        {
+          "attempt": 1,
+          "kind": "independent-proof",
+          "started_at": "2026-10-19 06:38:00",
+          "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de/worktrees/CRASH-1-r1",
+          "command": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-c",
+            "print('actual local proof')"
+          ],
+          "timeout_seconds": 5.0,
+          "evidence": "runs/1/attempts/0001",
+          "supervised": true,
+          "pid": 49390,
+          "pgid": 49390,
+          "returncode": 0,
+          "reason": "exited",
+          "elapsed_seconds": 0.08145545795559883,
+          "cleanup": {
+            "trigger": null,
+            "term_sent": false,
+            "kill_sent": false,
+            "signals": [],
+            "errors": [],
+            "remaining_group": false,
+            "output_complete": true,
+            "reaped": true,
+            "complete": true
+          },
+          "ended_at": "2026-10-19 06:38:00"
+        }
+      ],
+      "finished": false,
+      "owner": {
+        "token": "8dd13e5f91074c08bd3ba431f7ebc9d8",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-gpasl6de"
+      },
+      "ended_at": "2026-10-19 06:38:00",
+      "elapsed_seconds": 0.091,
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "过程 1：supervised receipt belongs to a different run owner"
+        ]
+      }
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {
+      "runs/1/attempts/0001/supervisor.json": "eyJzY2hlbWEiOiAxLCAib3duZXIiOiB7InRva2VuIjogIjE2OWI5MThjMGQyNzRkNzdhZjVhZDA1ODE3MmM0ZDBmIiwgInJ1bl9pZCI6IDIsICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUifSwgIm5vbmNlIjogIjQ0NzI2NjcwYjk0MzQ5NWQ4ZWQyMmYzMjRmYTk5NDliIiwgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUvcnVucy8xL2F0dGVtcHRzLzAwMDEiLCAicGhhc2UiOiAicnVubmluZyIsICJzdXBlcnZpc29yX3BpZCI6IDQ5MzkxLCAicGlkIjogNDkzOTIsICJwZ2lkIjogNDkzOTJ9",
+      "runs/1/attempts/0001/supervisor-result.json": "eyJzY2hlbWEiOiAxLCAib3duZXIiOiB7InRva2VuIjogIjE2OWI5MThjMGQyNzRkNzdhZjVhZDA1ODE3MmM0ZDBmIiwgInJ1bl9pZCI6IDIsICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUifSwgIm5vbmNlIjogIjQ0NzI2NjcwYjk0MzQ5NWQ4ZWQyMmYzMjRmYTk5NDliIiwgImZvbGRlciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtZ3Bhc2w2ZGUvcnVucy8xL2F0dGVtcHRzLzAwMDEiLCAicGhhc2UiOiAiZmluaXNoZWQiLCAic3VwZXJ2aXNvcl9waWQiOiA0OTM5MSwgInBpZCI6IDQ5MzkyLCAicGdpZCI6IDQ5MzkyLCAicmVhc29uIjogImV4aXRlZCIsICJyZXR1cm5jb2RlIjogMCwgInByb2Nlc3NfcmV0dXJuY29kZSI6IDAsICJlbGFwc2VkX3NlY29uZHMiOiAwLjA4NzQ4MDYyNTAyMTI3MTQxLCAiY2xlYW51cCI6IHsidHJpZ2dlciI6IG51bGwsICJ0ZXJtX3NlbnQiOiBmYWxzZSwgImtpbGxfc2VudCI6IGZhbHNlLCAic2lnbmFscyI6IFtdLCAiZXJyb3JzIjogW10sICJyZW1haW5pbmdfZ3JvdXAiOiBmYWxzZSwgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsICJyZWFwZWQiOiB0cnVlLCAiY29tcGxldGUiOiB0cnVlfSwgImVuZGVkX2F0IjogMTc5MjM2MzA4MC42MDE3ODQsICJvdXRwdXQiOiB7ImZpbGUiOiAib3V0cHV0LmJpbiIsICJieXRlcyI6IDE5LCAic2hhMjU2IjogImNiNGJmZjc4YjZhNzNhZGQ3N2U1OWRkZTQ3OGUzNzQ4MmEyOGU4NjRmMGIxMGNkYTFlMTExMWIzYzllNzc4YzIifX0=",
+      "runs/1/attempts/0001/process.json": "ewogICJhdHRlbXB0IjogMSwKICAia2luZCI6ICJpbmRlcGVuZGVudC1wcm9vZiIsCiAgInN0YXJ0ZWRfYXQiOiAiMjAyNi0xMC0xOSAwNjozODowMCIsCiAgImN3ZCI6ICIvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LWdwYXNsNmRlL3dvcmt0cmVlcy9DUkFTSC0xLXIxIiwKICAiY29tbWFuZCI6IFsKICAgICIvb3B0L2hvbWVicmV3L29wdC9weXRob25AMy4xNC9iaW4vcHl0aG9uMy4xNCIsCiAgICAiLWMiLAogICAgInByaW50KCdhY3R1YWwgbG9jYWwgcHJvb2YnKSIKICBdLAogICJ0aW1lb3V0X3NlY29uZHMiOiA1LjAsCiAgImV2aWRlbmNlIjogInJ1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAic3VwZXJ2aXNlZCI6IHRydWUsCiAgInBpZCI6IDQ5MzkwLAogICJwZ2lkIjogNDkzOTAsCiAgInJldHVybmNvZGUiOiAwLAogICJyZWFzb24iOiAiZXhpdGVkIiwKICAiZWxhcHNlZF9zZWNvbmRzIjogMC4wODE0NTU0NTc5NTU1OTg4MywKICAiY2xlYW51cCI6IHsKICAgICJ0cmlnZ2VyIjogbnVsbCwKICAgICJ0ZXJtX3NlbnQiOiBmYWxzZSwKICAgICJraWxsX3NlbnQiOiBmYWxzZSwKICAgICJzaWduYWxzIjogW10sCiAgICAiZXJyb3JzIjogW10sCiAgICAicmVtYWluaW5nX2dyb3VwIjogZmFsc2UsCiAgICAib3V0cHV0X2NvbXBsZXRlIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImNvbXBsZXRlIjogdHJ1ZQogIH0sCiAgImVuZGVkX2F0IjogIjIwMjYtMTAtMTkgMDY6Mzg6MDAiCn0=",
+      "runs/1/attempts/0001/output.txt": "YWN0dWFsIGxvY2FsIHByb29mCg==",
+      "runs/1/attempts/0001/output.bin": "YWN0dWFsIGxvY2FsIHByb29mCg=="
+    }
+  }
+}

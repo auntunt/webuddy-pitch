@@ -1,0 +1,106 @@
+{
+  "id": 4,
+  "ticket": "WBILL-1",
+  "run_id": 10,
+  "author": "agent:codex-external",
+  "base_commit": "60d6422ee898959557fc529a8e0335524b5ee2c0",
+  "commit": "ab9601e305bf9efdf908554174c56ca101194405",
+  "ref": "refs/webuddy/candidates/ab13d4394bc1b02a86f5c3eae8b22e20c53dc1bfa27b46ef57c582d29d4ff5d2",
+  "requirement_hash": "5e1cf89822471ef4d0f3cdca54b1844e981f57a2a3f3c048f4427ffcac8a109e",
+  "criteria": [
+    {
+      "check": "真实双客户端HTTP、SQLite字段与history前后值；409无副作用",
+      "id": "A1",
+      "text": "条件保存拒绝旧版本及未知回执的旧请求重试，核对新版本后能继续"
+    },
+    {
+      "check": "旧版本审核skipped、部分成功、保存返回版本及重审回归",
+      "id": "A2",
+      "text": "按所见版本审核，失败不报成功，修改已审核记录要求重审"
+    },
+    {
+      "check": "两个真实浏览器页面，草稿/重量/提示/操作记录与原始截图",
+      "id": "A3",
+      "text": "真实页面冲突后完整草稿保留、显式核对最新数据后继续保存审核"
+    },
+    {
+      "check": "完整应用回归、原仓库/数据摘要、无版本兼容和非法版本测试",
+      "id": "A4",
+      "text": "原权限、来源、原图及Excel保真与历史数据保持，明确旧API兼容边界"
+    },
+    {
+      "check": "固定候选独立构建测试、前缀实测与跨站拦截、原始日志和协议回执",
+      "id": "A5",
+      "text": "完整Git SHA前缀预览能读写和打开原图，CLI/MCP交付证据可查询"
+    }
+  ],
+  "summary": "真实外部Codex实现条件编辑/审核与前缀支持；协调者提供隔离合成预览启动器并实测251通过11外部集成跳过。旧无版本API兼容边界明确；独立复核及浏览器验收继续。",
+  "current": true,
+  "blocked": [],
+  "verification": {
+    "check": "unknown",
+    "verdict": "unknown",
+    "commands": [],
+    "diagnosis": {},
+    "verification_current": false,
+    "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
+    "recheck_operation": {
+      "id": 4,
+      "status": "running",
+      "result": ""
+    },
+    "previous_current_verification": {}
+  },
+  "verification_passed": false,
+  "verification_hash": "",
+  "harness_probe": null,
+  "preview": {
+    "key": "WBILL-1",
+    "project": "WBILL",
+    "branch": "8da19e034bdba47e0cb43b610526fc74131ffb9f",
+    "commit": "8da19e034b",
+    "commit_full": "8da19e034bdba47e0cb43b610526fc74131ffb9f",
+    "port": 52417,
+    "prefix": "/pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f",
+    "pid": 51821,
+    "dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/WBILL-1",
+    "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/external-agents/weighbill-concurrency",
+    "log": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/logs/WBILL-1/1792399756841154000.log",
+    "cmd": "/Users/auntlee/workspace/weighbill-system/.venv/bin/python -B tools/webuddy_preview.py --port 52417 --prefix /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f --data-dir '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/preview-data'",
+    "ready": "/api/v1/health",
+    "state": "up",
+    "started": "2026-10-19 16:49:16",
+    "by": "agent:codex-external",
+    "why": "",
+    "at": "2026-10-19 16:49:18",
+    "health": {
+      "ok": true,
+      "url": "http://127.0.0.1:52417/pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health",
+      "checked_at": 1792399938.792918,
+      "timeout_s": 1.0,
+      "status_code": 200,
+      "reason": "约定健康端点已响应",
+      "body_bytes": 1106,
+      "body_sha256": "90b15cdcbd965a67a2f47dee21f786bc81d636eabbffa042a4237745ecf1d528",
+      "elapsed_ms": 8.619
+    },
+    "tail": " 127.0.0.1:52722 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:52853 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/report HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:52855 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/static/app.css?v=0.3.0 HTTP/1.1\" 304 Not Modified\nINFO:     127.0.0.1:52858 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/me HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:52859 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/schema HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:52861 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/stats HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:52874 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/sw.js HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:53092 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/stats HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:53301 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:53304 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:53420 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/stats HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:53447 - \"GET /pv/WBILL-1/__commit/8da19e034bdba47e0cb43b610526fc74131ffb9f/api/v1/health HTTP/1.1\" 200 OK\n"
+  },
+  "preview_ready": false,
+  "preview_hash": "",
+  "preview_url": "",
+  "preview_entry_path": "",
+  "assessment": null,
+  "technical_acceptance": false,
+  "ready_for_human": false,
+  "missing": [
+    "缺少当前固定提交的独立构建/测试通过记录",
+    "固定版本预览尚未就绪",
+    "缺少当前验证对应的独立逐项技术验收，或仍有失败/未知项"
+  ],
+  "evidence_hash": "446a6234d9729b1d1465a5fcba95716e7278922efd6c1f0df94855a2158a6b7b",
+  "human_decision": null,
+  "human_accepted": false,
+  "state": "needs_verification",
+  "boundary": "Agent observations are attributed evidence, not human approval. Acceptance does not merge or deploy."
+}

@@ -1,0 +1,15 @@
+test_commit_bound_open_path_is_preserved (test_ui_run_preview.RunPreviewUiTest.test_commit_bound_open_path_is_preserved) ... ok
+test_current_conclusion_without_invalidation_keeps_existing_presentation (test_ui_run_preview.RunPreviewUiTest.test_current_conclusion_without_invalidation_keeps_existing_presentation) ... ok
+test_failed_and_unavailable_preview_keep_diagnostics_and_recovery (test_ui_run_preview.RunPreviewUiTest.test_failed_and_unavailable_preview_keep_diagnostics_and_recovery) ... ok
+test_invalidated_conclusion_shows_current_checks_before_preserved_history (test_ui_run_preview.RunPreviewUiTest.test_invalidated_conclusion_shows_current_checks_before_preserved_history) ... ok
+test_old_failed_decision_does_not_enable_new_views_busy_buttons (test_ui_run_preview.RunPreviewUiTest.test_old_failed_decision_does_not_enable_new_views_busy_buttons) ... ok
+test_open_link_requires_same_run_and_ready_matching_commit (test_ui_run_preview.RunPreviewUiTest.test_open_link_requires_same_run_and_ready_matching_commit) ... ok
+test_preview_request_target_is_bound_to_run_ticket_not_active_page (test_ui_run_preview.RunPreviewUiTest.test_preview_request_target_is_bound_to_run_ticket_not_active_page) ... ok
+test_slow_preview_read_cannot_overwrite_a_later_start_response (test_ui_run_preview.RunPreviewUiTest.test_slow_preview_read_cannot_overwrite_a_later_start_response) ... ok
+test_unaccepted_and_discarded_changes_never_reuse_ticket_preview (test_ui_run_preview.RunPreviewUiTest.test_unaccepted_and_discarded_changes_never_reuse_ticket_preview) ... ok
+test_verification_distinguishes_missing_skipped_failed_and_real_commands (test_ui_run_preview.RunPreviewUiTest.test_verification_distinguishes_missing_skipped_failed_and_real_commands) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.661s
+
+OK

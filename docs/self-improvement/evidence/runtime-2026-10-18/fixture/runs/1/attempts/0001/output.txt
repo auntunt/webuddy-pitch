@@ -1,0 +1,4 @@
+SYNTHETIC local checker, not a model or customer approval
+Before: VALUE = 0
+
+Partial edit retained; starting an owned child that ignores TERM

@@ -1,0 +1,11 @@
+{
+  "id": 1,
+  "state": "awaiting_human",
+  "verification_passed": true,
+  "preview_ready": true,
+  "technical_acceptance": true,
+  "ready_for_human": true,
+  "human_accepted": false,
+  "preview_url": "http://127.0.0.1:8791/pv/BOOTV2-3/__commit/8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd/",
+  "evidence_hash": "a556a9acf85103e2388b3eae5c26023d2d2979dd1068360312fbd35b9120a1c2"
+}

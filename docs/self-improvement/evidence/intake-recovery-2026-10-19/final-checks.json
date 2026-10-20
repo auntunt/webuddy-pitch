@@ -1,0 +1,24 @@
+{
+  "baseline_commit": "66c03493e0f6fd19a9e92a5decc4a05fe4d9d3a8",
+  "suite": {
+    "command": "NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhost python3 -m unittest discover -s tests -v",
+    "tests": 490,
+    "passed": 488,
+    "skipped": 2,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 173.668,
+    "exit_code": 0,
+    "log": "platform-full-local-bypass.log"
+  },
+  "ports": {
+    "8791": true,
+    "8793": true,
+    "8797": false
+  },
+  "normal_data_equal": true,
+  "normal_active_runs": [],
+  "service_live_log": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/service-intake-recovery-2026-10-19.log",
+  "production_accessed": false,
+  "8792_touched": false
+}

@@ -1,0 +1,2760 @@
+{
+  "app_path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/worktrees/BOOTV2-1-r3/app.py",
+  "started_utc": "2026-10-18T08:05:13.966200+00:00",
+  "source_sha256_before": "779687962d3e453fc0491322767b9d6c1e61a366b667fbc9c5aec32f35fd6ee5",
+  "checks": [
+    {
+      "check": "<root> home is reachable",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "check": "<root> create baseline",
+      "passed": true,
+      "detail": 303
+    },
+    {
+      "check": "<root> create baseline",
+      "passed": true,
+      "detail": 303
+    },
+    {
+      "check": "<root> baseline records",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "待编辑",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "<root> edit entry for each row",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> edit page",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "check": "<root> safe markup edit page",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> correct form target edit page",
+      "passed": true,
+      "detail": [
+        "/items/1/edit"
+      ]
+    },
+    {
+      "check": "<root> intact input edit page",
+      "passed": true,
+      "detail": {
+        "expected": "待编辑",
+        "actual": "待编辑"
+      }
+    },
+    {
+      "check": "<root> accessible form edit page",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> edit redirects within prefix",
+      "passed": true,
+      "detail": "/"
+    },
+    {
+      "check": "<root> edit changes only target title",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "<root> safe markup home after hostile text",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> safe markup hostile text round trip",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> correct form target hostile text round trip",
+      "passed": true,
+      "detail": [
+        "/items/1/edit"
+      ]
+    },
+    {
+      "check": "<root> intact input hostile text round trip",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "<root> accessible form hostile text round trip",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> same database survives instance restart",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "<root> home is reachable",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "check": "<root> safe markup after restart",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> correct form target after restart",
+      "passed": true,
+      "detail": [
+        "/items/1/edit"
+      ]
+    },
+    {
+      "check": "<root> intact input after restart",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "<root> accessible form after restart",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> invalid input gets 400",
+      "passed": true,
+      "detail": {
+        "length": 0,
+        "status": 400
+      }
+    },
+    {
+      "check": "<root> safe markup invalid length 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> correct form target invalid length 0",
+      "passed": true,
+      "detail": [
+        "/items/1/edit"
+      ]
+    },
+    {
+      "check": "<root> intact input invalid length 0",
+      "passed": true,
+      "detail": {
+        "expected": "",
+        "actual": ""
+      }
+    },
+    {
+      "check": "<root> accessible form invalid length 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> invalid input leaves database unchanged",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "<root> invalid input gets 400",
+      "passed": true,
+      "detail": {
+        "length": 3,
+        "status": 400
+      }
+    },
+    {
+      "check": "<root> safe markup invalid length 3",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> correct form target invalid length 3",
+      "passed": true,
+      "detail": [
+        "/items/1/edit"
+      ]
+    },
+    {
+      "check": "<root> intact input invalid length 3",
+      "passed": true,
+      "detail": {
+        "expected": " \t\n",
+        "actual": " \t\n"
+      }
+    },
+    {
+      "check": "<root> accessible form invalid length 3",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> invalid input leaves database unchanged",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "<root> invalid input gets 400",
+      "passed": true,
+      "detail": {
+        "length": 201,
+        "status": 400
+      }
+    },
+    {
+      "check": "<root> safe markup invalid length 201",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> correct form target invalid length 201",
+      "passed": true,
+      "detail": [
+        "/items/1/edit"
+      ]
+    },
+    {
+      "check": "<root> intact input invalid length 201",
+      "passed": true,
+      "detail": {
+        "expected": "字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字",
+        "actual": "字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字"
+      }
+    },
+    {
+      "check": "<root> accessible form invalid length 201",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> invalid input leaves database unchanged",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "<root> CSRF rejection",
+      "passed": true,
+      "detail": 403
+    },
+    {
+      "check": "<root> safe markup csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> correct form target csrf error",
+      "passed": true,
+      "detail": [
+        "/items/1/edit"
+      ]
+    },
+    {
+      "check": "<root> intact input csrf error",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "<root> accessible form csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> CSRF cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> CSRF rejection",
+      "passed": true,
+      "detail": 403
+    },
+    {
+      "check": "<root> safe markup csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> correct form target csrf error",
+      "passed": true,
+      "detail": [
+        "/items/1/edit"
+      ]
+    },
+    {
+      "check": "<root> intact input csrf error",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "<root> accessible form csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> CSRF cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> CSRF rejection",
+      "passed": true,
+      "detail": 403
+    },
+    {
+      "check": "<root> safe markup csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> correct form target csrf error",
+      "passed": true,
+      "detail": [
+        "/items/1/edit"
+      ]
+    },
+    {
+      "check": "<root> intact input csrf error",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "<root> accessible form csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> CSRF cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> invalid/missing target GET",
+      "passed": true,
+      "detail": "999"
+    },
+    {
+      "check": "<root> invalid/missing target POST",
+      "passed": true,
+      "detail": "999"
+    },
+    {
+      "check": "<root> safe markup missing target 999",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> invalid/missing target GET",
+      "passed": true,
+      "detail": "0"
+    },
+    {
+      "check": "<root> invalid/missing target POST",
+      "passed": true,
+      "detail": "0"
+    },
+    {
+      "check": "<root> safe markup missing target 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> invalid/missing target GET",
+      "passed": true,
+      "detail": "-1"
+    },
+    {
+      "check": "<root> invalid/missing target POST",
+      "passed": true,
+      "detail": "-1"
+    },
+    {
+      "check": "<root> safe markup missing target -1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> invalid/missing target GET",
+      "passed": true,
+      "detail": "1.5"
+    },
+    {
+      "check": "<root> invalid/missing target POST",
+      "passed": true,
+      "detail": "1.5"
+    },
+    {
+      "check": "<root> safe markup missing target 1.5",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> invalid/missing target GET",
+      "passed": true,
+      "detail": "9223372036854775808"
+    },
+    {
+      "check": "<root> invalid/missing target POST",
+      "passed": true,
+      "detail": "9223372036854775808"
+    },
+    {
+      "check": "<root> safe markup missing target 9223372036854775808",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> invalid/missing target GET",
+      "passed": true,
+      "detail": "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999"
+    },
+    {
+      "check": "<root> invalid/missing target POST",
+      "passed": true,
+      "detail": "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999"
+    },
+    {
+      "check": "<root> safe markup missing target 9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> health reports real outage",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> edit storage failure gets 503",
+      "passed": true,
+      "detail": 503
+    },
+    {
+      "check": "<root> safe markup 503 recovery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> correct form target 503 recovery",
+      "passed": true,
+      "detail": [
+        "/items/1/edit"
+      ]
+    },
+    {
+      "check": "<root> intact input 503 recovery",
+      "passed": true,
+      "detail": {
+        "expected": "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+        "actual": "数据库恢复后只更新原 id \"<script>unsafe</script>\""
+      }
+    },
+    {
+      "check": "<root> accessible form 503 recovery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> create outage still gets 503",
+      "passed": true,
+      "detail": 503
+    },
+    {
+      "check": "<root> real 503 form retries original target",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "<root> original create retry still creates one new row",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ],
+        [
+          3,
+          "恢复新增",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "<root> health recovers",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "<root> reopen still preserves edited title",
+      "passed": true,
+      "detail": [
+        1,
+        "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+        0
+      ]
+    },
+    {
+      "check": "/demo home is reachable",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "check": "/demo create baseline",
+      "passed": true,
+      "detail": 303
+    },
+    {
+      "check": "/demo create baseline",
+      "passed": true,
+      "detail": 303
+    },
+    {
+      "check": "/demo baseline records",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "待编辑",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/demo edit entry for each row",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo edit page",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "check": "/demo safe markup edit page",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo correct form target edit page",
+      "passed": true,
+      "detail": [
+        "/demo/items/1/edit"
+      ]
+    },
+    {
+      "check": "/demo intact input edit page",
+      "passed": true,
+      "detail": {
+        "expected": "待编辑",
+        "actual": "待编辑"
+      }
+    },
+    {
+      "check": "/demo accessible form edit page",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo edit redirects within prefix",
+      "passed": true,
+      "detail": "/demo/"
+    },
+    {
+      "check": "/demo edit changes only target title",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/demo safe markup home after hostile text",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo safe markup hostile text round trip",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo correct form target hostile text round trip",
+      "passed": true,
+      "detail": [
+        "/demo/items/1/edit"
+      ]
+    },
+    {
+      "check": "/demo intact input hostile text round trip",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "/demo accessible form hostile text round trip",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo same database survives instance restart",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/demo home is reachable",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "check": "/demo safe markup after restart",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo correct form target after restart",
+      "passed": true,
+      "detail": [
+        "/demo/items/1/edit"
+      ]
+    },
+    {
+      "check": "/demo intact input after restart",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "/demo accessible form after restart",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo invalid input gets 400",
+      "passed": true,
+      "detail": {
+        "length": 0,
+        "status": 400
+      }
+    },
+    {
+      "check": "/demo safe markup invalid length 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo correct form target invalid length 0",
+      "passed": true,
+      "detail": [
+        "/demo/items/1/edit"
+      ]
+    },
+    {
+      "check": "/demo intact input invalid length 0",
+      "passed": true,
+      "detail": {
+        "expected": "",
+        "actual": ""
+      }
+    },
+    {
+      "check": "/demo accessible form invalid length 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo invalid input leaves database unchanged",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/demo invalid input gets 400",
+      "passed": true,
+      "detail": {
+        "length": 3,
+        "status": 400
+      }
+    },
+    {
+      "check": "/demo safe markup invalid length 3",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo correct form target invalid length 3",
+      "passed": true,
+      "detail": [
+        "/demo/items/1/edit"
+      ]
+    },
+    {
+      "check": "/demo intact input invalid length 3",
+      "passed": true,
+      "detail": {
+        "expected": " \t\n",
+        "actual": " \t\n"
+      }
+    },
+    {
+      "check": "/demo accessible form invalid length 3",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo invalid input leaves database unchanged",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/demo invalid input gets 400",
+      "passed": true,
+      "detail": {
+        "length": 201,
+        "status": 400
+      }
+    },
+    {
+      "check": "/demo safe markup invalid length 201",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo correct form target invalid length 201",
+      "passed": true,
+      "detail": [
+        "/demo/items/1/edit"
+      ]
+    },
+    {
+      "check": "/demo intact input invalid length 201",
+      "passed": true,
+      "detail": {
+        "expected": "字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字",
+        "actual": "字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字"
+      }
+    },
+    {
+      "check": "/demo accessible form invalid length 201",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo invalid input leaves database unchanged",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/demo CSRF rejection",
+      "passed": true,
+      "detail": 403
+    },
+    {
+      "check": "/demo safe markup csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo correct form target csrf error",
+      "passed": true,
+      "detail": [
+        "/demo/items/1/edit"
+      ]
+    },
+    {
+      "check": "/demo intact input csrf error",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "/demo accessible form csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo CSRF cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo CSRF rejection",
+      "passed": true,
+      "detail": 403
+    },
+    {
+      "check": "/demo safe markup csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo correct form target csrf error",
+      "passed": true,
+      "detail": [
+        "/demo/items/1/edit"
+      ]
+    },
+    {
+      "check": "/demo intact input csrf error",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "/demo accessible form csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo CSRF cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo CSRF rejection",
+      "passed": true,
+      "detail": 403
+    },
+    {
+      "check": "/demo safe markup csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo correct form target csrf error",
+      "passed": true,
+      "detail": [
+        "/demo/items/1/edit"
+      ]
+    },
+    {
+      "check": "/demo intact input csrf error",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "/demo accessible form csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo CSRF cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo invalid/missing target GET",
+      "passed": true,
+      "detail": "999"
+    },
+    {
+      "check": "/demo invalid/missing target POST",
+      "passed": true,
+      "detail": "999"
+    },
+    {
+      "check": "/demo safe markup missing target 999",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo invalid/missing target GET",
+      "passed": true,
+      "detail": "0"
+    },
+    {
+      "check": "/demo invalid/missing target POST",
+      "passed": true,
+      "detail": "0"
+    },
+    {
+      "check": "/demo safe markup missing target 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo invalid/missing target GET",
+      "passed": true,
+      "detail": "-1"
+    },
+    {
+      "check": "/demo invalid/missing target POST",
+      "passed": true,
+      "detail": "-1"
+    },
+    {
+      "check": "/demo safe markup missing target -1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo invalid/missing target GET",
+      "passed": true,
+      "detail": "1.5"
+    },
+    {
+      "check": "/demo invalid/missing target POST",
+      "passed": true,
+      "detail": "1.5"
+    },
+    {
+      "check": "/demo safe markup missing target 1.5",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo invalid/missing target GET",
+      "passed": true,
+      "detail": "9223372036854775808"
+    },
+    {
+      "check": "/demo invalid/missing target POST",
+      "passed": true,
+      "detail": "9223372036854775808"
+    },
+    {
+      "check": "/demo safe markup missing target 9223372036854775808",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo invalid/missing target GET",
+      "passed": true,
+      "detail": "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999"
+    },
+    {
+      "check": "/demo invalid/missing target POST",
+      "passed": true,
+      "detail": "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999"
+    },
+    {
+      "check": "/demo safe markup missing target 9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo health reports real outage",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo edit storage failure gets 503",
+      "passed": true,
+      "detail": 503
+    },
+    {
+      "check": "/demo safe markup 503 recovery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo correct form target 503 recovery",
+      "passed": true,
+      "detail": [
+        "/demo/items/1/edit"
+      ]
+    },
+    {
+      "check": "/demo intact input 503 recovery",
+      "passed": true,
+      "detail": {
+        "expected": "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+        "actual": "数据库恢复后只更新原 id \"<script>unsafe</script>\""
+      }
+    },
+    {
+      "check": "/demo accessible form 503 recovery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo create outage still gets 503",
+      "passed": true,
+      "detail": 503
+    },
+    {
+      "check": "/demo real 503 form retries original target",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/demo original create retry still creates one new row",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ],
+        [
+          3,
+          "恢复新增",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/demo health recovers",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/demo reopen still preserves edited title",
+      "passed": true,
+      "detail": [
+        1,
+        "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+        0
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent home is reachable",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "check": "/pv/BOOTV2/independent create baseline",
+      "passed": true,
+      "detail": 303
+    },
+    {
+      "check": "/pv/BOOTV2/independent create baseline",
+      "passed": true,
+      "detail": 303
+    },
+    {
+      "check": "/pv/BOOTV2/independent baseline records",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "待编辑",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent edit entry for each row",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent edit page",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup edit page",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent correct form target edit page",
+      "passed": true,
+      "detail": [
+        "/pv/BOOTV2/independent/items/1/edit"
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent intact input edit page",
+      "passed": true,
+      "detail": {
+        "expected": "待编辑",
+        "actual": "待编辑"
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent accessible form edit page",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent edit redirects within prefix",
+      "passed": true,
+      "detail": "/pv/BOOTV2/independent/"
+    },
+    {
+      "check": "/pv/BOOTV2/independent edit changes only target title",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup home after hostile text",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup hostile text round trip",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent correct form target hostile text round trip",
+      "passed": true,
+      "detail": [
+        "/pv/BOOTV2/independent/items/1/edit"
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent intact input hostile text round trip",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent accessible form hostile text round trip",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent same database survives instance restart",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent home is reachable",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup after restart",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent correct form target after restart",
+      "passed": true,
+      "detail": [
+        "/pv/BOOTV2/independent/items/1/edit"
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent intact input after restart",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent accessible form after restart",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid input gets 400",
+      "passed": true,
+      "detail": {
+        "length": 0,
+        "status": 400
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup invalid length 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent correct form target invalid length 0",
+      "passed": true,
+      "detail": [
+        "/pv/BOOTV2/independent/items/1/edit"
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent intact input invalid length 0",
+      "passed": true,
+      "detail": {
+        "expected": "",
+        "actual": ""
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent accessible form invalid length 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid input leaves database unchanged",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid input gets 400",
+      "passed": true,
+      "detail": {
+        "length": 3,
+        "status": 400
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup invalid length 3",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent correct form target invalid length 3",
+      "passed": true,
+      "detail": [
+        "/pv/BOOTV2/independent/items/1/edit"
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent intact input invalid length 3",
+      "passed": true,
+      "detail": {
+        "expected": " \t\n",
+        "actual": " \t\n"
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent accessible form invalid length 3",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid input leaves database unchanged",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid input gets 400",
+      "passed": true,
+      "detail": {
+        "length": 201,
+        "status": 400
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup invalid length 201",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent correct form target invalid length 201",
+      "passed": true,
+      "detail": [
+        "/pv/BOOTV2/independent/items/1/edit"
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent intact input invalid length 201",
+      "passed": true,
+      "detail": {
+        "expected": "字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字",
+        "actual": "字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字"
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent accessible form invalid length 201",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid input leaves database unchanged",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent CSRF rejection",
+      "passed": true,
+      "detail": 403
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent correct form target csrf error",
+      "passed": true,
+      "detail": [
+        "/pv/BOOTV2/independent/items/1/edit"
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent intact input csrf error",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent accessible form csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent CSRF cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent CSRF rejection",
+      "passed": true,
+      "detail": 403
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent correct form target csrf error",
+      "passed": true,
+      "detail": [
+        "/pv/BOOTV2/independent/items/1/edit"
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent intact input csrf error",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent accessible form csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent CSRF cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent CSRF rejection",
+      "passed": true,
+      "detail": 403
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent correct form target csrf error",
+      "passed": true,
+      "detail": [
+        "/pv/BOOTV2/independent/items/1/edit"
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent intact input csrf error",
+      "passed": true,
+      "detail": {
+        "expected": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 ",
+        "actual": " \n审计 \"<script>alert(1)</script>\" & '原文'\r末尾 "
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent accessible form csrf error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent CSRF cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target GET",
+      "passed": true,
+      "detail": "999"
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target POST",
+      "passed": true,
+      "detail": "999"
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup missing target 999",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target GET",
+      "passed": true,
+      "detail": "0"
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target POST",
+      "passed": true,
+      "detail": "0"
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup missing target 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target GET",
+      "passed": true,
+      "detail": "-1"
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target POST",
+      "passed": true,
+      "detail": "-1"
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup missing target -1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target GET",
+      "passed": true,
+      "detail": "1.5"
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target POST",
+      "passed": true,
+      "detail": "1.5"
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup missing target 1.5",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target GET",
+      "passed": true,
+      "detail": "9223372036854775808"
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target POST",
+      "passed": true,
+      "detail": "9223372036854775808"
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup missing target 9223372036854775808",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target GET",
+      "passed": true,
+      "detail": "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999"
+    },
+    {
+      "check": "/pv/BOOTV2/independent invalid/missing target POST",
+      "passed": true,
+      "detail": "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999"
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup missing target 9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent missing target cannot write",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent health reports real outage",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent edit storage failure gets 503",
+      "passed": true,
+      "detail": 503
+    },
+    {
+      "check": "/pv/BOOTV2/independent safe markup 503 recovery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent correct form target 503 recovery",
+      "passed": true,
+      "detail": [
+        "/pv/BOOTV2/independent/items/1/edit"
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent intact input 503 recovery",
+      "passed": true,
+      "detail": {
+        "expected": "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+        "actual": "数据库恢复后只更新原 id \"<script>unsafe</script>\""
+      }
+    },
+    {
+      "check": "/pv/BOOTV2/independent accessible form 503 recovery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent create outage still gets 503",
+      "passed": true,
+      "detail": 503
+    },
+    {
+      "check": "/pv/BOOTV2/independent real 503 form retries original target",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent original create retry still creates one new row",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+          1
+        ],
+        [
+          2,
+          "不能改变的另一项",
+          0
+        ],
+        [
+          3,
+          "恢复新增",
+          0
+        ]
+      ]
+    },
+    {
+      "check": "/pv/BOOTV2/independent health recovers",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "/pv/BOOTV2/independent reopen still preserves edited title",
+      "passed": true,
+      "detail": [
+        1,
+        "数据库恢复后只更新原 id \"<script>unsafe</script>\"",
+        0
+      ]
+    }
+  ],
+  "requests": [
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1816
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items",
+      "status": 303,
+      "location": "/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items",
+      "status": 303,
+      "location": "/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1",
+      "status": 303,
+      "location": "/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 2266
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/items/1/edit",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1508
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1/edit",
+      "status": 303,
+      "location": "/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 2348
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/items/1/edit",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1594
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 2348
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/items/1/edit",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1594
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1/edit",
+      "status": 400,
+      "location": null,
+      "response_bytes": 1624
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1/edit",
+      "status": 400,
+      "location": null,
+      "response_bytes": 1627
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1/edit",
+      "status": 400,
+      "location": null,
+      "response_bytes": 2227
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1/edit",
+      "status": 403,
+      "location": null,
+      "response_bytes": 1714
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1/edit",
+      "status": 403,
+      "location": null,
+      "response_bytes": 1714
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1/edit",
+      "status": 403,
+      "location": null,
+      "response_bytes": 1714
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/items/999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 1447
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 1542
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/items/0/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/0/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/items/-1/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/-1/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/items/1.5/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1.5/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/items/9223372036854775808/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/9223372036854775808/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/items/9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/health",
+      "status": 503,
+      "location": null,
+      "response_bytes": 24
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1/edit",
+      "status": 503,
+      "location": null,
+      "response_bytes": 1727
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items",
+      "status": 503,
+      "location": null,
+      "response_bytes": 1555
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1/edit",
+      "status": 303,
+      "location": "/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items",
+      "status": 303,
+      "location": "/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "",
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "",
+      "method": "POST",
+      "path": "/items/1",
+      "status": 303,
+      "location": "/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1821
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items",
+      "status": 303,
+      "location": "/demo/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items",
+      "status": 303,
+      "location": "/demo/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1",
+      "status": 303,
+      "location": "/demo/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 2291
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/items/1/edit",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1518
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1/edit",
+      "status": 303,
+      "location": "/demo/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 2373
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/items/1/edit",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1604
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 2373
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/items/1/edit",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1604
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1/edit",
+      "status": 400,
+      "location": null,
+      "response_bytes": 1634
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1/edit",
+      "status": 400,
+      "location": null,
+      "response_bytes": 1637
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1/edit",
+      "status": 400,
+      "location": null,
+      "response_bytes": 2237
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1/edit",
+      "status": 403,
+      "location": null,
+      "response_bytes": 1724
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1/edit",
+      "status": 403,
+      "location": null,
+      "response_bytes": 1724
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1/edit",
+      "status": 403,
+      "location": null,
+      "response_bytes": 1724
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/items/999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 1452
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 1547
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/items/0/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/0/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/items/-1/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/-1/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/items/1.5/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1.5/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/items/9223372036854775808/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/9223372036854775808/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/items/9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/health",
+      "status": 503,
+      "location": null,
+      "response_bytes": 24
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1/edit",
+      "status": 503,
+      "location": null,
+      "response_bytes": 1737
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items",
+      "status": 503,
+      "location": null,
+      "response_bytes": 1565
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1/edit",
+      "status": 303,
+      "location": "/demo/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items",
+      "status": 303,
+      "location": "/demo/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/demo",
+      "method": "GET",
+      "path": "/demo/health",
+      "status": 200,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/demo",
+      "method": "POST",
+      "path": "/demo/items/1",
+      "status": 303,
+      "location": "/demo/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1838
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items",
+      "status": 303,
+      "location": "/pv/BOOTV2/independent/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items",
+      "status": 303,
+      "location": "/pv/BOOTV2/independent/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1",
+      "status": 303,
+      "location": "/pv/BOOTV2/independent/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 2376
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1552
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 303,
+      "location": "/pv/BOOTV2/independent/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 2458
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1638
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/",
+      "status": 200,
+      "location": null,
+      "response_bytes": 2458
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 200,
+      "location": null,
+      "response_bytes": 1638
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 400,
+      "location": null,
+      "response_bytes": 1668
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 400,
+      "location": null,
+      "response_bytes": 1671
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 400,
+      "location": null,
+      "response_bytes": 2271
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 403,
+      "location": null,
+      "response_bytes": 1758
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 403,
+      "location": null,
+      "response_bytes": 1758
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 403,
+      "location": null,
+      "response_bytes": 1758
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/items/999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 1469
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 1564
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/items/0/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/0/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/items/-1/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/-1/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/items/1.5/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1.5/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/items/9223372036854775808/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/9223372036854775808/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/items/9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999/edit",
+      "status": 404,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/health",
+      "status": 503,
+      "location": null,
+      "response_bytes": 24
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 503,
+      "location": null,
+      "response_bytes": 1771
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items",
+      "status": 503,
+      "location": null,
+      "response_bytes": 1599
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1/edit",
+      "status": 303,
+      "location": "/pv/BOOTV2/independent/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items",
+      "status": 303,
+      "location": "/pv/BOOTV2/independent/",
+      "response_bytes": 0
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "GET",
+      "path": "/pv/BOOTV2/independent/health",
+      "status": 200,
+      "location": null,
+      "response_bytes": 15
+    },
+    {
+      "prefix": "/pv/BOOTV2/independent",
+      "method": "POST",
+      "path": "/pv/BOOTV2/independent/items/1",
+      "status": 303,
+      "location": "/pv/BOOTV2/independent/",
+      "response_bytes": 0
+    }
+  ],
+  "data_scope": "TemporaryDirectory only; existing project/platform data untouched",
+  "verification": "Independent HTTP and SQLite; no browser/layout claim",
+  "passed": true,
+  "source_sha256_after": "779687962d3e453fc0491322767b9d6c1e61a366b667fbc9c5aec32f35fd6ee5",
+  "source_unchanged": true,
+  "finished_utc": "2026-10-18T08:05:14.123732+00:00",
+  "checks_passed": 282,
+  "checks_total": 282,
+  "http_requests": 108
+}

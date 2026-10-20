@@ -1,0 +1,98 @@
+{
+  "README.md": {
+    "bytes": 1925,
+    "sha256": "c8e3d96e12b48236f682a5cae7623f55800e040bbdab28ec50318a9c61327f06"
+  },
+  "ai-seat-capture-result.json": {
+    "bytes": 52091,
+    "sha256": "d011007a077996db92efbd58213651d97cb68ed5ef64261431fb1a38c642db84"
+  },
+  "ai-seat-capture.log": {
+    "bytes": 17866,
+    "sha256": "b3027d3a724c5b74a3b539eb29d50389e670750c04d57853c2ab364e2e3e6b53"
+  },
+  "artifact-verification.json": {
+    "bytes": 381,
+    "sha256": "2c4c59e70dc95dfd64b18c0e96377be062c29a621140c8649de20e5a49bee331"
+  },
+  "browser-desktop.jpg": {
+    "bytes": 79357,
+    "sha256": "9f05cab21ee592f8420dc4ba94abd9e8a00e9f96a27476edb4d878c5e9ea43d9"
+  },
+  "browser-details.txt": {
+    "bytes": 667,
+    "sha256": "05d4ee851df0b927c09af526914c6feea7909db6a60ce077435b787bd420f33c"
+  },
+  "browser-empty.txt": {
+    "bytes": 694,
+    "sha256": "bd27369937267308034a051e2bb2e76f59a2ead9a738c03732aee47e36f02c44"
+  },
+  "browser-final-delivery.jpg": {
+    "bytes": 78494,
+    "sha256": "de5e2e5bd11b47a539173e25a9ffba063ef8e2697ea435560d513a4d901248d7"
+  },
+  "browser-final-verification.json": {
+    "bytes": 1004,
+    "sha256": "70aa9d2de3c92bc8ed5a434fff182b8a69e1d475309bda6f64d52f6b333d948c"
+  },
+  "browser-final.jpg": {
+    "bytes": 83998,
+    "sha256": "a071380b14b2415ae8100e457f61306d6030b330e6d3a0e65c14b9804ae4e932"
+  },
+  "browser-keyword.txt": {
+    "bytes": 593,
+    "sha256": "499312ce51a7e1c0e43812ce6fc1d0c33a7d90c5eb68af83af2155c36535d4ad"
+  },
+  "browser-narrow.jpg": {
+    "bytes": 50818,
+    "sha256": "3e029920a005581d59ee86fb157633374f24cbddfce6aed277ad1b3dc703ae38"
+  },
+  "browser-narrow.txt": {
+    "bytes": 333,
+    "sha256": "0bce247f0d7a38d9b5ff9857241ce3725ab0d362d72b231f6c70dbe4152777fe"
+  },
+  "browser-overview.jpg": {
+    "bytes": 84261,
+    "sha256": "03f0d9d0749fce44508ec3e906665ae906e072e8bc2d60a857692f01d764b467"
+  },
+  "browser-regressions.txt": {
+    "bytes": 1115,
+    "sha256": "bb2a37db92bc3fef8c633cad18b9cbc42022648fe798d5bea6caa09cab698aca"
+  },
+  "browser-report.txt": {
+    "bytes": 325,
+    "sha256": "9ff5c0d66b904861103bed1df7f19330b2f899c69e6e9c7c2964cac82397f4cf"
+  },
+  "browser-verification.json": {
+    "bytes": 970,
+    "sha256": "d6e9a185b2ec11ab4c9be71f52858732af36bfa1292c8e9d4c2b64387366eb1b"
+  },
+  "cases.json": {
+    "bytes": 21083,
+    "sha256": "1627b461e21cbd0b367daf7ae5f65930a3c1993433deaccc0c8b783aecd2c1de"
+  },
+  "index.html": {
+    "bytes": 21129,
+    "sha256": "bcf82c550e1cb9808904c5cd763ed50d854f69dd3dd9805c1d1fed377b62f999"
+  },
+  "metrics-observation.json": {
+    "bytes": 1696,
+    "sha256": "3eed36cd551566ae67d08dea36fc3022e87deaa25e941e5c9984176dafff2c73"
+  },
+  "run-sample.executed.py.txt": {
+    "bytes": 3873,
+    "sha256": "0c0421bb2d3a07a8b86356d854fcb0c568c1a699640c22878aa009014c6b68c4"
+  },
+  "scope.json": {
+    "bytes": 108281,
+    "sha256": "458b2a5284dde9ad7381425eed33e9629363568acb0f95fde40bf52724723c67"
+  },
+  "weighbill-result.json": {
+    "bytes": 18271,
+    "sha256": "62381cf75f1478f960339961a1d5e6c7a7a1dba4ca5b8fa1aea45337f3b5aab4"
+  },
+  "weighbill.log": {
+    "bytes": 984,
+    "sha256": "03756abfcde3ea4c568524aab8d55ea596fd34410287d4fbd698dd9b955d6218"
+  }
+}

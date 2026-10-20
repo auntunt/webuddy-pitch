@@ -1,0 +1,55 @@
+{
+  "recorded_at": "2026-10-18T10:52:58.338473+00:00",
+  "rows": [
+    [
+      1,
+      "预览停止并重建后，数据仍保留",
+      1
+    ],
+    [
+      2,
+      "已验证：编辑保存后，原编号和完成状态不变",
+      1
+    ]
+  ],
+  "preview": {
+    "preview": {
+      "key": "BOOTV2-1",
+      "project": "BOOTV2",
+      "branch": "6c7787b3de7d308120b9c2e298b3629b588a47c9",
+      "commit": "6c7787b3de",
+      "commit_full": "6c7787b3de7d308120b9c2e298b3629b588a47c9",
+      "port": 51110,
+      "prefix": "/pv/BOOTV2-1/__commit/6c7787b3de7d308120b9c2e298b3629b588a47c9",
+      "pid": 99753,
+      "dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/BOOTV2-1",
+      "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2",
+      "log": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/BOOTV2-1.log",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 app.py 51110 /pv/BOOTV2-1/__commit/6c7787b3de7d308120b9c2e298b3629b588a47c9 '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'",
+      "ready": "/health",
+      "state": "up",
+      "started": "2026-10-18 18:52:42",
+      "by": "自动流转",
+      "why": "",
+      "at": "2026-10-18 18:52:44",
+      "tail": "$ /opt/homebrew/opt/python@3.14/bin/python3.14 app.py 51110 /pv/BOOTV2-1/__commit/6c7787b3de7d308120b9c2e298b3629b588a47c9 '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'\nReady on http://127.0.0.1:51110\n"
+    },
+    "url": "/pv/BOOTV2-1/__commit/6c7787b3de7d308120b9c2e298b3629b588a47c9/",
+    "branch": "tmh/BOOTV2-1-r3",
+    "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 app.py {port} {prefix} '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'",
+    "configured": true,
+    "auto": "off",
+    "own_address": true,
+    "run_id": 3,
+    "expected_commit": "6c7787b3de7d308120b9c2e298b3629b588a47c9",
+    "matches_run": true
+  },
+  "observed_browser_actions": [
+    "Adopt run 3 as 自动流转 after current actual checks passed and independent reviews",
+    "Start preview from current run panel",
+    "Follow exact full-commit URL through platform gateway to separate preview origin",
+    "Create item 2, mark done, edit title, refresh and return to list; item 1 unchanged",
+    "Restart same preview via current run panel; SQLite rows unchanged"
+  ],
+  "customer_acceptance": "not performed; ticket remains verify, unknown gates retained"
+}

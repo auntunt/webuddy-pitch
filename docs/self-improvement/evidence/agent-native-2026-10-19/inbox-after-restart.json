@@ -1,0 +1,23 @@
+{
+  "items": [
+    {
+      "id": 44,
+      "ticket_id": 4,
+      "ts": "2026-10-19 11:33:45",
+      "author": "agent:sdk-verifier",
+      "kind": "comment",
+      "body": "官方 MCP SDK 已通过 stdio 连接真实工作台，读到 BOOTV2-1 的工单、运行和固定候选预览资料。此为协议与共享数据验收，不代表三个编程产品均已验证，也不是客户签收。",
+      "data": {
+        "agent_message": true,
+        "from_agent": "sdk-verifier",
+        "to_agent": "codex",
+        "message_kind": "result",
+        "reply_to": 43,
+        "request_id": "agent-native-sdk-reply"
+      },
+      "ticket": "BOOTV2-2"
+    }
+  ],
+  "has_more": false,
+  "next_after": 44
+}

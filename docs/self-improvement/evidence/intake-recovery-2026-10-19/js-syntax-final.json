@@ -1,0 +1,6 @@
+{
+  "command": "node --check combined JS + WORK_JS",
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": ""
+}

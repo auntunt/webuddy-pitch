@@ -1,0 +1,28 @@
+__pycache__/
+*.pyc
+.DS_Store
+.cache/
+examples/*/.tmh/
+examples/*/target/
+# 运行数据 / 机密 / 部署产物
+data/
+# This synthetic source fixture uses a C# Data namespace, not runtime data.
+!examples/legacy-dotnet-erp/Erp.Core/Data/
+examples/legacy-dotnet-erp/Erp.Core/Data/*
+!examples/legacy-dotnet-erp/Erp.Core/Data/ErpContext.cs
+*.db
+*.sqlite
+*.sqlite3
+.env
+.env.*
+*.pem
+*.key
+*.log
+worktrees/
+.venv/
+*.tar.gz
+*.tgz
+*.zip
+dist/
+build/
+*.egg-info/

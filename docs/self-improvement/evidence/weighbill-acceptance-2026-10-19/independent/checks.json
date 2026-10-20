@@ -1,0 +1,277 @@
+{
+  "passed": 65,
+  "total": 65,
+  "checks": [
+    {
+      "name": "same_fixed_candidate",
+      "passed": true
+    },
+    {
+      "name": "verification_is_current",
+      "passed": true
+    },
+    {
+      "name": "same_verification_binding",
+      "passed": true
+    },
+    {
+      "name": "same_preview_binding",
+      "passed": true
+    },
+    {
+      "name": "same_requirement_criteria",
+      "passed": true
+    },
+    {
+      "name": "no_human_signature",
+      "passed": true
+    },
+    {
+      "name": "same_preview_process_identity",
+      "passed": true
+    },
+    {
+      "name": "process-cwd.json_exit",
+      "passed": true
+    },
+    {
+      "name": "actual_cwd_is_fixed_preview",
+      "passed": true
+    },
+    {
+      "name": "process-command.json_exit",
+      "passed": true
+    },
+    {
+      "name": "clone_and_serving_HEAD",
+      "passed": true
+    },
+    {
+      "name": "clone_and_serving_tracked_clean",
+      "passed": true
+    },
+    {
+      "name": "all_tracked_preview_bytes_match_commit",
+      "passed": true,
+      "detail": {
+        "files": 105
+      }
+    },
+    {
+      "name": "GET /report",
+      "passed": true
+    },
+    {
+      "name": "actual_HTTP_page_matches_fixed_source",
+      "passed": true,
+      "detail": {
+        "sha256": "23abf56a7c03e3d1f4b3d5ae2a5ac40c1f6ee04a9d47878b67b92c05febf134d",
+        "bytes": 96069
+      }
+    },
+    {
+      "name": "snapshots_use_same_prefix_and_commit",
+      "passed": true
+    },
+    {
+      "name": "resume_continues_prior_conflict_state",
+      "passed": true
+    },
+    {
+      "name": "record_versions_and_stages",
+      "passed": true
+    },
+    {
+      "name": "save_retains_exact_A_draft_and_B_weights",
+      "passed": true
+    },
+    {
+      "name": "approval_changes_only_approval_fields",
+      "passed": true
+    },
+    {
+      "name": "append_only_exact_history",
+      "passed": true
+    },
+    {
+      "name": "save_history_is_only_intended_fields",
+      "passed": true
+    },
+    {
+      "name": "approval_has_real_domain_history",
+      "passed": true
+    },
+    {
+      "name": "stale_approval_no_record_history_or_event_side_effect",
+      "passed": true
+    },
+    {
+      "name": "other_two_records_untouched",
+      "passed": true,
+      "detail": {
+        "wbill-preview-2": true,
+        "wbill-preview-3": true
+      }
+    },
+    {
+      "name": "GET /api/v1/records?stage=&voided=all",
+      "passed": true
+    },
+    {
+      "name": "GET /api/v1/records/wbill-preview-3/history",
+      "passed": true
+    },
+    {
+      "name": "GET /api/v1/records/wbill-preview-2/history",
+      "passed": true
+    },
+    {
+      "name": "GET /api/v1/records/wbill-preview-1/history",
+      "passed": true
+    },
+    {
+      "name": "GET /api/v1/health",
+      "passed": true
+    },
+    {
+      "name": "live_records_and_history_match_browser_final",
+      "passed": true
+    },
+    {
+      "name": "explicit_synthetic_no_OCR_boundary",
+      "passed": true
+    },
+    {
+      "name": "only_dedicated_preview_database",
+      "passed": true
+    },
+    {
+      "name": "SQLite_has_exact_three_records",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-1 version",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-1 stage",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-1 approved_by",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-1 approved_at",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-1 reviewed_by",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-1 reviewed_at",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-1 fields",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-2 version",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-2 stage",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-2 approved_by",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-2 approved_at",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-2 reviewed_by",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-2 reviewed_at",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-2 fields",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-3 version",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-3 stage",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-3 approved_by",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-3 approved_at",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-3 reviewed_by",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-3 reviewed_at",
+      "passed": true
+    },
+    {
+      "name": "SQLite wbill-preview-3 fields",
+      "passed": true
+    },
+    {
+      "name": "SQLite_full_history_equals_HTTP",
+      "passed": true
+    },
+    {
+      "name": "no_operator_decision_in_database",
+      "passed": true
+    },
+    {
+      "name": "candidate_database_binding",
+      "passed": true
+    },
+    {
+      "name": "synthetic_originals_unchanged",
+      "passed": true
+    },
+    {
+      "name": "browser_explicit_reconciliation_visible",
+      "passed": true
+    },
+    {
+      "name": "browser_successful_save_visible",
+      "passed": true
+    },
+    {
+      "name": "browser_separate_approval_visible",
+      "passed": true
+    },
+    {
+      "name": "browser_stale_page_shows_conflict_not_approval",
+      "passed": true
+    },
+    {
+      "name": "browser_refresh_retains_approved_row",
+      "passed": true
+    },
+    {
+      "name": "read_did_not_change_preview_identity",
+      "passed": true
+    }
+  ]
+}

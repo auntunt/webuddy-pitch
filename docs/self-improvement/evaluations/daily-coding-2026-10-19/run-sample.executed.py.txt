@@ -1,0 +1,73 @@
+"""Read-only source assessment: existing tests, isolated data, original output."""
+from pathlib import Path
+import dataclasses
+import datetime
+import hashlib
+import json
+import os
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+from tmh.platform.process_control import run_process
+
+OUT = Path(__file__).resolve().parent
+CASES = {
+    "weighbill": {
+        "cwd": "/Users/auntlee/workspace/weighbill-system",
+        "command": [".venv/bin/python", "-m", "pytest", "-q", "-p", "no:cacheprovider",
+                    "tests/test_original_integrity.py", "tests/test_origins.py", "tests/test_workflow.py"],
+        "boundary": "Existing offline SQLite/HTTP/Excel regressions; scripted vision, no real OCR or deployment.",
+    },
+    "ai-seat-capture": {
+        "cwd": "/Users/auntlee/Desktop/workspace/ai-seat-gateway",
+        "command": ["/opt/homebrew/bin/go", "test", "-json", "-count=1", "-mod=readonly", "./internal/capture"],
+        "boundary": "Existing capture/parser/redaction regressions only; no PostgreSQL/provider login/deployment.",
+    },
+}
+
+def snapshot(cwd):
+    def git(*args):
+        return subprocess.check_output(["git", *args], cwd=cwd)
+    files = git("ls-files", "-z").decode().split("\0")
+    hashes = {}
+    extensions = {".py", ".go", ".mod", ".sum", ".toml", ".json", ".js", ".ts", ".tsx", ".html", ".css", ".sql"}
+    for name in files:
+        p = Path(cwd) / name
+        if name and p.is_file() and p.suffix in extensions:
+            hashes[name] = hashlib.sha256(p.read_bytes()).hexdigest()
+    return {"head": git("rev-parse", "HEAD").decode().strip(),
+            "status": git("status", "--porcelain=v1", "--untracked-files=all").decode(),
+            "tracked_source_sha256": hashes}
+
+case = sys.argv[1]
+spec = CASES[case]
+before = snapshot(spec["cwd"])
+env = {k: os.environ[k] for k in ("PATH", "HOME", "TMPDIR", "LANG", "LC_ALL") if k in os.environ}
+env.update({"PYTHONDONTWRITEBYTECODE": "1", "PYTEST_ADDOPTS": "", "WB_TEST_STACK": "",
+            "GOPROXY": "off", "GOSUMDB": "off", "GOTOOLCHAIN": "local", "GOFLAGS": ""})
+started = datetime.datetime.now(datetime.timezone.utc).isoformat()
+result = run_process(spec["command"], cwd=spec["cwd"], env=env, timeout=120)
+raw = OUT / f"{case}.log"
+raw.write_bytes(result.output_bytes)
+after = snapshot(spec["cwd"])
+report = {"case": case, **spec, "started_at": started,
+          "finished_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+          "runner": "tmh.platform.process_control.run_process", "timeout_seconds": 120,
+          "environment_policy": "Minimal process environment; no external DB/OCR/provider credentials; no dependency download.",
+          "result": {k: v for k, v in dataclasses.asdict(result).items() if k not in ("output", "output_bytes")},
+          "output": {"path": raw.name, "bytes": len(result.output_bytes),
+                     "sha256": hashlib.sha256(result.output_bytes).hexdigest()},
+          "before": before, "after": after,
+          "source_unchanged": before["tracked_source_sha256"] == after["tracked_source_sha256"],
+          "git_status_unchanged": before["status"] == after["status"],
+          "not_a_webuddy_delivery_or_ROI_experiment": True}
+if case == "ai-seat-capture":
+    events = [json.loads(line) for line in result.output.splitlines() if line.startswith("{")]
+    for action in ("pass", "fail", "skip"):
+        report[f"top_level_tests_{action}"] = sum(e.get("Action") == action and "Test" in e and "/" not in e["Test"] for e in events)
+(OUT / f"{case}-result.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+print(json.dumps({k: v for k, v in report.items() if k not in ("before", "after")}, ensure_ascii=False))
+print(result.output if case == "weighbill" else "Full Go JSON event log retained.")
+sys.exit(result.returncode)

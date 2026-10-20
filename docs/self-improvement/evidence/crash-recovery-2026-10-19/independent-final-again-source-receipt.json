@@ -1,0 +1,41 @@
+{
+  "recorded_at": "2026-10-18T22:38:02.938316+00:00",
+  "started_at": "2026-10-18T22:37:59.135182+00:00",
+  "head": "0428c1ca771f0d53f54310806fd782e99675ab78",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "-m",
+    "unittest",
+    "tests.test_crash_recovery_independent",
+    "-v"
+  ],
+  "environment": {
+    "TMH_CRASH_EVIDENCE": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/crash-recovery-2026-10-19/independent-final-again"
+  },
+  "exit_code": 0,
+  "source_before": {
+    "tmh/platform/agents.py": "64520da8ba19169b98bc450f2822e9f618519f2e51e9c1dfb30875c56b244bb6",
+    "tmh/platform/crash_recovery.py": "fb7ca916fc079bcf5051e98788c3ac07d63777d56a9ca35c51af5061cc6c7245",
+    "tmh/platform/process_control.py": "44b692746a94b0a3540d021ce72898e56f774fee8dd1df0ac54dc99394830be3",
+    "tmh/platform/supervised_process.py": "8ad59a81adf853c0bf39974f4ffb43c163b585926890e4b49033b52702393a1c",
+    "tmh/platform/server.py": "e9a8a7b9b02563457fdac4d1b47640704bd5a85ff85806cf386eb65d6f4959fd",
+    "tmh/platform/ui.py": "36f459da9e74d934acb6561c9e20599415a40fd17ae4e083fd4dc8d681a5e416",
+    "tests/test_crash_recovery_independent.py": "f85f833e895d5814ccf7849d2aa35a7df53a97f7c534029615b864cde5e012f8",
+    "tests/test_crash_recovery_api.py": "a6adc834ae2650612839f2e4a0758de0ba84b12eb1b3263eee4caf9a4e153fef",
+    "tests/test_supervised_process.py": "bfbc0816e32db648ef036c80bad0758ed3b2d5ec9184658637b1367910b81cad"
+  },
+  "source_after": {
+    "tmh/platform/agents.py": "64520da8ba19169b98bc450f2822e9f618519f2e51e9c1dfb30875c56b244bb6",
+    "tmh/platform/crash_recovery.py": "fb7ca916fc079bcf5051e98788c3ac07d63777d56a9ca35c51af5061cc6c7245",
+    "tmh/platform/process_control.py": "44b692746a94b0a3540d021ce72898e56f774fee8dd1df0ac54dc99394830be3",
+    "tmh/platform/supervised_process.py": "8ad59a81adf853c0bf39974f4ffb43c163b585926890e4b49033b52702393a1c",
+    "tmh/platform/server.py": "e9a8a7b9b02563457fdac4d1b47640704bd5a85ff85806cf386eb65d6f4959fd",
+    "tmh/platform/ui.py": "36f459da9e74d934acb6561c9e20599415a40fd17ae4e083fd4dc8d681a5e416",
+    "tests/test_crash_recovery_independent.py": "f85f833e895d5814ccf7849d2aa35a7df53a97f7c534029615b864cde5e012f8",
+    "tests/test_crash_recovery_api.py": "a6adc834ae2650612839f2e4a0758de0ba84b12eb1b3263eee4caf9a4e153fef",
+    "tests/test_supervised_process.py": "bfbc0816e32db648ef036c80bad0758ed3b2d5ec9184658637b1367910b81cad"
+  },
+  "source_unchanged_during_execution": true,
+  "log_sha256": "9a93e60d52ac7232154823ce556d785829f8ac77664d6c7dbb026aca2a3341f6",
+  "scope": "Independent temporary Git repos/Store/worktrees, real local HTTP service owner killed with SIGKILL; no real model, user data, production or port 8792."
+}
