@@ -1,0 +1,53 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"preview\": {\"key\": \"HP-1\", \"project\": \"HP\", \"branch\": \"9425cf6ba6c1a0deccb015fc00e549f317f79902\", \"commit\": \"9425cf6ba6\", \"commit_full\": \"9425cf6ba6c1a0deccb015fc00e549f317f79902\", \"port\": 54600, \"prefix\": \"/pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902\", \"pid\": 72756, \"dir\": \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/previews/HP-1\", \"root\": \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/projects/HP\", \"log\": \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/previews/logs/HP-1/1792391738458543000.log\", \"cmd\": \"'/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python' app.py 54600 /pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902 '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/projects/HP/app.db'\", \"ready\": \"/health\", \"state\": \"unhealthy\", \"started\": \"2026-10-19 14:35:38\", \"by\": \"agent:health-fixture\", \"why\": \"预览健康检查未通过：HTTP 503（需要约定路径直接返回 2xx）\", \"at\": \"2026-10-19 14:35:40\", \"health\": {\"ok\": false, \"url\": \"http://127.0.0.1:54600/pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902/health\", \"checked_at\": 1792391880.614562, \"timeout_s\": 1.0, \"status_code\": 503, \"reason\": \"预览健康检查未通过：HTTP 503（需要约定路径直接返回 2xx）\", \"elapsed_ms\": 0.531}, \"tail\": \"$ '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python' app.py 54600 /pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902 '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/projects/HP/app.db'\\nReady on http://127.0.0.1:54600\\n\"}, \"url\": \"\", \"branch\": \"\", \"cmd\": \"'/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python' app.py {port} {prefix} '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/projects/HP/app.db'\", \"configured\": true, \"auto\": \"off\", \"own_address\": true, \"run_id\": null, \"expected_commit\": \"\", \"matches_run\": null}",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structuredContent": {
+    "preview": {
+      "key": "HP-1",
+      "project": "HP",
+      "branch": "9425cf6ba6c1a0deccb015fc00e549f317f79902",
+      "commit": "9425cf6ba6",
+      "commit_full": "9425cf6ba6c1a0deccb015fc00e549f317f79902",
+      "port": 54600,
+      "prefix": "/pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902",
+      "pid": 72756,
+      "dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/previews/HP-1",
+      "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/projects/HP",
+      "log": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/previews/logs/HP-1/1792391738458543000.log",
+      "cmd": "'/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python' app.py 54600 /pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902 '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/projects/HP/app.db'",
+      "ready": "/health",
+      "state": "unhealthy",
+      "started": "2026-10-19 14:35:38",
+      "by": "agent:health-fixture",
+      "why": "预览健康检查未通过：HTTP 503（需要约定路径直接返回 2xx）",
+      "at": "2026-10-19 14:35:40",
+      "health": {
+        "ok": false,
+        "url": "http://127.0.0.1:54600/pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902/health",
+        "checked_at": 1792391880.614562,
+        "timeout_s": 1.0,
+        "status_code": 503,
+        "reason": "预览健康检查未通过：HTTP 503（需要约定路径直接返回 2xx）",
+        "elapsed_ms": 0.531
+      },
+      "tail": "$ '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python' app.py 54600 /pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902 '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/projects/HP/app.db'\nReady on http://127.0.0.1:54600\n"
+    },
+    "url": "",
+    "branch": "",
+    "cmd": "'/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python' app.py {port} {prefix} '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/projects/HP/app.db'",
+    "configured": true,
+    "auto": "off",
+    "own_address": true,
+    "run_id": null,
+    "expected_commit": "",
+    "matches_run": null
+  },
+  "isError": false
+}

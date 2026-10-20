@@ -1,0 +1,9 @@
+test_a_person_writes_it_pushes_a_branch_and_the_platform_checks_reviews_and_ships_it (tests.test_platform.PlatformApiTest.test_a_person_writes_it_pushes_a_branch_and_the_platform_checks_reviews_and_ships_it) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.592s
+
+OK
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=4, family=2, type=1, proto=0, laddr=('127.0.0.1', 57498)>

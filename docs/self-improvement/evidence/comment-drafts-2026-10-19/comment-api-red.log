@@ -1,0 +1,241 @@
+test_different_requests_can_intentionally_send_identical_comments (test_comment_idempotency.CommentIdempotencyTest.test_different_requests_can_intentionally_send_identical_comments) ... ERROR
+test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay) ... 
+  test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay) (expected='bob') ... FAIL
+  test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay) (expected='') ... FAIL
+  test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay) (expected=None) ... FAIL
+  test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay) (expected=42) ... FAIL
+test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay) ... FAIL
+test_http_session_author_beats_body_and_header_and_switch_is_rejected (test_comment_idempotency.CommentIdempotencyTest.test_http_session_author_beats_body_and_header_and_switch_is_rejected) ... FAIL
+test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) ... 
+  test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token='') ... FAIL
+  test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token='   ') ... FAIL
+  test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token=None) ... FAIL
+  test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token=0) ... FAIL
+  test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token=False) ... FAIL
+  test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token=[]) ... FAIL
+  test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token={}) ... FAIL
+test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) ... FAIL
+test_legacy_call_keeps_response_and_exact_text_without_deduplication (test_comment_idempotency.CommentIdempotencyTest.test_legacy_call_keeps_response_and_exact_text_without_deduplication) ... FAIL
+test_lost_reply_then_new_process_replays_the_committed_comment (test_comment_idempotency.CommentIdempotencyTest.test_lost_reply_then_new_process_replays_the_committed_comment) ... ERROR
+test_receipt_failure_rolls_back_comment_and_touch (test_comment_idempotency.CommentIdempotencyTest.test_receipt_failure_rolls_back_comment_and_touch) ... ERROR
+test_request_is_scoped_to_real_user_ticket_and_database (test_comment_idempotency.CommentIdempotencyTest.test_request_is_scoped_to_real_user_ticket_and_database) ... ok
+test_same_request_changed_text_conflicts_without_touching (test_comment_idempotency.CommentIdempotencyTest.test_same_request_changed_text_conflicts_without_touching) ... FAIL
+test_same_request_returns_same_receipt_and_touches_once (test_comment_idempotency.CommentIdempotencyTest.test_same_request_returns_same_receipt_and_touches_once) ... FAIL
+test_separate_processes_racing_same_request_write_one_comment (test_comment_idempotency.CommentIdempotencyTest.test_separate_processes_racing_same_request_write_one_comment) ... FAIL
+
+======================================================================
+ERROR: test_different_requests_can_intentionally_send_identical_comments (test_comment_idempotency.CommentIdempotencyTest.test_different_requests_can_intentionally_send_identical_comments)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 91, in test_different_requests_can_intentionally_send_identical_comments
+    self.assertNotEqual(first['event_id'], second['event_id'])
+                        ~~~~~^^^^^^^^^^^^
+KeyError: 'event_id'
+
+======================================================================
+ERROR: test_lost_reply_then_new_process_replays_the_committed_comment (test_comment_idempotency.CommentIdempotencyTest.test_lost_reply_then_new_process_replays_the_committed_comment)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 152, in test_lost_reply_then_new_process_replays_the_committed_comment
+    self.assertEqual(reply['event_id'], self.comments()[0]['id'])
+                     ~~~~~^^^^^^^^^^^^
+KeyError: 'event_id'
+
+======================================================================
+ERROR: test_receipt_failure_rolls_back_comment_and_touch (test_comment_idempotency.CommentIdempotencyTest.test_receipt_failure_rolls_back_comment_and_touch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 167, in test_receipt_failure_rolls_back_comment_and_touch
+    self.store.x("CREATE TRIGGER reject_receipt BEFORE INSERT ON comment_receipts BEGIN SELECT RAISE(ABORT, 'fixture receipt failure'); END;")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/store.py", line 126, in x
+    cur = self.db.execute(sql, args)
+sqlite3.OperationalError: no such table: main.comment_receipts
+
+======================================================================
+FAIL: test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay) (expected='bob')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 112, in test_expected_author_mismatch_is_409_before_any_write_or_replay
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay) (expected='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 112, in test_expected_author_mismatch_is_409_before_any_write_or_replay
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay) (expected=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 112, in test_expected_author_mismatch_is_409_before_any_write_or_replay
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay) (expected=42)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 112, in test_expected_author_mismatch_is_409_before_any_write_or_replay
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_expected_author_mismatch_is_409_before_any_write_or_replay (test_comment_idempotency.CommentIdempotencyTest.test_expected_author_mismatch_is_409_before_any_write_or_replay)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 115, in test_expected_author_mismatch_is_409_before_any_write_or_replay
+    self.assertEqual(self.comments(), [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [{'id': 2, 'ticket_id': 1, 'ts': '2026-10-[585 chars] {}}] != []
+
+First list contains 4 additional elements.
+First extra element 0:
+{'id': 2, 'ticket_id': 1, 'ts': '2026-10-19 10:32:10', 'author': 'alice', 'kind': 'comment', 'body': 'do not attribute to the switched account', 'data': {}}
+
+Diff is 745 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_http_session_author_beats_body_and_header_and_switch_is_rejected (test_comment_idempotency.CommentIdempotencyTest.test_http_session_author_beats_body_and_header_and_switch_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 204, in test_http_session_author_beats_body_and_header_and_switch_is_rejected
+    self.assertEqual(send(bob)[0], 409)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 409
+
+======================================================================
+FAIL: test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 127, in test_invalid_token_or_empty_text_has_no_writes
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token='   ')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 127, in test_invalid_token_or_empty_text_has_no_writes
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 127, in test_invalid_token_or_empty_text_has_no_writes
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 127, in test_invalid_token_or_empty_text_has_no_writes
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 127, in test_invalid_token_or_empty_text_has_no_writes
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token=[])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 127, in test_invalid_token_or_empty_text_has_no_writes
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes) (token={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 127, in test_invalid_token_or_empty_text_has_no_writes
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_invalid_token_or_empty_text_has_no_writes (test_comment_idempotency.CommentIdempotencyTest.test_invalid_token_or_empty_text_has_no_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 135, in test_invalid_token_or_empty_text_has_no_writes
+    self.assertEqual(self.comments(), [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [{'id': 2, 'ticket_id': 1, 'ts': '2026-10-[814 chars] {}}] != []
+
+First list contains 7 additional elements.
+First extra element 0:
+{'id': 2, 'ticket_id': 1, 'ts': '2026-10-19 10:32:10', 'author': 'alice', 'kind': 'comment', 'body': 'valid', 'data': {}}
+
+Diff is 1055 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_legacy_call_keeps_response_and_exact_text_without_deduplication (test_comment_idempotency.CommentIdempotencyTest.test_legacy_call_keeps_response_and_exact_text_without_deduplication)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 76, in test_legacy_call_keeps_response_and_exact_text_without_deduplication
+    self.assertEqual([c['body'] for c in self.comments()], [text, text])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['legacy full text', 'legacy full text'] != ['\n  legacy full text  \r\n', '\n  legacy full text  \r\n']
+
+First differing element 0:
+'legacy full text'
+'\n  legacy full text  \r\n'
+
+- ['legacy full text', 'legacy full text']
++ ['\n  legacy full text  \r\n', '\n  legacy full text  \r\n']
+?   ++++                ++++++    ++++                ++++++
+
+
+======================================================================
+FAIL: test_same_request_changed_text_conflicts_without_touching (test_comment_idempotency.CommentIdempotencyTest.test_same_request_changed_text_conflicts_without_touching)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 81, in test_same_request_changed_text_conflicts_without_touching
+    with self.assertRaises(ApiError) as caught:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError: ApiError not raised
+
+======================================================================
+FAIL: test_same_request_returns_same_receipt_and_touches_once (test_comment_idempotency.CommentIdempotencyTest.test_same_request_returns_same_receipt_and_touches_once)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 67, in test_same_request_returns_same_receipt_and_touches_once
+    self.assertEqual(len(self.comments()), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_separate_processes_racing_same_request_write_one_comment (test_comment_idempotency.CommentIdempotencyTest.test_separate_processes_racing_same_request_write_one_comment)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_idempotency.py", line 163, in test_separate_processes_racing_same_request_write_one_comment
+    self.assertEqual(len(self.comments()), 1)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 5 != 1
+
+----------------------------------------------------------------------
+Ran 11 tests in 1.053s
+
+FAILED (failures=18, errors=3)

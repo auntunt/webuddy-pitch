@@ -1,0 +1,6 @@
+test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree (tests.test_run_lifecycle.RunLifecycleTest.test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.239s
+
+OK

@@ -1,0 +1,201 @@
+Browser tab: 15, Title: "Webuddy · 隔离崩溃验收", URL: "http://127.0.0.1:8797/#/t/CRASH-1".
+0 AXWebArea Webuddy · 隔离崩溃验收, URL: 127.0.0.1:8797/#/t/CRASH-1
+	1 link Description: 跳到主要内容, Value: 127.0.0.1:8797/#main
+	2 container top
+		3 link Description: Webuddy 交付工作台, Value: 127.0.0.1:8797/#/deliveries
+		4 pop up button (collapsed, settable) Description: 项目范围, Help: 这一页属于哪个项目, Value: CRASH · 服务中断恢复 · 合成验收, ID: projSel, Secondary Actions: Expand
+			5 menu
+				6 (selected) CRASH · 服务中断恢复 · 合成验收
+				7 全部项目
+				8 ＋ 添加项目…
+		9 button 20,000 点, Help: 点卡：只有生成类动作扣点, ID: ptsBtn
+			10 text 20,000
+			11 text 点
+		12 button Description: 录入客户需求, ID: sayGo
+			13 text ＋
+			14 text  录入需求
+		15 button (collapsed) AI 助手 Ctrl K, Help: AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）, ID: astToggle, Secondary Actions: Expand
+			16 text AI 助手 
+			17 text Ctrl K
+		18 button Description: 合成验收，用户与设置, Help: 用户与设置, ID: me
+	19 container page
+		20 container Description: 主导航, ID: nav5
+			21 link Description: 交付, Value: 127.0.0.1:8797/#/deliveries
+			22 link Description: 今天, Value: 127.0.0.1:8797/#/today
+			23 link Description: 客户, Value: 127.0.0.1:8797/#/clients
+			24 link Description: 需求, Value: 127.0.0.1:8797/#/reqs
+			25 link Description: 版本, Value: 127.0.0.1:8797/#/versions
+			26 link Description: 工程, Value: 127.0.0.1:8797/#/board
+		27 container main
+			28 container
+				29 link Description: 需求, Value: 127.0.0.1:8797/#/reqs
+				30 text  / CRASH / CRASH-1
+			31 heading 服务中断后保留草稿并继续（合成验收）, Help: 点击修改, Value: 1, ID: ttl
+				32 text 服务中断后保留草稿并继续（合成验收）
+			206 text 处理中
+			34 button 在助手中讨论
+			35 text CRASH
+			36 container
+				37 text 状态
+				38 pop up button (collapsed, settable) 状态, Value: 处理中, ID: fs, Secondary Actions: Expand
+					39 menu
+						40 新建
+						41 分析中
+						42 待确认
+						43 (selected) 处理中
+						44 待验证
+			45 container
+				46 text 类型
+				47 pop up button (collapsed, settable) 类型, Value: 缺陷, ID: fy, Secondary Actions: Expand
+					48 menu
+						49 (selected) 缺陷
+						50 需求
+						51 变更
+						52 咨询
+						53 运维
+			54 container
+				55 text 优先级
+				56 pop up button (collapsed, settable) 优先级, Value: 中, ID: fp, Secondary Actions: Expand
+					57 menu
+						58 紧急
+						59 高
+						60 (selected) 中
+						61 低
+			62 container
+				63 text 经办人
+				64 text field (settable) 经办人, ID: fa
+			65 text 合成验收 提交 · 10-19 06:31
+			66 container tTop
+				207 text 待复核 改好了，等你审阅
+				208 definition list
+					209 container 客户要的
+						210 text 客户要的
+					211 text 本工单是隔离的合成验证，不是真实客户需求。
+					212 container 下一步
+						213 text 下一步
+					214 container
+						215 text 运行 #3：没跑构建测试（设置为不跑构建测试），诊断没给结论，共 1 轮。智能体改好了代码， 等你审阅 。采纳后提交到独立分支，不动你的工作目录。
+				216 button 我来写, ID: ttHw
+			76 container
+				77 link Description: 工单详情, Value: 127.0.0.1:8797/#/t/CRASH-1
+				78 link Description: 提示词, Value: 127.0.0.1:8797/#/t/CRASH-1/prompt
+			217 content list
+				218 container
+					219 text ✓ 受理 合成验收 · 2 分钟前
+				220 container
+					221 text 2 分析定位
+				222 container
+					223 text 3 修改方案
+				224 container
+					225 text 4 修改代码 待审阅
+				226 container
+					227 text 5 人工验收 等待审阅最新改动
+				228 container
+					229 text 6 闭环
+			92 definition list
+				93 container 现象
+					94 text 现象
+				95 text 本工单是隔离的合成验证，不是真实客户需求。
+				96 container 根因
+					97 text 根因
+				98 text 还没有分析
+				99 container 证据
+					100 text 证据
+				101 text 分析后在这里列出核实和推断的条数
+				102 container 等谁
+					103 text 等谁
+				230 container tNextText
+					231 text 运行 #3：没跑构建测试（设置为不跑构建测试），诊断没给结论，共 1 轮。智能体改好了代码， 等你审阅 。采纳后提交到独立分支，不动你的工作目录。
+			232 button 审阅改动, ID: naReview
+			106 button (collapsed) ▸ 完整描述 原话、理解、补充的信息和验收标准, Secondary Actions: Expand
+				188 text ▸
+				108 text 完整描述
+				109 text 原话、理解、补充的信息和验收标准
+			110 heading 动态与讨论, Value: 2
+				111 text 动态与讨论
+			112 container tl
+				113 container
+					114 text 合成验收  创建工单 2 分钟前
+				115 container
+					116 text 合成验收  让 本地合成崩溃检查器（不调用模型） 修改代码 
+					117 link Description: #1, Value: javascript:void%200
+					118 text 1 分钟前
+				119 container
+					120 text 合成验收  新建 → 处理中 1 分钟前
+			121 text entry area (settable) Value: 崩溃恢复验收草稿：刷新与重新运行不能丢失。, ID: cm
+			122 button 评论, ID: cb
+			137 container aiCard
+				138 button (expanded) ▾ 执行记录与手动运行 2 次运行 · 共 30 点, Secondary Actions: Collapse
+					189 text ▾
+					140 text 执行记录与手动运行
+					233 text 2 次运行 · 共 30 点
+				142 text 手动指派：
+				143 pop up button (collapsed, settable) ID: ag, Secondary Actions: Expand
+					144 menu
+						145 Claude Code
+						146 Codex
+						147 本地合成崩溃检查器（不调用模型）
+				148 pop up button (collapsed, settable) Description: 模型, Help: 这次用哪个模型；自动＝按任务类型选, Value: 自动：沿用本机设置, ID: md, Secondary Actions: Expand
+					149 menu
+						150 (selected) 自动：沿用本机设置
+						151 沿用本机设置
+				152 button 分析定位
+				153 button 修改方案
+				154 button 修改代码
+				155 checkbox (settable, integer) Description: 分析定位后，顺手补写涉及的业务流知识页（最多 2 页，只补还没写的）, Value: 1, ID: kbAfter
+				156 text 分析定位、修改方案只读代码；修改代码在独立的 git 工作树里进行，改动经你审阅后才采纳。
+				157 text 人工验收 通常在“待验证”时做；也可以直接在这里验收
+				158 text entry area (settable) accNote
+				159 button 验收通过, ID: accOk
+				160 button 验收不通过, ID: accNo
+				161 button 让助手起草验收说明, ID: accDraft
+				162 container runv
+					234 text #3 crash-fixture · 修改代码
+					235 text 完成 合成验收 刚刚
+					236 link Description: 提示词, Value: javascript:void%200
+					237 container 运行时限与停止状态
+						238 text 本轮执行已结束，进程回收完成。
+						239 text 开始：2026-10-19 06:34:03 · 整次任务总时限：120 秒 · 已记录耗时：0.233 秒
+						240 button (collapsed) 查看每次执行的退出与回收结果（1 次）, Secondary Actions: Expand
+							241 text 查看每次执行的退出与回收结果（1 次）
+						242 button (collapsed) 查看完整运行停止回执, Secondary Actions: Expand
+							243 text 查看完整运行停止回执
+					244 tab group 运行记录
+						245 tab (selected, settable, boolean) 结论, Value: 1
+						246 tab (selectable, settable, boolean) 代码改动, Value: 0
+						247 tab (selectable, settable, boolean) 实际验证, Value: 0
+						248 tab (selectable, settable, boolean) 过程, Value: 0
+					249 text 验证：没有跑构建测试（设置为不跑构建测试），诊断没有给出结论（1 轮）
+					250 heading 每一轮, Value: 2
+						251 text 每一轮
+					252 content list
+						253 container
+							254 AXListMarker • 
+							255 text 第 1 轮：改了 1 个文件；没跑构建测试，改动不大，不另做诊断，交给人验收
+					256 heading 改了什么, Value: 2
+						257 text 改了什么
+					258 text SYNTHETIC RETRY OBSERVED {"draft": "VALUE = 1\n# preserved unfinished synthetic implementation\n", "note": "完整未跟踪说明：服务中断前已写入，续跑必须保留。\n", "workdir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/crash-browser-2026-10-19/worktrees/CRASH-1-r3"} 本地合成检查器读回保留改动并继续完成。没有调用模型，没有执行客户验收；check:none。
+					259 container
+						260 heading 试用本次改动, Value: 3
+							261 text 试用本次改动
+						262 text 代码与验证结果在上方。将改动保存到独立分支后，就可以启动对应版本的预览。
+						263 button 采纳到独立分支
+						264 button 放弃改动
+						265 button 重新验证本次改动
+						266 text 先核对代码与验证结果，再采纳到独立分支，才能预览这次改动。采纳不会合并主干，也不代表用户已验收。
+				201 container tRunHistory
+					267 text 全部运行：
+					268 link Description: #3 修改代码 · 30 点, Value: javascript:void%200
+					269 link Description: #1 修改代码, Value: javascript:void%200
+			127 container pkg
+				128 container pkSummary
+					129 heading 证据包, Value: 2
+						130 text 证据包
+					131 text 未生成
+					132 text 工单转到“待验证”时自动打包：验收标准、方案、改动、构建测试、范围和业务流检查。
+			133 button (collapsed) ▸ 工程细节 我来写、代码改动、候选代码入口、相关业务, Secondary Actions: Expand
+				205 text ▸
+				135 text 工程细节
+				136 text 我来写、代码改动、候选代码入口、相关业务
+
+The focused UI element is 0 AXWebArea Webuddy · 隔离崩溃验收, URL: 127.0.0.1:8797/#/t/CRASH-1

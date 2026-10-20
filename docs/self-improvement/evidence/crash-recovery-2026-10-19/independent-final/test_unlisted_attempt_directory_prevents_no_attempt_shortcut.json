@@ -1,0 +1,164 @@
+{
+  "test": "tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_unlisted_attempt_directory_prevents_no_attempt_shortcut",
+  "temporary_directory": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-zsn1c5vu",
+  "unlisted_attempt_recovered": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:31:29",
+      "started": "2026-10-19 06:31:29",
+      "ended": "2026-10-19 06:31:29",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n发现生命周期之外的过程目录，不能确认全部进程已结束\n",
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:31:29",
+      "timeout_seconds": 10.0,
+      "stopped_reason": "owner_lost",
+      "attempts": [],
+      "finished": false,
+      "owner": {
+        "token": "73dad200b8da4aeb8fd3eab3ac40c0f0",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-zsn1c5vu"
+      },
+      "elapsed_seconds": 0.0,
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "发现生命周期之外的过程目录，不能确认全部进程已结束"
+        ]
+      }
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {
+      "runs/1/attempts/0001/unresolved-original.bin": "bm90IGxpc3RlZCBpbiBsaWZlY3ljbGUA/w=="
+    }
+  },
+  "before_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:31:29",
+      "started": "2026-10-19 06:31:29",
+      "ended": "2026-10-19 06:31:29",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n发现生命周期之外的过程目录，不能确认全部进程已结束\n",
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:31:29",
+      "timeout_seconds": 10.0,
+      "stopped_reason": "owner_lost",
+      "attempts": [],
+      "finished": false,
+      "owner": {
+        "token": "73dad200b8da4aeb8fd3eab3ac40c0f0",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-zsn1c5vu"
+      },
+      "elapsed_seconds": 0.0,
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "发现生命周期之外的过程目录，不能确认全部进程已结束"
+        ]
+      }
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {
+      "runs/1/attempts/0001/unresolved-original.bin": "bm90IGxpc3RlZCBpbiBsaWZlY3ljbGUA/w=="
+    }
+  },
+  "fixture_cleanup_signals": [],
+  "after_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "failed",
+      "author": "fixture",
+      "created": "2026-10-19 06:31:29",
+      "started": "2026-10-19 06:31:29",
+      "ended": "2026-10-19 06:31:29",
+      "prompt": "完整原始任务",
+      "output": "\n— 平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。\n发现生命周期之外的过程目录，不能确认全部进程已结束\n",
+      "result": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+      "diff": "",
+      "exit_code": 125,
+      "workdir": "",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:31:29",
+      "timeout_seconds": 10.0,
+      "stopped_reason": "owner_lost",
+      "attempts": [],
+      "finished": false,
+      "owner": {
+        "token": "73dad200b8da4aeb8fd3eab3ac40c0f0",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-zsn1c5vu"
+      },
+      "elapsed_seconds": 0.0,
+      "recovery": {
+        "state": "blocked",
+        "reason": "平台服务中断；尚无法确认全部进程和输出已收完，保留现场并阻止续跑。",
+        "evidence": "runs/1/restart-recovery",
+        "output_complete": false,
+        "errors": [
+          "发现生命周期之外的过程目录，不能确认全部进程已结束"
+        ]
+      }
+    },
+    "workers": [],
+    "draft_base64": "VkFMVUUgPSAwCg==",
+    "attempt_files": {
+      "runs/1/attempts/0001/unresolved-original.bin": "bm90IGxpc3RlZCBpbiBsaWZlY3ljbGUA/w=="
+    }
+  }
+}

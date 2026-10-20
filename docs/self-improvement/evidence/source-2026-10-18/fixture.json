@@ -1,0 +1,244 @@
+{
+  "notice": "SYNTHETIC · 版本绑定回归夹具（非客户数据、非真人审批）",
+  "data": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification",
+  "project_root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/fixture-repo",
+  "delivery_id": "2110f703e4b6",
+  "ticket": "SRCFIX-1",
+  "main_commit": "f19d7990fb1251f0178c8f4d824e0fd49b009bf5",
+  "candidate_commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+  "moved_branch_commit": "601944d1b518f18c6d5f3844e4e2d9d1364ad4f9",
+  "candidate_file_sha256": "2948c9f08b240608881d51a7f31f4461f67085a5463dcc0f101ae470000870a5",
+  "plan_run": 1,
+  "implementation_run": 2,
+  "newer_unreviewed_plan_run": 3,
+  "source": {
+    "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+    "implementation_run": 2,
+    "plan_run": 1,
+    "plan_artifact": 3,
+    "plan_review": 3,
+    "implementation_artifact": 4,
+    "implementation_review": 4
+  },
+  "signoff_binding": {
+    "delivery_id": "2110f703e4b6",
+    "valid": false,
+    "blocked": [
+      "测试与质量尚未针对当前实现复核",
+      "安全检查尚未针对当前实现复核"
+    ],
+    "plan_run": 1,
+    "fix_run": 2,
+    "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+    "identity": {
+      "delivery_id": "2110f703e4b6",
+      "ticket_id": 1,
+      "source": {
+        "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4",
+        "implementation_run": 2,
+        "plan_run": 1,
+        "plan_artifact": 3,
+        "plan_review": 3,
+        "implementation_artifact": 4,
+        "implementation_review": 4
+      },
+      "stages": {
+        "requirements": {
+          "artifact_id": 1,
+          "version": 1,
+          "source_run": null,
+          "review_id": 1,
+          "state": "approved",
+          "inputs": {}
+        },
+        "design": {
+          "artifact_id": 2,
+          "version": 1,
+          "source_run": null,
+          "review_id": 2,
+          "state": "approved",
+          "inputs": {
+            "requirements": {
+              "artifact": 1,
+              "inputs": {},
+              "review": 1
+            }
+          }
+        },
+        "develop": {
+          "artifact_id": 4,
+          "version": 2,
+          "source_run": 2,
+          "review_id": 4,
+          "state": "approved",
+          "inputs": {
+            "$execution": "a07823dd0fc7e6aeee0f5c8ba98162ce509bd0c146f4f9eccc19632b62b5e596",
+            "design": {
+              "artifact": 2,
+              "inputs": {
+                "requirements": {
+                  "artifact": 1,
+                  "inputs": {},
+                  "review": 1
+                }
+              },
+              "review": 2
+            },
+            "requirements": {
+              "artifact": 1,
+              "inputs": {},
+              "review": 1
+            }
+          }
+        },
+        "quality": {
+          "artifact_id": null,
+          "version": null,
+          "source_run": null,
+          "review_id": null,
+          "state": "not_started",
+          "inputs": {}
+        },
+        "security": {
+          "artifact_id": null,
+          "version": null,
+          "source_run": null,
+          "review_id": null,
+          "state": "not_started",
+          "inputs": {}
+        },
+        "release": {
+          "artifact_id": null,
+          "version": null,
+          "source_run": null,
+          "review_id": null,
+          "state": "not_started",
+          "inputs": {}
+        }
+      }
+    },
+    "stages": {
+      "requirements": {
+        "artifact_id": 1,
+        "version": 1,
+        "source_run": null,
+        "review_id": 1,
+        "state": "approved",
+        "inputs": {}
+      },
+      "design": {
+        "artifact_id": 2,
+        "version": 1,
+        "source_run": null,
+        "review_id": 2,
+        "state": "approved",
+        "inputs": {
+          "requirements": {
+            "artifact": 1,
+            "inputs": {},
+            "review": 1
+          }
+        }
+      },
+      "develop": {
+        "artifact_id": 4,
+        "version": 2,
+        "source_run": 2,
+        "review_id": 4,
+        "state": "approved",
+        "inputs": {
+          "$execution": "a07823dd0fc7e6aeee0f5c8ba98162ce509bd0c146f4f9eccc19632b62b5e596",
+          "design": {
+            "artifact": 2,
+            "inputs": {
+              "requirements": {
+                "artifact": 1,
+                "inputs": {},
+                "review": 1
+              }
+            },
+            "review": 2
+          },
+          "requirements": {
+            "artifact": 1,
+            "inputs": {},
+            "review": 1
+          }
+        }
+      },
+      "quality": {
+        "artifact_id": null,
+        "version": null,
+        "source_run": null,
+        "review_id": null,
+        "state": "not_started",
+        "inputs": {}
+      },
+      "security": {
+        "artifact_id": null,
+        "version": null,
+        "source_run": null,
+        "review_id": null,
+        "state": "not_started",
+        "inputs": {}
+      },
+      "release": {
+        "artifact_id": null,
+        "version": null,
+        "source_run": null,
+        "review_id": null,
+        "state": "not_started",
+        "inputs": {}
+      }
+    }
+  },
+  "baseline_checks": [
+    {
+      "name": "test_quality.py",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_quality.py",
+      "exit_code": 1,
+      "output": "test_total_multiplies_quantity_and_price (__main__.QualityBehavior.test_total_multiplies_quantity_and_price) ... FAIL\ntest_zero_quantity_has_zero_total (__main__.QualityBehavior.test_zero_quantity_has_zero_total) ... FAIL\n\n======================================================================\nFAIL: test_total_multiplies_quantity_and_price (__main__.QualityBehavior.test_total_multiplies_quantity_and_price)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/fixture-repo/test_quality.py\", line 5, in test_total_multiplies_quantity_and_price\n    self.assertEqual(quote_total(3, 7), 21)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 10 != 21\n\n======================================================================\nFAIL: test_zero_quantity_has_zero_total (__main__.QualityBehavior.test_zero_quantity_has_zero_total)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/fixture-repo/test_quality.py\", line 7, in test_zero_quantity_has_zero_total\n    self.assertEqual(quote_total(0, 7), 0)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 7 != 0\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nFAILED (failures=2)\n",
+      "commit": "f19d7990fb1251f0178c8f4d824e0fd49b009bf5"
+    },
+    {
+      "name": "test_security.py",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_security.py",
+      "exit_code": 1,
+      "output": "test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed) ... FAIL\ntest_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed) ... FAIL\n\n======================================================================\nFAIL: test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/fixture-repo/test_security.py\", line 6, in test_secret_fields_are_not_exposed\n    self.assertEqual(public_profile(source), {\"id\": 4, \"name\": \"fixture\"})\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'id': 4, 'name': 'fixture', 'token': 'synthetic-not-a-secret', 'role': 'admin'} != {'id': 4, 'name': 'fixture'}\n- {'id': 4, 'name': 'fixture', 'role': 'admin', 'token': 'synthetic-not-a-secret'}\n+ {'id': 4, 'name': 'fixture'}\n\n======================================================================\nFAIL: test_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/fixture-repo/test_security.py\", line 8, in test_unknown_fields_are_not_exposed\n    self.assertEqual(public_profile({\"extra\": \"private fixture data\"}), {})\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'extra': 'private fixture data'} != {}\n- {'extra': 'private fixture data'}\n+ {}\n\n----------------------------------------------------------------------\nRan 2 tests in 0.004s\n\nFAILED (failures=2)\n",
+      "commit": "f19d7990fb1251f0178c8f4d824e0fd49b009bf5"
+    }
+  ],
+  "candidate_checks": [
+    {
+      "name": "test_quality.py",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_quality.py",
+      "exit_code": 0,
+      "output": "test_total_multiplies_quantity_and_price (__main__.QualityBehavior.test_total_multiplies_quantity_and_price) ... ok\ntest_zero_quantity_has_zero_total (__main__.QualityBehavior.test_zero_quantity_has_zero_total) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+      "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4"
+    },
+    {
+      "name": "test_security.py",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_security.py",
+      "exit_code": 0,
+      "output": "test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed) ... ok\ntest_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.000s\n\nOK\n",
+      "commit": "33ff44aa230e1f1d7818663b2a9172d8942543d4"
+    }
+  ],
+  "moved_branch_checks": [
+    {
+      "name": "test_quality.py",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_quality.py",
+      "exit_code": 1,
+      "output": "test_total_multiplies_quantity_and_price (__main__.QualityBehavior.test_total_multiplies_quantity_and_price) ... FAIL\ntest_zero_quantity_has_zero_total (__main__.QualityBehavior.test_zero_quantity_has_zero_total) ... FAIL\n\n======================================================================\nFAIL: test_total_multiplies_quantity_and_price (__main__.QualityBehavior.test_total_multiplies_quantity_and_price)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/fixture-repo/test_quality.py\", line 5, in test_total_multiplies_quantity_and_price\n    self.assertEqual(quote_total(3, 7), 21)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 22 != 21\n\n======================================================================\nFAIL: test_zero_quantity_has_zero_total (__main__.QualityBehavior.test_zero_quantity_has_zero_total)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/fixture-repo/test_quality.py\", line 7, in test_zero_quantity_has_zero_total\n    self.assertEqual(quote_total(0, 7), 0)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 1 != 0\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nFAILED (failures=2)\n",
+      "commit": "601944d1b518f18c6d5f3844e4e2d9d1364ad4f9"
+    },
+    {
+      "name": "test_security.py",
+      "cmd": "/opt/homebrew/opt/python@3.14/bin/python3.14 -B test_security.py",
+      "exit_code": 1,
+      "output": "test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed) ... FAIL\ntest_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed) ... FAIL\n\n======================================================================\nFAIL: test_secret_fields_are_not_exposed (__main__.PublicProfileBoundary.test_secret_fields_are_not_exposed)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/fixture-repo/test_security.py\", line 6, in test_secret_fields_are_not_exposed\n    self.assertEqual(public_profile(source), {\"id\": 4, \"name\": \"fixture\"})\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'id': 4, 'name': 'fixture', 'token': 'synthetic-not-a-secret', 'role': 'admin'} != {'id': 4, 'name': 'fixture'}\n- {'id': 4, 'name': 'fixture', 'role': 'admin', 'token': 'synthetic-not-a-secret'}\n+ {'id': 4, 'name': 'fixture'}\n\n======================================================================\nFAIL: test_unknown_fields_are_not_exposed (__main__.PublicProfileBoundary.test_unknown_fields_are_not_exposed)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/source-verification/fixture-repo/test_security.py\", line 8, in test_unknown_fields_are_not_exposed\n    self.assertEqual(public_profile({\"extra\": \"private fixture data\"}), {})\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'extra': 'private fixture data'} != {}\n- {'extra': 'private fixture data'}\n+ {}\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nFAILED (failures=2)\n",
+      "commit": "601944d1b518f18c6d5f3844e4e2d9d1364ad4f9"
+    }
+  ],
+  "browser_url": "http://127.0.0.1:8795/#/delivery/2110f703e4b6/quality"
+}

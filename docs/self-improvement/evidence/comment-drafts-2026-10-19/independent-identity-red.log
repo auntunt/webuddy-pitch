@@ -1,0 +1,115 @@
+test_authenticated_actor_uses_server_identity_not_stale_local_display_name (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_authenticated_actor_uses_server_identity_not_stale_local_display_name) ... FAIL
+test_changed_authenticated_identity_blocks_old_submit_handler (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_changed_authenticated_identity_blocks_old_submit_handler) ... FAIL
+test_corrupt_pending_metadata_never_overwrites_original_record (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_corrupt_pending_metadata_never_overwrites_original_record) ... ok
+test_edit_away_and_back_during_send_is_a_new_draft_even_when_text_matches (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_edit_away_and_back_during_send_is_a_new_draft_even_when_text_matches) ... ok
+test_failure_to_remove_completed_record_retries_same_receipt_without_loss (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_failure_to_remove_completed_record_retries_same_receipt_without_loss) ... ok
+test_identity_change_blocks_old_handler_and_keeps_both_scoped_bodies (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_identity_change_blocks_old_handler_and_keeps_both_scoped_bodies) ... ok
+test_late_receipt_after_leaving_and_returning_refreshes_the_current_ticket (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_late_receipt_after_leaving_and_returning_refreshes_the_current_ticket) ... ok
+test_long_unicode_author_matches_server_codepoint_identity_without_truncating_draft (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_long_unicode_author_matches_server_codepoint_identity_without_truncating_draft) ... FAIL
+test_pending_retry_never_sends_new_draft_and_new_send_gets_new_receipt (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_pending_retry_never_sends_new_draft_and_new_send_gets_new_receipt) ... ok
+test_quota_failure_never_posts_unrecoverable_request_or_truncates_body (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_quota_failure_never_posts_unrecoverable_request_or_truncates_body) ... ok
+test_real_summary_refresh_updates_discussion_without_replacing_selected_file (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_real_summary_refresh_updates_discussion_without_replacing_selected_file) ... ok
+test_unmatched_receipt_preserves_pending_and_edited_body_after_reload (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_unmatched_receipt_preserves_pending_and_edited_body_after_reload) ... ok
+
+======================================================================
+FAIL: test_authenticated_actor_uses_server_identity_not_stale_local_display_name (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_authenticated_actor_uses_server_identity_not_stale_local_display_name)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_drafts_independent.py", line 131, in test_authenticated_actor_uses_server_identity_not_stale_local_display_name
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    S.meta.login=true;S.meta.user='实际登录者😀';S.user='旧的本地显示名';mount();type('仅由实际登录者提交');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    await nodes.cb.onclick();assert.equal(requests.length,1);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    assert.equal(requests[0].body.expected_author,'实际登录者😀');assert.equal(S.user,'旧的本地显示名');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_drafts_independent.py", line 50, in run_js
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ '旧的本地显示名'
+- '实际登录者😀'
+
+    at evalmachine.<anonymous>:100:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '旧的本地显示名',
+  expected: '实际登录者😀',
+  operator: 'strictEqual'
+}
+
+
+======================================================================
+FAIL: test_changed_authenticated_identity_blocks_old_submit_handler (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_changed_authenticated_identity_blocks_old_submit_handler)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_drafts_independent.py", line 138, in test_changed_authenticated_identity_blocks_old_submit_handler
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    S.meta.login=true;S.meta.user='alice';S.user='保留的显示名';mount();type('只属于 Alice 的草稿');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    assert.equal(nodes.cm.value,'只属于 Alice 的草稿');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_drafts_independent.py", line 50, in run_js
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: a handler captured for Alice must not transmit after authenticated identity changes
+
+1 !== 0
+
+    at evalmachine.<anonymous>:100:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual'
+}
+
+
+======================================================================
+FAIL: test_long_unicode_author_matches_server_codepoint_identity_without_truncating_draft (tests.test_comment_drafts_independent.CommentDraftIndependentTest.test_long_unicode_author_matches_server_codepoint_identity_without_truncating_draft)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_drafts_independent.py", line 122, in test_long_unicode_author_matches_server_codepoint_identity_without_truncating_draft
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    S.user='😀'.repeat(41)+'A';mount();const original='  正文仍须完整\n'+'内容😀'.repeat(300)+'\n尾部  ';type(original);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    assert.equal(S.user,'😀'.repeat(41)+'A');assert.equal(requests[0].body.body,original);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_comment_drafts_independent.py", line 50, in run_js
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ '😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀A'
+- '😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀'
+
+    at evalmachine.<anonymous>:100:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀A',
+  expected: '😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀',
+  operator: 'strictEqual'
+}
+
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.526s
+
+FAILED (failures=3)

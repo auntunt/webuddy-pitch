@@ -1,0 +1,24 @@
+test_acceptance_teaches_and_grows_the_eval_set (test_platform.PlatformApiTest.test_acceptance_teaches_and_grows_the_eval_set) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 502: 'Bad Gateway'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ERROR
+
+======================================================================
+ERROR: test_acceptance_teaches_and_grows_the_eval_set (test_platform.PlatformApiTest.test_acceptance_teaches_and_grows_the_eval_set)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_platform.py", line 1239, in test_acceptance_teaches_and_grows_the_eval_set
+    t, branch = self.fixed("请假审批提交后状态不刷新")
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_platform.py", line 802, in fixed
+    _, t = self.call("POST", "/api/tickets", {"project": self.project(), "title": title, "body": "提交后状态没变"})
+                                                         ~~~~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_platform.py", line 220, in project
+    if not any(x["key"] == "OA" for x in ps):
+                                         ^^
+TypeError: 'NoneType' object is not iterable
+
+----------------------------------------------------------------------
+Ran 1 test in 1.766s
+
+FAILED (errors=1)
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=4, family=2, type=1, proto=0, laddr=('127.0.0.1', 63048)>

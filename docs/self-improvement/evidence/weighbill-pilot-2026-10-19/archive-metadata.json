@@ -1,0 +1,11 @@
+{
+  "saved_at": "2026-10-19T09:09:07.277422+00:00",
+  "platform_head": "8e05c2af64128d06966160871c3b2126b765f8e6",
+  "business_base": "60d6422ee898959557fc529a8e0335524b5ee2c0",
+  "business_head": "ab9601e305bf9efdf908554174c56ca101194405",
+  "bundle_prerequisite": "60d6422ee898959557fc529a8e0335524b5ee2c0",
+  "source": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019",
+  "image_treatment": "Original screenshot/photo bytes copied; no resizing or re-encoding.",
+  "database": "preview-consistent-snapshot.db is the valid online backup; preview-data/ also retains original raw SQLite/WAL/SHM files as captured.",
+  "script_location": "Scripts originally ran under data/weighbill-pilot-20261019 and some resolve that directory; archived scripts are provenance, not directly runnable from this archive."
+}

@@ -1,0 +1,13 @@
+test_corrupt_lifecycle_of_lost_known_owner_is_visible_blocked_not_running_forever (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_corrupt_lifecycle_of_lost_known_owner_is_visible_blocked_not_running_forever) ... ok
+test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture) ... ok
+test_queued_owned_run_with_no_attempts_can_end_without_inventing_a_process (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_queued_owned_run_with_no_attempts_can_end_without_inventing_a_process) ... ok
+test_receipt_from_another_real_run_cannot_prove_this_run_was_cleaned (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_receipt_from_another_real_run_cannot_prove_this_run_was_cleaned) ... ok
+test_second_runner_cannot_fail_or_recover_a_live_service_owners_run (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_second_runner_cannot_fail_or_recover_a_live_service_owners_run) ... ok
+test_service_crash_after_done_row_before_lifecycle_seal_is_reconciled (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_service_crash_after_done_row_before_lifecycle_seal_is_reconciled) ... ok
+test_service_sigkill_reclaims_descendants_and_recovers_preserved_work (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_service_sigkill_reclaims_descendants_and_recovers_preserved_work) ... ok
+test_unlisted_attempt_directory_prevents_no_attempt_shortcut (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_unlisted_attempt_directory_prevents_no_attempt_shortcut) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 3.158s
+
+OK

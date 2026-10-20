@@ -1,0 +1,16 @@
+test_acceptance_teaches_and_grows_the_eval_set (tests.test_platform.PlatformApiTest.test_acceptance_teaches_and_grows_the_eval_set) ... SECOND_REJECTION_RESPONSE (409, {'error': '验证依据正在使用，稍后再处理签收：该来源正在复检或处理采纳决定，请稍后再试'})
+ERROR
+
+======================================================================
+ERROR: test_acceptance_teaches_and_grows_the_eval_set (tests.test_platform.PlatformApiTest.test_acceptance_teaches_and_grows_the_eval_set)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_platform.py", line 1299, in test_acceptance_teaches_and_grows_the_eval_set
+    self.assertEqual((code, rejected["status"]), (200, "doing"))
+                            ~~~~~~~~^^^^^^^^^^
+KeyError: 'status'
+
+----------------------------------------------------------------------
+Ran 1 test in 6.530s
+
+FAILED (errors=1)

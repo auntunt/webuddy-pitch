@@ -1,0 +1,705 @@
+{
+  "app": "/tmp/webuddy-bounded-edit-20261018/app.py",
+  "source_sha256": "7b3f7f05591c4e473a421ee9334d1bb716a280d87c79c69fa77737fb73fd2b76",
+  "checks": [
+    {
+      "name": " create baseline",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": " create baseline",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": " malformed UTF-8 rejected /items/1/edit %FF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": " malformed UTF-8 cannot alter rows %FF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": " malformed UTF-8 rejected /items %FF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": " malformed UTF-8 cannot alter rows %FF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": " malformed UTF-8 rejected /items/1/edit %E4%B8",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": " malformed UTF-8 cannot alter rows %E4%B8",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": " malformed UTF-8 rejected /items %E4%B8",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": " malformed UTF-8 cannot alter rows %E4%B8",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": " malformed UTF-8 rejected /items/1/edit %C0%AF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": " malformed UTF-8 cannot alter rows %C0%AF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": " malformed UTF-8 rejected /items %C0%AF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": " malformed UTF-8 cannot alter rows %C0%AF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": " malformed UTF-8 rejected /items/1/edit %ED%A0%80",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": " malformed UTF-8 cannot alter rows %ED%A0%80",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": " malformed UTF-8 rejected /items %ED%A0%80",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": " malformed UTF-8 cannot alter rows %ED%A0%80",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": " malformed UTF-8 within recovery window 8192",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": " malformed window cannot alter rows",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": " malformed UTF-8 within recovery window 65536",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": " malformed window cannot alter rows",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": " literal replacement character is valid text",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "合法替换字符 � 中文",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": " complete 1000 Chinese character recovery",
+      "passed": true,
+      "detail": {
+        "status": 413,
+        "bytes": 9055
+      }
+    },
+    {
+      "name": " over window rejected before request body",
+      "passed": true,
+      "detail": {
+        "status": 413,
+        "connection": "close"
+      }
+    },
+    {
+      "name": "/demo create baseline",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "/demo create baseline",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "/demo malformed UTF-8 rejected /demo/items/1/edit %FF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/demo malformed UTF-8 cannot alter rows %FF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/demo malformed UTF-8 rejected /demo/items %FF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/demo malformed UTF-8 cannot alter rows %FF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/demo malformed UTF-8 rejected /demo/items/1/edit %E4%B8",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/demo malformed UTF-8 cannot alter rows %E4%B8",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/demo malformed UTF-8 rejected /demo/items %E4%B8",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/demo malformed UTF-8 cannot alter rows %E4%B8",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/demo malformed UTF-8 rejected /demo/items/1/edit %C0%AF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/demo malformed UTF-8 cannot alter rows %C0%AF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/demo malformed UTF-8 rejected /demo/items %C0%AF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/demo malformed UTF-8 cannot alter rows %C0%AF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/demo malformed UTF-8 rejected /demo/items/1/edit %ED%A0%80",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/demo malformed UTF-8 cannot alter rows %ED%A0%80",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/demo malformed UTF-8 rejected /demo/items %ED%A0%80",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/demo malformed UTF-8 cannot alter rows %ED%A0%80",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/demo malformed UTF-8 within recovery window 8192",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/demo malformed window cannot alter rows",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "/demo malformed UTF-8 within recovery window 65536",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/demo malformed window cannot alter rows",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "/demo literal replacement character is valid text",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "合法替换字符 � 中文",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/demo complete 1000 Chinese character recovery",
+      "passed": true,
+      "detail": {
+        "status": 413,
+        "bytes": 9055
+      }
+    },
+    {
+      "name": "/demo over window rejected before request body",
+      "passed": true,
+      "detail": {
+        "status": 413,
+        "connection": "close"
+      }
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa create baseline",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa create baseline",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 rejected /pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/items/1/edit %FF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 cannot alter rows %FF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 rejected /pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/items %FF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 cannot alter rows %FF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 rejected /pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/items/1/edit %E4%B8",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 cannot alter rows %E4%B8",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 rejected /pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/items %E4%B8",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 cannot alter rows %E4%B8",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 rejected /pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/items/1/edit %C0%AF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 cannot alter rows %C0%AF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 rejected /pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/items %C0%AF",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 cannot alter rows %C0%AF",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 rejected /pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/items/1/edit %ED%A0%80",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 cannot alter rows %ED%A0%80",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 rejected /pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/items %ED%A0%80",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 cannot alter rows %ED%A0%80",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "原始标题",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 within recovery window 8192",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed window cannot alter rows",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed UTF-8 within recovery window 65536",
+      "passed": true,
+      "detail": 400
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa malformed window cannot alter rows",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa literal replacement character is valid text",
+      "passed": true,
+      "detail": [
+        [
+          1,
+          "合法替换字符 � 中文",
+          1
+        ],
+        [
+          2,
+          "不可改动的另一项",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa complete 1000 Chinese character recovery",
+      "passed": true,
+      "detail": {
+        "status": 413,
+        "bytes": 9055
+      }
+    },
+    {
+      "name": "/pv/BOOTV2/__commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa over window rejected before request body",
+      "passed": true,
+      "detail": {
+        "status": 413,
+        "connection": "close"
+      }
+    },
+    {
+      "name": "candidate source unchanged",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "scope": "TemporaryDirectory and ephemeral loopback servers only",
+  "passed": true,
+  "checks_total": 76,
+  "checks_passed": 76
+}

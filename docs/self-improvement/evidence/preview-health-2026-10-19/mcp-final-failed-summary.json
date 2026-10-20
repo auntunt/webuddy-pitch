@@ -1,0 +1,1 @@
+{"phase": "final-failed", "preview_ready": false, "preview_health": {"ok": false, "url": "http://127.0.0.1:64679/pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902/health", "checked_at": 1792392462.859633, "timeout_s": 1.0, "status_code": 503, "reason": "预览健康检查未通过：HTTP 503（需要约定路径直接返回 2xx）", "elapsed_ms": 1.779}, "human_accepted": false}

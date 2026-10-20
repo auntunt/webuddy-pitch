@@ -1,0 +1,6 @@
+test_synthetic_signoff_serializes_current_proof_check_and_commit_against_recheck (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_synthetic_signoff_serializes_current_proof_check_and_commit_against_recheck) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.885s
+
+OK

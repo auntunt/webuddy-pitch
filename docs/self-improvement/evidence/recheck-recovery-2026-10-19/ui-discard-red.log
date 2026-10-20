@@ -1,0 +1,40 @@
+test_blocked_or_unreadable_recheck_prevents_discard_without_posting (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_blocked_or_unreadable_recheck_prevents_discard_without_posting) ... FAIL
+
+======================================================================
+FAIL: test_blocked_or_unreadable_recheck_prevents_discard_without_posting (tests.test_recheck_lifecycle_ui.RecheckLifecycleUiTest.test_blocked_or_unreadable_recheck_prevents_discard_without_posting)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 159, in test_blocked_or_unreadable_recheck_prevents_discard_without_posting
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    let posts=0;postHandler=async()=>{posts++};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<10 lines>...
+    assert.equal(body.querySelector('[data-run-decision="accept"]').disabled,true,'failed discard must not enable invalid adoption');
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_lifecycle_ui.py", line 19, in run_js
+    preview_tests.RunPreviewUiTest.run_js(self, setup + checks, controller=True)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_run_preview.py", line 48, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+false !== true
+
+    at [stdin]:135:89
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual'
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.153s
+
+FAILED (failures=1)

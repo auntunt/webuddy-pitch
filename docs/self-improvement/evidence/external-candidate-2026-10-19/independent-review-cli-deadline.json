@@ -1,0 +1,20 @@
+{
+  "recorded_at": "2026-10-19T05:12:41.233186+00:00",
+  "reviewer": "candidate_chain_review",
+  "scope": "Final CLI bounded-wait regression review; no source changes by reviewer.",
+  "blocking_findings": [],
+  "conclusion": "The added pre-poll deadline guard only returns a previously obtained real snapshot. First-call failures remain errors; it does not cancel the server run or invent a result. Deterministic clock regression reproduces the extra expired poll without relying on machine timing.",
+  "tests": {
+    "passed": 2,
+    "total": 2,
+    "log": "independent-review-cli-deadline.log",
+    "cases": [
+      "test_cli_wait_does_not_poll_again_after_deadline",
+      "test_bounded_cli_wait_returns_live_run_without_cancelling_it"
+    ]
+  },
+  "sha256": {
+    "tmh/workbench.py": "95aa62eac8c0177060bc8bb00585212832e5fb4f873354511fb7be890f7210f9",
+    "tests/test_workbench_client.py": "f0287954e147a078604fc10be0c60e245f305e96b00a8acb602ec7ddd2a354b3"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "reason": "fixture HTTP request lacked X-TMH; no run started; stop only owned empty service before fixing fixture request",
+  "pid": 37859,
+  "ps": "37859 /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/crash-recovery-2026-10-19/browser-fixture.py --serve\n",
+  "signal": "SIGTERM"
+}

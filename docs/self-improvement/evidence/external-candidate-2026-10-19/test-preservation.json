@@ -1,0 +1,16 @@
+{
+  "original_count": 26,
+  "new_count": 35,
+  "original_functions_unchanged": true,
+  "new_cases": [
+    "test_filter_create_toggle_edit_and_cancel_keep_context_for_all_prefixes",
+    "test_filter_database_failures_retain_create_edit_and_return_links",
+    "test_filter_edit_recovery_limits_and_retry_keep_full_context",
+    "test_filter_edit_validation_csrf_and_missing_item_preserve_context",
+    "test_filter_form_and_distinct_empty_states",
+    "test_filter_keyword_is_literal_unicode_casefold_without_truncation",
+    "test_filter_refresh_clear_and_restart_leave_sqlite_unchanged",
+    "test_filter_status_and_keyword_intersection_preserve_descending_ids",
+    "test_filter_unknown_and_duplicate_values_generate_canonical_urls"
+  ]
+}

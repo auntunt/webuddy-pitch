@@ -1,0 +1,17 @@
+{
+  "time_utc": "2026-10-19T02:42:13.569501+00:00",
+  "tests": 12,
+  "exit_code": 0,
+  "source_unchanged": true,
+  "scope": "Node VM shipped handlers and actual ticketSummarySync; no browser or production mutation",
+  "before": {
+    "tmh/platform/ui_drafts.py": "d75fc170d1b9984a69f48679eb19fef2baac6f7a8aadf3d632a69f1432c74744",
+    "tmh/platform/ui.py": "5ac63ccb8ca81cf3f3d4398f1cd002d1d2f13173ad1fccfa2e216553cf59110b",
+    "tests/test_comment_drafts_independent.py": "014d699f8b76e55d43c779ce3ca7488de7cc34ce3459a1729bdfbeaae72a9b1b"
+  },
+  "after": {
+    "tmh/platform/ui_drafts.py": "d75fc170d1b9984a69f48679eb19fef2baac6f7a8aadf3d632a69f1432c74744",
+    "tmh/platform/ui.py": "5ac63ccb8ca81cf3f3d4398f1cd002d1d2f13173ad1fccfa2e216553cf59110b",
+    "tests/test_comment_drafts_independent.py": "014d699f8b76e55d43c779ce3ca7488de7cc34ce3459a1729bdfbeaae72a9b1b"
+  }
+}

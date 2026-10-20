@@ -1,0 +1,28 @@
+{
+  "archived_at_utc": "2026-10-19T14:11:33.877677+00:00",
+  "platform_start_commit": "2b3cb103689d994cef96a478f0412609019ee870",
+  "platform_head_at_archive": "2b3cb103689d994cef96a478f0412609019ee870",
+  "business_commit": "ab9601e305bf9efdf908554174c56ca101194405",
+  "ticket": "WBILL-1",
+  "candidate": 4,
+  "run": 10,
+  "verification_operation": 4,
+  "evidence_hash": "6641fbcaaa745ab5496b022c61cd08d3f2e88c0248165bafe6e1e5731e002b8c",
+  "verification_hash": "22d374336720166d3aed1073b225050b880cc15de0ca0e7a9e6b2da605e3b3df",
+  "preview_hash": "f36415bec2d488d05b0b21e933b226a1baf439b4e6996fed270bef40b7a6c41b",
+  "state": "awaiting_human",
+  "technical_acceptance": true,
+  "human_accepted": false,
+  "source": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-acceptance-20261019",
+  "raw_files_copied": 60,
+  "raw_bytes_copied": 2182316,
+  "copy_policy": "All source files copied byte-for-byte. No compression, image conversion, truncation, or filtering.",
+  "source_code_archive": "../weighbill-pilot-2026-10-19/",
+  "limits": [
+    "Local synthetic data; OCR disabled.",
+    "No new full test run or code change this round.",
+    "Native-modal recovery cause unknown; not proof of unattended operation.",
+    "Application approved record is not human candidate acceptance.",
+    "No merge, push, or production release."
+  ]
+}

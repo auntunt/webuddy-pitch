@@ -1,0 +1,28 @@
+test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass (tests.test_harness_probes.HarnessProbeTest.test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass) ... ok
+test_execution_permission_recipe_scope_and_replay (tests.test_harness_probes.HarnessProbeTest.test_execution_permission_recipe_scope_and_replay) ... ok
+test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence (tests.test_harness_probes.HarnessProbeTest.test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence) ... ok
+test_probe_invalidates_previous_assessment_then_requires_new_observations (tests.test_harness_probes.HarnessProbeTest.test_probe_invalidates_previous_assessment_then_requires_new_observations) ... ok
+test_real_probe_distinguishes_behavior_with_both_generic_tests_green (tests.test_harness_probes.HarnessProbeTest.test_real_probe_distinguishes_behavior_with_both_generic_tests_green) ... FAIL
+test_tampered_evidence_and_changed_recipe_invalidate_current_gate (tests.test_harness_probes.HarnessProbeTest.test_tampered_evidence_and_changed_recipe_invalidate_current_gate) ... ok
+test_total_timeout_returns_unknown_and_reaps_processes (tests.test_harness_probes.HarnessProbeTest.test_total_timeout_returns_unknown_and_reaps_processes) ... ok
+
+======================================================================
+FAIL: test_real_probe_distinguishes_behavior_with_both_generic_tests_green (tests.test_harness_probes.HarnessProbeTest.test_real_probe_distinguishes_behavior_with_both_generic_tests_green)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_harness_probes.py", line 110, in test_real_probe_distinguishes_behavior_with_both_generic_tests_green
+    self.assertEqual(result["result"]["improved_checks"], ["A1"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['A1', 'A2'] != ['A1']
+
+First list contains 1 additional elements.
+First extra element 1:
+'A2'
+
+- ['A1', 'A2']
++ ['A1']
+
+----------------------------------------------------------------------
+Ran 7 tests in 15.339s
+
+FAILED (failures=1)

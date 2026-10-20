@@ -1,0 +1,22 @@
+- main:
+  - text: WEB 应用起点
+  - heading "反馈后修复的应用起点" [level=1]
+  - paragraph: 应用已经可以运行。先添加一项内容，刷新后仍会保留。具体业务能力将在交付流程中实现和验证。
+  - generic: 新事项
+  - textbox "新事项":
+    - /placeholder: 写下一件要做的事
+  - button "添加"
+  - list:
+    - generic: 已验证：编辑保存、重启与失败重试
+    - button "重新打开"
+    - link "编辑":
+      - /url: /pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/items/3/edit
+    - generic: 已验证：编辑保存后，原编号和完成状态不变
+    - button "重新打开"
+    - link "编辑":
+      - /url: /pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/items/2/edit
+    - generic: 预览停止并重建后，数据仍保留
+    - button "重新打开"
+    - link "编辑":
+      - /url: /pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/items/1/edit
+  - paragraph: 仅用于本地开发；正式发布前需要按实际业务配置身份验证、数据保护和部署环境。

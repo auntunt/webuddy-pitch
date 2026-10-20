@@ -1,0 +1,31 @@
+{
+  "attempt": 2,
+  "kind": "check:test",
+  "started_at": "2026-10-19 12:59:29",
+  "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/worktrees/base-1",
+  "command": [
+    "/bin/sh",
+    "-c",
+    "/opt/homebrew/opt/python@3.14/bin/python3.14 -m unittest discover -s tests -v"
+  ],
+  "timeout_seconds": 1198.3077555830823,
+  "evidence": "runs/1/attempts/0002",
+  "supervised": true,
+  "pid": 74890,
+  "pgid": 74890,
+  "returncode": 0,
+  "reason": "exited",
+  "elapsed_seconds": 2.406498249969445,
+  "cleanup": {
+    "trigger": null,
+    "term_sent": false,
+    "kill_sent": false,
+    "signals": [],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "ended_at": "2026-10-19 12:59:31"
+}

@@ -1,0 +1,5 @@
+{
+  "stopped_pid": 4431,
+  "command": "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python -u -m tmh serve --data data/product-workbench --port 8791 --preview-port 8793 --user 本地验收 --brand Webuddy · 全周期工作台",
+  "active_runs": []
+}

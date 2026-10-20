@@ -1,0 +1,2 @@
+$ /opt/homebrew/opt/python@3.14/bin/python3.14 app.py 57024 /pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4 '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/projects/BOOTV2/app.db'
+Ready on http://127.0.0.1:57024

@@ -1,0 +1,34 @@
+--- v1/app.py
++++ v2/app.py
+@@ -137,7 +137,7 @@
+                 body = self.rfile.read(n)
+                 if len(body) != n:
+                     raise ValueError('incomplete form')
+-                values = parse_qs(body.decode("utf-8"), keep_blank_values=True)
++                values = parse_qs(body.decode("utf-8"), keep_blank_values=True, errors="strict")
+             except (ValueError, UnicodeError):
+                 return self.send(400, "表单格式错误")
+             raw_title = values.get("title", [""])[0]
+--- v1/tests/test_app.py
++++ v2/tests/test_app.py
+@@ -647,5 +647,20 @@
+         self.assertEqual(self.rows(), before)
+ 
+ 
++    def test_edit_rejects_invalid_percent_encoded_utf8_without_changing_records(self):
++        item_id = self.create("百分号解码前的完整原文")
++        self.create("另一条事项保持原样")
++        before = self.rows()
++        csrf = self.csrf().encode("ascii")
++        for encoded_title in (b"%FF", b"%E4%B8"):
++            for padding in (0, 9000):
++                with self.subTest(title=encoded_title, padding=padding):
++                    body = b"title=" + encoded_title + b"&csrf=" + csrf + b"&padding=" + b"x" * padding
++                    status, _, page = self.call_raw_response("POST", self.edit_path(item_id), body)
++                    self.assertEqual(status, 400)
++                    self.assertIn("表单格式错误", page)
++                    self.assertEqual(self.rows(), before)
++
++
+ if __name__ == "__main__":
+     unittest.main()

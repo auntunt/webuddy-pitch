@@ -1,0 +1,4 @@
+Browser tab: 16, Title: "Webuddy · 重新验证隔离验收", URL: "http://127.0.0.1:8797/#/t/RECHK-1".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 301
+The focused UI element is 1 AXWebArea Webuddy · 重新验证隔离验收, URL: 127.0.0.1:8797/#/t/RECHK-1

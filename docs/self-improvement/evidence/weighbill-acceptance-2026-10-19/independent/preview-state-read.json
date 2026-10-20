@@ -1,0 +1,20 @@
+{
+  "key": "WBILL-1",
+  "project": "WBILL",
+  "branch": "ab9601e305bf9efdf908554174c56ca101194405",
+  "commit": "ab9601e305",
+  "commit_full": "ab9601e305bf9efdf908554174c56ca101194405",
+  "port": 53621,
+  "prefix": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405",
+  "pid": 54023,
+  "dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/WBILL-1",
+  "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/external-agents/weighbill-concurrency",
+  "log": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/logs/WBILL-1/1792399983790653000.log",
+  "cmd": "/Users/auntlee/workspace/weighbill-system/.venv/bin/python -B tools/webuddy_preview.py --port 53621 --prefix /pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405 --data-dir '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/preview-data'",
+  "ready": "/api/v1/health",
+  "state": "up",
+  "started": "2026-10-19 16:53:03",
+  "by": "agent:codex-external",
+  "why": "",
+  "at": "2026-10-19 16:53:05"
+}

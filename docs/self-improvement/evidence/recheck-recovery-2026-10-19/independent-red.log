@@ -1,0 +1,20 @@
+test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 403: 'Forbidden'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+FAIL
+
+======================================================================
+FAIL: test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_crash_independent.py", line 184, in test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run
+    self.start_recheck()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_crash_independent.py", line 154, in start_recheck
+    self.assertEqual(code,200,body)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: 403 != 200 : {'error': '缺少 X-TMH 请求头'}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.985s
+
+FAILED (failures=1)

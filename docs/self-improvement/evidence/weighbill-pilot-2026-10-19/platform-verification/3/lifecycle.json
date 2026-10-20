@@ -1,0 +1,139 @@
+{
+  "started_at": "2026-10-19 16:48:12",
+  "timeout_seconds": 1200.0,
+  "stopped_reason": "",
+  "attempts": [
+    {
+      "attempt": 1,
+      "kind": "check:build",
+      "started_at": "2026-10-19 16:48:13",
+      "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/worktrees/base-3",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/auntlee TMPDIR=/tmp LANG=en_US.UTF-8 PYTHONDONTWRITEBYTECODE=1 WB_TEST_STACK= PYTEST_ADDOPTS= /Users/auntlee/workspace/weighbill-system/.venv/bin/python -m compileall -q weighbill"
+      ],
+      "timeout_seconds": 1199.0474553329404,
+      "evidence": "runs/3/attempts/0001",
+      "supervised": true,
+      "pid": 51649,
+      "pgid": 51649,
+      "returncode": 0,
+      "reason": "exited",
+      "elapsed_seconds": 0.2060012500733137,
+      "cleanup": {
+        "trigger": null,
+        "term_sent": false,
+        "kill_sent": false,
+        "signals": [],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 16:48:13"
+    },
+    {
+      "attempt": 2,
+      "kind": "check:test",
+      "started_at": "2026-10-19 16:48:13",
+      "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/worktrees/base-3",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/auntlee TMPDIR=/tmp LANG=en_US.UTF-8 PYTHONDONTWRITEBYTECODE=1 WB_TEST_STACK= PYTEST_ADDOPTS= /Users/auntlee/workspace/weighbill-system/.venv/bin/python -m pytest -q -ra -p no:cacheprovider"
+      ],
+      "timeout_seconds": 1198.8192274579778,
+      "evidence": "runs/3/attempts/0002",
+      "supervised": true,
+      "pid": 51653,
+      "pgid": 51653,
+      "returncode": 0,
+      "reason": "exited",
+      "elapsed_seconds": 21.260955667006783,
+      "cleanup": {
+        "trigger": null,
+        "term_sent": false,
+        "kill_sent": false,
+        "signals": [],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 16:48:34"
+    },
+    {
+      "attempt": 3,
+      "kind": "check:build",
+      "started_at": "2026-10-19 16:48:34",
+      "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/worktrees/candidate-3",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/auntlee TMPDIR=/tmp LANG=en_US.UTF-8 PYTHONDONTWRITEBYTECODE=1 WB_TEST_STACK= PYTEST_ADDOPTS= /Users/auntlee/workspace/weighbill-system/.venv/bin/python -m compileall -q weighbill"
+      ],
+      "timeout_seconds": 1177.5197792079998,
+      "evidence": "runs/3/attempts/0003",
+      "supervised": true,
+      "pid": 51731,
+      "pgid": 51731,
+      "returncode": 0,
+      "reason": "exited",
+      "elapsed_seconds": 0.15267545799724758,
+      "cleanup": {
+        "trigger": null,
+        "term_sent": false,
+        "kill_sent": false,
+        "signals": [],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 16:48:34"
+    },
+    {
+      "attempt": 4,
+      "kind": "check:test",
+      "started_at": "2026-10-19 16:48:34",
+      "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/worktrees/candidate-3",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/auntlee TMPDIR=/tmp LANG=en_US.UTF-8 PYTHONDONTWRITEBYTECODE=1 WB_TEST_STACK= PYTEST_ADDOPTS= /Users/auntlee/workspace/weighbill-system/.venv/bin/python -m pytest -q -ra -p no:cacheprovider"
+      ],
+      "timeout_seconds": 1177.3543479999062,
+      "evidence": "runs/3/attempts/0004",
+      "supervised": true,
+      "pid": 51733,
+      "pgid": 51733,
+      "returncode": 0,
+      "reason": "exited",
+      "elapsed_seconds": 21.19549754203763,
+      "cleanup": {
+        "trigger": null,
+        "term_sent": false,
+        "kill_sent": false,
+        "signals": [],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 16:48:56"
+    }
+  ],
+  "finished": true,
+  "owner": {
+    "token": "26406b00d9214efb8da7aa065b77d252",
+    "run_id": 3,
+    "data_dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations"
+  },
+  "ended_at": "2026-10-19 16:48:56",
+  "elapsed_seconds": 43.929
+}

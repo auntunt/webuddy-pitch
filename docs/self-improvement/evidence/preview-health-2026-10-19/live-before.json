@@ -1,0 +1,32 @@
+{
+  "rows": [
+    [
+      1,
+      "浏览器验收：503 恢复后同一事项完整保留",
+      0
+    ]
+  ],
+  "db_sha256": "345612707f55bcd0a49cb70435039cec751d0fb242e27dbfc7f589aca80d656b",
+  "preview": {
+    "HP-1": {
+      "key": "HP-1",
+      "project": "HP",
+      "branch": "9425cf6ba6c1a0deccb015fc00e549f317f79902",
+      "commit": "9425cf6ba6",
+      "commit_full": "9425cf6ba6c1a0deccb015fc00e549f317f79902",
+      "port": 54600,
+      "prefix": "/pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902",
+      "pid": 72756,
+      "dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/previews/HP-1",
+      "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/projects/HP",
+      "log": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/previews/logs/HP-1/1792391738458543000.log",
+      "cmd": "'/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python' app.py 54600 /pv/HP-1/__commit/9425cf6ba6c1a0deccb015fc00e549f317f79902 '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/preview-health-20261019/live/projects/HP/app.db'",
+      "ready": "/health",
+      "state": "up",
+      "started": "2026-10-19 14:35:38",
+      "by": "agent:health-fixture",
+      "why": "",
+      "at": "2026-10-19 14:35:40"
+    }
+  }
+}

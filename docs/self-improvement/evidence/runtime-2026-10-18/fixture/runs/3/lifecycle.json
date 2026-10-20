@@ -1,0 +1,53 @@
+{
+  "started_at": "2026-10-18 23:51:03",
+  "timeout_seconds": 2.0,
+  "stopped_reason": "timeout",
+  "attempts": [
+    {
+      "attempt": 1,
+      "kind": "model:fix-1",
+      "started_at": "2026-10-18 23:51:03",
+      "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/runtime-verification/worktrees/RUNTIME-2-r3",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-u",
+        "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/runtime-verification/checker.py",
+        "fix"
+      ],
+      "timeout_seconds": 1.502018166007474,
+      "evidence": "runs/3/attempts/0001",
+      "pid": 9173,
+      "pgid": 9173,
+      "returncode": 124,
+      "reason": "timeout",
+      "elapsed_seconds": 1.8148758329916745,
+      "cleanup": {
+        "trigger": "timeout",
+        "term_sent": true,
+        "kill_sent": true,
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "at": 1.5029499579686671,
+            "sent": true
+          },
+          {
+            "signal": "SIGKILL",
+            "at": 1.8128113329876214,
+            "sent": true
+          }
+        ],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-18 23:51:05"
+    }
+  ],
+  "finished": true,
+  "ended_at": "2026-10-18 23:51:05",
+  "elapsed_seconds": 2.359,
+  "retry_run": 4
+}

@@ -1,0 +1,743 @@
+[
+  {
+    "method": "PATCH",
+    "path": "/api/records/synthetic-1",
+    "body": {
+      "expected_version": null,
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "detail": "版本必须是非负整数"
+    },
+    "response_headers": {
+      "content-length": "40",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/records/synthetic-1",
+    "body": {
+      "expected_version": null,
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "版本必须是非负整数"
+      }
+    },
+    "response_headers": {
+      "content-length": "73",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": {
+        "synthetic-1": null
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 200,
+    "response": {
+      "approved": [],
+      "skipped": [
+        {
+          "id": "synthetic-1",
+          "reason": "版本必须是非负整数",
+          "code": "InvalidInput"
+        }
+      ]
+    },
+    "response_headers": {
+      "content-length": "109",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/records/synthetic-1",
+    "body": {
+      "expected_version": true,
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "detail": "版本必须是非负整数"
+    },
+    "response_headers": {
+      "content-length": "40",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/records/synthetic-1",
+    "body": {
+      "expected_version": true,
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "版本必须是非负整数"
+      }
+    },
+    "response_headers": {
+      "content-length": "73",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": {
+        "synthetic-1": true
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 200,
+    "response": {
+      "approved": [],
+      "skipped": [
+        {
+          "id": "synthetic-1",
+          "reason": "版本必须是非负整数",
+          "code": "InvalidInput"
+        }
+      ]
+    },
+    "response_headers": {
+      "content-length": "109",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/records/synthetic-1",
+    "body": {
+      "expected_version": false,
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "detail": "版本必须是非负整数"
+    },
+    "response_headers": {
+      "content-length": "40",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/records/synthetic-1",
+    "body": {
+      "expected_version": false,
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "版本必须是非负整数"
+      }
+    },
+    "response_headers": {
+      "content-length": "73",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": {
+        "synthetic-1": false
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 200,
+    "response": {
+      "approved": [],
+      "skipped": [
+        {
+          "id": "synthetic-1",
+          "reason": "版本必须是非负整数",
+          "code": "InvalidInput"
+        }
+      ]
+    },
+    "response_headers": {
+      "content-length": "109",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/records/synthetic-1",
+    "body": {
+      "expected_version": "0",
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "detail": "版本必须是非负整数"
+    },
+    "response_headers": {
+      "content-length": "40",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/records/synthetic-1",
+    "body": {
+      "expected_version": "0",
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "版本必须是非负整数"
+      }
+    },
+    "response_headers": {
+      "content-length": "73",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": {
+        "synthetic-1": "0"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 200,
+    "response": {
+      "approved": [],
+      "skipped": [
+        {
+          "id": "synthetic-1",
+          "reason": "版本必须是非负整数",
+          "code": "InvalidInput"
+        }
+      ]
+    },
+    "response_headers": {
+      "content-length": "109",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/records/synthetic-1",
+    "body": {
+      "expected_version": -1,
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "detail": "版本必须是非负整数"
+    },
+    "response_headers": {
+      "content-length": "40",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/records/synthetic-1",
+    "body": {
+      "expected_version": -1,
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "版本必须是非负整数"
+      }
+    },
+    "response_headers": {
+      "content-length": "73",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": {
+        "synthetic-1": -1
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 200,
+    "response": {
+      "approved": [],
+      "skipped": [
+        {
+          "id": "synthetic-1",
+          "reason": "版本必须是非负整数",
+          "code": "InvalidInput"
+        }
+      ]
+    },
+    "response_headers": {
+      "content-length": "109",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/records/synthetic-1",
+    "body": {
+      "expected_version": 1.0,
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "detail": "版本必须是非负整数"
+    },
+    "response_headers": {
+      "content-length": "40",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/records/synthetic-1",
+    "body": {
+      "expected_version": 1.0,
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "版本必须是非负整数"
+      }
+    },
+    "response_headers": {
+      "content-length": "73",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": {
+        "synthetic-1": 1.0
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 200,
+    "response": {
+      "approved": [],
+      "skipped": [
+        {
+          "id": "synthetic-1",
+          "reason": "版本必须是非负整数",
+          "code": "InvalidInput"
+        }
+      ]
+    },
+    "response_headers": {
+      "content-length": "109",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/records/synthetic-1",
+    "body": {
+      "expected_version": [],
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "detail": "版本必须是非负整数"
+    },
+    "response_headers": {
+      "content-length": "40",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/records/synthetic-1",
+    "body": {
+      "expected_version": [],
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "版本必须是非负整数"
+      }
+    },
+    "response_headers": {
+      "content-length": "73",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": {
+        "synthetic-1": []
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 200,
+    "response": {
+      "approved": [],
+      "skipped": [
+        {
+          "id": "synthetic-1",
+          "reason": "版本必须是非负整数",
+          "code": "InvalidInput"
+        }
+      ]
+    },
+    "response_headers": {
+      "content-length": "109",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/records/synthetic-1",
+    "body": {
+      "expected_version": {},
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "detail": "版本必须是非负整数"
+    },
+    "response_headers": {
+      "content-length": "40",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/records/synthetic-1",
+    "body": {
+      "expected_version": {},
+      "fields": {
+        "货名": "bad"
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "版本必须是非负整数"
+      }
+    },
+    "response_headers": {
+      "content-length": "73",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": {
+        "synthetic-1": {}
+      }
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 200,
+    "response": {
+      "approved": [],
+      "skipped": [
+        {
+          "id": "synthetic-1",
+          "reason": "版本必须是非负整数",
+          "code": "InvalidInput"
+        }
+      ]
+    },
+    "response_headers": {
+      "content-length": "109",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": {}
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 200,
+    "response": {
+      "approved": [],
+      "skipped": [
+        {
+          "id": "synthetic-1",
+          "reason": "版本必须是非负整数",
+          "code": "InvalidInput"
+        }
+      ]
+    },
+    "response_headers": {
+      "content-length": "109",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": null
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "versions 必须是按记录 ID 索引的版本对象"
+      }
+    },
+    "response_headers": {
+      "content-length": "98",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": true
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "versions 必须是按记录 ID 索引的版本对象"
+      }
+    },
+    "response_headers": {
+      "content-length": "98",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": false
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "versions 必须是按记录 ID 索引的版本对象"
+      }
+    },
+    "response_headers": {
+      "content-length": "98",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": "x"
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "versions 必须是按记录 ID 索引的版本对象"
+      }
+    },
+    "response_headers": {
+      "content-length": "98",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": 0
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "versions 必须是按记录 ID 索引的版本对象"
+      }
+    },
+    "response_headers": {
+      "content-length": "98",
+      "content-type": "application/json"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/records/approve",
+    "body": {
+      "ids": [
+        "synthetic-1"
+      ],
+      "versions": []
+    },
+    "actor": "A",
+    "request_headers": null,
+    "status": 422,
+    "response": {
+      "error": {
+        "code": "InvalidInput",
+        "message": "versions 必须是按记录 ID 索引的版本对象"
+      }
+    },
+    "response_headers": {
+      "content-length": "98",
+      "content-type": "application/json"
+    }
+  }
+]

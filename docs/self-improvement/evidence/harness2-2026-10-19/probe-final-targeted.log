@@ -1,0 +1,18 @@
+test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass (tests.test_harness_probes.HarnessProbeTest.test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass) ... ok
+test_execution_permission_recipe_scope_and_replay (tests.test_harness_probes.HarnessProbeTest.test_execution_permission_recipe_scope_and_replay) ... ok
+test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence (tests.test_harness_probes.HarnessProbeTest.test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence) ... ok
+test_probe_invalidates_previous_assessment_then_requires_new_observations (tests.test_harness_probes.HarnessProbeTest.test_probe_invalidates_previous_assessment_then_requires_new_observations) ... ok
+test_real_probe_distinguishes_behavior_with_both_generic_tests_green (tests.test_harness_probes.HarnessProbeTest.test_real_probe_distinguishes_behavior_with_both_generic_tests_green) ... ok
+test_tampered_evidence_and_changed_recipe_invalidate_current_gate (tests.test_harness_probes.HarnessProbeTest.test_tampered_evidence_and_changed_recipe_invalidate_current_gate) ... ok
+test_total_timeout_returns_unknown_and_reaps_processes (tests.test_harness_probes.HarnessProbeTest.test_total_timeout_returns_unknown_and_reaps_processes) ... ok
+test_optimized_python_cannot_turn_broken_search_into_a_pass (tests.test_harness_probes_independent.HarnessProbeIndependentTest.test_optimized_python_cannot_turn_broken_search_into_a_pass) ... ok
+test_requirement_change_at_last_process_completion_blocks_pass (tests.test_harness_probes_independent.HarnessProbeIndependentTest.test_requirement_change_at_last_process_completion_blocks_pass) ... ok
+test_second_store_cannot_launch_duplicate_probe (tests.test_harness_probes_independent.HarnessProbeIndependentTest.test_second_store_cannot_launch_duplicate_probe) ... ok
+test_snapshot_never_expands_export_subst_in_tracked_source (tests.test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_never_expands_export_subst_in_tracked_source) ... ok
+test_snapshot_preserves_export_ignored_tracked_source (tests.test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_preserves_export_ignored_tracked_source) ... ok
+test_timeout_preserves_application_output_without_a_final_newline (tests.test_harness_probes_independent.HarnessProbeIndependentTest.test_timeout_preserves_application_output_without_a_final_newline) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 18.765s
+
+OK

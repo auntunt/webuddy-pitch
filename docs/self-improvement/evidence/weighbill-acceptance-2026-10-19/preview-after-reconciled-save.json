@@ -1,0 +1,261 @@
+{
+  "commit": "ab9601e305bf9efdf908554174c56ca101194405",
+  "port": 53621,
+  "prefix": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405",
+  "records": [
+    {
+      "id": "wbill-preview-3",
+      "version": 0,
+      "created_at": "2026-10-19T08:13:00",
+      "uploader": "验收夹具",
+      "batch_id": "000000000003",
+      "seq_in_batch": 1,
+      "origin_id": "legacy",
+      "origin_name": "合成来源",
+      "orig_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000003_orig.jpg",
+      "crop_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000003_orig.jpg",
+      "sig_path": null,
+      "fields": {
+        "序号": "SYNTHETIC-003",
+        "日期": "2026-10-19",
+        "入站时间": "08:03",
+        "出站时间": "08:13",
+        "车号": "验收003",
+        "货名": "协作验收原料",
+        "总重": "11000",
+        "皮重": "10000",
+        "净重": "1000",
+        "供应商": "合成来源",
+        "备注": "隔离合成数据；本预览不提供真实 OCR。"
+      },
+      "warnings": [],
+      "weight_ok": 1,
+      "weight_msg": "",
+      "status": "reviewed",
+      "model": "synthetic-fixture",
+      "error": null,
+      "seg_model": null,
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "doc_type": "site_in",
+      "doc_type_label": "协作验收 · 合成台账",
+      "customer": null,
+      "stage": "submitted",
+      "stage_label": "未审核",
+      "submitted_by": "验收夹具",
+      "submitted_at": "2026-10-19T08:00:00",
+      "approved_by": null,
+      "approved_at": null,
+      "ref_no": "WB-20261019-0003",
+      "voided_by": null,
+      "voided_at": null,
+      "void_reason": null,
+      "flag_note": null,
+      "thumb_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000003_orig_t.jpg",
+      "preview_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000003_orig_m.jpg"
+    },
+    {
+      "id": "wbill-preview-2",
+      "version": 0,
+      "created_at": "2026-10-19T08:12:00",
+      "uploader": "验收夹具",
+      "batch_id": "000000000002",
+      "seq_in_batch": 1,
+      "origin_id": "legacy",
+      "origin_name": "合成来源",
+      "orig_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000002_orig.jpg",
+      "crop_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000002_orig.jpg",
+      "sig_path": null,
+      "fields": {
+        "序号": "SYNTHETIC-002",
+        "日期": "2026-10-19",
+        "入站时间": "08:02",
+        "出站时间": "08:12",
+        "车号": "验收002",
+        "货名": "协作验收原料",
+        "总重": "11000",
+        "皮重": "10000",
+        "净重": "1000",
+        "供应商": "合成来源",
+        "备注": "隔离合成数据；本预览不提供真实 OCR。"
+      },
+      "warnings": [],
+      "weight_ok": 1,
+      "weight_msg": "",
+      "status": "reviewed",
+      "model": "synthetic-fixture",
+      "error": null,
+      "seg_model": null,
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "doc_type": "site_in",
+      "doc_type_label": "协作验收 · 合成台账",
+      "customer": null,
+      "stage": "submitted",
+      "stage_label": "未审核",
+      "submitted_by": "验收夹具",
+      "submitted_at": "2026-10-19T08:00:00",
+      "approved_by": null,
+      "approved_at": null,
+      "ref_no": "WB-20261019-0002",
+      "voided_by": null,
+      "voided_at": null,
+      "void_reason": null,
+      "flag_note": null,
+      "thumb_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000002_orig_t.jpg",
+      "preview_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000002_orig_m.jpg"
+    },
+    {
+      "id": "wbill-preview-1",
+      "version": 2,
+      "created_at": "2026-10-19T08:11:00",
+      "uploader": "验收夹具",
+      "batch_id": "000000000001",
+      "seq_in_batch": 1,
+      "origin_id": "legacy",
+      "origin_name": "合成来源",
+      "orig_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000001_orig.jpg",
+      "crop_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000001_orig.jpg",
+      "sig_path": null,
+      "fields": {
+        "序号": "SYNTHETIC-001",
+        "日期": "2026-10-19",
+        "入站时间": "08:01",
+        "出站时间": "08:11",
+        "车号": "验收001",
+        "货名": "双人协作核对后的原料",
+        "总重": "10900",
+        "皮重": "10000",
+        "净重": "900",
+        "供应商": "合成来源",
+        "备注": "A 的完整草稿：保留货名修改与备注；重量需采用 B 已核对的新值。",
+        "客户名": null,
+        "收费": null,
+        "装点": null,
+        "监磅员": null
+      },
+      "warnings": [
+        "车号格式异常:验收001",
+        "序号字符集异常(注意O/0、I/1、S/5、B/8混淆)",
+        "序号中未找到日期码261019:序号或日期二者之一识别有误"
+      ],
+      "weight_ok": 1,
+      "weight_msg": "通过 10900-10000=900",
+      "status": "reviewed",
+      "model": "synthetic-fixture",
+      "error": null,
+      "seg_model": null,
+      "reviewed_by": "本地验收员",
+      "reviewed_at": "2026-10-19T18:25:38",
+      "doc_type": "site_in",
+      "doc_type_label": "协作验收 · 合成台账",
+      "customer": null,
+      "stage": "submitted",
+      "stage_label": "未审核",
+      "submitted_by": "验收夹具",
+      "submitted_at": "2026-10-19T08:00:00",
+      "approved_by": null,
+      "approved_at": null,
+      "ref_no": "WB-20261019-0001",
+      "voided_by": null,
+      "voided_at": null,
+      "void_reason": null,
+      "flag_note": null,
+      "thumb_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000001_orig_t.jpg",
+      "preview_path": "/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000001_orig_m.jpg"
+    }
+  ],
+  "history": {
+    "wbill-preview-3": [],
+    "wbill-preview-2": [],
+    "wbill-preview-1": [
+      {
+        "at": "2026-10-19T16:54:56",
+        "actor": "本地验收员",
+        "action": "修改",
+        "detail": {
+          "changes": {
+            "总重": [
+              "11000",
+              "10900"
+            ],
+            "净重": [
+              "1000",
+              "900"
+            ]
+          }
+        }
+      },
+      {
+        "at": "2026-10-19T18:25:38",
+        "actor": "本地验收员",
+        "action": "修改",
+        "detail": {
+          "changes": {
+            "货名": [
+              "协作验收原料",
+              "双人协作核对后的原料"
+            ],
+            "备注": [
+              "隔离合成数据；本预览不提供真实 OCR。",
+              "A 的完整草稿：保留货名修改与备注；重量需采用 B 已核对的新值。"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "health": {
+    "subsystem": "weighbill",
+    "version": "0.9.0",
+    "status": "degraded",
+    "capabilities": {
+      "ingest": false,
+      "query": true,
+      "review": true,
+      "export": true
+    },
+    "checks": {
+      "record_store": {
+        "ok": true,
+        "adapter": "sqlite",
+        "path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/preview-data/ledger.db"
+      },
+      "blob_store": {
+        "ok": true,
+        "adapter": "local",
+        "root": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/preview-data",
+        "url_prefix": "/files/"
+      },
+      "vision": {
+        "ok": false,
+        "probed": false,
+        "adapter": "scripted-preview-disabled",
+        "configured": false,
+        "note": "合成台账验收；未连接真实识别服务，上传识别不可用"
+      },
+      "event_sink": {
+        "ok": true,
+        "adapter": "null",
+        "delivery": "none",
+        "published": 2,
+        "failed": 0,
+        "last_error": null
+      },
+      "identity": {
+        "ok": true,
+        "adapter": "header",
+        "header": "X-Portal-User",
+        "anonymous": "匿名"
+      },
+      "spool": {
+        "ok": true,
+        "path": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/preview-data/spool",
+        "pending": 0,
+        "rejected": 0,
+        "oldest_received_at": null,
+        "last_error": null
+      }
+    }
+  }
+}

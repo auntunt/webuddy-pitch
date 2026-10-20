@@ -1,0 +1,8 @@
+test_active_recheck_rejects_adoption_without_removing_its_worktree (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_active_recheck_rejects_adoption_without_removing_its_worktree) ... ok
+test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run) ... ok
+test_missing_interrupted_receipt_blocks_retry_until_explicit_collection (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_missing_interrupted_receipt_blocks_retry_until_explicit_collection) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 9.639s
+
+OK

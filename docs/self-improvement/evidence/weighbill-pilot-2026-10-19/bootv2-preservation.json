@@ -1,0 +1,14 @@
+{
+  "commit": {
+    "same": true,
+    "value": "8b6cb6da908fc7bdcb585789a1b8f2ce78569ffd"
+  },
+  "evidence_hash": {
+    "same": true,
+    "value": "c21ef614385ae438aa3fb73c066960422fa848003414ca34d01a7a281c881c86"
+  },
+  "human_accepted": {
+    "same": true,
+    "value": true
+  }
+}

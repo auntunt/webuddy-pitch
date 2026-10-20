@@ -1,0 +1,51 @@
+{
+  "started_at": "2026-10-19 15:16:36",
+  "timeout_seconds": 0.7,
+  "stopped_reason": "timeout",
+  "attempts": [
+    {
+      "attempt": 1,
+      "kind": "command",
+      "started_at": "2026-10-19 15:16:36",
+      "cwd": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-bwntdpl5/project",
+      "command": [
+        "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-venv314/bin/python",
+        "-c",
+        "import time;time.sleep(.8)\nimport time;time.sleep(.25);print('first complete')"
+      ],
+      "timeout_seconds": 0.6984569590305909,
+      "evidence": "runs/1/attempts/0001",
+      "supervised": true,
+      "pid": 27061,
+      "pgid": 27061,
+      "returncode": 124,
+      "reason": "timeout",
+      "elapsed_seconds": 0.7026149589801207,
+      "cleanup": {
+        "trigger": "timeout",
+        "term_sent": true,
+        "kill_sent": false,
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "at": 0.6320661660283804,
+            "sent": true
+          }
+        ],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 15:16:37"
+    }
+  ],
+  "finished": false,
+  "owner": {
+    "token": "3226641ebae74ad79aaf072ac4cf3286",
+    "run_id": 1,
+    "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-bwntdpl5/verification-operations"
+  },
+  "elapsed_seconds": 0.736
+}

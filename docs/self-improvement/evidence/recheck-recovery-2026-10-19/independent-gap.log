@@ -1,0 +1,6 @@
+test_multicommand_recheck_holds_lease_between_real_commands_across_instances (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_multicommand_recheck_holds_lease_between_real_commands_across_instances) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.824s
+
+OK

@@ -1,0 +1,14 @@
+test_delivery_prompt_preserves_full_acceptance_and_scopes_new_product_rules (test_project_bootstrap.BootstrapTest.test_delivery_prompt_preserves_full_acceptance_and_scopes_new_product_rules) ... ok
+test_delivery_runner_sends_current_request_instead_of_short_session_followup (test_project_bootstrap.BootstrapTest.test_delivery_runner_sends_current_request_instead_of_short_session_followup) ... ok
+test_input_cannot_escape_owned_directory (test_project_bootstrap.BootstrapTest.test_input_cannot_escape_owned_directory) ... ok
+test_preview_configuration_failure_preserves_created_project_and_receipt (test_project_bootstrap.BootstrapTest.test_preview_configuration_failure_preserves_created_project_and_receipt) ... ok
+test_runnable_project_has_tests_git_baseline_and_preview (test_project_bootstrap.BootstrapTest.test_runnable_project_has_tests_git_baseline_and_preview) ... ok
+test_unwritable_receipt_does_not_hide_registered_project (test_project_bootstrap.BootstrapTest.test_unwritable_receipt_does_not_hide_registered_project) ... ok
+test_fix_uses_reviewed_plan_binding_even_when_a_newer_plan_exists (test_project_bootstrap.DeliveryExecutionPromptTest.test_fix_uses_reviewed_plan_binding_even_when_a_newer_plan_exists) ... ok
+test_per_file_work_keeps_stage_request_and_only_its_own_file_instruction (test_project_bootstrap.DeliveryExecutionPromptTest.test_per_file_work_keeps_stage_request_and_only_its_own_file_instruction) ... ok
+test_whole_and_retry_keep_current_packet_and_failure_evidence (test_project_bootstrap.DeliveryExecutionPromptTest.test_whole_and_retry_keep_current_packet_and_failure_evidence) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 3.304s
+
+OK

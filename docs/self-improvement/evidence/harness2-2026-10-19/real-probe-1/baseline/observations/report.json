@@ -1,0 +1,290 @@
+{
+  "schema": 1,
+  "recipe": "bootv2-items-search-v1",
+  "results": [
+    {
+      "id": "A1",
+      "status": "fail",
+      "error": "expected item IDs [1, 2], got [3, 2, 1]",
+      "observation_start": 6,
+      "observation_end": 7
+    },
+    {
+      "id": "A2",
+      "status": "fail",
+      "error": "clear filter link is missing",
+      "observation_start": 7,
+      "observation_end": 8
+    },
+    {
+      "id": "A3",
+      "status": "fail",
+      "error": "expected item IDs [2], got [3, 2, 1]",
+      "observation_start": 8,
+      "observation_end": 9
+    },
+    {
+      "id": "A4",
+      "status": "pass",
+      "error": "",
+      "observation_start": 9,
+      "observation_end": 16
+    }
+  ],
+  "setup_error": "",
+  "observations": [
+    {
+      "method": "GET",
+      "path": "/probe/bootv2-items-search-v1/health",
+      "form": null,
+      "status": 200,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "15",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "body": "{\"status\":\"ok\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/probe/bootv2-items-search-v1/",
+      "form": null,
+      "status": 200,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Length": "1881",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "body": "<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>反馈后修复的应用起点</title><style>body{font:16px system-ui;color:#20242b;background:#f5f6f8;margin:0}main{max-width:720px;margin:64px auto;padding:24px}h1{font-size:36px;letter-spacing:-1px}p{color:#596270;line-height:1.7}form{display:flex;flex-wrap:wrap;gap:12px;align-items:center}input,textarea{font:inherit;padding:12px;border:1px solid #b8c0cc;border-radius:6px;flex:1;min-width:0;box-sizing:border-box}textarea{width:100%;max-width:100%;resize:vertical}.edit-form{display:block}.edit-form label,.edit-form textarea{display:block;margin-bottom:12px}button{font:inherit;background:#20242b;color:white;border:0;border-radius:6px;padding:12px;cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #386bd6;outline-offset:3px}ul{padding:0;list-style:none}li{padding:16px 0;border-bottom:1px solid #d9dee5}li span{flex:1;min-width:0;overflow-wrap:anywhere}small{color:#697383}@media(max-width:600px){main{margin:16px auto}h1{font-size:28px}}</style><main><small>WEB 应用起点</small><h1>反馈后修复的应用起点</h1><p>应用已经可以运行。先添加一项内容，刷新后仍会保留。具体业务能力将在交付流程中实现和验证。</p><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><label for=\"title\">新事项</label><input id=\"title\" name=\"title\" required maxlength=\"200\" placeholder=\"写下一件要做的事\"><button>添加</button></form><ul><li>还没有内容，添加第一项开始。</li></ul><p><small>仅用于本地开发；正式发布前需要按实际业务配置身份验证、数据保护和部署环境。</small></p></main></html>"
+    },
+    {
+      "method": "POST",
+      "path": "/probe/bootv2-items-search-v1/items",
+      "form": {
+        "csrf": "a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4",
+        "title": "中文 项目 Straße 100%"
+      },
+      "status": 303,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Location": "/probe/bootv2-items-search-v1/",
+        "Content-Length": "0"
+      },
+      "body": ""
+    },
+    {
+      "method": "POST",
+      "path": "/probe/bootv2-items-search-v1/items",
+      "form": {
+        "csrf": "a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4",
+        "title": "中文 项目 STRASSE under_score"
+      },
+      "status": 303,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Location": "/probe/bootv2-items-search-v1/",
+        "Content-Length": "0"
+      },
+      "body": ""
+    },
+    {
+      "method": "POST",
+      "path": "/probe/bootv2-items-search-v1/items",
+      "form": {
+        "csrf": "a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4",
+        "title": "other 'quoted' <b>text</b>"
+      },
+      "status": 303,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Location": "/probe/bootv2-items-search-v1/",
+        "Content-Length": "0"
+      },
+      "body": ""
+    },
+    {
+      "method": "POST",
+      "path": "/probe/bootv2-items-search-v1/items/2",
+      "form": {
+        "csrf": "a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4",
+        "done": "1"
+      },
+      "status": 303,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Location": "/probe/bootv2-items-search-v1/",
+        "Content-Length": "0"
+      },
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "path": "/probe/bootv2-items-search-v1/?q=%E4%B8%AD%E6%96%87",
+      "form": null,
+      "status": 200,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Length": "2810",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "body": "<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>反馈后修复的应用起点</title><style>body{font:16px system-ui;color:#20242b;background:#f5f6f8;margin:0}main{max-width:720px;margin:64px auto;padding:24px}h1{font-size:36px;letter-spacing:-1px}p{color:#596270;line-height:1.7}form{display:flex;flex-wrap:wrap;gap:12px;align-items:center}input,textarea{font:inherit;padding:12px;border:1px solid #b8c0cc;border-radius:6px;flex:1;min-width:0;box-sizing:border-box}textarea{width:100%;max-width:100%;resize:vertical}.edit-form{display:block}.edit-form label,.edit-form textarea{display:block;margin-bottom:12px}button{font:inherit;background:#20242b;color:white;border:0;border-radius:6px;padding:12px;cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #386bd6;outline-offset:3px}ul{padding:0;list-style:none}li{padding:16px 0;border-bottom:1px solid #d9dee5}li span{flex:1;min-width:0;overflow-wrap:anywhere}small{color:#697383}@media(max-width:600px){main{margin:16px auto}h1{font-size:28px}}</style><main><small>WEB 应用起点</small><h1>反馈后修复的应用起点</h1><p>应用已经可以运行。先添加一项内容，刷新后仍会保留。具体业务能力将在交付流程中实现和验证。</p><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><label for=\"title\">新事项</label><input id=\"title\" name=\"title\" required maxlength=\"200\" placeholder=\"写下一件要做的事\"><button>添加</button></form><ul><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/3\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><span>other &#x27;quoted&#x27; &lt;b&gt;text&lt;/b&gt;</span><button name=\"done\" value=\"1\">完成</button><a href=\"/probe/bootv2-items-search-v1/items/3/edit\">编辑</a></form></li><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/2\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><span>中文 项目 STRASSE under_score</span><button name=\"done\" value=\"0\">重新打开</button><a href=\"/probe/bootv2-items-search-v1/items/2/edit\">编辑</a></form></li><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/1\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><span>中文 项目 Straße 100%</span><button name=\"done\" value=\"1\">完成</button><a href=\"/probe/bootv2-items-search-v1/items/1/edit\">编辑</a></form></li></ul><p><small>仅用于本地开发；正式发布前需要按实际业务配置身份验证、数据保护和部署环境。</small></p></main></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/probe/bootv2-items-search-v1/?status=all",
+      "form": null,
+      "status": 200,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Length": "2810",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "body": "<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>反馈后修复的应用起点</title><style>body{font:16px system-ui;color:#20242b;background:#f5f6f8;margin:0}main{max-width:720px;margin:64px auto;padding:24px}h1{font-size:36px;letter-spacing:-1px}p{color:#596270;line-height:1.7}form{display:flex;flex-wrap:wrap;gap:12px;align-items:center}input,textarea{font:inherit;padding:12px;border:1px solid #b8c0cc;border-radius:6px;flex:1;min-width:0;box-sizing:border-box}textarea{width:100%;max-width:100%;resize:vertical}.edit-form{display:block}.edit-form label,.edit-form textarea{display:block;margin-bottom:12px}button{font:inherit;background:#20242b;color:white;border:0;border-radius:6px;padding:12px;cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #386bd6;outline-offset:3px}ul{padding:0;list-style:none}li{padding:16px 0;border-bottom:1px solid #d9dee5}li span{flex:1;min-width:0;overflow-wrap:anywhere}small{color:#697383}@media(max-width:600px){main{margin:16px auto}h1{font-size:28px}}</style><main><small>WEB 应用起点</small><h1>反馈后修复的应用起点</h1><p>应用已经可以运行。先添加一项内容，刷新后仍会保留。具体业务能力将在交付流程中实现和验证。</p><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><label for=\"title\">新事项</label><input id=\"title\" name=\"title\" required maxlength=\"200\" placeholder=\"写下一件要做的事\"><button>添加</button></form><ul><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/3\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><span>other &#x27;quoted&#x27; &lt;b&gt;text&lt;/b&gt;</span><button name=\"done\" value=\"1\">完成</button><a href=\"/probe/bootv2-items-search-v1/items/3/edit\">编辑</a></form></li><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/2\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><span>中文 项目 STRASSE under_score</span><button name=\"done\" value=\"0\">重新打开</button><a href=\"/probe/bootv2-items-search-v1/items/2/edit\">编辑</a></form></li><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/1\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><span>中文 项目 Straße 100%</span><button name=\"done\" value=\"1\">完成</button><a href=\"/probe/bootv2-items-search-v1/items/1/edit\">编辑</a></form></li></ul><p><small>仅用于本地开发；正式发布前需要按实际业务配置身份验证、数据保护和部署环境。</small></p></main></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/probe/bootv2-items-search-v1/?q=strasse&status=completed",
+      "form": null,
+      "status": 200,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Length": "2810",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "body": "<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>反馈后修复的应用起点</title><style>body{font:16px system-ui;color:#20242b;background:#f5f6f8;margin:0}main{max-width:720px;margin:64px auto;padding:24px}h1{font-size:36px;letter-spacing:-1px}p{color:#596270;line-height:1.7}form{display:flex;flex-wrap:wrap;gap:12px;align-items:center}input,textarea{font:inherit;padding:12px;border:1px solid #b8c0cc;border-radius:6px;flex:1;min-width:0;box-sizing:border-box}textarea{width:100%;max-width:100%;resize:vertical}.edit-form{display:block}.edit-form label,.edit-form textarea{display:block;margin-bottom:12px}button{font:inherit;background:#20242b;color:white;border:0;border-radius:6px;padding:12px;cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #386bd6;outline-offset:3px}ul{padding:0;list-style:none}li{padding:16px 0;border-bottom:1px solid #d9dee5}li span{flex:1;min-width:0;overflow-wrap:anywhere}small{color:#697383}@media(max-width:600px){main{margin:16px auto}h1{font-size:28px}}</style><main><small>WEB 应用起点</small><h1>反馈后修复的应用起点</h1><p>应用已经可以运行。先添加一项内容，刷新后仍会保留。具体业务能力将在交付流程中实现和验证。</p><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><label for=\"title\">新事项</label><input id=\"title\" name=\"title\" required maxlength=\"200\" placeholder=\"写下一件要做的事\"><button>添加</button></form><ul><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/3\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><span>other &#x27;quoted&#x27; &lt;b&gt;text&lt;/b&gt;</span><button name=\"done\" value=\"1\">完成</button><a href=\"/probe/bootv2-items-search-v1/items/3/edit\">编辑</a></form></li><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/2\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><span>中文 项目 STRASSE under_score</span><button name=\"done\" value=\"0\">重新打开</button><a href=\"/probe/bootv2-items-search-v1/items/2/edit\">编辑</a></form></li><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/1\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><span>中文 项目 Straße 100%</span><button name=\"done\" value=\"1\">完成</button><a href=\"/probe/bootv2-items-search-v1/items/1/edit\">编辑</a></form></li></ul><p><small>仅用于本地开发；正式发布前需要按实际业务配置身份验证、数据保护和部署环境。</small></p></main></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/probe/bootv2-items-search-v1/items/2/edit",
+      "form": null,
+      "status": 200,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Length": "1590",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "body": "<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>编辑事项</title><style>body{font:16px system-ui;color:#20242b;background:#f5f6f8;margin:0}main{max-width:720px;margin:64px auto;padding:24px}h1{font-size:36px;letter-spacing:-1px}p{color:#596270;line-height:1.7}form{display:flex;flex-wrap:wrap;gap:12px;align-items:center}input,textarea{font:inherit;padding:12px;border:1px solid #b8c0cc;border-radius:6px;flex:1;min-width:0;box-sizing:border-box}textarea{width:100%;max-width:100%;resize:vertical}.edit-form{display:block}.edit-form label,.edit-form textarea{display:block;margin-bottom:12px}button{font:inherit;background:#20242b;color:white;border:0;border-radius:6px;padding:12px;cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #386bd6;outline-offset:3px}ul{padding:0;list-style:none}li{padding:16px 0;border-bottom:1px solid #d9dee5}li span{flex:1;min-width:0;overflow-wrap:anywhere}small{color:#697383}@media(max-width:600px){main{margin:16px auto}h1{font-size:28px}}</style><main><h1>编辑事项</h1><form class=\"edit-form\" method=\"post\" action=\"/probe/bootv2-items-search-v1/items/2/edit\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><label for=\"edit-title\">事项标题</label><textarea id=\"edit-title\" name=\"title\" rows=\"2\" maxlength=\"200\" required>\n中文 项目 STRASSE under_score</textarea><button>保存</button> <a href=\"/probe/bootv2-items-search-v1/\">取消</a></form></main></html>"
+    },
+    {
+      "method": "POST",
+      "path": "/probe/bootv2-items-search-v1/items/2/edit",
+      "form": {
+        "csrf": "a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4",
+        "title": "汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉汉\r\n字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字"
+      },
+      "status": 303,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Location": "/probe/bootv2-items-search-v1/",
+        "Content-Length": "0"
+      },
+      "body": ""
+    },
+    {
+      "method": "POST",
+      "path": "/probe/bootv2-items-search-v1/items/2/edit",
+      "form": {
+        "csrf": "a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4",
+        "title": "完整保留 <script> & '重试'\n第二行"
+      },
+      "status": 503,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Length": "1766",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "body": "<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>编辑事项</title><style>body{font:16px system-ui;color:#20242b;background:#f5f6f8;margin:0}main{max-width:720px;margin:64px auto;padding:24px}h1{font-size:36px;letter-spacing:-1px}p{color:#596270;line-height:1.7}form{display:flex;flex-wrap:wrap;gap:12px;align-items:center}input,textarea{font:inherit;padding:12px;border:1px solid #b8c0cc;border-radius:6px;flex:1;min-width:0;box-sizing:border-box}textarea{width:100%;max-width:100%;resize:vertical}.edit-form{display:block}.edit-form label,.edit-form textarea{display:block;margin-bottom:12px}button{font:inherit;background:#20242b;color:white;border:0;border-radius:6px;padding:12px;cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #386bd6;outline-offset:3px}ul{padding:0;list-style:none}li{padding:16px 0;border-bottom:1px solid #d9dee5}li span{flex:1;min-width:0;overflow-wrap:anywhere}small{color:#697383}@media(max-width:600px){main{margin:16px auto}h1{font-size:28px}}</style><main><h1>编辑事项</h1><p id=\"edit-error\" role=\"alert\">数据暂时不可用，请稍后重试；此次编辑尚未保存。</p><form class=\"edit-form\" method=\"post\" action=\"/probe/bootv2-items-search-v1/items/2/edit\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><label for=\"edit-title\">事项标题</label><textarea id=\"edit-title\" name=\"title\" rows=\"2\" maxlength=\"200\" required aria-describedby=\"edit-error\">\n完整保留 &lt;script&gt; &amp; &#x27;重试&#x27;\n第二行</textarea><button>重试保存</button> <a href=\"/probe/bootv2-items-search-v1/\">返回应用</a></form></main></html>"
+    },
+    {
+      "method": "POST",
+      "path": "/probe/bootv2-items-search-v1/items/2/edit",
+      "form": {
+        "csrf": "a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4",
+        "title": "完整保留 <script> & '重试'\n第二行"
+      },
+      "status": 303,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Location": "/probe/bootv2-items-search-v1/",
+        "Content-Length": "0"
+      },
+      "body": ""
+    },
+    {
+      "method": "POST",
+      "path": "/probe/bootv2-items-search-v1/items/2/edit",
+      "form": {
+        "csrf": "invalid",
+        "title": "must not save"
+      },
+      "status": 403,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Length": "1690",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "body": "<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>编辑事项</title><style>body{font:16px system-ui;color:#20242b;background:#f5f6f8;margin:0}main{max-width:720px;margin:64px auto;padding:24px}h1{font-size:36px;letter-spacing:-1px}p{color:#596270;line-height:1.7}form{display:flex;flex-wrap:wrap;gap:12px;align-items:center}input,textarea{font:inherit;padding:12px;border:1px solid #b8c0cc;border-radius:6px;flex:1;min-width:0;box-sizing:border-box}textarea{width:100%;max-width:100%;resize:vertical}.edit-form{display:block}.edit-form label,.edit-form textarea{display:block;margin-bottom:12px}button{font:inherit;background:#20242b;color:white;border:0;border-radius:6px;padding:12px;cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #386bd6;outline-offset:3px}ul{padding:0;list-style:none}li{padding:16px 0;border-bottom:1px solid #d9dee5}li span{flex:1;min-width:0;overflow-wrap:anywhere}small{color:#697383}@media(max-width:600px){main{margin:16px auto}h1{font-size:28px}}</style><main><h1>编辑事项</h1><p id=\"edit-error\" role=\"alert\">页面已过期，请确认内容后重试</p><form class=\"edit-form\" method=\"post\" action=\"/probe/bootv2-items-search-v1/items/2/edit\"><input type=\"hidden\" name=\"csrf\" value=\"a2hDFhaSijuHY0u-6yTWz37DGhlfsyR14QysrfUtVF4\"><label for=\"edit-title\">事项标题</label><textarea id=\"edit-title\" name=\"title\" rows=\"2\" maxlength=\"200\" required aria-describedby=\"edit-error\">\nmust not save</textarea><button>重试保存</button> <a href=\"/probe/bootv2-items-search-v1/\">返回应用</a></form></main></html>"
+    },
+    {
+      "method": "GET",
+      "path": "/probe/bootv2-items-search-v1/health",
+      "form": null,
+      "status": 200,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "15",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "body": "{\"status\":\"ok\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/probe/bootv2-items-search-v1/",
+      "form": null,
+      "status": 200,
+      "headers": {
+        "Server": "BaseHTTP/0.6 Python/3.14.6",
+        "Date": "Mon, 19 Oct 2026 06:02:50 GMT",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Length": "2839",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "body": "<!doctype html><html lang=\"zh-CN\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>反馈后修复的应用起点</title><style>body{font:16px system-ui;color:#20242b;background:#f5f6f8;margin:0}main{max-width:720px;margin:64px auto;padding:24px}h1{font-size:36px;letter-spacing:-1px}p{color:#596270;line-height:1.7}form{display:flex;flex-wrap:wrap;gap:12px;align-items:center}input,textarea{font:inherit;padding:12px;border:1px solid #b8c0cc;border-radius:6px;flex:1;min-width:0;box-sizing:border-box}textarea{width:100%;max-width:100%;resize:vertical}.edit-form{display:block}.edit-form label,.edit-form textarea{display:block;margin-bottom:12px}button{font:inherit;background:#20242b;color:white;border:0;border-radius:6px;padding:12px;cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #386bd6;outline-offset:3px}ul{padding:0;list-style:none}li{padding:16px 0;border-bottom:1px solid #d9dee5}li span{flex:1;min-width:0;overflow-wrap:anywhere}small{color:#697383}@media(max-width:600px){main{margin:16px auto}h1{font-size:28px}}</style><main><small>WEB 应用起点</small><h1>反馈后修复的应用起点</h1><p>应用已经可以运行。先添加一项内容，刷新后仍会保留。具体业务能力将在交付流程中实现和验证。</p><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items\"><input type=\"hidden\" name=\"csrf\" value=\"0zNMbr-LnunkYS54bZxVlcm-cwOwZ8HuuqLwiKTCTxQ\"><label for=\"title\">新事项</label><input id=\"title\" name=\"title\" required maxlength=\"200\" placeholder=\"写下一件要做的事\"><button>添加</button></form><ul><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/3\"><input type=\"hidden\" name=\"csrf\" value=\"0zNMbr-LnunkYS54bZxVlcm-cwOwZ8HuuqLwiKTCTxQ\"><span>other &#x27;quoted&#x27; &lt;b&gt;text&lt;/b&gt;</span><button name=\"done\" value=\"1\">完成</button><a href=\"/probe/bootv2-items-search-v1/items/3/edit\">编辑</a></form></li><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/2\"><input type=\"hidden\" name=\"csrf\" value=\"0zNMbr-LnunkYS54bZxVlcm-cwOwZ8HuuqLwiKTCTxQ\"><span>完整保留 &lt;script&gt; &amp; &#x27;重试&#x27;\n第二行</span><button name=\"done\" value=\"0\">重新打开</button><a href=\"/probe/bootv2-items-search-v1/items/2/edit\">编辑</a></form></li><li><form method=\"post\" action=\"/probe/bootv2-items-search-v1/items/1\"><input type=\"hidden\" name=\"csrf\" value=\"0zNMbr-LnunkYS54bZxVlcm-cwOwZ8HuuqLwiKTCTxQ\"><span>中文 项目 Straße 100%</span><button name=\"done\" value=\"1\">完成</button><a href=\"/probe/bootv2-items-search-v1/items/1/edit\">编辑</a></form></li></ul><p><small>仅用于本地开发；正式发布前需要按实际业务配置身份验证、数据保护和部署环境。</small></p></main></html>"
+    }
+  ],
+  "database": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/harness-probes/1/baseline/observations/items.db"
+}

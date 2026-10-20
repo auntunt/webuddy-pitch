@@ -1,0 +1,66 @@
+{
+  "browser-failed-full.jpg": {
+    "format": "JPEG",
+    "width": 1280,
+    "height": 3091,
+    "bytes": 271021,
+    "sha256": "5c8ffa522348f7f26a523471dc765183b674b9ff12e5a4ebfea01a28d515082d",
+    "source": "original browser tool output; no resizing or re-encoding"
+  },
+  "browser-failed-viewport.jpg": {
+    "format": "JPEG",
+    "width": 1280,
+    "height": 720,
+    "bytes": 73216,
+    "sha256": "3a05a1525886c94e97b2602f298e31767f2437e460c8f07f996c2e5d4355195d",
+    "source": "original browser tool output; no resizing or re-encoding"
+  },
+  "browser-final-failed.jpg": {
+    "format": "JPEG",
+    "width": 1280,
+    "height": 3169,
+    "bytes": 281588,
+    "sha256": "2845849f18453312a6d7cc840281987cfabc14f5fd0a1dc82f0bccf69827681e",
+    "source": "original browser tool output; no resizing or re-encoding"
+  },
+  "browser-final-item.jpg": {
+    "format": "JPEG",
+    "width": 1280,
+    "height": 720,
+    "bytes": 32908,
+    "sha256": "fd7c81c835a9dd401af0777bca54b551934606c5cc7760da15dd644c74569e42",
+    "source": "original browser tool output; no resizing or re-encoding"
+  },
+  "browser-final-recovered-full.jpg": {
+    "format": "JPEG",
+    "width": 1280,
+    "height": 3141,
+    "bytes": 272189,
+    "sha256": "0497b51990aaf690056ec2390c495505d8909b6b3663b3fb0f6238234148c3b2",
+    "source": "original browser tool output; no resizing or re-encoding"
+  },
+  "browser-final-recovered-viewport.jpg": {
+    "format": "JPEG",
+    "width": 1280,
+    "height": 720,
+    "bytes": 68547,
+    "sha256": "9169d842312b88bd8e517a79e889edf248569830458a648119dedc13220fc549",
+    "source": "original browser tool output; no resizing or re-encoding"
+  },
+  "browser-main-bootv2.jpg": {
+    "format": "JPEG",
+    "width": 1280,
+    "height": 805,
+    "bytes": 53190,
+    "sha256": "d4f73203de7f8ae215cc08762cf5ea1319a6c1b82e865b6d8c185277b3be7a8e",
+    "source": "original browser tool output; no resizing or re-encoding"
+  },
+  "browser-recovery-stale-summary.jpg": {
+    "format": "JPEG",
+    "width": 1280,
+    "height": 3050,
+    "bytes": 268731,
+    "sha256": "4e215016ef6c7e8e9b6cf55e996de7a244c391587cee717112b8061f52ddf288",
+    "source": "original browser tool output; no resizing or re-encoding"
+  }
+}

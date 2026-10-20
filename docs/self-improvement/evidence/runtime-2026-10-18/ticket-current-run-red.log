@@ -1,0 +1,74 @@
+test_new_unadopted_fix_takes_precedence_over_old_verify_state (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_new_unadopted_fix_takes_precedence_over_old_verify_state) ... FAIL
+test_current_adopted_fix_never_uses_another_runs_branch_or_auto_claim (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_current_adopted_fix_never_uses_another_runs_branch_or_auto_claim) ... FAIL
+
+======================================================================
+FAIL: test_new_unadopted_fix_takes_precedence_over_old_verify_state (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_new_unadopted_fix_takes_precedence_over_old_verify_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_run_sync.py", line 133, in test_new_unadopted_fix_takes_precedence_over_old_verify_state
+            self.run_js(r"""
+            ~~~~~~~~~~~^^^^^
+    const old={...detail(3,'accepted:tmh/APP-7-r3@oldsha'),ticket_key:'APP-7'};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    assert.ok(body.innerHTML.includes('#6 '));assert.ok(body.querySelector('[data-run-decision="accept"]'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """)
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_run_sync.py", line 69, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+'cur' !== 'todo'
+
+    at [stdin]:276:61
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'cur',
+  expected: 'todo',
+  operator: 'strictEqual'
+}
+
+
+======================================================================
+FAIL: test_current_adopted_fix_never_uses_another_runs_branch_or_auto_claim (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_current_adopted_fix_never_uses_another_runs_branch_or_auto_claim)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_run_sync.py", line 154, in test_current_adopted_fix_never_uses_another_runs_branch_or_auto_claim
+            self.run_js(r"""
+            ~~~~~~~~~~~^^^^^
+    const currentFix={...detail(6,'accepted:tmh/APP-7-r6@newsha'),ticket_key:'APP-7'};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<10 lines>...
+    assert.ok(action.text.includes('newsha'));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """)
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_ui_ticket_run_sync.py", line 69, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: false == true
+    at [stdin]:274:30
+    at [stdin]:282:3
+    at runScriptInThisContext (node:internal/vm:218:10)
+    at node:internal/process/execution:451:12
+    at [stdin]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:449:60)
+    at evalFunction (node:internal/process/execution:283:30)
+    at evalTypeScript (node:internal/process/execution:295:3)
+    at node:internal/main/eval_stdin:51:5
+    at Socket.<anonymous> (node:internal/process/execution:205:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.237s
+
+FAILED (failures=2)

@@ -1,0 +1,36 @@
+[
+  {
+    "id": 1,
+    "project_id": 1,
+    "num": 1,
+    "title": "SYNTHETIC：超时后保留已有改动并继续",
+    "body": "隔离技术夹具。先将 VALUE=0 改成1后超时，保留代码及未跟踪文件；用户点击重新运行时必须从1继续改为2。不是模型交付或客户签收。",
+    "type": "bug",
+    "status": "doing",
+    "priority": "normal",
+    "assignee": "",
+    "reporter": "Codex 技术验收",
+    "labels": "[]",
+    "links": "{}",
+    "external": "{}",
+    "created": "2026-10-18 23:38:27",
+    "updated": "2026-10-18 23:40:29"
+  },
+  {
+    "id": 2,
+    "project_id": 1,
+    "num": 2,
+    "title": "SYNTHETIC：自动刷新和续跑最终验收",
+    "body": "隔离技术夹具；必须超时后从VALUE=1续跑至VALUE=2。不是模型成果或客户验收。\n\n## 验收标准（从描述推出，验收前和提单人确认）\n- A1 当按描述操作时，系统应当做到「SYNTHETIC：自动刷新和续跑最终验收」；怎么验：按描述的场景操作一遍并核对\n- A2 必须保持：其他环节和其他用户的现有行为不变；怎么验：跑现有测试，并抽查相邻功能",
+    "type": "feature",
+    "status": "doing",
+    "priority": "normal",
+    "assignee": "",
+    "reporter": "Codex 技术验收",
+    "labels": "[]",
+    "links": "{}",
+    "external": "{}",
+    "created": "2026-10-18 23:50:36",
+    "updated": "2026-10-18 23:51:21"
+  }
+]

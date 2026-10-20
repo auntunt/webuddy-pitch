@@ -1,0 +1,14 @@
+{
+  "args": [
+    "/usr/sbin/lsof",
+    "-a",
+    "-p",
+    "54023",
+    "-d",
+    "cwd",
+    "-Fn"
+  ],
+  "exit_code": 0,
+  "stdout": "p54023\nfcwd\nn/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/previews/WBILL-1\n",
+  "stderr": ""
+}

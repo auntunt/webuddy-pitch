@@ -1,0 +1,5 @@
+{"type":"thread.started","thread_id":"01a15231-4bbe-7eb3-ba08-05adcad3fff1"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"我会仅调用指定的 Webuddy MCP 接口，根据实际返回结果发送中文验证回执，并报告事件回执 ID。\n"}}
+{"type":"item.completed","item":{"id":"item_1","type":"agent_message","text":"当前会话未提供指定的 Webuddy MCP 工具，无法读取实际结果或发送验证回执。本次验证未完成，未启动执行、审批、签署或修改业务数据。\n\n事件回执 ID：无（未发送消息）。"}}
+{"type":"turn.completed","usage":{"input_tokens":108071,"cached_input_tokens":75648,"cache_write_input_tokens":0,"output_tokens":386,"reasoning_output_tokens":144}}

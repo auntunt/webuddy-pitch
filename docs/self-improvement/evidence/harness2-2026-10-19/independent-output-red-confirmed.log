@@ -1,0 +1,20 @@
+test_optimized_python_cannot_turn_broken_search_into_a_pass (test_harness_probes_independent.HarnessProbeIndependentTest.test_optimized_python_cannot_turn_broken_search_into_a_pass) ... ok
+test_snapshot_never_expands_export_subst_in_tracked_source (test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_never_expands_export_subst_in_tracked_source) ... ok
+test_snapshot_preserves_export_ignored_tracked_source (test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_preserves_export_ignored_tracked_source) ... ok
+test_timeout_preserves_application_output_without_a_final_newline (test_harness_probes_independent.HarnessProbeIndependentTest.test_timeout_preserves_application_output_without_a_final_newline) ... FAIL
+
+======================================================================
+FAIL: test_timeout_preserves_application_output_without_a_final_newline (test_harness_probes_independent.HarnessProbeIndependentTest.test_timeout_preserves_application_output_without_a_final_newline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_harness_probes_independent.py", line 105, in test_timeout_preserves_application_output_without_a_final_newline
+    self.assertIn(emitted, retained,
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+                  "complete supervisor cleanup concealed lost application output: %r" % retained)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'application raw tail \x00 \xff without final newline' not found in b'Ready on http://127.0.0.1:56588\n' : complete supervisor cleanup concealed lost application output: b'Ready on http://127.0.0.1:56588\n'
+
+----------------------------------------------------------------------
+Ran 4 tests in 2.067s
+
+FAILED (failures=1)

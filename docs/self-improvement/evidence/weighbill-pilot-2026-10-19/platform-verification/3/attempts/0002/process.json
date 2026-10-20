@@ -1,0 +1,31 @@
+{
+  "attempt": 2,
+  "kind": "check:test",
+  "started_at": "2026-10-19 16:48:13",
+  "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/worktrees/base-3",
+  "command": [
+    "/bin/sh",
+    "-c",
+    "env -i PATH=/usr/bin:/bin:/opt/homebrew/bin HOME=/Users/auntlee TMPDIR=/tmp LANG=en_US.UTF-8 PYTHONDONTWRITEBYTECODE=1 WB_TEST_STACK= PYTEST_ADDOPTS= /Users/auntlee/workspace/weighbill-system/.venv/bin/python -m pytest -q -ra -p no:cacheprovider"
+  ],
+  "timeout_seconds": 1198.8192274579778,
+  "evidence": "runs/3/attempts/0002",
+  "supervised": true,
+  "pid": 51653,
+  "pgid": 51653,
+  "returncode": 0,
+  "reason": "exited",
+  "elapsed_seconds": 21.260955667006783,
+  "cleanup": {
+    "trigger": null,
+    "term_sent": false,
+    "kill_sent": false,
+    "signals": [],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "ended_at": "2026-10-19 16:48:34"
+}

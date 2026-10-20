@@ -1,0 +1,28 @@
+{
+  "candidate": {
+    "head": "ab9601e305bf9efdf908554174c56ca101194405",
+    "status": "",
+    "files": {
+      "README.md": "5411dbd5b54fa0106cd30f8e9944e1fdc00026663605ae301d24ce524cedea6e",
+      "weighbill/config.py": "970e5f876747bed9c82cd95763d29f26b6eab57737d4c8f7437d44749b48d9d3",
+      "weighbill/http_api.py": "a7210d4eec2d3c25411cbd25d3a56d3c3bf300403c1cae3ca8f3bbbc97abb211",
+      "weighbill/service.py": "578848df05d5724e6e8c5ef1d0f47b411749bbf23e20a1e3be624fec0e2e5cf4",
+      "weighbill/static/capture.html": "68d7a0bec00008d002af45eeefbf3d96e3c98b7509f62343672ca3a56df4fec4",
+      "weighbill/static/report.html": "2e2d86850f1777ec1868206bbc1a50f8d378bf250820d2eb1b8a2f03a39294f7",
+      "weighbill/static/sw.js": "4ba14af028b93899fe7b86457ab2b67a87f310d99f85faf0d5c41ee18e3b1bd9",
+      "tools/webuddy_preview.py": "41aae89ab43c91507a3d0dcec3ebe33ee065be319ae2297c59551abefa884471",
+      "tests/test_client_versions.py": "18da61ef97d2f15245b616a0a3ebc30bf4478621551e3f5bbc82a8cef3d2c609",
+      "tests/client_editor_state.cjs": "09c478c529d5739b382101bf56e16e2623fe01c46fcd5866a88e43ee96bf36f1"
+    }
+  },
+  "api_unchanged_since_10_checks": {
+    "weighbill/config.py": true,
+    "weighbill/http_api.py": true,
+    "weighbill/service.py": true,
+    "weighbill/static/capture.html": true,
+    "weighbill/static/sw.js": true
+  },
+  "preview_unchanged_since_4_checks": true,
+  "report_matches_8_final_checks": true,
+  "original_matches_baseline": true
+}

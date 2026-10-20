@@ -1,0 +1,3 @@
+First evidence bundle attempt: git bundle create <output> ab9601e305bf9efdf908554174c56ca101194405 ^60d6422ee898959557fc529a8e0335524b5ee2c0
+Exited 128: fatal: Refusing to create empty bundle.
+Cause: bundle needs an advertised ref. Corrected to HEAD after asserting its full SHA; no business commit or data was modified.

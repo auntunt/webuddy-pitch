@@ -1,0 +1,7 @@
+test_cli_wait_does_not_poll_again_after_deadline (test_workbench_client.WorkbenchClientTest.test_cli_wait_does_not_poll_again_after_deadline) ... ok
+test_bounded_cli_wait_returns_live_run_without_cancelling_it (test_workbench_client.WorkbenchClientTest.test_bounded_cli_wait_returns_live_run_without_cancelling_it) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.294s
+
+OK

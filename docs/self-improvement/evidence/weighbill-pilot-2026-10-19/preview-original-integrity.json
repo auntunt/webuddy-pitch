@@ -1,0 +1,29 @@
+{
+  "commit": "ab9601e305bf9efdf908554174c56ca101194405",
+  "results": [
+    {
+      "url": "http://127.0.0.1:53621/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000001_orig.jpg",
+      "status": 200,
+      "bytes": 61894,
+      "sha256": "b8185abc3679efab0078eabe6cfd7a8c4e1e1f1a8542eae1de19329e23e6469e",
+      "matches_original": true,
+      "file": "preview-originals/000000000001_orig.jpg"
+    },
+    {
+      "url": "http://127.0.0.1:53621/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000002_orig.jpg",
+      "status": 200,
+      "bytes": 63299,
+      "sha256": "f23f6115bd026571f7ada423a4f5fb68ca5251f71bc0a266324dc1a66b8e41a3",
+      "matches_original": true,
+      "file": "preview-originals/000000000002_orig.jpg"
+    },
+    {
+      "url": "http://127.0.0.1:53621/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/files/images/20261019/000000000003_orig.jpg",
+      "status": 200,
+      "bytes": 59835,
+      "sha256": "3f26b394b7a87380ef8e53c74595e943507562923aa42071c6c33486899569b7",
+      "matches_original": true,
+      "file": "preview-originals/000000000003_orig.jpg"
+    }
+  ]
+}

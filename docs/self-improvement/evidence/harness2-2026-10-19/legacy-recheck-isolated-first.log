@@ -1,0 +1,11 @@
+IndependentRecheckCrashTest (unittest.loader._FailedTest.IndependentRecheckCrashTest) ... ERROR
+
+======================================================================
+ERROR: IndependentRecheckCrashTest (unittest.loader._FailedTest.IndependentRecheckCrashTest)
+----------------------------------------------------------------------
+AttributeError: module 'tests.test_recheck_crash_independent' has no attribute 'IndependentRecheckCrashTest'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)

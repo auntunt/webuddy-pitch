@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tmh-harness"
+version = "0.2.0"
+description = "传统 toB 软件项目维护 harness：业务流理解、新需求实现、改造（Codex / Claude Code）"
+requires-python = ">=3.8"
+dependencies = []
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.30,<2; python_version >= '3.10'"]
+
+[project.scripts]
+tmh = "tmh.cli:main"
+webuddy = "tmh.workbench:main"
+
+[tool.setuptools]
+packages = ["tmh", "tmh.integrations", "tmh.platform"]
+
+[tool.setuptools.package-data]
+tmh = ["rules/*.json"]

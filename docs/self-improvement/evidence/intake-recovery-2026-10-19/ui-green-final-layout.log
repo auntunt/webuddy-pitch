@@ -1,0 +1,20 @@
+test_a_departed_ticket_does_not_refresh_or_start_polling_after_retry (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_a_departed_ticket_does_not_refresh_or_start_polling_after_retry) ... ok
+test_blocked_retry_and_closed_ticket_never_offer_execution (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_blocked_retry_and_closed_ticket_never_offer_execution) ... ok
+test_recovery_only_transition_refreshes_summary (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_recovery_only_transition_refreshes_summary) ... ok
+test_retry_failure_keeps_a_retryable_button_and_the_typed_comment (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_retry_failure_keeps_a_retryable_button_and_the_typed_comment) ... ok
+test_retry_posts_once_and_follows_success_without_clearing_drafts (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_retry_posts_once_and_follows_success_without_clearing_drafts) ... ok
+test_saved_answers_offer_recovery_instead_of_asking_the_customer_again (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_saved_answers_offer_recovery_instead_of_asking_the_customer_again) ... ok
+test_success_updates_read_only_criteria_but_keeps_an_open_editor (tests.test_intake_recovery_ui.IntakeRecoveryUiTest.test_success_updates_read_only_criteria_but_keeps_an_open_editor) ... ok
+test_current_adopted_fix_never_uses_another_runs_branch_or_auto_claim (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_current_adopted_fix_never_uses_another_runs_branch_or_auto_claim) ... ok
+test_failure_retry_and_completion_refresh_summary_and_preserve_typed_drafts (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_failure_retry_and_completion_refresh_summary_and_preserve_typed_drafts) ... ok
+test_new_unadopted_fix_takes_precedence_over_old_verify_state (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_new_unadopted_fix_takes_precedence_over_old_verify_state) ... ok
+test_refresh_for_departed_ticket_does_not_touch_new_page (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_refresh_for_departed_ticket_does_not_touch_new_page) ... ok
+test_slow_older_refresh_cannot_replace_newer_summary (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_slow_older_refresh_cannot_replace_newer_summary) ... ok
+test_summary_refresh_does_not_overwrite_an_unsaved_status_choice (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_summary_refresh_does_not_overwrite_an_unsaved_status_choice) ... ok
+test_unchanged_summary_does_not_repaint_or_clear_focus (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_unchanged_summary_does_not_repaint_or_clear_focus) ... ok
+test_unrelated_run_modal_does_not_refresh_the_ticket (tests.test_ui_ticket_run_sync.TicketRunSyncUiTest.test_unrelated_run_modal_does_not_refresh_the_ticket) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.709s
+
+OK

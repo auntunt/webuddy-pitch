@@ -1,0 +1,11 @@
+{
+  "head": "1d2ea889d5dbfb76ff26c2e8e16d86dfe0cd6135",
+  "purpose": "Independent snapshot and optimized-probe reproductions; product changes may still be in progress",
+  "files": {
+    "tmh/platform/harness_probes.py": "bd4984fd9a11ff6629dd85193ffc8424fb7bf245b0e368a4a67a95f2c2e4d80f",
+    "tmh/probes/items_search.py": "29920a0dd0378b56d40a0034bf51e8573d4e05fca508adfc8fb56b89ed694e6f",
+    "tmh/platform/candidates.py": "d99f70cdaea26850061573ab4d6c9af9ec1fd315437d532833b899f985a2a767",
+    "tmh/platform/agent_api.py": "e3ea8b04116da3f2fd2166e22b58075e3ebce066da24d8cca6087de3f5d1d59f",
+    "tests/test_harness_probes_independent.py": "012535d8aa058478740b7dda51ff6f8aa6a30e2240a8b31308cff776fa9578ac"
+  }
+}

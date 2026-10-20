@@ -1,0 +1,48 @@
+Browser tab: 19, Title: "Webuddy · 草稿隔离验收", URL: "http://127.0.0.1:8797/#/t/DRAFT-1".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 7-9, 29-31, 39-62, 64-65, 68-117, 120-138
++				29 (selected) DRAFT · 沟通草稿验收
++				30 全部项目
++				31 ＋ 添加项目…
+~			32 container
+~				33 link 127.0.0.1:8797/#/reqs
+~			34 heading 全页刷新与发送重试, Value: 1
+~				38 pop up button (collapsed) Secondary Actions: Expand
++					39 menu
++						40 (selected)
++			41 container
++				42 pop up button (collapsed) Secondary Actions: Expand
++					43 menu
++						44 (selected)
++			45 container
++				46 pop up button (collapsed) Secondary Actions: Expand
++					47 menu
++						48 (selected)
++			49 container
++				50 text field (settable)
++			51 text 合成夹具 提交 · 10-19 10:29
++			52 container
++				53 button
++				54 button
++				55 button
++			56 container
++				57 link 127.0.0.1:8797/#/t/DRAFT-1
++				58 link 127.0.0.1:8797/#/t/DRAFT-1/prompt
++			59 text entry area (settable)
++			60 button 验收通过
++			61 button 验收不通过
++			62 button 让助手起草验收说明
+~			63 button (collapsed) Secondary Actions: Expand
++			64 heading 动态与讨论, Value: 2
++			65 text entry area (settable) 评论草稿
+~			66 button 评论
+~			67 button (collapsed) Secondary Actions: Expand
++			68 container
++				69 heading 2
++				70 link 127.0.0.1:8797/e/DRAFT-1
++				71 link 127.0.0.1:8797/e/DRAFT-1.intoto.json
++				72 button
++				73 button
++				74 button
++			75 button (collapsed) Secondary Actions: Expand
+The focused UI element is 1 AXWebArea Webuddy · 草稿隔离验收, URL: 127.0.0.1:8797/#/t/DRAFT-1

@@ -1,0 +1,5 @@
+Browser tab: 19, Title: "Webuddy · 草稿隔离验收", URL: "http://127.0.0.1:8797/#/t/DRAFT-1".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+~					82 text ✓ 受理 合成夹具 · 12 分钟前
+~				114 text 合成夹具  创建工单 12 分钟前
+The focused UI element is 1 AXWebArea Webuddy · 草稿隔离验收, URL: 127.0.0.1:8797/#/t/DRAFT-1

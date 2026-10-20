@@ -1,0 +1,12 @@
+{
+  "archived_at": "2026-10-19T06:19:38.960898+00:00",
+  "source_directory": "data/harness2-integration-20261019",
+  "tested_source_commit": "a32e8a64750b1f13d9e9bb0ec638db2e2a17329c",
+  "product_commit": "1ac19f116ac982a134635659e24edf9bc6cb0115",
+  "copy_policy": "Original file bytes retained; no compression, truncation, or re-encoding. Main service log is a point-in-time snapshot. Screenshot extension was corrected without changing bytes.",
+  "operator_credential_present": false,
+  "acceptance_state": "accepted",
+  "acceptance_evidence_hash": "c21ef614385ae438aa3fb73c066960422fa848003414ca34d01a7a281c881c86",
+  "probe_passed": true,
+  "probe_cleanup_complete": true
+}

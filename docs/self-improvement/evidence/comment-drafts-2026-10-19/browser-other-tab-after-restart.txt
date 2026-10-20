@@ -1,0 +1,135 @@
+Browser tab: 20, Title: "Webuddy · 草稿隔离验收", URL: "http://127.0.0.1:8797/#/t/DRAFT-1".
+1 AXWebArea Webuddy · 草稿隔离验收, URL: 127.0.0.1:8797/#/t/DRAFT-1
+	2 link Description: 跳到主要内容, Value: 127.0.0.1:8797/#main
+	3 container top
+		4 link Description: Webuddy 交付工作台, Value: 127.0.0.1:8797/#/deliveries
+		5 pop up button (collapsed, settable) Description: 项目范围, Help: 这一页属于哪个项目, Value: DRAFT · 沟通草稿验收, ID: projSel, Secondary Actions: Expand
+			6 menu
+				7 (selected) DRAFT · 沟通草稿验收
+				8 全部项目
+				9 ＋ 添加项目…
+		10 button 20,000 点, Help: 点卡：只有生成类动作扣点, ID: ptsBtn
+			11 text 20,000
+			12 text 点
+		13 button Description: 录入客户需求, ID: sayGo
+			14 text ＋
+			15 text  录入需求
+		16 button (collapsed) AI 助手 Ctrl K, Help: AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）, ID: astToggle, Secondary Actions: Expand
+			17 text AI 助手 
+			18 text Ctrl K
+		19 button Description: 草稿验收员，用户与设置, Help: 用户与设置, ID: me
+	20 container page
+		21 container Description: 主导航, ID: nav5
+			22 link Description: 交付, Value: 127.0.0.1:8797/#/deliveries
+			23 link Description: 今天, Value: 127.0.0.1:8797/#/today
+			24 link Description: 客户, Value: 127.0.0.1:8797/#/clients
+			25 link Description: 需求, Value: 127.0.0.1:8797/#/reqs
+			26 link Description: 版本, Value: 127.0.0.1:8797/#/versions
+			27 link Description: 工程, Value: 127.0.0.1:8797/#/board
+		28 container main
+			29 container
+				30 link Description: 需求, Value: 127.0.0.1:8797/#/reqs
+				31 text  / DRAFT / DRAFT-1
+			32 heading 全页刷新与发送重试, Help: 点击修改, Value: 1, ID: ttl
+				33 text 全页刷新与发送重试
+			34 text 新建
+			35 button 在助手中讨论
+			36 text DRAFT
+			37 container
+				38 text 状态
+				39 pop up button (collapsed, settable) 状态, Value: 新建, ID: fs, Secondary Actions: Expand
+					40 menu
+						41 (selected) 新建
+						42 分析中
+						43 待确认
+						44 处理中
+						45 待验证
+			46 container
+				47 text 类型
+				48 pop up button (collapsed, settable) 类型, Value: 缺陷, ID: fy, Secondary Actions: Expand
+					49 menu
+						50 (selected) 缺陷
+						51 需求
+						52 变更
+						53 咨询
+						54 运维
+			55 container
+				56 text 优先级
+				57 pop up button (collapsed, settable) 优先级, Value: 中, ID: fp, Secondary Actions: Expand
+					58 menu
+						59 紧急
+						60 高
+						61 (selected) 中
+						62 低
+			63 container
+				64 text 经办人
+				65 text field (settable) 经办人, ID: fa
+			66 text 合成夹具 提交 · 10-19 10:29
+			67 container tTop
+				68 text 待复核 自动处理关着，没人接手
+				69 definition list
+					70 container 客户要的
+						71 text 客户要的
+					72 text 本地隔离验收，不触发模型或客户签收。
+					73 container 下一步
+						74 text 下一步
+					75 text 还没有分析。交给智能体先定位到业务和代码。
+				76 button 我来写, ID: ttHw
+			77 container
+				78 link Description: 工单详情, Value: 127.0.0.1:8797/#/t/DRAFT-1
+				79 link Description: 提示词, Value: 127.0.0.1:8797/#/t/DRAFT-1/prompt
+			80 content list
+				81 container
+					82 text ✓ 受理 合成夹具 · 12 分钟前
+				83 container
+					84 text 2 分析定位
+				85 container
+					86 text 3 修改方案
+				87 container
+					88 text 4 修改代码
+				89 container
+					90 text 5 人工验收
+				91 container
+					92 text 6 闭环
+			93 definition list
+				94 container 现象
+					95 text 现象
+				96 text 本地隔离验收，不触发模型或客户签收。
+				97 container 根因
+					98 text 根因
+				99 text 还没有分析
+				100 container 证据
+					101 text 证据
+				102 text 分析后在这里列出核实和推断的条数
+				103 container 等谁
+					104 text 等谁
+				105 text 还没有分析。交给智能体先定位到业务和代码。
+			106 button 分析定位（10 点）, ID: naAn
+			107 button (collapsed) ▸ 完整描述 原话、理解、补充的信息和验收标准, Secondary Actions: Expand
+				108 text ▸
+				109 text 完整描述
+				110 text 原话、理解、补充的信息和验收标准
+			111 heading 动态与讨论, Value: 2
+				112 text 动态与讨论
+			113 container
+				114 text 合成夹具  创建工单 12 分钟前
+			115 text 评论草稿已保存在本标签页，刷新后可恢复。
+			116 text entry area (settable) Description: 评论草稿, Value: 第二个标签页自己的草稿，不能覆盖第一个。, ID: cm
+			117 button 评论, ID: cb
+			118 text 仅保存本标签页的评论文字；不同标签页各自保存，关闭标签页后不保证恢复。证据截图及其他表单不包含在内，整页刷新后需重新选择或填写。
+			119 button (collapsed) ▸ 执行记录与手动运行 0 次运行, Secondary Actions: Expand
+				120 text ▸
+				121 text 执行记录与手动运行
+				122 text 0 次运行
+			123 container pkg
+				124 container pkSummary
+					125 heading 证据包, Value: 2
+						126 text 证据包
+					127 text 未生成
+					128 text 工单转到“待验证”时自动打包：验收标准、方案、改动、构建测试、范围和业务流检查。
+			129 button (collapsed) ▸ 工程细节 我来写、代码改动、候选代码入口、相关业务, Secondary Actions: Expand
+				130 text ▸
+				131 text 工程细节
+				132 text 我来写、代码改动、候选代码入口、相关业务
+
+The focused UI element is 1 AXWebArea Webuddy · 草稿隔离验收, URL: 127.0.0.1:8797/#/t/DRAFT-1

@@ -1,0 +1,11 @@
+{
+  "head": "60d6422ee898959557fc529a8e0335524b5ee2c0",
+  "sha256": {
+    "weighbill/config.py": "a964a22aa43ce0d02b814dc52367df2c22e57aeb53e94928e0a2ff8a1a883f29",
+    "weighbill/http_api.py": "4810e10686bc244b73482fb1139976f3e5ac9f53b501c7ccd7646dfc69a1570f",
+    "weighbill/service.py": "a448502443b159eb8f0b13a68a1cb44a8cef85ceb44aa30231af26f552de81be",
+    "weighbill/static/report.html": "c9131c37abec4a9d743b17ea8076f7fe0bcee39be522af362aa39f458f8f3624",
+    "weighbill/static/capture.html": "f12a75a456710bfa213a5d7b429df30efe2689b0c1d151307bfaae0735f5d365",
+    "weighbill/static/sw.js": "f820e99a0bc6ab91c8656046824a881337666f4e228ab2756157f29e3c7e231f"
+  }
+}

@@ -1,0 +1,20 @@
+{
+ "check": "skip",
+ "skip": "设置为不跑构建测试",
+ "verdict": "unknown",
+ "rounds": 0,
+ "beyond_plan": [],
+ "split": false,
+ "files": [],
+ "commands": [],
+ "diagnosis": {
+  "verdict": null,
+  "match": null,
+  "match_why": null,
+  "evidence": null,
+  "cause": null,
+  "guide": null
+ },
+ "stopped_reason": "timeout",
+ "interrupted": true
+}

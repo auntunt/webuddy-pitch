@@ -1,0 +1,16 @@
+Browser tool failure outputs, captured in order (no product success inferred):
+1. Click confirmation, 16.1322s:
+Error: Timed out running CDP command "Input.dispatchMouseEvent" for tab 28
+waiting on click for selector internal:role=button[name="已核对，基于此版本保存当前表单"s]
+2. getJsDialog + dialog text, 3.1558s:
+Timed out after 3000ms waiting for selector internal:role=dialog[name="验收001"s]: CDP operation exceeded its deadline before command dispatch
+undefined
+3. getAXState, 21.0615s:
+Timed out running CDP command "Emulation.setFocusEmulationEnabled" for tab 28
+4. Native Codex selection, 0.0227s:
+Computer Use is not allowed to use the app 'com.openai.codex' for safety reasons.
+5. Close tab then read other page, 21.1965s (first operation did not complete):
+Timed out running CDP command "Emulation.setFocusEmulationEnabled" for tab 28
+6. Browser Return key + AX, 21.2682s:
+Timed out running CDP command "Emulation.setFocusEmulationEnabled" for tab 28
+User action was requested. No confirmation response, final browser save or approval was observed.

@@ -1,0 +1,112 @@
+{"Time":"2026-10-19T15:51:57.397044+08:00","Action":"start","Package":"aiseat/internal/capture"}
+{"Time":"2026-10-19T15:51:57.409355+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestEncodePrefixAndFullStore"}
+{"Time":"2026-10-19T15:51:57.409667+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestEncodePrefixAndFullStore","Output":"=== RUN   TestEncodePrefixAndFullStore\n"}
+{"Time":"2026-10-19T15:51:57.409694+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestEncodePrefixAndFullStore","Output":"--- PASS: TestEncodePrefixAndFullStore (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.409702+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestEncodePrefixAndFullStore","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.409712+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestEncodeDecodeChain"}
+{"Time":"2026-10-19T15:51:57.409714+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestEncodeDecodeChain","Output":"=== RUN   TestEncodeDecodeChain\n"}
+{"Time":"2026-10-19T15:51:57.409718+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestEncodeDecodeChain","Output":"--- PASS: TestEncodeDecodeChain (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.40972+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestEncodeDecodeChain","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.409721+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestEncodeForcedFullStoreAtMaxDepth"}
+{"Time":"2026-10-19T15:51:57.409723+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestEncodeForcedFullStoreAtMaxDepth","Output":"=== RUN   TestEncodeForcedFullStoreAtMaxDepth\n"}
+{"Time":"2026-10-19T15:51:57.409724+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestEncodeForcedFullStoreAtMaxDepth","Output":"--- PASS: TestEncodeForcedFullStoreAtMaxDepth (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.40973+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestEncodeForcedFullStoreAtMaxDepth","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.409732+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestDecodeRejectsMisalignedBlob"}
+{"Time":"2026-10-19T15:51:57.409733+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestDecodeRejectsMisalignedBlob","Output":"=== RUN   TestDecodeRejectsMisalignedBlob\n"}
+{"Time":"2026-10-19T15:51:57.409734+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestDecodeRejectsMisalignedBlob","Output":"--- PASS: TestDecodeRejectsMisalignedBlob (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.409736+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestDecodeRejectsMisalignedBlob","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.409737+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestMessagesStream"}
+{"Time":"2026-10-19T15:51:57.409738+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestMessagesStream","Output":"=== RUN   TestMessagesStream\n"}
+{"Time":"2026-10-19T15:51:57.409742+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestMessagesStream","Output":"--- PASS: TestMessagesStream (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.409743+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestMessagesStream","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.409745+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestMessagesJSONAndRequest"}
+{"Time":"2026-10-19T15:51:57.409746+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestMessagesJSONAndRequest","Output":"=== RUN   TestMessagesJSONAndRequest\n"}
+{"Time":"2026-10-19T15:51:57.409751+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestMessagesJSONAndRequest","Output":"--- PASS: TestMessagesJSONAndRequest (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.409752+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestMessagesJSONAndRequest","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.409766+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestRedactorReplacesSecrets"}
+{"Time":"2026-10-19T15:51:57.409856+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestRedactorReplacesSecrets","Output":"=== RUN   TestRedactorReplacesSecrets\n"}
+{"Time":"2026-10-19T15:51:57.40991+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestRedactorReplacesSecrets","Output":"--- PASS: TestRedactorReplacesSecrets (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.409917+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestRedactorReplacesSecrets","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.409919+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestRedactorLeavesPlainTextAlone"}
+{"Time":"2026-10-19T15:51:57.40992+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestRedactorLeavesPlainTextAlone","Output":"=== RUN   TestRedactorLeavesPlainTextAlone\n"}
+{"Time":"2026-10-19T15:51:57.409923+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestRedactorLeavesPlainTextAlone","Output":"--- PASS: TestRedactorLeavesPlainTextAlone (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.409924+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestRedactorLeavesPlainTextAlone","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.409925+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestRedactorDeterministic"}
+{"Time":"2026-10-19T15:51:57.409926+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestRedactorDeterministic","Output":"=== RUN   TestRedactorDeterministic\n"}
+{"Time":"2026-10-19T15:51:57.409982+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestRedactorDeterministic","Output":"--- PASS: TestRedactorDeterministic (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410007+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestRedactorDeterministic","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410009+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestRedactorNilAndEmptyRules"}
+{"Time":"2026-10-19T15:51:57.41001+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestRedactorNilAndEmptyRules","Output":"=== RUN   TestRedactorNilAndEmptyRules\n"}
+{"Time":"2026-10-19T15:51:57.410013+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestRedactorNilAndEmptyRules","Output":"--- PASS: TestRedactorNilAndEmptyRules (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410014+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestRedactorNilAndEmptyRules","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410017+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestNewRedactorBadRegex"}
+{"Time":"2026-10-19T15:51:57.410018+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestNewRedactorBadRegex","Output":"=== RUN   TestNewRedactorBadRegex\n"}
+{"Time":"2026-10-19T15:51:57.410026+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestNewRedactorBadRegex","Output":"--- PASS: TestNewRedactorBadRegex (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410028+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestNewRedactorBadRegex","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410029+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestDefaultRedactionRules"}
+{"Time":"2026-10-19T15:51:57.410031+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestDefaultRedactionRules","Output":"=== RUN   TestDefaultRedactionRules\n"}
+{"Time":"2026-10-19T15:51:57.410032+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestDefaultRedactionRules","Output":"--- PASS: TestDefaultRedactionRules (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410033+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestDefaultRedactionRules","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410034+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestSplitRequestResponses"}
+{"Time":"2026-10-19T15:51:57.410035+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestSplitRequestResponses","Output":"=== RUN   TestSplitRequestResponses\n"}
+{"Time":"2026-10-19T15:51:57.410048+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestSplitRequestResponses","Output":"--- PASS: TestSplitRequestResponses (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410049+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestSplitRequestResponses","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410051+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestSplitRequestChat"}
+{"Time":"2026-10-19T15:51:57.410052+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestSplitRequestChat","Output":"=== RUN   TestSplitRequestChat\n"}
+{"Time":"2026-10-19T15:51:57.410053+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestSplitRequestChat","Output":"--- PASS: TestSplitRequestChat (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410058+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestSplitRequestChat","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410065+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestSplitResponse"}
+{"Time":"2026-10-19T15:51:57.410066+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestSplitResponse","Output":"=== RUN   TestSplitResponse\n"}
+{"Time":"2026-10-19T15:51:57.410099+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestSplitResponse","Output":"--- PASS: TestSplitResponse (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410112+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestSplitResponse","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410117+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestResponsesStream"}
+{"Time":"2026-10-19T15:51:57.410121+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestResponsesStream","Output":"=== RUN   TestResponsesStream\n"}
+{"Time":"2026-10-19T15:51:57.410431+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestResponsesStream","Output":"--- PASS: TestResponsesStream (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410443+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestResponsesStream","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410448+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestChatStream"}
+{"Time":"2026-10-19T15:51:57.410451+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestChatStream","Output":"=== RUN   TestChatStream\n"}
+{"Time":"2026-10-19T15:51:57.410679+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestChatStream","Output":"--- PASS: TestChatStream (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410688+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestChatStream","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410693+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestChunkBoundaryInvariance"}
+{"Time":"2026-10-19T15:51:57.410696+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestChunkBoundaryInvariance","Output":"=== RUN   TestChunkBoundaryInvariance\n"}
+{"Time":"2026-10-19T15:51:57.410796+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestChunkBoundaryInvariance","Output":"--- PASS: TestChunkBoundaryInvariance (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410803+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestChunkBoundaryInvariance","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410809+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestTruncatedStream"}
+{"Time":"2026-10-19T15:51:57.410812+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestTruncatedStream","Output":"=== RUN   TestTruncatedStream\n"}
+{"Time":"2026-10-19T15:51:57.410888+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestTruncatedStream","Output":"--- PASS: TestTruncatedStream (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.410895+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestTruncatedStream","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.410901+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestResponsesFailed"}
+{"Time":"2026-10-19T15:51:57.410904+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestResponsesFailed","Output":"=== RUN   TestResponsesFailed\n"}
+{"Time":"2026-10-19T15:51:57.411143+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestResponsesFailed","Output":"--- PASS: TestResponsesFailed (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.411153+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestResponsesFailed","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.411157+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestParseJSONResponses"}
+{"Time":"2026-10-19T15:51:57.41116+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestParseJSONResponses","Output":"=== RUN   TestParseJSONResponses\n"}
+{"Time":"2026-10-19T15:51:57.411167+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestParseJSONResponses","Output":"--- PASS: TestParseJSONResponses (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.411173+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestParseJSONResponses","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.411176+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestParseJSONChat"}
+{"Time":"2026-10-19T15:51:57.411179+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestParseJSONChat","Output":"=== RUN   TestParseJSONChat\n"}
+{"Time":"2026-10-19T15:51:57.411256+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestParseJSONChat","Output":"--- PASS: TestParseJSONChat (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.411265+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestParseJSONChat","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.411267+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestLineOverflow"}
+{"Time":"2026-10-19T15:51:57.411269+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestLineOverflow","Output":"=== RUN   TestLineOverflow\n"}
+{"Time":"2026-10-19T15:51:57.423245+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestLineOverflow","Output":"--- PASS: TestLineOverflow (0.01s)\n"}
+{"Time":"2026-10-19T15:51:57.423306+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestLineOverflow","Elapsed":0.01}
+{"Time":"2026-10-19T15:51:57.423379+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestExtractTextsResponsesSessionNewAndTruncation"}
+{"Time":"2026-10-19T15:51:57.42339+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestExtractTextsResponsesSessionNewAndTruncation","Output":"=== RUN   TestExtractTextsResponsesSessionNewAndTruncation\n"}
+{"Time":"2026-10-19T15:51:57.423682+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestExtractTextsResponsesSessionNewAndTruncation","Output":"--- PASS: TestExtractTextsResponsesSessionNewAndTruncation (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.423686+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestExtractTextsResponsesSessionNewAndTruncation","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.423688+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestExtractTextsResponsesAllWhenNoPrev"}
+{"Time":"2026-10-19T15:51:57.423689+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestExtractTextsResponsesAllWhenNoPrev","Output":"=== RUN   TestExtractTextsResponsesAllWhenNoPrev\n"}
+{"Time":"2026-10-19T15:51:57.423701+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestExtractTextsResponsesAllWhenNoPrev","Output":"--- PASS: TestExtractTextsResponsesAllWhenNoPrev (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.423703+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestExtractTextsResponsesAllWhenNoPrev","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.423704+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestExtractTextsChat"}
+{"Time":"2026-10-19T15:51:57.423706+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestExtractTextsChat","Output":"=== RUN   TestExtractTextsChat\n"}
+{"Time":"2026-10-19T15:51:57.423707+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestExtractTextsChat","Output":"--- PASS: TestExtractTextsChat (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.423714+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestExtractTextsChat","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.423716+08:00","Action":"run","Package":"aiseat/internal/capture","Test":"TestExtractTextsChatArrayContent"}
+{"Time":"2026-10-19T15:51:57.423717+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestExtractTextsChatArrayContent","Output":"=== RUN   TestExtractTextsChatArrayContent\n"}
+{"Time":"2026-10-19T15:51:57.423718+08:00","Action":"output","Package":"aiseat/internal/capture","Test":"TestExtractTextsChatArrayContent","Output":"--- PASS: TestExtractTextsChatArrayContent (0.00s)\n"}
+{"Time":"2026-10-19T15:51:57.423719+08:00","Action":"pass","Package":"aiseat/internal/capture","Test":"TestExtractTextsChatArrayContent","Elapsed":0}
+{"Time":"2026-10-19T15:51:57.423721+08:00","Action":"output","Package":"aiseat/internal/capture","Output":"PASS\n"}
+{"Time":"2026-10-19T15:51:57.426789+08:00","Action":"output","Package":"aiseat/internal/capture","Output":"ok  \taiseat/internal/capture\t0.029s\n"}
+{"Time":"2026-10-19T15:51:57.426814+08:00","Action":"pass","Package":"aiseat/internal/capture","Elapsed":0.03}

@@ -1,0 +1,28 @@
+{
+  "suite": {
+    "total": 541,
+    "passed": 539,
+    "skipped": 2,
+    "seconds": 187.119,
+    "exit_code": 0,
+    "log": "platform-full-ui-sync-final.log"
+  },
+  "syntax_exit_code": 0,
+  "tested_source_hashes_match": true,
+  "workbench": [
+    "21572 78018 21572 /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python -u -m tmh serve --data data/product-workbench --port 8791 --preview-port 8793 --user 本地验收 --brand Webuddy · 全周期工作台"
+  ],
+  "candidate": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+  "no_new_model_run": true,
+  "no_production": true,
+  "no_8792_changes": true,
+  "images_original_bytes": true,
+  "after_full_suite": {
+    "change": "Remove a single extra blank line at EOF of tests/test_python_pathmap_ui.py; no product changes",
+    "test_old_sha256": "4da7607b202a98a02d7d2d2a4c6b3ff18ec0e17bad9e7706dc3956849bfb0b37",
+    "test_final_sha256": "dc50312419011ad307f1e98fe015a8ff543dbe08e281f657621277a5b9ab6fe0",
+    "test_log": "ui-final-whitespace.log",
+    "ui_tests": 12,
+    "exit_code": 0
+  }
+}

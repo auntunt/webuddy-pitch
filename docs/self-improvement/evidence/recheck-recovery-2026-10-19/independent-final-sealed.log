@@ -1,0 +1,13 @@
+test_active_recheck_rejects_adoption_without_removing_its_worktree (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_active_recheck_rejects_adoption_without_removing_its_worktree) ... ok
+test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_crashed_recheck_invalidates_old_proof_without_rewriting_original_run) ... ok
+test_damaged_sealed_evidence_is_unknown_read_only_and_cannot_be_adopted (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_damaged_sealed_evidence_is_unknown_read_only_and_cannot_be_adopted) ... ok
+test_missing_interrupted_receipt_blocks_retry_until_explicit_collection (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_missing_interrupted_receipt_blocks_retry_until_explicit_collection) ... ok
+test_multicommand_recheck_holds_lease_between_real_commands_across_instances (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_multicommand_recheck_holds_lease_between_real_commands_across_instances) ... ok
+test_real_failed_recheck_is_current_failure_and_never_overwrites_source_success (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_real_failed_recheck_is_current_failure_and_never_overwrites_source_success) ... ok
+test_synthetic_signer_cannot_accept_freshly_repacked_real_failed_checks (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_synthetic_signer_cannot_accept_freshly_repacked_real_failed_checks) ... ok
+test_synthetic_signoff_serializes_current_proof_check_and_commit_against_recheck (tests.test_recheck_crash_independent.RecheckCrashIndependentTest.test_synthetic_signoff_serializes_current_proof_check_and_commit_against_recheck) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 17.144s
+
+OK

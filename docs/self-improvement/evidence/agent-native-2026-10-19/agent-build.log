@@ -1,0 +1,421 @@
+Building wheel...
+running egg_info
+writing tmh_harness.egg-info/PKG-INFO
+writing dependency_links to tmh_harness.egg-info/dependency_links.txt
+writing entry points to tmh_harness.egg-info/entry_points.txt
+writing requirements to tmh_harness.egg-info/requires.txt
+writing top-level names to tmh_harness.egg-info/top_level.txt
+reading manifest file 'tmh_harness.egg-info/SOURCES.txt'
+writing manifest file 'tmh_harness.egg-info/SOURCES.txt'
+running bdist_wheel
+running build
+running build_py
+creating build/lib/tmh
+copying tmh/workbench_client.py -> build/lib/tmh
+copying tmh/task.py -> build/lib/tmh
+copying tmh/agentcfg.py -> build/lib/tmh
+copying tmh/workbench_mcp.py -> build/lib/tmh
+copying tmh/scanner.py -> build/lib/tmh
+copying tmh/explorer_ui.py -> build/lib/tmh
+copying tmh/config.py -> build/lib/tmh
+copying tmh/query.py -> build/lib/tmh
+copying tmh/bots.py -> build/lib/tmh
+copying tmh/codeindex.py -> build/lib/tmh
+copying tmh/mapper.py -> build/lib/tmh
+copying tmh/aes.py -> build/lib/tmh
+copying tmh/discover.py -> build/lib/tmh
+copying tmh/acceptance.py -> build/lib/tmh
+copying tmh/graph.py -> build/lib/tmh
+copying tmh/domains.py -> build/lib/tmh
+copying tmh/ledger.py -> build/lib/tmh
+copying tmh/python_index.py -> build/lib/tmh
+copying tmh/activity.py -> build/lib/tmh
+copying tmh/__init__.py -> build/lib/tmh
+copying tmh/flow.py -> build/lib/tmh
+copying tmh/offline.py -> build/lib/tmh
+copying tmh/agent_contract.py -> build/lib/tmh
+copying tmh/workbench.py -> build/lib/tmh
+copying tmh/kbqa.py -> build/lib/tmh
+copying tmh/explorer.py -> build/lib/tmh
+copying tmh/workbench_entry.py -> build/lib/tmh
+copying tmh/parsecache.py -> build/lib/tmh
+copying tmh/context.py -> build/lib/tmh
+copying tmh/cli.py -> build/lib/tmh
+copying tmh/mcp.py -> build/lib/tmh
+copying tmh/fsutil.py -> build/lib/tmh
+copying tmh/guard.py -> build/lib/tmh
+copying tmh/golang.py -> build/lib/tmh
+copying tmh/install.py -> build/lib/tmh
+copying tmh/buildinfo.py -> build/lib/tmh
+copying tmh/webreport.py -> build/lib/tmh
+copying tmh/verify.py -> build/lib/tmh
+copying tmh/sign.py -> build/lib/tmh
+copying tmh/path.py -> build/lib/tmh
+copying tmh/evidence.py -> build/lib/tmh
+copying tmh/usage.py -> build/lib/tmh
+copying tmh/__main__.py -> build/lib/tmh
+copying tmh/opscli.py -> build/lib/tmh
+copying tmh/report.py -> build/lib/tmh
+copying tmh/kb.py -> build/lib/tmh
+creating build/lib/tmh/integrations
+copying tmh/integrations/link.py -> build/lib/tmh/integrations
+copying tmh/integrations/confluence.py -> build/lib/tmh/integrations
+copying tmh/integrations/gitlab.py -> build/lib/tmh/integrations
+copying tmh/integrations/generic.py -> build/lib/tmh/integrations
+copying tmh/integrations/sonarqube.py -> build/lib/tmh/integrations
+copying tmh/integrations/__init__.py -> build/lib/tmh/integrations
+copying tmh/integrations/notify.py -> build/lib/tmh/integrations
+copying tmh/integrations/zentao.py -> build/lib/tmh/integrations
+copying tmh/integrations/http.py -> build/lib/tmh/integrations
+copying tmh/integrations/jenkins.py -> build/lib/tmh/integrations
+copying tmh/integrations/jira.py -> build/lib/tmh/integrations
+copying tmh/integrations/github.py -> build/lib/tmh/integrations
+copying tmh/integrations/base.py -> build/lib/tmh/integrations
+creating build/lib/tmh/platform
+copying tmh/platform/intake.py -> build/lib/tmh/platform
+copying tmh/platform/alerts.py -> build/lib/tmh/platform
+copying tmh/platform/orchestra.py -> build/lib/tmh/platform
+copying tmh/platform/delivery.py -> build/lib/tmh/platform
+copying tmh/platform/preview.py -> build/lib/tmh/platform
+copying tmh/platform/ui_work.py -> build/lib/tmh/platform
+copying tmh/platform/process_control.py -> build/lib/tmh/platform
+copying tmh/platform/store.py -> build/lib/tmh/platform
+copying tmh/platform/survey.py -> build/lib/tmh/platform
+copying tmh/platform/metrics.py -> build/lib/tmh/platform
+copying tmh/platform/server.py -> build/lib/tmh/platform
+copying tmh/platform/release.py -> build/lib/tmh/platform
+copying tmh/platform/command.py -> build/lib/tmh/platform
+copying tmh/platform/handwork.py -> build/lib/tmh/platform
+copying tmh/platform/ui_css.py -> build/lib/tmh/platform
+copying tmh/platform/epic.py -> build/lib/tmh/platform
+copying tmh/platform/project_bootstrap.py -> build/lib/tmh/platform
+copying tmh/platform/ui_atlas.py -> build/lib/tmh/platform
+copying tmh/platform/ui.py -> build/lib/tmh/platform
+copying tmh/platform/books.py -> build/lib/tmh/platform
+copying tmh/platform/testbox.py -> build/lib/tmh/platform
+copying tmh/platform/util_conf.py -> build/lib/tmh/platform
+copying tmh/platform/ui_drafts.py -> build/lib/tmh/platform
+copying tmh/platform/ui_delivery.py -> build/lib/tmh/platform
+copying tmh/platform/pathmap.py -> build/lib/tmh/platform
+copying tmh/platform/__init__.py -> build/lib/tmh/platform
+copying tmh/platform/gates.py -> build/lib/tmh/platform
+copying tmh/platform/assist.py -> build/lib/tmh/platform
+copying tmh/platform/apps.py -> build/lib/tmh/platform
+copying tmh/platform/reform.py -> build/lib/tmh/platform
+copying tmh/platform/agents.py -> build/lib/tmh/platform
+copying tmh/platform/workbench.py -> build/lib/tmh/platform
+copying tmh/platform/chat.py -> build/lib/tmh/platform
+copying tmh/platform/agent_api.py -> build/lib/tmh/platform
+copying tmh/platform/pinpoint.py -> build/lib/tmh/platform
+copying tmh/platform/signoff.py -> build/lib/tmh/platform
+copying tmh/platform/supervised_process.py -> build/lib/tmh/platform
+copying tmh/platform/learn.py -> build/lib/tmh/platform
+copying tmh/platform/upstream.py -> build/lib/tmh/platform
+copying tmh/platform/ui_theme.py -> build/lib/tmh/platform
+copying tmh/platform/fixloop.py -> build/lib/tmh/platform
+copying tmh/platform/errors.py -> build/lib/tmh/platform
+copying tmh/platform/login.py -> build/lib/tmh/platform
+copying tmh/platform/readiness.py -> build/lib/tmh/platform
+copying tmh/platform/recheck_operations.py -> build/lib/tmh/platform
+copying tmh/platform/similar.py -> build/lib/tmh/platform
+copying tmh/platform/knowledge.py -> build/lib/tmh/platform
+copying tmh/platform/crash_recovery.py -> build/lib/tmh/platform
+running egg_info
+writing tmh_harness.egg-info/PKG-INFO
+writing dependency_links to tmh_harness.egg-info/dependency_links.txt
+writing entry points to tmh_harness.egg-info/entry_points.txt
+writing requirements to tmh_harness.egg-info/requires.txt
+writing top-level names to tmh_harness.egg-info/top_level.txt
+reading manifest file 'tmh_harness.egg-info/SOURCES.txt'
+writing manifest file 'tmh_harness.egg-info/SOURCES.txt'
+/Users/auntlee/.cache/uv/builds-v0/.tmpIWvq15/lib/python3.12/site-packages/setuptools/command/build_py.py:215: _Warning: Package 'tmh.rules' is absent from the `packages` configuration.
+!!
+
+        ********************************************************************************
+        ############################
+        # Package would be ignored #
+        ############################
+        Python recognizes 'tmh.rules' as an importable package[^1],
+        but it is absent from setuptools' `packages` configuration.
+
+        This leads to an ambiguous overall configuration. If you want to distribute this
+        package, please make sure that 'tmh.rules' is explicitly added
+        to the `packages` configuration field.
+
+        Alternatively, you can also rely on setuptools' discovery methods
+        (for example by using `find_namespace_packages(...)`/`find_namespace:`
+        instead of `find_packages(...)`/`find:`).
+
+        You can read more about "package discovery" on setuptools documentation page:
+
+        - https://setuptools.pypa.io/en/latest/userguide/package_discovery.html
+
+        If you don't want 'tmh.rules' to be distributed and are
+        already explicitly excluding 'tmh.rules' via
+        `find_namespace_packages(...)/find_namespace` or `find_packages(...)/find`,
+        you can try to use `exclude_package_data`, or `include-package-data=False` in
+        combination with a more fine grained `package-data` configuration.
+
+        You can read more about "package data files" on setuptools documentation page:
+
+        - https://setuptools.pypa.io/en/latest/userguide/datafiles.html
+
+
+        [^1]: For Python, any directory (with suitable naming) can be imported,
+              even if it does not contain any `.py` files.
+              On the other hand, currently there is no concept of package data
+              directory, all directories are treated like packages.
+        ********************************************************************************
+
+!!
+  check.warn(importable)
+creating build/lib/tmh/rules
+copying tmh/rules/database.json -> build/lib/tmh/rules
+copying tmh/rules/dotnet.json -> build/lib/tmh/rules
+copying tmh/rules/middleware.json -> build/lib/tmh/rules
+copying tmh/rules/platform.json -> build/lib/tmh/rules
+copying tmh/rules/security_encoding.json -> build/lib/tmh/rules
+installing to build/bdist.macosx-11.1-arm64/wheel
+running install
+running install_lib
+creating build/bdist.macosx-11.1-arm64/wheel
+creating build/bdist.macosx-11.1-arm64/wheel/tmh
+copying build/lib/tmh/workbench_client.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/task.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/agentcfg.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/workbench_mcp.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/scanner.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/explorer_ui.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/config.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/query.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/bots.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/codeindex.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/mapper.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/aes.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/discover.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+creating build/bdist.macosx-11.1-arm64/wheel/tmh/platform
+copying build/lib/tmh/platform/intake.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/alerts.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/orchestra.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/delivery.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/preview.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/ui_work.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/process_control.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/store.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/survey.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/metrics.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/server.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/release.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/command.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/handwork.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/ui_css.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/epic.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/project_bootstrap.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/ui_atlas.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/ui.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/books.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/testbox.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/util_conf.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/ui_drafts.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/ui_delivery.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/pathmap.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/__init__.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/gates.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/assist.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/apps.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/reform.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/agents.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/workbench.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/chat.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/agent_api.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/pinpoint.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/signoff.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/supervised_process.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/learn.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/upstream.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/ui_theme.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/fixloop.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/errors.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/login.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/readiness.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/recheck_operations.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/similar.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/knowledge.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/platform/crash_recovery.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/platform
+copying build/lib/tmh/acceptance.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/graph.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/domains.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/ledger.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/python_index.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/activity.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/__init__.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/flow.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/offline.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/agent_contract.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/workbench.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/kbqa.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/explorer.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+creating build/bdist.macosx-11.1-arm64/wheel/tmh/integrations
+copying build/lib/tmh/integrations/link.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/confluence.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/gitlab.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/generic.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/sonarqube.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/__init__.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/notify.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/zentao.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/http.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/jenkins.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/jira.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/github.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/integrations/base.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh/integrations
+copying build/lib/tmh/workbench_entry.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/parsecache.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/context.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/cli.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/mcp.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/fsutil.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+creating build/bdist.macosx-11.1-arm64/wheel/tmh/rules
+copying build/lib/tmh/rules/security_encoding.json -> build/bdist.macosx-11.1-arm64/wheel/./tmh/rules
+copying build/lib/tmh/rules/dotnet.json -> build/bdist.macosx-11.1-arm64/wheel/./tmh/rules
+copying build/lib/tmh/rules/platform.json -> build/bdist.macosx-11.1-arm64/wheel/./tmh/rules
+copying build/lib/tmh/rules/database.json -> build/bdist.macosx-11.1-arm64/wheel/./tmh/rules
+copying build/lib/tmh/rules/middleware.json -> build/bdist.macosx-11.1-arm64/wheel/./tmh/rules
+copying build/lib/tmh/guard.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/golang.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/install.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/buildinfo.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/webreport.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/verify.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/sign.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/path.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/evidence.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/usage.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/__main__.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/opscli.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/report.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+copying build/lib/tmh/kb.py -> build/bdist.macosx-11.1-arm64/wheel/./tmh
+running install_egg_info
+Copying tmh_harness.egg-info to build/bdist.macosx-11.1-arm64/wheel/./tmh_harness-0.2.0-py3.12.egg-info
+running install_scripts
+creating build/bdist.macosx-11.1-arm64/wheel/tmh_harness-0.2.0.dist-info/WHEEL
+creating '/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/agent-build/.tmp-gbg32jpq/tmh_harness-0.2.0-py3-none-any.whl' and adding 'build/bdist.macosx-11.1-arm64/wheel' to it
+adding 'tmh/__init__.py'
+adding 'tmh/__main__.py'
+adding 'tmh/acceptance.py'
+adding 'tmh/activity.py'
+adding 'tmh/aes.py'
+adding 'tmh/agent_contract.py'
+adding 'tmh/agentcfg.py'
+adding 'tmh/bots.py'
+adding 'tmh/buildinfo.py'
+adding 'tmh/cli.py'
+adding 'tmh/codeindex.py'
+adding 'tmh/config.py'
+adding 'tmh/context.py'
+adding 'tmh/discover.py'
+adding 'tmh/domains.py'
+adding 'tmh/evidence.py'
+adding 'tmh/explorer.py'
+adding 'tmh/explorer_ui.py'
+adding 'tmh/flow.py'
+adding 'tmh/fsutil.py'
+adding 'tmh/golang.py'
+adding 'tmh/graph.py'
+adding 'tmh/guard.py'
+adding 'tmh/install.py'
+adding 'tmh/kb.py'
+adding 'tmh/kbqa.py'
+adding 'tmh/ledger.py'
+adding 'tmh/mapper.py'
+adding 'tmh/mcp.py'
+adding 'tmh/offline.py'
+adding 'tmh/opscli.py'
+adding 'tmh/parsecache.py'
+adding 'tmh/path.py'
+adding 'tmh/python_index.py'
+adding 'tmh/query.py'
+adding 'tmh/report.py'
+adding 'tmh/scanner.py'
+adding 'tmh/sign.py'
+adding 'tmh/task.py'
+adding 'tmh/usage.py'
+adding 'tmh/verify.py'
+adding 'tmh/webreport.py'
+adding 'tmh/workbench.py'
+adding 'tmh/workbench_client.py'
+adding 'tmh/workbench_entry.py'
+adding 'tmh/workbench_mcp.py'
+adding 'tmh/integrations/__init__.py'
+adding 'tmh/integrations/base.py'
+adding 'tmh/integrations/confluence.py'
+adding 'tmh/integrations/generic.py'
+adding 'tmh/integrations/github.py'
+adding 'tmh/integrations/gitlab.py'
+adding 'tmh/integrations/http.py'
+adding 'tmh/integrations/jenkins.py'
+adding 'tmh/integrations/jira.py'
+adding 'tmh/integrations/link.py'
+adding 'tmh/integrations/notify.py'
+adding 'tmh/integrations/sonarqube.py'
+adding 'tmh/integrations/zentao.py'
+adding 'tmh/platform/__init__.py'
+adding 'tmh/platform/agent_api.py'
+adding 'tmh/platform/agents.py'
+adding 'tmh/platform/alerts.py'
+adding 'tmh/platform/apps.py'
+adding 'tmh/platform/assist.py'
+adding 'tmh/platform/books.py'
+adding 'tmh/platform/chat.py'
+adding 'tmh/platform/command.py'
+adding 'tmh/platform/crash_recovery.py'
+adding 'tmh/platform/delivery.py'
+adding 'tmh/platform/epic.py'
+adding 'tmh/platform/errors.py'
+adding 'tmh/platform/fixloop.py'
+adding 'tmh/platform/gates.py'
+adding 'tmh/platform/handwork.py'
+adding 'tmh/platform/intake.py'
+adding 'tmh/platform/knowledge.py'
+adding 'tmh/platform/learn.py'
+adding 'tmh/platform/login.py'
+adding 'tmh/platform/metrics.py'
+adding 'tmh/platform/orchestra.py'
+adding 'tmh/platform/pathmap.py'
+adding 'tmh/platform/pinpoint.py'
+adding 'tmh/platform/preview.py'
+adding 'tmh/platform/process_control.py'
+adding 'tmh/platform/project_bootstrap.py'
+adding 'tmh/platform/readiness.py'
+adding 'tmh/platform/recheck_operations.py'
+adding 'tmh/platform/reform.py'
+adding 'tmh/platform/release.py'
+adding 'tmh/platform/server.py'
+adding 'tmh/platform/signoff.py'
+adding 'tmh/platform/similar.py'
+adding 'tmh/platform/store.py'
+adding 'tmh/platform/supervised_process.py'
+adding 'tmh/platform/survey.py'
+adding 'tmh/platform/testbox.py'
+adding 'tmh/platform/ui.py'
+adding 'tmh/platform/ui_atlas.py'
+adding 'tmh/platform/ui_css.py'
+adding 'tmh/platform/ui_delivery.py'
+adding 'tmh/platform/ui_drafts.py'
+adding 'tmh/platform/ui_theme.py'
+adding 'tmh/platform/ui_work.py'
+adding 'tmh/platform/upstream.py'
+adding 'tmh/platform/util_conf.py'
+adding 'tmh/platform/workbench.py'
+adding 'tmh/rules/database.json'
+adding 'tmh/rules/dotnet.json'
+adding 'tmh/rules/middleware.json'
+adding 'tmh/rules/platform.json'
+adding 'tmh/rules/security_encoding.json'
+adding 'tmh_harness-0.2.0.dist-info/METADATA'
+adding 'tmh_harness-0.2.0.dist-info/WHEEL'
+adding 'tmh_harness-0.2.0.dist-info/entry_points.txt'
+adding 'tmh_harness-0.2.0.dist-info/top_level.txt'
+adding 'tmh_harness-0.2.0.dist-info/RECORD'
+removing build/bdist.macosx-11.1-arm64/wheel
+Successfully built data/agent-build/tmh_harness-0.2.0-py3-none-any.whl

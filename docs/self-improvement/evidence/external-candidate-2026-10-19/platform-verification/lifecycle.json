@@ -1,0 +1,139 @@
+{
+  "started_at": "2026-10-19 12:59:27",
+  "timeout_seconds": 1200.0,
+  "stopped_reason": "",
+  "attempts": [
+    {
+      "attempt": 1,
+      "kind": "check:build",
+      "started_at": "2026-10-19 12:59:29",
+      "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/worktrees/base-1",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "/opt/homebrew/opt/python@3.14/bin/python3.14 -m py_compile app.py"
+      ],
+      "timeout_seconds": 1198.618149625021,
+      "evidence": "runs/1/attempts/0001",
+      "supervised": true,
+      "pid": 74888,
+      "pgid": 74888,
+      "returncode": 0,
+      "reason": "exited",
+      "elapsed_seconds": 0.27039541699923575,
+      "cleanup": {
+        "trigger": null,
+        "term_sent": false,
+        "kill_sent": false,
+        "signals": [],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 12:59:29"
+    },
+    {
+      "attempt": 2,
+      "kind": "check:test",
+      "started_at": "2026-10-19 12:59:29",
+      "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/worktrees/base-1",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "/opt/homebrew/opt/python@3.14/bin/python3.14 -m unittest discover -s tests -v"
+      ],
+      "timeout_seconds": 1198.3077555830823,
+      "evidence": "runs/1/attempts/0002",
+      "supervised": true,
+      "pid": 74890,
+      "pgid": 74890,
+      "returncode": 0,
+      "reason": "exited",
+      "elapsed_seconds": 2.406498249969445,
+      "cleanup": {
+        "trigger": null,
+        "term_sent": false,
+        "kill_sent": false,
+        "signals": [],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 12:59:31"
+    },
+    {
+      "attempt": 3,
+      "kind": "check:build",
+      "started_at": "2026-10-19 12:59:31",
+      "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/worktrees/candidate-1",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "/opt/homebrew/opt/python@3.14/bin/python3.14 -m py_compile app.py"
+      ],
+      "timeout_seconds": 1195.8360817499924,
+      "evidence": "runs/1/attempts/0003",
+      "supervised": true,
+      "pid": 74895,
+      "pgid": 74895,
+      "returncode": 0,
+      "reason": "exited",
+      "elapsed_seconds": 0.15215454204007983,
+      "cleanup": {
+        "trigger": null,
+        "term_sent": false,
+        "kill_sent": false,
+        "signals": [],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 12:59:32"
+    },
+    {
+      "attempt": 4,
+      "kind": "check:test",
+      "started_at": "2026-10-19 12:59:32",
+      "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/worktrees/candidate-1",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "/opt/homebrew/opt/python@3.14/bin/python3.14 -m unittest discover -s tests -v"
+      ],
+      "timeout_seconds": 1195.6105711670825,
+      "evidence": "runs/1/attempts/0004",
+      "supervised": true,
+      "pid": 74897,
+      "pgid": 74897,
+      "returncode": 0,
+      "reason": "exited",
+      "elapsed_seconds": 3.052241125027649,
+      "cleanup": {
+        "trigger": null,
+        "term_sent": false,
+        "kill_sent": false,
+        "signals": [],
+        "errors": [],
+        "remaining_group": false,
+        "output_complete": true,
+        "reaped": true,
+        "complete": true
+      },
+      "ended_at": "2026-10-19 12:59:35"
+    }
+  ],
+  "finished": true,
+  "owner": {
+    "token": "5b983d2dcea64ebeb4b3d7c7654f69ef",
+    "run_id": 1,
+    "data_dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations"
+  },
+  "ended_at": "2026-10-19 12:59:35",
+  "elapsed_seconds": 7.504
+}

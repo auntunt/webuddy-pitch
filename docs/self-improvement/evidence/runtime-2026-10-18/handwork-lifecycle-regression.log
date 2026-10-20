@@ -1,0 +1,14 @@
+test_build_timeout_closes_lifecycle_without_starting_review (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_build_timeout_closes_lifecycle_without_starting_review) ... ok
+test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded) ... ok
+test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption) ... ok
+test_review_shares_time_spent_on_baseline_and_candidate_checks (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_review_shares_time_spent_on_baseline_and_candidate_checks) ... ok
+test_successful_direct_review_finishes_before_adoption (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_successful_direct_review_finishes_before_adoption) ... ok
+test_a_person_writes_it_pushes_a_branch_and_the_platform_checks_reviews_and_ships_it (tests.test_platform.PlatformApiTest.test_a_person_writes_it_pushes_a_branch_and_the_platform_checks_reviews_and_ships_it) ... /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 9.392s
+
+OK
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=4, family=2, type=1, proto=0, laddr=('127.0.0.1', 59483)>

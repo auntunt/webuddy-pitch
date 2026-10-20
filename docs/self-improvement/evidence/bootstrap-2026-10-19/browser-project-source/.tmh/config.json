@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "project": {
+    "name": "新建模板 · 事项管理技术验收",
+    "description": "本地模板技术验收：从工作台新建项目后，真实编辑并保存200逻辑字符含换行标题；原编号和完成状态不变；数据库故障完整保留输入并能重试；刷新和预览重启后数据保持。201逻辑字符拒绝且不改数据。保留8KiB保存与64KiB错误恢复边界。仅验证模板，未运行真实模型，不是客户签收。"
+  },
+  "source": {
+    "db": "unknown",
+    "appserver": "unknown",
+    "os": "unknown",
+    "arch": "x86_64"
+  },
+  "target": {
+    "db": "unknown",
+    "appserver": "unknown",
+    "os": "kylin",
+    "arch": "unknown",
+    "crypto": "none",
+    "mq": "unknown",
+    "cache": "unknown",
+    "browser": "chromium",
+    "jdk": "unknown"
+  },
+  "commands": {
+    "build": "/opt/homebrew/opt/python@3.14/bin/python3.14 -m py_compile app.py",
+    "test": "/opt/homebrew/opt/python@3.14/bin/python3.14 -m unittest discover -s tests -v",
+    "extra_checks": []
+  },
+  "protected": [
+    "**/src/test/**",
+    "**/*Test.java",
+    "**/*Tests.java",
+    "**/*Tests.cs",
+    "**/*.Tests/**",
+    "**/*.UnitTests/**",
+    ".tmh/config.json",
+    ".tmh/baseline.json",
+    ".claude/settings.json"
+  ],
+  "allow_protected_edits": false,
+  "allow_db_cli": false,
+  "integrations": {
+    "tools": {},
+    "defaults": {},
+    "agent_writes": false
+  },
+  "scan": {
+    "exclude": [
+      "**/vendor/**",
+      "**/*.min.js",
+      "**/static/lib/**",
+      "**/wwwroot/lib/**"
+    ],
+    "disabled_rules": []
+  }
+}

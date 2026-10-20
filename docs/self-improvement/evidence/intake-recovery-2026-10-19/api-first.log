@@ -1,0 +1,50 @@
+test_closed_ticket_stays_closed_everywhere_and_rejects_retry_without_writes (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_closed_ticket_stays_closed_everywhere_and_rejects_retry_without_writes) ... FAIL
+test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages) ... ok
+test_http_retry_requires_write_header_and_missing_ticket_does_not_delegate (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_http_retry_requires_write_header_and_missing_ticket_does_not_delegate) ... ok
+test_missing_executor_blocks_retry_with_a_409_and_keeps_saved_answers (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_missing_executor_blocks_retry_with_a_409_and_keeps_saved_answers) ... ok
+test_real_http_retry_has_running_state_and_blocks_duplicate_until_complete (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_real_http_retry_has_running_state_and_blocks_duplicate_until_complete) ... FAIL
+test_retry_delegates_canonical_key_actor_and_wait_without_replacing_customer_words (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_retry_delegates_canonical_key_actor_and_wait_without_replacing_customer_words) ... FAIL
+
+======================================================================
+FAIL: test_closed_ticket_stays_closed_everywhere_and_rejects_retry_without_writes (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_closed_ticket_stays_closed_everywhere_and_rejects_retry_without_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_api.py", line 216, in test_closed_ticket_stays_closed_everywhere_and_rejects_retry_without_writes
+    detail = self.same_everywhere("done", "已关闭")
+             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_api.py", line 135, in same_everywhere
+    self.assertEqual(state["state"], expected, state)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'you' != 'done'
+- you
++ done
+ : {'state': 'you', 'label': '等你看', 'why': '客户答复已保存，再理解未完成，等工程师处理', 'version': ''}
+
+======================================================================
+FAIL: test_real_http_retry_has_running_state_and_blocks_duplicate_until_complete (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_real_http_retry_has_running_state_and_blocks_duplicate_until_complete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_api.py", line 191, in test_real_http_retry_has_running_state_and_blocks_duplicate_until_complete
+    self.assertEqual(self.wait_recovery()["status"], "resolved")
+                     ~~~~~~~~~~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_api.py", line 165, in wait_recovery
+    self.fail("recovery did not finish")
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: recovery did not finish
+
+======================================================================
+FAIL: test_retry_delegates_canonical_key_actor_and_wait_without_replacing_customer_words (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_retry_delegates_canonical_key_actor_and_wait_without_replacing_customer_words)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_api.py", line 207, in test_retry_delegates_canonical_key_actor_and_wait_without_replacing_customer_words
+    self.assertEqual(result["status"], "resolved")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'running' != 'resolved'
+- running
++ resolved
+
+
+----------------------------------------------------------------------
+Ran 6 tests in 9.302s
+
+FAILED (failures=3)

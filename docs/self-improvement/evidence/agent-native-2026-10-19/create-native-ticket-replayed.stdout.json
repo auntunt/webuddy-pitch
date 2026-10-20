@@ -1,0 +1,26 @@
+{
+  "execution_started": false,
+  "request_id": "agent-native-20261019-create",
+  "ticket": {
+    "assignee": "agent:codex",
+    "body": "来源：用户要求提供 CLI / MCP，让 Claude Code、Cursor、Codex 能使用 Webuddy。\n验收：读取 BOOTV2-1 的真实需求、候选版本和证据；两种入口的交接与回复落在同一工单；重试不重复写入。\n本任务是入口集成验证，不代表 BOOTV2 已由客户签收。",
+    "created": "2026-10-19 11:24:14",
+    "external": {},
+    "id": 4,
+    "key": "BOOTV2-2",
+    "labels": [],
+    "links": {
+      "agent_request": "agent-native-20261019-create",
+      "handwork": "agent:codex",
+      "hold": "agent:codex"
+    },
+    "num": 2,
+    "priority": "normal",
+    "project_id": 3,
+    "reporter": "agent:codex",
+    "status": "new",
+    "title": "通过 CLI 与 MCP 接续事项管理交付",
+    "type": "feature",
+    "updated": "2026-10-19 11:24:14"
+  }
+}

@@ -1,0 +1,251 @@
+test_cancel_and_blocked_stdin_do_not_block_group_cleanup (tests.test_supervised_process.SupervisedProcessTest.test_cancel_and_blocked_stdin_do_not_block_group_cleanup) ... ERROR
+test_cancellation_already_requested_never_starts_target (tests.test_supervised_process.SupervisedProcessTest.test_cancellation_already_requested_never_starts_target) ... ERROR
+test_deadline_includes_supervisor_startup (tests.test_supervised_process.SupervisedProcessTest.test_deadline_includes_supervisor_startup) ... ERROR
+test_environment_is_not_persisted_and_existing_evidence_is_never_overwritten (tests.test_supervised_process.SupervisedProcessTest.test_environment_is_not_persisted_and_existing_evidence_is_never_overwritten) ... ERROR
+test_modified_nonce_or_raw_output_is_never_accepted_as_complete (tests.test_supervised_process.SupervisedProcessTest.test_modified_nonce_or_raw_output_is_never_accepted_as_complete) ... ERROR
+test_output_callback_failure_cleans_target_while_retaining_original_binary (tests.test_supervised_process.SupervisedProcessTest.test_output_callback_failure_cleans_target_while_retaining_original_binary) ... ERROR
+test_owner_loss_drains_term_handler_output_and_never_recovers_exit_zero_as_success (tests.test_supervised_process.SupervisedProcessTest.test_owner_loss_drains_term_handler_output_and_never_recovers_exit_zero_as_success) ... ERROR
+test_raw_binary_output_and_full_stdin_survive_independent_worker (tests.test_supervised_process.SupervisedProcessTest.test_raw_binary_output_and_full_stdin_survive_independent_worker) ... ERROR
+test_service_dies_after_supervisor_spawn_before_ack_never_starts_target (tests.test_supervised_process.SupervisedProcessTest.test_service_dies_after_supervisor_spawn_before_ack_never_starts_target) ... ERROR
+test_service_dies_in_spawn_callback_still_has_owner_lost_receipt (tests.test_supervised_process.SupervisedProcessTest.test_service_dies_in_spawn_callback_still_has_owner_lost_receipt) ... ERROR
+test_service_sigkill_cleans_ignoring_group_and_preserves_live_raw_bytes (tests.test_supervised_process.SupervisedProcessTest.test_service_sigkill_cleans_ignoring_group_and_preserves_live_raw_bytes) ... ERROR
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:1139: ResourceWarning: subprocess 33808 is still running
+  _warn("subprocess %s is still running" % self.pid,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_spawn_callback_failure_reclaims_target_and_keeps_receipt (tests.test_supervised_process.SupervisedProcessTest.test_spawn_callback_failure_reclaims_target_and_keeps_receipt) ... ERROR
+test_unexpected_supervisor_death_reports_unknown_cleanup_without_pid_reaping (tests.test_supervised_process.SupervisedProcessTest.test_unexpected_supervisor_death_reports_unknown_cleanup_without_pid_reaping) ... ok
+test_blocked_stdin_and_no_newline_output_do_not_block_deadline (tests.test_process_control.ProcessControlTest.test_blocked_stdin_and_no_newline_output_do_not_block_deadline) ... ok
+test_buffered_output_after_leader_exit_is_not_an_orphan (tests.test_process_control.ProcessControlTest.test_buffered_output_after_leader_exit_is_not_an_orphan) ... ok
+test_busy_stdout_cannot_starve_deadline_checks (tests.test_process_control.ProcessControlTest.test_busy_stdout_cannot_starve_deadline_checks) ... ok
+test_cancellation_kills_ignoring_descendant_and_keeps_group_boundary (tests.test_process_control.ProcessControlTest.test_cancellation_kills_ignoring_descendant_and_keeps_group_boundary) ... ok
+test_complete_binary_and_split_utf8_output_without_newlines (tests.test_process_control.ProcessControlTest.test_complete_binary_and_split_utf8_output_without_newlines) ... ok
+test_descendants_are_reclaimed_even_after_output_eof (tests.test_process_control.ProcessControlTest.test_descendants_are_reclaimed_even_after_output_eof) ... ok
+test_idle_pipe_outside_owned_group_reports_incomplete_cleanup (tests.test_process_control.ProcessControlTest.test_idle_pipe_outside_owned_group_reports_incomplete_cleanup) ... ok
+test_nonzero_exit_remains_nonzero_and_term_handler_output_is_preserved (tests.test_process_control.ProcessControlTest.test_nonzero_exit_remains_nonzero_and_term_handler_output_is_preserved) ... ok
+test_output_callback_failure_still_reclaims_group (tests.test_process_control.ProcessControlTest.test_output_callback_failure_still_reclaims_group) ... ok
+test_parent_exit_with_descendant_holding_stdout_is_not_success (tests.test_process_control.ProcessControlTest.test_parent_exit_with_descendant_holding_stdout_is_not_success) ... ok
+test_preexisting_cancellation_and_zero_budget_never_spawn (tests.test_process_control.ProcessControlTest.test_preexisting_cancellation_and_zero_budget_never_spawn) ... ok
+test_silent_process_with_blocked_stdin_can_be_cancelled (tests.test_process_control.ProcessControlTest.test_silent_process_with_blocked_stdin_can_be_cancelled) ... ok
+test_spawn_callback_failure_still_reclaims_group (tests.test_process_control.ProcessControlTest.test_spawn_callback_failure_still_reclaims_group) ... ok
+test_stdin_is_written_completely_while_stdout_is_drained (tests.test_process_control.ProcessControlTest.test_stdin_is_written_completely_while_stdout_is_drained) ... ok
+
+======================================================================
+ERROR: test_cancel_and_blocked_stdin_do_not_block_group_cleanup (tests.test_supervised_process.SupervisedProcessTest.test_cancel_and_blocked_stdin_do_not_block_group_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 175, in test_cancel_and_blocked_stdin_do_not_block_group_cleanup
+    result = self.run_code("import os,signal,time;signal.signal(signal.SIGTERM,signal.SIG_IGN);os.write(1,b'ready');time.sleep(20)",
+                           stdin=b"x" * 4_000_000, timeout=5, cancel_event=cancel,
+                           on_output=lambda text: cancel.set(), terminate_grace=.1)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 27, in run_code
+    return supervised.run_supervised([sys.executable, "-u", "-c", code], folder=self.folder,
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                     owner=self.owner, **kwargs)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 342, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_cancellation_already_requested_never_starts_target (tests.test_supervised_process.SupervisedProcessTest.test_cancellation_already_requested_never_starts_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 187, in test_cancellation_already_requested_never_starts_target
+    result = self.run_code("raise RuntimeError('must never execute')", timeout=3, cancel_event=cancel)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 27, in run_code
+    return supervised.run_supervised([sys.executable, "-u", "-c", code], folder=self.folder,
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                     owner=self.owner, **kwargs)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 342, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_deadline_includes_supervisor_startup (tests.test_supervised_process.SupervisedProcessTest.test_deadline_includes_supervisor_startup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 167, in test_deadline_includes_supervisor_startup
+    result = self.run_code("raise RuntimeError('must never execute')", timeout=.15)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 27, in run_code
+    return supervised.run_supervised([sys.executable, "-u", "-c", code], folder=self.folder,
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                     owner=self.owner, **kwargs)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 342, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_environment_is_not_persisted_and_existing_evidence_is_never_overwritten (tests.test_supervised_process.SupervisedProcessTest.test_environment_is_not_persisted_and_existing_evidence_is_never_overwritten)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 214, in test_environment_is_not_persisted_and_existing_evidence_is_never_overwritten
+    result = self.run_code("import os;assert os.environ['SUPERVISED_PRIVATE_TEST']", env=env, timeout=3)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 27, in run_code
+    return supervised.run_supervised([sys.executable, "-u", "-c", code], folder=self.folder,
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                     owner=self.owner, **kwargs)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 342, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_modified_nonce_or_raw_output_is_never_accepted_as_complete (tests.test_supervised_process.SupervisedProcessTest.test_modified_nonce_or_raw_output_is_never_accepted_as_complete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 223, in test_modified_nonce_or_raw_output_is_never_accepted_as_complete
+    self.run_code("print('raw evidence')", timeout=3)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 27, in run_code
+    return supervised.run_supervised([sys.executable, "-u", "-c", code], folder=self.folder,
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                     owner=self.owner, **kwargs)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 342, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_output_callback_failure_cleans_target_while_retaining_original_binary (tests.test_supervised_process.SupervisedProcessTest.test_output_callback_failure_cleans_target_while_retaining_original_binary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 196, in test_output_callback_failure_cleans_target_while_retaining_original_binary
+    self.run_code("import os,signal,time;signal.signal(signal.SIGTERM,signal.SIG_IGN);os.write(1,b'raw\\x00\\xff');time.sleep(20)",
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   timeout=5, on_output=fail, terminate_grace=.1)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 27, in run_code
+    return supervised.run_supervised([sys.executable, "-u", "-c", code], folder=self.folder,
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                     owner=self.owner, **kwargs)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 342, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_owner_loss_drains_term_handler_output_and_never_recovers_exit_zero_as_success (tests.test_supervised_process.SupervisedProcessTest.test_owner_loss_drains_term_handler_output_and_never_recovers_exit_zero_as_success)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 154, in test_owner_loss_drains_term_handler_output_and_never_recovers_exit_zero_as_success
+    receipt = self.wait_for(lambda: supervised.read_receipt(self.folder, self.owner))
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 33, in wait_for
+    value = predicate()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 154, in <lambda>
+    receipt = self.wait_for(lambda: supervised.read_receipt(self.folder, self.owner))
+                                    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_raw_binary_output_and_full_stdin_survive_independent_worker (tests.test_supervised_process.SupervisedProcessTest.test_raw_binary_output_and_full_stdin_survive_independent_worker)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 73, in test_raw_binary_output_and_full_stdin_survive_independent_worker
+    result = self.run_code("import sys;sys.stdout.buffer.write(sys.stdin.buffer.read())", timeout=5,
+                           stdin=payload, on_output=chunks.append)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 27, in run_code
+    return supervised.run_supervised([sys.executable, "-u", "-c", code], folder=self.folder,
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                     owner=self.owner, **kwargs)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 342, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_service_dies_after_supervisor_spawn_before_ack_never_starts_target (tests.test_supervised_process.SupervisedProcessTest.test_service_dies_after_supervisor_spawn_before_ack_never_starts_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 126, in test_service_dies_after_supervisor_spawn_before_ack_never_starts_target
+    receipt = self.wait_for(lambda: supervised.read_receipt(self.folder, self.owner))
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 33, in wait_for
+    value = predicate()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 126, in <lambda>
+    receipt = self.wait_for(lambda: supervised.read_receipt(self.folder, self.owner))
+                                    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_service_dies_in_spawn_callback_still_has_owner_lost_receipt (tests.test_supervised_process.SupervisedProcessTest.test_service_dies_in_spawn_callback_still_has_owner_lost_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 136, in test_service_dies_in_spawn_callback_still_has_owner_lost_receipt
+    receipt = self.wait_for(lambda: supervised.read_receipt(self.folder, self.owner))
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 33, in wait_for
+    value = predicate()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 136, in <lambda>
+    receipt = self.wait_for(lambda: supervised.read_receipt(self.folder, self.owner))
+                                    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_service_sigkill_cleans_ignoring_group_and_preserves_live_raw_bytes (tests.test_supervised_process.SupervisedProcessTest.test_service_sigkill_cleans_ignoring_group_and_preserves_live_raw_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 104, in test_service_sigkill_cleans_ignoring_group_and_preserves_live_raw_bytes
+    receipt = self.wait_for(lambda: supervised.read_receipt(self.folder, self.owner))
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 33, in wait_for
+    value = predicate()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 104, in <lambda>
+    receipt = self.wait_for(lambda: supervised.read_receipt(self.folder, self.owner))
+                                    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_spawn_callback_failure_reclaims_target_and_keeps_receipt (tests.test_supervised_process.SupervisedProcessTest.test_spawn_callback_failure_reclaims_target_and_keeps_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 206, in test_spawn_callback_failure_reclaims_target_and_keeps_receipt
+    self.run_code("import time;time.sleep(20)", timeout=5, on_spawn=fail)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_supervised_process.py", line 27, in run_code
+    return supervised.run_supervised([sys.executable, "-u", "-c", code], folder=self.folder,
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                     owner=self.owner, **kwargs)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 342, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+----------------------------------------------------------------------
+Ran 27 tests in 7.094s
+
+FAILED (errors=12)

@@ -1,0 +1,3 @@
+Browser tab: 18, Title: "反馈后修复的应用起点", URL: "http://127.0.0.1:8793/pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/".
+There has been no change in the accessibility tree.
+The focused UI element is 0 AXWebArea 反馈后修复的应用起点, URL: 127.0.0.1:8793/pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/

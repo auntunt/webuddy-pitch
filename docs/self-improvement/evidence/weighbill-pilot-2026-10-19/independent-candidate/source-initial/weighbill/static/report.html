@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>磅单台账</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231C1F22'/%3E%3Ctext x='16' y='22' font-size='14' font-family='monospace' text-anchor='middle' fill='%23FFB547'%3Ekg%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="__WB_BASE_PATH__/static/app.css?v=0.3.0">
+<style>
+body{font-size:14px}
+:root{--c-sup:#1F4E8C;--c-site:#E0912B;--c-out:#4C8A6E;--c-short:#B3261E;--c-over:#6B7C93}
+.bar-in,main{max-width:1400px}
+main{margin:0 auto;padding:0 20px 60px}
+
+/* 一级页签:三类单据 + 磅差 */
+.views{display:flex;gap:2px;border-bottom:1px solid var(--line);background:var(--paper);margin:0 -20px;padding:0 20px}
+.views{overflow-x:auto;scrollbar-width:none}
+.views button{white-space:nowrap;flex:none;border:none;background:none;padding:12px 16px 11px;font-size:15px;color:var(--ink-2);cursor:pointer;border-bottom:3px solid transparent}
+.views button:hover{color:var(--ink)}
+.views button[aria-selected="true"]{color:var(--ink);font-weight:650;border-bottom-color:var(--brand)}
+.views .sep{margin-left:auto}
+
+.filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px;background:var(--paper);
+  border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-top:14px}
+.filters label{display:grid;gap:2px;font-size:12px;color:var(--ink-2)}
+.filters input{height:34px;padding:0 8px;border:1px solid var(--line);border-radius:var(--r);background:#fff;font-size:14px}
+.filters input[type=search]{width:220px}
+.presets{display:flex;gap:4px}
+.presets .btn{min-height:34px;padding:4px 10px;font-size:13px}
+.presets .btn[aria-pressed="true"]{background:var(--brand-weak);border-color:var(--brand);font-weight:600}
+.filters .end{margin-left:auto;display:flex;gap:8px}
+
+/* 二级:阶段 */
+.subrow{display:flex;align-items:flex-end;gap:16px;margin:14px 0 0;border-bottom:1px solid var(--line)}
+.stages{display:flex;gap:2px}
+.stages button{border:none;background:none;padding:8px 14px 9px;font-size:14px;color:var(--ink-2);cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-1px;border-radius:var(--r) var(--r) 0 0}
+.stages button:hover{color:var(--ink);background:var(--line-2)}
+.stages button[aria-selected="true"]{color:var(--ink);font-weight:650;border-bottom-color:var(--brand)}
+.n{display:inline-block;min-width:22px;margin-left:6px;padding:0 6px;border-radius:10px;font-size:12px;line-height:18px;
+  text-align:center;background:var(--line-2);color:var(--ink-2);font-family:var(--num)}
+.stages button[data-s="submitted"] .n.has{background:var(--attn-bg);color:var(--attn);font-weight:700}
+.stages button[data-s="draft"] .n.has{background:var(--fail-bg);color:var(--fail);font-weight:700}
+.stages button[data-s="flagged"] .n.has{background:var(--attn-bg);color:var(--attn);font-weight:700}
+.badge{display:inline-block;margin-left:4px;font-size:11px;line-height:18px;padding:0 6px;border-radius:9px;white-space:nowrap}
+.badge.flag{background:var(--attn-bg);color:var(--attn)}.badge.void{background:#E9EBEE;color:var(--ink-2)}.badge.nodate{background:var(--line-2);color:var(--ink-2)}
+tr.voided td{color:var(--ink-3)} tr.voided .thumb{opacity:.5}
+.hist{font-size:12px;color:var(--ink-2);margin:0}
+.hist summary{cursor:pointer;font-weight:600}
+.hist ol{margin:6px 0 0;padding-left:18px}
+.hist li{margin:3px 0}
+.hist .chg{font-family:var(--num);color:var(--ink)}
+.upd{font-size:12px;color:var(--ink-3);align-self:center}
+.total{margin-left:auto;padding-bottom:9px;color:var(--ink-2);font-size:13px;white-space:nowrap}
+.total b{color:var(--ink);font-family:var(--num);font-variant-numeric:tabular-nums}
+
+.toolbar{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#F5F7F8;border:1px solid var(--line);border-top:none}
+.toolbar .hint{color:var(--ink-2);font-size:13px}
+.toolbar .btn{min-height:32px;padding:4px 12px;font-size:13px}
+
+/* 表格 */
+.tablewrap{overflow:auto;background:var(--paper);border:1px solid var(--line);border-top:none;border-radius:0 0 var(--r) var(--r);
+  max-height:calc(100vh - 300px);min-height:240px}
+table{border-collapse:separate;border-spacing:0;width:100%}
+th,td{padding:6px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line-2);vertical-align:middle}
+thead th{position:sticky;top:0;z-index:1;background:#F5F7F8;color:var(--ink-2);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right}
+tbody tr.rec{cursor:pointer}
+tbody tr.rec:hover{background:#F4F7FB}
+tbody tr.rec:focus-visible{outline-offset:-3px}
+tbody tr.open{background:var(--brand-weak)}
+td.muted,.muted{color:var(--ink-3)}
+td.cb{width:34px}
+td.cb input,th.cb input{width:17px;height:17px;cursor:pointer}
+.thumb{display:block;height:46px;width:auto;max-width:90px;object-fit:cover;border:1px solid var(--line);border-radius:3px;background:#DADDE0}
+.wt{font-size:13px}
+.wt.ok{color:var(--pass)}.wt.bad{color:var(--fail);font-weight:600}.wt.na{color:var(--ink-3)}
+.issue{max-width:240px;overflow:hidden;text-overflow:ellipsis;color:var(--attn);font-size:13px}
+.issue.fail{color:var(--fail)}
+.issue .more{color:var(--ink-3);margin-left:4px}
+.st{display:inline-block;font-size:12px;line-height:20px;padding:0 8px;border-radius:10px;white-space:nowrap;font-weight:600}
+.st.draft{color:var(--fail);background:var(--fail-bg)}.st.submitted{color:var(--attn);background:var(--attn-bg)}.st.approved{color:var(--pass);background:var(--pass-bg)}
+.empty{padding:48px 20px;text-align:center;color:var(--ink-2);white-space:normal}
+.empty b{display:block;font-size:15px;color:var(--ink);margin-bottom:4px}
+.note{margin:8px 2px 0;font-size:12px;color:var(--ink-2)}
+
+/* 磅差 */
+/* 日汇总与展开的每车明细列不同:不在框内竖向滚动、表头不钉住,否则汇总表头会压在明细上(2026-10-13) */
+.tablewrap.recon{max-height:none;overflow-y:visible}
+.recon > table > thead th{position:static}
+.thr{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);padding:6px 0;flex-wrap:wrap}
+.thr input{width:64px;height:30px;padding:0 6px;border:1px solid var(--line);border-radius:var(--r);font-family:var(--num);text-align:right;background:#fff}
+.thr .btn{min-height:30px;padding:2px 12px;font-size:13px}
+td.ref{font-size:12px;color:var(--ink-2)}
+.pane > header .ref{font-family:var(--num);font-size:12px;color:var(--ink-2);user-select:all}
+.recon td.day{font-weight:600}
+.recon tr.daysum{cursor:pointer}
+.recon tr.daysum:hover{background:#F4F7FB}
+.recon tr.daysum.open{background:var(--brand-weak)}
+.recon .bad{color:var(--fail);font-weight:600}
+.recon .dir{display:inline-block;width:14px;color:var(--ink-3)}
+.detail > td{padding:0;background:#FAFBFC}
+.detail table{background:#FAFBFC}
+.detail th{position:static;background:#EEF1F3}
+.detail td{padding:6px 10px}
+.detail tr.alert td.dv{background:var(--fail-bg)}
+.detail .sub{padding:10px 12px 4px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.pairimg{display:flex;align-items:center;gap:8px}
+.pairimg .thumb{cursor:zoom-in}
+
+/* 统计看板 */
+#v-stats{margin-top:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+@media (min-width:1180px){.kpis{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.kpi{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px 12px;display:grid;gap:2px;
+  border-top:3px solid var(--c,var(--line));text-decoration:none;color:inherit}
+a.kpi:hover{box-shadow:0 2px 10px rgba(20,26,33,.08)}
+.kpi .k{font-size:13px;color:var(--ink-2)}
+.kpi .v{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:28px;line-height:1.2;font-weight:600;letter-spacing:.01em}
+.kpi .v small{font-size:13px;font-weight:400;color:var(--ink-2);margin-left:4px;font-family:var(--ui)}
+.kpi .s{font-size:12px;color:var(--ink-2)}
+.kpi .s b{font-family:var(--num);color:var(--ink);font-weight:600}
+.kpi.dark{background:var(--readout-bg);border-color:#000;border-top-color:var(--readout-fg);color:#C9965A;
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.5)}
+.kpi.dark .k{color:#A99070}.kpi.dark .s{color:#A99070}.kpi.dark .s b{color:var(--readout-fg)}
+.kpi.dark .v{color:var(--readout-fg);text-shadow:0 0 12px rgba(255,181,71,.3)}
+.kpi.dark .v small{color:#C9965A}
+.kpi .bar2{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--line-2);margin-top:6px}
+.kpi .bar2 i{display:block}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:12px;margin-top:12px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px 14px;min-width:0}
+.card.wide{grid-column:1 / -1}
+.card h3{margin:0;font-size:14px;font-weight:650;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card h3 .aside{margin-left:auto;font-weight:400;font-size:12px;color:var(--ink-2)}
+.card .lede{margin:2px 0 8px;font-size:12px;color:var(--ink-2)}
+.card .lede b{color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink-2);font-weight:400}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.seg button{border:none;background:var(--paper);padding:2px 10px;font-size:12px;cursor:pointer;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--brand);color:#fff}
+svg.chart{display:block;width:100%;height:auto;overflow:visible;font-family:var(--num)}
+svg.chart text{font-size:11px;fill:var(--ink-2)}
+svg.chart .grid{stroke:var(--line-2)}
+svg.chart .axis{stroke:var(--line)}
+svg.chart .hit{cursor:pointer}
+svg.chart .hit:hover rect.bg{fill:var(--brand-weak)}
+svg.chart circle.pt{cursor:pointer;stroke:#fff;stroke-width:1}
+svg.chart circle.pt:hover{stroke:var(--ink);stroke-width:1.5}
+.hbars{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:5px 10px;align-items:center;font-size:13px}
+.hbars .nm{white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
+.hbars .tr{height:14px;background:var(--line-2);border-radius:2px;overflow:hidden;display:flex}
+.hbars .tr i{display:block;height:100%}
+.hbars .vv{font-family:var(--num);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;color:var(--ink-2)}
+.hbars .vv b{color:var(--ink);font-weight:600}
+.cols3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.cols3.mix{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.cols3 h4{margin:0 0 6px;font-size:12px;color:var(--ink-2);font-weight:600}
+table.mini{width:100%}
+table.mini th{position:static;background:none;border-bottom:1px solid var(--line);padding:4px 8px}
+table.mini td{padding:5px 8px}
+table.mini tr.go{cursor:pointer}
+table.mini tr.go:hover{background:#F4F7FB}
+table.mini .bad{color:var(--fail);font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:4px}
+.fact{background:#F5F7F8;border-radius:var(--r);padding:8px 10px}
+.fact .k{font-size:12px;color:var(--ink-2)}
+.fact .v{font-family:var(--num);font-size:18px;font-weight:600}
+.fact .v small{font-size:12px;font-weight:400;color:var(--ink-2);font-family:var(--ui);margin-left:2px}
+.insight{margin:10px 0 0;padding:8px 10px;border-left:3px solid var(--attn-edge);background:var(--attn-bg);color:var(--attn);font-size:13px;border-radius:0 var(--r) var(--r) 0}
+.tip{position:fixed;z-index:30;pointer-events:none;background:#23282E;color:#fff;font-size:12px;line-height:1.5;padding:6px 9px;border-radius:var(--r);
+  max-width:260px;opacity:0;transition:opacity .1s;font-family:var(--ui)}
+.tip.on{opacity:1}
+.tip b{font-family:var(--num)}
+
+/* 详情抽屉(沿用 0.2) */
+.scrim{position:fixed;inset:0;background:rgba(20,26,33,.28);z-index:8;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;right:0;height:100vh;width:min(1040px,100vw);background:var(--paper);z-index:9;
+  box-shadow:-8px 0 30px rgba(20,26,33,.18);transform:translateX(102%);transition:transform .22s ease-out;
+  display:grid;grid-template-columns:minmax(0,1fr) 430px;grid-template-rows:minmax(0,1fr)}
+#drawer.on{transform:none}
+.media{background:#2A2E33;display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-height:0}
+.media .tools{display:flex;gap:6px;align-items:center;padding:8px 10px;color:#C8CDD3;font-size:12px}
+.media .tools .btn{min-height:30px;padding:2px 10px;font-size:12px;background:#3A3F45;border-color:#4A5057;color:#E9ECEF}
+.media .tools a.btn{margin-left:auto}
+.viewer{overflow:auto;display:grid;grid-template:minmax(0,1fr) / minmax(0,1fr);place-items:center;min-height:0;padding:10px}
+.viewer img{max-width:100%;max-height:100%;object-fit:contain;background:#fff;cursor:zoom-in}
+.viewer.zoom{grid-template:auto / auto;place-items:start}
+.viewer.zoom img{max-width:none;max-height:none;cursor:zoom-out}
+.viewer .none{color:#9AA1A9}
+.sigbox{display:flex;align-items:center;gap:10px;padding:10px;border-top:1px solid #3A3F45;color:#C8CDD3;font-size:12px;min-height:64px}
+.sigbox img{max-height:52px;max-width:70%;background:#fff;border-radius:2px}
+.pane{display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-height:0;border-left:1px solid var(--line)}
+.pane > header{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line-2)}
+.pane > header h2{margin:0;font-size:17px;font-family:var(--num);letter-spacing:.02em}
+.pane > header .btn{margin-left:auto}
+.scroll{overflow:auto;padding:12px 16px 18px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-content:start}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:1px 12px;margin:0;font-size:12px;color:var(--ink-2)}
+.meta dd{margin:0;color:var(--ink);word-break:break-all}
+.check{margin:4px 0 0;font-size:12px;color:var(--ink-2);text-align:right;font-family:var(--num)}
+.check.bad{color:var(--fail);font-weight:600}.check.ok{color:var(--pass)}
+fieldset{border:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 12px;min-width:0;min-inline-size:0}
+legend{padding:0;margin:0 0 6px;font-size:12px;font-weight:600;color:var(--ink-2)}
+.fld{display:grid;gap:2px;font-size:12px;color:var(--ink-2);min-width:0}
+.fld.wide{grid-column:1 / -1}
+.fld input,.fld select{width:100%;min-width:0;height:36px;padding:0 9px;border:1px solid var(--line);border-radius:var(--r);background:#fff;font-size:15px;
+  font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--ink)}
+.fld input:disabled,.fld select:disabled{background:#F3F4F5;color:var(--ink-2)}
+.fld.flag input{border-color:var(--attn-edge);background:#FFFCF0;box-shadow:inset 3px 0 var(--attn-edge)}
+.fld.changed input,.fld.changed select{border-color:var(--brand);background:#F6F9FE}
+.fld .why{color:var(--attn);line-height:1.4}
+.pane > footer{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--line);background:#FAFBFB}
+.pane > footer .stx{margin-right:auto;font-size:12px;color:var(--ink-2)}
+.pane > footer .stx.bad{color:var(--fail)}
+kbd{font-family:var(--num);font-size:11px;padding:0 4px;border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;background:#fff}
+.btn kbd{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.4);color:inherit}
+.btn.quiet kbd,.btn.ghost kbd{background:#fff;border-color:var(--line);color:var(--ink-2)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#23282E;color:#fff;padding:10px 16px;
+  border-radius:var(--r);font-size:13px;opacity:0;transition:opacity .2s,transform .2s;z-index:20;pointer-events:none;max-width:80vw}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:900px){
+  #drawer{grid-template-columns:1fr;grid-template-rows:38vh minmax(0,1fr);width:100vw}
+  .pane{border-left:none}
+  .total{display:none}
+}
+</style>
+</head>
+<body>
+<div class="bar"><div class="bar-in">
+  <h1>磅单台账</h1>
+  <nav aria-label="页面"><a href="__WB_BASE_PATH__/">采集</a><a href="__WB_BASE_PATH__/report" aria-current="page">台账</a></nav>
+</div></div>
+
+<main>
+  <div class="views" role="tablist" aria-label="台账">
+    <button role="tab" data-v="stats">总览</button>
+    <button role="tab" data-v="supplier_out">厂商出厂</button>
+    <button role="tab" data-v="site_in">本场进场</button>
+    <button role="tab" data-v="site_out">本场出场</button>
+    <button role="tab" data-v="recon">磅差对比</button>
+  </div>
+
+  <div id="err" class="banner fail" role="alert" hidden style="margin-top:12px"></div>
+  <form class="filters" id="filters" autocomplete="off">
+    <label>磅单日期 从<input type="date" id="f-from"></label>
+    <label>到<input type="date" id="f-to"></label>
+    <div class="presets" role="group" aria-label="常用日期">
+      <button class="btn ghost" type="button" data-p="0">今天</button>
+      <button class="btn ghost" type="button" data-p="1">昨天</button>
+      <button class="btn ghost" type="button" data-p="6">近 7 天</button>
+      <button class="btn ghost" type="button" data-p="29">近 30 天</button>
+      <button class="btn ghost" type="button" data-p="all">全部</button>
+    </div>
+    <label>来源单位<select id="f-origin" style="height:34px;min-width:150px"><option value="">全部来源</option></select></label>
+    <label id="q-wrap">搜索<input type="search" id="f-q" placeholder="登记编号、车号、磅单号、货名"></label>
+    <div class="end">
+      <button class="btn" type="submit">查询</button>
+      <span class="upd" id="upd" aria-live="off"></span>
+      <a class="btn ghost" id="export" href="#">导出 Excel</a>
+    </div>
+  </form>
+
+  <!-- 单据视图 -->
+  <section id="v-docs">
+    <div class="subrow">
+      <div class="stages" role="tablist" aria-label="审核阶段">
+        <button role="tab" data-s="submitted">未审核<span class="n"></span></button>
+        <button role="tab" data-s="draft">待现场确认<span class="n"></span></button>
+        <button role="tab" data-s="approved">已审核<span class="n"></span></button>
+        <button role="tab" data-s="">全部<span class="n"></span></button>
+        <button role="tab" data-s="flagged">有疑问<span class="n"></span></button>
+        <button role="tab" data-s="voided">已作废<span class="n"></span></button>
+      </div>
+      <div class="total" id="total" aria-live="polite"></div>
+    </div>
+    <div class="toolbar" id="toolbar">
+      <span class="hint" id="sel-hint">对照纸质磅单逐条核对净重，没问题的勾上，一次审核。</span>
+      <button class="btn" type="button" id="b-approve" disabled>批量审核</button>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr id="doc-head"></tr></thead>
+        <tbody id="rows"><tr><td class="empty">正在读取台账…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="note" id="note" hidden></p>
+  </section>
+
+  <!-- 磅差视图 -->
+  <section id="v-recon" hidden>
+    <div class="subrow"><div class="total" id="r-total" style="margin-left:0;padding:10px 2px"></div>
+      <form class="thr" id="thr" autocomplete="off" hidden>
+        <span>单车标红：磅差率超过</span><input id="thr-pct" inputmode="decimal" aria-label="磅差率阈值（%）"><span>%</span>
+        <span>且超过</span><input id="thr-kg" inputmode="decimal" aria-label="磅差重量下限（kg），0 为不限"><span>kg</span>
+        <button class="btn ghost" type="submit">保存</button>
+        <span class="muted" id="thr-hint">kg 填 0 = 只看百分比</span>
+      </form></div>
+    <div class="tablewrap recon">
+      <table>
+        <thead><tr>
+          <th>磅单日期</th><th class="r"><span class="sn">厂商</span> 车数</th><th class="r"><span class="sn">厂商</span> 总净重</th><th class="r"><span class="pn">本场</span> 车数</th>
+          <th class="r"><span class="pn">本场</span> 总净重</th><th class="r">净重磅差</th><th class="r">比例</th>
+          <th class="r">总重磅差</th><th class="r">空重磅差</th><th class="r">配对</th><th class="r">超阈值</th><th class="r">没配上</th>
+        </tr></thead>
+        <tbody id="r-rows"></tbody>
+      </table>
+    </div>
+    <p class="note">磅差 = <span class="pn">本场</span> − <span class="sn">厂商</span>：正数是<span class="pn">本场</span>称得多，负数是<span class="pn">本场</span>少了。日合计按当天两边全部车各自合计再相减，比例以<span class="sn">厂商</span>净重为基准（手工对比表如果按 <span class="sn">厂商</span> − <span class="pn">本场</span> 记，数值相同、符号相反）。点开某天看每车配对：同一车号按时间顺序第 1 趟对第 1 趟（<span class="sn">厂商</span>按出站时间，<span class="pn">本场</span>按入站时间），跨零点也能配上；单车磅差 <span id="r-th"></span> 标红；时间差仅供参考。</p>
+  </section>
+
+  <!-- 统计看板 -->
+  <section id="v-stats" hidden>
+    <div class="kpis" id="s-kpis"></div>
+    <div class="grid2">
+      <div class="card wide">
+        <h3><span>每<span id="s-unit">天</span>吨位</span>
+          <span class="legend"><span><i style="background:var(--c-sup)"></i><span class="kl" data-k="supplier_out">厂商出厂</span></span><span><i style="background:var(--c-site)"></i><span class="kl" data-k="site_in">本场进场</span></span><span><i style="background:var(--c-out)"></i><span class="kl" data-k="site_out">本场出场</span></span></span>
+          <span class="aside"><span class="seg" role="group" aria-label="汇总粒度"><button type="button" data-g="day" aria-pressed="true">按天</button><button type="button" data-g="week" aria-pressed="false">按周</button></span></span>
+        </h3>
+        <p class="lede">柱子按磅单日期汇总净重；下方小条是当<span class="s-unit2">天</span>净重磅差（<span class="pn">本场</span> − <span class="sn">厂商</span>，向上 = <span class="pn">本场</span>称得多，向下 = 少了）。点某<span class="s-unit2">天</span>看每车明细。</p>
+        <div id="s-trend"></div>
+      </div>
+      <div class="card">
+        <h3>单车磅差分布<span class="aside" id="s-dist-aside"></span></h3>
+        <p class="lede" id="s-dist-lede"></p>
+        <div id="s-dist"></div>
+      </div>
+      <div class="card">
+        <h3>磅差 × <span class="sn">厂商</span>出站时刻<span class="legend aside"><span><i style="background:var(--c-sup)"></i>阈值内</span><span><i style="background:var(--fail)"></i>超阈值</span></span></h3>
+        <p class="lede">每个点是一车。看磅差是不是集中在某个时段——比如头一批出厂的车。点一下打开那张磅单。</p>
+        <div id="s-scatter"></div>
+        <p class="insight" id="s-insight" hidden></p>
+      </div>
+      <div class="card">
+        <h3>磅差最大的车次<span class="aside">按绝对值</span></h3>
+        <div style="overflow-x:auto"><table class="mini"><thead><tr><th>日期</th><th>车牌号</th><th class="r"><span class="sn">厂商</span></th><th class="r"><span class="pn">本场</span></th><th class="r">磅差</th><th class="r">比例</th></tr></thead>
+          <tbody id="s-worst"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3>车辆趟数与吨位<span class="aside" id="s-veh-aside"></span></h3>
+        <p class="lede"><span class="sn">厂商</span>出厂趟数排序，条长 = 运出净重；右侧是这辆车所有配对车次的磅差合计。</p>
+        <div class="hbars" id="s-veh"></div>
+      </div>
+      <div class="card">
+        <h3>过磅时段<span class="legend aside"><span><i style="background:var(--c-sup)"></i><span class="sn">厂商</span>出站</span><span><i style="background:var(--c-site)"></i><span class="pn">本场</span>入站</span><span><i style="background:var(--c-out)"></i><span class="kl" data-k="site_out">本场出场</span></span></span></h3>
+        <p class="lede">每小时过磅车次，看高峰在什么时候，现场排班和监磅员安排可参考。</p>
+        <div id="s-hours"></div>
+      </div>
+      <div class="card">
+        <h3>在途时长<span class="aside">仅供参考</span></h3>
+        <p class="lede"><span class="sn">厂商</span>过磅出站 → <span class="pn">本场</span>入站的分钟数。厂商那边过完磅可能还要等出门手续，所以这不是纯路上时间，不标红。</p>
+        <div class="facts" id="s-gap"></div>
+        <div id="s-gaphist" style="margin-top:10px"></div>
+      </div>
+      <div class="card wide">
+        <h3>构成</h3>
+        <div class="cols3 mix" id="s-mix"></div>
+      </div>
+      <div class="card wide" id="s-quality-card">
+        <h3>数据进度与识别质量</h3>
+        <div class="cols3" id="s-quality"></div>
+      </div>
+    </div>
+    <p class="note">吨位、车次、磅差只算<b>现场已确认</b>的单据（未审核 + 已审核），待现场确认、已作废的不计入；审核进度算全部。按磅单上的日期统计（日期没认出来的按登记日期），与上方日期筛选一致；识别失败、没有净重的不计吨位。数字大脑可直接拉取 <code>__WB_BASE_PATH__/api/v1/stats</code>。</p>
+  </section>
+</main>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<div class="scrim" id="scrim"></div>
+<aside id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title" aria-hidden="true">
+  <section class="media" aria-label="磅单影像">
+    <div class="tools"><span id="d-imgnote">点图片放大，再点缩回</span><a class="btn" id="d-orig" href="#" target="_blank" rel="noopener">看整张原图</a></div>
+    <div class="viewer" id="viewer"></div>
+    <div class="sigbox" id="sigbox"></div>
+  </section>
+  <form class="pane" id="form" autocomplete="off" onsubmit="return false">
+    <header>
+      <span class="st" id="d-stage"></span><span class="tag" id="d-tag"></span><h2 id="d-title"></h2><span class="ref" id="d-ref" title="登记编号"></span>
+      <button class="btn quiet" type="button" id="d-close" aria-label="关闭详情">关闭 <kbd>Esc</kbd></button>
+    </header>
+    <div class="scroll">
+      <ul class="warn-list" id="d-warns"></ul>
+      <section id="d-conflict" hidden aria-live="polite" style="border:2px solid var(--attn-edge);padding:12px;overflow-wrap:anywhere">
+        <p id="d-conflict-msg"></p>
+        <button type="button" class="btn ghost" id="d-latest">重新读取最新数据供核对</button>
+        <div id="d-compare" style="overflow:auto"></div>
+        <details><summary>完整原始草稿（核对期间保留）</summary><pre id="d-draft" style="white-space:pre-wrap"></pre></details>
+        <button type="button" class="btn" id="d-confirm-version" hidden>已核对，基于此版本保存当前表单</button>
+      </section>
+      <div>
+        <div class="readout" id="d-readout"><span class="k">净重</span><span class="v" id="d-net"></span><span class="u">kg</span></div>
+        <p class="check" id="d-check"></p>
+      </div>
+      <fieldset><legend>单据</legend>
+        <label class="fld" data-f="doc_type">单据类型<select name="doc_type">
+          <option value="supplier_out">厂商出厂</option><option value="site_in">本场进场</option><option value="site_out">本场出场</option></select></label>
+        <label class="fld" data-f="origin_id">来源单位<select name="origin_id"></select></label>
+        <label class="fld" data-f="customer">客户(<span class="kl" data-k="site_out">本场出场</span>)<input name="customer" list="cust-list"></label>
+        <datalist id="cust-list"></datalist>
+      </fieldset>
+      <fieldset><legend>重量</legend>
+        <label class="fld" data-f="总重">总重<input name="总重" inputmode="decimal"></label>
+        <label class="fld" data-f="皮重">皮重(空重)<input name="皮重" inputmode="decimal"></label>
+        <label class="fld" data-f="净重">净重<input name="净重" inputmode="decimal"></label>
+        <label class="fld" data-f="收费">收费<input name="收费"></label>
+      </fieldset>
+      <fieldset><legend>车辆与时间</legend>
+        <label class="fld wide" data-f="车号">车牌号<input name="车号"></label>
+        <label class="fld" data-f="入站时间">入站时间<input name="入站时间" placeholder="时:分"></label>
+        <label class="fld" data-f="出站时间">出站时间<input name="出站时间" placeholder="时:分"></label>
+      </fieldset>
+      <fieldset><legend>台账</legend>
+        <label class="fld" data-f="装点">装点<input name="装点" placeholder="如 2#"></label>
+        <label class="fld" data-f="监磅员">监磅员<input name="监磅员"></label>
+        <label class="fld" data-f="供应商">供应商<input name="供应商"></label>
+        <label class="fld" data-f="备注">备注<input name="备注"></label>
+      </fieldset>
+      <fieldset><legend>磅单</legend>
+        <label class="fld wide" data-f="客户名">客户名(票面)<input name="客户名"></label>
+        <label class="fld" data-f="序号">磅单号<input name="序号"></label>
+        <label class="fld" data-f="日期">日期<input name="日期" placeholder="年-月-日"></label>
+        <label class="fld wide" data-f="货名">货名<input name="货名"></label>
+      </fieldset>
+      <dl class="meta" id="d-meta"></dl>
+      <details class="hist" id="d-hist"><summary>修改记录</summary><ol id="d-hist-list"><li class="muted">读取中…</li></ol></details>
+    </div>
+    <footer>
+      <span class="stx" id="d-st" aria-live="polite"></span>
+      <button class="btn quiet" type="button" id="d-void">作废…</button>
+      <button class="btn quiet" type="button" id="d-restore" hidden>恢复</button>
+      <button class="btn quiet" type="button" id="d-flag">有疑问…</button>
+      <button class="btn ghost" type="button" id="d-save">保存修改</button>
+      <button class="btn ghost" type="button" id="d-approve">审核通过</button>
+      <button class="btn" type="button" id="d-next">审核通过，下一条 <kbd>Ctrl</kbd><kbd>↵</kbd></button>
+    </footer>
+  </form>
+</aside>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+const BASE_PATH = "__WB_BASE_PATH__";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const FIELDS = ["客户名","序号","日期","入站时间","出站时间","车号","货名","收费","总重","皮重","净重","装点","监磅员","供应商","备注"];
+let KIND = {supplier_out: "厂商出厂", site_in: "本场进场", site_out: "本场出场"};
+let SCHEMA = null, SITE = "本场", SUP = "厂商";
+const NUMERIC = new Set(["总重", "皮重", "净重"]);
+const STAGE = {draft: "待现场确认", submitted: "未审核", approved: "已审核"};
+const LIMIT = 2000;
+const val = v => (v === null || v === undefined || String(v).trim() === "") ? null : String(v).trim();
+const num = v => { const m = String(v ?? "").replace(/,/g, "").match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : null; };
+const fmt = (n, d = 0) => n === null || n === undefined ? "—" : Number(n).toLocaleString("zh-CN", {maximumFractionDigits: d, minimumFractionDigits: d});
+const sgn = (n, d = 0) => n === null || n === undefined ? "—" : (n > 0 ? "+" : "") + fmt(n, d);
+const pct = n => n === null || n === undefined ? "—" : (n > 0 ? "+" : "") + n.toFixed(2) + "%";
+
+let view = "stats", stage = "submitted", all = [], cur = null, snapshot = {}, lastRow = null, busy = false;
+let voidedList = [];
+let conflict = null;
+let me = {user: "", reviewer: true}, selected = new Set(), recon = null, openDay = null, stats = null, gran = "day";
+
+/* ---------- 地址栏记住视图与筛选 ---------- */
+const url = new URLSearchParams(location.search);
+if (KIND[url.get("v")] || ["recon", "stats"].includes(url.get("v"))) view = url.get("v");
+if (url.has("s")) stage = url.get("s");
+$("#f-from").value = url.get("from") || ""; $("#f-to").value = url.get("to") || ""; $("#f-q").value = url.get("q") || "";
+function syncUrl() {
+  const p = new URLSearchParams({v: view});
+  if (KIND[view] && stage !== "submitted") p.set("s", stage);
+  for (const [k, id] of [["from", "#f-from"], ["to", "#f-to"], ["q", "#f-q"], ["origin_id", "#f-origin"]]) if ($(id).value.trim()) p.set(k, $(id).value.trim());
+  history.replaceState(null, "", "__WB_BASE_PATH__/report?" + p);
+}
+function query(extra) {
+  const p = new URLSearchParams();
+  if ($("#f-origin").value) p.set("origin_id", $("#f-origin").value);
+  if ($("#f-from").value) p.set("ticket_from", $("#f-from").value);
+  if ($("#f-to").value) p.set("ticket_to", $("#f-to").value);
+  if ($("#f-q").value.trim() && view !== "recon") p.set("q", $("#f-q").value.trim());
+  for (const [k, v] of Object.entries(extra || {})) if (v) p.set(k, v);
+  return p.toString();
+}
+
+/* ---------- 日期快捷 ---------- */
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const daysAgo = n => ymd(new Date(Date.now() - n * 864e5));
+function markPreset() {
+  const f = $("#f-from").value, t = $("#f-to").value;
+  for (const b of $$(".presets .btn")) {
+    const p = b.dataset.p;
+    const on = p === "all" ? !f && !t : p === "1" ? f === daysAgo(1) && t === daysAgo(1) : t === daysAgo(0) && f === daysAgo(+p);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+}
+for (const b of $$(".presets .btn")) b.onclick = () => {
+  const p = b.dataset.p;
+  $("#f-from").value = p === "all" ? "" : daysAgo(+p);
+  $("#f-to").value = p === "all" ? "" : (p === "1" ? daysAgo(1) : daysAgo(0));
+  load();
+};
+$("#filters").onsubmit = e => { e.preventDefault(); load(); };
+
+/* ---------- 视图切换 ---------- */
+$(".views").onclick = e => { const b = e.target.closest("button"); if (!b) return; view = b.dataset.v; selected.clear(); load(); };
+function drawViews() {
+  for (const b of $$(".views button")) { b.setAttribute("aria-selected", b.dataset.v === view ? "true" : "false"); b.tabIndex = b.dataset.v === view ? 0 : -1; }
+  $("#v-docs").hidden = !KIND[view]; $("#v-recon").hidden = view !== "recon"; $("#v-stats").hidden = view !== "stats";
+  $("#q-wrap").hidden = !KIND[view]; $("#export").hidden = view === "stats";
+  $("#export").href = "__WB_BASE_PATH__/api/v1/export.xlsx?" + (view === "recon" ? query({kind: "reconciliation"}) : query({kind: view, stage}));
+}
+
+/* ---------- 读取 ---------- */
+// Keep the ledger visible when export fails; do not navigate to a raw JSON error.
+$("#export").onclick = async event => {
+  event.preventDefault();
+  const button = $("#export");
+  if (button.dataset.busy) return;
+  button.dataset.busy = "1"; button.textContent = "正在导出…";
+  try {
+    const response = await fetch(button.href);
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.error?.message || `导出失败（${response.status}）`);
+    }
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a"); link.href = url;
+    const disposition = response.headers.get("content-disposition") || "";
+    const name = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    link.download = name ? decodeURIComponent(name[1]) : "磅单台账.xlsx";
+    link.click(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) { $("#err").textContent = e.message; $("#err").hidden = false; }
+  finally { delete button.dataset.busy; button.textContent = "导出 Excel"; }
+};
+
+async function load(keepOpen) {
+  if (!keepOpen && cur && (busy || ((dirty() || conflict) && !confirm("有未保存的草稿，确定放弃并刷新列表？")))) return;
+  syncUrl(); markPreset(); drawViews(); $("#err").hidden = true;
+  try {
+    if (view === "stats") {
+      const p = new URLSearchParams();
+  if ($("#f-origin").value) p.set("origin_id", $("#f-origin").value);
+      if ($("#f-from").value) p.set("date_from", $("#f-from").value);
+      if ($("#f-to").value) p.set("date_to", $("#f-to").value);
+      const r = await fetch("__WB_BASE_PATH__/api/v1/stats?" + p);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      stats = await r.json(); drawStats();
+    } else if (view === "recon") {
+      const p = new URLSearchParams();
+  if ($("#f-origin").value) p.set("origin_id", $("#f-origin").value);
+      if ($("#f-from").value) p.set("date_from", $("#f-from").value);
+      if ($("#f-to").value) p.set("date_to", $("#f-to").value);
+      const r = await fetch("__WB_BASE_PATH__/api/v1/reconciliation?" + p);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      recon = await r.json(); drawRecon();
+    } else {
+      const [r, rv] = await Promise.all([fetch("__WB_BASE_PATH__/api/v1/records?" + query({doc_type: view, limit: LIMIT})),
+                                         fetch("__WB_BASE_PATH__/api/v1/records?" + query({doc_type: view, limit: LIMIT, voided: "only"}))]);
+      if (!r.ok || !rv.ok) throw new Error(`HTTP ${r.ok ? rv.status : r.status}`);
+      all = (await r.json()).records; voidedList = (await rv.json()).records;
+      for (const id of [...selected]) if (!all.some(x => x.id === id && x.stage !== "approved")) selected.delete(id);
+      $("#note").hidden = all.length < LIMIT;
+      $("#note").textContent = `只显示了最近 ${LIMIT} 条。缩小日期范围可以看到更早的记录。`;
+      drawDocs();
+    }
+  } catch (e) {
+    $("#err").innerHTML = `读不到台账（${esc(e.message)}）。检查服务是否在运行，然后 <a href="#" id="retry">重试</a>。`;
+    $("#err").hidden = false; $("#retry").onclick = ev => { ev.preventDefault(); load(); };
+  }
+  if (!keepOpen) closeDrawer(true);
+  $("#upd").textContent = "更新于 " + new Date().toTimeString().slice(0, 5);
+}
+// 「实时展示」:抽屉关着、没勾选、没在填筛选时,每分钟自己刷新一次
+setInterval(() => {
+  if (document.visibilityState !== "visible" || cur || selected.size || document.activeElement?.closest("#filters")) return;
+  load(true);
+}, 60000);
+
+/* ---------- 单据列表 ---------- */
+// 照线下台账的顺序:日期由近到远,同一天按出站(出库)时间先后,没有时间的按上传先后
+const tkey = r => { const f = r.fields || {}; return String(f["出站时间"] || f["入站时间"] || "").replace(/^(\d{4}-\d{2}-\d{2}\s+)?(\d):/, "$10$2:"); };
+const inStage = (r, s) => s === "flagged" ? !!r.flag_note : r.stage === s;
+const docView = () => (stage === "voided" ? voidedList.slice() : stage ? all.filter(r => inStage(r, stage)) : all.slice()).sort((x, y) =>
+  String((y.fields || {})["日期"] || "").localeCompare(String((x.fields || {})["日期"] || "")) ||
+  tkey(x).localeCompare(tkey(y)) || String((x.fields || {})["序号"] || "").localeCompare(String((y.fields || {})["序号"] || "")));
+function weightCell(r) {
+  if (r.weight_ok) return `<span class="wt ok">${(r.weight_msg || "").includes("复读") ? "相符(复读)" : "相符"}</span>`;
+  if ((r.weight_msg || "").startsWith("不符")) return `<span class="wt bad" title="${esc(r.weight_msg)}">不符</span>`;
+  return `<span class="wt na">不全</span>`;
+}
+function issueCell(r) {
+  if (r.status === "failed") return `<div class="issue fail">${esc((r.warnings || [])[0] || r.error || "没能识别")}</div>`;
+  const w = r.warnings || [];
+  if (!w.length) return `<span class="muted">—</span>`;
+  return `<div class="issue" title="${esc(w.join("\n"))}">${esc(w[0])}${w.length > 1 ? `<span class="more">等 ${w.length} 项</span>` : ""}</div>`;
+}
+function drawDocs() {
+  for (const b of $$(".stages button")) {
+    const s = b.dataset.s, n = s === "voided" ? voidedList.length : s ? all.filter(r => inStage(r, s)).length : all.length;
+    b.setAttribute("aria-selected", s === stage ? "true" : "false"); b.tabIndex = s === stage ? 0 : -1;
+    const el = b.querySelector(".n"); el.textContent = n; el.classList.toggle("has", n > 0);
+  }
+  const v = docView();
+  const kg = v.filter(r => r.status !== "failed").reduce((s, r) => s + (num(r.fields["净重"]) || 0), 0);
+  $("#total").innerHTML = v.length ? `${v.length} 张，净重合计 <b>${fmt(kg / 1000, 2)}</b> 吨` : "";
+  const prod = view === "site_out";
+  const canSel = me.reviewer && !["approved", "voided"].includes(stage);
+  const COLS = SCHEMA ? SCHEMA.doc_types[view].columns : [];
+  $("#toolbar").hidden = !canSel;
+  $("#doc-head").innerHTML = (canSel ? `<th class="cb"><input type="checkbox" id="sel-all" aria-label="全选"></th>` : "") +
+    `<th>影像</th><th>登记编号</th><th>来源单位</th><th>磅单日期</th>${COLS.map(c => `<th${NUMERIC.has(c.key) ? ' class="r"' : ""}>${esc(c.label)}</th>`).join("")}
+     ${prod ? "<th>客户</th>" : ""}<th>重量</th><th>要看的地方</th><th>状态</th>`;
+  const cols = (canSel ? 1 : 0) + 4 + COLS.length + (prod ? 1 : 0) + 3;
+  if (!v.length) {
+    const msg = !all.length ? `<b>这段时间还没有${KIND[view]}磅单。</b>换个日期范围，或者去 <a href="__WB_BASE_PATH__/">采集</a> 拍第一张。`
+      : {submitted: "<b>没有未审核的单据。</b>这个范围里的都审核完了。", draft: "<b>没有待现场确认的单据。</b>",
+         approved: "<b>还没有审核过的单据。</b>"}[stage] || "<b>没有符合条件的单据。</b>";
+    $("#rows").innerHTML = `<tr><td colspan="${cols}" class="empty">${msg}</td></tr>`;
+  } else {
+    $("#rows").innerHTML = v.map(r => {
+      const f = r.fields || {}, net = num(f["净重"]);
+      const sel = canSel && r.stage !== "approved";
+      return `<tr class="rec${cur && cur.id === r.id ? " open" : ""}${r.voided_at ? " voided" : ""}" tabindex="0" data-id="${esc(r.id)}">
+        ${canSel ? `<td class="cb">${sel ? `<input type="checkbox" data-sel="${esc(r.id)}" ${selected.has(r.id) ? "checked" : ""} aria-label="选中">` : ""}</td>` : ""}
+        <td>${r.thumb_path ? `<img class="thumb" loading="lazy" decoding="async" src="${esc(r.thumb_path)}" alt="">` : '<span class="muted">—</span>'}</td>
+        <td class="num ref">${esc(r.ref_no || "—")}</td><td>${esc(r.origin_name || "未关联来源")}</td>
+        <td class="num">${val(f["日期"]) ? esc(f["日期"]) : `<span class="badge nodate" title="磅单上的日期没认出来,按登记日期 ${esc((r.created_at || "").slice(0, 10))} 归档">日期未识别</span>`}</td>
+        ${COLS.map(c => NUMERIC.has(c.key)
+            ? `<td class="r num">${num(f[c.key]) !== null ? fmt(num(f[c.key])) : '<span class="muted">—</span>'}</td>`
+            : c.key === "车号" ? `<td class="num">${val(f["车号"]) ? esc(f["车号"]) : '<span class="muted">未识别</span>'}</td>`
+            : `<td${["序号", "入站时间", "出站时间"].includes(c.key) ? ' class="num"' : ""}>${esc(val(f[c.key]) || "—")}</td>`).join("")}
+        ${prod ? `<td>${esc(r.customer || "—")}</td>` : ""}
+        <td>${weightCell(r)}</td><td>${issueCell(r)}</td>
+        <td>${r.voided_at ? `<span class="badge void" title="${esc(r.void_reason || "")}">已作废</span>` : `<span class="st ${esc(r.stage)}">${esc(STAGE[r.stage] || r.stage)}</span>`}${r.flag_note ? `<span class="badge flag" title="${esc(r.flag_note)}">有疑问</span>` : ""}</td></tr>`;
+    }).join("");
+  }
+  drawSel();
+}
+function drawSel() {
+  const n = selected.size, b = $("#b-approve");
+  b.disabled = !n; b.textContent = n ? `批量审核（${n} 张）` : "批量审核";
+  $("#sel-hint").textContent = n ? `已选 ${n} 张。确认都对照过纸质磅单了再点审核。` : "对照纸质磅单逐条核对净重，没问题的勾上，一次审核。";
+  const sa = $("#sel-all"), selectable = docView().filter(r => r.stage !== "approved");
+  if (sa) { sa.checked = n > 0 && selectable.every(r => selected.has(r.id)); sa.indeterminate = n > 0 && !sa.checked; }
+}
+$(".stages").onclick = e => { const b = e.target.closest("button"); if (!b) return; stage = b.dataset.s; selected.clear(); syncUrl(); drawViews(); drawDocs(); };
+$("#rows").addEventListener("change", e => {
+  const c = e.target.closest("[data-sel]"); if (!c) return;
+  c.checked ? selected.add(c.dataset.sel) : selected.delete(c.dataset.sel); drawSel();
+});
+$("#doc-head").addEventListener("change", e => {
+  if (e.target.id !== "sel-all") return;
+  for (const r of docView()) if (r.stage !== "approved") e.target.checked ? selected.add(r.id) : selected.delete(r.id);
+  drawDocs();
+});
+$("#rows").onclick = e => {
+  if (e.target.closest(".cb")) return;
+  const tr = e.target.closest("tr[data-id]"); if (tr) open(tr.dataset.id);
+};
+$("#rows").onkeydown = e => {
+  const tr = e.target.closest("tr[data-id]"); if (!tr || e.target.matches("input")) return;
+  if (e.key === "Enter") { e.preventDefault(); open(tr.dataset.id); }
+  if (e.key === " ") { e.preventDefault(); const c = tr.querySelector("[data-sel]"); if (c) { c.checked = !c.checked; c.dispatchEvent(new Event("change", {bubbles: true})); } }
+  if (e.key === "ArrowDown" && tr.nextElementSibling) { e.preventDefault(); tr.nextElementSibling.focus(); }
+  if (e.key === "ArrowUp" && tr.previousElementSibling) { e.preventDefault(); tr.previousElementSibling.focus(); }
+};
+
+async function approve(ids, records = all) {
+  const r = await fetch("__WB_BASE_PATH__/api/v1/records/approve", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ids, versions: Object.fromEntries(ids.map(id => [id, records.find(r => r.id === id)?.version ?? null]))})});
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error((body.error && body.error.message) || `HTTP ${r.status}`);
+  if (!Array.isArray(body.approved) || !Array.isArray(body.skipped)) throw new Error("审核回执不完整，结果未知，请重新核对");
+  return body;
+}
+$("#b-approve").onclick = async () => {
+  const ids = [...selected]; if (!ids.length) return;
+  const risky = all.filter(r => selected.has(r.id) && ((r.warnings || []).length || !r.weight_ok)).length;
+  const drafts = all.filter(r => selected.has(r.id) && r.stage === "draft").length;
+  if (drafts && !confirm(`选中的单据里有 ${drafts} 张现场还没确认（待现场确认）。\n识别结果可能还没人看过。确定由你代为确认并审核？`)) return;
+  if (risky && !confirm(`选中的单据里有 ${risky} 张带校验提示（重量对不上或字段可疑）。\n确定都已对照纸质磅单核对过，一起审核？`)) return;
+  $("#b-approve").disabled = true;
+  try {
+    const res = await approve(ids);
+    selected.clear();
+    toast(`已审核 ${res.approved.length} 张` + (res.skipped.length ? `；${res.skipped.length} 张没审：${res.skipped.map(s => s.reason).join("、")}` : "。"));
+    await load(true);
+  } catch (e) { selected.clear(); toast(`审核失败或回执未知：${e.message}。请重新读取并核对后再选取审核。`); await load(true); drawSel(); }
+};
+
+/* ---------- 磅差 ---------- */
+// 日合计标红用和单车一样的规则:比例超,且(设了 kg 下限时)差的公斤数也超
+const dayBad = (d, p) => Math.abs(d.diff_pct || 0) > p.diff_alert_pct && (!p.diff_alert_kg || Math.abs(d.diff || 0) > p.diff_alert_kg);
+function drawRecon() {
+  const p = recon.params;
+  $("#r-th").textContent = `率超过 ${p.diff_alert_pct}%` + (p.diff_alert_kg ? ` 且超过 ${p.diff_alert_kg} kg` : "");
+  $("#thr").hidden = !me.reviewer;
+  if (document.activeElement?.closest("#thr") == null) { $("#thr-pct").value = p.diff_alert_pct; $("#thr-kg").value = p.diff_alert_kg || 0; }
+  const days = recon.days;
+  SITE = p.site_name || SITE; SUP = p.supplier_name || SUP; applyNames();
+  const T = days.reduce((a, d) => ({t: a.t + d.trucks, b: a.b + d.supplier_net, p: a.p + d.site_net, u: a.u + d.unmatched, al: a.al + d.alerts,
+    ps: a.ps + d.pairs.reduce((s, x) => s + (x.diff || 0), 0)}), {t: 0, b: 0, p: 0, u: 0, al: 0, ps: 0});
+  $("#r-total").innerHTML = days.length ? `${days.length} 天；${esc(SUP)} <b>${fmt(T.b / 1000, 2)}</b> 吨，${esc(SITE)} <b>${fmt(T.p / 1000, 2)}</b> 吨，净重磅差 <b>${sgn((T.p - T.b) / 1000, 3)}</b> 吨；配对 <b>${T.t}</b> 车`
+    + (T.al ? `；<span class="bad">${T.al} 车超阈值</span>` : "") + (T.u ? `；<span class="bad">${T.u} 张没配上</span>` : "")
+    + (T.u ? `<br><span class="muted">有没配上的单子时，日合计相减会把在途、漏传的车也算成磅差；只看配上的车，逐车磅差合计 <b>${sgn(T.ps)}</b> kg。</span>` : "")
+    + `<br><span class="muted">只算现场已确认的单据；待现场确认、已作废的不计入。</span>` : "";
+  if (!days.length) { $("#r-rows").innerHTML = `<tr><td colspan="12" class="empty"><b>这段时间没有可对比的磅单。</b>${esc(KIND.supplier_out)}和${esc(KIND.site_in)}两边都有才会出现在这里。</td></tr>`; return; }
+  $("#r-rows").innerHTML = days.map(d => {
+    const on = openDay === d.date;
+    return `<tr class="daysum${on ? " open" : ""}" tabindex="0" data-day="${esc(d.date)}">
+      <td class="day"><span class="dir">${on ? "▾" : "▸"}</span>${esc(d.date)}</td>
+      <td class="r num">${d.supplier_count}</td><td class="r num">${fmt(d.supplier_net)}</td>
+      <td class="r num">${d.site_count}</td><td class="r num">${fmt(d.site_net)}</td>
+      <td class="r num${dayBad(d, p) ? " bad" : ""}">${sgn(d.diff)}</td>
+      <td class="r num${dayBad(d, p) ? " bad" : ""}">${pct(d.diff_pct)}</td>
+      <td class="r num">${sgn(d.diff_gross)}</td><td class="r num">${sgn(d.diff_tare)}</td>
+      <td class="r num">${d.trucks}</td>
+      <td class="r num${d.alerts ? " bad" : ""}">${d.alerts || "—"}</td><td class="r num${d.unmatched ? " bad" : ""}">${d.unmatched || "—"}</td></tr>`
+      + (on ? `<tr class="detail"><td colspan="12">${dayDetail(d)}</td></tr>` : "");
+  }).join("");
+}
+$("#thr").onsubmit = async e => {
+  e.preventDefault();
+  const body = {diff_alert_pct: $("#thr-pct").value.trim(), diff_alert_kg: $("#thr-kg").value.trim() || 0};
+  try {
+    const r = await fetch("__WB_BASE_PATH__/api/v1/settings/thresholds", {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error((j.error && j.error.message) || `HTTP ${r.status}`);
+    document.activeElement?.blur(); toast(`阈值已保存：磅差率超过 ${j.diff_alert_pct}%` + (j.diff_alert_kg ? ` 且超过 ${j.diff_alert_kg} kg` : "") + " 的车标红。");
+    load(true);
+  } catch (err) { toast(`没保存成功：${err.message}`); }
+};
+const img = r => r.thumb_path ? `<img class="thumb" loading="lazy" decoding="async" src="${esc(r.thumb_path)}" data-open="${esc(r.id)}" alt="打开磅单">` : '<span class="muted">无影像</span>';
+const t = (r, a, b) => esc(val(r.fields[a]) || val(r.fields[b]) || "—");
+function dayDetail(d) {
+  const pairs = d.pairs.map(x => `<tr class="${x.diff_alert ? "alert" : ""}">
+      <td>${esc(x.supplier.origin_name || "—")}</td><td class="num">${esc(x.plate || "—")}</td><td class="num">${t(x.supplier, "出站时间", "入站时间")}</td><td class="num">${t(x.site, "入站时间", "出站时间")}</td>
+      <td class="r num${x.gap_alert ? " bad" : ""}">${x.gap_min ?? "—"}</td>
+      <td><div class="pairimg">${img(x.supplier)}<span class="num">${fmt(x.supplier_net)}</span><span class="st ${esc(x.supplier.stage)}">${esc(STAGE[x.supplier.stage])}</span></div></td>
+      <td><div class="pairimg">${img(x.site)}<span class="num">${fmt(x.site_net)}</span><span class="st ${esc(x.site.stage)}">${esc(STAGE[x.site.stage])}</span></div></td>
+      <td class="r num dv${x.diff_alert ? " bad" : ""}">${sgn(x.diff)}</td><td class="r num dv${x.diff_alert ? " bad" : ""}">${pct(x.diff_pct)}</td></tr>`).join("");
+  const lonely = (title, rs, a, b) => rs.length ? `<div class="sub">${title}（${rs.length}）</div><table><thead><tr><th>车牌号</th><th>时间</th><th>影像</th><th class="r">净重 kg</th><th>磅单号</th><th>状态</th></tr></thead><tbody>${
+    rs.map(r => `<tr><td class="num">${esc(val(r.fields["车号"]) || "未识别")}</td><td class="num">${t(r, a, b)}</td><td>${img(r)}</td>
+      <td class="r num">${fmt(num(r.fields["净重"]))}</td><td class="num muted">${esc(val(r.fields["序号"]) || "—")}</td>
+      <td><span class="st ${esc(r.stage)}">${esc(STAGE[r.stage])}</span></td></tr>`).join("")}</tbody></table>` : "";
+  return `${d.pairs.length ? `<table><thead><tr><th>来源单位</th><th>车牌号</th><th>${esc(SUP)}出站</th><th>${esc(SITE)}入站</th><th class="r">时间差(分)</th>
+      <th>${esc(SUP)}磅单 · 净重</th><th>${esc(SITE)}磅单 · 净重</th><th class="r">净重磅差</th><th class="r">比例</th></tr></thead><tbody>${pairs}</tbody></table>` : ""}
+    ${lonely(`${esc(KIND.supplier_out)}，没找到对应的${esc(KIND.site_in)}（在途、漏传或车号认错）`, d.unmatched_supplier, "出站时间", "入站时间")}
+    ${lonely(`${esc(KIND.site_in)}，没找到对应的${esc(KIND.supplier_out)}`, d.unmatched_site, "入站时间", "出站时间")}`;
+}
+$("#r-rows").onclick = e => {
+  const im = e.target.closest("[data-open]"); if (im) { e.stopPropagation(); open(im.dataset.open); return; }
+  const tr = e.target.closest("tr.daysum"); if (!tr) return;
+  openDay = openDay === tr.dataset.day ? null : tr.dataset.day; drawRecon();
+};
+$("#r-rows").onkeydown = e => { const tr = e.target.closest("tr.daysum"); if (tr && e.key === "Enter") { e.preventDefault(); tr.click(); } };
+
+
+/* ---------- 统计看板 ---------- */
+const T = kg => kg === null || kg === undefined ? "—" : fmt(kg / 1000, kg >= 1e6 ? 1 : 2);   // 吨
+const C = {supplier_out: "var(--c-sup)", site_in: "var(--c-site)", site_out: "var(--c-out)"};
+const tip = $("#tip");
+function showTip(e, html) { tip.innerHTML = html; tip.classList.add("on");
+  const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8), y = Math.max(8, e.clientY - tip.offsetHeight - 10);
+  tip.style.left = x + "px"; tip.style.top = y + "px"; }
+function hideTip() { tip.classList.remove("on"); }
+document.addEventListener("pointermove", e => { const h = e.target.closest && e.target.closest("[data-tip]"); h ? showTip(e, h.dataset.tip) : hideTip(); });
+const nice = v => { if (v <= 0) return 1; const p = 10 ** Math.floor(Math.log10(v)), m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; };
+const md = d => d ? d.slice(5).replace("-", "/") : "—";
+
+function weekOf(d) {   // 周一开头;标签用这周周一
+  const t = new Date(d + "T00:00:00"), w = (t.getDay() + 6) % 7; t.setDate(t.getDate() - w); return ymd(t);
+}
+function grouped() {
+  if (gran === "day") return stats.days.map(d => ({...d, key: d.date, label: md(d.date)}));
+  const acc = new Map();
+  for (const d of stats.days) {
+    const k = weekOf(d.date);
+    const a = acc.get(k) || {key: k, label: md(k) + " 周", dates: [], supplier_out_net: 0, site_in_net: 0, site_out_net: 0,
+      supplier_out_tickets: 0, site_in_tickets: 0, site_out_tickets: 0, pairs: 0, alerts: 0, unmatched: 0, _b: 0, _p: 0, _has: false};
+    for (const f of ["supplier_out_net", "site_in_net", "site_out_net", "supplier_out_tickets", "site_in_tickets", "site_out_tickets", "pairs", "alerts", "unmatched"]) a[f] += d[f] || 0;
+    if (d.diff !== null) { a._has = true; a._b += d.supplier_out_net; a._p += d.site_in_net; }
+    a.dates.push(d.date); acc.set(k, a);
+  }
+  // 周磅差 = 周合计相减再算比例,不是日比例的平均
+  return [...acc.values()].map(a => ({...a, diff: a._has ? a._p - a._b : null, diff_pct: a._has && a._b ? (a._p - a._b) / a._b * 100 : null}));
+}
+
+function drawStats() {
+  const s = stats, K = s.kinds, R = s.recon, th = s.params.diff_alert_pct;
+  SITE = s.params.site_name || SITE; SUP = s.params.supplier_name || SUP; applyNames();
+  const stagesum = k => K[k].stages;
+  const pending = Object.keys(K).reduce((a, k) => a + stagesum(k).submitted, 0), drafts = Object.keys(K).reduce((a, k) => a + stagesum(k).draft, 0);
+  // 点审核进度:去未审核最多的那类单据
+  const pendKind = Object.keys(K).sort((a, b) => stagesum(b).submitted - stagesum(a).submitted)[0];
+  const card = (k) => `<a class="kpi" href="__WB_BASE_PATH__/report?v=${k}&s=" data-go="${k}" data-stage="" style="--c:${C[k]}">
+      <span class="k">${esc(K[k].label)}${k === "site_in" ? `（${esc(SITE)}）` : ""}</span>
+      <span class="v">${T(K[k].net)}<small>吨</small></span>
+      <span class="s"><b>${K[k].tickets}</b> 车次 · <b>${K[k].trucks}</b> 辆车 · 平均 <b>${K[k].avg_net ? fmt(K[k].avg_net / 1000, 1) : "—"}</b> 吨/车</span>
+      <span class="s">其中已审核 <b>${T(K[k].approved_net)}</b> 吨${K[k].draft_tickets ? `；另有 <b>${K[k].draft_tickets}</b> 张待现场确认（${T(K[k].draft_net)} 吨）未计入` : ""}</span></a>`;
+  const bad = R.diff_pct !== null && Math.abs(R.diff_pct) > th;
+  $("#s-kpis").innerHTML = card("supplier_out") + card("site_in") + `
+    <a class="kpi dark" href="__WB_BASE_PATH__/report?v=recon" data-go="recon">
+      <span class="k">净重磅差（${esc(SITE)} − ${esc(SUP)}）</span>
+      <span class="v">${R.supplier_net ? (R.diff > 0 ? "+" : "") + fmt(R.diff) : "—"}<small>kg</small></span>
+      <span class="s">比例 <b>${R.diff_pct === null ? "—" : (R.diff_pct > 0 ? "+" : "") + R.diff_pct.toFixed(3) + "%"}</b>${bad ? "（超阈值）" : ""} · 配对 <b>${R.pairs}</b> 车
+        ${R.alerts ? ` · <b>${R.alerts}</b> 车超阈值` : ""}${R.unmatched_supplier + R.unmatched_site ? ` · <b>${R.unmatched_supplier + R.unmatched_site}</b> 张没配上` : ""}</span></a>` + card("site_out") + `
+    <a class="kpi" href="__WB_BASE_PATH__/report?v=${pendKind}" data-go="${pendKind}" data-stage="${pending ? "submitted" : ""}" style="--c:var(--attn-edge)">
+      <span class="k">审核进度</span>
+      <span class="v">${pending}<small>张未审核</small></span>
+      <span class="s">${drafts ? `<b>${drafts}</b> 张待现场确认 · ` : ""}已审核 <b>${Object.keys(K).reduce((a, k) => a + stagesum(k).approved, 0)}</b> 张，共 <b>${Object.keys(K).reduce((a, k) => a + K[k].tickets, 0)}</b> 张</span>
+      <span class="bar2">${Object.keys(K).map(k => { const t = Object.values(K).reduce((a, x) => a + x.tickets, 0) || 1;
+        return `<i style="width:${stagesum(k).approved / t * 100}%;background:var(--pass)"></i>`; }).join("")}</span></a>`;
+  if (!s.days.length) {
+    for (const id of ["#s-trend", "#s-dist", "#s-scatter", "#s-hours", "#s-gaphist"]) $(id).innerHTML = `<p class="empty"><b>这段时间没有磅单。</b>换个日期范围看看。</p>`;
+    for (const id of ["#s-worst", "#s-veh", "#s-gap", "#s-mix", "#s-quality"]) $(id).innerHTML = "";
+    $("#s-insight").hidden = true; return;
+  }
+  drawTrend(); drawDist(); drawScatter(); drawWorst(); drawVehicles(); drawHours(); drawGap(); drawMix(); drawQuality();
+}
+
+function drawTrend() {
+  const G = grouped(), unit = gran === "day" ? "天" : "周";
+  $("#s-unit").textContent = unit; for (const e of $$(".s-unit2")) e.textContent = unit;
+  for (const b of $$(".seg button")) b.setAttribute("aria-pressed", b.dataset.g === gran ? "true" : "false");
+  const W = 960, H = 308, L = 54, Rr = 10, top = 22, bh = 196, dTop = top + bh + 34, dh = 44;
+  const max = nice(Math.max(1, ...G.flatMap(g => [g.supplier_out_net, g.site_in_net, g.site_out_net])) / 1000);
+  const dmax = Math.max(1, ...G.map(g => Math.abs(g.diff || 0)));
+  const slot = (W - L - Rr) / Math.max(G.length, 1), bw = Math.min(26, slot / 4.2);
+  const y = v => top + bh - v / 1000 / max * bh;
+  let out = "";
+  for (let i = 0; i <= 4; i++) { const v = max * i / 4, yy = top + bh - bh * i / 4;
+    out += `<line class="grid" x1="${L}" x2="${W - Rr}" y1="${yy}" y2="${yy}"/><text x="${L - 6}" y="${yy + 4}" text-anchor="end">${fmt(v, v < 10 && v % 1 ? 1 : 0)}</text>`; }
+  out += `<text x="${L - 6}" y="${top - 12}" text-anchor="end">吨</text>`;
+  const mid = dTop + dh / 2;
+  out += `<line class="axis" x1="${L}" x2="${W - Rr}" y1="${mid}" y2="${mid}"/><text x="${L - 6}" y="${mid + 4}" text-anchor="end">磅差</text>`;
+  G.forEach((g, i) => {
+    const cx = L + slot * i + slot / 2, keys = ["supplier_out", "site_in", "site_out"];
+    const tipH = `<b>${esc(gran === "day" ? g.key : g.label)}</b><br>${esc(KIND.supplier_out)} ${T(g.supplier_out_net)} 吨（${g.supplier_out_tickets} 车）<br>${esc(KIND.site_in)} ${T(g.site_in_net)} 吨（${g.site_in_tickets} 车）<br>${esc(KIND.site_out)} ${T(g.site_out_net)} 吨（${g.site_out_tickets} 车）`
+      + (g.diff !== null ? `<br>净重磅差 <b>${fmt(g.diff)}</b> kg（${pct(g.diff_pct)}）` : "") + (g.alerts ? `<br>${g.alerts} 车超阈值` : "") + (g.unmatched ? `<br>${g.unmatched} 张没配上` : "");
+    out += `<g class="hit" data-day="${esc(gran === "day" ? g.key : g.dates[0])}" data-days="${esc((g.dates || [g.key]).join(","))}" data-tip="${esc(tipH)}">
+      <rect class="bg" x="${cx - slot / 2 + 2}" y="${top}" width="${slot - 4}" height="${dTop + dh - top}" fill="transparent" rx="3"/>`;
+    keys.forEach((k, j) => { const v = g[k + "_net"] || 0, x = cx + (j - 1.5) * bw + (j - 1) * 2;
+      if (v) out += `<rect x="${x}" y="${y(v)}" width="${bw}" height="${top + bh - y(v)}" fill="${C[k]}" rx="1.5"/>`; });
+    if (g.diff !== null) { const h = Math.max(1.5, Math.abs(g.diff) / dmax * (dh / 2 - 2)), up = g.diff > 0;
+      out += `<rect x="${cx - bw}" y="${up ? mid - h : mid}" width="${bw * 2}" height="${h}" fill="${up ? "var(--c-over)" : "var(--c-short)"}" rx="1"/>
+        <text x="${cx}" y="${up ? mid - h - 3 : mid + h + 11}" text-anchor="middle">${g.diff > 0 ? "+" : ""}${fmt(g.diff)}</text>`; }
+    if (G.length <= 31 || i % Math.ceil(G.length / 31) === 0)
+      out += `<text x="${cx}" y="${top + bh + 16}" text-anchor="middle">${esc(g.label)}</text>`;
+    out += `</g>`;
+  });
+  out += `<line class="axis" x1="${L}" x2="${W - Rr}" y1="${top + bh}" y2="${top + bh}"/>`;
+  $("#s-trend").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="每${unit}吨位与磅差">${out}</svg>`;
+}
+$("#s-trend").onclick = e => {
+  const g = e.target.closest("[data-day]"); if (!g) return;
+  const ds = g.dataset.days.split(",").sort();
+  $("#f-from").value = ds[0]; $("#f-to").value = ds[ds.length - 1]; openDay = ds.length === 1 ? ds[0] : null;
+  view = "recon"; hideTip(); load();
+};
+$(".seg").onclick = e => { const b = e.target.closest("button"); if (!b) return; gran = b.dataset.g; drawTrend(); };
+
+function drawDist() {
+  const R = stats.recon, B = R.bins, th = stats.params.diff_alert_pct;
+  $("#s-dist-aside").textContent = `${R.pairs} 车`;
+  $("#s-dist-lede").innerHTML = R.pairs ? `每车净重磅差（kg，${esc(SITE)} − ${esc(SUP)}）。<b>${R.within_alert}</b> 车没超阈值（${th}%${stats.params.diff_alert_kg ? ` 且 ${stats.params.diff_alert_kg} kg` : ""}），`
+    + `逐车磅差相加 <b>${fmt(R.pair_sum)}</b> kg，正负互相抵掉了大部分。` : "没有配对上的车次。";
+  if (!R.pairs) { $("#s-dist").innerHTML = ""; return; }
+  const W = 480, H = 214, L = 30, top = 14, bh = 140, max = Math.max(...B.map(b => b.n), 1);
+  const slot = (W - L - 6) / B.length;
+  let out = "";
+  B.forEach((b, i) => { const h = b.n / max * bh, x = L + i * slot + 3, neg = b.hi <= 0, zero = b.lo === 0 && b.hi === 1;
+    const col = zero ? "var(--ink-3)" : neg ? "var(--c-short)" : "var(--c-over)";
+    out += `<g data-tip="${esc(`磅差 ${b.label} kg：<b>${b.n}</b> 车`)}"><rect x="${x}" y="${top}" width="${slot - 6}" height="${bh}" fill="transparent"/>
+      <rect x="${x}" y="${top + bh - h}" width="${slot - 6}" height="${h}" fill="${col}" rx="2" opacity="${b.n ? 1 : .2}"/>
+      ${b.n ? `<text x="${x + (slot - 6) / 2}" y="${top + bh - h - 4}" text-anchor="middle" style="fill:var(--ink)">${b.n}</text>` : ""}
+      ${b.label.split(" ~ ").map((t, j, a) => `<text x="${x + (slot - 6) / 2}" y="${top + bh + 15 + j * 12}" text-anchor="middle">${j && a.length > 1 ? "~" : ""}${esc(t)}</text>`).join("")}</g>`; });
+  out += `<line class="axis" x1="${L}" x2="${W - 3}" y1="${top + bh}" y2="${top + bh}"/>
+    <text x="${L + 4}" y="${H - 4}" style="fill:var(--c-short)">← ${esc(SITE)}少了</text><text x="${W - 4}" y="${H - 4}" text-anchor="end" style="fill:var(--c-over)">${esc(SITE)}称得多 →</text>`;
+  $("#s-dist").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="单车磅差分布">${out}</svg>`;
+}
+
+function drawScatter() {
+  const P = stats.recon.points.filter(p => p.minute !== null), th = stats.params.diff_alert_pct;
+  if (!P.length) { $("#s-scatter").innerHTML = `<p class="empty">没有带时间的配对车次。</p>`; $("#s-insight").hidden = true; return; }
+  const W = 480, H = 210, L = 44, top = 10, ph = 160;
+  const t0 = Math.floor(Math.min(...P.map(p => p.minute)) / 60) * 60, t1 = Math.ceil((Math.max(...P.map(p => p.minute)) + 1) / 60) * 60;
+  const dm = nice(Math.max(50, ...P.map(p => Math.abs(p.diff))));
+  const x = m => L + (m - t0) / Math.max(t1 - t0, 60) * (W - L - 8), y = d => top + ph / 2 - d / dm * ph / 2;
+  let out = "";
+  for (const v of [dm, dm / 2, 0, -dm / 2, -dm]) out += `<line class="${v ? "grid" : "axis"}" x1="${L}" x2="${W - 8}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v > 0 ? "+" : ""}${fmt(v)}</text>`;
+  const step = (t1 - t0) / 60 > 12 ? 120 : 60;
+  for (let m = t0; m <= t1; m += step) out += `<text x="${x(m)}" y="${top + ph + 16}" text-anchor="middle">${String(Math.floor(m / 60) % 24).padStart(2, "0")}:00</text>`;
+  for (const p of P) { const hm = `${String(Math.floor(p.minute / 60)).padStart(2, "0")}:${String(p.minute % 60).padStart(2, "0")}`;
+    out += `<circle class="pt" data-open="${esc(p.supplier_id)}" cx="${x(p.minute)}" cy="${y(p.diff)}" r="${p.alert ? 5.5 : 4.5}" fill="${p.alert ? "var(--fail)" : "var(--c-sup)"}" fill-opacity="${p.alert ? .95 : .7}"
+      data-tip="${esc(`<b>${esc(p.plate)}</b> ${esc(p.date || "")} ${hm} 出站<br>磅差 <b>${fmt(p.diff)}</b> kg（${pct(p.diff_pct)}）${p.overnight ? "<br>前一天入站，隔夜装车" : ""}`)}"/>`; }
+  $("#s-scatter").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="磅差与出站时刻">${out}</svg>`;
+  // 自动找规律:超阈值的车是不是都挤在最早出站的那一批里
+  const A = P.filter(p => p.alert), sorted = P.slice().sort((a, b) => a.minute - b.minute);
+  const firstN = sorted.slice(0, Math.max(A.length * 2, 1));
+  const inFirst = A.filter(a => firstN.includes(a)).length;
+  const ins = $("#s-insight");
+  if (A.length >= 2 && inFirst === A.length) {
+    const fm = firstN.filter(p => !p.alert), lastM = Math.max(...firstN.map(p => p.minute));
+    const avgA = A.reduce((s, p) => s + p.diff, 0) / A.length;
+    ins.innerHTML = `超阈值的 ${A.length} 车全在最早出站的 ${firstN.length} 车里（${String(Math.floor(lastM / 60)).padStart(2, "0")}:${String(lastM % 60).padStart(2, "0")} 之前），平均磅差 ${fmt(avgA)} kg，`
+      + `${avgA > 0 ? `${esc(SITE)}称得多` : `${esc(SITE)}少了`}。像是头一批车的共性（隔夜停放、两边地磅开机校零时间不同等），而不是个别车的问题，值得现场看一下。`;
+    ins.hidden = false;
+  } else ins.hidden = true;
+}
+$("#s-scatter").onclick = e => { const c = e.target.closest("[data-open]"); if (c) { hideTip(); open(c.dataset.open); } };
+
+function drawWorst() {
+  const W = stats.recon.worst;
+  $("#s-worst").innerHTML = W.length ? W.map(x => `<tr class="go" data-open="${esc(x.supplier_id)}" tabindex="0">
+      <td class="num">${esc(md(x.date))}</td><td class="num">${esc(x.plate || "—")}</td><td class="r num">${fmt(x.supplier_net)}</td><td class="r num">${fmt(x.site_net)}</td>
+      <td class="r num${x.alert ? " bad" : ""}">${x.diff > 0 ? "+" : ""}${fmt(x.diff)}</td><td class="r num${x.alert ? " bad" : ""}">${pct(x.diff_pct)}</td></tr>`).join("")
+    : `<tr><td colspan="6" class="empty">没有配对上的车次。</td></tr>`;
+}
+$("#s-worst").onclick = e => { const tr = e.target.closest("[data-open]"); if (tr) open(tr.dataset.open); };
+$("#s-worst").onkeydown = e => { const tr = e.target.closest("[data-open]"); if (tr && e.key === "Enter") open(tr.dataset.open); };
+
+function drawVehicles() {
+  const V = stats.vehicles.filter(v => v.supplier_out || v.site_in), top = V.slice(0, 12), max = Math.max(1, ...top.map(v => v.net));
+  $("#s-veh-aside").textContent = `${V.length} 辆车`;
+  $("#s-veh").innerHTML = top.map(v => `<span class="nm num">${esc(v.plate)}</span>
+      <span class="tr" data-tip="${esc(`<b>${esc(v.plate)}</b><br>${esc(KIND.supplier_out)} ${v.supplier_out} 趟，${esc(KIND.site_in)} ${v.site_in} 趟<br>运出 ${T(v.net)} 吨<br>${v.pairs} 趟配对，磅差合计 ${fmt(v.diff)} kg`)}"><i style="width:${v.net / max * 100}%;background:var(--c-sup)"></i></span>
+      <span class="vv"><b>${v.supplier_out}</b> 趟 · ${T(v.net)} 吨 · <span style="color:${v.diff < 0 ? "var(--c-short)" : v.diff > 0 ? "var(--c-over)" : "inherit"}">${v.diff > 0 ? "+" : ""}${fmt(v.diff)}</span></span>`).join("")
+    + (V.length > top.length ? `<span></span><span class="muted" style="font-size:12px">另有 ${V.length - top.length} 辆</span><span></span>` : "");
+}
+
+function drawHours() {
+  const H0 = stats.hours, keys = ["supplier_out", "site_in", "site_out"];
+  const used = [...Array(24).keys()].filter(h => keys.some(k => H0[k][h]));
+  if (!used.length) { $("#s-hours").innerHTML = `<p class="empty">没有带时间的磅单。</p>`; return; }
+  const a = Math.max(0, Math.min(...used) - 1), b = Math.min(23, Math.max(...used) + 1), hrs = [];
+  for (let h = a; h <= b; h++) hrs.push(h);
+  const W = 480, Hh = 200, L = 26, top = 10, bh = 150, max = Math.max(1, ...hrs.flatMap(h => keys.map(k => H0[k][h])));
+  const slot = (W - L - 4) / hrs.length, bw = Math.min(10, (slot - 4) / 3);
+  let out = "";
+  for (let i = 0; i <= 2; i++) { const v = Math.round(max * i / 2), yy = top + bh - bh * v / max;
+    out += `<line class="grid" x1="${L}" x2="${W - 4}" y1="${yy}" y2="${yy}"/><text x="${L - 5}" y="${yy + 4}" text-anchor="end">${v}</text>`; }
+  hrs.forEach((h, i) => { const cx = L + i * slot + slot / 2;
+    out += `<g data-tip="${esc(`<b>${String(h).padStart(2, "0")}:00–${String(h + 1).padStart(2, "0")}:00</b><br>${esc(SUP)}出站 ${H0.supplier_out[h]} 车<br>${esc(SITE)}入站 ${H0.site_in[h]} 车<br>${esc(KIND.site_out)} ${H0.site_out[h]} 车`)}">
+      <rect x="${cx - slot / 2}" y="${top}" width="${slot}" height="${bh}" fill="transparent"/>`;
+    keys.forEach((k, j) => { const v = H0[k][h], hh = v / max * bh; if (v) out += `<rect x="${cx + (j - 1.5) * bw}" y="${top + bh - hh}" width="${bw - 1}" height="${hh}" fill="${C[k]}" rx="1"/>`; });
+    out += `${(hrs.length <= 14 || h % 2 === 0) ? `<text x="${cx}" y="${top + bh + 15}" text-anchor="middle">${h}</text>` : ""}</g>`; });
+  out += `<line class="axis" x1="${L}" x2="${W - 4}" y1="${top + bh}" y2="${top + bh}"/><text x="${W - 4}" y="${Hh - 2}" text-anchor="end">时</text>`;
+  $("#s-hours").innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="每小时过磅车次">${out}</svg>`;
+}
+
+function drawGap() {
+  const g = stats.recon.gap_min, P = stats.recon.points;
+  if (!g) { $("#s-gap").innerHTML = `<p class="muted">没有两边都带时间的配对车次。</p>`; $("#s-gaphist").innerHTML = ""; return; }
+  const f = (k, v) => `<div class="fact"><div class="k">${k}</div><div class="v">${v}<small>分钟</small></div></div>`;
+  $("#s-gap").innerHTML = f("最短", g.min) + f("一半车在", g.p50 + " 以内") + f("九成车在", g.p90 + " 以内") + f("最长", g.max);
+  // 每 30 分钟一档
+  const G = P.map(p => p.gap_min).filter(v => v !== null && v !== undefined);
+  const nb = Math.min(12, Math.floor(g.max / 30) + 1), bins = Array(nb).fill(0);
+  for (const v of G) bins[Math.min(nb - 1, Math.floor(Math.max(v, 0) / 30))]++;
+  const max = Math.max(1, ...bins);
+  $("#s-gaphist").innerHTML = `<div class="hbars">${bins.map((n, i) => `<span class="nm num">${i * 30}${i === nb - 1 && g.max >= nb * 30 ? "+" : "–" + (i + 1) * 30}</span>
+    <span class="tr"><i style="width:${n / max * 100}%;background:var(--c-site)"></i></span><span class="vv"><b>${n}</b> 车</span>`).join("")}</div>`;
+}
+
+function drawMix() {
+  const M = stats.mix;
+  const list = (title, xs, col) => {
+    if (!xs.length) return `<div><h4>${title}</h4><p class="muted" style="margin:0;font-size:13px">没有数据</p></div>`;
+    const max = Math.max(1, ...xs.map(x => x.net)), tot = xs.reduce((a, x) => a + x.net, 0) || 1;
+    return `<div><h4>${title}</h4><div class="hbars">${xs.slice(0, 8).map(x => `<span class="nm" title="${esc(x.name)}">${esc(x.name)}</span>
+      <span class="tr"><i style="width:${x.net / max * 100}%;background:${col}"></i></span>
+      <span class="vv"><b>${T(x.net)}</b> 吨 · ${x.tickets} 车 · ${fmt(x.net / tot * 100, 0)}%</span>`).join("")}</div></div>`;
+  };
+  $("#s-mix").innerHTML = list(`${esc(KIND.supplier_out)} · 货名`, M.supplier_goods, C.supplier_out)
+    + (M.supplier_points.some(x => x.name !== "未填") ? list(`${esc(KIND.supplier_out)} · 装点`, M.supplier_points, C.supplier_out) : "")
+    + list(`${esc(KIND.site_in)} · 货名`, M.site_goods, C.site_in) + list(`${esc(KIND.site_out)} · 客户`, M.out_customers, C.site_out)
+    + list(`${esc(KIND.site_out)} · 货名`, M.out_goods, C.site_out);
+}
+
+function drawQuality() {
+  const K = stats.kinds, Q = stats.quality;
+  const prog = Object.keys(K).map(k => { const st = K[k].stages, t = K[k].tickets || 1;
+    return `<span class="nm">${esc(K[k].label)}</span><span class="tr" data-tip="${esc(`已审核 ${st.approved}，未审核 ${st.submitted}，待现场确认 ${st.draft}`)}">
+      <i style="width:${st.approved / t * 100}%;background:var(--pass)"></i><i style="width:${st.submitted / t * 100}%;background:var(--attn-edge)"></i><i style="width:${st.draft / t * 100}%;background:var(--fail)"></i></span>
+      <span class="vv"><b>${st.approved}</b>/${K[k].tickets} 已审核</span>`; }).join("");
+  const q = Q.tickets ? `<div class="facts">
+      <div class="fact"><div class="k">拍照识别</div><div class="v">${Q.tickets}<small>张</small></div></div>
+      <div class="fact"><div class="k">识别后没改过</div><div class="v">${fmt((Q.tickets - Q.edited) / Q.tickets * 100, 0)}<small>%</small></div></div>
+      <div class="fact"><div class="k">重量自洽</div><div class="v">${fmt(Q.weight_ok / Q.tickets * 100, 0)}<small>%</small></div></div>
+      <div class="fact"><div class="k">识别失败</div><div class="v">${Q.failed}<small>张</small></div></div></div>`
+    : `<p class="muted" style="margin:0;font-size:13px">这段时间的单据都是线下台账导入的，还没有拍照识别的单据，所以不算识别质量。现场开始拍照后，这里会显示识别后没改过的比例、总重−皮重=净重的自洽率和识别失败张数。</p>`;
+  $("#s-quality").innerHTML = `<div><h4>审核进度<span class="legend" style="display:inline-flex;margin-left:10px"><span><i style="background:var(--pass)"></i>已审核</span><span><i style="background:var(--attn-edge)"></i>未审核</span><span><i style="background:var(--fail)"></i>待现场确认</span></span></h4><div class="hbars">${prog}</div></div><div><h4>识别质量</h4>${q}</div>`;
+}
+$("#s-kpis").onclick = e => {
+  const a = e.target.closest("[data-go]"); if (!a) return; e.preventDefault();
+  view = a.dataset.go; if (KIND[view]) stage = a.dataset.stage ?? ""; selected.clear(); load();
+};
+
+/* ---------- 详情、修改与审核 ---------- */
+const inputs = () => $$("#form [name]");
+const formVals = () => Object.fromEntries(inputs().map(i => [i.name, val(i.value)]));
+const dirty = () => cur && inputs().some(i => val(i.value) !== snapshot[i.name]);
+function flagsFor(r) {
+  const m = {};
+  for (const w of r.warnings || []) for (const k of FIELDS) if (w.includes(k)) (m[k] = m[k] || []).push(w);
+  if ((r.weight_msg || "").startsWith("不符")) for (const k of ["总重", "皮重", "净重"]) (m[k] = m[k] || []).push(r.weight_msg);
+  return m;
+}
+function liveCheck() {
+  const g = num($("#form [name=总重]").value), tt = num($("#form [name=皮重]").value), n = num($("#form [name=净重]").value);
+  const ro = $("#d-readout"), ck = $("#d-check");
+  $("#d-net").textContent = n !== null ? String(n) : "- - - - -"; ro.classList.toggle("none", n === null);
+  if (g === null || tt === null || n === null) { ro.classList.remove("bad"); ck.className = "check"; ck.textContent = "总重、皮重、净重要都填上才能核对"; }
+  else { const d = g - tt - n, ok = Math.abs(d) <= 1; ro.classList.toggle("bad", !ok); ck.className = "check " + (ok ? "ok" : "bad");
+    ck.textContent = ok ? `${fmt(g)} − ${fmt(tt)} = ${fmt(n)}，相符` : `${fmt(g)} − ${fmt(tt)} = ${fmt(g - tt)}，与净重差 ${fmt(d)} kg`; }
+  for (const i of inputs()) i.closest(".fld").classList.toggle("changed", val(i.value) !== snapshot[i.name]);
+  $("[data-f=customer]").hidden = $("#form [name=doc_type]").value !== "site_out";
+  $("#d-st").className = "stx"; $("#d-st").textContent = dirty() ? "有未保存的修改" : "";
+}
+$("#form").addEventListener("input", liveCheck);
+function listForNext() { return view === "recon" ? [] : docView(); }
+function nextId() {
+  const v = listForNext().filter(r => r.stage !== "approved"), i = v.findIndex(r => r.id === cur.id);
+  const after = v.slice(i + 1).concat(v.slice(0, Math.max(i, 0))).find(r => r.id !== cur.id);
+  return after ? after.id : null;
+}
+
+async function open(id) {
+  if (busy) return;
+  if (cur && (dirty() || conflict) && !confirm("这条有未保存的草稿，放弃草稿并打开记录？")) return;
+  conflict = null; $("#d-conflict").hidden = true;
+  let r = all.find(x => x.id === id) || voidedList.find(x => x.id === id);
+  if (!r) { const resp = await fetch("__WB_BASE_PATH__/api/v1/records/" + encodeURIComponent(id)); if (!resp.ok) { toast("这条记录读不到了"); return; } r = await resp.json(); }
+  cur = r; lastRow = document.activeElement;
+  const f = r.fields || {}, flags = flagsFor(r);
+  const locked = (r.stage !== "draft" && !me.reviewer) || !!r.voided_at;
+  snapshot = Object.fromEntries(FIELDS.map(k => [k, val(f[k])]));
+  snapshot.origin_id = val(r.origin_id); snapshot.doc_type = r.doc_type; snapshot.customer = val(r.customer);
+  $("#d-stage").className = "st " + r.stage; $("#d-stage").textContent = STAGE[r.stage] || r.stage;
+  $("#d-tag").className = "tag " + r.status; $("#d-tag").textContent = KIND[r.doc_type] || "";
+  $("#d-title").textContent = val(f["车号"]) || val(f["序号"]) || "单据详情";
+  $("#d-ref").textContent = r.ref_no || "";
+  $("#d-warns").innerHTML = (r.status === "failed"
+      ? [`<li class="fail">${esc(r.error || (r.warnings || []).join("；"))}。可以对照照片手工填写后保存。</li>`]
+      : (r.warnings || []).map(w => `<li>${esc(w)}</li>`)).join("") + ((r.weight_msg || "").includes("复读")
+      ? `<li>重量首读对不上账，已单独复读更正：${esc(r.weight_msg)}</li>` : "");
+  if (r.voided_at) $("#d-warns").insertAdjacentHTML("afterbegin", `<li class="fail">已作废：${esc(r.void_reason || "")}（${esc(r.voided_by || "")}，${esc((r.voided_at || "").replace("T", " "))}）。不计入汇总、磅差和导出。</li>`);
+  if (r.flag_note) $("#d-warns").insertAdjacentHTML("afterbegin", `<li>有疑问：${esc(r.flag_note)}</li>`);
+  $("#d-warns").hidden = !$("#d-warns").innerHTML;
+  for (const i of inputs()) {
+    i.value = i.name === "origin_id" ? (r.origin_id || "") : i.name === "doc_type" ? r.doc_type : i.name === "customer" ? (r.customer || "") : (f[i.name] ?? "");
+    i.disabled = locked;
+    const fld = i.closest(".fld"); fld.classList.toggle("flag", !!flags[i.name]);
+    fld.querySelector(".why")?.remove();
+    if (flags[i.name]) fld.insertAdjacentHTML("beforeend", `<span class="why">${esc(flags[i.name][0])}</span>`);
+  }
+  const vw = $("#viewer"); vw.classList.remove("zoom");
+  // 先给中图(快),点放大时换成原图(清楚):省流量,又不丢细节
+  const src = r.preview_path || r.crop_path || r.orig_path, full = r.crop_path || r.orig_path;
+  vw.innerHTML = src ? `<img src="${esc(src)}" data-full="${esc(full || "")}" alt="${r.crop_path ? "磅单影像" : "整张原图"}">` : `<span class="none">这条没有留存照片</span>`;
+  $("#d-imgnote").textContent = r.crop_path ? "点图片放大，再点缩回" : "没有裁出单据，这里显示的是整张原图";
+  const im = vw.querySelector("img");
+  if (im) im.onclick = () => {
+    if (!vw.classList.contains("zoom") && im.dataset.full && !im.src.endsWith(im.dataset.full)) im.src = im.dataset.full;   // 放大才取原图
+    vw.classList.toggle("zoom");
+  };
+  $("#d-orig").href = r.orig_path || "#"; $("#d-orig").hidden = !r.orig_path;
+  $("#sigbox").innerHTML = r.sig_path ? `签名<img src="${esc(r.sig_path)}" alt="签名留存">` : "没有截到签名，请对照上方照片确认有无签字。";
+  const row = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
+  const when = s => (s || "").replace("T", " ");
+  $("#d-meta").innerHTML = row("上传", `${r.uploader}，${when(r.created_at)}`) + row("现场提交", r.submitted_by && `${r.submitted_by}，${when(r.submitted_at)}`)
+    + row("修改", r.reviewed_by && `${r.reviewed_by}，${when(r.reviewed_at)}`) + row("审核", r.approved_by && `${r.approved_by}，${when(r.approved_at)}`)
+    + row("登记编号", r.ref_no) + row("识别模型", r.model) + row("内部 ID", r.id);
+  const canApprove = me.reviewer && r.stage !== "approved" && !!val(f["净重"]) && !r.voided_at;
+  $("#d-void").hidden = !me.reviewer || !!r.voided_at;
+  $("#d-restore").hidden = !me.reviewer || !r.voided_at;
+  $("#d-flag").hidden = !me.reviewer || !!r.voided_at;
+  $("#d-flag").textContent = r.flag_note ? "取消疑问" : "有疑问…";
+  loadHistory(r.id);
+  $("#d-save").hidden = locked;
+  $("#d-approve").hidden = !canApprove;
+  const nx = canApprove && nextId();
+  $("#d-next").hidden = !nx; $("#d-approve").className = nx ? "btn ghost" : "btn";
+  if (locked) { $("#d-st").textContent = "已提交，只有审核员能改"; }
+  liveCheck();
+  $$("#rows tr").forEach(tr => tr.classList.toggle("open", tr.dataset.id === id));
+  $("#drawer").classList.add("on"); $("#drawer").setAttribute("aria-hidden", "false"); $("#scrim").classList.add("on");
+  const first = document.querySelector("#form .fld.flag input:not(:disabled)") || document.querySelector("#form input:not(:disabled)");
+  if (first) first.focus({preventScroll: true});
+}
+async function loadHistory(id) {
+  const ol = $("#d-hist-list"); ol.innerHTML = `<li class="muted">读取中…</li>`;
+  try {
+    const h = (await (await fetch(`__WB_BASE_PATH__/api/v1/records/${encodeURIComponent(id)}/history`)).json()).history || [];
+    if (!cur || cur.id !== id) return;
+    const show = v => v === null || v === undefined || v === "" ? "空" : String(v);
+    ol.innerHTML = h.length ? h.map(e => {
+      const d = e.detail || {}, ch = d.changes || {};
+      const parts = Object.entries(ch).map(([k, [a, b]]) => `${esc(LABELS_OF[k] || k)} <span class="chg">${esc(show(a))} → ${esc(show(b))}</span>`);
+      const extra = [d.reason && `原因：${esc(d.reason)}`, d.note && esc(d.note), d.was && `原来：${esc(d.was)}`].filter(Boolean);
+      return `<li>${esc((e.at || "").replace("T", " ").slice(5, 16))} ${esc(e.actor || "")} <b>${esc(e.action)}</b>${parts.length ? "：" + parts.join("，") : ""}${extra.length ? "（" + extra.join("；") + "）" : ""}</li>`;
+    }).join("") : `<li class="muted">没有修改过（识别结果原样）。</li>`;
+  } catch { ol.innerHTML = `<li class="muted">修改记录读不到</li>`; }
+}
+const LABELS_OF = {"序号": "磅单号", "车号": "车牌号", "皮重": "空重", "单据类型": "单据类型", "客户": "客户"};
+
+async function recordAction(path, body, okMsg) {
+  if (busy || (conflict && !confirm("此操作会关闭核对并放弃保留的草稿，继续？")) || (dirty() && !confirm("有未保存的修改，放弃后继续？"))) return;
+  const id = cur.id;
+  const r = await fetch(`__WB_BASE_PATH__/api/v1/records/${encodeURIComponent(id)}/${path}`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body || {})});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { toast(`没有成功：${(j.error && j.error.message) || r.status}`); return; }
+  toast(okMsg); cur = null; await load(true); open(id);
+}
+$("#d-void").onclick = () => {
+  if (dirty() && !confirm("有未保存的修改，作废会丢掉这些修改。继续？")) return;
+  const why = prompt("作废这张单据（不删除，编号保留，不计入汇总、磅差和导出）。\n写一句原因：", "重复了");
+  if (why && why.trim()) recordAction("void", {reason: why.trim()}, "已作废。");
+};
+$("#d-restore").onclick = () => recordAction("restore", {}, "已恢复。");
+$("#d-flag").onclick = () => {
+  if (cur.flag_note) { recordAction("flag", {note: ""}, "已取消疑问。"); return; }
+  const note = prompt("这张哪里有疑问？（比如：纸质磅单找不到、净重和纸单对不上）", "");
+  if (note && note.trim()) recordAction("flag", {note: note.trim()}, "已标记有疑问。");
+};
+
+function closeDrawer(force) {
+  if (!cur || busy) return;
+  if (!force && (dirty() || conflict) && !confirm("有未保存的修改，确定放弃？")) return;
+  cur = null; conflict = null;
+  $("#drawer").classList.remove("on"); $("#drawer").setAttribute("aria-hidden", "true"); $("#scrim").classList.remove("on");
+  $$("#rows tr.open").forEach(tr => tr.classList.remove("open"));
+  if (!force && lastRow && document.body.contains(lastRow)) lastRow.focus();
+}
+$("#d-close").onclick = () => closeDrawer();
+$("#scrim").onclick = () => closeDrawer();
+document.addEventListener("keydown", e => {
+  if (!cur) return;
+  if (e.key === "Escape") { e.preventDefault(); closeDrawer(); }
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !$("#d-next").hidden) { e.preventDefault(); act("approve", true); }
+});
+$("#d-save").onclick = () => act("save", false);
+$("#d-approve").onclick = () => act("approve", false);
+$("#d-next").onclick = () => act("approve", true);
+
+// Keep the entire form and its original draft intact until explicit reconciliation.
+function recordVals(r) {
+  return {...Object.fromEntries(FIELDS.map(k => [k, val((r.fields || {})[k])])),
+    doc_type: r.doc_type, origin_id: val(r.origin_id), customer: val(r.customer)};
+}
+async function showConflict(message) {
+  conflict = {draft: conflict?.draft || Object.fromEntries(inputs().map(i => [i.name, i.value])), latest: null, reviewed: false};
+  $("#d-conflict").hidden = false;
+  $("#d-conflict-msg").textContent = message + "。完整草稿仍保留在表单及下方。请逐项对照最新数据，再明确确认保存依据。";
+  $("#d-draft").textContent = JSON.stringify(conflict.draft, null, 2);
+  await readLatest();
+}
+async function readLatest() {
+  if (!cur || !conflict) return;
+  const id = cur.id, session = conflict;
+  session.latest = null; session.reviewed = false;
+  $("#d-confirm-version").hidden = true;
+  $("#d-compare").textContent = "读取中…";
+  try {
+    const r = await fetch("__WB_BASE_PATH__/api/v1/records/" + encodeURIComponent(id));
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const latest = await r.json();
+    if (!cur || cur.id !== id || conflict !== session) return;
+    if (!Number.isInteger(latest.version)) throw new Error("缺少版本信息");
+    session.latest = latest;
+    const values = recordVals(latest);
+    $("#d-compare").innerHTML = `<p>最新版本 <b>${latest.version}</b> · ${esc(latest.stage_label || latest.stage)} · 修改人 ${esc(latest.reviewed_by || latest.uploader)}${latest.voided_at ? " · 已作废" : ""}</p>
+      <table><thead><tr><th>字段</th><th>保留的原始草稿</th><th>最新数据</th><th>操作</th></tr></thead><tbody>${Object.keys(values).map(k =>
+        `<tr><th>${esc(k)}</th><td>${esc(session.draft[k])}</td><td>${esc(values[k])}</td><td><button type="button" data-latest-field="${esc(k)}">采用最新</button></td></tr>`).join("")}</tbody></table>`;
+    $$("[data-latest-field]").forEach(b => b.onclick = () => {
+      const input = inputs().find(i => i.name === b.dataset.latestField);
+      input.value = values[b.dataset.latestField] ?? ""; liveCheck();
+    });
+    $("#d-confirm-version").hidden = false;
+  } catch (e) { $("#d-compare").textContent = `最新数据读取失败：${e.message}。草稿未改动，不能继续保存或审核。`; }
+}
+$("#d-latest").onclick = readLatest;
+$("#d-confirm-version").onclick = () => {
+  if (busy || !conflict?.latest) return;
+  const latest = conflict.latest;
+  if (!confirm(`确认已逐项核对最新版本 ${latest.version}？下一次保存将使用当前表单中的全部内容。`)) return;
+  cur = latest; snapshot = recordVals(latest); conflict.reviewed = true;
+  $("#d-conflict-msg").textContent = `已核对版本 ${latest.version}。请检查当前表单，点击保存修改；如需审核，请在保存后核对记录再审核。原始草稿仍保留在下方。`;
+  liveCheck();
+};
+async function act(kind, goNext) {
+  if (!cur || busy) return;
+  if (!Number.isInteger(cur.version)) { await showConflict("当前记录缺少有效版本"); return; }
+  if (conflict && !conflict.reviewed) { toast("请先读取最新数据并明确确认核对结果"); return; }
+  // Reconciliation ends with a save; approval is a separate explicit action on the returned record.
+  if (conflict && kind === "approve") { toast("请先保存核对后的表单，再审核保存后的版本"); return; }
+  const g = num($("#form [name=总重]").value), tt = num($("#form [name=皮重]").value), n = num($("#form [name=净重]").value);
+  if (kind === "approve" && g !== null && tt !== null && n !== null && Math.abs(g - tt - n) > 1
+      && !confirm(`总重 − 皮重 与净重差 ${fmt(g - tt - n)} kg。确定已核对纸质磅单？`)) return;
+  if (cur.stage === "approved" && dirty() && !confirm("修改已审核记录后需要重新审核，确定修改？")) return;
+  busy = true; for (const b of ["#d-save", "#d-approve", "#d-next"]) $(b).disabled = true;
+  $("#d-st").className = "stx"; $("#d-st").textContent = "处理中…";
+  const id = cur.id, target = goNext ? nextId() : null;
+  let reconcile = false;
+  const editing = inputs().map(i => [i, i.disabled]);
+  for (const [i] of editing) i.disabled = true;
+  let restored = false;
+  const restoreInputs = () => { if (!restored) { for (const [i, disabled] of editing) i.disabled = disabled; restored = true; } };
+  try {
+    if (dirty() || conflict) {
+      const v = formVals(), fields = {}; for (const k of FIELDS) fields[k] = v[k];
+      reconcile = true; // Until a valid acknowledgement arrives, the write outcome is unknown.
+      const r = await fetch("__WB_BASE_PATH__/api/v1/records/" + encodeURIComponent(id), {method: "PATCH", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({fields, expected_version: cur.version, doc_type: v.doc_type, customer: v.customer || "", origin_id: v.origin_id || ""})});
+      const body = await r.json();
+      if (!r.ok) { reconcile = r.status === 409 || r.status >= 500; throw new Error((body.error && body.error.message) || `HTTP ${r.status}`); }
+      if (!Number.isInteger(body.version) || body.id !== id) throw new Error("保存回执不完整，结果未知");
+      cur = body; snapshot = recordVals(body); reconcile = false;
+    }
+    if (kind === "approve") {
+      reconcile = true;
+      const res = await approve([id], [cur]);
+      if (!res.approved.includes(id)) throw new Error(res.skipped.map(s => s.reason).join("、") || "没有审核成功");
+      reconcile = false;
+    }
+    toast(kind === "approve" ? "已审核。" : "已保存。");
+    conflict = null; cur = null; selected.delete(id);
+    busy = false; restoreInputs();
+    await load(true);
+    if (target && all.some(x => x.id === target)) open(target);
+    else if (all.some(x => x.id === id)) open(id);
+    else { $("#drawer").classList.remove("on"); $("#scrim").classList.remove("on"); }
+  } catch (e) {
+    $("#d-st").className = "stx bad"; $("#d-st").textContent = `未确认成功：${e.message}。草稿已保留。`;
+    if (reconcile) await showConflict(`发生冲突或请求回执未知：${e.message}`);
+  } finally { restoreInputs(); busy = false; for (const b of ["#d-save", "#d-approve", "#d-next"]) $(b).disabled = false; }
+}
+
+let tt0 = null;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(tt0); tt0 = setTimeout(() => t.classList.remove("on"), 3200); }
+window.addEventListener("beforeunload", e => { if (dirty() || conflict || busy) { e.preventDefault(); e.returnValue = ""; } });
+
+// 厂商名、场名、单据类型名都来自配置(__WB_BASE_PATH__/api/v1/schema),页面不写具体客户
+function applyNames() {
+  for (const e of $$(".pn")) e.textContent = SITE;
+  for (const e of $$(".sn")) e.textContent = SUP;
+  for (const e of $$(".kl")) e.textContent = KIND[e.dataset.k] || e.textContent;
+  for (const b of $$(".views button[data-v]")) if (KIND[b.dataset.v]) b.textContent = KIND[b.dataset.v];
+  for (const o of $$("#form [name=doc_type] option")) o.textContent = KIND[o.value] || o.textContent;
+}
+Promise.all([
+  fetch("__WB_BASE_PATH__/api/v1/me").then(r => r.json()).then(j => { me = j; }).catch(() => {}),
+  fetch("__WB_BASE_PATH__/api/v1/schema").then(r => r.json()).then(j => {
+    SCHEMA = j; SITE = j.site_name || SITE; SUP = j.supplier_name || SUP;
+    for (const [k, v] of Object.entries(j.doc_types)) KIND[k] = v.label;
+    $("#f-origin").innerHTML = '<option value="">全部来源</option>' + (j.origins || []).map(o => `<option value="${esc(o.id)}">${esc(o.name)}${o.enabled ? "" : "（已停用）"}</option>`).join("");
+    $("#f-origin").value = url.get("origin_id") || "";
+    $("#f-origin").onchange = () => load();
+    $("#form [name=origin_id]").innerHTML = '<option value="">未关联来源（仅出库单可用）</option>' + (j.origins || []).map(o => `<option value="${esc(o.id)}">${esc(o.name)}${o.enabled ? "" : "（已停用）"}</option>`).join("");
+    $("#cust-list").innerHTML = (j.customers || []).map(c => `<option value="${esc(c)}">`).join("");
+    applyNames();
+  }).catch(() => {}),
+]).finally(() => load());
+</script>
+</body>
+</html>

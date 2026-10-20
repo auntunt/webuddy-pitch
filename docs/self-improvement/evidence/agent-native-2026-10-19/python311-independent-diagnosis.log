@@ -1,0 +1,67 @@
+COMMAND ['/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/bin/python3.11', '-c', 'sqlite standalone reproduction']
+PYTHON 3.11.15 (main, Jun  2 2026, 22:36:57) [Clang 22.1.3 ]
+SQLITE 3.53.1
+DUMP_CURSOR_LINES ['cu = connection.cursor()']
+CUSTOM_ROW_FACTORY_ERROR OperationalError no such table: name
+NORMAL_ROW_FACTORY_DUMP ['BEGIN TRANSACTION;', 'CREATE TABLE example (id integer, value text);', 'INSERT INTO "example" VALUES(1,\'preserved\');', 'COMMIT;']
+
+EXIT 0
+
+COMMAND ['/opt/homebrew/opt/python@3.14/bin/python3.14', '-c', 'sqlite standalone reproduction']
+PYTHON 3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 17.0.0 (clang-1700.6.4.2)]
+SQLITE 3.53.4
+DUMP_CURSOR_LINES ['cu = connection.cursor()', 'cu.row_factory = None  # Make sure we get predictable results.']
+CUSTOM_ROW_FACTORY_DUMP ['BEGIN TRANSACTION;', 'CREATE TABLE example (id integer, value text);', 'INSERT INTO "example" VALUES(1,\'preserved\');', 'COMMIT;']
+NORMAL_ROW_FACTORY_DUMP ['BEGIN TRANSACTION;', 'CREATE TABLE example (id integer, value text);', 'INSERT INTO "example" VALUES(1,\'preserved\');', 'COMMIT;']
+
+EXIT 0
+
+PY311 TARGETED UNCHANGED TESTS
+test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs) ... ok
+test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle) ... ok
+test_evaluation_exception_records_error_and_finishes_its_created_run (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_exception_records_error_and_finishes_its_created_run) ... ok
+test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree) ... ok
+test_evaluation_timeout_or_cancel_never_reports_successful_execution (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_timeout_or_cancel_never_reports_successful_execution) ... ok
+test_intake_cancelled_then_invoke_exception_still_seals_lifecycle (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_cancelled_then_invoke_exception_still_seals_lifecycle) ... ok
+test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence) ... ok
+test_intake_success_seals_lifecycle_and_applies_actual_reader_output (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_success_seals_lifecycle_and_applies_actual_reader_output) ... ok
+test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer) ... ok
+test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers) ... ok
+test_success_is_finished_and_later_wall_time_does_not_reclassify_it (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_success_is_finished_and_later_wall_time_does_not_reclassify_it) ... ok
+test_timeout_after_zero_exit_overrides_success_before_direct_finalize (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_timeout_after_zero_exit_overrides_success_before_direct_finalize) ... ok
+test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages) ... ERROR
+test_read_is_pure_and_record_is_technical_not_human_confirmation (tests.test_python_pathmap_api.PythonPathMapApiTest.test_read_is_pure_and_record_is_technical_not_human_confirmation) ... ERROR
+
+======================================================================
+ERROR: test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages (tests.test_intake_recovery_api.IntakeRecoveryApiTest.test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_api.py", line 169, in test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages
+    before = self.snapshot()
+             ^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_api.py", line 127, in snapshot
+    database = tuple(self.P.store.db.iterdump())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/sqlite3/dump.py", line 65, in _iterdump
+    query_res = cu.execute(q)
+                ^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: name
+
+======================================================================
+ERROR: test_read_is_pure_and_record_is_technical_not_human_confirmation (tests.test_python_pathmap_api.PythonPathMapApiTest.test_read_is_pure_and_record_is_technical_not_human_confirmation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_pathmap_api.py", line 71, in test_read_is_pure_and_record_is_technical_not_human_confirmation
+    before = "\n".join(self.P.store.db.iterdump())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/sqlite3/dump.py", line 65, in _iterdump
+    query_res = cu.execute(q)
+                ^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: name
+
+----------------------------------------------------------------------
+Ran 14 tests in 6.261s
+
+FAILED (errors=2)
+
+EXIT 1

@@ -1,0 +1,16 @@
+test_cli_wait_does_not_poll_again_after_deadline (tests.test_workbench_client.WorkbenchClientTest.test_cli_wait_does_not_poll_again_after_deadline) ... FAIL
+
+======================================================================
+FAIL: test_cli_wait_does_not_poll_again_after_deadline (tests.test_workbench_client.WorkbenchClientTest.test_cli_wait_does_not_poll_again_after_deadline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_client.py", line 262, in test_cli_wait_does_not_poll_again_after_deadline
+    self.assertEqual(result, 0, err.getvalue())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : {"error": "expired second poll", "code": "connection_error", "status": 0, "uncertain": false}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.057s
+
+FAILED (failures=1)

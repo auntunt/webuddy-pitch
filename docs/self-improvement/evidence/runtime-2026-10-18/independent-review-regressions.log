@@ -1,0 +1,14 @@
+test_failed_lifecycle_retry_link_still_returns_one_durable_successor (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_failed_lifecycle_retry_link_still_returns_one_durable_successor) ... ok
+test_failed_supplemental_retry_receipt_keeps_database_idempotency (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_failed_supplemental_retry_receipt_keeps_database_idempotency) ... ok
+test_independent_runners_commit_and_dispatch_only_one_retry (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_independent_runners_commit_and_dispatch_only_one_retry) ... ok
+test_accepted_cancel_before_finalization_cannot_become_done (tests.test_runtime_review.RuntimeReviewTest.test_accepted_cancel_before_finalization_cannot_become_done) ... ok
+test_cancel_during_worktree_preparation_cannot_become_running (tests.test_runtime_review.RuntimeReviewTest.test_cancel_during_worktree_preparation_cannot_become_running) ... ok
+test_failed_binary_output_write_preserves_text_and_cleanup (tests.test_runtime_review.RuntimeReviewTest.test_failed_binary_output_write_preserves_text_and_cleanup) ... ok
+test_failed_process_receipt_write_does_not_leave_a_phantom_process (tests.test_runtime_review.RuntimeReviewTest.test_failed_process_receipt_write_does_not_leave_a_phantom_process) ... ok
+test_failed_text_output_write_preserves_original_bytes_and_cleanup (tests.test_runtime_review.RuntimeReviewTest.test_failed_text_output_write_preserves_original_bytes_and_cleanup) ... ok
+test_final_commit_and_cancel_are_serialized_across_threads (tests.test_runtime_review.RuntimeReviewTest.test_final_commit_and_cancel_are_serialized_across_threads) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.444s
+
+OK

@@ -1,0 +1,19 @@
+test_blocked_stdin_and_no_newline_output_do_not_block_deadline (tests.test_process_control.ProcessControlTest.test_blocked_stdin_and_no_newline_output_do_not_block_deadline) ... ok
+test_buffered_output_after_leader_exit_is_not_an_orphan (tests.test_process_control.ProcessControlTest.test_buffered_output_after_leader_exit_is_not_an_orphan) ... ok
+test_busy_stdout_cannot_starve_deadline_checks (tests.test_process_control.ProcessControlTest.test_busy_stdout_cannot_starve_deadline_checks) ... ok
+test_cancellation_kills_ignoring_descendant_and_keeps_group_boundary (tests.test_process_control.ProcessControlTest.test_cancellation_kills_ignoring_descendant_and_keeps_group_boundary) ... ok
+test_complete_binary_and_split_utf8_output_without_newlines (tests.test_process_control.ProcessControlTest.test_complete_binary_and_split_utf8_output_without_newlines) ... ok
+test_descendants_are_reclaimed_even_after_output_eof (tests.test_process_control.ProcessControlTest.test_descendants_are_reclaimed_even_after_output_eof) ... ok
+test_idle_pipe_outside_owned_group_reports_incomplete_cleanup (tests.test_process_control.ProcessControlTest.test_idle_pipe_outside_owned_group_reports_incomplete_cleanup) ... ok
+test_nonzero_exit_remains_nonzero_and_term_handler_output_is_preserved (tests.test_process_control.ProcessControlTest.test_nonzero_exit_remains_nonzero_and_term_handler_output_is_preserved) ... ok
+test_output_callback_failure_still_reclaims_group (tests.test_process_control.ProcessControlTest.test_output_callback_failure_still_reclaims_group) ... ok
+test_parent_exit_with_descendant_holding_stdout_is_not_success (tests.test_process_control.ProcessControlTest.test_parent_exit_with_descendant_holding_stdout_is_not_success) ... ok
+test_preexisting_cancellation_and_zero_budget_never_spawn (tests.test_process_control.ProcessControlTest.test_preexisting_cancellation_and_zero_budget_never_spawn) ... ok
+test_silent_process_with_blocked_stdin_can_be_cancelled (tests.test_process_control.ProcessControlTest.test_silent_process_with_blocked_stdin_can_be_cancelled) ... ok
+test_spawn_callback_failure_still_reclaims_group (tests.test_process_control.ProcessControlTest.test_spawn_callback_failure_still_reclaims_group) ... ok
+test_stdin_is_written_completely_while_stdout_is_drained (tests.test_process_control.ProcessControlTest.test_stdin_is_written_completely_while_stdout_is_drained) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 4.403s
+
+OK

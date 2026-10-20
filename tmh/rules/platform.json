@@ -1,0 +1,100 @@
+[
+  {
+    "id": "OS-PATH-001",
+    "category": "os",
+    "title": "Windows 盘符路径或反斜杠路径写死",
+    "severity": "medium",
+    "files": ["*.java", "*.cs", "*.properties", "*.yml", "*.yaml", "*.xml", "*.config", "*.json", "*.vb"],
+    "patterns": ["[\"'=][A-Za-z]:[\\\\/]{1,2}[A-Za-z0-9_\\u4e00-\\u9fa5]", "\\\\\\\\[A-Za-z0-9_.-]+\\\\\\\\[A-Za-z0-9_$.-]+"],
+    "requires": ["target.os not in windows"],
+    "advice": "改为配置项 + Linux 路径；Java 用 Paths/File.separator，.NET 用 Path.Combine；UNC 共享目录改 NFS/对象存储。Linux 文件系统大小写敏感，文件名大小写也要核对。",
+    "kb": "os-arch.md#操作系统差异",
+    "effort": "S"
+  },
+  {
+    "id": "OS-SCRIPT-001",
+    "category": "os",
+    "title": "Windows 脚本或命令调用（cmd / .bat / PowerShell）",
+    "severity": "medium",
+    "files": ["*.java", "*.cs", "*.vb"],
+    "path_patterns": ["\\.(bat|cmd|ps1)$"],
+    "patterns": ["cmd(\\.exe)?\\s*/c", "\\.bat\\b", "powershell(\\.exe)?", "Runtime\\.getRuntime\\(\\)\\.exec", "Process\\.Start\\s*\\("],
+    "requires": ["target.os not in windows"],
+    "advice": "启动/运维脚本改为 sh + systemd；代码里调用外部命令的地方要列出命令清单并确认 Linux 等价物。",
+    "kb": "os-arch.md#操作系统差异",
+    "effort": "S"
+  },
+  {
+    "id": "ARCH-NATIVE-001",
+    "category": "arch",
+    "title": "本地库/JNI/JNA 调用（需提供 ARM64/LoongArch 版本）",
+    "severity": "high",
+    "files": ["*.java", "*.cs", "*.vb"],
+    "path_patterns": ["\\.(dll|so|dylib)$"],
+    "patterns": ["System\\.loadLibrary", "System\\.load\\s*\\(", "\\bnative\\s+\\w+\\s+\\w+\\s*\\(", "com\\.sun\\.jna", "\\[DllImport\\(", "\\[LibraryImport\\(", "extern\\s+static"],
+    "requires": ["target.arch not in x86_64"],
+    "advice": "列出每个本地库的来源；有源码的交叉编译 aarch64/loongarch64，没源码的找厂商信创版本或用纯 Java/.NET 实现替换。Windows DLL 在 Linux 上不可用。",
+    "kb": "os-arch.md#cpu-架构",
+    "effort": "L"
+  },
+  {
+    "id": "ARCH-DEP-001",
+    "category": "arch",
+    "title": "常见只带 x86 本地库的依赖",
+    "severity": "medium",
+    "files": ["pom.xml", "*.gradle", "*.kts", "*.csproj", "packages.config"],
+    "patterns": ["<artifactId>sigar", "netty-tcnative(?!-boringssl-static)", "<artifactId>jacob", "<artifactId>jniwrapper", "leveldbjni", "<artifactId>sqlite-jdbc</artifactId>\\s*<version>3\\.([0-9]|[12][0-9]|3[0-3])\\.", "System\\.Data\\.SQLite", "wkhtmltopdf", "Aspose\\.", "ZKEmkeeper|zkemkeeper"],
+    "requires": ["target.arch not in x86_64"],
+    "advice": "逐个确认依赖是否发布了 aarch64 / loongarch64 本地库；没有的需升级版本或替换（如 netty-tcnative 改 boringssl-static 或 JDK SSL，sigar 改 oshi）。",
+    "kb": "os-arch.md#cpu-架构",
+    "effort": "M"
+  },
+  {
+    "id": "ARCH-IMG-001",
+    "category": "arch",
+    "title": "容器镜像/构建产物固定 x86 架构",
+    "severity": "medium",
+    "files": ["Dockerfile", "*.dockerfile", "*.yml", "*.yaml", "*.csproj", "*.sh"],
+    "patterns": ["--platform[= ]linux/amd64", "\\bamd64\\b", "\\bx86_64\\b", "<RuntimeIdentifier>(win|linux)-x64", "<PlatformTarget>x86"],
+    "requires": ["target.arch not in x86_64"],
+    "advice": "基础镜像换成多架构或目标架构镜像（麒麟/统信官方镜像、openEuler），构建流水线增加 arm64/loong64 产物；.NET 发布 RID 改为 linux-arm64 / linux-loongarch64。",
+    "kb": "os-arch.md#cpu-架构",
+    "effort": "S"
+  },
+  {
+    "id": "JDK-INT-001",
+    "category": "jdk",
+    "title": "使用 JDK 内部 API（sun.* / com.sun.* 内部包）",
+    "severity": "medium",
+    "files": ["*.java"],
+    "patterns": ["import\\s+sun\\.", "import\\s+com\\.sun\\.(?!jna|mail|net\\.httpserver)", "sun\\.misc\\.BASE64"],
+    "requires": [],
+    "advice": "换用国产 JDK（毕昇 / 腾讯 Kona / 龙芯 JDK / Dragonwell）或升级 JDK 版本时这些内部 API 可能不可用；BASE64Encoder 改 java.util.Base64，Unsafe 等需评估。",
+    "kb": "os-arch.md#jdk",
+    "effort": "S"
+  },
+  {
+    "id": "JDK-VER-001",
+    "category": "jdk",
+    "title": "Java 版本过旧（≤1.7）或 javax→jakarta 迁移点",
+    "severity": "low",
+    "files": ["pom.xml", "*.gradle", "*.kts"],
+    "patterns": ["<(maven\\.compiler\\.)?(source|target|release)>1\\.[4-7]<", "<java\\.version>1\\.[4-7]<", "sourceCompatibility\\s*=\\s*['\"]?1\\.[4-7]"],
+    "requires": [],
+    "advice": "国产 JDK 发行版主要提供 8/11/17/21；1.7 及以下需先升到 8。升级到 Spring Boot 3 / Jakarta EE 9+ 时 javax.* 包名需批量改 jakarta.*（可用 OpenRewrite 等确定性工具）。",
+    "kb": "os-arch.md#jdk",
+    "effort": "M"
+  },
+  {
+    "id": "FONT-001",
+    "category": "os",
+    "title": "依赖中文字体渲染（报表/PDF/图片），Linux 上需安装字体",
+    "severity": "low",
+    "files": ["*.java", "*.cs", "*.jrxml", "*.xml", "*.ftl"],
+    "patterns": ["SimSun|宋体|Microsoft YaHei|微软雅黑|SimHei|黑体|STSong", "new\\s+Font\\s*\\("],
+    "requires": ["target.os not in windows"],
+    "advice": "Windows 商业字体不能随意拷贝到服务器；使用操作系统自带的中文字体或已授权字体（如思源/Noto CJK），并在报表模板中改字体名，验证 PDF 输出。",
+    "kb": "os-arch.md#操作系统差异",
+    "effort": "S"
+  }
+]

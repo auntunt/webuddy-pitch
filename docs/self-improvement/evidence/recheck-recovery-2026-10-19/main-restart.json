@@ -1,0 +1,23 @@
+{
+  "old_pid": 55423,
+  "verified_command": "55423 78018 /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python -u -m tmh serve --data data/product-workbench --port 8791 --preview-port 8793 --user 本地验收 --brand Webuddy · 全周期工作台\n",
+  "active_runs": [],
+  "boot_items": [
+    [
+      1,
+      "预览停止并重建后，数据仍保留",
+      1
+    ],
+    [
+      2,
+      "已验证：编辑保存后，原编号和完成状态不变",
+      1
+    ],
+    [
+      3,
+      "已验证：编辑保存、重启与失败重试",
+      1
+    ]
+  ],
+  "code_commit": "c597948ee8b2eb3bdaf4a436540bea5848f7b086"
+}

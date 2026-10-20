@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<title>磅单采集</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231C1F22'/%3E%3Ctext x='16' y='22' font-size='14' font-family='monospace' text-anchor='middle' fill='%23FFB547'%3Ekg%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="__WB_BASE_PATH__/static/app.css?v=0.3.0">
+<style>
+body{padding-bottom:env(safe-area-inset-bottom,0)}
+.bar{padding-top:env(safe-area-inset-top,0)}
+.bar-in,main{max-width:560px}
+main{margin:0 auto;padding:14px 14px 48px}
+
+/* 单据类型与客户 */
+.kind{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:12px}
+.kind .lab{font-size:13px;color:var(--ink-2);margin:0 0 6px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{min-height:44px;border:1px solid var(--line);border-radius:var(--r);background:#fff;font-size:15px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.fixed{font-size:16px;font-weight:600}
+.cust{margin-top:10px}
+.cust input,.who input{width:100%;height:42px;border:1px solid var(--line);border-radius:var(--r);padding:0 10px;font-size:16px;background:#fff}
+.chips{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.chips button{border:1px solid var(--line);background:#fff;border-radius:22px;padding:4px 16px;font-size:15px;cursor:pointer;min-height:44px}
+.who{margin-top:10px}
+.who .lab b{color:var(--ink);font-weight:600}
+.who a{font-size:15px;margin-left:6px;display:inline-block;padding:10px 8px}
+.ticket .typesel{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink-2);margin:6px 0}
+.ticket .typesel select{height:44px;font-size:16px;border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:0 8px;flex:1}
+.ticket .act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ticket .act .btn.quiet{min-height:44px}
+.dupnote{margin:0 0 8px;font-size:13px;color:var(--rev);background:var(--rev-bg);padding:6px 10px;border-radius:var(--r)}
+#h-list li[data-open]{cursor:pointer}
+.outbox{margin:12px 0;padding:10px 12px;border:1px solid var(--attn-edge);background:var(--attn-bg);border-radius:var(--r);color:var(--attn)}
+.outbox p{margin:0 0 8px;font-size:14px}.outbox p b{margin-right:8px}
+.outbox .btn{min-height:44px;width:100%}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#23282E;color:#fff;padding:10px 14px;border-radius:var(--r);
+  font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;z-index:20}
+#toast.on{opacity:1}
+#h-list li[data-open]:hover{background:var(--line-2)}
+
+/* 拍照 */
+.shoot{display:grid;gap:10px}
+.shoot .btn{min-height:60px;font-size:18px;font-weight:600}
+.shoot .btn.ghost{min-height:46px;font-size:16px;font-weight:500}
+.hint{margin:6px 2px 0;color:var(--ink-2);font-size:13px;text-wrap:pretty}
+
+/* 确认 */
+.shot{margin:0;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.shot img{display:block;width:100%;max-height:62vh;object-fit:contain;background:#DADDE0;transition:opacity .2s}
+.shot figcaption{padding:6px 12px;font-size:12px;color:var(--ink-2);border-top:1px solid var(--line-2)}
+.shot.dim img{opacity:.5}
+.row2{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:12px}
+.row2 .btn{min-height:52px;font-size:16px}
+.row2 .btn:last-child{font-weight:600}
+
+/* 进行中 */
+.steps{list-style:none;margin:12px 0 0;padding:12px 14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r)}
+.steps li{display:flex;align-items:center;gap:10px;padding:4px 0;color:var(--ink-3)}
+.steps li::before{content:"";flex:none;width:10px;height:10px;border-radius:50%;border:2px solid currentColor}
+.steps li.now{color:var(--ink);font-weight:600}
+.steps li.now::before{background:var(--attn-edge);border-color:var(--attn-edge);animation:pulse 1.2s ease-in-out infinite}
+.steps li.done{color:var(--pass)}
+.steps li.done::before{background:currentColor}
+.steps .aside{margin-left:auto;font-weight:400;color:var(--ink-2);font-size:13px}
+@keyframes pulse{50%{opacity:.35}}
+
+/* 结果:可编辑的单据卡 */
+.summary{margin:0 0 12px;font-size:16px;font-weight:600;outline:none}
+.ticket{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);margin:0 0 14px;overflow:hidden}
+.ticket > header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line-2)}
+.ticket > header b{font-size:15px}
+.ticket > header .seq{margin-left:auto;font-size:12px;color:var(--ink-3)}
+.ticket.needs > header{box-shadow:inset 4px 0 var(--attn-edge)}
+.ticket.ok > header{box-shadow:inset 4px 0 var(--pass)}
+.ticket.failed > header{box-shadow:inset 4px 0 var(--fail)}
+.ticket.sent > header{box-shadow:inset 4px 0 var(--rev)}
+.ticket.dup > header{box-shadow:inset 4px 0 var(--rev)}
+.ticket .body{padding:12px 14px;display:grid;gap:12px}
+.ticket .next{margin:0;font-size:13px;color:var(--ink-2)}
+.crop{display:block;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#DADDE0}
+.crop img{display:block;width:100%;max-height:240px;object-fit:contain}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.fld{display:grid;gap:2px;font-size:12px;color:var(--ink-2);min-width:0}
+.fld.wide{grid-column:1 / -1}
+.fld input{width:100%;min-width:0;height:40px;padding:0 9px;border:1px solid var(--line);border-radius:var(--r);background:#fff;
+  font-size:16px;font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--ink)}
+.fld.flag input{border-color:var(--attn-edge);background:#FFFCF0;box-shadow:inset 3px 0 var(--attn-edge)}
+.fld .why{color:var(--attn);line-height:1.4}
+.check{margin:4px 0 0;font-size:12px;color:var(--ink-2);text-align:right;font-family:var(--num)}
+.check.bad{color:var(--fail);font-weight:600}.check.ok{color:var(--pass)}
+.ticket .act{display:grid;gap:8px}
+.ticket .act .btn{min-height:50px;font-size:16px;font-weight:600}
+.ticket .err{color:var(--fail);font-size:13px;margin:0}
+.sig{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2)}
+.sig img{max-height:48px;max-width:60%;background:#fff;border:1px solid var(--line);border-radius:var(--r)}
+details{font-size:13px;color:var(--ink-2)}
+details summary{cursor:pointer}
+.sentnote{margin:0;font-size:14px;color:var(--rev)}
+
+/* 本次已登记 */
+.history{margin-top:28px}
+.history h2{font-size:14px;font-weight:600;color:var(--ink-2);margin:0 0 6px}
+.history ol{list-style:none;margin:0;padding:0;background:var(--paper);border:1px solid var(--line);border-radius:var(--r)}
+.history li{display:grid;grid-template-columns:auto auto 1fr auto auto;gap:8px;align-items:center;padding:8px 12px;border-top:1px solid var(--line-2);font-size:14px}
+.history li:first-child{border-top:none}
+.history time,.history .k{color:var(--ink-3);font-size:12px}
+.history .none{color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div class="bar"><div class="bar-in">
+  <h1 id="title">磅单采集</h1>
+  <nav aria-label="页面" id="nav"><a href="__WB_BASE_PATH__/" aria-current="page">采集</a><a href="__WB_BASE_PATH__/report">台账</a></nav>
+</div></div>
+
+<main>
+  <div id="svc" class="banner fail" role="alert" hidden></div>
+
+  <section class="kind" aria-label="单据类型">
+    <p class="lab">这是哪一类磅单</p>
+    <div class="seg" id="seg" role="group" aria-label="单据类型">
+      <button type="button" data-k="supplier_out">厂商出厂</button>
+      <button type="button" data-k="site_in">本场进场</button>
+      <button type="button" data-k="site_out">本场出场</button>
+    </div>
+    <p class="fixed" id="fixed" hidden></p>
+    <div class="cust" id="origin-wrap">
+      <label class="lab" for="origin-in">来源单位</label>
+      <select id="origin-in" style="width:100%;height:44px;font-size:16px"><option value="">请选择来源单位</option></select>
+    </div>
+    <div class="cust" id="cust" hidden>
+      <label class="lab" for="cust-in">客户</label>
+      <input id="cust-in" placeholder="填客户名称" autocomplete="off">
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="who" id="who" hidden>
+      <p class="lab">上传人 <b id="who-name"></b><a href="#" id="who-change">改</a></p>
+      <input id="who-in" placeholder="填你的名字(只问一次)" autocomplete="name" hidden>
+    </div>
+  </section>
+
+  <section class="stage" id="s-pick" aria-label="拍照">
+    <input type="file" id="f-cam" accept="image/*" capture="environment" hidden>
+    <input type="file" id="f-lib" accept="image/*" hidden>
+    <div class="shoot">
+      <button class="btn" id="b-cam" type="button">拍照</button>
+      <button class="btn ghost" id="b-lib" type="button">从相册选一张</button>
+    </div>
+    <p class="hint">监磅员签完字再拍。把单据平放，四个角都拍进去；一张照片里放几张单据都可以。</p>
+  </section>
+
+  <section class="stage" id="s-shot" hidden aria-label="确认照片">
+    <figure class="shot" id="shot">
+      <img id="preview" alt="待上传的照片">
+      <figcaption id="shot-cap"></figcaption>
+    </figure>
+    <div class="row2" id="confirm">
+      <button class="btn ghost" id="b-retake" type="button">重拍</button>
+      <button class="btn" id="b-up" type="button">上传识别</button>
+    </div>
+    <ol class="steps" id="steps" hidden aria-live="polite">
+      <li data-k="pack">整理照片</li>
+      <li data-k="send">上传<span class="aside" id="send-aside"></span></li>
+      <li data-k="read">识别单据<span class="aside" id="read-aside"></span></li>
+    </ol>
+  </section>
+
+  <section class="stage" id="s-done" hidden aria-labelledby="s-done-h">
+    <h2 id="s-done-h" class="summary" tabindex="-1"></h2>
+    <div id="tickets"></div>
+    <div class="shoot">
+      <button class="btn" id="b-submit-all" type="button" hidden>全部确认提交</button>
+      <button class="btn" id="b-resend" type="button" hidden>原样再传一次</button>
+      <button class="btn ghost" id="b-again" type="button">拍下一张</button>
+    </div>
+  </section>
+
+  <section class="outbox" id="outbox" hidden aria-live="polite">
+    <p><b>手机上的待传照片</b><span id="outbox-msg"></span></p>
+    <button class="btn ghost" id="b-flush" type="button">现在就试着上传</button>
+  </section>
+
+  <section class="history" id="history" hidden aria-labelledby="h-h">
+    <h2 id="h-h">最近上传<span class="aside" style="font-weight:400;font-size:13px;color:var(--ink-2);margin-left:8px">没提交、没认出来的点开接着处理</span></h2>
+    <ol id="h-list"></ol>
+  </section>
+</main>
+
+<script>
+"use strict";
+const BASE_PATH = "__WB_BASE_PATH__";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// 单据类型名、客户快捷选项来自配置;这里只是没取到时的中性默认
+const KIND = {supplier_out: "厂商出厂", site_in: "本场进场", site_out: "本场出场"};
+function applyNames(labels, customers) {
+  Object.assign(KIND, labels || {});
+  for (const b of $$("#seg button")) b.textContent = KIND[b.dataset.k] || b.textContent;
+  $("#chips").innerHTML = (customers || []).map(c => `<button type="button">${esc(c)}</button>`).join("");
+  $("#chips").hidden = !(customers || []).length;
+}
+const LABEL = {"序号": "磅单号", "车号": "车牌号", "皮重": "空重"};
+const store = {get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+               set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }};
+
+/* ---------- 两种入口:登录后的 / ,以及给监磅员的免登录链接 /c/<令牌> ---------- */
+const TOKEN = (location.pathname.slice(BASE_PATH.length).match(/^\/c\/([^/]+)/) || [])[1] || null;
+const API = TOKEN ? `__WB_BASE_PATH__/api/v1/capture/${encodeURIComponent(TOKEN)}` : "__WB_BASE_PATH__/api/v1";
+// 单据类型只记当天:隔天还默认选着昨天的类型,很容易整批传错类(业务审计)
+const TODAY = new Date().toDateString();
+let kind = (store.get("wb-kind") || "").split("|")[1] === TODAY ? store.get("wb-kind").split("|")[0] : null;
+let fixedKind = null, who = store.get("wb-who") || "";
+let file = null, sending = false, last = [];
+
+const isServiceFault = r => r.status === "failed" && ((r.warnings || [])[0] || "").startsWith("识别服务出错");
+const val = v => (v === null || v === undefined || String(v).trim() === "") ? null : String(v).trim();
+const num = v => { const m = String(v ?? "").replace(/,/g, "").match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : null; };
+const mb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+const show = id => { for (const s of ["s-pick", "s-shot", "s-done"]) $("#" + s).hidden = s !== id; };
+let toastT = null;
+function toast(msg) {
+  let t = $("#toast");
+  if (!t) { t = document.createElement("div"); t.id = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
+  t.textContent = msg; t.className = "on"; clearTimeout(toastT); toastT = setTimeout(() => { t.className = ""; }, 3500);
+}
+function banner(msg) { $("#svc").textContent = msg || ""; $("#svc").hidden = !msg; if (msg) window.scrollTo(0, 0); }
+
+function applyOrigins(j) {
+  const origins = (j.origins || []).filter(o => o.enabled), select = $("#origin-in");
+  select.innerHTML = '<option value="">请选择来源单位</option>' + origins.map(o => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join("");
+  select.value = j.origin_id || (origins.length === 1 ? origins[0].id : "");
+  select.disabled = !!j.origin_id;
+}
+
+async function captureContext(url) {
+  const key = "wb-context:" + url;
+  let response;
+  try { response = await fetch(url); }
+  catch (e) {
+    const cached = store.get(key);
+    if (!cached) throw e;
+    banner("当前离线，使用上次的来源设置；照片保存在手机，联网后再验证并上传。");
+    return JSON.parse(cached);
+  }
+  const j = await response.json();
+  if (!response.ok) throw new Error((j.error && j.error.message) || response.status);
+  store.set(key, JSON.stringify(j));
+  return j;
+}
+async function init() {
+  if (TOKEN) {
+    $("#nav").hidden = true;
+    try {
+      const j = await captureContext(API);
+      $("#title").textContent = `磅单采集 · ${j.label}`;
+      fixedKind = j.doc_type || null;
+      applyNames(j.doc_labels, j.customers); applyOrigins(j);
+      if (j.capabilities && j.capabilities.ingest === false) disableAll("识别服务还没有配置好，暂时不能登记。请联系管理员。");
+    } catch (e) { disableAll(`这个链接用不了（${e.message}），请联系管理员换一个。`); return; }
+    $("#who").hidden = false; drawWho();
+  } else {
+    await captureContext("__WB_BASE_PATH__/api/v1/schema").then(j => {
+      applyNames(Object.fromEntries(Object.entries(j.doc_types).map(([k, v]) => [k, v.label])), j.customers); applyOrigins(j); }).catch(() => {});
+    fetch("__WB_BASE_PATH__/api/v1/health").then(r => r.json()).then(h => {
+      if (h.capabilities && h.capabilities.ingest === false) disableAll("识别服务还没有配置好，暂时不能登记。请联系管理员。");
+    }).catch(() => {});
+  }
+  if (fixedKind) { kind = fixedKind; $("#seg").hidden = true; $("#fixed").hidden = false; $("#fixed").textContent = KIND[kind]; }
+  drawKind();
+}
+function disableAll(msg) { banner(msg); $("#b-cam").disabled = $("#b-lib").disabled = true; }
+
+/* ---------- 单据类型 / 客户 / 上传人 ---------- */
+function drawKind() {
+  for (const b of $$("#seg button")) b.setAttribute("aria-pressed", b.dataset.k === kind ? "true" : "false");
+  $("#origin-wrap").hidden = kind === "site_out";
+  $("#cust").hidden = kind !== "site_out";
+  $("#cust-in").value = store.get("wb-cust") || "";
+}
+$("#seg").onclick = e => { const b = e.target.closest("button"); if (!b) return; kind = b.dataset.k; store.set("wb-kind", kind + "|" + TODAY); drawKind(); banner(""); };
+$("#chips").onclick = e => { const b = e.target.closest("button"); if (!b) return; $("#cust-in").value = b.textContent; store.set("wb-cust", b.textContent); };
+$("#cust-in").oninput = () => store.set("wb-cust", $("#cust-in").value.trim());
+function drawWho() {
+  const editing = !who; $("#who-in").hidden = !editing; $("#who-name").textContent = who || "";
+  $("#who-change").hidden = editing; if (editing) $("#who-in").value = "";
+}
+$("#who-change").onclick = e => { e.preventDefault(); who = ""; drawWho(); $("#who-in").focus(); };
+$("#who-in").onchange = () => { who = $("#who-in").value.trim().slice(0, 20); store.set("wb-who", who); drawWho(); };
+
+function readyToShoot() {
+  if (TOKEN && !who) { banner("先填一下你的名字，记为上传人。"); $("#who-in").focus(); return false; }
+  if (!kind) { banner("先选这是哪一类磅单（每天第一次拍时选一下）。"); $("#seg button")?.focus(); return false; }
+  if (kind !== "site_out" && !$("#origin-in").value) { banner("请选择来源单位，出厂单和入库单按相同来源配对。"); $("#origin-in").focus(); return false; }
+  if (kind === "site_out" && !$("#cust-in").value.trim()) { banner(`${KIND.site_out}要填客户。`); $("#cust-in").focus(); return false; }
+  banner(""); return true;
+}
+
+/* ---------- 选图 ---------- */
+$("#b-cam").onclick = () => readyToShoot() && $("#f-cam").click();
+$("#b-lib").onclick = () => readyToShoot() && $("#f-lib").click();
+for (const inp of [$("#f-cam"), $("#f-lib")]) inp.onchange = e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  file = f;
+  $("#preview").src = URL.createObjectURL(f);
+  $("#shot-cap").textContent = `${KIND[kind]}${kind === "site_out" ? " · " + $("#cust-in").value.trim() : ""} ${kind !== "site_out" ? " · " + $("#origin-in").selectedOptions[0]?.textContent : ""} · 原图 ${mb(f.size)}`;
+  $("#shot").classList.remove("dim");
+  $("#confirm").hidden = false; $("#steps").hidden = true; banner("");
+  $("#b-up").textContent = "上传识别";
+  show("s-shot"); $("#b-up").focus();
+};
+$("#b-retake").onclick = () => { file = null; show("s-pick"); $("#b-cam").focus(); };
+$("#b-again").onclick = () => {
+  const left = last.filter(r => !r.duplicate && r.status !== "failed" && r.stage === "draft" && !r.voided_at).length;
+  if (left && !confirm(`还有 ${left} 张没点「确认提交」。没提交的不会进台账。\n先放着也行，下面「最近上传」里能找回来接着提交。继续拍下一张？`)) return;
+  file = null; show("s-pick"); window.scrollTo(0, 0); $("#b-cam").focus(); loadRecent();
+};
+$("#b-resend").onclick = () => {
+  if (!file) return;
+  $("#shot").classList.remove("dim"); $("#confirm").hidden = false; $("#steps").hidden = true;
+  show("s-shot"); window.scrollTo(0, 0); $("#b-up").click();
+};
+
+/* ---------- 上传与识别 ---------- */
+function step(k, state) { const li = $(`#steps li[data-k="${k}"]`); li.classList.remove("now", "done"); if (state) li.classList.add(state); }
+
+/* ---------- 手机上的待传箱(IndexedDB):照片先存手机,服务器确认登记完才删 ----------
+   网络断了、服务器忙,照片都在手机上等着,网络一好自动补传;同一张带同一个 upload_id,重发不会多登记。 */
+const outbox = (() => {
+  let dbp = null;
+  const db = () => dbp || (dbp = new Promise((ok, no) => {
+    const r = indexedDB.open("weighbill", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("outbox", {keyPath: "id"});
+    r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error);
+  }));
+  const tx = async (mode, fn) => {
+    const d = await db();
+    return new Promise((ok, no) => {
+      const t = d.transaction("outbox", mode), req = fn(t.objectStore("outbox"));
+      t.oncomplete = () => ok(req ? req.result : undefined);
+      t.onerror = () => no(t.error); t.onabort = () => no(t.error);
+    });
+  };
+  return {
+    put: item => tx("readwrite", st => st.put(item)),
+    del: id => tx("readwrite", st => st.delete(id)),
+    // 只看这个入口(这条现场链接 / 登录页)自己的
+    all: () => tx("readonly", st => st.getAll()).then(v => (v || []).filter(x => (x.token || "") === (TOKEN || ""))),
+  };
+})();
+try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
+const newId = () => (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, "")
+  : Date.now().toString(36) + Math.random().toString(36).slice(2, 12));
+
+// 发一张。结果 kind:done 已登记 / queued 服务器已收下稍后处理 / rejected 照片本身不行 / retry 网络或服务器暂时不行
+function sendItem(item, onProgress, onSent) {
+  return new Promise(resolve => {
+    const x = new XMLHttpRequest();
+    x.open("POST", `${API}/records`);
+    x.timeout = 180000;
+    if (onProgress) x.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+    if (onSent) x.upload.onload = onSent;
+    x.onload = () => {
+      let body = {}; try { body = JSON.parse(x.responseText); } catch {}
+      if (x.status === 201 && Array.isArray(body.records) && body.records.length) resolve({kind: "done", records: body.records});
+      else if (x.status === 202) resolve({kind: "queued", body});
+      else if ([400, 404, 413, 422].includes(x.status)) resolve({kind: "rejected", status: x.status, body});
+      else resolve({kind: "retry", status: x.status, body});
+    };
+    x.onerror = () => resolve({kind: "retry", error: "net"});
+    x.ontimeout = () => resolve({kind: "retry", error: "timeout"});
+    const fd = new FormData();
+    fd.append("photo", item.blob, "photo.jpg"); fd.append("doc_type", item.kind); fd.append("upload_id", item.id);
+    fd.append("origin_id", item.origin_id || ""); fd.append("customer", item.customer || ""); fd.append("name", item.who || "");
+    x.send(fd);
+  });
+}
+
+let flushing = false;
+async function flushOutbox() {
+  if (flushing) return;
+  flushing = true;
+  let finished = 0;
+  try {
+    for (const it of await outbox.all()) {
+      if (it.state === "rejected") continue;
+      if (it.state === "received") {                   // 服务器已收下:问一下处理完没有
+        try {
+          const r = await fetch(`${API}/uploads/${encodeURIComponent(it.id)}`);
+          if (r.ok) {
+            const j = await r.json();
+            if (j.status === "done" && Array.isArray(j.records) && j.records.length) { await outbox.del(it.id); finished++; }
+            else if (j.status === "rejected") { it.state = "rejected"; it.lastError = j.last_error || "服务器无法处理"; await outbox.put(it); banner("有照片需要处理，原文件仍保留在手机待传箱。"); }
+          } else if (r.status === 404) { it.state = "waiting"; await outbox.put(it); }   // 服务器那边没有:当成没收到,重发
+        } catch {}
+        continue;
+      }
+      if (!navigator.onLine) break;
+      const res = await sendItem(it);
+      if (res.kind === "done") { await outbox.del(it.id); finished++; }
+      else if (res.kind === "queued") { it.state = "received"; await outbox.put(it); }
+      else if (res.kind === "rejected") {
+        it.state = "rejected"; it.lastError = (res.body && res.body.error && res.body.error.message) || res.status; await outbox.put(it);
+        banner("有照片上传被拒绝，原文件仍保留在手机待传箱。");
+      } else { it.tries = (it.tries || 0) + 1; it.lastError = res.error || res.status; await outbox.put(it); break; }
+    }
+  } catch {} finally { flushing = false; }
+  if (finished) { toast(`手机上存着的 ${finished} 张已经补传登记好了`); loadRecent(); }
+  drawOutbox();
+}
+async function drawOutbox() {
+  const items = await outbox.all().catch(() => []);
+  const w = items.filter(i => i.state === "waiting").length, r = items.filter(i => i.state === "received").length;
+  const rejected = items.filter(i => i.state === "rejected");
+  $("#outbox").hidden = !items.length;
+  $("#outbox-actions")?.remove();
+  const actions = document.createElement("div"); actions.id = "outbox-actions";
+  for (const item of rejected) {
+    const row = document.createElement("p"); row.textContent = `上传未完成：${item.lastError || "请检查照片"} `;
+    const save = document.createElement("button"); save.textContent = "保存原图"; save.className = "btn ghost";
+    save.onclick = () => { const url = URL.createObjectURL(item.blob); const a = document.createElement("a"); a.href = url; a.download = item.blob.name || `照片-${item.id}`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 60000); };
+    const retry = document.createElement("button"); retry.textContent = "重新上传"; retry.className = "btn ghost";
+    retry.onclick = async () => { item.state = "waiting"; await outbox.put(item); flushOutbox(); };
+    row.append(save, retry); actions.append(row);
+  }
+  $("#outbox").append(actions);
+  $("#outbox-msg").textContent = [w && `${w} 张还在手机上，网络好了自动上传`, r && `${r} 张服务器已收到，正在处理`, rejected.length && `${rejected.length} 张需要处理，原文件已保留`].filter(Boolean).join("；");
+}
+window.addEventListener("online", flushOutbox);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") flushOutbox(); });
+setInterval(async () => { if ((await outbox.all().catch(() => [])).length) flushOutbox(); }, 20000);
+
+$("#b-up").onclick = async () => {
+  if (!file || sending || !readyToShoot()) return;
+  sending = true;
+  $("#confirm").hidden = true; $("#steps").hidden = false; $("#shot").classList.add("dim");
+  for (const k of ["pack", "send", "read"]) step(k, null);
+  $("#send-aside").textContent = $("#read-aside").textContent = "";
+  step("pack", "now");
+  const up = file; // 原始文件原样入待传箱、原样上传。
+  // 先存手机,再发:就算下一秒网断了、页面关了,这张照片也还在
+  const item = {id: newId(), token: TOKEN || "", blob: up, kind, who, origin_id: kind === "site_out" ? "" : $("#origin-in").value, created: Date.now(), state: "waiting", tries: 0,
+                customer: kind === "site_out" ? $("#cust-in").value.trim() : ""};
+  let saved = true;
+  try { await outbox.put(item); } catch { saved = false; }
+  step("pack", "done"); step("send", "now");
+  let timer = null;
+  try {
+    const res = await sendItem(item, p => { $("#send-aside").textContent = Math.round(p * 100) + "%"; }, () => {
+      step("send", "done"); step("read", "now");
+      const t0 = Date.now();
+      const tick = () => { const s = Math.round((Date.now() - t0) / 1000); $("#read-aside").textContent = s < 5 ? "通常 20–40 秒" : `已等 ${s} 秒`; };
+      tick(); timer = setInterval(tick, 1000);
+    });
+    clearInterval(timer);
+    if (res.kind === "done") {
+      if (saved) await outbox.del(item.id);
+      step("read", "done"); done(res.records);
+    } else if (res.kind === "queued") {
+      item.state = "received"; if (saved) await outbox.put(item);
+      file = null; show("s-pick"); window.scrollTo(0, 0);
+      banner("照片已经安全送到服务器。服务器这会儿没处理完，处理好会出现在下面「最近上传」里。不用重拍，可以接着拍下一张。");
+    } else if (res.kind === "rejected") {
+      item.state = "rejected"; item.lastError = (res.body.error || {}).message || res.status;
+      if (saved) await outbox.put(item);
+      fail({status: res.status, body: res.body || {}, message: "http"});
+    } else if (saved) {
+      file = null; show("s-pick"); window.scrollTo(0, 0);
+      banner("网络不好，照片已经存在手机上了。网络恢复后会自动上传，不用重拍，可以接着拍下一张。");
+    } else {
+      fail({message: res.error || "http", status: res.status, body: res.body || {}});
+    }
+  } finally { clearInterval(timer); sending = false; drawOutbox(); }
+};
+
+function fail(e) {
+  const err = (e.body && e.body.error) || {};
+  const msg = e.message === "net" ? "网络断了，照片没有传上去。信号好一点后点「再试一次」。"
+    : e.message === "timeout" ? "等了 3 分钟还没识别完。照片可能已经登记了，先看一眼下面的列表，没有再重试。"
+    : e.status === 413 ? "照片超过 30 MB，传不上去。请重拍或换一张。"
+    : err.code === "NotConfigured" ? "识别服务还没有配置好，暂时不能登记。请联系管理员。"
+    : err.code === "InvalidImage" ? "这个文件打不开，可能不是照片或已损坏。请重新拍一张。"
+    : `登记没有成功（${err.message || (e.body && e.body.detail) || e.status || "未知原因"}）。可以再试一次。`;
+  banner(msg);
+  $("#steps").hidden = true; $("#confirm").hidden = false; $("#shot").classList.remove("dim");
+  $("#b-up").textContent = "再试一次";
+}
+
+/* ---------- 结果:每张单据可改可提交 ---------- */
+const EDIT = [["车号", 1], ["净重", 0], ["总重", 0], ["皮重", 0], ["日期", 0], ["序号", 0], ["入站时间", 0], ["出站时间", 0],
+              ["货名", 0], ["装点", 0], ["备注", 1]];
+
+function flagsFor(r) {
+  const m = {};
+  for (const w of r.warnings || []) for (const [k] of EDIT) if (w.includes(k)) (m[k] = m[k] || []).push(w);
+  if ((r.weight_msg || "").startsWith("不符")) for (const k of ["总重", "皮重", "净重"]) (m[k] = m[k] || []).push(r.weight_msg);
+  return m;
+}
+
+function dupCard(r, i) {
+  const f = r.fields || {}, when = (r.created_at || "").replace("T", " ").slice(5, 16);
+  return `<article class="ticket dup" data-i="${i}"><header><span class="tag reviewed">已登记过</span><b>${esc(val(f["车号"]) || "单据")}</b></header>
+    <div class="body"><p class="next">这张磅单 ${esc(when)} 已经由 ${esc(r.uploader || "别人")} 登记过${r.ref_no ? `，登记编号 <b>${esc(r.ref_no)}</b>` : ""}（${esc(r.stage_label || "")}），这次<b>没有重复登记</b>。
+      ${f["净重"] ? `净重 ${esc(f["净重"])} kg。` : ""}如果上次的数字有错，在上次的记录里改，或找审核员。</p>
+      <details><summary>为什么认为是同一张</summary>${esc(r.duplicate)}</details></div></article>`;
+}
+
+function ticket(r, i) {
+  if (r.duplicate && !(r.stage === "draft" && "crop_path" in r)) return dupCard(r, i);
+  if (r.voided_at) return `<article class="ticket sent" data-i="${i}"><header><span class="tag reviewed">已丢弃</span><b>${esc(val((r.fields || {})["车号"]) || "单据")}</b>${r.ref_no ? `<span class="seq">${esc(r.ref_no)}</span>` : ""}</header>
+    <div class="body"><p class="next">这张已丢弃（${esc(r.void_reason || "")}），不会进台账。</p></div></article>`;
+  const f = r.draftFields || r.fields || {}, fl = flagsFor(r);
+  const img = r.crop_path ? `<a class="crop" href="${esc(r.orig_path)}" target="_blank" rel="noopener" title="打开原图"><img src="${esc(r.preview_path || r.crop_path)}" decoding="async" alt="第 ${r.seq_in_batch} 张单据"></a>` : "";
+  if (r.status === "failed") {
+    return `<article class="ticket failed" data-i="${i}"><header><span class="tag failed">没能识别</span><b>单据</b>${r.ref_no ? `<span class="seq">${esc(r.ref_no)}</span>` : ""}</header>
+      <div class="body"><p class="next">${isServiceFault(r) ? "识别服务这次出错了，不是照片的问题。点下面「原样再传一次」就行，不用重拍。" : "这张没有登记。请把单据摆平、四个角都拍进去再拍一次。"}</p>${img}
+      <details><summary>技术原因</summary>${esc(r.error || (r.warnings || []).join("；"))}</details>
+      ${r.stage === "draft" ? `<div class="act"><button class="btn quiet" type="button" data-discard>丢弃这张</button></div>` : ""}</div></article>`;
+  }
+  const sent = r.stage !== "draft";
+  const cls = sent ? "sent" : (r.warnings && r.warnings.length) || !r.weight_ok ? "needs" : "ok";
+  const tag = sent ? `<span class="tag reviewed">已提交 · ${esc(r.stage_label)}</span>`
+    : cls === "ok" ? `<span class="tag auto_ok">核对后提交</span>` : `<span class="tag needs_review">有 ${(r.warnings || []).length + (r.weight_ok ? 0 : 1)} 处要看</span>`;
+  const edits = EDIT.filter(([k]) => k !== "装点" || r.doc_type === "supplier_out");
+  const inputs = edits.map(([k, wide]) => `<label class="fld${wide ? " wide" : ""}${fl[k] ? " flag" : ""}">${LABEL[k] || k}
+      <input name="${k}" value="${esc(f[k] ?? "")}" ${["净重", "总重", "皮重"].includes(k) ? 'inputmode="decimal"' : ""} ${sent ? "disabled" : ""}>
+      ${fl[k] ? `<span class="why">${esc(fl[k][0])}</span>` : ""}</label>`).join("");
+  return `<article class="ticket ${cls}" data-i="${i}">
+    <header>${tag}<b>${esc(val(f["车号"]) || "单据")}</b>${r.ref_no ? `<span class="seq">${esc(r.ref_no)}</span>` : r.seq_in_batch ? `<span class="seq">第 ${r.seq_in_batch} 张</span>` : ""}</header>
+    <div class="body">
+      ${img}
+      <div class="readout" data-ro><span class="k">净重</span><span class="v"></span><span class="u">kg</span></div>
+      <p class="check" data-ck></p>
+      ${r.duplicate ? `<p class="dupnote">这张你之前传过、还没提交（${esc(r.ref_no || "")} · ${esc(r.origin_name || "未关联来源")}），接着核对提交就行，没有重复登记。</p>` : ""}
+      ${!sent && !fixedKind ? `<label class="typesel">单据类型<select data-type>${Object.entries(KIND).map(([k, v]) => `<option value="${k}"${k === (r.draftDocType || r.doc_type) ? " selected" : ""}>${esc(v)}</option>`).join("")}</select></label>` : ""}
+      <form class="grid2" autocomplete="off" onsubmit="return false">${inputs}</form>
+      <div class="sig">${r.sig_path ? `签名<img src="${esc(r.sig_path)}" alt="签名留存">` : "没有截到签名，影像已留存，审核时对照照片确认。"}</div>
+      ${sent ? `<p class="sentnote">已提交，台账里已经能看到，等审核员对照纸质磅单确认。要改请找审核员。</p>`
+             : `<div class="act"><p class="err" data-err hidden></p><button class="btn" type="button" data-submit>确认提交</button><button class="btn quiet" type="button" data-discard>丢弃这张</button></div>`}
+    </div></article>`;
+}
+
+function liveCheck(card) {
+  if (!card.querySelector("[data-ro]")) return;          // 「已登记过」、识别失败的卡片没有重量可核对
+  const g = n => num(card.querySelector(`[name="${n}"]`).value);
+  const G = g("总重"), T = g("皮重"), N = g("净重");
+  const ro = card.querySelector("[data-ro]"), ck = card.querySelector("[data-ck]");
+  if (!ro) return;
+  ro.querySelector(".v").textContent = N !== null ? String(N) : "- - - - -";
+  ro.classList.toggle("none", N === null);
+  if (G === null || T === null || N === null) { ro.classList.remove("bad"); ck.className = "check"; ck.textContent = "总重、皮重、净重都填上才能核对"; return; }
+  const d = G - T - N, ok = Math.abs(d) <= 1;
+  ro.classList.toggle("bad", !ok); ck.className = "check " + (ok ? "ok" : "bad");
+  ck.textContent = ok ? `${G} − ${T} = ${N}，对得上` : `${G} − ${T} = ${G - T}，和净重差 ${d} kg，对照磅单改一下`;
+}
+
+function draw() {
+  $("#tickets").innerHTML = last.map(ticket).join("");
+  for (const card of $$("#tickets .ticket")) {
+    liveCheck(card);
+    card.addEventListener("input", () => {
+      const r = last[+card.dataset.i];
+      if (r && r.stage === "draft") {
+        r.draftFields = {...r.fields, ...Object.fromEntries([...card.querySelectorAll("input[name]")].map(i => [i.name, i.value]))};
+        r.draftDocType = card.querySelector("[data-type]")?.value;
+      }
+      liveCheck(card);
+    });
+    const b = card.querySelector("[data-submit]");
+    if (b) {
+      b.onclick = () => submit(+card.dataset.i);
+      const r = last[+card.dataset.i];
+      if (r.submitUncertain) {
+        b.disabled = true; b.textContent = "需要核对最新记录";
+        const er = card.querySelector("[data-err]"); er.hidden = false; er.textContent = r.submitError;
+      }
+    }
+    const d = card.querySelector("[data-discard]");
+    if (d) d.onclick = () => discard(+card.dataset.i);
+  }
+  const pending = last.filter(r => !r.duplicate && r.status !== "failed" && r.stage === "draft").length;
+  const dups = last.filter(r => r.duplicate).length;
+  $("#b-submit-all").hidden = pending < 2;
+  $("#b-submit-all").textContent = `全部确认提交（${pending} 张）`;
+  const svc = last.some(isServiceFault);
+  $("#b-resend").hidden = !svc;
+  const sent = last.filter(r => r.stage !== "draft").length, bad = last.filter(r => r.status === "failed").length;
+  $("#s-done-h").textContent = dups && dups === last.length ? (dups === 1 ? "这张磅单已经登记过了，没有重复登记。" : `这 ${dups} 张磅单都已经登记过了，没有重复登记。`)
+    : svc && last.length === 1 ? "识别服务出错，这张还没有登记。"
+    : last.length === 1 && last[0].seq_in_batch === 0 ? "没能在照片里找到单据。"
+    : pending ? `认出 ${last.length - bad - dups} 张新单据${dups ? `（另有 ${dups} 张以前登记过，没有重复登记）` : ""}。逐张对照纸质磅单核对，没问题就点确认提交。`
+    : sent ? `${sent} 张已提交，台账里已经能看到。` : "这张没有登记。";
+}
+
+async function submit(i) {
+  const r = last[i]; if (r.submitUncertain || r.submitBusy) return false;
+  const card = $(`#tickets .ticket[data-i="${i}"]`);
+  const fields = {}; for (const inp of card.querySelectorAll("input[name]")) fields[inp.name] = val(inp.value);
+  if (!val(r.fields && r.fields["监磅员"])) fields["监磅员"] = who || null;     // 台账的「监磅员」= 现场提交的人
+  const btn = card.querySelector("[data-submit]"); const er = card.querySelector("[data-err]");
+  if (!Number.isInteger(r.version)) { er.hidden = false; er.textContent = "记录缺少版本，请联系审核员核对；草稿保留。"; return false; }
+  r.submitBusy = true;
+  const editInputs = [...card.querySelectorAll("input,select")];
+  for (const i of editInputs) i.disabled = true;
+  btn.disabled = true; btn.textContent = "提交中…"; er.hidden = true;
+  let uncertain = true;
+  try {
+    const resp = await fetch(`${API}/records/${encodeURIComponent(r.id)}/submit`, {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({fields, expected_version: r.version, doc_type: card.querySelector("[data-type]")?.value || null,
+                            customer: (card.querySelector("[data-type]")?.value || r.doc_type) === "site_out" ? (r.customer || $("#cust-in").value.trim()) : null})});
+    const body = await resp.json().catch(() => ({}));
+    if (!resp.ok) { uncertain = resp.status === 409 || resp.status >= 500; throw new Error((body.error && body.error.message) || `HTTP ${resp.status}`); }
+    if (!Number.isInteger(body.version)) throw new Error("提交回执不完整");
+    last[i] = body; draw(); loadRecent();
+    return true;
+  } catch (e) {
+    r.submitUncertain = uncertain;
+    er.textContent = `未确认提交成功：${e.message}` + (uncertain ? "。草稿已保留，请联系审核员核对最新记录；本页禁止重放此提交。" : ""); er.hidden = false;
+    r.submitError = er.textContent;
+    btn.disabled = uncertain; btn.textContent = uncertain ? "需要核对最新记录" : "确认提交"; return false;
+  } finally {
+    r.submitBusy = false;
+    for (const i of editInputs) i.disabled = false;
+  }
+}
+$("#b-submit-all").onclick = async () => {
+  for (let i = 0; i < last.length; i++) if (!last[i].duplicate && last[i].status !== "failed" && last[i].stage === "draft") await submit(i);
+};
+
+function done(recs) {
+  banner(""); $("#b-up").textContent = "上传识别";
+  last = recs; draw(); loadRecent();
+  show("s-done"); window.scrollTo(0, 0); $("#s-done-h").focus();
+}
+
+async function discard(i) {
+  const r = last[i];
+  if (!confirm("丢弃这张？丢弃后不会进台账（不是删除，审核员那边看得到被丢弃的记录）。")) return;
+  const url = TOKEN ? `${API}/records/${encodeURIComponent(r.id)}/void` : `__WB_BASE_PATH__/api/v1/records/${encodeURIComponent(r.id)}/void`;
+  const resp = await fetch(url, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({reason: "现场丢弃"})});
+  const body = await resp.json().catch(() => ({}));
+  if (!resp.ok) { banner(`没丢弃成功：${(body.error && body.error.message) || resp.status}`); return; }
+  last[i] = body; draw(); loadRecent();
+}
+
+/* ---------- 最近上传:从服务器取(换手机、关了页面也找得回来没提交的) ---------- */
+let recent = [];
+async function loadRecent() {
+  try {
+    if (TOKEN) recent = (await (await fetch(`${API}/records`)).json()).records || [];
+    else {
+      const me = await (await fetch("__WB_BASE_PATH__/api/v1/me")).json();
+      const since = new Date(Date.now() - 36 * 3600e3).toISOString().slice(0, 10);
+      const all = (await (await fetch(`__WB_BASE_PATH__/api/v1/records?limit=200&date_from=${since}`)).json()).records || [];
+      recent = all.filter(r => r.uploader === me.user);
+    }
+  } catch { recent = []; }
+  drawHist();
+}
+function drawHist() {
+  const pending = recent.filter(r => r.stage === "draft").length;
+  $("#history").hidden = !recent.length;
+  $("#h-h").firstChild.textContent = pending ? `最近上传（${pending} 张还没提交）` : "最近上传";
+  $("#h-list").innerHTML = recent.slice(0, 40).map((r, i) => {
+    const f = r.fields || {}, t = (r.created_at || "").slice(11, 16);
+    const st = r.status === "failed" ? `<span class="tag failed">没认出来</span>` : r.stage === "draft" ? `<span class="tag needs_review">没提交</span>`
+      : `<span class="tag reviewed">${esc(r.stage_label || "")}</span>`;
+    return `<li${r.stage === "draft" ? ` data-open="${i}" tabindex="0" title="点开接着处理"` : ""}><time>${esc(t)}</time><span class="k">${esc(KIND[r.doc_type] || "")}</span>
+      <span>${val(f["车号"]) ? esc(f["车号"]) : `<span class="none">车号未识别</span>`}</span>
+      <span class="num">${val(f["净重"]) ? esc(f["净重"]) + " kg" : ""}</span>${st}</li>`;
+  }).join("");
+}
+$("#h-list").onclick = e => {
+  const li = e.target.closest("[data-open]"); if (!li) return;
+  const r = recent[+li.dataset.open];
+  done([r]);
+};
+loadRecent();
+$("#b-flush").onclick = flushOutbox;
+// 离线外壳:有过一次信号打开过,以后没网也能打开这个页面拍照(照片进待传箱)
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("__WB_BASE_PATH__/sw.js").catch(() => {});
+flushOutbox();
+init();
+</script>
+</body>
+</html>

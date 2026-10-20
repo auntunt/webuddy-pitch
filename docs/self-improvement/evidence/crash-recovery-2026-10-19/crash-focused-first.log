@@ -1,0 +1,949 @@
+test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout) ... FAIL
+test_busy_backoff_cannot_outlive_the_total_run_budget (tests.test_run_lifecycle.RunLifecycleTest.test_busy_backoff_cannot_outlive_the_total_run_budget) ... ERROR
+test_cancel_also_stops_an_active_baseline_build_tree (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_also_stops_an_active_baseline_build_tree) ... ok
+test_cancel_before_invoke_cannot_launch_any_process (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_before_invoke_cannot_launch_any_process) ... ok
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed file <_io.BufferedRandom name='/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-lifecycle-ujvbt7c6/runs/1/owner.lock'>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout) ... FAIL
+test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree (tests.test_run_lifecycle.RunLifecycleTest.test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree) ... FAIL
+test_normal_completion_retains_evidence_without_false_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_normal_completion_retains_evidence_without_false_timeout) ... ERROR
+test_retries_keep_separate_original_outputs_instead_of_overwriting_evidence (tests.test_run_lifecycle.RunLifecycleTest.test_retries_keep_separate_original_outputs_instead_of_overwriting_evidence) ... ERROR
+test_timeout_does_not_signal_a_separate_process_started_by_this_test (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_does_not_signal_a_separate_process_started_by_this_test) ... ERROR
+test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs) ... ERROR
+test_timeout_preserves_every_output_line_and_unterminated_tail (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_preserves_every_output_line_and_unterminated_tail) ... ERROR
+test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts (tests.test_run_lifecycle.RunLifecycleTest.test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts) ... ERROR
+test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe (tests.test_run_lifecycle.RunLifecycleTest.test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe) ... ERROR
+test_active_run_and_other_work_on_same_ticket_prevent_recovery (tests.test_run_recovery.RunRecoveryTest.test_active_run_and_other_work_on_same_ticket_prevent_recovery) ... FAIL
+test_closed_ticket_and_delivery_stage_cannot_bypass_their_workflow (tests.test_run_recovery.RunRecoveryTest.test_closed_ticket_and_delivery_stage_cannot_bypass_their_workflow) ... FAIL
+test_concurrent_retry_clicks_create_exactly_one_new_run (tests.test_run_recovery.RunRecoveryTest.test_concurrent_retry_clicks_create_exactly_one_new_run) ... FAIL
+test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene (tests.test_run_recovery.RunRecoveryTest.test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene) ... 
+  test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene (tests.test_run_recovery.RunRecoveryTest.test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene) (cancelled=False) ... FAIL
+  test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene (tests.test_run_recovery.RunRecoveryTest.test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene) (cancelled=True) ... FAIL
+test_missing_or_unmanaged_worktree_never_silently_restarts_from_main (tests.test_run_recovery.RunRecoveryTest.test_missing_or_unmanaged_worktree_never_silently_restarts_from_main) ... FAIL
+test_new_run_gets_a_fresh_budget_without_resetting_old_timeout_or_logs (tests.test_run_recovery.RunRecoveryTest.test_new_run_gets_a_fresh_budget_without_resetting_old_timeout_or_logs) ... FAIL
+test_uncertain_cleanup_or_malformed_receipts_never_allow_recovery (tests.test_run_recovery.RunRecoveryTest.test_uncertain_cleanup_or_malformed_receipts_never_allow_recovery) ... FAIL
+test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs) ... ERROR
+test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle) ... FAIL
+test_evaluation_exception_records_error_and_finishes_its_created_run (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_exception_records_error_and_finishes_its_created_run) ... FAIL
+test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree) ... ERROR
+test_evaluation_timeout_or_cancel_never_reports_successful_execution (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_timeout_or_cancel_never_reports_successful_execution) ... 
+  test_evaluation_timeout_or_cancel_never_reports_successful_execution (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_timeout_or_cancel_never_reports_successful_execution) (action='timeout') ... ERROR
+  test_evaluation_timeout_or_cancel_never_reports_successful_execution (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_timeout_or_cancel_never_reports_successful_execution) (action='cancelled') ... ERROR
+test_intake_cancelled_then_invoke_exception_still_seals_lifecycle (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_cancelled_then_invoke_exception_still_seals_lifecycle) ... FAIL
+test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence) ... FAIL
+test_intake_success_seals_lifecycle_and_applies_actual_reader_output (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_success_seals_lifecycle_and_applies_actual_reader_output) ... FAIL
+test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer) ... 
+  test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer) (action='timeout') ... FAIL
+  test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer) (action='cancelled') ... FAIL
+test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers) ... 
+  test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers) (caller='intake') ... FAIL
+  test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers) (caller='evaluation') ... FAIL
+test_success_is_finished_and_later_wall_time_does_not_reclassify_it (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_success_is_finished_and_later_wall_time_does_not_reclassify_it) ... ERROR
+test_timeout_after_zero_exit_overrides_success_before_direct_finalize (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_timeout_after_zero_exit_overrides_success_before_direct_finalize) ... ERROR
+test_build_timeout_closes_lifecycle_without_starting_review (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_build_timeout_closes_lifecycle_without_starting_review) ... FAIL
+test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded) ... FAIL
+test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption) ... FAIL
+test_review_shares_time_spent_on_baseline_and_candidate_checks (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_review_shares_time_spent_on_baseline_and_candidate_checks) ... FAIL
+test_successful_direct_review_finishes_before_adoption (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_successful_direct_review_finishes_before_adoption) ... FAIL
+test_failed_lifecycle_retry_link_still_returns_one_durable_successor (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_failed_lifecycle_retry_link_still_returns_one_durable_successor) ... FAIL
+test_failed_supplemental_retry_receipt_keeps_database_idempotency (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_failed_supplemental_retry_receipt_keeps_database_idempotency) ... FAIL
+test_independent_runners_commit_and_dispatch_only_one_retry (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_independent_runners_commit_and_dispatch_only_one_retry) ... FAIL
+test_accepted_cancel_before_finalization_cannot_become_done (tests.test_runtime_review.RuntimeReviewTest.test_accepted_cancel_before_finalization_cannot_become_done) ... FAIL
+test_cancel_during_worktree_preparation_cannot_become_running (tests.test_runtime_review.RuntimeReviewTest.test_cancel_during_worktree_preparation_cannot_become_running) ... ok
+test_failed_binary_output_write_preserves_text_and_cleanup (tests.test_runtime_review.RuntimeReviewTest.test_failed_binary_output_write_preserves_text_and_cleanup) ... FAIL
+test_failed_process_receipt_write_does_not_leave_a_phantom_process (tests.test_runtime_review.RuntimeReviewTest.test_failed_process_receipt_write_does_not_leave_a_phantom_process) ... FAIL
+test_failed_text_output_write_preserves_original_bytes_and_cleanup (tests.test_runtime_review.RuntimeReviewTest.test_failed_text_output_write_preserves_original_bytes_and_cleanup) ... FAIL
+test_final_commit_and_cancel_are_serialized_across_threads (tests.test_runtime_review.RuntimeReviewTest.test_final_commit_and_cancel_are_serialized_across_threads) ... FAIL
+
+======================================================================
+ERROR: test_busy_backoff_cannot_outlive_the_total_run_budget (tests.test_run_lifecycle.RunLifecycleTest.test_busy_backoff_cannot_outlive_the_total_run_budget)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 284, in test_busy_backoff_cannot_outlive_the_total_run_budget
+    (code, _), elapsed = self.bounded(lambda: self.invoke(rid, conf))
+                         ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 146, in bounded
+    raise result["error"]
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 128, in go
+    result["value"] = operation()
+                      ~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 284, in <lambda>
+    (code, _), elapsed = self.bounded(lambda: self.invoke(rid, conf))
+                                              ~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 150, in invoke
+    return self.runner.invoke(rid, self.project, self.ticket, "fixture", conf, "ask", "fixture prompt", self.root, tag=tag)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_normal_completion_retains_evidence_without_false_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_normal_completion_retains_evidence_without_false_timeout)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 387, in test_normal_completion_retains_evidence_without_false_timeout
+    (code, result), _ = self.bounded(lambda: self.invoke(rid, self.conf("success", timeout=3)))
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 146, in bounded
+    raise result["error"]
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 128, in go
+    result["value"] = operation()
+                      ~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 387, in <lambda>
+    (code, result), _ = self.bounded(lambda: self.invoke(rid, self.conf("success", timeout=3)))
+                                             ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 150, in invoke
+    return self.runner.invoke(rid, self.project, self.ticket, "fixture", conf, "ask", "fixture prompt", self.root, tag=tag)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_retries_keep_separate_original_outputs_instead_of_overwriting_evidence (tests.test_run_lifecycle.RunLifecycleTest.test_retries_keep_separate_original_outputs_instead_of_overwriting_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 296, in test_retries_keep_separate_original_outputs_instead_of_overwriting_evidence
+    (code, _), _ = self.bounded(lambda: self.invoke(rid, conf))
+                   ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 146, in bounded
+    raise result["error"]
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 128, in go
+    result["value"] = operation()
+                      ~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 296, in <lambda>
+    (code, _), _ = self.bounded(lambda: self.invoke(rid, conf))
+                                        ~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 150, in invoke
+    return self.runner.invoke(rid, self.project, self.ticket, "fixture", conf, "ask", "fixture prompt", self.root, tag=tag)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_timeout_does_not_signal_a_separate_process_started_by_this_test (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_does_not_signal_a_separate_process_started_by_this_test)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 376, in test_timeout_does_not_signal_a_separate_process_started_by_this_test
+    (code, _), _ = self.bounded_ready(rid,
+                   ~~~~~~~~~~~~~~~~~~^^^^^
+        lambda: self.invoke(rid, self.conf("tree", timeout=3)), "tree", "child", "leaf")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 184, in bounded_ready
+    raise result["error"]
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 128, in go
+    result["value"] = operation()
+                      ~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 377, in <lambda>
+    lambda: self.invoke(rid, self.conf("tree", timeout=3)), "tree", "child", "leaf")
+            ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 150, in invoke
+    return self.runner.invoke(rid, self.project, self.ticket, "fixture", conf, "ask", "fixture prompt", self.root, tag=tag)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 208, in test_timeout_kills_term_ignoring_descendants_and_keeps_complete_logs
+    (code, _), elapsed = self.bounded_ready(rid,
+                         ~~~~~~~~~~~~~~~~~~^^^^^
+        lambda: self.invoke(rid, self.conf("tree", timeout=budget)), "tree", "child", "leaf", limit=limit)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 184, in bounded_ready
+    raise result["error"]
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 128, in go
+    result["value"] = operation()
+                      ~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 209, in <lambda>
+    lambda: self.invoke(rid, self.conf("tree", timeout=budget)), "tree", "child", "leaf", limit=limit)
+            ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 150, in invoke
+    return self.runner.invoke(rid, self.project, self.ticket, "fixture", conf, "ask", "fixture prompt", self.root, tag=tag)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    except OSError as exc:
+                  ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_timeout_preserves_every_output_line_and_unterminated_tail (tests.test_run_lifecycle.RunLifecycleTest.test_timeout_preserves_every_output_line_and_unterminated_tail)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 226, in test_timeout_preserves_every_output_line_and_unterminated_tail
+    (code, _), _ = self.bounded_ready(rid,
+                   ~~~~~~~~~~~~~~~~~~^^^^^
+        lambda: self.invoke(rid, self.conf("long-log", timeout=3)), "long-log-output")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 184, in bounded_ready
+    raise result["error"]
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 128, in go
+    result["value"] = operation()
+                      ~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 227, in <lambda>
+    lambda: self.invoke(rid, self.conf("long-log", timeout=3)), "long-log-output")
+            ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 150, in invoke
+    return self.runner.invoke(rid, self.project, self.ticket, "fixture", conf, "ask", "fixture prompt", self.root, tag=tag)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    except OSError as exc:
+                  ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts (tests.test_run_lifecycle.RunLifecycleTest.test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 266, in test_total_budget_is_shared_across_invokes_and_no_later_attempt_starts
+    codes, elapsed = self.bounded(sequence, limit=4)
+                     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 146, in bounded
+    raise result["error"]
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 128, in go
+    result["value"] = operation()
+                      ~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 265, in sequence
+    return [self.invoke(rid, conf, tag="-" + str(n))[0] for n in range(3)]
+            ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 150, in invoke
+    return self.runner.invoke(rid, self.project, self.ticket, "fixture", conf, "ask", "fixture prompt", self.root, tag=tag)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    except OSError as exc:
+                  ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe (tests.test_run_lifecycle.RunLifecycleTest.test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 195, in test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe
+    (code, _), elapsed = self.bounded(lambda: self.invoke(rid, self.conf("parent-exits")))
+                         ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 146, in bounded
+    raise result["error"]
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 128, in go
+    result["value"] = operation()
+                      ~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 195, in <lambda>
+    (code, _), elapsed = self.bounded(lambda: self.invoke(rid, self.conf("parent-exits")))
+                                              ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 150, in invoke
+    return self.runner.invoke(rid, self.project, self.ticket, "fixture", conf, "ask", "fixture prompt", self.root, tag=tag)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    except OSError as exc:
+                  ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 136, in test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs
+    code, result = self.invoke(rid)
+                   ~~~~~~~~~~~^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 61, in invoke
+    return self.runner.invoke(rid, self.project, None, "reader", self.conf, "plan", "fixture prompt", self.root)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    except OSError as exc:
+                  ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 174, in test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree
+    result = self.evaluate()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 110, in evaluate
+    return learn._run_case(self.P, self.project, self.case(), "reader", "", self.conf, "tester", "fixture-batch")
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/learn.py", line 1008, in _run_case
+    code, result = P.runner.invoke(run["id"], p, None, agent, conf, "plan", prompt, wt or root, model)
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    except OSError as exc:
+                  ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_evaluation_timeout_or_cancel_never_reports_successful_execution (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_timeout_or_cancel_never_reports_successful_execution) (action='timeout')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 184, in test_evaluation_timeout_or_cancel_never_reports_successful_execution
+    result = self.evaluate()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 110, in evaluate
+    return learn._run_case(self.P, self.project, self.case(), "reader", "", self.conf, "tester", "fixture-batch")
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/learn.py", line 1008, in _run_case
+    code, result = P.runner.invoke(run["id"], p, None, agent, conf, "plan", prompt, wt or root, model)
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1247, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 82, in call
+    code, result = invoke(*args, **kwargs)
+                   ~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    except OSError as exc:
+                  ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_evaluation_timeout_or_cancel_never_reports_successful_execution (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_timeout_or_cancel_never_reports_successful_execution) (action='cancelled')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 184, in test_evaluation_timeout_or_cancel_never_reports_successful_execution
+    result = self.evaluate()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 110, in evaluate
+    return learn._run_case(self.P, self.project, self.case(), "reader", "", self.conf, "tester", "fixture-batch")
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/learn.py", line 1008, in _run_case
+    code, result = P.runner.invoke(run["id"], p, None, agent, conf, "plan", prompt, wt or root, model)
+                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1247, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 82, in call
+    code, result = invoke(*args, **kwargs)
+                   ~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    except OSError as exc:
+                  ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_success_is_finished_and_later_wall_time_does_not_reclassify_it (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_success_is_finished_and_later_wall_time_does_not_reclassify_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 117, in test_success_is_finished_and_later_wall_time_does_not_reclassify_it
+    code, result = self.invoke(rid)
+                   ~~~~~~~~~~~^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 61, in invoke
+    return self.runner.invoke(rid, self.project, None, "reader", self.conf, "plan", "fixture prompt", self.root)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    except OSError as exc:
+                  ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+ERROR: test_timeout_after_zero_exit_overrides_success_before_direct_finalize (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_timeout_after_zero_exit_overrides_success_before_direct_finalize)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 127, in test_timeout_after_zero_exit_overrides_success_before_direct_finalize
+    code, result = self.invoke(rid)
+                   ~~~~~~~~~~~^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 61, in invoke
+    return self.runner.invoke(rid, self.project, None, "reader", self.conf, "plan", "fixture prompt", self.root)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1115, in invoke
+    code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+                                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1256, in _spawn
+    process, folder = self.run_command(rid, cmd, workdir, env=env,
+                      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        on_output=output, kind="model:" + mode + tag, prompt=prompt)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1189, in run_command
+    result = run_supervised(cmd, folder=folder, owner=owner, cwd=str(workdir), env=env, timeout=timeout,
+                         cancel_event=event, stdin=stdin, on_output=on_output, on_spawn=spawned)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 354, in run_supervised
+    receipt = read_receipt(folder, identity["owner"])
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 125, in read_receipt
+    except OSError as exc:
+                  ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+FAIL: test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 349, in test_build_tree_uses_run_budget_and_cannot_launch_model_after_timeout
+    self.assertEqual(self.runner.stop_reason(rid), "timeout")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'error' != 'timeout'
+- error
++ timeout
+
+
+======================================================================
+FAIL: test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout (tests.test_run_lifecycle.RunLifecycleTest.test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 245, in test_cancel_stops_the_ignoring_tree_without_waiting_for_configured_timeout
+    self.assertNotIn("error", result)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: 'error' unexpectedly found in {'error': AttributeError("'dict' object has no attribute 'output_bytes'")}
+
+======================================================================
+FAIL: test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree (tests.test_run_lifecycle.RunLifecycleTest.test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 316, in test_fix_success_then_diagnosis_timeout_is_failed_not_adoptable_and_keeps_worktree
+    _, elapsed = self.bounded_ready(rid,
+                 ~~~~~~~~~~~~~~~~~~^^^^^
+        lambda: self.start_fix(rid, self.conf("fix-then-timeout", timeout=3)), "diagnosis")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 176, in bounded_ready
+    self.wait_ready(*scenarios)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_lifecycle.py", line 168, in wait_ready
+    self.fail("fixture did not reach its required scenario: "
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              + repr({path.name: path.exists() for path in files}))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: fixture did not reach its required scenario: {'owned-pids.txt.diagnosis.ready': False}
+
+======================================================================
+FAIL: test_active_run_and_other_work_on_same_ticket_prevent_recovery (tests.test_run_recovery.RunRecoveryTest.test_active_run_and_other_work_on_same_ticket_prevent_recovery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 282, in test_active_run_and_other_work_on_same_ticket_prevent_recovery
+    old = self.old_run()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 156, in old_run
+    self.assertTrue(self.runner.retry_state(run["id"])["can_retry"], self.diagnostic(run["id"]))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {"run": {"id": 1, "ticket_id": 1, "project_id": 1, "agent": "checker", "mode": "fix", "status": "failed", "author": "tester", "created": "2026-10-19 06:27:56", "started": "2026-10-19 06:27:56", "ended": "2026-10-19 06:27:56", "prompt": "你在维护项目「恢复现场」（目录 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-q8q1c76e/project）。业务知识库在 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-q8q1c76e/project/.tmh/knowledge。\n这个项目尚未安装 tmh 项目工具；下文的 tmh 查询要求改用项目内代码、引用与测试核对。不要执行不存在的工具，也不要为此搜索其他项目或安装工具。\n\n# 工单 RESTORE-1：继续保留的改动\n类型：缺陷；优先级：normal；报告人：tester\n\n\n（这个项目还没有知识库。直接按工单描述在代码里定位；建议之后运行 tmh kb build。）\n\n## 问题\n原始完整任务：保留记录并继续。\n\n## 你的任务：修改代码\n你在一个独立的 git 工作树里，改动不会影响任何人的工作目录，由人审阅后再合入。\n1. 按工单和前面的方案修改，只改方案列出的文件，改动尽量小，保持原有代码风格；不要顺手重构无关代码。\n   不要新增测试文件，除非这次会跑构建测试、项目里也已有同类测试；觉得该补的测试写进最后的说明。\n2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；不要为了能跑测试去改构建配置（pom.xml、package.json 之类）。\n3. 能编译或有测试时，跑一下相关的部分。\n4. 结束时用中文说明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。", "output": "— 在独立工作树 /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-q8q1c76e/worktrees/RESTORE-1-r1（分支 tmh/RESTORE-1-r1）里修改\n— 不跑构建测试：设置为不跑构建测试\n— 第 1 轮\n— 由一个智能体完成整个改动\noriginal-output-kept-verbatim\n— 运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。\n", "result": "运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。", "diff": "", "exit_code": 1, "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-q8q1c76e/worktrees/RESTORE-1-r1", "target": "原始完整任务：保留记录并继续。", "decision": "", "session_id": null, "batch": "", "model": "", "retry_of": null}, "control": {"finished": true, "stopped_reason": "error", "ended_at": "2026-10-19 06:27:56"}, "process": null, "lifecycle": {"started_at": "2026-10-19 06:27:56", "timeout_seconds": 3.0, "stopped_reason": "error", "attempts": [{"attempt": 1, "kind": "model:fix-1", "started_at": "2026-10-19 06:27:56", "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-q8q1c76e/worktrees/RESTORE-1-r1", "command": ["/opt/homebrew/opt/python@3.14/bin/python3.14", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-q8q1c76e/owned-checker.py", "initial-failure", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-q8q1c76e/worktrees/RESTORE-1-r1", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-q8q1c76e/runs/1/prompt-1.md"], "timeout_seconds": 2.9536124580772594, "evidence": "runs/1/attempts/0001", "supervised": true, "pid": 34577, "pgid": 34577, "returncode": 125, "cleanup": {"trigger": "cleanup_failed_before_spawn", "term_sent": false, "kill_sent": false, "signals": [], "errors": [], "remaining_group": true, "output_complete": false, "reaped": false, "complete": false, "no_spawn": false}, "elapsed_seconds": 0.13611933297943324, "reason": "error", "error": "'dict' object has no attribute 'output_bytes'", "ended_at": "2026-10-19 06:27:56"}], "finished": true, "owner": {"token": "857967a5b6274a8b9c5facc7ed8b5028", "run_id": 1, "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-q8q1c76e"}, "ended_at": "2026-10-19 06:27:56", "elapsed_seconds": 0.185}, "recovery": {"can_retry": false, "retry_blocked": ["存在尚未确认回收的进程，请先检查完整生命周期回执"], "delivery_id": "", "delivery_stage": ""}}
+
+======================================================================
+FAIL: test_closed_ticket_and_delivery_stage_cannot_bypass_their_workflow (tests.test_run_recovery.RunRecoveryTest.test_closed_ticket_and_delivery_stage_cannot_bypass_their_workflow)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 293, in test_closed_ticket_and_delivery_stage_cannot_bypass_their_workflow
+    old = self.old_run()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 156, in old_run
+    self.assertTrue(self.runner.retry_state(run["id"])["can_retry"], self.diagnostic(run["id"]))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {"run": {"id": 1, "ticket_id": 1, "project_id": 1, "agent": "checker", "mode": "fix", "status": "failed", "author": "tester", "created": "2026-10-19 06:27:56", "started": "2026-10-19 06:27:56", "ended": "2026-10-19 06:27:56", "prompt": "你在维护项目「恢复现场」（目录 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-rat3aefv/project）。业务知识库在 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-rat3aefv/project/.tmh/knowledge。\n这个项目尚未安装 tmh 项目工具；下文的 tmh 查询要求改用项目内代码、引用与测试核对。不要执行不存在的工具，也不要为此搜索其他项目或安装工具。\n\n# 工单 RESTORE-1：继续保留的改动\n类型：缺陷；优先级：normal；报告人：tester\n\n\n（这个项目还没有知识库。直接按工单描述在代码里定位；建议之后运行 tmh kb build。）\n\n## 问题\n原始完整任务：保留记录并继续。\n\n## 你的任务：修改代码\n你在一个独立的 git 工作树里，改动不会影响任何人的工作目录，由人审阅后再合入。\n1. 按工单和前面的方案修改，只改方案列出的文件，改动尽量小，保持原有代码风格；不要顺手重构无关代码。\n   不要新增测试文件，除非这次会跑构建测试、项目里也已有同类测试；觉得该补的测试写进最后的说明。\n2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；不要为了能跑测试去改构建配置（pom.xml、package.json 之类）。\n3. 能编译或有测试时，跑一下相关的部分。\n4. 结束时用中文说明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。", "output": "— 在独立工作树 /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-rat3aefv/worktrees/RESTORE-1-r1（分支 tmh/RESTORE-1-r1）里修改\n— 不跑构建测试：设置为不跑构建测试\n— 第 1 轮\n— 由一个智能体完成整个改动\noriginal-output-kept-verbatim\n— 运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。\n", "result": "运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。", "diff": "", "exit_code": 1, "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-rat3aefv/worktrees/RESTORE-1-r1", "target": "原始完整任务：保留记录并继续。", "decision": "", "session_id": null, "batch": "", "model": "", "retry_of": null}, "control": {"finished": true, "stopped_reason": "error", "ended_at": "2026-10-19 06:27:56"}, "process": null, "lifecycle": {"started_at": "2026-10-19 06:27:56", "timeout_seconds": 3.0, "stopped_reason": "error", "attempts": [{"attempt": 1, "kind": "model:fix-1", "started_at": "2026-10-19 06:27:56", "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-rat3aefv/worktrees/RESTORE-1-r1", "command": ["/opt/homebrew/opt/python@3.14/bin/python3.14", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-rat3aefv/owned-checker.py", "initial-failure", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-rat3aefv/worktrees/RESTORE-1-r1", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-rat3aefv/runs/1/prompt-1.md"], "timeout_seconds": 2.95048650004901, "evidence": "runs/1/attempts/0001", "supervised": true, "pid": 34598, "pgid": 34598, "returncode": 125, "cleanup": {"trigger": "cleanup_failed_before_spawn", "term_sent": false, "kill_sent": false, "signals": [], "errors": [], "remaining_group": true, "output_complete": false, "reaped": false, "complete": false, "no_spawn": false}, "elapsed_seconds": 0.1379255410283804, "reason": "error", "error": "'dict' object has no attribute 'output_bytes'", "ended_at": "2026-10-19 06:27:56"}], "finished": true, "owner": {"token": "0852ad6074aa4004b3e71bde50329b4b", "run_id": 1, "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-rat3aefv"}, "ended_at": "2026-10-19 06:27:56", "elapsed_seconds": 0.19}, "recovery": {"can_retry": false, "retry_blocked": ["存在尚未确认回收的进程，请先检查完整生命周期回执"], "delivery_id": "", "delivery_stage": ""}}
+
+======================================================================
+FAIL: test_concurrent_retry_clicks_create_exactly_one_new_run (tests.test_run_recovery.RunRecoveryTest.test_concurrent_retry_clicks_create_exactly_one_new_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 221, in test_concurrent_retry_clicks_create_exactly_one_new_run
+    old = self.old_run()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 156, in old_run
+    self.assertTrue(self.runner.retry_state(run["id"])["can_retry"], self.diagnostic(run["id"]))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {"run": {"id": 1, "ticket_id": 1, "project_id": 1, "agent": "checker", "mode": "fix", "status": "failed", "author": "tester", "created": "2026-10-19 06:27:56", "started": "2026-10-19 06:27:56", "ended": "2026-10-19 06:27:57", "prompt": "你在维护项目「恢复现场」（目录 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-cy0kku53/project）。业务知识库在 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-cy0kku53/project/.tmh/knowledge。\n这个项目尚未安装 tmh 项目工具；下文的 tmh 查询要求改用项目内代码、引用与测试核对。不要执行不存在的工具，也不要为此搜索其他项目或安装工具。\n\n# 工单 RESTORE-1：继续保留的改动\n类型：缺陷；优先级：normal；报告人：tester\n\n\n（这个项目还没有知识库。直接按工单描述在代码里定位；建议之后运行 tmh kb build。）\n\n## 问题\n原始完整任务：保留记录并继续。\n\n## 你的任务：修改代码\n你在一个独立的 git 工作树里，改动不会影响任何人的工作目录，由人审阅后再合入。\n1. 按工单和前面的方案修改，只改方案列出的文件，改动尽量小，保持原有代码风格；不要顺手重构无关代码。\n   不要新增测试文件，除非这次会跑构建测试、项目里也已有同类测试；觉得该补的测试写进最后的说明。\n2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；不要为了能跑测试去改构建配置（pom.xml、package.json 之类）。\n3. 能编译或有测试时，跑一下相关的部分。\n4. 结束时用中文说明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。", "output": "— 在独立工作树 /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-cy0kku53/worktrees/RESTORE-1-r1（分支 tmh/RESTORE-1-r1）里修改\n— 不跑构建测试：设置为不跑构建测试\n— 第 1 轮\n— 由一个智能体完成整个改动\noriginal-output-kept-verbatim\n— 运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。\n", "result": "运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。", "diff": "", "exit_code": 1, "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-cy0kku53/worktrees/RESTORE-1-r1", "target": "原始完整任务：保留记录并继续。", "decision": "", "session_id": null, "batch": "", "model": "", "retry_of": null}, "control": {"finished": true, "stopped_reason": "error", "ended_at": "2026-10-19 06:27:57"}, "process": null, "lifecycle": {"started_at": "2026-10-19 06:27:56", "timeout_seconds": 3.0, "stopped_reason": "error", "attempts": [{"attempt": 1, "kind": "model:fix-1", "started_at": "2026-10-19 06:27:56", "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-cy0kku53/worktrees/RESTORE-1-r1", "command": ["/opt/homebrew/opt/python@3.14/bin/python3.14", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-cy0kku53/owned-checker.py", "initial-failure", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-cy0kku53/worktrees/RESTORE-1-r1", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-cy0kku53/runs/1/prompt-1.md"], "timeout_seconds": 2.950984457973391, "evidence": "runs/1/attempts/0001", "supervised": true, "pid": 34616, "pgid": 34616, "returncode": 125, "cleanup": {"trigger": "cleanup_failed_before_spawn", "term_sent": false, "kill_sent": false, "signals": [], "errors": [], "remaining_group": true, "output_complete": false, "reaped": false, "complete": false, "no_spawn": false}, "elapsed_seconds": 0.12310316599905491, "reason": "error", "error": "'dict' object has no attribute 'output_bytes'", "ended_at": "2026-10-19 06:27:57"}], "finished": true, "owner": {"token": "60e88d6f309248a09384f74479cc0a7f", "run_id": 1, "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-cy0kku53"}, "ended_at": "2026-10-19 06:27:57", "elapsed_seconds": 0.175}, "recovery": {"can_retry": false, "retry_blocked": ["存在尚未确认回收的进程，请先检查完整生命周期回执"], "delivery_id": "", "delivery_stage": ""}}
+
+======================================================================
+FAIL: test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene (tests.test_run_recovery.RunRecoveryTest.test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene) (cancelled=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 187, in test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene
+    old = self.old_run(cancelled)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 156, in old_run
+    self.assertTrue(self.runner.retry_state(run["id"])["can_retry"], self.diagnostic(run["id"]))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {"run": {"id": 1, "ticket_id": 1, "project_id": 1, "agent": "checker", "mode": "fix", "status": "failed", "author": "tester", "created": "2026-10-19 06:27:57", "started": "2026-10-19 06:27:57", "ended": "2026-10-19 06:27:57", "prompt": "你在维护项目「恢复现场」（目录 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/project）。业务知识库在 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/project/.tmh/knowledge。\n这个项目尚未安装 tmh 项目工具；下文的 tmh 查询要求改用项目内代码、引用与测试核对。不要执行不存在的工具，也不要为此搜索其他项目或安装工具。\n\n# 工单 RESTORE-1：继续保留的改动\n类型：缺陷；优先级：normal；报告人：tester\n\n\n（这个项目还没有知识库。直接按工单描述在代码里定位；建议之后运行 tmh kb build。）\n\n## 问题\n原始完整任务：保留记录并继续。\n\n## 你的任务：修改代码\n你在一个独立的 git 工作树里，改动不会影响任何人的工作目录，由人审阅后再合入。\n1. 按工单和前面的方案修改，只改方案列出的文件，改动尽量小，保持原有代码风格；不要顺手重构无关代码。\n   不要新增测试文件，除非这次会跑构建测试、项目里也已有同类测试；觉得该补的测试写进最后的说明。\n2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；不要为了能跑测试去改构建配置（pom.xml、package.json 之类）。\n3. 能编译或有测试时，跑一下相关的部分。\n4. 结束时用中文说明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。", "output": "— 在独立工作树 /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/worktrees/RESTORE-1-r1（分支 tmh/RESTORE-1-r1）里修改\n— 不跑构建测试：设置为不跑构建测试\n— 第 1 轮\n— 由一个智能体完成整个改动\noriginal-output-kept-verbatim\n— 运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。\n", "result": "运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。", "diff": "", "exit_code": 1, "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/worktrees/RESTORE-1-r1", "target": "原始完整任务：保留记录并继续。", "decision": "", "session_id": null, "batch": "", "model": "", "retry_of": null}, "control": {"finished": true, "stopped_reason": "error", "ended_at": "2026-10-19 06:27:57"}, "process": null, "lifecycle": {"started_at": "2026-10-19 06:27:57", "timeout_seconds": 3.0, "stopped_reason": "error", "attempts": [{"attempt": 1, "kind": "model:fix-1", "started_at": "2026-10-19 06:27:57", "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/worktrees/RESTORE-1-r1", "command": ["/opt/homebrew/opt/python@3.14/bin/python3.14", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/owned-checker.py", "initial-failure", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/worktrees/RESTORE-1-r1", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/runs/1/prompt-1.md"], "timeout_seconds": 2.952339665964246, "evidence": "runs/1/attempts/0001", "supervised": true, "pid": 34633, "pgid": 34633, "returncode": 125, "cleanup": {"trigger": "cleanup_failed_before_spawn", "term_sent": false, "kill_sent": false, "signals": [], "errors": [], "remaining_group": true, "output_complete": false, "reaped": false, "complete": false, "no_spawn": false}, "elapsed_seconds": 0.1271832080092281, "reason": "error", "error": "'dict' object has no attribute 'output_bytes'", "ended_at": "2026-10-19 06:27:57"}], "finished": true, "owner": {"token": "31f34ab7d93444e2b8eeecc358373c39", "run_id": 1, "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np"}, "ended_at": "2026-10-19 06:27:57", "elapsed_seconds": 0.178}, "recovery": {"can_retry": false, "retry_blocked": ["存在尚未确认回收的进程，请先检查完整生命周期回执"], "delivery_id": "", "delivery_stage": ""}}
+
+======================================================================
+FAIL: test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene (tests.test_run_recovery.RunRecoveryTest.test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene) (cancelled=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 187, in test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene
+    old = self.old_run(cancelled)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 156, in old_run
+    self.assertTrue(self.runner.retry_state(run["id"])["can_retry"], self.diagnostic(run["id"]))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {"run": {"id": 2, "ticket_id": 1, "project_id": 1, "agent": "checker", "mode": "fix", "status": "cancelled", "author": "tester", "created": "2026-10-19 06:27:57", "started": "2026-10-19 06:27:57", "ended": "2026-10-19 06:27:57", "prompt": "你在维护项目「恢复现场」（目录 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/project）。业务知识库在 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/project/.tmh/knowledge。\n这个项目尚未安装 tmh 项目工具；下文的 tmh 查询要求改用项目内代码、引用与测试核对。不要执行不存在的工具，也不要为此搜索其他项目或安装工具。\n\n# 工单 RESTORE-1：继续保留的改动\n类型：缺陷；优先级：normal；报告人：tester\n\n\n（这个项目还没有知识库。直接按工单描述在代码里定位；建议之后运行 tmh kb build。）\n\n## 问题\n原始完整任务：保留记录并继续。\n\n## 你的任务：修改代码\n你在一个独立的 git 工作树里，改动不会影响任何人的工作目录，由人审阅后再合入。\n1. 按工单和前面的方案修改，只改方案列出的文件，改动尽量小，保持原有代码风格；不要顺手重构无关代码。\n   不要新增测试文件，除非这次会跑构建测试、项目里也已有同类测试；觉得该补的测试写进最后的说明。\n2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；不要为了能跑测试去改构建配置（pom.xml、package.json 之类）。\n3. 能编译或有测试时，跑一下相关的部分。\n4. 结束时用中文说明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。", "output": "— 在独立工作树 /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/worktrees/RESTORE-1-r2（分支 tmh/RESTORE-1-r2）里修改\n— 不跑构建测试：设置为不跑构建测试\n— 第 1 轮\n— 由一个智能体完成整个改动\n— 已请求停止，正在回收本次运行的进程组；原始输出和已有改动保留。\noriginal-output-kept-verbatim\n— 运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。\n", "result": "运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。", "diff": "", "exit_code": 1, "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/worktrees/RESTORE-1-r2", "target": "原始完整任务：保留记录并继续。", "decision": "", "session_id": null, "batch": "", "model": "", "retry_of": null}, "control": {"finished": true, "stopped_reason": "cancelled", "ended_at": "2026-10-19 06:27:57"}, "process": null, "lifecycle": {"started_at": "2026-10-19 06:27:57", "timeout_seconds": 3.0, "stopped_reason": "cancelled", "attempts": [{"attempt": 1, "kind": "model:fix-1", "started_at": "2026-10-19 06:27:57", "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/worktrees/RESTORE-1-r2", "command": ["/opt/homebrew/opt/python@3.14/bin/python3.14", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/owned-checker.py", "initial-wait", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/worktrees/RESTORE-1-r2", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np/runs/2/prompt-1.md"], "timeout_seconds": 2.950105916010216, "evidence": "runs/2/attempts/0001", "supervised": true, "pid": 34645, "pgid": 34645, "returncode": 125, "cleanup": {"trigger": "cleanup_failed_before_spawn", "term_sent": false, "kill_sent": false, "signals": [], "errors": [], "remaining_group": true, "output_complete": false, "reaped": false, "complete": false, "no_spawn": false}, "elapsed_seconds": 0.1823808749904856, "reason": "error", "error": "'dict' object has no attribute 'output_bytes'", "ended_at": "2026-10-19 06:27:57"}], "finished": true, "owner": {"token": "6179c555ecf74efca6ca3b5ae91fed6b", "run_id": 2, "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-drw5_7np"}, "ended_at": "2026-10-19 06:27:57", "elapsed_seconds": 0.236}, "recovery": {"can_retry": false, "retry_blocked": ["存在尚未确认回收的进程，请先检查完整生命周期回执"], "delivery_id": "", "delivery_stage": ""}}
+
+======================================================================
+FAIL: test_missing_or_unmanaged_worktree_never_silently_restarts_from_main (tests.test_run_recovery.RunRecoveryTest.test_missing_or_unmanaged_worktree_never_silently_restarts_from_main)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 304, in test_missing_or_unmanaged_worktree_never_silently_restarts_from_main
+    old = self.old_run()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 156, in old_run
+    self.assertTrue(self.runner.retry_state(run["id"])["can_retry"], self.diagnostic(run["id"]))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {"run": {"id": 1, "ticket_id": 1, "project_id": 1, "agent": "checker", "mode": "fix", "status": "failed", "author": "tester", "created": "2026-10-19 06:27:57", "started": "2026-10-19 06:27:57", "ended": "2026-10-19 06:27:57", "prompt": "你在维护项目「恢复现场」（目录 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-6yghp2mk/project）。业务知识库在 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-6yghp2mk/project/.tmh/knowledge。\n这个项目尚未安装 tmh 项目工具；下文的 tmh 查询要求改用项目内代码、引用与测试核对。不要执行不存在的工具，也不要为此搜索其他项目或安装工具。\n\n# 工单 RESTORE-1：继续保留的改动\n类型：缺陷；优先级：normal；报告人：tester\n\n\n（这个项目还没有知识库。直接按工单描述在代码里定位；建议之后运行 tmh kb build。）\n\n## 问题\n原始完整任务：保留记录并继续。\n\n## 你的任务：修改代码\n你在一个独立的 git 工作树里，改动不会影响任何人的工作目录，由人审阅后再合入。\n1. 按工单和前面的方案修改，只改方案列出的文件，改动尽量小，保持原有代码风格；不要顺手重构无关代码。\n   不要新增测试文件，除非这次会跑构建测试、项目里也已有同类测试；觉得该补的测试写进最后的说明。\n2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；不要为了能跑测试去改构建配置（pom.xml、package.json 之类）。\n3. 能编译或有测试时，跑一下相关的部分。\n4. 结束时用中文说明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。", "output": "— 在独立工作树 /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-6yghp2mk/worktrees/RESTORE-1-r1（分支 tmh/RESTORE-1-r1）里修改\n— 不跑构建测试：设置为不跑构建测试\n— 第 1 轮\n— 由一个智能体完成整个改动\noriginal-output-kept-verbatim\n— 运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。\n", "result": "运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。", "diff": "", "exit_code": 1, "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-6yghp2mk/worktrees/RESTORE-1-r1", "target": "原始完整任务：保留记录并继续。", "decision": "", "session_id": null, "batch": "", "model": "", "retry_of": null}, "control": {"finished": true, "stopped_reason": "error", "ended_at": "2026-10-19 06:27:57"}, "process": null, "lifecycle": {"started_at": "2026-10-19 06:27:57", "timeout_seconds": 3.0, "stopped_reason": "error", "attempts": [{"attempt": 1, "kind": "model:fix-1", "started_at": "2026-10-19 06:27:57", "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-6yghp2mk/worktrees/RESTORE-1-r1", "command": ["/opt/homebrew/opt/python@3.14/bin/python3.14", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-6yghp2mk/owned-checker.py", "initial-failure", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-6yghp2mk/worktrees/RESTORE-1-r1", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-6yghp2mk/runs/1/prompt-1.md"], "timeout_seconds": 2.952808125060983, "evidence": "runs/1/attempts/0001", "supervised": true, "pid": 34663, "pgid": 34663, "returncode": 125, "cleanup": {"trigger": "cleanup_failed_before_spawn", "term_sent": false, "kill_sent": false, "signals": [], "errors": [], "remaining_group": true, "output_complete": false, "reaped": false, "complete": false, "no_spawn": false}, "elapsed_seconds": 0.11919370805844665, "reason": "error", "error": "'dict' object has no attribute 'output_bytes'", "ended_at": "2026-10-19 06:27:57"}], "finished": true, "owner": {"token": "4802dd8570d24044adaefda3a12cf6d5", "run_id": 1, "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-6yghp2mk"}, "ended_at": "2026-10-19 06:27:57", "elapsed_seconds": 0.169}, "recovery": {"can_retry": false, "retry_blocked": ["存在尚未确认回收的进程，请先检查完整生命周期回执"], "delivery_id": "", "delivery_stage": ""}}
+
+======================================================================
+FAIL: test_new_run_gets_a_fresh_budget_without_resetting_old_timeout_or_logs (tests.test_run_recovery.RunRecoveryTest.test_new_run_gets_a_fresh_budget_without_resetting_old_timeout_or_logs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 244, in test_new_run_gets_a_fresh_budget_without_resetting_old_timeout_or_logs
+    self.assertEqual(before["stopped_reason"], "timeout")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'error' != 'timeout'
+- error
++ timeout
+
+
+======================================================================
+FAIL: test_uncertain_cleanup_or_malformed_receipts_never_allow_recovery (tests.test_run_recovery.RunRecoveryTest.test_uncertain_cleanup_or_malformed_receipts_never_allow_recovery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 259, in test_uncertain_cleanup_or_malformed_receipts_never_allow_recovery
+    old = self.old_run()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_recovery.py", line 156, in old_run
+    self.assertTrue(self.runner.retry_state(run["id"])["can_retry"], self.diagnostic(run["id"]))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : {"run": {"id": 1, "ticket_id": 1, "project_id": 1, "agent": "checker", "mode": "fix", "status": "failed", "author": "tester", "created": "2026-10-19 06:27:58", "started": "2026-10-19 06:27:58", "ended": "2026-10-19 06:27:58", "prompt": "你在维护项目「恢复现场」（目录 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-as80ieno/project）。业务知识库在 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-as80ieno/project/.tmh/knowledge。\n这个项目尚未安装 tmh 项目工具；下文的 tmh 查询要求改用项目内代码、引用与测试核对。不要执行不存在的工具，也不要为此搜索其他项目或安装工具。\n\n# 工单 RESTORE-1：继续保留的改动\n类型：缺陷；优先级：normal；报告人：tester\n\n\n（这个项目还没有知识库。直接按工单描述在代码里定位；建议之后运行 tmh kb build。）\n\n## 问题\n原始完整任务：保留记录并继续。\n\n## 你的任务：修改代码\n你在一个独立的 git 工作树里，改动不会影响任何人的工作目录，由人审阅后再合入。\n1. 按工单和前面的方案修改，只改方案列出的文件，改动尽量小，保持原有代码风格；不要顺手重构无关代码。\n   不要新增测试文件，除非这次会跑构建测试、项目里也已有同类测试；觉得该补的测试写进最后的说明。\n2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；不要为了能跑测试去改构建配置（pom.xml、package.json 之类）。\n3. 能编译或有测试时，跑一下相关的部分。\n4. 结束时用中文说明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。", "output": "— 在独立工作树 /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-as80ieno/worktrees/RESTORE-1-r1（分支 tmh/RESTORE-1-r1）里修改\n— 不跑构建测试：设置为不跑构建测试\n— 第 1 轮\n— 由一个智能体完成整个改动\noriginal-output-kept-verbatim\n— 运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。\n", "result": "运行执行失败：'dict' object has no attribute 'output_bytes'。原始日志和工作树保留。", "diff": "", "exit_code": 1, "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-as80ieno/worktrees/RESTORE-1-r1", "target": "原始完整任务：保留记录并继续。", "decision": "", "session_id": null, "batch": "", "model": "", "retry_of": null}, "control": {"finished": true, "stopped_reason": "error", "ended_at": "2026-10-19 06:27:58"}, "process": null, "lifecycle": {"started_at": "2026-10-19 06:27:58", "timeout_seconds": 3.0, "stopped_reason": "error", "attempts": [{"attempt": 1, "kind": "model:fix-1", "started_at": "2026-10-19 06:27:58", "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-as80ieno/worktrees/RESTORE-1-r1", "command": ["/opt/homebrew/opt/python@3.14/bin/python3.14", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-as80ieno/owned-checker.py", "initial-failure", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-as80ieno/worktrees/RESTORE-1-r1", "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-as80ieno/runs/1/prompt-1.md"], "timeout_seconds": 2.9528936250135303, "evidence": "runs/1/attempts/0001", "supervised": true, "pid": 34690, "pgid": 34690, "returncode": 125, "cleanup": {"trigger": "cleanup_failed_before_spawn", "term_sent": false, "kill_sent": false, "signals": [], "errors": [], "remaining_group": true, "output_complete": false, "reaped": false, "complete": false, "no_spawn": false}, "elapsed_seconds": 0.12796962505672127, "reason": "error", "error": "'dict' object has no attribute 'output_bytes'", "ended_at": "2026-10-19 06:27:58"}], "finished": true, "owner": {"token": "5ac0d5dcae114d47b6459a564893f2d8", "run_id": 1, "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-as80ieno"}, "ended_at": "2026-10-19 06:27:58", "elapsed_seconds": 0.177}, "recovery": {"can_retry": false, "retry_blocked": ["存在尚未确认回收的进程，请先检查完整生命周期回执"], "delivery_id": "", "delivery_stage": ""}}
+
+======================================================================
+FAIL: test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 200, in test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle
+    self.assert_finished(self.latest()["id"], "cancelled", "cancelled")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 68, in assert_finished
+    self.assertEqual(run["status"], status, run["result"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'failed' != 'cancelled'
+- failed
++ cancelled
+ : 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+FAIL: test_evaluation_exception_records_error_and_finishes_its_created_run (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_evaluation_exception_records_error_and_finishes_its_created_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 192, in test_evaluation_exception_records_error_and_finishes_its_created_run
+    self.assertIn("result collection failed", result["error"])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'result collection failed' not found in "AttributeError: 'dict' object has no attribute 'output_bytes'"
+
+======================================================================
+FAIL: test_intake_cancelled_then_invoke_exception_still_seals_lifecycle (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_cancelled_then_invoke_exception_still_seals_lifecycle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 171, in test_intake_cancelled_then_invoke_exception_still_seals_lifecycle
+    self.assert_finished(self.latest()["id"], "cancelled", "cancelled")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 68, in assert_finished
+    self.assertEqual(run["status"], status, run["result"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'failed' != 'cancelled'
+- failed
++ cancelled
+ : 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+FAIL: test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 161, in test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence
+    self.assertIn("result collection failed", updated["understood"]["why"])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'result collection failed' not found in "'dict' object has no attribute 'output_bytes'"
+
+======================================================================
+FAIL: test_intake_success_seals_lifecycle_and_applies_actual_reader_output (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_success_seals_lifecycle_and_applies_actual_reader_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 143, in test_intake_success_seals_lifecycle_and_applies_actual_reader_output
+    self.assertEqual(updated["understood"]["by"], "智能体")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '规则' != '智能体'
+- 规则
++ 智能体
+
+
+======================================================================
+FAIL: test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer) (action='timeout')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 154, in test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer
+    self.assert_finished(updated["understood"]["run"], status, action)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 73, in assert_finished
+    self.assertEqual(record["stopped_reason"], reason)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'error' != 'timeout'
+- error
++ timeout
+
+
+======================================================================
+FAIL: test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer) (action='cancelled')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 154, in test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer
+    self.assert_finished(updated["understood"]["run"], status, action)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 68, in assert_finished
+    self.assertEqual(run["status"], status, run["result"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'failed' != 'cancelled'
+- failed
++ cancelled
+ : 'dict' object has no attribute 'output_bytes'
+
+======================================================================
+FAIL: test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers) (caller='intake')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 221, in test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers
+    self.assertTrue(record["attempts"][0]["cleanup"]["complete"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers (tests.test_direct_invocation_lifecycle.DirectInvocationLifecycleTest.test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers) (caller='evaluation')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_direct_invocation_lifecycle.py", line 221, in test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers
+    self.assertTrue(record["attempts"][0]["cleanup"]["complete"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_build_timeout_closes_lifecycle_without_starting_review (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_build_timeout_closes_lifecycle_without_starting_review)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_handwork_lifecycle.py", line 97, in test_build_timeout_closes_lifecycle_without_starting_review
+    self.assertEqual(run["exit_code"], 124)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 125 != 124
+
+======================================================================
+FAIL: test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_handwork_lifecycle.py", line 117, in test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded
+    self.assertTrue(all(a["cleanup"]["complete"] for a in life["attempts"]))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_handwork_lifecycle.py", line 140, in test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption
+    self.assertIn("审查", run["result"])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '审查' not found in "SYNTHETIC writer 在分支 wb/LIFE-1 上的提交 8a6f744b47 没检查完：构建没跑起来：'dict' object has no attribute 'output_bytes'。原始证据保留，未采用或转交验收。"
+
+======================================================================
+FAIL: test_review_shares_time_spent_on_baseline_and_candidate_checks (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_review_shares_time_spent_on_baseline_and_candidate_checks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_handwork_lifecycle.py", line 125, in test_review_shares_time_spent_on_baseline_and_candidate_checks
+    self.assertEqual(run["exit_code"], 124)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 125 != 124
+
+======================================================================
+FAIL: test_successful_direct_review_finishes_before_adoption (tests.test_handwork_lifecycle.HandworkLifecycleTest.test_successful_direct_review_finishes_before_adoption)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_handwork_lifecycle.py", line 148, in test_successful_direct_review_finishes_before_adoption
+    self.assertEqual(run["status"], "done", run["result"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'failed' != 'done'
+- failed
++ done
+ : SYNTHETIC writer 在分支 wb/LIFE-1 上的提交 8863cd0383 没检查完：构建没跑起来：'dict' object has no attribute 'output_bytes'。原始证据保留，未采用或转交验收。
+
+======================================================================
+FAIL: test_failed_lifecycle_retry_link_still_returns_one_durable_successor (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_failed_lifecycle_retry_link_still_returns_one_durable_successor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 203, in test_failed_lifecycle_retry_link_still_returns_one_durable_successor
+    old = self.failed_run()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 177, in failed_run
+    self.assertTrue(f.runner.retry_state(old["id"])["can_retry"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_failed_supplemental_retry_receipt_keeps_database_idempotency (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_failed_supplemental_retry_receipt_keeps_database_idempotency)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 219, in test_failed_supplemental_retry_receipt_keeps_database_idempotency
+    old = self.failed_run()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 177, in failed_run
+    self.assertTrue(f.runner.retry_state(old["id"])["can_retry"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_independent_runners_commit_and_dispatch_only_one_retry (tests.test_runtime_review.RuntimeRecoveryReviewTest.test_independent_runners_commit_and_dispatch_only_one_retry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 232, in test_independent_runners_commit_and_dispatch_only_one_retry
+    old = self.failed_run()
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 177, in failed_run
+    self.assertTrue(f.runner.retry_state(old["id"])["can_retry"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_accepted_cancel_before_finalization_cannot_become_done (tests.test_runtime_review.RuntimeReviewTest.test_accepted_cancel_before_finalization_cannot_become_done)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 47, in test_accepted_cancel_before_finalization_cannot_become_done
+    self.assertTrue(ready.wait(2))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_failed_binary_output_write_preserves_text_and_cleanup (tests.test_runtime_review.RuntimeReviewTest.test_failed_binary_output_write_preserves_text_and_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 155, in test_failed_binary_output_write_preserves_text_and_cleanup
+    self.storage_failure("output.bin", "output.txt")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 147, in storage_failure
+    self.assertTrue(attempt["cleanup"]["complete"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_failed_process_receipt_write_does_not_leave_a_phantom_process (tests.test_runtime_review.RuntimeReviewTest.test_failed_process_receipt_write_does_not_leave_a_phantom_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 127, in test_failed_process_receipt_write_does_not_leave_a_phantom_process
+    self.assertTrue(life["attempts"][0]["cleanup"]["complete"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_failed_text_output_write_preserves_original_bytes_and_cleanup (tests.test_runtime_review.RuntimeReviewTest.test_failed_text_output_write_preserves_original_bytes_and_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 158, in test_failed_text_output_write_preserves_original_bytes_and_cleanup
+    self.storage_failure("output.txt", "output.bin")
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 147, in storage_failure
+    self.assertTrue(attempt["cleanup"]["complete"])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_final_commit_and_cancel_are_serialized_across_threads (tests.test_runtime_review.RuntimeReviewTest.test_final_commit_and_cancel_are_serialized_across_threads)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_runtime_review.py", line 76, in test_final_commit_and_cancel_are_serialized_across_threads
+    self.assertTrue(committing.wait(2))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 46 tests in 33.546s
+
+FAILED (failures=33, errors=14)

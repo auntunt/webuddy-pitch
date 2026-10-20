@@ -1,0 +1,9 @@
+test_optimized_python_cannot_turn_broken_search_into_a_pass (tests.test_harness_probes_independent.HarnessProbeIndependentTest.test_optimized_python_cannot_turn_broken_search_into_a_pass) ... ok
+test_snapshot_never_expands_export_subst_in_tracked_source (tests.test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_never_expands_export_subst_in_tracked_source) ... ok
+test_snapshot_preserves_export_ignored_tracked_source (tests.test_harness_probes_independent.HarnessProbeIndependentTest.test_snapshot_preserves_export_ignored_tracked_source) ... ok
+test_timeout_preserves_application_output_without_a_final_newline (tests.test_harness_probes_independent.HarnessProbeIndependentTest.test_timeout_preserves_application_output_without_a_final_newline) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 3.321s
+
+OK

@@ -1,0 +1,5 @@
+{
+  "name": "prefix_and_csrf",
+  "passed": false,
+  "traceback": "Traceback (most recent call last):\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 212, in <module>\n    try: case(c);result={'name':case.__name__,'passed':True}\n         ^^^^^^^\n  File \"/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/weighbill-pilot-20261019/independent-candidate/check_api.py\", line 202, in prefix_and_csrf\n    assert c.req('GET','/api/v1/export.csv').status_code==200\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+}

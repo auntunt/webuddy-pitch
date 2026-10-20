@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "owner": {
+    "token": "3226641ebae74ad79aaf072ac4cf3286",
+    "run_id": 1,
+    "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-bwntdpl5/verification-operations"
+  },
+  "nonce": "039dd568132342a8a40e36e246baf468",
+  "folder": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-operation-bwntdpl5/verification-operations/runs/1/attempts/0001",
+  "phase": "running",
+  "supervisor_pid": 27060,
+  "pid": 27061,
+  "pgid": 27061
+}

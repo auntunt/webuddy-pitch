@@ -1,0 +1,27 @@
+test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture) ... ok
+test_second_runner_cannot_fail_or_recover_a_live_service_owners_run (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_second_runner_cannot_fail_or_recover_a_live_service_owners_run) ... FAIL
+test_service_sigkill_reclaims_descendants_and_recovers_preserved_work (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_service_sigkill_reclaims_descendants_and_recovers_preserved_work) ... FAIL
+
+======================================================================
+FAIL: test_second_runner_cannot_fail_or_recover_a_live_service_owners_run (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_second_runner_cannot_fail_or_recover_a_live_service_owners_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_crash_recovery_independent.py", line 256, in test_second_runner_cannot_fail_or_recover_a_live_service_owners_run
+    self.assertEqual(self.store.run(self.run["id"]), before, "a live service owner still owns this running record")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'id'[77 chars]s': 'failed', 'author': 'fixture', 'created': [395 chars]None} != {'id'[77 chars]s': 'running', 'author': 'fixture', 'created':[365 chars]None}
+Diff is 651 characters long. Set self.maxDiff to None to see it. : a live service owner still owns this running record
+
+======================================================================
+FAIL: test_service_sigkill_reclaims_descendants_and_recovers_preserved_work (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_service_sigkill_reclaims_descendants_and_recovers_preserved_work)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_crash_recovery_independent.py", line 231, in test_service_sigkill_reclaims_descendants_and_recovers_preserved_work
+    self.assertFalse(problems, "; ".join(problems))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['owned descendants still execute after service SIGKILL and recovery', 'lifecycle remains unfinished', 'interruption cause is absent', 'owned group cleanup has no completed durable receipt', 'already emitted original bytes were not preserved', "safely recovered ordinary run cannot resume: ['原运行仍在回收，请稍后刷新', '存在尚未确认回收的进程，请先检查完整生命周期回执']"] is not false : owned descendants still execute after service SIGKILL and recovery; lifecycle remains unfinished; interruption cause is absent; owned group cleanup has no completed durable receipt; already emitted original bytes were not preserved; safely recovered ordinary run cannot resume: ['原运行仍在回收，请稍后刷新', '存在尚未确认回收的进程，请先检查完整生命周期回执']
+
+----------------------------------------------------------------------
+Ran 3 tests in 5.790s
+
+FAILED (failures=2)

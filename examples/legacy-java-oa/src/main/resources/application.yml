@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@10.1.1.20:1521:ORCL
+    username: oa
+pagehelper:
+  helperDialect: oracle
+oa:
+  upload-dir: "D:\\oa\\upload"

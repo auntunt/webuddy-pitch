@@ -1,0 +1,44 @@
+{
+  "checks": [
+    {
+      "check": "keyword",
+      "passed": true
+    },
+    {
+      "check": "evidence_filter",
+      "passed": true
+    },
+    {
+      "check": "empty_state",
+      "passed": true
+    },
+    {
+      "check": "source_details",
+      "passed": true
+    },
+    {
+      "check": "390px_no_horizontal_overflow",
+      "passed": true,
+      "content": 390,
+      "viewport": 390
+    },
+    {
+      "check": "download_original_bytes",
+      "passed": true,
+      "bytes": 21083
+    },
+    {
+      "check": "report_download_original_bytes",
+      "passed": true,
+      "bytes": 12609
+    }
+  ],
+  "console": [],
+  "fix": "Initial Markdown navigation downloaded a file rather than rendering in the browser. Link now explicitly says download, and downloaded bytes equal the complete original report.",
+  "previous_attempt": "browser-verification.json",
+  "unverified": [
+    "Print preview",
+    "Offline file URL opening"
+  ],
+  "screenshots": "Original bytes; no resizing or re-encoding."
+}

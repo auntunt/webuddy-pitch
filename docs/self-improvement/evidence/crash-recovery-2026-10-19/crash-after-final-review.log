@@ -1,0 +1,12 @@
+test_missing_agent_fails_cleanly (tests.test_platform.PlatformApiTest.test_missing_agent_fails_cleanly) ... ok
+test_failed_final_seal_releases_owner_and_done_window_is_recoverable (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_failed_final_seal_releases_owner_and_done_window_is_recoverable) ... ok
+test_get_is_read_only_and_malformed_proof_never_enables_retry (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_get_is_read_only_and_malformed_proof_never_enables_retry) ... ok
+test_interrupted_first_backup_keeps_complete_live_source_for_next_recovery (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_interrupted_first_backup_keeps_complete_live_source_for_next_recovery) ... ok
+test_interruption_during_recovery_never_seals_before_database_write (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_interruption_during_recovery_never_seals_before_database_write) ... ok
+test_missing_final_receipt_blocks_then_post_collects_real_receipt (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_missing_final_receipt_blocks_then_post_collects_real_receipt) ... ok
+test_recovery_post_cannot_take_a_live_owner (tests.test_crash_recovery_api.CrashRecoveryApiTest.test_recovery_post_cannot_take_a_live_owner) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.177s
+
+OK

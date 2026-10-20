@@ -1,0 +1,5 @@
+{"type":"thread.started","thread_id":"01a15234-891c-7e23-90c9-133c691e64df"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"我会仅发现并调用指定的 Webuddy MCP 接口，核对实际结果后发送中文验证回执，并报告回执事件 ID。\n"}}
+{"type":"item.completed","item":{"id":"item_1","type":"agent_message","text":"工具发现未找到 Webuddy MCP 工具，也没有可用的工具加载接口，因此无法执行指定查询或发送回执。\n\n未启动执行、审批、签署或修改业务数据；无法确认候选 SHA、验证及预览状态、剩余人工／客户验收情况。\n\n事件回执 ID：未产生（消息未发送）。"}}
+{"type":"turn.completed","usage":{"input_tokens":83169,"cached_input_tokens":52096,"cache_write_input_tokens":0,"output_tokens":503,"reasoning_output_tokens":172}}

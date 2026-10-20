@@ -1,0 +1,15 @@
+test_ticket_closed_while_reader_runs_is_not_reported_as_recovered (tests.test_intake_recovery_independent.IndependentIntakeRecoveryTest.test_ticket_closed_while_reader_runs_is_not_reported_as_recovered) ... FAIL
+
+======================================================================
+FAIL: test_ticket_closed_while_reader_runs_is_not_reported_as_recovered (tests.test_intake_recovery_independent.IndependentIntakeRecoveryTest.test_ticket_closed_while_reader_runs_is_not_reported_as_recovered)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery_independent.py", line 381, in test_ticket_closed_while_reader_runs_is_not_reported_as_recovered
+    self.assertNotEqual(recovery["status"], "resolved", "skipping a closed ticket is not successful contract recovery")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'resolved' == 'resolved' : skipping a closed ticket is not successful contract recovery
+
+----------------------------------------------------------------------
+Ran 1 test in 0.132s
+
+FAILED (failures=1)

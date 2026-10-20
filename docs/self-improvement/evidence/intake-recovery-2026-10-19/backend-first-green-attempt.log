@@ -1,0 +1,67 @@
+test_changed_answer_or_contract_requires_explicit_review (tests.test_intake_recovery.IntakeRecoveryTest.test_changed_answer_or_contract_requires_explicit_review) ... ok
+test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute (tests.test_intake_recovery.IntakeRecoveryTest.test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute) ... Exception in thread Thread-2 (retry):
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 158, in retry
+    results.append(intake.retry_understanding(self.P, key, "工程师")["status"])
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/intake.py", line 898, in retry_understanding
+    raise ApiError(409, "；".join(state["blocked"]) or "这次客户答复没有待恢复的再理解")
+tmh.platform.errors.ApiError: 已有一次再理解正在处理，请等待完成
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 160, in retry
+    results.append(error.status)
+                   ^^^^^^^^^^^^
+AttributeError: 'ApiError' object has no attribute 'status'
+FAIL
+test_legacy_failure_is_recovered_only_with_original_answers_and_finished_run (tests.test_intake_recovery.IntakeRecoveryTest.test_legacy_failure_is_recovered_only_with_original_answers_and_finished_run) ... ok
+test_repeated_failure_and_cancel_remain_retryable_with_history (tests.test_intake_recovery.IntakeRecoveryTest.test_repeated_failure_and_cancel_remain_retryable_with_history) ... ok
+test_retry_success_keeps_confirmed_contract_and_customer_source (tests.test_intake_recovery.IntakeRecoveryTest.test_retry_success_keeps_confirmed_contract_and_customer_source) ... ok
+test_running_recovery_blocks_old_session_actions (tests.test_intake_recovery.IntakeRecoveryTest.test_running_recovery_blocks_old_session_actions) ... ERROR
+test_takeover_dependency_closed_and_global_off_survive_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_takeover_dependency_closed_and_global_off_survive_recovery) ... ok
+test_timeout_preserves_answer_and_exposes_a_bound_read_only_recovery (tests.test_intake_recovery.IntakeRecoveryTest.test_timeout_preserves_answer_and_exposes_a_bound_read_only_recovery) ... ok
+test_unknown_answers_and_unverified_cleanup_do_not_become_executable (tests.test_intake_recovery.IntakeRecoveryTest.test_unknown_answers_and_unverified_cleanup_do_not_become_executable) ... ok
+
+======================================================================
+ERROR: test_running_recovery_blocks_old_session_actions (tests.test_intake_recovery.IntakeRecoveryTest.test_running_recovery_blocks_old_session_actions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 179, in test_running_recovery_blocks_old_session_actions
+    self.assertEqual(raised.exception.status, 409)
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ApiError' object has no attribute 'status'
+
+======================================================================
+FAIL: test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute (tests.test_intake_recovery.IntakeRecoveryTest.test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_intake_recovery.py", line 165, in test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute
+    self.assertEqual(sorted(map(str, results)), ["409", "running"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['running'] != ['409', 'running']
+
+First differing element 0:
+'running'
+'409'
+
+Second list contains 1 additional elements.
+First extra element 1:
+'running'
+
+- ['running']
++ ['409', 'running']
+?  +++++++
+
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.259s
+
+FAILED (failures=1, errors=1)

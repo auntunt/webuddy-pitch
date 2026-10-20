@@ -1,0 +1,33 @@
+{
+  "backup_integrity": [
+    "ok"
+  ],
+  "backup_rows_equal_independent_live_rows": true,
+  "bootv2_recorded_commit_evidence_human_state_equal": true,
+  "artifact_hashes": {
+    "preview-final-snapshot.db": {
+      "bytes": 53248,
+      "sha256": "f4cb1d4e3fb9d750182238a9e3d8f708594c42ac5c41ed57c2d5916abbccba0b"
+    },
+    "browser-approved.jpg": {
+      "bytes": 45192,
+      "sha256": "f5e53f76c56b9f891d4b4bf337f5a399c4f7bee3c8c5585300ee2d995924ac56"
+    },
+    "browser-original.jpg": {
+      "bytes": 28303,
+      "sha256": "76df62d928a00890bc7e9bcce819e07aa4e8eebe4360d5fca7da40d3bfe485cd"
+    },
+    "business-checks.json": {
+      "bytes": 492,
+      "sha256": "446b2801c48a16a2393c853876b0dd0b18cc877f5b5d1f9fbbb83632e896aa04"
+    },
+    "business-checks.log": {
+      "bytes": 492,
+      "sha256": "446b2801c48a16a2393c853876b0dd0b18cc877f5b5d1f9fbbb83632e896aa04"
+    },
+    "verify-resumed-behavior.py": {
+      "bytes": 3046,
+      "sha256": "841243083f58fc4b913ef7b74c78d07125d597f7e555be732d90a9e106c481ae"
+    }
+  }
+}

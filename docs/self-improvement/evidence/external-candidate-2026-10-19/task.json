@@ -1,0 +1,22 @@
+{
+  "id": 5,
+  "project_id": 3,
+  "num": 3,
+  "title": "事项关键词搜索与状态筛选",
+  "body": "## 需求\n为BOOTV2事项管理增加关键词搜索与全部/未完成/已完成筛选，让已有事项较多时能快速找到并继续编辑。\n这是用户要求接续BOOTV2的本地真实功能验证，不是生产发布或客户代签。\n## 验收条件\nA1：按关键词搜索事项标题，大小写不敏感，中文可匹配，特殊字符按字面含义搜索。 验证：真实HTTP新增样本，分别搜索中文、英文大小写、百分号、下划线和引号，对照返回的事项ID。\nA2：提供全部、未完成、已完成筛选，可与关键词叠加；清除后显示全部；空结果给出提示。 验证：用相同样本分别筛选三种状态与组合条件，检查空结果和清除入口。\nA3：筛选条件存在URL中，刷新、预览前缀访问、编辑/取消/完成切换后仍可用，非法状态不导致服务错误。 验证：真实浏览器操作筛选、编辑和取消；验证带前缀表单及重定向，验证未知状态。\nA4：保留事项编辑、200字符含换行、数据库故障重试、转义、CSRF和持久保存；读取筛选不修改数据。 验证：保留并运行现有26项测试，补新增HTTP/SQLite回归；核对原始三条事项及状态不变。\n## 保持与范围\n从当前已验证候选 8be50de6b4b4200dc6d792c2a7f0b871f9288da4 接续；只修改 app.py 和 tests/test_app.py，保留全部原有测试和三条既有数据。不改.tmh配置、依赖或部署配置（.tmh目录保持原样）。不删除或截断业务数据。遵循当前表单与前缀路由机制，使用可访问标签；窄屏无横向溢出。\n",
+  "type": "feature",
+  "status": "new",
+  "priority": "normal",
+  "assignee": "agent:codex-coordinator",
+  "reporter": "agent:codex-coordinator",
+  "labels": [],
+  "links": {
+    "hold": "agent:codex-coordinator",
+    "handwork": "agent:codex-coordinator",
+    "agent_request": "external-filter-create-20261019"
+  },
+  "external": {},
+  "created": "2026-10-19 12:02:24",
+  "updated": "2026-10-19 12:02:24",
+  "key": "BOOTV2-3"
+}

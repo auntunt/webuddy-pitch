@@ -1,0 +1,11 @@
+test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor (test_external_candidates_independent.ExternalCandidateIndependentTest.test_explicit_ticket_baseline_cannot_be_replaced_by_older_ancestor) ... ok
+test_new_requirement_message_invalidates_existing_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_new_requirement_message_invalidates_existing_acceptance) ... ok
+test_preview_command_change_invalidates_previous_acceptance (test_external_candidates_independent.ExternalCandidateIndependentTest.test_preview_command_change_invalidates_previous_acceptance) ... ok
+test_restarting_candidate_preview_preserves_previous_raw_log (test_external_candidates_independent.ExternalCandidateIndependentTest.test_restarting_candidate_preview_preserves_previous_raw_log) ... ok
+test_same_implementer_cannot_record_independent_assessment (test_external_candidates_independent.ExternalCandidateIndependentTest.test_same_implementer_cannot_record_independent_assessment) ... ok
+test_shared_agent_credential_cannot_become_operator_by_adding_headers (test_external_candidates_independent.ExternalCandidateIndependentTest.test_shared_agent_credential_cannot_become_operator_by_adding_headers) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 2.436s
+
+OK

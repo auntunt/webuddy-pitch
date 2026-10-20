@@ -1,0 +1,307 @@
+{
+  "test": "tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_second_runner_cannot_fail_or_recover_a_live_service_owners_run",
+  "temporary_directory": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m",
+  "before": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "running",
+      "author": "fixture",
+      "created": "2026-10-19 06:28:55",
+      "started": "2026-10-19 06:28:55",
+      "ended": "",
+      "prompt": "完整原始任务",
+      "output": "owned-crash-output\u0000�\n",
+      "result": "",
+      "diff": "",
+      "exit_code": null,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:28:55",
+      "timeout_seconds": 120.0,
+      "stopped_reason": "",
+      "attempts": [
+        {
+          "attempt": 1,
+          "kind": "independent-crash",
+          "started_at": "2026-10-19 06:28:55",
+          "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+          "command": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/owned-worker.py",
+            "leader",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+          ],
+          "timeout_seconds": 119.9993105410831,
+          "evidence": "runs/1/attempts/0001",
+          "supervised": true,
+          "pid": 35589,
+          "pgid": 35589
+        }
+      ],
+      "finished": false,
+      "owner": {
+        "token": "25d0f637a88f4a35a7bccb8e89ddcc49",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+      },
+      "elapsed_seconds": 0.072
+    },
+    "workers": [
+      {
+        "pid": 35589,
+        "alive": true,
+        "ps": "35589 35588 35589 Ss   Mon Oct 19 06:28:55 2026     /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/owned-worker.py leader /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+      },
+      {
+        "pid": 35590,
+        "alive": true,
+        "ps": "35590 35589 35589 S    Mon Oct 19 06:28:55 2026     /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/owned-worker.py child /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+      }
+    ],
+    "draft_base64": "VkFMVUUgPSAxCiMgY29tcGxldGUgaW50ZXJtZWRpYXRlIGNoYW5nZSBtdXN0IHN1cnZpdmUK",
+    "attempt_files": {
+      "runs/1/attempts/0001/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIyNWQwZjYzN2E4OGY0YTM1YTdiY2NiOGU4OWRkY2M0OSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtODlfOXhwMm0iCiAgfSwKICAibm9uY2UiOiAiMTMzMGEwMmNlNzM3NDU2OTlkOTg5ZTdiNTU0MTAyMjgiLAogICJmb2xkZXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LTg5Xzl4cDJtL3J1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAicGhhc2UiOiAicnVubmluZyIsCiAgInN1cGVydmlzb3JfcGlkIjogMzU1ODgsCiAgInBpZCI6IDM1NTg5LAogICJwZ2lkIjogMzU1ODkKfQ==",
+      "runs/1/attempts/0001/output.bin": "b3duZWQtY3Jhc2gtb3V0cHV0AP8K"
+    }
+  },
+  "after_second_recover": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "running",
+      "author": "fixture",
+      "created": "2026-10-19 06:28:55",
+      "started": "2026-10-19 06:28:55",
+      "ended": "",
+      "prompt": "完整原始任务",
+      "output": "owned-crash-output\u0000�\n",
+      "result": "",
+      "diff": "",
+      "exit_code": null,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:28:55",
+      "timeout_seconds": 120.0,
+      "stopped_reason": "",
+      "attempts": [
+        {
+          "attempt": 1,
+          "kind": "independent-crash",
+          "started_at": "2026-10-19 06:28:55",
+          "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+          "command": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/owned-worker.py",
+            "leader",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+          ],
+          "timeout_seconds": 119.9993105410831,
+          "evidence": "runs/1/attempts/0001",
+          "supervised": true,
+          "pid": 35589,
+          "pgid": 35589
+        }
+      ],
+      "finished": false,
+      "owner": {
+        "token": "25d0f637a88f4a35a7bccb8e89ddcc49",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+      },
+      "elapsed_seconds": 0.072
+    },
+    "workers": [
+      {
+        "pid": 35589,
+        "alive": true,
+        "ps": "35589 35588 35589 Ss   Mon Oct 19 06:28:55 2026     /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/owned-worker.py leader /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+      },
+      {
+        "pid": 35590,
+        "alive": true,
+        "ps": "35590 35589 35589 S    Mon Oct 19 06:28:55 2026     /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/owned-worker.py child /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+      }
+    ],
+    "draft_base64": "VkFMVUUgPSAxCiMgY29tcGxldGUgaW50ZXJtZWRpYXRlIGNoYW5nZSBtdXN0IHN1cnZpdmUK",
+    "attempt_files": {
+      "runs/1/attempts/0001/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIyNWQwZjYzN2E4OGY0YTM1YTdiY2NiOGU4OWRkY2M0OSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtODlfOXhwMm0iCiAgfSwKICAibm9uY2UiOiAiMTMzMGEwMmNlNzM3NDU2OTlkOTg5ZTdiNTU0MTAyMjgiLAogICJmb2xkZXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LTg5Xzl4cDJtL3J1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAicGhhc2UiOiAicnVubmluZyIsCiAgInN1cGVydmlzb3JfcGlkIjogMzU1ODgsCiAgInBpZCI6IDM1NTg5LAogICJwZ2lkIjogMzU1ODkKfQ==",
+      "runs/1/attempts/0001/output.bin": "b3duZWQtY3Jhc2gtb3V0cHV0AP8K"
+    }
+  },
+  "before_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "running",
+      "author": "fixture",
+      "created": "2026-10-19 06:28:55",
+      "started": "2026-10-19 06:28:55",
+      "ended": "",
+      "prompt": "完整原始任务",
+      "output": "owned-crash-output\u0000�\n",
+      "result": "",
+      "diff": "",
+      "exit_code": null,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:28:55",
+      "timeout_seconds": 120.0,
+      "stopped_reason": "",
+      "attempts": [
+        {
+          "attempt": 1,
+          "kind": "independent-crash",
+          "started_at": "2026-10-19 06:28:55",
+          "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+          "command": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/owned-worker.py",
+            "leader",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+          ],
+          "timeout_seconds": 119.9993105410831,
+          "evidence": "runs/1/attempts/0001",
+          "supervised": true,
+          "pid": 35589,
+          "pgid": 35589
+        }
+      ],
+      "finished": false,
+      "owner": {
+        "token": "25d0f637a88f4a35a7bccb8e89ddcc49",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+      },
+      "elapsed_seconds": 0.072
+    },
+    "workers": [
+      {
+        "pid": 35589,
+        "alive": true,
+        "ps": "35589 35588 35589 Ss   Mon Oct 19 06:28:55 2026     /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/owned-worker.py leader /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+      },
+      {
+        "pid": 35590,
+        "alive": true,
+        "ps": "35590 35589 35589 S    Mon Oct 19 06:28:55 2026     /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/owned-worker.py child /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project /var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+      }
+    ],
+    "draft_base64": "VkFMVUUgPSAxCiMgY29tcGxldGUgaW50ZXJtZWRpYXRlIGNoYW5nZSBtdXN0IHN1cnZpdmUK",
+    "attempt_files": {
+      "runs/1/attempts/0001/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIyNWQwZjYzN2E4OGY0YTM1YTdiY2NiOGU4OWRkY2M0OSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtODlfOXhwMm0iCiAgfSwKICAibm9uY2UiOiAiMTMzMGEwMmNlNzM3NDU2OTlkOTg5ZTdiNTU0MTAyMjgiLAogICJmb2xkZXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LTg5Xzl4cDJtL3J1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAicGhhc2UiOiAicnVubmluZyIsCiAgInN1cGVydmlzb3JfcGlkIjogMzU1ODgsCiAgInBpZCI6IDM1NTg5LAogICJwZ2lkIjogMzU1ODkKfQ==",
+      "runs/1/attempts/0001/output.bin": "b3duZWQtY3Jhc2gtb3V0cHV0AP8K"
+    }
+  },
+  "fixture_cleanup_signals": [],
+  "after_fixture_cleanup": {
+    "run": {
+      "id": 1,
+      "ticket_id": 1,
+      "project_id": 1,
+      "agent": "owned",
+      "mode": "fix",
+      "status": "running",
+      "author": "fixture",
+      "created": "2026-10-19 06:28:55",
+      "started": "2026-10-19 06:28:55",
+      "ended": "",
+      "prompt": "完整原始任务",
+      "output": "owned-crash-output\u0000�\n",
+      "result": "",
+      "diff": "",
+      "exit_code": null,
+      "workdir": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+      "target": "",
+      "decision": "",
+      "session_id": null,
+      "batch": "",
+      "model": "",
+      "retry_of": null
+    },
+    "lifecycle": {
+      "started_at": "2026-10-19 06:28:55",
+      "timeout_seconds": 120.0,
+      "stopped_reason": "",
+      "attempts": [
+        {
+          "attempt": 1,
+          "kind": "independent-crash",
+          "started_at": "2026-10-19 06:28:55",
+          "cwd": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+          "command": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/owned-worker.py",
+            "leader",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m/project",
+            "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+          ],
+          "timeout_seconds": 119.9993105410831,
+          "evidence": "runs/1/attempts/0001",
+          "supervised": true,
+          "pid": 35589,
+          "pgid": 35589
+        }
+      ],
+      "finished": false,
+      "owner": {
+        "token": "25d0f637a88f4a35a7bccb8e89ddcc49",
+        "run_id": 1,
+        "data_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-crash-independent-89_9xp2m"
+      },
+      "elapsed_seconds": 0.072
+    },
+    "workers": [
+      {
+        "pid": 35589,
+        "alive": false,
+        "ps": ""
+      },
+      {
+        "pid": 35590,
+        "alive": false,
+        "ps": ""
+      }
+    ],
+    "draft_base64": "VkFMVUUgPSAxCiMgY29tcGxldGUgaW50ZXJtZWRpYXRlIGNoYW5nZSBtdXN0IHN1cnZpdmUK",
+    "attempt_files": {
+      "runs/1/attempts/0001/supervisor.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIyNWQwZjYzN2E4OGY0YTM1YTdiY2NiOGU4OWRkY2M0OSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtODlfOXhwMm0iCiAgfSwKICAibm9uY2UiOiAiMTMzMGEwMmNlNzM3NDU2OTlkOTg5ZTdiNTU0MTAyMjgiLAogICJmb2xkZXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LTg5Xzl4cDJtL3J1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAicGhhc2UiOiAicnVubmluZyIsCiAgInN1cGVydmlzb3JfcGlkIjogMzU1ODgsCiAgInBpZCI6IDM1NTg5LAogICJwZ2lkIjogMzU1ODkKfQ==",
+      "runs/1/attempts/0001/supervisor-result.json": "ewogICJzY2hlbWEiOiAxLAogICJvd25lciI6IHsKICAgICJ0b2tlbiI6ICIyNWQwZjYzN2E4OGY0YTM1YTdiY2NiOGU4OWRkY2M0OSIsCiAgICAicnVuX2lkIjogMSwKICAgICJkYXRhX2RpciI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9zMS93OGZzOF9oMTVkZDNjZjhuenFjdjc2MTQwMDAwZ24vVC90bWgtY3Jhc2gtaW5kZXBlbmRlbnQtODlfOXhwMm0iCiAgfSwKICAibm9uY2UiOiAiMTMzMGEwMmNlNzM3NDU2OTlkOTg5ZTdiNTU0MTAyMjgiLAogICJmb2xkZXIiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvczEvdzhmczhfaDE1ZGQzY2Y4bnpxY3Y3NjE0MDAwMGduL1QvdG1oLWNyYXNoLWluZGVwZW5kZW50LTg5Xzl4cDJtL3J1bnMvMS9hdHRlbXB0cy8wMDAxIiwKICAicGhhc2UiOiAiZmluaXNoZWQiLAogICJzdXBlcnZpc29yX3BpZCI6IDM1NTg4LAogICJwaWQiOiAzNTU4OSwKICAicGdpZCI6IDM1NTg5LAogICJyZWFzb24iOiAib3duZXJfbG9zdCIsCiAgInJldHVybmNvZGUiOiAxMjUsCiAgInByb2Nlc3NfcmV0dXJuY29kZSI6IC05LAogICJlbGFwc2VkX3NlY29uZHMiOiAwLjU2MDQ1NDY2NjAzMjQ1NTksCiAgImNsZWFudXAiOiB7CiAgICAidHJpZ2dlciI6ICJvd25lcl9sb3N0IiwKICAgICJ0ZXJtX3NlbnQiOiB0cnVlLAogICAgImtpbGxfc2VudCI6IHRydWUsCiAgICAic2lnbmFscyI6IFsKICAgICAgewogICAgICAgICJzaWduYWwiOiAiU0lHVEVSTSIsCiAgICAgICAgImF0IjogMC4xODc1NTc4MzI5MTk5OTI1LAogICAgICAgICJzZW50IjogdHJ1ZQogICAgICB9LAogICAgICB7CiAgICAgICAgInNpZ25hbCI6ICJTSUdLSUxMIiwKICAgICAgICAiYXQiOiAwLjQ5NzU5Nzc0OTkyNzA4MTE3LAogICAgICAgICJzZW50IjogdHJ1ZQogICAgICB9CiAgICBdLAogICAgImVycm9ycyI6IFtdLAogICAgInJlbWFpbmluZ19ncm91cCI6IGZhbHNlLAogICAgIm91dHB1dF9jb21wbGV0ZSI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJjb21wbGV0ZSI6IHRydWUKICB9LAogICJlbmRlZF9hdCI6IDE3OTIzNjI1MzYuMjgzNDM5MiwKICAib3V0cHV0IjogewogICAgImZpbGUiOiAib3V0cHV0LmJpbiIsCiAgICAiYnl0ZXMiOiAyMSwKICAgICJzaGEyNTYiOiAiNzQ3ODU5NTU4YWViZjRhNTRhMzU5YzZlM2M4ODIwYjQ1ZDJiNTllZGRkNWRlNjE0MGY3NjAxN2RjZWZjNDg1MyIKICB9Cn0=",
+      "runs/1/attempts/0001/output.txt": "b3duZWQtY3Jhc2gtb3V0cHV0AO+/vQo=",
+      "runs/1/attempts/0001/output.bin": "b3duZWQtY3Jhc2gtb3V0cHV0AP8K"
+    }
+  }
+}

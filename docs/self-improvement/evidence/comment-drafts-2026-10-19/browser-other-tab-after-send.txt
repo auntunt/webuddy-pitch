@@ -1,0 +1,161 @@
+Browser tab: 20, Title: "Webuddy · 草稿隔离验收", URL: "http://127.0.0.1:8797/#/t/DRAFT-1".
+1 AXWebArea Webuddy · 草稿隔离验收, URL: 127.0.0.1:8797/#/t/DRAFT-1
+	2 link Description: 跳到主要内容, Value: 127.0.0.1:8797/#main
+	3 container top
+		4 link Description: Webuddy 交付工作台, Value: 127.0.0.1:8797/#/deliveries
+		5 pop up button (collapsed, settable) Description: 项目范围, Help: 这一页属于哪个项目, Value: DRAFT · 沟通草稿验收, ID: projSel, Secondary Actions: Expand
+			6 menu
+				7 (selected) DRAFT · 沟通草稿验收
+				8 全部项目
+				9 ＋ 添加项目…
+		10 button 20,000 点, Help: 点卡：只有生成类动作扣点, ID: ptsBtn
+			11 text 20,000
+			12 text 点
+		13 button Description: 录入客户需求, ID: sayGo
+			14 text ＋
+			15 text  录入需求
+		16 button (collapsed) AI 助手 Ctrl K, Help: AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）, ID: astToggle, Secondary Actions: Expand
+			17 text AI 助手 
+			18 text Ctrl K
+		19 button Description: 草稿验收员，用户与设置, Help: 用户与设置, ID: me
+	20 container page
+		21 container Description: 主导航, ID: nav5
+			22 link Description: 交付, Value: 127.0.0.1:8797/#/deliveries
+			23 link Description: 今天, Value: 127.0.0.1:8797/#/today
+			24 link Description: 客户, Value: 127.0.0.1:8797/#/clients
+			25 link Description: 需求, Value: 127.0.0.1:8797/#/reqs
+			26 link Description: 版本, Value: 127.0.0.1:8797/#/versions
+			27 link Description: 工程, Value: 127.0.0.1:8797/#/board
+		28 container main
+			29 container
+				30 link Description: 需求, Value: 127.0.0.1:8797/#/reqs
+				31 text  / DRAFT / DRAFT-1
+			32 heading 全页刷新与发送重试, Help: 点击修改, Value: 1, ID: ttl
+				33 text 全页刷新与发送重试
+			34 text 待验证
+			35 button 在助手中讨论
+			36 text DRAFT
+			37 container
+				38 text 状态
+				39 pop up button (collapsed, settable) 状态, Value: 待验证, ID: fs, Secondary Actions: Expand
+					40 menu
+						41 新建
+						42 分析中
+						43 待确认
+						44 处理中
+						45 (selected) 待验证
+			46 container
+				47 text 类型
+				48 pop up button (collapsed, settable) 类型, Value: 缺陷, ID: fy, Secondary Actions: Expand
+					49 menu
+						50 (selected) 缺陷
+						51 需求
+						52 变更
+						53 咨询
+						54 运维
+			55 container
+				56 text 优先级
+				57 pop up button (collapsed, settable) 优先级, Value: 中, ID: fp, Secondary Actions: Expand
+					58 menu
+						59 紧急
+						60 高
+						61 (selected) 中
+						62 低
+			63 container
+				64 text 经办人
+				65 text field (settable) 经办人, ID: fa
+			66 text 合成夹具 提交 · 10-19 10:29
+			67 container tTop
+				68 text 待复核 等你验收（证据还不齐）
+				69 definition list
+					70 container 客户要的
+						71 text 客户要的
+					72 text 本地隔离验收，不触发模型或客户签收。
+					73 container 下一步
+						74 text 下一步
+					75 container
+						76 text 改动已就绪， 等你验收 ：按业务操作实际验证。通过后由人合并分支；不通过写明原因，退回重改。
+				77 button 验收通过, ID: ttOk
+				78 button 退回重改, ID: ttNo
+				79 button 发给客户签收, ID: ttSend
+			80 container
+				81 link Description: 工单详情, Value: 127.0.0.1:8797/#/t/DRAFT-1
+				82 link Description: 提示词, Value: 127.0.0.1:8797/#/t/DRAFT-1/prompt
+			83 content list
+				84 container
+					85 text ✓ 受理 合成夹具 · 15 分钟前
+				86 container
+					87 text 2 分析定位 跳过
+				88 container
+					89 text 3 修改方案 跳过
+				90 container
+					91 text 4 修改代码 跳过
+				92 container
+					93 text 5 人工验收 等验收
+				94 container
+					95 text 6 闭环
+			96 definition list
+				97 container 现象
+					98 text 现象
+				99 text 本地隔离验收，不触发模型或客户签收。
+				100 container 根因
+					101 text 根因
+				102 text 还没有分析
+				103 container 证据
+					104 text 证据
+				105 text 分析后在这里列出核实和推断的条数
+				106 container 等谁
+					107 text 等谁
+				108 container tNextText
+					109 text 改动已就绪， 等你验收 ：按业务操作实际验证。通过后由人合并分支；不通过写明原因，退回重改。
+			110 text entry area (settable) accNote
+			111 button 验收通过, ID: accOk
+			112 button 验收不通过, ID: accNo
+			113 button 让助手起草验收说明, ID: accDraft
+			114 button (collapsed) ▸ 完整描述 原话、理解、补充的信息和验收标准, Secondary Actions: Expand
+				115 text ▸
+				116 text 完整描述
+				117 text 原话、理解、补充的信息和验收标准
+			118 heading 动态与讨论, Value: 2
+				119 text 动态与讨论
+			120 container tl
+				121 container
+					122 text 合成夹具  创建工单 15 分钟前
+				123 text 草稿验收员 1 分钟前
+				124 text 真实操作验收：刷新、重启后保留完整评论。 中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>；中文、emoji😀、<script>原文</script>； 末尾空白保留
+				125 container
+					126 text 草稿验收员  新建 → 待验证 刚刚
+				127 container
+					128 text 草稿验收员  生成证据包（第 1 条记录，哈希 05721407c43b） 刚刚
+				129 text 草稿验收员 刚刚
+				130 text 上次评论等待确认时写的新草稿。 不要随确认一起发送，也不要被清空。
+			131 text 评论草稿已保存在本标签页，刷新后可恢复。
+			132 text entry area (settable) Description: 评论草稿, Value: 第二个标签页自己的草稿，不能覆盖第一个。, ID: cm
+			133 button 评论, ID: cb
+			134 text 仅保存本标签页的评论文字；不同标签页各自保存，关闭标签页后不保证恢复。证据截图及其他表单不包含在内，整页刷新后需重新选择或填写。
+			135 button (collapsed) ▸ 执行记录与手动运行 0 次运行, Secondary Actions: Expand
+				136 text ▸
+				137 text 执行记录与手动运行
+				138 text 0 次运行
+			139 container pkg
+				140 container pkSummary
+					141 heading 证据包, Value: 2
+						142 text 证据包
+					143 text 证据不齐
+					144 container
+						145 text 1 条记录，哈希  05721407c43b ，追加式，改任何一条都会对不上。
+					146 container
+						147 text 还缺 验收标准（AC） 代码改动 乙方复核人
+					148 text 验证门 从便宜到贵，每道给出通过、没过或未知
+				149 container pkActions
+					150 link Description: 打开证据包, Value: 127.0.0.1:8797/e/DRAFT-1
+					151 link Description: 下载, Help: in-toto 格式，甲方可以离线核对, Value: 127.0.0.1:8797/e/DRAFT-1.intoto.json
+					152 button 补截图, ID: pkShot
+					153 button 复核, ID: pkRev
+					154 button 发签收链接, ID: pkLink
+			155 button (collapsed) ▸ 工程细节 我来写、代码改动、候选代码入口、相关业务, Secondary Actions: Expand
+				156 text ▸
+				157 text 工程细节
+				158 text 我来写、代码改动、候选代码入口、相关业务
+
+The focused UI element is 1 AXWebArea Webuddy · 草稿隔离验收, URL: 127.0.0.1:8797/#/t/DRAFT-1

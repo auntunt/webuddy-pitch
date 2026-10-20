@@ -1,0 +1,122 @@
+{
+  "main_head": "547e4447b6921bcbfaa555b26a4391d1fc33d3ab",
+  "main_status": "",
+  "rows": [
+    [
+      1,
+      "预览停止并重建后，数据仍保留",
+      1
+    ],
+    [
+      2,
+      "已验证：编辑保存后，原编号和完成状态不变",
+      1
+    ],
+    [
+      3,
+      "已验证：编辑保存、重启与失败重试",
+      1
+    ]
+  ],
+  "business_rows_unchanged": true,
+  "active_runs": [],
+  "new_events": [
+    {
+      "id": 36,
+      "ticket_id": 3,
+      "ts": "2026-10-19 04:41:20",
+      "author": "自动流转",
+      "kind": "code-map",
+      "body": "记录候选版本的静态代码关联；不代表业务验收或人工复核",
+      "data": {
+        "commit": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+        "digest": "baa8b01eb4da50d6c1d75846e7de61f5875ebcdd9021b2c6d105b641a4e2466b",
+        "flows": [
+          "flow:post-dispatcher-py-app-py-make_server-handler-do_post"
+        ],
+        "basis": "python-static-functions",
+        "by": "自动流转"
+      }
+    },
+    {
+      "id": 37,
+      "ticket_id": 3,
+      "ts": "2026-10-19 04:41:21",
+      "author": "自动流转",
+      "kind": "evidence",
+      "body": "生成证据包（第 5 条记录，哈希 abeb1cee5d6e）",
+      "data": {
+        "seq": 5,
+        "hash": "abeb1cee5d6e9b74c6e12b157f454fcd231f63c6c76257383da7c51ba3cb836d"
+      }
+    },
+    {
+      "id": 38,
+      "ticket_id": 3,
+      "ts": "2026-10-19 04:46:49",
+      "author": "自动流转",
+      "kind": "code-map",
+      "body": "记录候选版本的静态代码关联；不代表业务验收或人工复核",
+      "data": {
+        "commit": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+        "digest": "baa8b01eb4da50d6c1d75846e7de61f5875ebcdd9021b2c6d105b641a4e2466b",
+        "flows": [
+          "flow:get-dispatcher-py-app-py-make_server-handler-do_get"
+        ],
+        "basis": "python-static-functions",
+        "by": "自动流转"
+      }
+    },
+    {
+      "id": 39,
+      "ticket_id": 3,
+      "ts": "2026-10-19 04:46:50",
+      "author": "自动流转",
+      "kind": "evidence",
+      "body": "生成证据包（第 6 条记录，哈希 b69248a9f0e9）",
+      "data": {
+        "seq": 6,
+        "hash": "b69248a9f0e94c36157cf881921e04f462c54fd8b01002413b7a251aaaa65784"
+      }
+    },
+    {
+      "id": 40,
+      "ticket_id": 3,
+      "ts": "2026-10-19 04:47:14",
+      "author": "自动流转",
+      "kind": "code-map",
+      "body": "记录候选版本的静态代码关联；不代表业务验收或人工复核",
+      "data": {
+        "commit": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+        "digest": "baa8b01eb4da50d6c1d75846e7de61f5875ebcdd9021b2c6d105b641a4e2466b",
+        "flows": [
+          "flow:post-dispatcher-py-app-py-make_server-handler-do_post"
+        ],
+        "basis": "python-static-functions",
+        "by": "自动流转"
+      }
+    },
+    {
+      "id": 41,
+      "ticket_id": 3,
+      "ts": "2026-10-19 04:47:16",
+      "author": "自动流转",
+      "kind": "evidence",
+      "body": "生成证据包（第 7 条记录，哈希 69865a86ce1c）",
+      "data": {
+        "seq": 7,
+        "hash": "69865a86ce1c90cd3344848ea6ceba405654c72fbfada62bea6d7a9b5d85d931"
+      }
+    }
+  ],
+  "model_runs_unchanged": true,
+  "attachments_unchanged": true,
+  "package": {
+    "records": 7,
+    "missing": [
+      "乙方复核人"
+    ],
+    "review": null,
+    "decision": null
+  }
+}

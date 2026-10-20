@@ -1,0 +1,4 @@
+SYNTHETIC local checker, not a model or customer approval
+Before: VALUE = 1
+
+Recovery read VALUE=1 and retained-note.txt, then completed VALUE=2

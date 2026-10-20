@@ -1,0 +1,17 @@
+{
+  "recorded_at": "2026-10-19T04:56:23.869160+00:00",
+  "review": "Independent candidate boundary probes; synthetic acceptance fixtures are not product verification evidence.",
+  "files": {
+    "tmh/platform/candidates.py": "66d4c9db9b75be4c9ded75bb103e7921b65b6da73b3161639dcaf525ef997000",
+    "tmh/platform/agent_api.py": "9ba0b3706227f9dcaf82a4c6f28709043fc01656f79e5e7403e9c0cb3ed33afb",
+    "tmh/platform/fixloop.py": "0c5718b0b0efa0f803d72359786da5c6cdbc57d8c4aeeb7e480fc7c76d3ad1e1",
+    "tmh/platform/preview.py": "7897bebe9f618443c2a2e57f65607bf27dd094f2952ecd3d7efe9f4c09154655",
+    "tmh/platform/signoff.py": "6f47cb935eaaa34bd20687b2871ee487548f7a0f81e46c78f30e35823d370504",
+    "tmh/workbench.py": "539d716f9bbe7bd1ed2ccfdf01ab3e2c934d3765f09ecf2ad4de08dcfd81ab45",
+    "tmh/workbench_client.py": "d171f34fa90df3cd3c12ab30a6c4c08b9c91a4528d1447f8fc050a4f2ca09ca1",
+    "tmh/workbench_mcp.py": "4ad98f82914930c216e88651d27d489ce82cd6771dd5592619a6d190078306d0",
+    "tests/test_external_candidates_independent.py": "3356858884cc1009c608ea934a273c6f8bce05ffa9ed04dfcf75495b819d6b3a"
+  },
+  "red_run": "independent-review-red-3.log",
+  "observed": "6 tests; 4 boundary failures; 2 passed. No existing workspace data or production altered."
+}

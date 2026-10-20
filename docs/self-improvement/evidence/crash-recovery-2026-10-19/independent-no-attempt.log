@@ -1,0 +1,7 @@
+test_queued_owned_run_with_no_attempts_can_end_without_inventing_a_process (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_queued_owned_run_with_no_attempts_can_end_without_inventing_a_process) ... ok
+test_unlisted_attempt_directory_prevents_no_attempt_shortcut (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_unlisted_attempt_directory_prevents_no_attempt_shortcut) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.216s
+
+OK

@@ -1,0 +1,27 @@
+test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_legacy_pid_receipt_never_signals_a_different_live_owned_fixture) ... ok
+test_second_runner_cannot_fail_or_recover_a_live_service_owners_run (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_second_runner_cannot_fail_or_recover_a_live_service_owners_run) ... ok
+test_service_sigkill_reclaims_descendants_and_recovers_preserved_work (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_service_sigkill_reclaims_descendants_and_recovers_preserved_work) ... ERROR
+
+======================================================================
+ERROR: test_service_sigkill_reclaims_descendants_and_recovers_preserved_work (tests.test_crash_recovery_independent.CrashRecoveryIndependentTest.test_service_sigkill_reclaims_descendants_and_recovers_preserved_work)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_crash_recovery_independent.py", line 216, in test_service_sigkill_reclaims_descendants_and_recovers_preserved_work
+    restarted.recover()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1493, in recover
+    self.recover_run(r["id"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/agents.py", line 1505, in recover_run
+    return reconcile(self.store, self.data_dir, rid)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/crash_recovery.py", line 114, in reconcile
+    receipt = read_receipt(part, owner=owner)
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/supervised_process.py", line 113, in read_receipt
+    if raw != result.output_bytes:
+              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'output_bytes'
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.626s
+
+FAILED (errors=1)

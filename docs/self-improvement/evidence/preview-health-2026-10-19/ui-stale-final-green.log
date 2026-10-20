@@ -1,0 +1,11 @@
+test_background_summary_refresh_preserves_preview_configuration_draft (test_ui_ticket_preview.TicketPreviewUiTest.test_background_summary_refresh_preserves_preview_configuration_draft) ... ok
+test_delayed_configuration_load_does_not_fill_another_ticket (test_ui_ticket_preview.TicketPreviewUiTest.test_delayed_configuration_load_does_not_fill_another_ticket) ... ok
+test_late_response_cannot_paint_a_different_ticket_or_reopened_page (test_ui_ticket_preview.TicketPreviewUiTest.test_late_response_cannot_paint_a_different_ticket_or_reopened_page) ... ok
+test_older_health_response_cannot_replace_a_newer_refresh (test_ui_ticket_preview.TicketPreviewUiTest.test_older_health_response_cannot_replace_a_newer_refresh) ... ok
+test_read_failure_removes_old_open_links_in_both_views_and_can_retry (test_ui_ticket_preview.TicketPreviewUiTest.test_read_failure_removes_old_open_links_in_both_views_and_can_retry) ... ok
+test_refresh_updates_both_views_without_replacing_drafts (test_ui_ticket_preview.TicketPreviewUiTest.test_refresh_updates_both_views_without_replacing_drafts) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 1.607s
+
+OK

@@ -1,0 +1,178 @@
+[
+  {
+    "run_id": 4,
+    "finished": true,
+    "elapsed_seconds": 103.804,
+    "timeout_seconds": 600.0,
+    "attempts": [
+      {
+        "attempt": 1,
+        "kind": "model:ask",
+        "pid": 12414,
+        "pgid": 12414,
+        "group_exists_at_export": false,
+        "returncode": 0,
+        "cleanup": {
+          "trigger": null,
+          "term_sent": false,
+          "kill_sent": false,
+          "signals": [],
+          "errors": [],
+          "remaining_group": false,
+          "output_complete": true,
+          "reaped": true,
+          "complete": true
+        }
+      }
+    ]
+  },
+  {
+    "run_id": 5,
+    "finished": true,
+    "elapsed_seconds": 246.188,
+    "timeout_seconds": 600.0,
+    "attempts": [
+      {
+        "attempt": 1,
+        "kind": "model:plan",
+        "pid": 18264,
+        "pgid": 18264,
+        "group_exists_at_export": false,
+        "returncode": 0,
+        "cleanup": {
+          "trigger": null,
+          "term_sent": false,
+          "kill_sent": false,
+          "signals": [],
+          "errors": [],
+          "remaining_group": false,
+          "output_complete": true,
+          "reaped": true,
+          "complete": true
+        }
+      }
+    ]
+  },
+  {
+    "run_id": 6,
+    "finished": true,
+    "elapsed_seconds": 367.122,
+    "timeout_seconds": 600.0,
+    "attempts": [
+      {
+        "attempt": 1,
+        "kind": "check:build",
+        "pid": 24818,
+        "pgid": 24818,
+        "group_exists_at_export": false,
+        "returncode": 0,
+        "cleanup": {
+          "trigger": null,
+          "term_sent": false,
+          "kill_sent": false,
+          "signals": [],
+          "errors": [],
+          "remaining_group": false,
+          "output_complete": true,
+          "reaped": true,
+          "complete": true
+        }
+      },
+      {
+        "attempt": 2,
+        "kind": "check:test",
+        "pid": 24827,
+        "pgid": 24827,
+        "group_exists_at_export": false,
+        "returncode": 0,
+        "cleanup": {
+          "trigger": null,
+          "term_sent": false,
+          "kill_sent": false,
+          "signals": [],
+          "errors": [],
+          "remaining_group": false,
+          "output_complete": true,
+          "reaped": true,
+          "complete": true
+        }
+      },
+      {
+        "attempt": 3,
+        "kind": "model:fix-1",
+        "pid": 24924,
+        "pgid": 24924,
+        "group_exists_at_export": false,
+        "returncode": 0,
+        "cleanup": {
+          "trigger": null,
+          "term_sent": false,
+          "kill_sent": false,
+          "signals": [],
+          "errors": [],
+          "remaining_group": false,
+          "output_complete": true,
+          "reaped": true,
+          "complete": true
+        }
+      },
+      {
+        "attempt": 4,
+        "kind": "check:build",
+        "pid": 28223,
+        "pgid": 28223,
+        "group_exists_at_export": false,
+        "returncode": 0,
+        "cleanup": {
+          "trigger": null,
+          "term_sent": false,
+          "kill_sent": false,
+          "signals": [],
+          "errors": [],
+          "remaining_group": false,
+          "output_complete": true,
+          "reaped": true,
+          "complete": true
+        }
+      },
+      {
+        "attempt": 5,
+        "kind": "check:test",
+        "pid": 28225,
+        "pgid": 28225,
+        "group_exists_at_export": false,
+        "returncode": 0,
+        "cleanup": {
+          "trigger": null,
+          "term_sent": false,
+          "kill_sent": false,
+          "signals": [],
+          "errors": [],
+          "remaining_group": false,
+          "output_complete": true,
+          "reaped": true,
+          "complete": true
+        }
+      },
+      {
+        "attempt": 6,
+        "kind": "model:diagnose-2",
+        "pid": 28249,
+        "pgid": 28249,
+        "group_exists_at_export": false,
+        "returncode": 0,
+        "cleanup": {
+          "trigger": null,
+          "term_sent": false,
+          "kill_sent": false,
+          "signals": [],
+          "errors": [],
+          "remaining_group": false,
+          "output_complete": true,
+          "reaped": true,
+          "complete": true
+        }
+      }
+    ]
+  }
+]

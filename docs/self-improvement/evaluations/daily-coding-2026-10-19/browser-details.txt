@@ -1,0 +1,8 @@
+Browser tab: 27, Title: "Webuddy · 日常开发实用性评估", URL: "http://127.0.0.1:8797/evaluations/daily-coding-2026-10-19/index.html".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 197-198
++		207 container
++			208 button (expanded) 版本与目录, Secondary Actions: Collapse
++				209 text 版本与目录
++			210 text /Users/auntlee/workspace/weighbill-system 依据版本：60d6422ee898959557fc529a8e0335524b5ee2c0
+The focused UI element is 208 button (expanded) 版本与目录, Secondary Actions: Collapse

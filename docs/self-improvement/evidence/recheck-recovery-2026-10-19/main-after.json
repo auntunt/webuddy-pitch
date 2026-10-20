@@ -1,0 +1,63 @@
+{
+  "boot_items": [
+    [
+      1,
+      "预览停止并重建后，数据仍保留",
+      1
+    ],
+    [
+      2,
+      "已验证：编辑保存后，原编号和完成状态不变",
+      1
+    ],
+    [
+      3,
+      "已验证：编辑保存、重启与失败重试",
+      1
+    ]
+  ],
+  "boot_runs": [
+    {
+      "id": 2,
+      "mode": "plan",
+      "status": "done",
+      "decision": "",
+      "exit_code": 0
+    },
+    {
+      "id": 3,
+      "mode": "fix",
+      "status": "done",
+      "decision": "accepted:tmh/BOOTV2-1-r3@6c7787b",
+      "exit_code": 0
+    },
+    {
+      "id": 4,
+      "mode": "ask",
+      "status": "done",
+      "decision": "",
+      "exit_code": 0
+    },
+    {
+      "id": 5,
+      "mode": "plan",
+      "status": "done",
+      "decision": "",
+      "exit_code": 0
+    },
+    {
+      "id": 6,
+      "mode": "fix",
+      "status": "done",
+      "decision": "accepted:tmh/BOOTV2-1-r6@8be50de",
+      "exit_code": 0
+    }
+  ],
+  "items_unchanged": true,
+  "run_states_unchanged": true,
+  "candidate": "8be50de6b4b4200dc6d792c2a7f0b871f9288da4",
+  "main_branch_head": "547e4447b6921bcbfaa555b26a4391d1fc33d3ab",
+  "active_runs": [],
+  "verification_operations": 0,
+  "listeners": "COMMAND  PID    USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nPython  4431 auntlee    4u  IPv4 0x7656a5775e20c6ac      0t0  TCP 127.0.0.1:8791 (LISTEN)\n"
+}

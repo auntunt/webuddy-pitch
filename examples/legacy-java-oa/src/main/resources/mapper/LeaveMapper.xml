@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.acme.oa.mapper.LeaveMapper">
+  <select id="selectPage" resultType="map">
+    SELECT * FROM (
+      SELECT t.*, ROWNUM rn FROM (
+        SELECT l.ID, l.APPLICANT, NVL(l.REASON, '无') REASON, TO_CHAR(l.START_DATE, 'yyyy-mm-dd') START_DATE,
+               d.DEPT_NAME
+        FROM OA_LEAVE l, OA_DEPT d
+        WHERE l.DEPT_ID = d.ID(+)
+        ORDER BY l.CREATED DESC
+      ) t WHERE ROWNUM &lt;= #{end}
+    ) WHERE rn &gt; #{start}
+  </select>
+  <select id="nextId" resultType="long">
+    SELECT SEQ_OA_LEAVE.NEXTVAL FROM DUAL
+  </select>
+  <insert id="insert">
+    INSERT INTO OA_LEAVE (ID, APPLICANT, DEPT_ID, DAYS, REASON, STATUS, CREATED)
+    VALUES (#{id}, #{applicant}, #{deptId}, #{days}, #{reason}, 'SUBMITTED', SYSDATE)
+  </insert>
+  <update id="approve">
+    UPDATE OA_LEAVE SET STATUS = 'APPROVED', APPROVER = #{approver}, APPROVED_AT = SYSDATE WHERE ID = #{id} AND STATUS = 'SUBMITTED'
+  </update>
+  <update id="reject">
+    UPDATE OA_LEAVE SET STATUS = 'REJECTED', APPROVER = #{approver} WHERE ID = #{id} AND STATUS = 'SUBMITTED'
+  </update>
+  <update id="expireStale">
+    UPDATE OA_LEAVE SET STATUS = 'EXPIRED' WHERE STATUS = 'SUBMITTED' AND CREATED &lt; SYSDATE - 30
+  </update>
+  <select id="deptTree" resultType="map">
+    SELECT ID, DEPT_NAME, LEVEL FROM OA_DEPT START WITH PARENT_ID IS NULL CONNECT BY PRIOR ID = PARENT_ID
+  </select>
+</mapper>

@@ -1,0 +1,11 @@
+{
+  "time_utc": "2026-10-19T02:39:35.418430+00:00",
+  "tests": 9,
+  "result": "passed",
+  "scope": "Node VM shipped handlers and actual ticketSummarySync; no browser or production mutation",
+  "sources": {
+    "tmh/platform/ui_drafts.py": "28450eb3148656be57d574aa19fcac8febe0092bd2c6f11b60330f0df6c43561",
+    "tmh/platform/ui.py": "5ac63ccb8ca81cf3f3d4398f1cd002d1d2f13173ad1fccfa2e216553cf59110b",
+    "tests/test_comment_drafts_independent.py": "1a3a7d0600acc7e9df776e7438f542b1e0d35acdca6acd9732de01824c53c8b0"
+  }
+}

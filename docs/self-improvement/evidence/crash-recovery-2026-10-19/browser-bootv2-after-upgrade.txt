@@ -1,0 +1,26 @@
+Browser tab: 9, Title: "反馈后修复的应用起点", URL: "http://127.0.0.1:8793/pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/".
+1 AXWebArea 反馈后修复的应用起点, URL: 127.0.0.1:8793/pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/
+	2 container
+		3 text WEB 应用起点
+		4 heading 反馈后修复的应用起点, Value: 1
+			5 text 反馈后修复的应用起点
+		6 text 应用已经可以运行。先添加一项内容，刷新后仍会保留。具体业务能力将在交付流程中实现和验证。
+		7 text 新事项
+		8 text field (settable) 新事项, ID: title
+		9 button 添加
+		10 content list
+			11 container
+				12 text 已验证：编辑保存、重启与失败重试
+				13 button 重新打开
+				14 link Description: 编辑, Value: 127.0.0.1:8793/pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/items/3/edit
+			15 container
+				16 text 已验证：编辑保存后，原编号和完成状态不变
+				17 button 重新打开
+				18 link Description: 编辑, Value: 127.0.0.1:8793/pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/items/2/edit
+			19 container
+				20 text 预览停止并重建后，数据仍保留
+				21 button 重新打开
+				22 link Description: 编辑, Value: 127.0.0.1:8793/pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/items/1/edit
+		23 text 仅用于本地开发；正式发布前需要按实际业务配置身份验证、数据保护和部署环境。
+
+The focused UI element is 1 AXWebArea 反馈后修复的应用起点, URL: 127.0.0.1:8793/pv/BOOTV2-1/__commit/8be50de6b4b4200dc6d792c2a7f0b871f9288da4/

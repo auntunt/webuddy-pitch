@@ -1,0 +1,11 @@
+{
+  "id": 4,
+  "state": "awaiting_human",
+  "verification_passed": true,
+  "preview_ready": true,
+  "technical_acceptance": true,
+  "ready_for_human": true,
+  "human_accepted": false,
+  "preview_url": "http://127.0.0.1:8791/pv/WBILL-1/__commit/ab9601e305bf9efdf908554174c56ca101194405/",
+  "evidence_hash": "6641fbcaaa745ab5496b022c61cd08d3f2e88c0248165bafe6e1e5731e002b8c"
+}

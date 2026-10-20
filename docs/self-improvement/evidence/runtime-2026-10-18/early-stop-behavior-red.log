@@ -1,0 +1,71 @@
+test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed (tests.test_run_early_stop.RunEarlyStopTest.test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed) ... 
+  test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed (tests.test_run_early_stop.RunEarlyStopTest.test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed) (cancelled=False) ... FAIL
+  test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed (tests.test_run_early_stop.RunEarlyStopTest.test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed) (cancelled=True) ... FAIL
+test_budget_exhausted_before_execution_becomes_failed_and_retryable (tests.test_run_early_stop.RunEarlyStopTest.test_budget_exhausted_before_execution_becomes_failed_and_retryable) ... FAIL
+test_cancelled_before_execution_stays_cancelled_without_success_callback (tests.test_run_early_stop.RunEarlyStopTest.test_cancelled_before_execution_stays_cancelled_without_success_callback) ... FAIL
+test_failure_callback_error_cannot_replace_the_original_stop_or_seal_again (tests.test_run_early_stop.RunEarlyStopTest.test_failure_callback_error_cannot_replace_the_original_stop_or_seal_again) ... FAIL
+
+======================================================================
+FAIL: test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed (tests.test_run_early_stop.RunEarlyStopTest.test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed) (cancelled=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_early_stop.py", line 109, in test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed
+    run, life = self.go(rid, expire=not cancelled)
+                ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_early_stop.py", line 55, in go
+    self.assertIn(run["status"], ("failed", "cancelled"), "a stopped worker cannot remain queued/running")
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'queued' not found in ('failed', 'cancelled') : a stopped worker cannot remain queued/running
+
+======================================================================
+FAIL: test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed (tests.test_run_early_stop.RunEarlyStopTest.test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed) (cancelled=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_early_stop.py", line 109, in test_always_callback_gets_terminal_receipt_once_and_does_not_extend_elapsed
+    run, life = self.go(rid, expire=not cancelled)
+                ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_early_stop.py", line 56, in go
+    self.assertIsNotNone(run["exit_code"])
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: unexpectedly None
+
+======================================================================
+FAIL: test_budget_exhausted_before_execution_becomes_failed_and_retryable (tests.test_run_early_stop.RunEarlyStopTest.test_budget_exhausted_before_execution_becomes_failed_and_retryable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_early_stop.py", line 67, in test_budget_exhausted_before_execution_becomes_failed_and_retryable
+    run, life = self.go(rid, expire=True)
+                ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_early_stop.py", line 55, in go
+    self.assertIn(run["status"], ("failed", "cancelled"), "a stopped worker cannot remain queued/running")
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'queued' not found in ('failed', 'cancelled') : a stopped worker cannot remain queued/running
+
+======================================================================
+FAIL: test_cancelled_before_execution_stays_cancelled_without_success_callback (tests.test_run_early_stop.RunEarlyStopTest.test_cancelled_before_execution_stays_cancelled_without_success_callback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_early_stop.py", line 85, in test_cancelled_before_execution_stays_cancelled_without_success_callback
+    run, life = self.go(rid)
+                ~~~~~~~^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_early_stop.py", line 56, in go
+    self.assertIsNotNone(run["exit_code"])
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: unexpectedly None
+
+======================================================================
+FAIL: test_failure_callback_error_cannot_replace_the_original_stop_or_seal_again (tests.test_run_early_stop.RunEarlyStopTest.test_failure_callback_error_cannot_replace_the_original_stop_or_seal_again)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_early_stop.py", line 125, in test_failure_callback_error_cannot_replace_the_original_stop_or_seal_again
+    run, life = self.go(rid, expire=True)
+                ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_run_early_stop.py", line 55, in go
+    self.assertIn(run["status"], ("failed", "cancelled"), "a stopped worker cannot remain queued/running")
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'queued' not found in ('failed', 'cancelled') : a stopped worker cannot remain queued/running
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.245s
+
+FAILED (failures=5)

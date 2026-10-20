@@ -1,0 +1,21 @@
+test_unknown_class_decorator_cannot_prove_the_registered_handler (tests.test_python_flows.PythonFlowTest.test_unknown_class_decorator_cannot_prove_the_registered_handler) ... FAIL
+
+======================================================================
+FAIL: test_unknown_class_decorator_cannot_prove_the_registered_handler (tests.test_python_flows.PythonFlowTest.test_unknown_class_decorator_cannot_prove_the_registered_handler)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_python_flows.py", line 226, in test_unknown_class_decorator_cannot_prove_the_registered_handler
+    self.assertEqual(result['flows'], [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [{'id': 'get-dispatcher-py-app-py-handler-[709 chars]n0'}] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+{'id': 'get-dispatcher-py-app-py-handler-do_get', 'kind': '接口', 'trigger': 'GET <dispatcher:py:app.py::Handler.do_GET>', 'handler': 'py:app.py::Handler.do_GET', 'name': '', 'name_source': '', 'file': 'app.py', 'line': 4, 'crud': {}, 'scope': 'dispatcher', 'url': None, 'limitations': '整段 dispatcher 方法的静态关系；具体 URL 与分支条件未解析，不能当作具体请求路径。不执行项目代码，不推断跨模块动态改写；外部和动态调用另列为未解析。', 'registration': [{'file': 'app.py', 'line': 6, 'call': 'HTTPServer'}], 'nodes': [{'key': 'py:app.py::Handler.do_GET', 'layer': 'entry', 'label': 'py:app.py::Handler.do_GET', 'file': 'app.py', 'line': 4, 'end': 5, 'comment': '', 'id': 'n0', 'end_line': 5}], 'edges': [], 'data_ops': [], 'states': [], 'rules': [], 'transactions': [], 'side_effects': [], 'unresolved': [], 'root': 'n0'}
+
+Diff is 990 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 1 test in 0.003s
+
+FAILED (failures=1)

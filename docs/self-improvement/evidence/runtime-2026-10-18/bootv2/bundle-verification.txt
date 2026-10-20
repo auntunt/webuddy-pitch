@@ -1,0 +1,5 @@
+The bundle contains this ref:
+8be50de6b4b4200dc6d792c2a7f0b871f9288da4 refs/heads/tmh/BOOTV2-1-r6
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/docs/self-improvement/evidence/runtime-2026-10-18/bootv2/BOOTV2-source.bundle is okay

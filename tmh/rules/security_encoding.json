@@ -1,0 +1,86 @@
+[
+  {
+    "id": "SM-HASH-001",
+    "category": "crypto",
+    "title": "使用 MD5 / SHA-1 / SHA-256 摘要（国密改造需评估改为 SM3）",
+    "severity": "medium",
+    "files": ["*.java", "*.cs", "*.vb", "*.js", "*.ts"],
+    "patterns": ["MessageDigest\\.getInstance\\(\\s*\"(MD5|SHA-?1|SHA-?256)\"", "DigestUtils\\.(md5|sha1|sha256)", "\\b(MD5|SHA1|SHA256)\\.Create\\s*\\(", "new\\s+(MD5|SHA1|SHA256)CryptoServiceProvider", "FormsAuthentication\\.HashPasswordForStoringInConfigFile", "\\bmd5\\s*\\("],
+    "requires": ["target.crypto in sm"],
+    "advice": "区分用途：口令存储、数据完整性、签名、仅作缓存键/文件指纹。前三类按密评要求改 SM3（口令建议 SM3+盐+多轮或 PBKDF2-SM3）；已有口令采用“登录时校验旧哈希并重算新哈希”的渐进迁移，不能一次性转换。",
+    "kb": "crypto-sm.md#摘要",
+    "effort": "M"
+  },
+  {
+    "id": "SM-SYM-001",
+    "category": "crypto",
+    "title": "使用 AES / DES / 3DES 对称加密（国密改造需评估改为 SM4）",
+    "severity": "medium",
+    "files": ["*.java", "*.cs", "*.vb", "*.js", "*.ts"],
+    "patterns": ["Cipher\\.getInstance\\(\\s*\"(AES|DES|DESede)", "SecretKeySpec\\([^)]*\"(AES|DES)", "\\b(Aes|DES|TripleDES)\\.Create\\s*\\(", "(Rijndael|DES|TripleDES|Aes)(Managed|CryptoServiceProvider)", "CryptoJS\\.(AES|DES|TripleDES)"],
+    "requires": ["target.crypto in sm"],
+    "advice": "改为 SM4（Java 可用 BouncyCastle bcprov 的 SM4/CBC|GCM，.NET 可用 BouncyCastle.Cryptography）；已加密的存量数据需要设计解密-重加密迁移与双读期。前端同步改为 sm-crypto 等国密库。",
+    "kb": "crypto-sm.md#对称加密",
+    "effort": "M"
+  },
+  {
+    "id": "SM-ASYM-001",
+    "category": "crypto",
+    "title": "使用 RSA / ECDSA 签名或非对称加密（国密改造需评估改为 SM2）",
+    "severity": "medium",
+    "files": ["*.java", "*.cs", "*.vb", "*.js", "*.ts"],
+    "patterns": ["KeyPairGenerator\\.getInstance\\(\\s*\"(RSA|EC)\"", "Signature\\.getInstance\\(\\s*\"\\w*with(RSA|ECDSA)\"", "Cipher\\.getInstance\\(\\s*\"RSA", "\\bRSA(CryptoServiceProvider)?\\.Create\\s*\\(", "new\\s+RSACryptoServiceProvider", "JSEncrypt"],
+    "requires": ["target.crypto in sm"],
+    "advice": "签名/验签与密钥交换改为 SM2；涉及外部系统接口（单点登录、支付、电子签章）的要与对端约定切换时间与双算法过渡期。",
+    "kb": "crypto-sm.md#非对称",
+    "effort": "L"
+  },
+  {
+    "id": "SM-TLS-001",
+    "category": "crypto",
+    "title": "TLS/HTTPS 配置（密评可能要求国密 TLCP）",
+    "severity": "info",
+    "files": ["*.xml", "*.properties", "*.yml", "*.yaml", "*.conf", "*.config"],
+    "patterns": ["server\\.ssl\\.", "SSLContext\\.getInstance", "ssl_certificate\\b", "keystoreFile", "<sslProtocol"],
+    "requires": ["target.crypto in sm"],
+    "advice": "传输层国密一般在网关/负载均衡处终结（如铜锁 Tongsuo、国密 Nginx），应用内部可不改；先确认密评方案再动代码。",
+    "kb": "crypto-sm.md#传输层",
+    "effort": "S"
+  },
+  {
+    "id": "ENC-001",
+    "category": "encoding",
+    "title": "依赖平台默认字符集（Windows 默认 GBK，Linux 默认 UTF-8）",
+    "severity": "medium",
+    "files": ["*.java", "*.cs", "*.vb"],
+    "patterns": ["new\\s+String\\(\\s*\\w+\\s*\\)", "\\.getBytes\\(\\s*\\)", "new\\s+(FileReader|FileWriter|InputStreamReader|OutputStreamWriter|PrintWriter)\\(\\s*[^,()]+\\)", "Encoding\\.Default\\b", "new\\s+StreamReader\\(\\s*[^,()]+\\)"],
+    "requires": ["target.os not in windows"],
+    "advice": "显式指定字符集。注意不是一律改 UTF-8：对接的老文件/老接口如果确实是 GBK，要显式写 GBK；.NET Core 使用 GBK 需注册 CodePagesEncodingProvider。",
+    "kb": "os-arch.md#字符集",
+    "effort": "S"
+  },
+  {
+    "id": "ENC-002",
+    "category": "encoding",
+    "title": "写死 GBK/GB2312 编码",
+    "severity": "low",
+    "files": ["*.java", "*.cs", "*.vb", "*.xml", "*.properties", "*.jsp", "*.config"],
+    "patterns": ["\"(GBK|GB2312|gb2312|gbk|GB18030)\"", "charset=(GBK|GB2312|gbk|gb2312)", "GetEncoding\\(\\s*(936|\"gb2312\"|\"GBK\")"],
+    "requires": [],
+    "advice": "确认数据源编码；数据库迁移到国产库时字符集多选 UTF-8，GBK 字段长度（字节）语义会变化，VARCHAR 长度需评估放大。",
+    "kb": "os-arch.md#字符集",
+    "effort": "S"
+  },
+  {
+    "id": "FE-IE-001",
+    "category": "frontend",
+    "title": "IE 专有技术（ActiveX / OCX / IE 条件注释 / showModalDialog / VBScript）",
+    "severity": "high",
+    "files": ["*.html", "*.htm", "*.jsp", "*.aspx", "*.ascx", "*.js", "*.cshtml", "*.master", "*.asp"],
+    "patterns": ["new\\s+ActiveXObject", "<object[^>]+classid\\s*=\\s*[\"']clsid:", "<!--\\[if\\s+(lt\\s+|lte\\s+)?IE", "showModalDialog", "<script[^>]+language\\s*=\\s*[\"']?vbscript", "document\\.all\\b", "attachEvent\\s*\\(", "X-UA-Compatible"],
+    "requires": ["target.browser not in ie"],
+    "advice": "国产浏览器多为 Chromium 内核，不支持 ActiveX。打印控件、读卡器、电子签章、Office 在线编辑等 OCX 需换厂商的信创版本（通常改为本地服务 + WebSocket 方式）。",
+    "kb": "frontend.md",
+    "effort": "L"
+  }
+]

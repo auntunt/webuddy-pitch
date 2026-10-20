@@ -1,0 +1,101 @@
+test_binding_failure_disables_and_guards_every_signoff_entry (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_binding_failure_disables_and_guards_every_signoff_entry) ... FAIL
+test_known_recheck_invalid_blocks_without_package_flag_and_old_history_does_not (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_known_recheck_invalid_blocks_without_package_flag_and_old_history_does_not) ... FAIL
+test_refresh_blocks_an_already_open_link_form_without_replacing_draft_nodes (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_refresh_blocks_an_already_open_link_form_without_replacing_draft_nodes) ... FAIL
+
+======================================================================
+FAIL: test_binding_failure_disables_and_guards_every_signoff_entry (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_binding_failure_disables_and_guards_every_signoff_entry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 60, in test_binding_failure_disables_and_guards_every_signoff_entry
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    d.package.binding_blocked=['旧证据 <script> 与候选不匹配'];await paint();bindAcceptance();
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    assert.ok(!nodes.pkActions.innerHTML.includes('<script>'));assert.ok(messages.some(x=>x.includes('候选不匹配')));
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 57, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: ttSend
+
+false !== true
+
+    at [stdin]:127:59
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual'
+}
+
+
+======================================================================
+FAIL: test_known_recheck_invalid_blocks_without_package_flag_and_old_history_does_not (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_known_recheck_invalid_blocks_without_package_flag_and_old_history_does_not)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 71, in test_known_recheck_invalid_blocks_without_package_flag_and_old_history_does_not
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    for(const field of ['verify','recheck']){
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    await paint();bindAcceptance();assert.equal(nodes.ttSend.disabled,false);assert.equal(nodes.pkLink.disabled,false);assert.equal(nodes.accOk.disabled,false);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 57, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+false !== true
+
+    at [stdin]:128:40
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual'
+}
+
+
+======================================================================
+FAIL: test_refresh_blocks_an_already_open_link_form_without_replacing_draft_nodes (tests.test_recheck_signoff_ui.RecheckSignoffUiTest.test_refresh_blocks_an_already_open_link_form_without_replacing_draft_nodes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 81, in test_refresh_blocks_an_already_open_link_form_without_replacing_draft_nodes
+            self.run_js(r'''
+            ~~~~~~~~~~~^^^^^
+    await paint();bindAcceptance();await nodes.pkLink.onclick();
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    latest=structuredClone(d);latest.package.binding_blocked=[];await S.ticketRefresh();assert.equal(nodes.pkLgo.disabled,false);assert.equal(nodes.accOk.disabled,false);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ''')
+    ^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_recheck_signoff_ui.py", line 57, in run_js
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : AssertionError [ERR_ASSERTION]: ttSend
+
+false !== true
+
+    at [stdin]:132:67
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual'
+}
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.212s
+
+FAILED (failures=3)

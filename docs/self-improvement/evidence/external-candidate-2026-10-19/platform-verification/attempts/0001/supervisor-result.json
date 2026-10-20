@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "owner": {
+    "token": "5b983d2dcea64ebeb4b3d7c7654f69ef",
+    "run_id": 1,
+    "data_dir": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations"
+  },
+  "nonce": "eeeb9697129c4bfc828362c358c38c3f",
+  "folder": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/data/product-workbench/verification-operations/runs/1/attempts/0001",
+  "phase": "finished",
+  "supervisor_pid": 74887,
+  "pid": 74888,
+  "pgid": 74888,
+  "reason": "exited",
+  "returncode": 0,
+  "process_returncode": 0,
+  "elapsed_seconds": 0.27039541699923575,
+  "cleanup": {
+    "trigger": null,
+    "term_sent": false,
+    "kill_sent": false,
+    "signals": [],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "ended_at": 1792385969.3787048,
+  "output": {
+    "file": "output.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
