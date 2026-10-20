@@ -491,6 +491,8 @@ def bind_run(store, project, rid, values):
         run = store.run(rid)
         if not run or run['project_id'] != project['id']:
             raise ValueError('运行不属于此项目，不能绑定知识输入')
+        if not store.one('SELECT run_id FROM knowledge_run_inputs WHERE run_id=?', (rid,)):
+            raise ValueError('历史运行缺少原始证据，不能补写为当前知识输入或工作区；请重新启动任务')
         if bindings(store, project) != values:
             raise ValueError('参考知识在登记期间已变化，请重新启动任务')
         _write_run_inputs(store, _project(store, project['id']), rid, values)
@@ -498,14 +500,25 @@ def bind_run(store, project, rid, values):
 
 def run_current(store, project, rid):
     schema(store)
-    row = store.one('SELECT * FROM knowledge_run_inputs WHERE run_id=?', (rid,))
-    current = _project(store, project['id'])
-    if row and (row['project_id'] != current['id'] or row['project_root'] and row['project_root'] != current['root']):
-        return False
-    if (not row or not row['project_root']) and store.one('SELECT project_id FROM project_workspaces WHERE project_id=? LIMIT 1', (current['id'],)):
-        return False  # legacy evidence has no identity for a replacement workspace
-    values = bindings(store, project)
-    return not any(not v['available'] for v in values) and (row['digest'] == digest(values) if row else not values)
+    with store.lock:
+        # A read snapshot prevents mixing workspace/reference/grant states that
+        # never coexisted. SAVEPOINT also works inside a caller's write
+        # transaction without committing it or acquiring a second writer lock.
+        store.db.execute('SAVEPOINT knowledge_current')
+        try:
+            run = store.run(rid)
+            if not run or run['project_id'] != project['id']:
+                return False
+            row = store.one('SELECT * FROM knowledge_run_inputs WHERE run_id=?', (rid,))
+            current = _project(store, project['id'])
+            if row and (row['project_id'] != current['id'] or row['project_root'] and row['project_root'] != current['root']):
+                return False
+            if (not row or not row['project_root']) and store.one('SELECT project_id FROM project_workspaces WHERE project_id=? LIMIT 1', (current['id'],)):
+                return False  # legacy evidence has no identity for a replacement workspace
+            values = bindings(store, project)
+            return not any(not v['available'] for v in values) and (row['digest'] == digest(values) if row else not values)
+        finally:
+            store.db.execute('RELEASE SAVEPOINT knowledge_current')
 
 
 def require_run_current(store, project, rid):

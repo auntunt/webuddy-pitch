@@ -107,6 +107,7 @@ def _row(P, cid):
 
 def submit(P, actor, args, mutation):
     from .agent_api import _ready, _requirement
+    from .project_library import bindings, _write_run_inputs, run_current
     st = P.store
     t = st.ticket(args["ticket"])
     if not t:
@@ -129,9 +130,16 @@ def submit(P, actor, args, mutation):
         if len(ids) != len(set(ids)):
             raise ApiError(400, "验收条件编号不能重复")
         conf = configuration(P, p)
-        fp = _hash({"ticket": t["id"], "base": args["base_commit"], "commit": args["commit"],
-                    "requirement": args["requirement_hash"], "configuration": conf, "criteria": args["criteria"]})
+        identity = {"ticket": t["id"], "base": args["base_commit"], "commit": args["commit"],
+                    "requirement": args["requirement_hash"], "configuration": conf, "criteria": args["criteria"]}
+        fp = _hash(dict(identity, project_root=p["root"]))
         old = st.one("SELECT * FROM code_candidates WHERE fingerprint=?", (fp,))
+        if not old:
+            # Keep unchanged legacy submissions idempotent, without relabeling
+            # their evidence. An unknown/replaced workspace must register anew.
+            legacy = st.one("SELECT * FROM code_candidates WHERE fingerprint=?", (_hash(identity),))
+            if legacy and run_current(st, p, legacy["run_id"]):
+                old = legacy
         if old:
             return {"candidate_id": old["id"], "run_id": old["run_id"], "commit": old["commit_sha"], "reused": True}
         mutation()
@@ -157,16 +165,23 @@ def submit(P, actor, args, mutation):
             st.db.execute("BEGIN IMMEDIATE")
             t = st.ticket(t["id"])
             _ready(P, t)
-            if _requirement(t, st) != args["requirement_hash"]:
+            current = st.project(t["project_id"])
+            if current['id'] != p['id'] or current['root'] != p['root']:
+                raise ApiError(409, "准备候选期间项目工作区已变化，请重新读取任务并提交")
+            inputs = bindings(st, current)
+            if _requirement(t, st, reference_inputs=inputs) != args["requirement_hash"]:
                 raise ApiError(409, "需求在提交期间变化，请重新核对")
+            if any(not value['available'] for value in inputs):
+                raise ApiError(409, "参考知识授权已变化，请先处理不可用引用")
             _check_baseline(root, t, args["base_commit"])
-            if configuration(P, st.project(t["project_id"])) != conf:
+            if configuration(P, current) != conf:
                 raise ApiError(409, "执行配置在提交期间变化，请重新核对")
             stamp = now()
             run = st.db.execute("""INSERT INTO runs(project_id,ticket_id,agent,mode,status,author,created,ended,exit_code,
                  prompt,result,diff,target) VALUES(?,?,?,'fix','done',?,?,?,0,?,?,?,?)""",
                  (p["id"], t["id"], "external:" + actor.removeprefix("agent:"), actor, stamp, stamp,
                   "外部候选登记；不是平台模型执行或人工采纳", args["summary"], diff, args["base_commit"])).lastrowid
+            _write_run_inputs(st, current, run, inputs)
             cid = st.db.execute("""INSERT INTO code_candidates(ticket_id,run_id,agent,base_commit,commit_sha,
                  requirement_hash,configuration_hash,criteria,summary,fingerprint,ref,artifact_dir,created)
                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""", (t["id"], run, actor, args["base_commit"], args["commit"],
@@ -191,6 +206,9 @@ def view(P, cid, *, include_probe=True):
     p = st.project(t["project_id"])
     run = st.run(row["run_id"])
     blocked = []
+    from .project_library import run_current
+    if not run_current(st, p, row['run_id']):
+        blocked.append("候选的工作区或参考知识证据已变化，请在当前工作区重新登记并验证")
     if _requirement(t, st) != row["requirement_hash"]:
         blocked.append("需求或沟通已变化，需要重新提交与当前需求绑定的候选")
     if configuration(P, p) != row["configuration_hash"]:
@@ -292,6 +310,8 @@ def execute(P, actor, op, a, mutation=lambda: None):
         from .recheck_operations import source_guard
         with source_guard(P.data_dir, row["run_id"]):
             v = view(P, row["id"])
+            if not v["current"]:
+                raise ApiError(409, "；".join(v["blocked"]))
             if op == "candidate_preview":
                 if not v["verification_passed"]:
                     raise ApiError(409, "平台独立构建/测试尚未通过，不启动候选预览")
