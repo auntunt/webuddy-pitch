@@ -1,0 +1,190 @@
+{
+ "schema": 1,
+ "project": "examples/legacy-java-oa",
+ "source": "benchmarks/export_candidates.py（kb.build 后导出的真实 graph 节点与知识页，人工挑选）",
+ "notes": "客户原话式中文查询 → 正确答案必须包含的 page/node id。expect 里的 id 全部来自 kb.build 的真实产物；budget 是该题的目标预算档（仅作提示，对比实验对全部查询都跑 4000/8000 两档）。",
+ "queries": [
+  {
+   "id": "q01",
+   "query": "报销单提交不了，一直提示部门预算不足",
+   "expect": ["flow:post-expense-submit", "fn:ExpenseService.submit", "tbl:OA_BUDGET", "fn:BudgetMapper.remaining"],
+   "budget": 4000,
+   "notes": "症状词（一直/不了）应被剥掉；核心是提交报销流里的预算校验"
+  },
+  {
+   "id": "q02",
+   "query": "财务审核驳回报销单以后冻结的钱怎么释放",
+   "expect": ["flow:post-expense-audit", "fn:ExpenseService.audit", "fn:BudgetMapper.release", "tbl:OA_BUDGET"],
+   "budget": 8000,
+   "notes": "audit 不通过分支释放冻结预算"
+  },
+  {
+   "id": "q03",
+   "query": "出纳付款成功之后预算怎么扣减",
+   "expect": ["flow:post-expense-pay", "fn:ExpenseService.pay", "fn:BudgetMapper.consume"],
+   "budget": 4000,
+   "notes": "付款流 + consume 扣减预算"
+  },
+  {
+   "id": "q04",
+   "query": "员工在哪看我自己的报销记录",
+   "expect": ["flow:get-expense-mine", "fn:ExpenseService.listByUser", "tbl:OA_EXPENSE"],
+   "budget": 4000,
+   "notes": "我的报销单查询流"
+  },
+  {
+   "id": "q05",
+   "query": "单笔报销超过五万系统怎么拦截",
+   "expect": ["fn:ExpenseService.submit", "flow:post-expense-submit", "tbl:OA_EXPENSE"],
+   "budget": 8000,
+   "notes": "5 万上限校验在 ExpenseService.submit"
+  },
+  {
+   "id": "q06",
+   "query": "请假单列表分页是怎么查的",
+   "expect": ["flow:get-leave-list", "fn:LeaveService.list", "fn:LeaveMapper.selectPage", "tbl:OA_LEAVE"],
+   "budget": 8000,
+   "notes": "分页 SQL 在 LeaveMapper.selectPage（ROWNUM）"
+  },
+  {
+   "id": "q07",
+   "query": "提交请假申请超过三天要走经理审批",
+   "expect": ["flow:post-leave-submit", "fn:LeaveService.submit", "tbl:OA_LEAVE"],
+   "budget": 8000,
+   "notes": "提交规则注释：超过 3 天需要部门经理审批，这里只校验天数"
+  },
+  {
+   "id": "q08",
+   "query": "请假审批通过以后审批人跟审批时间记在哪",
+   "expect": ["flow:post-leave-approve", "fn:LeaveService.approve", "tbl:OA_APPROVAL_LOG"],
+   "budget": 4000,
+   "notes": "审批流 + 审批日志表"
+  },
+  {
+   "id": "q09",
+   "query": "请假申请被驳回了怎么处理",
+   "expect": ["flow:post-leave-reject", "fn:LeaveService.reject", "fn:LeaveMapper.reject", "tbl:OA_LEAVE"],
+   "budget": 8000,
+   "notes": "请假驳回流；注意“驳回”也是报销审核的用词，需靠业务域区分"
+  },
+  {
+   "id": "q10",
+   "query": "超过30天没有审批的请假单自动作废",
+   "expect": ["flow:reportjob-expire", "fn:LeaveService.expireStale", "fn:ReportJob.expire", "tbl:OA_LEAVE"],
+   "budget": 8000,
+   "notes": "定时任务 ReportJob.expire → LeaveService.expireStale"
+  },
+  {
+   "id": "q11",
+   "query": "每天半夜导出请假汇总报表到文件服务器",
+   "expect": ["flow:reportjob-export", "fn:ReportJob.export"],
+   "budget": 4000,
+   "notes": "导出 CSV 并 copy 到 \\\\fileserver 的定时任务"
+  },
+  {
+   "id": "q12",
+   "query": "新员工入职怎么把工号录进系统",
+   "expect": ["flow:post-user-add", "fn:UserService.add", "tbl:OA_USER"],
+   "budget": 8000,
+   "notes": "新增用户流；工号即 OA_USER.ID"
+  },
+  {
+   "id": "q13",
+   "query": "员工离职停用账号还能不能提交报销",
+   "expect": ["flow:post-user-disable", "fn:UserService.disable", "tbl:OA_USER", "fn:ExpenseService.submit"],
+   "budget": 8000,
+   "notes": "停用注释说明不能再提交报销；提交时校验 user STATUS"
+  },
+  {
+   "id": "q14",
+   "query": "部门预算是按月冻结和释放的吗",
+   "expect": ["tbl:OA_BUDGET", "fn:BudgetMapper.freeze", "fn:BudgetMapper.release", "flow:post-expense-submit"],
+   "budget": 8000,
+   "notes": "OA_BUDGET 按 MONTH 维度 freeze/release"
+  },
+  {
+   "id": "q15",
+   "query": "审批日志表谁在什么时间改了什么",
+   "expect": ["tbl:OA_APPROVAL_LOG", "fn:ApprovalLogMapper.insert"],
+   "budget": 4000,
+   "notes": "审批日志表与写入方法"
+  },
+  {
+   "id": "q16",
+   "query": "请假列表要带出部门名称和部门树",
+   "expect": ["tbl:OA_DEPT", "fn:LeaveMapper.selectPage", "flow:get-leave-list"],
+   "budget": 8000,
+   "notes": "selectPage 关联 OA_DEPT；deptTree 是 XML 里的部门树查询"
+  },
+  {
+   "id": "q17",
+   "query": "请假统计的存储过程在哪",
+   "expect": ["tbl:P_LEAVE_STAT", "tbl:OA_LEAVE_STAT", "tbl:OA_LEAVE"],
+   "budget": 4000,
+   "notes": "proc_leave.sql 的 P_LEAVE_STAT 写入 OA_LEAVE_STAT"
+  },
+  {
+   "id": "q18",
+   "query": "报销单状态都有哪些，审核通过之后变成什么",
+   "expect": ["tbl:OA_EXPENSE", "flow:post-expense-audit", "fn:ExpenseMapper.auditPass"],
+   "budget": 8000,
+   "notes": "审核通过把 STATUS 置 AUDITED"
+  },
+  {
+   "id": "q19",
+   "query": "报销费用都分哪些类别，差旅招待办公",
+   "expect": ["tbl:OA_EXPENSE", "fn:ExpenseService.submit", "flow:post-expense-submit"],
+   "budget": 8000,
+   "notes": "CATEGORY 列注释：差旅/招待/办公"
+  },
+  {
+   "id": "q20",
+   "query": "密码是怎么加密存储的",
+   "expect": ["cls:com.acme.oa.util.PasswordUtil", "fn:PasswordUtil.hash"],
+   "budget": 4000,
+   "notes": "PasswordUtil.hash 用 MD5"
+  },
+  {
+   "id": "q21",
+   "query": "用户管理有哪些功能，新增和停用",
+   "expect": ["cls:com.acme.oa.controller.UserController", "flow:post-user-add", "flow:post-user-disable", "tbl:OA_USER"],
+   "budget": 8000,
+   "notes": "UserController 的两个入口"
+  },
+  {
+   "id": "q22",
+   "query": "报销单列表怎么按用户查的",
+   "expect": ["fn:ExpenseMapper.selectByUser", "tbl:OA_EXPENSE", "flow:get-expense-mine"],
+   "budget": 4000,
+   "notes": "selectByUser SQL 按 USER_ID 查"
+  },
+  {
+   "id": "q23",
+   "query": "审批不通过之后单据状态变成驳回",
+   "expect": ["flow:post-expense-audit", "fn:ExpenseMapper.auditReject", "tbl:OA_EXPENSE"],
+   "budget": 8000,
+   "notes": "auditReject 把 STATUS 置 REJECTED"
+  },
+  {
+   "id": "q24",
+   "query": "请假单状态过期了还能审批吗",
+   "expect": ["fn:LeaveService.approve", "flow:post-leave-approve", "tbl:OA_LEAVE"],
+   "budget": 8000,
+   "notes": "approve 的 UPDATE 带 STATUS='SUBMITTED' 条件"
+  },
+  {
+   "id": "q25",
+   "query": "我的报销单列表",
+   "expect": ["flow:get-expense-mine", "fn:ExpenseService.listByUser", "tbl:OA_EXPENSE"],
+   "budget": 4000,
+   "notes": "最短口语查询，检验短查询是否仍能命中业务流"
+  },
+  {
+   "id": "q26",
+   "query": "定时任务都在哪个类里",
+   "expect": ["cls:com.acme.oa.job.ReportJob", "fn:ReportJob.expire", "fn:ReportJob.export"],
+   "budget": 4000,
+   "notes": "ReportJob 上的 @Scheduled 任务"
+  }
+ ]
+}

@@ -33,11 +33,13 @@ import subprocess
 from pathlib import Path
 
 from . import activity, kb
-from .context import search
+from .context import PPR_LEXICAL_MIX, PPR_MIN_REL, PPR_SEED_HITS, personalized_pagerank, search
 from .graph import Graph, graph_path
 
 SCHEMA = 2
 NOTICE = "有来源的检索结果：来源事实不等于当前项目行为验证，也不替代人工验收。"
+RANKERS = ("lexical", "ppr")
+DEFAULT_RANKER = "lexical"
 SECTION_ORDER = ("pages", "flows", "tables", "code")
 SECTION_TITLE = {"pages": "知识页", "flows": "相关业务流", "tables": "相关表", "code": "相关代码位置"}
 SECTION_WEIGHT = {"pages": 0.42, "flows": 0.20, "tables": 0.14, "code": 0.16}
@@ -157,34 +159,75 @@ def _node_item(g: Graph, nid: str, score: float) -> dict | None:
     return None
 
 
-def collect(root: Path, query: str, limit: int = 40) -> list[dict]:
-    """Structured hits for one source: lexical search, then one step of graph expansion."""
+def _ppr_scores(root: Path, hits: list[tuple[float, dict]], g: Graph) -> dict[str, float]:
+    """Blend lexical hit scores with personalized PageRank over the graph.
+
+    The lexical top hits become the personalization vector; PPR then spreads that
+    relevance to nodes the hits imply. Both score sets are min-max scaled so the
+    mix weight is meaningful, and nodes only one ranker knows keep a partial score:
+    graph nodes get lexical + ppr, knowledge-only pages (e.g. `index`) get lexical.
+
+    PPR mass is defined over the whole graph, so its tail is cut: nodes the walk
+    barely reaches (below `PPR_MIN_REL` of the top PPR score) are dropped. Without
+    that cut the ranker would hand the pack the entire graph and inflate the token
+    bill with facts no hit implies.
+    """
+    lex = {d["id"]: float(s) for s, d in hits}
+    seeds = [(d["id"], float(s)) for s, d in hits[:PPR_SEED_HITS] if nid_is_graph_node(d["id"])]
+    ppr = personalized_pagerank(root, seeds, graph=g)
+    if not ppr:
+        return lex
+    lmax = max(lex.values()) or 1.0
+    pmax = max(ppr.values()) or 1.0
+    floor = pmax * PPR_MIN_REL
+    keep = {nid for nid, s in ppr.items() if s >= floor}
+    ids = set(lex) | keep
+    return {nid: PPR_LEXICAL_MIX * (lex.get(nid, 0.0) / lmax) + (1.0 - PPR_LEXICAL_MIX) * (ppr.get(nid, 0.0) / pmax)
+            for nid in ids}
+
+
+def nid_is_graph_node(nid: str) -> bool:
+    return nid.split(":", 1)[0] in ("flow", "tbl", "fn", "cls", "dom", "mod", "ep", "sm")
+
+
+def collect(root: Path, query: str, limit: int = 40, ranker: str = DEFAULT_RANKER) -> list[dict]:
+    """Structured hits for one source: lexical search, then one step of graph expansion.
+
+    `ranker="ppr"` replaces that one-step expansion with a personalized PageRank
+    pass seeded by the lexical hits (see `tmh.context.personalized_pagerank`).
+    The default stays lexical, so existing callers see byte-identical output.
+    """
+    if ranker not in RANKERS:
+        raise ValueError("未知 ranker：%r（可选 %s）" % (ranker, "、".join(RANKERS)))
     reg = kb.load_registry(root)
     hits = search(root, query, limit=limit)
-    score: dict[str, float] = {}
-    for s, d in hits:
-        score[d["id"]] = score.get(d["id"], 0.0) + s
     g = Graph(root)
     try:
-        # One propagation step: a hit on a method surfaces the flows that run it,
-        # a flow surfaces its tables, a class surfaces its methods. This is the
-        # same judgement the old build_context encoded, kept explicit here.
-        for s, d in hits[:15]:
-            nid = d["id"]
-            if nid.startswith("fn:"):
-                for e in g.inn(nid, "step"):
-                    score[e["src"]] = score.get(e["src"], 0.0) + s * 0.5
-            elif nid.startswith("flow:"):
-                for e in g.out(nid, "uses"):
-                    score[e["dst"]] = score.get(e["dst"], 0.0) + s * 0.3
-                for e in g.out(nid, "in"):
-                    score[e["dst"]] = score.get(e["dst"], 0.0) + s * 0.2
-            elif nid.startswith("tbl:"):
-                for e in g.inn(nid, "uses"):
-                    score[e["src"]] = score.get(e["src"], 0.0) + s * 0.25
-            elif nid.startswith("cls:"):
-                for e in g.out(nid, "contains"):
-                    score[e["dst"]] = score.get(e["dst"], 0.0) + s * 0.2
+        if ranker == "ppr":
+            score = _ppr_scores(root, hits, g)
+        else:
+            score = {}
+            for s, d in hits:
+                score[d["id"]] = score.get(d["id"], 0.0) + s
+            # One propagation step: a hit on a method surfaces the flows that run it,
+            # a flow surfaces its tables, a class surfaces its methods. This is the
+            # same judgement the old build_context encoded, kept explicit here.
+            for s, d in hits[:15]:
+                nid = d["id"]
+                if nid.startswith("fn:"):
+                    for e in g.inn(nid, "step"):
+                        score[e["src"]] = score.get(e["src"], 0.0) + s * 0.5
+                elif nid.startswith("flow:"):
+                    for e in g.out(nid, "uses"):
+                        score[e["dst"]] = score.get(e["dst"], 0.0) + s * 0.3
+                    for e in g.out(nid, "in"):
+                        score[e["dst"]] = score.get(e["dst"], 0.0) + s * 0.2
+                elif nid.startswith("tbl:"):
+                    for e in g.inn(nid, "uses"):
+                        score[e["src"]] = score.get(e["src"], 0.0) + s * 0.25
+                elif nid.startswith("cls:"):
+                    for e in g.out(nid, "contains"):
+                        score[e["dst"]] = score.get(e["dst"], 0.0) + s * 0.2
 
         items = []
         for nid, s in sorted(score.items(), key=lambda kv: (-kv[1], kv[0])):
@@ -293,14 +336,33 @@ def _render_text(result: dict) -> str:
     return "\n".join(lines)
 
 
+def rendered_text(result: dict) -> str:
+    """The text a caller would receive for an assembled JSON pack.
+
+    `assemble(json_mode=True)` drops the per-item `render` strings; a quality
+    measurement still has to know what the agent actually pays in tokens, so this
+    re-renders exactly the same view (same item order, same omission listing).
+    """
+    items = [dict(i, render=_render_item(i)) for i in result["items"]]
+    omissions = list(result.get("omissions") or [])
+    visible = omissions[:3]
+    return _render_text({**result, "items": items, "omissions": visible,
+                         "omissions_capped": len(omissions) - len(visible)})
+
+
 def assemble(sources, query: str, budget: int = 8000, json_mode: bool = False,
-             require_all: bool = False, log: bool = True) -> dict | str:
+             require_all: bool = False, log: bool = True, ranker: str = DEFAULT_RANKER) -> dict | str:
     """Build one context pack across the given sources.
 
     `sources` may be paths or dicts: {"root", "label", "current"}. The current
     project goes first; reference sources are kept as separate namespaces and
     are never merged with it by symbol name.
+
+    `ranker` selects how hits are ordered: "lexical" (default, unchanged) or
+    "ppr" (optional personalized-PageRank re-ranking, see `collect`).
     """
+    if ranker not in RANKERS:
+        raise ValueError("未知 ranker：%r（可选 %s）" % (ranker, "、".join(RANKERS)))
     query = (query or "").strip()
     specs = [_source(s, i) for i, s in enumerate(sources or [])]
     # Two projects may share a directory name (e.g. two checkouts of the same
@@ -327,7 +389,7 @@ def assemble(sources, query: str, budget: int = 8000, json_mode: bool = False,
         if not spec["available"]:
             continue
         try:
-            found = collect(Path(spec["root"]), query)
+            found = collect(Path(spec["root"]), query, ranker=ranker)
         except (OSError, ValueError, FileNotFoundError) as exc:
             spec["available"] = False
             spec["error"] = "检索失败：%s" % exc

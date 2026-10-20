@@ -1,0 +1,3114 @@
+{
+ "schema": 1,
+ "project": "examples/legacy-java-oa",
+ "queries": 26,
+ "rankers": {
+  "lexical": {
+   "retrieval": {
+    "recall@5": 0.5866,
+    "recall@10": 0.7372,
+    "precision@5": 0.3769,
+    "mrr": 0.6728,
+    "perfect@5": 0.1538
+   },
+   "packs": {
+    "4000": {
+     "tokens_mean": 759.65,
+     "tokens_total": 19751,
+     "coverage": 0.8675,
+     "tokens_per_needed_file": 274.32,
+     "budget_omission_rate": 0.0,
+     "missing_rate": 0.1325,
+     "complete_rate": 0.9615,
+     "items_mean": 24.58,
+     "used_mean": 2724.8
+    },
+    "8000": {
+     "tokens_mean": 758.65,
+     "tokens_total": 19725,
+     "coverage": 0.8675,
+     "tokens_per_needed_file": 273.96,
+     "budget_omission_rate": 0.0,
+     "missing_rate": 0.1325,
+     "complete_rate": 1.0,
+     "items_mean": 24.69,
+     "used_mean": 2729.6
+    }
+   }
+  },
+  "ppr": {
+   "retrieval": {
+    "recall@5": 0.5705,
+    "recall@10": 0.7596,
+    "precision@5": 0.3615,
+    "mrr": 0.7143,
+    "perfect@5": 0.1923
+   },
+   "packs": {
+    "4000": {
+     "tokens_mean": 1104.69,
+     "tokens_total": 28722,
+     "coverage": 0.9157,
+     "tokens_per_needed_file": 377.92,
+     "budget_omission_rate": 0.0241,
+     "missing_rate": 0.0602,
+     "complete_rate": 0.0769,
+     "items_mean": 33.92,
+     "used_mean": 3663.5
+    },
+    "8000": {
+     "tokens_mean": 1675.23,
+     "tokens_total": 43556,
+     "coverage": 0.9398,
+     "tokens_per_needed_file": 558.41,
+     "budget_omission_rate": 0.0,
+     "missing_rate": 0.0602,
+     "complete_rate": 0.5,
+     "items_mean": 64.65,
+     "used_mean": 6728.8
+    }
+   }
+  }
+ },
+ "budgets": [
+  4000,
+  8000
+ ],
+ "per_query": [
+  {
+   "id": "q01",
+   "query": "报销单提交不了，一直提示部门预算不足",
+   "expect": [
+    "flow:post-expense-submit",
+    "fn:ExpenseService.submit",
+    "tbl:OA_BUDGET",
+    "fn:BudgetMapper.remaining"
+   ],
+   "notes": "症状词（一直/不了）应被剥掉；核心是提交报销流里的预算校验",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:post-expense-submit": 1,
+      "fn:ExpenseService.submit": 4,
+      "tbl:OA_BUDGET": 2,
+      "fn:BudgetMapper.remaining": 24
+     },
+     "retrieval": {
+      "recall@5": 0.75,
+      "recall@10": 0.75,
+      "precision@5": 0.6,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3596,
+       "tokens": 975,
+       "items": 33,
+       "covered": [
+        "flow:post-expense-submit",
+        "fn:ExpenseService.submit",
+        "tbl:OA_BUDGET",
+        "fn:BudgetMapper.remaining"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 243.75,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3596,
+       "tokens": 975,
+       "items": 33,
+       "covered": [
+        "flow:post-expense-submit",
+        "fn:ExpenseService.submit",
+        "tbl:OA_BUDGET",
+        "fn:BudgetMapper.remaining"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 243.75,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:post-expense-submit": 1,
+      "fn:ExpenseService.submit": 2,
+      "tbl:OA_BUDGET": 5,
+      "fn:BudgetMapper.remaining": 14
+     },
+     "retrieval": {
+      "recall@5": 0.75,
+      "recall@10": 0.75,
+      "precision@5": 0.6,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3926,
+       "tokens": 1193,
+       "items": 36,
+       "covered": [
+        "flow:post-expense-submit",
+        "fn:ExpenseService.submit",
+        "tbl:OA_BUDGET",
+        "fn:BudgetMapper.remaining"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 298.25,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7986,
+       "tokens": 1970,
+       "items": 75,
+       "covered": [
+        "flow:post-expense-submit",
+        "fn:ExpenseService.submit",
+        "tbl:OA_BUDGET",
+        "fn:BudgetMapper.remaining"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 492.5,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q02",
+   "query": "财务审核驳回报销单以后冻结的钱怎么释放",
+   "expect": [
+    "flow:post-expense-audit",
+    "fn:ExpenseService.audit",
+    "fn:BudgetMapper.release",
+    "tbl:OA_BUDGET"
+   ],
+   "notes": "audit 不通过分支释放冻结预算",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:post-expense-audit": 1,
+      "fn:ExpenseService.audit": 7,
+      "fn:BudgetMapper.release": null,
+      "tbl:OA_BUDGET": 5
+     },
+     "retrieval": {
+      "recall@5": 0.5,
+      "recall@10": 0.75,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3643,
+       "tokens": 961,
+       "items": 34,
+       "covered": [
+        "flow:post-expense-audit",
+        "fn:ExpenseService.audit",
+        "tbl:OA_BUDGET"
+       ],
+       "omitted": [],
+       "missing": [
+        "fn:BudgetMapper.release"
+       ],
+       "coverage": 0.75,
+       "tokens_per_needed_file": 320.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3643,
+       "tokens": 961,
+       "items": 34,
+       "covered": [
+        "flow:post-expense-audit",
+        "fn:ExpenseService.audit",
+        "tbl:OA_BUDGET"
+       ],
+       "omitted": [],
+       "missing": [
+        "fn:BudgetMapper.release"
+       ],
+       "coverage": 0.75,
+       "tokens_per_needed_file": 320.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:post-expense-audit": 1,
+      "fn:ExpenseService.audit": 2,
+      "fn:BudgetMapper.release": 22,
+      "tbl:OA_BUDGET": 20
+     },
+     "retrieval": {
+      "recall@5": 0.5,
+      "recall@10": 0.5,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3941,
+       "tokens": 1173,
+       "items": 36,
+       "covered": [
+        "flow:post-expense-audit",
+        "fn:ExpenseService.audit",
+        "fn:BudgetMapper.release",
+        "tbl:OA_BUDGET"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 293.25,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7954,
+       "tokens": 1982,
+       "items": 75,
+       "covered": [
+        "flow:post-expense-audit",
+        "fn:ExpenseService.audit",
+        "fn:BudgetMapper.release",
+        "tbl:OA_BUDGET"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 495.5,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q03",
+   "query": "出纳付款成功之后预算怎么扣减",
+   "expect": [
+    "flow:post-expense-pay",
+    "fn:ExpenseService.pay",
+    "fn:BudgetMapper.consume"
+   ],
+   "notes": "付款流 + consume 扣减预算",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:post-expense-pay": 1,
+      "fn:ExpenseService.pay": 5,
+      "fn:BudgetMapper.consume": 10
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 1906,
+       "tokens": 581,
+       "items": 17,
+       "covered": [
+        "flow:post-expense-pay",
+        "fn:ExpenseService.pay",
+        "fn:BudgetMapper.consume"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 193.6667,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 1906,
+       "tokens": 581,
+       "items": 17,
+       "covered": [
+        "flow:post-expense-pay",
+        "fn:ExpenseService.pay",
+        "fn:BudgetMapper.consume"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 193.6667,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:post-expense-pay": 1,
+      "fn:ExpenseService.pay": 2,
+      "fn:BudgetMapper.consume": 7
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3919,
+       "tokens": 1161,
+       "items": 36,
+       "covered": [
+        "flow:post-expense-pay",
+        "fn:ExpenseService.pay",
+        "fn:BudgetMapper.consume"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 387.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 6975,
+       "tokens": 1704,
+       "items": 68,
+       "covered": [
+        "flow:post-expense-pay",
+        "fn:ExpenseService.pay",
+        "fn:BudgetMapper.consume"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 568.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q04",
+   "query": "员工在哪看我自己的报销记录",
+   "expect": [
+    "flow:get-expense-mine",
+    "fn:ExpenseService.listByUser",
+    "tbl:OA_EXPENSE"
+   ],
+   "notes": "我的报销单查询流",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:get-expense-mine": 3,
+      "fn:ExpenseService.listByUser": 30,
+      "tbl:OA_EXPENSE": 2
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 0.6667,
+      "precision@5": 0.4,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3707,
+       "tokens": 966,
+       "items": 34,
+       "covered": [
+        "flow:get-expense-mine",
+        "fn:ExpenseService.listByUser",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 322.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3707,
+       "tokens": 966,
+       "items": 34,
+       "covered": [
+        "flow:get-expense-mine",
+        "fn:ExpenseService.listByUser",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 322.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:get-expense-mine": 1,
+      "fn:ExpenseService.listByUser": 12,
+      "tbl:OA_EXPENSE": 4
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 0.6667,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3927,
+       "tokens": 1166,
+       "items": 36,
+       "covered": [
+        "flow:get-expense-mine",
+        "fn:ExpenseService.listByUser",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 388.6667,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7957,
+       "tokens": 1962,
+       "items": 75,
+       "covered": [
+        "flow:get-expense-mine",
+        "fn:ExpenseService.listByUser",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 654.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q05",
+   "query": "单笔报销超过五万系统怎么拦截",
+   "expect": [
+    "fn:ExpenseService.submit",
+    "flow:post-expense-submit",
+    "tbl:OA_EXPENSE"
+   ],
+   "notes": "5 万上限校验在 ExpenseService.submit",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "fn:ExpenseService.submit": 5,
+      "flow:post-expense-submit": 1,
+      "tbl:OA_EXPENSE": 2
+     },
+     "retrieval": {
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3662,
+       "tokens": 948,
+       "items": 33,
+       "covered": [
+        "fn:ExpenseService.submit",
+        "flow:post-expense-submit",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 316.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3662,
+       "tokens": 948,
+       "items": 33,
+       "covered": [
+        "fn:ExpenseService.submit",
+        "flow:post-expense-submit",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 316.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "fn:ExpenseService.submit": 1,
+      "flow:post-expense-submit": 3,
+      "tbl:OA_EXPENSE": 5
+     },
+     "retrieval": {
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3989,
+       "tokens": 1194,
+       "items": 37,
+       "covered": [
+        "fn:ExpenseService.submit",
+        "flow:post-expense-submit",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 398.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7918,
+       "tokens": 1970,
+       "items": 75,
+       "covered": [
+        "fn:ExpenseService.submit",
+        "flow:post-expense-submit",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 656.6667,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q06",
+   "query": "请假单列表分页是怎么查的",
+   "expect": [
+    "flow:get-leave-list",
+    "fn:LeaveService.list",
+    "fn:LeaveMapper.selectPage",
+    "tbl:OA_LEAVE"
+   ],
+   "notes": "分页 SQL 在 LeaveMapper.selectPage（ROWNUM）",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:get-leave-list": 1,
+      "fn:LeaveService.list": 10,
+      "fn:LeaveMapper.selectPage": 9,
+      "tbl:OA_LEAVE": 2
+     },
+     "retrieval": {
+      "recall@5": 0.5,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 2825,
+       "tokens": 773,
+       "items": 25,
+       "covered": [
+        "flow:get-leave-list",
+        "fn:LeaveService.list",
+        "fn:LeaveMapper.selectPage",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 193.25,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 2825,
+       "tokens": 773,
+       "items": 25,
+       "covered": [
+        "flow:get-leave-list",
+        "fn:LeaveService.list",
+        "fn:LeaveMapper.selectPage",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 193.25,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:get-leave-list": 1,
+      "fn:LeaveService.list": 4,
+      "fn:LeaveMapper.selectPage": 3,
+      "tbl:OA_LEAVE": 6
+     },
+     "retrieval": {
+      "recall@5": 0.75,
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3927,
+       "tokens": 1162,
+       "items": 37,
+       "covered": [
+        "flow:get-leave-list",
+        "fn:LeaveService.list",
+        "fn:LeaveMapper.selectPage",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 290.5,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 5975,
+       "tokens": 1504,
+       "items": 59,
+       "covered": [
+        "flow:get-leave-list",
+        "fn:LeaveService.list",
+        "fn:LeaveMapper.selectPage",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 376.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q07",
+   "query": "提交请假申请超过三天要走经理审批",
+   "expect": [
+    "flow:post-leave-submit",
+    "fn:LeaveService.submit",
+    "tbl:OA_LEAVE"
+   ],
+   "notes": "提交规则注释：超过 3 天需要部门经理审批，这里只校验天数",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:post-leave-submit": 1,
+      "fn:LeaveService.submit": 8,
+      "tbl:OA_LEAVE": 3
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3536,
+       "tokens": 1020,
+       "items": 33,
+       "covered": [
+        "flow:post-leave-submit",
+        "fn:LeaveService.submit",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 340.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3536,
+       "tokens": 1020,
+       "items": 33,
+       "covered": [
+        "flow:post-leave-submit",
+        "fn:LeaveService.submit",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 340.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:post-leave-submit": 1,
+      "fn:LeaveService.submit": 2,
+      "tbl:OA_LEAVE": 9
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3887,
+       "tokens": 1197,
+       "items": 36,
+       "covered": [
+        "flow:post-leave-submit",
+        "fn:LeaveService.submit",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 399.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7946,
+       "tokens": 1950,
+       "items": 76,
+       "covered": [
+        "flow:post-leave-submit",
+        "fn:LeaveService.submit",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 650.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q08",
+   "query": "请假审批通过以后审批人跟审批时间记在哪",
+   "expect": [
+    "flow:post-leave-approve",
+    "fn:LeaveService.approve",
+    "tbl:OA_APPROVAL_LOG"
+   ],
+   "notes": "审批流 + 审批日志表",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:post-leave-approve": 1,
+      "fn:LeaveService.approve": 7,
+      "tbl:OA_APPROVAL_LOG": 2
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3198,
+       "tokens": 894,
+       "items": 29,
+       "covered": [
+        "flow:post-leave-approve",
+        "fn:LeaveService.approve",
+        "tbl:OA_APPROVAL_LOG"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 298.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3198,
+       "tokens": 894,
+       "items": 29,
+       "covered": [
+        "flow:post-leave-approve",
+        "fn:LeaveService.approve",
+        "tbl:OA_APPROVAL_LOG"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 298.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:post-leave-approve": 1,
+      "fn:LeaveService.approve": 2,
+      "tbl:OA_APPROVAL_LOG": 4
+     },
+     "retrieval": {
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3966,
+       "tokens": 1216,
+       "items": 37,
+       "covered": [
+        "flow:post-leave-approve",
+        "fn:LeaveService.approve",
+        "tbl:OA_APPROVAL_LOG"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 405.3333,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7399,
+       "tokens": 1814,
+       "items": 73,
+       "covered": [
+        "flow:post-leave-approve",
+        "fn:LeaveService.approve",
+        "tbl:OA_APPROVAL_LOG"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 604.6667,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q09",
+   "query": "请假申请被驳回了怎么处理",
+   "expect": [
+    "flow:post-leave-reject",
+    "fn:LeaveService.reject",
+    "fn:LeaveMapper.reject",
+    "tbl:OA_LEAVE"
+   ],
+   "notes": "请假驳回流；注意“驳回”也是报销审核的用词，需靠业务域区分",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:post-leave-reject": 4,
+      "fn:LeaveService.reject": null,
+      "fn:LeaveMapper.reject": null,
+      "tbl:OA_LEAVE": 2
+     },
+     "retrieval": {
+      "recall@5": 0.5,
+      "recall@10": 0.5,
+      "precision@5": 0.4,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 1849,
+       "tokens": 542,
+       "items": 16,
+       "covered": [
+        "flow:post-leave-reject",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [
+        "fn:LeaveService.reject",
+        "fn:LeaveMapper.reject"
+       ],
+       "coverage": 0.5,
+       "tokens_per_needed_file": 271.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 1849,
+       "tokens": 542,
+       "items": 16,
+       "covered": [
+        "flow:post-leave-reject",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [
+        "fn:LeaveService.reject",
+        "fn:LeaveMapper.reject"
+       ],
+       "coverage": 0.5,
+       "tokens_per_needed_file": 271.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:post-leave-reject": 2,
+      "fn:LeaveService.reject": 16,
+      "fn:LeaveMapper.reject": 20,
+      "tbl:OA_LEAVE": 8
+     },
+     "retrieval": {
+      "recall@5": 0.25,
+      "recall@10": 0.5,
+      "precision@5": 0.2,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3920,
+       "tokens": 1182,
+       "items": 37,
+       "covered": [
+        "flow:post-leave-reject",
+        "fn:LeaveService.reject",
+        "fn:LeaveMapper.reject",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 295.5,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7302,
+       "tokens": 1788,
+       "items": 72,
+       "covered": [
+        "flow:post-leave-reject",
+        "fn:LeaveService.reject",
+        "fn:LeaveMapper.reject",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 447.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q10",
+   "query": "超过30天没有审批的请假单自动作废",
+   "expect": [
+    "flow:reportjob-expire",
+    "fn:LeaveService.expireStale",
+    "fn:ReportJob.expire",
+    "tbl:OA_LEAVE"
+   ],
+   "notes": "定时任务 ReportJob.expire → LeaveService.expireStale",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:reportjob-expire": 2,
+      "fn:LeaveService.expireStale": 10,
+      "fn:ReportJob.expire": 20,
+      "tbl:OA_LEAVE": 4
+     },
+     "retrieval": {
+      "recall@5": 0.5,
+      "recall@10": 0.75,
+      "precision@5": 0.4,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3295,
+       "tokens": 963,
+       "items": 30,
+       "covered": [
+        "flow:reportjob-expire",
+        "fn:LeaveService.expireStale",
+        "fn:ReportJob.expire",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 240.75,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3295,
+       "tokens": 963,
+       "items": 30,
+       "covered": [
+        "flow:reportjob-expire",
+        "fn:LeaveService.expireStale",
+        "fn:ReportJob.expire",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 240.75,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:reportjob-expire": 3,
+      "fn:LeaveService.expireStale": 6,
+      "fn:ReportJob.expire": 15,
+      "tbl:OA_LEAVE": 8
+     },
+     "retrieval": {
+      "recall@5": 0.25,
+      "recall@10": 0.75,
+      "precision@5": 0.2,
+      "mrr": 0.3333
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3952,
+       "tokens": 1200,
+       "items": 37,
+       "covered": [
+        "flow:reportjob-expire",
+        "fn:LeaveService.expireStale",
+        "fn:ReportJob.expire",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 300.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7866,
+       "tokens": 1919,
+       "items": 75,
+       "covered": [
+        "flow:reportjob-expire",
+        "fn:LeaveService.expireStale",
+        "fn:ReportJob.expire",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 479.75,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q11",
+   "query": "每天半夜导出请假汇总报表到文件服务器",
+   "expect": [
+    "flow:reportjob-export",
+    "fn:ReportJob.export"
+   ],
+   "notes": "导出 CSV 并 copy 到 \\\\fileserver 的定时任务",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:reportjob-export": 1,
+      "fn:ReportJob.export": 3
+     },
+     "retrieval": {
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 2110,
+       "tokens": 608,
+       "items": 19,
+       "covered": [
+        "flow:reportjob-export",
+        "fn:ReportJob.export"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 304.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 2110,
+       "tokens": 608,
+       "items": 19,
+       "covered": [
+        "flow:reportjob-export",
+        "fn:ReportJob.export"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 304.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:reportjob-export": 1,
+      "fn:ReportJob.export": 2
+     },
+     "retrieval": {
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3934,
+       "tokens": 1161,
+       "items": 37,
+       "covered": [
+        "flow:reportjob-export",
+        "fn:ReportJob.export"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 580.5,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 4402,
+       "tokens": 1207,
+       "items": 43,
+       "covered": [
+        "flow:reportjob-export",
+        "fn:ReportJob.export"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 603.5,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q12",
+   "query": "新员工入职怎么把工号录进系统",
+   "expect": [
+    "flow:post-user-add",
+    "fn:UserService.add",
+    "tbl:OA_USER"
+   ],
+   "notes": "新增用户流；工号即 OA_USER.ID",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:post-user-add": 3,
+      "fn:UserService.add": 2,
+      "tbl:OA_USER": null
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 0.6667,
+      "precision@5": 0.4,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 733,
+       "tokens": 292,
+       "items": 5,
+       "covered": [
+        "flow:post-user-add",
+        "fn:UserService.add"
+       ],
+       "omitted": [],
+       "missing": [
+        "tbl:OA_USER"
+       ],
+       "coverage": 0.6667,
+       "tokens_per_needed_file": 146.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 733,
+       "tokens": 292,
+       "items": 5,
+       "covered": [
+        "flow:post-user-add",
+        "fn:UserService.add"
+       ],
+       "omitted": [],
+       "missing": [
+        "tbl:OA_USER"
+       ],
+       "coverage": 0.6667,
+       "tokens_per_needed_file": 146.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:post-user-add": 3,
+      "fn:UserService.add": 1,
+      "tbl:OA_USER": 7
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3981,
+       "tokens": 1185,
+       "items": 38,
+       "covered": [
+        "flow:post-user-add",
+        "fn:UserService.add",
+        "tbl:OA_USER"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 395.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 5898,
+       "tokens": 1505,
+       "items": 58,
+       "covered": [
+        "flow:post-user-add",
+        "fn:UserService.add",
+        "tbl:OA_USER"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 501.6667,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q13",
+   "query": "员工离职停用账号还能不能提交报销",
+   "expect": [
+    "flow:post-user-disable",
+    "fn:UserService.disable",
+    "tbl:OA_USER",
+    "fn:ExpenseService.submit"
+   ],
+   "notes": "停用注释说明不能再提交报销；提交时校验 user STATUS",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:post-user-disable": 3,
+      "fn:UserService.disable": null,
+      "tbl:OA_USER": 4,
+      "fn:ExpenseService.submit": 8
+     },
+     "retrieval": {
+      "recall@5": 0.5,
+      "recall@10": 0.75,
+      "precision@5": 0.4,
+      "mrr": 0.3333
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3530,
+       "tokens": 970,
+       "items": 33,
+       "covered": [
+        "flow:post-user-disable",
+        "tbl:OA_USER",
+        "fn:ExpenseService.submit"
+       ],
+       "omitted": [],
+       "missing": [
+        "fn:UserService.disable"
+       ],
+       "coverage": 0.75,
+       "tokens_per_needed_file": 323.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3530,
+       "tokens": 970,
+       "items": 33,
+       "covered": [
+        "flow:post-user-disable",
+        "tbl:OA_USER",
+        "fn:ExpenseService.submit"
+       ],
+       "omitted": [],
+       "missing": [
+        "fn:UserService.disable"
+       ],
+       "coverage": 0.75,
+       "tokens_per_needed_file": 323.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:post-user-disable": 5,
+      "fn:UserService.disable": 37,
+      "tbl:OA_USER": 22,
+      "fn:ExpenseService.submit": 2
+     },
+     "retrieval": {
+      "recall@5": 0.5,
+      "recall@10": 0.5,
+      "precision@5": 0.4,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3952,
+       "tokens": 1195,
+       "items": 36,
+       "covered": [
+        "flow:post-user-disable",
+        "tbl:OA_USER",
+        "fn:ExpenseService.submit"
+       ],
+       "omitted": [
+        "fn:UserService.disable"
+       ],
+       "missing": [],
+       "coverage": 0.75,
+       "tokens_per_needed_file": 398.3333,
+       "budget_omission_rate": 0.25,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7960,
+       "tokens": 1965,
+       "items": 75,
+       "covered": [
+        "flow:post-user-disable",
+        "fn:UserService.disable",
+        "tbl:OA_USER",
+        "fn:ExpenseService.submit"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 491.25,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q14",
+   "query": "部门预算是按月冻结和释放的吗",
+   "expect": [
+    "tbl:OA_BUDGET",
+    "fn:BudgetMapper.freeze",
+    "fn:BudgetMapper.release",
+    "flow:post-expense-submit"
+   ],
+   "notes": "OA_BUDGET 按 MONTH 维度 freeze/release",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "tbl:OA_BUDGET": 2,
+      "fn:BudgetMapper.freeze": 11,
+      "fn:BudgetMapper.release": 12,
+      "flow:post-expense-submit": 3
+     },
+     "retrieval": {
+      "recall@5": 0.5,
+      "recall@10": 0.5,
+      "precision@5": 0.4,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 2307,
+       "tokens": 714,
+       "items": 21,
+       "covered": [
+        "tbl:OA_BUDGET",
+        "fn:BudgetMapper.freeze",
+        "fn:BudgetMapper.release",
+        "flow:post-expense-submit"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 178.5,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 2307,
+       "tokens": 714,
+       "items": 21,
+       "covered": [
+        "tbl:OA_BUDGET",
+        "fn:BudgetMapper.freeze",
+        "fn:BudgetMapper.release",
+        "flow:post-expense-submit"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 178.5,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "tbl:OA_BUDGET": 2,
+      "fn:BudgetMapper.freeze": 9,
+      "fn:BudgetMapper.release": 12,
+      "flow:post-expense-submit": 6
+     },
+     "retrieval": {
+      "recall@5": 0.25,
+      "recall@10": 0.75,
+      "precision@5": 0.2,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3907,
+       "tokens": 1208,
+       "items": 36,
+       "covered": [
+        "tbl:OA_BUDGET",
+        "fn:BudgetMapper.freeze",
+        "fn:BudgetMapper.release",
+        "flow:post-expense-submit"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 302.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7889,
+       "tokens": 2003,
+       "items": 76,
+       "covered": [
+        "tbl:OA_BUDGET",
+        "fn:BudgetMapper.freeze",
+        "fn:BudgetMapper.release",
+        "flow:post-expense-submit"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 500.75,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q15",
+   "query": "审批日志表谁在什么时间改了什么",
+   "expect": [
+    "tbl:OA_APPROVAL_LOG",
+    "fn:ApprovalLogMapper.insert"
+   ],
+   "notes": "审批日志表与写入方法",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "tbl:OA_APPROVAL_LOG": 2,
+      "fn:ApprovalLogMapper.insert": 17
+     },
+     "retrieval": {
+      "recall@5": 0.5,
+      "recall@10": 0.5,
+      "precision@5": 0.2,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 2902,
+       "tokens": 811,
+       "items": 27,
+       "covered": [
+        "tbl:OA_APPROVAL_LOG",
+        "fn:ApprovalLogMapper.insert"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 405.5,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 2902,
+       "tokens": 811,
+       "items": 27,
+       "covered": [
+        "tbl:OA_APPROVAL_LOG",
+        "fn:ApprovalLogMapper.insert"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 405.5,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "tbl:OA_APPROVAL_LOG": 3,
+      "fn:ApprovalLogMapper.insert": 6
+     },
+     "retrieval": {
+      "recall@5": 0.5,
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "mrr": 0.3333
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3984,
+       "tokens": 1202,
+       "items": 37,
+       "covered": [
+        "tbl:OA_APPROVAL_LOG",
+        "fn:ApprovalLogMapper.insert"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 601.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7323,
+       "tokens": 1798,
+       "items": 72,
+       "covered": [
+        "tbl:OA_APPROVAL_LOG",
+        "fn:ApprovalLogMapper.insert"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 899.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q16",
+   "query": "请假列表要带出部门名称和部门树",
+   "expect": [
+    "tbl:OA_DEPT",
+    "fn:LeaveMapper.selectPage",
+    "flow:get-leave-list"
+   ],
+   "notes": "selectPage 关联 OA_DEPT；deptTree 是 XML 里的部门树查询",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "tbl:OA_DEPT": 2,
+      "fn:LeaveMapper.selectPage": 8,
+      "flow:get-leave-list": 1
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 2435,
+       "tokens": 652,
+       "items": 21,
+       "covered": [
+        "tbl:OA_DEPT",
+        "fn:LeaveMapper.selectPage",
+        "flow:get-leave-list"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 217.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 2435,
+       "tokens": 652,
+       "items": 21,
+       "covered": [
+        "tbl:OA_DEPT",
+        "fn:LeaveMapper.selectPage",
+        "flow:get-leave-list"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 217.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "tbl:OA_DEPT": 3,
+      "fn:LeaveMapper.selectPage": 4,
+      "flow:get-leave-list": 1
+     },
+     "retrieval": {
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3938,
+       "tokens": 1154,
+       "items": 37,
+       "covered": [
+        "tbl:OA_DEPT",
+        "fn:LeaveMapper.selectPage",
+        "flow:get-leave-list"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 384.6667,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 5862,
+       "tokens": 1468,
+       "items": 58,
+       "covered": [
+        "tbl:OA_DEPT",
+        "fn:LeaveMapper.selectPage",
+        "flow:get-leave-list"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 489.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q17",
+   "query": "请假统计的存储过程在哪",
+   "expect": [
+    "tbl:P_LEAVE_STAT",
+    "tbl:OA_LEAVE_STAT",
+    "tbl:OA_LEAVE"
+   ],
+   "notes": "proc_leave.sql 的 P_LEAVE_STAT 写入 OA_LEAVE_STAT",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "tbl:P_LEAVE_STAT": 3,
+      "tbl:OA_LEAVE_STAT": 4,
+      "tbl:OA_LEAVE": 7
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 0.3333
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 2186,
+       "tokens": 627,
+       "items": 21,
+       "covered": [
+        "tbl:P_LEAVE_STAT",
+        "tbl:OA_LEAVE_STAT",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 209.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 2186,
+       "tokens": 627,
+       "items": 21,
+       "covered": [
+        "tbl:P_LEAVE_STAT",
+        "tbl:OA_LEAVE_STAT",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 209.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "tbl:P_LEAVE_STAT": 2,
+      "tbl:OA_LEAVE_STAT": 4,
+      "tbl:OA_LEAVE": 13
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 0.6667,
+      "precision@5": 0.4,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3974,
+       "tokens": 1194,
+       "items": 39,
+       "covered": [
+        "tbl:P_LEAVE_STAT",
+        "tbl:OA_LEAVE_STAT",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 398.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 6758,
+       "tokens": 1678,
+       "items": 68,
+       "covered": [
+        "tbl:P_LEAVE_STAT",
+        "tbl:OA_LEAVE_STAT",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 559.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q18",
+   "query": "报销单状态都有哪些，审核通过之后变成什么",
+   "expect": [
+    "tbl:OA_EXPENSE",
+    "flow:post-expense-audit",
+    "fn:ExpenseMapper.auditPass"
+   ],
+   "notes": "审核通过把 STATUS 置 AUDITED",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "tbl:OA_EXPENSE": 2,
+      "flow:post-expense-audit": 1,
+      "fn:ExpenseMapper.auditPass": 13
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 0.6667,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3681,
+       "tokens": 967,
+       "items": 34,
+       "covered": [
+        "tbl:OA_EXPENSE",
+        "flow:post-expense-audit",
+        "fn:ExpenseMapper.auditPass"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 322.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3681,
+       "tokens": 967,
+       "items": 34,
+       "covered": [
+        "tbl:OA_EXPENSE",
+        "flow:post-expense-audit",
+        "fn:ExpenseMapper.auditPass"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 322.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "tbl:OA_EXPENSE": 9,
+      "flow:post-expense-audit": 1,
+      "fn:ExpenseMapper.auditPass": 7
+     },
+     "retrieval": {
+      "recall@5": 0.3333,
+      "recall@10": 1.0,
+      "precision@5": 0.2,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3939,
+       "tokens": 1173,
+       "items": 36,
+       "covered": [
+        "tbl:OA_EXPENSE",
+        "flow:post-expense-audit",
+        "fn:ExpenseMapper.auditPass"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 391.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7955,
+       "tokens": 1982,
+       "items": 75,
+       "covered": [
+        "tbl:OA_EXPENSE",
+        "flow:post-expense-audit",
+        "fn:ExpenseMapper.auditPass"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 660.6667,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q19",
+   "query": "报销费用都分哪些类别，差旅招待办公",
+   "expect": [
+    "tbl:OA_EXPENSE",
+    "fn:ExpenseService.submit",
+    "flow:post-expense-submit"
+   ],
+   "notes": "CATEGORY 列注释：差旅/招待/办公",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "tbl:OA_EXPENSE": 2,
+      "fn:ExpenseService.submit": 15,
+      "flow:post-expense-submit": 1
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 0.6667,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3362,
+       "tokens": 849,
+       "items": 30,
+       "covered": [
+        "tbl:OA_EXPENSE",
+        "fn:ExpenseService.submit",
+        "flow:post-expense-submit"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 283.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3362,
+       "tokens": 849,
+       "items": 30,
+       "covered": [
+        "tbl:OA_EXPENSE",
+        "fn:ExpenseService.submit",
+        "flow:post-expense-submit"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 283.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "tbl:OA_EXPENSE": 4,
+      "fn:ExpenseService.submit": 10,
+      "flow:post-expense-submit": 3
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 0.3333
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3931,
+       "tokens": 1169,
+       "items": 36,
+       "covered": [
+        "tbl:OA_EXPENSE",
+        "fn:ExpenseService.submit",
+        "flow:post-expense-submit"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 389.6667,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7961,
+       "tokens": 1965,
+       "items": 75,
+       "covered": [
+        "tbl:OA_EXPENSE",
+        "fn:ExpenseService.submit",
+        "flow:post-expense-submit"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 655.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q20",
+   "query": "密码是怎么加密存储的",
+   "expect": [
+    "cls:com.acme.oa.util.PasswordUtil",
+    "fn:PasswordUtil.hash"
+   ],
+   "notes": "PasswordUtil.hash 用 MD5",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "cls:com.acme.oa.util.PasswordUtil": null,
+      "fn:PasswordUtil.hash": null
+     },
+     "retrieval": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "mrr": 0.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 284,
+       "tokens": 138,
+       "items": 0,
+       "covered": [],
+       "omitted": [],
+       "missing": [
+        "cls:com.acme.oa.util.PasswordUtil",
+        "fn:PasswordUtil.hash"
+       ],
+       "coverage": 0.0,
+       "tokens_per_needed_file": null,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 284,
+       "tokens": 138,
+       "items": 0,
+       "covered": [],
+       "omitted": [],
+       "missing": [
+        "cls:com.acme.oa.util.PasswordUtil",
+        "fn:PasswordUtil.hash"
+       ],
+       "coverage": 0.0,
+       "tokens_per_needed_file": null,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "cls:com.acme.oa.util.PasswordUtil": null,
+      "fn:PasswordUtil.hash": null
+     },
+     "retrieval": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "mrr": 0.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 284,
+       "tokens": 138,
+       "items": 0,
+       "covered": [],
+       "omitted": [],
+       "missing": [
+        "cls:com.acme.oa.util.PasswordUtil",
+        "fn:PasswordUtil.hash"
+       ],
+       "coverage": 0.0,
+       "tokens_per_needed_file": null,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 284,
+       "tokens": 138,
+       "items": 0,
+       "covered": [],
+       "omitted": [],
+       "missing": [
+        "cls:com.acme.oa.util.PasswordUtil",
+        "fn:PasswordUtil.hash"
+       ],
+       "coverage": 0.0,
+       "tokens_per_needed_file": null,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q21",
+   "query": "用户管理有哪些功能，新增和停用",
+   "expect": [
+    "cls:com.acme.oa.controller.UserController",
+    "flow:post-user-add",
+    "flow:post-user-disable",
+    "tbl:OA_USER"
+   ],
+   "notes": "UserController 的两个入口",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "cls:com.acme.oa.controller.UserController": 5,
+      "flow:post-user-add": 1,
+      "flow:post-user-disable": 2,
+      "tbl:OA_USER": 3
+     },
+     "retrieval": {
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@5": 0.8,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 2195,
+       "tokens": 600,
+       "items": 20,
+       "covered": [
+        "cls:com.acme.oa.controller.UserController",
+        "flow:post-user-add",
+        "flow:post-user-disable",
+        "tbl:OA_USER"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 150.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 2195,
+       "tokens": 600,
+       "items": 20,
+       "covered": [
+        "cls:com.acme.oa.controller.UserController",
+        "flow:post-user-add",
+        "flow:post-user-disable",
+        "tbl:OA_USER"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 150.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "cls:com.acme.oa.controller.UserController": 6,
+      "flow:post-user-add": 1,
+      "flow:post-user-disable": 2,
+      "tbl:OA_USER": 4
+     },
+     "retrieval": {
+      "recall@5": 0.75,
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3996,
+       "tokens": 1161,
+       "items": 38,
+       "covered": [
+        "cls:com.acme.oa.controller.UserController",
+        "flow:post-user-add",
+        "flow:post-user-disable",
+        "tbl:OA_USER"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 290.25,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 5940,
+       "tokens": 1496,
+       "items": 58,
+       "covered": [
+        "cls:com.acme.oa.controller.UserController",
+        "flow:post-user-add",
+        "flow:post-user-disable",
+        "tbl:OA_USER"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 374.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q22",
+   "query": "报销单列表怎么按用户查的",
+   "expect": [
+    "fn:ExpenseMapper.selectByUser",
+    "tbl:OA_EXPENSE",
+    "flow:get-expense-mine"
+   ],
+   "notes": "selectByUser SQL 按 USER_ID 查",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "fn:ExpenseMapper.selectByUser": 14,
+      "tbl:OA_EXPENSE": 5,
+      "flow:get-expense-mine": 6
+     },
+     "retrieval": {
+      "recall@5": 0.3333,
+      "recall@10": 0.6667,
+      "precision@5": 0.2,
+      "mrr": 0.2
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3919,
+       "tokens": 1071,
+       "items": 35,
+       "covered": [
+        "fn:ExpenseMapper.selectByUser",
+        "tbl:OA_EXPENSE",
+        "flow:get-expense-mine"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 357.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 4043,
+       "tokens": 1045,
+       "items": 38,
+       "covered": [
+        "fn:ExpenseMapper.selectByUser",
+        "tbl:OA_EXPENSE",
+        "flow:get-expense-mine"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 348.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "fn:ExpenseMapper.selectByUser": 9,
+      "tbl:OA_EXPENSE": 11,
+      "flow:get-expense-mine": 1
+     },
+     "retrieval": {
+      "recall@5": 0.3333,
+      "recall@10": 0.6667,
+      "precision@5": 0.2,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3915,
+       "tokens": 1188,
+       "items": 36,
+       "covered": [
+        "fn:ExpenseMapper.selectByUser",
+        "tbl:OA_EXPENSE",
+        "flow:get-expense-mine"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 396.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7930,
+       "tokens": 1914,
+       "items": 75,
+       "covered": [
+        "fn:ExpenseMapper.selectByUser",
+        "tbl:OA_EXPENSE",
+        "flow:get-expense-mine"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 638.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q23",
+   "query": "审批不通过之后单据状态变成驳回",
+   "expect": [
+    "flow:post-expense-audit",
+    "fn:ExpenseMapper.auditReject",
+    "tbl:OA_EXPENSE"
+   ],
+   "notes": "auditReject 把 STATUS 置 REJECTED",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:post-expense-audit": 8,
+      "fn:ExpenseMapper.auditReject": 20,
+      "tbl:OA_EXPENSE": null
+     },
+     "retrieval": {
+      "recall@5": 0.0,
+      "recall@10": 0.3333,
+      "precision@5": 0.0,
+      "mrr": 0.125
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 2773,
+       "tokens": 819,
+       "items": 25,
+       "covered": [
+        "flow:post-expense-audit",
+        "fn:ExpenseMapper.auditReject"
+       ],
+       "omitted": [],
+       "missing": [
+        "tbl:OA_EXPENSE"
+       ],
+       "coverage": 0.6667,
+       "tokens_per_needed_file": 409.5,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 2773,
+       "tokens": 819,
+       "items": 25,
+       "covered": [
+        "flow:post-expense-audit",
+        "fn:ExpenseMapper.auditReject"
+       ],
+       "omitted": [],
+       "missing": [
+        "tbl:OA_EXPENSE"
+       ],
+       "coverage": 0.6667,
+       "tokens_per_needed_file": 409.5,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:post-expense-audit": 14,
+      "fn:ExpenseMapper.auditReject": 31,
+      "tbl:OA_EXPENSE": 39
+     },
+     "retrieval": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "mrr": 0.0714
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3959,
+       "tokens": 1214,
+       "items": 37,
+       "covered": [
+        "flow:post-expense-audit",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [
+        "fn:ExpenseMapper.auditReject"
+       ],
+       "missing": [],
+       "coverage": 0.6667,
+       "tokens_per_needed_file": 607.0,
+       "budget_omission_rate": 0.3333,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7511,
+       "tokens": 1849,
+       "items": 74,
+       "covered": [
+        "flow:post-expense-audit",
+        "fn:ExpenseMapper.auditReject",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 616.3333,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q24",
+   "query": "请假单状态过期了还能审批吗",
+   "expect": [
+    "fn:LeaveService.approve",
+    "flow:post-leave-approve",
+    "tbl:OA_LEAVE"
+   ],
+   "notes": "approve 的 UPDATE 带 STATUS='SUBMITTED' 条件",
+   "budget_hint": 8000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "fn:LeaveService.approve": 7,
+      "flow:post-leave-approve": 1,
+      "tbl:OA_LEAVE": 3
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3164,
+       "tokens": 921,
+       "items": 29,
+       "covered": [
+        "fn:LeaveService.approve",
+        "flow:post-leave-approve",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 307.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3164,
+       "tokens": 921,
+       "items": 29,
+       "covered": [
+        "fn:LeaveService.approve",
+        "flow:post-leave-approve",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 307.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "fn:LeaveService.approve": 3,
+      "flow:post-leave-approve": 2,
+      "tbl:OA_LEAVE": 9
+     },
+     "retrieval": {
+      "recall@5": 0.6667,
+      "recall@10": 1.0,
+      "precision@5": 0.4,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3949,
+       "tokens": 1210,
+       "items": 37,
+       "covered": [
+        "fn:LeaveService.approve",
+        "flow:post-leave-approve",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 403.3333,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7862,
+       "tokens": 1916,
+       "items": 75,
+       "covered": [
+        "fn:LeaveService.approve",
+        "flow:post-leave-approve",
+        "tbl:OA_LEAVE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 638.6667,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q25",
+   "query": "我的报销单列表",
+   "expect": [
+    "flow:get-expense-mine",
+    "fn:ExpenseService.listByUser",
+    "tbl:OA_EXPENSE"
+   ],
+   "notes": "最短口语查询，检验短查询是否仍能命中业务流",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "flow:get-expense-mine": 3,
+      "fn:ExpenseService.listByUser": 5,
+      "tbl:OA_EXPENSE": 2
+     },
+     "retrieval": {
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "mrr": 0.5
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3763,
+       "tokens": 951,
+       "items": 35,
+       "covered": [
+        "flow:get-expense-mine",
+        "fn:ExpenseService.listByUser",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 317.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 3763,
+       "tokens": 951,
+       "items": 35,
+       "covered": [
+        "flow:get-expense-mine",
+        "fn:ExpenseService.listByUser",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 317.0,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "flow:get-expense-mine": 1,
+      "fn:ExpenseService.listByUser": 2,
+      "tbl:OA_EXPENSE": 5
+     },
+     "retrieval": {
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@5": 0.6,
+      "mrr": 1.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 3971,
+       "tokens": 1188,
+       "items": 37,
+       "covered": [
+        "flow:get-expense-mine",
+        "fn:ExpenseService.listByUser",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 396.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 7851,
+       "tokens": 1971,
+       "items": 76,
+       "covered": [
+        "flow:get-expense-mine",
+        "fn:ExpenseService.listByUser",
+        "tbl:OA_EXPENSE"
+       ],
+       "omitted": [],
+       "missing": [],
+       "coverage": 1.0,
+       "tokens_per_needed_file": 657.0,
+       "budget_omission_rate": 0.0,
+       "complete": false
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "q26",
+   "query": "定时任务都在哪个类里",
+   "expect": [
+    "cls:com.acme.oa.job.ReportJob",
+    "fn:ReportJob.expire",
+    "fn:ReportJob.export"
+   ],
+   "notes": "ReportJob 上的 @Scheduled 任务",
+   "budget_hint": 4000,
+   "rankers": {
+    "lexical": {
+     "ranks": {
+      "cls:com.acme.oa.job.ReportJob": null,
+      "fn:ReportJob.expire": null,
+      "fn:ReportJob.export": null
+     },
+     "retrieval": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "mrr": 0.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 284,
+       "tokens": 138,
+       "items": 0,
+       "covered": [],
+       "omitted": [],
+       "missing": [
+        "cls:com.acme.oa.job.ReportJob",
+        "fn:ReportJob.expire",
+        "fn:ReportJob.export"
+       ],
+       "coverage": 0.0,
+       "tokens_per_needed_file": null,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 284,
+       "tokens": 138,
+       "items": 0,
+       "covered": [],
+       "omitted": [],
+       "missing": [
+        "cls:com.acme.oa.job.ReportJob",
+        "fn:ReportJob.expire",
+        "fn:ReportJob.export"
+       ],
+       "coverage": 0.0,
+       "tokens_per_needed_file": null,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    },
+    "ppr": {
+     "ranks": {
+      "cls:com.acme.oa.job.ReportJob": null,
+      "fn:ReportJob.expire": null,
+      "fn:ReportJob.export": null
+     },
+     "retrieval": {
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "precision@5": 0.0,
+      "mrr": 0.0
+     },
+     "packs": {
+      "4000": {
+       "budget": 4000,
+       "used": 284,
+       "tokens": 138,
+       "items": 0,
+       "covered": [],
+       "omitted": [],
+       "missing": [
+        "cls:com.acme.oa.job.ReportJob",
+        "fn:ReportJob.expire",
+        "fn:ReportJob.export"
+       ],
+       "coverage": 0.0,
+       "tokens_per_needed_file": null,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      },
+      "8000": {
+       "budget": 8000,
+       "used": 284,
+       "tokens": 138,
+       "items": 0,
+       "covered": [],
+       "omitted": [],
+       "missing": [
+        "cls:com.acme.oa.job.ReportJob",
+        "fn:ReportJob.expire",
+        "fn:ReportJob.export"
+       ],
+       "coverage": 0.0,
+       "tokens_per_needed_file": null,
+       "budget_omission_rate": 0.0,
+       "complete": true
+      }
+     }
+    }
+   }
+  }
+ ],
+ "golden": {
+  "path": "tests/fixtures/context_golden.json",
+  "schema": 1,
+  "sha256": "5eff7fb78e2473d8",
+  "queries": 26
+ },
+ "environment": {
+  "generated_at": "2026-10-21T00:22:02+08:00",
+  "machine": "Windows-10-10.0.26200-SP0",
+  "python": "3.11.5",
+  "repo_head": "1e99c9d",
+  "graph": {
+   "nodes": 134,
+   "edges": 284,
+   "kinds": {
+    "mod": 1,
+    "file": 25,
+    "cls": 14,
+    "fn": 53,
+    "ext": 3,
+    "tbl": 8,
+    "ep": 12,
+    "flow": 12,
+    "sm": 3,
+    "dom": 3
+   },
+   "domains": 3,
+   "parsed": 24,
+   "cached": 0,
+   "diagnostics": [],
+   "analysis": {
+    "python": {
+     "files": 0,
+     "parsed": 0,
+     "unknown": []
+    },
+    "diagnostics": []
+   }
+  },
+  "kb_coverage": {
+   "total": {
+    "未分析": 21
+   },
+   "by_kind": {
+    "index": {
+     "未分析": 1
+    },
+    "flow": {
+     "未分析": 10
+    },
+    "tbl": {
+     "未分析": 6
+    },
+    "dom": {
+     "未分析": 3
+    },
+    "mod": {
+     "未分析": 1
+    }
+   },
+   "context_chars": 0
+  },
+  "seconds": 14.5,
+  "ranker_params": {
+   "ppr_damping": 0.85,
+   "ppr_tol": 1e-09,
+   "ppr_max_iter": 100,
+   "ppr_seed_hits": 10,
+   "ppr_lexical_mix": 0.5,
+   "ppr_min_rel": 0.005,
+   "edge_weights": "step 1.0, handles/calls 0.9, entry/uses 0.8, writes/in 0.7, reads 0.6, contains/has_state 0.5, extends/transition 0.4, depends/effect 0.3; symmetric walk",
+   "token_estimate": "1 per CJK char + 1 per ASCII word (tmh.context_quality.estimate_tokens)"
+  }
+ },
+ "comparison": {
+  "wins": 3,
+  "ties": 18,
+  "losses": 5,
+  "recall@5_delta": -0.0161,
+  "recall@10_delta": 0.0224,
+  "mrr_delta": 0.0415,
+  "per_budget": {
+   "4000": {
+    "coverage_delta": 0.0482,
+    "tokens_change": 0.4542,
+    "tokens_per_needed_file_change": 0.3777
+   },
+   "8000": {
+    "coverage_delta": 0.0723,
+    "tokens_change": 1.2082,
+    "tokens_per_needed_file_change": 1.0383
+   }
+  },
+  "decision": {
+   "ppr_default_enabled": false,
+   "rule": "recall@5 gain >= 0.02 且 needed-id 覆盖率不降 >0.02 且 token 变化 <= 25%",
+   "reasons": [
+    "recall@5 增益 -0.0161 < 门槛 0.02",
+    "token 变化超过 ±25%"
+   ]
+  }
+ }
+}

@@ -245,6 +245,98 @@ def search(root: Path, query: str, limit: int = 30) -> list[tuple[float, dict]]:
     return [(s, {"id": docs[i][0], "type": docs[i][1], "title": docs[i][2], "domain": docs[i][3]}) for s, i in scored[:limit]]
 
 
+# ---- optional graph ranker: personalized PageRank over the knowledge graph -----
+# Lexical search answers "which page/node mentions these words"; it cannot tell
+# that hitting `fn:LeaveService.approve` also makes `flow:post-leave-approve` and
+# `tbl:OA_APPROVAL_LOG` relevant. PPR spreads the seed mass along the graph, so a
+# node that many high-scoring hits point at (directly or via one hop) rises.
+# Every number below is deliberately explicit: the comparison report quotes them.
+#
+# Edge weights per graph edge kind. `step`/`handles`/`calls` carry the most signal
+# (this code runs that code), table read/write edges less (many flows touch a table),
+# module dependency edges least (architecture, not behaviour).
+PPR_EDGE_WEIGHT = {
+    "step": 1.0, "handles": 0.9, "entry": 0.8, "calls": 0.9, "uses": 0.8,
+    "reads": 0.6, "writes": 0.7, "in": 0.7, "contains": 0.5,
+    "depends": 0.3, "extends": 0.4, "has_state": 0.5, "transition": 0.4, "effect": 0.3,
+}
+PPR_DAMPING = 0.85       # walker follows the graph 85% of the time, restarts from the seeds
+PPR_TOL = 1e-9           # L1 change below which the power iteration has converged
+PPR_MAX_ITER = 100       # hard cap; the example graph converges in ~20 iterations
+PPR_SEED_HITS = 10       # lexical top-k that form the personalization vector
+PPR_LEXICAL_MIX = 0.5    # final score = MIX * lexical + (1-MIX) * ppr (both min-max scaled)
+PPR_MIN_REL = 0.005      # drop graph nodes whose PPR mass is below 0.5% of the top node
+
+
+def personalized_pagerank(root: Path, seeds, graph: Graph | None = None, damping: float = PPR_DAMPING,
+                          tol: float = PPR_TOL, max_iter: int = PPR_MAX_ITER,
+                          edge_weights: dict | None = None) -> dict[str, float]:
+    """Personalized PageRank over graph.db, seeded by lexical hits.
+
+    `seeds` is a mapping or an iterable of (node_id, score) pairs. Returns
+    {node_id: score} summing to 1, or {} when no seed exists in the graph.
+
+    The random walk is symmetric: for every edge `src --kind--> dst` the walker
+    may move both ways with `PPR_EDGE_WEIGHT[kind]`, because relevance is not
+    directional here (a flow implies its handler, a handler implies its flow).
+    Parallel edges between the same pair add up. Iteration is the usual
+    r <- damping * A^T r + (1 - damping) * p; dangling mass is redistributed by p.
+    """
+    g = graph or Graph(root)
+    close = graph is None
+    try:
+        try:
+            node_ids = {r[0] for r in g.db.execute("SELECT id FROM nodes")}
+            rows = list(g.db.execute("SELECT src, dst, kind FROM edges"))
+        except Exception as exc:  # a missing/half-written graph must degrade, not crash a pack
+            raise ValueError("知识图谱不可读取：%s" % exc)
+    finally:
+        if close:
+            g.db.close()
+    weights = PPR_EDGE_WEIGHT if edge_weights is None else edge_weights
+    pairs: dict[str, dict[str, float]] = defaultdict(dict)
+    for src, dst, kind in rows:
+        if src not in node_ids or dst not in node_ids or src == dst:
+            continue
+        w = float(weights.get(kind, 0.0) or 0.0)
+        if w <= 0:
+            continue
+        pairs[src][dst] = pairs[src].get(dst, 0.0) + w
+        pairs[dst][src] = pairs[dst].get(src, 0.0) + w
+
+    raw = dict(seeds) if isinstance(seeds, dict) else dict(seeds or [])
+    p = {nid: float(s) for nid, s in raw.items() if nid in node_ids and float(s or 0.0) > 0}
+    total = sum(p.values())
+    if total <= 0:
+        return {}
+    p = {nid: s / total for nid, s in p.items()}
+    adj = {nid: pairs.get(nid, {}) for nid in node_ids}
+    row_sum = {nid: sum(row.values()) for nid, row in adj.items()}
+    r = dict(p)
+    for _ in range(max(1, int(max_iter))):
+        new = {nid: (1.0 - damping) * p.get(nid, 0.0) for nid in node_ids}
+        dangling = 0.0
+        for nid in sorted(node_ids):
+            mass = r.get(nid, 0.0)
+            if mass <= 0:
+                continue
+            row = adj[nid]
+            if not row:
+                dangling += mass
+                continue
+            share = damping * mass / row_sum[nid]
+            for dst in sorted(row):
+                new[dst] += share * row[dst]
+        if dangling:
+            for nid in sorted(p):
+                new[nid] += damping * dangling * p[nid]
+        delta = sum(abs(new[nid] - r.get(nid, 0.0)) for nid in node_ids)
+        r = new
+        if delta < tol:
+            break
+    return r
+
+
 def domains_for(root: Path, query: str, n: int = 3) -> list[str]:
     """The business domains a request most likely belongs to, best first."""
     out = []

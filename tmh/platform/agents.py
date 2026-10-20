@@ -347,10 +347,77 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
     return "\n".join(out)
 
 
+_CTX_META = threading.local()
+
+
+def reset_context_meta() -> None:
+    """Start a fresh reading of which context packs this prompt assembled."""
+    _CTX_META.meta = []
+
+
+def take_context_meta() -> list:
+    return list(getattr(_CTX_META, "meta", []))
+
+
+def _record_context(store: Store, data_dir, run_id: int, metas: list) -> None:
+    """Attach the context-pack receipt to the run without changing the schema.
+
+    The JSON sidecar (<data>/runs/<id>/context.json) keeps the full receipt; the
+    run output gets one human-readable line, so "which knowledge/versions did this
+    run actually see" is answerable from the run record alone.
+    """
+    if not metas:
+        return
+    try:
+        rdir = Path(data_dir) / "runs" / str(run_id)
+        rdir.mkdir(parents=True, exist_ok=True)
+        (rdir / "context.json").write_text(json.dumps(metas, ensure_ascii=False, indent=1), encoding="utf-8")
+    except OSError:
+        pass
+    m = metas[-1]
+    try:
+        if m.get("mode") == "context_pack":
+            store.append_output(run_id, "— 任务上下文：context pack v%d，已用 %d/%d 字符，%s，未展开 %d 条，知识修订 %s\n" % (
+                m.get("schema", 2), m.get("used", 0), m.get("budget", 0),
+                "完整" if m.get("complete") else "部分",
+                m.get("omissions", 0), m.get("knowledge_revision") or "-"))
+        else:
+            store.append_output(run_id, "— 任务上下文：旧版 build_context（context pack 不可用，已回退）\n")
+    except Exception:  # a receipt must never break the run that recorded it
+        pass
+
+
 def knowledge(root: Path, query: str, budget: int = 6000) -> str:
     from ..graph import graph_path
     if not graph_path(root).exists():
         return "（这个项目还没有知识库。直接按工单描述在代码里定位；建议之后运行 tmh kb build。）"
+    if os.environ.get("TMH_CONTEXT_PACK", "1").lower() not in ("0", "false", "off"):
+        try:
+            from .. import context_pack as cp
+            pack = cp.assemble([{"root": str(root), "label": Path(root).name or "project", "current": True}],
+                               query, budget=budget, json_mode=True, log=False)
+            for item in pack.get("items") or []:  # the JSON form strips the rendered line; put it back
+                item["render"] = cp._render_item(item)
+            text = cp._render_text(pack).replace("# 与“", "# 知识库：与“", 1)
+            src = (pack.get("sources") or [{}])[0]
+            _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{
+                "mode": "context_pack",
+                "schema": pack.get("schema", 2),
+                "query": query,
+                "budget": pack.get("budget", budget),
+                "used": pack.get("used", 0),
+                "complete": bool(pack.get("complete")),
+                "omissions": len(pack.get("omissions") or []),
+                "omissions_capped": pack.get("omissions_capped", 0),
+                "knowledge_revision": src.get("knowledge_revision"),
+                "source_version": src.get("revision"),
+                "items": len(pack.get("items") or []),
+            }]
+            return text
+        except Exception as exc:  # noqa: BLE001 - a pack failure must not block the agent run
+            _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{"mode": "legacy", "error": "%s: %s" % (type(exc).__name__, exc)}]
+    else:
+        _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{"mode": "legacy"}]
     from ..context import build_context
     return build_context(root, query, budget).replace("# 与“", "# 知识库：与“", 1)
 
@@ -863,6 +930,7 @@ class Runner:
         source = delivery_source(self.store, project, ticket, mode, base)
         if source and session_id is not None:
             raise ValueError("固定版本的交付检查必须使用独立运行，不能绑定既有会话")
+        reset_context_meta()
         prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
         if library.bindings(self.store, project) != reference_inputs:
             raise ValueError('组装提示词期间参考知识已变化，请重新启动任务')
@@ -870,6 +938,8 @@ class Runner:
                                      session_id=session_id, batch=batch, model=model, expected_root=project['root'],
                                      reference_inputs=reference_inputs,
                                      **({"retry_of": retry_of} if retry_of is not None else {}))
+        if not source:  # the prompt this run will use is already complete: record what knowledge it saw
+            _record_context(self.store, self.data_dir, run["id"], take_context_meta())
         self._claim(run["id"])
         if source:
             # Build knowledge and the prompt from the immutable checkout before the worker starts.
@@ -887,7 +957,9 @@ class Runner:
                     raise ValueError("固定版本工作树与请求的提交不一致，未启动检查")
                 source.update(workdir=str(view), actual_commit=actual["commit"], actual_tree=actual["tree"], prepared_at=now())
                 prompt_project = dict(project, root=str(view))
+                reset_context_meta()
                 prompt = build_prompt(self.store, prompt_project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
+                _record_context(self.store, self.data_dir, run["id"], take_context_meta())
                 prompt += ("\n\n## 本次检查的固定代码版本\n提交：%s\n实现运行：#%s；方案运行：%s。\n"
                            "只检查目录 %s 中的这次提交。主干、其他分支和旧知识库不能替代本次代码证据。"
                            "只读检查不代表执行了构建、测试或扫描；未执行项目请明确标记。\n"
