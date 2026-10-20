@@ -1021,7 +1021,9 @@ def _run_batch(P, p, cs, agent, model, conf, by, batch) -> None:
 
 
 def _run_case(P, p, c, agent, model, conf, by, batch) -> dict:
+    from . import project_library as library
     st, root = P.store, P.root(p)
+    reference_inputs = library.bindings(st, p)
     wt = None
     if c.get("base"):
         if not _resolve(root, c["base"]):
@@ -1036,10 +1038,11 @@ def _run_case(P, p, c, agent, model, conf, by, batch) -> dict:
     try:
         fake = {"key": c.get("ticket") or "EVAL-" + c["id"], "title": c["title"], "body": c.get("body", ""), "type": "bug", "priority": "normal",
                 "reporter": "", "links": {"flows": c.get("flows") or []}}
-        prompt = build_prompt(st, p, fake, "plan")
+        prompt = build_prompt(st, p, fake, "plan", reference_inputs=reference_inputs)
         if wt:
             prompt = prompt.replace("（目录 %s）" % root, "（代码在 %s，是这张工单修改之前的版本，只看这里的代码；知识库和 tmh 工具仍在 %s）" % (wt, root), 1)
-        run = st.create_run(p["id"], None, agent, "plan", by, prompt, "评测 %s：%s" % (c["id"], c["title"][:60]), batch=batch, model=model)
+        run = st.create_run(p["id"], None, agent, "plan", by, prompt, "评测 %s：%s" % (c["id"], c["title"][:60]),
+                            batch=batch, model=model, expected_root=p["root"], reference_inputs=reference_inputs)
         st.update_run(run["id"], status="running", started=now(), workdir=str(wt or root))
         code, result = P.runner.invoke(run["id"], p, None, agent, conf, "plan", prompt, wt or root, model)
         if hasattr(P.runner, "finish_invocation"):

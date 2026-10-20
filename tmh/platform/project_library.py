@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS project_workspaces (
  commit_sha TEXT NOT NULL, created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS knowledge_run_inputs (
  run_id INTEGER PRIMARY KEY, project_id INTEGER NOT NULL, bindings TEXT NOT NULL,
- digest TEXT NOT NULL, created TEXT NOT NULL);
+ digest TEXT NOT NULL, created TEXT NOT NULL, project_root TEXT NOT NULL DEFAULT '');
 CREATE INDEX IF NOT EXISTS knowledge_project ON knowledge_revisions(project_id,seq);
 """
 
@@ -59,6 +59,16 @@ CREATE INDEX IF NOT EXISTS knowledge_project ON knowledge_revisions(project_id,s
 def schema(store):
     with store.lock:
         if store.one("SELECT name FROM sqlite_master WHERE type='table' AND name='knowledge_run_inputs'"):
+            columns = {r['name'] for r in store.q('PRAGMA table_info(knowledge_run_inputs)')}
+            if 'project_root' not in columns:
+                with store.db:
+                    store.db.execute('BEGIN IMMEDIATE')
+                    # Another connection may have migrated while we waited.
+                    columns = {r['name'] for r in store.q('PRAGMA table_info(knowledge_run_inputs)')}
+                    if 'project_root' not in columns:
+                        # Never relabel historical plans with a newly derived
+                        # root: missing workspace identity stays unknown.
+                        store.db.execute("ALTER TABLE knowledge_run_inputs ADD COLUMN project_root TEXT NOT NULL DEFAULT ''")
             return
         store.db.executescript(SCHEMA)
         store.db.execute("INSERT OR IGNORE INTO project_profiles(project_id) SELECT id FROM projects")
@@ -329,12 +339,13 @@ def _run(store, rid, lease, run, owner):
         row = _row(store, rid)
         if digest(value) != check or data['commit'] != row['commit_sha'] or data['analyzer'] != row['analyzer']:
             raise ValueError('构建结果不属于固定输入')
-        with store.lock:
+        with store.lock, store.db:
+            store.db.execute('BEGIN IMMEDIATE')
             if _row(store, rid)['cancel_requested']:
-                store.x("UPDATE knowledge_revisions SET status='cancelled',error='发布前已取消，旧版本保持' WHERE id=?", (rid,))
+                store.db.execute("UPDATE knowledge_revisions SET status='cancelled',error='发布前已取消，旧版本保持' WHERE id=?", (rid,))
                 return
-            store.x("UPDATE knowledge_revisions SET status='ready',stage='complete',digest=?,summary=?,error='' WHERE id=?",
-                    (check, json.dumps(data['summary'], ensure_ascii=False), rid))
+            store.db.execute("UPDATE knowledge_revisions SET status='ready',stage='complete',digest=?,summary=?,error='' WHERE id=?",
+                             (check, json.dumps(data['summary'], ensure_ascii=False), rid))
     except Exception as exc:
         store.x("UPDATE knowledge_revisions SET status='failed',error=? WHERE id=?", (str(exc), rid))
     finally:
@@ -434,6 +445,7 @@ def _write_reference(store, project, rid, wanted, purpose, author):
 
 def reference(store, project, rid, wanted, purpose, author):
     with store.lock, store.db:
+        store.db.execute('BEGIN IMMEDIATE')
         row, wanted = _reference_inputs(store, project, rid, wanted, purpose)
         _write_reference(store, project, rid, wanted, purpose, author)
     return next(r for r in reference_state(store, project) if r['revision_id'] == rid)
@@ -459,22 +471,46 @@ def _binding_values(refs):
              'purpose': r['purpose'], 'available': r['available']} for r in refs]
 
 
+def _write_run_inputs(store, project, rid, values):
+    """Write once within the caller's registration transaction; never commit it."""
+    fingerprint = digest(values)
+    old = store.one('SELECT * FROM knowledge_run_inputs WHERE run_id=?', (rid,))
+    if old:
+        if (old['project_id'] == project['id'] and old['project_root'] == project['root']
+                and old['digest'] == fingerprint and json.loads(old['bindings']) == values):
+            return  # same binding is idempotent, different inputs cannot replace it
+        raise ValueError('运行已绑定其他知识输入或工作区，不能改写原始证据')
+    store.db.execute('INSERT INTO knowledge_run_inputs(run_id,project_id,bindings,digest,created,project_root) VALUES(?,?,?,?,?,?)',
+                     (rid, project['id'], json.dumps(values, ensure_ascii=False), fingerprint, now(), project['root']))
+
+
 def bind_run(store, project, rid, values):
     schema(store)
-    store.x('INSERT INTO knowledge_run_inputs VALUES(?,?,?,?,?)',
-            (rid, project['id'], json.dumps(values, ensure_ascii=False), digest(values), now()))
+    with store.lock, store.db:
+        store.db.execute('BEGIN IMMEDIATE')
+        run = store.run(rid)
+        if not run or run['project_id'] != project['id']:
+            raise ValueError('运行不属于此项目，不能绑定知识输入')
+        if bindings(store, project) != values:
+            raise ValueError('参考知识在登记期间已变化，请重新启动任务')
+        _write_run_inputs(store, _project(store, project['id']), rid, values)
 
 
 def run_current(store, project, rid):
     schema(store)
     row = store.one('SELECT * FROM knowledge_run_inputs WHERE run_id=?', (rid,))
+    current = _project(store, project['id'])
+    if row and (row['project_id'] != current['id'] or row['project_root'] and row['project_root'] != current['root']):
+        return False
+    if (not row or not row['project_root']) and store.one('SELECT project_id FROM project_workspaces WHERE project_id=? LIMIT 1', (current['id'],)):
+        return False  # legacy evidence has no identity for a replacement workspace
     values = bindings(store, project)
     return not any(not v['available'] for v in values) and (row['digest'] == digest(values) if row else not values)
 
 
 def require_run_current(store, project, rid):
     if not run_current(store, project, rid):
-        raise ValueError('运行引用的知识版本、范围或授权已变化，请重新分析/生成方案；旧结果保留供审查')
+        raise ValueError('运行工作区或引用的知识版本、范围或授权已变化，请重新分析/生成方案；旧结果保留供审查')
 
 
 def unlink(store, project, binding_id):
@@ -783,6 +819,9 @@ def act(P, project, body, author):
         rid, purpose = body.get('revision_id'), body.get('purpose', '')
         explicit_grant = body.get('grant') is True
         with st.lock, st.db:
+            # The read/merge/write must serialize with revocation and other
+            # grants on independent connections, not only this Store's RLock.
+            st.db.execute('BEGIN IMMEDIATE')
             row, wanted = _reference_inputs(st, project, rid, body.get('scopes', []), purpose, authorize=not explicit_grant)
             if explicit_grant:
                 old = st.one('SELECT scopes FROM knowledge_grants WHERE source_project=? AND target_project=?', (row['project_id'], project['id']))

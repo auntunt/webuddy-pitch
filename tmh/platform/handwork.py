@@ -306,7 +306,8 @@ def take(P, p: dict, t: dict, ref: str, sha: str, by: str, wait: bool = False) -
         if t["status"] in ("new", "analyzing", "confirm", "verify"):
             st.update_ticket(t["id"], by, status="doing")
         prev = [r for r in st.runs(ticket_id=t["id"]) if r["mode"] == "fix" and r.get("diff")]
-        r = st.create_run(p["id"], t["id"], "人工", "fix", by, "（%s 自己写的，分支 %s）" % (by, ref))
+        r = st.create_run(p["id"], t["id"], "人工", "fix", by, "（%s 自己写的，分支 %s）" % (by, ref),
+                          expected_root=p["root"])
         st.update_run(r["id"], diff=diff, decision="accepted:%s@%s" % (ref, sha[:10]),
                       result="%s 在分支 %s 上提交的改动（%s）" % (by, ref, sha[:10]))
         st.event(t["id"], "我来写", "flow", "收到 %s 在分支 %s 上的提交 %s，开始构建和审查%s" % (

@@ -1230,7 +1230,7 @@ def _understand(P, p: dict, sid: str, job: str, name: str) -> None:
             conf[name] = dict(conf[name], timeout=settings(P.data_dir)["timeout"])
             text = prompt(P, p, s)
             run = st.create_run(p["id"], None, name, "understand", jb.get("requested_by") or s["by"], text,
-                                ("再读：" if refine else "") + s["text"][:180])
+                                ("再读：" if refine else "") + s["text"][:180], expected_root=p["root"])
             rid = run["id"]
             jb["run"] = rid
             if jb.get("recovery_id"):

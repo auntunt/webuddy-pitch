@@ -303,8 +303,8 @@ class Store:
 
     # ---- runs
     def create_run(self, project_id: int, ticket_id, agent: str, mode: str, author: str, prompt: str, target: str = "",
-                   session_id=None, batch: str = "", model: str = "", retry_of=None, *, expected_root=None) -> dict:
-        from .project_library import require_development
+                   session_id=None, batch: str = "", model: str = "", retry_of=None, *, expected_root=None, reference_inputs=None) -> dict:
+        from .project_library import require_development, bindings, _write_run_inputs
         try:
             # Only eligibility and registration share the writer transaction.
             # Prompt preparation stays concurrent; UNIQUE retry_of still decides
@@ -312,10 +312,17 @@ class Store:
             with self.lock, self.db:
                 self.db.execute("BEGIN IMMEDIATE")
                 require_development(self, {"id": project_id})
-                if expected_root is not None and self.project(project_id)['root'] != expected_root:
+                project = self.project(project_id)
+                if expected_root is not None and project['root'] != expected_root:
                     raise ValueError('准备运行期间项目工作区已变化，请重新启动任务')
+                current_inputs = bindings(self, project)
+                if reference_inputs is not None and reference_inputs != current_inputs:
+                    raise ValueError('参考知识在登记期间已变化，请重新启动任务')
+                if any(not value['available'] for value in current_inputs):
+                    raise ValueError('参考知识授权已变化，请先处理不可用引用')
                 rid = self.db.execute("INSERT INTO runs(ticket_id,project_id,agent,mode,status,author,created,prompt,target,session_id,batch,model,retry_of) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
                                       (ticket_id, project_id, agent, mode, "queued", author, now(), prompt, target, session_id, batch or "", model or "", retry_of)).lastrowid
+                _write_run_inputs(self, project, rid, current_inputs)
         except sqlite3.IntegrityError:
             successor = self.one("SELECT id FROM runs WHERE retry_of=?", (retry_of,)) if retry_of is not None else None
             if successor:

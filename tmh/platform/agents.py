@@ -868,8 +868,8 @@ class Runner:
             raise ValueError('组装提示词期间参考知识已变化，请重新启动任务')
         run = self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
                                      session_id=session_id, batch=batch, model=model, expected_root=project['root'],
+                                     reference_inputs=reference_inputs,
                                      **({"retry_of": retry_of} if retry_of is not None else {}))
-        library.bind_run(self.store, project, run['id'], reference_inputs)
         self._claim(run["id"])
         if source:
             # Build knowledge and the prompt from the immutable checkout before the worker starts.
