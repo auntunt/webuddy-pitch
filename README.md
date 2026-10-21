@@ -1,9 +1,10 @@
 # tmh：传统 toB 软件项目维护 harness
 
-> **交接状态（2026-10-21，v0.4.0）**：功能开发已收口，转入**部署与线上验证**阶段。
+> **交接状态（2026-10-21，v0.4.0）**：`affe0a2` 已完成生产发布与基础验证，转入**真实业务验收**阶段。
 > 是否需要继续开发、部署步骤、验证清单、已知限制与"由数据触发"的下一轮开发优先级：
 > **→ [当前状态与下一步（docs/NEXT-STEPS.md）](docs/NEXT-STEPS.md)**
 > 部署手册：[docs/DEPLOY.md](docs/DEPLOY.md) · 变更日志：[CHANGELOG.md](CHANGELOG.md)
+> 本次上线与数据保全证据：[生产发布验证](audit/production-deployment-2026-10-21.md)
 
 **Webuddy CLI / MCP 已提供工作台入口：** 编程助手可读取需求与证据、沟通交接、启动受控运行及查看候选预览。见 [CLI、Claude Code、Cursor、Codex 接入说明](docs/workbench-agent.md)。
 
@@ -186,6 +187,8 @@ $X build failure             # 最近一次失败构建 → 出错的项目代�
 | `serve [--port 8790] [--key TOG] [--open]` | 启动运维平台网页：工单、看板、业务全景、知识库，内置 Claude Code / Codex |
 
 ## 已验证与未验证
+
+最新基线（2026-10-21，`affe0a2`）：Linux 生产服务器全量 **1013 passed / 14 skipped，326 subtests passed**；28 项上线读取检查通过。14 项跳过依赖可选 MCP SDK。完整结果与仍待完成的真实业务验收见 [生产发布验证](audit/production-deployment-2026-10-21.md)。下方保留项目早期的用例数量、端到端运行与验证边界，早期 65 个用例不代表当前全量规模。
 
 已验证：
 

@@ -49,6 +49,10 @@
 
 该业务探测用例在此前两轮 Python 3.13 中通过，本机单独连续复跑 10 次也均通过。原断言未输出探测结果，无法从该次日志确定原因；目前只补充失败时的完整结果诊断，保留全部断言和运行时行为，不把这次未复现失败记为已修复。原始失败日志和 10 次本机结果均保留在上述验证目录；后续 CI 结果用于判断是否复现。
 
+最终提交 `affe0a2` 的 [Actions run 39563808801](https://github.com/auntunt/webuddy-pitch/actions/runs/39563808801) 已结束：Linux Python 3.11 / 3.13 全量均为 **1011 passed / 16 skipped，326 subtests passed**；两平台安装检查和四组快速检查均通过，共 8 个成功任务。两组 Windows 全量任务失败且配置为非阻断，不能由工作流总体成功推断 Windows 全量兼容。本次 Linux 复跑没有重现上述探测失败，也不因此宣称已确定或修复其根因。
+
+同一提交已完成 Linux 生产发布：服务器 Python 3.12.3 全量 **1013 passed / 14 skipped，326 subtests passed**，7 项合成启动检查和 28 项公网/回环读取检查通过，原数据与配置保持。详见 [生产发布验证](production-deployment-2026-10-21.md)。
+
 ## 复跑方法
 
 ```sh
@@ -69,4 +73,4 @@ PYTHON=/tmp/tmh-check/bin/python INSTALL_SMOKE=1 bash scripts/release-check.sh
 
 ## 验证范围
 
-本次验证针对 GitHub 分支的代码和分发功能。服务器侧部署、真实工单 G1、40 例回放 G2、标品试点 G4、Claude 登录与性能 G6/G7 仍须按 `docs/NEXT-STEPS.md` 实测。Windows 执行结果以 GitHub Actions 为准；本机未把 Windows 或 PowerShell 检查标为通过。
+最初验证针对 GitHub 分支的代码和分发功能，随后同一提交已完成上述服务器基础发布验证。真实工单 G1、40 例回放 G2、标品试点 G4、Claude 登录与性能 G6/G7 仍须按 `docs/NEXT-STEPS.md` 实测。Windows 结果按 Actions 各任务分别记录：安装与快速检查通过、全量失败；本机未执行 Windows 或 PowerShell 验证。
