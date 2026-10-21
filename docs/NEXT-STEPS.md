@@ -1,11 +1,13 @@
 # 当前状态与下一步：是否还需要继续开发？
 
-> 日期：2026-10-21。版本 **0.4.0**。分支 `iteration/context-pack-v2`，HEAD `74d8c08`（本文档提交），tag `v0.4.0` 指向发布代码 `a0af199`（tag 之后只有本文档与 README 指针，无代码改动）。
+> 日期：2026-10-21。版本 **0.4.0**。分支 `iteration/context-pack-v2`，tag `v0.4.0` 指向发布代码 `a0af199`。原始交接记录为 `74d8c08`，README 指针更新为 `016a5ed`；此后本分支含下述安装发布补丁，标签保持不变。
 > 本文是交接说明：写给"复核 + 部署"的人（人类或另一个 AI）。**先读本文，再读 `docs/DEPLOY.md`。**
+
+> **Mac 接续复核（2026-10-21）**：已拉取 `016a5ed` 并实际复现安装包缺少知识库资源、旧发布检查误导入源码的问题，同时修复 CI 工作流重复环境变量键导致的启动失败。补丁详情与验证记录见 [安装包复核](../audit/installed-distribution-2026-10-21.md)。
 
 ## 1. 结论（一句话）
 
-**暂停功能开发，转入部署验证阶段。** 本地能验证的已经做完；剩下的 roadmap 事项都依赖"真实部署 + 真实数据"，继续在本地写代码的边际收益很低，而且容易偏离真实痛点。下一轮开发应由部署后的实测数据决定。
+**继续部署验证，优先修复验证中发现的问题。** 安装包复核已发现并补齐发布缺口；剩下的 roadmap 事项依赖"真实部署 + 真实数据"。下一轮功能开发应由部署后的实测数据决定。
 
 ## 2. 0.4.0 是什么（已交付）
 
@@ -21,7 +23,9 @@
 | RSI 本地基线 | `benchmarks/run_rsi_local.py`（本地 Ollama × 16 任务：cold 找全率 0 → 上下文包 0.3333）；线上 40 例回放未做 |
 | 测试/发布 | Windows 平台单点修复、13 测试文件 UTF-8、Python 3.10 sqlite 兼容层、CI 矩阵、`CHANGELOG.md`、`docs/DEPLOY.md`、`scripts/release-check.*` |
 
-## 3. 已验证的数字（本机真实运行）
+## 3. 原始交接的验证数字（作者设备，补丁前）
+
+以下保留原始验证记录。后续安装包复核证明仅 `pip install`、`--help`、源码目录内 `import tmh` 通过不足以验证安装功能；补丁后的结果以 [安装包复核](../audit/installed-distribution-2026-10-21.md) 为准。
 
 - Windows：`release-check.ps1` → PASS 6 / FAIL 0 / SKIP 1（`-InstallSmoke` PASS 8/0/0）；collect-only **1022 tests / 0 error**；fast gate **58 passed / 2 skipped**；关键套件 43 passed。
 - Linux（WSL，部署目标）：`test_platform.py` **58 passed / 1 failed**——唯一失败是 readiness 依赖 `git>=2.38`（WSL 是 2.34，CI runner 满足，属环境限制）；全量修复后折算 ≈**1005 passed / 1 failed / 0 error / 16 skipped**（node 在 PATH 时）。
@@ -39,7 +43,7 @@ git checkout iteration/context-pack-v2          # 或 git clone -b iteration/con
 python3.12 -m venv /opt/webuddy/venv
 /opt/webuddy/venv/bin/pip install .
 /opt/webuddy/venv/bin/tmh --help                # 入口自检
-/opt/webuddy/venv/bin/webuddy user add <name>   # 建平台账号（从 stdin 读密码）
+/opt/webuddy/venv/bin/tmh user add <name> --data /opt/webuddy/data   # 交互输入密码；已有账号无需重复创建
 /opt/webuddy/venv/bin/tmh serve --host 127.0.0.1 --port 8790 --data /opt/webuddy/data
 ```
 

@@ -6,9 +6,10 @@ import shutil
 from pathlib import Path
 
 from . import config as cfgmod
+from . import resources
 
 PKG = Path(__file__).resolve().parent
-HOME = PKG.parent  # harness checkout root
+HOME = resources.root()
 BEGIN, END = "<!-- tmh:begin -->", "<!-- tmh:end -->"
 HOOK = 'python3 "$CLAUDE_PROJECT_DIR/.tmh/tool/tmh.py" hook %s'
 
@@ -28,6 +29,8 @@ CLAUDE_HOOKS = {
 
 
 def _copytree(src: Path, dst: Path) -> None:
+    if src.resolve() == dst.resolve():
+        return
     if dst.exists():
         shutil.rmtree(dst)
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
@@ -137,6 +140,7 @@ def refresh_mcp(repo: Path) -> None:
 
 def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]:
     repo = repo.resolve()
+    assets = list(resources.files(HOME))
     done = []
     x = cfgmod.tmh_dir(repo)
     x.mkdir(parents=True, exist_ok=True)
@@ -144,6 +148,13 @@ def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]
     tool = x / "tool"
     tool.mkdir(exist_ok=True)
     _copytree(PKG, tool / "tmh")
+    # Keep the vendored command self-contained, including reinstallation and
+    # offline-pack. Wheel assets and checkout assets have the same layout.
+    for source, relative in assets:
+        target = tool / "tmh" / "_resources" / relative
+        if source.resolve() != target.resolve():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
     (tool / "tmh.py").write_text(
         "import os, sys\nsys.dont_write_bytecode = True\nsys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n"
         "from tmh.cli import main\nsys.exit(main())\n", encoding="utf-8")

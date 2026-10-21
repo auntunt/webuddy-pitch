@@ -34,6 +34,12 @@ class TestBoxTest(unittest.TestCase):
         (bin_ / "ssh").chmod(0o755)
         (bin_ / "scp").write_text(FAKE_SCP)
         (bin_ / "scp").chmod(0o755)
+        # Transport tests need real Git, but probing the developer's package
+        # managers can download tools or create caches in the fake remote home.
+        for name in ("java", "mvn", "node", "pnpm", "docker"):
+            probe = bin_ / name
+            probe.write_text("#!/bin/sh\nprintf 'fixture %s\\n'\n" % name, encoding="utf-8")
+            probe.chmod(0o755)
         self.old, self.home = os.environ["PATH"], os.environ.get("HOME")
         os.environ["PATH"] = str(bin_) + os.pathsep + self.old
         os.environ["HOME"] = str(self.tmp / "home")

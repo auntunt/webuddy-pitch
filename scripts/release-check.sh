@@ -107,9 +107,9 @@ if [ "$INSTALL_SMOKE" = "1" ]; then
   head 'pip install . 冒烟'
   TMP=$(mktemp -d)
   if run_step 'pip install .' "$PY" -m pip install . --no-deps --no-build-isolation --target "$TMP" --disable-pip-version-check -q; then
-    run_step 'import installed package' env PYTHONPATH="$TMP" "$PY" -c 'import tmh; print("installed tmh %s" % tmh.__version__)'
+    run_step 'installed functional smoke' "$PY" -I "$ROOT/scripts/installed-smoke.py" "$TMP"
   else
-    skip 'import installed package' 'install failed'
+    skip 'installed functional smoke' 'install failed'
   fi
   rm -rf "$TMP"
 else

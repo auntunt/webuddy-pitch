@@ -141,7 +141,7 @@ $keySuites = @(
 )
 Invoke-Step 'key suites' (@('-m', 'pytest', '-q', '-p', 'no:cacheprovider') + $keySuites) | Out-Null
 
-# 6) Optional packaging smoke: pip install . into a temp directory, then import the installed package.
+# 6) Isolated installed CLI, project install/refresh and offline install smoke.
 if ($InstallSmoke) {
     Write-Head 'pip install . smoke'
     $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("tmh-install-smoke-" + [guid]::NewGuid().ToString('N'))
@@ -149,24 +149,10 @@ if ($InstallSmoke) {
     try {
         Invoke-Step 'pip install .' @('-m', 'pip', 'install', '.', '--no-deps', '--no-build-isolation', '--target', $tmp, '--disable-pip-version-check', '-q') | Out-Null
         if ($script:LastOk) {
-            $env:PYTHONPATH = $tmp
-            try {
-                $importOut = @(& $Python -c "import tmh; print('installed tmh', tmh.__version__)" 2>&1)
-                if ($LASTEXITCODE -eq 0) {
-                    $detail = (@($importOut) | Select-Object -Last 1)
-                    Add-Result 'import installed package' 'PASS' 0 ("{0}" -f $detail)
-                }
-                else {
-                    Add-Result 'import installed package' 'FAIL' 0 "exit $LASTEXITCODE"
-                    Show-Tail $importOut
-                }
-            }
-            finally {
-                Remove-Item Env:PYTHONPATH -ErrorAction SilentlyContinue
-            }
+            Invoke-Step 'installed functional smoke' @('-I', (Join-Path $Root 'scripts/installed-smoke.py'), $tmp) | Out-Null
         }
         else {
-            Add-Result 'import installed package' 'SKIP' 0 'install failed'
+            Add-Result 'installed functional smoke' 'SKIP' 0 'install failed'
         }
     }
     finally {

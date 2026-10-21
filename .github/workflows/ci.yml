@@ -17,10 +17,30 @@ env:
   PYTHONIOENCODING: utf-8
   PYTHONUTF8: "1"
   # Loopback test servers must not be routed through a runner/developer proxy (see tests/conftest.py).
+  # GitHub env keys are case insensitive; conftest supplies lowercase no_proxy to child processes.
   NO_PROXY: "127.0.0.1,localhost,::1"
-  no_proxy: "127.0.0.1,localhost,::1"
 
 jobs:
+  package:
+    name: installed distribution (${{ matrix.os }} / py3.12)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: python -m pip install --upgrade pip setuptools wheel
+      - name: Install distribution
+        run: python -m pip install . --no-deps --no-build-isolation --target "${{ runner.temp }}/tmh-installed"
+      - name: Exercise installed commands outside the checkout
+        run: python -I scripts/installed-smoke.py "${{ runner.temp }}/tmh-installed"
+
   fast:
     name: fast gate (${{ matrix.os }} / py${{ matrix.python }})
     runs-on: ${{ matrix.os }}

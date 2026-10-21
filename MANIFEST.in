@@ -1,0 +1,11 @@
+include tmh.py README.md pyproject.toml
+recursive-include templates *.md *.py
+recursive-include skills *.md
+recursive-include agents *.md
+recursive-include kb *.md
+include docs/platform.md docs/knowledge-base.md docs/integrations.md
+include docs/acceptance.md docs/evidence-flow.md docs/agent-commands.md docs/dead-ends.md
+include docs/self-improvement/verification-preview-health-2026-10-19.md
+include docs/self-improvement/verification-runtime-2026-10-18.md
+include docs/self-improvement/verification-external-candidate-2026-10-19.md
+include docs/self-improvement/verification-harness2-2026-10-19.md

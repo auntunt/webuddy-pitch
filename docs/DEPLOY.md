@@ -246,10 +246,16 @@ journalctl -u webuddy -n 20 --no-pager
 
 ```sh
 cd /opt/webuddy/app
-bash scripts/release-check.sh            # 快速门禁；Linux 生产门禁
-# 可选：pip install . 冒烟（在干净 venv 里验证打包）
-INSTALL_SMOKE=1 bash scripts/release-check.sh
+# 检查依赖与运行时分开；pytest/setuptools/wheel 是验证和构建工具。
+python3 -m venv /opt/webuddy/check-venv
+/opt/webuddy/check-venv/bin/python -m pip install pytest setuptools wheel
+PYTHON=/opt/webuddy/check-venv/bin/python bash scripts/release-check.sh
+# 发布前启用安装包功能检查：隔离进程校验包来源，再实际安装项目与离线包。
+PYTHON=/opt/webuddy/check-venv/bin/python INSTALL_SMOKE=1 bash scripts/release-check.sh
 ```
+
+安装检查不会使用现有平台数据库或账号。源码、wheel 与离线包均包含项目安装必需的资源；仅在源码目录执行
+`import tmh` 或 `--help` 不能证明安装包完整。Windows 使用 `scripts/release-check.ps1 -InstallSmoke`，调用同一份隔离检查。
 
 运维 `ops` 工具（独立于本项目仓库，见 `D:\DSH_project\ops\`；若已部署到服务器同目录则）：
 

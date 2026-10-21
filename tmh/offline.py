@@ -15,10 +15,11 @@ import zipfile
 from pathlib import Path
 
 from . import __version__
-from .install import HOME
+from .install import HOME, PKG
+from . import resources
 
-DIRS = ("tmh", "templates", "skills", "agents", "kb")
-FILES = ("tmh.py", "pyproject.toml", "README.md", "docs/platform.md", "docs/knowledge-base.md", "docs/integrations.md", "docs/acceptance.md", "docs/evidence-flow.md")
+DIRS = ("tmh",) + resources.DIRECTORIES
+FILES = resources.FILES
 SKIP = ("__pycache__", ".pyc", ".DS_Store")
 
 README = """# tmh 内网离线安装包 {version}
@@ -76,19 +77,17 @@ Claude Code 用 `ANTHROPIC_BASE_URL` 指向内网的 Anthropic 兼容网关。�
 
 def _files() -> list[tuple[Path, str]]:
     out = []
-    for d in DIRS:
-        for p in sorted((HOME / d).rglob("*")):
-            if p.is_file() and not any(s in str(p) for s in SKIP):
-                out.append((p, p.relative_to(HOME).as_posix()))
-    for f in FILES:
-        if (HOME / f).exists():
-            out.append((HOME / f, f))
+    for p in sorted(PKG.rglob("*")):
+        relative = p.relative_to(PKG)
+        if p.is_file() and "_resources" not in relative.parts and not any(s in str(relative) for s in SKIP):
+            out.append((p, "tmh/" + relative.as_posix()))
+    out.extend(resources.files(HOME))
     return out
 
 
 def build(out: Path) -> dict:
     files = _files()
-    if not files or not (HOME / "tmh" / "cli.py").exists():
+    if not files or not (PKG / "cli.py").exists():
         raise RuntimeError("找不到 harness 源文件：请在 harness 检出目录里运行")
     lines, total = [], 0
     out.parent.mkdir(parents=True, exist_ok=True)
