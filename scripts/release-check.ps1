@@ -149,7 +149,7 @@ if ($InstallSmoke) {
     try {
         Invoke-Step 'pip install .' @('-m', 'pip', 'install', '.', '--no-deps', '--no-build-isolation', '--target', $tmp, '--disable-pip-version-check', '-q') | Out-Null
         if ($script:LastOk) {
-            Invoke-Step 'installed functional smoke' @('-I', (Join-Path $Root 'scripts/installed-smoke.py'), $tmp) | Out-Null
+            Invoke-Step 'installed functional smoke' @('-I', '-X', 'utf8', (Join-Path $Root 'scripts/installed-smoke.py'), $tmp) | Out-Null
         }
         else {
             Add-Result 'installed functional smoke' 'SKIP' 0 'install failed'

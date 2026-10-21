@@ -107,7 +107,7 @@ if [ "$INSTALL_SMOKE" = "1" ]; then
   head 'pip install . 冒烟'
   TMP=$(mktemp -d)
   if run_step 'pip install .' "$PY" -m pip install . --no-deps --no-build-isolation --target "$TMP" --disable-pip-version-check -q; then
-    run_step 'installed functional smoke' "$PY" -I "$ROOT/scripts/installed-smoke.py" "$TMP"
+    run_step 'installed functional smoke' "$PY" -I -X utf8 "$ROOT/scripts/installed-smoke.py" "$TMP"
   else
     skip 'installed functional smoke' 'install failed'
   fi

@@ -39,7 +39,7 @@ jobs:
       - name: Install distribution
         run: python -m pip install . --no-deps --no-build-isolation --target "${{ runner.temp }}/tmh-installed"
       - name: Exercise installed commands outside the checkout
-        run: python -I scripts/installed-smoke.py "${{ runner.temp }}/tmh-installed"
+        run: python -I -X utf8 scripts/installed-smoke.py "${{ runner.temp }}/tmh-installed"
 
   fast:
     name: fast gate (${{ matrix.os }} / py${{ matrix.python }})

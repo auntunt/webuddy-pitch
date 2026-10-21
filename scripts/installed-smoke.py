@@ -1,6 +1,6 @@
 """Exercise an installed distribution from outside its source checkout.
 
-Run with Python's isolated mode: python -I scripts/installed-smoke.py TARGET.
+Run with Python's isolated mode: python -I -X utf8 scripts/installed-smoke.py TARGET.
 TARGET is the directory produced by pip install --target. No external service,
 model, existing project or platform data is used.
 """
@@ -32,7 +32,9 @@ def main():
         "import sys; sys.path.insert(0, sys.argv.pop(1)); "
         "from tmh.cli import main; raise SystemExit(main())"
     )
-    cli = [sys.executable, "-I", "-c", bootstrap, str(installed)]
+    # -I ignores PYTHONUTF8/PYTHONIOENCODING, including on Windows runners.
+    isolated = [sys.executable, "-I", "-X", "utf8"]
+    cli = isolated + ["-c", bootstrap, str(installed)]
     with tempfile.TemporaryDirectory(prefix="tmh-installed-smoke-") as folder:
         outside = Path(folder)
         project = outside / "project with spaces"
@@ -41,7 +43,7 @@ def main():
         (project / "AGENTS.md").write_text(original, encoding="utf-8")
         run(cli + ["--version"], outside)
         workbench = bootstrap.replace("from tmh.cli", "from tmh.workbench")
-        run([sys.executable, "-I", "-c", workbench, str(installed), "--help"], outside)
+        run(isolated + ["-c", workbench, str(installed), "--help"], outside)
         run(cli + ["install", "--repo", str(project)], outside)
         from tmh import resources
         assets = list(resources.files(resources.root()))
@@ -50,8 +52,8 @@ def main():
         tool = project / ".tmh" / "tool" / "tmh.py"
         # The copied tool must work, and be able to refresh itself without
         # deleting its own code or depending on the original checkout.
-        run([sys.executable, "-I", str(tool), "install", "--repo", str(project)], outside)
-        run([sys.executable, "-I", str(tool), "--version"], outside)
+        run(isolated + [str(tool), "install", "--repo", str(project)], outside)
+        run(isolated + [str(tool), "--version"], outside)
         assert (project / "AGENTS.md").read_text(encoding="utf-8").startswith(original)
         for source, relative in assets:
             assert (tool.parent / "tmh" / "_resources" / relative).read_bytes() == source.read_bytes(), relative
@@ -66,7 +68,7 @@ def main():
             for source, relative in assets:
                 assert package.read(relative) == source.read_bytes(), relative
             package.extractall(unpacked)
-        run([sys.executable, "-I", str(unpacked / "tmh.py"), "install",
+        run(isolated + [str(unpacked / "tmh.py"), "install",
              "--repo", str(outside / "offline project")], outside)
     print("installed smoke: PASS (origin, CLI, install, refresh, complete resources, offline install)")
 

@@ -35,6 +35,12 @@
 
 全量复跑日志 SHA-256：`4cfd9fb09db1edaceb09590f082396a40009bb0a71a27af23aaeb7cd355a2c68`。
 
+## GitHub 上的跨平台复核
+
+提交 `14c9de7` 后的 [Actions run 39560780630](https://github.com/auntunt/webuddy-pitch/actions/runs/39560780630) 已能启动任务，Linux 安装检查与四组快速测试通过。Windows 安装检查实际复现 `UnicodeEncodeError: 'charmap' codec can't encode characters`：`python -I` 会忽略工作流设置的 `PYTHONUTF8` / `PYTHONIOENCODING`。
+
+后续修正仅为隔离检查及其子进程显式传入 `-X utf8`，同步调整分发回归用例与 Bash/PowerShell/CI 调用；未改动运行时代码。修正后本机针对分发/测试机的 10 项回归、发布检查（PASS 7 / FAIL 0 / SKIP 1）与 actionlint 均通过。上文全量本机结果来自该编码修正之前的安装发布修复。Windows 是否通过须查看修正后的 Actions 结果，不能由本机结果推断。
+
 ## 复跑方法
 
 ```sh
@@ -48,7 +54,7 @@ PYTHON=/tmp/tmh-check/bin/python INSTALL_SMOKE=1 bash scripts/release-check.sh
 
 ```sh
 /tmp/tmh-check/bin/python -m pip install . --no-deps --no-build-isolation --target /tmp/tmh-installed
-/tmp/tmh-check/bin/python -I scripts/installed-smoke.py /tmp/tmh-installed
+/tmp/tmh-check/bin/python -I -X utf8 scripts/installed-smoke.py /tmp/tmh-installed
 ```
 
 使用新建的临时目录，避免混入旧包。原始日志、构建产物、修复前安装包和文件摘要保存在本次 Mac 工作区的 `部署包/context-pack-v2-20261021-verification/`，不包含平台数据库、账号或密钥。

@@ -32,7 +32,7 @@ class DistributionTest(unittest.TestCase):
                 [str(project / ".tmh/tool/tmh.py"), "--version"],
             ]
             for args in commands:
-                result = subprocess.run([sys.executable, "-I", *args], cwd=root,
+                result = subprocess.run([sys.executable, "-I", "-X", "utf8", *args], cwd=root,
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                         encoding="utf-8", timeout=90)
                 self.assertEqual(result.returncode, 0, result.stdout)
