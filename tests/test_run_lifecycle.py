@@ -121,7 +121,9 @@ class RunLifecycleTest(unittest.TestCase):
         pids = set(int(p) for p in self.registry.read_text().splitlines()) if self.registry.exists() else set()
         live = []
         for pid in pids:
-            result = subprocess.run(["ps", "-p", str(pid), "-o", "stat=", "-o", "command="], capture_output=True, text=True)
+            # procps may truncate redirected command lines to the terminal
+            # width; ownership checks need the complete fixture path/token.
+            result = subprocess.run(["ps", "-ww", "-p", str(pid), "-o", "stat=", "-o", "command="], capture_output=True, text=True)
             text = result.stdout.strip()
             if result.returncode == 0 and text and not text.startswith("Z") and str(self.script) in text and self.token in text:
                 live.append(pid)
@@ -219,6 +221,23 @@ class RunLifecycleTest(unittest.TestCase):
 
     def configure_check(self, command):
         (self.data / "autoflow.json").write_text(json.dumps({"check": command, "rounds": 2, "check_timeout": 20}))
+
+    def test_owned_process_lookup_preserves_arguments_in_narrow_environments(self):
+        child = subprocess.Popen([sys.executable, str(self.script), "guard", self.token,
+            str(self.registry), "guard", "unused", str(self.root)],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        try:
+            marker = Path(str(self.registry) + ".guard.ready")
+            until = time.monotonic() + 2
+            while not marker.exists() and time.monotonic() < until:
+                time.sleep(.01)
+            self.assertTrue(marker.exists(), "fixture must start before checking process ownership")
+            self.assertIsNone(child.poll())
+            with mock.patch.dict(os.environ, {"COLUMNS": "40"}):
+                self.assertIn(child.pid, self.owned_live())
+        finally:
+            child.kill()
+            child.wait(timeout=5)
 
     def test_wrapper_exit_does_not_leave_descendants_holding_the_log_pipe(self):
         rid = self.new_run()

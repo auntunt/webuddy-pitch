@@ -41,6 +41,10 @@
 
 后续修正仅为隔离检查及其子进程显式传入 `-X utf8`，同步调整分发回归用例与 Bash/PowerShell/CI 调用；未改动运行时代码。修正后本机针对分发/测试机的 10 项回归、发布检查（PASS 7 / FAIL 0 / SKIP 1）与 actionlint 均通过。上文全量本机结果来自该编码修正之前的安装发布修复。Windows 是否通过须查看修正后的 Actions 结果，不能由本机结果推断。
 
+提交 `e347a70` 的 [Actions run 39561222637](https://github.com/auntunt/webuddy-pitch/actions/runs/39561222637) 中，Windows / Linux 安装检查与四组快速测试均通过；两平台均实际校验并安装了包含 168 个文件的离线包。两组 Linux 全量均为 **1001 passed / 9 failed / 16 skipped，326 subtests passed**。9 个失败都位于 `test_run_lifecycle.py` 的进程认领检查：ready 文件已存在，但 `owned_live()` 返回空列表。
+
+进程查询原先没有指定列宽，Linux `ps` 可截短命令行，使夹具路径或唯一 token 缺失。本次对该测试查询加 `-ww`，并增加窄列宽下的真实进程认领回归；仍按登记 PID、完整夹具路径、唯一 token 和非僵尸状态检查所有权。超时限制、取消、无关进程保护、完整日志和清理断言均保留。修正后本机生命周期套件 **17 passed（26.92 秒）**。该跟进只修改测试和记录，最终 Linux 全量结论以跟进提交的 Actions 为准。
+
 ## 复跑方法
 
 ```sh
