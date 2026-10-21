@@ -199,9 +199,32 @@ def index(root: Path, g: Graph | None = None, reg: dict | None = None) -> dict:
     return ix
 
 
-def search(root: Path, query: str, limit: int = 30) -> list[tuple[float, dict]]:
+# Lexical scoring constants, kept in one dict so the G3 tuning experiment
+# (`tmh.context_quality.tune_lexical`) can measure a small grid without editing
+# code. The defaults are the historical literals: `search()` with no override is
+# byte-identical to before, and every tuned value must be adopted deliberately.
+SEARCH_PARAMS = {
+    "type_weight": {"page": 1.6, "flow": 1.4, "tbl": 1.3, "dom": 1.2, "ep": 1.0, "cls": 0.9, "fn": 0.8, "sm": 0.8},
+    "length_norm": 0.5,            # s /= max(1, len/avg) ** length_norm
+    "title_hit_boost": 0.6,        # +boost per (capped at 2) query term found in the title
+    "domain_keep": 1.5,            # nodes in the winning domains are lifted
+    "domain_penalty": 0.6,         # nodes with a domain that lost the vote are pushed down
+    "domain_vote_dom_double": 2.0,  # domain nodes vote double in stage 2
+    "domain_keep_ratio": 0.5,      # domains within this ratio of the best still count as winners
+    "domain_top": 3,
+    "idf_len_threshold": 3,        # terms longer than this many chars carry more idf
+    "idf_len_boost": 1.5,
+}
+
+
+def search(root: Path, query: str, limit: int = 30, params: dict | None = None) -> list[tuple[float, dict]]:
     """Ranked pages and nodes for a request. Two stages: plain term scoring, then the business domains that the
-    best hits agree on lift their own flows, tables and code and push down look-alikes from unrelated domains."""
+    best hits agree on lift their own flows, tables and code and push down look-alikes from unrelated domains.
+
+    `params` overrides entries of `SEARCH_PARAMS` for one query (tuning/experiments);
+    it is never needed by production callers.
+    """
+    p = SEARCH_PARAMS if not params else {**SEARCH_PARAMS, **params}
     q = query_terms(query)
     for word, code in glossary(root):
         if word in query or any(t in word for t in q if len(t) >= 2 and re.match(r"[一-鿿]", t)):
@@ -220,27 +243,28 @@ def search(root: Path, query: str, limit: int = 30) -> list[tuple[float, dict]]:
         pl = post.get(t)
         if not pl:
             continue
-        idf = math.log(1 + N / len(pl)) * (1.5 if len(t) > 3 else 1.0) * w
+        idf = math.log(1 + N / len(pl)) * (p["idf_len_boost"] if len(t) > p["idf_len_threshold"] else 1.0) * w
         for i, c in pl:
             acc[i] += (1 + math.log(c)) * idf
-    weight = {"page": 1.6, "flow": 1.4, "tbl": 1.3, "dom": 1.2, "ep": 1.0, "cls": 0.9, "fn": 0.8, "sm": 0.8}
+    weight = p["type_weight"]
     scored = []
     for i, s in acc.items():
         nid, typ, title, dm, ln = docs[i]
-        s /= max(1.0, ln / avg) ** 0.5  # a very long page mentions everything once; don't let length win
+        s /= max(1.0, ln / avg) ** p["length_norm"]  # a very long page mentions everything once; don't let length win
         hit = sum(1 for t in qw if len(t) >= 2 and t in title)
-        scored.append((s * weight.get(typ, 1.0) * (1 + 0.6 * min(hit, 2)), i))
+        scored.append((s * weight.get(typ, 1.0) * (1 + p["title_hit_boost"] * min(hit, 2)), i))
     scored.sort(key=lambda x: -x[0])
     # stage 2: which domains do the best hits agree on? Domain pages and nodes vote double.
     votes = defaultdict(float)
     for s, i in scored[:80]:
         nid, typ, _, dm, _ = docs[i]
         if dm:
-            votes[dm] += s * (2 if nid.startswith("dom:") else 1)
+            votes[dm] += s * (p["domain_vote_dom_double"] if nid.startswith("dom:") else 1)
     top = sorted(votes.items(), key=lambda x: -x[1])
-    keep = {d for d, v in top[:3] if top and v >= top[0][1] * 0.5}
+    keep = {d for d, v in top[:p["domain_top"]] if top and v >= top[0][1] * p["domain_keep_ratio"]}
     if keep and len(top) > len(keep):
-        scored = [(s * (1.5 if docs[i][3] in keep else (0.6 if docs[i][3] else 1.0)), i) for s, i in scored]
+        scored = [(s * (p["domain_keep"] if docs[i][3] in keep else (p["domain_penalty"] if docs[i][3] else 1.0)), i)
+                  for s, i in scored]
         scored.sort(key=lambda x: -x[0])
     return [(s, {"id": docs[i][0], "type": docs[i][1], "title": docs[i][2], "domain": docs[i][3]}) for s, i in scored[:limit]]
 

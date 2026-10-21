@@ -28,6 +28,7 @@ import re
 from pathlib import Path
 
 from . import kb
+from .context import SEARCH_PARAMS
 from .context_pack import DEFAULT_RANKER, RANKERS, assemble, collect, rendered_text
 
 SCHEMA = 1
@@ -36,6 +37,22 @@ TOP_K = 5
 TOKENS_AT = (5, 10)
 CJK_CHAR = re.compile(r"[一-鿿豈-﫿]")  # CJK unified ideographs (incl. compatibility blocks)
 ASCII_WORD = re.compile(r"[A-Za-z0-9_]+")
+
+# G3 tuning: a deliberately small grid over lexical scoring constants; the
+# adoption rule is stated before the experiment runs so the result cannot be
+# fitted after the fact. Result (adopted or negative) is recorded in the report.
+TUNING_GRID = (
+    {"name": "baseline", "params": {}},
+    {"name": "length_norm=0.35", "params": {"length_norm": 0.35}},
+    {"name": "length_norm=0.70", "params": {"length_norm": 0.70}},
+    {"name": "domain_keep=2.0/penalty=0.5", "params": {"domain_keep": 2.0, "domain_penalty": 0.5}},
+    {"name": "domain_vote_dom_double=3.0", "params": {"domain_vote_dom_double": 3.0}},
+    {"name": "title_hit_boost=0.3/flow_weight=1.6",
+     "params": {"title_hit_boost": 0.3,
+                "type_weight": {**SEARCH_PARAMS["type_weight"], "flow": 1.6}}},
+)
+TUNING_MIN_RECALL_GAIN = 0.02
+TUNING_MAX_TOKEN_GROWTH = 0.10
 
 
 # ---- golden set -------------------------------------------------------------
@@ -138,11 +155,11 @@ def retrieval_metrics(ranks: dict[str, int | None]) -> dict:
 
 
 def pack_metrics(root: Path, query: str, expect: list[str], ranker: str = DEFAULT_RANKER,
-                 budget: int = 8000, label: str = "oa") -> dict:
+                 budget: int = 8000, label: str = "oa", params: dict | None = None) -> dict:
     """What the assembled pack actually contains and costs for one query."""
     root = Path(root)
     res = assemble([{"root": str(root), "label": label, "current": True}], query,
-                   budget=budget, json_mode=True, log=False, ranker=ranker)
+                   budget=budget, json_mode=True, log=False, ranker=ranker, params=params)
     prefix = (res["sources"][0]["id"] if res["sources"] else label) + ":"
     item_ids = [i["id"][len(prefix):] if i["id"].startswith(prefix) else i["id"] for i in res["items"]]
     omitted_ids = [o["id"][len(prefix):] if o["id"].startswith(prefix) else o["id"]
@@ -235,6 +252,86 @@ def evaluate(root: Path, golden: dict | None = None, rankers=("lexical", "ppr"),
                 "used_mean": round(sum(p["used"] for p in packs) / float(len(packs)), 1),
             }
     return report
+
+
+# ---- G3 lexical tuning --------------------------------------------------------
+def _measure_lexical_config(root: Path, golden: dict, params: dict | None, budget: int = 4000,
+                            limit: int = 40) -> dict:
+    """Average recall@5/@10 and pack tokens for one lexical parameter set."""
+    r5, r10, tokens = [], [], []
+    for q in golden["queries"]:
+        ranked = [item["id"] for item in collect(root, q["query"], limit=limit, ranker="lexical", params=params)]
+        metrics = retrieval_metrics(_ranks(ranked, q["expect"]))
+        r5.append(metrics["recall@5"])
+        r10.append(metrics["recall@10"])
+        tokens.append(pack_metrics(root, q["query"], q["expect"], ranker="lexical", budget=budget,
+                                   params=params)["tokens"])
+    return {"recall@5": _mean(r5), "recall@10": _mean(r10), "tokens_mean": round(sum(tokens) / float(len(tokens)), 2)}
+
+
+def tune_lexical(root: Path, golden: dict | None = None, grid=None, budget: int = 4000,
+                 limit: int = 40, measure=None) -> dict:
+    """Small grid over lexical scoring constants; adopt only under a stated rule.
+
+    A config is adopted only if recall@5 gains at least ``TUNING_MIN_RECALL_GAIN``
+    **and** mean pack tokens grow at most ``TUNING_MAX_TOKEN_GROWTH``. The winning
+    ``params`` are returned so a human can promote them into ``SEARCH_PARAMS``
+    deliberately; nothing is mutated here, so the experiment is fully reversible.
+
+    ``measure(params) -> {"recall@5", "recall@10", "tokens_mean"}`` is injectable
+    so the decision logic can be tested offline without a knowledge base.
+    """
+    root = Path(root)
+    golden = golden or load_golden(root=Path(__file__).resolve().parent.parent)
+    grid = tuple(grid if grid is not None else TUNING_GRID)
+    measure = measure or (lambda params: _measure_lexical_config(root, golden, params, budget=budget, limit=limit))
+    baseline = measure({})
+    configs = []
+    for entry in grid:
+        name = entry.get("name") or "config-%d" % (len(configs) + 1)
+        params = dict(entry.get("params") or {})
+        if not params:
+            metrics = dict(baseline)
+        else:
+            metrics = measure(params)
+        token_change = ((metrics["tokens_mean"] - baseline["tokens_mean"]) / baseline["tokens_mean"]
+                        if baseline["tokens_mean"] else 0.0)
+        configs.append({
+            "name": name, "params": params,
+            "recall@5": metrics["recall@5"], "recall@10": metrics["recall@10"],
+            "tokens_mean": metrics["tokens_mean"],
+            "recall@5_delta": round(metrics["recall@5"] - baseline["recall@5"], 4),
+            "recall@10_delta": round(metrics["recall@10"] - baseline["recall@10"], 4),
+            "tokens_change_pct": round(token_change * 100, 2),
+        })
+    # "baseline" is a control row, not a candidate to adopt.
+    candidates = [c for c in configs if c["params"]]
+    best = max(candidates, key=lambda c: (c["recall@5"], c["recall@10"])) if candidates else None
+    reasons = []
+    if best is None:
+        reasons.append("网格里没有候选参数")
+    else:
+        best["best"] = True
+        if best["recall@5_delta"] < TUNING_MIN_RECALL_GAIN:
+            reasons.append("最佳组 recall@5 增益 %+.4f < %.2f" % (best["recall@5_delta"], TUNING_MIN_RECALL_GAIN))
+        if best["tokens_change_pct"] > TUNING_MAX_TOKEN_GROWTH * 100:
+            reasons.append("最佳组 token 增长 %+.2f%% > %.0f%%" % (
+                best["tokens_change_pct"], TUNING_MAX_TOKEN_GROWTH * 100))
+    adopted = not reasons
+    return {
+        "baseline": baseline,
+        "configs": configs,
+        "budget_for_tokens": budget,
+        "decision": {
+            "adopted": adopted,
+            "rule": "recall@5 增益 >= %.2f 且 token 增长 <= %.0f%%" % (
+                TUNING_MIN_RECALL_GAIN, TUNING_MAX_TOKEN_GROWTH * 100),
+            "winner": best["name"] if best else None,
+            "winner_params": best["params"] if best else {},
+            "reasons": reasons or ["满足采纳门槛；由于默认参数改动需要单独评审，本次只记录候选，不自动改默认值"],
+            "note": "adopted=true 表示参数值得作为默认候选；本次是否写入 SEARCH_PARAMS 由仓库改动记录决定",
+        },
+    }
 
 
 # ---- rendering ---------------------------------------------------------------

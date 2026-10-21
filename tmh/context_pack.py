@@ -190,17 +190,19 @@ def nid_is_graph_node(nid: str) -> bool:
     return nid.split(":", 1)[0] in ("flow", "tbl", "fn", "cls", "dom", "mod", "ep", "sm")
 
 
-def collect(root: Path, query: str, limit: int = 40, ranker: str = DEFAULT_RANKER) -> list[dict]:
+def collect(root: Path, query: str, limit: int = 40, ranker: str = DEFAULT_RANKER,
+            params: dict | None = None) -> list[dict]:
     """Structured hits for one source: lexical search, then one step of graph expansion.
 
     `ranker="ppr"` replaces that one-step expansion with a personalized PageRank
     pass seeded by the lexical hits (see `tmh.context.personalized_pagerank`).
     The default stays lexical, so existing callers see byte-identical output.
+    `params` is passed through to `tmh.context.search` for tuning experiments only.
     """
     if ranker not in RANKERS:
         raise ValueError("未知 ranker：%r（可选 %s）" % (ranker, "、".join(RANKERS)))
     reg = kb.load_registry(root)
-    hits = search(root, query, limit=limit)
+    hits = search(root, query, limit=limit, params=params)
     g = Graph(root)
     try:
         if ranker == "ppr":
@@ -351,7 +353,8 @@ def rendered_text(result: dict) -> str:
 
 
 def assemble(sources, query: str, budget: int = 8000, json_mode: bool = False,
-             require_all: bool = False, log: bool = True, ranker: str = DEFAULT_RANKER) -> dict | str:
+             require_all: bool = False, log: bool = True, ranker: str = DEFAULT_RANKER,
+             params: dict | None = None) -> dict | str:
     """Build one context pack across the given sources.
 
     `sources` may be paths or dicts: {"root", "label", "current"}. The current
@@ -359,7 +362,8 @@ def assemble(sources, query: str, budget: int = 8000, json_mode: bool = False,
     are never merged with it by symbol name.
 
     `ranker` selects how hits are ordered: "lexical" (default, unchanged) or
-    "ppr" (optional personalized-PageRank re-ranking, see `collect`).
+    "ppr" (optional personalized-PageRank re-ranking, see `collect`). `params`
+    overrides lexical scoring constants for tuning experiments only.
     """
     if ranker not in RANKERS:
         raise ValueError("未知 ranker：%r（可选 %s）" % (ranker, "、".join(RANKERS)))
@@ -389,7 +393,7 @@ def assemble(sources, query: str, budget: int = 8000, json_mode: bool = False,
         if not spec["available"]:
             continue
         try:
-            found = collect(Path(spec["root"]), query, ranker=ranker)
+            found = collect(Path(spec["root"]), query, ranker=ranker, params=params)
         except (OSError, ValueError, FileNotFoundError) as exc:
             spec["available"] = False
             spec["error"] = "检索失败：%s" % exc

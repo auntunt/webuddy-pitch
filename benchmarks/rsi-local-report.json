@@ -1,0 +1,1490 @@
+{
+ "schema": 1,
+ "status": "ok",
+ "kind": "rsi-local-context-baseline",
+ "environment": {
+  "generated_at": "2026-10-21T08:41:34+08:00",
+  "project": "examples/legacy-java-oa",
+  "task_count": 16,
+  "model": "qwen3.5:9b",
+  "ollama_base": "http://127.0.0.1:11434",
+  "ollama_version": "0.40.6",
+  "think": false,
+  "temperature": 0.0,
+  "max_tokens": 512,
+  "timeout_s": 180,
+  "conditions": [
+   "cold",
+   "pack-4000",
+   "pack-8000"
+  ],
+  "pack_budget": {
+   "pack-4000": 4000,
+   "pack-8000": 8000
+  },
+  "pack_build_seconds": 2.0,
+  "machine": "Windows-10-10.0.26200-SP0",
+  "python": "3.11.5",
+  "repo_head": "5d31215",
+  "kb_build": {
+   "nodes": 134,
+   "edges": 284,
+   "kinds": {
+    "mod": 1,
+    "file": 25,
+    "cls": 14,
+    "fn": 53,
+    "ext": 3,
+    "tbl": 8,
+    "ep": 12,
+    "flow": 12,
+    "sm": 3,
+    "dom": 3
+   },
+   "domains": 3,
+   "parsed": 24,
+   "cached": 0,
+   "diagnostics": [],
+   "analysis": {
+    "python": {
+     "files": 0,
+     "parsed": 0,
+     "unknown": []
+    },
+    "diagnostics": []
+   }
+  },
+  "seconds": 101.7
+ },
+ "conditions": {
+  "cold": {
+   "n": 16,
+   "answered": 0,
+   "empty_answers": 16,
+   "failures": {},
+   "recall_mean": 0.0,
+   "precision_mean": 0.0,
+   "exact_rate": 0.0,
+   "latency_mean_s": 4.3425,
+   "latency_max_s": 67.53,
+   "prompt_tokens_mean": 61.5,
+   "prompt_estimate_tokens_mean": 66.375,
+   "completion_tokens_mean": 2.0,
+   "effective_output_tokens_mean": 0.0,
+   "pack_chars_mean": 0.0,
+   "hallucinated_path_rate": 0.0
+  },
+  "pack-4000": {
+   "n": 16,
+   "answered": 10,
+   "empty_answers": 6,
+   "failures": {},
+   "recall_mean": 0.3333,
+   "precision_mean": 0.4479,
+   "exact_rate": 0.1875,
+   "latency_mean_s": 0.895,
+   "latency_max_s": 1.61,
+   "prompt_tokens_mean": 1262.375,
+   "prompt_estimate_tokens_mean": 914.375,
+   "completion_tokens_mean": 14.8125,
+   "effective_output_tokens_mean": 7.875,
+   "pack_chars_mean": 2904.625,
+   "hallucinated_path_rate": 0.0
+  },
+  "pack-8000": {
+   "n": 16,
+   "answered": 10,
+   "empty_answers": 6,
+   "failures": {},
+   "recall_mean": 0.3333,
+   "precision_mean": 0.4479,
+   "exact_rate": 0.1875,
+   "latency_mean_s": 0.8969,
+   "latency_max_s": 1.65,
+   "prompt_tokens_mean": 1262.375,
+   "prompt_estimate_tokens_mean": 914.375,
+   "completion_tokens_mean": 14.6875,
+   "effective_output_tokens_mean": 7.875,
+   "pack_chars_mean": 2904.625,
+   "hallucinated_path_rate": 0.0
+  }
+ },
+ "comparison": {
+  "min_gain_rule": "file recall 至少提升 0.05 视为“有提升”（样本 16 条，仅作方向性结论）",
+  "per_condition": {
+   "pack-4000": {
+    "recall_delta_vs_cold": 0.3333,
+    "exact_delta_vs_cold": 0.1875,
+    "latency_delta_s": -3.45,
+    "completion_tokens_delta": 12.81
+   },
+   "pack-8000": {
+    "recall_delta_vs_cold": 0.3333,
+    "exact_delta_vs_cold": 0.1875,
+    "latency_delta_s": -3.45,
+    "completion_tokens_delta": 12.69
+   }
+  },
+  "context_helps": true,
+  "best_recall_gain": 0.3333,
+  "conclusion": "本地模型下上下文包带来了文件召回提升（小样本，需扩大复测）。"
+ },
+ "per_task": [
+  {
+   "task_id": "t01",
+   "condition": "cold",
+   "query": "报销单提交时单笔金额上限现在是 5 万，业务要改成 8 万",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 67.53,
+   "prompt_tokens": 64,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 64,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t02",
+   "condition": "cold",
+   "query": "财务审核驳回报销单以后要把冻结的部门预算释放掉，现在这条分支漏了释放",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.12,
+   "prompt_tokens": 65,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 73,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t03",
+   "condition": "cold",
+   "query": "出纳付款成功以后要额外写一条付款流水记录，现在只更新报销单状态",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java",
+    "src/main/resources/mapper/ExpenseMapper.xml",
+    "sql/schema.sql"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.12,
+   "prompt_tokens": 62,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 70,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t04",
+   "condition": "cold",
+   "query": "请假超过 3 天必须部门经理审批，现在只有一行注释，要补成真正的校验逻辑",
+   "gold": [
+    "src/main/java/com/acme/oa/service/LeaveService.java"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.12,
+   "prompt_tokens": 67,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 72,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t05",
+   "condition": "cold",
+   "query": "请假单列表分页查询要支持按部门过滤",
+   "gold": [
+    "src/main/resources/mapper/LeaveMapper.xml",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "src/main/java/com/acme/oa/controller/LeaveController.java"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.12,
+   "prompt_tokens": 54,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 57,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t06",
+   "condition": "cold",
+   "query": "请假审批通过时要同时记录审批人工号，现在审批人字段长度不够存工号",
+   "gold": [
+    "src/main/resources/mapper/LeaveMapper.xml",
+    "sql/schema.sql"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.12,
+   "prompt_tokens": 63,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 71,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t07",
+   "condition": "cold",
+   "query": "超期未审批的请假单除了每天凌晨自动作废，还要提供一个手动触发的 HTTP 接口",
+   "gold": [
+    "src/main/java/com/acme/oa/controller/LeaveController.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.12,
+   "prompt_tokens": 65,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 73,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t08",
+   "condition": "cold",
+   "query": "每晚导出请假汇总改成生成 Excel 文件并上传到文件服务器共享目录",
+   "gold": [
+    "src/main/java/com/acme/oa/job/ReportJob.java",
+    "pom.xml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.12,
+   "prompt_tokens": 60,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 68,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t09",
+   "condition": "cold",
+   "query": "用户密码从 MD5 换成 BCrypt，并且要能兼容校验历史 MD5 密码",
+   "gold": [
+    "src/main/java/com/acme/oa/util/PasswordUtil.java",
+    "pom.xml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.12,
+   "prompt_tokens": 64,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 62,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t10",
+   "condition": "cold",
+   "query": "请假列表分页用的是 Oracle ROWNUM 写法，数据库迁到达梦后要改分页 SQL",
+   "gold": [
+    "src/main/resources/mapper/LeaveMapper.xml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.12,
+   "prompt_tokens": 63,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 66,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t11",
+   "condition": "cold",
+   "query": "付款时调用财务系统的接口 URL 写死在 Java 代码里，要挪到配置文件",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java",
+    "src/main/resources/application.yml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.12,
+   "prompt_tokens": 64,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 67,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t12",
+   "condition": "cold",
+   "query": "请假统计现在靠数据库存储过程，要改成应用内定时统计任务",
+   "gold": [
+    "src/main/java/com/acme/oa/job/ReportJob.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "sql/schema.sql"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.2,
+   "prompt_tokens": 59,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 66,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t13",
+   "condition": "cold",
+   "query": "报销单打印页面要加公司抬头和打印时间",
+   "gold": [
+    "src/main/webapp/print.jsp"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.2,
+   "prompt_tokens": 55,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 58,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t14",
+   "condition": "cold",
+   "query": "新增用户时如果工号重复只抛异常，要求同时记录一条操作日志",
+   "gold": [
+    "src/main/java/com/acme/oa/service/UserService.java",
+    "src/main/java/com/acme/oa/mapper/ApprovalLogMapper.java",
+    "src/main/resources/mapper/ApprovalLogMapper.xml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.13,
+   "prompt_tokens": 61,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 67,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t15",
+   "condition": "cold",
+   "query": "用户被停用后，他名下进行中的请假单要自动转交给同部门其他人",
+   "gold": [
+    "src/main/java/com/acme/oa/service/UserService.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "src/main/resources/mapper/LeaveMapper.xml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.11,
+   "prompt_tokens": 62,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 68,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t16",
+   "condition": "cold",
+   "query": "报销单列表按用户查询时要支持再按部门过滤",
+   "gold": [
+    "src/main/resources/mapper/ExpenseMapper.xml",
+    "src/main/java/com/acme/oa/service/ExpenseService.java",
+    "src/main/java/com/acme/oa/controller/ExpenseController.java"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.11,
+   "prompt_tokens": 56,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 60,
+   "pack_chars": 0
+  },
+  {
+   "task_id": "t01",
+   "condition": "pack-4000",
+   "query": "报销单提交时单笔金额上限现在是 5 万，业务要改成 8 万",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/ExpenseService.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 1.0,
+   "precision": 1.0,
+   "exact": 1.0,
+   "hallucinated": [],
+   "latency_s": 0.99,
+   "prompt_tokens": 1517,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 1073,
+   "pack_chars": 3574
+  },
+  {
+   "task_id": "t02",
+   "condition": "pack-4000",
+   "query": "财务审核驳回报销单以后要把冻结的部门预算释放掉，现在这条分支漏了释放",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/ExpenseService.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 1.0,
+   "precision": 1.0,
+   "exact": 1.0,
+   "hallucinated": [],
+   "latency_s": 1.01,
+   "prompt_tokens": 1439,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 1021,
+   "pack_chars": 3332
+  },
+  {
+   "task_id": "t03",
+   "condition": "pack-4000",
+   "query": "出纳付款成功以后要额外写一条付款流水记录，现在只更新报销单状态",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java",
+    "src/main/resources/mapper/ExpenseMapper.xml",
+    "sql/schema.sql"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.68,
+   "prompt_tokens": 1483,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 1034,
+   "pack_chars": 3547
+  },
+  {
+   "task_id": "t04",
+   "condition": "pack-4000",
+   "query": "请假超过 3 天必须部门经理审批，现在只有一行注释，要补成真正的校验逻辑",
+   "gold": [
+    "src/main/java/com/acme/oa/service/LeaveService.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/LeaveService.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/LeaveService.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 1.0,
+   "precision": 1.0,
+   "exact": 1.0,
+   "hallucinated": [],
+   "latency_s": 0.97,
+   "prompt_tokens": 1398,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 1024,
+   "pack_chars": 3145
+  },
+  {
+   "task_id": "t05",
+   "condition": "pack-4000",
+   "query": "请假单列表分页查询要支持按部门过滤",
+   "gold": [
+    "src/main/resources/mapper/LeaveMapper.xml",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "src/main/java/com/acme/oa/controller/LeaveController.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/controller/LeaveController.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "src/main/java/com/acme/oa/mapper/LeaveMapper.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/controller/LeaveController.java\", \"src/main/java/com/acme/oa/service/LeaveService.java\", \"src/main/java/com/acme/oa/mapper/LeaveMapper.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.6667,
+   "precision": 0.6667,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 1.61,
+   "prompt_tokens": 1132,
+   "completion_tokens": 47,
+   "effective_output_tokens": 27,
+   "prompt_estimate_tokens": 839,
+   "pack_chars": 2516
+  },
+  {
+   "task_id": "t06",
+   "condition": "pack-4000",
+   "query": "请假审批通过时要同时记录审批人工号，现在审批人字段长度不够存工号",
+   "gold": [
+    "src/main/resources/mapper/LeaveMapper.xml",
+    "sql/schema.sql"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "src/main/java/com/acme/oa/mapper/ApprovalLogMapper.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/LeaveService.java\", \"src/main/java/com/acme/oa/mapper/ApprovalLogMapper.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 1.38,
+   "prompt_tokens": 1426,
+   "completion_tokens": 33,
+   "effective_output_tokens": 18,
+   "prompt_estimate_tokens": 1030,
+   "pack_chars": 3301
+  },
+  {
+   "task_id": "t07",
+   "condition": "pack-4000",
+   "query": "超期未审批的请假单除了每天凌晨自动作废，还要提供一个手动触发的 HTTP 接口",
+   "gold": [
+    "src/main/java/com/acme/oa/controller/LeaveController.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/LeaveService.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/LeaveService.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.5,
+   "precision": 1.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.99,
+   "prompt_tokens": 1464,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 1084,
+   "pack_chars": 3309
+  },
+  {
+   "task_id": "t08",
+   "condition": "pack-4000",
+   "query": "每晚导出请假汇总改成生成 Excel 文件并上传到文件服务器共享目录",
+   "gold": [
+    "src/main/java/com/acme/oa/job/ReportJob.java",
+    "pom.xml"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/job/ReportJob.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/job/ReportJob.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.5,
+   "precision": 1.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.77,
+   "prompt_tokens": 823,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 633,
+   "pack_chars": 1795
+  },
+  {
+   "task_id": "t09",
+   "condition": "pack-4000",
+   "query": "用户密码从 MD5 换成 BCrypt，并且要能兼容校验历史 MD5 密码",
+   "gold": [
+    "src/main/java/com/acme/oa/util/PasswordUtil.java",
+    "pom.xml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.52,
+   "prompt_tokens": 1028,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 746,
+   "pack_chars": 2341
+  },
+  {
+   "task_id": "t10",
+   "condition": "pack-4000",
+   "query": "请假列表分页用的是 Oracle ROWNUM 写法，数据库迁到达梦后要改分页 SQL",
+   "gold": [
+    "src/main/resources/mapper/LeaveMapper.xml"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/mapper/LeaveMapper.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/mapper/LeaveMapper.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.85,
+   "prompt_tokens": 1013,
+   "completion_tokens": 17,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 724,
+   "pack_chars": 2336
+  },
+  {
+   "task_id": "t11",
+   "condition": "pack-4000",
+   "query": "付款时调用财务系统的接口 URL 写死在 Java 代码里，要挪到配置文件",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java",
+    "src/main/resources/application.yml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.39,
+   "prompt_tokens": 727,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 581,
+   "pack_chars": 1402
+  },
+  {
+   "task_id": "t12",
+   "condition": "pack-4000",
+   "query": "请假统计现在靠数据库存储过程，要改成应用内定时统计任务",
+   "gold": [
+    "src/main/java/com/acme/oa/job/ReportJob.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "sql/schema.sql"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/job/ReportJob.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/job/ReportJob.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.3333,
+   "precision": 1.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.82,
+   "prompt_tokens": 995,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 742,
+   "pack_chars": 2202
+  },
+  {
+   "task_id": "t13",
+   "condition": "pack-4000",
+   "query": "报销单打印页面要加公司抬头和打印时间",
+   "gold": [
+    "src/main/webapp/print.jsp"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.66,
+   "prompt_tokens": 1489,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 1025,
+   "pack_chars": 3566
+  },
+  {
+   "task_id": "t14",
+   "condition": "pack-4000",
+   "query": "新增用户时如果工号重复只抛异常，要求同时记录一条操作日志",
+   "gold": [
+    "src/main/java/com/acme/oa/service/UserService.java",
+    "src/main/java/com/acme/oa/mapper/ApprovalLogMapper.java",
+    "src/main/resources/mapper/ApprovalLogMapper.xml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.56,
+   "prompt_tokens": 1159,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 858,
+   "pack_chars": 2646
+  },
+  {
+   "task_id": "t15",
+   "condition": "pack-4000",
+   "query": "用户被停用后，他名下进行中的请假单要自动转交给同部门其他人",
+   "gold": [
+    "src/main/java/com/acme/oa/service/UserService.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "src/main/resources/mapper/LeaveMapper.xml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.66,
+   "prompt_tokens": 1486,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 1086,
+   "pack_chars": 3484
+  },
+  {
+   "task_id": "t16",
+   "condition": "pack-4000",
+   "query": "报销单列表按用户查询时要支持再按部门过滤",
+   "gold": [
+    "src/main/resources/mapper/ExpenseMapper.xml",
+    "src/main/java/com/acme/oa/service/ExpenseService.java",
+    "src/main/java/com/acme/oa/controller/ExpenseController.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/mapper/ExpenseMapper.java",
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/mapper/ExpenseMapper.java\", \"src/main/java/com/acme/oa/service/ExpenseService.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.3333,
+   "precision": 0.5,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 1.46,
+   "prompt_tokens": 1619,
+   "completion_tokens": 32,
+   "effective_output_tokens": 18,
+   "prompt_estimate_tokens": 1130,
+   "pack_chars": 3978
+  },
+  {
+   "task_id": "t01",
+   "condition": "pack-8000",
+   "query": "报销单提交时单笔金额上限现在是 5 万，业务要改成 8 万",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/ExpenseService.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 1.0,
+   "precision": 1.0,
+   "exact": 1.0,
+   "hallucinated": [],
+   "latency_s": 1.0,
+   "prompt_tokens": 1517,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 1073,
+   "pack_chars": 3574
+  },
+  {
+   "task_id": "t02",
+   "condition": "pack-8000",
+   "query": "财务审核驳回报销单以后要把冻结的部门预算释放掉，现在这条分支漏了释放",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/ExpenseService.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 1.0,
+   "precision": 1.0,
+   "exact": 1.0,
+   "hallucinated": [],
+   "latency_s": 0.98,
+   "prompt_tokens": 1439,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 1021,
+   "pack_chars": 3332
+  },
+  {
+   "task_id": "t03",
+   "condition": "pack-8000",
+   "query": "出纳付款成功以后要额外写一条付款流水记录，现在只更新报销单状态",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java",
+    "src/main/resources/mapper/ExpenseMapper.xml",
+    "sql/schema.sql"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.71,
+   "prompt_tokens": 1483,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 1034,
+   "pack_chars": 3547
+  },
+  {
+   "task_id": "t04",
+   "condition": "pack-8000",
+   "query": "请假超过 3 天必须部门经理审批，现在只有一行注释，要补成真正的校验逻辑",
+   "gold": [
+    "src/main/java/com/acme/oa/service/LeaveService.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/LeaveService.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/LeaveService.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 1.0,
+   "precision": 1.0,
+   "exact": 1.0,
+   "hallucinated": [],
+   "latency_s": 0.97,
+   "prompt_tokens": 1398,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 1024,
+   "pack_chars": 3145
+  },
+  {
+   "task_id": "t05",
+   "condition": "pack-8000",
+   "query": "请假单列表分页查询要支持按部门过滤",
+   "gold": [
+    "src/main/resources/mapper/LeaveMapper.xml",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "src/main/java/com/acme/oa/controller/LeaveController.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/controller/LeaveController.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "src/main/java/com/acme/oa/mapper/LeaveMapper.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/controller/LeaveController.java\", \"src/main/java/com/acme/oa/service/LeaveService.java\", \"src/main/java/com/acme/oa/mapper/LeaveMapper.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.6667,
+   "precision": 0.6667,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 1.65,
+   "prompt_tokens": 1132,
+   "completion_tokens": 47,
+   "effective_output_tokens": 27,
+   "prompt_estimate_tokens": 839,
+   "pack_chars": 2516
+  },
+  {
+   "task_id": "t06",
+   "condition": "pack-8000",
+   "query": "请假审批通过时要同时记录审批人工号，现在审批人字段长度不够存工号",
+   "gold": [
+    "src/main/resources/mapper/LeaveMapper.xml",
+    "sql/schema.sql"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "src/main/java/com/acme/oa/mapper/ApprovalLogMapper.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/LeaveService.java\", \"src/main/java/com/acme/oa/mapper/ApprovalLogMapper.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 1.41,
+   "prompt_tokens": 1426,
+   "completion_tokens": 33,
+   "effective_output_tokens": 18,
+   "prompt_estimate_tokens": 1030,
+   "pack_chars": 3301
+  },
+  {
+   "task_id": "t07",
+   "condition": "pack-8000",
+   "query": "超期未审批的请假单除了每天凌晨自动作废，还要提供一个手动触发的 HTTP 接口",
+   "gold": [
+    "src/main/java/com/acme/oa/controller/LeaveController.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/LeaveService.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/LeaveService.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.5,
+   "precision": 1.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 1.02,
+   "prompt_tokens": 1464,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 1084,
+   "pack_chars": 3309
+  },
+  {
+   "task_id": "t08",
+   "condition": "pack-8000",
+   "query": "每晚导出请假汇总改成生成 Excel 文件并上传到文件服务器共享目录",
+   "gold": [
+    "src/main/java/com/acme/oa/job/ReportJob.java",
+    "pom.xml"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/job/ReportJob.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/job/ReportJob.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.5,
+   "precision": 1.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.77,
+   "prompt_tokens": 823,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 633,
+   "pack_chars": 1795
+  },
+  {
+   "task_id": "t09",
+   "condition": "pack-8000",
+   "query": "用户密码从 MD5 换成 BCrypt，并且要能兼容校验历史 MD5 密码",
+   "gold": [
+    "src/main/java/com/acme/oa/util/PasswordUtil.java",
+    "pom.xml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.51,
+   "prompt_tokens": 1028,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 746,
+   "pack_chars": 2341
+  },
+  {
+   "task_id": "t10",
+   "condition": "pack-8000",
+   "query": "请假列表分页用的是 Oracle ROWNUM 写法，数据库迁到达梦后要改分页 SQL",
+   "gold": [
+    "src/main/resources/mapper/LeaveMapper.xml"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/mapper/LeaveMapper.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/mapper/LeaveMapper.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.86,
+   "prompt_tokens": 1013,
+   "completion_tokens": 17,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 724,
+   "pack_chars": 2336
+  },
+  {
+   "task_id": "t11",
+   "condition": "pack-8000",
+   "query": "付款时调用财务系统的接口 URL 写死在 Java 代码里，要挪到配置文件",
+   "gold": [
+    "src/main/java/com/acme/oa/service/ExpenseService.java",
+    "src/main/resources/application.yml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.4,
+   "prompt_tokens": 727,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 581,
+   "pack_chars": 1402
+  },
+  {
+   "task_id": "t12",
+   "condition": "pack-8000",
+   "query": "请假统计现在靠数据库存储过程，要改成应用内定时统计任务",
+   "gold": [
+    "src/main/java/com/acme/oa/job/ReportJob.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "sql/schema.sql"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/job/ReportJob.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/job/ReportJob.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.3333,
+   "precision": 1.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.84,
+   "prompt_tokens": 995,
+   "completion_tokens": 16,
+   "effective_output_tokens": 9,
+   "prompt_estimate_tokens": 742,
+   "pack_chars": 2202
+  },
+  {
+   "task_id": "t13",
+   "condition": "pack-8000",
+   "query": "报销单打印页面要加公司抬头和打印时间",
+   "gold": [
+    "src/main/webapp/print.jsp"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.66,
+   "prompt_tokens": 1489,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 1025,
+   "pack_chars": 3566
+  },
+  {
+   "task_id": "t14",
+   "condition": "pack-8000",
+   "query": "新增用户时如果工号重复只抛异常，要求同时记录一条操作日志",
+   "gold": [
+    "src/main/java/com/acme/oa/service/UserService.java",
+    "src/main/java/com/acme/oa/mapper/ApprovalLogMapper.java",
+    "src/main/resources/mapper/ApprovalLogMapper.xml"
+   ],
+   "files": [
+    "src/main/java/com/acme/oa/service/UserService.java",
+    "src/main/java/com/acme/oa/mapper/UserMapper.java"
+   ],
+   "raw": "[\"src/main/java/com/acme/oa/service/UserService.java\", \"src/main/java/com/acme/oa/mapper/UserMapper.java\"]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.3333,
+   "precision": 0.5,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 1.23,
+   "prompt_tokens": 1159,
+   "completion_tokens": 30,
+   "effective_output_tokens": 18,
+   "prompt_estimate_tokens": 858,
+   "pack_chars": 2646
+  },
+  {
+   "task_id": "t15",
+   "condition": "pack-8000",
+   "query": "用户被停用后，他名下进行中的请假单要自动转交给同部门其他人",
+   "gold": [
+    "src/main/java/com/acme/oa/service/UserService.java",
+    "src/main/java/com/acme/oa/service/LeaveService.java",
+    "src/main/resources/mapper/LeaveMapper.xml"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.65,
+   "prompt_tokens": 1486,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 1086,
+   "pack_chars": 3484
+  },
+  {
+   "task_id": "t16",
+   "condition": "pack-8000",
+   "query": "报销单列表按用户查询时要支持再按部门过滤",
+   "gold": [
+    "src/main/resources/mapper/ExpenseMapper.xml",
+    "src/main/java/com/acme/oa/service/ExpenseService.java",
+    "src/main/java/com/acme/oa/controller/ExpenseController.java"
+   ],
+   "files": [],
+   "raw": "[]",
+   "error": "",
+   "error_kind": "ok",
+   "parse_error": "",
+   "done_reason": "stop",
+   "recall": 0.0,
+   "precision": 0.0,
+   "exact": 0.0,
+   "hallucinated": [],
+   "latency_s": 0.69,
+   "prompt_tokens": 1619,
+   "completion_tokens": 2,
+   "effective_output_tokens": 0,
+   "prompt_estimate_tokens": 1130,
+   "pack_chars": 3978
+  }
+ ],
+ "g3_tuning": {
+  "status": "ran",
+  "baseline": {
+   "recall@5": 0.5866,
+   "recall@10": 0.7372,
+   "tokens_mean": 759.65
+  },
+  "configs": [
+   {
+    "name": "baseline",
+    "params": {},
+    "recall@5": 0.5866,
+    "recall@10": 0.7372,
+    "tokens_mean": 759.65,
+    "recall@5_delta": 0.0,
+    "recall@10_delta": 0.0,
+    "tokens_change_pct": 0.0
+   },
+   {
+    "name": "length_norm=0.35",
+    "params": {
+     "length_norm": 0.35
+    },
+    "recall@5": 0.5737,
+    "recall@10": 0.7372,
+    "tokens_mean": 759.35,
+    "recall@5_delta": -0.0129,
+    "recall@10_delta": 0.0,
+    "tokens_change_pct": -0.04
+   },
+   {
+    "name": "length_norm=0.70",
+    "params": {
+     "length_norm": 0.7
+    },
+    "recall@5": 0.5641,
+    "recall@10": 0.7468,
+    "tokens_mean": 754.0,
+    "recall@5_delta": -0.0225,
+    "recall@10_delta": 0.0096,
+    "tokens_change_pct": -0.74
+   },
+   {
+    "name": "domain_keep=2.0/penalty=0.5",
+    "params": {
+     "domain_keep": 2.0,
+     "domain_penalty": 0.5
+    },
+    "recall@5": 0.5769,
+    "recall@10": 0.7372,
+    "tokens_mean": 752.08,
+    "recall@5_delta": -0.0097,
+    "recall@10_delta": 0.0,
+    "tokens_change_pct": -1.0
+   },
+   {
+    "name": "domain_vote_dom_double=3.0",
+    "params": {
+     "domain_vote_dom_double": 3.0
+    },
+    "recall@5": 0.5866,
+    "recall@10": 0.7372,
+    "tokens_mean": 759.65,
+    "recall@5_delta": 0.0,
+    "recall@10_delta": 0.0,
+    "tokens_change_pct": 0.0,
+    "best": true
+   },
+   {
+    "name": "title_hit_boost=0.3/flow_weight=1.6",
+    "params": {
+     "title_hit_boost": 0.3,
+     "type_weight": {
+      "page": 1.6,
+      "flow": 1.6,
+      "tbl": 1.3,
+      "dom": 1.2,
+      "ep": 1.0,
+      "cls": 0.9,
+      "fn": 0.8,
+      "sm": 0.8
+     }
+    },
+    "recall@5": 0.5641,
+    "recall@10": 0.7372,
+    "tokens_mean": 762.54,
+    "recall@5_delta": -0.0225,
+    "recall@10_delta": 0.0,
+    "tokens_change_pct": 0.38
+   }
+  ],
+  "budget_for_tokens": 4000,
+  "decision": {
+   "adopted": false,
+   "rule": "recall@5 增益 >= 0.02 且 token 增长 <= 10%",
+   "winner": "domain_vote_dom_double=3.0",
+   "winner_params": {
+    "domain_vote_dom_double": 3.0
+   },
+   "reasons": [
+    "最佳组 recall@5 增益 +0.0000 < 0.02"
+   ],
+   "note": "adopted=true 表示参数值得作为默认候选；本次是否写入 SEARCH_PARAMS 由仓库改动记录决定"
+  }
+ }
+}
