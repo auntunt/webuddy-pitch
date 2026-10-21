@@ -27,6 +27,7 @@ CLI or MCP callers.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import time
@@ -47,9 +48,9 @@ _BULLET = re.compile(r"^[-*]\s+(.+)$", re.M)
 
 def _norm(text: str) -> str:
     """Normalization used only for de-duplication (never for display)."""
-    s = unicodedata.normalize("NFKC", str(text or "")).lower()
-    s = _PUNCT.sub("", s)
-    return s[:240]
+    # Preserve punctuation/case: Java identifiers and rules can differ only by
+    # those characters. Display summaries are never identity evidence.
+    return " ".join(unicodedata.normalize("NFKC", str(text or "")).split())
 
 
 def _short(text: str, limit: int = SUMMARY_MAX) -> str:
@@ -91,12 +92,18 @@ def _provenance(project: dict, kind: str, ref: str, item_id: str, revision: str 
 def _kb_dir(project: dict) -> Path | None:
     root = Path(str(project.get("root") or ""))
     d = root / ".tmh" / "knowledge"
-    return d if d.is_dir() else None
+    return d if d.is_dir() and not d.is_symlink() and d.resolve().is_relative_to(root.resolve()) else None
 
 
 def _pages(kb_dir: Path) -> list[dict]:
     out = []
+    try:
+        registry = json.loads((kb_dir / ".pages.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        registry = {}
     for p in sorted(kb_dir.rglob("*.md")):
+        if p.is_symlink() or not p.resolve().is_relative_to(kb_dir.resolve()):
+            continue
         rel = p.relative_to(kb_dir).as_posix()
         if rel in ("glossary.md", "decisions.md", "pitfalls.md", "open-questions.md") or rel.startswith("README"):
             continue
@@ -105,9 +112,12 @@ def _pages(kb_dir: Path) -> list[dict]:
         except OSError:
             continue
         meta, body = _frontmatter(text)
+        record = registry.get(meta.get("id"), {}) if isinstance(registry, dict) else {}
+        if record.get("orphan"):
+            continue
         title = meta.get("title") or (m.group(1).strip() if (m := _H1.search(body)) else rel)
-        out.append({"rel": rel, "id": meta.get("id") or rel, "title": title,
-                    "status": meta.get("status") or "", "commit": meta.get("commit") or "",
+        out.append({"rel": rel, "id": meta.get("id") or rel, "title": title, "content": body,
+                    "status": "需更新" if record.get("stale") else record.get("status") or meta.get("status") or "", "commit": meta.get("commit") or "",
                     "summary": _body_summary(body) or title})
     return out
 
@@ -115,7 +125,7 @@ def _pages(kb_dir: Path) -> list[dict]:
 def _table_terms(kb_dir: Path) -> list[dict]:
     out = []
     f = kb_dir / "glossary.md"
-    if not f.is_file():
+    if not f.is_file() or f.is_symlink() or not f.resolve().is_relative_to(kb_dir.resolve()):
         return out
     try:
         text = f.read_text(encoding="utf-8", errors="replace")
@@ -125,7 +135,8 @@ def _table_terms(kb_dir: Path) -> list[dict]:
         term, code, note = (x.strip() for x in m.groups())
         if not term or term in ("业务词",) or set(term) <= {"-", " "}:
             continue
-        out.append({"title": term, "summary": _short((note + "；代码/表：" + code).strip("；") if code else note)})
+        content = (note + "；代码/表：" + code).strip("；") if code else note
+        out.append({"title": term, "summary": _short(content), "content": content})
     return out
 
 
@@ -133,7 +144,7 @@ def _doc_rules(kb_dir: Path) -> list[dict]:
     out = []
     for name in ("decisions.md", "pitfalls.md"):
         f = kb_dir / name
-        if not f.is_file():
+        if not f.is_file() or f.is_symlink() or not f.resolve().is_relative_to(kb_dir.resolve()):
             continue
         try:
             text = f.read_text(encoding="utf-8", errors="replace")
@@ -143,29 +154,16 @@ def _doc_rules(kb_dir: Path) -> list[dict]:
             line = m.group(1).strip()
             if len(line) < 6:
                 continue
-            out.append({"title": line.split("：")[0][:60], "summary": _short(line),
+            out.append({"title": line.split("：")[0][:60], "summary": _short(line), "content": line,
                         "ref": name})
     return out
 
 
 def _lesson_items(data_dir: Path) -> list[dict]:
-    f = Path(data_dir) / "lessons.jsonl"
-    if not f.is_file():
-        return []
+    from . import learn
     out = []
-    try:
-        lines = f.read_text(encoding="utf-8", errors="replace").splitlines()
-    except OSError:
-        return []
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            card = json.loads(line)
-        except ValueError:
-            continue
-        if not isinstance(card, dict) or card.get("kind") == "status":
+    for card in learn.lessons(data_dir, limit=1000000):
+        if card.get("status") != "active":
             continue
         symptom = _short(card.get("symptom") or card.get("title") or "")
         fix = _short(card.get("fix") or card.get("note") or "")
@@ -173,11 +171,13 @@ def _lesson_items(data_dir: Path) -> list[dict]:
         project = card.get("project") or ""
         if fix:
             out.append({"type": "pattern", "title": symptom or fix[:60], "summary": fix,
+                        "content": (card.get("symptom") or card.get("title") or "") + "\n" + (card.get("fix") or card.get("note") or ""),
                         "project": project, "ref": "lessons.jsonl#" + str(card.get("id") or ""),
                         "revision": "", "confirmed": card.get("status") in ("active", "retired"),
                         "lesson_id": card.get("id") or ""})
         if anti:
             out.append({"type": "rule", "title": symptom or anti[:60], "summary": anti,
+                        "content": (card.get("symptom") or card.get("title") or "") + "\n" + (card.get("anti") or ""),
                         "project": project, "ref": "lessons.jsonl#" + str(card.get("id") or ""),
                         "revision": "", "confirmed": card.get("status") in ("active", "retired"),
                         "lesson_id": card.get("id") or ""})
@@ -202,16 +202,16 @@ def _collect(store) -> tuple[list[dict], list[dict]]:
                 kind = "component" if rel.startswith("modules/") else ("pattern" if rel.startswith("flows/") else "rule")
                 raw.append({
                     "type": kind, "title": page["title"], "summary": page["summary"],
-                    "dedup_text": page["title"] + "\n" + page["summary"],
+                    "dedup_text": page["title"] + "\n" + page["content"],
                     "provenance": _provenance(project, "page", rel, page["id"], page["commit"] or rev, True),
                 })
         for term in _table_terms(kb):
             raw.append({"type": "term", "title": term["title"], "summary": term["summary"],
-                        "dedup_text": term["title"] + "\n" + term["summary"],
+                        "dedup_text": term["title"] + "\n" + term["content"],
                         "provenance": _provenance(project, "glossary", "glossary.md", _norm(term["title"]), "", True)})
         for rule in _doc_rules(kb):
             raw.append({"type": "rule", "title": rule["title"], "summary": rule["summary"],
-                        "dedup_text": rule["title"] + "\n" + rule["summary"],
+                        "dedup_text": rule["content"],
                         "provenance": _provenance(project, "doc", rule["ref"], _norm(rule["title"]), "", True)})
     if data_dir and data_dir.is_dir():
         for lesson in _lesson_items(data_dir):
@@ -219,7 +219,7 @@ def _collect(store) -> tuple[list[dict], list[dict]]:
                     "ref": lesson["ref"], "id": lesson["lesson_id"], "revision": "",
                     "confirmed": lesson["confirmed"], "root": ""}
             raw.append({"type": lesson["type"], "title": lesson["title"], "summary": lesson["summary"],
-                        "dedup_text": lesson["title"] + "\n" + lesson["summary"],
+                        "dedup_text": lesson["content"],
                         "provenance": prov})
     return raw, projects
 
@@ -235,10 +235,10 @@ def _merge(raw: list[dict]) -> list[dict]:
                 merged[key]["summary"] = item["summary"]
         else:
             merged[key] = {
-                "id": key[:16] + "-" + str(abs(hash(key)) % 10 ** 6)[:6],
+                "id": item["type"] + "-" + hashlib.sha256(key.encode()).hexdigest()[:24],
                 "type": item["type"], "type_label": TYPE_LABEL.get(item["type"], item["type"]),
                 "title": item["title"], "summary": _short(item["summary"]),
-                "dedup_key": _norm(item["title"] + "\n" + item["summary"])[:120],
+                "dedup_key": hashlib.sha256(key.encode()).hexdigest(),
                 "reviewed": item["provenance"]["confirmed"],
                 "provenance": [item["provenance"]],
             }

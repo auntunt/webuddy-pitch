@@ -1,0 +1,8 @@
+{
+  "nativeViewport": "1440x1000",
+  "candidates": [
+    {"source":"a.html","name":"A · 接力工作台","concept":"每次打开，都能知道当前需要谁做什么，并就地查看依据。","typography":"PingFang SC / 系统无衬线；27px 标题、14px 对象名、12px 辅助信息","palette":["#F7F9F7","#235D48","#DCE4DE"],"traits":["左导航 + 待办队列 + 交接详情","绿色只用于主动作和选中","保留现有产品色彩资产"]},
+    {"source":"b.html","name":"B · 项目调度表","concept":"一次横向扫视多个项目的阻塞、负责人和下一步。","typography":"Helvetica Neue / PingFang SC；28px 标题、14px 任务、等宽编号","palette":["#F6F7F9","#202E44","#CA863A"],"traits":["顶导航 + 通栏调度表","项目、状态、等待时间对齐","墨蓝结构与琥珀异常"]},
+    {"source":"c.html","name":"C · 证据与交接","concept":"每次交接都像读一份有来源、有边界的工作记录。","typography":"PingFang SC 任务正文 + Georgia 品牌字；30px 标题、14px 阅读正文","palette":["#F8F7F3","#694575","#EEE8F1"],"traits":["对象目录 + 任务主文 + 依据边栏","弱化仪表盘，强化连续阅读","灰紫色组织来源与适用范围"]}
+  ]
+}

@@ -33,6 +33,13 @@ CREATE TABLE IF NOT EXISTS candidate_decisions (
  id INTEGER PRIMARY KEY AUTOINCREMENT, candidate_id INTEGER NOT NULL,
  author TEXT NOT NULL, decision TEXT NOT NULL, evidence_hash TEXT NOT NULL,
  note TEXT NOT NULL, created TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS candidate_team_decisions (
+ decision_id INTEGER PRIMARY KEY, reviewer TEXT NOT NULL, assignee TEXT NOT NULL,
+ assignment_revision INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS candidate_merges (
+ candidate_id INTEGER PRIMARY KEY, author TEXT NOT NULL, request_id TEXT NOT NULL,
+ evidence_hash TEXT NOT NULL, main TEXT NOT NULL, before_commit TEXT NOT NULL,
+ commit_sha TEXT NOT NULL, state TEXT NOT NULL, created TEXT NOT NULL, updated TEXT NOT NULL);
 """
 
 
@@ -368,10 +375,217 @@ def _record(P, row, actor, op, a, mutation):
                 mutation()
                 item = st.db.execute("INSERT INTO candidate_decisions(candidate_id,author,decision,evidence_hash,note,created) VALUES(?,?,?,?,?,?)",
                     (row["id"], actor, a["decision"], a["evidence_hash"], a["note"], now())).lastrowid
+                if a.get("_team_identity"):
+                    identity = a["_team_identity"]
+                    st.db.execute("INSERT INTO candidate_team_decisions VALUES(?,?,?,?)",
+                                  (item, actor, identity["assignee"], identity["revision"]))
                 kind, body = "candidate_decision", "操作者确认候选：" + a["decision"]
             st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
                 (row["ticket_id"], now(), actor, kind, body, _json({"candidate": row["id"], "record": item})))
             st.db.commit()
+        except BaseException:
+            st.db.rollback()
+            raise
+
+
+def browser_decide(P, user, args, mutation=lambda: None):
+    """A session-authenticated human decision; never accepts a display identity.
+
+    The HTTP adapter proves the session. Account and assignment are rechecked
+    inside the same transaction that records the decision and evidence hash.
+    """
+    from . import team
+    row = _row(P, args["candidate_id"])
+    if user == row["agent"]:
+        raise ApiError(403, "固定候选的提交者不能复核自己的交付；重新分配任务不会改变提交作者")
+    t = team.require_reviewer(P, row["ticket_id"], user)
+    identity = team.assignment(P, t)
+    def checked():
+        current_ticket = team.require_reviewer(P, row["ticket_id"], user)
+        if team.assignment(P, current_ticket) != identity:
+            raise ApiError(409, "复核责任已变化，请重新查看任务")
+        mutation()
+    return execute(P, user, "candidate_decide", dict(args, _team_identity=identity), checked)
+
+
+def browser_review_current(P, cid):
+    """Whether the current human verdict belongs to the current team assignment."""
+    from . import team, login
+    decision = P.store.one("SELECT * FROM candidate_decisions WHERE candidate_id=? ORDER BY id DESC LIMIT 1", (cid,))
+    if not decision:
+        return False
+    identity = P.store.one("SELECT * FROM candidate_team_decisions WHERE decision_id=?", (decision["id"],))
+    if not identity:
+        return False
+    row = _row(P, cid)
+    if decision["author"] == row["agent"]:
+        return False
+    t = P.store.ticket(row["ticket_id"])
+    current = team.assignment(P, t)
+    members = login.load_users(P.data_dir)
+    return bool(identity["reviewer"] in members and current["assignee"] in members
+                and identity["reviewer"] == current["reviewer"] == decision["author"]
+                and identity["assignee"] == current["assignee"]
+                and identity["assignment_revision"] == current["revision"]
+                and current["assignee"] != current["reviewer"])
+
+
+def merge_receipt(P, cid):
+    exists = P.store.one("SELECT name FROM sqlite_master WHERE type='table' AND name='candidate_merges'")
+    return P.store.one("SELECT * FROM candidate_merges WHERE candidate_id=?", (cid,)) if exists else None
+
+
+@contextmanager
+def _merge_guard(root):
+    # A repository can be registered in two platform data directories. Use its
+    # common Git directory, not the data directory, to serialize our writers.
+    common = Path(_git(root, "rev-parse", "--git-common-dir").strip())
+    if not common.is_absolute():
+        common = root / common
+    with (common / "webuddy-candidate-merge.lock").open("a+b") as stream:
+        try:
+            filelock.try_lock(stream)
+        except BlockingIOError as exc:
+            raise ApiError(409, "这个仓库正在合并其他候选，请稍后重试") from exc
+        try:
+            yield
+        finally:
+            filelock.unlock(stream)
+
+
+def browser_merge(P, cid, user, evidence_hash, request_id, mutation=lambda: None):
+    """Fast-forward the exact approved commit; no invented adoption or closure.
+
+    A moved main branch requires a fresh candidate and verification. The journal
+    reconciles a crash between Git's atomic ref update and its SQLite receipt.
+    Neither remote pushes nor deployments are performed here.
+    """
+    from . import team, release
+    from .project_library import require_development
+    from .recheck_operations import source_guard
+    row = _row(P, cid)
+    t = team.require_reviewer(P, row["ticket_id"], user)
+    p = P.store.project(t["project_id"])
+    try:
+        require_development(P.store, p)
+    except ValueError as exc:
+        raise ApiError(409, str(exc)) from exc
+    root = Path(p["root"])
+    with guard(P, t["id"]), source_guard(P.data_dir, row["run_id"]), _merge_guard(root), P.store.lock:
+        st = P.store
+        # Keep this transaction through the short local Git fast-forward: other
+        # service processes cannot append requirements or change responsibility.
+        try:
+            st.db.execute("BEGIN IMMEDIATE")
+            team.require_reviewer(P, t["id"], user)
+            v = view(P, cid)
+            if not isinstance(evidence_hash, str) or evidence_hash != v["evidence_hash"]:
+                raise ApiError(409, "证据包已变化，请重新查看后合并")
+            if not v["human_accepted"] or not browser_review_current(P, cid):
+                raise ApiError(409, "当前版本尚未由当前指定复核人确认，不能合并")
+            main = release.main_branch(root, P.data_dir, p["key"])
+            if not main or _git(root, "symbolic-ref", "--quiet", "--short", "HEAD").strip() != main:
+                raise ApiError(409, "项目工作区必须停在已配置的主干分支上")
+            head = _git(root, "rev-parse", "HEAD").strip()
+            previous = merge_receipt(P, cid)
+            if previous and previous["state"] == "merged":
+                if previous["commit_sha"] != row["commit_sha"]:
+                    raise ApiError(409, "历史合并回执与固定候选不一致")
+                _git(root, "merge-base", "--is-ancestor", row["commit_sha"], head)
+                st.db.commit()
+                return dict(previous, pushed=False, deployed=False, replayed=True)
+            if _git(root, "status", "--porcelain", "--untracked-files=all").strip():
+                raise ApiError(409, "主干工作区有未提交文件，请先处理再合并")
+            gd = release._gitdir(root)
+            if any((gd / name).exists() for name in release.IN_PROGRESS + ("index.lock",)):
+                raise ApiError(409, "仓库有未完成的 Git 操作，请先处理")
+            if head != row["base_commit"]:
+                if not (previous and previous["state"] == "prepared" and head == row["commit_sha"]
+                        and previous["evidence_hash"] == evidence_hash and previous["before_commit"] == row["base_commit"]):
+                    raise ApiError(409, "主干已偏离已验证基线，请基于当前主干重新提交、检查和复核")
+            if _git(root, "rev-parse", row["ref"]).strip() != row["commit_sha"]:
+                raise ApiError(409, "候选固定引用已变化")
+            stamp = now()
+            if not previous:
+                st.db.execute("INSERT INTO candidate_merges VALUES(?,?,?,?,?,?,?,'prepared',?,?)",
+                              (cid, user, request_id, evidence_hash, main, head, row["commit_sha"], stamp, stamp))
+            elif previous["evidence_hash"] != evidence_hash or previous["main"] != main:
+                if head != row["base_commit"]:
+                    raise ApiError(409, "原合并操作尚未确认且依据已变化，请人工核对回执")
+                st.db.execute("UPDATE candidate_merges SET author=?,request_id=?,evidence_hash=?,main=?,before_commit=?,updated=? WHERE candidate_id=?",
+                              (user, request_id, evidence_hash, main, head, stamp, cid))
+            # Persist intent before touching Git, then regain a writer transaction
+            # and repeat evidence/identity checks before the mutation.
+            st.db.commit()
+            st.db.execute("BEGIN IMMEDIATE")
+            team.require_reviewer(P, t["id"], user)
+            current = view(P, cid)
+            if current["evidence_hash"] != evidence_hash or not current["human_accepted"] or not browser_review_current(P, cid):
+                raise ApiError(409, "准备合并期间证据或复核责任变化，尚未合并")
+            if _git(root, "rev-parse", "HEAD").strip() != head:
+                raise ApiError(409, "准备合并期间主干发生变化，尚未合并")
+            mutation()
+            if head != row["commit_sha"]:
+                _git(root, "merge", "--ff-only", "--no-edit", row["commit_sha"])
+            if _git(root, "rev-parse", "HEAD").strip() != row["commit_sha"]:
+                raise ApiError(409, "合并后的版本与固定候选不一致，请核对仓库")
+            st.db.execute("UPDATE candidate_merges SET state='merged',updated=? WHERE candidate_id=?", (now(), cid))
+            st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,'candidate_merge',?,?)",
+                          (t["id"], now(), user, "已合并固定候选到本地主干；尚未推送或部署",
+                           _json({"candidate": cid, "commit": row["commit_sha"], "main": main, "evidence_hash": evidence_hash})))
+            st.db.commit()
+            return dict(merge_receipt(P, cid), pushed=False, deployed=False, replayed=False)
+        except BaseException:
+            st.db.rollback()
+            raise
+
+
+def browser_accept(P, cid, user, evidence_hash, passed, note, mutation=lambda: None):
+    """Explicit business verdict on the already-reviewed, already-merged version.
+
+    This is a team member's acceptance, not an external customer's signature.
+    No legacy adoption is synthesized and no release/deployment is launched.
+    """
+    from . import team, release
+    from .recheck_operations import source_guard
+    row = _row(P, cid)
+    team.require_reviewer(P, row["ticket_id"], user)
+    if not isinstance(note, str) or not note.strip():
+        raise ApiError(400, "请记录实际业务验收操作、结果及限制")
+    with guard(P, row["ticket_id"]), source_guard(P.data_dir, row["run_id"]), P.store.lock:
+        st = P.store
+        try:
+            st.db.execute("BEGIN IMMEDIATE")
+            t = team.require_reviewer(P, row["ticket_id"], user)
+            v = view(P, cid)
+            merged = merge_receipt(P, cid)
+            if evidence_hash != v["evidence_hash"] or not v["human_accepted"] or not browser_review_current(P, cid):
+                raise ApiError(409, "请先在团队工作台复核当前固定版本；当前证据或责任已变化")
+            if not merged or merged["state"] != "merged" or merged["commit_sha"] != row["commit_sha"]:
+                raise ApiError(409, "当前候选尚未完成与固定版本一致的本地合并")
+            # The preview may be restarted after merging. Current evidence still
+            # needs a fresh independent human approval; the immutable merge
+            # receipt keeps the evidence used when that exact commit was merged.
+            # Preserve both hashes instead of rewriting history or demanding a
+            # second Git merge for the same version.
+            p = st.project(t["project_id"])
+            main = release.main_branch(Path(p["root"]), P.data_dir, p["key"])
+            if not main or main != merged["main"]:
+                raise ApiError(409, "主干配置已变化，请先核对版本")
+            _git(Path(p["root"]), "merge-base", "--is-ancestor", row["commit_sha"], "refs/heads/" + main)
+            stamp, status = now(), "closed" if passed else "doing"
+            mutation()
+            st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+                          (t["id"], stamp, user, "accept" if passed else "reject", ("业务验收通过：" if passed else "业务验收不通过：") + note,
+                           _json({"result": "pass" if passed else "fail", "candidate": cid, "commit": row["commit_sha"],
+                                  "evidence_hash": evidence_hash, "merge_evidence_hash": merged["evidence_hash"],
+                                  "main": main, "via": "团队工作台", "customer_signature": False})))
+            if t["status"] != status:
+                st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,'status',?,?)",
+                              (t["id"], stamp, user, "团队业务验收：%s → %s" % (t["status"], status), _json({"from": t["status"], "to": status})))
+            st.db.execute("UPDATE tickets SET status=?,updated=? WHERE id=?", (status, stamp, t["id"]))
+            st.db.commit()
+            return st.ticket(t["id"])
         except BaseException:
             st.db.rollback()
             raise

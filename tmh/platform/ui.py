@@ -12,10 +12,14 @@ from .ui_delivery import DELIVERY_CSS, DELIVERY_JS
 from .ui_theme import THEME_CSS
 from .ui_drafts import DRAFT_JS
 from .ui_library import LIBRARY_CSS, LIBRARY_JS
+from .ui_workspace import WORKSPACE_JS
+from .ui_workspace_theme import WORKSPACE_CSS
+from .ui_memory import MEMORY_CSS, MEMORY_JS
+from .ui_team import TEAM_CSS, TEAM_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + MEMORY_JS + TEAM_JS)
 
 
 HTML = r"""<!doctype html>
@@ -24,12 +28,12 @@ HTML = r"""<!doctype html>
 <body>
 <a class="skip-link" href="#main" onclick="event.preventDefault();document.getElementById('main').focus()">跳到主要内容</a>
 <header id="top">
-  <a class="brand" href="#/deliveries" aria-label="Webuddy 交付工作台"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="m7 10 4 12 5-8 5 8 4-12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="brandName">闭环工作台</span></a>
+  <a class="brand" href="#/workspace" aria-label="Webuddy 工作台"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="m7 10 4 12 5-8 5 8 4-12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="brandName">闭环工作台</span></a>
   <select id="projSel" title="切换项目" aria-label="项目范围"></select>
   <nav id="svc" aria-label="服务"><a data-s="ops" href="#/board">运维<span>服务</span></a><a data-s="reform" href="#/reform">重构<span>服务</span></a></nav>
   <span class="sp"></span>
   <button class="pts" id="ptsBtn" title="点卡：只有生成类动作扣点"><span class="dot"></span><span class="w">剩余</span> <b id="ptsN">-</b> 点</button>
-  <form id="say" autocomplete="off" onsubmit="event.preventDefault();sayOpen()"><input id="sayIn" placeholder="粘贴客户的话…" aria-label="粘贴客户的话"><button id="sayGo" type="submit" aria-label="录入客户需求">＋<span> 录入需求</span></button></form>
+  <form id="say" autocomplete="off" onsubmit="event.preventDefault();sayOpen()"><input id="sayIn" placeholder="记录新的需求或问题…" aria-label="粘贴客户的话"><button id="sayGo" type="submit" aria-label="录入客户需求">＋<span> 记录需求</span></button></form>
   <button id="astToggle" title="AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）" aria-controls="ast" aria-expanded="false">AI 助手 <kbd>Ctrl K</kbd></button>
   <div id="account"><button class="me" id="me" title="用户与设置"></button><a id="logout" href="/logout" hidden>退出</a></div>
 </header>
@@ -130,17 +134,20 @@ const TOP=['home','tickets','lead','kb','reform','rtickets','rdeps'];
 S.svc=localStorage.getItem('tmh.svc')==='reform'?'reform':'ops';
 function svcOf(view){for(const k in SVC)if(SVC[k].tabs.some(t=>t[0]===view))return k;return S.svc}
 document.addEventListener('click',e=>{const d=document.querySelector('#tabs .tmore');if(d&&d.open&&!d.contains(e.target))d.open=false});
-function paintTabs(tab){const s=S.svc,eng=isEng(curView());document.body.classList.toggle('svc-reform',s==='reform'&&eng);ls.set('tmh.svc',s);
-  paintNav();$('#tabs').hidden=!eng;$('#svc').hidden=!eng;
-  document.querySelectorAll('#svc a').forEach(a=>a.classList.toggle('on',a.dataset.s===s));
-  const a=([k,l,u])=>`<a data-r="${k}" href="${u}" class="${k===tab?'on':''}" ${k===tab?'aria-current="page"':''}>${l}</a>`;
-  // Four tabs people use daily stay in sight; the rest sit under 更多, which takes the open page's name.
-  const all=SVC[s].tabs.concat(SHARED),top=all.filter(t=>TOP.includes(t[0])),rest=all.filter(t=>!TOP.includes(t[0]));
-  const cur=rest.find(t=>t[0]===tab),grp=(n,ts)=>ts.length?`<div class="tmg"><span>${n}</span>${ts.map(a).join('')}</div>`:'';
-  $('#tabs').innerHTML=top.map(a).join('')+`<details class="tmore${cur?' on':''}"><summary><b>${cur?h(cur[1]):'更多'}</b><i>▾</i></summary><div class="tmp">${grp(SVC[s].name,rest.filter(t=>SVC[s].tabs.includes(t)))}${grp('共用',rest.filter(t=>SHARED.includes(t)))}</div></details>`;
-  const d=$('#tabs .tmore');d.querySelectorAll('a').forEach(x=>x.onclick=()=>setTimeout(()=>d.open=false));
-  $('#tabs').insertAdjacentHTML('beforeend',`<button class="ghost tnew" id="newBtn">＋ ${s==='reform'?'新建改造计划':'新建工单'}</button>`);
-  $('#newBtn').onclick=()=>{if(S.svc!=='reform')return newTicket();S.rfNew=1;if(curView()==='reform')vReform();else location.hash='#/reform'}}
+function paintTabs(tab){
+  paintNav();$('#svc').hidden=true;document.body.classList.toggle('svc-reform',S.svc==='reform');ls.set('tmh.svc',S.svc);
+  const v=curView(), group=navOf(v), sets={
+    workspace:[['workspace','工作台'],['today','动态与待办']],
+    projects:[['projects','项目'],['reform','重构计划'],['deliveries','交付'],['versions','版本'],['atlas','项目图谱']],
+    tasks:[['tickets','任务列表'],['board','状态看板'],['reqs','需求'],['rtickets','重构任务']],
+    team:[['team','分配与复核']],
+    memory:[['memory','知识与记忆'],['handoff','项目交接'],['kb','知识页'],['library','参考与引用'],['learn','经验复盘']]};
+  const rows=sets[group]||sets.projects, extras=[['clients','客户'],['overview','监控'],['eff','提效报告'],['lead','运维成效'],['map','架构依据'],['rdeps','依赖清单'],['runs','智能体运行'],['int','外部系统'],['settings','设置']];
+  $('#tabs').hidden=['workspace','projects','team','memory'].includes(v);
+  $('#tabs').setAttribute('aria-label','当前工作区');
+  const link=([k,l])=>`<a data-r="${k}" href="#/${k==='handoff'?'handoff/'+encodeURIComponent(S.proj):k}" class="${k===v||(v==='t'&&k==='tickets')?'on':''}" ${k===v?'aria-current="page"':''}>${l}</a>`;
+  $('#tabs').innerHTML=rows.map(link).join('')+`<details class="tmore"><summary>项目工具</summary><div class="tmp"><div class="tmg">${extras.map(link).join('')}</div></div></details>`;
+}
 async function boot(){
   try{S.meta=await get('/api/meta')}catch(e){$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}
   if(S.meta.login)S.user=S.meta.user;else if(!S.user)S.user=S.meta.user||'';
@@ -148,7 +155,7 @@ async function boot(){
   $('#me').textContent=S.user||'未设置用户';$('#me').onclick=()=>location.hash='#/settings';
   $('#me').setAttribute('aria-label',(S.user||'当前用户')+'，用户与设置');$('#logout').hidden=!S.meta.login;
   await loadProjects();
-  $('#projSel').onchange=e=>{const v=e.target.value;if(v==='__new'){newProject();paintSel();return}
+  $('#projSel').onchange=e=>{WS.offset=0;const v=e.target.value;if(v==='__new'){newProject();paintSel();return}
     if(v==='*'){S.scope='*';ls.set('tmh.scope','*');if(!isCross())location.hash='#/';else render();return}
     if(isCross()){S.scope=v;ls.set('tmh.scope',v)}setProj(v);render()};
   $('#ptsBtn').onclick=showPoints;sayWire();
@@ -163,8 +170,8 @@ async function loadProjects(){
   paintSel();loadPoints()}
 // Work that spans projects (board, list, 运维成效) shows every project unless narrowed; pages about one codebase
 // (knowledge base, map, runs…) follow the project of whatever you opened last, so nobody has to pick one by hand.
-const CROSS=['home','board','tickets','lead','t','today','clients','c','reqs','versions','deliveries','delivery'];
-function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'deliveries'}
+const CROSS=['home','board','tickets','lead','t','today','clients','c','reqs','versions','deliveries','delivery','workspace','projects','team','memory'];
+function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'workspace'}
 function isCross(){return CROSS.includes(curView())}
 function paintSel(){const cross=isCross()&&!['t','delivery'].includes(curView()),v=cross?S.scope:S.proj;
   $('#projSel').innerHTML=(cross?`<option value="*" ${v==='*'?'selected':''}>全部项目（${S.projects.length}）</option>`:'')+S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===v?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')+(cross?'':'<option value="*">全部项目</option>')+'<option value="__new">＋ 添加项目…</option>';
@@ -173,12 +180,12 @@ function setProj(k){if(!k||k===S.proj)return;S.proj=k;ls.set('tmh.proj',k);A.res
 const scopeQ=()=>S.scope==='*'?'*':S.scope;
 async function loadPoints(){if(!S.proj){$('#ptsN').textContent='-';return}try{const r=await get('/api/projects/'+S.proj+'/points');S.points=r;$('#ptsN').textContent=r.balance.toLocaleString();if(A.open)A.paintFoot()}catch(e){}}
 function render(){
-  stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'deliveries';
+  stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'workspace';
   document.body.classList.toggle('delivery-surface',['deliveries','delivery'].includes(view));
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
-  if(!S.proj&&!['settings','deliveries','delivery'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
-  const V={deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||(()=>{location.hash='#/deliveries'});
+  if(!S.proj&&!['settings','deliveries','delivery','workspace','projects','memory','team'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
+  const V={workspace:vWorkspace,projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||(()=>{location.hash='#/workspace'});
   if(view!=='t')A.setTicket(null);
   paintSel();
   if(view==='atlas'&&$('#atl')){S.renderP=Promise.resolve(vAtlas(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}
@@ -186,7 +193,7 @@ function render(){
   $('#main').innerHTML='<div class="empty"><span class="spin"></span></div>';
   // a slow page that finishes after the user already moved on would paint over the newer one: draw the current page again
   const rt=S.rt=(S.rt||0)+1;
-  S.renderP=Promise.resolve(V()).then(()=>{if(rt!==S.rt)return render();remember();A.paintCtx()}).catch(e=>{if(!e.api)console.error(e);$('#main').innerHTML='<div class="empty">'+h(e.api?e.message:'这一页没能显示出来，刷新试试；还不行请告诉管理员。')+'<div style="margin-top:12px"><button onclick="render()">再试一次</button></div></div>'})}
+  S.renderP=Promise.resolve(V()).then(()=>{if(rt!==S.rt)return render();remember();A.paintCtx()}).catch(e=>{if(rt!==S.rt)return;if(!e.api)console.error(e);$('#main').innerHTML='<div class="empty">'+h(e.api?e.message:'这一页没能显示出来，刷新试试；还不行请告诉管理员。')+'<div style="margin-top:12px"><button onclick="render()">再试一次</button></div></div>'})}
 // pages visited lately, per project: the assistant's jump list
 function remember(){const r=location.hash||'#/';const t=(($('#main h1')||{}).textContent||'').trim();if(!S.proj||!t)return;
   const k='tmh.recent.'+S.proj;let L=[];try{L=JSON.parse(ls.get(k)||'[]')}catch(e){}
@@ -377,6 +384,7 @@ function bindModel(id){const e=$('#'+id);if(e)e.onchange=()=>{try{localStorage.s
 function mTag(r){return r&&r.model?' · '+h(r.model):''}
 function agentOptions(){const first=(S.meta.agents.find(a=>a.available)||{}).name;return S.meta.agents.map(a=>`<option value="${h(a.name)}" ${a.name===first?'selected':''}>${h(a.title)}${a.available?'':'（本机未安装）'}</option>`).join('')}
 function newTicket(prefill){
+  if(!S.projects.length)return newProject();
   const types='<option value="auto" selected>自动判断</option>'+S.meta.types.map(([k,l])=>`<option value="${k}">${l}</option>`).join(''),pris=S.meta.priorities.map(([k,l])=>`<option value="${k}" ${k==='normal'?'selected':''}>${l}</option>`).join('');
   const np=S.scope!=='*'?S.scope:S.proj,af=(S.meta.autoflow||{}).on;
   modal(`<h2>新建工单${S.projects.length>1?` <select id="nproj" aria-label="项目" style="font-size:14px;margin-left:6px">${S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===np?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')}</select>`:' · '+h(np)}</h2><div class="grid2"><div class="form">
@@ -649,13 +657,13 @@ async function vTicket(key,sub){
   // the timeline: people's words stay in view; what the machines did folds into one line per run of steps
   const tl=ticketTimeline(d.events);
   const nAuto=d.events.filter(x=>isMachine(x.author)&&x.kind!=='comment').length;
-  $('#main').innerHTML=`<div class="sub" style="margin-bottom:6px"><a href="#/reqs">需求</a> / ${h(d.project.key)} / ${t.key}</div>
+  $('#main').innerHTML=`<div class="sub" style="margin-bottom:6px"><a href="#/tickets">任务</a> / <a href="#/projects/${encodeURIComponent(d.project.key)}">${h(d.project.key)}</a> / ${t.key}</div>
   <div class="hdr"><h1 class="grow" id="ttl" title="点击修改">${h(t.title)}</h1><span id="tStatus">${stPill(t.status)}</span><button onclick="A.toggle(true);A.enterTicket(S.cur.ticket)">在助手中讨论</button></div>
   <div class="props"><span class="tag">${h(d.project.key)}</span>
    <label>状态<select id="fs" data-autosave="1" ${d.epic?'disabled title="父单的状态跟着子单走"':''}>${opt(S.meta.statuses.filter(([k])=>k!=='closed'||t.status==='closed'),t.status)}</select></label>
    <label>类型<select id="fy" data-autosave="1">${opt(S.meta.types,t.type)}</select></label>
    <label>优先级<select id="fp" data-autosave="1">${opt(S.meta.priorities,t.priority)}</select></label>
-   <label>经办人<input id="fa" data-autosave="1" value="${h(t.assignee)}" placeholder="无人" size="6"></label>
+   <label>经办人<input id="fa" ${d.team_assignment?.revision?'disabled title="在团队协作中调整分配"':''} data-autosave="1" value="${h(t.assignee)}" placeholder="无人" size="6"></label>
    ${autoChip(d)}${d.parent?`<span class="tag">大需求 <a href="#/t/${h(d.parent.key)}">${h(d.parent.key)}</a> 的第 ${h(String((t.links||{}).order||''))} 个子单</span>`:''}${(t.links||{}).alert?`<span class="ev-tag bad" title="监控告警自动开的单，同一告警再触发只累计次数">告警 ×${t.links.alert.count||1}</span>`:''}
    <span class="sub">${h(t.reporter||'-')} 提交 · ${h(t.created.slice(5,16))}${ext.key?' · '+h(ext.system)+' '+(ext.url?`<a href="${h(ext.url)}" target="_blank" rel="noopener">${h(ext.key)}</a>`:h(ext.key)):''}</span></div>
   <div id="tTop" ${sub==='prompt'?'hidden':''}>${ticketTop(d,f,na)}</div>
@@ -678,6 +686,7 @@ async function vTicket(key,sub){
      <div id="runv"></div>
      <div id="tRunHistory" style="margin-top:10px">${ticketRunHistory(d.runs)}</div></details>
   </div><div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+   ${ticketWorkspaceCard(d)}
    <div class="card" id="pvc" hidden></div>
    ${pkgCard(d)}
    <details class="card eng" id="engc"><summary><b>工程细节</b><span class="sub">我来写、代码改动、候选代码入口、相关业务</span></summary><div class="engb">

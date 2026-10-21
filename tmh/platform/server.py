@@ -955,13 +955,67 @@ def api_agent(P, req, operation):
     return dispatch(P, req, operation)
 
 
+def _session_actor(req):
+    """A display-name header is never an individual team identity."""
+    handler = getattr(req, "h", None)
+    return getattr(handler, "_who", "") if not getattr(handler, "headers", {}).get("X-Webuddy-Agent") else ""
+
+
+def _human_action(P, req, ticket=None, strict=False):
+    from . import login, team
+    actor = _session_actor(req)
+    if getattr(getattr(req, "h", None), "headers", {}).get("X-Webuddy-Agent") or ((strict or login.load_users(P.data_dir)) and not actor):
+        raise ApiError(403, "请用个人账号登录后操作；共享令牌或显示名不能代替人工确认")
+    if ticket and team.assignment(P, ticket)["revision"]:
+        team.require_reviewer(P, ticket, actor)
+    return actor or req.user
+
+
+@route("GET", "/api/workspace")
+def api_workspace(P, req):
+    from . import workspace
+    return workspace.read(P, req.query, _session_actor(req))
+
+
+@route("GET", "/api/team")
+def api_team(P, req):
+    from . import team
+    return team.dispatch_read(P, req.query, _session_actor(req))
+
+
+@route("POST", "/api/team")
+def api_team_action(P, req):
+    from . import team
+    return team.dispatch_action(P, req.body, _human_action(P, req, strict=True))
+
+
+@route("GET", "/api/memory")
+def api_memory(P, req):
+    from . import memory
+    return memory.dispatch_read(P, req.query, _session_actor(req) or req.user)
+
+
+@route("GET", "/api/memory/brief")
+def api_memory_brief(P, req):
+    from . import memory
+    return memory.read_brief(P, req.arg("project"), req.arg("revision"))
+
+
+@route("POST", "/api/memory")
+def api_memory_action(P, req):
+    from . import memory
+    return memory.dispatch_action(P, req.body, _human_action(P, req))
+
+
 @route("GET", "/api/projects")
 def api_projects(P, req):
+    from . import project_library
     out = []
     for p in P.store.projects():
         s = P.store.stats(p["id"])
         p["open"] = sum(v for k, v in s["by_status"].items() if k != "closed")
         p["exists"] = Path(p["root"]).is_dir()
+        p.update(project_library.profile(P.store, p))
         out.append(p)
     return out
 
@@ -1757,11 +1811,21 @@ def api_session_ticket(P, req, sid):
 def api_accept(P, req, key):
     """Human acceptance: only a person passes or fails a ticket; the assistant may only draft the note."""
     t = P.ticket(key)
+    _human_action(P, req, t)
     res, note = req.body.get("result"), (req.body.get("note") or "").strip()
     if res not in ("pass", "fail"):
         raise ApiError(400, "result 只能是 pass 或 fail")
     if res == "fail" and not note:
         raise ApiError(400, "验收不通过时必须写明原因")
+    # External candidates have a distinct, exact-version chain. The legacy
+    # evidence package may be empty and must not let /accept bypass that chain.
+    from . import candidates
+    if P.store.one("SELECT name FROM sqlite_master WHERE type='table' AND name='code_candidates'"):
+        latest = P.store.one("SELECT id FROM code_candidates WHERE ticket_id=? ORDER BY id DESC LIMIT 1", (t["id"],))
+        if latest:
+            if req.body.get("candidate_id") != latest["id"] or not req.body.get("evidence_hash"):
+                raise ApiError(409, "这张工单使用固定候选，请到团队工作台核对当前版本、复核和合并后再做业务验收")
+            return candidates.browser_accept(P, latest["id"], req.user, req.body["evidence_hash"], res == "pass", note)
     from . import epic, signoff
     why = epic.refuse(t, "accept")
     if why:
@@ -2025,9 +2089,10 @@ def api_ticket(P, req, key):
             r["recheck_wait"] = P.flow.verification_wait(r["id"]) if v.get("verification_current") is False else None
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
-    from . import epic, signoff, workbench, intake
+    from . import epic, signoff, workbench, intake, team
     par = P.store.ticket(t["links"]["parent"]) if (t.get("links") or {}).get("parent") else None
     return {"ticket": t, "project": p, "events": P.store.events(t["id"]), "runs": [r for r in runs if r["mode"] != "ask"],
+            "team_assignment": team.assignment(P, t),
             "intake_recovery": intake.recovery_state(P, t["key"]),
             "plain_state": workbench.states(P, [t])[t["key"]],
             "evidence": P.ticket_evidence(p, t, runs), "auto_next": P.flow.next_step(t, retry=True)[0],
@@ -2077,6 +2142,7 @@ def api_evidence_add(P, req, key):
     if kind == "attach":
         r = signoff.attach(P, t, req.user, b.get("ac", ""), b.get("note", ""), b.get("image", ""))
     elif kind == "review":
+        _human_action(P, req, t)
         r = signoff.review(P, t, req.user, b.get("note", ""), bool(b.get("scope_ok")), bool(b.get("path_ok")),
                            b.get("waive") if isinstance(b.get("waive"), dict) else None)
     elif kind == "pack":
@@ -2154,8 +2220,20 @@ def api_ledger(P, req, key):
 
 @route("POST", "/api/tickets/<key>")
 def api_update_ticket(P, req, key):
+    if "assignee" in req.body:
+        from . import team
+        with team._guard(P, P.ticket(key)["id"]):
+            return _api_update_ticket(P, req, key)
+    return _api_update_ticket(P, req, key)
+
+
+def _api_update_ticket(P, req, key):
     t = P.ticket(key)
     b = dict(req.body)
+    if "assignee" in b and b["assignee"] != t.get("assignee"):
+        from . import team
+        if team.assignment(P, t)["revision"]:
+            raise ApiError(409, "请在团队协作中调整负责人和复核人，保留分配版本与复核记录")
     if (t.get("links") or {}).get("epic") and ((b.get("status") and b["status"] != t["status"]) or b.get("auto") == "go" or "hold" in b or "links" in b):
         from . import epic  # its status follows its children; reopening a finished feature means a new requirement
         raise ApiError(409, epic.refuse(t, "status"))
@@ -2223,6 +2301,7 @@ def api_release_again(P, req, key):
     """Try the merge again after a person cleared what held it up."""
     from . import epic
     t = P.ticket(key)
+    _human_action(P, req, t)
     if epic.refuse(t, "ship"):
         raise ApiError(409, epic.refuse(t, "ship"))
     try:
@@ -2290,11 +2369,16 @@ def api_starter(P, req, key):
 @route("POST", "/api/tickets/<key>/claim")
 def api_claim(P, req, key):
     """我来写: a person takes the ticket before (or instead of) the agents; queued or running automatic steps stop."""
-    from . import epic, handwork
+    from . import epic, handwork, team
     t = P.ticket(key)
+    actor = _human_action(P, req)
     if epic.refuse(t, "handwork"):
         raise ApiError(409, epic.refuse(t, "handwork"))
-    return handwork.claim(P, t, req.user, req.body.get("on", True) is not False)
+    with team._guard(P, t["id"]):
+        t = P.ticket(key)
+        if team.assignment(P, t)["revision"] and t.get("assignee") != actor:
+            raise ApiError(403, "团队任务只能由当前负责人接管；调整负责人请使用团队分配")
+        return handwork.claim(P, t, actor, req.body.get("on", True) is not False)
 
 
 @route("POST", "/api/tickets/<key>/handwork")
@@ -2511,6 +2595,10 @@ def api_recover_run(P, req, rid):
 
 @route("POST", "/api/runs/<rid>/decide")
 def api_decide(P, req, rid):
+    run = P.store.run(int(rid))
+    if not run:
+        raise ApiError(404, "没有这个运行")
+    _human_action(P, req, P.store.ticket(run["ticket_id"]) if run.get("ticket_id") else None)
     try:
         return P.runner.decide(int(rid), req.body.get("decision", ""), req.user)
     except (ValueError, RuntimeError) as e:

@@ -94,15 +94,14 @@ function workIcon(name){const icons={
   dot:'<circle cx="12" cy="12" r="4"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'};
   return `<svg class="wicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[name]||icons.dot}</svg>`}
-const NAV=[['deliveries','交付','#/deliveries','deliveries'],['today','今天','#/today','today'],['clients','客户','#/clients','clients'],['reqs','需求','#/reqs','reqs'],['versions','版本','#/versions','versions'],['eng','工程','','eng']];
-const WK=['deliveries','delivery','today','clients','c','reqs','versions','t'];
+const NAV=[['workspace','工作台','#/workspace','today'],['projects','项目','#/projects','versions'],['tasks','任务','#/tickets','reqs'],['team','团队协作','#/team','clients'],['memory','知识与记忆','#/memory','message']];
+const WK=['workspace','projects','team','memory','handoff','deliveries','delivery','today','clients','c','reqs','versions','t'];
 function isEng(v){return !WK.includes(v)}
-function navOf(v){return v==='deliveries'||v==='delivery'?'deliveries':v==='today'?'today':v==='clients'||v==='c'?'clients':v==='reqs'||v==='t'?'reqs':v==='versions'?'versions':'eng'}
-function paintNav(){const v=curView(),cur=navOf(v);if(cur==='eng')ls.set('tmh.eng',location.hash||'#/board');
-  const nav=$('#nav5'),eng=ls.get('tmh.eng')||'#/board',signature=JSON.stringify([cur,S.need||0,eng]);
-  if(nav.dataset.signature===signature)return;
+function navOf(v){return ['workspace','today'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn'].includes(v)?'memory':['tickets','t','reqs','board','home','rtickets'].includes(v)?'tasks':'projects'}
+function paintNav(){const cur=navOf(curView()),nav=$('#nav5');
+  const signature=JSON.stringify([cur,curView()]);if(nav.dataset.signature===signature)return;
   const focused=nav.contains(document.activeElement)?document.activeElement.closest('[data-n]')?.dataset.n:null;
-  nav.innerHTML=NAV.map(([k,l,u,ic])=>`<a href="${k==='eng'?h(eng):u}" class="${k===cur?'on':''}" data-n="${k}" ${k===cur?'aria-current="page"':''}><i aria-hidden="true">${workIcon(ic)}</i><span>${l}</span>${k==='today'&&S.need?`<b>${S.need}</b>`:''}</a>`).join('');
+  nav.innerHTML='<span class="ws-nav-label">工作空间</span>'+NAV.map(([k,l,u,ic])=>`<a href="${u}" class="${k===cur?'on':''}" data-n="${k}" ${k===cur?'aria-current="page"':''}><i aria-hidden="true">${workIcon(ic)}</i><span>${l}</span></a>`).join('')+`<div class="ws-nav-secondary"><span class="ws-nav-label">管理</span><a href="#/deliveries">${workIcon('deliveries')}<span>交付</span></a><a href="#/clients">${workIcon('clients')}<span>客户</span></a><a href="#/settings">${workIcon('eng')}<span>设置</span></a></div>`;
   nav.dataset.signature=signature;if(focused)nav.querySelector(`[data-n="${focused}"]`)?.focus()}
 const STL={talk:'需求澄清',doing:'执行中',you:'待复核',client:'待客户确认',shipped:'已出版本',done:'已完成'};
 const stChip=s=>`<span class="st ${h(s)}">${h(STL[s]||s)}</span>`;
@@ -111,8 +110,7 @@ const pk0=()=>S.scope!=='*'?S.scope:S.proj;
 function nowStr(d){d=d||new Date();const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`}
 
 // ---------- 粘贴客户的话: one box on every page, the requirement conversation with the client recorded
-function sayWire(){const i=$('#sayIn');if(!i)return;
-  i.addEventListener('paste',()=>setTimeout(()=>{if(i.value.trim().length>=4)sayOpen()},0))}
+function sayWire(){/* Pasting keeps focus; recording begins only on explicit submit. */}
 function sayOpen(){const i=$('#sayIn'),v=i?i.value:'';if(i)i.value='';const c=location.hash.match(/^#\/c\/(\d+)/);pasteModal(v,c?+c[1]:undefined)}
 async function pasteModal(text,cid){
   if(!S.projects.length)return newProject();
