@@ -412,6 +412,12 @@ def knowledge(root: Path, query: str, budget: int = 6000) -> str:
                 "knowledge_revision": src.get("knowledge_revision"),
                 "source_version": src.get("revision"),
                 "items": len(pack.get("items") or []),
+                # Canonical flow ids the pack exposed. `kb_followup` uses this
+                # structured receipt instead of scraping the run's prose (which
+                # only contains whatever the agent chose to repeat).
+                "flow_ids": [m.group(0) for m in (
+                    re.search(r"flow:[A-Za-z0-9_.\-]+", str(item.get("id") or ""))
+                    for item in (pack.get("items") or [])) if m][:32],
             }]
             return text
         except Exception as exc:  # noqa: BLE001 - a pack failure must not block the agent run

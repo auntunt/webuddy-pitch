@@ -5,13 +5,26 @@
 **方向**：用户的路线 3（架构审计）→ 2（知识库/上下文引擎）→ 4（全量迭代），路线 1（域名/服务器自动化）并行。
 本文件记录路线 2 的第一个可验收增量。
 
+## 2026-10-21 更新（多轮迭代总览）
+
+- **Context Pack v2 默认化**：`tmh context` 默认输出 v2（带来源/commit/知识修订/遗漏清单），旧渲染保留为 `--legacy`；
+  平台任务上下文已接入（`runs/<id>/context.json` + 运行输出行）。
+- **组织知识库 v0**（G8）：`tmh/platform/org_knowledge.py` 只读聚合 + `GET /api/org/knowledge` + CLI。
+- **多用户习惯 v0**（G9）：`tmh/platform/habits.py` 只读派生 + `GET /api/projects/<key>/habits` + CLI（默认脱敏、MIN_SAMPLE=5）。
+- **多项目本地试点**（G4 本地）：`tools/g4_local_pilot.py`，固定 revision/引用/派生/失效/HEAD 前进不动绑定，设计反例 8/10 本地通过。
+- **RSI 本地真基线**（G2）：本地 Ollama `qwen3.5:9b` × 16 任务，cold 找全率 0（全拒答）→ 上下文包 0.3333；
+  **G3 检索调优为负结果**（不采纳，默认不变）。
+- **测试/CI**（G5）：Windows 平台单点修复 + 13 个测试文件 UTF-8 + CI 矩阵；全仓 collect-only 1004 tests/0 error。
+- **发布物**：`CHANGELOG.md`、`docs/DEPLOY.md`、`scripts/release-check.*`、`docs/design/habit-logging-v0.md`。
+- 详细数字见 `D:\DSH_project\knowledge\09-round2-results.md`、`10-round3-results.md` 与 `audit/`。
+
 ## 改了什么
 
 | 文件 | 变更 | 目的 |
 | --- | --- | --- |
 | `tmh/context_pack.py` | 新增（~430 行） | Context Pack v2：结构化、带来源/版本、预算精确、多来源、JSON、遗漏报告、activity 记录 |
 | `tmh/context.py` | 末尾截断逻辑 | 去掉 `text[:budget]` 静默截断；改为带"省略 N 字符 + 怎么读全文"说明的预算内截断 |
-| `tmh/cli.py` | `cmd_context` + context 参数 | `tmh context --json` / `--pack` / `--source <dir>` / `--require-all` / `--label` |
+| `tmh/cli.py` | `cmd_context` + context 参数 | v2 为默认（`--json` / `--source <dir>` / `--require-all` / `--label`），旧渲染降为 `--legacy` |
 | `tests/test_context_pack.py` | 新增 12 项测试 | 契约验收（溯源、预算、多来源、失败关闭、确定性、RSI 记录、旧路径无静默截断） |
 | `docs/design/context-pack-v2-2026-10-20.md` | 新增设计文档 | 对照 `project-knowledge-library-2026-10-20.md` §6.6/§7/§9 的契约与下一步 |
 | `tmh/project_knowledge.py` | `import resource` 降级 | Windows 没有 `resource` 模块时快照构建不再失败（`peak_rss_bytes=null`） |

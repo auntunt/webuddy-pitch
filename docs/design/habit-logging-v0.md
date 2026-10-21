@@ -109,6 +109,15 @@ rework_rate: 0-1 | null              # fair=false 时 null
 5. **样本量**：小团队/新项目 `fair=false` 是常态；`fair=true` 也只是"可以看比例"，不是统计显著性检验。
 6. **runs.mode 口径**：`verify` 等模式历史数据可能以事件代替运行记录，模式分布会低估该类活动。
 
-## 8. 变更记录
+## 8. API 与 CLI（只读接线，2026-10-21）
 
-- v0（2026-10-21）：只读派生层 + 个人/团队视图 + 16 个测试；无 API/UI；无新表。
+- **HTTP**：`GET /api/projects/<代号>/habits?user=<成员>&team=0|1`。`team=1` 为团队匿名视图（遵守 `MIN_SAMPLE=5`，样本不足时 `modes_share`/`ticket_types_share`/`rework_rate` 为 `null`，`notes` 说明缺什么）；否则为个人视图，默认 `redact=true`（不含 `person` 字段）；`redact=0` 才显示成员名。不传 `user` 时取请求者身份。只读：不写库、不新增表、不触发运行。
+- **CLI**：`tmh platform --data <平台数据目录> habits --project OA [--user li] [--team] [--redact 1|0] [--json]`。
+- **鉴权**：沿用平台既有规则（`X-TMH-Token`/登录会话；本地无账号时本机可读）。未知项目 → 404；未授权 → 401；预览页来源调用 → 403。
+- **未做 UI**：本期只在 API/CLI 暴露；页面展示与审核流转属后续工作。
+- **测试**：`tests/test_habits_api.py`（10 个：401/403 不适用项由通用鉴权覆盖、200 结构、默认脱敏、显式不脱敏、样本不足比例 null、团队匿名、跨项目聚合、404、只读快照）。
+
+## 9. 变更记录
+
+- v0（2026-10-21）：只读派生层 + 个人/团队视图 + 16 个测试；无 UI；无新表。
+- v0.1（2026-10-21）：只读 HTTP API（`/api/projects/<key>/habits`）+ CLI（`tmh platform habits`）；新增 `tests/test_habits_api.py`；文档补 API 小节。

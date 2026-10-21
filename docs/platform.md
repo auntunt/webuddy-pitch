@@ -361,6 +361,8 @@ python3 .tmh/tool/tmh.py serve --key TOG --open
 | `POST /api/sessions/<id>/ticket-draft`、`POST /api/sessions/<id>/ticket` | 起草（不创建任何东西）；提交 `{"idem", "target": "new" 或 "existing", "title", "body", "type", "priority", "assignee", "accept", "flows"}` |
 | `GET /api/assist?project=&ticket=`、`POST /api/assist` | 旧接口，落到自己在该工单（或项目）的默认会话 |
 | `GET /api/projects/<代号>/kb/tree`、`/arch`、`/arch/<业务域 id>` | 知识库目录（带状态）；架构总览；业务域里每条业务流的入口、处理、表和代码位置 |
+| `GET /api/org/knowledge?q=&type=&limit=` | 组织知识库 v0（G8）：**只读**跨项目聚合/检索；每条带来源项目、页面/经验卡引用与确认状态；不填 q 返回类型计数与来源项目 |
+| `GET /api/projects/<代号>/habits?user=&team=0\|1` | 开发习惯（G9）：**只读**；个人视图默认脱敏（不返回原文/身份），团队匿名视图遵守 MIN_SAMPLE（样本不足时比例为 null） |
 | `POST /api/tickets/<工单号>/accept` | 人工验收：`{"result": "pass"}` 或 `{"result": "fail", "note": "..."}` |
 | `POST /api/runs/<id>/cancel`、`POST /api/runs/<id>/decide` | 停止；采纳或放弃代码改动：`{"decision": "accept"}` |
 | `POST /api/runs/<id>/recheck`、`GET /api/runs/<id>/recheck` | 不改代码，只把这次改动重新构建一遍（例如测试机修好以后）：未审阅的用工作树，已采纳的用它的提交；默认在后台跑，`{"wait": true}` 等结果。构建通过、工单还在自动线上，就按自动提交的规则提交；诊断照旧保留，诊断说还没解决的改动仍留给人审（编译通过不等于功能齐全）。GET 看是否还在跑和最新的 verify 结果 |

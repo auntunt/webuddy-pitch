@@ -111,15 +111,39 @@ class Knowledge:
                     out["code"].append({"id": nid, "label": n["label"], "file": n["file"], "line": n["line"]})
         return out
 
+    def receipt_flow_ids(self, run: dict) -> list:
+        """Flow ids the run's context receipt shows the agent actually saw.
+
+        The context pack sidecar (<data>/runs/<id>/context.json) is the
+        authoritative list: it survives agents that paraphrase or omit ids in
+        their answer. Falls back to an empty list for legacy runs without a pack.
+        """
+        try:
+            receipt = Path(self.store.path).parent / "runs" / str(run["id"]) / "context.json"
+            metas = json.loads(receipt.read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError):
+            return []
+        out = []
+        for meta in metas if isinstance(metas, list) else []:
+            for fid in (meta or {}).get("flow_ids") or []:
+                if isinstance(fid, str) and fid.startswith("flow:") and fid not in out:
+                    out.append(fid)
+        return out
+
     def kb_followup(self, p: dict, t: dict, run: dict, n: int, author: str) -> list:
         """After a ticket analysis: write the knowledge pages of the business flows it touched that nobody wrote yet.
 
-        The flows are the ones the analysis names (flow:... ids) plus the ones linked to the ticket, so the
-        knowledge base grows along real work instead of being written all at once."""
+        The flows are the ones linked to the ticket, then the ones the run's
+        context receipt shows it saw (structured), then a legacy fallback that
+        scrapes the answer text — so the knowledge base grows along real work
+        instead of being written all at once."""
         from .. import kb
         root = self.root(p)
         reg = kb.load_registry(root)
-        ids = list((t.get("links") or {}).get("flows") or []) + [x.rstrip(".") for x in re.findall(r"flow:[A-Za-z0-9_.\-]+", run.get("result") or "")]
+        ids = list((t.get("links") or {}).get("flows") or [])
+        ids += [x for x in self.receipt_flow_ids(run) if x not in ids]
+        if not ids:
+            ids = [x.rstrip(".") for x in re.findall(r"flow:[A-Za-z0-9_.\-]+", run.get("result") or "")]
         todo = []
         for fid in ids:
             r = reg.get(fid)

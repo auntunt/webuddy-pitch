@@ -90,8 +90,11 @@
 
 ## 7. 下一步（对应项目库设计阶段）
 
-1. 平台任务上下文（`platform/agents.py`）改走 `assemble`，运行记录里保存 `context` 记录 id；
-2. v2 默认化，旧渲染降为 `--legacy`；
+1. ✅ 平台任务上下文（`platform/agents.py`）已改走 `assemble`，运行记录里保存 `context` 回执
+   （`runs/<id>/context.json` + run 输出行）；旧 `build_context` 作为异常/`TMH_CONTEXT_PACK=0` 回退。
+2. ✅ v2 默认化：`tmh context` 默认输出 v2 文本，旧渲染降为 `--legacy`；`--json`/`--source` 始终走 v2。
 3. 参考来源从"目录"升级为 `ReferenceBinding`（固定版本 + 模块范围 + 用途），与 `project_library` 的
-   revision 对齐；
+   revision 对齐（G4 本地试点已验证模块级语义，平台表写入待服务器）。
 4. 检索后端可替换：向量检索作为 `KnowledgeSearch` 的第二实现，不改变本契约。
+5. 检索质量尺子已落地：`tmh/context_quality.py` + `tests/fixtures/context_golden.json`（26 条）+
+   `tests/test_context_quality.py`；PPR 与参数网格实验均为负结果，默认 lexical 不变（见 `benchmarks/`）。

@@ -1024,6 +1024,54 @@ def api_knowledge_file(P, req, key):
         raise ApiError(409, str(exc)) from exc
 
 
+@route("GET", "/api/org/knowledge")
+def api_org_knowledge(P, req):
+    """Organization knowledge v0: a read-only roll-up across every project (G8).
+
+    No q: the build summary (type counts / projects read). With q: search results
+    with provenance. Never writes, never runs a build, an agent or a command.
+    """
+    from . import org_knowledge as org
+    q = (req.arg("q") or "").strip()
+    types = [t.strip() for t in (req.arg("type") or "").split(",") if t.strip()]
+    bad = [t for t in types if t not in org.TYPES]
+    if bad:
+        raise ApiError(400, "未知类型：%s（可选 %s）" % ("、".join(bad), "、".join(org.TYPES)))
+    try:
+        limit = int(req.arg("limit") or 20)
+    except ValueError as exc:
+        raise ApiError(400, "limit 必须是整数") from exc
+    if limit < 1 or limit > 200:
+        raise ApiError(400, "limit 取值范围 1–200")
+    if q:
+        items = org.search(P.store, q, limit=limit, types=types or None)
+        return {"query": q, "types": types or list(org.TYPES), "limit": limit,
+                "items": items, "count": len(items), "readonly": True}
+    built = org.build(P.store)
+    items = [i for i in built["items"] if not types or i["type"] in types][:limit]
+    return {"query": "", "summary": built["stats"], "projects": built["projects_read"],
+            "provenance_projects": built["provenance_projects"], "items": items,
+            "count": len(built["items"]), "notice": built["notice"], "readonly": True}
+
+
+@route("GET", "/api/projects/<key>/habits")
+def api_habits(P, req, key):
+    """Development-habit signals (G9), read-only: personal (redacted by default) or anonymous team."""
+    from . import habits
+    p = P.project(key)  # unknown project -> the platform's usual 404
+    team = (req.arg("team") or "").strip().lower() in ("1", "true", "yes", "on")
+    if team:
+        return habits.team(P.store, p["id"])
+    user = (req.arg("user") or "").strip() or req.user
+    if not user:
+        raise ApiError(400, "个人视图需要 user=<成员>；团队视图请用 team=1")
+    redact = (req.arg("redact") or "").strip().lower() not in ("0", "false", "no", "off")
+    try:
+        return habits.personal(P.store, user, p["id"], redact=redact)
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
 @route("GET", "/api/projects/<key>")
 def api_project(P, req, key):
     p = P.project(key)

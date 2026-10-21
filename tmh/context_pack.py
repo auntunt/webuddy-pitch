@@ -256,7 +256,12 @@ def _render_item(item: dict) -> str:
         meta.append("域：" + item["domain"])
     tail = ("（%s）" % "，".join(meta)) if meta else ""
     body = (" " + item["excerpt"]) if item["excerpt"] else ""
-    return head + item["title"] + tail + where + body
+    # Keep the canonical id visible in the rendered text: downstream tools
+    # (kb follow-up, orchestra, server) extract `flow:`/`tbl:` ids from the
+    # agent's reading and result text. A namespaced id still contains the plain
+    # `flow:<name>` substring, so legacy regexes keep working.
+    ident = (" `%s`" % item["id"]) if item.get("id") else ""
+    return head + item["title"] + tail + ident + where + body
 
 
 def pack(items: list[dict], budget: int = 8000) -> dict:

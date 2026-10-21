@@ -324,6 +324,100 @@ def cmd_evidence_verify(a) -> int:
     return {"anchored": 0, "consistent": 3, "bad": 1}[verdict]
 
 
+# ---------------------------------------------------------------- platform read-only views (G8/G9)
+
+def _platform_store(a):
+    """Open the platform DB for a read-only command; never used by a write path."""
+    import os
+    from .platform.store import Store
+    data = Path(os.path.expanduser(getattr(a, "data", "") or "~/.tmh/platform"))
+    db = data / "platform.db"
+    if not db.is_file():
+        print("这个数据目录里还没有平台库：%s\n先用 `tmh serve --data %s` 启动过平台，或用 --data 指向正确的目录。"
+              % (db, data))
+        return None
+    try:
+        return Store(db)
+    except Exception as exc:  # noqa: BLE001 - a CLI message, not a crash
+        print("打不开平台库 %s：%s" % (db, exc))
+        return None
+
+
+def cmd_platform_org_knowledge(a) -> int:
+    """G8: organization knowledge, read-only, across every project the platform knows."""
+    from .platform import org_knowledge as org
+    store = _platform_store(a)
+    if store is None:
+        return 1
+    types = [t for t in (getattr(a, "type", None) or []) if t]
+    bad = [t for t in types if t not in org.TYPES]
+    if bad:
+        print("未知类型：%s（可选 %s）" % ("、".join(bad), "、".join(org.TYPES)))
+        return 2
+    limit = max(1, min(int(getattr(a, "limit", 20) or 20), 200))
+    q = (getattr(a, "q", "") or "").strip()
+    if q:
+        items = org.search(store, q, limit=limit, types=types or None)
+        payload = {"query": q, "items": items, "count": len(items), "readonly": True}
+    else:
+        built = org.build(store)
+        items = [i for i in built["items"] if not types or i["type"] in types][:limit]
+        payload = {"query": "", "summary": built["stats"], "projects": built["projects_read"],
+                   "items": items, "count": len(built["items"]), "readonly": True}
+    if getattr(a, "json", False):
+        print(json.dumps(payload, ensure_ascii=False, indent=1))
+    else:
+        if q:
+            print("组织知识检索：%s（%d 条）" % (q, payload["count"]))
+        else:
+            s = payload["summary"]
+            print("组织知识库（只读）：%d 条，来自 %d 个项目；类型 %s"
+                  % (s["items"], s["projects_contributing"],
+                     "、".join("%s %d" % (org.TYPE_LABEL[t], s["by_type"][t]) for t in org.TYPES)))
+        for item in items:
+            prov = "、".join(sorted({p.get("project") or "?" for p in item["provenance"]}))
+            print("- [%s] %s（项目：%s）" % (item["type_label"], item["title"], prov))
+            if item.get("summary"):
+                print("    %s" % item["summary"])
+    a.summary = "组织知识库（只读）：%d 条" % payload["count"]
+    return 0
+
+
+def cmd_platform_habits(a) -> int:
+    """G9: personal (redacted by default) or anonymous team habit signals, read-only."""
+    from .platform import habits
+    store = _platform_store(a)
+    if store is None:
+        return 1
+    project = store.project(getattr(a, "project", "") or "")
+    if not project:
+        print("没有这个项目：%s（用 --project 项目代号，例如 OA）" % getattr(a, "project", ""))
+        return 2
+    if getattr(a, "team", False):
+        payload = habits.team(store, project["id"])
+    else:
+        user = (getattr(a, "user", "") or "").strip()
+        if not user:
+            print("个人视图需要 --user <成员>；团队匿名视图请用 --team")
+            return 2
+        payload = habits.personal(store, user, project["id"],
+                                  redact=str(getattr(a, "redact", "1")).lower() not in ("0", "false", "no", "off"))
+    if getattr(a, "json", False):
+        print(json.dumps(payload, ensure_ascii=False, indent=1))
+    else:
+        print("开发习惯（只读，%s）：项目 %s" % ("团队匿名视图" if payload["view"] == "team" else "个人视图", project["key"]))
+        print("样本：%s；fair=%s；min_sample=%s" % (
+            "，".join("%s %d" % (k, v) for k, v in payload["sample"].items()),
+            payload.get("fair"), payload.get("min_sample", habits.MIN_SAMPLE)))
+        for note in payload.get("notes") or []:
+            print("  " + note)
+        for key in ("modes_share", "ticket_types_share", "rework_rate", "review_focus_share"):
+            if key in payload:
+                print("%s：%s" % (key, payload[key]))
+    a.summary = "开发习惯（只读）%s %s" % (project["key"], payload["view"])
+    return 0
+
+
 def cmd_verify(a) -> int:
     from .verify import verify, verify_md
     r = verify(_root(a), run_tests=not a.no_tests, timeout=a.timeout, task=a.task or "")
@@ -666,7 +760,12 @@ def cmd_context(a) -> int:
         return 1
     query = " ".join(a.query)
     extra = [Path(s).resolve() for s in (getattr(a, "source", None) or [])]
-    if getattr(a, "json", False) or getattr(a, "pack", False) or extra:
+    # v2 is the default now: every hit carries source + commit + knowledge
+    # revision, and a short budget produces an explicit omission list instead of
+    # a silent cut. `--legacy` stays for one release so older scripts keep their
+    # exact output; `--json`/`--source` always use v2.
+    use_v2 = not getattr(a, "legacy", False) or getattr(a, "json", False) or bool(extra)
+    if use_v2:
         from .context_pack import assemble
         sources = [{"root": root, "label": getattr(a, "label", None) or root.name or "当前项目", "current": True}]
         sources += [{"root": p, "label": p.name, "current": False} for p in extra]
@@ -680,7 +779,7 @@ def cmd_context(a) -> int:
         a.summary = "结构化上下文包（context pack v2）：" + query[:60]
         return 0
     print(build_context(root, query, a.budget))
-    a.summary = "查询项目知识：" + query[:60]
+    a.summary = "查询项目知识（legacy 文本）：" + query[:60]
     return 0
 
 
@@ -847,7 +946,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("query", nargs="+")
     p.add_argument("--budget", type=int, default=8000)
     p.add_argument("--json", action="store_true", help="输出结构化 context pack（来源/版本/逐条溯源/遗漏清单）")
-    p.add_argument("--pack", action="store_true", help="按 context pack v2 渲染文本：每条带来源与版本，预算不足时列出未展开项")
+    p.add_argument("--pack", action="store_true", help="（默认已是 v2 文本）保留兼容参数")
+    p.add_argument("--legacy", action="store_true", help="用旧版单项目线性文本（默认已切 v2；仅兼容旧脚本）")
     p.add_argument("--source", action="append", default=[], help="参考项目目录（可重复；与当前项目分开检索，不合并同名符号）")
     p.add_argument("--label", help="当前项目在上下文包里的显示名")
     p.add_argument("--require-all", action="store_true", help="任一来源不可用时报错，不静默降级")
@@ -875,6 +975,27 @@ def build_parser() -> argparse.ArgumentParser:
     p = add("offline-pack", cmd_offline_pack, "打内网离线安装包（工具、模板、技能、子代理、信创知识库，带 sha256 清单）")
     p.add_argument("--out", help="输出的 zip 路径（默认 tmh-offline-<版本>.zip）")
     p.add_argument("--verify", help="校验一个离线包，不打包")
+    p = add("platform", lambda a: 0,
+            "平台只读视图：组织知识库（G8）、开发习惯（G9）；--data 指向正在运行的平台数据目录")
+    p.add_argument("--data", default="~/.tmh/platform", help="平台数据目录（与 tmh serve --data 相同）")
+    psub = p.add_subparsers(dest="action", required=True)
+
+    def padd(name, fn, help_):
+        qq = psub.add_parser(name, help=help_)
+        qq.set_defaults(fn=fn)
+        return qq
+
+    qq = padd("org-knowledge", cmd_platform_org_knowledge, "组织知识库：跨项目聚合/检索（只读）")
+    qq.add_argument("--q", default="", help="检索词；不填给出类型计数与来源项目")
+    qq.add_argument("--type", action="append", default=[], help="限定类型，可重复：term/pattern/component/rule")
+    qq.add_argument("--limit", type=int, default=20, help="最多返回条数（1–200）")
+    qq.add_argument("--json", action="store_true", help="输出结构化 JSON")
+    qq = padd("habits", cmd_platform_habits, "开发习惯：个人（默认脱敏）/团队匿名（只读）")
+    qq.add_argument("--project", required=True, help="项目代号，例如 OA")
+    qq.add_argument("--user", default="", help="看谁的（个人视图）；不给则需 --team")
+    qq.add_argument("--team", action="store_true", help="团队匿名视图（按 MIN_SAMPLE 纪律，样本不足时比例为空）")
+    qq.add_argument("--redact", default="1", help="个人视图是否脱敏（默认 1；0 才显示成员名）")
+    qq.add_argument("--json", action="store_true", help="输出结构化 JSON")
     from .opscli import register
     register(add)
     add("workbench", lambda a: 0, "Webuddy CLI / MCP：连接正在运行的交付工作台（workbench --help）")
@@ -890,7 +1011,7 @@ def main(argv=None) -> int:
     rc = a.fn(a) or 0
     quiet = a.cmd == "kb" and a.action in ("status", "show", "pack", "done", "read", "questions", "ask", "answer", "overrule", "metrics")  # done logs its own entry
     quiet = quiet or a.cmd == "mcp" or (a.cmd == "int" and a.action in ("list", "types"))
-    if a.cmd not in ("hook", "note", "status", "agent-config", "install", "verify", "serve", "offline-pack", "evidence-verify") and not quiet:  # verify writes its own report
+    if a.cmd not in ("hook", "note", "status", "agent-config", "install", "verify", "serve", "offline-pack", "evidence-verify", "platform") and not quiet:  # verify writes its own report
         from . import activity
         argv_s = " ".join(sys.argv[1:] if argv is None else argv)
         argv_s = re.sub(r"--repo\s+\S+\s*", "", argv_s).strip()

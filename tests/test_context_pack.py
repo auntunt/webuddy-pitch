@@ -87,6 +87,28 @@ class ContextPackTest(unittest.TestCase):
         self.assertIn("post-expense-audit", text)
         self.assertIn("OA_BUDGET", text)
 
+    def test_rendered_items_keep_canonical_ids(self):
+        """Downstream tools (kb follow-up, orchestra, server) extract flow:/tbl: ids
+        from the text they give an agent. v2 must keep those ids visible, otherwise
+        analysis silently stops queuing knowledge-page follow-ups."""
+        import re
+        text = assemble([{"root": str(self.repo), "label": "oa", "current": True}],
+                        QUERY, budget=8000, log=False)
+        flows = re.findall(r"flow:[A-Za-z0-9_.\-]+", text)
+        self.assertTrue(flows, "context pack text must expose flow:<name> ids")
+        self.assertIn("flow:post-expense-audit", flows)
+        tables = re.findall(r"tbl:[A-Za-z0-9_.\-]+", text)
+        self.assertTrue(tables, "expected table ids in the rendered pack")
+
+    def test_rendered_ids_survive_budget_trimming(self):
+        import re
+        text = assemble([{"root": str(self.repo), "label": "oa", "current": True}],
+                        QUERY, budget=1200, log=False)
+        self.assertLessEqual(len(text), 1200)
+        # Items that survived must still carry their id; trimmed ones must be
+        # listed with a full-text handle rather than silently disappear.
+        self.assertTrue(re.findall(r"flow:[A-Za-z0-9_.\-]+", text) or "未展开" in text)
+
     # --- budget contract --------------------------------------------------
     def test_budget_limits_expansion_not_evidence(self):
         res = self.one(budget=600)
@@ -192,6 +214,44 @@ class ContextPackTest(unittest.TestCase):
         self.assertLessEqual(len(out), 300)
         self.assertIn("省略", out)
         self.assertIn("tmh kb read", out)
+
+    # --- CLI default ------------------------------------------------------
+    def test_cli_context_defaults_to_v2_and_legacy_flag_still_works(self):
+        import io
+        from contextlib import redirect_stdout
+        from tmh import cli
+
+        out = io.StringIO()
+        with redirect_stdout(out):
+            code = cli.main(["context", QUERY, "--repo", str(self.repo)])
+        text = out.getvalue()
+        self.assertEqual(code, 0)
+        self.assertIn("context pack v2", text)
+        self.assertIn("来源", text)
+        self.assertIn("知识修订", text)
+
+        legacy = io.StringIO()
+        with redirect_stdout(legacy):
+            code = cli.main(["context", QUERY, "--repo", str(self.repo), "--legacy"])
+        old = legacy.getvalue()
+        self.assertEqual(code, 0)
+        self.assertNotIn("context pack v2", old)
+        self.assertTrue(old.strip(), "legacy path must still render something")
+
+    def test_cli_context_json_is_machine_readable(self):
+        import io
+        import json as jsonlib
+        from contextlib import redirect_stdout
+        from tmh import cli
+
+        out = io.StringIO()
+        with redirect_stdout(out):
+            code = cli.main(["context", QUERY, "--repo", str(self.repo), "--json", "--budget", "2000"])
+        self.assertEqual(code, 0)
+        payload = jsonlib.loads(out.getvalue())
+        self.assertEqual(payload["schema"], 2)
+        self.assertLessEqual(payload["used"], 2000)
+        self.assertTrue(payload["sources"][0]["available"])
 
 
 if __name__ == "__main__":
