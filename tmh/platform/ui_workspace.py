@@ -4,7 +4,7 @@ WORKSPACE_JS = r"""
 const WS={view:'',q:'',offset:0,read:0,lastScope:null};
 function wsRefresh(){vWorkspace().catch(e=>toast(e.message))}
 function wsProject(key,route){setProj(key);S.scope=key;ls.set('tmh.scope',key);location.hash=route||'#/projects/'+encodeURIComponent(key)}
-function wsTaskRow(t,review=false){const action=review?'开始复核':t.status==='verify'?'查看验证':t.status==='confirm'?'确认方案':t.status==='new'?'开始处理':'继续处理';return `<article class="ws-row"><span class="ws-task-marker ${h(t.status)}" aria-hidden="true"></span><div class="grow"><a class="ws-row-title" href="#/t/${encodeURIComponent(t.key)}">${h(t.title)}</a><div class="ws-row-meta">${h(t.key)} · ${h(t.assignee||'待分配负责人')} ${t.reviewer?'· 复核 '+h(t.reviewer):''} · ${h(ago(t.updated))}</div></div>${stPill(t.status)}<a class="btn ghost" href="${review?'#/team/ticket/':'#/t/'}${encodeURIComponent(t.key)}">${action}</a></article>`}
+function wsTaskRow(t,review=false){const action=review?'开始复核':t.status==='verify'?'查看验证':t.status==='confirm'?'确认方案':t.status==='new'?'开始处理':'继续处理';return `<article class="ws-row"><span class="ws-task-marker state-${h(t.status)}" aria-hidden="true"></span><div class="grow"><a class="ws-row-title" href="#/t/${encodeURIComponent(t.key)}">${h(t.title)}</a><div class="ws-row-meta">${h(t.key)} · ${h(t.assignee||'待分配负责人')} ${t.reviewer?'· 复核 '+h(t.reviewer):''} · ${h(ago(t.updated))}</div></div>${stPill(t.status)}<a class="btn ghost" href="${review?'#/team/ticket/':'#/t/'}${encodeURIComponent(t.key)}">${action}</a></article>`}
 async function vWorkspace(){
   const request=++WS.read, route=location.hash, scope=scopeQ();
   if(WS.lastScope!==scope){WS.offset=0;WS.lastScope=scope}

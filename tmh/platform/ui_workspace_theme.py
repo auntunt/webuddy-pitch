@@ -206,9 +206,9 @@ pre.log{background:#20372A;color:#E2ECE2}
 .ws-row>.btn{flex:none;font-size:12px;padding:6px 10px;min-height:32px}
 .ws-row>.pill{flex:none}
 .ws-task-marker{display:block;width:9px;height:9px;border-radius:3px;background:#A6B3A6;border:1px solid #95A794;flex:none;align-self:flex-start;margin-top:8px}
-.ws-task-marker.analyzing{background:#91B3C5;border-color:#6D99B0}.ws-task-marker.doing{background:#8EBDA4;border-color:#6B9E83}
-.ws-task-marker.verify{background:#E7CC8C;border-color:#BEA361}.ws-task-marker.confirm{background:#C8B5D7;border-color:#AC91C0}
-.ws-task-marker.closed{background:#AAC5A7;border-color:#83A77E}
+.ws-task-marker.state-analyzing{background:#91B3C5;border-color:#6D99B0}.ws-task-marker.state-doing{background:#8EBDA4;border-color:#6B9E83}
+.ws-task-marker.state-verify{background:#E7CC8C;border-color:#BEA361}.ws-task-marker.state-confirm{background:#C8B5D7;border-color:#AC91C0}
+.ws-task-marker.state-closed{background:#AAC5A7;border-color:#83A77E}
 .ws-pagination{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:17px;flex-wrap:wrap}
 .ws-pagination>.sub{margin-right:auto;font-size:12px}.ws-pagination button{min-height:31px;padding:5px 9px;font-size:12px}
 .ws-aside{display:flex;flex-direction:column;gap:20px;min-width:0}
