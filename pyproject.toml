@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tmh-harness"
-version = "0.3.0"
+version = "0.4.0"
 description = "传统 toB 软件项目维护 harness：业务流理解、新需求实现、改造（Codex / Claude Code）"
 requires-python = ">=3.8"
 dependencies = []

@@ -26,3 +26,18 @@ worktrees/
 dist/
 build/
 *.egg-info/
+# 测试/运行产物（release-check 也会用到）
+.pytest_cache/
+.coverage
+htmlcov/
+node_modules/
+# tmh 在项目仓库里的运行数据/缓存（平台数据默认在 ~/.tmh/platform，不在仓库内）
+.tmh/
+# 基准测试临时文件
+benchmarks/*.tmp
+benchmarks/tmp/
+# 编辑器/系统临时
+.idea/
+.vscode/settings.json
+*.swp
+*~
