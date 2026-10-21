@@ -17,6 +17,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
+from tests import sqlite_compat
 from tests import test_project_library as library_fixtures
 from tmh.platform import agents, preview, project_library as library
 from tmh.platform.errors import ApiError
@@ -195,7 +196,7 @@ class LibraryBoundariesTest(unittest.TestCase):
                             other.db.execute("PRAGMA busy_timeout=0")
                             with self.assertRaises(sqlite3.OperationalError) as locked:
                                 other.db.execute("BEGIN IMMEDIATE")
-                            self.assertEqual(locked.exception.sqlite_errorcode, sqlite3.SQLITE_BUSY)
+                            self.assertTrue(sqlite_compat.is_busy(locked.exception), locked.exception)
                             self.assertFalse(other.db.in_transaction)
                         finally:
                             release.set()

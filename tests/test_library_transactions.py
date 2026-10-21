@@ -14,6 +14,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
+from tests import sqlite_compat
 from tests import test_external_candidates as candidate_fixtures
 from tests import test_library_review as review_fixtures
 from tests import test_project_library as fixtures
@@ -196,7 +197,7 @@ class LibraryTransactionTest(unittest.TestCase):
                         other.db.execute("INSERT INTO knowledge_grants VALUES(?,?,'[]','fixture','fixture')",
                                          (second['id'], customer['id']))
                 except sqlite3.OperationalError as exc:
-                    self.assertEqual(exc.sqlite_errorcode, sqlite3.SQLITE_BUSY)
+                    self.assertTrue(sqlite_compat.is_busy(exc), exc)
                     attempts.append('serialized')
                 else:
                     attempts.append('swapped')
@@ -330,7 +331,7 @@ class LibraryTransactionTest(unittest.TestCase):
             other.q('SELECT * FROM runs')  # a real shared lock prevents COMMIT
             with self.assertRaises(sqlite3.OperationalError) as caught:
                 self.store.create_run(project['id'], None, 'synthetic', 'ask', 'fixture', 'retry', retry_of=run['id'])
-            self.assertEqual(caught.exception.sqlite_errorcode, sqlite3.SQLITE_BUSY)
+            self.assertTrue(sqlite_compat.is_busy(caught.exception), caught.exception)
             self.assertFalse(self.store.db.in_transaction)
             self.assertEqual(other.q('SELECT * FROM runs'), before_runs)
             self.assertEqual(other.q('SELECT * FROM knowledge_run_inputs'), before_inputs)
@@ -352,16 +353,21 @@ class LibraryTransactionTest(unittest.TestCase):
                 try:
                     if failure == 'statement':
                         self.store.db.set_authorizer(
-                            lambda action, *args: sqlite3.SQLITE_DENY if action == sqlite3.SQLITE_ALTER_TABLE else sqlite3.SQLITE_OK)
+                            lambda action, *args: sqlite_compat.SQLITE_DENY if action == sqlite_compat.SQLITE_ALTER_TABLE else sqlite_compat.SQLITE_OK)
                     else:
                         other.db.execute('BEGIN')
                         other.q('SELECT * FROM knowledge_run_inputs')
                     with self.assertRaises(sqlite3.DatabaseError) as caught:
                         library.schema(self.store)
-                    expected = sqlite3.SQLITE_AUTH if failure == 'statement' else sqlite3.SQLITE_BUSY
-                    self.assertEqual(caught.exception.sqlite_errorcode, expected)
+                    if failure == 'statement':
+                        self.assertTrue(sqlite_compat.is_auth_denied(caught.exception), caught.exception)
+                    else:
+                        self.assertTrue(sqlite_compat.is_busy(caught.exception), caught.exception)
                 finally:
-                    self.store.db.set_authorizer(None)
+                    # CPython 3.10 + SQLite 3.37 ignores set_authorizer(None) after a callback
+                    # denied by return code, so restore a permissive authorizer instead: the
+                    # retry below and the teardown must be real writes, not silently denied.
+                    self.store.db.set_authorizer(lambda action, *args: sqlite_compat.SQLITE_OK)
                     other.db.rollback()
                 self.assertFalse(self.store.db.in_transaction)
                 self.assertNotIn('project_root', {r['name'] for r in self.store.q('PRAGMA table_info(knowledge_run_inputs)')})

@@ -17,6 +17,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
+from tests import sqlite_compat
 from tests import test_library_integration as integration_fixtures
 from tests import test_project_library as fixtures
 from tmh.platform import agents, handwork, intake, learn, login, project_library as library, supervised_process
@@ -352,7 +353,7 @@ class LibraryReviewTest(unittest.TestCase):
                 try:
                     revoke()
                 except sqlite3.OperationalError as exc:
-                    self.assertEqual(exc.sqlite_errorcode, sqlite3.SQLITE_BUSY)
+                    self.assertTrue(sqlite_compat.is_busy(exc), exc)
                     attempts.append('serialized')
                 else:
                     attempts.append('revoked_before_merge')
@@ -397,7 +398,7 @@ class LibraryReviewTest(unittest.TestCase):
                     try:
                         response = library.cancel(other, source, row['id'])
                     except sqlite3.OperationalError as exc:
-                        self.assertEqual(exc.sqlite_errorcode, sqlite3.SQLITE_BUSY)
+                        self.assertTrue(sqlite_compat.is_busy(exc), exc)
                         attempts[:] = ['serialized']
                     else:
                         attempts[:] = ['acknowledged', response['status']]
