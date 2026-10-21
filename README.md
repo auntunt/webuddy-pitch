@@ -1,5 +1,10 @@
 # tmh：传统 toB 软件项目维护 harness
 
+> **交接状态（2026-10-21，v0.4.0）**：功能开发已收口，转入**部署与线上验证**阶段。
+> 是否需要继续开发、部署步骤、验证清单、已知限制与"由数据触发"的下一轮开发优先级：
+> **→ [当前状态与下一步（docs/NEXT-STEPS.md）](docs/NEXT-STEPS.md)**
+> 部署手册：[docs/DEPLOY.md](docs/DEPLOY.md) · 变更日志：[CHANGELOG.md](CHANGELOG.md)
+
 **Webuddy CLI / MCP 已提供工作台入口：** 编程助手可读取需求与证据、沟通交接、启动受控运行及查看候选预览。见 [CLI、Claude Code、Cursor、Codex 接入说明](docs/workbench-agent.md)。
 
 装在 Codex / Claude Code 上的一套“老项目维护工作台”，可以接 DeepSeek、Kimi、GLM、Qwen 等国产模型。适用对象是国内 toB 软件公司长期维护的 Java / .NET 业务系统，比如 OA、ERP、CRM、财务和政务审批。
