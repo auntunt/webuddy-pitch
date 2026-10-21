@@ -138,7 +138,7 @@ class HarnessProbeTest(unittest.TestCase):
         self.prepare()
         result = self.finish(self.start())
         self.assertFalse(result["passed"])
-        self.assertEqual(result["status"], "done")
+        self.assertEqual(result["status"], "done", result)
         self.assertEqual(result["result"]["arms"]["candidate"]["process"]["exit_code"], 0)
         self.assertIn("fail", [r["status"] for r in result["result"]["arms"]["candidate"]["results"]])
         with self.preview():

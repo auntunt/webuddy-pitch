@@ -45,6 +45,10 @@
 
 进程查询原先没有指定列宽，Linux `ps` 可截短命令行，使夹具路径或唯一 token 缺失。本次对该测试查询加 `-ww`，并增加窄列宽下的真实进程认领回归；仍按登记 PID、完整夹具路径、唯一 token 和非僵尸状态检查所有权。超时限制、取消、无关进程保护、完整日志和清理断言均保留。修正后本机生命周期套件 **17 passed（26.92 秒）**。该跟进只修改测试和记录，最终 Linux 全量结论以跟进提交的 Actions 为准。
 
+提交 `7e56608` 的 [Actions run 39562460035](https://github.com/auntunt/webuddy-pitch/actions/runs/39562460035) 中，两平台安装检查及四组快速检查通过，Linux Python 3.11 全量 **1011 passed / 16 skipped，326 subtests passed（257.49 秒）**。Python 3.13 的生命周期用例也全部通过；全量出现另一个独立失败：`HarnessProbeTest.test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass` 得到 `status=failed`，期望 `done`，总计 1010 passed / 1 failed / 16 skipped。
+
+该业务探测用例在此前两轮 Python 3.13 中通过，本机单独连续复跑 10 次也均通过。原断言未输出探测结果，无法从该次日志确定原因；目前只补充失败时的完整结果诊断，保留全部断言和运行时行为，不把这次未复现失败记为已修复。原始失败日志和 10 次本机结果均保留在上述验证目录；后续 CI 结果用于判断是否复现。
+
 ## 复跑方法
 
 ```sh
