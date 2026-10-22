@@ -176,8 +176,9 @@ class DeliveryExecutionPromptTest(unittest.TestCase):
         loop.cancelled = mock.Mock(return_value=False)
         loop.dirty = mock.Mock(return_value={})
         loop.keep_to = mock.Mock()
-        with mock.patch("tmh.platform.fixloop.build_prompt", return_value="重新读取的资料\n" + GREENFIELD_FIX):
+        with mock.patch("tmh.platform.fixloop.additional_context_prompt", return_value="重新读取的资料\n" + GREENFIELD_FIX) as rebuilt:
             loop.collaborate({"tests/test_audit.py": "新增审计持久化测试"}, {"guide": "覆盖重启后读取"})
+        rebuilt.assert_not_called()  # Delivery must use the reviewed frozen packet.
         loop.call.assert_called_once()
         prompt = loop.call.call_args.args[1]
         self.assertIn("本轮必须保存完整审计记录", prompt)

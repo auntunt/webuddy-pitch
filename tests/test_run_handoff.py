@@ -40,14 +40,18 @@ class RunHandoffTest(unittest.TestCase):
             self.assertTrue(value in prompt, name + "必须完整保留")
 
     def test_resumed_plan_and_fix_receive_current_full_contract(self):
+        previous = self.store.create_run(self.project["id"], self.ticket["id"], "codex", "analyze", "agent", "")
+        self.store.update_run(previous["id"], status="done", exit_code=0, result="上轮分析", ended="2026-10-18 00:00:00")
+        previous = self.store.run(previous["id"])
         run = self.store.create_run(self.project["id"], self.ticket["id"], "codex", "plan", "agent", "")
         current = "需求已修改：503重试必须更新原id，不能新增记录"
-        previous = {"mode": "analyze", "ended": "2026-10-18 00:00:00"}
         with mock.patch("tmh.platform.agents.earlier_session", return_value=("session", previous)), \
                 mock.patch.object(self.runner, "invoke", return_value=(0, "方案")) as invoke:
             self.runner._go(run["id"], self.project, self.ticket, "codex", "plan", current, {})
         self.assertIn(current, invoke.call_args.args[6])
         self.assertEqual(invoke.call_args.kwargs["resume"], "session")
+        ancestry = json.loads((self.data / "runs" / str(run["id"]) / "session-context.json").read_text())
+        self.assertEqual(ancestry["parent_run_id"], previous["id"])
         loop = FixLoop.__new__(FixLoop)
         from tmh.platform.agents import MODE_TEXT
         loop.prompt = current + "\n\n" + MODE_TEXT["fix"]

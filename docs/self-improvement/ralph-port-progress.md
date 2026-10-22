@@ -33,6 +33,14 @@
 - K4 doing：界面 `ui_learning.py` / `ui.py` / `ui_memory.py`、22 个新界面用例，以及设计状态和 `docs/knowledge-learning.md` 使用说明已完成；待最终全量验证后封存结果。
 - K4 done：已读回完整操作说明与设计，核对页面入口、三类流程、执行器限制、机器/人工分离、策略范围、撤销恢复与未验证事项。22 个新界面测试和实际浏览器检查均已通过，内容/错误转义、异步切换与草稿保留已覆盖；界面检查后没有再改 UI 代码。K3 提交 `a50f524`；K4 与本记录一并提交。下一步冻结源文件清单，再运行一次全量，发现问题单独提交修复。
 
+### 本轮全量验收与收尾
+
+- 首轮受测提交：`4cc8632`；执行 `NO_PROXY='*' no_proxy='*' PYTHONPATH='<离线辅助目录>:.' python3 -m unittest discover -s tests`。**1331 tests / 401.584s / FAILED（errors=2, skipped=16）**，即 1313 通过、2 错误、16 跳过；完整日志 `full-unittest.log` 保留。265 个受测源文件与冻结清单逐个 SHA-256 一致，运行期间未编辑实现或测试。
+- 两个错误均为本轮新增会话检查后需要更新的旧测试夹具，不能记为基线已知失败：① `test_project_bootstrap` 仍 patch 已移走的 `fixloop.build_prompt`，未进入断言即报 AttributeError；② `test_run_handoff` 的模拟父会话只有 mode/ended，没有真实运行 id，新祖先回执读取时报 KeyError，现场数据库记录为 failed/id。失败现场分别为辅助目录内 `failure-b1882075bb2947419122d1a522ed0ac5`、`failure-42c90e91b15e4fe9927fa63d6606d8a6`，已保留完整 traceback 和后者临时数据库。
+- 修复范围仅这两个测试文件：替换新的上下文构造接点，并增加它未被调用的断言，确认交付仍使用原冻结材料；创建真实合成父运行，再检查完整需求、resume 和祖先回执。保留全部原断言和时间预算，未为测试放宽生产会话校验。
+- 定向命令：`NO_PROXY='*' no_proxy='*' PYTHONPATH='<离线辅助目录>:tests:.' python3 -m unittest test_project_bootstrap test_run_handoff test_learning_sessions`，**42/42 / 12.395s / OK**；完整 `handoff-fixtures-green.log`。已审阅两个 diff，准备单独提交并重新冻结清单后跑全量。
+- 首轮跳过原因逐条保存 `first-full-skips.json`：MCP SDK 缺失 14 项（知识 Agent 发现 1 + workbench 13），cryptography 缺失 2 项；未联网安装依赖。已有 HTTPError/SQLite/socket ResourceWarning 和 fork DeprecationWarning 原样保留，未过滤日志。
+
 ## 2026-10-22：知识分类与评审闭环设计
 
 - 当前项：把用户认可的“项目事实 / 可复用经验 / 执行策略”方向落实成可实施方案；状态：done（设计文档完成，K1–K4 实现均为 todo）。
