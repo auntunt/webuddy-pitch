@@ -25,6 +25,7 @@ async function memAction(c,body,button,refresh){
  catch(error){memNotice(c,error.message,true)}finally{MEM.pending.delete(token);if(memCurrent(c))button.disabled=false}
 }
 async function vMemory(section='overview'){
+ if(section==='learning')return vLearning();
  if(!['overview','knowledge','lessons','clusters'].includes(section))section='overview';MEM.section=section;
  MEM.project=S.scope==='*'?'':S.scope||'';
  const seq=++MEM.sequence,route=location.hash,key=MEM.project,q=MEM.query;
@@ -34,7 +35,7 @@ async function vMemory(section='overview'){
  const projects=d.projects||S.projects||[];
  $('#main').innerHTML=`<div class="mem-page" id="memPage"><header class="mem-head"><div class="grow"><h1>${workIcon('eng')} 知识与记忆</h1><p>把项目知识、做过的维护和共同方案留给下一次工作。先看来源和适用范围，再决定哪些经验进入项目。</p></div>${key?'<button id="memBriefGo">项目讲解与交接</button>':''}</header>
  <form id="memSearch" class="mem-toolbar"><label>范围 <select id="memProject">${memProjectOptions(projects,key)}</select></label><label class="grow">检索 <input id="memQuery" value="${h(q)}" placeholder="业务、问题、经验或代码线索"></label><button class="primary">搜索</button></form>
- <nav class="mem-tabs" aria-label="记忆分区">${[['overview','工作区'],['knowledge','项目知识'],['lessons','长期记忆与共通方案'],['clusters','同类问题']].map(([s,label])=>`<button data-mem-tab="${s}" class="${s===section?'on':''}">${label}</button>`).join('')}</nav>
+ <nav class="mem-tabs" aria-label="记忆分区">${[['overview','工作区'],['knowledge','项目知识'],['lessons','长期记忆与共通方案'],['clusters','同类问题'],['learning','分类与评审']].map(([s,label])=>`<button data-mem-tab="${s}" class="${s===section?'on':''}">${label}</button>`).join('')}</nav>
  <div id="memNotice" class="mem-notice" role="status" aria-live="polite"></div><div id="memContent"></div></div>`;
  const c={root:$('#memPage'),route,key,section,data:d};MEM.view=c;
  c.root.querySelector('#memProject').onchange=e=>{memSelectProject(e.target.value);return vMemory(MEM.section)};

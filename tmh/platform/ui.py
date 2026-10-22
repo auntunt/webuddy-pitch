@@ -15,11 +15,12 @@ from .ui_library import LIBRARY_CSS, LIBRARY_JS
 from .ui_workspace import WORKSPACE_JS
 from .ui_workspace_theme import WORKSPACE_CSS
 from .ui_memory import MEMORY_CSS, MEMORY_JS
+from .ui_learning import LEARNING_CSS, LEARNING_JS
 from .ui_team import TEAM_CSS, TEAM_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + MEMORY_JS + TEAM_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + MEMORY_JS + TEAM_JS + LEARNING_JS)
 
 
 HTML = r"""<!doctype html>
