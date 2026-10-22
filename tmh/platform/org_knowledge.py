@@ -96,6 +96,7 @@ def _kb_dir(project: dict) -> Path | None:
 
 
 def _pages(kb_dir: Path) -> list[dict]:
+    from ..kb import confirmation_status
     out = []
     try:
         registry = json.loads((kb_dir / ".pages.json").read_text(encoding="utf-8"))
@@ -108,7 +109,7 @@ def _pages(kb_dir: Path) -> list[dict]:
         if rel in ("glossary.md", "decisions.md", "pitfalls.md", "open-questions.md") or rel.startswith("README"):
             continue
         try:
-            text = p.read_text(encoding="utf-8", errors="replace")
+            text = p.read_bytes().decode("utf-8", errors="replace")
         except OSError:
             continue
         meta, body = _frontmatter(text)
@@ -117,7 +118,8 @@ def _pages(kb_dir: Path) -> list[dict]:
             continue
         title = meta.get("title") or (m.group(1).strip() if (m := _H1.search(body)) else rel)
         out.append({"rel": rel, "id": meta.get("id") or rel, "title": title, "content": body,
-                    "status": "需更新" if record.get("stale") else record.get("status") or meta.get("status") or "", "commit": meta.get("commit") or "",
+                    "status": (confirmation_status(record, text) if isinstance(record.get("learning"), dict) and record["learning"].get("pending") else
+                               "需更新" if record.get("stale") else confirmation_status(record, text) or meta.get("status") or ""), "commit": meta.get("commit") or "",
                     "summary": _body_summary(body) or title, "registered": bool(record)})
     return out
 

@@ -34,12 +34,17 @@ GROUP = 4  # flow pages of one source file written in one run
 
 
 class Survey:
-    def __init__(self, platform, project: dict, agent: str, parallel: int, limit: int, author: str, scope: str = "all", model=None):
+    def __init__(self, platform, project: dict, agent: str, parallel: int, limit: int, author: str, scope: str = "all", model=None,
+                 *, review=False, review_options=None):
         self.P = platform
         self.project = project
         self.root = Path(project["root"])
         self.agent = agent
         self.model = model  # None: the agent's default for knowledge pages
+        if type(review) is not bool or (review_options is not None and not isinstance(review_options, dict)):
+            raise ValueError("独立评审开关必须为布尔值，选项必须为对象")
+        self.review = review
+        self.review_options = json.loads(json.dumps(review_options or {}, ensure_ascii=False))
         self.parallel = max(1, min(int(parallel or 1), 6))
         self.limit = max(0, int(limit or 0))
         self.author = author
@@ -73,7 +78,8 @@ class Survey:
             if running:
                 left = max(0, self.limit - len(self.finished)) if self.limit else 0
                 d[key] = {"agent": self.agent, "model": self.model, "parallel": self.parallel, "scope": self.scope,
-                          "author": self.author, "limit": left, "unlimited": not self.limit}
+                          "author": self.author, "limit": left, "unlimited": not self.limit,
+                          "review": self.review, "review_options": self.review_options}
             else:
                 d.pop(key, None)
             f.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
@@ -91,7 +97,7 @@ class Survey:
             if not p or (not c.get("unlimited") and not c.get("limit")):
                 continue
             sv = cls(platform, p, c["agent"], c.get("parallel", 2), 0 if c.get("unlimited") else c["limit"], c.get("author", ""),
-                     c.get("scope", "all"), c.get("model"))
+                     c.get("scope", "all"), c.get("model"), review=c.get("review", False), review_options=c.get("review_options"))
             sv.resumed = True
             platform.surveys[p["id"]] = sv
             sv.start()
@@ -107,6 +113,7 @@ class Survey:
         reg = kb.load_registry(self.root)
         with self.lock:
             return {"state": self.state, "scope": self.scope, "agent": self.agent, "model": self.model, "parallel": self.parallel, "limit": self.limit,
+                    "review": self.review, "review_options": dict(self.review_options),
                     "author": self.author, "batch": self.batch, "started": self.started, "ended": self.ended,
                     "active": [dict(v, worker=k) for k, v in sorted(self.active.items())],
                     "finished": list(self.finished[::-1]), "log": list(self.log[-40:]),
@@ -294,8 +301,10 @@ class Survey:
                 # a page counts when it passed `tmh kb done`, even if the run died on a later page of the group
                 ok = reg.get("status") not in (None, kb.STATUS_NEW) and not reg.get("stale") and (r["status"] == "done" or len(pids) > 1)
                 why = "" if ok else ("智能体%s" % {"failed": "运行失败", "cancelled": "被取消"}.get(r["status"], "没有通过 tmh kb done 校验"))
+                review = self._start_review(pid) if ok and self.review else None
                 with self.lock:
-                    self.finished.append({"page": pid, "run": run["id"], "ok": ok, "title": reg.get("title", ""), "why": why})
+                    self.finished.append({"page": pid, "run": run["id"], "ok": ok, "title": reg.get("title", ""), "why": why,
+                                          **({"review": review} if review is not None else {})})
                 self.say("%s %s %s%s" % (who, "写成" if ok else "未完成", pid, "" if ok else "（%s）" % why))
             if not self.stop_flag.is_set():
                 self._save(True)  # a restart resumes with what is left of the limit
@@ -304,6 +313,24 @@ class Survey:
                 self.say("第一批页面就失败了，先停下，看一下运行日志再继续")
                 self.stop_flag.set()
                 return
+
+    def _start_review(self, pid):
+        """Opt-in only. Writing success and independent review are separate results."""
+        from . import learning, learning_runs
+        try:
+            key = "fact:" + pid
+            item = next(x for x in learning.catalog(self.P, self.project, kind="fact")["items"] if x["key"] == key)
+            revision = learning.capture(self.P, self.project, key, item["fingerprint"], self.author)
+            # Review has its own restricted executor/model; the writer may be
+            # Codex or a custom command that is ineligible for frozen review.
+            options = dict(self.review_options)
+            job = learning_runs.start(self.P, self.project, "review", revision["id"], options, self.author,
+                                      "survey-review:" + revision["id"])
+            self.say("%s 已登记独立评审 %s；写成不代表评审通过或人工确认" % (pid, job["id"]))
+            return {"id": job["id"], "status": job["status"]}
+        except Exception as exc:
+            self.say("%s 独立评审未启动：%s" % (pid, exc))
+            return {"id": None, "status": "failed", "error": str(exc)}
 
     def _report(self) -> None:
         try:

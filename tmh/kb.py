@@ -26,8 +26,10 @@ context pack, resumable, and safe to run from several sub-agents at once.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
+import tempfile
 import time
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -153,15 +155,63 @@ def load_registry(root: Path) -> dict:
     p = _reg_path(root)
     if p.exists():
         try:
-            return json.loads(p.read_text(encoding="utf-8"))
+            reg = json.loads(p.read_text(encoding="utf-8"))
+            if isinstance(reg, dict):
+                for pid, record in reg.items():
+                    if not isinstance(record, dict) or "learning" not in record:
+                        continue
+                    try:
+                        text = page_path(root, pid).read_bytes().decode("utf-8")
+                    except (OSError, UnicodeError, KeyError):
+                        text = None
+                    status = confirmation_status(record, text)
+                    if status != record.get("status"):
+                        record["status"] = status
+                        if status == "需更新":
+                            record["stale"] = True
+            return reg
         except ValueError:
             pass
     return {}
 
 
-def save_registry(root: Path, reg: dict) -> None:
+def confirmation_status(record: dict, text: str | None) -> str:
+    """Learning confirmations apply only to exact bytes; reads never recover writes."""
+    state = record.get("learning")
+    status = record.get("status", "")
+    if not isinstance(state, dict):
+        return STATUS_DRAFT if "learning" in record else status
+    if state.get("pending"):
+        return STATUS_DRAFT
+    expected = state.get("confirmed_sha256")
+    if status == STATUS_OK:
+        if text is None or not expected or hashlib.sha256(text.encode("utf-8")).hexdigest() != expected:
+            return "需更新"
+    return status
+
+
+def _atomic_text(path: Path, text: str) -> None:
+    """Strict atomic publication: never fall back to overwriting the destination."""
+    fd, name = tempfile.mkstemp(prefix="." + path.name + ".", suffix=".tmp", dir=path.parent)
+    tmp = Path(name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as output:
+            output.write(text)
+            output.flush()
+            os.fsync(output.fileno())
+        if path.exists():
+            os.chmod(tmp, path.stat().st_mode & 0o777)
+        os.replace(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def save_registry(root: Path, reg: dict, *, _atomic: bool = False) -> None:
     p = _reg_path(root)
     p.parent.mkdir(parents=True, exist_ok=True)
+    if _atomic:
+        _atomic_text(p, json.dumps(dict(sorted(reg.items())), ensure_ascii=False, indent=1))
+        return
     tmp = p.with_suffix(".tmp")
     tmp.write_text(json.dumps(dict(sorted(reg.items())), ensure_ascii=False, indent=1), encoding="utf-8")
     replace_file(tmp, p)
@@ -829,11 +879,16 @@ def instructions(root: Path, pid: str) -> str:
 
 # ---- done / validate --------------------------------------------------------------------
 def validate(root: Path, pid: str) -> tuple[list[str], dict]:
-    kind = page_kind(pid)
     p = page_path(root, pid)
     if not p.exists():
         return ["页面文件不存在：%s" % p], {}
-    pg = parse_page(p.read_text(encoding="utf-8"))
+    return validate_content(root, pid, p.read_text(encoding="utf-8"))
+
+
+def validate_content(root: Path, pid: str, text: str) -> tuple[list[str], dict]:
+    """The same validation for a candidate, before publishing any page bytes."""
+    kind = page_kind(pid)
+    pg = parse_page(text)
     errs = []
     meta = pg["meta"]
     summ = meta.get("summary", "")
@@ -906,19 +961,96 @@ def done(root: Path, pid: str, who: str = "agent") -> tuple[bool, list[str]]:
     return True, []
 
 
-def confirm(root: Path, pid: str, who: str, note: str = "") -> None:
+def confirm(root: Path, pid: str, who: str, note: str = "", *,
+            _locked: bool = False, _learning: dict | None = None) -> None:
+    if _learning is not None:
+        if not _locked:
+            with _Lock(tmh_dir(root) / "cache" / "kb.lock"):
+                return confirm(root, pid, who, note, _locked=True, _learning=_learning)
+        _confirm_learning(root, pid, who, note, _learning)
+        return
+    managed = False
     with _Lock(tmh_dir(root) / "cache" / "kb.lock"):
         reg = load_registry(root)
         if pid not in reg:
             raise KeyError(pid)
+        state = reg[pid].get("learning")
+        if isinstance(state, dict):
+            if state.get("pending"):
+                raise ValueError("已有待完成的知识发布，请从分类与评审恢复原人工决定；不能覆盖进行中的发布")
+            # This is a new human decision about current bytes, not approval of
+            # the machine-reviewed revision saved by an earlier decision.
+            page = page_path(root, pid)
+            before = page.read_bytes().decode("utf-8")
+            head = re.match(r"\A---\n(.*?)\n---\n", before, re.S)
+            if not head:
+                raise ValueError("知识页面登记字段已变化，请先修复并重新核对")
+            metadata = head.group(1)
+            if re.search(r"^status:", metadata, re.M):
+                metadata = re.sub(r"^status:[^\n]*", "status: " + STATUS_OK, metadata, flags=re.M)
+            else:
+                metadata += "\nstatus: " + STATUS_OK
+            text = "---\n" + metadata + "\n---\n" + before[head.end():]
+            sha256 = hashlib.sha256(text.encode("utf-8")).hexdigest()
+            state.setdefault("manual_confirmations", []).append({
+                "by": who, "at": time.strftime("%Y-%m-%d %H:%M"), "note": note,
+                "before_content": before, "confirmed_content": text,
+                "before_sha256": hashlib.sha256(before.encode("utf-8")).hexdigest(),
+                "confirmed_sha256": sha256, "previous_active_revision": state.get("active_revision", "")})
+            state.update(active_revision="", confirmed_sha256=sha256, decision_id="", pending="")
+            raw = json.loads(_reg_path(root).read_text(encoding="utf-8"))
+            if not raw[pid].get("stale"):
+                reg[pid].pop("stale", None)
+            _atomic_text(page, text)
+            managed = True
         reg[pid]["status"] = STATUS_OK
         reg[pid]["confirmed_by"] = who
         reg[pid]["confirmed_at"] = time.strftime("%Y-%m-%d %H:%M")
         if note:
-            reg[pid]["confirm_note"] = note[:500]
-        save_registry(root, reg)
-    _restamp(root, pid, reg)
+            reg[pid]["confirm_note"] = note if managed else note[:500]
+        save_registry(root, reg, _atomic=managed)
+    if not managed:
+        _restamp(root, pid, reg)
     activity.log(root, "decision", "%s 确认了%s：%s" % (who, KIND_NAME[page_kind(pid)], reg[pid].get("title", pid)), page=pid)
+
+
+def _confirm_learning(root: Path, pid: str, who: str, note: str, request: dict) -> None:
+    """Private branch for an already prepared, human-authorized projection."""
+    reg = json.loads(_reg_path(root).read_text(encoding="utf-8"))
+    record = reg[pid]
+    state = record["learning"]
+    did = request["decision_id"]
+    receipt = state["receipts"][did]
+    if state.get("pending") != did or receipt.get("stage") != "prepared" or receipt.get("action") != "adopt":
+        raise ValueError("知识修订发布回执已变化")
+    page = page_path(root, pid)
+    current = hashlib.sha256(page.read_bytes()).hexdigest()
+    if current not in (receipt["draft_sha256"], receipt["final_sha256"]):
+        raise ValueError("待确认正文已变化")
+    request["recheck"]()
+    _atomic_text(page, receipt["final_content"])
+    request["recheck"]()
+    if hashlib.sha256(page.read_bytes()).hexdigest() != receipt["final_sha256"]:
+        raise ValueError("确认前正文再次变化")
+    record["status"] = STATUS_OK
+    record["confirmed_by"] = who
+    record["confirmed_at"] = time.strftime("%Y-%m-%d %H:%M")
+    record["confirm_note"] = note
+    state.update(pending="", active_revision=receipt["revision_id"],
+                 confirmed_sha256=receipt["final_sha256"], decision_id=did)
+    receipt["stage"] = "applied"
+    receipt["applied_state"] = _learning_state_digest(record)
+    save_registry(root, reg, _atomic=True)
+
+
+def _learning_state_digest(record: dict) -> str:
+    """Exclude the append-only receipt bodies from their own state checksum."""
+    value = dict(record)
+    state = dict(value.get("learning") or {})
+    state.pop("receipts", None)
+    value["learning"] = state
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True,
+                                    separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
 def _restamp(root: Path, pid: str, reg: dict) -> None:

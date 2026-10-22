@@ -2,8 +2,8 @@
 
 ## 2026-10-22：知识分类与评审闭环实施
 
-- 当前项：K2；状态：doing。用户已授权按设计自动实施；实际分支 `iteration/context-pack-v2`，起点 `949d732`。开工工作区干净，无需 stash。
-- K1 done：三类只读目录、不可变修订、来源绑定、历史兼容。K2 doing：独立评审及有界修订。K3 todo：冻结成对评测、人工采用。K4 todo：策略允许清单、采用/撤销、使用回执。
+- 当前项：K3；状态：doing。用户已授权按设计自动实施；实际分支 `iteration/context-pack-v2`，起点 `949d732`。开工工作区干净，无需 stash。
+- K1 done：三类只读目录、不可变修订、来源绑定、历史兼容。K2 done：独立评审及有界修订。K3 doing：冻结成对评测、人工采用。K4 todo：策略允许清单、采用/撤销、使用回执。
 - 本轮使用 executing-plans 和 verification-before-completion；按技能将独立运行引擎、界面和日志并发部分交给子代理，共享目录中限定文件所有权，最后统一审查。
 - 已核对：最近十条提交、设计、进度、Store/Runner/knowledge/learn/library/人工身份入口。`Store.x` 会自动提交，新事务不能使用它；旧经验日志仍为权威，新采用用持久化待办与幂等投影。
 - 判断：首版参考工作流项目可浏览固定修订，模型评审启动暂沿用 development 限制，不暗中改变项目角色；自定义命令和额外 Agent 参数不能证明只读，评审拒绝它们。成本未知时保留未知；合成测试不等于真实模型效果。
@@ -13,6 +13,12 @@
 - K1 验证：`NO_PROXY='*' no_proxy='*' python3 -m unittest discover -s tests -p 'test_learning.py'` 9 tests OK；`test_org_knowledge.py` 10 tests OK；`test_memory_workspace.py` 24 tests OK。覆盖浏览文件字节/时间不变、完整长文、内容/源码/引用/工作区失效、跨项目拒绝、修订幂等、迁移/登记故障回滚。已人工审查新增模块、Store 差异和测试，`git diff --check` 通过。
 - K2 期间发现并另行修复：独立 supervisor 自身超时退出后，外层 watchdog 发送取消写入已关闭的控制管道，抛 `BrokenPipeError`，把已有真实 timeout 回执误记成调度错误。失败现场保留 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-learning-timeout-failure-qxs7tkdz/scene`。新增屏障测试先等待真实监督进程退出再发取消，修复前稳定红灯；仅处理终端控制管道 EPIPE，仍必须读取完整、匹配的监督回执，缺回执/清理未知仍失败。
 - 超时修复验证：`test_supervised_process.py` 15 tests OK；新确定性屏障用例连续 20/20 通过（20.621s）；`test_learning_runs.py` 27 tests OK（6.994s）。未放宽既有 .6 秒 timeout 或取消断言，完整输出字节与清理状态保持校验。重复脚本首轮类名拼错未运行，修正后实际执行完 20 轮。
+
+
+- K2 done：新增 learning_runs.py、learning_facts.py 与对应测试；Store 增量迁移、Survey 显式选择独立评审，kb/org_knowledge 读取精确正文确认。独立无工具运行、逐条结论和冻结引用、最多 2 次默认修订/6 次调用/600 秒、幂等和内核锁所有权、完整步骤回执、取消/超时/恢复均已接通。事实原子发布先登记准备回执，失败显式重试或人工放弃；数据库与文件不假称单一原子事务。
+- K2 验证：test_learning_runs.py 最终 31/31；test_learning_facts.py 28/28；旧 KB/组织知识及界面相关回归合计 64/64（含新 UI 22 项）。运行引擎真实超时/取消/崩溃恢复/所有权 fence 四例各重复 5 次共 20/20。收尾新增加三个确定性截止/租约测试，修复前 3/3 红灯，修复后通过；再补完整 _work 租约过期链路，从“running 且无 owner”修为 needs_resume，恢复不新增调用、不重置 deadline/calls。
+- K2 已审阅：无模型调用持有数据库事务；发布和投影固定 Store→KB/ledger 锁序；历史成功回执只补审计，不因新正文/新来源而重新发布旧版本；来源过期保留人工指针以便撤销，实际使用另行校验。已确认/撤销均只面向确切修订，历史确认未补造机器通过。当前本机原生 Claude 帮助检查失败，测试用合成执行器与真实受管子进程证明机制，未执行真实模型评审。
+- K3 doing：评测样本、断言、基线、模型和输入已冻结；正在完成实际任务上下文/旧会话与评测输入一致性审查。发现并修复 token 采集竞态、同一 outbox 同时重放、生成样本升级为留出、改断言复用样本、策略改名绕过样本历史及撤销经验回退 legacy。相关 6 个并发/屏障用例各重复 20 次，共 120/120。
 
 ## 2026-10-22：知识分类与评审闭环设计
 
