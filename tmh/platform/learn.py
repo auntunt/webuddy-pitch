@@ -33,10 +33,12 @@ import time
 from pathlib import Path
 
 from .agents import git, pick_model, load_config, build_prompt
+from . import filelock
 from .store import now
 
 LESSONS = "lessons.jsonl"
 _LOCK = threading.Lock()
+_CANDIDATE_LOCK = threading.Lock()
 
 
 # ---------------------------------------------------------------- lessons
@@ -163,7 +165,8 @@ def _fold(lessons_: list, log: list) -> list:
             l["status"] = r["status"]
             if r["status"] == "active":  # a person confirmed or restored it: its record starts over
                 s["recent_passed"] = s["recent_failed"] = 0
-            l["history"].append({k2: r.get(k2, "") for k2 in ("ts", "by", "status", "why")})
+            l["history"].append({k2: r.get(k2, "") for k2 in ("ts", "by", "status", "why")}
+                                | ({"provenance": r["provenance"]} if r.get("provenance") else {}))
         elif k == "share":  # a person shared it, as the reviewed redacted text, with the other projects (or took it back)
             l["shared"] = {"by": r.get("by", ""), "ts": r.get("ts", ""), "fields": r.get("fields") or {}, "title": r.get("title", "")} if r.get("on") else None
             l["taken"], l["abroad"] = {}, {}  # a new copy (or none): every project decides again
@@ -192,11 +195,20 @@ def add_lesson(data_dir: Path, d: dict) -> dict:
     with _LOCK:
         f = Path(data_dir) / LESSONS
         f.parent.mkdir(parents=True, exist_ok=True)
-        n = len(f.read_text(encoding="utf-8").splitlines()) if f.exists() else 0
-        d = dict(d, id="L%d" % (n + 1), ts=now())
-        d.setdefault("status", "active")
-        with f.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(d, ensure_ascii=False) + "\n")
+        with f.with_suffix(".lock").open("a+b") as lock:
+            filelock.try_lock(lock, blocking=True)
+            try:
+                if d.get("source_key"):
+                    old = next((x for x in _raw(data_dir) if x.get("source_key") == d["source_key"]), None)
+                    if old:
+                        return lesson(data_dir, old["id"])
+                n = len(f.read_text(encoding="utf-8").splitlines()) if f.exists() else 0
+                d = dict(d, id="L%d" % (n + 1), ts=now())
+                d.setdefault("status", "active")
+                with f.open("a", encoding="utf-8") as fh:
+                    fh.write(json.dumps(d, ensure_ascii=False) + "\n")
+            finally:
+                filelock.unlock(lock)
     return dict(d, flags=overhead_flags(d))
 
 
@@ -568,12 +580,10 @@ def _project_of(ticket_key: str) -> str:
     return ticket_key.rsplit("-", 1)[0] if "-" in ticket_key else ""
 
 
-def _credit(P, t: dict, passed: bool, by: str) -> list:
-    """A verdict on a ticket counts for every card its prompts carried since the last verdict; a card that keeps
-    going along with failures leaves the prompts until a person looks at it."""
-    log = _log(P.data_dir)
+def credit_snapshot(P, t: dict) -> list:
+    """Freeze which memories this verdict may credit before recording it."""
     used, abroad, since = [], {}, ""
-    for r in log:
+    for r in _log(P.data_dir):
         if r.get("ticket") != t["key"]:
             continue
         if r.get("kind") == "inject" and r.get("id") not in used:
@@ -584,15 +594,28 @@ def _credit(P, t: dict, passed: bool, by: str) -> list:
             used, abroad, since = [], {}, r.get("ts", "")
     # only what the agent wrote since the last verdict counts as citing a card now
     text = " ".join((r.get("result") or "") for r in P.store.runs(ticket_id=t["id"]) if (r.get("created") or "") >= since) if t.get("id") else ""
+    return [dict({"id": lid, "cited": bool(re.search(r"(?<![A-Za-z0-9])%s(?!\d)" % re.escape(lid), text))},
+                 **({"foreign": True, "project": abroad[lid]} if lid in abroad else {})) for lid in used]
+
+
+def _credit(P, t: dict, passed: bool, by: str, source_key: str = "", uses: list | None = None) -> list:
+    """A verdict credits memories actually carried before that verdict.
+
+    Fixed-candidate retries pass an immutable usage snapshot, so later work is
+    never credited to an earlier human acceptance whose file write was delayed.
+    """
+    if source_key and any(r.get("kind") == "verdict" and r.get("source_key") == source_key for r in _log(P.data_dir)):
+        return []
+    uses = credit_snapshot(P, t) if uses is None else uses
     ts = now()  # the verdict and what it says about each card are one event: one time
-    rows = [{"kind": "verdict", "ticket": t["key"], "passed": passed, "by": by, "ts": ts}]
-    rows += [dict({"kind": "outcome", "id": lid, "ticket": t["key"], "passed": passed,
-                   "cited": bool(re.search(r"(?<![A-Za-z0-9])%s(?!\d)" % re.escape(lid), text))},
-                  ts=ts, **({"foreign": True, "project": abroad[lid]} if lid in abroad else {})) for lid in used]
+    rows = [{"kind": "verdict", "ticket": t["key"], "passed": passed, "by": by, "ts": ts,
+             **({"source_key": source_key} if source_key else {})}]
+    rows += [dict(use, kind="outcome", ticket=t["key"], passed=passed, ts=ts) for use in uses]
     _append_log(P.data_dir, rows)
     out = []
-    for lid in used:
-        if lid in abroad:  # another project's failures say nothing about the card at home; there it simply stops being used
+    for use in uses:
+        lid = use["id"]
+        if use.get("foreign"):  # another project's failures say nothing about the card at home; there it simply stops being used
             continue
         l = lesson(P.data_dir, lid)
         st = l and l["stats"]
@@ -663,6 +686,74 @@ def _provenance(P, t: dict) -> dict:
     d = st.get("decision") or {}
     return {"package_hash": st.get("hash", ""), "status": st.get("status", ""), "gates": st.get("gate_state", ""),
             "signer": d.get("signer", ""), "ac": [a.get("text", "")[:200] for a in (st.get("snapshot") or {}).get("ac") or []][:6]}
+
+
+def on_candidate_accept(P, event_id: int) -> dict:
+    """Project a committed fixed-candidate human verdict into a draft memory.
+
+    Its event contains the immutable inputs, so an explicit retry can recover a
+    failed file write even after the ticket or its current evidence has changed.
+    This does not synthesize adoption/customer signoff or invoke release/redo.
+    """
+    event = P.store.one("SELECT * FROM events WHERE id=?", (event_id,))
+    data = event and event.get("data") or {}
+    snapshot = data.get("memory_snapshot")
+    if not event or event["kind"] not in ("accept", "reject") or not isinstance(snapshot, dict) or not data.get("candidate"):
+        raise ValueError("没有可沉淀的固定候选人工验收记录")
+    passed = event["kind"] == "accept"
+    if data.get("result") != ("pass" if passed else "fail") or data.get("customer_signature") is not False:
+        raise ValueError("固定候选验收来源不一致")
+    source_key = "candidate-acceptance:%s" % event_id
+    folder = Path(P.data_dir)
+    with _CANDIDATE_LOCK, (folder / "candidate-memory.lock").open("a+b") as lock:
+        filelock.try_lock(lock, blocking=True)
+        try:
+            note = data["note"]
+            provenance = {"kind": "fixed_candidate", "candidate_id": data["candidate"], "commit": data["commit"],
+                          "base_commit": snapshot["base_commit"], "evidence_hash": data["evidence_hash"],
+                          "requirement_hash": snapshot["requirement_hash"], "assessment": snapshot["assessment"],
+                          "review": snapshot["review"], "merge": snapshot["merge"],
+                          "acceptance": {"event_id": event_id, "by": event["author"], "at": event["ts"],
+                                         "result": data["result"], "note": note, "customer_signature": False}}
+            criteria = "\n".join("%s：%s；检查办法：%s" % (c["id"], c["text"], c.get("check") or "") for c in snapshot["criteria"])
+            card = add_lesson(P.data_dir, {"source_key": source_key, "project": snapshot["project"],
+                    "ticket": snapshot["ticket"]["key"], "title": snapshot["ticket"]["title"],
+                    "symptom": snapshot["ticket"]["title"] + "\n" + own_words(snapshot["ticket"].get("body") or ""),
+                    "kind": "pass" if passed else "reject", "status": "candidate", "by": event["author"], "note": note,
+                    "flows": snapshot["ticket"].get("flows") or [], "files": snapshot["files"],
+                    "fix": ("固定候选说明（待整理为可复用做法）：\n" + snapshot["summary"] +
+                            "\n涉及文件：\n" + "\n".join(snapshot["files"])) if passed else "",
+                    "verify": "人工业务验收记录：\n" + note + "\n\n本次验收条件：\n" + criteria,
+                    "anti": "此固定版本业务验收未通过：\n" + note if not passed else "",
+                    "provenance": provenance})
+            if not passed:
+                # A newer explicit failure invalidates success memories about
+                # this exact candidate, including ones already confirmed by a
+                # person. Other candidates/projects and unrelated cards stay as
+                # they were; retrying this event cannot undo a later restoration.
+                demoted = {r.get("id") for r in _log(P.data_dir) if r.get("kind") == "status" and r.get("source_key") == source_key}
+                for prior in lessons(P.data_dir, snapshot["project"], 1000000):
+                    source = prior.get("provenance") or {}
+                    if (prior["id"] not in demoted and prior["status"] == "active" and
+                            source.get("kind") == "fixed_candidate" and source.get("candidate_id") == data["candidate"] and
+                            source.get("commit") == data["commit"] and (source.get("acceptance") or {}).get("result") == "pass"):
+                        _append_log(P.data_dir, [{"kind": "status", "id": prior["id"], "status": "probation",
+                            "by": event["author"], "why": "同一固定候选的后续业务验收未通过，暂停旧成功经验，等待复核。",
+                            "source_key": source_key, "provenance": provenance["acceptance"]}])
+            _credit(P, snapshot["ticket"], passed, event["author"], source_key=source_key, uses=snapshot.get("memory_uses", []))
+            if not any(r.get("kind") == "candidate_memory" and r.get("source_key") == source_key for r in _log(P.data_dir)):
+                _append_log(P.data_dir, [{"kind": "candidate_memory", "source_key": source_key, "id": card["id"], "event_id": event_id}])
+            return card
+        finally:
+            filelock.unlock(lock)
+
+
+def candidate_memory_status(data_dir: Path, event_id: int) -> dict:
+    """Read-only projection status, including partially written memory retries."""
+    source_key = "candidate-acceptance:%s" % event_id
+    card = next((l for l in lessons(data_dir, limit=1000000) if l.get("source_key") == source_key), None)
+    complete = bool(card and any(r.get("kind") == "candidate_memory" and r.get("source_key") == source_key for r in _log(data_dir)))
+    return {"lesson_id": card["id"] if card else "", "status": card["status"] if card else "", "pending": not complete}
 
 
 def on_accept(P, p: dict, t: dict, passed: bool, note: str, by: str) -> dict:

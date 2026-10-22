@@ -540,13 +540,23 @@ def browser_merge(P, cid, user, evidence_hash, request_id, mutation=lambda: None
             raise
 
 
+def _acceptance_memory(P, event_id):
+    from . import learn
+    try:
+        card = learn.on_candidate_accept(P, event_id)
+        return {"lesson_id": card["id"], "status": card["status"], "project": card["project"], "pending": False}
+    except Exception:  # learning must not undo an already committed human verdict
+        return {"pending": True, "event_id": event_id,
+                "message": "业务验收已保存，记忆暂未写入。请用相同结果和说明再次提交业务验收以补写，原验收不会重复。"}
+
+
 def browser_accept(P, cid, user, evidence_hash, passed, note, mutation=lambda: None):
     """Explicit business verdict on the already-reviewed, already-merged version.
 
     This is a team member's acceptance, not an external customer's signature.
     No legacy adoption is synthesized and no release/deployment is launched.
     """
-    from . import team, release
+    from . import team, release, learn
     from .recheck_operations import source_guard
     row = _row(P, cid)
     team.require_reviewer(P, row["ticket_id"], user)
@@ -554,6 +564,16 @@ def browser_accept(P, cid, user, evidence_hash, passed, note, mutation=lambda: N
         raise ApiError(400, "请记录实际业务验收操作、结果及限制")
     with guard(P, row["ticket_id"]), source_guard(P.data_dir, row["run_id"]), P.store.lock:
         st = P.store
+        team.require_reviewer(P, row["ticket_id"], user)
+        previous = st.one("SELECT * FROM events WHERE ticket_id=? AND kind IN ('accept','reject') ORDER BY id DESC LIMIT 1", (row["ticket_id"],))
+        old = previous and previous["data"] or {}
+        # A replay only projects the original verdict's snapshot. It neither
+        # re-accepts current evidence nor changes a closed/reopened ticket.
+        if (previous and old.get("memory_snapshot") and previous["author"] == user and
+                old.get("candidate") == cid and old.get("evidence_hash") == evidence_hash and
+                old.get("result") == ("pass" if passed else "fail") and old.get("note") == note):
+            mutation()
+            return dict(st.ticket(row["ticket_id"]), memory=_acceptance_memory(P, previous["id"]), replayed=True)
         try:
             st.db.execute("BEGIN IMMEDIATE")
             t = team.require_reviewer(P, row["ticket_id"], user)
@@ -574,18 +594,26 @@ def browser_accept(P, cid, user, evidence_hash, passed, note, mutation=lambda: N
                 raise ApiError(409, "主干配置已变化，请先核对版本")
             _git(Path(p["root"]), "merge-base", "--is-ancestor", row["commit_sha"], "refs/heads/" + main)
             stamp, status = now(), "closed" if passed else "doing"
+            run = st.run(row["run_id"])
+            snapshot = {"project": p["key"], "ticket": {"id": t["id"], "key": t["key"], "title": t["title"],
+                        "body": t.get("body") or "", "flows": (t.get("links") or {}).get("flows") or []},
+                        "base_commit": row["base_commit"], "requirement_hash": row["requirement_hash"],
+                        "memory_uses": learn.credit_snapshot(P, t),
+                        "criteria": v["criteria"], "assessment": v["assessment"], "review": v["human_decision"],
+                        "merge": merged, "summary": row["summary"], "files": learn.changed_files(run.get("diff") or "")}
             mutation()
-            st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+            accepted = st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
                           (t["id"], stamp, user, "accept" if passed else "reject", ("业务验收通过：" if passed else "业务验收不通过：") + note,
                            _json({"result": "pass" if passed else "fail", "candidate": cid, "commit": row["commit_sha"],
                                   "evidence_hash": evidence_hash, "merge_evidence_hash": merged["evidence_hash"],
-                                  "main": main, "via": "团队工作台", "customer_signature": False})))
+                                  "main": main, "via": "团队工作台", "customer_signature": False,
+                                  "note": note, "memory_snapshot": snapshot})))
             if t["status"] != status:
                 st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,'status',?,?)",
                               (t["id"], stamp, user, "团队业务验收：%s → %s" % (t["status"], status), _json({"from": t["status"], "to": status})))
             st.db.execute("UPDATE tickets SET status=?,updated=? WHERE id=?", (status, stamp, t["id"]))
             st.db.commit()
-            return st.ticket(t["id"])
+            return dict(st.ticket(t["id"]), memory=_acceptance_memory(P, accepted.lastrowid))
         except BaseException:
             st.db.rollback()
             raise

@@ -15,6 +15,9 @@ const memQuery=(project,section,q='')=>'/api/memory?'+new URLSearchParams({proje
 function memNotice(c,text,error=false){if(!memCurrent(c))return;const el=c.root.querySelector('#memNotice');el.textContent=text;el.className='mem-notice'+(error?' error':'')}
 function memBadge(status){return `<span class="mem-state ${h(status)}">${h(memStatus(status))}</span>`}
 function memProjectOptions(projects,selected,all=true){return (all?'<option value="">全局 · 组织知识与共享经验</option>':'')+projects.map(p=>`<option value="${h(p.key)}"${p.key===selected?' selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')}
+function memSelectProject(key){MEM.project=key;S.scope=key||'*';ls.set('tmh.scope',S.scope);if(key)setProj(key);paintSel()}
+function memNavigate(section){const route='#/memory'+(section==='overview'?'':'/'+section);if(location.hash!==route){location.hash=route;return}return vMemory(section)}
+function memProjectChoices(projects){return `<div class="mem-projects">${projects.map(p=>`<button data-mem-project="${h(p.key)}">${h(p.name)} · ${h(p.key)}</button>`).join('')||'<a class="btn" href="#/projects">连接项目</a>'}</div>`}
 async function memAction(c,body,button,refresh){
  if(!memCurrent(c))return;const token=JSON.stringify(body);if(MEM.pending.has(token))return;MEM.pending.add(token);button.disabled=true;memNotice(c,'正在保存…');
  try{const result=await post('/api/memory',body);if(!memCurrent(c))return result;memNotice(c,'已保存');if(refresh)await refresh(result);return result}
@@ -22,6 +25,7 @@ async function memAction(c,body,button,refresh){
 }
 async function vMemory(section='overview'){
  if(!['overview','knowledge','lessons','clusters'].includes(section))section='overview';MEM.section=section;
+ MEM.project=S.scope==='*'?'':S.scope||'';
  const seq=++MEM.sequence,route=location.hash,key=MEM.project,q=MEM.query;
  $('#main').innerHTML='<div class="mem-empty">正在读取知识与长期记忆…</div>';
  let d;try{d=await get(memQuery(key,section==='clusters'&&!key?'overview':section,q))}catch(error){if(seq===MEM.sequence&&location.hash===route)$('#main').innerHTML='<div class="mem-empty">'+h(error.message)+'</div>';return}
@@ -32,25 +36,26 @@ async function vMemory(section='overview'){
  <nav class="mem-tabs" aria-label="记忆分区">${[['overview','工作区'],['knowledge','项目知识'],['lessons','长期记忆与共通方案'],['clusters','同类问题']].map(([s,label])=>`<button data-mem-tab="${s}" class="${s===section?'on':''}">${label}</button>`).join('')}</nav>
  <div id="memNotice" class="mem-notice" role="status" aria-live="polite"></div><div id="memContent"></div></div>`;
  const c={root:$('#memPage'),route,key,section,data:d};MEM.view=c;
- c.root.querySelector('#memProject').onchange=e=>{MEM.project=e.target.value;return vMemory(MEM.section)};
+ c.root.querySelector('#memProject').onchange=e=>{memSelectProject(e.target.value);return vMemory(MEM.section)};
  c.root.querySelector('#memSearch').onsubmit=e=>{e.preventDefault();MEM.query=c.root.querySelector('#memQuery').value;return vMemory(MEM.section)};
- c.root.querySelectorAll('[data-mem-tab]').forEach(b=>b.onclick=()=>{MEM.query=c.root.querySelector('#memQuery').value;return vMemory(b.dataset.memTab)});
+ c.root.querySelectorAll('[data-mem-tab]').forEach(b=>b.onclick=()=>{MEM.query=c.root.querySelector('#memQuery').value;return memNavigate(b.dataset.memTab)});
  const brief=c.root.querySelector('#memBriefGo');if(brief)brief.onclick=()=>{location.hash='#/handoff/'+encodeURIComponent(key)};
  const content=c.root.querySelector('#memContent');
  if(section==='overview'){
   const s=d.summary||{},b=d.brief;
   content.innerHTML=`<div class="mem-grid"><section class="mem-stat"><span>有来源的知识</span><b>${s.knowledge||0}</b><p>业务与技术说明保留来源项目；同名条目不会直接当成同一事实。</p><button data-mem-open="knowledge">查阅知识</button></section><section class="mem-stat"><span>长期记忆与共通方案</span><b>${s.lessons||0}</b><p>${key?`${s.active||0} 条具备使用条件，实际仍按相近程度选择。`:'只有已共享经验进入全局方案目录；选项目后可引入。'}</p><button data-mem-open="lessons">管理记忆</button></section><section class="mem-stat"><span>${key?'项目交接':'项目资产'}</span><b>${key?memStatus(b?.status||'preview'):projects.length}</b><p>${key?(b?.stale?'来源已有变化，打开交接查看原因并生成新版。':'自动整理项目结构、完整知识、待办和经验；人工确认保留到具体版本。'):'选择项目查看讲解、交接和同类维护问题。'}</p>${key?'<button id="memOverviewBrief">阅读交接</button>':''}</section></div>
   <div class="mem-hint">${h(d.scope_notice||'')}</div>${key?`<section class="mem-card"><h2>同类问题</h2><p>${d.clusters?.items?.length||0} 个有依据的分组建议，原工单保持独立。</p><button data-mem-open="clusters">查看与确认分组</button></section>`:`<section class="mem-card"><h2>进入项目</h2><div class="mem-projects">${projects.map(p=>`<button data-mem-project="${h(p.key)}">${h(p.name)} · ${h(p.key)}</button>`).join('')||'<p class="mem-meta">先登记项目，维护经验会在这里积累。</p>'}</div></section>`}`;
-  content.querySelectorAll('[data-mem-open]').forEach(b=>b.onclick=()=>vMemory(b.dataset.memOpen));
-  content.querySelectorAll('[data-mem-project]').forEach(b=>b.onclick=()=>{MEM.project=b.dataset.memProject;return vMemory()});
+  content.querySelectorAll('[data-mem-open]').forEach(b=>b.onclick=()=>memNavigate(b.dataset.memOpen));
   const go=content.querySelector('#memOverviewBrief');if(go)go.onclick=()=>{location.hash='#/handoff/'+encodeURIComponent(key)};
  }else if(section==='knowledge')memPaintKnowledge(c,d.knowledge||[]);
  else if(section==='lessons')memPaintLessons(c,d.lessons||[]);
- else if(key)memPaintClusters(c,d);else content.innerHTML='<div class="mem-empty">请先选择项目。同类问题只在同一项目内分组；跨项目可以查阅和引入已经共享的方案。</div>';
+ else if(key)memPaintClusters(c,d);else content.innerHTML=`<section class="mem-card"><h2>查看哪个项目的同类问题？</h2><p class="mem-meta">选择项目后，直接查看已有工单的分组建议和处理经验。</p>${memProjectChoices(projects)}</section>`;
+ c.root.querySelectorAll('[data-mem-project]').forEach(b=>b.onclick=()=>{memSelectProject(b.dataset.memProject);return vMemory(section)});
 }
 function memPaintKnowledge(c,items){
- const target=c.root.querySelector('#memContent');target.innerHTML=`<p class="mem-meta">这是有来源的查阅目录。跨项目自动使用需绑定固定知识版本，或共享并引入经验。</p><div class="mem-list">${items.map((i,n)=>`<article class="mem-card"><div class="mem-meta">${h(i.type_label)} · ${i.reviewed?'有来源确认记录':'待确认'}</div><h2>${h(i.title)}</h2><p class="mem-raw">${h(i.summary)}</p><div class="mem-source-list">${i.provenance.map((p,j)=>`<button class="ghost mem-source" data-mem-source="${n}:${j}">${h(p.project)} · ${h(p.ref)}${p.revision?' · '+h(p.revision):''} · ${p.confirmed?'来源已确认':'待确认'}</button>`).join('')}</div></article>`).join('')||'<div class="mem-empty">没有命中已整理的知识。进入项目知识库建设或确认知识页后，这里会出现来源目录。</div>'}</div>`;
- target.querySelectorAll('[data-mem-source]').forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.memSource.split(':').map(Number),p=items[i].provenance[j];if(p.kind==='lesson'){MEM.project=p.project;MEM.query='';return vMemory('lessons')}setProj(p.project);location.hash=p.kind==='page'?'#/kb/'+encodeURIComponent(p.id):'#/kb'});
+ const target=c.root.querySelector('#memContent');target.innerHTML=`${c.key?'<div class="mem-actions"><button id="memKnowledgeGo">打开项目知识库</button></div>':''}<p class="mem-meta">这是有来源的查阅目录。跨项目自动使用需绑定固定知识版本，或共享并引入经验。</p><div class="mem-list">${items.map((i,n)=>`<article class="mem-card"><div class="mem-meta">${h(i.type_label)} · ${i.reviewed?'有来源确认记录':'待确认'}</div><h2>${h(i.title)}</h2><p class="mem-raw">${h(i.summary)}</p><div class="mem-source-list">${i.provenance.map((p,j)=>`<button class="ghost mem-source" data-mem-source="${n}:${j}">${h(p.project)} · ${h(p.ref)}${p.revision?' · '+h(p.revision):''} · ${p.confirmed?'来源已确认':'待确认'}</button>`).join('')}</div></article>`).join('')||'<div class="mem-empty">没有命中已整理的知识。进入项目知识库建设或确认知识页后，这里会出现来源目录。</div>'}</div>`;
+ const go=target.querySelector('#memKnowledgeGo');if(go)go.onclick=()=>{setProj(c.key);location.hash='#/kb'};
+ target.querySelectorAll('[data-mem-source]').forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.memSource.split(':').map(Number),p=items[i].provenance[j];memSelectProject(p.project);if(p.kind==='lesson'){MEM.query='';return memNavigate('lessons')}location.hash=p.kind==='page'?'#/kb/'+encodeURIComponent(p.id):'#/kb'});
 }
 function memLessonFields(fields={},prefix=''){return memFields.map(([k,label])=>`<label>${label}<textarea data-mem-field="${k}"${prefix?' id="'+prefix+k+'"':''}>${h(fields[k]||'')}</textarea></label>`).join('')}
 function memReadFields(node){return Object.fromEntries(Array.from(node.querySelectorAll('[data-mem-field]')).map(el=>[el.dataset.memField,el.value]))}
@@ -58,11 +63,11 @@ function memDraftTicket(c,title,body){if(!memCurrent(c))return;setProj(c.key);ne
 
 function memPaintLessons(c,items){
  const target=c.root.querySelector('#memContent');
- target.innerHTML=`<div class="mem-hint">全局记忆按项目和共享范围管理。待确认、暂停和停用的经验不会自动用于任务；引入也不等于每次都使用。</div>${c.key?`<details class="mem-card"><summary>记录一条长期记忆</summary><form id="memNewLesson"><div class="mem-fields"><label class="mem-full">标题<input id="memLessonTitle" required placeholder="例如：审批重复回调的排查办法"></label>${memLessonFields()}</div><div class="mem-actions"><button class="primary">保存为待确认记忆</button><span class="mem-meta">适用场景和处理办法必填，保留完整原文。</span></div></form></details>`:'<p class="mem-meta">选择一个项目后可引入共享方案，或记录、确认本项目记忆。</p>'}
+ target.innerHTML=`<div class="mem-hint">全局记忆按项目和共享范围管理。待确认、暂停和停用的经验不会自动用于任务；引入也不等于每次都使用。</div>${c.key?`<details class="mem-card"><summary>记录一条长期记忆</summary><form id="memNewLesson"><div class="mem-fields"><label class="mem-full">标题<input id="memLessonTitle" required placeholder="例如：审批重复回调的排查办法"></label>${memLessonFields()}</div><div class="mem-actions"><button class="primary">保存为待确认记忆</button><span class="mem-meta">适用场景和处理办法必填，保留完整原文。</span></div></form></details>`:`<section class="mem-card"><h2>查看项目中积累的记忆</h2><p class="mem-meta">项目经验保存在各项目中；整理并共享后，才会进入下方组织方案目录。</p>${memProjectChoices(c.data.projects||S.projects||[])}</section>`}
  <div class="mem-list" style="margin-top:16px">${items.map((l,n)=>{const st=l.here||l.stats||{};return `<article class="mem-card" data-mem-lesson="${n}"><div>${memBadge(l.status)}<span class="mem-state">${h(l.scope_label)}</span></div><h2>${h(l.title||l.id)}</h2><div class="mem-meta">${h(l.id)} · ${h(l.applicability)}${l.ticket?' · 来源工单 <a href="#/t/'+encodeURIComponent(l.ticket)+'">'+h(l.ticket)+'</a>':''}</div><dl>${memFields.filter(([k])=>l[k]).map(([k,label])=>`<dt>${label}</dt><dd>${h(l[k])}</dd>`).join('')}</dl>
- <div class="mem-meta">实际使用 ${st.used||0} 次 · 后续验收通过 ${st.passed||0} / 未通过 ${st.failed||0}${l.provenance?.package_hash?' · 证据包 '+h(l.provenance.package_hash):''}${l.provenance?.signer?' · 签收人 '+h(l.provenance.signer):''}</div>
+ <div class="mem-meta">实际使用 ${st.used||0} 次 · 后续验收通过 ${st.passed||0} / 未通过 ${st.failed||0}${l.provenance?.package_hash?' · 证据包 '+h(l.provenance.package_hash):''}${l.provenance?.signer?' · 签收人 '+h(l.provenance.signer):''}${l.provenance?.kind==='fixed_candidate'?' · 固定候选 '+h(l.provenance.candidate_id)+' · 提交 '+h(l.provenance.commit):''}</div>
  <div class="mem-actions">${l.scope==='project'?`${l.status==='candidate'?'<button data-mem-act="lesson_confirm" class="primary">确认入库</button>':''}${['retired','probation'].includes(l.status)?'<button data-mem-act="lesson_restore">恢复使用</button>':'<button data-mem-retire>停用</button>'}${l.shared?'<button data-mem-act="lesson_unshare">收回共享</button>':l.status==='active'?'<button data-mem-share>整理并共享</button>':''}`:c.key?`<button data-mem-act="${l.taken?'lesson_untake':'lesson_take'}"${!l.taken&&l.status!=='active'?' disabled':''}>${l.taken?'停止引入':'引入本项目'}</button>`:'<span class="mem-meta">选定接收项目后可引入</span>'}</div>
- ${l.scope==='project'?`<details><summary>修改记忆</summary><form data-mem-edit><div class="mem-fields">${memLessonFields(l)}</div><div class="mem-actions"><button>保存修改</button></div></form></details>`:''}<div data-mem-editor></div></article>`}).join('')||'<div class="mem-empty">还没有可显示的经验。维护验收会沉淀经验，也可以主动记录适用场景和处理办法。</div>'}</div>`;
+ ${l.scope==='project'?`<details><summary>修改记忆</summary><form data-mem-edit><div class="mem-fields">${memLessonFields(l)}</div><div class="mem-actions"><button>保存修改</button></div></form></details>`:''}<div data-mem-editor></div></article>`}).join('')||`<div class="mem-empty">${MEM.query?'没有匹配当前检索的经验，请调整关键词。':c.key?'该项目尚无长期记忆。维护验收会沉淀经验，也可以在上方主动记录。':'组织方案目录尚无已共享经验；可以先打开上方项目，查看已有记忆。'}</div>`}</div>`;
  const fresh=()=>vMemory('lessons'),form=target.querySelector('#memNewLesson');if(form)form.onsubmit=e=>{e.preventDefault();return memAction(c,{action:'lesson_create',project:c.key,title:target.querySelector('#memLessonTitle').value,fields:memReadFields(form)},form.querySelector('button'),fresh)};
  target.querySelectorAll('[data-mem-lesson]').forEach(card=>{const l=items[Number(card.dataset.memLesson)],body={project:c.key,lesson_id:l.id};
   card.querySelectorAll('[data-mem-act]').forEach(b=>b.onclick=()=>memAction(c,{...body,action:b.dataset.memAct},b,fresh));
@@ -82,7 +87,7 @@ function memPaintClusters(c,d){
 }
 async function vProjectBrief(key){
  key=key||MEM.project||S.proj;if(!key){MEM.project='';return vMemory()}
- MEM.project=key;const seq=++MEM.sequence,route=location.hash;
+ memSelectProject(key);const seq=++MEM.sequence,route=location.hash;
  $('#main').innerHTML='<div class="mem-empty">正在整理项目讲解、交接与来源状态…</div>';
  let d;try{d=await get('/api/memory/brief?'+new URLSearchParams({project:key}))}catch(error){if(seq===MEM.sequence&&location.hash===route)$('#main').innerHTML='<div class="mem-empty">'+h(error.message)+'</div>';return}
  if(seq!==MEM.sequence||location.hash!==route)return;

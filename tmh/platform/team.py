@@ -363,9 +363,20 @@ def item(P, t, user):
         if t["status"] != "closed":
             state, label = "acceptance", "已合并，待工单业务验收"
     can_review = user in members and a["reviewer"] == user and a["assignee"] in members and a["assignee"] != user and (not candidate or candidate["author"] != user)
+    acceptance_memory = None
+    business = P.store.one("SELECT * FROM events WHERE ticket_id=? AND kind IN ('accept','reject') ORDER BY id DESC LIMIT 1", (t["id"],))
+    source = business and business["data"] or {}
+    if source.get("memory_snapshot"):
+        from . import learn
+        status = learn.candidate_memory_status(P.data_dir, business["id"])
+        acceptance_memory = {**status, "event_id": business["id"], "by": business["author"],
+            "candidate_id": source["candidate"], "evidence_hash": source["evidence_hash"], "result": source["result"],
+            "note": source["note"], "project": source["memory_snapshot"]["project"],
+            "can_retry": bool(status["pending"] and can_review and business["author"] == user)}
     return {"ticket": t, "assignment": dict(a, assignee_active=a["assignee"] in members, reviewer_active=a["reviewer"] in members),
             "state": state, "label": label, "technical": technical, "human": human, "merge": merge,
             "candidate": candidate, "candidate_error": error, "run": run, "requirement_hash": _requirement(t, P.store),
+            "acceptance_memory": acceptance_memory,
             "needs_review": state in ("assessment", "review", "approved", "merged", "legacy_review", "acceptance"),
             "can_review": can_review, "can_submit": user in members and t["assignee"] == user and t["status"] != "closed",
             "requests": P.store.q("SELECT actor,request_id,state,error,created,updated FROM team_requests WHERE ticket_id=? AND state IN ('pending','uncertain') ORDER BY created", (t["id"],)),
