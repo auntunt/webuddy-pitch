@@ -2,7 +2,7 @@
 
 ## 2026-10-22：知识分类与评审闭环发布
 
-- 当前项：推送 GitHub 与发布 Webuddy；状态：doing。用户本轮明确授权“推到服务器和github。每次修改完都是自动推送”，覆盖历史仅本地、不 push/部署限制；已在根目录 `AGENTS.md` 保存后续完成并验证后自动发布的约定。
+- 当前项：推送 GitHub 与发布 Webuddy；状态：done（部署版本 `a8e22b7`）。用户本轮明确授权“推到服务器和github。每次修改完都是自动推送”，覆盖历史仅本地、不 push/部署限制；已在根目录 `AGENTS.md` 保存后续完成并验证后自动发布的约定。下列中间状态按发生顺序保留，最终结果见本节末。
 - 开始状态：`iteration/context-pack-v2` / `924da09`，工作区干净，历史 stash 保留；GitHub 远端实查仍为 `3ecf977`，不改分支或 Git 配置、不强推。
 - 发布采用已完成本机全量的知识闭环实现；另做服务器 Python 3.12 全量、合成 HTTP 和真实数据库副本迁移，全部通过才切换。保留原始日志、精确文件清单、配置与业务数据备份；业务人工确认边界不变。
 - 已提交并推送 `59aea33`；GitHub 普通快进 `3ecf977..59aea33`，包含 8 个未推送的知识闭环提交与发布约定。服务器初查仍为 `3ecf977`、Python 3.12.3、active/running、无活跃运行，完整性 ok；私钥仅验证 0600 和公钥指纹，通过严格 known_hosts 登录及 sudo 核验，未输出或复制凭据。
@@ -12,7 +12,16 @@
 - 发布验证发现并修复两处测试问题，未上线失败版本：GitHub CI `39768074700` 的 Python 3.11 为 2 failed / 1313 passed / 16 skipped，3.13 为 1 failed / 1314 passed / 16 skipped（各 491 subtests passed）。新增 `test_learning_runs` 直接对自定义字典行工厂调用 `iterdump()`，Python 3.11/3.12 将键名当表名，报 `no such table: name`；服务器 3.12 已独立复现并保留完整现场。改用仓库已有 `dump_store` 一致性副本，仍完整比较所有表、行和结构，不改活连接行工厂。
 - 第二处为旧 `test_org_knowledge_api` 的 Platform 夹具未还原进程全局 `bots.INTAKE`；pytest 定义顺序下，后续企微回调会访问已关闭数据库。新增真实 HTTP 夹具顺序测试在修复前稳定 2 个 subTest 失败，随后用 addCleanup/addClassCleanup 还原原回调所有者并关闭 HTTP/SQLite 资源；原 8 个 HTTP 测试方法断言 AST 全部保持。没有修改产品代码、超时或业务校验。
 - 本机定向 `NO_PROXY='*' no_proxy='*' TMH_UNDERSTAND=rules python3 -m unittest tests.test_org_knowledge_api tests.test_phase1 tests.test_learning_runs tests.test_sqlite_snapshot`：**51 tests / 10.614s / OK**。完整 `fixture-isolation-red.log`、`fixture-fixes-green.log`、`fixture-review.json` 与两份 CI 完整日志均保留在上述部署工作区；本次修复独立提交后重新验证，不复用失败套件为上线凭证。
-- 待确认：无发布许可阻塞。真实模型效果、可选依赖及 Windows 验证边界沿用下方记录，不将生产上线当作这些验证已完成。
+- 修复提交 `a8e22b7` 已普通快进推送。服务器 3.12 定向 pytest **51 passed / 15 subtests passed / 18.18s**；两份受测测试文件的 SHA 与提交一致。首轮服务器全量最终 **1331 tests / 539.432s / FAILED（errors=1, skipped=14）**，唯一错误为上述快照兼容性，383 个受测文件未变；失败完整日志 SHA-256 `c0d4fb4c895b103657a71f2abd582fcd7c882d65e17a2ad89e7ea9be213dda3d`，9 份初轮/修复证据下载并校验。另捕获到 `test_app.Test.test_value` 的 999 合成失败属于候选质量门的预期负例，不冒充外层套件失败或忽略真正的快照错误。
+- 新候选 `a8e22b7` 的 188 个运行文件与初轮逐字节/权限一致；383 个验证文件再次核验，迁移副本第二次演练通过，全量已重新启动，新增隔离测试后预期 1332 项。GitHub CI `39769936344` 的两组 Linux 全量、两平台安装与四组快速检查已通过；Windows 两组全量仍在执行，未声明 Windows 兼容。
+- 额外只读执行器检查：沿用实际服务 PATH 和原生 Claude 配置，在临时 HOME 下执行既有 5 秒 `--help` 能力核验，出现 TimeoutExpired；未运行模型、未更改参数/权限/生产配置。原生程序确为服务器 ELF 文件，无自定义命令或额外 args。保留检查结果，真实独立评审可用性与效果仍不当作发布测试已证明。
+- 最终服务器全量：精确提交 `a8e22b750cfc161189c7aa354bd1f5c1a2a1199c` 执行 `python3 -m unittest discover -s tests`，**1332 tests / 543.623s / OK（skipped=14）**，即 **1318 通过、0 失败/错误**。14 项均缺少可选 MCP SDK；383 个受测文件保持一致。全量日志 SHA-256 `bdeb2d6b751c636ae5ce5e0f3eb988d167b7834c2b4aa82dc8edf4e57dd34d89`。新候选隔离 HTTP **28/28**，两次数据库副本迁移幂等。
+- 正式发布：**2026-10-22 19:33:38 CST**，`webuddy.service` 启动新版；188 个运行文件与提交逐字节/权限一致。完整旧程序、data、外部配置与三项目 `.tmh` 已备份，1775 个 data 成员和 277/37/20 个项目成员读回一致；原 33 张表原列/原行不变，仅新增 8 张空表，非 DB 文件、知识文件及人工状态保持。备份 `/opt/webuddy/backups/pre-a8e22b750cfc-20261022T113336Z`；未回滚或恢复旧数据。
+- 延迟检查：19:35:46 CST（启动约 128 秒后），**24/24** 公网 HTTPS 与服务器回环读取通过，active、自动重启 0、启动以来 error 级日志 0；SQLite 完整性 ok、旧数据与外部配置保持，Caddy 未重启，同机另一应用未动。19:43:19 CST Mac 侧 TLS 直连登录页 200、两项匿名 API 401，三项通过。生产浏览器新建/读取操作超时，只有页签 URL/标题可见，未取得本轮上线后的页面渲染证据；此前临时平台实屏验证仍为本地证据，不冒充生产实屏。
+- 最终 GitHub CI [39769936344](https://github.com/auntunt/webuddy-pitch/actions/runs/39769936344)：8 个任务成功；Linux 3.11/3.13 各 **1316 passed / 16 skipped / 493 subtests passed**。两组 Windows 全量各 **168 failed / 495 passed / 71 skipped / 5 errors / 273 subtests passed**；工作流原有 Windows 非阻断配置未改。完整日志与逐条明细 `github-ci-39769936344/windows-failures.json` 保留，包含新 learning 模块的正文变化/登记标识错误，不能统称为已证明的基线失败，也不能宣称 Windows 兼容。
+- 执行器边界复核：全量结束后的空闲状态，仍在原 **5 秒** `--help` 核验时 TimeoutExpired，结果见 `capability-check-idle.json`；未放宽超时、未绕过无工具隔离、未调用真实模型。**独立模型评审尚未验证可用**，不以合成执行器测试替代真实模型效果或启动能力。
+- 证据与交付：[完整发布记录](../../audit/production-deployment-2026-10-22-learning.md)。本机 `部署包/learning-loops-20261022/candidate-a8e22b7/server-evidence/` 的 13 份报告/完整日志按长度和 SHA-256 读回一致；首轮失败证据另存且未覆盖。最终只提交并推送发布文档，运行文件与已上线版本一致，不为文档重复重启服务。
+- 待确认/后续边界：无发布许可阻塞；Claude 原生执行器启动核验、Windows 新旧失败、可选 MCP 协议和真实模型质量/费用仍未通过，不自动采用业务知识、不代人确认。后续修改继续按根目录 `AGENTS.md` 自动验证、推送和部署。
 
 ## 2026-10-22：知识分类与评审闭环实施
 
