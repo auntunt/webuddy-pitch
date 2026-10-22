@@ -98,6 +98,8 @@ class Store:
         self._migrate_chats()
         from .project_library import schema as library_schema
         library_schema(self)
+        from .learning import schema as learning_schema
+        learning_schema(self)
 
     def _migrate_chats(self) -> None:
         """Assistant messages from before sessions existed: one session per ticket, one '旧版未分类会话' per project.

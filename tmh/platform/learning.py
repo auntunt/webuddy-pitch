@@ -1,0 +1,354 @@
+"""Immutable learning inputs. Reads never create knowledge or authorize its use.
+
+The page registry and lesson ledger remain the authorities for human status.
+These tables contain snapshots and receipts, not a replacement state machine.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+from contextlib import contextmanager
+from pathlib import Path
+
+from . import learn, project_library as library
+from .errors import ApiError
+from .store import now
+from .. import project_knowledge as pk
+
+KINDS = ("fact", "lesson", "policy")
+POLICY_SPECS = {"context_budget": {"min": 4000, "max": 12000, "default": 6000, "label": "上下文预算（字符）"}}
+REF = re.compile(r"(?<![\w/])([\w./-]+\.[A-Za-z0-9]+):(\d+)")
+LESSON_FIELDS = ("title", *learn.FIELDS, "applicability", "non_applicability")
+DDL = (
+    """CREATE TABLE IF NOT EXISTS learning_revisions (
+    id TEXT PRIMARY KEY, project_id INTEGER NOT NULL, kind TEXT NOT NULL,
+    origin_id TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL,
+    source TEXT NOT NULL, fingerprint TEXT NOT NULL, parent_id TEXT NOT NULL,
+    author TEXT NOT NULL, created TEXT NOT NULL)""",
+    "CREATE INDEX IF NOT EXISTS ix_learning_origin ON learning_revisions(project_id,kind,origin_id,created)",
+    """CREATE TABLE IF NOT EXISTS learning_policies (
+    project_id INTEGER NOT NULL, name TEXT NOT NULL, content TEXT NOT NULL,
+    created TEXT NOT NULL, author TEXT NOT NULL, PRIMARY KEY(project_id,name))""",
+    """CREATE TABLE IF NOT EXISTS learning_decisions (
+    id TEXT PRIMARY KEY, project_id INTEGER NOT NULL, kind TEXT NOT NULL, origin_id TEXT NOT NULL,
+    revision_id TEXT NOT NULL, action TEXT NOT NULL, actor TEXT NOT NULL,
+    request_id TEXT NOT NULL, payload TEXT NOT NULL, status TEXT NOT NULL,
+    created TEXT NOT NULL, result TEXT NOT NULL DEFAULT '{}',
+    UNIQUE(project_id,actor,request_id))""",
+    """CREATE TABLE IF NOT EXISTS learning_policy_active (
+    project_id INTEGER PRIMARY KEY, revision_id TEXT NOT NULL, decision_id TEXT NOT NULL)""",
+)
+
+
+def encoded(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def digest(value):
+    return hashlib.sha256((value if isinstance(value, str) else encoded(value)).encode("utf-8")).hexdigest()
+
+
+@contextmanager
+def transaction(store):
+    """Never call Store.x inside this scope: it commits the caller's transaction."""
+    with store.lock:
+        if store.db.in_transaction:
+            raise RuntimeError("learning transaction cannot nest")
+        try:
+            store.db.execute("BEGIN IMMEDIATE")
+            yield store.db
+            store.db.commit()
+        except BaseException:
+            store.db.rollback()
+            raise
+
+
+def schema(store):
+    # Individual DDL statements are transactional; executescript implicitly commits.
+    with transaction(store) as db:
+        for statement in DDL:
+            db.execute(statement)
+
+
+def project(P, key):
+    p = P.store.project(key.get("id") if isinstance(key, dict) else key)
+    if not p:
+        raise ApiError(404, "没有这个项目")
+    return p
+
+
+def binding(P, p):
+    p = project(P, p)
+    root = Path(p["root"]).resolve()
+    if not root.is_dir():
+        raise ApiError(409, "项目工作区不可读")
+    try:
+        commit = pk.git(root, "rev-parse", "--verify", "HEAD")
+    except ValueError:
+        # Non-Git sources are explicitly bound to captured file manifests below.
+        if (root / ".git").exists():
+            raise ApiError(409, "Git 来源不可读取，不能生成版本证据")
+        commit = ""
+    return {"project_id": p["id"], "root": str(root), "commit": commit,
+            "workflow": library.profile(P.store, p)["workflow"],
+            "references": library.bindings(P.store, p)}
+
+
+def safe_read(root, rel):
+    root = Path(root).resolve()
+    path = Path(rel)
+    if path.is_absolute() or ".." in path.parts or not path.parts:
+        raise ApiError(400, "证据路径必须在项目内：" + str(rel))
+    if pk.excluded(path.as_posix()):
+        raise ApiError(400, "证据路径不允许读取：" + str(rel))
+    target = root / path
+    if any((root / Path(*path.parts[:i])).is_symlink() for i in range(1, len(path.parts) + 1)):
+        raise ApiError(400, "证据不能经过符号链接：" + str(rel))
+    if not target.resolve().is_relative_to(root):
+        raise ApiError(400, "证据超出项目")
+    try:
+        return target.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        raise ApiError(409, "证据不可读：" + str(rel)) from exc
+
+
+def _facts(P, p):
+    from .org_knowledge import _pages
+    from ..kb import load_registry
+    root = Path(p["root"])
+    kb_dir = root / ".tmh" / "knowledge"
+    if not kb_dir.is_dir():
+        return []
+    if kb_dir.is_symlink() or (root / ".tmh").is_symlink():
+        raise ApiError(409, "知识库目录不能经过符号链接")
+    if (kb_dir / ".pages.json").exists():
+        safe_read(root, ".tmh/knowledge/.pages.json")
+    reg = load_registry(root)
+    out = []
+    for page in _pages(kb_dir):
+        rel = ".tmh/knowledge/" + page["rel"]
+        content = safe_read(root, rel)
+        r = reg.get(page["id"], {})
+        out.append({"key": "fact:" + page["id"], "kind": "fact", "origin_id": page["id"],
+                    "title": page["title"], "content": content, "fingerprint": digest(content),
+                    "source": {"path": rel, "registry": r},
+                    "human": {"status": page["status"], "by": r.get("confirmed_by", ""),
+                              "at": r.get("confirmed_at", "")}})
+    return out
+
+
+def _lessons(P, p):
+    out = []
+    for card in learn.lessons(P.data_dir, p["key"], limit=None):
+        content = encoded({f: card.get(f, "") for f in LESSON_FIELDS})
+        source = {k: card.get(k) for k in ("ticket", "candidate_id", "source_key", "provenance", "files", "flows") if card.get(k) is not None}
+        out.append({"key": "lesson:" + card["id"], "kind": "lesson", "origin_id": card["id"],
+                    "title": card.get("title", card["id"]), "content": content,
+                    "fingerprint": digest({"content": content, "source": source}), "source": source,
+                    "human": {"status": card["status"], "by": (card.get("history") or [{}])[-1].get("by", ""),
+                              "at": (card.get("history") or [{}])[-1].get("ts", "")}})
+    return out
+
+
+def _policies(P, p):
+    out = []
+    for row in P.store.q("SELECT * FROM learning_policies WHERE project_id=? ORDER BY name", (p["id"],)):
+        val = json.loads(row["content"])
+        out.append({"key": "policy:" + row["name"], "kind": "policy", "origin_id": row["name"],
+                    "title": val["title"], "content": row["content"], "fingerprint": digest(row["content"]),
+                    "source": {}, "human": {"status": "draft", "by": "", "at": ""}})
+    return out
+
+
+def _origin(P, p, key):
+    kind, _, origin = key.partition(":")
+    readers = {"fact": _facts, "lesson": _lessons, "policy": _policies}
+    if kind not in readers or not origin:
+        raise ApiError(400, "条目类型或标识无效")
+    found = next((x for x in readers[kind](P, p) if x["key"] == key), None)
+    if not found:
+        raise ApiError(404, "条目不存在或不属于当前项目")
+    return found
+
+
+def _decode(row):
+    if not row:
+        return None
+    return dict(row, source=json.loads(row["source"]))
+
+
+def revision(P, p, rid):
+    p = project(P, p)
+    row = P.store.one("SELECT * FROM learning_revisions WHERE project_id=? AND id=?", (p["id"], rid))
+    if not row:
+        raise ApiError(404, "修订不存在或不属于当前项目")
+    return _decode(row)
+
+
+def _save(db, p, item, source, actor, parent=""):
+    fp = digest({"content": item["content"], "source": source})
+    rid = "LR" + digest([p["id"], item["kind"], item["origin_id"], parent, fp])[:40]
+    db.execute("INSERT OR IGNORE INTO learning_revisions VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+               (rid, p["id"], item["kind"], item["origin_id"], item["title"], item["content"],
+                encoded(source), fp, parent, actor, now()))
+    return rid
+
+
+def capture(P, p, key, expected_fingerprint, actor):
+    p = project(P, p)
+    before = binding(P, p)
+    item = _origin(P, p, key)
+    if not expected_fingerprint or item["fingerprint"] != expected_fingerprint:
+        raise ApiError(409, "正文已变化，请刷新后重新固定修订")
+    paths = {m[0] for m in REF.findall(item["content"])}
+    if item["kind"] == "lesson":
+        paths.update(x for x in item["source"].get("files", []) if isinstance(x, str))
+    evidence = [{"path": name, "content": safe_read(p["root"], name)} for name in sorted(paths)]
+    for e in evidence:
+        e["sha256"] = digest(e["content"])
+    source = {**item["source"], "binding": before, "origin_fingerprint": item["fingerprint"],
+              "evidence": evidence, "snapshot_kind": "working-copy-manifest"}
+    with transaction(P.store) as db:
+        if binding(P, p) != before or _origin(P, p, key)["fingerprint"] != expected_fingerprint:
+            raise ApiError(409, "固定修订时来源或授权发生变化")
+        for e in evidence:
+            if digest(safe_read(p["root"], e["path"])) != e["sha256"]:
+                raise ApiError(409, "固定修订时证据文件变化")
+        rid = _save(db, p, item, source, actor)
+    return revision(P, p, rid)
+
+
+def revision_current(P, p, r):
+    try:
+        p = project(P, p)
+        source = r["source"]
+        if p["id"] != r["project_id"] or binding(P, p) != source["binding"]:
+            return False
+        item = _origin(P, p, r["kind"] + ":" + r["origin_id"])
+        if item["fingerprint"] != source["origin_fingerprint"]:
+            return False
+        return all(digest(safe_read(p["root"], e["path"])) == e["sha256"] for e in source["evidence"])
+    except (ApiError, OSError, ValueError, KeyError):
+        return False
+
+
+def policy_content(value):
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except ValueError as exc:
+            raise ApiError(400, "策略必须是结构化 JSON") from exc
+    if not isinstance(value, dict) or set(value) - {"title", "parameters", "applicability"}:
+        raise ApiError(400, "策略只允许标题、适用条件和允许清单中的参数")
+    if not isinstance(value.get("title"), str) or not value["title"].strip():
+        raise ApiError(400, "策略需要标题")
+    if not isinstance(value.get("applicability"), str) or not value["applicability"].strip():
+        raise ApiError(400, "策略需要适用条件")
+    params = value.get("parameters")
+    if not isinstance(params, dict) or not params or set(params) - set(POLICY_SPECS):
+        raise ApiError(400, "策略包含未允许的参数")
+    for k, v in params.items():
+        spec = POLICY_SPECS[k]
+        if type(v) is not int or not spec["min"] <= v <= spec["max"]:
+            raise ApiError(400, "策略参数超出允许范围：" + k)
+    return encoded(value)
+
+
+def propose(P, p, revision_id, content, actor):
+    p = project(P, p)
+    r = revision(P, p, revision_id)
+    if not isinstance(content, str) or not content.strip():
+        raise ApiError(400, "修订正文不能为空")
+    if r["kind"] == "fact":
+        from ..kb import FACTS_RX
+        def protected(text):
+            front = re.match(r"\A---\s*\n.*?\n---\s*\n", text, re.S)
+            return (front.group() if front else "", FACTS_RX.findall(text))
+        if protected(content) != protected(r["content"]):
+            raise ApiError(400, "事实修订不能改变登记字段或程序生成的事实块")
+    elif r["kind"] == "policy":
+        content = policy_content(content)
+    elif r["kind"] == "lesson":
+        try:
+            val = json.loads(content)
+        except ValueError as exc:
+            raise ApiError(400, "经验修订必须为完整字段 JSON") from exc
+        if (not isinstance(val, dict) or set(val) - set(LESSON_FIELDS) or
+                any(not isinstance(v, str) for v in val.values()) or
+                any(not val.get(k, "").strip() for k in ("title", "symptom", "fix"))):
+            raise ApiError(400, "经验需要标题、现象、改法以及字符串字段")
+        content = encoded(val)
+    with transaction(P.store) as db:
+        if not revision_current(P, p, r):
+            raise ApiError(409, "来源已过期，请重新固定修订")
+        title = json.loads(content)["title"] if r["kind"] in ("policy", "lesson") else r["title"]
+        rid = _save(db, p, dict(r, content=content, title=title), r["source"], actor, r["id"])
+    return revision(P, p, rid)
+
+
+def policy_create(P, p, name, title, parameters, applicability, actor):
+    p = project(P, p)
+    if not isinstance(name, str) or not re.fullmatch(r"[a-z][a-z0-9_-]{0,63}", name):
+        raise ApiError(400, "策略名称只能使用小写字母、数字、下划线和横线")
+    content = policy_content({"title": title, "parameters": parameters, "applicability": applicability})
+    with transaction(P.store) as db:
+        old = db.execute("SELECT content FROM learning_policies WHERE project_id=? AND name=?", (p["id"], name)).fetchone()
+        if old and old["content"] != content:
+            raise ApiError(409, "同名策略已存在，请从旧版本创建修订")
+        db.execute("INSERT OR IGNORE INTO learning_policies VALUES(?,?,?,?,?)", (p["id"], name, content, now(), actor))
+    return capture(P, p, "policy:" + name, digest(content), actor)
+
+
+def _jobs(P, p, rid=""):
+    # Schema initialization belongs to startup; a GET must never migrate/recover.
+    if not P.store.one("SELECT name FROM sqlite_master WHERE type='table' AND name='learning_jobs'"):
+        return []
+    from .learning_runs import list_jobs
+    return list_jobs(P, p, rid)
+
+
+def catalog(P, p, kind="", q=""):
+    p = project(P, p)
+    if kind and kind not in KINDS:
+        raise ApiError(400, "未知知识类型")
+    items = []
+    for k, reader in (("fact", _facts), ("lesson", _lessons), ("policy", _policies)):
+        if not kind or k == kind:
+            items.extend(reader(P, p))
+    for item in items:
+        rows = P.store.q("SELECT * FROM learning_revisions WHERE project_id=? AND kind=? AND origin_id=? ORDER BY rowid DESC",
+                         (p["id"], item["kind"], item["origin_id"]))
+        r = next((_decode(row) for row in rows if row["content"] == item["content"] and
+                  json.loads(row["source"])["origin_fingerprint"] == item["fingerprint"]), None)
+        item["revision_id"] = r["id"] if r else ""
+        item["stale"] = bool(r and not revision_current(P, p, r))
+        jobs = _jobs(P, p, r["id"]) if r else []
+        job = jobs[0] if jobs else {}
+        item["machine"] = {"status": "stale" if item["stale"] else job.get("status", "unreviewed"), "job_id": job.get("id", "")}
+        if item["kind"] == "policy":
+            active = P.store.one("SELECT revision_id FROM learning_policy_active WHERE project_id=?", (p["id"],))
+            item["human"]["status"] = "active" if active and any(x["id"] == active["revision_id"] for x in rows) else "draft"
+    return {"project": {k: p[k] for k in ("id", "key", "name")},
+            "items": [x for x in items if not q or q.casefold() in (x["title"] + "\n" + x["content"]).casefold()],
+            "jobs": _jobs(P, p), "policy_specs": POLICY_SPECS, "readonly": True}
+
+
+def detail(P, p, rid):
+    p = project(P, p)
+    r = revision(P, p, rid)
+    history = [_decode(row) for row in P.store.q(
+        "SELECT * FROM learning_revisions WHERE project_id=? AND kind=? AND origin_id=? ORDER BY rowid",
+        (p["id"], r["kind"], r["origin_id"]))]
+    decisions = P.store.q("SELECT * FROM learning_decisions WHERE project_id=? AND kind=? AND origin_id=? ORDER BY rowid",
+                          (p["id"], r["kind"], r["origin_id"]))
+    for d in decisions:
+        d["payload"], d["result"] = json.loads(d["payload"]), json.loads(d["result"])
+    active = None
+    if r["kind"] == "policy":
+        row = P.store.one("SELECT revision_id FROM learning_policy_active WHERE project_id=?", (p["id"],))
+        active = row["revision_id"] if row else None
+    elif r["kind"] == "lesson" and hasattr(learn, "active_revision"):
+        active = learn.active_revision(P.data_dir, r["origin_id"])
+    return {"revision": r, "current": revision_current(P, p, r), "jobs": _jobs(P, p, rid),
+            "history": history, "decisions": decisions, "expected_active": active, "active_revision_id": active}

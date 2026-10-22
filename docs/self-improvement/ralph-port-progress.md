@@ -1,5 +1,17 @@
 # Ralph port 执行进度
 
+## 2026-10-22：知识分类与评审闭环实施
+
+- 当前项：K2；状态：doing。用户已授权按设计自动实施；实际分支 `iteration/context-pack-v2`，起点 `949d732`。开工工作区干净，无需 stash。
+- K1 done：三类只读目录、不可变修订、来源绑定、历史兼容。K2 doing：独立评审及有界修订。K3 todo：冻结成对评测、人工采用。K4 todo：策略允许清单、采用/撤销、使用回执。
+- 本轮使用 executing-plans 和 verification-before-completion；按技能将独立运行引擎、界面和日志并发部分交给子代理，共享目录中限定文件所有权，最后统一审查。
+- 已核对：最近十条提交、设计、进度、Store/Runner/knowledge/learn/library/人工身份入口。`Store.x` 会自动提交，新事务不能使用它；旧经验日志仍为权威，新采用用持久化待办与幂等投影。
+- 判断：首版参考工作流项目可浏览固定修订，模型评审启动暂沿用 development 限制，不暗中改变项目角色；自定义命令和额外 Agent 参数不能证明只读，评审拒绝它们。成本未知时保留未知；合成测试不等于真实模型效果。
+- 约束：仅临时数据/仓库测试；不访问网络、不碰实际 data/ 或密钥、不启动日常端口、不 push、不部署。人工确认、guard、提交证据和已有状态迁移保持原边界。
+- 待确认：无阻塞；真实模型质量、自动采用、定时任务和组织推广均不在本轮启用范围。
+- K1 修改：新增 `tmh/platform/learning.py`、`tests/test_learning.py`；`Store` 启动时进行独立可回滚迁移。完整正文/证据清单和 SHA-256、工作区、HEAD、引用授权都固定；非 Git/未提交内容明确为工作副本清单，未伪称提交内容。Agent 修订不得变更事实登记头或生成块；历史确认不伪造机器通过。
+- K1 验证：`NO_PROXY='*' no_proxy='*' python3 -m unittest discover -s tests -p 'test_learning.py'` 9 tests OK；`test_org_knowledge.py` 10 tests OK；`test_memory_workspace.py` 24 tests OK。覆盖浏览文件字节/时间不变、完整长文、内容/源码/引用/工作区失效、跨项目拒绝、修订幂等、迁移/登记故障回滚。已人工审查新增模块、Store 差异和测试，`git diff --check` 通过。
+
 ## 2026-10-22：知识分类与评审闭环设计
 
 - 当前项：把用户认可的“项目事实 / 可复用经验 / 执行策略”方向落实成可实施方案；状态：done（设计文档完成，K1–K4 实现均为 todo）。
