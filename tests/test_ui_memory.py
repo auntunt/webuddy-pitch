@@ -110,6 +110,19 @@ await main.querySelector('[data-mem-confirm]').fire('click');assert.equal(mutati
 await main.querySelector('[data-mem-exclude="APP-2"]').fire('click');const form=main.querySelector('[data-mem-editor]').querySelector('form');form.querySelector('[data-mem-reason]').value='不同根因';await form.fire('submit');assert.equal(mutations[1].body.ticket_key,'APP-2');assert.equal(mutations[1].body.reason,'不同根因');assert.equal(mutations[1].body.expected_fingerprint,'inputs-1');
 """)
 
+    def test_cluster_counts_exclude_single_member_and_empty_audit_records(self):
+        self.run_js(r"""
+S.scope='APP';const group={id:'C-1',title:'待核对关联',status:'candidate',revision:2,fingerprint:'inputs-2',members:[{key:'APP-1',title:'a',status:'closed',body:'当前完整原文'},{key:'APP-2',title:'b',status:'closed',body:'另一张完整原文'}],matches:[]};
+const removed={...group,id:'C-2',members:[group.members[0]],exclusions:[{ticket_key:'APP-2',reason:'根因不同 <script>unsafe</script>',by:'审查者',at:'2026-10-22'}],history:[{revision:1,members:group.members,matches:[{tickets:['APP-1','APP-2'],reasons:['原先关联依据']}]}]};
+const empty={...removed,id:'C-3',members:[]};
+memoryResponse=memoryData({clusters:{items:[group,removed,empty]}});await vMemory();assert.ok($('#memContent').textContent.includes('1 个分组建议'));assert.ok($('#memContent').textContent.includes('2 条关联已解除 / 排除记录'));assert.ok(!$('#memContent').textContent.includes('3 个'));
+memoryResponse={items:[group,removed,empty],tickets_scanned:2};await vMemory('clusters');assert.ok($('#memContent').textContent.includes('1 个同类分组'));assert.ok($('#memContent').textContent.includes('2 条关联已解除 / 排除记录'));
+const live=main.querySelector('[data-mem-cluster="0"]');assert.ok(live.querySelector('[data-mem-confirm]'));assert.ok(live.querySelector('[data-mem-reuse]'));
+for(const n of ['1','2']){const card=main.querySelector('[data-mem-cluster="'+n+'"]');assert.ok(card.textContent.includes('关联已解除 / 排除记录'));assert.ok(card.textContent.includes('不计入同类分组'));assert.equal(card.querySelector('[data-mem-confirm]'),null);assert.equal(card.querySelector('[data-mem-reuse]'),null);assert.ok(!card.innerHTML.includes('<script>unsafe</script>'));const record=card.querySelector('[data-mem-cluster-record]');assert.deepEqual(JSON.parse(record.textContent),memoryResponse.items[Number(n)]);assert.ok(record.textContent.includes('另一张完整原文'));assert.ok(record.textContent.includes('原先关联依据'))}
+assert.equal(mutations.length,0);
+memoryResponse=memoryData({clusters:{items:[removed,empty]}});await vMemory();assert.ok($('#memContent').textContent.includes('0 个分组建议'));
+""")
+
     def test_full_markdown_export_and_stale_confirmation_disabled(self):
         self.run_js(r"""
 memoryResponse=memoryBrief({stale:true,status:'stale',stale_reasons:[{label:'业务知识页',reason:'来源变化'}]});await vProjectBrief('APP');assert.equal($('#memBriefConfirm').disabled,true);assert.ok(main.innerHTML.includes('来源变化'));assert.ok(!main.innerHTML.includes('<script>危险脚本</script>'));
