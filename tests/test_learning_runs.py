@@ -16,6 +16,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+from tests.sqlite_snapshot import dump_store
 from tmh.platform import learning, learning_runs as lr
 from tmh.platform.store import Store
 from tmh.platform.errors import ApiError
@@ -252,11 +253,11 @@ class LearningRunsTests(unittest.TestCase):
 
     def test_read_is_pure_and_idempotent_request_mismatch_rejected(self):
         job = self.start()
-        before = tuple(self.store.db.iterdump())
+        before = dump_store(self.store)
         files = {str(p): p.read_bytes() for p in self.home.rglob("*") if p.is_file() and p.name != "platform.db"}
         self.assertEqual(lr.get(self.P, self.p, job["id"])["status"], "queued")
         lr.list_jobs(self.P, self.p)
-        self.assertEqual(tuple(self.store.db.iterdump()), before)
+        self.assertEqual(dump_store(self.store), before)
         self.assertEqual(files, {str(p): p.read_bytes() for p in self.home.rglob("*") if p.is_file() and p.name != "platform.db"})
         self.assertEqual(self.start()["id"], job["id"])
         with self.assertRaises(ValueError):

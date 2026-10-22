@@ -6,6 +6,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest import mock
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -50,6 +51,9 @@ def snapshot_tree(root: Path) -> dict:
 class OrgKnowledgeApiTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        from tmh import bots
+        # Platform wires a process-global callback; restore its previous owner.
+        cls.addClassCleanup(setattr, bots, "INTAKE", bots.INTAKE)
         cls.data = Path(tempfile.mkdtemp(prefix="orgapi-"))
         cls.oa = cls.data / "projects" / "oa"
         cls.crm = cls.data / "projects" / "crm"
@@ -66,11 +70,15 @@ class OrgKnowledgeApiTest(unittest.TestCase):
         cls.P.store.add_project("CRM", "CRM 项目", str(cls.crm), "示例")
         cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(cls.P, TOKEN))
         cls.base = "http://127.0.0.1:%d" % cls.httpd.server_address[1]
-        threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
+        cls.thread = threading.Thread(target=cls.httpd.serve_forever, daemon=True)
+        cls.thread.start()
 
     @classmethod
     def tearDownClass(cls):
         cls.httpd.shutdown()
+        cls.httpd.server_close()
+        cls.thread.join(timeout=5)
+        cls.P.store.db.close()
         shutil.rmtree(cls.data, ignore_errors=True)
 
     def call(self, path, headers=None, token=True):
@@ -149,7 +157,8 @@ class OrgKnowledgeApiTest(unittest.TestCase):
 
 class DraftKnowledgeReaderApiTest(unittest.TestCase):
     def test_memory_source_opens_complete_draft_without_confirming_it(self):
-        from tmh import kb
+        from tmh import bots, kb
+        self.addCleanup(setattr, bots, "INTAKE", bots.INTAKE)
         with tempfile.TemporaryDirectory(prefix="draft-knowledge-http-") as folder:
             data = Path(folder)
             root = data / "project"
@@ -191,6 +200,24 @@ class DraftKnowledgeReaderApiTest(unittest.TestCase):
                 server.server_close()
                 thread.join(timeout=5)
                 platform.store.db.close()
+
+
+class KnowledgeFixtureIsolationTest(unittest.TestCase):
+    def test_http_fixtures_restore_the_previous_bot_intake(self):
+        from tmh import bots
+
+        previous = mock.Mock(side_effect=AssertionError("unrelated intake must not run"))
+        with mock.patch.object(bots, "INTAKE", previous):
+            for case in (OrgKnowledgeApiTest("test_summary_shape_and_type_counts"),
+                         DraftKnowledgeReaderApiTest("test_memory_source_opens_complete_draft_without_confirming_it")):
+                with self.subTest(fixture=type(case).__name__):
+                    result = unittest.TestResult()
+                    unittest.TestSuite([case]).run(result)
+                    self.assertEqual(result.errors, [])
+                    self.assertEqual(result.failures, [])
+                    self.assertEqual(result.testsRun, 1)
+                    self.assertIs(bots.INTAKE, previous)
+            previous.assert_not_called()
 
 
 if __name__ == "__main__":

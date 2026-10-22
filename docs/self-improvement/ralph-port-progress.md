@@ -5,6 +5,13 @@
 - 当前项：推送 GitHub 与发布 Webuddy；状态：doing。用户本轮明确授权“推到服务器和github。每次修改完都是自动推送”，覆盖历史仅本地、不 push/部署限制；已在根目录 `AGENTS.md` 保存后续完成并验证后自动发布的约定。
 - 开始状态：`iteration/context-pack-v2` / `924da09`，工作区干净，历史 stash 保留；GitHub 远端实查仍为 `3ecf977`，不改分支或 Git 配置、不强推。
 - 发布采用已完成本机全量的知识闭环实现；另做服务器 Python 3.12 全量、合成 HTTP 和真实数据库副本迁移，全部通过才切换。保留原始日志、精确文件清单、配置与业务数据备份；业务人工确认边界不变。
+- 已提交并推送 `59aea33`；GitHub 普通快进 `3ecf977..59aea33`，包含 8 个未推送的知识闭环提交与发布约定。服务器初查仍为 `3ecf977`、Python 3.12.3、active/running、无活跃运行，完整性 ok；私钥仅验证 0600 和公钥指纹，通过严格 known_hosts 登录及 sudo 核验，未输出或复制凭据。
+- 精确版本包：188 个运行文件、383 个验证文件，Git 原始 blob 字节与权限逐项校验。本机重核 265 个完整测试清单文件与 `05022ce` 全量受测内容完全相同，完整日志 SHA-256 一致；临时服务 28 项 HTTP 检查通过并清理。部署脚本本机验证覆盖归档读回、BLOB 摘要、迁移保留记录以及切换后失败/stop 超时/回滚失败三个故障分支。
+- 传输：初次 SCP 速度较慢，主动停止该文件传输进程，改用可续传的 rsync 无损传输压缩；不改变任何文件编码或像素，服务器接收后 188/383 个文件及两个 tar 的长度、SHA-256 和权限全部通过。首次未传完的包未 stage 或激活；候选准备阶段已核对不存在的评审回执应返回 404，修正的仅为新增部署 smoke 脚本期望值，没有改产品或基线断言。最终包与辅助脚本保留在本机 `部署包/learning-loops-20261022/candidate-59aea33-r2/`。
+- 数据库副本迁移已完成：33 张原表的全部原列、原行哈希与结构不变；只新增预期 8 张空表；连续初始化两次幂等，integrity_check=ok，未初始化实际生产 Platform。服务器全量以清洁 HOME、无模型凭据和回环网络限定运行，原始日志/跳过原因/失败现场独立保存；正式切换仍等待其结果。
+- 发布验证发现并修复两处测试问题，未上线失败版本：GitHub CI `39768074700` 的 Python 3.11 为 2 failed / 1313 passed / 16 skipped，3.13 为 1 failed / 1314 passed / 16 skipped（各 491 subtests passed）。新增 `test_learning_runs` 直接对自定义字典行工厂调用 `iterdump()`，Python 3.11/3.12 将键名当表名，报 `no such table: name`；服务器 3.12 已独立复现并保留完整现场。改用仓库已有 `dump_store` 一致性副本，仍完整比较所有表、行和结构，不改活连接行工厂。
+- 第二处为旧 `test_org_knowledge_api` 的 Platform 夹具未还原进程全局 `bots.INTAKE`；pytest 定义顺序下，后续企微回调会访问已关闭数据库。新增真实 HTTP 夹具顺序测试在修复前稳定 2 个 subTest 失败，随后用 addCleanup/addClassCleanup 还原原回调所有者并关闭 HTTP/SQLite 资源；原 8 个 HTTP 测试方法断言 AST 全部保持。没有修改产品代码、超时或业务校验。
+- 本机定向 `NO_PROXY='*' no_proxy='*' TMH_UNDERSTAND=rules python3 -m unittest tests.test_org_knowledge_api tests.test_phase1 tests.test_learning_runs tests.test_sqlite_snapshot`：**51 tests / 10.614s / OK**。完整 `fixture-isolation-red.log`、`fixture-fixes-green.log`、`fixture-review.json` 与两份 CI 完整日志均保留在上述部署工作区；本次修复独立提交后重新验证，不复用失败套件为上线凭证。
 - 待确认：无发布许可阻塞。真实模型效果、可选依赖及 Windows 验证边界沿用下方记录，不将生产上线当作这些验证已完成。
 
 ## 2026-10-22：知识分类与评审闭环实施
