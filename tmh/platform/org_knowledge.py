@@ -118,8 +118,20 @@ def _pages(kb_dir: Path) -> list[dict]:
         title = meta.get("title") or (m.group(1).strip() if (m := _H1.search(body)) else rel)
         out.append({"rel": rel, "id": meta.get("id") or rel, "title": title, "content": body,
                     "status": "需更新" if record.get("stale") else record.get("status") or meta.get("status") or "", "commit": meta.get("commit") or "",
-                    "summary": _body_summary(body) or title})
+                    "summary": _body_summary(body) or title, "registered": bool(record)})
     return out
+
+
+def _readable_page(project: dict, kb_dir: Path, page: dict) -> bool:
+    """Only advertise new drafts when the existing KB reader can open them."""
+    from ..kb import page_path
+    from ..graph import graph_path
+    root = Path(project["root"])
+    try:
+        return (page["registered"] and graph_path(root).is_file() and
+                page_path(root, page["id"]).resolve() == (kb_dir / page["rel"]).resolve())
+    except (KeyError, ValueError):
+        return False
 
 
 def _table_terms(kb_dir: Path) -> list[dict]:
@@ -184,26 +196,31 @@ def _lesson_items(data_dir: Path) -> list[dict]:
     return out
 
 
-def _collect(store) -> tuple[list[dict], list[dict]]:
+def _collect(store, *, include_drafts: bool = False, project_key: str = "") -> tuple[list[dict], list[dict]]:
     """[(item, provenance)] and the project list actually read."""
     raw: list[dict] = []
     projects = []
     data_dir = Path(getattr(store, "path", "")).parent if getattr(store, "path", None) else None
     for project in store.projects():
+        if project_key and project.get("key") != project_key:
+            continue
         kb = _kb_dir(project)
         if not kb:
             continue
         projects.append(project)
         rev = ""  # page-level commit when the project records one
+        from .project_library import profile
+        browse_drafts = include_drafts and profile(store, project)["workflow"] == "development"
         for page in _pages(kb):
             status = page["status"]
             rel = page["rel"]
-            if status == "已确认":
+            if status == "已确认" or (browse_drafts and status in ("待确认", "需更新") and _readable_page(project, kb, page)):
                 kind = "component" if rel.startswith("modules/") else ("pattern" if rel.startswith("flows/") else "rule")
                 raw.append({
                     "type": kind, "title": page["title"], "summary": page["summary"],
+                    "status": status,
                     "dedup_text": page["title"] + "\n" + page["content"],
-                    "provenance": _provenance(project, "page", rel, page["id"], page["commit"] or rev, True),
+                    "provenance": {**_provenance(project, "page", rel, page["id"], page["commit"] or rev, status == "已确认"), "status": status},
                 })
         for term in _table_terms(kb):
             raw.append({"type": "term", "title": term["title"], "summary": term["summary"],
@@ -215,6 +232,8 @@ def _collect(store) -> tuple[list[dict], list[dict]]:
                         "provenance": _provenance(project, "doc", rule["ref"], _norm(rule["title"]), "", True)})
     if data_dir and data_dir.is_dir():
         for lesson in _lesson_items(data_dir):
+            if project_key and lesson["project"] != project_key:
+                continue
             prov = {"project": lesson["project"], "project_id": None, "kind": "lesson",
                     "ref": lesson["ref"], "id": lesson["lesson_id"], "revision": "",
                     "confirmed": lesson["confirmed"], "root": ""}
@@ -228,9 +247,14 @@ def _merge(raw: list[dict]) -> list[dict]:
     merged: dict[str, dict] = {}
     for item in raw:
         key = item["type"] + "|" + _norm(item["dedup_text"])
+        status = item.get("status") or "已确认"
+        # Matching text is not matching review evidence. Keep historical IDs
+        # for confirmed items, and never lend their badge to a draft/stale page.
+        if status != "已确认":
+            key = json.dumps([key, status], ensure_ascii=False, separators=(",", ":"))
         if key in merged:
             merged[key]["provenance"].append(item["provenance"])
-            merged[key]["reviewed"] = merged[key]["reviewed"] or item["provenance"]["confirmed"]
+            merged[key]["reviewed"] = merged[key]["reviewed"] and item["provenance"]["confirmed"]
             if not merged[key]["summary"]:
                 merged[key]["summary"] = item["summary"]
         else:
@@ -239,16 +263,17 @@ def _merge(raw: list[dict]) -> list[dict]:
                 "type": item["type"], "type_label": TYPE_LABEL.get(item["type"], item["type"]),
                 "title": item["title"], "summary": _short(item["summary"]),
                 "dedup_key": hashlib.sha256(key.encode()).hexdigest(),
+                "status": status,
                 "reviewed": item["provenance"]["confirmed"],
                 "provenance": [item["provenance"]],
             }
     return sorted(merged.values(), key=lambda i: (TYPES.index(i["type"]) if i["type"] in TYPES else 99, i["id"]))
 
 
-def build(store) -> dict:
-    """Read-only roll-up. Never writes to the store, the projects or the data dir."""
+def build(store, *, include_drafts: bool = False, project_key: str = "") -> dict:
+    """Read-only roll-up; unconfirmed pages require explicit browsing opt-in."""
     started = time.strftime("%Y-%m-%d %H:%M:%S")
-    raw, projects = _collect(store)
+    raw, projects = _collect(store, include_drafts=include_drafts, project_key=project_key)
     items = _merge(raw)
     by_type = {t: sum(1 for i in items if i["type"] == t) for t in TYPES}
     provenance_projects = sorted({p["project"] for i in items for p in i["provenance"] if p.get("project")})
@@ -271,9 +296,9 @@ def _tokens(text: str) -> set[str]:
     return out
 
 
-def search(store, q: str, limit: int = 20, types: tuple | list | None = None) -> list[dict]:
+def search(store, q: str, limit: int = 20, types: tuple | list | None = None, *, include_drafts: bool = False, project_key: str = "") -> list[dict]:
     """Search the roll-up. Returns structured items with full provenance; no full text."""
-    built = build(store)
+    built = build(store, include_drafts=include_drafts, project_key=project_key)
     wanted = _tokens(q)
     if not wanted:
         return []

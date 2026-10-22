@@ -465,9 +465,8 @@ def dispatch_read(P, query, user):
     items = _lesson_workspace(P, p, q)
     # Organization knowledge is a browsing catalog, not an authorization to
     # inject its full private project contents into other projects' tasks.
-    knowledge = org_knowledge.search(P.store, q, limit=200) if q else org_knowledge.build(P.store)["items"]
-    if p:
-        knowledge = [i for i in knowledge if any(s.get("project") == p["key"] for s in i["provenance"])]
+    browsing = {"include_drafts": bool(p), "project_key": p["key"] if p else ""}
+    knowledge = org_knowledge.search(P.store, q, limit=200, **browsing) if q else org_knowledge.build(P.store, **browsing)["items"]
     result = {"section": section, "project": p, "query": q, "projects": [{"key": x["key"], "name": x["name"]} for x in P.store.projects()],
               "lessons": items, "knowledge": knowledge, "readonly": True,
               "scope_notice": "项目知识保留来源；组织目录用于查阅。跨项目自动使用仅限人工共享并由当前项目引入的经验或明确绑定的固定知识。",

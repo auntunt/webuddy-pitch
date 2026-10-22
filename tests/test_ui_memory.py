@@ -70,6 +70,13 @@ assert.ok(teamMemoryFeedback({result:{memory:{pending:true,message:'记忆待补
 assert.ok(teamMemoryFeedback({result:{memory:{pending:false,lesson_id:'L42'}}}).includes('L42'));
 """)
 
+    def test_project_knowledge_shows_draft_and_stale_sources_and_opens_the_actual_page(self):
+        self.run_js(r"""
+S.scope='APP';memoryResponse=memoryData({knowledge:[{type_label:'行业规则',status:'待确认',reviewed:false,title:'项目总览草稿',summary:'仍待成员核对',provenance:[{project:'APP',kind:'page',id:'index',ref:'index.md',status:'待确认',confirmed:false}]},{type_label:'模式',status:'需更新',reviewed:false,title:'审批说明',summary:'代码已变化',provenance:[{project:'APP',kind:'page',id:'flow:approve',ref:'flows/approve.md',status:'需更新',confirmed:false}]}]});
+await vMemory('knowledge');assert.ok(main.textContent.includes('待确认'));assert.ok(main.textContent.includes('需更新'));assert.ok(main.textContent.includes('目录展示不会自动将知识加入任务'));assert.ok(!main.textContent.includes('来源已确认'));
+await main.querySelector('[data-mem-source="1:0"]').fire('click');assert.equal(S.proj,'APP');assert.equal(S.scope,'APP');assert.equal(location.hash,'#/kb/flow%3Aapprove');
+""")
+
     def test_brief_navigation_uses_reloadable_route(self):
         self.run_js(r"""
 S.scope='APP';await vMemory();$('#memBriefGo').fire('click');assert.equal(location.hash,'#/handoff/APP');memoryResponse=memoryBrief();await vProjectBrief('APP');$('#memBack').fire('click');assert.equal(location.hash,'#/memory');

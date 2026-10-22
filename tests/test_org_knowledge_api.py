@@ -7,6 +7,7 @@ import tempfile
 import threading
 import unittest
 import urllib.error
+import urllib.parse
 import urllib.request
 from http.server import ThreadingHTTPServer
 from pathlib import Path
@@ -144,6 +145,52 @@ class OrgKnowledgeApiTest(unittest.TestCase):
         self.assertEqual(snapshot_tree(self.data), before_data)
         self.assertEqual(snapshot_tree(self.oa), before_oa)
         self.assertEqual(snapshot_tree(self.crm), before_crm)
+
+
+class DraftKnowledgeReaderApiTest(unittest.TestCase):
+    def test_memory_source_opens_complete_draft_without_confirming_it(self):
+        from tmh import kb
+        with tempfile.TemporaryDirectory(prefix="draft-knowledge-http-") as folder:
+            data = Path(folder)
+            root = data / "project"
+            root.mkdir()
+            (root / "App.java").write_text("class App {}\n")
+            kb.build(root)
+            path = kb.page_path(root, "index")
+            old = kb.parse_page(path.read_text())
+            body = "\n\n".join("## " + title + "\n待确认的项目说明，代码来源 App.java:1。" for title in kb.SECTIONS["index"])
+            path.write_text(kb.render_page("index", {"id": "index", "title": "项目总览草稿", "summary": "项目知识导入说明"}, old["facts"], body))
+            self.assertEqual(kb.done(root, "index", "agent:test-import"), (True, []))
+            platform = Platform(data / "platform", "test-reader")
+            platform.store.add_project("DRAFT", "草稿测试项目", str(root))
+            server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(platform, TOKEN))
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            base = "http://127.0.0.1:%d" % server.server_address[1]
+            def read(endpoint):
+                request = urllib.request.Request(base + endpoint, headers={"X-TMH-Token": TOKEN})
+                with opener.open(request, timeout=10) as response:
+                    self.assertEqual(response.status, 200)
+                    return json.loads(response.read())
+            try:
+                before = snapshot_tree(root)
+                self.assertEqual(read("/api/org/knowledge")["items"], [])
+                result = read("/api/memory?project=DRAFT&section=knowledge")
+                self.assertEqual(len(result["knowledge"]), 1)
+                source = result["knowledge"][0]["provenance"][0]
+                self.assertFalse(source["confirmed"])
+                self.assertTrue(read("/api/projects/DRAFT/kb/tree")["built"])
+                page = read("/api/projects/DRAFT/kb/page?id=" + urllib.parse.quote(source["id"], safe=""))
+                self.assertEqual(page["text"], path.read_text())
+                self.assertEqual(page["status"], "待确认")
+                self.assertEqual(page["confirmed_by"], "")
+                self.assertEqual(snapshot_tree(root), before)
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
+                platform.store.db.close()
 
 
 if __name__ == "__main__":

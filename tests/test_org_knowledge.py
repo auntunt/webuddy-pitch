@@ -74,6 +74,57 @@ import unittest  # noqa: E402
 
 
 class OrgKnowledgeTests(OrgKnowledgeTest, unittest.TestCase):
+    def draft_page(self, root, pid="index", rel="index.md", *, stale=False):
+        from tmh import kb
+        kb.build(root)
+        page = write_page(root, rel, pid, "项目知识导入", "项目知识导入保留原始代码来源。", "待确认")
+        registry = kb.load_registry(root)
+        registry[pid] = {"status": "已确认" if stale else "待确认", "scope": "按需", **({"stale": [pid]} if stale else {})}
+        kb.save_registry(root, registry)
+        return page
+
+    def test_draft_browsing_is_opt_in_readonly_and_scoped_before_search(self):
+        self.make_store()
+        self.draft_page(self.oa)
+        self.draft_page(self.crm)
+        before = {str(p): (p.stat().st_size, p.stat().st_mtime_ns) for p in self.tmp.rglob("*") if p.is_file()}
+        self.assertFalse(org.search(self.store, "项目知识导入"))
+        result = org.search(self.store, "项目知识导入", include_drafts=True, project_key="OA")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["status"], "待确认")
+        self.assertFalse(result[0]["reviewed"])
+        self.assertEqual({p["project"] for p in result[0]["provenance"]}, {"OA"})
+        self.assertFalse(result[0]["provenance"][0]["confirmed"])
+        self.assertEqual(before, {str(p): (p.stat().st_size, p.stat().st_mtime_ns) for p in self.tmp.rglob("*") if p.is_file()})
+
+    def test_equal_text_with_different_review_states_is_not_merged(self):
+        self.make_store()
+        self.draft_page(self.oa)
+        self.draft_page(self.crm, stale=True)
+        # Use one page kind so content identity is otherwise exactly equal.
+        write_page(self.oa, "domains/approved.md", "dom:approved", "项目知识导入", "项目知识导入保留原始代码来源。")
+        items = [x for x in org.build(self.store, include_drafts=True)["items"] if x["type"] == "rule"]
+        self.assertEqual({x["status"] for x in items}, {"已确认", "待确认", "需更新"})
+        self.assertEqual(len(items), 3)
+        self.assertEqual(len({x["dedup_key"] for x in items}), 3)
+        for item in items:
+            self.assertEqual(item["reviewed"], item["status"] == "已确认")
+            self.assertTrue(all(p["status"] == item["status"] and p["confirmed"] == item["reviewed"] for p in item["provenance"]))
+        self.assertTrue(all(x["reviewed"] for x in org.build(self.store)["items"]))
+
+    def test_drafts_without_a_reachable_registered_reader_are_not_advertised(self):
+        self.make_store()
+        self.draft_page(self.oa)
+        from tmh import kb
+        registry = kb.load_registry(self.oa)
+        for pid, rel in (("note", "notes/import.md"), ("flow:wrong", "flows/different.md")):
+            write_page(self.oa, rel, pid, "不可打开的草稿", "有说明但没有对应读取路径。", "待确认")
+            registry[pid] = {"status": "待确认"}
+        write_page(self.oa, "flows/unregistered.md", "flow:unregistered", "未登记草稿", "没有登记状态。", "待确认")
+        kb.save_registry(self.oa, registry)
+        pages = org.build(self.store, include_drafts=True, project_key="OA")["items"]
+        self.assertEqual([p["id"] for i in pages for p in i["provenance"]], ["index"])
+
     def test_aggregates_multiple_projects(self):
         self.make_store()
         write_page(self.oa, "flows/approve.md", "flow:approve", "请假审批通过", "审批通过时记录审批人和时间。")

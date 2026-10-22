@@ -300,6 +300,35 @@ class MemoryWorkspaceTests(unittest.TestCase):
         brief = memory.read_brief(self.P, "APP")
         self.assertTrue(any("需更新" in warning for warning in brief["warnings"]))
 
+    def test_project_knowledge_can_browse_drafts_without_promoting_org_or_memory(self):
+        from tmh import kb
+        from tmh.platform.knowledge import Knowledge
+        root = self.roots["APP"]
+        kb.build(root)
+        body = "\n\n".join("## " + section + "\n代码来源已核对，业务含义仍待项目成员确认。" for section in kb.SECTIONS["index"])
+        path = kb.page_path(root, "index")
+        previous = kb.parse_page(path.read_text())
+        path.write_text(kb.render_page("index", {"id": "index", "title": "待确认的项目总览", "summary": "有来源的项目知识草稿"}, previous["facts"], body))
+        self.assertEqual(kb.done(root, "index", "agent:import-test"), (True, []))
+        global_before = memory.dispatch_read(self.P, {"section": "knowledge"}, "reader")
+        self.assertEqual(global_before["knowledge"], [])
+        result = memory.dispatch_read(self.P, {"project": "APP", "section": "knowledge"}, "reader")
+        self.assertEqual(len(result["knowledge"]), 1)
+        item = result["knowledge"][0]
+        self.assertEqual(item["status"], "待确认")
+        self.assertFalse(item["reviewed"])
+        self.assertEqual(item["provenance"][0]["id"], "index")
+        # This is the same domain reader used by /api/projects/<key>/kb/page.
+        knowledge = Knowledge(self.store, None)
+        self.assertTrue(knowledge.kb_tree(self.p)["built"])
+        page = knowledge.kb_page(self.p, item["provenance"][0]["id"])
+        self.assertEqual(page["text"], path.read_text())
+        self.assertEqual(page["status"], "待确认")
+        self.assertEqual(page["confirmed_by"], "")
+        self.assertEqual(learn.lessons(self.data, "APP"), [])
+        self.assertEqual(org_knowledge.search(self.store, "项目知识草稿"), [])
+        self.assertEqual(len(memory.dispatch_read(self.P, {"project": "APP", "section": "knowledge", "q": "项目知识草稿"}, "reader")["knowledge"]), 1)
+
     def test_concurrent_generations_keep_single_identical_revision(self):
         from concurrent.futures import ThreadPoolExecutor
         self.page()
