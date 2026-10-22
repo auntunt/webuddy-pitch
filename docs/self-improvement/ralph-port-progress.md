@@ -11,6 +11,8 @@
 - 待确认：无阻塞；真实模型质量、自动采用、定时任务和组织推广均不在本轮启用范围。
 - K1 修改：新增 `tmh/platform/learning.py`、`tests/test_learning.py`；`Store` 启动时进行独立可回滚迁移。完整正文/证据清单和 SHA-256、工作区、HEAD、引用授权都固定；非 Git/未提交内容明确为工作副本清单，未伪称提交内容。Agent 修订不得变更事实登记头或生成块；历史确认不伪造机器通过。
 - K1 验证：`NO_PROXY='*' no_proxy='*' python3 -m unittest discover -s tests -p 'test_learning.py'` 9 tests OK；`test_org_knowledge.py` 10 tests OK；`test_memory_workspace.py` 24 tests OK。覆盖浏览文件字节/时间不变、完整长文、内容/源码/引用/工作区失效、跨项目拒绝、修订幂等、迁移/登记故障回滚。已人工审查新增模块、Store 差异和测试，`git diff --check` 通过。
+- K2 期间发现并另行修复：独立 supervisor 自身超时退出后，外层 watchdog 发送取消写入已关闭的控制管道，抛 `BrokenPipeError`，把已有真实 timeout 回执误记成调度错误。失败现场保留 `/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-learning-timeout-failure-qxs7tkdz/scene`。新增屏障测试先等待真实监督进程退出再发取消，修复前稳定红灯；仅处理终端控制管道 EPIPE，仍必须读取完整、匹配的监督回执，缺回执/清理未知仍失败。
+- 超时修复验证：`test_supervised_process.py` 15 tests OK；新确定性屏障用例连续 20/20 通过（20.621s）；`test_learning_runs.py` 27 tests OK（6.994s）。未放宽既有 .6 秒 timeout 或取消断言，完整输出字节与清理状态保持校验。重复脚本首轮类名拼错未运行，修正后实际执行完 20 轮。
 
 ## 2026-10-22：知识分类与评审闭环设计
 

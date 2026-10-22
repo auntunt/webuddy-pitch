@@ -201,6 +201,32 @@ time.sleep(20)
         self.assertIsNone(result.pid)
         self.assert_clean(result)
 
+    def test_cancel_after_worker_timeout_uses_sealed_receipt_not_broken_pipe(self):
+        cancel = threading.Event()
+        read_json, popen = supervised._json, supervised.subprocess.Popen
+        processes, gated = [], []
+        def spawn(*args, **kwargs):
+            process = popen(*args, **kwargs)
+            processes.append(process)
+            return process
+        def after_timeout(path):
+            value = read_json(path)
+            if Path(path).name == "supervisor.json" and value.get("phase") == "running" and not gated:
+                gated.append(True)
+                self.wait_for(lambda: (self.folder / "supervisor-result.json").exists())
+                # Reap the real supervisor before the late control write: its pipe
+                # reader is now certainly closed, independent of scheduling speed.
+                processes[0].wait(timeout=3)
+                cancel.set()
+            return value
+        with patch.object(supervised.subprocess, "Popen", side_effect=spawn), patch.object(supervised, "_json", side_effect=after_timeout):
+            result = self.run_code("import os,time;os.write(1,b'full-timeout-output');time.sleep(20)",
+                                   timeout=1, terminate_grace=.1, cancel_event=cancel)
+        self.assertTrue(gated)
+        self.assertEqual(result.reason, "timeout")
+        self.assertEqual(result.output_bytes, b"full-timeout-output")
+        self.assert_clean(result)
+
     def test_missing_executable_returns_launch_error_and_proven_no_spawn(self):
         missing = self.root / "this-executable-does-not-exist"
         spawned = []

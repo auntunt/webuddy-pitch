@@ -301,6 +301,14 @@ def run_supervised(cmd, *, folder, owner, cwd=None, env=None, timeout=None, canc
     offset = 0
     decoder = codecs.getincrementaldecoder("utf-8")("replace")
     sent_start = sent_stop = False
+    def control(token):
+        try:
+            os.write(write_fd, token)
+        except BrokenPipeError:
+            # The worker may have independently timed out and closed its control
+            # pipe. Its sealed receipt below is authoritative. Missing/invalid
+            # receipts still fail closed; this does not imply successful cleanup.
+            pass
     try:
         with tempfile.TemporaryFile() as payload:
             payload.write(json.dumps(request, ensure_ascii=False).encode("utf-8"))
@@ -318,11 +326,11 @@ def run_supervised(cmd, *, folder, owner, cwd=None, env=None, timeout=None, canc
                     raise ValueError("supervisor launch identity changed")
                 if not sent_start and progress.get("phase") == "ready":
                     token = b"C" if cancel_event is not None and cancel_event.is_set() else b"S"
-                    os.write(write_fd, token)
+                    control(token)
                     sent_start = True
                     sent_stop = token == b"C"
                 if not sent_stop and cancel_event is not None and cancel_event.is_set():
-                    os.write(write_fd, b"C")
+                    control(b"C")
                     # C is itself a terminal launch decision, including while
                     # the worker still reports planned. Do not later send an
                     # ACK to a no-spawn worker that has already finished.
