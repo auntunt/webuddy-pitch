@@ -2,8 +2,8 @@
 
 ## 2026-10-22：知识分类与评审闭环实施
 
-- 当前项：最终全量验收；状态：doing。用户已授权按设计自动实施；实际分支 `iteration/context-pack-v2`，起点 `949d732`。开工工作区干净，无需 stash。
-- K1 done：三类只读目录、不可变修订、来源绑定、历史兼容。K2 done：独立评审及有界修订。K3 done：冻结成对评测、人工采用、授权与会话依赖。K4 done：策略允许清单、统一界面及使用说明。最终全量结果待下方记录。
+- 当前项：最终全量验收与交付；状态：done。用户已授权按设计自动实施；实际分支 `iteration/context-pack-v2`，起点 `949d732`。开工工作区干净，无需 stash。
+- K1 done（`c453245`）：三类只读目录、不可变修订、来源绑定、历史兼容。K2 done（`edc032a`）：独立评审及有界修订。K3 done（`a50f524`）：冻结成对评测、人工采用、授权与会话依赖。K4 done（`4cc8632`）：策略允许清单、统一界面及使用说明。最终全量 **1331 tests，1315 通过、16 可选依赖跳过、0 失败/错误**；无 skipped 实施项。
 - 本轮使用 executing-plans 和 verification-before-completion；按技能将独立运行引擎、界面和日志并发部分交给子代理，共享目录中限定文件所有权，最后统一审查。
 - 已核对：最近十条提交、设计、进度、Store/Runner/knowledge/learn/library/人工身份入口。`Store.x` 会自动提交，新事务不能使用它；旧经验日志仍为权威，新采用用持久化待办与幂等投影。
 - 判断：首版参考工作流项目可浏览固定修订，模型评审启动暂沿用 development 限制，不暗中改变项目角色；自定义命令和额外 Agent 参数不能证明只读，评审拒绝它们。成本未知时保留未知；合成测试不等于真实模型效果。
@@ -40,6 +40,13 @@
 - 修复范围仅这两个测试文件：替换新的上下文构造接点，并增加它未被调用的断言，确认交付仍使用原冻结材料；创建真实合成父运行，再检查完整需求、resume 和祖先回执。保留全部原断言和时间预算，未为测试放宽生产会话校验。
 - 定向命令：`NO_PROXY='*' no_proxy='*' PYTHONPATH='<离线辅助目录>:tests:.' python3 -m unittest test_project_bootstrap test_run_handoff test_learning_sessions`，**42/42 / 12.395s / OK**；完整 `handoff-fixtures-green.log`。已审阅两个 diff，准备单独提交并重新冻结清单后跑全量。
 - 首轮跳过原因逐条保存 `first-full-skips.json`：MCP SDK 缺失 14 项（知识 Agent 发现 1 + workbench 13），cryptography 缺失 2 项；未联网安装依赖。已有 HTTPError/SQLite/socket ResourceWarning 和 fork DeprecationWarning 原样保留，未过滤日志。
+- 夹具修复已独立提交 `05022ce`，K4 为 `4cc8632`。第二轮全量正在运行，命令与首轮相同，日志改为 `full-unittest-final.log`，265 个源文件冻结于 `final-tested-source-manifest.json`。临时现场捕获器额外覆盖 subTest 错误，原捕获器另存 `sitecustomize-first-full.py`；测试结果统计和断言不变。第二轮开始前工作区干净。
+- 最终全量：相同离线命令在 `05022ce` 上执行完毕，**1331 tests / 402.846s / OK（skipped=16）**，即 1315 通过、0 失败/错误，退出码 0。16 条跳过与首轮逐条一致，详见 `final-full-skips.json`；对应测试文件等同设计基线，跳过没有由本轮改动引入。未新增失败现场，首轮错误和全部警告原文仍保留。
+- 完整性核对：265 个实现/测试/模板/技能文件与第二轮启动前 SHA-256 清单全部一致。`acceptance.py`、`guard.py`、`filelock.py` 全文件等同 `949d732`；四个有改动的原测试文件共 44 个原方法，其原有断言 AST 全部保留，另增加 2 条断言和 4 个测试方法。结果保存 `verification-result.json`、`baseline-assertions-final.json`，未变更机器配置、真实 data/、凭据或日常服务。
+- 日志校验：首轮 `full-unittest.log` 36903 字节 / SHA-256 `f09450be21f1bf0675e8a210fbde3ef304080fff666e233605d480a3f6193b2e`；最终 `full-unittest-final.log` 34756 字节 / SHA-256 `a266dd4514761a454a3f0db36091456ac4937134d4352fa4487ee44d39f61ed8`；最终源码清单 `final-tested-source-manifest.json` 26956 字节 / SHA-256 `2c1c2fedcf1a84621d6893a86280f08fe0f8e8deec91b4e557fc86c42c332634`。
+- 最终人工审阅建议：`learning_decisions.py` / `learning_facts.py` 的个人身份、预期版本、决定待办及幂等发布；`learn.py` 的 Store→ledger 锁序、fork 后句柄语义和日志完成标记；`agents.py` / `fixloop.py` 的实际输入、祖先依赖和固定 checkout 策略边界。原 P5 guard 与 P6 filelock 未变，不能把新增流程视作放宽人工确认或证据绑定。
+- 待确认/验证边界：无阻塞问题；本机原生 Claude 执行器检查失败，尚未取得真实模型评审准确率、真实任务改善或费用证据；未开启定时运行、自动采用或组织自动推广；生产部署尚未包含本轮改动；Windows 实机锁与受管进程仍需验证（具体剩余阻塞保留在历史 P6 清单）。
+- 收尾：最后仅更新设计、使用说明和本进度记录，产品/测试仍为已验证的 `05022ce`。保留原 `stash@{0}`，本轮不 push、不部署；提交后以 `git status --short --branch` 确认工作区干净。
 
 ## 2026-10-22：知识分类与评审闭环设计
 
