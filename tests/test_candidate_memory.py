@@ -144,5 +144,37 @@ class CandidateMemoryTests(unittest.TestCase):
             self.verdict(evidence)
         later = learn.add_lesson(self.P.data_dir, {"project": "TEAM", "title": "验收后的新工作", "status": "active", "fix": "另一办法"})
         learn.note_used(self.P.data_dir, self.ticket, [later], "fix")
+        self.assertEqual([x["id"] for x in learn.credit_snapshot(self.P, self.ticket)], [later["id"]])
         self.verdict(evidence)
         self.assertEqual(learn.lesson(self.P.data_dir, later["id"])["stats"]["passed"], 0)
+        self.assertEqual([x["id"] for x in learn.credit_snapshot(self.P, self.ticket)], [later["id"]])
+        learn.note_used(self.P.data_dir, self.ticket, [later], "fix")
+        self.assertEqual(learn.lesson(self.P.data_dir, later["id"])["stats"]["used"], 1)
+        learn._credit(self.P, self.ticket, True, "bob")
+        self.assertEqual(learn.lesson(self.P.data_dir, later["id"])["stats"]["passed"], 1)
+
+    def test_same_second_new_injection_of_same_memory_survives_delayed_verdict(self):
+        evidence = self.ready()
+        card = learn.add_lesson(self.P.data_dir, {"project": "TEAM", "title": "同一经验再次使用", "status": "active", "fix": "核对持久保存"})
+        with patch("tmh.platform.learn.now", return_value="2026-10-22 12:00:00"):
+            learn.note_used(self.P.data_dir, self.ticket, [card], "fix")
+            with patch("tmh.platform.learn.add_lesson", side_effect=OSError("synthetic card failure")):
+                self.verdict(evidence)
+            learn.note_used(self.P.data_dir, self.ticket, [card], "fix")
+            self.assertEqual(learn.lesson(self.P.data_dir, card["id"])["stats"]["used"], 2)
+            self.verdict(evidence)
+            self.assertEqual(learn.lesson(self.P.data_dir, card["id"])["stats"]["passed"], 1)
+            self.assertEqual([x["id"] for x in learn.credit_snapshot(self.P, self.ticket)], [card["id"]])
+            learn._credit(self.P, self.ticket, True, "bob")
+            self.assertEqual(learn.lesson(self.P.data_dir, card["id"])["stats"]["passed"], 2)
+
+    def test_delayed_older_verdict_does_not_consume_newer_same_memory_use(self):
+        card = learn.add_lesson(self.P.data_dir, {"project": "TEAM", "title": "跨验收的同一经验", "status": "active", "fix": "核对持久保存"})
+        learn.note_used(self.P.data_dir, self.ticket, [card], "fix")
+        old = learn.credit_snapshot(self.P, self.ticket)
+        # A traditional verdict consumes the first injection. The same card's
+        # subsequent use is a distinct append position even in the same second.
+        learn._credit(self.P, self.ticket, True, "bob")
+        learn.note_used(self.P.data_dir, self.ticket, [card], "fix")
+        learn._credit(self.P, self.ticket, True, "bob", source_key="delayed-original", uses=old)
+        self.assertEqual([x["id"] for x in learn.credit_snapshot(self.P, self.ticket)], [card["id"]])

@@ -559,18 +559,35 @@ def take_shared(data_dir: Path, lid: str, project: str, on: bool, by: str) -> di
     return next(x for x in shared(data_dir, project) if x["id"] == lid)
 
 
-def note_used(data_dir: Path, ticket: dict, ls: list, mode: str) -> None:
-    """Remember which cards a ticket's prompt carried, once per card until the ticket's next verdict."""
-    if not ls or not ticket.get("key"):
-        return
-    seen = set()
-    for r in _log(data_dir):
-        if r.get("ticket") != ticket["key"]:
+def _pending_injections(log: list, ticket_key: str) -> tuple[dict, str]:
+    """Unsettled inject records, identified by their stable append positions.
+
+    Traditional verdicts retain their original consume-all semantics. A fixed
+    candidate verdict/boundary consumes only the positions frozen at acceptance;
+    appending that verdict late must not consume work started afterwards.
+    """
+    pending, since = {}, ""
+    for position, r in enumerate(log):
+        if r.get("ticket") != ticket_key:
             continue
         if r.get("kind") == "inject":
-            seen.add(r.get("id"))
+            pending[position] = r
+        elif r.get("kind") in ("verdict", "candidate_boundary") and "credited_injections" in r:
+            for consumed in r["credited_injections"]:
+                pending.pop(consumed, None)
+            if not pending:
+                since = r.get("boundary_at") or r.get("ts", "")
         elif r.get("kind") == "verdict":
-            seen = set()
+            pending, since = {}, r.get("ts", "")
+    return pending, since
+
+
+def note_used(data_dir: Path, ticket: dict, ls: list, mode: str) -> None:
+    """Remember which cards a ticket's prompt carried, once per current usage window."""
+    if not ls or not ticket.get("key"):
+        return
+    pending, _ = _pending_injections(_log(data_dir), ticket["key"])
+    seen = {r.get("id") for r in pending.values()}
     _append_log(data_dir, [dict({"kind": "inject", "id": l["id"], "ticket": ticket["key"], "mode": mode},
                                 **({"foreign": True, "project": ticket.get("project_key") or _project_of(ticket["key"])} if l.get("foreign") else {}))
                            for l in ls if l["id"] not in seen])
@@ -582,20 +599,15 @@ def _project_of(ticket_key: str) -> str:
 
 def credit_snapshot(P, t: dict) -> list:
     """Freeze which memories this verdict may credit before recording it."""
-    used, abroad, since = [], {}, ""
-    for r in _log(P.data_dir):
-        if r.get("ticket") != t["key"]:
-            continue
-        if r.get("kind") == "inject" and r.get("id") not in used:
-            used.append(r.get("id"))
-            if r.get("foreign"):
-                abroad[r["id"]] = r.get("project", "")
-        elif r.get("kind") == "verdict":
-            used, abroad, since = [], {}, r.get("ts", "")
+    pending, since = _pending_injections(_log(P.data_dir), t["key"])
+    used = {}
+    for position, r in pending.items():
+        use = used.setdefault(r["id"], {"id": r["id"], "injections": [],
+            **({"foreign": True, "project": r.get("project", "")} if r.get("foreign") else {})})
+        use["injections"].append(position)
     # only what the agent wrote since the last verdict counts as citing a card now
     text = " ".join((r.get("result") or "") for r in P.store.runs(ticket_id=t["id"]) if (r.get("created") or "") >= since) if t.get("id") else ""
-    return [dict({"id": lid, "cited": bool(re.search(r"(?<![A-Za-z0-9])%s(?!\d)" % re.escape(lid), text))},
-                 **({"foreign": True, "project": abroad[lid]} if lid in abroad else {})) for lid in used]
+    return [dict(use, cited=bool(re.search(r"(?<![A-Za-z0-9])%s(?!\d)" % re.escape(lid), text))) for lid, use in used.items()]
 
 
 def _credit(P, t: dict, passed: bool, by: str, source_key: str = "", uses: list | None = None) -> list:
@@ -609,7 +621,7 @@ def _credit(P, t: dict, passed: bool, by: str, source_key: str = "", uses: list 
     uses = credit_snapshot(P, t) if uses is None else uses
     ts = now()  # the verdict and what it says about each card are one event: one time
     rows = [{"kind": "verdict", "ticket": t["key"], "passed": passed, "by": by, "ts": ts,
-             **({"source_key": source_key} if source_key else {})}]
+             **({"source_key": source_key, "credited_injections": [i for use in uses for i in use.get("injections", [])]} if source_key else {})}]
     rows += [dict(use, kind="outcome", ticket=t["key"], passed=passed, ts=ts) for use in uses]
     _append_log(P.data_dir, rows)
     out = []
@@ -708,6 +720,14 @@ def on_candidate_accept(P, event_id: int) -> dict:
     with _CANDIDATE_LOCK, (folder / "candidate-memory.lock").open("a+b") as lock:
         filelock.try_lock(lock, blocking=True)
         try:
+            # The committed business verdict begins the next usage window even
+            # if writing its memory card fails. Keep its exact consumed positions
+            # so a delayed retry cannot erase newer injections, including a new
+            # use of the same card in the very same second.
+            if not any(r.get("kind") == "candidate_boundary" and r.get("source_key") == source_key for r in _log(P.data_dir)):
+                _append_log(P.data_dir, [{"kind": "candidate_boundary", "ticket": snapshot["ticket"]["key"],
+                    "source_key": source_key, "boundary_at": event["ts"],
+                    "credited_injections": [i for use in snapshot.get("memory_uses", []) for i in use.get("injections", [])]}])
             note = data["note"]
             provenance = {"kind": "fixed_candidate", "candidate_id": data["candidate"], "commit": data["commit"],
                           "base_commit": snapshot["base_commit"], "evidence_hash": data["evidence_hash"],
