@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Webuddy 软件交付与运维组织工作台交互样稿，使用合成数据，不连接生产。">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>组织协作工作台 · Webuddy 交互样稿</title>
+  <link rel="stylesheet" href="prototype.css">
+  <script src="prototype.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到主要内容</a>
+  <div class="sample-bar"><span><strong>交互样稿</strong> · 合成数据 · 未连接生产</span><span>操作仅影响本页草稿，不审批、不验收、不发送消息</span></div>
+  <header class="shell">
+    <a class="brand" href="#work" aria-label="Webuddy 协作工作台"><svg width="33" height="33" viewBox="0 0 33 33" aria-hidden="true"><rect width="33" height="33" rx="8" fill="currentColor"/><path d="m7 10 4 13 5.5-8 5.5 8 4-13" fill="none" stroke="white" stroke-width="2" stroke-linejoin="round"/></svg><span>Webuddy<small>组织协作空间</small></span></a>
+    <nav aria-label="工作区导航" id="mainNav"><a href="#work" data-page="work">协作工作台</a><a href="#assets" data-page="assets">复用资产</a><a href="#handoff" data-page="handoff">项目交接</a></nav>
+    <div class="identity"><span class="avatar">林</span><span>林知夏<small>演示身份 · 产品与交付</small></span></div>
+  </header>
+  <main id="main" tabindex="-1">
+    <section class="page-heading"><div><p class="eyebrow" id="pageEyebrow">软件交付与运维团队</p><h1 id="pageTitle">让每一项工作，都有人接着推进。</h1><p class="muted" id="pageDescription">先解决等待和阻塞，再把验证过的经验交给下一次工作。</p></div><button id="resetDemo" class="quiet">重置样稿</button></section>
+    <section class="scope-bar" aria-label="筛选范围"><div class="segmented" aria-label="任务范围"><button data-view="team" aria-pressed="true">团队视图</button><button data-view="mine" aria-pressed="false">与我相关</button></div><label>项目<select id="projectFilter"><option value="all">全部项目</option><option value="customer">青禾客户门户</option><option value="standard">协同办公标品</option><option value="ops">交付基础设施</option><option value="empty">新客户项目 · 暂无记录</option></select></label><label>角色视角<select id="roleFilter"><option value="all">全部角色</option><option value="需求">需求与产品</option><option value="研发">研发</option><option value="测试">测试</option><option value="交付">交付</option><option value="运维">运维</option></select></label><span class="scope-note">角色视角只筛选待办，不改变权限</span></section>
+    <div id="content"></div>
+    <footer class="page-footer"><span>样稿数据截面：2026-10-23 09:30（合成）</span><button id="showModel" class="text-button">数据口径与接入边界</button></footer>
+  </main>
+  <dialog id="previewDialog" aria-labelledby="dialogTitle"><header><div><p class="eyebrow">本地预览 · 无外部写入</p><h2 id="dialogTitle"></h2></div><button id="closeDialog" class="quiet" aria-label="关闭预览">关闭</button></header><div id="dialogBody"></div></dialog>
+  <div id="notice" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

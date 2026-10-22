@@ -1,0 +1,34 @@
+{
+  "files": [
+    {
+      "path": "prototype.html",
+      "bytes": 3568,
+      "sha256": "ffc11cb2ab1fdc12a195ae96abb689edd39d5bfa6d787efaa1d2e487330dcdc6"
+    },
+    {
+      "path": "prototype.css",
+      "bytes": 15647,
+      "sha256": "b87600e0bc289a37151ec18fba73aa33bcacc2f9d70a1fc0cb4ccefd7a75119d"
+    },
+    {
+      "path": "prototype.js",
+      "bytes": 35573,
+      "sha256": "e57510381b690218042dcfbc50b9fef0d931c00df2d3f50eb4d40bf239f8840d"
+    },
+    {
+      "path": "screenshots/desktop-current-view.jpg",
+      "bytes": 79744,
+      "sha256": "a0652b4efdf451c3a40e6bed89dae8f2bf2dd7e4ba2f11fb84f8f8ed9ede57e2"
+    },
+    {
+      "path": "screenshots/desktop-full.jpg",
+      "bytes": 193138,
+      "sha256": "102cbe42b3def89182360ecf394ebfb34eb13a4882b5e12fb9cb4b3737a5af15"
+    },
+    {
+      "path": "screenshots/mobile-full.jpg",
+      "bytes": 85026,
+      "sha256": "a8fbec82f6c64393c3a05555fdd0eed76b54ccc3cd9be35138b05b8e7f234510"
+    }
+  ]
+}
