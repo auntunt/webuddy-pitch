@@ -70,6 +70,8 @@ class Platform:
         self.store = Store(self.data_dir / "platform.db")
         self.runner = Runner(self.store, self.data_dir)
         self.runner.recover()
+        from . import learning_runs
+        learning_runs.recover(self)
         # three layers: what a project is (knowledge), how a change gets made right (the coding line), and the
         # apps on top that decide where tasks come from (apps.py wires them to the line)
         self.kb = Knowledge(self.store, self.runner)
@@ -1007,6 +1009,68 @@ def api_memory_action(P, req):
     return memory.dispatch_action(P, req.body, _human_action(P, req))
 
 
+@route("GET", "/api/learning")
+def api_learning(P, req):
+    from . import learning as L, learning_runs
+    if any(isinstance(v, list) and len(v) != 1 for v in req.query.values()):
+        raise ApiError(400, "查询参数不能重复")
+    p = L.project(P, req.arg("project"))
+    if req.arg("revision"):
+        return L.detail(P, p, req.arg("revision"))
+    if req.arg("job"):
+        return learning_runs.get(P, p, req.arg("job"))
+    return L.catalog(P, p, req.arg("kind"), req.arg("q"))
+
+
+@route("POST", "/api/learning")
+def api_learning_action(P, req):
+    from . import learning as L, learning_runs
+    b = req.body
+    if not isinstance(b, dict):
+        raise ApiError(400, "操作需要 JSON 对象")
+    action = b.get("action", "")
+    human_action = action in ("adopt", "revoke", "retry_decision", "abandon_decision")
+    if human_action or not req.h.headers.get("X-Webuddy-Agent"):
+        actor = _human_action(P, req, strict=True)
+        if human_action:
+            from .signoff import human
+            if not human(actor):
+                raise ApiError(403, "只有个人操作者可以记录人工决定")
+    else:
+        from .agent_api import _actor
+        actor = _actor(req)
+        if action in ("review", "evaluate", "resume") and req.h.headers.get("X-Webuddy-Execution") != "1":
+            raise ApiError(403, "运行知识任务需要 X-Webuddy-Execution: 1")
+    p = L.project(P, b.get("project", ""))
+    try:
+        if action == "capture":
+            return L.capture(P, p, b.get("key", ""), b.get("expected_fingerprint", ""), actor)
+        if action == "propose":
+            return L.propose(P, p, b.get("revision_id", ""), b.get("content"), actor)
+        if action == "policy_create":
+            return L.policy_create(P, p, b.get("name", ""), b.get("title", ""), b.get("parameters"), b.get("applicability", ""), actor)
+        if action in ("review", "evaluate"):
+            options = {k: v for k, v in b.items() if k not in ("project", "action", "request_id", "revision_id")}
+            return learning_runs.start(P, p, action, b.get("revision_id", ""), options, actor, b.get("request_id", ""))
+        if action in ("cancel", "resume"):
+            return getattr(learning_runs, action)(P, p, b.get("job_id", ""), actor)
+        if action in ("adopt", "revoke"):
+            from . import learning_decisions as D
+            if "expected_active" not in b:
+                raise ApiError(400, "必须提交页面显示的预期采用版本")
+            return D.decide(P, p, action, b.get("revision_id", ""), actor, b.get("request_id", ""),
+                            b["expected_active"], b.get("reason", ""), b.get("job_id", ""))
+        if action == "retry_decision":
+            from . import learning_decisions as D
+            return D.project_decision(P, p, b.get("decision_id", ""))
+        if action == "abandon_decision":
+            from . import learning_decisions as D
+            return D.abandon(P, p, b.get("decision_id", ""), actor, b.get("expected_token"), b.get("reason", ""))
+        raise ApiError(400, "未知知识操作")
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
 @route("GET", "/api/projects")
 def api_projects(P, req):
     from . import project_library
@@ -1540,7 +1604,8 @@ def api_survey_start(P, req, key):
         pick_model(load_config(P.data_dir)[agent], "kb", req.body.get("model"))
     except ValueError as e:
         raise ApiError(400, str(e))
-    sv = Survey(P, p, agent, req.body.get("parallel", 2), req.body.get("limit", 0), req.user, req.body.get("scope", "all"), req.body.get("model"))
+    sv = Survey(P, p, agent, req.body.get("parallel", 2), req.body.get("limit", 0), req.user, req.body.get("scope", "all"), req.body.get("model"),
+                review=req.body.get("review", False), review_options=req.body.get("review_options"))
     P.surveys[p["id"]] = sv
     sv.start()
     return sv.view()
@@ -2474,9 +2539,11 @@ def api_ticket_related(P, req, key):
 @route("GET", "/api/tickets/<key>/context")
 def api_ticket_context(P, req, key):
     from .agents import knowledge
+    from .learning_decisions import runtime_policy
     t = P.ticket(key)
     p = P.store.project(t["project_id"])
-    return {"text": knowledge(P.root(p), "%s %s" % (t["title"], (t.get("body") or "")[:600]), 8000)}
+    return {"text": knowledge(P.root(p), "%s %s" % (t["title"], (t.get("body") or "")[:600]),
+                              runtime_policy(P.store, p)["context_budget"], store=P.store, project=p)}
 
 
 @route("POST", "/api/tickets/<key>/runs")

@@ -106,6 +106,25 @@ class LearningTests(unittest.TestCase):
         learn.edit_lesson(self.data, card["id"], {"fix": "changed"}, "human")
         self.assertFalse(L.revision_current(self.P, self.p, r))
 
+    def test_partial_lesson_proposal_is_a_complete_parent_based_revision(self):
+        fields = {"title": "完整经验", "symptom": "重复事件", "cause": "完整根因。" * 3000,
+                  "fix": "原改法", "verify": "完整验证。" * 3000, "anti": "不要忽略独立事件",
+                  "applicability": "重复回调", "non_applicability": "新业务事件"}
+        card = learn.add_lesson(self.data, dict(fields, project="APP", status="candidate"))
+        r = self.capture("lesson:" + card["id"])
+        proposal = L.propose(self.P, self.p, r["id"], L.encoded({"fix": "修订后的完整改法"}), "writer")
+        expected = dict(fields, fix="修订后的完整改法")
+        self.assertEqual(json.loads(proposal["content"]), expected)
+        self.assertEqual(set(json.loads(proposal["content"])), set(L.LESSON_FIELDS))
+        self.assertEqual(proposal["parent_id"], r["id"])
+        self.assertEqual(json.loads(L.revision(self.P, self.p, r["id"])["content"]), fields)
+        self.assertEqual(learn.lesson(self.data, card["id"])["fix"], "原改法")
+        # Explicit invalid edits are not repaired by silently falling back.
+        for value in ({"fix": ""}, {"title": " "}, {"verify": 1}, {"status": "active"}):
+            with self.subTest(value=value), self.assertRaises(ApiError) as caught:
+                L.propose(self.P, self.p, r["id"], L.encoded(value), "writer")
+            self.assertEqual(caught.exception.code, 400)
+
     def test_policy_allowlist_rejects_boolean_unknown_and_out_of_range(self):
         for params in ({"guard": False}, {"context_budget": True}, {"context_budget": 12001}, {}):
             with self.subTest(params=params), self.assertRaises(ApiError):

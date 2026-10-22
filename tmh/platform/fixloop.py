@@ -37,7 +37,9 @@ import time
 from pathlib import Path
 
 from . import testbox
-from .agents import GREENFIELD_EDIT, GREENFIELD_FIX, MODE_TEXT, build_prompt, earlier_session, follow_up, git, reviewed_delivery_plan, worktree_diff
+from .agents import (GREENFIELD_EDIT, GREENFIELD_FIX, MODE_TEXT, additional_context_prompt, earlier_session,
+                     follow_up, git, learning_context_current, record_session_context,
+                     reviewed_delivery_plan, worktree_diff)
 
 FENCE = r"```%s[ \t]*\n(.*?)```"
 
@@ -128,6 +130,8 @@ class FixLoop:
         return self.st.run(self.rid)["status"] == "cancelled" or bool(self.r.stop_reason(self.rid)) or getattr(self, "failed_call", False)
 
     def call(self, mode: str, prompt: str, resume: str = "", fresh: str = "") -> str:
+        if not learning_context_current(self.st, self.r.data_dir, self.p, self.st.run(self.rid), running=True):
+            raise ValueError("学习输入或继承会话的采用、来源或授权已变化；当前冻结修复提示词已停止，请重新启动任务")
         self.n += 1
         code, out = self.r.invoke(self.rid, self.p, self.t, self.agent, self.conf, mode, prompt, self.wt, self.models[mode], "-%d" % self.n,
                                   resume, fresh)
@@ -140,7 +144,7 @@ class FixLoop:
 
     def context(self) -> str:
         if not hasattr(self, "_ctx"):
-            full = self.prompt if (self.t or {}).get("links", {}).get("delivery") else build_prompt(self.st, self.p, self.t, "fix")
+            full = self.prompt if (self.t or {}).get("links", {}).get("delivery") else additional_context_prompt(self.st, self.r.data_dir, self.p, self.t, self.rid, "fix")
             instruction = GREENFIELD_FIX if GREENFIELD_FIX in full else MODE_TEXT["fix"]
             self._ctx = full[:full.rfind(instruction)].rstrip() if instruction in full else full
         return self._ctx
@@ -314,6 +318,8 @@ class FixLoop:
         # Delivery inputs are versioned. Always send the full reviewed packet, including retry evidence.
         delivery = (self.t or {}).get("links", {}).get("delivery")
         sid, prev = ("", None) if delivery else ((self.sid, None) if self.sid else earlier_session(self.st, self.r.data_dir, self.t, self.agent, "fix"))
+        if prev and sid:
+            record_session_context(self.r.data_dir, self.rid, prev["id"])
         if sid and (prev or self.sid):
             where = ("现在到了可以修改的独立 git 工作树 %s（分支从工单针对的代码版本开出，和刚才看的代码相同），只在这里改。" % self.wt)
             short = (follow_up(self.st, self.t, prev, "fix", where) if prev else

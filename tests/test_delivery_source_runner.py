@@ -7,9 +7,11 @@ import threading
 import time
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 from tmh.platform.agents import Runner, delivery_source, git
+from tmh.platform import learning as L, learning_decisions as D
 from tmh.platform.store import Store
 
 
@@ -60,11 +62,79 @@ class DeliverySourceRunnerTest(unittest.TestCase):
     def source_record(self, rid):
         return json.loads((self.data / "runs" / str(rid) / "source.json").read_text())
 
+    def active_policy(self):
+        platform = SimpleNamespace(store=self.store, data_dir=self.data)
+        revision = L.policy_create(platform, self.project, "main-budget", "主工作区预算", {"context_budget": 8000},
+                                   "当前主工作区", "synthetic-human")
+        self.store.x("INSERT INTO learning_policy_active VALUES(?,?,?)", (self.project["id"], revision["id"], "synthetic-human-decision"))
+        self.assertEqual(D.runtime_policy(self.store, self.project)["status"], "active")
+        return revision
+
+    def test_fixed_source_runs_with_main_policy_using_its_actual_checkout_budget(self):
+        policy = self.active_policy()
+        run = self.wait(self.start()["id"])
+        self.assertEqual(run["status"], "done", run["result"])
+        result = json.loads(run["result"])
+        self.assertEqual(result["commit"], self.commit)
+        self.assertEqual(result["value"], "candidate contents\n")
+        contexts = json.loads((self.data / "runs" / str(run["id"]) / "context.json").read_text())
+        receipt = next(meta for meta in contexts if meta.get("mode") == "learning_policy")
+        self.assertEqual(receipt["context_budget"], 6000)
+        self.assertEqual(receipt["status"], "stale")
+        self.assertEqual(receipt["revision_id"], policy["id"])
+        self.assertEqual(Path(receipt["context_root"]), Path(run["workdir"]).resolve())
+        self.assertTrue(self.source_record(run["id"])["code_unchanged"])
+        self.assertFalse(Path(run["workdir"]).exists())
+
+    def test_fixed_source_policy_receipt_rejects_unowned_context_roots(self):
+        self.active_policy()
+        foreign = self.data / "unowned-project"
+        foreign.mkdir()
+        for target in ("main", "foreign", "another-checkout"):
+            with self.subTest(target=target):
+                with mock.patch("tmh.platform.agents.threading.Thread") as thread:
+                    other = self.start() if target == "another-checkout" else None
+                    run = self.start()
+                    args = thread.call_args.kwargs["args"]
+                path = self.data / "runs" / str(run["id"]) / "context.json"
+                contexts = json.loads(path.read_text())
+                receipt = next(meta for meta in contexts if meta.get("mode") == "learning_policy")
+                root = self.root if target == "main" else foreign if target == "foreign" else Path(other["workdir"])
+                receipt.update(D.runtime_policy(self.store, dict(self.project, root=str(root))), context_root=str(root.resolve()))
+                path.write_text(json.dumps(contexts))
+                with mock.patch.object(self.runner, "invoke") as invoke:
+                    self.runner._run(*args)
+                    invoke.assert_not_called()
+                failed = self.store.run(run["id"])
+                self.assertEqual(failed["status"], "failed")
+                self.assertIn("冻结提示词已停止", failed["result"])
+                self.assertTrue(self.source_record(run["id"])["code_unchanged"])
+                if other:
+                    self.runner._release(other["id"])
+
+    def test_fixed_source_policy_revocation_after_preparation_stops_execution(self):
+        policy = self.active_policy()
+        with mock.patch("tmh.platform.agents.threading.Thread") as thread:
+            run = self.start()
+            args = thread.call_args.kwargs["args"]
+        platform = SimpleNamespace(store=self.store, data_dir=self.data)
+        decision = D.decide(platform, self.project, "revoke", policy["id"], "alice", "stop-policy",
+                            policy["id"], "停止使用当前策略")
+        self.assertEqual(decision["status"], "applied")
+        self.assertEqual(D.runtime_policy(self.store, self.project)["status"], "default")
+        with mock.patch.object(self.runner, "invoke") as invoke:
+            self.runner._run(*args)
+            invoke.assert_not_called()
+        failed = self.store.run(run["id"])
+        self.assertEqual(failed["status"], "failed")
+        self.assertIn("冻结提示词已停止", failed["result"])
+        self.assertTrue(self.source_record(run["id"])["code_unchanged"])
+
     def test_real_process_reads_detached_candidate_and_keeps_provenance(self):
         later = self.store.create_run(self.project["id"], self.ticket["id"], "reader", "plan", "tester", "")
         self.store.update_run(later["id"], status="done", exit_code=0, result="UNRELATED-LATER-PLAN")
         (self.root / "value.txt").write_text("uncommitted user edits\n")
-        with mock.patch("tmh.platform.agents.knowledge", side_effect=lambda root, query: "KNOWLEDGE:" + (root / "value.txt").read_text()):
+        with mock.patch("tmh.platform.agents.knowledge", side_effect=lambda root, query, **kwargs: "KNOWLEDGE:" + (root / "value.txt").read_text()):
             run = self.wait(self.start()["id"])
         self.assertEqual(run["status"], "done", run["result"])
         observed = json.loads(run["result"])

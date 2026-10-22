@@ -8,7 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
 
 from . import learn, project_library as library
@@ -38,6 +38,11 @@ DDL = (
     UNIQUE(project_id,actor,request_id))""",
     """CREATE TABLE IF NOT EXISTS learning_policy_active (
     project_id INTEGER PRIMARY KEY, revision_id TEXT NOT NULL, decision_id TEXT NOT NULL)""",
+    """CREATE TABLE IF NOT EXISTS learning_eval_cases (
+    project_id INTEGER NOT NULL, origin TEXT NOT NULL, input_hash TEXT NOT NULL,
+    revision_id TEXT NOT NULL, job_id TEXT NOT NULL, purpose TEXT NOT NULL DEFAULT 'holdout',
+    case_digest TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY(project_id,origin,input_hash))""",
 )
 
 
@@ -69,6 +74,11 @@ def schema(store):
     with transaction(store) as db:
         for statement in DDL:
             db.execute(statement)
+        columns = {c["name"] for c in db.execute("PRAGMA table_info(learning_eval_cases)").fetchall()}
+        if columns and "purpose" not in columns:
+            db.execute("ALTER TABLE learning_eval_cases ADD COLUMN purpose TEXT NOT NULL DEFAULT 'holdout'")
+        if columns and "case_digest" not in columns:
+            db.execute("ALTER TABLE learning_eval_cases ADD COLUMN case_digest TEXT NOT NULL DEFAULT ''")
 
 
 def project(P, key):
@@ -108,7 +118,7 @@ def safe_read(root, rel):
     if not target.resolve().is_relative_to(root):
         raise ApiError(400, "证据超出项目")
     try:
-        return target.read_text(encoding="utf-8")
+        return target.read_bytes().decode("utf-8")
     except (OSError, UnicodeError) as exc:
         raise ApiError(409, "证据不可读：" + str(rel)) from exc
 
@@ -273,17 +283,55 @@ def propose(P, p, revision_id, content, actor):
         try:
             val = json.loads(content)
         except ValueError as exc:
-            raise ApiError(400, "经验修订必须为完整字段 JSON") from exc
+            raise ApiError(400, "经验修订必须为字段 JSON") from exc
         if (not isinstance(val, dict) or set(val) - set(LESSON_FIELDS) or
-                any(not isinstance(v, str) for v in val.values()) or
+                any(not isinstance(v, str) for v in val.values())):
+            raise ApiError(400, "经验修订只接受允许字段及完整字符串")
+        # The revision is a complete immutable card, even when the editor sends
+        # only changed fields. Projection must not silently inherit extra text
+        # that the evaluator never saw and then immediately invalidate adoption.
+        parent = json.loads(r["content"])
+        val = {**{key: parent.get(key, "") for key in LESSON_FIELDS}, **val}
+        if (any(not isinstance(v, str) for v in val.values()) or
                 any(not val.get(k, "").strip() for k in ("title", "symptom", "fix"))):
             raise ApiError(400, "经验需要标题、现象、改法以及字符串字段")
         content = encoded(val)
-    with transaction(P.store) as db:
-        if not revision_current(P, p, r):
+    with transaction(P.store) as db, ExitStack() as guards:
+        source = r["source"]
+        valid = revision_current(P, p, r)
+        if not valid:
+            from .learning_decisions import adopted_current, source_current
+            valid = adopted_current(P, p, r)
+            if valid:
+                # Only an exact, still-current human adoption may rebase its next
+                # draft onto the published original. Keep DB -> file lock order.
+                if r["kind"] == "fact":
+                    from .. import kb
+                    from . import learning_facts as F
+                    root, _, _ = F._paths(p, r["origin_id"])
+                    cache = root / ".tmh" / "cache"
+                    cache.mkdir(exist_ok=True)
+                    guards.enter_context(kb._Lock(cache / "kb.lock"))
+                elif r["kind"] == "lesson":
+                    guards.enter_context(learn.ledger_lock(P.data_dir))
+                valid = adopted_current(P, p, r)
+                if valid:
+                    current = _origin(P, p, r["kind"] + ":" + r["origin_id"])
+                    if r["kind"] == "fact":
+                        # The submitted header/facts already matched the parent.
+                        # Publication changes only its human status in the file;
+                        # copy that verified live header, never agent metadata.
+                        if current["content"] != F._status(r["content"], kb.STATUS_OK):
+                            raise ApiError(409, "已采用事实正文已变化，请重新固定修订")
+                        old_head, _ = protected(r["content"])
+                        live_head, _ = protected(current["content"])
+                        content = live_head + content[len(old_head):]
+                    source = dict(source, **current["source"], origin_fingerprint=current["fingerprint"])
+                    valid = source_current(P, p, r)
+        if not valid:
             raise ApiError(409, "来源已过期，请重新固定修订")
         title = json.loads(content)["title"] if r["kind"] in ("policy", "lesson") else r["title"]
-        rid = _save(db, p, dict(r, content=content, title=title), r["source"], actor, r["id"])
+        rid = _save(db, p, dict(r, content=content, title=title), source, actor, r["id"])
     return revision(P, p, rid)
 
 
@@ -321,8 +369,14 @@ def catalog(P, p, kind="", q=""):
                          (p["id"], item["kind"], item["origin_id"]))
         r = next((_decode(row) for row in rows if row["content"] == item["content"] and
                   json.loads(row["source"])["origin_fingerprint"] == item["fingerprint"]), None)
+        from . import learning_decisions as D
+        active = D._active(P, p, item)
+        adopted = next((_decode(row) for row in rows if row["id"] == active), None)
+        if adopted:
+            r = adopted
         item["revision_id"] = r["id"] if r else ""
-        item["stale"] = bool(r and not revision_current(P, p, r))
+        item["stale"] = bool(r and not (revision_current(P, p, r) or (active == r["id"] and D.adopted_current(P, p, r))))
+        item["active_revision_id"] = active
         jobs = _jobs(P, p, r["id"]) if r else []
         job = jobs[0] if jobs else {}
         item["machine"] = {"status": "stale" if item["stale"] else job.get("status", "unreviewed"), "job_id": job.get("id", "")}
@@ -348,7 +402,20 @@ def detail(P, p, rid):
     if r["kind"] == "policy":
         row = P.store.one("SELECT revision_id FROM learning_policy_active WHERE project_id=?", (p["id"],))
         active = row["revision_id"] if row else None
+    elif r["kind"] == "fact":
+        from . import learning_facts
+        active = learning_facts.active_revision(P, p, r["origin_id"])
     elif r["kind"] == "lesson" and hasattr(learn, "active_revision"):
         active = learn.active_revision(P.data_dir, r["origin_id"])
-    return {"revision": r, "current": revision_current(P, p, r), "jobs": _jobs(P, p, rid),
+    jobs = _jobs(P, p, rid)
+    if jobs:
+        from . import learning_runs
+        jobs = [learning_runs.get(P, p, j["id"]) for j in jobs]
+    from . import learning_decisions as D
+    current = revision_current(P, p, r) or (active == r["id"] and D.adopted_current(P, p, r))
+    try:
+        token = D._token(P, p, r)
+    except ApiError:
+        token = None
+    return {"revision": r, "current": current, "jobs": jobs, "expected_token": token,
             "history": history, "decisions": decisions, "expected_active": active, "active_revision_id": active}

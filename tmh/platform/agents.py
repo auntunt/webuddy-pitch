@@ -241,6 +241,10 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
     if reference_inputs is None:
         reference_inputs = library.bindings(store, project)
     root = Path(project["root"])
+    from .learning_decisions import runtime_policy
+    learning_policy = runtime_policy(store, project)
+    _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{"mode": "learning_policy", **learning_policy,
+                                                    "context_root": str(root.resolve())}]
     links = (ticket or {}).get("links") or {}
     delivery_context = ""
     if links.get("delivery"):
@@ -299,8 +303,10 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
             out.append("")
         # Delivery has an explicit reviewed packet. An unrelated later ticket plan is not its specification.
         prior = [r for r in store.runs(ticket_id=ticket["id"]) if r["status"] == "done" and r["mode"] in ("analyze", "plan") and r["result"]] if ticket.get("id") and not delivery_context and not links.get("delivery_source") else []
-        prior = [r for r in prior if library.run_current(store, project, r['id'])]
+        prior = [r for r in prior if library.run_current(store, project, r['id']) and
+                 learning_context_current(store, store.path.parent, project, r)]
         for r in prior[:2][::-1]:
+            note_prior_context(r["id"])
             # In particular the plan's machine-readable file list and acceptance criteria are at
             # its end. A character limit silently dropped that contract on longer real plans.
             out += ["## 之前的%s结论（%s，%s）" % (dict(RUN_MODES)[r["mode"]], r["agent"], r["ended"][5:16]), r["result"].strip(), ""]
@@ -308,22 +314,28 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
             from .learn import held_out, lessons_text, note_held, note_nomatch, note_used, relevant
             try:
                 ls = relevant(store.path.parent, project["key"], ticket, " ".join(r["result"] for r in prior[:2]), root=root)
+                from .learning_decisions import usable_lessons
+                ls, learning_receipts = usable_lessons(store, project, ls)
                 if ticket.get("id"):  # an eval case is not a real ticket: nothing about it is counted
                     if ls and held_out(store.path.parent, ticket.get("key") or ""):
                         note_held(store.path.parent, ticket, ls)  # the comparison group: like the others, minus the cards
                         ls = []
+                        for receipt in learning_receipts:
+                            receipt["included"] = False
+                            receipt["reason"] = "holdout"
                     elif not ls:
                         note_nomatch(store.path.parent, ticket)
                 out.append(lessons_text(ls))
+                _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{"mode": "learning_lessons", "revisions": learning_receipts}]
                 if ticket.get("id"):  # an eval case is not a real ticket: its prompts do not count as using a card
                     note_used(store.path.parent, ticket, ls, mode)
             except OSError:
                 pass
         query = "%s %s %s %s" % (ticket["title"], search_words(ticket.get("body") or "")[:600], " ".join(flows), question)
-        out.append(knowledge(root, _fence(query)))
+        out.append(knowledge(root, _fence(query), budget=learning_policy["context_budget"], store=store, project=project))
         out.append("")
     elif question:
-        out += [knowledge(root, question), ""]
+        out += [knowledge(root, question, budget=learning_policy["context_budget"], store=store, project=project), ""]
     reference_query = ' '.join(str(x or '') for x in ((ticket or {}).get('title'), (ticket or {}).get('body'), question, target))
     out += [_fence(library.context(store, project, reference_query or project['name'], reference_inputs)), '']
     if history:
@@ -381,24 +393,71 @@ def _record_context(store: Store, data_dir, run_id: int, metas: list) -> None:
                 m.get("schema", 2), m.get("used", 0), m.get("budget", 0),
                 "完整" if m.get("complete") else "部分",
                 m.get("omissions", 0), m.get("knowledge_revision") or "-"))
-        else:
+        elif m.get("mode") == "context_unavailable":
+            store.append_output(run_id, "— 任务上下文：来源或采用修订无法核对，未注入知识页；详情见 context.json\n")
+        elif m.get("mode") == "legacy":
             store.append_output(run_id, "— 任务上下文：旧版 build_context（context pack 不可用，已回退）\n")
     except Exception:  # a receipt must never break the run that recorded it
         pass
 
 
-def knowledge(root: Path, query: str, budget: int = 6000) -> str:
+def _render_prompt_pack(pack, receipts):
+    """Fit complete items, preserving every omitted handle in the run receipt."""
+    from .. import context_pack as cp
+    for item in pack["items"]:
+        item["render"] = cp._render_item(item)
+    visible = len(pack["omissions"])
+    def render():
+        return cp._render_text({**pack, "used": 999999, "omissions": pack["omissions"][:visible],
+                                "omissions_capped": len(pack["omissions"]) - visible}).replace(
+                                    "# 与“", "# 知识库：与“", 1).replace(
+                                        "## 未展开（预算不足，仍可读全文）", "## 未展开（原因逐项列出，原文保留）")
+    text = render()
+    while len(text) > pack["budget"]:
+        if visible:
+            visible -= 1
+        elif pack["items"]:
+            item = pack["items"].pop()
+            pack["omissions"].append(cp._omission(item, "total-budget"))
+            for receipt in receipts:
+                if receipt["item_id"] == item["id"]:
+                    receipt.update(included=False, reason="total-budget")
+            pack["complete"] = False
+        else:
+            break  # Metadata cannot be truncated; report its actual size.
+        text = render()
+    pack["used"] = len(text)
+    pack["omissions_capped"] = len(pack["omissions"]) - visible
+    pack["sections"] = {section: {
+        "count": sum(item["section"] == section for item in pack["items"]),
+        "bytes": sum(len(item["render"]) + 1 for item in pack["items"] if item["section"] == section),
+    } for section in cp.SECTION_ORDER}
+    return text.replace("已用 999999", "已用 %06d" % len(text))
+
+
+def prepared_context_pack(root: Path, query: str, budget: int = 6000, *, store=None, project=None):
+    """Shared frozen input for ordinary prompts and policy evaluation; no usage writes."""
+    from .. import context_pack as cp
+    pack = cp.assemble([{"root": str(root), "label": Path(root).name or "project", "current": True}],
+                       query, budget=budget, json_mode=True, log=False)
+    revisions = []
+    if store is not None and project is not None:
+        from .learning_decisions import filter_fact_pack
+        revisions = filter_fact_pack(store, project, pack)
+    text = _render_prompt_pack(pack, revisions)
+    return pack, revisions, text
+
+
+def knowledge(root: Path, query: str, budget: int = 6000, *, store=None, project=None) -> str:
     from ..graph import graph_path
     if not graph_path(root).exists():
         return "（这个项目还没有知识库。直接按工单描述在代码里定位；建议之后运行 tmh kb build。）"
-    if os.environ.get("TMH_CONTEXT_PACK", "1").lower() not in ("0", "false", "off"):
+    # Managed revisions need structured provenance even if the legacy reader is
+    # requested. Legacy callers without a platform Store retain their old switch.
+    managed = store is not None and project is not None
+    if managed or os.environ.get("TMH_CONTEXT_PACK", "1").lower() not in ("0", "false", "off"):
         try:
-            from .. import context_pack as cp
-            pack = cp.assemble([{"root": str(root), "label": Path(root).name or "project", "current": True}],
-                               query, budget=budget, json_mode=True, log=False)
-            for item in pack.get("items") or []:  # the JSON form strips the rendered line; put it back
-                item["render"] = cp._render_item(item)
-            text = cp._render_text(pack).replace("# 与“", "# 知识库：与“", 1)
+            pack, revisions, text = prepared_context_pack(root, query, budget, store=store, project=project)
             src = (pack.get("sources") or [{}])[0]
             _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{
                 "mode": "context_pack",
@@ -412,6 +471,8 @@ def knowledge(root: Path, query: str, budget: int = 6000) -> str:
                 "knowledge_revision": src.get("knowledge_revision"),
                 "source_version": src.get("revision"),
                 "items": len(pack.get("items") or []),
+                "learning_revisions": revisions,
+                "omission_records": pack.get("omissions") or [],
                 # Canonical flow ids the pack exposed. `kb_followup` uses this
                 # structured receipt instead of scraping the run's prose (which
                 # only contains whatever the agent chose to repeat).
@@ -421,6 +482,10 @@ def knowledge(root: Path, query: str, budget: int = 6000) -> str:
             }]
             return text
         except Exception as exc:  # noqa: BLE001 - a pack failure must not block the agent run
+            if managed:
+                _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{"mode": "context_unavailable", "complete": False,
+                    "error": "%s: %s" % (type(exc).__name__, exc)}]
+                return "（知识上下文不可用：采用修订或来源无法核对。本次未注入知识页；请依据当前源码重新核对，不沿用历史确认。）"
             _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{"mode": "legacy", "error": "%s: %s" % (type(exc).__name__, exc)}]
     else:
         _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{"mode": "legacy"}]
@@ -655,6 +720,263 @@ def continue_on(data_dir: Path) -> bool:
         return True
 
 
+def note_prior_context(run_id: int) -> None:
+    """A copied conclusion carries its original learning dependencies with it."""
+    _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{"mode": "learning_prior", "run_id": run_id}]
+
+
+def record_session_context(data_dir: Path, run_id: int, parent_run_id=None) -> None:
+    """Record inherited memory separately from this invocation's fresh context.
+
+    This is an ancestry receipt, not a claim that a new context.json describes
+    everything already present in a resumed CLI session.
+    """
+    from . import learning as L
+    directory = Path(data_dir) / "runs" / str(run_id)
+    directory.mkdir(parents=True, exist_ok=True)
+    source = directory / "context.json"
+    receipt = {"schema": 1, "run_id": run_id, "parent_run_id": parent_run_id,
+               "context_sha256": L.digest(source.read_text(encoding="utf-8")) if source.exists() else None}
+    fd, name = tempfile.mkstemp(prefix=".session-context-", dir=directory)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(receipt, stream, ensure_ascii=False, sort_keys=True)
+        os.replace(name, directory / "session-context.json")
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+
+
+def additional_context_prompt(store, data_dir: Path, project: dict, ticket: dict, run_id: int, mode: str) -> str:
+    """Append the actual extra context of a fix substep without dropping ancestry."""
+    if not learning_context_current(store, data_dir, project, store.run(run_id), running=True):
+        raise ValueError("学习输入已变化；当前冻结提示词已停止，请重新启动任务")
+    previous = take_context_meta()
+    reset_context_meta()
+    try:
+        prompt = build_prompt(store, project, ticket, mode)
+        extra = take_context_meta()
+    finally:
+        _CTX_META.meta = previous
+    if not learning_context_current(store, data_dir, project, store.run(run_id), running=True):
+        raise ValueError("准备追加上下文期间学习输入已变化；当前冻结提示词已停止，请重新启动任务")
+    directory = Path(data_dir) / "runs" / str(run_id)
+    context_path, manifest_path = directory / "context.json", directory / "session-context.json"
+    old = json.loads(context_path.read_text(encoding="utf-8")) if context_path.exists() else []
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
+    fd, name = tempfile.mkstemp(prefix=".context-", dir=directory)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(old + extra, stream, ensure_ascii=False, indent=1)
+        os.replace(name, context_path)
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+    record_session_context(data_dir, run_id, manifest.get("parent_run_id"))
+    if not learning_context_current(store, data_dir, project, store.run(run_id), running=True):
+        raise ValueError("追加的学习输入已变化；当前冻结提示词已停止，请重新启动任务")
+    return prompt
+
+
+def _learning_history(P, p) -> bool:
+    """Old unreceipted sessions are unsafe after a project has used learning."""
+    from . import learning as L, learn
+    from .. import kb
+    if P.store.one("SELECT id FROM learning_decisions WHERE project_id=? AND action='adopt' LIMIT 1", (p["id"],)):
+        return True
+    if P.store.one("SELECT revision_id FROM learning_policy_active WHERE project_id=?", (p["id"],)):
+        return True
+    root = Path(p["root"])
+    path = kb._reg_path(root)
+    if path.exists():
+        records = json.loads(L.safe_read(root, path.relative_to(root).as_posix()))
+        if not isinstance(records, dict):
+            raise ValueError("知识登记不可读")
+        if any(isinstance(record, dict) and "learning" in record for record in records.values()):
+            return True
+    with learn.ledger_lock(P.data_dir, create=False):
+        log = [row for _, row in learn._effective_log(learn._log(P.data_dir))]
+        managed = {row.get("id") for row in log if row.get("kind") == learn._REVISION_MARKER}
+        return any(row.get("project") == p["key"] and row.get("id") in managed and
+                   (row.get("kind") in (learn._REVISION_MARKER, "take") or row.get("foreign")) for row in log)
+
+
+def _learning_receipt_current(P, p, receipt: dict, meta: dict) -> bool:
+    from . import learning as L, learning_decisions as D, learn
+    from .. import kb, context_pack as cp
+    kind, rid, origin = receipt.get("kind"), receipt.get("revision_id"), receipt.get("origin_id")
+    if kind == "fact":
+        root = Path(p["root"]).resolve()
+        lock = root / ".tmh" / "cache" / "kb.lock"
+        if not lock.parent.is_dir() or lock.parent.is_symlink() or lock.is_symlink():
+            return False
+        with kb._Lock(lock):
+            if rid:
+                revision = L.revision(P, p, rid)
+                return (revision["kind"] == kind and revision["origin_id"] == origin and
+                        D.adopted_current(P, p, revision))
+            # A later legacy human confirmation is valid in its own right; it
+            # must never inherit the superseded machine revision's identity.
+            from . import learning_facts as F
+            _, _, text, registry = F._read(p, origin)
+            record = registry[origin]
+            state = record.get("learning") or {}
+            manual = state.get("manual_confirmations") or []
+            return bool(receipt.get("reason") == "manual_confirmation" and not state.get("pending") and
+                        not state.get("active_revision") and manual and
+                        manual[-1].get("confirmed_sha256") == state.get("confirmed_sha256") and
+                        kb.confirmation_status(record, text) == kb.STATUS_OK and
+                        meta.get("knowledge_revision") == cp._knowledge_revision(root) and
+                        meta.get("source_version", "") == cp._git_head(root))
+    if kind not in ("lesson", "shared_lesson") or not rid:
+        return False
+    with learn.ledger_lock(P.data_dir, create=False):
+        card = learn.lesson(P.data_dir, origin)
+        if not card:
+            return False
+        owner = P.store.project(card.get("project")) if kind == "shared_lesson" else p
+        if not owner:
+            return False
+        revision = L.revision(P, owner, rid)
+        if (revision["kind"] != "lesson" or revision["origin_id"] != origin or
+                not D.adopted_current(P, owner, revision)):
+            return False
+        if kind == "lesson":
+            return card.get("project") == p["key"]
+        public = next((c for c in learn.shared(P.data_dir, p["key"]) if c["id"] == origin), None)
+        take = card.get("taken", {}).get(p["key"])
+        return bool(public and public.get("taken") and take and receipt.get("explicit_take") is True and
+                    receipt.get("consumer_project") == p["key"] and receipt.get("take") == take and
+                    receipt.get("shared_ts") == public.get("shared_ts") and
+                    receipt.get("shared_fingerprint") == L.digest({f: public.get(f) for f in ("title", *learn.FIELDS, "shared_ts")}))
+
+
+def _policy_context_project(store, data_dir: Path, project: dict, run: dict, saved: dict):
+    """A policy belongs to the actual prompt root, which must be a proved run input."""
+    expected = Path(project["root"]).resolve()
+    source_path = Path(data_dir) / "runs" / str(run["id"]) / "source.json"
+    if source_path.exists():
+        if source_path.is_symlink():
+            return None
+        source = json.loads(source_path.read_text(encoding="utf-8"))
+        expected = Path(data_dir) / "worktrees" / ("view-r%d" % run["id"])
+        if expected.is_symlink() or expected.parent.is_symlink():
+            return None
+        expected = expected.resolve()
+        ticket = store.ticket(run["ticket_id"]) if run.get("ticket_id") else None
+        if (not isinstance(source, dict) or not ticket or not source.get("delivery_id") or
+                source.get("schema") != 1 or source.get("project_id") != project["id"] or
+                source.get("ticket_id") != run.get("ticket_id") or
+                Path(source.get("workdir") or "").resolve() != expected or
+                Path(run.get("workdir") or "").resolve() != expected):
+            return None
+        # Revalidate the same candidate/plan ownership rules as Runner.start.
+        # A user-provided root or an arbitrary workdir is never sufficient.
+        ticket = dict(ticket, links={"delivery": source["delivery_id"], "delivery_source": source.get("binding")})
+        binding = delivery_source(store, project, ticket, run["mode"])
+        if (not binding or any(source.get(key) != binding.get(key) for key in
+                ("project_id", "ticket_id", "commit", "implementation_run", "plan_run")) or
+                source.get("actual_commit") != binding["commit"]):
+            return None
+        if run["status"] in ("queued", "running"):
+            actual = _source_state(expected)
+            if actual["commit"] != binding["commit"] or actual["status"]:
+                return None
+        elif source.get("code_unchanged") is not True or source.get("after_commit") != binding["commit"]:
+            return None
+    recorded_root = saved.get("context_root", str(Path(project["root"]).resolve()))
+    if not isinstance(recorded_root, str) or recorded_root != str(expected):
+        return None
+    return dict(project, root=str(expected))
+
+
+def learning_context_current(store, data_dir: Path, project: dict, run: dict, *, running=False) -> bool:
+    """Check every actual injected revision, copied conclusion and CLI ancestor.
+
+    No database transaction, model call, publication or recovery is performed.
+    Unknown old memory is kept only for projects without learning adoption
+    history. Any unreadable receipt fails closed instead of reviving old input.
+    """
+    from types import SimpleNamespace
+    from . import learning as L, learning_decisions as D, project_library as library
+    from .errors import ApiError
+    P = SimpleNamespace(store=store, data_dir=Path(data_dir))
+    try:
+        with store.lock:
+            p = store.project(project["id"])
+            if not p or p["root"] != project["root"] or run.get("project_id") != p["id"]:
+                return False
+            history = _learning_history(P, p)
+            visiting, checked = set(), set()
+
+            def check(current, initial=False):
+                if (not current or current.get("project_id") != p["id"] or
+                        current.get("ticket_id") != run.get("ticket_id") or
+                        current.get("status") not in (("queued", "running", "done") if initial and running else ("done",))):
+                    return False
+                rid = current["id"]
+                if rid in visiting or not library.run_current(store, p, rid):
+                    return False
+                if rid in checked:
+                    return True
+                visiting.add(rid)
+                directory = Path(data_dir) / "runs" / str(rid)
+                paths = (directory / "context.json", directory / "session-context.json")
+                if directory.parent.is_symlink() or directory.is_symlink() or any(path.is_symlink() for path in paths):
+                    return False
+                raw = paths[0].read_text(encoding="utf-8") if paths[0].exists() else None
+                metas = json.loads(raw) if raw is not None else []
+                if not isinstance(metas, list) or any(not isinstance(m, dict) for m in metas):
+                    return False
+                manifest = json.loads(paths[1].read_text(encoding="utf-8")) if paths[1].exists() else None
+                if manifest is None:
+                    if history:
+                        return False
+                elif (not isinstance(manifest, dict) or manifest.get("schema") != 1 or manifest.get("run_id") != rid or
+                      manifest.get("context_sha256") != (L.digest(raw) if raw is not None else None)):
+                    return False
+                policies = [m for m in metas if m.get("mode") == "learning_policy"]
+                if policies:
+                    for saved in policies:
+                        policy_project = _policy_context_project(store, data_dir, p, current, saved)
+                        if not policy_project:
+                            return False
+                        policy = D.runtime_policy(store, policy_project)
+                        if {k: saved.get(k) for k in policy} != policy:
+                            return False
+                elif history:
+                    return False
+                for meta in metas:
+                    mode = meta.get("mode")
+                    if mode == "learning_prior":
+                        prior_id = meta.get("run_id")
+                        if type(prior_id) is not int or prior_id >= rid or not check(store.run(prior_id)):
+                            return False
+                    key = "learning_revisions" if mode == "context_pack" else "revisions" if mode == "learning_lessons" else None
+                    if key:
+                        if history and key not in meta:
+                            return False
+                        receipts = meta.get(key, [])
+                        if not isinstance(receipts, list):
+                            return False
+                        for receipt in receipts:
+                            if (not isinstance(receipt, dict) or type(receipt.get("included")) is not bool or
+                                    (receipt["included"] and not _learning_receipt_current(P, p, receipt, meta))):
+                                return False
+                parent = manifest.get("parent_run_id") if manifest else None
+                if parent is not None:
+                    ancestor = store.run(parent) if type(parent) is int and parent < rid else None
+                    if not ancestor or ancestor.get("agent") != current.get("agent") or not check(ancestor):
+                        return False
+                visiting.remove(rid)
+                checked.add(rid)
+                return True
+
+            return check(run, initial=True)
+    except (ApiError, OSError, ValueError, RuntimeError, TypeError, KeyError, AttributeError, RecursionError):
+        return False
+
+
 def earlier_session(store, data_dir: Path, ticket: dict | None, agent: str, mode: str) -> tuple[str, dict | None]:
     """The agent session this step can continue: that of the ticket's latest finished step it follows (plan after
     analyze, the change after the plan), run by the same agent. ('', None) when there is none."""
@@ -662,8 +984,14 @@ def earlier_session(store, data_dir: Path, ticket: dict | None, agent: str, mode
         return "", None
     for r in sorted(store.runs(ticket_id=ticket["id"]), key=lambda r: r["id"], reverse=True):
         if r["status"] == "done" and r["agent"] == agent and r["mode"] in CONTINUES[mode]:
+            project = store.project(r["project_id"])
+            if not project or not learning_context_current(store, data_dir, project, r):
+                return "", None
             f = Path(data_dir) / "runs" / str(r["id"]) / "session.txt"
-            return (f.read_text(encoding="utf-8").strip(), r) if f.exists() else ("", None)
+            try:
+                return (f.read_text(encoding="utf-8").strip(), r) if f.exists() and not f.is_symlink() else ("", None)
+            except (OSError, UnicodeError):
+                return "", None
     return "", None
 
 
@@ -953,7 +1281,7 @@ class Runner:
             rdir = self.data_dir / "runs" / str(run["id"])
             view = None
             source = dict(source, binding=json.loads(json.dumps(ticket["links"]["delivery_source"])),
-                          schema=1, requested_at=now(), code_unchanged=None)
+                          delivery_id=ticket["links"]["delivery"], schema=1, requested_at=now(), code_unchanged=None)
             try:
                 _save_source(rdir, source)
                 view = self.data_dir / "worktrees" / ("view-r%d" % run["id"])
@@ -1132,6 +1460,9 @@ class Runner:
                 return
             st.update_run(rid, status="running", started=now(), workdir=str(workdir))
         try:
+            record_session_context(self.data_dir, rid)
+            if not learning_context_current(st, self.data_dir, project, st.run(rid), running=True):
+                raise ValueError("学习输入或旧结论的采用、来源或授权已变化；当前冻结提示词已停止，请重新启动任务")
             if mode == "fix":
                 from .fixloop import FixLoop
                 code, result = FixLoop(self, rid, project, ticket, agent, conf, model, explicit, prompt, workdir).run()
@@ -1140,6 +1471,9 @@ class Runner:
                 # The ordinary continuation prompt only carries ticket deltas and would silently lose those.
                 sid, prev = ("", None) if (ticket or {}).get("links", {}).get("delivery") else earlier_session(st, self.data_dir, ticket, agent, mode)
                 if sid:
+                    record_session_context(self.data_dir, rid, prev["id"])
+                    if not learning_context_current(st, self.data_dir, project, st.run(rid), running=True):
+                        raise ValueError("继承会话的学习输入已变化；当前冻结提示词已停止，请重新启动任务")
                     current = follow_up(st, ticket, prev, mode, "代码仍在 %s。" % workdir) + "\n\n## 本轮完整任务（以当前资料为准）\n" + prompt
                     code, result = self.invoke(rid, invoke_project, ticket, agent, conf, mode, current,
                                                workdir, model, resume=sid, fresh=prompt)
@@ -1221,12 +1555,23 @@ class Runner:
         self._control(rid, conf, agent)
         if self.stop_reason(rid):
             return 124 if self.stop_reason(rid) == "timeout" else 125, self.stop_message(rid)
+        # Ordinary runs have an ancestry receipt. Independent evaluation runs
+        # use their own frozen proof and must not inherit ordinary CLI memory.
+        guarded_context = (rdir / "session-context.json").exists()
+        def spawn(current_prompt, current_resume):
+            if guarded_context:
+                run = self.store.run(rid)
+                current_project = self.store.project(run["project_id"])
+                if (not (rdir / "session-context.json").exists() or not current_project or
+                        not learning_context_current(self.store, self.data_dir, current_project, run, running=True)):
+                    raise ValueError("学习输入或继承会话已变化；当前冻结提示词及重试已停止，请重新启动任务")
+            return self._spawn(rid, project, ticket, agent, conf, mode, current_prompt, workdir, model, tag, current_resume)
         if resume and "cmd" in (conf.get(agent) or {}) and "{resume}" not in conf[agent]["cmd"]:  # a custom command that cannot continue
             prompt, resume = fresh or prompt, ""
-        code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume)
+        code, result, parser, timing = spawn(prompt, resume)
         if resume and code != 0 and not (result or "").strip() and fresh and not timing.get("busy") and not self.stop_reason(rid):
             self.store.append_output(rid, "— 接着上一步的会话没有成功，改为新开一个会话\n")
-            code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, fresh, workdir, model, tag, "")
+            code, result, parser, timing = spawn(fresh, "")
         for wait in BUSY_WAITS:  # the model service was busy: wait, then pick the same session up where it stopped
             if code == 0 or not timing.get("busy") or self.stop_reason(rid):
                 break
@@ -1235,10 +1580,10 @@ class Runner:
                 break
             sid = parser.session or resume
             again = (BUSY_AGAIN, sid, fresh or prompt) if sid else (fresh or prompt, "", "")
-            code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, again[0], workdir, model, tag, again[1])
+            code, result, parser, timing = spawn(again[0], again[1])
             if again[1] and code != 0 and not (result or "").strip() and not timing.get("busy") and not self.stop_reason(rid):
                 self.store.append_output(rid, "— 接着上一步的会话没有成功，改为新开一个会话\n")
-                code, result, parser, timing = self._spawn(rid, project, ticket, agent, conf, mode, again[2], workdir, model, tag, "")
+                code, result, parser, timing = spawn(again[2], "")
         if parser.session:
             (rdir / ("session%s.txt" % tag)).write_text(parser.session, encoding="utf-8")
         (rdir / ("timing%s.json" % tag)).write_text(json.dumps(timing, ensure_ascii=False), encoding="utf-8")

@@ -25,11 +25,15 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 import re
 import shutil
 import subprocess
 import threading
 import time
+import uuid
+from contextlib import contextmanager
+from functools import wraps
 from pathlib import Path
 
 from .agents import git, pick_model, load_config, build_prompt
@@ -37,8 +41,83 @@ from . import filelock
 from .store import now
 
 LESSONS = "lessons.jsonl"
-_LOCK = threading.Lock()
-_CANDIDATE_LOCK = threading.Lock()
+_LOCK = threading.RLock()
+_LEDGER_LOCAL = threading.local()
+_LEDGER_STREAMS = set()
+
+
+def _reset_ledger_after_fork():
+    """A child must not inherit the parent's reentrant ownership claim."""
+    global _LOCK, _LEDGER_LOCAL, _LEDGER_STREAMS
+    for stream in _LEDGER_STREAMS:
+        # Closing the duplicate descriptor preserves the parent's flock;
+        # explicitly unlocking the inherited open file description would not.
+        stream.close()
+    _LOCK = threading.RLock()
+    _LEDGER_LOCAL = threading.local()
+    _LEDGER_STREAMS = set()
+
+
+if hasattr(os, "register_at_fork"):
+    # Serialize fork with opening/registering descriptors, including calls from
+    # another thread. Lambdas resolve the child's replacement RLock on later forks.
+    os.register_at_fork(before=lambda: _LOCK.acquire(), after_in_parent=lambda: _LOCK.release(),
+                        after_in_child=_reset_ledger_after_fork)
+
+
+@contextmanager
+def ledger_lock(data_dir: Path, create: bool = True):
+    """One reentrant thread/process lock for all lesson records and projections.
+
+    Readers never create a directory or a lock file. Nested callers reuse the
+    open lease: taking flock again through another descriptor can self-deadlock.
+    Callers that also need Store locks must acquire them before this lock;
+    keep model calls and long-running work outside the filesystem critical section.
+    """
+    key = str(Path(data_dir).resolve())
+    with _LOCK:
+        held = getattr(_LEDGER_LOCAL, "held", None)
+        if held is None:
+            held = _LEDGER_LOCAL.held = {}
+        if key in held:
+            held[key]["depth"] += 1
+            try:
+                yield
+            finally:
+                held[key]["depth"] -= 1
+            return
+        path = Path(key) / "lessons.lock"
+        if create:
+            path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            stream = path.open("a+b" if create else "r+b")
+        except FileNotFoundError:
+            if create:
+                raise
+            yield
+            return
+        with stream:
+            filelock.try_lock(stream, blocking=True)
+            owner_pid = os.getpid()
+            _LEDGER_STREAMS.add(stream)
+            held[key] = {"stream": stream, "depth": 1}
+            try:
+                yield
+            finally:
+                if os.getpid() == owner_pid:
+                    held.pop(key)
+                    _LEDGER_STREAMS.discard(stream)
+                    filelock.unlock(stream)
+
+
+def _ledger_access(create):
+    def decorate(fn):
+        @wraps(fn)
+        def locked(data_dir, *args, **kwargs):
+            with ledger_lock(data_dir, create=create):
+                return fn(data_dir, *args, **kwargs)
+        return locked
+    return decorate
 
 
 # ---------------------------------------------------------------- lessons
@@ -79,6 +158,42 @@ STATUSES = ("candidate", "active", "probation", "retired")
 FIELDS = ("symptom", "cause", "fix", "verify", "anti")
 FIELD_LABEL = {"symptom": "现象", "cause": "根因", "fix": "改法", "verify": "验法", "anti": "别这样改"}
 DEMOTE_AFTER = 2  # failures a card went along with before it leaves the prompts (when they outnumber its passes)
+REVISION_FIELDS = ("title", *FIELDS, "applicability", "non_applicability")
+_REVISION_MARKER = "revision_projection"
+
+
+def _digest(value):
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+def _effective_log(log):
+    """Keep original positions; a projection is visible only with its seal.
+
+    A process may stop halfway through one append. Its original bytes remain in
+    the log, but neither a partial edit nor a partial activation takes effect.
+    Usage-window positions therefore never shift when a projection is retried.
+    """
+    committed = set()
+    for position, marker in enumerate(log):
+        if marker.get("kind") != _REVISION_MARKER:
+            continue
+        count = marker.get("rows")
+        batch = marker.get("projection_batch")
+        if not batch or type(count) is not int or count not in (1, 2) or position < count:
+            continue
+        rows = log[position - count:position]
+        kinds = [r.get("kind") for r in rows]
+        expected = ["edit", "status"] if marker.get("operation") == "adopt" else ["status"] if marker.get("operation") == "revoke" else []
+        request = {key: value for key, value in marker.items()
+                   if key not in ("kind", "ts", "projection_batch", "rows", "rows_digest", "request_digest")}
+        if (kinds == expected and all(isinstance(marker.get(key), str) and marker[key].strip()
+                for key in ("project", "id", "revision_id", "by", "decision_id", "expected_token"))
+                and all(r.get("projection_batch") == batch and r.get("id") == marker["id"] and r.get("by") == marker["by"] for r in rows)
+                and rows[-1].get("status") == ("active" if marker["operation"] == "adopt" else "probation")
+                and _digest(rows) == marker.get("rows_digest") and _digest(request) == marker.get("request_digest")):
+            committed.update(range(position - count, position + 1))
+    return [(position, r) for position, r in enumerate(log)
+            if (not r.get("projection_batch") and r.get("kind") != _REVISION_MARKER) or position in committed]
 
 
 def overhead_flags(card: dict) -> list[str]:
@@ -106,6 +221,7 @@ def overhead_flags(card: dict) -> list[str]:
     return out
 
 
+@_ledger_access(False)
 def _raw(data_dir: Path) -> list:
     f = Path(data_dir) / LESSONS
     out = []
@@ -119,6 +235,7 @@ def _raw(data_dir: Path) -> list:
     return out
 
 
+@_ledger_access(False)
 def _log(data_dir: Path) -> list:
     f = Path(data_dir) / LOG
     out = []
@@ -131,22 +248,31 @@ def _log(data_dir: Path) -> list:
     return out
 
 
+@_ledger_access(True)
 def _append_log(data_dir: Path, rows: list) -> None:
     if not rows:
         return
-    with _LOCK:
-        f = Path(data_dir) / LOG
-        f.parent.mkdir(parents=True, exist_ok=True)
-        with f.open("a", encoding="utf-8") as fh:
-            for r in rows:
-                fh.write(json.dumps(dict(r, ts=r.get("ts") or now()), ensure_ascii=False) + "\n")
+    payload = "".join(json.dumps(dict(r, ts=r.get("ts") or now()), ensure_ascii=False) + "\n" for r in rows).encode("utf-8")
+    f = Path(data_dir) / LOG
+    with f.open("a+b") as fh:
+        # Preserve a torn final line as evidence and start the next record on a
+        # fresh line. Never truncate history or join a retry onto damaged bytes.
+        if fh.tell():
+            fh.seek(-1, os.SEEK_END)
+            if fh.read(1) != b"\n":
+                payload = b"\n" + payload
+        fh.write(payload)
+        fh.flush()
+        os.fsync(fh.fileno())
 
 
 def _fold(lessons_: list, log: list) -> list:
     by = {l["id"]: dict(l, status=l.get("status") or "active", shared=None, taken={},
                         stats={"used": 0, "passed": 0, "failed": 0, "cited": 0, "last_used": "", "recent_passed": 0, "recent_failed": 0},
                         abroad={}, history=[]) for l in lessons_}
-    for r in log:
+    for card in by.values():
+        card.pop("active_revision", None)  # only a sealed projection can bind a revision
+    for _, r in _effective_log(log):
         l = by.get(r.get("id"))
         if not l:
             continue
@@ -162,6 +288,7 @@ def _fold(lessons_: list, log: list) -> list:
             s["recent_passed" if r.get("passed") else "recent_failed"] += 1  # since it was last put (back) into use
             s["cited"] += 1 if r.get("cited") else 0
         elif k == "status" and r.get("status") in STATUSES:
+            l.pop("active_revision", None)
             l["status"] = r["status"]
             if r["status"] == "active":  # a person confirmed or restored it: its record starts over
                 s["recent_passed"] = s["recent_failed"] = 0
@@ -177,11 +304,19 @@ def _fold(lessons_: list, log: list) -> list:
                 l["taken"].pop(r.get("project", ""), None)
             l["history"].append({"ts": r.get("ts", ""), "by": r.get("by", ""), "status": "share" if r.get("on") else "unshare", "why": r.get("why", "")})
         elif k == "edit":
-            l.update({f: str(v) for f, v in (r.get("fields") or {}).items() if f in FIELDS})
+            l.pop("active_revision", None)
+            allowed = REVISION_FIELDS if r.get("projection_batch") else FIELDS
+            l.update({f: str(v) for f, v in (r.get("fields") or {}).items() if f in allowed})
             l["history"].append({"ts": r.get("ts", ""), "by": r.get("by", ""), "status": "edit", "why": "改了" + "、".join(FIELD_LABEL[f] for f in r.get("fields") or {} if f in FIELDS)})
+        elif k == _REVISION_MARKER:
+            if r.get("operation") == "adopt" and l["status"] == "active":
+                l["active_revision"] = r["revision_id"]
+            else:
+                l.pop("active_revision", None)
     return list(by.values())
 
 
+@_ledger_access(False)
 def lessons(data_dir: Path, project: str = "", limit: int = 200) -> list:
     out = [l for l in _fold(_raw(data_dir), _log(data_dir)) if not project or l.get("project") == project]
     return out[::-1][:limit]
@@ -191,27 +326,24 @@ def lesson(data_dir: Path, lid: str) -> dict | None:
     return next((l for l in lessons(data_dir, "", 100000) if l["id"] == lid), None)
 
 
+@_ledger_access(True)
 def add_lesson(data_dir: Path, d: dict) -> dict:
-    with _LOCK:
-        f = Path(data_dir) / LESSONS
-        f.parent.mkdir(parents=True, exist_ok=True)
-        with f.with_suffix(".lock").open("a+b") as lock:
-            filelock.try_lock(lock, blocking=True)
-            try:
-                if d.get("source_key"):
-                    old = next((x for x in _raw(data_dir) if x.get("source_key") == d["source_key"]), None)
-                    if old:
-                        return lesson(data_dir, old["id"])
-                n = len(f.read_text(encoding="utf-8").splitlines()) if f.exists() else 0
-                d = dict(d, id="L%d" % (n + 1), ts=now())
-                d.setdefault("status", "active")
-                with f.open("a", encoding="utf-8") as fh:
-                    fh.write(json.dumps(d, ensure_ascii=False) + "\n")
-            finally:
-                filelock.unlock(lock)
+    f = Path(data_dir) / LESSONS
+    if d.get("source_key"):
+        old = next((x for x in _raw(data_dir) if x.get("source_key") == d["source_key"]), None)
+        if old:
+            return lesson(data_dir, old["id"])
+    n = len(f.read_text(encoding="utf-8").splitlines()) if f.exists() else 0
+    d = dict(d, id="L%d" % (n + 1), ts=now())
+    d.setdefault("status", "active")
+    with f.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(d, ensure_ascii=False) + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
     return dict(d, flags=overhead_flags(d))
 
 
+@_ledger_access(True)
 def set_status(data_dir: Path, lid: str, status: str, by: str, why: str = "") -> dict:
     if status not in STATUSES:
         raise ValueError("状态只能是 " + "、".join(STATUSES))
@@ -221,6 +353,7 @@ def set_status(data_dir: Path, lid: str, status: str, by: str, why: str = "") ->
     return lesson(data_dir, lid)
 
 
+@_ledger_access(True)
 def edit_lesson(data_dir: Path, lid: str, fields: dict, by: str) -> dict:
     cur = lesson(data_dir, lid)
     if not cur:
@@ -230,6 +363,115 @@ def edit_lesson(data_dir: Path, lid: str, fields: dict, by: str) -> dict:
         _append_log(data_dir, [{"kind": "edit", "id": lid, "fields": ch, "by": by}])
     card = lesson(data_dir, lid)
     return dict(card, flags=overhead_flags(card))
+
+
+@_ledger_access(False)
+def revision_token(data_dir: Path, lid: str) -> str:
+    """CAS token for content and human decisions, unaffected by usage counts."""
+    original = next((row for row in _raw(data_dir) if row["id"] == lid), None)
+    if original is None:
+        raise ValueError("没有这条经验：" + str(lid))
+    rows = [(position, row) for position, row in _effective_log(_log(data_dir))
+            if row.get("id") == lid and row.get("kind") in ("edit", "status", "share", "take", _REVISION_MARKER)]
+    return _digest({"original": original, "decisions": rows})
+
+
+@_ledger_access(False)
+def active_revision(data_dir: Path, lid: str) -> str | None:
+    card = lesson(data_dir, lid)
+    return card.get("active_revision") if card and card["status"] == "active" else None
+
+
+@_ledger_access(False)
+def projection_receipt(data_dir: Path, decision_id: str) -> dict | None:
+    """Read the sealed original projection; later edits never erase its receipt."""
+    if not isinstance(decision_id, str) or not decision_id.strip():
+        raise ValueError("请指定人工决定编号")
+    rows = [row for _, row in _effective_log(_log(data_dir))
+            if row.get("kind") == _REVISION_MARKER and row.get("decision_id") == decision_id]
+    return rows[-1] if rows else None
+
+
+def _projection_request(project_key, origin_id, revision_id, actor, decision_id, expected_token, operation, **values):
+    if any(not isinstance(value, str) or not value.strip() for value in (project_key, origin_id, revision_id, actor, decision_id, expected_token)):
+        raise ValueError("经验投影需要完整项目、来源、修订、操作者、决定及预期版本")
+    return dict(project=project_key, id=origin_id, revision_id=revision_id, by=actor,
+                decision_id=decision_id, expected_token=expected_token, operation=operation, **values)
+
+
+def _projection_prior(data_dir, request):
+    matches = [row for _, row in _effective_log(_log(data_dir))
+               if row.get("kind") == _REVISION_MARKER and row.get("decision_id") == request["decision_id"]]
+    if not matches:
+        return None
+    if any(row.get("request_digest") != _digest(request) for row in matches):
+        raise ValueError("人工决定编号已用于其他投影，不能更换其正文、来源或修订")
+    # A previous attempt can have written a complete record but failed fsync or
+    # the caller's later database receipt. Seal durability before replaying it.
+    with (Path(data_dir) / LOG).open("r+b") as stream:
+        os.fsync(stream.fileno())
+    return matches[-1]
+
+
+def _projection_card(data_dir, request):
+    card = lesson(data_dir, request["id"])
+    if not card or card.get("project") != request["project"]:
+        raise ValueError("经验不属于当前项目，不能投影或采用共享副本")
+    return card
+
+
+def _projection_result(data_dir, request, replayed):
+    card = _projection_card(data_dir, request)
+    return dict(card, projection={"decision_id": request["decision_id"], "revision_id": request["revision_id"],
+                "operation": request["operation"], "replayed": replayed,
+                "token": revision_token(data_dir, request["id"])})
+
+
+def _project_log(data_dir, request, rows):
+    batch, ts = uuid.uuid4().hex, now()
+    rows = [dict(row, id=request["id"], by=request["by"], ts=ts, projection_batch=batch) for row in rows]
+    marker = {**request, "kind": _REVISION_MARKER, "ts": ts, "projection_batch": batch,
+              "rows": len(rows), "rows_digest": _digest(rows), "request_digest": _digest(request)}
+    _append_log(data_dir, rows + [marker])
+
+
+@_ledger_access(True)
+def project_revision(data_dir: Path, project_key: str, origin_id: str, revision_id: str, fields: dict,
+                     actor: str, decision_id: str, expected_token: str) -> dict:
+    """Project a committed human decision onto its original card exactly once.
+
+    This is only a ledger/CAS primitive. The caller must authenticate the human,
+    validate the frozen evaluation and authorization, and persist its outbox.
+    """
+    if not isinstance(fields, dict) or any(k not in REVISION_FIELDS or not isinstance(v, str) for k, v in fields.items()):
+        raise ValueError("固定经验正文只允许标题、原经验字段、适用与不适用条件的完整文字")
+    fields = dict(fields)
+    request = _projection_request(project_key, origin_id, revision_id, actor, decision_id, expected_token, "adopt", fields=fields)
+    card = _projection_card(data_dir, request)
+    if _projection_prior(data_dir, request):
+        return _projection_result(data_dir, request, True)
+    if revision_token(data_dir, origin_id) != expected_token:
+        raise ValueError("经验正文或人工决定已经变化，请重新核对后采用")
+    content = {key: fields.get(key, card.get(key) or "") for key in REVISION_FIELDS}
+    _project_log(data_dir, request, [{"kind": "edit", "fields": content},
+                                   {"kind": "status", "status": "active", "why": "人工采用固定经验修订 " + revision_id}])
+    return _projection_result(data_dir, request, False)
+
+
+@_ledger_access(True)
+def revoke_revision(data_dir: Path, project_key: str, origin_id: str, revision_id: str, actor: str,
+                    decision_id: str, expected_token: str, reason: str = "") -> dict:
+    """Pause only the expected currently active revision; never undo newer work."""
+    if not isinstance(reason, str) or not reason.strip():
+        raise ValueError("请填写撤销原因")
+    request = _projection_request(project_key, origin_id, revision_id, actor, decision_id, expected_token, "revoke", reason=reason)
+    _projection_card(data_dir, request)
+    if _projection_prior(data_dir, request):
+        return _projection_result(data_dir, request, True)
+    if revision_token(data_dir, origin_id) != expected_token or active_revision(data_dir, origin_id) != revision_id:
+        raise ValueError("经验已不是本次预期的采用修订，不能撤销后续人工决定")
+    _project_log(data_dir, request, [{"kind": "status", "status": "probation", "why": reason}])
+    return _projection_result(data_dir, request, False)
 
 
 def summary(ls: list) -> dict:
@@ -304,6 +546,7 @@ def held_out(data_dir: Path, ticket_key: str) -> bool:
     return bool(r) and _bucket(ticket_key) < r
 
 
+@_ledger_access(True)
 def _note_once(data_dir: Path, ticket: dict, kind: str, extra: dict) -> None:
     seen = False
     for r in _log(data_dir):
@@ -517,6 +760,7 @@ def share_preview(data_dir: Path, lid: str, names: list | None = None) -> dict:
     return {"title": redact(l.get("title", ""), names), "fields": {f: redact(v, names) for f, v in src.items() if v}}
 
 
+@_ledger_access(True)
 def set_shared(data_dir: Path, lid: str, on: bool, by: str, title: str = "", fields: dict | None = None, why: str = "",
                names: list | None = None) -> dict:
     l = lesson(data_dir, lid)
@@ -550,6 +794,7 @@ def shared(data_dir: Path, exclude_project: str = "") -> list:
     return out
 
 
+@_ledger_access(True)
 def take_shared(data_dir: Path, lid: str, project: str, on: bool, by: str) -> dict:
     """A person in another project lets its prompts carry a shared card, or stops them."""
     l = lesson(data_dir, lid)
@@ -582,6 +827,7 @@ def _pending_injections(log: list, ticket_key: str) -> tuple[dict, str]:
     return pending, since
 
 
+@_ledger_access(True)
 def note_used(data_dir: Path, ticket: dict, ls: list, mode: str) -> None:
     """Remember which cards a ticket's prompt carried, once per current usage window."""
     if not ls or not ticket.get("key"):
@@ -597,17 +843,23 @@ def _project_of(ticket_key: str) -> str:
     return ticket_key.rsplit("-", 1)[0] if "-" in ticket_key else ""
 
 
-def credit_snapshot(P, t: dict) -> list:
-    """Freeze which memories this verdict may credit before recording it."""
-    pending, since = _pending_injections(_log(P.data_dir), t["key"])
+@_ledger_access(False)
+def _credit_snapshot(data_dir, t, runs):
+    pending, since = _pending_injections(_log(data_dir), t["key"])
     used = {}
     for position, r in pending.items():
         use = used.setdefault(r["id"], {"id": r["id"], "injections": [],
             **({"foreign": True, "project": r.get("project", "")} if r.get("foreign") else {})})
         use["injections"].append(position)
     # only what the agent wrote since the last verdict counts as citing a card now
-    text = " ".join((r.get("result") or "") for r in P.store.runs(ticket_id=t["id"]) if (r.get("created") or "") >= since) if t.get("id") else ""
+    text = " ".join((r.get("result") or "") for r in runs if (r.get("created") or "") >= since)
     return [dict(use, cited=bool(re.search(r"(?<![A-Za-z0-9])%s(?!\d)" % re.escape(lid), text))) for lid, use in used.items()]
+
+
+def credit_snapshot(P, t: dict) -> list:
+    """Freeze memory uses without acquiring a database lock inside the ledger."""
+    runs = P.store.runs(ticket_id=t["id"]) if t.get("id") else []
+    return _credit_snapshot(P.data_dir, t, runs)
 
 
 def _credit(P, t: dict, passed: bool, by: str, source_key: str = "", uses: list | None = None) -> list:
@@ -616,25 +868,29 @@ def _credit(P, t: dict, passed: bool, by: str, source_key: str = "", uses: list 
     Fixed-candidate retries pass an immutable usage snapshot, so later work is
     never credited to an earlier human acceptance whose file write was delayed.
     """
-    if source_key and any(r.get("kind") == "verdict" and r.get("source_key") == source_key for r in _log(P.data_dir)):
-        return []
-    uses = credit_snapshot(P, t) if uses is None else uses
-    ts = now()  # the verdict and what it says about each card are one event: one time
-    rows = [{"kind": "verdict", "ticket": t["key"], "passed": passed, "by": by, "ts": ts,
-             **({"source_key": source_key, "credited_injections": [i for use in uses for i in use.get("injections", [])]} if source_key else {})}]
-    rows += [dict(use, kind="outcome", ticket=t["key"], passed=passed, ts=ts) for use in uses]
-    _append_log(P.data_dir, rows)
-    out = []
-    for use in uses:
-        lid = use["id"]
-        if use.get("foreign"):  # another project's failures say nothing about the card at home; there it simply stops being used
-            continue
-        l = lesson(P.data_dir, lid)
-        st = l and l["stats"]
-        if l and l["status"] == "active" and st["recent_failed"] >= DEMOTE_AFTER and st["recent_failed"] > st["recent_passed"]:
-            set_status(P.data_dir, lid, "probation", "平台", "带着它的工单 %d 次没通过验收、%d 次通过，先不再放进提示词，等人看" % (st["recent_failed"], st["recent_passed"]))
-            out.append(lid)
-    return out
+    # Snapshot run citations before taking the ledger lock: Store callers may
+    # already hold the database lock while freezing an acceptance event.
+    runs = P.store.runs(ticket_id=t["id"]) if uses is None and t.get("id") else []
+    with ledger_lock(P.data_dir):
+        if source_key and any(r.get("kind") == "verdict" and r.get("source_key") == source_key for r in _log(P.data_dir)):
+            return []
+        uses = _credit_snapshot(P.data_dir, t, runs) if uses is None else uses
+        ts = now()  # the verdict and what it says about each card are one event: one time
+        rows = [{"kind": "verdict", "ticket": t["key"], "passed": passed, "by": by, "ts": ts,
+                 **({"source_key": source_key, "credited_injections": [i for use in uses for i in use.get("injections", [])]} if source_key else {})}]
+        rows += [dict(use, kind="outcome", ticket=t["key"], passed=passed, ts=ts) for use in uses]
+        _append_log(P.data_dir, rows)
+        out = []
+        for use in uses:
+            lid = use["id"]
+            if use.get("foreign"):  # another project's failures say nothing about the card at home; there it simply stops being used
+                continue
+            l = lesson(P.data_dir, lid)
+            st = l and l["stats"]
+            if l and l["status"] == "active" and st["recent_failed"] >= DEMOTE_AFTER and st["recent_failed"] > st["recent_passed"]:
+                set_status(P.data_dir, lid, "probation", "平台", "带着它的工单 %d 次没通过验收、%d 次通过，先不再放进提示词，等人看" % (st["recent_failed"], st["recent_passed"]))
+                out.append(lid)
+        return out
 
 
 def _foreign_text(l: dict) -> list:
@@ -716,58 +972,55 @@ def on_candidate_accept(P, event_id: int) -> dict:
     if data.get("result") != ("pass" if passed else "fail") or data.get("customer_signature") is not False:
         raise ValueError("固定候选验收来源不一致")
     source_key = "candidate-acceptance:%s" % event_id
-    folder = Path(P.data_dir)
-    with _CANDIDATE_LOCK, (folder / "candidate-memory.lock").open("a+b") as lock:
-        filelock.try_lock(lock, blocking=True)
-        try:
-            # The committed business verdict begins the next usage window even
-            # if writing its memory card fails. Keep its exact consumed positions
-            # so a delayed retry cannot erase newer injections, including a new
-            # use of the same card in the very same second.
-            if not any(r.get("kind") == "candidate_boundary" and r.get("source_key") == source_key for r in _log(P.data_dir)):
-                _append_log(P.data_dir, [{"kind": "candidate_boundary", "ticket": snapshot["ticket"]["key"],
-                    "source_key": source_key, "boundary_at": event["ts"],
-                    "credited_injections": [i for use in snapshot.get("memory_uses", []) for i in use.get("injections", [])]}])
-            note = data["note"]
-            provenance = {"kind": "fixed_candidate", "candidate_id": data["candidate"], "commit": data["commit"],
-                          "base_commit": snapshot["base_commit"], "evidence_hash": data["evidence_hash"],
-                          "requirement_hash": snapshot["requirement_hash"], "assessment": snapshot["assessment"],
-                          "review": snapshot["review"], "merge": snapshot["merge"],
-                          "acceptance": {"event_id": event_id, "by": event["author"], "at": event["ts"],
-                                         "result": data["result"], "note": note, "customer_signature": False}}
-            criteria = "\n".join("%s：%s；检查办法：%s" % (c["id"], c["text"], c.get("check") or "") for c in snapshot["criteria"])
-            card = add_lesson(P.data_dir, {"source_key": source_key, "project": snapshot["project"],
-                    "ticket": snapshot["ticket"]["key"], "title": snapshot["ticket"]["title"],
-                    "symptom": snapshot["ticket"]["title"] + "\n" + own_words(snapshot["ticket"].get("body") or ""),
-                    "kind": "pass" if passed else "reject", "status": "candidate", "by": event["author"], "note": note,
-                    "flows": snapshot["ticket"].get("flows") or [], "files": snapshot["files"],
-                    "fix": ("固定候选说明（待整理为可复用做法）：\n" + snapshot["summary"] +
-                            "\n涉及文件：\n" + "\n".join(snapshot["files"])) if passed else "",
-                    "verify": "人工业务验收记录：\n" + note + "\n\n本次验收条件：\n" + criteria,
-                    "anti": "此固定版本业务验收未通过：\n" + note if not passed else "",
-                    "provenance": provenance})
-            if not passed:
-                # A newer explicit failure invalidates success memories about
-                # this exact candidate, including ones already confirmed by a
-                # person. Other candidates/projects and unrelated cards stay as
-                # they were; retrying this event cannot undo a later restoration.
-                demoted = {r.get("id") for r in _log(P.data_dir) if r.get("kind") == "status" and r.get("source_key") == source_key}
-                for prior in lessons(P.data_dir, snapshot["project"], 1000000):
-                    source = prior.get("provenance") or {}
-                    if (prior["id"] not in demoted and prior["status"] == "active" and
-                            source.get("kind") == "fixed_candidate" and source.get("candidate_id") == data["candidate"] and
-                            source.get("commit") == data["commit"] and (source.get("acceptance") or {}).get("result") == "pass"):
-                        _append_log(P.data_dir, [{"kind": "status", "id": prior["id"], "status": "probation",
-                            "by": event["author"], "why": "同一固定候选的后续业务验收未通过，暂停旧成功经验，等待复核。",
-                            "source_key": source_key, "provenance": provenance["acceptance"]}])
-            _credit(P, snapshot["ticket"], passed, event["author"], source_key=source_key, uses=snapshot.get("memory_uses", []))
-            if not any(r.get("kind") == "candidate_memory" and r.get("source_key") == source_key for r in _log(P.data_dir)):
-                _append_log(P.data_dir, [{"kind": "candidate_memory", "source_key": source_key, "id": card["id"], "event_id": event_id}])
-            return card
-        finally:
-            filelock.unlock(lock)
+    # One ledger lock avoids inverse candidate-lock / lesson-lock ordering.
+    with ledger_lock(P.data_dir):
+        # The committed business verdict begins the next usage window even
+        # if writing its memory card fails. Keep its exact consumed positions
+        # so a delayed retry cannot erase newer injections, including a new
+        # use of the same card in the very same second.
+        if not any(r.get("kind") == "candidate_boundary" and r.get("source_key") == source_key for r in _log(P.data_dir)):
+            _append_log(P.data_dir, [{"kind": "candidate_boundary", "ticket": snapshot["ticket"]["key"],
+                "source_key": source_key, "boundary_at": event["ts"],
+                "credited_injections": [i for use in snapshot.get("memory_uses", []) for i in use.get("injections", [])]}])
+        note = data["note"]
+        provenance = {"kind": "fixed_candidate", "candidate_id": data["candidate"], "commit": data["commit"],
+                      "base_commit": snapshot["base_commit"], "evidence_hash": data["evidence_hash"],
+                      "requirement_hash": snapshot["requirement_hash"], "assessment": snapshot["assessment"],
+                      "review": snapshot["review"], "merge": snapshot["merge"],
+                      "acceptance": {"event_id": event_id, "by": event["author"], "at": event["ts"],
+                                     "result": data["result"], "note": note, "customer_signature": False}}
+        criteria = "\n".join("%s：%s；检查办法：%s" % (c["id"], c["text"], c.get("check") or "") for c in snapshot["criteria"])
+        card = add_lesson(P.data_dir, {"source_key": source_key, "project": snapshot["project"],
+                "ticket": snapshot["ticket"]["key"], "title": snapshot["ticket"]["title"],
+                "symptom": snapshot["ticket"]["title"] + "\n" + own_words(snapshot["ticket"].get("body") or ""),
+                "kind": "pass" if passed else "reject", "status": "candidate", "by": event["author"], "note": note,
+                "flows": snapshot["ticket"].get("flows") or [], "files": snapshot["files"],
+                "fix": ("固定候选说明（待整理为可复用做法）：\n" + snapshot["summary"] +
+                        "\n涉及文件：\n" + "\n".join(snapshot["files"])) if passed else "",
+                "verify": "人工业务验收记录：\n" + note + "\n\n本次验收条件：\n" + criteria,
+                "anti": "此固定版本业务验收未通过：\n" + note if not passed else "",
+                "provenance": provenance})
+        if not passed:
+            # A newer explicit failure invalidates success memories about
+            # this exact candidate, including ones already confirmed by a
+            # person. Other candidates/projects and unrelated cards stay as
+            # they were; retrying this event cannot undo a later restoration.
+            demoted = {r.get("id") for r in _log(P.data_dir) if r.get("kind") == "status" and r.get("source_key") == source_key}
+            for prior in lessons(P.data_dir, snapshot["project"], 1000000):
+                source = prior.get("provenance") or {}
+                if (prior["id"] not in demoted and prior["status"] == "active" and
+                        source.get("kind") == "fixed_candidate" and source.get("candidate_id") == data["candidate"] and
+                        source.get("commit") == data["commit"] and (source.get("acceptance") or {}).get("result") == "pass"):
+                    _append_log(P.data_dir, [{"kind": "status", "id": prior["id"], "status": "probation",
+                        "by": event["author"], "why": "同一固定候选的后续业务验收未通过，暂停旧成功经验，等待复核。",
+                        "source_key": source_key, "provenance": provenance["acceptance"]}])
+        _credit(P, snapshot["ticket"], passed, event["author"], source_key=source_key, uses=snapshot.get("memory_uses", []))
+        if not any(r.get("kind") == "candidate_memory" and r.get("source_key") == source_key for r in _log(P.data_dir)):
+            _append_log(P.data_dir, [{"kind": "candidate_memory", "source_key": source_key, "id": card["id"], "event_id": event_id}])
+        return card
 
 
+@_ledger_access(False)
 def candidate_memory_status(data_dir: Path, event_id: int) -> dict:
     """Read-only projection status, including partially written memory retries."""
     source_key = "candidate-acceptance:%s" % event_id

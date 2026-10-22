@@ -2,8 +2,8 @@
 
 ## 2026-10-22：知识分类与评审闭环实施
 
-- 当前项：K3；状态：doing。用户已授权按设计自动实施；实际分支 `iteration/context-pack-v2`，起点 `949d732`。开工工作区干净，无需 stash。
-- K1 done：三类只读目录、不可变修订、来源绑定、历史兼容。K2 done：独立评审及有界修订。K3 doing：冻结成对评测、人工采用。K4 todo：策略允许清单、采用/撤销、使用回执。
+- 当前项：K4；状态：doing。用户已授权按设计自动实施；实际分支 `iteration/context-pack-v2`，起点 `949d732`。开工工作区干净，无需 stash。
+- K1 done：三类只读目录、不可变修订、来源绑定、历史兼容。K2 done：独立评审及有界修订。K3 done：冻结成对评测、人工采用、授权与会话依赖。K4 doing：策略允许清单、统一界面、使用说明及最终全量验收。
 - 本轮使用 executing-plans 和 verification-before-completion；按技能将独立运行引擎、界面和日志并发部分交给子代理，共享目录中限定文件所有权，最后统一审查。
 - 已核对：最近十条提交、设计、进度、Store/Runner/knowledge/learn/library/人工身份入口。`Store.x` 会自动提交，新事务不能使用它；旧经验日志仍为权威，新采用用持久化待办与幂等投影。
 - 判断：首版参考工作流项目可浏览固定修订，模型评审启动暂沿用 development 限制，不暗中改变项目角色；自定义命令和额外 Agent 参数不能证明只读，评审拒绝它们。成本未知时保留未知；合成测试不等于真实模型效果。
@@ -19,6 +19,18 @@
 - K2 验证：test_learning_runs.py 最终 31/31；test_learning_facts.py 28/28；旧 KB/组织知识及界面相关回归合计 64/64（含新 UI 22 项）。运行引擎真实超时/取消/崩溃恢复/所有权 fence 四例各重复 5 次共 20/20。收尾新增加三个确定性截止/租约测试，修复前 3/3 红灯，修复后通过；再补完整 _work 租约过期链路，从“running 且无 owner”修为 needs_resume，恢复不新增调用、不重置 deadline/calls。
 - K2 已审阅：无模型调用持有数据库事务；发布和投影固定 Store→KB/ledger 锁序；历史成功回执只补审计，不因新正文/新来源而重新发布旧版本；来源过期保留人工指针以便撤销，实际使用另行校验。已确认/撤销均只面向确切修订，历史确认未补造机器通过。当前本机原生 Claude 帮助检查失败，测试用合成执行器与真实受管子进程证明机制，未执行真实模型评审。
 - K3 doing：评测样本、断言、基线、模型和输入已冻结；正在完成实际任务上下文/旧会话与评测输入一致性审查。发现并修复 token 采集竞态、同一 outbox 同时重放、生成样本升级为留出、改断言复用样本、策略改名绕过样本历史及撤销经验回退 legacy。相关 6 个并发/屏障用例各重复 20 次，共 120/120。
+- K3/K4 集成核对：平台任务与策略评测共用上下文过滤和预算渲染；工单上下文预览接入同一边界；知识登记的读取与分类移入 KB 锁，防止撤销后被误当成旧式未管理页面。完整上下文省略记录留在运行回执，不截断原知识正文。已采用事实生成下一草稿时只复制经核实的人工状态头，必须重新评审和采用。
+- 当前定向验证：`NO_PROXY='*' no_proxy='*' PYTHONPATH='<离线辅助目录>:tests:.' python3 -m unittest test_learning test_learning_api test_learning_context test_learning_decisions test_learning_eval test_learning_facts test_learning_ledger test_learning_runs`，**166 tests / 17.439s / OK**。新上下文测试最初夹具缺少必需 summary 字段导致 7 个准备阶段错误，仅补齐合成夹具后通过；未改生产校验或既有断言。
+- 集成回归：新界面、知识 Agent API、项目库事务及原记忆界面合计 **64 tests，63 通过、1 个可选依赖跳过**。首次命令误写不存在的 `test_ui_memory_workspace`，其导入错误现场保留；改为实际模块 `test_ui_memory` 后单独执行 **15/15 / 1.757s / OK**，没有重复全部用例掩盖错误。
+- 定向原始日志及后续全量现场目录：`/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-learning-final-g7ug78bx`，保留完整输出、失败捕获与回环限定 sitecustomize；不联网安装依赖。
+- 已实际打开本地临时平台页面并检查：项目选择、三类筛选、事实全文/来源详情、机器状态与人工状态分列；无通过批次时采用按钮禁用；策略仅显示 4000–12000 上下文预算；浏览器无 warning/error。仅使用合成账号与临时端口 56208，未启动真实模型或采纳任何业务知识，检查后已关闭页签及临时服务。
+- 当前提交：K1 `c453245`；独立超时修复 `5d3d1a1`；K2 `edc032a`。最终会话依赖检查及全量回归完成前不声明 K3/K4 完成。
+- 最终回执审查：过滤失效页面后，评测回执的分区统计仍保留过滤前计数；新增断言先复现 `1 != 0`，随后按实际保留项重算计数/字符数。`test_learning_context` + `test_learning_eval` **22/22 / 1.415s / OK**，原文与完整省略清单均保留。
+- 会话检查初版：新增独立祖先回执，逐次检查已注入事实/经验/共享副本/策略；继承会话与复制的旧结论均保留依赖，修复追加上下文、服务繁忙重试和会话丢失回退也重新核对。新会话模块 19 项及既有续会话/繁忙重试/分文件修复 3 项合计 **22/22 / 7.154s / OK**。随后总审发现固定提交只读检查与主工作区策略的区别会造成误拒，新增真实 delivery_source + active 策略测试已准确复现，正在修复其实际上下文 root 绑定。
+- K3 done：`learn.py` 统一可重入进程锁与带完成标记的日志投影；`learning.py` 保存完整经验修订及样本历史；新增 `learning_decisions.py`、`learning_eval.py`；`agents.py` / `fixloop.py` 接入实际使用和会话依赖；`server.py` 提供严格个人决定与 Agent 草稿/运行的独立入口。对应新增/扩充 learning、ledger、decisions、eval、context、sessions、API 和 delivery source 测试。为使每个提交具备完整依赖，策略运行及 API 基础随 K3 提交，K4 提交页面与操作说明。
+- 固定工作区修复：策略回执保存实际 `context_root`；固定 checkout 只能由同一运行的来源记录、提交、工作目录、候选/方案归属共同证明，不能凭任意路径获准。原工作区已采用策略不继承到临时只读 checkout，后者按默认 6000 预算执行；采用撤销后旧冻结输入仍被拒。最终 `test_learning_sessions` 19 + `test_delivery_source_runner` 10，**29/29 / 6.105s / OK**；新增真实进程正例、三个冒用目录反例、准备后真实撤销决定反例。完整日志 `delivery-policy-sessions-green.log`；首轮红灯工具原文转存 `delivery-policy-red-from-tool.log`，文件明确区分转存与重跑。
+- K3 审阅：逐段核对后端、会话、API 及对应测试 diff，`git diff --check` 通过。基线已有 delivery source 7 个方法和 supervisor 14 个方法的全部断言 AST 未变；新修复另加测试。`tmh/acceptance.py` 与 `tmh/guard.py` 全文件等同 `949d732`，人确认、保护清单、状态迁移与提交证据约束均未放宽。
+- K4 doing：界面 `ui_learning.py` / `ui.py` / `ui_memory.py`、22 个新界面用例，以及设计状态和 `docs/knowledge-learning.md` 使用说明已完成；待最终全量验证后封存结果。
 
 ## 2026-10-22：知识分类与评审闭环设计
 
