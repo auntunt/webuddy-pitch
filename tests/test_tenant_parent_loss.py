@@ -18,11 +18,54 @@ from tmh.platform.tenancy import Registry
 from tmh.platform.tenant_runtime import Workers
 
 
+_WORKER = '''
+import json, os, sys
+from pathlib import Path
+from tmh.platform import tenant_runtime as r
+from tmh.platform.store import Store
+comment = Store.comment
+def observed_comment(self, tid, author, body, request_id=None):
+    if request_id != 'loss-comment':
+        return comment(self, tid, author, body, request_id)
+    def trace(sql):
+        if sql == 'BEGIN IMMEDIATE':
+            marker = self.path.parent / 'worker-begin.json'
+            temporary = marker.with_suffix('.tmp')
+            temporary.write_text(json.dumps({'pid': os.getpid(), 'request_id': request_id,
+                'ticket_id': tid, 'author': author, 'sql': sql}))
+            temporary.replace(marker)
+    self.db.set_trace_callback(trace)
+    try:
+        return comment(self, tid, author, body, request_id)
+    finally:
+        self.db.set_trace_callback(None)
+Store.comment = observed_comment
+r.worker(*sys.argv[1:])
+'''
+
+
 _GATEWAY = '''
-import json, sys
+import contextlib, json, os, subprocess, sys, time
 from pathlib import Path
 from tmh.platform import tenant_gateway as g, tenant_runtime as r
+from tmh.platform.tenancy import Registry
 data = Path(sys.argv[1]); original = g.ThreadingHTTPServer; ensure = r.Workers.ensure
+launch = subprocess.Popen; guard = Registry.authorization_guard
+def observed_worker(args, *positional, **kwargs):
+    if args[1:3] == ['-m', 'tmh.platform.tenant_runtime']:
+        args = [args[0], '-c', sys.argv[2], *args[3:]]
+    return launch(args, *positional, **kwargs)
+@contextlib.contextmanager
+def observed_guard(self):
+    with guard(self):
+        if (data / 'hold-admission').exists():
+            marker = data / 'gateway-admission.json'
+            temporary = marker.with_suffix('.tmp')
+            temporary.write_text(json.dumps({'pid': os.getpid(), 'phase': 'before-forward'}))
+            temporary.replace(marker)
+            while not (data / 'release-admission').exists():
+                time.sleep(.01)
+        yield
 def server(*args, **kwargs):
     value = original(*args, **kwargs)
     (data / 'port').write_text(str(value.server_address[1]))
@@ -33,6 +76,7 @@ def record(self, tenant):
         'socket': str(value['socket']), 'keyfile': str(value['keyfile'])}))
     return value
 g.ThreadingHTTPServer = server; r.Workers.ensure = record
+subprocess.Popen = observed_worker; Registry.authorization_guard = observed_guard
 g.serve(data, '127.0.0.1', 0)
 '''
 
@@ -53,6 +97,7 @@ def _running(pid):
 class TenantParentLossTest(unittest.TestCase):
     def setUp(self):
         temp = tempfile.TemporaryDirectory(prefix='tmh-tenant-parent-loss-')
+        self.temp = temp  # Full-suite failure capture preserves this synthetic store.
         self.addCleanup(temp.cleanup)
         self.data = Path(temp.name).resolve()
         login.set_user(self.data, 'owner', 'synthetic-owner-password')
@@ -68,7 +113,7 @@ class TenantParentLossTest(unittest.TestCase):
         self.action('project_grant', user='member', project_id=str(project['id']), role='contributor')
         self.cookie = 'tmh_session=' + login.make_session(self.data, 'member')
         self.token = self.registry.context('member')['context_token']
-        self.proc = subprocess.Popen([sys.executable, '-c', _GATEWAY, str(self.data)],
+        self.proc = subprocess.Popen([sys.executable, '-c', _GATEWAY, str(self.data), _WORKER],
                                      stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         self.worker = None
         self.addCleanup(self.cleanup_processes)
@@ -134,6 +179,24 @@ class TenantParentLossTest(unittest.TestCase):
         workers = Workers(self.registry)
         workers.close()
 
+    def guard_held(self):
+        lockpath = self.registry.path.parent / 'authorization.lock'
+        with lockpath.open('a+b') as stream:
+            try:
+                filelock.try_lock(stream)
+            except BlockingIOError:
+                return True
+            filelock.unlock(stream)
+            return False
+
+    def wait_worker_write(self):
+        marker = self.data / 'worker-begin.json'
+        self.wait_for(marker.exists, 'worker never reached the real SQLite write barrier')
+        self.assertEqual(json.loads(marker.read_text()), {
+            'pid': self.worker['pid'], 'request_id': 'loss-comment',
+            'ticket_id': self.ticket['id'], 'author': 'member', 'sql': 'BEGIN IMMEDIATE'})
+        self.assertTrue(self.guard_held(), 'worker reached SQLite without its authorization guard')
+
     def test_sigkill_idle_gateway_orphan_worker_exits(self):
         self.kill_gateway()
         self.assert_worker_exited()
@@ -144,18 +207,11 @@ class TenantParentLossTest(unittest.TestCase):
             request = pool.submit(self.request, 'POST', '/api/tickets/LOSS-1/comments',
                                   {'body': 'parent loss barrier', 'request_id': 'loss-comment'})
             try:
-                lockpath = self.registry.path.parent / 'authorization.lock'
-                def guard_held():
-                    with lockpath.open('a+b') as stream:
-                        try:
-                            filelock.try_lock(stream)
-                        except BlockingIOError:
-                            return True
-                        filelock.unlock(stream)
-                        return False
-                self.wait_for(guard_held, 'worker never reached the real SQLite write barrier')
+                # The gateway also briefly owns this same kernel lock. Only the
+                # actual worker's BEGIN trace establishes the intended barrier.
+                self.wait_worker_write()
                 self.kill_gateway()
-                self.assertTrue(guard_held(), 'parent death released the active worker authorization guard')
+                self.assertTrue(self.guard_held(), 'parent death released the active worker authorization guard')
                 begun = threading.Event()
                 def revoke():
                     begun.set()
@@ -176,6 +232,31 @@ class TenantParentLossTest(unittest.TestCase):
         self.assertEqual(after_exit, at_revocation, 'a business write committed after revocation')
         self.assertIn(after_exit, ([], [{'body': 'parent loss barrier'}]))
         self.assertFalse(self.registry.one('SELECT active FROM accounts WHERE name=?', ('member',))['active'])
+
+    def test_gateway_admission_lock_is_not_worker_write_barrier(self):
+        self.store.db.execute('BEGIN IMMEDIATE')
+        (self.data / 'hold-admission').touch()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            request = pool.submit(self.request, 'POST', '/api/tickets/LOSS-1/comments',
+                                  {'body': 'parent loss barrier', 'request_id': 'loss-comment'})
+            try:
+                marker = self.data / 'gateway-admission.json'
+                self.wait_for(marker.exists, 'gateway did not enter its admission guard')
+                self.assertEqual(json.loads(marker.read_text()), {
+                    'pid': self.proc.pid, 'phase': 'before-forward'})
+                self.assertTrue(self.guard_held())
+                self.assertFalse((self.data / 'worker-begin.json').exists(),
+                                 'gateway admission was mistaken for worker execution')
+                self.assertFalse(request.done())
+                (self.data / 'release-admission').touch()
+                self.wait_worker_write()
+                self.assertFalse(request.done(), 'worker bypassed the SQLite writer barrier')
+            finally:
+                (self.data / 'release-admission').touch()
+                self.store.db.rollback()
+            self.assertEqual(request.result(timeout=5)[0], 200)
+        self.assertEqual(self.store.q("SELECT body FROM events WHERE ticket_id=? AND kind='comment'",
+                                      (self.ticket['id'],)), [{'body': 'parent loss barrier'}])
 
 
 if __name__ == '__main__':
