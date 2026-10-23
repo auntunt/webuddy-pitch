@@ -1,0 +1,30 @@
+{
+  "source_commit": "911e42d9a34d0df13115e8f9405fbdcf0297d4b5",
+  "python": "3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]",
+  "full_exit_code": 0,
+  "smoke_exit_code": 0,
+  "validation": {
+    "scope": "full_unittest",
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests"
+    ],
+    "expected_tests": 1393
+  },
+  "full_seconds": 569.803,
+  "log_sha256": "aea930cd143a95cdccf50b05e1b56d8afba68777561d40e42f7d8105af7dad5b",
+  "unittest": {
+    "tests": 1393,
+    "skipped": 14,
+    "failures": [],
+    "errors": [],
+    "expected_failures": 0,
+    "unexpected_successes": [],
+    "successful": true
+  },
+  "verification_files_unchanged": 390
+}

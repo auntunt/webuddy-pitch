@@ -1,0 +1,92 @@
+[
+  {
+    "file": "before-fix-success-old-binding.jpg",
+    "bytes": 189793,
+    "sha256": "20872fa7032c0353c768d71eb5747818391557a90cde33f5f972359d4e48e06b",
+    "dimensions": [
+      "  pixelWidth: 1680",
+      "  pixelHeight: 2593"
+    ]
+  },
+  {
+    "file": "desktop-blocked-full.jpg",
+    "bytes": 189136,
+    "sha256": "57e0fbccce4f778c7cca2709e539e4d50be601a5eb0fe7b78ddeee0e4df68092",
+    "dimensions": [
+      "  pixelWidth: 1680",
+      "  pixelHeight: 2598"
+    ]
+  },
+  {
+    "file": "desktop-sent-full.jpg",
+    "bytes": 186022,
+    "sha256": "f6c5e3ec7350fda78360e17978a336dd64f80ad94ced3d94b0dedcafd77d517e",
+    "dimensions": [
+      "  pixelWidth: 1680",
+      "  pixelHeight: 2532"
+    ]
+  },
+  {
+    "file": "final-desktop-detail.jpg",
+    "bytes": 87469,
+    "sha256": "01c7eddb265391a8c516a1f3ba816b99a90b375f44afd9558ebc85f25a9315a5",
+    "dimensions": [
+      "  pixelWidth: 1680",
+      "  pixelHeight: 825"
+    ]
+  },
+  {
+    "file": "final-desktop-full.jpg",
+    "bytes": 228556,
+    "sha256": "5e477ac6738e40a8c50307fde19d3c65f5b0db0d1c4a06a5ee5644c0f0869700",
+    "dimensions": [
+      "  pixelWidth: 1680",
+      "  pixelHeight: 3157"
+    ]
+  },
+  {
+    "file": "final-desktop-viewport.jpg",
+    "bytes": 79556,
+    "sha256": "83a9af785d828ea24465f57ea72cce967d45a266d62eb1909d345d68d3b6d163",
+    "dimensions": [
+      "  pixelWidth: 1680",
+      "  pixelHeight: 825"
+    ]
+  },
+  {
+    "file": "final-mobile-390-detail.jpg",
+    "bytes": 34868,
+    "sha256": "f8860a7b18c88d0de0240dad0be204f54ca04dfc69c4d4b71236b3b19bcd5e32",
+    "dimensions": [
+      "  pixelWidth: 390",
+      "  pixelHeight: 844"
+    ]
+  },
+  {
+    "file": "final-mobile-390-full.jpg",
+    "bytes": 174186,
+    "sha256": "4390b63ce42655ea07dc35937664a073f13fda99fef3f18d2b27a90ebcc759c5",
+    "dimensions": [
+      "  pixelWidth: 390",
+      "  pixelHeight: 4553"
+    ]
+  },
+  {
+    "file": "final-mobile-390-reason.jpg",
+    "bytes": 38554,
+    "sha256": "17678eb9215c3a06e342871fe32bcef3bbeaa37cf33ad6a0f93c2c6418f1553f",
+    "dimensions": [
+      "  pixelWidth: 390",
+      "  pixelHeight: 844"
+    ]
+  },
+  {
+    "file": "mobile-390-blocked-full.jpg",
+    "bytes": 144639,
+    "sha256": "bd6b7ecb7984aa3a41defeacdbb560411c6e4a3aa72c7e135cf30186ad18d0ed",
+    "dimensions": [
+      "  pixelWidth: 390",
+      "  pixelHeight: 3752"
+    ]
+  }
+]

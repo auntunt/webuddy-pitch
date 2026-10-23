@@ -1,0 +1,19 @@
+{
+  "commit": "911e42d9a34d0df13115e8f9405fbdcf0297d4b5",
+  "result": {
+    "tests": 1393,
+    "skipped": 16,
+    "failures": [],
+    "errors": [],
+    "expected_failures": 0,
+    "unexpected_successes": [],
+    "successful": true
+  },
+  "summary": [
+    "Ran 1393 tests in 414.665s",
+    "OK (skipped=16)"
+  ],
+  "source_files_unchanged": 283,
+  "log_bytes": 34921,
+  "log_sha256": "e09049462b1375fdafd636bdf4918dd88c75124846e29fb247d17afc22ae4389"
+}

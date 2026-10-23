@@ -1,0 +1,40 @@
+{
+  "created_at_utc": "2026-10-23T04:18:43.979686+00:00",
+  "files": [
+    {
+      "name": "job-120230382576-full.log",
+      "bytes": 909483,
+      "sha256": "d57fbac05b35a260110b2b914bd95a2a701a955e5ee5b39b04dfc18d65f83152"
+    },
+    {
+      "name": "parent-033e3dd-job-119989481157-full.log",
+      "bytes": 837893,
+      "sha256": "559373cbb808c6343eba3a3860fa722f4e2c2ed28e592e97207aa46b1d0c79a3"
+    },
+    {
+      "name": "parent-033e3dd-run-39826041847-snapshot.json",
+      "bytes": 16324,
+      "sha256": "f9b9c6a6765e6b5403bcd41cbea4e727ec89acb56591580f5866359ea5150cde"
+    },
+    {
+      "name": "run-snapshot-20261023T041551Z.json",
+      "bytes": 16139,
+      "sha256": "6e1f6de1c05830c07f8c2a2c3825d3766da102417198cc8aed01ffe450a211be"
+    },
+    {
+      "name": "run-snapshot-20261023T041841Z.json",
+      "bytes": 16139,
+      "sha256": "6e1f6de1c05830c07f8c2a2c3825d3766da102417198cc8aed01ffe450a211be"
+    },
+    {
+      "name": "windows-py311-failure-summary.json",
+      "bytes": 61826,
+      "sha256": "d0151c7484010235d0d77d1f12389408c540ee8f61694bb34d8a995aeb376503"
+    },
+    {
+      "name": "windows-py311-parent-comparison.json",
+      "bytes": 2691,
+      "sha256": "882520d3d635be3abd8738402df98b8de75474f9340d4e3b7edff10af692c2bb"
+    }
+  ]
+}

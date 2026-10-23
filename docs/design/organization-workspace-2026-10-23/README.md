@@ -4,6 +4,8 @@
 本轮交付：公开资料调研、代码能力审计、增量实施方案与[可交互 UI 样稿](prototype.html)。
 样稿使用合成记录，未连接生产，也不代表以下新增能力已实现。
 
+**实施更新**：O1/O2 已接入真实任务与个人交接，见[使用说明](../../task-handoffs.md)、[实际浏览器验证](implementation-evidence/browser-verification.md)和[发布记录](../../../audit/production-deployment-2026-10-23-handoffs.md)。下文保留设计时的能力基线；独立样稿仍为合成示例。
+
 ## 1. 产品方向
 
 Webuddy 应帮助需求、研发、测试、交付和运维围绕同一项工作协作：知道目标、负责下一步的人、

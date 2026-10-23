@@ -1,0 +1,47 @@
+{
+  "source_commit": "911e42d9a34d0df13115e8f9405fbdcf0297d4b5",
+  "release": "/opt/webuddy/releases/911e42d9a34d-handoff-workspace-20261023",
+  "previous_app": "/opt/webuddy/releases/a8e22b750cfc-learning-loops-20261022/app",
+  "service_started_utc": "2026-10-23T04:06:23.817916+00:00",
+  "backup": "/opt/webuddy/backups/pre-911e42d9a34d-20261023T040621Z",
+  "data_backup_members_verified": 1775,
+  "project_backup_members_verified": [
+    277,
+    37,
+    20
+  ],
+  "runtime_files_verified": 191,
+  "original_table_count_preserved": 41,
+  "new_tables": {
+    "ticket_handoff_heads": 0,
+    "ticket_handoffs": 0,
+    "ticket_handoff_events": 0,
+    "ticket_handoff_requests": 0
+  },
+  "startup_http_checks_passed": 16,
+  "delayed_http_checks_passed": 32,
+  "delayed_check_utc": "2026-10-23T04:08:40.666948+00:00",
+  "database_integrity": "ok",
+  "original_tables_changed": [],
+  "original_non_db_files_changed": [],
+  "original_project_files_unchanged": true,
+  "config_hashes_unchanged": true,
+  "other_services_unchanged": true,
+  "final_health": {
+    "source_commit": "911e42d9a34d0df13115e8f9405fbdcf0297d4b5",
+    "checked_utc": "2026-10-23T04:09:49.471183+00:00",
+    "service": {
+      "ActiveState": "active",
+      "SubState": "running",
+      "MainPID": "1561156",
+      "NRestarts": "0"
+    },
+    "runtime_files_verified": 191,
+    "error_priority_lines_since_start": 0,
+    "data_restored": false
+  },
+  "data_restored": false,
+  "production_browser_business_write_performed": false,
+  "browser_workflow_scope": "local temporary synthetic accounts",
+  "server_evidence_files_readback_verified": 11
+}

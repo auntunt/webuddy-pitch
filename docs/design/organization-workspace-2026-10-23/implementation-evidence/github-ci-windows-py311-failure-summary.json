@@ -1,0 +1,1230 @@
+{
+  "job_id": 120230382576,
+  "run_id": 39897236343,
+  "commit": "911e42d9a34d0df13115e8f9405fbdcf0297d4b5",
+  "pytest_summary": "188 failed, 558 passed, 71 skipped, 5 errors, 273 subtests passed in 944.57s (0:15:44)",
+  "completion": "incomplete; KeyboardInterrupt at threading.py:327; latest progress 56%",
+  "failure_entries": 188,
+  "unique_failed_test_ids": 183,
+  "error_entries": 5,
+  "failure_modules": {
+    "tests/test_crash_recovery_api.py": 2,
+    "tests/test_delivery.py": 1,
+    "tests/test_delivery_source_runner.py": 10,
+    "tests/test_direct_invocation_lifecycle.py": 18,
+    "tests/test_external_candidates.py": 5,
+    "tests/test_external_candidates_independent.py": 1,
+    "tests/test_harness_probes.py": 7,
+    "tests/test_harness_probes_independent.py": 7,
+    "tests/test_intake_recovery_api.py": 8,
+    "tests/test_intake_recovery_independent.py": 12,
+    "tests/test_learning.py": 4,
+    "tests/test_learning_api.py": 2,
+    "tests/test_learning_context.py": 10,
+    "tests/test_learning_decisions.py": 2,
+    "tests/test_learning_facts.py": 28,
+    "tests/test_learning_runs.py": 31,
+    "tests/test_learning_sessions.py": 14,
+    "tests/test_platform.py": 25,
+    "tests/test_preview_health_flow.py": 1
+  },
+  "short_message_categories_not_root_causes": {
+    "POSIX unsupported stated in short failure": 17,
+    "other (requires per-test investigation)": 52,
+    "subprocess timeout": 6,
+    "expected agent but rule fallback": 22,
+    "CRLF versus LF content assertion": 4,
+    "fact mutation validation": 32,
+    "registered page ID mismatch": 24,
+    "frozen content changed": 31
+  },
+  "new_test_modules": {
+    "tests/test_handoffs.py": {
+      "defined_tests": 26,
+      "failure_entries": 0,
+      "error_entries": 0,
+      "status": "no failures recorded; no per-test pass names in quiet log"
+    },
+    "tests/test_handoff_api.py": {
+      "defined_tests": 6,
+      "failure_entries": 0,
+      "error_entries": 0,
+      "status": "no failures recorded; no per-test pass names in quiet log"
+    },
+    "tests/test_ui_handoffs.py": {
+      "defined_tests": 21,
+      "failure_entries": 0,
+      "error_entries": 0,
+      "status": "not proven executed; file sorts after interruption"
+    },
+    "tests/test_workspace_handoffs.py": {
+      "defined_tests": 8,
+      "failure_entries": 0,
+      "error_entries": 0,
+      "status": "not proven executed; file sorts after interruption"
+    }
+  },
+  "errors": [
+    {
+      "line": 9505,
+      "status": "ERROR",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs",
+      "message": "PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\RUNNER~1\\\\AppData\\\\Local\\\\Temp\\\\tmh-direct-invoke-i1qjzdy5\\\\runs\\\\1\\\\owner.lock'"
+    },
+    {
+      "line": 9506,
+      "status": "ERROR",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_cancel_before_deadline_stays_cancelled_when_deadline_also_expires",
+      "message": "PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\RUNNER~1\\\\AppData\\\\Local\\\\Temp\\\\tmh-direct-invoke-r1bm89dt\\\\runs\\\\1\\\\owner.lock'"
+    },
+    {
+      "line": 9507,
+      "status": "ERROR",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_success_is_finished_and_later_wall_time_does_not_reclassify_it",
+      "message": "PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\RUNNER~1\\\\AppData\\\\Local\\\\Temp\\\\tmh-direct-invoke-ihlh4oyj\\\\runs\\\\1\\\\owner.lock'"
+    },
+    {
+      "line": 9508,
+      "status": "ERROR",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_timeout_after_zero_exit_overrides_success_before_direct_finalize",
+      "message": "PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\RUNNER~1\\\\AppData\\\\Local\\\\Temp\\\\tmh-direct-invoke-9_8uaqks\\\\runs\\\\1\\\\owner.lock'"
+    },
+    {
+      "line": 9509,
+      "status": "ERROR",
+      "test_id": "tests/test_login.py::LoginTest::test_wrong_password_and_throttle",
+      "message": "PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\RUNNER~1\\\\AppData\\\\Local\\\\Temp\\\\tmpl0fm40mv\\\\platform.db'"
+    }
+  ],
+  "failures": [
+    {
+      "line": 9174,
+      "status": "FAILED",
+      "test_id": "tests/test_crash_recovery_api.py::CrashRecoveryApiTest::test_failed_final_seal_releases_owner_and_done_window_is_recoverable",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9175,
+      "status": "FAILED",
+      "test_id": "tests/test_crash_recovery_api.py::CrashRecoveryApiTest::test_missing_final_receipt_blocks_then_post_collects_real_receipt",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9176,
+      "status": "FAILED",
+      "test_id": "tests/test_delivery.py::DeliveryTest::test_real_runner_executes_only_local_fake_process_and_collects_actual_output",
+      "message": "AssertionError: Tuples differ: ('failed', 1) != ('done', 0)"
+    },
+    {
+      "line": 9184,
+      "status": "FAILED",
+      "test_id": "tests/test_delivery_source_runner.py::DeliverySourceRunnerTest::test_concurrent_checks_have_independent_paths_and_caller_packet_is_frozen",
+      "message": "subprocess.TimeoutExpired: Command '['git', '-C', 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmps61mj0zu\\\\project', 'rev-parse', '--disambiguate=340f7780513e0fa410941e3f93c79550caba1bdc']' timed out after None seconds"
+    },
+    {
+      "line": 9185,
+      "status": "SUBFAILED(target='main')",
+      "test_id": "tests/test_delivery_source_runner.py::DeliverySourceRunnerTest::test_fixed_source_policy_receipt_rejects_unowned_context_roots",
+      "message": "subprocess.TimeoutExpired: Command '['git', '-C', 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmpww3p6fwl\\\\project', 'rev-parse', '--disambiguate=3b394fd4d96671584e506bb723af591f907bb86c']' timed out after None seconds"
+    },
+    {
+      "line": 9186,
+      "status": "SUBFAILED(target='foreign')",
+      "test_id": "tests/test_delivery_source_runner.py::DeliverySourceRunnerTest::test_fixed_source_policy_receipt_rejects_unowned_context_roots",
+      "message": "subprocess.TimeoutExpired: Command '['git', '-C', 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmpww3p6fwl\\\\project', 'rev-parse', '--disambiguate=3b394fd4d96671584e506bb723af591f907bb86c']' timed out after None seconds"
+    },
+    {
+      "line": 9187,
+      "status": "SUBFAILED(target='another-checkout')",
+      "test_id": "tests/test_delivery_source_runner.py::DeliverySourceRunnerTest::test_fixed_source_policy_receipt_rejects_unowned_context_roots",
+      "message": "subprocess.TimeoutExpired: Command '['git', '-C', 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmpww3p6fwl\\\\project', 'rev-parse', '--disambiguate=3b394fd4d96671584e506bb723af591f907bb86c']' timed out after None seconds"
+    },
+    {
+      "line": 9188,
+      "status": "FAILED",
+      "test_id": "tests/test_delivery_source_runner.py::DeliverySourceRunnerTest::test_fixed_source_policy_revocation_after_preparation_stops_execution",
+      "message": "subprocess.TimeoutExpired: Command '['git', '-C', 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmpnh6qwx_e\\\\project', 'rev-parse', '--disambiguate=4ad0445838bacf741bd98bcc5f6a712b60b0f943']' timed out after None seconds"
+    },
+    {
+      "line": 9189,
+      "status": "FAILED",
+      "test_id": "tests/test_delivery_source_runner.py::DeliverySourceRunnerTest::test_fixed_source_runs_with_main_policy_using_its_actual_checkout_budget",
+      "message": "AssertionError: 'failed' != 'done'"
+    },
+    {
+      "line": 9195,
+      "status": "FAILED",
+      "test_id": "tests/test_delivery_source_runner.py::DeliverySourceRunnerTest::test_hex_named_branch_does_not_replace_the_requested_commit",
+      "message": "AssertionError: 'failed' != 'done'"
+    },
+    {
+      "line": 9201,
+      "status": "FAILED",
+      "test_id": "tests/test_delivery_source_runner.py::DeliverySourceRunnerTest::test_mutating_reader_fails_and_retains_full_dirty_worktree",
+      "message": "AssertionError: 125 != 1"
+    },
+    {
+      "line": 9202,
+      "status": "FAILED",
+      "test_id": "tests/test_delivery_source_runner.py::DeliverySourceRunnerTest::test_prepared_checkout_changes_are_rejected_before_invoke",
+      "message": "subprocess.TimeoutExpired: Command '['git', '-C', 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmp975q9y4x\\\\project', 'rev-parse', '--disambiguate=a63722acde4c818eecf85ee1ff627441919a8583']' timed out after None seconds"
+    },
+    {
+      "line": 9203,
+      "status": "FAILED",
+      "test_id": "tests/test_delivery_source_runner.py::DeliverySourceRunnerTest::test_real_process_reads_detached_candidate_and_keeps_provenance",
+      "message": "AssertionError: 'failed' != 'done'"
+    },
+    {
+      "line": 9209,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9210,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_cancel_before_deadline_stays_cancelled_when_deadline_also_expires",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9211,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle",
+      "message": "AssertionError: 'failed' != 'cancelled'"
+    },
+    {
+      "line": 9215,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_evaluation_exception_records_error_and_finishes_its_created_run",
+      "message": "AssertionError: 'result collection failed' not found in 'NotImplementedError: supervised execution requires POSIX'"
+    },
+    {
+      "line": 9216,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9217,
+      "status": "SUBFAILED(action='timeout')",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_evaluation_timeout_or_cancel_never_reports_successful_execution",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9218,
+      "status": "SUBFAILED(action='cancelled')",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_evaluation_timeout_or_cancel_never_reports_successful_execution",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9219,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_answer_just_before_deadline_is_still_accepted",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9222,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_cancel_after_slow_supervisor_startup_keeps_successful_process_evidence",
+      "message": "AssertionError: [] is not true"
+    },
+    {
+      "line": 9223,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_cancelled_then_invoke_exception_still_seals_lifecycle",
+      "message": "AssertionError: 'failed' != 'cancelled'"
+    },
+    {
+      "line": 9227,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence",
+      "message": "AssertionError: 'result collection failed' not found in 'supervised execution requires POSIX'"
+    },
+    {
+      "line": 9228,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_success_seals_lifecycle_and_applies_actual_reader_output",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9231,
+      "status": "SUBFAILED(action='timeout')",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer",
+      "message": "AssertionError: 'error' != 'timeout'"
+    },
+    {
+      "line": 9234,
+      "status": "SUBFAILED(action='cancelled')",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer",
+      "message": "AssertionError: 'failed' != 'cancelled'"
+    },
+    {
+      "line": 9238,
+      "status": "SUBFAILED(caller='intake')",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers",
+      "message": "KeyError: 'cleanup'"
+    },
+    {
+      "line": 9239,
+      "status": "SUBFAILED(caller='evaluation')",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers",
+      "message": "KeyError: 'cleanup'"
+    },
+    {
+      "line": 9240,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_success_is_finished_and_later_wall_time_does_not_reclassify_it",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9241,
+      "status": "FAILED",
+      "test_id": "tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_timeout_after_zero_exit_overrides_success_before_direct_finalize",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9242,
+      "status": "FAILED",
+      "test_id": "tests/test_external_candidates.py::ExternalCandidateTest::test_comment_after_assessment_invalidates_old_approval_package",
+      "message": "tmh.platform.errors.ApiError: verification_hash 格式不正确"
+    },
+    {
+      "line": 9243,
+      "status": "FAILED",
+      "test_id": "tests/test_external_candidates.py::ExternalCandidateTest::test_failed_test_does_not_enable_preview_or_acceptance",
+      "message": "AssertionError: 'unknown' != 'fail'"
+    },
+    {
+      "line": 9246,
+      "status": "FAILED",
+      "test_id": "tests/test_external_candidates.py::ExternalCandidateTest::test_human_decision_is_separate_and_stale_after_new_verification",
+      "message": "tmh.platform.errors.ApiError: verification_hash 格式不正确"
+    },
+    {
+      "line": 9247,
+      "status": "FAILED",
+      "test_id": "tests/test_external_candidates.py::ExternalCandidateTest::test_real_verification_binds_full_candidate_and_preserves_run",
+      "message": "AssertionError: False is not true : {'check': 'unknown', 'verdict': 'unknown', 'commands': [], 'diagnosis': {}, 'verification_current': False, 'skip': '新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录', 'recheck_operation': {'id': 1, 'status': 'failed', 'result': '重新验证执行失败：supervised execution requires POSIX'}, 'previous_current_verification': {}}"
+    },
+    {
+      "line": 9248,
+      "status": "FAILED",
+      "test_id": "tests/test_external_candidates.py::ExternalCandidateTest::test_stopped_preview_never_counts_as_ready",
+      "message": "tmh.platform.errors.ApiError: verification_hash 格式不正确"
+    },
+    {
+      "line": 9249,
+      "status": "FAILED",
+      "test_id": "tests/test_external_candidates_independent.py::ExternalCandidateIndependentTest::test_restarting_candidate_preview_preserves_previous_raw_log",
+      "message": "tmh.platform.errors.ApiError: 指定运行的提交已经无法找到"
+    },
+    {
+      "line": 9250,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes.py::HarnessProbeTest::test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass",
+      "message": "AssertionError: independent generic build/test did not pass"
+    },
+    {
+      "line": 9251,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes.py::HarnessProbeTest::test_execution_permission_recipe_scope_and_replay",
+      "message": "AssertionError: independent generic build/test did not pass"
+    },
+    {
+      "line": 9252,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes.py::HarnessProbeTest::test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence",
+      "message": "AssertionError: independent generic build/test did not pass"
+    },
+    {
+      "line": 9253,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes.py::HarnessProbeTest::test_probe_invalidates_previous_assessment_then_requires_new_observations",
+      "message": "AssertionError: independent generic build/test did not pass"
+    },
+    {
+      "line": 9254,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes.py::HarnessProbeTest::test_real_probe_distinguishes_behavior_with_both_generic_tests_green",
+      "message": "AssertionError: independent generic build/test did not pass"
+    },
+    {
+      "line": 9255,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes.py::HarnessProbeTest::test_tampered_evidence_and_changed_recipe_invalidate_current_gate",
+      "message": "AssertionError: independent generic build/test did not pass"
+    },
+    {
+      "line": 9256,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes.py::HarnessProbeTest::test_total_timeout_returns_unknown_and_reaps_processes",
+      "message": "AssertionError: independent generic build/test did not pass"
+    },
+    {
+      "line": 9257,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes_independent.py::HarnessProbeIndependentTest::test_legacy_source_without_verification_digest_is_readable_and_stale",
+      "message": "AssertionError: real verification fixture did not finish"
+    },
+    {
+      "line": 9258,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes_independent.py::HarnessProbeIndependentTest::test_optimized_python_cannot_turn_broken_search_into_a_pass",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9259,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes_independent.py::HarnessProbeIndependentTest::test_requirement_change_at_last_process_completion_blocks_pass",
+      "message": "AssertionError: real verification fixture did not finish"
+    },
+    {
+      "line": 9260,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes_independent.py::HarnessProbeIndependentTest::test_second_store_cannot_launch_duplicate_probe",
+      "message": "AssertionError: real verification fixture did not finish"
+    },
+    {
+      "line": 9261,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes_independent.py::HarnessProbeIndependentTest::test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass",
+      "message": "AssertionError: real verification fixture did not finish"
+    },
+    {
+      "line": 9262,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes_independent.py::HarnessProbeIndependentTest::test_timeout_preserves_application_output_without_a_final_newline",
+      "message": "NotImplementedError: supervised execution requires POSIX"
+    },
+    {
+      "line": 9263,
+      "status": "FAILED",
+      "test_id": "tests/test_harness_probes_independent.py::HarnessProbeIndependentTest::test_verification_replacement_invalidates_current_pass_but_retains_history",
+      "message": "AssertionError: real verification fixture did not finish"
+    },
+    {
+      "line": 9264,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_api.py::IntakeRecoveryApiTest::test_closed_ticket_stays_closed_everywhere_and_rejects_retry_without_writes",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9268,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_api.py::IntakeRecoveryApiTest::test_expired_recovery_reads_do_not_sweep_or_land_customer_answers",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9272,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_api.py::IntakeRecoveryApiTest::test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9276,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_api.py::IntakeRecoveryApiTest::test_http_retry_requires_write_header_and_missing_ticket_does_not_delegate",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9280,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_api.py::IntakeRecoveryApiTest::test_missing_executor_blocks_retry_with_a_409_and_keeps_saved_answers",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9284,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_api.py::IntakeRecoveryApiTest::test_real_http_retry_has_running_state_and_blocks_duplicate_until_complete",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9288,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_api.py::IntakeRecoveryApiTest::test_retry_delegates_canonical_key_actor_and_wait_without_replacing_customer_words",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9292,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_api.py::IntakeRecoveryApiTest::test_uncertain_process_cleanup_blocks_http_retry_without_changing_evidence",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9296,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_answered_unknown_stays_open_even_when_reader_claims_completion",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9299,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_contract_check_and_layer_changed_during_retry_are_not_overwritten",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9302,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_contract_update_between_landing_read_and_write_is_not_lost",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9305,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_expired_get_cannot_give_up_a_replacement_job_started_before_lock",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9308,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_expired_retry_does_not_overwrite_a_newer_contract_during_fallback",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9311,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_late_success_cannot_replace_a_new_recovery_job",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9314,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_real_finished_receipt_must_remain_readable_and_confirm_cleanup",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9317,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_recovery_read_is_side_effect_free",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9320,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_retry_preserves_entire_closed_contract_and_distinct_authors",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9323,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_retry_that_returns_placeholder_is_visible_and_still_retryable",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9326,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_ticket_closed_while_reader_runs_is_not_reported_as_recovered",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9329,
+      "status": "FAILED",
+      "test_id": "tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_two_retry_requests_create_only_one_new_job",
+      "message": "AssertionError: '规则' != '智能体'"
+    },
+    {
+      "line": 9332,
+      "status": "FAILED",
+      "test_id": "tests/test_learning.py::LearningTests::test_capture_is_complete_idempotent_and_project_scoped",
+      "message": "AssertionError: '---\\r\\nid: flow:demo\\r\\ntitle: 示例\\r\\nstatus: [5041 chars]整正文。' != '---\\nid: flow:demo\\ntitle: 示例\\nstatus: 已确认\\n-[5025 chars]整正文。'"
+    },
+    {
+      "line": 9334,
+      "status": "FAILED",
+      "test_id": "tests/test_learning.py::LearningTests::test_migration_is_repeatable_and_ddl_failure_rolls_back",
+      "message": "AssertionError: '---\\r\\nid: flow:demo\\r\\ntitle: 示例\\r\\nstatus: [5041 chars]整正文。' != '---\\nid: flow:demo\\ntitle: 示例\\nstatus: 已确认\\n-[5025 chars]整正文。'"
+    },
+    {
+      "line": 9336,
+      "status": "FAILED",
+      "test_id": "tests/test_learning.py::LearningTests::test_proposal_never_mutates_page_or_inherits_confirmation",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9337,
+      "status": "FAILED",
+      "test_id": "tests/test_learning.py::LearningTests::test_read_is_pure_and_old_confirmation_is_not_machine_pass",
+      "message": "AssertionError: '---\\r\\nid: flow:demo\\r\\ntitle: 示例\\r\\nstatus: [5041 chars]整正文。' != '---\\nid: flow:demo\\ntitle: 示例\\nstatus: 已确认\\n-[5025 chars]整正文。'"
+    },
+    {
+      "line": 9339,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_api.py::LearningAPITests::test_agent_capture_and_propose_are_audited_without_implicit_adoption",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9340,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_api.py::LearningAPITests::test_catalog_get_is_pure_and_preserves_legacy_confirmation",
+      "message": "AssertionError: '---\\r\\nid: index\\r\\ntitle: 项目知识\\r\\nstatus: 已确[6349 chars]务说明。' != '---\\nid: index\\ntitle: 项目知识\\nstatus: 已确认\\n---[6333 chars]务说明。'"
+    },
+    {
+      "line": 9342,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_context.py::LearningContextTests::test_changed_source_is_excluded_but_keeps_human_pointer_and_full_handle",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9343,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_context.py::LearningContextTests::test_exact_adopted_fact_is_injected_and_actual_receipt_is_persisted",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9344,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_context.py::LearningContextTests::test_new_legacy_human_confirmation_is_not_reported_as_old_adoption",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9345,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_context.py::LearningContextTests::test_page_changes_after_retrieval_cannot_receive_old_revision_receipt",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9346,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_context.py::LearningContextTests::test_policy_freezes_the_same_filtered_text_as_ordinary_prompt",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9347,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_context.py::LearningContextTests::test_removed_management_record_before_lock_is_not_legacy",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9348,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_context.py::LearningContextTests::test_render_budget_keeps_full_omission_receipt_without_splitting_items",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9349,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_context.py::LearningContextTests::test_retrieval_failure_is_explicit_even_with_legacy_switch",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9350,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_context.py::LearningContextTests::test_revoke_between_retrieval_and_use_cannot_fall_back_to_legacy",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9351,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_context.py::LearningContextTests::test_ticket_context_preview_enforces_the_same_adoption_boundary",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9352,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_decisions.py::LearningDecisionsTests::test_fact_adoption_can_be_revised_reviewed_and_adopted_again_without_inheriting_confirmation",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9353,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_decisions.py::LearningDecisionsTests::test_next_fact_revision_cannot_forge_human_metadata_generated_facts_or_stale_source",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9354,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_abandon_preserves_changed_body_and_history_and_remains_unconfirmed",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9355,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_abandon_requires_current_cas_identity_and_the_same_pending_decision",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9356,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_applied_replay_audits_history_even_after_page_removal_or_invalid_edit",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9357,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_applied_replay_rejects_corrupt_receipt_without_republishing",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9358,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_applied_retry_is_read_only_and_changed_identity_is_rejected",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9359,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_atomic_replace_failure_never_falls_back_to_overwriting_page",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9360,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_concurrent_page_or_registry_change_rejects_original_token",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9361,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_concurrent_pending_retry_and_abandon_only_apply_one_decision",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9362,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_crash_after_final_page_before_registry_is_pending_and_resumable",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9363,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_human_gate_and_revision_identity_are_checked_before_writes",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9364,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_invalid_structure_is_rejected_before_prepared_receipt",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9365,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_legacy_human_confirmation_cannot_cover_an_unfinished_projection",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9366,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_managed_confirmation_without_a_content_hash_is_never_treated_as_confirmed",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9367,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_new_legacy_human_confirmation_has_its_own_hash_and_clears_old_machine_adoption",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9368,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_new_publication_after_abandon_is_not_blocked_or_overwritten_by_old_retry",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9369,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_pending_retry_never_overwrites_newer_body_or_registry",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9370,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_pending_retry_rechecks_all_evidence_and_workspace_binding",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9371,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_post_publication_content_change_and_newline_change_invalidate_confirmation",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9372,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_prepared_is_never_confirmed_and_only_explicit_retry_recovers",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9373,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_projection_preserves_callers_database_transaction",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9374,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_publication_preserves_full_text_and_binds_confirmation_to_exact_content",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9375,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_readers_are_pure_and_legacy_confirmation_is_unchanged",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9376,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_revoke_keeps_current_body_and_receipts_and_old_adopt_cannot_republish",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9377,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_sources_changed_after_final_page_cannot_commit_confirmation",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9378,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_stale_sources_preserve_human_pointer_for_revocation_without_revalidation",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9379,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_successfully_applied_publication_cannot_be_abandoned",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9380,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_two_concurrent_decisions_have_one_winner_without_deadlock",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9381,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_facts.py::LearningFactsTests::test_unregistered_or_unreadable_page_has_no_active_revision",
+      "message": "tmh.platform.errors.ApiError: 事实修订不能改变登记字段或程序生成的事实块"
+    },
+    {
+      "line": 9382,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_call_limit_is_not_reset_by_resume",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9383,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_cancel_between_registration_and_invoke_does_not_leave_queued_run",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9384,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_cancel_completion_race_has_one_terminal_winner",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9385,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_cancel_running_process_is_final_and_preserves_output",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9386,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_claude_has_understand_mode_and_no_tools",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9387,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_codex_readonly_is_insufficient_for_frozen_input_review",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9388,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_config_change_before_launch_cannot_use_new_permissions",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9389,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_cross_process_lock_excludes_worker_even_if_database_lease_expired",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9390,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_expired_lease_finally_exposes_resumable_job_without_repeating_completed_call",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9391,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_expired_worker_cannot_publish_after_ownership_token_changes",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9392,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_finish_rechecks_lease_after_source_and_config_validation",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9393,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_finish_rechecks_monotonic_budget_even_if_wall_clock_moves_backwards",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9394,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_finish_rechecks_wall_deadline_after_source_and_config_validation",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9395,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_identical_revision_stops_without_new_revision_or_repeated_call",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9396,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_interrupted_registered_run_is_not_blindly_executed_again",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9397,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_invalid_permission_configs_and_missing_executable_fail_closed",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9398,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_migration_refuses_pending_transaction_without_committing",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9399,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_missing_capability_help_failure_and_timeout_fail_closed",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9400,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_model_pass_field_without_claims_fails_and_preserves_output",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9401,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_read_is_pure_and_idempotent_request_mismatch_rejected",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9402,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_real_timeout_preserves_output_and_cleanup_without_passing",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9403,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_resume_reuses_completed_steps_and_idempotent_revision_after_crash",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9404,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_revision_cannot_change_human_metadata",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9405,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_revision_uses_fresh_runs_and_keeps_original_page",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9406,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_source_or_page_change_during_invocation_cannot_pass",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9407,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_stable_claims_cover_body_lists_tables_and_code_not_frontmatter",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9408,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_strict_claim_coverage_references_and_duplicate_json_fields",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9409,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_supported_claim_has_full_frozen_input_and_no_human_confirmation",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9410,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_survey_default_does_not_review_and_opt_in_persists",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9411,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_two_store_workers_share_kernel_owner_and_do_not_duplicate",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9412,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_runs.py::LearningRunsTests::test_valid_reference_does_not_override_conflicting_semantic_verdict",
+      "message": "tmh.platform.errors.ApiError: 正文已变化，请刷新后重新固定修订"
+    },
+    {
+      "line": 9413,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_busy_retry_checks_learning_again_after_the_wait",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9414,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_changed_receipt_or_foreign_ticket_parent_is_not_trusted",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9415,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_copied_conclusion_is_an_ancestor_even_without_cli_resume",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9416,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_current_fact_can_resume_but_revoke_removes_session_and_old_conclusion",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9417,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_excluded_receipt_does_not_claim_hidden_knowledge_was_injected",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9418,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_extra_fix_context_keeps_both_old_and_new_receipts",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9419,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_fix_loop_keeps_parent_receipt_and_stops_after_revoke",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9420,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_later_manual_confirmation_is_checked_as_its_own_exact_content",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9421,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_latest_invalid_step_does_not_fall_back_to_an_older_session",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9422,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_lost_session_fallback_does_not_resend_stale_full_prompt",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9423,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_new_receipt_does_not_erase_a_resumed_ancestors_knowledge",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9424,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_old_unreceipted_session_is_kept_only_before_learning_history",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9425,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_queued_run_with_stale_frozen_prompt_never_invokes_a_model",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9426,
+      "status": "FAILED",
+      "test_id": "tests/test_learning_sessions.py::LearningSessionTests::test_source_and_page_changes_each_invalidate_the_exact_fact",
+      "message": "tmh.platform.errors.ApiError: 知识页面或登记不可读：页面登记标识不匹配"
+    },
+    {
+      "line": 9427,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_a_busy_model_is_waited_out_and_the_session_picked_up",
+      "message": "AssertionError: 'failed' != 'done'"
+    },
+    {
+      "line": 9432,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_a_change_beyond_the_plan_is_flagged_and_left_to_a_person",
+      "message": "FileNotFoundError: [Errno 2] No such file or directory: 'C:\\\\Users\\\\RUNNER~1\\\\AppData\\\\Local\\\\Temp\\\\tmh-data-2id0z898\\\\runs\\\\3\\\\verify.json'"
+    },
+    {
+      "line": 9433,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_a_change_is_built_again_without_being_redone",
+      "message": "IndexError: list index out of range"
+    },
+    {
+      "line": 9434,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open",
+      "message": "KeyError: 'state'"
+    },
+    {
+      "line": 9435,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_a_person_writes_it_pushes_a_branch_and_the_platform_checks_reviews_and_ships_it",
+      "message": "AssertionError: no verdict on HW-1: {'id': 118, 'ticket_id': 13, 'ts': '2026-10-23 04:04:51', 'author': '我来写', 'kind': 'flow', 'body': '小王 在分支 origin/wb/HW-1 上的提交 befb4e9dec 没检查完：构建没跑起来：supervised execution requires POSIX。原始证据保留，未采用或转交验收。', 'data': {'run': 7, 'verdict': 'unknown'}}"
+    },
+    {
+      "line": 9436,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_a_rebuilt_change_the_diagnosis_judged_unsolved_still_waits_for_a_person",
+      "message": "IndexError: list index out of range"
+    },
+    {
+      "line": 9437,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_a_ticket_s_steps_continue_one_agent_session",
+      "message": "AssertionError: 'failed' != 'done'"
+    },
+    {
+      "line": 9442,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_acceptance_teaches_and_grows_the_eval_set",
+      "message": "AssertionError: 'failed' != 'done'"
+    },
+    {
+      "line": 9446,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_agent_runs_wait_for_a_free_slot_ticket_steps_first",
+      "message": "AssertionError: Lists differ: ['failed', 'failed', 'failed'] != ['running', 'queued', 'queued']"
+    },
+    {
+      "line": 9454,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_an_accepted_change_is_merged_given_a_version_and_a_conflict_goes_back",
+      "message": "KeyError: 'decision'"
+    },
+    {
+      "line": 9455,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_analysis_writes_the_flow_pages_it_touched",
+      "message": "AssertionError: 0 != 1 : [{'id': 162, 'ticket_id': 21, 'ts': '2026-10-23 04:05:32', 'author': 'tester', 'kind': 'created', 'body': '创建工单', 'data': {}}, {'id': 163, 'ticket_id': 21, 'ts': '2026-10-23 04:05:32', 'author': 'tester', 'kind': 'run', 'body': '让 writer 分析定位', 'data': {'run': 16, 'agent': 'writer', 'mode': 'analyze', 'model': ''}}, {'id': 164, 'ticket_id': 21, 'ts': '2026-10-23 04:05:32', 'author': 'tester', 'kind': 'status', 'body': '新建 → 分析中', 'data': {'from': 'new', 'to': 'analyzing'}}, {'id': 165, 'ticket_id': 21, 'ts': '2026-10-23 04:05:32', 'author': 'writer', 'kind': 'run-failed', 'body': '分析定位失败', 'data': {'run': 16, 'agent': 'writer', 'mode': 'analyze', 'summary': '运行执行失败：supervised execution requires POSIX。原始日志和工作树保留。'}}]"
+    },
+    {
+      "line": 9456,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_business_map_writes_domains_then_overview",
+      "message": "AssertionError: 'stopped' != 'done'"
+    },
+    {
+      "line": 9460,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_change_is_split_by_file_built_and_diagnosed",
+      "message": "AssertionError: 'failed' != 'done'"
+    },
+    {
+      "line": 9464,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_eval_set_replays_and_scores",
+      "message": "KeyError: 'missed'"
+    },
+    {
+      "line": 9465,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_evidence_package_sign_off_and_ledger",
+      "message": "AssertionError: 400 != 200 : {'error': '这次运行没有正常完成，不能采纳；先修复失败或重新执行'}"
+    },
+    {
+      "line": 9466,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_full_project_analysis",
+      "message": "AssertionError: 'stopped' not found in ('idle', 'done')"
+    },
+    {
+      "line": 9467,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_loop_points_assistant_and_acceptance",
+      "message": "AssertionError: 'failed' != 'done'"
+    },
+    {
+      "line": 9471,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_missing_agent_fails_cleanly",
+      "message": "AssertionError: '启动' not found in '运行执行失败：supervised execution requires POSIX。原始日志和工作树保留。'"
+    },
+    {
+      "line": 9472,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_new_ticket_flows_to_doing_by_itself",
+      "message": "AssertionError: Lists differ: ['analyze'] != ['analyze', 'plan']"
+    },
+    {
+      "line": 9480,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_port_in_use_is_reported_not_crashed",
+      "message": "PermissionError: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions"
+    },
+    {
+      "line": 9481,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_readiness_checks_the_real_machine_worst_first",
+      "message": "AssertionError: 'warn' != 'ok'"
+    },
+    {
+      "line": 9484,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_survey_resumes_after_a_restart",
+      "message": "AssertionError: Tuples differ: ('stopped', 0) != ('done', 2)"
+    },
+    {
+      "line": 9492,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_ticket_flow_with_agent",
+      "message": "AssertionError: 'failed' != 'done'"
+    },
+    {
+      "line": 9496,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_ticket_pinned_to_an_old_commit_runs_on_that_code",
+      "message": "AssertionError: 'doing' != 'verify'"
+    },
+    {
+      "line": 9500,
+      "status": "FAILED",
+      "test_id": "tests/test_platform.py::PlatformApiTest::test_ticket_runs_on_its_own_to_a_committed_branch",
+      "message": "AssertionError: 'doing' != 'verify'"
+    },
+    {
+      "line": 9504,
+      "status": "FAILED",
+      "test_id": "tests/test_preview_health_flow.py::PreviewHealthFlowTest::test_real_database_failure_blocks_assessment_and_recovers_same_preview",
+      "message": "tmh.platform.errors.ApiError: 创建检查未完成，已保留目录和诊断：C:\\Users\\runneradmin\\AppData\\Local\\Temp\\webuddy-health-flow-84u82tmr\\data\\projects\\HP"
+    }
+  ],
+  "risk_boundary": "Do not claim full Windows pass or all failures pre-existing. Short summaries are symptoms, not established root causes; no comparable parent Windows run has been reproduced in this audit."
+}

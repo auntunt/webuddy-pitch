@@ -1,0 +1,236 @@
+- link "跳到主要内容":
+  - /url: "#main"
+- banner:
+  - link "Webuddy 工作台":
+    - /url: "#/workspace"
+    - generic: webuddy
+  - combobox "项目范围":
+    - option "全部项目（2）" [selected]
+    - option "ORG · 合成交付项目 · 非生产"
+    - option "OTHER · 另一合成项目"
+    - option "＋ 添加项目…"
+  - button "剩余 20,000 点":
+    - generic: 剩余
+    - generic: 20,000
+    - text: 点
+  - textbox "粘贴客户的话":
+    - /placeholder: 记录新的需求或问题…
+  - button "录入客户需求": ＋ 记录需求
+  - button "AI 助手 Ctrl K":
+    - text: AI 助手
+    - generic: Ctrl K
+  - button "charlie，用户与设置": charlie
+  - link "退出":
+    - /url: /logout
+- navigation "主导航":
+  - generic: 工作空间
+  - link "工作台":
+    - /url: "#/workspace"
+    - generic: 工作台
+  - link "项目":
+    - /url: "#/projects"
+    - generic: 项目
+  - link "任务":
+    - /url: "#/tickets"
+    - generic: 任务
+  - link "团队协作":
+    - /url: "#/team"
+    - generic: 团队协作
+  - link "知识与记忆":
+    - /url: "#/memory"
+    - generic: 知识与记忆
+  - generic: 管理
+  - link "交付":
+    - /url: "#/deliveries"
+    - generic: 交付
+  - link "客户":
+    - /url: "#/clients"
+    - generic: 客户
+  - link "设置":
+    - /url: "#/settings"
+    - generic: 设置
+- main:
+  - generic: charlie · 全部项目
+  - heading "工作台" [level=1]
+  - paragraph: 从当前责任人、交接材料和下一步继续。
+  - button "刷新队列"
+  - button "新建任务"
+  - group "工作范围":
+    - button "我负责的 0":
+      - text: 我负责的
+      - generic: "0"
+    - button "待我接手 0":
+      - text: 待我接手
+      - generic: "0"
+    - button "待我复核 0":
+      - text: 待我复核
+      - generic: "0"
+    - button "团队进行中 2" [pressed]:
+      - text: 团队进行中
+      - generic: "2"
+    - button "待分配 0":
+      - text: 待分配
+      - generic: "0"
+  - group "交接阶段筛选":
+    - button "全部阶段" [pressed]
+    - button "需求 0":
+      - generic: 需求
+      - generic: "0"
+    - button "研发 0":
+      - generic: 研发
+      - generic: "0"
+    - button "测试 0":
+      - generic: 测试
+      - generic: "0"
+    - button "交付 1":
+      - generic: 交付
+      - generic: "1"
+    - button "运维 0":
+      - generic: 运维
+      - generic: "0"
+    - button "未登记阶段 1":
+      - generic: 未登记阶段
+      - generic: "1"
+  - generic: 查找任务
+  - searchbox "查找任务"
+  - button "搜索"
+  - text: 交接状态
+  - combobox "交接状态":
+    - option "全部状态" [selected]
+    - option "待接收"
+    - option "已接收"
+    - option "已退回"
+    - option "已阻塞"
+    - option "已撤回"
+    - option "尚无交接"
+  - paragraph: 我的 / 团队是工作视图，不是项目权限隔离。交接阶段由明确登记产生，历史未登记显示未知。
+  - status: 按真实登记记录展示；队列刷新不会覆盖右侧未提交的交接草稿。
+  - region "任务队列":
+    - article:
+      - generic: ORG-2
+      - generic: 未登记阶段
+      - generic: 新建
+      - button "历史任务尚未登记阶段与交接"
+      - term: 当前负责人
+      - definition: alice
+      - term: 下一责任人
+      - definition: alice
+      - generic: 待提交代码
+      - generic: 等待时长未知
+      - link "查看任务与执行":
+        - /url: "#/t/ORG-2"
+        - text: 查看任务与执行
+    - article:
+      - generic: ORG-1
+      - generic: 交付
+      - generic: 新建
+      - button "审批流程异常恢复：研发 → 测试 → 交付" [pressed]
+      - term: 当前负责人
+      - definition: alice
+      - term: 下一责任人
+      - definition: bob
+      - generic: 待提交代码
+      - generic: 当前不在等待
+      - link "查看任务与执行":
+        - /url: "#/t/ORG-1"
+        - text: 查看任务与执行
+    - generic: 1–2 / 2 项
+    - button "上一页" [disabled]
+    - button "下一页" [disabled]
+    - link "分配任务":
+      - /url: "#/team/unassigned"
+    - link "项目与资产":
+      - /url: "#/projects"
+    - link "知识与经验":
+      - /url: "#/memory/clusters"
+    - link "交付记录":
+      - /url: "#/deliveries"
+  - complementary "任务和交接详情":
+    - generic: ORG-1 · 任务交接
+    - heading "审批流程异常恢复：研发 → 测试 → 交付" [level=2]
+    - button "刷新记录"
+    - generic: 待提交代码
+    - generic: 新建
+    - term: 当前负责人
+    - definition: alice
+    - term: 下一责任人
+    - definition: bob
+    - term: 独立复核人
+    - definition: charlie
+    - term: 交接阶段
+    - definition: 交付
+    - term: 交接状态
+    - definition: 材料已退回
+    - term: 当前等待
+    - definition: 当前不在等待
+    - heading "最近交接处理" [level=3]
+    - paragraph: 退回材料 · charlie · 2026-10-23T03:40:47.872551+00:00
+    - paragraph: 合成退回：补充回退验证的具体执行步骤。
+    - generic: 技术检查：尚未开始
+    - generic: 人工复核：尚未提交
+    - link "完整任务与业务验收":
+      - /url: "#/t/ORG-1"
+    - link "代码提交与独立复核":
+      - /url: "#/team/ticket/ORG-1"
+    - heading "完整需求与验收标准" [level=3]
+    - generic: 【合成验收场景，无生产数据】 需求：审批服务失败后可恢复，并保留原审批记录。 验收标准： 1. 重试不会产生重复审批。 2. 测试覆盖失败恢复与幂等。 3. 交付需提供回退步骤。 完整保留字段：<script>仅为转义测试</script> 最后一行：完整需求结束。
+    - heading "版本与依据" [level=3]
+    - paragraph: 尚无候选版本。交接材料不能替代测试证据或人工验收。
+    - generic "最新需求、讨论与版本依据（完整记录）"
+    - generic "本次发送时的固定依据（完整快照）"
+    - heading "推进交接" [level=3]
+    - text: 操作
+    - combobox "操作":
+      - option "发送交接" [selected]
+    - text: 指定接收人
+    - combobox "指定接收人":
+      - option "选择有效个人账号" [selected]
+      - option "alice"
+      - option "bob"
+      - option "charlie"
+    - text: 交接目标阶段
+    - combobox "交接目标阶段":
+      - option "选择阶段" [selected]
+      - option "需求"
+      - option "研发"
+      - option "测试"
+      - option "交付"
+      - option "运维"
+    - text: 交接说明与下一步
+    - textbox "交接说明与下一步"
+    - text: 完整交接材料
+    - textbox "完整交接材料":
+      - /placeholder: 填写执行步骤、环境、测试记录和未决问题。固定版本依据由系统随发送绑定。
+    - paragraph: 当前身份或交接状态不允许此操作；刷新记录可核对最新权限。
+    - button "发送交接" [disabled]
+    - button "保留草稿，核对并绑定最新依据" [disabled]
+    - paragraph: 接收只登记材料交接。技术检查、独立人工复核和业务验收继续在各自入口完成。
+    - heading "交接历史" [level=3]
+    - article:
+      - generic: 交接已撤回
+      - generic: 测试
+      - generic: 2026-10-23T03:35:41.701369+00:00
+      - paragraph: alice → bob
+      - paragraph: 合成UI验证：请测试失败恢复、重复重试和原审批记录完整性。
+      - generic "完整交接材料"
+      - generic "交接、接收与阻塞事件（完整记录）"
+      - generic "固定来源快照"
+    - article:
+      - generic: 材料已接收
+      - generic: 测试
+      - generic: 2026-10-23T03:38:20.421774+00:00
+      - paragraph: alice → bob
+      - paragraph: 第二次合成交接：请测试失败恢复和重复审批幂等。
+      - generic "完整交接材料"
+      - generic "交接、接收与阻塞事件（完整记录）"
+      - generic "固定来源快照"
+    - article:
+      - generic: 材料已退回
+      - generic: 交付
+      - generic: 2026-10-23T03:40:19.032131+00:00
+      - paragraph: bob → charlie
+      - paragraph: 合成测试交付：请核对上线步骤、回退步骤与未决问题。
+      - generic "完整交接材料"
+      - generic "交接、接收与阻塞事件（完整记录）"
+      - generic "固定来源快照"
+    - paragraph: 交接接收只确认协作材料，不代表技术复核、业务验收或关单。当前为共享工作区，责任视图不是访问权限隔离。

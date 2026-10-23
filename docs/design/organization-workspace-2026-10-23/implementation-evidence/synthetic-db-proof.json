@@ -1,0 +1,118 @@
+{
+  "tickets": [
+    {
+      "id": 1,
+      "title": "审批流程异常恢复：研发 → 测试 → 交付",
+      "status": "new",
+      "assignee": "alice"
+    },
+    {
+      "id": 2,
+      "title": "历史任务尚未登记阶段与交接",
+      "status": "new",
+      "assignee": "alice"
+    }
+  ],
+  "team": [
+    {
+      "ticket_id": 1,
+      "reviewer": "charlie"
+    }
+  ],
+  "handoffs": [
+    {
+      "id": 1,
+      "ticket_id": 1,
+      "stage": "testing",
+      "status": "withdrawn",
+      "sender": "alice",
+      "receiver": "bob",
+      "next_actor": "alice"
+    },
+    {
+      "id": 2,
+      "ticket_id": 1,
+      "stage": "testing",
+      "status": "received",
+      "sender": "alice",
+      "receiver": "bob",
+      "next_actor": "bob"
+    },
+    {
+      "id": 3,
+      "ticket_id": 1,
+      "stage": "delivery",
+      "status": "returned",
+      "sender": "bob",
+      "receiver": "charlie",
+      "next_actor": "bob"
+    }
+  ],
+  "handoff_events": [
+    {
+      "action": "send",
+      "actor": "alice",
+      "note": "合成UI验证：请测试失败恢复、重复重试和原审批记录完整性。",
+      "revision": 1,
+      "status": "waiting",
+      "next_actor": "bob"
+    },
+    {
+      "action": "withdraw",
+      "actor": "alice",
+      "note": "合成验证：撤回后补充完整回退步骤再交接。",
+      "revision": 2,
+      "status": "withdrawn",
+      "next_actor": "alice"
+    },
+    {
+      "action": "send",
+      "actor": "alice",
+      "note": "第二次合成交接：请测试失败恢复和重复审批幂等。",
+      "revision": 3,
+      "status": "waiting",
+      "next_actor": "bob"
+    },
+    {
+      "action": "block",
+      "actor": "bob",
+      "note": "合成阻塞：隔离测试环境暂不可用，需要恢复模拟数据库。",
+      "revision": 4,
+      "status": "blocked",
+      "next_actor": "bob"
+    },
+    {
+      "action": "resume",
+      "actor": "bob",
+      "note": "合成环境已经恢复，继续材料接收。",
+      "revision": 5,
+      "status": "waiting",
+      "next_actor": "bob"
+    },
+    {
+      "action": "receive",
+      "actor": "bob",
+      "note": "已收到测试材料，将在隔离环境继续测试；不代表验收。",
+      "revision": 6,
+      "status": "received",
+      "next_actor": "bob"
+    },
+    {
+      "action": "send",
+      "actor": "bob",
+      "note": "合成测试交付：请核对上线步骤、回退步骤与未决问题。",
+      "revision": 7,
+      "status": "waiting",
+      "next_actor": "charlie"
+    },
+    {
+      "action": "return",
+      "actor": "charlie",
+      "note": "合成退回：补充回退验证的具体执行步骤。",
+      "revision": 8,
+      "status": "returned",
+      "next_actor": "bob"
+    }
+  ],
+  "candidate_decision_count": 0
+}

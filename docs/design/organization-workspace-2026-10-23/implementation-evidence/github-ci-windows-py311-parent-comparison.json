@@ -1,0 +1,36 @@
+{
+  "parent_commit": "033e3dd0f1e11e572be195b12debb16626cf5b42",
+  "parent_job_id": 119989481157,
+  "parent_summary": [
+    "168 failed, 495 passed, 71 skipped, 5 errors, 273 subtests passed in 1068.93s (0:17:48)"
+  ],
+  "current_summary": [
+    "188 failed, 558 passed, 71 skipped, 5 errors, 273 subtests passed in 944.57s (0:15:44)"
+  ],
+  "current_unique_failure_or_error_tests": 184,
+  "also_failed_or_errored_in_parent": 164,
+  "current_only_test_ids": [
+    "tests/test_platform.py::PlatformApiTest::test_a_ticket_s_steps_continue_one_agent_session",
+    "tests/test_platform.py::PlatformApiTest::test_acceptance_teaches_and_grows_the_eval_set",
+    "tests/test_platform.py::PlatformApiTest::test_agent_runs_wait_for_a_free_slot_ticket_steps_first",
+    "tests/test_platform.py::PlatformApiTest::test_an_accepted_change_is_merged_given_a_version_and_a_conflict_goes_back",
+    "tests/test_platform.py::PlatformApiTest::test_analysis_writes_the_flow_pages_it_touched",
+    "tests/test_platform.py::PlatformApiTest::test_business_map_writes_domains_then_overview",
+    "tests/test_platform.py::PlatformApiTest::test_change_is_split_by_file_built_and_diagnosed",
+    "tests/test_platform.py::PlatformApiTest::test_eval_set_replays_and_scores",
+    "tests/test_platform.py::PlatformApiTest::test_evidence_package_sign_off_and_ledger",
+    "tests/test_platform.py::PlatformApiTest::test_full_project_analysis",
+    "tests/test_platform.py::PlatformApiTest::test_loop_points_assistant_and_acceptance",
+    "tests/test_platform.py::PlatformApiTest::test_missing_agent_fails_cleanly",
+    "tests/test_platform.py::PlatformApiTest::test_new_ticket_flows_to_doing_by_itself",
+    "tests/test_platform.py::PlatformApiTest::test_port_in_use_is_reported_not_crashed",
+    "tests/test_platform.py::PlatformApiTest::test_readiness_checks_the_real_machine_worst_first",
+    "tests/test_platform.py::PlatformApiTest::test_survey_resumes_after_a_restart",
+    "tests/test_platform.py::PlatformApiTest::test_ticket_flow_with_agent",
+    "tests/test_platform.py::PlatformApiTest::test_ticket_pinned_to_an_old_commit_runs_on_that_code",
+    "tests/test_platform.py::PlatformApiTest::test_ticket_runs_on_its_own_to_a_committed_branch",
+    "tests/test_preview_health_flow.py::PreviewHealthFlowTest::test_real_database_failure_blocks_assessment_and_recovers_same_preview"
+  ],
+  "parent_only_test_ids": [],
+  "boundary": "Matching test IDs prove an earlier failure existed; they do not prove the same root cause. Parent/current runs are incomplete and not identical schedules. New modules have no failure/error entry, but quiet logs and early interruption do not prove all new modules executed or passed."
+}

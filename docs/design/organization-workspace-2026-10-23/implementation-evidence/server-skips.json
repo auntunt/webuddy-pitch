@@ -1,0 +1,58 @@
+[
+  {
+    "test": "test_knowledge_agent_api.KnowledgeMCPDiscoveryTest.test_real_sdk_discovery_obeys_readonly_and_execution_permissions",
+    "reason": "optional MCP SDK not installed; no protocol coverage without it"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_complete_multiline_context_and_message_survive_stdio",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_enabled_execution_returns_durable_receipt_without_waiting_for_model",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_generated_claude_configuration_launches_from_unrelated_directory",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_generated_codex_toml_launches_from_unrelated_directory",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_generated_cursor_configuration_launches_from_unrelated_directory",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_http_conflict_is_structured_tool_error_not_protocol_success",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_invalid_arguments_and_disabled_execution_never_reach_http",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_invalid_write_response_preserves_uncertain_outcome",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_lost_write_response_is_uncertain_and_never_automatically_retried",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPTest.test_read_only_hides_writes_and_rejects_direct_calls_before_http",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPWorkersTest.test_cancellation_waits_for_bounded_http_worker_and_does_not_retry",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  },
+  {
+    "test": "test_workbench_mcp.WorkbenchMCPWorkersTest.test_http_workers_are_bounded_and_do_not_block_protocol_loop",
+    "reason": "optional MCP SDK not installed; install .[mcp]"
+  }
+]
