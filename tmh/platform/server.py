@@ -985,6 +985,45 @@ def api_team(P, req):
     return team.dispatch_read(P, req.query, _session_actor(req))
 
 
+def _handoff_work(P, data, key, viewer):
+    """The same candidate projection drives team review and handoff details."""
+    from . import team
+    data["work"] = team.item(P, P.ticket(key), viewer)
+    return data
+
+
+@route("GET", "/api/handoffs")
+def api_handoffs(P, req):
+    from . import handoffs, team
+    key = req.arg("ticket")
+    if not key:
+        raise ApiError(400, "请选择需要查看交接的工单")
+    ticket = P.ticket(key)
+    project = req.arg("project")
+    if project and project not in ("*", "all") and P.project(project)["id"] != ticket["project_id"]:
+        raise ApiError(404, "此项目没有这张工单")
+    team.schema(P)
+    viewer = _session_actor(req)
+    return _handoff_work(P, handoffs.read(P, key, viewer), key, viewer)
+
+
+@route("POST", "/api/handoffs")
+def api_handoff_action(P, req):
+    from . import handoffs, team
+    viewer = _human_action(P, req, strict=True)
+    team.schema(P)
+    result = handoffs.dispatch_action(P, req.body, viewer)
+    # The write result is durable even when a later candidate refresh fails.
+    # Never turn a committed handoff into a misleading business rejection.
+    try:
+        return _handoff_work(P, result, req.body.get("ticket"), viewer)
+    except Exception:
+        traceback.print_exc()
+        result["work"] = None
+        result["work_error"] = "交接已登记，候选详情暂不可读取，请刷新详情核对。"
+        return result
+
+
 @route("POST", "/api/team")
 def api_team_action(P, req):
     from . import team

@@ -13,6 +13,7 @@ from .ui_theme import THEME_CSS
 from .ui_drafts import DRAFT_JS
 from .ui_library import LIBRARY_CSS, LIBRARY_JS
 from .ui_workspace import WORKSPACE_JS
+from .ui_handoffs import HANDOFFS_JS
 from .ui_workspace_theme import WORKSPACE_CSS
 from .ui_memory import MEMORY_CSS, MEMORY_JS
 from .ui_learning import LEARNING_CSS, LEARNING_JS
@@ -20,7 +21,7 @@ from .ui_team import TEAM_CSS, TEAM_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + MEMORY_JS + TEAM_JS + LEARNING_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS)
 
 
 HTML = r"""<!doctype html>
@@ -60,7 +61,7 @@ async function api(m,p,b,extraHeaders={}){
   // errors read as what happened and what to do; the raw cause goes to the console for whoever debugs it
   let r;try{r=await fetch(p,o)}catch(e){console.warn(m,p,e);throw apiErr(navigator.onLine===false?'网络断了，连上后再试。':'连不上服务器：可能是网络问题，或服务没在运行。稍后再试。')}
   let j;try{j=await r.json()}catch(e){j={}}
-  if(!r.ok){if(j.detail)console.warn(m,p,j.detail);throw apiErr(j.error&&r.status!==401?j.error:HTTPMSG[r.status]||HTTPMSG[Math.floor(r.status/100)*100]||'出错了（'+r.status+'），稍后再试。')}
+  if(!r.ok){if(j.detail)console.warn(m,p,j.detail);throw Object.assign(apiErr(j.error&&r.status!==401?j.error:HTTPMSG[r.status]||HTTPMSG[Math.floor(r.status/100)*100]||'出错了（'+r.status+'），稍后再试。'),{status:r.status})}
   return j}
 const apiErr=msg=>Object.assign(new Error(msg),{api:1});
 const HTTPMSG={401:'登录已过期，刷新页面重新登录。',403:'没有权限做这一步，需要的话找管理员开通。',404:'要找的内容不存在，可能已被删除或改名。',
@@ -186,7 +187,7 @@ function render(){
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
   if(!S.proj&&!['settings','deliveries','delivery','workspace','projects','memory','team'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
-  const V={workspace:vWorkspace,projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||(()=>{location.hash='#/workspace'});
+  const V={workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||(()=>{location.hash='#/workspace'});
   if(view!=='t')A.setTicket(null);
   paintSel();
   if(view==='atlas'&&$('#atl')){S.renderP=Promise.resolve(vAtlas(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}
