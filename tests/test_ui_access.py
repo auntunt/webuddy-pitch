@@ -256,3 +256,11 @@ assert.deepEqual(mutations,[{url:'/api/projects/APP/kb/answer',body:{n:7,text:or
 const kbReview=()=>{throw Error('must not refresh a failed save')};S.user='local-only-name';S.meta={login:false};kbAnswer(8,'原始问题');assert.equal($('#ansB').value,'未登录个人账号');$('#ansT').value='  \n  ';await $('#ansOk').fire('click');assert.equal(mutations.length,0);
 const original='业务方：原始提供者\n失败后完整保留  ';$('#ansT').value=original;postHandler=()=>{throw Object.assign(Error('请使用个人账号登录'),{status:403})};await $('#ansOk').fire('click');assert.equal($('#ansT').value,original);assert.equal(overlay.hidden,false);assert.equal(Object.hasOwn(mutations[0].body,'by'),false);assert.ok(notices.at(-1).includes('个人账号'));
 """)
+
+    def test_package_downloads_use_real_tenant_path_helper_and_keep_legacy_paths(self):
+        package_actions = 'function pkgActions(d){' + JS.split('function pkgActions(d){', 1)[1].split('function pkgCard(d){', 1)[0]
+        self.run_js(package_actions + r"""
+const ticket={ticket:{key:'APP-7',status:'new'},package:{status:'incomplete'}};ACCESS.base='/t/alpha';let html=pkgActions(ticket);
+assert.ok(html.includes('href="/t/alpha/e/APP-7"'));assert.ok(html.includes('href="/t/alpha/e/APP-7.intoto.json"'));assert.ok(!html.includes('href="/e/'));
+ACCESS.base='';html=pkgActions(ticket);assert.ok(html.includes('href="/e/APP-7"'));assert.ok(html.includes('href="/e/APP-7.intoto.json"'));
+""")

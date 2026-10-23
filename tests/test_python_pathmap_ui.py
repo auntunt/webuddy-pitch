@@ -4,6 +4,7 @@ import subprocess
 import unittest
 
 from tmh.platform.ui import JS
+from tmh.platform.ui_access import ACCESS_BOOT_JS
 
 
 @unittest.skipUnless(shutil.which("node"), "Node.js is needed for shipped path-map handlers")
@@ -195,7 +196,7 @@ const mapping={source:{commit:'a'.repeat(40),diff_sha256:'b'.repeat(64)},digest:
  flows:[{id:'flow:get',trigger:'GET',nodes:[],unresolved:[]},{id:'flow:post',trigger:'POST',nodes:[],unresolved:[]}],suggested:['flow:get','flow:post'],selected:[]};
 const get=async url=>{reads.push(url);return url.endsWith('/path-map')?structuredClone(mapping):latest};
 const post=async(url,payload)=>{posts.push({url,payload});latest=state(posts.length+4,payload.flows.includes('flow:post')?'pass':'unknown');return{...structuredClone(mapping),selected:payload.flows}};
-''' + summary + package + paths + r'''
+''' + "const location={pathname:'/'};\n" + ACCESS_BOOT_JS + summary + package + paths + r'''
 nodes.pkSummary.innerHTML=pkgCard(initial);nodes.tTop.innerHTML=ticketTop(initial);nodes.fs.value=initial.ticket.status;
 S.ticketRefresh=ticketSummarySync(initial,()=>{refreshes++});ticketPathMapWire('APP-7');
 function preserved(){for(const [id,node] of stableDrafts)assert.equal(nodes[id],node,id+' DOM identity');

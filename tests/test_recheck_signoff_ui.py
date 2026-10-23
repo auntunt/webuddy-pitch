@@ -4,6 +4,7 @@ import subprocess
 import unittest
 
 from tmh.platform.ui import JS
+from tmh.platform.ui_access import ACCESS_BOOT_JS
 from tmh.platform.ui_work import WORK_JS
 
 
@@ -42,8 +43,8 @@ let postHandler=async()=>({path:'/sign/test',signer:'客户',expires:'2026-10-20
 const post=async(url,payload)=>{posts.push({url,payload});return postHandler(url,payload)};
 const later=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b});return{promise,resolve,reject}};
 const get=async url=>url.endsWith('/preview')?{preview:{state:'none'}}:latest;
-const location={origin:'http://localhost'},navigator={clipboard:{writeText:async()=>{}}};
-''' + summary + package + top + r'''
+const location={origin:'http://localhost',pathname:'/'},navigator={clipboard:{writeText:async()=>{}}};
+''' + ACCESS_BOOT_JS + summary + package + top + r'''
 async function paint(){nodes.tTop.innerHTML=ticketTop(d,{},nextAction(d));nodes.pkActions.innerHTML=pkgActions(d);await ticketTopWire(d,nextAction(d));pkgWire(d)}
 function bindAcceptance(){
 ''' + acceptance + r'''
