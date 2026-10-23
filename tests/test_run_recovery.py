@@ -294,8 +294,8 @@ class RunRecoveryTest(unittest.TestCase):
         self.store.update_ticket(self.ticket["id"], "tester", status="closed")
         self.assert_blocked(old["id"])
         self.store.update_ticket(self.ticket["id"], "tester", status="doing", links={"delivery": "delivery-test"})
-        self.store.x("CREATE TABLE delivery_runs(run_id INTEGER, delivery_id TEXT, stage TEXT)")
-        self.store.x("INSERT INTO delivery_runs VALUES(?,?,?)", (old["id"], "delivery-test", "develop"))
+        self.store.x("INSERT INTO delivery_runs(run_id,delivery_id,stage,base_version,inputs,created) VALUES(?,?,?,?,?,?)",
+                     (old["id"], "delivery-test", "develop", 0, "{}", old["created"]))
         state = self.runner.retry_state(old["id"])
         self.assertEqual((state["delivery_id"], state["delivery_stage"]), ("delivery-test", "develop"))
         self.assert_blocked(old["id"])
