@@ -116,6 +116,36 @@ class TenantRuntimeTest(unittest.TestCase):
         with patch('tmh.platform.tenant_runtime.time.time', return_value=0), self.assertRaises(ApiError):
             verify_request(key, proof, 'default', 'POST', '/api/handoffs', raw)
 
+    def test_tool_proof_cannot_be_removed_replaced_or_added_to_browser_request(self):
+        key = b'x' * 32
+        args = ('default', 'alice', 'POST', '/api/agent/status', b'{}', 'context')
+        connection = 'a' * 32
+        proof = sign_request(key, *args, connection)
+        self.assertEqual(verify_request(key, proof, args[0], *args[2:], connection), 'alice')
+        for altered in ('', 'b' * 32):
+            with self.subTest(connection=altered), self.assertRaises(ApiError):
+                verify_request(key, proof, args[0], *args[2:], altered)
+        normal = sign_request(key, *args)
+        with self.assertRaises(ApiError):
+            verify_request(key, normal, args[0], *args[2:], connection)
+
+    def test_tool_actor_context_narrows_admin_and_always_resets_after_error(self):
+        a, _ = self.projects()
+        tool = dict(id='a' * 32, user='owner', tenant='default', scope='read', project_ids=[a['id']])
+        with self.context.acting('owner'):
+            self.assertTrue(self.context.current_actor('owner')['platform_owner'])
+            with self.assertRaisesRegex(RuntimeError, 'synthetic'):
+                with self.context.acting('owner', tool):
+                    current = self.context.current_actor('owner')
+                    self.assertFalse(current['platform_owner'])
+                    self.assertFalse(current['capabilities']['execution'])
+                    self.assertEqual(current['role'], 'viewer')
+                    self.assertEqual(current['project_grants'], {'ALPHA': 'viewer'})
+                    raise RuntimeError('synthetic')
+            current = self.context.current_actor('owner')
+            self.assertTrue(current['platform_owner'])
+            self.assertNotIn('tool_connection', current)
+
     def test_workspace_symlink_and_unregistered_roots_fail_closed(self):
         a, b = self.projects()
         self.assertTrue(self.context.workspace_allowed(a['root']))

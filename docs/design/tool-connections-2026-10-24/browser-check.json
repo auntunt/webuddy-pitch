@@ -1,0 +1,13 @@
+{
+  "normal_login": true,
+  "created_downloaded_imported": true,
+  "principal": "alice",
+  "scope": "read",
+  "revoked_status_exit": 1,
+  "revoked_stderr": "{\"error\": \"个人工具凭据无效、已撤销或已过期。请在网页登录个人工具连接核对权限，再用 connect 导入新凭据。\", \"code\": \"tool_credential_invalid\", \"status\": 401, \"uncertain\": false}\n",
+  "viewport_width": 390,
+  "scroll_width": 390,
+  "credential_length_after_clear": 0,
+  "console_warnings_errors": [],
+  "download_removed_after_exact_match": true
+}

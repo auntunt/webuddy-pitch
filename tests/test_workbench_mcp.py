@@ -10,6 +10,7 @@ from datetime import timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import importlib.util
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -28,6 +29,7 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
         self.requests = []
         self.long_text = "  沟通原文\r\n检查版本、失败与重试。\t\n" * 2500
         self.reply_mode = "normal"
+        self.tenant_scope = "content"
         owner = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -47,8 +49,17 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                     status, payload = 409, {"error": "请求编号已用于不同正文", "code": "request_conflict"}
                 elif owner.reply_mode == "non_object":
                     payload = ["the write may have been saved but the response is invalid"]
+                elif owner.reply_mode == "revoked":
+                    status, payload = 401, {"error": "revoked", "code": "tool_credential_invalid"}
                 elif operation == "status":
                     payload = {"ok": True, "workspace": "协议测试夹具", "engines": [], "scope": "fixture"}
+                    if self.path.startswith("/t/default/"):
+                        allowed = ["status", "projects_list", "ticket_get", "request_get"]
+                        if owner.tenant_scope == "content":
+                            allowed += ["ticket_create", "message_send", "candidate_assess", "run_start"]
+                        payload.update(tool_connection=dict(id="fixture", user="member", tenant="default",
+                            scope=owner.tenant_scope, project_ids=[1], expires_at=1800000000, status="active", execution=False),
+                            allowed_operations=allowed)
                 elif operation == "ticket_get":
                     payload = {"ticket": {"key": body["ticket"], "body": owner.long_text},
                                "evidence": [{"commit": "fixture-only", "verdict": "not_accepted"}]}
@@ -159,6 +170,93 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_generated_cursor_configuration_launches_from_unrelated_directory(self):
         await self.check_generated_configuration("cursor")
+
+    @unittest.skipUnless(os.name == "posix", "personal credential files require POSIX checks")
+    async def test_tenant_mcp_uses_live_scope_and_bearer_then_rejects_revoked_connection(self):
+        from tmh.workbench_credentials import save
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "member.json"
+            save(path, dict(schema=1, endpoint=self.endpoint + "/t/default", token="wbt_fixture.secret"))
+            async with self.session("--endpoint", self.endpoint + "/t/default", "--credential-file", str(path)) as session:
+                names = {tool.name for tool in (await session.list_tools()).tools}
+                self.assertEqual(names, {"webuddy_" + op for op in ("status", "projects_list", "ticket_get", "request_get", "ticket_create", "message_send")})
+                # Even an over-broad server list cannot advertise execution or an
+                # independent review identity through a personal tool connection.
+                count = len(self.requests)
+                denied = await session.call_tool("webuddy_run_start", {})
+                self.assertTrue(denied.isError)
+                self.assertEqual(len(self.requests), count)
+                result = await session.call_tool("webuddy_message_send", dict(ticket="AGENT-1", body="full receipt", request_id="member-once"))
+                self.assertFalse(result.isError)
+                self.assert_full_json(result)
+                self.reply_mode = "revoked"
+                revoked = await session.call_tool("webuddy_ticket_get", dict(ticket="AGENT-1"))
+                self.assertTrue(revoked.isError)
+                self.assertEqual(revoked.structuredContent["status"], 401)
+                self.assertEqual(revoked.structuredContent["code"], "tool_credential_invalid")
+        self.assertEqual(len(self.requests), 3)
+        for request in self.requests:
+            self.assertTrue(request["path"].startswith("/t/default/api/agent/"))
+            self.assertEqual(request["headers"]["authorization"], "Bearer wbt_fixture.secret")
+            for header in ("x-tmh-token", "cookie", "x-webuddy-context", "x-webuddy-execution"):
+                self.assertNotIn(header, request["headers"])
+
+    @unittest.skipUnless(os.name == "posix", "personal credential files require POSIX checks")
+    async def test_tenant_read_scope_does_not_advertise_or_call_content_tools(self):
+        from tmh.workbench_credentials import save
+        self.tenant_scope = "read"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "readonly.json"
+            save(path, dict(schema=1, endpoint=self.endpoint + "/t/default", token="wbt_fixture.secret"))
+            async with self.session("--endpoint", self.endpoint + "/t/default", "--credential-file", str(path)) as session:
+                discovered = (await session.list_tools()).tools
+                self.assertTrue(all(tool.annotations.readOnlyHint for tool in discovered))
+                self.assertEqual({tool.name for tool in discovered}, {"webuddy_" + op for op in ("status", "projects_list", "ticket_get", "request_get")})
+                denied = await session.call_tool("webuddy_message_send", dict(ticket="AGENT-1", body="no", request_id="never"))
+                self.assertTrue(denied.isError)
+                self.assertEqual(denied.structuredContent["code"], "tool_not_enabled")
+        self.assertEqual([request["path"] for request in self.requests], ["/t/default/api/agent/status"])
+
+    @unittest.skipUnless(os.name == "posix", "personal credential files require POSIX checks")
+    async def test_generated_tenant_config_launches_from_unrelated_directory_without_secret(self):
+        from mcp import ClientSession, StdioServerParameters
+        from mcp.client.stdio import stdio_client
+        from tmh.workbench_credentials import save
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "member.json"
+            save(path, dict(schema=1, endpoint=self.endpoint + "/t/default", token="wbt_fixture.secret"))
+            client_names = ["claude", "cursor"] + (["codex"] if sys.version_info >= (3, 11) else [])
+            for client_name in client_names:
+                process = await asyncio.create_subprocess_exec(
+                    sys.executable, "-m", "tmh.workbench", "config", client_name, "--credential-file", str(path),
+                    cwd=str(ROOT), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+                try:
+                    stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=10)
+                finally:
+                    if process.returncode is None:
+                        process.kill()
+                        await process.wait()
+                self.assertEqual(process.returncode, 0, stderr.decode())
+                self.assertNotIn(b"wbt_fixture.secret", stdout + stderr)
+                if client_name == "codex":
+                    import tomllib
+                    entry = tomllib.loads(stdout.decode())["mcp_servers"]["webuddy"]
+                    self.assertEqual(entry["env_vars"], [])
+                else:
+                    entry = json.loads(stdout)["mcpServers"]["webuddy"]
+                self.assertIn(str(path), entry["args"])
+                params = StdioServerParameters(command=entry["command"], args=entry["args"], cwd=directory,
+                                               env={"PYTHONPATH": "", "WEBUDDY_TOKEN": "must-not-forward"})
+                with tempfile.TemporaryFile(mode="w+") as errlog:
+                    async with stdio_client(params, errlog=errlog) as (read, write):
+                        async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10)) as session:
+                            await session.initialize()
+                            result = await session.call_tool("webuddy_ticket_get", dict(ticket="AGENT-1"))
+                            self.assertFalse(result.isError)
+                            self.assertEqual(result.structuredContent["ticket"]["body"], self.long_text)
+        self.assertEqual(len(self.requests), 2 * len(client_names))
+        self.assertTrue(all(request["headers"]["authorization"] == "Bearer wbt_fixture.secret" for request in self.requests))
+        self.assertTrue(all("x-tmh-token" not in request["headers"] for request in self.requests))
 
     @unittest.skipUnless(sys.version_info >= (3, 11), "stdlib TOML parser requires Python 3.11+")
     async def test_generated_codex_toml_launches_from_unrelated_directory(self):

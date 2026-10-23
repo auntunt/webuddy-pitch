@@ -1,8 +1,60 @@
 # Webuddy CLI 与 MCP：让编程助手接入工作台
 
-Claude Code、Cursor、Codex 可以通过 CLI 或 MCP 读取 Webuddy 里的需求、提交沟通和交接消息、调用工作台执行器，以及查看代码、运行日志、验证证据和预览。它们与网页使用同一份工单和运行数据。
+Claude Code、Cursor、Codex 可以通过 CLI 或 MCP 读取 Webuddy 里的需求、知识与证据，并在个人授权范围内创建暂停执行的任务、留下工作消息。它们与网页使用同一份工单数据。工具标签不能代替个人身份，也不能用换标签的方式自审。
 
-当前 MCP 使用官方 Python SDK 的 **stdio** 传输：编程助手启动一个轻量桥接进程，由它连接已经运行的 Webuddy HTTP 服务。桥接进程本身不启动模型或应用；明确调用执行工具后，由工作台的持久运行管理器负责这些进程。此版本没有公开的远程 MCP `/mcp` 端点。
+当前 MCP 使用官方 Python SDK 的 **stdio** 传输：编程助手启动一个轻量桥接进程，由它连接已经运行的 Webuddy HTTP 服务。桥接进程本身不启动模型或应用。此版本没有公开的远程 MCP `/mcp` 端点。
+
+## 云端租户：个人工具连接
+
+租户成员在自己的网页登录 `/t/<租户>/tools` 页面创建连接，指定获准项目、期限和 `read`（只读）或 `content`（读取并创建任务/发送消息）范围。凭据归属于实际个人；每次请求重新检查账号、成员身份、项目授权、期限和撤销状态。凭据不能跨租户，也不能让成员获得原本没有的项目权限。
+
+个人工具连接**不开放执行、候选登记或评审、知识采用、业务签收、合并和关单**；传入 `--allow-execution` 会被拒绝。它不复用管理员浏览器会话、密码或旧共享 Token。旧回环服务的完整执行命令仍保留兼容，但不属于云端成员连接能力。
+
+创建连接后令牌仅显示一次。可在交互终端粘贴令牌（不回显），或通过标准输入导入完整 `{schema:1, endpoint, token}` JSON。不要将令牌放入命令参数、聊天、仓库或 MCP 配置：
+
+```sh
+mkdir -m 700 -p "$HOME/.config/webuddy"
+# 交互粘贴令牌；endpoint 必须是网页登录中的确切租户地址。
+python3 -m tmh.workbench connect \
+  --endpoint https://webuddy.bbstack.date/t/default \
+  --save-to "$HOME/.config/webuddy/team.json"
+
+# 或完整 JSON 从安全保存的下载文件读取，正文不进入命令参数。
+python3 -m tmh.workbench connect --stdin \
+  --save-to "$HOME/.config/webuddy/team.json" < /安全位置/工具连接.json
+```
+
+两种导入方式二选一。`connect` 先读取实时身份和权限，验证成功后原子创建新 `0600` 文件；已有路径不会覆盖。输出只有个人/租户/范围/期限和文件路径，不含令牌。下载的原 JSON 仍包含秘密，应由本人妥善保管或清理。父目录必须存在、属于当前账号且不可被其他账号写入；路径不接受符号链接，文件不接受硬链接或非普通文件。Windows 原生 ACL 尚未实现，当前明确拒绝导入/加载，不能把 Windows 的 `chmod` 当作凭据隔离证明。
+
+保存后使用文件路径或 `WEBUDDY_CREDENTIAL_FILE`，不需要 `WEBUDDY_TOKEN`：
+
+```sh
+export WEBUDDY_CREDENTIAL_FILE="$HOME/.config/webuddy/team.json"
+python3 -m tmh.workbench status
+python3 -m tmh.workbench projects
+python3 -m tmh.workbench ticket PROJECT-1
+python3 -m tmh.workbench knowledge-search PROJECT '接口约束'
+python3 -m tmh.workbench send PROJECT-1 --body-file 工作记录.md \
+  --request-id team-progress-001 --agent claude
+```
+
+`status.tool_connection` 返回真实个人、租户、当前项目范围、期限和 `execution:false`，顶层 `allowed_operations` 是当前可用操作。只读凭据不能发送消息。`--agent` 只表示显示/消息标签：同一个人使用 Claude/Cursor 时回执仍归属该个人，不能通过改标签更换请求主体或获得独立审阅身份。同一意图沿用原 `request_id`；断线结果未知时，先用 `request <原编号>` 查询，不自动重发或换号重复创建。撤权、过期或账号失效后旧凭据及旧回执重放均不得绕过授权；必要时由本人在网页处理。
+
+个人工具读取任务时，`repository.head_status=not_checked` 表示没有执行宿主 Git 来核验当前 HEAD。预览读取同样只返回保存的历史记录（`verification_status=not_checked`、`preview.recorded`、`historical_binding`），不提供可访问 URL、不声称当前提交存在或进程健康。历史采纳记录不能替代现行提交核验和业务验收。固定知识版本的原文仍按清单 SHA 校验，来源共享撤销后不能继续读取。
+
+用安装了 MCP SDK 的 Python 生成配置：
+
+```sh
+python3 -m tmh.workbench config claude --credential-file "$HOME/.config/webuddy/team.json"
+python3 -m tmh.workbench config cursor --credential-file "$HOME/.config/webuddy/team.json"
+python3 -m tmh.workbench config codex --credential-file "$HOME/.config/webuddy/team.json"
+```
+
+生成配置只包含解释器、桥接脚本和凭据文件路径，不内嵌令牌。MCP 启动先检查实时身份，按返回的可用操作与本地限制的交集公开工具；连接失败时不回退到旧共享 Token 或扩大权限。启动后的每个请求仍由网关重新授权，撤权不能靠保持 MCP 进程绕过。`--read-only` 可以进一步收窄内容凭据。配置生成、官方 SDK 协议验收和实际 Claude/Cursor 产品中的模型调用是不同验证层次；具体实机结果以本轮进度记录为准，未运行的客户端不算通过。
+
+## 旧独立服务兼容模式
+
+以下 root URL、共享 Token 与执行命令供旧的独立受信任服务保留，不适用于上述 `/t/<租户>` 个人连接。租户模式不会因为这些例子、工具标签或本地执行开关放宽服务器禁令。
 
 ## 安装与连接
 
@@ -30,7 +82,7 @@ data/agent-venv/bin/python -m pip install -e '.[mcp]'
 data/agent-venv/bin/python -m tmh.workbench status
 ```
 
-`python3 -m tmh workbench`、`python3 -m tmh.workbench` 与安装后的 `webuddy` 进入同一个 CLI。`--agent`、`--endpoint`、`--timeout` 可以放在子命令前或后，例如：
+`python3 -m tmh workbench`、`python3 -m tmh.workbench` 与安装后的 `webuddy` 进入同一个 CLI。`--agent`、`--endpoint`、`--credential-file`、`--timeout` 可以放在子命令前或后，例如：
 
 ```sh
 webuddy --agent codex --endpoint http://127.0.0.1:8791 ticket BOOTV2-1
@@ -55,7 +107,7 @@ data/agent-venv/bin/python -m tmh.workbench config codex
 |---|---|
 | Claude Code | 输出包含 `mcpServers.webuddy` 的 JSON；把该条目合入目标项目 `.mcp.json` 的 `mcpServers`，保留其他条目。客户端可能要求确认项目 MCP 配置。见 [Claude Code 官方说明](https://code.claude.com/docs/en/mcp)。 |
 | Cursor | 输出包含 `mcpServers.webuddy` 的 JSON；合入项目 `.cursor/mcp.json` 或用户 `~/.cursor/mcp.json` 的 `mcpServers`，保留其他条目。见 [Cursor 官方说明](https://cursor.com/docs/mcp)。 |
-| Codex | 输出 `[mcp_servers.webuddy]` TOML；合入当前 Codex 使用的配置，保留原设置。生成结果包含 `env_vars = ["WEBUDDY_TOKEN"]`，只记录环境变量名。 |
+| Codex | 输出 `[mcp_servers.webuddy]` TOML；合入当前 Codex 使用的配置，保留原设置。仅旧独立服务模式生成 `env_vars = ["WEBUDDY_TOKEN"]`；个人连接只引用凭据文件路径。 |
 
 默认 MCP 可以读取资料、创建暂停执行的需求和发送消息，**不提供运行、取消、重验或启动预览工具**。可以选择两种明确的权限配置：
 
@@ -244,16 +296,19 @@ CLI、HTTP Agent API 与 MCP 共享 [`tmh/agent_contract.py`](../tmh/agent_contr
 | `webuddy_harness_probe_get` | `harness-report` | 读取真实行为结果、完整证据和回收状态 |
 | `webuddy_harness_probe_cancel` | `harness-stop` | 执行：请求停止，保留部分结果 |
 | `webuddy_harness_library` | `harness-library` | 读取项目有证据支持的历史验证策略 |
+| `webuddy_library_get` / `webuddy_library_search` / `webuddy_library_read` | `library` / `knowledge-search` / `knowledge-read` | 读取获准项目和固定来源知识；当前授权仍逐次检查 |
+| `webuddy_library_build` / `webuddy_library_cancel` / `webuddy_library_resume` | `knowledge-build` / `knowledge-cancel` / `knowledge-resume` | 仅旧独立服务执行权限：构建、取消或继续知识修订 |
+| `webuddy_library_reference` / `webuddy_library_unlink` | `knowledge-reference` / `knowledge-unlink` | 仅旧独立服务内容权限：调整已授权知识引用，不授予来源共享权限；个人租户工具连接不开放 |
 
-默认 MCP 提供 16 个工具；只读配置提供 13 个；显式开放执行后提供 27 个。人工决定不在任何 MCP 配置中。执行类写操作也都要求 `request_id`。工具隐藏之外，桥接调用和 HTTP 入口仍检查参数与执行标志，不能靠猜工具名越过当前连接的权限配置。
+工具数量随版本化目录变化，具体以 `tools/list` 为准；租户个人连接还取实时 `allowed_operations` 的交集，且最多允许创建任务/发送消息两种内容写入。人工决定不在任何 MCP 配置中。执行类写操作仅供旧独立受信任服务，也都要求 `request_id`。工具隐藏之外，桥接调用和 HTTP 入口仍检查参数与权限，不能靠猜工具名越过当前连接的权限配置。
 
 ## 身份与连接边界
 
 `--agent` 是调用者自己声明的审计和路由标签，**不是身份认证，也不是每个 Agent 独立的访问控制**。同一工作台凭据下的可信调用者可以声明其他连接名；不要把这些标签用于不可信租户隔离。消息和运行使用 `agent:<连接名>`，不会记成人的审阅或批准。
 
-服务端沿用已有 `TMH_TOKEN` 认证配置；客户端从环境变量 `WEBUDDY_TOKEN` 读取对应令牌，通过请求头发送。这个令牌属于工作台的可信访问凭据，不是只授权某一个 Agent 或某个工单的受限令牌。不要把令牌放进命令参数、聊天、仓库或生成配置里。应由启动助手的环境或现有秘密管理方式注入；图形客户端是否继承终端环境需要在该客户端中检查。Codex 配置仅列出要传递的环境变量名称。
+旧独立服务沿用已有 `TMH_TOKEN` 认证配置；客户端从环境变量 `WEBUDDY_TOKEN` 读取对应令牌，通过请求头发送。这个旧令牌属于工作台的可信访问凭据，不是只授权某一个 Agent 或某个工单的受限令牌。个人租户连接使用 `Authorization: Bearer`，绝不附带旧 Token、浏览器 Cookie 或浏览器上下文令牌。不要把任何令牌放进命令参数、聊天、仓库或生成配置里。
 
-本地默认使用回环地址；非回环地址只接受 HTTPS。HTTP 客户端拒绝重定向，防止把凭据和写请求转送到另一个地址；访问回环地址时绕过系统 HTTP 代理。服务不接受端点中的路径、查询参数或嵌入凭据。MCP 桥接有 4 个并发 HTTP 工作线程的上限，运行中的 HTTP 调用受连接超时约束，取消不会启动额外重试。
+本地默认使用回环地址；非回环地址只接受 HTTPS。HTTP 客户端拒绝重定向，防止把凭据和写请求转送到另一个地址；所有连接均不使用环境 HTTP 代理。端点只允许 root URL 或固定 `/t/<租户>` 前缀，不接受其他路径、查询参数或嵌入凭据；显式地址与凭据文件绑定地址冲突时拒绝连接。MCP 桥接有 4 个并发 HTTP 工作线程的上限，运行中的 HTTP 调用受连接超时约束，取消不会启动额外重试。
 
 建立连接后的整个 HTTP 请求有截止时间，持续滴流也会关闭 socket；系统 DNS 解析不保证受此截止时间约束。默认回环 IP 不需要 DNS。客户端不使用环境代理。
 
@@ -271,9 +326,9 @@ data/agent-venv/bin/python -m unittest tests.test_workbench_mcp -v
 
 | 评估问题 | 预期条件 |
 |---|---|
-| 默认连接公开哪些工具？ | `tools/list` 返回 16 个工具；没有任何执行类工具。 |
-| 只读连接公开哪些工具？ | 仅 13 个读取工具，没有 `ticket_create` 或 `message_send`。 |
-| 同时传入只读和执行标志时采用哪种配置？ | 仍然只有 13 个读取工具。 |
+| 旧独立服务默认连接公开哪些工具？ | 当前 `tools/list` 返回 21 个工具；没有任何执行类工具。租户模式另外受实时允许列表限制。 |
+| 旧独立服务只读连接公开哪些工具？ | 当前 16 个读取工具，没有 `ticket_create` 或 `message_send`。 |
+| 同时传入只读和执行标志时采用哪种配置？ | 旧独立模式仍只有 16 个读取工具；租户模式直接拒绝 `--allow-execution`。 |
 | 如何区分夹具与真实工作台？ | 夹具 `webuddy_status` 的 `scope` 为 `fixture`，不能据此声称真实服务已验收。 |
 | 工单的完整原文是否保留？ | 夹具 `webuddy_ticket_get` 返回的正文与测试的 `long_text` 逐字符一致，包括中文、空格、换行和制表符。 |
 | 工单夹具是否代表已通过验收？ | 证据的 `verdict` 是 `not_accepted`，`commit` 是 `fixture-only`。 |

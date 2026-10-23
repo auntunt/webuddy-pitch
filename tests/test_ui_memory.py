@@ -77,6 +77,14 @@ await vMemory('knowledge');assert.ok(main.textContent.includes('待确认'));ass
 await main.querySelector('[data-mem-source="1:0"]').fire('click');assert.equal(S.proj,'APP');assert.equal(S.scope,'APP');assert.equal(location.hash,'#/kb/flow%3Aapprove');
 """)
 
+    def test_plain_notes_remain_visible_as_pending_in_global_catalog(self):
+        self.run_js(r"""
+S.scope='*';memoryResponse=memoryData({knowledge:[{type_label:'术语',status:'待确认',reviewed:false,title:'审批',summary:'仍需核验的术语解释',provenance:[{project:'APP',kind:'glossary',id:'审批',ref:'glossary.md',status:'待确认',confirmed:false}]},{type_label:'行业规则',status:'待确认',reviewed:false,title:'审批要求',summary:'保留未经确认的决定与经验',provenance:[{project:'APP',kind:'doc',id:'审批要求',ref:'decisions.md',status:'待确认',confirmed:false},{project:'APP',kind:'doc',id:'审批要求',ref:'pitfalls.md',status:'待确认',confirmed:false}]}]});
+await vMemory('knowledge');assert.ok(main.textContent.includes('待确认'));assert.ok(main.textContent.includes('仍需核验的术语解释'));assert.ok(main.textContent.includes('保留未经确认的决定与经验'));assert.ok(main.textContent.includes('文件中的“已确认”字样不作为人工确认记录'));assert.ok(!main.textContent.includes('来源已确认'));
+for(const name of ['glossary.md','decisions.md','pitfalls.md'])assert.ok(main.textContent.includes(name));
+await main.querySelector('[data-mem-source="1:1"]').fire('click');assert.equal(S.proj,'APP');assert.equal(S.scope,'APP');assert.equal(location.hash,'#/kb');
+""")
+
     def test_brief_navigation_uses_reloadable_route(self):
         self.run_js(r"""
 S.scope='APP';await vMemory();$('#memBriefGo').fire('click');assert.equal(location.hash,'#/handoff/APP');memoryResponse=memoryBrief();await vProjectBrief('APP');$('#memBack').fire('click');assert.equal(location.hash,'#/memory');

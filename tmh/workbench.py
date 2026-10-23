@@ -2,19 +2,23 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import os
 from pathlib import Path
 import sys
 import time
+import warnings
 
 from .workbench_client import Client, ClientError
+from . import workbench_credentials as credentials
 
 
 def _connection(p, suppress=False):
     default = argparse.SUPPRESS if suppress else None
     p.add_argument("--endpoint", default=default, help="工作台地址；默认 WEBUDDY_URL 或 http://127.0.0.1:8791")
-    p.add_argument("--agent", default=argparse.SUPPRESS if suppress else "cli", help="稳定连接名，例如 codex/cursor；用于回执与消息身份")
+    p.add_argument("--credential-file", default=default, help="个人工具凭据文件；默认 WEBUDDY_CREDENTIAL_FILE；不传令牌正文")
+    p.add_argument("--agent", default=argparse.SUPPRESS if suppress else "cli", help="工具显示/消息标签，例如 codex/cursor；不是独立个人身份")
     p.add_argument("--timeout", type=float, default=argparse.SUPPRESS if suppress else 15, help="单次 HTTP 超时秒数（最多 60）")
 
 
@@ -41,6 +45,9 @@ def parser():
         q.add_argument("--request-id", required=True, help="重试复用原编号；新意图用新编号")
 
     add("status", "检查连接、执行器和能力边界")
+    q = add("connect", "验证网页登录签发的个人工具凭据并保存到私有文件")
+    q.add_argument("--stdin", action="store_true", help="从标准输入读取完整凭据 JSON 或令牌；不放入命令参数")
+    q.add_argument("--save-to", required=True, help="新 0600 凭据文件路径；父目录须安全且已存在，不覆盖旧文件")
     page(add("projects", "列项目"))
     q = add("tickets", "查工单")
     page(q)
@@ -171,19 +178,21 @@ def parser():
     return p
 
 
-def configuration(a):
+def configuration(a, client):
     # Use an absolute interpreter and script so launching from another repository works.
     # workbench_entry.py imports the package via its repository, with no shell quoting.
     command = sys.executable
-    args = [str(Path(__file__).with_name("workbench_entry.py").resolve()), "mcp", "--endpoint", a.endpoint or os.environ.get("WEBUDDY_URL") or "http://127.0.0.1:8791",
+    args = [str(Path(__file__).with_name("workbench_entry.py").resolve()), "mcp", "--endpoint", client.endpoint,
             "--agent", a.agent if a.agent != "cli" else a.client, "--timeout", str(a.timeout)]
+    if client.credential_file:
+        args.extend(["--credential-file", str(Path(client.credential_file).expanduser().absolute())])
     if a.read_only:
         args.append("--read-only")
     elif a.allow_execution:
         args.append("--allow-execution")
     if a.client == "codex":
         # JSON basic strings and arrays are valid TOML here; secrets are inherited by name.
-        return "[mcp_servers.webuddy]\ncommand = %s\nargs = %s\nenv_vars = [\"WEBUDDY_TOKEN\"]\n" % (json.dumps(command, ensure_ascii=False), json.dumps(args, ensure_ascii=False))
+        return "[mcp_servers.webuddy]\ncommand = %s\nargs = %s\nenv_vars = %s\n" % (json.dumps(command, ensure_ascii=False), json.dumps(args, ensure_ascii=False), "[]" if client.tenant else '["WEBUDDY_TOKEN"]')
     return json.dumps({"mcpServers": {"webuddy": {"command": command, "args": args}}}, ensure_ascii=False, indent=2)
 
 
@@ -193,7 +202,7 @@ def _arguments(a):
     names.update({"harness-recipes": "harness_recipes", "harness-probe": "harness_probe_start", "harness-report": "harness_probe_get", "harness-stop": "harness_probe_cancel", "harness-library": "harness_library"})
     names.update({"library": "library_get", "knowledge-search": "library_search", "knowledge-read": "library_read", "knowledge-build": "library_build", "knowledge-cancel": "library_cancel", "knowledge-resume": "library_resume", "knowledge-reference": "library_reference", "knowledge-unlink": "library_unlink"})
     op = names.get(a.command, a.command)
-    args = {k: v for k, v in vars(a).items() if k not in ("command", "endpoint", "agent", "timeout", "wait", "start", "body_file", "criteria_file", "results_file", "operator_key_file") and v is not None}
+    args = {k: v for k, v in vars(a).items() if k not in ("command", "endpoint", "credential_file", "agent", "timeout", "wait", "start", "body_file", "criteria_file", "results_file", "operator_key_file") and v is not None}
     if getattr(a, "body_file", None):
         if a.body_file == "-":
             args["body"] = sys.stdin.buffer.read().decode("utf-8") if hasattr(sys.stdin, "buffer") else sys.stdin.read()
@@ -220,17 +229,66 @@ def _arguments(a):
     return op, args
 
 
+def connect(a):
+    if a.credential_file:
+        raise ClientError("connect 只从标准输入或交互输入导入；--credential-file 用于已保存连接", "credential_conflict")
+    if a.stdin:
+        try:
+            raw = sys.stdin.buffer.read().decode("utf-8") if hasattr(sys.stdin, "buffer") else sys.stdin.read()
+        except UnicodeError as exc:
+            raise ClientError("输入必须是完整 UTF-8 凭据 JSON 或令牌", "invalid_credential") from exc
+    else:
+        if not sys.stdin.isatty():
+            raise ClientError("非交互导入请使用 connect --stdin；不要把令牌放进命令参数", "credential_input_required")
+        try:
+            with warnings.catch_warnings():
+                # getpass otherwise falls back to visible input on terminals
+                # without echo control. A tool secret must not use that fallback.
+                warnings.simplefilter("error", getpass.GetPassWarning)
+                raw = getpass.getpass("粘贴个人工具令牌（不回显）：")
+        except (getpass.GetPassWarning, EOFError) as exc:
+            raise ClientError("无法安全读取不回显输入；请使用安全终端或 connect --stdin", "credential_input_required") from exc
+    raw = raw.strip()
+    if raw.startswith("{"):
+        try:
+            value = credentials.document(json.loads(raw))
+        except ValueError as exc:
+            raise ClientError("凭据 JSON 格式或绑定地址无效；未保存凭据", "invalid_credential") from exc
+        selected = a.endpoint or os.environ.get("WEBUDDY_URL")
+        if selected and credentials.endpoint(selected)[0] != value["endpoint"]:
+            raise ClientError("工作台地址与导入凭据绑定地址不同", "credential_endpoint_mismatch")
+    else:
+        selected = a.endpoint or os.environ.get("WEBUDDY_URL")
+        if not selected:
+            raise ClientError("导入单独令牌时须指定 --endpoint https://host/t/<租户>", "invalid_endpoint")
+        value = credentials.document(dict(schema=1, endpoint=selected, token=raw))
+    client = Client(value["endpoint"], a.agent, timeout=a.timeout, tool_token=value["token"], credential_file=False)
+    status = client.connection_status()
+    # Preserve only the binding needed for future requests. Untrusted imported
+    # metadata is never an identity assertion or part of the printed result.
+    path = credentials.save(a.save_to, {key: value[key] for key in ("schema", "endpoint", "token")})
+    public = {key: status["tool_connection"][key] for key in ("id", "user", "tenant", "scope", "project_ids", "expires_at", "execution")}
+    print(json.dumps(dict(credential_file=path, endpoint=client.endpoint, tool_connection=public), ensure_ascii=False, indent=2))
+    return 0
+
+
 def main(argv=None):
     a = parser().parse_args(argv)
     try:
+        if a.command == "connect":
+            return connect(a)
         if a.command == "config":
             # Validate endpoint and label before producing configuration.
-            Client(a.endpoint, a.agent, timeout=a.timeout)
-            print(configuration(a))
+            client = Client(a.endpoint, a.agent, timeout=a.timeout, credential_file=a.credential_file)
+            if client.tenant and a.allow_execution:
+                raise ClientError("个人工具连接不允许执行；请移除 --allow-execution", "tool_operation_forbidden")
+            print(configuration(a, client))
             return 0
         execution = a.command in ("start", "cancel", "retry", "recheck", "submit", "verify", "cancel-verification", "candidate-preview", "harness-probe", "harness-stop", "knowledge-build", "knowledge-cancel", "knowledge-resume") or (a.command == "preview" and a.start) or (a.command == "mcp" and a.allow_execution and not a.read_only)
-        client = Client(a.endpoint, a.agent, timeout=a.timeout, allow_execution=execution)
+        client = Client(a.endpoint, a.agent, timeout=a.timeout, allow_execution=execution, credential_file=a.credential_file)
         if a.command == "mcp":
+            if client.tenant and a.allow_execution:
+                raise ClientError("个人工具连接不允许执行；请移除 --allow-execution", "tool_operation_forbidden")
             try:
                 from .workbench_mcp import serve
             except ImportError:
@@ -277,8 +335,8 @@ def main(argv=None):
             time.sleep(min(1, max(0, deadline - time.monotonic())))
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
-    except (ClientError, OSError, UnicodeError) as e:
-        error = e.as_dict() if isinstance(e, ClientError) else {"error": str(e), "code": "input_error"}
+    except (ClientError, credentials.CredentialError, OSError, UnicodeError) as e:
+        error = e.as_dict() if isinstance(e, ClientError) else {"error": str(e), "code": getattr(e, "code", "input_error")}
         print(json.dumps(error, ensure_ascii=False), file=sys.stderr)
         return 1
 

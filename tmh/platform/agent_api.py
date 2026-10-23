@@ -29,21 +29,39 @@ BOUNDARIES = {
 }
 
 
+def _boundaries(tool=None):
+    result = dict(BOUNDARIES)
+    if tool:
+        result.update(identity='身份来自本人授权的工具连接；工具标签仅用于显示或消息路由，不能更换操作主体。',
+                      candidate='仅可读取已有候选与历史证据；此连接不登记、执行、评审或批准候选。',
+                      execution='此个人工具连接仅提供获准内容操作；不启动模型、构建或预览，也不代人确认。')
+    return result
+
+
 def _schema(st):
     from .candidates import schema
     schema(st)
     from .harness_probes import schema as probe_schema
     probe_schema(st)
     with st.lock:
-        st.db.execute("""CREATE TABLE IF NOT EXISTS agent_requests (
-          agent TEXT NOT NULL, request_id TEXT NOT NULL, operation TEXT NOT NULL,
-          fingerprint TEXT NOT NULL, arguments TEXT NOT NULL, resource TEXT NOT NULL,
-          state TEXT NOT NULL, result TEXT NOT NULL DEFAULT '', error TEXT NOT NULL DEFAULT '',
-          created TEXT NOT NULL, updated TEXT NOT NULL, PRIMARY KEY(agent, request_id))""")
-        st.db.execute("""CREATE TABLE IF NOT EXISTS agent_run_sources (
-          run_id INTEGER PRIMARY KEY, ticket_id INTEGER NOT NULL, requirement_hash TEXT NOT NULL,
-          agent TEXT NOT NULL, created TEXT NOT NULL)""")
-        st.db.commit()
+        try:
+            st.db.execute("BEGIN IMMEDIATE")
+            st.db.execute("""CREATE TABLE IF NOT EXISTS agent_requests (
+              agent TEXT NOT NULL, request_id TEXT NOT NULL, operation TEXT NOT NULL,
+              fingerprint TEXT NOT NULL, arguments TEXT NOT NULL, resource TEXT NOT NULL,
+              state TEXT NOT NULL, result TEXT NOT NULL DEFAULT '', error TEXT NOT NULL DEFAULT '',
+              created TEXT NOT NULL, updated TEXT NOT NULL, PRIMARY KEY(agent, request_id))""")
+            st.db.execute("""CREATE TABLE IF NOT EXISTS agent_run_sources (
+              run_id INTEGER PRIMARY KEY, ticket_id INTEGER NOT NULL, requirement_hash TEXT NOT NULL,
+              agent TEXT NOT NULL, created TEXT NOT NULL)""")
+            columns = {r['name'] for r in st.db.execute('PRAGMA table_info(agent_requests)')}
+            for column in ('principal', 'connection_id'):
+                if column not in columns:
+                    st.db.execute("ALTER TABLE agent_requests ADD COLUMN %s TEXT NOT NULL DEFAULT ''" % column)
+            st.db.commit()
+        except BaseException:
+            st.db.rollback()
+            raise
 
 
 def _json(value):
@@ -76,10 +94,20 @@ def _requirement(t, store, *, reference_inputs=None):
     return _digest(value)
 
 
-def _actor(req):
+def member_actor(user):
+    # This namespace cannot be supplied through the legacy alias validator.
+    return 'agent:member:' + user
+
+
+def _actor(req, P=None):
     value = req.h.headers.get("X-Webuddy-Agent", "")
     if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,32}", value):
         raise ApiError(400, "X-Webuddy-Agent 必须是 1–32 位字母、数字、下划线或连字符；不能使用人的登录名代替智能体标识")
+    if P is not None:
+        from . import tenant_policy
+        if tenant_policy.enabled(P):
+            tenant_policy.identity(P, req.user)
+            return member_actor(req.user)
     return "agent:" + value
 
 
@@ -136,7 +164,8 @@ def _receipt(row):
             "arguments": json.loads(row["arguments"]), "resource": row["resource"],
             "needs_reconcile": row["state"] in ("pending", "uncertain"),
             "result": json.loads(row["result"]) if row["result"] else None,
-            "error": json.loads(row["error"]) if row["error"] else None}
+            "error": json.loads(row["error"]) if row["error"] else None,
+            "principal": row.get('principal', ''), "connection_id": row.get('connection_id', '')}
 
 
 def _replay(row):
@@ -153,6 +182,12 @@ def _write(P, req, actor, operation, args):
     request_id = args["request_id"]
     fingerprint = _digest({"operation": operation, "arguments": args})
     resource = _resource(P, operation, args)
+    from . import tenant_policy
+    principal, connection_id = '', ''
+    if tenant_policy.enabled(P):
+        who = tenant_policy.identity(P, req.user)
+        principal = req.user
+        connection_id = (who.get('tool_connection') or {}).get('id', '')
     with st.lock:
         try:
             st.db.execute("BEGIN IMMEDIATE")
@@ -171,8 +206,8 @@ def _write(P, req, actor, operation, args):
             if pending:
                 raise ApiError(409, "needs_reconcile: 此对象还有未确认的请求 %s；先核对原始回执，不会开始重复操作" % pending["request_id"])
             ts = now()
-            st.db.execute("INSERT INTO agent_requests(agent,request_id,operation,fingerprint,arguments,resource,state,created,updated) VALUES(?,?,?,?,?,?,?,?,?)",
-                          (actor, request_id, operation, fingerprint, _json(args), resource, "pending", ts, ts))
+            st.db.execute("INSERT INTO agent_requests(agent,request_id,operation,fingerprint,arguments,resource,state,created,updated,principal,connection_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                          (actor, request_id, operation, fingerprint, _json(args), resource, "pending", ts, ts, principal, connection_id))
             st.db.commit()
         except BaseException:
             st.db.rollback()
@@ -212,7 +247,7 @@ def dispatch(P, req, operation):
             raise ApiError(403, "当前登录身份不是人工操作者")
         actor = "operator:" + req.user
     else:
-        actor = _actor(req)
+        actor = _actor(req, P)
     try:
         args = validate(operation, req.body)
     except ValueError as exc:
@@ -295,9 +330,42 @@ def _ready(P, t):
             raise ApiError(409, "运行 #%d 的停止或进程回收回执尚未完整；先读取 run_get 并完成原运行的停止检查，不能换请求编号绕过" % rid)
 
 
+def _tool_preview(P, ticket, run_id=None):
+    """Read recorded evidence without executing Git, probing processes or HTTP.
+
+    Historical adoption and preview records are useful context, not proof that
+    the commit still exists or that a preview is currently healthy. Never feed
+    these unverified records into the existing bound preview/acceptance path.
+    """
+    from . import preview
+    from .learn import _adopted
+    historical = None
+    if run_id is not None:
+        run = _run(P, run_id)
+        if run['ticket_id'] != ticket['id'] or run['project_id'] != ticket['project_id']:
+            raise ApiError(404, '这张工单没有这次运行')
+        match = re.fullmatch(r'accepted:(.+)@([0-9a-fA-F]{4,64})', run.get('decision') or '')
+        if run['mode'] != 'fix' or not match:
+            raise ApiError(409, '这次运行没有已采纳代码的历史记录')
+        historical = {'run': run['id'], 'branch': match.group(1), 'commit': match.group(2)}
+    else:
+        historical, _ = _adopted(P.store, ticket['id'])
+    recorded = preview._load(P.data_dir).get(ticket['key']) or {}
+    return {'preview': {'state': 'not_checked', 'recorded': recorded},
+            'historical_binding': historical, 'verification_status': 'not_checked',
+            'notice': '仅提供保存的历史记录；工具内容连接不核验当前 Git 提交、预览进程或健康状态。',
+            'url': '', 'branch': '', 'expected_commit': '', 'matches_run': None,
+            'run_id': run_id, 'execution': False}
+
+
 def _execute(P, req, actor, operation, a):
     from . import server
     st = P.store
+    from . import tenant_policy
+    who = tenant_policy.identity(P, req.user) if tenant_policy.enabled(P) else {}
+    tool = who.get('tool_connection')
+    # Scope before pagination; never disclose ungranted counts or row contents.
+    visible_ids = [p['id'] for p in tenant_policy.visible_projects(P, req.user)] if tool else None
     if operation.startswith("library_"):
         from .project_library import execute
         return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
@@ -311,14 +379,28 @@ def _execute(P, req, actor, operation, a):
         except ValueError as exc:
             raise ApiError(409, str(exc)) from exc
     if operation == "status":
+        if tool:
+            from . import tool_access
+            from .. import __version__
+            return {'version': __version__, 'agent': actor,
+                    'tool_connection': dict(tool, execution=False),
+                    'engines': [], 'allowed_operations': sorted(tool_access.allowed_operations(tool['scope'])),
+                    'boundaries': _boundaries(tool)}
         meta = server.api_meta(P, _req(req, actor))
         return {"version": meta["version"], "agent": actor, "workspace": str(P.data_dir),
                 "engines": meta["agents"], "boundaries": dict(BOUNDARIES)}
     if operation == "projects_list":
+        if visible_ids is not None:
+            rows = [p for p in st.projects() if p['id'] in visible_ids and p['id'] > a.get('after', 0)]
+            rows.sort(key=lambda p: p['id'])
+            return _page(rows, a.get('limit', 20), a.get('after', 0))
         return _page(st.q("SELECT * FROM projects WHERE id>? ORDER BY id LIMIT ?", (a.get("after", 0), a.get("limit", 20) + 1)), a.get("limit", 20), a.get("after", 0))
     if operation == "tickets_list":
         sql = "SELECT t.*,p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id WHERE t.id>?"
         values = [a.get("after", 0)]
+        if visible_ids is not None:
+            sql += ' AND t.project_id IN (%s)' % (','.join('?' * len(visible_ids)) or 'NULL')
+            values += visible_ids
         if a.get("project"):
             sql += " AND t.project_id=?"
             values.append(_project(P, a["project"])["id"])
@@ -343,11 +425,14 @@ def _execute(P, req, actor, operation, a):
         enriched = {r["id"]: r for r in packet["runs"]}
         refs = st.q("SELECT id,ticket_id,project_id,agent,mode,status,author,created,started,ended,exit_code,target,decision,result,session_id,batch,model FROM runs WHERE ticket_id=? ORDER BY id DESC", (t["id"],))
         packet["runs"] = [enriched.get(r["id"], r) for r in refs]
-        packet["repository"] = {"root": str(root), "head": git(root, "rev-parse", "HEAD", check=False).strip() if is_git(root) else "",
+        packet["repository"] = {"root": str(root), "head": '' if tool else git(root, "rev-parse", "HEAD", check=False).strip() if is_git(root) else "",
                                 "commands": config.load(root).get("commands") or {}}
-        packet["preview"] = server.api_preview(P, _req(req, actor), t["key"])
+        if tool:
+            packet['repository'].update(head_status='not_checked',
+                                        notice='工具内容连接不执行宿主 Git；当前工作区 HEAD 未核对。固定历史提交请看对应候选或运行证据。')
+        packet["preview"] = _tool_preview(P, t) if tool else server.api_preview(P, _req(req, actor), t["key"])
         packet["evidence_state"] = server.api_evidence(P, _req(req, actor), t["key"])
-        packet["boundaries"] = dict(BOUNDARIES)
+        packet["boundaries"] = _boundaries(tool)
         from . import project_library
         reference_state = project_library.reference_state(st, p)
         reference_inputs = project_library._binding_values(reference_state)
@@ -364,6 +449,9 @@ def _execute(P, req, actor, operation, a):
         packet["harness_library"] = library(P, p["key"])
         packet["external_candidates"] = st.q("SELECT id,run_id,commit_sha,base_commit,agent,created FROM code_candidates WHERE ticket_id=? ORDER BY id DESC", (t["id"],))
         packet["supported_actions"] = ["message_send", "messages_list", "run_get", "preview_get", "candidates_list", "candidate_get"] + ([] if t["status"] == "closed" or (t.get("links") or {}).get("delivery") else ["run_start", "candidate_submit"])
+        if tool:
+            from .tool_access import allowed_operations
+            packet['supported_actions'] = [v for v in packet['supported_actions'] if v in allowed_operations(tool['scope'])]
         return packet
     if operation == "ticket_create":
         p = _project(P, a["project"])
@@ -383,6 +471,9 @@ def _execute(P, req, actor, operation, a):
             raise ApiError(400, "to_agent 必须是智能体标识或 *")
         data = {"agent_message": True, "from_agent": actor[6:], "to_agent": recipient,
                 "message_kind": a.get("kind", "note"), "reply_to": reply, "request_id": a["request_id"]}
+        if who:
+            data.update(principal=req.user, tool_label=req.h.headers.get('X-Webuddy-Agent', ''),
+                        connection_id=(tool or {}).get('id', ''))
         req.agent_side_effect_started = True
         eid = st.event(t["id"], actor, "comment", a["body"], data)
         st.x("UPDATE tickets SET updated=? WHERE id=?", (now(), t["id"]))
@@ -391,6 +482,9 @@ def _execute(P, req, actor, operation, a):
     if operation == "messages_list":
         sql = "SELECT e.*,p.key || '-' || t.num AS ticket FROM events e JOIN tickets t ON t.id=e.ticket_id JOIN projects p ON p.id=t.project_id WHERE e.id>? AND e.kind='comment'"
         values = [a.get("after", 0)]
+        if visible_ids is not None:
+            sql += ' AND t.project_id IN (%s)' % (','.join('?' * len(visible_ids)) or 'NULL')
+            values += visible_ids
         if a.get("ticket"):
             sql += " AND e.ticket_id=?"
             values.append(_ticket(P, a["ticket"])["id"])
@@ -476,6 +570,8 @@ def _execute(P, req, actor, operation, a):
         req.agent_side_effect_started = True
         return server.api_recheck(P, _req(req, actor), str(a["run_id"]))
     if operation == "preview_get":
+        if tool:
+            return _tool_preview(P, _ticket(P, a["ticket"]), a.get("run_id"))
         query = {"run_id": [str(a["run_id"])]} if "run_id" in a else {}
         return server.api_preview(P, _req(req, actor, query=query), a["ticket"])
     if operation == "preview_start":

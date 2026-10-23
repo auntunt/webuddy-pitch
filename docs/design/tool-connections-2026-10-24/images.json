@@ -1,0 +1,10 @@
+{
+  "desktop-final.jpg": {
+    "bytes": 75963,
+    "sha256": "973bf315990306caf517c726ab83f2f20b4ecd038d942bc7b2b32674ed39621c"
+  },
+  "mobile-final.jpg": {
+    "bytes": 68434,
+    "sha256": "0fa7193357d1cb07d2ba28856dbc44838ac8146490d554686ada37d146103a1b"
+  }
+}

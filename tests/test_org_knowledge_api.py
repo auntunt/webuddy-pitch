@@ -1,4 +1,5 @@
 """G8 organization knowledge over the HTTP API: read-only, authenticated, provenance-carrying."""
+import hashlib
 import json
 import os
 import shutil
@@ -65,6 +66,8 @@ class OrgKnowledgeApiTest(unittest.TestCase):
         kb_page(cls.crm, "flows/approve.md", "flow:approve", "合同审批通过", "CRM：审批通过后生成合同版本。")
         glossary(cls.oa, "状态从待审批变为已审批")
         glossary(cls.crm, "状态从待审批变为已审批")
+        for name in ("decisions.md", "pitfalls.md"):
+            (cls.oa / ".tmh" / "knowledge" / name).write_text("- 审批规则：" + name + " 中尚未确认的完整原文。\n", encoding="utf-8")
         cls.P = Platform(cls.data, "tester")
         cls.P.store.add_project("OA", "OA 标品", str(cls.oa), "示例")
         cls.P.store.add_project("CRM", "CRM 项目", str(cls.crm), "示例")
@@ -126,7 +129,17 @@ class OrgKnowledgeApiTest(unittest.TestCase):
         for prov in terms[0]["provenance"]:
             self.assertEqual(prov["kind"], "glossary")
             self.assertEqual(prov["ref"], "glossary.md")
-            self.assertTrue(prov["confirmed"])
+            # A glossary row has no content-bound human confirmation receipt.
+            self.assertIs(prov["confirmed"], False)
+            self.assertEqual(prov["status"], "待确认")
+            root = self.oa if prov["project"] == "OA" else self.crm
+            self.assertEqual(prov["content_sha256"], hashlib.sha256((root / ".tmh/knowledge/glossary.md").read_bytes()).hexdigest())
+        self.assertEqual(terms[0]["status"], "待确认")
+        self.assertIs(terms[0]["reviewed"], False)
+        pages = [i for i in body["items"] if i["type"] == "pattern"]
+        self.assertEqual(len(pages), 2)
+        self.assertTrue(all(i["reviewed"] and i["status"] == "已确认" for i in pages))
+        self.assertTrue(all(p["confirmed"] for i in pages for p in i["provenance"]))
 
     def test_type_filter_and_bad_type(self):
         code, body = self.call("/api/org/knowledge?q=%E5%AE%A1%E6%89%B9&type=term")
@@ -135,6 +148,17 @@ class OrgKnowledgeApiTest(unittest.TestCase):
         code, body = self.call("/api/org/knowledge?type=nope")
         self.assertEqual(code, 400, body)
         self.assertIn("nope", body["error"])
+
+    def test_all_three_plain_notes_remain_discoverable_without_confirmation(self):
+        code, body = self.call("/api/org/knowledge?type=term,rule")
+        self.assertEqual(code, 200, body)
+        self.assertEqual(len(body["items"]), 3)
+        self.assertEqual({p["ref"] for i in body["items"] for p in i["provenance"]},
+                         {"glossary.md", "decisions.md", "pitfalls.md"})
+        for item in body["items"]:
+            self.assertEqual(item["status"], "待确认")
+            self.assertIs(item["reviewed"], False)
+            self.assertTrue(all(p["status"] == "待确认" and p["confirmed"] is False for p in item["provenance"]))
 
     def test_bad_limit_is_400(self):
         self.assertEqual(self.call("/api/org/knowledge?limit=abc")[0], 400)

@@ -181,6 +181,39 @@ def make_handler(registry, workers, *, brand="webuddy"):
             content = '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>选择组织</title><h1>选择组织</h1>' + ("<ul>" + links + "</ul>" if links else "<p>当前账号尚未加入有效组织，请联系管理员分配访问权限。</p>") + '<a href="/logout">退出账号</a></html>'
             return self._send(200, content.encode(), "text/html; charset=utf-8")
 
+        def _tool(self, method, url):
+            """Bearer credentials only admit the narrow agent API, never browser authority."""
+            from . import tool_access
+            if len(self.headers.get_all('Authorization', [])) != 1:
+                raise error(401, '工具凭据无效', 'tool_invalid')
+            match = re.fullmatch(r'/t/([A-Za-z0-9_-]+)/api/agent/([a-z_]+)', url.path)
+            if method != 'POST' or not match or url.query or url.fragment:
+                raise error(403, '工具凭据仅可使用获准的智能体接口', 'tool_route_denied')
+            tenant, operation = match.groups()
+            authorization = self.headers['Authorization']
+            if not authorization.startswith('Bearer ') or authorization != authorization.strip():
+                raise error(401, '工具凭据无效', 'tool_invalid')
+            bearer = authorization[7:]
+            raw = self._body()
+            body = json.loads(raw) if raw else {}
+            if not isinstance(body, dict):
+                raise error(400, '请求必须是 JSON 对象', 'invalid_request')
+            with reg.authorization_guard():
+                connection = tool_access.authenticate(reg, tenant, bearer)
+                if operation not in tool_access.allowed_operations(connection['scope']):
+                    raise error(403, '此工具连接未获准执行该操作', 'tool_operation_denied')
+            workers.ensure(tenant)
+            with reg.authorization_guard():
+                connection = tool_access.authenticate(reg, tenant, bearer)
+                # The bearer never reaches the worker or application handlers.
+                # The connection ID is authenticated by the private-worker proof.
+                headers = {'Content-Type': 'application/json', 'X-TMH': '1',
+                           'X-Webuddy-Context': tool_access.context_token(connection),
+                           'X-Webuddy-Tool': connection['id'],
+                           'X-Webuddy-Agent': self.headers.get('X-Webuddy-Agent', 'tool')}
+                return PendingProxy(tenant, connection['user'], method, '/api/agent/' + operation,
+                                    raw, headers, {}, False)
+
         def _dispatch(self, method):
             try:
                 url = urlsplit(self.path)
@@ -193,6 +226,8 @@ def make_handler(registry, workers, *, brand="webuddy"):
                     self._origin()
                     if self.headers.get("X-TMH") != "1":
                         raise error(403, "缺少 X-TMH 请求头", "csrf_denied")
+                if self.headers.get_all('Authorization'):
+                    return self._tool(method, url)
                 user = self._session()
                 if not user:
                     if method == "GET" and (url.path == "/" or re.fullmatch(r"/t/[A-Za-z0-9_-]+/?", url.path)):
@@ -220,7 +255,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
                 if path == "/api/access" and method == "POST":
                     body.setdefault("tenant", tenant)
                 initial = reg.context(user, tenant)
-                local = path in ("/", "/index.html", "/api/access") or path == "/api/meta" and (not initial["role"] or initial["tenant"]["status"] != "active")
+                local = path in ("/", "/index.html", "/api/access", "/tools", "/api/tool-connections") or path == "/api/meta" and (not initial["role"] or initial["tenant"]["status"] != "active")
                 if not local:
                     if initial["tenant"]["status"] != "active" or not initial["role"]:
                         raise error(403, "当前租户未授权或已停用", "tenant_disabled" if initial["tenant"]["status"] != "active" else "membership_revoked")
@@ -238,6 +273,34 @@ def make_handler(registry, workers, *, brand="webuddy"):
                             raise error(405, "此页面仅支持读取", "method_denied")
                         from .ui import page
                         return self._send(200, page().encode(), "text/html; charset=utf-8")
+                    if path in ('/tools', '/api/tool-connections'):
+                        from . import tool_access
+                        if current['tenant']['status'] != 'active' or not current['role']:
+                            raise error(403, '当前租户未授权或已停用', 'membership_revoked')
+                        if self.headers.get('X-Webuddy-Agent') or self.headers.get('X-Webuddy-Operator'):
+                            raise error(403, '请由本人在网页登录后管理工具连接', 'personal_session_required')
+                        if path == '/tools':
+                            if method != 'GET':
+                                raise error(405, '此页面仅支持读取', 'method_denied')
+                            from .ui_tool_access import page
+                            return self._send(200, page().encode(), 'text/html; charset=utf-8')
+                        visible = projects(reg, tenant)
+                        grants = {g['project_id']: g['role'] for g in current['project_grants']}
+                        visible = [dict(p, role='manager' if current['role'] == 'admin' else
+                                        'viewer' if current['role'] == 'viewer' else grants[str(p['id'])])
+                                   for p in visible if current['role'] == 'admin' or str(p['id']) in grants]
+                        if method == 'GET':
+                            return self._json(200, dict(tool_access.listing(reg, user, tenant),
+                                                       projects=visible, context_token=current['context_token']))
+                        if body.get('action') == 'create':
+                            ids = body.get('project_ids')
+                            if not isinstance(ids, list) or any(isinstance(i, bool) or not isinstance(i, int) or
+                                    i not in {p['id'] for p in visible} for i in ids):
+                                raise error(403, '只能授权当前可访问的项目', 'project_denied')
+                            return self._json(200, tool_access.create(reg, user, tenant, body))
+                        if body.get('action') == 'revoke':
+                            return self._json(200, tool_access.revoke(reg, user, tenant, body))
+                        raise error(400, '未知工具连接操作', 'invalid_request')
                     if path == "/api/access":
                         target = body.get("tenant", tenant) if method == "POST" else (query.get("tenant") or [tenant])[0]
                         if not isinstance(target, str):
@@ -264,7 +327,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
                     # The worker holds the authorization guard for the complete
                     # business operation, including when this gateway dies.
                     # Preserve this admitted version; never refresh it in transit.
-                    headers = {k: v for k, v in headers.items() if k.lower() != "x-webuddy-context"}
+                    headers = {k: v for k, v in headers.items() if k.lower() not in ("x-webuddy-context", "x-webuddy-tool")}
                     headers["X-Webuddy-Context"] = current["context_token"]
                     return PendingProxy(tenant, user, method, forwarded, raw, headers, access, path == "/api/meta")
             except ApiError as exc:

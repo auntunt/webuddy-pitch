@@ -1,0 +1,12 @@
+{
+  "pid": 42955,
+  "workers": [
+    {
+      "pid": 43167,
+      "exit_code": 0,
+      "socket_removed": true,
+      "key_removed": true
+    }
+  ],
+  "cleanups_completed": true
+}

@@ -40,7 +40,7 @@ HTML = r"""<!doctype html>
   <button class="pts" id="ptsBtn" title="点卡：只有生成类动作扣点"><span class="dot"></span><span class="w">剩余</span> <b id="ptsN">-</b> 点</button>
   <form id="say" autocomplete="off" onsubmit="event.preventDefault();sayOpen()"><input id="sayIn" placeholder="记录新的需求或问题…" aria-label="粘贴客户的话"><button id="sayGo" type="submit" aria-label="录入客户需求">＋<span> 记录需求</span></button></form>
   <button id="astToggle" title="AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）" aria-controls="ast" aria-expanded="false">AI 助手 <kbd>Ctrl K</kbd></button>
-  <div id="account"><button class="me" id="me" title="用户与设置"></button><a id="logout" href="/logout" hidden>退出</a></div>
+  <div id="account"><a id="personalTools" hidden>工具连接</a><button class="me" id="me" title="用户与设置"></button><a id="logout" href="/logout" hidden>退出</a></div>
 </header>
 <div id="accessContextNotice" role="status" hidden></div>
 <div id="wrap">

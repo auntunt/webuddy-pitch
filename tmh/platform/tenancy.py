@@ -116,6 +116,8 @@ class Registry:
                 with self.transaction() as db:
                     for statement in DDL:
                         db.execute(statement)
+                    from . import tool_access
+                    tool_access.schema(db)
                     columns = {r[1] for r in db.execute("PRAGMA table_info(access_requests)")}
                     for column in ("context_tenant", "context_digest"):
                         if column not in columns:
@@ -442,6 +444,8 @@ def dispatch(reg, user, body, *, request_context=None):
                         _last_admin(reg, m["tenant_id"], target_user)
                 db.execute("UPDATE accounts SET pw=?,active=?,epoch=?,updated=? WHERE name=?",
                            (password_hash if action == "password_reset" else account["pw"], 0 if action == "account_disable" else 1 if action == "account_enable" else account["active"], secrets.token_hex(16), now(), target_user))
+        from . import tool_access
+        tool_access.invalidate_for_change(db, action, tenant, target_user, body.get("project_id"))
         revision += 1
         db.execute("UPDATE access_meta SET revision=?", (revision,))
         payload = {k: v for k, v in body.items() if k != "password"}
@@ -462,6 +466,8 @@ def local_set_user(data, name, password):
         with reg.authorization_guard(), reg.transaction() as db:
             db.execute("INSERT INTO accounts VALUES(?,?,1,?,?) ON CONFLICT(name) DO UPDATE SET pw=excluded.pw,active=1,epoch=excluded.epoch,updated=excluded.updated",
                        (name, password_hash, secrets.token_hex(16), now()))
+            from . import tool_access
+            tool_access.invalidate_for_change(db, "account_set", "", name)
             db.execute("UPDATE access_meta SET revision=revision+1")
             rev = reg.one("SELECT revision FROM access_meta")["revision"]
             db.execute("INSERT INTO access_audit(actor,action,tenant_id,payload,revision,created) VALUES('local-cli','account_set','',?,?,?)", (encoded({"user": name}), rev, now()))
@@ -480,6 +486,8 @@ def local_del_user(data, name):
             for m in reg.q("SELECT tenant_id FROM memberships WHERE user=? AND role='admin'", (name,)):
                 _last_admin(reg, m["tenant_id"], name)
             db.execute("UPDATE accounts SET active=0,epoch=?,updated=? WHERE name=?", (secrets.token_hex(16), now(), name))
+            from . import tool_access
+            tool_access.invalidate_for_change(db, "account_remove", "", name)
             db.execute("UPDATE access_meta SET revision=revision+1")
             rev = reg.one("SELECT revision FROM access_meta")["revision"]
             db.execute("INSERT INTO access_audit(actor,action,tenant_id,payload,revision,created) VALUES('local-cli','account_remove','',?,?,?)", (encoded({"user": name}), rev, now()))

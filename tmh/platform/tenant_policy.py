@@ -400,6 +400,11 @@ def _agent(P, who, operation, body):
     if operation in ("preview_start", "candidate_preview"):
         raise ApiError(403, "租户预览入口尚未隔离，暂不启动预览服务")
     spec = SPECS[operation]
+    tool = who.get('tool_connection')
+    if tool:
+        from .tool_access import allowed_operations
+        if operation not in allowed_operations(tool['scope']):
+            raise ApiError(403, '此工具连接未获准执行该操作')
     level = "manager" if operation in ("library_reference", "library_unlink") else "contributor" if spec.get("write") else "viewer"
     projects = []
     for field, kind in (("project", "project"), ("ticket", "ticket"), ("run_id", "run"),
@@ -409,11 +414,25 @@ def _agent(P, who, operation, body):
     if len({p["id"] for p in projects}) > 1:
         raise ApiError(400, "请求中的资源不属于同一项目")
     if operation == "request_get":
+        if tool:
+            from .agent_api import member_actor
+            if not P.store.one("SELECT 1 FROM sqlite_master WHERE type='table' AND name='agent_requests'"):
+                raise ApiError(404, '此成员没有这个请求回执')
+            row = P.store.one('SELECT * FROM agent_requests WHERE agent=? AND request_id=?',
+                              (member_actor(who['actor']), args['request_id']))
+            if not row or row.get('principal') != who['actor']:
+                raise ApiError(404, '此成员没有这个请求回执')
+            parts = row['resource'].split(':')
+            if len(parts) < 2 or parts[0] not in ('project', 'ticket', 'run'):
+                raise ApiError(403, '原回执未绑定可核对项目，不能通过工具连接读取')
+            _check(P, who, _resource_project(P, parts[0], parts[1]))
+            return
         # Agent connection names are not personal principals. Until receipts
         # are bound to the gateway principal, only tenant admins may read them.
         if who["role"] != "admin":
             raise ApiError(403, "跨项目操作回执仅租户管理员可读取")
-    elif not projects and operation not in ("status", "harness_recipes") and who["role"] != "admin":
+    elif not projects and operation not in ("status", "harness_recipes") and who["role"] != "admin" and not (
+            tool and operation in ('projects_list', 'tickets_list', 'messages_list')):
         raise ApiError(403, "请明确选择获准的项目或工单")
     if spec.get("execution"):
         require_execution(P, who["actor"])

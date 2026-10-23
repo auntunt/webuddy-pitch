@@ -18,6 +18,8 @@ Sources read here (all read-only):
 * `<project root>/.tmh/knowledge/**/*.md` — page frontmatter (id/title/status),
   `.pages.json` (status registry), `glossary.md` (terms), `decisions.md` /
   `pitfalls.md` (rules);
+  The three plain-note files have no content-bound human confirmation route;
+  their entries remain discoverable as unconfirmed, irrespective of metadata.
 * `<data dir>/lessons.jsonl` — experience cards written from human verdicts
   (`tmh/platform/learn.py`), mapped to patterns (fix) and rules (anti-pattern).
 
@@ -142,15 +144,18 @@ def _table_terms(kb_dir: Path) -> list[dict]:
     if not f.is_file() or f.is_symlink() or not f.resolve().is_relative_to(kb_dir.resolve()):
         return out
     try:
-        text = f.read_text(encoding="utf-8", errors="replace")
+        data = f.read_bytes()
+        text = data.decode("utf-8", errors="replace")
     except OSError:
         return out
+    content_sha256 = hashlib.sha256(data).hexdigest()
     for m in _TABLE_ROW.finditer(text):
         term, code, note = (x.strip() for x in m.groups())
         if not term or term in ("业务词",) or set(term) <= {"-", " "}:
             continue
         content = (note + "；代码/表：" + code).strip("；") if code else note
-        out.append({"title": term, "summary": _short(content), "content": content})
+        out.append({"title": term, "summary": _short(content), "content": content,
+                    "content_sha256": content_sha256})
     return out
 
 
@@ -161,15 +166,17 @@ def _doc_rules(kb_dir: Path) -> list[dict]:
         if not f.is_file() or f.is_symlink() or not f.resolve().is_relative_to(kb_dir.resolve()):
             continue
         try:
-            text = f.read_text(encoding="utf-8", errors="replace")
+            data = f.read_bytes()
+            text = data.decode("utf-8", errors="replace")
         except OSError:
             continue
+        content_sha256 = hashlib.sha256(data).hexdigest()
         for m in _BULLET.finditer(text):
             line = m.group(1).strip()
             if len(line) < 6:
                 continue
             out.append({"title": line.split("：")[0][:60], "summary": _short(line), "content": line,
-                        "ref": name})
+                        "ref": name, "content_sha256": content_sha256})
     return out
 
 
@@ -226,12 +233,16 @@ def _collect(store, *, include_drafts: bool = False, project_key: str = "") -> t
                 })
         for term in _table_terms(kb):
             raw.append({"type": "term", "title": term["title"], "summary": term["summary"],
+                        "status": "待确认",
                         "dedup_text": term["title"] + "\n" + term["content"],
-                        "provenance": _provenance(project, "glossary", "glossary.md", _norm(term["title"]), "", True)})
+                        "provenance": {**_provenance(project, "glossary", "glossary.md", _norm(term["title"])),
+                                       "status": "待确认", "content_sha256": term["content_sha256"]}})
         for rule in _doc_rules(kb):
             raw.append({"type": "rule", "title": rule["title"], "summary": rule["summary"],
+                        "status": "待确认",
                         "dedup_text": rule["content"],
-                        "provenance": _provenance(project, "doc", rule["ref"], _norm(rule["title"]), "", True)})
+                        "provenance": {**_provenance(project, "doc", rule["ref"], _norm(rule["title"])),
+                                       "status": "待确认", "content_sha256": rule["content_sha256"]}})
     if data_dir and data_dir.is_dir():
         for lesson in _lesson_items(data_dir):
             if project_key and lesson["project"] != project_key:
@@ -249,14 +260,19 @@ def _merge(raw: list[dict]) -> list[dict]:
     merged: dict[str, dict] = {}
     for item in raw:
         key = item["type"] + "|" + _norm(item["dedup_text"])
-        status = item.get("status") or "已确认"
+        confirmed = item["provenance"].get("confirmed") is True
+        status = item.get("status") or ("已确认" if confirmed else "待确认")
+        if status == "已确认" and not confirmed:
+            status = "待确认"
+        provenance = {**item["provenance"], "status": status,
+                      "confirmed": confirmed and status == "已确认"}
         # Matching text is not matching review evidence. Keep historical IDs
         # for confirmed items, and never lend their badge to a draft/stale page.
         if status != "已确认":
             key = json.dumps([key, status], ensure_ascii=False, separators=(",", ":"))
         if key in merged:
-            merged[key]["provenance"].append(item["provenance"])
-            merged[key]["reviewed"] = merged[key]["reviewed"] and item["provenance"]["confirmed"]
+            merged[key]["provenance"].append(provenance)
+            merged[key]["reviewed"] = merged[key]["reviewed"] and provenance["confirmed"]
             if not merged[key]["summary"]:
                 merged[key]["summary"] = item["summary"]
         else:
@@ -266,14 +282,18 @@ def _merge(raw: list[dict]) -> list[dict]:
                 "title": item["title"], "summary": _short(item["summary"]),
                 "dedup_key": hashlib.sha256(key.encode()).hexdigest(),
                 "status": status,
-                "reviewed": item["provenance"]["confirmed"],
-                "provenance": [item["provenance"]],
+                "reviewed": provenance["confirmed"],
+                "provenance": [provenance],
             }
     return sorted(merged.values(), key=lambda i: (TYPES.index(i["type"]) if i["type"] in TYPES else 99, i["id"]))
 
 
 def build(store, *, include_drafts: bool = False, project_key: str = "") -> dict:
-    """Read-only roll-up; unconfirmed pages require explicit browsing opt-in."""
+    """Read-only catalog; plain notes are visible but never treated as confirmed.
+
+    Unconfirmed structured pages still require explicit browsing opt-in.
+    A file fingerprint identifies source bytes, not a human decision.
+    """
     started = time.strftime("%Y-%m-%d %H:%M:%S")
     raw, projects = _collect(store, include_drafts=include_drafts, project_key=project_key)
     items = _merge(raw)

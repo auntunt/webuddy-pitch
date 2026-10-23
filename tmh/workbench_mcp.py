@@ -29,6 +29,16 @@ INSTRUCTIONS = (
     "approval, merge, release, arbitrary HTTP or shell tool."
 )
 
+TENANT_INSTRUCTIONS = (
+    " This is a personal tenant connection, restricted to the member's current "
+    "tenant, projects and live scope. Tool labels are display/routing labels, "
+    "not independent identities or reviewers. Only authorised reads and, for "
+    "content scope, ticket creation and task messages are available. Execution, "
+    "candidate assessment, knowledge adoption and human decisions are disabled. "
+    "Request receipts belong to the authenticated member, not the tool label. "
+    "The gateway rechecks expiry, revocation and project permission on every call."
+)
+
 
 def _sdk():
     try:
@@ -49,15 +59,23 @@ def build_server(client, read_only=False, allow_execution=False):
     types, Server = _sdk()
     from anyio import CapacityLimiter, to_thread
 
+    tenant = bool(getattr(client, "tenant", None))
+    live_allowed = None
+    if tenant:
+        if allow_execution:
+            raise ClientError("个人工具连接不允许执行；请移除 --allow-execution", "tool_operation_forbidden")
+        live_allowed = set(client.connection_status()["allowed_operations"])
+
     allowed = {
         "webuddy_" + operation: operation
         for operation, spec in SPECS.items()
         if not (read_only and spec.get("write"))
         and not (spec.get("execution") and not allow_execution)
         and not spec.get("operator")
+        and (not tenant or (operation in live_allowed and client.permits(operation)))
     }
-    client.allow_execution = bool(allow_execution and not read_only)
-    server = Server("webuddy_mcp", version=__version__, instructions=INSTRUCTIONS)
+    client.allow_execution = bool(allow_execution and not read_only and not tenant)
+    server = Server("webuddy_mcp", version=__version__, instructions=INSTRUCTIONS + (TENANT_INSTRUCTIONS if tenant else ""))
     # Keep a real bound on active HTTP calls even after an MCP cancellation.
     # Non-abandoned workers hold their slot until the client's bounded request
     # finishes. They never start local model subprocesses or retry a mutation.
@@ -90,11 +108,14 @@ def build_server(client, read_only=False, allow_execution=False):
             isError=is_error,
         )
 
-    def error(code, message, status=None, uncertain=False):
-        return result({"ok": False,
+    def error(code, message, status=None, uncertain=False, request_id=None):
+        value = {"ok": False,
             "code": code, "error": message, "status": status,
             "uncertain": bool(uncertain),
-        }, is_error=True)
+        }
+        if request_id is not None:
+            value["request_id"] = request_id
+        return result(value, is_error=True)
 
     # Use the same validator as the CLI and HTTP endpoint so rejected input also
     # receives a complete structured error, not SDK-generated plain text only.
@@ -117,7 +138,7 @@ def build_server(client, read_only=False, allow_execution=False):
                              uncertain=bool(SPECS[operation].get("write")))
             return result(payload)
         except ClientError as exc:
-            return error(exc.code, exc.message, exc.status, exc.uncertain)
+            return error(exc.code, exc.message, exc.status, exc.uncertain, exc.request_id)
         except (TypeError, ValueError):
             return error("invalid_response", "The workbench returned invalid JSON content; inspect the original request receipt before retrying a write.",
                          uncertain=bool(SPECS[operation].get("write")))

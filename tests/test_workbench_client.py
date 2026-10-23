@@ -64,6 +64,101 @@ class WorkbenchClientTest(unittest.TestCase):
         value = Client(self.endpoint).call('candidate_get', {'candidate_id': 1})
         self.assertEqual(value['preview_url'], self.endpoint + entry)
 
+    def test_tenant_connection_uses_personal_bearer_without_legacy_headers(self):
+        client = Client(self.endpoint + '/t/default', tool_token='wbt_fixture.secret',
+                        token='must-not-forward', agent='cursor')
+        client.call('status')
+        request = self.requests[-1]
+        self.assertEqual(request['path'], '/t/default/api/agent/status')
+        self.assertEqual(request['headers']['authorization'], 'Bearer wbt_fixture.secret')
+        self.assertEqual(request['headers']['x-webuddy-agent'], 'cursor')
+        for header in ('x-tmh-token', 'cookie', 'x-webuddy-context', 'x-webuddy-execution'):
+            self.assertNotIn(header, request['headers'])
+
+    def test_tenant_without_credential_has_actionable_error(self):
+        with self.assertRaises(ClientError) as caught:
+            Client(self.endpoint + '/t/default', token='legacy-token')
+        self.assertEqual(caught.exception.code, 'tool_credential_required')
+        self.assertIn('connect', caught.exception.message)
+        self.assertEqual(self.requests, [])
+
+    def test_tenant_credentials_cannot_enable_execution_or_human_decision(self):
+        client = Client(self.endpoint + '/t/default', tool_token='wbt_fixture.secret',
+                        allow_execution=True, operator=True, operator_token='operator')
+        for operation, args in (
+            ('run_start', dict(ticket='AGENT-1', mode='analyze', engine='codex', request_id='never')),
+            ('candidate_decide', dict(candidate_id=1, evidence_hash='a' * 64,
+                                     decision='reject', note='no', request_id='never')),
+            ('library_unlink', dict(project='AGENT', binding_id=1, request_id='never')),
+        ):
+            with self.subTest(operation=operation), self.assertRaises(ClientError) as caught:
+                client.call(operation, args)
+            self.assertEqual(caught.exception.code, 'tool_operation_forbidden')
+        self.assertEqual(self.requests, [])
+
+    def test_tenant_error_redacts_secret_and_retains_unknown_request_id(self):
+        secret = 'wbt_fixture.secret'
+        self.respond = lambda h, body: self.reply(h, {'error': 'echo ' + secret}, status=503)
+        with self.assertRaises(ClientError) as caught:
+            Client(self.endpoint + '/t/default', tool_token=secret).call('message_send',
+                {'ticket': 'AGENT-1', 'body': 'once', 'request_id': 'tenant-unknown'})
+        error = caught.exception.as_dict()
+        self.assertTrue(error['uncertain'])
+        self.assertEqual(error['request_id'], 'tenant-unknown')
+        self.assertNotIn(secret, json.dumps(error))
+        self.assertEqual(len(self.requests), 1)
+
+    @unittest.skipUnless(os.name == 'posix', 'credential files require POSIX permission checks')
+    def test_real_cli_connect_then_read_and_write_retains_member_scope(self):
+        tenant_endpoint = self.endpoint + '/t/default'
+        token = 'wbt_fixture.secret'
+        def respond(h, body):
+            if h.path.endswith('/status'):
+                self.reply(h, dict(tool_connection=dict(id='fixture', user='member', tenant='default', scope='content',
+                    project_ids=[1], expires_at=1800000000, status='active', execution=False),
+                    allowed_operations=['status', 'ticket_get', 'ticket_create', 'message_send', 'request_get']))
+            else:
+                self.normal_response(h, body)
+        self.respond = respond
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / 'member.json'
+            imported = self.cli('connect', '--endpoint', tenant_endpoint, '--stdin', '--save-to', str(path),
+                                input=json.dumps(dict(schema=1, endpoint=tenant_endpoint, token=token)).encode())
+            self.assertEqual(imported.returncode, 0, imported.stderr)
+            self.assertEqual(json.loads(imported.stdout)['tool_connection']['user'], 'member')
+            self.assertNotIn(token.encode(), imported.stdout + imported.stderr)
+            read = self.cli('ticket', 'AGENT-1', '--endpoint', tenant_endpoint, '--credential-file', str(path))
+            self.assertEqual(read.returncode, 0, read.stderr)
+            written = self.cli('send', 'AGENT-1', '--endpoint', tenant_endpoint, '--credential-file', str(path),
+                               '--body', 'work receipt', '--request-id', 'member-receipt', '--agent', 'claude')
+            self.assertEqual(written.returncode, 0, written.stderr)
+        self.assertEqual([request['path'] for request in self.requests],
+                         ['/t/default/api/agent/' + op for op in ('status', 'ticket_get', 'message_send')])
+        self.assertEqual(self.requests[-1]['body']['request_id'], 'member-receipt')
+        for request in self.requests:
+            self.assertEqual(request['headers']['authorization'], 'Bearer ' + token)
+            self.assertNotIn('x-tmh-token', request['headers'])
+
+    def test_tenant_redirect_does_not_forward_bearer_or_repeat_write(self):
+        def redirect(h, body):
+            h.send_response(307)
+            h.send_header('Location', self.endpoint + '/t/other/api/agent/message_send')
+            h.send_header('Content-Length', '0')
+            h.end_headers()
+        self.respond = redirect
+        with self.assertRaises(ClientError) as caught:
+            Client(self.endpoint + '/t/default', tool_token='wbt_fixture.secret').call('message_send',
+                dict(ticket='AGENT-1', body='once', request_id='redirect-tenant'))
+        self.assertEqual(caught.exception.status, 307)
+        self.assertEqual(caught.exception.request_id, 'redirect-tenant')
+        self.assertEqual([request['path'] for request in self.requests], ['/t/default/api/agent/message_send'])
+
+    def test_tenant_success_never_echoes_bearer_from_upstream(self):
+        token = 'wbt_fixture.secret'
+        self.respond = lambda h, body: self.reply(h, {'token': token, 'nested': [{token: 'Bearer ' + token}]})
+        result = Client(self.endpoint + '/t/default', tool_token=token).call('status')
+        self.assertNotIn(token, json.dumps(result))
+
     def test_operator_secret_is_required_and_never_sent_with_agent_calls(self):
         args = dict(candidate_id=1, evidence_hash='a' * 64, decision='reject', note='isolated fixture', request_id='decision')
         with self.assertRaises(ClientError):

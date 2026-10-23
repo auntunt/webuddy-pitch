@@ -29,6 +29,7 @@ from .errors import ApiError
 from . import filelock
 
 ACTOR = ContextVar('tenant_actor', default='')
+TOOL = ContextVar('tenant_tool_connection', default=None)
 
 
 def error(code, message, reason='permission_denied'):
@@ -50,7 +51,20 @@ class TenantContext:
         grants = value['project_grants']
         projects = self.platform.store.projects() if self.platform else []
         keys = {str(p['id']): p['key'] for p in projects}
-        return dict(value, project_grants={keys[g['project_id']]: g['role'] for g in grants if g['project_id'] in keys})
+        result = dict(value, project_grants={keys[g['project_id']]: g['role'] for g in grants if g['project_id'] in keys})
+        tool = TOOL.get()
+        if tool is not None:
+            if tool['user'] != actor or tool['tenant'] != self.tenant_id:
+                raise error(403, '工具连接与当前成员不匹配', 'tool_invalid')
+            # A personal admin may issue a tool token, but never delegate their
+            # admin, execution or human-signoff authority to that connection.
+            role = 'contributor' if tool['scope'] == 'content' else 'viewer'
+            result.update(role='member' if tool['scope'] == 'content' else 'viewer', platform_owner=False,
+                          can_manage=False, project_grants={keys[str(pid)]: role for pid in tool['project_ids'] if str(pid) in keys},
+                          tool_connection=tool,
+                          capabilities={k: k == 'read' or k == 'write' and tool['scope'] == 'content'
+                                        for k in value['capabilities']})
+        return result
 
     def directory(self):
         return self.registry.directory(self.tenant_id)
@@ -83,29 +97,34 @@ class TenantContext:
         return False
 
     @contextmanager
-    def acting(self, actor):
+    def acting(self, actor, tool=None):
         token = ACTOR.set(actor)
+        tool_token = TOOL.set(tool)
         try:
             yield
         finally:
+            TOOL.reset(tool_token)
             ACTOR.reset(token)
 
 
-def sign_request(key, tenant, actor, method, path, body, context_token=''):
+def sign_request(key, tenant, actor, method, path, body, context_token='', tool_connection=''):
     value = {'tenant': tenant, 'actor': actor, 'method': method, 'path': path,
              'body': hashlib.sha256(body).hexdigest(), 'time': time.time(), 'context': context_token}
+    if tool_connection:
+        value['tool_connection'] = tool_connection
     encoded = base64.urlsafe_b64encode(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).decode()
     return encoded + '.' + hmac.new(key, encoded.encode(), hashlib.sha256).hexdigest()
 
 
-def verify_request(key, proof, tenant, method, path, body, context_token=''):
+def verify_request(key, proof, tenant, method, path, body, context_token='', tool_connection=''):
     try:
         encoded, signature = proof.split('.')
         if not hmac.compare_digest(signature, hmac.new(key, encoded.encode(), hashlib.sha256).hexdigest()):
             raise ValueError()
         value = json.loads(base64.urlsafe_b64decode(encoded))
         if (value['tenant'] != tenant or value['method'] != method or value['path'] != path or
-                value.get('context') != context_token or value['body'] != hashlib.sha256(body).hexdigest() or abs(time.time() - value['time']) > 30 or
+                value.get('context') != context_token or value.get('tool_connection', '') != tool_connection or
+                value['body'] != hashlib.sha256(body).hexdigest() or abs(time.time() - value['time']) > 30 or
                 not isinstance(value['actor'], str) or not value['actor']):
             raise ValueError()
         return value['actor']
@@ -216,9 +235,10 @@ class Workers:
             current = self._start(tenant)
         conn = UnixConnection(current['socket'])
         safe = {k: v for k, v in (headers or {}).items() if k.lower() in
-                ('content-type', 'x-tmh', 'x-webuddy-context', 'x-webuddy-agent', 'x-webuddy-execution', 'referer')}
+                ('content-type', 'x-tmh', 'x-webuddy-context', 'x-webuddy-agent', 'x-webuddy-execution', 'x-webuddy-tool', 'referer')}
         context_token = next((v for k, v in safe.items() if k.lower() == 'x-webuddy-context'), '')
-        safe['X-Webuddy-Worker-Proof'] = sign_request(current['key'], tenant, actor, method, path, body, context_token)
+        tool_id = next((v for k, v in safe.items() if k.lower() == 'x-webuddy-tool'), '')
+        safe['X-Webuddy-Worker-Proof'] = sign_request(current['key'], tenant, actor, method, path, body, context_token, tool_id)
         safe['Host'] = 'localhost'
         try:
             conn.request(method, path, body, safe)
@@ -314,7 +334,8 @@ def worker(data, tenant, address, keyfile, parent_pid):
                 if length < 0 or length > 5 * 1024 * 1024:
                     raise error(413, '请求大小不合适')
                 raw = self.rfile.read(length) if length else b''
-                actor = verify_request(key, self.headers.get('X-Webuddy-Worker-Proof', ''), tenant, method, self.path, raw, self.headers.get('X-Webuddy-Context', ''))
+                tool_id = self.headers.get('X-Webuddy-Tool', '')
+                actor = verify_request(key, self.headers.get('X-Webuddy-Worker-Proof', ''), tenant, method, self.path, raw, self.headers.get('X-Webuddy-Context', ''), tool_id)
                 self._tenant_actor = actor
                 self._who = actor
                 self.rfile = io.BytesIO(raw)
@@ -324,10 +345,18 @@ def worker(data, tenant, address, keyfile, parent_pid):
                 if not isinstance(body, dict):
                     raise error(400, '请求必须是 JSON 对象')
                 with registry.authorization_guard():
+                    tool = None
+                    if tool_id:
+                        from . import tool_access
+                        tool = tool_access.validate_connection(registry, tenant, tool_id, actor)
+                        operation = url.path.removeprefix('/api/agent/')
+                        if method != 'POST' or not url.path.startswith('/api/agent/') or url.query or operation not in tool_access.allowed_operations(tool['scope']):
+                            raise error(403, '此工具连接未获准执行该操作', 'tool_operation_denied')
                     identity = context.current_actor(actor)
-                    if self.headers.get('X-Webuddy-Context') != identity['context_token']:
+                    expected_context = tool_access.context_token(tool) if tool else identity['context_token']
+                    if self.headers.get('X-Webuddy-Context') != expected_context:
                         raise error(409, '成员身份或权限已变化，请重新读取', 'context_changed')
-                    with context.acting(actor):
+                    with context.acting(actor, tool):
                         if url.path not in ('/', '/index.html'):
                             self._tenant_scope = authorize(P, method, url.path, query, body, actor)
                         if url.path.startswith('/p/') and '/report/' in url.path:
