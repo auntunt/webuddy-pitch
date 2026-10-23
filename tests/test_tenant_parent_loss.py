@@ -44,7 +44,9 @@ r.worker(*sys.argv[1:])
 '''
 
 
-_GATEWAY = '''
+# Shared fixture contract: callers pass only the data directory. Embed the
+# observer safely so other real-process suites need no extra launch argument.
+_GATEWAY = 'worker_code = %r\n' % _WORKER + '''
 import contextlib, json, os, subprocess, sys, time
 from pathlib import Path
 from tmh.platform import tenant_gateway as g, tenant_runtime as r
@@ -53,7 +55,7 @@ data = Path(sys.argv[1]); original = g.ThreadingHTTPServer; ensure = r.Workers.e
 launch = subprocess.Popen; guard = Registry.authorization_guard
 def observed_worker(args, *positional, **kwargs):
     if args[1:3] == ['-m', 'tmh.platform.tenant_runtime']:
-        args = [args[0], '-c', sys.argv[2], *args[3:]]
+        args = [args[0], '-c', worker_code, *args[3:]]
     return launch(args, *positional, **kwargs)
 @contextlib.contextmanager
 def observed_guard(self):
@@ -113,7 +115,7 @@ class TenantParentLossTest(unittest.TestCase):
         self.action('project_grant', user='member', project_id=str(project['id']), role='contributor')
         self.cookie = 'tmh_session=' + login.make_session(self.data, 'member')
         self.token = self.registry.context('member')['context_token']
-        self.proc = subprocess.Popen([sys.executable, '-c', _GATEWAY, str(self.data), _WORKER],
+        self.proc = subprocess.Popen([sys.executable, '-c', _GATEWAY, str(self.data)],
                                      stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         self.worker = None
         self.addCleanup(self.cleanup_processes)

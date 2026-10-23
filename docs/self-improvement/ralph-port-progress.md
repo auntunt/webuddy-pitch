@@ -42,6 +42,13 @@
 - 夹具修复分开提交：交付恢复 **7656667**；本次提交父死测试屏障。最终 discovery **1632、loader errors=0**，即将对修复后的精确提交重新执行两端全量。
 
 
+- 第二轮精确本机全量 **090caef：1632 tests / 590.820s，1614 通过、16 跳过、2 failures、0 errors**；416 受测文件保持，日志 SHA `171cb68787ba2a4c7319f6a040774b5a7c870ecd57ded536a77c02d6cba38996`。前两处已修问题通过；新失败为共享网关夹具兼容性回归：`test_tenant_runner_owner_loss` 按原接口只传 data，新观测器却读取第二参数，导致两项真实三代进程测试在启动阶段失败。正在恢复单参数契约，并联合执行两个调用者及进程专项；不以“产品代码未变”为由忽略失败，也未部署。
+- 低带宽传输改进：两次 rsync/整包传输未完成即停止，保留旧目录，所属本地传输进程已核对退出。新增差异包重构工具只读取旧 release 中经过 SHA 验证的 app/test-source/wheels，不读业务 data；本机整包字节、模式、TarInfo 与新候选完全一致，并验证已有 incoming/损坏复用源会拒绝。最终候选仍需重新打包和服务器验证；没有跳过完整归档与全量门。
+
+
+- 共享夹具回归修复：将 worker 观测脚本安全嵌入 `_GATEWAY`，恢复所有调用者只传 data 的原契约；同时 owner-loss 仅加 self.temp 留存失败现场。直接 stderr 的 IndexError 红灯已保留。最终 `parent_loss + tenant_runner_owner_loss + supervised_process + run_lifecycle` **37 项 / 38.995s** 通过；真实 owner-loss **20 轮 40/40 / 48.539s**，每次清理后 gateway/worker/supervisor/三代进程及合成无关 guard 均退出。独立组合 5 项 / 4.197s 通过，64 个原断言/等待 AST 不变，仓库全部调用者已检索；产品文件未改。继续新提交精确双端全量，发现数仍 1632。
+
+
 
 
 ## 2026-10-23：租户与权限管理

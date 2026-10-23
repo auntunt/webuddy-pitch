@@ -21,6 +21,7 @@ from tests.test_tenant_parent_loss import _GATEWAY, _running
 class TenantRunnerOwnerLossTest(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix='tmh-tenant-runner-loss-')
+        self.temp = temporary  # Preserve the full synthetic fixture on suite failures.
         self.addCleanup(temporary.cleanup)
         self.data = Path(temporary.name).resolve()
         login.set_user(self.data, 'owner', 'synthetic-owner-password')
