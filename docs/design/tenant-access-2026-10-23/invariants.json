@@ -1,0 +1,23 @@
+{
+  "baseline": "ace189d",
+  "candidate": "56018de6c3bc5dd499e696d3543633f4c4557c4d",
+  "protected_files_byte_equal": {
+    "tmh/acceptance.py": true,
+    "tmh/guard.py": true,
+    "tmh/platform/filelock.py": true,
+    "tmh/platform/process_control.py": true,
+    "tmh/platform/supervised_process.py": true
+  },
+  "modified_original_test_files": [
+    "tests/test_platform.py",
+    "tests/test_python_pathmap_ui.py",
+    "tests/test_recheck_signoff_ui.py"
+  ],
+  "original_test_assertions_equal": true,
+  "original_test_method_counts": {
+    "tests/test_platform.py": 59,
+    "tests/test_python_pathmap_ui.py": 12,
+    "tests/test_recheck_signoff_ui.py": 6
+  },
+  "product_diff_from_273dc97": ""
+}

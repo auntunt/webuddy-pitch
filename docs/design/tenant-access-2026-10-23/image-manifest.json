@@ -1,0 +1,37 @@
+{
+  "answer-session-identity.jpg": {
+    "bytes": 83318,
+    "sha256": "4bf01a1d8593a4e0969e36300598bc54d8652a24924573938486a9de4d8cd2ac",
+    "original_bytes_preserved": true
+  },
+  "context-cleared.jpg": {
+    "bytes": 14654,
+    "sha256": "b4eae2a168b170effc0bc83c580a6b51157a54e0922630a9308b61af909cbe39",
+    "original_bytes_preserved": true
+  },
+  "control-only-desktop.jpg": {
+    "bytes": 64150,
+    "sha256": "a41069fa36307c77d855a33d0831ef73a20802291800b6775c971b292449400d",
+    "original_bytes_preserved": true
+  },
+  "management-desktop.jpg": {
+    "bytes": 67347,
+    "sha256": "da6e04f41c458046261da5262eca3bb7cfc67f8885d5eb4dc65013c9b4201bb5",
+    "original_bytes_preserved": true
+  },
+  "management-mobile-390-full.jpg": {
+    "bytes": 115647,
+    "sha256": "75476012ef945cab76f091e345c054f5d8b4d5a59b19b661bbb3f0c67d285bab",
+    "original_bytes_preserved": true
+  },
+  "readonly-mobile-390.jpg": {
+    "bytes": 33091,
+    "sha256": "065fd52c75a5bb51846d691372cc2b0dc972afb88cb42bdca5310e4b52eb6d8e",
+    "original_bytes_preserved": true
+  },
+  "revoked-mobile-390.jpg": {
+    "bytes": 9091,
+    "sha256": "bad5a20a71649bf22f4ce3d677dd9b672379af35e565aeb137a180915df79502",
+    "original_bytes_preserved": true
+  }
+}

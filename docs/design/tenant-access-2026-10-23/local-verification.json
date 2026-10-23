@@ -1,0 +1,19 @@
+{
+  "commit": "56018de6c3bc5dd499e696d3543633f4c4557c4d",
+  "expected_tests": 1523,
+  "elapsed_seconds": 454.6208608750021,
+  "exit_code": 0,
+  "result": {
+    "tests": 1523,
+    "skipped": 16,
+    "failures": [],
+    "errors": [],
+    "expected_failures": 0,
+    "unexpected_successes": [],
+    "successful": true
+  },
+  "files_count": 380,
+  "files_unchanged": true,
+  "log_bytes": 34867,
+  "log_sha256": "0cbec5cf7af4487e8c00b296353c29eace8a5f56e45999b1c8e9f2b9d11a1eef"
+}

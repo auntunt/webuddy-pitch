@@ -1,0 +1,62 @@
+{
+  "source_commit": "56018de6c3bc5dd499e696d3543633f4c4557c4d",
+  "status": "deployed_and_delayed_verified",
+  "service_started_utc": "2026-10-23T09:23:55.842226+00:00",
+  "release": "/opt/webuddy/releases/56018de6c3bc-tenant-access-20261023",
+  "backup": "/opt/webuddy/backups/pre-56018de6c3bc-20261023T092352Z",
+  "runtime_files": 197,
+  "verified_evidence_files": 11,
+  "readback_manifest_sha256": "40eba83ddbd53ae33fa5eaaccabf71b0757b3768e7cc44d6771479c99e8b1b9d",
+  "full_tests": {
+    "tests": 1523,
+    "skipped": 14,
+    "failures": [],
+    "errors": [],
+    "expected_failures": 0,
+    "unexpected_successes": [],
+    "successful": true
+  },
+  "full_seconds": 658.502,
+  "synthetic_http_checks": 26,
+  "activation_http_checks": 10,
+  "delayed_http_checks": 18,
+  "delayed_seconds": 122.264,
+  "original_business_tables_preserved": 45,
+  "original_identity_files_unchanged": true,
+  "new_business_tables": {},
+  "data_restored": false,
+  "production_authenticated_business_http": "not_performed_no_user_session",
+  "human_business_actions_performed": false,
+  "service_state": "active",
+  "automatic_restarts": 0,
+  "error_priority_lines_since_start": 0,
+  "root_readback_files": 11,
+  "root_tls_checked_utc": "2026-10-23T09:29:29.174325+00:00",
+  "root_anonymous_tls_checks": [
+    {
+      "path": "/login",
+      "status": 200,
+      "bytes": 5227,
+      "sha256": "80b16b4f519f3b79d6489b2d65ea43a161df6b48628802a128fa9b28b4ed90b3"
+    },
+    {
+      "path": "/api/projects",
+      "status": 401,
+      "bytes": 67,
+      "sha256": "355e716af022b1e1ed30a5dd1284c833ee10c7eabaf00f949139e74c3a4e8705"
+    },
+    {
+      "path": "/t/default/api/meta",
+      "status": 401,
+      "bytes": 67,
+      "sha256": "355e716af022b1e1ed30a5dd1284c833ee10c7eabaf00f949139e74c3a4e8705"
+    },
+    {
+      "path": "/t/default/api/projects",
+      "status": 401,
+      "bytes": 67,
+      "sha256": "355e716af022b1e1ed30a5dd1284c833ee10c7eabaf00f949139e74c3a4e8705"
+    }
+  ],
+  "configuration_and_other_services_unchanged": true
+}
