@@ -27,6 +27,13 @@
 
 - 最终冻结：发现 **1737 tests、loader errors=0**；acceptance、guard、filelock、agents四文件与fc65a2b逐字一致，MOVES未改，git diff --check通过。实现准备独立提交；随后从精确Git blobs导出两端全量，当前未推送/切换生产。
 
+- 冻结实现 **fd3a94e**：205运行文件/425验证文件，14个传输文件逐字节读回一致。Mac Python3.14.6精确全量 **1737 tests /1718通过/19可选依赖跳过/0失败错误，外层461.092s，unittest459.976s**；425文件前后SHA/模式一致，完整日志SHA `51752428eb778a9e35e3ccf74fced6d0c35defd7f4f7642f439002b81631a032`。日志包含ResourceWarning与弃用警告，未宣称零资源警告。
+- 同冻结源码官方MCP1.30.0/CLI/凭据 **59/59 /14.890s /0跳过**，8相关文件前后匹配包清单；独立审查61项通过，36个变更文件逐一匹配fd3a94e。完整生产私有副本1781成员迁移两轮幂等，56业务表原行/schema、9控制表原身份/权限保持，仅增加2空控制表，不创建生产原本不存在的agent表。真实私有worker初始化/退出/socket/key回收通过，无生产个人会话或业务操作。服务器全量仍运行，未推送/激活。
+
+- 发布前补跑被全量跳过的知识MCP SDK用例出现 **1 error /0.344s**，fd3a94e暂不发布。旧test_knowledge_agent_api无限制Mock自动产生真值tenant，新build_server因此按个人租户连接拒绝allow_execution；真实Client无此问题。仅修夹具明确旧本地连接类型，保留原断言和产品限制；红灯日志在candidate-fd3a94e/candidate-sdk-proof/knowledge-discovery.log，后续单独提交并重新冻结双端全量。不能用前59项通过掩盖这项遗漏。
+
+- SDK夹具最小修复：仅 `test_knowledge_agent_api.py` 一处 `Mock()`→`Mock(tenant=None)`，明确其原本测试的本地连接；所有原权限断言保持。知识模块14项+原SDK/CLI/凭据59项，共 **73/73 /14.933s /0跳过**；8149个原断言AST、148产品Python哈希不变，主代理独立核对整文件只有这一处keyword变化。证据在分析/tool-connections-20261024/knowledge-discovery-fixture-fix/；发现数仍1737，将单独提交并重跑两端精确全量。初候选Linux主套件1737项/736.058s/17跳过/0失败错误已结束，但不能覆盖这项SDK红灯。
+
 ## 2026-10-23：会后行动、工作简报与交付覆盖
 
 - 当前项：C1–C5；状态：**done，2026-10-23 21:50:04 CST 已上线 `2fd2adb`，GitHub 已推送**。实现 `39cde13`，夹具修复 `7656667`、`090caef`、`2fd2adb`；下列中间状态按发生顺序保留，最终结果见本节末及[发布记录](../../audit/production-deployment-2026-10-23-coordination.md)。用户明确要求按标品方向实现三项及 UI，验证后自动推送 GitHub/服务器。开工 `iteration/context-pack-v2` / `68f0137` 干净，已读进度、最近十条提交和项目 AGENTS；历史 stash 保持。

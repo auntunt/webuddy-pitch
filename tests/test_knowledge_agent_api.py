@@ -279,7 +279,7 @@ class KnowledgeMCPDiscoveryTest(unittest.IsolatedAsyncioTestCase):
         from tmh.workbench_mcp import build_server
 
         for read_only, execution in ((True, True), (False, False), (False, True)):
-            client = Mock()
+            client = Mock(tenant=None)
             server = build_server(client, read_only=read_only, allow_execution=execution)
             result = await server.request_handlers[types.ListToolsRequest](types.ListToolsRequest(method="tools/list"))
             tools = result.root.tools
