@@ -169,9 +169,12 @@ class Store:
         return self.project(pid)
 
     # ---- tickets
-    def tickets(self, project_id=None, status=None, text=None, assignee=None, limit=500, svc=None) -> list:
+    def tickets(self, project_id=None, status=None, text=None, assignee=None, limit=500, svc=None, *, allowed_projects=None) -> list:
         """`svc` picks a service: "reform" for pieces of reform plans, "ops" for everything else."""
         sql, args = "SELECT t.*, p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id WHERE 1=1", []
+        if allowed_projects is not None:
+            sql += " AND t.project_id IN (%s)" % (",".join("?" for _ in allowed_projects) or "NULL")
+            args.extend(allowed_projects)
         if svc in ("ops", "reform"):
             sql += " AND t.links %s ?" % ("LIKE" if svc == "reform" else "NOT LIKE")
             args.append(REFORM_LIKE)
@@ -339,8 +342,11 @@ class Store:
     def run(self, rid: int) -> dict | None:
         return self.one("SELECT * FROM runs WHERE id=?", (rid,))
 
-    def runs(self, ticket_id=None, project_id=None, limit=100) -> list:
+    def runs(self, ticket_id=None, project_id=None, limit=100, *, allowed_projects=None) -> list:
         sql, args = "SELECT id,ticket_id,project_id,agent,mode,status,author,created,started,ended,exit_code,target,decision,result,session_id,batch,model FROM runs WHERE 1=1", []
+        if allowed_projects is not None:
+            sql += " AND project_id IN (%s)" % (",".join("?" for _ in allowed_projects) or "NULL")
+            args.extend(allowed_projects)
         if ticket_id:
             sql += " AND ticket_id=?"
             args.append(ticket_id)

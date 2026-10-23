@@ -383,6 +383,8 @@ def _env(port: int, prefix: str) -> dict:
 
 
 def start(P, p: dict, t: dict, branch: str, by: str, *, expected_commit: str = "") -> dict:
+    if getattr(P, "tenant_context", None) is not None:
+        raise ApiError(403, "租户预览尚未接入独立安全来源，暂不能启动")
     from .project_library import project_guard
     with project_guard(P.store, p, execution=True):
         return _start(P, P.store.project(p['id']), t, branch, by, expected_commit=expected_commit)

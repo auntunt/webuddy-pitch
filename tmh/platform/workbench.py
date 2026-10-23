@@ -723,9 +723,10 @@ def _inherit(P, t: dict, who: str) -> None:
         _set_client(P, t, cid, who or "平台", "跟着大需求 %s" % pt["key"])
 
 
-def wire(P) -> None:
+def wire(P, *, background=True) -> None:
     from .. import bots
-    P.flow.on_release.append(on_release(P))
+    if background:
+        P.flow.on_release.append(on_release(P))
     P.store.on_create.append(lambda t, who: _inherit(P, t, who))
     inner = bots.INTAKE
     if inner:
@@ -745,7 +746,8 @@ def wire(P) -> None:
                 reap(P)
             except Exception:  # noqa: BLE001
                 pass
-    threading.Thread(target=reaper, daemon=True).start()
+    if background:
+        threading.Thread(target=reaper, daemon=True).start()
 
 
 def versions(P, project: str) -> dict:

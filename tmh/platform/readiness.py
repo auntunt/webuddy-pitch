@@ -124,8 +124,8 @@ def _evidence(P) -> list:
 
 
 def _access(P) -> list:
-    from .login import load_users
-    users = load_users(P.data_dir)
+    from .tenant_policy import directory
+    users = directory(P)
     if users:
         return [_item("login", "登录", "ok", "已开账号登录，%d 个账号" % len(users))]
     return [_item("login", "登录", "warn", "没有账号：只能本机或带令牌访问，签收记录里看不出是谁操作的",

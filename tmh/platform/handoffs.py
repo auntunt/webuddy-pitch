@@ -12,7 +12,7 @@ import hashlib
 import json
 import re
 
-from . import candidates, login, signoff
+from . import candidates, signoff
 from .errors import ApiError
 from .store import now
 
@@ -90,8 +90,9 @@ def _read_snapshot(store):
             store.db.execute("RELEASE handoff_read")
 
 
-def _members(P):
-    return sorted(name for name in login.load_users(P.data_dir) if signoff.human(name))
+def _members(P, project=None):
+    from .tenant_policy import eligible_members
+    return eligible_members(P, project)
 
 
 def _user(P, user):
@@ -241,6 +242,7 @@ def _present(row, source, token, t, user, members):
 
 
 def _read(P, t, user, source, token, members):
+    from .tenant_policy import enabled
     head, current = _current(P.store, t["id"])
     history = []
     for row in P.store.q("SELECT * FROM ticket_handoffs WHERE ticket_id=? ORDER BY id", (t["id"],)):
@@ -258,17 +260,20 @@ def _read(P, t, user, source, token, members):
             "can_send": actions["send"], "actions": actions,
             "next_actor": current["next_actor"] if current else t.get("assignee") or None,
             "waiting_since": current["waiting_since"] if current else None,
-            "waiting_seconds": _seconds(current["waiting_since"]) if current else None, "boundary": BOUNDARY}
+            "waiting_seconds": _seconds(current["waiting_since"]) if current else None,
+            "boundary": ("交接接收只确认协作材料，不代表技术复核、业务验收或关单。访问范围由当前租户与项目授权决定。" if enabled(P) else BOUNDARY)}
 
 
 def read(P, ticket, user):
     _user(P, user)
+    from .tenant_policy import require_member
+    require_member(P, user, _ticket(P, ticket)["project_id"], "viewer")
     source, token, fingerprint = _source(P, ticket)
     with _read_snapshot(P.store):
         t = _ticket(P, ticket)
         if _hash(_db_source(P, t)) != fingerprint:
             raise ApiError(409, "来源已变化，请刷新")
-        return _read(P, t, user, source, token, _members(P))
+        return _read(P, t, user, source, token, _members(P, t["project_id"]))
 
 
 def summary_rows(store, ticket_ids):
@@ -338,6 +343,8 @@ def dispatch_action(P, body, user):
     _user(P, user)
     _validate(body)
     t = _ticket(P, body.get("ticket"))
+    from .tenant_policy import require_member
+    require_member(P, user, t["project_id"])
     st, action = P.store, body["action"]
     fingerprint = _hash(body)
     # Fast replay also works after a later source change or ticket closure.
@@ -352,7 +359,8 @@ def dispatch_action(P, body, user):
         source, token, source_fingerprint = _source(P, t["id"])
         with _transaction(st) as db:
             _user(P, user)
-            members = _members(P)
+            require_member(P, user, t["project_id"])
+            members = _members(P, t["project_id"])
             old = st.one("SELECT * FROM ticket_handoff_requests WHERE actor=? AND request_id=?", (user, body["request_id"]))
             if old:
                 if old["fingerprint"] != fingerprint:

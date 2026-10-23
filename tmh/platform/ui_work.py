@@ -99,9 +99,9 @@ const WK=['workspace','projects','team','memory','handoff','deliveries','deliver
 function isEng(v){return !WK.includes(v)}
 function navOf(v){return ['workspace','today'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn'].includes(v)?'memory':['tickets','t','reqs','board','home','rtickets'].includes(v)?'tasks':'projects'}
 function paintNav(){const cur=navOf(curView()),nav=$('#nav5');
-  const signature=JSON.stringify([cur,curView()]);if(nav.dataset.signature===signature)return;
+  const signature=JSON.stringify([cur,curView(),!!S.meta?.access?.can_manage]);if(nav.dataset.signature===signature)return;
   const focused=nav.contains(document.activeElement)?document.activeElement.closest('[data-n]')?.dataset.n:null;
-  nav.innerHTML='<span class="ws-nav-label">工作空间</span>'+NAV.map(([k,l,u,ic])=>`<a href="${u}" class="${k===cur?'on':''}" data-n="${k}" ${k===cur?'aria-current="page"':''}><i aria-hidden="true">${workIcon(ic)}</i><span>${l}</span></a>`).join('')+`<div class="ws-nav-secondary"><span class="ws-nav-label">管理</span><a href="#/deliveries">${workIcon('deliveries')}<span>交付</span></a><a href="#/clients">${workIcon('clients')}<span>客户</span></a><a href="#/settings">${workIcon('eng')}<span>设置</span></a></div>`;
+  nav.innerHTML='<span class="ws-nav-label">工作空间</span>'+NAV.map(([k,l,u,ic])=>`<a href="${u}" class="${k===cur?'on':''}" data-n="${k}" ${k===cur?'aria-current="page"':''}><i aria-hidden="true">${workIcon(ic)}</i><span>${l}</span></a>`).join('')+`<div class="ws-nav-secondary"><span class="ws-nav-label">管理</span><a href="#/deliveries">${workIcon('deliveries')}<span>交付</span></a><a href="#/clients">${workIcon('clients')}<span>客户</span></a><a href="#/settings">${workIcon('eng')}<span>设置</span></a>${S.meta?.access?.can_manage?`<a href="#/access" ${curView()==='access'?'aria-current="page"':''}>${workIcon('clients')}<span>成员与权限</span></a>`:''}</div>`;
   nav.dataset.signature=signature;if(focused)nav.querySelector(`[data-n="${focused}"]`)?.focus()}
 const STL={talk:'需求澄清',doing:'执行中',you:'待复核',client:'待客户确认',shipped:'已出版本',done:'已完成'};
 const stChip=s=>`<span class="st ${h(s)}">${h(STL[s]||s)}</span>`;
@@ -111,7 +111,7 @@ function nowStr(d){d=d||new Date();const p=n=>String(n).padStart(2,'0');return `
 
 // ---------- 粘贴客户的话: one box on every page, the requirement conversation with the client recorded
 function sayWire(){/* Pasting keeps focus; recording begins only on explicit submit. */}
-function sayOpen(){const i=$('#sayIn'),v=i?i.value:'';if(i)i.value='';const c=location.hash.match(/^#\/c\/(\d+)/);pasteModal(v,c?+c[1]:undefined)}
+function sayOpen(){const i=$('#sayIn'),v=i?i.value:'';if(S.meta?.access&&S.meta.access.capabilities?.execution!==true){newTicket({body:v});return}if(i)i.value='';const c=location.hash.match(/^#\/c\/(\d+)/);pasteModal(v,c?+c[1]:undefined)}
 async function pasteModal(text,cid){
   if(!S.projects.length)return newProject();
   let cs=[];try{cs=(await get('/api/clients')).clients}catch(e){}
@@ -253,7 +253,7 @@ function versionCard(v,cs){const p=v.project,s=v.standing,K=h(p.key),last=(((v.v
       ${v.shares.length?`<div style="margin-top:8px">${v.shares.map(x=>`<div class="sub" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">给 ${h(x.client_name||'未指定')} · ${h(x.created.slice(5,16))} 发 · ${h(x.expires.slice(0,10))} 前有效 <button class="ghost" data-vrev="${h(x.id)}">收回</button></div>`).join('')}</div>`:''}</div>`:''}</div>
    <h3 style="margin-top:14px">版本记录</h3>${v.versions.length?`<div class="vtl">${v.versions.map(x=>`<div><b>${h(x.version)}</b> <span class="sub">${h((x.ts||'').slice(0,16))} · 提交 ${h(x.commit||'')}</span><ul>${x.items.map(i=>`<li>${i.client_name?`<span class="tag">${h(i.client_name)}</span> `:''}${h(i.title)} <a href="#/t/${h(i.key)}" class="sub">${h(i.key)}</a></li>`).join('')}</ul></div>`).join('')}</div>`
     :'<div class="wke">还没有版本记录。改动合入主干并形成版本后，会显示在这里。</div>'}</section>`}
-function versionWire(v){const box=$('#vc-'+v.project.key);if(!box)return;const P='/api/projects/'+encodeURIComponent(v.project.key),re=()=>vVersions(curView()==='versions'?decodeURIComponent((location.hash.split('/')[2]||'')):'');
+function versionWire(v){const box=$('#vc-'+v.project.key);if(!box)return;if(typeof accessFenceControls==='function')accessFenceControls(box);const P='/api/projects/'+encodeURIComponent(v.project.key),re=()=>vVersions(curView()==='versions'?decodeURIComponent((location.hash.split('/')[2]||'')):'');
   box.querySelectorAll('[data-vs]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await post(P+'/standing',{action:b.dataset.vs});toast(b.dataset.vs==='stop'?'已停止预览':'正在启动预览')}catch(e){toast(e.message,6000)}re()});
   const sv=box.querySelector('[data-vsave]');if(sv)sv.onclick=async()=>{try{await post(P+'/preview-conf',{cmd:box.querySelector('[data-vcmd]').value,ready:'/'});toast('已保存预览启动命令');re()}catch(e){toast(e.message,6000)}};
   const sh=box.querySelector('[data-vshare]');if(sh)sh.onclick=async()=>{try{const r=await post(P+'/shares',{client:+box.querySelector('[data-vcl]').value||null,days:+box.querySelector('[data-vdays]').value});

@@ -807,6 +807,19 @@ def cmd_serve(a) -> int:
                  getattr(a, "preview_port", 0) or 0)
 
 
+def cmd_access_init(a) -> int:
+    from .platform.tenancy import Registry
+    from .platform.errors import ApiError
+    try:
+        registry = Registry(Path(a.data).expanduser(), bootstrap_owner=a.owner)
+        registry.close()
+    except (ValueError, OSError, ApiError) as exc:
+        print("租户权限初始化失败：%s" % exc)
+        return 1
+    print("租户权限已启用；原数据保留为 default。请重启平台后由指定管理员分配成员和项目权限。")
+    return 0
+
+
 def cmd_user(a) -> int:
     import getpass
     import sys
@@ -962,6 +975,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--brand", help="界面上显示的产品名，例如 \"OA 闭环监控\"（默认“webuddy”，也可用环境变量 TMH_BRAND）")
     p.add_argument("--preview-port", type=int, default=0, help="预览版本用的独立端口（另一个源，和平台完全隔开）；"
                    "有反向代理给它起了名字时再设 TMH_PREVIEW_BASE=https://pv.example.com")
+    p = add("access-init", cmd_access_init, "启用租户权限：指定一个已存在的个人账号作为平台所有者，原数据保留为 default")
+    p.add_argument("--data", default="~/.tmh/platform", help="已有平台数据目录")
+    p.add_argument("--owner", required=True, help="显式指定已有个人账号；不按账号排序猜测")
     p = add("user", cmd_user, "管理平台登录账号：add（新建或改密码）/ del / list；有账号后网页改为账号密码登录")
     p.add_argument("action", choices=["add", "del", "list"])
     p.add_argument("name", nargs="?", default="")
@@ -1011,7 +1027,7 @@ def main(argv=None) -> int:
     rc = a.fn(a) or 0
     quiet = a.cmd == "kb" and a.action in ("status", "show", "pack", "done", "read", "questions", "ask", "answer", "overrule", "metrics")  # done logs its own entry
     quiet = quiet or a.cmd == "mcp" or (a.cmd == "int" and a.action in ("list", "types"))
-    if a.cmd not in ("hook", "note", "status", "agent-config", "install", "verify", "serve", "offline-pack", "evidence-verify", "platform") and not quiet:  # verify writes its own report
+    if a.cmd not in ("hook", "note", "status", "agent-config", "install", "verify", "serve", "access-init", "offline-pack", "evidence-verify", "platform") and not quiet:  # verify writes its own report
         from . import activity
         argv_s = " ".join(sys.argv[1:] if argv is None else argv)
         argv_s = re.sub(r"--repo\s+\S+\s*", "", argv_s).strip()

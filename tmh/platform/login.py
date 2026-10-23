@@ -27,12 +27,29 @@ def _users_file(data: Path) -> Path:
     return Path(data) / "users.json"
 
 
-def load_users(data: Path) -> dict:
+def _legacy_users(data: Path) -> dict:
     try:
-        u = json.loads(_users_file(data).read_text(encoding="utf-8"))
-        return u if isinstance(u, dict) else {}
+        users = json.loads(_users_file(data).read_text(encoding="utf-8"))
+        return users if isinstance(users, dict) else {}
     except (OSError, ValueError):
         return {}
+
+
+def load_users(data: Path) -> dict:
+    from .tenancy import account_users
+    accounts = account_users(data)
+    if accounts is not None:
+        return accounts
+    return {name: record for name, record in _legacy_users(data).items() if not record.get("disabled", False)}
+
+
+def has_accounts(data: Path) -> bool:
+    """Authentication stays enabled even when every account is disabled."""
+    from .tenancy import has_accounts as registered
+    present = registered(data)
+    if present is not None:
+        return present
+    return bool(_legacy_users(data))
 
 
 def _save_users(data: Path, users: dict) -> None:
@@ -64,13 +81,20 @@ def set_user(data: Path, name: str, pw: str) -> None:
         raise ValueError("用户名 1-40 个字符，不能有空格和 . : $ / \\")
     if len(pw) < 8:
         raise ValueError("密码至少 8 位")
-    users = load_users(data)
+    if (Path(data) / "control" / "access.db").exists():
+        from .tenancy import local_set_user
+        local_set_user(data, name, pw)
+        return
+    users = _legacy_users(data)
     users[name] = {"pw": hash_password(pw), "updated": time.strftime("%Y-%m-%d %H:%M:%S")}
     _save_users(data, users)
 
 
 def del_user(data: Path, name: str) -> bool:
-    users = load_users(data)
+    if (Path(data) / "control" / "access.db").exists():
+        from .tenancy import local_del_user
+        return local_del_user(data, name)
+    users = _legacy_users(data)
     if name not in users:
         return False
     del users[name]
@@ -103,22 +127,28 @@ def _b64(b: bytes) -> str:
 
 
 def make_session(data: Path, name: str) -> str:
-    body = "%s.%d" % (_b64(name.encode("utf-8")), int(time.time()) + SESSION_DAYS * 86400)
+    account = load_users(data).get(name)
+    if not account:
+        raise ValueError("账号不存在或已停用")
+    epoch = hashlib.sha256(json.dumps(account, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    body = "%s.%d.%s" % (_b64(name.encode("utf-8")), int(time.time()) + SESSION_DAYS * 86400, epoch)
     return body + "." + _b64(hmac.new(_key(data), body.encode(), hashlib.sha256).digest())
 
 
 def read_session(data: Path, cookie: str) -> str:
     """The signed-in user's name, or "" when the cookie is missing, forged, expired or the account was removed."""
     try:
-        n, exp, sig = cookie.split(".")
-        body = n + "." + exp
+        n, exp, epoch, sig = cookie.split(".")
+        body = n + "." + exp + "." + epoch
         good = _b64(hmac.new(_key(data), body.encode(), hashlib.sha256).digest())
         if not hmac.compare_digest(sig, good) or int(exp) < time.time():
             return ""
         name = base64.urlsafe_b64decode(n + "=" * (-len(n) % 4)).decode("utf-8")
     except (ValueError, TypeError):
         return ""
-    return name if name in load_users(data) else ""
+    account = load_users(data).get(name)
+    current = hashlib.sha256(json.dumps(account, sort_keys=True, ensure_ascii=False).encode()).hexdigest() if account else ""
+    return name if account and hmac.compare_digest(epoch, current) else ""
 
 
 class Throttle:

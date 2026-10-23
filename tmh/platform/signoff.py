@@ -877,6 +877,8 @@ def sign_page(P, token: str, msg: str = "", done: dict | None = None) -> str:
 
 def package_page(P, key: str) -> str:
     """The whole package for the provider and the client's auditors: everything, records in order."""
+    context = getattr(P, "tenant_context", None)
+    prefix = "/t/" + context.tenant_id if context is not None else ""
     t = P.store.ticket(key)
     if not t:
         raise ApiError(404, "没有这张工单")
@@ -889,9 +891,9 @@ def package_page(P, key: str) -> str:
     if not snap:
         body.append("<p>还没有证据包：工单转到“待验证”时自动生成。</p>")
         return ev.page(title, "".join(body))
-    body.append("<p class=sub><a href=\"/e/%s.intoto.json\">下载证据包（in-toto 格式）</a>，交给甲方留存（含代码路径和检查命令，不要外传）。"
+    body.append("<p class=sub><a href=\"%s/e/%s.intoto.json\">下载证据包（in-toto 格式）</a>，交给甲方留存（含代码路径和检查命令，不要外传）。"
                 "甲方用 <code>tmh evidence-verify %s.intoto.json --hash 签收时记下的完整哈希</code> 离线核对：那条记录和它之前的都没被改过。"
-                "不带 --hash 只能说明文件自身一致，证明不了没被改。%s</p>" % (E(t["key"]), E(t["key"]),
+                "不带 --hash 只能说明文件自身一致，证明不了没被改。%s</p>" % (E(prefix), E(t["key"]), E(t["key"]),
                 "导出的文件带乙方签名，公钥指纹 <code>%s</code>，把它告诉甲方，核对时加 <code>--key</code>。" % E(signer_fingerprint(P)) if signer_fingerprint(P)
                 else "这台服务器上没有签名工具（Python cryptography 包或 ssh-keygen），导出的文件不带签名。"))
     body.append("<h2>缺项</h2>" + ("<p class=ok>无，证据齐全。</p>" if not s["missing"] else "<ul>%s</ul>" % "".join("<li class=bad>%s</li>" % E(m) for m in s["missing"])))
@@ -900,7 +902,7 @@ def package_page(P, key: str) -> str:
             E(snap["asked"]["text"]), E(snap["asked"]["understanding"]), E(snap["asked"]["by"]),
             "（客户自己答复后更新）" if snap["asked"].get("via") == "客户答复" else ""))
     src = {"客户确认": "客户确认过的，签收和检查都按它们", "方案": "修改方案里的（客户没有逐条确认过）"}.get(snap.get("ac_source") or "", "")
-    body += ["<h2>业务流</h2>", _flows_html(snap), "<h2>验收标准%s</h2>" % ("：" + E(src) if src else ""), _ac_table(s, form=False, img="/e/%s/f/" % t["key"])]
+    body += ["<h2>业务流</h2>", _flows_html(snap), "<h2>验收标准%s</h2>" % ("：" + E(src) if src else ""), _ac_table(s, form=False, img=prefix + "/e/%s/f/" % t["key"])]
     if snap.get("plan_ac"):
         body.append("<p class=sub>方案里写的检查（供参考，不作为验收依据）：%s</p>" % E("；".join("%s %s" % (a["id"], a["text"]) for a in snap["plan_ac"])))
     if snap["contract"]:

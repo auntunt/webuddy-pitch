@@ -80,6 +80,8 @@ class Orchestra:
                 pass
         from . import release
         conf["merge"] = release.settings(self.data_dir)["merge"]  # derived, for the pages: say "merged automatically" only when it is
+        if getattr(self, "tenant_context", None) is not None:
+            conf.update(on=False, merge=False)
         return conf
 
     def submit(self, p: dict, t: dict, wait: bool = False) -> None:

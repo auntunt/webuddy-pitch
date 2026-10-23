@@ -422,7 +422,8 @@ def browser_review_current(P, cid):
         return False
     t = P.store.ticket(row["ticket_id"])
     current = team.assignment(P, t)
-    members = login.load_users(P.data_dir)
+    from .tenant_policy import directory
+    members = directory(P, P.store.project(t["project_id"]), "contributor")
     return bool(identity["reviewer"] in members and current["assignee"] in members
                 and identity["reviewer"] == current["reviewer"] == decision["author"]
                 and identity["assignee"] == current["assignee"]

@@ -6,6 +6,7 @@ The product name comes from --brand; the visual contract is recorded in DESIGN.m
 from __future__ import annotations
 
 from .ui_atlas import ATLAS_CSS, ATLAS_JS
+from .ui_access import ACCESS_BOOT_JS, ACCESS_CSS, ACCESS_JS
 from .ui_css import CSS
 from .ui_work import WORK_CSS, WORK_JS
 from .ui_delivery import DELIVERY_CSS, DELIVERY_JS
@@ -21,7 +22,7 @@ from .ui_team import TEAM_CSS, TEAM_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS).replace("/*JS*/", JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS).replace("/*JS*/", ACCESS_BOOT_JS + JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS)
 
 
 HTML = r"""<!doctype html>
@@ -31,6 +32,7 @@ HTML = r"""<!doctype html>
 <a class="skip-link" href="#main" onclick="event.preventDefault();document.getElementById('main').focus()">跳到主要内容</a>
 <header id="top">
   <a class="brand" href="#/workspace" aria-label="Webuddy 工作台"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="m7 10 4 12 5-8 5 8 4-12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="brandName">闭环工作台</span></a>
+  <div id="tenantScope" hidden><label for="tenantSel">租户</label><select id="tenantSel" aria-label="当前租户"></select><span id="tenantRole"></span></div>
   <select id="projSel" title="切换项目" aria-label="项目范围"></select>
   <nav id="svc" aria-label="服务"><a data-s="ops" href="#/board">运维<span>服务</span></a><a data-s="reform" href="#/reform">重构<span>服务</span></a></nav>
   <span class="sp"></span>
@@ -39,6 +41,7 @@ HTML = r"""<!doctype html>
   <button id="astToggle" title="AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）" aria-controls="ast" aria-expanded="false">AI 助手 <kbd>Ctrl K</kbd></button>
   <div id="account"><button class="me" id="me" title="用户与设置"></button><a id="logout" href="/logout" hidden>退出</a></div>
 </header>
+<div id="accessContextNotice" role="status" hidden></div>
 <div id="wrap">
   <div id="page"><div class="sheet"><nav id="nav5" aria-label="主导航"></nav><nav id="tabs" aria-label="工程"></nav><main id="main" tabindex="-1"></main></div></div>
   <aside id="ast" aria-label="AI 助手" hidden><div class="ah" id="astHead"></div><div id="amsg"></div><div class="sugg" id="astSugg"></div>
@@ -55,41 +58,54 @@ const S={meta:null,proj:localStorage.getItem('tmh.proj')||'',scope:localStorage.
 const $=s=>document.querySelector(s);
 const h=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function api(m,p,b,extraHeaders={}){
-  const o={method:m,headers:{'X-TMH':'1',...extraHeaders}};
+  const context=typeof ACCESS==='undefined'?{base:'',epoch:0,inflight:new Set()}:ACCESS;
+  const epoch=context.epoch;if(context.blocked)throw accessError('当前页面权限已失效。');
+  if(context.base&&m==='POST'&&typeof accessRestrictedOperation==='function'&&accessRestrictedOperation(p,b))throw Object.assign(apiErr('租户隔离环境尚不支持预览启动或公开链接，请使用站内记录与人工交接。'),{status:403,code:'permission_denied'});
+  if(context.base&&context.ready&&m==='POST'&&p!=='/api/access'&&S.meta?.access?.capabilities?.write===false)throw Object.assign(apiErr('当前账号只有查看权限，不能提交修改。'),{status:403,code:'permission_denied'});
+  if(context.base&&!context.ready&&p!=='/api/meta')throw accessError('正在确认当前租户身份，请稍后重试。');
+  const controller=new AbortController();context.inflight.add(controller);
+  const o={method:m,headers:{'X-TMH':'1',...extraHeaders},signal:controller.signal};
   if(S.user)o.headers['X-TMH-User']=encodeURIComponent(S.user);
+  if(context.token)o.headers['X-Webuddy-Context']=context.token;
   if(b!==undefined){o.headers['Content-Type']='application/json';o.body=JSON.stringify(b)}
-  // errors read as what happened and what to do; the raw cause goes to the console for whoever debugs it
-  let r;try{r=await fetch(p,o)}catch(e){console.warn(m,p,e);throw apiErr(navigator.onLine===false?'网络断了，连上后再试。':'连不上服务器：可能是网络问题，或服务没在运行。稍后再试。')}
-  let j;try{j=await r.json()}catch(e){j={}}
-  if(!r.ok){if(j.detail)console.warn(m,p,j.detail);throw Object.assign(apiErr(j.error&&r.status!==401?j.error:HTTPMSG[r.status]||HTTPMSG[Math.floor(r.status/100)*100]||'出错了（'+r.status+'），稍后再试。'),{status:r.status})}
-  return j}
+  try{
+    let r;try{r=await fetch(typeof appPath==='function'?appPath(p):p,o)}catch(e){if(context.blocked||epoch!==context.epoch)throw accessError('页面身份已变化，旧请求结果不再显示。');throw apiErr(navigator.onLine===false?'网络断了，连上后再试。':'连不上服务器：可能是网络问题，或服务没在运行。稍后再试。')}
+    let j;try{j=await r.json()}catch(e){j={}}
+    if(context.blocked||epoch!==context.epoch)throw accessError('页面身份已变化，旧请求结果不再显示。');
+    if(!r.ok){const message=j.error&&r.status!==401?j.error:HTTPMSG[r.status]||HTTPMSG[Math.floor(r.status/100)*100]||'出错了（'+r.status+'），稍后再试。';
+      if(context.base&&(r.status===401||['context_changed','context_stale','membership_revoked','tenant_disabled','account_disabled','identity_revoked'].includes(j.code))){accessLock(message,j.code||'session_invalid');throw Object.assign(accessError(message,j.code),{status:r.status})}
+      throw Object.assign(apiErr(message),{status:r.status,code:j.code})}
+    if(context.base&&context.ready&&p==='/api/meta'&&j.access?.context_token!==context.token){accessLock('成员身份或项目权限已调整，旧页面已清除。请重新读取当前权限。');throw accessError('当前页面权限已变化。')}
+    return j;
+  }finally{context.inflight.delete(controller)}
+}
 const apiErr=msg=>Object.assign(new Error(msg),{api:1});
 const HTTPMSG={401:'登录已过期，刷新页面重新登录。',403:'没有权限做这一步，需要的话找管理员开通。',404:'要找的内容不存在，可能已被删除或改名。',
   413:'文件太大了，换小一点的再试。',429:'操作太频繁，稍等一下再试。',502:'服务器暂时不可用，稍后再试。',503:'服务器暂时不可用，稍后再试。',504:'服务器响应超时，稍后再试；如果是长任务，它可能还在后台跑。',
   500:'服务器出错了，这一步没有完成。刷新看看结果再决定要不要重试；一直这样请告诉管理员。'};
 const get=p=>api('GET',p),post=(p,b,headers)=>api('POST',p,b||{},headers);
-function toast(t,ms){const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,ms||2600)}
+function toast(t,ms){const e=$('#toast');if(!e)return;e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,ms||2600)}
 let modalReturnFocus=null;
 function modal(html,wide){
-  const opening=$('#modal').hidden;if(opening)modalReturnFocus=document.activeElement;
+  if(!$('#modal'))return;const opening=$('#modal').hidden;if(opening)modalReturnFocus=document.activeElement;
   $('#mbody').innerHTML=html;$('#modal').hidden=false;$('.mbox').classList.toggle('wide',!!wide);
   $('.mbox').setAttribute('aria-label',($('#mbody h2')||$('#mbody h1'))?.textContent||'详情与操作');
-  syncDialogScope();if(opening){if($('.mbox').inert)$('#aq').focus();else $('.mbox').focus()}
+  if(typeof accessFenceControls==='function')accessFenceControls();syncDialogScope();if(opening){if($('.mbox').inert)$('#aq').focus();else $('.mbox').focus()}
 }
 function syncDialogScope(){
-  const active=!$('#modal').hidden;document.body.classList.toggle('dialog-open',active);
+  if(!$('#modal'))return;const active=!$('#modal').hidden;document.body.classList.toggle('dialog-open',active);
   $('#page').inert=active;$('#top').inert=active;$('#astOpen').inert=active;
   const skip=$('.skip-link');if(skip)skip.inert=active;
   // The assistant can fill dialog fields, so it remains an explicit part of the keyboard scope.
   $('.mbox').inert=active&&!$('#ast').hidden&&window.matchMedia('(max-width:1100px)').matches;
   $('.mbox').setAttribute('aria-modal',String(active&&$('#ast').hidden));
 }
-window.addEventListener('resize',()=>{syncDialogScope();if($('.mbox').inert&&$('.mbox').contains(document.activeElement))$('#aq').focus()});
+window.addEventListener('resize',()=>{syncDialogScope();if($('.mbox')?.inert&&$('.mbox').contains(document.activeElement))$('#aq').focus()});
 function closeModal(){const active=!$('#modal').hidden;$('#modal').hidden=true;stopPolls('modal');syncDialogScope();
   if(active){const target=modalReturnFocus;modalReturnFocus=null;if(target&&target.isConnected&&!target.closest('[hidden],[inert]'))target.focus();else $('#main').focus()}}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
 document.addEventListener('keydown',e=>{
-  if($('#modal').hidden)return;
+  if(!$('#modal')||$('#modal').hidden)return;
   if(e.key==='Escape'){e.preventDefault();if($('.mbox').inert)A.toggle(false);else closeModal();return}
   if(e.key!=='Tab')return;
   const selector='button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex="0"]';
@@ -145,24 +161,27 @@ function paintTabs(tab){
     team:[['team','分配与复核']],
     memory:[['memory','知识与记忆'],['handoff','项目交接'],['kb','知识页'],['library','参考与引用'],['learn','经验复盘']]};
   const rows=sets[group]||sets.projects, extras=[['clients','客户'],['overview','监控'],['eff','提效报告'],['lead','运维成效'],['map','架构依据'],['rdeps','依赖清单'],['runs','智能体运行'],['int','外部系统'],['settings','设置']];
-  $('#tabs').hidden=['workspace','projects','team','memory'].includes(v);
+  $('#tabs').hidden=['workspace','projects','team','memory','access'].includes(v);
   $('#tabs').setAttribute('aria-label','当前工作区');
   const link=([k,l])=>`<a data-r="${k}" href="#/${k==='handoff'?'handoff/'+encodeURIComponent(S.proj):k}" class="${k===v||(v==='t'&&k==='tickets')?'on':''}" ${k===v?'aria-current="page"':''}>${l}</a>`;
   $('#tabs').innerHTML=rows.map(link).join('')+`<details class="tmore"><summary>项目工具</summary><div class="tmp"><div class="tmg">${extras.map(link).join('')}</div></div></details>`;
 }
 async function boot(){
-  try{S.meta=await get('/api/meta')}catch(e){$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}
+  try{S.meta=await get('/api/meta');accessBind(S.meta)}catch(e){if(ACCESS.base){accessLock(e.message);return}$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}
+  if(ACCESS.base){S.proj=ls.get('tmh.proj')||'';S.scope=ls.get('tmh.scope')||'*';S.user=ACCESS.user;S.svc=ls.get('tmh.svc')==='reform'?'reform':'ops'}
+  accessInit();
   if(S.meta.login)S.user=S.meta.user;else if(!S.user)S.user=S.meta.user||'';
   document.title=S.meta.brand;$('#brandName').textContent=S.meta.brand;
   $('#me').textContent=S.user||'未设置用户';$('#me').onclick=()=>location.hash='#/settings';
   $('#me').setAttribute('aria-label',(S.user||'当前用户')+'，用户与设置');$('#logout').hidden=!S.meta.login;
-  await loadProjects();
+  if(accessControlOnly()){window.addEventListener('hashchange',render);await accessRenderControl();return}
+  try{await loadProjects()}catch(e){if(ACCESS.blocked)return;$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}
   $('#projSel').onchange=e=>{WS.offset=0;const v=e.target.value;if(v==='__new'){newProject();paintSel();return}
     if(v==='*'){S.scope='*';ls.set('tmh.scope','*');if(!isCross())location.hash='#/';else render();return}
     if(isCross()){S.scope=v;ls.set('tmh.scope',v)}setProj(v);render()};
   $('#ptsBtn').onclick=showPoints;sayWire();
   $('#astToggle').onclick=()=>A.toggle();$('#astOpen').onclick=()=>{A.toggle(true);A.focus()};
-  document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&!e.altKey&&e.key.toLowerCase()==='k'){e.preventDefault();if(A.open&&document.activeElement===$('#aq'))A.toggle(false);else{A.toggle(true);A.focus()}}});
+  document.addEventListener('keydown',e=>{if(ACCESS.blocked)return;if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&!e.altKey&&e.key.toLowerCase()==='k'){e.preventDefault();if(A.open&&document.activeElement===$('#aq'))A.toggle(false);else{A.toggle(true);A.focus()}}});
   A.init();
   window.addEventListener('hashchange',render);render()}
 async function loadProjects(){
@@ -175,19 +194,19 @@ async function loadProjects(){
 const CROSS=['home','board','tickets','lead','t','today','clients','c','reqs','versions','deliveries','delivery','workspace','projects','team','memory'];
 function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'workspace'}
 function isCross(){return CROSS.includes(curView())}
-function paintSel(){const cross=isCross()&&!['t','delivery'].includes(curView()),v=cross?S.scope:S.proj;
-  $('#projSel').innerHTML=(cross?`<option value="*" ${v==='*'?'selected':''}>全部项目（${S.projects.length}）</option>`:'')+S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===v?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')+(cross?'':'<option value="*">全部项目</option>')+'<option value="__new">＋ 添加项目…</option>';
+function paintSel(){accessPaintPermissions();const cross=isCross()&&!['t','delivery'].includes(curView()),v=cross?S.scope:S.proj;
+  $('#projSel').innerHTML=(cross?`<option value="*" ${v==='*'?'selected':''}>全部项目（${S.projects.length}）</option>`:'')+S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===v?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')+(cross?'':'<option value="*">全部项目</option>')+(!S.meta.access||S.meta.access.platform_owner?'<option value="__new">＋ 添加项目…</option>':'');
   $('#projSel').title=cross?(['deliveries','delivery'].includes(curView())?'查看项目范围（默认全部）':'看哪些项目的工单（默认全部）'):'这一页属于哪个项目'}
 function setProj(k){if(!k||k===S.proj)return;S.proj=k;ls.set('tmh.proj',k);A.reset();loadPoints()}
 const scopeQ=()=>S.scope==='*'?'*':S.scope;
 async function loadPoints(){if(!S.proj){$('#ptsN').textContent='-';return}try{const r=await get('/api/projects/'+S.proj+'/points');S.points=r;$('#ptsN').textContent=r.balance.toLocaleString();if(A.open)A.paintFoot()}catch(e){}}
 function render(){
-  stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'workspace';
+  if(ACCESS.blocked)return;if(accessControlOnly())return accessRenderControl();stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'workspace';
   document.body.classList.toggle('delivery-surface',['deliveries','delivery'].includes(view));
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
-  if(!S.proj&&!['settings','deliveries','delivery','workspace','projects','memory','team'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
-  const V={workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings}[view]||(()=>{location.hash='#/workspace'});
+  if(!S.proj&&!['settings','access','deliveries','delivery','workspace','projects','memory','team'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
+  const V={workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings,access:vAccess}[view]||(()=>{location.hash='#/workspace'});
   if(view!=='t')A.setTicket(null);
   paintSel();
   if(view==='atlas'&&$('#atl')){S.renderP=Promise.resolve(vAtlas(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}
@@ -195,7 +214,7 @@ function render(){
   $('#main').innerHTML='<div class="empty"><span class="spin"></span></div>';
   // a slow page that finishes after the user already moved on would paint over the newer one: draw the current page again
   const rt=S.rt=(S.rt||0)+1;
-  S.renderP=Promise.resolve(V()).then(()=>{if(rt!==S.rt)return render();remember();A.paintCtx()}).catch(e=>{if(rt!==S.rt)return;if(!e.api)console.error(e);$('#main').innerHTML='<div class="empty">'+h(e.api?e.message:'这一页没能显示出来，刷新试试；还不行请告诉管理员。')+'<div style="margin-top:12px"><button onclick="render()">再试一次</button></div></div>'})}
+  S.renderP=Promise.resolve(V()).then(()=>{if(rt!==S.rt)return render();remember();A.paintCtx();accessFenceControls()}).catch(e=>{if(ACCESS.blocked||rt!==S.rt)return;if(!e.api)console.error(e);$('#main').innerHTML='<div class="empty">'+h(e.api?e.message:'这一页没能显示出来，刷新试试；还不行请告诉管理员。')+'<div style="margin-top:12px"><button onclick="render()">再试一次</button></div></div>'})}
 // pages visited lately, per project: the assistant's jump list
 function remember(){const r=location.hash||'#/';const t=(($('#main h1')||{}).textContent||'').trim();if(!S.proj||!t)return;
   const k='tmh.recent.'+S.proj;let L=[];try{L=JSON.parse(ls.get(k)||'[]')}catch(e){}
@@ -386,14 +405,15 @@ function bindModel(id){const e=$('#'+id);if(e)e.onchange=()=>{try{localStorage.s
 function mTag(r){return r&&r.model?' · '+h(r.model):''}
 function agentOptions(){const first=(S.meta.agents.find(a=>a.available)||{}).name;return S.meta.agents.map(a=>`<option value="${h(a.name)}" ${a.name===first?'selected':''}>${h(a.title)}${a.available?'':'（本机未安装）'}</option>`).join('')}
 function newTicket(prefill){
-  if(!S.projects.length)return newProject();
+  if(!S.projects.length){if(S.meta.access&&!S.meta.access.platform_owner){toast('当前没有获准可写的项目，请联系租户管理员。');return}return newProject()}
+  const writable=S.projects.filter(p=>accessCanWrite(p.key));if(!writable.length){toast('当前没有获准可写的项目，请联系租户管理员。');return}
   const types='<option value="auto" selected>自动判断</option>'+S.meta.types.map(([k,l])=>`<option value="${k}">${l}</option>`).join(''),pris=S.meta.priorities.map(([k,l])=>`<option value="${k}" ${k==='normal'?'selected':''}>${l}</option>`).join('');
-  const np=S.scope!=='*'?S.scope:S.proj,af=(S.meta.autoflow||{}).on;
-  modal(`<h2>新建工单${S.projects.length>1?` <select id="nproj" aria-label="项目" style="font-size:14px;margin-left:6px">${S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===np?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')}</select>`:' · '+h(np)}</h2><div class="grid2"><div class="form">
+  const chosen=S.scope!=='*'?S.scope:S.proj,np=writable.some(p=>p.key===chosen)?chosen:writable[0].key,af=!S.meta.access&&(S.meta.autoflow||{}).on;
+  modal(`<h2>新建工单${writable.length>1?` <select id="nproj" aria-label="项目" style="font-size:14px;margin-left:6px">${writable.map(p=>`<option value="${h(p.key)}" ${p.key===np?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')}</select>`:' · '+h(np)}</h2><div class="grid2"><div class="form">
   <input class="full" id="nt" placeholder="一句话说清楚：哪里、什么问题 / 要什么">
   <textarea id="nb" placeholder="详细描述：业务场景、操作步骤、期望和实际结果、报错信息…（写业务语言就行，平台会对照知识库找相关业务流）" style="min-height:160px"></textarea>
   <div class="row"><label>类型 <select id="ny">${types}</select></label><label>优先级 <select id="np">${pris}</select></label><label>经办人 <input id="na" value="${h(S.user)}" size="10"></label></div>
-  ${af?'<div class="hint">创建后自动受理：关联涉及的业务，让本机智能体分析定位，有结论后进入“处理中”，不用再手动点。</div>':`<label><input type="checkbox" id="nr" checked> 创建后让 <select id="ng">${agentOptions()}</select> 先分析定位</label>`}
+  ${S.meta.access?'<div class="hint">本次只登记任务，不会自动运行模型或修改代码。进入任务后可手动启动获准的执行动作。</div>':af?'<div class="hint">创建后自动受理：关联涉及的业务，让本机智能体分析定位，有结论后进入“处理中”，不用再手动点。</div>':`<label><input type="checkbox" id="nr" checked> 创建后让 <select id="ng">${agentOptions()}</select> 先分析定位</label>`}
   <label class="sub" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="nh"> 我来写：自动处理不接这张单，建好后下载开工包自己（或用自己的 AI 工具）写</label>
   <div class="row" style="gap:8px"><button class="primary" id="ns">创建</button><button class="ghost" id="nIn">说不清楚？让平台帮你理清</button></div></div>
   <div><div id="nsim"></div><h3>可能相关的业务 <span class="sub">边写边找</span></h3><div id="nrel" class="sub">输入标题或描述后显示</div></div></div>`,true);
@@ -409,7 +429,7 @@ function newTicket(prefill){
   $('#nIn').onclick=()=>intakeModal(pk(),[$('#nt').value,$('#nb').value].filter(Boolean).join('\n'));
   if(prefill){$('#nt').value=prefill.title||'';$('#nb').value=prefill.body||'';look()}
   $('#ns').onclick=async()=>{const b={project:pk(),title:$('#nt').value,body:$('#nb').value,type:$('#ny').value,priority:$('#np').value,assignee:$('#na').value,flows:[...sel]};
-    if($('#nh').checked)b.handwork=true;else if($('#nr')){if($('#nr').checked){b.agent=$('#ng').value;b.mode='analyze'}else b.auto=false}
+    if(S.meta.access)b.auto=false;if($('#nh').checked)b.handwork=true;else if(!S.meta.access&&$('#nr')){if($('#nr').checked){b.agent=$('#ng').value;b.mode='analyze'}else b.auto=false}
     try{const t=await post('/api/tickets',b);closeModal();location.hash='#/t/'+t.key;toast('已创建 '+t.key)}catch(e){toast(e.message)}}}
 
 // ---------- ticket detail
@@ -909,7 +929,7 @@ async function showRun(rid,inline){
   const loadPreview=async()=>{if(!current()||previewMutating||!runPreviewPath(last))return;const request=++previewSeq;try{const d=await get(runPreviewPath(last)+'?run_id='+encodeURIComponent(rid));if(!current()||request!==previewSeq)return;preview=d;previewError=''}catch(e){if(!current()||request!==previewSeq)return;preview=null;previewError=e.message}paintPreview()};
   const wirePreview=()=>{
     const refresh=target.querySelector('[data-run-preview-refresh]');if(refresh){refresh.disabled=previewMutating;refresh.onclick=async()=>{if(!current()||previewMutating)return;refresh.disabled=true;await loadPreview();watch()}};
-    const start=target.querySelector('[data-run-preview-start]');if(start){start.disabled=checking||previewMutating;start.onclick=async()=>{if(!current()||busy||checking||!runPreviewPath(last))return;const request=++previewSeq;busy=true;previewMutating=true;start.disabled=true;if(refresh)refresh.disabled=true;start.textContent='正在启动本次预览…';try{const d=await post(runPreviewPath(last),{action:'start',run_id:Number(rid)});if(!current()||request!==previewSeq)return;preview=d;previewError='';previewMutating=false;paintPreview();watch()}catch(e){if(current()&&request===previewSeq){previewError=e.message;previewMutating=false;paintPreview()}}finally{busy=false;previewMutating=false;if(current())wirePreview()}}}};
+    const start=target.querySelector('[data-run-preview-start]');if(start){start.disabled=checking||previewMutating||!!S.meta?.access;if(typeof accessFenceControls==='function')accessFenceControls(target);start.onclick=async()=>{if(!current()||busy||checking||!runPreviewPath(last))return;const request=++previewSeq;busy=true;previewMutating=true;start.disabled=true;if(refresh)refresh.disabled=true;start.textContent='正在启动本次预览…';try{const d=await post(runPreviewPath(last),{action:'start',run_id:Number(rid)});if(!current()||request!==previewSeq)return;preview=d;previewError='';previewMutating=false;paintPreview();watch()}catch(e){if(current()&&request===previewSeq){previewError=e.message;previewMutating=false;paintPreview()}}finally{busy=false;previewMutating=false;if(current())wirePreview()}}}};
   const paint=()=>{
     if(!current())return;target.innerHTML=draw(last);
     const tabs=Array.from(target.querySelectorAll('[data-tab]'));tabs.forEach((b,i)=>{b.onclick=()=>{pane=b.dataset.tab;tabs.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-selected',String(x===b))});target.querySelectorAll('[data-pane]').forEach(p=>p.hidden=p.dataset.pane!==pane)};b.onkeydown=e=>{const n=e.key==='ArrowRight'?(i+1)%tabs.length:e.key==='ArrowLeft'?(i+tabs.length-1)%tabs.length:e.key==='Home'?0:e.key==='End'?tabs.length-1:null;if(n!==null){e.preventDefault();tabs[n].focus();tabs[n].click()}}});
@@ -1055,7 +1075,7 @@ async function pvLoad(key){const el=$('#pvc'),top=$('#ttPv');if((!el&&!top)||S.c
    :d.cmd?`<div class="sub">还没启动。会用 <code>${h(clip(d.cmd,80))}</code>${d.configured?'':'（按项目结构猜的）'}把这次改动跑起来。</div><div class="row" style="gap:6px;margin-top:8px"><button class="primary" id="pvGo">启动预览</button><button class="ghost" id="pvCfg">改启动命令</button></div>`
    :`<div class="sub">填一条能把这个项目跑起来的命令，以后每次自动改完都会起一个预览，客户在签收页就能点开试。用 <code>{port}</code> 表示端口，<code>{prefix}</code> 表示它挂在哪个路径下（程序要能挂在这个路径下运行，页面里的链接才不会断），只监听 127.0.0.1。</div><div class="row" style="margin-top:8px"><button class="primary" id="pvCfg">填启动命令</button></div>`}
    <div id="pvF"></div>`;
-  if(editing)$('#pvF').replaceWith(form);
+  if(editing)$('#pvF').replaceWith(form);if(typeof accessFenceControls==='function')accessFenceControls(el);
   const act=a=>post('/api/tickets/'+key+'/preview',{action:a}).then(()=>pvLoad(key)).catch(e=>toast(e.message,6000));
   if($('#pvGo'))$('#pvGo').onclick=()=>act('start');
   if($('#pvStop'))$('#pvStop').onclick=()=>act('stop');
@@ -1077,7 +1097,7 @@ async function hwLoad(d){const el=$('#hwc'),t=d.ticket;if(!el||t.status==='close
   el.innerHTML=`<div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">我来写</h2>${mine?`<span class="ev-tag info">${h(mine)} 在写</span>`:'<button class="primary" id="hwClaim">认领：我来写</button>'}</div>
    <div class="sub">自己写，或者用自己的 AI 工具写。${w.remote?`推到分支 <code>${h(w.branch)}</code>，平台${w.heartbeat==='auto'?'一分钟内':'点“现在检查”后'}会自己发现`:'把补丁传上来，平台会'}，构建测试、换一个模型对照验收标准审查，通过就转给验收人。</div>
    <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><button class="primary" id="hwPack">下载开工包</button>
-    ${w.remote?'<button class="ghost" id="hwScan">现在检查</button>':`<a class="btn ghost" href="/p/${h(pk)}/code.bundle" download>下载代码</a><label class="btn ghost" style="cursor:pointer">上传补丁<input type="file" id="hwPatch" accept=".patch,.diff,.txt" hidden></label>`}</div>`;
+    ${w.remote?'<button class="ghost" id="hwScan">现在检查</button>':`<a class="btn ghost" href="${h(appPath('/p/'+encodeURIComponent(pk)+'/code.bundle'))}" download>下载代码</a><label class="btn ghost" style="cursor:pointer">上传补丁<input type="file" id="hwPatch" accept=".patch,.diff,.txt" hidden></label>`}</div>`;
   if($('#hwClaim'))$('#hwClaim').onclick=()=>post('/api/tickets/'+t.key+'/claim',{}).then(()=>{toast('已认领：自动处理不会再接这张单，下载开工包开始写');vTicket(t.key)}).catch(e=>toast(e.message,6000));
   $('#hwPack').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([w.markdown],{type:'text/markdown'}));a.download=t.key+'-开工包.md';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
   if($('#hwScan'))$('#hwScan').onclick=()=>post('/api/projects/'+pk+'/scan',{}).then(r=>{toast(r.taken.length?'发现新提交，开始检查':'分支 '+w.branch+' 上没有新提交',5000);if(r.taken.length)vTicket(t.key)}).catch(e=>toast(e.message,6000));
@@ -1100,7 +1120,7 @@ function pkgSummary(d){const k=d.package||{};if(!k.status)return '';
    ${dec?`<div style="margin-top:6px">${dec.kind==='sign'?'签收':'退回'}：<b>${h(dec.signer)}</b>${dec.role?'（'+h(dec.role)+'）':''} · ${h(dec.ts.slice(5,16))} · ${h(dec.via)}${dec.note?`<div class="sub">${h(dec.note)}</div>`:''}</div>`
      :ln?`<div class="sub" style="margin-top:4px">已发签收链接给 ${h(ln.signer)}，有效至 ${h(ln.expires.slice(5,16))}</div>`:''}`}`}
 function pkgActions(d){const t=d.ticket;if(!d.package?.status||d.package.status==='none')return '';
-  return `<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn" href="/e/${h(t.key)}" target="_blank" rel="noopener">打开证据包</a><a class="btn ghost" href="/e/${h(t.key)}.intoto.json" download title="in-toto 格式，甲方可以离线核对">下载</a>
+  return `<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn" href="${h(appPath('/e/'+encodeURIComponent(t.key)))}" target="_blank" rel="noopener">打开证据包</a><a class="btn ghost" href="${h(appPath('/e/'+encodeURIComponent(t.key)+'.intoto.json'))}" download title="in-toto 格式，甲方可以离线核对">下载</a>
     <button class="ghost" id="pkShot">补截图</button><button class="ghost" id="pkRev">复核</button>${d.package.stale===true?'<button id="pkPack"'+(pkgRepackReason(d)||S.pkgPacking?.[t.key]?' disabled':'')+'>按当前验证重新打包</button>':''}${t.status==='verify'?'<button class="primary" id="pkLink"'+ticketSignoffAttrs(d)+'>发签收链接</button>':''}</div>`;}
 function pkgCard(d){if(!d.package?.status)return '';
   return `<div class="card" id="pkg"><div id="pkSummary">${pkgSummary(d)}</div><div id="pkActions">${pkgActions(d)}</div><p class="sub" id="pkDraftNotice" hidden>证据状态已更新；表单草稿与所选文件已保留，请按最新验证门核对后提交。</p><div id="pkForm"></div></div>`;}
@@ -1181,7 +1201,7 @@ function ledgerCard(L){if(!L)return '';const T=L.totals;
   return `<div class="card"><h2>账本（每单）</h2><div class="sub" style="margin-bottom:6px">本期经手 ${T.tickets} 张，关闭 ${T.closed} 张；证据包 ${T.packed} 张，已签收 ${T.signed} 张（甲方签收链接 ${T.client_signed} 张）；返工 ${T.reworks} 次；人工动作 ${T.human_actions} 次</div>
    <div class="tw"><table class="t"><tr><th>工单</th><th>周期</th><th>返工</th><th>AI 运行</th><th>点数</th><th>标价（元）</th><th>人工动作</th><th>证据包</th></tr>
    ${L.rows.slice(0,40).map(x=>`<tr><td><a href="#/t/${h(x.key)}">${h(x.key)}</a> <span class="sub">${h(clip(x.title,16))}</span></td><td>${dur(x.cycle_h)}</td><td class="num">${x.reworks}</td><td class="num">${x.ai_runs}</td><td class="num">${x.points}</td><td class="num">${x.list_yuan==null?'—':x.list_yuan.toFixed(2)}</td><td class="num">${x.human_actions}</td>
-     <td>${x.evidence_status==='none'?'<span class="sub">未生成</span>':`<a href="/e/${h(x.key)}" target="_blank" rel="noopener"><span class="ev-tag ${PKC[x.evidence_status]}">${h(x.evidence)}</span></a>`}${x.signer?' <span class="sub">'+h(x.signer)+'</span>':''}</td></tr>`).join('')||'<tr><td colspan="8" class="sub">本期还没有经手的工单</td></tr>'}</table></div>
+     <td>${x.evidence_status==='none'?'<span class="sub">未生成</span>':`<a href="${h(appPath('/e/'+encodeURIComponent(x.key)))}" target="_blank" rel="noopener"><span class="ev-tag ${PKC[x.evidence_status]}">${h(x.evidence)}</span></a>`}${x.signer?' <span class="sub">'+h(x.signer)+'</span>':''}</td></tr>`).join('')||'<tr><td colspan="8" class="sub">本期还没有经手的工单</td></tr>'}</table></div>
    <div class="sub" style="margin-top:6px">${h(L.method.list_yuan)}；${h(L.method.paid_yuan)}；${h(L.method.human_actions)}。</div></div>`}
 // ---------- efficiency dashboard and monthly report
 function dur(x){if(x==null)return '—';if(x<1)return Math.max(1,Math.round(x*60))+' 分钟';if(x<48)return x.toFixed(1)+' 小时';return (x/24).toFixed(1)+' 天'}
@@ -1194,7 +1214,7 @@ async function vEff(){
   const kpi=(l,v,sub,extra)=>`<div class="card kpi"><div class="l">${l} <span class="ev-tag mute" style="font-size:11px;padding:0 5px">实测</span></div><div class="n">${v}</div><div class="sub">${sub}</div>${extra||''}</div>`;
   const pc=x=>x==null?'—':x+'%';
   const C=m.compare[0];
-  const right=`<div class="row" style="gap:8px;align-items:center"><select id="effM"><option value="">全部时间</option>${months.map(x=>`<option value="${x}" ${x===mo?'selected':''}>${x.slice(0,4)} 年 ${+x.slice(5)} 月</option>`).join('')}</select><button id="effMd">导出报告（Markdown）</button><a class="btn" href="/p/${encodeURIComponent(S.proj)}/efficiency?month=${mo}" target="_blank" rel="noopener">打开可打印版</a></div>`;
+  const right=`<div class="row" style="gap:8px;align-items:center"><select id="effM"><option value="">全部时间</option>${months.map(x=>`<option value="${x}" ${x===mo?'selected':''}>${x.slice(0,4)} 年 ${+x.slice(5)} 月</option>`).join('')}</select><button id="effMd">导出报告（Markdown）</button><a class="btn" href="${h(appPath('/p/'+encodeURIComponent(S.proj)+'/efficiency?month='+encodeURIComponent(mo)))}" target="_blank" rel="noopener">打开可打印版</a></div>`;
   const srcMax=Math.max(1,...p.ai.by_source.map(x=>x.n));
   const tMax=Math.max(1,...m.trend.map(x=>x.closed));
   const trend=`<svg viewBox="0 0 600 170" class="trend" role="img" aria-label="近六个月关闭工单">${m.trend.map((x,i)=>{const bh=x.closed/tMax*100,X=20+i*96;return `<rect x="${X}" y="${118-bh}" width="56" height="${bh}" rx="3" class="tb"/><text x="${X+28}" y="${112-bh}" text-anchor="middle" class="tv">${x.closed}</text><text x="${X+28}" y="136" text-anchor="middle" class="tl">${x.month.slice(2).replace('-','/')}</text><text x="${X+28}" y="154" text-anchor="middle" class="ts">${dur(x.cycle_median_h)}</text><text x="${X+28}" y="168" text-anchor="middle" class="ts">AI ${x.ai_rate==null?'—':x.ai_rate+'%'}</text>`}).join('')}</svg>`;
@@ -1299,9 +1319,9 @@ async function kbRead(pid){
 function kbAsk(pid,title){A.toggle(true);const t=$('#aq');t.value=`「${title}」（${pid}）`;t.focus()}
 // business questions: people answer in their own words; the answer is written into the page as is and the page is queued for revision
 function kbAnswer(n,q){modal(`<h2>记录业务方答复 #${n}</h2><p>${h(q)}</p><textarea class="full" id="ansT" rows="5" placeholder="业务方的原话，照录，不要改写"></textarea>
-  <input class="full" id="ansB" placeholder="答复人（默认是你）" style="margin-top:8px"><div class="sub" style="margin:6px 0">原话会写进问题清单和相关知识页的“业务方答复”，页面排进修订队列；智能体修订后仍由人确认。</div>
+  <label class="fl" style="margin-top:8px">当前记录账号<input class="full" id="ansB" readonly value="${h(S.meta?.login&&S.meta.user?S.meta.user:'未登录个人账号')}"></label><div class="sub" style="margin:6px 0">记录人由当前登录会话确定，业务方姓名请写在答复正文中。原话会写进问题清单和相关知识页的“业务方答复”，页面排进修订队列；智能体修订后仍由人确认。</div>
   <div class="row"><button class="primary" id="ansOk">保存答复</button><button onclick="closeModal()">取消</button></div>`);
-  $('#ansOk').onclick=async()=>{const text=$('#ansT').value.trim();if(!text)return toast('答复不能为空');try{const r=await post(`/api/projects/${S.proj}/kb/answer`,{n,text,by:$('#ansB').value.trim()});closeModal();toast(r.pages.length?'已写入 '+r.pages.length+' 个知识页，等待修订':'已记录');kbReview()}catch(e){toast(e.message)}}}
+  $('#ansOk').onclick=async()=>{const text=$('#ansT').value;if(!text.trim())return toast('答复不能为空');try{const r=await post(`/api/projects/${S.proj}/kb/answer`,{n,text});closeModal();toast(r.pages.length?'已写入 '+r.pages.length+' 个知识页，等待修订':'已记录');kbReview()}catch(e){toast(e.message)}}}
 function kbTriage(){modal(`<h2>需求预判</h2><div class="sub" style="margin-bottom:6px">按知识库原文判断能不能做、把握多大、依据哪些页面、要问业务方什么。涉及资金/审批/口径、依据未经确认或有未答问题时，一律交人判断。</div>
   <textarea class="full" id="trQ" rows="4" placeholder="业务方的原话，例如：资金计划能不能按部门导出执行分析？"></textarea>
   <div class="row" style="margin-top:8px"><button class="primary" id="trGo">预判</button><span class="grow"></span></div><div id="trOut"></div>`,true);
@@ -1647,7 +1667,7 @@ async function pinCard(bm){const el=$('#pinC');if(!el)return;let d;try{d=await g
 
 ${h(x.found.basis.join('\n'))}</pre></details></span>
       <button class="ghost pinI" data-id="${h(x.id)}">理清需求并建单</button></div>`).join(''):'<div class="sub">还没有框选记录。</div>'}</div>`;
-  if($('#pinT'))$('#pinT').onclick=async()=>{try{const r=await post(`/api/projects/${S.proj}/capture-token`,{base:location.origin});pinCard(r.bookmarklet)}catch(e){toast(e.message,5000)}};
+  if(typeof accessFenceControls==='function')accessFenceControls(el);if($('#pinT'))$('#pinT').onclick=async()=>{try{const r=await post(`/api/projects/${S.proj}/capture-token`,{base:location.origin});pinCard(r.bookmarklet)}catch(e){toast(e.message,5000)}};
   el.querySelectorAll('.pinI').forEach(b=>b.onclick=()=>{const x=d.pins.find(p=>p.id===b.dataset.id);intakeModal(S.proj,x.capture.note,x)})}
 async function pushExt(key,body){
   if(!body.trim()){toast('先在评论框写好要同步的内容');return}
@@ -1655,13 +1675,13 @@ async function pushExt(key,body){
     modal(`<h2>同步评论到外部工单</h2><div class="sub">将发出的请求（预演，尚未发送）：</div><pre class="diff">${h(JSON.stringify(r.result,null,2))}</pre><button class="primary" id="pc">确认发送</button>`);
     $('#pc').onclick=async()=>{try{await post(`/api/tickets/${key}/push`,{body,confirm:true});closeModal();toast('已同步');vTicket(key)}catch(e){toast(e.message,5000)}}}catch(e){toast(e.message,5000)}}
 async function vSettings(){
-  $('#main').innerHTML=`<h1>设置</h1><div class="card" id="rdy" style="margin-top:14px"><h2>上线体检</h2><div class="sub">检查中…</div></div><div class="grid2" style="margin-top:14px"><div class="card form"><h2>我</h2><label>名字（写在评论、指派和审阅记录里）<input class="full" id="un" value="${h(S.user)}"></label><div><button class="primary" id="us">保存</button></div></div>
+  $('#main').innerHTML=`<h1>设置</h1><div class="card" id="rdy" style="margin-top:14px"><h2>上线体检</h2><div class="sub">检查中…</div></div><div class="grid2" style="margin-top:14px"><div class="card form"><h2>我</h2>${S.meta.login?`<p>已登录账号：<b>${h(S.meta.user)}</b></p><p class="sub">操作身份来自登录会话，不能通过修改显示名字代替其他成员。</p>`:`<label>名字（写在评论、指派和审阅记录里）<input class="full" id="un" value="${h(S.user)}"></label><div><button class="primary" id="us">保存</button></div>`}${S.meta.access?.can_manage?`<p>当前租户：${h(S.meta.access.tenant.name)}</p><a class="btn" href="#/access">成员与权限</a>`:''}</div>
   <div class="card"><h2>智能体</h2>${S.meta.agents.map(a=>`<div class="flowrow"><span>${h(a.title)} <span class="key">${h(a.name)}</span></span><span class="tag">${a.available?'可用':'本机未找到'}</span></div>`).join('')}
   <div class="hint" style="margin-top:10px">平台用本机已安装的 <code>claude</code>（Claude Code）和 <code>codex</code> 命令，沿用它们自己的登录或环境变量。接第三方模型用 <code>tmh agent-config</code> 生成配置。也可以在 <code>${h(S.meta.data_dir)}/agents.json</code> 里加自研智能体：<code>{"my": {"title":"自研","cmd":["my-agent","--dir","{workdir}","{prompt_file}"]}}</code></div></div>
   <div class="card"><h2>项目</h2>${S.projects.map(p=>`<div class="flowrow"><span><b>${h(p.key)}</b> ${h(p.name)}<div class="sub">${h(p.root)}${p.exists?'':'（目录不存在）'}</div></span><span class="sub">${p.open} 张未关闭</span><button data-project-library="${h(p.key)}">知识与引用</button></div>`).join('')}<div style="margin-top:10px"><button onclick="newProject()">＋ 登记已有项目</button></div></div>
   <div class="card form" id="tbx"><h2>测试机</h2><div class="sub">加载中…</div></div>
   <div class="card"><h2>数据</h2><div class="sub">工单、讨论和运行记录都在 <code>${h(S.meta.data_dir)}/platform.db</code>（SQLite），修改代码用的工作树在 <code>worktrees/</code>。备份这个目录即可。</div></div></div>`;
-  $('#us').onclick=()=>{S.user=$('#un').value.trim();try{localStorage.setItem('tmh.user',S.user)}catch(e){}$('#me').textContent='当前用户：'+S.user;toast('已保存')};
+  if($('#us'))$('#us').onclick=()=>{S.user=$('#un').value.trim();try{localStorage.setItem('tmh.user',S.user)}catch(e){}$('#me').textContent='当前用户：'+S.user;toast('已保存')};
   document.querySelectorAll('[data-project-library]').forEach(button=>button.onclick=()=>libraryOpen(button.dataset.projectLibrary));
   testbox();readiness()}
 // ---------- versions that went out: the end of the line a client cares about

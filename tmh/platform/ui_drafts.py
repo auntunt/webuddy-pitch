@@ -2,7 +2,7 @@
 
 DRAFT_JS = r"""
 function commentDraftActor(){return Array.from((S.meta?.login?S.meta.user:S.user||S.meta?.user)||'我').slice(0,40).join('')}
-function commentDraftScope(d){return JSON.stringify([S.meta?.data_dir||'',S.meta?.login?S.meta.user:S.user||S.meta?.user||'',d.project.id,d.project.key,d.ticket.id,d.ticket.key,d.ticket.created])}
+function commentDraftScope(d){return JSON.stringify([...(S.meta?.access?.tenant?.id?[S.meta.access.tenant.id]:[]),S.meta?.data_dir||'',S.meta?.login?S.meta.user:S.user||S.meta?.user||'',d.project.id,d.project.key,d.ticket.id,d.ticket.key,d.ticket.created])}
 function commentDraftOpen(scope,storage,cache){
   if(cache.has(scope))return cache.get(scope);
   const e={key:'tmh.comment.v1:'+scope,record:{version:1,body:'',revision:0,pending:null},busy:false,error:'',blocked:false,storage};

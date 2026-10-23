@@ -2,7 +2,7 @@
 
 The HTTP adapter must authenticate a session before passing ``user`` to writes.
 Account names are stable identities; display names and agent labels are not login
-credentials. This is a shared workspace, not project-level access control.
+credentials. Hosted workers also require current tenant and project membership.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 import re
 
-from . import candidates, filelock, login
+from . import candidates, filelock
 from .errors import ApiError
 from .store import now, _keyed
 
@@ -41,7 +41,8 @@ def _json(value):
 
 
 def require_user(P, user):
-    if not isinstance(user, str) or user not in login.load_users(P.data_dir):
+    from .tenant_policy import directory
+    if not isinstance(user, str) or user not in directory(P):
         raise ApiError(403, "团队操作需要有效的个人登录账号，显示名和智能体标识不能代替登录")
     return user
 
@@ -69,12 +70,14 @@ def require_reviewer(P, ticket, user):
     """Use from legacy human approval routes too; never infer reviewer from author."""
     require_user(P, user)
     t = _ticket(P, ticket["id"] if isinstance(ticket, dict) else ticket)
+    from .tenant_policy import require_member, directory
+    require_member(P, user, t["project_id"])
     a = assignment(P, t)
     if not a["reviewer"]:
         raise ApiError(409, "请先分配独立复核人")
     if a["reviewer"] != user:
         raise ApiError(403, "这项工作由 %s 复核，请交给指定复核人" % a["reviewer"])
-    if a["assignee"] not in login.load_users(P.data_dir):
+    if a["assignee"] not in directory(P, t["project_id"], "contributor"):
         raise ApiError(409, "请先为任务分配当前有效的个人负责人")
     if a["assignee"] == user:
         raise ApiError(403, "负责人不能同时作为本任务的独立复核人")
@@ -97,7 +100,8 @@ def _guard(P, tid):
 
 
 def _assign(P, t, b, user):
-    members = login.load_users(P.data_dir)
+    from .tenant_policy import directory, require_member
+    members = directory(P, t["project_id"], "contributor")
     owner, reviewer = b.get("assignee", ""), b.get("reviewer", "")
     if not isinstance(owner, str) or not isinstance(reviewer, str):
         raise ApiError(400, "负责人和复核人必须是账号名")
@@ -113,6 +117,10 @@ def _assign(P, t, b, user):
         try:
             st.db.execute("BEGIN IMMEDIATE")
             fresh = _ticket(P, t["id"])
+            require_member(P, user, fresh["project_id"], "manager")
+            for name in (owner, reviewer):
+                if name:
+                    require_member(P, name, fresh["project_id"])
             old = assignment(P, fresh)
             # The owner is included in the optimistic token: legacy endpoints
             # can still edit tickets.assignee without changing this revision.
@@ -175,6 +183,8 @@ def _request(P, t, user, body, fn):
     def mutation():
         nonlocal changed
         require_user(P, user)
+        from .tenant_policy import require_member
+        require_member(P, user, t["project_id"])
         changed = True
     try:
         result = fn(mutation)
@@ -278,10 +288,12 @@ def _action(P, t, b, user, mutation):
 
 def dispatch_action(P, body, user):
     require_user(P, user)
-    schema(P)
     if not isinstance(body, dict) or not isinstance(body.get("action"), str):
         raise ApiError(400, "请选择团队操作")
     t = _ticket(P, body.get("ticket"))
+    from .tenant_policy import require_member
+    require_member(P, user, t["project_id"], "manager" if body["action"] == "assign" else "contributor")
+    schema(P)
     from .project_library import require_development
     try:
         require_development(P.store, P.store.project(t["project_id"]))
@@ -295,7 +307,8 @@ def dispatch_action(P, body, user):
 def item(P, t, user):
     from .agent_api import _requirement
     from .fixloop import verified
-    members = login.load_users(P.data_dir)
+    from .tenant_policy import directory
+    members = directory(P, t["project_id"], "contributor")
     a = assignment(P, t)
     latest = P.store.one("SELECT id FROM code_candidates WHERE ticket_id=? ORDER BY id DESC LIMIT 1", (t["id"],))
     candidate, error = None, ""
@@ -384,17 +397,23 @@ def item(P, t, user):
 
 
 def dispatch_read(P, query, user):
-    schema(P)
     def arg(key, default=""):
         v = query.get(key, default)
         return v[0] if isinstance(v, list) and v else v
-    members = sorted(login.load_users(P.data_dir))
+    from .tenant_policy import directory, require_member
+    require_member(P, user)
+    members = sorted(directory(P))
     viewer = user if user in members else ""
     request_id = arg("request_id")
     if request_id:
         if not viewer:
             raise ApiError(403, "操作回执只能由原登录成员读取")
-        return {"request": P.store.one("SELECT request_id,state,error,created,updated FROM team_requests WHERE actor=? AND request_id=?", (viewer, request_id))}
+        schema(P)
+        receipt = P.store.one("SELECT ticket_id,request_id,state,error,created,updated FROM team_requests WHERE actor=? AND request_id=?", (viewer, request_id))
+        if receipt:
+            require_member(P, user, _ticket(P, receipt["ticket_id"])["project_id"], "viewer")
+            receipt.pop("ticket_id")
+        return {"request": receipt}
     view = arg("view", "mine")
     if view not in ("mine", "team", "review", "unassigned"):
         raise ApiError(400, "未知团队视图")
@@ -402,6 +421,8 @@ def dispatch_read(P, query, user):
     p = P.store.project(project) if project and project not in ("*", "all") else None
     if project and project not in ("*", "all") and not p:
         raise ApiError(404, "没有这个项目")
+    if p:
+        require_member(P, user, p, "viewer")
     sql = "SELECT t.*,p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id"
     values = []
     if p:
@@ -409,8 +430,15 @@ def dispatch_read(P, query, user):
         values.append(p["id"])
     if arg("ticket"):
         selected_ticket = _ticket(P, arg("ticket"))
+        require_member(P, user, selected_ticket["project_id"], "viewer")
         sql += (" AND" if p else " WHERE") + " t.id=?"
         values.append(selected_ticket["id"])
+    member_project = p["id"] if p else selected_ticket["project_id"] if arg("ticket") else None
+    from .tenant_policy import enabled, identity
+    if member_project is None and enabled(P) and identity(P, user)["role"] != "admin":
+        raise ApiError(403, "请明确选择获准的项目或工单")
+    schema(P)
+    members = sorted(directory(P, member_project, "contributor"))
     rows = [_keyed(t) for t in P.store.q(sql + " ORDER BY t.updated DESC,t.id DESC", values)]
     items = [item(P, t, viewer) for t in rows]
     mine = lambda x: bool(viewer) and x["assignment"]["assignee"] == viewer and x["state"] not in ("closed", "merged")
@@ -426,4 +454,5 @@ def dispatch_read(P, query, user):
             "project": p["key"] if p else "*", "counts": {"mine": sum(map(mine, items)), "team": len(items), "review": sum(map(review, items)), "unassigned": sum(map(unassigned, items))},
             "items": selected[offset:offset + limit], "total": len(selected), "offset": offset,
             "has_more": offset + limit < len(selected), "next_offset": offset + limit,
-            "boundary": "当前为共享工作区。任务分配明确协作责任，不代表项目级访问隔离。"}
+            "boundary": ("当前访问范围由租户成员与项目授权决定。任务分配不会授予项目访问权限。" if enabled(P) else
+                         "当前为共享工作区。任务分配明确协作责任，不代表项目级访问隔离。")}

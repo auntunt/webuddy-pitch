@@ -198,6 +198,8 @@ class PlatformApiTest(unittest.TestCase):
 
     def call(self, method, path, body=None, headers=None):
         h = {"X-TMH": "1", "Content-Type": "application/json"}
+        if getattr(self, "_personal_cookie", ""):
+            h["Cookie"] = self._personal_cookie
         h.update(headers or {})
         req = urllib.request.Request(self.base + path, method=method, headers=h,
                                      data=json.dumps(body).encode() if body is not None else None)
@@ -206,6 +208,21 @@ class PlatformApiTest(unittest.TestCase):
                 return r.status, json.loads(r.read() or b"null")
         except urllib.error.HTTPError as e:
             return e.code, json.loads(e.read() or b"null")
+
+    def personal_session(self, name):
+        """Human knowledge decisions need an authenticated synthetic account."""
+        from tmh.platform import login
+        users = self.data / 'users.json'
+        previous = users.read_bytes() if users.exists() else None
+        def restore():
+            self._personal_cookie = ''
+            if previous is None:
+                users.unlink(missing_ok=True)
+            else:
+                users.write_bytes(previous)
+        self.addCleanup(restore)
+        login.set_user(self.data, name, 'synthetic-knowledge-password')
+        self._personal_cookie = 'tmh_session=' + login.make_session(self.data, name)
 
     def wait_run(self, rid):
         for _ in range(200):
@@ -2232,6 +2249,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertTrue(pg["text"])
 
     def test_kb_questions_answers_and_triage(self):
+        self.personal_session('wang')
         self.project()
         code, r = self.call("POST", "/api/projects/OA/kb/ask", {"question": "驳回后预算怎么处理？", "pages": ["dom:expense"], "to": "财务"})
         self.assertEqual(code, 200)
@@ -2269,6 +2287,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         import os
         from unittest import mock
         from tmh import config as cfgmod
+        self.personal_session('wang')
         self.project()
         code, a = self.call("POST", "/api/tickets", {"project": "OA", "title": "请假列表按部门筛选为空", "body": "选了部门以后列表没有数据"})
         self.assertEqual(code, 200, a)

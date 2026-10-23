@@ -11,13 +11,19 @@ def read(P, query, viewer):
     def arg(key, default=""):
         value = query.get(key, default)
         return value[0] if isinstance(value, list) and value else value
-    members = login.load_users(P.data_dir)
+    from .tenant_policy import directory, visible_projects, require_member
+    members = directory(P)
+    visible = visible_projects(P, viewer)
+    project_members = {p["key"]: directory(P, p, "contributor") for p in visible}
+    allowed_ids = [p["id"] for p in visible]
     viewer = viewer if viewer in members else ""
     team.schema(P)
     project = arg("project", "*")
     scope = P.store.project(project) if project not in ("", "*", "all") else None
     if project not in ("", "*", "all") and not scope:
         raise ApiError(404, "没有这个项目")
+    if scope and scope["id"] not in allowed_ids:
+        raise ApiError(403, "没有此项目的访问权限")
     view = arg("view", "mine" if viewer else "team")
     if view not in ("mine", "incoming", "review", "unassigned", "team"):
         raise ApiError(400, "未知工作台视图")
@@ -33,7 +39,9 @@ def read(P, query, viewer):
     except (TypeError, ValueError) as exc:
         raise ApiError(400, "分页参数必须是整数") from exc
     sql = "SELECT t.*,p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id"
-    rows = [_keyed(t) for t in P.store.q(sql + (" WHERE t.project_id=?" if scope else "") + " ORDER BY t.updated DESC,t.id DESC", (scope["id"],) if scope else ())]
+    ids = [scope["id"]] if scope else allowed_ids
+    rows = [_keyed(t) for t in P.store.q(sql + " WHERE t.project_id IN (%s) ORDER BY t.updated DESC,t.id DESC" %
+             (",".join("?" for _ in ids) or "NULL"), ids)]
     summaries = handoffs.summary_rows(P.store, [t["id"] for t in rows])
     tickets = {t["key"]: t for t in rows}
     work_cache = {}
@@ -60,7 +68,7 @@ def read(P, query, viewer):
     active = [t for t in items if t["status"] != "closed"]
     predicates = {"mine": lambda t: bool(viewer) and (t["assignee"] == viewer or (t["handoff"] and t["next_actor"] == viewer)),
                   "review": lambda t: bool(viewer) and t["reviewer"] == viewer and t["needs_review"],
-                  "unassigned": lambda t: t["assignee"] not in members, "team": lambda t: True}
+                  "unassigned": lambda t: t["assignee"] not in project_members.get(t["project"], {}), "team": lambda t: True}
     counts = {k: sum(1 for t in active if pred(t)) for k, pred in predicates.items()}
     predicates["incoming"] = lambda t: bool(viewer) and bool(t["handoff"]) and t["handoff"]["receiver"] == viewer and (t["handoff"]["status"] == "waiting" or (t["handoff"]["status"] == "blocked" and t["handoff"].get("resume_status") == "waiting"))
     incoming_count = sum(1 for t in active if predicates["incoming"](t))
@@ -84,7 +92,7 @@ def read(P, query, viewer):
         t["action_label"] = "查看复核与证据" if work["needs_review"] else "查看任务与执行"
         t["action_href"] = ("#/team/ticket/" if work["needs_review"] else "#/t/") + t["key"]
     projects = []
-    for p in P.store.projects():
+    for p in visible:
         if scope and p["id"] != scope["id"]:
             continue
         ts = [t for t in items if t["project"] == p["key"]]

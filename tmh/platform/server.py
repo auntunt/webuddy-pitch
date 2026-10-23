@@ -62,21 +62,29 @@ def _section(text: str, names: tuple) -> str:
 
 
 class Platform:
-    def __init__(self, data_dir: Path, user: str = "", brand: str = ""):
+    def __init__(self, data_dir: Path, user: str = "", brand: str = "", *, tenant_context=None):
+        self.tenant_context = tenant_context
         self.data_dir = Path(data_dir).expanduser().resolve()
         self.data_dir.mkdir(parents=True, exist_ok=True)
         from .operator_access import initialize
         self.operator_key_path = initialize(self.data_dir)
         self.store = Store(self.data_dir / "platform.db")
         self.runner = Runner(self.store, self.data_dir)
-        self.runner.recover()
+        self.runner.tenant_context = tenant_context
+        if tenant_context is not None:
+            tenant_context.platform = self
+        if tenant_context is None:
+            self.runner.recover()
         from . import learning_runs
-        learning_runs.recover(self)
+        if tenant_context is None:
+            learning_runs.recover(self)
         # three layers: what a project is (knowledge), how a change gets made right (the coding line), and the
         # apps on top that decide where tasks come from (apps.py wires them to the line)
         self.kb = Knowledge(self.store, self.runner)
         self.flow = Orchestra(self.store, self.runner, self.data_dir, self.kb)
-        self.flow.rechecks.recover()
+        self.flow.tenant_context = tenant_context
+        if tenant_context is None:
+            self.flow.rechecks.recover()
         from . import apps
         apps.wire(self)
         self.user = user
@@ -87,16 +95,19 @@ class Platform:
         from . import signoff
         self.store.on_status.append(lambda t, old, new, who: signoff.on_status(self, t, old, new, who))
         from . import preview
-        self.store.on_status.append(lambda t, old, new, who: preview.on_status(self, t, old, new, who))
+        if tenant_context is None:
+            self.store.on_status.append(lambda t, old, new, who: preview.on_status(self, t, old, new, who))
         self.preview_port = 0  # set by serve(): previews have an address of their own
         self.public_url = os.environ.get("TMH_PUBLIC_URL", "").rstrip("/")  # else learnt from requests, for links sent to chats
-        preview.resume(self)
+        if tenant_context is None:
+            preview.resume(self)
         from . import chat
         chat.wire(self)
         from . import workbench
-        workbench.wire(self)  # clients, versions and the main line's standing preview
+        workbench.wire(self, background=tenant_context is None)  # clients, versions and the main line's standing preview
         from .survey import Survey
-        Survey.resume_all(self)  # a full-project analysis the last process was in the middle of
+        if tenant_context is None:
+            Survey.resume_all(self)  # a full-project analysis the last process was in the middle of
 
     # ------------------------------------------------------------ helpers
     def project(self, key) -> dict:
@@ -944,10 +955,12 @@ def route(method: str, pattern: str):
 
 @route("GET", "/api/meta")
 def api_meta(P, req):
-    from .login import load_users
-    return {"version": __version__, "user": req.user, "login": bool(load_users(P.data_dir)),
+    from .login import has_accounts
+    managed = getattr(P, "tenant_context", None) is not None
+    can_execute = not managed or P.tenant_context.runtime_allowed(_session_actor(req))
+    return {"version": __version__, "user": req.user, "login": managed or has_accounts(P.data_dir),
             "operator_authenticated": bool(getattr(req.h, '_who', '')), "brand": P.brand, "statuses": STATUSES, "types": TYPES, "priorities": PRIORITIES,
-            "modes": RUN_MODES, "agents": available(P.data_dir), "data_dir": str(P.data_dir), "autoflow": P.flow.autoflow(),
+            "modes": RUN_MODES, "agents": available(P.data_dir) if can_execute else [], "data_dir": "" if managed else str(P.data_dir), "autoflow": P.flow.autoflow(),
             "apps": __import__("tmh.platform.apps", fromlist=["APPS"]).APPS}
 
 
@@ -966,8 +979,10 @@ def _session_actor(req):
 def _human_action(P, req, ticket=None, strict=False):
     from . import login, team
     actor = _session_actor(req)
-    if getattr(getattr(req, "h", None), "headers", {}).get("X-Webuddy-Agent") or ((strict or login.load_users(P.data_dir)) and not actor):
+    if getattr(getattr(req, "h", None), "headers", {}).get("X-Webuddy-Agent") or ((strict or getattr(P, "tenant_context", None) or login.has_accounts(P.data_dir)) and not actor):
         raise ApiError(403, "请用个人账号登录后操作；共享令牌或显示名不能代替人工确认")
+    if getattr(P, "tenant_context", None):
+        P.tenant_context.current_actor(actor)
     if ticket and team.assignment(P, ticket)["revision"]:
         team.require_reviewer(P, ticket, actor)
     return actor or req.user
@@ -1110,11 +1125,19 @@ def api_learning_action(P, req):
         raise ApiError(400, str(exc)) from exc
 
 
+def _allowed_project_ids(P, req):
+    if not getattr(P, "tenant_context", None):
+        return None
+    from .tenant_policy import visible_projects
+    return [p["id"] for p in visible_projects(P, _session_actor(req))]
+
+
 @route("GET", "/api/projects")
 def api_projects(P, req):
     from . import project_library
     out = []
-    for p in P.store.projects():
+    from .tenant_policy import visible_projects
+    for p in visible_projects(P, _session_actor(req)):
         s = P.store.stats(p["id"])
         p["open"] = sum(v for k, v in s["by_status"].items() if k != "closed")
         p["exists"] = Path(p["root"]).is_dir()
@@ -1326,9 +1349,12 @@ def api_kb_page(P, req, key):
 @route("POST", "/api/projects/<key>/kb/confirm")
 def api_kb_confirm(P, req, key):
     from .. import kb
+    actor = _human_action(P, req, strict=True)
+    if req.body.get("by") not in (None, "", actor):
+        raise ApiError(403, "人工确认必须记在当前登录账号下，不能代用他人姓名")
     p = P.project(key)
     try:
-        kb.confirm(P.root(p), req.body.get("id", ""), req.user, req.body.get("note", ""))
+        kb.confirm(P.root(p), req.body.get("id", ""), actor, req.body.get("note", ""))
     except KeyError:
         raise ApiError(404, "知识页不存在")
     return {"ok": True}
@@ -1355,11 +1381,14 @@ def api_kb_ask(P, req, key):
 def api_kb_answer(P, req, key):
     """A person records the business side's answer, word for word; the pages it concerns are queued for revision."""
     from .. import kbqa
+    actor = _human_action(P, req, strict=True)
+    if req.body.get("by") not in (None, "", actor):
+        raise ApiError(403, "人工答复必须记在当前登录账号下，不能代用他人姓名")
     text = (req.body.get("text") or "").strip()
     if not text:
         raise ApiError(400, "答复不能为空")
     try:
-        return kbqa.answer(P.root(P.project(key)), int(req.body.get("n") or 0), text, req.body.get("by") or req.user)
+        return kbqa.answer(P.root(P.project(key)), int(req.body.get("n") or 0), text, actor)
     except KeyError as e:
         raise ApiError(404, e.args[0])
     except ValueError as e:
@@ -1593,8 +1622,11 @@ def api_bots(P, req, key):
 @route("POST", "/api/projects/<key>/kb/overrule")
 def api_kb_overrule(P, req, key):
     from .. import kbqa
+    actor = _human_action(P, req, strict=True)
+    if req.body.get("by") not in (None, "", actor):
+        raise ApiError(403, "人工改判必须记在当前登录账号下，不能代用他人姓名")
     try:
-        return kbqa.overrule(P.root(P.project(key)), req.body.get("id") or "", req.body.get("by") or req.user,
+        return kbqa.overrule(P.root(P.project(key)), req.body.get("id") or "", actor,
                              (req.body.get("reason") or "").strip(), req.body.get("verdict") or "")
     except KeyError as e:
         raise ApiError(404, e.args[0])
@@ -2142,7 +2174,8 @@ def api_reform_act(P, req, key, pid):
 def api_tickets(P, req):
     pid = P.project(req.arg("project"))["id"] if req.arg("project") not in (None, "", "*", "all") else None
     return P.store.tickets(project_id=pid, status=req.arg("status") or None, text=req.arg("q") or None,
-                           assignee=req.arg("assignee") or None, limit=int(req.arg("limit") or 500), svc=req.arg("svc") or None)
+                           assignee=req.arg("assignee") or None, limit=int(req.arg("limit") or 500), svc=req.arg("svc") or None,
+                           allowed_projects=_allowed_project_ids(P, req))
 
 
 @route("POST", "/api/tickets")
@@ -2173,7 +2206,7 @@ def api_new_ticket(P, req):
         P.store.event(t["id"], req.user, "flow", "%s 认领：我来写。自动处理不会接这张单，推到分支 wb/%s 后平台自动构建、审查" % (req.user, t["key"]))
     elif b.get("agent") and b.get("mode"):
         P.runner.start(p, t, b["agent"], b["mode"], req.user, model=b.get("model"))
-    elif b.get("auto", True):
+    elif b.get("auto", True) and not getattr(P, "tenant_context", None):
         P.flow.submit(p, t)
     return P.store.ticket(t["id"])
 
@@ -2622,7 +2655,7 @@ def api_project_run(P, req, key):
 @route("GET", "/api/runs")
 def api_runs(P, req):
     pid = P.project(req.arg("project"))["id"] if req.arg("project") else None
-    runs = P.store.runs(project_id=pid, limit=200)
+    runs = P.store.runs(project_id=pid, limit=200, allowed_projects=_allowed_project_ids(P, req))
     keys = {}
     for r in runs:
         if r["ticket_id"] and r["ticket_id"] not in keys:
@@ -2842,7 +2875,7 @@ def api_workbench_intake(P, req):
                     raise
                 cid = hit["id"]
     s = intake.start(P, p, b.get("text", ""), req.user, b.get("channel") or "web", _chooser(P, p) if b.get("model", True) is not False else None,
-                     big=bool(b.get("big")))
+                     big=bool(b.get("big")), agent=b.get("model", True) is not False)
     if cid:
         workbench.link(P, cid, "intake", s["id"], req.user)
     return dict(s, client=int(cid) if cid else None)
@@ -3099,7 +3132,7 @@ def make_handler(P: Platform, token: str = ""):
 
         def _authorized(self, q: dict) -> bool:
             self._who = ""
-            accounts = bool(L.load_users(P.data_dir))
+            accounts = L.has_accounts(P.data_dir)
             if accounts:
                 self._who = L.read_session(P.data_dir, _cookie(self.headers.get("Cookie", ""), "tmh_session"))
                 if self._who:
@@ -3273,7 +3306,7 @@ def make_handler(P: Platform, token: str = ""):
                     if token and (q.get("token") or [""])[0] == token:
                         extra["Set-Cookie"] = "tmh_token=%s; Path=/; HttpOnly; SameSite=Strict" % token
                     if not self._authorized(q):
-                        if L.load_users(P.data_dir):
+                        if L.has_accounts(P.data_dir):
                             return self._send(303, b"", "text/plain", {"Location": "/login"})
                         return self._send(401, "需要访问令牌：在地址后加 ?token=…".encode("utf-8"), "text/plain; charset=utf-8")
                     return self._send(200, page().encode("utf-8"), "text/html; charset=utf-8", extra)
@@ -3391,6 +3424,8 @@ def make_handler(P: Platform, token: str = ""):
                     except FileNotFoundError as e:
                         return self._json(404, {"error": str(e)})
                     except Exception as e:  # noqa: BLE001 - report, keep serving
+                        if isinstance(e, PermissionError) and getattr(P, "tenant_context", None):
+                            return self._json(403, {"error": "此步骤需要独立执行环境；未获得可核对的结果", "code": "execution_disabled"})
                         # the person gets what to do and a reference to quote; the exception stays in the log
                         ref = now()[5:19].replace("-", "").replace(" ", "-").replace(":", "") + "-" + secrets.token_hex(2)
                         print("[error %s] %s %s %s: %s" % (ref, method, path, type(e).__name__, e), flush=True)
@@ -3559,6 +3594,11 @@ def _cookie(header: str, name: str) -> str:
 
 def serve(data_dir: Path, host: str = "127.0.0.1", port: int = 8790, user: str = "", project: Path | None = None,
           key: str = "", open_browser: bool = False, brand: str = "", preview_port: int = 0) -> int:
+    if (Path(data_dir).expanduser() / "control" / "access.db").is_file():
+        from .tenant_gateway import serve as serve_tenants
+        if project or preview_port:
+            print("多租户模式请从管理入口登记项目；预览需独立隔离环境")
+        return serve_tenants(data_dir, host, port)
     P = Platform(data_dir, user, brand)
     token = os.environ.get("TMH_TOKEN", "")
     if host not in ("127.0.0.1", "localhost", "::1") and not token:
