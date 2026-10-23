@@ -271,9 +271,13 @@ class TenantPolicyTest(unittest.TestCase):
 
     def test_library_source_and_derived_destination_stay_in_approved_workspace(self):
         self.context.tenant_id = "default"
-        self.store.x("INSERT INTO project_sources(project_id,root,label,created) VALUES(?,?,?,?)",
-                     (self.projects["BETA"]["id"], str(self.context.root / "BETA"), "foreign", "now"))
-        source_id = self.store.one("SELECT id FROM project_sources WHERE label='foreign'")["id"]
+        project = self.projects["BETA"]
+        source = self.store.one("SELECT * FROM project_sources WHERE project_id=? AND root=?",
+                                (project["id"], project["root"]))
+        self.assertIsNotNone(source)
+        self.assertEqual(source["project_id"], project["id"])
+        self.assertEqual(source["root"], project["root"])
+        source_id = source["id"]
         with self.assertRaises(ApiError) as caught:
             self.auth("/api/projects/ALPHA/library", actor="owner", method="POST", body={"action": "build", "source_id": source_id})
         self.assertEqual(caught.exception.code, 400)
