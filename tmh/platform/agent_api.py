@@ -72,7 +72,7 @@ def _digest(value):
     return hashlib.sha256(_json(value).encode("utf-8")).hexdigest()
 
 
-def _requirement(t, store, *, reference_inputs=None):
+def _requirement(t, store, *, reference_inputs=None, contract_records=None):
     """Bind requirement sources, including conversation and the client contract.
 
     This is deliberately conservative: even an informational comment invalidates
@@ -82,7 +82,8 @@ def _requirement(t, store, *, reference_inputs=None):
     from .signoff import records
     links = t.get("links") or {}
     discussion = store.q("SELECT * FROM events WHERE ticket_id=? AND kind IN ('comment','reject','conflict') ORDER BY id", (t["id"],))
-    contracts = [record for record in records(store.path.parent, t["key"]) if record["kind"] == "intake"]
+    sources = records(store.path.parent, t["key"]) if contract_records is None else contract_records
+    contracts = [record for record in sources if record["kind"] == "intake"]
     value = {"schema": 2, "ticket": t["id"], "title": t["title"], "body": t["body"], "type": t["type"],
                     "priority": t["priority"], "reporter": t.get("reporter"), "external": t.get("external"),
                     "discussion": discussion, "client_contract": contracts[-1] if contracts else None,
@@ -337,7 +338,7 @@ def _tool_preview(P, ticket, run_id=None):
     the commit still exists or that a preview is currently healthy. Never feed
     these unverified records into the existing bound preview/acceptance path.
     """
-    from . import preview
+    from . import tool_read
     from .learn import _adopted
     historical = None
     if run_id is not None:
@@ -350,8 +351,11 @@ def _tool_preview(P, ticket, run_id=None):
         historical = {'run': run['id'], 'branch': match.group(1), 'commit': match.group(2)}
     else:
         historical, _ = _adopted(P.store, ticket['id'])
-    recorded = preview._load(P.data_dir).get(ticket['key']) or {}
-    return {'preview': {'state': 'not_checked', 'recorded': recorded},
+        if historical and historical.get('run') is not None:
+            tool_read.bound_run(P, historical['run'], ticket)
+    recorded = tool_read.ticket_preview(P, ticket)
+    return {'preview': {'state': 'not_checked', 'recorded': recorded['recorded'],
+                        'record_scope': 'ticket', 'binding_status': 'not_checked'},
             'historical_binding': historical, 'verification_status': 'not_checked',
             'notice': '仅提供保存的历史记录；工具内容连接不核验当前 Git 提交、预览进程或健康状态。',
             'url': '', 'branch': '', 'expected_commit': '', 'matches_run': None,
@@ -366,6 +370,25 @@ def _execute(P, req, actor, operation, a):
     tool = who.get('tool_connection')
     # Scope before pagination; never disclose ungranted counts or row contents.
     visible_ids = [p['id'] for p in tenant_policy.visible_projects(P, req.user)] if tool else None
+    if tool:
+        from . import tool_read
+        if operation == 'candidate_get':
+            return tool_read.candidate(P, a['candidate_id'], visible_ids)
+        if operation == 'candidates_list':
+            return tool_read.candidate_list(P, a, visible_ids)
+        if operation == 'run_get':
+            return tool_read.run_get(P, a['run_id'], a.get('since', 0), visible_ids)
+        if operation == 'ticket_get':
+            packet = tool_read.ticket_get(P, a['ticket'], visible_ids)
+            from .tool_access import allowed_operations
+            packet['boundaries'] = _boundaries(tool)
+            packet['supported_actions'] = [v for v in ('message_send', 'messages_list', 'run_get', 'preview_get', 'candidates_list', 'candidate_get')
+                                           if v in allowed_operations(tool['scope'])]
+            return packet
+        if operation == 'library_get':
+            from .project_library import schema
+            schema(st)  # Preserve the existing compatible schema migration.
+            return tool_read.library_get(P, _project(P, a['project']))
     if operation.startswith("library_"):
         from .project_library import execute
         return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))

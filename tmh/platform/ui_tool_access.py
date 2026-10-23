@@ -11,7 +11,7 @@ HTML = r'''<!doctype html>
 :root{font-family:system-ui,-apple-system,sans-serif;color:#182b38;background:#f5f6f8;font-size:15px}*{box-sizing:border-box}body{margin:0}header{background:white;border-bottom:1px solid #dbe1e7;padding:20px max(24px,calc((100vw - 1120px)/2));display:flex;gap:24px;align-items:center}a{color:#195e70}main{max-width:1120px;margin:32px auto;padding:0 24px}h1{font-size:30px;margin:0 0 12px}h2{font-size:19px;margin:0 0 16px}p{line-height:1.75;margin:10px 0}.muted{color:#526473}.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;margin-top:24px}.panel{background:white;border:1px solid #dbe1e7;border-radius:12px;padding:24px;min-width:0}label{display:block;margin:16px 0 7px;font-weight:600}input,select,textarea,button{font:inherit}input:not([type=checkbox]),select,textarea{width:100%;padding:11px;border:1px solid #9cabb7;border-radius:5px;min-width:0}input[type=checkbox]{width:18px;height:18px;flex-shrink:0}button,.button{min-height:42px;padding:9px 15px;border:1px solid #bdc9d1;background:white;border-radius:6px;cursor:pointer;color:#182b38}.primary{background:#195e70;border-color:#195e70;color:white}button:disabled{opacity:.55;cursor:default}.row{border-top:1px solid #e2e7eb;padding:16px 0;overflow-wrap:anywhere}.row:first-child{border:0;padding-top:0}.row h3{font-size:16px;margin:0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.check{display:flex;gap:10px;align-items:flex-start;font-weight:400}.note{padding:14px 16px;background:#eaf1f3;border-radius:7px;overflow-wrap:anywhere}.error{color:#9e2d22}.badge{display:inline-block;border:1px solid #d4dfe5;border-radius:5px;padding:3px 7px;margin:6px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}textarea{min-height:132px;resize:vertical}#notice{margin:18px 0;white-space:pre-wrap;overflow-wrap:anywhere}#secret{margin-top:24px;border:2px solid #195e70}#projects{max-height:320px;overflow:auto}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #428aa0;outline-offset:3px}[hidden]{display:none!important}@media(max-width:760px){.layout{grid-template-columns:1fr}main{margin-top:24px;padding:0 16px}.panel{padding:18px}header{padding:16px}h1{font-size:25px}}
 </style></head><body><header><strong>Webuddy</strong><a id="back">返回工作台</a></header><main>
 <h1>我的工具连接</h1><p class="muted">让自己的 Claude、Cursor 或命令行读取获准资料、记录工作进展。每个连接都有明确的项目范围和有效期。</p>
-<p class="note">此连接不启动服务端模型、构建或预览，也不能替人确认知识、验收或关单。工具名称只用于辨认连接，所有操作仍归属于授权成员。</p>
+<p class="note">此连接不启动服务端模型、构建或预览，也不能替人确认知识、验收或关单。工具名称只用于辨认连接，所有操作仍归属于授权成员。连接状态以最近一次读回为准，使用时服务器会再次核验权限。</p>
 <div id="notice" role="status" aria-live="polite">正在核对个人身份与项目权限…</div>
 <div id="pending" class="note" hidden><p>上次操作的结果尚未确认。请用原请求核对，避免重复创建连接。</p><button id="retry">核对原请求</button></div>
 <section id="secret" class="panel" hidden><h2>保存这份连接凭据</h2><p>凭据仅在本次响应中显示。请保存到自己的电脑，不要发送到聊天、提交到代码库或交给其他成员。切换页面、每 15 秒重新核对身份或刷新列表时会清除本页凭据，请及时下载。未保存时需撤销该连接并重新创建。</p><textarea id="credential" readonly aria-label="连接凭据 JSON" spellcheck="false" autocomplete="off"></textarea><div class="actions"><button id="download" class="primary">下载凭据文件</button><button id="dismiss">已保存，清除页面凭据</button></div><pre id="guide"></pre></section>
@@ -21,10 +21,10 @@ HTML = r'''<!doctype html>
 const initialPath=location.pathname, initialOrigin=location.origin;
 const base=initialPath.match(/^\/t\/[A-Za-z0-9_-]+(?=\/|$)/)?.[0]||'', tenant=base.split('/')[2]||'';
 const $=s=>document.querySelector(s), h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let context='',owner='',pending=null,busy=false,credential=null,locked=false,storageKey='',ready=false,epoch=0,loadVersion=0,sensitiveEpoch=0,identityVersion=0;
+let context='',owner='',pending=null,busy=false,credential=null,credentialBinding=null,directorySnapshot=null,locked=false,storageKey='',ready=false,epoch=0,loadVersion=0,sensitiveEpoch=0,identityVersion=0;
 $('#back').href=base+'/';
 function notice(text,error=false){$('#notice').textContent=text;$('#notice').className=error?'error':''}
-function clearSecret(){credential=null;$('#credential').value='';$('#guide').textContent='';$('#secret').hidden=true}
+function clearSecret(){credential=null;credentialBinding=null;$('#credential').value='';$('#guide').textContent='';$('#secret').hidden=true;$('#download').disabled=true}
 function invalidateSensitive(){
   const hadCredential=!!credential;sensitiveEpoch++;clearSecret();
   if(hadCredential)notice('页面凭据已清除。若尚未保存，请撤销该连接并重新创建。'+(pending?' 原请求记录仍需核对。':''),!!pending);
@@ -34,11 +34,12 @@ function setBusy(value){
   $('#submit').disabled=locked||value||!ready||!!pending||!!credential;
   $('#retry').disabled=locked||value||!pending||!!credential;
   $('#refresh').disabled=locked||value;
+  $('#download').disabled=locked||value||!ready||!credential;
   for(const button of document.querySelectorAll('[data-revoke]'))button.disabled=locked||value||!ready||!!pending;
 }
 function pendingView(){$('#pending').hidden=locked||!pending;setBusy(busy)}
 function lock(message){
-  locked=true;ready=false;epoch++;context='';owner='';pending=null;
+  locked=true;ready=false;epoch++;context='';owner='';pending=null;directorySnapshot=null;
   clearSecret();$('#projects').replaceChildren();$('#connections').replaceChildren();$('#identity').textContent='';$('#label').value='';
   pendingView();notice(message+' 请返回工作台重新登录或读取权限。',true);
 }
@@ -103,7 +104,23 @@ function cleared(){
   if(sessionStorage.getItem(storageKey)!==null)throw Error('原请求记录未清除。');
   pending=null;pendingView();
 }
-function showCredential(token){
+function sameProjects(left,right){
+  const valid=ids=>Array.isArray(ids)&&ids.length>0&&ids.every(id=>Number.isSafeInteger(id)&&id>0)&&new Set(ids).size===ids.length;
+  return valid(left)&&valid(right)&&JSON.stringify([...left].sort((a,b)=>a-b))===JSON.stringify([...right].sort((a,b)=>a-b));
+}
+function activeConnection(item,body){
+  return !!item&&item.user===owner&&item.tenant===tenant&&item.label===body.label.trim()&&item.scope===body.scope&&sameProjects(item.project_ids,body.project_ids)&&item.active===true&&item.status==='active'&&Number.isSafeInteger(item.expires_at)&&item.expires_at>Date.now()/1000;
+}
+function confirmedConnection(item,body,data){
+  // Bind the secret to the actual latest row, not just list-level identity.
+  // This is a readback snapshot; the server still authorizes each later use.
+  if(!live()||!ready||data!==directorySnapshot||data?.user!==owner||data?.context_token!==context||!Array.isArray(data?.connections))throw Error('当前连接列表尚未确认，请核对原请求。');
+  const rows=data.connections.filter(row=>row?.id===item.id);
+  if(rows.length!==1||!activeConnection(item,body)||!activeConnection(rows[0],body)||rows[0].expires_at!==item.expires_at)throw Error('当前列表未确认原连接仍然有效，连接可能已撤销、过期或范围已变化，请核对原请求。');
+}
+function showCredential(token,item,body,data){
+  confirmedConnection(item,body,data);
+  credentialBinding={item,body,data};
   credential={schema:1,endpoint:initialOrigin+base,token};$('#credential').value=JSON.stringify(credential,null,2);$('#secret').hidden=false;
   $('#guide').textContent='在自己的终端导入下载的 JSON（下列文件名可替换）：\nmkdir -p ~/.config/webuddy\nwebuddy connect --stdin --save-to ~/.config/webuddy/my-tool.json < webuddy-credential.json\nwebuddy --credential-file ~/.config/webuddy/my-tool.json status\n确认导入成功后，删除下载目录中的临时凭据文件。';
   setBusy(busy);
@@ -118,14 +135,14 @@ function render(data){
 }
 async function load({withinWrite=false}={}){
   if(withinWrite)clearSecret();else invalidateSensitive();
-  const version=++loadVersion,identityEpoch=epoch;ready=false;setBusy(busy);
+  const version=++loadVersion,identityEpoch=epoch;directorySnapshot=null;ready=false;setBusy(busy);
   try{
     if(!await verifyIdentity({withinWrite:true})||version!==loadVersion||!live(identityEpoch))return false;
     const data=await request('GET','/api/tool-connections');
     if(version!==loadVersion||!live(identityEpoch))return false;
     if(data?.user!==owner||data?.context_token!==context){lock('身份已变化。');return false}
     if(!Array.isArray(data.projects)||!Array.isArray(data.connections))throw Error('连接列表回执不完整。');
-    readPending();render(data);ready=true;pendingView();return true;
+    readPending();render(data);directorySnapshot=data;ready=true;pendingView();return data;
   }catch(error){
     if(version===loadVersion&&live(identityEpoch)){ready=false;pendingView();notice('暂不能确认连接状态。请刷新列表后再操作。'+error.message,true)}
     return false;
@@ -135,9 +152,9 @@ function validateReceipt(result,body){
   const item=result?.connection;
   if(!item||item.user!==owner||item.tenant!==tenant||typeof item.id!=='string'||!item.id.match(/^[a-f0-9]{32}$/)||result.connection_id!==item.id||typeof result.replayed!=='boolean')throw Error('操作回执不完整或身份不匹配，请核对原请求。');
   if(body.action==='create'){
-    if(item.label!==body.label.trim()||item.scope!==body.scope||!Array.isArray(item.project_ids)||JSON.stringify([...item.project_ids].sort((a,b)=>a-b))!==JSON.stringify([...body.project_ids].sort((a,b)=>a-b)))throw Error('连接范围与原请求不匹配，请核对原请求。');
+    if(item.label!==body.label.trim()||item.scope!==body.scope||!sameProjects(item.project_ids,body.project_ids))throw Error('连接范围与原请求不匹配，请核对原请求。');
     if(result.replayed){if(result.token!==undefined||result.credential_unavailable!==true)throw Error('重试回执不完整，请继续核对原请求。')}
-    else if(typeof result.token!=='string'||!new RegExp('^wbt_'+item.id+'\\.[A-Za-z0-9_-]{43}$').test(result.token))throw Error('凭据回执不完整，请核对原请求。');
+    else if(!activeConnection(item,body)||typeof result.token!=='string'||!new RegExp('^wbt_'+item.id+'\\.[A-Za-z0-9_-]{43}$').test(result.token))throw Error('凭据回执不完整或连接已失效，请核对原请求。');
   }else if(item.id!==body.connection_id||item.active!==false||item.status!=='revoked'||result.token!==undefined)throw Error('撤销回执与原请求不匹配，请核对原请求。');
 }
 async function submitPending(){
@@ -152,10 +169,12 @@ async function submitPending(){
     validateReceipt(result,original);
     // Keep the secret out of DOM/download until all identity and list readbacks
     // finish. A focus/blur/recheck during this POST invalidates its display epoch.
-    if(!await load({withinWrite:true})||!await verifyIdentity({withinWrite:true})||!live(version))return;
+    const data=await load({withinWrite:true});
+    if(!data||!await verifyIdentity({withinWrite:true})||!live(version))return;
+    if(result.token)confirmedConnection(result.connection,original,data);
+    if(result.token&&displayVersion===sensitiveEpoch)showCredential(result.token,result.connection,original,data);
     let cleanupFailed=false;
     try{cleared()}catch(error){cleanupFailed=true}
-    if(result.token&&displayVersion===sensitiveEpoch)showCredential(result.token);
     const message=cleanupFailed?'操作已完成，但本机未能清除重试记录。请先核对原请求；若尚未保存凭据，请撤销该连接并重新创建。':result.credential_unavailable?'原创建已完成，但凭据不会再次显示。请在列表中撤销该连接，再重新创建。':result.token?(credential?'连接已创建。请及时保存凭据；重新核对身份时会清除页面凭据。':'操作已完成，但页面或身份核验已变化，本次凭据未显示。请在列表中撤销该连接并重新创建。'):'操作已完成。';
     notice(message,cleanupFailed||!!result.token&&!credential);
   }catch(error){
@@ -182,6 +201,7 @@ $('#refresh').onclick=()=>load();
 $('#dismiss').onclick=()=>{const hadCredential=!!credential;clearSecret();setBusy(busy);if(hadCredential&&!locked&&!pending&&ready)notice('页面凭据已清除。可在列表管理连接。')};
 $('#download').onclick=()=>{
   if(!credential||!live()||!ready||busy)return;
+  try{if(!credentialBinding)throw Error('缺少连接核对记录');confirmedConnection(credentialBinding.item,credentialBinding.body,credentialBinding.data)}catch(error){clearSecret();setBusy(busy);notice('连接状态已变化或凭据已过期，页面凭据已清除。请刷新列表核对原连接。',true);return}
   try{const url=URL.createObjectURL(new Blob([JSON.stringify(credential,null,2)+'\n'],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download='webuddy-credential.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(error){notice('凭据下载未完成，请保留页面并复制完整凭据到自己的本地文件。',true)}
 };
 async function checkIdentity(){

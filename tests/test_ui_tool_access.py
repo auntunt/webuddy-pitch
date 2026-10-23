@@ -37,7 +37,7 @@ const requests=[],mutations=[];
 globalThis.fetch=async(path,options)=>{requests.push({path,method:options.method});if(options.method==='POST'){const body=JSON.parse(options.body);mutations.push(body);const value=await postHandler(body);return value?.httpResponse?value:{ok:true,status:200,json:async()=>value}}const value=await(path.endsWith('/api/meta')?getMeta():getList());return value?.httpResponse?value:{ok:true,status:200,json:async()=>value}};
 const connection=(body,extra={})=>({id:'a'.repeat(32),user:'alice',tenant:'alpha',scope:body.scope||'read',project_ids:body.project_ids||[1],label:body.label||'Personal tool',expires_at:2000000000,status:'active',active:true,...extra});
 const body=()=>({action:'create',label:'Personal tool',project_ids:[1],scope:'read',expires_days:7,request_id:'fixed-request'});
-const success=(b,extra={})=>({connection:connection(b),connection_id:'a'.repeat(32),token:'wbt_'+'a'.repeat(32)+'.'+'s'.repeat(43),replayed:false,...extra});
+const success=(b,extra={})=>{const result={connection:connection(b),connection_id:'a'.repeat(32),token:'wbt_'+'a'.repeat(32)+'.'+'s'.repeat(43),replayed:false,...extra};const index=records.findIndex(row=>row.id===result.connection.id);if(index<0)records.push({...result.connection});else records[index]={...result.connection};return result};
 postHandler=b=>success(b);
 '''
 
@@ -59,7 +59,7 @@ class ToolAccessUiTest(unittest.TestCase):
         script = html.split('<script>')[1].split('</script>')[0]
         parsed = subprocess.run([shutil.which('node'), '--check'], input=script, text=True, capture_output=True)
         self.assertEqual(parsed.returncode, 0, parsed.stderr)
-        result = self.run_js("showCredential(success(body()).token);process.stdout.write($('#guide').textContent);")
+        result = self.run_js("await start(body());process.stdout.write($('#guide').textContent);")
         lines = [line for line in result.splitlines() if line.startswith('webuddy ')]
         self.assertEqual(len(lines), 2)
         for line in lines:
@@ -163,6 +163,96 @@ class ToolAccessUiTest(unittest.TestCase):
 
     def test_readonly_project_does_not_submit_content_scope(self):
         self.run_js("getList=()=>({...directory(),projects:[{id:1,key:'APP',name:'Project',role:'viewer'}]});await load();document.querySelector('[name=project]').checked=true;$('#scope').value='content';await $('#create').fire('submit');assert.equal(mutations.length,0);assert.ok($('#notice').textContent.includes('只读项目'));")
+
+    def test_final_list_requires_one_current_active_matching_connection(self):
+        rows = {
+            'missing': '[]',
+            'different_id': "[{...records[0],id:'b'.repeat(32)}]",
+            'duplicate': '[records[0],{...records[0]}]',
+            'revoked': "[{...records[0],status:'revoked',active:false}]",
+            'expired': "[{...records[0],status:'expired',active:false}]",
+            'invalidated': "[{...records[0],status:'invalidated',active:false}]",
+            'inactive': '[{...records[0],active:false}]',
+            'truthy_active': "[{...records[0],active:'true'}]",
+            'contradictory_status': "[{...records[0],status:'revoked'}]",
+            'other_member': "[{...records[0],user:'bob'}]",
+            'other_tenant': "[{...records[0],tenant:'beta'}]",
+            'other_scope': "[{...records[0],scope:'content'}]",
+            'other_projects': '[{...records[0],project_ids:[2]}]',
+            'duplicate_project': '[{...records[0],project_ids:[1,1]}]',
+            'string_project': "[{...records[0],project_ids:['1']}]",
+            'other_label': "[{...records[0],label:'different'}]",
+            'deadline_reached': '[{...records[0],expires_at:Date.now()/1000}]',
+            'string_deadline': "[{...records[0],expires_at:'2000000000'}]",
+            'missing_deadline': '[{...records[0],expires_at:undefined}]',
+            'nonfinite_deadline': '[{...records[0],expires_at:Infinity}]',
+            'different_deadline': '[{...records[0],expires_at:records[0].expires_at+1}]',
+        }
+        for name, expression in rows.items():
+            with self.subTest(name=name):
+                self.run_js(r'''
+const listGate=later(),identityGate=later();let reads=0;
+getList=()=>listGate.promise;getMeta=()=>++reads===3?identityGate.promise:meta();
+const original=body(),writing=start(original);await tick();
+assert.equal(reads,2);assert.equal(records.length,1);assert.equal(credential,null);
+await $('#download').fire('click');assert.equal(blobs.length,0);
+listGate.resolve({...directory(),connections:ROWS});await tick();
+assert.equal(reads,3);assert.equal(credential,null);assert.equal($('#credential').value,'');
+await $('#download').fire('click');assert.equal(blobs.length,0);
+identityGate.resolve(meta());await writing;
+assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal($('#secret').hidden,true);
+await $('#download').fire('click');assert.equal(blobs.length,0);
+assert.deepEqual(pending,original);assert.deepEqual(JSON.parse([...values.values()][0]),original);
+await start({...body(),request_id:'must-not-duplicate'});assert.equal(mutations.length,1);
+'''.replace('ROWS', expression))
+
+    def test_fresh_post_requires_active_unexpired_well_typed_authority(self):
+        for extra in ["{status:'revoked',active:false}", "{status:'expired',active:false}",
+                      "{status:'invalidated',active:false}", "{active:false}", "{active:'true'}",
+                      "{expires_at:Date.now()/1000}", "{expires_at:'2000000000'}",
+                      "{expires_at:Infinity}", "{expires_at:undefined}", "{project_ids:['1']}"]:
+            with self.subTest(extra=extra):
+                self.run_js("postHandler=b=>success(b,{connection:connection(b," + extra + ")});await start(body());assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal($('#secret').hidden,true);await $('#download').fire('click');assert.equal(blobs.length,0);assert.deepEqual(pending,body());assert.equal(mutations.length,1);")
+
+    def test_matching_final_row_accepts_same_project_set_and_scope(self):
+        for scope in ('read', 'content'):
+            with self.subTest(scope=scope):
+                self.run_js("const original={...body(),scope:" + json.dumps(scope) + ",project_ids:[2,1]};getList=()=>({...directory(),connections:records.map(row=>({...row,project_ids:[1,2]}))});await start(original);assert.ok(credential);assert.equal(pending,null);assert.deepEqual(mutations[0],original);await $('#download').fire('click');assert.equal(blobs.length,1);assert.equal(JSON.parse(await blobs[0].text()).token,credential.token);")
+
+    def test_expiry_crossing_final_identity_barrier_never_displays_secret(self):
+        self.run_js(r'''
+let now=1900000000000;Date.now=()=>now;
+postHandler=b=>success(b,{connection:connection(b,{expires_at:now/1000+1})});
+const finalIdentity=later();let reads=0;getMeta=()=>++reads===3?finalIdentity.promise:meta();
+const writing=start(body());await tick();assert.equal(reads,3);assert.equal(credential,null);
+now+=1000;finalIdentity.resolve(meta());await writing;
+assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal($('#secret').hidden,true);
+await $('#download').fire('click');assert.equal(blobs.length,0);assert.deepEqual(pending,body());
+''')
+
+    def test_download_rechecks_expiry_and_clears_without_another_request(self):
+        self.run_js(r'''
+let now=1900000000000;Date.now=()=>now;
+postHandler=b=>success(b,{connection:connection(b,{expires_at:now/1000+1})});
+await start(body());assert.ok(credential);await $('#download').fire('click');assert.equal(blobs.length,1);
+const count=requests.length;now+=1000;await $('#download').fire('click');
+assert.equal(requests.length,count);assert.equal(blobs.length,1);assert.equal(credential,null);
+assert.equal($('#credential').value,'');assert.equal($('#secret').hidden,true);assert.equal($('#download').disabled,true);
+assert.ok($('#notice').textContent.includes('过期'));assert.equal(pending,null);
+''')
+
+    def test_unconfirmed_final_row_retries_original_without_showing_replay_secret(self):
+        for status in ('active', 'revoked', 'expired', 'invalidated'):
+            with self.subTest(status=status):
+                self.run_js(r'''
+getList=()=>({...directory(),connections:[]});await start(body());
+assert.equal(credential,null);assert.deepEqual(pending,body());assert.equal(mutations.length,1);
+const original=JSON.stringify(mutations[0]);getList=()=>directory();
+postHandler=b=>success(b,{connection:connection(b,{status:STATUS,active:STATUS==='active'}),token:undefined,replayed:true,credential_unavailable:true});
+await $('#retry').fire('click');assert.equal(mutations.length,2);assert.equal(JSON.stringify(mutations[1]),original);
+assert.equal(pending,null);assert.equal(values.size,0);assert.equal(credential,null);
+await $('#download').fire('click');assert.equal(blobs.length,0);assert.ok($('#notice').textContent.includes('不会再次显示'));
+'''.replace('STATUS', json.dumps(status)))
 
 
 if __name__ == '__main__':

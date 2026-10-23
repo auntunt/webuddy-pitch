@@ -89,6 +89,119 @@ class ToolGatewayTest(unittest.TestCase):
         self.assertEqual(self.call(grant, 'preview_get', {'ticket': 'SAME-1', 'run_id': run['id'] + 1})[0], 404)
         self.assertEqual(json.loads((target / 'previews' / 'state.json').read_text())['SAME-1'], saved)
 
+    def test_real_candidate_read_never_probes_health_or_rewrites_records(self):
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+        import hashlib
+        from pathlib import Path
+        import subprocess
+        import threading
+        from types import SimpleNamespace
+        from tmh.platform import agent_api, candidates, preview
+        from tmh.platform.store import Store
+        from tmh.workbench_client import Client
+        from tests.sqlite_snapshot import dump_store
+
+        hits = []
+        class Observer(BaseHTTPRequestHandler):
+            def do_GET(inner):
+                hits.append(inner.path)
+                inner.send_response(200)
+                inner.send_header('Content-Length', '2')
+                inner.end_headers()
+                inner.wfile.write(b'ok')
+            def log_message(inner, *_):
+                pass
+        observer = ThreadingHTTPServer(('127.0.0.1', 0), Observer)
+        observer.daemon_threads = True
+        thread = threading.Thread(target=observer.serve_forever, daemon=True)
+        thread.start()
+        try:
+            for tenant, user in ((self.a, 'alice'), ('default', 'owner')):
+                with self.subTest(tenant=tenant):
+                    target = Path(self.reg.one('SELECT path FROM tenants WHERE id=?', (tenant,))['path'])
+                    st = Store(target / 'platform.db')
+                    try:
+                        agent_api._schema(st)
+                        root = target / 'repositories' / 'same'
+                        root.mkdir(parents=True, exist_ok=True)
+                        p = st.project('SAME') or st.add_project('SAME', 'synthetic', str(root))
+                        ticket = st.ticket('SAME-1') or st.create_ticket(p['id'], 'synthetic', 'owner')
+                        empty = target / 'empty-candidate-template'
+                        empty.mkdir()
+                        env = dict(os.environ, GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_NOSYSTEM='1', GIT_TERMINAL_PROMPT='0',
+                                   GIT_AUTHOR_NAME='Synthetic', GIT_AUTHOR_EMAIL='fixture@localhost',
+                                   GIT_COMMITTER_NAME='Synthetic', GIT_COMMITTER_EMAIL='fixture@localhost')
+                        def git(*args):
+                            result = subprocess.run(['git', '-C', str(root), '-c', 'commit.gpgsign=false',
+                                '-c', 'core.hooksPath=' + str(empty), *args], env=env, capture_output=True, text=True, timeout=10)
+                            self.assertEqual(result.returncode, 0, result.stderr)
+                            return result.stdout.strip()
+                        git('init', '--template=' + str(empty))
+                        (root / 'fixture.txt').write_text('base\n')
+                        git('add', 'fixture.txt'); git('commit', '-m', 'synthetic base')
+                        base = git('rev-parse', 'HEAD')
+                        (root / 'fixture.txt').write_text('candidate\n')
+                        git('add', 'fixture.txt'); git('commit', '-m', 'synthetic candidate')
+                        head = git('rev-parse', 'HEAD')
+                        st.x('UPDATE tickets SET links=? WHERE id=?', (json.dumps({'hold': 'fixture'}), ticket['id']))
+                        ticket = st.ticket(ticket['id'])
+                        P = SimpleNamespace(store=st, data_dir=target, public_url='', runner=SimpleNamespace(procs={}))
+                        summary = '完整历史候选说明\r\n' * 1200
+                        registered = candidates.submit(P, 'agent:fixture', {'ticket': ticket['key'], 'base_commit': base,
+                            'commit': head, 'requirement_hash': agent_api._requirement(ticket, st), 'summary': summary,
+                            'criteria': [{'id': 'A1', 'text': 'synthetic only'}]}, lambda: None)
+                        saved = {'state': 'up', 'pid': os.getpid(), 'port': observer.server_address[1],
+                                 'prefix': preview.bound_prefix(ticket['key'], head), 'commit_full': head,
+                                 'ready': '/', 'started': 'synthetic', 'cmd': 'fixture-only'}
+                        (target / 'previews').mkdir(exist_ok=True)
+                        (target / 'previews' / 'state.json').write_text(json.dumps({ticket['key']: saved}))
+                        # A real positive control: original verification path
+                        # can resolve this Git candidate and reaches the observer.
+                        control = candidates.view(P, registered['candidate_id'])
+                        self.assertTrue(control['current'], control)
+                        self.assertTrue(control['preview_ready'], control)
+                        self.assertTrue(hits)
+                        hits.clear()
+                        grant = self.grant(user=user, tenant=tenant, scope='read', projects=[p['id']], rid='candidate-' + tenant)
+                        client = Client(endpoint='http://127.0.0.1:%s/t/%s' % (self.port, tenant), agent='fixture',
+                                        tool_token=grant['token'], credential_file='')
+                        client.connection_status()  # Complete existing startup migrations before observing reads.
+                        before_db = dump_store(st)
+                        def files():
+                            return {str(path.relative_to(target)): hashlib.sha256(path.read_bytes()).hexdigest()
+                                    for path in target.rglob('*') if path.is_file() and not path.is_symlink()
+                                    and not path.name.startswith('platform.db') and 'control' not in path.relative_to(target).parts}
+                        before_files = files()
+                        for operation, args in [('candidate_get', {'candidate_id': registered['candidate_id']}),
+                                                ('candidates_list', {'ticket': ticket['key']}),
+                                                ('ticket_get', {'ticket': ticket['key']}),
+                                                ('run_get', {'run_id': registered['run_id']})]:
+                            value = client.call(operation, args)
+                            self.assertEqual(hits, [], operation)
+                            if operation.startswith('candidate'):
+                                item = value['items'][0] if operation == 'candidates_list' else value
+                                self.assertEqual(item['state'], 'not_checked')
+                                self.assertIsNone(item['current'])
+                                self.assertIsNone(item['human_accepted'])
+                                self.assertEqual(item['summary'], summary)
+                                self.assertEqual(item['history']['candidate']['summary'], summary)
+                                self.assertEqual(item['history']['ticket_preview']['recorded'], saved)
+                                self.assertEqual(item['history']['ticket_preview']['binding_status'], 'not_checked')
+                                self.assertEqual(item['preview_url'], '')
+                        self.assertEqual(dump_store(st), before_db)
+                        self.assertEqual(files(), before_files)
+                        if tenant == self.a:
+                            self.assertEqual(self.call(grant, 'candidates_list', {'ticket': 'PRIVATE-1'})[0], 404)
+                            self.change('project_revoke', tenant=tenant, user=user, project_id=p['id'])
+                            self.assertIn(self.call(grant, 'candidate_get', {'candidate_id': registered['candidate_id']})[0], (401, 403))
+                    finally:
+                        st.db.close()
+        finally:
+            observer.shutdown()
+            observer.server_close()
+            thread.join(5)
+            self.assertFalse(thread.is_alive())
+
     def test_durable_receipts_are_personal_project_bound_and_alias_cannot_reexecute(self):
         grant = self.grant()
         body = {'ticket': 'SAME-1', 'body': '完整回执\r\n保留正文', 'request_id': 'shared-id'}

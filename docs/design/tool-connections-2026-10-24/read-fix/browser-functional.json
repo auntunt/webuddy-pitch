@@ -1,0 +1,11 @@
+{
+  "download_file_bytes": 180,
+  "download_matches_import": true,
+  "connection_id": "c197a424437c11af869cfed2d057c28f",
+  "label": "本机凭据下载回归",
+  "revoked_cli_exit": 1,
+  "revoked_cli_stderr": "{\"error\": \"个人工具凭据无效、已撤销或已过期。请在网页登录个人工具连接核对权限，再用 connect 导入新凭据。\", \"code\": \"tool_credential_invalid\", \"status\": 401, \"uncertain\": false}\n",
+  "browser_download_event": "CUA waitForEvent timed out; actual original download exists and exact JSON was imported, authenticated, then rejected after revoke",
+  "source_ui_sha256": "67fedf224e6c4ae7a2e1de404d0dd85c77d8853d5ed71129077f4c87a161b860",
+  "temporary_download_removed": true
+}

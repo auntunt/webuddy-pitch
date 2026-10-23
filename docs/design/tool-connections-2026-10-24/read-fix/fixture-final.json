@@ -1,0 +1,29 @@
+{
+  "pid": 90457,
+  "origin": "http://127.0.0.1:52754",
+  "tenant": "703662344e317145efe97b49",
+  "user": "alice",
+  "fixture_data": "/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-gateway-4cd5pmts",
+  "endpoint": "http://127.0.0.1:52754/t/703662344e317145efe97b49",
+  "connection_id": "2411e47fecf5857c7cf25f21a29d636b",
+  "credential_file": "/Users/auntlee/Desktop/workspace/运维智能体/分析/tool-connections-20261024/live-read-fix/alice.json",
+  "events": [
+    [
+      1,
+      "owner",
+      "created",
+      "创建工单",
+      "{}"
+    ]
+  ],
+  "requests": [],
+  "workers": [
+    {
+      "pid": 90852,
+      "exit_code": 0,
+      "socket_removed": true,
+      "key_removed": true
+    }
+  ],
+  "cleanups_completed": true
+}
