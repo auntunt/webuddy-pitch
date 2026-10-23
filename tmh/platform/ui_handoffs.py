@@ -74,6 +74,7 @@ async function hfRefresh(view,afterMutation=false){
   view.data=data;view.needsRefresh=false;
   if(view.completedAction){hfDrafts(view.key).delete(view.completedAction);if(view.action===view.completedAction)view.action='';view.completedAction=''}
   view.host.querySelector('#hfTitle').textContent=data.ticket.title;hfPaintFacts(view);
+  const project=S.projects.find(p=>String(p.id)===String(data.ticket.project_id));if(typeof briefingOpen==='function'&&project){if(view.brief&&coLive(view.brief))coRefresh(view.brief);else view.brief=briefingOpen(view.host.querySelector('#hfBrief'),view.key,project.key,()=>hfLive(view))}
   if(!view.action||afterMutation){hfPaintForm(view)}else{hfSyncOptions(view);hfFormStatus(view)};
   if(view.focus){view.host.querySelector('#hfTitle').focus();view.focus=false}
  }catch(error){if(hfLive(view)&&read===view.read)hfNotice(view,error.message+' 可重新读取；未提交的内容会保留。',true)}
@@ -82,7 +83,7 @@ async function hfRefresh(view,afterMutation=false){
 async function handoffsOpen(host,key,live,focus=false,onUpdate=null){
  const old=HANDOFFS.view;if(old&&hfLive(old)&&old.key===key&&old.host===host)return hfRefresh(old);
  if(old&&old.host.isConnected)hfCapture(old);
- host.innerHTML=`<div class="hf-head"><div><div class="ws-eyebrow">${h(key)} · 任务交接</div><h2 id="hfTitle" tabindex="-1">正在读取任务…</h2></div><button id="hfRefresh">刷新记录</button></div><div id="hfNotice" role="status" aria-live="polite"></div><div id="hfFacts"></div><section id="hfRequirement" class="ws-section"></section><section id="hfEvidence" class="ws-section"></section><section id="hfFormArea" class="ws-section"></section><section id="hfHistory" class="ws-section"></section><p id="hfBoundary" class="sub"></p>`;
+ host.innerHTML=`<div class="hf-head"><div><div class="ws-eyebrow">${h(key)} · 任务交接</div><h2 id="hfTitle" tabindex="-1">正在读取任务…</h2></div><button id="hfRefresh">刷新记录</button></div><div id="hfNotice" role="status" aria-live="polite"></div><section id="hfBrief"></section><div id="hfFacts"></div><section id="hfRequirement" class="ws-section"></section><section id="hfEvidence" class="ws-section"></section><section id="hfFormArea" class="ws-section"></section><section id="hfHistory" class="ws-section"></section><p id="hfBoundary" class="sub"></p>`;
  const view={host,key,live,focus,onUpdate,read:0,data:null,action:''};HANDOFFS.view=view;host.querySelector('#hfRefresh').onclick=()=>hfRefresh(view);return hfRefresh(view);
 }
 """

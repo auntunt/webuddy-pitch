@@ -19,6 +19,17 @@ API_ROUTES = frozenset(tuple(line.split(" ", 1)) for line in """
 GET /api/meta
 POST /api/agent/<operation>
 GET /api/workspace
+GET /api/projects/<key>/meetings
+POST /api/projects/<key>/meetings
+GET /api/projects/<key>/meetings/<mid>
+POST /api/projects/<key>/meetings/<mid>
+GET /api/tickets/<key>/brief
+POST /api/tickets/<key>/brief
+POST /api/delivery-content
+GET /api/deliveries/<did>/content
+POST /api/deliveries/<did>/content
+GET /api/deliveries/<did>/coverage
+POST /api/deliveries/<did>/coverage
 GET /api/team
 GET /api/handoffs
 POST /api/handoffs
@@ -187,6 +198,9 @@ candidate_assess candidate_decide harness_recipes harness_probe_start harness_pr
 harness_library library_get library_search library_read library_build library_cancel library_resume
 library_reference library_unlink""".split())
 SAFE_POSTS = frozenset((
+    "/api/projects/<key>/meetings", "/api/projects/<key>/meetings/<mid>",
+    "/api/tickets/<key>/brief", "/api/deliveries/<did>/coverage",
+    "/api/delivery-content", "/api/deliveries/<did>/content",
     "/api/handoffs", "/api/tickets/<key>/comments",
     "/api/projects/<key>/sessions", "/api/sessions/<sid>", "/api/sessions/<sid>/ticket-draft",
     "/api/projects/<key>/similar", "/api/projects/<key>/capture-token",

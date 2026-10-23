@@ -994,6 +994,49 @@ def api_workspace(P, req):
     return workspace.read(P, req.query, _session_actor(req))
 
 
+@route("GET", "/api/projects/<key>/meetings")
+def api_meetings(P, req, key):
+    from . import coordination
+    # Req.query is parse_qs output. Preserve the module's scalar contract and
+    # reject duplicate parameters instead of choosing an ambiguous page.
+    query = {}
+    for name, values in req.query.items():
+        if not isinstance(values, list) or len(values) != 1:
+            raise ApiError(400, "分页参数只能出现一次")
+        query[name] = values[0]
+    return coordination.meetings(P, key, query, _session_actor(req))
+
+
+@route("POST", "/api/projects/<key>/meetings")
+def api_meeting_create(P, req, key):
+    from . import coordination
+    return coordination.create_meeting(P, key, req.body, _human_action(P, req, strict=True))
+
+
+@route("GET", "/api/projects/<key>/meetings/<mid>")
+def api_meeting(P, req, key, mid):
+    from . import coordination
+    return coordination.meeting(P, key, mid, _session_actor(req))
+
+
+@route("POST", "/api/projects/<key>/meetings/<mid>")
+def api_meeting_action(P, req, key, mid):
+    from . import coordination
+    return coordination.meeting_action(P, key, mid, req.body, _human_action(P, req, strict=True))
+
+
+@route("GET", "/api/tickets/<key>/brief")
+def api_work_brief(P, req, key):
+    from . import coordination
+    return coordination.brief(P, key, _session_actor(req))
+
+
+@route("POST", "/api/tickets/<key>/brief")
+def api_work_brief_save(P, req, key):
+    from . import coordination
+    return coordination.save_brief(P, key, req.body, _human_action(P, req, strict=True))
+
+
 @route("GET", "/api/team")
 def api_team(P, req):
     from . import team
@@ -1270,6 +1313,36 @@ def api_bootstrap_project(P, req):
 def api_delivery_catalog(P, req):
     from .delivery import catalog
     return catalog()
+
+
+@route("POST", "/api/delivery-content")
+def api_create_delivery_content(P, req):
+    from . import delivery_content
+    return delivery_content.create(P, req.body, _human_action(P, req, strict=True))
+
+
+@route("GET", "/api/deliveries/<did>/content")
+def api_delivery_content(P, req, did):
+    from . import delivery_content
+    return delivery_content.read(P, did, _session_actor(req))
+
+
+@route("POST", "/api/deliveries/<did>/content")
+def api_save_delivery_content(P, req, did):
+    from . import delivery_content
+    return delivery_content.act(P, did, req.body, _human_action(P, req, strict=True))
+
+
+@route("GET", "/api/deliveries/<did>/coverage")
+def api_delivery_coverage(P, req, did):
+    from . import delivery_coverage
+    return delivery_coverage.read(P, did, _session_actor(req))
+
+
+@route("POST", "/api/deliveries/<did>/coverage")
+def api_delivery_coverage_action(P, req, did):
+    from . import delivery_coverage
+    return delivery_coverage.act(P, did, req.body, _human_action(P, req, strict=True))
 
 
 @route("GET", "/api/deliveries")

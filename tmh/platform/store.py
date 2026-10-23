@@ -104,6 +104,12 @@ class Store:
         learning_runs_schema(self)
         from .handoffs import schema as handoffs_schema
         handoffs_schema(self)
+        from .delivery_content import schema as delivery_content_schema
+        delivery_content_schema(self)
+        from .coordination import schema as coordination_schema
+        coordination_schema(self)
+        from .delivery_coverage import schema as coverage_schema
+        coverage_schema(self)
 
     def _migrate_chats(self) -> None:
         """Assistant messages from before sessions existed: one session per ticket, one '旧版未分类会话' per project.

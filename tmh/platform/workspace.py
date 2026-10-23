@@ -1,7 +1,7 @@
 """Small, paginated daily workspace projection. Reads never start model work."""
 from .errors import ApiError
 from .store import _keyed
-from . import handoffs, login, team, project_library
+from . import handoffs, login, team, project_library, coordination
 
 STAGES = {"requirement": "需求", "development": "研发", "testing": "测试",
           "delivery": "交付", "operations": "运维", "unrecorded": "未登记阶段"}
@@ -83,6 +83,7 @@ def read(P, query, viewer):
     # Candidate checks can inspect Git and preview evidence: only inspect the
     # visible page (plus actual review-queue candidates needed above for counts).
     for t in page:
+        t["meeting_action"] = coordination.ticket_action(P, tickets[t["key"]])
         work = work_cache.get(t["key"]) or team.item(P, tickets[t["key"]], viewer)
         t["needs_review"] = work["needs_review"]
         if not t["handoff"]:
