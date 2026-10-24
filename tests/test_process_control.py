@@ -134,9 +134,17 @@ class ProcessControlTest(unittest.TestCase):
         self.assertEqual(result.returncode, 7)
         self.assertEqual(result.reason, "exited")
         self.assert_clean(result)
-        result = self.run_python("import os,signal,time\ndef stop(*args):\n os.write(1,b'term-handler-final-output');raise SystemExit(0)\nsignal.signal(signal.SIGTERM,stop)\nprint('ready',flush=True)\ntime.sleep(20)", timeout=.25, terminate_grace=.3)
+        # Exercise TERM-time output draining, not whether a cold Python starts
+        # and installs its handler inside 250ms. These shell builtins install
+        # the real handler before entering the busy wait; the deadline is unchanged.
+        result = run_process(["/bin/sh", "-c", "trap 'printf %s term-handler-final-output; exit 0' TERM; printf '%s\\n' ready; while :; do :; done"],
+                             timeout=.25, terminate_grace=.3)
         self.assertEqual(result.reason, "timeout")
+        self.assertEqual(result.returncode, 124)
+        self.assertIn(b"ready\n", result.output_bytes)
         self.assertIn(b"term-handler-final-output", result.output_bytes)
+        self.assertEqual(result.process_returncode, 0)
+        self.assertTrue(result.cleanup["term_sent"])
         self.assertFalse(result.cleanup["kill_sent"])
         self.assert_clean(result)
 
