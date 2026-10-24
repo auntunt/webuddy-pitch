@@ -2,6 +2,12 @@
 
 ## 2026-10-24：RSI-1 完整知识输入与运行回执
 
+- **最终状态：done，15:08:41 CST已上线3705caa，GitHub普通快进SHA一致。** 15:10:33启动约111秒后18/18公网与回环检查通过；15:11:22最终active/running、PID2230139、重启0、error级日志0、210运行文件一致；15:11:47本机独立TLS4项通过。完整备份 `/opt/webuddy/backups/pre-3705caa944fd-20261024T070839Z` 的1781 data成员及三项目277/37/20成员读回保持，56业务/11控制表、配置与其它服务保持。14份报告196333字节逐文件重读SHA相同，清单SHA `ac33f22a0cbea6778e114a0eab0bd75eedddb17ab777d91bd8da2b36bbe22d66`。详情见 `audit/production-deployment-2026-10-24-lesson-input.md`；下方待发布文字为历史阶段记录。RSI-2仅外置草稿继续，未随本批上线。
+
+- 精确候选3705发布门已通过（15:06:57 CST），GitHub普通快进到 `3705caa944fd93549b5f735165df3b3d4c823bda`；生产激活尚待。Mac **1945项/1925通过/20可选跳过/0失败错误**，612.005s、实际exit0；Linux **1945项/1927通过/18可选跳过/0失败错误**，801.132s、实际exit0；两端445验证文件保持。官方MCP1.30.0五模块 **74/74、零跳过、21.604s**，实际exit0、精确归档模块及源码保持。完整日志SHA依次 `5b75d7cbba5e31d3a8c7dc9fb3671a3f738ad1043371465cfab2dbcb79d73347`、`2bfe71b703312d0c8b4dffe1d3087ef59c78fbd02a5fbfd31defd37189e9ac3b`、`9a98c9e5685f2c56840a7f904d4f047369f0c67ee7b91623aef8d3e9f5dbc7e9`，原资源警告保留。
+- 第九轮独立复审关闭options独改P2：三类真实SQLite篡改基线各6次stub调用、候选0次，实际worker在create_run前拒绝；独立两进程同请求仅一次登记/预留。身份事务6/6、兼容38/38、来源字段1/1，未新增阻断；不是付费RSI或组织收益实证。报告在仓库外 `分析/independent-review/20261024-145108-3705caa-pool-capture-review/review.md`。
+- 发布门核验210运行/445验证Git正文与模式、100合成HTTP、私有完整副本56业务+11控制表原值/schema保持、31卡兼容、capture证明及已跟踪gateway/两worker/socket/key回收。切换前只读确认现役仍e226、PID2116573、账本/DB与演练一致；尚未代人确认或执行生产业务。原563 CLI故障仍根因未知，本次通过不追认已修。
+
 - 独立封存修复已完成定向，尚未发布：原登记事务在 binding 中封存完整 evaluation 与8项任务身份；current/execute/resume从DB重读，比对完整池/顺序/统计，options独改后重算hash拒绝，0回调。新旧降级由独立修订内容协议约束，真旧passed人工采用正控保持；不防御同时重写整个数据库的管理员。没有DDL或旧历史补封，来源字段仅剥离保留capture键，其余仍逐项核对。
 - 根最终联合11模块/单例 **185/185、31.296s、0跳过/失败/错误、实际exit0**，6源码SHA前后不变，日志 `分析/RSI协调/rsi1-pool-capture-20261024/root-final/targeted.log` SHA `d2da04dafbd7a90ce1f5ebbf0bee1099e05f4c3df8df9d47c4cc0ee486a4cbfa`。包含原bounded CLI真实1秒断言，这次通过不倒补563原失败根因。独立两Store同请求竞争仅一capture/三case预留、真旧历史D采用及Agent403正控共51/51（11.134s）；此前132/132及所有红灯/完整源副本保留。旧128断言数量保持，127 AST原样，1处仅正式登记fixture替换。
 - 发布工具同步独立capture证明，12/12合成账本自检通过；首次35门测试3error是合成fixture缺新capture摘要，原失败保留，补齐fixture并新增缺摘要拒绝正反对照后 **36/36**。三道门都要求capture协议/完整封存/重算options拒绝/降级拒绝/原封存保持。没有放宽原门；这些工具自检不替代后续精确候选双端全量/SDK。RSI-2仍只在仓库外草稿，不混入本次候选。
