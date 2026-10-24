@@ -2,6 +2,15 @@
 
 ## 2026-10-24：RSI-1 完整知识输入与运行回执
 
+- 独立封存修复已完成定向，尚未发布：原登记事务在 binding 中封存完整 evaluation 与8项任务身份；current/execute/resume从DB重读，比对完整池/顺序/统计，options独改后重算hash拒绝，0回调。新旧降级由独立修订内容协议约束，真旧passed人工采用正控保持；不防御同时重写整个数据库的管理员。没有DDL或旧历史补封，来源字段仅剥离保留capture键，其余仍逐项核对。
+- 根最终联合11模块/单例 **185/185、31.296s、0跳过/失败/错误、实际exit0**，6源码SHA前后不变，日志 `分析/RSI协调/rsi1-pool-capture-20261024/root-final/targeted.log` SHA `d2da04dafbd7a90ce1f5ebbf0bee1099e05f4c3df8df9d47c4cc0ee486a4cbfa`。包含原bounded CLI真实1秒断言，这次通过不倒补563原失败根因。独立两Store同请求竞争仅一capture/三case预留、真旧历史D采用及Agent403正控共51/51（11.134s）；此前132/132及所有红灯/完整源副本保留。旧128断言数量保持，127 AST原样，1处仅正式登记fixture替换。
+- 发布工具同步独立capture证明，12/12合成账本自检通过；首次35门测试3error是合成fixture缺新capture摘要，原失败保留，补齐fixture并新增缺摘要拒绝正反对照后 **36/36**。三道门都要求capture协议/完整封存/重算options拒绝/降级拒绝/原封存保持。没有放宽原门；这些工具自检不替代后续精确候选双端全量/SDK。RSI-2仍只在仓库外草稿，不混入本次候选。
+
+- 563精确Linux全量完成：1933项/1915通过/18可选MCP跳过/零失败错误，780.405s、外层实际exit0、443文件保持，完整日志SHA `9481290aa8919f549663e234fa9264e586bd0de811234188575d84ada0117328`；smoke退出0，已跟踪gateway/两worker退出、socket/key移除。7份白名单报告及完整日志68973字节已独立读回SHA一致，manifest SHA `4a161c2682a7ee673f0601340d5d100ac74aeb050ac7bad994869945fd740f4c`。此结果不能抵消Mac失败与冻结池P2，不运行563发布门/激活，不补造SDK通过。
+
+- 563精确Mac全量拒绝发布：1933项 /1912通过/20可选跳过/1failure/0error，744.012s、实际exit1、443文件保持；原bounded CLI测试实测1.375176秒超过原1秒断言，现场仅traceback，未保留当时子进程分段时序，根因未知。完整日志SHA `14de8989a6f725c5b1a50a141739b28dac29d9936f1b3d08f9771bae7c03d00e`。随后5a4/563交替10对原断言全通过，五个相关源码SHA完全相同；基线CLI中位.239s、当前.222s，不能据此声称原故障已修。诊断完整请求/响应和阶段时间保存在仓库外 `分析/RSI协调/bounded-cli-20261024/`，汇总SHA `fcf8a264d1eaa235ace7e8063bca523e3d93d683918c8ddcc4367a9aa2c46fae`。不放宽时限或修改原断言；Linux继续原精确验证。
+- 新独立P2阻断：仅改持久job.options的pool成员/顺序/冻结stats并重算内部hash仍可改变实际干预。正常API会覆盖传入evaluation，未证明公开API越权；问题限options独立被改写时缺外部可信锚定。正在原job事务内以binding独立封存完整evaluation和任务身份，执行/current从DB重读封存；不从今天pool重建，不自动追认旧无封存任务，保留原完整失败材料和旧合法terminal人工证据。563尚未push/激活，生产仍e226。RSI-2仅仓库外草稿，不能混入本次候选。
+
 - 中文展示兼容修复完成：唯一完整JSON后增加同源五字段中文阅读索引，原文/缺键/null/公开范围不变；renderer显式v3，旧v2回执不能冒充，索引纳入完整prompt哈希/字节预算。新增5项对9947原renderer全部准确断言红灯，无error；首次87项组合86通过、platform在目标断言前HTTP502夹具error原样保留，显式回环不走代理后原单例完整通过。根最终9模块/单例联合 **101/101、15.739s、0skip、实际exit0**，源码SHA保持，日志SHA `6db2c612199864415eab6edfb4030c6b0a88f26c2164f490b10bae33358f288b`。原platform文件/断言不改；发布INPUT_CONTRACT同步v3，12项合成发布账本检查全部通过。独立静态复核无新增阻断，1933项发现无加载错误；下一精确提交双端全量/SDK仍待，不沿用失败9947结果。TERM测试已单独提交 `b28882a`。
 - TERM夹具窄修完成：仅第二子进程改用/bin/sh内建trap/printf，原0.25秒期限/0.3秒grace、全部78个原断言保持，新增ready/124/底层0/TERM四断言。真实FIFO两版本held/released共8情景符合预登记4红/4绿；相关5模块65/65（42.482s、0skip），单例20轮/40子进程全部清理，原启动期限覆盖仍通过。过程总120子进程已回收，不能将10个预期红灯称全绿。根已逐读报告/diff并核验process_control/supervised/filelock/acceptance/guard字节不变；独立现场报告SHA `32226551c3e2e02bbadfcdb7e6973be0700c20a1afe35d89ee5f8c2bd2a4b2ff`。单独提交测试修复，不把它当产品超时实现修复；新候选全量仍待。
 - Linux正式全量同样拒绝9947：**1928项 / 1909通过 / 18可选跳过 / 1 failure / 0 errors**，770.157秒、实际退出1、442验证文件不变，日志SHA `a12420f62a36d899fee791f348942581fb533bf62de94de7b7f5f8e4be588c18`；失败为同一中文根因展示，未进入smoke/激活。Mac进程测试单独调查：原5a4/current源码相同、交替20次原例通过；真实Python启动前0.4秒延迟使两版本各3次准确失败（TERM约.251秒、-15、空输出、已清理），证明夹具存在安装handler前被杀窗口，不能倒补原全量缺失的具体ProcessResult。正在以原生shell内建handler保留原.25/.3真实时限和全部原断言，另补正控，不改产品监管。

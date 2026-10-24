@@ -22,6 +22,9 @@ PROMPT_VERSION = "learning-paired-output-v1"
 LESSON_INPUT_SCHEMA = "learning-lesson-input-v2"
 LESSON_PROMPT_VERSION = "lesson-answer-v2"
 LESSON_MAX_PROMPT_UTF8_BYTES = 65536
+CAPTURE_KEY = "lesson_input_capture"
+CAPTURE_SCHEMA = "lesson-input-capture-v1"
+CAPTURE_IDENTITY = ("id", "project_id", "kind", "revision_id", "current_revision_id", "actor", "request_id", "request_hash")
 
 
 def _strict_json(value):
@@ -185,6 +188,77 @@ def _matches_revision(f, revision):
             f.get("candidate_content") == revision["content"] and f.get("evidence") == revision["source"]["evidence"])
 
 
+def capture_binding(store, source, job, revision):
+    """Seal server-prepared input once, atomically with the original job.
+
+    This independent binding detects options-only rewrites. It is not a
+    signature against an administrator able to rewrite the entire database.
+    Preparation itself remains read-only; no existing job is ever backfilled.
+    """
+    if not store.db.in_transaction:
+        raise RuntimeError("lesson input capture requires the registration transaction")
+    if job["kind"] != "evaluate" or revision["kind"] != "lesson":
+        return source
+    frozen = job["options"]["evaluation"]
+    if CAPTURE_KEY in source or not _valid_lesson_frozen(frozen) or not _matches_revision(frozen, revision):
+        raise input_schema_error()
+    capture = {"schema": CAPTURE_SCHEMA, "job": {key: job[key] for key in CAPTURE_IDENTITY},
+               "evaluation": frozen, "evaluation_sha256": _digest(frozen)}
+    return json.loads(_strict_json(dict(source, **{CAPTURE_KEY: capture})))
+
+
+def source_binding(binding):
+    """Remove only the reserved receipt key; all original source keys matter."""
+    return {key: value for key, value in binding.items() if key != CAPTURE_KEY}
+
+
+def _captured_lesson_input(P, p, job):
+    """Read the independent persisted binding, never the caller's copy."""
+    try:
+        if not isinstance(job.get("id"), str) or not job["id"]:
+            return False
+        with P.store.lock:
+            row = P.store.one("SELECT * FROM learning_jobs WHERE id=? AND project_id=?", (job["id"], p["id"]))
+            if not row or row["kind"] != "evaluate":
+                return False
+            identity = {key: row[key] for key in CAPTURE_IDENTITY}
+            if _strict_json({key: job.get(key) for key in CAPTURE_IDENTITY}) != _strict_json(identity):
+                return False
+            binding, options = json.loads(row["binding"]), json.loads(row["options"])
+            capture = binding.get(CAPTURE_KEY)
+            if (not isinstance(capture, dict) or set(capture) != {"schema", "job", "evaluation", "evaluation_sha256"}
+                    or capture["schema"] != CAPTURE_SCHEMA or _strict_json(capture["job"]) != _strict_json(identity)):
+                return False
+            frozen = capture["evaluation"]
+            return (capture["evaluation_sha256"] == _digest(frozen)
+                    and _strict_json(frozen) == _strict_json(options["evaluation"])
+                    and _strict_json(frozen) == _strict_json(job["options"]["evaluation"]))
+    except (AttributeError, KeyError, TypeError, ValueError, UnicodeError):
+        return False
+
+
+def legacy_lesson_input(P, p, job):
+    """Recognize stored old evidence, never downgrade a captured modern job."""
+    try:
+        frozen = job["options"]["evaluation"]
+        if not isinstance(frozen, dict) or frozen.get("schema") or frozen.get("prompt_version") != PROMPT_VERSION:
+            return False
+        revision = L.revision(P, p, job["current_revision_id"])
+        if revision["kind"] != "lesson" or revision["source"].get("lesson_content_schema") not in (None, ""):
+            return False
+        with P.store.lock:
+            row = P.store.one("SELECT * FROM learning_jobs WHERE id=? AND project_id=?", (job["id"], p["id"]))
+            if not row or row["kind"] != "evaluate":
+                return False
+            identity = {key: row[key] for key in CAPTURE_IDENTITY}
+            binding, options = json.loads(row["binding"]), json.loads(row["options"])
+            return (isinstance(binding, dict) and CAPTURE_KEY not in binding
+                    and _strict_json({key: job.get(key) for key in CAPTURE_IDENTITY}) == _strict_json(identity)
+                    and _strict_json(frozen) == _strict_json(options["evaluation"]))
+    except (ApiError, AttributeError, KeyError, TypeError, ValueError, UnicodeError):
+        return False
+
+
 def _stable_card(card, public=False):
     omitted = {"stats", "here"} if public else {"stats", "abroad", "history", "shared", "taken"}
     return {key: value for key, value in card.items() if key not in omitted}
@@ -196,11 +270,12 @@ def input_schema_error():
     return error
 
 
-def execution_contract_error(job, revision_kind):
-    if job.get("kind", "evaluate") != "evaluate" or revision_kind != "lesson":
+def execution_contract_error(job, revision_kind, *, P=None, p=None):
+    if revision_kind != "lesson":
         return ""
     options = job.get("options")
-    return "" if isinstance(options, dict) and _valid_lesson_frozen(options.get("evaluation")) else "input_schema_expired"
+    return "" if (isinstance(options, dict) and _valid_lesson_frozen(options.get("evaluation"))
+                  and _captured_lesson_input(P, p, job)) else "input_schema_expired"
 
 
 def _read_lease_matches(data_dir, identity):
@@ -389,9 +464,10 @@ def current(P, p, job):
         f = job["options"]["evaluation"]
         if r["kind"] == "lesson":
             if f.get("schema") == LESSON_INPUT_SCHEMA:
-                if not _matches_revision(f, r) or not _lesson_inputs_current(P, p, f):
+                if (not _captured_lesson_input(P, p, job) or not _matches_revision(f, r)
+                        or not _lesson_inputs_current(P, p, f)):
                     return False
-            elif f.get("schema") or f.get("prompt_version") != PROMPT_VERSION or job.get("status") != "passed":
+            elif job.get("status") != "passed" or not legacy_lesson_input(P, p, job):
                 return False
         if _baseline(P, p, r) != f["baseline"]:
             return False
@@ -452,7 +528,7 @@ def check(c, output):
 def run(P, p, job, step):
     f = job["options"]["evaluation"]
     r = L.revision(P, p, job["current_revision_id"])
-    if execution_contract_error(job, r["kind"]):
+    if execution_contract_error(job, r["kind"], P=P, p=p):
         raise input_schema_error()
     if r["kind"] == "lesson" and (not _matches_revision(f, r) or not _lesson_inputs_current(P, p, f)):
         raise ApiError(409, "冻结经验输入与实际修订或来源不符")

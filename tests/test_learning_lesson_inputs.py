@@ -11,6 +11,7 @@ from unittest.mock import patch
 from tmh.platform import learn, learning as L, learning_eval as E
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
+from tests.learning_eval_fixture import registered_job
 
 
 class LessonInputsTests(unittest.TestCase):
@@ -42,7 +43,7 @@ class LessonInputsTests(unittest.TestCase):
         def step(role, prompt):
             calls.append((role, prompt))
             return 'ORACLE-SENTINEL' if role.endswith(':candidate') else 'unknown'
-        return E.run(self.P, self.p, {'current_revision_id':self.r['id'], 'options':options}, step)
+        return E.run(self.P, self.p, registered_job(self.P, self.p, self.r, options), step)
 
     def test_new_capture_preserves_missing_null_and_empty(self):
         content = json.loads(self.r['content'])
@@ -110,7 +111,7 @@ class LessonInputsTests(unittest.TestCase):
         learn._append_log(self.data, [{'kind':'outcome', 'id':self.card['id'], 'passed':True, 'ticket':'APP-2'}])
         self.assertEqual(token, learn.revision_token(self.data, self.card['id']))
         learn.add_lesson(self.data, dict(project='APP', ticket='APP-3', title='FUTURE-SECRET', fix='extra', status='active'))
-        self.assertTrue(E.current(self.P, self.p, {'current_revision_id':self.r['id'], 'options':options}))
+        self.assertTrue(E.current(self.P, self.p, registered_job(self.P, self.p, self.r, options)))
         calls=[]
         self.run_eval(options,calls)
         self.assertEqual(options,before)
@@ -186,7 +187,7 @@ class LessonInputsTests(unittest.TestCase):
             learn.take_shared(self.data,owner['id'],'APP',True,'bob')
             options=self.options();f=options['evaluation']
             self.assertNotIn('PRIVATE',json.dumps(f['pool'],ensure_ascii=False))
-            job={'current_revision_id':self.r['id'],'options':options}
+            job=registered_job(self.P, self.p, self.r, options)
             self.assertTrue(E.current(self.P,self.p,job))
             learn.take_shared(self.data,owner['id'],'UNRELATED',True,'elsewhere')
             self.assertTrue(E.current(self.P,self.p,job))
@@ -268,7 +269,8 @@ class LessonInputsTests(unittest.TestCase):
                 else:f['candidate_origin_id']='L-unrelated'
                 f['inputs']=E._build_lesson_inputs(f['pool'],f['candidate_origin_id'],f['candidate_content'],f['cases'],f['evidence'])
             f['integrity_sha256']=E._integrity(f)
-            job={'current_revision_id':self.r['id'],'options':options}
+            job=registered_job(self.P, self.p, self.r, original)
+            job['options']=options
             with self.subTest(rewrite=name):
                 self.assertFalse(E.current(self.P,self.p,job))
                 calls=[]
@@ -288,7 +290,7 @@ class LessonInputsTests(unittest.TestCase):
         self.assertIn('anti',json.loads(old['content']))
 
     def test_currentness_without_original_regular_lock_fails_without_writing(self):
-        options=self.options();job={'current_revision_id':self.r['id'],'options':options}
+        options=self.options();job=registered_job(self.P, self.p, self.r, options)
         lock=self.data/'lessons.lock';raw=(self.data/learn.LESSONS).read_bytes()
         self.assertTrue(E.current(self.P,self.p,job))
         lock.unlink()

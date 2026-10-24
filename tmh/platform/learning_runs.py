@@ -136,8 +136,8 @@ def _input_description(P, p, item):
             from . import learning_eval as E
             options = item.get("options")
             frozen = options.get("evaluation") if isinstance(options, dict) else None
-            legacy = isinstance(frozen, dict) and not frozen.get("schema") and frozen.get("prompt_version") == E.PROMPT_VERSION
-            executable = not bool(E.execution_contract_error(item, "lesson"))
+            legacy = E.legacy_lesson_input(P, p, item)
+            executable = not bool(E.execution_contract_error(item, "lesson", P=P, p=p))
             item["evidence_scope"] = E.evidence_scope("v2" if executable else "legacy" if legacy else "unknown")
             item["input_contract"] = {"schema": (frozen.get("schema") if isinstance(frozen, dict) else None) or ("legacy-v1" if legacy else "unknown"),
                                       "executable": executable}
@@ -153,7 +153,7 @@ def _expire_input(P, p, jid):
         return False
     from . import learning_eval as E
     r = _core().revision(P, p, row["current_revision_id"])
-    if not E.execution_contract_error(row, r["kind"]):
+    if not E.execution_contract_error(row, r["kind"], P=P, p=p):
         return False
     folder = _folder(P, jid)
     folder.mkdir(parents=True, exist_ok=True)
@@ -165,7 +165,7 @@ def _expire_input(P, p, jid):
         try:
             with _core().transaction(P.store) as db:
                 fresh = _decode(_row(P, p, jid))
-                if fresh["status"] not in TERMINAL and E.execution_contract_error(fresh, r["kind"]):
+                if fresh["status"] not in TERMINAL and E.execution_contract_error(fresh, r["kind"], P=P, p=p):
                     db.execute("UPDATE learning_jobs SET status='stale',error=?,ended=?,owner='',lease_until=0 WHERE id=?",
                                (str(E.input_schema_error()), now(), jid))
                     return True
@@ -284,11 +284,17 @@ def start(P, p, kind, revision_id, options, actor, request_id, launch=True):
                                 (p["id"], kind, revision_id)).fetchone()
             if active:
                 raise ValueError("该修订已有运行：" + active["id"])
+            binding = _core().binding(P, p)
+            if kind == "evaluate":
+                registration = {"id": jid, "project_id": p["id"], "kind": kind, "revision_id": revision_id,
+                                "current_revision_id": revision_id, "actor": actor, "request_id": request_id,
+                                "request_hash": request_hash, "options": opts}
+                binding = learning_eval.capture_binding(P.store, binding, registration, r)
             db.execute("""INSERT INTO learning_jobs
                 (id,project_id,kind,revision_id,current_revision_id,request_id,request_hash,actor,status,options,binding,created,deadline)
                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                        (jid, p["id"], kind, revision_id, revision_id, request_id, request_hash, actor,
-                        "queued", _json(opts), _json(_core().binding(P, p)), now(), instant + opts["timeout_seconds"]))
+                        "queued", _json(opts), _json(binding), now(), instant + opts["timeout_seconds"]))
             if kind == "evaluate":
                 learning_eval.reserve(P, p, r, opts, jid, db)
     if launch:
@@ -313,11 +319,12 @@ def _check_current(P, p, job):
     if time.time() >= job["deadline"]:
         raise _Stopped("timed_out", "知识运行已达到冻结的总时限")
     r = _core().revision(P, p, job["current_revision_id"])
-    if not _core().revision_current(P, p, r) or _core().binding(P, p) != job["binding"]:
+    from . import learning_eval
+    if not _core().revision_current(P, p, r) or _core().binding(P, p) != learning_eval.source_binding(job["binding"]):
         raise _Stopped("stale", "正文、来源、工作区或共享授权已变化")
     if job["kind"] == "evaluate":
         from . import learning_eval
-        if learning_eval.execution_contract_error(job, r["kind"]):
+        if learning_eval.execution_contract_error(job, r["kind"], P=P, p=p):
             raise _Stopped("stale", str(learning_eval.input_schema_error()))
         if not learning_eval.current(P, p, job):
             raise _Stopped("stale", "评测基线或策略上下文来源已变化")

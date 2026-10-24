@@ -8,6 +8,7 @@ from unittest.mock import patch
 from tmh.platform import learning as L, learning_eval as E, learning_runs as R, learn
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
+from tests.learning_eval_fixture import registered_job
 
 
 class EvaluationTests(unittest.TestCase):
@@ -42,7 +43,8 @@ class EvaluationTests(unittest.TestCase):
         opts = f or self.options()
         def default(role, prompt):
             return "EXACT_ORACLE" if role.endswith(":candidate") else "unknown_text"
-        job = {"id": "j", "current_revision_id": self.r["id"], "options": opts}
+        job = (registered_job(self.P, self.p, self.r, opts) if self.r["kind"] == "lesson" else
+               {"id": "j", "current_revision_id": self.r["id"], "options": opts})
         return E.run(self.P, self.p, job, step or default)
 
     def test_actual_assertions_pass_only_candidate_and_no_oracle_in_prompts(self):
@@ -116,7 +118,7 @@ class EvaluationTests(unittest.TestCase):
         self.assertFalse(E.check(c, 'not JSON'))
 
     def test_baseline_status_or_edit_changes_fail_currentness(self):
-        job = {"current_revision_id": self.r["id"], "options": self.options()}
+        job = registered_job(self.P, self.p, self.r, self.options())
         self.assertTrue(E.current(self.P, self.p, job))
         learn.set_status(self.data, self.card["id"], "active", "human")
         self.assertFalse(E.current(self.P, self.p, job))
