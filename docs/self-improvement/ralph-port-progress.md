@@ -1,5 +1,18 @@
 # Ralph port 执行进度
 
+## 2026-10-25：Linux探针L1清理边界修复
+
+- 当前项：L1/P2特权清理链接越界；状态：done（修复与固定版本本地/真实Linux验证完成，待独立复审关闭）。起点f4b53ad（provider固定增量已普通推送），工作区干净，原独立88dd报告和红灯未覆盖；只修探针清理，不重复旧账本/评分/生产全量，不运行旧特权代码。
+- 方案：取消root递归chown及工作树遍历；仅对启动前固定的原fixture目录FD收紧0700，保留root产物原所有权，不接触worker目录内容。增加真实文件链接、目录链接与路径替换的无特权回归；固定源码后再核正常/真实超时。待确认：无，真实模型/专用生产隔离仍未完成。
+
+- 原字节e502下新增6回归 **2通过/4断言失败/0error、actual1**，原源码、精确finally AST、链接和路径替换现场保留于仓库外 `分析/RSI协调/linux-cleanup-L1-20261025/red-fixtures/`；chown仅记录，不执行真实chown。顶层路径替换红灯确实改变了外部**合成目录**的mode，该前后差异保留，不宣称原代码无影响。独立原报告/红灯未改。
+- 修复：root不再递归chown、遍历/读/删worker工作树；只对运行前固定、O_NOFOLLOW且所有者核验的fixture目录FD执行fchmod0700并close。caller在sudo/预检失败时也固定FD收紧顶层，stderr经目录FD以0600排他创建。root监管目录/回执保留root所有权，工作产物保留worker归属；审计仅固定白名单逐层FD不跟链接只读获取，不能恢复递归“归属回收”。改动仅探针、新6测试、readiness说明和进度。
+- 定向 `PYTHONPATH=tests:. python3 -m unittest -v test_rsi_linux_cleanup test_rsi_linux_holdout_probe`：工作树 **11/11、0.014s、actual0**；476文件独立导出 **11/11、0.013s、actual0**；相同固定源服务器临时目录 `/tmp/webuddy-cleanup-L1-3DCTH4nG` **11/11、actual0**，源码前后一致，原5契约测试断言未动。目录遍历替换攻击挂在旧walk切入点，新代码不再触发该遍历；真实顶层路径替换则确实只收紧已打开原目录。
+- Linux实际固定正常探针SHA `66fa011ffc742de5d2df23d781784a844960dd71e1a0ce27b75cd5feae8c6617`：实际tool0/监管0、16项全true、cleanup complete。另两个外置诊断变体：仅加worker文件/目录链接时tool0/监管0；加同样链接+输出后sleep30并把原监管期限20改为3时tool1/监管124、reason timeout，仍保留16项全true和完整清理。变体SHA分别 `1e0b04abc6747d9d72b1ad97e1c4921499a8b4734621f36079fe5e3813e8427b` / `33e72caa48f73001914391f10a5ac4e0602d6e7873477a3dedcba385d2eacc02`，不冒称三者源码相同。
+- 三场合成夹具外root-owned目标内容/SHA/UID/GID/mode前后完全一致，18份原固定产物已按SHA/长度读回；监管进程组已不存在、宿主无fixture挂载。没有运行旧特权清理、没有在真实业务文件上重现攻击，没有任意root命令新服务入口。此验证仍为共享测试UID canary，专用生产隔离/真实试点未完成、实际评分null、付费0。
+
+- 收尾只读核验：2026-10-25 **07:16:45 CST** 线上215运行文件逐SHA/长度/mode仍与6edc04f一致，active/running、PID2502485、重启0；三份原监管回执经原SP.read_receipt在原路径核验通过，超时原进程返回241单列。未重启服务、未改生产数据/配置、未启真实模型。
+
 ## 2026-10-25：可信供应方适配器最小增量
 
 - 当前项：S1 受控 HTTP 适配与固定执行合同；状态：done（软件控制验证完成，独立复审和真实 profile/生产隔离待完成）。起点 88dd62f，工作区干净；不重复已封存的隔离探针或原 R1/R2 复验。只新增显式调用的软件模块，不接生产路由、Store 启动或自动任务。

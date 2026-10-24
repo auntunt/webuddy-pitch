@@ -90,6 +90,9 @@ sys.path.insert(0,str(app/'tmh/platform'))
 spec=importlib.util.spec_from_file_location('probe_supervised',app/'tmh/platform/supervised_process.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 owner={'token':request['nonce'],'run_id':1,'data_dir':str(root)}
 command=['/usr/bin/unshare','--mount','--pid','--fork','--net','--propagation','private','--','/usr/bin/python3','-I','-c',request['setup'],str(root),str(request['owner_uid']),str(os.getpid()),request['worker']]
+root_fd=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+if os.fstat(root_fd).st_uid!=request['owner_uid']:
+ os.close(root_fd);raise ValueError('fixture descriptor owner changed')
 try:
  result=module.run_supervised(command,folder=root/'supervised',owner=owner,cwd=root,env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','PYTHONDONTWRITEBYTECODE':'1'},timeout=20)
  raw=result.output_bytes;oracle=(root/'sealed/oracle.txt').read_bytes()
@@ -101,11 +104,11 @@ try:
  (root/'report.json').write_text(json.dumps(report,indent=2)+'\n')
  print(json.dumps(report,indent=2),flush=True)
 finally:
- # Bind mounts existed only in the exited private namespace. Never traverse them there.
- for parent,dirs,files in os.walk(root):
-  os.chown(parent,request['owner_uid'],request['owner_gid'])
-  for name in files:os.chown(Path(parent)/name,request['owner_uid'],request['owner_gid'])
- root.chmod(0o700)
+ # Never walk, chown, read or remove the worker-controlled tree as root.
+ # Root-owned receipts retain their original ownership for privileged audit.
+ # A renamed/replaced pathname cannot redirect this final permission change.
+ try:os.fchmod(root_fd,0o700)
+ finally:os.close(root_fd)
 '''
 
 
@@ -150,8 +153,16 @@ def run(app):
     request={'root':str(root),'app':str(app.resolve()),'owner_uid':os.getuid(),'owner_gid':os.getgid(),'nonce':uuid.uuid4().hex,'protected':PROTECTED,'setup':SETUP,'worker':WORKER}
     # Root supervisor owns root and dropped-UID descendants. An unprivileged
     # supervisor could not reliably terminate the privileged namespace setup.
-    p=subprocess.run(['/usr/bin/sudo','-n','/usr/bin/python3','-I','-c',ROOT_ENTRY],input=json.dumps(request).encode(),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    (root/'root-wrapper.stderr').write_bytes(p.stderr)
+    root_fd=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+    try:
+        p=subprocess.run(['/usr/bin/sudo','-n','/usr/bin/python3','-I','-c',ROOT_ENTRY],input=json.dumps(request).encode(),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        stderr_fd=os.open('root-wrapper.stderr',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600,dir_fd=root_fd)
+        with os.fdopen(stderr_fd,'wb') as stream:
+            stream.write(p.stderr);stream.flush();os.fsync(stream.fileno())
+    finally:
+        # Also tighten failed sudo/preflight fixtures; do not trust their path.
+        try:os.fchmod(root_fd,0o700)
+        finally:os.close(root_fd)
     if p.returncode:
         return {'status':'failed','root_wrapper_exit':p.returncode,'fixture_root':str(root),'production_qualified':False,'provider_calls':0}
     report=json.loads(p.stdout)
