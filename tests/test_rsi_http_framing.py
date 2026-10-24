@@ -171,6 +171,21 @@ class HTTPFramingTests(unittest.TestCase):
         self.assertEqual(c.store.q("SELECT * FROM rsi_prepare_events WHERE pool=? AND kind='settled'",(key,)),old)
         self.assertEqual(c.count,0)
 
+    def test_known_bad_framing_cannot_be_settled_by_a_late_direct_callback(self):
+        for was_settled in [False,True]:
+            with self.subTest(prior_settlement=was_settled):
+                c,key,req,old,raw=self.historical(lambda n:['not-a-number'],settled=was_settled)
+                token=c.ledger.snapshot(key,req)['attempt']['intent']
+                self.assertEqual(c.adapter.reconcile(key,req)['state'],'unknown')
+                before=c.store.q('SELECT * FROM rsi_prepare_events WHERE pool=?',(key,))
+                response=raw.split(b'\n',1)[1]
+                receipt={'provider_request_id':'msg_local_fixture','response_model':'fixture-response-v1','input_tokens':9,
+                         'cached_input_tokens':2,'output_tokens':2,'provider_charge_micro_cny':None,'raw_response_sha256':hashlib.sha256(response).hexdigest()}
+                with self.assertRaises(L.Conflict):c.ledger.settle(key,req,token,receipt)
+                self.assertEqual(c.ledger.inspect(key)['totals'],{'calls':1,'billed_tokens':120,'cost_micro_cny':1400})
+                self.assertTrue(c.ledger.inspect(key)['blocked'])
+                self.assertEqual(c.store.q('SELECT * FROM rsi_prepare_events WHERE pool=?',(key,)),before)
+
     def test_valid_historical_version_is_not_approved_by_new_parser(self):
         c,key,req,old,raw=self.historical(lambda n:[str(n)])
         with self.assertRaises(L.Conflict):c.adapter.reconcile(key,req)

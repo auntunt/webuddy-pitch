@@ -366,6 +366,15 @@ class Ledger:
             self._event(db, key, request, "unknown", {"intent": intent, "reason": reason})
         return "unknown"
 
+    def _framing_invalid(self, db, key, request):
+        invalid = False
+        for event in db.execute("SELECT payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND request_id=? AND kind='unknown'", (key, request)):
+            value = json.loads(event["payload"])
+            if not isinstance(value, dict) or digest(value) != event["payload_hash"]:
+                raise Conflict("corrupt original unknown history")
+            invalid |= value.get("reason") == "invalid_original_http_framing"
+        return invalid
+
     def invalidate_framing(self, key, request, intent):
         """Quarantine a bound original response; retain immutable settlements.
 
@@ -382,6 +391,7 @@ class Ledger:
             db.execute("UPDATE rsi_prepare_pools SET blocked=1 WHERE pool=?", (key,))
             if row["state"] != "unknown":
                 db.execute("UPDATE rsi_prepare_attempts SET state='unknown' WHERE pool=? AND request_id=?", (key, request))
+            if not self._framing_invalid(db, key, request):
                 self._event(db, key, request, "unknown", {"intent": intent, "reason": "invalid_original_http_framing", "prior_receipt_sha256": row["receipt_hash"]})
         return "unknown"
 
@@ -398,6 +408,8 @@ class Ledger:
             row = self._attempt(db, key, request)
             if not intent or row["intent"] != intent or row["state"] not in {"intent", "unknown", "settled"}:
                 raise Conflict("receipt belongs to no committed intent")
+            if self._framing_invalid(db, key, request) or (row["state"] == "unknown" and db.execute("SELECT 1 FROM rsi_prepare_events WHERE pool=? AND request_id=? AND kind='settled'", (key, request)).fetchone()):
+                raise Conflict("invalidated original response cannot be settled again")
             usage, price, body = frozen, c["price"], row["body"]
             if usage["cached_input_tokens"] > usage["input_tokens"]:
                 raise ValueError("cached input is part of total input")

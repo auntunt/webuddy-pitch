@@ -347,14 +347,17 @@ class Adapter:
                          owner=self._owner(key, request, intent["intent"]), cwd=folder,
                          env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1"},
                          timeout=timeout, cancel_event=guard, stdin=L.encoded(private))
-            if result.returncode != 0 or not result.cleanup.get("complete") or guard.is_set():
+            if not result.cleanup.get("complete") or guard.is_set():
                 raise L.Conflict("transport failed, cancelled or changed; remote outcome unknown")
             snap = self.ledger.snapshot(key, request)
             return dict(self._settle_original(key, request, c, snap["attempt"]), new_dispatch=True)
         except BaseException as error:
             # Includes all parsing/protocol failures. Never expose raw exceptions,
             # release funds or retry after the original intent has been committed.
-            self.ledger.unknown(key, request, intent["intent"], "provider_or_transport_unverifiable")
+            if isinstance(error, FramingError):
+                self.ledger.invalidate_framing(key, request, intent["intent"])
+            else:
+                self.ledger.unknown(key, request, intent["intent"], "provider_or_transport_unverifiable")
             if not isinstance(error, Exception):
                 raise
             return {"state": "unknown", "response_complete": False, "new_dispatch": True,
