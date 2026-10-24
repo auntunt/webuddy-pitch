@@ -15,6 +15,7 @@ import uuid
 from tmh.platform.learning import transaction
 
 VERSION = "trial-budget-preparation-v1"
+PROVIDER_VERSION = "trial-budget-provider-v2"
 MAX = 2 ** 60
 PHASES = {"propose", "baseline", "candidate", "judge", "probe", "retry", "terminal", "followup"}
 DDL = (
@@ -61,9 +62,19 @@ def sha(value):
 
 
 def validate_contract(c):
-    fields(c, {"schema", "tenant_id", "project_id", "root_family", "application_commit", "candidate_sha256", "baseline_sha256", "training_family", "followup_family", "holdout_cases", "model", "price", "limits"})
-    if c["schema"] != VERSION or not isinstance(c["application_commit"], str) or not re.fullmatch("[0-9a-f]{40}", c["application_commit"]):
+    keys = {"schema", "tenant_id", "project_id", "root_family", "application_commit", "candidate_sha256", "baseline_sha256", "training_family", "followup_family", "holdout_cases", "model", "price", "limits"}
+    if isinstance(c, dict) and c.get("schema") == PROVIDER_VERSION:
+        keys.add("provider_binding")
+    fields(c, keys)
+    if c["schema"] not in {VERSION, PROVIDER_VERSION} or not isinstance(c["application_commit"], str) or not re.fullmatch("[0-9a-f]{40}", c["application_commit"]):
         raise ValueError("fixed application/schema required")
+    if c["schema"] == PROVIDER_VERSION:
+        binding = c["provider_binding"]
+        fields(binding, {"profile_id", "profile_sha256", "protocol_sha256", "code_sha256"})
+        text(binding["profile_id"]); sha(binding["profile_sha256"]); sha(binding["protocol_sha256"])
+        fields(binding["code_sha256"], {"ledger", "adapter", "transport"})
+        for value in binding["code_sha256"].values():
+            sha(value)
     for key in ("tenant_id", "root_family", "training_family", "followup_family"):
         text(c[key])
     integer(c["project_id"], 1)
@@ -264,7 +275,7 @@ class Ledger:
                 raise Conflict("unrecognized attempt state")
         return {"calls": calls, "billed_tokens": tokens, "cost_micro_cny": cost}
 
-    def reserve(self, key, request, phase, input_limit, output_limit):
+    def reserve(self, key, request, phase, input_limit, output_limit, *, material_sha256=None):
         text(request)
         if not isinstance(phase, str) or phase not in PHASES:
             raise ValueError("unknown phase")
@@ -275,6 +286,10 @@ class Ledger:
             cost = input_limit * price["input_micro_cny_per_token"] + output_limit * price["output_micro_cny_per_token"]
             integer(cost)
             body = dict(phase=phase, input_limit=input_limit, output_limit=output_limit, reserved_micro_cny=cost, contract_hash=digest(c))
+            if c["schema"] == PROVIDER_VERSION:
+                body["material_sha256"] = sha(material_sha256)
+            elif material_sha256 is not None:
+                raise ValueError("provider material requires v2 contract")
             if db.execute("SELECT 1 FROM rsi_prepare_attempts WHERE pool=? AND request_id=?", (key, request)).fetchone():
                 old = self._attempt(db, key, request)
                 if old["body_hash"] != digest(body):
@@ -305,6 +320,11 @@ class Ledger:
                 self._scope_consumptions(db, c)
                 if not self._consumed(db, key, c):
                     raise Conflict("original terminal consumption missing")
+            if c["schema"] == PROVIDER_VERSION:
+                sync = next(iter(db.execute("PRAGMA synchronous").fetchone().values()))
+                journal = next(iter(db.execute("PRAGMA journal_mode").fetchone().values()))
+                if sync not in {2, 3} or journal not in {"delete", "truncate", "persist", "wal"}:
+                    raise Conflict("durable provider intent requires FULL SQLite synchronization")
             token = uuid.uuid4().hex
             db.execute("UPDATE rsi_prepare_attempts SET state='intent',intent=? WHERE pool=? AND request_id=?", (token, key, request))
             self._event(db, key, request, "intent", {"intent": token, "body_hash": row["body_hash"]})
@@ -322,6 +342,29 @@ class Ledger:
                 db.execute("UPDATE rsi_prepare_pools SET blocked=1 WHERE pool=?", (key,))
                 self._event(db, key, request, "cancel_unknown", {"intent": row["intent"]})
             return self._attempt(db, key, request)["state"]
+
+    def snapshot(self, key, request=None):
+        """Validate original anchors in one snapshot; never authorize dispatch."""
+        with transaction(self.store) as db:
+            c = self._pool(db, key)
+            self._totals(db, key)
+            row = self._attempt(db, key, request) if request is not None else None
+            if row and row["state"] == "settled":
+                self._settled_receipt(db, key, row)
+            return {"contract": c, "attempt": row}
+
+    def unknown(self, key, request, intent, reason):
+        """An uncertain remote request retains its worst-case reservation forever."""
+        text(reason)
+        with transaction(self.store) as db:
+            self._pool(db, key)
+            row = self._attempt(db, key, request)
+            if not intent or row["intent"] != intent or row["state"] not in {"intent", "unknown"}:
+                raise Conflict("unknown result belongs to no active intent")
+            db.execute("UPDATE rsi_prepare_attempts SET state='unknown' WHERE pool=? AND request_id=?", (key, request))
+            db.execute("UPDATE rsi_prepare_pools SET blocked=1 WHERE pool=?", (key,))
+            self._event(db, key, request, "unknown", {"intent": intent, "reason": reason})
+        return "unknown"
 
     def settle(self, key, request, intent, receipt):
         fields(receipt, {"provider_request_id", "response_model", "input_tokens", "cached_input_tokens", "output_tokens", "provider_charge_micro_cny", "raw_response_sha256"})
