@@ -97,6 +97,8 @@ def decide(P, p, action, revision_id, actor, request_id, expected_active, reason
                 if expected_active != r["id"]:
                     raise ApiError(409, "只能撤销当前确切修订")
             else:
+                from . import learning_experiments as X
+                X.assert_adoptable_in_tx(db, p["id"], r["id"], {"job_id": job_id})
                 if not L.revision_current(P, p, r):
                     raise ApiError(409, "修订来源已过期，请重新固定版本")
                 _job(P, p, r, job_id)
@@ -152,6 +154,8 @@ def project_decision(P, p, did):
             elif r["kind"] == "lesson":
                 receipt = learn.projection_receipt(P.data_dir, did)
                 if not receipt and d["action"] == "adopt":
+                    from . import learning_experiments as X
+                    X.assert_adoptable_in_tx(db, p["id"], r["id"], {"job_id": req["job_id"]})
                     if not L.revision_current(P, p, r):
                         raise ApiError(409, "投影前经验来源已变化")
                     _job(P, p, r, req["job_id"])

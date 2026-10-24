@@ -95,10 +95,12 @@ def answer(P, p: dict, t: dict | None, q: str, hist: list, kind: str | None = No
 # ---- the platform's own records -------------------------------------------------------------------
 def _open_failed(P, p: dict) -> list:
     """Open tickets whose latest agent run failed, newest first, with the reason."""
+    from .learning_experiment_views import unmanaged_run_clause
+    ordinary = unmanaged_run_clause(P.store, "r")
     rows = P.store.q(
         "SELECT r.id, r.mode, r.agent, r.ended, r.result, r.ticket_id FROM runs r JOIN (SELECT ticket_id, MAX(id) m FROM runs "
         "WHERE project_id=? AND ticket_id IS NOT NULL AND mode!='ask' GROUP BY ticket_id) x ON r.id=x.m "
-        "JOIN tickets t ON t.id=r.ticket_id WHERE r.status='failed' AND t.status!='closed' ORDER BY r.id DESC", (p["id"],))
+        "JOIN tickets t ON t.id=r.ticket_id WHERE " + ordinary + " AND r.status='failed' AND t.status!='closed' ORDER BY r.id DESC", (p["id"],))
     out = []
     for r in rows:
         t = P.store.ticket(r["ticket_id"])
@@ -109,10 +111,12 @@ def _open_failed(P, p: dict) -> list:
 
 def _recovered(P, p: dict) -> list:
     """Why tickets whose latest run went through had failed before: failures already behind us, one reason per ticket."""
+    from .learning_experiment_views import unmanaged_run_clause
+    ordinary = unmanaged_run_clause(P.store, "f")
     rows = P.store.q(
         "SELECT f.ticket_id, f.result FROM runs f JOIN (SELECT ticket_id, MAX(id) m FROM runs WHERE project_id=? AND ticket_id IS NOT NULL "
         "AND mode!='ask' GROUP BY ticket_id) x ON x.ticket_id=f.ticket_id JOIN runs l ON l.id=x.m "
-        "WHERE f.project_id=? AND f.status='failed' AND l.status!='failed' ORDER BY f.id DESC", (p["id"], p["id"]))
+        "WHERE " + ordinary + " AND f.project_id=? AND f.status='failed' AND l.status!='failed' ORDER BY f.id DESC", (p["id"], p["id"]))
     seen = {}
     for r in rows:
         seen.setdefault(r["ticket_id"], reason(r["result"])[1])
@@ -126,8 +130,9 @@ def _link(k: str, title: str = "") -> str:
 def state_answer(P, p: dict, q: str) -> dict:
     L = P.loop(p)
     failed = _open_failed(P, p)
+    from .learning_experiment_views import unmanaged_run_clause
     running = P.store.q("SELECT r.id, r.mode, r.agent, r.status, r.started, r.ticket_id, r.target FROM runs r WHERE r.project_id=? "
-                        "AND r.status IN ('running','queued') ORDER BY r.id", (p["id"],))
+                        "AND " + unmanaged_run_clause(P.store) + " AND r.status IN ('running','queued') ORDER BY r.id", (p["id"],))
     by = L.get("by_status") or {}
     lines, actions, follow, topic = [], [], [], {}
     asked_fail = re.search(r"失败|报错|出错|错误|卡", q)
@@ -182,6 +187,9 @@ def state_answer(P, p: dict, q: str) -> dict:
 
 
 def ticket_answer(P, p: dict, t: dict) -> dict:
+    # Validate managed bindings before any ticket-derived output or advice.
+    from .learning_experiment_views import unmanaged_run_clause
+    unmanaged_run_clause(P.store)
     runs = P.store.runs(ticket_id=t["id"], limit=30)
     work = [r for r in runs if r["mode"] in ("analyze", "plan", "fix")]
     lines = ["**%s %s**　状态：%s" % (t["key"], t["title"][:40], STATUS.get(t["status"], t["status"]))]

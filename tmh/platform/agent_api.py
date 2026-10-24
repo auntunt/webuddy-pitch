@@ -377,7 +377,7 @@ def _execute(P, req, actor, operation, a):
         if operation == 'candidates_list':
             return tool_read.candidate_list(P, a, visible_ids)
         if operation == 'run_get':
-            return tool_read.run_get(P, a['run_id'], a.get('since', 0), visible_ids)
+            return tool_read.run_get(P, a['run_id'], a.get('since', 0), visible_ids, req.user)
         if operation == 'ticket_get':
             packet = tool_read.ticket_get(P, a['ticket'], visible_ids)
             from .tool_access import allowed_operations

@@ -7,6 +7,7 @@ acceptance, and never treats a process group as an execution sandbox.
 from __future__ import annotations
 
 import json
+from contextlib import contextmanager
 from pathlib import Path
 import re
 from urllib.parse import unquote
@@ -280,6 +281,32 @@ def require_member(P, actor, project=None, level="contributor"):
     if project is not None:
         _check(P, who, project, level)
     return actor
+
+
+def experiment_identity(P, actor, project, level="viewer"):
+    """Current personal authority for a managed experiment; never legacy names.
+
+    HTTP adapters obtain actor from their authenticated session. A tool's
+    delegated read/content scope cannot grant experiment custody or approval.
+    """
+    from .signoff import human
+    who = identity(P, actor)
+    if who.get("legacy") or who.get("tool_connection") or not human(actor):
+        raise ApiError(403, "受管实验需要当前租户的个人账号；工具连接与显示名不能代替")
+    _check(P, who, project, level)
+    account = P.tenant_context.registry.one("SELECT active,epoch FROM accounts WHERE name=?", (actor,))
+    if not account or not account["active"] or not isinstance(account["epoch"], str) or not account["epoch"]:
+        raise ApiError(403, "实验成员账号已变化")
+    return dict(who, account_epoch=account["epoch"])
+
+
+@contextmanager
+def experiment_guard(P, actor, project, level="viewer"):
+    """Acquire before Store/ledger locks; never hold across a child invocation."""
+    if not enabled(P):
+        raise ApiError(403, "受管实验需要已启用租户的个人账号")
+    with P.tenant_context.registry.authorization_guard():
+        yield experiment_identity(P, actor, project, level)
 
 
 def directory(P, project=None, level="viewer"):
@@ -565,6 +592,10 @@ def authorize(P, method, path, query, body, actor):
     safe |= template == "/api/projects/<key>/lessons/<lid>" and (
         action in ("edit", "confirm", "restore", "retire") or ("action" not in body or action == "") and "fields" in body)
     safe |= template == "/api/learning" and action in ("capture", "propose", "policy_create", "adopt", "revoke", "retry_decision", "abandon_decision")
+    # Contract custody/approval writes no process. The experiment module checks
+    # current personal authority under its guard; start retains execution policy.
+    safe |= template == "/api/learning" and action in (
+        "experiment_create", "experiment_seal", "experiment_cancel", "experiment_expose")
     safe |= template.endswith("/library") and action in ("grant", "revoke", "reference", "remove_reference", "configure", "add_source")
     safe |= template == "/api/projects"  # registration only; workspace policy checked above
     safe |= template == "/api/tickets/<key>" and not (set(body) - {"title", "body", "type", "priority", "assignee"})

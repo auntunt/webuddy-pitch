@@ -316,6 +316,8 @@ def worker(data, tenant, address, keyfile, parent_pid):
     install_execution_gate(context)
     P = Platform(Path(target['path']), tenant_context=context)
     context.platform = P
+    from . import learning_experiment_runs as experiments
+    recovery_ids = experiments.recovery_candidates(P)
     base = make_handler(P)
 
     class Handler(base):
@@ -382,6 +384,19 @@ def worker(data, tenant, address, keyfile, parent_pid):
     server = Server(address, Handler)
     os.chmod(address, 0o600)
     stopping = threading.Event()
+    # Snapshot before readiness: a newly submitted experiment must never enter
+    # startup recovery. Recovery only reconciles stops, never dispatches work.
+    recovery_thread = None
+    if recovery_ids:
+        def recover_experiments():
+            report = experiments.recover(P, recovery_ids, stopping)
+            print(json.dumps({"event": "experiment_startup_recovery", "processed": len(report["processed"]),
+                              "skipped": len(report["skipped"]), "failed": report["failed"],
+                              "stopped": report["stopped"]}), file=sys.stderr, flush=True)
+        recovery_thread = threading.Thread(
+            target=recover_experiments,
+            name='experiment-startup-recovery', daemon=True)
+        recovery_thread.start()
     def parent_watch():
         while not stopping.wait(.2):
             if os.getppid() != int(parent_pid):
@@ -396,6 +411,8 @@ def worker(data, tenant, address, keyfile, parent_pid):
     finally:
         stopping.set()
         server.server_close()
+        if recovery_thread is not None:
+            recovery_thread.join()
         P.store.db.close()
         registry.close()
 

@@ -526,6 +526,10 @@ def check(c, output):
 
 
 def run(P, p, job, step):
+    from . import learning_experiments as X
+    if ((isinstance(job.get("options"), dict) and "managed_experiment_id" in job["options"])
+            or (job.get("id") and X.job_owner(P.store, job["id"]))):
+        raise ApiError(409, "受管实验必须由预登记槽执行，不能使用通用评测循环")
     f = job["options"]["evaluation"]
     r = L.revision(P, p, job["current_revision_id"])
     if execution_contract_error(job, r["kind"], P=P, p=p):

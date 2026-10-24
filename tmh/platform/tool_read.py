@@ -158,8 +158,13 @@ def run_history(P, run):
             'rechecks': [recheck_history(P, op) for op in operations]}
 
 
-def run_get(P, rid, since, visible_ids):
+def run_get(P, rid, since, visible_ids, actor=""):
     run = bound_run(P, rid, visible_ids=visible_ids)
+    from . import learning_experiment_views as V
+    managed = V.run(P, P.store.project(run['project_id']), run['id'], actor,
+                    since=since, include_prompt=False)
+    if managed is not None:
+        return managed
     history = run_history(P, run)
     return dict(run, output=run['output'][since:], output_len=len(run['output']),
                 ticket_key=(P.store.ticket(run['ticket_id']) or {}).get('key', '') if run['ticket_id'] else '',

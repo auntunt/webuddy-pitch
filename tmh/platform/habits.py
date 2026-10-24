@@ -121,8 +121,9 @@ def personal(store, author, project_id=None, *, redact=REDACT, min_sample=MIN_SA
     not dressed up as a pattern. Raw prompt/comment/acceptance text is never returned.
     """
     author = author or ""
+    from .learning_experiment_views import unmanaged_run_clause
     sql = ("SELECT r.id, r.mode, r.status, r.retry_of, r.ticket_id, r.prompt, r.project_id, p.key AS pkey "
-           "FROM runs r JOIN projects p ON p.id=r.project_id WHERE r.author=?")
+           "FROM runs r JOIN projects p ON p.id=r.project_id WHERE r.author=? AND " + unmanaged_run_clause(store))
     args = [author]
     if project_id is not None:
         sql += " AND r.project_id=?"
@@ -228,8 +229,9 @@ def team(store, project_id=None, *, min_sample=MIN_SAMPLE):
     ``fair`` follows ``learn.impact``: under ``min_sample`` tickets *and* decisions the
     view still reports counts but withholds shares; ``notes`` says what is missing.
     """
+    from .learning_experiment_views import unmanaged_run_clause
     sql = ("SELECT r.mode, r.status, r.author, r.project_id, r.ticket_id, r.retry_of, p.key AS pkey "
-           "FROM runs r JOIN projects p ON p.id=r.project_id WHERE 1=1")
+           "FROM runs r JOIN projects p ON p.id=r.project_id WHERE " + unmanaged_run_clause(store))
     args = []
     if project_id is not None:
         sql += " AND r.project_id=?"
@@ -321,8 +323,9 @@ def available(store) -> dict:
     def n(sql, args=()):
         row = store.one(sql, args)
         return int(row["n"]) if row else 0
+    from .learning_experiment_views import unmanaged_run_clause
     return {
-        "runs": n("SELECT COUNT(*) n FROM runs"),
+        "runs": n("SELECT COUNT(*) n FROM runs r WHERE " + unmanaged_run_clause(store)),
         "tickets": n("SELECT COUNT(*) n FROM tickets"),
         "acceptance_events": n("SELECT COUNT(*) n FROM events WHERE kind IN ('accept','reject')"),
         "knowledge_revisions": n("SELECT COUNT(*) n FROM knowledge_revisions"),

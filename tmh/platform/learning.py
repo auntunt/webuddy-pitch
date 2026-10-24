@@ -105,18 +105,38 @@ def project(P, key):
     return p
 
 
+def _git_source_present(root):
+    """Conservative discovery without executing anything for a plain folder.
+
+    Git overrides are stripped by pk.git_env. Check ancestors as Git does;
+    dangling markers and unreadable metadata must never imply a plain source.
+    """
+    def present(path):
+        try:
+            path.lstat()
+            return True
+        except FileNotFoundError:
+            return False
+    for directory in (root, *root.parents):
+        if present(directory / ".git"):
+            return True
+        if all(present(directory / name) for name in ("HEAD", "objects", "refs")):
+            return True
+    return False
+
+
 def binding(P, p):
     p = project(P, p)
     root = Path(p["root"]).resolve()
     if not root.is_dir():
         raise ApiError(409, "项目工作区不可读")
     try:
-        commit = pk.git(root, "rev-parse", "--verify", "HEAD")
-    except ValueError:
-        # Non-Git sources are explicitly bound to captured file manifests below.
-        if (root / ".git").exists():
-            raise ApiError(409, "Git 来源不可读取，不能生成版本证据")
-        commit = ""
+        git_source = _git_source_present(root)
+        commit = pk.git(root, "rev-parse", "--verify", "HEAD") if git_source else ""
+        if git_source and not commit:
+            raise ValueError("Git HEAD is empty")
+    except (ValueError, OSError) as exc:
+        raise ApiError(409, "Git 来源不可读取，不能生成版本证据") from exc
     return {"project_id": p["id"], "root": str(root), "commit": commit,
             "workflow": library.profile(P.store, p)["workflow"],
             "references": library.bindings(P.store, p)}
@@ -327,6 +347,8 @@ def propose(P, p, revision_id, content, actor):
         except UnicodeError as exc:
             raise ApiError(400, "经验修订包含不可无损编码的文字") from exc
     with transaction(P.store) as db, ExitStack() as guards:
+        from . import learning_experiments as X
+        X.assert_unmanaged_revision_in_tx(db, p["id"], r["id"])
         source = r["source"]
         valid = revision_current(P, p, r)
         if not valid:
@@ -387,10 +409,36 @@ def _jobs(P, p, rid=""):
     return list_jobs(P, p, rid)
 
 
-def catalog(P, p, kind="", q=""):
+def catalog(P, p, kind="", q="", *, managed_revision=None, recorded_jobs=None):
     p = project(P, p)
     if kind and kind not in KINDS:
         raise ApiError(400, "未知知识类型")
+    from . import learning_experiments as X
+
+    def managed(r):
+        if not r:
+            return None
+        if managed_revision is not None:
+            return managed_revision(r["id"])
+        if X.managed_lookup(P.store, revision_id=r["id"]):
+            raise ApiError(409, "受管实验需要使用已授权的只读视图")
+        return None
+
+    def jobs(rid=""):
+        if recorded_jobs is not None:
+            return recorded_jobs(rid)
+        # Internal manual callers may retain their old behavior, but never
+        # infer authority to expose a managed job from an absent callback.
+        with P.store.lock:
+            if not P.store.one("SELECT name FROM sqlite_master WHERE type='table' AND name='learning_jobs'"):
+                return []
+            sql, args = "SELECT id FROM learning_jobs WHERE project_id=?", [p["id"]]
+            if rid:
+                sql += " AND (revision_id=? OR current_revision_id=?)"
+                args.extend([rid, rid])
+            if any(X.job_owner(P.store, row["id"]) for row in P.store.q(sql, args)):
+                raise ApiError(409, "受管实验需要使用已授权的只读视图")
+            return _jobs(P, p, rid)
     items = []
     for k, reader in (("fact", _facts), ("lesson", _lessons), ("policy", _policies)):
         if not kind or k == kind:
@@ -400,28 +448,41 @@ def catalog(P, p, kind="", q=""):
                          (p["id"], item["kind"], item["origin_id"]))
         r = next((_decode(row) for row in rows if row["content"] == item["content"] and
                   json.loads(row["source"])["origin_fingerprint"] == item["fingerprint"]), None)
+        metadata = managed(r)
+        if metadata is not None:
+            item.update(metadata)
+            item["active_revision_id"] = None
+            continue
         from . import learning_decisions as D
         active = D._active(P, p, item)
         adopted = next((_decode(row) for row in rows if row["id"] == active), None)
         if adopted:
             r = adopted
+        metadata = managed(r)
+        if metadata is not None:
+            item.update(metadata)
+            item["active_revision_id"] = None
+            continue
         item["revision_id"] = r["id"] if r else ""
         item["stale"] = bool(r and not (revision_current(P, p, r) or (active == r["id"] and D.adopted_current(P, p, r))))
         item["active_revision_id"] = active
-        jobs = _jobs(P, p, r["id"]) if r else []
-        job = jobs[0] if jobs else {}
+        revision_jobs = jobs(r["id"]) if r else []
+        job = revision_jobs[0] if revision_jobs else {}
         item["machine"] = {"status": "stale" if item["stale"] else job.get("status", "unreviewed"), "job_id": job.get("id", "")}
         if item["kind"] == "policy":
             active = P.store.one("SELECT revision_id FROM learning_policy_active WHERE project_id=?", (p["id"],))
             item["human"]["status"] = "active" if active and any(x["id"] == active["revision_id"] for x in rows) else "draft"
     return {"project": {k: p[k] for k in ("id", "key", "name")},
             "items": [x for x in items if not q or q.casefold() in (x["title"] + "\n" + x["content"]).casefold()],
-            "jobs": _jobs(P, p), "policy_specs": POLICY_SPECS, "readonly": True}
+            "jobs": jobs(), "policy_specs": POLICY_SPECS, "readonly": True}
 
 
-def detail(P, p, rid):
+def detail(P, p, rid, *, recorded_jobs=None):
     p = project(P, p)
     r = revision(P, p, rid)
+    from . import learning_experiments as X
+    if X.managed_lookup(P.store, revision_id=rid):
+        raise ApiError(409, "受管实验需要使用已授权的只读视图")
     history = [_decode(row) for row in P.store.q(
         "SELECT * FROM learning_revisions WHERE project_id=? AND kind=? AND origin_id=? ORDER BY rowid",
         (p["id"], r["kind"], r["origin_id"]))]
@@ -438,10 +499,19 @@ def detail(P, p, rid):
         active = learning_facts.active_revision(P, p, r["origin_id"])
     elif r["kind"] == "lesson" and hasattr(learn, "active_revision"):
         active = learn.active_revision(P.data_dir, r["origin_id"])
-    jobs = _jobs(P, p, rid)
-    if jobs:
-        from . import learning_runs
-        jobs = [learning_runs.get(P, p, j["id"]) for j in jobs]
+    if recorded_jobs is not None:
+        jobs = recorded_jobs(rid)
+    else:
+        if any(X.managed_lookup(P.store, revision_id=item["id"]) for item in history):
+            raise ApiError(409, "受管历史需要使用已授权的只读视图")
+        raw_jobs = P.store.q("SELECT id FROM learning_jobs WHERE project_id=? AND (revision_id=? OR current_revision_id=?)",
+                             (p["id"], rid, rid))
+        if any(X.job_owner(P.store, job["id"]) for job in raw_jobs):
+            raise ApiError(409, "受管运行需要使用已授权的只读视图")
+        jobs = _jobs(P, p, rid)
+        if jobs:
+            from . import learning_runs
+            jobs = [learning_runs.get(P, p, j["id"]) for j in jobs]
     from . import learning_decisions as D
     current = revision_current(P, p, r) or (active == r["id"] and D.adopted_current(P, p, r))
     try:

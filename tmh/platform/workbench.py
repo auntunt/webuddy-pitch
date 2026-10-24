@@ -938,8 +938,9 @@ def _today(P, since: str) -> dict:
             tickets[tid] = st.ticket(tid) if tid else None
         return tickets[tid]
     now_ = []
-    for r in st.q("SELECT id, ticket_id, project_id, agent, mode, status, created, started, author FROM runs "
-                  "WHERE status IN ('queued','running') AND mode!='ask' ORDER BY id"):
+    from .learning_experiment_views import unmanaged_run_clause
+    for r in st.q("SELECT id, ticket_id, project_id, agent, mode, status, created, started, author FROM runs r "
+                  "WHERE " + unmanaged_run_clause(st) + " AND status IN ('queued','running') AND mode!='ask' ORDER BY id"):
         t = tk(r["ticket_id"])
         now_.append({"run": r["id"], "project": keys.get(r["project_id"], ""), "key": t["key"] if t else "", "title": t["title"] if t else "",
                      "client_name": cl.get((t.get("links") or {}).get("client")) if t else "", "mode": r["mode"], "status": r["status"],

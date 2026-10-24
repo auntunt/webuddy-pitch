@@ -1129,25 +1129,41 @@ def api_memory_action(P, req):
 
 @route("GET", "/api/learning")
 def api_learning(P, req):
-    from . import learning as L, learning_runs
+    from . import learning as L, learning_runs, learning_experiment_views as V
     if any(isinstance(v, list) and len(v) != 1 for v in req.query.values()):
         raise ApiError(400, "查询参数不能重复")
     p = L.project(P, req.arg("project"))
+    actor = _session_actor(req) or req.user
+    if req.arg("experiment"):
+        return V.experiment(P, p, req.arg("experiment"), actor)
+    if req.arg("experiments") == "1":
+        return V.experiments(P, p, actor)
     if req.arg("revision"):
-        return L.detail(P, p, req.arg("revision"))
+        managed = V.managed_detail(P, p, req.arg("revision"), actor)
+        if managed is not None:
+            return managed
+        return V.learning_detail(P, p, L.detail(P, p, req.arg("revision"),
+            recorded_jobs=lambda rid: V.catalog_jobs(P, p, actor, rid, detail=True)), actor)
     if req.arg("job"):
+        managed = V.job(P, p, req.arg("job"), actor)
+        if managed is not None:
+            return managed
         return learning_runs.get(P, p, req.arg("job"))
-    return L.catalog(P, p, req.arg("kind"), req.arg("q"))
+    return V.catalog(P, p, L.catalog(P, p, req.arg("kind"), req.arg("q"),
+        managed_revision=lambda rid: V.catalog_revision(P, p, rid, actor),
+        recorded_jobs=lambda rid="": V.catalog_jobs(P, p, actor, rid)), actor)
 
 
 @route("POST", "/api/learning")
 def api_learning_action(P, req):
-    from . import learning as L, learning_runs
+    from . import learning as L, learning_runs, learning_experiment_views as V
     b = req.body
     if not isinstance(b, dict):
         raise ApiError(400, "操作需要 JSON 对象")
     action = b.get("action", "")
-    human_action = action in ("adopt", "revoke", "retry_decision", "abandon_decision")
+    if not isinstance(action, str):
+        raise ApiError(400, "知识操作名称必须是字符串")
+    human_action = action in ("adopt", "revoke", "retry_decision", "abandon_decision") or action.startswith("experiment_")
     if human_action or not req.h.headers.get("X-Webuddy-Agent"):
         actor = _human_action(P, req, strict=True)
         if human_action:
@@ -1161,32 +1177,63 @@ def api_learning_action(P, req):
             raise ApiError(403, "运行知识任务需要 X-Webuddy-Execution: 1")
     p = L.project(P, b.get("project", ""))
     try:
+        if action.startswith("experiment_"):
+            from . import learning_experiments as X, learning_experiment_runs as XR
+            operations = {
+                "experiment_create": {"contract"},
+                "experiment_seal": {"experiment_id", "expected_hash"},
+                "experiment_start": {"experiment_id"},
+                "experiment_cancel": {"experiment_id"},
+                "experiment_expose": {"experiment_id", "asset_ids", "expected_hash"},
+            }
+            if action not in operations or set(b) - (operations[action] | {"action", "project", "request_id"}):
+                raise ApiError(400, "实验操作包含未知动作或字段")
+            eid, request_id = b.get("experiment_id", ""), b.get("request_id", "")
+            if action == "experiment_create":
+                receipt = X.create_draft(P, p, b.get("contract"), actor, request_id)
+            elif action == "experiment_seal":
+                receipt = X.seal(P, p, eid, b.get("expected_hash"), actor, request_id)
+            elif action == "experiment_start":
+                receipt = XR.start_sealed(P, p, eid, actor, request_id)
+            elif action == "experiment_cancel":
+                receipt = X.cancel(P, p, eid, actor, request_id)
+            else:
+                receipt = X.expose(P, p, eid, b.get("asset_ids"), b.get("expected_hash"), actor, request_id)
+            return {"receipt": receipt}
         if action == "capture":
-            return L.capture(P, p, b.get("key", ""), b.get("expected_fingerprint", ""), actor)
+            return V.revision(P, p, L.capture(P, p, b.get("key", ""), b.get("expected_fingerprint", ""), actor), actor)
         if action == "propose":
             return L.propose(P, p, b.get("revision_id", ""), b.get("content"), actor)
         if action == "policy_create":
             return L.policy_create(P, p, b.get("name", ""), b.get("title", ""), b.get("parameters"), b.get("applicability", ""), actor)
         if action in ("review", "evaluate"):
             options = {k: v for k, v in b.items() if k not in ("project", "action", "request_id", "revision_id")}
-            return learning_runs.start(P, p, action, b.get("revision_id", ""), options, actor, b.get("request_id", ""))
+            result = learning_runs.start(P, p, action, b.get("revision_id", ""), options, actor, b.get("request_id", ""))
+            managed = V.job(P, p, result["id"], actor)
+            return managed if managed is not None else result
         if action in ("cancel", "resume"):
-            return getattr(learning_runs, action)(P, p, b.get("job_id", ""), actor)
+            result = getattr(learning_runs, action)(P, p, b.get("job_id", ""), actor)
+            managed = V.job(P, p, result["id"], actor)
+            return managed if managed is not None else result
         if action in ("adopt", "revoke"):
             from . import learning_decisions as D
             if "expected_active" not in b:
                 raise ApiError(400, "必须提交页面显示的预期采用版本")
-            return D.decide(P, p, action, b.get("revision_id", ""), actor, b.get("request_id", ""),
-                            b["expected_active"], b.get("reason", ""), b.get("job_id", ""))
+            result = D.decide(P, p, action, b.get("revision_id", ""), actor, b.get("request_id", ""),
+                              b["expected_active"], b.get("reason", ""), b.get("job_id", ""))
+            return V.decision(P, p, result, actor)
         if action == "retry_decision":
             from . import learning_decisions as D
-            return D.project_decision(P, p, b.get("decision_id", ""))
+            return V.decision(P, p, D.project_decision(P, p, b.get("decision_id", "")), actor)
         if action == "abandon_decision":
             from . import learning_decisions as D
-            return D.abandon(P, p, b.get("decision_id", ""), actor, b.get("expected_token"), b.get("reason", ""))
+            return V.decision(P, p, D.abandon(P, p, b.get("decision_id", ""), actor, b.get("expected_token"), b.get("reason", "")), actor)
         raise ApiError(400, "未知知识操作")
     except ValueError as exc:
-        raise ApiError(400, str(exc)) from exc
+        error = ApiError(400, str(exc))
+        if action.startswith("experiment_") and getattr(exc, "reason", "") == "experiment_not_written":
+            error.reason = "experiment_not_written"
+        raise error from exc
 
 
 def _allowed_project_ids(P, req):
@@ -1319,8 +1366,9 @@ def api_habits(P, req, key):
 @route("GET", "/api/projects/<key>")
 def api_project(P, req, key):
     p = P.project(key)
+    from . import learning_experiment_views as V
     return {"project": p, "stats": P.store.stats(p["id"]), "kb": P.kb.kb_overview(p),
-            "runs": P.store.runs(project_id=p["id"], limit=8),
+            "runs": V.runs(P, _session_actor(req) or req.user, project_id=p["id"], limit=8),
             "recent": P.store.tickets(project_id=p["id"], limit=8)}
 
 
@@ -2765,7 +2813,9 @@ def api_project_run(P, req, key):
 @route("GET", "/api/runs")
 def api_runs(P, req):
     pid = P.project(req.arg("project"))["id"] if req.arg("project") else None
-    runs = P.store.runs(project_id=pid, limit=200, allowed_projects=_allowed_project_ids(P, req))
+    from . import learning_experiment_views as V
+    runs = V.runs(P, _session_actor(req) or req.user, project_id=pid, limit=200,
+                  allowed_projects=_allowed_project_ids(P, req))
     keys = {}
     for r in runs:
         if r["ticket_id"] and r["ticket_id"] not in keys:
@@ -2786,6 +2836,11 @@ def api_run(P, req, rid):
     r = P.store.run(int(rid))
     if not r:
         raise ApiError(404, "没有这个运行")
+    from . import learning_experiment_views as V
+    managed = V.run(P, P.store.project(r["project_id"]), r["id"], _session_actor(req) or req.user,
+                    since=int(req.arg("since") or 0), include_prompt=req.arg("prompt") == "1")
+    if managed is not None:
+        return managed
     from .fixloop import verified
     t = P.store.ticket(r["ticket_id"]) if r["ticket_id"] else None
     r["ticket_key"] = t["key"] if t else ""
@@ -2813,8 +2868,16 @@ def api_run(P, req, rid):
     return r
 
 
+def _require_unmanaged_run(P, rid):
+    """Managed attempts can only stop/recover through their experiment ledger."""
+    from . import learning_experiments as X
+    if X.run_owner(P.store, int(rid)) is not None:
+        raise ApiError(409, "此运行属于受管实验，请从实验入口停止或查看；不能单独重试、恢复或决定")
+
+
 @route("POST", "/api/runs/<rid>/cancel")
 def api_cancel(P, req, rid):
+    _require_unmanaged_run(P, rid)
     try:
         return P.runner.cancel(int(rid), req.user)
     except ValueError as e:
@@ -2823,6 +2886,7 @@ def api_cancel(P, req, rid):
 
 @route("POST", "/api/runs/<rid>/retry")
 def api_retry_run(P, req, rid):
+    _require_unmanaged_run(P, rid)
     if not P.store.run(int(rid)):
         raise ApiError(404, "没有这个运行")
     try:
@@ -2833,6 +2897,7 @@ def api_retry_run(P, req, rid):
 
 @route("POST", "/api/runs/<rid>/recover")
 def api_recover_run(P, req, rid):
+    _require_unmanaged_run(P, rid)
     if not P.store.run(int(rid)):
         raise ApiError(404, "没有这个运行")
     try:
@@ -2844,6 +2909,7 @@ def api_recover_run(P, req, rid):
 
 @route("POST", "/api/runs/<rid>/decide")
 def api_decide(P, req, rid):
+    _require_unmanaged_run(P, rid)
     run = P.store.run(int(rid))
     if not run:
         raise ApiError(404, "没有这个运行")
@@ -2856,6 +2922,7 @@ def api_decide(P, req, rid):
 @route("POST", "/api/runs/<rid>/recheck")
 def api_recheck(P, req, rid):
     """Build a finished change again without redoing it; poll GET .../recheck for the result."""
+    _require_unmanaged_run(P, rid)
     try:
         return P.flow.recheck(int(rid), req.user, wait=bool(req.body.get("wait")))
     except (ValueError, RuntimeError) as e:
@@ -2864,6 +2931,7 @@ def api_recheck(P, req, rid):
 
 @route("GET", "/api/runs/<rid>/recheck")
 def api_recheck_state(P, req, rid):
+    _require_unmanaged_run(P, rid)
     from .fixloop import verified
     r = P.store.run(int(rid))
     if not r:
@@ -2880,6 +2948,7 @@ def api_recheck_state(P, req, rid):
 
 @route("POST", "/api/runs/<rid>/recheck/recover")
 def api_recheck_recover(P, req, rid):
+    _require_unmanaged_run(P, rid)
     if not P.store.run(int(rid)):
         raise ApiError(404, "没有这个运行")
     try:

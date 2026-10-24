@@ -102,6 +102,8 @@ class Store:
         learning_schema(self)
         from .learning_runs import schema as learning_runs_schema
         learning_runs_schema(self)
+        from .learning_experiments import schema as experiment_schema
+        experiment_schema(self)
         from .handoffs import schema as handoffs_schema
         handoffs_schema(self)
         from .delivery_content import schema as delivery_content_schema
@@ -317,27 +319,41 @@ class Store:
         return self.q("SELECT * FROM events WHERE ticket_id=? ORDER BY id", (tid,))
 
     # ---- runs
+    def _create_run_in_tx(self, project_id: int, ticket_id, agent: str, mode: str, author: str, prompt: str, target: str = "",
+                          session_id=None, batch: str = "", model: str = "", retry_of=None, *, expected_root=None, reference_inputs=None) -> int:
+        """Register inside the caller's writer transaction, without committing.
+
+        Trusted callers hold self.lock and own BEGIN/rollback. This permits an
+        experimental run's visibility and budget slot to commit with the run.
+        """
+        from .project_library import require_development, bindings, _write_run_inputs
+        if not self.db.in_transaction:
+            raise RuntimeError("run registration requires the caller's transaction")
+        require_development(self, {"id": project_id})
+        project = self.project(project_id)
+        if expected_root is not None and project['root'] != expected_root:
+            raise ValueError('准备运行期间项目工作区已变化，请重新启动任务')
+        current_inputs = bindings(self, project)
+        if reference_inputs is not None and reference_inputs != current_inputs:
+            raise ValueError('参考知识在登记期间已变化，请重新启动任务')
+        if any(not value['available'] for value in current_inputs):
+            raise ValueError('参考知识授权已变化，请先处理不可用引用')
+        rid = self.db.execute("INSERT INTO runs(ticket_id,project_id,agent,mode,status,author,created,prompt,target,session_id,batch,model,retry_of) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                              (ticket_id, project_id, agent, mode, "queued", author, now(), prompt, target, session_id, batch or "", model or "", retry_of)).lastrowid
+        _write_run_inputs(self, project, rid, current_inputs)
+        return rid
+
     def create_run(self, project_id: int, ticket_id, agent: str, mode: str, author: str, prompt: str, target: str = "",
                    session_id=None, batch: str = "", model: str = "", retry_of=None, *, expected_root=None, reference_inputs=None) -> dict:
-        from .project_library import require_development, bindings, _write_run_inputs
         try:
             # Only eligibility and registration share the writer transaction.
             # Prompt preparation stays concurrent; UNIQUE retry_of still decides
             # the winner across independent Runner / Store instances.
             with self.lock, self.db:
                 self.db.execute("BEGIN IMMEDIATE")
-                require_development(self, {"id": project_id})
-                project = self.project(project_id)
-                if expected_root is not None and project['root'] != expected_root:
-                    raise ValueError('准备运行期间项目工作区已变化，请重新启动任务')
-                current_inputs = bindings(self, project)
-                if reference_inputs is not None and reference_inputs != current_inputs:
-                    raise ValueError('参考知识在登记期间已变化，请重新启动任务')
-                if any(not value['available'] for value in current_inputs):
-                    raise ValueError('参考知识授权已变化，请先处理不可用引用')
-                rid = self.db.execute("INSERT INTO runs(ticket_id,project_id,agent,mode,status,author,created,prompt,target,session_id,batch,model,retry_of) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                                      (ticket_id, project_id, agent, mode, "queued", author, now(), prompt, target, session_id, batch or "", model or "", retry_of)).lastrowid
-                _write_run_inputs(self, project, rid, current_inputs)
+                rid = self._create_run_in_tx(project_id, ticket_id, agent, mode, author, prompt, target,
+                                            session_id, batch, model, retry_of,
+                                            expected_root=expected_root, reference_inputs=reference_inputs)
         except sqlite3.IntegrityError:
             successor = self.one("SELECT id FROM runs WHERE retry_of=?", (retry_of,)) if retry_of is not None else None
             if successor:
@@ -469,7 +485,11 @@ class Store:
         by_status = {r["status"]: r["n"] for r in self.q("SELECT status, COUNT(*) n FROM tickets %s GROUP BY status" % w, a)}
         by_type = {r["type"]: r["n"] for r in self.q("SELECT type, COUNT(*) n FROM tickets %s GROUP BY type" % w, a)}
         by_pri = {r["priority"]: r["n"] for r in self.q("SELECT priority, COUNT(*) n FROM tickets %s AND status!='closed' GROUP BY priority" % (w or "WHERE 1=1"), a)}
-        runs = {r["status"]: r["n"] for r in self.q("SELECT status, COUNT(*) n FROM runs %s GROUP BY status" % w, a)}
+        from .learning_experiment_views import unmanaged_run_clause
+        with self.lock:
+            ordinary = unmanaged_run_clause(self, "r")
+            run_where = "WHERE " + ordinary + (" AND r.project_id=?" if project_id else "")
+            runs = {r["status"]: r["n"] for r in self.q("SELECT r.status, COUNT(*) n FROM runs r %s GROUP BY r.status" % run_where, a)}
         days = self.q("SELECT substr(created,1,10) d, COUNT(*) n FROM tickets %s GROUP BY d ORDER BY d DESC LIMIT 14" % w, a)
         closed = self.q("SELECT substr(updated,1,10) d, COUNT(*) n FROM tickets %s %s status='closed' GROUP BY d ORDER BY d DESC LIMIT 14"
                         % (w, "AND" if w else "WHERE"), a)

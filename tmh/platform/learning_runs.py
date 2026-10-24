@@ -148,6 +148,9 @@ def _input_description(P, p, item):
 
 def _expire_input(P, p, jid):
     """Release obsolete active jobs under the same kernel owner lock; preserve evidence."""
+    from . import learning_experiments as X
+    if X.job_owner(P.store, jid):
+        return False
     row = _decode(_row(P, p, jid))
     if row["status"] in TERMINAL or row["kind"] != "evaluate":
         return False
@@ -236,6 +239,11 @@ def _options(P, options):
 def start(P, p, kind, revision_id, options, actor, request_id, launch=True):
     from .project_library import require_development
     p = _core().project(P, p)
+    from . import learning_experiments as X
+    if isinstance(options, dict) and any(k in options for k in ("experiment_id", "managed", "managed_experiment_id")):
+        raise ApiError(409, "受管实验只能使用实验启动入口")
+    if X.managed_lookup(P.store, revision_id=revision_id):
+        raise ApiError(409, "受管修订不能通过手工评测重置实验预算")
     if kind not in ("review", "evaluate"):
         raise ValueError("未知知识运行类型")
     if not isinstance(request_id, str) or not request_id.strip() or len(request_id) > 200:
@@ -264,6 +272,7 @@ def start(P, p, kind, revision_id, options, actor, request_id, launch=True):
         opts = learning_eval.validate_options(P, p, r, opts)
     jid, instant = uuid.uuid4().hex, time.time()
     with _core().transaction(P.store) as db:
+        X.assert_unmanaged_revision_in_tx(db, p["id"], revision_id)
         old = db.execute("SELECT * FROM learning_jobs WHERE project_id=? AND request_id=?", (p["id"], request_id)).fetchone()
         if old:
             if old["request_hash"] != request_hash:
@@ -569,12 +578,18 @@ class _Worker:
 
 
 def _launch(P, p, jid):
+    from . import learning_experiments as X
+    if X.job_owner(P.store, jid):
+        raise ApiError(409, "受管实验只能由预登记实验派发")
     if _expire_input(P, p, jid):
         return
     threading.Thread(target=_work, args=(P, p, jid), name="knowledge-" + jid[:8], daemon=True).start()
 
 
 def _work(P, p, jid):
+    from . import learning_experiments as X
+    if X.job_owner(P.store, jid):
+        raise ApiError(409, "受管运行禁止通用工作者派发")
     folder = _folder(P, jid)
     folder.mkdir(parents=True, exist_ok=True)
     token = uuid.uuid4().hex
@@ -591,6 +606,7 @@ def _work(P, p, jid):
                 row = db.execute("SELECT * FROM learning_jobs WHERE id=? AND project_id=?", (jid, p["id"])).fetchone()
                 if row is None or row["status"] in TERMINAL:
                     return
+                X.assert_unmanaged_revision_in_tx(db, p["id"], row["current_revision_id"])
                 db.execute("UPDATE learning_jobs SET status='running',owner=?,lease_until=?,started=CASE WHEN started='' THEN ? ELSE started END,error='' WHERE id=?",
                            (token, time.time() + LEASE_SECONDS, now(), jid))
             worker = _Worker(P, p, jid, token)
@@ -637,6 +653,9 @@ def _work(P, p, jid):
 
 def cancel(P, p, job_id, actor):
     p = _core().project(P, p)
+    from . import learning_experiments as X
+    if X.job_owner(P.store, job_id):
+        raise ApiError(409, "受管运行请使用实验取消入口")
     with _core().transaction(P.store) as db:
         row = _row(P, p, job_id)
         if row["status"] not in TERMINAL:
@@ -647,11 +666,15 @@ def cancel(P, p, job_id, actor):
 
 def resume(P, p, job_id, actor, launch=True):
     p = _core().project(P, p)
+    from . import learning_experiments as X
+    if X.job_owner(P.store, job_id):
+        raise ApiError(409, "受管实验不能恢复或重复派发未知槽")
     if _expire_input(P, p, job_id):
         from .learning_eval import input_schema_error
         raise input_schema_error()
     with _core().transaction(P.store) as db:
         row = _row(P, p, job_id)
+        X.assert_unmanaged_revision_in_tx(db, p["id"], row["current_revision_id"])
         if row["status"] not in ("needs_resume", "queued", "running"):
             raise ValueError("已经结束的运行不能重置预算或重复执行")
         # The worker obtains the kernel lock before fencing an old owner.
@@ -663,7 +686,10 @@ def resume(P, p, job_id, actor, launch=True):
 def recover(P):
     """Resume interrupted jobs; ambiguous model calls are reconciled, never replayed."""
     ids = []
+    from . import learning_experiments as X
     for row in P.store.q("SELECT * FROM learning_jobs WHERE status IN ('queued','running')"):
+        if X.job_owner(P.store, row["id"]):
+            continue
         p = P.store.project(row["project_id"])
         if p:
             _launch(P, p, row["id"])

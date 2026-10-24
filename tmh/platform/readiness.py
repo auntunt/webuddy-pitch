@@ -46,6 +46,8 @@ def signin(text: str) -> tuple:
 
 def _agents(P) -> list:
     from .agents import available
+    from .learning_experiment_views import unmanaged_run_clause
+    ordinary = unmanaged_run_clause(P.store, "r")
     ags = available(P.data_dir)
     ok = [a for a in ags if a["available"]]
     if not ok:
@@ -53,14 +55,14 @@ def _agents(P) -> list:
                       "装好 Claude Code 或 Codex 并登录一次，再刷新这页", "#/settings")]
     out = [_item("agent", "智能体", "ok", "命令都在：" + "、".join(a["title"] for a in ok))]
     for a in ok:  # a command on the PATH is not an agent that runs: its own latest run says whether it can sign in
-        last = P.store.one("SELECT id, status, substr(output, -1200) AS output, substr(result, 1, 600) AS result FROM runs "
-                           "WHERE agent=? AND status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 1", (a["name"], INTERRUPTED))
+        last = P.store.one("SELECT id, status, substr(output, -1200) AS output, substr(result, 1, 600) AS result FROM runs r "
+                           "WHERE " + ordinary + " AND agent=? AND status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 1", (a["name"], INTERRUPTED))
         why = signin(" ".join((last.get("output") or "", last.get("result") or ""))) if last and last["status"] == "failed" else ""
         if why:
             out.append(_item("agent:" + a["name"], a["title"], "bad", "%s 跑不起来（运行 #%d）：%s" % (a["title"], last["id"], why[0]), why[1]))
     # a run the platform cut off by restarting says nothing about the agent; only the end of the log is needed
-    runs = P.store.q("SELECT status, substr(output, -400) AS output, substr(result, 1, 400) AS result, ended FROM runs "
-                     "WHERE status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 5", (INTERRUPTED,))
+    runs = P.store.q("SELECT status, substr(output, -400) AS output, substr(result, 1, 400) AS result, ended FROM runs r "
+                     "WHERE " + ordinary + " AND status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 5", (INTERRUPTED,))
     if len(runs) >= 3 and all(r["status"] == "failed" for r in runs[:3]):  # the latest three in a row: it is not one bad ticket
         tail = ((runs[0].get("output") or runs[0].get("result") or "").strip().splitlines() or [""])[-1][:160]
         out.append(_item("runs", "最近的运行", "bad", "最近 %d 次连续失败%s" % (sum(1 for _ in itertools.takewhile(lambda r: r["status"] == "failed", runs)), "，最后一次：" + tail if tail else ""),
@@ -71,7 +73,7 @@ def _agents(P) -> list:
     else:
         out.append(_item("runs", "最近的运行", "warn", "还没有跑过", "随便挑一张工单点一次“分析”，确认智能体真的能跑通"))
     cut = (datetime.now() - timedelta(hours=STUCK_H)).strftime("%Y-%m-%d %H:%M:%S")
-    stuck = P.store.q("SELECT id FROM runs WHERE status='running' AND started!='' AND started<?", (cut,))
+    stuck = P.store.q("SELECT id FROM runs r WHERE " + ordinary + " AND status='running' AND started!='' AND started<?", (cut,))
     if stuck:
         out.append(_item("stuck", "卡住的运行", "warn", "%d 个运行开始超过 %d 小时还没结束" % (len(stuck), STUCK_H), "到工单里停掉它们再重跑"))
     return out
