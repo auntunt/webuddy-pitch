@@ -70,7 +70,10 @@ def observed_guard(self):
         yield
 def server(*args, **kwargs):
     value = original(*args, **kwargs)
-    (data / 'port').write_text(str(value.server_address[1]))
+    marker = data / 'port'
+    temporary = marker.with_suffix('.tmp')
+    temporary.write_text(str(value.server_address[1]))
+    temporary.replace(marker)
     return value
 def record(self, tenant):
     value = ensure(self, tenant)

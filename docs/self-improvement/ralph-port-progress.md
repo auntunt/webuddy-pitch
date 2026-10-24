@@ -15,7 +15,7 @@
 - 发布工具对抗补强：原检查仅比较报告自称expected，缺固定oracle与任务槽交叉绑定。保留原工具字节并实际证明4类错放行，新工具4类拒绝且正常正控保持；完整工具验证仍进行。Registry合成夹具45应用表另含sqlite_sequence，前两轮计数失败保留，生产56业务/11控制门槛保持，不将工具夹具误配称产品缺陷。
 - 精确 dc35e9b 首轮双端全量否决：Mac **2082项、20skip、2failure/74error（含子例）、574.915s、exit1**，461文件保持、日志SHA `853d1ebc53e323c3adb98f90a61fdf18ef6ed94cd8bc481662cf99e8f3da4756`；Linux **2082项、18skip、1failure/75error（含子例）、894.362s、外层exit1**，461文件保持、日志SHA `5de5e5bf3f69ee700d6e529919237ae9fe16ba0ada8ccbb72f1d72127a3a124c`。原失败/临时现场保持，Linux4份完整记录220421字节已读回；没有push/SDK冒称/激活。
 - 三类测试兼容窄修：预览URL原端口数字误撞完整Git SHA，保留完整URL/path断言，改核真实scheme/authority/port并加四固定正反控，旧语义正控准确红、修后15/15；旧知识API mock未登记job，补真实行、原19方法断言AST保持，加真实登记与缺行404，组合40/40；tool leaf夹具补完整身份与重入授权上下文，原99断言及旧测试方法保持。只读检查仅补index_list/index_info元数据，不泛开PRAGMA，并用四类真正写入证明仍拒绝；初始化前预载搜索代码，仍禁业务写文件/进程/网络。最终tool/history/真实gateway/DTO **57/57，0skip，exit0，14.844s**，日志SHA `e041ed23cd0990d06e4f2055b673eb758cce8ac2c181e44d355934ad4a7bd812`。中间55失败、57中1个新增夹具字典行取值error均保留，不改产品代码。
-- Linux另现原父进程测试端口标记空文件：setUp在write_text创建目标后、写入前读到空串，原现场保留；正在做原子发布及确定性屏障修复，不放宽原时限/锁断言。新精确候选双端全量仍待。
+- Linux父进程夹具端口发布已窄修：原traceback确读到空串，远端17成员现场仍保留（复制时port已5字节），不能声称原空字节被保存。新socketpair屏障对精确旧server()确定1个断言红灯、0error，实际保存写入前空目标；写完同目录port.tmp再replace后通过。只改共享_GATEWAY发布，不改原类/函数、5秒等待、真实父丢失/锁/三代回收断言。提前注册socket清理覆盖Popen失败；根最终源码10轮屏障+原5项 **15/15、0skip、5.071s、实际exit0**，13源码保持、30跟踪PID不运行、25临时路径移除。证据 `分析/RSI协调/rsi2-implementation-9947f2a/port-publication-compatibility/root-final-r3/`；发现 **2091项、0加载错误**。产品源码不变，独立提交测试修复后重新精确双端全量，不沿用dc35失败包。
 - 合理边界：四张新实验表将单独验证迁移；旧56业务表及11控制表全部原值/schema保持。新租户无OS执行隔离仍不能启动；允许登记不能冒称允许执行。Windows/POSIX网关、真实终测隔离、成本/token计量和生产输入同构尚未解决，不能以合成实验替代。待确认：无需要用户回复的当前阻塞。
 
 
