@@ -204,6 +204,9 @@ class Ledger:
                 if old["contract_hash"] != digest(c):
                     raise Conflict("same root family cannot refresh contract or budget")
                 return key
+            dangling = db.execute("SELECT 1 FROM rsi_prepare_events WHERE pool=? UNION SELECT 1 FROM rsi_prepare_attempts WHERE pool=? UNION SELECT 1 FROM rsi_prepare_holdouts WHERE pool=? LIMIT 1", (key, key, key)).fetchone()
+            if dangling:
+                raise Conflict("missing pool with original history cannot be recreated")
             now = self._time()
             if now >= c["limits"]["deadline_us"]:
                 raise Conflict("original deadline expired")

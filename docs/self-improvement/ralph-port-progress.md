@@ -7,6 +7,8 @@
 - 新回归先在原c637核心字节得到 **6项/3通过/3断言失败/0error、actual1**，真实DB/合同/前后表/完整备份与原源码、日志均持久保留于仓库外 `分析/RSI协调/preparation-integrity-fix-20261025/red-fixtures/`。修后新增历史重复投影拒派发正负控，**7/7 actual0**；首轮备份夹具sqlite连接未显式关闭的资源警告保留并修夹具close，不抑制警告。最终 `python3 -m unittest discover -s tests -p 'test_rsi_trial*.py' -v` **32/32、0skip/失败/错误、unittest4.248s/外层4.361s、actual0**，日志SHA `3b401b76df919fbb0739a220d4ca690af162b50f7227b5a220fde3923c548e28`。
 - 两份原独立诊断脚本逐字未改，在新外置candidate仅替换受测源码位置重放，六套持久DB观察全部符合修后预期；原脚本以“旧漏洞仍可复现”为成功条件，因此末尾旧漏洞断言各exit1，不冒称脚本exit0。新的正常回归32项真实exit0。原审查目录与反例DB不覆盖；不改旧断言、保护模块或生产运行文件。顺带将B/C选择澄清为终测判定、opaque ID描述澄清为首尾空白拒绝及精确字符串比较，不声称自动语义去重。
 
+- 同类边界补强：自查发现create在pool丢失但原事件仍存时也可能返回新建成功（后续入口会拒绝，但不应确认重建）。新增持久回归先 **1项/1断言失败/actual1**；登记前核原events/attempts/claims，拒绝重建有历史的缺池，不自动补账。原红库及源码保留于 `preparation-integrity-fix-20261025/recreate-red-fixtures/`。修后完整一致性回归 **8/8 actual0**，最终相关及471文件隔离导出各 **84/84 actual0**；日志SHA `d93b0ad78342fe0672b6a7cc4e5ae1347810ab1d774dbbe400db4d8fa67b8920` / `d19cf370f4bd9bbec2fd3aba4ed37122c226d67490cea2318884cbd6d54f1f7c`，最终准备模块SHA `6bb28d8ab9074dafbe4d82960c2b2762b47330d6386dce15c111f7a3d09f6211`。不改Linux探针e502源码或原保护模块，不归因旧6ed全量；最后生产实测仍06:22:47的215文件/原服务状态。
+
 ## 2026-10-25：供应方能力与Linux身份隔离准备
 
 - 当前项：真实provider能力取证/Linux隔离探针；状态：done（S1适配仍缺实际配置/可信价格；专用OS身份及生产入口仍todo）。开工HEAD c6376be、工作区干净；评分v2 SHA `a5b86ae9b289062d1b76bc41ee76f08304afaf4a08ccb70a7b8f4980f01548e7` 已核，叶项dependencies为空、gate_membership仅归属，无循环；共同标准于06:07:09经联合可实施性/独立review后冻结（记录SHA `f3a81e7ec868607b61bd1476ea8b5fb935ee136d97ac9ff2a71dc1672e1867c6`）；run/pilot未冻结，实际分null。模型测试人类授权已由原消息核实，先重读生产access记忆、0600/公钥指纹及StrictHostKeyChecking，不输出凭据。

@@ -54,6 +54,11 @@ class TrialIntegrityTests(unittest.TestCase):
         with self.assertRaises(M.Conflict):self.ledger.consume_holdout(other)
         self.assertEqual(self.snapshot('after-retry'),before)
 
+    def test_missing_pool_with_original_history_cannot_be_recreated(self):
+        self.orphan();before=self.snapshot('before-recreate')
+        with self.assertRaises(M.Conflict):self.ledger.create(self.c)
+        self.assertEqual(self.snapshot('after-recreate'),before)
+
     def test_known_orphan_other_scope_does_not_block_unrelated_consumption(self):
         self.orphan();c=copy.deepcopy(self.c);c['root_family']='other-scope';c['project_id']=2
         other=self.ledger.create(c)
