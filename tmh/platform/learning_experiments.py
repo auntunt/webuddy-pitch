@@ -131,17 +131,28 @@ def schema_state(value):
             actual = re.sub(r"\s+", "", indexes.get(match[1]) or "").lower()
             if actual != expected:
                 raise ApiError(409, "实验账本索引定义与冻结约束不符")
+    primary_keys = {
+        TABLES[0]: ("id",), TABLES[1]: ("experiment_id", "id"),
+        TABLES[2]: ("experiment_id", "id"), TABLES[3]: ("experiment_id", "seq"),
+    }
+    # Table constraints apply to every row. The separately checked named
+    # partial indexes cannot substitute for a lost PRIMARY KEY or UNIQUE.
     required = {
-        TABLES[0]: {("id",), ("tenant_id", "project_id", "creator", "request_id"), ("job_id",)},
+        TABLES[0]: {("id",), ("tenant_id", "project_id", "creator", "request_id")},
         TABLES[1]: {("experiment_id", "id")},
-        TABLES[2]: {("experiment_id", "id"), ("experiment_id", "ordinal"), ("job_id", "step_role"), ("run_id",), ("dispatch_id",)},
-        TABLES[3]: {("experiment_id", "seq"), ("experiment_id", "actor", "request_id")},
+        TABLES[2]: {("experiment_id", "id"), ("experiment_id", "ordinal"), ("job_id", "step_role")},
+        TABLES[3]: {("experiment_id", "seq")},
     }
     for table, expected in required.items():
+        primary = sorted((r for r in db.execute("PRAGMA table_info(" + table + ")") if r["pk"]),
+                         key=lambda r: r["pk"])
+        if tuple(r["name"] for r in primary) != primary_keys[table]:
+            raise ApiError(409, "实验账本主键定义不可核验")
         actual = set()
         for idx in db.execute("PRAGMA index_list(" + table + ")"):
-            if idx["unique"]:
-                actual.add(tuple(c["name"] for c in db.execute("PRAGMA index_info(" + idx["name"] + ")")))
+            if idx["unique"] and not idx["partial"]:
+                name = idx["name"].replace('"', '""')
+                actual.add(tuple(c["name"] for c in db.execute('PRAGMA index_info("' + name + '")')))
         if not expected <= actual:
             raise ApiError(409, "实验账本唯一约束不可核验")
     return "ready"
@@ -358,7 +369,7 @@ def create_draft(P, p, body, actor, request_id):
             if exp["request_hash"] != request_hash:
                 raise ApiError(409, "请求编号已用于不同实验草稿")
             return _receipt(exp, True, action="create", request_id=request_id)
-        assert_unmanaged_revision_in_tx(db, p["id"], body["candidate_revision_id"])
+        assert_new_budget_in_tx(db, p["id"], body["candidate_revision_id"])
         principals = _roles(P, p, [actor, body["curator"], body["optimizer"], body["selector"]])
         contract, assets = _material(P, p, body, actor, principals)
         eid = uuid.uuid4().hex
@@ -470,7 +481,7 @@ def seal(P, p, eid, expected_hash, actor, request_id):
             return _receipt(exp, True, action="seal", request_id=request_id)
         if exp["state"] != "draft" or expected_hash != exp["contract_hash"]:
             raise ApiError(409, "实验草稿已变化或已封存")
-        assert_unmanaged_revision_in_tx(db, p["id"], exp["contract"]["candidate_revision_id"])
+        assert_new_budget_in_tx(db, p["id"], exp["contract"]["candidate_revision_id"])
         _assert_no_active_manual_overlap(db, p["id"], exp["contract"]["candidate_revision_id"])
         material_current(P, p, exp)
         contract = exp["contract"]
@@ -686,6 +697,35 @@ def assert_unmanaged_revision_in_tx(db, project_id, revision_id):
         raise ApiError(409, "受管修订项目归属矛盾")
     if owners:
         raise ApiError(409, "受管修订不能另起手工候选或评测绕过实验账本")
+
+
+def assert_new_budget_in_tx(db, project_id, revision_id):
+    """A new budget cannot reuse either direction of a sealed parent chain.
+
+    This is an admission guard, not historical ownership. A common ancestor
+    alone does not couple siblings or hide an earlier ordinary job receipt.
+    """
+    _require_tx(db)
+    assert_unmanaged_revision_in_tx(db, project_id, revision_id)
+    if schema_state(db) != "ready":
+        return
+    revision = db.execute("SELECT project_id FROM learning_revisions WHERE id=?", (revision_id,)).fetchone()
+    if revision is None or revision["project_id"] != project_id:
+        raise ApiError(404, "没有这个项目的知识修订")
+    ancestors = _declared_ancestors(db, project_id, revision_id)
+    for row in db.execute("SELECT id,contract FROM learning_experiments WHERE project_id=? AND sealed!=''", (project_id,)):
+        try:
+            candidate = json.loads(row["contract"])["candidate_revision_id"]
+            if not isinstance(candidate, str) or not candidate:
+                raise ValueError("missing sealed candidate")
+        except (ValueError, KeyError, TypeError) as exc:
+            raise ApiError(409, "封存预算的候选谱系不可核验") from exc
+        prior = _declared_ancestors(db, project_id, candidate)
+        if candidate in ancestors or revision_id in prior:
+            owners = managed_lookup(db, revision_id=candidate)
+            if not any(owner["experiment_id"] == row["id"] for owner in owners):
+                raise ApiError(409, "封存预算的候选归属不可核验")
+            raise ApiError(409, "同一修订或显式祖先/后代已有封存预算，不能另起预算")
 
 
 def assert_adoptable_in_tx(db, project_id, revision_id, report_binding=None):

@@ -92,13 +92,34 @@ def _bound(exp, p, who):
     return exp
 
 
+def _preparation_anchors(exp, events):
+    """Bind read visibility to the original preparation events, without live I/O."""
+    anchors = {kind: [event for event in events if event["kind"] == kind]
+               for kind in ("create", "seal")}
+    if len(anchors["create"]) != 1 or len(anchors["seal"]) != bool(exp["sealed"]):
+        raise ApiError(409, "实验独立创建或封存锚缺失或重复")
+    created = anchors["create"][0]
+    if not events or events[0] is not created or type(created["seq"]) is not int or created["seq"] != 1:
+        raise ApiError(409, "实验首次创建锚顺序不可核验")
+    for kind in ("create", "seal"):
+        for event in anchors[kind]:
+            payload = event["payload"]
+            if (not isinstance(payload, dict) or not isinstance(payload.get("contract_hash"), str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", payload["contract_hash"])
+                    or payload["contract_hash"] != exp["contract_hash"]):
+                raise ApiError(409, "实验当前合同与独立准备锚不一致")
+            if kind == "seal" and (type(event["seq"]) is not int or event["seq"] <= created["seq"]):
+                raise ApiError(409, "实验封存锚顺序不可核验")
+
+
 def _load(P, p, eid, who):
     exp = _bound(X.get_internal(P, p, eid), p, who)
+    events = [dict(row, payload=_json(row["payload"])) for row in P.store.q(
+        "SELECT * FROM learning_experiment_events WHERE experiment_id=? ORDER BY seq", (eid,))]
+    _preparation_anchors(exp, events)
     assets = X.assets_in_tx(P.store.db, eid)
     if {a["id"]: a["content_hash"] for a in assets} != exp["contract"].get("asset_commitments"):
         raise ApiError(409, "实验资产与冻结合同不一致")
-    events = [dict(row, payload=_json(row["payload"])) for row in P.store.q(
-        "SELECT * FROM learning_experiment_events WHERE experiment_id=? ORDER BY seq", (eid,))]
     slots = [dict(row) for row in P.store.q(
         "SELECT * FROM learning_experiment_slots WHERE experiment_id=? ORDER BY ordinal", (eid,))]
     if exp["sealed"] and len(slots) != exp["contract"]["max_calls"]:

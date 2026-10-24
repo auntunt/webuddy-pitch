@@ -254,12 +254,17 @@ def start(P, p, kind, revision_id, options, actor, request_id, launch=True):
     if old:
         if old["request_hash"] != request_hash:
             raise ValueError("请求编号已用于不同的知识运行")
+        if old["status"] not in TERMINAL:
+            with _core().transaction(P.store) as db:
+                X.assert_new_budget_in_tx(db, p["id"], old["current_revision_id"])
         if old["status"] == "queued":
             _expire_input(P, p, old["id"])
             old = P.store.one("SELECT * FROM learning_jobs WHERE id=?", (old["id"],))
         if launch and old["status"] == "queued":
             _launch(P, p, old["id"])
         return get(P, p, old["id"])
+    with _core().transaction(P.store) as db:
+        X.assert_new_budget_in_tx(db, p["id"], revision_id)
     require_development(P.store, p)
     r = _core().revision(P, p, revision_id)
     if kind == "review" and r["kind"] != "fact":
@@ -272,13 +277,15 @@ def start(P, p, kind, revision_id, options, actor, request_id, launch=True):
         opts = learning_eval.validate_options(P, p, r, opts)
     jid, instant = uuid.uuid4().hex, time.time()
     with _core().transaction(P.store) as db:
-        X.assert_unmanaged_revision_in_tx(db, p["id"], revision_id)
         old = db.execute("SELECT * FROM learning_jobs WHERE project_id=? AND request_id=?", (p["id"], request_id)).fetchone()
         if old:
             if old["request_hash"] != request_hash:
                 raise ValueError("请求编号已用于不同的知识运行")
+            if old["status"] not in TERMINAL:
+                X.assert_new_budget_in_tx(db, p["id"], old["current_revision_id"])
             jid = old["id"]
         else:
+            X.assert_new_budget_in_tx(db, p["id"], revision_id)
             require_development(P.store, p)
             if not _core().revision_current(P, p, r):
                 raise ValueError("正文、来源或授权已变化，请重新固定版本")
@@ -410,8 +417,13 @@ class _Worker:
         self.initial_remaining = max(0.0, _row(P, p, jid)["deadline"] - time.time())
 
     def job(self):
+        from . import learning_experiments as X
         with _core().transaction(self.P.store) as db:
             row = _owned(db, self.jid, self.token)
+            try:
+                X.assert_new_budget_in_tx(db, self.p["id"], row["current_revision_id"])
+            except ApiError as exc:
+                raise _Stopped("stale", str(exc)) from exc
         item = _decode(row)
         if time.monotonic() - self.begin >= self.initial_remaining:
             raise _Stopped("timed_out", "知识运行已达到冻结的总时限")
@@ -606,7 +618,7 @@ def _work(P, p, jid):
                 row = db.execute("SELECT * FROM learning_jobs WHERE id=? AND project_id=?", (jid, p["id"])).fetchone()
                 if row is None or row["status"] in TERMINAL:
                     return
-                X.assert_unmanaged_revision_in_tx(db, p["id"], row["current_revision_id"])
+                X.assert_new_budget_in_tx(db, p["id"], row["current_revision_id"])
                 db.execute("UPDATE learning_jobs SET status='running',owner=?,lease_until=?,started=CASE WHEN started='' THEN ? ELSE started END,error='' WHERE id=?",
                            (token, time.time() + LEASE_SECONDS, now(), jid))
             worker = _Worker(P, p, jid, token)
@@ -674,7 +686,7 @@ def resume(P, p, job_id, actor, launch=True):
         raise input_schema_error()
     with _core().transaction(P.store) as db:
         row = _row(P, p, job_id)
-        X.assert_unmanaged_revision_in_tx(db, p["id"], row["current_revision_id"])
+        X.assert_new_budget_in_tx(db, p["id"], row["current_revision_id"])
         if row["status"] not in ("needs_resume", "queued", "running"):
             raise ValueError("已经结束的运行不能重置预算或重复执行")
         # The worker obtains the kernel lock before fencing an old owner.
