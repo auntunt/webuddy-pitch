@@ -12,7 +12,7 @@ const localStorage=accessStorage(ACCESS_RAW_LOCAL),sessionStorage=accessStorage(
 function accessClearStorage(){if(!ACCESS.base||!ACCESS.ready)return;const prefix=accessStoragePrefix();for(const raw of [ACCESS_RAW_LOCAL,ACCESS_RAW_SESSION]){try{for(let i=raw.length-1;i>=0;i--){const key=raw.key(i);if(key?.startsWith(prefix))raw.removeItem(key)}}catch(error){}}}
 function accessError(message,code='context_changed'){return Object.assign(new Error(message),{api:1,access:true,code})}
 function accessLock(message,code='context_changed'){
- if(ACCESS.blocked)return;ACCESS.blocked=true;ACCESS.epoch++;for(const controller of ACCESS.inflight)controller.abort();ACCESS.inflight.clear();clearInterval(ACCESS.watch);accessClearStorage();
+ if(ACCESS.blocked)return;ACCESS.blocked=true;ACCESS.epoch++;for(const controller of ACCESS.inflight)controller.abort();ACCESS.inflight.clear();clearInterval(ACCESS.watch);if(typeof lessonDecisionsClear==='function')lessonDecisionsClear();accessClearStorage();
  if(typeof S!=='undefined'){for(const key of ['cur','kbTree','logs','runItems','inbox','loop','rf','learn','commentDraftView','ticketRefresh'])S[key]=null;S.projects=[];S.commentDrafts?.clear();S.rt=(S.rt||0)+1}
  if(typeof COORD!=='undefined'){COORD.views.clear();COORD.drafts.clear();COORD.pending.clear()}if(typeof HANDOFFS!=='undefined'){HANDOFFS.view=null;HANDOFFS.drafts.clear();HANDOFFS.pending.clear()}if(typeof LIB!=='undefined'){LIB.view=null;LIB.drafts.clear();LIB.pending.clear()}if(typeof WS!=='undefined'){WS.page=null;WS.selected='';WS.read++}if(typeof DL!=='undefined'){DL.data=null;DL.detail=null;DL.catalog=null}if(typeof MEM!=='undefined'){MEM.view=null;MEM.sequence++}if(typeof LEARNING!=='undefined'){LEARNING.view=null;LEARNING.sequence++;LEARNING.requests.clear();LEARNING.pending.clear()}if(typeof AT!=='undefined'){AT.d=null;AT.N={};AT.E=[];AT.adj={}}if(typeof teamState!=='undefined'){teamState.data=null;teamState.dialog=null;teamState.generation++;teamState.requests.clear()}ACCESS.restoredAdmin=null;if(ACCESS.view){ACCESS.view.drafts={};ACCESS.view.directories?.clear();ACCESS.view.pending=null;ACCESS.view.data=null;ACCESS.view=null}
  if(typeof stopPolls==='function')stopPolls();if(typeof A!=='undefined'){clearTimeout(A.timer);clearTimeout(A.wall);A.msgs=[];A.list=[];A.matters=[];A.q='';A.offer=null;A.view=null;A.running={};A.sess=null;A.pending=null}clearTimeout(window._inPoll);
@@ -22,6 +22,7 @@ function accessLock(message,code='context_changed'){
 }
 function accessBind(meta){
  const a=meta.access;if(!ACCESS.base){ACCESS.ready=true;return}if(!a?.tenant?.id||typeof a.context_token!=='string'||!a.context_token||typeof a.user!=='string'||!a.user||ACCESS.base!=='/t/'+a.tenant.id)throw accessError('无法确认当前租户身份，请重新登录。');
+ if(ACCESS.ready&&(ACCESS.user!==a.user||ACCESS.tenant?.id!==a.tenant.id||ACCESS.token!==a.context_token)&&typeof lessonDecisionsClear==='function')lessonDecisionsClear();
  ACCESS.token=a.context_token;ACCESS.user=a.user;ACCESS.tenant=a.tenant;ACCESS.ready=true;
 }
 function accessControlOnly(){const a=S.meta?.access;return !!(a&&(a.capabilities?.read===false||a.tenant?.status==='disabled'))}
@@ -50,6 +51,7 @@ function accessSwitch(id){
  if(ACCESS.view&&Object.values(ACCESS.view.drafts||{}).some(draft=>draft.password)){toast('密码不会保存为草稿。请先完成当前操作或清空密码输入后切换租户。',6000);accessPaintTenant();return}
  if(ACCESS.view?.pending){toast('管理请求结果尚未确认，请先用原请求核对结果。',6000);accessPaintTenant();return}
  try{accessSaveMemoryDrafts()}catch(error){toast('草稿未能保存，尚未切换租户。请先复制当前输入。',6000);accessPaintTenant();return}
+ if(typeof lessonDecisionsClear==='function')lessonDecisionsClear();
  ACCESS.blocked=true;ACCESS.epoch++;for(const controller of ACCESS.inflight)controller.abort();stopPolls();clearInterval(ACCESS.watch);document.body.innerHTML='<main class="access-locked"><h1>正在切换租户</h1><p>正在读取所选租户的独立工作空间。</p></main>';location.assign(target);
 }
 async function accessCheck(){

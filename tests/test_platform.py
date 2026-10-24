@@ -1250,6 +1250,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
     def test_acceptance_teaches_and_grows_the_eval_set(self):
         from tmh.platform import learn
         from tmh.platform.agents import build_prompt
+        self.personal_session("lesson-reviewer")
         self.team()
         try:
             # passed, but a person had to add a commit on top of the automatic one: a lesson, and an eval case
@@ -1280,15 +1281,15 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             lid = ls[0]["id"]
             self.assertEqual(learn.lesson(self.data, lid)["stats"]["used"], 1)  # two prompts before a verdict count once
             # people look after the cards: a reason is needed to take one out, and then it stays out of prompts
-            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "retire"})
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "retire", "expected_token": learn.revision_token(self.data, lid), "request_id": "retire-missing-reason"}, headers={"X-Webuddy-Lesson-Actor": "lesson-reviewer"})
             self.assertEqual(code, 400, r)
-            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "retire", "why": "事务问题已统一修掉"})
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "retire", "why": "事务问题已统一修掉", "expected_token": learn.revision_token(self.data, lid), "request_id": "retire-card"}, headers={"X-Webuddy-Lesson-Actor": "lesson-reviewer"})
             self.assertEqual((code, r["status"]), (200, "retired"), r)
             self.assertNotIn("以往的经验", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
-            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "restore", "fields": {"cause": "刷新在事务提交前执行"}})
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "restore", "fields": {"cause": "刷新在事务提交前执行"}, "reason": "新场景已重新核对", "expected_token": learn.revision_token(self.data, lid), "request_id": "restore-card"}, headers={"X-Webuddy-Lesson-Actor": "lesson-reviewer"})
             self.assertEqual((code, r["status"], r["cause"]), (200, "active", "刷新在事务提交前执行"), r)
             self.assertIn("根因：刷新在事务提交前执行", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
-            self.assertEqual(self.call("POST", "/api/projects/OA/lessons/L999", {"action": "confirm"})[0], 404)
+            self.assertEqual(self.call("POST", "/api/projects/OA/lessons/L999", {"action": "confirm", "expected_token": "0" * 64, "request_id": "missing-card"}, headers={"X-Webuddy-Lesson-Actor": "lesson-reviewer"})[0], 404)
             _, d = self.call("GET", "/api/projects/OA/learn")
             self.assertEqual(d["lesson_summary"]["active"], len([x for x in d["lessons"] if x["status"] == "active"]))
 

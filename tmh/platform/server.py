@@ -988,6 +988,25 @@ def _human_action(P, req, ticket=None, strict=False):
     return actor or req.user
 
 
+def _lesson_human_actor(P, req):
+    """Bind the reviewed identity; the header never authenticates its sender."""
+    actor = _human_action(P, req, strict=True)
+    expected = req.h.headers.get("X-Webuddy-Lesson-Actor", "")
+    try:
+        if not expected or re.search(r"%(?![0-9a-fA-F]{2})", expected):
+            raise ValueError("missing or malformed identity binding")
+        expected = unquote(expected, encoding="utf-8", errors="strict")
+    except (ValueError, UnicodeError):
+        error = ApiError(400, "人工决定必须绑定阅读时的个人身份，请重新打开经验卡片")
+        error.reason = "invalid_lesson_decision"
+        raise error
+    if expected != actor:
+        error = ApiError(409, "当前登录身份与阅读经验时不同，本次决定未写入，请重新登录并阅读")
+        error.reason = "lesson_identity_changed"
+        raise error
+    return actor
+
+
 @route("GET", "/api/workspace")
 def api_workspace(P, req):
     from . import workspace
@@ -1103,7 +1122,9 @@ def api_memory_brief(P, req):
 @route("POST", "/api/memory")
 def api_memory_action(P, req):
     from . import memory
-    return memory.dispatch_action(P, req.body, _human_action(P, req))
+    action = req.body.get("action") if isinstance(req.body, dict) else None
+    actor = _lesson_human_actor(P, req) if action in ("lesson_edit", "lesson_confirm", "lesson_restore", "lesson_retire") else _human_action(P, req, strict=True)
+    return memory.dispatch_action(P, req.body, actor)
 
 
 @route("GET", "/api/learning")
@@ -2056,7 +2077,12 @@ def api_learn(P, req, key):
     al = [{"key": t["key"], "title": t["title"], "status": t["status"], "priority": t["priority"], "created": t["created"],
            "count": t["links"]["alert"].get("count", 1), "source": t["links"]["alert"].get("source", "")}
           for t in P.store.tickets(project_id=p["id"], limit=2000) if (t.get("links") or {}).get("alert")][:30]
-    ls = learn.lessons(P.data_dir, p["key"], 500)
+    from .memory import lesson_api_error
+    try:
+        snapshots = learn.lesson_snapshots(P.data_dir, p["key"], 500)
+    except learn.LessonDecisionError as exc:
+        raise lesson_api_error(exc) from exc
+    ls = [{**snapshot["card"], "snapshot": snapshot} for snapshot in snapshots]
     return {"lessons": ls[:80], "lesson_summary": learn.summary(ls), "shared_in": learn.shared(P.data_dir, p["key"])[:40], "cases": learn.cases(P.data_dir, p["key"]),
             "batches": learn.batches(P.data_dir, p["key"]), "running": learn.RUNNING.get(p["key"], ""),
             "alerts": dict(alerts.status(P.data_dir, p["key"]), tickets=al), "refix": P.flow.autoflow().get("refix"),
@@ -2080,6 +2106,18 @@ def api_learn_holdout(P, req):
     return {"holdout": learn.holdout_rate(P.data_dir)}
 
 
+@route("GET", "/api/projects/<key>/lessons/<lid>")
+def api_lesson_snapshot(P, req, key, lid):
+    """Read one authorized project card and its version from the same material."""
+    from . import learn
+    from .memory import lesson_api_error
+    p = P.project(key)
+    try:
+        return learn.lesson_snapshot(P.data_dir, p["key"], lid)
+    except learn.LessonDecisionError as exc:
+        raise lesson_api_error(exc) from exc
+
+
 @route("GET", "/api/projects/<key>/lessons/<lid>/share")
 def api_lesson_share_preview(P, req, key, lid):
     """What would go out if this card were shared: the redacted text, for the person to read and edit first."""
@@ -2093,38 +2131,37 @@ def api_lesson_share_preview(P, req, key, lid):
 
 @route("POST", "/api/projects/<key>/lessons/<lid>")
 def api_lesson(P, req, key, lid):
-    """A person looks after the experience cards: confirm a draft, edit it, take it out of the prompts or put it back."""
-    from . import learn
+    """A personal decision binds a complete version; sharing keeps its policy."""
+    from . import learn, memory
+    actor = _human_action(P, req, strict=True)
     p, b = P.project(key), req.body
-    cur = learn.lesson(P.data_dir, lid)
-    act = b.get("action") or ""
-    if act in ("take", "untake"):  # a card another project shared: whether this project's prompts may carry it
-        try:
-            return learn.take_shared(P.data_dir, lid, p["key"], act == "take", req.user)
-        except ValueError as e:
-            raise ApiError(404, str(e))
-    if not cur or cur.get("project") != p["key"]:
-        raise ApiError(404, "没有这条经验")
+    if not isinstance(b, dict):
+        raise ApiError(400, "操作需要 JSON 对象")
+    act = b.get("action", "")
+    if act == "" and "fields" in b:
+        act = "edit"
+    if act in ("confirm", "restore", "retire", "edit"):
+        actor = _lesson_human_actor(P, req)
+        return memory.lesson_decision(P, p["key"], lid, actor, act, b)
+    if act not in ("share", "unshare", "take", "untake"):
+        error = ApiError(400, "action 只能是 confirm、restore、retire、edit、share、unshare、take、untake")
+        error.reason = "invalid_lesson_decision"
+        raise error
     try:
+        if act in ("take", "untake"):
+            return learn.take_shared(P.data_dir, lid, p["key"], act == "take", actor)
+        cur = learn.lesson(P.data_dir, lid)
+        if not cur or cur.get("project") != p["key"]:
+            raise ApiError(404, "没有这条经验")
         if b.get("fields") and not isinstance(b["fields"], dict):
             raise ValueError("fields 要是 {字段: 内容}")
         if not isinstance(b.get("title") or "", str) or not isinstance(b.get("why") or "", str):
             raise ValueError("title、why 要是文字")
-        if b.get("fields") and b.get("action") not in ("share", "unshare"):
-            cur = learn.edit_lesson(P.data_dir, lid, b["fields"], req.user)
-        if act in ("share", "unshare"):  # to the other projects on this platform: the redacted copy the person read
-            return learn.set_shared(P.data_dir, lid, act == "share", req.user, b.get("title") or "", b.get("fields") if isinstance(b.get("fields"), dict) else {},
-                                    b.get("why") or "", [p["key"], p.get("name", "")])
-        if act:
-            st = {"confirm": "active", "restore": "active", "retire": "retired"}.get(act)
-            if not st:
-                raise ValueError("action 只能是 confirm、restore、retire、share、unshare、take、untake")
-            if act == "retire" and not (b.get("why") or "").strip():
-                raise ValueError("停用要写原因")
-            cur = learn.set_status(P.data_dir, lid, st, req.user, b.get("why") or {"confirm": "确认入库", "restore": "恢复使用"}.get(act, ""))
-    except ValueError as e:
-        raise ApiError(400, str(e))
-    return cur
+        return learn.set_shared(P.data_dir, lid, act == "share", actor, b.get("title") or "",
+                                b.get("fields") if isinstance(b.get("fields"), dict) else {},
+                                b.get("why") or "", [p["key"], p.get("name", "")])
+    except ValueError as exc:
+        raise ApiError(404 if act in ("take", "untake") else 400, str(exc)) from exc
 
 
 @route("POST", "/api/projects/<key>/evals/run")
@@ -3493,7 +3530,7 @@ def make_handler(P: Platform, token: str = ""):
                         res = fn(P, Req(self, q, body, user[:40]), **{k: unquote(v) for k, v in m.groupdict().items()})
                         return self._json(200, res)
                     except ApiError as e:
-                        return self._json(e.code, {"error": str(e)})
+                        return self._json(e.code, {"error": str(e), **({"code": e.reason} if getattr(e, "reason", "") else {})})
                     except FileNotFoundError as e:
                         return self._json(404, {"error": str(e)})
                     except Exception as e:  # noqa: BLE001 - report, keep serving

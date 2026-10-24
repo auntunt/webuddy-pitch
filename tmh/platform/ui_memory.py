@@ -6,12 +6,110 @@ MEMORY_CSS = r"""
 
 """
 
-MEMORY_JS = r"""
+LESSON_DECISION_JS = r"""
+// Both lesson screens share the same original intent and receipt protocol.
+const LESSON_DECISIONS={views:new Set(),pending:new Map(),drafts:new Map(),identity:'',epoch:0,storageError:''};
+const lessonStorageKey='tmh.lesson-decisions.v1';
+const lessonStorageName=(identity=lessonIdentity())=>lessonStorageKey+':'+identity;
+const lessonFields=['symptom','cause','fix','verify','anti'];
+const lessonDerived=new Set(['status','stats','abroad','history','shared','taken','active_revision','flags']);
+const lessonClone=value=>JSON.parse(JSON.stringify(value));
+const lessonCanonical=value=>JSON.stringify((function sort(v){return Array.isArray(v)?v.map(sort):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,sort(v[k])])):v})(value));
+const lessonEqual=(a,b)=>lessonCanonical(a)===lessonCanonical(b);
+const lessonContent=card=>Object.fromEntries(Object.entries(card).filter(([key])=>!lessonDerived.has(key)));
+const lessonHex=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+function lessonIdentity(){const a=typeof ACCESS==='undefined'?null:ACCESS;return JSON.stringify([a?.base||'',a?.base?a.user||'':S.meta?.operator_authenticated?S.meta.user||'':''])}
+function lessonContext(){const a=typeof ACCESS==='undefined'?null:ACCESS;return {identity:lessonIdentity(),epoch:a?.epoch||0,generation:LESSON_DECISIONS.epoch}}
+function lessonContextCurrent(c){const a=typeof ACCESS==='undefined'?null:ACCESS;return !a?.blocked&&(!a?.base||a.ready)&&c.identity===lessonIdentity()&&c.epoch===(a?.epoch||0)&&c.generation===LESSON_DECISIONS.epoch}
+function lessonSnapshot(s,project,id){return !!(s&&s.schema===1&&s.project===project&&s.lesson_id===id&&s.card&&typeof s.card==='object'&&!Array.isArray(s.card)&&s.card.project===project&&s.card.id===id&&['candidate','active','retired','probation'].includes(s.card.status)&&lessonHex(s.expected_token)&&lessonHex(s.content_digest))}
+function lessonDecisionsClear(clearStorage=true){
+ const storage=lessonStorageName(LESSON_DECISIONS.identity||lessonIdentity());LESSON_DECISIONS.epoch++;for(const c of LESSON_DECISIONS.views){if(c.root?.isConnected)c.root.innerHTML='';c.snapshot=null;c.review=null}LESSON_DECISIONS.views.clear();LESSON_DECISIONS.pending.clear();LESSON_DECISIONS.drafts.clear();LESSON_DECISIONS.identity='';LESSON_DECISIONS.storageError='';if(clearStorage)try{sessionStorage.removeItem(storage)}catch(error){}
+}
+function lessonPersist(){sessionStorage.setItem(lessonStorageName(LESSON_DECISIONS.identity),JSON.stringify({schema:1,identity:LESSON_DECISIONS.identity,pending:[...LESSON_DECISIONS.pending].map(([key,p])=>[key,{...p,busy:false}]),drafts:[...LESSON_DECISIONS.drafts]}))}
+function lessonRestore(){
+ const identity=lessonIdentity();if(LESSON_DECISIONS.identity===identity)return;if(LESSON_DECISIONS.identity)lessonDecisionsClear(false);LESSON_DECISIONS.identity=identity;
+ try{const raw=sessionStorage.getItem(lessonStorageName(identity));if(!raw)return;const saved=JSON.parse(raw);if(saved.schema!==1||saved.identity!==identity||!Array.isArray(saved.pending)||!Array.isArray(saved.drafts))throw Error('原请求记录无法核验');
+  for(const [key,p] of saved.pending){const b=p.body,memory=p.path==='/api/memory',url='/api/projects/'+encodeURIComponent(p.project)+'/lessons/'+encodeURIComponent(p.id);if(key!==JSON.stringify([identity,p.project,p.id])||p.actor!==JSON.parse(identity)[1]||!lessonSnapshot(p.snapshot,p.project,p.id)||!b||b.expected_token!==p.snapshot.expected_token||!['edit','confirm','restore','retire'].includes(p.action)||b.action!==(memory?'lesson_':'')+p.action||(!memory&&p.path!==url)||(memory&&(b.project!==p.project||b.lesson_id!==p.id))||b.request_id!==p.request_id||!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(p.request_id)||typeof b.reason!=='string'||!b.fields||Array.isArray(b.fields)||Object.entries(b.fields).some(([k,v])=>!lessonFields.includes(k)||typeof v!=='string')||Object.keys(b).some(k=>!['action','expected_token','request_id','fields','reason',...(memory?['project','lesson_id']:[])].includes(k))||!['unknown','submitting','recorded','conflict'].includes(p.phase))throw Error('原请求记录无法核验');const restored={...p,busy:false,phase:p.phase==='conflict'?'conflict':'unknown',message:'已恢复原请求，需重新核对服务端回执。'};delete restored.result;LESSON_DECISIONS.pending.set(key,restored)}
+  LESSON_DECISIONS.drafts=new Map(saved.drafts);
+ }catch(error){LESSON_DECISIONS.storageError='原请求记录无法读取，暂不能发起新的决定。请保留当前内容并核对浏览器存储。'}
+}
+function lessonDecisionWritable(c){return !!JSON.parse(c.context.identity)[1]&&(!S.meta?.access||(typeof accessCanWrite==='function'&&accessCanWrite(c.project)&&(c.entry!=='legacy'||typeof accessProjectRole==='function'&&accessProjectRole(c.project)==='manager')))}
+function lessonDecisionCurrent(c){return lessonContextCurrent(c.context)&&c.root.isConnected&&c.current()}
+function lessonDecisionFields(root,snapshot,selector='[data-mem-field]',property='memField'){
+ const fields={};for(const node of root.querySelectorAll(selector)){const key=node.dataset[property];if(!lessonFields.includes(key))continue;const original=snapshot?.card[key]||'',display=original.replace(/\r\n?/g,'\n');if(node.value!==original&&node.value!==display)fields[key]=node.value}return fields;
+}
+function lessonReviewHTML(snapshot,heading=true){
+ if(!snapshot)return '';const card=snapshot.card,labels=[['symptom','现象与场景'],['cause','原因'],['fix','处理办法'],['verify','验证办法'],['anti','限制与注意事项'],['applicability','适用条件'],['non_applicability','不适用条件'],['note','备注']],render=value=>typeof value==='string'?value:JSON.stringify(value,null,2);
+ const sources=Object.fromEntries(Object.entries(card).filter(([key])=>!['title',...labels.map(x=>x[0]),'files',...lessonDerived].includes(key)));
+ return '<section data-lesson-full>'+(heading?'<h3>'+h(card.title||card.id)+'</h3>':'')+'<p class="mem-meta">所读状态：'+h({candidate:'待确认',active:'在用',retired:'已停用',probation:'暂停复核'}[card.status]||card.status)+'</p><dl>'+labels.filter(([key])=>card[key]!==undefined&&card[key]!==null&&card[key]!=='').map(([key,label])=>'<dt>'+label+'</dt><dd class="mem-raw">'+h(render(card[key]))+'</dd>').join('')+'</dl>'+(Array.isArray(card.files)&&card.files.length?'<h4>涉及文件</h4><ol>'+card.files.map(file=>'<li class="mem-raw">'+h(render(file))+'</li>').join('')+'</ol>':'')+'<details><summary>完整来源</summary><pre class="mem-raw">'+h(JSON.stringify(sources,null,2))+'</pre></details><details><summary>版本与完整原始记录</summary><div class="mem-meta">'+h(snapshot.expected_token)+'</div><pre class="mem-raw">'+h(JSON.stringify(card,null,2))+'</pre></details></section>';
+}
+function lessonDecisionBind(options){
+ lessonRestore();for(const view of [...LESSON_DECISIONS.views])if(!view.root.isConnected)LESSON_DECISIONS.views.delete(view);
+ const c={...options,context:lessonContext(),snapshot:lessonSnapshot(options.snapshot,options.project,options.id)?lessonClone(options.snapshot):null};c.key=JSON.stringify([c.context.identity,c.project,c.id]);LESSON_DECISIONS.views.add(c);
+ const draft=LESSON_DECISIONS.drafts.get(c.key);for(const selector of ['[data-mem-field]','[data-lf]'])for(const input of c.root.querySelectorAll(selector)){const key=input.dataset.memField||input.dataset.k;if(draft&&c.snapshot&&draft.snapshot?.expected_token===c.snapshot.expected_token&&!LESSON_DECISIONS.pending.has(c.key)&&Object.hasOwn(draft.fields||{},key))input.value=draft.fields[key];input.addEventListener('input',()=>{if(!lessonDecisionCurrent(c)||!c.snapshot)return;const fields=c.capture?.()||{};if(Object.keys(fields).length)LESSON_DECISIONS.drafts.set(c.key,{snapshot:c.snapshot,fields});else LESSON_DECISIONS.drafts.delete(c.key);try{lessonPersist()}catch(error){c.notice('输入仍在本页，浏览器暂不能保存草稿。',true)}})}
+ lessonDecisionPaint(c);return c;
+}
+function lessonDecisionPaint(c){
+ if(!lessonDecisionCurrent(c))return;const p=LESSON_DECISIONS.pending.get(c.key),box=c.root.querySelector('[data-lesson-state]');if(!box)return;
+ const blocked=!!p||!c.snapshot||!!LESSON_DECISIONS.storageError||!lessonDecisionWritable(c);
+ for(const selector of ['[data-mem-act]','[data-mem-share]','[data-lshare]','[data-mem-retire]','[data-lsave]','[data-ls]','[data-lesson-submit]'])for(const button of c.root.querySelectorAll(selector))button.disabled=blocked;
+ const edit=c.root.querySelector('[data-mem-edit]');if(edit){const b=edit.querySelector('button');if(b)b.disabled=blocked}
+ const draft=LESSON_DECISIONS.drafts.get(c.key);let html=LESSON_DECISIONS.storageError?'<p class="mem-notice error">'+h(LESSON_DECISIONS.storageError)+'</p>':'';
+ if(!lessonDecisionWritable(c))html+='<p class="mem-meta">当前身份可查阅内容，不能在此入口提交人工决定。</p>';
+ if(!c.snapshot)html+='<p>当前卡片没有可核验版本，请读取完整内容后再决定。</p>';
+ if(p){html+='<p class="mem-notice" role="status">'+h(p.message||({submitting:'正在登记原请求…',unknown:'结果未知；请用原请求核对，不能另发确认。',conflict:'原版本或状态已变化，尚未执行本次决定。',recorded:'决定已有回执；当前状态请看读回内容。'}[p.phase]))+'</p><details><summary>请求与回执详情</summary><div class="mem-meta">'+h(p.request_id)+'</div>'+(p.result?'<pre class="mem-raw">'+h(JSON.stringify(p.result.receipt,null,2))+'</pre>':'')+'</details>';
+  if(p.phase==='unknown')html+='<details><summary>原请求的完整内容（重试不会带入后续输入）</summary><pre class="mem-raw">'+h(JSON.stringify({snapshot:p.snapshot,action:p.action,fields:p.body.fields,reason:p.body.reason},null,2))+'</pre></details><button data-lesson-retry'+(p.busy||!lessonDecisionWritable(c)?' disabled':'')+'>用原请求核对结果</button>';
+  if(p.phase==='recorded')html+='<p>'+h(p.result.superseded?'原决定已有后续变化，不代表当前仍在使用。':'这次决定已登记。')+'</p>'+lessonReviewHTML(p.result.current);
+ }
+ if(!p||['conflict','recorded'].includes(p.phase))html+='<button data-lesson-read>重新读取当前完整内容</button>';
+ if(c.review&&(!p||['conflict','recorded'].includes(p.phase)))html+=lessonReviewHTML(c.review)+'<button data-lesson-reopen>保留旧稿，重新打开当前卡片</button>';
+ if(draft&&(draft.snapshot?.expected_token!==c.snapshot?.expected_token||c.review))html+='<details><summary>保留的旧版本与未提交修改（不会自动套用）</summary><pre class="mem-raw">'+h(JSON.stringify(draft,null,2))+'</pre></details>';
+ if(box.innerHTML!==html)box.innerHTML=html;
+ const retry=box.querySelector('[data-lesson-retry]');if(retry)retry.onclick=()=>lessonDecisionRetry(c);
+ const read=box.querySelector('[data-lesson-read]');if(read)read.onclick=()=>lessonDecisionRead(c);
+ const reopen=box.querySelector('[data-lesson-reopen]');if(reopen)reopen.onclick=async()=>{if(!lessonDecisionCurrent(c)||!c.review)return;const old=LESSON_DECISIONS.pending.get(c.key);if(old&&!['conflict','recorded'].includes(old.phase))return;const draft=LESSON_DECISIONS.drafts.get(c.key),snapshot=c.snapshot;LESSON_DECISIONS.drafts.set(c.key,{snapshot,fields:c.capture?.()||old?.body.fields||{},reason:old?.body.reason||'',original_request:old?{body:old.body,phase:old.phase}:null});LESSON_DECISIONS.pending.delete(c.key);try{lessonPersist()}catch(error){if(old)LESSON_DECISIONS.pending.set(c.key,old);if(draft)LESSON_DECISIONS.drafts.set(c.key,draft);else LESSON_DECISIONS.drafts.delete(c.key);c.notice('旧稿与原请求未能保存，尚未重新打开。',true);return}c.snapshot=null;try{await c.refresh()}catch(error){c.notice(error.message,true);lessonDecisionPaint(c)}};
+}
+function lessonDecisionNotify(key){for(const c of LESSON_DECISIONS.views)if(c.key===key)lessonDecisionPaint(c)}
+async function lessonDecisionRead(c){if(!lessonDecisionCurrent(c))return;const p=LESSON_DECISIONS.pending.get(c.key);if(p&&!['conflict','recorded'].includes(p.phase))return;const generation=c.read=(c.read||0)+1;try{const s=await get('/api/projects/'+encodeURIComponent(c.project)+'/lessons/'+encodeURIComponent(c.id));if(!lessonDecisionCurrent(c)||c.read!==generation)return;const pending=LESSON_DECISIONS.pending.get(c.key);if(pending&&!['conflict','recorded'].includes(pending.phase))return;if(!lessonSnapshot(s,c.project,c.id))throw Error('当前内容回包无法核验');c.review=lessonClone(s);lessonDecisionPaint(c)}catch(error){if(lessonContextCurrent(c.context)&&!lessonDecisionIdentityError(c,error)&&lessonDecisionCurrent(c))c.notice(error.message,true)}}
+function lessonDecisionIdentityError(c,error){if(error.code!=='lesson_identity_changed'&&error.status!==401)return false;if(lessonDecisionCurrent(c))c.notice('登录身份已变化，旧内容和原请求已清除。请重新登录或刷新当前身份。',true);lessonDecisionsClear();if(typeof accessLock==='function')accessLock('登录身份已变化，请重新登录或刷新当前身份。','identity_revoked');return true}
+function lessonReceipt(result,p,actor){
+ const r=result?.receipt,s=result?.current;if(!result||result.schema!==1||result.project!==p.project||result.lesson_id!==p.id||result.request_id!==p.request_id||result.action!==p.action||typeof result.replayed!=='boolean'||typeof result.superseded!=='boolean'||!lessonSnapshot(s,p.project,p.id)||!r||r.schema!==1||r.namespace!=='human_lesson'||r.project!==p.project||r.lesson_id!==p.id||r.actor!==actor||r.request_id!==p.request_id||r.action!==p.action||r.base_token!==p.snapshot.expected_token||!lessonHex(r.reviewed_content_digest)||!lessonHex(r.decision_token)||typeof r.changed!=='boolean'||typeof r.at!=='string'||!r.at||!lessonEqual(r.fields,p.body.fields||{})||r.reason!==(p.body.reason||''))return false;
+ const expected={...lessonContent(p.snapshot.card)};for(const [k,v] of Object.entries(p.body.fields||{}))if(v!==(p.snapshot.card[k]||''))expected[k]=v;const after=p.action==='retire'?'retired':['confirm','restore'].includes(p.action)?'active':p.snapshot.card.status;
+ if(r.changed!==(after!==p.snapshot.card.status||!lessonEqual(expected,lessonContent(p.snapshot.card)))||!lessonEqual(r.reviewed_content,expected)||r.before_status!==p.snapshot.card.status||r.after_status!==after||result.superseded!==(s.expected_token!==r.decision_token))return false;
+ if(lessonEqual(expected,lessonContent(p.snapshot.card))&&r.reviewed_content_digest!==p.snapshot.content_digest)return false;
+ if(r.changed===(r.decision_token===p.snapshot.expected_token))return false;
+ if(!result.superseded&&(s.card.status!==after||!lessonEqual(lessonContent(s.card),expected)||s.content_digest!==r.reviewed_content_digest))return false;
+ return true;
+}
+function lessonDecisionSubmit(c,action,fields={},reason=''){
+ if(!lessonDecisionCurrent(c)||!lessonDecisionWritable(c)||LESSON_DECISIONS.pending.has(c.key))return;
+ if(!c.snapshot||LESSON_DECISIONS.storageError){c.notice(LESSON_DECISIONS.storageError||'请先读取当前完整内容，再明确确认本版。',true);return}
+ if(!['edit','confirm','restore','retire'].includes(action)||!fields||Object.keys(fields).some(k=>!lessonFields.includes(k)||typeof fields[k]!=='string')||typeof reason!=='string')return;
+ if(['restore','retire'].includes(action)&&!reason.trim()){c.notice('恢复或停用必须填写原因。',true);return}
+ if(action==='confirm'&&c.snapshot.card.status!=='candidate'||action==='restore'&&!['retired','probation'].includes(c.snapshot.card.status)){c.notice('此操作不适用于所读状态，请重新读取后复核。',true);return}
+ const actor=JSON.parse(c.context.identity)[1];if(!actor){c.notice('请用个人登录身份重新打开本页。',true);return}
+ let request_id;try{request_id='lesson-'+crypto.randomUUID()}catch(error){c.notice('无法生成可靠请求号，尚未提交。',true);return}
+ const body={...c.bodyBase,action:c.actionPrefix+action,expected_token:c.snapshot.expected_token,request_id,fields:lessonClone(fields),reason};
+ const p={project:c.project,id:c.id,action,actor,request_id,path:c.path,body,snapshot:lessonClone(c.snapshot),phase:'submitting',busy:false};
+ for(const view of LESSON_DECISIONS.views)if(view.key===c.key)view.review=null;
+ LESSON_DECISIONS.pending.set(c.key,p);try{lessonPersist()}catch(error){LESSON_DECISIONS.pending.delete(c.key);c.notice('原请求未能保存，尚未提交。请检查浏览器存储。',true);return}
+ return lessonDecisionSend(c,p);
+}
+function lessonDecisionRetry(c){if(!lessonDecisionCurrent(c)||!lessonDecisionWritable(c))return;const p=LESSON_DECISIONS.pending.get(c.key);if(!p||p.phase!=='unknown'||p.busy||LESSON_DECISIONS.storageError)return;return lessonDecisionSend(c,p)}
+async function lessonDecisionSend(c,p){
+ if(!lessonDecisionCurrent(c)||p.busy)return;p.busy=true;p.phase='submitting';p.message='正在核对原请求…';try{lessonPersist()}catch(error){p.busy=false;p.phase='unknown';p.message='原请求未能保存，尚未重发。请检查浏览器存储。';c.notice(p.message,true);lessonDecisionNotify(c.key);return}lessonDecisionNotify(c.key);c.notice(p.message);
+ try{const result=await post(p.path,lessonClone(p.body),{'X-Webuddy-Lesson-Actor':encodeURIComponent(p.actor)});if(!lessonContextCurrent(c.context))return;if(!lessonReceipt(result,p,p.actor))throw Error('回执与原请求不一致，结果仍未知');p.result=lessonClone(result);p.phase='recorded';p.message=result.superseded?'已找到原决定回执，但当前内容或状态已有后续变化。':'决定已登记，完整回执与当前内容已核对。';if(lessonDecisionCurrent(c))c.notice(p.message)}
+ catch(error){if(!lessonContextCurrent(c.context))return;if(lessonDecisionIdentityError(c,error))return;if(error.status===400&&error.code==='invalid_lesson_decision'){LESSON_DECISIONS.pending.delete(c.key);if(lessonDecisionCurrent(c))c.notice(error.message,true)}else{p.phase=['lesson_changed','lesson_state_conflict','lesson_not_found','lesson_storage_unsupported'].includes(error.code)?'conflict':'unknown';p.message=error.message+(p.phase==='unknown'?'；结果未知，只能核对原请求。':'；原稿保留，请重新读取后复核。');if(lessonDecisionCurrent(c))c.notice(p.message,true)}}
+ finally{p.busy=false;if(lessonContextCurrent(c.context)){try{lessonPersist()}catch(error){p.message+=' 原请求状态暂未写回浏览器，请保留本页。'}lessonDecisionNotify(c.key)}}
+}
+"""
+
+MEMORY_JS = LESSON_DECISION_JS + r"""
 const MEM={sequence:0,project:'',query:'',section:'overview',view:null,pending:new Set()};
 const memFields=[['symptom','适用场景 / 现象'],['cause','原因'],['fix','处理办法'],['verify','验证办法'],['anti','限制与注意事项']];
 const memStatus=s=>({candidate:'待确认',active:'在用',probation:'暂停复核',retired:'已停用',confirmed:'已确认',draft:'待确认',stale:'需更新',preview:'自动预览'}[s]||s);
 const memHasClusterMembers=group=>(group.members||[]).length>=2;
-const memCurrent=c=>MEM.view===c&&c.root.isConnected&&location.hash===c.route;
+const memCurrent=c=>MEM.view===c&&c.root.isConnected&&location.hash===c.route&&(!c.context||lessonContextCurrent(c.context))&&(!c.section||c.key===(S.scope==='*'?'':S.scope||''));
 const memQuery=(project,section,q='')=>'/api/memory?'+new URLSearchParams({project,section,q});
 function memNotice(c,text,error=false){if(!memCurrent(c))return;const el=c.root.querySelector('#memNotice');el.textContent=text;el.className='mem-notice'+(error?' error':'')}
 function memBadge(status){return `<span class="mem-state ${h(status)}">${h(memStatus(status))}</span>`}
@@ -25,19 +123,19 @@ async function memAction(c,body,button,refresh){
  catch(error){memNotice(c,error.message,true)}finally{MEM.pending.delete(token);if(memCurrent(c))button.disabled=false}
 }
 async function vMemory(section='overview'){
- if(section==='learning')return vLearning();
+ if(section==='learning')return vLearning();lessonRestore();
  if(!['overview','knowledge','lessons','clusters'].includes(section))section='overview';MEM.section=section;
  MEM.project=S.scope==='*'?'':S.scope||'';
- const seq=++MEM.sequence,route=location.hash,key=MEM.project,q=MEM.query;
+ const seq=++MEM.sequence,route=location.hash,key=MEM.project,q=MEM.query,context=lessonContext();
  $('#main').innerHTML='<div class="mem-empty">正在读取知识与长期记忆…</div>';
- let d;try{d=await get(memQuery(key,section==='clusters'&&!key?'overview':section,q))}catch(error){if(seq===MEM.sequence&&location.hash===route)$('#main').innerHTML='<div class="mem-empty">'+h(error.message)+'</div>';return}
- if(seq!==MEM.sequence||location.hash!==route)return;
+ let d;try{d=await get(memQuery(key,section==='clusters'&&!key?'overview':section,q))}catch(error){if(seq===MEM.sequence&&location.hash===route&&key===(S.scope==='*'?'':S.scope||'')&&lessonContextCurrent(context))$('#main').innerHTML='<div class="mem-empty">'+h(error.message)+'</div>';return}
+ if(seq!==MEM.sequence||location.hash!==route||key!==(S.scope==='*'?'':S.scope||'')||!lessonContextCurrent(context))return;
  const projects=d.projects||S.projects||[];
  $('#main').innerHTML=`<div class="mem-page" id="memPage"><header class="mem-head"><div class="grow"><h1>${workIcon('eng')} 知识与记忆</h1><p>把项目知识、做过的维护和共同方案留给下一次工作。先看来源和适用范围，再决定哪些经验进入项目。</p></div>${key?'<button id="memBriefGo">项目讲解与交接</button>':''}</header>
  <form id="memSearch" class="mem-toolbar"><label>范围 <select id="memProject">${memProjectOptions(projects,key)}</select></label><label class="grow">检索 <input id="memQuery" value="${h(q)}" placeholder="业务、问题、经验或代码线索"></label><button class="primary">搜索</button></form>
  <nav class="mem-tabs" aria-label="记忆分区">${[['overview','工作区'],['knowledge','项目知识'],['lessons','长期记忆与共通方案'],['clusters','同类问题'],['learning','分类与评审']].map(([s,label])=>`<button data-mem-tab="${s}" class="${s===section?'on':''}">${label}</button>`).join('')}</nav>
  <div id="memNotice" class="mem-notice" role="status" aria-live="polite"></div><div id="memContent"></div></div>`;
- const c={root:$('#memPage'),route,key,section,data:d};MEM.view=c;
+ const c={root:$('#memPage'),route,key,section,data:d,context};MEM.view=c;
  c.root.querySelector('#memProject').onchange=e=>{memSelectProject(e.target.value);return vMemory(MEM.section)};
  c.root.querySelector('#memSearch').onsubmit=e=>{e.preventDefault();MEM.query=c.root.querySelector('#memQuery').value;return vMemory(MEM.section)};
  c.root.querySelectorAll('[data-mem-tab]').forEach(b=>b.onclick=()=>{MEM.query=c.root.querySelector('#memQuery').value;return memNavigate(b.dataset.memTab)});
@@ -66,16 +164,18 @@ function memDraftTicket(c,title,body){if(!memCurrent(c))return;setProj(c.key);ne
 function memPaintLessons(c,items){
  const target=c.root.querySelector('#memContent');
  target.innerHTML=`<div class="mem-hint">全局记忆按项目和共享范围管理。待确认、暂停和停用的经验不会自动用于任务；引入也不等于每次都使用。</div>${c.key?`<details class="mem-card"><summary>记录一条长期记忆</summary><form id="memNewLesson"><div class="mem-fields"><label class="mem-full">标题<input id="memLessonTitle" required placeholder="例如：审批重复回调的排查办法"></label>${memLessonFields()}</div><div class="mem-actions"><button class="primary">保存为待确认记忆</button><span class="mem-meta">适用场景和处理办法必填，保留完整原文。</span></div></form></details>`:`<section class="mem-card"><h2>查看项目中积累的记忆</h2><p class="mem-meta">项目经验保存在各项目中；整理并共享后，才会进入下方组织方案目录。</p>${memProjectChoices(c.data.projects||S.projects||[])}</section>`}
- <div class="mem-list" style="margin-top:16px">${items.map((l,n)=>{const st=l.here||l.stats||{};return `<article class="mem-card" data-mem-lesson="${n}"><div>${memBadge(l.status)}<span class="mem-state">${h(l.scope_label)}</span></div><h2>${h(l.title||l.id)}</h2><div class="mem-meta">${h(l.id)} · ${h(l.applicability)}${l.ticket?' · 来源工单 <a href="#/t/'+encodeURIComponent(l.ticket)+'">'+h(l.ticket)+'</a>':''}</div><dl>${memFields.filter(([k])=>l[k]).map(([k,label])=>`<dt>${label}</dt><dd>${h(l[k])}</dd>`).join('')}</dl>
+ <div class="mem-list" style="margin-top:16px">${items.map((l,n)=>{const st=l.here||l.stats||{};return `<article class="mem-card" data-mem-lesson="${n}"><div>${memBadge(l.status)}<span class="mem-state">${h(l.scope_label)}</span></div><h2>${h(l.title||l.id)}</h2><div class="mem-meta">${h(l.id)} · ${h(l.usage_hint||'')}${l.ticket?' · 来源工单 <a href="#/t/'+encodeURIComponent(l.ticket)+'">'+h(l.ticket)+'</a>':''}</div><dl>${(l.scope==='project'&&l.snapshot?[]:memFields).filter(([k])=>l[k]).map(([k,label])=>`<dt>${label}</dt><dd>${h(l[k])}</dd>`).join('')}</dl>${l.scope==='project'?lessonReviewHTML(l.snapshot,false):''}
  <div class="mem-meta">实际使用 ${st.used||0} 次 · 后续验收通过 ${st.passed||0} / 未通过 ${st.failed||0}${l.provenance?.package_hash?' · 证据包 '+h(l.provenance.package_hash):''}${l.provenance?.signer?' · 签收人 '+h(l.provenance.signer):''}${l.provenance?.kind==='fixed_candidate'?' · 固定候选 '+h(l.provenance.candidate_id)+' · 提交 '+h(l.provenance.commit):''}</div>
  <div class="mem-actions">${l.scope==='project'?`${l.status==='candidate'?'<button data-mem-act="lesson_confirm" class="primary">确认入库</button>':''}${['retired','probation'].includes(l.status)?'<button data-mem-act="lesson_restore">恢复使用</button>':'<button data-mem-retire>停用</button>'}${l.shared?'<button data-mem-act="lesson_unshare">收回共享</button>':l.status==='active'?'<button data-mem-share>整理并共享</button>':''}`:c.key?`<button data-mem-act="${l.taken?'lesson_untake':'lesson_take'}"${!l.taken&&l.status!=='active'?' disabled':''}>${l.taken?'停止引入':'引入本项目'}</button>`:'<span class="mem-meta">选定接收项目后可引入</span>'}</div>
- ${l.scope==='project'?`<details><summary>修改记忆</summary><form data-mem-edit><div class="mem-fields">${memLessonFields(l)}</div><div class="mem-actions"><button>保存修改</button></div></form></details>`:''}<div data-mem-editor></div></article>`}).join('')||`<div class="mem-empty">${MEM.query?'没有匹配当前检索的经验，请调整关键词。':c.key?'该项目尚无长期记忆。维护验收会沉淀经验，也可以在上方主动记录。':'组织方案目录尚无已共享经验；可以先打开上方项目，查看已有记忆。'}</div>`}</div>`;
+ ${l.scope==='project'?`<details><summary>修改记忆</summary><form data-mem-edit><div class="mem-fields">${memLessonFields(l)}</div><div class="mem-actions"><button>保存修改</button></div></form></details>`:''}<div data-mem-editor></div><div data-lesson-state></div></article>`}).join('')||`<div class="mem-empty">${MEM.query?'没有匹配当前检索的经验，请调整关键词。':c.key?'该项目尚无长期记忆。维护验收会沉淀经验，也可以在上方主动记录。':'组织方案目录尚无已共享经验；可以先打开上方项目，查看已有记忆。'}</div>`}</div>`;
  const fresh=()=>vMemory('lessons'),form=target.querySelector('#memNewLesson');if(form)form.onsubmit=e=>{e.preventDefault();return memAction(c,{action:'lesson_create',project:c.key,title:target.querySelector('#memLessonTitle').value,fields:memReadFields(form)},form.querySelector('button'),fresh)};
  target.querySelectorAll('[data-mem-lesson]').forEach(card=>{const l=items[Number(card.dataset.memLesson)],body={project:c.key,lesson_id:l.id};
-  card.querySelectorAll('[data-mem-act]').forEach(b=>b.onclick=()=>memAction(c,{...body,action:b.dataset.memAct},b,fresh));
-  const retire=card.querySelector('[data-mem-retire]');if(retire)retire.onclick=()=>{const box=card.querySelector('[data-mem-editor]');box.innerHTML='<form class="mem-fields"><label class="mem-full">停用原因<textarea data-mem-reason required></textarea></label><button>确认停用</button></form>';const form=box.querySelector('form');form.onsubmit=e=>{e.preventDefault();return memAction(c,{...body,action:'lesson_retire',reason:form.querySelector('[data-mem-reason]').value},form.querySelector('button'),fresh)}};
-  const edit=card.querySelector('[data-mem-edit]');if(edit)edit.onsubmit=e=>{e.preventDefault();return memAction(c,{...body,action:'lesson_edit',fields:memReadFields(edit)},edit.querySelector('button'),fresh)};
-  const share=card.querySelector('[data-mem-share]');if(share)share.onclick=async()=>{share.disabled=true;try{const preview=await get('/api/projects/'+encodeURIComponent(c.key)+'/lessons/'+encodeURIComponent(l.id)+'/share');if(!memCurrent(c))return;const box=card.querySelector('[data-mem-editor]');box.innerHTML=`<form data-mem-share-form><p class="mem-hint">下面是对外共享副本。请核对客户名、连接信息等内容；其他项目只会看到这些字段，且需要主动引入。原始记忆保持完整。</p><div class="mem-fields"><label class="mem-full">共享标题<input data-mem-share-title value="${h(preview.title)}"></label>${memLessonFields(preview.fields)}</div><div class="mem-actions"><button class="primary">确认共享此副本</button></div></form>`;const form=box.querySelector('[data-mem-share-form]');form.onsubmit=e=>{e.preventDefault();return memAction(c,{...body,action:'lesson_share',title:form.querySelector('[data-mem-share-title]').value,fields:memReadFields(form)},form.querySelector('button'),fresh)}}catch(error){memNotice(c,error.message,true)}finally{if(memCurrent(c))share.disabled=false}};
+  const edit=card.querySelector('[data-mem-edit]');const decision=l.scope==='project'?lessonDecisionBind({root:card,project:c.key,id:l.id,snapshot:l.snapshot,path:'/api/memory',bodyBase:body,actionPrefix:'lesson_',current:()=>memCurrent(c),notice:(text,error)=>memNotice(c,text,error),refresh:fresh,capture:()=>lessonDecisionFields(edit,decision.snapshot)}):null;
+  const reasonForm=action=>{if(!decision||!lessonDecisionCurrent(decision)||LESSON_DECISIONS.pending.has(decision.key))return;const box=card.querySelector('[data-mem-editor]');box.innerHTML='<form class="mem-fields"><label class="mem-full">'+(action==='restore'?'恢复使用的原因':'停用原因')+'<textarea data-mem-reason required></textarea></label><button data-lesson-submit>确认'+(action==='restore'?'恢复':'停用')+'</button></form>';const form=box.querySelector('form');form.onsubmit=e=>{e.preventDefault();return lessonDecisionSubmit(decision,action,{},form.querySelector('[data-mem-reason]').value)}};
+  card.querySelectorAll('[data-mem-act]').forEach(b=>b.onclick=()=>{if(b.disabled||!memCurrent(c))return;const action=b.dataset.memAct;if(action==='lesson_confirm')return lessonDecisionSubmit(decision,'confirm',lessonDecisionFields(edit,decision.snapshot));if(action==='lesson_restore')return reasonForm('restore');return memAction(c,{...body,action},b,fresh)});
+  const retire=card.querySelector('[data-mem-retire]');if(retire)retire.onclick=()=>reasonForm('retire');
+  if(edit)edit.onsubmit=e=>{e.preventDefault();return lessonDecisionSubmit(decision,'edit',lessonDecisionFields(edit,decision.snapshot))};
+  const share=card.querySelector('[data-mem-share]');if(share)share.onclick=async()=>{if(share.disabled||!memCurrent(c)||LESSON_DECISIONS.pending.has(decision.key))return;share.disabled=true;try{const preview=await get('/api/projects/'+encodeURIComponent(c.key)+'/lessons/'+encodeURIComponent(l.id)+'/share');if(!memCurrent(c))return;const box=card.querySelector('[data-mem-editor]');box.innerHTML=`<form data-mem-share-form><p class="mem-hint">下面是对外共享副本。请核对客户名、连接信息等内容；其他项目只会看到这些字段，且需要主动引入。原始记忆保持完整。</p><div class="mem-fields"><label class="mem-full">共享标题<input data-mem-share-title value="${h(preview.title)}"></label>${memLessonFields(preview.fields)}</div><div class="mem-actions"><button class="primary">确认共享此副本</button></div></form>`;const form=box.querySelector('[data-mem-share-form]');form.onsubmit=e=>{e.preventDefault();return memAction(c,{...body,action:'lesson_share',title:form.querySelector('[data-mem-share-title]').value,fields:memReadFields(form)},form.querySelector('button'),fresh)}}catch(error){memNotice(c,error.message,true)}finally{if(memCurrent(c))share.disabled=false}};
  });
 }
 function memPaintClusters(c,d){

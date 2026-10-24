@@ -129,6 +129,18 @@ class TenantRuntimeTest(unittest.TestCase):
         with self.assertRaises(ApiError):
             verify_request(key, normal, args[0], *args[2:], connection)
 
+    def test_reviewed_lesson_actor_is_signed_metadata_not_authenticated_identity(self):
+        key = b'x' * 32
+        args = ('default', 'alice', 'POST', '/api/memory', b'{}', 'context')
+        proof = sign_request(key, *args, lesson_actor='bob')
+        self.assertEqual(verify_request(key, proof, args[0], *args[2:], lesson_actor='bob'), 'alice')
+        for altered in ('', 'alice', '%62ob'):
+            with self.subTest(altered=altered), self.assertRaises(ApiError):
+                verify_request(key, proof, args[0], *args[2:], lesson_actor=altered)
+        normal = sign_request(key, *args)
+        with self.assertRaises(ApiError):
+            verify_request(key, normal, args[0], *args[2:], lesson_actor='alice')
+
     def test_tool_actor_context_narrows_admin_and_always_resets_after_error(self):
         a, _ = self.projects()
         tool = dict(id='a' * 32, user='owner', tenant='default', scope='read', project_ids=[a['id']])

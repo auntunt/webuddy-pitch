@@ -236,7 +236,7 @@ class MemoryWorkspaceTests(unittest.TestCase):
         self.assertEqual(l["status"], "candidate")
         self.assertEqual(l["fix"], text)
         self.assertEqual(learn.relevant(self.data, "APP", self.ticket()), [])
-        self.act("lesson_confirm", lesson_id=l["id"])
+        self.act("lesson_confirm", lesson_id=l["id"], expected_token=l["snapshot"]["expected_token"], request_id="manual-confirm")
         card = learn.lesson(self.data, l["id"])
         self.assertEqual(card["history"][-1]["by"], "reviewer")
         self.assertEqual(card["status"], "active")
@@ -264,7 +264,7 @@ class MemoryWorkspaceTests(unittest.TestCase):
     def test_cannot_edit_another_project_or_silently_clip_shared_copy(self):
         l = self.lesson(project="OTHER")
         with self.assertRaises(ApiError) as ctx:
-            self.act("lesson_retire", lesson_id=l["id"], reason="不适用")
+            self.act("lesson_retire", lesson_id=l["id"], reason="不适用", expected_token=learn.revision_token(self.data, l["id"]), request_id="foreign-retire")
         self.assertEqual(ctx.exception.code, 404)
         l2 = self.lesson()
         with self.assertRaises(ApiError):

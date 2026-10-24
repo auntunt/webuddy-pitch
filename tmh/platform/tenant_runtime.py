@@ -107,16 +107,18 @@ class TenantContext:
             ACTOR.reset(token)
 
 
-def sign_request(key, tenant, actor, method, path, body, context_token='', tool_connection=''):
+def sign_request(key, tenant, actor, method, path, body, context_token='', tool_connection='', lesson_actor=''):
     value = {'tenant': tenant, 'actor': actor, 'method': method, 'path': path,
              'body': hashlib.sha256(body).hexdigest(), 'time': time.time(), 'context': context_token}
     if tool_connection:
         value['tool_connection'] = tool_connection
+    if lesson_actor:
+        value['lesson_actor'] = lesson_actor
     encoded = base64.urlsafe_b64encode(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).decode()
     return encoded + '.' + hmac.new(key, encoded.encode(), hashlib.sha256).hexdigest()
 
 
-def verify_request(key, proof, tenant, method, path, body, context_token='', tool_connection=''):
+def verify_request(key, proof, tenant, method, path, body, context_token='', tool_connection='', lesson_actor=''):
     try:
         encoded, signature = proof.split('.')
         if not hmac.compare_digest(signature, hmac.new(key, encoded.encode(), hashlib.sha256).hexdigest()):
@@ -124,6 +126,7 @@ def verify_request(key, proof, tenant, method, path, body, context_token='', too
         value = json.loads(base64.urlsafe_b64decode(encoded))
         if (value['tenant'] != tenant or value['method'] != method or value['path'] != path or
                 value.get('context') != context_token or value.get('tool_connection', '') != tool_connection or
+                value.get('lesson_actor', '') != lesson_actor or
                 value['body'] != hashlib.sha256(body).hexdigest() or abs(time.time() - value['time']) > 30 or
                 not isinstance(value['actor'], str) or not value['actor']):
             raise ValueError()
@@ -235,10 +238,11 @@ class Workers:
             current = self._start(tenant)
         conn = UnixConnection(current['socket'])
         safe = {k: v for k, v in (headers or {}).items() if k.lower() in
-                ('content-type', 'x-tmh', 'x-webuddy-context', 'x-webuddy-agent', 'x-webuddy-execution', 'x-webuddy-tool', 'referer')}
+                ('content-type', 'x-tmh', 'x-webuddy-context', 'x-webuddy-agent', 'x-webuddy-execution', 'x-webuddy-tool', 'x-webuddy-lesson-actor', 'referer')}
         context_token = next((v for k, v in safe.items() if k.lower() == 'x-webuddy-context'), '')
         tool_id = next((v for k, v in safe.items() if k.lower() == 'x-webuddy-tool'), '')
-        safe['X-Webuddy-Worker-Proof'] = sign_request(current['key'], tenant, actor, method, path, body, context_token, tool_id)
+        lesson_actor = next((v for k, v in safe.items() if k.lower() == 'x-webuddy-lesson-actor'), '')
+        safe['X-Webuddy-Worker-Proof'] = sign_request(current['key'], tenant, actor, method, path, body, context_token, tool_id, lesson_actor)
         safe['Host'] = 'localhost'
         try:
             conn.request(method, path, body, safe)
@@ -335,7 +339,7 @@ def worker(data, tenant, address, keyfile, parent_pid):
                     raise error(413, '请求大小不合适')
                 raw = self.rfile.read(length) if length else b''
                 tool_id = self.headers.get('X-Webuddy-Tool', '')
-                actor = verify_request(key, self.headers.get('X-Webuddy-Worker-Proof', ''), tenant, method, self.path, raw, self.headers.get('X-Webuddy-Context', ''), tool_id)
+                actor = verify_request(key, self.headers.get('X-Webuddy-Worker-Proof', ''), tenant, method, self.path, raw, self.headers.get('X-Webuddy-Context', ''), tool_id, self.headers.get('X-Webuddy-Lesson-Actor', ''))
                 self._tenant_actor = actor
                 self._who = actor
                 self.rfile = io.BytesIO(raw)

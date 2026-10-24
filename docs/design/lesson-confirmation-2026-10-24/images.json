@@ -1,0 +1,22 @@
+{
+  "stale-current.png": {
+    "bytes": 54692,
+    "sha256": "a401da92fb9f728d1ca6b26d7be5003cdded718699cb73f743e18a5886444da5"
+  },
+  "memory-restored.png": {
+    "bytes": 50650,
+    "sha256": "7af58bf0cfef6b8aac86ea5a1e3ca46783f6e49cb5bbb2cf2e072ffa983f25c0"
+  },
+  "legacy-confirmed.png": {
+    "bytes": 61292,
+    "sha256": "e483af45a7ebb70a25036f7f4238180231cdb09cd87f4476b4921f0436b90cda"
+  },
+  "memory-mobile-390.png": {
+    "bytes": 33904,
+    "sha256": "24daa73eeb97cb7191638fdbf2a24eb41a6262d03da8998ba365339bd9f3b8cb"
+  },
+  "legacy-mobile-390.png": {
+    "bytes": 36650,
+    "sha256": "86e0e13f8fbb3b3e32ef57db2e60d013a501233ccb85945d2da411510f66f22e"
+  }
+}

@@ -1,5 +1,23 @@
 # Ralph port 执行进度
 
+## 2026-10-24：F2-1 经验人工决定绑定完整版本
+
+- 当前项：F2-1；状态：**doing**。第一批01290b8已上线；收尾文档4641d3d已普通推送，工作区开工干净。已读进度、最近十条提交、AGENTS、版本绑定计划/补充/底层及UI契约。
+- 目标：两个人工入口统一同锁CAS和持久回执；confirm仅候选、restore需明确原因；旧请求精确重放只返回历史回执及当前卡片，禁止复活停用经验或清除后来的固定revision。新增获准项目单卡读取，普通成员全局记忆GET仍403。
+- 分工：底层learn.py与新并发/故障测试；两个真实UI共享请求协调器与实际JS测试；根负责memory/server/tenant_policy/ui_access及真实HTTP集成。独立审查同步进行。
+- 合理假设：损坏/歧义旧账本不自动修复，新人工决定409并保留原字节；新增封套原子replace与file/dir fsync，旧状态/锁语义保持。active正文编辑仍active的既有政策不在此批暗改，也不宣称所有active都已绑定当前正文确认。
+- 发布约束：旧程序不识别新决定封套，发布前必须验证读取兼容和停止后修复策略，不自动回切旧reader/覆盖业务账本。既有全量1768与SDK74仅证明012，不作为本批验证。
+- 待确认：无当前阻塞；真实RSI付费试点仍待实验预算与保留集隔离，下一步按RSI-1/RSI-2执行。
+- HTTP红灯留存：冻结4641d3d四项测试失败；首次夹具被legacy租户执行门403挡住，原日志保留，不作漏洞证明；改为原可用memory路径和真实个人会话单实例legacy后，明确复现旧版本错误200、旧请求恢复active、错误动作先写正文。后续拆开子例确保每例独立原卡。
+- 过程定向：真实gateway/worker个人会话11项11.654s通过，含双阶段socketpair屏障确认worker写前/耐久写后授权锁仍持有、撤权先后两序、Agent/工具/shared token拒绝、跨项目窄读、manager/contributor区分。产品仍在完善，这不是最终冻结验证。独立权限矩阵64/64通过且Store前后相同。
+- 有限兼容修复：legacy两入口接同一纯ledger原语；旧tenant safe表漏列使manager也受execution gate误拒，仅四人工动作及fields-only edit列为safe，角色与strict个人身份不变；share/take及未知动作不放宽。新增单卡GET使路由目录精确计数166→167，原库存一致断言保持。
+- 原测试适配：memory/platform用例补真实个人会话、真实token/request_id、明确restore原因，保留原业务断言；缺卡404测试补合法请求形状，防止格式400遮蔽范围检查。
+- F2-1 实现冻结验证：底层5模块126项/12.387s通过，20轮×8并发/故障160次通过，learn SHA `1ef5e0566200ee4f99af5c867a765e4149b636f5288e5daec3401f81537408ea` 前后保持；UI7模块172项/15.028s通过，新增27共享JS+8旧入口测试。根亲自读取diff并重新核对21份底层日志、UI5源码/7日志的SHA；独立账本45、权限64、主体头14场景和UI4时序通过。
+- 真实HTTP补修：新增阅读账号头，单实例跨标签换账号先409；租户Workers白名单曾漏转发，首轮7fail/1error及集成失败日志保留，修为签名元数据后28项/19.181s通过。头不认证身份，删除/添加/篡改签名字段均拒绝。最后坏封套列表500反例（两个memory GET）先红，再补异常映射，四读入口均409且字节不变。
+- 根最终定向命令：`NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhost PYTHONPATH=tests:. python3 -m unittest -v tests.test_lesson_decision_api tests.test_memory_workspace tests.test_tenant_policy tests.test_tenant_runtime tests.test_learning_api tests.test_platform.PlatformApiTest.test_acceptance_teaches_and_grows_the_eval_set`；**100项/30.112s/OK**，日志 `/tmp/webuddy-f2-root-final-targeted.log`。保留ResourceWarning，未声称全测试零资源问题。较早集成另出现一次本机HTTP502，原日志保留；显式回环不走代理后同例及最终组合通过，没有改断言/等待预算，未据重跑单独断言502根因。
+- 实屏：合成个人正常登录，两入口换版拒绝/完整回读/保留旧稿/确认/带原因恢复/修改与确认原子合并通过；完整MEMORY_JS41028字符与冻结源相同。真实Chrome设备工具栏390px，两页scrollWidth=390；原图无压缩，根已实际打开；最终3张卡片完整字段、15文件、CRLF/尾随空格保持，恰4次预期合成决定，所属worker/socket/key回收。见 [UI记录](../design/lesson-confirmation-2026-10-24/README.md)。首次整体脚本读取被工具截断，不作旧缓存证明；设备宽度输入4的失败截图保留，不当390通过。
+- 文档与发布边界：新增 `docs/lesson-decisions.md`；Windows新决定写前503，历史不补造确认，坏账本409且不修剪。新human_decision不能被旧012读取，发布失败保留最新账本并停机修复，不自动切旧reader。1859项发现、loader errors=0；acceptance/guard/filelock/agents与开工HEAD逐字一致，MOVES未改；`git diff --check`通过。待精确提交双端全量及发布，当前尚未推送本批或切换生产。
+
 ## 2026-10-24：组织提效第一批——知识可信状态与成员工具连接
 
 - 当前项：O1/O2；状态：**done，2026-10-24 11:38 CST上线01290b8**。基线 `iteration/context-pack-v2` / `fc65a2b`，开工 `git status --short` 干净；已读最近十条提交、AGENTS 和两份 PPT/录音审查输入。用户授权由 review 会话转交到长期开发会话继续实现，并沿用验证后 GitHub/服务器自动发布约定。

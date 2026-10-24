@@ -111,6 +111,7 @@ POST /api/sessions/<sid>/ticket
 POST /api/tickets/<key>/accept
 GET /api/projects/<key>/learn
 POST /api/learn/holdout
+GET /api/projects/<key>/lessons/<lid>
 GET /api/projects/<key>/lessons/<lid>/share
 POST /api/projects/<key>/lessons/<lid>
 POST /api/projects/<key>/evals/run
@@ -559,6 +560,10 @@ def authorize(P, method, path, query, body, actor):
     safe |= template == "/api/team" and action == "comment"
     safe |= template == "/api/tickets/<key>/evidence" and body.get("kind") in ("attach", "review", "link")
     safe |= template == "/api/memory" and action in ("lesson_create", "lesson_edit", "lesson_share", "lesson_unshare", "lesson_take", "lesson_untake", "lesson_confirm", "lesson_restore", "lesson_retire", "cluster_scan", "cluster_confirm", "cluster_exclude")
+    # Version-bound personal decisions only write the tenant lesson ledger.
+    # The existing manager requirement above and strict session check remain.
+    safe |= template == "/api/projects/<key>/lessons/<lid>" and (
+        action in ("edit", "confirm", "restore", "retire") or ("action" not in body or action == "") and "fields" in body)
     safe |= template == "/api/learning" and action in ("capture", "propose", "policy_create", "adopt", "revoke", "retry_decision", "abandon_decision")
     safe |= template.endswith("/library") and action in ("grant", "revoke", "reference", "remove_reference", "configure", "add_source")
     safe |= template == "/api/projects"  # registration only; workspace policy checked above

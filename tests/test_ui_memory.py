@@ -14,7 +14,8 @@ Element.prototype.querySelectorAll=function(selector){if(/^[a-z]+$/.test(selecto
 const md=s=>'<div class="md">'+h(s)+'</div>',workIcon=()=>'<svg></svg>';
 location.hash='#/memory';S.scope='*';const scopeStorage=new Map(),ls={set:(key,value)=>scopeStorage.set(key,value)};
 const memoryData=(extra={})=>({projects:S.projects,section:'overview',lessons:[],knowledge:[],summary:{lessons:0,active:0,knowledge:0,shared:0},scope_notice:'按项目与明确共享范围使用',brief:{status:'preview',stale:false,stale_reasons:[],warnings:[]},clusters:{items:[]},...extra});
-const ownLesson=(extra={})=>({id:'L1',title:'审批重复回调',symptom:'同一回调重复写入',fix:'检查幂等键',status:'candidate',scope:'project',scope_label:'本项目记忆',applicability:'相近任务',stats:{used:2,passed:1,failed:0},...extra});
+const ownLesson=(extra={})=>{const card={id:'L1',project:'APP',title:'审批重复回调',symptom:'同一回调重复写入',fix:'检查幂等键',status:'candidate',scope:'project',scope_label:'本项目记忆',applicability:'相近任务',stats:{used:2,passed:1,failed:0},...extra};return {...card,snapshot:{schema:1,project:card.project,lesson_id:card.id,card,expected_token:'a'.repeat(64),content_digest:'b'.repeat(64)}}};
+const memoryStored=new Map();globalThis.sessionStorage={getItem:key=>memoryStored.get(key)||null,setItem:(key,value)=>memoryStored.set(key,value),removeItem:key=>memoryStored.delete(key)};globalThis.crypto=require('node:crypto').webcrypto;S.meta={user:'alice',operator_authenticated:true};
 const memoryBrief=(extra={})=>({project:{key:'APP',name:'审批系统'},exists:true,revision:1,markdown:'# 完整交接\n\n完整原文 <script>危险脚本</script>',sections:[{id:'overview',title:'项目与代码',kind:'markdown',body:extra.markdown||'项目概览'}],sources:[],history:[{revision:1,created:'2026-10-22',confirmed:null}],status:'draft',fingerprint:'v1',current_fingerprint:'v1',stale:false,stale_reasons:[],warnings:[],...extra});
 let memoryResponse=memoryData();getHandler=url=>memoryResponse;
 postHandler=async()=>({ok:true});
@@ -99,7 +100,7 @@ const stale=later();getHandler=()=>stale.promise;const reading=vMemory();locatio
         self.run_js(r"""
 S.scope='APP';memoryResponse=memoryData({lessons:[ownLesson()]});await vMemory('lessons');
 const confirm=main.querySelector('[data-mem-act="lesson_confirm"]'),pending=later();postHandler=()=>pending.promise;const first=confirm.fire('click'),second=confirm.fire('click');assert.equal(mutations.length,1);assert.equal(confirm.disabled,true);
-pending.reject(new Error('保存失败，保留原内容'));await first;await second;assert.ok($('#memNotice').textContent.includes('保存失败'));assert.equal(confirm.disabled,false);
+pending.reject(Object.assign(new Error('保存失败，保留原内容'),{status:400,code:'invalid_lesson_decision'}));await first;await second;assert.ok($('#memNotice').textContent.includes('保存失败'));assert.equal(confirm.disabled,false);
 const edit=main.querySelector('[data-mem-edit]'),fix=edit.querySelector('[data-mem-field="fix"]');fix.value='用户尚未保存的完整修改';postHandler=async()=>{throw new Error('网络中断')};await edit.fire('submit');assert.equal(fix.value,'用户尚未保存的完整修改');assert.ok($('#memNotice').textContent.includes('网络中断'));
 """)
 

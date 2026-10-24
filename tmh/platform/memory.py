@@ -431,15 +431,23 @@ def read_brief(P, project, revision=""):
 
 
 def _lesson_workspace(P, p=None, q=""):
-    shared = learn.shared(P.data_dir, p["key"] if p else "")
+    try:
+        shared = learn.shared(P.data_dir, p["key"] if p else "")
+    except learn.LessonDecisionError as exc:
+        raise lesson_api_error(exc) from exc
     items = []
     if p:
-        for l in learn.lessons(P.data_dir, p["key"], 1000000):
-            items.append({**l, "scope": "project", "scope_label": "本项目记忆", "source_project": p["key"],
-                          "auto_use": l["status"] == "active", "applicability": "本项目相近任务按相关度使用"})
+        try:
+            snapshots = learn.lesson_snapshots(P.data_dir, p["key"], 1000000)
+        except learn.LessonDecisionError as exc:
+            raise lesson_api_error(exc) from exc
+        for snapshot in snapshots:
+            l = snapshot["card"]
+            items.append({**l, "snapshot": snapshot, "scope": "project", "scope_label": "本项目记忆", "source_project": p["key"],
+                          "auto_use": l["status"] == "active", "usage_hint": "本项目相近任务按相关度使用"})
     for l in shared:
         items.append({**l, "scope": "organization", "scope_label": "已共享经验", "auto_use": bool(p and l.get("taken") and l["status"] == "active"),
-                      "applicability": "已引入本项目，仍按相关度选择" if p and l.get("taken") else "仅供查阅，项目引入后才会用于相近任务"})
+                      "usage_hint": "已引入本项目，仍按相关度选择" if p and l.get("taken") else "仅供查阅，项目引入后才会用于相近任务"})
     if q:
         terms = org_knowledge._tokens(q)
         items = [l for l in items if terms & org_knowledge._tokens(" ".join(str(l.get(k) or "") for k in ("title", *learn.FIELDS)))]
@@ -479,6 +487,31 @@ def dispatch_read(P, query, user):
     return result
 
 
+def lesson_api_error(exc):
+    """Keep decision status and machine code through both HTTP entry points."""
+    error = ApiError(exc.status, str(exc))
+    error.reason = exc.code
+    return error
+
+
+def lesson_decision(P, project, lid, actor, action, body):
+    """Normalize only documented aliases; keep full fields and reason intact."""
+    if "reason" in body and "why" in body and body["reason"] != body["why"]:
+        error = ApiError(400, "reason 与 why 不能是不同的内容")
+        error.reason = "invalid_lesson_decision"
+        raise error
+    reason = body.get("reason", body.get("why", ""))
+    try:
+        result = learn.human_decision(P.data_dir, project, lid, actor, action,
+                                      body.get("expected_token"), body.get("request_id"),
+                                      fields=body.get("fields"), reason=reason)
+    except learn.LessonDecisionError as exc:
+        raise lesson_api_error(exc) from exc
+    # Existing callers may read card fields; the complete current/receipt pair
+    # is authoritative and always wins over similarly named legacy metadata.
+    return {**result["current"]["card"], **result}
+
+
 def dispatch_action(P, body, user):
     if not isinstance(body, dict) or not isinstance(body.get("action"), str):
         raise ApiError(400, "请指定记忆操作")
@@ -494,23 +527,24 @@ def dispatch_action(P, body, user):
             raise ApiError(400, "记忆字段格式不正确")
         if not fields.get("symptom", "").strip() or not fields.get("fix", "").strip():
             raise ApiError(400, "请写清适用场景和做法，避免没有适用范围的全局指令")
-        return learn.add_lesson(P.data_dir, {"project": p["key"], "title": title, **fields, "kind": "manual",
-                                "status": "candidate", "by": user, "note": "团队主动记录；确认后用于本项目相近任务", "files": [], "flows": []})
+        try:
+            snapshot = learn.add_lesson_snapshot(P.data_dir, {"project": p["key"], "title": title, **fields, "kind": "manual",
+                                    "status": "candidate", "by": user, "note": "团队主动记录；确认后用于本项目相近任务", "files": [], "flows": []})
+        except learn.LessonDecisionError as exc:
+            raise lesson_api_error(exc) from exc
+        return {**snapshot["card"], "snapshot": snapshot}
     if action.startswith("lesson_"):
         lid = body.get("lesson_id")
         if not isinstance(lid, str):
             raise ApiError(400, "请指定经验")
+        if action in ("lesson_edit", "lesson_confirm", "lesson_restore", "lesson_retire"):
+            return lesson_decision(P, p["key"], lid, user, action.removeprefix("lesson_"), body)
         try:
             if action in ("lesson_take", "lesson_untake"):
                 return learn.take_shared(P.data_dir, lid, p["key"], action == "lesson_take", user)
             card = learn.lesson(P.data_dir, lid)
             if not card or card.get("project") != p["key"]:
                 raise ApiError(404, "经验不属于当前项目")
-            if action == "lesson_edit":
-                fields = body.get("fields")
-                if not isinstance(fields, dict) or any(k not in learn.FIELDS or not isinstance(v, str) for k, v in fields.items()):
-                    raise ApiError(400, "记忆字段格式不正确")
-                return learn.edit_lesson(P.data_dir, lid, fields, user)
             if action in ("lesson_share", "lesson_unshare"):
                 fields = body.get("fields") or {}
                 if not isinstance(body.get("title") or "", str) or not isinstance(fields, dict) or not all(k in learn.FIELDS and isinstance(v, str) for k, v in fields.items()):
@@ -521,12 +555,6 @@ def dispatch_action(P, body, user):
                     raise ApiError(400, "共享副本标题最多 120 字，每字段最多 800 字；请明确编辑副本，原经验保持完整")
                 return learn.set_shared(P.data_dir, lid, action == "lesson_share", user, body.get("title") or "", fields,
                                         names=[p["key"], p["name"]])
-            states = {"lesson_confirm": "active", "lesson_restore": "active", "lesson_retire": "retired"}
-            if action in states:
-                reason = body.get("reason") or ""
-                if not isinstance(reason, str) or action == "lesson_retire" and not reason.strip():
-                    raise ApiError(400, "请填写停用原因")
-                return learn.set_status(P.data_dir, lid, states[action], user, reason or "在知识与记忆工作区确认")
         except ValueError as exc:
             raise ApiError(400, str(exc)) from exc
         raise ApiError(400, "未知经验操作")

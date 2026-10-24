@@ -29,6 +29,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import threading
 import time
 import uuid
@@ -160,6 +161,8 @@ FIELD_LABEL = {"symptom": "现象", "cause": "根因", "fix": "改法", "verify"
 DEMOTE_AFTER = 2  # failures a card went along with before it leaves the prompts (when they outnumber its passes)
 REVISION_FIELDS = ("title", *FIELDS, "applicability", "non_applicability")
 _REVISION_MARKER = "revision_projection"
+_HUMAN_DECISION = "human_decision"
+_CONTENT_EXCLUDED = frozenset(("status", "stats", "abroad", "history", "shared", "taken", "active_revision", "flags"))
 
 
 def _digest(value):
@@ -192,8 +195,19 @@ def _effective_log(log):
                 and rows[-1].get("status") == ("active" if marker["operation"] == "adopt" else "probation")
                 and _digest(rows) == marker.get("rows_digest") and _digest(request) == marker.get("request_digest")):
             committed.update(range(position - count, position + 1))
-    return [(position, r) for position, r in enumerate(log)
-            if (not r.get("projection_batch") and r.get("kind") != _REVISION_MARKER) or position in committed]
+    effective, seen = [], {}
+    for position, row in enumerate(log):
+        if row.get("kind") == _HUMAN_DECISION:
+            _validate_human_envelope(row)
+            key = (row["request"]["actor"], row["request"]["request_id"])
+            if key in seen:
+                if seen[key] != row:
+                    raise _history_error()
+                continue
+            seen[key] = row
+        if (not row.get("projection_batch") and row.get("kind") != _REVISION_MARKER) or position in committed:
+            effective.append((position, row))
+    return effective
 
 
 def overhead_flags(card: dict) -> list[str]:
@@ -244,6 +258,8 @@ def _log(data_dir: Path) -> list:
             try:
                 out.append(json.loads(line))
             except ValueError:
+                if re.search(r'"kind"\s*:\s*"human_decision"', line):
+                    raise _history_error()
                 continue
     return out
 
@@ -252,7 +268,7 @@ def _log(data_dir: Path) -> list:
 def _append_log(data_dir: Path, rows: list) -> None:
     if not rows:
         return
-    payload = "".join(json.dumps(dict(r, ts=r.get("ts") or now()), ensure_ascii=False) + "\n" for r in rows).encode("utf-8")
+    payload = "".join(json.dumps(dict(r, ts=r.get("ts") or now()), ensure_ascii=True) + "\n" for r in rows).encode("utf-8")
     f = Path(data_dir) / LOG
     with f.open("a+b") as fh:
         # Preserve a torn final line as evidence and start the next record on a
@@ -272,8 +288,37 @@ def _fold(lessons_: list, log: list) -> list:
                         abroad={}, history=[]) for l in lessons_}
     for card in by.values():
         card.pop("active_revision", None)  # only a sealed projection can bind a revision
-    for _, r in _effective_log(log):
+    effective = _effective_log(log)
+    originals = {row["id"]: row for row in lessons_}
+    for index, (_, r) in enumerate(effective):
         l = by.get(r.get("id"))
+        if r.get("kind") == _HUMAN_DECISION:
+            if not l or r["project"] != l.get("project"):
+                raise _history_error()
+            request = r["request"]
+            if (r["base_token"] != _token_for(originals[l["id"]], effective[:index])
+                    or r["before_status"] != l["status"]):
+                raise _history_error()
+            try:
+                after, changes = _human_effect(l, request)
+            except LessonDecisionError as exc:
+                raise _history_error() from exc
+            content = _reviewed_content(dict(l, **changes))
+            if (r["after_status"] != after or r["changes"] != changes
+                    or r["changed"] != bool(changes or after != l["status"])
+                    or r["reviewed_content_digest"] != _content_digest(content)):
+                raise _history_error()
+            if r["changed"]:
+                l.pop("active_revision", None)
+                l.update(changes)
+                l["status"] = after
+                if request["action"] != "edit" and after == "active":
+                    l["stats"]["recent_passed"] = l["stats"]["recent_failed"] = 0
+            l["history"].append({"ts": r["ts"], "by": request["actor"],
+                                 "status": after if request["action"] != "edit" else "edit",
+                                 "why": request["reason"], "request_id": request["request_id"],
+                                 "changed": r["changed"]})
+            continue
         if not l:
             continue
         s, k = l["stats"], r.get("kind")
@@ -334,10 +379,20 @@ def add_lesson(data_dir: Path, d: dict) -> dict:
         if old:
             return lesson(data_dir, old["id"])
     n = len(f.read_text(encoding="utf-8").splitlines()) if f.exists() else 0
+    # Existing implicit line identities remain stable; explicit historical IDs
+    # can exceed the line count and must never be silently reused.
+    for old in _raw(data_dir):
+        if isinstance(old.get("id"), str) and re.fullmatch(r"L[0-9]+", old["id"]):
+            n = max(n, int(old["id"][1:]))
     d = dict(d, id="L%d" % (n + 1), ts=now())
     d.setdefault("status", "active")
-    with f.open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps(d, ensure_ascii=False) + "\n")
+    payload = (json.dumps(d, ensure_ascii=True) + "\n").encode("utf-8")
+    with f.open("a+b") as fh:
+        if fh.tell():
+            fh.seek(-1, os.SEEK_END)
+            if fh.read(1) != b"\n":
+                payload = b"\n" + payload
+        fh.write(payload)
         fh.flush()
         os.fsync(fh.fileno())
     return dict(d, flags=overhead_flags(d))
@@ -368,12 +423,303 @@ def edit_lesson(data_dir: Path, lid: str, fields: dict, by: str) -> dict:
 @_ledger_access(False)
 def revision_token(data_dir: Path, lid: str) -> str:
     """CAS token for content and human decisions, unaffected by usage counts."""
-    original = next((row for row in _raw(data_dir) if row["id"] == lid), None)
+    raw, log = _raw(data_dir), _log(data_dir)
+    original = next((row for row in raw if row["id"] == lid), None)
     if original is None:
         raise ValueError("没有这条经验：" + str(lid))
-    rows = [(position, row) for position, row in _effective_log(_log(data_dir))
-            if row.get("id") == lid and row.get("kind") in ("edit", "status", "share", "take", _REVISION_MARKER)]
+    _fold(raw, log)  # A recognized human envelope must not be used unvalidated.
+    return _token_for(original, _effective_log(log))
+
+
+class LessonDecisionError(ValueError):
+    """A caller must preserve the distinction between conflict and unknown."""
+    def __init__(self, status, code, message):
+        super().__init__(message)
+        self.status, self.code = status, code
+
+
+def _history_error():
+    return LessonDecisionError(409, "lesson_history_unreadable", "经验历史无法完整核验；请管理员核对原始账本")
+
+
+def _human_request(project, lid, actor, action, expected_token, request_id, fields, reason):
+    fields = {} if fields is None else fields
+    if (any(not isinstance(v, str) or not v.strip() for v in (project, lid, actor))
+            or action not in ("edit", "confirm", "restore", "retire")
+            or not isinstance(expected_token, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_token)
+            or not isinstance(request_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", request_id)
+            or not isinstance(fields, dict) or any(k not in FIELDS or not isinstance(v, str) for k, v in fields.items())
+            or not isinstance(reason, str) or action in ("restore", "retire") and not reason.strip()):
+        raise LessonDecisionError(400, "invalid_lesson_decision", "请提供完整动作、版本、请求号、文字字段及必要原因")
+    request = {"schema": 1, "namespace": "human_lesson", "project": project, "lesson_id": lid,
+               "actor": actor, "action": action, "base_token": expected_token, "request_id": request_id,
+               "fields": dict(fields), "reason": reason}
+    try:
+        _digest(request)
+    except (UnicodeError, ValueError, TypeError) as exc:
+        raise LessonDecisionError(400, "invalid_lesson_decision", "文字必须能够完整保存为 UTF-8") from exc
+    return request
+
+
+def _reviewed_content(card):
+    return {key: value for key, value in card.items() if key not in _CONTENT_EXCLUDED}
+
+
+def _content_digest(content):
+    payload = json.dumps({"schema": "lesson_content_v1", "content": content}, ensure_ascii=False,
+                         sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _token_for(original, effective):
+    rows = [(position, row) for position, row in effective if row.get("id") == original["id"]
+            and (row.get("kind") in ("edit", "status", "share", "take", _REVISION_MARKER)
+                 or row.get("kind") == _HUMAN_DECISION and row["changed"])]
     return _digest({"original": original, "decisions": rows})
+
+
+def _human_effect(card, request):
+    action, status = request["action"], card["status"]
+    allowed = {"confirm": ("candidate",), "restore": ("retired", "probation"),
+               "retire": ("candidate", "active", "probation"), "edit": STATUSES}
+    if status not in allowed[action]:
+        raise LessonDecisionError(409, "lesson_state_conflict", "当前经验状态不适用此动作；请重新阅读后决定")
+    after = status if action == "edit" else "retired" if action == "retire" else "active"
+    changes = {key: value for key, value in request["fields"].items() if value != (card.get(key) or "")}
+    return after, changes
+
+
+def _validate_human_envelope(row):
+    """Validate all declared fields; corrupted decisions never become no-ops."""
+    keys = {"kind", "schema", "id", "project", "by", "request", "request_digest", "base_token",
+            "reviewed_content", "reviewed_content_digest", "before_status", "after_status", "changes",
+            "changed", "ts", "envelope_digest"}
+    try:
+        request = row["request"]
+        normalized = _human_request(request["project"], request["lesson_id"], request["actor"],
+                                    request["action"], request["base_token"], request["request_id"],
+                                    request["fields"], request["reason"])
+        if (set(row) != keys or type(row["schema"]) is not int or row["schema"] != 1
+                or request != normalized or type(request.get("schema")) is not int
+                or row["id"] != request["lesson_id"] or row["project"] != request["project"]
+                or row["by"] != request["actor"] or row["base_token"] != request["base_token"]
+                or not isinstance(row["ts"], str) or not row["ts"]
+                or type(row["changed"]) is not bool or not isinstance(row["changes"], dict)
+                or any(k not in FIELDS or not isinstance(v, str) for k, v in row["changes"].items())
+                or row["before_status"] not in STATUSES or row["after_status"] not in STATUSES
+                or not isinstance(row["reviewed_content"], dict)
+                or row["request_digest"] != _digest(request)
+                or row["reviewed_content_digest"] != _content_digest(row["reviewed_content"])
+                or row["envelope_digest"] != _digest({k: v for k, v in row.items() if k != "envelope_digest"})):
+            raise _history_error()
+    except (KeyError, TypeError, ValueError, UnicodeError) as exc:
+        raise _history_error() from exc
+
+
+def _material_rows(payload, *, originals=False):
+    """Diagnose physical lines without renumbering accepted legacy positions.
+
+    Recovering a line ignored by the old reader could resurrect a decision.
+    Ambiguous old history requires an explicit repair, never read-time repair.
+    """
+    try:
+        text = payload.decode("utf-8")
+        physical = [json.loads(line) for line in text.split("\n") if line.strip()]
+        legacy_lines = text.splitlines()
+        legacy = [(index, json.loads(line)) for index, line in enumerate(legacy_lines) if line.strip()]
+        if any(not isinstance(row, dict) for row in physical) or [row for _, row in legacy] != physical:
+            raise _history_error()
+        if not originals:
+            return [row for _, row in legacy]
+        rows = [dict(row, id=row.get("id") or "L%d" % (index + 1)) for index, row in legacy]
+        ids = [row["id"] for row in rows]
+        if any(not isinstance(lid, str) or not lid.strip() for lid in ids) or len(set(ids)) != len(ids):
+            raise _history_error()
+        return rows
+    except (ValueError, TypeError, UnicodeError) as exc:
+        raise _history_error() from exc
+
+
+def _read_material(data_dir):
+    def read(name):
+        try:
+            return (Path(data_dir) / name).read_bytes()
+        except FileNotFoundError:
+            return b""
+    raw_bytes, log_bytes = read(LESSONS), read(LOG)
+    key = str(Path(data_dir).resolve())
+    if key not in getattr(_LEDGER_LOCAL, "held", {}) and (Path(data_dir) / "lessons.lock").exists():
+        # A first writer may have created the lock between our two reads.
+        # Re-enter the unchanged ledger lock and recapture both materials.
+        with ledger_lock(data_dir, create=False):
+            return _read_material(data_dir)
+    return _material(raw_bytes, log_bytes)
+
+
+def _material(raw_bytes, log_bytes):
+    raw, log = _material_rows(raw_bytes, originals=True), _material_rows(log_bytes)
+    try:
+        cards, effective = _fold(raw, log), _effective_log(log)
+    except (ValueError, TypeError, AttributeError, KeyError, UnicodeError) as exc:
+        raise _history_error() from exc
+    return {"raw_bytes": raw_bytes, "log_bytes": log_bytes, "raw": raw,
+            "log": log, "cards": cards, "effective": effective}
+
+
+def _snapshot(material, project, lid):
+    card = next((card for card in material["cards"] if card["id"] == lid and card.get("project") == project), None)
+    if card is None:
+        raise LessonDecisionError(404, "lesson_not_found", "没有这条项目经验")
+    try:
+        if any(card.get(field) is not None and not isinstance(card[field], str) for field in FIELDS):
+            raise _history_error()
+        # Derived history/shared metadata is returned too. Validate its full
+        # JSON representation without changing the content digest's scope.
+        _content_digest(card)
+        original = next(row for row in material["raw"] if row["id"] == lid)
+        return {"schema": 1, "project": project, "lesson_id": lid,
+                "card": dict(card, flags=overhead_flags(card)),
+                "expected_token": _token_for(original, material["effective"]),
+                "content_digest": _content_digest(_reviewed_content(card))}
+    except (ValueError, TypeError, UnicodeError) as exc:
+        raise _history_error() from exc
+
+
+@_ledger_access(False)
+def lesson_snapshot(data_dir: Path, project: str, lid: str) -> dict:
+    return _snapshot(_read_material(data_dir), project, lid)
+
+
+@_ledger_access(False)
+def lesson_snapshots(data_dir: Path, project: str, limit: int = 200) -> list:
+    material = _read_material(data_dir)
+    cards = [card for card in material["cards"] if card.get("project") == project]
+    return [_snapshot(material, project, card["id"]) for card in cards[::-1][:limit]]
+
+
+def add_lesson_snapshot(data_dir: Path, d: dict) -> dict:
+    if (not isinstance(d, dict) or not isinstance(d.get("project"), str) or not d["project"].strip()
+            or any(key in d and not isinstance(d[key], str) for key in FIELDS)):
+        raise LessonDecisionError(400, "invalid_lesson_decision", "请指定经验所属项目")
+    try:
+        _content_digest(d)
+    except (ValueError, TypeError, UnicodeError) as exc:
+        raise LessonDecisionError(400, "invalid_lesson_decision", "经验全文必须能够完整保存为 UTF-8") from exc
+    return _add_lesson_snapshot(data_dir, d)
+
+
+@_ledger_access(True)
+def _add_lesson_snapshot(data_dir, d):
+    _read_material(data_dir)  # Never create a card before discovering an unreadable old ledger.
+    card = add_lesson(data_dir, d)
+    return _snapshot(_read_material(data_dir), d["project"], card["id"])
+
+
+def _fsync_directory(path):
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _sync_human_log(data_dir):
+    with (Path(data_dir) / LOG).open("rb") as stream:
+        os.fsync(stream.fileno())
+    _fsync_directory(Path(data_dir))
+
+
+def _require_human_storage():
+    if os.name != "posix" or not callable(getattr(os, "fchmod", None)):
+        raise LessonDecisionError(503, "lesson_storage_unsupported",
+                                  "此平台尚未验证原子经验登记与目录同步；未执行本次决定")
+
+
+def _publish_human_log(data_dir, original, row):
+    """Logical append with one atomic publication; the original prefix is exact."""
+    path = Path(data_dir) / LOG
+    payload = original + (b"\n" if original and not original.endswith(b"\n") else b"")
+    payload += (json.dumps(row, ensure_ascii=True) + "\n").encode("utf-8")
+    descriptor, temporary = tempfile.mkstemp(prefix=".lesson-decision-", dir=path.parent)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            if path.exists():
+                os.fchmod(stream.fileno(), path.stat().st_mode & 0o777)
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        _fsync_directory(path.parent)
+        return payload
+    finally:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+
+
+def _human_result(material, row, replayed):
+    request = row["request"]
+    snapshot = _snapshot(material, request["project"], request["lesson_id"])
+    position = next(index for index, (_, entry) in enumerate(material["effective"]) if entry is row)
+    original = next(original for original in material["raw"] if original["id"] == request["lesson_id"])
+    token = _token_for(original, material["effective"][:position + 1])
+    receipt = {"schema": 1, "namespace": "human_lesson", "project": request["project"],
+               "lesson_id": request["lesson_id"], "actor": request["actor"], "request_id": request["request_id"],
+               "action": request["action"], "base_token": row["base_token"],
+               "reviewed_content": row["reviewed_content"], "reviewed_content_digest": row["reviewed_content_digest"],
+               "before_status": row["before_status"], "after_status": row["after_status"],
+               "fields": request["fields"], "reason": request["reason"], "changed": row["changed"],
+               "at": row["ts"], "decision_token": token}
+    return {"schema": 1, "project": request["project"], "lesson_id": request["lesson_id"],
+            "request_id": request["request_id"], "action": request["action"], "replayed": replayed,
+            "superseded": token != snapshot["expected_token"], "receipt": receipt, "current": snapshot}
+
+
+def human_decision(data_dir: Path, project: str, lid: str, actor: str, action: str,
+                   expected_token: str, request_id: str, *, fields=None, reason="") -> dict:
+    request = _human_request(project, lid, actor, action, expected_token, request_id, fields, reason)
+    _require_human_storage()
+    return _decide_human(data_dir, request)
+
+
+@_ledger_access(True)
+def _decide_human(data_dir, request):
+    project, lid, actor = request["project"], request["lesson_id"], request["actor"]
+    expected_token, request_id = request["base_token"], request["request_id"]
+    material = _read_material(data_dir)
+    snapshot = _snapshot(material, project, lid)  # Project binding precedes any receipt lookup.
+    digest = _digest(request)
+    prior = next((row for _, row in material["effective"] if row.get("kind") == _HUMAN_DECISION
+                  and row["request"]["actor"] == actor and row["request"]["request_id"] == request_id), None)
+    try:
+        if prior:
+            if prior["request_digest"] != digest:
+                raise LessonDecisionError(409, "request_id_conflict", "请求号已用于另一意图；不能更换版本、动作或正文")
+            _sync_human_log(data_dir)
+            return _human_result(material, prior, True)
+        if snapshot["expected_token"] != expected_token:
+            raise LessonDecisionError(409, "lesson_changed", "经验已经变化；请重新阅读后决定")
+        card = snapshot["card"]
+        after, changes = _human_effect(card, request)
+        content = _reviewed_content(dict(card, **changes))
+        row = {"kind": _HUMAN_DECISION, "schema": 1, "id": lid, "project": project, "by": actor,
+               "request": request, "request_digest": digest, "base_token": expected_token,
+               "reviewed_content": content, "reviewed_content_digest": _content_digest(content),
+               "before_status": card["status"], "after_status": after, "changes": changes,
+               "changed": bool(changes or after != card["status"]), "ts": now()}
+        row["envelope_digest"] = _digest(row)
+        # Validate the exact publication before touching the formal log.
+        encoded = (json.dumps(row, ensure_ascii=True) + "\n").encode("utf-8")
+        prefix = material["log_bytes"]
+        payload = prefix + (b"\n" if prefix and not prefix.endswith(b"\n") else b"") + encoded
+        result_material = _material(material["raw_bytes"], payload)
+        result_row = result_material["effective"][-1][1]
+        result = _human_result(result_material, result_row, False)
+        _publish_human_log(data_dir, prefix, row)
+        return result
+    except OSError as exc:
+        raise LessonDecisionError(503, "decision_outcome_unknown", "登记结果尚不能确定；请仅重试原请求") from exc
 
 
 @_ledger_access(False)
