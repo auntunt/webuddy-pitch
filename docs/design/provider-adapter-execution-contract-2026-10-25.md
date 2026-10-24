@@ -56,3 +56,14 @@ intent 后的断线、HTTP 错误/跳转、格式错误、模型或 usage 不符
 
 
 平台边界：此版本复用POSIX进程监管器及私有目录FD。新增HTTP/FD清理测试仅在POSIX执行，非POSIX明确skip，不将Windows声明为支持；Windows原生隔离/凭据ACL/监管执行仍是后续阻塞。Mac与Linux原有断言、真实网络期限和清理覆盖保持。
+
+
+## H1：原始HTTP长度与历史保守隔离
+
+首次transport和原件reconcile共用 `provider_transport.validate_framing`，直接检查全部原始头字段，不能依赖http.client归一化的response.length。Content-Length只接受ASCII十进制，去除HTTP空格/Tab和前导零后，所有重复字段及逗号列表值须一致；接受合法同值重复，拒绝符号、负数、下划线、空值、非数字、矛盾值及无法表示的超过2**63−1的长度。收到的正文长度必须与原声明一致。只有一个chunked编码受支持，TE与CL并存、未知或重复编码都拒绝；无TE/CL的响应仍按连接关闭界定。
+
+transport先保存原始头，再对坏框定响应按原期限/资源门保留已收到的正文，以unknown结束，不复用连接或重发。合法同值逗号列表先归一化长度再读取，不能依赖keep-alive服务端主动关闭连接才能完成。chunked只由标准库解码，本增量不声称实现完整HTTP解析器。
+
+原件复核先验证原合同/意图/完整监管回执/响应字节摘要/原transport与请求绑定，再检查原始头和正文。旧transport零退出也不能跳过这一步。发现已证实的框定错误时，`Ledger.invalidate_framing`在原事务中将intent/unknown或此前错误settled隔离为unknown、阻止根继续派发、恢复原最大token/金额预留；原settled事件及回执字节保留，新增事件绑定原receipt摘要，精确重放不再新增隔离事件。若历史上错误结算后已发生其它消费，保守总额可能超过原上限，不能撤销既有消费，只能停止后续派发，不声称真实少计费或自动退款。
+
+这一收紧允许旧版本原件被拒绝并隔离；合法旧版本原件仍受原版本绑定限制，不能凭新解析器批准为当前版本或自动恢复执行。没有增加数据库表/生产入口，没有修改人工确认或业务状态迁移。协议依据 [RFC 9112 §6.3](https://www.rfc-editor.org/rfc/rfc9112.html#section-6.3)。

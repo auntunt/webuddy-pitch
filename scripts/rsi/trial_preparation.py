@@ -366,6 +366,25 @@ class Ledger:
             self._event(db, key, request, "unknown", {"intent": intent, "reason": reason})
         return "unknown"
 
+    def invalidate_framing(self, key, request, intent):
+        """Quarantine a bound original response; retain immutable settlements.
+
+        Stricter response validation can invalidate a prior apparent settlement.
+        This restores its original worst-case hold, never refunds or redispatches.
+        """
+        with transaction(self.store) as db:
+            self._pool(db, key)
+            row = self._attempt(db, key, request)
+            if not intent or row["intent"] != intent or row["state"] not in {"intent", "unknown", "settled"}:
+                raise Conflict("invalid framing belongs to no committed intent")
+            if row["state"] == "settled":
+                self._settled_receipt(db, key, row)
+            db.execute("UPDATE rsi_prepare_pools SET blocked=1 WHERE pool=?", (key,))
+            if row["state"] != "unknown":
+                db.execute("UPDATE rsi_prepare_attempts SET state='unknown' WHERE pool=? AND request_id=?", (key, request))
+                self._event(db, key, request, "unknown", {"intent": intent, "reason": "invalid_original_http_framing", "prior_receipt_sha256": row["receipt_hash"]})
+        return "unknown"
+
     def settle(self, key, request, intent, receipt):
         fields(receipt, {"provider_request_id", "response_model", "input_tokens", "cached_input_tokens", "output_tokens", "provider_charge_micro_cny", "raw_response_sha256"})
         text(receipt["provider_request_id"]); text(receipt["response_model"]); sha(receipt["raw_response_sha256"])

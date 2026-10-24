@@ -17,6 +17,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from scripts.rsi import trial_preparation as L
+from scripts.rsi.provider_transport import FramingError, validate_framing
 from tmh.platform import supervised_process as SP
 
 VERSION = "server-messages-adapter-v1"
@@ -208,11 +209,9 @@ class Adapter:
         return folder, strict_json(profile_raw), body
 
     def _settle_original(self, key, request, c, row):
-        if c["provider_binding"]["code_sha256"] != LOADED_CODE or any(file_hash(path) != LOADED_CODE[name] for name, path in SOURCES.items()):
-            raise L.Conflict("settlement requires original adapter version")
         folder, profile, body = self._originals(key, request, c, row)
         receipt = SP.read_receipt(folder / "transport", self._owner(key, request, row["intent"]))
-        if receipt is None or receipt["returncode"] != 0 or not receipt["cleanup"].get("complete"):
+        if receipt is None or not receipt["cleanup"].get("complete"):
             raise L.Conflict("complete original transport receipt required")
         raw = (folder / "transport" / "output.bin").read_bytes()
         if len(raw) != receipt["output"]["bytes"] or hashlib.sha256(raw).hexdigest() != receipt["output"]["sha256"]:
@@ -223,6 +222,13 @@ class Adapter:
                 or meta.get("request_sha256") != hashlib.sha256(body).hexdigest()
                 or meta.get("transport_sha256") != c["provider_binding"]["code_sha256"]["transport"]):
             raise L.Conflict("original HTTP transport binding mismatch")
+        # Apply the stricter framing rule even to an old zero-exit receipt,
+        # before version approval or any usage-based reduction of its hold.
+        validate_framing(meta.get("headers"), len(response))
+        if receipt["returncode"] != 0:
+            raise L.Conflict("original transport did not complete successfully")
+        if c["provider_binding"]["code_sha256"] != LOADED_CODE or any(file_hash(path) != LOADED_CODE[name] for name, path in SOURCES.items()):
+            raise L.Conflict("settlement requires original adapter version")
         value = strict_json(response)
         if not isinstance(value, dict):
             raise ValueError("native message object required")
@@ -279,7 +285,13 @@ class Adapter:
         snap = self.ledger.snapshot(key, request)
         if snap["contract"]["schema"] != L.PROVIDER_VERSION:
             raise L.Conflict("provider v2 root required")
-        return self._settle_original(key, request, snap["contract"], snap["attempt"])
+        try:
+            return self._settle_original(key, request, snap["contract"], snap["attempt"])
+        except FramingError:
+            self.ledger.invalidate_framing(key, request, snap["attempt"]["intent"])
+            return {"state": "unknown", "response_complete": False, "new_dispatch": False,
+                    "actual_provider_charge_verified": False, "rsi_qualified": False,
+                    "evidence": str(self._folder(key, request))}
 
     def dispatch(self, key, request, phase, *, system, messages, cancel_event=None):
         c = self.ledger.snapshot(key)["contract"]
