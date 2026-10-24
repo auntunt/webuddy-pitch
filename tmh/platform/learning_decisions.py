@@ -46,7 +46,7 @@ def adopted_current(P, p, r):
     if r["kind"] == "lesson":
         card = learn.lesson(P.data_dir, r["origin_id"])
         return (card and card.get("project") == p["key"] and card["status"] == "active" and
-                L.encoded({f: card.get(f, "") for f in L.LESSON_FIELDS}) == r["content"])
+                L.encoded(L.lesson_content(card, r["source"].get("lesson_content_schema"))) == r["content"])
     return True
 
 
@@ -157,7 +157,9 @@ def project_decision(P, p, did):
                     _job(P, p, r, req["job_id"])
                 if d["action"] == "adopt":
                     result = learn.project_revision(P.data_dir, p["key"], r["origin_id"], r["id"],
-                                                    json.loads(payload["content"]), d["actor"], did, payload["expected_token"])
+                                                    json.loads(payload["content"]), d["actor"], did, payload["expected_token"],
+                                                    **({"content_schema": r["source"]["lesson_content_schema"]}
+                                                       if r["source"].get("lesson_content_schema") else {}))
                 else:
                     result = learn.revoke_revision(P.data_dir, p["key"], r["origin_id"], r["id"],
                                                    d["actor"], did, payload["expected_token"], req["reason"])
@@ -290,14 +292,13 @@ def usable_lessons(store, p, cards):
     # relevant() selected snapshots earlier. Reconcile them while holding the same
     # ledger view so a revoked managed card cannot fall back to the legacy path.
     with store.lock, learn.ledger_lock(P.data_dir, create=False):
-        shared = {c["id"]: c for c in learn.shared(P.data_dir, p["key"])} if any(c.get("foreign") for c in cards) else {}
         for card in cards:
             current = learn.lesson(P.data_dir, card["id"])
             rid = current.get("active_revision") if current else None
             usable = bool(current and current["status"] == "active")
             foreign = bool(card.get("foreign"))
             if foreign:
-                public = shared.get(card["id"], {})
+                public = learn.shared_lesson(P.data_dir, p["key"], card["id"]) or {}
                 usable = usable and public.get("taken", False) and all(
                     card.get(f) == public.get(f) for f in ("title", *learn.FIELDS, "shared_ts"))
                 owner = store.project(current["project"]) if current else None

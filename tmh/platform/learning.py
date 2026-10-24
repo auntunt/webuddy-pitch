@@ -20,6 +20,23 @@ KINDS = ("fact", "lesson", "policy")
 POLICY_SPECS = {"context_budget": {"min": 4000, "max": 12000, "default": 6000, "label": "上下文预算（字符）"}}
 REF = re.compile(r"(?<![\w/])([\w./-]+\.[A-Za-z0-9]+):(\d+)")
 LESSON_FIELDS = ("title", *learn.FIELDS, "applicability", "non_applicability")
+LESSON_CONTENT_SCHEMA = "lesson-content-v2"
+
+
+def lesson_content(card, schema=None):
+    """Interpret immutable revisions with their recorded content protocol."""
+    if schema in (None, ""):
+        return {f: card.get(f, "") for f in LESSON_FIELDS}
+    if schema != LESSON_CONTENT_SCHEMA:
+        raise ApiError(409, "未知经验正文协议")
+    value = {f: card[f] for f in LESSON_FIELDS if f in card}
+    if any(v is not None and not isinstance(v, str) for v in value.values()):
+        raise ApiError(409, "经验正文包含不可解释的字段类型")
+    try:
+        json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
+    except (ValueError, UnicodeError) as exc:
+        raise ApiError(409, "经验正文不可无损编码") from exc
+    return value
 DDL = (
     """CREATE TABLE IF NOT EXISTS learning_revisions (
     id TEXT PRIMARY KEY, project_id INTEGER NOT NULL, kind TEXT NOT NULL,
@@ -148,13 +165,16 @@ def _facts(P, p):
     return out
 
 
-def _lessons(P, p):
+def _lessons(P, p, content_schema=LESSON_CONTENT_SCHEMA):
     out = []
     for card in learn.lessons(P.data_dir, p["key"], limit=None):
-        content = encoded({f: card.get(f, "") for f in LESSON_FIELDS})
+        content = encoded(lesson_content(card, content_schema))
         source = {k: card.get(k) for k in ("ticket", "candidate_id", "source_key", "provenance", "files", "flows") if card.get(k) is not None}
+        title = card.get("title", card["id"])
+        if content_schema == LESSON_CONTENT_SCHEMA and title is None:
+            title = card["id"]  # registry label only; immutable content retains explicit null
         out.append({"key": "lesson:" + card["id"], "kind": "lesson", "origin_id": card["id"],
-                    "title": card.get("title", card["id"]), "content": content,
+                    "title": title, "content": content,
                     "fingerprint": digest({"content": content, "source": source}), "source": source,
                     "human": {"status": card["status"], "by": (card.get("history") or [{}])[-1].get("by", ""),
                               "at": (card.get("history") or [{}])[-1].get("ts", "")}})
@@ -171,12 +191,13 @@ def _policies(P, p):
     return out
 
 
-def _origin(P, p, key):
+def _origin(P, p, key, *, lesson_schema=LESSON_CONTENT_SCHEMA):
     kind, _, origin = key.partition(":")
     readers = {"fact": _facts, "lesson": _lessons, "policy": _policies}
     if kind not in readers or not origin:
         raise ApiError(400, "条目类型或标识无效")
-    found = next((x for x in readers[kind](P, p) if x["key"] == key), None)
+    items = _lessons(P, p, lesson_schema) if kind == "lesson" else readers[kind](P, p)
+    found = next((x for x in items if x["key"] == key), None)
     if not found:
         raise ApiError(404, "条目不存在或不属于当前项目")
     return found
@@ -219,6 +240,8 @@ def capture(P, p, key, expected_fingerprint, actor):
         e["sha256"] = digest(e["content"])
     source = {**item["source"], "binding": before, "origin_fingerprint": item["fingerprint"],
               "evidence": evidence, "snapshot_kind": "working-copy-manifest"}
+    if item["kind"] == "lesson":
+        source["lesson_content_schema"] = LESSON_CONTENT_SCHEMA
     with transaction(P.store) as db:
         if binding(P, p) != before or _origin(P, p, key)["fingerprint"] != expected_fingerprint:
             raise ApiError(409, "固定修订时来源或授权发生变化")
@@ -235,7 +258,8 @@ def revision_current(P, p, r):
         source = r["source"]
         if p["id"] != r["project_id"] or binding(P, p) != source["binding"]:
             return False
-        item = _origin(P, p, r["kind"] + ":" + r["origin_id"])
+        item = _origin(P, p, r["kind"] + ":" + r["origin_id"],
+                       lesson_schema=source.get("lesson_content_schema"))
         if item["fingerprint"] != source["origin_fingerprint"]:
             return False
         return all(digest(safe_read(p["root"], e["path"])) == e["sha256"] for e in source["evidence"])
@@ -285,17 +309,23 @@ def propose(P, p, revision_id, content, actor):
         except ValueError as exc:
             raise ApiError(400, "经验修订必须为字段 JSON") from exc
         if (not isinstance(val, dict) or set(val) - set(LESSON_FIELDS) or
-                any(not isinstance(v, str) for v in val.values())):
+                any(v is not None and not isinstance(v, str) for v in val.values())):
             raise ApiError(400, "经验修订只接受允许字段及完整字符串")
         # The revision is a complete immutable card, even when the editor sends
         # only changed fields. Projection must not silently inherit extra text
         # that the evaluator never saw and then immediately invalidate adoption.
         parent = json.loads(r["content"])
-        val = {**{key: parent.get(key, "") for key in LESSON_FIELDS}, **val}
-        if (any(not isinstance(v, str) for v in val.values()) or
-                any(not val.get(k, "").strip() for k in ("title", "symptom", "fix"))):
+        schema = r["source"].get("lesson_content_schema")
+        val = {**lesson_content(parent, schema), **val}
+        if (any(not isinstance(v, str) for v in val.values()) if not schema else
+                any(v is not None and not isinstance(v, str) for v in val.values())) or any(
+                not isinstance(val.get(k), str) or not val[k].strip() for k in ("title", "symptom", "fix")):
             raise ApiError(400, "经验需要标题、现象、改法以及字符串字段")
         content = encoded(val)
+        try:
+            content.encode("utf-8")
+        except UnicodeError as exc:
+            raise ApiError(400, "经验修订包含不可无损编码的文字") from exc
     with transaction(P.store) as db, ExitStack() as guards:
         source = r["source"]
         valid = revision_current(P, p, r)
@@ -316,7 +346,8 @@ def propose(P, p, revision_id, content, actor):
                     guards.enter_context(learn.ledger_lock(P.data_dir))
                 valid = adopted_current(P, p, r)
                 if valid:
-                    current = _origin(P, p, r["kind"] + ":" + r["origin_id"])
+                    current = _origin(P, p, r["kind"] + ":" + r["origin_id"],
+                                      lesson_schema=source.get("lesson_content_schema"))
                     if r["kind"] == "fact":
                         # The submitted header/facts already matched the parent.
                         # Publication changes only its human status in the file;

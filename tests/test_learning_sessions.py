@@ -53,13 +53,17 @@ class LearningSessionTests(unittest.TestCase):
         item = L._origin(self.P, owner, "lesson:" + card["id"])
         revision = L.capture(self.P, owner, item["key"], item["fingerprint"], "writer")
         learn.project_revision(self.data, owner["key"], card["id"], revision["id"], json.loads(revision["content"]),
-                               "alice", "adopt-" + card["id"], learn.revision_token(self.data, card["id"]))
+                               "alice", "adopt-" + card["id"], learn.revision_token(self.data, card["id"]),
+                               content_schema=revision["source"].get("lesson_content_schema", ""))
         return revision
 
     def local_lesson_meta(self, revision):
         cards, receipts = D.usable_lessons(self.store, self.p, [learn.lesson(self.data, revision["origin_id"])])
         self.assertEqual(len(cards), 1)
-        return {"mode": "learning_lessons", "revisions": receipts}
+        from tmh.platform import lesson_context
+        with self.store.lock, learn.ledger_lock(self.data):
+            block = lesson_context.freeze(self.store, self.p, cards)
+        return {"mode": "learning_lessons", "revisions": receipts, "block": block}
 
     def shared_lesson(self):
         root = self.data / "reference"
@@ -70,7 +74,10 @@ class LearningSessionTests(unittest.TestCase):
         learn.take_shared(self.data, revision["origin_id"], self.p["key"], True, "consumer")
         cards, receipts = D.usable_lessons(self.store, self.p, learn.shared(self.data, self.p["key"]))
         self.assertEqual(len(cards), 1)
-        return revision, {"mode": "learning_lessons", "revisions": receipts}
+        from tmh.platform import lesson_context
+        with self.store.lock, learn.ledger_lock(self.data):
+            block = lesson_context.freeze(self.store, self.p, cards)
+        return revision, {"mode": "learning_lessons", "revisions": receipts, "block": block}
 
     def saved_run(self, *metas, mode="analyze", parent=None, status="done", result="OLD_CONCLUSION", recorded=True):
         run = self.store.create_run(self.p["id"], self.ticket["id"], "fake", mode, "alice", "frozen")

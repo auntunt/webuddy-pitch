@@ -311,26 +311,27 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
             # its end. A character limit silently dropped that contract on longer real plans.
             out += ["## 之前的%s结论（%s，%s）" % (dict(RUN_MODES)[r["mode"]], r["agent"], r["ended"][5:16]), r["result"].strip(), ""]
         if mode != "ask":
-            from .learn import held_out, lessons_text, note_held, note_nomatch, note_used, relevant
-            try:
-                ls = relevant(store.path.parent, project["key"], ticket, " ".join(r["result"] for r in prior[:2]), root=root)
-                from .learning_decisions import usable_lessons
+            from . import learn, lesson_context
+            from .learning_decisions import usable_lessons
+            # Capture the actual selected text and its authorization in one lock
+            # window. A token read after rendering could describe a newer card.
+            with store.lock, learn.ledger_lock(store.path.parent):
+                ls = learn.relevant(store.path.parent, project["key"], ticket, " ".join(r["result"] for r in prior[:2]), root=root)
                 ls, learning_receipts = usable_lessons(store, project, ls)
-                if ticket.get("id"):  # an eval case is not a real ticket: nothing about it is counted
-                    if ls and held_out(store.path.parent, ticket.get("key") or ""):
-                        note_held(store.path.parent, ticket, ls)  # the comparison group: like the others, minus the cards
+                if ticket.get("id"):
+                    if ls and learn.held_out(store.path.parent, ticket.get("key") or ""):
+                        learn.note_held(store.path.parent, ticket, ls)
                         ls = []
                         for receipt in learning_receipts:
                             receipt["included"] = False
                             receipt["reason"] = "holdout"
                     elif not ls:
-                        note_nomatch(store.path.parent, ticket)
-                out.append(lessons_text(ls))
-                _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{"mode": "learning_lessons", "revisions": learning_receipts}]
-                if ticket.get("id"):  # an eval case is not a real ticket: its prompts do not count as using a card
-                    note_used(store.path.parent, ticket, ls, mode)
-            except OSError:
-                pass
+                        learn.note_nomatch(store.path.parent, ticket)
+                block = lesson_context.freeze(store, project, ls)
+                out.append(block["text"])
+                _CTX_META.meta = getattr(_CTX_META, "meta", []) + [{"mode": "learning_lessons", "revisions": learning_receipts, "block": block}]
+                if ticket.get("id"):
+                    learn.note_used(store.path.parent, ticket, ls, mode)
         query = "%s %s %s %s" % (ticket["title"], search_words(ticket.get("body") or "")[:600], " ".join(flows), question)
         out.append(knowledge(root, _fence(query), budget=learning_policy["context_budget"], store=store, project=project))
         out.append("")
@@ -385,7 +386,7 @@ def _record_context(store: Store, data_dir, run_id: int, metas: list) -> None:
         rdir.mkdir(parents=True, exist_ok=True)
         (rdir / "context.json").write_text(json.dumps(metas, ensure_ascii=False, indent=1), encoding="utf-8")
     except OSError:
-        pass
+        raise
     m = metas[-1]
     try:
         if m.get("mode") == "context_pack":
@@ -780,8 +781,10 @@ def additional_context_prompt(store, data_dir: Path, project: dict, ticket: dict
 
 def _learning_history(P, p) -> bool:
     """Old unreceipted sessions are unsafe after a project has used learning."""
-    from . import learning as L, learn
+    from . import learning as L, learn, lesson_context
     from .. import kb
+    if lesson_context.has_history(P.data_dir, p["key"]):
+        return True
     if P.store.one("SELECT id FROM learning_decisions WHERE project_id=? AND action='adopt' LIMIT 1", (p["id"],)):
         return True
     if P.store.one("SELECT revision_id FROM learning_policy_active WHERE project_id=?", (p["id"],)):
@@ -843,7 +846,7 @@ def _learning_receipt_current(P, p, receipt: dict, meta: dict) -> bool:
             return False
         if kind == "lesson":
             return card.get("project") == p["key"]
-        public = next((c for c in learn.shared(P.data_dir, p["key"]) if c["id"] == origin), None)
+        public = learn.shared_lesson(P.data_dir, p["key"], origin)
         take = card.get("taken", {}).get(p["key"])
         return bool(public and public.get("taken") and take and receipt.get("explicit_take") is True and
                     receipt.get("consumer_project") == p["key"] and receipt.get("take") == take and
@@ -899,6 +902,7 @@ def learning_context_current(store, data_dir: Path, project: dict, run: dict, *,
     """
     from types import SimpleNamespace
     from . import learning as L, learning_decisions as D, project_library as library
+    from . import lesson_context
     from .errors import ApiError
     P = SimpleNamespace(store=store, data_dir=Path(data_dir))
     try:
@@ -907,6 +911,7 @@ def learning_context_current(store, data_dir: Path, project: dict, run: dict, *,
             if not p or p["root"] != project["root"] or run.get("project_id") != p["id"]:
                 return False
             history = _learning_history(P, p)
+            lesson_history = lesson_context.has_history(P.data_dir, p["key"])
             visiting, checked = set(), set()
 
             def check(current, initial=False):
@@ -928,6 +933,9 @@ def learning_context_current(store, data_dir: Path, project: dict, run: dict, *,
                 metas = json.loads(raw) if raw is not None else []
                 if not isinstance(metas, list) or any(not isinstance(m, dict) for m in metas):
                     return False
+                if (lesson_history and current.get("ticket_id") and current.get("mode") != "ask"
+                        and not any(m.get("mode") == "learning_lessons" for m in metas)):
+                    return False
                 manifest = json.loads(paths[1].read_text(encoding="utf-8")) if paths[1].exists() else None
                 if manifest is None:
                     if history:
@@ -948,6 +956,9 @@ def learning_context_current(store, data_dir: Path, project: dict, run: dict, *,
                     return False
                 for meta in metas:
                     mode = meta.get("mode")
+                    if mode == "learning_lessons":
+                        if not lesson_context.current(store, p, meta.get("block")):
+                            return False
                     if mode == "learning_prior":
                         prior_id = meta.get("run_id")
                         if type(prior_id) is not int or prior_id >= rid or not check(store.run(prior_id)):
@@ -1273,7 +1284,12 @@ class Runner:
                                      reference_inputs=reference_inputs,
                                      **({"retry_of": retry_of} if retry_of is not None else {}))
         if not source:  # the prompt this run will use is already complete: record what knowledge it saw
-            _record_context(self.store, self.data_dir, run["id"], take_context_meta())
+            try:
+                _record_context(self.store, self.data_dir, run["id"], take_context_meta())
+            except OSError as exc:
+                self.store.update_run(run["id"], status="failed", ended=now(), exit_code=1,
+                                      result="任务知识输入回执保存失败，未启动执行器：" + str(exc))
+                return self.store.run(run["id"])
         self._claim(run["id"])
         if source:
             # Build knowledge and the prompt from the immutable checkout before the worker starts.
@@ -1442,9 +1458,12 @@ class Runner:
                 st.update_run(rid, status="failed", ended=now(), result="工单指定的代码版本 %s 取不出来：%s" % (pin[:10], e))
                 self._finish_event(ticket, rid, agent, mode, "failed", str(e))
                 return
+        from .lesson_context import replace_template
+        context_path = rdir / "context.json"
+        prompt_metas = json.loads(context_path.read_text(encoding="utf-8")) if context_path.exists() else []
         if pin:
-            prompt = prompt.replace("（目录 %s）" % project["root"], "（这张工单针对的是 %s 版本的代码，代码在 %s，只看这里；知识库和 tmh 工具仍在 %s）"
-                                    % (pin[:10], "{workdir}", project["root"]), 1)
+            prompt = replace_template(prompt, "（目录 %s）" % project["root"], "（这张工单针对的是 %s 版本的代码，代码在 %s，只看这里；知识库和 tmh 工具仍在 %s）"
+                                    % (pin[:10], "{workdir}", project["root"]), prompt_metas, 1)
         if mode == "fix":
             try:
                 workdir, branch = make_worktree(self.data_dir, project, ticket, rid, base or pin)
@@ -1453,7 +1472,7 @@ class Runner:
                 self._finish_event(ticket, rid, agent, mode, "failed", str(e))
                 return
             st.append_output(rid, "— 在独立工作树 %s（分支 %s%s）里修改\n" % (workdir, branch, "，接着被退回的分支 " + base if base else ""))
-        prompt = prompt.replace("{workdir}", str(workdir))
+        prompt = replace_template(prompt, "{workdir}", str(workdir), prompt_metas)
         with self.lock:
             if st.run(rid)["status"] == "cancelled":
                 st.update_run(rid, workdir=str(workdir))
@@ -1479,6 +1498,11 @@ class Runner:
                                                workdir, model, resume=sid, fresh=prompt)
                 else:
                     code, result = self.invoke(rid, invoke_project, ticket, agent, conf, mode, prompt, workdir, model)
+            # Fixed-source receipts still need their owned checkout while the
+            # run is active. Check before the finally block removes that view.
+            if not learning_context_current(st, self.data_dir, project, st.run(rid), running=True):
+                code = 1
+                result = '运行期间学习输入、来源或授权发生变化，本次结果不能沿用。\n\n' + (result or '')
         except Exception as e:  # a failed pinned check still needs durable provenance and cleanup
             if not source:
                 raise
@@ -1601,7 +1625,7 @@ class Runner:
             self.controls[rid]["event"].wait(min(0.1, max(0.0, end - time.monotonic()), self.remaining(rid)))
         return True
 
-    def run_command(self, rid, cmd, workdir, *, timeout=None, env=None, stdin=None, on_output=None, kind="command", prompt=None):
+    def run_command(self, rid, cmd, workdir, *, timeout=None, env=None, stdin=None, on_output=None, kind="command", prompt=None, prompt_transport=None):
         """Execute only an owned process group; keep every attempt and its original bytes."""
         from .supervised_process import run_supervised
         c = self.controls.get(rid)
@@ -1617,11 +1641,17 @@ class Runner:
             index = max([int(x.name) for x in parent.iterdir() if x.is_dir() and x.name.isdigit()] or [0]) + 1
             folder = parent / ("%04d" % index)
             folder.mkdir()
-            if prompt is not None:
-                (folder / "prompt.md").write_text(prompt, encoding="utf-8")
+            prompt_bytes = prompt.encode("utf-8") if prompt is not None else None
+            if prompt_bytes is not None:
+                (folder / "prompt.md").write_bytes(prompt_bytes)
             record = {"attempt": index, "kind": kind, "started_at": now(), "cwd": str(workdir),
                       "command": cmd, "timeout_seconds": timeout, "evidence": str(folder.relative_to(self.data_dir)),
                       "supervised": True}
+            if prompt_bytes is not None:
+                import hashlib
+                record.update(prompt_sha256=hashlib.sha256(prompt_bytes).hexdigest(),
+                              prompt_utf8_bytes=len(prompt_bytes), prompt_scope="runner_attempt_prompt",
+                              prompt_transport=prompt_transport or ["not_declared"])
             if active:
                 c["attempts"].append(record)
                 self._save_lifecycle(rid)
@@ -1633,7 +1663,10 @@ class Runner:
                     self._save_lifecycle(rid)
         def verify_output(process):
             errors = []
-            for name, content in (("output.bin", process.output_bytes), ("output.txt", process.output.encode("utf-8"))):
+            evidence = [("output.bin", process.output_bytes), ("output.txt", process.output.encode("utf-8"))]
+            if prompt_bytes is not None:
+                evidence.append(("prompt.md", prompt_bytes))
+            for name, content in evidence:
                 try:
                     if (folder / name).read_bytes() != content:
                         raise OSError("独立监管已保存的输出与返回内容不一致")
@@ -1680,7 +1713,7 @@ class Runner:
         st = self.store
         rdir = self.data_dir / "runs" / str(rid)
         pf, lm = rdir / ("prompt%s.md" % tag), rdir / ("last-message%s.md" % tag)
-        pf.write_text(prompt, encoding="utf-8")
+        pf.write_bytes(prompt.encode("utf-8"))
         if lm.exists():
             # Earlier attempt copies remain in attempts/, including an interrupted final answer.
             lm.unlink()
@@ -1711,10 +1744,14 @@ class Runner:
             if buf and (final or time.monotonic() - last > 0.4 or len(buf) > 50):
                 st.append_output(rid, "".join(buf))
                 buf, last = [], time.monotonic()
+        custom = conf[agent].get("cmd")
+        transport = (["stdin"] if agent == "claude" else ["argv"]) if custom is None else (
+            (["argv"] if "{prompt}" in custom else []) + (["prompt_file_argument"] if "{prompt_file}" in custom else []))
         try:
             process, folder = self.run_command(rid, cmd, workdir, env=env,
                 stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
-                on_output=output, kind="model:" + mode + tag, prompt=prompt)
+                on_output=output, kind="model:" + mode + tag, prompt=prompt,
+                prompt_transport=transport or ["none_configured"])
         except OSError as e:
             msg = ("%s 启动失败：%s。请检查执行器 %s。" % (agent, e, cmd[0])
                    if isinstance(e, FileNotFoundError) and e.filename == cmd[0]
@@ -1723,7 +1760,6 @@ class Runner:
             return 127, msg, parser, clock.done()
         finally:
             output("", final=True)
-        (folder / "prompt.md").write_text(prompt, encoding="utf-8")
         result = parser.final()
         if lm.exists():
             shutil.copyfile(lm, folder / "last-message.md")

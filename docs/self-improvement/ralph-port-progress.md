@@ -1,5 +1,26 @@
 # Ralph port 执行进度
 
+## 2026-10-24：RSI-1 完整知识输入与运行回执
+
+- 当前项：RSI-1；状态：**doing**。开工 `5a4caa8538415a79009d2c66bcf27a20d6b589a5` 工作区干净；F2-1已上线e226、文档5a4已普通推送，207运行文件Git blob/模式一致。已读进度、git log、AGENTS及两份接口契约。
+- 范围：实际运行与手工经验评测共用唯一无损selector/renderer，完整冻结字段/条件/附件及实际知识块回执；只读公开视图不回填私卡。保留原500池、1500/3000检索窗口、排序/资格过滤后不补位、原holdout和人工采用语义。
+- 合理决定：最终answer-only评测prompt默认上限65536 UTF-8字节，双臂任一超限整对not_executed，完整输入/失败/分母保留，不截断。旧v1待运行/恢复明确input_schema_expired并转既有stale释放活跃位；已结束旧人工结果按原有效性保留合法采用，并标明legacy/manual作用域，不授RSI资格。
+- 兼容：新lesson_content_schema=v2保留合法缺键/null/空串，新旧fingerprint/投影解释显式分支；旧revision/id/账本不重写。生产知识块相同不等于plan/fix与answer-only最终prompt同构；不改plan/fix语义或用手工评测冒充RSI收益。
+- 分工：client负责lesson_input.py/learn.py与新selector/renderer测试；backend负责learning.py/learning_eval.py/learning_runs.py与新冻结/恢复测试；根负责learning_decisions.py、agents.py真实注入/会话失效及集成；独立代理只读对抗复核。
+- 实施红灯：根在5a4归档执行最初8项新增运行用例，9个断言失败、零error；证明正文截断、普通经验撤回不失效、回执写失败被吞等旧行为，完整日志SHA `dff8d6cac79e64f9ac19cc920696ad8a40c9caddfb5575e650d6ffbac26aaba1`。client原11项2fail/9error，其中error含尚未实现接口，不把它们都称为既有产品漏洞。backend原4项明确复现超限仍调用、候选未被选中仍强制注入。
+- 根定向：r4 **61/61、17.103s**；修复固定交付误拒后r5 **82/82、28.183s**，真实退出0。完整日志分别SHA `f0287245f3a560cc66ae7b74e5b22330a99c83e46e30659099d186efddae2e09`、`c8948c6751e39d8fc8c586bf22082339e15fd076e5f3dc9293db8d38ddab94b8`，保存在仓库外 `分析/RSI协调/rsi1-runtime-20261024/`。后续公开窗口窄修及最终冻结仍待新验证，不能用这两轮替代最终全量。
+- 独审红绿：实际模板替换会误改知识块内字面 `{workdir}`、only-policy sidecar会掩盖缺经验回执，均增加真实输入/会话反例后修复。新末尾current在固定工作树已清理后误拒，两个原真实交付基线准确红灯；移至模型返回后、finally清理前，原断言不变且14项独立窄复验全绿。render/binding两阶段独立Python均无法取同账本内核锁，捕获后可取；3子进程已退出。
+- 继续收敛：独审指出冻结输入不能只依赖自身hash，必须从固定pool/真实revision/selector重建；未知协议不得冒称v2，malformed明确失效。另新卡挤出100000发现窗不应使已冻结公开卡误拒，初始发现窗口保持，只对已指定ID重核原公开投影/权限；client合成100001材料和根实际冻结回执反例均先红。修复与最终独立复核进行中。
+- 历史测试适配仅 `test_learning_sessions.py` 夹具显式传v2 schema并附实际块，全部原断言保持；第一次4项夹具失败原日志保留。不改原进程时限、人工权限、guard、MOVES或锁实现。新增说明 `docs/lesson-input-contract.md` 明确平台提交不等于模型理解、手工评测不等于RSI收益。
+- 冻结定向：client **171/171、12.100s**（25新测试），backend **113/113、24.264s**（27新测试），root运行回执 **14/14、1.332s**；后端独审15/15包含重算hash错绑、缺失/外链/替换inode的只读锁检查。单ID lookup仅去发现窗口上限，保持原坏尾行旧机器投影兼容；第一次错误使用严格reader导致基线失败已保留。r6一处共享目录mock影响take返回的夹具error也保留，不将其冒称真实窗口漏洞。
+- **尚未发布：最终联合320项 /60.995s，1 failure、0 error**。原 `test_handwork_lifecycle.test_review_shares_time_spent_on_baseline_and_candidate_checks` 第131行未看到review-ready，已超3秒真实共享预算；14个产品/测试文件SHA全程相同，完整日志SHA `b26e89c550d4b7382244c2850cf36048895b6950466fdbf78d768bba65452e74`。正在隔离保存run/lifecycle/attempts并对比5a4与本批，不放宽超时或断言，也不以重跑通过代替根因。
+- 发布准备仅就绪：仓库外 `部署包/lesson-input-20261024/` 继承原流程，101项工具自检、100回环HTTP、4类特定清理通过；新v2合成证明接入三道门，原full/SDK/56+11表/备份/60秒门保持，不能当本批产品验证。2026-10-24 13:22:23 CST 严格SSH只读核对仍e226671、56业务/11控制表完整，无活动运行、自动流转关闭、sudo有效；未切换服务或写业务。当前发现1925项、loader errors=0，仍待精确提交全量。
+- 最后锁读窄修：普通运行回执原先仅检查锁路径存在，外部删除/替换后可继续复用旧fd。三个确定性文件屏障在原实现均断言失败，现核对进入/返回时路径及实际持fd的dev/inode；不改原锁实现。正常新锁和未变重入正控保持。runtime17+selector14共 **31/31、1.022s、0跳过**；原红灯SHA `d76988bc1da41d1ef01f5d0dfb88a401fec850b1da006516df9a94966c355d2a`。此为外部文件操作边界，未声称普通writer会自发换锁，独立5/5含真实子进程换锁并退役卡片，父持旧fd时正确拒绝；子进程已回收，源SHA保持。仍待新冻结联合验证。
+- 3秒现场调查：基线/current交替11对共22次原断言通过，原handwork类各5项通过；诊断准备中位当前12.6ms、基线10.5ms，未重现预算耗尽。修正仓库外诊断器spawn入口后原同序320项全部通过、60.979s、172源SHA保持。第一次坏诊断器2fail/12error保留，不作产品结论。原失败日志13:20:00–13:21:02与发布工具自检13:20:08–13:20:32活动重叠，但缺原用例独立时间戳及临时现场，不能证明因果；原故障根因仍未知，不称已修，不改时钟、预算或断言。正式精确全量将不与其它测试负载并行。
+- 故障留存补强：`test_handwork_lifecycle.setUp` 仅暴露原 `f.temp` 为 `self.temp`，让既有全量失败收集器在原清理前复制真实现场；不更改执行、清理、断言或3秒预算。另8个新用例的POSIX限制只对应原平台不支持的人工写入/独立进程监管或持fd换锁，其余新测试继续跨平台执行。
+- 最终根联合：原19模块加锁边界3项，**323/323、51.618s、0跳过**，实际退出0，所有变更文件SHA前后保持；完整日志SHA `fafdf79ffe418929b65506e0630e07d8e83a7db78939404f3febeaaf46707365`，仓库外 `分析/RSI协调/rsi1-runtime-20261024/final-323/`。61个原会话断言AST、acceptance/guard/filelock/supervised_process/Store字节不变，diff检查通过。现场留存单独提交 `74c1ea9`，不声称修复3秒故障。当前发现 **1928项、loader errors=0**，随后精确提交双端全量与SDK；尚未推送/激活。
+- 待确认：无须用户回答的当前阻塞。真实付费RSI试点在累计预算/可信成本上限/独立留出与完整生产输入合同就绪前保持关闭，接续RSI-2。
+
 ## 2026-10-24：F2-1 经验人工决定绑定完整版本
 
 - 最终证据封存：14份服务器白名单报告/完整日志，共192677字节，collector实际退出0；根逐文件重新核对SHA/长度一致。readback-manifest SHA `5103ce360e477fcc5ae85f5467dda3bae9aac04f30655ac9182b5b9791a5b1e8`。没有下载业务备份或密钥。

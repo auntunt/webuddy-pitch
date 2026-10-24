@@ -117,7 +117,7 @@ def get(P, p, job_id):
     for row in item["rounds"]:
         row["claims"], row["result"] = json.loads(row["claims"]), json.loads(row["result"])
     item["cost"] = {"amount": None, "currency": None, "status": "unknown"}
-    return item
+    return _input_description(P, p, item)
 
 
 def list_jobs(P, p, revision_id=""):
@@ -126,7 +126,52 @@ def list_jobs(P, p, revision_id=""):
     if revision_id:
         sql += " AND (revision_id=? OR current_revision_id=?)"
         args.extend([revision_id, revision_id])
-    return [_decode(r) for r in P.store.q(sql + " ORDER BY rowid DESC", args)]
+    return [_input_description(P, p, _decode(r)) for r in P.store.q(sql + " ORDER BY rowid DESC", args)]
+
+
+def _input_description(P, p, item):
+    if item["kind"] == "evaluate":
+        r = _core().revision(P, p, item["current_revision_id"])
+        if r["kind"] == "lesson":
+            from . import learning_eval as E
+            options = item.get("options")
+            frozen = options.get("evaluation") if isinstance(options, dict) else None
+            legacy = isinstance(frozen, dict) and not frozen.get("schema") and frozen.get("prompt_version") == E.PROMPT_VERSION
+            executable = not bool(E.execution_contract_error(item, "lesson"))
+            item["evidence_scope"] = E.evidence_scope("v2" if executable else "legacy" if legacy else "unknown")
+            item["input_contract"] = {"schema": (frozen.get("schema") if isinstance(frozen, dict) else None) or ("legacy-v1" if legacy else "unknown"),
+                                      "executable": executable}
+            if "input_schema_expired" in item.get("error", ""):
+                item["input_contract"]["error"] = "input_schema_expired"
+    return item
+
+
+def _expire_input(P, p, jid):
+    """Release obsolete active jobs under the same kernel owner lock; preserve evidence."""
+    row = _decode(_row(P, p, jid))
+    if row["status"] in TERMINAL or row["kind"] != "evaluate":
+        return False
+    from . import learning_eval as E
+    r = _core().revision(P, p, row["current_revision_id"])
+    if not E.execution_contract_error(row, r["kind"]):
+        return False
+    folder = _folder(P, jid)
+    folder.mkdir(parents=True, exist_ok=True)
+    with (folder / "owner.lock").open("a+b") as stream:
+        try:
+            filelock.try_lock(stream)
+        except BlockingIOError:
+            return False  # the existing worker performs the same check before its next step
+        try:
+            with _core().transaction(P.store) as db:
+                fresh = _decode(_row(P, p, jid))
+                if fresh["status"] not in TERMINAL and E.execution_contract_error(fresh, r["kind"]):
+                    db.execute("UPDATE learning_jobs SET status='stale',error=?,ended=?,owner='',lease_until=0 WHERE id=?",
+                               (str(E.input_schema_error()), now(), jid))
+                    return True
+        finally:
+            filelock.unlock(stream)
+    return False
 
 
 def _capabilities(executable, stat):
@@ -201,6 +246,9 @@ def start(P, p, kind, revision_id, options, actor, request_id, launch=True):
     if old:
         if old["request_hash"] != request_hash:
             raise ValueError("请求编号已用于不同的知识运行")
+        if old["status"] == "queued":
+            _expire_input(P, p, old["id"])
+            old = P.store.one("SELECT * FROM learning_jobs WHERE id=?", (old["id"],))
         if launch and old["status"] == "queued":
             _launch(P, p, old["id"])
         return get(P, p, old["id"])
@@ -269,6 +317,8 @@ def _check_current(P, p, job):
         raise _Stopped("stale", "正文、来源、工作区或共享授权已变化")
     if job["kind"] == "evaluate":
         from . import learning_eval
+        if learning_eval.execution_contract_error(job, r["kind"]):
+            raise _Stopped("stale", str(learning_eval.input_schema_error()))
         if not learning_eval.current(P, p, job):
             raise _Stopped("stale", "评测基线或策略上下文来源已变化")
     check = _configuration(P, job["options"])
@@ -512,6 +562,8 @@ class _Worker:
 
 
 def _launch(P, p, jid):
+    if _expire_input(P, p, jid):
+        return
     threading.Thread(target=_work, args=(P, p, jid), name="knowledge-" + jid[:8], daemon=True).start()
 
 
@@ -588,6 +640,9 @@ def cancel(P, p, job_id, actor):
 
 def resume(P, p, job_id, actor, launch=True):
     p = _core().project(P, p)
+    if _expire_input(P, p, job_id):
+        from .learning_eval import input_schema_error
+        raise input_schema_error()
     with _core().transaction(P.store) as db:
         row = _row(P, p, job_id)
         if row["status"] not in ("needs_resume", "queued", "running"):
