@@ -1,0 +1,49 @@
+{
+  "schema": "rsi-preregistration-v1",
+  "application": {
+    "project_key": null,
+    "commit": null
+  },
+  "strategy": {
+    "baseline_revision": null,
+    "candidate_revision": null,
+    "training_source_family": null
+  },
+  "evaluation": {
+    "task_families": [],
+    "holdout_cases": [],
+    "followup_source_family": null,
+    "custodian": null,
+    "optimizer": null
+  },
+  "model": {
+    "profile_ref": null,
+    "provider": null,
+    "requested_model": null,
+    "response_model": null,
+    "identity_evidence_sha256": null,
+    "metering_capability_evidence_sha256": null,
+    "price_upper_bound_evidence_sha256": null,
+    "provider_cap_evidence_sha256": null
+  },
+  "budget": {
+    "max_calls": 24,
+    "max_billed_tokens": 100000,
+    "max_cost_micro_cny": 10000000,
+    "timeout_seconds": 1000
+  },
+  "pilot": {
+    "participants": [],
+    "cycles": [],
+    "task_manifest_sha256": null,
+    "baseline_manifest_sha256": null,
+    "quality_targets": null
+  },
+  "protocol": {
+    "review_evidence_sha256": null,
+    "scoring_protocol_sha256": null,
+    "evaluation_protocol_sha256": null,
+    "isolation_evidence_sha256": null,
+    "prompt_parity_evidence_sha256": null
+  }
+}

@@ -1,5 +1,13 @@
 # Ralph port 执行进度
 
+## 2026-10-25：跨任务改进与多人持续试点
+
+- 当前项：S0预登记准备；状态：done（实施/评分协议待独立审查，真实试点未启动）。已核独立review聊天真实人类优先级原文；复用learning_*、人工决定及handoffs，不重做已通过合成实验。基线3440d48，运行同6ed；开工git status干净，既有stash保持。实施合同见 `docs/design/cross-task-rsi-pilot-2026-10-25.md`；原v0合同/评分草案不改，协议尚未冻结，不计分或提醒80%。
+- 首个增量仅只读预登记工具 `scripts/rsi/check_preregistration.py`、未填真人信息的JSON样板及最终14项定向测试。无网络、数据库、模型或生产业务写入；声明齐全也不授予执行或验证真实性。现有min_holdout=3保持，B/C两个家族至少三独立实例；成本unknown/同用户目录不能冒充费用硬门/终测隔离。
+- 首轮定向 `python3 -m unittest discover -s tests -p test_rsi_preregistration.py -v`：13项，12通过、1断言失败、exit1；空格可伪装训练家族使声明错误通过。完整日志、测试、工具与样板原字节保留在仓库外 `分析/RSI协调/cross-task-v1-S0-20261025/`，日志SHA `2f455e4747f8db17d1c7a35ee507d8d2404f1c85591f0b721513ae5bc9c68130`。修复为拒绝前后空格，不改负控断言；首轮原件与失败不覆盖。
+- 最终验证：同一命令 **14/14、零跳过/失败/错误、actual exit0，unittest0.208s**；按现有验证包选择规则导出独立临时目录再跑 **14/14、actual0**，避免JSON样板漏包。完整日志SHA分别 `be55a655f2d9af1a176f9da183a451f05a0b43eec803b4fa00d0d9fecc0ebaef` / `dca28dc31a622193a317716189fed8ffdf3e0183c99bc607d670492a073d4004`。工具与样板置于既有verification包含的scripts/rsi，不改已冻结发布器。真实样板CLI退出1、blocked、零格式错误，execution_authorized/evidence_verified均false，score=null，输出及文件SHA已读回。仅新工具/新测试/设计文档，不改运行源码或旧测试，未重复运行未变的2115项全量；215现役运行文件将于提交后核对，GitHub普通推送，不为准备工具重启服务。
+- 后续依赖：真实项目及至少两名不同职责参与者、托管人、本人确认、A/B/C/D来源、业务验收人、两个以上周期/基线/目标尚缺；Agent不填假人/不代签。S1需要可核的模型身份、usage/价格上界和累计调用/token/费用/期限硬门；未具备不派发付费调用。评分/具体试验协议由协调/独立review先固定，S0不作替代。建议预算24调用/100000token/1000秒/人民币10元仅待审上限，实际支出0。
+
 ## 2026-10-24：RSI-2 固定 A 合成实验闭环
 
 - 当前项：RSI-2；状态：**done，2026-10-25 03:15:12 CST 已上线6edc04f，GitHub当前分支普通快进一致**。独立最终复审R1–R4均关闭，03:56:23封存验证passed；根逐文件复核独立最终清单1275份，SHA `57877e55ae5b7f8bb49883e86bfba64bc233d2ffcd3fe0ecd4225df5f556b8d3`。下方阶段性“等待/未发布”文字按当时事实保留，不代表当前状态。
