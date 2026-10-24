@@ -44,6 +44,8 @@ python3 -m tmh.workbench send PROJECT-1 --body-file 工作记录.md \
 
 个人工具的 `candidate_get` / `candidates_list` 返回 `state=not_checked`，`current`、`verification_passed`、`preview_ready`、`technical_acceptance`、`ready_for_human`、`human_accepted` 为 JSON `null`。这里的 `null` 表示**未执行当前性判定**，不能转换成 `false`、`stale`、失败或通过；CLI/MCP 保留该 JSON 语义。`preview_url` / `preview_entry_path` 为空，当前证据 hash 不签发。候选、所属工单/项目/运行、全部已有评审与决定、验证原文和已存预览在标明 `historical` 的 `history` 中；其中 `history.ticket_preview` 明确是所属工单最新保存的预览，`binding_status=not_checked`，可能属于同工单的后续候选，不是所请求候选的预览证明；历史 URL 只保留原文，不是可导航的有效预览。探测来源及其结果声明、采纳运行和预览中的显式关联必须属于当前工单/项目，矛盾记录拒绝返回；复检文件内声明的操作和源运行也必须匹配登记记录，未声明时仅是未核对历史。共享预览状态文件损坏返回不可核验错误，不当作空记录，也不披露其他项目原文。原文保留完整 UTF-8/CRLF；损坏的非 UTF-8 字节以 `record_status=invalid_utf8`、`encoding=base64`、`raw_base64`、字节数和 SHA256 无损返回，不当作可解析证据；工单证据原文无法读取、解码，或 JSONL 含坏行/非对象记录时 `requirement_hash=null`、`requirement_status=not_checked`，不为缺失合同签发摘要。普通网页、独立验证和人工验收仍使用原来的实时核验链路。
 
+复检的主运行文件与操作归档都逐层核对 `previous_verifications` 中已声明的归属，兼容旧平铺记录及 `{diff, verification}` 快照。旧轮次可以使用不同操作编号，但不能属于另一运行或项目；矛盾记录返回409，原文件不改写。未声明身份或登记已经缺失的旧记录仍保留原文，不补造绑定。`binding_status=stored_match` 只描述当前层的登记归属，不证明历史内容正确、全部旧轮次已核验或当前测试通过。探测来源比较保留JSON类型，布尔值或浮点数不能冒充整数编号。
+
 个人工具的 `ticket_get` / `run_get` 也不触发运行恢复、锁或进程健康检查；`run_get.history.run` 保留完整输出与提示词，顶层 `output` 仍按 `since` 字符游标返回。`library_get` 保留数据库登记的 `queued` / `building` 等 `status`，另以 `runtime_status=not_checked` 表示没有核验或恢复构建。这些历史状态不证明工作进程仍运行。`request_get` 的 `pending` / `uncertain` 继续表示结果未知且 `needs_reconcile=true`；不能因为本次只读不恢复而改判失败，或换新编号重复操作。既有 schema 初始化/兼容迁移保留；迁移完成后的读取不会重写业务状态。
 
 用安装了 MCP SDK 的 Python 生成配置：

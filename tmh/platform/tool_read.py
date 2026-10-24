@@ -90,42 +90,60 @@ def bound_run(P, rid, t=None, visible_ids=None):
     return value
 
 
+def _verification_bindings(P, recorded, run, operation_id=None):
+    """Validate declared identities at every level without rewriting payloads.
+
+    fixloop stores {diff, verification: previous}; older snapshots may be flat.
+    A prior operation may differ from the latest one, but it must still belong
+    to this run. Missing legacy identities remain unknown, never backfilled.
+    """
+    pending = [(recorded, True)] if isinstance(recorded, dict) else []
+    status = 'not_checked'
+    while pending:
+        value, top = pending.pop()
+        binding = value.get('recheck_operation')
+        if binding is not None:
+            if not isinstance(binding, dict):
+                raise ApiError(409, '验证历史的复检来源格式无法核对')
+            expected = {'source_run': run['id'], 'project_id': run['project_id'], 'ticket_id': run['ticket_id']}
+            if any(key in binding and (type(binding[key]) is not type(want) or binding[key] != want)
+                   for key, want in expected.items()):
+                raise ApiError(409, '验证历史与运行或项目归属不匹配')
+            if 'id' in binding:
+                if type(binding['id']) is not int or not 1 <= binding['id'] <= 2 ** 63 - 1:
+                    raise ApiError(409, '验证历史的复检编号无效')
+                if top and operation_id is not None and binding['id'] != operation_id:
+                    raise ApiError(409, '复检历史文件与登记操作不匹配')
+                found = rows(P.store, 'verification_operations', 'WHERE id=?', (binding['id'],))
+                if found and any(found[0][key] != want for key, want in expected.items()):
+                    raise ApiError(409, '验证历史与复检登记归属不匹配')
+                if top and found and 'source_run' in binding:
+                    status = 'stored_match'
+        if 'previous_verifications' in value:
+            history = value['previous_verifications']
+            if not isinstance(history, list) or any(not isinstance(item, dict) for item in history):
+                raise ApiError(409, '旧轮次验证历史格式无法核对')
+            pending.extend((item, False) for item in history)
+        if 'verification' in value:
+            if not isinstance(value['verification'], dict):
+                raise ApiError(409, '旧轮次验证快照格式无法核对')
+            pending.append((value['verification'], False))
+    return status
+
+
 def recheck_history(P, op):
     stored = saved(Path(P.data_dir) / 'verification-operations' / 'runs' / str(op['id']) / 'verification.json')
     recorded = stored.get('recorded')
-    binding = recorded.get('recheck_operation') if isinstance(recorded, dict) else None
-    status = 'not_checked'
-    if binding is not None:
-        if not isinstance(binding, dict) or any(key in binding and (type(binding[key]) is not int or binding[key] != op[key])
-                                               for key in ('id', 'source_run')):
-            raise ApiError(409, '复检历史文件与登记操作或来源运行不匹配')
-        if 'id' in binding and 'source_run' in binding:
-            status = 'stored_match'
+    run = {'id': op['source_run'], 'project_id': op['project_id'], 'ticket_id': op['ticket_id']}
+    status = _verification_bindings(P, recorded, run, operation_id=op['id'])
     return {'record': op, 'verification': stored, 'binding_status': status}
 
 
 def run_verification(P, run, path):
     stored = saved(path)
-    recorded = stored.get('recorded')
-    binding = recorded.get('recheck_operation') if isinstance(recorded, dict) else None
-    stored['binding_status'] = 'not_checked'
-    if binding is not None:
-        if not isinstance(binding, dict):
-            raise ApiError(409, '运行验证历史的复检来源格式不匹配')
-        if 'source_run' in binding and (type(binding['source_run']) is not int or binding['source_run'] != run['id']):
-            raise ApiError(409, '运行验证历史与来源运行不匹配')
-        if 'id' in binding:
-            if type(binding['id']) is not int or binding['id'] <= 0:
-                raise ApiError(409, '运行验证历史的复检编号无效')
-            found = rows(P.store, 'verification_operations', 'WHERE id=?', (binding['id'],))
-            if found:
-                if any(found[0][key] != expected for key, expected in
-                       (('source_run', run['id']), ('project_id', run['project_id']), ('ticket_id', run['ticket_id']))):
-                    raise ApiError(409, '运行验证历史与复检登记归属不匹配')
-                if 'source_run' in binding:
-                    stored['binding_status'] = 'stored_match'
-    # Older, missing-operation and previous_verifications records are historical;
-    # never recursively replace their earlier operation IDs with the latest ID.
+    stored['binding_status'] = _verification_bindings(P, stored.get('recorded'), run)
+    # The binding status describes this artifact's top-level stored identity;
+    # unbound legacy prior rounds are still historical and never backfilled.
     return stored
 
 
@@ -150,6 +168,26 @@ def run_get(P, rid, since, visible_ids):
                 can_retry=None, retry_status='not_checked', execution=False, notice=NOTICE)
 
 
+def _same_json(left, right):
+    """JSON identifiers retain their types: true and 1 are different values."""
+    pending = [(left, right)]
+    while pending:
+        a, b = pending.pop()
+        if type(a) is not type(b):
+            return False
+        if isinstance(a, dict):
+            if a.keys() != b.keys():
+                return False
+            pending.extend((a[key], b[key]) for key in a)
+        elif isinstance(a, list):
+            if len(a) != len(b):
+                return False
+            pending.extend(zip(a, b))
+        elif a != b:
+            return False
+    return True
+
+
 def probes(P, t, cid=None):
     if not rows(P.store, 'harness_probe_runs', 'LIMIT 1'):
         return []
@@ -172,7 +210,7 @@ def probes(P, t, cid=None):
         # may itself contradict the row, so validate its declared source too.
         stored = saved(Path(P.data_dir) / 'harness-probes' / str(value['id']) / 'result.json')
         recorded = stored.get('recorded')
-        if isinstance(recorded, dict) and 'source' in recorded and recorded['source'] != source:
+        if isinstance(recorded, dict) and 'source' in recorded and not _same_json(recorded['source'], source):
             raise ApiError(409, '探测结果与登记来源不匹配')
         result.append({'historical': True, 'record': value, 'result': stored})
     return result
