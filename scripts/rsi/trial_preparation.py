@@ -159,6 +159,41 @@ class Ledger:
                 raise Conflict("original dispatch intent mismatch")
         return row
 
+    def _settled_receipt(self, db, key, attempt):
+        try:
+            receipt = json.loads(attempt["receipt"])
+            anchors = list(db.execute("SELECT payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND request_id=? AND kind='settled'", (key, attempt["request_id"])))
+            if (digest(receipt) != attempt["receipt_hash"] or len(anchors) != 1
+                    or anchors[0]["payload_hash"] != attempt["receipt_hash"]
+                    or encoded(json.loads(anchors[0]["payload"])) != encoded(receipt)):
+                raise Conflict("corrupt settlement")
+            return receipt
+        except (ValueError, TypeError, KeyError) as error:
+            raise Conflict("unverifiable original settlement") from error
+
+    def _scope_consumptions(self, db, c):
+        # Original events drive the scan too: a missing mutable pool/claim row
+        # cannot erase a still-present original consumption. Known other scopes
+        # remain independent; an event without a verifiable create has no scope.
+        keys = {r["pool"] for r in db.execute("SELECT pool FROM rsi_prepare_pools UNION SELECT pool FROM rsi_prepare_events WHERE kind IN ('create','consume_holdout')")}
+        scope = digest([c["tenant_id"], c["project_id"]])
+        keys.update(r["pool"] for r in db.execute("SELECT pool FROM rsi_prepare_holdouts WHERE scope=?", (scope,)))
+        for key in keys:
+            anchors = list(db.execute("SELECT payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND kind='create'", (key,)))
+            if len(anchors) != 1:
+                raise Conflict("orphan consumption scope cannot be verified")
+            try:
+                original = json.loads(anchors[0]["payload"])
+                fields(original, {"contract", "generation", "created_us"})
+                prior = validate_contract(original["contract"])
+                if digest(original) != anchors[0]["payload_hash"] or digest([prior["tenant_id"], prior["project_id"], prior["root_family"]]) != key:
+                    raise Conflict("original scope anchor mismatch")
+            except (ValueError, TypeError, KeyError) as error:
+                raise Conflict("original consumption scope cannot be verified") from error
+            if prior["tenant_id"] == c["tenant_id"] and prior["project_id"] == c["project_id"]:
+                self._pool(db, key)
+                self._consumed(db, key, prior)
+
     def create(self, contract):
         c = validate_contract(contract)
         key = digest([c["tenant_id"], c["project_id"], c["root_family"]])
@@ -192,14 +227,9 @@ class Ledger:
     def consume_holdout(self, key):
         with transaction(self.store) as db:
             c = self._pool(db, key, dispatch=True)
+            self._scope_consumptions(db, c)
             if self._consumed(db, key, c):
                 return False
-            # Check prior original consume anchors as well as the unique rows.
-            # Deleting a claim row must not make an old holdout fresh again.
-            for row in db.execute("SELECT pool FROM rsi_prepare_pools"):
-                prior = self._pool(db, row["pool"])
-                if prior["tenant_id"] == c["tenant_id"] and prior["project_id"] == c["project_id"]:
-                    self._consumed(db, row["pool"], prior)
             scope = digest([c["tenant_id"], c["project_id"]])
             for row in c["holdout_cases"]:
                 if db.execute("SELECT 1 FROM rsi_prepare_holdouts WHERE scope=? AND input_hash=?", (scope, row["input_sha256"])).fetchone():
@@ -221,10 +251,7 @@ class Ledger:
             if attempt["state"] == "cancelled":
                 continue
             if attempt["state"] == "settled":
-                receipt = json.loads(attempt["receipt"])
-                anchors = list(db.execute("SELECT payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND request_id=? AND kind='settled'", (key, attempt["request_id"])))
-                if digest(receipt) != attempt["receipt_hash"] or len(anchors) != 1 or anchors[0]["payload_hash"] != attempt["receipt_hash"] or encoded(json.loads(anchors[0]["payload"])) != encoded(receipt):
-                    raise Conflict("corrupt settlement")
+                receipt = self._settled_receipt(db, key, attempt)
                 tokens += receipt["input_tokens"] + receipt["output_tokens"]
                 cost += receipt["accounted_micro_cny"]
             elif attempt["state"] in {"reserved", "intent", "unknown"}:
@@ -253,8 +280,10 @@ class Ledger:
             self._pool(db, key, dispatch=True)
             if db.execute("SELECT 1 FROM rsi_prepare_attempts WHERE pool=? AND state IN ('reserved','intent','unknown')", (key,)).fetchone():
                 raise Conflict("serial attempt or unresolved reservation exists")
-            if phase in {"baseline", "candidate", "terminal"} and not self._consumed(db, key, c):
-                raise Conflict("holdout must be consumed before first terminal arm")
+            if phase in {"baseline", "candidate", "terminal"}:
+                self._scope_consumptions(db, c)
+                if not self._consumed(db, key, c):
+                    raise Conflict("holdout must be consumed before first terminal arm")
             total = self._totals(db, key)
             if any(total[k] + n > c["limits"][k] for k, n in (("calls", 1), ("billed_tokens", input_limit + output_limit), ("cost_micro_cny", cost))):
                 raise Conflict("cumulative root budget exceeded")
@@ -268,7 +297,11 @@ class Ledger:
             self._pool(db, key)
             if row["state"] != "reserved":
                 return {"new_intent": False, "intent": row["intent"], "state": row["state"]}
-            self._pool(db, key, dispatch=True)
+            c = self._pool(db, key, dispatch=True)
+            if row["body"]["phase"] in {"baseline", "candidate", "terminal"}:
+                self._scope_consumptions(db, c)
+                if not self._consumed(db, key, c):
+                    raise Conflict("original terminal consumption missing")
             token = uuid.uuid4().hex
             db.execute("UPDATE rsi_prepare_attempts SET state='intent',intent=? WHERE pool=? AND request_id=?", (token, key, request))
             self._event(db, key, request, "intent", {"intent": token, "body_hash": row["body_hash"]})
@@ -307,7 +340,8 @@ class Ledger:
             charged = usage["provider_charge_micro_cny"]
             result = dict(frozen, accounted_micro_cny=calculated if charged is None else charged, cost_source="frozen_rate_calculation" if charged is None else "provider_receipt", pricing_sha256=price["reference_sha256"])
             if row["state"] == "settled":
-                if row["receipt_hash"] != digest(result):
+                persisted = self._settled_receipt(db, key, row)
+                if encoded(persisted) != encoded(result):
                     raise Conflict("settlement replay cannot rewrite original receipt")
                 return "settled"
             valid = (usage["response_model"] == c["model"]["response_model"] and usage["input_tokens"] <= body["input_limit"] and usage["output_tokens"] <= body["output_limit"] and result["accounted_micro_cny"] <= body["reserved_micro_cny"])

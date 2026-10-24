@@ -1,5 +1,18 @@
 # Ralph port 执行进度
 
+## 2026-10-25：c637准备层独立R1/R2修复
+
+- 当前项：准备层局部一致性；状态：done（实现和定向通过，待独立复审关闭）。独立固定c637报告 `分析/independent-review/20261025-score-v2-and-S1S2-c6376be-review/review-S1S2.md` 确认两处P2，均需直接损坏合成SQLite，不是正常API越权或真实费用绕过。未把原71通过当反例无效。
+- R1改由原create/consume事件及claims共同驱动同scope核验，不再只枚举可丢失的pool；原scope可证的其它项目仍独立。登记/原消费重放/终测预留及提交意图均复核，历史不安全重复投影拒绝派发，不自动修DB或伪报取消。R2把原settled锚/持久化receipt/自摘要核验提为共用纯读取，幂等结算返回前与统计相同拒绝矛盾；完整原重放和unknown晚结算保持。
+- 新回归先在原c637核心字节得到 **6项/3通过/3断言失败/0error、actual1**，真实DB/合同/前后表/完整备份与原源码、日志均持久保留于仓库外 `分析/RSI协调/preparation-integrity-fix-20261025/red-fixtures/`。修后新增历史重复投影拒派发正负控，**7/7 actual0**；首轮备份夹具sqlite连接未显式关闭的资源警告保留并修夹具close，不抑制警告。最终 `python3 -m unittest discover -s tests -p 'test_rsi_trial*.py' -v` **32/32、0skip/失败/错误、unittest4.248s/外层4.361s、actual0**，日志SHA `3b401b76df919fbb0739a220d4ca690af162b50f7227b5a220fde3923c548e28`。
+- 两份原独立诊断脚本逐字未改，在新外置candidate仅替换受测源码位置重放，六套持久DB观察全部符合修后预期；原脚本以“旧漏洞仍可复现”为成功条件，因此末尾旧漏洞断言各exit1，不冒称脚本exit0。新的正常回归32项真实exit0。原审查目录与反例DB不覆盖；不改旧断言、保护模块或生产运行文件。顺带将B/C选择澄清为终测判定、opaque ID描述澄清为首尾空白拒绝及精确字符串比较，不声称自动语义去重。
+
+## 2026-10-25：供应方能力与Linux身份隔离准备
+
+- 当前项：真实provider能力/OS隔离；状态：doing。开工HEAD c6376be、工作区干净；评分v2 SHA `a5b86ae9b289062d1b76bc41ee76f08304afaf4a08ccb70a7b8f4980f01548e7` 已核，叶项dependencies为空、gate_membership仅归属，无循环；仍未冻结/评分。模型测试人类授权已由原消息核实，先重读生产access记忆、0600/公钥指纹及StrictHostKeyChecking，不输出凭据。
+- 只读SSH初查：生产6ed、active/running、原PID2502485、重启0；Linux具备unshare/setpriv/chroot/mount及不同UID65534、sudo可用。默认Claude设置/agents.json未找到，价表/实际模型/usage未验证，付费0。只导出公开别名/端点host及凭据存在布尔值，不导出密钥、配置原文或凭据摘要。第一版补查遇root目录PermissionError、实际exit1，原脚本/错误保留，修为只记录权限拒绝，不sudo绕读root配置。
+- 本批将准备可信系统工具的临时mount/PID/network namespace与不同UID正负控，复用原root权限监管器保证能回收所有测试进程；临时根目录只映射公开系统库、合成输入及受保护canary，不挂生产data/配置。nobody仅为现成测试身份，不冒充专用生产隔离账号；未有内核/清理证据不报通过。
+
 ## 2026-10-25：S1/S2 事务与终测消费技术准备
 
 - 当前项：S1/S2事务与消费技术准备；状态：done（真实模型适配与OS隔离仍todo，未开放运行入口）。开工HEAD ea564bf、工作区干净。评分v1 SHA `58b505be3c3d32eb19689292196ddca6fac79c2e8caa08df03a9511c8830d201` 与独立S1–S6意见已读；原v0/v1实施合同保持，另写v2消除B/C用于选择歧义。评分未冻结，未启动真实或付费试验。
