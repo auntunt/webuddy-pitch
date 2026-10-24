@@ -18,3 +18,8 @@ python3 scripts/rsi/check_preregistration.py scripts/rsi/preregistration.v2.temp
 v2声明对齐单一预冻结候选、B/C一次独立终测、效果数值门槛和真实试点日历/任务全集；v1样板仅保留历史兼容。两者均不执行、不核证、不计分。
 
 `trial_preparation.py`是尚未接生产入口的事务组件，供隔离临时Store验证：统一根预算预留/意图/未知/结算，终测实例一次消费，进程代际和原始锚。它不会被Store自动初始化，无模型或任意进程派发功能。调用方提供的scope/model/usage/价表仍需未来可信服务端adapter验证；inspect始终明确execution_authorized、provider_evidence_verified和os_holdout_isolation_verified为false。不能用它开启付费试验或声称OS隔离已经具备。
+
+
+Linux内核能力探针：在获授权的服务器上显式执行 `python3 scripts/rsi/linux_holdout_probe.py --run`。它要求非交互sudo，核对既有监管模块的固定源码，只运行内置合成canary；不支持任意命令、模型或上传脚本。非Linux不创建文件或执行sudo。它会保留owner-only临时现场，使用私有mount/PID/network namespace、临时chroot、只读系统映射和不同测试UID，报告16项检查、原始输出摘要与清理状态。root监管加载禁写字节码，测试材料不进入生产data。
+
+该命令只适用于已核验的Linux环境，使用现成共享nobody身份，不能视为专用生产试点隔离已就绪；输出production_qualified=false、dedicated_trial_identity=false、provider_calls=0。实际服务器证据、故障注入及模型配置缺项见 [能力取证记录](../../docs/design/provider-and-isolation-readiness-2026-10-25.md)。

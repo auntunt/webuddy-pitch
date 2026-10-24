@@ -9,9 +9,12 @@
 
 ## 2026-10-25：供应方能力与Linux身份隔离准备
 
-- 当前项：真实provider能力/OS隔离；状态：doing。开工HEAD c6376be、工作区干净；评分v2 SHA `a5b86ae9b289062d1b76bc41ee76f08304afaf4a08ccb70a7b8f4980f01548e7` 已核，叶项dependencies为空、gate_membership仅归属，无循环；仍未冻结/评分。模型测试人类授权已由原消息核实，先重读生产access记忆、0600/公钥指纹及StrictHostKeyChecking，不输出凭据。
-- 只读SSH初查：生产6ed、active/running、原PID2502485、重启0；Linux具备unshare/setpriv/chroot/mount及不同UID65534、sudo可用。默认Claude设置/agents.json未找到，价表/实际模型/usage未验证，付费0。只导出公开别名/端点host及凭据存在布尔值，不导出密钥、配置原文或凭据摘要。第一版补查遇root目录PermissionError、实际exit1，原脚本/错误保留，修为只记录权限拒绝，不sudo绕读root配置。
-- 本批将准备可信系统工具的临时mount/PID/network namespace与不同UID正负控，复用原root权限监管器保证能回收所有测试进程；临时根目录只映射公开系统库、合成输入及受保护canary，不挂生产data/配置。nobody仅为现成测试身份，不冒充专用生产隔离账号；未有内核/清理证据不报通过。
+- 当前项：真实provider能力取证/Linux隔离探针；状态：done（S1适配仍缺实际配置/可信价格；专用OS身份及生产入口仍todo）。开工HEAD c6376be、工作区干净；评分v2 SHA `a5b86ae9b289062d1b76bc41ee76f08304afaf4a08ccb70a7b8f4980f01548e7` 已核，叶项dependencies为空、gate_membership仅归属，无循环；共同标准于06:07:09经联合可实施性/独立review后冻结（记录SHA `f3a81e7ec868607b61bd1476ea8b5fb935ee136d97ac9ff2a71dc1672e1867c6`）；run/pilot未冻结，实际分null。模型测试人类授权已由原消息核实，先重读生产access记忆、0600/公钥指纹及StrictHostKeyChecking，不输出凭据。
+- 只读SSH初查：生产6ed、active/running、原PID2502485、重启0；Linux具备unshare/setpriv/chroot/mount及不同UID65534、sudo可用。默认Claude设置/agents.json未找到，价表/实际模型/usage未验证，付费0。只导出公开别名/端点host及凭据存在布尔值，不导出密钥、配置原文或凭据摘要。第一版补查遇root目录PermissionError、实际exit1，原脚本/错误保留，修为记录权限状态；随后按既有服务器模型信息授权仅在服务器内白名单投影root常规设置，确认该路径不存在，不输出配置原文/密钥。
+- 本批已实现可信系统工具的临时mount/PID/network namespace与不同UID正负控，复用原root权限监管器保证能回收所有测试进程；临时根目录只映射公开系统库、合成输入及受保护canary，不挂生产data/配置。nobody仅为现成测试身份，不冒充专用生产隔离账号；未有内核/清理证据不报通过。
+
+- 最终实际Linux：固定源码 `e502363070aa2f37feef578e09a8c19cdb8586209d477efa5c3bc38fd9790724` 的16项内核正负控通过（真实UID1000/65534、公开输入可读、私有答案/宿主进程环境拒绝、cap/提权/继承fd/网络/只读挂载/工作目录）。外置故障注入为输出后睡30秒、原监管3秒超时，实际工具exit1/returncode124/status=failed且完整回收，原16项输出保留；这是预期负控，不冒称退出0。普通模式exit0；两个最终现场与旧原件均保留，未覆写任何旧探针。14份服务器白名单证据6009字节全部SHA/长度读回，清单SHA `9769e626daa1f9bfe9f21699e5f9d0fc663afdcc066fb2cd2c59603d57fc4967`。06:12:26 CST确认测试组均不存在、宿主无探针挂载，生产6ed/active/running/PID2502485/重启0。
+- 最终相关组合 **83/83、零跳过/失败/错误、unittest4.466s、actual0**；471文件隔离定向导出再 **83/83、actual0**，两次外层共9.711s、受测源前后相同。完整日志SHA依次 `e4a49bd712487f53da26e4df80e49c353eb60216963451e54dfa20eea15a5066` / `6f47c32d37917ce4a177a062d1820342ff9b6b13bf45773073b1a32c2d56526b`。这不是全量生产发布包；既有mock HTTPError资源警告保持。仅新增显式工具/测试/说明，Store/215运行文件/六保护模块保持，不自动装任何表、不启生产入口、不付费。核验详情见 `docs/design/provider-and-isolation-readiness-2026-10-25.md`，机器证据在仓库外 `分析/RSI协调/provider-os-capabilities-20261025/`。
 
 ## 2026-10-25：S1/S2 事务与终测消费技术准备
 
