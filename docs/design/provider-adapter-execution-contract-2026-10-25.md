@@ -53,3 +53,6 @@ intent 后的断线、HTTP 错误/跳转、格式错误、模型或 usage 不符
 4. 真实 profile、价格证据、完整生产有效输入等价、单个候选在 B/C 反馈前冻结、全链分母和真人多周期试点都必须另行达到冻结判据。当前没有该生产启动器、专用 UID 部署或真实试点，RSI 资格 false，不能计组织收益分。
 
 接口依据：[原生 Messages API](https://platform.claude.com/docs/en/api/messages)、[缓存 usage 计数](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#tracking-cache-performance)、官方 Python SDK 的 [Usage](https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/types/usage.py)、[固定服务层参数](https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/types/message_create_params.py)、[输出包含思考 token](https://github.com/anthropics/anthropic-sdk-python/blob/main/src/anthropic/types/output_tokens_details.py)。核对日期 2026-10-25；本次读取原文保存在仓库外证据目录，不复制成项目代码。
+
+
+平台边界：此版本复用POSIX进程监管器及私有目录FD。新增HTTP/FD清理测试仅在POSIX执行，非POSIX明确skip，不将Windows声明为支持；Windows原生隔离/凭据ACL/监管执行仍是后续阻塞。Mac与Linux原有断言、真实网络期限和清理覆盖保持。

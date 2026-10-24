@@ -25,6 +25,7 @@ def native():
                       "cache_creation": {"ephemeral_5m_input_tokens": 3, "ephemeral_1h_input_tokens": 0}, "output_tokens": 2}}
 
 
+@unittest.skipUnless(os.name == "posix", "private directory FDs and supervised HTTP transport require POSIX")
 class ProviderAdapterTests(unittest.TestCase):
     def setUp(self):
         retained = os.environ.get("RSI_PROVIDER_EVIDENCE_DIR")

@@ -1,5 +1,12 @@
 # Ralph port 执行进度
 
+## 2026-10-25：新增验证的平台前置声明
+
+- 当前项：新增HTTP/FD验证的POSIX前置；状态：done。起点b846eb2，适配器f4b53ad及L1固定修复已分别普通推送。只给两个新增测试类明确POSIX平台skip；当前Mac/Linux不跳过任何断言，不改已有测试，不将Windows宣称为支持。供应方/账本/探针代码不改，随后定向复验并独立提交。
+
+- `PYTHONPATH=tests:. python3 -m unittest -v test_rsi_provider_adapter test_rsi_linux_cleanup test_rsi_linux_holdout_probe`：Mac **49/49、26.401s、actual0**；服务器新476文件固定导出同命令 **49/49、actual0**，均0skip/失败/error，前后源码摘要一致。只有新测试装饰器和文档改动，f4b53ad的provider/ledger代码与b846eb2的Linux探针代码逐字保持；无需重跑同一固定探针内核场景或旧全量。
+- 将实际装饰器表达式用合成os.name=nt求值，44项均在setUp前skip且无error；这是前置条件负分支验证，不冒称真实Windows执行。Windows原生监管/隔离/凭据ACL仍待完成。证据 `分析/RSI协调/provider-platform-test-contract-20261025/`。
+
 ## 2026-10-25：Linux探针L1清理边界修复
 
 - 当前项：L1/P2特权清理链接越界；状态：done（修复与固定版本本地/真实Linux验证完成，待独立复审关闭）。起点f4b53ad（provider固定增量已普通推送），工作区干净，原独立88dd报告和红灯未覆盖；只修探针清理，不重复旧账本/评分/生产全量，不运行旧特权代码。

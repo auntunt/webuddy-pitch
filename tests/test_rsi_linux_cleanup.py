@@ -26,6 +26,7 @@ def snapshot(path):
             'sha256': hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None}
 
 
+@unittest.skipUnless(os.name == "posix", "Linux cleanup directory-descriptor contract requires POSIX")
 class LinuxCleanupTests(unittest.TestCase):
     def setUp(self):
         retained = os.environ.get('RSI_CLEANUP_EVIDENCE_DIR')
