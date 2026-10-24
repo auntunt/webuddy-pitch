@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 
 SCHEMA = "rsi-preregistration-v1"
+SCHEMA_V2 = "rsi-preregistration-v2"
 ROLES = {"requirement", "development", "testing", "delivery", "operations"}
 
 
@@ -86,8 +87,10 @@ class Check:
 def check(value):
     """Check declarations only; evidence hashes are references, not verification."""
     c = Check()
-    root = c.obj(value, ("schema", "application", "strategy", "evaluation", "model", "budget", "pilot", "protocol"), "root")
-    if root.get("schema") != SCHEMA:
+    is_v2 = isinstance(value, dict) and value.get("schema") == SCHEMA_V2
+    root_fields = ("schema", "application", "strategy", "evaluation", "model", "budget", "pilot", "protocol")
+    root = c.obj(value, root_fields + (("trial_policy", "effect", "pilot_window") if is_v2 else ()), "root")
+    if root.get("schema") not in (SCHEMA, SCHEMA_V2):
         c.errors.append("schema: unsupported")
     app = c.obj(root.get("application"), ("project_key", "commit"), "application")
     c.text(app.get("project_key"), "application.project_key")
@@ -177,9 +180,73 @@ def check(value):
     protocol = c.obj(root.get("protocol"), protocol_fields, "protocol")
     for field in protocol_fields:
         c.text(protocol.get(field), "protocol." + field, r"[0-9a-f]{64}")
-    return {"schema": SCHEMA, "status": "invalid" if c.errors else "blocked" if c.blockers else "declared_complete",
+    if is_v2:
+        _v2(c, root, cases, pilot)
+    return {"schema": SCHEMA_V2 if is_v2 else SCHEMA, "status": "invalid" if c.errors else "blocked" if c.blockers else "declared_complete",
             "errors": c.errors, "blockers": c.blockers, "execution_authorized": False, "evidence_verified": False,
             "score": None, "boundary": "Declarations only: hashes, identities, consent, isolation and accounting are not verified; no model call or production mutation is authorized."}
+
+
+
+def _v2(c, root, cases, pilot):
+    policy = c.obj(root.get("trial_policy"), ("selection_mode", "terminal_consumption", "root_budget_owner", "all_calls_in_root_budget", "all_started_denominator", "core_revoke_required", "fallback"), "trial_policy")
+    required = {"selection_mode": "single_candidate_before_BC", "terminal_consumption": "once_per_root_family", "all_calls_in_root_budget": True, "all_started_denominator": True, "core_revoke_required": True, "fallback": "retain_baseline_without_adoption"}
+    for key, expected in required.items():
+        value = policy.get(key)
+        if value is None:
+            c.blockers.append("trial_policy." + key + ": not declared")
+        elif type(value) is not type(expected) or value != expected:
+            c.errors.append("trial_policy." + key + ": incompatible selection/denominator rule")
+    c.text(policy.get("root_budget_owner"), "trial_policy.root_budget_owner")
+    fields = ("mode", "primary_metric", "metric_unit", "gain_metric", "minimum_gain_micro_units", "quality_margin_micro_units", "max_cost_micro_cny", "max_latency_ms", "minimum_samples", "evaluator_evidence_sha256", "production_input_equivalence_sha256")
+    effect = c.obj(root.get("effect"), fields, "effect")
+    mode = c.text(effect.get("mode"), "effect.mode")
+    gain = c.text(effect.get("gain_metric"), "effect.gain_metric")
+    if mode is not None and mode not in {"quality_gain", "quality_noninferior_plus_cost_or_time_gain"}:
+        c.errors.append("effect.mode: unsupported")
+    if gain is not None and gain not in {"quality", "total_cost", "total_time"}:
+        c.errors.append("effect.gain_metric: unsupported")
+    if mode is not None and gain is not None and (mode == "quality_gain") != (gain == "quality"):
+        c.errors.append("effect: selected gain must match predeclared mode")
+    for key in ("primary_metric", "metric_unit"):
+        c.text(effect.get(key), "effect." + key)
+    for key in ("minimum_gain_micro_units", "max_cost_micro_cny", "max_latency_ms", "minimum_samples"):
+        c.positive(effect.get(key), "effect." + key)
+    margin = effect.get("quality_margin_micro_units")
+    if margin is None:c.blockers.append("effect.quality_margin_micro_units: not declared")
+    elif type(margin) is not int or margin < 0:c.errors.append("effect.quality_margin_micro_units: nonnegative integer required")
+    minimum = effect.get("minimum_samples")
+    if type(minimum) is int:
+        if minimum < 3:c.errors.append("effect.minimum_samples: cannot weaken existing minimum")
+        elif len(cases) < minimum:c.blockers.append("effect.minimum_samples: insufficient declared cases")
+    for key in ("evaluator_evidence_sha256", "production_input_equivalence_sha256"):
+        c.text(effect.get(key), "effect." + key, r"[0-9a-f]{64}")
+    fields = ("calendar_start", "phase_end", "followup_end", "minimum_tasks", "minimum_cycles", "task_universe_sha256", "benefit_metric", "measurement_unit", "minimum_benefit_micro_units", "role_cost_shift_limit_micro_units", "baseline_comparability_sha256")
+    window = c.obj(root.get("pilot_window"), fields, "pilot_window")
+    stamps = [c.stamp(window.get(key), "pilot_window." + key) for key in ("calendar_start", "phase_end", "followup_end")]
+    if all(stamp is not None for stamp in stamps) and not stamps[0] < stamps[1] < stamps[2]:
+        c.errors.append("pilot_window: positive ordered calendar endpoints required")
+    for key in ("minimum_tasks", "minimum_cycles", "minimum_benefit_micro_units"):
+        c.positive(window.get(key), "pilot_window." + key)
+    cycles = window.get("minimum_cycles")
+    if type(cycles) is int:
+        if cycles < 2:c.errors.append("pilot_window.minimum_cycles: at least two complete cycles")
+        elif isinstance(pilot.get("cycles"), list) and len(pilot["cycles"]) < cycles:c.blockers.append("pilot_window.minimum_cycles: insufficient cycle declarations")
+    shift = window.get("role_cost_shift_limit_micro_units")
+    if shift is None:c.blockers.append("pilot_window.role_cost_shift_limit_micro_units: not declared")
+    elif type(shift) is not int or shift < 0:c.errors.append("pilot_window.role_cost_shift_limit_micro_units: nonnegative integer required")
+    for key in ("benefit_metric", "measurement_unit"):
+        c.text(window.get(key), "pilot_window." + key)
+    for key in ("task_universe_sha256", "baseline_comparability_sha256"):
+        c.text(window.get(key), "pilot_window." + key, r"[0-9a-f]{64}")
+    if window.get("task_universe_sha256") is not None and window.get("task_universe_sha256") != pilot.get("task_manifest_sha256"):
+        c.errors.append("pilot_window: full task universe must match pilot task manifest")
+    if stamps[0] is not None and stamps[1] is not None:
+        for row in pilot.get("cycles", []) if isinstance(pilot.get("cycles"), list) else []:
+            if not isinstance(row, dict):continue
+            start, end = c.stamp(row.get("starts_at"), "pilot.cycles[].starts_at"), c.stamp(row.get("ends_at"), "pilot.cycles[].ends_at")
+            if start is not None and end is not None and (start < stamps[0] or end > stamps[1]):
+                c.errors.append("pilot_window: complete cycles must lie inside registered phase")
 
 
 def main(argv=None):

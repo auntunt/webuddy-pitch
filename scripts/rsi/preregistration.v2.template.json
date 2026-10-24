@@ -1,0 +1,84 @@
+{
+  "schema": "rsi-preregistration-v2",
+  "application": {
+    "project_key": null,
+    "commit": null
+  },
+  "strategy": {
+    "baseline_revision": null,
+    "candidate_revision": null,
+    "training_source_family": null
+  },
+  "evaluation": {
+    "task_families": [],
+    "holdout_cases": [],
+    "followup_source_family": null,
+    "custodian": null,
+    "optimizer": null
+  },
+  "model": {
+    "profile_ref": null,
+    "provider": null,
+    "requested_model": null,
+    "response_model": null,
+    "identity_evidence_sha256": null,
+    "metering_capability_evidence_sha256": null,
+    "price_upper_bound_evidence_sha256": null,
+    "provider_cap_evidence_sha256": null
+  },
+  "budget": {
+    "max_calls": 24,
+    "max_billed_tokens": 100000,
+    "max_cost_micro_cny": 10000000,
+    "timeout_seconds": 1000
+  },
+  "pilot": {
+    "participants": [],
+    "cycles": [],
+    "task_manifest_sha256": null,
+    "baseline_manifest_sha256": null,
+    "quality_targets": null
+  },
+  "protocol": {
+    "review_evidence_sha256": null,
+    "scoring_protocol_sha256": null,
+    "evaluation_protocol_sha256": null,
+    "isolation_evidence_sha256": null,
+    "prompt_parity_evidence_sha256": null
+  },
+  "trial_policy": {
+    "selection_mode": "single_candidate_before_BC",
+    "terminal_consumption": "once_per_root_family",
+    "root_budget_owner": null,
+    "all_calls_in_root_budget": true,
+    "all_started_denominator": true,
+    "core_revoke_required": true,
+    "fallback": "retain_baseline_without_adoption"
+  },
+  "effect": {
+    "mode": null,
+    "primary_metric": null,
+    "metric_unit": null,
+    "gain_metric": null,
+    "minimum_gain_micro_units": null,
+    "quality_margin_micro_units": null,
+    "max_cost_micro_cny": null,
+    "max_latency_ms": null,
+    "minimum_samples": null,
+    "evaluator_evidence_sha256": null,
+    "production_input_equivalence_sha256": null
+  },
+  "pilot_window": {
+    "calendar_start": null,
+    "phase_end": null,
+    "followup_end": null,
+    "minimum_tasks": null,
+    "minimum_cycles": null,
+    "task_universe_sha256": null,
+    "benefit_metric": null,
+    "measurement_unit": null,
+    "minimum_benefit_micro_units": null,
+    "role_cost_shift_limit_micro_units": null,
+    "baseline_comparability_sha256": null
+  }
+}
