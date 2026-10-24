@@ -8,10 +8,12 @@ from pathlib import Path
 import sqlite3
 import sys
 import tempfile
+import threading
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
+from tmh import context  # Preload read-only search code before auditing leaf effects.
 from tmh.platform import agent_api, candidates, project_library, tenant_policy, tool_access, tool_read
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
@@ -45,7 +47,7 @@ def no_live_effects(store):
     def authorize(action, first, second, *_):
         # SQLITE_READ/SELECT/FUNCTION/RECURSIVE are the only useful actions for
         # these projections. DDL migration is separately tested at dispatch.
-        read_schema = action == 19 and first == 'table_info'
+        read_schema = action == 19 and first in ('table_info', 'index_list', 'index_info')
         if action not in (20, 21, 31, 33) and not read_schema:
             events.append('sqlite:' + str(action))
             return 1
@@ -58,6 +60,41 @@ def no_live_effects(store):
         store.db.set_authorizer(None)
         if events:
             raise AssertionError('read effects observed: ' + repr(events))
+
+
+class NoLiveEffectsContractTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='tmh-read-audit-')
+        self.addCleanup(self.temp.cleanup)
+        self.store = Store(Path(self.temp.name) / 'platform.db')
+        self.addCleanup(self.store.db.close)
+
+    def test_schema_constraint_introspection_is_read_only(self):
+        from tmh.platform import learning_experiments
+        before = snapshot(self.store)
+        with no_live_effects(self.store) as events:
+            state = learning_experiments.schema_state(self.store)
+        self.assertEqual(state, 'ready')
+        self.assertEqual(events, [])
+        self.assertEqual(snapshot(self.store), before)
+
+    def test_mutating_sql_and_pragmas_remain_rejected(self):
+        statements = (
+            "INSERT INTO projects(key,name,root,created) VALUES('FORBIDDEN','x','/x','now')",
+            "CREATE TABLE forbidden_write(value TEXT)",
+            "PRAGMA user_version=7",
+            "PRAGMA writable_schema=ON",
+        )
+        before = snapshot(self.store)
+        for statement in statements:
+            with self.subTest(statement=statement):
+                with self.assertRaisesRegex(AssertionError, 'read effects observed'):
+                    with no_live_effects(self.store):
+                        with self.assertRaises(sqlite3.DatabaseError):
+                            self.store.db.execute(statement)
+                self.assertEqual(snapshot(self.store), before)
+        self.assertEqual(self.store.db.execute('PRAGMA user_version').fetchone()['user_version'], 0)
+        self.assertEqual(self.store.db.execute('PRAGMA writable_schema').fetchone()['writable_schema'], 0)
 
 
 class ToolReadTests(unittest.TestCase):
@@ -82,8 +119,17 @@ class ToolReadTests(unittest.TestCase):
         self.tool = {'scope': 'read', 'project_ids': [self.p['id']], 'user': 'alice', 'tenant': 'synthetic'}
         self.patch = ExitStack()
         self.addCleanup(self.patch.close)
+        # This leaf-read fixture models the in-request authorization lease. The
+        # real gateway holds Registry.authorization_guard before dispatch; its
+        # nested same-thread guard does not open or flock files. OS authorization
+        # and revocation are covered by the real gateway tests, not this stub.
+        self.authorization_lease = threading.RLock()
+        self.P.tenant_context = SimpleNamespace(
+            registry=SimpleNamespace(authorization_guard=lambda: self.authorization_lease))
         self.patch.enter_context(patch.object(tenant_policy, 'enabled', return_value=True))
-        self.patch.enter_context(patch.object(tenant_policy, 'identity', return_value={'tool_connection': self.tool}))
+        self.patch.enter_context(patch.object(tenant_policy, 'identity', return_value={
+            'tool_connection': self.tool, 'role': 'member', 'project_grants': {'APP': 'viewer'},
+            'tenant_id': 'synthetic', 'actor': 'alice', 'authz_revision': 1}))
         self.patch.enter_context(patch.object(tenant_policy, 'visible_projects', return_value=[self.p]))
 
     def call(self, op, **args):

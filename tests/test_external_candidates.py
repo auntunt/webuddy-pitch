@@ -8,10 +8,20 @@ import time
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
+from urllib.parse import urlsplit
 
 from tmh.platform import agent_api, candidates
 from tmh.platform.errors import ApiError
 from tmh.platform.server import Platform, Req
+
+
+def assert_workbench_preview_origin(case, url, public_url, preview_port):
+    """Check the network entry point; a commit path may contain port digits."""
+    actual = urlsplit(url)
+    expected = urlsplit(public_url)
+    case.assertEqual(actual.scheme, expected.scheme)
+    case.assertEqual(actual.netloc, expected.netloc)
+    case.assertNotEqual(actual.port, preview_port)
 
 
 class ExternalCandidateTest(unittest.TestCase):
@@ -173,7 +183,8 @@ class ExternalCandidateTest(unittest.TestCase):
             value = candidates.view(self.P, a["candidate_id"])
         self.assertEqual(value["preview_url"], "https://workbench.example" + value["preview_entry_path"])
         self.assertEqual(value["preview_entry_path"], "/pv/EXT-1/__commit/" + self.sha + "/")
-        self.assertNotIn("8793", value["preview_url"])
+        assert_workbench_preview_origin(
+            self, value["preview_url"], self.P.public_url, self.P.preview_port)
 
     def test_comment_after_assessment_invalidates_old_approval_package(self):
         a = self.submit(); cid = a["candidate_id"]; v = self.verify(cid)
@@ -196,6 +207,39 @@ class ExternalCandidateTest(unittest.TestCase):
         self.assertFalse(human("agent:codex"))
         self.assertFalse(human("external:writer"))
         self.assertTrue(human("Actual operator"))
+
+
+class PreviewOriginAssertionTest(unittest.TestCase):
+    # Observed in the preserved dc35e9b failure, not a fabricated Git object.
+    recorded_commit = "41184dae2632cb3bc74ada8793e258a493160256"
+    public_url = "https://workbench.example"
+    preview_port = 8793
+
+    def entry(self, origin):
+        return origin + "/pv/EXT-1/__commit/" + self.recorded_commit + "/"
+
+    def test_recorded_commit_containing_port_digits_keeps_workbench_origin(self):
+        self.assertIn("8793", self.recorded_commit)
+        assert_workbench_preview_origin(
+            self, self.entry(self.public_url), self.public_url, self.preview_port)
+
+    def test_direct_preview_port_is_rejected_with_identical_commit_path(self):
+        with self.assertRaises(AssertionError):
+            assert_workbench_preview_origin(
+                self, self.entry("https://workbench.example:8793"),
+                self.public_url, self.preview_port)
+
+    def test_other_host_is_rejected_with_identical_commit_path(self):
+        with self.assertRaises(AssertionError):
+            assert_workbench_preview_origin(
+                self, self.entry("https://preview.example"),
+                self.public_url, self.preview_port)
+
+    def test_userinfo_is_rejected_with_identical_commit_path(self):
+        with self.assertRaises(AssertionError):
+            assert_workbench_preview_origin(
+                self, self.entry("https://injected@workbench.example"),
+                self.public_url, self.preview_port)
 
 
 if __name__ == "__main__":

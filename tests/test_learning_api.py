@@ -5,6 +5,7 @@ Req, where _who is the server-authenticated identity and display headers remain
 untrusted. Model launches are mocked; this suite makes no model-quality claim.
 """
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -73,9 +74,9 @@ class LearningAPITests(unittest.TestCase):
         self.assertEqual(caught.exception.code, code, str(caught.exception))
         return caught.exception
 
-    def recorded_job(self, revision, *, status="failed"):
+    def recorded_job(self, revision, *, status="failed", jid=None):
         """A deliberately failed receipt fixture; no synthetic pass is adopted."""
-        jid = "api-job-" + revision["id"]
+        jid = jid or "api-job-" + revision["id"]
         with L.transaction(self.store) as db:
             db.execute("""INSERT INTO learning_jobs
                 (id,project_id,kind,revision_id,current_revision_id,request_id,request_hash,
@@ -263,6 +264,10 @@ class LearningAPITests(unittest.TestCase):
 
     def test_agent_execution_preserves_kind_budget_request_and_agent_actor(self):
         revision = self.capture()
+        # Scheduling is mocked here to test forwarding only. Its return IDs
+        # must still identify recorded jobs for the real ownership projection.
+        self.recorded_job(revision, jid="queued")
+        self.recorded_job(revision, jid="resumed")
         options = {"agent": "claude", "model": "synthetic-model", "max_calls": 6,
                    "max_revisions": 2, "timeout_seconds": 600}
         headers = {"X-Webuddy-Agent": "reviewer", "X-Webuddy-Execution": "1", "X-TMH-User": "alice"}
@@ -276,6 +281,51 @@ class LearningAPITests(unittest.TestCase):
         with patch.object(R, "resume", return_value={"id": "resumed"}) as resume:
             self.assertEqual(self.post("resume", who="alice", headers=headers, job_id="job"), {"id": "resumed"})
             resume.assert_called_once_with(self.P, self.p, "job", "agent:reviewer")
+
+    @unittest.skipUnless(os.name == "posix", "合成 --help 可执行夹具使用 POSIX shebang；不声称 Windows 执行器已验证")
+    def test_real_start_returns_the_registered_ordinary_job(self):
+        revision = self.capture()
+        executable = self.home / "synthetic-help-only"
+        # This executable accepts only capability discovery. The real start
+        # validates it and records a job; _launch is the only mocked boundary.
+        executable.write_text(
+            "#!/bin/sh\n"
+            '[ "$#" -eq 1 ] && [ "$1" = "--help" ] || exit 97\n'
+            "printf '%s\\n' '" + "\n".join(R._REQUIRED_FLAGS) + "'\n", encoding="utf-8")
+        executable.chmod(0o700)
+        (self.data / "agents.json").write_text(
+            json.dumps({"claude": {"bin": str(executable)}}), encoding="utf-8")
+        options = {"agent": "claude", "model": "synthetic-model", "max_calls": 6,
+                   "max_revisions": 2, "timeout_seconds": 600}
+        headers = {"X-Webuddy-Agent": "reviewer", "X-Webuddy-Execution": "1"}
+        with patch.object(R, "_launch") as launch:
+            result = self.post("review", headers=headers, revision_id=revision["id"],
+                               request_id="real-registration", **options)
+            launch.assert_called_once_with(self.P, self.p, result["id"])
+        row = self.store.one("SELECT * FROM learning_jobs WHERE id=?", (result["id"],))
+        self.assertIsNotNone(row)
+        self.assertEqual(result, R.get(self.P, self.p, result["id"]))
+        self.assertEqual((row["project_id"], row["kind"], row["revision_id"], row["actor"],
+                          row["request_id"], row["status"]),
+                         (self.p["id"], "review", revision["id"], "agent:reviewer", "real-registration", "queued"))
+        self.assertEqual({key: json.loads(row["options"])[key] for key in options}, options)
+        self.assertEqual(result["options"]["configuration"]["capabilities"], list(R._REQUIRED_FLAGS))
+        self.assertNotIn("managed", result)
+        self.assertEqual(result["steps"], [])
+        self.assertEqual(self.store.q("SELECT * FROM runs"), [])
+
+    def test_execution_response_requires_a_persisted_job_before_returning(self):
+        revision = self.capture()
+        before = self.snapshot()
+        headers = {"X-Webuddy-Agent": "reviewer", "X-Webuddy-Execution": "1"}
+        with patch.object(R, "start", return_value={"id": "missing-job"}):
+            for kind in ("review", "evaluate"):
+                with self.subTest(action=kind):
+                    self.assert_error(404, lambda: self.post(
+                        kind, headers=headers, revision_id=revision["id"], request_id="missing-" + kind))
+        with patch.object(R, "resume", return_value={"id": "missing-job"}):
+            self.assert_error(404, lambda: self.post("resume", headers=headers, job_id="missing-job"))
+        self.assertEqual(self.snapshot(), before)
 
     def test_agent_cancel_is_allowed_without_launch_opt_in_and_preserves_evidence(self):
         revision = self.capture()
