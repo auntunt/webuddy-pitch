@@ -41,6 +41,7 @@ class HandworkLifecycleTest(unittest.TestCase):
         self.f = helpers.RunLifecycleTest()
         f = self.f
         f.setUp()
+        self.temp = f.temp  # Let the full-suite failure collector retain this delegated fixture.
         self.addCleanup(f.doCleanups)
         self.addCleanup(self.stop_owned_checks)
         f.script.write_text(CHECKER)
