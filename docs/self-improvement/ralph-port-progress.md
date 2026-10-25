@@ -1,8 +1,23 @@
 # Ralph port 执行进度
 
+## 2026-10-26：c08 精确发布门与真实工程计划分阶段冻结
+
+- 当前项：原生job/本人引用/同根D与UI修复收口；状态done（软件发布收口；真实工程计划v4/驱动已固定，登记前独立复核仍待）。起点c08b6ae，当前iteration/context-pack-v2开工干净，已读进度与最近十条提交。3cc独立接受限定于软件桥，c08独立接受限定于UI；独立6条Node脚本含9947矩阵行，不是9947个单测。两者均不证明真人采用或组织收益。
+- 原失败保留：R1 Linux全量原1000秒门触发TimeoutExpired/SSH1，full_exit与smoke_exit未知，未完成2510项、不计通过。诊断根352.937秒主动精确组SIGINT退出-2、SSH0，只作时序分析；停止前快照737，最终751条stop包含中断清理，不是全量通过。原源、日志、失败traceback及诊断记录14份289983字节SHA/长度完整读回，R1与诊断各512声明源+2metadata=514成员未变。原30.412秒真实deadline反例保留。
+- 环境判断：同源Store初始化三组磁盘0.653/0.540/0.581秒、tmpfs0.286/0.287/0.219秒，支持测试临时SQLite I/O是重要耗时因素，但不是全部耗时的排他根因。新R2目录c08b6ae4ffe1-native-job-20261026-tmpfs仅将合成测试临时文件放在私有0700 tmpfs；源码、原测试/断言、1000秒全量和90秒smoke门不变；smoke明确去掉TMPDIR，迁移、生产、备份仍原磁盘。不据此证明生产磁盘持久性或生产性能。
+- 精确最新门：Mac2510项2472通过38skip/actual0、713.558秒；SDK1.30.0 74/74零skip，均绑定c08原源。新Linux2510项2474通过36skip/0fail/error、692.242秒/full0/SSH0；随后100项合成HTTP smoke/smoke0，指定gateway/两worker退出、socket/key移除。原资源警告保持，不能宣称无资源问题。R2完整数据副本1781成员，两轮幂等、63业务/11控制表逐行及schema保持、权限/账本/原账户字节保持，私有worker初始化后回收，无生产个人请求。
+- 清单口径：runtime.tar=219运行源码+2metadata=221；verification.tar=512验证源码+2源码metadata+1包清单+5离线wheel=520。Mac受测源码512字节/mode未变，但实际520=514+6缓存，不称完整集合未变；Linux受测514成员精确，运行目录实际310=219源码+2metadata+89缓存。缓存逐一与声明源编译的代码属性/常量比对一致，创建PID未证。首轮过强marshal重序列化字节比较失败保留，未删除缓存或改源码。
+- 发布工具：保留R1原脚本/配置，新validate只新增私有TMPDIR，原时限不变。独立新只读gate仅将允许目录常量收窄到准确R2名字，旧gate/SDK原hash保持；41自检及实际本地Mac/SDK源绑定通过，新只读发布门通过并完整读回远端全量/迁移/smoke/source证据。一次只读SSH预检被远端关闭/255，原工具输出保留，重试只读预检通过。激活仍要求即时idle、最新schema/行、完整备份读回、保留新数据的兼容reader回滚，不能恢复旧DB覆盖新写入。
+- 真实计划v4：PLAN-D-TARGET-01在任何真实请求前明确claim_status只评价第33页建设目标区，整页原文/其他记录保留，独立oracle答案不改；PLAN-FREEZE-SEQUENCE-01改为A前固定根/源/profile/BC与D独立断言、A后BC前绑定完整真实策略与双臂计划、本人采用后才绑定原定新D的真实decision/revision/task/capture，不换题/阈值/根/期限；旧v1/v2/v3全部保留。
+- PLAN-HUMAN-WINDOW-01：仓库外固定split_deadline_driver.py实际实现一次原始wall+monotonic/boot绑定、20分钟A/BC/12小时总根/单次120秒、在途取消与迟到成功拒绝、持久unknown/intent不重发、全槽唯一与锁、零模型等待、过期D拒绝。Mac/Linux各16边界测试通过；删除截止门的独立变体准确1目标failure/0error。两端各一次实际FiniteBroker→监督进程→回环HTTP在缩短1.5秒窗口取消，原unknown保留、子组回收、重试不增加第二次请求；这是缩短窗口合成验证，不称实际等满20分钟、真实供应商或本人采用。首轮集成因遗漏tests导入路径error保留，修正PYTHONPATH后两端通过。
+- 证据：仓库外分析/RSI协调/pilot-software-20261025/coding-handoff.json、native-linux-original-failure-readback/manifest.json、native-tmpfs-member-audit-v2.json、native-real-engineering-plan/plan-v4-driver-readiness.json与linux-driver-v4/result.json。新计划和驱动已固定可审，登记前独立复核仍待；真实模型调用0、未登记工程根、未代本人采用，rsi_qualified=false/production_equivalent=false，旧多人五小时窗仍过期、null总token上限/8calls保持、旧20元不恢复。
+
+- 发布结果：2026-10-26 **04:54:59 CST**启动c08b6ae，R2非活动目录现已成为/opt/webuddy/app目标；备份`/opt/webuddy/backups/pre-c08b6ae4ffe1-20261025T205456Z`，1781个data成员与三项目277/37/20个.tmh成员及整个旧app/配置逐字节读回通过。原63/11表行/schema、账本、非DB/项目文件及配置保持，没有生产本人会话或Agent代签；回滚只允许兼容reader、保留最新数据，未恢复旧DB。
+- 延迟健康：启动超过60秒后18项公网/回环检查通过，worker身份保持；final active/running、重启0、启动以来error级日志0、219源码一致，Mac独立TLS4/4。PID仅为当时观察，不用于未来信号。服务器17份白名单证据共356751字节，根线程逐份完整重读SHA/长度通过；manifest SHA `d206e4acaf4b9f9469fb2c8959c0d89c3d330d182a8fdfc1b88a07915c700637`。首轮collector误假定R2存在旧validation-origin.json而失败，原工具输出保留；未事后伪造该文件，改收真实test-temporary-storage.json并单列来源范围说明。详见server-evidence-tmpfs/readback-manifest.json及仓库外handoff。本文档提交仅记录，无需再次重启。
+
 ## 2026-10-26：发布验收中的原生UI结论修复
 
-- 当前项：真实浏览器发现原生job卡片/选择项显示“结论未登记”，状态doing（窄修已定向验证，浏览器复验和最新发布门继续）。3cc浏览器截图保留在仓库外`native-browser-3cc76b2/before-verdict.png`；实际producer/server临时合成数据，非LYB/LLA或生产个人会话，没有真人采用。机器passed不自动决定。
+- 当前项：真实浏览器发现原生job卡片/选择项显示“结论未登记”，状态done（窄修、真实合成浏览器、限定独立审查和新发布门已完成；最终收口见上节，以下保留历史）。3cc浏览器截图保留在仓库外`native-browser-3cc76b2/before-verdict.png`；实际producer/server临时合成数据，非LYB/LLA或生产个人会话，没有真人采用。机器passed不自动决定。
 - 根因：普通与原生job原始行没有独立verdict列；native完整结论在result.schema=`native-learning-report-v1`及passed布尔。UI只读job.verdict导致错误标签。仅补UI的原生结论投影，并加严原生采用选项须同时status=passed、确切原生report schema和passed=true，旧普通job逻辑不变。后端native原件/本人理由/锁门无改动。
 - 验证：三条新UI测试在3cc行为下2个目标assertion失败/0error（native-verdict-ui-red.log）；修后与原22条UI一起 **25/25，1.5秒量级、actual0**（native-verdict-ui-green-v3.log）。保留初次错误的job.verdict KeyError、尝试不存在SQL列导致22fixture errors的日志，已完全撤回该producer/test改动，不引入DB列或迁移。两次新mock select检查不支持完整options/innerHTML读取，改为同时核禁用按钮、可见placeholder与目标job不存在，原安全断言保留；相应失败日志不算产品通过。
 - 发布准备：新外部工具绑定实际f947/63业务表/11控制表，改为精确零schema变化，保留逐表原行/列/对象、控制权限、账本、全备份和保留新数据回滚门；原3表添加发布工具完整保留。3cc包219运行文件/512声明验证文件；已新跑SDK1.30.0 **74/74、零skip、actual0**，该证据仅属3cc。3cc完整2509项Mac回归仍在原源上运行；本窄修增加1项UI用例，最终新提交需重新绑定2510项，不挪用3cc全量/SDK或旧f947结论。原1000秒外层、测试内超时及90秒合成smoke未放宽。
