@@ -538,3 +538,17 @@ class TokenBroker(Broker):
     def _extra(self,prepared):
         return {'native_protocol':prepared['protocol'],'human_adoption':({k:v for k,v in prepared['adoption'].items() if k!='report_sha256'} if prepared['adoption'] else None),
                 'qualified_bc_report_verified':False}
+
+
+class FiniteBroker(TokenBroker):
+    """Prospective cap-waived plan; old token roots keep their own entry."""
+    KIND = 'native-fixed-text-finite-v1'
+
+    def _profile(self, contract):
+        if contract['schema'] != L.FINITE_PROVIDER_VERSION:
+            raise L.Conflict('explicit prospective finite provider root required')
+        profile = self.adapter.registry.load(contract['provider_binding']['profile_id'])['profile']
+        if profile['schema'] != P.FINITE_VERSION:
+            raise L.Conflict('explicit finite profile required')
+        self._authority(contract, profile)
+        return profile

@@ -23,10 +23,13 @@ from tmh.platform import supervised_process as SP
 
 VERSION = "server-messages-adapter-v1"
 TOKEN_VERSION = "server-fixed-text-token-adapter-v2"
+FINITE_VERSION = "server-fixed-text-finite-adapter-v3"
 TOKEN_PROTOCOLS = {
     "messages": {"parameters": "messages-text-token-v1", "path": "/v1/messages", "usage": "input+cache_creation+cache_read+output"},
     "responses": {"parameters": "responses-text-token-v1", "path": "/v1/responses", "usage": "inclusive_input+inclusive_output;total=parent_sum"},
 }
+FINITE_PROTOCOLS = {k: dict(v, parameters=k+"-text-finite-v1", usage="reported_responses_only;hidden_attempts_unknown")
+                    for k, v in TOKEN_PROTOCOLS.items()}
 HERE = Path(__file__).resolve().parent
 SOURCES = {"ledger": HERE / "trial_preparation.py", "adapter": Path(__file__).resolve(),
            "transport": HERE / "provider_transport.py"}
@@ -144,18 +147,23 @@ class Registry:
                      "model", "price", "input_cap_tokens", "output_cap_tokens", "call_timeout_ms", "valid_until_us",
                      "input_cap_reference_sha256", "parameters_version", "max_response_bytes", "billing_mode"}
         token_only = isinstance(p, dict) and p.get("schema") == TOKEN_VERSION
+        finite = isinstance(p, dict) and p.get("schema") == FINITE_VERSION
         if token_only:
             keys.remove("price"); keys.update({"protocol", "bound_evidence_ref"})
+        elif finite:
+            keys -= {"price", "input_cap_tokens", "input_cap_reference_sha256"}
+            keys.update({"protocol", "max_request_bytes"})
         L.fields(p, keys)
-        protocol = TOKEN_PROTOCOLS.get(p.get("protocol")) if token_only else None
-        if p["approved"] is not True or (token_only and (protocol is None or p["parameters_version"] != protocol["parameters"] or p["billing_mode"] != "tokens-inclusive-v1")) or (not token_only and (p["schema"] != VERSION or p["parameters_version"] != "messages-text-standard-v1" or p["billing_mode"] != "token-only-upper-bound")):
+        protocol = (FINITE_PROTOCOLS if finite else TOKEN_PROTOCOLS).get(p.get("protocol")) if token_only or finite else None
+        if p["approved"] is not True or (finite and (protocol is None or p["parameters_version"] != protocol["parameters"] or p["billing_mode"] != "observed-usage-v1")) or (token_only and (protocol is None or p["parameters_version"] != protocol["parameters"] or p["billing_mode"] != "tokens-inclusive-v1")) or (not (token_only or finite) and (p["schema"] != VERSION or p["parameters_version"] != "messages-text-standard-v1" or p["billing_mode"] != "token-only-upper-bound")):
             raise ValueError("approved supported profile required")
-        L.sha(p["contract_sha256"]); L.sha(p["protocol_sha256"]); L.sha(p["input_cap_reference_sha256"])
-        for key in ("input_cap_tokens", "output_cap_tokens", "call_timeout_ms", "valid_until_us", "max_response_bytes"):
+        L.sha(p["contract_sha256"]); L.sha(p["protocol_sha256"])
+        if not finite: L.sha(p["input_cap_reference_sha256"])
+        for key in ("max_request_bytes" if finite else "input_cap_tokens", "output_cap_tokens", "call_timeout_ms", "valid_until_us", "max_response_bytes"):
             L.integer(p[key], 1)
         url = urlsplit(p["endpoint"])
         if (url.username or url.password or url.query or url.fragment or not url.hostname
-                or url.path != (protocol["path"] if token_only else "/v1/messages") or url.port == 0):
+                or url.path != (protocol["path"] if token_only or finite else "/v1/messages") or url.port == 0):
             raise ValueError("exact supported protocol endpoint required")
         if p["mode"] == "fixture":
             if not self.fixture or url.scheme != "http" or url.hostname != "127.0.0.1":
@@ -170,6 +178,8 @@ class Registry:
             validate_token_bound(p, bound)
             if p["protocol_sha256"] != L.digest(protocol):
                 raise ValueError("fixed protocol definition changed")
+        if finite and p["protocol_sha256"] != L.digest(protocol):
+            raise ValueError("fixed finite protocol definition changed")
         secret, credential_identity = self._read(opaque(p["credential_ref"]), directory="credentials")
         credential = secret.decode("ascii")
         if not credential or any(ord(c) < 33 or ord(c) > 126 for c in credential):
@@ -182,7 +192,7 @@ class Registry:
 def _base(c):
     c = json.loads(L.encoded(c))
     c.pop("provider_binding", None)
-    c["schema"] = L.TOKEN_VERSION if c["schema"] in L.TOKEN_SCHEMAS else L.VERSION
+    c["schema"] = L.FINITE_VERSION if c["schema"] in L.FINITE_SCHEMAS else L.TOKEN_VERSION if c["schema"] in L.TOKEN_SCHEMAS else L.VERSION
     return L.validate_contract(c)
 
 
@@ -279,6 +289,56 @@ def normalize_token_response(protocol, value, response):
     return normalized, policy
 
 
+
+def normalize_finite_response(protocol, value, response):
+    """Complete native text is independent of unproved usage completeness.
+
+    Preserve the original usage object. Missing/unsupported counts never become
+    zeros, a trusted billing bound, or a claim about hidden gateway attempts.
+    """
+    if not isinstance(value, dict): raise ValueError("native response object required")
+    policy = None
+    if protocol == "messages":
+        if (value.get("type") != "message" or value.get("role") != "assistant"
+                or not isinstance(value.get("id"), str) or not value["id"].startswith("msg_")):
+            raise ValueError("native Messages identity required")
+        content = value.get("content")
+        if (value.get("stop_reason") == "end_turn" and isinstance(content, list) and len(content) == 1
+                and isinstance(content[0], dict) and content[0].get("type") == "text"
+                and isinstance(content[0].get("text"), str) and content[0].get("citations") in (None, [])):
+            policy = content[0]["text"]
+    elif protocol == "responses":
+        if value.get("object") != "response" or not isinstance(value.get("id"), str) or not value["id"].startswith("resp_"):
+            raise ValueError("native Responses identity required")
+        output = value.get("output")
+        if (value.get("status") == "completed" and value.get("error") is None and value.get("incomplete_details") is None
+                and isinstance(output, list) and all(isinstance(v, dict) and v.get("type") in {"reasoning", "message"} for v in output)):
+            messages = [v for v in output if v["type"] == "message"]
+            if len(messages) == 1:
+                message = messages[0];content = message.get("content")
+                if (message.get("status") == "completed" and message.get("role") == "assistant"
+                        and isinstance(content, list) and len(content) == 1 and isinstance(content[0], dict)
+                        and content[0].get("type") == "output_text" and isinstance(content[0].get("text"), str)
+                        and content[0].get("annotations") == []):
+                    policy = content[0]["text"]
+    else: raise ValueError("unsupported finite protocol")
+    L.text(value.get("model"))
+    usage_raw = value.get("usage")
+    normalized = None
+    try:
+        normalized, _ = normalize_token_response(protocol, value, response)
+    except (ValueError, TypeError, KeyError):
+        pass
+    result = {"schema": "finite-reported-usage-v1", "provider_request_id": value["id"], "response_model": value["model"],
+              "raw_response_sha256": hashlib.sha256(response).hexdigest(), "provider_charge_micro_cny": None,
+              "usage_raw": usage_raw if isinstance(usage_raw, dict) else None,
+              "usage_status": "reported" if normalized else "unknown",
+              "usage_issue": "" if normalized else "missing_or_unsupported_original_usage", "hidden_attempts": "unknown"}
+    for field in ("input_tokens", "cached_input_tokens", "output_tokens"):
+        result[field] = normalized[field] if normalized else None
+    return result, policy
+
+
 def token_request(profile, system, messages):
     if profile["protocol"] == "messages":
         return {"model": profile["model"]["requested_model"], "system": system, "messages": messages,
@@ -307,12 +367,15 @@ class Adapter:
         p = loaded["profile"]
         if L.digest(_base(c)) != p["contract_sha256"]:
             raise L.Conflict("profile freezes another full root contract")
+        finite = c["schema"] in L.FINITE_SCHEMAS
+        if finite != (p["schema"] == FINITE_VERSION):
+            raise L.Conflict("finite execution requires its distinct approved profile")
         token_only = c["schema"] in L.TOKEN_SCHEMAS
         if token_only != (p["schema"] == TOKEN_VERSION) or p["model"] != c["model"]:
             raise L.Conflict("profile model or budget protocol mismatch")
         if token_only:
             validate_token_bound(p, loaded["token_bound"])
-        else:
+        elif not finite:
             if (p["price"] != c["price"] or p["price"]["input_micro_cny_per_token"] != p["price"]["cached_micro_cny_per_token"]):
                 raise L.Conflict("profile model or conservative all-input quote mismatch")
             L.integer(p["price"]["input_micro_cny_per_token"], 1)
@@ -334,7 +397,7 @@ class Adapter:
         c = _base(base_contract)
         loaded = self.registry.load(profile_id)
         self._check(c, loaded)
-        c["schema"] = L.TOKEN_PROVIDER_VERSION if c["schema"] == L.TOKEN_VERSION else L.PROVIDER_VERSION
+        c["schema"] = L.FINITE_PROVIDER_VERSION if c["schema"] == L.FINITE_VERSION else L.TOKEN_PROVIDER_VERSION if c["schema"] == L.TOKEN_VERSION else L.PROVIDER_VERSION
         c["provider_binding"] = {"profile_id": opaque(profile_id), "profile_sha256": loaded["sha256"],
                                  "protocol_sha256": loaded["profile"]["protocol_sha256"], "code_sha256": LOADED_CODE}
         return self.ledger.create(c)
@@ -374,7 +437,7 @@ class Adapter:
             raise L.Conflict("raw output changed after receipt verification")
         header, separator, response = raw.partition(b"\n")
         meta = strict_json(header)
-        token_only = c["schema"] == L.TOKEN_PROVIDER_VERSION
+        token_only = c["schema"] in {L.TOKEN_PROVIDER_VERSION, L.FINITE_PROVIDER_VERSION}
         if (not separator or meta.get("schema") != ("token-text-transport-v2" if token_only else "messages-text-transport-v1")
                 or token_only and meta.get("protocol") != profile["protocol"] or meta.get("status") != 200
                 or meta.get("request_sha256") != hashlib.sha256(body).hexdigest()
@@ -388,6 +451,15 @@ class Adapter:
         if c["provider_binding"]["code_sha256"] != LOADED_CODE or any(file_hash(path) != LOADED_CODE[name] for name, path in SOURCES.items()):
             raise L.Conflict("settlement requires original adapter version")
         value = strict_json(response)
+        if c["schema"] == L.FINITE_PROVIDER_VERSION:
+            normalized, policy = normalize_finite_response(profile["protocol"], value, response)
+            state = self.ledger.settle(key, request, row["intent"], normalized)
+            return {"state": state, "response_complete": state == "settled" and policy is not None,
+                    "response_text": policy, "response_sha256": normalized["raw_response_sha256"],
+                    "input_tokens": normalized["input_tokens"], "output_tokens": normalized["output_tokens"],
+                    "accounting": "reported_responses_only", "usage_status": normalized["usage_status"],
+                    "hidden_attempts": "unknown", "actual_provider_charge_verified": False,
+                    "rsi_qualified": False, "evidence": str(folder)}
         if token_only:
             normalized, policy = normalize_token_response(profile["protocol"], value, response)
             state = self.ledger.settle(key, request, row["intent"], normalized)
@@ -441,7 +513,7 @@ class Adapter:
             L.fields(msg, {"role", "content"})
             if msg["role"] not in {"user", "assistant"} or not isinstance(msg["content"], str):
                 raise ValueError("only native text messages supported")
-        token_only = c["schema"] == L.TOKEN_PROVIDER_VERSION
+        token_only = c["schema"] in {L.TOKEN_PROVIDER_VERSION, L.FINITE_PROVIDER_VERSION}
         if token_only and phase != "propose":
             self._verified_candidate(key)
             if phase in {"baseline", "candidate"}:
@@ -451,11 +523,13 @@ class Adapter:
         body = L.encoded(token_request(p, system, messages) if token_only else
                          {"model": p["model"]["requested_model"], "system": system, "messages": messages,
                           "max_tokens": p["output_cap_tokens"], "stream": False, "service_tier": "standard_only"}).encode()
+        if c["schema"] == L.FINITE_PROVIDER_VERSION and len(body) > p["max_request_bytes"]:
+            raise L.Conflict("complete request exceeds finite byte resource limit")
         material = L.digest([loaded["sha256"], hashlib.sha256(body).hexdigest()])
         # Trusted registered entry may serialize CURRENT authority with the
         # durable reservation/intent. Never hold this across the network child.
         with dispatch_guard if dispatch_guard is not None else nullcontext():
-            self.ledger.reserve(key, request, phase, p["input_cap_tokens"], p["output_cap_tokens"], material_sha256=material)
+            self.ledger.reserve(key, request, phase, p["max_request_bytes"] if c["schema"] == L.FINITE_PROVIDER_VERSION else p["input_cap_tokens"], p["output_cap_tokens"], material_sha256=material)
             if cancel_event is not None and cancel_event.is_set():
                 return {"state": self.ledger.cancel(key, request), "response_complete": False, "new_dispatch": False}
             intent = self.ledger.intent(key, request)
@@ -484,7 +558,7 @@ class Adapter:
             folder.mkdir(mode=0o700)  # Existing evidence is never repaired/overwritten.
             self._seal(folder, "profile.json", loaded["raw"])
             self._seal(folder, "request.bin", body)
-            if token_only:
+            if c["schema"] == L.TOKEN_PROVIDER_VERSION:
                 self._seal(folder, "input-bound.json", loaded["token_bound"])
             timeout = min(p["call_timeout_ms"] / 1000, (c["limits"]["deadline_us"] - self.ledger._time()) / 1000000)
             if timeout <= 0:
@@ -517,7 +591,7 @@ class Adapter:
     def bind_candidate(self, key, request):
         """Derive the complete policy from original supervised output, never caller text."""
         snapshot = self.ledger.snapshot(key, request)
-        if snapshot["contract"]["schema"] != L.TOKEN_PROVIDER_VERSION or snapshot["attempt"]["body"]["phase"] != "propose":
+        if snapshot["contract"]["schema"] not in {L.TOKEN_PROVIDER_VERSION, L.FINITE_PROVIDER_VERSION} or snapshot["attempt"]["body"]["phase"] != "propose":
             raise L.Conflict("original token proposal required")
         try:
             result = self.reconcile(key, request)

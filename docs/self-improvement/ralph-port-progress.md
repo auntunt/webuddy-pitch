@@ -1,5 +1,19 @@
 # Ralph port 执行进度
 
+## 2026-10-26：前瞻有限执行与Token总上限豁免
+
+- 当前项：新finite v6/v7合同与独立profile/Broker；状态：**done（作者验证；独立复审待定）**。起点2be8960工作区干净，两个a98快照P2已作者验证并普通推送，线上218一致/不重启，独立复审仍待定。人类解除Token总上限只面向新执行版本，明确max_total_tokens=null；旧100M/20元根、失败和暴露集合不回写，旧20元不恢复。
+- 本批范围：有限调用/真实新起止/单次超时/停止/未知结果不重放；现有配置协议可用，不再要求为已取消的100M上限证明可信包含全部Token的硬界。完整供应商响应和原usage保留，缺失/不支持的usage为unknown，不当0，不声称隐藏请求或实费已知。只做临时合成回环，旧PPT窗口已结束，不代真人参与/采用。
+- 待验证：新finite定向、旧capped/付费合同回归、native输入与快照保护；新job/D桥仍是下一依赖，不在此批伪造普通job或human adoption。
+
+- 实际改动：trial_preparation增加显式null总上限的独立v6/v7、有限calls/window与reported/unknown账本；provider_adapter增加独立v3配置、两文本协议、完整请求字节门和缺用量不补零；registered_trial只新增FiniteBroker，原Broker/TokenBroker AST不变。新增finite_execution 12方法和finite_native 1方法，设计文档明确资源参数不是inclusive账单上界。无运行目录/外部工具权限变化。
+- 首轮47方法38过/9夹具error、8.665s、actual1：新夹具引用不存在的既有方法；尚未运行新产品断言，不能当红灯。修正为真实方法后47/47、10.555s/外层10.880s、actual0；新增真实取消/5秒超时/相同编号并发及原生双臂后23/23、20.930s/外层21.459s。初次错误摘要/工具日志保留。
+- 精确候选树`6288bc79ff49c3eff76689e6df81091a58daa6b7`，Mac完整2318个Git文件字节/模式/文件集合保持，0额外文件；14个相关模块244方法，238通过/6显式root Linux内核夹具跳过/0失败错误，109.496s/外层110.155s、actual0，日志SHA95ebb5655fdaa79e8b37d1a268178cc484fee59db864c4d895e84a36d0c8488f。不是重跑全量2355。
+- Linux实际UID1000/Python3.12、511声明源与精确Git字节/模式一致，原495源保持；同244方法238过/6同样root夹具跳过/0失败错误，187.502s/外层187.936s、actual0/SSH0，日志SHA547bbee3216976ee30a8329e9d42dd71a50d4fada783c75ad47c4a8ab54ab7ee。新原生双臂、并发单HTTP、真实取消三场景各3次9/9、13.942s、actual0；保留原时限，未运行专门root隔离夹具，不能称已证明新模式OS隔离。
+- 三严格负控：删除有限次数门、将未知billed_tokens伪作已知reported总量、跳过完整请求字节门，各准确1方法/1目标断言失败/0error/actual1；原源保持。两端原SP现场owner/nonce/完整原输出/cleanup和进程组消失核验；Linux主套204有效+3有意损坏（provider2/evaluator1），稳定套30有效/0坏；Mac计数见finite-self-validation原JSON。7份Linux白名单日志/结果/现场核验摘要320913字节SHA/长度完整读回；不声称远端原SP在本机复验。资源警告保留。
+- 原断言未改；14原AST节点（旧Token常量/协议/bound/normalizer、Broker/TokenBroker/capture等）和14受保护文件字节保持，包括2be8960报告快照/worker-B/guard/acceptance/锁/采用/eval/SP/transport及既有测试。`git diff --cached --check`与逐块diff自审通过，源与最终提交仅进度MD允许不同。证据`分析/RSI协调/pilot-software-20261025/finite-self-validation.json`；普通推送后现场核218运行文件，不重启。
+- 待确认/下一依赖：独立复审本批固定SHA；原生job发布→确切报告→真人采用引用→同根D尚未实现，不把普通job洗为native，不代签。新模式没有实际模型调用，不宣称真实RSI/组织收益/80分；旧00:30窗口已结束且本链未启动，不延长或倒填；后续若有工程实验须用真实新计划/时间。材料已提供，已解除总上限不再以100M可信硬界或旧20元阻塞。
+
 ## 2026-10-26：原生报告两个当前性P2
 
 - 当前项：NATIVE-BC-CURRENT-COMMIT-01/DECISION-FRONTIER-01；状态：**done（作者验证；独立复审待定）**。起点d0bba40，git status干净；该-B窄修已普通推送、线上218保持/未重启。已读a98最终独立decision及两个已执行原反例；强pending→applied未实际运行，本批不执行/声称已证明该强场景。P2不能被reference仅部分/qualified=false掩盖。
