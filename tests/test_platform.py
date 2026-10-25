@@ -1,6 +1,7 @@
 """The platform (`tmh serve`): tickets over the HTTP API, knowledge links, and agent runs with a stand-in agent."""
 from unittest import mock
 import json
+import inspect
 import re
 import os
 import shutil
@@ -444,7 +445,12 @@ class PlatformApiTest(unittest.TestCase):
             _, t = self.call("POST", "/api/tickets", {"project": key, "title": "请假提交后状态没变", "body": "提交请假后审批状态不对"})
             for _ in range(300):
                 _, d = self.call("GET", "/api/tickets/" + t["key"])
-                if any("留给人审阅" in e["body"] for e in d["events"]):
+                # api_ticket reads verification before events; the worker may
+                # publish its review event between those reads. Wait for the
+                # same response to include this run's verification as well.
+                if any(r["mode"] == "fix" and r.get("verify") is not None and
+                       any("留给人审阅" in e["body"] and e["data"].get("run") == r["id"]
+                           for e in d["events"]) for r in d["runs"]):
                     break
                 time.sleep(0.05)
             fx = [r for r in d["runs"] if r["mode"] == "fix"][0]
@@ -476,6 +482,28 @@ class PlatformApiTest(unittest.TestCase):
             conf.pop("fixer", None)
             (self.data / "agents.json").write_text(json.dumps(conf), encoding="utf-8")
             (self.data / "autoflow.json").write_text('{"on": false}', encoding="utf-8")
+
+    def test_a_review_event_with_a_stale_verification_read_is_polled_again(self):
+        from tmh.platform import fixloop
+        original = fixloop.verified
+        stale_reads = []
+
+        def stale_read(data, rid):
+            value = original(data, rid)
+            if inspect.currentframe().f_back.f_code.co_name == "api_ticket" and value and not stale_reads:
+                tid = self.P.store.run(rid)["ticket_id"]
+                if any("留给人审阅" in e["body"] and e["data"].get("run") == rid
+                       for e in self.P.store.events(tid)):
+                    # Inject the earlier empty read once the real worker has
+                    # published review. This deterministically reproduces the
+                    # observed response, without another timing threshold.
+                    stale_reads.append(rid)
+                    return {}
+            return value
+
+        with mock.patch.object(fixloop, "verified", stale_read):
+            self.test_a_change_is_built_again_without_being_redone()
+        self.assertEqual(len(stale_reads), 1, "must exercise a stale verification read with the real review event")
 
     def test_a_rebuilt_change_the_diagnosis_judged_unsolved_still_waits_for_a_person(self):
         # a missing endpoint compiles fine: a build that passes later does not overrule what the diagnosis found

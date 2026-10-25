@@ -2,6 +2,12 @@
 
 ## 2026-10-25：多人试点首批软件
 
+- 06b精确验证：Mac2354/2316过38跳过/actual0、558.944s；SDK1.30.0 74/74、16.988s/外层23.08s。独立fixed-06b147c-review限定关闭两P2/核03（7/7+真实HTTP/桌面390/全文导出），不是发布门批准。完整副本1781成员两次迁移通过，原60业务/11控制原行/结构保持，精确3新空表，worker/socket/key清理通过，生产未切换。
+- 06b Linux **完整2354、36skip、0fail/1error、unittest975.068s/full976.827s、actual1/SSH1**，并非1000秒超时；错误为test_platform.test_a_change_is_built_again_without_being_redone读取verify=None。旧1000超时仍独立保留，不能追认通过。现场 /tmp/webuddy-pilot-06b147c-KAJGi5sm；原failure-hooks及后来完整类数据/278份原件在diagnostic-platform-preserved，明确是全量结束后捕获，不冒充失败瞬间。原类数据/tmp/tmh-data-i8a9o4x8仍原地。
+- 根因：api_ticket先读verify、后读events；后台在两读之间完成验证并发布review事件，原测试只凭后读事件退出，用先读的None继续断言。该测试、api_ticket/_flow_commit/verified在现役6ed与失败06的AST逐项相同，属于原基线观察时序。真实受控交错probe v2 **1方法/1同型TypeError、actual1、源不变**；v1探针误把已解码data当字符串，诊断错误单独保留，不算产品反例。新永久stale-read回归在原06方法内存注入，同样 **1方法/1TypeError、actual1**。
+- 窄修只改tests/test_platform.py：等待同一响应里同一fix运行的review事件和非空verify。**原14条断言AST、range(300)、sleep(.05)逐项保持**，产品/原3秒8秒及full1000秒不改。永久回归对真实worker已发布事件注入一次旧空读取；没有新增时钟、睡眠或时间阈值。初稿曾用2秒交错屏障、定向3过，提交前移除该额外时序依赖，改为上述确定注入，未发布初稿。
+- 最终定向3/3、4.280s/外层4.653s，日志2808c4f738f4d9ac59fab31d21ef2854b4aeae5b66f4e72a1afd64aa752e26e6；Mac20轮 **40/40、56.066s**，Linux UID1000同一修订叠加到新独立诊断树20轮 **40/40、73.790s/外层74.151s、SSH0**，源前后不变、旧06全部495源保持。接下来单独固定测试修复提交，并重新精确双端全量/SDK/发布门；不把06已失败全量改写为成功，不激活06。
+
 - Linux超时诊断的窄修单独提交：两个HTTP夹具原serve_forever默认0.5秒轮询使每次shutdown空等约500ms；同一冻结Linux源4+4轮只测setup/cleanup，默认499.809–500.250ms，显式poll_interval=.01为9.493–9.866ms。只改tests/test_tenant_gateway.py与test_rsi_provider_adapter.py夹具轮询，原12+38个test_*方法AST完全相同，真实请求/进程/测试期限、3秒/8秒及full1000秒不变，非daemon请求handler仍join。8相关模块 **96/96、62.275s/外层63.241s、actual0**（http-fixture-targeted，日志SHA001de6e65a262982c66c553426ab2e3e0884d60f90cd41796a9374ebfbc1ee2e）。只能证明这部分空等改善；是否足以解决全量超时仍等新版本全量，不追认原失败。
 
 - 独立产品审查3692：changes_requested，原候选不发布。PILOT-PRODUCT-01首验→返工→再验把14天线重置；已改按原metrics首验锚，最近验收另列，UI明确首验期内返工。PILOT-PRODUCT-02缺complexity草稿可保存后GET500；新写入显式空文本，旧成功草稿只读兼容、不重写原协议/hash。防御性PILOT-PRODUCT-03按冻结ticket.id并核原项目/key，引用身份也纳入id；维护SQL移出旧任务并复用编号时保留原件、当前未知，不宣称已证明用户可达跨项目泄漏。
