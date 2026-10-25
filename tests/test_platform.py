@@ -1,7 +1,7 @@
 """The platform (`tmh serve`): tickets over the HTTP API, knowledge links, and agent runs with a stand-in agent."""
 from unittest import mock
 import json
-import inspect
+import copy
 import re
 import os
 import shutil
@@ -484,26 +484,38 @@ class PlatformApiTest(unittest.TestCase):
             (self.data / "autoflow.json").write_text('{"on": false}', encoding="utf-8")
 
     def test_a_review_event_with_a_stale_verification_read_is_polled_again(self):
-        from tmh.platform import fixloop
-        original = fixloop.verified
-        stale_reads = []
+        original_call = self.call
+        initial_reads, rechecks = [], []
 
-        def stale_read(data, rid):
-            value = original(data, rid)
-            if inspect.currentframe().f_back.f_code.co_name == "api_ticket" and value and not stale_reads:
-                tid = self.P.store.run(rid)["ticket_id"]
-                if any("留给人审阅" in e["body"] and e["data"].get("run") == rid
-                       for e in self.P.store.events(tid)):
-                    # Inject the earlier empty read once the real worker has
-                    # published review. This deterministically reproduces the
-                    # observed response, without another timing threshold.
-                    stale_reads.append(rid)
-                    return {}
-            return value
+        def stale_response(method, path, *args, **kw):
+            if method == "POST" and re.fullmatch(r"/api/runs/[0-9]+/recheck", path):
+                if not rechecks:
+                    # This assertion runs before issuing the first recheck,
+                    # so a later GET cannot satisfy the initial-poll coverage.
+                    self.assertEqual([kind for kind, _ in initial_reads], ["stale", "ready"])
+                    self.assertEqual(initial_reads[0][1], initial_reads[1][1])
+                rechecks.append(path)
+            code, data = original_call(method, path, *args, **kw)
+            if method == "GET" and path.startswith("/api/tickets/") and not rechecks:
+                for run in data.get("runs", []):
+                    if run["mode"] != "fix" or not run.get("verify") or not any(
+                            "留给人审阅" in e["body"] and e["data"].get("run") == run["id"]
+                            for e in data.get("events", [])):
+                        continue
+                    if not initial_reads:
+                        # Freeze the observed stale response at the decoded
+                        # HTTP boundary, after checking real worker evidence.
+                        stale = copy.deepcopy(data)
+                        next(r for r in stale["runs"] if r["id"] == run["id"])["verify"] = None
+                        initial_reads.append(("stale", run["id"]))
+                        return code, stale
+                    if len(initial_reads) == 1:
+                        initial_reads.append(("ready", run["id"]))
+            return code, data
 
-        with mock.patch.object(fixloop, "verified", stale_read):
+        with mock.patch.object(self, "call", side_effect=stale_response):
             self.test_a_change_is_built_again_without_being_redone()
-        self.assertEqual(len(stale_reads), 1, "must exercise a stale verification read with the real review event")
+        self.assertTrue(rechecks, "the stale and recovered responses must precede the first recheck")
 
     def test_a_rebuilt_change_the_diagnosis_judged_unsolved_still_waits_for_a_person(self):
         # a missing endpoint compiles fine: a build that passes later does not overrule what the diagnosis found

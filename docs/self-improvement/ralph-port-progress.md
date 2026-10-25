@@ -3,6 +3,7 @@
 ## 2026-10-25：后续真实 RSI 无付费软件接线
 
 - 当前项：试点发布记录收口后，先补回归阶段覆盖，再实现提案前原根合同与一次性候选/B/C绑定；状态：**doing（只读核对完成，产品尚未改）**。起点f94791b，运行代码218文件已发布；发布文档后续只推送记录、不重启服务。主协调18:11沿原人类授权明确继续，不因真人或账单待答停掉独立软件，不重跑canary。
+- FIXTURE-COVERAGE-01补强：实现与自验done、待新固定提交独立核验。只改新增回归，在真实HTTP完整响应解码后将首个已就绪响应冻结为旧verify=None；第一次recheck发出前强制检查同run的stale→ready两次消费。mock限于本人测试call，不改server/worker/原件、没有时钟/睡眠/新阈值。原test_a_change整个方法AST与f947完全相同（14原断言及原等待不改）。旧06方法内存注入新回归 **1方法/1同型TypeError、1.588s、actual1、旧源不变**；新定向3/3、4.362s/外层4.800s。Mac20轮40/40、57.765s/外层57.769s；Linux UID1000新overlay20轮40/40、72.750s/外层73.147s/SSH0，源前后不变，完整逐项日志3文件10360字节SHA读回，旧495源保持。证据initial-phase-*。此次纯测试补强不重复2355全量；旧全量只属f947，不挪为本测试新修订全量，线上218运行文件不变/不重启。
 - 首个窄面：tests/test_platform.py的FIXTURE-COVERAGE-01收紧；随后scripts/rsi/trial_preparation.py、新tests/test_rsi_proposal_root.py及原test_rsi_trial_preparation.py相关验证/设计说明。必须保留旧v1/v2、原四表DDL、原create锚/根hash/预算/期限/代际/未知与一次终测消费；不得用假candidate SHA占位，也不得替换_pool返回合同来悄悄改变旧根身份。新派生绑定另有不可变锚，未绑定前仅提案、绑定后终测需原消费；需要与原提案输出证据相连。
 - 后续共用原lesson selector/renderer、明确Responses/Messages计量与固定资料文本模式，复用原Ledger/SP/既有模块；具体耦合按代码再收口，不建新框架、不放开旧fixture Broker或个人read/content执行权。无付费负控可直接做，正式调用在可信费用全上界闭合前拒绝。20_000_000 micro-CNY为全链单root总额，不按阶段/模型重置。
 - 只读依据：分析/implementation/20261025-pilot-fixes/live-next.md及本机pilot-software-20261025/next-rsi-software-notes.md；旧合同“未找到profile”的历史有限结论已被服务器Responses/本机Messages配置发现更新，不再说全局无配置。真实项目/日历/个人账号/本人五职责确认、供应方计费/硬上界问题已问待答，不重复问预算、不代签。模型/paid0，真实A/B/C/D和多人周期未核证。
