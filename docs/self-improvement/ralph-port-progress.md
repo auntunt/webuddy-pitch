@@ -13,6 +13,7 @@
 - 原件：Mac/Linux各12个新Broker场景、各15份transport监管回执在**原路径**用原SP.read_receipt核验nonce/owner/output字节，均清理complete/reaped、remaining_group=false、原进程组当前不存在。Linux四份白名单报告132270字节逐份SHA/长度读回；远端完整合成夹具留在 `/tmp/webuddy-registered-input-3c5q2t2b/`。原tar8499200字节保持，SSH按次使用无损压缩传输53.082秒，不改变归档/源文件。
 - **2026-10-25 09:43:02 CST**只读核验：线上215运行文件SHA/长度/mode仍与6edc04f相同，active/running、PID2502485、重启0。本增量仅scripts/tests/docs，不接生产路由，不部署新运行入口、不重启、不读写真实业务data/密钥、不付费、不代签。人工确认/采用/验收/关单、guard/ALWAYS_PROTECTED/钩子/MOVES未改。
 - 证据根：仓库外 `分析/RSI协调/registered-input-wiring-20261025/`，含旧失败日志/阶段源、最终480源/两端实际退出回执、稳定性/负控和原件核验。固定新SHA普通推送后由协调侧独立复审，不以自检替代独立结论。
+- 代码/测试/合同固定提交 **fa3e7e2685fa28f24a1ed1c4987fe67081f56a70**。最终本机文件权限核对脚本因既有 `tmh/mapper.py` 为0600而Git/生产0644退出1；同一shell命令块随后仍执行git commit，整体工具退出0，故不能把整体退出当该核对通过。失败与原因记录在 `committed-source-verification.json`，没有改原文件权限。后续逐Git blob确认480导出字节均与fa3相同、215生产文件Git字节/模式/blob均与6ed发布清单相同；另发现导出中 `scripts/realworld_test/driver.py` 同样为既有本机0600/Git0644，精确区分测试导出文件系统权限与Git模式，不冒称两者全同。这两处无内容/执行位变化、不涉及运行源码改动，原两端133结果保留、不重复同一测试矩阵。线上实际215权限已单独在09:43核验。收尾记录另起文档提交，随fa3普通推送；实际远端HEAD与最后只读运行核验保存外置交接JSON。
 - **下一项仍todo：固定登记ID的实际隔离执行器及独立oracle evaluator**。本批 `isolated_execution=not_run`、`oracle_evaluation=not_run`、`production_equivalent=false`、`rsi_qualified=false`；native Messages无真实CLI/IDE工具及隐式会话，捕获前后快照不是未来授权，也不证明全世界原子一致。原HTTP signed chunk-size限制须在真实profile准入前收紧支持框定；不把合成调用算真实A/B/C/D或M/C/P。
 - 待确认沿原询问：可信profile/价格、真实A/B/C/D、真人/职责/周期尚pending，不重复询问、不代填。Windows原生监管/隔离/凭据ACL仍未完成。真实付费0、真实试点not_run、组织收益评分null；下一个窄增量不得开放任意root命令/挂载/UID接口。
 
