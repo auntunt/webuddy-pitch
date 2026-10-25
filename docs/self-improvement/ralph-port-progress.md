@@ -1,6 +1,19 @@
 # Ralph port 执行进度
 
+## 2026-10-25：后续真实 RSI 无付费软件接线
+
+- 当前项：试点发布记录收口后，先补回归阶段覆盖，再实现提案前原根合同与一次性候选/B/C绑定；状态：**doing（只读核对完成，产品尚未改）**。起点f94791b，运行代码218文件已发布；发布文档后续只推送记录、不重启服务。主协调18:11沿原人类授权明确继续，不因真人或账单待答停掉独立软件，不重跑canary。
+- 首个窄面：tests/test_platform.py的FIXTURE-COVERAGE-01收紧；随后scripts/rsi/trial_preparation.py、新tests/test_rsi_proposal_root.py及原test_rsi_trial_preparation.py相关验证/设计说明。必须保留旧v1/v2、原四表DDL、原create锚/根hash/预算/期限/代际/未知与一次终测消费；不得用假candidate SHA占位，也不得替换_pool返回合同来悄悄改变旧根身份。新派生绑定另有不可变锚，未绑定前仅提案、绑定后终测需原消费；需要与原提案输出证据相连。
+- 后续共用原lesson selector/renderer、明确Responses/Messages计量与固定资料文本模式，复用原Ledger/SP/既有模块；具体耦合按代码再收口，不建新框架、不放开旧fixture Broker或个人read/content执行权。无付费负控可直接做，正式调用在可信费用全上界闭合前拒绝。20_000_000 micro-CNY为全链单root总额，不按阶段/模型重置。
+- 只读依据：分析/implementation/20261025-pilot-fixes/live-next.md及本机pilot-software-20261025/next-rsi-software-notes.md；旧合同“未找到profile”的历史有限结论已被服务器Responses/本机Messages配置发现更新，不再说全局无配置。真实项目/日历/个人账号/本人五职责确认、供应方计费/硬上界问题已问待答，不重复问预算、不代签。模型/paid0，真实A/B/C/D和多人周期未核证。
+
 ## 2026-10-25：多人试点首批软件
+
+- **本批软件状态：done，18:26:44 CST 已上线f94791b并普通推送GitHub。** Mac2355/2317过38skip/actual0、556.689s；Linux2355/2319过36skip/0fail/error、unittest983.076s/full984.885s、wrapper992.935s/actual0；SDK1.30.0 74/74、16.542s/外层22.367s。声明495源、218运行文件逐Git/包/长度/mode核验，100合成HTTP及指定进程/socket/key清理通过，原1000/90秒期限不改。
+- 独立f947窄审限定接受等待条件与前版产品结论承接：两版各495和完整归档/218运行一致，14原断言AST+300/.05/HTTP20保持。**FIXTURE-COVERAGE-01非阻断覆盖边界仍保留**：一次注入可能落在首次recheck之后，不能声称每轮均击中初次窗口；后续补强要在首次recheck前证明旧响应被轮询消费并再读成功，不重开已关闭产品P2。Linux40逐项完整日志随后3文件10412字节读回核SHA，原审18:22未读的历史边界不改；首读误期待不存在guard结果的诊断失败保留，没有补造回执。
+- 新full实际在/opt/webuddy/releases/f94791b3f421-team-pilots-20261025/verification/test-source；validation-origin原路径/495/218/9原回执摘要完整，347额外成员仅生成pyc+2准确元数据，不把声明源保持冒充完整成员不变。旧06失败/tmp树未合并为成功。新gate57685e3e...实际通过（源码/日志/SDK/迁移/HTTP/清理），GitHub源精确f947；ResourceWarning原样保留，不称全测试无资源问题。
+- 完整副本1781成员重复迁移通过；正式备份/opt/webuddy/backups/pre-f94791b3f421-20261025T102641Z含旧app/data/config及三项目.tmh277/37/20成员，逐字节核验。原60业务+11控制表原行/schema保持，仅3新空试点表。18:28:27启动约102秒后18项回环/公网检查，18:29:15 final active/running、PID2809751/restarts0/error级日志0、218源码保持；worker2809754/start_ticks978998710未变。原业务/控制/非DB/项目/知识账本/配置/Caddy/另一应用保持；Mac18:29:19独立TLS4项通过，无生产个人会话、业务或代签。PID只属当次观察。
+- 17份白名单服务器原证据507702字节完整读回，清单SHA0b863b2b79ca62261a7472c565a5b9cff59a6fc2d59a8c2eb2cbedcf57aaee58；备份/凭据留服务器。发布说明audit/production-deployment-2026-10-25-team-pilots.md，全部旧失败/原图原文保留。软件已发布不表示真人试点或真实RSI闭环完成；score=null，不认定80%。Windows锁/凭据ACL实机及POSIX网关限制继续待验。
 
 - 06b精确验证：Mac2354/2316过38跳过/actual0、558.944s；SDK1.30.0 74/74、16.988s/外层23.08s。独立fixed-06b147c-review限定关闭两P2/核03（7/7+真实HTTP/桌面390/全文导出），不是发布门批准。完整副本1781成员两次迁移通过，原60业务/11控制原行/结构保持，精确3新空表，worker/socket/key清理通过，生产未切换。
 - 06b Linux **完整2354、36skip、0fail/1error、unittest975.068s/full976.827s、actual1/SSH1**，并非1000秒超时；错误为test_platform.test_a_change_is_built_again_without_being_redone读取verify=None。旧1000超时仍独立保留，不能追认通过。现场 /tmp/webuddy-pilot-06b147c-KAJGi5sm；原failure-hooks及后来完整类数据/278份原件在diagnostic-platform-preserved，明确是全量结束后捕获，不冒充失败瞬间。原类数据/tmp/tmh-data-i8a9o4x8仍原地。
@@ -15,7 +28,7 @@
 - 原3692精确Mac全量2349/2311过38跳过/actual0、608.976s与SDK1.30.0 74/74保留；Linux UID1000/Python3.12.3 **outer1000s TimeoutExpired、SSH actual1、无完整结束回执**，不算通过。原源/失败现场保全；尾部6模块75方法/59过16跳过、28.810s仅定向诊断。新修提交须重新精确全量/SDK/独立复审和迁移发布门，未部署。
 - 人类新资料：LYB软件工程师、LLA项目老板/领导，首轮**20元总根预算**，覆盖所有阶段/模型/重试，不按每调用或子任务重置。实际账号ID、本人确认、五职责分配/真实项目日历仍缺；不代签。可信成本上界/计量与真实工具桥未完成，不由本预算声明开放付费运行。
 
-- 当前项：协议draft/本人确认/投入事件/固定全集报告及原页面入口；状态：doing。基线b92375e，C2已单独固定并推送，工作区原本干净；其新的未参与实现审查者已限定批准C2（20261025-b92375e-fresh-C2-review），不把原实现者自测算独立通过，不扩大为整体真实任务完成。
+- 当前项：协议draft/本人确认/投入事件/固定全集报告及原页面入口；状态：**done（软件已发布；真实试点未开始）**。基线b92375e，C2已单独固定并推送，工作区原本干净；其新的未参与实现审查者已限定批准C2（20261025-b92375e-fresh-C2-review），不把原实现者自测算独立通过，不扩大为整体真实任务完成。
 - 新协调优先级：先完成pilot-analysis所列最小可用软件，不因真人未填资料停掉软件；先前宣布的生产输入对齐保留为模型桥后续，不与本批混改。可审合同 `docs/design/pilot-software-contract-2026-10-25.md` 已保存：具体字段、draft/frozen/active/ended、权限/本人确认、CAS/幂等、固定分母、未知不当0及验证发布门。
 - 允许变更：新pilots/backend/UI及必要Store/server/tenant_policy/原项目与工单入口、测试/说明。复用原项目/成员/工单/交接，不改MOVES/HUMAN_ONLY/AGENT_ENV/guard/原SP/锁/真实模型门；不启用live/新root服务。真实项目/参与者/日期/阈值空时只draft，不自动freeze/start或代签。
 - 资料与证据：只读引用 `分析/implementation/20261025-live-rsi/{pilot-analysis,bridge-analysis,configuration-findings,local-proxy-budget-analysis}.md`，不修改这些文件。本地一次Messages API canary不等Claude/Codex CLI/RSI；服务器仅models成功；本批不重复canary，未知实费/内部重试仍不以0或订阅无限额处理。外部实现证据将存 `分析/RSI协调/pilot-software-20261025/`。
