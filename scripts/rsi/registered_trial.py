@@ -418,12 +418,62 @@ class TokenBroker(Broker):
             slots[identity]=slot['request_id']
         return slots
 
+    def _holdout_identity(self,value,*,require_task=False):
+        value=validate_capture(value);ticket=value['source']['ticket']
+        if ticket is None and not require_task:task=None
+        elif not isinstance(ticket,dict) or type(ticket.get('id')) is not int or ticket['id']<=0:
+            raise L.Conflict('sealed native input requires a stable actual task identity')
+        else:task=L.digest([value['scope'],ticket['id']])
+        return {'task_sha256':task,
+                'effective_messages_sha256':L.digest(effective(value,'')['messages']),
+                'source_sha256':L.digest({k:value['source'][k] for k in ('binding','project','ticket')})}
+
+    def _sealed_inputs(self,key,contract):
+        """Derive from the ORIGINAL raw sealed captures, then retain one anchor.
+
+        Full history is evidence, not the identity of the effective question.
+        An old attempted root without this anchor is never silently backfilled.
+        """
+        store=self.adapter.ledger.store
+        rows=store.q("SELECT payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND kind='registered_sealed_inputs'",(key,))
+        if len(rows)>1:raise L.Conflict('duplicate original sealed-input anchor')
+        expected={'schema':'native-sealed-inputs-v1','contract_sha256':L.digest(contract),'inputs':[]}
+        if rows:
+            anchor=P.strict_json(rows[0]['payload'])
+            if L.digest(anchor)!=rows[0]['payload_hash']:raise L.Conflict('corrupt original sealed-input anchor')
+            L.fields(anchor,{'schema','contract_sha256','inputs'})
+            if not isinstance(anchor['inputs'],list) or len(anchor['inputs'])!=len(contract['holdout_cases']):
+                raise L.Conflict('sealed universe differs from original root')
+            ids=[item['input_id'] for item in anchor['inputs']]
+        else:
+            if store.one('SELECT 1 FROM rsi_prepare_attempts WHERE pool=?',(key,)):
+                raise L.Conflict('attempted root has no original stable sealed-input binding; no backfill')
+            # The private catalog is the only source of the original raw SHA.
+            # No caller can supply replacement task identities for the root.
+            originals={}
+            wanted={c['input_sha256'] for c in contract['holdout_cases']}
+            for name in sorted(os.listdir(self.catalog.files.fd)):
+                if not name.startswith('input-'):continue
+                id=name[len('input-'):];P.opaque(id)
+                _,digest,_=self.catalog.load('input',id)
+                if digest in wanted:originals.setdefault(digest,id)
+            if set(originals)!=wanted:raise L.Conflict('original sealed captures unavailable')
+            ids=[originals[c['input_sha256']] for c in contract['holdout_cases']]
+        for case,id in zip(contract['holdout_cases'],ids):
+            value,digest,_=self.catalog.load('input',id)
+            if digest!=case['input_sha256'] or value['scope']!={'tenant_id':contract['tenant_id'],'project_id':contract['project_id']}:
+                raise L.Conflict('sealed original input/source differs')
+            expected['inputs'].append(dict(case,input_id=id,identity=self._holdout_identity(value,require_task=True)))
+        if rows and anchor!=expected:raise L.Conflict('original stable sealed identities changed')
+        return expected
+
     def _prepare(self,plan,value,contract,input_hash,profile):
         authority=self._authority(contract,profile)
         self._capture_current(value)
         if self.context is not None and (value['source']['project']!=authority['project'] or value['source']['binding']!=authority['binding']):
             raise L.Conflict('capture no longer matches current authorized source')
         phase=plan['phase'];family=L.text(plan['source_family'])
+        sealed=self._sealed_inputs(plan['root_pool'],contract)
         if phase in {'baseline','candidate'}:
             self.adapter._verified_candidate(plan['root_pool'])
             if not any(c=={'input_sha256':input_hash,'source_family':family} for c in contract['holdout_cases']):
@@ -435,10 +485,19 @@ class TokenBroker(Broker):
         elif (family!=contract['training_family']
               or input_hash in {c['input_sha256'] for c in contract['holdout_cases']}):
             raise L.Conflict('proposal/judge/probe/retry material requires its frozen training scope')
+        if phase in {'propose','judge','probe','retry'}:
+            identity=self._holdout_identity(value)
+            if any(identity['task_sha256']==item['identity']['task_sha256']
+                   or identity['effective_messages_sha256']==item['identity']['effective_messages_sha256'] for item in sealed['inputs']):
+                raise L.Conflict('training recapture aliases an original sealed task or effective model input')
         return {'authority':authority,'capture':value,'plan':plan,'input_sha256':input_hash,
-                'adoption':adoption if phase=='followup' else None,'protocol':profile['protocol']}
+                'adoption':adoption if phase=='followup' else None,'protocol':profile['protocol'],'sealed_inputs':sealed}
 
     def _before_plan(self,db,plan,contract,input_hash,prepared):
+        if self._sealed_inputs(plan['root_pool'],contract)!=prepared['sealed_inputs']:
+            raise L.Conflict('sealed input binding changed before plan registration')
+        if not db.execute("SELECT 1 FROM rsi_prepare_events WHERE pool=? AND kind='registered_sealed_inputs'",(plan['root_pool'],)).fetchone():
+            self.adapter.ledger._event(db,plan['root_pool'],'','registered_sealed_inputs',prepared['sealed_inputs'])
         ticket=prepared['capture']['source']['ticket']
         self.adapter.ledger._event(db,plan['root_pool'],'','registered_token_input',{
             'request_id':plan['request_id'],'input_sha256':input_hash,'ticket_id':ticket.get('id') if isinstance(ticket,dict) else None})
@@ -454,6 +513,7 @@ class TokenBroker(Broker):
         try:
             if self._authority(contract,profile)!=prepared['authority']:return False
             self._capture_current(prepared['capture'])
+            if self._sealed_inputs(prepared['plan']['root_pool'],contract)!=prepared['sealed_inputs']:return False
             if self.adapter.ledger.inspect(prepared['plan']['root_pool'])['blocked'] and not allow_blocked_history:return False
             if prepared['adoption'] and self._followup(prepared['plan'],prepared['capture'],contract,prepared['input_sha256'],profile,check_arms=False)!=prepared['adoption']:return False
             return True

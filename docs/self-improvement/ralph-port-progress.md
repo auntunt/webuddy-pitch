@@ -1,5 +1,17 @@
 # Ralph port 执行进度
 
+## 2026-10-25：NATIVE-HOLDOUT-RECAPTURE-01 修复
+
+- 当前项：同一预封题重捕获包装SHA不同后被训练入口接受；状态：**doing**。起点a98eb40，git status干净，已读579固定独立review/decision/root-recapture-proof；REGISTERED-HOLDOUT-01是同一P2别名。579训练/终测隔离不接受，a98语义报告门和qualified=false不能抵消题目已暴露。
+- 新真实recapture回归在未修a98上 **1test/1准确Conflict not raised断言失败/0error、0.361s/外层0.627s、actual1**，实际1次合成HTTP，原contract不变，完整有效messages相同、包装SHA不同。原完整capture/历史/proof/请求及SP留holdout-recapture-red-fixtures，未覆盖原失败；本次不伪造capture或修改私有root来制造该反例。
+- 修复只加严原TokenBroker：从原rawSHA找原封存输入，在首次成功计划事务内、首次attempt前绑定稳定任务/来源与完整有效messages；四训练phase拒绝同原任务或有效输入。后续核原锚/原ID，已有attempt缺锚不补签，原root/完整历史/已暴露集合不重置。合法不同任务/新历史/无工单训练保留。新设计holdout-recapture-2026-10-25.md。
+- 首轮修后40/40、43.333s/外层43.907s、actual0；第二轮扩展45/45、42.738s/外层43.276s、actual0，源保持。现补无工单合法训练及最终定向、精确源/负控/原件核验；不重跑旧2355。原生job发布/同根D桥仍todo，LIVE D拒绝；先关闭该P2，不被后续桥的状态掩盖。
+- **修复自验状态：done，P2独立关闭待固定SHA复审**。最终7个新方法；命令 `PYTHONPATH=tests:. python3 -B -m unittest -v test_rsi_holdout_recapture test_rsi_native_registered test_rsi_native_bc_report test_rsi_token_adapter test_rsi_registered_trial`。Mac从候选Git tree `0d63d8d2a42524859542ca540ce69b63265f1b86` 的新精确导出执行 **84/84、54.881s/外层55.413s、actual0/0skip**；Linux UID1000/Py3.12新 `/tmp/webuddy-holdout-recapture-71w_ofzn/source` **84/84、98.214s/外层98.587s、actual0/SSH0/0skip**。两日志SHA `ec2def848c18e3d92104c7ca5977f6496ceaf21f134617301eb021f7f8af8985` / `573120bdc27bda46a289a08ea6270384dc3f358ac377db1353a79c00be35b55c`。
+- Mac2313声明源与候选Git原blob/字节/声明mode全匹配；完整成员核验实际exit1，发现 **14额外pyc**，原现场/列表/SHA保留holdout-mac-member-audit-initial.json，不删除后冒称完整成员不变。根因是a98固定评估子进程-I忽略PYTHONDONTWRITEBYTECODE；该独立问题不改变原2313源或本P2断言，后续单独补-B并在新树验证。最终进度文字晚于测试，候选tree与最终提交的文档差异须明确，不冒称当次Mac已跑整个最终Git树。
+- Linux506声明验证文件SHA/长度/mode前后保持，旧495源保持；该集合不含本进度，不是完整Git树。四场景各三次稳定性：两端 **12/12**，Mac5.252s/外层5.486s、Linux10.301s（外层见原result），各actual0；两端各9份有效SP原件核原owner/nonce/完整输出、cleanup complete/reaped/remaining_group=false和当前原组不存在。原红灯那1份SP也已原路径核验完整/原组不存在。Linux主轮149份有效Token/evaluator原件+3故坏（provider2/evaluator1），不把未计的legacy v2监管或故坏算通过；七白名单完整日志/结果/manifest/现场审计 **232358字节**逐SHA/长度读回，非远端raw transport本地重验。
+- 三内存删门负控（忽略重捕获别名/忽略稳定任务/允许旧根补签）各 **1准确目标断言失败/0error/actual1**，源保持；完整记录holdout-negative-final。原40/45绿灯和红灯/原原文/wire保留，不回填失败。12个旧核心/原测试文件逐字节保持，self-review/diff --check通过。固定SHA与精确506对Git核验/完整成员清单见外部holdout-self-validation.json和coding-handoff.json；不重跑全量、不改production入口/实际root、无真实模型调用/代签/服务重启，LIVE D仍拒绝。
+
+
 ## 2026-10-25：原生 BC 语义报告和本人精确引用第一段
 
 - 当前项：原登记阈值/全部双臂原件→固定独立进程断言报告→原本人决定精确引用；状态：**doing（原生job发布/同根D桥仍todo，LIVE D拒绝保持）**。起点579d3c7，开工git status干净；579仅已固定自验/推送，新独立审待结论，不冒称通过。
@@ -11,7 +23,7 @@
 - 最终命令：`PYTHONPATH=tests:. python3 -B -m unittest -v test_rsi_native_bc_report test_rsi_native_registered test_rsi_token_adapter test_learning_decisions`。Mac **92/92、40.283s/外层40.846s、actual0**；Linux UID1000/Python3.12 **92/92、85.469s/外层86.005s、actual0/SSH0**，均0skip。最终两日志SHA `64aec01d8363a59ac8c266b08345a144bdd61a421cbfaed3297185f583ec6c44` / `a7648c8467f3f4a218605d01532f816d70e354e77460f2d84700b183c5831f50`；前一轮92/92属于夹具补强前，原源/日志保留，不换成最终结果。
 - 新 `/tmp/webuddy-native-bc-7r6ct9ok/source` **504声明文件**字节/长度/模式前后保持，旧495验证源未改。报告生成/提交丢失恢复/本人精确引用各三轮：两端 **9/9**，Mac17.703s/外层17.922s、Linux29.452s（外层见原result），各actual0。两端稳定性各 **72份有效SP原件=63 provider+9 evaluator**，在原路径核owner/nonce/完整output与清理complete/reaped/remaining_group=false和当前原组不存在。Linux主轮另143份有效、3份有意损坏原件（provider2/evaluator1），原损坏输出以明确changed后缀核对应三个篡改测试；未将坏原件算通过。Mac主轮未开保留，只声称稳定性原件。Linux七白名单原日志/结果/manifest/现场审计 **277681字节**逐SHA/长度完整读回，不称本地复制并重新验证了远端raw transport。
 - 验证绑定 `分析/RSI协调/pilot-software-20261025/native-bc-self-validation.json`，全Git成员与504验证集合分开记录。原12个核心/保护/579实现及原测试文件字节保持，self-review与diff --check通过。没有旧全量/内核canary/真人数据/付费模型/服务重启；后续仍需native job双臂前不可变登记、按实际原根/SP独立报告发布确切修订，以及D新增attempt只豁免同根自己且核实际原selector/rendered。引用关系成立不能代替该执行来源。真实试轮规格/原生路由上界与内部尝试计量尚未验证，LIVE D和RSI/组织收益仍false/unknown，不把00:30自动顺延。
-最终原件/严格负控/双端同源待核。
+阶段说明：该段当时待核事项已由上文最终验证收口，不表示当前仍未验证。
 
 ## 2026-10-25：恢复共同输入 WIP 收口
 
