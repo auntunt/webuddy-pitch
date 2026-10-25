@@ -87,7 +87,10 @@ class ProviderAdapterTests(unittest.TestCase):
                 self.close_connection = True
         self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.server.daemon_threads = False
-        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        # Only the fixture's idle selector poll; real transport deadlines and
+        # joining the non-daemon request handlers remain unchanged.
+        self.server_thread = threading.Thread(target=self.server.serve_forever,
+                                              kwargs={"poll_interval": 0.01})
         self.server_thread.start()
         self.addCleanup(self.shutdown)
         self.base = contract()

@@ -53,7 +53,10 @@ class TenantGatewayTest(unittest.TestCase):
         self.addCleanup(self.workers.close)
         self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), tenant_gateway.make_handler(self.reg, self.workers))
         self.httpd.daemon_threads = True
-        thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
+        # Fixture selector cadence only: avoid accumulating the default 0.5s
+        # idle shutdown wait. Request, worker and test deadlines stay unchanged.
+        thread = threading.Thread(target=self.httpd.serve_forever,
+                                  kwargs={"poll_interval": 0.01}, daemon=True)
         thread.start()
         self.addCleanup(self.httpd.server_close)
         self.addCleanup(self.httpd.shutdown)

@@ -2,6 +2,8 @@
 
 ## 2026-10-25：多人试点首批软件
 
+- Linux超时诊断的窄修单独提交：两个HTTP夹具原serve_forever默认0.5秒轮询使每次shutdown空等约500ms；同一冻结Linux源4+4轮只测setup/cleanup，默认499.809–500.250ms，显式poll_interval=.01为9.493–9.866ms。只改tests/test_tenant_gateway.py与test_rsi_provider_adapter.py夹具轮询，原12+38个test_*方法AST完全相同，真实请求/进程/测试期限、3秒/8秒及full1000秒不变，非daemon请求handler仍join。8相关模块 **96/96、62.275s/外层63.241s、actual0**（http-fixture-targeted，日志SHA001de6e65a262982c66c553426ab2e3e0884d60f90cd41796a9374ebfbc1ee2e）。只能证明这部分空等改善；是否足以解决全量超时仍等新版本全量，不追认原失败。
+
 - 独立产品审查3692：changes_requested，原候选不发布。PILOT-PRODUCT-01首验→返工→再验把14天线重置；已改按原metrics首验锚，最近验收另列，UI明确首验期内返工。PILOT-PRODUCT-02缺complexity草稿可保存后GET500；新写入显式空文本，旧成功草稿只读兼容、不重写原协议/hash。防御性PILOT-PRODUCT-03按冻结ticket.id并核原项目/key，引用身份也纳入id；维护SQL移出旧任务并复用编号时保留原件、当前未知，不宣称已证明用户可达跨项目泄漏。
 - 反例与修后：red-review-regressions 4方法/2断言失败+2KeyError；其中ID夹具起初选错非末尾工单，原失败保留，改夹具后red-review-id-v2 1方法/1产品断言失败。green-review-regressions68/68；加HTTP链后69首轮1个测试误用列表字段KeyError，改为现有items后green-review-final-v2 **69/69、10.578s/外层10.980s、actual0、源不变**。日志SHA d637979ada48a6f8ab53b6ddc5fa3f0c9d966a45724da0d19230364832f8ff59；未削弱原测试或时限。
 - 原3692精确Mac全量2349/2311过38跳过/actual0、608.976s与SDK1.30.0 74/74保留；Linux UID1000/Python3.12.3 **outer1000s TimeoutExpired、SSH actual1、无完整结束回执**，不算通过。原源/失败现场保全；尾部6模块75方法/59过16跳过、28.810s仅定向诊断。新修提交须重新精确全量/SDK/独立复审和迁移发布门，未部署。
