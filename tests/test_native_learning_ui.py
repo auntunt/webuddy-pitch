@@ -11,14 +11,22 @@ class NativeLearningUiTests(unittest.TestCase):
     def test_personal_submit_binds_exact_native_report_and_retains_plain_reason(self):
         self.run_js(r'''
 const ref={schema:'native-learning-job-v1',root_pool:'a'.repeat(64),native_report_sha256:'b'.repeat(64)};
-learningDetails.set(R1,learningRevision(R1,{revision:{...learningRevision().revision,kind:'lesson'},jobs:[learningJob({id:'NJ'+'c'.repeat(40),kind:'native_evaluate',options:{native_evaluation:ref},result:{passed:true}})]}));
-await openLearning();assert.equal(mutations.length,0);assert.ok($('#learningDetailJobs').textContent.includes('原生文本双臂评测'));
+learningDetails.set(R1,learningRevision(R1,{revision:{...learningRevision().revision,kind:'lesson'},jobs:[learningJob({id:'NJ'+'c'.repeat(40),kind:'native_evaluate',options:{native_evaluation:ref},result:{schema:'native-learning-report-v1',passed:true}})]}));
+await openLearning();assert.equal(mutations.length,0);assert.ok($('#learningDetailJobs').textContent.includes('原生文本双臂评测'));assert.ok($('#learningDetailJobs').textContent.includes('结论：通过'));assert.ok($('#learningDecisionJob').textContent.includes('通过'));
 $('#learningReason').value='本人核对确切报告，仅适用当前版本';$('#learningDecisionJob').value='NJ'+'c'.repeat(40);await submit('#learningDecision');
 assert.equal(mutations.length,1);assert.deepEqual(JSON.parse(mutations[0].body.reason),{schema:'native-bc-decision-reference-v1',root_pool:ref.root_pool,native_report_sha256:ref.native_report_sha256,reason:'本人核对确切报告，仅适用当前版本'});
 ''')
 
     def test_missing_native_reference_is_not_silently_adopted(self):
         self.run_js(r'''
-learningDetails.set(R1,learningRevision(R1,{jobs:[learningJob({id:'NJ'+'c'.repeat(40),kind:'native_evaluate',options:{},result:{passed:true}})]}));
+learningDetails.set(R1,learningRevision(R1,{jobs:[learningJob({id:'NJ'+'c'.repeat(40),kind:'native_evaluate',options:{},result:{schema:'native-learning-report-v1',passed:true}})]}));
 await openLearning();$('#learningReason').value='缺失报告不能通过';$('#learningDecisionJob').value='NJ'+'c'.repeat(40);await submit('#learningDecision');assert.equal(mutations.length,0);assert.ok($('#learningNotice').textContent.includes('引用不完整'));
+''')
+
+    def test_native_status_without_assertion_report_cannot_offer_adoption(self):
+        self.run_js(r'''
+for(const result of [{passed:true},{schema:'native-learning-report-v1',passed:false}]){
+learningDetails.set(R1,learningRevision(R1,{jobs:[learningJob({id:'NJ'+'d'.repeat(40),kind:'native_evaluate',options:{},result})]}));
+await openLearning();assert.equal($('#learningAdopt').disabled,true);assert.ok($('#learningDecisionJob').textContent.includes('请选择通过的独立批次'));assert.ok(!$('#learningDecisionJob').textContent.includes('NJ'+'d'.repeat(40)));assert.ok(!$('#learningDetailJobs').textContent.includes('结论：通过'));assert.equal(mutations.length,0);
+}
 ''')

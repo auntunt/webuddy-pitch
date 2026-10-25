@@ -1,5 +1,13 @@
 # Ralph port 执行进度
 
+## 2026-10-26：发布验收中的原生UI结论修复
+
+- 当前项：真实浏览器发现原生job卡片/选择项显示“结论未登记”，状态doing（窄修已定向验证，浏览器复验和最新发布门继续）。3cc浏览器截图保留在仓库外`native-browser-3cc76b2/before-verdict.png`；实际producer/server临时合成数据，非LYB/LLA或生产个人会话，没有真人采用。机器passed不自动决定。
+- 根因：普通与原生job原始行没有独立verdict列；native完整结论在result.schema=`native-learning-report-v1`及passed布尔。UI只读job.verdict导致错误标签。仅补UI的原生结论投影，并加严原生采用选项须同时status=passed、确切原生report schema和passed=true，旧普通job逻辑不变。后端native原件/本人理由/锁门无改动。
+- 验证：三条新UI测试在3cc行为下2个目标assertion失败/0error（native-verdict-ui-red.log）；修后与原22条UI一起 **25/25，1.5秒量级、actual0**（native-verdict-ui-green-v3.log）。保留初次错误的job.verdict KeyError、尝试不存在SQL列导致22fixture errors的日志，已完全撤回该producer/test改动，不引入DB列或迁移。两次新mock select检查不支持完整options/innerHTML读取，改为同时核禁用按钮、可见placeholder与目标job不存在，原安全断言保留；相应失败日志不算产品通过。
+- 发布准备：新外部工具绑定实际f947/63业务表/11控制表，改为精确零schema变化，保留逐表原行/列/对象、控制权限、账本、全备份和保留新数据回滚门；原3表添加发布工具完整保留。3cc包219运行文件/512声明验证文件；已新跑SDK1.30.0 **74/74、零skip、actual0**，该证据仅属3cc。3cc完整2509项Mac回归仍在原源上运行；本窄修增加1项UI用例，最终新提交需重新绑定2510项，不挪用3cc全量/SDK或旧f947结论。原1000秒外层、测试内超时及90秒合成smoke未放宽。
+- 待依赖：新窄修真实浏览器相关流程、最新精确源回归/SDK/迁移兼容与独立产品审；生产仍f947，不提前激活。后续真实工程实验另列有限计划、真实时间和原始usage/未知费用；max_total_tokens=null，不恢复旧20元、不复活旧多人窗、不代本人采用或D。
+
 ## 2026-10-26：原生job、本人引用与同根D桥
 
 - 当前项：原生评测job→确切报告→本人采用引用→同根新D；状态：**done（作者验证及固定候选；新批独立产品复审、发布待定）**。起点5eb957e工作区干净；2be与5eb固定提交各自已获限定独立接受，该结论不扩大到本批新桥。本项先推进不依赖真人回应的软件与合成验证；普通job不改名洗为native，模型自评/Agent不能代真人确认。
