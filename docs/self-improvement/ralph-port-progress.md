@@ -1,5 +1,14 @@
 # Ralph port 执行进度
 
+## 2026-10-26：官方客户端与本地Messages路线只读核查
+
+- 当前项：失败根之后的只读接入可行性；状态done（核查/最小差异/离线验证方案已形成，不代表路线准入）。实际root b2a6c8da…仍永久unknown/blocked，不再请求、改profile、延期或新根刷新；本轮模型/连通性请求0，无安装升级/配置修改/凭据导出。
+- 版本：Mac Codex --version 0.163.0、Claude 2.1.310；服务器Codex --version 0.162.1，Claude安装包2.1.234，其--version在原5秒门超时124并完整回收、无剩余组，随后--help0/约0.332秒。不重跑到通过、不把package版本当成功的CLI版本输出。两端完整help、包/launcher/native binary身份与原配置公开字段均留存。
+- Codex：exec help支持stdin/ephemeral/ignore-user-config/ignore-rules/JSONL/output-schema；两版本help未列禁用全部tools开关，read-only明确只是模型命令的沙箱策略，不证明禁止读取oracle/隐式设置。底层特性、内部重试、完整有效请求/真实response model与usage未知；403声明只准官方客户端不等于已验证该CLI成功。不能据此启动新实验或伪装headers。
+- Claude：两版本help支持原strict组合tools空/bare/strict空MCP/setting-sources空/禁skills/不持久session/独立system。bare help说明Anthropic认证仅API_KEY或显式apiKeyHelper；本机既有3425回环配置只有AUTH_TOKEN，不能推定严格bare链已认证，也不能删bare或擅自把token改当API key。当前模型标签commandcode-plan/deepseek/deepseek-v4.1-flash[1m]、可用性/账号准入仍未知；Mac回环不等于服务器回环，旧CRLF实测失败保留。
+- 原生Messages：现有单请求adapter可支持Messages，但当前live profile严格HTTPS，原本机配置为HTTP回环；不得把真实调用标fixture或放宽已接受profile/guard。任何后续传输类及认证/OS隔离/隐式attempt计量须独立前瞻审定。
+- 最小可审材料：仓库外native-route-feasibility-v1/feasibility-decision.json，逐路线列支持/不支持或未知、最小适配差异；离线方案包括完整有效请求/禁工具与隐式输入、独立oracle OS拒读、429/断流内部attempt计量、完整CRLF/Unicode输出及model/usage未知、总时限取消/进程树回收。方案未执行模型测试，不冒充隔离通过；未来不得复用旧暴露任务/答案或复活失败根。
+
 ## 2026-10-26：独立实际A隐私接受后的有限真实实验
 
 - 当前项：原实际A/3BC的一次性登记与有限真实模型实验；状态done（一次有限执行及失败封存结束，实验未通过且不完整）。实际A隐私/Catalog/断言v2独立结论已直接读回接受，无新增软件阻断；运行c08、计划a87879…、驱动1a07b8…及50..53原输入保持。先fresh核身份/源/配置再激活，原8槽/1200秒A-BC/43200秒总根/120秒单次/null总cap不变，不做模型预调用。A完整原回复须符合原policy JSON约定，不合格停本根，不抽取/改写/重试。D仅实际本人采用后新建并同根执行。
