@@ -17,6 +17,11 @@ from tmh.platform.learning import transaction
 VERSION = "trial-budget-preparation-v1"
 PROVIDER_VERSION = "trial-budget-provider-v2"
 PROPOSAL_VERSION = "trial-budget-proposal-v3"
+TOKEN_VERSION = "trial-token-proposal-v4"
+TOKEN_PROVIDER_VERSION = "trial-token-provider-v5"
+TOKEN_SCHEMAS = {TOKEN_VERSION, TOKEN_PROVIDER_VERSION}
+PROPOSAL_SCHEMAS = {PROPOSAL_VERSION, *TOKEN_SCHEMAS}
+PROVIDER_SCHEMAS = {PROVIDER_VERSION, TOKEN_PROVIDER_VERSION}
 BINDING_VERSION = "trial-proposal-candidate-binding-v1"
 MAX = 2 ** 60
 PHASES = {"propose", "baseline", "candidate", "judge", "probe", "retry", "terminal", "followup"}
@@ -65,12 +70,16 @@ def sha(value):
 
 def validate_contract(c):
     keys = {"schema", "tenant_id", "project_id", "root_family", "application_commit", "candidate_sha256", "baseline_sha256", "training_family", "followup_family", "holdout_cases", "model", "price", "limits"}
-    if isinstance(c, dict) and c.get("schema") == PROVIDER_VERSION:
+    token_only = isinstance(c, dict) and c.get("schema") in TOKEN_SCHEMAS
+    if token_only:
+        keys.remove("price")
+        keys.add("budget")
+    if isinstance(c, dict) and c.get("schema") in PROVIDER_SCHEMAS:
         keys.add("provider_binding")
     fields(c, keys)
-    if c["schema"] not in {VERSION, PROVIDER_VERSION, PROPOSAL_VERSION} or not isinstance(c["application_commit"], str) or not re.fullmatch("[0-9a-f]{40}", c["application_commit"]):
+    if c["schema"] not in {VERSION, PROVIDER_VERSION, *PROPOSAL_SCHEMAS} or not isinstance(c["application_commit"], str) or not re.fullmatch("[0-9a-f]{40}", c["application_commit"]):
         raise ValueError("fixed application/schema required")
-    if c["schema"] == PROVIDER_VERSION:
+    if c["schema"] in PROVIDER_SCHEMAS:
         binding = c["provider_binding"]
         fields(binding, {"profile_id", "profile_sha256", "protocol_sha256", "code_sha256"})
         text(binding["profile_id"]); sha(binding["profile_sha256"]); sha(binding["protocol_sha256"])
@@ -80,7 +89,7 @@ def validate_contract(c):
     for key in ("tenant_id", "root_family", "training_family", "followup_family"):
         text(c[key])
     integer(c["project_id"], 1)
-    if c["schema"] == PROPOSAL_VERSION:
+    if c["schema"] in PROPOSAL_SCHEMAS:
         if c["candidate_sha256"] is not None:
             raise ValueError("proposal root keeps its original pending candidate; bind separately")
     else:
@@ -91,13 +100,26 @@ def validate_contract(c):
     fields(c["model"], {"provider", "requested_model", "response_model"})
     for value in c["model"].values():
         text(value)
-    fields(c["price"], {"reference_sha256", "input_micro_cny_per_token", "cached_micro_cny_per_token", "output_micro_cny_per_token"})
-    sha(c["price"]["reference_sha256"])
-    for key in ("input_micro_cny_per_token", "cached_micro_cny_per_token", "output_micro_cny_per_token"):
-        integer(c["price"][key])
-    if c["price"]["cached_micro_cny_per_token"] > c["price"]["input_micro_cny_per_token"]:
-        raise ValueError("cached price cannot exceed input upper bound")
-    fields(c["limits"], {"calls", "billed_tokens", "cost_micro_cny", "deadline_us"})
+    if token_only:
+        fields(c["budget"], {"unit", "authorization_sha256", "prior_confirmed_tokens", "prior_held_tokens", "prior_evidence_sha256"})
+        if c["budget"]["unit"] != "tokens":
+            raise ValueError("explicit token-only budget required")
+        sha(c["budget"]["authorization_sha256"]); sha(c["budget"]["prior_evidence_sha256"])
+        integer(c["budget"]["prior_confirmed_tokens"]); integer(c["budget"]["prior_held_tokens"])
+        fields(c["limits"], {"calls", "billed_tokens", "starts_us", "deadline_us"})
+        for value in c["limits"].values():
+            integer(value, 1)
+        if (c["limits"]["starts_us"] >= c["limits"]["deadline_us"]
+                or c["budget"]["prior_confirmed_tokens"] + c["budget"]["prior_held_tokens"] > c["limits"]["billed_tokens"]):
+            raise ValueError("original token window or prior occupancy exceeds root")
+    else:
+        fields(c["price"], {"reference_sha256", "input_micro_cny_per_token", "cached_micro_cny_per_token", "output_micro_cny_per_token"})
+        sha(c["price"]["reference_sha256"])
+        for key in ("input_micro_cny_per_token", "cached_micro_cny_per_token", "output_micro_cny_per_token"):
+            integer(c["price"][key])
+        if c["price"]["cached_micro_cny_per_token"] > c["price"]["input_micro_cny_per_token"]:
+            raise ValueError("cached price cannot exceed input upper bound")
+        fields(c["limits"], {"calls", "billed_tokens", "cost_micro_cny", "deadline_us"})
     for value in c["limits"].values():
         integer(value, 1)
     cases = c["holdout_cases"]
@@ -145,7 +167,7 @@ class Ledger:
         original = {"contract": c, "generation": row["generation"], "created_us": row["created_us"]}
         if len(anchors) != 1 or anchors[0]["payload_hash"] != digest(original) or encoded(json.loads(anchors[0]["payload"])) != encoded(original):
             raise Conflict("original create anchor mismatch")
-        if c["schema"] == PROPOSAL_VERSION:
+        if c["schema"] in PROPOSAL_SCHEMAS:
             self._consumed(db, key, c)
             binding = self._candidate_binding(db, key, c)
             for attempt in db.execute("SELECT request_id FROM rsi_prepare_attempts WHERE pool=?", (key,)):
@@ -154,6 +176,10 @@ class Ledger:
             if any(item['result'] is None for item in self._isolations(db, key).values()):
                 raise Conflict("registered isolation still unresolved")
             now = self._time()
+            if c["schema"] in TOKEN_SCHEMAS and now < c["limits"]["starts_us"]:
+                raise Conflict("original token window has not started")
+            if c["schema"] in TOKEN_SCHEMAS and c["budget"]["prior_held_tokens"]:
+                raise Conflict("unresolved prior usage holds the original token root")
             if row["generation"] != self.generation:
                 raise Conflict("new process generation cannot resume old dispatch")
             unresolved_history = db.execute("SELECT 1 FROM rsi_prepare_events WHERE pool=? AND kind IN ('cancel_unknown','unknown')", (key,)).fetchone()
@@ -308,6 +334,15 @@ class Ledger:
         c = validate_contract(contract)
         key = digest([c["tenant_id"], c["project_id"], c["root_family"]])
         with transaction(self.store) as db:
+            if c["schema"] in TOKEN_SCHEMAS:
+                # One human authorization belongs to one authoritative root,
+                # across model/project/root-family labels and process restarts.
+                keys = {r["pool"] for r in db.execute("SELECT pool FROM rsi_prepare_pools UNION SELECT pool FROM rsi_prepare_events WHERE kind='create'")}
+                for prior_key in keys:
+                    prior = self._pool(db, prior_key)
+                    if (prior["schema"] in TOKEN_SCHEMAS and prior["budget"]["authorization_sha256"] == c["budget"]["authorization_sha256"]
+                            and prior_key != key):
+                        raise Conflict("token authorization already belongs to its original root")
             old = db.execute("SELECT contract_hash FROM rsi_prepare_pools WHERE pool=?", (key,)).fetchone()
             if old:
                 self._pool(db, key)
@@ -328,13 +363,16 @@ class Ledger:
         body = row["body"]
         try:
             fields(body, {"phase", "input_limit", "output_limit", "reserved_micro_cny", "contract_hash", "material_sha256", "candidate_binding_sha256"})
-            integer(body["input_limit"], 1); integer(body["output_limit"], 1); integer(body["reserved_micro_cny"]); sha(body["material_sha256"])
+            integer(body["input_limit"], 1); integer(body["output_limit"], 1); sha(body["material_sha256"])
             if body["phase"] not in PHASES or body["contract_hash"] != digest(c):
                 raise Conflict("proposal attempt changed its original root or phase")
             expected = None if body["phase"] == "propose" else digest(binding) if binding else None
             if (body["phase"] != "propose" and binding is None) or body["candidate_binding_sha256"] != expected:
                 raise Conflict("attempt changed its original candidate binding")
-            if body["reserved_micro_cny"] != body["input_limit"] * c["price"]["input_micro_cny_per_token"] + body["output_limit"] * c["price"]["output_micro_cny_per_token"]:
+            quote = None if c["schema"] in TOKEN_SCHEMAS else body["input_limit"] * c["price"]["input_micro_cny_per_token"] + body["output_limit"] * c["price"]["output_micro_cny_per_token"]
+            if quote is not None:
+                integer(body["reserved_micro_cny"])
+            if body["reserved_micro_cny"] != quote:
                 raise Conflict("proposal reservation changed its original quote")
         except (ValueError, TypeError, KeyError) as exc:
             raise Conflict("unverifiable proposal reservation") from exc
@@ -344,7 +382,7 @@ class Ledger:
         anchors = list(db.execute("SELECT request_id,payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND kind='bind_candidate'", (key,)))
         if not anchors:
             return None
-        if c["schema"] != PROPOSAL_VERSION or len(anchors) != 1 or anchors[0]["request_id"]:
+        if c["schema"] not in PROPOSAL_SCHEMAS or len(anchors) != 1 or anchors[0]["request_id"]:
             raise Conflict("candidate has no unique proposal-root anchor")
         try:
             value = json.loads(anchors[0]["payload"])
@@ -382,7 +420,7 @@ class Ledger:
         candidate_sha = hashlib.sha256(candidate_text.encode("utf-8")).hexdigest()
         with transaction(self.store) as db:
             c = self._pool(db, key)
-            if c["schema"] != PROPOSAL_VERSION or candidate_sha == c["baseline_sha256"]:
+            if c["schema"] not in PROPOSAL_SCHEMAS or candidate_sha == c["baseline_sha256"]:
                 raise Conflict("binding requires a pending proposal root and a distinct policy")
             previous = self._candidate_binding(db, key, c)
             if previous:
@@ -417,12 +455,12 @@ class Ledger:
         scope = digest([c["tenant_id"], c["project_id"]])
         existing = list(db.execute("SELECT scope,input_hash,family FROM rsi_prepare_holdouts WHERE pool=?", (key,)))
         anchors = list(db.execute("SELECT payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND kind='consume_holdout'", (key,)))
-        binding = self._candidate_binding(db, key, c) if c["schema"] == PROPOSAL_VERSION else None
+        binding = self._candidate_binding(db, key, c) if c["schema"] in PROPOSAL_SCHEMAS else None
         if not anchors and not existing:
             if binding:
                 raise Conflict("candidate binding lost its original terminal consumption")
             return False
-        if c["schema"] == PROPOSAL_VERSION and binding is None:
+        if c["schema"] in PROPOSAL_SCHEMAS and binding is None:
             raise Conflict("terminal consumption lost its original candidate binding")
         value = {"candidate_sha256": binding["candidate_sha256"] if binding else c["candidate_sha256"], "cases": c["holdout_cases"]}
         expected = {(scope, r["input_sha256"], r["source_family"]) for r in c["holdout_cases"]}
@@ -434,7 +472,7 @@ class Ledger:
     def consume_holdout(self, key):
         with transaction(self.store) as db:
             c = self._pool(db, key, dispatch=True)
-            if c["schema"] == PROPOSAL_VERSION:
+            if c["schema"] in PROPOSAL_SCHEMAS:
                 if not self._consumed(db, key, c):
                     raise Conflict("pending candidate requires atomic candidate/terminal binding")
                 return False
@@ -451,6 +489,10 @@ class Ledger:
 
     def _totals(self, db, key):
         calls, tokens, cost = 0, 0, 0
+        contract = json.loads(db.execute("SELECT contract FROM rsi_prepare_pools WHERE pool=?", (key,)).fetchone()["contract"])
+        token_only = contract["schema"] in TOKEN_SCHEMAS
+        if token_only:
+            tokens = contract["budget"]["prior_confirmed_tokens"] + contract["budget"]["prior_held_tokens"]
         ids = [r["request_id"] for r in db.execute("SELECT request_id FROM rsi_prepare_attempts WHERE pool=?", (key,))]
         anchors = [r["request_id"] for r in db.execute("SELECT request_id FROM rsi_prepare_events WHERE pool=? AND kind='reserve'", (key,))]
         if set(ids) != set(anchors) or len(anchors) != len(ids):
@@ -467,16 +509,19 @@ class Ledger:
                 isolation = isolations.get(row['request_id'])
                 if isolation and isolation['result'] is None:
                     tokens += body['input_limit'] + body['output_limit']
-                    cost += body['reserved_micro_cny']
+                    if not token_only:
+                        cost += body['reserved_micro_cny']
                 else:
                     tokens += receipt["input_tokens"] + receipt["output_tokens"]
-                    cost += receipt["accounted_micro_cny"]
+                    if not token_only:
+                        cost += receipt["accounted_micro_cny"]
             elif attempt["state"] in {"reserved", "intent", "unknown"}:
                 tokens += body["input_limit"] + body["output_limit"]
-                cost += body["reserved_micro_cny"]
+                if not token_only:
+                    cost += body["reserved_micro_cny"]
             else:
                 raise Conflict("unrecognized attempt state")
-        return {"calls": calls, "billed_tokens": tokens, "cost_micro_cny": cost}
+        return {"calls": calls, "billed_tokens": tokens, "cost_micro_cny": None if token_only else cost}
 
     def reserve(self, key, request, phase, input_limit, output_limit, *, material_sha256=None):
         text(request)
@@ -485,15 +530,19 @@ class Ledger:
         integer(input_limit, 1); integer(output_limit, 1)
         with transaction(self.store) as db:
             c = self._pool(db, key)
-            price = c["price"]
-            cost = input_limit * price["input_micro_cny_per_token"] + output_limit * price["output_micro_cny_per_token"]
-            integer(cost)
+            token_only = c["schema"] in TOKEN_SCHEMAS
+            if token_only:
+                cost = None
+            else:
+                price = c["price"]
+                cost = input_limit * price["input_micro_cny_per_token"] + output_limit * price["output_micro_cny_per_token"]
+                integer(cost)
             body = dict(phase=phase, input_limit=input_limit, output_limit=output_limit, reserved_micro_cny=cost, contract_hash=digest(c))
-            if c["schema"] in {PROVIDER_VERSION, PROPOSAL_VERSION}:
+            if c["schema"] in {PROVIDER_VERSION, *PROPOSAL_SCHEMAS}:
                 body["material_sha256"] = sha(material_sha256)
             elif material_sha256 is not None:
                 raise ValueError("provider material requires v2 contract")
-            if c["schema"] == PROPOSAL_VERSION:
+            if c["schema"] in PROPOSAL_SCHEMAS:
                 binding = self._candidate_binding(db, key, c)
                 body["candidate_binding_sha256"] = None if phase == "propose" else digest(binding) if binding else None
             if db.execute("SELECT 1 FROM rsi_prepare_attempts WHERE pool=? AND request_id=?", (key, request)).fetchone():
@@ -502,7 +551,7 @@ class Ledger:
                     raise Conflict("request already binds another attempt")
                 return old
             self._pool(db, key, dispatch=True)
-            if c["schema"] == PROPOSAL_VERSION:
+            if c["schema"] in PROPOSAL_SCHEMAS:
                 bound = self._candidate_binding(db, key, c)
                 if (phase == "propose") == bool(bound):
                     raise Conflict("only proposal before binding; no new proposal after terminal exposure")
@@ -513,7 +562,10 @@ class Ledger:
                 if not self._consumed(db, key, c):
                     raise Conflict("holdout must be consumed before first terminal arm")
             total = self._totals(db, key)
-            if any(total[k] + n > c["limits"][k] for k, n in (("calls", 1), ("billed_tokens", input_limit + output_limit), ("cost_micro_cny", cost))):
+            charges = [("calls", 1), ("billed_tokens", input_limit + output_limit)]
+            if not token_only:
+                charges.append(("cost_micro_cny", cost))
+            if any(total[k] + n > c["limits"][k] for k, n in charges):
                 raise Conflict("cumulative root budget exceeded")
             db.execute("INSERT INTO rsi_prepare_attempts VALUES(?,?,?,?,'reserved','','','')", (key, request, encoded(body), digest(body)))
             self._event(db, key, request, "reserve", body)
@@ -526,13 +578,13 @@ class Ledger:
             if row["state"] != "reserved":
                 return {"new_intent": False, "intent": row["intent"], "state": row["state"]}
             c = self._pool(db, key, dispatch=True)
-            if c["schema"] == PROPOSAL_VERSION and (row["body"]["phase"] == "propose") == bool(self._candidate_binding(db, key, c)):
+            if c["schema"] in PROPOSAL_SCHEMAS and (row["body"]["phase"] == "propose") == bool(self._candidate_binding(db, key, c)):
                 raise Conflict("proposal binding phase changed before dispatch")
             if row["body"]["phase"] in {"baseline", "candidate", "terminal"}:
                 self._scope_consumptions(db, c)
                 if not self._consumed(db, key, c):
                     raise Conflict("original terminal consumption missing")
-            if c["schema"] in {PROVIDER_VERSION, PROPOSAL_VERSION}:
+            if c["schema"] in {PROVIDER_VERSION, *PROPOSAL_SCHEMAS}:
                 sync = next(iter(db.execute("PRAGMA synchronous").fetchone().values()))
                 journal = next(iter(db.execute("PRAGMA journal_mode").fetchone().values()))
                 if sync not in {2, 3} or journal not in {"delete", "truncate", "persist", "wal"}:
@@ -564,7 +616,7 @@ class Ledger:
             if row and row["state"] == "settled":
                 self._settled_receipt(db, key, row)
             result = {"contract": c, "attempt": row}
-            if c["schema"] == PROPOSAL_VERSION:
+            if c["schema"] in PROPOSAL_SCHEMAS:
                 result["candidate_binding"] = self._candidate_binding(db, key, c)
                 result["candidate_derivation_verified"] = False
             return result
@@ -626,18 +678,24 @@ class Ledger:
                 raise Conflict("receipt belongs to no committed intent")
             if self._framing_invalid(db, key, request) or (row["state"] == "unknown" and db.execute("SELECT 1 FROM rsi_prepare_events WHERE pool=? AND request_id=? AND kind='settled'", (key, request)).fetchone()):
                 raise Conflict("invalidated original response cannot be settled again")
-            usage, price, body = frozen, c["price"], row["body"]
+            usage, body = frozen, row["body"]
             if usage["cached_input_tokens"] > usage["input_tokens"]:
                 raise ValueError("cached input is part of total input")
-            calculated = ((usage["input_tokens"] - usage["cached_input_tokens"]) * price["input_micro_cny_per_token"] + usage["cached_input_tokens"] * price["cached_micro_cny_per_token"] + usage["output_tokens"] * price["output_micro_cny_per_token"])
             charged = usage["provider_charge_micro_cny"]
-            result = dict(frozen, accounted_micro_cny=calculated if charged is None else charged, cost_source="frozen_rate_calculation" if charged is None else "provider_receipt", pricing_sha256=price["reference_sha256"])
+            token_only = c["schema"] in TOKEN_SCHEMAS
+            if token_only:
+                result = dict(frozen, accounted_micro_cny=charged, cost_source="unknown" if charged is None else "provider_receipt", pricing_sha256=None)
+            else:
+                price = c["price"]
+                calculated = ((usage["input_tokens"] - usage["cached_input_tokens"]) * price["input_micro_cny_per_token"] + usage["cached_input_tokens"] * price["cached_micro_cny_per_token"] + usage["output_tokens"] * price["output_micro_cny_per_token"])
+                result = dict(frozen, accounted_micro_cny=calculated if charged is None else charged, cost_source="frozen_rate_calculation" if charged is None else "provider_receipt", pricing_sha256=price["reference_sha256"])
             if row["state"] == "settled":
                 persisted = self._settled_receipt(db, key, row)
                 if encoded(persisted) != encoded(result):
                     raise Conflict("settlement replay cannot rewrite original receipt")
                 return "settled"
-            valid = (usage["response_model"] == c["model"]["response_model"] and usage["input_tokens"] <= body["input_limit"] and usage["output_tokens"] <= body["output_limit"] and result["accounted_micro_cny"] <= body["reserved_micro_cny"])
+            valid = (usage["response_model"] == c["model"]["response_model"] and usage["input_tokens"] <= body["input_limit"] and usage["output_tokens"] <= body["output_limit"]
+                     and (token_only or result["accounted_micro_cny"] <= body["reserved_micro_cny"]))
             state = "settled" if valid else "unknown"
             db.execute("UPDATE rsi_prepare_attempts SET state=?,receipt=?,receipt_hash=? WHERE pool=? AND request_id=?", (state, encoded(result), digest(result), key, request))
             if not valid:
@@ -656,9 +714,39 @@ class Ledger:
                 self._consumed(db, key, c)
                 row = db.execute("SELECT blocked,generation FROM rsi_prepare_pools WHERE pool=?", (key,)).fetchone()
                 result = {"contract_hash": digest(c), "totals": self._totals(db, key), "blocked": bool(row["blocked"]), "current_generation": row["generation"] == self.generation, "execution_authorized": False, "provider_evidence_verified": False, "os_holdout_isolation_verified": False}
-                if c["schema"] == PROPOSAL_VERSION:
+                if c["schema"] in PROPOSAL_SCHEMAS:
                     binding = self._candidate_binding(db, key, c)
                     result.update(candidate_bound=bool(binding), candidate_binding_sha256=digest(binding) if binding else None, candidate_derivation_verified=False)
+                if c["schema"] in TOKEN_SCHEMAS:
+                    confirmed, held = c["budget"]["prior_confirmed_tokens"], c["budget"]["prior_held_tokens"]
+                    attempts = []
+                    isolations = self._isolations(db, key)
+                    for item in db.execute("SELECT request_id FROM rsi_prepare_attempts WHERE pool=? ORDER BY request_id", (key,)):
+                        attempt = self._attempt(db, key, item["request_id"])
+                        isolation = isolations.get(attempt["request_id"])
+                        settled = attempt["state"] == "settled" and not (isolation and isolation["result"] is None)
+                        if settled:
+                            receipt = self._settled_receipt(db, key, attempt)
+                            n = receipt["input_tokens"] + receipt["output_tokens"]
+                            confirmed += n
+                        else:
+                            n = 0 if attempt["state"] == "cancelled" else attempt["body"]["input_limit"] + attempt["body"]["output_limit"]
+                            held += n
+                        attempts.append({"request_id": attempt["request_id"], "phase": attempt["body"]["phase"], "state": attempt["state"], "confirmed_tokens": n if settled else 0, "held_tokens": 0 if settled else n})
+                    now = self._time()
+                    reasons = []
+                    if result["blocked"]: reasons.append("root_blocked")
+                    if c["budget"]["prior_held_tokens"]: reasons.append("prior_unknown")
+                    if not result["current_generation"]: reasons.append("generation_changed")
+                    if now < c["limits"]["starts_us"]: reasons.append("window_not_started")
+                    if now >= c["limits"]["deadline_us"]: reasons.append("window_ended")
+                    if any(a["state"] in {"reserved", "intent", "unknown"} for a in attempts): reasons.append("unresolved_attempt")
+                    if any(i["result"] is None for i in isolations.values()): reasons.append("unresolved_isolation")
+                    if confirmed + held >= c["limits"]["billed_tokens"]: reasons.append("token_limit_reached")
+                    result["token_budget"] = {"unit": "tokens", "limit": c["limits"]["billed_tokens"], "confirmed_used": confirmed,
+                        "reserved_or_unknown": held, "remaining": max(0, c["limits"]["billed_tokens"] - confirmed - held),
+                        "block_reasons": reasons, "attempts": attempts, "actual_cost_micro_cny": None,
+                        "starts_us": c["limits"]["starts_us"], "deadline_us": c["limits"]["deadline_us"]}
                 return result
             finally:
                 db.rollback()

@@ -1,5 +1,14 @@
 # Ralph port 执行进度
 
+## 2026-10-25 19:37：PPT自动化短期试运行与Token总根
+
+- 当前项：显式token-only根合同/Adapter、原响应到候选派生及共同renderer/Responses接线；状态：**doing**。起点b61771f，git status干净。已直接读取独立review会话真实人类消息01a172cd-c819-7bc1-83d0-a67ccdf7b5ae与01a172cf-1794-7a41-a3bc-b2de4bc23e9e：项目PPT自动化，2026-10-25 19:30至次日00:30首轮5h；**全链100,000,000 Token替代旧20元费用门**。旧20元合同/历史完整保留，不回写为新授权；费用未知仍未知，本轮不再以价表未知阻塞。
+- 账号项目由review准备，本任务不重复创建/查看密码，不代本人确认。5h只属短期试运行，既有按天双周期试点协议不伪装涵盖5h，不宣称长期收益。实际开始/结束必须有真实回执，预定时间不是实际执行。
+- 首个窄增量：复用Ledger四DDL/根锚/事务/unknown与一次候选消费，新增显式Token协议，金额缺失不以0/MAX伪装；覆盖A/双臂/B-C/评估/重试/工具/新D同根累计，先预留后intent。须保留完整缓存/推理包含口径与旧版本兼容。生产个人read/content门不扩权，不在单次硬上界未可信闭合前发模型请求。
+- Token根增量自验done、Adapter接线继续todo：新增显式v4/v5，不带价格/金额额度，未知金额null、确认/持有/剩余与请求阶段可读；同授权在权威DB中只能一个原根，跨项目/模型/根名和两连接竞争均不能刷新。旧四DDL AST、guard/acceptance/锁字节保持；同根绑定/B-C消费/未知/原期限不放宽。旧Adapter本批仍拒绝新schema。首轮74项73过1fail为新增窗口测试错误回拨wall，原_time按monotonic钳制正确保持，改未来窗口夹具而非弱化原时钟；日志token-root-first完整保留。第二轮156项150过6skip/actual0。最终命令为8模块 `test_rsi_token_budget test_rsi_proposal_root test_rsi_trial_preparation test_rsi_trial_integrity test_rsi_provider_adapter test_rsi_registered_trial test_rsi_registered_isolation test_rsi_controller_replay`：Mac **158项/152过6skip、21.575s/外层22.110s、actual0**；Linux UID1000/Python3.12 **158项/152过6skip、67.701s/外层68.062s、actual0/SSH0**，新/tmp/webuddy-token-root-jhcdlnk4/source的497声明源保持，原验证495源未改。两端3关键场景各5轮 **15/15**，Mac0.381s、Linux4.507s；三内存删门负控（同授权换根、跳Token额度、未知金额写零）各1准确断言失败/0error/actual1。五份Linux原结果/完整日志/声明源113905字节逐SHA读回。未跑旧全量、不重启/写生产业务/调用模型；设计docs/design/token-only-root-2026-10-25.md，自看diff/diff --check通过。
+- 新的预算范围明确记录既往调用：早于本次19:30窗口、其他合成/配置canary不冒充本试轮已执行；如发现本窗口内未归根调用，其实际/最大可能Token必须计入原根初始占用，不能遗漏或另起每模型/每端100M。尚未启动本任务新模型调用，付款金额仍unknown。
+- fda3ea6覆盖问题已独立限定关闭，来源分析/independent-review/20261025-fda3ea6-coverage-review；不重跑旧全量。b61771f独立审查由协调侧安排，本次新Token软件不冒用其尚待结论。
+
 ## 2026-10-25：后续真实 RSI 无付费软件接线
 
 - 当前项：试点发布记录收口后，先补回归阶段覆盖，再实现提案前原根合同与一次性候选/B/C绑定；状态：**doing（离线根账本实现与定向验证中，生产入口未改）**。起点f94791b，运行代码218文件已发布；发布文档后续只推送记录、不重启服务。主协调18:11沿原人类授权明确继续，不因真人或账单待答停掉独立软件，不重跑canary。
