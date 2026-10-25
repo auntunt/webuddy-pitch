@@ -339,6 +339,7 @@ class Session:
         self.plan_id,self.input_id,self.pool,self.request=plan_id,input_id,plan['root_pool'],plan['request_id']
         self.public,self.identities=public,(ci,ei,pi,ii)
         binding=L.digest([ch,eh,ph,ih,L.digest(snap['contract']),LOADED])
+        cached=None
         with learning.transaction(self.ledger.store) as db:
             self.ledger._pool(db,self.pool)
             prior,finished=self._history(db,self.pool,self.request)
@@ -351,7 +352,17 @@ class Session:
                 record=P.strict_json(raw)
                 receipt=SP.read_receipt(self.last_folder/'controller-supervised',{'token':prior['nonce'],'run_id':self.request,'data_dir':str(self.root)})
                 if receipt is None or P.file_hash(self.last_folder/'controller-supervised/supervisor-result.json')!=record['controller_receipt_sha256']:raise L.Conflict('original controller receipt differs')
-                return dict(record['public'],new_controller=False)
+                cached=record
+        if cached is not None:
+            # Leave the controller transaction before the launcher's read-only
+            # ledger snapshots; learning transactions deliberately cannot nest.
+            original=self.launcher.replay(plan_id,input_id,provider_intent=cached['provider_intent'])
+            if cached['public']['state']=='evaluated':
+                current=public_status(original)
+                if current['state']!='evaluated' or current['verdict'] is not cached['public']['verdict']:
+                    raise L.Conflict('cached controller verdict lacks original execution evidence')
+            self._current()
+            return dict(cached['public'],new_controller=False)
         lease=self._lease();self.held_lease=lease
         self.stop,self.cancel_job,self.lock=threading.Event(),threading.Event(),threading.Lock()
         self.cache={};self.job_started=False;self.job_result=None;self.job_thread=None;self.job_error='';self.channel_error='';self.user_cancel=False

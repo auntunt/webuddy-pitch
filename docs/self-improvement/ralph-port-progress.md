@@ -1,5 +1,22 @@
 # Ralph port 执行进度
 
+## 2026-10-25：C1完成重放的原隔离证据重验
+
+- 当前项：controller缓存完成重放绕过candidate/evaluator原证据重验；状态：**done（C1窄修与最终定向自验完成，独立修后复审待）**。开工fc6dd1f、git status干净。独立ac4b227 review/verdict为changes_requested / C1 P2；旧报告与原负控exit1保留，I1限定关闭不重开。
+- 允许变更面：仅controller重放、原isolation共用只读证据验证及必要测试/说明/进度。不得调用dispatch来完成重验，不得启动HTTP/模型/角色进程、追加预算/事件/退款或改写历史；正常重放零新派发，损坏/缺原件/换绑定拒绝。保持3秒与8秒、原SP/账本/215运行文件和人工权限。
+- 原反例逐字复现：使用独立review固定source及原probe_replay_binding.py，3个真实普通本地SP、合成SQLite及原分支AST，损坏candidate output后内层ValueError、外层仍evaluated/true；实际exit1，账本逻辑行不变。新红灯现场 `分析/RSI协调/controller-C1-20261025/red-original-probe`，原review失败不改。这不是完整特权Session、非root可写私有原件或namespace证明。
+- 来源纠正：旧3负控是在一个诊断进程各出现1个unittest断言失败，外层SSH实际0，无3份单独exit1；处理128请求后终止，第129未读而非收到单独denied；旧初次precommit失败缺独立原命令traceback；Mac45 invocation缺cwd/源绑定，不扩张包/交接的间接支持。新验证保存cwd、前后源清单及真实退出。
+
+- 实现：`registered_isolation._admission`复用原准入，新增`replay/_read_replay`只读原intent/binding、execution-result及candidate/evaluator原SP owner/nonce/完整output；原dispatch两个已有完成分支共用它。`controller_channel.Session.run`完成缓存离开原事务后调用replay（不调用dispatch），缓存成功须匹配独立结果；错误/缺原件拒绝，历史unknown不升级。ledger/原SP/WORKER/SETUP/3秒及8秒不变，无新事件/预算/进程/退款。新增`tests/test_rsi_controller_replay.py`，仅在原controller测试加一项root C1场景，原方法AST不改；设计同步明确128后终止不读129。
+- 新测试红灯：初稿在线程内反复patch共享方法，造成mock恢复互相污染及后续setUp失败；旧源码/日志保留，不算产品有效红灯。改为每夹具一个patch后，旧实现5方法出现19预期断言失败；扩展后冻结base489源的最终8方法出现22预期断言失败、0error、unittest3.148s/外层3.424s、actual1。同源前后SHA/长度/mode一致，含完整角色损坏/缺原件/绑定、并发缓存及原provider意图/缓存判定不符。原独立AST脚本提取的分支在新helper重构后不再是完整入口，不拿提取适配错误充拦截；修后新模块直接执行完整缓存及只读API，不修改原脚本/原红灯。
+- 首次冻结修复489源SHA `fd3a13ce63ca3e3b73003acee9258ceb2b5f5100cd5c9eb0db3a54093786ee58`：Mac36=21通过/15root跳过；root36=35通过/1error，actual1、36.626s/外层36.892s，原root-owned `/tmp/webuddy-controller-C1-owned-gxtpik3z`及完整日志留存。误拒绝来自新replay假设必有provider attempt，私有错误可能在intent前已结束unknown；这属于本轮初稿问题，不归因旧基线。区分合法无意图与应有证据缺失，另加一条无attempt不造新调用的回归。
+- 最终修正版489源SHA `3fce0d1c3fbc7b2066efa152c6c40f449c8d70fdd102b88ed9cd521f7941e604`：`PYTHONPATH=tests:. python3 -B -m unittest -v test_rsi_controller_replay test_rsi_controller_channel test_rsi_registered_isolation`，Mac **37方法/22通过/15显式root跳过、6.961s/外层7.245s、actual0**；新root-owned `/tmp/webuddy-controller-C1-owned-b61vm9vb` **37/37、0skip/失败/error、37.183s/外层37.494s、actual0**。两端保存实际cwd/PYTHONPATH及前后489文件SHA/长度/mode核验。root37不是37次内核执行：15root门控含3准入拒绝，9个新普通回放方法的角色均为普通进程；实际隔离UID证明仍只取相应kernel场景。
+- 最终普通回放稳定性：同一v2源9方法连续两轮 **18/18、7.017s、actual0**；18套before/after逻辑行及total_changes逐一相等，54套普通SP原件在损坏/删除前复制保存；复制件不冒称原SP路径。额外observer仅在原helper/断言之后复制原件/保存行，无源码/断言/时钟变化。旧v1的24/24另留，不代最终18。
+- 补充角色绑定控制：同一最终冻结源上，普通SP/Catalog/SQLite完整缓存入口分别改candidate/evaluator的owner或nonce（同时改两份SP JSON使其内部仍互相匹配），四项均ValueError拒绝，原件随后恢复；1诊断方法/4控制/0失败/error/skip、actual0，3普通SP，无namespace/特权Session。原read-only断言后保存行，源前后489摘要相同。
+- Linux原件读回：固定白名单368文件579978字节逐SHA/长度一致。63原路径SP=8controller/9candidate/4evaluator/15transport/27普通测试进程；61当前完整原件验证，2普通回放负控故意留下损坏/缺失输出，必须拒绝，不冒称63均当前完整；27套普通原件均在损坏前复制全三文件，原文件路径绑定保持且只按复制证据审计。相应原进程组均不存在；真实root C1正控及两角色损坏/缺失后的重放前后账本行和total_changes一致、HTTP计数仍1。审计初稿误预期14transport，实际15（原ledger释放测试发原请求及another，共6账本传输）；原审计脚本/失败stderr保留，修汇总数不改源码/测试。
+- 传输与历史来源：第二次整包上传90秒超时、未root导入或开测；保留未完成临时目录，原命令traceback仅工具记录、无独立stderr，实际SSH退出不可用。仅向已完整v1非root staging补传X/新测试两文件及manifest，随后root新目录导入前完整489校验，不使用未完成上传。旧red/失败树/首次root源及数据均不覆盖，不把传输失败当测试失败或通过。
+- 最终线上只读：**2026-10-25 13:28:49 CST**，215运行文件SHA/长度/mode仍与6edc04f一致，active/running、PID2502485、重启0。本批临时工具/测试/说明不接生产入口，不发布/重启服务、不用真实模型/付费；score=null，真实CLI和真人试点原信息请求继续pending，不重问、不代采用/验收。全量未重跑，只跑本修必要模块与新回放稳定性，不重开旧H1/L1/fa3/I1矩阵。
+
 ## 2026-10-25：真实CLI跨任务入口最小合同与断点
 
 - 当前项：真实授权任务→完整capture→同根计量执行→原始产物→可信终测；状态：**done（可审合同与断点清单完成；真实接线/live/试点仍blocked_before_live，未实现）**。开工ac4b227、git status干净；controller候选已送独立review，本批不改候选源码，不重复旧H1/L1/fa3/2115或隔离矩阵。
@@ -26,7 +43,7 @@
 
 ## 2026-10-25：非root控制器与私有评估资产分离
 
-- 当前项：固定登记ID、非root调度控制器与受信特权配置/评估最小通道；状态：**done（限定临时合成通道的实现与自验完成，独立技术复审待）**。起点f14218a，git status干净；I1随后单独固定4a69da7再继续，3b隔离增量不继承fa3结论覆盖它。
+- 当前项：固定登记ID、非root调度控制器与受信特权配置/评估最小通道；状态：**done（限定临时合成通道自验完成；ac4b227独立复审随后要求C1窄修，修复候选见本文件开头）**。起点f14218a，git status干净；I1随后单独固定4a69da7再继续，3b隔离增量不继承fa3结论覆盖它。
 - 边界：受信root provisioning保留oracle读取权，不证明root不可读；把可优化/调度角色移到第三个非root临时身份，只给公开输入与固定run/status/cancel操作，不投影oracle、其可猜测摘要、完整私有计划/错误详情。原根budget/intent/原SP及固定文本动作继续复用，不安装生产root服务、不接任意命令/UID/mount/env接口。
 - 计划采用仅两条固定文件FIFO的临时命名空间IPC，root所有者固定读写权限，源与private登记合同绑定；未知/失联不自动重发。真实profile/真人试点仍沿原询问pending，不复问、不代签、不付费。
 

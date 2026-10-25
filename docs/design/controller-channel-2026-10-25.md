@@ -16,7 +16,7 @@
 
 input返回完整已登记public capture；run只返回接受意图；status只投影state、冻结任务的verdict布尔、粗阶段和取消请求状态；cancel只发停止请求，不能代替停止/清理回执。oracle、私有计划、root合同、根pool、execution/binding等oracle派生摘要、原始错误和完整执行详情均不投影。控制器stdout中的自报成功不参与root结果判定。
 
-帧为4字节长度与原始UTF-8 JSON。请求最多4096字节，公开响应最多8MiB，每次session最多128请求；超出拒绝，不静默截断。完整公开capture超过上限时，在controller/HTTP派发前拒绝，原始记录保持，不把部分内容当完整输入。保留原始完整history、原生产有效窗口及所有public字段。私有oracle只由root配置和独立评估器接触，控制器不能查询摘要来进行猜测；唯一允许的判定位只对应已冻结的同一任务/答案，不能通过换参数反复探测不同答案。
+帧为4字节长度与原始UTF-8 JSON。请求最多4096字节，公开响应最多8MiB，每次session最多处理128请求，之后终止；第129条不读取，不单独返回denied。帧大小超限拒绝，不静默截断。完整公开capture超过上限时，在controller/HTTP派发前拒绝，原始记录保持，不把部分内容当完整输入。保留原始完整history、原生产有效窗口及所有public字段。私有oracle只由root配置和独立评估器接触，控制器不能查询摘要来进行猜测；唯一允许的判定位只对应已冻结的同一任务/答案，不能通过换参数反复探测不同答案。
 
 ## 意图、预算与清理
 
@@ -35,3 +35,13 @@ root job异步调用原Launcher，保留原provider intent、原累计预算、�
 I1修后同一冻结488文件源：Mac相关45方法31通过/14显式root跳过；临时root-owned Linux通道14/14，再连续两轮28/28，均无失败/错误/跳过。三轮实际21控制器、12回环传输、12候选、3评估进程，共48原路径SP回执，逐份确认清理及原进程组消失。14不是14次内核执行，其中6纯方法、8root门控里1项只做准入拒绝。
 
 独立诊断进程内分别放开响应FIFO写权、投影私有执行摘要、误信controller伪成功，三项原测试各产生1个预期断言失败且0error；未改源码/断言/时钟。相关成功与失败现场保留在仓库外分析目录，复制件与原路径回执明确区分。原3秒候选超时先于8秒控制器watchdog，失联取消和预算最大预留/无重发也覆盖。没有新全量、真实模型或生产接入验证，独立技术复审待。
+
+## C1：完成缓存须重新验证原隔离证据
+
+ac4b227的独立审查确认：只核controller缓存与自身SP，不足以证明candidate/evaluator原件目前仍可验证。C1窄修把原隔离重放整理为共用只读入口：先核当前登记来源与原provider intent，再核isolation原锚/binding.json/execution-result、两角色原SP的owner/nonce/结果及完整output绑定。缓存evaluated/verdict必须与原独立执行结果一致；原件损坏/缺失或换绑定拒绝，不用历史缓存通过现时验证。
+
+`Launcher.replay(plan_id,input_id,provider_intent=...)`只读，不调用dispatch、provider、角色或controller进程，不登记新意图、事件或预留。controller先退出原数据库事务再调用，避免嵌套事务；原isolation dispatch的既有完成分支也复用同一验证器。原根期限、预算、schema及未知最大占用不变，不修补旧记录。合法的provider尚无意图而controller已unknown，可重放unknown且不创建attempt；无原isolation锚不能支撑缓存成功。未知不升级为成功。
+
+本验证针对一次读取时的证据完整性，不阻止受信root在验证后修改私有材料，不证明非root可写原件。新普通本地测试使用真实SP/SQLite/Catalog及完整缓存入口，特权源码/所有权预检被替代，不冒称namespace/UID证明；另有真实root隔离C1回归。最终冻结489源的Mac37方法22通过/15root跳过、Linux显式root37/37；最终普通回放两轮18/18。源码/调用cwd/前后清单、原红灯与修中误拒绝保留于仓库外controller-C1-20261025证据，独立修后复审仍待。
+
+旧三项诊断负控是在一个进程各产生一条unittest失败，外层SSH实际exit0，不是三份独立exit1；旧Mac45 invocation缺cwd/源绑定，版本归属仅有包和交接的间接支持；初次precommit失败缺独立原命令traceback。这些限制不以本批新结果回填。真实CLI/profile/试点仍未运行，不给组织收益评分。

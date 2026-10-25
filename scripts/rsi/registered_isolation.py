@@ -174,8 +174,7 @@ class Launcher:
         return SP.run_supervised(command,folder=folder/(role+'-supervised'),owner=owner,cwd=folder,
             env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','PYTHONDONTWRITEBYTECODE':'1'},timeout=timeout,cancel_event=cancel)
 
-    def dispatch(self,plan_id,input_id,*,cancel_event=None):
-        """Exactly two registered IDs; no request command, UID, mount or env."""
+    def _admission(self,plan_id,input_id):
         self._code_current();P.opaque(plan_id);P.opaque(input_id)
         execution,execution_hash,ei=self.catalog.load('plan',plan_id)
         L.fields(execution,{'schema','plan_id','input_id','plan_sha256','input_sha256','root_pool','contract_sha256','bundle_sha256','oracle_sha256','operation','timeout_ms'})
@@ -191,25 +190,73 @@ class Launcher:
         snap=self.ledger.snapshot(plan['root_pool'])
         if (execution['plan_sha256']!=ph or execution['input_sha256']!=ih or execution['root_pool']!=plan['root_pool'] or execution['contract_sha256']!=L.digest(snap['contract']) or execution['bundle_sha256']!=L.digest(bundle()) or execution['oracle_sha256']!=oh):
             raise L.Conflict('registered execution sources differ')
-        def binding_for(attempt):
-            return {'execution_sha256':execution_hash,'plan_sha256':ph,'input_sha256':ih,'oracle_sha256':oh,
-                    'provider_intent':attempt['intent'],'provider_receipt_sha256':attempt['receipt_hash'],'root_contract':L.digest(snap['contract'])}
+        binding={'execution_sha256':execution_hash,'plan_sha256':ph,'input_sha256':ih,
+                 'oracle_sha256':oh,'root_contract':L.digest(snap['contract'])}
+        return execution,plan,public,oracle,(ei,pi,ii,oi),binding
+
+    def _read_replay(self,plan,prior,binding):
+        """Verify original completed evidence only; never dispatch or mutate it."""
+        if prior is None:return None
+        old=self.ledger.snapshot(plan['root_pool'],plan['request_id'])['attempt']
+        if old is None:raise L.Conflict('original provider attempt missing')
+        binding=dict(binding,provider_intent=old['intent'],provider_receipt_sha256=old['receipt_hash'])
+        binding_hash=L.digest(binding)
+        if prior['anchor']['binding_sha256']!=binding_hash:raise L.Conflict('existing execution provenance differs')
+        if prior['result'] is None:return {'isolated_execution':'pending','oracle_evaluation':'not_run','new_execution':False}
+        folder=self.root/prior['anchor']['execution_id']
+        binding_raw=(folder/'binding.json').read_bytes()
+        if P.strict_json(binding_raw)!=binding:raise L.Conflict('original execution binding changed')
+        raw=(folder/'execution-result.json').read_bytes();receipt=P.strict_json(raw)
+        if L.digest(receipt)!=prior['result']['receipt_sha256']:raise L.Conflict('original execution result changed')
+        L.fields(receipt,{'schema','binding_sha256','execution_id','isolated_execution','oracle_evaluation','verdict',
+            'candidate_uid','evaluator_uid','candidate_returncode','evaluator_returncode','candidate_receipt_sha256',
+            'evaluator_receipt_sha256','production_equivalent','rsi_qualified','production_entry'})
+        evaluated=prior['result']['status']=='evaluated'
+        if (receipt['schema']!=VERSION or receipt['binding_sha256']!=binding_hash or receipt['execution_id']!=prior['anchor']['execution_id']
+                or receipt['isolated_execution']!=prior['result']['status']
+                or receipt['oracle_evaluation']!=('completed' if evaluated else 'unknown')
+                or (type(receipt['verdict']) is not bool if evaluated else receipt['verdict'] is not None)
+                or type(receipt['candidate_uid']) is not int or receipt['candidate_uid']!=CANDIDATE_UID
+                or type(receipt['evaluator_uid']) is not int or receipt['evaluator_uid']!=EVALUATOR_UID
+                or any(receipt[k] is not False for k in ('production_equivalent','rsi_qualified','production_entry'))):
+            raise L.Conflict('original execution result binding invalid')
+        owner={'token':prior['anchor']['execution_id'],'run_id':plan['request_id'],'data_dir':str(self.root)}
+        for role in ('candidate','evaluator'):
+            digest=receipt[role+'_receipt_sha256'];code=receipt[role+'_returncode']
+            if digest is None:
+                if evaluated or code is not None:raise L.Conflict('original role evidence missing')
+                continue
+            L.sha(digest);path=folder/(role+'-supervised');original=SP.read_receipt(path,owner)
+            if (original is None or P.file_hash(path/'supervisor-result.json')!=digest
+                    or type(code) is not int or original['returncode']!=code
+                    or evaluated and (code!=0 or original['cleanup']['complete'] is not True)):
+                raise L.Conflict('original role receipt changed')
+        if ((folder/'binding.json').read_bytes()!=binding_raw or (folder/'execution-result.json').read_bytes()!=raw
+                or self.ledger.isolation_snapshot(plan['root_pool'],plan['request_id'])!=prior):
+            raise L.Conflict('original execution evidence changed during verification')
+        return dict(receipt,new_execution=False)
+
+    def replay(self,plan_id,input_id,*,provider_intent):
+        """Read-only replay API: absence/pending is not a verified success."""
+        execution,plan,public,oracle,identities,binding=self._admission(plan_id,input_id)
+        # A controller may finish unknown before the provider ever had an
+        # intent. snapshot(request) deliberately rejects absence, so first
+        # distinguish that valid no-attempt case without creating anything.
+        exists=self.ledger.store.one('SELECT intent FROM rsi_prepare_attempts WHERE pool=? AND request_id=?',
+                                     (plan['root_pool'],plan['request_id']))
+        attempt=self.ledger.snapshot(plan['root_pool'],plan['request_id'])['attempt'] if exists else None
+        if (attempt['intent'] if attempt else None)!=provider_intent:raise L.Conflict('original provider intent differs')
         prior=self.ledger.isolation_snapshot(plan['root_pool'],plan['request_id'])
-        if prior:
-            old=self.ledger.snapshot(plan['root_pool'],plan['request_id'])['attempt']
-            binding_hash=L.digest(binding_for(old))
-            if prior['anchor']['binding_sha256']!=binding_hash:raise L.Conflict('existing execution provenance differs')
-            folder=self.root/prior['anchor']['execution_id']
-            if prior['result'] is None:return {'isolated_execution':'pending','oracle_evaluation':'not_run','new_execution':False}
-            receipt=P.strict_json((folder/'execution-result.json').read_bytes())
-            if L.digest(receipt)!=prior['result']['receipt_sha256']:raise L.Conflict('original execution result changed')
-            for role in ('candidate','evaluator'):
-                digest=receipt[role+'_receipt_sha256']
-                if digest is not None:
-                    path=folder/(role+'-supervised')
-                    SP.read_receipt(path,{'token':prior['anchor']['execution_id'],'run_id':plan['request_id'],'data_dir':str(self.root)})
-                    if P.file_hash(path/'supervisor-result.json')!=digest:raise L.Conflict('original role receipt changed')
-            return dict(receipt,new_execution=False)
+        return self._read_replay(plan,prior,binding)
+
+    def dispatch(self,plan_id,input_id,*,cancel_event=None):
+        """Exactly two registered IDs; no request command, UID, mount or env."""
+        execution,plan,public,oracle,identities,binding_base=self._admission(plan_id,input_id)
+        ei,pi,ii,oi=identities
+        def binding_for(attempt):
+            return dict(binding_base,provider_intent=attempt['intent'],provider_receipt_sha256=attempt['receipt_hash'])
+        prior=self.ledger.isolation_snapshot(plan['root_pool'],plan['request_id'])
+        if prior:return self._read_replay(plan,prior,binding_base)
         # All private admission checks precede the original provider dispatch.
         lease=self._lease()
         try:
@@ -227,10 +274,7 @@ class Launcher:
             item=self.ledger.begin_isolation(plan['root_pool'],plan['request_id'],binding_hash)
             folder=self.root/item['anchor']['execution_id']
             if not item['new_execution']:
-                if item['result'] is None:return {'isolated_execution':'pending','oracle_evaluation':'not_run','new_execution':False}
-                receipt=P.strict_json((folder/'execution-result.json').read_bytes())
-                if L.digest(receipt)!=item['result']['receipt_sha256']:raise L.Conflict('original execution result changed')
-                return dict(receipt,new_execution=False)
+                return self._read_replay(plan,item,binding_base)
             folder.mkdir(mode=0o700)
             seal(folder,'binding.json',L.encoded(binding).encode())
             owner={'token':item['anchor']['execution_id'],'run_id':plan['request_id'],'data_dir':str(self.root)}

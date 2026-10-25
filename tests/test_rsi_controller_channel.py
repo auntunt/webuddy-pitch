@@ -161,6 +161,27 @@ class ControllerKernelTests(unittest.TestCase):
         self.assertLess(candidate['elapsed_seconds'],receipt['elapsed_seconds'])
         self.assertFalse(self.run_session()['new_controller']);self.assertEqual(self.c.count,1)
 
+    def test_completed_cache_revalidates_damaged_original_role_evidence(self):
+        self.admit();result=self.run_session();self.assertEqual(result['state'],'evaluated')
+        self.controller_receipt()
+        item=self.c.ledger.isolation_snapshot(self.c.key,'delivery-one');folder=self.base.launcher.root/item['anchor']['execution_id']
+        tables=('rsi_prepare_pools','rsi_prepare_attempts','rsi_prepare_holdouts','rsi_prepare_events')
+        before={name:self.c.store.q('SELECT * FROM '+name+' ORDER BY rowid') for name in tables}
+        changes=self.c.store.db.total_changes
+        with patch.object(self.base.launcher,'dispatch',side_effect=AssertionError('replay cannot dispatch')),patch.object(SP,'run_supervised',side_effect=AssertionError('replay cannot spawn')):
+            for role in ('candidate','evaluator'):
+                path=folder/(role+'-supervised')/'output.bin';raw=path.read_bytes()
+                for missing in (False,True):
+                    with self.subTest(role=role,missing=missing):
+                        try:
+                            if missing:path.unlink()
+                            else:path.write_bytes(raw+b'CORRUPTED ORIGINAL')
+                            with self.assertRaises((OSError,ValueError)):self.run_session()
+                        finally:path.write_bytes(raw)
+                self.assertEqual(self.run_session()['state'],'evaluated')
+        self.assertEqual({name:self.c.store.q('SELECT * FROM '+name+' ORDER BY rowid') for name in tables},before)
+        self.assertEqual(self.c.store.db.total_changes,changes);self.assertEqual(self.c.count,1)
+
     def test_unregistered_or_changed_contract_refuses_before_controller_spawn(self):
         self.admit(command=['id'])
         with self.assertRaises(FileNotFoundError):self.session.run('missing','public-one')
