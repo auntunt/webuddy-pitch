@@ -742,6 +742,7 @@ class Ledger:
                     if now >= c["limits"]["deadline_us"]: reasons.append("window_ended")
                     if any(a["state"] in {"reserved", "intent", "unknown"} for a in attempts): reasons.append("unresolved_attempt")
                     if any(i["result"] is None for i in isolations.values()): reasons.append("unresolved_isolation")
+                    if result["totals"]["calls"] >= c["limits"]["calls"]: reasons.append("call_limit_reached")
                     if confirmed + held >= c["limits"]["billed_tokens"]: reasons.append("token_limit_reached")
                     result["token_budget"] = {"unit": "tokens", "limit": c["limits"]["billed_tokens"], "confirmed_used": confirmed,
                         "reserved_or_unknown": held, "remaining": max(0, c["limits"]["billed_tokens"] - confirmed - held),

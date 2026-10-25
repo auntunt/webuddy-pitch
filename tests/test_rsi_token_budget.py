@@ -211,5 +211,24 @@ class TokenBudgetTests(unittest.TestCase):
         c=contract();c['budget']['unit']='CNY'
         self.reject(lambda:self.ledger.create(c),ValueError)
 
+    def test_cancelled_eight_calls_exhaust_attempt_limit_with_explicit_reason(self):
+        c=contract();c['root_family']='eight-calls';c['limits']['calls']=8
+        c['budget']['authorization_sha256']=h('distinct eight-call authorization')
+        key=self.ledger.create(c)
+        for i in range(8):
+            request='cancelled-'+str(i)
+            self.ledger.reserve(key,request,'propose',10,10,material_sha256=h(request))
+            self.assertEqual(self.ledger.cancel(key,request),'cancelled')
+        before=dump_store(self.store)
+        with self.assertRaises(L.Conflict):self.ledger.reserve(key,'ninth','propose',1,1,material_sha256=h('ninth'))
+        self.assertEqual(dump_store(self.store),before)
+        self.assertEqual(len(self.store.q('SELECT * FROM rsi_prepare_attempts WHERE pool=?',(key,))),8)
+        self.assertIsNone(self.store.one('SELECT * FROM rsi_prepare_attempts WHERE pool=? AND request_id=?',(key,'ninth')))
+        view=self.ledger.inspect(key)
+        self.assertEqual(view['totals']['calls'],8)
+        self.assertEqual(view['token_budget']['remaining'],100_000_000)
+        self.assertEqual(view['token_budget']['reserved_or_unknown'],0)
+        self.assertIn('call_limit_reached',view['token_budget']['block_reasons'])
+
 
 if __name__=='__main__':unittest.main()

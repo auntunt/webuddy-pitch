@@ -1,5 +1,16 @@
 # Ralph port 执行进度
 
+## 2026-10-25 20:37：TOKEN-DIAGNOSTIC-01次数耗尽诊断
+
+- 当前项：次数用尽但remaining仍满时缺阻断原因；状态：**done（窄修自验，独立关闭待核）**。d8独立审限定接受离线Token根，79正常验证和三探针无预算绕过。只在inspect增加call_limit_reached，不改blocked持久语义/取消计数/预留/金额/时间/执行权。
+- 新回归连续8次预留后intent前取消，保留calls=8、remaining=100M；第9次仍拒绝且无新增attempt。原17个Token test方法AST逐项相同（编辑中曾误把末尾两行归到新方法，提交前已还原）。红灯 **1test/1failure/0error、0.075s/外层0.268s、actual1**；最终仅5定向方法 **5/5、0.210s/外层0.399s、actual0**，源前后不变，原红灯完整保留。未重复旧大矩阵、不触发HTTP/真实模型。代码/测试SHA在token-call-limit-self-validation.json；当前Adapter/registered输入WIP不进入此窄修提交。
+
+## 2026-10-25 20:22：Token登记与共同知识输入接线
+
+- 当前项：新独立Token登记入口/原capture与lesson selector/renderer共同输入；状态：**doing**。起点e8d990d，普通GitHub推送与线上218运行文件一致/active/restarts0核验完成，工作区干净；既有v2 Broker已显式限定，不更改其执行权。
+- 方案：复用原Catalog、registered_plan锚、capture/effective和原selector/renderer，不重写算法。新kind与L5/profile显式匹配；B/C用一个封存input，核原根预封集合，独立登记每个input×arm的唯一意图；计划、正文/来源或策略变化不可借旧回执。内部live入口还须复用当前租户manager/执行门，不由个人read/content连接获得执行权。
+- 新D须独立核确切本人采用和实际被原selector选中，不以模型输出或Adapter派生标记代替。真实资料/账号由review准备，不读密码、不代签、不把19:30回填实际启动；无真实可信Token上界时仍零外部模型调用。具体D门与当前知识撤回核对按现有learning_decisions代码收口，不创造人工决定。
+
 ## 2026-10-25 20:07：PROPOSAL-EVIDENCE-01追加勘误
 
 - 当前项：修正b61771f原负控证据误标；状态：**done（追加勘误，不覆盖原件）**。原forget-proposal-cost实际为IndentationError、目标测试未执行；原result.json把exit1误当detected_with_assertion=true。旧“三项都准确断言失败”的断言在该项被本勘误撤销，不能当作三项有效控制。原3文件SHA/字节逐项保持，详情audit/negative-control-erratum-2026-10-25.md。
