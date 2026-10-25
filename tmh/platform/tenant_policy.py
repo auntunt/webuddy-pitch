@@ -20,6 +20,10 @@ API_ROUTES = frozenset(tuple(line.split(" ", 1)) for line in """
 GET /api/meta
 POST /api/agent/<operation>
 GET /api/workspace
+GET /api/projects/<key>/pilots
+POST /api/projects/<key>/pilots
+GET /api/projects/<key>/pilots/<pid>
+POST /api/projects/<key>/pilots/<pid>
 GET /api/projects/<key>/meetings
 POST /api/projects/<key>/meetings
 GET /api/projects/<key>/meetings/<mid>
@@ -200,6 +204,8 @@ candidate_assess candidate_decide harness_recipes harness_probe_start harness_pr
 harness_library library_get library_search library_read library_build library_cancel library_resume
 library_reference library_unlink""".split())
 SAFE_POSTS = frozenset((
+    # Personal trial records only: no models, process launch or task moves.
+    "/api/projects/<key>/pilots", "/api/projects/<key>/pilots/<pid>",
     "/api/projects/<key>/meetings", "/api/projects/<key>/meetings/<mid>",
     "/api/tickets/<key>/brief", "/api/deliveries/<did>/coverage",
     "/api/delivery-content", "/api/deliveries/<did>/content",

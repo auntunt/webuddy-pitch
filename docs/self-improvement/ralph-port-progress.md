@@ -1,8 +1,26 @@
 # Ralph port 执行进度
 
+## 2026-10-25：多人试点首批软件
+
+- 当前项：协议draft/本人确认/投入事件/固定全集报告及原页面入口；状态：doing。基线b92375e，C2已单独固定并推送，工作区原本干净；其新的未参与实现审查者已限定批准C2（20261025-b92375e-fresh-C2-review），不把原实现者自测算独立通过，不扩大为整体真实任务完成。
+- 新协调优先级：先完成pilot-analysis所列最小可用软件，不因真人未填资料停掉软件；先前宣布的生产输入对齐保留为模型桥后续，不与本批混改。可审合同 `docs/design/pilot-software-contract-2026-10-25.md` 已保存：具体字段、draft/frozen/active/ended、权限/本人确认、CAS/幂等、固定分母、未知不当0及验证发布门。
+- 允许变更：新pilots/backend/UI及必要Store/server/tenant_policy/原项目与工单入口、测试/说明。复用原项目/成员/工单/交接，不改MOVES/HUMAN_ONLY/AGENT_ENV/guard/原SP/锁/真实模型门；不启用live/新root服务。真实项目/参与者/日期/阈值空时只draft，不自动freeze/start或代签。
+- 资料与证据：只读引用 `分析/implementation/20261025-live-rsi/{pilot-analysis,bridge-analysis,configuration-findings,local-proxy-budget-analysis}.md`，不修改这些文件。本地一次Messages API canary不等Claude/Codex CLI/RSI；服务器仅models成功；本批不重复canary，未知实费/内部重试仍不以0或订阅无限额处理。外部实现证据将存 `分析/RSI协调/pilot-software-20261025/`。
+- 实现推进：新增 `tmh/platform/pilots.py`（三表/不可覆盖原文修订/本人确认/授权代际/CAS幂等/个人劳动更正及重叠拒绝/全集报告）、`ui_pilots.py`、原Store/API/项目及工单入口；新增后端、真实租户HTTP及客户端重试测试。现役工具凭据、工单MOVES和模型执行门不改，新增四个仅记录试点的路由；原路由精确清单计数167→171，断言含义仍为精确清单，不放宽权限。
+- 初稿失败如实保留：首批46方法4失败（3个HTTP被执行门拒绝、原精确路由数需随新增4项更新）；补仅记录路由策略后30方法中3个HTTP 500，定位Req.arg只接受一个参数，改调用而非放宽门；随后3项HTTP通过。客户端7方法初轮6通过/1夹具JS转义SyntaxError，改夹具原字符串后7通过，不称产品负控。初批16后端通过；新补日期对照/损坏源/跨项目移出/结束后更正等回归正在运行。
+- 实际浏览器：独立合成租户已读取真实表单并保存新修订1→2，缺资料仍draft、freeze/start禁用；不是生产业务记录。后续继续做最终字节桌面/窄屏、完整表单链路、精确全量/兼容及独立审查；未发布、未声称真实收益。
+
+
+- 收口补强：原start在授权锁内重核全部同版本确认；新草稿不阻断旧活动版本本人的记录/结束；更正只允许同pilot/revision及原协议摘要。新增跨归属/并发更正、部分填报、跨阶段整条未分配、旧截点保持、私有实验运行误绑拒绝回归；完整性始终unknown，费用/收益未知。报告带服务端观察时间、事件范围、完整快照摘要及数据库/文件读取区间，既有14天线不改。
+- 阶段外覆盖反例：最初新增字段检查先出现1fail+1KeyError（夹具顺序不足，不冒称两个产品反例）；调整先检原缺失数后，2方法/2断言失败/0error、actual1，源字节/日志在 `red-stage-coverage/`；修后阶段外及跨界分钟完整保留未分配，不减少阶段内缺失。最终定向首次64方法1fail+24error，定位新报告直接查可选code_candidates表；改用原只读缺表兼容。第二固定运行 **64/64、10.463s（外层10.978s）、actual0、源前后摘要相同**，完整日志 `directed-final-2/`。未拿这些定向测试替代双端全量。
+
+- 最终定向冻结前验证：**64/64、9.634s（外层9.906s）、actual0、前后源摘要相同**，日志 `directed-final-3/`。后端26、HTTP3、客户端8、原租户策略27；完整发现数2349只作后续全量预期，不冒称已执行。已保留初稿全部失败日志。
+- 最终实际浏览器：桌面及390×844；初窄屏root宽647，修容器后root宽390、内部表格容器326，保留前后原截图。真实合成表单再次保存修订1→2，完整首尾空白/换行读回，budget=null、draft、freeze禁用。JSON18660字节/Markdown18951字节读回数据完全相同，报告快照摘要有效、1406字符原目标完整；阶段外10分钟不减少5个阶段内缺失、completeness=unknown。先前两合成人分别确认→freeze→start→15分钟→追加更正12分钟链路只属合成验证；不是生产业务或真人试点。截图/导出均在仓库外 `pilot-software-20261025/`，未压缩原图。
+- 合同预审 `20261025-pilot-contract-review` 为固定c929合同的0阻断/4澄清，不是移动WIP产品批准；已落实start重验、完整性unknown、服务端截点/跨阶段未分配、同归属追加更正及并发回滚。运行代码候选即将固定，再跑精确Mac/Linux全量、SDK/迁移兼容及独立产品审，未完成前不部署。
+
 ## 2026-10-25：C2第二完成分支的持久快照比较
 
-- 当前项：begin_isolation已有completed结果附带new_execution:false，与isolation_snapshot只含anchor/result的形状差异导致误拒绝；状态：**done（接管窄修与定向自验完成，固定候选独立复审待）**。HEAD bf4fbd4；开工工作区已有X和replay测试两文件WIP，完整diff/原字节/SHA已保存在 `分析/RSI协调/controller-C2-20261025/takeover*`。对照 `分析/implementation/20261025-live-rsi/C2/handoff-coding.md` 核对两文件hash一致，接管其3行修正/4回归及SP子进程禁pyc环境，不覆盖、不归属bf4f已提交代码。原实现者停止产品写入，其红绿属于实现自验而非独立审查。
+- 当前项：begin_isolation已有completed结果附带new_execution:false，与isolation_snapshot只含anchor/result的形状差异导致误拒绝；状态：**done（接管窄修与定向自验完成；新独立审查限定批准C2）**。HEAD bf4fbd4；开工工作区已有X和replay测试两文件WIP，完整diff/原字节/SHA已保存在 `分析/RSI协调/controller-C2-20261025/takeover*`。对照 `分析/implementation/20261025-live-rsi/C2/handoff-coding.md` 核对两文件hash一致，接管其3行修正/4回归及SP子进程禁pyc环境，不覆盖、不归属bf4f已提交代码。原实现者停止产品写入，其红绿属于实现自验而非独立审查。
 - C1在独立bf4f复审中限定关闭；该批整体仍changes_requested，新C2 P2原4控制3过1失败/actual1保留。竞争可达只作静态分析，没有特权竞争证明。只把prior投影成持久anchor/result，不删末尾变化检测；正常snapshot和真实begin completed item均应重放，损坏/缺失/换绑定仍拒绝，事件/预算/原件不改。
 - 允许变更面：X._read_replay的持久比较、必要窄模块/说明/本进度；不改派发/角色代码、root/3秒/8秒/人工权，不重开旧H1/L1/fa3/I1或root大矩阵。确定性第二分支回归含明确cached provider/SP替身与自有普通lease FD，不称真实HTTP、特权竞争或真实计费证明。
 - 来源补正：上一独立491声明源字节/mode保持，但出现process_control.pyc额外成员；旧源完整成员未保持，原件不删。探针分类和SQLite表数核验器错误与C2产品缺陷分开。新导出将同时核声明文件和完整成员清单，传递PYTHONDONTWRITEBYTECODE，不用本次结果回写旧历史。

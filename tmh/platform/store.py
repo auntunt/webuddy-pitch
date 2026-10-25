@@ -112,6 +112,8 @@ class Store:
         coordination_schema(self)
         from .delivery_coverage import schema as coverage_schema
         coverage_schema(self)
+        from .pilots import schema as pilots_schema
+        pilots_schema(self)
 
     def _migrate_chats(self) -> None:
         """Assistant messages from before sessions existed: one session per ticket, one '旧版未分类会话' per project.

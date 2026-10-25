@@ -1026,6 +1026,37 @@ def api_meetings(P, req, key):
     return coordination.meetings(P, key, query, _session_actor(req))
 
 
+@route("GET", "/api/projects/<key>/pilots")
+def api_pilots(P, req, key):
+    from . import pilots
+    if req.query:
+        raise ApiError(400, "试点列表不接受隐藏筛选")
+    return pilots.listing(P, key, _session_actor(req))
+
+
+@route("POST", "/api/projects/<key>/pilots")
+def api_pilot_create(P, req, key):
+    from . import pilots
+    return pilots.act(P, key, req.body, _human_action(P, req, strict=True))
+
+
+@route("GET", "/api/projects/<key>/pilots/<pid>")
+def api_pilot(P, req, key, pid):
+    from . import pilots
+    if set(req.query) - {"revision"} or any(len(v) != 1 for v in req.query.values()):
+        raise ApiError(400, "修订参数只能出现一次")
+    revision = req.arg("revision")
+    if revision and (not revision.isascii() or not revision.isdecimal() or len(revision) > 9 or int(revision) < 1):
+        raise ApiError(400, "修订编号不正确")
+    return pilots.read(P, key, pid, _session_actor(req), int(revision) if revision else None)
+
+
+@route("POST", "/api/projects/<key>/pilots/<pid>")
+def api_pilot_action(P, req, key, pid):
+    from . import pilots
+    return pilots.act(P, key, req.body, _human_action(P, req, strict=True), pid)
+
+
 @route("POST", "/api/projects/<key>/meetings")
 def api_meeting_create(P, req, key):
     from . import coordination
