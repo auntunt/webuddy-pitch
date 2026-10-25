@@ -1,11 +1,17 @@
 # Ralph port 执行进度
 
+## 2026-10-25 20:07：PROPOSAL-EVIDENCE-01追加勘误
+
+- 当前项：修正b61771f原负控证据误标；状态：**done（追加勘误，不覆盖原件）**。原forget-proposal-cost实际为IndentationError、目标测试未执行；原result.json把exit1误当detected_with_assertion=true。旧“三项都准确断言失败”的断言在该项被本勘误撤销，不能当作三项有效控制。原3文件SHA/字节逐项保持，详情audit/negative-control-erratum-2026-10-25.md。
+- 独立审查另补有效反例：1 test/1 assertion failure/0 errors/actual1、预算断言0!=16000000；保存在独立review目录，不回填原作者失效控制。b617离线v3限定接受、无产品阻断；62正常验证及同代际竞争不外推Token协议/当前Adapter WIP。新负控汇总核实际退出+结构化数量+准确目标/子用例，不能只认exit1。当前Token负控还曾因另一个不可变门而未检出删门，已加强解析器直接断言，旧无效控制保留。
+
 ## 2026-10-25 19:37：PPT自动化短期试运行与Token总根
 
 - 当前项：显式token-only根合同/Adapter、原响应到候选派生及共同renderer/Responses接线；状态：**doing**。起点b61771f，git status干净。已直接读取独立review会话真实人类消息01a172cd-c819-7bc1-83d0-a67ccdf7b5ae与01a172cf-1794-7a41-a3bc-b2de4bc23e9e：项目PPT自动化，2026-10-25 19:30至次日00:30首轮5h；**全链100,000,000 Token替代旧20元费用门**。旧20元合同/历史完整保留，不回写为新授权；费用未知仍未知，本轮不再以价表未知阻塞。
 - 账号项目由review准备，本任务不重复创建/查看密码，不代本人确认。5h只属短期试运行，既有按天双周期试点协议不伪装涵盖5h，不宣称长期收益。实际开始/结束必须有真实回执，预定时间不是实际执行。
 - 首个窄增量：复用Ledger四DDL/根锚/事务/unknown与一次候选消费，新增显式Token协议，金额缺失不以0/MAX伪装；覆盖A/双臂/B-C/评估/重试/工具/新D同根累计，先预留后intent。须保留完整缓存/推理包含口径与旧版本兼容。生产个人read/content门不扩权，不在单次硬上界未可信闭合前发模型请求。
 - Token根增量自验done、Adapter接线继续todo：新增显式v4/v5，不带价格/金额额度，未知金额null、确认/持有/剩余与请求阶段可读；同授权在权威DB中只能一个原根，跨项目/模型/根名和两连接竞争均不能刷新。旧四DDL AST、guard/acceptance/锁字节保持；同根绑定/B-C消费/未知/原期限不放宽。旧Adapter本批仍拒绝新schema。首轮74项73过1fail为新增窗口测试错误回拨wall，原_time按monotonic钳制正确保持，改未来窗口夹具而非弱化原时钟；日志token-root-first完整保留。第二轮156项150过6skip/actual0。最终命令为8模块 `test_rsi_token_budget test_rsi_proposal_root test_rsi_trial_preparation test_rsi_trial_integrity test_rsi_provider_adapter test_rsi_registered_trial test_rsi_registered_isolation test_rsi_controller_replay`：Mac **158项/152过6skip、21.575s/外层22.110s、actual0**；Linux UID1000/Python3.12 **158项/152过6skip、67.701s/外层68.062s、actual0/SSH0**，新/tmp/webuddy-token-root-jhcdlnk4/source的497声明源保持，原验证495源未改。两端3关键场景各5轮 **15/15**，Mac0.381s、Linux4.507s；三内存删门负控（同授权换根、跳Token额度、未知金额写零）各1准确断言失败/0error/actual1。五份Linux原结果/完整日志/声明源113905字节逐SHA读回。未跑旧全量、不重启/写生产业务/调用模型；设计docs/design/token-only-root-2026-10-25.md，自看diff/diff --check通过。
+- Adapter后续doing：只扩新Token profile/固定Messages与Responses，不放开旧Broker或个人连接。新bound原件要求完整输入/输出硬上界、无隐藏重试且usage覆盖全部Token；源码校验与独立非root所有者保持。候选只由原SP原始单完整文本派生，后续双臂前重验，不允许调用方传入策略冒充。首轮52方法38过14error（13新夹具误用旧金额根名触发正确拒绝、1猜错模块名）；第二117方法116过1error为原SP按ValueError拒绝改动输出，新binder统一翻译Conflict，原SP与原断言不改；第三9模块 **190项184过6skip、32.438s/外层33.054s、actual0**。现再补隐藏重试与完整计量声明负分支，最终验证待跑；这些声明只属可信部署准入，不由本工具生成/批准真实模型上界。官方完整API文档只读取得，证实Responses输入/输出父项与缓存/推理子项、Messages缓存三项之和；第三方实际配置尚不由官方协议证明。原失败和逐项日志token-adapter-first/second/third保留，真实模型/付费0。
 - 新的预算范围明确记录既往调用：早于本次19:30窗口、其他合成/配置canary不冒充本试轮已执行；如发现本窗口内未归根调用，其实际/最大可能Token必须计入原根初始占用，不能遗漏或另起每模型/每端100M。尚未启动本任务新模型调用，付款金额仍unknown。
 - fda3ea6覆盖问题已独立限定关闭，来源分析/independent-review/20261025-fda3ea6-coverage-review；不重跑旧全量。b61771f独立审查由协调侧安排，本次新Token软件不冒用其尚待结论。
 
