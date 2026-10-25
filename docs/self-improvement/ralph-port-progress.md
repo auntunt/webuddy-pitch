@@ -2,6 +2,11 @@
 
 ## 2026-10-25：多人试点首批软件
 
+- 独立产品审查3692：changes_requested，原候选不发布。PILOT-PRODUCT-01首验→返工→再验把14天线重置；已改按原metrics首验锚，最近验收另列，UI明确首验期内返工。PILOT-PRODUCT-02缺complexity草稿可保存后GET500；新写入显式空文本，旧成功草稿只读兼容、不重写原协议/hash。防御性PILOT-PRODUCT-03按冻结ticket.id并核原项目/key，引用身份也纳入id；维护SQL移出旧任务并复用编号时保留原件、当前未知，不宣称已证明用户可达跨项目泄漏。
+- 反例与修后：red-review-regressions 4方法/2断言失败+2KeyError；其中ID夹具起初选错非末尾工单，原失败保留，改夹具后red-review-id-v2 1方法/1产品断言失败。green-review-regressions68/68；加HTTP链后69首轮1个测试误用列表字段KeyError，改为现有items后green-review-final-v2 **69/69、10.578s/外层10.980s、actual0、源不变**。日志SHA d637979ada48a6f8ab53b6ddc5fa3f0c9d966a45724da0d19230364832f8ff59；未削弱原测试或时限。
+- 原3692精确Mac全量2349/2311过38跳过/actual0、608.976s与SDK1.30.0 74/74保留；Linux UID1000/Python3.12.3 **outer1000s TimeoutExpired、SSH actual1、无完整结束回执**，不算通过。原源/失败现场保全；尾部6模块75方法/59过16跳过、28.810s仅定向诊断。新修提交须重新精确全量/SDK/独立复审和迁移发布门，未部署。
+- 人类新资料：LYB软件工程师、LLA项目老板/领导，首轮**20元总根预算**，覆盖所有阶段/模型/重试，不按每调用或子任务重置。实际账号ID、本人确认、五职责分配/真实项目日历仍缺；不代签。可信成本上界/计量与真实工具桥未完成，不由本预算声明开放付费运行。
+
 - 当前项：协议draft/本人确认/投入事件/固定全集报告及原页面入口；状态：doing。基线b92375e，C2已单独固定并推送，工作区原本干净；其新的未参与实现审查者已限定批准C2（20261025-b92375e-fresh-C2-review），不把原实现者自测算独立通过，不扩大为整体真实任务完成。
 - 新协调优先级：先完成pilot-analysis所列最小可用软件，不因真人未填资料停掉软件；先前宣布的生产输入对齐保留为模型桥后续，不与本批混改。可审合同 `docs/design/pilot-software-contract-2026-10-25.md` 已保存：具体字段、draft/frozen/active/ended、权限/本人确认、CAS/幂等、固定分母、未知不当0及验证发布门。
 - 允许变更：新pilots/backend/UI及必要Store/server/tenant_policy/原项目与工单入口、测试/说明。复用原项目/成员/工单/交接，不改MOVES/HUMAN_ONLY/AGENT_ENV/guard/原SP/锁/真实模型门；不启用live/新root服务。真实项目/参与者/日期/阈值空时只draft，不自动freeze/start或代签。

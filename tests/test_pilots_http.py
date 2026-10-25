@@ -85,5 +85,18 @@ class PilotsHTTPTest(unittest.TestCase):
             self.assertEqual(self.call(path+suffix)[0],400)
         self.assertEqual(self.ok(path+'?revision=1')['protocol_hash'],v['protocol_hash'])
 
+    def test_saved_draft_without_complexity_is_readable_and_revisable(self):
+        spec=dict(periods=[dict(id='one',kind='trial')],tasks=[dict(ticket='SAME-1',period='one')])
+        receipt=self.create(spec);v=self.view(receipt)
+        self.assertEqual(v['state'],'draft')
+        self.assertEqual(v['protocol']['tasks'][0]['complexity'],'')
+        self.assertTrue(any('复杂度' in x for x in v['missing']))
+        updated=copy.deepcopy(v['protocol']);updated['tasks'][0]['complexity']='补充原文'
+        revised=self.action(v,'revise',protocol=updated)
+        read=self.view(revised)
+        self.assertEqual(read['revision'],2)
+        self.assertEqual(read['protocol']['tasks'][0]['complexity'],'补充原文')
+        self.assertEqual(self.ok('/api/projects/SAME/pilots')['items'][0]['id'],v['id'])
+
 
 if __name__=='__main__':unittest.main()

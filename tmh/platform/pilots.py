@@ -171,7 +171,7 @@ def protocol(v):
         _fields(row, ("ticket", "period", "complexity"))
         _text(row.get("ticket"), "工单")
         _text(row.get("period"), "所属阶段")
-        _text(row.get("complexity", ""), "复杂度")
+        row["complexity"] = _text(row.get("complexity", ""), "复杂度")
         if row["ticket"] in seen:
             raise ApiError(400, "同一工单只能纳入一次；不能重复计算分母")
         seen.add(row["ticket"])
@@ -204,7 +204,7 @@ def _sources(P, p, spec):
 
 def _source_identity(s):
     return {"project": {k: s["project"].get(k) for k in ("id", "key", "root")}, "references": s["references"],
-            "tickets": [(x["ticket"]["key"], x["requirement_hash"]) for x in s["tickets"]]}
+            "tickets": [(x["ticket"]["id"], x["ticket"]["key"], x["requirement_hash"]) for x in s["tickets"]]}
 
 
 def _authority(P, p, user):
@@ -276,7 +276,9 @@ def _checks(P, p, r):
     if not spec["tasks"]:
         missing.append("尚未登记固定任务全集")
     for row in spec["tasks"]:
-        if row["period"] not in {x["id"] for x in periods} or not row["complexity"].strip():
+        # Older successfully saved drafts may omit this optional text. Read
+        # without rewriting the original protocol or its bound digest.
+        if row["period"] not in {x["id"] for x in periods} or not row.get("complexity", "").strip():
             missing.append("工单阶段或复杂度未明确：" + row["ticket"])
     for key in ("quality", "improvement", "cost_shift"):
         target = spec["targets"].get(key, {})
@@ -556,17 +558,19 @@ def _report(P, p, r, events, actor):
     observed = _moment(report["observed_at"])
     for item in r["protocol"]["tasks"]:
         frozen = next(x for x in r["sources"]["tickets"] if x["ticket"]["key"] == item["ticket"])
-        t = P.store.ticket(item["ticket"])
-        available = bool(t and t["project_id"] == p["id"])
+        t = P.store.ticket(frozen["ticket"]["id"])
+        available = bool(t and t["project_id"] == p["id"] and t["key"] == item["ticket"])
         evs = P.store.events(t["id"]) if available else []
         # Reuse the existing protected experiment projection; a corrupt managed
         # run attached to a ticket must fail closed, never leak private assets.
         runs = [tool_read.run_get(P, row["id"], 0, [p["id"]], actor) for row in P.store.q("SELECT id FROM runs WHERE ticket_id=? AND project_id=? ORDER BY id", (t["id"], p["id"]))] if available else []
         handoffs = tool_read.rows(P.store, "ticket_handoff_events", "WHERE ticket_id=? ORDER BY id", (t["id"],)) if available else []
         accepted = [e for e in evs if e["kind"] == "accept"]
-        accepted_at = accepted[-1]["ts"] if accepted else None
+        # Match metrics.compute: reacceptance cannot erase a return during the
+        # fourteen days after the first recorded acceptance.
+        accepted_at = accepted[0]["ts"] if accepted else None
         hours = metrics._hours(metrics.ts_norm(accepted_at), metrics.ts_norm(report["observed_at"])) if accepted_at else None
-        maturity = "not_accepted" if not accepted_at else "unknown" if hours is None else "pending" if hours < metrics.HOLD_DAYS * 24 else "matured"
+        maturity = "unknown" if not available else "not_accepted" if not accepted_at else "unknown" if hours is None else "pending" if hours < metrics.HOLD_DAYS * 24 else "matured"
         coverage = []
         for part in r["protocol"]["participants"]:
             for duty in part["duties"]:
@@ -583,7 +587,7 @@ def _report(P, p, r, events, actor):
                                 "candidates": [tool_read.candidate(P, c["id"], [p["id"]]) for c in tool_read.rows(P.store, "code_candidates", "WHERE ticket_id=? ORDER BY id", (t["id"],))] if available else [],
                                 "waiting": _waiting(handoffs, observed),
                                 "coverage": coverage, "exits": [e for e in events if e["kind"] == "exit" and e["payload"]["ticket"] == item["ticket"]],
-                                "acceptance": {"status": maturity, "recorded_at": accepted_at, "recorded_only": True,
+                                "acceptance": {"status": maturity, "recorded_at": accepted_at, "latest_recorded_at": accepted[-1]["ts"] if accepted else None, "recorded_only": True,
                                                "reopened": metrics._reopened(evs, accepted_at) if accepted_at else None}})
     report["task_count"] = len(report["tasks"])
     report["missing_labor_cells"] = sum(x["in_period_minutes"] is None for t in report["tasks"] for x in t["coverage"])

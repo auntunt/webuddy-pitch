@@ -95,6 +95,63 @@ class PilotFixture:
 
 
 class PilotsTest(PilotFixture, unittest.TestCase):
+    def test_missing_complexity_draft_remains_readable_and_incomplete(self):
+        spec=self.spec()
+        del spec['tasks'][0]['complexity']
+        v=self.create(spec)
+        self.assertEqual(v['state'],'draft')
+        self.assertEqual(v['protocol']['tasks'][0]['complexity'],'')
+        self.assertTrue(any('复杂度' in x for x in v['missing']))
+        self.denied(409,lambda:self.act(v,'freeze'))
+
+    def test_legacy_missing_complexity_read_preserves_protocol_hash_and_rows(self):
+        v=self.create()
+        spec=copy.deepcopy(v['protocol']);del spec['tasks'][0]['complexity']
+        ph=PI.digest(dict(schema=PI.PROTOCOL,protocol=spec,sources=v['sources']))
+        self.st.db.execute('UPDATE project_pilot_revisions SET protocol=?,protocol_hash=? WHERE pilot_id=?',
+                           (PI.encoded(spec),ph,v['id']))
+        self.st.db.commit()
+        before=dump_store(self.st)
+        read=self.read(v['id'])
+        self.assertNotIn('complexity',read['protocol']['tasks'][0])
+        self.assertEqual(read['protocol_hash'],ph)
+        self.assertTrue(any('复杂度' in x for x in read['missing']))
+        self.assertEqual(before,dump_store(self.st))
+
+    def test_reacceptance_does_not_erase_first_acceptance_rework(self):
+        v=self.create();tid=self.tickets[0]['id']
+        for kind,ts in [('accept','2026-10-02 10:00:00'),('reject','2026-10-03 10:00:00'),('accept','2026-10-05 10:00:00')]:
+            eid=self.st.event(tid,'owner',kind,'synthetic historical event')
+            self.st.db.execute('UPDATE events SET ts=? WHERE id=?',(ts,eid))
+        self.st.db.commit()
+        with patch.object(PI,'stamp',return_value='2026-10-25T10:00:00+00:00'):
+            report=self.read(v['id'])['report']
+        acceptance=report['tasks'][0]['acceptance']
+        self.assertEqual(acceptance['recorded_at'],'2026-10-02 10:00:00')
+        self.assertEqual(acceptance['latest_recorded_at'],'2026-10-05 10:00:00')
+        self.assertTrue(acceptance['reopened'])
+        self.assertEqual(acceptance['status'],'matured')
+        with patch.object(PI.metrics.time,'strftime',return_value='2026-10-25 10:00:00'):
+            original=PI.metrics.compute(self.st,self.p,[])['pilot']['reopen']
+        self.assertEqual(original['matured'],1)
+        self.assertEqual(original['reopened'],1)
+
+    def test_frozen_ticket_id_does_not_rebind_reused_key(self):
+        v=self.create();old=self.tickets[-1]
+        self.st.db.execute('UPDATE tickets SET project_id=? WHERE id=?',(self.other['id'],old['id']))
+        self.st.db.commit()
+        replacement=self.st.create_ticket(self.p['id'],'synthetic replacement','owner')
+        self.assertEqual(replacement['key'],old['key'])
+        self.st.event(replacement['id'],'owner','accept','replacement only')
+        read=self.read(v['id']);report=read['report']['tasks'][-1]
+        self.assertFalse(read['source_current'])
+        self.assertEqual(report['frozen_source']['ticket']['id'],old['id'])
+        self.assertFalse(report['current_available'])
+        self.assertIsNone(report['current_ticket'])
+        self.assertEqual(report['events'],[])
+        self.assertEqual(report['runs'],[])
+        self.assertEqual(report['acceptance']['status'],'unknown')
+
     def test_empty_draft_is_usable_and_no_automatic_start_or_signoff(self):
         v=self.create({})
         self.assertEqual(v['state'],'draft')
