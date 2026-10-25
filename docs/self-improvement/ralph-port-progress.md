@@ -1,5 +1,17 @@
 # Ralph port 执行进度
 
+## 2026-10-26：独立实际A隐私接受后的有限真实实验
+
+- 当前项：原实际A/3BC的一次性登记与有限真实模型实验；状态done（一次有限执行及失败封存结束，实验未通过且不完整）。实际A隐私/Catalog/断言v2独立结论已直接读回接受，无新增软件阻断；运行c08、计划a87879…、驱动1a07b8…及50..53原输入保持。先fresh核身份/源/配置再激活，原8槽/1200秒A-BC/43200秒总根/120秒单次/null总cap不变，不做模型预调用。A完整原回复须符合原policy JSON约定，不合格停本根，不抽取/改写/重试。D仅实际本人采用后新建并同根执行。
+- 历史范围纠正：06:27的业务66表是当次SQL计数；控制11表来自此前基线及06:13控制字节保持断言，06:27输出的控制不变字段为常量，不能称当时重新SQL核对11表。旧原记录保留；本次将单独fresh查询实际计数。
+
+- 预检结果：07:10及07:13 fresh读取，219运行源码/15私有RSI文件、li当前authz_revision=7与execution/manager、default/PPTAUTO4/来源4、50..53原任务整行、原capture/Catalog及四请求SHA均一致；现有aiseat/Responses/gpt-6-luna及配置SHA不变，无预调用。SQL实查业务66/控制11。首轮助手错误把Store解码JSON列与raw SQLite行比较而失败，原脚本/错误保留；v2直接读取raw行，未替换任务/原件，完整预检通过。
+- 一次实际登记：07:13:56.314864 CST激活，A/BC截至07:33:56.314864，总根截至19:13:56.314864；8槽/120秒单次/null总token保持。root `b2a6c8da32006e9ac45a3a5ff50bc5ae07e382ddf02480a6858dfe278aea5ed9`；actual profile `30abd639c5aa8e461ae5fcd9707252936cd1ea340df2d41763e483a80c0e64e1`；完整provider contract `97c0b3ad5df5e1362e0480120942ad9ae1ee55c816b45a3f5cc15d09fc844cd4`；原BC freeze登记SHA `b1f9c1c8a09a105f8f09ca86d5a6a60294c0cd88528be9600c95f0ffdcc9d74a`、replayed=false，均在A前完成。D材料/原断言私有封存，无D任务。
+- 实际A结果：经原审定driver唯一一次请求，实际request2915字节/SHA b1fb2610…与独立审定完全一致。代理HTTP403 / client_not_allowed，明确账号仅允许官方Codex客户端；非超时，原transport进程约1.15965秒exit0、完整输出/回收、remaining_group=false。HTTP完成不等于模型成功，Adapter按原规则留unknown、账本1次attempt/root blocked；driver complete=false/blocked并追加cancel，无重试/新根/客户端伪装、profile切换或延期。
+- 当前结果：有限执行与失败封存完成，工程实验**未通过且不完整**；A无完整模型回复，未进入policy JSON检查/候选绑定，BC0、D0、无job/revision/本人采用。actual_response_model、usage、实际费用和上游隐藏attempt未知；reported_tokens=0只是已报告累计，不能当真实消耗0。未形成BC收益、D或组织收益证明。
+- 原件核验：服务端24份执行/登记/完整响应/监督回执/驱动原件42436字节全部SHA/长度/mode读回后再次重核；私密runtime凭据仅留服务器0600私有registry，不导出。建档前/登记前备份数据库均留服务器；原66表除sqlite_sequence外所有旧行以及所有旧schema对象保持，只新增4张原rsi_prepare表，当前业务70/控制11实查；4任务仍原行、项目run0/decision0，服务active/running、重启0。产品源码未改/未重启。
+- 交接：仓库外native-real-engineering-plan/actual-finite-execution-v5/actual-experiment-result.json、registration.json与完整server-originals、readback-manifest.json；根unknown与失败原件保留，不恢复旧DB。下一阻塞是代理客户端准入限制；本根不继续，不能把旧预算/API问答或已通过隐私审计重新列为待办。不得因另接官方客户端而复用/刷新本根或宣称已完成真人试点。
+
 ## 2026-10-26：真实暂停任务与TASK捕获封存
 
 - 当前项：原生创建A/3BC并封存真实TASK输入；状态doing（真实建档、捕获及作者核验已完成，等待独立实际A隐私审计；不提前激活）。起点f3a0623，开工干净，已读进度、最近十条提交和本机生产接入记忆。v5限定独立接受已直接读回：返回取消P2软件关闭、窗口实现关闭，原题意/分阶段冻结结论保留；不再把软件审查或c08发布列为依赖。
