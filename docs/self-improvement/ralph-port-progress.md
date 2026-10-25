@@ -1,5 +1,21 @@
 # Ralph port 执行进度
 
+## 2026-10-25：登记输入到执行回执最小接线
+
+- 当前项：固定计划/输入 ID、真实生产输入冻结与原根预算/provider 回执串接；状态：**done（仅输入接线增量，独立技术复审待结论）**。起点2a543fc，最初工作区干净。已核851独立verdict：原H1/晚回调fence关闭、L1保持关闭；额外signed chunk-size限制原红灯保留，不声明完整RFC解析。
+- 文件：新增 `scripts/rsi/registered_trial.py`、`tests/test_rsi_registered_trial.py`、`docs/design/registered-input-execution-2026-10-25.md`，更新本进度。调用一次原 `agents.build_prompt` / selector / renderer，不重写经验算法；保存原始全量history及原生产有效最后六条窗口、完整工单/项目/提示词/经验上下文与来源前后快照。不是无副作用dry-run，只在合成临时Store验证。
+- 登记合同：私有所有者/权限/单链接/nofollow；先完整写入/fsync，再原子发布非空目录，同 ID 不覆盖。计划固定输入、原根合同/request/phase/策略/broker源码摘要，拒绝任意命令/UID/mount/环境。原 `rsi_prepare_events` 根级登记锚绑定计划和输入来源；提示字节即使相同，来源变化也不能重标旧回执；已有调用缺原锚时拒绝回填。不新增表/预算，不改原attempt状态序列。
+- 调用复用原Ledger/Adapter的生成、judge、probe、retry、terminal、baseline/candidate/followup阶段、唯一intent、期限和累计预算。登记记录/代码变化或外部取消走原监管取消，未知保留最大预留并阻塞，旧未知重放不二次HTTP。live声明在登记锚/预留前拒绝；fixture之外尚无实际派发通路。
+- 首轮夹具用不存在的Store.add_ticket，`first.log` **9项/9初始化error**；对应两源在 `first-source/`，该轮临时数据库未完整保留，不冒称保有全部失败现场。改用原create_ticket后 `second.log` 9/9。长经验夹具弱匹配未入选导致 `third.log` 13项/1error及 `targeted-final.log` 58项/同1error，日志保留；改为显式同flow来源匹配，不削弱原selector或断言。随后58/58两轮通过。
+- 阶段结果分开保留：`related-final130.log` **130/130、41.309s**，`pre-persistence-source/`保留当时版本；补类型校验/持久夹具/live拒绝后 `final131.log` **131/131、41.135s**，`source-at-final131/`封存其两个源码。本次再加输入字节变化取消与外部取消未知重放两个反例，先定向2/2、actual0；130/131均不替代最终133精确源验证。
+- 最终选取原477文件加新模块/测试/合同，**480文件**精确导出，前后SHA/长度/mode保持；清单SHA `0e08a1fc3c55e71c6342afee39dedfa53cb920dfab47c4daa41e48b0be43c959`。命令：`PYTHONPATH=tests:. python3 -m unittest -v test_rsi_registered_trial test_lesson_input test_learning_input_capture test_learning_lesson_inputs test_rsi_trial_preparation test_rsi_trial_integrity test_rsi_provider_adapter`。Mac **133/133、44.282s、外层44.629s、actual0**；Linux同源 **133/133、75.746s、外层76.116s、actual0**，SSH外层80.428s/actual0，均0skip/失败/error。最终Mac/Linux日志SHA分别 `d8d2a0d43a7b4bd9b3573ce639bd0649d6b045273d9c2d80c9913813a9891e64` / `9781430ff626cc402ec15b21c10856f9479cbad97048b780eedc99eefb045d55`。未重跑未改的旧2115全量、旧151框定大矩阵或内核canary。
+- 稳定性：并发同意图、原子发布屏障、代码变化取消、输入变化取消、外部取消未知重放五场景轮换5轮 **25/25、各actual0**。外置副本删除来源锚检查、代码取消检查、live入口检查三项负控 **3/3准确断言失败、各actual1、无error**；没有改原仓库运行源/旧测试，也没有放宽时钟/原5秒期限。
+- 原件：Mac/Linux各12个新Broker场景、各15份transport监管回执在**原路径**用原SP.read_receipt核验nonce/owner/output字节，均清理complete/reaped、remaining_group=false、原进程组当前不存在。Linux四份白名单报告132270字节逐份SHA/长度读回；远端完整合成夹具留在 `/tmp/webuddy-registered-input-3c5q2t2b/`。原tar8499200字节保持，SSH按次使用无损压缩传输53.082秒，不改变归档/源文件。
+- **2026-10-25 09:43:02 CST**只读核验：线上215运行文件SHA/长度/mode仍与6edc04f相同，active/running、PID2502485、重启0。本增量仅scripts/tests/docs，不接生产路由，不部署新运行入口、不重启、不读写真实业务data/密钥、不付费、不代签。人工确认/采用/验收/关单、guard/ALWAYS_PROTECTED/钩子/MOVES未改。
+- 证据根：仓库外 `分析/RSI协调/registered-input-wiring-20261025/`，含旧失败日志/阶段源、最终480源/两端实际退出回执、稳定性/负控和原件核验。固定新SHA普通推送后由协调侧独立复审，不以自检替代独立结论。
+- **下一项仍todo：固定登记ID的实际隔离执行器及独立oracle evaluator**。本批 `isolated_execution=not_run`、`oracle_evaluation=not_run`、`production_equivalent=false`、`rsi_qualified=false`；native Messages无真实CLI/IDE工具及隐式会话，捕获前后快照不是未来授权，也不证明全世界原子一致。原HTTP signed chunk-size限制须在真实profile准入前收紧支持框定；不把合成调用算真实A/B/C/D或M/C/P。
+- 待确认沿原询问：可信profile/价格、真实A/B/C/D、真人/职责/周期尚pending，不重复询问、不代填。Windows原生监管/隔离/凭据ACL仍未完成。真实付费0、真实试点not_run、组织收益评分null；下一个窄增量不得开放任意root命令/挂载/UID接口。
+
 ## 2026-10-25：H1 HTTP响应长度与原件复核
 
 - 当前项：H1/P2非法/矛盾Content-Length；状态：done（代码及最终固定源验证完成；851独立技术复审仍待结论）。起点9c5beb5，git status干净；已读独立f4b报告和原七例，两轮实际exit1，原反例不覆盖。只修原始响应头核验及已知坏原件的保守隔离，不重做已通过配置/预算/来源矩阵，不改变生产入口或真实试点分。
