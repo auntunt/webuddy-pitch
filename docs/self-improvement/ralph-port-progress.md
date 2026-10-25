@@ -1,5 +1,18 @@
 # Ralph port 执行进度
 
+## 2026-10-25：原生 BC 语义报告和本人精确引用第一段
+
+- 当前项：原登记阈值/全部双臂原件→固定独立进程断言报告→原本人决定精确引用；状态：**doing（原生job发布/同根D桥仍todo，LIVE D拒绝保持）**。起点579d3c7，开工git status干净；579仅已固定自验/推送，新独立审待结论，不冒称通过。
+- 新增scripts/rsi/native_bc_report.py、native_bc_worker.py、test_rsi_native_bc_report.py和设计native-bc-report-2026-10-25.md。只向原根事件追加登记/评估intent/报告，不写learning_jobs/steps/decisions，不新建预算/业务状态。规格来自私有原登记文件，在A前冻结完整原预封case、断言、明确阈值、授权/contract、模型应用/profile及代码束；事后登记/现场换阈值拒绝。没有真实试轮登记，当前只有合成规格，不替用户凑阈值。
+- 原Adapter/SP核所有attempt与六臂来源，缺臂/未知/取消/原件变动均拒绝；独立固定进程复用原E.check，原期限内最多3秒，核nonce/owner/output/清理，原件和全部attempt绑定报告。回放不再HTTP/评估，中断/报告提交失败保留intent不重跑。控制器与评估同UID，不称独立帐号或任意代码oracle隔离。没有真实模型调用。
+- 原本人决定reason须精确引用原root和native report SHA；核真实applied/adopt、当前确切修订、原source/content/普通job和已冻结输入。引用成立仍明确job_native_provenance_verified=false/live_d_eligible=false/rsi_qualified=false。原生job预登记/按真实原件发布报告及D追加attempt豁免仍未实现，不能绕过原人工采用门或把普通job洗成本根报告；本批不启用LIVE D。
+- 阶段验证：首轮9/9，10.893s/外层11.366s/actual0；第二轮11/11，17.263s/外层17.761s/actual0，源保持。审实现时补Registry→Store锁顺序、报告提交事务的完整attempt指纹再检查、本人读取SQLite快照和最新采用决定；当前13新方法与原共同输入/Token相关定向正在跑，不挪用旧2355或579的226结果。
+- **第一段状态：done（固定实现自验完成；不代表整个job/D桥完成或独立批准）**。最终新增15方法。首轮严格负控未检出删“已有attempt”门：提案夹具已经绑定候选，被另一门正确拒绝；原控制实际1test/0failure/0error/actual2，保留native-bc-negative-final，不算成功控制。改新测试为真实提案响应已到、尚未绑定候选窗口，不削弱断言。最终v2四删门负控（事后登记/漏晚到attempt/错本人报告引用/无改善当通过）各 **1准确目标断言失败/0error/actual1**；源保持，不伪装原失效控制成功。
+- 最终命令：`PYTHONPATH=tests:. python3 -B -m unittest -v test_rsi_native_bc_report test_rsi_native_registered test_rsi_token_adapter test_learning_decisions`。Mac **92/92、40.283s/外层40.846s、actual0**；Linux UID1000/Python3.12 **92/92、85.469s/外层86.005s、actual0/SSH0**，均0skip。最终两日志SHA `64aec01d8363a59ac8c266b08345a144bdd61a421cbfaed3297185f583ec6c44` / `a7648c8467f3f4a218605d01532f816d70e354e77460f2d84700b183c5831f50`；前一轮92/92属于夹具补强前，原源/日志保留，不换成最终结果。
+- 新 `/tmp/webuddy-native-bc-7r6ct9ok/source` **504声明文件**字节/长度/模式前后保持，旧495验证源未改。报告生成/提交丢失恢复/本人精确引用各三轮：两端 **9/9**，Mac17.703s/外层17.922s、Linux29.452s（外层见原result），各actual0。两端稳定性各 **72份有效SP原件=63 provider+9 evaluator**，在原路径核owner/nonce/完整output与清理complete/reaped/remaining_group=false和当前原组不存在。Linux主轮另143份有效、3份有意损坏原件（provider2/evaluator1），原损坏输出以明确changed后缀核对应三个篡改测试；未将坏原件算通过。Mac主轮未开保留，只声称稳定性原件。Linux七白名单原日志/结果/manifest/现场审计 **277681字节**逐SHA/长度完整读回，不称本地复制并重新验证了远端raw transport。
+- 验证绑定 `分析/RSI协调/pilot-software-20261025/native-bc-self-validation.json`，全Git成员与504验证集合分开记录。原12个核心/保护/579实现及原测试文件字节保持，self-review与diff --check通过。没有旧全量/内核canary/真人数据/付费模型/服务重启；后续仍需native job双臂前不可变登记、按实际原根/SP独立报告发布确切修订，以及D新增attempt只豁免同根自己且核实际原selector/rendered。引用关系成立不能代替该执行来源。真实试轮规格/原生路由上界与内部尝试计量尚未验证，LIVE D和RSI/组织收益仍false/unknown，不把00:30自动顺延。
+最终原件/严格负控/双端同源待核。
+
 ## 2026-10-25：恢复共同输入 WIP 收口
 
 - 当前项：原生 Token 登记、当前知识与独立 input×arm；状态：**doing（窄面验证收口，LIVE D 保持拒绝）**。恢复起点 a56b824，git status 为 provider_adapter.py/registered_trial.py 两改动与新 test_rsi_native_registered.py；不重做既有已关闭项。a56 次数诊断已独立18/18关闭；e8固定适配器99原测试+1探针限定接受，真实提供方上界仍未证明；b617负控追加勘误已关闭，旧失败未覆盖。
