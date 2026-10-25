@@ -141,6 +141,42 @@ class Reports:
             observations.append(item)
         return {'cases':observations,'thresholds':anchor['spec']['thresholds']},frontier,origins
 
+    def _assert_snapshot(self,key,anchor,frontier):
+        """Read-only revalidation under the caller's DB/lesson snapshot.
+
+        Do not reconcile provider attempts here: their full originals were
+        checked before the snapshot, and reconciliation owns transactions.
+        """
+        if self._registration(key)!=anchor:raise L.Conflict('original native registration changed')
+        # Reuse the already-owned transaction/savepoint, never nest Ledger's
+        # public snapshot()/inspect() transaction wrappers.
+        c=self.ledger._pool(self.ledger.store.db,key)
+        if L.digest(c)!=anchor['spec']['contract_sha256']:raise L.Conflict('original root changed')
+        rows=self.ledger.store.q('SELECT * FROM rsi_prepare_attempts WHERE pool=? ORDER BY request_id',(key,))
+        if [L.digest(r) for r in rows]!=[r['stored_attempt_sha256'] for r in frontier]:
+            raise L.Conflict('native report frontier changed before the protected snapshot')
+        if self.ledger.store.one('SELECT blocked FROM rsi_prepare_pools WHERE pool=?',(key,))['blocked']:
+            raise L.Conflict('unknown root cannot qualify')
+        self.broker._sealed_inputs(key,c)
+        profile=self.broker._profile(c);authority=self.broker._authority(c,profile)
+        for case in anchor['spec']['cases']:
+            value,digest,_=self.broker.catalog.load('input',case['input_id'])
+            if digest!=case['input_sha256']:raise L.Conflict('original common input changed')
+            self.broker._capture_current(value)
+            if self.broker.context is not None and (value['source']['project']!=authority['project'] or value['source']['binding']!=authority['binding']):
+                raise L.Conflict('native input authority/source changed')
+
+    @contextmanager
+    def _publication_snapshot(self,c):
+        store=self.ledger.store
+        with self._guard(c),learning.transaction(store) as db:
+            with learn.ledger_lock(store.path.parent,create=False):
+                yield db
+                # Commit OUR transaction before releasing the lesson lease.
+                # learning.transaction's later commit is then a no-op. This
+                # retains Registry -> Store/SQLite -> lesson acquisition order.
+                db.commit()
+
     def evaluate(self,key):
         anchor=self._registration(key);value,frontier,origins=self._observations(key,anchor)
         c=self.ledger.snapshot(key)['contract'];fingerprint=L.digest([anchor,frontier,origins])
@@ -171,11 +207,9 @@ class Reports:
                 'candidate_sha256':self.ledger.snapshot(key)['candidate_binding']['candidate_sha256'],
                 'assertions':assertions,'evaluator_receipt_sha256':L.digest(receipt),'evaluator_output_sha256':hashlib.sha256(raw).hexdigest(),
                 'source_mode':self.broker._profile(c)['mode'],'rsi_qualified':False,'human_adoption':False}
-        with self._guard(c),learning.transaction(self.ledger.store) as db:
+        with self._publication_snapshot(c) as db:
             self.ledger._pool(db,key,dispatch=True)
-            rows=[dict(r) for r in db.execute('SELECT * FROM rsi_prepare_attempts WHERE pool=? ORDER BY request_id',(key,))]
-            if [L.digest(r) for r in rows]!=[r['stored_attempt_sha256'] for r in frontier]:
-                raise L.Conflict('attempt frontier changed before report commit')
+            self._assert_snapshot(key,anchor,frontier)
             self.ledger._event(db,key,'','native_bc_report',report)
         return dict(report,report_sha256=L.digest(report))
 
@@ -204,6 +238,7 @@ class Reports:
         if self.broker.context is None:raise L.Conflict('current personal tenant context required')
         context=self.broker.context;store=self.ledger.store
         with self._decision_snapshot(c,context):
+            self._assert_snapshot(key,self._registration(key),report['frontier'])
             self.broker._authority(c,profile)
             project=store.project(c['project_id'])
             row=store.one('SELECT * FROM learning_decisions WHERE id=? AND project_id=?',(decision_id,c['project_id']))

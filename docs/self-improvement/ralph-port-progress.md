@@ -1,5 +1,18 @@
 # Ralph port 执行进度
 
+## 2026-10-26：原生报告两个当前性P2
+
+- 当前项：NATIVE-BC-CURRENT-COMMIT-01/DECISION-FRONTIER-01；状态：**done（作者验证；独立复审待定）**。起点d0bba40，git status干净；该-B窄修已普通推送、线上218保持/未重启。已读a98最终独立decision及两个已执行原反例；强pending→applied未实际运行，本批不执行/声称已证明该强场景。P2不能被reference仅部分/qualified=false掩盖。
+- 新原API交错回归3项在未修d0上 **3方法/3准确断言失败/0error、6.737s/外层7.028s、actual1**：实际选中经验在最终观测后退役仍发布；已有采用后原root预留晚到仍reference；实际commit时外部OS进程能取得lesson锁。原输入/回执/JSON事实在native-snapshots-red-fixtures保留，不伪造后台快照/本人决定。
+- 修复限定新Reports：原Registry→Store/SQLite→lesson顺序，输入/知识/授权和完整attempt指纹在发布/本人读取保护快照内重核；只提交自己创建的事务，在lesson锁仍持有时实际commit，外层commit为空操作。原intent/失败保留、不重跑worker、不洗普通job为native、原人类决定与旧预算/代码门不改。新设计native-bc-protected-snapshots-2026-10-26.md。
+- 首次26方法 **15过/11嵌套事务error、41.804s/外层42.669s、actual1**：错误使用了Ledger.snapshot/inspect公共事务包装。日志/源保持；改在当前事务中调用原_pool和只读当前行，不放宽原禁止嵌套。第二轮 **26/26、43.553s/外层44.171s、actual0、源保持**。最终精确导出/同源/原件/严格负控继续；不挪用旧2355，真实模型0。
+
+- 最终精确候选树 `82c8a0edb59a62f567aa02cdd78c4c8899008a41`：Mac 26/26、42.909s/外层43.671s、actual0，完整2315个Git文件字节/模式及文件集合相同、0额外文件；Linux Python3.12同源508声明文件26/26、63.690s/外层64.060s、actual0/SSH0、原495源保持。三个快照场景各3次Linux稳定性9/9、33.330s/外层33.702s。收尾当前树三项重核3/3、7.754s、actual0；未重复全量2355。
+- 严格负控3项：分别移除发布当前性、本人引用frontier检查、将实际commit移至lesson解锁后；每项准确1方法/1目标断言失败/0error/actual1，原源码保持。初轮红灯原件24份有效SP；Linux主套124有效+2有意损坏原件、稳定套72有效/0坏，均现场核owner/nonce/完整输出/cleanup和原进程组不存在，不按历史PID发信号。7份白名单Linux日志/结果/现场核验摘要250779字节完整SHA/长度读回；不声称把远端原SP搬回本机再次验证。证据 `分析/RSI协调/pilot-software-20261025/snapshots-self-validation.json` 及原目录。
+- `git diff --cached` 自审、protected源码原字节核验：registered_trial/worker-B/原16报告测试/7留出测试/ledger/learning_decisions/eval/guard/acceptance/锁/SP保持；源树与最终提交只允许本进度记录差异。原intent/3秒监督/不重跑worker/普通job非native/强探测未执行保持。本批非运行目录代码，按AGENTS普通推送并核在线218相同，不重启。
+- 独立窄审结论已直接读取 `分析/independent-review/20261026-101d384-d0bba40-fix-review/review-decision.json`：101留出重捕获P2及d0的-B行为修复接受，独立根85/85零skip，关闭NATIVE-HOLDOUT-RECAPTURE-01（REGISTERED-HOLDOUT-01同项）；这是该两项的窄闭环，非全Linux重验或当前两个a98 P2已关闭。旧5导入错误/14pyc和本批3红灯/11嵌套error完整保留。
+- 待确认/下一依赖：本批固定SHA后交独立复审；前瞻豁免合同须明确max_total_tokens=null、有限调用与时限，旧100M根不回写/旧20元不恢复。原生job→确切报告→真人采用→同根D仍待实现；真实PPT五小时窗口已结束且本链未启动，不延长或倒填，材料已提供；组织收益/80分不认定。
+
 ## 2026-10-26：固定评估进程禁写字节码窄修
 
 - 当前项：-I使PYTHONDONTWRITEBYTECODE环境变量无效；状态：**doing**。起点101d384，P2修复已固定/普通推送并交固定SHA复审；本项不重开或掩盖P2。只给a98固定评估子进程显式加-B，新测试复制完整原依赖Py字节到独立新import树，实际运行原评估后检查无pyc，不以仅检查argv代替行为验证。
