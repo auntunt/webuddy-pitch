@@ -2,7 +2,7 @@
 
 ## 2026-10-25：H1 HTTP响应长度与原件复核
 
-- 当前项：H1/P2非法/矛盾Content-Length；状态：doing。起点9c5beb5，git status干净；已读独立f4b报告和原七例，两轮实际exit1，原反例不覆盖。只修原始响应头核验及已知坏原件的保守隔离，不重做已通过配置/预算/来源矩阵，不改变生产入口或真实试点分。
+- 当前项：H1/P2非法/矛盾Content-Length；状态：done（代码及最终固定源验证完成；851独立技术复审仍待结论）。起点9c5beb5，git status干净；已读独立f4b报告和原七例，两轮实际exit1，原反例不覆盖。只修原始响应头核验及已知坏原件的保守隔离，不重做已通过配置/预算/来源矩阵，不改变生产入口或真实试点分。
 - 决策：十进制ASCII长度，所有重复/逗号列表值必须一致；仅允许明确的单chunked编码，TE与CL同存拒绝。非法原头仍保留所收完整正文，首次与reconcile共用校验；旧transport零退出不能作为充分证据。真实profile仍待外部提供，不重复询问，不付费。
 
 - 实现：transport与原件reconcile共用原始字段校验，ASCII十进制/全部重复及逗号值一致、真实正文长度一致；合法同值列表归一化后可在keep-alive关闭前完成。单chunked无CL受支持；TE+CL/未知或重复编码拒绝。坏头保留已收到正文，仍受原期限/资源门，无重发、费用门不变。账本仅新增保守invalidate_framing事务：核原nonce和settled锚后隔离，旧结算/回执保留，最大预留恢复，重复/并发只隔离一次；合法旧版本仍拒绝版本自动升级。
@@ -14,6 +14,13 @@
 
 - H1首候选3474866已在Linux固定477文件 **150/150、67.834s、actual0**、原两个独立脚本七例均actual0；该候选未push/未启生产入口。自查发现直接Ledger.settle晚回调仍能绕过wrapper把隔离请求再结算，新增1方法/2历史状态反例 **2个断言失败、0error、actual1**，原源码/两库保留于 `分析/RSI协调/provider-framing-H1-fence-20261025/red-fixtures/`。不把347的通过当最终完成。
 - 补齐：隔离也给原unknown写唯一已知坏框定标记；settle事务内核原unknown摘要并拒绝已标记及“旧settled后unknown”重结算。首发完整坏框定即记录标记，不仅靠reconcile；普通未知晚结算语义/原receipt锚保留。定向四模块 **94/94、46.251s、0skip/失败/error、actual0**，包括nonce/损坏原锚回滚、并发只隔离一次和原普通晚结算。固定补齐提交后另做精确导出/Linux/原脚本/原件复核，不挪用347源码结果。
+
+- 最终代码固定为 **85133ce9f80e3bf1377f57c8b55bc6139564ad1b**（含3474866主修复及晚回调fence）。477文件直接按Git blob导出，`PYTHONPATH=tests:. python3 -m unittest discover -s tests -p 'test_rsi_*.py' -v` **151/151、46.177s、0skip/失败/error、actual0**；服务器同477文件前后摘要相同、**151/151、69.239s、actual0**，测试SSH外层73.361s。新包无损原始tar上传344.260s，期间两次只读进度先430后477文件，未中断或把传输时间混作测试时间，原tar/原件保持。
+- 最终复验曾从错误cwd使用相对fixtures路径，**151项/61初始化error/0failure、actual1、4.462s**，相关夹具没有进入断言；完整日志移存 `provider-framing-H1-fence-20261025/misdirected-export-command.log`，未丢弃或修断言。改用绝对路径后才执行上述最终导出151通过；fixture错误不是产品回归，不能拿前次94/347的150替代最终851。
+- 851下两个独立原脚本逐字复制重放，4例+3例均**actual0**，完整wire/body/DB/监管回执和477源前后SHA保持；原七例旧原件数据库副本再次**7/7预期、3笔错误旧settled恢复最大预留、原事件/文件保持、零新HTTP**。追加晚回调fence后六关键场景加直接回调轮换5轮 **35/35、actual0**；四个外置删检查负控均准确触发断言（最后一例2子状态失败），无harness error。所有旧红绿和新结果分目录保留，原配置/预算/来源大矩阵不重跑。
+- 最终证据：仓库外 `分析/RSI协调/provider-framing-H1-fence-20261025/`；导出log SHA `6ab75eba0392ef35032df6ee55c68e33d2b76ec84a01beed7ef9ac68893f93af`，Linux log SHA `4dc9feef5ddfc71f3ff76189407b9735be26c49595c1c825e4fb4236f9e4c366`，旧原件复核JSON SHA `f21cf77bcd37d6789dad1e501834833bad8b9582b53a0a019062337a9dc98d1f`。最终导出/远端各有实际退出观察或subprocess退出回执；不将仅日志标签当新版本退出证明。
+- 2026-10-25 **08:08:13 CST** 只读核验：线上215运行文件SHA/长度/mode与6edc04f相同，active/running、PID2502485、重启0。新软件仍未接生产入口，未重启、未写真实data/配置/密钥、未调用真实模型或付费；score=null、M/C/P不加分。代码和普通unknown合法晚结算/人工边界均保持，未跑或归因旧2115全量。
+- 独立L1结论已核 `分析/independent-review/20261025-9c5beb5-L1-review/verdict.json`：b846/9c5固定清理范围关闭（11+8+12+22及18原件），不再重开L1/重跑内核。边界：fchmod失败会异常并关闭FD但mode可能仍0755；caller成功open前准备异常不在该finally；不等于专用生产隔离。H1固定851复审进行中，原9c5报告中的H1 open不是对851结论。原profile询问及真实A/B/C/D/多人长期试点合同仍未获外部信息，不复问、不代填、不声明80%。
 
 ## 2026-10-25：新增验证的平台前置声明
 
