@@ -1,5 +1,19 @@
 # Ralph port 执行进度
 
+## 2026-10-26：真实RSI接入准备与取消返回竞态
+
+- 当前项：已授权真实工程实验的可执行准备；状态doing（接入只读核对与新驱动作者验证已完成，v5登记前独立复核仍待）。起点3a961df，开工工作区干净；c08已发布，独立补审接受限定历史发布证据，发布不再是待办。运行代码仍c08，未重启或修改生产产品。
+- 独立v4结论：PLAN-D-TARGET-01、PLAN-FREEZE-SEQUENCE-01在规格层关闭；PLAN-HUMAN-WINDOW-01因新增P2 `PLAN-DRIVER-CANCEL-RETURN-01`未关闭。watchdog最后一次读到未取消后、Broker返回前发生取消，旧最终回执只复核时钟，会记complete=true；外部Event路径还可继续B0。原v4计划/驱动/独立反例和历史证据全部保留，不改成通过。
+- 新v5驱动：在watchdog join之后、决定持久回执前重新检查cancel.json和外部取消；保留原结果，但写complete=false/explicit_cancel与blocked，不允许下一槽或重发。激活schema更新v2；原1200/43200/120秒、8调用、null总token、权限/guard/断言均不变。固定驱动SHA `1a07b89a37cd5aba661e9b9d9f51ed9ac7acca825df2630d6c23aaf7107acb8b`；只修改仓库外私有控制器，生产源码未改。
+- 验证：新增真实线程屏障两条在v4准确2目标failure/0error，修后2/2。Mac/Linux各原16+新2+原独立8=26项通过；独立8断言原文未改，仅绑定新驱动。Mac两屏障各50次，共100/100，0失败错误；分别删除external/durable最终取消门的变体各准确1目标failure/0error。两端各一次真实FiniteBroker→监督进程→回环HTTP仍在缩短1.5秒窗口取消、原unknown保持、子组回收、重试不增加请求；原时限未放宽，不把此视为真实供应商或等满20分钟。新驱动仍需独立重新复核，作者验证不代替关闭P2。
+- 新计划v5 SHA `a87879c0da0e6e964d855ed82a7455baa2b1d41c9b9b00a29a179750e4f2cbf7`。相对v4仅更新驱动/版本与修复说明；A/BC/D原完整材料、题意、schema、独立oracle、阈值、四阶段冻结、原时间/调用限制全部一致。尚未创建真实activation、root、profile或新任务，未延长/复活旧根或旧五小时多人窗。
+- 真实接入只读核验：现有服务器0600配置仍aiseat/Responses/gpt-6-luna；凭据仍在原配置，没有输出/复制值，没有供应商HTTP（包括未发模型目录探针）。模型目前只证配置标签，actual_response_model与权重身份尚未知，不能伪造成功调用。只备妥未批准、未入册profile模板，actual_profile_sha256=null，deadline/contract/credential runtime reference留待实际一次激活绑定，不装成已冻结profile。
+- 实际对象：default / PPTAUTO项目id4 / 主来源id4 / development；工作区为空且非Git，原样如实记录，不初始化Git、不覆盖历史项目说明。原34页PPT及SHA已核，不是缺少用户材料。本项目当前没有工单，真实A和3个BC任务ID为空，D任务必须本人采用后新建。旧项目说明保留已过期窗口及100M历史，不作为本轮授权；A有效提示中没有这些旧窗口/上限文字。
+- 身份：通过原Registry/TenantContext/tenant_policy在真正只读SQLite连接上核对现有权限，跳过会初始化schema的构造器，不改账号/权限。既有平台所有者具备当前工程执行资格，LYB/LLA保留原contributor/manager且runtime_allowed=false；这些元数据不是本人登录、参与或采用，未授新权或代签。
+- A原工厂预捕获：已从实际已发布agents.py和精确c08私有registered_trial.py执行project-question分支；生产DB/控制DB/原账本字节前后相同，捕获期间禁止socket。完整A单页及原题保留，实际有效包不含BC/D任务ID、整页材料、独立oracle或整个计划，tools=[]；原检查9项及补充请求检查12项通过。该捕获ticket_id=null、明确eligible_for_registration=false，不能代替后续真实任务分支的最终A捕获。首轮助手误从不含私有scripts的运行包导入而失败，原日志保留；改从已核15份私有脚本的验证包导入，实际factory仍来自生产app，不修改产品或sys权限。
+- 当前原件：仓库外`native-real-engineering-plan/actual-engineering-preparation-v5.json`、`prepared-inputs-and-plan-v5.json`、`plan-v5-driver-readiness.json`、`driver-v5/`、`A-question-pre-capture-v2/`。实际factory SHA `2522cab2e15deb4acc236e0511ae3511956edfa58a1098172cd9fcf40f929e36`，私有broker SHA `1eeb8699e0688d587857615035d9be4542749689b74721bec78a5c3029778097`；question捕获SHA `ceb1647ae50b9f8c9b6c13b0354c24759d5a88cec0f335e7b97c4461ce31380c`，不是实际任务捕获。
+- 剩余依赖：新v5/驱动独立关闭返回取消P2；获准进入登记准备后创建真实A/3BC任务、重新固定实际任务捕获并独立审计A精确有效请求；随后一次真实时钟、原profile/root/凭据运行引用及BC/D独立断言绑定，才可有限A/BC。D仍需真实本人采用与原selector/renderer新任务捕获。当前工程根未登记、模型调用0、本人采用false、rsi_qualified=false/production_equivalent=false；不重复索要预算、100M硬界、价格或原生API。
+
 ## 2026-10-26：c08 精确发布门与真实工程计划分阶段冻结
 
 - 当前项：原生job/本人引用/同根D与UI修复收口；状态done（软件发布收口；真实工程计划v4/驱动已固定，登记前独立复核仍待）。起点c08b6ae，当前iteration/context-pack-v2开工干净，已读进度与最近十条提交。3cc独立接受限定于软件桥，c08独立接受限定于UI；独立6条Node脚本含9947矩阵行，不是9947个单测。两者均不证明真人采用或组织收益。
