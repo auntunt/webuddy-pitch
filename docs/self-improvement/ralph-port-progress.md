@@ -10,13 +10,23 @@
 - I1新增三个真实双身份场景：深40层true/1与false/0均false，同值完整长blocks及对象键序变化为true；3次真实native/candidate/evaluator，各原始角色UID508101/508102、schema v2、完整输入保留、原usage已知settled。独立只读原路径核验9份SP回执/nonce/owner/output与原进程组消失，候选/评估输出不含合成oracle canary。55份完整白名单原件1031657字节读回，含这9份各自计划/结果/output与合成oracle，仅受信审计用，不是controller投影；本地复制不冒称原路径SP。证据 `分析/RSI协调/evaluator-I1-20261025/`。
 - **2026-10-25 11:59:28 CST**线上215运行文件仍与6edc04f逐SHA/长度/mode一致，active/running、PID2502485、重启0。本批仅验证工具/测试/文档，未接生产入口/服务、不改data/凭据/原根预算/3秒门槛、guard/ALWAYS_PROTECTED/人工确认/MOVES，实际模型/付费0、score=null。单独固定修复提交与ordinary push由本批外置交接记录；controller新通道代码仍WIP，不混入本提交。
 - 3b复审有限范围纠正：旧root门控6例=2准入拒绝+4实际candidate/2evaluator；旧最终24远端原路径回执中，本地10份主轮个体原件、稳定14为嵌入audit汇总，不能说24份均有本地完整原件。旧四负控母版0517，umask是整模块回退到初版并运行新断言，非仅删chmod；其余有限ledger/来源检查不等于整批通过，不重开H1/L1。
-- controller权限分离继续doing：初始486包仅在临时非root上传目录、尚无新FIFO内核执行；此前Mac45相关方法31过/14root跳过是I1修前源，不代替之后通道验收。真实profile/价格与真人项目/职责/周期仍pending，不复问、不代签、不付费。固定exact-match不证明真实未见B/C、真人采用→D或多人组织收益。
+- 截至I1提交时controller权限分离仍doing：初始486包仅在临时非root上传目录、当时尚无新FIFO内核执行；此前Mac45相关方法31过/14root跳过是I1修前源，不代替之后通道验收。真实profile/价格与真人项目/职责/周期仍pending，不复问、不代签、不付费。固定exact-match不证明真实未见B/C、真人采用→D或多人组织收益。
 
 ## 2026-10-25：非root控制器与私有评估资产分离
 
-- 当前项：固定登记ID、非root调度控制器与受信特权配置/评估最小通道；状态：doing。起点f14218a，git status干净；3b隔离增量已交独立复审，不继承fa3结论覆盖它。
+- 当前项：固定登记ID、非root调度控制器与受信特权配置/评估最小通道；状态：**done（限定临时合成通道的实现与自验完成，独立技术复审待）**。起点f14218a，git status干净；I1随后单独固定4a69da7再继续，3b隔离增量不继承fa3结论覆盖它。
 - 边界：受信root provisioning保留oracle读取权，不证明root不可读；把可优化/调度角色移到第三个非root临时身份，只给公开输入与固定run/status/cancel操作，不投影oracle、其可猜测摘要、完整私有计划/错误详情。原根budget/intent/原SP及固定文本动作继续复用，不安装生产root服务、不接任意命令/UID/mount/env接口。
 - 计划采用仅两条固定文件FIFO的临时命名空间IPC，root所有者固定读写权限，源与private登记合同绑定；未知/失联不自动重发。真实profile/真人试点仍沿原询问pending，不复问、不代签、不付费。
+
+- 文件：新增 `scripts/rsi/controller_channel.py`、`tests/test_rsi_controller_channel.py`、`docs/design/controller-channel-2026-10-25.md`；只更新本进度。控制器UID/GID508103，候选508101/评估508102不变；两条root所有FIFO只赋写请求/读响应权，独立mount/PID/net/IPC namespace、chroot、清空capabilities/组/环境、no_new_privs；只挂单个端点，不挂私有目录/FD。独立随机root0400拒读canary不含oracle；root仍受信并可读oracle，未宣称root隔离。
+- 通道仅精确登记的plan/input ID及input/run/status/cancel四动作；只返完整公开capture和粗状态/冻结verdict，不返私有摘要/错误正文。单请求4096字节、公开帧8MiB、128请求；超限前置拒绝，完整history/NULL/Unicode及全部公共字段不截断。重复ID相同正文原回复、不同正文冲突；一次Session最多一个原Launcher job；原controller意图/结果追加到原事件表，无新预算/表/付费路径，未知不自动重发。控制器自报成功不产生根任务成功。
+- I1修后冻结488文件包清单SHA `8b01408881370446377f9ace1b8e694c3c9628506e2cc9cd21b1082b2cac1369`，按Git声明模式导出，保留旧本机两文件0600历史。`PYTHONPATH=tests:. python3 -m unittest -v test_rsi_controller_channel test_rsi_registered_isolation test_rsi_registered_trial`：Mac **45方法/31通过/14显式root跳过、actual0、外层12.522s**；不是内核证据。初始I1修前45结果另存，不替代此轮。
+- 同一488源先逐SHA/长度/mode验证，再复制到root-owned0700 `/tmp/webuddy-controller-owned-ziphvcw2` 导入；显式root门控 `python3 -m unittest -v test_rsi_controller_channel` **14/14、0skip/失败/error、16.093s/外层16.434s、actual0**。其中6纯方法、8root门控（1准入拒绝无进程），实际7controller/4回环transport/4candidate/1evaluator，共16原路径SP回执，nonce/owner/output/完整清理及进程组消失均核验；68文件完整白名单读回。日志SHA `fd6ca803ae12c14bfb7d269628444e15f700b535ab7165d588c716bbded0185b`。
+- 稳定性：同一488源另建root-owned `/tmp/webuddy-controller-owned-k_pzhr6d`，完整模块连续两轮 **28/28、0skip/失败/error、31.669s/外层31.975s、actual0**；实际14controller/8transport/8candidate/2evaluator，32原路径回执均清理且原进程组不存在，133文件完整白名单读回。日志SHA `60ed31b3f0407ff4405f341e811a1c5272c127e231b885cab41ad840a2edec77`。候选保留原3秒124，控制器8秒124且候选elapsed更短；取消/控制器SIGKILL分别触发原候选130，未知保留原最大预留calls1/tokens120/cost1400且不重发；已知usage/settled历史保持，不虚造第二笔费用。
+- 三负控仅在独立诊断进程内patch：放开response写权、向input响应加实际私有execution摘要、将根状态错误认成controller伪成功。各原测试均 **1方法/1预期断言失败/0error/0skip**；源码前后逐字保持。实际3controller/1transport/1candidate/1evaluator，共6原路径SP回执，全部清理/原组消失，30文件完整失败现场读回；原成功日志不覆盖。不是删原断言、假时钟或放宽3秒/8秒门槛。
+- 证据位于仓库外 `分析/RSI协调/controller-channel-20261025/`；保存源清单、调用实际退出/耗时、root原路径、逐份计划/结果/output及完整channel、负控脚本/日志/读回清单。复制件不冒称原路径SP。测试源为冻结488清单；提交前只新增验证文档/进度文字，导入的执行/测试字节需再与清单核对。全量未重跑：本批仅显式临时验证工具与相关45/真实root14/稳定28，不重复旧H1/L1/fa3/2115矩阵，不宣称全量或真实模型通过。
+- 最终线上只读核验：**2026-10-25 12:30:09 CST**，215运行文件SHA/长度/mode仍与6edc04f一致，active/running、PID2502485、重启0；未发布/重启生产或调用真实模型。提交前初次清单门禁误把未纳入测试导出的进度文件也计入预期差异，实际仅设计文档1处差异而拒绝；没有继续commit，核对清单后改为“设计文档差异1处、进度在清单外”，再严格比较全部执行/测试与215运行文件，不改源码或清单来凑通过。
+- 待确认/未完成：真实profile/可信价格、实际Claude/Cursor会话与工具接线、租户授权在真实执行入口再核、未见B/C任务、真人采用→D及多人长期试点仍pending；不复问、不代签、不用合成结果打组织收益分（score=null、真实模型/付费0）。生产专用身份/通用恶意代码资源与系统调用隔离/未知调查恢复及Windows实机仍todo。本批无生产入口或常驻root服务，不因验证工具重启生产。独立复审未完成，不能凭自验升级为生产安全或组织提效已完成。
 
 ## 2026-10-25：固定登记ID隔离执行与独立评估最小接线
 
