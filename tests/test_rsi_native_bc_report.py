@@ -2,6 +2,7 @@
 import copy
 from contextlib import contextmanager
 import os
+import shutil
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -169,6 +170,18 @@ class NativeReportTests(unittest.TestCase):
         with patch.object(B.SP,'run_supervised',side_effect=AssertionError('no rerun after commit loss')):
             with self.assertRaises(L.Conflict):self.reports.evaluate(self.c.key)
         self.assertEqual(self.c.count,7)
+
+    def test_evaluator_does_not_write_bytecode_in_a_fresh_import_tree(self):
+        source=Path(B.__file__).resolve().parents[2];clone=self.c.root/'fresh-import-tree';clone.mkdir()
+        for old in (source/'tmh').rglob('*.py'):
+            target=clone/old.relative_to(source);target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(old,target)
+        for name in ('scripts/rsi/trial_preparation.py','scripts/rsi/native_bc_worker.py'):
+            target=clone/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source/name,target)
+        worker=clone/'scripts/rsi/native_bc_worker.py'
+        self.assertEqual(worker.read_bytes(),B.WORKER.read_bytes());self.assertEqual(list(clone.rglob('*.pyc')),[])
+        with patch.object(B,'WORKER',worker):
+            self.freeze();self.run_arms();self.assertTrue(self.reports.evaluate(self.c.key)['assertions']['passed'])
+        self.assertEqual(list(clone.rglob('*.pyc')),[])
 
 
 if __name__=='__main__':unittest.main()

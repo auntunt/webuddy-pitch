@@ -156,7 +156,7 @@ class Reports:
         folder=self.root/key
         timeout=min(3,(c['limits']['deadline_us']-self.ledger._time())/1_000_000)
         if timeout<=0:raise L.Conflict('original root deadline expired')
-        SP.run_supervised([sys.executable,'-I',str(WORKER)],folder=folder,owner=intent['owner'],cwd=self.root,
+        SP.run_supervised([sys.executable,'-I','-B',str(WORKER)],folder=folder,owner=intent['owner'],cwd=self.root,
                           env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','PYTHONDONTWRITEBYTECODE':'1'},timeout=timeout,stdin=L.encoded(value))
         receipt=SP.read_receipt(folder,intent['owner'])
         if (receipt is None or receipt['returncode']!=0 or not receipt['cleanup']['complete'] or not receipt['cleanup']['reaped']

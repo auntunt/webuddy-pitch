@@ -1,5 +1,16 @@
 # Ralph port 执行进度
 
+## 2026-10-26：固定评估进程禁写字节码窄修
+
+- 当前项：-I使PYTHONDONTWRITEBYTECODE环境变量无效；状态：**doing**。起点101d384，P2修复已固定/普通推送并交固定SHA复审；本项不重开或掩盖P2。只给a98固定评估子进程显式加-B，新测试复制完整原依赖Py字节到独立新import树，实际运行原评估后检查无pyc，不以仅检查argv代替行为验证。
+- 未修红灯 **1test/1准确断言失败/0error，3.500s/外层3.987s、actual1**：独立新树出现14pyc，日志/evaluator-bytecode-red源快照保留；该单测临时目录按原cleanup移除，不声称其SP原件仍在。更早P2导出原现场2313声明源+14pyc完整保留，不删除后追认目录保持。原-I隔离、3秒/root原期限、原评估断言、原root及人工门保持。
+- 该修不新增模型调用/生产入口/状态迁移，不修改原P2实现及其回归。后续在新精确Git导出和Linux新源验证，再核完整成员；实际模型0，真实通道/真人/原生job-D仍不能由本修证明。原00:30截止不自动顺延。
+- **本窄修自验：done，独立核验待固定SHA；不冒称a98两个新P2已关闭**。最终 `test_rsi_native_bc_report test_rsi_holdout_recapture`：Mac新精确Git导出candidate tree `32e2726aa4b2429adf6c19235733b532eb4a4b06` **23/23、40.111s/外层40.773s、actual0**；Linux UID1000/Py3.12新 `/tmp/webuddy-evaluator-bytecode-mvbu9hqv/source` **23/23、53.568s/外层53.937s、actual0/SSH0**，0skip。两日志SHA `b977e2f750ef5a031c817e7ac5fbbb17aec22e956dde8203ceecd8de3e146216` / `19e1229141b73a2df1ebcdf43b30ed3dfd460e04a25cb4b4b76c6515489281de`。
+- Mac全部2313声明Git成员原blob/字节/mode匹配，新树完整文件与祖先目录集合无额外成员/pyc；旧14pyc现场未删，未追认旧完整集合保持。Linux506声明源及完整文件集合保持/无pyc，旧495声明源保持；506不冒充完整2313Git。新fresh-import-tree行为回归Linux再3次 **3/3、10.779s/外层见原result、actual0**，24份原SP（21provider+3evaluator）核owner/nonce/完整output/cleanup/reaped/原组不存在；Linux主100有效+2故坏（provider1/evaluator1），故坏不计通过。七白名单完整日志/结果/manifest/现场audit **190848字节**逐SHA读回，非本地远端raw transport再验证。最终进度晚于该候选测试，代码/原测试精确绑定并保留文档差异。
+- 原15个报告test方法AST逐项相同，原101实现/7个P2回归及核心门逐字节保持；仅增加新行为回归、imports与固定argv的-B。设计原语义、3秒/原root期限和人工决定不变；没有重复旧全量/真实模型/生产重启。原始退出/源码/完整清单见bytecode-self-validation.json，交固定SHA复核。
+- 新人类授权已直接读主协调人类turn `01a173cb-aa7b-7073-b1f1-a11125e6ffc4` / user `01a173cb-b003-73c3-9126-5383041bfb16`：对原生API/100M问题答“你可以把token上限解除”。本轮前瞻总cap豁免，max_total_tokens应明确null，旧20元不恢复；旧100M合同/失败不回写，不填巨额假cap、不无限循环。原有限调用计划、权限/留出/独立评估/本人采用与00:30不变。现有转发可复用，未知usage/内部attempt诚实披露；不再把硬Token上界或另找原生通道当当前试轮调用前置。先修a98独立确认CURRENT-COMMIT和DECISION-FRONTIER两个P2，再以前瞻新版本接有限调用/原生job-D；不能把撤cap当真实计量完整或80%证明。
+
+
 ## 2026-10-25：NATIVE-HOLDOUT-RECAPTURE-01 修复
 
 - 当前项：同一预封题重捕获包装SHA不同后被训练入口接受；状态：**doing**。起点a98eb40，git status干净，已读579固定独立review/decision/root-recapture-proof；REGISTERED-HOLDOUT-01是同一P2别名。579训练/终测隔离不接受，a98语义报告门和qualified=false不能抵消题目已暴露。
