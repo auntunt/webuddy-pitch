@@ -16,6 +16,8 @@ from tmh.platform.learning import transaction
 
 VERSION = "trial-budget-preparation-v1"
 PROVIDER_VERSION = "trial-budget-provider-v2"
+PROPOSAL_VERSION = "trial-budget-proposal-v3"
+BINDING_VERSION = "trial-proposal-candidate-binding-v1"
 MAX = 2 ** 60
 PHASES = {"propose", "baseline", "candidate", "judge", "probe", "retry", "terminal", "followup"}
 DDL = (
@@ -66,7 +68,7 @@ def validate_contract(c):
     if isinstance(c, dict) and c.get("schema") == PROVIDER_VERSION:
         keys.add("provider_binding")
     fields(c, keys)
-    if c["schema"] not in {VERSION, PROVIDER_VERSION} or not isinstance(c["application_commit"], str) or not re.fullmatch("[0-9a-f]{40}", c["application_commit"]):
+    if c["schema"] not in {VERSION, PROVIDER_VERSION, PROPOSAL_VERSION} or not isinstance(c["application_commit"], str) or not re.fullmatch("[0-9a-f]{40}", c["application_commit"]):
         raise ValueError("fixed application/schema required")
     if c["schema"] == PROVIDER_VERSION:
         binding = c["provider_binding"]
@@ -78,7 +80,12 @@ def validate_contract(c):
     for key in ("tenant_id", "root_family", "training_family", "followup_family"):
         text(c[key])
     integer(c["project_id"], 1)
-    sha(c["candidate_sha256"]); sha(c["baseline_sha256"])
+    if c["schema"] == PROPOSAL_VERSION:
+        if c["candidate_sha256"] is not None:
+            raise ValueError("proposal root keeps its original pending candidate; bind separately")
+    else:
+        sha(c["candidate_sha256"])
+    sha(c["baseline_sha256"])
     if c["candidate_sha256"] == c["baseline_sha256"] or c["training_family"] == c["followup_family"]:
         raise ValueError("distinct candidate/baseline and source families required")
     fields(c["model"], {"provider", "requested_model", "response_model"})
@@ -138,6 +145,11 @@ class Ledger:
         original = {"contract": c, "generation": row["generation"], "created_us": row["created_us"]}
         if len(anchors) != 1 or anchors[0]["payload_hash"] != digest(original) or encoded(json.loads(anchors[0]["payload"])) != encoded(original):
             raise Conflict("original create anchor mismatch")
+        if c["schema"] == PROPOSAL_VERSION:
+            self._consumed(db, key, c)
+            binding = self._candidate_binding(db, key, c)
+            for attempt in db.execute("SELECT request_id FROM rsi_prepare_attempts WHERE pool=?", (key,)):
+                self._proposal_attempt(c, binding, self._attempt(db, key, attempt["request_id"]))
         if dispatch:
             if any(item['result'] is None for item in self._isolations(db, key).values()):
                 raise Conflict("registered isolation still unresolved")
@@ -273,7 +285,7 @@ class Ledger:
         # Original events drive the scan too: a missing mutable pool/claim row
         # cannot erase a still-present original consumption. Known other scopes
         # remain independent; an event without a verifiable create has no scope.
-        keys = {r["pool"] for r in db.execute("SELECT pool FROM rsi_prepare_pools UNION SELECT pool FROM rsi_prepare_events WHERE kind IN ('create','consume_holdout')")}
+        keys = {r["pool"] for r in db.execute("SELECT pool FROM rsi_prepare_pools UNION SELECT pool FROM rsi_prepare_events WHERE kind IN ('create','consume_holdout','bind_candidate')")}
         scope = digest([c["tenant_id"], c["project_id"]])
         keys.update(r["pool"] for r in db.execute("SELECT pool FROM rsi_prepare_holdouts WHERE scope=?", (scope,)))
         for key in keys:
@@ -312,13 +324,107 @@ class Ledger:
             self._event(db, key, "", "create", {"contract": c, "generation": self.generation, "created_us": now})
         return key
 
+    def _proposal_attempt(self, c, binding, row):
+        body = row["body"]
+        try:
+            fields(body, {"phase", "input_limit", "output_limit", "reserved_micro_cny", "contract_hash", "material_sha256", "candidate_binding_sha256"})
+            integer(body["input_limit"], 1); integer(body["output_limit"], 1); integer(body["reserved_micro_cny"]); sha(body["material_sha256"])
+            if body["phase"] not in PHASES or body["contract_hash"] != digest(c):
+                raise Conflict("proposal attempt changed its original root or phase")
+            expected = None if body["phase"] == "propose" else digest(binding) if binding else None
+            if (body["phase"] != "propose" and binding is None) or body["candidate_binding_sha256"] != expected:
+                raise Conflict("attempt changed its original candidate binding")
+            if body["reserved_micro_cny"] != body["input_limit"] * c["price"]["input_micro_cny_per_token"] + body["output_limit"] * c["price"]["output_micro_cny_per_token"]:
+                raise Conflict("proposal reservation changed its original quote")
+        except (ValueError, TypeError, KeyError) as exc:
+            raise Conflict("unverifiable proposal reservation") from exc
+
+    def _candidate_binding(self, db, key, c):
+        """Verify an append-only declaration; this is not output/semantic attestation."""
+        anchors = list(db.execute("SELECT request_id,payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND kind='bind_candidate'", (key,)))
+        if not anchors:
+            return None
+        if c["schema"] != PROPOSAL_VERSION or len(anchors) != 1 or anchors[0]["request_id"]:
+            raise Conflict("candidate has no unique proposal-root anchor")
+        try:
+            value = json.loads(anchors[0]["payload"])
+            fields(value, {"schema", "contract_hash", "proposal_request", "proposal_intent", "proposal_body_sha256", "proposal_receipt_sha256", "raw_response_sha256", "candidate_text", "candidate_sha256", "cases"})
+            if (value["schema"] != BINDING_VERSION or digest(value) != anchors[0]["payload_hash"]
+                    or value["contract_hash"] != digest(c) or value["cases"] != c["holdout_cases"]
+                    or not isinstance(value["candidate_text"], str) or not value["candidate_text"].strip()
+                    or hashlib.sha256(value["candidate_text"].encode("utf-8")).hexdigest() != value["candidate_sha256"]
+                    or value["candidate_sha256"] == c["baseline_sha256"]):
+                raise Conflict("candidate declaration differs from its original root")
+            row = self._attempt(db, key, value["proposal_request"])
+            receipt = self._settled_receipt(db, key, row)
+            # A later unknown keeps the original binding/history, while the
+            # root fence retains the maximum reservation and denies dispatch.
+            if (row["state"] not in {"settled", "unknown"} or row["body"]["phase"] != "propose"
+                    or row["body"]["contract_hash"] != digest(c) or not row["intent"]
+                    or value["proposal_intent"] != row["intent"]
+                    or value["proposal_body_sha256"] != row["body_hash"]
+                    or value["proposal_receipt_sha256"] != row["receipt_hash"]
+                    or value["raw_response_sha256"] != receipt["raw_response_sha256"]):
+                raise Conflict("candidate belongs to another original proposal")
+            return value
+        except (ValueError, TypeError, KeyError, UnicodeError) as exc:
+            raise Conflict("unverifiable original candidate binding") from exc
+
+    def bind_candidate(self, key, proposal_request, candidate_text, raw_response_sha256):
+        """Bind once and consume the presealed B/C set atomically, without a new root.
+
+        The trusted caller must separately verify actual output derivation. A
+        metering-receipt reference alone never grants execution or RSI credit.
+        """
+        text(proposal_request); sha(raw_response_sha256)
+        if not isinstance(candidate_text, str) or not candidate_text.strip():
+            raise ValueError("complete nonempty candidate policy text required")
+        candidate_sha = hashlib.sha256(candidate_text.encode("utf-8")).hexdigest()
+        with transaction(self.store) as db:
+            c = self._pool(db, key)
+            if c["schema"] != PROPOSAL_VERSION or candidate_sha == c["baseline_sha256"]:
+                raise Conflict("binding requires a pending proposal root and a distinct policy")
+            previous = self._candidate_binding(db, key, c)
+            if previous:
+                if (previous["proposal_request"], previous["candidate_text"], previous["raw_response_sha256"]) != (proposal_request, candidate_text, raw_response_sha256):
+                    raise Conflict("the original candidate and terminal set cannot be rebound")
+                return {"new_binding": False, "binding_sha256": digest(previous), "candidate_sha256": candidate_sha}
+            self._pool(db, key, dispatch=True)
+            if db.execute("SELECT 1 FROM rsi_prepare_attempts WHERE pool=? AND state IN ('reserved','intent','unknown')", (key,)).fetchone():
+                raise Conflict("proposal attempts must finish before candidate binding")
+            row = self._attempt(db, key, proposal_request)
+            if row["state"] != "settled" or row["body"]["phase"] != "propose" or self._framing_invalid(db, key, proposal_request):
+                raise Conflict("an original settled proposal is required")
+            receipt = self._settled_receipt(db, key, row)
+            if receipt["raw_response_sha256"] != raw_response_sha256:
+                raise Conflict("candidate reference differs from the original proposal response")
+            self._scope_consumptions(db, c)
+            value = {"schema": BINDING_VERSION, "contract_hash": digest(c), "proposal_request": proposal_request,
+                     "proposal_intent": row["intent"], "proposal_body_sha256": row["body_hash"],
+                     "proposal_receipt_sha256": row["receipt_hash"], "raw_response_sha256": raw_response_sha256,
+                     "candidate_text": candidate_text, "candidate_sha256": candidate_sha, "cases": c["holdout_cases"]}
+            scope = digest([c["tenant_id"], c["project_id"]])
+            for case in c["holdout_cases"]:
+                if db.execute("SELECT 1 FROM rsi_prepare_holdouts WHERE scope=? AND input_hash=?", (scope, case["input_sha256"])).fetchone():
+                    raise Conflict("holdout already consumed in this project")
+                db.execute("INSERT INTO rsi_prepare_holdouts VALUES(?,?,?,?)", (scope, case["input_sha256"], key, case["source_family"]))
+            self._event(db, key, "", "bind_candidate", value)
+            self._event(db, key, "", "consume_holdout", {"candidate_sha256": candidate_sha, "cases": c["holdout_cases"]})
+            self._consumed(db, key, c)
+            return {"new_binding": True, "binding_sha256": digest(value), "candidate_sha256": candidate_sha}
+
     def _consumed(self, db, key, c):
         scope = digest([c["tenant_id"], c["project_id"]])
         existing = list(db.execute("SELECT scope,input_hash,family FROM rsi_prepare_holdouts WHERE pool=?", (key,)))
         anchors = list(db.execute("SELECT payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND kind='consume_holdout'", (key,)))
+        binding = self._candidate_binding(db, key, c) if c["schema"] == PROPOSAL_VERSION else None
         if not anchors and not existing:
+            if binding:
+                raise Conflict("candidate binding lost its original terminal consumption")
             return False
-        value = {"candidate_sha256": c["candidate_sha256"], "cases": c["holdout_cases"]}
+        if c["schema"] == PROPOSAL_VERSION and binding is None:
+            raise Conflict("terminal consumption lost its original candidate binding")
+        value = {"candidate_sha256": binding["candidate_sha256"] if binding else c["candidate_sha256"], "cases": c["holdout_cases"]}
         expected = {(scope, r["input_sha256"], r["source_family"]) for r in c["holdout_cases"]}
         if (len(anchors) != 1 or anchors[0]["payload_hash"] != digest(value) or encoded(json.loads(anchors[0]["payload"])) != encoded(value)
                 or {(r["scope"], r["input_hash"], r["family"]) for r in existing} != expected):
@@ -328,6 +434,10 @@ class Ledger:
     def consume_holdout(self, key):
         with transaction(self.store) as db:
             c = self._pool(db, key, dispatch=True)
+            if c["schema"] == PROPOSAL_VERSION:
+                if not self._consumed(db, key, c):
+                    raise Conflict("pending candidate requires atomic candidate/terminal binding")
+                return False
             self._scope_consumptions(db, c)
             if self._consumed(db, key, c):
                 return False
@@ -379,16 +489,23 @@ class Ledger:
             cost = input_limit * price["input_micro_cny_per_token"] + output_limit * price["output_micro_cny_per_token"]
             integer(cost)
             body = dict(phase=phase, input_limit=input_limit, output_limit=output_limit, reserved_micro_cny=cost, contract_hash=digest(c))
-            if c["schema"] == PROVIDER_VERSION:
+            if c["schema"] in {PROVIDER_VERSION, PROPOSAL_VERSION}:
                 body["material_sha256"] = sha(material_sha256)
             elif material_sha256 is not None:
                 raise ValueError("provider material requires v2 contract")
+            if c["schema"] == PROPOSAL_VERSION:
+                binding = self._candidate_binding(db, key, c)
+                body["candidate_binding_sha256"] = None if phase == "propose" else digest(binding) if binding else None
             if db.execute("SELECT 1 FROM rsi_prepare_attempts WHERE pool=? AND request_id=?", (key, request)).fetchone():
                 old = self._attempt(db, key, request)
                 if old["body_hash"] != digest(body):
                     raise Conflict("request already binds another attempt")
                 return old
             self._pool(db, key, dispatch=True)
+            if c["schema"] == PROPOSAL_VERSION:
+                bound = self._candidate_binding(db, key, c)
+                if (phase == "propose") == bool(bound):
+                    raise Conflict("only proposal before binding; no new proposal after terminal exposure")
             if db.execute("SELECT 1 FROM rsi_prepare_attempts WHERE pool=? AND state IN ('reserved','intent','unknown')", (key,)).fetchone():
                 raise Conflict("serial attempt or unresolved reservation exists")
             if phase in {"baseline", "candidate", "terminal"}:
@@ -409,11 +526,13 @@ class Ledger:
             if row["state"] != "reserved":
                 return {"new_intent": False, "intent": row["intent"], "state": row["state"]}
             c = self._pool(db, key, dispatch=True)
+            if c["schema"] == PROPOSAL_VERSION and (row["body"]["phase"] == "propose") == bool(self._candidate_binding(db, key, c)):
+                raise Conflict("proposal binding phase changed before dispatch")
             if row["body"]["phase"] in {"baseline", "candidate", "terminal"}:
                 self._scope_consumptions(db, c)
                 if not self._consumed(db, key, c):
                     raise Conflict("original terminal consumption missing")
-            if c["schema"] == PROVIDER_VERSION:
+            if c["schema"] in {PROVIDER_VERSION, PROPOSAL_VERSION}:
                 sync = next(iter(db.execute("PRAGMA synchronous").fetchone().values()))
                 journal = next(iter(db.execute("PRAGMA journal_mode").fetchone().values()))
                 if sync not in {2, 3} or journal not in {"delete", "truncate", "persist", "wal"}:
@@ -444,7 +563,11 @@ class Ledger:
             row = self._attempt(db, key, request) if request is not None else None
             if row and row["state"] == "settled":
                 self._settled_receipt(db, key, row)
-            return {"contract": c, "attempt": row}
+            result = {"contract": c, "attempt": row}
+            if c["schema"] == PROPOSAL_VERSION:
+                result["candidate_binding"] = self._candidate_binding(db, key, c)
+                result["candidate_derivation_verified"] = False
+            return result
 
     def unknown(self, key, request, intent, reason):
         """An uncertain remote request retains its worst-case reservation forever."""
@@ -532,6 +655,10 @@ class Ledger:
                 c = self._pool(db, key)
                 self._consumed(db, key, c)
                 row = db.execute("SELECT blocked,generation FROM rsi_prepare_pools WHERE pool=?", (key,)).fetchone()
-                return {"contract_hash": digest(c), "totals": self._totals(db, key), "blocked": bool(row["blocked"]), "current_generation": row["generation"] == self.generation, "execution_authorized": False, "provider_evidence_verified": False, "os_holdout_isolation_verified": False}
+                result = {"contract_hash": digest(c), "totals": self._totals(db, key), "blocked": bool(row["blocked"]), "current_generation": row["generation"] == self.generation, "execution_authorized": False, "provider_evidence_verified": False, "os_holdout_isolation_verified": False}
+                if c["schema"] == PROPOSAL_VERSION:
+                    binding = self._candidate_binding(db, key, c)
+                    result.update(candidate_bound=bool(binding), candidate_binding_sha256=digest(binding) if binding else None, candidate_derivation_verified=False)
+                return result
             finally:
                 db.rollback()
