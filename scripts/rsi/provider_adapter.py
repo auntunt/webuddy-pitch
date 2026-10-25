@@ -13,6 +13,7 @@ import os
 import re
 import stat
 import sys
+from contextlib import nullcontext
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -427,7 +428,7 @@ class Adapter:
                     "actual_provider_charge_verified": False, "rsi_qualified": False,
                     "evidence": str(self._folder(key, request))}
 
-    def dispatch(self, key, request, phase, *, system, messages, cancel_event=None):
+    def dispatch(self, key, request, phase, *, system, messages, cancel_event=None, dispatch_guard=None):
         c = self.ledger.snapshot(key)["contract"]
         if c["schema"] not in L.PROVIDER_SCHEMAS:
             raise L.Conflict("explicit provider root required")
@@ -451,10 +452,13 @@ class Adapter:
                          {"model": p["model"]["requested_model"], "system": system, "messages": messages,
                           "max_tokens": p["output_cap_tokens"], "stream": False, "service_tier": "standard_only"}).encode()
         material = L.digest([loaded["sha256"], hashlib.sha256(body).hexdigest()])
-        self.ledger.reserve(key, request, phase, p["input_cap_tokens"], p["output_cap_tokens"], material_sha256=material)
-        if cancel_event is not None and cancel_event.is_set():
-            return {"state": self.ledger.cancel(key, request), "response_complete": False, "new_dispatch": False}
-        intent = self.ledger.intent(key, request)
+        # Trusted registered entry may serialize CURRENT authority with the
+        # durable reservation/intent. Never hold this across the network child.
+        with dispatch_guard if dispatch_guard is not None else nullcontext():
+            self.ledger.reserve(key, request, phase, p["input_cap_tokens"], p["output_cap_tokens"], material_sha256=material)
+            if cancel_event is not None and cancel_event.is_set():
+                return {"state": self.ledger.cancel(key, request), "response_complete": False, "new_dispatch": False}
+            intent = self.ledger.intent(key, request)
         if not intent["new_intent"]:
             if intent["state"] == "settled":
                 return dict(self.reconcile(key, request), new_dispatch=False)

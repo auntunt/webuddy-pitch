@@ -1,5 +1,19 @@
 # Ralph port 执行进度
 
+## 2026-10-25：恢复共同输入 WIP 收口
+
+- 当前项：原生 Token 登记、当前知识与独立 input×arm；状态：**doing（窄面验证收口，LIVE D 保持拒绝）**。恢复起点 a56b824，git status 为 provider_adapter.py/registered_trial.py 两改动与新 test_rsi_native_registered.py；不重做既有已关闭项。a56 次数诊断已独立18/18关闭；e8固定适配器99原测试+1探针限定接受，真实提供方上界仍未证明；b617负控追加勘误已关闭，旧失败未覆盖。
+- 原 native-current-first 53/53、adoption12/12、selection1/1 均只属中间快照。本次第二轮21项18过3fail/actual1：两撤回夹具误选未实际注入知识的A输入，另一并发夹具创建了新代际；原门正确拒绝新代际。修为确实选中原经验的B输入、显式同进程代际双Store连接，不放宽代际/选择器/时限。原日志与before/after源保持；该轮未启用fixture保留，临时业务现场已由原cleanup清理，不能冒称有完整原DB。第三轮23/23、8.235s/外层8.505s、actual0；第四轮三模块62/62、20.099s/外层20.660s、actual0、源保持。
+- 新加严：Registry→Store→lesson锁覆盖当前性/reserve/intent并在网络前释放；外部独立进程非阻塞锁探测确认知识写入不能插队。训练标签不允许读取预封B/C输入；当前工单正文变化零预留/HTTP。D策略必须等于确切本人采用的原响应策略，重复双臂历史拒绝。旧人工确认/guard/锁/MOVES及基线测试不改。
+- D只读检查确切applied决定/修订/原report SHA、实际选中和渲染、独立工单/族、原根全部双臂完整回执；普通fixture采用继续qualified=false。确切原生BC语义报告→本人决定→同根D桥未实现，**LIVE D继续拒绝**，不制造报告/代签。新设计 docs/design/native-registered-input-2026-10-25.md 明确可审边界。
+- 新实际通道调查只读证据位于分析/implementation/20261025-live-token-feasibility/，CPA参数翻译/内部重发/usage缺失边界未闭合；不修改外部网关、不试拨模型、不自签上界。沿原100M全链根与00:30原截止，不追加预算或顺延/倒填开始。真实模型本任务0次，历史费用未知不记0。
+- 负控首次执行器字符串转义SyntaxError，未跑目标测试，保留 native-negative-final 原件且不算有效控制；修正执行器另存v2继续。最终同源双端/稳定性/原件核验尚待完成，不挪用旧2355全量作为本增量结果。
+- **本窄面状态：done（实现自验完成，待新固定提交独立审；LIVE D关系仍todo）**。最终命令：`PYTHONPATH=tests:. python3 -B -m unittest -v test_rsi_native_registered test_rsi_token_adapter test_rsi_provider_adapter test_rsi_http_framing test_rsi_token_budget test_rsi_proposal_root test_rsi_trial_preparation test_rsi_trial_integrity test_rsi_registered_trial test_rsi_registered_isolation test_rsi_controller_replay`。Mac **226项/220过6条件skip、43.628s/外层44.180s、actual0**；Linux UID1000/Python3.12 同源 **226项/220过6条件skip、117.725s/外层118.123s、actual0/SSH0**。新 `/tmp/webuddy-native-registered-um5gure0/source` 500声明文件SHA/长度/模式前后保持，旧验证495源未改。这是指定验证集合，并非整个Git提交成员清单。新增24方法，旧registered/provider/token测试逐字节保持；acceptance/guard/process_control/filelock/trial_preparation字节保持。
+- 最终两端主日志SHA分别 `fcd5c88f0ef87cf65d5df118ad99246fbbe43142ebbbc6d95d326bf2880be3f8` / `7f26f14302456ae319b4b2e4b1935fffa708f9bb6b220c23b0ffed765915fd8e`。稳定性五场景×三轮，Mac **15/15、10.668s/外层10.916s、actual0**，Linux **15/15、20.976s/外层21.293s、actual0**（外层以原result为准）。两端各48份稳定性SP原件在原路径核nonce/owner/完整output，cleanup complete/reaped、remaining_group=false且当前原进程组不存在；Linux主轮另57份有效及1份有意损坏原件，损坏原件只在原token篡改测试中按预期拒绝。Mac主轮未开启fixture保留，不冒称该主轮也有全部SP原件。Linux七份白名单原日志/结果/manifest/现场审计 **224383字节**逐SHA/长度完整读回；现场审计JSON不等于把原transport二进制下载后本地重新验证。
+- 最终严格负控v2 **5/5**：允许训练读预封输入为1test/2准确目标及子例断言失败；重复臂、取消前当前性漏检、提前释放知识锁、漏实际选中各1test/1准确断言失败；全部0error/真实actual1。首次编译错误不回填。删门仅在外置进程内，原仓库源码保持。新三源与两端最终manifest/负控/稳定性及Git精确绑定在 `分析/RSI协调/pilot-software-20261025/native-self-validation.json`；全部原日志和失败分阶段保留。
+- 自看全部实现diff与diff --check通过，不新增生产入口、不扩个人工具执行权、不重跑旧全量/内核canary、不试拨真实模型、不重启日常服务。新原生BC合格语义报告→本人决定→同根D尚未接入，原生HTTPS实际完整硬界与内部尝试计量仍未知，Windows实机锁/凭据ACL及真实Cursor完整CLI/工具计量保留；实际试点开始、本人参与与收益不伪造。后续独立审范围仅本窄面，不能宣布整体RSI/组织净提效完成。
+
+
 ## 2026-10-25 20:37：TOKEN-DIAGNOSTIC-01次数耗尽诊断
 
 - 当前项：次数用尽但remaining仍满时缺阻断原因；状态：**done（窄修自验，独立关闭待核）**。d8独立审限定接受离线Token根，79正常验证和三探针无预算绕过。只在inspect增加call_limit_reached，不改blocked持久语义/取消计数/预留/金额/时间/执行权。
