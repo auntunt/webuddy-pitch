@@ -1,8 +1,26 @@
 # Ralph port 执行进度
 
+## 2026-10-25：固定登记ID隔离执行与独立评估最小接线
+
+- 当前项：实际Linux固定文本候选/独立exact-match双身份及登记回执接线；状态：**done（限定合成软件增量，待独立技术复审）**。起点d32954d，git status干净。新增 `scripts/rsi/registered_isolation.py`、`tests/test_rsi_registered_isolation.py`、`docs/design/registered-isolation-2026-10-25.md`；原 `scripts/rsi/trial_preparation.py` 仅加严执行待决/未知控制，本进度同步更新。未接生产入口。
+- 实现：原private Catalog登记两ID与精确公开plan/input、原根合同、执行bundle、私有oracle摘要和固定动作。候选只获完整capture/native response；不同评估身份才有独立oracle副本。固定文本blocks交付与exact-match，不执行模型命令/代码。受信Python构造器不是root RPC；不接任意命令/UID/mount/env，只有内部固定路径/角色；导入前必须由受信部署流程验证root-owned源树，不能依靠导入后的摘要消除不可信Python导入风险。
+- 实际controller UID0、候选UID/GID508101、评估508102；不使用共享nobody，不建持久账号/服务。root-owned/tmp锁独占两临时身份并拒绝已有账号/活动占用。各自mount/PID/net namespace+chroot，仅只读系统库/proc；清空环境/补充组/capabilities，no_new_privs。实际候选14项布尔观察均true（oracle不映射、host/proc1 root/cwd/env/fd拒绝、继承FD、网络namespace、只读挂载等），并记录真实uid/gid；不能将固定可信程序观察当任意恶意代码不可逃逸证明。
+- 账本：原4表DDL不变，只追加根级isolation_intent/finished；一次provider request不能另绑执行，pending阻止新派发并按原最大预留计入。正常独立回执才结束pending；未知恢复原attempt最大预留/阻塞，原已知usage/settled事件保留，不声称新增第二笔提供商费用。原settled→unknown晚回调fence继续拒绝释放；事务故障回滚不丢pending。controller崩溃/结果提交缺失不自动重跑；生产人工调查恢复仍todo。
+- 时限/清理：沿原根绝对期限，每角色取剩余期限与3000ms较小值，原SP/process_control摘要固定。真实挂起为124，看到CANDIDATE_READY后真实取消为130，评估未启动/无回执时不报评估通过；未知重放不二次HTTP或namespace。只读原监管回执核nonce/owner/output，root不递归遍历/chown/删除候选树、不做归属回收。
+- 初始483源清单SHA `f1db78b421ec8422951d53fb6393d546b6e234ffde69a198672e84c6fbf0e861`：Mac145项/139执行通过/6显式内核跳过、46.596s/外层47.031s/actual0。Linux root首轮6项 **2通过/4断言失败/0error、5.825s/actual1**，原现场 `/tmp/webuddy-reg-isolation-owned-oqbt3d7z/` 与本地 `分析/RSI协调/registered-isolation-20261025/kernel-initial-readback/` 保留。原候选动态库读取Permission denied/退出127；严格umask077将mkdir0755变成0700。修复只对启动前新建的沙箱内部固定目录显式chmod0755，外层0700/oracle0400保持；新增umask回归及proc1 root/cwd/fd实际拒绝检查，不改原断言/3秒门槛。原8份监管回执核验完整/原进程组消失，原红灯不改成通过。
+- 中间0517源下Mac/Linux146项各140通过/6skip，实际root6/6通过，保留其源码/日志/10原回执核验。收尾仅给新增POSIX目录模式测试声明Windows不适用，Mac/Linux仍执行全部原断言；没有修改旧本机0600文件或把源目录整体chmod洗掉历史。
+- **最终483源**按Git声明模式导出（新文件0644），清单SHA `ee1630983fd2a65c9f4d2956a1c90f76be86b1235ca9dc654da8c5be662cdd2e`。命令：`PYTHONPATH=tests:. python3 -m unittest -v test_rsi_registered_isolation test_rsi_registered_trial test_lesson_input test_learning_input_capture test_learning_lesson_inputs test_rsi_trial_preparation test_rsi_trial_integrity test_rsi_provider_adapter`。Mac **146项/140通过/6显式root内核跳过、46.559s/外层46.964s、actual0**；Linux同源非root **146项/140通过/6同类skip、82.543s/外层82.996s、actual0**。前后483文件SHA/长度/mode保持。两端日志SHA分别 `9ed0d14d52528bba220c2e100025cdbe749b65749dd248ce63724bb92b88c53f` / `e189eb5c34cc0e8cb33a6194598a2fc18a74f2e2e492cb7e69c3b46023f0c1d5`，不把六项skip算内核通过。
+- 同一最终483字节/声明模式在新root-owned私有目录 `/tmp/webuddy-reg-isolation-owned-pb56b0e2/`：`RSI_RUN_KERNEL_FIXTURE=1 PYTHONPATH=tests:. python3 -m unittest -v test_rsi_registered_isolation` **13/13、0skip/失败/error、14.136s/外层14.432s、actual0**（含六实际内核场景）；SSH19.156s/actual0。日志SHA `b42aee5360e0c59fa0192f19263b6941fdf50de58c61568b080d69a0cb23d64d`。正常原生文本、错误oracle布尔false、缺失/变化/任意命令零HTTP、实际timeout/READY取消、未知不重跑均核验；exact-match合成不等于真实任务正确。
+- 稳定性：同最终root源码对正常交付/真实超时/READY屏障取消轮换两轮，**6/6、各actual0**，unittest6.057s/6.028s；未改3秒或可控时钟。外置负控：旧mkdir实现+新umask断言、删pending派发门、删pending最大预留、删晚结算fence，**4/4准确断言失败/actual1/无error**，保留各修改副本/日志，不把负控失败当产品失败。
+- 原件：最终主轮10份监管原件（provider4+candidate4+evaluator2）及稳定性两轮各7份，共**24份**在原路径用原SP.read_receipt核nonce/owner/原始output，再只读检查原进程组不存在；全部cleanup complete/reaped、remaining_group=false，无oracle canary出现在角色输出。评估oracle副本0400/UID508102，候选root无oracle；两数值UID无账号/活动进程，宿主无夹具挂载。旧初轮8份与中间10份另保留，不混计最终24。
+- 白名单读回：最终Linux非root3份104000字节；root52份190913字节，含最终/稳定性日志、原件audit、公开输入、固定执行结果和role原始输出，逐SHA/长度读回。并非全量root夹具/数据库/私有oracle/凭据复制；全部原始现场仍在远端private目录。原件本地副本不冒称可用原路径SP核验。完整清单见仓库外 `分析/RSI协调/registered-isolation-20261025/release-readback-manifest.json`。
+- **2026-10-25 10:35:00 CST**只读核验线上215文件SHA/长度/mode仍与6edc04f相同，active/running、PID2502485、重启0。未重启/改生产入口、数据或凭据；未创建持久账号/常驻root服务/8791或8793日常服务，所有HTTP为临时合成回环，实际模型/付费0。guard、钩子/ALWAYS_PROTECTED、人工确认/采用/验收/关单及MOVES未改。只跑相关增量，不重做旧2115全量或已关闭H1/L1矩阵。
+- 固定提交/普通GitHub推送及最后运行核验由外置 `coding-handoff.json` 记录；本增量独立复审待结论。真实CLI/IDE执行工具、任意候选代码资源/系统调用隔离、生产专用身份、实际未见B/C与真人采用→D及多人长期收益仍todo。native Messages隐式会话/工具差异保持，`production_equivalent=false/rsi_qualified=false`，没有组织收益加分。
+- 待确认沿原请求：可信profile/价格、真实项目/A/B/C/D、实际人/职责/周期仍pending，不复问、不代签、不付费；HTTP signed chunk-size限制在live准入前必须限定支持框定。Windows原生监管/隔离/凭据ACL仍未实现，不把POSIX测试前置当Windows验证。
+
 ## 2026-10-25：登记输入到执行回执最小接线
 
-- 当前项：固定计划/输入 ID、真实生产输入冻结与原根预算/provider 回执串接；状态：**done（仅输入接线增量，独立技术复审待结论）**。起点2a543fc，最初工作区干净。已核851独立verdict：原H1/晚回调fence关闭、L1保持关闭；额外signed chunk-size限制原红灯保留，不声明完整RFC解析。
+- 当前项：固定计划/输入 ID、真实生产输入冻结与原根预算/provider 回执串接；状态：**done（仅输入接线增量，独立复审在此范围接受）**。起点2a543fc，最初工作区干净。已核851独立verdict：原H1/晚回调fence关闭、L1保持关闭；额外signed chunk-size限制原红灯保留，不声明完整RFC解析。
 - 文件：新增 `scripts/rsi/registered_trial.py`、`tests/test_rsi_registered_trial.py`、`docs/design/registered-input-execution-2026-10-25.md`，更新本进度。调用一次原 `agents.build_prompt` / selector / renderer，不重写经验算法；保存原始全量history及原生产有效最后六条窗口、完整工单/项目/提示词/经验上下文与来源前后快照。不是无副作用dry-run，只在合成临时Store验证。
 - 登记合同：私有所有者/权限/单链接/nofollow；先完整写入/fsync，再原子发布非空目录，同 ID 不覆盖。计划固定输入、原根合同/request/phase/策略/broker源码摘要，拒绝任意命令/UID/mount/环境。原 `rsi_prepare_events` 根级登记锚绑定计划和输入来源；提示字节即使相同，来源变化也不能重标旧回执；已有调用缺原锚时拒绝回填。不新增表/预算，不改原attempt状态序列。
 - 调用复用原Ledger/Adapter的生成、judge、probe、retry、terminal、baseline/candidate/followup阶段、唯一intent、期限和累计预算。登记记录/代码变化或外部取消走原监管取消，未知保留最大预留并阻塞，旧未知重放不二次HTTP。live声明在登记锚/预留前拒绝；fixture之外尚无实际派发通路。
@@ -14,8 +32,10 @@
 - **2026-10-25 09:43:02 CST**只读核验：线上215运行文件SHA/长度/mode仍与6edc04f相同，active/running、PID2502485、重启0。本增量仅scripts/tests/docs，不接生产路由，不部署新运行入口、不重启、不读写真实业务data/密钥、不付费、不代签。人工确认/采用/验收/关单、guard/ALWAYS_PROTECTED/钩子/MOVES未改。
 - 证据根：仓库外 `分析/RSI协调/registered-input-wiring-20261025/`，含旧失败日志/阶段源、最终480源/两端实际退出回执、稳定性/负控和原件核验。固定新SHA普通推送后由协调侧独立复审，不以自检替代独立结论。
 - 代码/测试/合同固定提交 **fa3e7e2685fa28f24a1ed1c4987fe67081f56a70**。最终本机文件权限核对脚本因既有 `tmh/mapper.py` 为0600而Git/生产0644退出1；同一shell命令块随后仍执行git commit，整体工具退出0，故不能把整体退出当该核对通过。失败与原因记录在 `committed-source-verification.json`，没有改原文件权限。后续逐Git blob确认480导出字节均与fa3相同、215生产文件Git字节/模式/blob均与6ed发布清单相同；另发现导出中 `scripts/realworld_test/driver.py` 同样为既有本机0600/Git0644，精确区分测试导出文件系统权限与Git模式，不冒称两者全同。这两处无内容/执行位变化、不涉及运行源码改动，原两端133结果保留、不重复同一测试矩阵。线上实际215权限已单独在09:43核验。收尾记录另起文档提交，随fa3普通推送；实际远端HEAD与最后只读运行核验保存外置交接JSON。
-- **下一项仍todo：固定登记ID的实际隔离执行器及独立oracle evaluator**。本批 `isolated_execution=not_run`、`oracle_evaluation=not_run`、`production_equivalent=false`、`rsi_qualified=false`；native Messages无真实CLI/IDE工具及隐式会话，捕获前后快照不是未来授权，也不证明全世界原子一致。原HTTP signed chunk-size限制须在真实profile准入前收紧支持框定；不把合成调用算真实A/B/C/D或M/C/P。
+- **后续执行主线（fa3交接时todo，当前固定文本最小实现见上节）**。本批 `isolated_execution=not_run`、`oracle_evaluation=not_run`、`production_equivalent=false`、`rsi_qualified=false`；native Messages无真实CLI/IDE工具及隐式会话，捕获前后快照不是未来授权，也不证明全世界原子一致。原HTTP signed chunk-size限制须在真实profile准入前收紧支持框定；不把合成调用算真实A/B/C/D或M/C/P。
 - 待确认沿原询问：可信profile/价格、真实A/B/C/D、真人/职责/周期尚pending，不重复询问、不代填。Windows原生监管/隔离/凭据ACL仍未完成。真实付费0、真实试点not_run、组织收益评分null；下一个窄增量不得开放任意root命令/挂载/UID接口。
+
+- fa3独立结论已核 `分析/independent-review/20261025-fa3e7e2-registered-review/verdict.json`：登记输入范围接受、无新增阻断；18原新增、capture8/Catalog11/Broker6有限复验。预算拒绝可能保留registered_plan锚（不等于全DB无变化），capture普通usage IO不随后续失败回滚。历史两文件FS0600/Git0644模式门仍fail，原组合shell原始回执缺失；自记实际gate1不能代替原回执。此前Linux本地仅4白名单汇总132270字节，不是15份原件副本。该审查不证明当前跨UID/生产等价，也不重开H1/L1。
 
 ## 2026-10-25：H1 HTTP响应长度与原件复核
 

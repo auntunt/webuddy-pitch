@@ -139,6 +139,8 @@ class Ledger:
         if len(anchors) != 1 or anchors[0]["payload_hash"] != digest(original) or encoded(json.loads(anchors[0]["payload"])) != encoded(original):
             raise Conflict("original create anchor mismatch")
         if dispatch:
+            if any(item['result'] is None for item in self._isolations(db, key).values()):
+                raise Conflict("registered isolation still unresolved")
             now = self._time()
             if row["generation"] != self.generation:
                 raise Conflict("new process generation cannot resume old dispatch")
@@ -147,6 +149,91 @@ class Ledger:
                 raise Conflict("pool blocked or original deadline expired")
             db.execute("UPDATE rsi_prepare_pools SET last_us=? WHERE pool=?", (now, key))
         return c
+
+    def _isolations(self, db, key):
+        """Root events serialize execution without inventing provider usage."""
+        items = {}
+        for event in db.execute("SELECT request_id,kind,payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND kind IN ('isolation_intent','isolation_finished') ORDER BY id", (key,)):
+            value = json.loads(event['payload'])
+            if event['request_id'] or digest(value) != event['payload_hash']:
+                raise Conflict('corrupt isolation root anchor')
+            if event['kind'] == 'isolation_intent':
+                fields(value, {'request_id', 'execution_id', 'intent', 'binding_sha256'})
+                text(value['request_id']); text(value['intent']); sha(value['execution_id']); sha(value['binding_sha256'])
+                if value['execution_id'] != digest([key, value['request_id'], value['binding_sha256']]) or self._attempt(db, key, value['request_id'])['intent'] != value['intent']:
+                    raise Conflict('isolation original provider intent differs')
+                if value['request_id'] in items:
+                    raise Conflict('provider request cannot own two executions')
+                if any(item['result'] is None for item in items.values()):
+                    raise Conflict('overlapping isolated execution history')
+                items[value['request_id']] = {'anchor': value, 'result': None}
+            else:
+                fields(value, {'execution_id', 'status', 'receipt_sha256'})
+                sha(value['receipt_sha256'])
+                if value['status'] not in {'evaluated', 'unknown'}:
+                    raise Conflict('unsupported isolation result')
+                matches = [item for item in items.values() if item['anchor']['execution_id'] == value['execution_id']]
+                if len(matches) != 1 or matches[0]['result'] is not None:
+                    raise Conflict('isolation result has no unique original intent')
+                matches[0]['result'] = value
+        return items
+
+    def isolation_snapshot(self, key, request):
+        with transaction(self.store) as db:
+            self._pool(db, key)
+            self._totals(db, key)
+            return self._isolations(db, key).get(request)
+
+    def begin_isolation(self, key, request, binding_sha256):
+        sha(binding_sha256)
+        with transaction(self.store) as db:
+            self._pool(db, key)
+            old = self._isolations(db, key).get(request)
+            if old:
+                if old['anchor']['binding_sha256'] != binding_sha256:
+                    raise Conflict('execution cannot change registered provenance')
+                return dict(old, new_execution=False)
+            self._pool(db, key, dispatch=True)
+            attempt = self._attempt(db, key, request)
+            if attempt['state'] != 'settled':
+                raise Conflict('complete original provider receipt required')
+            self._settled_receipt(db, key, attempt)
+            value = {'request_id': request, 'execution_id': digest([key, request, binding_sha256]),
+                     'intent': attempt['intent'], 'binding_sha256': binding_sha256}
+            self._event(db, key, '', 'isolation_intent', value)
+            return {'anchor': value, 'result': None, 'new_execution': True}
+
+    def finish_isolation(self, key, request, binding_sha256, *, verified, receipt_sha256):
+        sha(binding_sha256); sha(receipt_sha256)
+        if type(verified) is not bool:
+            raise ValueError('explicit verified outcome required')
+        with transaction(self.store) as db:
+            contract = self._pool(db, key)
+            item = self._isolations(db, key).get(request)
+            if not item or item['anchor']['binding_sha256'] != binding_sha256:
+                raise Conflict('isolation does not match original intent')
+            value = {'execution_id': item['anchor']['execution_id'],
+                     'status': 'evaluated' if verified else 'unknown', 'receipt_sha256': receipt_sha256}
+            if item['result']:
+                if item['result'] != value:
+                    raise Conflict('immutable isolation result differs')
+                return item['result']
+            attempt = self._attempt(db, key, request)
+            if attempt['intent'] != item['anchor']['intent'] or attempt['state'] != 'settled':
+                raise Conflict('original settled provider intent changed')
+            self._settled_receipt(db, key, attempt)
+            if verified and self._time() >= contract['limits']['deadline_us']:
+                raise Conflict('verified isolation exceeded original root deadline')
+            if not verified:
+                # Preserve the known usage receipt/history, but conservatively
+                # restore its original maximum reservation. Late settlement is
+                # already fenced by the original settled->unknown history gate.
+                db.execute("UPDATE rsi_prepare_attempts SET state='unknown' WHERE pool=? AND request_id=?", (key, request))
+                db.execute("UPDATE rsi_prepare_pools SET blocked=1 WHERE pool=?", (key,))
+                self._event(db, key, request, 'unknown', {'intent': attempt['intent'],
+                    'reason': 'registered_isolation_unverifiable', 'prior_receipt_sha256': attempt['receipt_hash']})
+            self._event(db, key, '', 'isolation_finished', value)
+            return value
 
     def _event(self, db, key, request, kind, value):
         db.execute("INSERT INTO rsi_prepare_events(pool,request_id,kind,payload,payload_hash) VALUES(?,?,?,?,?)", (key, request, kind, encoded(value), digest(value)))
@@ -258,6 +345,7 @@ class Ledger:
         anchors = [r["request_id"] for r in db.execute("SELECT request_id FROM rsi_prepare_events WHERE pool=? AND kind='reserve'", (key,))]
         if set(ids) != set(anchors) or len(anchors) != len(ids):
             raise Conflict("original attempts cannot be removed or duplicated")
+        isolations = self._isolations(db, key)
         for row in db.execute("SELECT request_id FROM rsi_prepare_attempts WHERE pool=?", (key,)):
             attempt = self._attempt(db, key, row["request_id"])
             calls += 1  # Even proved pre-intent cancellation does not refresh attempt count.
@@ -266,8 +354,13 @@ class Ledger:
                 continue
             if attempt["state"] == "settled":
                 receipt = self._settled_receipt(db, key, attempt)
-                tokens += receipt["input_tokens"] + receipt["output_tokens"]
-                cost += receipt["accounted_micro_cny"]
+                isolation = isolations.get(row['request_id'])
+                if isolation and isolation['result'] is None:
+                    tokens += body['input_limit'] + body['output_limit']
+                    cost += body['reserved_micro_cny']
+                else:
+                    tokens += receipt["input_tokens"] + receipt["output_tokens"]
+                    cost += receipt["accounted_micro_cny"]
             elif attempt["state"] in {"reserved", "intent", "unknown"}:
                 tokens += body["input_limit"] + body["output_limit"]
                 cost += body["reserved_micro_cny"]
