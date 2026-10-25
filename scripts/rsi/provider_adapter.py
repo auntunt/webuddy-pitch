@@ -528,11 +528,17 @@ class Adapter:
         material = L.digest([loaded["sha256"], hashlib.sha256(body).hexdigest()])
         # Trusted registered entry may serialize CURRENT authority with the
         # durable reservation/intent. Never hold this across the network child.
-        with dispatch_guard if dispatch_guard is not None else nullcontext():
-            self.ledger.reserve(key, request, phase, p["max_request_bytes"] if c["schema"] == L.FINITE_PROVIDER_VERSION else p["input_cap_tokens"], p["output_cap_tokens"], material_sha256=material)
-            if cancel_event is not None and cancel_event.is_set():
-                return {"state": self.ledger.cancel(key, request), "response_complete": False, "new_dispatch": False}
-            intent = self.ledger.intent(key, request)
+        if c["schema"] == L.FINITE_PROVIDER_VERSION:
+            pre_cancelled = cancel_event is not None and cancel_event.is_set()
+            with dispatch_guard if dispatch_guard is not None else nullcontext(None) as check:
+                intent = self.ledger.admit(key,request,phase,p["max_request_bytes"],p["output_cap_tokens"],
+                                           material_sha256=material,check=check,pre_cancelled=pre_cancelled)
+        else:
+            with dispatch_guard if dispatch_guard is not None else nullcontext():
+                self.ledger.reserve(key, request, phase, p["max_request_bytes"] if c["schema"] == L.FINITE_PROVIDER_VERSION else p["input_cap_tokens"], p["output_cap_tokens"], material_sha256=material)
+                if cancel_event is not None and cancel_event.is_set():
+                    return {"state": self.ledger.cancel(key, request), "response_complete": False, "new_dispatch": False}
+                intent = self.ledger.intent(key, request)
         if not intent["new_intent"]:
             if intent["state"] == "settled":
                 return dict(self.reconcile(key, request), new_dispatch=False)

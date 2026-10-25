@@ -346,6 +346,38 @@ class Ledger:
                 self._pool(db, key)
                 self._consumed(db, key, prior)
 
+    def _native_exposures(self, db, c):
+        """Retain native observed/consumed task identities across later roots.
+
+        A committed provider intent is potentially exposed, including unknown
+        outcomes. A D registration consumes its independent case conservatively
+        before dispatch. No old contract or original claim is rewritten.
+        """
+        result = []
+        keys = {r['pool'] for r in db.execute("SELECT pool FROM rsi_prepare_events WHERE kind IN ('registered_token_input','native_d_registration','registered_sealed_inputs')")}
+        for key in sorted(keys):
+            old = self._pool(db,key)
+            if (old['tenant_id'],old['project_id']) != (c['tenant_id'],c['project_id']): continue
+            for row in db.execute("SELECT kind,payload,payload_hash FROM rsi_prepare_events WHERE pool=? AND kind IN ('registered_token_input','native_d_registration','registered_sealed_inputs') ORDER BY id",(key,)):
+                value = json.loads(row['payload'])
+                if digest(value)!=row['payload_hash']: raise Conflict('corrupt original native exposure')
+                if row['kind']=='registered_token_input':
+                    attempt = db.execute('SELECT intent FROM rsi_prepare_attempts WHERE pool=? AND request_id=?',(key,value['request_id'])).fetchone()
+                    if not attempt or not attempt['intent']: continue
+                    task_id = value['ticket_id']; input_hash=value['input_sha256']
+                    result.append(dict(root_pool=key,input_sha256=input_hash,task_sha256=digest([{'tenant_id':c['tenant_id'],'project_id':c['project_id']},task_id]) if task_id is not None else None))
+                elif row['kind']=='native_d_registration':
+                    if value['root_pool']!=key or value['source_family']!=old['followup_family']: raise Conflict('native D exposure changed its original scope')
+                    result.append(dict(root_pool=key,input_sha256=value['input_sha256'],task_sha256=digest([{'tenant_id':c['tenant_id'],'project_id':c['project_id']},value['task_id']])))
+                elif self._consumed(db,key,old):
+                    for item in value['inputs']:
+                        result.append(dict(root_pool=key,input_sha256=item['input_sha256'],task_sha256=item['identity']['task_sha256']))
+        return sorted({encoded(v):v for v in result}.values(),key=encoded)
+
+    def native_exposures(self, c):
+        with transaction(self.store) as db:
+            return self._native_exposures(db,c)
+
     def create(self, contract):
         c = validate_contract(contract)
         key = digest([c["tenant_id"], c["project_id"], c["root_family"]])
@@ -365,6 +397,10 @@ class Ledger:
                 if old["contract_hash"] != digest(c):
                     raise Conflict("same root family cannot refresh contract or budget")
                 return key
+            if c['schema'] in FINITE_SCHEMAS:
+                exposed = {v['input_sha256'] for v in self._native_exposures(db,c)}
+                if any(v['input_sha256'] in exposed for v in c['holdout_cases']):
+                    raise Conflict('native input was already exposed; a new root cannot refresh its holdout')
             dangling = db.execute("SELECT 1 FROM rsi_prepare_events WHERE pool=? UNION SELECT 1 FROM rsi_prepare_attempts WHERE pool=? UNION SELECT 1 FROM rsi_prepare_holdouts WHERE pool=? LIMIT 1", (key, key, key)).fetchone()
             if dangling:
                 raise Conflict("missing pool with original history cannot be recreated")
@@ -561,73 +597,104 @@ class Ledger:
             raise ValueError("unknown phase")
         integer(input_limit, 1); integer(output_limit, 1)
         with transaction(self.store) as db:
-            c = self._pool(db, key)
-            token_only = c["schema"] in NONMONETARY_SCHEMAS
-            finite = c["schema"] in FINITE_SCHEMAS
-            if token_only:
-                cost = None
-            else:
-                price = c["price"]
-                cost = input_limit * price["input_micro_cny_per_token"] + output_limit * price["output_micro_cny_per_token"]
-                integer(cost)
-            body = dict(phase=phase, input_limit=input_limit, output_limit=output_limit, reserved_micro_cny=cost, contract_hash=digest(c))
-            if c["schema"] in {PROVIDER_VERSION, *PROPOSAL_SCHEMAS}:
-                body["material_sha256"] = sha(material_sha256)
-            elif material_sha256 is not None:
-                raise ValueError("provider material requires v2 contract")
-            if c["schema"] in PROPOSAL_SCHEMAS:
-                binding = self._candidate_binding(db, key, c)
-                body["candidate_binding_sha256"] = None if phase == "propose" else digest(binding) if binding else None
-            if db.execute("SELECT 1 FROM rsi_prepare_attempts WHERE pool=? AND request_id=?", (key, request)).fetchone():
-                old = self._attempt(db, key, request)
-                if old["body_hash"] != digest(body):
-                    raise Conflict("request already binds another attempt")
-                return old
-            self._pool(db, key, dispatch=True)
-            if c["schema"] in PROPOSAL_SCHEMAS:
-                bound = self._candidate_binding(db, key, c)
-                if (phase == "propose") == bool(bound):
-                    raise Conflict("only proposal before binding; no new proposal after terminal exposure")
-            if db.execute("SELECT 1 FROM rsi_prepare_attempts WHERE pool=? AND state IN ('reserved','intent','unknown')", (key,)).fetchone():
-                raise Conflict("serial attempt or unresolved reservation exists")
-            if phase in {"baseline", "candidate", "terminal"}:
-                self._scope_consumptions(db, c)
-                if not self._consumed(db, key, c):
-                    raise Conflict("holdout must be consumed before first terminal arm")
-            total = self._totals(db, key)
-            charges = [("calls", 1)]
-            if not finite:
-                charges.append(("billed_tokens", input_limit + output_limit))
-            if not token_only:
-                charges.append(("cost_micro_cny", cost))
-            if any(total[k] + n > c["limits"][k] for k, n in charges):
-                raise Conflict("cumulative root budget exceeded")
-            db.execute("INSERT INTO rsi_prepare_attempts VALUES(?,?,?,?,'reserved','','','')", (key, request, encoded(body), digest(body)))
-            self._event(db, key, request, "reserve", body)
-            return self._attempt(db, key, request)
+            return self._reserve(db, key, request, phase, input_limit, output_limit, material_sha256=material_sha256)
+
+    def _reserve(self, db, key, request, phase, input_limit, output_limit, *, material_sha256=None):
+        c = self._pool(db, key)
+        token_only = c["schema"] in NONMONETARY_SCHEMAS
+        finite = c["schema"] in FINITE_SCHEMAS
+        if token_only:
+            cost = None
+        else:
+            price = c["price"]
+            cost = input_limit * price["input_micro_cny_per_token"] + output_limit * price["output_micro_cny_per_token"]
+            integer(cost)
+        body = dict(phase=phase, input_limit=input_limit, output_limit=output_limit, reserved_micro_cny=cost, contract_hash=digest(c))
+        if c["schema"] in {PROVIDER_VERSION, *PROPOSAL_SCHEMAS}:
+            body["material_sha256"] = sha(material_sha256)
+        elif material_sha256 is not None:
+            raise ValueError("provider material requires v2 contract")
+        if c["schema"] in PROPOSAL_SCHEMAS:
+            binding = self._candidate_binding(db, key, c)
+            body["candidate_binding_sha256"] = None if phase == "propose" else digest(binding) if binding else None
+        if db.execute("SELECT 1 FROM rsi_prepare_attempts WHERE pool=? AND request_id=?", (key, request)).fetchone():
+            old = self._attempt(db, key, request)
+            if old["body_hash"] != digest(body):
+                raise Conflict("request already binds another attempt")
+            return old
+        self._pool(db, key, dispatch=True)
+        if c["schema"] in PROPOSAL_SCHEMAS:
+            bound = self._candidate_binding(db, key, c)
+            if (phase == "propose") == bool(bound):
+                raise Conflict("only proposal before binding; no new proposal after terminal exposure")
+        if db.execute("SELECT 1 FROM rsi_prepare_attempts WHERE pool=? AND state IN ('reserved','intent','unknown')", (key,)).fetchone():
+            raise Conflict("serial attempt or unresolved reservation exists")
+        if phase in {"baseline", "candidate", "terminal"}:
+            self._scope_consumptions(db, c)
+            if not self._consumed(db, key, c):
+                raise Conflict("holdout must be consumed before first terminal arm")
+        total = self._totals(db, key)
+        charges = [("calls", 1)]
+        if not finite:
+            charges.append(("billed_tokens", input_limit + output_limit))
+        if not token_only:
+            charges.append(("cost_micro_cny", cost))
+        if any(total[k] + n > c["limits"][k] for k, n in charges):
+            raise Conflict("cumulative root budget exceeded")
+        db.execute("INSERT INTO rsi_prepare_attempts VALUES(?,?,?,?,'reserved','','','')", (key, request, encoded(body), digest(body)))
+        self._event(db, key, request, "reserve", body)
+        return self._attempt(db, key, request)
 
     def intent(self, key, request):
         with transaction(self.store) as db:
-            row = self._attempt(db, key, request)
-            self._pool(db, key)
-            if row["state"] != "reserved":
-                return {"new_intent": False, "intent": row["intent"], "state": row["state"]}
-            c = self._pool(db, key, dispatch=True)
-            if c["schema"] in PROPOSAL_SCHEMAS and (row["body"]["phase"] == "propose") == bool(self._candidate_binding(db, key, c)):
-                raise Conflict("proposal binding phase changed before dispatch")
-            if row["body"]["phase"] in {"baseline", "candidate", "terminal"}:
-                self._scope_consumptions(db, c)
-                if not self._consumed(db, key, c):
-                    raise Conflict("original terminal consumption missing")
-            if c["schema"] in {PROVIDER_VERSION, *PROPOSAL_SCHEMAS}:
-                sync = next(iter(db.execute("PRAGMA synchronous").fetchone().values()))
-                journal = next(iter(db.execute("PRAGMA journal_mode").fetchone().values()))
-                if sync not in {2, 3} or journal not in {"delete", "truncate", "persist", "wal"}:
-                    raise Conflict("durable provider intent requires FULL SQLite synchronization")
-            token = uuid.uuid4().hex
-            db.execute("UPDATE rsi_prepare_attempts SET state='intent',intent=? WHERE pool=? AND request_id=?", (token, key, request))
-            self._event(db, key, request, "intent", {"intent": token, "body_hash": row["body_hash"]})
-            return {"new_intent": True, "intent": token, "state": "intent"}
+            return self._intent(db, key, request)
+
+    def _intent(self, db, key, request):
+        row = self._attempt(db, key, request)
+        self._pool(db, key)
+        if row["state"] != "reserved":
+            return {"new_intent": False, "intent": row["intent"], "state": row["state"]}
+        c = self._pool(db, key, dispatch=True)
+        if c["schema"] in PROPOSAL_SCHEMAS and (row["body"]["phase"] == "propose") == bool(self._candidate_binding(db, key, c)):
+            raise Conflict("proposal binding phase changed before dispatch")
+        if row["body"]["phase"] in {"baseline", "candidate", "terminal"}:
+            self._scope_consumptions(db, c)
+            if not self._consumed(db, key, c):
+                raise Conflict("original terminal consumption missing")
+        if c["schema"] in {PROVIDER_VERSION, *PROPOSAL_SCHEMAS}:
+            sync = next(iter(db.execute("PRAGMA synchronous").fetchone().values()))
+            journal = next(iter(db.execute("PRAGMA journal_mode").fetchone().values()))
+            if sync not in {2, 3} or journal not in {"delete", "truncate", "persist", "wal"}:
+                raise Conflict("durable provider intent requires FULL SQLite synchronization")
+        token = uuid.uuid4().hex
+        db.execute("UPDATE rsi_prepare_attempts SET state='intent',intent=? WHERE pool=? AND request_id=?", (token, key, request))
+        self._event(db, key, request, "intent", {"intent": token, "body_hash": row["body_hash"]})
+        return {"new_intent": True, "intent": token, "state": "intent"}
+
+    def admit(self, key, request, phase, input_limit, output_limit, *, material_sha256, check=None, pre_cancelled=False):
+        """Finite admission: Registry caller -> Store/SQLite -> lesson -> intent.
+
+        The trusted check is read-only; never call public transaction wrappers
+        while this transaction is owned. No model/network is held under a lock.
+        """
+        from contextlib import nullcontext
+        from tmh.platform import learn
+        text(request); integer(input_limit, 1); integer(output_limit, 1)
+        if phase not in PHASES: raise ValueError('unknown phase')
+        with transaction(self.store) as db:
+            c = self._pool(db, key)
+            if c['schema'] not in FINITE_SCHEMAS: raise Conflict('atomic finite admission requires a new finite root')
+            with learn.ledger_lock(self.store.path.parent, create=False) if check is not None else nullcontext():
+                if check is not None: check()
+                row = self._reserve(db,key,request,phase,input_limit,output_limit,material_sha256=material_sha256)
+                if pre_cancelled and row['state'] == 'reserved':
+                    db.execute("UPDATE rsi_prepare_attempts SET state='cancelled' WHERE pool=? AND request_id=?", (key,request))
+                    self._event(db,key,request,'cancel_before_intent',{})
+                    result = dict(new_intent=False,intent='',state='cancelled')
+                else: result = self._intent(db,key,request)
+                # The file lease must include the real commit of OUR transaction.
+                db.commit()
+                return result
 
     def cancel(self, key, request):
         with transaction(self.store) as db:

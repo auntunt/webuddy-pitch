@@ -54,9 +54,20 @@ def _decode(row):
     return dict(row, payload=json.loads(row["payload"]), result=json.loads(row["result"]))
 
 
-def _job(P, p, r, job_id):
+def _job(P, p, r, job_id, reason=None):
     from . import learning_runs, learning_eval
     job = learning_runs.get(P, p, job_id)
+    if job["kind"] not in ("review", "evaluate", "native_evaluate"):
+        raise ApiError(409, "未知验证类型不能授权采用")
+    if job["kind"] == "native_evaluate":
+        from . import native_learning
+        if r["kind"] != "lesson" or job["current_revision_id"] != r["id"] or reason is None:
+            raise ApiError(409, "原生评测需要确切经验修订和本人报告引用")
+        try:
+            native_learning.verify(P, p, job, reason=reason)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            raise ApiError(409, "原生评测原件或确切版本不可核验") from error
+        return job
     if (job["status"] != "passed" or job["current_revision_id"] != r["id"] or
             job.get("result", {}).get("passed") is not True):
         raise ApiError(409, "需要对应确切修订的机器通过回执")
@@ -101,7 +112,7 @@ def decide(P, p, action, revision_id, actor, request_id, expected_active, reason
                 X.assert_adoptable_in_tx(db, p["id"], r["id"], {"job_id": job_id})
                 if not L.revision_current(P, p, r):
                     raise ApiError(409, "修订来源已过期，请重新固定版本")
-                _job(P, p, r, job_id)
+                _job(P, p, r, job_id, reason)
             # Policy parameters occupy one slot for the project, regardless of candidate name.
             pending = db.execute("SELECT id FROM learning_decisions WHERE project_id=? AND kind=? AND status='pending' AND (?='policy' OR origin_id=?)",
                                  (p["id"], r["kind"], r["kind"], r["origin_id"])).fetchone()
@@ -144,7 +155,7 @@ def project_decision(P, p, did):
                 if d["action"] == "adopt":
                     if not L.revision_current(P, p, r):
                         raise ApiError(409, "投影前策略来源已变化")
-                    _job(P, p, r, req["job_id"])
+                    _job(P, p, r, req["job_id"], req["reason"])
                     L.policy_content(r["content"])
                     db.execute("INSERT INTO learning_policy_active VALUES(?,?,?) ON CONFLICT(project_id) DO UPDATE SET revision_id=excluded.revision_id,decision_id=excluded.decision_id",
                                (p["id"], r["id"], did))
@@ -158,7 +169,7 @@ def project_decision(P, p, did):
                     X.assert_adoptable_in_tx(db, p["id"], r["id"], {"job_id": req["job_id"]})
                     if not L.revision_current(P, p, r):
                         raise ApiError(409, "投影前经验来源已变化")
-                    _job(P, p, r, req["job_id"])
+                    _job(P, p, r, req["job_id"], req["reason"])
                 if d["action"] == "adopt":
                     result = learn.project_revision(P.data_dir, p["key"], r["origin_id"], r["id"],
                                                     json.loads(payload["content"]), d["actor"], did, payload["expected_token"],

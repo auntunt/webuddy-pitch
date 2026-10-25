@@ -43,6 +43,19 @@ class NativeRegisteredTests(unittest.TestCase):
         self.c.admit()
         self.broker=R.TokenBroker(self.c.adapter,self.catalog)
 
+    def test_authorized_recapture_preserves_task_identity_across_update_order(self):
+        original = [cap['source']['ticket']['id'] for cap in self.caps]
+        # The UI's newest-first query can change order across a second boundary.
+        # Input indexes belong to the original tasks, never to display ordering.
+        for tid in original:
+            self.c.store.x('UPDATE tickets SET updated=? WHERE id=?',
+                           ('2026-10-26 01:00:%02d' % tid, tid))
+        self.authorize_context()
+        self.assertEqual([cap['source']['ticket']['id'] for cap in self.caps], original)
+        block = next(m['block'] for m in self.caps[0]['source']['context']
+                     if m.get('mode') == 'learning_lessons')
+        self.assertTrue(block['bindings'])
+
     def plan(self,name,phase='propose',input_index=3,policy='baseline',family=None,request=None,adoption=None):
         family=family or (self.c.base['holdout_cases'][input_index]['source_family'] if phase in {'baseline','candidate'} else self.c.base['training_family'])
         plan=dict(schema=R.VERSION,kind=R.TokenBroker.KIND,input_id='input-'+str(input_index),input_sha256=self.input_hashes[input_index],
@@ -73,7 +86,7 @@ class NativeRegisteredTests(unittest.TestCase):
         directory=self.c.root/'authorized-catalog';directory.mkdir(mode=0o700)
         self.catalog=R.Catalog(directory,trusted_uid=os.getuid());self.addCleanup(self.catalog.close)
         self.caps=[];self.input_hashes=[]
-        for i,ticket in enumerate(self.c.store.tickets(project_id=1)):
+        for i,ticket in enumerate(sorted(self.c.store.tickets(project_id=1), key=lambda row: row['id'])):
             cap=R.capture(self.c.store,self.project,ticket,tenant_id='default',history=self.history)
             self.caps.append(cap);self.input_hashes.append(self.catalog.admit('input','input-'+str(i),cap))
         self.c.base.update(tenant_id='default',root_family='authorized-native-root')

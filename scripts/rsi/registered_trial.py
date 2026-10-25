@@ -552,3 +552,54 @@ class FiniteBroker(TokenBroker):
             raise L.Conflict('explicit finite profile required')
         self._authority(contract, profile)
         return profile
+
+    @contextmanager
+    def _admission(self, prepared, contract, profile):
+        from tmh.platform import tenant_policy as TP
+        guard = TP.experiment_guard(self.context,self.actor,contract['project_id'],'manager') if self.context is not None else nullcontext()
+        def check():
+            if self._authority(contract,profile) != prepared['authority']:
+                raise L.Conflict('current finite authority changed')
+            self._capture_current(prepared['capture'])
+            prior=[v for v in self.adapter.ledger._native_exposures(self.adapter.ledger.store.db,contract) if v['root_pool']!=prepared['plan']['root_pool']]
+            if prior!=prepared.get('prior_exposures',prior): raise L.Conflict('native exposure set changed before intent')
+            if self._sealed_inputs(prepared['plan']['root_pool'],contract) != prepared['sealed_inputs']:
+                raise L.Conflict('original sealed inputs changed')
+            if prepared['adoption'] and self._followup(prepared['plan'],prepared['capture'],contract,prepared['input_sha256'],profile,check_arms=False) != prepared['adoption']:
+                raise L.Conflict('current native adoption changed')
+        with guard:
+            yield check
+
+    def _followup(self, plan, value, contract, input_hash, profile, *, check_arms=True):
+        from . import native_job_bridge as J, native_bc_report as B
+        from tmh.platform import native_learning as N
+        if self.context is None: raise L.Conflict('current personal context required for native D')
+        job_id=plan['adoption']['job_id']
+        proof=N.strict(N.private_file(N.folder(self.context,job_id)/'evidence.json'))
+        evaluator=Path(proof['supervised'][-1]['folder'])
+        return J.Jobs(B.Reports(self,evaluator.parent)).followup(plan,value,contract,input_hash,profile)
+
+    def _extra(self, prepared):
+        extra=super()._extra(prepared)
+        extra['qualified_bc_report_verified']=bool(prepared['adoption'] and prepared['adoption'].get('job_native_provenance_verified'))
+        return extra
+
+    def _prepare(self, plan, value, contract, input_hash, profile):
+        prepared=super()._prepare(plan,value,contract,input_hash,profile)
+        exposures=self.adapter.ledger.native_exposures(contract)
+        prior=[v for v in exposures if v['root_pool']!=plan['root_pool']]
+        sealed=prepared['sealed_inputs']['inputs']
+        if any(item['input_sha256']==old['input_sha256'] or item['identity']['task_sha256']==old['task_sha256']
+               for item in sealed for old in prior):
+            raise L.Conflict('new terminal set aliases a previously exposed native task')
+        if plan['phase']=='followup':
+            identity=self._holdout_identity(value,require_task=True)
+            if any(input_hash==old['input_sha256'] or identity['task_sha256']==old['task_sha256'] for old in prior):
+                raise L.Conflict('new D aliases a previously exposed native task')
+        prepared['prior_exposures']=prior
+        return prepared
+
+    def _before_plan(self, db, plan, contract, input_hash, prepared):
+        prior=[v for v in self.adapter.ledger._native_exposures(db,contract) if v['root_pool']!=plan['root_pool']]
+        if prior!=prepared['prior_exposures']: raise L.Conflict('native exposure set changed before plan registration')
+        return super()._before_plan(db,plan,contract,input_hash,prepared)

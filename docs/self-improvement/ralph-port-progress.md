@@ -1,5 +1,26 @@
 # Ralph port 执行进度
 
+## 2026-10-26：原生job、本人引用与同根D桥
+
+- 当前项：原生评测job→确切报告→本人采用引用→同根新D；状态：**done（作者验证及固定候选；新批独立产品复审、发布待定）**。起点5eb957e工作区干净；2be与5eb固定提交各自已获限定独立接受，该结论不扩大到本批新桥。本项先推进不依赖真人回应的软件与合成验证；普通job不改名洗为native，模型自评/Agent不能代真人确认。
+- 设计边界：原生job独立类型，经原预登记、实际SP与原件、确切revision/root/frontier/输入/模型/有限计划发布。原human入口只认确切原生来源与报告引用；D需新任务、原selector/renderer实际选中已采用策略，原根计数/截止/未知阻挡不变，唯一自身D不得放宽其他late attempt。旧窗口不延长/回填，真实模型暂未启动。
+- 待验证：发布/回滚/原件失效/普通job拒绝、真实个人合成决定、同根新D正反例；线上runtime变更须通过必要回归与精确包验证后发布，本批不提前宣称上线。
+- 当前实现：独立native_evaluate job、私有原件封存和原根锚；原个人采用门新增确切原生来源/报告引用、未知kind拒绝；UI只在本人明确提交时绑定原因。新D实际原selector/renderer消费确切已采用策略，同根第8请求与唯一自身frontier例外；原报告read不放宽。独立D断言预登记、3秒/root余时监督、唯一intent/原件回放/未知不重跑、错误答案真实失败均已实现。
+- 锁与暴露：finite reserve/intent在Registry→Store/SQLite→lesson顺序内原子登记，实际commit覆盖lesson lease；真实第二进程检查锁顺序和commit持有。新增跨根原生意图/消费/D预封任务身份与rawSHA防重封，旧合同/历史不改，原根幂等创建保持。原生job与D不构成强OS隔离或完整CLI工具生产等价。
+- 已跑：native-job-first 4方法/4路径别名error、9.716s/外层10.039s、actual1，Mac /var→/private/var被误拒绝，修正记录规范路径而不放宽私有文件校验。原临时fixture按cleanup移除，仅完整日志/源清单保留，不声称首轮SP原件保留。native-job-second 37/37、11.808s；atomic-first 55/55、28.716s；native-D-first 32/32、25.132s；D-second 68/68、35.027s；D-third 123/123、63.605s；native-admission-first 17/17、43.413s；exposures-first 37/37、55.014s；exposures-second 39/39、60.716s；lifecycle-final-directed 24/24、55.777s，均actual0/源保持。仅对应当时源码的定向证据，最终精确来源尚待固定验证。
+- 两旧批独立结论已直接读取2be-review-decision.json和5eb-review-decision.json，均accept_scoped_implementation：2be两P2关闭，根26+额外5；5eb根244=238pass6root夹具skip/额外12新43旧8边界。独立finite导出2318原Git字节/mode保持，实际2348有30pyc，complete_member_set_unchanged=false，原现场保留；仅时间/子进程导入相关，非创建PID直接证明，不重开d0固定worker-B。作者schema筛选207是子集，独立Mac完整292=288有效+4故坏，遗漏85旧金额provider；不从Mac推断Linux完整数。原9夹具error全文本轮未读回，只有摘要/旧工具transcript，不称完整日志已核。这些接受不扩大为当前运行/UI新桥已接受。
+
+- 本轮冻结tree188ef690：Mac35模块565项559通过/6root显式skip，192.593s/外层193.567s、actual0；10负控各1目标failure/0error/actual1；12稳定性通过。Linux同源声明513文件565项558通过/1error/6skip，397.800s/外层398.616s、actual1。失败原路径`/tmp/webuddy-native-bridge-zfwcvztx`保留：finite-native撤回时bindings为空，非通过。
+- 已定位既有fixture重捕获按Store.tickets最近更新时间枚举，跨秒时任务索引从APP-1换成APP-4，后者被原生产holdout规则排除。确定性设置四任务更新时间后，旧helper准确1 assertion failure/0error（native-recapture-order-red.log，顺序4/3/2/1而非1/2/3/4）；仅将测试重捕获按固定ID排序，新增身份及真实bindings断言，不改生产selector/renderer/holdout、超时或原断言。修后重新冻结并重跑，不拿首轮Mac绿灯替代最终证明。
+
+
+- 最终受测tree `159af9ca246752c8b9f353ea7aeda0d44d17b437`，完整Git导出2325文件，逐份Git blob/SHA256/长度/mode及完整集合核对；Linux从原495源加精确覆盖构成513声明成员，前后完整集合均恰为513，无额外pyc。不能将Linux513子集称为2325全树；原495文件字节也保持。`native-bridge-candidate-v2/`、`native-bridge-candidate-v2-source-verification.json`保留。最终提交相对受测tree只追加本进度记录，并移除新测试文件EOF多余空行；全部运行/私有协议代码和测试AST相同，差异在提交绑定记录中逐项核对。
+- 最终命令：`NO_PROXY='*' no_proxy='*' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -B -m unittest -v <native-bridge-candidate-v2/modules.json的35模块>`；Mac Python3.14 **566项/560通过/6显式root夹具skip、195.666s/外层196.420s、actual0**；Linux UID1000/Python3.12 同35模块 **566项/560通过/6同类skip、402.807s/外层403.680s、actual0**。两端完整日志、原命令/cwd、清单、退出码保留于`native-bridge-final-mac-v2/`与`native-bridge-linux-v2-readback/`，后者由原服务器路径完整读回SHA/长度。此为相称的相关回归，不冒称新的全量或新root内核验证；旧f947全量仍仅属旧提交。
+- 稳定性与负控：最终同源四条同根D实际成功/实际第8HTTP取消/真实commit持lesson锁/独立SQLite写入者与lesson锁序，每端3轮 **12/12**；Linux固定ID重捕获反例另10/10。`native-bridge-negatives-final-v2/result.json`十项各准确1目标failure/0error/actual1，含孤立预留历史、未完成隔离、确切本人报告、完整frontier、普通job洗来源、D原断言、跨根raw/task暴露、反锁序及提前释放commit。旧第6条super编译error及外层辅助脚本cwd/旧package文件名错误仍保留工具记录，不计有效反例；没有把故意红灯记作正常产品失败。
+- 原件完整枚举：新审计不再按schema筛掉旧金额provider，逐个数据库意图及所有supervisor/result目录核对v2/v5/v7。最终Mac/Linux主回归各482实际SP目录＝477有效绑定+5故意追加changed的坏原件，另4意图无SP目录（既有缺原件、BC/D未知worker注入及纯锁序入场未发HTTP），全部明确列出；每端稳定性各60有效SP、另3纯锁序入场意图无SP；最终负控69有效SP、另1纯入场意图。无未匹配目录，观察到的组均已不存在，只读查询未信号历史PID。故坏/无回执不算成功原件。Linux为现场原路径核验，完整审计/日志结果读回，不声称所有raw SP下载到Mac再验证。
+- 不变量核对：acceptance、guard、filelock、process_control、supervised_process、lesson_context、lesson_input与5eb逐字一致；旧reserve/intent内层逻辑抽取前后AST完全相同；既有NativeRegistered测试方法AST保持，仅修改夹具任务枚举并新增确定性反例。UI为实际JS/Node合成DOM行为回归，未新跑真实浏览器或生产个人会话；先前被阻止的强pending→applied探针未重试、未作为证明。
+- 发布与待确认：普通提交/推送当前iteration/context-pack-v2，精确SHA及来源/证据哈希在仓库外`native-bridge-self-validation.json`、`native-bridge-fixed-git-members.json`和`coding-handoff.json`。runtime共219文件，仅native_learning/learning_decisions/ui_learning三处相对线上变化，Store迁移DDL未改。2026-10-26 03:21:39 CST只读核生产仍f947、218运行文件一致、active/running、重启0；本轮未激活、未改业务数据。新固定候选独立产品审及相应新发布门/迁移副本/延迟健康仍是发布前依赖，不拿旧门或旧审替代。真实有限新工程计划、真人采用及新D等待实际依赖，不复活旧00:30多人窗，不代签，真实模型调用0、rsi_qualified=false。Windows原六项阻塞沿用，尤其本批原件权限/监督进程仍只验证POSIX；无需要用户重复授权或预算答复的阻塞。
+
 ## 2026-10-26：前瞻有限执行与Token总上限豁免
 
 - 当前项：新finite v6/v7合同与独立profile/Broker；状态：**done（作者验证；独立复审待定）**。起点2be8960工作区干净，两个a98快照P2已作者验证并普通推送，线上218一致/不重启，独立复审仍待定。人类解除Token总上限只面向新执行版本，明确max_total_tokens=null；旧100M/20元根、失败和暴露集合不回写，旧20元不恢复。
