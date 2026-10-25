@@ -49,6 +49,7 @@ class ProviderAdapterTests(unittest.TestCase):
         self.seen, self.release = threading.Event(), threading.Event()
         self.lock = threading.Lock()
         self.count, self.requests, self.auth_ok = 0, [], []
+        self.paths, self.bearer_ok = [], []
         self.response, self.status, self.wait = native(), 200, False
         self.raw_override, self.extra_length, self.chunked = None, 0, False
         case = self
@@ -62,6 +63,8 @@ class ProviderAdapterTests(unittest.TestCase):
                     case.count += 1
                     case.requests.append(body)
                     case.auth_ok.append(self.headers.get("x-api-key") == case.secret)
+                    case.paths.append(self.path)
+                    case.bearer_ok.append(self.headers.get("Authorization") == "Bearer " + case.secret)
                 case.seen.set()
                 if case.wait:
                     case.release.wait(15)

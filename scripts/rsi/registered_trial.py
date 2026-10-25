@@ -181,6 +181,14 @@ class Catalog:
 class Broker:
     def __init__(self,adapter,catalog):self.adapter,self.catalog=adapter,catalog
 
+    def _profile(self,contract):
+        if contract['schema']!=L.PROVIDER_VERSION:
+            raise L.Conflict('legacy fixture broker requires its original v2 root')
+        profile=self.adapter.registry.load(contract['provider_binding']['profile_id'])['profile']
+        if profile['mode']!='fixture' or not self.adapter.registry.fixture:
+            raise L.Conflict('isolation admission incomplete; live dispatch disabled')
+        return profile
+
     def dispatch(self,plan_id,input_id,*,cancel_event=None):
         code_current()
         plan,plan_hash,plan_identity=self.catalog.load('plan',plan_id)
@@ -196,9 +204,7 @@ class Broker:
         if (L.digest(contract)!=L.sha(plan['contract_sha256']) or value['scope']!={'tenant_id':contract['tenant_id'],'project_id':contract['project_id']}):
             raise L.Conflict('registered root contract or tenant/project differs')
         # No real paid profile can be enabled by this preliminary broker.
-        profile=self.adapter.registry.load(contract['provider_binding']['profile_id'])['profile']
-        if profile['mode']!='fixture' or not self.adapter.registry.fixture:
-            raise L.Conflict('isolation admission incomplete; live dispatch disabled')
+        profile=self._profile(contract)
         packet=effective(value,plan['policy'])
         if packet['policy_sha256']!=L.sha(plan['policy_sha256']):raise L.Conflict('policy changed')
         request=P.opaque(plan['request_id'])

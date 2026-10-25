@@ -70,10 +70,14 @@ def main():
     connection = None
     try:
         request = json.load(sys.stdin)
+        protocol = request.get("protocol")
+        if protocol not in (None, "messages", "responses"):
+            raise ValueError("unsupported fixed protocol")
+        path = "/v1/responses" if protocol == "responses" else "/v1/messages"
         url = urlsplit(request["endpoint"])
         if (url.username or url.password or url.query or url.fragment or not url.hostname
-                or url.path != "/v1/messages"):
-            raise ValueError("fixed Messages endpoint required")
+                or url.path != path):
+            raise ValueError("fixed protocol endpoint required")
         body = base64.b64decode(request["body"], validate=True)
         key = request["credential"]
         if not isinstance(key, str) or not key or any(ord(c) < 33 or ord(c) > 126 for c in key):
@@ -85,12 +89,18 @@ def main():
         else:
             raise ValueError("HTTPS required")
         # Direct http.client deliberately ignores ambient proxy variables.
-        connection.request("POST", url.path, body=body, headers={"Content-Type": "application/json",
-                           "x-api-key": key, "anthropic-version": "2023-06-01"})
+        headers = {"Content-Type": "application/json"}
+        if protocol == "responses":
+            headers["Authorization"] = "Bearer " + key
+        else:
+            headers.update({"x-api-key": key, "anthropic-version": "2023-06-01"})
+        connection.request("POST", url.path, body=body, headers=headers)
         response = connection.getresponse()
-        metadata = {"schema": VERSION, "status": response.status, "headers": response.getheaders(),
+        metadata = {"schema": "token-text-transport-v2" if protocol else VERSION, "status": response.status, "headers": response.getheaders(),
                     "request_sha256": hashlib.sha256(body).hexdigest(),
                     "transport_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+        if protocol:
+            metadata["protocol"] = protocol
         sys.stdout.buffer.write(json.dumps(metadata, separators=(",", ":")).encode() + b"\n")
         sys.stdout.buffer.flush()
         invalid_framing = False
