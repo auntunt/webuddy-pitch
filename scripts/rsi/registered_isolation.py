@@ -66,7 +66,10 @@ try:
  elif role=='evaluator':
   candidate_raw=Path('/input/candidate.json').read_bytes();candidate=json.loads(candidate_raw)
   oracle=json.loads(Path('/input/oracle.json').read_text())
-  print(json.dumps({'schema':'oracle-exact-blocks-v1','uid':os.getuid(),'verdict':candidate['blocks']==oracle['expected_blocks'],
+  # Canonical parsed JSON preserves every field and bool/number distinctions.
+  # Object order is ignored; array order and int/float representations remain.
+  def canonical(value):return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)
+  print(json.dumps({'schema':'oracle-exact-blocks-v2','uid':os.getuid(),'verdict':canonical(candidate['blocks'])==canonical(oracle['expected_blocks']),
                     'candidate_sha256':hashlib.sha256(candidate_raw).hexdigest()},sort_keys=True),flush=True)
  else:raise ValueError()
 except BaseException:
@@ -257,7 +260,7 @@ class Launcher:
                 evaluated=self._run(folder,'evaluator',root,remaining(),owner,cancel)
                 if evaluated.returncode!=0 or not evaluated.cleanup.get('complete') or cancel.is_set():raise L.Conflict('oracle outcome unknown')
                 value=P.strict_json(evaluated.output_bytes);L.fields(value,{'schema','uid','verdict','candidate_sha256'})
-                if value['schema']!='oracle-exact-blocks-v1' or value['uid']!=EVALUATOR_UID or type(value['verdict']) is not bool or value['candidate_sha256']!=R.sha(candidate.output_bytes):raise L.Conflict('independent evaluation binding failed')
+                if value['schema']!='oracle-exact-blocks-v2' or value['uid']!=EVALUATOR_UID or type(value['verdict']) is not bool or value['candidate_sha256']!=R.sha(candidate.output_bytes):raise L.Conflict('independent evaluation binding failed')
                 if oracle['secret_canary'].encode() in candidate.output_bytes+evaluated.output_bytes:raise L.Conflict('private oracle canary exposed')
                 verdict=value['verdict'];verified=True
                 if self.ledger._time()>=snap['contract']['limits']['deadline_us']:verified=False

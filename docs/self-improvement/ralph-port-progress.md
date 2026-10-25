@@ -1,5 +1,23 @@
 # Ralph port 执行进度
 
+## 2026-10-25：I1完整blocks类型敏感比较
+
+- 当前项：独立3b复审I1/P2；状态：**done（窄修与定向/同源实测完成，独立回归结论待）**，优先于FIFO收口。原 `分析/independent-review/20261025-3b87a51-isolation-review/verdict.json` 为changes_requested：30457字节实际回环响应已settled/complete，原WORKER内存角色投影6例4过2断言失败/actual1/0error；UID/checks模拟，不是新内核逃逸/付费。原两红灯、完整原body/监管原件和review目录不改。
+- 文件：仅 `scripts/rsi/registered_isolation.py` 比较/评估schema、新 `tests/test_rsi_evaluator_types.py`、`docs/design/evaluator-json-semantics-2026-10-25.md` 与本进度。完整已解析JSON值规范序列化比较，全部blocks/附加字段保留，布尔/数值分开；对象键序不计、数组顺序保留；整数1≠浮点1.0、-0.0≠0.0；1e0/1.0解析后相同。明确不是数字原词法相等或上游浮点精度恢复，原native body完整保留。evaluator schema升oracle-exact-blocks-v2，父进程仅接纳v2；UID/候选字节摘要/完整回执绑定不变，非有限值走固定错误。
+- 新增首轮比较9方法3断言失败/0error/actual1（true/1、false/0及新增int/float合同），旧X和日志 `red-replay9.log` 保留；随后测试增加schema/nonfinite断言，不冒称首轮test文件完全同字。独立原脚本逐字重放旧冻结源另存 `red-independent6`，**6例4过2失败/0harness error/actual1、1.121s**；修后 `green-independent6` **6/6、actual0、1.056s**。二者真实回环native body均30457字节、逐字相同，SHA `0bc81e6a89d4e803cd34e1ead70d977683e318cdb452e5c13f8b0232226baf44`；同值/正文差异/格式错误/错误角色控制保持。这两轮UID/checks仍是模拟，root/namespace执行数0，不能算OS观察。
+- 最终485文件按Git声明模式导出，SHA `fcaf3919e2c1330b4f0bac456313ec31de37bf9aec5ede89e61216cb1f0d725c`。`PYTHONPATH=tests:. python3 -m unittest -v test_rsi_evaluator_types test_rsi_registered_isolation`：Mac **25项/16通过/9显式root跳过、3.586s/外层3.868s、actual0**；Linux非root同源 **25项/16通过/9skip、5.249s/外层5.588s、actual0**，源前后SHA/长度/mode保持。仅相关比较/原隔离模块，不重做H1/L1/fa3大矩阵或旧2115全量。
+- 同一485源在root-owned `/tmp/webuddy-evaluator-I1-owned-jujdqzac/`，显式 `RSI_RUN_KERNEL_FIXTURE=1` 同命令 **25/25、0skip/失败/error、16.675s/外层16.937s、actual0**，SSH21.707s/actual0。25方法包含模拟比较/账本/平台检查；9个root门控方法中2个只是准入拒绝，实际合计7次candidate/5次evaluator，不说25次内核执行。Root日志SHA `d42f986d5e7524f33b30313d266a2ed9e16167deeed4e8e3fbaa598ca001df10`。
+- I1新增三个真实双身份场景：深40层true/1与false/0均false，同值完整长blocks及对象键序变化为true；3次真实native/candidate/evaluator，各原始角色UID508101/508102、schema v2、完整输入保留、原usage已知settled。独立只读原路径核验9份SP回执/nonce/owner/output与原进程组消失，候选/评估输出不含合成oracle canary。55份完整白名单原件1031657字节读回，含这9份各自计划/结果/output与合成oracle，仅受信审计用，不是controller投影；本地复制不冒称原路径SP。证据 `分析/RSI协调/evaluator-I1-20261025/`。
+- **2026-10-25 11:59:28 CST**线上215运行文件仍与6edc04f逐SHA/长度/mode一致，active/running、PID2502485、重启0。本批仅验证工具/测试/文档，未接生产入口/服务、不改data/凭据/原根预算/3秒门槛、guard/ALWAYS_PROTECTED/人工确认/MOVES，实际模型/付费0、score=null。单独固定修复提交与ordinary push由本批外置交接记录；controller新通道代码仍WIP，不混入本提交。
+- 3b复审有限范围纠正：旧root门控6例=2准入拒绝+4实际candidate/2evaluator；旧最终24远端原路径回执中，本地10份主轮个体原件、稳定14为嵌入audit汇总，不能说24份均有本地完整原件。旧四负控母版0517，umask是整模块回退到初版并运行新断言，非仅删chmod；其余有限ledger/来源检查不等于整批通过，不重开H1/L1。
+- controller权限分离继续doing：初始486包仅在临时非root上传目录、尚无新FIFO内核执行；此前Mac45相关方法31过/14root跳过是I1修前源，不代替之后通道验收。真实profile/价格与真人项目/职责/周期仍pending，不复问、不代签、不付费。固定exact-match不证明真实未见B/C、真人采用→D或多人组织收益。
+
+## 2026-10-25：非root控制器与私有评估资产分离
+
+- 当前项：固定登记ID、非root调度控制器与受信特权配置/评估最小通道；状态：doing。起点f14218a，git status干净；3b隔离增量已交独立复审，不继承fa3结论覆盖它。
+- 边界：受信root provisioning保留oracle读取权，不证明root不可读；把可优化/调度角色移到第三个非root临时身份，只给公开输入与固定run/status/cancel操作，不投影oracle、其可猜测摘要、完整私有计划/错误详情。原根budget/intent/原SP及固定文本动作继续复用，不安装生产root服务、不接任意命令/UID/mount/env接口。
+- 计划采用仅两条固定文件FIFO的临时命名空间IPC，root所有者固定读写权限，源与private登记合同绑定；未知/失联不自动重发。真实profile/真人试点仍沿原询问pending，不复问、不代签、不付费。
+
 ## 2026-10-25：固定登记ID隔离执行与独立评估最小接线
 
 - 当前项：实际Linux固定文本候选/独立exact-match双身份及登记回执接线；状态：**done（限定合成软件增量，待独立技术复审）**。起点d32954d，git status干净。新增 `scripts/rsi/registered_isolation.py`、`tests/test_rsi_registered_isolation.py`、`docs/design/registered-isolation-2026-10-25.md`；原 `scripts/rsi/trial_preparation.py` 仅加严执行待决/未知控制，本进度同步更新。未接生产入口。
