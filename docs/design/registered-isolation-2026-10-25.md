@@ -1,12 +1,14 @@
 # 固定登记 ID 的 Linux 隔离交付：最小增量
 
-本增量实际运行两个分离身份的固定程序：候选把已登记公开输入和原 provider 原生文本结果交付为完整 blocks；独立 evaluator 才能读取私有 oracle，对完整 blocks 做 exact-match。它不是任意代码沙箱、IDE 执行适配器或真实业务评测。`production_equivalent=false`、`rsi_qualified=false` 保持；真实 profile、A/B/C/D 与真人决定仍 pending。
+本增量实际运行两个分离身份的固定程序：候选把已登记公开输入和原 provider 原生文本结果交付为完整 blocks；独立 evaluator 对私有 oracle 中的完整 blocks 做 exact-match。受信 root controller 会读取 oracle 来核对格式、配置角色文件和检查 canary；语义答案比较只在独立评估 UID 中执行。当前不是“controller 被 OS 禁止读取 oracle”的实现。它不是任意代码沙箱、IDE 执行适配器或真实业务评测。`production_equivalent=false`、`rsi_qualified=false` 保持；真实 profile、A/B/C/D 与真人决定仍 pending。
 
 ## 输入和权限
 
 `Launcher` 只能由受信服务器代码在显式 Linux root 临时夹具中构造，`dispatch` 仅接受登记 plan/input ID 和取消信号。没有 root RPC、shell/命令参数、外部 UID、挂载源或环境入口，也没有生产启动钩子。构造器中的目录和 broker 对象属于受信控制面的部署配置，不得直接映射成 HTTP 参数。导入代码本身必须由受信部署流程先验证并放在 root-owned 私有源树；文件摘要不能让从攻击者源树导入 Python 变安全。
 
 两套私有 Catalog 分别登记执行合同与 oracle；合同固定原公开 plan/input 摘要、原 root 合同、执行 bundle、oracle 摘要、固定动作及 3000ms 上限。缺失/未知字段/任意命令/变化来源在新 HTTP 或 namespace 派发前拒绝。当前只允许 `deliver` 和用于真实取消/超时验证的固定 `hang` 动作，不执行模型提供的命令或代码。
+
+当前把受信root setup与controller放在同一进程；它可读取oracle但不会将oracle或其摘要交给模型/候选。将非root controller、特权资产配置器与oracle evaluator进一步分离、让controller本身不能读取oracle，仍是后续软件项，不能用本次候选不可见测试代替。
 
 候选只得到原 capture 全文与完整 native response，不得到 oracle、它的摘要、任意完整执行详情或提供商凭据。公开输入保留完整原始 history、原生产有效窗口和所有来源；候选的输出只选择已有原生 response 的完整 content blocks，不截断文本或媒体。本增量仅支持原适配器的文本协议，不把媒体转换成缩略信息。
 

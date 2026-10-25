@@ -15,6 +15,8 @@
 - 原件：最终主轮10份监管原件（provider4+candidate4+evaluator2）及稳定性两轮各7份，共**24份**在原路径用原SP.read_receipt核nonce/owner/原始output，再只读检查原进程组不存在；全部cleanup complete/reaped、remaining_group=false，无oracle canary出现在角色输出。评估oracle副本0400/UID508102，候选root无oracle；两数值UID无账号/活动进程，宿主无夹具挂载。旧初轮8份与中间10份另保留，不混计最终24。
 - 白名单读回：最终Linux非root3份104000字节；root52份190913字节，含最终/稳定性日志、原件audit、公开输入、固定执行结果和role原始输出，逐SHA/长度读回。并非全量root夹具/数据库/私有oracle/凭据复制；全部原始现场仍在远端private目录。原件本地副本不冒称可用原路径SP核验。完整清单见仓库外 `分析/RSI协调/registered-isolation-20261025/release-readback-manifest.json`。
 - **2026-10-25 10:35:00 CST**只读核验线上215文件SHA/长度/mode仍与6edc04f相同，active/running、PID2502485、重启0。未重启/改生产入口、数据或凭据；未创建持久账号/常驻root服务/8791或8793日常服务，所有HTTP为临时合成回环，实际模型/付费0。guard、钩子/ALWAYS_PROTECTED、人工确认/采用/验收/关单及MOVES未改。只跑相关增量，不重做旧2115全量或已关闭H1/L1矩阵。
+- 代码固定为 **3b87a51b767e4c90f46be7ee000a4d35fbde965d** 并已普通推送，483测试导出与该提交Git字节/声明模式一致；随后单独文档澄清oracle权限，不改执行/测试源码，不将文档新HEAD冒称原483逐字相同。受信root setup/controller当前同进程，确实读取oracle用于格式核验、角色文件配置及canary检查；只有语义答案比较在独立UID。**controller自身不能读oracle尚未实现**，需后续非root controller与特权资产配置/evaluator分离。本轮证明候选看不到oracle，不能升级为全部控制角色资产隔离。
+- **10:42:57 CST**最终215运行文件仍与6ed相同、active/running、PID2502485、重启0；真实调用/付费0。本批不安装生产root入口。
 - 固定提交/普通GitHub推送及最后运行核验由外置 `coding-handoff.json` 记录；本增量独立复审待结论。真实CLI/IDE执行工具、任意候选代码资源/系统调用隔离、生产专用身份、实际未见B/C与真人采用→D及多人长期收益仍todo。native Messages隐式会话/工具差异保持，`production_equivalent=false/rsi_qualified=false`，没有组织收益加分。
 - 待确认沿原请求：可信profile/价格、真实项目/A/B/C/D、实际人/职责/周期仍pending，不复问、不代签、不付费；HTTP signed chunk-size限制在live准入前必须限定支持框定。Windows原生监管/隔离/凭据ACL仍未实现，不把POSIX测试前置当Windows验证。
 
