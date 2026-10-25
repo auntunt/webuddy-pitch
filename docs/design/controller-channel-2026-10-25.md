@@ -45,3 +45,9 @@ ac4b227的独立审查确认：只核controller缓存与自身SP，不足以证�
 本验证针对一次读取时的证据完整性，不阻止受信root在验证后修改私有材料，不证明非root可写原件。新普通本地测试使用真实SP/SQLite/Catalog及完整缓存入口，特权源码/所有权预检被替代，不冒称namespace/UID证明；另有真实root隔离C1回归。最终冻结489源的Mac37方法22通过/15root跳过、Linux显式root37/37；最终普通回放两轮18/18。源码/调用cwd/前后清单、原红灯与修中误拒绝保留于仓库外controller-C1-20261025证据，独立修后复审仍待。
 
 旧三项诊断负控是在一个进程各产生一条unittest失败，外层SSH实际exit0，不是三份独立exit1；旧Mac45 invocation缺cwd/源绑定，版本归属仅有包和交接的间接支持；初次precommit失败缺独立原命令traceback。这些限制不以本批新结果回填。真实CLI/profile/试点仍未运行，不给组织收益评分。
+
+## C2：临时返回字段不参与持久快照比较
+
+bf4fbd4独立复审限定关闭C1，但发现第二条completed分支将begin_isolation返回的`{anchor,result,new_execution:false}`与仅`{anchor,result}`的持久snapshot整dict比较，误拒绝完好证据。修正仅复制持久anchor/result作为比较基准；原件/结果/角色SP核验与末尾快照重读均保留，调用者item不被修改。pending/unknown不升级，预算和历史不变。
+
+新增四条回归核真实begin completed item、完整第二分支的确定性时序、损坏/快照变化，以及pending/unknown。第二分支回归的cached provider/SP和lease有明确替身，不是特权竞争或新HTTP证明。冻结489源上，两正控在旧实现准确失败；修后Mac/Linux相关28方法各19通过/9root跳过，没有重跑旧root/H1/L1/fa3/I1矩阵。普通SP子环境新增PYTHONDONTWRITEBYTECODE，声明文件和整个导出source成员前后均核一致；旧独立491源的额外pyc原件保留，不能用本轮结果回填旧成员不变。

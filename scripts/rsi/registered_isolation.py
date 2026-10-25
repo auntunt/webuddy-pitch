@@ -197,6 +197,9 @@ class Launcher:
     def _read_replay(self,plan,prior,binding):
         """Verify original completed evidence only; never dispatch or mutate it."""
         if prior is None:return None
+        # begin_isolation adds transient dispatch metadata to the same stored
+        # anchor/result. Compare only that persisted state on the final read.
+        prior={'anchor':prior['anchor'],'result':prior['result']}
         old=self.ledger.snapshot(plan['root_pool'],plan['request_id'])['attempt']
         if old is None:raise L.Conflict('original provider attempt missing')
         binding=dict(binding,provider_intent=old['intent'],provider_receipt_sha256=old['receipt_hash'])

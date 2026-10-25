@@ -1,8 +1,22 @@
 # Ralph port 执行进度
 
+## 2026-10-25：C2第二完成分支的持久快照比较
+
+- 当前项：begin_isolation已有completed结果附带new_execution:false，与isolation_snapshot只含anchor/result的形状差异导致误拒绝；状态：**done（接管窄修与定向自验完成，固定候选独立复审待）**。HEAD bf4fbd4；开工工作区已有X和replay测试两文件WIP，完整diff/原字节/SHA已保存在 `分析/RSI协调/controller-C2-20261025/takeover*`。对照 `分析/implementation/20261025-live-rsi/C2/handoff-coding.md` 核对两文件hash一致，接管其3行修正/4回归及SP子进程禁pyc环境，不覆盖、不归属bf4f已提交代码。原实现者停止产品写入，其红绿属于实现自验而非独立审查。
+- C1在独立bf4f复审中限定关闭；该批整体仍changes_requested，新C2 P2原4控制3过1失败/actual1保留。竞争可达只作静态分析，没有特权竞争证明。只把prior投影成持久anchor/result，不删末尾变化检测；正常snapshot和真实begin completed item均应重放，损坏/缺失/换绑定仍拒绝，事件/预算/原件不改。
+- 允许变更面：X._read_replay的持久比较、必要窄模块/说明/本进度；不改派发/角色代码、root/3秒/8秒/人工权，不重开旧H1/L1/fa3/I1或root大矩阵。确定性第二分支回归含明确cached provider/SP替身与自有普通lease FD，不称真实HTTP、特权竞争或真实计费证明。
+- 来源补正：上一独立491声明源字节/mode保持，但出现process_control.pyc额外成员；旧源完整成员未保持，原件不删。探针分类和SQLite表数核验器错误与C2产品缺陷分开。新导出将同时核声明文件和完整成员清单，传递PYTHONDONTWRITEBYTECODE，不用本次结果回写旧历史。
+- 新人类指示已核原review turn01a171a5-9106-7bd1-8b47-2f748388a123“那么完成吧。我们的服务器和本地应该是都有配置codex和第三方API的”；已有本地代理/服务器网关新线索，旧有限未找到不作全局结论。C2固定后继续只读核新配置分析；未核真实profile/计量/可信价格与有限根预算前不放开live，多人真人材料不虚构，不重复原询问。
+
+- 采纳WIP后冻结：489文件固定源SHA `68f4fa8465a82263280ad1473b990f372114d79497579302ddf62b5037848192`；基线bf4f+同一新测试的489源SHA `ab0eb240dd12fbc844feb9019c977f0cdf1e7ece2dbd499f6c96c16870064b36`。两条completed正控在基线 **2方法/2断言失败/0error、0.872s/外层1.203s、actual1**；原C2独立4控制3过1败及原C1红灯不改。保存调用cwd/PYTHONPATH、前后声明SHA/长度/mode与完整source成员，基线/修后均无新增pyc。
+- 修后只跑`test_rsi_controller_replay test_rsi_controller_channel`：Mac **28方法/19通过/9root跳过、5.051s/外层5.363s、actual0**；Linux UID1000/Python3.12.3，同源 **28方法/19通过/9root跳过、9.283s/外层9.578s、actual0**，非特权、未设RSI_RUN_KERNEL_FIXTURE。已覆盖C1全部9原方法和C2新4方法、原协议投影，未跑全量或旧大矩阵，不称特权竞争/真实CLI/新内核观察。
+- Linux证据：277文件460403字节白名单逐SHA/长度读回；39普通SP当前37有效、2为原负控故意损坏/缺输出，39套损坏前完整三文件复制保全，复制件非原SP路径。13套四表before/after逻辑行和total_changes一致，原进程组不存在；cached-provider/transport/output.bin明确是测试替身，不计原SP/HTTP。额外observer在原断言后仅保存原件与逻辑行，不改测试/时钟。原现场位于 `/tmp/webuddy-controller-C2-_nfiwo57`，不递归清理或按历史PID发信号。
+- 变更审查：_read_replay AST只多一条anchor/result投影；删除该条后与bf4f AST完全相同，末尾变化检测/所有原件校验保留；WORKER/SETUP/CORE逐字不变。WIP来源哈希与交接一致，未覆盖原文件或偷偷重做别的产品改动。提交前仅补设计/进度文字；执行/测试须与489冻结源精确匹配。证据 `分析/RSI协调/controller-C2-20261025/`。
+- **2026-10-25 14:31:29 CST**线上只读215运行文件SHA/长度/mode仍与6edc04f一致，active/running、PID2502485、重启0。本修无新模型/费用/生产重启或真实试点；全量未重跑。配置核查方面另一个获授权会话已记录本地一次API canary HTTP200及usage、服务器models HTTP200，不能再说全局无模型配置，也不能将该未绑定RSI根/未知实费和内部重试的canary算入本修测试或真实A/B/C/D验收。下一项沿fc6合同核新配置/可计量接线，真实多人项目/职责/周期不由Agent补齐。
+
 ## 2026-10-25：C1完成重放的原隔离证据重验
 
-- 当前项：controller缓存完成重放绕过candidate/evaluator原证据重验；状态：**done（C1窄修与最终定向自验完成，独立修后复审待）**。开工fc6dd1f、git status干净。独立ac4b227 review/verdict为changes_requested / C1 P2；旧报告与原负控exit1保留，I1限定关闭不重开。
+- 当前项：controller缓存完成重放绕过candidate/evaluator原证据重验；状态：**done（bf4f独立复审限定关闭C1；另有C2误拒绝待修，见本文件开头）**。开工fc6dd1f、git status干净。独立ac4b227 review/verdict为changes_requested / C1 P2；旧报告与原负控exit1保留，I1限定关闭不重开。
 - 允许变更面：仅controller重放、原isolation共用只读证据验证及必要测试/说明/进度。不得调用dispatch来完成重验，不得启动HTTP/模型/角色进程、追加预算/事件/退款或改写历史；正常重放零新派发，损坏/缺原件/换绑定拒绝。保持3秒与8秒、原SP/账本/215运行文件和人工权限。
 - 原反例逐字复现：使用独立review固定source及原probe_replay_binding.py，3个真实普通本地SP、合成SQLite及原分支AST，损坏candidate output后内层ValueError、外层仍evaluated/true；实际exit1，账本逻辑行不变。新红灯现场 `分析/RSI协调/controller-C1-20261025/red-original-probe`，原review失败不改。这不是完整特权Session、非root可写私有原件或namespace证明。
 - 来源纠正：旧3负控是在一个诊断进程各出现1个unittest断言失败，外层SSH实际0，无3份单独exit1；处理128请求后终止，第129未读而非收到单独denied；旧初次precommit失败缺独立原命令traceback；Mac45 invocation缺cwd/源绑定，不扩张包/交接的间接支持。新验证保存cwd、前后源清单及真实退出。

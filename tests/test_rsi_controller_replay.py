@@ -85,7 +85,7 @@ class CompletedReplayTests(unittest.TestCase):
 
     def ordinary(self,folder,owner,text):
         result=SP.run_supervised([sys.executable,'-B','-c','print('+repr(text)+')'],folder=folder,owner=owner,cwd=self.root,
-                                env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8'},timeout=3)
+                                env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','PYTHONDONTWRITEBYTECODE':'1'},timeout=3)
         self.assertEqual(result.returncode,0);receipt=SP.read_receipt(folder,owner)
         self.assertTrue(receipt['cleanup']['complete'])
         with self.assertRaises(ProcessLookupError):os.killpg(receipt['pgid'],0)
@@ -143,6 +143,98 @@ class CompletedReplayTests(unittest.TestCase):
         self.assertEqual(X.Launcher.dispatch(self.launcher,'plan-one','input-one'),dict(self.iso,new_execution=False))
         path=self.folder/'evaluator-supervised/output.bin';path.unlink()
         with self.assertRaises((OSError,ValueError)):X.Launcher.dispatch(self.launcher,'plan-one','input-one')
+
+    def test_existing_begin_completed_item_replays_read_only(self):
+        item=self.ledger.begin_isolation(self.key,self.request,L.digest(self.binding))
+        self.assertIs(item['new_execution'],False)
+        prior=self.ledger.isolation_snapshot(self.key,self.request)
+        self.assertEqual({key:item[key] for key in ('anchor','result')},prior)
+        binding=self.launcher._admission('plan-one','input-one')[-1]
+        self.assertEqual(self.launcher._read_replay(self.plan,prior,binding),dict(self.iso,new_execution=False))
+        try:result=self.launcher._read_replay(self.plan,item,binding)
+        except L.Conflict as error:self.fail('valid completed begin result rejected: '+str(error))
+        self.assertEqual(result,dict(self.iso,new_execution=False))
+
+    def test_second_dispatch_branch_replays_existing_completed_item(self):
+        # Deterministic interleaving: the first lookup saw no execution, then
+        # another owner completed it before this caller acquired the lease.
+        # The existing real Ledger/role receipts supply the completed result.
+        original_snapshot=self.ledger.isolation_snapshot
+        first=True
+        def lookup(*args):
+            nonlocal first
+            if first:first=False;return None
+            return original_snapshot(*args)
+        provider=self.root/'cached-provider';(provider/'transport').mkdir(parents=True)
+        raw=L.encoded({'content':[{'type':'text','text':'complete cached native response'}]}).encode()
+        (provider/'transport/output.bin').write_bytes(b'cached metadata\n'+raw)
+        original_read=SP.read_receipt
+        def read(folder,owner=None):
+            if Path(folder)==provider/'transport':return {'returncode':0}
+            return original_read(folder,owner)
+        adapter=SimpleNamespace(_folder=lambda *args:provider,_owner=lambda *args:{})
+        lease=os.open(os.devnull,os.O_RDONLY)
+        try:
+            with patch.object(self.ledger,'isolation_snapshot',side_effect=lookup), \
+                 patch.object(self.ledger,'begin_isolation',wraps=self.ledger.begin_isolation) as begin, \
+                 patch.object(self.launcher,'_lease',return_value=lease), \
+                 patch.object(self.launcher.broker,'adapter',adapter,create=True), \
+                 patch.object(self.launcher.broker,'dispatch',return_value={'state':'settled','response_complete':True,'response_sha256':R.sha(raw)}) as cached, \
+                 patch.object(SP,'read_receipt',side_effect=read), \
+                 patch.object(self.launcher,'_sandbox',side_effect=AssertionError('no new sandbox')), \
+                 patch.object(self.launcher,'_run',side_effect=AssertionError('no new role')):
+                try:result=X.Launcher.dispatch(self.launcher,'plan-one','input-one')
+                except L.Conflict as error:self.fail('completed second branch rejected: '+str(error))
+                self.assertEqual(result,dict(self.iso,new_execution=False))
+                begin.assert_called_once_with(self.key,self.request,L.digest(self.binding))
+                cached.assert_called_once()
+            with self.assertRaises(OSError):os.fstat(lease)
+        finally:
+            try:os.close(lease)
+            except OSError:pass
+
+    def test_existing_begin_item_keeps_evidence_and_snapshot_guards(self):
+        item=self.ledger.begin_isolation(self.key,self.request,L.digest(self.binding))
+        binding=self.launcher._admission('plan-one','input-one')[-1]
+        path=self.folder/'candidate-supervised/output.bin';raw=path.read_bytes()
+        try:
+            path.write_bytes(raw+b'BROKEN ORIGINAL')
+            with self.assertRaises((OSError,ValueError)):
+                self.launcher._read_replay(self.plan,item,binding)
+        finally:path.write_bytes(raw)
+        for field in ('anchor','result'):
+            changed=R.detached({key:item[key] for key in ('anchor','result')})
+            changed[field]['binding_changed_during_read']=True
+            with self.subTest(field=field),patch.object(self.ledger,'isolation_snapshot',return_value=changed),self.assertRaises(L.Conflict):
+                self.launcher._read_replay(self.plan,item,binding)
+
+    def test_existing_begin_pending_and_unknown_do_not_upgrade(self):
+        contract=self.ledger.snapshot(self.key)['contract'];contract['root_family']='pending-unknown-root'
+        key=self.ledger.create(contract);request='pending-unknown-request'
+        self.ledger.reserve(key,request,'propose',10,5);intent=self.ledger.intent(key,request)['intent']
+        self.ledger.settle(key,request,intent,{'provider_request_id':'synthetic-unknown','response_model':'synthetic-response',
+            'input_tokens':4,'cached_input_tokens':0,'output_tokens':2,'provider_charge_micro_cny':None,'raw_response_sha256':R.sha(b'synthetic unknown')})
+        binding=self.launcher._admission('plan-one','input-one')[-1];binding['root_contract']=L.digest(contract)
+        attempt=self.ledger.snapshot(key,request)['attempt']
+        full=dict(binding,provider_intent=intent,provider_receipt_sha256=attempt['receipt_hash'])
+        self.ledger.begin_isolation(key,request,L.digest(full))
+        pending=self.ledger.begin_isolation(key,request,L.digest(full));plan=dict(self.plan,root_pool=key,request_id=request)
+        self.assertIs(pending['new_execution'],False)
+        self.before=self.rows();self.changes=self.store.db.total_changes
+        self.assertEqual(self.launcher._read_replay(plan,pending,binding),
+                         {'isolated_execution':'pending','oracle_evaluation':'not_run','new_execution':False})
+        self.assert_read_only()
+        folder=self.launcher.root/pending['anchor']['execution_id'];folder.mkdir()
+        (folder/'binding.json').write_text(L.encoded(full))
+        unknown=dict(self.iso,binding_sha256=L.digest(full),execution_id=pending['anchor']['execution_id'],
+                     isolated_execution='unknown',oracle_evaluation='unknown',verdict=None,
+                     candidate_returncode=None,evaluator_returncode=None,candidate_receipt_sha256=None,evaluator_receipt_sha256=None)
+        (folder/'execution-result.json').write_text(L.encoded(unknown))
+        self.ledger.finish_isolation(key,request,L.digest(full),verified=False,receipt_sha256=L.digest(unknown))
+        item=self.ledger.begin_isolation(key,request,L.digest(full));self.before=self.rows();self.changes=self.store.db.total_changes
+        self.assertEqual(self.launcher._read_replay(plan,item,binding),dict(unknown,new_execution=False))
+        self.assertTrue(self.ledger.inspect(key)['blocked'])
+        self.assertEqual(self.ledger.inspect(key)['totals'],{'calls':1,'billed_tokens':15,'cost_micro_cny':125})
 
     def seed_cache(self,change):
         # Construct an internally hashed but misbound trusted cache, then check
