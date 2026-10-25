@@ -1,5 +1,28 @@
 # Ralph port 执行进度
 
+## 2026-10-26：真实暂停任务与TASK捕获封存
+
+- 当前项：原生创建A/3BC并封存真实TASK输入；状态doing（真实建档、捕获及作者核验已完成，等待独立实际A隐私审计；不提前激活）。起点f3a0623，开工干净，已读进度、最近十条提交和本机生产接入记忆。v5限定独立接受已直接读回：返回取消P2软件关闭、窗口实现关闭，原题意/分阶段冻结结论保留；不再把软件审查或c08发布列为依赖。
+- 实际操作：2026-10-26 06:13 CST，通过未改动tenant_policy.authorize与agent_api.dispatch原生接口，用既有有权限技术主体创建4张paused工单；主体为既有技术身份，Agent署名`agent:member:li`，不是LYB/LLA个人会话。每条有独立稳定request_id、complete回执和完整原行；全部new+hold/handwork、execution_started=false，未给两位成员授新权，未创建个人会话、D、模型run或采用。
+- 当前对象：default / PPTAUTO项目4 / 来源4 / development；原空非Git工作区保持，不初始化Git，不覆盖旧项目说明。原PPT完整文件SHA与完整单页文字/题目/schema先核对后建档。新任务是本次技术准备，不是旧五小时多人试点复活或真实参与证据。
+
+| 实际任务 / DB ID | 固定输入 | 捕获内部完整性SHA | 原生Catalog整条记录SHA |
+| --- | --- | --- | --- |
+| PPTAUTO-1 / 50 | A-policy | `324a2e203304a29935016efd2ba729e4c363b34f4f2de304692af62389d7691b` | `7529813b46860370c49170e020796e26368bf6774e90b03605203081b4ddced3` |
+| PPTAUTO-2 / 51 | B-case-record | `2e273163b7dd3eec87065e2cc87dca49eb48879ed6a7262fae92156673f50bd2` | `642060b9a958f5e6cd93b0315db1bef423bed8441808ddf32b397e807bac6be0` |
+| PPTAUTO-3 / 52 | C-cumulative-metrics | `7afc4b73fc5714d1fb76674ba2612f93566a5e33dd09bf4fb7dc8a2ccab11b9c` | `65fd9c84c5330e7bfda56e8b2ab5bc0ad9430aa6a47699b82a13421c793cdafc` |
+| PPTAUTO-4 / 53 | C-cross-project-boundary | `99713aae9b6fe091e86b087511f0635963896a4f6222821786f481605675e5c5` | `767548be32cf90e811baf42779afdcf08b97e13229f3877f8106f2a727a6ca46` |
+
+- 原件：4份完整任务行、4份原生创建回执、4份实际TASK分支capture与4份effective包等22份194358字节，从原服务器私有目录完整读回SHA/长度/mode；没有复制生产备份数据库或旧账本前缀到Mac/Git。原生Catalog.admit/load另封存4份完整规范记录，owner UID1000/0600，输入目录封存不等于root登记；没有activation/profile/contract/root时钟或供应商请求。
+- 副作用核对：服务端保留建档前SQLite备份；旧63表所有原行和旧schema对象保持，只新增4个ticket、4个created事件及4个Agent请求complete回执。原接口按需建3张既有schema表agent_requests、agent_run_sources、harness_probe_runs，当前业务66表；后两表为空，不是rsi_prepare_*。控制DB字节/成员权限/原lessons字节不变。原工厂按原逻辑追加4条PPTAUTO-1..4的nomatch检索审计，原日志前缀完整；这不是模型运行或真人劳动证据。
+- A实际输入：真实task50/PPTAUTO-1，经实际已发布factory与精确c08私有broker原TASK分支捕获，包含真实learning_lessons selector/renderer块（当前无匹配知识）；history为空。exact原生Responses请求预览2915字节，作者15项检查通过：A完整原页保留，不含BC/D任务key/文本/答案、整份计划、旧窗口/上限，tools=[]/truncation=disabled。私有capture元数据仍保留原项目历史说明，native_effective只发送prompt，不把元数据送模型。原analyze模式的代码定位指令完整保留，system要求指定JSON；不删改共同提示，也不将文本提取等同PPT质量或组织收益。作者核验不能代替独立A隐私门。
+- 摘要口径修正：捕获内部capture_sha256不含自身摘要字段；Catalog整条canonical记录SHA包含该字段；pretty文件SHA又是原件身份。首版未登记的assertion准备稿混用了内部SHA并混入额外case元数据，保留v1；v2改用原生Catalog实际admit/load摘要，native BC模板字段与provenance分开。原任务/捕获/题意、expected/forbidden/阈值完全未改，root依赖字段仍null，未运行Reports.freeze或模型。D原材料和独立断言完整封存，D任务/采用/job/input绑定仍为空。
+- 当前可审包：仓库外`native-real-engineering-plan/actual-task-captures-v5/independent-A-privacy-review-packet-v2.json`、`actual-bindings-v2.json`、`private-actual-case-assertions-preparation-v2.json`、`input-catalog-admission.json`及原件清单。当前provider/profile草案来自现有0600配置，aiseat/Responses/gpt-6-luna，config SHA `e1fdd620e99d325356dfcf1041da55712843905d97750c3ed4fec79ff9d8b9d4`；密钥留原处，actual_response_model/actual_profile_sha256未知，正式profile未入册，无预探测或额外预算/API询问。
+- 精确身份：运行代码c08b6ae4ffe140d1d6cb35b7671d4410890ca62b；计划SHA a87879c0da0e6e964d855ed82a7455baa2b1d41c9b9b00a29a179750e4f2cbf7；驱动SHA 1a07b89a37cd5aba661e9b9d9f51ed9ac7acca825df2630d6c23aaf7107acb8b，均保持。06:27 CST再核旧schema对象、4项暂停状态/无run/无decision/无rsi表，以及219运行源码、active/running/重启0通过；只记观测，不重启已接受发布。
+- 当前剩余：独立实际TASK A有效payload隐私审计及真实绑定核对；通过后再一次性actual activation/profile/contract/root绑定、原BC断言freeze，然后仅经已审驱动调度A/BC，A后只用真实完整输出形成候选和成对计划。D仍需真实本人当前采用后新任务/selector捕获。当前模型调用0、工程root未登记、时钟未启动、D未创建、rsi_qualified=false；旧失败/unknown/v4原件、question预捕获与unadmitted模板均保留，后两者仍不可用于真实登记。
+
+- 收尾复核：真实任务绑定manifest-v2的56份原件共783142字节逐份SHA/长度重核零差异，清单SHA `87eb8fae9ddd3ce22cf152449d20a8bfafd9674aab1bbc21fb275545ae95ead9`。交接JSON移除已关闭的软件/发布待办并保留旧字段历史，唯一当前门为独立实际TASK A有效请求隐私及原生Catalog/私有断言v2绑定审计；未启动模型或时钟。补充组织产品只读审查的8模块154项专项12.548秒/exit0，不替代已通过的精确发布门或真实团队效果证据。
+
 ## 2026-10-26：真实RSI接入准备与取消返回竞态
 
 - 当前项：已授权真实工程实验的可执行准备；状态doing（接入只读核对与新驱动作者验证已完成，v5登记前独立复核仍待）。起点3a961df，开工工作区干净；c08已发布，独立补审接受限定历史发布证据，发布不再是待办。运行代码仍c08，未重启或修改生产产品。
