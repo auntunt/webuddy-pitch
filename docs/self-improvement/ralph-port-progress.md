@@ -1,5 +1,17 @@
 # Ralph port 执行进度
 
+## 2026-10-26：Claude单配置M2启动条件与最多两控
+
+- 当前项：done（有界批次已停止；正控incomplete，负控skipped，路线不准入）。起点1d75b5d…文档/c08b6ae4…产品，开工Git干净并读进度与最近10提交；现有授权允许条件化离线实施，无额外账号/价格/审批要求。产品没有改动；原b2a6永停，没有新真实root/真实推理、安装升级或账号配置更改。
+- 启动依据已固定：同一服务器Claude包2.1.234、native SHA3473601e…；原--version124/5秒和help0保持。从相同ELF精确字节偏移取得可读SDK构造器、hQ extends MA、应用factory、URL builder及Messages方法：BASE_URL进入SDK，拼接/v1/messages或?beta=true；不是仅凭变量名。readelf固定/lib64/ld-linux-x86-64.so.2及6项NEEDED的静态闭包/摘要，声明只读/usr、/lib、/lib64、native文件、独立proc/dev挂载；不声称整个宿主依赖均已独立钉住。实际还观察到新空工作区内Git与同ELF的rg启动辅助进程，不能把它们当成额外控或模型Bash调用。
+- 冻结后仅启动C-M2-P一次：单一argv包含真实空--tools与--setting-sources、bare/strict空MCP/settings{}/禁skills/不持久化；模型claude-sonnet-4-6、端口29871、完整policy/prompt/fakekey/两份JSON与SSE响应均在启动前固定。launch-source-manifest SHA `3ed04131e5955505e54d9cc03f852edfa9f57bff8564c27d73346f0efa13dc21`；actual exec使用-s65535，主--print实参无截断且真实空元素可核。settings{}仍是附加，完整空来源语义不因argv或退出值被宣布通过。
+- 核心发现：正控实际发出2条完整POST，均到隔离回环/v1/messages?beta=true、tools=[]、retry-count0且正文不同。第一条是客户端自动生成会话标题的system/prompt，不含冻结的任务policy；第二条才是带自定义policy的主任务。只许可第一份合成响应，第二次尝试立即拒绝并取消；不能将标题推理重命名为免费控制流、删抓包或补第二份响应绕过上限。两调用的顺序/并发因果未凭收包顺序推断。
+- 判定：空工具声明、init中MCP/skills/plugins为空在所见输入中成立，但**正控没有证明主任务完整收包/终态成功**。第一辅助请求还要求结构化title，冻结主任务文本回复不证明标题语义成功；不能把prepared/server-written当主任务received。严格完整输入与单次响应方案未满足，overall=incomplete_not_passed；C-M2-N未启动，内建Bash注入后是否拒绝执行/推进仍untested。没有随机未知工具或畸形事件的“假通过”。CLI的num_turns/cost/usage由本地fake响应计算，原文保留，不是实际供应商账单；原文“Request interrupted by user”在此是自动界限触发的取消，不是人类操作记录。
+- 停止与清理：原12秒监督门未改，本次约1.71秒因第二尝试cancelled130、TERM回收、reaped/cleanup complete；root取证脚本exit0不计用例通过。39份最终原件/5235166字节已逐项SHA/长度/mode读回，前37份首次快照完整保持；batch-stop明确正控1/负控0，case mkdir与负控前置阻止重跑/继续。候选/evaluator UID活进程0、所属进程0、host挂载残留0、lease释放；未代人确认、采用或关单。
+- 辅助采集失败保留：首静态采集阈值100命中108处、初alias假设hQ=MA不符，修为真实继承关系后得到同一native源码；两次本地exec分析误把helper argv/rg self-exec计作主--print，错误摘要及第二脚本保留，最后按实际主进程匹配。均无额外客户端/fixture重跑，不改原请求/输出。旧非阻断标签一并澄清：ToolsV2只显式列web_search、不禁止附加项；171是重复字段出现次数；上批collector0仅producer_reported，本批另留subprocess invocation回执。
+- 可审包：仓库外`分析/RSI协调/pilot-software-20261025/offline-claude-m2-v1/`，入口result-summary.json、positive-exact-evidence.json及全部源/响应/trace/原件。evidence-manifest SHA `fbbd5bba6fcb9f6201e84d94cfe155cec4dc129fef604f183dd9014b042f3c95`，673登记文件/15917378字节；tar逐674成员原字节读回，并在新目录执行verify-package.py退出0。这是材料核验，不是673项运行测试。默认验证不联网；源码/计划与实际remote程序相等，原39文件逐项相符。
+- 下一步仅交独立review：如再考虑该严格协议，先找版本匹配且受支持的关闭标题等辅助模型调用的依据；没有依据就保持该组合停止。本批不改配置、不换模型、不增加控/回复，不先补M4/M5/M6框架。旧M4 failed、M5/M6整项untested保持；本次普通终止不推广到所有活跃/脱组/持管道后代。仅进度提交/普通推送并只读核219现役源码，不做无关生产变更或重启；未测真人D/跨任务或多人收益，旧窗口不延期。
+
 ## 2026-10-26：M2受支持无工具能力有界判定与独立结论勘误
 
 - 当前项：done（有界能力判断完成；当前Codex组合停止，路线不准入）。基线37c0c955…文档/c08b6ae4…产品，开工Git干净并读进度与最近10提交。按本批范围只复用既有固定官方help/schema与匹配安装的可读源码，未外部检索；没有新增CLI/fixture、模型请求或真实root，不轮换模型/开关、不执行替代路线、不修改产品。
