@@ -1,5 +1,17 @@
 # Ralph port 执行进度
 
+## 2026-10-26：现有官方Codex真实连接验证
+
+- 当前项：done（本次唯一外层尝试已停止，取证包装层失败，官方客户端未启动，真实连通目标未达成）。起点9bd3d37，Git干净并读取进度、最近10提交与生产接入记忆。沿已有模型测试授权，验证Webuddy监督进程→真正已安装官方Codex→现有用户网关→模型；这不是重跑旧无工具/单响应协议，不受旧研究helper复审阻塞。
+- 仅一次外层客户端启动、至多120秒、不fallback/切模型/重启或失败重试；新空scratch及新非业务合成prompt/唯一回读标记，不输入PPT、原A-B-C-D、holdout或oracle。现有账号和网关配置保持，密钥不复制导出；正常工具声明、初始化及辅助上下文如实记录，不冒充旧评测合同通过。旧b2a6永久停止及403原件保持，不新建真实业务根或代人采用验收。
+- 预检已核：服务器@openai/codex 0.162.1、官方npm shim→codex.js，launcher SHA61b0194f…/package SHA41088ff1…与既有固定身份一致；native628e3548…/companion ec718306…/Node93956de2…及现役Webuddy agents/SP/PC逐项SHA、长度、模式现场匹配。原0600配置当前aiseat/Responses/gpt-6-luna、用户网关ai.cloudwaveai.cn，路由白名单元数据留存，未输出凭据；无模型/配置环境覆盖、MCP/hook，空scratch父链和全局无AGENTS。
+- 前瞻计划在任何启动前固定于仓库外`分析/RSI协调/pilot-software-20261025/official-codex-connectivity-v1/`，plan SHA`8cdebf0539e0747b6fe86bf3a6794766cf33ab8a79966e0b6f494de8b56689a9`。完整argv由现役agents.command生成：原官方shim exec/read-only/skip-git/CWD/output-last-message，附json/ephemeral/color never及approval_policy never；模型沿原配置，不改账号/配置、不忽略guard或rules。新合成37×43题与唯一回读标记、prompt SHA、控制器源及120秒结束条件预先绑定；没有沿用旧问题或旧root预算/时钟。
+- 实际失败：2026-10-26 13:48:28.938–13:48:29.065 CST，外层0.127秒，现有SP实际目标退出1、exited、reaped/output_complete/cleanup complete且无残留组。完整157字节原输出为strace的两条PTRACE_TRACEME Operation not permitted；强制strace是本次作者加入的诊断前置，不是官方客户端、Webuddy产品或网关本身要求。官方exec_io标记、stdout/stderr文件均未产生，trace无native执行，故外层尝试1、所见官方CLI实际启动0、真实回复0；不能说官方客户端已发请求被网关拒绝，也不能把本次失败转嫁给账号或模型。
+- 严守单次边界：未去掉strace再跑、未提权ptrace、未改网关或伪造头、未重试/fallback。保留旧b2a6的403与永久停止；本批既没有复活旧根，也没有创建真实任务/采用/多人效果。原summary的outer_client_attempts=1仅指监督外层尝试；追加attempt-adjudication.json明确CLI实际未启动，0字节不表示客户端静默运行。model只证配置标签，真实响应model/usage/发票未知；没有将1CLI当1HTTP，DNS不是模型推理。
+- 原件：服务器新私有/tmp目录内完整源码/plan/launch-once/进程追踪/监督回执/输出/summary共13文件21878字节已逐SHA/长度/mode取回，已知现有配置凭据值扫描无命中，未复制导出密钥。原始summary和157字节错误不改，独立判定追加保留。后验只读核对scratch仍空、配置完整SHA保持、指定目录关联进程0，未向保存PID发信号。纯材料核验不重跑CLI；不以组织机制210项通过覆盖这次失败。
+- 固定包：manifest SHA`94704cac6c7c33ef7f52d5c5d4bf908aee9a9a136ff287a5069aa64d999d94ef`，33文件50730字节；未压缩tar SHA`7c2874c755fdd4ec4b5de16e22939dcabc1358748b367be434e12df5894fb370`，122880字节，逐34文件成员读回一致；新解包目录verify_package.py实际exit0，确认原字节和失败证据，不是33项运行测试或连接成功。未改产品代码，不重跑无关全量。
+- 后续最小方向：若后续明确允许新的有界尝试，取消“必须strace”的诊断依赖，直接由既有SP监督exec_io→原官方shim，保留原配置、只读沙箱、完整输出和单次期限；这是下一计划，不回写或重试本次。当前阻断只属于本次取证包装，不成为普通工具协作/PPT或所有模型业务的永久准入门。产品源码、生产任务和服务未改；仅进度文档提交/普通推送及219运行文件只读核验，不重启。
+
 ## 2026-10-26：Claude研究网关HEAD窄修复与范围勘误
 
 - 当前项：done（研究网关本地修复与材料收口完成，待独立复审；原客户端实验仍未通过）。起点81ca779，开工Git干净并读取进度及最近10提交。此前压缩后转入领导者审查，遗漏已承诺的HEAD小修复；本次补齐，不重复210项组织机制回归。领导者报告保留在仓库外分析目录。
