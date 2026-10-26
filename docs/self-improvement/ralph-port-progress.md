@@ -1,5 +1,18 @@
 # Ralph port 执行进度
 
+## 2026-10-26：M2受支持无工具能力有界判定与独立结论勘误
+
+- 当前项：done（有界能力判断完成；当前Codex组合停止，路线不准入）。基线37c0c955…文档/c08b6ae4…产品，开工Git干净并读进度与最近10提交。按本批范围只复用既有固定官方help/schema与匹配安装的可读源码，未外部检索；没有新增CLI/fixture、模型请求或真实root，不轮换模型/开关、不执行替代路线、不修改产品。
+- 独立复审：report SHA `2ccf9b54e4021b1ea7338c74128ec305bda813154ce5fa025a7a3a6f0465c79b`、decision `f2f086487c0101676732647c4cf167c7e6a6cb41212d393483894e30ac4e49e0`、manifest `a49f77e4ea12bb769a6e56a11d499a82d35d1dc48c0b8fa79fbf92007e814f53`实际核对。接受限定增量、不准入：M1/M3仅限定proved，M2/M4failed，M5/M6整项untested。此前37c0c95作者把M5/M6列“限定通过”偏宽，现追加更正，不覆盖旧报告/证据。
+- 配置/解析依据：服务器@openai/codex package0.162.1 SHA41088ff1…、codex.js SHA61b0194f…与既有身份相同；本次SSH只读官方npm的JS/README/package及文件清单，不读取真实配置或凭据。JS79–112行只解析native路径、241–244行原样转发argv，没有工具策略解析；观察到的npm包不含可读native Rust配置解析实现或完整config-schema。实际native628e3548…与companionec718306…仍引用已固定受测身份，不将此次源码读取冒充新CLI执行。
+- schema覆盖：从原固定run3 app-server schema-dump完整恢复317份JSON/3602403字节，逐份SHA绑定，结构索引171处tool/execution/feature相关属性。这是材料检查，不是317或171项运行测试。ConfigReadResponse `/definitions/Config/properties/tools`指向ToolsV2，仅含web_search；AppConfig/default_tools_enabled、omit_tools_from明确作用于connector工具；AppsRead.includeTools只是display-only元数据。ThreadStart.config任意字典、DynamicToolSpec声明以及TurnStart.toolOutput均没有提供关闭所有内建工具的契约；exec help也没有--tools。Config projection允许additionalProperties，故**不能由字段缺失证明所有native配置都不可能**，只结论“现有固定材料无法建立一个受支持候选”。
+- M2决定：有依据候选0，新验证调用0，不再用已失败feature-disabled组合重复试验，也不猜未解析TOML字段、删抓包tools、换模型或缺companion制造通过。保留原禁用配对10工具反例；真实companion执行来自另一默认11工具配置，不能说禁用组已经实测执行。下一步若重议Codex，须先取得与该固定版本/构建匹配的官方native解析源或明确全局无工具契约，再审一个候选；本批不升级、不改客户端身份。
+- 后续缺口仅登记，不抢先实现：M4的RAM许可不是durable reservation/unknown/recovery或connect/control/model总尝试硬止；M5短写循环已有修正，无须重做，但thread/write/fsync异常未进入完成门、流/SP/request未有可执行父子绑定、model/usage known/unknown尚非正式适配层；M6只已证Node/native取消/原12秒/结果竞态/原A拒发，活跃companion、脱组/持管道后代和所有槽/不同root未证。原strace -s0截断字符串，完整声明argv/env来自源码与argv-env.json，不能再称完整独立实参抓取。
+- 下一可审路线：仅形成`claude-next-route-plan.json`，不执行。固定既有服务器Claude安装包2.1.234/native SHA3473601e…；原--version5秒124仍失败，help0有明确bare、tools空、strict空MCP、setting-sources空、禁skills和无session持久。方案列完整argv空字符串、fake ANTHROPIC_API_KEY、独立HOME/同OS隔离/无上游、最小正负控；base_url路由及版本依赖证据尚须在任何未来执行前核定。绝不删bare或把真实AUTH_TOKEN改当API_KEY，不宣称真实账号/模型可用。
+- 固定产物：仓库外`分析/RSI协调/pilot-software-20261025/offline-native-m2-capability-20261026-v1/`：M2-capability-decision、candidate-source-analysis、review-boundary-corrections、Claude方案、全部317 schema/可读源/10份引用原件。manifest SHA `4bdab96b1163db2fb75230cf60a4fad425d67a631165046a7711cfd6ae9938b4`，342文件/8801010字节；独立tar逐343成员读回相同。`PYTHONDONTWRITEBYTECODE=1 python3 verify-fixed-inputs.py`通过，仅校验固定字节/JSON/零候选与零执行，不联网、不运行CLI。旧1525文件seal不修改，原失败根b2a6c8da…永停。
+- 身份标签勘误：6a43fb22…/d939c9be…是bundle-manifest SHA；实际v1 tar SHA `cb2b1c9d35155f0b98b96aa9ece76fb2a1548db94407fa11ba42187fbf0775e5`，v2 tar `ea167f89c4813178fc63d077083b13855e0a64fcca0af555ade89289075ba8db`，均92160字节。本次再次核对，无字节差异，不把标签误用说成包被替换。
+- 发布边界：仅进度文档提交/普通快进GitHub；按纯文档约定核219现役源码与服务，不重启，不跑无关产品全量或以检查数替代准入。新固定能力结论仍交独立review；不代人采用/验收/关单，不重提已取消cap/价格审批，不将跨任务收益、本人采用新D、多人持续交接或旧窗口延期写成已证。
+
 ## 2026-10-26：官方Codex实际离线记录网关与隔离验证
 
 - 当前项：状态done（离线研究与固定证据收口；**所测路线不准入**）。没有产品运行源码变更。实际服务器官方Codex0.162.1；17个新场景加原23个观察共40个场景，不是40项单测。新增15例执行真正官方客户端，另2例是明确标识的合成Python负控；不把负控冒充原生执行。原b2a6c8da…根仍永久blocked/unknown，本轮不触碰其暴露输入、不新建真实root、不推理真实供应商、不改真实配置、不安装升级或伪造客户端头。
