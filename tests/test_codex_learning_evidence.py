@@ -3,6 +3,7 @@ import copy
 import json
 import os
 from pathlib import Path
+import shutil
 import sys
 import tempfile
 import unittest
@@ -324,6 +325,73 @@ class CodexEvidenceTests(unittest.TestCase):
         with patch.object(learning_runs, "get", return_value={"kind": C.SCHEMA}):
             with self.assertRaises(ApiError):
                 decisions._job(None, None, None, "not-a-published-job")
+
+    def nested_bundle(self):
+        anchor = self.save(self.seal())
+        parent = self.root / "parent"
+        parent.mkdir(mode=0o700)
+        bundle = parent / "bundle"
+        bundle.mkdir(mode=0o700)
+        shutil.copytree(self.root / "attempts", bundle / "attempts")
+        shutil.copy2(self.root / "manifest.json", bundle / "manifest.json")
+        return bundle, anchor
+
+    def replace_ancestor(self, bundle):
+        parent = bundle.parent
+        retained = parent.with_name("parent-retained")
+        parent.rename(retained)
+        parent.symlink_to(retained, target_is_directory=True)
+
+    def test_ancestor_symlink_after_canonical_check_before_root_open_rejected(self):
+        bundle, anchor = self.nested_bundle()
+        original = Path.resolve
+        changed = []
+        def resolve(path, *args, **kwargs):
+            value = original(path, *args, **kwargs)
+            if path == bundle and not changed:
+                self.replace_ancestor(bundle)
+                changed.append(True)
+            return value
+        with patch.object(Path, "resolve", resolve), self.assertRaises(C.InvalidEvidence):
+            E.verify(bundle, anchor)
+        self.assertEqual(changed, [True])
+        self.assertTrue(bundle.parent.is_symlink())
+
+    def test_ancestor_symlink_before_final_chain_recheck_rejected(self):
+        bundle, anchor = self.nested_bundle()
+        original = E._Files.unchanged
+        changed = []
+        def unchanged(files):
+            self.replace_ancestor(bundle)
+            changed.append(True)
+            return original(files)
+        with patch.object(E._Files, "unchanged", unchanged), self.assertRaises(C.InvalidEvidence):
+            E.verify(bundle, anchor)
+        self.assertEqual(changed, [True])
+        self.assertTrue(bundle.parent.is_symlink())
+
+    def test_private_check_cannot_bind_a_later_unchecked_mode(self):
+        anchor = self.save(self.seal())
+        original = E._private
+        inode = self.root.stat().st_ino
+        changed = []
+        def private(st, directory=False):
+            original(st, directory)
+            if directory and st.st_ino == inode and not changed:
+                self.root.chmod(0o750)
+                changed.append(True)
+        with patch.object(E, "_private", private), self.assertRaises(C.InvalidEvidence):
+            E.verify(self.root, anchor)
+        self.assertEqual(changed, [True])
+        self.assertEqual(self.root.stat().st_mode & 0o777, 0o750)
+
+    def test_system_ancestors_do_not_require_owner_only_permissions(self):
+        bundle, anchor = self.nested_bundle()
+        bundle.parent.chmod(0o755)
+        result = E.verify(bundle, anchor)
+        self.assertTrue(result["file_bindings_verified"])
+        self.assertIs(result["adoptable"], False)
+        self.assertIs(result["execution_admitted"], False)
 
 
 if __name__ == "__main__":

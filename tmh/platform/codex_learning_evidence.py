@@ -23,23 +23,59 @@ def _private(st, directory=False):
         C.require(st.st_nlink == 1, "hard links are not evidence originals")
 
 
+def _checked_private(fd, directory=False):
+    checked = os.fstat(fd)
+    _private(checked, directory)
+    C.require(_identity(os.fstat(fd)) == _identity(checked), "object changed during private check")
+    return checked
+
+
+def _node(st):
+    return st.st_dev, st.st_ino
+
+
+def _links(parts, chain):
+    # System ancestors need stable directory entries, not private permissions.
+    for index, part in enumerate(parts):
+        entry = os.stat(part, dir_fd=chain[index], follow_symlinks=False)
+        C.require(stat.S_ISDIR(entry.st_mode) and _node(entry) == _node(os.fstat(chain[index + 1])),
+                  "absolute directory chain was replaced")
+
+
+def _absolute_chain(root):
+    parts = root.parts[1:]
+    chain = [os.open(root.anchor, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)]
+    try:
+        for part in parts:
+            chain.append(os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=chain[-1]))
+        _links(parts, chain)
+        return chain
+    except BaseException:
+        for fd in reversed(chain):
+            os.close(fd)
+        raise
+
+
 class _Files:
     def __init__(self, root):
         C.require(os.name == "posix" and hasattr(os, "O_NOFOLLOW"), "POSIX no-follow reads required")
         self.root = Path(root)
         C.require(self.root.is_absolute() and self.root == self.root.resolve(), "canonical absolute bundle path required")
-        self.fd = os.open(self.root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        self.chain = _absolute_chain(self.root)
+        self.fd = self.chain[-1]
         try:
-            _private(os.fstat(self.fd), True)
-            self.identity = _identity(os.fstat(self.fd))
+            checked = _checked_private(self.fd, True)
+            self.identity = _identity(checked)
+            self.ancestry = [_node(os.fstat(fd)) for fd in self.chain]
         except BaseException:
-            os.close(self.fd)
+            self.close()
             raise
         self.seen = {}
         self.directories = {}
 
     def close(self):
-        os.close(self.fd)
+        for fd in reversed(self.chain):
+            os.close(fd)
 
     def read(self, name):
         C.text(name)
@@ -47,21 +83,24 @@ class _Files:
         C.require(not PurePosixPath(name).is_absolute() and
                   all(p not in ("", ".", "..") for p in parts) and "\\" not in name,
                   "relative ordinary evidence path required")
-        fd = os.dup(self.fd)
+        chain = [os.dup(self.fd)]
+        checked_directories = []
         try:
+            checked = _checked_private(chain[0], True)
+            C.require(_identity(checked) == self.identity, "bundle identity changed")
+            checked_directories.append(_identity(checked))
             for index, part in enumerate(parts[:-1]):
-                child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
-                os.close(fd)
-                fd = child
-                _private(os.fstat(fd), True)
+                child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=chain[-1])
+                chain.append(child)
+                checked = _checked_private(child, True)
                 prefix = "/".join(parts[:index + 1])
-                identity = _identity(os.fstat(fd))
+                identity = _identity(checked)
                 C.require(self.directories.setdefault(prefix, identity) == identity,
                           "evidence directory was replaced or changed")
-            child = os.open(parts[-1], os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW, dir_fd=fd)
+                checked_directories.append(identity)
+            child = os.open(parts[-1], os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW, dir_fd=chain[-1])
             try:
-                before = os.fstat(child)
-                _private(before)
+                before = _checked_private(child)
                 chunks = []
                 size = 0
                 while True:
@@ -77,11 +116,18 @@ class _Files:
                           "evidence changed while reading")
                 previous = self.seen.setdefault(name, _identity(before))
                 C.require(previous == _identity(before), "evidence path was replaced")
+                _links(parts[:-1], chain)
+                for directory, identity in zip(chain, checked_directories):
+                    C.require(_identity(_checked_private(directory, True)) == identity,
+                              "evidence directory changed during read")
+                entry = os.stat(parts[-1], dir_fd=chain[-1], follow_symlinks=False)
+                C.require(_identity(entry) == _identity(before), "evidence file entry was replaced")
                 return raw
             finally:
                 os.close(child)
         finally:
-            os.close(fd)
+            for fd in reversed(chain):
+                os.close(fd)
 
     def artifact(self, reference, expected):
         C.fields(reference, ("path", "bytes", "sha256"))
@@ -93,10 +139,18 @@ class _Files:
         return raw
 
     def unchanged(self):
-        C.require(_identity(os.stat(self.root, follow_symlinks=False)) == self.identity,
-                  "bundle directory was replaced or changed")
         for name in list(self.seen):
             self.read(name)
+        chain = _absolute_chain(self.root)
+        try:
+            C.require([_node(os.fstat(fd)) for fd in chain] == self.ancestry,
+                      "absolute directory chain identity changed")
+            C.require(_identity(_checked_private(chain[-1], True)) == self.identity,
+                      "bundle directory was replaced or changed")
+            _links(self.root.parts[1:], self.chain)
+        finally:
+            for fd in reversed(chain):
+                os.close(fd)
 
 
 def _events(raw):

@@ -4,7 +4,7 @@
 
 `scripts/rsi/codex_protocol.py` 定义 `codex-learning-finite-v1` 合同格式和 `codex-learning-observation-v1` 观察文件格式。完整字段见校验函数及合成测试夹具。草案、空值、未知字段/版本、重复 JSON 字段、非有限数值和旧停止根均拒绝。调用单位为外层 CLI 启动，token 与金额上限保持豁免；这不恢复旧实验或创建实际合同。
 
-`tmh/platform/codex_learning_evidence.verify(bundle_dir, expected_manifest_sha256)` 读取独立保留摘要所绑定的 `manifest.json`。摘要必须来自调用者独立保存的承诺，不能把待核验目录自己的摘要当成生产者认证。目录和文件须属于当前账号且仅本人可访问；逐层禁止符号链接，文件禁止硬链接，核对读取前后身份及最后一次路径替换。所有原字节保留，不截断输出。该读取在 POSIX 实现，其他平台明确拒绝。
+`tmh/platform/codex_learning_evidence.verify(bundle_dir, expected_manifest_sha256)` 读取独立保留摘要所绑定的 `manifest.json`。摘要必须来自调用者独立保存的承诺，不能把待核验目录自己的摘要当成生产者认证。bundle 及其内部目录、文件须属于当前账号且仅本人可访问；文件禁止硬链接。绝对目录链从系统根逐层用目录描述符打开并禁止跟随链接，系统祖先只检查目录条目和节点身份，不要求 owner-only。身份绑定使用同一份通过权限检查的状态；读取结束前再次核对目录链、条目及对象状态。所有原字节保留，不截断输出。该读取在 POSIX 实现，其他平台明确拒绝。
 
 每个观察记录必须包含完整输入、原始 JSONL、运行中和结束后的监督回执，并绑定同一 owner、nonce、目录、监督器和进程组。缺失/矛盾回执、失败或未知状态、非零退出、超时/取消、输出或清理不完整均拒绝。原始 JSONL 必须是一轮完整生命周期、非空最终答复及合法客户端用量；缓存 token 是输入子集，不重复累计。未知用量不补零。
 
