@@ -26,8 +26,13 @@ prompt = sys.stdin.read() if args[-1] == '-' else args[-1]
 with (root / 'calls.jsonl').open('a') as out:
     out.write(json.dumps({'args': args, 'prompt': prompt}) + '\n')
 print(json.dumps({'type': 'thread.started', 'thread_id': 'synthetic-thread'}), flush=True)
-if '--fixture-busy' in args:
+busy_once = '--fixture-busy-once' in args and not (root / 'busy-once.marker').exists()
+if busy_once:
+    (root / 'busy-once.marker').write_text('first invocation')
+if '--fixture-busy' in args or busy_once:
     print(json.dumps({'type': 'error', 'message': '429 rate limit'}), flush=True)
+    sys.exit(1)
+if '--fixture-empty-resume' in args and 'resume' in args:
     sys.exit(1)
 if '--fixture-incomplete' in args:
     print(json.dumps({'type': 'item.completed', 'item': {'type': 'reasoning', 'text': 'not a final answer'}}), flush=True)
@@ -93,6 +98,31 @@ class AgentProfilesTest(unittest.TestCase):
 
     def calls(self):
         return [json.loads(line) for line in (self.data / 'calls.jsonl').read_text().splitlines()]
+
+    def wait_profile_run(self, rid):
+        deadline = time.monotonic() + 12
+        while time.monotonic() < deadline:
+            run = self.store.run(rid)
+            with self.runner.lock:
+                finished = self.runner.controls.get(rid, {}).get('finished')
+            if run['status'] not in ('queued', 'running') and finished:
+                return run
+            time.sleep(.02)
+        self.fail('profile run did not finish: %r' % self.store.run(rid))
+
+    def retained_profile_attempts(self, rid, count):
+        lifecycle = json.loads((self.data / 'runs' / str(rid) / 'lifecycle.json').read_text())
+        self.assertEqual(len(lifecycle['attempts']), count)
+        outputs = []
+        for attempt in lifecycle['attempts']:
+            folder = self.data / attempt['evidence']
+            receipt = json.loads((folder / 'process.json').read_text())
+            self.assertTrue(receipt['supervised'])
+            self.assertGreater(receipt['pid'], 0)
+            self.assertTrue(receipt['cleanup']['complete'])
+            self.assertTrue(attempt['cleanup']['complete'])
+            outputs.append((folder / 'output.bin').read_bytes())
+        return outputs
 
     def test_profile_defaults_to_codex_binary_and_keeps_other_engines(self):
         self.config.pop('bin')
@@ -169,6 +199,93 @@ class AgentProfilesTest(unittest.TestCase):
         self.assertFalse(json.loads((folder / 'timing.json').read_text())['resumed'])
         with mock.patch.object(self.store, 'runs', side_effect=AssertionError('must not inherit a session')):
             self.assertEqual(agents.earlier_session(self.store, self.data, {'id': 1}, 'cloudwave-codex', 'plan'), ('', None))
+
+    def test_busy_retry_rechecks_revoked_broken_or_removed_route_config(self):
+        route = self.data / 'agent-routes.json'
+        for change, error in [('revoked', '仅允许执行器'), ('broken', '不是有效 JSON'),
+                              ('alias-removed', '不可用')]:
+            with self.subTest(change=change):
+                self.config.update(args=['--fixture-busy'], retry_busy=True)
+                self.save_config()
+                route.write_text(json.dumps({'schema': 1, 'projects': {
+                    'PROFILE': {'agent': 'cloudwave-codex', 'allowed_agents': ['cloudwave-codex']}}}))
+                before = len(self.calls()) if (self.data / 'calls.jsonl').exists() else 0
+                pauses = []
+
+                def revoke_during_pause(rid, seconds):
+                    pauses.append(seconds)
+                    self.assertEqual(len(pauses), 1)
+                    self.assertIn(b'429 rate limit', self.retained_profile_attempts(rid, 1)[0])
+                    if change == 'revoked':
+                        route.write_text(json.dumps({'schema': 1, 'projects': {
+                            'PROFILE': {'agent': 'codex', 'allowed_agents': ['codex']}}}))
+                    elif change == 'broken':
+                        route.write_text('{"schema":1,')
+                    else:
+                        (self.data / 'agents.json').write_text('{}')
+                    return True
+
+                with mock.patch.object(self.runner, '_pause', side_effect=revoke_during_pause):
+                    run = self.runner.start(self.project, None, 'cloudwave-codex', 'ask', 'tester',
+                                            question='Synthetic busy retry route check')
+                    final = self.wait_profile_run(run['id'])
+                self.assertEqual(final['status'], 'failed')
+                self.assertIn(error, final['result'])
+                self.assertEqual(len(pauses), 1)
+                self.assertEqual(len(self.calls()) - before, 1)
+                self.assertIn(b'429 rate limit', self.retained_profile_attempts(run['id'], 1)[0])
+
+    def test_busy_retry_with_unchanged_route_starts_second_real_process(self):
+        self.config.update(args=['--fixture-busy-once'], retry_busy=True)
+        self.save_config()
+        route = self.data / 'agent-routes.json'
+        route.write_text(json.dumps({'schema': 1, 'projects': {
+            'PROFILE': {'agent': 'cloudwave-codex', 'allowed_agents': ['cloudwave-codex']}}}))
+        original_route = route.read_bytes()
+        with mock.patch.object(self.runner, '_pause', return_value=True) as pause:
+            run = self.runner.start(self.project, None, 'cloudwave-codex', 'ask', 'tester',
+                                    question='Synthetic successful busy retry')
+            final = self.wait_profile_run(run['id'])
+        self.assertEqual((final['status'], final['result']), ('done', 'synthetic complete answer'))
+        self.assertEqual(pause.call_count, 1)
+        self.assertEqual(route.read_bytes(), original_route)
+        self.assertEqual(len(self.calls()), 2)
+        outputs = self.retained_profile_attempts(run['id'], 2)
+        self.assertIn(b'429 rate limit', outputs[0])
+        self.assertIn(b'synthetic complete answer', outputs[1])
+        self.assertEqual(self.calls()[0]['prompt'], self.calls()[1]['prompt'])
+
+    def test_resume_fallback_rechecks_route_before_starting_fresh_process(self):
+        self.config.update(args=['--fixture-empty-resume'], resume=True)
+        self.save_config()
+        route = self.data / 'agent-routes.json'
+        route.write_text(json.dumps({'schema': 1, 'projects': {
+            'PROFILE': {'agent': 'cloudwave-codex', 'allowed_agents': ['cloudwave-codex']}}}))
+        spawn = self.runner._spawn
+
+        def revoke_after_completed_process(*args, **kwargs):
+            result = spawn(*args, **kwargs)
+            self.assertEqual(result[0], 1)
+            self.assertEqual(result[1], '')
+            route.write_text(json.dumps({'schema': 1, 'projects': {
+                'PROFILE': {'agent': 'codex', 'allowed_agents': ['codex']}}}))
+            return result
+
+        run = self.store.create_run(self.project['id'], None, 'cloudwave-codex', 'ask', 'tester', 'delta task')
+        self.store.update_run(run['id'], status='running')
+        with mock.patch.object(self.runner, '_spawn', side_effect=revoke_after_completed_process) as actual_spawn:
+            with self.assertRaisesRegex(ValueError, '仅允许执行器') as denied:
+                self.runner.invoke(run['id'], self.project, None, 'cloudwave-codex', self.conf,
+                                   'ask', 'delta task', self.root, resume='old-thread', fresh='full current task')
+        final = self.runner.finish_invocation(run['id'], 1, str(denied.exception))
+        self.assertEqual(final['status'], 'failed')
+        self.assertEqual(actual_spawn.call_count, 1)
+        self.assertEqual(len(self.calls()), 1)
+        self.assertIn('resume', self.calls()[0]['args'])
+        self.assertEqual(self.calls()[0]['prompt'], 'delta task')
+        output = self.retained_profile_attempts(run['id'], 1)[0]
+        self.assertIn(b'"type": "thread.started"', output)
+        self.assertNotIn(b'agent_message', output)
 
     def test_zero_exit_without_complete_reply_or_with_failed_turn_is_not_success(self):
         for flag in ('--fixture-incomplete', '--fixture-failed'):

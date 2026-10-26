@@ -1689,6 +1689,8 @@ class Runner:
                 if (not (rdir / "session-context.json").exists() or not current_project or
                         not learning_context_current(self.store, self.data_dir, current_project, run, running=True)):
                     raise ValueError("学习输入或继承会话已变化；当前冻结提示词及重试已停止，请重新启动任务")
+            if resolve(self.data_dir, project, agent) != agent:
+                raise ValueError("项目执行器路由已变化，不能切换既有运行的执行器")
             return self._spawn(rid, project, ticket, agent, conf, mode, current_prompt, workdir, model, tag, current_resume)
         if resume and "cmd" in (conf.get(agent) or {}) and "{resume}" not in conf[agent]["cmd"]:  # a custom command that cannot continue
             prompt, resume = fresh or prompt, ""
