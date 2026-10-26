@@ -1406,3 +1406,14 @@
 - 定向：python3 <仓库外>/20261026-codex-evidence-root-fix/targeted_runner.py，21/21、0 skip/失败/错误，0.369秒、退出0。包含全部原17项及4项新增（3个窗口和系统祖先0755合法通过），原测试方法AST逐项不变；21个现场以保留symlink方式在原清理前保存。无模型、无真实CLI或新试点窗口；没有重复旧全量。
 - 原独立审查113个证据条目的字节/模式/UID/inode/nlink或特殊文件类型按原manifest读回保持；14个关键既有文件、codex_protocol新协议字节不变。_events/_attempt/verify/_private/_identity函数AST不变，文件绑定通过依旧不授予采用/准入。所有证据在仓库外 分析/implementation/20261026-codex-evidence-root-fix/；原反例和原初稿不替换。
 - 状态：done（限本地修复与增量验证），固定新提交后待作者外复核。git diff --check通过；修改仅codex_learning_evidence读取器、新增回归、使用说明及进度。不修改旧协议链/评分/guard/人工决定，不调用模型、SSH，不push或部署。
+
+
+## 2026-10-26：Codex独立无模型持久台账（有限批）
+
+- 状态：doing。基线2cc20eda7fc5fdfef1ac692e331fcc88879320c2，开始工作区干净；作者外根路径P2已在独立decision.json接受。只新增codex_ledger独立模块和测试，不接真实CLI、采用或旧native/provider/BC链；不新建rsi_prepare_%产品表，不创建真实合同/试点窗口，不push/部署。
+- 范围：单一选定SQLite内固定合同/绝对结束点、原子预留→intent→结算声明或执行未知；取消、期限、代际停止保持累计槽占用。真实exec、任务验收、生产者身份和实付均不推断；计量未知不会自动变成执行未知，也不补零。跨数据库、真实派发和来源真实性仍未准入。
+- 首轮定向 python3 -m unittest -v tests.test_codex_ledger：17/17、0 skip/失败/错误，0.099秒，退出0；initial-targeted.log及未提交初稿源码保留。自审补出持久化设置缺口：journal_mode=OFF仍可接受预留。新增同一反例在初稿退出1，出现“未拒绝”和“预留泄漏”两条失败（durability-red.log/scene），不是两项独立问题，也不归因于基线；增加每个写事务FULL/EXTRA同步和有效journal检查，旧代码不动。
+- 最后字节定向 targeted_runner_v2.py：18/18、0 skip/失败/错误，0.110秒、退出0。两个真实SQLite连接同request仅一次新intent、不同request不重复占在途槽；真实触发器注入证明预留/intent/停止事件失败整体回滚；一个真实本地Python新进程重开保持原绝对结束点、累计与intent后unknown停态。初17/18项记录与场景不覆盖；最终18个完整SQLite现场和子进程原始stdout/stderr/退出码保存在仓库外 分析/implementation/20261026-codex-ledger-v1/。
+- 读回18份最终数据库：integrity_check全部ok，表名无rsi_prepare_%；namespace哨兵最终使用legacy_synthetic命名，前轮临时夹具/日志保持。原前瞻包22文件及相关旧链共29份与2cc20ed字节一致，包括旧trial_preparation/native/provider/BC、guard/人工决定、新协议/只读读取器及其原测试；invariants.json固定逐项SHA。本批不重复旧整套/全量。
+- 状态：done（限单一数据库内无模型台账与新增定向），固定小提交后待作者外审查。真实启动计数与任务验收仍None；settled只是未认证结算声明，计量unknown不补零、不当执行unknown。固定窗口/合同不允许换request或重开刷新，所有历史预留占槽；停止操作抛Stopped时停止已提交，其他失败回滚，不以异常作成功。
+- 边界：仅补C03–C05单DB事务和累计；跨DB/备份回退/root别名、真实输入/权限/派发、来源认证和采用均未准入。没有实际合同/试点窗口/模型/真实Codex/真人决定，没有产品自动集成、push或生产部署。文档 docs/codex-ledger.md。
