@@ -307,6 +307,56 @@ class CodexLedgerTests(unittest.TestCase):
                 self.reserve()
             self.assertEqual(before, self.snapshot())
 
+    def hold_reader(self):
+        self.ledger.db.execute("PRAGMA busy_timeout=50")
+        reader = sqlite3.connect(self.path, isolation_level=None)
+        self.addCleanup(reader.close)
+        reader.execute("BEGIN")
+        reader.execute("SELECT * FROM codex_learning_roots").fetchall()
+        return reader
+
+    def test_busy_stop_commit_rolls_back_then_explicit_reconcile_can_stop(self):
+        self.intent()
+        reader = self.hold_reader()
+        before = self.snapshot()
+        self.clock.wall = self.deadline
+        with self.assertRaises(sqlite3.OperationalError) as raised:
+            self.ledger.intent(self.root, "R1")
+        self.assertEqual(raised.exception.sqlite_errorcode, sqlite3.SQLITE_BUSY)
+        self.assertFalse(self.ledger.db.in_transaction)
+        self.assertEqual(before, self.snapshot())
+        self.assertEqual(reader.execute("SELECT status FROM codex_learning_roots").fetchone()[0], "open")
+        self.assertEqual(reader.execute("SELECT state FROM codex_learning_attempts").fetchone()[0], "intent")
+        for connection in (self.ledger.db, reader):
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM codex_learning_events WHERE kind='stopped'").fetchone()[0], 0)
+        reader.rollback()
+        stopped = self.ledger.reconcile(self.root)
+        self.assertFalse(self.ledger.db.in_transaction)
+        self.assertEqual(stopped["root"]["status"], "expired")
+        self.assertEqual(stopped["attempts"][0]["state"], "unknown")
+        self.assertEqual(stopped["root"]["deadline_us"], self.deadline)
+        self.assertEqual(stopped["reserved_total"], 1)
+        self.assertEqual(stopped["intent_total"], 1)
+        observer = sqlite3.connect(self.path)
+        self.addCleanup(observer.close)
+        self.assertEqual(observer.execute("SELECT status FROM codex_learning_roots").fetchone()[0], "expired")
+        self.assertEqual(observer.execute("SELECT COUNT(*) FROM codex_learning_events WHERE kind='stopped'").fetchone()[0], 1)
+        with self.assertRaises(Stopped):
+            self.reserve("no-refill-after-reconcile")
+
+    def test_busy_ordinary_commit_control_rolls_back_and_remains_usable(self):
+        reader = self.hold_reader()
+        before = self.snapshot()
+        with self.assertRaises(sqlite3.OperationalError) as raised:
+            self.reserve()
+        self.assertEqual(raised.exception.sqlite_errorcode, sqlite3.SQLITE_BUSY)
+        self.assertFalse(self.ledger.db.in_transaction)
+        self.assertEqual(before, self.snapshot())
+        self.assertEqual(self.ledger.db.execute("SELECT COUNT(*) FROM codex_learning_events WHERE kind='reserved'").fetchone()[0], 0)
+        reader.rollback()
+        self.assertEqual(self.reserve()["state"], "reserved")
+        self.assertEqual(self.snapshot()["reserved_total"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

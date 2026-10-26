@@ -85,7 +85,11 @@ class Ledger:
                          "durable SQLite synchronization and journal required")
             yield
         except Stopped:
-            self.db.commit()  # Preserve only the fully recorded lifecycle stop.
+            try:
+                self.db.commit()  # Only a committed stop may be reported as Stopped.
+            except BaseException:
+                self.db.rollback()
+                raise
             raise
         except BaseException:
             self.db.rollback()

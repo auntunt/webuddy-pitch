@@ -1417,3 +1417,14 @@
 - 读回18份最终数据库：integrity_check全部ok，表名无rsi_prepare_%；namespace哨兵最终使用legacy_synthetic命名，前轮临时夹具/日志保持。原前瞻包22文件及相关旧链共29份与2cc20ed字节一致，包括旧trial_preparation/native/provider/BC、guard/人工决定、新协议/只读读取器及其原测试；invariants.json固定逐项SHA。本批不重复旧整套/全量。
 - 状态：done（限单一数据库内无模型台账与新增定向），固定小提交后待作者外审查。真实启动计数与任务验收仍None；settled只是未认证结算声明，计量unknown不补零、不当执行unknown。固定窗口/合同不允许换request或重开刷新，所有历史预留占槽；停止操作抛Stopped时停止已提交，其他失败回滚，不以异常作成功。
 - 边界：仅补C03–C05单DB事务和累计；跨DB/备份回退/root别名、真实输入/权限/派发、来源认证和采用均未准入。没有实际合同/试点窗口/模型/真实Codex/真人决定，没有产品自动集成、push或生产部署。文档 docs/codex-ledger.md。
+
+
+## 2026-10-26：Codex台账TX01停止提交失败增量
+
+- 状态：doing。基线8c55783f71407bb20a6d814b4ca73743228da037，工作区开始干净。依据独立transactions/review.md只修Stopped分支commit失败未rollback的P2；原独立18项通过不抵消该问题。MONO01只收窄文档，不改时间语义，不重复旧整批。
+- 新增真实第二SQLite连接持读锁的停止提交反例及普通提交对照。修复前两项定向：停止反例失败（SQLITE_BUSY后仍in_transaction），普通提交对照通过，退出1；原日志与未修源码保存在仓库外 分析/implementation/20261026-codex-ledger-tx01/。没有替换commit或事务函数。
+- 最小修复：Stopped分支仅增加commit失败时rollback后原样抛数据库异常；只有commit成功才重新抛Stopped。不自动重试、执行或reconcile，不改其他台账方法。MONO01文档收窄为“单调读数低于本实例初始值”，明确默认系统时钟不回退，100→104→103不保证停止；_sync等其他方法AST不变，不扩时间机制。
+- 原独立commit_busy_probe.py逐字复制到全新red-probe/、green-probe/运行，场景和普通提交对照保持；两份均原样返回SQLITE_BUSY/5/database is locked。红灯Stopped分支遗留事务，绿灯回滚退出；绿灯writer/reader视图相同、放锁后snapshot可用，关闭无未提交停止。原探针无红绿失败断言，本身退出均0，按结构化结果判断，绝不把红灯退出0当通过。原脚本内8c提交标签保留，实际快照绑定另记probe-commands/invariants。
+- 窄定向：targeted_runner.py只跑2条新增真实读锁用例和原成功Stopped提交用例，3/3、0 skip/失败/错误，0.169秒、退出0；保留3个完整SQLite现场。断言提交失败原始OperationalError/SQLITE_BUSY、无遗留事务/半提交事件、累计与固定期限不变；放锁后显式reconcile持久化expired/unknown，第三连接可见。普通提交对照回滚且后续可用。没有重跑旧18项、模型或时间专项。
+- 不变量：29+4共33份旧保护源码字节不变；Ledger除_transaction外全部方法AST不变，原所有测试方法AST不变，只增加两项和读锁夹具。三个数据库integrity_check及红绿原件读回通过；证据在 分析/implementation/20261026-codex-ledger-tx01/。
+- 状态：done（限本地TX01修复和窄增量验证），固定新提交后待作者外复核。所有不可采用/不可准入、未知计量/真实启动和真实生产者边界保持；不接CLI或人工采用，不push/部署，不访问私有留出或凭据。
