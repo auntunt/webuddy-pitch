@@ -172,42 +172,43 @@ class Throttle:
             self.fails.pop(who, None)
 
 
-LOGO = ('<svg width="44" height="44" viewBox="-13 -13 26 26" fill="none" stroke="#5CDBD3" stroke-width="2.2" stroke-linecap="round">'
-        '<path d="M-9 4a10 10 0 1 1 18 0"/><path d="M0 2l5-6"/><circle r="1.6" cy="2" fill="#5CDBD3"/></svg>')
+LOGO = ('<svg width="44" height="44" viewBox="-13 -13 26 26" fill="none" stroke="#1D4ED8" stroke-width="2.2" stroke-linecap="round">'
+        '<path d="M-9 4a10 10 0 1 1 18 0"/><path d="M0 2l5-6"/><circle r="1.6" cy="2" fill="#1D4ED8"/></svg>')
 
 PAGE = r"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>登录 · {brand}</title>
 <style>
-:root{--navy:#1D2939;--navy2:#26334A;--teal:#5CDBD3;--blue:#1677FF;--fg:#1F2733;--mut:#667085;--line:#D0D5DD;--bad:#E5484D;--bad-s:#FDECEC;color-scheme:light}
+:root{--navy:#1D2939;--navy2:#26334A;--teal:#1D4ED8;--blue:#1D4ED8;--fg:#111827;--mut:#4B5563;--line:#D0D5DD;--bad:#E5484D;--bad-s:#FDECEC;color-scheme:light}
 *{box-sizing:border-box}html,body{height:100%}
-body{margin:0;font:14px/1.55 -apple-system,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;color:var(--fg);background:#F2F4F7;display:flex}
-.side{flex:1.1;background:radial-gradient(1200px 600px at 10% 110%,#13A3A333,transparent 60%),radial-gradient(900px 500px at 90% -10%,#1677FF40,transparent 60%),var(--navy);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:48px 56px;position:relative;overflow:hidden}
-.side::after{content:"";position:absolute;right:-160px;bottom:-160px;width:520px;height:520px;border:1px solid #ffffff14;border-radius:50%;box-shadow:0 0 0 70px #ffffff06,0 0 0 140px #ffffff04}
+body{margin:0;font:14px/1.55 -apple-system,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;color:var(--fg);background:#F6F7F9;display:flex}
+.side{flex:1.1;background:#F0F2F5;color:var(--fg);border-right:1px solid #DCE1E8;display:flex;flex-direction:column;justify-content:space-between;padding:48px 56px;position:relative;overflow:hidden}
+
 .mark{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700;letter-spacing:.5px}
 .pitch h1{font-size:34px;line-height:1.3;margin:0 0 14px;font-weight:700;letter-spacing:.5px}
-.pitch p{margin:0;color:#AEB7C4;font-size:15px;max-width:30em}
+.pitch p{margin:0;color:var(--mut);font-size:15px;max-width:30em}
 .pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
-.pills span{border:1px solid #ffffff24;background:#ffffff0d;border-radius:999px;padding:5px 14px;font-size:13px;color:#D6DCE5}
-.foot{color:#7D8BA1;font-size:12px}
+.pills span{border:1px solid #DCE1E8;background:#fff;border-radius:999px;padding:5px 14px;font-size:13px;color:var(--mut)}
+.foot{color:var(--mut);font-size:12px}
 .main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 20px}
-.card{width:100%;max-width:380px;background:#fff;border:1px solid #E4E7EC;border-radius:16px;padding:36px 32px 30px;box-shadow:0 12px 40px #1D293914}
+.card{width:100%;max-width:380px;background:#fff;border:1px solid #DCE1E8;border-radius:6px;padding:36px 32px 30px;box-shadow:none}
 .card h2{margin:0 0 4px;font-size:22px}
 .card .sub{margin:0 0 26px;color:var(--mut)}
 label{display:block;font-size:13px;color:#344054;font-weight:600;margin-bottom:6px}
 .f{margin-bottom:18px}
-input{width:100%;height:44px;border:1px solid var(--line);border-radius:10px;padding:0 14px;font:inherit;font-size:15px;color:var(--fg);background:#fff;transition:border-color .15s,box-shadow .15s}
+input{width:100%;height:44px;border:1px solid var(--line);border-radius:6px;padding:0 14px;font:inherit;font-size:15px;color:var(--fg);background:#fff;transition:border-color .15s,box-shadow .15s}
 input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px #1677FF1f}
 .pw{position:relative}.pw input{padding-right:58px}
 .pw button{position:absolute;right:6px;top:6px;height:32px;border:0;background:none;color:var(--mut);font:inherit;font-size:13px;cursor:pointer;padding:0 10px;border-radius:8px}
-.pw button:hover{background:#F2F4F7}
-.go{width:100%;height:46px;border:0;border-radius:10px;background:var(--blue);color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px;transition:background .15s}
+.pw button:hover{background:#F1F3F6}
+input::placeholder{color:var(--mut);opacity:1}:where(button,input,a):focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.go{width:100%;height:46px;border:0;border-radius:6px;background:var(--blue);color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px;transition:background .15s}
 .go:hover{background:#0958D9}.go:disabled{opacity:.6;cursor:default}
-.err{background:var(--bad-s);color:#B42318;border:1px solid #F9C6C6;border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:13px}
-.hint{margin:22px 0 0;text-align:center;color:#98A2B3;font-size:12px}
+.err{background:var(--bad-s);color:#B42318;border:1px solid #F9C6C6;border-radius:6px;padding:10px 14px;margin-bottom:18px;font-size:13px}
+.hint{margin:22px 0 0;text-align:center;color:var(--mut);font-size:12px}
 .mmark{display:none}
-@media (max-width:860px){body{display:block;background:var(--navy)}.side{display:none}.main{min-height:100%;padding:28px 16px}
-.mmark{display:flex;justify-content:center;align-items:center;gap:10px;color:#fff;font-size:20px;font-weight:700;margin-bottom:22px}
+@media (max-width:860px){body{display:block;background:#F6F7F9}.side{display:none}.main{min-height:100%;padding:28px 16px}
+.mmark{display:flex;justify-content:center;align-items:center;gap:10px;color:var(--fg);font-size:20px;font-weight:700;margin-bottom:22px}
 .wrap{width:100%;max-width:380px}.card{padding:30px 22px 26px}}
 </style></head>
 <body>
