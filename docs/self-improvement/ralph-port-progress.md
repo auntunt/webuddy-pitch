@@ -1380,3 +1380,19 @@
 - 首轮独立回归因导入路径遗漏产生5个模块加载错误，修正执行路径后原测试通过；传输慢链路、SCP超时、首次root锁权限预检失败均保留。没有以失败当通过、修改锁权限或重复停服；最终差量重建两个精确归档后以既有sudo身份一次实际切换。
 - 数据副本70业务/11控制表schema与原行保持；共用锁、完整备份读回、即时/60秒HTTP、后验配置/全部原非DB/项目/服务保持通过。模型路由两文件未写入，未调用模型或代人操作。详情 [短上线审计](../../audit/production-deployment-2026-10-26-ui-neutral.md)。
 - 只完成本批UI交付。真实跨任务收益、LYB/LLA本人长期试点及整体80%仍未认定。
+
+
+## 2026-10-26：Codex 无模型协议与纯证据核验（第一批）
+
+- 状态：doing。开始时工作区干净；基线 a1333a530d2db8b9338741fb80cb0a833ee094f8，继续当前 iteration/context-pack-v2。按仓库外前瞻包实现窄范围协议，不开启真实执行、不读取私有留出或凭据、不创建实际合同/试点窗口，暂不发布生产。
+- 新建 scripts/rsi/codex_protocol.py、tmh/platform/codex_learning_evidence.py 和必要反例测试。严格新schema与外部保留的manifest摘要绑定，只读原始输入/JSONL/监督回执；不导入执行器、不写DB、不接人工采用路由。即使文件一致，也始终 adoptable=false、execution_admitted=false；执行真实性、输入实际送达、隔离、未见性、绝对期限均未证明。
+- 首轮新增定向 python3 -m unittest -v tests.test_codex_learning_evidence：11/11，0.165秒，退出0。含真实合成进程监督回执读回，非真实Codex/模型；首轮日志保存在仓库外 分析/implementation/20261026-codex-evidence-v1/first-targeted.log。随后自审收紧回执字段、非有限JSON和增长中原件，补充兼容与缺字段反例，尚待最终定向。
+- 不修改旧 native_learning.py（避免其自文件哈希承诺失效）、旧schema、guard/评分器/人工决定/状态迁移/进程监管语义。隔离/认证/出口和完整运行闭包仍是后续真实实验前置，未因这批无模型实现而宣布通过。
+- 自审中间失败：严格字段版15项中14通过、1错误（0.276秒、退出1）；真实监督器的运行中回执含supervisor_pid，初稿未列入允许字段。按真实格式把该字段设为必需，并要求计划/最终值一致；合成夹具同步补真实字段，不改原测试或时限。日志 strict-targeted.log/json 原样保留。
+- 最终定向：python3 <仓库外>/20261026-codex-evidence-v1/targeted_runner.py，原新测试方法与断言不变，仅在原清理前保留合成现场；16/16、0 skip/失败/错误，0.260秒、退出0。16个现场及实际合成进程的原始监督回执/输出已读回，cleanup complete/output_complete且无remaining_group。未运行全量或重复旧合成整套。
+- 文件替换防线覆盖逐层无符号链接打开、硬链接拒绝、owner-only模式、文件读取前后身份、目录替换（即使保留文件inode）与末次读回。严格拒绝重复/非有限JSON、未知schema/字段、缺失/矛盾回执、failed/unknown/清理不完整；客户端原始报告用量不等于实付，绑定记录数不等于真实exec或HTTP次数。
+- 不变量：14个既有关键文件与a1333a5字节一致，包括旧native_learning、learning_decisions、learning_eval/runs/experiments、trial_preparation/provider、acceptance/guard、锁与进程监督器；invariants.json保存逐项SHA。原schema拒绝新合同，原采用路径拒绝新观察类型的反例通过。没有新采用路由或台账迁移。
+- 状态：done（限本批无模型格式/只读文件绑定实现和本机定向），待作者外审查；不是隔离/真实执行/知识改善验收。文档见 docs/codex-learning-evidence.md；待后续证明的真实认证/出口、运行闭包、可信原子台账和派发/输入送达/未见性均未抹去。旧b2a6和旧题保持停止。
+- 待确认：本批无须用户决定；外审查与后续真实实验另按固定交接安排。当前仅本地提交审查，不启动模型、不改生产、不调用SSH、不push。
+- 提交前diff自审补出JSON类型混淆：Python相等比较可把true/1.0当作整数1，原初稿监督回执的跨文件比较和output字节数字段不够严格。保留初稿源码，以新增同一条反例重放，17个子场景中11个准确失败（typed-receipt-red.log，退出1）；改为跨回执同时比较JSON类型，明确检查pgid和输出字节数整数。仅本轮新文件的未提交初稿存在此问题，不能归因于基线。
+- 最后字节定向：targeted_runner_v2.py，17/17、0 skip/失败/错误，0.705秒、退出0；保留17个完整合成现场 final-scenes-v2/，上一轮16项日志/现场和类型反例原件不覆盖。源码未再改变；git diff --cached --check通过。当前格式只核对外部承诺的文件绑定，真实exec/输入送达、官方客户端来源、隔离、未见性、总期限和采用资格均明确false或unknown。
