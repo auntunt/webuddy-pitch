@@ -5,6 +5,28 @@ that the operator sets in their own shell or secret store.
 """
 from __future__ import annotations
 
+import json
+import re
+
+
+def inherited_codex_profile(profile: str, provider: str, model: str) -> str:
+    """A separate CLI profile that reuses credentials in the existing user config.
+
+    No credential discovery, provider-table copying, or direct HTTP adapter is
+    involved. The installed official client merges this file with its base config.
+    """
+    for label, value in (("profile", profile), ("provider", provider)):
+        if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", value):
+            raise ValueError(label + " 只能包含字母、数字、下划线和短横线")
+    if not isinstance(model, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:\-\[\]/]{0,79}", model):
+        raise ValueError("模型名不合法")
+    return ("# 保存为 $CODEX_HOME/%s.config.toml（通常为 ~/.codex/）。\n"
+            "# 使用官方 Codex CLI：codex exec --profile %s。\n"
+            "# 复用现有 config.toml 中的 provider 和认证；不复制密钥。\n"
+            "# 若 provider 不存在，先由管理员配置；不会切换到其他服务。\n"
+            "model = %s\nmodel_provider = %s\napproval_policy = \"never\"\n"
+            % (profile, profile, json.dumps(model), json.dumps(provider)))
+
 # Anthropic-compatible endpoints usable by Claude Code (checked 2026-10 from vendor
 # docs; confirm against the provider's current docs before production use).
 CLAUDE_PRESETS = {

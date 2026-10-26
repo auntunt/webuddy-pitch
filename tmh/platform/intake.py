@@ -964,10 +964,10 @@ def understander(P, p: dict | None = None) -> str:
         if len(recent) >= st["per_hour"]:
             return ""
     from .agents import available
+    from .agent_routes import resolve
     names = [a["name"] for a in available(P.data_dir) if a["available"]]
-    if st["agent"] in names:
-        return st["agent"]
-    return P.flow.agent() if names else ""
+    fallback = st["agent"] if st["agent"] in names else P.flow.agent(project=p) if names else ""
+    return resolve(P.data_dir, p, fallback=fallback)
 
 
 def business_map(P, p: dict, limit: int = 80) -> str:

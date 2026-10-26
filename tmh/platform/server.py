@@ -26,11 +26,33 @@ from urllib.parse import parse_qs, unquote, urlparse
 from .. import __version__
 from .agents import Runner, available, git, is_git, pick_model
 from .metrics import compute as compute_metrics, md_html, report_md, ts_norm
-from . import command
+from . import command, agent_routes
 from .errors import ApiError
 from .knowledge import Knowledge
 from .orchestra import Orchestra
 from .store import PRIORITIES, REFORM_LIKE, RUN_MODES, STATUSES, TYPES, Store, now
+
+
+def _routed_agent(P, project, requested=None, fallback=""):
+    try:
+        return agent_routes.resolve(P.data_dir, project, requested, fallback)
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
+def _direct_api_allowed(P, project):
+    try:
+        return agent_routes.direct_api_allowed(P.data_dir, project)
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
+def _route_metadata(P, project):
+    """Only this visible project's non-secret policy; never probe an executable."""
+    try:
+        return {"agent_route": agent_routes.route(P.data_dir, project), "agent_route_error": ""}
+    except ValueError as exc:
+        return {"agent_route": {}, "agent_route_error": str(exc)}
 
 
 
@@ -242,11 +264,20 @@ class Platform:
             "ON r.id=x.m" % q, ids)}
         running = st.one("SELECT COUNT(*) n FROM runs WHERE project_id IN (%s) AND status IN ('queued','running') AND mode!='ask'" % q, ids)["n"]
         conf = self.flow.autoflow()
-        agent = self.flow.agent(conf)
+        try:
+            agent = self.flow.agent(conf)
+        except ValueError:
+            agent = ""
         idle_ok = bool(conf.get("on") and agent)
         stall = "自动处理关着，没人接手" if not conf.get("on") else "这台机器上没有可用的智能体"
         mine, others = [], []
         for t in tickets:
+            try:
+                project_agent = self.flow.agent(conf, {"key": keys.get(t["project_id"], "")})
+                idle_ok = bool(conf.get("on") and project_agent)
+                stall = "自动处理关着，没人接手" if not conf.get("on") else "这台机器上没有可用的智能体"
+            except ValueError as exc:
+                idle_ok, stall = False, str(exc)
             key = "%s-%d" % (keys.get(t["project_id"], "?"), t["num"])
             r = last.get(t["id"]) or {}
             item = {"key": key, "title": t["title"], "priority": t["priority"], "assignee": t["assignee"] or "", "since": t["updated"]}
@@ -602,7 +633,7 @@ class Platform:
                                  "deep": bool(ans.get("deep")), "weak": bool(ans.get("weak"))}, session_id=s["id"])
             return
         try:
-            r = self.runner.start(p, t, agent or "codex", "ask", user, question=q, history=hist, session_id=s["id"], model=model)
+            r = self.runner.start(p, t, _routed_agent(self, p, agent, "codex"), "ask", user, question=q, history=hist, session_id=s["id"], model=model)
         except ValueError as e:
             raise ApiError(400, str(e))
         self.store.chat_add(p["id"], s["ticket_id"], "assistant", r["agent"], "", {"mode": "draft", "run": r["id"], "state": "running", "agent": r["agent"], "model": r.get("model", "")},
@@ -1284,6 +1315,7 @@ def api_projects(P, req):
         p["open"] = sum(v for k, v in s["by_status"].items() if k != "closed")
         p["exists"] = Path(p["root"]).is_dir()
         p.update(project_library.profile(P.store, p))
+        p.update(_route_metadata(P, p))
         out.append(p)
     return out
 
@@ -1397,6 +1429,7 @@ def api_habits(P, req, key):
 @route("GET", "/api/projects/<key>")
 def api_project(P, req, key):
     p = P.project(key)
+    p.update(_route_metadata(P, p))
     from . import learning_experiment_views as V
     return {"project": p, "stats": P.store.stats(p["id"]), "kb": P.kb.kb_overview(p),
             "runs": V.runs(P, _session_actor(req) or req.user, project_id=p["id"], limit=8),
@@ -1571,10 +1604,13 @@ def api_kb_answer(P, req, key):
 @route("POST", "/api/projects/<key>/kb/triage")
 def api_kb_triage(P, req, key):
     from .. import kbqa
-    root = P.root(P.project(key))
+    p = P.project(key)
+    root = P.root(p)
     text = (req.body.get("request") or "").strip()
     if not text:
         raise ApiError(400, "需求不能为空")
+    if req.body.get("model", True) is not False and not _direct_api_allowed(P, p):
+        raise ApiError(400, "此项目仅通过配置执行器调用模型，请使用任务分析或设置 model=false 使用规则分类")
     res = kbqa.triage(root, text, use_model=req.body.get("model", True) is not False, channel="web", sender=req.user)
     if req.body.get("record"):
         res["recorded"] = kbqa.record(root, res, req.user)
@@ -1584,6 +1620,8 @@ def api_kb_triage(P, req, key):
 def _chooser(P, p: dict):
     """The routing model as a typed chooser for the requirement conversation, or None when not configured."""
     from .. import kbqa
+    if not _direct_api_allowed(P, p):
+        return None
     conf = kbqa.router_conf(P.root(p))
     if not conf["ready"]:
         return None
@@ -1841,7 +1879,7 @@ def api_survey_start(P, req, key):
     sv = P.surveys.get(p["id"])
     if sv and sv.busy:
         raise ApiError(409, "这个项目的全项目分析还在进行")
-    agent = req.body.get("agent", "codex")
+    agent = _routed_agent(P, p, req.body.get("agent"), "codex")
     if agent not in load_config(P.data_dir):
         raise ApiError(400, "没有这个智能体：%s" % agent)
     try:
@@ -2037,9 +2075,12 @@ def api_command(P, req, key):
         raise ApiError(400, "指令是空的")
     sessions = [P.session_info(s) for s in P.store.sessions(p["id"], req.user) if not s["archived_at"]]
     projects = [{"key": x["key"], "name": x["name"]} for x in P.store.projects()]
-    conf = kbqa.router_conf(P.root(p)) if b.get("model", True) else {}
+    direct_api = _direct_api_allowed(P, p)
+    conf = kbqa.router_conf(P.root(p)) if b.get("model", True) and direct_api else {}
     pl = command.plan(text, b.get("page") or {}, sessions, projects, conf)
     out = {"plan": pl}
+    if b.get("model", True) and not direct_api:
+        out["model_skipped"] = "项目配置关闭直接 API 调用，本次使用规则生成操作建议"
     if pl["kind"] == "command" and b.get("session"):
         s = P.session_of(b["session"], req.user)
         if not s["archived_at"]:
@@ -2247,8 +2288,9 @@ def api_lesson(P, req, key, lid):
 def api_eval_run(P, req, key):
     from . import learn
     p = P.project(key)
-    agent = req.body.get("agent") or P.flow.agent()
     try:
+        requested = req.body.get("agent")
+        agent = _routed_agent(P, p, requested, "" if requested else P.flow.agent(project=p))
         return learn.run_evals(P.flow, p, agent, req.body.get("model"), req.user, req.body.get("cases") or None)
     except ValueError as e:
         raise ApiError(400, str(e))
@@ -2371,6 +2413,8 @@ def api_tickets(P, req):
 def api_new_ticket(P, req):
     b = req.body
     p = P.project(b.get("project", ""))
+    # Validate the selected route before persisting an explicitly executed ticket.
+    agent = _routed_agent(P, p, b["agent"]) if not b.get("handwork") and b.get("agent") and b.get("mode") else None
     links = {}
     if b.get("flows"):
         links["flows"] = list(b["flows"])
@@ -2394,7 +2438,7 @@ def api_new_ticket(P, req):
     if b.get("handwork"):
         P.store.event(t["id"], req.user, "flow", "%s 认领：我来写。自动处理不会接这张单，推到分支 wb/%s 后平台自动构建、审查" % (req.user, t["key"]))
     elif b.get("agent") and b.get("mode"):
-        P.runner.start(p, t, b["agent"], b["mode"], req.user, model=b.get("model"))
+        P.runner.start(p, t, agent, b["mode"], req.user, model=b.get("model"))
     elif b.get("auto", True) and not getattr(P, "tenant_context", None):
         P.flow.submit(p, t)
     return P.store.ticket(t["id"])
@@ -2819,7 +2863,7 @@ def api_start_run(P, req, key):
     try:
         sid = req.body.get("session")
         s = P.session_of(sid, req.user) if sid else None
-        return P.runner.start(p, t, req.body.get("agent", "claude"), mode, req.user, req.body.get("target", ""), then,
+        return P.runner.start(p, t, _routed_agent(P, p, req.body.get("agent"), "claude"), mode, req.user, req.body.get("target", ""), then,
                               session_id=s and s["id"], model=req.body.get("model"))
     except ValueError as e:
         raise ApiError(400, str(e))
@@ -2835,7 +2879,7 @@ def api_project_run(P, req, key):
     """Runs without a ticket, e.g. writing a knowledge page."""
     p = P.project(key)
     try:
-        return P.runner.start(p, None, req.body.get("agent", "claude"), req.body.get("mode", "kb"), req.user, req.body.get("target", ""),
+        return P.runner.start(p, None, _routed_agent(P, p, req.body.get("agent"), "claude"), req.body.get("mode", "kb"), req.user, req.body.get("target", ""),
                               batch=str(req.body.get("batch") or "")[:40], model=req.body.get("model"))
     except ValueError as e:
         raise ApiError(400, str(e))

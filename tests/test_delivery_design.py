@@ -7,10 +7,32 @@ import subprocess
 import unittest
 
 from tmh.platform.ui_delivery import DELIVERY_JS
+from tmh.platform.ui import JS
 
 
 @unittest.skipUnless(shutil.which("node"), "Node.js is needed for delivery UI behavior checks")
 class DeliveryDesignBehaviorTest(unittest.TestCase):
+    def test_project_route_unavailable_never_selects_another_agent(self):
+        self.check_js(r"""
+const d={id:'routed',project:'PPTAUTO'};
+S.projects=[{key:'PPTAUTO',agent_route:{agent:'cloudwave-codex'}}];
+S.meta.agents=[{name:'claude',title:'Claude',available:true}];
+ls.get=()=>({agent:'claude'});
+for(const installed of [false,true]){
+ if(installed){
+  S.projects[0].agent_route.allowed_agents=['claude','cloudwave-codex'];
+  S.meta.agents.push({name:'cloudwave-codex',title:'Cloudwave',available:false});
+ }
+ const html=dlStageBody(d,stage);
+ assert.match(html,/<option value="cloudwave-codex" selected>/);
+ assert.doesNotMatch(html,/<option value="claude" selected>/);
+ assert.match(html,/id="dlRunGo"\s+disabled/);
+ assert.match(html,/配置不可用|本机未安装/);
+}
+S.meta.agents[1].available=true;
+assert.doesNotMatch(dlStageBody(d,stage),/id="dlRunGo"\s+disabled/);
+""")
+
     def check_js(self, checks):
         helpers = r"""
 const assert=require('node:assert/strict');
@@ -22,7 +44,8 @@ const stage={key:'research',name:'研究调研',state:'not_started',artifact:nul
 """
         # Node reads stdin as UTF-8; the shipped JS + fixtures contain Chinese, and Windows default
         # text mode would encode them with the ANSI code page (GBK) and corrupt the source.
-        result = subprocess.run([shutil.which("node"), "-"], input=helpers+DELIVERY_JS+"\n"+checks,
+        route_helpers = 'function projectAgents(' + JS.split('function projectAgents(', 1)[1].split('function newTicket(', 1)[0]
+        result = subprocess.run([shutil.which("node"), "-"], input=helpers+route_helpers+DELIVERY_JS+"\n"+checks,
                                 encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 

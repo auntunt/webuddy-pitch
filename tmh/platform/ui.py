@@ -406,7 +406,13 @@ function modelSel(id,agent,mode){const a=((S.meta&&S.meta.agents)||[]).find(x=>x
   return `<select id="${id}" data-agent="${h(agent)}" title="这次用哪个模型；自动＝按任务类型选" aria-label="模型"><option value="auto">${h(auto)}</option>${ms.map(([v,l])=>`<option value="${h(v)}" ${v===saved?'selected':''}>${h(l)}</option>`).join('')}<option value="" ${saved===''?'selected':''}>沿用本机设置</option></select>`}
 function bindModel(id){const e=$('#'+id);if(e)e.onchange=()=>{try{localStorage.setItem('tmh.model.'+e.dataset.agent,e.value)}catch(x){}}}
 function mTag(r){return r&&r.model?' · '+h(r.model):''}
-function agentOptions(){const first=(S.meta.agents.find(a=>a.available)||{}).name;return S.meta.agents.map(a=>`<option value="${h(a.name)}" ${a.name===first?'selected':''}>${h(a.title)}${a.available?'':'（本机未安装）'}</option>`).join('')}
+function projectAgents(project=S.proj){const p=(S.projects||[]).find(p=>p.key===project)||{};if(p.agent_route_error)return [];const r=p.agent_route||{};
+  const ags=((S.meta&&S.meta.agents)||[]).filter(a=>!r.allowed_agents||r.allowed_agents.includes(a.name)).slice();
+  if(r.agent&&!ags.some(a=>a.name===r.agent))ags.push({name:r.agent,title:r.agent,available:false,configuration_error:'项目指定的执行器尚未配置'});
+  return ags.sort((a,b)=>Number(b.name===r.agent)-Number(a.name===r.agent))}
+function preferredAgent(project=S.proj,saved=''){const p=(S.projects||[]).find(p=>p.key===project)||{},ags=projectAgents(project),r=p.agent_route||{};
+  return (ags.find(a=>a.name===r.agent)||ags.find(a=>a.name===saved&&a.available)||ags.find(a=>a.available)||ags[0]||{}).name||''}
+function agentOptions(project=S.proj){const first=preferredAgent(project);return projectAgents(project).map(a=>`<option value="${h(a.name)}" ${a.name===first?'selected':''}>${h(a.title)}${a.available?'':a.configuration_error?'（配置不可用）':'（本机未安装）'}</option>`).join('')}
 function newTicket(prefill){
   if(!S.projects.length){if(S.meta.access&&!S.meta.access.platform_owner){toast('当前没有获准可写的项目，请联系租户管理员。');return}return newProject()}
   const writable=S.projects.filter(p=>accessCanWrite(p.key));if(!writable.length){toast('当前没有获准可写的项目，请联系租户管理员。');return}
@@ -429,6 +435,8 @@ function newTicket(prefill){
        (r.tables.length?'<h3 style="margin-top:12px">相关表</h3><div class="chips">'+r.tables.map(t=>`<span class="tag">${h(t.name)}</span>`).join(' ')+'</div>':''):'<span class="sub">知识库里没找到相关业务流</span>';
       document.querySelectorAll('#nrel .chip').forEach(c=>c.onclick=()=>{const f=c.dataset.f;sel.has(f)?sel.delete(f):sel.add(f);c.classList.toggle('on')})}catch(e){$('#nrel').textContent=e.message}},350)};
   $('#nt').oninput=look;$('#nb').oninput=look;$('#nt').focus();
+  if($('#ng'))$('#ng').innerHTML=agentOptions(pk());
+  if($('#nproj'))$('#nproj').onchange=()=>{sel.clear();if($('#ng'))$('#ng').innerHTML=agentOptions(pk());look()};
   $('#nIn').onclick=()=>intakeModal(pk(),[$('#nt').value,$('#nb').value].filter(Boolean).join('\n'));
   if(prefill){$('#nt').value=prefill.title||'';$('#nb').value=prefill.body||'';look()}
   $('#ns').onclick=async()=>{const b={project:pk(),title:$('#nt').value,body:$('#nb').value,type:$('#ny').value,priority:$('#np').value,assignee:$('#na').value,flows:[...sel]};
@@ -458,7 +466,7 @@ function flowState(d){
   if(t.status!=='closed'&&fx?.verify?.verification_current===false){sub.fix='实现记录保留';sub.verify=fx.recheck_wait?.status==='running'?'等待当前重新验证':'旧结果失效，检查回执';st.verify='todo'}
   return {st,sub,an,pl,fx,live,acc,review}}
 function stepper(f){return `<ol class="fsteps">${FLOW.map(([k,l],i)=>`<li class="${f.st[k]}"><span class="dot">${f.st[k]==='done'?'✓':f.st[k]==='bad'?'!':i+1}</span><b>${l}</b><small>${f.sub[k]||(f.st[k]==='skip'?'跳过':'')}</small></li>`).join('')}</ol>`}
-function defAgent(){let a='';try{a=localStorage.getItem('tmh.agent')||''}catch(e){}const ags=S.meta.agents;return (ags.find(x=>x.name===a&&x.available)||ags.find(x=>x.available)||ags[0]||{}).name}
+function defAgent(){let a='';try{a=localStorage.getItem('tmh.agent')||''}catch(e){}return preferredAgent(S.proj,a)}
 // Tickets run on their own until the change sits on its own branch; a person can take one over and hand it back.
 const MERGE_ON=()=>(S.meta.autoflow||{}).merge==='auto';
 function onAuto(d){return !!((S.meta.autoflow||{}).on)&&!(d.ticket.links||{}).hold&&!['verify','closed'].includes(d.ticket.status)}
@@ -1628,7 +1636,7 @@ async function survey(){
     if(v.active.length)html+='<div style="margin:6px 0">'+v.active.map(a=>`<div class="svr"><span class="spin"></span><span class="key">${h(a.worker)}</span>正在写 ${(a.pages||[a.page]).map(x=>`<a href="#/kb/${encodeURIComponent(x)}">${h(x)}</a>`).join('、')}${a.run?` · <a href="javascript:void 0" onclick="showRun(${a.run})">看过程</a>`:''}</div>`).join('')+'</div>';
     html+=v.state==='stopping'?'':`<button class="danger" id="svStop">停止（写完手头的页面）</button>`;
   }else{
-    const ags=S.meta.agents;const pick=(ags.find(a=>a.name==='codex'&&a.available)||ags.find(a=>a.available)||ags[0]||{}).name;
+    const ags=projectAgents();const pick=preferredAgent(S.proj,'codex');
     html+=`<div class="row" style="align-items:center;gap:10px;margin-top:10px">
      <label class="sub">范围 <select id="svSc"><option value="top" ${scope==='top'?'selected':''}>业务地图：只写业务域和总览（${topTodo} 页）</option><option value="all" ${scope==='all'?'selected':''}>全部页面（${allTodo} 页，token 消耗大）</option></select></label>
      <label class="sub">智能体 <select id="svAg">${ags.map(a=>`<option value="${h(a.name)}" ${a.name===pick?'selected':''}>${h(a.title)}${a.available?'':'（本机未安装）'}</option>`).join('')}</select></label>
@@ -1771,7 +1779,7 @@ const A={
   // "you opened another ticket" hint share one line below it; agent/model live in the ⋯ menu.
   paintHead(){
     if(!this.open)return;const s=this.sess;
-    const ags=(S.meta&&S.meta.agents)||[];const pick=(ags.find(a=>a.name==='codex'&&a.available)||ags.find(a=>a.available)||ags[0]||{}).name;const saved=ls.get('tmh.astAgent')||'';
+    const ags=projectAgents();const explicit=this.agentChoices?.[S.proj];const saved=ags.some(a=>a.name===explicit)?explicit:'';const pick=preferredAgent(S.proj,ls.get('tmh.astAgent')||'codex');
     $('#astHead').innerHTML=`<div class="t"><button class="stitle ${this.hist?'on':''}" id="astHist" aria-expanded="${this.hist}" title="切换会话、跳转页面">${s?`<span class="nm">${h(s.title)}</span>`:'<span class="nm">AI 助手</span>'}${s&&s.archived_at?'<span class="tag warn">已归档</span>':''}<span class="car">▾</span></button><span class="grow"></span>
       <div class="nw"><button class="hbtn" id="astNew" title="新会话" aria-label="新会话">＋</button><div class="menu" id="astMenu" hidden>
        <button data-k="consult"><b>项目咨询</b><span>了解业务、查代码、解释依据</span></button>
@@ -1792,7 +1800,7 @@ const A={
       if(b.dataset.a==='ren')prompt2('重命名会话',s.title,async v=>{try{await post('/api/sessions/'+s.id,{title:v});await this.loadList();this.load()}catch(e){toast(e.message)}});
       else{try{await post('/api/sessions/'+s.id,{archived:!s.archived_at});toast(s.archived_at?'已恢复，可以继续发送':'已归档：消息都保留，正在跑的回答也不会停');await this.loadList();this.load()}catch(e){toast(e.message)}}});
     bindModel('astModel');
-    $('#astAgent').onchange=e=>{ls.set('tmh.astAgent',e.target.value);this.paintHead();$('#astMoreM').hidden=false};
+    $('#astAgent').onchange=e=>{this.agentChoices=this.agentChoices||{};this.agentChoices[S.proj]=e.target.value;ls.set('tmh.astAgent',e.target.value);this.paintHead();$('#astMoreM').hidden=false};
     this.paintCtx();this.paintMode()},
   setMode(m){this.mode=m||(this.mode==='draft'?'evidence':'draft');ls.set('tmh.astMode',this.mode);this.paintMode();this.paintFoot()},
   paintMode(){const b=$('#astDeep');if(!b)return;const pr=(S.points&&S.points.prices&&S.points.prices.ask)||0;b.classList.toggle('on',this.mode==='draft');b.setAttribute('aria-pressed',this.mode==='draft');
@@ -1950,7 +1958,7 @@ const A={
     catch(e){toast(e.message);const t=$('#aq');if(t&&!t.value)t.value=q;this.load()}},
   async askTicket(t,q,mode){if(!this.sess||this.sess.ticket_id!==t.id)await this.enterTicket(t);this.toggle(true);this.ask(q,mode)},
   confirmRun(mode){
-    const t=this.ticket;if(!t)return;const ag=$('#astAgent')?$('#astAgent').value:((S.meta.agents.find(a=>a.available)||{}).name||'codex');
+    const t=this.ticket;if(!t)return;const ag=$('#astAgent')?$('#astAgent').value:preferredAgent();
     const price=(S.points&&S.points.prices&&S.points.prices[mode])||0;const ml=moLabel(mode);
     this.pending=`<div class="confirm"><b>确认执行</b><div style="margin-top:4px">让 ${h(ag)} 对 ${h(t.key)} ${h(ml)}。只读代码，结论记在工单上，结果回到这个会话。预计消耗 ${price} 点。</div><div class="row"><button class="primary" id="cfOk">确认执行</button><button id="cfNo">取消</button></div></div>`;
     this.paintMsgs();

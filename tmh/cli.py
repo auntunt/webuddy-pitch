@@ -441,6 +441,14 @@ def cmd_hook(a) -> int:
 
 def cmd_agent_config(a) -> int:
     from . import agentcfg
+    if a.inherit_provider or a.profile:
+        if a.engine != "codex" or not a.inherit_provider or not a.profile or a.fast_model:
+            raise SystemExit("独立配置请同时指定 codex、--inherit-provider 和 --profile，不与 --fast-model 混用")
+        try:
+            print(agentcfg.inherited_codex_profile(a.profile, a.inherit_provider, a.model))
+        except ValueError as exc:
+            raise SystemExit(str(exc))
+        return 0
     if a.engine == "claude":
         print(agentcfg.claude_config(a.provider, a.model, a.fast_model or ""))
     else:
@@ -921,6 +929,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--provider", default="deepseek")
     p.add_argument("--model", required=True)
     p.add_argument("--fast-model")
+    p.add_argument("--profile", help="生成独立 Codex profile 文件，不覆盖现有配置")
+    p.add_argument("--inherit-provider", help="复用现有 Codex config.toml 的 provider 与认证")
     add("status", cmd_status, "当前改造/维护状态总览")
     p = add("flows", cmd_flows, "业务流：入口 → 逻辑 → 数据访问 → 表，含状态变化与代码中的规则")
     p.add_argument("query", nargs="*", help="业务流 id 或关键词（URL、类名、表名、中文业务名）")

@@ -51,9 +51,9 @@ class Orchestra:
     def start_from(self, fn) -> None:
         self.bases.append(fn)
 
-    def agent(self, conf: dict | None = None) -> str:
+    def agent(self, conf: dict | None = None, project: dict | None = None) -> str:
         """The agent the line would use now ("" when none is available on this machine)."""
-        return self._flow_agent(conf or self.autoflow())
+        return self._flow_agent(conf or self.autoflow(), project)
 
     def root(self, p: dict) -> Path:
         return Path(p["root"])
@@ -91,10 +91,12 @@ class Orchestra:
         if wait:
             th.join()
 
-    def _flow_agent(self, conf: dict) -> str:
+    def _flow_agent(self, conf: dict, project: dict | None = None) -> str:
         from .agents import available
+        from .agent_routes import resolve
         agents = [a["name"] for a in available(self.data_dir) if a["available"]]
-        return conf.get("agent") if conf.get("agent") in agents else (agents[0] if agents else "")
+        fallback = conf.get("agent") if conf.get("agent") in agents else (agents[0] if agents else "")
+        return resolve(self.data_dir, project, fallback=fallback)
 
     def _intake(self, p: dict, t: dict) -> None:
         st, by = self.store, self.BY
@@ -134,7 +136,11 @@ class Orchestra:
         st, by = self.store, self.BY
         if self.mine(tid):  # claimed (我来写) while the line was getting to it
             return
-        agent = self._flow_agent(conf)
+        try:
+            agent = self._flow_agent(conf, p)
+        except ValueError as exc:
+            self._flow_stop(tid, str(exc))
+            return
         if not agent:
             return self._flow_stop(tid, "本机没有可用的智能体，跳过自动分析，直接转人工处理")
 
@@ -254,7 +260,10 @@ class Orchestra:
         if n > int(conf.get("refix") or 0):
             self.store.event(t["id"], self.BY, "flow", "已经退回 %d 次，不再自动重改，转人工处理" % n)
             return tell("已经退回 %d 次，自动重改用完" % n)
-        agent = self._flow_agent(conf)
+        try:
+            agent = self._flow_agent(conf, p)
+        except ValueError as exc:
+            return tell(str(exc))
         if not agent:
             return tell("没有可用的智能体，不自动重改")
         root = self.root(p)
@@ -298,7 +307,11 @@ class Orchestra:
             n = 1 + sum(1 for e in st.events(t["id"]) if e["kind"] in ("reject", "conflict"))  # this one counts too, as a rejection does
             st.event(t["id"], self.BY, "conflict", "验收通过的改动（%s）和主干 %s 上后来的改动冲突，冲突的文件：%s。要在最新的主干上重做同样的改动，行为和验收通过的那版保持一致"
                      % (r["branch"], r["main"], "、".join(r["files"]) or "（没列出）"), {"branch": r["branch"], "files": r["files"]})
-            agent = self._flow_agent(conf) if conf.get("on") and conf.get("fix") else ""
+            try:
+                agent = self._flow_agent(conf, p) if conf.get("on") and conf.get("fix") else ""
+            except ValueError as exc:
+                st.event(t["id"], self.BY, "flow", str(exc))
+                agent = ""
             if agent and not self.held(t["id"]) and n <= int(conf.get("refix") or 0):
                 st.event(t["id"], self.BY, "flow", "交回智能体在最新的主干上重做这次改动，做完再验收")
                 from .agents import git
@@ -470,7 +483,7 @@ class Orchestra:
         if step == "commit":
             self._flow_commit(p, t["id"], conf, run)
             return step
-        agent = self._flow_agent(conf)
+        agent = self._flow_agent(conf, p)
         if not step or not agent:
             return ""
         if step == "analyze":

@@ -16,6 +16,8 @@ locations instead of reading the repository.
 Agents are configurable in <data>/agents.json, never with keys in it:
 {"claude": {"bin": "claude", "args": [], "timeout": 1800},
  "codex": {"bin": "codex", "args": ["-m", "gpt-5-codex"]},
+ "cloudwave-codex": {"engine": "codex", "profile": "webuddy-cloudwave",
+                      "prompt_transport": "stdin", "resume": false, "retry_busy": false},
  "my-agent": {"cmd": ["my-agent", "--dir", "{workdir}", "{prompt_file}"], "title": "自研智能体"}}
 A custom agent gets {prompt}, {prompt_file}, {workdir}, {mode}, {model} substituted.
 
@@ -51,6 +53,32 @@ BUILTIN = {
               "models": [["gpt-5-codex", "GPT-5 Codex"], ["gpt-5", "GPT-5"]], "defaults": {}},
 }
 MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:\-\[\]/]{0,79}$")  # alias or full id; passed as one argv item
+PROFILE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
+
+
+def engine_name(agent: str, config: dict) -> str:
+    """An alias is a route identity; its engine controls the official CLI protocol."""
+    engine = config.get("engine", agent)
+    if "engine" in config and (engine != "codex" or "cmd" in config):
+        raise ValueError("独立执行器只支持 engine=codex，不能同时配置 cmd")
+    if "engine" in config or "profile" in config:
+        args = config.get("args")
+        if args is None:
+            args = []
+        if not isinstance(args, list) or any(not isinstance(arg, str) for arg in args):
+            raise ValueError("独立执行器 args 必须是字符串列表")
+    if "profile" in config:
+        profile = config["profile"]
+        if engine != "codex" or "cmd" in config or not isinstance(profile, str) or not PROFILE_ID.fullmatch(profile):
+            raise ValueError("Codex profile 必须是 1 至 64 位字母、数字、下划线或短横线名称")
+        if any(arg.startswith(("--profile=", "-p")) or arg == "--profile" for arg in config.get("args") or []):
+            raise ValueError("Codex profile 与 args 中的 profile 参数冲突")
+    if "prompt_transport" in config and (engine != "codex" or "cmd" in config or config["prompt_transport"] not in ("stdin", "argv")):
+        raise ValueError("Codex prompt_transport 只支持 stdin 或 argv")
+    for field in ("resume", "retry_busy"):
+        if field in config and not isinstance(config[field], bool):
+            raise ValueError("执行器 %s 必须是布尔值" % field)
+    return engine
 
 
 def pick_model(c: dict, mode: str, model) -> str:
@@ -201,9 +229,18 @@ def load_config(data_dir: Path) -> dict:
 def available(data_dir: Path) -> list:
     out = []
     for name, c in load_config(data_dir).items():
-        exe = (c.get("cmd") or [c.get("bin", name)])[0]
-        out.append({"name": name, "title": c.get("title", name), "available": bool(shutil.which(exe)),
-                    "custom": "cmd" in c, "models": c.get("models") or [], "defaults": c.get("defaults") or {}})
+        error = ""
+        try:
+            engine = engine_name(name, c)
+        except ValueError as exc:
+            engine, error = "", str(exc)
+        exe = (c.get("cmd") or [c.get("bin", engine or name)])[0]
+        item = {"name": name, "title": c.get("title", name), "available": not error and bool(shutil.which(exe)),
+                "custom": "cmd" in c, "models": c.get("models") or [], "defaults": c.get("defaults") or {},
+                "engine": engine, "profile": c.get("profile", "")}
+        if error:
+            item["configuration_error"] = error
+        out.append(item)
     return out
 
 
@@ -503,19 +540,20 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
     c = conf.get(agent)
     if not c:
         raise ValueError("没有这个智能体：%s" % agent)
+    engine = engine_name(agent, c)
     if "cmd" in c:
         sub = {"{prompt}": prompt, "{prompt_file}": str(prompt_file), "{workdir}": str(workdir), "{mode}": mode, "{model}": model,
                "{resume}": resume}
         return [sub.get(a, a) for a in c["cmd"]]
-    exe = c.get("bin", agent)
+    exe = c.get("bin", engine)
     extra = list(c.get("args") or [])
     if model:  # the model picked for this run wins over one fixed in agents.json args
         for flag in ("--model", "-m"):
             while flag in extra:
                 i = extra.index(flag)
                 del extra[i:i + 2]
-        extra = (["--model", model] if agent == "claude" else ["-m", model]) + extra
-    if agent == "claude":
+        extra = (["--model", model] if engine == "claude" else ["-m", model]) + extra
+    if engine == "claude":
         read = READ_TOOLS + (["Bash(python3 %s:*)" % tool] if tool else [])
         cmd = [exe, "-p", "--output-format", "stream-json", "--verbose"] + (["--resume", resume] if resume else [])  # prompt on stdin
         if mode == "understand":  # it reads the words it is given and nothing else: no tools at all
@@ -527,10 +565,15 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
         else:
             cmd += ["--allowedTools", ",".join(read), "--disallowedTools", "Edit,Write,MultiEdit,NotebookEdit"]
         return cmd + extra
-    if agent == "codex":
+    if engine == "codex":
         sandbox = "workspace-write" if mode in ("fix", "edit", "kb") else "read-only"
+        if c.get("profile"):
+            extra = ["--profile", c["profile"]] + extra
+        if c.get("engine") == "codex" and "--json" not in extra:
+            extra = ["--json"] + extra
+        prompt_arg = "-" if c.get("prompt_transport") == "stdin" else prompt
         return [exe, "exec", "--sandbox", sandbox, "--skip-git-repo-check", "-C", str(workdir),
-                "--output-last-message", str(last_msg)] + extra + (["resume", resume] if resume else []) + [prompt]
+                "--output-last-message", str(last_msg)] + extra + (["resume", resume] if resume else []) + [prompt_arg]
     raise ValueError("智能体 %s 没有配置 cmd" % agent)
 
 
@@ -542,8 +585,40 @@ class StreamParser:
         self.result = ""
         self.text = []
         self.session = ""  # the agent's own session id, to continue it in the next step
+        self.usage = {}
+        self.completed = False
+        self.failed = False
 
     def feed(self, line: str) -> str:
+        if self.agent == "codex" and line.lstrip().startswith("{"):
+            try:
+                ev = json.loads(line)
+            except ValueError:
+                ev = None
+            if isinstance(ev, dict) and ev.get("type") in (
+                    "thread.started", "turn.started", "item.started", "item.updated", "item.completed",
+                    "turn.completed", "turn.failed", "error"):
+                t = ev["type"]
+                if t == "thread.started":
+                    self.session = ev.get("thread_id") or self.session
+                elif t == "item.completed":
+                    item = ev.get("item") or {}
+                    if item.get("type") == "agent_message" and isinstance(item.get("text"), str):
+                        self.result = item["text"]
+                        self.text.append(self.result)
+                        return self.result + "\n"
+                elif t == "turn.completed":
+                    self.completed = True
+                    for key, value in (ev.get("usage") or {}).items():
+                        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+                            self.usage[key] = self.usage.get(key, 0) + value
+                elif t in ("error", "turn.failed"):
+                    self.failed = t == "turn.failed" or self.failed
+                    error = ev.get("error") or {}
+                    text = str(ev.get("message") or (error.get("message") if isinstance(error, dict) else error) or "Codex 运行失败")
+                    self.text.append(text + "\n")
+                    return text + "\n"
+                return ""
         if self.agent != "claude":
             self.text.append(line)
             m = None if self.session else re.match(r"\s*session id:\s*(\S+)", line)
@@ -613,6 +688,18 @@ class Timing:
         prev, now_ = self.last, time.time()
         self.last = now_
         s = line.rstrip("\n")
+        if s.lstrip().startswith("{"):
+            try:
+                ev = json.loads(s)
+            except ValueError:
+                ev = None
+            if isinstance(ev, dict):
+                if ev.get("type") in ("item.started", "item.completed", "turn.completed") and self.first is None:
+                    self.first = now_
+                if ev.get("type") == "item.started" and (ev.get("item") or {}).get("type") == "command_execution":
+                    self.commands += 1
+                if ev.get("type") in ("error", "turn.failed") and self.BUSY.search(s):
+                    self.busy = True
         if s.startswith("ERROR") and self.BUSY.search(s):
             self.busy = True
         if "Reconnecting" in s:
@@ -993,6 +1080,8 @@ def earlier_session(store, data_dir: Path, ticket: dict | None, agent: str, mode
     analyze, the change after the plan), run by the same agent. ('', None) when there is none."""
     if not ticket or not ticket.get("id") or mode not in CONTINUES or not continue_on(data_dir):
         return "", None
+    if load_config(data_dir).get(agent, {}).get("resume") is False:
+        return "", None
     for r in sorted(store.runs(ticket_id=ticket["id"]), key=lambda r: r["id"], reverse=True):
         if r["status"] == "done" and r["agent"] == agent and r["mode"] in CONTINUES[mode]:
             project = store.project(r["project_id"])
@@ -1261,9 +1350,12 @@ class Runner:
                 library.require_run_current(self.store, project, plans[0]['id'])
         if mode not in dict(RUN_MODES) or mode == "understand":  # understanding is started by the requirement conversation
             raise ValueError("未知模式：%s" % mode)
+        from .agent_routes import resolve
+        agent = resolve(self.data_dir, project, agent)
         conf = load_config(self.data_dir)
         if agent not in conf:
             raise ValueError("没有这个智能体：%s" % agent)
+        engine_name(agent, conf[agent])
         explicit = model not in (None, "auto")  # a model the person picked applies to every step of the run
         model = pick_model(conf[agent], mode, model)
         if mode == "kb" and not target:
@@ -1574,6 +1666,14 @@ class Runner:
         `resume` continues that agent session with `prompt` (only what is new); if it cannot be continued, the step
         starts over in a new session with `fresh`, the full prompt. The session id and a time breakdown are kept
         next to the prompt (session<tag>.txt, timing<tag>.json)."""
+        from .agent_routes import resolve
+        if resolve(self.data_dir, project, agent) != agent:
+            raise ValueError("项目执行器路由已变化，不能切换既有运行的执行器")
+        settings = conf.get(agent) or {}
+        engine_name(agent, settings)
+        allow_resume = settings.get("resume") is not False
+        if not allow_resume:
+            prompt, resume = fresh or prompt, ""
         rdir = self.data_dir / "runs" / str(rid)
         rdir.mkdir(parents=True, exist_ok=True)
         self._control(rid, conf, agent)
@@ -1596,13 +1696,13 @@ class Runner:
         if resume and code != 0 and not (result or "").strip() and fresh and not timing.get("busy") and not self.stop_reason(rid):
             self.store.append_output(rid, "— 接着上一步的会话没有成功，改为新开一个会话\n")
             code, result, parser, timing = spawn(fresh, "")
-        for wait in BUSY_WAITS:  # the model service was busy: wait, then pick the same session up where it stopped
+        for wait in BUSY_WAITS if settings.get("retry_busy") is not False else ():
             if code == 0 or not timing.get("busy") or self.stop_reason(rid):
                 break
             self.store.append_output(rid, "— %s\n— 模型服务繁忙，%d 秒后重试\n" % (timing_text(timing), wait))
             if not self._pause(rid, wait):
                 break
-            sid = parser.session or resume
+            sid = (parser.session or resume) if allow_resume else ""
             again = (BUSY_AGAIN, sid, fresh or prompt) if sid else (fresh or prompt, "", "")
             code, result, parser, timing = spawn(again[0], again[1])
             if again[1] and code != 0 and not (result or "").strip() and not timing.get("busy") and not self.stop_reason(rid):
@@ -1717,7 +1817,8 @@ class Runner:
         if lm.exists():
             # Earlier attempt copies remain in attempts/, including an interrupted final answer.
             lm.unlink()
-        parser, clock = StreamParser(agent), Timing(resume)
+        engine = engine_name(agent, conf[agent])
+        parser, clock = StreamParser(engine), Timing(resume)
         try:
             cmd = command(conf, agent, mode, prompt, pf, workdir, lm, str(Path(project["root"]) / ".tmh" / "tool" / "tmh.py"), model, resume)
         except ValueError as e:
@@ -1745,11 +1846,12 @@ class Runner:
                 st.append_output(rid, "".join(buf))
                 buf, last = [], time.monotonic()
         custom = conf[agent].get("cmd")
-        transport = (["stdin"] if agent == "claude" else ["argv"]) if custom is None else (
+        use_stdin = custom is None and (engine == "claude" or conf[agent].get("prompt_transport") == "stdin")
+        transport = (["stdin"] if use_stdin else ["argv"]) if custom is None else (
             (["argv"] if "{prompt}" in custom else []) + (["prompt_file_argument"] if "{prompt_file}" in custom else []))
         try:
             process, folder = self.run_command(rid, cmd, workdir, env=env,
-                stdin=prompt if agent == "claude" and "cmd" not in conf[agent] else None,
+                stdin=prompt if use_stdin else None,
                 on_output=output, kind="model:" + mode + tag, prompt=prompt,
                 prompt_transport=transport or ["none_configured"])
         except OSError as e:
@@ -1761,16 +1863,22 @@ class Runner:
         finally:
             output("", final=True)
         result = parser.final()
+        model_reply = parser.result.strip()
         if lm.exists():
             shutil.copyfile(lm, folder / "last-message.md")
             if lm.read_text(encoding="utf-8").strip():
                 result = lm.read_text(encoding="utf-8")
+                model_reply = result.strip()
         if getattr(process, "error", ""):
             failure = "%s %s：%s。请检查执行器 %s 及本地证据目录。" % (
                 agent, "启动失败" if process.pid is None else "执行失败", process.error, cmd[0])
             st.append_output(rid, "— " + failure + "\n")
             result = (result + "\n" + failure).strip()
         timing = clock.done()
+        if parser.usage:
+            timing["usage"] = parser.usage
+            if "input_tokens" in parser.usage and "output_tokens" in parser.usage:
+                timing["tokens"] = parser.usage["input_tokens"] + parser.usage["output_tokens"]
         timing.update(process_reason=process.reason, process_seconds=process.elapsed,
                       total_remaining_seconds=round(self.remaining(rid), 3), evidence=str(folder.relative_to(self.data_dir)))
         (folder / "timing.json").write_text(json.dumps(timing, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -1778,7 +1886,11 @@ class Runner:
             (folder / "session.txt").write_text(parser.session, encoding="utf-8")
         if process.reason != "exited":
             st.append_output(rid, "— " + self.stop_message(rid) + "\n")
-        return process.returncode, result, parser, timing
+        code = process.returncode
+        if conf[agent].get("engine") == "codex" and code == 0 and (parser.failed or not parser.completed or not model_reply):
+            code = 1
+            result = (result + "\nCodex 没有返回完整的成功回执，请检查原始输出。\n").strip()
+        return code, result, parser, timing
 
     def _finish_event(self, ticket, rid, agent, mode, status, result, has_diff=False):
         if not ticket or mode == "ask":

@@ -326,21 +326,24 @@ def take(P, p: dict, t: dict, ref: str, sha: str, by: str, wait: bool = False) -
     return {"ticket": t["key"], "run": r["id"], "commit": sha[:10], "branch": ref}
 
 
-def reviewer(P) -> str:
+def reviewer(P, project=None) -> str:
     """Who reads a hand-written change: the configured review agent, else an available agent other than the one
     the platform writes with (a second opinion), else that one."""
     names = [a["name"] for a in available(P.data_dir) if a["available"]]
     want = settings(P.data_dir)["review_agent"]
+    from .agent_routes import resolve
     if want in names:
-        return want
-    writer = P.flow._flow_agent(P.flow.autoflow())
-    return next((n for n in names if n != writer), writer)
+        fallback = want
+    else:
+        writer = P.flow._flow_agent(P.flow.autoflow(), project)
+        fallback = next((n for n in names if n != writer), writer)
+    return resolve(P.data_dir, project, fallback=fallback)
 
 
 def _check(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str) -> None:
     st = P.store
     try:
-        agent, conf = reviewer(P), load_config(P.data_dir)
+        agent, conf = reviewer(P, p), load_config(P.data_dir)
         P.runner._control(rid, conf, agent)
         with P.runner.lock:
             if P.runner.stop_reason(rid):
