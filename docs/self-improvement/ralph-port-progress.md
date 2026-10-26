@@ -1,5 +1,18 @@
 # Ralph port 执行进度
 
+## 2026-10-26：Claude研究网关HEAD窄修复与范围勘误
+
+- 当前项：done（研究网关本地修复与材料收口完成，待独立复审；原客户端实验仍未通过）。起点81ca779，开工Git干净并读取进度及最近10提交。此前压缩后转入领导者审查，遗漏已承诺的HEAD小修复；本次补齐，不重复210项组织机制回归。领导者报告保留在仓库外分析目录。
+- 范围：新目录`分析/RSI协调/pilot-software-20261025/offline-claude-m2-followup-v2/`复制原网关SHA9b4fd150…，保留旧673文件封存、原allowlist及1响应条件。只运行新本地合成HTTP回归；不启动Claude/Codex、旧fixture、真实模型或业务根，不改产品运行代码和生产服务。有限静态调查仅用匹配2.1.234的既有可读材料，不猜参数或新增额度。
+- 修复：HEAD及已解析的未知HTTP方法统一进入完整record和原异常route中止，不再落入未记录/未停止的默认501。HEAD按协议不写响应体，分开记录表示内容与实际wire长度。abort和新grant使用同一RLock，停止先置位且后续POST不获新许可；已在停止前取得许可的并发响应不宣称被撤销。原两条allowlist及最多1份合成回复不变；不扩成通用框架，不宣称覆盖方法分派前的畸形HTTP。
+- 红绿：完全相同的新测试源码，对原网关执行`PYTHONDONTWRITEBYTECODE=1 python3 test_gateway_http.py --source messages_gateway.baseline.py --artifacts red-http -v`，7测试方法/8个含子例断言失败/actual exit1。HEAD及BREW/PATCH/OPTIONS/CUSTOM-METHOD/lowercase均返回501且未停，随后合法POST获200/grant1；GET/显式abort后仍获许可亦准确失败。修复后同命令改`--source messages_gateway.py --artifacts green-http`，7/7、0skip/failure/error、exit0：HEAD400且零响应体/先停，后POST400/grant0，完整wire/body保留；两条允许路径、JSON/SSE正控、第二次请求及并发单许可均通过。没有弱化断言或放宽2秒socket/屏障时限。
+- 稳定性：同一修复源20轮，每轮7项，140/140通过；各轮原始HTTP、日志、服务端状态和线程关闭记录完整保留。源SHA不变：网关`db22821c4e24afac19329358edb9ac5167a5411d294b1e4bfab280d1fbe70799`，原源`9b4fd150…`。只验证本地HTTP；未重新启动正/负客户端控、旧fixture或真实推理。
+- 有限静态调查：复用2.1.234既有528份native可读片段及4份wrapper/README/types/原help，完整532份查找输入保留。K1g确有HEAD /api/hello及provider/proxy/socket/cert分支；这些不是保持原路由的受支持关闭契约。8处title邻近命中为功能公告UI/metadata/daemon名称；help的--name只承诺显示名，未承诺停止标题模型请求。未找到足以准入的标题/HEAD抑制控制，保持not_established_unknown；片段缺失不证明整个native绝无控制。没有猜flag、换model或增加响应/调用额度，不生成新运行计划。
+- 追加勘误独立保存于scope-corrections.json：native+6 ELF身份不等于完整helper/runtime链；实际Git三次exec及同native rg、setpriv libcap-ng和Git libpcre2/libz未被七项清单完整覆盖，广泛/usr、/lib、/lib64挂载未穷尽固定。未来启动必须前瞻固定真实依赖及有限挂载范围，不继承Codex M1/M3。旧依赖数据未重采以改措辞。
+- 原结果层级勘误：全部HTTP=HEAD1+POST2=3，合成回复grant1；客户端完整收到779字节title SSE和107字节主请求400体，但没有主任务成功输出。positive_transport_complete=false是组合成功谓词，不是完全没收包。标题POST缺自定义policy，主POST含policy及date/SDK上下文；两正文及retry0不证明串行或标题消费导致主请求。postcheck的进程/mount/lease为实查，no_product_data/candidate/provider部分字段为常量声明；fake usage/cost不是真实账单。已有collector错误累积/abort/summary处理予以承认，完整M5仍未通过。
+- 封存核验：旧673文件/15917378字节全部SHA/长度/mode一致，旧summary及exact-evidence原字节不变。新包manifest SHA`931df152ce2f7e9cdc83bdf449a3674c51d51cf729d1cf0dcf34cae718e6454c`，5148文件/7083928字节；未压缩tar SHA`d6ce1fef9c3371f03b3286061a4848dd428d9cd606ebbddcca624b642a03a83c`、18350080字节，逐5149文件成员读回完全一致，新目录verify_package.py实际exit0。文件数量不是运行测试数量；默认核验不运行HTTP或客户端。
+- 边界：停止的是原冻结无工具/单响应RSI实验组合，不扩大成Webuddy普通协作不能用工具或真实PPT工作不能开展。原b2a6真实根永久停止，403/client_not_allowed保留；无新根/延期/原料复用，个人采用、真实跨任务或多人净收益没有新增通过证据。仅进度文档提交/普通快进GitHub；按纯文档约定核219现役文件，不改产品运行代码或重启服务。没有新增待用户确认事项。
+
 ## 2026-10-26：Claude单配置M2启动条件与最多两控
 
 - 当前项：done（有界批次已停止；正控incomplete，负控skipped，路线不准入）。起点1d75b5d…文档/c08b6ae4…产品，开工Git干净并读进度与最近10提交；现有授权允许条件化离线实施，无额外账号/价格/审批要求。产品没有改动；原b2a6永停，没有新真实root/真实推理、安装升级或账号配置更改。
