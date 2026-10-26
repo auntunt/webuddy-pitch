@@ -1,5 +1,20 @@
 # Ralph port 执行进度
 
+## 2026-10-26：官方Codex实际离线记录网关与隔离验证
+
+- 当前项：状态done（离线研究与固定证据收口；**所测路线不准入**）。没有产品运行源码变更。实际服务器官方Codex0.162.1；17个新场景加原23个观察共40个场景，不是40项单测。新增15例执行真正官方客户端，另2例是明确标识的合成Python负控；不把负控冒充原生执行。原b2a6c8da…根仍永久blocked/unknown，本轮不触碰其暴露输入、不新建真实root、不推理真实供应商、不改真实配置、不安装升级或伪造客户端头。
+- 固定成果：仓库外`分析/RSI协调/pilot-software-20261025/offline-native-codex-v1/`，`offline-gate-summary.json`逐项M1–M6/S1–S8、`case-identities.json`完整case/请求/流身份、`source-lineage.json`原run1–5及新四次启动的精确源绑定。9份原始读回清单共1408文件/12614712字节，逐项SHA/长度/mode无差异；不覆盖原失败原件。固定v1执行包manifest SHA `6a43fb22206aa49e3bfd572c70e183531646b4debc0fbcfe26a19ebcab56b54f`，v2 `d939c9bea8cd9f54dce4acae11791c698ef93867350061c86284fade674f7257`；两个tar实际逐成员读回，默认runner --verify不联网。v2仅增加取消返回/真实超时两例及trusted broker取消触发；不改原固定Driver。
+- M1限定通过：新包实际执行Node22.23.1→官方codex.js→native→code-mode host；launcher SHA61b0194f…、native628e3548…、companionec718306…、Node93956de2…，原字节只读挂载，完整argv/env/cwd/strace和UID508101记录。原supervisor/process_control、原Driver SHA1a07b89a…保持。旧run1–5直接运行native，run1–4漏companion，不能冒充完整安装证明；run5已补完整native+companion，Node启动链只由新包证明。
+- M2准确失败：干净两臂即使关闭所测特性、skills文件和项目文档读取，完整请求`input[0].additional_tools`仍含namespace functions/custom exec；顶层没有tools并不等于禁工具。run5真实code-mode host执行JS，第二POST有custom_tool_call_output和实际marker；新包同样实际执行并发2POST，但第二次转发被拒。旧run2 shell命令在bwrap安装边界失败，不能说shell已经执行。没有用缺companion或disabled-host错误冒充禁工具成立；完整污染入口扫描与严格双臂语义等价未验收。
+- M3限定通过：每例独立scratch HOME/config/work/fake key、mount/PID/net/ipc namespace，数值UID互斥租约；同边界公开canary可读，evaluator508102正控摘要相符，绝对路径/symlink受保护oracle拒读，真实host-only canary未挂载，父proc env/FD拒读，cap全0/no_new_privs。CLI不能覆写root保护回执。未挂生产data、真实HOME、原题/答案或秘密；不宣称穷尽内核攻击。
+- M4部分通过、整体未准入：OS仅loopback，DNS/直连/代理/子进程拒绝。网关无上游实现，预定每槽至多1次合成模型forward、8连接准入、2控制请求准入；所有已观察拒绝及完整strace保留。负控12次连接观察/8准入、3GET/2准入、5POST/1forward。**准入上限不是尝试总数硬上限**，该缺口明确保留。原uncapped run3 HTTP503 18POST/断连6POST仍为反例，不倒填新上限；新503 7POST但只有1forward，后续全部拒绝。
+- M5限定通过：trusted root独立stdout/stderr原始pipe、nonce/owner/hash/长度/mode/请求关联；stderr伪合法final而stdout无final时，CLI/helper退出0仍被Driver拒收，回执覆写失败。候选产物声明为整个原始stdout.bin，不抽取/拼接policy；40字节实际CRLF/中文/emoji和双消息保留，last-message仅派生对照。缺response.completed虽有agent_message仍阻断；usage省略时CLI填0，实际usage保持unknown；请求model绝不替代响应身份。完整fake响应计划/已写字节与CLI收到分列，40字节或response_complete只证明fixture进程完成，不代表禁工具、真实准入或质量。
+- M6限定通过：活跃真实CLI请求后取消；独立真实12秒门触发call_timeout，原Driver与监管器回收全链。另一例真实CLI已完整输出、Broker在返回前设置取消，原结果保留且response_complete=true，但Driver complete=false/explicit_cancel；不会推进。原intent和实际HTTP出现后只杀自有controller，原supervisor owner_lost125、reaped/cleanup complete；无A-result时原目录重开零派发，有结果的其余场景也全部重开拒绝、HTTP计数不增。取消不证明真实远端工作/费用停止。
+- S门汇总：S1/S2 fail；S3、S5–S8限定通过；S4 partial（错误/重试与单forward成立，尝试总量门仍缺）。M1/M3/M5/M6限定通过，M2 fail，M4 partial_not_qualified。完整M2失败已经足以判定所测版本/配置不满足路线，不能以其它通过数量冲抵。Claude假API_KEY替代路线、真实账号403解决、真实成本/Token、真人采用及组织ROI均未测或未证明。
+- 命令/结果：固定runner --verify（9源文件）通过；v1三组指定case、v2两例均使用expected-bundle-sha固定后经SSH sudo运行无上游夹具，原始启动程序/输出/exit保留。四次root wrapper实际exit0仅表示取证脚本完成；各失败case保持incomplete_blocked。owner-loss原controller实际-9、supervisor125不改写为成功。readback.py四次完整读回，assemble-summary.py断言全部来源、负控、字节与停止事实通过；没有重跑无关全量或用此前152项组织功能测试代离线gate。
+- 收尾：候选/evaluator UID活进程0、自有四根相关进程0、host mount相关残留0、UID lease可非阻塞重新取得并释放。证据`postcheck.stdout.json`；真实模型配置只核摘要不输出内容。产品源码/守卫/锁/人工确认未变；本次仅提交进度，普通快进GitHub，按纯文档约定核219现役运行文件与服务，不重启服务。独立review仍须审固定包，作者自验不充当独立准入。
+- 精确剩余项：若将来重议路线，先取得版本匹配且递归tools为空、注入工具也不执行的官方配置/合同；补连接/控制/模型尝试总上限及到限停止；补完整输入入口污染与等价验证。当前不通过升级、更换模型、修改headers或复活旧根绕门；本轮已完成必要离线收口，不以缺真人或账单重新提问。
+
 ## 2026-10-26：官方客户端与本地Messages路线只读核查
 
 - 当前项：失败根之后的只读接入可行性；状态done（核查/最小差异/离线验证方案已形成，不代表路线准入）。实际root b2a6c8da…仍永久unknown/blocked，不再请求、改profile、延期或新根刷新；本轮模型/连通性请求0，无安装升级/配置修改/凭据导出。
