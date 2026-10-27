@@ -1526,3 +1526,11 @@
 - 原网关源码逐字通过独立加载重放，trace定位原148行transport.settimeout抛OSError/EBADF9；完整6字节已进入on_body和私有response_body事件。实际安装Python的HTTPResponse.read1源码在length归零时关闭文件，socket最后引用随后关闭，下一轮重复settimeout误失败；源码/完整事件/原数据base64与摘要保存在分析/implementation/20261027-codex-gateway-length-close/，没有改写原红灯。
 - 最小修复：仅在非chunked且response.length==0时结束读取循环。后续原framing/字节数/截止/关闭/最终期限检查不变；无测试断言或超时放宽。窄5项（新增固定长度/空回应+原chunked/短回包/迟到关闭/handle关闭）5/5、0.117秒、0 skip/失败/错误、exit0；未重跑旧21。原全部test方法AST保持，只扩展回环helper并新增1方法。
 - 当前仅提交本网关修复/测试/说明及进度；尚未通过的宿主组合仍是工作区独立doing候选，不混入此提交。没有官方CLI、真实TLS/提供方/模型、SSH、主机策略或服务部署，能力门保持。
+
+## 2026-10-27：可信公开登记与启动注入
+
+- 状态：doing。仅作者在产品仓库接入固定公开描述文件，完成核对后在learning_runs恢复前附加RootCarrier；私有18字段登记/安装器/发布助手由仓库外准备流程分别提供，不重复实现。公开描述精确17字段，不包含credential_sha256。缺失/错误不回退普通独立Codex，不开放原真实能力门，不改业务DDL、guard或人工决定。
+- 当前文件：tmh/platform/codex_registration.py、tmh/platform/server.py、tests/test_codex_startup.py。下一步只验证新增加载与启动行为，再验证原Runner实机链；实际安装/模型/部署尚未执行。
+- 新启动定向3/3通过（0.109秒，原日志interface-aligned-tests.log）；尚未提交，等待独立loader准备并集成。正向实机驱动草稿已完成，只用临时SQLite和注册根下独占随机高编号运行目录；工具成功判定要求唯一completed事件、严格整数exit0、完整命令/输出及最终标记，8项负控拒绝，仅算法检查，未调用模型。
+- 同次只读实际root中继源码发现并复现分块响应问题：gateway已解码HTTP chunk，NamespaceRelay仍复制Transfer-Encoding:chunked但不重新编码正文。原封存源码SHA679640ba…经真实socketpair输出104字节，HTTPResponse读取IncompleteRead；中继线程本身无错误且已退出。证据在仓库外分析/implementation/20261027-codex-relay-framing-finding/。没有改封存包、安装或调用模型；原runtime准备需由其所有者修复并重新绑定，不能将原包本地静态通过当真实响应成功。
+- 最终集成：采用独立准备加载器精确源码b0ea361c…及7项原测试，21文件清单逐份SHA/长度核对；新增Platform在learning恢复前接入，错误只保留固定rejected状态，普通启动继续。精确新增10项（加载7+启动3）全过，0.215秒，0失败/错误/skip；未重跑旧组件或全量。原8份监管/guard/人工决定/Store/锁源码与ee7f536逐字节一致，git diff --check通过。这里done仅限本地产品组件；实际root包修复/安装/跨UID/模型与发布继续doing。测试不产生SP现场；临时启动SQLite已关闭并移除，不虚称数据库原件保留。

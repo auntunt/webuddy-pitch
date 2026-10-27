@@ -97,6 +97,18 @@ class Platform:
             tenant_context.platform = self
         if tenant_context is None:
             self.runner.recover()
+        from . import codex_registration
+        self.independent_codex_carrier = None
+        self.independent_codex_registration = "absent"
+        try:
+            self.independent_codex_carrier = codex_registration.load_codex_carrier(self.data_dir)
+        except (OSError, ValueError, TypeError, KeyError, UnicodeError):
+            # An optional broken installation must not stop ordinary service,
+            # leak private diagnostics or fall back to ordinary independent Codex.
+            self.independent_codex_registration = "rejected"
+        else:
+            if self.independent_codex_carrier is not None:
+                self.independent_codex_registration = "configured"
         from . import learning_runs
         if tenant_context is None:
             learning_runs.recover(self)
