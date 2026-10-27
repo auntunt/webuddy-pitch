@@ -1461,3 +1461,11 @@
 - 状态：done（限本地增量，待作者外复验）。基线d549936；根审指出现役docs/codex-project-route.md配置args=[--ephemeral,--color,never]，原所有非空args拒绝使配置传递准备仍不兼容。仅Codex白名单允许这两个已知非权限参数及其不重复顺序组合，冻结原值并传递；Claude不接受额外args、自定义cmd/模型/profile/目录/权限覆盖仍拒绝，真实Codex模型能力拒绝保持。
 - 改learning_runs.py及新增2测试、本进度。初轮5项：4过/1错误、0.460秒；新测试误向_patch对象读call_count，所有不安全args已实际拒绝。初稿/日志/4个新框架现场保留，只修mock观测对象为lr._capabilities。最终同一窄5项（新增2+空args、项目投影、原Claude权限3兼容）：5/5、0.458秒、退出0；不重跑旧时序或大套件。
 - 两轮8份DB完整性ok、4次实际合成CLI的原SP owner/PID/PGID/全输出SHA/清理匹配，PID已不存在；上一提交所有原测试方法和_configuration外全部函数/类AST保持。证据分析/implementation/20261027-learning-runs-codex-args/。只准备/验证配置通路，不声称真实私有profile/认证内容、模型冻结输入或实际Codex知识评测已可用；不push/部署。
+
+## 2026-10-27：隔离 Codex 的配置来源与固定 worker 输入
+
+- 状态：doing。基线237952e，开始工作区干净，GitHub已快进同步且远端一致。新增codex_frozen_config组件与测试、说明；不改既有Runner/监督器/能力门，不读本机或服务器真实凭据。组件提供完整base/profile来源绑定、变化拒绝、生成后的非秘密配置、固定环境与官方exec命令；实际载体和模型接线仍待，不将此项当可用功能部署。
+- 首轮定向：7项新配置/权限/凭据变化反例加5项原profile生成兼容，12/12、0.169秒、退出0。原日志与首轮完整源码保存仓库外分析/implementation/20261027-codex-frozen-execution-config/。随后仅补POSIX/Python3.11+明确范围与说明，最终验证另记；组件不涉及schema、真人决定或状态迁移。
+- 同时按独立接受执行v5唯一offline检查：53份126360字节完整原件读回；新挂载元数据可见且设备一致、新FD关闭。实际推进至固定synthetic registry路径EACCES/13，原总60秒内4.750552505秒、SP退出1/内层101、canary0/model0，清理完整。封存manifest1029ebc611358045d57b7056202b82000edae60ace508c630506067e73364c45；不重跑此ID、不改宿主策略、不据元数据通过开放模型。旧失败保持。
+- 最终自审增加8MiB完整源拒绝与真实路径替换反例，未放宽原条件；9新+5原兼容共14/14、0.177秒、0 skip/失败/错误、退出0，完整final-source/final-targeted.log保留。公开binding不含原文、真实endpoint或凭据；宿主凭据变化在对象生命周期内拒绝，跨重启私有登记仍属实际载体责任，不以本对象冒充持久认证。
+- 状态：done（仅必要配置组件），实际Runner/隔离载体/固定网关桥仍doing，真实Codex能力拒绝保持。产品只新增一个模块与测试/说明及本进度，不改既有生产函数/表/监督链/人工决定；无模型/真实凭据读取/全量或部署。固定小提交后供作者外增量复核，不将离线目录检查通过当模型派发通过。
