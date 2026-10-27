@@ -257,6 +257,12 @@ def _action(P, t, b, user, mutation):
         op = action
     else:
         row = _candidate(P, t, b.get("candidate_id"))
+        if action == 'candidate_diagnostic':
+            from . import project_vue_diagnostic
+            try:
+                return project_vue_diagnostic.run(P, row, user)
+            except ValueError as exc:
+                raise ApiError(409, str(exc)) from exc
         if action in ("review", "candidate_assess", "candidate_merge", "business_accept"):
             require_reviewer(P, t, user)
         if action == "business_accept":
@@ -352,6 +358,17 @@ def item(P, t, user):
     technical, human, merge = "not_started", "not_requested", None
     state, label = ("closed", "任务已验收") if t["status"] == "closed" else ("working", "待提交代码")
     if candidate:
+        # This is informational only: it never changes verification evidence.
+        candidate['partial_diagnostic'] = None
+        for receipt in P.store.q("SELECT result,updated FROM team_requests WHERE ticket_id=? AND state='complete' ORDER BY updated DESC LIMIT 100", (t['id'],)):
+            try:
+                info=json.loads(receipt['result'])
+            except (ValueError,TypeError):
+                continue
+            if (isinstance(info,dict) and info.get('kind')=='partial_vue_diagnostic' and
+                    info.get('candidate_id')==candidate['id'] and info.get('commit')==candidate['commit']):
+                candidate['partial_diagnostic']={**info,'updated':receipt['updated']}
+                break
         verification = P.flow.rechecks.status(candidate["run_id"])
         technical = "passed" if candidate["technical_acceptance"] else "tests_passed" if candidate["verification_passed"] else "pending"
         team_accepted = candidate["human_accepted"] and candidates.browser_review_current(P, candidate["id"])

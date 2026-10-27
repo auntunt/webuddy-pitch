@@ -614,7 +614,7 @@ def authorize(P, method, path, query, body, actor):
         # are confined to project_git; merge/verify/preview and legacy accept
         # still require their original execution authorization.
         safe |= available(P,targets[0],actor)
-    if (template == "/api/team" and action in ("candidate_verify", "candidate_cancel", "candidate_merge")
+    if (template == "/api/team" and action in ("candidate_verify", "candidate_cancel", "candidate_merge", "candidate_diagnostic")
             and targets and len({p['id'] for p in targets})==1 and not who.get('tool_connection')):
         from .project_git import available
         safe |= available(P,targets[0],actor)

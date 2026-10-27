@@ -88,6 +88,20 @@ class TeamWorkspaceTest(unittest.TestCase):
             mock.start()
             self.addCleanup(mock.stop)
 
+    def test_partial_vue_diagnostic_is_not_formal_verification(self):
+        self.candidate()
+        report={'kind':'partial_vue_diagnostic','candidate_id':self.cid,'commit':self.commit,
+                'actor':'alice','scope':'部分诊断，不代表验收','vue_files':1,'templates_checked':1,
+                'skipped':[],'bad':['example.vue [模板]']}
+        before=candidates.view(self.P,self.cid)
+        with patch('tmh.platform.project_vue_diagnostic.run',return_value=report):
+            response=self.action('candidate_diagnostic',candidate_id=self.cid)
+        self.assertEqual(response['item']['candidate']['partial_diagnostic']['bad'],report['bad'])
+        after=candidates.view(self.P,self.cid)
+        self.assertEqual(after['verification_hash'],before['verification_hash'])
+        self.assertEqual(after['verification_passed'],before['verification_passed'])
+        self.assertEqual(after['human_accepted'],before['human_accepted'])
+
     def assess(self):
         current = candidates.view(self.P, self.cid)
         return self.action("candidate_assess", "bob", candidate_id=self.cid,
