@@ -988,10 +988,30 @@ def route(method: str, pattern: str):
 def api_meta(P, req):
     from .login import has_accounts
     managed = getattr(P, "tenant_context", None) is not None
-    can_execute = not managed or P.tenant_context.runtime_allowed(_session_actor(req))
+    actor = _session_actor(req)
+    can_execute = not managed or P.tenant_context.runtime_allowed(actor)
+    member_execution = {"projects": [], "agents": []}
+    if managed and actor and not can_execute:
+        from . import project_git, tenant_policy
+        try:
+            identity = tenant_policy.identity(P, actor)
+            if not identity.get('tool_connection') and identity['role'] in ('member', 'admin'):
+                for project in tenant_policy.visible_projects(P, actor):
+                    try:
+                        if project_git.available(P, project, actor):
+                            member_execution['projects'].append(project['key'])
+                    except (ApiError, OSError, ValueError):
+                        continue
+                if member_execution['projects']:
+                    member_execution['agents'] = [a for a in available(P.data_dir)
+                                                  if a.get('engine') == 'codex' and a.get('available')
+                                                  and not a.get('custom')]
+        except (ApiError, OSError, ValueError):
+            pass
     return {"version": __version__, "user": req.user, "login": managed or has_accounts(P.data_dir),
             "operator_authenticated": bool(getattr(req.h, '_who', '')), "brand": P.brand, "statuses": STATUSES, "types": TYPES, "priorities": PRIORITIES,
             "modes": RUN_MODES, "agents": available(P.data_dir) if can_execute else [], "data_dir": "" if managed else str(P.data_dir), "autoflow": P.flow.autoflow(),
+            "member_execution": member_execution,
             "apps": __import__("tmh.platform.apps", fromlist=["APPS"]).APPS}
 
 
@@ -1007,16 +1027,43 @@ def _session_actor(req):
     return getattr(handler, "_who", "") if not getattr(handler, "headers", {}).get("X-Webuddy-Agent") else ""
 
 
-def _human_action(P, req, ticket=None, strict=False):
+def _human_action(P, req, ticket=None, strict=False, run=None):
     from . import login, team
     actor = _session_actor(req)
     if getattr(getattr(req, "h", None), "headers", {}).get("X-Webuddy-Agent") or ((strict or getattr(P, "tenant_context", None) or login.has_accounts(P.data_dir)) and not actor):
         raise ApiError(403, "请用个人账号登录后操作；共享令牌或显示名不能代替人工确认")
-    if getattr(P, "tenant_context", None):
-        P.tenant_context.current_actor(actor)
-    if ticket and team.assignment(P, ticket)["revision"]:
+    managed = getattr(P, "tenant_context", None)
+    member = managed.current_actor(actor) if managed else None
+    if ticket and (team.assignment(P, ticket)["revision"] or member and not member.get("platform_owner")):
         team.require_reviewer(P, ticket, actor)
+    if ticket and member and not member.get("platform_owner"):
+        # Reassigning responsibility must not erase the immutable author of
+        # the implementation this personal decision is reviewing.
+        if run is None:
+            from . import signoff
+            pack = signoff.ev.latest(signoff.records(P.data_dir, ticket["key"]), "pack")
+            data=(pack or {}).get('data') or {}
+            snapshot=data.get('snapshot') if isinstance(data,dict) else None
+            change=snapshot.get('change') if isinstance(snapshot,dict) else None
+            if pack and not isinstance(change,dict):
+                raise ApiError(409,'证据包的实现来源不完整，请重新生成后复核')
+            source=(change or {}).get('run')
+            run = P.store.run(source) if source else None
+            if source and (not run or run['ticket_id']!=ticket['id'] or run['project_id']!=ticket['project_id']):
+                raise ApiError(409,'证据包的实现运行与当前工单不一致，请重新生成后复核')
+        from .agent_api import member_actor
+        if run and run.get("author") in (actor, member_actor(actor)):
+            raise ApiError(403, "实现运行的发起人不能复核或验收自己的实现，请交给另一位指定复核人")
     return actor or req.user
+
+
+def _personal_review_access(P, req, ticket):
+    """UI hint only; each write repeats the actual identity and evidence checks."""
+    try:
+        _human_action(P, req, ticket)
+        return {"allowed": True, "kind": "evidence_review"}
+    except ApiError as exc:
+        return {"allowed": False, "kind": "evidence_review", "reason": str(exc)}
 
 
 def _lesson_human_actor(P, req):
@@ -2466,7 +2513,7 @@ def api_ticket(P, req, key):
             "intake_recovery": intake.recovery_state(P, t["key"]),
             "plain_state": workbench.states(P, [t])[t["key"]],
             "evidence": P.ticket_evidence(p, t, runs), "auto_next": P.flow.next_step(t, retry=True)[0],
-            "package": signoff.brief(P.data_dir, t["key"]), "epic": epic.view(P, t) if epic.is_parent(t) else None,
+            "package": dict(signoff.brief(P.data_dir, t["key"]), personal_review=_personal_review_access(P, req, t)), "epic": epic.view(P, t) if epic.is_parent(t) else None,
             "parent": {"key": par["key"], "title": par["title"], "status": par["status"]} if par else None}
 
 
@@ -2498,6 +2545,7 @@ def api_evidence(P, req, key):
     s = signoff.state(P.data_dir, t["key"])
     s["label"] = signoff.STATUS_LABEL[s["status"]]
     s["page"] = "/e/%s" % t["key"]
+    s["personal_review"] = _personal_review_access(P, req, t)
     return s
 
 
@@ -2988,7 +3036,7 @@ def api_decide(P, req, rid):
     run = P.store.run(int(rid))
     if not run:
         raise ApiError(404, "没有这个运行")
-    _human_action(P, req, P.store.ticket(run["ticket_id"]) if run.get("ticket_id") else None)
+    _human_action(P, req, P.store.ticket(run["ticket_id"]) if run.get("ticket_id") else None, run=run)
     try:
         return P.runner.decide(int(rid), req.body.get("decision", ""), req.user)
     except (ValueError, RuntimeError) as e:

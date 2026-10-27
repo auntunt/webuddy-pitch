@@ -15,6 +15,7 @@ import re
 from . import candidates, filelock
 from .errors import ApiError
 from .store import now, _keyed
+from .project_git import scoped, unavailable, repository
 
 
 SCHEMA = """
@@ -286,6 +287,7 @@ def _action(P, t, b, user, mutation):
     return candidates.execute(P, user, op, args, mutation)
 
 
+@scoped
 def dispatch_action(P, body, user):
     require_user(P, user)
     if not isinstance(body, dict) or not isinstance(body.get("action"), str):
@@ -304,11 +306,21 @@ def dispatch_action(P, body, user):
     return {"result": result, "item": item(P, _ticket(P, t["id"]), user)}
 
 
+@scoped
 def item(P, t, user):
     from .agent_api import _requirement
     from .fixloop import verified
     from .tenant_policy import directory
     members = directory(P, t["project_id"], "contributor")
+    managed=getattr(P,'tenant_context',None)
+    repo=repository(P,P.store.project(t['project_id']),user)
+    metadata_review=not managed or managed.runtime_allowed(user)
+    if managed and not metadata_review and user in members:
+        from .project_git import available
+        try:
+            metadata_review=available(P,P.store.project(t['project_id']),user)
+        except (ApiError,OSError,ValueError):
+            metadata_review=False
     a = assignment(P, t)
     latest = P.store.one("SELECT id FROM code_candidates WHERE ticket_id=? ORDER BY id DESC LIMIT 1", (t["id"],))
     candidate, error = None, ""
@@ -317,6 +329,9 @@ def item(P, t, user):
             candidate = candidates.view(P, latest["id"])
         except (ApiError, OSError, ValueError) as exc:
             error = str(exc)
+            metadata_review=False
+    metadata_unavailable=unavailable(P.store.project(t['project_id'])['root'])
+    if metadata_unavailable or managed and not repo['ready']: metadata_review=False
     run = P.store.one("SELECT id,mode,status,author,agent,decision,created,ended,LENGTH(diff)>0 AS has_diff FROM runs WHERE ticket_id=? AND mode!='ask' ORDER BY id DESC LIMIT 1", (t["id"],))
     if run:
         run["can_recheck"] = not bool(_recheck_reason(P, run))
@@ -375,7 +390,10 @@ def item(P, t, user):
         merge = {"state": "merged", **legacy_release["data"], "by": legacy_release["author"], "created": legacy_release["ts"]}
         if t["status"] != "closed":
             state, label = "acceptance", "已合并，待工单业务验收"
-    can_review = user in members and a["reviewer"] == user and a["assignee"] in members and a["assignee"] != user and (not candidate or candidate["author"] != user)
+    if (metadata_unavailable or managed and not repo['ready'] and
+            (candidate or run and run['mode']=='fix' and run['status']=='done' and run['has_diff'])) and t['status']!='closed':
+        state,label='blocked','版本证据暂不可读取'
+    can_review = user in members and a["reviewer"] == user and a["assignee"] in members and a["assignee"] != user and (not candidate or not candidates.implementation_author(candidate["author"],user))
     acceptance_memory = None
     business = P.store.one("SELECT * FROM events WHERE ticket_id=? AND kind IN ('accept','reject') ORDER BY id DESC LIMIT 1", (t["id"],))
     source = business and business["data"] or {}
@@ -391,11 +409,14 @@ def item(P, t, user):
             "candidate": candidate, "candidate_error": error, "run": run, "requirement_hash": _requirement(t, P.store),
             "acceptance_memory": acceptance_memory,
             "needs_review": state in ("assessment", "review", "approved", "merged", "legacy_review", "acceptance"),
-            "can_review": can_review, "can_submit": user in members and t["assignee"] == user and t["status"] != "closed",
+            "can_review": can_review, "personal_decisions_available":metadata_review,
+            "repository_ready":repo['ready'],"repository_reason":repo['reason'],
+            "can_submit": user in members and t["assignee"] == user and t["status"] != "closed",
             "requests": P.store.q("SELECT actor,request_id,state,error,created,updated FROM team_requests WHERE ticket_id=? AND state IN ('pending','uncertain') ORDER BY created", (t["id"],)),
             "boundary": "人工复核不等于客户签收；本地合并不等于推送 GitHub 或部署上线。"}
 
 
+@scoped
 def dispatch_read(P, query, user):
     def arg(key, default=""):
         v = query.get(key, default)

@@ -34,6 +34,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import threading
@@ -89,6 +90,47 @@ def pick_model(c: dict, mode: str, model) -> str:
     if model and not MODEL_ID.match(model):
         raise ValueError("模型名不合法：%s" % model)
     return model
+
+
+def member_codex_binding(config: dict, model: str) -> tuple[str, str]:
+    """Freeze the selected official profile without silently changing its route."""
+    if config.get('cmd') or engine_name('codex', config) != 'codex':
+        raise ValueError('个人隔离执行只支持官方 Codex，不能使用自定义命令')
+    if not isinstance(model, str):
+        raise ValueError('项目模型默认配置无效')
+    if config.get('resume') or config.get('retry_busy'):
+        raise ValueError('个人隔离执行暂不支持自动恢复或自动重试')
+    args = list(config.get('args') or [])
+    while args:
+        token = args.pop(0)
+        if token in ('--json', '--ephemeral', '--skip-git-repo-check'):
+            continue
+        if token == '--color' and args and args.pop(0) == 'never':
+            continue
+        if token in ('-c', '--config') and args and args.pop(0) in (
+                'approval_policy="never"', "approval_policy='never'", 'approval_policy=never'):
+            continue
+        raise ValueError('此 Codex 执行器包含隔离模式尚不支持的参数，请调整项目执行器配置')
+    profile = config.get('profile') or ''
+    from .project_client import provider_binding
+    try:
+        _, _, binding = provider_binding(Path.home() / '.codex' / 'config.toml', profile, model)
+    except (OSError, ValueError) as exc:
+        raise ValueError('无法安全使用项目原有 Codex 配置：' + str(exc)) from None
+    return profile, binding
+
+
+def member_route_binding(data_dir, project, agent):
+    """Bind the effective project route and selected agent configuration."""
+    from .agent_routes import route
+    configs = load_config(data_dir)
+    if agent not in configs:
+        raise ValueError('项目执行器配置已变化')
+    raw = json.dumps({'route': route(data_dir, project), 'agent': agent,
+                      'config': configs[agent]}, ensure_ascii=True, sort_keys=True,
+                     separators=(',', ':')).encode('utf-8')
+    import hashlib
+    return hashlib.sha256(raw).hexdigest()
 NO_TOOLS = ["Bash", "Read", "Grep", "Glob", "LS", "Edit", "Write", "MultiEdit", "NotebookEdit", "WebFetch", "WebSearch", "Task", "TodoWrite"]
 READ_TOOLS = ["Read", "Grep", "Glob", "LS", "Bash(tmh:*)", "Bash(python3 .tmh/tool/tmh.py:*)",
               "Bash(git log:*)", "Bash(git show:*)", "Bash(git diff:*)", "Bash(git blame:*)"]
@@ -273,7 +315,7 @@ def _fence(text: str) -> str:
     return (text or "").replace("<<<", "‹‹‹").replace(">>>", "›››").replace("```", "ˋˋˋ")
 
 
-def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None) -> str:
+def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None, isolated=False) -> str:
     from . import project_library as library
     if reference_inputs is None:
         reference_inputs = library.bindings(store, project)
@@ -287,9 +329,12 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
     if links.get("delivery"):
         from .delivery import prompt_context
         delivery_context = prompt_context(store.path.parent, links["delivery"])
-    out = ["你在维护项目「%s」（目录 %s）。业务知识库在 %s。" % (project["name"], root, root / ".tmh" / "knowledge")]
+    out = (["你在维护项目「%s」（代码目录 %s）。" % (project["name"], root)] if isolated else
+           ["你在维护项目「%s」（目录 %s）。业务知识库在 %s。" % (project["name"], root, root / ".tmh" / "knowledge")])
     tool = root / ".tmh" / "tool" / "tmh.py"
-    if tool.is_file():
+    if isolated:
+        out.append("平台知识以本任务中实际提供的上下文和来源为准；隔离工作区不包含 .tmh 工具。缺少的依据应明确说明。")
+    elif tool.is_file():
         out.append("查业务流、表和影响面用 `python3 %s <子命令> --repo %s`（下文写作 `tmh <子命令>`）。" % (tool, root))
     else:
         out.append("这个项目尚未安装 tmh 项目工具；下文的 tmh 查询要求改用项目内代码、引用与测试核对。不要执行不存在的工具，也不要为此搜索其他项目或安装工具。")
@@ -388,6 +433,8 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         out.append(KB_MANY.replace("{targets}", "\n".join("- " + t for t in target.split())).replace("{first}", target.split()[0]))
     else:
         instruction = MODE_TEXT[mode]
+        if isolated and mode == 'fix':
+            instruction = instruction.replace('你在一个独立的 git 工作树里', '你在一个基于固定提交的隔离源码副本里')
         if delivery_context:
             if mode == "ask":
                 instruction = DELIVERY_ASK
@@ -763,7 +810,10 @@ def _brief(inp) -> str:
 # ---------------------------------------------------------------- git
 
 def git(cwd: Path, *args, check=True) -> str:
-    r = subprocess.run(["git", "-C", str(cwd)] + list(args), capture_output=True, text=True)
+    from .project_git import read
+    r = read(cwd,args,text=True)
+    if r is None:
+        r = subprocess.run(["git", "-C", str(cwd)] + list(args), capture_output=True, text=True)
     if check and r.returncode != 0:
         raise RuntimeError((r.stderr or r.stdout).strip() or "git %s 失败" % args[0])
     return r.stdout
@@ -1232,6 +1282,7 @@ class Runner:
         self.procs = {}
         self.controls = {}  # one execution budget across calls, retries and local checks
         self.owners = {}  # per-run OS leases; a second service cannot recover a live owner
+        self.member_authorities = {}  # in-memory personal grants; never replay after service loss
         self.after = {}  # run id -> callback(run) once it finished successfully
         self.charge = None  # callback(run) for every successful run: usage points
         self.lock = threading.RLock()
@@ -1355,9 +1406,38 @@ class Runner:
         conf = load_config(self.data_dir)
         if agent not in conf:
             raise ValueError("没有这个智能体：%s" % agent)
-        engine_name(agent, conf[agent])
+        engine = engine_name(agent, conf[agent])
+        authority = None
+        ctx = getattr(self, 'tenant_context', None)
+        if ctx and not ctx.runtime_allowed(author):
+            if (not ticket or mode != 'fix' or engine != 'codex' or then or session_id is not None or
+                    retry_of is not None or base):
+                raise ValueError('个人隔离执行当前只接受项目工单的官方 Codex 开发任务')
+            from .agent_api import _ready
+            from .project_authority import capture
+            _ready(ctx.platform, ticket)
+            authority = capture(ctx.platform, author, project)
+            from .agent_api import _requirement
+            from .project_mcp import BoundJob
+            from .project_snapshot import resolve as resolve_source
+            member_ref = code_at(ticket) or 'HEAD'
+            pending_job = BoundJob(author,project['key'],(self.data_dir/'runs'/'pending').resolve(),authority.image)
+            member_base = resolve_source(authority.image,Path(project['root']),member_ref,
+                                         cancel=lambda:not authority.current(pending_job))
+            if member_ref != 'HEAD' and member_base != resolve_source(authority.image,Path(project['root']),'HEAD',
+                                                                      cancel=lambda:not authority.current(pending_job)):
+                raise ValueError('指定代码版本与当前项目知识来源不一致，请先核对后再运行')
+            member_requirement = _requirement(self.store.ticket(ticket['id']),self.store,reference_inputs=reference_inputs)
+            from . import team, candidates
+            member_assignment = {k:v for k,v in team.assignment(ctx.platform,self.store.ticket(ticket['id'])).items()
+                                 if k in ('assignee','reviewer','revision')}
+            member_configuration = candidates.configuration(ctx.platform,project)
         explicit = model not in (None, "auto")  # a model the person picked applies to every step of the run
         model = pick_model(conf[agent], mode, model)
+        if authority:
+            member_profile, member_binding = member_codex_binding(conf[agent], model)
+            member_route = member_route_binding(self.data_dir, project, agent)
+            batch = 'member:' + secrets.token_hex(16)
         if mode == "kb" and not target:
             raise ValueError("撰写知识页需要指定页面 id")
         if mode == "ask" and not question.strip():
@@ -1368,13 +1448,44 @@ class Runner:
         if source and session_id is not None:
             raise ValueError("固定版本的交付检查必须使用独立运行，不能绑定既有会话")
         reset_context_meta()
-        prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
+        if authority:
+            from .project_git import personal_scope
+            with personal_scope(ctx.platform,author):
+                prompt = build_prompt(self.store,project,ticket,mode,target,question,history,reference_inputs=reference_inputs,isolated=True)
+        else:
+            prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
         if library.bindings(self.store, project) != reference_inputs:
             raise ValueError('组装提示词期间参考知识已变化，请重新启动任务')
-        run = self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
-                                     session_id=session_id, batch=batch, model=model, expected_root=project['root'],
-                                     reference_inputs=reference_inputs,
-                                     **({"retry_of": retry_of} if retry_of is not None else {}))
+        def register(marker=None):
+            return self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
+                session_id=session_id, batch=batch, model=model, expected_root=project['root'], reference_inputs=reference_inputs,
+                **({'require_idle_ticket':True,'before_commit':marker} if authority else {}),
+                **({"retry_of": retry_of} if retry_of is not None else {}))
+        if authority:
+            from .project_mcp import BoundJob
+            def marker(rid):
+                fresh=self.store.ticket(ticket['id'])
+                assignment={k:v for k,v in team.assignment(ctx.platform,fresh).items() if k in ('assignee','reviewer','revision')} if fresh else None
+                if (not fresh or _requirement(fresh,self.store,reference_inputs=reference_inputs)!=member_requirement or
+                        assignment!=member_assignment or candidates.configuration(ctx.platform,project)!=member_configuration or
+                        member_route_binding(self.data_dir,project,agent)!=member_route or
+                        member_codex_binding(conf[agent],model)!=(member_profile,member_binding)):
+                    raise ValueError('登记前工单需求已变化，请重新启动任务')
+                folder = self.data_dir / 'runs' / str(rid)
+                folder.mkdir(parents=True, exist_ok=True)
+                (folder / 'member-execution.json').write_text(json.dumps({'schema':1,'principal':author,
+                    'project_id':project['id'],'batch':batch,
+                    'agent':agent,'profile':member_profile,'model':model,'provider_binding':member_binding,'route_binding':member_route,
+                    'source_ref':member_ref,'base_commit':member_base,'requirement_hash':member_requirement,
+                    'assignment':member_assignment,'configuration_hash':member_configuration,
+                    'notice':'个人隔离执行；服务中断后不能自动重启'}), encoding='utf-8')
+            with ctx.registry.authorization_guard():
+                job=BoundJob(author,project['key'],(self.data_dir/'runs'/'pending').resolve(),authority.image)
+                if not authority.current(job):
+                    raise ValueError('登记前个人项目授权已变化')
+                run=register(marker)
+        else:
+            run=register()
         if not source:  # the prompt this run will use is already complete: record what knowledge it saw
             try:
                 _record_context(self.store, self.data_dir, run["id"], take_context_meta())
@@ -1382,6 +1493,8 @@ class Runner:
                 self.store.update_run(run["id"], status="failed", ended=now(), exit_code=1,
                                       result="任务知识输入回执保存失败，未启动执行器：" + str(exc))
                 return self.store.run(run["id"])
+        if authority:
+            self.member_authorities[run['id']] = authority
         self._claim(run["id"])
         if source:
             # Build knowledge and the prompt from the immutable checkout before the worker starts.
@@ -1505,10 +1618,32 @@ class Runner:
                 if rid in self.controls and not self.controls[rid]["finished"]:
                     self.controls[rid].update(finished=True, ended_at=now())
                     self._save_lifecycle(rid)
+                self.member_authorities.pop(rid, None)
                 self._release(rid)
 
     def _execute_run(self, rid, project, ticket, agent, mode, prompt, conf, model="", explicit=False, base=""):
         st = self.store
+        marker = self.data_dir / 'runs' / str(rid) / 'member-execution.json'
+        record = st.run(rid)
+        if (record.get('batch') or '').startswith('member:'):
+            try:
+                entry=json.loads(marker.read_text(encoding='utf-8'))
+                if (entry.get('schema')!=1 or entry.get('batch')!=record['batch'] or
+                        entry.get('principal')!=record['author'] or entry.get('project_id')!=record['project_id'] or
+                        entry.get('agent')!=record['agent'] or entry.get('model')!=record['model'] or
+                        not isinstance(entry.get('profile'),str) or
+                        not re.fullmatch('[0-9a-f]{64}',entry.get('provider_binding','')) or
+                        not re.fullmatch('[0-9a-f]{64}',entry.get('route_binding','')) or
+                        not re.fullmatch('[0-9a-f]{40}',entry.get('base_commit','')) or
+                        not re.fullmatch('[0-9a-f]{64}',entry.get('requirement_hash',''))):
+                    raise ValueError('member execution marker mismatch')
+            except (OSError,ValueError,TypeError,AttributeError):
+                raise ValueError('个人隔离执行登记不完整，不能启动') from None
+            authority = self.member_authorities.pop(rid, None)
+            if authority is None:
+                raise ValueError('原个人授权不能在服务重启后自动恢复，请重新发起任务')
+            from .project_member import execute
+            return execute(self,rid,project,ticket,prompt,authority,authority.image,entry)
         from . import project_library as library
         library.require_development(st, st.project(project['id']))
         library.require_run_current(st, project, rid)
@@ -1922,6 +2057,8 @@ class Runner:
         if not r:
             blocked.append("没有这个运行")
             return state
+        if (r.get('batch') or '').startswith('member:'):
+            blocked.append('个人隔离执行不能自动重试；请核对保留的成果后重新发起任务')
         t = self.store.ticket(r["ticket_id"]) if r["ticket_id"] else None
         did = ((t or {}).get("links") or {}).get("delivery")
         if did:

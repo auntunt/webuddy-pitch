@@ -591,6 +591,29 @@ def authorize(P, method, path, query, body, actor):
     safe |= template == "/api/tickets" and (body.get("handwork") is True or body.get("auto") is False and not (body.get("agent") and body.get("mode"))) and not body.get("code_at")
     safe |= template == "/api/team" and action == "assign"
     safe |= template == "/api/team" and action == "comment"
+    if (template == "/api/tickets/<key>/claim" and body.get("on", True) is True
+            and len(targets) == 1 and not who.get("tool_connection")):
+        from .project_git import available
+        # Claiming stops automatic work and marks a personal assignee. Handing
+        # the ticket back may restart automation and retains the normal gate.
+        safe |= available(P, targets[0], actor)
+    if (template == "/api/tickets/<key>/runs" and body.get("mode", "analyze") == "fix"
+            and len(targets) == 1 and not who.get("tool_connection")):
+        from .project_git import available
+        # This only admits the separately isolated personal Runner path. The
+        # worker subprocess audit gate and all other execution modes remain.
+        safe |= available(P, targets[0], actor)
+    if template == "/api/runs/<rid>/cancel" and not who.get("tool_connection"):
+        run = P.store.run(int(params["rid"]))
+        # Members may stop their own isolated run, not arbitrary host runs.
+        safe |= bool(run and run.get("author") == actor and
+                     (run.get("batch") or "").startswith("member:"))
+    if template == "/api/team" and action in ("review","candidate_assess","business_accept") and targets and len({p['id'] for p in targets})==1:
+        from .project_git import available
+        # These three actions write personal verdicts only. Their Git reads
+        # are confined to project_git; merge/verify/preview and legacy accept
+        # still require their original execution authorization.
+        safe |= available(P,targets[0],actor)
     safe |= template == "/api/tickets/<key>/evidence" and body.get("kind") in ("attach", "review", "link")
     safe |= template == "/api/memory" and action in ("lesson_create", "lesson_edit", "lesson_share", "lesson_unshare", "lesson_take", "lesson_untake", "lesson_confirm", "lesson_restore", "lesson_retire", "cluster_scan", "cluster_confirm", "cluster_exclude")
     # Version-bound personal decisions only write the tenant lesson ledger.

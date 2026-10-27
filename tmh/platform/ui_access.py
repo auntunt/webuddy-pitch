@@ -62,15 +62,25 @@ function accessRestrictedOperation(path,body){
  if(!S.meta?.access)return false;const p=path.split('?')[0],b=body||{};return /^\/api\/(?:tickets\/[^/]+\/ask-client|projects\/[^/]+\/(?:shares|capture-token))$/.test(p)||/^\/api\/(?:tickets\/[^/]+\/preview|projects\/[^/]+\/standing)$/.test(p)&&b.action==='start'||/^\/api\/intake\/[^/]+$/.test(p)&&b.action==='ask_client'||/^\/api\/tickets\/[^/]+\/evidence$/.test(p)&&b.kind==='link'||p==='/api/team'&&b.action==='candidate_preview'||p==='/api/agent'&&['preview_start','candidate_preview'].includes(b.op);
 }
 function accessCanExecute(project){return !S.meta?.access||S.meta.access.capabilities?.execution===true&&accessCanWrite(project)}
+function accessCanMemberFix(project){
+ const a=S.meta?.access,m=S.meta?.member_execution,p=(S.projects||[]).find(x=>x.key===project);
+ if(!a||!p||!accessCanWrite(project)||!Array.isArray(m?.projects)||!m.projects.includes(project)||!Array.isArray(m.agents)||p.agent_route_error)return false;
+ const allowed=p.agent_route?.allowed_agents;
+ return m.agents.some(x=>x?.engine==='codex'&&x.available===true&&(!allowed||Array.isArray(allowed)&&allowed.includes(x.name)));
+}
 function accessFenceControls(root=document){
  if(!S.meta?.access)return;const disable=(selectors,reason)=>{for(const selector of selectors)for(const node of root.querySelectorAll(selector)){node.disabled=true;node.title=reason;node.setAttribute('aria-description',reason)}};
  disable(['#pvGo','#pvCfg','#pvSave','#naAsk','#inAsk','#pinT','#pkLink','[data-vs="start"]','[data-vshare]','[data-vsave]','[data-run-preview-start]'],'租户隔离环境尚不支持预览启动或公开链接，请使用站内记录与人工交接。');
  if(!accessCanWrite())disable(['[onclick="newTicket()"]'],'当前账号只有查看权限，不能登记新任务。');
- if(!accessCanExecute(S.proj))disable(['#nIn','#naAn','#naPlan','#naFix','#naGo','#svGo','#trGo','#astToggle','#astOpen','#astSend','#aiCard [data-m]','[data-run-recheck]','[data-run-decision]'],'当前身份或租户尚未配置隔离执行权限，模型、Git 证据核对、构建和预览不可用。');
+ if(!accessCanExecute(S.proj)){
+  const reason='当前身份或租户尚未配置隔离执行权限，模型、Git 证据核对、构建和预览不可用。';
+  disable(['#nIn','#naAn','#naPlan','#naGo','#svGo','#trGo','#astToggle','#astOpen','#astSend','#aiCard [data-m]:not([data-m="fix"])','[data-run-recheck]','[data-run-decision]'],reason);
+  if(!accessCanMemberFix(S.proj))disable(['#naFix','#aiCard [data-m="fix"]'],reason);
+ }
 }
 function accessProjectRole(project){const a=S.meta?.access;if(!a)return null;if(a.role==='admin')return 'manager';const p=(S.projects||[]).find(x=>x.key===project||String(x.id)===String(project));if(!p)return null;const grant=(a.project_grants||[]).find(g=>String(g.project_id)===String(p.id));return a.role==='viewer'&&grant?'viewer':grant?.role||null}
 function accessCanWrite(project){const a=S.meta?.access;if(!a)return true;if(a.capabilities?.write!==true)return false;if(!project)return true;return ['manager','contributor'].includes(accessProjectRole(project))}
-function accessProjectNote(project){const a=S.meta?.access;if(!a)return '';return !accessCanWrite(project)?'当前账号对'+(project?'项目 '+project:'本租户')+'仅有查看权限，不能提交修改、接收材料或代替他人确认。':a.capabilities?.execution===false?'未配置隔离执行环境，执行不可用。可以记录任务、保存材料和交接；模型、构建与预览待独立执行环境接入后开放。':''}
+function accessProjectNote(project){const a=S.meta?.access;if(!a)return '';return !accessCanWrite(project)?'当前账号对'+(project?'项目 '+project:'本租户')+'仅有查看权限，不能提交修改、接收材料或代替他人确认。':a.capabilities?.execution===false?(accessCanMemberFix(project)?'此项目可发起隔离的 AI 开发任务。分析、构建和预览仍需相应权限。':'未配置隔离执行环境，执行不可用。可以记录任务、保存材料和交接；模型、构建与预览待独立执行环境接入后开放。'):''}
 function accessPaintPermissions(){accessFenceControls();const banner=document.querySelector('#accessContextNotice');if(!banner)return;const text=accessProjectNote(S.proj);banner.textContent=text;banner.hidden=!text;const readonly=S.meta?.access?.capabilities?.write===false;for(const id of ['sayGo','sayIn']){const node=document.querySelector('#'+id);if(node){node.disabled=readonly;node.title=readonly?'当前账号仅可查看，不能登记新的需求。':''}}}
 function accessPaintTenant(){const select=document.querySelector('#tenantSel'),box=document.querySelector('#tenantScope');if(!select||!box)return;const a=S.meta?.access;box.hidden=!a;if(!a)return;select.innerHTML=(!(a.tenants||[]).some(t=>t.id===a.tenant.id)?`<option value="${h(a.tenant.id)}" selected disabled>管理对象：${h(a.tenant.name)}</option>`:'')+(a.tenants||[]).map(t=>`<option value="${h(t.id)}" ${t.id===a.tenant.id?'selected':''}>${h(t.name)}</option>`).join('');select.value=a.tenant.id;select.onchange=e=>accessSwitch(e.target.value);document.querySelector('#tenantRole').textContent=a.platform_owner?'平台管理员':a.can_manage?'租户管理员':'当前租户'}
 function accessInit(){

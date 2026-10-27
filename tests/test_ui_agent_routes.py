@@ -8,6 +8,42 @@ from tmh.platform.ui import JS
 
 @unittest.skipUnless(shutil.which('node'), 'Node.js is needed for UI behavior checks')
 class AgentRouteUITest(unittest.TestCase):
+    def test_ticket_agent_choice_is_scoped_to_person_tenant_and_project(self):
+        helpers = JS.split('function projectAgents(', 1)[1].split('function newTicket(', 1)[0]
+        source = r'''
+const assert=require('node:assert/strict');
+const h=x=>String(x);
+const values=new Map([['tmh.agent','agent-a']]);
+const localStorage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)};
+const S={proj:'A',projects:[
+ {key:'A',agent_route:{agent:'agent-a',allowed_agents:['agent-a','agent-b']}},
+ {key:'B',agent_route:{agent:'agent-b',allowed_agents:['agent-a','agent-b']}}
+],meta:{user:'alice',access:{tenant:{id:'tenant-1'}},agents:[
+ {name:'agent-a',title:'Agent A',available:true},{name:'agent-b',title:'Agent B',available:true}
+]}};
+''' + 'function projectAgents(' + helpers + r'''
+assert.equal(selectedProjectAgent('A'),'agent-a');
+assert.equal(selectedProjectAgent('B'),'agent-b','legacy global preference cannot override another project route');
+assert.match(agentOptions('B'),/value="agent-b" selected/);
+saveProjectAgent('A','agent-b');
+assert.equal(selectedProjectAgent('A'),'agent-b','explicit project choice is retained');
+assert.equal(selectedProjectAgent('B'),'agent-b','other project retains its route');
+saveProjectAgent('B','agent-a');
+assert.equal(selectedProjectAgent('B'),'agent-a');
+assert.equal(selectedProjectAgent('A'),'agent-b','returning to the first project restores its choice');
+S.meta.user='bob';
+assert.equal(selectedProjectAgent('A'),'agent-a','another person gets the project default');
+S.meta.user='alice';S.meta.access.tenant.id='tenant-2';
+assert.equal(selectedProjectAgent('A'),'agent-a','another tenant gets the project default');
+S.meta.access.tenant.id='tenant-1';
+S.projects[0].agent_route.allowed_agents=['agent-a'];
+assert.equal(selectedProjectAgent('A'),'agent-a','a saved choice cannot bypass a changed allowlist');
+'''
+        result = subprocess.run(['node', '-e', source], text=True, capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("saveProjectAgent(d.project.key,e.target.value)", JS)
+        self.assertIn("run(m,$('#ag')?.value||defAgent(),'auto')", JS)
+
     def test_project_choices_saved_preferences_and_unavailable_route(self):
         helpers = JS.split('function projectAgents(', 1)[1].split('function newTicket(', 1)[0]
         source = r'''

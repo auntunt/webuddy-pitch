@@ -397,7 +397,8 @@ function bindBoard(){
 
 // model picked per run: "auto" = the agent's default for that kind of task, "" = whatever the agent itself is set to
 function mShort(a,v){const m=(a.models||[]).find(x=>x[0]===v);return m?m[1].split('（')[0]:v}
-function modelSel(id,agent,mode){const a=((S.meta&&S.meta.agents)||[]).find(x=>x.name===agent)||{};const ms=a.models||[],d=a.defaults||{};
+function modelSel(id,agent,mode){const member=memberAgentCatalog(),a=(member||((S.meta&&S.meta.agents)||[])).find(x=>x.name===agent)||{};const ms=a.models||[],d=a.defaults||{};
+  if(member)return `<select id="${id}" data-agent="${h(agent)}" title="使用该项目配置的模型" aria-label="模型"><option value="auto">按项目配置</option></select>`;
   let saved='auto';try{saved=localStorage.getItem('tmh.model.'+agent)??'auto'}catch(e){}
   if(saved&&saved!=='auto'&&!ms.some(x=>x[0]===saved))saved='auto';
   let auto;if(mode)auto=d[mode]?'自动：'+mShort(a,d[mode]):'自动：沿用本机设置';
@@ -407,12 +408,18 @@ function modelSel(id,agent,mode){const a=((S.meta&&S.meta.agents)||[]).find(x=>x
 function bindModel(id){const e=$('#'+id);if(e)e.onchange=()=>{try{localStorage.setItem('tmh.model.'+e.dataset.agent,e.value)}catch(x){}}}
 function mTag(r){return r&&r.model?' · '+h(r.model):''}
 function projectAgents(project=S.proj){const p=(S.projects||[]).find(p=>p.key===project)||{};if(p.agent_route_error)return [];const r=p.agent_route||{};
-  const ags=((S.meta&&S.meta.agents)||[]).filter(a=>!r.allowed_agents||r.allowed_agents.includes(a.name)).slice();
-  if(r.agent&&!ags.some(a=>a.name===r.agent))ags.push({name:r.agent,title:r.agent,available:false,configuration_error:'项目指定的执行器尚未配置'});
+  const member=memberAgentCatalog(project),ags=(member||((S.meta&&S.meta.agents)||[])).filter(a=>(!member||a.engine==='codex'&&a.available===true)&&(!r.allowed_agents||r.allowed_agents.includes(a.name))).slice();
+  if(!member&&r.agent&&!ags.some(a=>a.name===r.agent))ags.push({name:r.agent,title:r.agent,available:false,configuration_error:'项目指定的执行器尚未配置'});
   return ags.sort((a,b)=>Number(b.name===r.agent)-Number(a.name===r.agent))}
+function memberAgentCatalog(project=S.proj){return typeof accessCanMemberFix==='function'&&accessCanMemberFix(project)&&!accessCanExecute(project)?S.meta.member_execution.agents:null}
+function memberFixNeedsClaim(d){return typeof accessCanMemberFix==='function'&&accessCanMemberFix(d.project.key)&&!accessCanExecute(d.project.key)&&!(d.ticket.links||{}).hold}
 function preferredAgent(project=S.proj,saved=''){const p=(S.projects||[]).find(p=>p.key===project)||{},ags=projectAgents(project),r=p.agent_route||{};
   return (ags.find(a=>a.name===r.agent)||ags.find(a=>a.name===saved&&a.available)||ags.find(a=>a.available)||ags[0]||{}).name||''}
-function agentOptions(project=S.proj){const first=preferredAgent(project);return projectAgents(project).map(a=>`<option value="${h(a.name)}" ${a.name===first?'selected':''}>${h(a.title)}${a.available?'':a.configuration_error?'（配置不可用）':'（本机未安装）'}</option>`).join('')}
+function projectAgentKey(project){return 'tmh.agent.project.'+[S.meta?.access?.tenant?.id||'local',S.meta?.user||'local',project].map(encodeURIComponent).join(':')}
+function selectedProjectAgent(project=S.proj){let saved='';try{saved=localStorage.getItem(projectAgentKey(project))||''}catch(e){}
+  return (projectAgents(project).find(a=>a.name===saved&&a.available)||{}).name||preferredAgent(project)}
+function saveProjectAgent(project,agent){try{localStorage.setItem(projectAgentKey(project),agent)}catch(e){}}
+function agentOptions(project=S.proj){const first=selectedProjectAgent(project);return projectAgents(project).map(a=>`<option value="${h(a.name)}" ${a.name===first?'selected':''}>${h(a.title)}${a.available?'':a.configuration_error?'（配置不可用）':'（本机未安装）'}</option>`).join('')}
 function newTicket(prefill){
   if(!S.projects.length){if(S.meta.access&&!S.meta.access.platform_owner){toast('当前没有获准可写的项目，请联系租户管理员。');return}return newProject()}
   const writable=S.projects.filter(p=>accessCanWrite(p.key));if(!writable.length){toast('当前没有获准可写的项目，请联系租户管理员。');return}
@@ -466,7 +473,7 @@ function flowState(d){
   if(t.status!=='closed'&&fx?.verify?.verification_current===false){sub.fix='实现记录保留';sub.verify=fx.recheck_wait?.status==='running'?'等待当前重新验证':'旧结果失效，检查回执';st.verify='todo'}
   return {st,sub,an,pl,fx,live,acc,review}}
 function stepper(f){return `<ol class="fsteps">${FLOW.map(([k,l],i)=>`<li class="${f.st[k]}"><span class="dot">${f.st[k]==='done'?'✓':f.st[k]==='bad'?'!':i+1}</span><b>${l}</b><small>${f.sub[k]||(f.st[k]==='skip'?'跳过':'')}</small></li>`).join('')}</ol>`}
-function defAgent(){let a='';try{a=localStorage.getItem('tmh.agent')||''}catch(e){}return preferredAgent(S.proj,a)}
+function defAgent(){return selectedProjectAgent(S.proj)}
 // Tickets run on their own until the change sits on its own branch; a person can take one over and hand it back.
 const MERGE_ON=()=>(S.meta.autoflow||{}).merge==='auto';
 function onAuto(d){return !!((S.meta.autoflow||{}).on)&&!(d.ticket.links||{}).hold&&!['verify','closed'].includes(d.ticket.status)}
@@ -711,10 +718,10 @@ async function vTicket(key,sub){
    <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">动态与讨论</h2>${nAuto?`<div class="seg" id="tlf"><button data-f="" class="on">全部</button><button data-f="talk">只看讨论</button><button data-f="auto">只看自动记录</button></div>`:''}</div><div class="tl" id="tl">${tl}</div>
      <div style="margin-top:14px"><p class="sub" id="cmDraft" role="status" aria-live="polite"></p><pre id="cmPending" hidden style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><textarea id="cm" aria-label="评论草稿" aria-describedby="cmDraft cmScope" placeholder="写评论（支持 Markdown）。智能体下次运行会读到最近的讨论。"></textarea><div class="row" style="margin-top:6px"><button class="primary" id="cb">评论</button>${ext.key?'<button id="pb">同步到 '+h(ext.system)+'</button>':''}</div><p class="sub" id="cmScope">仅保存本标签页的评论文字；不同标签页各自保存，关闭标签页后不保证恢复。证据截图及其他表单不包含在内，整页刷新后需重新选择或填写。</p></div></div>
    <details class="card adv" id="aiCard" ${f.live||reviewing||sub==='runs'?'open':''}><summary><b>执行记录与手动运行</b><span class="sub" id="tRunCount">${ticketRunCount(d.runs)}</span></summary>
-     <div class="hdr" style="margin:10px 0"><span class="sub grow">手动指派：</span><select id="ag">${agentOptions()}</select><span id="mdw"></span>
+     <div class="hdr" style="margin:10px 0"><span class="sub grow">手动指派：</span><select id="ag">${agentOptions(d.project.key)}</select><span id="mdw"></span>
      <div class="seg">${S.meta.modes.filter(([k])=>k!=='kb'&&k!=='ask'&&k!=='understand').map(([k,l])=>`<button data-m="${k}">${l}</button>`).join('')}</div></div>
      <label class="sub" style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="kbAfter" style="width:auto"> 分析定位后，顺手补写涉及的业务流知识页（最多 2 页，只补还没写的）</label>
-     <div class="sub" id="aihint">分析定位、修改方案只读代码；修改代码在独立的 git 工作树里进行，改动经你审阅后才采纳。</div>
+     <div class="sub" id="aihint">${typeof accessCanMemberFix==='function'&&accessCanMemberFix(d.project.key)&&!accessCanExecute(d.project.key)?'修改代码在隔离工作区中进行，结果需验证和人工复核。'+(memberFixNeedsClaim(d)&&t.status!=='closed'?'<br>启动前请先接手任务，接手后你将成为经办人。 <button class="ghost" id="memberClaim">接手任务</button>':''):'分析定位、修改方案只读代码；修改代码在独立的 git 工作树里进行，改动经你审阅后才采纳。'}</div>
      ${na.acc?'':`<div style="margin-top:10px"><b style="font-size:13px">人工验收</b> <span class="sub">通常在“待验证”时做；也可以直接在这里验收</span><div style="margin-top:6px">${accUi}</div></div>`}
      <div id="runv"></div>
      <div id="tRunHistory" style="margin-top:10px">${ticketRunHistory(d.runs)}</div></details>
@@ -744,10 +751,11 @@ async function vTicket(key,sub){
   $('#accOk').onclick=()=>acc('pass');$('#accNo').onclick=()=>acc('fail');
   $('#accDraft').onclick=()=>{A.askTicket(t,'起草这张工单的人工验收说明：列出要验证的业务操作、预期结果，以及分析和改动里还没核实的点。只写说明，不要替人判断通过。','draft')};
   const run=async(mode,agent,model)=>{
+    if(mode==='fix'&&memberFixNeedsClaim(d)){toast('请先在“执行记录与手动运行”中点击“接手任务”，再启动修改代码。',6000);return}
     const a=S.meta.agents.find(x=>x.name===agent);if(a&&!a.available)toast('本机没找到 '+a.title+'，仍会尝试启动');
     try{const r=await post('/api/tickets/'+key+'/runs',{agent,mode,model,kb_after:mode==='analyze'&&$('#kbAfter').checked?2:0});toast('已交给 '+(a?a.title:agent)+' '+moLabel(mode)+(r.model?'（'+r.model+'）':''));vTicket(key)}catch(e){toast(e.message)}};
   const wireNext=()=>{const go={naAn:'analyze',naPlan:'plan',naFix:'fix'};
-  Object.entries(go).forEach(([id,m])=>{if($('#'+id))$('#'+id).onclick=()=>run(m,defAgent(),'auto')});
+  Object.entries(go).forEach(([id,m])=>{if($('#'+id))$('#'+id).onclick=()=>run(m,$('#ag')?.value||defAgent(),'auto')});
   if($('#naVerify'))$('#naVerify').onclick=()=>save({status:'verify'});
   if($('#naShip'))$('#naShip').onclick=()=>post('/api/tickets/'+key+'/release',{}).then(r=>{toast(r.state==='merged'?'已合并，版本 '+r.version:r.why,6000);vTicket(key)}).catch(e=>toast(e.message,6000));
   if($('#naGo'))$('#naGo').onclick=()=>save({auto:'go'}).then(()=>toast('已交给自动处理'));
@@ -761,6 +769,7 @@ async function vTicket(key,sub){
   const hwBtn=id=>()=>{const b=$(id);if(b)return b.click();$('#engc').open=true;toast('稍等，开工包还在准备')};
   if($('#naHwPack'))$('#naHwPack').onclick=hwBtn('#hwPack');if($('#naHwScan'))$('#naHwScan').onclick=hwBtn('#hwScan');
   if($('#naClaim'))$('#naClaim').onclick=()=>post('/api/tickets/'+key+'/claim',{}).then(()=>{toast('已认领：自动处理不会再接这张单');vTicket(key)}).catch(e=>toast(e.message,6000));
+  if($('#memberClaim'))$('#memberClaim').onclick=()=>post('/api/tickets/'+key+'/claim',{}).then(()=>{toast('已接手任务，现在可以启动修改代码');vTicket(key)}).catch(e=>toast(e.message,6000));
   document.querySelectorAll('[data-hold]').forEach(b=>b.onclick=()=>save({hold:b.dataset.hold==='1'}).then(()=>toast(b.dataset.hold==='1'?'已接管，自动处理暂停':'已交回自动处理')));
   if($('#naReopen'))$('#naReopen').onclick=()=>save({status:'doing'});
   const openLog=()=>{$('#aiCard').open=true;$('#runv').scrollIntoView({behavior:'smooth',block:'start'})};
@@ -770,11 +779,10 @@ async function vTicket(key,sub){
   ticketPathMapWire(key);
   watchIntakeRecovery(key);
   document.querySelectorAll('#aiCard .seg button').forEach(b=>b.onclick=()=>{
-    if(b.dataset.m==='fix'&&!d.runs.some(r=>r.mode!=='fix'&&r.status==='done')){if(!window.confirmFix){window.confirmFix=1;toast('还没有分析或方案结论，建议先分析定位。再点一次直接修改。',4000);return}}
+    if(b.dataset.m==='fix'&&!(typeof accessCanMemberFix==='function'&&accessCanMemberFix(d.project.key)&&!accessCanExecute(d.project.key))&&!d.runs.some(r=>r.mode!=='fix'&&r.status==='done')){if(!window.confirmFix){window.confirmFix=1;toast('还没有分析或方案结论，建议先分析定位。再点一次直接修改。',4000);return}}
     run(b.dataset.m,$('#ag').value,$('#md').value)});
-  try{const last=localStorage.getItem('tmh.agent');if(last)$('#ag').value=last}catch(e){}
   const paintMd=()=>{$('#mdw').innerHTML=modelSel('md',$('#ag').value);bindModel('md')};paintMd();
-  $('#ag').onchange=e=>{try{localStorage.setItem('tmh.agent',e.target.value)}catch(x){}paintMd()};
+  $('#ag').onchange=e=>{saveProjectAgent(d.project.key,e.target.value);paintMd()};
   try{$('#kbAfter').checked=localStorage.getItem('tmh.kbAfter')!=='0'}catch(e){$('#kbAfter').checked=true}
   $('#kbAfter').onchange=e=>{try{localStorage.setItem('tmh.kbAfter',e.target.checked?'1':'0')}catch(x){}};
   if(sub==='prompt'){promptPane(t);return}
@@ -1132,7 +1140,8 @@ function pkgSummary(d){const k=d.package||{};if(!k.status)return '';
      :ln?`<div class="sub" style="margin-top:4px">已发签收链接给 ${h(ln.signer)}，有效至 ${h(ln.expires.slice(5,16))}</div>`:''}`}`}
 function pkgActions(d){const t=d.ticket;if(!d.package?.status||d.package.status==='none')return '';
   return `<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn" href="${h(appPath('/e/'+encodeURIComponent(t.key)))}" target="_blank" rel="noopener">打开证据包</a><a class="btn ghost" href="${h(appPath('/e/'+encodeURIComponent(t.key)+'.intoto.json'))}" download title="in-toto 格式，甲方可以离线核对">下载</a>
-    <button class="ghost" id="pkShot">补截图</button><button class="ghost" id="pkRev">复核</button>${d.package.stale===true?'<button id="pkPack"'+(pkgRepackReason(d)||S.pkgPacking?.[t.key]?' disabled':'')+'>按当前验证重新打包</button>':''}${t.status==='verify'?'<button class="primary" id="pkLink"'+ticketSignoffAttrs(d)+'>发签收链接</button>':''}</div>`;}
+    <button class="ghost" id="pkShot">补截图</button><button class="ghost" id="pkRev"${pkgReviewReason(d)?' disabled title="'+h(pkgReviewReason(d))+'"':''}>证据复核</button>${d.package.stale===true?'<button id="pkPack"'+(pkgRepackReason(d)||S.pkgPacking?.[t.key]?' disabled':'')+'>按当前验证重新打包</button>':''}${t.status==='verify'?'<button class="primary" id="pkLink"'+ticketSignoffAttrs(d)+'>发签收链接</button>':''}</div>`;}
+function pkgReviewReason(d){const access=d?.package?.personal_review;return access?.allowed===false?(access.reason||'请由当前指定的独立复核人登录后记录证据复核。'):''}
 function pkgCard(d){if(!d.package?.status)return '';
   return `<div class="card" id="pkg"><div id="pkSummary">${pkgSummary(d)}</div><div id="pkActions">${pkgActions(d)}</div><p class="sub" id="pkDraftNotice" hidden>证据状态已更新；表单草稿与所选文件已保留，请按最新验证门核对后提交。</p><div id="pkForm"></div></div>`;}
 function pkgWire(d){ticketSignoffSync(d);const key=d.ticket.key,F=$('#pkForm');if(!F)return;
@@ -1152,7 +1161,7 @@ function pkgWire(d){ticketSignoffSync(d);const key=d.ticket.key,F=$('#pkForm');i
     $('#pkGo').onclick=async()=>{const f=$('#pkImg').files[0];let image='';
       if(f){if(f.size>3*1024*1024)return toast('截图不能超过 3MB');image=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)})}
       try{await P({kind:'attach',ac:$('#pkAc').value,note:$('#pkNote').value,image});toast('已加到证据包');vTicket(key)}catch(e){toast(e.message,5000)}}};
-  if($('#pkRev'))$('#pkRev').onclick=()=>{const k=d.package||{},m=k.missing||[];
+  if($('#pkRev'))$('#pkRev').onclick=()=>{const denial=pkgReviewReason(S.cur||d);if(denial)return toast(denial,6000);const k=d.package||{},m=k.missing||[];
     const open=(k.gates||[]).filter(g=>g.state!=='pass'&&!(g.state==='fail'&&(g.id==='build'||g.id==='test')));
     const exception=open.length||(!k.gates&&(m.includes('改动没超出方案')||m.includes('改动落在本单的业务流上')));
     if(!exception){const b=$('#pkRev');b.disabled=true;

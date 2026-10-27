@@ -346,16 +346,27 @@ class Store:
         return rid
 
     def create_run(self, project_id: int, ticket_id, agent: str, mode: str, author: str, prompt: str, target: str = "",
-                   session_id=None, batch: str = "", model: str = "", retry_of=None, *, expected_root=None, reference_inputs=None) -> dict:
+                   session_id=None, batch: str = "", model: str = "", retry_of=None, *, expected_root=None, reference_inputs=None,
+                   require_idle_ticket=False, before_commit=None) -> dict:
         try:
             # Only eligibility and registration share the writer transaction.
             # Prompt preparation stays concurrent; UNIQUE retry_of still decides
             # the winner across independent Runner / Store instances.
             with self.lock, self.db:
                 self.db.execute("BEGIN IMMEDIATE")
+                if require_idle_ticket:
+                    ticket = self.ticket(ticket_id)
+                    links = (ticket or {}).get('links') or {}
+                    if (not ticket or ticket['project_id'] != project_id or ticket['status'] == 'closed' or
+                            links.get('delivery') or links.get('later') or not links.get('hold')):
+                        raise ValueError('工单状态已变化，不能登记个人隔离执行')
+                    if self.one("SELECT id FROM runs WHERE ticket_id=? AND status IN ('queued','running')", (ticket_id,)):
+                        raise ValueError('同一工单已有运行，请先等待或停止')
                 rid = self._create_run_in_tx(project_id, ticket_id, agent, mode, author, prompt, target,
                                             session_id, batch, model, retry_of,
                                             expected_root=expected_root, reference_inputs=reference_inputs)
+                if before_commit is not None:
+                    before_commit(rid)
         except sqlite3.IntegrityError:
             successor = self.one("SELECT id FROM runs WHERE retry_of=?", (retry_of,)) if retry_of is not None else None
             if successor:

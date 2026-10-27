@@ -59,9 +59,18 @@ def _hash(value):
     return hashlib.sha256(_json(value).encode()).hexdigest()
 
 
+def implementation_author(author, user):
+    """Only the server-reserved member namespace identifies an initiating user."""
+    from .agent_api import member_actor
+    return author in (user, member_actor(user))
+
+
 def _git(root, *args, raw=False):
-    p = subprocess.run(["git", "-C", str(root), "-c", "core.hooksPath=/dev/null", *args],
-                       capture_output=True, timeout=30)
+    from .project_git import read
+    p = read(root,args)
+    if p is None:
+        p = subprocess.run(["git", "-C", str(root), "-c", "core.hooksPath=/dev/null", *args],
+                           capture_output=True, timeout=30)
     if p.returncode:
         raise ApiError(409, "Git候选检查失败：" + p.stderr.decode("utf-8", "replace"))
     return p.stdout if raw else p.stdout.decode("utf-8", "strict")
@@ -250,7 +259,7 @@ def view(P, cid, *, include_probe=True):
     results = json.loads(assessment["results"]) if assessment else []
     technical_ok = bool(verification_ok and probe_ok and preview_ok and assessment and assessment["verification_hash"] == vh
                         and assessment["preview_hash"] == ph
-                        and assessment["author"] != row["agent"] and all(r["status"] == "pass" for r in results))
+                        and not implementation_author(row["agent"],assessment["author"]) and all(r["status"] == "pass" for r in results))
     evidence = {"candidate": cid, "commit": row["commit_sha"], "base": row["base_commit"],
                 "requirement_hash": row["requirement_hash"], "configuration_hash": row["configuration_hash"],
                 "criteria": json.loads(row["criteria"]), "verification_hash": vh, "preview_hash": ph, "assessment": assessment}
@@ -332,7 +341,7 @@ def execute(P, actor, op, a, mutation=lambda: None):
             if op == "candidate_assess":
                 if not v["verification_passed"] or a["verification_hash"] != v["verification_hash"] or not v["preview_ready"] or a["preview_hash"] != v["preview_hash"]:
                     raise ApiError(409, "验证或预览依据已变化，先读取当前候选并重新验证")
-                if actor == row["agent"]:
+                if implementation_author(row["agent"],actor):
                     raise ApiError(409, "实现者不能替代独立验收者；使用实际独立复核会话记录")
                 ids = [r["id"] for r in a["results"]]
                 if len(ids) != len(set(ids)) or set(ids) != {c["id"] for c in v["criteria"]}:
@@ -396,7 +405,7 @@ def browser_decide(P, user, args, mutation=lambda: None):
     """
     from . import team
     row = _row(P, args["candidate_id"])
-    if user == row["agent"]:
+    if implementation_author(row["agent"],user):
         raise ApiError(403, "固定候选的提交者不能复核自己的交付；重新分配任务不会改变提交作者")
     t = team.require_reviewer(P, row["ticket_id"], user)
     identity = team.assignment(P, t)
@@ -418,7 +427,7 @@ def browser_review_current(P, cid):
     if not identity:
         return False
     row = _row(P, cid)
-    if decision["author"] == row["agent"]:
+    if implementation_author(row["agent"],decision["author"]):
         return False
     t = P.store.ticket(row["ticket_id"])
     current = team.assignment(P, t)
@@ -560,6 +569,8 @@ def browser_accept(P, cid, user, evidence_hash, passed, note, mutation=lambda: N
     from . import team, release, learn
     from .recheck_operations import source_guard
     row = _row(P, cid)
+    if implementation_author(row["agent"],user):
+        raise ApiError(403,"固定候选的实现者不能验收自己的交付；重新分配任务不会改变提交作者")
     team.require_reviewer(P, row["ticket_id"], user)
     if not isinstance(note, str) or not note.strip():
         raise ApiError(400, "请记录实际业务验收操作、结果及限制")

@@ -35,6 +35,7 @@ from pathlib import Path
 from . import activity, kb
 from .context import PPR_LEXICAL_MIX, PPR_MIN_REL, PPR_SEED_HITS, personalized_pagerank, search
 from .graph import Graph, graph_path
+from .platform.errors import ApiError
 
 SCHEMA = 2
 NOTICE = "有来源的检索结果：来源事实不等于当前项目行为验证，也不替代人工验收。"
@@ -49,9 +50,13 @@ PAGE_SECTIONS = {"index", "dom", "flow", "tbl", "mod"}
 
 def _git_head(root: Path) -> str:
     try:
+        from .platform.project_git import read
+        scoped = read(root, ('rev-parse', '--verify', 'HEAD^{commit}'))
+        if scoped is not None:
+            return scoped.stdout.decode('utf-8', 'replace').strip() if scoped.returncode == 0 else ''
         r = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", "HEAD"],
                            capture_output=True, timeout=10)
-    except (OSError, subprocess.SubprocessError):
+    except (OSError, subprocess.SubprocessError, ValueError, ApiError):
         return ""
     return r.stdout.decode("utf-8", "replace").strip() if r.returncode == 0 else ""
 

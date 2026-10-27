@@ -2,11 +2,13 @@
 from .errors import ApiError
 from .store import _keyed
 from . import handoffs, login, team, project_library, coordination
+from .project_git import scoped
 
 STAGES = {"requirement": "需求", "development": "研发", "testing": "测试",
           "delivery": "交付", "operations": "运维", "unrecorded": "未登记阶段"}
 
 
+@scoped
 def read(P, query, viewer):
     def arg(key, default=""):
         value = query.get(key, default)

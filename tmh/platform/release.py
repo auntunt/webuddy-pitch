@@ -195,7 +195,9 @@ MERGE_S = 180
 
 
 def _run(root: Path, *args, timeout=None):
-    return subprocess.run(["git", "-C", str(root)] + list(args), capture_output=True, text=True, timeout=timeout)
+    from .project_git import read
+    result=read(root,args,text=True)
+    return result if result is not None else subprocess.run(["git", "-C", str(root)] + list(args), capture_output=True, text=True, timeout=timeout)
 
 
 def _run_ok(root: Path, *args) -> bool:
