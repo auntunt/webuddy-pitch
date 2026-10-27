@@ -264,6 +264,10 @@ def _action(P, t, b, user, mutation):
                 raise ApiError(400, "业务验收结果必须是 pass 或 fail")
             return candidates.browser_accept(P, row["id"], user, b.get("evidence_hash", ""), b["result"] == "pass", b.get("note", ""), mutation)
         if action == "candidate_merge":
+            ctx=getattr(P,'tenant_context',None)
+            if ctx and not ctx.runtime_allowed(user):
+                from . import project_merge
+                return project_merge.browser_merge(P,row['id'],user,b.get('evidence_hash',''),b['request_id'],mutation)
             return candidates.browser_merge(P, row["id"], user, b.get("evidence_hash", ""), b["request_id"], mutation)
         op = "candidate_decide" if action == "review" else action
         fields = {"candidate_decide": ("candidate_id", "evidence_hash", "decision", "note", "request_id"),
@@ -332,6 +336,16 @@ def item(P, t, user):
             metadata_review=False
     metadata_unavailable=unavailable(P.store.project(t['project_id'])['root'])
     if metadata_unavailable or managed and not repo['ready']: metadata_review=False
+    personal_verification_reason=''
+    personal_preview_reason=''
+    if managed and not managed.runtime_allowed(user) and metadata_review:
+        from . import project_verify
+        try:project_verify.commands(P,P.store.project(t['project_id']))
+        except (OSError,ValueError) as exc:personal_verification_reason=str(exc)
+        from . import preview
+        conf=preview.project_conf(P.data_dir,P.store.project(t['project_id'])['key'])
+        personal_preview_reason=('此项目尚未配置预览命令；租户隔离预览通道也尚未接入。请联系项目管理员。'
+                                 if not conf.get('cmd') else '租户隔离预览通道尚未接入，不能启动固定版本预览。')
     run = P.store.one("SELECT id,mode,status,author,agent,decision,created,ended,LENGTH(diff)>0 AS has_diff FROM runs WHERE ticket_id=? AND mode!='ask' ORDER BY id DESC LIMIT 1", (t["id"],))
     if run:
         run["can_recheck"] = not bool(_recheck_reason(P, run))
@@ -410,6 +424,8 @@ def item(P, t, user):
             "acceptance_memory": acceptance_memory,
             "needs_review": state in ("assessment", "review", "approved", "merged", "legacy_review", "acceptance"),
             "can_review": can_review, "personal_decisions_available":metadata_review,
+            "personal_verification_reason":personal_verification_reason,
+            "personal_preview_reason":personal_preview_reason,
             "repository_ready":repo['ready'],"repository_reason":repo['reason'],
             "can_submit": user in members and t["assignee"] == user and t["status"] != "closed",
             "requests": P.store.q("SELECT actor,request_id,state,error,created,updated FROM team_requests WHERE ticket_id=? AND state IN ('pending','uncertain') ORDER BY created", (t["id"],)),

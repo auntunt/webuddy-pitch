@@ -312,6 +312,9 @@ def execute(P, actor, op, a, mutation=lambda: None):
             operation = P.flow.rechecks.status(row["run_id"])
             if not operation or not operation.get("running"):
                 raise ApiError(409, "当前没有正在验证的候选")
+            ctx=getattr(P,'tenant_context',None)
+            if ctx and not ctx.runtime_allowed(actor) and operation.get('author')!=actor:
+                raise ApiError(403, '只能停止自己发起的隔离验证')
             mutation()
             return P.flow.rechecks.runner.cancel(operation["id"], actor)
         if not v["current"]:
@@ -320,6 +323,14 @@ def execute(P, actor, op, a, mutation=lambda: None):
             previous = P.flow.rechecks.status(row["run_id"])
             if previous and not previous.get("can_retry"):
                 raise ApiError(409, "；".join(previous.get("blocked") or ["原验证尚未结束"]))
+            ctx=getattr(P,'tenant_context',None)
+            if ctx and not ctx.runtime_allowed(actor):
+                from . import project_verify
+                try: project_verify.commands(P,P.store.project(P.store.ticket(row['ticket_id'])['project_id']))
+                except ValueError as exc: raise ApiError(409,str(exc)) from exc
+                mutation()
+                try:return project_verify.start(P,actor,row['id'])
+                except ValueError as exc:raise ApiError(409,str(exc)) from exc
             mutation()
             return P.flow.recheck(row["run_id"], actor)
         # Serialize decisions and preview publication against rechecks.

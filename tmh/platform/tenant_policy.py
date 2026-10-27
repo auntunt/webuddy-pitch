@@ -614,6 +614,10 @@ def authorize(P, method, path, query, body, actor):
         # are confined to project_git; merge/verify/preview and legacy accept
         # still require their original execution authorization.
         safe |= available(P,targets[0],actor)
+    if (template == "/api/team" and action in ("candidate_verify", "candidate_cancel", "candidate_merge")
+            and targets and len({p['id'] for p in targets})==1 and not who.get('tool_connection')):
+        from .project_git import available
+        safe |= available(P,targets[0],actor)
     safe |= template == "/api/tickets/<key>/evidence" and body.get("kind") in ("attach", "review", "link")
     safe |= template == "/api/memory" and action in ("lesson_create", "lesson_edit", "lesson_share", "lesson_unshare", "lesson_take", "lesson_untake", "lesson_confirm", "lesson_restore", "lesson_retire", "cluster_scan", "cluster_confirm", "cluster_exclude")
     # Version-bound personal decisions only write the tenant lesson ledger.

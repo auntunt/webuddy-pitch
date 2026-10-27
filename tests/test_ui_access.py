@@ -241,6 +241,20 @@ ACCESS.base='/t/alpha';accessBind({access:{tenant:{id:'alpha'},context_token:'a'
 S.projects=[{id:1,key:'APP'}];S.meta.access={...S.meta.access,role:'member',capabilities:{read:true,write:true,execution:false},project_grants:[{project_id:'1',role:'contributor'}]};main.innerHTML='<button id="team-submit"></button><button id="team-verify"></button><button id="team-preview"></button><button id="team-accept"></button><button id="team-comment-send"></button><button id="team-assign"></button><button id="team-claim"></button><p id="team-access-note"></p><button id="nIn"></button><button id="naAn"></button>';const x={ticket:{key:'APP-1',pkey:'APP'}};teamAccessGuard(main,x);for(const id of ['team-submit','team-verify','team-preview','team-accept'])assert.equal($('#'+id).disabled,true);assert.equal($('#team-comment-send').disabled,false);assert.equal(teamAccessReason(x,'comment'),'');assert.equal($('#team-assign').disabled,true);assert.equal($('#team-claim').disabled,true);assert.ok(teamAccessReason(x,'assign').includes('项目管理员'));assert.ok(teamAccessReason(x,'review').includes('Git'));assert.ok($('#team-access-note').textContent.includes('暂不可用'));accessFenceControls(main);assert.equal($('#nIn').disabled,true);assert.equal($('#naAn').disabled,true);S.meta.access.capabilities.execution=true;$('#team-accept').disabled=true;teamAccessGuard(main,x);assert.equal($('#team-accept').disabled,true,'execution capability must not enable a human approval gate');assert.equal($('#team-preview').disabled,true);
 """)
 
+    def test_personal_candidate_verification_shows_actual_project_support(self):
+        self.run_js(r"""
+S.projects=[{id:1,key:'APP'}];S.meta.access={...S.meta.access,role:'member',capabilities:{read:true,write:true,execution:false},project_grants:[{project_id:'1',role:'contributor'}]};
+const x={ticket:{key:'APP-1',pkey:'APP'},personal_decisions_available:true,personal_verification_reason:''};
+assert.equal(teamAccessReason(x,'candidate_verify'),'');
+assert.ok(teamAccessReason(x,'candidate_preview').includes('不支持'));
+x.personal_preview_reason='此项目尚未配置预览命令；租户隔离预览通道也尚未接入。';
+assert.ok(teamAccessReason(x,'candidate_preview').includes('尚未配置预览命令'));
+x.personal_verification_reason='请管理员配置 test 命令';
+assert.ok(teamAccessReason(x,'candidate_verify').includes('test'));
+x.repository_reason='当前项目不是 Git 仓库';
+assert.ok(teamAccessReason(x,'candidate_verify').includes('不是 Git'));
+""")
+
     def test_knowledge_answer_uses_session_identity_and_preserves_full_original_text(self):
         answer = 'function kbAnswer(n,q){' + JS.split('function kbAnswer(n,q){', 1)[1].split('function kbTriage(){', 1)[0]
         self.run_js(answer + r"""

@@ -39,8 +39,9 @@ function teamAccessReason(x,action){
  const project=x.ticket.pkey||x.ticket.key.slice(0,x.ticket.key.lastIndexOf('-'));if(typeof accessCanWrite==='function'&&!accessCanWrite(project))return '当前账号对本项目只有查看权限，不能调整分配、提交材料或代替他人确认。';
  if(action==='assign'&&S.meta?.access&&typeof accessProjectRole==='function'&&accessProjectRole(project)!=='manager')return '只有本项目管理员可以调整负责人和独立复核人。';
  if(S.meta?.access&&x.repository_reason&&['candidate_submit','candidate_verify','candidate_preview','candidate_assess','review','candidate_merge','business_accept','run_recheck'].includes(action))return x.repository_reason;
- if(action==='candidate_preview'&&S.meta?.access)return '租户隔离环境尚不支持固定版本预览。';
- if(['candidate_assess','review','business_accept'].includes(action)&&x.personal_decisions_available===true)return '';
+ if(action==='candidate_preview'&&S.meta?.access)return x.personal_preview_reason||'租户隔离环境尚不支持固定版本预览。';
+ if(action==='candidate_verify'&&x.personal_decisions_available===true)return x.personal_verification_reason||'';
+ if(['candidate_cancel','candidate_assess','review','candidate_merge','business_accept'].includes(action)&&x.personal_decisions_available===true)return '';
  if(['claim','candidate_submit','candidate_verify','candidate_assess','review','candidate_merge','business_accept','run_recheck','candidate_cancel'].includes(action)&&typeof accessCanExecute==='function'&&!accessCanExecute(project))return '当前项目的独立执行或 Git 证据环境暂不可用。可继续记录任务与交接材料。';return '';
 }
 function teamAccessGuard(dialog,x){const controls={'team-assign':'assign','team-claim':'claim','team-comment-send':'comment','team-submit':'candidate_submit','team-run-recheck':'run_recheck','team-verify':'candidate_verify','team-preview':'candidate_preview','team-cancel':'candidate_cancel','team-assess':'candidate_assess','team-accept':'review','team-reject':'review','team-merge':'candidate_merge','team-business-pass':'business_accept','team-business-fail':'business_accept','team-memory-retry':'business_accept'};let message='';for(const [id,action]of Object.entries(controls)){const node=dialog.querySelector('#'+id),reason=teamAccessReason(x,action);if(node&&reason){node.disabled=true;node.title=reason;node.setAttribute('aria-description',reason);message=reason}}const note=dialog.querySelector('#team-access-note');if(note){note.textContent=message;note.hidden=!message}}
