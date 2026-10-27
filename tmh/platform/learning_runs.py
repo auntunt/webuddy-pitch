@@ -358,6 +358,19 @@ def start(P, p, kind, revision_id, options, actor, request_id, launch=True):
 
 
 class IndependentRunner(agents.Runner):
+    def __init__(self, store, data_dir, *, codex_carrier=None):
+        super().__init__(store, data_dir)
+        # Trusted host dependency only. Never supplied by job options or a tool
+        # request; configuring it does not change the capability admission gate.
+        self._codex_carrier = codex_carrier
+
+    def _run_model_process(self, rid, cmd, workdir, *, engine, settings, model, **parameters):
+        if engine == "codex" and self._codex_carrier is not None:
+            from .codex_carrier import run_carrier
+            return run_carrier(self, rid, self._codex_carrier, settings, model, workdir, parameters)
+        return super()._run_model_process(rid, cmd, workdir, engine=engine,
+                                         settings=settings, model=model, **parameters)
+
     def _pause(self, rid, seconds):
         # Runner normally retries busy providers. Each durable step is exactly
         # one invocation: a hidden retry must not evade the job's call budget.

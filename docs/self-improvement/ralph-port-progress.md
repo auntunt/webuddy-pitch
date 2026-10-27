@@ -1494,3 +1494,11 @@
 - 仅运行新增test_generated_config_explicitly_disables_remote_tool_plane：1/1、0 skip/失败/错误，unittest0.007秒，外层0.145415秒、exit0。解析实际生成TOML，核对全部明确关闭值、原源配置不被改写和strict参数；未调用官方CLI/模型，不推断实际请求tools或供应商行为。原本地日志、精确来源和固定版本Git blob/SHA核对在仓库外分析/implementation/20261027-codex-remote-tools-disabled/；上游源码不复制进产品仓库。
 - 同次v8离线失败的补充诊断已经读回两条同窗精确宿主PID3587011/3587012的net_admin拒绝原行、当前unprivileged_userns(enforce)、699字节公开策略及897字节直接tunables/global；local/unprivileged_userns不存在。宿主PID到本次进程树映射仍未证明，磁盘源码不宣称等于已加载二进制策略。补查unprivileged_unconfined开关及parser版本时SSH认证拒绝/255，远程未执行，原失败保留；不改策略、不重跑v8、不扩大日志范围。
 - 状态边界：实际载体/Runner接线仍doing；无模型、部署、真人决定或业务DB变更。待确认：无须重复询问用户发布授权；当前SSH认证不可用的原始失败与待核两个主机值已记录，继续本地必要编码。未开放真实能力门，未将配置单测当网络/隔离/组织收益证明。
+
+## 2026-10-27：IndependentRunner可信载体单次监管接口
+
+- 状态：doing。基线0a59258已正常快进push、GitHub精确HEAD/工作区干净；v8诊断补充26文件封存cb2ea4ec7bbc96c4f7112595d4f98d59f55cdc13665425e9af8f3d95b4e7663c。仅新增可信宿主constructor依赖与单次原run_command接点，普通Runner仍原监管调用；不建立新预算/台账/调度器、不从API选载体、不开放真实能力门。实际root控制器/私有通道/模型证明仍待。
+- 首轮新8项全部通过，3.187秒（外层3.374198秒）；补真实子进程耗尽原期限、拒绝刷新限额/坏计划/重试/部分输入后，新11+直接原兼容4共15/15、5.909秒。末次增加每启动随机nonce供真实私有回执绑定，nonce不代替原attempt/认证/预算；因此以最终字节重跑同15项，15/15、5.876秒（外层6.108203秒）、0 skip/失败/错误、exit0。原日志/源码/合成现场分别保留在分析/implementation/20261027-codex-carrier-seam/，未重跑旧配置21项或全量。
+- 新例实际监督进程证明完整440016字节中文stdin、原owner和cancel_event、真实运行中取消/清理、准备与末次验证消耗原单调期限、只返回原ProcessResult；失败不走普通命令或隐藏重试。最终11个合成SQLite完整性全部ok，6份实际process/SP输出和清理原件完整保留，读回时目标PID均不存在。普通Codex profile原完整stdin/空答案拒绝、原Claude知识运行与真实Codex能力拒绝4项兼容均通过。只用公开合成进程/输入，不是官方CLI、模型工具面或组织收益证明。
+- 自审：12份既有保护源码/原测试字节与0a59258相同；Runner原run_command、owner/取消/超时/监督方法及learning_runs原能力门/Worker/数据库协议AST不变，仅_spawn改经新默认直通接点，IndependentRunner增加宿主私有依赖。无任务API开关、无载体安装/宿主装配/私有回执读取器，原业务人工确认/guard/状态迁移保持。git diff --check通过；本批done仅限接口组件，整体实际接线仍doing，待作者外窄审查。
+- 待确认/阻塞：SSH公钥认证拒绝原件保持，主机开关与parser版本未知；原准备流程单独推进v9策略候选，本作者不重复、不应用策略或启动新轮。没有发布服务或重启，没有为组件空部署，也没有解除真实能力门。

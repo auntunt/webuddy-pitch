@@ -12,6 +12,10 @@ worker 命令使用官方 `codex exec`、完整 stdin、JSONL、ephemeral 和 ig
 
 后续接线仍须复用 `IndependentRunner` 和原单监督链、取消/owner/原绝对期限；验证整个官方父进程的受限视图、工具派发、固定网关转发与完整原件。手动 sandbox、合成回显或本组件测试均不构成模型准入。此组件不授予业务人工确认、知识采用或关单。
 
+`IndependentRunner(..., codex_carrier=...)` 现提供宿主私有依赖接点，未从任务选项/API开放。载体的 `prepare(context)` 只构造 `CarrierLaunch`：固定控制器命令、宿主环境和强制私有回执校验；不得在 prepare 中启动进程或联网。命令中只能包含非秘密参数。真实凭据如需环境传入，只能给原监管中的可信宿主控制器；控制器必须另建上述固定 worker 环境，不能把自己的环境继承给 worker。所有控制器、broker、relay 和 worker 都必须在同一个原 Runner/SP 之下。
+
+接点保留原 owner/取消事件/单调截止点及完整 stdin，由 Runner 调用且只调用一次原 run_command，载体拿不到执行回调。每次准备另给一个随机 launch_nonce，供可信控制器及私有回执绑定本次启动；它不代替原 run/attempt、身份认证或预算。准备和末次校验均消耗原预算，失败不回退普通命令，不允许会话继承或繁忙重试。私有校验必须核对受信控制器的固定输入/身份/原期限/清理证明，不能只相信可被 worker 伪造的 stdout；校验不能替换原 ProcessResult。普通 Runner 仍转发同一原监管参数。本接点仅以实际本地合成进程验证；尚未安装真实载体、接入 _Worker 宿主装配、实现私有回执读取器或开放 Codex 独立能力门。
+
 文件读取组件要求实际载体使用 POSIX 与 Python 3.11+ TOML 读取器；不影响普通执行器原有 Python 要求。当前未验证 Windows 载体。
 
 `codex_gateway.forward` 是可信宿主的一次固定目标交换函数，没有监听端口、任务入口或重试循环。它只接受本地固定 Host 的 POST /v1/responses、公开占位认证、完整无歧义 JSON 与已冻结的请求模型；实际 HTTPS endpoint 和认证从冻结来源取出，官方非逐跳请求头与完整 body 保持。重定向及协议升级不进入 worker；原始响应头和全部实际收到的传输解码 payload 交由宿主 journal 私有保存，短回包不能结算为完整。HTTP 载荷完整仅代表传输事实，不代表模型成功或执行准入。journal 和连接关闭后再检查原截止点，避免慢封存/关闭后的迟到成功。

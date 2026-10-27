@@ -1811,6 +1811,10 @@ class Runner:
                     else:
                         self._release(rid)
 
+    def _run_model_process(self, rid, cmd, workdir, *, engine, settings, model, **parameters):
+        """One extension point; ordinary runs keep the original supervision path."""
+        return self.run_command(rid, cmd, workdir, **parameters)
+
     def _spawn(self, rid, project, ticket, agent, conf, mode, prompt, workdir, model, tag, resume):
         st = self.store
         rdir = self.data_dir / "runs" / str(rid)
@@ -1852,7 +1856,8 @@ class Runner:
         transport = (["stdin"] if use_stdin else ["argv"]) if custom is None else (
             (["argv"] if "{prompt}" in custom else []) + (["prompt_file_argument"] if "{prompt_file}" in custom else []))
         try:
-            process, folder = self.run_command(rid, cmd, workdir, env=env,
+            process, folder = self._run_model_process(rid, cmd, workdir,
+                engine=engine, settings=conf[agent], model=model, env=env,
                 stdin=prompt if use_stdin else None,
                 on_output=output, kind="model:" + mode + tag, prompt=prompt,
                 prompt_transport=transport or ["none_configured"])
