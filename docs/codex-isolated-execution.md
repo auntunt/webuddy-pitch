@@ -18,6 +18,14 @@ worker 命令使用官方 `codex exec`、完整 stdin、JSONL、ephemeral 和 ig
 
 独立 Codex 即使尚未通过能力门，缺少载体时也必须直接拒绝，不能依赖外围能力门掩盖回退路径。verify 接收原 ProcessResult 的完整深副本，包含嵌套 cleanup；原对象保留给监管链和发布记录。配置/argv 合成测试显式安装合成载体，不以普通命令回退作为测试通路，不改变原输入、时限或人工决定断言。
 
+`codex_host.RootCarrier` 将接点具体接到宿主登记的固定 root 入口：核对任务冻结 profile、引擎、可执行文件路径/摘要/尺寸/时间、参数与个体时限，必须与原登记一致；同模型但不同 profile 也拒绝。现有 Codex 任务已有的 sha256/size/mtime_ns 随执行配置传递，其他引擎不加新字段。root 入口路径与摘要、原登记 ID 和完成目录只由宿主构造，不从任务 JSON 选择。凭据环境只允许常规 API_KEY/TOKEN 变量名，禁止把解释器、shell或loader控制变量保留给特权入口；值只走原监督进程的私有环境，不进argv、stdin或公开回执。_Worker 可接收宿主的精确 RootCarrier 类型；没有默认安装或公开开关，能力拒绝保持。
+
+`HostSession` 在可信 root 控制器内联合校验冻结配置、任务执行绑定和原服务器私有凭据摘要，组合生成 worker 输入、固定 gateway 交换及完整的私有分帧 journal。私有凭据摘要必须来自原登记，不能每次重新计算来认可轮换。HTTP 请求并发串行记录，完整原始 payload 保留；gateway_attempts/completed_payloads只描述本组件尝试和完整HTTP载荷，不当模型调用或实付。
+
+完成后只投影绑定摘要到固定 root-owned 0750/service-group 目录，文件0640、单链接；首次原子发布不覆盖。读取器逐层NOFOLLOW、拒绝可写祖先、链接/权限/文件或目录替换、重复或非有限JSON、未知字段、错owner/nonce/profile/输入/输出/期限和不完整清理，并联合核对原SP完整输出与清理。64KiB只限制这个不含原文的摘要协议，超限拒绝，不截断；私有journal及原SP输出不以此限额删减。
+
+当前仅完成可检查的宿主组合/读取器候选和本地合成验证。测试用临时fixture owner代替UID0来验证算法，另有保留真实UID0要求的拒绝负控；这不证明Linux root认证、跨UID取消或进程清理。真实入口必须验证完整不可变bundle，复用已审v9 namespace/pivot/专用AppArmor生命周期，实现认证relay与parent-death/原监管闭包，再把真实官方exec/model/tool请求及原件交独立复验。本候选不自动安装入口、放行能力或发布服务；v9的离线21/6/7通过也不能替代这些步骤。
+
 文件读取组件要求实际载体使用 POSIX 与 Python 3.11+ TOML 读取器；不影响普通执行器原有 Python 要求。当前未验证 Windows 载体。
 
 `codex_gateway.forward` 是可信宿主的一次固定目标交换函数，没有监听端口、任务入口或重试循环。它只接受本地固定 Host 的 POST /v1/responses、公开占位认证、完整无歧义 JSON 与已冻结的请求模型；实际 HTTPS endpoint 和认证从冻结来源取出，官方非逐跳请求头与完整 body 保持。重定向及协议升级不进入 worker；原始响应头和全部实际收到的传输解码 payload 交由宿主 journal 私有保存，短回包不能结算为完整。HTTP 载荷完整仅代表传输事实，不代表模型成功或执行准入。journal 和连接关闭后再检查原截止点，避免慢封存/关闭后的迟到成功。

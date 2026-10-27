@@ -471,6 +471,9 @@ def _execution_config(job):
     settings = {key: frozen[key] for key in ("bin", "args", "engine", "profile", "prompt_transport", "resume", "retry_busy", "timeout")
                 if key in frozen}
     settings["args"] = list(settings.get("args", []))
+    if frozen.get("engine") == "codex":
+        for key in ("sha256", "size", "mtime_ns"):
+            settings[key] = frozen[key]
     remaining = job["deadline"] - time.time()
     settings["run_timeout"] = max(.001, min(remaining, settings.get("timeout", remaining)))
     return {opts["agent"]: settings}
@@ -479,7 +482,14 @@ def _execution_config(job):
 class _Worker:
     def __init__(self, P, p, jid, token):
         self.P, self.p, self.jid, self.token = P, p, jid, token
-        self.runner = IndependentRunner(P.store, P.data_dir)
+        carrier = getattr(P, "independent_codex_carrier", None)
+        if carrier is None:
+            self.runner = IndependentRunner(P.store, P.data_dir)
+        else:
+            from .codex_host import RootCarrier
+            if type(carrier) is not RootCarrier:
+                raise ValueError("知识运行需要宿主登记的固定root载体")
+            self.runner = IndependentRunner(P.store, P.data_dir, codex_carrier=carrier)
         self.stop = threading.Event()
         self.rid = None
         self.begin = time.monotonic()

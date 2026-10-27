@@ -1513,6 +1513,11 @@
 ## 2026-10-27：固定宿主组合与root完成回执候选
 
 - 状态：doing。基线5b88fb4。新增RootCarrier固定登记入口/公开启动绑定、HostSession冻结配置/固定网关/服务器私有完整journal、root拥有且服务组只读的首次原子完成投影及原SP联合读取器；_Worker仅从可信宿主依赖接收固定RootCarrier对象，不接任务参数。复用v8/v9已有namespace cleanup四字段，不另立调度/预算/业务采用体系。真实能力门仍关；尚未安装root入口、接认证relay或验证跨UID parent-death/namespace清理，不据此启动模型。
+- 初9项8过/1错误（1.097秒）：宿主实际回环完整HTTP长度触发原网关已收完后settimeout/EBADF，首轮只有源码/完整日志，临时现场当时未设置保留，不能补称原现场存在。另按原网关字节重放定位/保存完整事件，单独3c88fa3修复并获作者外有限接受。Host组合随后本地15/15、1.715秒；完整合成场景留在分析/implementation/20261027-codex-host-assembly/final-scenes/。
+- 并行草稿审查指出同模型不同profile可错绑。原草稿快照保持；prepare现在在入口/原SP前核任务profile及原登记的完整执行字段，sha256/size/mtime_ns仅转发已有冻结元数据，不改原Claude形状。新增7组同模型但profile/bin/sha/尺寸/mtime/参数/时限不同的拒绝；全绑定进入root投影，root HostSession也独立核对。
+- 最后定向：13项新宿主算法/真实回环/原SP联合读取+4项直接兼容，共17/17、1.745秒、0 skip/失败/错误、exit0。包括凭据轮换后重新构造FrozenConfig仍拒绝旧私有登记、并发不交错、首次发布、不安全env变量、类型/错输出/链接/目录替换、明确UID0拒绝负控。fixture正控只用本机真实UID模拟root拥有目录，并不证明Linux root/cross-UID清理；生产读取器仍硬要求UID0。没有启动sudo、官方CLI、模型或服务器载体。
+- 同时用户恢复SSH授权后，fresh本机key权限/公钥指纹、strict known_hosts/SSH/sudo及service/app通过；按已接受c307f37a/fceaaa16/e9c9bc0d固定v9包仅执行一次，原21/6/7全通过、5.100394988秒、model0，临时AppArmor profile定向卸载、三SP/宿主NS/现役service保持。96文件/63原件173849字节封存442715283a6ee9171a08cd0d7f1aa96b1569145d107ab9fddb9ac40b0f736b5a，root实际独立接受决定ac2a328c507252d729e3d88a8217c4c3de881e1e7576e3773a88763db017b9a8；不重跑v9，不将offline当本候选实机/模型或部署验证。
+- 状态：done仅限本地组合候选；实际root入口安装、认证relay、完整bundle验证、跨UID父死/原监管闭包、真实工具请求/模型与正常发布仍doing，能力门关闭。固定小提交及完整来源/定向原件后交作者外窄审。未改业务DB/guard/人工决定/状态迁移；不将候选成功日志当能力开放或真人验收。
 
 ## 2026-10-27：固定长度HTTP回应的正常结束修复
 
