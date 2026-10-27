@@ -1502,3 +1502,10 @@
 - 新例实际监督进程证明完整440016字节中文stdin、原owner和cancel_event、真实运行中取消/清理、准备与末次验证消耗原单调期限、只返回原ProcessResult；失败不走普通命令或隐藏重试。最终11个合成SQLite完整性全部ok，6份实际process/SP输出和清理原件完整保留，读回时目标PID均不存在。普通Codex profile原完整stdin/空答案拒绝、原Claude知识运行与真实Codex能力拒绝4项兼容均通过。只用公开合成进程/输入，不是官方CLI、模型工具面或组织收益证明。
 - 自审：12份既有保护源码/原测试字节与0a59258相同；Runner原run_command、owner/取消/超时/监督方法及learning_runs原能力门/Worker/数据库协议AST不变，仅_spawn改经新默认直通接点，IndependentRunner增加宿主私有依赖。无任务API开关、无载体安装/宿主装配/私有回执读取器，原业务人工确认/guard/状态迁移保持。git diff --check通过；本批done仅限接口组件，整体实际接线仍doing，待作者外窄审查。
 - 待确认/阻塞：SSH公钥认证拒绝原件保持，主机开关与parser版本未知；原准备流程单独推进v9策略候选，本作者不重复、不应用策略或启动新轮。没有发布服务或重启，没有为组件空部署，也没有解除真实能力门。
+
+## 2026-10-27：载体接点作者外两项修复
+
+- 状态：doing。基线1ba4ad4已push但未获独立接受。作者外真实合成SP反例证明verify可改原ProcessResult的标量/输出/嵌套cleanup并使发布记录失真；另缺载体会走普通命令。原审查原件与1ba证据不覆盖。最小修复为独立Codex缺载体直接OSError，以及给verify原结果的defensive deepcopy；原对象只由监管链保留和返回。新增两项负控，原普通Runner/其他engine路径不改。宿主组合在此后继续。
+- 初3项：新增两项修复负控通过，原配置完整stdin例失败（3项/1失败、0.255秒、exit1），因为该旧合成夹具只stub能力门，依赖现在明确禁止的无载体回退。保留完整日志/源码；只给夹具显式合成载体，继续实际相同合成CLI/原argv，不修改任何原test方法AST、断言、4秒就绪或2秒个体时限。不是为真实执行配置默认载体，也不开放能力门。
+- 最终只跑必要8项：缺载体拒绝/其他engine直通、深副本防改写、完整stdin/原监管对象、普通Runner转发，以及原配置完整stdin/实时取消/2秒时限/真实能力拒绝4兼容；8/8、3.061秒、0 skip/失败/错误、exit0。未重跑旧15全套。原输出/bin/process/timing保留，修改副本的elapsed/output/output_bytes/cleanup不再影响真实对象或发布记录。
+- 状态：done（限这两处接口修复与夹具明确化），宿主组合仍doing。证据分析/implementation/20261027-codex-carrier-interface-fixes/；8份原监管/锁/Store/guard/人工决定源字节不变，learning_runs原能力门/Worker/协议保持。无实际模型、SSH、主机策略、部署或真人业务决定；原失败包不覆盖。

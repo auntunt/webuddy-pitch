@@ -79,7 +79,7 @@ def run_carrier(runner, rid, carrier, settings, model, workdir, parameters):
     current()
     if not process.cleanup.get("complete") or getattr(process, "error", ""):
         raise OSError("隔离载体原监管回执不完整")
-    if launch.verify(context, process, folder) is not None:
+    if launch.verify(context, copy.deepcopy(process), folder) is not None:
         raise OSError("隔离载体校验不能替换原监管结果")
     current()  # A late verification cannot convert an expired job to success.
     return process, folder

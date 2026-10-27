@@ -115,7 +115,8 @@ class CodexCarrierTests(unittest.TestCase):
         self.assertEqual(final["result"], prompt.strip())
         self.assertEqual(len(actual), 1)
         context, process, folder = self.verified[0]
-        self.assertIs(process, actual[0][0])
+        self.assertIsNot(process, actual[0][0])
+        self.assertEqual(process, actual[0][0])
         self.assertEqual(folder, actual[0][1])
         self.assertEqual(context.model, "synthetic-model")
         self.assertRegex(context.launch_nonce, r"\A[0-9a-f]{32}\Z")
@@ -145,6 +146,50 @@ class CodexCarrierTests(unittest.TestCase):
         self.assertEqual(final["status"], "failed")
         self.assertEqual(len(self.attempts(rid)), 1)
         self.assertIn("不能替换", final["result"])
+
+    def test_missing_carrier_never_executes_ordinary_command(self):
+        runner = IndependentRunner(self.store, self.data)
+        with mock.patch.object(runner, "run_command") as execute:
+            with self.assertRaisesRegex(OSError, "缺少受信载体"):
+                runner._run_model_process(19, ["must-not-run"], self.root,
+                    engine="codex", settings=self.settings, model="synthetic")
+        execute.assert_not_called()
+        self.assertFalse((self.data / "runs/19/attempts").exists())
+        sentinel = object()
+        with mock.patch.object(runner, "run_command", return_value=sentinel) as ordinary:
+            self.assertIs(runner._run_model_process(19, ["ordinary"], self.root,
+                engine="claude", settings={}, model=""), sentinel)
+        ordinary.assert_called_once_with(19, ["ordinary"], self.root)
+
+    def test_verifier_mutation_cannot_change_original_result_or_published_records(self):
+        def mutate(context, process, folder):
+            process.elapsed = -123
+            process.output = "FORGED RESULT"
+            process.output_bytes = b"FORGED BYTES"
+            process.cleanup["complete"] = False
+        runner, rid, prompt, conf = self.launch(verify=mutate)
+        actual = []
+        original = runner.run_command
+        def capture(*args, **kwargs):
+            pair = original(*args, **kwargs)
+            actual.append(pair)
+            return pair
+        with mock.patch.object(runner, "run_command", side_effect=capture):
+            final = self.invoke(runner, rid, prompt, conf)
+        self.assertEqual(final["status"], "done")
+        self.assertEqual(final["result"], prompt.strip())
+        process, folder = actual[0]
+        self.assertGreaterEqual(process.elapsed, 0)
+        self.assertNotEqual(process.output, "FORGED RESULT")
+        self.assertNotEqual(process.output_bytes, b"FORGED BYTES")
+        self.assertTrue(process.cleanup["complete"])
+        self.assertEqual((folder / "output.bin").read_bytes(), process.output_bytes)
+        record = json.loads((folder / "process.json").read_text())
+        timing = json.loads((folder / "timing.json").read_text())
+        self.assertEqual(record["elapsed_seconds"], process.elapsed)
+        self.assertEqual(timing["process_seconds"], process.elapsed)
+        self.assertTrue(record["cleanup"]["complete"])
+        self.assertEqual(len(self.attempts(rid)), 1)
 
     def test_original_real_deadline_covers_late_receipt_verification(self):
         def late(context, *args):

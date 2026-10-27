@@ -365,7 +365,9 @@ class IndependentRunner(agents.Runner):
         self._codex_carrier = codex_carrier
 
     def _run_model_process(self, rid, cmd, workdir, *, engine, settings, model, **parameters):
-        if engine == "codex" and self._codex_carrier is not None:
+        if engine == "codex":
+            if self._codex_carrier is None:
+                raise OSError("独立Codex缺少受信载体；禁止回退普通执行路径")
             from .codex_carrier import run_carrier
             return run_carrier(self, rid, self._codex_carrier, settings, model, workdir, parameters)
         return super()._run_model_process(rid, cmd, workdir, engine=engine,

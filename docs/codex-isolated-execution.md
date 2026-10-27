@@ -16,6 +16,8 @@ worker 命令使用官方 `codex exec`、完整 stdin、JSONL、ephemeral 和 ig
 
 接点保留原 owner/取消事件/单调截止点及完整 stdin，由 Runner 调用且只调用一次原 run_command，载体拿不到执行回调。每次准备另给一个随机 launch_nonce，供可信控制器及私有回执绑定本次启动；它不代替原 run/attempt、身份认证或预算。准备和末次校验均消耗原预算，失败不回退普通命令，不允许会话继承或繁忙重试。私有校验必须核对受信控制器的固定输入/身份/原期限/清理证明，不能只相信可被 worker 伪造的 stdout；校验不能替换原 ProcessResult。普通 Runner 仍转发同一原监管参数。本接点仅以实际本地合成进程验证；尚未安装真实载体、接入 _Worker 宿主装配、实现私有回执读取器或开放 Codex 独立能力门。
 
+独立 Codex 即使尚未通过能力门，缺少载体时也必须直接拒绝，不能依赖外围能力门掩盖回退路径。verify 接收原 ProcessResult 的完整深副本，包含嵌套 cleanup；原对象保留给监管链和发布记录。配置/argv 合成测试显式安装合成载体，不以普通命令回退作为测试通路，不改变原输入、时限或人工决定断言。
+
 文件读取组件要求实际载体使用 POSIX 与 Python 3.11+ TOML 读取器；不影响普通执行器原有 Python 要求。当前未验证 Windows 载体。
 
 `codex_gateway.forward` 是可信宿主的一次固定目标交换函数，没有监听端口、任务入口或重试循环。它只接受本地固定 Host 的 POST /v1/responses、公开占位认证、完整无歧义 JSON 与已冻结的请求模型；实际 HTTPS endpoint 和认证从冻结来源取出，官方非逐跳请求头与完整 body 保持。重定向及协议升级不进入 worker；原始响应头和全部实际收到的传输解码 payload 交由宿主 journal 私有保存，短回包不能结算为完整。HTTP 载荷完整仅代表传输事实，不代表模型成功或执行准入。journal 和连接关闭后再检查原截止点，避免慢封存/关闭后的迟到成功。

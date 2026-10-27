@@ -19,6 +19,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from tmh.platform import learning, learning_runs as lr
+from tmh.platform.codex_carrier import CarrierLaunch
 from tmh.platform.store import Store
 from tests.test_learning_runs import PAGE
 
@@ -62,6 +63,18 @@ class LearningRunConfigTests(unittest.TestCase):
         self.route={'schema':1,'projects':{'CFG':{'agent':'team-codex','allowed_agents':['team-codex'],'direct_api':False}}};self.save_route()
         self.revision=learning.capture(self.P,self.p,'fact:index',learning.digest(PAGE),'author')
         self.cap=mock.patch.object(lr,'_capabilities',return_value=['synthetic-isolation-handshake-only']);self.cap.start();self.addCleanup(self.cap.stop)
+        # These configuration/argv tests already stub the isolation handshake.
+        # Supply an explicit public synthetic carrier as well; production must
+        # never fall back to the ordinary command when its carrier is absent.
+        class SyntheticCarrierRunner(lr.IndependentRunner):
+            def _run_model_process(self, rid, cmd, workdir, *, engine, settings, model, **parameters):
+                if engine == 'codex':
+                    self._codex_carrier = SimpleNamespace(prepare=lambda context: CarrierLaunch(
+                        tuple(cmd), {'PATH':os.defpath,'LANG':'C.UTF-8'}, lambda *args: None))
+                return super()._run_model_process(rid, cmd, workdir, engine=engine,
+                                                 settings=settings, model=model, **parameters)
+        self.carrier=mock.patch.object(lr,'IndependentRunner',SyntheticCarrierRunner)
+        self.carrier.start();self.addCleanup(self.carrier.stop)
         # Optional evidence retention belongs only to these public synthetic tests.
         self.addCleanup(self.retain)
 
