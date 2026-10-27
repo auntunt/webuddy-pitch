@@ -149,6 +149,37 @@ class ProjectSnapshotTest(unittest.TestCase):
                 self.assertIn(name.encode(),result.stderr)
                 self.assertNotIn(value.encode(),result.stdout+result.stderr)
 
+    def test_code_expression_does_not_hide_quoted_or_template_credentials(self):
+        secret='synthetic'+'z'*24
+        cases=[
+            ('component.vue', '<script>\nconst label = `welcome`;\nchangePassword = invokePasswordChangeDialog()\n</script>\n', True),
+            ('component.ts', 'changePassword = invokePasswordChangeDialog()\n', True),
+            ('component.js', 'password = "'+secret+'"\n', False),
+            ('component.js', "password = '"+secret+"'\n", False),
+            ('component.js', 'const text = `\npassword = '+secret+'()\n`;\n', False),
+            ('settings.env', 'PASSWORD='+secret+'\n', False),
+            ('component.js', 'password = '+secret+'\n', False),
+            ('component.vue', '<script>\nchangePassword = "/api/account/changePassword"\n</script>\n', True),
+            ('component.ts', 'updatePassword = "/api/account/updatePassword"\n', True),
+            ('component.js', 'password = "/api/account/changePassword"\n', False),
+            ('component.js', 'updatePassword = "/api/account/getUserProfile"\n', False),
+            ('component.js', 'updatePassword = "/api/account/'+secret+'"\n', False),
+            ('component.js', 'updatePassword = "/api/account/updatePassword?token='+secret+'"\n', False),
+            ('component.js', 'updatePassword = "//remoteexamplelonghostname/account/changePassword"\n', False),
+            ('component.js', 'const text = `\nupdatePassword = "/api/account/updatePassword"\n`;\n', False),
+        ]
+        for index,(name,content,allowed) in enumerate(cases):
+            with self.subTest(index=index):
+                repo=self.root/('expression'+str(index));repo.mkdir()
+                def git(*args):
+                    return subprocess.run(['git','-C',str(repo),*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                git('init','-q');(repo/name).write_text(content);git('add',name)
+                git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture')
+                result=subprocess.run(['python3','-I','-c',EXPORT.replace('/source',str(repo)),'HEAD'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                self.assertEqual(result.returncode==0,allowed,result.stderr.decode(errors='replace'))
+                if not allowed:
+                    self.assertNotIn(secret.encode(),result.stdout+result.stderr)
+
     def test_lfs_original_is_verified_preserved_and_never_runs_project_filter(self):
         repo=self.root/'lfs-repo';repo.mkdir();workspace=self.root/'lfs-workspace'
         env=dict(os.environ,GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL='/dev/null',GIT_TERMINAL_PROMPT='0')

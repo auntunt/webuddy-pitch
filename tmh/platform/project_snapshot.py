@@ -44,6 +44,59 @@ def path_check(name):
             blocked(name,'凭据、密钥或不安全路径不能交给执行器')
 def pointer(data):
     return re.fullmatch(rb'version https://git-lfs.github.com/spec/v1\r?\noid sha256:([0-9a-f]{64})\r?\nsize ([0-9]+)\r?\n?',data)
+def javascript_code(name,data,offset):
+    # A conservative lexical check: uncertain template interpolation or
+    # slash syntax fails closed, never reclassifying content as executable code.
+    prefix=data[:offset]
+    if name.lower().endswith('.vue'):
+        opens=list(re.finditer(rb'(?i)<script\b[^>]*>',prefix))
+        if not opens:return False
+        opening=opens[-1].end()
+        if re.search(rb'(?i)</script\s*>',prefix[opening:]):return False
+        prefix=prefix[opening:]
+    i=0;state='code'
+    while i<len(prefix):
+        c=prefix[i:i+1];n=prefix[i:i+2]
+        if state=='code':
+            if n==b'//':state='line';i+=2;continue
+            if n==b'/*':state='block';i+=2;continue
+            if c==b'/':return False
+            if c in (b'"',b"'",b'`'):state=c
+        elif state=='line':
+            if c==b'\n':state='code'
+        elif state=='block':
+            if n==b'*/':state='code';i+=2;continue
+        else:
+            if c==b'\\':i+=2;continue
+            if state==b'`' and n==b'${':return False
+            if c==state:state='code'
+        i+=1
+    return state=='code'
+def credential_assignment(name,data):
+    pattern=rb'(?im)^\s*(?:export\s+)?(?P<key>[A-Za-z0-9_]*(?:API_KEY|ACCESS_TOKEN|SECRET_KEY|PASSWORD))\s*[=:]\s*(?P<quote>["\']?)(?P<value>[A-Za-z0-9_+/=-]{20,})'
+    js=name.lower().endswith(('.js','.ts','.vue'))
+    for match in re.finditer(pattern,data):
+        if js and not match.group('quote') and javascript_code(name,data,match.start('value')):
+            # Only an unquoted, complete identifier immediately called as a
+            # function is unambiguously code, not a literal credential.
+            if re.match(rb'[A-Za-z_$][A-Za-z0-9_$]*\(',data[match.start('value'):]):
+                continue
+        if (js and match.group('quote') and
+                re.fullmatch(rb'(?i)(?:change|update|modify|reset)[A-Za-z0-9_]*password',match.group('key')) and
+                javascript_code(name,data,match.start('quote'))):
+            # A named password-management endpoint may be an internal route.
+            # Queries, domains, escaped content and long token-like segments
+            # stay blocked; never infer that a general password is a route.
+            start=match.start('value');end=data.find(match.group('quote'),start)
+            if end>=0:
+                value=data[start:end]
+                last=value.rsplit(b'/',1)[-1]
+                if (re.fullmatch(rb'/(?:[A-Za-z][A-Za-z0-9_-]{0,23}/)+[A-Za-z][A-Za-z0-9_-]{0,23}',value)
+                        and re.search(rb'(?i)password',last)
+                        and re.search(rb'(?i)change|update|modify|reset',last)):
+                    continue
+        return True
+    return False
 def clean_workspace():
     committed={}
     for item in git('ls-tree','-rz','--full-tree','-r','HEAD').split(b'\0'):
@@ -115,7 +168,7 @@ with tarfile.open(fileobj=sys.stdout.buffer,mode='w|') as out:
         # Detect high-confidence secrets without printing their contents.
         if (re.search(rb'-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----',data)
             or re.search(rb'AKIA[0-9A-Z]{16}',data)
-            or re.search(rb'(?im)^\s*(?:export\s+)?[A-Za-z0-9_]*(?:API_KEY|ACCESS_TOKEN|SECRET_KEY|PASSWORD)\s*[=:]\s*["\']?[A-Za-z0-9_+/=-]{20,}',data)
+            or credential_assignment(name,data)
             or re.search(rb'(?i)"[A-Za-z0-9_]*(?:API_?KEY|ACCESS_?TOKEN|SECRET_?KEY|PASSWORD)"\s*:\s*"[A-Za-z0-9_+/=-]{20,}"',data)):
             blocked(name,'内容疑似包含凭据，需要人工检查')
         if name.rsplit('/',1)[-1].lower().startswith('.env'):
