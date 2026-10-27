@@ -55,6 +55,17 @@ experimental_bearer_token = "SYNTHETIC_HOST_CREDENTIAL_ONLY"
         self.assertIn('enabled = false', config)
         self.assertEqual([x["name"] for x in frozen.binding()["sources"]], ["config.toml", "team.config.toml"])
 
+    def test_explicit_source_owner_is_bound_and_cannot_be_chosen_by_unprivileged_caller(self):
+        frozen = FrozenConfig(self.home, "team", environment={}, source_owner_uid=os.geteuid())
+        self.assertEqual(frozen.binding()["source_owner_uid"], os.geteuid())
+        frozen.assert_current({})
+        for value in (True, -1, "0"):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "owner"):
+                FrozenConfig(self.home, "team", environment={}, source_owner_uid=value)
+        if os.geteuid() != 0:
+            with self.assertRaisesRegex(ValueError, "owner"):
+                FrozenConfig(self.home, "team", environment={}, source_owner_uid=os.geteuid() + 1)
+
     def test_model_override_and_exact_source_change_stale_without_fallback(self):
         frozen = self.freeze(requested_model="explicit-model")
         self.assertEqual(frozen.model, "explicit-model")

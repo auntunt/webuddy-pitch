@@ -26,13 +26,13 @@ def _encoded(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
 
 
-def _read(directory, name):
+def _read(directory, name, owner_uid):
     """Read a whole private regular file through the already opened home FD."""
     fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
     try:
         before = os.fstat(fd)
         if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
-                or before.st_uid != os.geteuid() or stat.S_IMODE(before.st_mode) & 0o077):
+                or before.st_uid != owner_uid or stat.S_IMODE(before.st_mode) & 0o077):
             raise ValueError("isolated Codex configuration must be owner-only regular files")
         with os.fdopen(fd, "rb", closefd=False) as stream:
             raw = stream.read(MAX_CONFIG_BYTES + 1)
@@ -68,7 +68,11 @@ def _name(value, pattern, label):
 class FrozenConfig:
     """Host-only parsed sources. Export binding(), never this object's internals."""
 
-    def __init__(self, home, profile, requested_model="", environment=None):
+    def __init__(self, home, profile, requested_model="", environment=None, source_owner_uid=None):
+        self._source_owner_uid = os.geteuid() if source_owner_uid is None else source_owner_uid
+        if (type(self._source_owner_uid) is not int or self._source_owner_uid < 0
+                or os.geteuid() not in (0, self._source_owner_uid)):
+            raise ValueError("trusted configuration owner required")
         self.home = Path(home)
         if not self.home.is_absolute() or ".." in self.home.parts:
             raise ValueError("trusted absolute Codex configuration home required")
@@ -81,10 +85,10 @@ class FrozenConfig:
         directory = os.open(str(self.home), os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
         try:
             info = os.fstat(directory)
-            if info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) & 0o022:
+            if info.st_uid != self._source_owner_uid or stat.S_IMODE(info.st_mode) & 0o022:
                 raise ValueError("untrusted Codex configuration directory")
-            base_raw = _read(directory, "config.toml")
-            overlay_raw = _read(directory, self.profile + ".config.toml")
+            base_raw = _read(directory, "config.toml", self._source_owner_uid)
+            overlay_raw = _read(directory, self.profile + ".config.toml", self._source_owner_uid)
             current = self.home.lstat()
             if (info.st_dev, info.st_ino) != (current.st_dev, current.st_ino):
                 raise ValueError("Codex configuration directory replaced")
@@ -127,13 +131,14 @@ class FrozenConfig:
     def binding(self):
         """Public identity, with no source text, credential, home or raw provider."""
         value = {"schema": "codex-isolated-config-v1", "profile": self.profile,
+                 "source_owner_uid": self._source_owner_uid,
                  "model": self.model, "provider": self.provider, "sources": self._sources,
                  "worker_config_sha256": hashlib.sha256(self.worker_config()).hexdigest(),
                  "isolation_changes": ["private-home", "generated-config", "no-hooks-mcp-memory", "fixed-gateway"]}
         return json.loads(_encoded(value))
 
     def assert_current(self, environment=None):
-        current = FrozenConfig(self.home, self.profile, self.requested_model, environment)
+        current = FrozenConfig(self.home, self.profile, self.requested_model, environment, self._source_owner_uid)
         if current.binding() != self.binding() or not hmac.compare_digest(current._credential, self._credential):
             raise ValueError("frozen Codex configuration changed; do not switch or retry")
 

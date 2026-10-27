@@ -1469,3 +1469,14 @@
 - 同时按独立接受执行v5唯一offline检查：53份126360字节完整原件读回；新挂载元数据可见且设备一致、新FD关闭。实际推进至固定synthetic registry路径EACCES/13，原总60秒内4.750552505秒、SP退出1/内层101、canary0/model0，清理完整。封存manifest1029ebc611358045d57b7056202b82000edae60ace508c630506067e73364c45；不重跑此ID、不改宿主策略、不据元数据通过开放模型。旧失败保持。
 - 最终自审增加8MiB完整源拒绝与真实路径替换反例，未放宽原条件；9新+5原兼容共14/14、0.177秒、0 skip/失败/错误、退出0，完整final-source/final-targeted.log保留。公开binding不含原文、真实endpoint或凭据；宿主凭据变化在对象生命周期内拒绝，跨重启私有登记仍属实际载体责任，不以本对象冒充持久认证。
 - 状态：done（仅必要配置组件），实际Runner/隔离载体/固定网关桥仍doing，真实Codex能力拒绝保持。产品只新增一个模块与测试/说明及本进度，不改既有生产函数/表/监督链/人工决定；无模型/真实凭据读取/全量或部署。固定小提交后供作者外增量复核，不将离线目录检查通过当模型派发通过。
+
+## 2026-10-27：可信宿主固定 Responses 交换核心
+
+- 状态：doing。基线8d2120c配置组件已获作者外有限接受并正常push，GitHub精确HEAD与干净工作区另存分析/implementation/20261027-github-8d2120c-sync/。本项只新增codex_gateway固定上游交换及测试，扩展FrozenConfig给可信root控制器显式登记配置owner，更新说明；不建监听服务、调度/预算体系，不改Runner/真实能力拒绝或人工决定。
+- 固定POST /v1/responses、本地Host/公开占位认证、冻结模型、无歧义完整JSON；真实认证只在宿主注入，官方非逐跳身份头和body保持。严格复用provider_transport framing，不跟随redirect/升级，不隐式retry；源变化、原截止点/取消、短回包均拒绝完整成功，收到的payload保留，私密journal留服务器。实际认证通道/namespace relay/IndependentRunner载体仍待接，不能直接以公开占位key充当身份。
+- 初16/16、0.069秒；补真实回环HTTP chunked/短Content-Length后18/18、0.115秒，均退出0。回环使用合成提供方与凭据，并在测试中替换HTTPS连接，不声称真实TLS或模型通过。源码/全stdout/stderr在分析/implementation/20261027-codex-fixed-gateway/。
+- 自审新增“journal或close耗尽原期限”反例，针对本轮未提交初稿两子场景均准确失败（close-deadline-red，1项/2失败、0.020秒、exit1）；原源码/日志保留，非基线缺陷。修复为先保存HTTP载荷完整原始事实并关闭连接，再做最终取消/期限检查；19/19、0.123秒exit0。随后补固定模型/JSON拒绝与说明，最终字节验证另记，不把19项当最新版本证明。
+- v6唯一offline检查原总60秒内3.418408432秒，bubblewrap返回namespace创建权限通用错误；53份126407字节完整原件已封存（manifest01e89ab7f33e5afe8f612c0b919a0ebc6402078b5efffd2aa873fb374898df7f），canary0/model0/清理完整/服务保持，不重跑此ID、不依提示改sysctl。作者外正在准备正确私有pivot_root后继，本作者不重复编写该候选。
+- 自审进一步发现HTTPResponse在连接关闭后仍可能持有socket文件引用。新未提交初稿的成功/不完整两子场景均准确失败（response-close-red，1项/2失败、0.023秒、exit1）；原源码/日志保留。成功路径和异常finally均显式关闭response及connection，正向最终期限检查在两者关闭后，未改旧测试或门槛。
+- 最终final-v3：11项固定交换+10项配置，共21/21、0.148秒、0 skip/失败/错误、exit0。包含两条真实回环HTTP、短响应原字节保留，以及仅用于新收尾单测的受控时钟；没有把受控时钟当实际网络超时/隔离证明。固定模型替换/重复JSON/非JSON数和真实源owner均在连接前检查。最终5份来源逐字节SHA读回，9份人工决定/guard/锁/监督/Runner/知识门/Store源码与8d2120c逐字一致。
+- 状态：done（限交换核心与本地定向），实际可信通道/namespace TCP relay/Runner接线/模型证明仍doing。私密journal必须只在服务器保留；安装闭包需包含既有scripts/rsi/provider_transport.py，尚未验证安装或修改打包。固定小提交后作者外增量复核；无全量/真实TLS/真实提供商/官方CLI/模型/新服务/生产部署。
