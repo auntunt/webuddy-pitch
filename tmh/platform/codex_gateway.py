@@ -143,6 +143,11 @@ def forward(frozen, environment, method, target, headers, body, *, deadline,
                 on_body(chunk)
 
         while True:
+            # HTTPResponse.read1 closes its file as soon as Content-Length is
+            # exhausted. A connection-close response can then close the saved
+            # socket too; do not set its timeout again after complete payload.
+            if not response.chunked and response.length == 0:
+                break
             remaining = _left(deadline, cancel)
             if transport is not None:
                 transport.settimeout(remaining)

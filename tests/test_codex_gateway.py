@@ -93,7 +93,7 @@ class CodexGatewayTest(unittest.TestCase):
         return G.forward(self.frozen, {}, "POST", G.TARGET, self.headers, self.body, **args)
 
     @contextlib.contextmanager
-    def live_provider(self, short=False):
+    def live_provider(self, short=False, fixed_body=None):
         class Handler(BaseHTTPRequestHandler):
             protocol_version = "HTTP/1.1"
 
@@ -103,13 +103,16 @@ class CodexGatewayTest(unittest.TestCase):
             def do_POST(self):
                 self.server.received.append((self.path, list(self.headers.items()), self.rfile.read(int(self.headers["Content-Length"]))))
                 self.send_response(200)
-                if short:
+                if fixed_body is not None:
+                    self.send_header("Content-Length", str(len(fixed_body)))
+                elif short:
                     self.send_header("Content-Length", "6")
                 else:
                     self.send_header("Transfer-Encoding", "chunked")
                 self.send_header("Connection", "close")
                 self.end_headers()
-                self.wfile.write(b"abc" if short else b"3\r\nabc\r\n3\r\ndef\r\n0\r\n\r\n")
+                self.wfile.write(fixed_body if fixed_body is not None else
+                                 b"abc" if short else b"3\r\nabc\r\n3\r\ndef\r\n0\r\n\r\n")
                 self.wfile.flush()
                 self.close_connection = True
 
@@ -152,6 +155,19 @@ class CodexGatewayTest(unittest.TestCase):
         self.assertEqual(self.events[-1][0], "failed")
         self.assertEqual(self.events[-1][1]["received_bytes"], 3)
         self.assertFalse(self.events[-1][1]["complete"])
+
+    def test_real_loopback_complete_content_length_closes_without_false_failure(self):
+        for body in (b"abcdef", b""):
+            with self.subTest(body=body):
+                self.events.clear()
+                self.out_body.clear()
+                with self.live_provider(fixed_body=body) as server:
+                    result = self.forward()
+                    self.assertEqual(len(server.received), 1)
+                self.assertEqual(b"".join(self.out_body), body)
+                self.assertEqual(result["bytes"], len(body))
+                self.assertTrue(result["complete"])
+                self.assertEqual(self.events[-1][0], "response_complete")
 
     def test_fixed_https_target_preserves_official_identity_and_full_body(self):
         result = self.forward()

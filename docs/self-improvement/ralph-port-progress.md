@@ -1509,3 +1509,14 @@
 - 初3项：新增两项修复负控通过，原配置完整stdin例失败（3项/1失败、0.255秒、exit1），因为该旧合成夹具只stub能力门，依赖现在明确禁止的无载体回退。保留完整日志/源码；只给夹具显式合成载体，继续实际相同合成CLI/原argv，不修改任何原test方法AST、断言、4秒就绪或2秒个体时限。不是为真实执行配置默认载体，也不开放能力门。
 - 最终只跑必要8项：缺载体拒绝/其他engine直通、深副本防改写、完整stdin/原监管对象、普通Runner转发，以及原配置完整stdin/实时取消/2秒时限/真实能力拒绝4兼容；8/8、3.061秒、0 skip/失败/错误、exit0。未重跑旧15全套。原输出/bin/process/timing保留，修改副本的elapsed/output/output_bytes/cleanup不再影响真实对象或发布记录。
 - 状态：done（限这两处接口修复与夹具明确化），宿主组合仍doing。证据分析/implementation/20261027-codex-carrier-interface-fixes/；8份原监管/锁/Store/guard/人工决定源字节不变，learning_runs原能力门/Worker/协议保持。无实际模型、SSH、主机策略、部署或真人业务决定；原失败包不覆盖。
+
+## 2026-10-27：固定宿主组合与root完成回执候选
+
+- 状态：doing。基线5b88fb4。新增RootCarrier固定登记入口/公开启动绑定、HostSession冻结配置/固定网关/服务器私有完整journal、root拥有且服务组只读的首次原子完成投影及原SP联合读取器；_Worker仅从可信宿主依赖接收固定RootCarrier对象，不接任务参数。复用v8/v9已有namespace cleanup四字段，不另立调度/预算/业务采用体系。真实能力门仍关；尚未安装root入口、接认证relay或验证跨UID parent-death/namespace清理，不据此启动模型。
+
+## 2026-10-27：固定长度HTTP回应的正常结束修复
+
+- 状态：doing→done（限网关此边界）。宿主候选初9项中8过/1错误，1.097秒；实际回环HTTP/1.0完整固定长度回应收到后网关body阶段失败，初稿源码/日志保留，不将其当宿主验证通过。追加独立HTTP/1.1+Connection:close的6字节及空回应反例；首条命令写错Test类名，未执行目标，原错命令/输出保持；正确命令准确复现非空回应错误，空回应通过。
+- 原网关源码逐字通过独立加载重放，trace定位原148行transport.settimeout抛OSError/EBADF9；完整6字节已进入on_body和私有response_body事件。实际安装Python的HTTPResponse.read1源码在length归零时关闭文件，socket最后引用随后关闭，下一轮重复settimeout误失败；源码/完整事件/原数据base64与摘要保存在分析/implementation/20261027-codex-gateway-length-close/，没有改写原红灯。
+- 最小修复：仅在非chunked且response.length==0时结束读取循环。后续原framing/字节数/截止/关闭/最终期限检查不变；无测试断言或超时放宽。窄5项（新增固定长度/空回应+原chunked/短回包/迟到关闭/handle关闭）5/5、0.117秒、0 skip/失败/错误、exit0；未重跑旧21。原全部test方法AST保持，只扩展回环helper并新增1方法。
+- 当前仅提交本网关修复/测试/说明及进度；尚未通过的宿主组合仍是工作区独立doing候选，不混入此提交。没有官方CLI、真实TLS/提供方/模型、SSH、主机策略或服务部署，能力门保持。
