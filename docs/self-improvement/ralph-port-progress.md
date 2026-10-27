@@ -1487,3 +1487,10 @@
 - 新2项离线包/内置工具隔离导入及缺helper时安装原子拒绝，加原Distribution2和必要真实HTTP chunked/短回包2，共6/6、1.153秒、0 skip/失败/错误、exit0。-I -S及无检出树工作目录下，完整helper字节/SHA与行为一致；install保留原用户说明。没有重跑旧21整套。
 - 系统Python3.14缺setuptools，未联网安装；使用已有bundled Python3.12.14/setuptools/wheel构建。实际sdist→解包→wheel→pip --no-index --no-deps --no-compile --target临时目录全退出0；wheel、安装后及其内置工具在-I -S下实际import和install均通过，原helper全字节/SHA一致，wheel中gateway字节与当前源码一致。完整归档、输入清单、构建/安装/隔离命令和stdout/stderr保存在分析/implementation/20261027-codex-runtime-distribution/。
 - 原provider_transport字节与79c0a66一致；运行文件与实际构建输入逐字节读回。未调用模型/真实提供方/读取真实凭据，未启动服务或安装到全局环境。仅临时包验证，不宣称旧源发布清单已补齐或服务器已部署；未来源码部署必须带上resources.FILES新增的helper。真实可信载体/Runner接线仍doing。
+
+## 2026-10-27：隔离配置显式关闭远程工具
+
+- 状态：doing→done（限生成配置）。基线3fe50d5，开始仅本项两份源码/测试未提交增量；分发修复已获作者外有限接受，不重跑旧21项。固定官方0.162.1源码证明web_search默认cached，本地network=false不等于提供商工具关闭。生成配置明确disabled、空MCP/插件表，关闭11项相关功能，并增加官方支持的--strict-config；普通Runner/真实能力拒绝保持。
+- 仅运行新增test_generated_config_explicitly_disables_remote_tool_plane：1/1、0 skip/失败/错误，unittest0.007秒，外层0.145415秒、exit0。解析实际生成TOML，核对全部明确关闭值、原源配置不被改写和strict参数；未调用官方CLI/模型，不推断实际请求tools或供应商行为。原本地日志、精确来源和固定版本Git blob/SHA核对在仓库外分析/implementation/20261027-codex-remote-tools-disabled/；上游源码不复制进产品仓库。
+- 同次v8离线失败的补充诊断已经读回两条同窗精确宿主PID3587011/3587012的net_admin拒绝原行、当前unprivileged_userns(enforce)、699字节公开策略及897字节直接tunables/global；local/unprivileged_userns不存在。宿主PID到本次进程树映射仍未证明，磁盘源码不宣称等于已加载二进制策略。补查unprivileged_unconfined开关及parser版本时SSH认证拒绝/255，远程未执行，原失败保留；不改策略、不重跑v8、不扩大日志范围。
+- 状态边界：实际载体/Runner接线仍doing；无模型、部署、真人决定或业务DB变更。待确认：无须重复询问用户发布授权；当前SSH认证不可用的原始失败与待核两个主机值已记录，继续本地必要编码。未开放真实能力门，未将配置单测当网络/隔离/组织收益证明。

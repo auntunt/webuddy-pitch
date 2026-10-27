@@ -163,10 +163,19 @@ class FrozenConfig:
     def worker_config(self):
         """A complete generated policy; no original config/auth file is copied."""
         lines = ["model = " + json.dumps(self.model), 'model_provider = "webuddy_isolated"',
-                 'approval_policy = "never"', 'default_permissions = "webuddy_frozen_v1"']
+                 'approval_policy = "never"', 'default_permissions = "webuddy_frozen_v1"',
+                 'web_search = "disabled"']
         if self._reasoning is not None:
             lines.append("model_reasoning_effort = " + json.dumps(self._reasoning))
-        lines.extend(['[model_providers.webuddy_isolated]', 'name = "Webuddy isolated route"',
+        # Exact 0.162.1 fields: the provider-hosted web tool defaults to cached,
+        # independently of the local network sandbox. The isolated profile
+        # explicitly disables unused remote/extension discovery as well.
+        lines.extend(['[mcp_servers]', '[plugins]', '[features]',
+                      'apps = false', 'enable_mcp_apps = false', 'plugins = false',
+                      'remote_plugin = false', 'image_generation = false',
+                      'browser_use = false', 'browser_use_external = false', 'computer_use = false',
+                      'skill_mcp_dependency_install = false', 'tool_suggest = false', 'recommended_plugins = false',
+                      '[model_providers.webuddy_isolated]', 'name = "Webuddy isolated route"',
                       'base_url = "' + LOCAL_BASE + '"', 'wire_api = "responses"',
                       'env_key = "WEBUDDY_ISOLATED_PUBLIC_KEY"', '[shell_environment_policy]',
                       'inherit = "none"', '[permissions.webuddy_frozen_v1.filesystem]',
@@ -186,5 +195,5 @@ def worker_environment():
 def worker_command():
     # The generated named permissions profile is authoritative. Ordinary
     # agents.command() inserts --sandbox read-only and must not build this argv.
-    return ["/usr/bin/node", "/opt/official/bin/codex.js", "exec", "--ignore-rules",
+    return ["/usr/bin/node", "/opt/official/bin/codex.js", "exec", "--strict-config", "--ignore-rules",
             "--skip-git-repo-check", "--ephemeral", "--json", "--color", "never", "-C", "/work", "-"]

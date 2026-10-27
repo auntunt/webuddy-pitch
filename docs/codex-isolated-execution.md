@@ -8,6 +8,8 @@
 
 worker 命令使用官方 `codex exec`、完整 stdin、JSONL、ephemeral 和 ignore-rules。不走普通 `agents.command()` 中硬编码的 `--sandbox read-only`，避免覆盖生成配置的命名权限。worker 环境为固定白名单，认证变量是公开占位值；真实凭据必须由宿主的固定目标 broker 注入。仅有该配置并不能建立隔离或证明其命名权限实际生效。
 
+生成配置按官方 0.162.1 字段明确设置 `web_search="disabled"`，清空 MCP/插件表，关闭应用、插件、远程插件、图像生成、浏览器、计算机操作及相关工具发现/依赖安装功能；命令启用 `--strict-config`。本地网络禁止并不能关闭提供商侧工具；该版本默认网页搜索为 cached，所以不能依赖默认值。字段依据固定版本的 [配置类型](https://github.com/openai/codex/blob/rust-v0.162.1/codex-rs/config/src/config_toml.rs)、[功能注册表](https://github.com/openai/codex/blob/rust-v0.162.1/codex-rs/features/src/lib.rs)及[托管工具生成逻辑](https://github.com/openai/codex/blob/rust-v0.162.1/codex-rs/core/src/tools/hosted_spec.rs)核对。新增定向只证明生成配置和命令，不证明实际请求工具列表；后续真实接线仍须保存实际请求面并复核，能力门继续关闭。
+
 后续接线仍须复用 `IndependentRunner` 和原单监督链、取消/owner/原绝对期限；验证整个官方父进程的受限视图、工具派发、固定网关转发与完整原件。手动 sandbox、合成回显或本组件测试均不构成模型准入。此组件不授予业务人工确认、知识采用或关单。
 
 文件读取组件要求实际载体使用 POSIX 与 Python 3.11+ TOML 读取器；不影响普通执行器原有 Python 要求。当前未验证 Windows 载体。

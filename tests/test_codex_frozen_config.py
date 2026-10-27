@@ -66,6 +66,21 @@ experimental_bearer_token = "SYNTHETIC_HOST_CREDENTIAL_ONLY"
             with self.assertRaisesRegex(ValueError, "owner"):
                 FrozenConfig(self.home, "team", environment={}, source_owner_uid=os.geteuid() + 1)
 
+    def test_generated_config_explicitly_disables_remote_tool_plane(self):
+        import tomllib
+        frozen = self.freeze()
+        generated = tomllib.loads(frozen.worker_config().decode())
+        self.assertEqual(generated["web_search"], "disabled")
+        self.assertEqual(generated["mcp_servers"], {})
+        self.assertEqual(generated["plugins"], {})
+        for name in ("apps", "enable_mcp_apps", "plugins", "remote_plugin", "image_generation",
+                     "browser_use", "browser_use_external", "computer_use", "skill_mcp_dependency_install",
+                     "tool_suggest", "recommended_plugins"):
+            self.assertIs(generated["features"][name], False, name)
+        self.assertEqual(generated["permissions"]["webuddy_frozen_v1"]["network"], {"enabled": False})
+        self.assertNotIn("[features]", self.base.read_text())
+        self.assertIn("--strict-config", worker_command())
+
     def test_model_override_and_exact_source_change_stale_without_fallback(self):
         frozen = self.freeze(requested_model="explicit-model")
         self.assertEqual(frozen.model, "explicit-model")
