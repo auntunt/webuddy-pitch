@@ -177,7 +177,14 @@ def _expire_input(P, p, jid):
     return False
 
 
-def _capabilities(executable, stat):
+def _capabilities(executable, stat, engine="claude"):
+    if engine == "codex":
+        # A manual `codex sandbox` canary is not the model process or its tool
+        # dispatcher. Keep the existing frozen-input refusal until that actual
+        # execution path is bound to the same restricted inputs and receipts.
+        raise ValueError("Codex read-only 仍可读取外部上下文；模型执行尚未接入严格冻结输入隔离，手动 sandbox 检查不能替代")
+    if engine != "claude":
+        raise ValueError("独立评审执行器没有严格冻结输入能力")
     key = (executable, stat.st_size, stat.st_mtime_ns)
     with _CAPABILITY_LOCK:
         if key in _CAPABILITIES:
@@ -198,28 +205,51 @@ def _capabilities(executable, stat):
     return result
 
 
-def _configuration(P, options):
-    agent = options.get("agent", "claude")
-    if agent != "claude":
-        raise ValueError("严格冻结输入暂仅支持具备无工具隔离能力的 Claude CLI；Codex read-only 仍可读取外部上下文，暂不支持")
+def _configuration(P, options, p=None):
+    from . import agent_routes
+    requested = options.get("agent")
+    if requested is not None and (not isinstance(requested, str) or not agent_routes.AGENT.fullmatch(requested)):
+        raise ValueError("独立评审执行器名称无效")
+    agent = agent_routes.resolve(P.data_dir, p, requested, fallback="claude")
+    selected_route = agent_routes.route(P.data_dir, p)
     config = agents.load_config(P.data_dir).get(agent)
     if not isinstance(config, dict) or "cmd" in config or config.get("args"):
         raise ValueError("独立评审不接受自定义命令或额外权限参数")
-    executable = shutil.which(config.get("bin", agent))
+    engine = agents.engine_name(agent, config)
+    if engine not in ("claude", "codex"):
+        raise ValueError("独立评审仅适配 Claude 或 Codex 原生执行器")
+    executable = shutil.which(config.get("bin", engine))
     if executable is None:
         raise ValueError("独立评审执行器不可用：" + agent)
     model = agents.pick_model(config, "ask", options.get("model"))
     # Freeze only settings actually used by this runner. Arbitrary config keys
     # (including accidental credentials) do not belong in API-visible receipts.
     stat = Path(executable).stat()
-    capabilities = _capabilities(executable, stat)
-    effective = {"bin": executable, "args": list(_ISOLATED_ARGS), "size": stat.st_size, "mtime_ns": stat.st_mtime_ns,
-                 "capabilities": capabilities}
-    return {"agent": agent, "model": model, "configuration": effective,
-            "executable": executable, "prompt_version": PROMPT_VERSION}
+    effective = {"bin": executable, "args": list(_ISOLATED_ARGS) if engine == "claude" else [],
+                 "size": stat.st_size, "mtime_ns": stat.st_mtime_ns}
+    if engine == "codex":
+        if config.get("prompt_transport") != "stdin":
+            raise ValueError("Codex read-only 仍可读取外部上下文；独立评审必须完整使用 stdin 输入及严格隔离")
+        if config.get("resume") not in (None, False) or config.get("retry_busy") not in (None, False):
+            raise ValueError("独立评审不能恢复外部会话或隐式重试")
+        timeout = config.get("run_timeout", config.get("timeout", 1800))
+        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or timeout <= 0:
+            raise ValueError("独立 Codex 执行器时限必须为有限正数")
+        effective.update(engine="codex", prompt_transport="stdin", resume=False, retry_busy=False,
+                         timeout=timeout, sha256=hashlib.sha256(Path(executable).read_bytes()).hexdigest())
+        if "profile" in config:
+            effective["profile"] = config["profile"]
+    effective["capabilities"] = _capabilities(executable, stat, engine=engine)
+    result = {"agent": agent, "model": model, "configuration": effective,
+              "executable": executable, "prompt_version": PROMPT_VERSION}
+    # Old Claude jobs without a configured route retain their existing shape.
+    # Once present, removing or changing the effective route is also a change.
+    if selected_route or "project_route" in options:
+        result["project_route"] = selected_route
+    return result
 
 
-def _options(P, options):
+def _options(P, options, p=None):
     if not isinstance(options, dict):
         raise ValueError("运行选项必须为对象")
     result = json.loads(_json(options))
@@ -232,7 +262,7 @@ def _options(P, options):
     if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or not 0 < timeout <= 86400:
         raise ValueError("总时限必须大于零且不超过 86400 秒")
     result["timeout_seconds"] = timeout
-    result.update(_configuration(P, result))
+    result.update(_configuration(P, result, p))
     return result
 
 
@@ -271,7 +301,7 @@ def start(P, p, kind, revision_id, options, actor, request_id, launch=True):
         raise ValueError("逐条事实评审只接受项目事实")
     if kind == "review" and isinstance(options, dict) and set(options) - {"agent", "model", "max_revisions", "max_calls", "timeout_seconds"}:
         raise ValueError("事实评审包含未知的运行选项")
-    opts = _options(P, options)
+    opts = _options(P, options, p)
     if kind == "evaluate":
         from . import learning_eval
         opts = learning_eval.validate_options(P, p, r, opts)
@@ -344,7 +374,10 @@ def _check_current(P, p, job):
             raise _Stopped("stale", str(learning_eval.input_schema_error()))
         if not learning_eval.current(P, p, job):
             raise _Stopped("stale", "评测基线或策略上下文来源已变化")
-    check = _configuration(P, job["options"])
+    try:
+        check = _configuration(P, job["options"], p)
+    except (OSError, ValueError) as exc:
+        raise _Stopped("stale", "智能体配置或项目路由已不可验证；冻结运行不能换配置继续：" + str(exc)) from exc
     if any(check[k] != job["options"].get(k) for k in check):
         raise _Stopped("stale", "智能体配置已变化；冻结运行不能换配置继续")
     return r
@@ -405,6 +438,18 @@ def _raw_output(P, rid):
     """
     spool = Path(P.data_dir) / "runs" / str(rid) / "attempts" / "0001" / "output.bin"
     return spool.read_bytes().decode("utf-8", "replace") if spool.is_file() else ""
+
+
+def _execution_config(job):
+    """Forward only the actual frozen runner settings, with the original deadline."""
+    opts = job["options"]
+    frozen = opts["configuration"]
+    settings = {key: frozen[key] for key in ("bin", "args", "engine", "profile", "prompt_transport", "resume", "retry_busy", "timeout")
+                if key in frozen}
+    settings["args"] = list(settings.get("args", []))
+    remaining = job["deadline"] - time.time()
+    settings["run_timeout"] = max(.001, min(remaining, settings.get("timeout", remaining)))
+    return {opts["agent"]: settings}
 
 
 class _Worker:
@@ -513,7 +558,7 @@ class _Worker:
                 raise _Stopped("needs_resume", "既有调用尚未核对完成，未重复调用：" + str(exc)) from exc
             return self._record(role, self.P.store.run(run["id"]))
         opts = job["options"]
-        mode = "understand" if opts["agent"] == "claude" else "ask"
+        mode = "understand" if opts["configuration"].get("engine", opts["agent"]) == "claude" else "ask"
         run = self.P.store.create_run(self.p["id"], None, opts["agent"], mode, job["actor"], prompt,
                                       target=role, batch=batch, model=opts["model"], expected_root=self.p["root"],
                                       reference_inputs=job["binding"].get("references"))
@@ -524,8 +569,7 @@ class _Worker:
                 _owned(db, self.jid, self.token, allow_terminal=True)
                 db.execute("UPDATE learning_steps SET run_id=?,status='running' WHERE job_id=? AND role=?", (self.rid, self.jid, role))
             self.job()
-            conf = {opts["agent"]: {"bin": opts["executable"], "args": list(_ISOLATED_ARGS),
-                                    "run_timeout": max(.001, job["deadline"] - time.time())}}
+            conf = _execution_config(job)
             with tempfile.TemporaryDirectory(prefix="tmh-learning-") as workdir:
                 self.P.store.update_run(self.rid, status="running", started=now(), workdir=workdir)
                 # Even the tool path is inside the empty disposable directory.

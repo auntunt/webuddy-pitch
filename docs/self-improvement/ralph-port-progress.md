@@ -1444,3 +1444,14 @@
 - 敏感性：只在各自独立诊断进程编译载入四份明确不安全变体，不修改工作区产品文件。Stopped时错误提交混合业务→准确出现新run/输入/占槽泄漏；放开owner重领→实际新target出现但封存owner矛盾；同控制器重放错误关闭watch→命中watch断言并由夹具清理；不完整setup隐藏待核对→命中状态断言。四项分别退出1（3条断言失败、1条owner矛盾错误），不是正常测试失败，也不是4条修复前基线缺陷。red-v2-* 的有效源码/完整日志/数据库/进程原件全保留；早轮red-*不覆盖。
 - 现场读回 `verify_scenes.py`：全部历史与最终/负向归档共106次监督合成目标调用，原始输出长度/SHA/监督身份一致，清理complete，登记目标/监督器及就绪三代PID均已不存在；416份临时DB integrity_check均ok，rsi_prepare_%集合未新增。归档保留原folder身份，未篡改为复制路径的可恢复回执；不把106合成目标计为Codex/模型/HTTP调用。33保护源码逐字与原清单一致，原三张台账DDL相同，原测试文件未改。
 - 状态：done（仅实施与本地窄验证），固定本地小提交并封存后待作者外代码/运行审查；尚未有作者外通过结论。新增内部adapter、受控新Ledger、新测试、使用文档及本进度；没有路由/启动自动集成或采用。待确认/剩余证明：真实官方客户端认证与运行闭包、A候选待定schema、私有未见BC、本人采用/新D、Windows与直接fork宿主复用均未接入或证明；当前不向用户索要预算/API或开展上述工作。工作区收尾以提交后核验为准，不push/部署。
+
+## 2026-10-27：独立知识运行的项目执行器配置适配
+
+- 状态：doing。基线0f5bd8a，开始工作区干净；继续当前iteration/context-pack-v2。作者外已接受reset-v3公开Python载体17/6与原清理，只代表公开切片；官方命名权限canary仍在仓库外准备，真实模型父进程隔离尚未接线。
+- 现在直接实现learning_runs.py的项目route解析、有效Codex配置冻结、同一配置向step传递及少量真实合成进程回归。不改native_learning/原协议/guard/人工决定/状态迁移，不调用模型、SSH、push或部署。Codex严格冻结输入的现有拒绝保留在能力核验边界，不能把手动sandbox canary通过当模型运行准入。
+- 改动范围：tmh/platform/learning_runs.py、新增tests/test_learning_run_config.py及本进度。证据在仓库外分析/implementation/20261027-learning-runs-codex-config/；固定候选后交作者外复验，后续真正执行桥与发布单独接续。
+- 已实现：_configuration按项目route选择并冻结有效执行器字段；保存Codex engine/profile/stdin/resume=false/retry_busy=false/个体timeout与公开可执行文件SHA，未知字段不进入API回执。step改用同一冻结配置，按engine决定模式，个体时限取原job剩余与冻结上限较小者。route/配置撤销不可验证转stale，不回退其他执行器；旧无route Claude冻结形状保持。
+- 真实Codex模型的冻结输入拒绝保留在_capabilities（无用户开关）；手动官方sandbox或read-only不能替代模型父进程/工具dispatcher隔离。新增过程测试仅stub能力握手，调用真实本地合成CLI检验配置传递，不声称已开启真实Codex知识运行。profile名与agents.json有效字段已冻结，实际私有profile/认证/父进程上下文仍未证明，后续执行桥不能凭本提交直接准入。
+- 初轮10项：9过/1错误，2.951秒退出1；新增超时测试误取不存在的stop_reason字段。实际2秒超时/124和完整清理已发生；初稿源码、完整日志和7新例数据库/原件保留。只改测试读取真实stopped_reason/attempt.reason并增加124/原2秒上限断言，不放宽时限或既有断言。
+- 最终同一窄命令：7新增（实际合成stdin/取消/个体超时、profile与route撤销、公开字段和真实拒绝能力门）+3原Claude/拒绝/help能力兼容，共10/10、3.057秒、退出0。14个新例完整SQLite现场integrity_check均ok；6次新例实际合成目标原回执/完整输出/清理读回，目标PID已不存在。3个原兼容例仅保留日志，未补造其已清理临时现场；不重跑旧大套件/全量。
+- 自审：原SCHEMA/TERMINAL/锁/租约/监督读回/_work/cancel/resume等AST保持，原test_learning_runs.py字节未改；git diff --check通过。未改native_learning、guard/acceptance、旧协议、原表DDL或真人决定。当前done仅指本地配置传递增量，真实执行桥仍doing；固定本地候选后交作者外复验，不push/部署。
