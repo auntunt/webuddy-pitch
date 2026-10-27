@@ -1536,3 +1536,9 @@
 - 最终集成：采用独立准备加载器精确源码b0ea361c…及7项原测试，21文件清单逐份SHA/长度核对；新增Platform在learning恢复前接入，错误只保留固定rejected状态，普通启动继续。精确新增10项（加载7+启动3）全过，0.215秒，0失败/错误/skip；未重跑旧组件或全量。原8份监管/guard/人工决定/Store/锁源码与ee7f536逐字节一致，git diff --check通过。这里done仅限本地产品组件；实际root包修复/安装/跨UID/模型与发布继续doing。测试不产生SP现场；临时启动SQLite已关闭并移除，不虚称数据库原件保留。
 - 证据解释更正：上述“实际root中继分块响应问题/原runtime必须修复”的判断撤回。复现夹具直接注入Transfer-Encoding:chunked而越过真实gateway回调契约；codex_gateway.py实际125–132行已过滤全部HOP_HEADERS（含transfer-encoding）及content-length，新增Connection:close，host_runtime按此传递给relay。因此IncompleteRead只证明该非法夹具输出格式不匹配，不证明真实链路缺陷。原源码/红灯/判断保持，另存correction.json，不改relay、不以此阻断安装。协调者另做真实gateway callback→relay→HTTPResponse窄检查，本作者不重复。
 - 产品0a8977ad11a818a48528d2479ff5cd0f2ed72a47已普通push到github当前分支，ls-remote完整相同；新增运行源码与该提交相同。本段仅更正证据解释，没有新增源码或测试变化，不重复10项或为文档重启服务器。实际缓存修复/安装和实机链仍doing。
+
+## 2026-10-27：现役供应商源兼容与权限收紧
+
+- 状态：doing。唯一服务器执行权已交本作者。首次安装existing-service-source-freeze/ValueError原件与root暂存保留；固定只读诊断96bb1307逐份校验后执行，定位公开codex.js mode0775导致execution_projection拒绝。新鲜owner1000/group1001/nlink1/8790B与原公共SHA核对后仅去掉group写位为0755，完整字节、inode、owner/group和mtime保持。随后FrozenConfig报不可信目录，按实际/home/ubuntu/.codex同owner/group0775核对，仅去group写位0755；两原配置文件的完整字节及元数据在服务器内比较保持，目录成员不变，未导出私有源hash、凭据或指纹，也未改文件/模型/profile/路由。三个原诊断失败输出保留，没有盲目安装重试或模型调用。
+- 下一失败明确为unsupported isolated Codex provider configuration。仅取非秘密字段名/布尔开关及header名称，真实额外四字段为http_headers/requires_openai_auth/supports_websockets/supports_standalone_web_search，额外认证头x-openai-actor-authorization的值始终服务器内。核官方固定0.162.1 ModelProviderInfo原源码（blob f020d34c…，完整原件在仓库外）后，仅兼容这四字段：外部OpenAI认证必须严格false；能力开关必须布尔，但worker生成值均显式false；唯一actor头值只由宿主向原固定HTTPS地址注入，工作进程同名头在开上游连接前拒绝，不复制到worker/argv/公开binding/请求日志。不泛化额外header或放宽源模式检查。
+- 新增3方法先在原实现红灯（3项，2个unsupported配置错误，0.009秒；完整红日志保留），最小修复后只跑这3方法，3/3，0.047秒，0失败/错误/skip。包含真实回环HTTP认证注入、完整请求保持、worker伪造头拒绝、私有头不泄漏、轮换失效及8组类型/认证/CRLF/重复歧义负控。此回环替换TLS仅限夹具，不是提供方/模型证明。既有测试全部方法AST/断言保持，9份核心保护/监管源与e3b9977逐字节相同，不重跑旧矩阵。root bundle必须重新绑定这两份依赖字节；当前未重试安装/发布或开放能力门。

@@ -40,6 +40,40 @@ experimental_bearer_token = "SYNTHETIC_HOST_CREDENTIAL_ONLY"
     def freeze(self, **kw):
         return FrozenConfig(self.home, "team", environment={}, **kw)
 
+    def test_provider_capabilities_are_disabled_and_actor_auth_stays_host_only(self):
+        import tomllib
+        actor = "Bearer PUBLIC_SYNTHETIC_ACTOR_CREDENTIAL"
+        self.write(self.base, self.base.read_text() + '\nrequires_openai_auth=false\nsupports_websockets=true\n'
+            'supports_standalone_web_search=true\n[model_providers.gateway.http_headers]\n'
+            'x-openai-actor-authorization=' + json.dumps(actor) + '\n')
+        frozen = self.freeze()
+        self.assertEqual(frozen.upstream({})["headers"], {"x-openai-actor-authorization": actor})
+        generated = frozen.worker_config()
+        provider = tomllib.loads(generated.decode())["model_providers"]["webuddy_isolated"]
+        for key in ("requires_openai_auth", "supports_websockets", "supports_standalone_web_search"):
+            self.assertIs(provider[key], False)
+        for raw in (generated, json.dumps(frozen.binding()).encode()):
+            self.assertNotIn(actor.encode(), raw)
+            self.assertNotIn(b"x-openai-actor-authorization", raw)
+            self.assertNotIn(b"SYNTHETIC_HOST_CREDENTIAL_ONLY", raw)
+        self.write(self.base, self.base.read_text().replace(actor, "Bearer PUBLIC_ROTATED_ACTOR"))
+        with self.assertRaisesRegex(ValueError, "changed"):
+            frozen.assert_current({})
+
+    def test_provider_extra_auth_fields_reject_ambiguity_and_injection(self):
+        original = self.base.read_text()
+        additions = ('requires_openai_auth=true', 'requires_openai_auth="false"',
+            'supports_websockets=1', 'supports_standalone_web_search="true"',
+            '[model_providers.gateway.http_headers]\nAuthorization="Bearer PUBLIC_FAKE"',
+            '[model_providers.gateway.http_headers]\nx-openai-actor-authorization=3',
+            '[model_providers.gateway.http_headers]\nx-openai-actor-authorization="Bearer PUBLIC\\r\\nInjected: yes"',
+            '[model_providers.gateway.http_headers]\nx-openai-actor-authorization="PUBLIC_A"\nX-OpenAI-Actor-Authorization="PUBLIC_B"')
+        for index, addition in enumerate(additions):
+            with self.subTest(case=index):
+                self.write(self.base, original + '\n' + addition + '\n')
+                with self.assertRaises(ValueError):
+                    self.freeze()
+
     def test_generated_worker_gets_selected_model_and_only_public_gateway(self):
         frozen = self.freeze()
         self.assertEqual(frozen.model, "team-model")

@@ -39,3 +39,7 @@ worker 命令使用官方 `codex exec`、完整 stdin、JSONL、ephemeral 和 ig
 严格 framing 校验器通过既有 resources 流程完整带入 sdist、wheel、离线包和项目内置工具，网关从固定资源路径加载原始代码，不依赖检出树或顶层 scripts 包；原始 provider_transport.py 不修改、不维护副本。本轮在临时目录实际构建 sdist，再从解包的 sdist 构建 wheel，以 no-index/no-deps 安装；隔离解释器分别从 wheel、离线解包树及内置工具导入并检查完整字节与 framing 行为。新运行资源缺失时 install() 在创建项目之前拒绝。
 
 以上是临时安装物验证，未更新服务器程序或旧硬编码发布清单。未来从源码目录发布必须包含 resources.FILES 所列文件，其中包括 scripts/rsi/provider_transport.py；不能只复制 tmh/ 后声明完整依赖已部署。
+
+现役供应商的 `requires_openai_auth=false` 与布尔能力字段可被读取；生成的隔离 provider 始终将 OpenAI 外部认证、WebSocket 和 standalone web search 显式关闭。源配置不能借这些能力开关开放工作进程的远程工具。
+
+唯一支持的附加供应商认证头是 `x-openai-actor-authorization`，完整值只保存在可信宿主，向冻结的 HTTPS Responses 地址发送时才注入。工作进程不能提供同名头；源头名/值歧义、非字符串、控制字符或外部 OpenAI 认证要求均拒绝。该附加值不会出现在 worker 配置、环境、argv、公开 configuration binding 或请求 journal；源文件的完整身份仍参与冻结与变更拒绝。私有响应日志仍只留服务器，不能作为公开 API 投影。

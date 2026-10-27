@@ -19,7 +19,9 @@ MAX_CONFIG_BYTES = 8 * 1024 * 1024
 LOCAL_BASE = "http://127.0.0.1:48671/v1"
 PUBLIC_KEY = "webuddy-public-placeholder"
 OVERLAY_FIELDS = {"model", "model_provider", "approval_policy", "model_reasoning_effort"}
-PROVIDER_FIELDS = {"name", "base_url", "wire_api", "env_key", "experimental_bearer_token"}
+PROVIDER_FIELDS = {"name", "base_url", "wire_api", "env_key", "experimental_bearer_token",
+                   "requires_openai_auth", "supports_websockets", "supports_standalone_web_search", "http_headers"}
+ACTOR_HEADER = "x-openai-actor-authorization"
 
 
 def _encoded(value):
@@ -105,6 +107,19 @@ class FrozenConfig:
         provider = providers.get(self.provider) if isinstance(providers, dict) else None
         if not isinstance(provider, dict) or set(provider) - PROVIDER_FIELDS:
             raise ValueError("unsupported isolated Codex provider configuration")
+        for flag in ("requires_openai_auth", "supports_websockets", "supports_standalone_web_search"):
+            if flag in provider and type(provider[flag]) is not bool:
+                raise ValueError("invalid isolated provider capability type")
+        if provider.get("requires_openai_auth", False):
+            raise ValueError("isolated provider cannot acquire external OpenAI authentication")
+        headers = provider.get("http_headers", {})
+        if (type(headers) is not dict or len(headers) > 1
+                or any(not isinstance(name, str) or name.lower() != ACTOR_HEADER
+                       or not isinstance(value, str) or not value or value.strip() != value
+                       or any(ord(c) < 32 or ord(c) > 126 for c in value)
+                       for name, value in headers.items())):
+            raise ValueError("unsupported isolated host-only provider headers")
+        self._host_headers = {ACTOR_HEADER: value for value in headers.values()}
         if provider.get("wire_api") != "responses":
             raise ValueError("isolated Codex requires the configured Responses provider")
         endpoint = provider.get("base_url")
@@ -158,7 +173,10 @@ class FrozenConfig:
     def upstream(self, environment):
         """Trusted host broker only; never serialize this result into run evidence."""
         self.assert_current(environment)
-        return {"endpoint": self._endpoint + "/responses", "key": self._credential}
+        result = {"endpoint": self._endpoint + "/responses", "key": self._credential}
+        if self._host_headers:
+            result["headers"] = dict(self._host_headers)
+        return result
 
     def worker_config(self):
         """A complete generated policy; no original config/auth file is copied."""
@@ -177,6 +195,8 @@ class FrozenConfig:
                       'skill_mcp_dependency_install = false', 'tool_suggest = false', 'recommended_plugins = false',
                       '[model_providers.webuddy_isolated]', 'name = "Webuddy isolated route"',
                       'base_url = "' + LOCAL_BASE + '"', 'wire_api = "responses"',
+                      'requires_openai_auth = false', 'supports_websockets = false',
+                      'supports_standalone_web_search = false',
                       'env_key = "WEBUDDY_ISOLATED_PUBLIC_KEY"', '[shell_environment_policy]',
                       'inherit = "none"', '[permissions.webuddy_frozen_v1.filesystem]',
                       '":minimal" = "read"', '":workspace_roots" = "read"',

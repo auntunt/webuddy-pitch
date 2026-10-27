@@ -92,6 +92,31 @@ class CodexGatewayTest(unittest.TestCase):
         args.update(kw)
         return G.forward(self.frozen, {}, "POST", G.TARGET, self.headers, self.body, **args)
 
+    def test_actor_auth_is_injected_only_by_host_and_worker_cannot_shadow_it(self):
+        actor = "Bearer PUBLIC_SYNTHETIC_ACTOR_CREDENTIAL"
+        self.fixture.write(self.fixture.base, self.fixture.base.read_text() +
+            '\nrequires_openai_auth=false\nsupports_websockets=true\nsupports_standalone_web_search=true\n'
+            '[model_providers.gateway.http_headers]\nx-openai-actor-authorization="' + actor + '"\n')
+        self.frozen = self.fixture.freeze()
+        with self.live_provider(fixed_body=b"public response") as server:
+            receipt = self.forward()
+            self.assertTrue(receipt["complete"])
+            self.assertEqual(len(server.received), 1)
+            target, headers, body = server.received[0]
+            actors = [value for name, value in headers if name.lower() == "x-openai-actor-authorization"]
+            self.assertEqual(actors, [actor])
+            self.assertEqual(target, G.TARGET)
+            self.assertEqual(body, self.body)
+            self.assertEqual([value for name, value in headers if name.lower() == "authorization"],
+                             ["Bearer SYNTHETIC_HOST_CREDENTIAL_ONLY"])
+        self.assertNotIn(actor, str(self.events))
+        self.assertNotIn(actor.encode(), self.frozen.worker_config())
+        self.headers.append(("X-OpenAI-Actor-Authorization", "PUBLIC_WORKER_FORGERY"))
+        self.factory.reset_mock()
+        with self.assertRaises(G.GatewayError):
+            self.forward()
+        self.factory.assert_not_called()
+
     @contextlib.contextmanager
     def live_provider(self, short=False, fixed_body=None):
         class Handler(BaseHTTPRequestHandler):

@@ -14,7 +14,7 @@ import time
 from urllib.parse import urlsplit
 
 from .. import resources
-from .codex_frozen_config import PUBLIC_KEY, FrozenConfig
+from .codex_frozen_config import ACTOR_HEADER, PUBLIC_KEY, FrozenConfig
 
 # One canonical source is shipped through the existing resource pipeline. This
 # also works in wheels and vendored tools without a top-level scripts package.
@@ -81,7 +81,7 @@ def forward(frozen, environment, method, target, headers, body, *, deadline,
         by_name.setdefault(name.lower(), []).append(value)
     if (by_name.get("host") != [HOST]
             or by_name.get("authorization") != ["Bearer " + PUBLIC_KEY]
-            or "proxy-authorization" in by_name or "upgrade" in by_name
+            or "proxy-authorization" in by_name or ACTOR_HEADER in by_name or "upgrade" in by_name
             or by_name.get("content-type") != ["application/json"]):
         raise GatewayError("invalid isolated gateway request headers")
     tokens = {part.strip().lower() for value in by_name.get("connection", []) for part in value.split(",")}
@@ -108,6 +108,11 @@ def forward(frozen, environment, method, target, headers, body, *, deadline,
             if name.lower() not in HOP_HEADERS | {"host", "authorization", "content-length"}:
                 connection.putheader(name, value)
         connection.putheader("Authorization", "Bearer " + upstream["key"])
+        # The original actor credential belongs only to the trusted fixed
+        # provider. Never copy it into the worker, argv or request journal, and
+        # reject a worker's shadow header before opening an upstream socket.
+        for name, value in upstream.get("headers", {}).items():
+            connection.putheader(name, value)
         connection.putheader("Content-Length", str(len(body)))
         connection.putheader("Connection", "close")
         _left(deadline, cancel)
