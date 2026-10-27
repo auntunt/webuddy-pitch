@@ -54,6 +54,15 @@ class AccessUiTest(unittest.TestCase):
         result = subprocess.run([shutil.which('node'), '--check'], input=source, text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_partial_diagnostic_button_uses_actual_ticket_key(self):
+        self.run_js(r"""
+const c={current:true,partial_diagnostic:null};
+assert.match(teamDiagnosticPanel({ticket:{key:'JB-7'},candidate:c}),/检查当前候选/);
+assert.equal(teamDiagnosticPanel({ticket:{key:'RW-7'},candidate:c}),'');
+const stale={...c,current:false,partial_diagnostic:{actor:'alice',updated:'now',commit:'a',vue_files:1,templates_checked:1,bad:[],skipped:[]}};
+assert.match(teamDiagnosticPanel({ticket:{key:'JB-7'},candidate:stale}),/历史结果：候选依据已变化/);
+""")
+
     def test_default_paths_storage_and_api_remain_compatible(self):
         self.run_js(r"""
 assert.equal(appPath('/api/projects'),'/api/projects');localStorage.setItem('tmh.draft.7','old');assert.equal(ACCESS_RAW_LOCAL.getItem('tmh.draft.7'),'old');
