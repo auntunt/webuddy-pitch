@@ -1480,3 +1480,10 @@
 - 自审进一步发现HTTPResponse在连接关闭后仍可能持有socket文件引用。新未提交初稿的成功/不完整两子场景均准确失败（response-close-red，1项/2失败、0.023秒、exit1）；原源码/日志保留。成功路径和异常finally均显式关闭response及connection，正向最终期限检查在两者关闭后，未改旧测试或门槛。
 - 最终final-v3：11项固定交换+10项配置，共21/21、0.148秒、0 skip/失败/错误、exit0。包含两条真实回环HTTP、短响应原字节保留，以及仅用于新收尾单测的受控时钟；没有把受控时钟当实际网络超时/隔离证明。固定模型替换/重复JSON/非JSON数和真实源owner均在连接前检查。最终5份来源逐字节SHA读回，9份人工决定/guard/锁/监督/Runner/知识门/Store源码与8d2120c逐字一致。
 - 状态：done（限交换核心与本地定向），实际可信通道/namespace TCP relay/Runner接线/模型证明仍doing。私密journal必须只在服务器保留；安装闭包需包含既有scripts/rsi/provider_transport.py，尚未验证安装或修改打包。固定小提交后作者外增量复核；无全量/真实TLS/真实提供商/官方CLI/模型/新服务/生产部署。
+
+## 2026-10-27：固定网关的实际安装依赖闭包
+
+- 状态：doing→done（限安装依赖）。基线79c0a66已正常push、GitHub精确HEAD/工作区干净。确认原wheel/离线/内置工具缺顶层scripts.rsi，固定交换核心的import存在源码树外缺失风险；不改原provider_transport校验器，加入resources.FILES和MANIFEST声明，从固定资源路径加载同一原始代码。普通模块、真实能力门、Runner与协议均不变。
+- 新2项离线包/内置工具隔离导入及缺helper时安装原子拒绝，加原Distribution2和必要真实HTTP chunked/短回包2，共6/6、1.153秒、0 skip/失败/错误、exit0。-I -S及无检出树工作目录下，完整helper字节/SHA与行为一致；install保留原用户说明。没有重跑旧21整套。
+- 系统Python3.14缺setuptools，未联网安装；使用已有bundled Python3.12.14/setuptools/wheel构建。实际sdist→解包→wheel→pip --no-index --no-deps --no-compile --target临时目录全退出0；wheel、安装后及其内置工具在-I -S下实际import和install均通过，原helper全字节/SHA一致，wheel中gateway字节与当前源码一致。完整归档、输入清单、构建/安装/隔离命令和stdout/stderr保存在分析/implementation/20261027-codex-runtime-distribution/。
+- 原provider_transport字节与79c0a66一致；运行文件与实际构建输入逐字节读回。未调用模型/真实提供方/读取真实凭据，未启动服务或安装到全局环境。仅临时包验证，不宣称旧源发布清单已补齐或服务器已部署；未来源码部署必须带上resources.FILES新增的helper。真实可信载体/Runner接线仍doing。

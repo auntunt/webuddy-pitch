@@ -8,12 +8,17 @@ import hashlib
 import http.client
 import json
 import math
+import runpy
 import ssl
 import time
 from urllib.parse import urlsplit
 
-from scripts.rsi.provider_transport import validate_framing
+from .. import resources
 from .codex_frozen_config import PUBLIC_KEY, FrozenConfig
+
+# One canonical source is shipped through the existing resource pipeline. This
+# also works in wheels and vendored tools without a top-level scripts package.
+validate_framing = runpy.run_path(str(resources.root() / "scripts/rsi/provider_transport.py"))["validate_framing"]
 
 TARGET = "/v1/responses"
 HOST = "127.0.0.1:48671"

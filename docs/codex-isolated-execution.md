@@ -16,4 +16,8 @@ worker 命令使用官方 `codex exec`、完整 stdin、JSONL、ephemeral 和 ig
 
 此函数必须位于原 Runner/SP 监督的可信控制器内；整体取消负责打断阻塞的 TLS/read。调用方仍须实现只有可信 namespace relay 可连接的鉴权通道、严格 HTTP 入站读取、worker TCP 监听与完整清理，再接实际 IndependentRunner。公开占位认证不是通道身份凭据。root 控制器可指定已登记的 source_owner_uid 读取服务账号配置，owner 仍精确检查并进入公开绑定；普通进程不能指定其他 owner。
 
-当前仅有合成凭据单元测试及真实回环 HTTP 分块/短回包测试；测试替换 HTTPS 连接为回环 HTTP，不声称验证了真实 TLS、供应商、官方客户端、namespace 通道或模型工具派发。安装闭包还须包含既有 `scripts/rsi/provider_transport.py` 的严格 framing 校验器；当前旧发布打包方式未在本增量中验证或改变。真实执行能力门继续关闭。
+当前仅有合成凭据单元测试及真实回环 HTTP 分块/短回包测试；测试替换 HTTPS 连接为回环 HTTP，不声称验证了真实 TLS、供应商、官方客户端、namespace 通道或模型工具派发。真实执行能力门继续关闭。
+
+严格 framing 校验器通过既有 resources 流程完整带入 sdist、wheel、离线包和项目内置工具，网关从固定资源路径加载原始代码，不依赖检出树或顶层 scripts 包；原始 provider_transport.py 不修改、不维护副本。本轮在临时目录实际构建 sdist，再从解包的 sdist 构建 wheel，以 no-index/no-deps 安装；隔离解释器分别从 wheel、离线解包树及内置工具导入并检查完整字节与 framing 行为。新运行资源缺失时 install() 在创建项目之前拒绝。
+
+以上是临时安装物验证，未更新服务器程序或旧硬编码发布清单。未来从源码目录发布必须包含 resources.FILES 所列文件，其中包括 scripts/rsi/provider_transport.py；不能只复制 tmh/ 后声明完整依赖已部署。

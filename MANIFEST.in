@@ -9,3 +9,4 @@ include docs/self-improvement/verification-preview-health-2026-10-19.md
 include docs/self-improvement/verification-runtime-2026-10-18.md
 include docs/self-improvement/verification-external-candidate-2026-10-19.md
 include docs/self-improvement/verification-harness2-2026-10-19.md
+include scripts/rsi/provider_transport.py

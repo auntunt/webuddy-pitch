@@ -12,6 +12,7 @@ FILES = (
     "docs/self-improvement/verification-runtime-2026-10-18.md",
     "docs/self-improvement/verification-external-candidate-2026-10-19.md",
     "docs/self-improvement/verification-harness2-2026-10-19.md",
+    "scripts/rsi/provider_transport.py",
 )
 
 
