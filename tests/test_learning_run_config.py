@@ -110,6 +110,25 @@ class LearningRunConfigTests(unittest.TestCase):
         self.assertEqual(self.store.q('SELECT * FROM learning_jobs'),[])
         self.assertEqual(self.calls(),[])
 
+    def test_deployed_nonpermission_args_are_frozen_and_reach_real_synthetic_cli(self):
+        self.config['args']=['--ephemeral','--color','never'];self.save_config()
+        job=self.start();self.assertEqual(job['options']['configuration']['args'],self.config['args'])
+        done=self.work(job);self.assertEqual(done['status'],'passed',done['error'])
+        calls=self.calls();self.assertEqual(len(calls),1);args=calls[0]['args']
+        self.assertEqual(args.count('--ephemeral'),1);self.assertEqual(args.count('--color'),1)
+        self.assertEqual(args[args.index('--color')+1],'never')
+        self.assertEqual(calls[0]['prompt'],done['steps'][0]['prompt']);self.assertEqual(done['calls'],1)
+
+    def test_codex_args_whitelist_rejects_permission_model_and_duplicate_overrides(self):
+        for args in (['--sandbox','danger-full-access'],['--config','approval_policy="never"'],
+                     ['--profile','other'],['-m','other'],['--color','always'],['--color=never'],
+                     ['--ephemeral','--ephemeral'],['--color','never','extra'],['--add-dir','/tmp']):
+            with self.subTest(args=args):
+                self.config['args']=args;self.save_config()
+                with self.assertRaises(ValueError):self.start()
+        self.assertEqual(self.store.q('SELECT * FROM learning_jobs'),[]);self.assertEqual(self.calls(),[])
+        self.assertEqual(lr._capabilities.call_count,0)
+
     def test_real_synthetic_cli_gets_full_stdin_profile_and_strict_terminal_receipt(self):
         job=self.start();deadline=job['deadline'];done=self.work(job)
         self.assertEqual(done['status'],'passed',done['error']);self.assertEqual(done['deadline'],deadline)

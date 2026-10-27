@@ -213,11 +213,20 @@ def _configuration(P, options, p=None):
     agent = agent_routes.resolve(P.data_dir, p, requested, fallback="claude")
     selected_route = agent_routes.route(P.data_dir, p)
     config = agents.load_config(P.data_dir).get(agent)
-    if not isinstance(config, dict) or "cmd" in config or config.get("args"):
+    if not isinstance(config, dict) or "cmd" in config:
         raise ValueError("独立评审不接受自定义命令或额外权限参数")
     engine = agents.engine_name(agent, config)
     if engine not in ("claude", "codex"):
         raise ValueError("独立评审仅适配 Claude 或 Codex 原生执行器")
+    extra = config.get("args")
+    if engine == "claude" and extra:
+        raise ValueError("独立评审不接受自定义命令或额外权限参数")
+    if engine == "codex":
+        extra = [] if extra is None else extra
+        if not isinstance(extra, list) or any(not isinstance(arg, str) for arg in extra) or tuple(extra) not in (
+                (), ("--ephemeral",), ("--color", "never"),
+                ("--ephemeral", "--color", "never"), ("--color", "never", "--ephemeral")):
+            raise ValueError("独立 Codex 参数仅允许 --ephemeral 和 --color never")
     executable = shutil.which(config.get("bin", engine))
     if executable is None:
         raise ValueError("独立评审执行器不可用：" + agent)
@@ -225,7 +234,7 @@ def _configuration(P, options, p=None):
     # Freeze only settings actually used by this runner. Arbitrary config keys
     # (including accidental credentials) do not belong in API-visible receipts.
     stat = Path(executable).stat()
-    effective = {"bin": executable, "args": list(_ISOLATED_ARGS) if engine == "claude" else [],
+    effective = {"bin": executable, "args": list(_ISOLATED_ARGS) if engine == "claude" else list(extra),
                  "size": stat.st_size, "mtime_ns": stat.st_mtime_ns}
     if engine == "codex":
         if config.get("prompt_transport") != "stdin":

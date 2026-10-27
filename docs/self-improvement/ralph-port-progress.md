@@ -1455,3 +1455,9 @@
 - 初轮10项：9过/1错误，2.951秒退出1；新增超时测试误取不存在的stop_reason字段。实际2秒超时/124和完整清理已发生；初稿源码、完整日志和7新例数据库/原件保留。只改测试读取真实stopped_reason/attempt.reason并增加124/原2秒上限断言，不放宽时限或既有断言。
 - 最终同一窄命令：7新增（实际合成stdin/取消/个体超时、profile与route撤销、公开字段和真实拒绝能力门）+3原Claude/拒绝/help能力兼容，共10/10、3.057秒、退出0。14个新例完整SQLite现场integrity_check均ok；6次新例实际合成目标原回执/完整输出/清理读回，目标PID已不存在。3个原兼容例仅保留日志，未补造其已清理临时现场；不重跑旧大套件/全量。
 - 自审：原SCHEMA/TERMINAL/锁/租约/监督读回/_work/cancel/resume等AST保持，原test_learning_runs.py字节未改；git diff --check通过。未改native_learning、guard/acceptance、旧协议、原表DDL或真人决定。当前done仅指本地配置传递增量，真实执行桥仍doing；固定本地候选后交作者外复验，不push/部署。
+
+## 2026-10-27：现役Codex非权限参数兼容增量
+
+- 状态：done（限本地增量，待作者外复验）。基线d549936；根审指出现役docs/codex-project-route.md配置args=[--ephemeral,--color,never]，原所有非空args拒绝使配置传递准备仍不兼容。仅Codex白名单允许这两个已知非权限参数及其不重复顺序组合，冻结原值并传递；Claude不接受额外args、自定义cmd/模型/profile/目录/权限覆盖仍拒绝，真实Codex模型能力拒绝保持。
+- 改learning_runs.py及新增2测试、本进度。初轮5项：4过/1错误、0.460秒；新测试误向_patch对象读call_count，所有不安全args已实际拒绝。初稿/日志/4个新框架现场保留，只修mock观测对象为lr._capabilities。最终同一窄5项（新增2+空args、项目投影、原Claude权限3兼容）：5/5、0.458秒、退出0；不重跑旧时序或大套件。
+- 两轮8份DB完整性ok、4次实际合成CLI的原SP owner/PID/PGID/全输出SHA/清理匹配，PID已不存在；上一提交所有原测试方法和_configuration外全部函数/类AST保持。证据分析/implementation/20261027-learning-runs-codex-args/。只准备/验证配置通路，不声称真实私有profile/认证内容、模型冻结输入或实际Codex知识评测已可用；不push/部署。
