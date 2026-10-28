@@ -1420,3 +1420,10 @@
 - 发布复用现有纯代码助手，项目配置及镜像保持；最终提交和两端精确包结果以发布记录为准。实际业务复核和验收由成员本人完成。
 
 - 已发布：`be790b6c13dc31007a1c6c68d64248608b39a70c` 已快进推送 GitHub `feat/jb-partial-diagnostic` 并切换上线。Mac / Linux 同一精确包各 88 项通过、零跳过；235 运行文件保持固定清单。兼容副本和上线后原 schema / 行保持，立即及 60 秒 HTTP 健康通过，原配置与执行镜像保持。回滚锚点 `/opt/webuddy/backups/pre-be790b6c13dc-activation-20261028`，只允许切换程序，不用旧 DB 覆盖新写入。发布回执 `分析/implementation/20261028-member-permissions-release/release-evidence-be790b6/activation.json`，SHA-256 `ac6758e8f699358f3b8a0a1b01859a232a6c2017f5b43de724d2c2240ce69e7a`。本轮未调用模型、未代人验收；浏览器原路径复验由指挥任务继续。
+
+
+## 2026-10-28：公司官网自动构建与预览已上线
+
+- 运行版本 `dc7cd596de3be3e64b05632d868ebd19408e627b`；仅 CWWEB 启用固定候选自动测试/构建及隔离静态预览，原人工复核、合并、业务验收保留。没有恢复 RSI。
+- Mac / Linux 精确包各 126 项通过；真实 CWWEB 测试与预览构建、独立数据完整候选演练和浏览器导航/图片检查通过。上线立即/60秒健康、原数据和配置保持通过，LYB/LLA真实账号只读入口通过。
+- 本批无模型调用、无代签生产验收；实际试用留给本人。详情见 [发布和试用说明](../../audit/production-deployment-2026-10-28-company-preview.md)。记录本身只提交推送，不重复重启。
