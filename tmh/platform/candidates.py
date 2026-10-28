@@ -81,9 +81,13 @@ def configuration(P, project):
     from .fixloop import settings
     from .testbox import settings as box_settings
     from .preview import command
-    return _hash({"commands": config.load(Path(project["root"])).get("commands"),
+    value = {"commands": config.load(Path(project["root"])).get("commands"),
                   "checks": settings(P.data_dir), "testbox": box_settings(P.data_dir),
-                  "preview": command(P.data_dir, project)})
+                  "preview": command(P.data_dir, project)}
+    from .static_preview import profile
+    static = profile(P.data_dir, project["key"])
+    if static:value["static_preview"] = static
+    return _hash(value)
 
 
 def _check_baseline(root, ticket, base):
@@ -252,9 +256,13 @@ def view(P, cid, *, include_probe=True):
     # probe also invalidates earlier observations, even before it finishes.
     probe_ok = probe is None or probe["passed"]
     vh = _hash({"verification": v, "probe_id": probe["id"], "probe_evidence": probe["evidence_hash"]}) if verification_ok and probe else _hash(v) if verification_ok else ""
-    pv = preview.status(P.data_dir, t["key"])
-    preview_ok = pv.get("state") == "up" and preview.bound_matches(pv, t["key"], row["commit_sha"])
+    from . import static_preview
+    static = static_preview.profile(P.data_dir, p["key"])
+    pv = static_preview.view(P, row, v) if static else preview.status(P.data_dir, t["key"])
+    preview_ok = pv.get("state") == "up" and (pv.get("commit_full") == row["commit_sha"] if static else preview.bound_matches(pv, t["key"], row["commit_sha"]))
     ph = _hash({k: pv.get(k) for k in ("commit_full", "prefix", "started", "pid", "log", "cmd", "ready")}) if preview_ok else ""
+    if static and preview_ok:ph = pv["digest"]
+    entry = pv.get("entry", "") if static else preview.bound_prefix(t["key"], row["commit_sha"]) + "/"
     assessment = st.one("SELECT * FROM candidate_assessments WHERE candidate_id=? ORDER BY id DESC LIMIT 1", (cid,))
     results = json.loads(assessment["results"]) if assessment else []
     technical_ok = bool(verification_ok and probe_ok and preview_ok and assessment and assessment["verification_hash"] == vh
@@ -282,8 +290,8 @@ def view(P, cid, *, include_probe=True):
             "verification_hash": vh, "harness_probe": probe, "preview": pv, "preview_ready": preview_ok, "preview_hash": ph,
             # Enter through the authenticated workbench, which grants a scoped
             # cookie before redirecting to the separate preview origin.
-            "preview_url": getattr(P, "public_url", "") + preview.bound_prefix(t["key"], row["commit_sha"]) + "/" if preview_ok else "",
-            "preview_entry_path": preview.bound_prefix(t["key"], row["commit_sha"]) + "/" if preview_ok else "",
+            "preview_url": getattr(P, "public_url", "") + entry if preview_ok else "",
+            "preview_entry_path": entry if preview_ok else "",
             "assessment": dict(assessment, results=results) if assessment else None,
             "technical_acceptance": technical_ok and not blocked,
             "ready_for_human": not needs, "missing": needs, "evidence_hash": eh,
@@ -304,7 +312,11 @@ def execute(P, actor, op, a, mutation=lambda: None):
     if op == "candidate_get":
         return view(P, a["candidate_id"])
     if op == "candidate_submit":
-        return submit(P, actor, a, mutation)
+        result = submit(P, actor, a, mutation)
+        if not result.get('reused'):
+            from .static_preview import auto_verify
+            result['auto_verification'] = auto_verify(P, actor, result['candidate_id'])
+        return result
     row = _row(P, a["candidate_id"])
     with guard(P, row["ticket_id"]):
         v = view(P, row["id"])
@@ -342,9 +354,13 @@ def execute(P, actor, op, a, mutation=lambda: None):
             if op == "candidate_preview":
                 if not v["verification_passed"]:
                     raise ApiError(409, "平台独立构建/测试尚未通过，不启动候选预览")
-                from . import preview
+                from . import preview, static_preview
                 t = P.store.ticket(row["ticket_id"])
                 p = P.store.project(t["project_id"])
+                if static_preview.profile(P.data_dir, p["key"]):
+                    if not v["preview_ready"]:raise ApiError(409, "当前静态产物不可用，请重新构建")
+                    mutation()
+                    return {"candidate_id":row["id"], "preview":v["preview"], "url":v["preview_entry_path"]}
                 mutation()
                 state = preview.start(P, p, t, row["commit_sha"], actor, expected_commit=row["commit_sha"])
                 P.store.event(t["id"], actor, "preview", "启动独立验证后的外部候选预览", {"candidate": row["id"], "commit": row["commit_sha"]})

@@ -106,5 +106,8 @@ def _execute(runner, rid, project, ticket, prompt, authority, image, binding):
                             raise ValueError('登记前个人授权或运行状态已变化，结果仅保留供核对')
                         st.update_run(rid,status='done',ended=now(),exit_code=0,result=summary,diff=patch)
             runner._finish_event(ticket,rid,st.run(rid)['agent'],'fix','done',summary,bool(patch))
+            if cid is not None:
+                from .static_preview import auto_verify
+                auto_verify(authority.platform, authority.principal, cid)
         finally:
             filelock.unlock(lock)

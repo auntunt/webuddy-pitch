@@ -59,7 +59,7 @@ async function accessCheck(){
  try{const meta=await get('/api/meta');if(meta.access?.context_token!==ACCESS.token)accessLock('成员身份或项目权限已调整，旧页面已清除。请重新读取当前权限。')}catch(error){if(error.access)return;/* Ordinary network failure is not revocation; writes still require the bound server context. */}
 }
 function accessRestrictedOperation(path,body){
- if(!S.meta?.access)return false;const p=path.split('?')[0],b=body||{};return /^\/api\/(?:tickets\/[^/]+\/ask-client|projects\/[^/]+\/(?:shares|capture-token))$/.test(p)||/^\/api\/(?:tickets\/[^/]+\/preview|projects\/[^/]+\/standing)$/.test(p)&&b.action==='start'||/^\/api\/intake\/[^/]+$/.test(p)&&b.action==='ask_client'||/^\/api\/tickets\/[^/]+\/evidence$/.test(p)&&b.kind==='link'||p==='/api/team'&&b.action==='candidate_preview'||p==='/api/agent'&&['preview_start','candidate_preview'].includes(b.op);
+ if(!S.meta?.access)return false;const p=path.split('?')[0],b=body||{};return /^\/api\/(?:tickets\/[^/]+\/ask-client|projects\/[^/]+\/(?:shares|capture-token))$/.test(p)||/^\/api\/(?:tickets\/[^/]+\/preview|projects\/[^/]+\/standing)$/.test(p)&&b.action==='start'||/^\/api\/intake\/[^/]+$/.test(p)&&b.action==='ask_client'||/^\/api\/tickets\/[^/]+\/evidence$/.test(p)&&b.kind==='link'||p==='/api/agent'&&['preview_start','candidate_preview'].includes(b.op);
 }
 function accessCanExecute(project){return !S.meta?.access||S.meta.access.capabilities?.execution===true&&accessCanWrite(project)}
 function accessCanMemberFix(project){

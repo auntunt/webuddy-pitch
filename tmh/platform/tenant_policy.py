@@ -502,10 +502,16 @@ def authorize(P, method, path, query, body, actor):
         return scope
     if method == "POST" and who["role"] == "viewer":
         raise ApiError(403, "只读成员不能修改项目")
+    personal_static_preview = False
+    if method == 'POST' and template == '/api/team' and body.get('action') == 'candidate_preview':
+        from .static_preview import profile
+        target = _resource_project(P, 'candidate', body.get('candidate_id'))
+        _check(P, who, target, 'contributor')
+        personal_static_preview = bool(not who.get('tool_connection') and profile(P.data_dir, target['key']))
     if method == "POST" and (
             template in ("/api/projects/<key>/shares", "/api/projects/<key>/capture-token", "/api/tickets/<key>/ask-client") or
             template in ("/api/tickets/<key>/preview", "/api/projects/<key>/standing") and body.get("action") == "start" or
-            template == "/api/team" and body.get("action") == "candidate_preview" or
+            template == "/api/team" and body.get("action") == "candidate_preview" and not personal_static_preview or
             template == "/api/tickets/<key>/evidence" and body.get("kind") == "link" or
             template == "/api/intake/<sid>" and body.get("action") == "ask_client"):
         raise ApiError(403, "公开链接和预览尚未接入租户隔离，暂不签发票据或启动服务")
@@ -587,7 +593,7 @@ def authorize(P, method, path, query, body, actor):
         if body.get(field):
             for p in targets:
                 require_member(P, body[field], p, "contributor")
-    safe = template in SAFE_POSTS
+    safe = template in SAFE_POSTS or personal_static_preview
     safe |= template == "/api/tickets" and (body.get("handwork") is True or body.get("auto") is False and not (body.get("agent") and body.get("mode"))) and not body.get("code_at")
     safe |= template == "/api/team" and action == "assign"
     safe |= template == "/api/team" and action == "comment"

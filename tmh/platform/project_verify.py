@@ -13,7 +13,7 @@ import threading
 import time
 
 from .. import config
-from . import candidates, fixloop, project_snapshot, testbox
+from . import candidates, fixloop, project_snapshot, testbox, static_preview
 from .project_authority import capture
 from .project_container import Engine, _path
 from .project_volume import ProjectVolume
@@ -84,13 +84,15 @@ def commands(P, project):
     override = settings.get('check')
     if isinstance(override, dict):
         override = override.get(project['key'], override.get('*', ''))
-    if override not in ('', None) or testbox.settings(P.data_dir):
+    static = static_preview.profile(P.data_dir, project['key'])
+    if not static and (override not in ('', None) or testbox.settings(P.data_dir)):
         raise ValueError('此项目现有验证配置需要宿主机或外部测试机，暂不支持个人隔离验证')
     value = config.load(Path(project['root'])).get('commands')
     if not isinstance(value, dict):
         raise ValueError('项目验证命令配置无效')
     seq = []
-    for kind in ('build', 'test'):
+    # Static artifacts must be the final build, after tests which may build too.
+    for kind in (('test', 'build') if static else ('build', 'test')):
         cmd = value.get(kind, '')
         if not isinstance(cmd, str):
             raise ValueError('项目验证命令配置无效')
@@ -146,6 +148,9 @@ def _run(P, authority, row, project, seq, opid):
     result_code = 125
     result_message = '隔离验证未完成'
     finished = False
+    static = static_preview.profile(P.data_dir, project['key'])
+    build_image = static['image'] if static else authority.image
+    artifact = None
 
     def stopped():
         return bool(runner.stop_reason(opid)) or not authority.current(job)
@@ -155,17 +160,19 @@ def _run(P, authority, row, project, seq, opid):
             return False
         with personal_scope(P, authority.principal):
             state = candidates.view(P, row['id'])
-        if not state['current'] or commands(P, project)[0] != seq:
+        if (not state['current'] or commands(P, project)[0] != seq or
+                static_preview.profile(P.data_dir, project['key']) != static):
             return False
         return (project_snapshot.current(authority.image, root, 'HEAD', row['base_commit'], cancel=stopped, engine=engine)
                 and project_snapshot.current(authority.image, root, row['ref'], row['commit_sha'], cancel=stopped, engine=engine))
 
     def check_volume(reference, label):
+        nonlocal artifact
         receipts = []
         limit = runner.remaining(opid)
         if limit <= 0 or stopped():
             raise ValueError('隔离验证已停止或超过总时限')
-        with ProjectVolume(engine, authority.image, reference, limit, stopped) as volume:
+        with ProjectVolume(engine, build_image, reference, limit, stopped) as volume:
             for index, (kind, command) in enumerate(seq, 1):
                 if stopped() or not volume.alive():
                     raise ValueError('验证期间项目授权已撤销或临时工作区已停止')
@@ -178,7 +185,14 @@ def _run(P, authority, row, project, seq, opid):
                         raise ValueError('验证输出超过上限')
                     output.extend(chunk)
                 started = time.monotonic()
-                receipt = engine.run(volume.spec(['/bin/sh','-c',command], remaining), remaining,
+                spec = volume.spec(['/bin/sh','-c',command], remaining)
+                if static:
+                    # Docker's none network supplies loopback/hosts for test tools,
+                    # with no external interface, routing or published ports.
+                    if spec['HostConfig'].get('NetworkMode') != 'none' or spec['HostConfig'].get('PortBindings'):
+                        raise ValueError('静态构建网络隔离配置无效')
+                    spec['NetworkDisabled'] = False
+                receipt = engine.run(spec, remaining,
                                      cancel=lambda:stopped() or not volume.alive(), output=collect)
                 output_path = folder / ('%s-command-%02d.bin' % (label,index))
                 with output_path.open('xb') as raw:
@@ -214,6 +228,9 @@ def _run(P, authority, row, project, seq, opid):
                                      diagnostics.decode('utf-8','replace')[:500])
                 if receipt['returncode'] != 0:
                     break
+            if static and label == 'candidate' and len(receipts) == len(seq) and all(r['exit_code'] == 0 for r in receipts):
+                artifact = static_preview.export(engine, volume, static['output'], folder/'static-site',
+                                                 row['commit_sha'], runner.remaining(opid), stopped)
         # ProjectVolume.__exit__ must confirm anchor, volume and janitor cleanup.
         return receipts
 
@@ -255,6 +272,9 @@ def _run(P, authority, row, project, seq, opid):
         with P.tenant_context.registry.authorization_guard(), candidates.guard(P, row['ticket_id']):
             if not current():
                 raise ValueError('写入验证回执前项目授权、需求或版本已变化')
+            if static and check == 'pass':
+                if artifact is None:raise ValueError('通过的构建缺少静态预览产物')
+                verification['static_preview'] = static_preview.publish(P.data_dir, folder, row, artifact)
             _atomic_json(folder/'verification.json', verification)
             target = Path(P.data_dir)/'runs'/str(row['run_id'])/'verify.json'
             target.parent.mkdir(parents=True, exist_ok=True)

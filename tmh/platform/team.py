@@ -344,13 +344,15 @@ def item(P, t, user):
     if metadata_unavailable or managed and not repo['ready']: metadata_review=False
     personal_verification_reason=''
     personal_preview_reason=''
+    from .static_preview import profile as static_profile
+    static_config = static_profile(P.data_dir, P.store.project(t['project_id'])['key'])
     if managed and not managed.runtime_allowed(user) and metadata_review:
         from . import project_verify
         try:project_verify.commands(P,P.store.project(t['project_id']))
         except (OSError,ValueError) as exc:personal_verification_reason=str(exc)
         from . import preview
         conf=preview.project_conf(P.data_dir,P.store.project(t['project_id'])['key'])
-        personal_preview_reason=('此项目尚未配置预览命令；租户隔离预览通道也尚未接入。请联系项目管理员。'
+        personal_preview_reason='' if static_config else ('此项目尚未配置预览命令；租户隔离预览通道也尚未接入。请联系项目管理员。'
                                  if not conf.get('cmd') else '租户隔离预览通道尚未接入，不能启动固定版本预览。')
     run = P.store.one("SELECT id,mode,status,author,agent,decision,created,ended,LENGTH(diff)>0 AS has_diff FROM runs WHERE ticket_id=? AND mode!='ask' ORDER BY id DESC LIMIT 1", (t["id"],))
     if run:
@@ -442,7 +444,7 @@ def item(P, t, user):
             "needs_review": state in ("assessment", "review", "approved", "merged", "legacy_review", "acceptance"),
             "can_review": can_review, "personal_decisions_available":metadata_review,
             "personal_verification_reason":personal_verification_reason,
-            "personal_preview_reason":personal_preview_reason,
+            "personal_preview_reason":personal_preview_reason, "personal_static_preview":bool(static_config),
             "repository_ready":repo['ready'],"repository_reason":repo['reason'],
             "can_submit": user in members and t["assignee"] == user and t["status"] != "closed",
             "requests": P.store.q("SELECT actor,request_id,state,error,created,updated FROM team_requests WHERE ticket_id=? AND state IN ('pending','uncertain') ORDER BY created", (t["id"],)),

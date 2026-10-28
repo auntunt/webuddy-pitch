@@ -229,6 +229,14 @@ def make_handler(registry, workers, *, brand="webuddy"):
                 if self.headers.get_all('Authorization'):
                     return self._tool(method, url)
                 user = self._session()
+                static = re.fullmatch(r"/t/([A-Za-z0-9_-]+)/static-preview/([1-9][0-9]*)/(.+)", url.path)
+                # The index entry needs a personal login. Its readonly resource
+                # grant works without ambient cookies inside the opaque preview.
+                if static:
+                    if method != 'GET':raise error(405, '静态预览仅支持读取', 'method_denied')
+                    from .static_preview import response
+                    return response(reg, static[1], int(static[2]), static[3], user,
+                                    self._scheme()+'://'+self.headers.get('Host',''))
                 if not user:
                     if method == "GET" and (url.path == "/" or re.fullmatch(r"/t/[A-Za-z0-9_-]+/?", url.path)):
                         return self._send(303, headers={"Location": "/login?next=" + quote(self.path, safe="")})
