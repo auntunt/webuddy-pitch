@@ -12,6 +12,8 @@ from tests.test_ui_run_preview import ASYNC_HARNESS
 class TicketRunSyncUiTest(unittest.TestCase):
     def run_js(self, checks):
         helpers = "const FLOW=[" + JS.split("const FLOW=[", 1)[1].split("async function vTicket", 1)[0]
+        related = "async function loadRelated" + JS.split("async function loadRelated", 1)[1].split("async function confirmFlows", 1)[0]
+        handwork = "async function hwLoad" + JS.split("async function hwLoad", 1)[1].split("// ---------- evidence package", 1)[0]
         runs = JS.split("// ---------- runs\n", 1)[1].split("async function showPrompt", 1)[0]
         top = "function plainState" + WORK_JS.split("function plainState", 1)[1].split("async function ticketTopWire", 1)[0]
         chips = "const STL=" + WORK_JS.split("const STL=", 1)[1].split("const MODE=", 1)[0]
@@ -51,14 +53,14 @@ function ticket(runs,state='doing',why='AI 正在修改代码'){
 }
 const key='APP-7';let d=ticket([initialRun]),latest=d,current=initialRun,summaryReads=0,applied=0;
 let f,na;
-const save=()=>{},run=()=>{},pvLoad=()=>{},hwLoad=()=>{};
+const save=()=>{},run=()=>{},pvLoad=()=>{};
 getHandler=async url=>{
  if(url==='/api/tickets/APP-7'){summaryReads++;return latest}
  if(url.includes('/recheck'))return{running:false};
  if(url.startsWith('/api/runs/'))return current;
  throw new Error('unexpected request '+url);
 };
-""" + chips + top + helpers + runs + wiring + r"""
+""" + chips + top + helpers + related + handwork + runs + wiring + r"""
 f=flowState(d);na=nextAction(d,f);S.cur=d;
 nodes.fs.value=d.ticket.status;nodes.tTop.innerHTML=ticketTop(d,f,na);nodes.tSteps.innerHTML=stepper(f);
 nodes.tNextText.innerHTML=na.text;nodes.tNextActions.innerHTML=na.btns;nodes.tRunCount.textContent=ticketRunCount(d.runs);
@@ -67,6 +69,27 @@ wireNext();
 """ + "\n(async()=>{\n" + checks + "\n})().catch(e=>{console.error(e);process.exitCode=1});"
         result = subprocess.run([shutil.which("node"), "-"], input=script, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_member_claim_points_to_codex_and_preserves_run_results(self):
+        self.run_js(r"""
+globalThis.accessCanMemberFix=()=>true;globalThis.accessCanExecute=()=>false;S.meta.user='alice';S.meta.access={role:'member'};
+const claimed=ticket([]);claimed.ticket.links={handwork:'alice',hold:'alice'};
+let action=nextAction(claimed,flowState(claimed));assert.match(action.text,/在本站选择 Codex/);assert.match(action.btns,/naFix/);assert.ok(!action.text.includes('自动构建'));assert.ok(!action.btns.includes('naHwPack'));
+claimed.ticket.links={};assert.ok(!ticketTop(claimed,flowState(claimed),action).includes('id="ttHw"'));
+claimed.ticket.links={handwork:'alice',hold:'alice'};claimed.runs=[initialRun];action=nextAction(claimed,flowState(claimed));assert.match(action.btns,/naLog/);
+claimed.runs=[doneRun];action=nextAction(claimed,flowState(claimed));assert.match(action.btns,/naReview/);
+claimed.runs=[];S.meta.user='bob';action=nextAction(claimed,flowState(claimed));assert.ok(!action.btns.includes('naFix'));
+globalThis.accessCanExecute=()=>true;action=nextAction(claimed,flowState(claimed));assert.match(action.btns,/naHwPack/);
+""")
+
+    def test_member_does_not_request_starter_and_related_ignores_departed_page(self):
+        self.run_js(r"""
+nodes.hwc=new TestElement();S.meta.access={role:'member'};globalThis.accessCanExecute=()=>false;
+getHandler=()=>{throw Error('starter must not be requested')};await hwLoad(d);
+nodes.rel=new TestElement();const pending=later();getHandler=()=>pending.promise;const loading=loadRelated(d.ticket);
+delete nodes.rel;S.cur={ticket:{key:'OTHER-1'}};pending.reject(Error('request failed after navigation'));await loading;
+nodes.rel=new TestElement();S.cur=d;getHandler=async()=>({flows:[],tables:[],pages:[]});await loadRelated(d.ticket);assert.match(nodes.rel.innerHTML,/没找到相关内容/);
+""")
 
     def test_failure_retry_and_completion_refresh_summary_and_preserve_typed_drafts(self):
         self.run_js(r"""

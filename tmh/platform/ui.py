@@ -509,13 +509,13 @@ function nextAction(d,f){
     return {tone:'info',text:d.epic?'大需求的父单不直接改代码：子单分批放出、各自验收，全部完成后回到这里整体验收。':h(lt)+'。'}}
   if((t.links||{}).client_change&&t.status!=='closed')return {tone:'warn',text:'客户的答复会<b>改动已经确认的验收标准</b>（改了什么见下面的动态）。采用后按新标准继续；不采用就按原来确认的标准。在你决定之前不自动开工。',
     btns:B('naCcYes','采用客户的改动','primary')+B('naCcNo','不采用，按原标准','ghost')};
-  const hw=(t.links||{}).handwork;
+  const hw=(t.links||{}).handwork,memberFix=typeof accessCanMemberFix==='function'&&accessCanMemberFix(d.project.key)&&!accessCanExecute(d.project.key);
   if((t.links||{}).agent_request&&!['verify','closed'].includes(t.status))return {tone:'info',text:'<b>已接入 CLI / MCP。</b> 需求和沟通记录已保存，等待助手明确启动下一步。可从外部助手读取任务、留言交接、启动运行并查看证据；不会自动接收分支或把消息当作人工验收。'+(f.fx?' 已有实现结果，请在执行记录中核对测试与改动。':'')};
   const hwe=(d.events||[]).filter(e=>e.author==='我来写').pop();
   const hwr=(d.runs||[]).find(r=>r.mode!=='ask'),hwc=hwr&&hwr.agent==='人工'&&(d.events||[]).filter(e=>e.author==='我来写'&&e.kind==='flow'&&(e.data||{}).run===hwr.id&&['pass','fail','unknown'].includes((e.data||{}).verdict)).pop();
-  if(hw&&!['verify','closed'].includes(t.status)&&hwe&&hwe.kind==='flow'&&/^收到/.test(hwe.body||''))return {tone:'info',text:`<span class="spin"></span> ${h(hwe.body)}：构建测试、对照验收标准审查，通过就转待验证。`};
-  if(hw&&!['verify','closed'].includes(t.status)&&hwc&&['fail','unknown'].includes(hwc.data.verdict))return {tone:'bad',text:h(hwc.body),btns:B('naHwScan','改好推上去了，现在检查','primary')};
-  if(hw&&!['verify','closed'].includes(t.status))return {tone:'info',text:`<b>${h(hw)} 在写</b>：按开工包在自己电脑上改（Claude Code、Codex 或手写都行），提交到分支 <code>wb/${h(t.key)}</code> 推上去。平台一分钟内发现，自动构建测试、换一个模型对照验收标准审查，通过就转待验证；自动处理不会接这张单。`,
+  if(hw&&!memberFix&&!['verify','closed'].includes(t.status)&&hwe&&hwe.kind==='flow'&&/^收到/.test(hwe.body||''))return {tone:'info',text:`<span class="spin"></span> ${h(hwe.body)}：构建测试、对照验收标准审查，通过就转待验证。`};
+  if(hw&&!memberFix&&!['verify','closed'].includes(t.status)&&hwc&&['fail','unknown'].includes(hwc.data.verdict))return {tone:'bad',text:h(hwc.body),btns:B('naHwScan','改好推上去了，现在检查','primary')};
+  if(hw&&!memberFix&&!['verify','closed'].includes(t.status))return {tone:'info',text:`<b>${h(hw)} 在写</b>：按开工包在自己电脑上改（Claude Code、Codex 或手写都行），提交到分支 <code>wb/${h(t.key)}</code> 推上去。平台一分钟内发现，自动构建测试、换一个模型对照验收标准审查，通过就转待验证；自动处理不会接这张单。`,
     btns:B('naHwPack','下载开工包','primary')+B('naHwScan','推好了，现在检查','ghost')};
   const oa=(t.links||{}).open_ac;
   if(oa&&!(t.links||{}).hold&&!['verify','closed'].includes(t.status)&&!f.live)return {tone:'warn',text:`有 <b>${oa} 条验收标准还待确认</b>，答清楚之前不自动开始。把问题发给客户，客户答完验收标准自动补全${(S.meta.autoflow||{}).on?'、自动开始':''}；你已经和客户确认过，也可以直接交给自动处理。`,
@@ -531,6 +531,7 @@ function nextAction(d,f){
   if(t.status==='verify')return {tone:'warn',text:(f.fx&&f.fx.verify?vfy(f.fx)+' ':'')+(br?`改动${br.auto?'已自动':'已'}提交到分支 <code>${h(br.branch)}</code>（提交 ${h(br.commit)}，主干还没动）。`:'改动已就绪，')+'<b>等你验收</b>：按业务操作实际验证。'+(MERGE_ON()?'通过后自动合并进主干、出一个新版本；':'通过后由人合并分支；')+'不通过写明原因，退回重改。',acc:true};
   if(f.fx&&f.fx.decision&&f.fx.decision.startsWith('accepted'))return {tone:'info',text:`改动已提交到分支 <code>${h(f.fx.decision.slice(9).split('@')[0])}</code>。转给验收人${MERGE_ON()?'，验收通过后自动合并进主干':'，验收通过后由人合并'}。`,btns:B('naVerify','转待验证','primary')};
   if(['failed','cancelled'].includes(d.runs[0]?.status))return {tone:'bad',text:'最近一次'+h(moLabel(d.runs[0].mode))+'未完成。已有改动和执行记录保留，请查看停止原因后继续处理。',btns:B('naLog','查看停止原因与恢复入口','primary')};
+  if(hw&&memberFix){const mine=hw===(S.meta.user||S.user);return {tone:'info',text:`<b>${h(hw)} 已接手</b>。${mine?'在本站选择 Codex 并点击“修改代码”。完成后查看改动和检查结果，再交给复核人。':'由负责人在本站使用 Codex 修改代码，完成后交给复核人。'}人工验收仍需实际操作确认。`,btns:mine?B('naFix','用 Codex 修改代码','primary'):B('naLog','查看执行记录','ghost')}};
   if(f.pl&&f.pl.status==='done')return {tone:'info',text:'修改方案已经出来了（见下方结论）。下一步是改代码：可以交给智能体，也可以自己改完转待验证。',btns:B('naFix','让智能体改代码'+cost('fix'),'primary')+B('naVerify','我自己改，改完转待验证','ghost')};
   if(f.an&&f.an.status==='done')return {tone:'info',text:d.evidence.refs?`已定位到 ${d.evidence.refs} 处代码。下一步：起草修改方案，确认改法后再动代码。`:'分析没有找到代码证据，先在讨论里补充信息（单据号、截图、报错），再重新分析。',btns:d.evidence.refs?B('naPlan','起草修改方案'+cost('plan'),'primary')+B('naFix','直接改代码'+cost('fix'),'ghost'):B('naAn','重新分析定位'+cost('analyze'),'primary')};
   if(f.an&&f.an.status==='failed')return {tone:'bad',text:'上一次分析定位失败了（原因见执行记录）。',btns:B('naAn','重新分析定位'+cost('analyze'),'primary')+B('naLog','看失败原因','ghost')};
@@ -848,7 +849,8 @@ function evHtml(e){
   return `<div class="ev ${h(e.kind)}${isMachine(e.author)?' auto':''}"><div class="dot"></div><div class="grow" style="min-width:0"><span class="who">${h(e.author||'-')}</span> ${h(e.body)}${rr?` <a href="javascript:void 0" onclick="showRun(${rr})">#${rr}</a>`:''}<span class="when">${ago(e.ts)}</span>
   ${e.kind==='run-done'&&(e.data||{}).summary?`<div class="cbody sub">${h(e.data.summary.slice(0,220))}${e.data.summary.length>220?'…':''}</div>`:''}</div></div>`}
 async function loadRelated(t){
-  try{const r=await get('/api/tickets/'+t.key+'/related');const linked=((t.links||{}).flows)||[],ok=okFlows(S.cur);
+  const el=$('#rel');if(!el)return;const current=()=>$('#rel')===el&&S.cur?.ticket.key===t.key;
+  try{const r=await get('/api/tickets/'+t.key+'/related');if(!current())return;const linked=((t.links||{}).flows)||[],ok=okFlows(S.cur);
     const nm=Object.fromEntries(r.flows.map(f=>[f.id,f.name]));const name=f=>h(nm[f]||f.replace(/^flow:/,''));
     const row=(f,btns)=>`<div class="flowrow"><a class="fx" href="javascript:void 0" onclick="showFlow('${h(f)}')">${name(f)}</a><span class="fb">${btns}</span></div>`;
     const mine=linked.filter(f=>ok.has(f)),sugg=linked.filter(f=>!ok.has(f)),more=r.flows.filter(f=>!linked.includes(f.id));
@@ -860,7 +862,7 @@ async function loadRelated(t){
       +(r.pages.length?'<h3 style="margin-top:10px">知识页</h3>'+r.pages.slice(0,5).map(p=>`<div class="flowrow"><a class="fx" href="#/kb/${encodeURIComponent(p.id)}">${h(p.title)}</a><span class="tag">${h(p.status)}</span></div>`).join(''):'');
     if(mr.length||extra)html+=`<details class="more" style="margin-top:10px"><summary>其他可能相关${mr.length?' · 业务流 '+mr.length+' 条':''}${r.tables.length?' · 表 '+r.tables.length+' 张':''}</summary>${mr.join('')}${extra}</details>`;
     if(!linked.length&&!more.length&&!r.tables.length&&!r.pages.length)html='<div class="sub">知识库里没找到相关内容（或这个项目还没有知识库）。</div>';
-    $('#rel').innerHTML=html}catch(e){$('#rel').textContent=e.message}}
+    el.innerHTML=html}catch(e){if(current())el.textContent=e.message}}
 async function confirmFlows(key,fs){try{await post('/api/tickets/'+key,{confirm_flows:fs||'*'});vTicket(key)}catch(e){toast(e.message)}}
 async function linkFlow(key,f,on){try{await post('/api/tickets/'+key,on?{link_flow:f}:{unlink_flow:f});vTicket(key)}catch(e){toast(e.message)}}
 async function showContext(){const r=await get('/api/tickets/'+S.cur.ticket.key+'/context');modal('<h2>智能体看到的知识库上下文</h2><div class="sub">每次运行都会把它和工单一起交给智能体，让它从这些业务流、表和代码位置开始，而不是通读仓库。</div>'+md(r.text),true)}
@@ -1108,10 +1110,10 @@ async function pvLoad(key){const el=$('#pvc'),top=$('#ttPv');if((!el&&!top)||S.c
   if(s==='starting')setTimeout(()=>{if(current())pvLoad(key)},4000)}
 
 // ---------- 我来写: a person writes it (by hand or with their own tools); the platform checks it like any change
-async function hwLoad(d){const el=$('#hwc'),t=d.ticket;if(!el||t.status==='closed')return;
+async function hwLoad(d){const el=$('#hwc'),t=d.ticket;if(!el||t.status==='closed'||(S.meta?.access&&!accessCanExecute(d.project.key)))return;
   if((t.links||{}).agent_request){el.hidden=false;el.innerHTML='<h2>CLI / MCP 交接</h2><div class="sub">本工单由外部助手接续。沟通与执行记录共享；分支自动接收未启用。人工复核与验收继续使用当前证据和明确决定。</div>';return}
   let w;try{w=await get('/api/tickets/'+t.key+'/starter')}catch(e){return}
-  if(!$('#hwc'))return;const pk=t.key.split('-')[0];el.hidden=false;
+  if($('#hwc')!==el)return;const pk=t.key.split('-')[0];el.hidden=false;
   const mine=(t.links||{}).hold;
   el.innerHTML=`<div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">我来写</h2>${mine?`<span class="ev-tag info">${h(mine)} 在写</span>`:'<button class="primary" id="hwClaim">认领：我来写</button>'}</div>
    <div class="sub">自己写，或者用自己的 AI 工具写。${w.remote?`推到分支 <code>${h(w.branch)}</code>，平台${w.heartbeat==='auto'?'一分钟内':'点“现在检查”后'}会自己发现`:'把补丁传上来，平台会'}，构建测试、换一个模型对照验收标准审查，通过就转给验收人。</div>

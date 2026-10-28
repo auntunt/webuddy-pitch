@@ -63,6 +63,31 @@ const stale={...c,current:false,partial_diagnostic:{actor:'alice',updated:'now',
 assert.match(teamDiagnosticPanel({ticket:{key:'JB-7'},candidate:stale}),/历史结果：候选依据已变化/);
 """)
 
+    def test_team_workspace_uses_only_visible_projects_for_members(self):
+        self.run_js(r"""
+globalThis.scopeQ=()=>S.scope;globalThis.ls={set(){}};location.hash='#/team/team';
+S.scope='*';S.proj='HIDDEN';S.meta.access.role='member';
+let projects=[{key:'JB',name:'开发项目'},{key:'PPT',name:'演示项目'}];
+const empty={viewer:'alice',members:[],items:[],counts:{mine:0,team:0,review:0,unassigned:0},boundary:'',has_more:false};
+getHandler=url=>url==='/api/projects'?projects:empty;
+await vTeam('team');assert.equal(S.scope,'JB');assert.equal(S.proj,'JB');
+assert.deepEqual(requests,['/api/projects','/api/team?view=team&project=JB']);
+assert.equal($('#team-project').value,'JB');assert.ok(!$('#team-project').textContent.includes('所有项目'));
+$('#team-project').value='PPT';await $('#team-project').fire('change');await new Promise(setImmediate);
+assert.equal(S.scope,'PPT');assert.ok(requests.includes('/api/team?view=team&project=PPT'));
+projects=[];requests.length=0;await vTeam('team');assert.deepEqual(requests,['/api/projects']);assert.match(main.textContent,/尚未获得项目访问权限/);
+projects=[{key:'JB',name:'开发项目'}];S.meta.access.role='admin';S.scope='*';requests.length=0;await vTeam('team');
+assert.ok(requests.includes('/api/team?view=team&project=*'));assert.ok($('#team-project').textContent.includes('所有项目'));
+""")
+
+    def test_team_ticket_lookup_does_not_wire_departed_page(self):
+        self.run_js(r"""
+globalThis.scopeQ=()=>S.scope;globalThis.ls={set(){}};location.hash='#/team/team/JB-41';S.scope='*';S.meta.access.role='member';
+const pending=later();getHandler=url=>url==='/api/projects'?[{key:'JB',name:'开发项目'}]:url.includes('&ticket=')?pending.promise:{viewer:'alice',members:[],items:[],counts:{},boundary:''};
+const loading=vTeam('team','JB-41');await new Promise(setImmediate);location.hash='#/tickets';main.innerHTML='工单列表';pending.resolve({items:[]});await loading;
+assert.equal(main.textContent,'工单列表');
+""")
+
     def test_default_paths_storage_and_api_remain_compatible(self):
         self.run_js(r"""
 assert.equal(appPath('/api/projects'),'/api/projects');localStorage.setItem('tmh.draft.7','old');assert.equal(ACCESS_RAW_LOCAL.getItem('tmh.draft.7'),'old');
