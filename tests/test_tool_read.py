@@ -32,8 +32,12 @@ def seed_candidate(store, ticket, summary='完整历史\r\n' * 1000):
 @contextmanager
 def no_live_effects(store):
     """Audit actual leaf effects; fail even if a caller catches the exception."""
-    events, active = [], [True]
+    events, active, owner = [], [True], threading.get_ident()
     def audit(event, args):
+        # The audit hook is process-wide; ignore threads leaked by other tests.
+        # Reads may not start threads of their own (see start below).
+        if threading.get_ident() != owner:
+            return
         prohibited = event in ('subprocess.Popen', 'os.system', 'os.kill', 'os.killpg', 'os.posix_spawn', 'os.fork', 'os.forkpty', 'socket.connect', 'socket.getaddrinfo',
                                'fcntl.flock', 'os.mkdir', 'os.remove', 'os.rename', 'os.rmdir')
         if event == 'open':
@@ -52,8 +56,15 @@ def no_live_effects(store):
             return 1
         return 0
     store.db.set_authorizer(authorize)
+    original_start = threading.Thread.start
+    def start(thread, *args, **kwargs):
+        if active[0] and threading.get_ident() == owner:
+            events.append('thread.start')
+            raise AssertionError('tool read attempted thread.start')
+        return original_start(thread, *args, **kwargs)
     try:
-        yield events
+        with patch.object(threading.Thread, 'start', start):
+            yield events
     finally:
         active[0] = False
         store.db.set_authorizer(None)
