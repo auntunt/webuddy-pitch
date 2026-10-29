@@ -1,38 +1,59 @@
-# tmh：传统 toB 软件项目维护 harness
+# Webuddy / tmh：AI-native 的老项目运维平台
 
-> **交接状态（2026-10-21，v0.4.0）**：`affe0a2` 已完成生产发布与基础验证，转入**真实业务验收**阶段。
-> 是否需要继续开发、部署步骤、验证清单、已知限制与"由数据触发"的下一轮开发优先级：
-> **→ [当前状态与下一步（docs/NEXT-STEPS.md）](docs/NEXT-STEPS.md)**
-> 部署手册：[docs/DEPLOY.md](docs/DEPLOY.md) · 变更日志：[CHANGELOG.md](CHANGELOG.md)
-> 本次上线与数据保全证据：[生产发布验证](audit/production-deployment-2026-10-21.md)
+面向国内 toB 软件公司长期维护的 Java / .NET 业务系统（OA、ERP、CRM、财务、政务审批等）。它由两部分组成：
 
-**Webuddy CLI / MCP 已提供工作台入口：** 编程助手可读取需求与证据、沟通交接、启动受控运行及查看候选预览。见 [CLI、Claude Code、Cursor、Codex 接入说明](docs/workbench-agent.md)。
+- **tmh 工具链（CLI + MCP）**：装在 Codex / Claude Code 上的维护 harness。先对整个项目做一次确定性分析，沉淀成项目知识库（知识图谱 + Wiki），之后每个任务先查知识库、只读相关代码，改完由独立验证把关，增量更新知识库。可接 DeepSeek、Kimi、GLM、Qwen 等国产模型。
+- **Webuddy 平台（`tmh serve`）**：和 Jira、禅道同级的运维工单平台。工单直接连着业务知识库，内置 Codex / Claude Code，支持多租户与团队、项目成员隔离开发、个人复核与正式验收、候选预览、证据包与甲方签收。
 
-装在 Codex / Claude Code 上的一套“老项目维护工作台”，可以接 DeepSeek、Kimi、GLM、Qwen 等国产模型。适用对象是国内 toB 软件公司长期维护的 Java / .NET 业务系统，比如 OA、ERP、CRM、财务和政务审批。
+核心原则：能确定的事交给工具，需要判断的事才交给模型；事实与理解分开标注；AI 备齐证据，验收和关单只由人做。
 
-这类项目的维护难点几乎都一样：
+> 当前状态、已知限制与下一轮优先级：[docs/NEXT-STEPS.md](docs/NEXT-STEPS.md) · 部署：[docs/DEPLOY.md](docs/DEPLOY.md) · 变更日志：[CHANGELOG.md](CHANGELOG.md) · 历次上线验证：[audit/](audit/)
 
-- 写代码的人已经离开，文档早就过期了；
-- 一个按钮背后到底发生了什么，没有人说得清；
-- 改了这里，别处坏了。
+## 能力一览
 
-tmh 的做法和资深工程师接手项目一样：**先对整个项目做一次统一分析，把理解沉淀成项目知识库**（知识图谱 + Wiki），之后每个任务先查知识库、只读相关代码，改完再增量更新知识库。这样结论有据可查，也不用每次都通读项目、重复花 token。改代码时先弄清业务流，改完由独立验证把关，整个分析过程都留有记录，可以直接拿给开发和业务方看。
+| 场景 | 说明 | 文档 |
+|---|---|---|
+| 运维工单平台 | 工单列表与看板、业务全景、知识库；在工单上让智能体分析定位、出方案或在独立工作树里改代码，人审阅后采纳 | [platform.md](docs/platform.md) |
+| 多租户与团队 | 平台所有者、租户、成员与项目授权；共享令牌和显示名不能代替个人账号 | [tenant-access.md](docs/tenant-access.md)、[team-pilots.md](docs/team-pilots.md) |
+| 项目执行与候选预览 | 每个项目独立的 Codex 路由与配置；成员在隔离工作区开发，候选自动测试/构建并提供隔离预览 | [codex-project-route.md](docs/codex-project-route.md)、[project-library.md](docs/project-library.md) |
+| 编程助手接入 | Webuddy CLI / MCP：读取需求与证据、沟通交接、启动受控运行、查看候选预览 | [workbench-agent.md](docs/workbench-agent.md)、[task-handoffs.md](docs/task-handoffs.md) |
+| 项目知识库 | 工具抽出知识图谱（入口、调用、SQL、表、状态机），智能体自底向上写业务流 → 业务域 → 系统总览，每页带证据、经人确认 | [knowledge-base.md](docs/knowledge-base.md) |
+| 新需求与改动 | 变更契约 → 特征测试 → 最小改动 → 独立验证，按改动行算出触及的业务流 | [agent-commands.md](docs/agent-commands.md) |
+| 验收闭环 | 没有验收标准不进实现；L1–L4 分层验收；入口路径检查拦住“没接上入口”的假绿；关单只认用户确认 | [acceptance.md](docs/acceptance.md) |
+| 证据流 | 转待验证时自动打证据包（追加式哈希链），甲方用一次性链接逐条签收或退回，账本自动生成 | [evidence-flow.md](docs/evidence-flow.md) |
+| 经验与学习 | 经验卡片人工决定、组织知识与开发习惯、学习实验 | [lesson-decisions.md](docs/lesson-decisions.md)、[knowledge-learning.md](docs/knowledge-learning.md) |
+| 运维工具接入 | Jira、禅道、GitLab、Jenkins、SonarQube、Confluence、钉钉/飞书/企业微信，及配置或插件接入的任何工具 | [integrations.md](docs/integrations.md) |
+| 改造升级 | 信创、.NET Framework → .NET 8、JDK 升级：规则扫描、分波次方案、工作项台账 | — |
 
-## 能做什么
+## 快速开始
 
-| 场景 | 产出 |
-|---|---|
-| **运维工单平台** | `tmh serve` 启动网页平台，和 Jira、禅道同级：工单列表与看板、业务全景、知识库，内置 Claude Code 和 Codex。工单直接连着知识库里的业务流和表，点一下让智能体分析定位、出方案或在独立工作树里改代码，改动经人审阅后采纳。详见 [docs/platform.md](docs/platform.md) |
-| **接手项目，统一分析** | 项目知识库：工具从代码抽出知识图谱（入口、调用、SQL、表、状态机、模块依赖），自动划分业务域；智能体按任务队列自底向上写 业务流 → 业务对象 → 模块 → 业务域 → 系统总览，每页带证据、经人确认。详见 [docs/knowledge-base.md](docs/knowledge-base.md) |
-| **日常维护** | `tmh context "<需求>"` 取出相关的知识页、业务流、表和代码位置，模型先看它再动手；代码改动后只有受影响的知识页被标为过期并排进修订队列 |
-| **接手项目、讲解系统** | 业务流报告：每个入口 → 业务逻辑 → 数据访问 → 表的调用链、状态流转图、业务 × 表矩阵、代码里的校验规则。左边是工具抽取的事实（带文件:行号），右边是用业务语言写的说明（需要人确认） |
-| **在老项目上实现新需求** | 变更契约（要改变什么、必须保持什么、验收方式、受影响的业务流）→ 特征测试 → 最小改动 → 独立验证，最后按改动行算出实际触及了哪些业务流 |
-| **验收闭环（补上“写得快、不敢合”的那一层）** | 验收状态机：没有验收标准不进实现，关单只认用户确认；验收标准按 L1–L4 分层（契约核对、独立复验、部署后回测、人工确认）；入口路径检查拦住“写了一套却没接上入口”的假绿；实现和独立验收分开。详见 [docs/acceptance.md](docs/acceptance.md) |
-| **证据流（AI 备齐证据、人签字、账本自动出）** | 工单转待验证时自动打证据包（AC、方案、改动、构建测试、范围和业务流检查），追加式哈希链，改一条就对不上；甲方确认人用一次性链接在零代码签收页逐条确认、签收或写原因退回；基线开工前封存一次，没有封存基线不出对比数；账本每单记周期、返工、AI 运行、点数折人民币（标价和实付分列）；给开源项目提的 PR 跟踪到维护者合并，作为第三方验收。详见 [docs/evidence-flow.md](docs/evidence-flow.md) |
-| **接团队的运维工具** | Jira、禅道、GitLab、Jenkins、SonarQube、Confluence、钉钉/飞书/企业微信，以及用配置或插件接的任何工具。工单 → 相关业务流和代码 → 任务契约；构建失败 → 出错代码 → 业务流；Sonar 问题按业务流分组。智能体通过 MCP 直接调用。详见 [docs/integrations.md](docs/integrations.md) |
-| **改造升级**（信创、.NET Framework → .NET 8、JDK 升级） | 规则扫描、分波次方案、工作项台账；信创是其中的一个场景包 |
+环境：CLI 只依赖 Python 3.8+ 标准库；平台里的项目 Codex 执行需要 Python 3.11+（读取 TOML 配置）。
 
-所有分析过程都会进入报告的“分析过程”页，包括智能体每一步读了什么、执行了什么、改了什么，它记下的发现、决定和疑问，以及变更契约和验证结果。
+**路径一：装进项目，在 Codex / Claude Code 里用**
+
+```sh
+# 插入 AGENTS.md/CLAUDE.md 区块（不覆盖原内容），装好技能、子代理、钩子和 MCP
+python3 /path/to/webuddy-pitch/tmh.py install --repo /path/to/legacy-project --git-hook
+
+cd /path/to/legacy-project
+X="python3 .tmh/tool/tmh.py"
+$X kb build && $X baseline --with-tests   # 知识图谱 + Wiki 骨架，记录基线
+$X report --open                          # 生成并打开业务全景报告
+codex                                     # 或 claude
+```
+
+进入智能体后可以直接说：“接手这个项目，做全项目分析，建立知识库”（`legacy-onboard`）、“梳理这个系统的业务流”（`business-flow`）、“请假列表要能按审批状态筛选”（`legacy-feature`）。
+
+**路径二：启动平台**
+
+```sh
+cd /path/to/legacy-project                # 已运行过 tmh kb build
+python3 .tmh/tool/tmh.py serve --key TOG --open           # 默认只在本机 127.0.0.1:8790
+TMH_TOKEN=<随机串> python3 .tmh/tool/tmh.py serve --host 0.0.0.0   # 团队使用必须带令牌
+python3 .tmh/tool/tmh.py user add <账号>                  # 有账号后网页改为账号密码登录
+```
+
+多租户、生产部署和升级见 [docs/tenant-access.md](docs/tenant-access.md) 与 [docs/DEPLOY.md](docs/DEPLOY.md)。也可以 `pip install .` 后使用 `tmh` 和 `webuddy` 两个命令。
 
 ## 项目知识库
 
@@ -102,27 +123,7 @@ tmh context "<需求原文>"        # 每个任务开始先运行：相关知识
 - **能确定的事交给工具，需要判断的事才交给模型**：调用链、SQL、状态变化、影响范围都由工具确定性地抽取，附带文件和行号。这样模型能力弱一些也能用，结论人可以复查。
 - **事实与理解分开**：工具抽取的是事实；业务说明由智能体起草，标【推断】【待确认】，人看过之后才能改成“已确认”。
 - **不能靠改测试让结果变绿**：基线测试和验证配置由钩子锁住，`verify` 还会再查一遍。
-- **离线可用**：只依赖 Python 3.8+ 标准库。安装时工具会复制到目标仓库的 `.tmh/tool/`，内网和国产服务器上都能跑。
-
-## 快速开始
-
-```sh
-# 安装到目标项目：插入 AGENTS.md/CLAUDE.md 区块，不覆盖原有内容；同时装好 Codex 和 Claude 的技能、子代理、钩子
-python3 /path/to/tob-maintenance-harness/tmh.py install --repo /path/to/legacy-project --git-hook
-
-cd /path/to/legacy-project
-X="python3 .tmh/tool/tmh.py"
-$X kb build && $X baseline --with-tests   # 知识图谱 + Wiki 骨架，记录基线
-$X report --open                          # 生成并打开可视化报告
-codex                                # 或 claude
-```
-
-进入智能体后可以直接说：
-
-- “接手这个项目，做全项目分析，建立知识库”（`legacy-onboard`）
-- “梳理这个系统的业务流，出一份报告”（`business-flow`）
-- “请假列表要能按审批状态筛选”（`legacy-feature`）
-- “做一次信创评估，目标达梦 + 麒麟 + 鲲鹏”（`xinchuang-assess`），这一项需要先运行 `tmh init --target-db dm8 ...`
+- **离线可用**：CLI 只依赖 Python 3.8+ 标准库（平台里的项目 Codex 执行需要 3.11+）。安装时工具会复制到目标仓库的 `.tmh/tool/`，内网和国产服务器上都能跑。
 
 ## 接国产模型
 
@@ -186,43 +187,27 @@ $X build failure             # 最近一次失败构建 → 出错的项目代�
 | `mcp` | 以 MCP 服务方式运行（install 已配置好） |
 | `serve [--port 8790] [--key TOG] [--open]` | 启动运维平台网页：工单、看板、业务全景、知识库，内置 Claude Code / Codex |
 
-## 已验证与未验证
+## 开发与测试
 
-最新基线（2026-10-21，`affe0a2`）：Linux 生产服务器全量 **1013 passed / 14 skipped，326 subtests passed**；28 项上线读取检查通过。14 项跳过依赖可选 MCP SDK。完整结果与仍待完成的真实业务验收见 [生产发布验证](audit/production-deployment-2026-10-21.md)。下方保留项目早期的用例数量、端到端运行与验证边界，早期 65 个用例不代表当前全量规模。
+```sh
+python -m pip install pytest
+python -m pytest tests -q -p no:cacheprovider
+```
 
-已验证：
+CI（`.github/workflows/ci.yml`）在 Linux / macOS / Windows 上跑全量测试和安装包冒烟。测试数量随版本变化，不在这里写死；每次上线的实测结果记在 [audit/](audit/)。部分用例依赖可选的 MCP SDK、Git 2.38+ 等环境，缺失时跳过或给出提示。
 
-- 本仓库 `tests/` 中的 65 个用例在 Python 3.8 和 3.13 下全部通过，覆盖：
-  - 知识库：图谱与业务域划分、按文件缓存、页面校验、代码改动只让受影响页面过期、自底向上的任务队列与并行领取、业务域手工调整的保留、按需检索、报告知识库页签
-  - 业务流抽取（Spring + MyBatis、ASP.NET MVC + ADO.NET、Go：gin + GORM）
-  - 状态机推导、改动行到业务流的映射
-  - 报告渲染
-  - Codex 风格的 `apply_patch` 和 shell 钩子拦截、工具调用记录
-  - 安装幂等
-  - 运维平台：工单生命周期、接口与访问保护、工单关联业务流、用替身智能体跑通“分析 → 在独立工作树修改 → 采纳提交到分支”，且不碰用户工作目录
-  - 验收闭环（`tests/test_acceptance.py`）：没有 AC 拒绝开工、入口路径检查拦住没接上入口的平行实现、只改测试/配置不算接上、只有人能确认和关单（智能体会话与钩子双重拦截）、平台不能直接改成“已关闭”、方案没有 AC 不进入自动改代码
-  - 运维工具接入（用模拟 HTTP 服务器）：每个内置适配器、凭据只走环境变量、演练与确认、插件、通用适配器、构建失败定位、工单转契约、MCP 服务
-- Claude Code 2.1 中做过两次端到端运行：
-  - 加载技能、实现一个新需求的完整流程（`docs/e2e-run.md`）
-  - 用 `business-flow` 技能梳理业务流并生成报告（`docs/e2e-business-flow.md`）
-  - 通过 MCP 调用 tmh 的运维工具（模拟的 Jira 和 Jenkins）：从工单 OA-7 和一次失败构建定位到同一条业务流，5 轮，$0.06，见 `docs/e2e-integrations.md`
-  - 全项目分析（3 个 kb-writer 子代理并行，21 页，约 3.5 分钟，$1.39），以及改一个方法后的增量维护（只修订受影响的 4 个页面，56 秒，$0.27），见 `docs/e2e-knowledge-base.md`，产出的知识库在 `docs/e2e-knowledge-base/`
+## AI 记忆与接续文件
 
-未验证：
+这个项目主要由 AI 编程助手迭代开发，下面这些文本是助手跨会话的记忆，移动、改名或删除前要先确认引用关系：
 
-- **平台里真实调用 Claude Code / Codex**：命令行参数按两者文档拼装，测试用的是替身智能体，首次在本机使用请先在一张工单上试“分析定位”。
-- **Codex 下的实际运行**：钩子按 Codex 文档的格式生成，但还没有在 Codex 里实际跑过。
-- **真实运维工具**：还没有连过真实的 Jira、Jenkins、禅道等实例，接口是按各家文档写的，首次接入请先跑 `tmh int test`。
-- **验收闭环在真实项目上的效果**：入口路径检查只在样例项目和测试里跑过。前端为主的项目（如 JeecgBoot 的 Vue 改动）没有调用链图谱，前端改动只会列给人确认；L3 部署事件自动推进还没有做（见 docs/acceptance.md 第 6、11 节）。
-- **国产模型的效果**：各家模型在这套流程下的表现还没有测过。
-- **大项目性能**：合成的 9.4 万行 Java 项目（1,500 个接口）首次构建约 11 秒，无改动重建约 8 秒；几十万行真实项目还没测。
-- **真实大项目上的抽取质量**：几十万行的真实项目上，抽取覆盖率和误差还不清楚。静态分析看不到这些：
-  - 反射和动态 SQL
-  - 配置驱动的路由
-  - 存储过程的内部逻辑
-  - JSP/前端里的业务规则
-
-  报告里“未能解析的调用”一栏会把看不到的部分列出来。
+| 文件 | 作用 |
+|---|---|
+| [AGENTS.md](AGENTS.md) | 本仓库的开发、发布和安全约定，助手开工必读 |
+| [docs/self-improvement/ralph-port-progress.md](docs/self-improvement/ralph-port-progress.md) | 接续记忆：长期有效的约定与边界 + 最近几轮记录，新记录追加在末尾 |
+| [docs/self-improvement/progress-archive/](docs/self-improvement/progress-archive/) | 更早的进度记录，按阶段原样归档，需要时再查 |
+| [STATUS.md](docs/self-improvement/STATUS.md)、[BACKLOG.md](docs/self-improvement/BACKLOG.md) | 自进化循环的接续基线、用户划定的边界和 SI 待办 |
+| [docs/dead-ends.md](docs/dead-ends.md) 与 4 份 `verification-*.md` | 已知死路和替代做法；列在 `tmh/resources.py` 中，随工具安装到目标项目 |
+| `docs/self-improvement/verification-*.md`、`evidence/` | 各轮验证记录和原始证据；`evidence/` 也被测试当作样例读取，不能直接移走 |
 
 ## 与原维护交付工作台（webuddy maintenance-harness）的关系
 
@@ -234,22 +219,25 @@ $X build failure             # 最近一次失败构建 → 出错的项目代�
 ## 目录
 
 ```
-tmh/            工具源码（graph.py 知识图谱，domains.py 业务域，kb.py Wiki 与任务队列，context.py 检索，
-                flow.py 业务流抽取，codeindex.py 代码索引，parsecache.py 解析缓存，explorer.py 业务全景报告，buildinfo.py 项目构建分析，webreport.py 旧版报告，
-                integrations/ 运维工具适配器与知识库关联，opscli.py 相关命令，mcp.py MCP 服务）
+tmh/            工具源码：知识图谱与 Wiki（graph.py、kb.py、context.py）、业务流抽取（flow.py）、
+                报告（explorer.py）、运维工具适配器（integrations/）、MCP（mcp.py）、
+                Webuddy CLI / MCP（workbench.py、workbench_mcp.py）
+tmh/platform/   Webuddy 平台：服务端、页面、租户与团队、项目执行、候选、证据与签收
 tmh/rules/      改造规则（信创等）
 kb/             信创知识库
-skills/         技能（安装到 .agents/skills 与 .claude/skills）
-agents/         子代理（安装为 .claude/agents/*.md 与 .codex/agents/*.toml）
-templates/      AGENTS.md / CLAUDE.md 区块
-examples/       Java（Spring + MyBatis：请假、报销、用户三个业务域）与 .NET（MVC + WCF）样例
-tests/          python3 -m unittest discover -s tests
-docs/           端到端运行记录与样例报告
+skills/ agents/ templates/   安装到目标项目的技能、子代理和 AGENTS.md / CLAUDE.md 区块
+examples/       Java（Spring + MyBatis）与 .NET（MVC + WCF）样例
+tests/          pytest 测试
+scripts/ tools/ 部署、冒烟和实验脚本
+docs/           功能说明、端到端记录；docs/self-improvement/ 为 AI 记忆与验证记录
+audit/          历次生产发布与勘误记录
 ```
 
-## Webuddy 汇报材料
+## 汇报材料
 
-- `Webuddy-产品介绍（甲方版）.pptx`：给甲方和投资人的产品介绍，21 页
-- `src/`：生成脚本（python-pptx），`python3 src/build_deck_产品版.py 输出.pptx` 重新生成
-- `src/img/`、`截图-新/`：平台界面截图
+- `Webuddy-产品介绍（甲方版）.pptx`：给甲方和投资人的产品介绍；`src/build_deck_产品版.py` / `src/build_deck_模块版.py` 重新生成（python-pptx）
+- `老项目运维提效-立项汇报.pptx`、`运维智能体-立项汇报（业务版）.pptx`、`老项目运维提效-工作拆解树（立项稿）.md`：立项材料
+- `平台工作原理图.pptx`、`应用场景页-四个版本.pptx` 及对应预览图；`总体架构图-图片生成提示词*.md`
+- `截图-新/`、`src/img/`：平台界面截图
 - `PPT写作规则（去AI味）.md`：写作约定
+- `重构实测/`：RealWorld 跨语言重写实测报告
