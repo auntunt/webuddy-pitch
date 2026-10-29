@@ -121,7 +121,14 @@ class ManagedCandidateAuthorTest(unittest.TestCase):
             for user in ('reader','outsider'):
                 with self.subTest(action=action,user=user),self.assertRaises(ApiError):
                     policy.authorize(fixture.P,'POST','/api/team',{},body,user)
-        for action in ('candidate_verify','candidate_merge','candidate_preview','candidate_submit'):
+        # 4e8b92c: isolated member verification and controlled merge use the personal project_git path.
+        for action in ('candidate_verify','candidate_merge'):
+            body={'action':action,'ticket':fixture.ticket['key'],'candidate_id':fixture.cid}
+            self.assertEqual(policy.authorize(fixture.P,'POST','/api/team',{},body,'bob')['allowed_project_keys'],['TEAM'])
+            for user in ('reader','outsider'):
+                with self.subTest(action=action,user=user),self.assertRaises(ApiError):
+                    policy.authorize(fixture.P,'POST','/api/team',{},body,user)
+        for action in ('candidate_preview','candidate_submit'):
             with self.subTest(action=action),self.assertRaises(ApiError):
                 policy.authorize(fixture.P,'POST','/api/team',{},
                     {'action':action,'ticket':fixture.ticket['key'],'candidate_id':fixture.cid},'bob')
