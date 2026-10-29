@@ -1,5 +1,6 @@
 """External commits traverse real isolated verification before acceptance."""
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -110,6 +111,7 @@ class ExternalCandidateTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.P.runner.decide(run["id"], "accept", "fixture-human")
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_real_verification_binds_full_candidate_and_preserves_run(self):
         a = self.submit(); before = self.P.store.run(a["run_id"])
         v = self.verify(a["candidate_id"])

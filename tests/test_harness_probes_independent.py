@@ -106,6 +106,7 @@ class HarnessProbeIndependentTest(unittest.TestCase):
         self.assertEqual((target / "app.py").read_bytes(), source,
                          "probe must execute the same blob bytes as the fixed candidate")
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_optimized_python_cannot_turn_broken_search_into_a_pass(self):
         fixture = Path(__file__).parent / "fixtures/bootv2-search/app.py"
         original = fixture.read_text()
@@ -134,6 +135,7 @@ class HarnessProbeIndependentTest(unittest.TestCase):
         self.assertFalse(accepted, "broken literal search became a false pass under PYTHONOPTIMIZE=1: "
                          + json.dumps(report, ensure_ascii=False))
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_timeout_preserves_application_output_without_a_final_newline(self):
         # Readiness succeeds, but the HTTP response never arrives. The app's
         # flushed non-UTF8 tail must survive killing the probe and its child.
