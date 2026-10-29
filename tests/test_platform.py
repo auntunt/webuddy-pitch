@@ -2452,7 +2452,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
     def test_a_big_requirement_goes_from_a_spec_to_children_in_batches_and_an_overall_acceptance(self):
         """Spec card, parent and children, batches on acceptance, a pause, the whole accepted, a rejected whole redone."""
         from unittest import mock
-        from tmh.platform import epic, release, signoff
+        from tmh.platform import release, signoff
         key = self.project()
         self.untrain()  # children wait for people; the feature-level loop is under test
         for text, big in (("大需求量的导出会超时，不对", False), ("大需求：请假单支持按小时请假", True)):  # said with a separator only

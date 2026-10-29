@@ -2,7 +2,6 @@
 import copy
 import json
 import os
-from pathlib import Path
 import unittest
 from tests import test_rsi_native_registered as N
 from tests.sqlite_snapshot import dump_store

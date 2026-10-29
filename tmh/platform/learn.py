@@ -41,7 +41,7 @@ from .agents import git, pick_model, load_config, build_prompt
 from . import filelock
 from .store import now
 from . import lesson_input
-from .lesson_input import own_words, _grams, overhead_flags
+from .lesson_input import own_words, _grams, overhead_flags  # noqa: F401  (re-exported for memory.py)
 
 LESSONS = "lessons.jsonl"
 _LOCK = threading.RLock()

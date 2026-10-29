@@ -12,7 +12,6 @@ import hashlib
 import json
 import math
 import re
-import sqlite3
 import sys
 import time
 import uuid

@@ -15,7 +15,6 @@ from collections import Counter
 from pathlib import Path
 
 from .errors import ApiError
-from .store import now
 
 
 class Knowledge:

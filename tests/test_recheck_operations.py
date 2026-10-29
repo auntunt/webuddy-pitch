@@ -1,7 +1,5 @@
 """Independent operation rows and real supervised commands, never model calls."""
-import json
 import os
-import signal
 import subprocess
 import sys
 import tempfile
@@ -9,7 +7,6 @@ import threading
 import time
 import unittest
 from pathlib import Path
-from unittest import mock
 
 from tmh.platform.recheck_operations import Operations, read_status, source_guard
 from tmh.platform.store import Store, now

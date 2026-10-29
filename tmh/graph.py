@@ -34,7 +34,7 @@ LAYER_WORDS = {"controller", "controllers", "service", "services", "impl", "web"
                "mappers", "repository", "repositories", "api", "job", "jobs", "task", "tasks", "entity", "entities", "model",
                "models", "domain", "dto", "vo", "po", "bo", "util", "utils", "common", "core", "config", "handler", "handlers",
                "listener", "listeners", "data", "biz", "manager", "facade", "provider", "rest", "endpoint", "servlet", "main",
-               "java", "src", "com", "cn", "org", "net", "www", "app", "data"}
+               "java", "src", "com", "cn", "org", "net", "www", "app"}
 
 
 def _h(*parts) -> str:

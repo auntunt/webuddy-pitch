@@ -446,7 +446,7 @@ def browser_decide(P, user, args, mutation=lambda: None):
 
 def browser_review_current(P, cid):
     """Whether the current human verdict belongs to the current team assignment."""
-    from . import team, login
+    from . import team
     decision = P.store.one("SELECT * FROM candidate_decisions WHERE candidate_id=? ORDER BY id DESC LIMIT 1", (cid,))
     if not decision:
         return False

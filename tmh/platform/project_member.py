@@ -10,7 +10,7 @@ from pathlib import Path
 
 from . import candidates, filelock, project_job, project_snapshot, team
 from .agent_api import _requirement
-from .agents import StreamParser, code_at, learning_context_current, record_session_context, member_route_binding
+from .agents import StreamParser, learning_context_current, record_session_context, member_route_binding
 from .project_mcp import BoundJob
 from .project_library import run_current
 from .store import now

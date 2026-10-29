@@ -1,6 +1,6 @@
 """小型版式工具：统一字体、颜色、页眉页脚，所有图形都是可编辑的 PowerPoint 形状。"""
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
+from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE, MSO_CONNECTOR
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR

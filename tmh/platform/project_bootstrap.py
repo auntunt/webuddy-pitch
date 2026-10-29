@@ -11,7 +11,6 @@ import shlex
 import subprocess
 import sys
 import threading
-from pathlib import Path
 
 from .. import config
 from .errors import ApiError

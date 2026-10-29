@@ -13,8 +13,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from tmh import context  # Preload read-only search code before auditing leaf effects.
-from tmh.platform import agent_api, candidates, project_library, tenant_policy, tool_access, tool_read
+from tmh.platform import agent_api, tenant_policy, tool_access
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
 from tests.sqlite_snapshot import dump_store as snapshot
@@ -99,7 +98,6 @@ class NoLiveEffectsContractTests(unittest.TestCase):
 
 class ToolReadTests(unittest.TestCase):
     def setUp(self):
-        from tmh.platform import server  # Module import/cache is startup, not a business read.
         self.temp = tempfile.TemporaryDirectory(prefix='tmh-tool-read-')
         self.addCleanup(self.temp.cleanup)
         self.data = Path(self.temp.name)
@@ -513,7 +511,6 @@ class ToolFixedLibraryReadTests(unittest.TestCase):
         revision = self.build(p)
         P = SimpleNamespace(store=self.store, data_dir=self.store.path.parent)
         req = SimpleNamespace(user='alice')
-        from tmh.platform import server
         with patch.object(tenant_policy, 'enabled', return_value=True), \
              patch.object(tenant_policy, 'identity', return_value={'tool_connection': {'scope': 'read'}}), \
              patch.object(tenant_policy, 'visible_projects', return_value=[p]):

@@ -1,6 +1,5 @@
 """A quality-stage reader must inspect the adopted candidate, never the moving main tree."""
 import json
-import subprocess
 import sys
 import tempfile
 import threading
@@ -10,7 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from tmh.platform.agents import Runner, delivery_source, git
+from tmh.platform.agents import Runner, git
 from tmh.platform import learning as L, learning_decisions as D
 from tmh.platform.store import Store
 

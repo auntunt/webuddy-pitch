@@ -28,7 +28,6 @@ change later without touching callers.
 from __future__ import annotations
 
 import hashlib
-import json
 import subprocess
 from pathlib import Path
 

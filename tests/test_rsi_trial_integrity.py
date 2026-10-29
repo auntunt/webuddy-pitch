@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 from tmh.platform.store import Store
-from tests.test_rsi_trial_preparation import M, contract, receipt, h
+from tests.test_rsi_trial_preparation import M, contract, receipt
 
 
 class TrialIntegrityTests(unittest.TestCase):

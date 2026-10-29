@@ -4,12 +4,9 @@ Root is trusted provisioning, never the optimizable controller. No daemon or RPC
 installation. Existing provider/ledger/launcher own all paid and worker intents.
 """
 from __future__ import annotations
-import hashlib
-import json
 import os
 from pathlib import Path
 import select
-import stat
 import struct
 import threading
 import time

@@ -2,7 +2,6 @@
 import hashlib
 import os
 from pathlib import Path
-import re
 
 from scripts.rsi import trial_preparation as L, provider_adapter as A, native_bc_report as B
 from tmh.platform import learning, learning_runs, native_learning as N, supervised_process as SP
@@ -145,7 +144,6 @@ class Jobs:
 
     def prepare_followup(self, key, plan_id, assertions_reference):
         """Seal one NEW D before its request; the oracle never enters its plan."""
-        from tmh.platform import learning_eval as E
         from scripts.rsi import registered_trial as R
         plan, plan_hash, _ = self.broker.catalog.load('plan',plan_id)
         L.fields(plan,self.broker._fields(plan)); c=self.ledger.snapshot(key)['contract']; profile=self.broker._profile(c)

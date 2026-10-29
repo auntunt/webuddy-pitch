@@ -234,7 +234,7 @@ def main() -> int:
         log.append("[%s] %s %s" % (time.strftime("%H:%M:%S"), name,
                                    json.dumps(kv, ensure_ascii=False) if kv else ""))
 
-    from tmh.project_knowledge import analyzer_version, digest  # noqa: E402
+    from tmh.project_knowledge import analyzer_version  # noqa: E402
 
     # 1) three throwaway repos: standard (v1), client, other customer
     repos = {}

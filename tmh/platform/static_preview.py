@@ -19,7 +19,7 @@ import re
 import sqlite3
 import stat
 import time
-from urllib.parse import quote, unquote
+from urllib.parse import unquote
 
 from .errors import ApiError
 from .supervised_process import _atomic_json

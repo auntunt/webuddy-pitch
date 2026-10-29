@@ -13,7 +13,7 @@ from __future__ import annotations
 import html
 import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from statistics import median
 
 from .store import TYPES
