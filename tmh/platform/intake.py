@@ -379,6 +379,21 @@ def _trigger(text: str) -> str:
     return ""
 
 
+NARRATION = re.compile(r"^(今天|刚才|刚刚|最近|昨天|上午|下午|这两天|这几天)?[，,]?\s*"
+                       r"((好多|很多|不少|有些)?(人|同事|用户|客户)|有人|大家|领导|老板|经理|主管|\S{1,3}总)(都)?"
+                       r"(跟我|和我|向我|对我|找我)?(说|反馈|讲|提|吐槽|抱怨|反映)(了|过)?[，,：:\s]*")
+URGENT = re.compile(r"[，,\s]*(急|很急|着急|挺急|尽快|赶紧|快点)[！!。.~～]*$")
+
+
+def _gist(text: str) -> str:
+    """The ask without who passed it on or how urgent it felt: "领导说审批列表最好能导出Excel" → "审批列表希望能导出Excel"."""
+    t = re.sub(r"\s+", " ", text or "").strip().rstrip("。！!~～ ")
+    t = NARRATION.sub("", t, count=1)
+    t = URGENT.sub("", t)
+    t = re.sub(r"最好能|最好可以|能不能|可不可以|能否", "希望能", t).replace("就一直", "后一直")
+    return t.strip("，, ") or (text or "").strip()
+
+
 def _short(text: str) -> str:
     """A title in the client's words: the first clause that says something, at most 30 characters."""
     t = re.sub(r"\s+", " ", text).strip()
@@ -394,7 +409,7 @@ def _item(P, p: dict, text: str, chooser, kind: str | None = None) -> dict:
     how = "标题"
     if not kind:
         kind, how = classify(text, chooser)
-    it = {"text": text, "title": _short(text), "kind": kind, "kind_by": how, "flows": _flows(P, p, text), "flow": None, "slots": {},
+    it = {"text": text, "title": _short(_gist(text)), "kind": kind, "kind_by": how, "flows": _flows(P, p, text), "flow": None, "slots": {},
           "asked": [], "answer": "", "by": "规则"}
     it["new_module"] = not it["flows"] and kind != "question" and _has_flows(P, p)
     for k, rx in HAS.items():

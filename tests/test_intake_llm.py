@@ -112,6 +112,15 @@ class IntakeLLMTest(unittest.TestCase):
         self.assertEqual([it["kind"] for it in s["items"]], ["bug", "feature"])
         self.assertNotIn("另外", intake.understanding(s["items"][0]))
 
+    def test_rules_restate_without_who_passed_it_on_or_urgency(self):
+        (self.data / "autoflow.json").write_text(json.dumps({"understand": "rules"}), encoding="utf-8")
+        s = intake.start(self.P, self.project, "在吗？？今天好多人跟我说报销单提交不了，点提交就一直转圈，急！另外领导说审批列表最好能导出Excel", "工程师")
+        self.assertEqual([it["title"] for it in s["items"]], ["报销单提交不了，点提交后一直转圈", "审批列表希望能导出Excel"])
+        said = [intake.understanding(it) for it in s["items"]]
+        for w in ("跟我说", "领导说", "急"):
+            self.assertFalse(any(w in x for x in said), (w, said))
+        self.assertIn("今天好多人跟我说", s["items"][0]["text"], "the client's own words stay as evidence")
+
     def test_similar_open_tickets_are_hinted(self):
         self.store.create_ticket(self.project["id"], "报销单提交不了一直转圈", "点提交就一直转圈", reporter="王姐")
         (self.data / "autoflow.json").write_text(json.dumps({"understand": "rules"}), encoding="utf-8")
