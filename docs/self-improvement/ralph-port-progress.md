@@ -103,3 +103,11 @@
 - 运行版本 `dc7cd596de3be3e64b05632d868ebd19408e627b`；仅 CWWEB 启用固定候选自动测试/构建及隔离静态预览，原人工复核、合并、业务验收保留。没有恢复 RSI。
 - Mac / Linux 精确包各 126 项通过；真实 CWWEB 测试与预览构建、独立数据完整候选演练和浏览器导航/图片检查通过。上线立即/60秒健康、原数据和配置保持通过，LYB/LLA真实账号只读入口通过。
 - 本批无模型调用、无代签生产验收；实际试用留给本人。详情见 [发布和试用说明](../../audit/production-deployment-2026-10-28-company-preview.md)。记录本身只提交推送，不重复重启。
+
+## 2026-10-29：仓库整理与 CI 回绿（PR 待合并，未发布）
+
+- 分支 `devin/1761712000-repo-tidy` → `feat/jb-partial-diagnostic`（PR #1）。从 `main` 复制汇报材料（两条历史不相连，未合并历史），恢复 7 个 GBK 乱码文件名；本文件按阶段原样拆入 `progress-archive/`，内容未删；README 重写为平台 + CLI。`evidence/` 被 verification 文档、`tmh/resources.py` 和 `test_python_flows` 引用，保持原位。
+- 修复 `d243809` 引入的 `req=None` 个人复核提示崩溃（无身份时判不允许，未放宽校验）；`tomllib` 改为可选导入，CLI 仍支持 3.8+，项目 Codex 执行需 3.11+。
+- 测试：两个过时用例按 `4e8b92c`、`dc7cd59` 的有意行为更新（viewer/外部人员仍断言拒绝）；`no_live_effects` 审计只统计当前线程并禁止读取自行起线程，修复全量跑时被泄漏线程干扰；39 个 supervised execution 用例在非 POSIX 平台跳过。
+- CI：Ubuntu full suite、fast gate、installed distribution 通过。Windows full suite 本已 `continue-on-error`，由 187 降到 140 failed、无新增；剩余多为 CRLF 按字节比对和文件占用。维护者决定：平台只跑 Linux，Windows 保持不阻塞。
+- 未调用模型、未代人验收、未部署生产（PR 未合并，生产访问说明不在本机）。
