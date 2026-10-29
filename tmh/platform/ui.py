@@ -159,7 +159,7 @@ function paintTabs(tab){
   const v=curView(), group=navOf(v), sets={
     workspace:[['workspace','工作台'],['today','动态与待办']],
     projects:[['projects','项目'],['reform','重构计划'],['deliveries','交付'],['versions','版本'],['atlas','项目图谱']],
-    tasks:[['tickets','任务列表'],['board','状态看板'],['reqs','需求'],['rtickets','重构任务']],
+    tasks:[['tickets','工单列表'],['board','状态看板'],['reqs','需求对话'],['rtickets','重构工单']],
     team:[['team','分配与复核']],
     memory:[['memory','知识与记忆'],['handoff','项目交接'],['kb','知识页'],['library','参考与引用'],['learn','经验复盘']]};
   const rows=sets[group]||sets.projects, extras=[['clients','客户'],['overview','监控'],['eff','提效报告'],['lead','运维成效'],['map','架构依据'],['rdeps','依赖清单'],['runs','智能体运行'],['int','外部系统'],['settings','设置']];
@@ -698,7 +698,7 @@ async function vTicket(key,sub){
   // the timeline: people's words stay in view; what the machines did folds into one line per run of steps
   const tl=ticketTimeline(d.events);
   const nAuto=d.events.filter(x=>isMachine(x.author)&&x.kind!=='comment').length;
-  $('#main').innerHTML=`<div class="sub" style="margin-bottom:6px"><a href="#/tickets">任务</a> / <a href="#/projects/${encodeURIComponent(d.project.key)}">${h(d.project.key)}</a> / ${t.key}</div>
+  $('#main').innerHTML=`<div class="sub" style="margin-bottom:6px"><a href="#/tickets">工单</a> / <a href="#/projects/${encodeURIComponent(d.project.key)}">${h(d.project.key)}</a> / ${t.key}</div>
   <div class="hdr"><h1 class="grow" id="ttl" title="点击修改">${h(t.title)}</h1><span id="tStatus">${stPill(t.status)}</span><button onclick="A.toggle(true);A.enterTicket(S.cur.ticket)">在助手中讨论</button></div>
   <div class="props"><span class="tag">${h(d.project.key)}</span>
    <label>状态<select id="fs" data-autosave="1" ${d.epic?'disabled title="父单的状态跟着子单走"':''}>${opt(S.meta.statuses.filter(([k])=>k!=='closed'||t.status==='closed'),t.status)}</select></label>
@@ -1024,8 +1024,16 @@ function intakeModal(pk,text,pin){
   modal(`<h2>理清需求 · ${h(pk)}</h2><div class="sub">直接说现象或想要什么，几件事一起说也行。平台会拆开、复述理解、只问缺的，最后生成验收标准，你确认后才建单。</div>
    ${pin?`<pre class="log" style="margin-top:8px;white-space:pre-wrap">${h(pin.summary)}</pre><div class="sub">框选的位置会写进工单（第 2、3 层是推断）。</div>`:''}
    <textarea id="inT" style="min-height:110px;width:100%;margin-top:8px" placeholder="例如：请假审批通过后状态还是草稿。另外希望请假列表能导出 Excel。">${h(text||'')}</textarea>
-   <div class="row" style="margin-top:8px"><button class="primary" id="inGo">开始</button></div><div id="inBox"></div>`,true);
-  $('#inGo').onclick=async()=>{try{intakePaint(await post(pin?'/api/pins/'+pin.id+'/intake':'/api/projects/'+encodeURIComponent(pk)+'/intake',{text:$('#inT').value}))}catch(e){toast(e.message,5000)}}}
+   <div class="row" style="margin-top:8px;gap:8px;align-items:center"><button class="primary" id="inGo">开始</button>
+   <label class="btn ghost" style="cursor:pointer">附件<input type="file" id="inF" multiple accept="image/png,image/jpeg,image/webp,.txt,.md,.csv,.log,.json,.docx,.xlsx,.pdf" hidden></label>
+   <span class="sub">截图可直接粘贴；Word、Excel、PDF、文本会抽出文字一起理解，原件按哈希留档</span></div><div id="inFiles" class="chips" style="margin-top:6px"></div><div id="inBox"></div>`,true);
+  const files=[],addFile=f=>new Promise(r=>{const rd=new FileReader();rd.onload=()=>{files.push({name:f.name||'截图.png',type:f.type,data:rd.result});
+    $('#inFiles').innerHTML=files.map((x,i)=>`<span class="chip" data-i="${i}" title="点击移除">${h(x.name)} ×</span>`).join('');
+    $('#inFiles').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{files.splice(+c.dataset.i,1);c.remove()});r()};rd.readAsDataURL(f)});
+  $('#inF').onchange=e=>[...e.target.files].forEach(addFile);
+  $('#inT').addEventListener('paste',e=>[...(e.clipboardData?.files||[])].forEach(addFile));
+  $('#inT').addEventListener('drop',e=>{if(e.dataTransfer?.files?.length){e.preventDefault();[...e.dataTransfer.files].forEach(addFile)}});
+  $('#inGo').onclick=async()=>{try{intakePaint(await post(pin?'/api/pins/'+pin.id+'/intake':'/api/projects/'+encodeURIComponent(pk)+'/intake',{text:$('#inT').value,attachments:files}))}catch(e){toast(e.message,5000)}}}
 function inQ(q,i){return `<div style="margin-top:8px"><div>${h(q.q)}</div>${q.options.length?`<div class="chips" style="margin-top:4px">${q.options.map(o=>`<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="${h(o)}">${h(o)}</span>`).join('')}<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="不清楚">不清楚</span></div>`
    :`<input class="inA" data-i="${i}" data-s="${h(q.slot)}" placeholder="写一句就行；不知道就写“不清楚”" style="width:100%;margin-top:4px">`}</div>`}
 function inSpec(s,done){const sp=s.spec,work=s.items.map((it,i)=>[it,i]).filter(([it])=>it.kind!=='question');
@@ -1039,17 +1047,18 @@ function inSpec(s,done){const sp=s.spec,work=s.items.map((it,i)=>[it,i]).filter(
      <label class="sub" style="display:flex;gap:6px;align-items:center;margin-top:6px">每批 <input id="inWave" type="number" min="1" max="10" value="2" style="width:56px"> 个子单</label></div>`}</div>`}
 function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true;$('#inGo').hidden=true;
   clearTimeout(window._inPoll);
-  if(s.state==='understanding'){B.innerHTML=`<div class="card" style="margin-top:10px"><span class="spin"></span> AI 正在读这段话：拆开每件事、对上业务地图、写验收标准。一般几十秒；读不出来就按规则理解，不用等。<div class="row" style="margin-top:8px"><button class="ghost" id="inNo">放弃</button></div></div>`;
+  if(s.state==='understanding'){B.innerHTML=`<div class="card" style="margin-top:10px"><span class="spin"></span> AI 正在读这段话${(s.attachments||[]).length?'和 '+s.attachments.length+' 个附件':''}：拆开每件事、对上业务地图、写验收标准。一般几十秒；读不出来就按规则理解，不用等。<div class="row" style="margin-top:8px"><button class="ghost" id="inNo">放弃</button></div></div>`;
     $('#inNo').onclick=()=>post('/api/intake/'+s.id,{action:'drop'}).then(closeModal).catch(e=>toast(e.message,5000));
     window._inPoll=setTimeout(()=>{if($('#inBox'))get('/api/intake/'+s.id).then(intakePaint).catch(()=>{})},1500);return}
   const done=s.state==='confirmed',u=s.understood||{},asks=s.asked_client||[];
-  const head=`<div class="sub" style="margin-top:10px">${u.by==='智能体'?`<span class="ev-tag ok">AI 理解</span> ${h(u.agent||'')}`:`<span class="ev-tag mute">按规则理解</span>${u.why?' <span class="sub">（AI 没用上：'+h(clip(u.why,60))+'）</span>':''}`}
-    ${s.title?` · 标题「${h(s.title)}」`:''}${(s.dropped||[]).length?` · 去掉了 ${s.dropped.length} 句寒暄或转述：<span title="${h(s.dropped.join(' / '))}">${h(clip(s.dropped.join(' / '),40))}</span>`:''}</div>`;
+  const head=`<div class="sub" style="margin-top:10px">${u.by==='LLM'?'<span class="ev-tag ok">AI 理解</span> 普通 LLM（不读代码、不改文件）':u.by==='智能体'?`<span class="ev-tag ok">AI 理解</span> ${h(u.agent||'')}`:`<span class="ev-tag mute">按规则理解</span>${u.why?' <span class="sub">（AI 没用上：'+h(clip(u.why,60))+'）</span>':''}`}
+    ${s.title?` · 标题「${h(s.title)}」`:''}${(s.attachments||[]).length?` · 附件：${s.attachments.map(a=>`<span title="sha256:${h(a.sha256)}${a.note?' · '+h(a.note):''}">${h(a.name)}${a.note?'（'+h(clip(a.note,20))+'）':''}</span>`).join('、')}`:''}${(s.dropped||[]).length?` · 去掉了 ${s.dropped.length} 句寒暄或转述：<span title="${h(s.dropped.join(' / '))}">${h(clip(s.dropped.join(' / '),40))}</span>`:''}</div>`;
   const hasQ=s.items.some(it=>(it.questions||[]).some(q=>q.slot!=='flow'));
   B.innerHTML=head+s.items.map((it,i)=>`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">第 ${i+1} 件：${h(clip(it.title||it.text,40))}</b>
      <select data-i="${i}" class="inK" ${done?'disabled':''}>${Object.entries(IKIND).map(([k,l])=>`<option value="${k}" ${k===it.kind?'selected':''}>${l}</option>`).join('')}</select></div>
      <div class="sub" style="margin-top:4px">客户原话：${h(clip(it.text,120))}</div>
-     <div style="margin-top:4px">${h(it.restated?(it.restated.startsWith('我理解的是')?it.restated:'我理解的是：'+it.restated):'我理解的是：'+it.text)}${it.flow?` <span class="ev-tag info">${h(it.flow.name)}</span>`:it.new_module?' <span class="ev-tag warn">新模块</span>':''}</div>
+     <div style="margin-top:4px">${h(it.restated?(it.restated.startsWith('我理解的是')?it.restated:'我理解的是：'+it.restated):'我理解的是：'+(it.title||it.text))}${it.flow?` <span class="ev-tag info">${h(it.flow.name)}</span>`:it.new_module?' <span class="ev-tag warn">新模块</span>':''}</div>
+     ${(it.similar||[]).length&&!it.ticket?`<div class="sub" style="margin-top:4px"><span class="ev-tag warn">可能重复</span> ${it.similar.map(x=>`<a href="#/t/${h(x.key)}" target="_blank">${h(x.key)}「${h(clip(x.title,20))}」</a>（${h(stLabel(x.status))}）`).join('、')} — 只是提示，是否同一件事由你判断</div>`:''}
      ${it.kind==='question'?`<div class="sub" style="white-space:pre-wrap;margin-top:6px">${h(it.answer||'')}</div><div class="sub">咨询直接答复，不建单。</div>`:`
      ${(it.questions||[]).map(q=>inQ(q,i)).join('')}
      <div style="margin-top:10px"><b style="font-size:13px">验收标准（客户确认后就是合同）</b>${(it.ac||[]).map(a=>`<div style="font-size:13px;margin-top:3px"><span class="ev-tag ${a.open?'warn':'ok'}">${a.open?'待确认':done?'已确认':'写清了'}</span> ${h(a.id)} ${h(a.text)}<div class="sub">怎么验：${h(a.check)}</div></div>`).join('')}</div>

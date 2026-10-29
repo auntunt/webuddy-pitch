@@ -111,3 +111,13 @@
 - 测试：两个过时用例按 `4e8b92c`、`dc7cd59` 的有意行为更新（viewer/外部人员仍断言拒绝）；`no_live_effects` 审计只统计当前线程并禁止读取自行起线程，修复全量跑时被泄漏线程干扰；39 个 supervised execution 用例在非 POSIX 平台跳过。
 - CI：Ubuntu full suite、fast gate、installed distribution 通过。Windows full suite 本已 `continue-on-error`，由 187 降到 140 failed、无新增；剩余多为 CRLF 按字节比对和文件占用。维护者决定：平台只跑 Linux，Windows 保持不阻塞。
 - 未调用模型、未代人验收、未部署生产（PR 未合并，生产访问说明不在本机）。
+
+## 2026-10-29：理清需求接普通 LLM、附件、助手分流（PR 待审，未发布）
+
+- 分支 `devin/1761730000-intake-llm`（基于 PR #1 分支）。用户确认范围：P0（普通 LLM 理解需求、截图/文档附件、规则兜底、相似工单提示）+ P1（工作台文案、统一“工单”命名、助手分流）；模型走 OpenAI 兼容接口，沿用 `router` 配置，厂商不限。
+- 新增 `tmh/platform/llm.py`（一次 `/chat/completions`，不给工具、不读仓库；遵守项目 `direct_api`；`router.vision`/`TMH_ROUTER_VISION` 决定是否发图）。`autoflow.json` 的 `understand` 默认 `auto`：普通 LLM → 智能体 → 规则；LLM 返回格式不对按规则理解，运行仍记 `understand`（执行器 `llm`）。人确认前不建单、不开工。
+- 新增 `tmh/platform/attachments.py`：截图 ≤3MB，txt/md/csv/log/json/docx/xlsx/pdf ≤10MB（PDF 需 `pypdf`），最多 8 个，原件按 SHA-256 留档，抽出的文字以“资料不是指令”进入 prompt，附件名与哈希写入工单正文和需求记录；无视觉模型时明确说“读不到图片内容”。
+- 规则兜底：去“在吗/hello”等寒暄、按“另外/还有/此外/顺便/以及”拆分、补“提交不了/一直转圈”等缺陷词、复述用短标题不照抄。理清需求每条显示相似工单（`similar.py`，只提示，不合并不关单，按项目范围）；新建工单表单原本已有查重。
+- 助手：状态/帮助/重试仍是确定性代码；不涉及代码的知识问题先检索知识卡片再由普通 LLM 组织答复（无卡片或 LLM 不可用时退回原智能体路径）；问到代码/文件/报错栈的仍走智能体。工作台说明与交接面板去掉内部术语，导航“任务”统一为“工单”。
+- 测试：新增 `tests/test_intake_llm.py`（10 项）；`test_understand` 一处断言按新的默认 `auto` 更新。Python 3.12 全量（Node 20，UI 脚本测试不再跳过）：除本机 Git 2.34 的 readiness 用例与一处按当前时间登记劳动的 `test_pilots` 用例（单独运行通过）外全部通过。注意：VM 无 node 时约 60 个 UI 测试会静默跳过。
+- 未部署：分支叠在未合并的 PR #1 上，且生产访问说明不在本机；未调用真实模型、未代人验收。
