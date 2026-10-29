@@ -1059,6 +1059,8 @@ def _human_action(P, req, ticket=None, strict=False, run=None):
 
 def _personal_review_access(P, req, ticket):
     """UI hint only; each write repeats the actual identity and evidence checks."""
+    if req is None:
+        return {"allowed": False, "kind": "evidence_review", "reason": "没有请求身份，无法判断个人复核权限"}
     try:
         _human_action(P, req, ticket)
         return {"allowed": True, "kind": "evidence_review"}
