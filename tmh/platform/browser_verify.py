@@ -80,8 +80,11 @@ J=$1; BASE=$2; PORT=$3; PFX=$4; APP=$5; API=$6; YML=$7
 export PATH=~/.local/bin:$PATH
 D=~/pv/verifier/jobs/$J; OUT=$D/out; mkdir -p $OUT; cd $D
 say() { echo "{\"setup\": \"$1\"}" > $OUT/report.json; }
-finish() { [ -n "${VP:-}" ] && kill -- -$VP 2>/dev/null; git -C ~/pv/base worktree remove --force $D/src >/dev/null 2>&1; tar cz -C $OUT .; rm -rf $D; exit 0; }
-[ -f in.bundle ] && git -C ~/pv/base fetch -q in.bundle "+HEAD:refs/tmh/$J" >&2
+finish() { [ -n "${VP:-}" ] && kill -- -$VP 2>/dev/null; git -C ~/pv/base worktree remove --force $D/src >/dev/null 2>&1
+  git -C ~/pv/base update-ref -d refs/tmh/$J >/dev/null 2>&1; tar cz -C $OUT .; rm -rf $D; exit 0; }
+if [ -f in.bundle ]; then
+  git -C ~/pv/base fetch -q $D/in.bundle "+refs/tmh-verify/$J:refs/tmh/$J" >&2 || { say "candidate bundle did not fetch"; finish; }
+fi
 git -C ~/pv/base worktree add -f --detach $D/src $BASE >&2 || { say "base commit not on host"; finish; }
 cd $D/src
 if [ -s $D/patch.diff ]; then git apply --whitespace=nowarn $D/patch.diff >&2 || { say "patch does not apply"; finish; }; fi

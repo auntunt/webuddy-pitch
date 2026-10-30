@@ -63,3 +63,23 @@ class BrowserVerifyTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DriverBundleTest(unittest.TestCase):
+    def test_the_host_fetches_the_candidate_under_the_ref_the_bundle_carries(self):
+        import subprocess
+        root = Path(tempfile.mkdtemp(prefix="tmh-bundle-"))
+        g = lambda repo, *a: subprocess.run(["git", "-C", str(repo), *a], capture_output=True, text=True, check=True).stdout.strip()
+        subprocess.run(["git", "init", "-q", str(root / "src")], check=True)
+        g(root / "src", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", "a")
+        have = g(root / "src", "rev-parse", "HEAD")
+        subprocess.run(["git", "clone", "-q", str(root / "src"), str(root / "host")], check=True)
+        g(root / "src", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", "candidate")
+        cand = g(root / "src", "rev-parse", "HEAD")
+        g(root / "src", "update-ref", "refs/tmh-verify/j1", cand)
+        (root / "in.bundle").write_bytes(subprocess.run(["git", "-C", str(root / "src"), "bundle", "create", "-", "refs/tmh-verify/j1", "^" + have],
+                                                        capture_output=True, check=True).stdout)
+        line = next(x for x in bv.DRIVER.splitlines() if "fetch -q" in x)
+        cmd = line.split("||")[0].strip().replace("~/pv/base", str(root / "host")).replace("$D", str(root)).replace("$J", "j1")
+        subprocess.run(cmd, shell=True, check=True, executable="/bin/bash")
+        self.assertEqual(g(root / "host", "rev-parse", "refs/tmh/j1"), cand)
