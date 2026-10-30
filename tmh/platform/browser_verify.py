@@ -47,6 +47,9 @@ export async function anchor(locator, what = '') {
   }
 }
 
+const outline = (n, d = 0) => !n ? '' : '  '.repeat(d) + '- ' + n.role + (n.name ? ' "' + n.name + '"' : '') +
+  (n.checked !== undefined ? ' [checked=' + n.checked + ']' : '') + '\n' + (n.children || []).map((k) => outline(k, d + 1)).join('');
+
 export const test = base.extend({
   page: async ({ page }, use, testInfo) => {
     const goto = page.goto.bind(page);
@@ -57,7 +60,7 @@ export const test = base.extend({
       let seen = '';
       const ways = [
         () => page.locator('body').ariaSnapshot({ timeout: 10000 }),
-        async () => JSON.stringify(await page.accessibility.snapshot({ interestingOnly: true }), null, 1),
+        async () => outline(await page.accessibility.snapshot({ interestingOnly: true })),
         () => page.locator('body').innerText({ timeout: 10000 }),
       ];
       for (const way of ways) {
