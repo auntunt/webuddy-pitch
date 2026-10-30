@@ -155,10 +155,11 @@ class Orchestra:
             return
         if not agent:
             return self._flow_stop(tid, "本机没有可用的智能体，跳过自动分析，直接转人工处理")
+        began = st.ticket(tid)["status"]  # a ticket handed back to the line may already be doing
 
         def analysed(run):
             cur = st.ticket(tid)
-            if self.held(tid) or cur["status"] not in ("new", "analyzing", "confirm"):
+            if self.held(tid) or cur["status"] not in ("new", "analyzing", "confirm", began):
                 return  # someone already took it further by hand
             res = run.get("result") or ""
             if run["status"] != "done":

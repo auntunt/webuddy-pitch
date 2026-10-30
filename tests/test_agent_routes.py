@@ -148,6 +148,18 @@ class AgentRoutesTest(unittest.TestCase):
         self.runner.start.assert_not_called()
         self.assertTrue(any("不可用" in event["body"] for event in self.store.events(self.ticket["id"])))
 
+    def test_ticket_handed_back_while_doing_goes_on_from_analysis_to_plan(self):
+        self.write()
+        self.store.update_ticket(self.ticket["id"], "li", status="doing")
+        self.P.flow._flow_analyze(self.project, self.ticket["id"], {"agent": "claude", "plan": True})
+        then = self.runner.start.call_args.kwargs["then"]
+        with patch.object(self.P.flow, "_flow_plan") as plan:
+            then({"status": "done", "result": "see src/a.vue:10"})
+            plan.assert_called_once()
+            self.store.update_ticket(self.ticket["id"], "li", status="verify")
+            then({"status": "done", "result": "see src/a.vue:10"})
+            plan.assert_called_once()
+
     def test_codex_only_route_blocks_direct_api_chooser_and_model_triage(self):
         self.write()
         with patch("tmh.kbqa.router_conf") as config, patch("tmh.kbqa.triage", return_value={}) as triage:
