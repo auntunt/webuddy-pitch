@@ -8,6 +8,7 @@ Serving to a team on the LAN: `tmh serve --host 0.0.0.0` with TMH_TOKEN set.
 from __future__ import annotations
 
 import errno
+import hashlib
 import hmac
 import http.client
 import json
@@ -987,6 +988,11 @@ def route(method: str, pattern: str):
     return deco
 
 
+def _workspace_id(P) -> str:
+    """Names the data directory to a page that is not shown its path, so writes can still refuse a switched workspace."""
+    return "ws-" + hashlib.sha256(str(P.data_dir).encode("utf-8")).hexdigest()[:32]
+
+
 @route("GET", "/api/meta")
 def api_meta(P, req):
     from .login import has_accounts
@@ -1013,7 +1019,7 @@ def api_meta(P, req):
             pass
     return {"version": __version__, "user": req.user, "login": managed or has_accounts(P.data_dir),
             "operator_authenticated": bool(getattr(req.h, '_who', '')), "brand": P.brand, "statuses": STATUSES, "types": TYPES, "priorities": PRIORITIES,
-            "modes": RUN_MODES, "agents": available(P.data_dir) if can_execute else [], "data_dir": "" if managed else str(P.data_dir), "autoflow": P.flow.autoflow(),
+            "modes": RUN_MODES, "agents": available(P.data_dir) if can_execute else [], "data_dir": "" if managed else str(P.data_dir), "workspace": _workspace_id(P), "autoflow": P.flow.autoflow(),
             "member_execution": member_execution,
             "apps": __import__("tmh.platform.apps", fromlist=["APPS"]).APPS}
 
@@ -2872,7 +2878,7 @@ def api_testbox_act(P, req, action):
 
 @route("POST", "/api/tickets/<key>/comments")
 def api_comment(P, req, key):
-    if "expected_workspace" in req.body and req.body["expected_workspace"] != str(P.data_dir):
+    if "expected_workspace" in req.body and req.body["expected_workspace"] not in (str(P.data_dir), _workspace_id(P)):
         raise ApiError(409, "当前工作区已变化，本次请求未写入；请回到原工作区后核对或重试")
     if "expected_author" in req.body and req.body["expected_author"] != req.user:
         raise ApiError(409, "当前登录身份已变化，本次请求未写入；请切回原身份后核对或重试")

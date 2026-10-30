@@ -165,3 +165,4 @@
 - 官方 Codex profile 没有显式指定模型时，`runs.model` 记录 profile（`<CODEX_HOME>/<profile>.config.toml`，退而读 `config.toml`）里实际生效的模型，方便事后核对用的是不是 Luna。重试时，如果记录的模型就是这个配置默认值，就不当作人工指定的模型，免得诊断等步骤被强行换模型。新增 `tests/test_run_truth.py`。
 - 已有的修改运行（如 #259、#260、#263）不回填 `runs.model`；新数据只在新运行上生效。
 - 生产走查发现运行详情接口返回的是 `verification`，不是 `verify`，所以详情页的“完成”没有带上验证说明。`runStatus` 现在两个字段都读。
+- 生产走查发现，租户托管模式下 `/api/meta` 不返回 `data_dir`，评论草稿提交时 `expected_workspace` 为空，`api_comment` 因此对所有评论都返回 409。修复方法：meta 新增 `workspace`（数据目录路径的 sha256 摘要，不暴露路径），评论守卫同时接受真实路径或这个摘要；空值和其他工作区的摘要仍然拒绝。
