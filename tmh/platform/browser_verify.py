@@ -38,6 +38,15 @@ export async function ready(page) {
   }
 }
 
+// a step the criterion itself does not ask about (the page is there, a button to reach it): not finding it is the script's fault
+export async function anchor(locator, what = '') {
+  try {
+    await expect(locator).toBeVisible({ timeout: 30000 });
+  } catch (e) {
+    throw new Error('TMH_ANCHOR ' + what + ': ' + e.message);
+  }
+}
+
 export const test = base.extend({
   page: async ({ page }, use) => {
     const goto = page.goto.bind(page);
@@ -149,11 +158,13 @@ finish
 SPEC_RULES = """写一个 Playwright 实测脚本，在真实运行的应用里逐条验证下面的验收标准。只输出一个代码块，标记为 ```tmh-spec。
 
 脚本要求：
-- ESM：`import { test, expect, login, shot } from './tmh-helpers.mjs';`（这里的 `page.goto` 会等页面加载完）
+- ESM：`import { test, expect, anchor, login, shot } from './tmh-helpers.mjs';`（这里的 `page.goto` 会等页面加载完）
 - 只为最后列出的验收标准写 test（工单正文里其他「必须保持」之类的条目由自动测试证明，不要写）。每条一个 test，标题以编号开头，例如 `test('A1 取消后恢复原值', async ({ page }, testInfo) => { ... })`。
 - 先 `await login(page);`（已处理验证码，登录后在首页），再用 `page.goto(process.env.TMH_BASE + '路由')` 或点菜单进入要测的页面。路由从仓库代码里查。
 - 像用户一样操作（点击、输入、选择），每个关键步骤后 `await shot(page, testInfo, '步骤名');`。
-- 断言某样东西「不存在 / 不再显示」之前，先断言同一页面上一个本来就该在的元素可见，证明页面已经加载出来。
+- 标准本身没问到的前置条件（页面已经出来、要点的按钮在），用 `await anchor(定位, '说明')`，不用 `expect`：找不到算脚本问题，不算标准没做到。
+- 断言某样东西「不存在 / 不再显示」之前，先用 `anchor` 确认同一页面上一个本来就该在的元素可见，证明页面已经加载出来。
+- Ant Design 的两个汉字按钮会显示成「登 录」这样中间带空格：按钮名用正则，如 `getByRole('button', { name: /登\\s*录/ })`。
 - 页面上常有隐藏的同类元素（比如登录页里隐藏的注册、手机登录表单）：优先 `getByRole` / `getByText(..., { exact: true })`，定位输入框等元素时加 `:visible` 或限定在可见的表单里，保证只命中一个。
 - 用 `expect(...)` 断言这条标准能看到的结果；断言失败表示“实测没做到”，所以只断言标准本身要求的东西。
 - 不 mock 接口，不改数据库，不写 `page.evaluate` 改组件状态。没法在页面上验证的标准写成 `test.skip('A2 ...', ...)` 并在注释里写原因。
@@ -214,6 +225,8 @@ def results(report: dict, acs: list, files: dict) -> list:
             res, how = "pass", "页面上实测通过（%d 张截图）" % len(shots)
         elif status == "passed":
             res, how = "unverified", "测试通过但没有截图，不算证明"
+        elif status == "failed" and "TMH_ANCHOR" in msg:
+            res, how = "unverified", "实测脚本的前置步骤没找到要的元素：" + msg
         elif status == "failed" and "strict mode violation" in msg:
             res, how = "unverified", "实测脚本的定位命中了多个元素：" + msg
         elif status == "failed" and re.search(r"\bexpect\(", msg) and "TMH_SETUP" not in msg:
@@ -226,7 +239,7 @@ def results(report: dict, acs: list, files: dict) -> list:
     return out
 
 
-SCRIPT_FAULT = ("实测没能执行完", "实测脚本的定位命中了多个元素")
+SCRIPT_FAULT = ("实测没能执行完", "实测脚本的定位命中了多个元素", "实测脚本的前置步骤没找到要的元素")
 
 
 def repairable(items: list) -> bool:
