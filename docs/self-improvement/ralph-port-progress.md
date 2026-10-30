@@ -150,3 +150,10 @@
 - 发布前在生产数据副本上用新代码对 JB-32（网关关闭 knife4j 没生效）跑了一次真实方案：路由选中 `claude`/`claude-opus-5-5`，Opus 读代码、调 `tmh impact`、翻 git 历史找到根因，330 秒完成，输出含合法 `tmh-plan`（文件清单 + 分层验收标准）。副本随后删除。
 - 生产发布 `48b34a4`：`/opt/webuddy/releases/48b34a40be56-step-agents-20261030/app`，MANIFEST 校验通过，服务器上路由用例 22 个通过。备份 `/opt/webuddy/backups/pre-48b34a40be56-activation-20261030`（env、unit、`agents.json`、`agent-routes.json`、旧程序、数据库 `.backup`，完整性 ok）。`/etc/webuddy.env` 追加 `ANTHROPIC_BASE_URL=https://aixoras.com`、`ANTHROPIC_AUTH_TOKEN`（经 SSH 标准输入写入）和 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`；`agents.json` 加 `claude`（服务器 Claude Code 2.1，模型 `claude-opus-5-5`，`run_timeout` 1800）；CWWEB、WEIGHBILL、GROUPRISK、PPTAUTO、JB 路由加 `claude` 到 `allowed_agents`，并设 `steps: analyze/plan/diagnose → claude`，改代码仍走 `cloudwave-codex`（Luna）。本机/公网 login 200、API 401，NRestarts=0。
 - 回滚：把备份里的 `0-webuddy.env`、`2-agents.json`、`3-agent-routes.json` 拷回原处，`app` 软链指回 `releases/3d3f855cace5-router-temp-20261030/app` 并重启；只想停用 Opus 时，只恢复 `3-agent-routes.json` 即可，不用重启。数据库不动。
+
+### 2026-10-30 生产真实工单走查（JB）与诊断规则修正
+
+- 用 computer use 在生产浏览器以 li 走 JB：口语加截图理清需求，普通 LLM 拆出两件，人工确认后建 JB-42、JB-43；JB-42 分析 #256、方案 #257 由 `claude`/`claude-opus-5-5` 完成（118 秒、133 秒，方案含 `tmh-plan`）。修改 #258 因 Windows 测试机（frp `12022`）离线 1 秒失败；用户开机并启动 sshd 后重跑 #259（`cloudwave-codex`，453 秒，改 1 个 Vue 文件），未采纳、未验收。
+- 测试机问题：npm 连不上 registry.npmjs.org，esbuild 安装失败使 `pnpm install` 失败。经用户同意，将测试机用户 `auntu` 的 npm 源设为 `https://registry.npmmirror.com/`（原 `.npmrc` 备份为 `.npmrc.bak-webuddy-20261030`），安装恢复（11 秒）。缓存的失败基线 `data/checks/JB-63017ead0739af1d.json` 移到 `/opt/webuddy/backups/jb-baseline-check-20261030/`。JeecgBoot 前端 `vue-tsc --noEmit` 在原代码上仍不可用：默认栈溢出；加大栈后报原代码自身的类型错误（`MyComment.vue` TS1003），所以 JB 前端改动的构建检查依旧会因基线失败而跳过。
+- 修正：没跑构建且改动只有一个文件时，FixLoop 原来不做诊断，Opus 诊断从未执行。现在项目路由把诊断交给另一执行器时，不论改动大小都做一次只读诊断；新增 `test_fix_loop_has_the_routed_engine_diagnose_a_small_unbuilt_change`。
+- 界面待改：分析/方案的提示仍写“已交给 Cloudwave · 官方 Codex”；分析摘要“根因”显示提示词里的“（3 句以内）”；修改顶层“完成”不代表验证通过；验证页只显示基线退出码；手动运行区无单独诊断入口；`cloudwave-codex` 修改的 `runs.model` 为空。
