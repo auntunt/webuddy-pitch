@@ -116,5 +116,17 @@ class AutoflowPerProjectTest(unittest.TestCase):
         self.assertFalse(o.switched_on({"on": False}, 1))
 
 
+    def test_the_switches_survive_reading_autoflow_json(self):
+        from tmh.platform.orchestra import Orchestra
+        data = Path(tempfile.mkdtemp(prefix="tmh-ai-"))
+        (data / "autoflow.json").write_text(json.dumps({"on": ["JB"], "ai_accept": ["JB"]}), encoding="utf-8")
+        o = Orchestra.__new__(Orchestra)
+        o.data_dir = data
+        conf = o.autoflow()
+        self.assertEqual((conf["on"], conf["ai_accept"]), (["JB"], ["JB"]))
+        (data / "autoflow.json").write_text("{}", encoding="utf-8")
+        self.assertFalse(ai_accept.enabled(o.autoflow(), "JB"))
+
+
 if __name__ == "__main__":
     unittest.main()
