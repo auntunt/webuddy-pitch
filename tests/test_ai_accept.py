@@ -110,6 +110,24 @@ class AiAcceptFlowTest(unittest.TestCase):
         self.assertEqual(ai_accept.committed({"adopted": {"branch": "tmh/JB-1-r70", "commit": "x"}}, 7), "")
         self.assertEqual(ai_accept.committed({"change": {"commit": "f" * 40}, "adopted": {"branch": "tmh/JB-1-r7", "commit": "x"}}, 7), "f" * 40)
 
+    def test_what_must_keep_working_is_proven_by_the_tests_not_driven_on_the_page(self):
+        keep = {"id": "A3", "text": "必须保持：其他环节和其他用户的现有行为不变", "keep": True}
+        self.pack["snapshot"]["ac"] = ACS + [keep]
+        a, b = self.real("pass", {"A1": "pass", "A2": "pass"})
+        with a, b as v:
+            out, rec = self.run_it()
+        self.assertTrue(out["accepted"])
+        self.assertEqual([x["id"] for x in v.call_args.args[4]], ["A1", "A2"])
+        self.assertEqual(rec.call_args.kwargs["basis"]["ac"]["A3"], ai_accept.KEPT)
+        self.setUp()
+        self.pack["snapshot"]["ac"] = [keep]
+        a, b = self.real("pass", {})
+        with a, b as v:
+            out, rec = self.run_it()
+        self.assertFalse(out["accepted"])
+        v.assert_not_called()
+        self.assertIn("没有要在页面上实测的验收标准", out["why"])
+
     def test_with_a_verification_host_a_reproduced_failure_or_anything_unproven_leaves_it_for_people(self):
         for result, ac, why, want in (("fail", {"A1": "pass", "A2": "fail"}, "", "复现了问题（A2）"),
                                       ("unverified", {"A1": "pass", "A2": "unverified"}, "", "A2 未验证"),

@@ -403,3 +403,12 @@ class AgentRoutesTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FileLineTest(unittest.TestCase):
+    def test_code_locations_written_the_chinese_way_count_as_evidence(self):
+        from tmh.platform.orchestra import Orchestra
+        text = "// jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts 第 78 行\na.vue:12，b.ts#L3，C.java (line 9)，d.vue（行 4）"
+        self.assertEqual(Orchestra.FILE_LINE.findall(text), [("jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts", "78"), ("a.vue", "12"),
+                                                             ("b.ts", "3"), ("C.java", "9"), ("d.vue", "4")])
+        self.assertEqual(Orchestra.FILE_LINE.findall("改 sys.ts 里的 rememberMe，共 3 处"), [])
