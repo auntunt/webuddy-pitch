@@ -458,7 +458,7 @@ const FLOW=[['intake','受理'],['analyze','分析定位'],['plan','修改方案
 function flowState(d){
   const t=d.ticket,R=m=>d.runs.find(r=>r.mode===m),ev=k=>d.events.filter(e=>e.kind===k).pop();
   const an=R('analyze'),pl=R('plan'),fx=R('fix'),live=d.runs.find(r=>r.status==='running'||r.status==='queued');
-  const review=t.status!=='closed'&&fx&&fx.verify?.verification_current!==false&&fx.status==='done'&&!fx.decision&&fx.diff!=='';
+  const review=t.status!=='closed'&&fx&&fx.verify?.verification_current!==false&&fx.status==='done'&&!fx.decision&&fx.diff!==''&&fx.diff_bytes!==0;
   const acc=d.events.filter(e=>e.kind==='accept'||e.kind==='reject').pop(),it=ev('intake');
   const rs=r=>!r?'todo':r.status==='done'?'done':(r.status==='running'||r.status==='queued')?'cur':r.status==='failed'?'bad':'todo';
   const st={intake:'done',analyze:rs(an),plan:rs(pl),fix:fx?(fx.decision&&fx.decision.startsWith('accepted')?'done':fx.decision==='discarded'?'todo':rs(fx)==='done'?'cur':rs(fx)):'todo',
@@ -528,6 +528,7 @@ function nextAction(d,f){
       btns:(hold?B('naShip','重试合并','primary'):'')+B('naReopen','重新打开','ghost')}}
   if(f.review){const why=d.events.filter(e=>e.kind==='flow'&&(e.data||{}).run===f.fx.id).pop();
     return {tone:'warn',text:`运行 #${h(f.fx.id)}：`+vfy(f.fx)+(why?h(why.body.replace(/^改动已生成，/,'').replace(/，留给人审阅后再提交$/,''))+'，所以没有自动提交。':'智能体改好了代码，')+'<b>等你审阅</b>。采纳后提交到独立分支，不动你的工作目录。',btns:B('naReview','审阅改动','primary')}}
+  if(!['verify','closed'].includes(t.status)&&!f.live&&f.fx&&f.fx.status==='done'&&!f.fx.decision&&f.fx.diff_bytes===0)return {tone:'warn',text:`运行 #${h(f.fx.id)}：智能体<b>没有改任何代码</b>，原因见执行结论。可以补充信息后重新出方案，或自己改完转待验证。`,btns:B('naLog','查看执行结论','primary')+B('naPlan','重新出方案','ghost')};
   if(t.status==='verify')return {tone:'warn',text:(f.fx&&f.fx.verify?vfy(f.fx)+' ':'')+(br?`改动${br.auto?'已自动':'已'}提交到分支 <code>${h(br.branch)}</code>（提交 ${h(br.commit)}，主干还没动）。`:'改动已就绪，')+'<b>等你验收</b>：按业务操作实际验证。'+(MERGE_ON()?'通过后自动合并进主干、出一个新版本；':'通过后由人合并分支；')+'不通过写明原因，退回重改。',acc:true};
   if(f.fx&&f.fx.decision&&f.fx.decision.startsWith('accepted'))return {tone:'info',text:`改动已提交到分支 <code>${h(f.fx.decision.slice(9).split('@')[0])}</code>。转给验收人${MERGE_ON()?'，验收通过后自动合并进主干':'，验收通过后由人合并'}。`,btns:B('naVerify','转待验证','primary')};
   if(['failed','cancelled'].includes(d.runs[0]?.status))return {tone:'bad',text:'最近一次'+h(moLabel(d.runs[0].mode))+'未完成。已有改动和执行记录保留，请查看停止原因后继续处理。',btns:B('naLog','查看停止原因与恢复入口','primary')};
@@ -541,7 +542,7 @@ function secOf(text,names){
   const L=(text||'').split('\n'),hd=/^\s*(#{1,4}\s+|\*\*|【)?\s*(\d+[.、)]\s*)?/;
   for(let i=0;i<L.length;i++){
     const m=L[i].replace(hd,'');const nm=names.find(n=>m.startsWith(n));if(!nm)continue;
-    const out=[];const rest=m.slice(nm.length).replace(/^[\s*】:：]+/,'');if(rest)out.push(rest);
+    const out=[];const rest=m.slice(nm.length).replace(/^[\s*】:：]+/,'').replace(/^[（(][^）)]{0,20}[）)][\s*】:：]*/,'');if(rest)out.push(rest);
     for(let j=i+1;j<L.length;j++){const x=L[j];if(/^\s*#{1,4}\s/.test(x)||/^\s*\*\*[^*]{1,16}\*\*\s*[:：]?\s*$/.test(x))break;
       if(out.length&&(!x.trim()||/^\s*([-*•]|\d+[.、)])\s/.test(x)))break;if(x.trim())out.push(x.trim())}
     const t=out.join(' ').replace(/[*_`>#]/g,'').replace(/^\s*[-•]\s*/,'').replace(/\s+/g,' ').trim();if(t)return t}
@@ -754,7 +755,7 @@ async function vTicket(key,sub){
   const run=async(mode,agent,model)=>{
     if(mode==='fix'&&memberFixNeedsClaim(d)){toast('请先在“执行记录与手动运行”中点击“接手任务”，再启动修改代码。',6000);return}
     const a=S.meta.agents.find(x=>x.name===agent);if(a&&!a.available)toast('本机没找到 '+a.title+'，仍会尝试启动');
-    try{const r=await post('/api/tickets/'+key+'/runs',{agent,mode,model,kb_after:mode==='analyze'&&$('#kbAfter').checked?2:0});toast('已交给 '+(a?a.title:agent)+' '+moLabel(mode)+(r.model?'（'+r.model+'）':''));vTicket(key)}catch(e){toast(e.message)}};
+    try{const r=await post('/api/tickets/'+key+'/runs',{agent,mode,model,kb_after:mode==='analyze'&&$('#kbAfter').checked?2:0});toast('已交给 '+((x=>x?x.title:(r.agent||agent))(S.meta.agents.find(x=>x.name===(r.agent||agent))))+' '+moLabel(mode)+(r.model?'（'+r.model+'）':''));vTicket(key)}catch(e){toast(e.message)}};
   const wireNext=()=>{const go={naAn:'analyze',naPlan:'plan',naFix:'fix'};
   Object.entries(go).forEach(([id,m])=>{if($('#'+id))$('#'+id).onclick=()=>run(m,$('#ag')?.value||defAgent(),'auto')});
   if($('#naVerify'))$('#naVerify').onclick=()=>save({status:'verify'});
@@ -876,6 +877,10 @@ async function showFlow(id){
    <div style="margin-top:14px"><button onclick="closeModal();newTicket({title:'',body:'业务流：${h(f.id)}\\n'})">为这条业务流新建工单</button></div>`,true)}
 
 // ---------- runs
+// "完成" only means the process ended; say when a change run left nothing, or its check said no.
+function runStatus(r){const s={queued:'排队',running:'运行中',done:'完成',failed:'失败',cancelled:'已取消'}[r.status]||r.status;
+  if(r.mode!=='fix'||r.status!=='done')return s;if(r.diff===''||r.diff_bytes===0)return s+' · 没有改动';const v=r.verify;
+  return !v?s:v.verdict==='fail'||v.check==='fail'?s+' · 验证没通过':v.verdict==='pass'||v.check==='pass'?s:s+' · 未验证'}
 function runRecoveryBlocked(r){return r.lifecycle?.recovery?.state==='blocked'}
 function runStopReceiptReady(r){const c=r.lifecycle;
   return !!c&&typeof c==='object'&&!Array.isArray(c)&&c.finished===true&&c.stopped_reason!=='recovery_pending'&&Array.isArray(c.attempts)&&
@@ -943,7 +948,7 @@ async function showRun(rid,inline){
   const draw=r=>{
     const live=runStillActive(r),cancelable=['running','queued'].includes(r.status)&&!r.lifecycle?.stopped_reason,fix=r.mode==='fix',accepted=String(r.decision||'').startsWith('accepted:'),discarded=r.decision==='discarded';
     const tabs=[['res','结论'],...(r.diff?[['diff','代码改动']]:[]),...(fix?[['verify','实际验证']]:[]),['log','过程']];if(!tabs.some(t=>t[0]===pane))pane='res';
-    return `<div class="run-detail" data-run-view="${token}"><div class="hdr" style="margin:10px 0 0"><b>#${r.id} ${h(r.agent)}${mTag(r)} · ${moLabel(r.mode)}</b><span class="tag">${h(runRecoveryBlocked(r)?'恢复受阻':live&&!cancelable?'正在停止':{queued:'排队',running:'运行中',done:'完成',failed:'失败',cancelled:'已取消'}[r.status]||r.status)}</span>${live?'<span class="spin"></span>':''}<span class="sub grow">${h(r.author)} ${ago(r.created)}</span>${cancelable?`<button type="button" class="danger" data-run-cancel>停止</button>`:''}<a href="javascript:void 0" onclick="showPrompt(${r.id})">提示词</a></div><div class="bad" data-run-error role="alert" hidden></div>${runLifecycleHtml(r)}${runRecoveryHtml(r)}${runRecheckHtml(r)}
+    return `<div class="run-detail" data-run-view="${token}"><div class="hdr" style="margin:10px 0 0"><b>#${r.id} ${h(r.agent)}${mTag(r)} · ${moLabel(r.mode)}</b><span class="tag">${h(runRecoveryBlocked(r)?'恢复受阻':live&&!cancelable?'正在停止':runStatus(r))}</span>${live?'<span class="spin"></span>':''}<span class="sub grow">${h(r.author)} ${ago(r.created)}</span>${cancelable?`<button type="button" class="danger" data-run-cancel>停止</button>`:''}<a href="javascript:void 0" onclick="showPrompt(${r.id})">提示词</a></div><div class="bad" data-run-error role="alert" hidden></div>${runLifecycleHtml(r)}${runRecoveryHtml(r)}${runRecheckHtml(r)}
     ${live?`<pre class="log" data-run-log>${h(S.logs[r.id]||'')}</pre>`:`<div class="tabs" role="tablist" aria-label="运行记录">${tabs.map(([key,label])=>`<button type="button" role="tab" aria-selected="${pane===key}" class="${pane===key?'on':''}" data-tab="${key}">${label}</button>`).join('')}</div><div data-pane="res" ${pane==='res'?'':'hidden'}>${runConclusionHtml(r)}</div>${r.diff?`<div data-pane="diff" ${pane==='diff'?'':'hidden'}>${diffHtml(r.diff)}</div>`:''}${fix?`<div data-pane="verify" ${pane==='verify'?'':'hidden'}>${runVerificationHtml(r)}</div>`:''}<div data-pane="log" ${pane==='log'?'':'hidden'}><pre class="log" data-run-log>${h(S.logs[r.id]||'')}</pre></div>`}
     ${fix&&!live?`<section class="run-review"><h3>试用本次改动</h3><p class="sub">代码与验证结果在上方。将改动保存到独立分支后，就可以启动对应版本的预览。</p>${checking&&!runRecheckOperation(r)?'<p role="status"><span class="spin"></span> 正在重新验证，完成后会更新实际验证记录…</p>':''}${checkError?`<div class="bad" role="alert">${h(checkError)}</div><button type="button" data-run-recheck-refresh>重新读取验证状态</button>`:''}${accepted?'<p class="hint">本次改动已采纳到独立分支。主干合并和用户验收仍需各自完成。</p>':discarded?'<p class="hint">这次改动已放弃。</p>':r.status==='done'&&r.exit_code===0&&r.diff?`<div class="row run-actions"><button type="button" class="primary" data-run-decision="accept" ${checking||runRecheckAdoptBlocked(r)?'disabled':''}>采纳到独立分支</button><button type="button" class="danger" data-run-decision="discard" ${checking||!runRecheckCanStart(r)?'disabled':''}>放弃改动</button></div>`:'<p class="hint">本次运行未成功产生可采纳的改动。请查看失败原因与过程，再决定下一步。</p>'}${r.status==='done'&&!discarded&&r.diff?`<div class="row run-actions"><button type="button" data-run-recheck ${checking||!runRecheckCanStart(r)?'disabled':''}>${checking?'正在重新验证…':'重新验证本次改动'}</button></div>`:''}<div data-run-preview>${runPreviewHtml(r,preview,previewError)}</div></section>`:''}</div>`};
   const paintPreview=()=>{if(!current())return;const el=target.querySelector('[data-run-preview]');if(el){el.innerHTML=runPreviewHtml(last,preview,previewError);wirePreview()}};
@@ -974,7 +979,7 @@ async function showPrompt(rid){const r=await get(`/api/runs/${rid}?prompt=1&sinc
 async function cancelRun(rid){try{await post(`/api/runs/${rid}/cancel`);toast('已请求停止')}catch(e){toast(e.message)}}
 async function recheck(rid){try{await post(`/api/runs/${rid}/recheck`,{});await showRun(rid)}catch(e){toast(e.message,5000)}}
 async function decide(rid,d){try{await post(`/api/runs/${rid}/decide`,{decision:d});toast(d==='accept'?'已采纳到独立分支':'已放弃');await showRun(rid)}catch(e){toast(e.message,5000)}}
-function runList(rs){if(!rs.length)return '<div class="sub">还没有运行过</div>';return rs.map(r=>`<div class="flowrow"><a class="fx" href="javascript:void 0" onclick="showRun(${r.id})">#${r.id} ${h(r.agent)}${mTag(r)} · ${moLabel(r.mode)}</a><span class="sub">${{queued:'排队',running:'运行中',done:'完成',failed:'失败',cancelled:'已取消'}[r.status]} · ${ago(r.created)}</span></div>`).join('')}
+function runList(rs){if(!rs.length)return '<div class="sub">还没有运行过</div>';return rs.map(r=>`<div class="flowrow"><a class="fx" href="javascript:void 0" onclick="showRun(${r.id})">#${r.id} ${h(r.agent)}${mTag(r)} · ${moLabel(r.mode)}</a><span class="sub">$${runStatus(r)} · ${ago(r.created)}</span></div>`).join('')}
 
 // ---------- business map & kb
 // ---------- shared page header

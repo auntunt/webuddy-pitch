@@ -2507,6 +2507,7 @@ def api_ticket(P, req, key):
     for r in runs:
         r["points"] = pts.get(r["id"], 0)
         if r["mode"] == "fix":
+            r["diff_bytes"] = len((P.store.run(r["id"]) or {}).get("diff") or "")
             v = verified(P.data_dir, r["id"])
             r["verify"] = {k: v.get(k) for k in ("check", "skip", "verdict", "rounds", "split", "beyond_plan", "verification_current", "recheck_operation")} if v else None
             r["recheck_wait"] = P.flow.verification_wait(r["id"]) if v.get("verification_current") is False else None
