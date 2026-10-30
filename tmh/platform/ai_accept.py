@@ -47,6 +47,7 @@ def why_not(data_dir: Path, rid: int, acs: list, real: bool = False) -> str:
 
 
 KEPT = "必须保持项：构建测试在测试机上通过，由自动测试证明"
+KEPT_BUILD = "必须保持项：测试机上构建通过（这个项目没跑自动测试，只证明改后能构建）"
 
 
 def committed(snap: dict, rid: int) -> str:
@@ -85,7 +86,8 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
         res = browser_verify.verify(P, p, t, rid, page, commit=commit) if page else \
             {"result": "unverified", "why": "没有要在页面上实测的验收标准", "ac": []}
         seen = {i["id"]: i for i in res.get("ac") or []}
-        seen.update({a["id"]: {"id": a["id"], "result": "pass", "how": KEPT} for a in acs if a.get("keep")} if page else {})
+        tested = any(g.get("id") == "test" and g.get("state") == "pass" for g in (s.get("snapshot") or {}).get("gates") or [])
+        seen.update({a["id"]: {"id": a["id"], "result": "pass", "how": KEPT if tested else KEPT_BUILD} for a in acs if a.get("keep")} if page else {})
         why = ("" if res["result"] == "pass" and all((seen.get(a["id"]) or {}).get("result") == "pass" for a in acs) else
                "页面实测复现了问题（%s）" % "、".join(k for k, i in seen.items() if i["result"] == "fail") if res["result"] == "fail" else
                "页面实测没能证明%s" % ("：" + res["why"] if res.get("why") else "（%s 未验证）" % "、".join(

@@ -118,6 +118,13 @@ class AiAcceptFlowTest(unittest.TestCase):
             out, rec = self.run_it()
         self.assertTrue(out["accepted"])
         self.assertEqual([x["id"] for x in v.call_args.args[4]], ["A1", "A2"])
+        self.assertEqual(rec.call_args.kwargs["basis"]["ac"]["A3"], ai_accept.KEPT_BUILD)
+        self.setUp()
+        self.pack["snapshot"]["ac"] = ACS + [keep]
+        self.pack["snapshot"]["gates"] = [{"id": "test", "state": "pass"}]
+        a, b = self.real("pass", {"A1": "pass", "A2": "pass"})
+        with a, b:
+            out, rec = self.run_it()
         self.assertEqual(rec.call_args.kwargs["basis"]["ac"]["A3"], ai_accept.KEPT)
         self.setUp()
         self.pack["snapshot"]["ac"] = [keep]
