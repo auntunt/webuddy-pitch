@@ -142,3 +142,11 @@
 - `/etc/webuddy.env` 改为 `TMH_ROUTER_BASE_URL=https://ai.cloudwaveai.cn/v1`、`TMH_ROUTER_MODEL=gpt-6-luna`、`TMH_ROUTER_VISION=1`、新 `TMH_ROUTER_KEY`，删除 `TMH_ROUTER_TEMPERATURE`（此模型接受 0）。key 经 SSH 标准输入写入，不进 Git。原 Kimi 版 env 备份为 `/opt/webuddy/backups/pre-3d3f855cace5-activation-20261030/webuddy.env.kimi-router-20261030110418`。程序未变（仍 `3d3f855`）。
 - 验证：重启后 active、NRestarts=0，本机/公网登录 200、API 401；生产数据副本上 5 个项目 `llm.conf` ready、通道 `llm`，JB 示例约 13 秒、CWWEB 示例约 9 秒拆成两条，未调用 agent、未建单。
 - 回滚：把上述备份 env 拷回 `/etc/webuddy.env` 并重启 `webuddy.service`。
+
+### 2026-10-30 按步骤分配执行器：Opus 5.5 分析/方案/诊断，Luna 改代码
+
+- 代码 `48b34a4`：`agent-routes.json` 的项目路由新增 `steps`（运行模式 → 执行器）。`Runner.start` 按步骤选执行器；`FixLoop` 的 `edit`/`diagnose` 和人工审查的诊断也按步骤选执行器，并用该执行器自己的默认模型。`steps` 里的执行器必须在 `allowed_agents` 中，未知模式或配错即拒绝；人明确选了别的允许执行器时以人为准；不同执行器之间不续接会话（`earlier_session` 本来就按执行器过滤）。新增 3 个用例；Python 3.12 下全量只剩与本次无关的 `test_readiness_checks_the_real_machine_worst_first`（本机 Git 旧）。
+- 选型实测：Cloudwave 网关上 `gpt-6-sol`、`gpt-6-astra` 可用，`gpt-6.1-*` 返回 400（ChatGPT 账号的 Codex 不支持）。aixoras 中转（Claude 系列，最高 `claude-opus-5-5`）的 Anthropic 接口几秒返回，OpenAI 接口约 90 秒；Cloudflare 会拦 Python 默认 UA。用户选择真实项目也用 Opus 指挥。
+- 发布前在生产数据副本上用新代码对 JB-32（网关关闭 knife4j 没生效）跑了一次真实方案：路由选中 `claude`/`claude-opus-5-5`，Opus 读代码、调 `tmh impact`、翻 git 历史找到根因，330 秒完成，输出含合法 `tmh-plan`（文件清单 + 分层验收标准）。副本随后删除。
+- 生产发布 `48b34a4`：`/opt/webuddy/releases/48b34a40be56-step-agents-20261030/app`，MANIFEST 校验通过，服务器上路由用例 22 个通过。备份 `/opt/webuddy/backups/pre-48b34a40be56-activation-20261030`（env、unit、`agents.json`、`agent-routes.json`、旧程序、数据库 `.backup`，完整性 ok）。`/etc/webuddy.env` 追加 `ANTHROPIC_BASE_URL=https://aixoras.com`、`ANTHROPIC_AUTH_TOKEN`（经 SSH 标准输入写入）和 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`；`agents.json` 加 `claude`（服务器 Claude Code 2.1，模型 `claude-opus-5-5`，`run_timeout` 1800）；CWWEB、WEIGHBILL、GROUPRISK、PPTAUTO、JB 路由加 `claude` 到 `allowed_agents`，并设 `steps: analyze/plan/diagnose → claude`，改代码仍走 `cloudwave-codex`（Luna）。本机/公网 login 200、API 401，NRestarts=0。
+- 回滚：把备份里的 `0-webuddy.env`、`2-agents.json`、`3-agent-routes.json` 拷回原处，`app` 软链指回 `releases/3d3f855cace5-router-temp-20261030/app` 并重启；只想停用 Opus 时，只恢复 `3-agent-routes.json` 即可，不用重启。数据库不动。
