@@ -191,7 +191,9 @@ class Orchestra:
             if run["status"] != "done":
                 return st.event(tid, by, "flow", "自动起草修改方案没有完成，等人处理")
             from .fixloop import plan_ac
-            if conf.get("fix") and not plan_ac(run.get("result") or ""):  # no acceptance criteria, no implementation
+            from .signoff import client_ac
+            # no acceptance criteria (the plan's, or the ones the client confirmed), no implementation
+            if conf.get("fix") and not plan_ac(run.get("result") or "") and not client_ac(self.data_dir, st.ticket(tid)["key"]):
                 return st.event(tid, by, "flow", "方案里没有验收标准（AC），不进入自动改代码；补上验收标准后由人决定是否改", {"run": run["id"]})
             if conf.get("fix"):
                 st.event(tid, by, "flow", "修改方案已出，接着在独立分支上改代码")

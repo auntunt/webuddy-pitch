@@ -160,6 +160,20 @@ class AgentRoutesTest(unittest.TestCase):
             then({"status": "done", "result": "see src/a.vue:10"})
             plan.assert_called_once()
 
+    def test_criteria_the_client_confirmed_let_a_plan_without_its_own_go_on_to_the_fix(self):
+        self.write()
+        tid = self.ticket["id"]
+        self.store.update_ticket(tid, "li", status="doing")
+        self.P.flow._flow_plan(self.project, tid, {"fix": True}, "claude")
+        then = self.runner.start.call_args.kwargs["then"]
+        with patch.object(self.P.flow, "_flow_fix") as fix:
+            then({"id": 1, "status": "done", "result": "A1 prose only"})
+            fix.assert_not_called()
+            self.assertTrue(any("没有验收标准" in e["body"] for e in self.store.events(tid)))
+            with patch("tmh.platform.signoff.client_ac", return_value=[{"id": "A1", "text": "x"}]):
+                then({"id": 1, "status": "done", "result": "A1 prose only"})
+            fix.assert_called_once()
+
     def test_codex_only_route_blocks_direct_api_chooser_and_model_triage(self):
         self.write()
         with patch("tmh.kbqa.router_conf") as config, patch("tmh.kbqa.triage", return_value={}) as triage:
