@@ -28,6 +28,7 @@ from .. import __version__
 from .agents import Runner, available, git, is_git, pick_model
 from .metrics import compute as compute_metrics, md_html, report_md, ts_norm
 from . import command, agent_routes
+from .coderefs import FILE_LINE
 from .errors import ApiError
 from .knowledge import Knowledge
 from .orchestra import Orchestra
@@ -488,7 +489,7 @@ class Platform:
 
     # ------------------------------------------------------------ assistant
     CITE = re.compile(r"\b((?:flow|tbl|dom|mod):[A-Za-z0-9_.\-]*[A-Za-z0-9_]|index)\b")
-    FILE_LINE = re.compile(r"([\w./\\-]+\.(?:java|cs|xml|sql|jsp|aspx|cshtml|config|properties|yml|yaml|vb|js|ts|vue|kt|py))[`*'\x22]*(?::|#L|\s*(?:的\s*)?第\s*|\s*[(（]?\s*(?:line|行)\s*)(\d+)", re.IGNORECASE)
+    FILE_LINE = FILE_LINE
 
     def cite(self, p: dict, text: str, limit: int = 8) -> list:
         """Evidence cards for the ids and file:line references an answer names; unknown ones are dropped."""

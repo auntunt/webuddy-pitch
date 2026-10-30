@@ -416,4 +416,8 @@ class FileLineTest(unittest.TestCase):
             Orchestra.FILE_LINE.findall("- 文件：`jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts` 第 78 行；**a.vue** 的第 5 行；`b.ts`:7"),
             [("jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts", "78"), ("a.vue", "5"), ("b.ts", "7")])
         from tmh.platform.server import Platform
-        self.assertEqual(Platform.FILE_LINE.pattern, Orchestra.FILE_LINE.pattern)
+        self.assertIs(Platform.FILE_LINE, Orchestra.FILE_LINE)
+        table = "| 文件 | 行号 | 内容 |\n|---|---|---|\n| `jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts` | 第 78 行 | rememberMe |\n| LoginForm.vue | 45 | 复选框 |"
+        self.assertEqual(Orchestra.FILE_LINE.findall(table),
+                         [("jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts", "78"), ("LoginForm.vue", "45")])
+        self.assertEqual(Orchestra.FILE_LINE.findall("| a.vue | 组件 | 共 3 处 |\nsys.ts 和 b.vue 都要改"), [])

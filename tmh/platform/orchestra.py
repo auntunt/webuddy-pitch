@@ -29,9 +29,11 @@ import threading
 import time
 from pathlib import Path
 
+from .coderefs import FILE_LINE
+
 
 class Orchestra:
-    FILE_LINE = re.compile(r"([\w./\\-]+\.(?:java|cs|xml|sql|jsp|aspx|cshtml|config|properties|yml|yaml|vb|js|ts|vue|kt|py))[`*'\x22]*(?::|#L|\s*(?:的\s*)?第\s*|\s*[(（]?\s*(?:line|行)\s*)(\d+)", re.IGNORECASE)
+    FILE_LINE = FILE_LINE
 
     def __init__(self, store, runner, data_dir: Path, knowledge):
         self.store, self.runner, self.data_dir, self.knowledge = store, runner, Path(data_dir), knowledge
