@@ -69,6 +69,11 @@ class TenantContext:
     def directory(self):
         return self.registry.directory(self.tenant_id)
 
+    def trusted_host(self):
+        """The default tenant on the original host runtime: the operator's own projects, not a hosted customer."""
+        t = self.registry.one('SELECT runtime FROM tenants WHERE id=?', (self.tenant_id,))
+        return self.tenant_id == 'default' and bool(t) and t['runtime'] == 'legacy'
+
     def runtime_allowed(self, actor):
         try:
             return bool(self.current_actor(actor)['capabilities']['execution'])

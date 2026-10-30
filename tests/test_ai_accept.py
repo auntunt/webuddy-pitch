@@ -128,5 +128,23 @@ class AutoflowPerProjectTest(unittest.TestCase):
         self.assertFalse(ai_accept.enabled(o.autoflow(), "JB"))
 
 
+    def test_a_managed_worker_runs_the_line_only_for_the_trusted_default_tenant_and_never_merges(self):
+        from tmh.platform.orchestra import Orchestra
+        data = Path(tempfile.mkdtemp(prefix="tmh-ai-"))
+        (data / "autoflow.json").write_text(json.dumps({"on": ["JB"], "ai_accept": ["JB"]}), encoding="utf-8")
+        (data / "release.json").write_text(json.dumps({"merge": True}), encoding="utf-8")
+        o = Orchestra.__new__(Orchestra)
+        o.data_dir = data
+        for trusted, on in ((True, ["JB"]), (False, False)):
+            o.tenant_context = type("Ctx", (), {"trusted_host": lambda self, v=trusted: v})()
+            conf = o.autoflow()
+            self.assertEqual((conf["on"], conf["merge"], conf["ai_accept"]), (on, False, ["JB"]))
+        o.tenant_context = object()
+        self.assertFalse(o.autoflow()["on"])
+        (data / "autoflow.json").write_text(json.dumps({"on": True}), encoding="utf-8")
+        o.tenant_context = type("Ctx", (), {"trusted_host": lambda self: True})()
+        self.assertFalse(o.autoflow()["on"])
+
+
 if __name__ == "__main__":
     unittest.main()

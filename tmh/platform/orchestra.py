@@ -81,8 +81,11 @@ class Orchestra:
                 pass
         from . import release
         conf["merge"] = release.settings(self.data_dir)["merge"]  # derived, for the pages: say "merged automatically" only when it is
-        if getattr(self, "tenant_context", None) is not None:
-            conf.update(on=False, merge=False)
+        ctx = getattr(self, "tenant_context", None)
+        if ctx is not None:
+            # a managed worker never merges unattended; the line runs only for projects the trusted default tenant lists
+            listed = isinstance(conf["on"], (list, tuple)) and getattr(ctx, "trusted_host", lambda: False)()
+            conf.update(merge=False, **({} if listed else {"on": False}))
         return conf
 
     def submit(self, p: dict, t: dict, wait: bool = False) -> None:
