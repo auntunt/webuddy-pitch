@@ -11,7 +11,10 @@ One "修改代码" run goes like this, in its own git worktree:
 3. The project's build and test commands run in the worktree (configured ones first, otherwise detected; they are
    run on the untouched code first, and when that already fails they cannot tell anything and are skipped).
 4. A diagnosis agent (the strongest model) reads the change and the results and decides pass or fail. A failed
-   build or test is a fail whatever it says. On a fail it names the files to revise and what each must do, and
+   build or test is a fail whatever it says. A fail has to name what blocks it (an acceptance criterion missed, with
+   the input that goes wrong and where); doubts go to "advisory", and a fail naming nothing is no verdict. The next
+   change of the same ticket is diagnosed against the last one's blockers first, and a ticket whose changes keep
+   failing is marked as going in circles. On a fail it names the files to revise and what each must do, and
    only those run again, up to `rounds` more times (3; more rounds hardly help). When no build or tests run there
    is one round only, and the diagnosis is made only for a change split across files or when the project's route
    gives diagnosis to another executor; otherwise a small change goes straight to a person.
@@ -89,6 +92,10 @@ def plan_ac(text: str) -> list:
             out.append({"id": str(a.get("id") or "A%d" % (len(out) + 1)), "text": str(a["text"]).strip()[:300],
                         "layer": str(a.get("layer") or "").upper()[:2], "check": str(a["check"]).strip()[:300]})
     return out
+
+
+PRIOR_KEYS = ("blocking", "evidence", "cause", "guide")  # what the next diagnosis checks first
+STALL_AFTER = 3  # failed diagnoses in a row on one ticket before asking for a real check instead of another round
 
 
 def settings(data_dir: Path) -> dict:
@@ -392,7 +399,12 @@ class FixLoop:
         else:
             L.append("没有跑：%s。只能读代码判断。" % skip)
         if prev:
-            L += ["", "## 上一轮的诊断", json.dumps({k: prev.get(k) for k in ("cause", "guide")}, ensure_ascii=False)[:1500]]
+            L += ["", "## 上一轮的诊断", json.dumps({k: prev.get(k) for k in PRIOR_KEYS if prev.get(k)}, ensure_ascii=False)[:2500]]
+        else:
+            earlier = next(((rid, v) for rid, v in self.earlier_fixes()[:1] if (v.get("diagnosis") or {}).get("verdict") == "fail"), None)
+            if earlier:
+                L += ["", "## 这张工单上一次修改（#%d）的诊断" % earlier[0],
+                      json.dumps({k: earlier[1]["diagnosis"].get(k) for k in PRIOR_KEYS if earlier[1]["diagnosis"].get(k)}, ensure_ascii=False)[:2500]]
         L += ["", MODE_TEXT["diagnose"]]
         self.say("诊断这一轮的改动（%s）" % (self.models["diagnose"] or "默认模型"))
         out = self.call("diagnose", "\n".join(L))
@@ -400,6 +412,13 @@ class FixLoop:
         d = d if isinstance(d, dict) else {}
         d["text"] = clean(out)[:1500]
         return d
+
+    def earlier_fixes(self) -> list:
+        """Earlier finished change runs of this ticket with their verification, newest first."""
+        if not self.t:
+            return []
+        return [(r["id"], _verification(self.r.data_dir, r["id"])) for r in self.st.runs(ticket_id=self.t["id"])
+                if r["mode"] == "fix" and r["status"] == "done" and r["id"] < self.rid]
 
     # ------------------------------------------------------------ the loop
     def run(self) -> tuple[int, str]:
@@ -475,6 +494,9 @@ class FixLoop:
                 break
             diag = self.diagnose(diff, res, skip, diag)
             said = str(diag.get("verdict", "")).lower()
+            if said == "fail" and isinstance(diag.get("blocking"), list) and not any(diag["blocking"]):
+                said = "unknown"  # a fail that names nothing it blocks on cannot send the work back
+                self.say("诊断判了不通过，但没有列出阻断项，按没有给出结论处理")
             # Commands prove their own checks, not a missing model diagnosis. Keep timeout/unreadable
             # reviews unknown even when compilation/tests are green; never invent an implementation verdict.
             verdict = "fail" if broke or said == "fail" else ("pass" if said == "pass" else "unknown")
@@ -491,7 +513,16 @@ class FixLoop:
             self.say("超出方案：改了方案没列的 %s" % "、".join(beyond[:6]))
         out = {"check": check, "skip": skip if check == "skip" else "", "verdict": verdict, "rounds": len(self.log), "beyond_plan": beyond,
                "split": bool(goals) and split, "files": files, "commands": res,
-               "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide")}}
+               "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide",
+                                                                "blocking", "advisory", "prior")}}
+        if verdict == "fail":
+            streak = 1
+            for _, v in self.earlier_fixes():
+                if v.get("verdict") != "fail":
+                    break
+                streak += 1
+            if streak >= STALL_AFTER:
+                out["stalled"] = streak
         stopped = self.r.stop_reason(self.rid) if hasattr(self.r, "stop_reason") else ""
         if stopped:
             out.update(stopped_reason=stopped, verdict="unknown", interrupted=True)
@@ -506,8 +537,17 @@ class FixLoop:
             L += ["**超出方案：** 改了方案没列的 %s，请重点看。" % "、".join("`%s`" % f for f in v["beyond_plan"][:8]), ""]
         if self.log:
             L += ["## 每一轮"] + ["- " + x for x in self.log] + [""]
+        if v.get("stalled"):
+            L += ["**在兜圈子：** 这张工单连续 %d 次修改，诊断都没通过。再让 AI 按诊断改大概率还会冒出新问题，"
+                  "建议先实测（预览）或由人定方向。" % v["stalled"], ""]
+        blocking = [b for b in (diag or {}).get("blocking") or [] if isinstance(b, dict)]
+        if blocking and v["verdict"] == "fail":
+            L += ["## 阻断项"] + ["- %s：%s（%s）" % (b.get("ac") or "", b.get("scenario") or "", b.get("where") or "") for b in blocking] + [""]
         if diag and v["verdict"] != "pass" and (diag.get("cause") or diag.get("guide")):
             L += ["## 还差什么", str(diag.get("cause") or ""), str(diag.get("guide") or ""), ""]
+        advisory = [str(a) for a in (diag or {}).get("advisory") or [] if a]
+        if advisory:
+            L += ["## 建议（不影响结论）"] + ["- " + a for a in advisory[:8]] + [""]
         if self.notes:
             L.append("## 改了什么")
             for f, n in self.notes.items():

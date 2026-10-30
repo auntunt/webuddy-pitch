@@ -479,7 +479,7 @@ const MERGE_ON=()=>(S.meta.autoflow||{}).merge==='auto';
 function onAuto(d){return !!((S.meta.autoflow||{}).on)&&!(d.ticket.links||{}).hold&&!['verify','closed'].includes(d.ticket.status)}
 // what the change went through before anyone looks at it: per-file agents, build and tests, diagnosis rounds
 function vfy(r){const v=r&&r.verify;if(!v)return '';if(v.verification_current===false)return '旧验证结果已失效，需重新验证或检查停止回执。';const c={pass:'构建测试通过',fail:'构建测试没通过',skip:'没跑构建测试'}[v.check]||'';
-  return `${v.split?`${v.files} 个文件分工改，`:''}${c}${v.check==='skip'&&v.skip?'（'+h(v.skip)+'）':''}，${v.by_hand?h(v.reviewer||'')+' 审查':'诊断'}${{pass:'认为已解决',fail:'认为还没解决',unknown:'没给结论'}[v.verdict]||''}${v.rounds?'，共 '+v.rounds+' 轮':''}。`}
+  return `${v.split?`${v.files} 个文件分工改，`:''}${c}${v.check==='skip'&&v.skip?'（'+h(v.skip)+'）':''}，${v.by_hand?h(v.reviewer||'')+' 审查':'诊断'}${{pass:'认为已解决',fail:'认为还没解决',unknown:'没给结论'}[v.verdict]||''}${v.rounds?'，共 '+v.rounds+' 轮':''}。${v.stalled?'这张工单连续 '+(+v.stalled)+' 次修改诊断都没通过，在兜圈子，建议先实测或由人定方向，不要再照诊断改。':''}`}
 function adopted(d){const r=d.runs.find(x=>x.mode==='fix');if(!r?.decision?.startsWith('accepted:'))return null;
   const e=d.events.filter(x=>x.kind==='adopt'&&String((x.data||{}).run)===String(r.id)).pop(),[branch,commit]=r.decision.slice(9).split('@');
   return {branch:branch||'',commit:commit||'',auto:e?.author==='自动流转'}}

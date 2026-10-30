@@ -166,3 +166,11 @@
 - 已有的修改运行（如 #259、#260、#263）不回填 `runs.model`；新数据只在新运行上生效。
 - 生产走查发现运行详情接口返回的是 `verification`，不是 `verify`，所以详情页的“完成”没有带上验证说明。`runStatus` 现在两个字段都读。
 - 生产走查发现，租户托管模式下 `/api/meta` 不返回 `data_dir`，评论草稿提交时 `expected_workspace` 为空，`api_comment` 因此对所有评论都返回 409。修复方法：meta 新增 `workspace`（数据目录路径的 sha256 摘要，不暴露路径），评论守卫同时接受真实路径或这个摘要；空值和其他工作区的摘要仍然拒绝。
+
+### 2026-10-30 诊断收敛：阻断项与建议分离、增量复审、兜圈子就停
+
+- 起因：JB-42 连续三次修改（#260、#264、#265），Opus 诊断每次都判 fail / partial，而且每次指出的都是新的静态疑点（#265 的依据是参考组件状态管理不同）。原诊断提示问的是开放的“是否真的解决了”，不要求说明违反哪条验收标准；各次修改的诊断互相看不到；也没有停止条件。用户要求：“我们能改，然后改的对就行……总会有无尽的修改的”，并要求按业内共识做。
+- 依据：Google 代码审查规范（整体变好即批准，Nit/Optional 不阻断）、Devin Review 的严重性分级、增量复审（先核对上次意见）。
+- `MODE_TEXT["diagnose"]`：判 fail 必须列 `blocking`（对应的验收标准 `ac`、具体失败场景 `scenario`、代码位置 `where`）；推测风险、写法与参考代码不同、风格和健壮性进 `advisory`，不影响结论；给了之前的诊断时先逐条判断是否已解决（`prior`），新阻断项要说明是本次引入还是之前漏看。构建或测试失败仍然是阻断项。
+- `FixLoop`：模型判 fail 但 `blocking` 是空列表时记为 `unknown`（不替它判通过；旧格式没有 `blocking` 字段的 fail 照旧算 fail）。同一工单下一次修改的诊断会带上紧挨着的上一次修改的 `blocking/evidence/cause/guide`（上一次是 pass 就不带）。连续 `STALL_AFTER=3` 次修改诊断都是 fail（中间遇到非 fail 即重新计数）时，`verify.json` 写 `stalled`，摘要显示“在兜圈子”并建议先实测或由人定方向；工单接口带出 `stalled`，运行说明里同步提示。摘要新增“阻断项”和“建议（不影响结论）”两节。
+- 测试：`tests/test_agent_routes.py` 新增 4 个用例（无阻断项的 fail → unknown；advisory 不影响 pass；上一次阻断项进入提示 + 连续三次 → stalled；上一次 pass 打断循环），`tests/test_recheck_summary.py` 补 `vfy` 的兜圈子提示断言。相关 9 个测试文件 162 个通过，唯一失败仍是与本次无关的 `test_readiness_checks_the_real_machine_worst_first`（本机 Git 旧）。
