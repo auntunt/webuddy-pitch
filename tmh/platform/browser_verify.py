@@ -154,6 +154,7 @@ SPEC_RULES = """写一个 Playwright 实测脚本，在真实运行的应用里�
 - 先 `await login(page);`（已处理验证码，登录后在首页），再用 `page.goto(process.env.TMH_BASE + '路由')` 或点菜单进入要测的页面。路由从仓库代码里查。
 - 像用户一样操作（点击、输入、选择），每个关键步骤后 `await shot(page, testInfo, '步骤名');`。
 - 断言某样东西「不存在 / 不再显示」之前，先断言同一页面上一个本来就该在的元素可见，证明页面已经加载出来。
+- 页面上常有隐藏的同类元素（比如登录页里隐藏的注册、手机登录表单）：优先 `getByRole` / `getByText(..., { exact: true })`，定位输入框等元素时加 `:visible` 或限定在可见的表单里，保证只命中一个。
 - 用 `expect(...)` 断言这条标准能看到的结果；断言失败表示“实测没做到”，所以只断言标准本身要求的东西。
 - 不 mock 接口，不改数据库，不写 `page.evaluate` 改组件状态。没法在页面上验证的标准写成 `test.skip('A2 ...', ...)` 并在注释里写原因。
 """
@@ -213,6 +214,8 @@ def results(report: dict, acs: list, files: dict) -> list:
             res, how = "pass", "页面上实测通过（%d 张截图）" % len(shots)
         elif status == "passed":
             res, how = "unverified", "测试通过但没有截图，不算证明"
+        elif status == "failed" and "strict mode violation" in msg:
+            res, how = "unverified", "实测脚本的定位命中了多个元素：" + msg
         elif status == "failed" and re.search(r"\bexpect\(", msg) and "TMH_SETUP" not in msg:
             res, how = "fail", "页面上实测没做到：" + msg
         elif status == "skipped":
@@ -221,6 +224,23 @@ def results(report: dict, acs: list, files: dict) -> list:
             res, how = "unverified", "实测没能执行完（%s）：%s" % (status, msg)
         out.append({"id": a["id"], "result": res, "how": how, "shots": shots})
     return out
+
+
+SCRIPT_FAULT = ("实测没能执行完", "实测脚本的定位命中了多个元素")
+
+
+def repairable(items: list) -> bool:
+    """Nothing failed on the page, but the script itself broke on some criterion: worth one corrected script."""
+    return not any(i["result"] == "fail" for i in items) and \
+        any(i["result"] == "unverified" and i["how"].startswith(SCRIPT_FAULT) and "TMH_SETUP" not in i["how"] for i in items)
+
+
+def repair_prompt(spec: str, items: list) -> str:
+    L = ["下面这个 Playwright 实测脚本在真实应用里跑出了脚本自身的错误（不是验收标准没做到）。只修脚本的错误（定位、等待、步骤），"
+         "每条 test 断言的内容和标准要求保持不变，不许删掉或放松断言。只输出修好的完整脚本，一个 ```tmh-spec 代码块。", "",
+         SPEC_RULES, "原脚本：", "```js", spec, "```", "", "每条标准的结果："]
+    L += ["- %s %s：%s" % (i["id"], i["result"], i["how"][:600]) for i in items]
+    return "\n".join(L)
 
 
 def overall(items: list) -> str:
@@ -335,6 +355,10 @@ def full_sha(root: Path, commit: str) -> str:
     return out if re.fullmatch(r"[0-9a-f]{40}", out) and out.startswith(commit) else ""
 
 
+def _job(p: dict, rid: int, bind: dict) -> str:
+    return "%s-r%d-%s" % (p["key"].lower(), rid, bind["spec_sha256"][:8])
+
+
 def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=None) -> dict:
     """Drive the real app for run `rid` (its committed `commit`, else its worktree's base plus its diff)."""
     c = conf(P.data_dir, p["key"])
@@ -357,10 +381,16 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
         items = results({}, acs, {})
         _record(P, t, rid, items, "unverified", bind, "没有写出实测脚本")
         return dict(bind, result="unverified", why="没有写出实测脚本", ac=items)
-    job = "%s-r%d-%s" % (p["key"].lower(), rid, bind["spec_sha256"][:8])
-    report, files = run_remote(c, Path(p["root"]), base, diff, spec, job, 23100 + rid % 800)
+    report, files = run_remote(c, Path(p["root"]), base, diff, spec, _job(p, rid, bind), 23100 + rid % 800)
     items = results(report, acs, files)
     why = str(report.get("setup") or "")
+    if not why and repairable(items):
+        fixed = spec_from((ask or _ask)(P, p, t, repair_prompt(spec, items)))
+        if fixed and fixed != spec:
+            bind = dict(binding(base, diff, fixed), repaired_from=bind["spec_sha256"])
+            report, files = run_remote(c, Path(p["root"]), base, diff, fixed, _job(p, rid, bind), 23100 + rid % 800)
+            items = results(report, acs, files)
+            why = str(report.get("setup") or "")
     result = "unverified" if why else overall(items)
     _record(P, t, rid, items, result, bind, why)
     return dict(bind, result=result, why=why, ac=items)
