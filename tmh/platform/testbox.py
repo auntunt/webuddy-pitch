@@ -284,7 +284,11 @@ def build_commands(repo: Path, files: list) -> tuple[list, str]:
         dev = dict(pj.get("dependencies") or {}, **(pj.get("devDependencies") or {}))
         scripts = pj.get("scripts") or {}
         where = str(pk.relative_to(repo)).replace("\\", "/")
-        check = "pnpm run type:check" if "type:check" in scripts else ("pnpm exec vue-tsc --noEmit" if "vue-tsc" in dev else ("pnpm exec tsc --noEmit" if "typescript" in dev else ""))
+        # the project's own checks first: a repo whose build never type-checks (JeecgBoot) fails vue-tsc on untouched code
+        check = ("pnpm run type:check" if "type:check" in scripts else
+                 "pnpm exec vite build" if "vite build" in str(scripts.get("build") or "") else
+                 "pnpm exec vue-tsc --noEmit" if "vue-tsc" in dev else
+                 "pnpm exec tsc --noEmit" if "typescript" in dev else "")
         if check:
             seq.append(("build", ("cd %s && " % where if where != "." else "") + "pnpm install --prefer-offline && " + check))
     return seq, ("" if seq else "改动里没有能在测试机上编译检查的文件（Java 模块或带类型检查的前端）")

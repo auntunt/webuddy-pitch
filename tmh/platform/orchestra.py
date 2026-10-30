@@ -38,6 +38,7 @@ class Orchestra:
         self.listeners = []
         self.on_release = []  # fn(project, ticket, release) after a change is merged and given a version
         self.bases = []  # fn(project, ticket) -> commit | "" (the main line) | None (no opinion): where a change starts
+        self.committed = []  # fn(project, ticket id, run id) after a change was committed unattended
         self.rechecking = set()  # legacy in-process notification only; durable operations own the lease
 
     @property
@@ -101,7 +102,7 @@ class Orchestra:
     def _intake(self, p: dict, t: dict) -> None:
         st, by = self.store, self.BY
         conf = self.autoflow()
-        if not conf.get("on") or self.mine(t["id"]):  # a person claimed it (我来写) before the line got to it
+        if not self.switched_on(conf, p) or self.mine(t["id"]):  # a person claimed it (我来写) before the line got to it
             return
         try:
             rel = self.knowledge.related(p, "%s %s" % (t["title"], (t.get("body") or "")[:400]), limit=3)
@@ -118,6 +119,14 @@ class Orchestra:
         st.event(t["id"], by, "intake", "自动受理" + ("：关联业务 " + "、".join(f["name"] or f["trigger"] for f in add) if add else "：知识库里没有找到明确对应的业务流"),
                  {"flows": [f["id"] for f in add]})
         self._flow_analyze(p, t["id"], conf)
+
+    def switched_on(self, conf: dict, project) -> bool:
+        """Whether the automatic line runs for this project: "on" is true/false for all, or a list of project keys."""
+        v = conf.get("on")
+        if not isinstance(v, (list, tuple)):
+            return bool(v)
+        p = project if isinstance(project, dict) else self.store.project(project)
+        return bool(p) and p["key"] in v
 
     def held(self, tid: int) -> bool:
         return bool((self.store.ticket(tid).get("links") or {}).get("hold"))
@@ -228,7 +237,12 @@ class Orchestra:
         try:
             self.runner.decide(run["id"], "accept", by)
         except (ValueError, RuntimeError) as e:
-            st.event(tid, by, "flow", "自动提交改动失败（%s），留给人审阅" % e, {"run": run["id"]})
+            return st.event(tid, by, "flow", "自动提交改动失败（%s），留给人审阅" % e, {"run": run["id"]})
+        for fn in self.committed:
+            try:
+                fn(p, tid, run["id"])
+            except Exception as e:  # noqa: BLE001 - the commit stands; what follows waits for a person
+                st.event(tid, by, "flow", "改动已自动提交，后续处理没做成（%s），留给人验收" % e, {"run": run["id"]})
 
     def accepted(self, p: dict, t: dict, passed: bool, note: str, by: str) -> dict:
         """A person's verdict on a task: keep what it teaches, send a rejected automatic change back to be redone,
@@ -251,8 +265,8 @@ class Orchestra:
         if passed:
             out["release"] = self._ship(p, t, conf, by)
             return tell()
-        if not conf.get("on") or self.held(t["id"]):
-            return tell("有人接手，不自动重改" if conf.get("on") else "自动处理没开，不自动重改")
+        if not self.switched_on(conf, p) or self.held(t["id"]):
+            return tell("有人接手，不自动重改" if self.switched_on(conf, p) else "自动处理没开，不自动重改")
         ad, _ = learn._adopted(self.store, t["id"])
         if not ad:
             return tell("改动不是自动提交的，由改的人返工")  # nothing automatic was sent back: whoever made the change reworks it
@@ -308,7 +322,7 @@ class Orchestra:
             st.event(t["id"], self.BY, "conflict", "验收通过的改动（%s）和主干 %s 上后来的改动冲突，冲突的文件：%s。要在最新的主干上重做同样的改动，行为和验收通过的那版保持一致"
                      % (r["branch"], r["main"], "、".join(r["files"]) or "（没列出）"), {"branch": r["branch"], "files": r["files"]})
             try:
-                agent = self._flow_agent(conf, p) if conf.get("on") and conf.get("fix") else ""
+                agent = self._flow_agent(conf, p) if self.switched_on(conf, p) and conf.get("fix") else ""
             except ValueError as exc:
                 st.event(t["id"], self.BY, "flow", str(exc))
                 agent = ""
@@ -318,7 +332,7 @@ class Orchestra:
                 self._flow_fix(p, t["id"], conf, agent, git(self.root(p), "rev-parse", r["main"]).strip())
             else:
                 why = ("有人接手" if self.held(t["id"]) else "重做次数用完了（%d 次）" % (n - 1) if agent else
-                       "自动处理没开" if not (conf.get("on") and conf.get("fix")) else "没有可用的智能体")
+                       "自动处理没开" if not (self.switched_on(conf, p) and conf.get("fix")) else "没有可用的智能体")
                 st.event(t["id"], self.BY, "flow", "%s，需要有人在最新的主干上重做，或手动合并分支 %s" % (why, r["branch"]))
         elif r["state"] in ("waiting", "none"):
             st.event(t["id"], self.BY, "flow", ("验收通过了，还没合并进主干：%s。处理好后在工单上点“重试合并”" if r["state"] == "waiting" else
@@ -356,7 +370,7 @@ class Orchestra:
                 self.store.event(tid, by, "flow", "重新验证了运行 #%d 的改动（没改代码）：%s" % (rid, said), {"run": rid, "check": v["check"]})
                 conf = self.autoflow()
                 t = self.store.ticket(tid)
-                if v["check"] == "pass" and not run["decision"] and conf.get("on") and not self.held(tid) and t["status"] == "doing":
+                if v["check"] == "pass" and not run["decision"] and self.switched_on(conf, run["project_id"]) and not self.held(tid) and t["status"] == "doing":
                     self._flow_commit(self.store.project(run["project_id"]), tid, conf, run)
             return v
         if wait:
@@ -456,7 +470,7 @@ class Orchestra:
         A step that failed or was cancelled stops the line; with `retry` (a person handing the ticket on) it is run again."""
         conf = conf or self.autoflow()
         lk = t.get("links") or {}
-        if not conf.get("on") or lk.get("hold") or lk.get("later") or t["status"] not in ("new", "analyzing", "confirm", "doing"):
+        if not self.switched_on(conf, t["project_id"]) or lk.get("hold") or lk.get("later") or t["status"] not in ("new", "analyzing", "confirm", "doing"):
             return "", None
         runs = [r for r in self.store.runs(ticket_id=t["id"]) if r["mode"] in ("analyze", "plan", "fix")]
         if retry:

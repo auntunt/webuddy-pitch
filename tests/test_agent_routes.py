@@ -318,6 +318,16 @@ class AgentRoutesTest(unittest.TestCase):
         self.assertEqual(verify["verdict"], "fail")
         self.assertNotIn("stalled", verify)
 
+    def test_each_criterion_is_put_to_the_diagnosis_and_its_answer_shown(self):
+        plan = self.store.create_run(self.project["id"], self.ticket["id"], "claude", "plan", "alice", "p")["id"]
+        self.store.update_run(plan, status="done", result='```tmh-plan\n{"files": [], "ac": [{"id": "A1", "text": "取消后恢复原值", "check": "点取消"}]}\n```')
+        said = {"verdict": "pass", "blocking": [], "ac": [{"id": "A1", "result": "pass", "how": "a.vue:3"}]}
+        verify, summary, prompt = self._diagnose_on_ticket(said)
+        self.assertIn("逐条核对的验收标准", prompt)
+        self.assertIn("A1：取消后恢复原值", prompt)
+        self.assertEqual(verify["diagnosis"]["ac"], said["ac"])
+        self.assertIn("A1：通过（a.vue:3）", summary)
+
     def test_a_doubt_is_advice_and_does_not_send_the_work_back(self):
         verify, summary, _ = self._diagnose_on_ticket({"verdict": "pass", "blocking": [], "advisory": ["可能需要深拷贝"]})
         self.assertEqual(verify["verdict"], "pass")

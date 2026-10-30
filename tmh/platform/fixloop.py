@@ -410,6 +410,9 @@ class FixLoop:
             if earlier:
                 L += ["", "## 这张工单上一次修改（#%d）的诊断" % earlier[0],
                       json.dumps({k: earlier[1]["diagnosis"].get(k) for k in PRIOR_KEYS if earlier[1]["diagnosis"].get(k)}, ensure_ascii=False)[:2500]]
+        acs = self.criteria()
+        if acs:
+            L += ["", "## 逐条核对的验收标准"] + ["- %s：%s" % (a["id"], a["text"]) for a in acs]
         L += ["", MODE_TEXT["diagnose"]]
         self.say("诊断这一轮的改动（%s）" % (self.models["diagnose"] or "默认模型"))
         out = self.call("diagnose", "\n".join(L))
@@ -417,6 +420,11 @@ class FixLoop:
         d = d if isinstance(d, dict) else {}
         d["text"] = clean(out)[:1500]
         return d
+
+    def criteria(self) -> list:
+        """What the change is accepted against: the criteria the client confirmed, else the plan's."""
+        from .signoff import client_ac
+        return (client_ac(self.r.data_dir, self.t["key"]) if self.t else []) or plan_ac(getattr(self, "plan", "") or "")
 
     def earlier_fixes(self) -> list:
         """Earlier finished change runs of this ticket with their verification, newest first."""
@@ -437,6 +445,7 @@ class FixLoop:
             else:
                 done = [r for r in self.st.runs(ticket_id=self.t["id"]) if r["mode"] == "plan" and r["status"] == "done"]
                 plan = self.st.run(done[0]["id"])["result"] if done else ""
+        self.plan = plan
         goals = plan_files(plan, int(self.set.get("max_files") or 16))
         seq, skip = self.commands(goals)
         if seq:
@@ -523,7 +532,7 @@ class FixLoop:
         out = {"check": check, "skip": skip if check == "skip" else "", "verdict": verdict, "rounds": len(self.log), "beyond_plan": beyond,
                "split": bool(goals) and split, "files": files, "commands": res,
                "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide",
-                                                                "blocking", "advisory", "prior")}}
+                                                                "blocking", "advisory", "prior", "ac")}}
         if vague and verdict == "unknown":
             out["vague_fail"] = True
         if (diag or {}).get("verdict") == "fail":
@@ -559,6 +568,11 @@ class FixLoop:
         advisory = [str(a) for a in (diag or {}).get("advisory") or [] if a]
         if advisory:
             L += ["## 建议（不影响结论）"] + ["- " + a for a in advisory[:8]] + [""]
+        said = [a for a in (diag or {}).get("ac") or [] if isinstance(a, dict) and a.get("id")]
+        if said:
+            word = {"pass": "通过", "fail": "没通过", "unverified": "没法确认"}
+            L += ["## 逐条验收"] + ["- %s：%s（%s）" % (a["id"], word.get(str(a.get("result") or "").lower(), "没给结论"), a.get("how") or "")
+                                    for a in said[:12]] + [""]
         if self.notes:
             L.append("## 改了什么")
             for f, n in self.notes.items():

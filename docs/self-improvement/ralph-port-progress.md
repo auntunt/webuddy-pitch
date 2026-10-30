@@ -175,3 +175,12 @@
 - `FixLoop`：模型判 fail 但 `blocking` 是空列表时记为 `unknown`（不替它判通过；旧格式没有 `blocking` 字段的 fail 照旧算 fail）。同一工单下一次修改的诊断会带上紧挨着的上一次修改的 `blocking/evidence/cause/guide`（上一次是 pass 就不带）。连续 `STALL_AFTER=3` 次修改诊断都是 fail（中间遇到非 fail 即重新计数）时，`verify.json` 写 `stalled`，摘要显示“在兜圈子”并建议先实测或由人定方向；工单接口带出 `stalled`，运行说明里同步提示。摘要新增“阻断项”和“建议（不影响结论）”两节。
 - 测试：`tests/test_agent_routes.py` 新增 4 个用例（无阻断项的 fail → unknown；advisory 不影响 pass；上一次阻断项进入提示 + 连续三次 → stalled；上一次 pass 打断循环），`tests/test_recheck_summary.py` 补 `vfy` 的兜圈子提示断言。相关 9 个测试文件 162 个通过，唯一失败仍是与本次无关的 `test_readiness_checks_the_real_machine_worst_first`（本机 Git 旧）。
 - Devin Review 跟进：`blocking` 只算 `ac` 和 `scenario` 都非空的项（`fixloop.blockers`），`[{}]` 之类按没有阻断项处理；被改成 unknown 的 fail 在 `verify.json` 写 `vague_fail`，`fix_gate` 据此留给人看，不会自动提交（原来的 unknown 照旧）；兜圈子只数诊断本身判 fail 的次数，不把构建失败但诊断通过的修改算进去。新增 3 个用例。
+
+### 2026-10-30 按项目开关的 AI 验收与关单；JB 前端构建检查改用项目自己的 vite build
+
+- 用户选择：“全部交给 AI，包括验收和关单（改 AGENTS.md 规则，按项目开关）”，并说明 Windows 不重要。`AGENTS.md` 增加例外：只有 `autoflow.json` 的 `ai_accept` 列出的项目，由平台自己的 `tmh/platform/ai_accept.py` 在确定性闸门全部满足时签收并关单；人工验收入口的 guard 不变，开发用 Agent 仍不得手工代人验收。
+- `ai_accept.after_commit` 挂在 `Orchestra.committed`（自动流转 `_flow_commit` 提交成功之后）。签收条件全部满足才做：项目开了 `ai_accept`；没人接手；工单在 `verify`；不是固定候选单；`epic.refuse` 放行；证据包已生成、完整、快照对应的正是这次运行；`verify.json` 当前有效、构建测试 `pass`、诊断 `pass` 且无阻断项、没改方案外文件；证据包里每条验收标准都有诊断逐条给出的 `pass`（缺条目、`unverified`、`fail`、待确认的标准都不行）。签收在 `verification_guard` 里调用 `_record_accept`（签收人 `AI 验收`，`via` 为 `AI 验收`，`basis` 写运行号和每条标准的依据），事件带 `ai: true`，状态改为 `closed`，然后照常 `flow.accepted` 走合并发布。任何一项不满足只记一条“AI 没有验收：原因，留给人验收”。
+- 诊断提示新增“逐条核对的验收标准”（客户确认的优先，否则取方案的），`tmh-diag` 新增 `ac: [{id, result: pass/fail/unverified, how}]`，`verify.json` 保留 `ac`，摘要新增“逐条验收”一节。
+- `autoflow.json` 的 `on` 可以写项目列表（`Orchestra.switched_on`），只让列出的项目自动流转；`true/false` 含义不变。
+- `testbox.build_commands`：前端检查优先用项目自己的 `type:check`，其次项目 `build` 脚本里的 `vite build`，最后才猜 `vue-tsc`/`tsc`。JeecgBoot 原代码 `vue-tsc` 必然失败，而在测试机上对原代码跑 `pnpm install --prefer-offline && pnpm exec vite build` 退出码 0、92 秒。
+- 测试：新增 `tests/test_ai_accept.py`（开关按项目、证据不全的 8 种情况留给人、签收+关单+发布、关闭/接手/证据包对应别的运行/被改动时不签），`test_agent_routes` 新增逐条验收进提示和摘要，`test_testbox` 新增前端检查选择。相关 16 个测试文件全部通过（除本机 Git 旧导致的 `test_readiness_checks_the_real_machine_worst_first`）。

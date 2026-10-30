@@ -1003,7 +1003,7 @@ def record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
         return _record_accept(P, t, by, passed, note)
 
 
-def _record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
+def _record_accept(P, t: dict, by: str, passed: bool, note: str, via: str = "平台验收按钮", basis: dict | None = None) -> str:
     """The 验收 button inside the platform writes into the package too, so every verdict is on the chain."""
     s = state(P.data_dir, t["key"])
     if passed:
@@ -1015,7 +1015,7 @@ def _record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
     acs = [a["id"] for a in (s["snapshot"] or {}).get("ac") or []]
     rec = _add(epath(P.data_dir, t["key"]), "sign" if passed else "reject", by,
                     {"signer": by, "role": "", "ac": {a: "pass" if passed else "" for a in acs}, "note": note, "pack_hash": s["pack_hash"],
-                     "package_hash": s["hash"], "via": "平台验收按钮", "client": ""})
+                     "package_hash": s["hash"], "via": via, "client": "", **({"basis": basis} if basis else {})})
     return rec["hash"]
 
 

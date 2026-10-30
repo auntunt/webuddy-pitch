@@ -115,8 +115,9 @@ class Platform:
         self.brand = brand or os.environ.get("TMH_BRAND", "") or "webuddy"
         self.pricing = self._load_pricing()
         self.runner.charge = self._charge
-        from . import signoff
+        from . import ai_accept, signoff
         self.store.on_status.append(lambda t, old, new, who: signoff.on_status(self, t, old, new, who))
+        self.flow.committed.append(lambda p, tid, rid: ai_accept.after_commit(self, p, tid, rid))
         from . import preview
         if tenant_context is None:
             self.store.on_status.append(lambda t, old, new, who: preview.on_status(self, t, old, new, who))
