@@ -202,3 +202,11 @@
 - AI 验收（`ai_accept.after_commit`）：配了验证机的项目，必须页面实测全部 pass 才签收；诊断里某条标准「没法确认」不再阻断，但诊断判某条 fail 仍阻断。签收依据带 `real: pass`。
 - 生产上实测传输链路：WSL 里登录 JB，A1（顶部有「AI助手」）pass，故意写错的 A2 判 fail（断言失败），两张截图回传。原 `tools/verify/jb/` 的 helper 已并入模块。
 - 本机 node 是 v12，UI 测试需 `PATH=~/.nvm/versions/node/v24.19.0/bin:$PATH`。
+
+## 2026-10-31 JB 无人化链路：实测误报与代码位置识别
+
+- JB-49：页面还在 JeecgBoot 加载动画上就断言，A1 被误判为复现问题。修复 `22f0d31`：helpers 包装 `page.goto` 等 networkidle 且 `.app-loading` 消失，globalSetup 预热冷 Vite，等不到算 `TMH_SETUP`（未证明）。用该候选直接复跑，A1/A2 通过（约 44 秒）。
+- JB-50：生成的定位同时命中隐藏的注册表单，触发 strict mode。修复 `1ac747a`：strict mode 判为未证明；脚本自身错误交回诊断执行器修一次，断言不许删改，结论绑定新的 `spec_sha256` 并记 `repaired_from`。真实断言失败、环境错误不修，最多修一次。
+- JB-51 / JB-52：Opus 写的代码位置用了反引号包路径（`57e1c54`）、Markdown 表格分列，平台按 refs=0 停在分析。`4e92ddf` 改为按行宽松识别（`tmh/platform/coderefs.py`）：路径后同一行的「第 N 行」、`:N`、`#LN`、`LN` 或表格相邻的数字格都算；用 JB-48..52 的真实分析结论核对过。
+- JB-53：分析 refs=3，自动走到 WSL 实测。两条 test 都卡在生成脚本的前置定位 `button` 文案 `^登录$` 上（Ant Design 两字按钮渲染为「登 录」），平台按断言失败判 fail，因此没有触发修脚本，也没有签收。修复 `e12b765`：前置条件改用 `anchor()`，找不到判 `TMH_ANCHOR`（未证明、可修一次脚本），只有标准本身的断言失败才算复现；提示里写明两字按钮带空格。
+- 现状：还没有一张生产单零人工走完 AI 验收和关单。JB-44..53 都没有人工采纳、验收或关单。
