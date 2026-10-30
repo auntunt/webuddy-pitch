@@ -184,3 +184,12 @@
 - `autoflow.json` 的 `on` 可以写项目列表（`Orchestra.switched_on`），只让列出的项目自动流转；`true/false` 含义不变。
 - `testbox.build_commands`：前端检查优先用项目自己的 `type:check`，其次项目 `build` 脚本里的 `vite build`，最后才猜 `vue-tsc`/`tsc`。JeecgBoot 原代码 `vue-tsc` 必然失败，而在测试机上对原代码跑 `pnpm install --prefer-offline && pnpm exec vite build` 退出码 0、92 秒。
 - 测试：新增 `tests/test_ai_accept.py`（开关按项目、证据不全的 8 种情况留给人、签收+关单+发布、关闭/接手/证据包对应别的运行/被改动时不签），`test_agent_routes` 新增逐条验收进提示和摘要，`test_testbox` 新增前端检查选择。相关 16 个测试文件全部通过（除本机 Git 旧导致的 `test_readiness_checks_the_real_machine_worst_first`）。
+
+## 2026-10-31 JB 真实验证环境（pstack「Prove It Works」第一步）
+
+- 用户选择：在 Windows 测试机上起 JB 前后端做预览，AI 在真实页面上按验收标准逐条操作并截图；只有能复现的问题才阻断。
+- 测试机 WSL（Ubuntu-24.04，15G 内存）：apt 换 aliyun 镜像，装 mysql 8（lower_case_table_names=1，导入 JB 自带开发库 `jeecg-boot`）、redis、maven；后端 jar 由 systemd `jb-backend` 跑在 :8080（`/jeecg-boot`）。WSL 的 sshd 经 frp（生产 12122）接入，生产 ubuntu 用户的公钥已加到 WSL `auntu`。
+- 前端：`~/pv/base` 为生产 JB 仓库 HEAD 的克隆，pnpm（npmmirror）依赖已装；vite 按 `VITE_PUBLIC_PATH/VITE_GLOB_API_URL/VITE_PROXY` 带预览前缀启动，6 秒可响应。
+- 浏览器：WSL 里 Playwright 1.48.2 + chromium（npmmirror）。`tools/verify/jb/` 的 doctor 实测：页面渲染、经验证码真实登录成功（验证码从 redis 按 JB 自身算法反查，不改 JB 代码），截图可见该提交的「AI助手」改动。
+- 默认组织（受信宿主运行时）的托管进程可以按项目列表开自动流转（`on` 必须是列表）；自动合并在托管进程里仍强制关闭，其他租户仍全关（提交 b475114）。
+- 下一步：验证器模块把候选提交送到 WSL、按验收标准跑 Playwright、截图回传写证据链，再接入 AI 验收的闸门。
