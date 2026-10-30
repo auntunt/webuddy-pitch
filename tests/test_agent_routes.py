@@ -345,6 +345,10 @@ class AgentRoutesTest(unittest.TestCase):
         said = {"verdict": "PASS", "blocking_issues": [], "ac": [{"id": "A1", "result": "pass", "how": "a.vue:3"}]}
         out = "看完了\n```json\n%s\n```" % json.dumps({"tmh-diag": said}, ensure_ascii=False)
         self.assertEqual(fenced("tmh-diag", out), said)
+        bare = '```tmh-diag\n{\n  "verdict": "pass",\n  "advisory": ["如果未来需要实现"记住账号"功能，注意 \\"a\\""],\n  "ac": [{"id": "A1", "result": "pass", "how": "sys.ts:78"}]\n}\n```'
+        self.assertEqual(fenced("tmh-diag", bare)["advisory"], ['如果未来需要实现"记住账号"功能，注意 "a"'])
+        self.assertEqual(fenced("tmh-diag", bare)["verdict"], "pass")
+        self.assertIsNone(fenced("tmh-diag", '```tmh-diag\n{"verdict": "pass", \n```'))
         self.assertIsNone(fenced("tmh-diag", "```json\n{\"verdict\": \"pass\"}\n```"))
         self.assertEqual(fenced("tmh-diag", out + "\n```tmh-diag\n{\"verdict\": \"fail\"}\n```"), {"verdict": "fail"})
         verify, _, _ = self._diagnose_on_ticket({}, raw=out)

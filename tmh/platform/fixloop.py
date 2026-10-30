@@ -47,18 +47,46 @@ from .agents import (GREENFIELD_EDIT, GREENFIELD_FIX, MODE_TEXT, additional_cont
 FENCE = r"```%s[ \t]*\n(.*?)```"
 
 
+def _requote(s: str) -> str:
+    """Escape the bare quotes models leave inside JSON strings (实现"记住账号"功能): a quote only ends a string before , : } ] or the end."""
+    out, inside, i = [], False, 0
+    while i < len(s):
+        ch = s[i]
+        if inside and ch == "\\":
+            out.append(s[i:i + 2])
+            i += 2
+            continue
+        if ch == '"':
+            if not inside:
+                inside = True
+            elif re.match(r"\s*(?:[,:}\]]|$)", s[i + 1:]):
+                inside = False
+            else:
+                ch = '\\"'
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def loads(block: str):
+    try:
+        return json.loads(block)
+    except ValueError:
+        return json.loads(_requote(block))
+
+
 def fenced(label: str, text: str):
     """The JSON in the last ```<label> block of an agent's answer, or None."""
     m = re.findall(FENCE % re.escape(label), text or "", re.S)
     if m:
         try:
-            return json.loads(m[-1].strip())
+            return loads(m[-1].strip())
         except ValueError:
             return None
     # models sometimes wrap it as ```json {"<label>": {...}}```: the same answer, under the label's own name
     for block in reversed(re.findall(FENCE % "json", text or "", re.S)):
         try:
-            j = json.loads(block.strip())
+            j = loads(block.strip())
         except ValueError:
             continue
         if isinstance(j, dict) and isinstance(j.get(label), dict):
