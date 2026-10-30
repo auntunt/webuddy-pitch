@@ -246,5 +246,29 @@ class AgentRoutesTest(unittest.TestCase):
         self.assertEqual(calls, [("claude", "diagnose", "opus-x"), ("cloudwave-codex", "fix", "luna")])
 
 
+    def test_fix_loop_has_the_routed_engine_diagnose_a_small_unbuilt_change(self):
+        from tmh.platform.fixloop import FixLoop
+        conf = {"cloudwave-codex": {"defaults": {}}, "claude": {"defaults": {"diagnose": "opus-x"}}}
+        diff = "diff --git a/a.vue b/a.vue\n--- a/a.vue\n+++ b/a.vue\n@@ -1 +1 @@\n-x\n+y\n"
+        for steps, diagnosed in (({"diagnose": "claude"}, True), ({}, False)):
+            with self.subTest(steps=steps):
+                self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex",
+                            "allowed_agents": ["cloudwave-codex", "claude"], "steps": steps}}})
+                runner = Mock(data_dir=self.data, store=Mock())
+                runner.store.run.return_value = {"status": "running"}
+                runner.stop_reason.return_value = ""
+                (self.data / "runs" / "1").mkdir(parents=True, exist_ok=True)
+                with patch("tmh.platform.fixloop.git", return_value="abc\n"), \
+                        patch("tmh.platform.fixloop.worktree_diff", return_value=diff):
+                    loop = FixLoop(runner, 1, self.project, None, "cloudwave-codex", conf, "luna", False, "prompt", self.root)
+                    loop.commands = Mock(return_value=([], "no build here"))
+                    loop.whole = Mock()
+                    loop.diagnose = Mock(return_value={"verdict": "pass"})
+                    loop.run()
+                self.assertEqual(loop.diagnose.called, diagnosed)
+                verdict = json.loads((self.data / "runs" / "1" / "verify.json").read_text(encoding="utf-8"))["verdict"]
+                self.assertEqual(verdict, "pass" if diagnosed else "unknown")
+
+
 if __name__ == "__main__":
     unittest.main()

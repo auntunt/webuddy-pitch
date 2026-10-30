@@ -13,8 +13,8 @@ One "修改代码" run goes like this, in its own git worktree:
 4. A diagnosis agent (the strongest model) reads the change and the results and decides pass or fail. A failed
    build or test is a fail whatever it says. On a fail it names the files to revise and what each must do, and
    only those run again, up to `rounds` more times (3; more rounds hardly help). When no build or tests run there
-   is one round only, and the diagnosis is made only for a change split across files; a small change goes
-   straight to a person.
+   is one round only, and the diagnosis is made only for a change split across files or when the project's route
+   gives diagnosis to another executor; otherwise a small change goes straight to a person.
 
 The outcome is kept in runs/<id>/verify.json; a change whose build or tests still fail, or that the diagnosis
 says does not solve the ticket, is not committed by the automatic flow.
@@ -432,10 +432,11 @@ class FixLoop:
         split = len(goals) >= int(self.set.get("split_from") or 0)
         # Without a build or tests nothing new is learnt after the first round: a diagnosis that can only read the
         # code guesses, and the next round acts on the guess (it widened changes and cost a quarter of an hour).
-        # So one round; a large change still gets one reading-only review, a small one goes straight to a person.
+        # So one round; a large change still gets one reading-only review, a small one goes straight to a person
+        # unless the route gives diagnosis to another executor: then that independent reading is the point.
         if not seq:
             rounds = 0
-        review = bool(seq) or split
+        review = bool(seq) or split or getattr(self, "agents", {}).get("diagnose", self.agent) != self.agent
         if goals and split:
             self.say("按方案分工修改 %d 个文件：%s" % (len(goals), "、".join(goals)))
         elif goals:
