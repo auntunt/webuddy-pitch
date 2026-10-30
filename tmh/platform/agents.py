@@ -92,6 +92,23 @@ def pick_model(c: dict, mode: str, model) -> str:
     return model
 
 
+def configured_model(c: dict) -> str:
+    """The model an official Codex profile runs when no model is passed, so the run records what was used."""
+    if c.get("cmd") or not c.get("profile") or engine_name("codex", c) != "codex":
+        return ""
+    try:
+        import tomllib
+        home = Path(os.environ.get("CODEX_HOME") or Path.home() / ".codex")
+        for f in (home / (c["profile"] + ".config.toml"), home / "config.toml"):
+            if f.is_file():
+                m = tomllib.loads(f.read_text(encoding="utf-8")).get("model")
+                if isinstance(m, str) and MODEL_ID.match(m):
+                    return m
+    except (OSError, ValueError, ImportError):
+        pass
+    return ""
+
+
 def member_codex_binding(config: dict, model: str) -> tuple[str, str]:
     """Freeze the selected official profile without silently changing its route."""
     if config.get('cmd') or engine_name('codex', config) != 'codex':
@@ -1434,6 +1451,7 @@ class Runner:
             member_configuration = candidates.configuration(ctx.platform,project)
         explicit = model not in (None, "auto")  # a model the person picked applies to every step of the run
         model = pick_model(conf[agent], mode, model)
+        recorded = model or (configured_model(conf[agent]) if not authority else "")
         if authority:
             member_profile, member_binding = member_codex_binding(conf[agent], model)
             member_route = member_route_binding(self.data_dir, project, agent)
@@ -1458,7 +1476,7 @@ class Runner:
             raise ValueError('组装提示词期间参考知识已变化，请重新启动任务')
         def register(marker=None):
             return self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
-                session_id=session_id, batch=batch, model=model, expected_root=project['root'], reference_inputs=reference_inputs,
+                session_id=session_id, batch=batch, model=recorded, expected_root=project['root'], reference_inputs=reference_inputs,
                 **({'require_idle_ticket':True,'before_commit':marker} if authority else {}),
                 **({"retry_of": retry_of} if retry_of is not None else {}))
         if authority:
@@ -1540,8 +1558,8 @@ class Runner:
                 self._release(run["id"])
                 return self.store.run(run["id"])
         if ticket and mode != "ask":  # assistant questions don't move or clutter the ticket
-            self.store.event(ticket["id"], author, "run", "让 %s%s %s" % (conf[agent].get("title", agent), "（%s）" % model if model else "", dict(RUN_MODES)[mode]),
-                             {"run": run["id"], "agent": agent, "mode": mode, "model": model})
+            self.store.event(ticket["id"], author, "run", "让 %s%s %s" % (conf[agent].get("title", agent), "（%s）" % recorded if recorded else "", dict(RUN_MODES)[mode]),
+                             {"run": run["id"], "agent": agent, "mode": mode, "model": recorded})
             if ticket["status"] == "new" and mode in ("analyze", "plan"):
                 self.store.update_ticket(ticket["id"], author, status="analyzing")
             elif ticket["status"] in ("new", "analyzing", "confirm") and mode == "fix":
@@ -2146,7 +2164,8 @@ class Runner:
                         % (rid, old["prompt"], old["result"]))
             new = self.start(project, ticket, old["agent"], old["mode"], author,
                              target=old.get("target") or "", question=question,
-                             model=old.get("model") or None, base=base, retry_of=rid)
+                             model=(old.get("model") if old.get("model") != configured_model(load_config(self.data_dir).get(old["agent"]) or {}) else None) or None,
+                             base=base, retry_of=rid)
             try:
                 parent = self.controls.get(rid)
                 if parent:
