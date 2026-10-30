@@ -108,7 +108,7 @@ SPEC_RULES = """写一个 Playwright 实测脚本，在真实运行的应用里�
 
 脚本要求：
 - ESM：`import { test, expect } from '@playwright/test';` 和 `import { login, shot } from './tmh-helpers.mjs';`
-- 每条验收标准一个 test，标题以编号开头，例如 `test('A1 取消后恢复原值', async ({ page }, testInfo) => { ... })`。
+- 只为最后列出的验收标准写 test（工单正文里其他「必须保持」之类的条目由自动测试证明，不要写）。每条一个 test，标题以编号开头，例如 `test('A1 取消后恢复原值', async ({ page }, testInfo) => { ... })`。
 - 先 `await login(page);`（已处理验证码，登录后在首页），再用 `page.goto(process.env.TMH_BASE + '路由')` 或点菜单进入要测的页面。路由从仓库代码里查。
 - 像用户一样操作（点击、输入、选择），每个关键步骤后 `await shot(page, testInfo, '步骤名');`。
 - 用 `expect(...)` 断言这条标准能看到的结果；断言失败表示“实测没做到”，所以只断言标准本身要求的东西。
