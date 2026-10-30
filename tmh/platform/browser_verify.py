@@ -160,7 +160,8 @@ SPEC_RULES = """写一个 Playwright 实测脚本，在真实运行的应用里�
 脚本要求：
 - ESM：`import { test, expect, anchor, login, shot } from './tmh-helpers.mjs';`（这里的 `page.goto` 会等页面加载完）
 - 只为最后列出的验收标准写 test（工单正文里其他「必须保持」之类的条目由自动测试证明，不要写）。每条一个 test，标题以编号开头，例如 `test('A1 取消后恢复原值', async ({ page }, testInfo) => { ... })`。
-- 先 `await login(page);`（已处理验证码，登录后在首页），再用 `page.goto(process.env.TMH_BASE + '路由')` 或点菜单进入要测的页面。路由从仓库代码里查。
+- 先 `await login(page);`（已处理验证码，登录后在首页），再用 `page.goto(process.env.TMH_BASE + '路由')` 或点菜单进入要测的页面。路由从仓库代码里查；`TMH_BASE` 已以 `/` 结尾，路由不要再加开头的 `/`；登录页是 `TMH_BASE + 'user/login'`。
+- 进入页面后先 `shot` 一张，再做任何断言：没截到页面就失败的，不能算标准没做到。
 - 像用户一样操作（点击、输入、选择），每个关键步骤后 `await shot(page, testInfo, '步骤名');`。
 - 标准本身没问到的前置条件（页面已经出来、要点的按钮在），用 `await anchor(定位, '说明')`，不用 `expect`：找不到算脚本问题，不算标准没做到。
 - 断言某样东西「不存在 / 不再显示」之前，先用 `anchor` 确认同一页面上一个本来就该在的元素可见，证明页面已经加载出来。
@@ -229,6 +230,8 @@ def results(report: dict, acs: list, files: dict) -> list:
             res, how = "unverified", "实测脚本的前置步骤没找到要的元素：" + msg
         elif status == "failed" and "strict mode violation" in msg:
             res, how = "unverified", "实测脚本的定位命中了多个元素：" + msg
+        elif status == "failed" and re.search(r"\bexpect\(", msg) and "TMH_SETUP" not in msg and not shots:
+            res, how = "unverified", "实测脚本在截下页面之前就断言失败，看不到页面实际是什么样：" + msg
         elif status == "failed" and re.search(r"\bexpect\(", msg) and "TMH_SETUP" not in msg:
             res, how = "fail", "页面上实测没做到：" + msg
         elif status == "skipped":
@@ -239,7 +242,7 @@ def results(report: dict, acs: list, files: dict) -> list:
     return out
 
 
-SCRIPT_FAULT = ("实测没能执行完", "实测脚本的定位命中了多个元素", "实测脚本的前置步骤没找到要的元素")
+SCRIPT_FAULT = ("实测没能执行完", "实测脚本的定位命中了多个元素", "实测脚本的前置步骤没找到要的元素", "实测脚本在截下页面之前")
 
 
 def repairable(items: list) -> bool:

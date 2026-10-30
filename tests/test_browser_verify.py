@@ -119,10 +119,14 @@ class RepairTest(unittest.TestCase):
     def test_a_missing_prerequisite_anchor_is_a_script_fault_but_a_criterion_assertion_is_a_defect(self):
         anchor = "Error: TMH_ANCHOR 登录按钮: expect(locator).toBeVisible() failed\nLocator: locator('button')"
         items = bv.results({"suites": [{"specs": [spec("A1 x", "failed", msg=anchor),
-                                                  spec("A2 y", "failed", msg="expect(locator).toHaveCount(expected)")]}]}, ACS[:2], {})
+                                                  spec("A2 y", "failed", msg="expect(locator).toHaveCount(expected)")]}]}, ACS[:2],
+                           {"A2-01-页面.png": b"png"})
         self.assertEqual([i["result"] for i in items], ["unverified", "fail"])
         self.assertTrue(bv.repairable(items[:1]))
         self.assertFalse(bv.repairable(items))
+        blind = bv.results({"suites": [{"specs": [spec("A2 y", "failed", msg="expect(locator).toBeVisible() failed")]}]}, ACS[1:2], {})
+        self.assertEqual(blind[0]["result"], "unverified")
+        self.assertTrue(bv.repairable(blind))
         self.assertIn("export async function anchor", bv.HELPERS)
         self.assertIn("anchor(", bv.SPEC_RULES)
 
