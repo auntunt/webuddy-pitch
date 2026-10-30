@@ -193,3 +193,12 @@
 - 浏览器：WSL 里 Playwright 1.48.2 + chromium（npmmirror）。`tools/verify/jb/` 的 doctor 实测：页面渲染、经验证码真实登录成功（验证码从 redis 按 JB 自身算法反查，不改 JB 代码），截图可见该提交的「AI助手」改动。
 - 默认组织（受信宿主运行时）的托管进程可以按项目列表开自动流转（`on` 必须是列表）；自动合并在托管进程里仍强制关闭，其他租户仍全关（提交 b475114）。
 - 下一步：验证器模块把候选提交送到 WSL、按验收标准跑 Playwright、截图回传写证据链，再接入 AI 验收的闸门。
+
+## 2026-10-31 真实应用验证器接入 AI 验收（pstack「Prove It Works」）
+
+- 新模块 `tmh/platform/browser_verify.py`：项目在 `<data>/verify-hosts.json` 配了验证机时，把被测版本（已提交的候选 commit，或 run 工作树的 base + diff）经 SSH 送到验证机，在独立工作树里起前端（后端与数据库是验证机自己的隔离开发库），由诊断执行器按验收标准写 Playwright 脚本（每条标准一个 test、每步截图），真实浏览器跑完把 JSON 报告和截图传回。
+- 判定：断言失败 = 复现（fail）；测试通过且有截图 = pass；超时、步骤执行不了、跳过、没截图、环境起不来 = unverified。只有全部 pass 才算证明。
+- 结果写进证据链：每条标准最多 3 张截图（`signoff.attach`，按 sha256 落盘），外加一条 `verify` 事件记录 run、base、diff_sha256、spec_sha256 与逐条结论。
+- AI 验收（`ai_accept.after_commit`）：配了验证机的项目，必须页面实测全部 pass 才签收；诊断里某条标准「没法确认」不再阻断，但诊断判某条 fail 仍阻断。签收依据带 `real: pass`。
+- 生产上实测传输链路：WSL 里登录 JB，A1（顶部有「AI助手」）pass，故意写错的 A2 判 fail（断言失败），两张截图回传。原 `tools/verify/jb/` 的 helper 已并入模块。
+- 本机 node 是 v12，UI 测试需 `PATH=~/.nvm/versions/node/v24.19.0/bin:$PATH`。

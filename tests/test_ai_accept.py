@@ -85,6 +85,50 @@ class AiAcceptFlowTest(unittest.TestCase):
         kinds = [c.args[2] for c in self.P.store.event.call_args_list]
         self.assertEqual(kinds, ["accept"])
 
+    def real(self, result, ac, why=""):
+        from tmh.platform import browser_verify
+        items = [{"id": k, "result": v, "how": "实测 " + k, "shots": {}} for k, v in ac.items()]
+        return mock.patch.object(browser_verify, "conf", return_value={"ssh": "u@h", "app": "web"}), \
+            mock.patch.object(browser_verify, "verify", return_value={"result": result, "why": why, "ac": items})
+
+    def test_with_a_verification_host_only_a_real_all_pass_signs_and_its_basis_is_the_real_run(self):
+        a, b = self.real("pass", {"A1": "pass", "A2": "pass"})
+        with a, b as v:
+            out, rec = self.run_it()
+        self.assertTrue(out["accepted"])
+        v.assert_called_once()
+        basis = rec.call_args.kwargs["basis"]
+        self.assertEqual((basis["real"], basis["ac"]["A1"]), ("pass", "实测 A1"))
+        self.assertIn("在页面上逐条实测", rec.call_args.args[4])
+
+    def test_with_a_verification_host_a_reproduced_failure_or_anything_unproven_leaves_it_for_people(self):
+        for result, ac, why, want in (("fail", {"A1": "pass", "A2": "fail"}, "", "复现了问题（A2）"),
+                                      ("unverified", {"A1": "pass", "A2": "unverified"}, "", "A2 未验证"),
+                                      ("unverified", {}, "app did not start", "app did not start"),
+                                      ("pass", {"A1": "pass"}, "", "A2")):
+            with self.subTest(want):
+                self.setUp()
+                a, b = self.real(result, ac, why)
+                with a, b:
+                    out, rec = self.run_it()
+                self.assertFalse(out["accepted"])
+                self.assertIn("页面实测", out["why"])
+                if want != "A2":
+                    self.assertIn(want, out["why"])
+                rec.assert_not_called()
+                self.assertEqual(self.ticket["status"], "verify")
+
+    def test_with_a_verification_host_an_unverified_diagnosis_criterion_no_longer_blocks_but_a_failed_one_does(self):
+        for diag, ok in (("unverified", True), ("fail", False)):
+            with self.subTest(diag):
+                self.setUp()
+                v = dict(GOOD, diagnosis=dict(GOOD["diagnosis"], ac=[{"id": "A1", "result": "pass"}, {"id": "A2", "result": diag}]))
+                (self.data / "runs" / "7" / "verify.json").write_text(json.dumps(v), encoding="utf-8")
+                a, b = self.real("pass", {"A1": "pass", "A2": "pass"})
+                with a, b:
+                    out, rec = self.run_it()
+                self.assertEqual(out["accepted"], ok)
+
     def test_leaves_it_for_people_when_off_taken_over_or_package_is_for_another_run(self):
         for setup, want in ((lambda: self.P.flow.autoflow.return_value.update(ai_accept=[]), "没开"),
                             (lambda: setattr(self.P.flow.held, "return_value", True), "接手"),

@@ -244,3 +244,65 @@ def _known(repo: Path, sha: str) -> bool:
 def binding(base: str, diff: str, spec: str) -> dict:
     return {"base": base, "diff_sha256": hashlib.sha256(diff.encode("utf-8")).hexdigest(),
             "spec_sha256": hashlib.sha256(spec.encode("utf-8")).hexdigest()}
+
+
+BY = "AI 验收"
+ASK_S = 900
+
+
+def _ask(P, p: dict, t: dict, prompt: str) -> str:
+    """The criteria-to-script step goes to the project's diagnose agent (the one that did not write the change)."""
+    import time
+    from .agent_routes import step_agent
+    agent = step_agent(P.data_dir, p, "diagnose", "") or P.flow.autoflow().get("agent") or "claude"
+    r = P.runner.start(p, t, agent, "ask", BY, question=prompt)
+    end = time.monotonic() + ASK_S
+    while time.monotonic() < end:
+        run = P.store.run(r["id"])
+        if run["status"] not in ("queued", "running", "starting"):
+            return (run.get("result") or run.get("output") or "") if run["status"] == "done" else ""
+        time.sleep(3)
+    return ""
+
+
+def _record(P, t: dict, rid: int, items: list, result: str, bind: dict, why: str) -> None:
+    import base64
+    from . import signoff
+    for i in items:
+        for name, data in list(i["shots"].items())[-3:]:
+            signoff.attach(P, t, BY, i["id"], "%s：%s（%s）" % (i["result"], i["how"][:300], name),
+                           "data:image/png;base64," + base64.b64encode(data).decode())
+    said = {"pass": "页面实测全部通过", "fail": "页面实测复现了问题", "unverified": "页面实测没能证明"}[result]
+    P.store.event(t["id"], BY, "verify", "%s%s" % (said, "（%s）" % why if why else ""),
+                  dict(bind, run=rid, result=result, ac=[{k: i[k] for k in ("id", "result", "how")} for i in items]))
+
+
+def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=None) -> dict:
+    """Drive the real app for run `rid` (its committed `commit`, else its worktree's base plus its diff)."""
+    c = conf(P.data_dir, p["key"])
+    if not c:
+        return {"result": "unverified", "why": "这个项目没有配真实验证环境", "ac": []}
+    run = P.store.run(rid)
+    wt = Path(run.get("workdir") or "")
+    if commit:
+        base, diff = commit, ""
+    elif wt.is_dir():
+        base = subprocess.run(["git", "-C", str(wt), "rev-parse", "HEAD"], capture_output=True, text=True, check=False).stdout.strip()
+        diff = run.get("diff") or ""
+    else:
+        base, diff = "", ""
+    if not re.fullmatch(r"[0-9a-f]{40}", base):
+        return {"result": "unverified", "why": "找不到被测版本", "ac": []}
+    spec = spec_from((ask or _ask)(P, p, t, spec_prompt(t, acs, run.get("diff") or "")))
+    bind = binding(base, diff, spec)
+    if not spec:
+        items = results({}, acs, {})
+        _record(P, t, rid, items, "unverified", bind, "没有写出实测脚本")
+        return dict(bind, result="unverified", why="没有写出实测脚本", ac=items)
+    job = "%s-r%d-%s" % (p["key"].lower(), rid, bind["spec_sha256"][:8])
+    report, files = run_remote(c, Path(p["root"]), base, diff, spec, job, 23100 + rid % 800)
+    items = results(report, acs, files)
+    why = str(report.get("setup") or "")
+    result = "unverified" if why else overall(items)
+    _record(P, t, rid, items, result, bind, why)
+    return dict(bind, result=result, why=why, ac=items)
