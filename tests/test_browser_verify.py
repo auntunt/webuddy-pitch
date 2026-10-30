@@ -123,12 +123,22 @@ class RepairTest(unittest.TestCase):
                            {"A2-01-页面.png": b"png"})
         self.assertEqual([i["result"] for i in items], ["unverified", "fail"])
         self.assertTrue(bv.repairable(items[:1]))
-        self.assertFalse(bv.repairable(items))
         blind = bv.results({"suites": [{"specs": [spec("A2 y", "failed", msg="expect(locator).toBeVisible() failed")]}]}, ACS[1:2], {})
         self.assertEqual(blind[0]["result"], "unverified")
         self.assertTrue(bv.repairable(blind))
         self.assertIn("export async function anchor", bv.HELPERS)
         self.assertIn("anchor(", bv.SPEC_RULES)
+
+    def test_the_page_a_failed_test_saw_reaches_the_reviewer_and_a_review_cannot_drop_what_is_checked(self):
+        files = {"A1-01-页面.png": PNG, "A1-page.txt": "- checkbox \"记住账号\"".encode()}
+        items = bv.results({"suites": [{"specs": [spec("A1 x", "failed", msg="expect(locator).toBeVisible() failed")]}]}, ACS[:1], files)
+        self.assertEqual((items[0]["result"], list(items[0]["shots"])), ("fail", ["A1-01-页面.png"]))
+        self.assertIn('checkbox "记住账号"', bv.repair_prompt("A", items))
+        acs = [{"id": "A1", "text": "复选框旁显示「记住账号」，不再显示“记住我”"}]
+        draft = "expect(page.locator('label', {hasText: '记住账号'})).toBeVisible(); expect(page.getByText('记住我')).toHaveCount(0)"
+        self.assertTrue(bv.keeps(draft, "expect(page.getByText('记住账号', {exact: true})).toBeVisible(); getByText('记住我')", acs))
+        self.assertFalse(bv.keeps(draft, "expect(page.getByText('记住我')).toHaveCount(0)", acs))
+        self.assertIn("ariaSnapshot", bv.HELPERS)
 
     def test_a_broken_script_gets_one_corrected_run_bound_to_the_new_script(self):
         broken = {"suites": [{"specs": [spec("A1 x", "failed", msg=self.STRICT), spec("A2 y", "passed", ["A2-x.png"])]}]}
@@ -139,14 +149,14 @@ class RepairTest(unittest.TestCase):
         self.assertNotEqual(ran[0][1], ran[1][1])
         self.assertEqual(out["spec_sha256"], bv.binding("", "", "B\n")["spec_sha256"])
         self.assertEqual(out["repaired_from"], bv.binding("", "", "A\n")["spec_sha256"])
-        self.assertIn("不许删掉或放松断言", asked[1])
+        self.assertIn("不许删掉、跳过或放松断言", asked[1])
         self.assertIn("strict mode violation", asked[1])
 
-    def test_a_reproduced_failure_or_setup_error_is_never_rewritten_and_only_one_repair_happens(self):
+    def test_a_failure_gets_one_review_and_stands_when_the_reviewer_keeps_the_script_or_setup_broke(self):
         failed = {"suites": [{"specs": [spec("A1 x", "failed", msg="expect(locator).toHaveText(expected)"),
                                         spec("A2 y", "failed", msg=self.STRICT)]}]}
-        out, asked, ran = self.run_verify(failed, None)
-        self.assertEqual((out["result"], len(asked), len(ran)), ("fail", 1, 1))
+        out, asked, ran = self.run_verify(failed, None, fixed="```tmh-spec\nA\n```")
+        self.assertEqual((out["result"], len(asked), len(ran)), ("fail", 2, 1))
         out, asked, ran = self.run_verify({"setup": "vite did not start"}, None)
         self.assertEqual((out["result"], len(asked), len(ran)), ("unverified", 1, 1))
         broken = {"suites": [{"specs": [spec("A1 x", "failed", msg=self.STRICT), spec("A2 y", "passed", ["A2-x.png"])]}]}

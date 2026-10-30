@@ -48,10 +48,26 @@ export async function anchor(locator, what = '') {
 }
 
 export const test = base.extend({
-  page: async ({ page }, use) => {
+  page: async ({ page }, use, testInfo) => {
     const goto = page.goto.bind(page);
     page.goto = async (url, opts) => { const r = await goto(url, opts); await ready(page); return r; };
     await use(page);
+    // a failed test leaves what the page really showed, so a wrong locator can be told from a real defect
+    if (testInfo.status !== testInfo.expectedStatus) {
+      let seen = '';
+      const ways = [
+        () => page.locator('body').ariaSnapshot({ timeout: 10000 }),
+        async () => JSON.stringify(await page.accessibility.snapshot({ interestingOnly: true }), null, 1),
+        () => page.locator('body').innerText({ timeout: 10000 }),
+      ];
+      for (const way of ways) {
+        try { seen = await way(); } catch (e) { seen = ''; }
+        if (seen) break;
+      }
+      const file = path.join(process.env.TMH_OUT, 'shots', testInfo.title.split(' ')[0] + '-page.txt');
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, seen.slice(0, 6000));
+    }
   },
 });
 
@@ -219,7 +235,8 @@ def results(report: dict, acs: list, files: dict) -> list:
             continue
         runs = [r for tst in spec.get("tests") or [] for r in tst.get("results") or []]
         last = runs[-1] if runs else {}
-        shots = {n: b for n, b in sorted(files.items()) if n.startswith(a["id"] + "-")} if last else {}
+        shots = {n: b for n, b in sorted(files.items()) if n.startswith(a["id"] + "-") and n.endswith(".png")} if last else {}
+        seen = files.get(a["id"] + "-page.txt", b"").decode("utf-8", "replace") if last else ""
         status = last.get("status") or "skipped"
         msg = re.sub(r"\x1b\[[0-9;]*m", "", ((last.get("error") or {}).get("message") or ""))[:600]
         if status == "passed" and shots:
@@ -238,7 +255,7 @@ def results(report: dict, acs: list, files: dict) -> list:
             res, how = "unverified", "这条标准没法在页面上验证"
         else:
             res, how = "unverified", "实测没能执行完（%s）：%s" % (status, msg)
-        out.append({"id": a["id"], "result": res, "how": how, "shots": shots})
+        out.append({"id": a["id"], "result": res, "how": how, "shots": shots, "page": seen})
     return out
 
 
@@ -246,16 +263,29 @@ SCRIPT_FAULT = ("实测没能执行完", "实测脚本的定位命中了多个�
 
 
 def repairable(items: list) -> bool:
-    """Nothing failed on the page, but the script itself broke on some criterion: worth one corrected script."""
-    return not any(i["result"] == "fail" for i in items) and \
-        any(i["result"] == "unverified" and i["how"].startswith(SCRIPT_FAULT) and "TMH_SETUP" not in i["how"] for i in items)
+    """A first script is a draft: any criterion it did not pass (other than the app not coming up) earns one review of the script."""
+    return any(i["result"] != "pass" and "TMH_SETUP" not in i["how"] for i in items)
+
+
+QUOTED = re.compile(r"[「“\"']([^」”\"']{2,40})[」”\"']")
+
+
+def keeps(spec: str, fixed: str, acs: list) -> bool:
+    """A reviewed script may change how it finds things, never what it checks: every quoted term of a criterion the draft checked stays."""
+    return all(q in fixed for a in acs for q in QUOTED.findall(a.get("text") or "") if q in spec)
 
 
 def repair_prompt(spec: str, items: list) -> str:
-    L = ["下面这个 Playwright 实测脚本在真实应用里跑出了脚本自身的错误（不是验收标准没做到）。只修脚本的错误（定位、等待、步骤），"
-         "每条 test 断言的内容和标准要求保持不变，不许删掉或放松断言。只输出修好的完整脚本，一个 ```tmh-spec 代码块。", "",
+    L = ["下面这个 Playwright 实测脚本在真实应用里跑过一次，有的标准没通过。逐条对照「页面实际内容」判断：",
+         "- 页面实际已经做到了标准，是脚本的定位、等待、步骤或对页面结构的假设错了：修脚本；",
+         "- 页面实际确实没做到标准：这条 test 一字不改。",
+         "每条 test 检查的内容和标准要求保持不变，不许删掉、跳过或放松断言，不许改成检查别的东西。"
+         "只输出完整脚本，一个 ```tmh-spec 代码块。", "",
          SPEC_RULES, "原脚本：", "```js", spec, "```", "", "每条标准的结果："]
-    L += ["- %s %s：%s" % (i["id"], i["result"], i["how"][:600]) for i in items]
+    for i in items:
+        L.append("- %s %s：%s" % (i["id"], i["result"], i["how"][:600]))
+        if i.get("page"):
+            L += ["  页面实际内容（无障碍树）：", "  ```", i["page"][:3000], "  ```"]
     return "\n".join(L)
 
 
@@ -315,7 +345,7 @@ def run_remote(c: dict, repo: Path, base: str, diff: str, spec: str, job: str, p
                     name = Path(m.name).name
                     if name == "report.json":
                         report = json.loads(data.decode("utf-8") or "{}")
-                    elif name.endswith(".png") and "/shots/" in "/" + m.name.lstrip("./"):
+                    elif name.endswith((".png", "-page.txt")) and "/shots/" in "/" + m.name.lstrip("./"):
                         files[name] = data
     except (tarfile.TarError, ValueError, EOFError):
         return {"setup": "verifier returned nothing (exit %s)" % code}, {}
@@ -402,7 +432,7 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
     why = str(report.get("setup") or "")
     if not why and repairable(items):
         fixed = spec_from((ask or _ask)(P, p, t, repair_prompt(spec, items)))
-        if fixed and fixed != spec:
+        if fixed and fixed != spec and keeps(spec, fixed, acs):
             bind = dict(binding(base, diff, fixed), repaired_from=bind["spec_sha256"])
             report, files = run_remote(c, Path(p["root"]), base, diff, fixed, _job(p, rid, bind), 23100 + rid % 800)
             items = results(report, acs, files)
