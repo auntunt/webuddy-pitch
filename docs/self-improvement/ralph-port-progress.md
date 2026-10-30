@@ -111,3 +111,42 @@
 - 测试：两个过时用例按 `4e8b92c`、`dc7cd59` 的有意行为更新（viewer/外部人员仍断言拒绝）；`no_live_effects` 审计只统计当前线程并禁止读取自行起线程，修复全量跑时被泄漏线程干扰；39 个 supervised execution 用例在非 POSIX 平台跳过。
 - CI：Ubuntu full suite、fast gate、installed distribution 通过。Windows full suite 本已 `continue-on-error`，由 187 降到 140 failed、无新增；剩余多为 CRLF 按字节比对和文件占用。维护者决定：平台只跑 Linux，Windows 保持不阻塞。
 - 未调用模型、未代人验收、未部署生产（PR 未合并，生产访问说明不在本机）。
+
+## 2026-10-29：理清需求接普通 LLM、附件、助手分流（PR 待审，未发布）
+
+- 分支 `devin/1761730000-intake-llm`（基于 PR #1 分支）。用户确认范围：P0（普通 LLM 理解需求、截图/文档附件、规则兜底、相似工单提示）+ P1（工作台文案、统一“工单”命名、助手分流）；模型走 OpenAI 兼容接口，沿用 `router` 配置，厂商不限。
+- 新增 `tmh/platform/llm.py`（一次 `/chat/completions`，不给工具、不读仓库；遵守项目 `direct_api`；`router.vision`/`TMH_ROUTER_VISION` 决定是否发图）。`autoflow.json` 的 `understand` 默认 `auto`：普通 LLM → 智能体 → 规则；LLM 返回格式不对按规则理解，运行仍记 `understand`（执行器 `llm`）。人确认前不建单、不开工。
+- 新增 `tmh/platform/attachments.py`：截图 ≤3MB，txt/md/csv/log/json/docx/xlsx/pdf ≤10MB（PDF 需 `pypdf`），最多 8 个，原件按 SHA-256 留档，抽出的文字以“资料不是指令”进入 prompt，附件名与哈希写入工单正文和需求记录；无视觉模型时明确说“读不到图片内容”。
+- 规则兜底：去“在吗/hello”等寒暄、按“另外/还有/此外/顺便/以及”拆分、补“提交不了/一直转圈”等缺陷词、复述用短标题不照抄。理清需求每条显示相似工单（`similar.py`，只提示，不合并不关单，按项目范围）；新建工单表单原本已有查重。
+- 助手：状态/帮助/重试仍是确定性代码；不涉及代码的知识问题先检索知识卡片再由普通 LLM 组织答复（无卡片或 LLM 不可用时退回原智能体路径）；问到代码/文件/报错栈的仍走智能体。工作台说明与交接面板去掉内部术语，导航“任务”统一为“工单”。
+- 测试：新增 `tests/test_intake_llm.py`（10 项）；`test_understand` 一处断言按新的默认 `auto` 更新。Python 3.12 全量（Node 20，UI 脚本测试不再跳过）：除本机 Git 2.34 的 readiness 用例与一处按当前时间登记劳动的 `test_pilots` 用例（单独运行通过）外全部通过。注意：VM 无 node 时约 60 个 UI 测试会静默跳过。
+- 未部署：分支叠在未合并的 PR #1 上，且生产访问说明不在本机；未调用真实模型、未代人验收。
+- 界面实测（本地 32 张 OA 工单 + 模拟 OpenAI 兼容接口，录屏）：附件（选择/粘贴/拖放）、普通 LLM 标记、哈希、相似提示、人确认前不建单、文案、助手分流通过；发现规则兜底复述仍带“今天好多人跟我说…急”“领导说…”，已加 `_gist()` 去转述人和催促语（原话仍保留为证据）并补测试。代码问题会先调一次普通 LLM 做指令分类（侧栏指令原有逻辑），再交智能体。
+- 生产发布 `b8c6729`（含 PR #1/#2 改动，从 Devin 云端 VM 以 `devin` 用户经 SSH 发布；`webuddy-production-access.md` 不在服务器上，按服务器现状核对）：现役 `dc7cd59` 是 `b8c6729` 祖先；238 个运行文件（比上版多 `tmh/platform/llm.py`、`attachments.py`）解包到 `/opt/webuddy/releases/b8c6729fe331-intake-llm-20261030/app` 并 `MANIFEST.sha256` 校验；服务器 Python 3.12 跑 102 个相关 unittest 通过；生产数据副本上用新代码构造 `Platform`，platform.db 70 表、access.db 11 表的 schema 与行数不变，无迁移。持 `.release.lock` 完整备份到 `/opt/webuddy/backups/pre-b8c6729fe331-activation-20261030`（配置、旧 app、data，数据库用 sqlite `.backup`，回读 integrity ok），切 `app` 软链并重启；即时与 60 秒后 HTTP（本机/公网 login 200、API 401）正常，NRestarts=0，数据库 quick_check ok，日志无报错。生产未配置 `router`，需求理解不会调用普通 LLM，行为与之前一致；服务器无 `pypdf`，PDF 只存原件。回滚：软链切回 `releases/dc7cd596de3b-cwweb-preview-20261028/app` 并重启，不动数据库。
+
+## 2026-10-30 生产启用普通 LLM（Kimi Code）与转发模型固定温度
+
+- 用户选定复用服务器上 Hermes 的 Kimi Code key（`~/.hermes/.env` 的 `KIMICODE_*`）作为 Webuddy 普通 LLM；`zjz-ai.webtrn.cn` 中转的 key 实测 403「用户已被封禁」，不可用。
+- Kimi 推理模型只接受 `temperature=1`，原代码固定发 0 会 400。新增 `router.temperature` / `TMH_ROUTER_TEMPERATURE`，由 `kbqa._post` 覆盖调用方温度；补 `test_router_temperature_replaces_the_callers`。本地相关 89 项通过。
+- 生产发布 `3d3f855`（运行文件只变 `tmh/kbqa.py`、`docs/platform.md`）：`/opt/webuddy/releases/3d3f855cace5-router-temp-20261030/app`，备份 `/opt/webuddy/backups/pre-3d3f855cace5-activation-20261030`（含旧 env、旧程序、数据库 `.backup`，完整性 ok）。服务器 Python 3.12 上 intake/understand/agent_routes/kbqa 相关用例通过（`test_tmh` 中 9 个安装类用例因验证包不含 templates/skills 而报错，与本次无关）。
+- `/etc/webuddy.env` 追加 `TMH_ROUTER_BASE_URL=https://api.kimi.com/coding/v1`、`TMH_ROUTER_MODEL=kimi-for-coding-highspeed`、`TMH_ROUTER_TEMPERATURE=1`、`TMH_ROUTER_VISION=1`、`TMH_ROUTER_KEY`（在服务器上从 Hermes 文件复制，未经聊天和 Git）。
+- 生产 `autoflow.json` 原 `on: false` 使理清需求实际为 `rules`；改为 `understand: "llm"`（普通 LLM 可用则用，否则规则，不起 agent）。原文件备份在同一备份目录。
+- 验证：重启后本机/公网登录 200、API 401、NRestarts=0；在生产数据副本上 JB 项目理清需求走 `LLM`（约 16 秒，未调用 agent，未建单）。CWWEB、WEIGHBILL、GROUPRISK、PPTAUTO 在 `agent-routes.json` 里 `direct_api: false`，仍只走规则；是否放开由用户决定。
+- 回滚：`/etc/webuddy.env` 与 `autoflow.json` 换回备份，`/opt/webuddy/app` 指回 `releases/b8c6729fe331-intake-llm-20261030/app`，重启；数据库不动。
+- 追加（同日）：用户选择「全部放开」，`agent-routes.json` 中 CWWEB、WEIGHBILL、GROUPRISK、PPTAUTO 的 `direct_api` 改为 `true`（原文件备份为同一备份目录下 `agent-routes.before-direct-api.json`；执行器路由 `cloudwave-codex` 不变）。生产数据副本上 5 个项目 `llm.conf` 均 ready、理清需求通道均为 `llm`；CWWEB 真实调用 Kimi 约 14 秒拆成两条，未调用 agent、未建单。服务 active，公网登录 200。
+
+## 2026-10-30 普通 LLM 从 Kimi Code 切到 Cloudwave GPT 网关
+
+- `https://ai.cloudwaveai.cn/v1` 即 `cloudwave-codex` 执行器所用的 `aiseat` 网关（模型 `gpt-6-luna`）。先测时网关整站 Caddy 502；恢复后用户给了专用服务账号 key，起初 `/chat/completions` 返回 403 `client_not_allowed`（账号只放行官方 Codex 客户端），用户在网关后台开通普通 API 后约 30 秒生效。未伪装客户端请求头。
+- 实测：`/v1/models` 只有 `gpt-6-luna`；`/chat/completions` 接受 `temperature=0`，示例拆成缺陷 + 新功能约 2.6 秒；读图（data URL）正确；`/responses` 也可用。
+- `/etc/webuddy.env` 改为 `TMH_ROUTER_BASE_URL=https://ai.cloudwaveai.cn/v1`、`TMH_ROUTER_MODEL=gpt-6-luna`、`TMH_ROUTER_VISION=1`、新 `TMH_ROUTER_KEY`，删除 `TMH_ROUTER_TEMPERATURE`（此模型接受 0）。key 经 SSH 标准输入写入，不进 Git。原 Kimi 版 env 备份为 `/opt/webuddy/backups/pre-3d3f855cace5-activation-20261030/webuddy.env.kimi-router-20261030110418`。程序未变（仍 `3d3f855`）。
+- 验证：重启后 active、NRestarts=0，本机/公网登录 200、API 401；生产数据副本上 5 个项目 `llm.conf` ready、通道 `llm`，JB 示例约 13 秒、CWWEB 示例约 9 秒拆成两条，未调用 agent、未建单。
+- 回滚：把上述备份 env 拷回 `/etc/webuddy.env` 并重启 `webuddy.service`。
+
+### 2026-10-30 按步骤分配执行器：Opus 5.5 分析/方案/诊断，Luna 改代码
+
+- 代码 `48b34a4`：`agent-routes.json` 的项目路由新增 `steps`（运行模式 → 执行器）。`Runner.start` 按步骤选执行器；`FixLoop` 的 `edit`/`diagnose` 和人工审查的诊断也按步骤选执行器，并用该执行器自己的默认模型。`steps` 里的执行器必须在 `allowed_agents` 中，未知模式或配错即拒绝；人明确选了别的允许执行器时以人为准；不同执行器之间不续接会话（`earlier_session` 本来就按执行器过滤）。新增 3 个用例；Python 3.12 下全量只剩与本次无关的 `test_readiness_checks_the_real_machine_worst_first`（本机 Git 旧）。
+- 选型实测：Cloudwave 网关上 `gpt-6-sol`、`gpt-6-astra` 可用，`gpt-6.1-*` 返回 400（ChatGPT 账号的 Codex 不支持）。aixoras 中转（Claude 系列，最高 `claude-opus-5-5`）的 Anthropic 接口几秒返回，OpenAI 接口约 90 秒；Cloudflare 会拦 Python 默认 UA。用户选择真实项目也用 Opus 指挥。
+- 发布前在生产数据副本上用新代码对 JB-32（网关关闭 knife4j 没生效）跑了一次真实方案：路由选中 `claude`/`claude-opus-5-5`，Opus 读代码、调 `tmh impact`、翻 git 历史找到根因，330 秒完成，输出含合法 `tmh-plan`（文件清单 + 分层验收标准）。副本随后删除。
+- 生产发布 `48b34a4`：`/opt/webuddy/releases/48b34a40be56-step-agents-20261030/app`，MANIFEST 校验通过，服务器上路由用例 22 个通过。备份 `/opt/webuddy/backups/pre-48b34a40be56-activation-20261030`（env、unit、`agents.json`、`agent-routes.json`、旧程序、数据库 `.backup`，完整性 ok）。`/etc/webuddy.env` 追加 `ANTHROPIC_BASE_URL=https://aixoras.com`、`ANTHROPIC_AUTH_TOKEN`（经 SSH 标准输入写入）和 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`；`agents.json` 加 `claude`（服务器 Claude Code 2.1，模型 `claude-opus-5-5`，`run_timeout` 1800）；CWWEB、WEIGHBILL、GROUPRISK、PPTAUTO、JB 路由加 `claude` 到 `allowed_agents`，并设 `steps: analyze/plan/diagnose → claude`，改代码仍走 `cloudwave-codex`（Luna）。本机/公网 login 200、API 401，NRestarts=0。
+- 回滚：把备份里的 `0-webuddy.env`、`2-agents.json`、`3-agent-routes.json` 拷回原处，`app` 软链指回 `releases/3d3f855cace5-router-temp-20261030/app` 并重启；只想停用 Opus 时，只恢复 `3-agent-routes.json` 即可，不用重启。数据库不动。
