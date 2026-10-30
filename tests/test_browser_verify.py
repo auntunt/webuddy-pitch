@@ -37,6 +37,18 @@ class BrowserVerifyTest(unittest.TestCase):
         self.assertEqual({i["result"] for i in bv.results(report, ACS, {"A2-a.png": PNG})}, {"unverified"})
         self.assertEqual({i["result"] for i in bv.results({"setup": "app did not start"}, ACS, {})}, {"unverified"})
 
+    def test_short_commit_ids_resolve_to_the_full_id_only_when_they_name_it(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as d:
+            git = ["git", "-C", d, "-c", "user.name=t", "-c", "user.email=t@t"]
+            subprocess.run(git + ["init", "-q"], check=True)
+            subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", "x"], check=True)
+            full = subprocess.run(git + ["rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+            self.assertEqual(bv.full_sha(Path(d), full[:8]), full)
+            self.assertEqual(bv.full_sha(Path(d), full), full)
+            for bad in ("", "HEAD", full[:4], "0" * 8, "main"):
+                self.assertEqual(bv.full_sha(Path(d), bad), "")
+
     def test_spec_and_config(self):
         self.assertEqual(bv.spec_from("x\n```tmh-spec\nimport a\n```\n"), "import a\n")
         self.assertEqual(bv.spec_from("no block"), "")

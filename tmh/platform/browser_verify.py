@@ -277,6 +277,15 @@ def _record(P, t: dict, rid: int, items: list, result: str, bind: dict, why: str
                   dict(bind, run=rid, result=result, ac=[{k: i[k] for k in ("id", "result", "how")} for i in items]))
 
 
+def full_sha(root: Path, commit: str) -> str:
+    """The full id of `commit` (evidence keeps short ids); empty unless it names exactly that commit."""
+    if not re.fullmatch(r"[0-9a-f]{7,40}", commit or ""):
+        return ""
+    out = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", "--quiet", commit + "^{commit}"],
+                         capture_output=True, text=True, check=False).stdout.strip()
+    return out if re.fullmatch(r"[0-9a-f]{40}", out) and out.startswith(commit) else ""
+
+
 def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=None) -> dict:
     """Drive the real app for run `rid` (its committed `commit`, else its worktree's base plus its diff)."""
     c = conf(P.data_dir, p["key"])
@@ -285,7 +294,7 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
     run = P.store.run(rid)
     wt = Path(run.get("workdir") or "")
     if commit:
-        base, diff = commit, ""
+        base, diff = full_sha(Path(p["root"]), commit), ""
     elif wt.is_dir():
         base = subprocess.run(["git", "-C", str(wt), "rev-parse", "HEAD"], capture_output=True, text=True, check=False).stdout.strip()
         diff = run.get("diff") or ""
