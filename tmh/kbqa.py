@@ -234,12 +234,17 @@ def router_conf(root: Path) -> dict:
     r["base_url"] = os.environ.get("TMH_ROUTER_BASE_URL") or r.get("base_url", "")
     r["model"] = os.environ.get("TMH_ROUTER_MODEL") or r.get("model", "")
     r["key_env"] = r.get("key_env") or "TMH_ROUTER_KEY"
+    t = os.environ.get("TMH_ROUTER_TEMPERATURE") or r.get("temperature")
+    r["temperature"] = float(t) if t not in (None, "") else None
     r["ready"] = bool(r["base_url"] and r["model"] and os.environ.get(r["key_env"]))
     return r
 
 
 def _post(conf: dict, body: dict, timeout: int = 60) -> dict:
+    """`temperature` in the router config replaces the caller's: some models (e.g. Kimi's reasoning ones) accept only 1."""
     import urllib.request
+    if conf.get("temperature") is not None:
+        body = dict(body, temperature=conf["temperature"])
     req = urllib.request.Request(conf["base_url"].rstrip("/") + "/chat/completions", data=json.dumps(body).encode("utf-8"), method="POST",
                                  headers={"Content-Type": "application/json", "Authorization": "Bearer " + os.environ[conf["key_env"]]})
     with urllib.request.urlopen(req, timeout=timeout) as resp:

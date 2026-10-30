@@ -335,7 +335,7 @@ python3 .tmh/tool/tmh.py serve --key TOG --open
 | 完整智能体 | 分析定位、修改方案、修改代码、写知识页、问到代码/文件/报错栈的助手问题 |
 | 人 | 确认工单、业务验收、采纳经验、合并发布 |
 
-配置沿用转发模型 `router`（项目 `.tmh` 配置或环境变量 `TMH_ROUTER_BASE_URL`、`TMH_ROUTER_MODEL`，密钥只从 `TMH_ROUTER_KEY` 读），通义、Kimi、DeepSeek、GPT 等兼容接口都可以；模型能看图时设 `router.vision: true` 或 `TMH_ROUTER_VISION=1`，截图会随请求发送，否则只记录有截图。项目路由 `direct_api: false` 时不调用。
+配置沿用转发模型 `router`（项目 `.tmh` 配置或环境变量 `TMH_ROUTER_BASE_URL`、`TMH_ROUTER_MODEL`，密钥只从 `TMH_ROUTER_KEY` 读），通义、Kimi、DeepSeek、GPT 等兼容接口都可以；模型能看图时设 `router.vision: true` 或 `TMH_ROUTER_VISION=1`，截图会随请求发送，否则只记录有截图。模型只接受固定温度时（如 Kimi 推理模型只允许 1），设 `router.temperature` 或 `TMH_ROUTER_TEMPERATURE`。项目路由 `direct_api: false` 时不调用。
 
 理清需求的顺序：`autoflow.json` 的 `understand` 为 `auto`（默认）时先普通 LLM，未配置再用智能体，都不可用或返回格式不对按规则理解；`llm`、`agent`、`rules` 可单独指定。每次读取都记成 `understand` 运行（普通 LLM 的执行器记为 `llm`）。附件：截图收 PNG/JPEG/WebP（≤3MB），文档收 txt/md/csv/log/json/docx/xlsx/pdf（≤10MB，PDF 需服务器装 `pypdf` 才抽文字），最多 8 个；原件按 SHA-256 留档，文字随对话保存，工单正文和需求记录（证据包）写明附件名与哈希。附件内容和客户原话一样只是资料，不是指令；不经人确认不会建单或开工。
 

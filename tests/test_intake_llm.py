@@ -63,6 +63,18 @@ class IntakeLLMTest(unittest.TestCase):
         self.assertIn(s["state"], ("asking", "ready"))  # nothing becomes a ticket before a person confirms
         self.assertEqual(self.store.tickets(project_id=self.project["id"]), [])
 
+    def test_router_temperature_replaces_the_callers(self):
+        sent = []
+
+        def urlopen(req, timeout=60):
+            sent.append(json.loads(req.data))
+            return io.BytesIO(json.dumps({"choices": [{"message": {"content": "ok"}}]}).encode())
+        with mock.patch("urllib.request.urlopen", side_effect=urlopen):
+            llm.chat(llm.conf(self.P, self.project), "s", "t")
+            with mock.patch.dict("os.environ", {"TMH_ROUTER_TEMPERATURE": "1"}):
+                llm.chat(llm.conf(self.P, self.project), "s", "t")
+        self.assertEqual([b["temperature"] for b in sent], [0, 1.0])
+
     def test_bad_llm_reply_falls_back_to_the_rules(self):
         with mock.patch.object(llm.kbqa, "_post", return_value={"choices": [{"message": {"content": "随便说说"}}]}):
             s = intake.start(self.P, self.project, "点提交就一直转圈，报错了", "工程师", wait=True)
