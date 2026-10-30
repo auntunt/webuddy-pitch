@@ -50,12 +50,20 @@ FENCE = r"```%s[ \t]*\n(.*?)```"
 def fenced(label: str, text: str):
     """The JSON in the last ```<label> block of an agent's answer, or None."""
     m = re.findall(FENCE % re.escape(label), text or "", re.S)
-    if not m:
-        return None
-    try:
-        return json.loads(m[-1].strip())
-    except ValueError:
-        return None
+    if m:
+        try:
+            return json.loads(m[-1].strip())
+        except ValueError:
+            return None
+    # models sometimes wrap it as ```json {"<label>": {...}}```: the same answer, under the label's own name
+    for block in reversed(re.findall(FENCE % "json", text or "", re.S)):
+        try:
+            j = json.loads(block.strip())
+        except ValueError:
+            continue
+        if isinstance(j, dict) and isinstance(j.get(label), dict):
+            return j[label]
+    return None
 
 
 def clean(text: str) -> str:
@@ -418,6 +426,8 @@ class FixLoop:
         out = self.call("diagnose", "\n".join(L))
         d = fenced("tmh-diag", out)
         d = d if isinstance(d, dict) else {}
+        if "blocking" not in d and isinstance(d.get("blocking_issues"), list):
+            d["blocking"] = d.pop("blocking_issues")
         d["text"] = clean(out)[:1500]
         return d
 

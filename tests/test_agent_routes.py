@@ -296,7 +296,7 @@ class AgentRoutesTest(unittest.TestCase):
                 self.assertEqual(verdict, "pass" if diagnosed else "unknown")
 
 
-    def _diagnose_on_ticket(self, said, earlier=(), setup=None):
+    def _diagnose_on_ticket(self, said, earlier=(), setup=None, raw=None):
         from tmh.platform.fixloop import FixLoop
         self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex",
                     "allowed_agents": ["cloudwave-codex", "claude"], "steps": {"diagnose": "claude"}}}})
@@ -314,7 +314,7 @@ class AgentRoutesTest(unittest.TestCase):
         (self.data / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)
         runner = Mock(data_dir=self.data, store=self.store)
         runner.stop_reason.return_value = ""
-        runner.invoke.return_value = (0, "```tmh-diag\n%s\n```" % json.dumps(said, ensure_ascii=False))
+        runner.invoke.return_value = (0, raw or "```tmh-diag\n%s\n```" % json.dumps(said, ensure_ascii=False))
         diff = "diff --git a/a.vue b/a.vue\n--- a/a.vue\n+++ b/a.vue\n@@ -1 +1 @@\n-x\n+y\n"
         with patch("tmh.platform.fixloop.git", return_value="abc\n"), patch("tmh.platform.fixloop.worktree_diff", return_value=diff), \
                 patch("tmh.platform.fixloop.learning_context_current", return_value=True):
@@ -339,6 +339,16 @@ class AgentRoutesTest(unittest.TestCase):
         self.assertEqual((verify["check"], verify["skip"], verify["verdict"]), ("pass", "", "pass"))
         self.assertEqual(self.loop.commands.call_args.args[0], {"a.vue": ""})
         self.loop.baseline.assert_called_once()
+
+    def test_a_diagnosis_wrapped_in_a_json_block_under_its_own_name_is_read(self):
+        from tmh.platform.fixloop import fenced
+        said = {"verdict": "PASS", "blocking_issues": [], "ac": [{"id": "A1", "result": "pass", "how": "a.vue:3"}]}
+        out = "看完了\n```json\n%s\n```" % json.dumps({"tmh-diag": said}, ensure_ascii=False)
+        self.assertEqual(fenced("tmh-diag", out), said)
+        self.assertIsNone(fenced("tmh-diag", "```json\n{\"verdict\": \"pass\"}\n```"))
+        self.assertEqual(fenced("tmh-diag", out + "\n```tmh-diag\n{\"verdict\": \"fail\"}\n```"), {"verdict": "fail"})
+        verify, _, _ = self._diagnose_on_ticket({}, raw=out)
+        self.assertEqual((verify["verdict"], verify["diagnosis"]["blocking"]), ("pass", []))
 
     def test_a_fail_that_names_no_blocker_is_no_verdict(self):
         verify, _, _ = self._diagnose_on_ticket({"verdict": "fail", "blocking": [], "advisory": ["可能需要深拷贝"]})
