@@ -46,6 +46,13 @@ def why_not(data_dir: Path, rid: int, acs: list, real: bool = False) -> str:
     return ""
 
 
+def committed(snap: dict, rid: int) -> str:
+    """The commit the automatic line made of run `rid`: the delivery binding's, else the adoption of that run's branch."""
+    adopted = snap.get("adopted") or {}
+    return ((snap.get("change") or {}).get("commit") or
+            (adopted.get("commit") or "" if str(adopted.get("branch") or "").endswith("-r%d" % rid) else ""))
+
+
 def after_commit(P, p: dict, tid: int, rid: int) -> dict:
     """Called once the automatic line committed run `rid` of ticket `tid`."""
     conf = P.flow.autoflow()
@@ -69,7 +76,7 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
            why_not(P.data_dir, rid, acs, real=bool(browser_verify.conf(P.data_dir, p["key"]))))
     seen = {}
     if not why and browser_verify.conf(P.data_dir, p["key"]):
-        commit = ((s.get("snapshot") or {}).get("change") or {}).get("commit") or ""
+        commit = committed(s.get("snapshot") or {}, rid)
         res = browser_verify.verify(P, p, t, rid, acs, commit=commit)
         seen = {i["id"]: i for i in res.get("ac") or []}
         why = ("" if res["result"] == "pass" and all((seen.get(a["id"]) or {}).get("result") == "pass" for a in acs) else

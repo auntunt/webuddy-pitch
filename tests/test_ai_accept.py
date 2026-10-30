@@ -101,6 +101,15 @@ class AiAcceptFlowTest(unittest.TestCase):
         self.assertEqual((basis["real"], basis["ac"]["A1"]), ("pass", "实测 A1"))
         self.assertIn("在页面上逐条实测", rec.call_args.args[4])
 
+    def test_the_page_check_runs_on_the_commit_adopted_from_this_run(self):
+        a, b = self.real("pass", {"A1": "pass", "A2": "pass"})
+        self.pack["snapshot"]["adopted"] = {"branch": "tmh/JB-1-r7", "commit": "1c021d9f"}
+        with a, b as v:
+            self.run_it()
+        self.assertEqual(v.call_args.kwargs["commit"], "1c021d9f")
+        self.assertEqual(ai_accept.committed({"adopted": {"branch": "tmh/JB-1-r70", "commit": "x"}}, 7), "")
+        self.assertEqual(ai_accept.committed({"change": {"commit": "f" * 40}, "adopted": {"branch": "tmh/JB-1-r7", "commit": "x"}}, 7), "f" * 40)
+
     def test_with_a_verification_host_a_reproduced_failure_or_anything_unproven_leaves_it_for_people(self):
         for result, ac, why, want in (("fail", {"A1": "pass", "A2": "fail"}, "", "复现了问题（A2）"),
                                       ("unverified", {"A1": "pass", "A2": "unverified"}, "", "A2 未验证"),
