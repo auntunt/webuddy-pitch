@@ -879,7 +879,7 @@ async function showFlow(id){
 // ---------- runs
 // "完成" only means the process ended; say when a change run left nothing, or its check said no.
 function runStatus(r){const s={queued:'排队',running:'运行中',done:'完成',failed:'失败',cancelled:'已取消'}[r.status]||r.status;
-  if(r.mode!=='fix'||r.status!=='done')return s;if(r.diff===''||r.diff_bytes===0)return s+' · 没有改动';const v=r.verify;
+  if(r.mode!=='fix'||r.status!=='done')return s;if(r.diff===''||r.diff_bytes===0)return s+' · 没有改动';const v=r.verify||r.verification;
   return !v?s:v.verdict==='fail'||v.check==='fail'?s+' · 验证没通过':v.verdict==='pass'||v.check==='pass'?s:s+' · 未验证'}
 function runRecoveryBlocked(r){return r.lifecycle?.recovery?.state==='blocked'}
 function runStopReceiptReady(r){const c=r.lifecycle;

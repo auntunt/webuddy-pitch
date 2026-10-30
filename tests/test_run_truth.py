@@ -30,6 +30,7 @@ assert.equal(runStatus(fx({diff:''})),'完成 · 没有改动');
 assert.equal(runStatus(fx({diff_bytes:9,verify:{check:'skip',verdict:'fail'}})),'完成 · 验证没通过');
 assert.equal(runStatus(fx({diff_bytes:9,verify:{check:'skip',verdict:'unknown'}})),'完成 · 未验证');
 assert.equal(runStatus(fx({diff_bytes:9,verify:{check:'skip',verdict:'pass'}})),'完成');
+assert.equal(runStatus(fx({diff:'x',verification:{check:'skip',verdict:'fail'}})),'完成 · 验证没通过');
 assert.equal(runStatus({mode:'analyze',status:'done'}),'完成');
 assert.equal(runStatus({mode:'fix',status:'failed'}),'失败');
 """)
