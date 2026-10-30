@@ -4,7 +4,6 @@ import json
 import os
 import sqlite3
 import threading
-from pathlib import Path
 import unittest
 from unittest.mock import patch
 

@@ -7,6 +7,7 @@ test_run_lifecycle/test_supervised_process suites. This watchdog is not evidence
 that a real intake invocation still honors its 0.5s budget.
 """
 import json
+import os
 import sys
 import tempfile
 import time
@@ -146,6 +147,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
     def latest(self):
         return self.store.run(self.store.runs(project_id=self.project["id"])[0]["id"])
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_success_is_finished_and_later_wall_time_does_not_reclassify_it(self):
         rid = self.new_run()
         code, result = self.invoke(rid)
@@ -156,6 +158,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.assertEqual(self.runner.stop_reason(rid), "")
         self.assertEqual(self.receipt(rid), before)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_timeout_after_zero_exit_overrides_success_before_direct_finalize(self):
         rid = self.new_run()
         code, result = self.invoke(rid)
@@ -165,6 +168,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         run = self.assert_finished(rid, "failed", "timeout")
         self.assertEqual(run["exit_code"], 124)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs(self):
         rid = self.new_run()
         code, result = self.invoke(rid)
@@ -172,6 +176,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.runner.finish_invocation(rid, code, result)
         self.assertNotEqual(self.assert_finished(rid, "cancelled", "cancelled")["exit_code"], 0)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_cancel_before_deadline_stays_cancelled_when_deadline_also_expires(self):
         rid = self.new_run()
         code, result = self.invoke(rid)
@@ -202,6 +207,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.assert_finished(rid, "done")
         self.assertEqual(self.receipt(rid)["elapsed_seconds"], .499)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer(self):
         for action, status in (("timeout", "failed"), ("cancelled", "cancelled")):
             with self.subTest(action=action):
@@ -228,6 +234,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.assertEqual(updated["understood"]["by"], "规则")
         self.assert_finished(updated["understood"]["run"], "cancelled", "cancelled")
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence(self):
         state = self.conversation()
         with self.interruption("exception"):
@@ -238,6 +245,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.assert_finished(run["id"], "failed")
         self.assertFalse(Path(run["workdir"]).exists())
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_intake_cancelled_then_invoke_exception_still_seals_lifecycle(self):
         state = self.conversation()
         with self.interruption("cancel-exception"):
@@ -245,6 +253,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.assertEqual(updated["understood"]["by"], "规则")
         self.assert_finished(self.latest()["id"], "cancelled", "cancelled")
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree(self):
         result = self.evaluate()
         self.assertTrue(result["ok"])
@@ -253,6 +262,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.assertFalse(Path(run["workdir"]).exists())
         self.assertTrue(self.root.is_dir())
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_evaluation_timeout_or_cancel_never_reports_successful_execution(self):
         for action, status in (("timeout", "failed"), ("cancelled", "cancelled")):
             with self.subTest(action=action), self.interruption(action):
@@ -260,6 +270,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
                 self.assertFalse(result["ok"])
                 self.assert_finished(result["run"], status, action)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_evaluation_exception_records_error_and_finishes_its_created_run(self):
         with self.interruption("exception"):
             learn._run_batch(self.P, self.project, [self.case()], "reader", "", self.conf, "tester", "fixture-exception")
@@ -269,6 +280,7 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         self.assert_finished(run["id"], "failed")
         self.assertFalse(Path(run["workdir"]).exists())
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle(self):
         with self.interruption("cancel-exception"):
             learn._run_batch(self.P, self.project, [self.case()], "reader", "", self.conf, "tester", "fixture-cancel-exception")

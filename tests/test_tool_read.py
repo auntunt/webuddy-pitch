@@ -13,8 +13,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from tmh import context  # Preload read-only search code before auditing leaf effects.
-from tmh.platform import agent_api, candidates, project_library, tenant_policy, tool_access, tool_read
+from tmh.platform import agent_api, tenant_policy, tool_access
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
 from tests.sqlite_snapshot import dump_store as snapshot
@@ -33,8 +32,12 @@ def seed_candidate(store, ticket, summary='完整历史\r\n' * 1000):
 @contextmanager
 def no_live_effects(store):
     """Audit actual leaf effects; fail even if a caller catches the exception."""
-    events, active = [], [True]
+    events, active, owner = [], [True], threading.get_ident()
     def audit(event, args):
+        # The audit hook is process-wide; ignore threads leaked by other tests.
+        # Reads may not start threads of their own (see start below).
+        if threading.get_ident() != owner:
+            return
         prohibited = event in ('subprocess.Popen', 'os.system', 'os.kill', 'os.killpg', 'os.posix_spawn', 'os.fork', 'os.forkpty', 'socket.connect', 'socket.getaddrinfo',
                                'fcntl.flock', 'os.mkdir', 'os.remove', 'os.rename', 'os.rmdir')
         if event == 'open':
@@ -53,8 +56,15 @@ def no_live_effects(store):
             return 1
         return 0
     store.db.set_authorizer(authorize)
+    original_start = threading.Thread.start
+    def start(thread, *args, **kwargs):
+        if active[0] and threading.get_ident() == owner:
+            events.append('thread.start')
+            raise AssertionError('tool read attempted thread.start')
+        return original_start(thread, *args, **kwargs)
     try:
-        yield events
+        with patch.object(threading.Thread, 'start', start):
+            yield events
     finally:
         active[0] = False
         store.db.set_authorizer(None)
@@ -99,7 +109,6 @@ class NoLiveEffectsContractTests(unittest.TestCase):
 
 class ToolReadTests(unittest.TestCase):
     def setUp(self):
-        from tmh.platform import server  # Module import/cache is startup, not a business read.
         self.temp = tempfile.TemporaryDirectory(prefix='tmh-tool-read-')
         self.addCleanup(self.temp.cleanup)
         self.data = Path(self.temp.name)
@@ -513,7 +522,6 @@ class ToolFixedLibraryReadTests(unittest.TestCase):
         revision = self.build(p)
         P = SimpleNamespace(store=self.store, data_dir=self.store.path.parent)
         req = SimpleNamespace(user='alice')
-        from tmh.platform import server
         with patch.object(tenant_policy, 'enabled', return_value=True), \
              patch.object(tenant_policy, 'identity', return_value={'tool_connection': {'scope': 'read'}}), \
              patch.object(tenant_policy, 'visible_projects', return_value=[p]):

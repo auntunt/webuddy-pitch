@@ -1,7 +1,7 @@
 """Small, paginated daily workspace projection. Reads never start model work."""
 from .errors import ApiError
 from .store import _keyed
-from . import handoffs, login, team, project_library, coordination
+from . import handoffs, team, project_library, coordination
 from .project_git import scoped
 
 STAGES = {"requirement": "需求", "development": "研发", "testing": "测试",
@@ -13,7 +13,7 @@ def read(P, query, viewer):
     def arg(key, default=""):
         value = query.get(key, default)
         return value[0] if isinstance(value, list) and value else value
-    from .tenant_policy import directory, visible_projects, require_member
+    from .tenant_policy import directory, visible_projects
     members = directory(P)
     visible = visible_projects(P, viewer)
     project_members = {p["key"]: directory(P, p, "contributor") for p in visible}

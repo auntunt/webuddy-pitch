@@ -1,5 +1,4 @@
 """A stale recheck never becomes a review/sign-off invitation in ticket summaries."""
-import json
 import shutil
 import subprocess
 import unittest

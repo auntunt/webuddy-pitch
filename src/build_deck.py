@@ -1,8 +1,6 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from pptkit import *
-from pptx.chart.data import CategoryChartData
-from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION, XL_LABEL_POSITION
 
 # 业务视角版：以“业务应用 / 智能体编排 / 代码知识库”三层架构为主线，不列内部功能模块。
 OUT = sys.argv[1] if len(sys.argv) > 1 else "deck.pptx"

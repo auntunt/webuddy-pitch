@@ -1,5 +1,4 @@
 """Real AST and graph behavior on the archived BOOTV2 source, never imported/executed."""
-import json
 import tempfile
 import unittest
 from pathlib import Path

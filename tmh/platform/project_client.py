@@ -17,7 +17,10 @@ import stat
 import tempfile
 import threading
 import time
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11: only project execution needs TOML parsing
+    tomllib = None
 
 from .project_container import Engine, specification
 from .project_mcp import BoundJob, ProjectMCP
@@ -83,6 +86,8 @@ def provider_binding(path, profile='', model=''):
         raise ValueError('项目 Codex profile 名称不正确')
     if model and not re.fullmatch('[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}',model):
         raise ValueError('项目模型名称不正确')
+    if tomllib is None:
+        raise RuntimeError('项目 Codex 执行配置需要 Python 3.11 以上（tomllib）')
     path=Path(path);text=_secure_config(path);config=tomllib.loads(text)
     if any(key in config for key in ('mcp_servers', 'features', 'profiles', 'hooks')):
         raise ValueError('官方客户端配置含有不支持的工具或配置覆盖')

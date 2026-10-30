@@ -209,5 +209,42 @@ class AgentRoutesTest(unittest.TestCase):
                                 {"project": "ALPHA", "auto": False, "title": "held"}, "alice")
 
 
+    def test_steps_route_modes_to_their_agent_inside_the_allowlist(self):
+        self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex", "allowed_agents": ["cloudwave-codex", "claude"],
+                    "steps": {"analyze": "claude", "plan": "claude", "diagnose": "claude"}}}})
+        for mode in ("analyze", "plan", "diagnose"):
+            self.assertEqual(agent_routes.step_agent(self.data, self.project, mode, "cloudwave-codex"), "claude")
+            self.assertEqual(agent_routes.step_agent(self.data, self.project, mode, ""), "claude")
+        for mode in ("fix", "edit", "ask"):
+            self.assertEqual(agent_routes.step_agent(self.data, self.project, mode, "cloudwave-codex"), "cloudwave-codex")
+        # a person who picked another allowed agent keeps it
+        self.assertEqual(agent_routes.step_agent(self.data, self.project, "plan", "codex"), "codex")
+        self.assertEqual(agent_routes.step_agent(self.data, "BETA", "plan", "codex"), "codex")
+        self.assertEqual(agent_routes.resolve(self.data, self.project, "claude"), "claude")
+
+    def test_steps_fail_closed_outside_the_allowlist_or_on_unknown_modes(self):
+        for steps in ({"plan": "codex"}, {"merge": "claude"}, {"plan": ""}, ["plan"]):
+            with self.subTest(steps=steps):
+                self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex",
+                            "allowed_agents": ["cloudwave-codex", "claude"], "steps": steps}}})
+                with self.assertRaises(ValueError):
+                    agent_routes.route(self.data, self.project)
+
+    def test_fix_loop_sends_diagnose_to_the_step_agent_and_keeps_the_change_on_the_main_one(self):
+        from tmh.platform.fixloop import FixLoop
+        self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex", "allowed_agents": ["cloudwave-codex", "claude"],
+                    "steps": {"plan": "claude", "diagnose": "claude"}}}})
+        conf = {"cloudwave-codex": {"defaults": {}}, "claude": {"defaults": {"diagnose": "opus-x"}}}
+        runner = Mock(data_dir=self.data, store=self.store)
+        runner.invoke.return_value = (0, "ok")
+        with patch("tmh.platform.fixloop.git", return_value="abc\n"), \
+                patch("tmh.platform.fixloop.learning_context_current", return_value=True):
+            loop = FixLoop(runner, 1, self.project, None, "cloudwave-codex", conf, "luna", False, "prompt", self.root)
+            loop.call("diagnose", "check")
+            loop.call("fix", "change")
+        calls = [(c.args[3], c.args[5], c.args[8]) for c in runner.invoke.call_args_list]
+        self.assertEqual(calls, [("claude", "diagnose", "opus-x"), ("cloudwave-codex", "fix", "luna")])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -5,7 +5,6 @@ semantic ability. Every executed test step still has a real process receipt.
 """
 import copy
 import json
-import os
 import subprocess
 import sys
 import tempfile

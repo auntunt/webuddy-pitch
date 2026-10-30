@@ -9,11 +9,9 @@ try:
 except ImportError:
     fcntl = pwd = None
 import hashlib
-import json
 import os
 from pathlib import Path
 import platform
-import subprocess
 
 from scripts.rsi import registered_trial as R, provider_adapter as P, trial_preparation as L
 from tmh.platform import supervised_process as SP

@@ -1,6 +1,6 @@
 """A quality-stage reader must inspect the adopted candidate, never the moving main tree."""
 import json
-import subprocess
+import os
 import sys
 import tempfile
 import threading
@@ -10,7 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from tmh.platform.agents import Runner, delivery_source, git
+from tmh.platform.agents import Runner, git
 from tmh.platform import learning as L, learning_decisions as D
 from tmh.platform.store import Store
 
@@ -70,6 +70,7 @@ class DeliverySourceRunnerTest(unittest.TestCase):
         self.assertEqual(D.runtime_policy(self.store, self.project)["status"], "active")
         return revision
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_fixed_source_runs_with_main_policy_using_its_actual_checkout_budget(self):
         policy = self.active_policy()
         run = self.wait(self.start()["id"])
@@ -130,6 +131,7 @@ class DeliverySourceRunnerTest(unittest.TestCase):
         self.assertIn("冻结提示词已停止", failed["result"])
         self.assertTrue(self.source_record(run["id"])["code_unchanged"])
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_real_process_reads_detached_candidate_and_keeps_provenance(self):
         later = self.store.create_run(self.project["id"], self.ticket["id"], "reader", "plan", "tester", "")
         self.store.update_run(later["id"], status="done", exit_code=0, result="UNRELATED-LATER-PLAN")
@@ -246,6 +248,7 @@ class DeliverySourceRunnerTest(unittest.TestCase):
             self.assertEqual(self.store.run(run["id"])["status"], "done")
             self.assertTrue(self.source_record(run["id"])["code_unchanged"])
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_hex_named_branch_does_not_replace_the_requested_commit(self):
         git(self.root, "branch", self.commit[:12], self.main)
         git(self.root, "branch", self.commit, self.main)

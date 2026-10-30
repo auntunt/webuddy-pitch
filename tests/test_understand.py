@@ -3,7 +3,6 @@ through to the client's sign page, questions sent to the client on a link of the
 import json
 import os
 import re
-import subprocess
 import sys
 import tempfile
 import threading
@@ -710,7 +709,7 @@ class UnderstandTest(unittest.TestCase):
             self.flow({"on": False})
             self.assertEqual(intake.settings(self.data)["understand"], "rules")
             self.flow({"on": True, "understand_agent": "reader", "understand_per_hour": 1})
-            self.assertEqual(intake.settings(self.data)["understand"], "agent")
+            self.assertEqual(intake.settings(self.data)["understand"], "auto", "the plain LLM first, then an agent")
             p = self.P.project("OA")
             self.P.store.create_run(p["id"], None, "reader", "understand", "tester", "x", "x")
             self.assertEqual(intake.understander(self.P, p), "", "this hour's share is used")

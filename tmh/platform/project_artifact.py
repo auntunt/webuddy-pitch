@@ -6,7 +6,6 @@ verification and human decisions are separate operations and are not implied.
 from __future__ import annotations
 
 import hashlib
-import io
 import json
 import re
 import tarfile

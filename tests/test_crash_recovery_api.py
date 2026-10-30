@@ -62,6 +62,7 @@ class CrashRecoveryApiTest(unittest.TestCase):
         self.assertEqual(caught.exception.code, 409)
         self.assertEqual(self.store.run(self.rid), before)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_missing_final_receipt_blocks_then_post_collects_real_receipt(self):
         # The independent SIGKILL suite covers real owner death. Here a real
         # completed process has its final receipt withheld to test API recovery.
@@ -113,6 +114,7 @@ class CrashRecoveryApiTest(unittest.TestCase):
         self.assertEqual(self.store.run(self.rid)["status"], "failed")
         self.assertTrue(json.loads((self.folder / "lifecycle.json").read_text())["finished"])
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_failed_final_seal_releases_owner_and_done_window_is_recoverable(self):
         self.runner._control(self.rid)
         self.store.update_run(self.rid, status="running", started=now())

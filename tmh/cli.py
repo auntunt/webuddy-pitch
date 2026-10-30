@@ -504,7 +504,7 @@ def _load_flows(root: Path) -> dict:
 
 
 def cmd_flows(a) -> int:
-    from . import activity, flow, webreport
+    from . import flow, webreport
     root = _root(a)
     data = _load_flows(root)
     flows = data["flows"]

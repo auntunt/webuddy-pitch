@@ -1,4 +1,3 @@
-import json
 import unittest
 
 from tmh.platform.command import plan, validate

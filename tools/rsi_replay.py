@@ -19,7 +19,6 @@ the point is to prove the replay pipeline, the scoring math, the artifacts and t
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import time

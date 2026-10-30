@@ -624,8 +624,11 @@ class Platform:
         self.store.chat_add(p["id"], s["ticket_id"], "user", user, q, session_id=s["id"])
         kind = assist.intent(q, t, hist)
         # the platform's own records answer questions about the platform even in deep mode: an agent cannot see them
-        if mode == "evidence" or kind in ("help", "retry", "state"):
-            ans = assist.answer(self, p, t, q, hist, kind)
+        ans = None
+        if mode != "evidence" and kind == "kb" and not assist.needs_code(q):
+            ans = assist.llm_answer(self, p, t, q, hist)  # business rules and usage: knowledge base + plain LLM, no agent
+        if ans or mode == "evidence" or kind in ("help", "retry", "state"):
+            ans = ans or assist.answer(self, p, t, q, hist, kind)
             self.store.chat_add(p["id"], s["ticket_id"], "assistant", ans.get("source", "知识库"), ans["body"],
                                 {"mode": "evidence", "cards": ans.get("cards") or [], "no_evidence": ans.get("no_evidence", False), "points": 0,
                                  "next": ans.get("next", ""), "intent": kind, "source": ans.get("source", ""),
@@ -1059,6 +1062,8 @@ def _human_action(P, req, ticket=None, strict=False, run=None):
 
 def _personal_review_access(P, req, ticket):
     """UI hint only; each write repeats the actual identity and evidence checks."""
+    if req is None:
+        return {"allowed": False, "kind": "evidence_review", "reason": "没有请求身份，无法判断个人复核权限"}
     try:
         _human_action(P, req, ticket)
         return {"allowed": True, "kind": "evidence_review"}
@@ -1678,11 +1683,12 @@ def _chooser(P, p: dict):
 @route("POST", "/api/projects/<key>/intake")
 def api_intake_start(P, req, key):
     """A requirement conversation: split, classify, restate on the business map, ask only what is missing."""
-    from . import intake
+    from . import attachments, intake
     p = P.project(key)
     model = req.body.get("model", True) is not False
+    files = attachments.save(P.data_dir, req.body.get("attachments") or [])
     return intake.start(P, p, req.body.get("text", ""), req.user, req.body.get("channel") or "web", _chooser(P, p) if model else None,
-                        big=bool(req.body.get("big")), agent=model, wait=bool(req.body.get("wait")))
+                        big=bool(req.body.get("big")), agent=model, wait=bool(req.body.get("wait")), attachments=files)
 
 
 @route("GET", "/api/intake/<sid>")

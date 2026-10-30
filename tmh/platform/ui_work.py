@@ -94,7 +94,7 @@ function workIcon(name){const icons={
   dot:'<circle cx="12" cy="12" r="4"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'};
   return `<svg class="wicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[name]||icons.dot}</svg>`}
-const NAV=[['workspace','工作台','#/workspace','today'],['projects','项目','#/projects','versions'],['tasks','任务','#/tickets','reqs'],['team','团队协作','#/team','clients'],['memory','知识与记忆','#/memory','message']];
+const NAV=[['workspace','工作台','#/workspace','today'],['projects','项目','#/projects','versions'],['tasks','工单','#/tickets','reqs'],['team','团队协作','#/team','clients'],['memory','知识与记忆','#/memory','message']];
 const WK=['workspace','projects','team','memory','handoff','deliveries','delivery','today','clients','c','reqs','versions','t'];
 function isEng(v){return !WK.includes(v)}
 function navOf(v){return ['workspace','today','meetings'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn'].includes(v)?'memory':['tickets','t','reqs','board','home','rtickets'].includes(v)?'tasks':'projects'}

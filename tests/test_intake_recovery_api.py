@@ -4,6 +4,7 @@ The reader below is deterministic synthetic code, never a model. The server is
 owned by this test on an ephemeral loopback port and is always closed afterward.
 """
 import json
+import os
 import sys
 import tempfile
 import threading
@@ -165,6 +166,7 @@ class IntakeRecoveryApiTest(unittest.TestCase):
             time.sleep(.01)
         self.fail("recovery did not finish: " + json.dumps(state, ensure_ascii=False))
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_failed_saved_answer_is_read_only_and_has_the_same_owner_on_all_pages(self):
         failed = self.failed_answer()
         before = self.snapshot()
@@ -175,6 +177,7 @@ class IntakeRecoveryApiTest(unittest.TestCase):
         self.assertEqual(recovery["items"][0]["answers"][0]["from"], "王总（客户）")
         self.assertEqual(self.snapshot(), before, "ticket/client/requirements GETs cannot repair or rewrite stored state")
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_real_http_retry_has_running_state_and_blocks_duplicate_until_complete(self):
         failed = self.failed_answer()
         self.mode("wait")
@@ -195,6 +198,7 @@ class IntakeRecoveryApiTest(unittest.TestCase):
         self.assertEqual(len(runs), 3, "initial read + failed answer + exactly one recovery")
         self.assertEqual(self.P.store.run(failed["run"])["status"], "failed")
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_retry_delegates_canonical_key_actor_and_wait_without_replacing_customer_words(self):
         self.failed_answer()
         self.mode("success")
@@ -210,6 +214,7 @@ class IntakeRecoveryApiTest(unittest.TestCase):
         self.assertEqual(after["items"][0]["slots"]["q1"], before["items"][0]["slots"]["q1"])
         self.assertEqual(signoff.client_ac(self.data, self.key)[1:], contract[1:])
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_closed_ticket_stays_closed_everywhere_and_rejects_retry_without_writes(self):
         self.failed_answer()
         self.P.store.update_ticket(self.P.store.ticket(self.key)["id"], "工程师", status="closed")
@@ -220,6 +225,7 @@ class IntakeRecoveryApiTest(unittest.TestCase):
         self.assertEqual(code, 409, result)
         self.assertEqual(self.snapshot(), before)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_missing_executor_blocks_retry_with_a_409_and_keeps_saved_answers(self):
         self.failed_answer()
         self.configure(understand="rules")
@@ -231,6 +237,7 @@ class IntakeRecoveryApiTest(unittest.TestCase):
         self.assertEqual(code, 409, result)
         self.assertEqual(self.snapshot(), before)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_http_retry_requires_write_header_and_missing_ticket_does_not_delegate(self):
         self.failed_answer()
         before = self.snapshot()
@@ -242,6 +249,7 @@ class IntakeRecoveryApiTest(unittest.TestCase):
             retry.assert_not_called()
         self.assertEqual(self.snapshot(), before)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_expired_recovery_reads_do_not_sweep_or_land_customer_answers(self):
         self.failed_answer()
         # Model a retained job after a server restart, with no live process.
@@ -256,6 +264,7 @@ class IntakeRecoveryApiTest(unittest.TestCase):
         self.same_everywhere("doing", "已保存答复")
         self.assertEqual(self.snapshot(), before, "expired GETs must not invoke the mutating intake sweep")
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_uncertain_process_cleanup_blocks_http_retry_without_changing_evidence(self):
         failed = self.failed_answer()
         path = self.data / "runs" / str(failed["run"]) / "lifecycle.json"

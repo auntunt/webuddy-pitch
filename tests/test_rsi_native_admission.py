@@ -2,7 +2,6 @@
 from contextlib import contextmanager
 import json
 import os
-from pathlib import Path
 import select
 import subprocess
 import sys

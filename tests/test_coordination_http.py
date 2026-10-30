@@ -1,5 +1,4 @@
 """Real tenant gateway/worker checks; all identities and records are synthetic."""
-import json
 import os
 from pathlib import Path
 from types import SimpleNamespace

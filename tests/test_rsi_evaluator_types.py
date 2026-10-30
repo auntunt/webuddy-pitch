@@ -6,7 +6,6 @@ import hashlib
 import io
 import json
 import os
-from pathlib import Path
 import platform
 from types import SimpleNamespace
 import unittest

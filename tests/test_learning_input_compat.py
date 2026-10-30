@@ -1,5 +1,4 @@
 """Versioned lesson content and obsolete execution retain legacy manual evidence."""
-import copy
 import json
 import time
 import unittest
@@ -7,7 +6,7 @@ import uuid
 from unittest.mock import patch
 
 from tests import test_learning_lesson_inputs as fixtures
-from tmh.platform import learning as L, learning_eval as E, learning_runs as R, learn
+from tmh.platform import learning as L, learning_eval as E, learning_runs as R
 from tmh.platform.errors import ApiError
 from tmh.platform.store import now
 

@@ -1,6 +1,5 @@
 """Manual delivery drafting stays independent from runtime and stage approval."""
 import concurrent.futures
-import json
 from pathlib import Path
 import sqlite3
 import tempfile

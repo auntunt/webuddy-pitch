@@ -11,7 +11,6 @@ from http.server import ThreadingHTTPServer
 
 from tmh import bots
 from tmh.platform import handoffs, login, team
-from tmh.platform.errors import ApiError
 from tmh.platform.server import Platform, make_handler
 
 

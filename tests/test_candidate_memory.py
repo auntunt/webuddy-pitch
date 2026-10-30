@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 import test_team_workspace as team_fixture
-from tmh.platform import candidates, learn, memory, team
+from tmh.platform import learn, memory, team
 from tmh.platform.errors import ApiError
 
 

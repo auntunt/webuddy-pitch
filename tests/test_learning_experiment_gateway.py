@@ -1,5 +1,4 @@
 """Real signed gateway/worker requests; fixed synthetic executor only."""
-import json
 import os
 from pathlib import Path
 import time

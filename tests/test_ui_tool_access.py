@@ -1,6 +1,5 @@
 """Run the shipped personal-tool page JavaScript and parse its real CLI guide."""
 import json
-import re
 import shlex
 import shutil
 import subprocess

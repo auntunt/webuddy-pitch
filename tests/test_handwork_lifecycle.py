@@ -5,7 +5,6 @@ import shlex
 import sys
 import time
 import unittest
-from pathlib import Path
 from types import SimpleNamespace
 
 from tests import test_run_lifecycle as helpers

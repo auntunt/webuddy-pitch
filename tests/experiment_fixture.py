@@ -1,7 +1,5 @@
 """Real personal registry and lesson capture; no service or network fixture."""
 from contextlib import contextmanager
-import copy
-import json
 from pathlib import Path
 import tempfile
 import time

@@ -1,6 +1,5 @@
 """Synthetic accounts/tenants only; never provisions a Platform or a worker."""
 import concurrent.futures
-from contextlib import closing
 import json
 from pathlib import Path
 import sqlite3

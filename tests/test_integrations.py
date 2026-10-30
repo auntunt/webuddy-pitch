@@ -19,7 +19,6 @@ sys.path.insert(0, str(HERE.parent))
 from tmh import config as cfgmod  # noqa: E402
 from tmh import integrations as I  # noqa: E402
 from tmh.cli import main  # noqa: E402
-from tmh.integrations import link  # noqa: E402
 
 JAVA = HERE.parent / "examples" / "legacy-java-oa"
 

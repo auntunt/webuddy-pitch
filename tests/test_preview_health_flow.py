@@ -4,10 +4,8 @@ The candidate is an explicit test fixture, not a new model-written feature or a
 human acceptance. Its bundled application tests and preview run for real.
 """
 import http.client
-import json
 from pathlib import Path
 import re
-import sqlite3
 import subprocess
 import tempfile
 import time

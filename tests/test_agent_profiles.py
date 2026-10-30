@@ -1,5 +1,6 @@
 """Official-CLI profiles with a real local synthetic executable, never a model call."""
 import json
+import os
 import shlex
 import subprocess
 import sys
@@ -163,6 +164,7 @@ class AgentProfilesTest(unittest.TestCase):
                     agents.command(conf, 'cloudwave-codex', 'ask', 'task', self.data, self.root, self.data)
         self.assertFalse((self.data / 'calls.jsonl').exists())
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_real_stdin_json_reply_usage_and_original_evidence(self):
         prompt = '完整任务\n' * 50000  # larger than a safe single argv on common operating systems
         run, folder = self.call(prompt)
@@ -185,6 +187,7 @@ class AgentProfilesTest(unittest.TestCase):
         self.assertIn(b'"cached_input_tokens": 80', original)
         self.assertTrue(life['attempts'][0]['cleanup']['complete'])
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_resume_disabled_uses_full_fresh_task_and_never_retries_busy(self):
         self.config['args'] = ['--fixture-busy']
         self.save_config()
@@ -200,6 +203,7 @@ class AgentProfilesTest(unittest.TestCase):
         with mock.patch.object(self.store, 'runs', side_effect=AssertionError('must not inherit a session')):
             self.assertEqual(agents.earlier_session(self.store, self.data, {'id': 1}, 'cloudwave-codex', 'plan'), ('', None))
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_busy_retry_rechecks_revoked_broken_or_removed_route_config(self):
         route = self.data / 'agent-routes.json'
         for change, error in [('revoked', '仅允许执行器'), ('broken', '不是有效 JSON'),
@@ -235,6 +239,7 @@ class AgentProfilesTest(unittest.TestCase):
                 self.assertEqual(len(self.calls()) - before, 1)
                 self.assertIn(b'429 rate limit', self.retained_profile_attempts(run['id'], 1)[0])
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_busy_retry_with_unchanged_route_starts_second_real_process(self):
         self.config.update(args=['--fixture-busy-once'], retry_busy=True)
         self.save_config()
@@ -255,6 +260,7 @@ class AgentProfilesTest(unittest.TestCase):
         self.assertIn(b'synthetic complete answer', outputs[1])
         self.assertEqual(self.calls()[0]['prompt'], self.calls()[1]['prompt'])
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_resume_fallback_rechecks_route_before_starting_fresh_process(self):
         self.config.update(args=['--fixture-empty-resume'], resume=True)
         self.save_config()
@@ -287,6 +293,7 @@ class AgentProfilesTest(unittest.TestCase):
         self.assertIn(b'"type": "thread.started"', output)
         self.assertNotIn(b'agent_message', output)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_zero_exit_without_complete_reply_or_with_failed_turn_is_not_success(self):
         for flag in ('--fixture-incomplete', '--fixture-failed'):
             with self.subTest(flag=flag):
@@ -296,6 +303,7 @@ class AgentProfilesTest(unittest.TestCase):
                 self.assertEqual(run['status'], 'failed')
                 self.assertNotEqual(run['exit_code'], 0)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_zero_exit_completed_turn_with_only_logs_or_empty_message_fails(self):
         for flag in ('--fixture-log-only', '--fixture-empty-message'):
             with self.subTest(flag=flag):
@@ -411,6 +419,7 @@ class AgentProfilesTest(unittest.TestCase):
             self.assertTrue(receipt['cleanup']['complete'])
             self.assertTrue((evidence / 'output.bin').is_file())
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_start_uses_route_and_preserves_alias_in_run(self):
         (self.data / 'agent-routes.json').write_text(json.dumps({'schema': 1, 'projects': {
             'PROFILE': {'agent': 'cloudwave-codex', 'allowed_agents': ['cloudwave-codex']}}}))

@@ -9,4 +9,4 @@
 - 仅补充发布记录等文档时，推送记录并核对最新提交的运行文件仍与线上一致；不为记录本身反复重启服务。
 - 自动发布授权不等于代替业务人工确认。Agent 不得代人验收、采用知识或关单；不得放宽 guard、证据与提交的绑定、既有状态迁移，或削弱测试断言。
 
-进度与验证证据继续记录在 `docs/self-improvement/ralph-port-progress.md`。开始或恢复任务时先读进度与最近十条提交，避免重做已完成工作。
+进度与验证证据继续记录在 `docs/self-improvement/ralph-port-progress.md`（新记录追加在末尾）。开始或恢复任务时先读该文件（含“长期有效的约定与边界”）与最近十条提交，避免重做已完成工作；更早的细节按需查 `docs/self-improvement/progress-archive/`，归档内容不改写。

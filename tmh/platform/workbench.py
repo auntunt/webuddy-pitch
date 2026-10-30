@@ -957,7 +957,6 @@ def _today(P, since: str) -> dict:
             did.append({"key": "%s-%d" % (keys.get(e["project_id"], "?"), e["num"]), "title": e["title"], "ts": e["ts"], "kind": e["kind"],
                         "text": e["body"], "by": e["author"], "client_name": cl.get(links.get("client"), "")})
     vers = []
-    from . import preview
     for p in st.projects():
         up = preview.status(P.data_dir, standing_key(p["key"])).get("state") == "up"
         for r in release.releases(P.data_dir, p["key"], 20):

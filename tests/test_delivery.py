@@ -1,6 +1,7 @@
 """A delivery executes one real step; drafts, human review and runtime evidence stay distinct."""
 import copy
 import json
+import os
 import sys
 import tempfile
 import threading
@@ -488,6 +489,7 @@ class DeliveryTest(unittest.TestCase):
         self.assertEqual(ctx.count("<<<交付资料开始>>>"), 1)
         self.assertEqual(delivery.prompt_context(self.data, "bad"), "")
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_real_runner_executes_only_local_fake_process_and_collects_actual_output(self):
         did = self.create(["research"])
         runner, ended = Runner(self.store, self.data), threading.Event()

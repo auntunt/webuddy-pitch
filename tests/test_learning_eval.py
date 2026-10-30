@@ -5,7 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from tmh.platform import learning as L, learning_eval as E, learning_runs as R, learn
+from tmh.platform import learning as L, learning_eval as E, learn
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
 from tests.learning_eval_fixture import registered_job

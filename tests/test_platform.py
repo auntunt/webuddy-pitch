@@ -517,6 +517,7 @@ class PlatformApiTest(unittest.TestCase):
             self.test_a_change_is_built_again_without_being_redone()
         self.assertTrue(rechecks, "the stale and recovered responses must precede the first recheck")
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_a_rebuilt_change_the_diagnosis_judged_unsolved_still_waits_for_a_person(self):
         # a missing endpoint compiles fine: a build that passes later does not overrule what the diagnosis found
         key = self.project()
@@ -639,6 +640,7 @@ class PlatformApiTest(unittest.TestCase):
         self.assertEqual((d["reconnects"], d["reconnect_seconds"]), (2, 4.0), d)
         self.assertIn("重连 2 次共 4 秒", agents.timing_text(d))
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_a_busy_model_is_waited_out_and_the_session_picked_up(self):
         from tmh.platform import agents
         key = self.project()
@@ -1188,6 +1190,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             bots.INTAKE, bots.ASYNC, self.P.public_url = old
             preview.set_conf(self.data, key, "")
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_a_person_writes_it_pushes_a_branch_and_the_platform_checks_reviews_and_ships_it(self):
         from tmh.platform import handwork
         self.assertEqual(handwork._public("https://bot:tok3n@gitee.com/acme/oa.git"), "https://gitee.com/acme/oa.git")
@@ -2452,7 +2455,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
     def test_a_big_requirement_goes_from_a_spec_to_children_in_batches_and_an_overall_acceptance(self):
         """Spec card, parent and children, batches on acceptance, a pause, the whole accepted, a rejected whole redone."""
         from unittest import mock
-        from tmh.platform import epic, release, signoff
+        from tmh.platform import release, signoff
         key = self.project()
         self.untrain()  # children wait for people; the feature-level loop is under test
         for text, big in (("大需求量的导出会超时，不对", False), ("大需求：请假单支持按小时请假", True)):  # said with a separator only
