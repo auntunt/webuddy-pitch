@@ -134,3 +134,11 @@
 - 验证：重启后本机/公网登录 200、API 401、NRestarts=0；在生产数据副本上 JB 项目理清需求走 `LLM`（约 16 秒，未调用 agent，未建单）。CWWEB、WEIGHBILL、GROUPRISK、PPTAUTO 在 `agent-routes.json` 里 `direct_api: false`，仍只走规则；是否放开由用户决定。
 - 回滚：`/etc/webuddy.env` 与 `autoflow.json` 换回备份，`/opt/webuddy/app` 指回 `releases/b8c6729fe331-intake-llm-20261030/app`，重启；数据库不动。
 - 追加（同日）：用户选择「全部放开」，`agent-routes.json` 中 CWWEB、WEIGHBILL、GROUPRISK、PPTAUTO 的 `direct_api` 改为 `true`（原文件备份为同一备份目录下 `agent-routes.before-direct-api.json`；执行器路由 `cloudwave-codex` 不变）。生产数据副本上 5 个项目 `llm.conf` 均 ready、理清需求通道均为 `llm`；CWWEB 真实调用 Kimi 约 14 秒拆成两条，未调用 agent、未建单。服务 active，公网登录 200。
+
+## 2026-10-30 普通 LLM 从 Kimi Code 切到 Cloudwave GPT 网关
+
+- `https://ai.cloudwaveai.cn/v1` 即 `cloudwave-codex` 执行器所用的 `aiseat` 网关（模型 `gpt-6-luna`）。先测时网关整站 Caddy 502；恢复后用户给了专用服务账号 key，起初 `/chat/completions` 返回 403 `client_not_allowed`（账号只放行官方 Codex 客户端），用户在网关后台开通普通 API 后约 30 秒生效。未伪装客户端请求头。
+- 实测：`/v1/models` 只有 `gpt-6-luna`；`/chat/completions` 接受 `temperature=0`，示例拆成缺陷 + 新功能约 2.6 秒；读图（data URL）正确；`/responses` 也可用。
+- `/etc/webuddy.env` 改为 `TMH_ROUTER_BASE_URL=https://ai.cloudwaveai.cn/v1`、`TMH_ROUTER_MODEL=gpt-6-luna`、`TMH_ROUTER_VISION=1`、新 `TMH_ROUTER_KEY`，删除 `TMH_ROUTER_TEMPERATURE`（此模型接受 0）。key 经 SSH 标准输入写入，不进 Git。原 Kimi 版 env 备份为 `/opt/webuddy/backups/pre-3d3f855cace5-activation-20261030/webuddy.env.kimi-router-20261030110418`。程序未变（仍 `3d3f855`）。
+- 验证：重启后 active、NRestarts=0，本机/公网登录 200、API 401；生产数据副本上 5 个项目 `llm.conf` ready、通道 `llm`，JB 示例约 13 秒、CWWEB 示例约 9 秒拆成两条，未调用 agent、未建单。
+- 回滚：把上述备份 env 拷回 `/etc/webuddy.env` 并重启 `webuddy.service`。
