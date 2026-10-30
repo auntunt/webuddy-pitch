@@ -498,6 +498,15 @@ class FixLoop:
             if not diff.strip():
                 self.log.append("第 %d 轮：没有改出代码" % (rnd + 1))
                 break
+            if not seq and not goals and self.box and rnd == 0:
+                # the plan named no files: what to compile on the test machine is known only now, from the change
+                late, why = self.commands({f: "" for f in files})
+                why = why or (self.baseline(late) if late else "")
+                if late and not why:
+                    seq, skip = late, ""
+                    self.say("方案没列文件，按改动的文件在测试机上构建测试：%s" % "；".join(c for _, c in seq))
+                elif why:
+                    skip = why
             res = self.execute(seq) if seq else []
             if self.cancelled():
                 break

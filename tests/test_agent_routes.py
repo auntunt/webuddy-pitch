@@ -296,7 +296,7 @@ class AgentRoutesTest(unittest.TestCase):
                 self.assertEqual(verdict, "pass" if diagnosed else "unknown")
 
 
-    def _diagnose_on_ticket(self, said, earlier=()):
+    def _diagnose_on_ticket(self, said, earlier=(), setup=None):
         from tmh.platform.fixloop import FixLoop
         self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex",
                     "allowed_agents": ["cloudwave-codex", "claude"], "steps": {"diagnose": "claude"}}}})
@@ -322,9 +322,23 @@ class AgentRoutesTest(unittest.TestCase):
             loop.commands = Mock(return_value=([], "no build here"))
             loop.whole = Mock()
             loop.context = Mock(return_value="ticket")
+            if setup:
+                setup(loop)
             _, summary = loop.run()
         verify = json.loads((self.data / "runs" / str(rid) / "verify.json").read_text(encoding="utf-8"))
         return verify, summary, runner.invoke.call_args.args[6]
+
+    def test_a_plan_that_lists_no_files_is_built_on_the_test_machine_from_what_was_changed(self):
+        def setup(loop):
+            loop.box = Mock()
+            loop.commands = Mock(side_effect=lambda goals=None: ([("build", "pnpm exec vite build")], "") if goals else ([], "no files"))
+            loop.baseline = Mock(return_value="")
+            loop.execute = Mock(return_value=[{"kind": "build", "command": "pnpm exec vite build", "exit_code": 0, "seconds": 1, "tail": ""}])
+            self.loop = loop
+        verify, _, _ = self._diagnose_on_ticket({"verdict": "pass", "blocking": []}, setup=setup)
+        self.assertEqual((verify["check"], verify["skip"], verify["verdict"]), ("pass", "", "pass"))
+        self.assertEqual(self.loop.commands.call_args.args[0], {"a.vue": ""})
+        self.loop.baseline.assert_called_once()
 
     def test_a_fail_that_names_no_blocker_is_no_verdict(self):
         verify, _, _ = self._diagnose_on_ticket({"verdict": "fail", "blocking": [], "advisory": ["可能需要深拷贝"]})
