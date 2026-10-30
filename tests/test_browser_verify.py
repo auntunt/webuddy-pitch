@@ -52,6 +52,8 @@ class BrowserVerifyTest(unittest.TestCase):
     def test_spec_and_config(self):
         self.assertEqual(bv.spec_from("x\n```tmh-spec\nimport a\n```\n"), "import a\n")
         self.assertEqual(bv.spec_from("no block"), "")
+        out = bv.spec_from("```tmh-spec\nimport { test, expect } from '@playwright/test';\nimport { login } from './tmh-helpers.mjs';\n```")
+        self.assertEqual(out, "import { test, expect } from './tmh-helpers.mjs';\nimport { login } from './tmh-helpers.mjs';\n")
         d = Path(tempfile.mkdtemp())
         self.assertIsNone(bv.conf(d, "JB"))
         (d / bv.CONF).write_text(json.dumps({"projects": {"JB": {"ssh": "u@h", "app": "web"}, "X": {"ssh": "u@h"}}}), encoding="utf-8")

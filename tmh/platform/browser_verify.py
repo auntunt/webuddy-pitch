@@ -20,10 +20,31 @@ from pathlib import Path
 CONF = "verify-hosts.json"
 TIMEOUT = 1500
 
-HELPERS = r"""import { execFileSync } from 'node:child_process';
+HELPERS = r"""import { test as base, expect } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+
+export { expect };
+
+// the app is up only once its loading screen is gone and the network is quiet; until then nothing on the page proves anything
+export async function ready(page) {
+  try {
+    await page.waitForLoadState('networkidle', { timeout: 240000 });
+    await page.waitForFunction(() => !document.querySelector('.app-loading') && document.body.innerText.trim().length > 0, null, { timeout: 240000 });
+  } catch (e) {
+    throw new Error('TMH_SETUP page did not finish loading: ' + e.message);
+  }
+}
+
+export const test = base.extend({
+  page: async ({ page }, use) => {
+    const goto = page.goto.bind(page);
+    page.goto = async (url, opts) => { const r = await goto(url, opts); await ready(page); return r; };
+    await use(page);
+  },
+});
 
 const md5 = (s) => crypto.createHash('md5').update(s, 'utf8').digest('hex');
 
@@ -48,6 +69,7 @@ export async function login(page, user = 'admin', pass = '123456') {
   let checkKey = '';
   page.on('request', (r) => { const m = r.url().match(/randomImage\/([^/?]+)/); if (m) checkKey = m[1]; });
   await page.goto(base + 'user/login');
+  await ready(page);
   await page.locator('form input').first().waitFor({ timeout: 240000 });
   for (let i = 0; i < 60 && !checkKey; i++) await page.waitForTimeout(500);
   await page.waitForTimeout(2000);
@@ -70,7 +92,27 @@ export async function shot(page, testInfo, name) {
 }
 """
 
+WARM = """import { chromium } from '@playwright/test';
+import { ready } from './tmh-helpers.mjs';
+
+// a cold dev server compiles and re-optimizes on first visits (and reloads the page): let that settle before any test looks
+export default async function () {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    for (let i = 0; i < 2; i++) {
+      await page.goto(process.env.TMH_BASE + 'user/login', { timeout: 240000 });
+      await ready(page);
+      await page.waitForTimeout(5000);
+    }
+  } finally {
+    await browser.close();
+  }
+}
+"""
+
 CONFIG = """export default { testDir: '.', testMatch: 'tmh-verify.spec.mjs', timeout: 240000, workers: 1, retries: 0,
+  globalSetup: './tmh-warm.mjs',
   reporter: [['json', { outputFile: process.env.TMH_OUT + '/report.json' }]],
   use: { viewport: { width: 1440, height: 900 } }, outputDir: process.env.TMH_OUT + '/artifacts' };
 """
@@ -107,10 +149,11 @@ finish
 SPEC_RULES = """写一个 Playwright 实测脚本，在真实运行的应用里逐条验证下面的验收标准。只输出一个代码块，标记为 ```tmh-spec。
 
 脚本要求：
-- ESM：`import { test, expect } from '@playwright/test';` 和 `import { login, shot } from './tmh-helpers.mjs';`
+- ESM：`import { test, expect, login, shot } from './tmh-helpers.mjs';`（这里的 `page.goto` 会等页面加载完）
 - 只为最后列出的验收标准写 test（工单正文里其他「必须保持」之类的条目由自动测试证明，不要写）。每条一个 test，标题以编号开头，例如 `test('A1 取消后恢复原值', async ({ page }, testInfo) => { ... })`。
 - 先 `await login(page);`（已处理验证码，登录后在首页），再用 `page.goto(process.env.TMH_BASE + '路由')` 或点菜单进入要测的页面。路由从仓库代码里查。
 - 像用户一样操作（点击、输入、选择），每个关键步骤后 `await shot(page, testInfo, '步骤名');`。
+- 断言某样东西「不存在 / 不再显示」之前，先断言同一页面上一个本来就该在的元素可见，证明页面已经加载出来。
 - 用 `expect(...)` 断言这条标准能看到的结果；断言失败表示“实测没做到”，所以只断言标准本身要求的东西。
 - 不 mock 接口，不改数据库，不写 `page.evaluate` 改组件状态。没法在页面上验证的标准写成 `test.skip('A2 ...', ...)` 并在注释里写原因。
 """
@@ -134,7 +177,10 @@ def spec_prompt(t: dict, acs: list, diff: str) -> str:
 
 def spec_from(out: str) -> str:
     m = re.search(r"```tmh-spec\s*\n(.*?)```", out or "", re.S)
-    return m.group(1).strip() + "\n" if m else ""
+    if not m:
+        return ""
+    # the helpers' `test` waits for the page to load on every goto: a spec written against the bare one still gets it
+    return re.sub(r"""(import\s*\{[^}]*\}\s*from\s*)(['"])@playwright/test\2""", r"\1'./tmh-helpers.mjs'", m.group(1)).strip() + "\n"
 
 
 def _walk(suite: dict):
@@ -206,7 +252,7 @@ def run_remote(c: dict, repo: Path, base: str, diff: str, spec: str, job: str, p
     """Run `spec` against base+diff on the verification host. Returns (playwright json report, files by name)."""
     code, head = _ssh(c, "git -C ~/pv/base rev-parse HEAD")
     entries = {"patch.diff": diff.encode("utf-8"), "tmh-verify.spec.mjs": spec.encode("utf-8"),
-               "tmh-helpers.mjs": HELPERS.encode("utf-8"), "playwright.config.mjs": CONFIG.encode("utf-8"),
+               "tmh-helpers.mjs": HELPERS.encode("utf-8"), "tmh-warm.mjs": WARM.encode("utf-8"), "playwright.config.mjs": CONFIG.encode("utf-8"),
                "driver.sh": DRIVER.encode("utf-8")}
     have = head.decode().strip()
     if code != 0 or not re.fullmatch(r"[0-9a-f]{40}", have):
