@@ -123,3 +123,13 @@
 - 未部署：分支叠在未合并的 PR #1 上，且生产访问说明不在本机；未调用真实模型、未代人验收。
 - 界面实测（本地 32 张 OA 工单 + 模拟 OpenAI 兼容接口，录屏）：附件（选择/粘贴/拖放）、普通 LLM 标记、哈希、相似提示、人确认前不建单、文案、助手分流通过；发现规则兜底复述仍带“今天好多人跟我说…急”“领导说…”，已加 `_gist()` 去转述人和催促语（原话仍保留为证据）并补测试。代码问题会先调一次普通 LLM 做指令分类（侧栏指令原有逻辑），再交智能体。
 - 生产发布 `b8c6729`（含 PR #1/#2 改动，从 Devin 云端 VM 以 `devin` 用户经 SSH 发布；`webuddy-production-access.md` 不在服务器上，按服务器现状核对）：现役 `dc7cd59` 是 `b8c6729` 祖先；238 个运行文件（比上版多 `tmh/platform/llm.py`、`attachments.py`）解包到 `/opt/webuddy/releases/b8c6729fe331-intake-llm-20261030/app` 并 `MANIFEST.sha256` 校验；服务器 Python 3.12 跑 102 个相关 unittest 通过；生产数据副本上用新代码构造 `Platform`，platform.db 70 表、access.db 11 表的 schema 与行数不变，无迁移。持 `.release.lock` 完整备份到 `/opt/webuddy/backups/pre-b8c6729fe331-activation-20261030`（配置、旧 app、data，数据库用 sqlite `.backup`，回读 integrity ok），切 `app` 软链并重启；即时与 60 秒后 HTTP（本机/公网 login 200、API 401）正常，NRestarts=0，数据库 quick_check ok，日志无报错。生产未配置 `router`，需求理解不会调用普通 LLM，行为与之前一致；服务器无 `pypdf`，PDF 只存原件。回滚：软链切回 `releases/dc7cd596de3b-cwweb-preview-20261028/app` 并重启，不动数据库。
+
+## 2026-10-30 生产启用普通 LLM（Kimi Code）与转发模型固定温度
+
+- 用户选定复用服务器上 Hermes 的 Kimi Code key（`~/.hermes/.env` 的 `KIMICODE_*`）作为 Webuddy 普通 LLM；`zjz-ai.webtrn.cn` 中转的 key 实测 403「用户已被封禁」，不可用。
+- Kimi 推理模型只接受 `temperature=1`，原代码固定发 0 会 400。新增 `router.temperature` / `TMH_ROUTER_TEMPERATURE`，由 `kbqa._post` 覆盖调用方温度；补 `test_router_temperature_replaces_the_callers`。本地相关 89 项通过。
+- 生产发布 `3d3f855`（运行文件只变 `tmh/kbqa.py`、`docs/platform.md`）：`/opt/webuddy/releases/3d3f855cace5-router-temp-20261030/app`，备份 `/opt/webuddy/backups/pre-3d3f855cace5-activation-20261030`（含旧 env、旧程序、数据库 `.backup`，完整性 ok）。服务器 Python 3.12 上 intake/understand/agent_routes/kbqa 相关用例通过（`test_tmh` 中 9 个安装类用例因验证包不含 templates/skills 而报错，与本次无关）。
+- `/etc/webuddy.env` 追加 `TMH_ROUTER_BASE_URL=https://api.kimi.com/coding/v1`、`TMH_ROUTER_MODEL=kimi-for-coding-highspeed`、`TMH_ROUTER_TEMPERATURE=1`、`TMH_ROUTER_VISION=1`、`TMH_ROUTER_KEY`（在服务器上从 Hermes 文件复制，未经聊天和 Git）。
+- 生产 `autoflow.json` 原 `on: false` 使理清需求实际为 `rules`；改为 `understand: "llm"`（普通 LLM 可用则用，否则规则，不起 agent）。原文件备份在同一备份目录。
+- 验证：重启后本机/公网登录 200、API 401、NRestarts=0；在生产数据副本上 JB 项目理清需求走 `LLM`（约 16 秒，未调用 agent，未建单）。CWWEB、WEIGHBILL、GROUPRISK、PPTAUTO 在 `agent-routes.json` 里 `direct_api: false`，仍只走规则；是否放开由用户决定。
+- 回滚：`/etc/webuddy.env` 与 `autoflow.json` 换回备份，`/opt/webuddy/app` 指回 `releases/b8c6729fe331-intake-llm-20261030/app`，重启；数据库不动。
