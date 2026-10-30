@@ -277,11 +277,12 @@ class AgentRoutesTest(unittest.TestCase):
         conf = {"cloudwave-codex": {"defaults": {}}, "claude": {"defaults": {"diagnose": "opus-x"}}}
         blocker = {"ac": "A1 取消后恢复", "scenario": "第二次打开后取消 → 值没恢复", "where": "a.vue:3"}
         for verdict in earlier:
+            verdict, said_then = verdict if isinstance(verdict, tuple) else (verdict, verdict)
             old = self.store.create_run(self.project["id"], self.ticket["id"], "cloudwave-codex", "fix", "alice", "p")["id"]
             self.store.update_run(old, status="done")
             (self.data / "runs" / str(old)).mkdir(parents=True, exist_ok=True)
             (self.data / "runs" / str(old) / "verify.json").write_text(json.dumps(
-                {"verdict": verdict, "diagnosis": {"verdict": verdict, "blocking": [blocker], "guide": "old guide"}}), encoding="utf-8")
+                {"verdict": verdict, "diagnosis": {"verdict": said_then, "blocking": [blocker], "guide": "old guide"}}), encoding="utf-8")
         rid = self.store.create_run(self.project["id"], self.ticket["id"], "cloudwave-codex", "fix", "alice", "p")["id"]
         self.store.update_run(rid, status="running")
         (self.data / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)
@@ -302,6 +303,19 @@ class AgentRoutesTest(unittest.TestCase):
     def test_a_fail_that_names_no_blocker_is_no_verdict(self):
         verify, _, _ = self._diagnose_on_ticket({"verdict": "fail", "blocking": [], "advisory": ["可能需要深拷贝"]})
         self.assertEqual(verify["verdict"], "unknown")
+        self.assertNotIn("stalled", verify)
+
+    def test_blockers_without_a_criterion_or_scenario_are_no_blockers_and_wait_for_a_person(self):
+        verify, _, _ = self._diagnose_on_ticket({"verdict": "fail", "blocking": [{}, None, {"ac": "A1", "scenario": " "}]})
+        self.assertEqual(verify["verdict"], "unknown")
+        self.assertEqual(verify["diagnosis"]["verdict"], "unknown")
+        self.assertEqual(verify["diagnosis"]["blocking"], [])
+        self.assertTrue(verify["vague_fail"])
+
+    def test_failed_builds_with_passing_diagnoses_are_not_called_circling(self):
+        said = {"verdict": "fail", "blocking": [{"ac": "A2", "scenario": "x → y", "where": "a.vue:9"}]}
+        verify, _, _ = self._diagnose_on_ticket(said, earlier=(("fail", "pass"), ("fail", "pass")))
+        self.assertEqual(verify["verdict"], "fail")
         self.assertNotIn("stalled", verify)
 
     def test_a_doubt_is_advice_and_does_not_send_the_work_back(self):

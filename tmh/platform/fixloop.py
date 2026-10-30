@@ -98,6 +98,11 @@ PRIOR_KEYS = ("blocking", "evidence", "cause", "guide")  # what the next diagnos
 STALL_AFTER = 3  # failed diagnoses in a row on one ticket before asking for a real check instead of another round
 
 
+def blockers(items) -> list:
+    """The blocking items a diagnosis really named: each says which criterion fails and how."""
+    return [b for b in items or [] if isinstance(b, dict) and str(b.get("ac") or "").strip() and str(b.get("scenario") or "").strip()]
+
+
 def settings(data_dir: Path) -> dict:
     conf = {"check": "", "rounds": 3, "check_timeout": 1200, "recheck_timeout": 0, "max_files": 16, "split_from": 5}
     f = Path(data_dir) / "autoflow.json"
@@ -447,7 +452,7 @@ class FixLoop:
             self.nobuild = ("## 这次不跑构建和测试\n%s。不要尝试编译、跑测试、启动服务或调接口（mvn、gradle、npm、java、docker、curl 等），"
                             "也不要为此去改构建配置；只靠读代码确认改动正确，没能验证的写进最后的说明。\n\n" % skip)
         rounds = max(0, int(self.set.get("rounds") if self.set.get("rounds") is not None else 3))
-        diag, res, verdict, files = None, [], "unknown", []
+        diag, res, verdict, files, vague = None, [], "unknown", [], False
         split = len(goals) >= int(self.set.get("split_from") or 0)
         # Without a build or tests nothing new is learnt after the first round: a diagnosis that can only read the
         # code guesses, and the next round acts on the guess (it widened changes and cost a quarter of an hour).
@@ -494,9 +499,13 @@ class FixLoop:
                 break
             diag = self.diagnose(diff, res, skip, diag)
             said = str(diag.get("verdict", "")).lower()
-            if said == "fail" and isinstance(diag.get("blocking"), list) and not any(diag["blocking"]):
-                said = "unknown"  # a fail that names nothing it blocks on cannot send the work back
-                self.say("诊断判了不通过，但没有列出阻断项，按没有给出结论处理")
+            vague = False
+            if isinstance(diag.get("blocking"), list):  # older diagnoses have no "blocking" and keep their fail
+                diag["blocking"] = blockers(diag["blocking"])
+                if said == "fail" and not diag["blocking"]:
+                    said, vague = "unknown", True  # a fail that names nothing it blocks on cannot send the work back
+                    self.say("诊断判了不通过，但没有列出阻断项，按没有给出结论处理，留给人看")
+            diag["verdict"] = said
             # Commands prove their own checks, not a missing model diagnosis. Keep timeout/unreadable
             # reviews unknown even when compilation/tests are green; never invent an implementation verdict.
             verdict = "fail" if broke or said == "fail" else ("pass" if said == "pass" else "unknown")
@@ -515,10 +524,12 @@ class FixLoop:
                "split": bool(goals) and split, "files": files, "commands": res,
                "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide",
                                                                 "blocking", "advisory", "prior")}}
-        if verdict == "fail":
+        if vague and verdict == "unknown":
+            out["vague_fail"] = True
+        if (diag or {}).get("verdict") == "fail":
             streak = 1
             for _, v in self.earlier_fixes():
-                if v.get("verdict") != "fail":
+                if str((v.get("diagnosis") or {}).get("verdict") or "").lower() != "fail":
                     break
                 streak += 1
             if streak >= STALL_AFTER:
