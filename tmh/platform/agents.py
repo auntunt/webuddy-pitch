@@ -1401,8 +1401,8 @@ class Runner:
                 library.require_run_current(self.store, project, plans[0]['id'])
         if mode not in dict(RUN_MODES) or mode == "understand":  # understanding is started by the requirement conversation
             raise ValueError("未知模式：%s" % mode)
-        from .agent_routes import resolve
-        agent = resolve(self.data_dir, project, agent)
+        from .agent_routes import resolve, step_agent
+        agent = resolve(self.data_dir, project, step_agent(self.data_dir, project, mode, agent))
         conf = load_config(self.data_dir)
         if agent not in conf:
             raise ValueError("没有这个智能体：%s" % agent)

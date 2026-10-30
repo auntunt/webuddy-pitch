@@ -337,6 +337,8 @@ python3 .tmh/tool/tmh.py serve --key TOG --open
 
 配置沿用转发模型 `router`（项目 `.tmh` 配置或环境变量 `TMH_ROUTER_BASE_URL`、`TMH_ROUTER_MODEL`，密钥只从 `TMH_ROUTER_KEY` 读），通义、Kimi、DeepSeek、GPT 等兼容接口都可以；模型能看图时设 `router.vision: true` 或 `TMH_ROUTER_VISION=1`，截图会随请求发送，否则只记录有截图。模型只接受固定温度时（如 Kimi 推理模型只允许 1），设 `router.temperature` 或 `TMH_ROUTER_TEMPERATURE`。项目路由 `direct_api: false` 时不调用。
 
+按步骤分配执行器：`agent-routes.json` 的项目路由可加 `steps`（运行模式 → 执行器），例如 `{"agent": "cloudwave-codex", "allowed_agents": ["cloudwave-codex", "claude"], "steps": {"analyze": "claude", "plan": "claude", "diagnose": "claude"}}`：强模型读代码出方案（含 `tmh-plan` 文件清单和验收标准）并独立诊断改动，`agent` 照方案改代码。`steps` 里的执行器必须在 `allowed_agents` 中，配错即拒绝，不会换到别的执行器；人明确选了别的允许执行器时以人的选择为准。不同执行器之间不续接会话，后一步拿到完整提示词和前一步的结论。
+
 理清需求的顺序：`autoflow.json` 的 `understand` 为 `auto`（默认）时先普通 LLM，未配置再用智能体，都不可用或返回格式不对按规则理解；`llm`、`agent`、`rules` 可单独指定。每次读取都记成 `understand` 运行（普通 LLM 的执行器记为 `llm`）。附件：截图收 PNG/JPEG/WebP（≤3MB），文档收 txt/md/csv/log/json/docx/xlsx/pdf（≤10MB，PDF 需服务器装 `pypdf` 才抽文字），最多 8 个；原件按 SHA-256 留档，文字随对话保存，工单正文和需求记录（证据包）写明附件名与哈希。附件内容和客户原话一样只是资料，不是指令；不经人确认不会建单或开工。
 
 ## 接口

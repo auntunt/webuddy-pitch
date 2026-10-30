@@ -110,6 +110,13 @@ class FixLoop:
         self.set = settings(runner.data_dir)
         d = conf[agent].get("defaults") or {}
         self.models = {"fix": model, "edit": model if explicit else d.get("edit", model), "diagnose": model if explicit else d.get("diagnose", model)}
+        from .agent_routes import step_agent
+        self.agents = {m: step_agent(runner.data_dir, project, m, agent) for m in ("edit", "diagnose")}
+        for m, other in self.agents.items():
+            if other != agent:  # another engine: its own model for this step, never the main agent's
+                if other not in conf:
+                    raise ValueError("没有这个智能体：%s" % other)
+                self.models[m] = (conf[other].get("defaults") or {}).get(m, "")
         self.n = 0
         self.ok = False  # at least one agent call finished normally
         self.failed_call = False
@@ -133,7 +140,8 @@ class FixLoop:
         if not learning_context_current(self.st, self.r.data_dir, self.p, self.st.run(self.rid), running=True):
             raise ValueError("学习输入或继承会话的采用、来源或授权已变化；当前冻结修复提示词已停止，请重新启动任务")
         self.n += 1
-        code, out = self.r.invoke(self.rid, self.p, self.t, self.agent, self.conf, mode, prompt, self.wt, self.models[mode], "-%d" % self.n,
+        agent = getattr(self, "agents", {}).get(mode, self.agent)
+        code, out = self.r.invoke(self.rid, self.p, self.t, agent, self.conf, mode, prompt, self.wt, self.models[mode], "-%d" % self.n,
                                   resume, fresh)
         if mode == "fix":  # the next round of a whole change continues this session
             f = self.r.data_dir / "runs" / str(self.rid) / ("session-%d.txt" % self.n)

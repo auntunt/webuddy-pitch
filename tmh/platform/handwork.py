@@ -402,7 +402,9 @@ def _check1(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str, agent: 
             fl = FixLoop.__new__(FixLoop)
             fl.r, fl.st, fl.rid, fl.p, fl.t, fl.wt = P.runner, st, rid, p, st.ticket(key), wt
             fl.agent, fl.conf, fl.n, fl.ok, fl.failed_call = agent, conf, 0, False, False
-            fl.models = {"diagnose": (conf.get(agent, {}).get("defaults") or {}).get("diagnose", "")}
+            from .agent_routes import step_agent
+            fl.agents = {"diagnose": step_agent(P.data_dir, p, "diagnose", agent)}
+            fl.models = {"diagnose": (conf.get(fl.agents["diagnose"], {}).get("defaults") or {}).get("diagnose", "")}
             diag = fl.diagnose(st.run(rid)["diff"], v.get("commands") or [], v.get("skip") or "", None)
             if fl.failed_call or P.runner.stop_reason(rid):
                 raise RuntimeError(P.runner.stop_message(rid) or "审查执行器没有正常完成，请查看原始运行证据")

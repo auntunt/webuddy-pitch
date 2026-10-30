@@ -2,7 +2,9 @@
 
 Optional <data>/agent-routes.json uses schema 1, an optional ``default`` route,
 and ``projects`` keyed by project code. Project fields override default fields.
-Routes contain ``agent``, ``allowed_agents`` and/or ``direct_api``. No secrets,
+Routes contain ``agent``, ``allowed_agents``, ``direct_api`` and/or ``steps``
+(run mode -> agent, e.g. a stronger model analyses, plans and diagnoses while
+``agent`` makes the change). No secrets,
 shell commands or user identities belong here. Invalid configuration fails
 closed instead of silently sending a task to another model provider.
 """
@@ -15,6 +17,7 @@ import re
 
 AGENT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$")
 PROJECT = re.compile(r"^[A-Za-z][A-Za-z0-9]{0,9}$")
+STEPS = ("analyze", "plan", "fix", "edit", "diagnose", "ask", "kb")
 
 
 def _object(pairs):
@@ -27,8 +30,8 @@ def _object(pairs):
 
 
 def _validate(route):
-    if not isinstance(route, dict) or set(route) - {"agent", "allowed_agents", "direct_api"}:
-        raise ValueError("执行器路由仅支持 agent、allowed_agents 和 direct_api")
+    if not isinstance(route, dict) or set(route) - {"agent", "allowed_agents", "direct_api", "steps"}:
+        raise ValueError("执行器路由仅支持 agent、allowed_agents、direct_api 和 steps")
     if "agent" in route and (not isinstance(route["agent"], str) or not AGENT.fullmatch(route["agent"])):
         raise ValueError("执行器路由的 agent 名称不合法")
     if "allowed_agents" in route:
@@ -41,6 +44,13 @@ def _validate(route):
             raise ValueError("路由默认执行器不在 allowed_agents 中")
     if "direct_api" in route and type(route["direct_api"]) is not bool:
         raise ValueError("执行器路由的 direct_api 必须是布尔值")
+    if "steps" in route:
+        steps = route["steps"]
+        if (not isinstance(steps, dict) or set(steps) - set(STEPS) or
+                any(not isinstance(v, str) or not AGENT.fullmatch(v) for v in steps.values())):
+            raise ValueError("执行器路由的 steps 必须是 %s 到执行器名称的对象" % "/".join(STEPS))
+        if "allowed_agents" in route and set(steps.values()) - set(route["allowed_agents"]):
+            raise ValueError("执行器路由 steps 里的执行器不在 allowed_agents 中")
     return route
 
 
@@ -88,6 +98,13 @@ def resolve(data_dir, project=None, requested=None, fallback=""):
     if not any(item["name"] == chosen and item["available"] for item in available(data_dir)):
         raise ValueError("项目指定执行器 %s 不可用，未切换到其他执行器" % chosen)
     return chosen
+
+
+def step_agent(data_dir, project, mode, agent=""):
+    """The agent this run mode goes to: the route's step agent unless a person picked a different one than the route's."""
+    selected_route = route(data_dir, project)
+    step = (selected_route.get("steps") or {}).get(mode)
+    return step if step and (not agent or agent == selected_route.get("agent")) else agent
 
 
 def direct_api_allowed(data_dir, project=None):
