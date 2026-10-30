@@ -488,7 +488,7 @@ class Platform:
 
     # ------------------------------------------------------------ assistant
     CITE = re.compile(r"\b((?:flow|tbl|dom|mod):[A-Za-z0-9_.\-]*[A-Za-z0-9_]|index)\b")
-    FILE_LINE = re.compile(r"([\w./\\-]+\.(?:java|cs|xml|sql|jsp|aspx|cshtml|config|properties|yml|yaml|vb|js|ts|vue|kt|py))(?::|#L|\s*第\s*|\s*[(（]?\s*(?:line|行)\s*)(\d+)", re.IGNORECASE)
+    FILE_LINE = re.compile(r"([\w./\\-]+\.(?:java|cs|xml|sql|jsp|aspx|cshtml|config|properties|yml|yaml|vb|js|ts|vue|kt|py))[`*'\x22]*(?::|#L|\s*(?:的\s*)?第\s*|\s*[(（]?\s*(?:line|行)\s*)(\d+)", re.IGNORECASE)
 
     def cite(self, p: dict, text: str, limit: int = 8) -> list:
         """Evidence cards for the ids and file:line references an answer names; unknown ones are dropped."""

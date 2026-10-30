@@ -412,3 +412,8 @@ class FileLineTest(unittest.TestCase):
         self.assertEqual(Orchestra.FILE_LINE.findall(text), [("jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts", "78"), ("a.vue", "12"),
                                                              ("b.ts", "3"), ("C.java", "9"), ("d.vue", "4")])
         self.assertEqual(Orchestra.FILE_LINE.findall("改 sys.ts 里的 rememberMe，共 3 处"), [])
+        self.assertEqual(
+            Orchestra.FILE_LINE.findall("- 文件：`jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts` 第 78 行；**a.vue** 的第 5 行；`b.ts`:7"),
+            [("jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts", "78"), ("a.vue", "5"), ("b.ts", "7")])
+        from tmh.platform.server import Platform
+        self.assertEqual(Platform.FILE_LINE.pattern, Orchestra.FILE_LINE.pattern)
