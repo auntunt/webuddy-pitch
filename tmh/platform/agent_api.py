@@ -31,7 +31,11 @@ BOUNDARIES = {
 
 def _boundaries(tool=None):
     result = dict(BOUNDARIES)
-    if tool:
+    if tool and tool.get('scope') == 'execute':
+        result.update(identity='身份来自本人授权的工具连接；工具标签仅用于显示或消息路由，不能更换操作主体。',
+                      candidate='仅可读取已有候选与历史证据；此连接不登记、评审或批准候选。',
+                      execution='可启动/停止分析、方案、修改，接管或交回自动；只在本人网页上也能运行时生效。不代人验收、合并、发布或回滚。')
+    elif tool:
         result.update(identity='身份来自本人授权的工具连接；工具标签仅用于显示或消息路由，不能更换操作主体。',
                       candidate='仅可读取已有候选与历史证据；此连接不登记、执行、评审或批准候选。',
                       execution='此个人工具连接仅提供获准内容操作；不启动模型、构建或预览，也不代人确认。')
@@ -382,7 +386,7 @@ def _execute(P, req, actor, operation, a):
             packet = tool_read.ticket_get(P, a['ticket'], visible_ids)
             from .tool_access import allowed_operations
             packet['boundaries'] = _boundaries(tool)
-            packet['supported_actions'] = [v for v in ('message_send', 'messages_list', 'run_get', 'preview_get', 'candidates_list', 'candidate_get')
+            packet['supported_actions'] = [v for v in ('message_send', 'messages_list', 'run_get', 'run_start', 'run_cancel', 'run_retry', 'ticket_hold', 'preview_get', 'candidates_list', 'candidate_get')
                                            if v in allowed_operations(tool['scope'])]
             return packet
         if operation == 'library_get':
@@ -406,7 +410,7 @@ def _execute(P, req, actor, operation, a):
             from . import tool_access
             from .. import __version__
             return {'version': __version__, 'agent': actor,
-                    'tool_connection': dict(tool, execution=False),
+                    'tool_connection': dict(tool, execution=tool['scope'] == 'execute'),
                     'engines': [], 'allowed_operations': sorted(tool_access.allowed_operations(tool['scope'])),
                     'boundaries': _boundaries(tool)}
         meta = server.api_meta(P, _req(req, actor))
@@ -561,6 +565,17 @@ def _execute(P, req, actor, operation, a):
             st.x("INSERT INTO agent_run_sources(run_id,ticket_id,requirement_hash,agent,created) VALUES(?,?,?,?,?)",
                  (r["id"], t["id"], requirement_hash, actor, now()))
             return {"run": r, "request_id": a["request_id"], "human_acceptance": False}
+    if operation == "ticket_hold":
+        t = _ticket(P, a["ticket"])
+        if (t.get("links") or {}).get("epic"):
+            from . import epic
+            raise ApiError(409, epic.refuse(t, "status"))
+        if t["status"] == "closed":
+            raise ApiError(409, "工单已关闭，没有自动处理可接管或交回")
+        req.agent_side_effect_started = True
+        t = P.flow.take_over(t, a["hold"], req.user if tool else actor)
+        return {"ticket": {"key": t["key"], "status": t["status"], "hold": (t.get("links") or {}).get("hold") or ""},
+                "request_id": a["request_id"], "human_acceptance": False}
     if operation == "run_cancel":
         _run(P, a["run_id"])
         req.agent_side_effect_started = True

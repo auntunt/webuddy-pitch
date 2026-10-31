@@ -85,7 +85,7 @@ class TenantPolicyTest(unittest.TestCase):
                     if isinstance(item, ast.Call) and isinstance(item.func, ast.Name) and item.func.id == "route":
                         actual.add(tuple(ast.literal_eval(arg) for arg in item.args))
         self.assertEqual(actual, policy.API_ROUTES)
-        self.assertEqual(len(actual), 171)  # Original 167 + four personal trial routes.
+        self.assertEqual(len(actual), 174)  # Original 167 + four personal trial routes + project mode and rollback.
         import re
         for method, template in actual:
             with self.subTest(method=method, template=template):

@@ -55,10 +55,13 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                     payload = {"ok": True, "workspace": "协议测试夹具", "engines": [], "scope": "fixture"}
                     if self.path.startswith("/t/default/"):
                         allowed = ["status", "projects_list", "ticket_get", "request_get"]
-                        if owner.tenant_scope == "content":
+                        if owner.tenant_scope in ("content", "execute"):
                             allowed += ["ticket_create", "message_send", "candidate_assess", "run_start"]
+                        if owner.tenant_scope == "execute":
+                            allowed += ["ticket_hold", "run_cancel", "run_recheck", "candidate_decide"]
                         payload.update(tool_connection=dict(id="fixture", user="member", tenant="default",
-                            scope=owner.tenant_scope, project_ids=[1], expires_at=1800000000, status="active", execution=False),
+                            scope=owner.tenant_scope, project_ids=[1], expires_at=1800000000, status="active",
+                            execution=owner.tenant_scope == "execute"),
                             allowed_operations=allowed)
                 elif operation == "ticket_get":
                     payload = {"ticket": {"key": body["ticket"], "body": owner.long_text},
@@ -200,6 +203,39 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(request["headers"]["authorization"], "Bearer wbt_fixture.secret")
             for header in ("x-tmh-token", "cookie", "x-webuddy-context", "x-webuddy-execution"):
                 self.assertNotIn(header, request["headers"])
+
+    @unittest.skipUnless(os.name == "posix", "personal credential files require POSIX checks")
+    async def test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides(self):
+        from tmh.workbench_credentials import save
+        self.tenant_scope = "execute"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "execute.json"
+            save(path, dict(schema=1, endpoint=self.endpoint + "/t/default", token="wbt_fixture.secret"))
+            async with self.session("--endpoint", self.endpoint + "/t/default", "--credential-file", str(path), "--allow-execution") as session:
+                names = {tool.name for tool in (await session.list_tools()).tools}
+                self.assertTrue({"webuddy_run_start", "webuddy_run_cancel", "webuddy_ticket_hold"} <= names)
+                self.assertFalse({"webuddy_candidate_assess", "webuddy_candidate_decide", "webuddy_run_recheck", "webuddy_run_retry"} & names)
+                result = await session.call_tool("webuddy_run_start", dict(ticket="AGENT-1", mode="analyze", engine="codex", request_id="run-once"))
+                self.assertFalse(result.isError)
+                result = await session.call_tool("webuddy_ticket_hold", dict(ticket="AGENT-1", hold=False, request_id="hand-back"))
+                self.assertFalse(result.isError)
+        sent = {r["path"].rsplit("/", 1)[-1]: r for r in self.requests}
+        self.assertEqual(sent["run_start"]["headers"]["x-webuddy-execution"], "1")
+        self.assertIs(sent["ticket_hold"]["body"]["hold"], False)
+        for request in self.requests:
+            self.assertEqual(request["headers"]["authorization"], "Bearer wbt_fixture.secret")
+        self.tenant_scope = "content"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "content.json"
+            save(path, dict(schema=1, endpoint=self.endpoint + "/t/default", token="wbt_fixture.secret"))
+            import io
+            from contextlib import redirect_stderr, redirect_stdout
+            from tmh.workbench import main
+            err = io.StringIO()
+            with redirect_stdout(io.StringIO()), redirect_stderr(err):
+                result = await asyncio.to_thread(main, ["mcp", "--endpoint", self.endpoint + "/t/default", "--credential-file", str(path), "--allow-execution"])
+            self.assertEqual(result, 1)
+            self.assertEqual(json.loads(err.getvalue())["code"], "tool_operation_forbidden")
 
     @unittest.skipUnless(os.name == "posix", "personal credential files require POSIX checks")
     async def test_tenant_read_scope_does_not_advertise_or_call_content_tools(self):

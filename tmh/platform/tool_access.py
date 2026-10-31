@@ -1,8 +1,9 @@
 """Personal, revocable and project-scoped credentials for external tools.
 
 The browser grants these credentials explicitly. A tool name is only a label:
-identity is the authenticated owner, and no credential grants execution or human
-approval. Secrets are returned once and never persisted in audit or receipts.
+identity is the authenticated owner. The execute scope may start/stop runs and
+take over or hand back automation only where the owner may run them in the web;
+no credential grants human approval, merge, release or rollback. Secrets are returned once and never persisted in audit or receipts.
 All callers protecting business work must retain authorization_guard through
 that work and revalidate the signed connection inside the worker.
 """
@@ -22,6 +23,8 @@ READ_OPERATIONS = (
     "library_search", "library_read", "preview_get",
 )
 CONTENT_OPERATIONS = ("ticket_create", "message_send")
+EXECUTE_OPERATIONS = ("run_start", "run_cancel", "run_retry", "ticket_hold")
+SCOPES = ("read", "content", "execute")
 DDL = (
     "CREATE TABLE IF NOT EXISTS tool_connections(id TEXT PRIMARY KEY,user TEXT NOT NULL,tenant TEXT NOT NULL,label TEXT NOT NULL,project_ids TEXT NOT NULL,scope TEXT NOT NULL,secret_hash TEXT NOT NULL,account_epoch TEXT NOT NULL,authority_hash TEXT NOT NULL,created TEXT NOT NULL,expires_at INTEGER NOT NULL,revoked_at TEXT NOT NULL DEFAULT '',revoke_reason TEXT NOT NULL DEFAULT '')",
     "CREATE TABLE IF NOT EXISTS tool_access_requests(user TEXT NOT NULL,tenant TEXT NOT NULL,request_id TEXT NOT NULL,fingerprint TEXT NOT NULL,action TEXT NOT NULL,connection_id TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(user,tenant,request_id))",
@@ -39,6 +42,8 @@ def allowed_operations(scope):
         return READ_OPERATIONS
     if scope == "content":
         return READ_OPERATIONS + CONTENT_OPERATIONS
+    if scope == "execute":
+        return READ_OPERATIONS + CONTENT_OPERATIONS + EXECUTE_OPERATIONS
     return ()
 
 
@@ -98,13 +103,13 @@ def _authority(db, user, tenant, projects, scope):
     if not account or not account["active"] or not target or target["status"] != "active" or not membership:
         return None
     role = membership["role"]
-    if role not in ("admin", "member", "viewer") or scope not in ("read", "content") or scope == "content" and role == "viewer":
+    if role not in ("admin", "member", "viewer") or scope not in SCOPES or scope != "read" and role == "viewer":
         return None
     grants = []
     for project in projects:
         grant = db.execute("SELECT role FROM project_grants WHERE tenant_id=? AND project_id=? AND user=?", (tenant, str(project), user)).fetchone()
         effective = "admin" if role == "admin" else grant["role"] if grant else None
-        if effective not in ("admin", "manager", "contributor", "viewer") or scope == "content" and effective == "viewer":
+        if effective not in ("admin", "manager", "contributor", "viewer") or scope != "read" and effective == "viewer":
             return None
         grants.append((project, effective))
     return account["epoch"], _digest({"role": role, "projects": grants})
@@ -145,8 +150,8 @@ def _body(body, action):
             raise _error(400, "请填写工具名称（最多120字）", "invalid_tool_request")
         if not isinstance(projects, list) or not projects or any(type(p) is not int or p <= 0 or p > 9223372036854775807 for p in projects) or len(set(projects)) != len(projects):
             raise _error(400, "请选择不重复的有效项目编号", "invalid_tool_request")
-        if scope not in ("read", "content"):
-            raise _error(400, "工具连接只允许读取或限定内容操作", "invalid_tool_request")
+        if scope not in SCOPES:
+            raise _error(400, "工具连接只允许读取、内容协作或启动运行", "invalid_tool_request")
         if type(days) is not int or not 1 <= days <= 30:
             raise _error(400, "连接期限应为1至30天", "invalid_tool_request")
     else:

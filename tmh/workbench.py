@@ -89,6 +89,10 @@ def parser():
         q = add(name, {"cancel": "停止运行并回收进程", "retry": "通过停止回执检查后显式重试", "recheck": "重新验证已有改动"}[name])
         q.add_argument("run_id", type=int)
         request(q)
+    q = add("hold", "接管工单，暂停自动处理；加 --release 交回自动")
+    q.add_argument("ticket")
+    q.add_argument("--release", dest="hold", action="store_false")
+    request(q)
     q = add("preview", "读取预览，或明确启动已采纳的候选")
     q.add_argument("ticket")
     q.add_argument("--run-id", type=int)
@@ -196,9 +200,16 @@ def configuration(a, client):
     return json.dumps({"mcpServers": {"webuddy": {"command": command, "args": args}}}, ensure_ascii=False, indent=2)
 
 
+def _tenant_execution(client, wanted):
+    """A personal connection may start runs only when the web granted the execute scope."""
+    if client.tenant and wanted and client.connection_status()["tool_connection"]["scope"] != "execute":
+        raise ClientError("这个个人工具连接没有授权启动运行；请在网页「工具连接」新建「执行」范围的连接，或移除 --allow-execution", "tool_operation_forbidden")
+
+
 def _arguments(a):
     names = {"projects": "projects_list", "tickets": "tickets_list", "ticket": "ticket_get", "create": "ticket_create", "send": "message_send", "inbox": "messages_list", "request": "request_get", "run": "run_get", "start": "run_start", "cancel": "run_cancel", "retry": "run_retry", "recheck": "run_recheck"}
     names.update({"candidates": "candidates_list", "candidate": "candidate_get", "acceptance": "candidate_get", "submit": "candidate_submit", "verify": "candidate_verify", "cancel-verification": "candidate_cancel", "candidate-preview": "candidate_preview", "assess": "candidate_assess", "approve": "candidate_decide", "reject": "candidate_decide"})
+    names["hold"] = "ticket_hold"
     names.update({"harness-recipes": "harness_recipes", "harness-probe": "harness_probe_start", "harness-report": "harness_probe_get", "harness-stop": "harness_probe_cancel", "harness-library": "harness_library"})
     names.update({"library": "library_get", "knowledge-search": "library_search", "knowledge-read": "library_read", "knowledge-build": "library_build", "knowledge-cancel": "library_cancel", "knowledge-resume": "library_resume", "knowledge-reference": "library_reference", "knowledge-unlink": "library_unlink"})
     op = names.get(a.command, a.command)
@@ -280,15 +291,13 @@ def main(argv=None):
         if a.command == "config":
             # Validate endpoint and label before producing configuration.
             client = Client(a.endpoint, a.agent, timeout=a.timeout, credential_file=a.credential_file)
-            if client.tenant and a.allow_execution:
-                raise ClientError("个人工具连接不允许执行；请移除 --allow-execution", "tool_operation_forbidden")
+            _tenant_execution(client, a.allow_execution)
             print(configuration(a, client))
             return 0
         execution = a.command in ("start", "cancel", "retry", "recheck", "submit", "verify", "cancel-verification", "candidate-preview", "harness-probe", "harness-stop", "knowledge-build", "knowledge-cancel", "knowledge-resume") or (a.command == "preview" and a.start) or (a.command == "mcp" and a.allow_execution and not a.read_only)
         client = Client(a.endpoint, a.agent, timeout=a.timeout, allow_execution=execution, credential_file=a.credential_file)
         if a.command == "mcp":
-            if client.tenant and a.allow_execution:
-                raise ClientError("个人工具连接不允许执行；请移除 --allow-execution", "tool_operation_forbidden")
+            _tenant_execution(client, a.allow_execution and not a.read_only)
             try:
                 from .workbench_mcp import serve
             except ImportError:

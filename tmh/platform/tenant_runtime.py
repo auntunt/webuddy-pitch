@@ -57,13 +57,17 @@ class TenantContext:
             if tool['user'] != actor or tool['tenant'] != self.tenant_id:
                 raise error(403, '工具连接与当前成员不匹配', 'tool_invalid')
             # A personal admin may issue a tool token, but never delegate their
-            # admin, execution or human-signoff authority to that connection.
-            role = 'contributor' if tool['scope'] == 'content' else 'viewer'
-            result.update(role='member' if tool['scope'] == 'content' else 'viewer', platform_owner=False,
+            # admin or human-signoff authority. The execute scope carries only
+            # the execution the member already holds in the web.
+            writes = tool['scope'] in ('content', 'execute')
+            role = 'contributor' if writes else 'viewer'
+            caps = value['capabilities']
+            result.update(role='member' if writes else 'viewer', platform_owner=False,
                           can_manage=False, project_grants={keys[str(pid)]: role for pid in tool['project_ids'] if str(pid) in keys},
                           tool_connection=tool,
-                          capabilities={k: k == 'read' or k == 'write' and tool['scope'] == 'content'
-                                        for k in value['capabilities']})
+                          capabilities={k: k == 'read' or k == 'write' and writes
+                                        or k == 'execution' and tool['scope'] == 'execute' and bool(caps.get('execution'))
+                                        for k in caps})
         return result
 
     def directory(self):
