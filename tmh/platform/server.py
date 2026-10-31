@@ -2726,7 +2726,48 @@ def api_releases(P, req, key):
     from . import release
     if key != "*":
         P.project(key)
-    return {"releases": release.releases(P.data_dir, "" if key == "*" else key.upper(), 20), "merge": release.settings(P.data_dir)["merge"]}
+    k = "" if key == "*" else key.upper()
+    undone = {(r.get("project"), r["of"]): r["version"] for r in release.releases(P.data_dir, k, 100000) if r.get("kind") == "rollback" and r.get("of")}
+    rels = [dict(r, undone_by=undone.get((r.get("project"), r.get("version")), "")) for r in release.releases(P.data_dir, k, 20)]
+    return {"releases": rels, "merge": release.settings(P.data_dir, k)["merge"], "mode": P.flow.mode(P.project(key)) if k else ""}
+
+
+def _platform_admin(P, req, what):
+    actor = _human_action(P, req)
+    ctx = getattr(P, "tenant_context", None)
+    if ctx is not None and not ((ctx.current_actor(actor) or {}).get("platform_owner") and ctx.trusted_host()):
+        raise ApiError(403, "只有平台管理员能" + what)
+    return actor
+
+
+@route("GET", "/api/projects/<key>/mode")
+def api_mode(P, req, key):
+    p = P.project(key)
+    from . import release
+    return {"project": p["key"], "mode": P.flow.mode(p), "main": release.settings(P.data_dir)["main"].get(p["key"], "")}
+
+
+@route("POST", "/api/projects/<key>/mode")
+def api_mode_set(P, req, key):
+    """{"mode": "auto" | "manual"}: run the project fully automatically (AI fixes, accepts, closes, merges with a version) or have a person do every step."""
+    p = P.project(key)
+    actor = _platform_admin(P, req, "切换项目的自动化模式")
+    try:
+        P.flow.set_mode(p, req.body.get("mode"), actor)
+    except ValueError as e:
+        raise ApiError(409, str(e))
+    return api_mode(P, req, key)
+
+
+@route("POST", "/api/projects/<key>/releases/<version>/rollback")
+def api_rollback(P, req, key, version):
+    """A person undoes a version: a revert commit on the main line as a new version; its tickets reopen for a person."""
+    p = P.project(key)
+    actor = _platform_admin(P, req, "回滚版本")
+    try:
+        return P.flow.rollback(p, version, actor)
+    except ValueError as e:
+        raise ApiError(409, str(e))
 
 
 @route("POST", "/api/tickets/<key>/release")

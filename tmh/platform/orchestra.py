@@ -295,6 +295,61 @@ class Orchestra:
         out["refix"] = True
         return tell()
 
+    def merges(self, p: dict) -> bool:
+        """A managed worker merges only for the projects the trusted default tenant runs fully automatically."""
+        return getattr(self, "tenant_context", None) is None or (self.switched_on(self.autoflow(), p) and self.mode(p) == "auto")
+
+    MODES = ("on", "ai_accept", "merge")
+
+    def mode(self, p: dict) -> str:
+        """"auto": the line runs, AI accepts and closes, accepted changes merge with a version; "partial": the line runs but
+        something (AI acceptance or the merge) is left to a person; "manual": every step waits for a person."""
+        try:
+            conf = json.loads((self.data_dir / "autoflow.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            conf = {}
+        has = [isinstance(conf.get(k), list) and p["key"] in conf[k] for k in self.MODES]
+        return "auto" if all(has) else "partial" if has[0] else "manual"
+
+    def set_mode(self, p: dict, mode: str, by: str) -> str:
+        from . import release
+        from .util_conf import update_autoflow
+        if mode not in ("auto", "manual"):
+            raise ValueError("模式只能是 auto（全自动）或 manual（每一步人工）")
+        line = release.line(self, p) if mode == "auto" else ""
+        try:
+            conf = json.loads((self.data_dir / "autoflow.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            conf = {}
+        keys = [x["key"] for x in self.store.projects()]
+        ch = {}
+        for k in self.MODES:
+            v = conf.get(k)
+            v = list(v) if isinstance(v, list) else ([q for q in keys if q != p["key"]] if k == "on" and v is True else [])
+            v = [q for q in v if q != p["key"]] + ([p["key"]] if mode == "auto" else [])
+            ch[k] = v
+        ch["modes_log"] = (conf.get("modes_log") if isinstance(conf.get("modes_log"), list) else [])[-49:] + [
+            {"project": p["key"], "mode": mode, "by": by, "line": line, "ts": time.strftime("%Y-%m-%d %H:%M:%S")}]
+        update_autoflow(self.data_dir, ch)
+        return self.mode(p)
+
+    def rollback(self, p: dict, version: str, by: str) -> dict:
+        """A person undoes a version: a revert on the main line, and its tickets reopen in a person's hands."""
+        from . import release
+        r = release.rollback(self, p, version, by)
+        st = self.store
+        for k in r["tickets"]:
+            t = st.one("SELECT id FROM tickets WHERE project_id=? AND num=?", (p["id"], int(str(k["key"]).rsplit("-", 1)[-1]))) \
+                if str(k.get("key") or "").rsplit("-", 1)[-1].isdigit() else None
+            if not t:
+                continue
+            t = st.ticket(t["id"])
+            links = dict(t.get("links") or {}, hold=by)
+            st.update_ticket(t["id"], by, links=links, **({"status": "doing"} if t["status"] == "closed" else {}))
+            st.event(t["id"], by, "release", "版本 %s 已回滚（新版本 %s，提交 %s），工单重开，转人工处理" % (version, r["version"], r["commit"]),
+                     {"version": r["version"], "of": version, "commit": r["commit"], "rollback": True})
+        return r
+
     def ship_again(self, p: dict, t: dict, by: str) -> dict:
         """A person fixed what held the merge up (a dirty checkout, a lock): try again."""
         if (t.get("links") or {}).get("later"):
@@ -312,7 +367,7 @@ class Orchestra:
         redo on the current main line; anything else that stops the merge is said on the ticket for a person."""
         from . import release
         try:
-            r = release.ship(self, p, t, by)
+            r = release.ship(self, p, t, by) if self.merges(p) else {"state": "waiting", "why": "这个项目不在全自动模式，合并要人来做"}
         except Exception as e:  # noqa: BLE001 - the verdict stands whatever happens to the merge
             r = {"state": "waiting", "why": "合并时出错：%s" % e}
         st = self.store
