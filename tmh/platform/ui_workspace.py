@@ -41,7 +41,7 @@ async function vWorkspace(ticketKey=''){
   page.host.querySelectorAll('[data-ws-meeting]').forEach(a=>a.onclick=()=>{setProj(a.dataset.wsProject);S.scope=a.dataset.wsProject;ls.set('tmh.scope',S.scope)});
   if($('#wsClearFilters'))$('#wsClearFilters').onclick=()=>{WS.q='';WS.stage='all';WS.handoffState='all';WS.offset=0;$('#wsSearch').value='';$('#wsHandoffState').value='all';return wsRefresh()};
   if(focusKey)page.host.querySelector(focusKey)?.focus();
-  notice.textContent='按真实登记记录展示；队列刷新不会覆盖右侧未提交的交接草稿。';
+  notice.textContent='刷新队列不会覆盖右侧没提交的交接草稿。';
   if(ticketKey&&page.selected!==ticketKey)await wsSelect(page,ticketKey);else if(!page.selected&&data.items.length)await wsSelect(page,data.items[0].key);
  }catch(error){if(wsLive(page)&&request===WS.read){notice.innerHTML=`<div class="ws-inline-error" role="alert">${h(error.message)} <button id="wsRetry">重试读取</button></div>`;$('#wsRetry').onclick=()=>vWorkspace(ticketKey)}}
  finally{if(wsLive(page)&&request===WS.read)$('#wsReload').disabled=false}

@@ -29,15 +29,18 @@ import threading
 import time
 from pathlib import Path
 
+from .coderefs import FILE_LINE
+
 
 class Orchestra:
-    FILE_LINE = re.compile(r"([\w./\\-]+\.(?:java|cs|xml|sql|jsp|aspx|cshtml|config|properties|yml|yaml|vb|js|ts|vue|kt|py)):(\d+)")
+    FILE_LINE = FILE_LINE
 
     def __init__(self, store, runner, data_dir: Path, knowledge):
         self.store, self.runner, self.data_dir, self.knowledge = store, runner, Path(data_dir), knowledge
         self.listeners = []
         self.on_release = []  # fn(project, ticket, release) after a change is merged and given a version
         self.bases = []  # fn(project, ticket) -> commit | "" (the main line) | None (no opinion): where a change starts
+        self.committed = []  # fn(project, ticket id, run id) after a change was committed unattended
         self.rechecking = set()  # legacy in-process notification only; durable operations own the lease
 
     @property
@@ -71,7 +74,7 @@ class Orchestra:
     TEST_GLOBS = ["**/test/**", "**/tests/**", "**/__tests__/**", "**/test_*.py", "**/*_test.*", "**/*.test.*", "**/*.spec.*"]
 
     def autoflow(self) -> dict:
-        conf = {"on": True, "agent": "", "plan": True, "fix": True, "commit": True, "max_lines": 400, "assignee": "", "refix": 2, "holdout": 0.1}
+        conf = {"on": True, "agent": "", "plan": True, "fix": True, "commit": True, "max_lines": 400, "assignee": "", "refix": 2, "holdout": 0.1, "ai_accept": []}
         f = self.data_dir / "autoflow.json"
         if f.exists():
             try:
@@ -80,8 +83,11 @@ class Orchestra:
                 pass
         from . import release
         conf["merge"] = release.settings(self.data_dir)["merge"]  # derived, for the pages: say "merged automatically" only when it is
-        if getattr(self, "tenant_context", None) is not None:
-            conf.update(on=False, merge=False)
+        ctx = getattr(self, "tenant_context", None)
+        if ctx is not None:
+            # a managed worker never merges unattended; the line runs only for projects the trusted default tenant lists
+            listed = isinstance(conf["on"], (list, tuple)) and getattr(ctx, "trusted_host", lambda: False)()
+            conf.update(merge=False, **({} if listed else {"on": False}))
         return conf
 
     def submit(self, p: dict, t: dict, wait: bool = False) -> None:
@@ -101,7 +107,7 @@ class Orchestra:
     def _intake(self, p: dict, t: dict) -> None:
         st, by = self.store, self.BY
         conf = self.autoflow()
-        if not conf.get("on") or self.mine(t["id"]):  # a person claimed it (我来写) before the line got to it
+        if not self.switched_on(conf, p) or self.mine(t["id"]):  # a person claimed it (我来写) before the line got to it
             return
         try:
             rel = self.knowledge.related(p, "%s %s" % (t["title"], (t.get("body") or "")[:400]), limit=3)
@@ -118,6 +124,14 @@ class Orchestra:
         st.event(t["id"], by, "intake", "自动受理" + ("：关联业务 " + "、".join(f["name"] or f["trigger"] for f in add) if add else "：知识库里没有找到明确对应的业务流"),
                  {"flows": [f["id"] for f in add]})
         self._flow_analyze(p, t["id"], conf)
+
+    def switched_on(self, conf: dict, project) -> bool:
+        """Whether the automatic line runs for this project: "on" is true/false for all, or a list of project keys."""
+        v = conf.get("on")
+        if not isinstance(v, (list, tuple)):
+            return bool(v)
+        p = project if isinstance(project, dict) else self.store.project(project)
+        return bool(p) and p["key"] in v
 
     def held(self, tid: int) -> bool:
         return bool((self.store.ticket(tid).get("links") or {}).get("hold"))
@@ -143,10 +157,11 @@ class Orchestra:
             return
         if not agent:
             return self._flow_stop(tid, "本机没有可用的智能体，跳过自动分析，直接转人工处理")
+        began = st.ticket(tid)["status"]  # a ticket handed back to the line may already be doing
 
         def analysed(run):
             cur = st.ticket(tid)
-            if self.held(tid) or cur["status"] not in ("new", "analyzing", "confirm"):
+            if self.held(tid) or cur["status"] not in ("new", "analyzing", "confirm", began):
                 return  # someone already took it further by hand
             res = run.get("result") or ""
             if run["status"] != "done":
@@ -178,7 +193,9 @@ class Orchestra:
             if run["status"] != "done":
                 return st.event(tid, by, "flow", "自动起草修改方案没有完成，等人处理")
             from .fixloop import plan_ac
-            if conf.get("fix") and not plan_ac(run.get("result") or ""):  # no acceptance criteria, no implementation
+            from .signoff import client_ac
+            # no acceptance criteria (the plan's, or the ones the client confirmed), no implementation
+            if conf.get("fix") and not plan_ac(run.get("result") or "") and not client_ac(self.data_dir, st.ticket(tid)["key"]):
                 return st.event(tid, by, "flow", "方案里没有验收标准（AC），不进入自动改代码；补上验收标准后由人决定是否改", {"run": run["id"]})
             if conf.get("fix"):
                 st.event(tid, by, "flow", "修改方案已出，接着在独立分支上改代码")
@@ -228,7 +245,12 @@ class Orchestra:
         try:
             self.runner.decide(run["id"], "accept", by)
         except (ValueError, RuntimeError) as e:
-            st.event(tid, by, "flow", "自动提交改动失败（%s），留给人审阅" % e, {"run": run["id"]})
+            return st.event(tid, by, "flow", "自动提交改动失败（%s），留给人审阅" % e, {"run": run["id"]})
+        for fn in self.committed:
+            try:
+                fn(p, tid, run["id"])
+            except Exception as e:  # noqa: BLE001 - the commit stands; what follows waits for a person
+                st.event(tid, by, "flow", "改动已自动提交，后续处理没做成（%s），留给人验收" % e, {"run": run["id"]})
 
     def accepted(self, p: dict, t: dict, passed: bool, note: str, by: str) -> dict:
         """A person's verdict on a task: keep what it teaches, send a rejected automatic change back to be redone,
@@ -251,8 +273,8 @@ class Orchestra:
         if passed:
             out["release"] = self._ship(p, t, conf, by)
             return tell()
-        if not conf.get("on") or self.held(t["id"]):
-            return tell("有人接手，不自动重改" if conf.get("on") else "自动处理没开，不自动重改")
+        if not self.switched_on(conf, p) or self.held(t["id"]):
+            return tell("有人接手，不自动重改" if self.switched_on(conf, p) else "自动处理没开，不自动重改")
         ad, _ = learn._adopted(self.store, t["id"])
         if not ad:
             return tell("改动不是自动提交的，由改的人返工")  # nothing automatic was sent back: whoever made the change reworks it
@@ -273,6 +295,61 @@ class Orchestra:
         out["refix"] = True
         return tell()
 
+    def merges(self, p: dict) -> bool:
+        """A managed worker merges only for the projects the trusted default tenant runs fully automatically."""
+        return getattr(self, "tenant_context", None) is None or (self.switched_on(self.autoflow(), p) and self.mode(p) == "auto")
+
+    MODES = ("on", "ai_accept", "merge")
+
+    def mode(self, p: dict) -> str:
+        """"auto": the line runs, AI accepts and closes, accepted changes merge with a version; "partial": the line runs but
+        something (AI acceptance or the merge) is left to a person; "manual": every step waits for a person."""
+        try:
+            conf = json.loads((self.data_dir / "autoflow.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            conf = {}
+        has = [isinstance(conf.get(k), list) and p["key"] in conf[k] for k in self.MODES]
+        return "auto" if all(has) else "partial" if has[0] else "manual"
+
+    def set_mode(self, p: dict, mode: str, by: str) -> str:
+        from . import release
+        from .util_conf import update_autoflow
+        if mode not in ("auto", "manual"):
+            raise ValueError("模式只能是 auto（全自动）或 manual（每一步人工）")
+        line = release.line(self, p) if mode == "auto" else ""
+        try:
+            conf = json.loads((self.data_dir / "autoflow.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            conf = {}
+        keys = [x["key"] for x in self.store.projects()]
+        ch = {}
+        for k in self.MODES:
+            v = conf.get(k)
+            v = list(v) if isinstance(v, list) else ([q for q in keys if q != p["key"]] if k == "on" and v is True else [])
+            v = [q for q in v if q != p["key"]] + ([p["key"]] if mode == "auto" else [])
+            ch[k] = v
+        ch["modes_log"] = (conf.get("modes_log") if isinstance(conf.get("modes_log"), list) else [])[-49:] + [
+            {"project": p["key"], "mode": mode, "by": by, "line": line, "ts": time.strftime("%Y-%m-%d %H:%M:%S")}]
+        update_autoflow(self.data_dir, ch)
+        return self.mode(p)
+
+    def rollback(self, p: dict, version: str, by: str) -> dict:
+        """A person undoes a version: a revert on the main line, and its tickets reopen in a person's hands."""
+        from . import release
+        r = release.rollback(self, p, version, by)
+        st = self.store
+        for k in r["tickets"]:
+            t = st.one("SELECT id FROM tickets WHERE project_id=? AND num=?", (p["id"], int(str(k["key"]).rsplit("-", 1)[-1]))) \
+                if str(k.get("key") or "").rsplit("-", 1)[-1].isdigit() else None
+            if not t:
+                continue
+            t = st.ticket(t["id"])
+            links = dict(t.get("links") or {}, hold=by)
+            st.update_ticket(t["id"], by, links=links, **({"status": "doing"} if t["status"] == "closed" else {}))
+            st.event(t["id"], by, "release", "版本 %s 已回滚（新版本 %s，提交 %s），工单重开，转人工处理" % (version, r["version"], r["commit"]),
+                     {"version": r["version"], "of": version, "commit": r["commit"], "rollback": True})
+        return r
+
     def ship_again(self, p: dict, t: dict, by: str) -> dict:
         """A person fixed what held the merge up (a dirty checkout, a lock): try again."""
         if (t.get("links") or {}).get("later"):
@@ -290,7 +367,7 @@ class Orchestra:
         redo on the current main line; anything else that stops the merge is said on the ticket for a person."""
         from . import release
         try:
-            r = release.ship(self, p, t, by)
+            r = release.ship(self, p, t, by) if self.merges(p) else {"state": "waiting", "why": "这个项目不在全自动模式，合并要人来做"}
         except Exception as e:  # noqa: BLE001 - the verdict stands whatever happens to the merge
             r = {"state": "waiting", "why": "合并时出错：%s" % e}
         st = self.store
@@ -308,7 +385,7 @@ class Orchestra:
             st.event(t["id"], self.BY, "conflict", "验收通过的改动（%s）和主干 %s 上后来的改动冲突，冲突的文件：%s。要在最新的主干上重做同样的改动，行为和验收通过的那版保持一致"
                      % (r["branch"], r["main"], "、".join(r["files"]) or "（没列出）"), {"branch": r["branch"], "files": r["files"]})
             try:
-                agent = self._flow_agent(conf, p) if conf.get("on") and conf.get("fix") else ""
+                agent = self._flow_agent(conf, p) if self.switched_on(conf, p) and conf.get("fix") else ""
             except ValueError as exc:
                 st.event(t["id"], self.BY, "flow", str(exc))
                 agent = ""
@@ -318,7 +395,7 @@ class Orchestra:
                 self._flow_fix(p, t["id"], conf, agent, git(self.root(p), "rev-parse", r["main"]).strip())
             else:
                 why = ("有人接手" if self.held(t["id"]) else "重做次数用完了（%d 次）" % (n - 1) if agent else
-                       "自动处理没开" if not (conf.get("on") and conf.get("fix")) else "没有可用的智能体")
+                       "自动处理没开" if not (self.switched_on(conf, p) and conf.get("fix")) else "没有可用的智能体")
                 st.event(t["id"], self.BY, "flow", "%s，需要有人在最新的主干上重做，或手动合并分支 %s" % (why, r["branch"]))
         elif r["state"] in ("waiting", "none"):
             st.event(t["id"], self.BY, "flow", ("验收通过了，还没合并进主干：%s。处理好后在工单上点“重试合并”" if r["state"] == "waiting" else
@@ -356,7 +433,7 @@ class Orchestra:
                 self.store.event(tid, by, "flow", "重新验证了运行 #%d 的改动（没改代码）：%s" % (rid, said), {"run": rid, "check": v["check"]})
                 conf = self.autoflow()
                 t = self.store.ticket(tid)
-                if v["check"] == "pass" and not run["decision"] and conf.get("on") and not self.held(tid) and t["status"] == "doing":
+                if v["check"] == "pass" and not run["decision"] and self.switched_on(conf, run["project_id"]) and not self.held(tid) and t["status"] == "doing":
                     self._flow_commit(self.store.project(run["project_id"]), tid, conf, run)
             return v
         if wait:
@@ -456,7 +533,7 @@ class Orchestra:
         A step that failed or was cancelled stops the line; with `retry` (a person handing the ticket on) it is run again."""
         conf = conf or self.autoflow()
         lk = t.get("links") or {}
-        if not conf.get("on") or lk.get("hold") or lk.get("later") or t["status"] not in ("new", "analyzing", "confirm", "doing"):
+        if not self.switched_on(conf, t["project_id"]) or lk.get("hold") or lk.get("later") or t["status"] not in ("new", "analyzing", "confirm", "doing"):
             return "", None
         runs = [r for r in self.store.runs(ticket_id=t["id"]) if r["mode"] in ("analyze", "plan", "fix")]
         if retry:

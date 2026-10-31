@@ -26,18 +26,22 @@ _LOCK = threading.Lock()  # one merge at a time per platform: two acceptances mu
 MERGE = ""  # tests force "off"; otherwise autoflow.json decides
 
 
-def settings(data_dir: Path) -> dict:
+def settings(data_dir: Path, project: str = "") -> dict:
     """{"merge": "auto" | "off"}: auto merges an accepted change into the main line; off leaves it for a person.
-    Unless autoflow.json says "merge", it follows "on": a platform set to hand-only work does not start writing
-    merge commits into a checkout after an upgrade."""
+    "merge" may list projects (["JB"]): auto for those only. Unless autoflow.json says "merge", it follows "on": a
+    platform set to hand-only work does not start writing merge commits into a checkout after an upgrade."""
     try:
         conf = json.loads((Path(data_dir) / "autoflow.json").read_text(encoding="utf-8"))
         conf = conf if isinstance(conf, dict) else {}
     except (OSError, ValueError):
         conf = {}
     v = conf.get("merge")
-    if v not in ("auto", "off"):
-        v = MERGE or ("auto" if conf.get("on", True) else "off")
+    if isinstance(v, (list, tuple)):
+        v = "auto" if (project in v if project else v) else "off"
+        v = MERGE or v
+    elif v not in ("auto", "off"):
+        on = conf.get("on", True)
+        v = MERGE or ("auto" if (project in on if project and isinstance(on, (list, tuple)) else on) else "off")
     return {"merge": v, "main": conf.get("main") if isinstance(conf.get("main"), dict) else {}}
 
 
@@ -112,7 +116,7 @@ def unsettled(P, t: dict, ad: dict) -> str:
 def ship(P, p: dict, t: dict, by: str) -> dict:
     """Merge an accepted ticket's change. Returns {"state": "merged" | "conflict" | "waiting" | "none", ...}.
     Only "conflict" means the change itself has to be redone; "waiting" is something about this machine a person fixes."""
-    if settings(P.data_dir)["merge"] != "auto":
+    if settings(P.data_dir, p["key"])["merge"] != "auto":
         return {"state": "waiting", "why": "设置为不自动合并（autoflow.json 里 merge 为 off，或自动处理关着）"}
     ad = _adopted(P, t)
     branch, commit = ad.get("branch") or "", ad.get("commit") or ""
@@ -192,6 +196,86 @@ def ship(P, p: dict, t: dict, by: str) -> dict:
 
 
 MERGE_S = 180
+LINE = "webuddy/%s"
+
+
+def line(P, p: dict) -> str:
+    """The branch accepted changes go onto. A checkout left on a bare commit gets its own line there (webuddy/<KEY>),
+    written into autoflow.json "main": the files stay as they are, and every version after it can be rolled back."""
+    root = Path(p["root"])
+    named = settings(P.data_dir)["main"].get(p["key"])
+    cur = git(root, "rev-parse", "--abbrev-ref", "HEAD", check=False).strip()
+    if named and cur == named:
+        return named
+    if cur and cur != "HEAD":
+        main = main_branch(root, P.data_dir, p["key"])
+        if main and cur == main:
+            return main
+    if cur != "HEAD" or named:
+        raise ValueError("项目目录现在在 %s，不在交付主线%s上：先切到主线，或者在 autoflow.json 的 main 里写上它" % (cur or "（未知）", " " + named if named else ""))
+    name = LINE % p["key"]
+    if _run_ok(root, "show-ref", "--verify", "--quiet", "refs/heads/" + name):
+        raise ValueError("分支 %s 已经存在，而项目目录停在游离提交上：要用哪一个由人来定" % name)
+    r = _run(root, "switch", "-c", name)
+    if r.returncode != 0:
+        raise ValueError("建交付主线没做成：%s" % (r.stderr or r.stdout).strip()[:300])
+    from .util_conf import update_autoflow
+    main = dict(settings(P.data_dir)["main"], **{p["key"]: name})
+    update_autoflow(P.data_dir, {"main": main})
+    return name
+
+
+def rolled_back(data_dir: Path, project: str) -> dict:
+    """{version: the rollback version that undid it}."""
+    return {r["of"]: r["version"] for r in releases(data_dir, project, 100000) if r.get("kind") == "rollback" and r.get("of")}
+
+
+def rollback(P, p: dict, version: str, by: str) -> dict:
+    """Undo a version on the main line with a revert commit (nothing rewritten), as a new version of its own; the
+    tickets it held reopen for a person. A later version touching the same lines has to be rolled back first."""
+    root = Path(p["root"])
+    rec = next((r for r in releases(P.data_dir, p["key"], 100000) if r.get("version") == version), None)
+    if not rec:
+        raise ValueError("没有版本 %s" % version)
+    if rec.get("kind") == "rollback":
+        raise ValueError("%s 本身是一次回滚；要恢复它撤掉的改动，重新提一张单" % version)
+    if version in rolled_back(P.data_dir, p["key"]):
+        raise ValueError("%s 已经回滚过了（%s）" % (version, rolled_back(P.data_dir, p["key"])[version]))
+    with _LOCK:
+        main = rec.get("main") or main_branch(root, P.data_dir, p["key"])
+        cur = git(root, "rev-parse", "--abbrev-ref", "HEAD", check=False).strip()
+        if cur != main:
+            raise ValueError("项目目录现在停在 %s，不在主干 %s 上，没法回滚" % (cur or "（游离）", main))
+        gd = _gitdir(root)
+        busy = [x for x in IN_PROGRESS if (gd / x).exists()] + (["index.lock"] if (gd / "index.lock").exists() else [])
+        if busy:
+            raise ValueError("项目目录里有一个没做完的 git 操作（%s），等它做完" % busy[0])
+        if [x for x in git(root, "status", "--porcelain", "--untracked-files=no", check=False).splitlines() if x.strip()]:
+            raise ValueError("主干 %s 上有没提交的文件，先处理掉再回滚" % main)
+        sha = git(root, "rev-parse", "--verify", "--quiet", rec["commit"] + "^{commit}", check=False).strip()
+        if not sha or not _run_ok(root, "merge-base", "--is-ancestor", sha, "HEAD"):
+            raise ValueError("版本 %s 的提交 %s 不在主干 %s 上" % (version, rec["commit"], main))
+        parents = git(root, "rev-list", "--parents", "-n", "1", sha).split()[1:]
+        keys = "、".join(k["key"] for k in rec.get("tickets") or [])
+        new_version = _version(P.data_dir, p["key"], root)
+        msg = "回滚版本 %s（%s）\n\n回滚：%s\n撤回提交：%s\nTicket: %s" % (version, keys, by, sha[:10], keys)
+        head = git(root, "rev-parse", "HEAD").strip()
+        r = _run(root, "revert", "--no-commit", *(["-m", "1"] if len(parents) > 1 else []), sha, timeout=MERGE_S)
+        if r.returncode == 0:
+            r = _run(root, "-c", "user.name=webuddy", "-c", "user.email=webuddy@localhost", "commit", "-q", "--no-verify", "-m", msg, timeout=MERGE_S)
+        if r.returncode != 0:
+            _run(root, "revert", "--abort") if (gd / "REVERT_HEAD").exists() else None
+            if git(root, "rev-parse", "HEAD").strip() == head:
+                _run(root, "reset", "-q", "--merge")
+            raise ValueError("回滚没做成，主干没动（多半是后来的版本改了同样的地方，先回滚后来的版本）：%s" % (r.stderr or r.stdout).strip()[:300])
+        new = git(root, "rev-parse", "--short", "HEAD").strip()
+        tag = "webuddy-%s-%s" % (p["key"], new_version)
+        tagged = _run_ok(root, "tag", "-a", tag, "-m", "回滚 %s" % version, "HEAD")
+        out = {"project": p["key"], "version": new_version, "kind": "rollback", "of": version, "tag": tag if tagged else "",
+               "commit": new, "main": main, "by": by, "ts": time.strftime("%Y-%m-%d %H:%M:%S"), "tickets": rec.get("tickets") or []}
+        with (Path(P.data_dir) / LOG).open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(out, ensure_ascii=False) + "\n")
+    return out
 
 
 def _run(root: Path, *args, timeout=None):

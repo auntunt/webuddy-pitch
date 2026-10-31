@@ -69,11 +69,19 @@ class TenantContext:
     def directory(self):
         return self.registry.directory(self.tenant_id)
 
+    def trusted_host(self):
+        """The default tenant on the original host runtime: the operator's own projects, not a hosted customer."""
+        t = self.registry.one('SELECT runtime FROM tenants WHERE id=?', (self.tenant_id,))
+        return self.tenant_id == 'default' and bool(t) and t['runtime'] == 'legacy'
+
+    PLATFORM_ACTORS = ('自动流转', 'AI 验收')
+
     def runtime_allowed(self, actor):
         try:
             return bool(self.current_actor(actor)['capabilities']['execution'])
         except ApiError:
-            return False
+            # the platform's own automatic line, on the operator's own projects only; never a name a member holds
+            return actor in self.PLATFORM_ACTORS and self.trusted_host()
 
     def workspace_allowed(self, value):
         """Only server-approved roots; existing legacy project roots stay fixed."""

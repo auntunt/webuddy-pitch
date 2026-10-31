@@ -47,15 +47,51 @@ from .agents import (GREENFIELD_EDIT, GREENFIELD_FIX, MODE_TEXT, additional_cont
 FENCE = r"```%s[ \t]*\n(.*?)```"
 
 
+def _requote(s: str) -> str:
+    """Escape the bare quotes models leave inside JSON strings (实现"记住账号"功能): a quote only ends a string before , : } ] or the end."""
+    out, inside, i = [], False, 0
+    while i < len(s):
+        ch = s[i]
+        if inside and ch == "\\":
+            out.append(s[i:i + 2])
+            i += 2
+            continue
+        if ch == '"':
+            if not inside:
+                inside = True
+            elif re.match(r"\s*(?:[,:}\]]|$)", s[i + 1:]):
+                inside = False
+            else:
+                ch = '\\"'
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def loads(block: str):
+    try:
+        return json.loads(block)
+    except ValueError:
+        return json.loads(_requote(block))
+
+
 def fenced(label: str, text: str):
     """The JSON in the last ```<label> block of an agent's answer, or None."""
     m = re.findall(FENCE % re.escape(label), text or "", re.S)
-    if not m:
-        return None
-    try:
-        return json.loads(m[-1].strip())
-    except ValueError:
-        return None
+    if m:
+        try:
+            return loads(m[-1].strip())
+        except ValueError:
+            return None
+    # models sometimes wrap it as ```json {"<label>": {...}}```: the same answer, under the label's own name
+    for block in reversed(re.findall(FENCE % "json", text or "", re.S)):
+        try:
+            j = loads(block.strip())
+        except ValueError:
+            continue
+        if isinstance(j, dict) and isinstance(j.get(label), dict):
+            return j[label]
+    return None
 
 
 def clean(text: str) -> str:
@@ -410,13 +446,23 @@ class FixLoop:
             if earlier:
                 L += ["", "## 这张工单上一次修改（#%d）的诊断" % earlier[0],
                       json.dumps({k: earlier[1]["diagnosis"].get(k) for k in PRIOR_KEYS if earlier[1]["diagnosis"].get(k)}, ensure_ascii=False)[:2500]]
+        acs = self.criteria()
+        if acs:
+            L += ["", "## 逐条核对的验收标准"] + ["- %s：%s" % (a["id"], a["text"]) for a in acs]
         L += ["", MODE_TEXT["diagnose"]]
         self.say("诊断这一轮的改动（%s）" % (self.models["diagnose"] or "默认模型"))
         out = self.call("diagnose", "\n".join(L))
         d = fenced("tmh-diag", out)
         d = d if isinstance(d, dict) else {}
+        if "blocking" not in d and isinstance(d.get("blocking_issues"), list):
+            d["blocking"] = d.pop("blocking_issues")
         d["text"] = clean(out)[:1500]
         return d
+
+    def criteria(self) -> list:
+        """What the change is accepted against: the criteria the client confirmed, else the plan's."""
+        from .signoff import client_ac
+        return (client_ac(self.r.data_dir, self.t["key"]) if self.t else []) or plan_ac(getattr(self, "plan", "") or "")
 
     def earlier_fixes(self) -> list:
         """Earlier finished change runs of this ticket with their verification, newest first."""
@@ -437,6 +483,7 @@ class FixLoop:
             else:
                 done = [r for r in self.st.runs(ticket_id=self.t["id"]) if r["mode"] == "plan" and r["status"] == "done"]
                 plan = self.st.run(done[0]["id"])["result"] if done else ""
+        self.plan = plan
         goals = plan_files(plan, int(self.set.get("max_files") or 16))
         seq, skip = self.commands(goals)
         if seq:
@@ -489,6 +536,15 @@ class FixLoop:
             if not diff.strip():
                 self.log.append("第 %d 轮：没有改出代码" % (rnd + 1))
                 break
+            if not seq and not goals and self.box and rnd == 0:
+                # the plan named no files: what to compile on the test machine is known only now, from the change
+                late, why = self.commands({f: "" for f in files})
+                why = why or (self.baseline(late) if late else "")
+                if late and not why:
+                    seq, skip = late, ""
+                    self.say("方案没列文件，按改动的文件在测试机上构建测试：%s" % "；".join(c for _, c in seq))
+                elif why:
+                    skip = why
             res = self.execute(seq) if seq else []
             if self.cancelled():
                 break
@@ -523,7 +579,7 @@ class FixLoop:
         out = {"check": check, "skip": skip if check == "skip" else "", "verdict": verdict, "rounds": len(self.log), "beyond_plan": beyond,
                "split": bool(goals) and split, "files": files, "commands": res,
                "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide",
-                                                                "blocking", "advisory", "prior")}}
+                                                                "blocking", "advisory", "prior", "ac")}}
         if vague and verdict == "unknown":
             out["vague_fail"] = True
         if (diag or {}).get("verdict") == "fail":
@@ -559,6 +615,11 @@ class FixLoop:
         advisory = [str(a) for a in (diag or {}).get("advisory") or [] if a]
         if advisory:
             L += ["## 建议（不影响结论）"] + ["- " + a for a in advisory[:8]] + [""]
+        said = [a for a in (diag or {}).get("ac") or [] if isinstance(a, dict) and a.get("id")]
+        if said:
+            word = {"pass": "通过", "fail": "没通过", "unverified": "没法确认"}
+            L += ["## 逐条验收"] + ["- %s：%s（%s）" % (a["id"], word.get(str(a.get("result") or "").lower(), "没给结论"), a.get("how") or "")
+                                    for a in said[:12]] + [""]
         if self.notes:
             L.append("## 改了什么")
             for f, n in self.notes.items():

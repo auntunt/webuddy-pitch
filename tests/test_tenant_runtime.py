@@ -3,6 +3,7 @@ from pathlib import Path
 from types import SimpleNamespace
 import tempfile
 import unittest
+from unittest import mock
 from unittest.mock import patch
 
 from tmh.platform import login, server, workspace
@@ -168,6 +169,14 @@ class TenantRuntimeTest(unittest.TestCase):
         self.assertFalse(self.context.runtime_allowed('alice'))
         self.assertTrue(self.context.runtime_allowed('owner'))
         self.assertFalse(self.context.runtime_allowed('unknown'))
+        with mock.patch.object(type(self.context), 'trusted_host', lambda c: False):
+            self.assertFalse(self.context.runtime_allowed('自动流转'))
+            self.assertFalse(self.context.runtime_allowed('AI 验收'))
+        with mock.patch.object(type(self.context), 'trusted_host', lambda c: True):
+            self.assertTrue(self.context.runtime_allowed('自动流转'))
+            self.assertTrue(self.context.runtime_allowed('AI 验收'))
+            self.assertFalse(self.context.runtime_allowed('unknown'))
+            self.assertFalse(self.context.runtime_allowed('alice'))
 
     def test_evidence_page_download_and_original_image_stay_in_tenant(self):
         from tmh.platform import signoff

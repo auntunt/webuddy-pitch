@@ -84,6 +84,19 @@ class TestBoxTest(unittest.TestCase):
         self.assertEqual(seq, [("build", "cd app && mvn -B -q compile -DskipTests -pl core -am")], why)
         self.assertEqual(testbox.build_commands(self.repo, ["README.md"])[0], [])
 
+    def test_a_front_end_is_checked_the_way_the_project_builds_it(self):
+        import json as _json
+        web = self.repo / "web"
+        (web / "src").mkdir(parents=True, exist_ok=True)
+        cases = (({"build": "vite build"}, {"vue-tsc": "1"}, "pnpm exec vite build"),
+                 ({"build": "vite build", "type:check": "vue-tsc"}, {"vue-tsc": "1"}, "pnpm run type:check"),
+                 ({"build": "webpack"}, {"vue-tsc": "1"}, "pnpm exec vue-tsc --noEmit"))
+        for scripts, dev, want in cases:
+            with self.subTest(want):
+                (web / "package.json").write_text(_json.dumps({"scripts": scripts, "devDependencies": dev}), encoding="utf-8")
+                seq, why = testbox.build_commands(self.repo, ["web/src/A.vue"])
+                self.assertEqual(seq, [("build", "cd web && pnpm install --prefer-offline && " + want)], why)
+
     def test_a_maven_project_the_plan_creates_is_compiled_but_not_before_it_exists(self):
         seq, why = testbox.build_commands(self.repo, ["java/pom.xml", "java/src/main/java/c/App.java"])
         self.assertEqual(seq, [("build", "cd java && mvn -B -q compile -DskipTests")], why)

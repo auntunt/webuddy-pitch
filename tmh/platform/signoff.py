@@ -992,6 +992,7 @@ def brief(data_dir: Path, key: str) -> dict:
     return {"status": s["status"], "label": STATUS_LABEL[s["status"]], "missing": s["missing"], "intact": s["intact"], "problem": s["problem"],
             "hash": s["hash"], "records": s["records"], "page": "/e/%s" % key.upper(),
             "attachments": len(s.get("attachments") or []), "review": s.get("review"),
+            "shots": [{k: a.get(k) for k in ("ac", "file", "note", "sha256")} for a in (s.get("attachments") or []) if a.get("file")][-24:],
             "link": (s.get("links") or [None])[-1], "decision": d and {k: d.get(k) for k in ("kind", "signer", "role", "ts", "note", "via")},
             "gates": s.get("gates"), "gate_state": s.get("gate_state", ""), "proofs": s.get("proofs") or [],
             "binding_blocked": s.get("binding_blocked", []), "stale": s.get("stale", False),
@@ -1003,7 +1004,7 @@ def record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
         return _record_accept(P, t, by, passed, note)
 
 
-def _record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
+def _record_accept(P, t: dict, by: str, passed: bool, note: str, via: str = "平台验收按钮", basis: dict | None = None) -> str:
     """The 验收 button inside the platform writes into the package too, so every verdict is on the chain."""
     s = state(P.data_dir, t["key"])
     if passed:
@@ -1015,7 +1016,7 @@ def _record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
     acs = [a["id"] for a in (s["snapshot"] or {}).get("ac") or []]
     rec = _add(epath(P.data_dir, t["key"]), "sign" if passed else "reject", by,
                     {"signer": by, "role": "", "ac": {a: "pass" if passed else "" for a in acs}, "note": note, "pack_hash": s["pack_hash"],
-                     "package_hash": s["hash"], "via": "平台验收按钮", "client": ""})
+                     "package_hash": s["hash"], "via": via, "client": "", **({"basis": basis} if basis else {})})
     return rec["hash"]
 
 
