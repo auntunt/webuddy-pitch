@@ -2767,6 +2767,8 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "attach", "ac": "A1", "image": "data:text/html;base64,PGI+"})[0], 400)
             code, a = self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "attach", "ac": "A1", "note": "提交后列表显示“审批中”", "image": png})
             self.assertEqual(code, 200, a)
+            shot = self.call("GET", "/api/tickets/%s" % t["key"])[1]["package"]["shots"][-1]
+            self.assertEqual((shot["ac"], shot["file"]), ("A1", shot["sha256"] + ".png"))
             self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "nope"})[0], 400)
 
             # a one-time link for the named signer

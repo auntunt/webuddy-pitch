@@ -715,6 +715,7 @@ async function vTicket(key,sub){
   <div id="tSteps">${stepper(f)}</div>
   <div class="detail"><div style="display:flex;flex-direction:column;gap:12px;min-width:0">
    ${concl}
+   ${resultCard(d)}
    ${d.epic?epicCard(d.epic):''}
    <details class="blk fold"><summary><b>完整描述</b><span class="sub">原话、理解、补充的信息和验收标准</span></summary><div class="hdr" style="margin:8px 0 4px"><span class="grow"></span><button class="ghost" id="eb">编辑</button></div><div id="bodyv">${t.body?md(t.body):'<span class="sub">没有描述</span>'}</div></details>
    <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">动态与讨论</h2>${nAuto?`<div class="seg" id="tlf"><button data-f="" class="on">全部</button><button data-f="talk">只看讨论</button><button data-f="auto">只看自动记录</button></div>`:''}</div><div class="tl" id="tl">${tl}</div>
@@ -844,7 +845,7 @@ function mrBlock(d){
   return `<div class="blk mr"><h3>代码改动 ${st}</h3><div class="sub">${msg}</div></div>`}
 function prompt2(title,val,cb){modal(`<h2>${h(title)}</h2><input class="full" id="pv" value="${h(val)}"><div style="margin-top:10px"><button class="primary" id="pok">保存</button></div>`);$('#pv').focus();$('#pok').onclick=()=>{closeModal();cb($('#pv').value)}}
 function evHtml(e){
-  const icon={prompt:'提示词','prompt-clear':'提示词',created:'创建',status:'状态',assign:'指派',edit:'编辑',comment:'',run:'智能体','run-done':'智能体','run-failed':'智能体','run-cancelled':'智能体',accept:'采纳',discard:'放弃',link:'关联',import:'导入',sync:'同步',kb:'知识库'}[e.kind]||e.kind;
+  const icon={prompt:'提示词','prompt-clear':'提示词',created:'创建',status:'状态',assign:'指派',edit:'编辑',comment:'',run:'智能体','run-done':'智能体','run-failed':'智能体','run-cancelled':'智能体',accept:'采纳',discard:'放弃',link:'关联',verify:'页面实测',evidence:'证据',flow:'自动流转',release:'发版',adopt:'提交候选',import:'导入',sync:'同步',kb:'知识库'}[e.kind]||e.kind;
   if(e.kind==='comment')return `<div class="ev comment"><div class="dot"></div><div class="grow" style="min-width:0"><span class="who">${h(e.author||'-')}</span><span class="when">${ago(e.ts)}</span><div class="cbody">${md(e.body)}</div></div></div>`;
   const rr=(e.data||{}).run;
   return `<div class="ev ${h(e.kind)}${isMachine(e.author)?' auto':''}"><div class="dot"></div><div class="grow" style="min-width:0"><span class="who">${h(e.author||'-')}</span> ${h(e.body)}${rr?` <a href="javascript:void 0" onclick="showRun(${rr})">#${rr}</a>`:''}<span class="when">${ago(e.ts)}</span>
@@ -1157,6 +1158,21 @@ function pkgSummary(d){const k=d.package||{};if(!k.status)return '';
 function pkgActions(d){const t=d.ticket;if(!d.package?.status||d.package.status==='none')return '';
   return `<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn" href="${h(appPath('/e/'+encodeURIComponent(t.key)))}" target="_blank" rel="noopener">打开证据包</a><a class="btn ghost" href="${h(appPath('/e/'+encodeURIComponent(t.key)+'.intoto.json'))}" download title="in-toto 格式，甲方可以离线核对">下载</a>
     <button class="ghost" id="pkShot">补截图</button><button class="ghost" id="pkRev"${pkgReviewReason(d)?' disabled title="'+h(pkgReviewReason(d))+'"':''}>证据复核</button>${d.package.stale===true?'<button id="pkPack"'+(pkgRepackReason(d)||S.pkgPacking?.[t.key]?' disabled':'')+'>按当前验证重新打包</button>':''}${t.status==='verify'?'<button class="primary" id="pkLink"'+ticketSignoffAttrs(d)+'>发签收链接</button>':''}</div>`;}
+function resultCard(d){const ev=d.events||[],last=k=>ev.filter(e=>e.kind===k).pop(),v=last('verify'),acc=ev.filter(e=>e.kind==='accept'||e.kind==='reject').pop(),rel=last('release'),wt=ev.filter(e=>e.kind==='flow'&&(e.data||{}).release==='waiting').pop();
+  if(!v&&!acc&&!rel)return '';
+  const key=d.ticket.key,vd=(v&&v.data)||{},RL={pass:['ok','通过'],fail:['bad','没通过'],unverified:['warn','未证明']},tg=r=>{const[c,l]=RL[r]||['','未知'];return `<span class="res-pill ${c}">${l}</span>`};
+  const shots=Array.isArray((d.package||{}).shots)?d.package.shots.filter(s=>s.file):[],img=s=>appPath('/e/'+encodeURIComponent(key)+'/f/'+s.file);
+  const rows=(vd.ac||[]).map(a=>{const im=shots.filter(s=>s.ac===a.id).slice(-3);
+    return `<div class="res-ac"><div class="res-ach"><b>${h(a.id)}</b>${tg(a.result)}</div><div class="res-how">${h(a.how||'没有记录操作步骤')}</div>${im.length?`<div class="res-shots">${im.map(s=>`<a href="${h(img(s))}" target="_blank" rel="noopener" title="${h(s.note||'')}"><img loading="lazy" src="${h(img(s))}" alt="${h(a.id)} 截图"></a>`).join('')}</div>`:'<div class="sub">没有截图</div>'}</div>`}).join('');
+  const ai=acc&&(acc.data||{}).ai,ok=acc&&acc.kind==='accept'&&(acc.data||{}).result!=='fail';
+  const bind=[vd.base&&['被测版本',String(vd.base).slice(0,10)],vd.diff_sha256&&['改动',vd.diff_sha256.slice(0,12)],vd.spec_sha256&&['脚本',vd.spec_sha256.slice(0,12)],vd.repaired_from&&['修复自',vd.repaired_from.slice(0,12)],vd.run&&['运行','#'+vd.run]].filter(Boolean);
+  const steps=[['页面实测',v?tg(vd.result):'<span class="res-pill">没跑</span>'],['验收',acc?`<span class="res-pill ${ok?'ok':'bad'}">${ok?(ai?'AI 已验收':'已验收'):'退回'}</span>`:'<span class="res-pill">待验收</span>'],['版本',rel?`<span class="res-pill ok">${h(clip(rel.body||'已发版',40))}</span>`:wt?'<span class="res-pill warn">等人合并</span>':'<span class="res-pill">未发版</span>']];
+  return `<div class="card res"><div class="hdr" style="margin-bottom:8px"><h2 class="grow" style="margin:0">改对了吗</h2>${v?`<span class="sub">${ago(v.ts)} · ${h(v.author||'')}</span>`:''}</div>
+   <div class="res-steps">${steps.map(([n,x])=>`<div><span class="sub">${n}</span>${x}</div>`).join('')}</div>
+   ${v&&v.body?`<div class="sub" style="margin:6px 0">${h(v.body)}</div>`:''}
+   ${rows?`<div class="res-acs">${rows}</div>`:''}
+   ${acc&&acc.body?`<details class="res-basis"><summary>验收依据</summary><div style="white-space:pre-wrap">${h(acc.body)}</div></details>`:''}
+   ${bind.length?`<div class="res-bind">${bind.map(([k,x])=>`<span><span class="sub">${k}</span> <code>${h(x)}</code></span>`).join('')}</div>`:''}</div>`}
 function pkgReviewReason(d){const access=d?.package?.personal_review;return access?.allowed===false?(access.reason||'请由当前指定的独立复核人登录后记录证据复核。'):''}
 function pkgCard(d){if(!d.package?.status)return '';
   return `<div class="card" id="pkg"><div id="pkSummary">${pkgSummary(d)}</div><div id="pkActions">${pkgActions(d)}</div><p class="sub" id="pkDraftNotice" hidden>证据状态已更新；表单草稿与所选文件已保留，请按最新验证门核对后提交。</p><div id="pkForm"></div></div>`;}

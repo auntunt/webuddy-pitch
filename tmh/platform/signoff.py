@@ -992,6 +992,7 @@ def brief(data_dir: Path, key: str) -> dict:
     return {"status": s["status"], "label": STATUS_LABEL[s["status"]], "missing": s["missing"], "intact": s["intact"], "problem": s["problem"],
             "hash": s["hash"], "records": s["records"], "page": "/e/%s" % key.upper(),
             "attachments": len(s.get("attachments") or []), "review": s.get("review"),
+            "shots": [{k: a.get(k) for k in ("ac", "file", "note", "sha256")} for a in (s.get("attachments") or []) if a.get("file")][-24:],
             "link": (s.get("links") or [None])[-1], "decision": d and {k: d.get(k) for k in ("kind", "signer", "role", "ts", "note", "via")},
             "gates": s.get("gates"), "gate_state": s.get("gate_state", ""), "proofs": s.get("proofs") or [],
             "binding_blocked": s.get("binding_blocked", []), "stale": s.get("stale", False),

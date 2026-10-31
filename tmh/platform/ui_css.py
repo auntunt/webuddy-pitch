@@ -369,4 +369,11 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 .tag.bad{background:var(--bad-s);color:var(--bad);border-color:#F5C2C3}
 /* 最近出的版本 */
 .rel{margin-bottom:14px}.relr{display:flex;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line);flex-wrap:wrap}.relr .grow{overflow-wrap:anywhere}
+/* 改对了吗：结果卡 */
+.res .res-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.res .res-steps>div{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg,#F7F8FA)}
+.res-pill{display:inline-block;align-self:flex-start;padding:2px 9px;border-radius:999px;font-size:12.5px;font-weight:600;background:#EEF0F3;color:#5B6472}.res-pill.ok{background:#E7F6EC;color:#18794E}.res-pill.bad{background:var(--bad-s);color:var(--bad)}.res-pill.warn{background:#FFF4E0;color:#A35200}
+.res-acs{display:flex;flex-direction:column;gap:10px;margin-top:10px}.res-ac{border:1px solid var(--line);border-radius:10px;padding:10px 12px}.res-ach{display:flex;gap:8px;align-items:center;margin-bottom:4px}.res-how{font-size:13.5px;overflow-wrap:anywhere}
+.res-shots{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.res-shots img{width:180px;height:112px;object-fit:cover;object-position:top;border:1px solid var(--line);border-radius:8px;display:block}.res-shots a:hover img{border-color:var(--ac,#2563EB)}
+.res-basis{margin-top:10px;font-size:13px}.res-basis summary{cursor:pointer;font-weight:600}.res-bind{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12.5px}.res-bind code{font-size:12px}
+@media (max-width:720px){.res .res-steps{grid-template-columns:1fr}.res-shots img{width:44vw}}
 """
