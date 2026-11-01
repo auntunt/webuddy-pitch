@@ -79,6 +79,7 @@ class TableTest(unittest.TestCase):
 
     def test_automatic_line_queue_versus_nothing_to_do(self):
         self.assertEqual(decide(T("new"), ON)["key"], "queued")
+        self.assertEqual(decide(T("new"), dict(ON, next_step=lambda t: ""))["key"], "queued")  # untouched: the line picks it up
         self.assertEqual(decide(T("new", later="等前一批"), ON)["key"], "later")
         g = decide(T("doing"), dict(ON, next_step=lambda t: "", last={"mode": "plan", "status": "done"}))
         self.assertEqual((g["key"], g["who"], g["label"]), ("idle", "person", "方案已完成，等你决定如何实现"))

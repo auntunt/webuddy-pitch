@@ -122,7 +122,7 @@ def decide(t: dict, f: dict) -> dict:
         if s in ("new", "analyzing") and not r and not t.get("assignee"):  # nothing has started it yet
             return row("stalled", label=f.get("stall") or "")
         return row("stalled", label="自动处理已关闭，等人继续" if not f.get("auto") else "没有可用的智能体，等你处理")
-    if f.get("next_step") and f["next_step"](t):
+    if (s in ("new", "analyzing") and not r) or (f.get("next_step") and f["next_step"](t)):
         return row("queued", step=step)
     return row("idle", step=step, label={"analyze": "分析已完成，等你确认下一步", "plan": "方案已完成，等你决定如何实现"}.get(r.get("mode"), ""))
 
