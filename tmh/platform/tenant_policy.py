@@ -150,6 +150,9 @@ POST /api/tickets/<key>/preview
 GET /api/projects/<key>/mode
 POST /api/projects/<key>/mode
 POST /api/projects/<key>/releases/<version>/rollback
+GET /api/projects/<key>/channels
+POST /api/projects/<key>/repo
+POST /api/projects/<key>/notify
 GET /api/projects/<key>/preview-conf
 POST /api/projects/<key>/preview-conf
 GET /api/tickets/<key>/starter

@@ -1756,12 +1756,13 @@ async function vSettings(){
   $('#main').innerHTML=`<h1>设置</h1><div class="card" id="rdy" style="margin-top:14px"><h2>上线体检</h2><div class="sub">检查中…</div></div><div class="grid2" style="margin-top:14px"><div class="card form"><h2>我</h2>${S.meta.login?`<p>已登录账号：<b>${h(S.meta.user)}</b></p><p class="sub">操作身份来自登录会话，不能通过修改显示名字代替其他成员。</p>`:`<label>名字（写在评论、指派和审阅记录里）<input class="full" id="un" value="${h(S.user)}"></label><div><button class="primary" id="us">保存</button></div>`}${S.meta.access?.can_manage?`<p>当前租户：${h(S.meta.access.tenant.name)}</p><a class="btn" href="#/access">成员与权限</a>`:''}</div>
   <div class="card"><h2>智能体</h2>${S.meta.agents.map(a=>`<div class="flowrow"><span>${h(a.title)} <span class="key">${h(a.name)}</span></span><span class="tag">${a.available?'可用':'本机未找到'}</span></div>`).join('')}
   <div class="hint" style="margin-top:10px">平台用本机已安装的 <code>claude</code>（Claude Code）和 <code>codex</code> 命令，沿用它们自己的登录或环境变量。接第三方模型用 <code>tmh agent-config</code> 生成配置。也可以在 <code>${h(S.meta.data_dir)}/agents.json</code> 里加自研智能体：<code>{"my": {"title":"自研","cmd":["my-agent","--dir","{workdir}","{prompt_file}"]}}</code></div></div>
-  <div class="card"><h2>项目</h2>${S.projects.map(p=>`<div class="flowrow"><span><b>${h(p.key)}</b> ${h(p.name)}<div class="sub">${h(p.root)}${p.exists?'':'（目录不存在）'}</div></span><span class="sub">${p.open} 张未关闭</span><span class="pmode" data-pmode="${h(p.key)}"></span><button data-project-library="${h(p.key)}">知识与引用</button></div>`).join('')}<div style="margin-top:10px"><button onclick="newProject()">＋ 登记已有项目</button></div></div>
+  <div class="card"><h2>项目</h2>${S.projects.map(p=>`<div class="flowrow"><span><b>${h(p.key)}</b> ${h(p.name)}<div class="sub">${h(p.root)}${p.exists?'':'（目录不存在）'}</div></span><span class="sub">${p.open} 张未关闭</span><span class="pmode" data-pmode="${h(p.key)}"></span><span class="pinteg" data-pinteg="${h(p.key)}"></span><button data-project-library="${h(p.key)}">知识与引用</button></div>`).join('')}<div style="margin-top:10px"><button onclick="newProject()">＋ 登记已有项目</button></div></div>
   <div class="card form" id="tbx"><h2>测试机</h2><div class="sub">加载中…</div></div>
   <div class="card"><h2>数据</h2><div class="sub">工单、讨论和运行记录都在 <code>${h(S.meta.data_dir)}/platform.db</code>（SQLite），修改代码用的工作树在 <code>worktrees/</code>。备份这个目录即可。</div></div></div>`;
   if($('#us'))$('#us').onclick=()=>{S.user=$('#un').value.trim();try{localStorage.setItem('tmh.user',S.user)}catch(e){}$('#me').textContent='当前用户：'+S.user;toast('已保存')};
   document.querySelectorAll('[data-project-library]').forEach(button=>button.onclick=()=>libraryOpen(button.dataset.projectLibrary));
   document.querySelectorAll('[data-pmode]').forEach(pmode);
+  document.querySelectorAll('[data-pinteg]').forEach(pinteg);
   testbox();readiness()}
 // ---------- per project: fully automatic (AI fixes, accepts, closes, merges with a version) or a person at every step
 async function pmode(el){const k=el.dataset.pmode;let d;try{d=await get('/api/projects/'+encodeURIComponent(k)+'/mode')}catch(e){return}
@@ -1773,6 +1774,26 @@ async function pmode(el){const k=el.dataset.pmode;let d;try{d=await get('/api/pr
   el.innerHTML=`<span class="tag ${d.mode==='auto'?'':'warn'}" title="${m[1]}">${m[0]}</span>${seen} ${['auto','observe','manual'].filter(x=>x!==d.mode).map(x=>`<button class="ghost" data-to="${x}">${x==='manual'?'切回每步人工':x==='auto'?'切到全自动':'切到观察'}</button>`).join(' ')}`;
   el.querySelectorAll('button[data-to]').forEach(b=>b.onclick=async()=>{const to=b.dataset.to;if(!confirm(M[to][2]))return;
     try{await post('/api/projects/'+encodeURIComponent(k)+'/mode',{mode:to});toast('已切换');pmode(el)}catch(e){toast(e.message,6000)}})}
+// ---------- per project: the code repository (GitHub) the platform pushes to, and the team group it tells
+async function pinteg(el){const k=el.dataset.pinteg,u='/api/projects/'+encodeURIComponent(k);let d;try{d=await get(u+'/channels')}catch(e){return}
+  const r=d.repo,n=d.notify,go=async(path,body,ok)=>{try{await post(u+path,body);toast(ok);pinteg(el)}catch(e){toast(e.message,8000)}};
+  const repo=!r.bound?`<button class="ghost" data-a="bind">绑定 GitHub 仓库</button>`:
+    `<a href="${h(r.web)}" target="_blank" rel="noopener">${h(r.name)}</a> <span class="tag ${r.on?'':'warn'}">${r.on?'推送开':'推送关'}</span>${r.checked&&r.checked!=='ok'?` <span class="sub" title="${h(r.checked)}">连接没通过</span>`:''} <button class="ghost" data-a="check">测试连接</button> <button class="ghost" data-a="${r.on?'off':'on'}">${r.on?'关掉推送':'打开推送'}</button>
+     <details style="display:inline-block"><summary class="sub">部署密钥</summary><div class="sub">把这把公钥加到 <a href="${h(r.deploy_keys_page)}" target="_blank" rel="noopener">仓库的 Deploy keys</a>，勾选 Allow write access：</div><code style="word-break:break-all;user-select:all">${h(r.deploy_key)}</code><div><button class="ghost" data-a="unbind">解除绑定</button></div></details>`;
+  const opts=n.targets.map(x=>`<option value="${h(x.id)}" ${x.id===n.conv?'selected':''}>${h(x.title)}</option>`).join('');
+  const group=n.bound?`<span title="${h(n.by)} ${h(n.ts)}">${h(n.title)}</span> <button class="ghost" data-a="ntest">发测试消息</button> <button class="ghost" data-a="nunbind">解除</button>`:
+    n.targets.length?`<select data-a="npick"><option value="">选择项目群…</option>${opts}</select>`:`<span class="sub" title="把机器人拉进群并在群里 @ 它说一句话，这里就能选">未绑定项目群</span>`;
+  el.innerHTML=`<div class="sub">代码仓库：${repo}</div><div class="sub">通知群：${group}</div>`;
+  el.querySelectorAll('[data-a]').forEach(b=>{const a=b.dataset.a;
+    if(a==='npick')return b.onchange=()=>b.value&&go('/notify',{target:b.value},'已绑定项目群');
+    b.onclick=()=>{
+      if(a==='bind'){const url=prompt('GitHub 仓库地址（例如 git@github.com:团队/仓库.git，建议私有仓库）');if(url)go('/repo',{url},'已绑定，把部署密钥加到仓库后点“测试连接”')}
+      else if(a==='check')go('/repo',{check:true},'已测试');
+      else if(a==='on'){if(confirm('打开推送：之后自动提交的改动分支、合并后的交付主线、版本标签和回滚都会推到 '+r.name+'（只做普通推送，不强推）。确定？'))go('/repo',{on:true},'已打开推送')}
+      else if(a==='off')go('/repo',{on:false},'已关掉推送');
+      else if(a==='unbind'){if(confirm('解除和 '+r.name+' 的绑定？本机的代码不动。'))go('/repo',{url:''},'已解除')}
+      else if(a==='ntest')go('/notify',{test:true},'已发送');
+      else if(a==='nunbind')go('/notify',{target:''},'已解除')}})}
 // ---------- versions that went out: the end of the line a client cares about
 async function rels(){const el=$('#rels');if(!el)return;let d;try{d=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/releases')}catch(e){return}
   if(!d.releases.length)return;const r=d.releases.slice(0,3);
