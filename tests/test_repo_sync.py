@@ -10,8 +10,12 @@ from types import SimpleNamespace
 from tmh.platform import announce, chat, repo_sync
 
 
+ID = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
+
+
 def git(root, *a):
-    return subprocess.run(["git", "-C", str(root)] + list(a), capture_output=True, text=True, check=True).stdout.strip()
+    return subprocess.run(["git", "-C", str(root)] + list(a), capture_output=True, text=True, check=True,
+                          env=dict(os.environ, **ID)).stdout.strip()
 
 
 class ParseTest(unittest.TestCase):
@@ -68,7 +72,7 @@ class PushTest(unittest.TestCase):
         self.assertEqual(repo_sync.check(self.P, self.p)["checked"], "ok")
         self.assertTrue(repo_sync.switch(self.P, self.p, True, "li")["on"])
         git(self.root, "branch", "tmh/JB-1-r1")
-        git(self.root, "tag", "-a", "webuddy-JB-1", "-m", "v")
+        git(self.root, "-c", "user.name=t", "-c", "user.email=t@t", "tag", "-a", "webuddy-JB-1", "-m", "v")
         r = repo_sync.push(self.P, self.p, ["main", "tmh/JB-1-r1", "webuddy-JB-1", "", "missing", "main..x"])
         self.assertEqual(r["state"], "pushed", r)
         self.assertEqual(r["refs"], ["refs/heads/main", "refs/heads/tmh/JB-1-r1", "refs/tags/webuddy-JB-1"])
@@ -83,7 +87,6 @@ class PushTest(unittest.TestCase):
         before = git(self.bare, "rev-parse", "main")
         git(self.root, "push", "-q", str(self.bare), "HEAD~1:refs/heads/side")
         git(self.bare, "update-ref", "refs/heads/main", git(self.bare, "rev-parse", "side"))
-        git(self.bare, "commit-tree", "-m", "other", git(self.bare, "rev-parse", "main^{tree}"))
         other = git(self.bare, "commit-tree", "-p", "main", "-m", "theirs", git(self.bare, "rev-parse", "main^{tree}"))
         git(self.bare, "update-ref", "refs/heads/main", other)
         r = repo_sync.push(self.P, self.p, ["main"])
