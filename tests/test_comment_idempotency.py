@@ -148,6 +148,18 @@ class CommentIdempotencyTest(unittest.TestCase):
         self.assertEqual(self.post('workspace confirmed', expected_workspace=str(self.folder)), first)
         self.assertEqual(len(self.comments()), 1)
 
+    def test_a_page_not_shown_the_path_confirms_the_workspace_by_its_id(self):
+        from tmh.platform.server import _workspace_id
+        here = _workspace_id(SimpleNamespace(data_dir=self.folder))
+        elsewhere = _workspace_id(SimpleNamespace(data_dir=self.folder / 'other'))
+        self.assertNotIn(str(self.folder), here)
+        with self.assertRaises(ApiError) as caught:
+            self.post('stale managed page', expected_workspace=elsewhere)
+        self.assertEqual(caught.exception.code, 409)
+        self.assertEqual(self.comments(), [])
+        self.assertTrue(self.post('managed page comment', expected_workspace=here)['ok'])
+        self.assertEqual(len(self.comments()), 1)
+
     def test_old_page_cannot_write_same_ticket_key_after_workspace_switch(self):
         self.post('original workspace comment', expected_workspace=str(self.folder))
         other_folder = self.folder / 'switched-workspace'

@@ -157,3 +157,12 @@
 - 测试机问题：npm 连不上 registry.npmjs.org，esbuild 安装失败使 `pnpm install` 失败。经用户同意，将测试机用户 `auntu` 的 npm 源设为 `https://registry.npmmirror.com/`（原 `.npmrc` 备份为 `.npmrc.bak-webuddy-20261030`），安装恢复（11 秒）。缓存的失败基线 `data/checks/JB-63017ead0739af1d.json` 移到 `/opt/webuddy/backups/jb-baseline-check-20261030/`。JeecgBoot 前端 `vue-tsc --noEmit` 在原代码上仍不可用：默认栈溢出；加大栈后报原代码自身的类型错误（`MyComment.vue` TS1003），所以 JB 前端改动的构建检查依旧会因基线失败而跳过。
 - 修正：没跑构建且改动只有一个文件时，FixLoop 原来不做诊断，Opus 诊断从未执行。现在项目路由把诊断交给另一执行器时，不论改动大小都做一次只读诊断；新增 `test_fix_loop_has_the_routed_engine_diagnose_a_small_unbuilt_change`。
 - 界面待改：分析/方案的提示仍写“已交给 Cloudwave · 官方 Codex”；分析摘要“根因”显示提示词里的“（3 句以内）”；修改顶层“完成”不代表验证通过；验证页只显示基线退出码；手动运行区无单独诊断入口；`cloudwave-codex` 修改的 `runs.model` 为空。
+
+### 2026-10-30 界面如实反映运行结果
+
+- 用户要求修复走查发现的界面问题。分析/方案的提示改用服务端实际选中的执行器（`Runner.start` 返回的 `agent`），不再显示下拉框里选的那个。分析摘要的“根因”跳过标题里的提示词括注（如“结论（3 句以内）”）。
+- 修改运行在工单接口里带上 `diff_bytes`。没有改动时不再显示“智能体改好了代码，等你审阅”，改为“没有改任何代码”，并给出“查看执行结论 / 重新出方案”两个按钮。运行列表和详情里的“完成”会补充说明“没有改动 / 验证没通过 / 未验证”。
+- 官方 Codex profile 没有显式指定模型时，`runs.model` 记录 profile（`<CODEX_HOME>/<profile>.config.toml`，退而读 `config.toml`）里实际生效的模型，方便事后核对用的是不是 Luna。重试时，如果记录的模型就是这个配置默认值，就不当作人工指定的模型，免得诊断等步骤被强行换模型。新增 `tests/test_run_truth.py`。
+- 已有的修改运行（如 #259、#260、#263）不回填 `runs.model`；新数据只在新运行上生效。
+- 生产走查发现运行详情接口返回的是 `verification`，不是 `verify`，所以详情页的“完成”没有带上验证说明。`runStatus` 现在两个字段都读。
+- 生产走查发现，租户托管模式下 `/api/meta` 不返回 `data_dir`，评论草稿提交时 `expected_workspace` 为空，`api_comment` 因此对所有评论都返回 409。修复方法：meta 新增 `workspace`（数据目录路径的 sha256 摘要，不暴露路径），评论守卫同时接受真实路径或这个摘要；空值和其他工作区的摘要仍然拒绝。

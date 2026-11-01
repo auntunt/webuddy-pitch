@@ -31,7 +31,7 @@ function commentDraftComplete(e,pending){
   e.record.pending=null;commentDraftSave(e);return true;
 }
 function ticketCommentWire(d){
-  const scope=commentDraftScope(d),user=commentDraftActor(),workspace=S.meta?.data_dir||'',key=d.ticket.key,input=$('#cm'),button=$('#cb'),notice=$('#cmDraft'),pendingView=$('#cmPending');
+  const scope=commentDraftScope(d),user=commentDraftActor(),workspace=S.meta?.data_dir||S.meta?.workspace||'',key=d.ticket.key,input=$('#cm'),button=$('#cb'),notice=$('#cmDraft'),pendingView=$('#cmPending');
   S.commentDrafts??=new Map();let storage;
   try{storage=sessionStorage}catch(err){storage={getItem(){throw err}}}
   const e=commentDraftOpen(scope,storage,S.commentDrafts);
