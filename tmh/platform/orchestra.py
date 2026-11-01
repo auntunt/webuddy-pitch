@@ -122,8 +122,9 @@ class Orchestra:
             st.update_ticket(t["id"], by, links=links)
         if conf.get("assignee") and not t.get("assignee"):
             st.update_ticket(t["id"], by, assignee=conf["assignee"])
+        from .ai_accept import mandate
         st.event(t["id"], by, "intake", "自动受理" + ("：关联业务 " + "、".join(f["name"] or f["trigger"] for f in add) if add else "：知识库里没有找到明确对应的业务流"),
-                 {"flows": [f["id"] for f in add]})
+                 {"flows": [f["id"] for f in add], "mandate": mandate(conf, p["key"], self.data_dir)})
         self._flow_analyze(p, t["id"], conf)
 
     def switched_on(self, conf: dict, project) -> bool:

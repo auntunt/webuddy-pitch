@@ -5,9 +5,14 @@ criterion one by one, and the evidence package is intact and bound to this chang
 person who took the ticket over, leaves it for people with the reason said on the ticket. Nothing is guessed.
 
 A project listed in "ai_accept_observe" instead (and not in "ai_accept") runs the same checks in the shadow: AI says on
-the ticket whether it would have accepted and why, signs nothing, and the person's later verdict is set against it."""
+the ticket whether it would have accepted and why, signs nothing, and the person's later verdict is set against it.
+
+Every automatic start and every AI verdict carries a mandate: the switches that let it happen for this project, their
+fingerprint, and who last set the project's mode. A policy changed since the ticket started does not stop it; the
+current policy decides, and the verdict says that it changed."""
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -22,6 +27,51 @@ def enabled(conf: dict, key: str) -> bool:
 def observing(conf: dict, key: str) -> bool:
     v = (conf or {}).get("ai_accept_observe")
     return not enabled(conf, key) and (v is True or v == "*" or (isinstance(v, (list, tuple)) and key in v))
+
+
+MODE_NAME = {"auto": "全自动", "observe": "观察", "partial": "半自动", "manual": "每步人工"}
+
+
+def mandate(conf: dict, key: str, data_dir: Path | None = None) -> dict:
+    """Why the line may act on project `key` now: the switches that apply to it (from the effective autoflow settings),
+    a fingerprint of just those, so another project's change does not alter it, and the last mode switch for it."""
+    conf = conf or {}
+    on = conf.get("on")
+    ml = conf.get("max_lines")
+    sw = {"on": on is True or on == "*" or (isinstance(on, (list, tuple)) and key in on),
+          "ai_accept": enabled(conf, key), "observe": observing(conf, key), "merge": False,
+          "plan": bool(conf.get("plan")), "fix": bool(conf.get("fix")), "commit": bool(conf.get("commit")),
+          "max_lines": ml.get(key, ml.get("*")) if isinstance(ml, dict) else ml, "refix": conf.get("refix")}
+    log = {}
+    if data_dir is not None:
+        from . import release
+        sw["merge"] = conf.get("merge") is not False and release.settings(data_dir, key)["merge"] == "auto"
+        try:
+            raw = json.loads((Path(data_dir) / "autoflow.json").read_text(encoding="utf-8"))
+            log = next((x for x in reversed(raw.get("modes_log") or []) if isinstance(x, dict) and x.get("project") == key), {})
+        except (OSError, ValueError, AttributeError):
+            log = {}
+    mode = ("auto" if sw["on"] and sw["ai_accept"] and sw["merge"] else "observe" if sw["on"] and sw["observe"] else
+            "partial" if sw["on"] else "manual")
+    policy = hashlib.sha256(json.dumps(sw, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
+    return {"policy": policy, "mode": mode, "switches": sw,
+            "set_by": {k: log[k] for k in ("by", "ts", "mode") if log.get(k)}}
+
+
+def describe(m: dict) -> str:
+    s = m.get("set_by") or {}
+    return "授权：%s（策略 %s%s）" % (MODE_NAME.get(m.get("mode"), m.get("mode")), m.get("policy"),
+                                 "，%s 于 %s 切换" % (s["by"], s["ts"]) if s.get("by") and s.get("ts") else "")
+
+
+def started_under(st, tid: int) -> dict:
+    """The mandate the line recorded when it took ticket `tid` in, {} when it did not record one."""
+    for e in reversed(list(st.events(tid) or [])):
+        if e["kind"] == "intake":
+            m = _data(e).get("mandate")
+            if isinstance(m, dict):
+                return m
+    return {}
 
 
 def _data(e: dict) -> dict:
@@ -119,6 +169,11 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
     if not enabled(conf, p["key"]) and not shadow:
         return {"accepted": False, "why": "这个项目没开 AI 验收"}
     st = P.store
+    now = mandate(conf, p["key"], P.data_dir)
+    since = started_under(st, tid)
+    if since.get("policy") and since["policy"] != now["policy"]:
+        now["changed_from"] = since["policy"]
+    auth = describe(now) + ("；这单开始后授权改过（原策略 %s），按现在的授权判断" % since["policy"] if now.get("changed_from") else "")
     t = st.ticket(tid)
     from . import browser_verify, epic, signoff
     from .errors import ApiError
@@ -151,8 +206,8 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
         s = signoff.state(P.data_dir, t["key"])
         why = why or ("证据包被改动过：%s" % s.get("problem") if not s.get("intact") else "")
     if why and shadow:
-        st.event(tid, BY, "flow", "AI 影子验收：本不会验收（%s）。观察模式，留给人验收" % why,
-                 {"run": rid, "shadow": {"would_accept": False, "why": why}})
+        st.event(tid, BY, "flow", "AI 影子验收：本不会验收（%s）。观察模式，留给人验收。%s" % (why, auth),
+                 {"run": rid, "shadow": {"would_accept": False, "why": why}, "mandate": now})
         return {"accepted": False, "shadow": True, "would_accept": False, "why": why}
     if why:
         st.event(tid, BY, "flow", "AI 没有验收：%s，留给人验收" % why, {"run": rid})
@@ -163,11 +218,12 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
              "ac": {a["id"]: str((seen.get(a["id"]) or said.get(a["id"]) or {}).get("how") or "")[:300] for a in acs}}
     if seen:
         basis["real"] = "pass"
-    note = "AI 验收通过：构建测试通过，独立诊断没有阻断项，%s %d 条验收标准（%s）都做到了" % (
-        "在页面上逐条实测" if seen else "逐条核对", len(acs), "、".join(a["id"] for a in acs))
+    basis["mandate"] = now
+    note = "AI 验收通过：构建测试通过，独立诊断没有阻断项，%s %d 条验收标准（%s）都做到了。%s" % (
+        "在页面上逐条实测" if seen else "逐条核对", len(acs), "、".join(a["id"] for a in acs), auth)
     if shadow:
         st.event(tid, BY, "flow", "AI 影子验收：本会验收通过（%s）。观察模式不签收，留给人验收" % note,
-                 {"run": rid, "shadow": {"would_accept": True, "why": "", "basis": basis}})
+                 {"run": rid, "shadow": {"would_accept": True, "why": "", "basis": basis}, "mandate": now})
         return {"accepted": False, "shadow": True, "would_accept": True, "why": ""}
     try:
         with signoff.verification_guard(P, t["key"]):
