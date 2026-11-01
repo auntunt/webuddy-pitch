@@ -30,6 +30,17 @@ class ParseTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 repo_sync.parse(u)
 
+    def test_own_machine_over_ssh(self):
+        c = repo_sync.parse("ssh://auntu@127.0.0.1:12122/home/auntu/git/JeecgBoot.git")
+        self.assertEqual((c["kind"], c["host"], c["port"], c["user"], c["path"], c["repo"]),
+                         ("ssh", "127.0.0.1", 12122, "auntu", "/home/auntu/git/JeecgBoot.git", "JeecgBoot"))
+        self.assertEqual(repo_sync.ssh_url(c), "ssh://auntu@127.0.0.1:12122/home/auntu/git/JeecgBoot.git")
+        self.assertEqual(repo_sync.web(c, "branch", "x"), "")
+        self.assertEqual(repo_sync.ssh_url(repo_sync.parse("ssh://git@box/srv/r")), "ssh://git@box/srv/r.git")
+        for u in ("ssh://a@box/srv/../etc/r.git", "ssh://a@box:0/r.git", "ssh://a:pw@box/r.git", "ssh://a@box/r;x"):
+            with self.assertRaises(ValueError, msg=u):
+                repo_sync.parse(u)
+
     def test_links(self):
         c = repo_sync.parse("a/b")
         self.assertEqual(repo_sync.ssh_url(c), "git@github.com:a/b.git")
@@ -93,6 +104,24 @@ class PushTest(unittest.TestCase):
         self.assertEqual(r["state"], "failed", r)
         self.assertEqual(git(self.bare, "rev-parse", "main"), other)
         self.assertNotEqual(before, other)
+
+    def test_own_machine_pins_its_host_key_and_pushes_without_links(self):
+        line = "box ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEksQiCERg4aRfId+z7zWMp0bLWR28PNyM4RFs9HSozk"
+        with self.assertRaises(ValueError):
+            repo_sync.setup(self.P, self.p, "ssh://git@box:2222/srv/JB.git", "li", hostkey="not a key")
+        v = repo_sync.setup(self.P, self.p, "ssh://git@box:2222/srv/JB.git", "li", hostkey=line, label="测试机")
+        self.assertEqual((v["kind"], v["name"], v["web"], v["deploy_keys_page"]), ("ssh", "测试机", "", ""))
+        self.assertTrue(v["hostkey"].startswith("SHA256:"))
+        conf = json.loads((self.data / "autoflow.json").read_text(encoding="utf-8"))["repos"]["JB"]
+        self.assertEqual(conf["hostkey"], "[box]:2222 " + line.split(" ", 1)[1])  # pinned for that port only
+        env = repo_sync._env(self.data, "JB", conf)
+        self.assertIn("StrictHostKeyChecking=yes", env["GIT_SSH_COMMAND"])
+        self.assertEqual((self.data / "keys" / "JB-known_hosts").read_text(encoding="utf-8").strip(), conf["hostkey"])
+        git(self.root, "remote", "set-url", "webuddy", str(self.bare))
+        self.assertEqual(repo_sync.check(self.P, self.p)["checked"], "ok")
+        repo_sync.switch(self.P, self.p, True, "li")
+        r = repo_sync.push(self.P, self.p, ["main"])
+        self.assertEqual((r["state"], r["repo"], r["links"]), ("pushed", "测试机", []))
 
     def test_failed_check_turns_pushing_off(self):
         repo_sync.setup(self.P, self.p, "auntunt/JeecgBoot", "li")
