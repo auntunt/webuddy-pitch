@@ -81,6 +81,9 @@ class TenantContext:
     PLATFORM_ACTORS = ('自动流转', 'AI 验收')
 
     def runtime_allowed(self, actor):
+        tool = TOOL.get()
+        if tool is not None and actor == 'agent:member:' + tool['user']:
+            actor = tool['user']
         try:
             return bool(self.current_actor(actor)['capabilities']['execution'])
         except ApiError:

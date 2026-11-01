@@ -159,6 +159,17 @@ class TenantRuntimeTest(unittest.TestCase):
             self.assertTrue(current['platform_owner'])
             self.assertNotIn('tool_connection', current)
 
+    def test_execute_tool_actor_runs_with_the_members_own_execution_only(self):
+        a, _ = self.projects()
+        for scope, expected in (('execute', True), ('content', False), ('read', False)):
+            tool = dict(id='b' * 32, user='owner', tenant='default', scope=scope, project_ids=[a['id']])
+            with self.subTest(scope=scope), self.context.acting('owner', tool):
+                self.assertIs(self.context.runtime_allowed('agent:member:owner'), expected)
+                self.assertFalse(self.context.runtime_allowed('agent:member:alice'))
+        tool = dict(id='c' * 32, user='alice', tenant='default', scope='execute', project_ids=[a['id']])
+        with self.context.acting('alice', tool):
+            self.assertFalse(self.context.runtime_allowed('agent:member:alice'))
+
     def test_workspace_symlink_and_unregistered_roots_fail_closed(self):
         a, b = self.projects()
         self.assertTrue(self.context.workspace_allowed(a['root']))

@@ -55,6 +55,7 @@ class ToolExecuteGatewayTests(unittest.TestCase):
         self.assertTrue(out['tool_connection']['execution'])
         self.assertIn('run_start', out['allowed_operations'])
         self.assertIn('ticket_hold', out['allowed_operations'])
+        self.assertEqual(out['engines'], self.call(owner, 'status', {}, execution=True)[1]['engines'])
         status, out = self.call(owner, 'ticket_hold', {'ticket': ticket['key'], 'hold': True, 'request_id': 'h1'})
         self.assertEqual(status, 200, out)
         self.assertEqual(self.hold(data, ticket['id']), 'owner')
@@ -69,6 +70,7 @@ class ToolExecuteGatewayTests(unittest.TestCase):
         self.assertNotIn('隔离', out.get('error', ''))
 
         content = self.grant('owner', project, 'content')
+        self.assertEqual(self.call(content, 'status', {})[1]['engines'], [])
         status, out = self.call(content, 'ticket_hold', {'ticket': ticket['key'], 'hold': True, 'request_id': 'c1'})
         self.assertEqual(status, 403, out)
         status, out = self.call(content, 'run_start', dict(start, request_id='c2'), execution=True)

@@ -411,7 +411,8 @@ def _execute(P, req, actor, operation, a):
             from .. import __version__
             return {'version': __version__, 'agent': actor,
                     'tool_connection': dict(tool, execution=tool['scope'] == 'execute'),
-                    'engines': [], 'allowed_operations': sorted(tool_access.allowed_operations(tool['scope'])),
+                    'engines': server.api_meta(P, _req(req, actor))['agents'] if tool['scope'] == 'execute' else [],
+                    'allowed_operations': sorted(tool_access.allowed_operations(tool['scope'])),
                     'boundaries': _boundaries(tool)}
         meta = server.api_meta(P, _req(req, actor))
         return {"version": meta["version"], "agent": actor, "workspace": str(P.data_dir),
@@ -538,6 +539,13 @@ def _execute(P, req, actor, operation, a):
                 pick_model(conf[a["engine"]], a["mode"], a.get("model"))
             except ValueError as exc:
                 raise ApiError(400, str(exc)) from exc
+            ctx = getattr(P.runner, "tenant_context", None)
+            if ctx and not ctx.runtime_allowed(actor):
+                from .agent_routes import resolve, step_agent
+                from .agents import engine_name
+                chosen_agent = resolve(P.data_dir, p, step_agent(P.data_dir, p, a["mode"], a["engine"]))
+                if a["mode"] != "fix" or chosen_agent not in conf or engine_name(chosen_agent, conf[chosen_agent]) != "codex":
+                    raise ApiError(409, "个人隔离执行当前只接受项目工单的官方 Codex 开发任务")
             base = ""
             requirement_hash = _requirement(t, st)
             if a["mode"] == "fix":
