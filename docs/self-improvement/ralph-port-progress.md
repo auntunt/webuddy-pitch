@@ -255,3 +255,5 @@
   - 工单详情的进度条：API 多返回 `stage`，进度条在阶段所在的那一步标「等你 / 等客户 / AI 在做 / 人工在做」，悬停显示阶段文案。
 - 行的先后沿用原来需求页和收件箱的判断顺序；两边原来顺序不一致的地方（例如已接管但最近一次运行失败）现在以收件箱为准：失败、待审阅、退回优先于已接管。自动执行本身（`Orchestra.next_step`、`waiting`）没改。
 - 测试：`tests/test_stage.py`（每条先后冲突一例，加进度条渲染），`test_workbench_states`、`test_recheck_summary`、收件箱用例照旧通过。
+- 补漏：Windows py3.13 CI 上，自动处理开着、调度器当下没给出下一步时，没动过的新单被判成「没有可自动执行的下一步」（idle）。改成没动过的 new/analyzing 单在自动处理开着时一律算排队（`queued`），`test_stage` 补了这一例。
+- 发布：PR #12 合并为 `413a7fc`，已发到生产（release `413a7fcdbb4c-ticket-stage-20261101`）。改动的运行文件：server.py、stage.py（新增）、ui.py、ui_css.py、workbench.py。服务器上解出的包里 `test_stage`、`test_workbench_states`、`test_recheck_summary` 共 26 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0。CI：Ubuntu 全过（py3.13 第一次挂在 harness probe 的已知抖动用例上，重跑通过）；Windows py3.11 的失败集合与基线一致；py3.13 基线那次跑到一半就超时，test_platform 的大部分用例没跑到，所以没法逐条对比，只确认了其中收件箱那一例是本次改动引起的，已修。
