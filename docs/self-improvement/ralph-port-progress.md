@@ -243,3 +243,4 @@
 - 自动受理（`_intake` 的 intake 事件）的 data 里写 `mandate`。AI 验收的 basis 里写 `mandate`，随签收进证据包、受 hash 约束；影子结论的事件 data 里也写一份。签收说明末尾写「授权：全自动（策略 xxxx，li 于 … 切换）」。
 - 策略在这单开始后改过：不中断，按现在的授权判断。basis 里记 `changed_from`（开工时的策略），说明里写「这单开始后授权改过（原策略 …），按现在的授权判断」。
 - 测试：`MandateTest`、`MandateOnVerdictTest`。
+- 发布：PR #10 合并为 `01746cd`，已发到生产（release `01746cdc6e44-mandate-20261101`），服务器上 `tests.test_ai_accept` 22 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，journal 里没有新报错。CI：Ubuntu 全过；Windows py3.11 全量这次 30 分钟超时，失败集合与基线 push run（同样超时）一致，没有新增。
