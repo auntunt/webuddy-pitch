@@ -1714,6 +1714,15 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertIn("删除", self.P.flow.fix_gate(p, gone, conf))
         self.assertIn("上限", self.P.flow.fix_gate(p, old_test, {"max_lines": 1}))
 
+    def test_fix_gate_keeps_a_fail_that_named_no_blocker_for_people(self):
+        run = Path(self.P.flow.data_dir) / "runs" / "987654"
+        run.mkdir(parents=True)
+        (run / "verify.json").write_text(json.dumps({"check": "skip", "verdict": "unknown", "vague_fail": True}), encoding="utf-8")
+        diff = "diff --git a/A.java b/A.java\n--- a/A.java\n+++ b/A.java\n-x\n+y\n"
+        self.assertIn("没说清阻断项", self.P.flow.fix_gate({"root": str(self.repo)}, diff, {"max_lines": 400}, 987654))
+        (run / "verify.json").write_text(json.dumps({"check": "skip", "verdict": "unknown"}), encoding="utf-8")
+        self.assertEqual(self.P.flow.fix_gate({"root": str(self.repo)}, diff, {"max_lines": 400}, 987654), "")
+
     def test_each_project_can_have_its_own_size_limit(self):
         big = "diff --git a/A.java b/A.java\n--- a/A.java\n+++ b/A.java\n" + "+x\n" * 50
         conf = {"max_lines": {"RW": 20000, "*": 10}}

@@ -270,5 +270,76 @@ class AgentRoutesTest(unittest.TestCase):
                 self.assertEqual(verdict, "pass" if diagnosed else "unknown")
 
 
+    def _diagnose_on_ticket(self, said, earlier=()):
+        from tmh.platform.fixloop import FixLoop
+        self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex",
+                    "allowed_agents": ["cloudwave-codex", "claude"], "steps": {"diagnose": "claude"}}}})
+        conf = {"cloudwave-codex": {"defaults": {}}, "claude": {"defaults": {"diagnose": "opus-x"}}}
+        blocker = {"ac": "A1 取消后恢复", "scenario": "第二次打开后取消 → 值没恢复", "where": "a.vue:3"}
+        for verdict in earlier:
+            verdict, said_then = verdict if isinstance(verdict, tuple) else (verdict, verdict)
+            old = self.store.create_run(self.project["id"], self.ticket["id"], "cloudwave-codex", "fix", "alice", "p")["id"]
+            self.store.update_run(old, status="done")
+            (self.data / "runs" / str(old)).mkdir(parents=True, exist_ok=True)
+            (self.data / "runs" / str(old) / "verify.json").write_text(json.dumps(
+                {"verdict": verdict, "diagnosis": {"verdict": said_then, "blocking": [blocker], "guide": "old guide"}}), encoding="utf-8")
+        rid = self.store.create_run(self.project["id"], self.ticket["id"], "cloudwave-codex", "fix", "alice", "p")["id"]
+        self.store.update_run(rid, status="running")
+        (self.data / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)
+        runner = Mock(data_dir=self.data, store=self.store)
+        runner.stop_reason.return_value = ""
+        runner.invoke.return_value = (0, "```tmh-diag\n%s\n```" % json.dumps(said, ensure_ascii=False))
+        diff = "diff --git a/a.vue b/a.vue\n--- a/a.vue\n+++ b/a.vue\n@@ -1 +1 @@\n-x\n+y\n"
+        with patch("tmh.platform.fixloop.git", return_value="abc\n"), patch("tmh.platform.fixloop.worktree_diff", return_value=diff), \
+                patch("tmh.platform.fixloop.learning_context_current", return_value=True):
+            loop = FixLoop(runner, rid, self.project, self.ticket, "cloudwave-codex", conf, "luna", False, "prompt", self.root)
+            loop.commands = Mock(return_value=([], "no build here"))
+            loop.whole = Mock()
+            loop.context = Mock(return_value="ticket")
+            _, summary = loop.run()
+        verify = json.loads((self.data / "runs" / str(rid) / "verify.json").read_text(encoding="utf-8"))
+        return verify, summary, runner.invoke.call_args.args[6]
+
+    def test_a_fail_that_names_no_blocker_is_no_verdict(self):
+        verify, _, _ = self._diagnose_on_ticket({"verdict": "fail", "blocking": [], "advisory": ["可能需要深拷贝"]})
+        self.assertEqual(verify["verdict"], "unknown")
+        self.assertNotIn("stalled", verify)
+
+    def test_blockers_without_a_criterion_or_scenario_are_no_blockers_and_wait_for_a_person(self):
+        verify, _, _ = self._diagnose_on_ticket({"verdict": "fail", "blocking": [{}, None, {"ac": "A1", "scenario": " "}]})
+        self.assertEqual(verify["verdict"], "unknown")
+        self.assertEqual(verify["diagnosis"]["verdict"], "unknown")
+        self.assertEqual(verify["diagnosis"]["blocking"], [])
+        self.assertTrue(verify["vague_fail"])
+
+    def test_failed_builds_with_passing_diagnoses_are_not_called_circling(self):
+        said = {"verdict": "fail", "blocking": [{"ac": "A2", "scenario": "x → y", "where": "a.vue:9"}]}
+        verify, _, _ = self._diagnose_on_ticket(said, earlier=(("fail", "pass"), ("fail", "pass")))
+        self.assertEqual(verify["verdict"], "fail")
+        self.assertNotIn("stalled", verify)
+
+    def test_a_doubt_is_advice_and_does_not_send_the_work_back(self):
+        verify, summary, _ = self._diagnose_on_ticket({"verdict": "pass", "blocking": [], "advisory": ["可能需要深拷贝"]})
+        self.assertEqual(verify["verdict"], "pass")
+        self.assertEqual(verify["diagnosis"]["advisory"], ["可能需要深拷贝"])
+        self.assertIn("建议（不影响结论）", summary)
+
+    def test_the_next_change_is_diagnosed_against_the_last_blockers_and_circling_is_called_out(self):
+        said = {"verdict": "fail", "blocking": [{"ac": "A2", "scenario": "切换记录后取消 → 显示上一条", "where": "a.vue:9"}]}
+        verify, summary, prompt = self._diagnose_on_ticket(said, earlier=("fail", "fail"))
+        self.assertIn("这张工单上一次修改（#2）的诊断", prompt)
+        self.assertIn("第二次打开后取消", prompt)
+        self.assertEqual(verify["verdict"], "fail")
+        self.assertEqual(verify["stalled"], 3)
+        self.assertIn("在兜圈子", summary)
+        self.assertIn("切换记录后取消", summary)
+
+    def test_one_earlier_pass_breaks_the_circle(self):
+        said = {"verdict": "fail", "blocking": [{"ac": "A2", "scenario": "x → y", "where": "a.vue:9"}]}
+        verify, _, prompt = self._diagnose_on_ticket(said, earlier=("fail", "pass"))
+        self.assertNotIn("stalled", verify)
+        self.assertNotIn("上一次修改", prompt)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -68,6 +68,8 @@ for(const status of ['running','failed','blocked'])for(const decision of ['', 'a
  assert.ok(!action.btns.includes('naVerify'));assert.ok(vfy(d.runs[0]).includes('旧验证结果已失效'));
  assert.ok(!flow.sub.verify.includes('等验收'));
 }
+assert.ok(vfy({verify:{check:'skip',verdict:'fail',stalled:3}}).includes('连续 3 次修改诊断都没通过，在兜圈子'));
+assert.ok(!vfy({verify:{check:'skip',verdict:'fail'}}).includes('兜圈子'));
 '''
         result = subprocess.run([shutil.which("node"), "-"], input=script, encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
