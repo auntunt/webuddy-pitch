@@ -13,6 +13,7 @@ from .store import now as _now
 
 # key, who, step, label, action: the rows in the order `decide` tries them
 TABLE = [
+    ("release_waiting", "person", "closed", "验收通过了，还没合并进主干", "重试合并"),
     ("shipped", "none", "closed", "已出版本", ""),
     ("closed", "none", "closed", "已关闭", ""),
     ("running", "agent", "", "AI 正在处理", "看实时过程"),
@@ -35,6 +36,7 @@ TABLE = [
     ("hold", "person", "", "已接管，自动处理暂停", "去处理"),
     ("epic_paused", "person", "", "大需求暂停", "去处理"),
     ("later", "agent", "", "排队", ""),
+    ("accepted", "person", "verify", "改动已提交到分支，等转待验证", "转待验证"),
     ("confirm", "person", "analyze", "分析出结论，等你确认", "看结论"),
     ("cancelled", "person", "", "运行已取消，等你继续", "去处理"),
     ("stalled", "person", "", "自动处理关着，没人接手", "去处理"),
@@ -55,7 +57,7 @@ def row(key: str, **extra) -> dict:
 def decide(t: dict, f: dict) -> dict:
     """Pure: the stage of ticket `t` from the facts `f` gathered by `compute` (all optional):
     last (latest non-ask run, with dl = diff length), live (a queued/running run), handwork_busy, check (the
-    hand-written submission's check), recovery, wait (pending re-verification), ev (sign-off state), version (released),
+    hand-written submission's check), release_wait (a closed ticket's merge that waits for a person), recovery, wait (pending re-verification), ev (sign-off state), version (released),
     auto, agent, stall (why nothing will start it), now, modes (run mode names), next_step (callable)."""
     r, live, ev, lk, s = f.get("last") or {}, f.get("live"), f.get("ev") or {}, t.get("links") or {}, t["status"]
     modes = f.get("modes") or {}
@@ -63,6 +65,8 @@ def decide(t: dict, f: dict) -> dict:
     manual = lk.get("handwork") or (lk.get("hold") if r.get("agent") == "人工" else "")
     recovery = f.get("recovery") or {}
     if s == "closed":
+        if f.get("release_wait"):
+            return row("release_waiting", note=f["release_wait"][:120], state="done")
         return row("shipped", label="已出版本 " + f["version"]) if f.get("version") else row("closed")
     if live:
         m = modes.get(live["mode"], "处理")
@@ -114,6 +118,8 @@ def decide(t: dict, f: dict) -> dict:
         return row("epic_paused", label="大需求暂停：" + lk["epic"]["paused"])
     if lk.get("later"):
         return row("later", label=lk["later"])
+    if r.get("mode") == "fix" and (r.get("decision") or "").startswith("accepted"):
+        return row("accepted", label="改动已提交到分支 %s，等转待验证" % r["decision"][9:].split("@")[0])
     if s == "confirm":
         return row("confirm")
     if r.get("status") == "cancelled":
@@ -155,6 +161,15 @@ def compute(P, tickets: list) -> dict:
         if run.get("agent") == "人工" and data.get("run") == run["id"] and data.get("verdict") in ("pass", "fail", "unknown"):
             checks[e["ticket_id"]] = data
     rel = _released(P, ids)
+    waits = {}
+    closed = [t["id"] for t in tickets if t["status"] == "closed"]
+    if closed:  # the latest word on merging: a release clears an earlier wait, a later wait (re-accepted) stands
+        for e in st.q("SELECT ticket_id, kind, body, data FROM events WHERE ticket_id IN (%s) AND kind IN ('release','flow') "
+                      "ORDER BY id" % ",".join("?" * len(closed)), closed):
+            if e["kind"] == "release":
+                waits.pop(e["ticket_id"], None)
+            elif (e.get("data") or {}).get("release") == "waiting":
+                waits[e["ticket_id"]] = e["body"] or "合并发布等人处理"
     conf = P.flow.autoflow()
     modes = dict(RUN_MODES)
     agents = {}
@@ -172,6 +187,7 @@ def compute(P, tickets: list) -> dict:
         agent, stall = agents[pk]
         f = {"now": now(), "last": r, "live": live.get(t["id"]), "modes": modes, "version": rel.get(t["id"], ""),
              "auto": bool(conf.get("on")), "agent": agent, "stall": stall, "check": checks.get(t["id"]),
+             "release_wait": waits.get(t["id"]),
              "next_step": lambda x, conf=conf: P.flow.next_step(x, conf)[0]}
         if t["status"] != "closed" and not f["live"]:
             f["handwork_busy"] = handwork.busy(k)

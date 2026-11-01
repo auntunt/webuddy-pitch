@@ -257,3 +257,9 @@
 - 测试：`tests/test_stage.py`（每条先后冲突一例，加进度条渲染），`test_workbench_states`、`test_recheck_summary`、收件箱用例照旧通过。
 - 补漏：Windows py3.13 CI 上，自动处理开着、调度器当下没给出下一步时，没动过的新单被判成「没有可自动执行的下一步」（idle）。改成没动过的 new/analyzing 单在自动处理开着时一律算排队（`queued`），`test_stage` 补了这一例。
 - 发布：PR #12 合并为 `413a7fc`，已发到生产（release `413a7fcdbb4c-ticket-stage-20261101`）。改动的运行文件：server.py、stage.py（新增）、ui.py、ui_css.py、workbench.py。服务器上解出的包里 `test_stage`、`test_workbench_states`、`test_recheck_summary` 共 26 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0。CI：Ubuntu 全过（py3.13 第一次挂在 harness probe 的已知抖动用例上，重跑通过）；Windows py3.11 的失败集合与基线一致；py3.13 基线那次跑到一半就超时，test_platform 的大部分用例没跑到，所以没法逐条对比，只确认了其中收件箱那一例是本次改动引起的，已修。
+
+### 工单详情「下一步」改由阶段表选卡；补「等合并发布」「改动已采用待转验证」
+
+- 工单详情的 `nextAction(d,f)` 现在先看 `d.stage.key`，按阶段挑对应的卡片（按钮、文案沿用原来那些分支），不再自己从头判断一遍；接口里没有 `stage` 的老数据照旧走原来的顺序。等你的阶段卡片前面加上阶段表的说法（如「li 已接管，自动处理暂停」），AI 在做的阶段直接显示阶段表的说法。
+- `stage.TABLE` 新增两行：`release_waiting`（已关单，但最近一次合并发布停在「等待」，排在已出版本之前，后来的 `release` 事件会清掉它）和 `accepted`（修改已采用到分支，单子还没转待验证）。收件箱把等合并发布的已关单也列进「等你处理」，但不计入未关单数。
+- 测试：`tests/test_stage.py` 新增阶段表两行的先后冲突、收件箱/工单接口/需求页三处一致（含发版后清掉等待）、Node 渲染下一步卡片（等合并、已出版本、退回、等签收、AI 在做、已接管、已采用、无 stage 的老数据）。本地 `test_platform`、`test_workbench*`、`test_ui_*`、`test_*_ui`、`test_stage` 等 543 个通过（就绪检查照旧排除）。

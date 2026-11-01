@@ -259,7 +259,8 @@ class Platform:
         keys = {x["id"]: x["key"] for x in ps}
         q = ",".join("?" * len(ids))
         tickets = st.q("SELECT id, project_id, num, title, status, priority, assignee, updated, links FROM tickets WHERE project_id IN (%s) "
-                       "AND status!='closed' AND links NOT LIKE '%s'" % (q, REFORM_LIKE), ids)
+                       "AND (status!='closed' OR id IN (SELECT ticket_id FROM events WHERE kind='flow' AND data LIKE '%%\"release\": \"waiting\"%%')) "
+                       "AND links NOT LIKE '%s'" % (q, REFORM_LIKE), ids)
         running = st.one("SELECT COUNT(*) n FROM runs WHERE project_id IN (%s) AND status IN ('queued','running') AND mode!='ask'" % q, ids)["n"]
         conf = self.flow.autoflow()
         try:
@@ -287,7 +288,7 @@ class Platform:
         order = lambda x: (self.PRI_RANK.get(x["priority"], 2), x["since"] or "")  # noqa: E731
         mine.sort(key=order)
         others.sort(key=order)
-        return {"mine": mine, "others": others, "running": running, "open": len(tickets), "agent": agent, "auto": bool(conf.get("on"))}
+        return {"mine": mine, "others": others, "running": running, "open": sum(t["status"] != "closed" for t in tickets), "agent": agent, "auto": bool(conf.get("on"))}
 
     # ------------------------------------------------------------ leader view
     # What the ops team got done, across every project, in numbers a manager can read at a glance. Everything is
