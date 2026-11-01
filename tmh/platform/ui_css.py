@@ -311,6 +311,7 @@ kbd{font:11px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;border:1px solid c
 .fsteps .dot{position:relative;z-index:1;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--panel);border:2px solid var(--line);color:var(--mut)}
 .fsteps li.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}.fsteps li.cur .dot{border-color:var(--acc);color:var(--acc);box-shadow:0 0 0 4px rgba(22,119,255,.12)}
 .fsteps li.bad .dot{border-color:var(--bad);color:var(--bad)}.fsteps li.skip{opacity:.45}
+.fsteps em.who{font-style:normal;font-size:11px;font-weight:600;padding:0 6px;border-radius:9px;background:var(--acc);color:#fff;line-height:17px}.fsteps em.who.client{background:#8b5cf6}.fsteps em.who.agent,.fsteps em.who.assignee{background:var(--mut)}
 .fsteps b{font-size:13px}.fsteps li.cur b{color:var(--acc)}.fsteps small{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .concl .c4,dl.c4{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px 12px;margin:0}
 dl.c4 dt{font-size:12.5px;color:var(--mut);padding-top:2px}dl.c4 dd{margin:0;min-width:0;overflow-wrap:anywhere;line-height:1.6}

@@ -288,7 +288,7 @@ async function paintInbox(){
   document.title=(d.mine.length?`(${d.mine.length}) `:'')+S.meta.brand;
   const PR={urgent:['bad','紧急'],high:['warn','高'],normal:['mute','中'],medium:['mute','中'],low:['mute','低']};
   // grouped by what is asked of you, the most pressing kind first; a group shows its 3 most urgent and folds the rest
-  const G=[['recheck','warn','重新验证待处理'],['returned','bad','甲方退回'],['rejected','bad','验收没通过'],['failed','bad','智能体没跑成'],['expired','warn','签收链接过期'],['verify','warn','等你验收'],['review','info','改好了，等你审阅'],['confirm','info','分析出结论，等你确认']];
+  const G=[['recheck','warn','重新验证待处理'],['returned','bad','甲方退回'],['rejected','bad','验收没通过'],['failed','bad','智能体没跑成'],['expired','warn','签收链接过期'],['verify','warn','等你验收'],['review','info','改好了，等你审阅'],['client_change','warn','客户改了验收标准'],['recovery_stuck','warn','客户答复没理解完'],['handwork_failed','bad','提交检查没通过'],['agent_request','info','CLI / MCP 等下一步'],['confirm','info','分析出结论，等你确认'],['hold','mute','已接管'],['epic_paused','mute','大需求暂停'],['cancelled','mute','运行已取消'],['idle','mute','等你决定下一步']];
   const gname=k=>(G.find(g=>g[0]===k)||[])[2];
   const row=x=>{const sub=[x.label!==gname(x.reason)?h(x.label):'',x.note?'“'+h(x.note)+'”':'',x.since?'等了 '+waited(x.since):'',h(x.assignee)].filter(Boolean).join(' · ');
     return `<a class="ibx" href="#/t/${h(x.key)}"><span class="ev-tag ${(PR[x.priority]||PR.normal)[0]}">${(PR[x.priority]||PR.normal)[1]}</span>
@@ -299,7 +299,7 @@ async function paintInbox(){
      <span class="sub">${d.running?`<span class="spin"></span> 智能体正在处理 ${d.running} 张`:''}</span></div>
    ${stalled.length?`<a class="ibx ibst" href="#/settings"><span class="ev-tag warn">没人接手</span><span class="grow" style="min-width:0"><b>${stalled.length} 张新工单不会自动开始</b><span class="sub ibw">${h(stalled[0].label)}。打开后会从各自停下的那一步接着做；也可以逐张手动开始。</span></span><span class="ibgo">${d.auto?'配置智能体':'去打开'} ›</span></a>`:''}
    ${d.mine.length?groups:`<div class="sub" style="padding:6px 0">现在没有要你处理的事。${d.running?'智能体在跑的工单有结果后，需要你的会出现在这里。':d.open?'在流转的工单都还没到需要人的那一步。':'新工单进来后，需要人的那一步会出现在这里。'}${!d.auto?' 自动处理现在关着，新工单要有人手动开始。':!d.agent?' 这台机器上还没有可用的智能体，新工单不会自动分析，到“设置”里配置一个。':''}</div>`}
-   ${d.others.length?`<details class="ibo"><summary class="sub">等甲方签收 ${d.others.length} 张</summary>${d.others.map(row).join('')}</details>`:''}</div>`;
+   ${d.others.length?`<details class="ibo"><summary class="sub">等客户 ${d.others.length} 张</summary>${d.others.map(row).join('')}</details>`:''}</div>`;
   box.querySelectorAll('.ibmore').forEach(b=>b.onclick=()=>{S.home.open[b.dataset.g]=1;paintInbox()})}
 function waited(ts){const m=Math.max(0,(Date.now()-new Date(ts.replace(' ','T')).getTime())/6e4);
   return m<60?Math.max(1,Math.round(m))+' 分钟':m<1440?Math.round(m/60)+' 小时':Math.round(m/1440)+' 天'}
@@ -471,8 +471,10 @@ function flowState(d){
     fix:fx?(fx.decision?(fx.decision.startsWith('accepted')?(adopted(d)&&adopted(d).auto?'已自动提交':'已采纳'):'已放弃'):fx.status==='done'?(fx.diff===''?'无改动':'待审阅'):({running:'进行中',queued:'排队',failed:'失败',cancelled:'已取消'}[fx.status]||'')):'',
     verify:review?'等待审阅最新改动':acc?h(acc.author)+' · '+(acc.kind==='accept'?'通过':'不通过'):t.status==='verify'?'等验收':'',closed:t.status==='closed'?ago(t.updated):''};
   if(t.status!=='closed'&&fx?.verify?.verification_current===false){sub.fix='实现记录保留';sub.verify=fx.recheck_wait?.status==='running'?'等待当前重新验证':'旧结果失效，检查回执';st.verify='todo'}
-  return {st,sub,an,pl,fx,live,acc,review}}
-function stepper(f){return `<ol class="fsteps">${FLOW.map(([k,l],i)=>`<li class="${f.st[k]}"><span class="dot">${f.st[k]==='done'?'✓':f.st[k]==='bad'?'!':i+1}</span><b>${l}</b><small>${f.sub[k]||(f.st[k]==='skip'?'跳过':'')}</small></li>`).join('')}</ol>`}
+  return {st,sub,an,pl,fx,live,acc,review,stage:d.stage||null}}
+// the stage table (tmh/platform/stage.py) says which step the ticket is at and who it waits for; the bar marks that step
+const WHO={person:'等你',client:'等客户',agent:'AI 在做',assignee:'人工在做'};
+function stepper(f){const g=f.stage,at=g&&g.step&&WHO[g.who]?g.step:'';return `<ol class="fsteps">${FLOW.map(([k,l],i)=>`<li class="${f.st[k]}${k===at?' now':''}"${k===at?` title="${h(g.label)}"`:''}><span class="dot">${f.st[k]==='done'?'✓':f.st[k]==='bad'?'!':i+1}</span><b>${l}</b>${k===at?`<em class="who ${h(g.who)}">${WHO[g.who]}</em>`:''}<small>${f.sub[k]||(f.st[k]==='skip'?'跳过':'')}</small></li>`).join('')}</ol>`}
 function defAgent(){return selectedProjectAgent(S.proj)}
 // Tickets run on their own until the change sits on its own branch; a person can take one over and hand it back.
 const MERGE_ON=()=>(S.meta.autoflow||{}).merge==='auto';

@@ -244,3 +244,14 @@
 - 策略在这单开始后改过：不中断，按现在的授权判断。basis 里记 `changed_from`（开工时的策略），说明里写「这单开始后授权改过（原策略 …），按现在的授权判断」。
 - 测试：`MandateTest`、`MandateOnVerdictTest`。
 - 发布：PR #10 合并为 `01746cd`，已发到生产（release `01746cdc6e44-mandate-20261101`），服务器上 `tests.test_ai_accept` 22 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，journal 里没有新报错。CI：Ubuntu 全过；Windows py3.11 全量这次 30 分钟超时，失败集合与基线 push run（同样超时）一致，没有新增。
+
+## 2026-11-01 工单阶段判定表（借鉴 dsh-superagent 的确定性 Ticket 阶段）
+
+- 第 4 项：工单「在等谁」只由一张表算出来。`tmh/platform/stage.py` 的 `TABLE` 从上往下逐行判断，第一条成立的就是当前阶段；每行写明 `who`（person 等团队 / client 等客户 / agent 自动流转或检查在做 / assignee 接手人在写 / none 已结束）、`step`（进度条上对应哪一步）、文案和动作。
+- `decide(t, facts)` 是纯函数；`compute(P, tickets)` 批量取齐事实（最新运行、在跑运行、我来写的检查、补全恢复、重新验证、签收状态、已发版本、自动处理和智能体是否可用）后逐张判定。
+- 三处改成读这张表：
+  - 首页「等你处理」（`Platform.inbox`）：`who=person` 进「等你处理」，`who=client` 进「等客户」。原来不在收件箱里、但在需求页显示为「等你看」的阶段（已接管、运行已取消、CLI/MCP 等下一步、提交检查没通过、客户改了验收标准、补全没理解完、大需求暂停、没有可自动执行的下一步）现在也列出来，数字和列表一致。
+  - 需求、客户页和工单页顶部的状态（`workbench.states`）：由阶段的 `who` 映射成 等你看 / 等客户确认 / 做着 / 已出版本 / 已完成，说明文字就是阶段文案。
+  - 工单详情的进度条：API 多返回 `stage`，进度条在阶段所在的那一步标「等你 / 等客户 / AI 在做 / 人工在做」，悬停显示阶段文案。
+- 行的先后沿用原来需求页和收件箱的判断顺序；两边原来顺序不一致的地方（例如已接管但最近一次运行失败）现在以收件箱为准：失败、待审阅、退回优先于已接管。自动执行本身（`Orchestra.next_step`、`waiting`）没改。
+- 测试：`tests/test_stage.py`（每条先后冲突一例，加进度条渲染），`test_workbench_states`、`test_recheck_summary`、收件箱用例照旧通过。
