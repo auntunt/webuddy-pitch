@@ -288,7 +288,7 @@ async function paintInbox(){
   document.title=(d.mine.length?`(${d.mine.length}) `:'')+S.meta.brand;
   const PR={urgent:['bad','紧急'],high:['warn','高'],normal:['mute','中'],medium:['mute','中'],low:['mute','低']};
   // grouped by what is asked of you, the most pressing kind first; a group shows its 3 most urgent and folds the rest
-  const G=[['recheck','warn','重新验证待处理'],['returned','bad','甲方退回'],['rejected','bad','验收没通过'],['failed','bad','智能体没跑成'],['expired','warn','签收链接过期'],['verify','warn','等你验收'],['review','info','改好了，等你审阅'],['client_change','warn','客户改了验收标准'],['recovery_stuck','warn','客户答复没理解完'],['handwork_failed','bad','提交检查没通过'],['agent_request','info','CLI / MCP 等下一步'],['confirm','info','分析出结论，等你确认'],['hold','mute','已接管'],['epic_paused','mute','大需求暂停'],['cancelled','mute','运行已取消'],['idle','mute','等你决定下一步']];
+  const G=[['recheck','warn','重新验证待处理'],['returned','bad','甲方退回'],['rejected','bad','验收没通过'],['failed','bad','智能体没跑成'],['expired','warn','签收链接过期'],['verify','warn','等你验收'],['review','info','改好了，等你审阅'],['accepted','info','改动已提交，等转待验证'],['release_waiting','warn','验收通过，等合并'],['client_change','warn','客户改了验收标准'],['recovery_stuck','warn','客户答复没理解完'],['handwork_failed','bad','提交检查没通过'],['agent_request','info','CLI / MCP 等下一步'],['confirm','info','分析出结论，等你确认'],['hold','mute','已接管'],['epic_paused','mute','大需求暂停'],['cancelled','mute','运行已取消'],['idle','mute','等你决定下一步']];
   const gname=k=>(G.find(g=>g[0]===k)||[])[2];
   const row=x=>{const sub=[x.label!==gname(x.reason)?h(x.label):'',x.note?'“'+h(x.note)+'”':'',x.since?'等了 '+waited(x.since):'',h(x.assignee)].filter(Boolean).join(' · ');
     return `<a class="ibx" href="#/t/${h(x.key)}"><span class="ev-tag ${(PR[x.priority]||PR.normal)[0]}">${(PR[x.priority]||PR.normal)[1]}</span>
@@ -489,14 +489,22 @@ function autoChip(d){const t=d.ticket;if(!(S.meta.autoflow||{}).on||['verify','c
   if(!held&&lk.open_ac)return `<span class="autoc off" title="验收标准有待确认的，答清楚前不自动开始">等客户确认</span>`;
   if(!held&&lk.later)return `<span class="autoc off" title="${h(lk.later)}">${d.epic?'大需求父单':'排队等前一批'}</span>`;
   return `<span class="autoc ${held?'off':''}" title="${held?'自动处理已暂停，由人处理':'智能体会自动分析、出方案、在独立分支上改代码并提交，停在等人验收'}">${held?'人工处理中':'自动处理中'}<button class="link" data-hold="${held?0:1}">${held?'交回自动':'接管'}</button></span>`}
+// The ticket's next step, one card. The stage table (tmh/platform/stage.py, d.stage) picks which card; each card
+// only words it and offers its buttons. Without a stage (an old payload) the cards are tried in the table's order.
 function nextAction(d,f){
   const t=d.ticket,pr=(S.points&&S.points.prices)||{},cost=m=>pr[m]?`（${pr[m]} 点）`:'';
   const B=(id,label,cls)=>`<button id="${id}" class="${cls||''}">${label}</button>`;
   const auto=onAuto(d),br=adopted(d);
-  if(f.live)return {tone:'info',text:`<span class="spin"></span> 智能体正在${h(moLabel(f.live.mode))}${auto&&f.live.author==='自动流转'?'，跑完会自动接着往下做，直到提交到独立分支等你验收':'，完成后这里会给出下一步'}。`,btns:B('naLog','看实时过程','ghost')+(auto?`<button class="ghost" data-hold="1">接管</button>`:'')};
-  if(t.status!=='closed'&&f.fx?.verify?.verification_current===false){const waiting=f.fx.recheck_wait;return {tone:waiting?.status==='running'?'info':'warn',text:h(waiting?.why||'旧验证结果已失效；请查看当前重新验证记录或检查停止回执。')+'。原实现记录保留，当前不能按旧结果采纳或签收。',btns:B('naReview','查看当前重新验证','primary')}};
   const ir=d.intake_recovery;
-  if(t.status!=='closed'&&ir&&['failed','blocked','running'].includes(ir.status)){
+  const lt=(t.links||{}).later;  // held off the line by an app: a feature's parent, or a child waiting for its batch
+  const hw=(t.links||{}).handwork,memberFix=typeof accessCanMemberFix==='function'&&accessCanMemberFix(d.project.key)&&!accessCanExecute(d.project.key);
+  const hwe=(d.events||[]).filter(e=>e.author==='我来写').pop();
+  const hwr=(d.runs||[]).find(r=>r.mode!=='ask'),hwc=hwr&&hwr.agent==='人工'&&(d.events||[]).filter(e=>e.author==='我来写'&&e.kind==='flow'&&(e.data||{}).run===hwr.id&&['pass','fail','unknown'].includes((e.data||{}).verdict)).pop();
+  const oa=(t.links||{}).open_ac;
+  const H={
+  live:()=>{if(f.live)return {tone:'info',text:`<span class="spin"></span> 智能体正在${h(moLabel(f.live.mode))}${auto&&f.live.author==='自动流转'?'，跑完会自动接着往下做，直到提交到独立分支等你验收':'，完成后这里会给出下一步'}。`,btns:B('naLog','看实时过程','ghost')+(auto?`<button class="ghost" data-hold="1">接管</button>`:'')};},
+  recheck:()=>{if(t.status!=='closed'&&f.fx?.verify?.verification_current===false){const waiting=f.fx.recheck_wait;return {tone:waiting?.status==='running'?'info':'warn',text:h(waiting?.why||'旧验证结果已失效；请查看当前重新验证记录或检查停止回执。')+'。原实现记录保留，当前不能按旧结果采纳或签收。',btns:B('naReview','查看当前重新验证','primary')}};},
+  recovery:()=>{if(t.status!=='closed'&&ir&&['failed','blocked','running'].includes(ir.status)){
     const answers=(ir.items||[]).flatMap(it=>(it.answers||[]).map(a=>`<div style="margin-top:6px;white-space:pre-wrap">${h(a.question)}<br><b>${h(a.value)}</b> <span class="sub">${h(a.from||'')}</span></div>`)).join('');
     const history=(ir.attempts||[]).map(a=>`<div style="margin-top:6px;white-space:pre-wrap">${h(a.at||'')}${a.run?' · 运行 #'+h(a.run):''}：${h(a.reason||a.status||'')}</div>`).join('');
     return {tone:ir.status==='running'?'info':'warn',text:(ir.status==='running'?'<span class="spin"></span> 正在根据已保存答复补全验收标准。':'<b>客户答复已保存，再理解未完成。</b> 请处理已保存的答复。')+
@@ -504,41 +512,54 @@ function nextAction(d,f){
       (ir.status!=='running'&&(ir.blocked||[]).length?'<div style="white-space:pre-wrap">'+ir.blocked.map(h).join('<br>')+'</div>':'')+
       (answers||history||ir.reason?'<details style="margin-top:8px"><summary>查看已保存答复与处理记录</summary>'+(ir.reason?'<div style="white-space:pre-wrap">'+h(ir.reason)+'</div>':'')+answers+history+'</details>':''),
       btns:(ir.can_retry?B('naIntakeRetry','重试理解已保存答复','primary'):'')+(ir.run?B('naIntakeLog','查看理解运行','ghost'):'')};
-  }
-  const lt=(t.links||{}).later;  // held off the line by an app: a feature's parent, or a child waiting for its batch
-  if(d.epic&&t.status==='closed')return {tone:'ok',text:'大需求已整体验收通过，全部完成。要再改，请提一个新的需求。'};
-  if(lt&&t.status!=='closed'){if(d.epic&&t.status==='verify')return {tone:'warn',text:'全部子单都完成了，<b>等你整体验收</b>：对照规格卡的整体验收标准和每个子单的版本验证。通过就关闭这个大需求；不通过写明原因，会自动开一个跟进子单按原因重改。',acc:true};
-    return {tone:'info',text:d.epic?'大需求的父单不直接改代码：子单分批放出、各自验收，全部完成后回到这里整体验收。':h(lt)+'。'}}
-  if((t.links||{}).client_change&&t.status!=='closed')return {tone:'warn',text:'客户的答复会<b>改动已经确认的验收标准</b>（改了什么见下面的动态）。采用后按新标准继续；不采用就按原来确认的标准。在你决定之前不自动开工。',
-    btns:B('naCcYes','采用客户的改动','primary')+B('naCcNo','不采用，按原标准','ghost')};
-  const hw=(t.links||{}).handwork,memberFix=typeof accessCanMemberFix==='function'&&accessCanMemberFix(d.project.key)&&!accessCanExecute(d.project.key);
-  if((t.links||{}).agent_request&&!['verify','closed'].includes(t.status))return {tone:'info',text:'<b>已接入 CLI / MCP。</b> 需求和沟通记录已保存，等待助手明确启动下一步。可从外部助手读取任务、留言交接、启动运行并查看证据；不会自动接收分支或把消息当作人工验收。'+(f.fx?' 已有实现结果，请在执行记录中核对测试与改动。':'')};
-  const hwe=(d.events||[]).filter(e=>e.author==='我来写').pop();
-  const hwr=(d.runs||[]).find(r=>r.mode!=='ask'),hwc=hwr&&hwr.agent==='人工'&&(d.events||[]).filter(e=>e.author==='我来写'&&e.kind==='flow'&&(e.data||{}).run===hwr.id&&['pass','fail','unknown'].includes((e.data||{}).verdict)).pop();
-  if(hw&&!memberFix&&!['verify','closed'].includes(t.status)&&hwe&&hwe.kind==='flow'&&/^收到/.test(hwe.body||''))return {tone:'info',text:`<span class="spin"></span> ${h(hwe.body)}：构建测试、对照验收标准审查，通过就转待验证。`};
-  if(hw&&!memberFix&&!['verify','closed'].includes(t.status)&&hwc&&['fail','unknown'].includes(hwc.data.verdict))return {tone:'bad',text:h(hwc.body),btns:B('naHwScan','改好推上去了，现在检查','primary')};
-  if(hw&&!memberFix&&!['verify','closed'].includes(t.status))return {tone:'info',text:`<b>${h(hw)} 在写</b>：按开工包在自己电脑上改（Claude Code、Codex 或手写都行），提交到分支 <code>wb/${h(t.key)}</code> 推上去。平台一分钟内发现，自动构建测试、换一个模型对照验收标准审查，通过就转待验证；自动处理不会接这张单。`,
-    btns:B('naHwPack','下载开工包','primary')+B('naHwScan','推好了，现在检查','ghost')};
-  const oa=(t.links||{}).open_ac;
-  if(oa&&!(t.links||{}).hold&&!['verify','closed'].includes(t.status)&&!f.live)return {tone:'warn',text:`有 <b>${oa} 条验收标准还待确认</b>，答清楚之前不自动开始。把问题发给客户，客户答完验收标准自动补全${(S.meta.autoflow||{}).on?'、自动开始':''}；你已经和客户确认过，也可以直接交给自动处理。`,
-    btns:B('naAsk','把问题发给客户','primary')+B('naGo','已确认，交给自动处理','ghost')+B('naClaim','我来写','ghost')};
-  if(auto&&d.auto_next&&!f.live&&!(d.events.slice(-1)[0]||{}).body?.startsWith('交给自动处理'))return {tone:'info',text:`这张工单还没走自动处理（自动处理只接新进来的工单）。交给它后从“${{analyze:'分析定位',plan:'修改方案',fix:'修改代码',commit:'提交改动'}[d.auto_next]}”接着做，停在等你验收。`,btns:B('naGo','交给自动处理','primary')+'<button class="ghost" data-hold="1">我自己处理</button>'};
-  if(auto&&['new','analyzing'].includes(t.status)&&!f.an)return {tone:'info',text:'<span class="spin"></span> 已自动受理，智能体马上开始分析定位，之后会自动出方案、改代码并提交到独立分支，停在等你验收。',btns:'<button class="ghost" data-hold="1">接管</button>'};
-  if(t.status==='closed'){const ev=d.events||[],rl=ev.filter(e=>e.kind==='release').slice(-1)[0],wt=ev.filter(e=>e.kind==='flow'&&(e.data||{}).release==='waiting').slice(-1)[0];
+  }},
+  epicClosed:()=>{if(d.epic&&t.status==='closed')return {tone:'ok',text:'大需求已整体验收通过，全部完成。要再改，请提一个新的需求。'};},
+  later:()=>{if(lt&&t.status!=='closed'){if(d.epic&&t.status==='verify')return {tone:'warn',text:'全部子单都完成了，<b>等你整体验收</b>：对照规格卡的整体验收标准和每个子单的版本验证。通过就关闭这个大需求；不通过写明原因，会自动开一个跟进子单按原因重改。',acc:true};
+    return {tone:'info',text:d.epic?'大需求的父单不直接改代码：子单分批放出、各自验收，全部完成后回到这里整体验收。':h(lt)+'。'}}},
+  clientChange:()=>{if((t.links||{}).client_change&&t.status!=='closed')return {tone:'warn',text:'客户的答复会<b>改动已经确认的验收标准</b>（改了什么见下面的动态）。采用后按新标准继续；不采用就按原来确认的标准。在你决定之前不自动开工。',
+    btns:B('naCcYes','采用客户的改动','primary')+B('naCcNo','不采用，按原标准','ghost')};},
+  agentRequest:()=>{if((t.links||{}).agent_request&&!['verify','closed'].includes(t.status))return {tone:'info',text:'<b>已接入 CLI / MCP。</b> 需求和沟通记录已保存，等待助手明确启动下一步。可从外部助手读取任务、留言交接、启动运行并查看证据；不会自动接收分支或把消息当作人工验收。'+(f.fx?' 已有实现结果，请在执行记录中核对测试与改动。':'')};},
+  hwBusy:()=>{if(hw&&!memberFix&&!['verify','closed'].includes(t.status)&&hwe&&hwe.kind==='flow'&&/^收到/.test(hwe.body||''))return {tone:'info',text:`<span class="spin"></span> ${h(hwe.body)}：构建测试、对照验收标准审查，通过就转待验证。`};},
+  hwFailed:()=>{if(hw&&!memberFix&&!['verify','closed'].includes(t.status)&&hwc&&['fail','unknown'].includes(hwc.data.verdict))return {tone:'bad',text:h(hwc.body),btns:B('naHwScan','改好推上去了，现在检查','primary')};},
+  hwWriting:()=>{if(hw&&!memberFix&&!['verify','closed'].includes(t.status))return {tone:'info',text:`<b>${h(hw)} 在写</b>：按开工包在自己电脑上改（Claude Code、Codex 或手写都行），提交到分支 <code>wb/${h(t.key)}</code> 推上去。平台一分钟内发现，自动构建测试、换一个模型对照验收标准审查，通过就转待验证；自动处理不会接这张单。`,
+    btns:B('naHwPack','下载开工包','primary')+B('naHwScan','推好了，现在检查','ghost')};},
+  openAc:()=>{if(oa&&!(t.links||{}).hold&&!['verify','closed'].includes(t.status)&&!f.live)return {tone:'warn',text:`有 <b>${oa} 条验收标准还待确认</b>，答清楚之前不自动开始。把问题发给客户，客户答完验收标准自动补全${(S.meta.autoflow||{}).on?'、自动开始':''}；你已经和客户确认过，也可以直接交给自动处理。`,
+    btns:B('naAsk','把问题发给客户','primary')+B('naGo','已确认，交给自动处理','ghost')+B('naClaim','我来写','ghost')};},
+  autoNext:()=>{if(auto&&d.auto_next&&!f.live&&!(d.events.slice(-1)[0]||{}).body?.startsWith('交给自动处理'))return {tone:'info',text:`这张工单还没走自动处理（自动处理只接新进来的工单）。交给它后从“${{analyze:'分析定位',plan:'修改方案',fix:'修改代码',commit:'提交改动'}[d.auto_next]}”接着做，停在等你验收。`,btns:B('naGo','交给自动处理','primary')+'<button class="ghost" data-hold="1">我自己处理</button>'};},
+  autoNew:()=>{if(auto&&['new','analyzing'].includes(t.status)&&!f.an)return {tone:'info',text:'<span class="spin"></span> 已自动受理，智能体马上开始分析定位，之后会自动出方案、改代码并提交到独立分支，停在等你验收。',btns:'<button class="ghost" data-hold="1">接管</button>'};},
+  closed:()=>{if(t.status==='closed'){const ev=d.events||[],rl=ev.filter(e=>e.kind==='release').slice(-1)[0],wt=ev.filter(e=>e.kind==='flow'&&(e.data||{}).release==='waiting').slice(-1)[0];
     const hold=wt&&(!rl||wt.id>rl.id);
     return {tone:hold?'warn':'ok',text:`已闭环${f.acc&&f.acc.kind==='accept'?'：'+h(f.acc.author)+' 验收通过':''}。`+(rl&&!hold?h(rl.body)+'。':'')+(hold?'<b>'+h(wt.body)+'</b>':''),
-      btns:(hold?B('naShip','重试合并','primary'):'')+B('naReopen','重新打开','ghost')}}
-  if(f.review){const why=d.events.filter(e=>e.kind==='flow'&&(e.data||{}).run===f.fx.id).pop();
-    return {tone:'warn',text:`运行 #${h(f.fx.id)}：`+vfy(f.fx)+(why?h(why.body.replace(/^改动已生成，/,'').replace(/，留给人审阅后再提交$/,''))+'，所以没有自动提交。':'智能体改好了代码，')+'<b>等你审阅</b>。采纳后提交到独立分支，不动你的工作目录。',btns:B('naReview','审阅改动','primary')}}
-  if(!['verify','closed'].includes(t.status)&&!f.live&&f.fx&&f.fx.status==='done'&&!f.fx.decision&&f.fx.diff_bytes===0)return {tone:'warn',text:`运行 #${h(f.fx.id)}：智能体<b>没有改任何代码</b>，原因见执行结论。可以补充信息后重新出方案，或自己改完转待验证。`,btns:B('naLog','查看执行结论','primary')+B('naPlan','重新出方案','ghost')};
-  if(t.status==='verify')return {tone:'warn',text:(f.fx&&f.fx.verify?vfy(f.fx)+' ':'')+(br?`改动${br.auto?'已自动':'已'}提交到分支 <code>${h(br.branch)}</code>（提交 ${h(br.commit)}，主干还没动）。`:'改动已就绪，')+'<b>等你验收</b>：按业务操作实际验证。'+(MERGE_ON()?'通过后自动合并进主干、出一个新版本；':'通过后由人合并分支；')+'不通过写明原因，退回重改。',acc:true};
-  if(f.fx&&f.fx.decision&&f.fx.decision.startsWith('accepted'))return {tone:'info',text:`改动已提交到分支 <code>${h(f.fx.decision.slice(9).split('@')[0])}</code>。转给验收人${MERGE_ON()?'，验收通过后自动合并进主干':'，验收通过后由人合并'}。`,btns:B('naVerify','转待验证','primary')};
-  if(['failed','cancelled'].includes(d.runs[0]?.status))return {tone:'bad',text:'最近一次'+h(moLabel(d.runs[0].mode))+'未完成。已有改动和执行记录保留，请查看停止原因后继续处理。',btns:B('naLog','查看停止原因与恢复入口','primary')};
-  if(hw&&memberFix){const mine=hw===(S.meta.user||S.user);return {tone:'info',text:`<b>${h(hw)} 已接手</b>。${mine?'在本站选择 Codex 并点击“修改代码”。完成后查看改动和检查结果，再交给复核人。':'由负责人在本站使用 Codex 修改代码，完成后交给复核人。'}人工验收仍需实际操作确认。`,btns:mine?B('naFix','用 Codex 修改代码','primary'):B('naLog','查看执行记录','ghost')}};
-  if(f.pl&&f.pl.status==='done')return {tone:'info',text:'修改方案已经出来了（见下方结论）。下一步是改代码：可以交给智能体，也可以自己改完转待验证。',btns:B('naFix','让智能体改代码'+cost('fix'),'primary')+B('naVerify','我自己改，改完转待验证','ghost')};
-  if(f.an&&f.an.status==='done')return {tone:'info',text:d.evidence.refs?`已定位到 ${d.evidence.refs} 处代码。下一步：起草修改方案，确认改法后再动代码。`:'分析没有找到代码证据，先在讨论里补充信息（单据号、截图、报错），再重新分析。',btns:d.evidence.refs?B('naPlan','起草修改方案'+cost('plan'),'primary')+B('naFix','直接改代码'+cost('fix'),'ghost'):B('naAn','重新分析定位'+cost('analyze'),'primary')};
-  if(f.an&&f.an.status==='failed')return {tone:'bad',text:'上一次分析定位失败了（原因见执行记录）。',btns:B('naAn','重新分析定位'+cost('analyze'),'primary')+B('naLog','看失败原因','ghost')};
-  return {tone:'info',text:'还没有分析。交给智能体先定位到业务和代码。',btns:B('naAn','分析定位'+cost('analyze'),'primary')}}
+      btns:(hold?B('naShip','重试合并','primary'):'')+B('naReopen','重新打开','ghost')}}},
+  review:()=>{if(f.review){const why=d.events.filter(e=>e.kind==='flow'&&(e.data||{}).run===f.fx.id).pop();
+    return {tone:'warn',text:`运行 #${h(f.fx.id)}：`+vfy(f.fx)+(why?h(why.body.replace(/^改动已生成，/,'').replace(/，留给人审阅后再提交$/,''))+'，所以没有自动提交。':'智能体改好了代码，')+'<b>等你审阅</b>。采纳后提交到独立分支，不动你的工作目录。',btns:B('naReview','审阅改动','primary')}}},
+  noDiff:()=>{if(!['verify','closed'].includes(t.status)&&!f.live&&f.fx&&f.fx.status==='done'&&!f.fx.decision&&f.fx.diff_bytes===0)return {tone:'warn',text:`运行 #${h(f.fx.id)}：智能体<b>没有改任何代码</b>，原因见执行结论。可以补充信息后重新出方案，或自己改完转待验证。`,btns:B('naLog','查看执行结论','primary')+B('naPlan','重新出方案','ghost')};},
+  verify:()=>{if(t.status==='verify')return {tone:'warn',text:(f.fx&&f.fx.verify?vfy(f.fx)+' ':'')+(br?`改动${br.auto?'已自动':'已'}提交到分支 <code>${h(br.branch)}</code>（提交 ${h(br.commit)}，主干还没动）。`:'改动已就绪，')+'<b>等你验收</b>：按业务操作实际验证。'+(MERGE_ON()?'通过后自动合并进主干、出一个新版本；':'通过后由人合并分支；')+'不通过写明原因，退回重改。',acc:true};},
+  accepted:()=>{if(f.fx&&f.fx.decision&&f.fx.decision.startsWith('accepted'))return {tone:'info',text:`改动已提交到分支 <code>${h(f.fx.decision.slice(9).split('@')[0])}</code>。转给验收人${MERGE_ON()?'，验收通过后自动合并进主干':'，验收通过后由人合并'}。`,btns:B('naVerify','转待验证','primary')};},
+  failed:()=>{if(['failed','cancelled'].includes(d.runs[0]?.status))return {tone:'bad',text:'最近一次'+h(moLabel(d.runs[0].mode))+'未完成。已有改动和执行记录保留，请查看停止原因后继续处理。',btns:B('naLog','查看停止原因与恢复入口','primary')};},
+  memberFix:()=>{if(hw&&memberFix){const mine=hw===(S.meta.user||S.user);return {tone:'info',text:`<b>${h(hw)} 已接手</b>。${mine?'在本站选择 Codex 并点击“修改代码”。完成后查看改动和检查结果，再交给复核人。':'由负责人在本站使用 Codex 修改代码，完成后交给复核人。'}人工验收仍需实际操作确认。`,btns:mine?B('naFix','用 Codex 修改代码','primary'):B('naLog','查看执行记录','ghost')}};},
+  plan:()=>{if(f.pl&&f.pl.status==='done')return {tone:'info',text:'修改方案已经出来了（见下方结论）。下一步是改代码：可以交给智能体，也可以自己改完转待验证。',btns:B('naFix','让智能体改代码'+cost('fix'),'primary')+B('naVerify','我自己改，改完转待验证','ghost')};},
+  analyzed:()=>{if(f.an&&f.an.status==='done')return {tone:'info',text:d.evidence.refs?`已定位到 ${d.evidence.refs} 处代码。下一步：起草修改方案，确认改法后再动代码。`:'分析没有找到代码证据，先在讨论里补充信息（单据号、截图、报错），再重新分析。',btns:d.evidence.refs?B('naPlan','起草修改方案'+cost('plan'),'primary')+B('naFix','直接改代码'+cost('fix'),'ghost'):B('naAn','重新分析定位'+cost('analyze'),'primary')};},
+  anFailed:()=>{if(f.an&&f.an.status==='failed')return {tone:'bad',text:'上一次分析定位失败了（原因见执行记录）。',btns:B('naAn','重新分析定位'+cost('analyze'),'primary')+B('naLog','看失败原因','ghost')};},
+  start:()=>{return {tone:'info',text:'还没有分析。交给智能体先定位到业务和代码。',btns:B('naAn','分析定位'+cost('analyze'),'primary')}},
+  rejectedBack:()=>({tone:'bad',text:`<b>${h(g.label)}</b>${g.note?'：“'+h(g.note)+'”':''}。已有改动和证据保留；按退回原因重新出方案或直接改，改完再转待验证。`,btns:B('naPlan','按退回原因重新出方案'+cost('plan'),'primary')+B('naFix','直接改代码'+cost('fix'),'ghost')}),
+  };
+  const g=d.stage,pick=ns=>{for(const n of ns){const r=H[n]();if(r)return r}};
+  const LEGACY=['live','recheck','recovery','epicClosed','later','clientChange','agentRequest','hwBusy','hwFailed','hwWriting','openAc','autoNext','autoNew','closed','review','noDiff','verify','accepted','failed','memberFix','plan','analyzed','anFailed','start'];
+  if(!g)return pick(LEGACY);
+  const PROGRESS=['noDiff','accepted','failed','memberFix','plan','analyzed','anFailed','start'];
+  const ROUTE={running:['live'],recheck:['recheck'],recovering:['recovery'],recovery_stuck:['recovery'],client_change:['clientChange'],
+    open_ac:['openAc'],agent_request:['agentRequest'],handwork_check:['hwBusy','memberFix'],handwork_failed:['hwFailed','memberFix'],
+    handwork:['hwWriting','memberFix'],release_waiting:['epicClosed','closed'],shipped:['epicClosed','closed'],closed:['epicClosed','closed'],
+    review:['review'],verify:['later','verify'],signing:['verify'],expired:['verify'],returned:['rejectedBack'],rejected:['rejectedBack'],
+    failed:['failed'],cancelled:['failed'],later:['later'],accepted:['accepted'],queued:['autoNext','autoNew']};
+  const r=pick(ROUTE[g.key]||[]);
+  // signing / expired: the verify card plus who it waits on; queued with nothing the auto line words: say so
+  if(r)return ['signing','expired'].includes(g.key)?Object.assign({},r,{text:`<b>${h(g.label)}</b>。`+r.text}):r;
+  if(g.who==='agent')return {tone:'info',text:`<span class="spin"></span> ${h(g.label)}。`,btns:onAuto(d)?'<button class="ghost" data-hold="1">接管</button>':''};
+  const p=pick(PROGRESS);
+  // taken over, paused, or nobody will start it: say why above the manual next step
+  return ['hold','epic_paused','stalled'].includes(g.key)&&p?Object.assign({},p,{text:`<b>${h(g.label)}</b>。`+p.text}):p}
 // Pull one section out of an agent's answer ("结论", "方案概要"...), as plain text for the conclusion card.
 function secOf(text,names){
   const L=(text||'').split('\n'),hd=/^\s*(#{1,4}\s+|\*\*|【)?\s*(\d+[.、)]\s*)?/;
