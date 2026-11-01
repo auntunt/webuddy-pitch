@@ -139,6 +139,16 @@ def blockers(items) -> list:
     return [b for b in items or [] if isinstance(b, dict) and str(b.get("ac") or "").strip() and str(b.get("scenario") or "").strip()]
 
 
+def settle_fail(diag: dict, said: str) -> tuple:
+    """A fail must name what it blocks on. Only diagnoses from before the "blocking" field keep a bare fail."""
+    if "blocking" not in diag:
+        return said, False
+    diag["blocking"] = blockers(diag["blocking"] if isinstance(diag["blocking"], list) else [])
+    if said == "fail" and not diag["blocking"]:
+        return "unknown", True
+    return said, False
+
+
 def settings(data_dir: Path) -> dict:
     conf = {"check": "", "rounds": 3, "check_timeout": 1200, "recheck_timeout": 0, "max_files": 16, "split_from": 5}
     f = Path(data_dir) / "autoflow.json"
@@ -555,12 +565,9 @@ class FixLoop:
                 break
             diag = self.diagnose(diff, res, skip, diag)
             said = str(diag.get("verdict", "")).lower()
-            vague = False
-            if isinstance(diag.get("blocking"), list):  # older diagnoses have no "blocking" and keep their fail
-                diag["blocking"] = blockers(diag["blocking"])
-                if said == "fail" and not diag["blocking"]:
-                    said, vague = "unknown", True  # a fail that names nothing it blocks on cannot send the work back
-                    self.say("诊断判了不通过，但没有列出阻断项，按没有给出结论处理，留给人看")
+            said, vague = settle_fail(diag, said)
+            if vague:  # a fail that names nothing it blocks on cannot send the work back
+                self.say("诊断判了不通过，但没有列出阻断项，按没有给出结论处理，留给人看")
             diag["verdict"] = said
             # Commands prove their own checks, not a missing model diagnosis. Keep timeout/unreadable
             # reviews unknown even when compilation/tests are green; never invent an implementation verdict.

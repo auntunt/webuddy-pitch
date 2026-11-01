@@ -383,7 +383,7 @@ def _check(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str) -> None:
 
 
 def _check1(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str, agent: str, conf: dict) -> None:
-    from .fixloop import FixLoop, recheck, verified
+    from .fixloop import FixLoop, recheck, settle_fail, verified
     st = P.store
     try:
         v = recheck(P.runner, rid, allow_running=True)
@@ -412,7 +412,7 @@ def _check1(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str, agent: 
             raise RuntimeError("审查没做成：%s" % e) from e
         finally:
             git(root, "worktree", "remove", "--force", str(wt), check=False)
-    said = str(diag.get("verdict", "")).lower()
+    said, _ = settle_fail(diag, str(diag.get("verdict", "")).lower())
     cut = len(st.run(rid)["diff"] or "") > 14000  # the reviewer saw only the start of it
     if cut and said == "pass":
         said, diag = "unknown", dict(diag, match=(diag.get("match") or "") + "；改动太长，审查只读了前一部分")
