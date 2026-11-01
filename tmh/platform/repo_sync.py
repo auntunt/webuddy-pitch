@@ -10,8 +10,11 @@ key is pinned, so the push cannot be talked to by anyone else. Pushes are plain 
 the platform only ever adds to the line (a rollback is a revert commit). A push that fails leaves the local result as
 it is and is said on the ticket; nothing waits on it.
 
-Settings in autoflow.json "repos": {"JB": {"url", "host", "owner", "repo", "on", "checked", "by", "ts"}}. Only
-GitHub for now; another host needs its host key in HOSTS and its page links in `web`.
+Settings in autoflow.json "repos": {"JB": {"url", "host", "owner", "repo", "on", "checked", "by", "ts"}}.
+
+Besides GitHub, a team's own machine can hold the repository: ssh://user@host[:port]/path/repo.git (kind "ssh").
+Its host key is read once when the project is bound (or given) and pinned from then on ("hostkey"); there are no
+web pages to link to, and the deploy key goes into that account's authorized_keys, limited to git-shell.
 """
 from __future__ import annotations
 
@@ -27,27 +30,44 @@ PUSH_S = 120
 # https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
 HOSTS = {"github.com": "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl"}
 _NAME = r"[A-Za-z0-9_.-]+"
+_SSH = re.compile(r"ssh://([a-z_][a-z0-9_-]*)@([A-Za-z0-9.-]+)(?::(\d{1,5}))?(/[A-Za-z0-9_./-]+?)(?:\.git)?/?")
+_HOSTKEY = re.compile(r"(\S+) (ssh-ed25519|ecdsa-sha2-nistp256|ssh-rsa) ([A-Za-z0-9+/=]+)")
 
 
 def parse(url: str) -> dict:
     """{"host", "owner", "repo"} from git@github.com:o/r.git, https://github.com/o/r, ssh://git@github.com/o/r or o/r."""
     u = (url or "").strip()
+    s = _SSH.fullmatch(u)
+    if s and s.group(2).lower() != "github.com":
+        if ".." in s.group(4) or (s.group(3) and not 0 < int(s.group(3)) < 65536):
+            raise ValueError("仓库路径不合法")
+        return {"kind": "ssh", "host": s.group(2).lower(), "port": int(s.group(3) or 22), "user": s.group(1),
+                "path": s.group(4) + ".git", "owner": s.group(1), "repo": s.group(4).rsplit("/", 1)[-1]}
     m = (re.fullmatch(r"git@([\w.-]+):(%s)/(%s?)(?:\.git)?/?" % (_NAME, _NAME), u) or
          re.fullmatch(r"(?:ssh://git@|https://)([\w.-]+)/(%s)/(%s?)(?:\.git)?/?" % (_NAME, _NAME), u) or
          re.fullmatch(r"()(%s)/(%s?)(?:\.git)?" % (_NAME, _NAME), u))
     if not m or not m.group(3):
-        raise ValueError("仓库地址要像 git@github.com:团队/仓库.git 或 https://github.com/团队/仓库（不要带用户名或令牌）")
+        raise ValueError("仓库地址要像 git@github.com:团队/仓库.git、https://github.com/团队/仓库，"
+                         "或自己机器上的 ssh://用户@主机:端口/路径/仓库.git（不要带密码或令牌）")
     host = (m.group(1) or "github.com").lower()
     if host not in HOSTS:
-        raise ValueError("目前只支持 GitHub（github.com），%s 还不支持" % host)
+        raise ValueError("https 地址目前只支持 GitHub（github.com）；自己的机器请用 ssh://用户@%s/路径/仓库.git" % host)
     return {"host": host, "owner": m.group(2), "repo": m.group(3)}
 
 
 def ssh_url(c: dict) -> str:
+    if c.get("kind") == "ssh":
+        return "ssh://%s@%s%s%s" % (c["user"], c["host"], "" if c["port"] == 22 else ":%d" % c["port"], c["path"])
     return "git@%s:%s/%s.git" % (c["host"], c["owner"], c["repo"])
 
 
+def name(c: dict) -> str:
+    return c.get("label") or ("%s:%s" % (c["host"], c["path"]) if c.get("kind") == "ssh" else "%s/%s" % (c["owner"], c["repo"]))
+
+
 def web(c: dict, kind: str = "", ref: str = "") -> str:
+    if c.get("kind") == "ssh":
+        return ""
     base = "https://%s/%s/%s" % (c["host"], c["owner"], c["repo"])
     return base + {"": "", "branch": "/tree/", "commit": "/commit/", "tag": "/releases/tag/"}[kind] + ref
 
@@ -62,7 +82,10 @@ def _all(data_dir: Path) -> dict:
 
 def conf(data_dir: Path, key: str) -> dict:
     c = _all(data_dir).get(key)
-    return c if isinstance(c, dict) and c.get("host") in HOSTS else {}
+    if not isinstance(c, dict):
+        return {}
+    ok = _HOSTKEY.fullmatch(c.get("hostkey") or "") if c.get("kind") == "ssh" else c.get("host") in HOSTS
+    return c if ok else {}
 
 
 def _put(data_dir: Path, key: str, c: dict | None) -> None:
@@ -97,11 +120,39 @@ def _keygen(data_dir: Path, key: str) -> None:
     os.chmod(f, 0o600)
 
 
-def _env(data_dir: Path, key: str, host: str) -> dict:
-    kh = Path(data_dir) / "keys" / "known_hosts"
+def _hostkey(c: dict, given: str = "") -> str:
+    """The host's key as a known_hosts line: as given, or read once from the host (ed25519 preferred)."""
+    want = "[%s]:%d" % (c["host"], c["port"]) if c["port"] != 22 else c["host"]
+    lines = [given.strip()] if given.strip() else []
+    if not lines:
+        try:
+            r = subprocess.run(["ssh-keyscan", "-T", "10", "-p", str(c["port"]), "-t", "ed25519,ecdsa,rsa", c["host"]],
+                               capture_output=True, text=True, timeout=30)
+            lines = [x for x in r.stdout.splitlines() if x and not x.startswith("#")]
+        except (OSError, subprocess.TimeoutExpired):
+            lines = []
+    for kind in ("ssh-ed25519", "ecdsa-sha2-nistp256", "ssh-rsa"):
+        for x in lines:
+            m = _HOSTKEY.fullmatch(x.strip())
+            if m and m.group(2) == kind:
+                return "%s %s %s" % (want, kind, m.group(3))
+    raise ValueError("读不到 %s 的主机密钥（机器开着吗？端口对吗？）" % want)
+
+
+def fingerprint(line: str) -> str:
+    try:
+        r = subprocess.run(["ssh-keygen", "-lf", "-"], input=line + "\n", capture_output=True, text=True, timeout=10)
+        return r.stdout.split()[1] if r.returncode == 0 and r.stdout.split()[1:] else ""
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+
+
+def _env(data_dir: Path, key: str, c: dict) -> dict:
+    kh = Path(data_dir) / "keys" / ("%s-known_hosts" % key_file(data_dir, key).name[:-len("-deploy")])
     kh.parent.mkdir(parents=True, exist_ok=True)
-    if not kh.exists() or kh.read_text(encoding="utf-8").strip() != "\n".join(HOSTS.values()):
-        kh.write_text("\n".join(HOSTS.values()) + "\n", encoding="utf-8")
+    pin = c["hostkey"] if c.get("kind") == "ssh" else HOSTS[c["host"]]
+    if not kh.exists() or kh.read_text(encoding="utf-8").strip() != pin:
+        kh.write_text(pin + "\n", encoding="utf-8")
     ssh = "ssh -i %s -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=%s" % (
         _q(key_file(data_dir, key)), _q(kh))
     return dict(os.environ, GIT_SSH_COMMAND=ssh, GIT_TERMINAL_PROMPT="0")
@@ -124,9 +175,14 @@ def _said(r: subprocess.CompletedProcess) -> str:
     return text.splitlines()[-1][:300] if text else "git 退出码 %d" % r.returncode
 
 
-def setup(P, p: dict, url: str, by: str) -> dict:
-    """Bind the project to a repository: a deploy key (made once), the remote `webuddy`, pushing off until checked."""
+def setup(P, p: dict, url: str, by: str, hostkey: str = "", label: str = "") -> dict:
+    """Bind the project to a repository: a deploy key (made once), the remote `webuddy`, pushing off until checked.
+    For a team's own machine the host key is pinned here: `hostkey` as given, or read from the host now."""
     c = parse(url)
+    if c.get("kind") == "ssh":
+        c["hostkey"] = _hostkey(c, hostkey)
+        if label.strip():
+            c["label"] = label.strip()[:60]
     root = Path(p["root"])
     if not (root / ".git").exists() and _git(root, None, "rev-parse", "--git-dir", timeout=10).returncode != 0:
         raise ValueError("项目目录不是 git 仓库")
@@ -144,7 +200,7 @@ def check(P, p: dict) -> dict:
     c = conf(P.data_dir, p["key"])
     if not c:
         raise ValueError("这个项目还没绑定代码仓库")
-    r = _git(Path(p["root"]), _env(P.data_dir, p["key"], c["host"]), "ls-remote", "--heads", REMOTE, timeout=30)
+    r = _git(Path(p["root"]), _env(P.data_dir, p["key"], c), "ls-remote", "--heads", REMOTE, timeout=30)
     c = dict(c, checked="ok" if r.returncode == 0 else _said(r), checked_at=time.strftime("%Y-%m-%d %H:%M:%S"))
     if r.returncode != 0:
         c["on"] = False
@@ -172,10 +228,12 @@ def view(P, p: dict) -> dict:
     c = conf(P.data_dir, p["key"])
     if not c:
         return {"bound": False}
-    return {"bound": True, "url": c["url"], "web": web(c), "name": "%s/%s" % (c["owner"], c["repo"]), "on": bool(c.get("on")),
+    own = c.get("kind") == "ssh"
+    return {"bound": True, "kind": c.get("kind") or "github", "url": c["url"], "web": web(c), "name": name(c), "on": bool(c.get("on")),
             "checked": c.get("checked") or "", "checked_at": c.get("checked_at") or "", "by": c.get("by") or "",
             "ts": c.get("ts") or "", "deploy_key": public_key(P.data_dir, p["key"]),
-            "deploy_keys_page": web(c) + "/settings/keys/new"}
+            "deploy_keys_page": "" if own else web(c) + "/settings/keys/new",
+            "hostkey": fingerprint(c["hostkey"]) if own else ""}
 
 
 def push(P, p: dict, refs: list) -> dict:
@@ -195,9 +253,10 @@ def push(P, p: dict, refs: list) -> dict:
                 continue
         spec.append("%s:%s" % (full, full))
         links.append(web(c, "tag" if full.startswith("refs/tags/") else "branch", full.split("/", 2)[2]))
+    links = [x for x in links if x]
     if not spec:
         return {"state": "off", "why": "没有要推送的分支或标签"}
-    r = _git(root, _env(P.data_dir, p["key"], c["host"]), "push", "--porcelain", REMOTE, *spec)
+    r = _git(root, _env(P.data_dir, p["key"], c), "push", "--porcelain", REMOTE, *spec)
     if r.returncode != 0:
-        return {"state": "failed", "why": _said(r), "repo": "%s/%s" % (c["owner"], c["repo"]), "refs": spec}
-    return {"state": "pushed", "repo": "%s/%s" % (c["owner"], c["repo"]), "refs": [s.split(":")[0] for s in spec], "links": links}
+        return {"state": "failed", "why": _said(r), "repo": name(c), "refs": spec}
+    return {"state": "pushed", "repo": name(c), "refs": [s.split(":")[0] for s in spec], "links": links}

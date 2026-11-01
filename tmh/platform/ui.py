@@ -1777,9 +1777,9 @@ async function pmode(el){const k=el.dataset.pmode;let d;try{d=await get('/api/pr
 // ---------- per project: the code repository (GitHub) the platform pushes to, and the team group it tells
 async function pinteg(el){const k=el.dataset.pinteg,u='/api/projects/'+encodeURIComponent(k);let d;try{d=await get(u+'/channels')}catch(e){return}
   const r=d.repo,n=d.notify,go=async(path,body,ok)=>{try{await post(u+path,body);toast(ok);pinteg(el)}catch(e){toast(e.message,8000)}};
-  const repo=!r.bound?`<button class="ghost" data-a="bind">绑定 GitHub 仓库</button>`:
-    `<a href="${h(r.web)}" target="_blank" rel="noopener">${h(r.name)}</a> <span class="tag ${r.on?'':'warn'}">${r.on?'推送开':'推送关'}</span>${r.checked&&r.checked!=='ok'?` <span class="sub" title="${h(r.checked)}">连接没通过</span>`:''} <button class="ghost" data-a="check">测试连接</button> <button class="ghost" data-a="${r.on?'off':'on'}">${r.on?'关掉推送':'打开推送'}</button>
-     <details style="display:inline-block"><summary class="sub">部署密钥</summary><div class="sub">把这把公钥加到 <a href="${h(r.deploy_keys_page)}" target="_blank" rel="noopener">仓库的 Deploy keys</a>，勾选 Allow write access：</div><code style="word-break:break-all;user-select:all">${h(r.deploy_key)}</code><div><button class="ghost" data-a="unbind">解除绑定</button></div></details>`;
+  const repo=!r.bound?`<button class="ghost" data-a="bind">绑定代码仓库</button>`:
+    `${r.web?`<a href="${h(r.web)}" target="_blank" rel="noopener">${h(r.name)}</a>`:`<span title="${h(r.url)}${r.hostkey?' · 主机密钥 '+h(r.hostkey):''}">${h(r.name)}</span>`} <span class="tag ${r.on?'':'warn'}">${r.on?'推送开':'推送关'}</span>${r.checked&&r.checked!=='ok'?` <span class="sub" title="${h(r.checked)}">连接没通过</span>`:''} <button class="ghost" data-a="check">测试连接</button> <button class="ghost" data-a="${r.on?'off':'on'}">${r.on?'关掉推送':'打开推送'}</button>
+     <details style="display:inline-block"><summary class="sub">部署密钥</summary><div class="sub">${r.deploy_keys_page?`把这把公钥加到 <a href="${h(r.deploy_keys_page)}" target="_blank" rel="noopener">仓库的 Deploy keys</a>，勾选 Allow write access：`:`把这把公钥加到那台机器上仓库所属账号的 authorized_keys（建议限定 git-shell）：`}</div><code style="word-break:break-all;user-select:all">${h(r.deploy_key)}</code><div><button class="ghost" data-a="unbind">解除绑定</button></div></details>`;
   const opts=n.targets.map(x=>`<option value="${h(x.id)}" ${x.id===n.conv?'selected':''}>${h(x.title)}</option>`).join('');
   const group=n.bound?`<span title="${h(n.by)} ${h(n.ts)}">${h(n.title)}</span> <button class="ghost" data-a="ntest">发测试消息</button> <button class="ghost" data-a="nunbind">解除</button>`:
     n.targets.length?`<select data-a="npick"><option value="">选择项目群…</option>${opts}</select>`:`<span class="sub" title="把机器人拉进群并在群里 @ 它说一句话，这里就能选">未绑定项目群</span>`;
@@ -1787,7 +1787,7 @@ async function pinteg(el){const k=el.dataset.pinteg,u='/api/projects/'+encodeURI
   el.querySelectorAll('[data-a]').forEach(b=>{const a=b.dataset.a;
     if(a==='npick')return b.onchange=()=>b.value&&go('/notify',{target:b.value},'已绑定项目群');
     b.onclick=()=>{
-      if(a==='bind'){const url=prompt('GitHub 仓库地址（例如 git@github.com:团队/仓库.git，建议私有仓库）');if(url)go('/repo',{url},'已绑定，把部署密钥加到仓库后点“测试连接”')}
+      if(a==='bind'){const url=prompt('仓库地址：GitHub 填 git@github.com:团队/仓库.git（建议私有）；自己的机器填 ssh://用户@主机:端口/路径/仓库.git');if(url)go('/repo',{url},'已绑定，把部署密钥加到仓库后点“测试连接”')}
       else if(a==='check')go('/repo',{check:true},'已测试');
       else if(a==='on'){if(confirm('打开推送：之后自动提交的改动分支、合并后的交付主线、版本标签和回滚都会推到 '+r.name+'（只做普通推送，不强推）。确定？'))go('/repo',{on:true},'已打开推送')}
       else if(a==='off')go('/repo',{on:false},'已关掉推送');

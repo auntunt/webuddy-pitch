@@ -2742,7 +2742,8 @@ def api_channels(P, req, key):
 
 @route("POST", "/api/projects/<key>/repo")
 def api_repo_set(P, req, key):
-    """{"url": "git@github.com:团队/仓库.git"} binds the project (makes its deploy key); {"check": true} tests the
+    """{"url": "git@github.com:团队/仓库.git" | "ssh://用户@主机:端口/路径.git", "hostkey"?, "label"?} binds the project
+    (makes its deploy key; pins a own machine's host key); {"check": true} tests the
     connection; {"on": true|false} turns pushing on or off; {"url": ""} unbinds."""
     p = P.project(key)
     actor = _platform_admin(P, req, "设置项目的代码仓库")
@@ -2750,7 +2751,10 @@ def api_repo_set(P, req, key):
     b = req.body
     try:
         if "url" in b:
-            repo_sync.setup(P, p, b["url"], actor) if b["url"] else repo_sync.unbind(P, p, actor)
+            if b["url"]:
+                repo_sync.setup(P, p, b["url"], actor, str(b.get("hostkey") or ""), str(b.get("label") or ""))
+            else:
+                repo_sync.unbind(P, p, actor)
         if b.get("check"):
             repo_sync.check(P, p)
         if "on" in b:
