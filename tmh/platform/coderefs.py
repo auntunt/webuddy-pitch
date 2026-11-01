@@ -1,4 +1,7 @@
-"""Code locations an agent's answer names (file plus line), however it writes them: `a.ts:78`, `a.ts` 第 78 行, a table row."""
+"""Code locations an agent's answer names (file plus line).
+
+The analysis report's ```tmh-report {"refs": [...]}``` is what counts. Answers without one (older runs, other
+steps) fall back to reading the prose, however it writes them: `a.ts:78`, `a.ts` 第 78 行, a table row."""
 import re
 
 PATH = re.compile(r"[\w./\\-]+\.(?:java|cs|xml|sql|jsp|aspx|cshtml|config|properties|yml|yaml|vb|js|ts|vue|kt|py)(?![\w])", re.IGNORECASE)
@@ -11,6 +14,10 @@ class CodeRefs:
     """Drop-in for the old file:line regex: `findall` gives (file, line) pairs, `search` whether there is any."""
 
     def findall(self, text: str) -> list:
+        from .reports import refs
+        named = refs(text)
+        if named:
+            return named
         out = []
         for line in (text or "").splitlines():
             hits = list(PATH.finditer(line))

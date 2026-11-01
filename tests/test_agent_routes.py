@@ -160,6 +160,18 @@ class AgentRoutesTest(unittest.TestCase):
             then({"status": "done", "result": "see src/a.vue:10"})
             plan.assert_called_once()
 
+    def test_an_analysis_that_asks_a_person_stops_before_the_plan(self):
+        self.write()
+        self.P.flow._flow_analyze(self.project, self.ticket["id"], {"agent": "claude", "plan": True})
+        then = self.runner.start.call_args.kwargs["then"]
+        report = '```tmh-report\n{"refs": [{"path": "src/a.vue", "line": 10}], "human_action": "按提交时间还是审批时间算？"}\n```'
+        with patch.object(self.P.flow, "_flow_plan") as plan:
+            then({"status": "done", "result": "see src/a.vue:10\n" + report})
+            plan.assert_not_called()
+        last = self.store.events(self.ticket["id"])[-1]
+        self.assertIn("按提交时间还是审批时间算？", last["body"])
+        self.assertEqual(self.store.ticket(self.ticket["id"])["status"], "doing")
+
     def test_criteria_the_client_confirmed_let_a_plan_without_its_own_go_on_to_the_fix(self):
         self.write()
         tid = self.ticket["id"]
@@ -340,6 +352,23 @@ class AgentRoutesTest(unittest.TestCase):
         self.assertEqual(self.loop.commands.call_args.args[0], {"a.vue": ""})
         self.loop.baseline.assert_called_once()
 
+    def test_a_diagnosis_without_its_block_is_repaired_once_from_its_own_answer(self):
+        block = "```tmh-diag\n%s\n```" % json.dumps({"verdict": "pass", "blocking": []})
+        def setup(loop):
+            loop.r.invoke.side_effect = [(0, "看完了，A1 做到了，没有阻断项"), (0, block)]
+        verify, _, repair = self._diagnose_on_ticket({}, setup=setup)
+        self.assertEqual(verify["verdict"], "pass")
+        self.assertTrue(verify["diagnosis"]["format_repaired"])
+        self.assertIn("看完了，A1 做到了", repair)
+        self.assertIn("不要增加或改动任何结论", repair)
+
+    def test_a_repair_that_still_gives_no_block_leaves_no_verdict(self):
+        def setup(loop):
+            loop.r.invoke.side_effect = [(0, "看完了"), (0, "还是没有块")]
+        verify, _, _ = self._diagnose_on_ticket({}, setup=setup)
+        self.assertEqual(verify["verdict"], "unknown")
+        self.assertNotIn("format_repaired", verify["diagnosis"])
+
     def test_a_diagnosis_wrapped_in_a_json_block_under_its_own_name_is_read(self):
         from tmh.platform.fixloop import fenced
         said = {"verdict": "PASS", "blocking_issues": [], "ac": [{"id": "A1", "result": "pass", "how": "a.vue:3"}]}
@@ -438,3 +467,36 @@ class FileLineTest(unittest.TestCase):
         self.assertEqual(Orchestra.FILE_LINE.findall(table),
                          [("jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts", "78"), ("LoginForm.vue", "45")])
         self.assertEqual(Orchestra.FILE_LINE.findall("| a.vue | 组件 | 共 3 处 |\nsys.ts 和 b.vue 都要改"), [])
+
+    def test_the_analysis_report_names_the_code_locations(self):
+        from tmh.platform.orchestra import Orchestra
+        report = '正文里只说了「共 3 处」\n```tmh-report\n{"refs": [{"path": "./src/a.vue", "line": 12}, {"path": "/etc/x.ts", "line": 1}, ' \
+                 '{"path": "b.ts", "line": "x"}, "c.ts:3"], "human_action": ""}\n```'
+        self.assertEqual(Orchestra.FILE_LINE.findall(report), [("src/a.vue", "12")])
+        # an empty or broken report leaves it to the prose, as for older answers
+        self.assertEqual(Orchestra.FILE_LINE.findall('a.vue:3\n```tmh-report\n{"refs": []}\n```'), [("a.vue", "3")])
+        self.assertEqual(Orchestra.FILE_LINE.findall('a.vue:3\n```tmh-report\n{"refs": [\n```'), [("a.vue", "3")])
+
+
+class ReportRepairTest(unittest.TestCase):
+    def test_only_a_missing_block_is_asked_for_and_only_once(self):
+        from tmh.platform import reports
+        asked = []
+        plan = '方案\n```tmh-plan\n{"files": [], "ac": [{"id": "A1", "text": "t", "check": "c"}]}\n```'
+        self.assertEqual(reports.repair("plan", plan, asked.append), (plan, False))
+        self.assertEqual(reports.repair("ask", "随便", asked.append), ("随便", False))
+        self.assertEqual(asked, [])
+        out, fixed = reports.repair("plan", "方案正文", lambda q: asked.append(q) or plan)
+        self.assertTrue(fixed)
+        self.assertEqual(len(asked), 1)
+        self.assertTrue(out.startswith("方案正文"))
+        self.assertEqual(reports.block("plan", out)["ac"][0]["id"], "A1")
+        self.assertEqual(reports.repair("analyze", "分析", lambda q: "没块"), ("分析", False))
+        def broken(q):
+            raise RuntimeError("down")
+        self.assertEqual(reports.repair("analyze", "分析", broken), ("分析", False))
+
+    def test_the_analysis_prompt_asks_for_the_report(self):
+        from tmh.platform.agents import MODE_TEXT
+        self.assertIn("```tmh-report", MODE_TEXT["analyze"])
+        self.assertIn("human_action", MODE_TEXT["analyze"])

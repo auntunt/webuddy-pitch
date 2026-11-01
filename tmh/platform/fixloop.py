@@ -39,7 +39,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from . import testbox
+from . import reports, testbox
 from .agents import (GREENFIELD_EDIT, GREENFIELD_FIX, MODE_TEXT, additional_context_prompt, earlier_session,
                      follow_up, git, learning_context_current, record_session_context,
                      reviewed_delivery_plan, worktree_diff)
@@ -96,7 +96,7 @@ def fenced(label: str, text: str):
 
 def clean(text: str) -> str:
     """An answer without its machine-readable blocks."""
-    return re.sub(r"```tmh-(plan|msg|diag)[ \t]*\n.*?```", "", text or "", flags=re.S).strip()
+    return re.sub(r"```tmh-(plan|msg|diag|report)[ \t]*\n.*?```", "", text or "", flags=re.S).strip()
 
 
 def rel_path(p) -> str:
@@ -462,11 +462,16 @@ class FixLoop:
         L += ["", MODE_TEXT["diagnose"]]
         self.say("诊断这一轮的改动（%s）" % (self.models["diagnose"] or "默认模型"))
         out = self.call("diagnose", "\n".join(L))
+        out, fixed = reports.repair("diagnose", out, lambda ask: self.call("diagnose", ask))
+        if fixed:
+            self.say("诊断没按格式给出结论块，已让它按原回答补上")
         d = fenced("tmh-diag", out)
         d = d if isinstance(d, dict) else {}
         if "blocking" not in d and isinstance(d.get("blocking_issues"), list):
             d["blocking"] = d.pop("blocking_issues")
         d["text"] = clean(out)[:1500]
+        if fixed:
+            d["format_repaired"] = True
         return d
 
     def criteria(self) -> list:
@@ -587,6 +592,8 @@ class FixLoop:
                "split": bool(goals) and split, "files": files, "commands": res,
                "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide",
                                                                 "blocking", "advisory", "prior", "ac")}}
+        if (diag or {}).get("format_repaired"):
+            out["diagnosis"]["format_repaired"] = True
         if vague and verdict == "unknown":
             out["vague_fail"] = True
         if (diag or {}).get("verdict") == "fail":
