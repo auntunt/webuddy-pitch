@@ -352,88 +352,15 @@ def states(P, tickets: list) -> dict:
     """
     if not tickets:
         return {}
-    from . import handwork, intake
-    from .store import RUN_MODES
-    box = P.inbox(None)
-    mine = {x["key"]: x for x in box["mine"]}
-    others = {x["key"]: x for x in box["others"]}
-    ids = [t["id"] for t in tickets]
-    rel = _released(P, ids)
-    marks = ",".join("?" * len(ids))
-    latest = {r["ticket_id"]: r for r in P.store.q(
-        "SELECT r.id, r.ticket_id, r.agent, r.mode, r.status FROM runs r JOIN "
-        "(SELECT ticket_id, MAX(id) id FROM runs WHERE ticket_id IN (%s) AND mode!='ask' GROUP BY ticket_id) x "
-        "ON r.id=x.id" % marks, ids)}
-    running = {r["ticket_id"]: r for r in P.store.q(
-        "SELECT ticket_id, mode, status FROM runs WHERE ticket_id IN (%s) AND status IN ('queued','running') "
-        "AND mode!='ask' ORDER BY id" % marks, ids)}
-    checks = {}
-    for e in P.store.q("SELECT ticket_id, data FROM events WHERE ticket_id IN (%s) "
-                       "AND author='我来写' AND kind='flow' ORDER BY id" % marks, ids):
-        data, run = e.get("data") or {}, latest.get(e["ticket_id"], {})
-        # Reminders are also flow events. Keep the actual check for the current submission, never an older
-        # submission's failure after a new one arrives, nor a reminder in place of the latest verdict.
-        if run.get("agent") == "人工" and data.get("run") == run["id"] and data.get("verdict") in ("pass", "fail", "unknown"):
-            checks[e["ticket_id"]] = data
-    modes = dict(RUN_MODES)
+    from .stage import compute
+    stages = compute(P, tickets)
     out = {}
     for t in tickets:
-        k, links = t["key"], t.get("links") or {}
-        recovery = intake.recovery_state(P, k) if links.get("open_ac") else {}
-        v = rel.get(t["id"], "")
-        last, live = latest.get(t["id"], {}), running.get(t["id"])
-        manual = links.get("handwork") or (links.get("hold") if last.get("agent") == "人工" else "")
-        check = checks.get(t["id"], {})
-        if t["status"] == "closed":
-            s, why = ("shipped", "已出版本 " + v) if v else ("done", "已关闭")
-        elif live:
-            s, why = "doing", "等待智能体开始%s" % modes.get(live["mode"], "处理") if live["status"] == "queued" else "AI 正在%s" % modes.get(live["mode"], "处理")
-            if links.get("hold"):
-                why += "；当前步骤结束后暂停"
-        elif handwork.busy(k):
-            s, why = "doing", "正在构建和审查%s的提交" % (manual or "人工")
-        elif links.get("client_change"):
-            s, why = "you", "客户的答复改动了已确认的验收标准，等你决定"
-        elif recovery.get("status") == "running":
-            s, why = "doing", "正在根据已保存答复补全验收标准"
-        elif recovery.get("status") in ("failed", "blocked"):
-            s, why = "you", "客户答复已保存，再理解未完成，等工程师处理"
-        elif links.get("open_ac"):
-            s, why = "client", "有 %d 条验收标准要和客户确认" % links["open_ac"]
-        elif k in mine and mine[k].get("reason") == "recheck":
-            s, why = mine[k].get("state", "you"), mine[k]["label"]
-        elif k in others:
-            s, why = "client", others[k]["label"]
-        elif t["status"] == "verify":
-            s, why = "you", mine[k]["label"] if k in mine else "改好了，等你验收"
-        elif links.get("agent_request"):
-            s, why = "you", "CLI / MCP 已接续，等待明确的下一步"
-        elif manual:
-            if check.get("verdict") in ("fail", "unknown"):
-                s, why = "you", ("提交检查没通过" if check["verdict"] == "fail" else "提交还没检查完") + "，等 %s 处理" % manual
-            else:
-                s, why = "doing", "%s 在写" % manual
-        elif links.get("hold"):
-            s, why = "you", "%s 已接管，自动处理暂停" % links["hold"]
-        elif (links.get("epic") or {}).get("paused"):
-            s, why = "you", "大需求暂停：" + links["epic"]["paused"]
-        elif links.get("later"):
-            s, why = "doing", links["later"]
-        elif k in mine:
-            s, why = "you", mine[k]["label"]
-        elif last.get("status") in ("failed", "cancelled"):
-            s, why = "you", "智能体没跑成，等你处理" if last["status"] == "failed" else "运行已取消，等你继续"
-        elif not box.get("auto"):
-            s, why = "you", "自动处理已关闭，等人继续"
-        elif not box.get("agent"):
-            s, why = "you", "没有可用的智能体，等你处理"
-        else:
-            step, _ = P.flow.next_step(t)
-            if step:
-                s, why = "doing", "等待自动处理继续"
-            else:
-                s, why = "you", {"analyze": "分析已完成，等你确认下一步", "plan": "方案已完成，等你决定如何实现"}.get(last.get("mode"), "没有可自动执行的下一步，等你处理")
-        out[k] = {"state": s, "label": STATE_LABEL[s], "why": why, "version": v}
+        k = t["key"]
+        g = stages[k]
+        s = {"person": g.get("state") or "you", "client": "client", "agent": "doing", "assignee": "doing"}.get(g["who"]) or ("shipped" if g["key"] == "shipped" else "done")
+        v = g["label"][len("已出版本 "):] if g["key"] == "shipped" else ""
+        out[k] = {"state": s, "label": STATE_LABEL[s], "why": g["label"], "version": v}
     return out
 
 

@@ -253,69 +253,37 @@ class Platform:
     PRI_RANK = {"urgent": 0, "high": 1, "normal": 2, "medium": 2, "low": 3}
 
     def inbox(self, p: dict | None) -> dict:
-        from . import signoff
         st = self.store
         ps = [p] if p else st.projects()
         ids = [x["id"] for x in ps] or [-1]
         keys = {x["id"]: x["key"] for x in ps}
         q = ",".join("?" * len(ids))
-        tickets = st.q("SELECT id, project_id, num, title, status, priority, assignee, updated FROM tickets WHERE project_id IN (%s) "
+        tickets = st.q("SELECT id, project_id, num, title, status, priority, assignee, updated, links FROM tickets WHERE project_id IN (%s) "
                        "AND status!='closed' AND links NOT LIKE '%s'" % (q, REFORM_LIKE), ids)
-        last = {r["ticket_id"]: r for r in st.q(
-            "SELECT r.ticket_id, r.id, r.mode, r.status, r.decision, r.ended, length(r.diff) AS dl FROM runs r JOIN "
-            "(SELECT ticket_id, MAX(id) m FROM runs WHERE project_id IN (%s) AND ticket_id IS NOT NULL AND mode!='ask' GROUP BY ticket_id) x "
-            "ON r.id=x.m" % q, ids)}
         running = st.one("SELECT COUNT(*) n FROM runs WHERE project_id IN (%s) AND status IN ('queued','running') AND mode!='ask'" % q, ids)["n"]
         conf = self.flow.autoflow()
         try:
             agent = self.flow.agent(conf)
         except ValueError:
             agent = ""
-        idle_ok = bool(conf.get("on") and agent)
-        stall = "自动处理关着，没人接手" if not conf.get("on") else "这台机器上没有可用的智能体"
-        mine, others = [], []
+        from .stage import compute
+        rows = []
         for t in tickets:
             try:
-                project_agent = self.flow.agent(conf, {"key": keys.get(t["project_id"], "")})
-                idle_ok = bool(conf.get("on") and project_agent)
-                stall = "自动处理关着，没人接手" if not conf.get("on") else "这台机器上没有可用的智能体"
-            except ValueError as exc:
-                idle_ok, stall = False, str(exc)
-            key = "%s-%d" % (keys.get(t["project_id"], "?"), t["num"])
-            r = last.get(t["id"]) or {}
-            item = {"key": key, "title": t["title"], "priority": t["priority"], "assignee": t["assignee"] or "", "since": t["updated"]}
-            busy = r.get("status") in ("queued", "running")
-            ev = signoff.state(self.data_dir, key) if t["status"] in ("verify", "doing") and signoff.epath(self.data_dir, key).exists() else {}
-            if busy:
+                links = json.loads(t["links"]) if isinstance(t["links"], str) else (t["links"] or {})
+            except ValueError:
+                links = {}
+            rows.append(dict(t, links=links, key="%s-%d" % (keys.get(t["project_id"], "?"), t["num"])))
+        stages = compute(self, rows)
+        mine, others = [], []
+        for t in rows:
+            g = stages[t["key"]]
+            if g["who"] not in ("person", "client"):
                 continue
-            verification_wait = self.flow.verification_wait(r["id"]) if r.get("mode") == "fix" else {}
-            if verification_wait:
-                mine.append(dict(item, reason="recheck", label=verification_wait["why"], action="查看当前重新验证",
-                                 state=verification_wait["state"], since=r.get("ended") or t["updated"]))
-            elif r.get("status") == "failed":
-                mine.append(dict(item, reason="failed", label="智能体没跑成", action="看原因", since=r.get("ended") or t["updated"]))
-            elif r.get("mode") == "fix" and r.get("status") == "done" and not r.get("decision") and r.get("dl"):
-                mine.append(dict(item, reason="review", label="改好了，等你审阅", action="审阅改动", since=r.get("ended") or t["updated"]))
-            elif t["status"] == "doing" and ev.get("status") == "rejected":
-                d = ev.get("decision") or {}
-                byclient = d.get("via") == "签收链接"  # the platform's own 验收不通过 is the team's verdict, not the client's
-                mine.append(dict(item, reason="returned" if byclient else "rejected",
-                                 label="%s退回了" % (d.get("signer") or "甲方") if byclient else "%s验收没通过" % (d.get("signer") or ""), action="看退回原因",
-                                 note=(d.get("note") or "")[:80], since=d.get("ts") or t["updated"]))
-            elif t["status"] == "verify":
-                link = (ev.get("links") or [None])[-1]
-                if link and ev.get("status") in ("ready", "incomplete") and (link.get("expires") or "9") < now():
-                    mine.append(dict(item, reason="expired", label="给%s的签收链接过期了" % (link.get("signer") or "甲方"), action="重发链接", since=link.get("expires")))
-                elif link and ev.get("status") in ("ready", "incomplete"):
-                    others.append(dict(item, reason="signing", label="等%s签收" % (link.get("signer") or "甲方"), action="看证据包", since=link.get("ts") or t["updated"]))
-                else:
-                    mine.append(dict(item, reason="verify", label="等你验收" if ev.get("status") != "incomplete" else "等你验收（证据还不齐）",
-                                     action="去验收", since=t["updated"]))
-            elif t["status"] == "confirm":
-                mine.append(dict(item, reason="confirm", label="分析出结论，等你确认", action="看结论", since=t["updated"]))
-            elif t["status"] in ("new", "analyzing") and not r and not idle_ok and not t["assignee"]:  # someone took it by hand
-                # nothing will pick it up by itself: the line is off, or no agent is installed on this machine
-                mine.append(dict(item, reason="stalled", label=stall, action="去处理", since=t["updated"]))
+            item = {"key": t["key"], "title": t["title"], "priority": t["priority"], "assignee": t["assignee"] or "",
+                    "reason": g["key"], "label": g["label"], "action": g["action"], "since": g.get("since") or t["updated"]}
+            item.update({k: g[k] for k in ("note", "state") if k in g})
+            (mine if g["who"] == "person" else others).append(item)
         order = lambda x: (self.PRI_RANK.get(x["priority"], 2), x["since"] or "")  # noqa: E731
         mine.sort(key=order)
         others.sort(key=order)
@@ -2521,12 +2489,13 @@ def api_ticket(P, req, key):
             r["recheck_wait"] = P.flow.verification_wait(r["id"]) if v.get("verification_current") is False else None
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
-    from . import epic, signoff, workbench, intake, team
+    from . import epic, signoff, stage, workbench, intake, team
     par = P.store.ticket(t["links"]["parent"]) if (t.get("links") or {}).get("parent") else None
     return {"ticket": t, "project": p, "events": P.store.events(t["id"]), "runs": [r for r in runs if r["mode"] != "ask"],
             "team_assignment": team.assignment(P, t),
             "intake_recovery": intake.recovery_state(P, t["key"]),
             "plain_state": workbench.states(P, [t])[t["key"]],
+            "stage": stage.compute(P, [t])[t["key"]],
             "evidence": P.ticket_evidence(p, t, runs), "auto_next": P.flow.next_step(t, retry=True)[0],
             "package": dict(signoff.brief(P.data_dir, t["key"]), personal_review=_personal_review_access(P, req, t)), "epic": epic.view(P, t) if epic.is_parent(t) else None,
             "parent": {"key": par["key"], "title": par["title"], "status": par["status"]} if par else None}
