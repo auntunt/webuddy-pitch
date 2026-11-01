@@ -826,6 +826,8 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -
     if changed or stale:
         v.update(verdict="unknown", diagnosis={},
                  diagnosis_invalidated="代码在模型运行后发生变化，旧诊断不再适用于当前改动")
+        v.pop("stalled", None)  # counted from the old diagnosis
+        v.pop("vague_fail", None)
         # An adopted run represents the immutable commit. Tests may edit its temporary
         # checkout, but those edits are neither adopted nor part of that run's visible diff.
         st.update_run(rid, diff=checked_diff if temp else final_diff)
