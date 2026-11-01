@@ -1742,10 +1742,14 @@ async function vSettings(){
   testbox();readiness()}
 // ---------- per project: fully automatic (AI fixes, accepts, closes, merges with a version) or a person at every step
 async function pmode(el){const k=el.dataset.pmode;let d;try{d=await get('/api/projects/'+encodeURIComponent(k)+'/mode')}catch(e){return}
-  const auto=d.mode==='auto',part=d.mode==='partial';
-  el.innerHTML=`<span class="tag ${auto?'':'warn'}" title="${auto?'AI 改代码、页面实测、AI 验收关单，验收通过的改动合并到 '+h(d.main||'主线')+' 并打版本，可以随时回滚':part?'自动处理开着，但 AI 验收或自动合并还要人来做':'每一步都等人确认'}">${auto?'全自动':part?'半自动':'每步人工'}</span> <button class="ghost">${auto?'切回每步人工':'切到全自动'}</button>`;
-  el.querySelector('button').onclick=async()=>{if(!confirm(auto?'切回每步人工：新工单不再自动处理，在跑的工单停在当前这一步。确定？':'切到全自动：AI 改代码、AI 验收并关单，验收通过的改动自动合并并打版本（不推送、不部署），可以在版本列表里回滚。确定？'))return;
-    try{await post('/api/projects/'+encodeURIComponent(k)+'/mode',{mode:auto?'manual':'auto'});toast('已切换');pmode(el)}catch(e){toast(e.message,6000)}}}
+  const M={auto:['全自动','AI 改代码、页面实测、AI 验收关单，验收通过的改动合并到 '+h(d.main||'主线')+' 并打版本，可以随时回滚','切到全自动：AI 改代码、AI 验收并关单，验收通过的改动自动合并并打版本（不推送、不部署），可以在版本列表里回滚。确定？'],
+    observe:['AI 验收观察中','AI 照常改代码和页面实测，并写下它会不会验收；签收和关单仍由人做，平台把 AI 的结论和人的对比','切到观察：AI 照常改代码、页面实测，只写下它会不会验收，不签收不关单；人验收后对比两边结论。确定？'],
+    partial:['半自动','自动处理开着，但 AI 验收或自动合并还要人来做'],
+    manual:['每步人工','每一步都等人确认','切回每步人工：新工单不再自动处理，在跑的工单停在当前这一步。确定？']},m=M[d.mode]||M.manual,s=d.shadow||{};
+  const seen=s.compared?` <span class="sub">对比 ${s.compared} 单，一致 ${s.agree} 单${s.disagree&&s.disagree.length?'（不一致：'+s.disagree.map(n=>h(k)+'-'+h(n)).join('、')+'）':''}</span>`:s.shadow?` <span class="sub">AI 已给出 ${s.shadow} 次影子结论，等人验收后对比</span>`:'';
+  el.innerHTML=`<span class="tag ${d.mode==='auto'?'':'warn'}" title="${m[1]}">${m[0]}</span>${seen} ${['auto','observe','manual'].filter(x=>x!==d.mode).map(x=>`<button class="ghost" data-to="${x}">${x==='manual'?'切回每步人工':x==='auto'?'切到全自动':'切到观察'}</button>`).join(' ')}`;
+  el.querySelectorAll('button[data-to]').forEach(b=>b.onclick=async()=>{const to=b.dataset.to;if(!confirm(M[to][2]))return;
+    try{await post('/api/projects/'+encodeURIComponent(k)+'/mode',{mode:to});toast('已切换');pmode(el)}catch(e){toast(e.message,6000)}})}
 // ---------- versions that went out: the end of the line a client cares about
 async function rels(){const el=$('#rels');if(!el)return;let d;try{d=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/releases')}catch(e){return}
   if(!d.releases.length)return;const r=d.releases.slice(0,3);

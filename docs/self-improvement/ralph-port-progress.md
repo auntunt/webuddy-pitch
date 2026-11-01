@@ -222,3 +222,12 @@
 - 分析步骤新增 ```tmh-report {"refs": [{"path", "line"}], "human_action": ""}```（`tmh/platform/reports.py`，提示词在 `MODE_TEXT["analyze"]` 末尾）。`FILE_LINE.findall` 先读报告里的 refs（路径经 `rel_path` 校验、行号须为正整数）；没有报告或 refs 为空的老回答仍走正文识别。
 - `human_action` 非空：自动流转在分析后停下，动态写「分析需要人先回答：…」，不起草方案；人回答后「交给自动处理」照常从分析接着走。
 - 格式修复：分析、方案（Runner，带工单且不是交付流程的单）和诊断（FixLoop）缺块或块不合法时，把原回答交回同一执行器补一次块，只补格式、不许改结论；补不出就保持原结论（诊断仍记「没给结论」）。修复过的诊断在 verify.json 里记 `format_repaired`。执行器配置 `report_repair: false` 可关掉分析/方案的修复。
+- 发布：PR #8 合并为 `94c239d`，已发到生产（release `94c239d0e358-structured-reports-20261101`）。MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0。第一次激活失败：远端 shell 的 cwd 是刚删掉的临时目录，rsync 报 getcwd 错（code 3），生产未切换；删掉半成品 release 和备份目录后，在 `cd ~` 下重跑成功。
+
+## 2026-11-01 AI 验收观察模式（借鉴 dsh-superagent 的 observe → auto）
+
+- 第 2 项：新项目先让 AI 验收「只说不签」，攒够和人一致的记录再切全自动。
+- autoflow.json 新增 `ai_accept_observe` 列表。列在里面、但不在 `ai_accept` 里的项目，`ai_accept.after_commit` 照跑全部闸门（含页面实测），只在工单上写「AI 影子验收：本会验收通过（依据）」或「本不会验收（原因）」，事件 data 里是 `shadow: {would_accept, why, basis}`。不签收、不关单、不触发合并，工单留在待验收。`ai_accept` 优先于 `ai_accept_observe`。
+- 人之后验收或退回时（`Orchestra.accepted` → `ai_accept.compare`），对最近一次影子结论记一条「AI 影子验收和人一致/不一致」（`shadow_compare: {run, ai, person, agree, by}`），每次影子结论只对比一次；AI 自己的验收不参与对比。
+- 项目模式新增 `observe`（`on` 含项目、`ai_accept_observe` 含项目、`ai_accept` 不含）。`POST /api/projects/<key>/mode {"mode": "observe"}` 切换，权限同原来。`GET .../mode` 多返回 `shadow: {shadow, compared, agree, disagree}`。设置页显示「AI 验收观察中」和「对比 N 单，一致 M 单（不一致：…）」，可以在全自动、观察、每步人工三者之间切换。
+- 测试：`tests/test_ai_accept.py` 新增 ShadowAcceptTest、ShadowCompareTest、ShadowModeSwitchTest。相关套件 475 passed（不含本机环境导致的就绪检查用例）。
