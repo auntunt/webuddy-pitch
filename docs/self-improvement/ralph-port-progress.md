@@ -271,3 +271,13 @@
 - 测试：`tests/test_intake_llm.py` 新增一例（忙→连不上→忙→成功；400 不重试；连续 5xx 四次后抛出；读超时不重试）。
 - 发布：PR #15 合并为 `6c3dd8f`，已发到生产（release `6c3dd8fa0e7d-llm-retry-20261101`）。服务器上解出的包里 `test_intake_llm`、`test_stage` 共 31 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，发布后 journal 无报错。
 - DeepSeek docs 零碎项核对：自动合并改动行数上限已有（autoflow `max_lines`，默认 400，可按项目设）；全局暂停已有（autoflow `on: false` 写在文件里，重启后仍生效）；智能体进程的繁忙重试已有（`BUSY_WAITS`），这次补的是直接 API 一路。
+
+### 项目绑定 GitHub 仓库推送交付结果；项目群收关键事件通知
+
+- 代码库管理（`tmh/platform/repo_sync.py`）：项目在 设置 → 项目 里绑定一个 GitHub 仓库（`autoflow.json` 的 `repos`）。平台为每个项目生成一把专用 ed25519 部署密钥（`<data>/keys/<KEY>-deploy`，0600，不进 Git 和数据库），远端名 `webuddy`，固定 GitHub 官方主机密钥、禁止交互。推送默认关，「测试连接」（`ls-remote`）通过后才能打开；测试失败会自动关掉推送。
+- 推送的东西：候选分支 `tmh/<单号>-r<运行>`、交付主线 `webuddy/<项目>`、版本标签 `webuddy-<项目>-<版本>`、回滚生成的新版本。只做普通推送（具名 ref，不强推、不删分支）；被拒（例如远端有别人的提交）就在工单上记一条，不回退本机已合并、已出的版本，下次再推。
+- 项目群通知（`tmh/platform/announce.py`）：项目可以绑定一个机器人待过、能主动发消息的飞书 / 钉钉 / 企业微信群（`autoflow.json` 的 `notify`），只能选本项目的会话。分析要人回答、AI 没验收留给人、验收通过并出版本、等合并、合并冲突、回滚、推送失败这几类事件发到群里，带工单链接。发送失败只记进动态，不挡自动流转。飞书沿用 `tmh/bots.py` 原有的签名校验、解密和主动发送。
+- 接口：`GET /api/projects/<key>/channels`、`POST …/repo`、`POST …/notify`，写操作只给平台管理员，已登记到 `tenant_policy.API_ROUTES`（177 条）。
+- 测试：`tests/test_repo_sync.py`（地址解析与拒绝、密钥生成与复用、测试连接前不能开推送、本地 bare 仓库模拟 GitHub 的分支/标签普通推送、非快进被拒、项目群隔离与失败不抛错）。CI 上没有 git 身份时打附注标签会失败，测试里显式给了身份；`test_full_auto_mode…` 只在版本确实打了标签时核对标签。
+- 发布：PR #17 合并为 `af7a0b3`，已发到生产（release `af7a0b3c81bb-repo-sync-20261101`）。服务器上解出的包里 `test_repo_sync`、`test_tenant_policy`、`test_ai_accept` 共 58 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0。
+- 还没接通：飞书企业自建应用的凭证没配（生产没有 `TMH_FEISHU_*`），没有群可绑；也还没有目标 GitHub 私有仓库，JB 没绑仓库，推送是关的。
