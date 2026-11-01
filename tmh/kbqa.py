@@ -240,15 +240,35 @@ def router_conf(root: Path) -> dict:
     return r
 
 
+TRANSIENT = {408, 429, 500, 502, 503, 504, 529}
+POST_WAITS = (2, 5, 10)
+
+
 def _post(conf: dict, body: dict, timeout: int = 60) -> dict:
-    """`temperature` in the router config replaces the caller's: some models (e.g. Kimi's reasoning ones) accept only 1."""
+    """`temperature` in the router config replaces the caller's: some models (e.g. Kimi's reasoning ones) accept only 1.
+    A busy or briefly unreachable endpoint (408, 429, 5xx, connection refused) is retried three times with backoff,
+    honouring Retry-After up to 30 s; any other error, and a read timeout, is raised at once."""
+    import urllib.error
     import urllib.request
     if conf.get("temperature") is not None:
         body = dict(body, temperature=conf["temperature"])
     req = urllib.request.Request(conf["base_url"].rstrip("/") + "/chat/completions", data=json.dumps(body).encode("utf-8"), method="POST",
                                  headers={"Content-Type": "application/json", "Authorization": "Bearer " + os.environ[conf["key_env"]]})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    for wait in POST_WAITS + (None,):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if wait is None or e.code not in TRANSIENT:
+                raise
+            try:
+                wait = min(max(float(e.headers.get("Retry-After") or wait), wait), 30)
+            except (TypeError, ValueError):
+                pass
+        except urllib.error.URLError as e:
+            if wait is None or isinstance(e.reason, TimeoutError):  # a timeout already spent the whole budget
+                raise
+        time.sleep(wait)
 
 
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

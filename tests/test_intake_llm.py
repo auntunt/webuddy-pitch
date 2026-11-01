@@ -75,6 +75,30 @@ class IntakeLLMTest(unittest.TestCase):
                 llm.chat(llm.conf(self.P, self.project), "s", "t")
         self.assertEqual([b["temperature"] for b in sent], [0, 1.0])
 
+    def test_busy_endpoint_is_retried_but_a_bad_request_is_not(self):
+        import urllib.error
+
+        def busy(code, retry_after=None):
+            return urllib.error.HTTPError("u", code, "busy", {"Retry-After": retry_after} if retry_after else {}, io.BytesIO(b""))
+        ok = io.BytesIO(json.dumps({"choices": [{"message": {"content": "ok"}}]}).encode())
+        c = llm.conf(self.P, self.project)
+        with mock.patch("urllib.request.urlopen", side_effect=[busy(429, "7"), urllib.error.URLError(ConnectionRefusedError()), busy(503), ok]) as op, \
+                mock.patch("time.sleep") as sleep:
+            self.assertEqual(llm.chat(c, "s", "t"), "ok")
+        self.assertEqual((op.call_count, [x.args[0] for x in sleep.call_args_list]), (4, [7.0, 5, 10]))
+        with mock.patch("urllib.request.urlopen", side_effect=[busy(400)]) as op, mock.patch("time.sleep") as sleep:
+            with self.assertRaises(urllib.error.HTTPError):
+                llm.chat(c, "s", "t")
+        self.assertEqual((op.call_count, sleep.call_count), (1, 0))
+        with mock.patch("urllib.request.urlopen", side_effect=[busy(502)] * 4) as op, mock.patch("time.sleep"):
+            with self.assertRaises(urllib.error.HTTPError):
+                llm.chat(c, "s", "t")
+        self.assertEqual(op.call_count, 4)
+        with mock.patch("urllib.request.urlopen", side_effect=[urllib.error.URLError(TimeoutError())]) as op, mock.patch("time.sleep"):
+            with self.assertRaises(urllib.error.URLError):
+                llm.chat(c, "s", "t")
+        self.assertEqual(op.call_count, 1)
+
     def test_bad_llm_reply_falls_back_to_the_rules(self):
         with mock.patch.object(llm.kbqa, "_post", return_value={"choices": [{"message": {"content": "随便说说"}}]}):
             s = intake.start(self.P, self.project, "点提交就一直转圈，报错了", "工程师", wait=True)

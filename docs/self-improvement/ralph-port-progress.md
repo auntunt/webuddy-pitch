@@ -263,3 +263,9 @@
 - 工单详情的 `nextAction(d,f)` 现在先看 `d.stage.key`，按阶段挑对应的卡片（按钮、文案沿用原来那些分支），不再自己从头判断一遍；接口里没有 `stage` 的老数据照旧走原来的顺序。等你的阶段卡片前面加上阶段表的说法（如「li 已接管，自动处理暂停」），AI 在做的阶段直接显示阶段表的说法。
 - `stage.TABLE` 新增两行：`release_waiting`（已关单，但最近一次合并发布停在「等待」，排在已出版本之前，后来的 `release` 事件会清掉它）和 `accepted`（修改已采用到分支，单子还没转待验证）。收件箱把等合并发布的已关单也列进「等你处理」，但不计入未关单数。
 - 测试：`tests/test_stage.py` 新增阶段表两行的先后冲突、收件箱/工单接口/需求页三处一致（含发版后清掉等待）、Node 渲染下一步卡片（等合并、已出版本、退回、等签收、AI 在做、已接管、已采用、无 stage 的老数据）。本地 `test_platform`、`test_workbench*`、`test_ui_*`、`test_*_ui`、`test_stage` 等 543 个通过（就绪检查照旧排除）。
+- 发布：PR #14 合并为 `fde4e26`，已发到生产（release `fde4e2601db1-next-action-20261101`）。服务器上解出的包里 `test_stage`、`test_workbench_states`、`test_recheck_summary` 共 31 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，发布后 journal 无报错。
+
+### 普通 LLM 调用遇到临时故障自动退避重试
+
+- `kbqa._post`（需求理解、`llm.chat`、分诊 `choose` 都走它）遇到 408、429、500、502、503、504、529 或连接不上，按 2、5、10 秒退避重试三次，`Retry-After` 更长时按它等（最多 30 秒）；其他错误和读超时照旧立刻抛出。智能体进程本来就有 `BUSY_WAITS` 重试，这次只补了直接 API 这一路。
+- 测试：`tests/test_intake_llm.py` 新增一例（忙→连不上→忙→成功；400 不重试；连续 5xx 四次后抛出；读超时不重试）。
