@@ -2744,12 +2744,15 @@ def _platform_admin(P, req, what):
 def api_mode(P, req, key):
     p = P.project(key)
     from . import release
-    return {"project": p["key"], "mode": P.flow.mode(p), "main": release.settings(P.data_dir)["main"].get(p["key"], "")}
+    from .ai_accept import shadow_stats
+    return {"project": p["key"], "mode": P.flow.mode(p), "main": release.settings(P.data_dir)["main"].get(p["key"], ""),
+            "shadow": shadow_stats(P.store, p["id"])}
 
 
 @route("POST", "/api/projects/<key>/mode")
 def api_mode_set(P, req, key):
-    """{"mode": "auto" | "manual"}: run the project fully automatically (AI fixes, accepts, closes, merges with a version) or have a person do every step."""
+    """{"mode": "auto" | "observe" | "manual"}: run the project fully automatically (AI fixes, accepts, closes, merges with a
+    version), let AI only say how it would accept while people accept, or have a person do every step."""
     p = P.project(key)
     actor = _platform_admin(P, req, "切换项目的自动化模式")
     try:

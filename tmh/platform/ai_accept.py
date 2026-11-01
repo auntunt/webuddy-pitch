@@ -2,9 +2,13 @@
 signs and closes a ticket itself right after the automatic line committed its change, but only when the evidence
 holds — the build and tests passed on that change, an independent diagnosis named no blocker and passed every
 criterion one by one, and the evidence package is intact and bound to this change. Anything short of that, or a
-person who took the ticket over, leaves it for people with the reason said on the ticket. Nothing is guessed."""
+person who took the ticket over, leaves it for people with the reason said on the ticket. Nothing is guessed.
+
+A project listed in "ai_accept_observe" instead (and not in "ai_accept") runs the same checks in the shadow: AI says on
+the ticket whether it would have accepted and why, signs nothing, and the person's later verdict is set against it."""
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 BY = "AI 验收"
@@ -13,6 +17,57 @@ BY = "AI 验收"
 def enabled(conf: dict, key: str) -> bool:
     v = (conf or {}).get("ai_accept")
     return v is True or v == "*" or (isinstance(v, (list, tuple)) and key in v)
+
+
+def observing(conf: dict, key: str) -> bool:
+    v = (conf or {}).get("ai_accept_observe")
+    return not enabled(conf, key) and (v is True or v == "*" or (isinstance(v, (list, tuple)) and key in v))
+
+
+def _data(e: dict) -> dict:
+    d = e["data"]
+    try:
+        d = json.loads(d) if isinstance(d, str) else d
+    except ValueError:
+        return {}
+    return d if isinstance(d, dict) else {}
+
+
+def compare(st, t: dict, passed: bool, by: str):
+    """A person's verdict after an AI verdict given in the shadow: say on the ticket whether the two agree, once."""
+    if by == BY:
+        return None
+    last = None
+    for e in st.events(t["id"]):
+        d = _data(e)
+        if "shadow" in d:
+            last = d
+        elif "shadow_compare" in d:
+            last = None
+    if not last:
+        return None
+    ai = bool(last["shadow"].get("would_accept"))
+    agree = ai == bool(passed)
+    c = {"run": last.get("run"), "ai": ai, "person": bool(passed), "agree": agree, "by": by}
+    st.event(t["id"], BY, "flow", "%s：人%s，AI 当时%s" % ("AI 影子验收和人一致" if agree else "AI 影子验收和人不一致",
+                                                      "验收通过" if passed else "退回", "本会验收通过" if ai else "本不会验收（%s）" % (last["shadow"].get("why") or "")),
+             {"shadow_compare": c})
+    return c
+
+
+def shadow_stats(st, project_id: int) -> dict:
+    """How the shadow verdicts on a project's tickets compared with people's: the evidence for switching AI acceptance on."""
+    rows = st.q("SELECT t.num, e.data FROM events e JOIN tickets t ON t.id=e.ticket_id WHERE t.project_id=? AND e.kind='flow' "
+                "AND e.data LIKE '%shadow%' ORDER BY e.id", (project_id,))
+    shadow, seen = 0, []
+    for r in rows:
+        d = _data(r)
+        if "shadow" in d:
+            shadow += 1
+        elif "shadow_compare" in d:
+            seen.append(dict(d["shadow_compare"], num=r["num"]))
+    return {"shadow": shadow, "compared": len(seen), "agree": sum(1 for c in seen if c.get("agree")),
+            "disagree": [c["num"] for c in seen if not c.get("agree")][-10:]}
 
 
 def why_not(data_dir: Path, rid: int, acs: list, real: bool = False) -> str:
@@ -60,7 +115,8 @@ def committed(snap: dict, rid: int) -> str:
 def after_commit(P, p: dict, tid: int, rid: int) -> dict:
     """Called once the automatic line committed run `rid` of ticket `tid`."""
     conf = P.flow.autoflow()
-    if not enabled(conf, p["key"]):
+    shadow = observing(conf, p["key"])
+    if not enabled(conf, p["key"]) and not shadow:
         return {"accepted": False, "why": "这个项目没开 AI 验收"}
     st = P.store
     t = st.ticket(tid)
@@ -94,6 +150,10 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
                    k for k, i in seen.items() if i["result"] != "pass")))
         s = signoff.state(P.data_dir, t["key"])
         why = why or ("证据包被改动过：%s" % s.get("problem") if not s.get("intact") else "")
+    if why and shadow:
+        st.event(tid, BY, "flow", "AI 影子验收：本不会验收（%s）。观察模式，留给人验收" % why,
+                 {"run": rid, "shadow": {"would_accept": False, "why": why}})
+        return {"accepted": False, "shadow": True, "would_accept": False, "why": why}
     if why:
         st.event(tid, BY, "flow", "AI 没有验收：%s，留给人验收" % why, {"run": rid})
         return {"accepted": False, "why": why}
@@ -105,6 +165,10 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
         basis["real"] = "pass"
     note = "AI 验收通过：构建测试通过，独立诊断没有阻断项，%s %d 条验收标准（%s）都做到了" % (
         "在页面上逐条实测" if seen else "逐条核对", len(acs), "、".join(a["id"] for a in acs))
+    if shadow:
+        st.event(tid, BY, "flow", "AI 影子验收：本会验收通过（%s）。观察模式不签收，留给人验收" % note,
+                 {"run": rid, "shadow": {"would_accept": True, "why": "", "basis": basis}})
+        return {"accepted": False, "shadow": True, "would_accept": True, "why": ""}
     try:
         with signoff.verification_guard(P, t["key"]):
             sealed = signoff._record_accept(P, t, BY, True, note, via=BY, basis=basis)

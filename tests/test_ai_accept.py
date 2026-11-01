@@ -224,5 +224,96 @@ class AutoflowPerProjectTest(unittest.TestCase):
         self.assertFalse(o.autoflow()["on"])
 
 
+class ShadowAcceptTest(unittest.TestCase):
+    """observe: the same checks run, AI says whether it would accept, signs nothing; a person's verdict is compared."""
+    run_it, real = AiAcceptFlowTest.run_it, AiAcceptFlowTest.real
+
+    def setUp(self):
+        AiAcceptFlowTest.setUp(self)
+        self.P.flow.autoflow.return_value = {"ai_accept": [], "ai_accept_observe": ["JB"]}
+
+    def shadow(self):
+        datas = [c.args[4] for c in self.P.store.event.call_args_list if len(c.args) > 4]
+        return [d["shadow"] for d in datas if "shadow" in d]
+
+    def test_full_evidence_is_said_but_not_signed(self):
+        out, rec = self.run_it()
+        self.assertEqual((out["accepted"], out["shadow"], out["would_accept"]), (False, True, True))
+        rec.assert_not_called()
+        self.P.flow.accepted.assert_not_called()
+        self.P.store.update_ticket.assert_not_called()
+        self.assertEqual(self.ticket["status"], "verify")
+        [sh] = self.shadow()
+        self.assertTrue(sh["would_accept"])
+        self.assertEqual(sh["basis"]["ac"], {"A1": "a.vue:10", "A2": "a.vue:20"})
+
+    def test_short_evidence_says_why_it_would_not(self):
+        a, b = self.real("fail", {"A1": "fail", "A2": "pass"})
+        with a, b:
+            out, rec = self.run_it()
+        self.assertEqual((out["accepted"], out["would_accept"]), (False, False))
+        rec.assert_not_called()
+        [sh] = self.shadow()
+        self.assertIn("复现了问题", sh["why"])
+
+    def test_on_wins_over_observe_and_neither_does_nothing(self):
+        conf = {"ai_accept": ["JB"], "ai_accept_observe": ["JB"]}
+        self.assertTrue(ai_accept.enabled(conf, "JB"))
+        self.assertFalse(ai_accept.observing(conf, "JB"))
+        self.P.flow.autoflow.return_value = {"ai_accept": [], "ai_accept_observe": []}
+        out, _ = self.run_it()
+        self.assertNotIn("shadow", out)
+        self.assertEqual(self.shadow(), [])
+
+
+class ShadowCompareTest(unittest.TestCase):
+    def store(self, *datas):
+        evs = [{"id": i, "kind": "flow", "data": json.dumps(d)} for i, d in enumerate(datas)]
+        st = mock.MagicMock()
+        st.events.return_value = evs
+        st.event.side_effect = lambda tid, by, kind, body, data: evs.append({"id": len(evs), "kind": kind, "data": json.dumps(data)})
+        return st, evs
+
+    def test_a_person_s_verdict_is_set_against_the_last_shadow_once(self):
+        st, evs = self.store({"run": 7, "shadow": {"would_accept": True, "why": ""}})
+        c = ai_accept.compare(st, {"id": 1}, True, "li")
+        self.assertEqual((c["ai"], c["person"], c["agree"]), (True, True, True))
+        self.assertIn("一致", st.event.call_args.args[3])
+        self.assertIsNone(ai_accept.compare(st, {"id": 1}, False, "li"))  # already compared
+        self.assertEqual(len(evs), 2)
+
+    def test_disagreement_is_said_and_ai_s_own_verdict_or_no_shadow_is_not_compared(self):
+        st, _ = self.store({"run": 7, "shadow": {"would_accept": False, "why": "页面实测没能证明"}})
+        self.assertIsNone(ai_accept.compare(st, {"id": 1}, True, ai_accept.BY))
+        c = ai_accept.compare(st, {"id": 1}, True, "li")
+        self.assertFalse(c["agree"])
+        self.assertIn("不一致", st.event.call_args.args[3])
+        st, _ = self.store({"run": 7})
+        self.assertIsNone(ai_accept.compare(st, {"id": 1}, True, "li"))
+
+
+class ShadowModeSwitchTest(unittest.TestCase):
+    def test_observe_runs_the_line_without_ai_signing_or_merging(self):
+        from tmh.platform.orchestra import Orchestra
+        data = Path(tempfile.mkdtemp(prefix="tmh-ai-"))
+        (data / "autoflow.json").write_text(json.dumps({"on": ["JB"], "ai_accept": ["JB"], "merge": ["JB"]}), encoding="utf-8")
+        o = Orchestra.__new__(Orchestra)
+        o.data_dir = data
+        o.store = mock.MagicMock()
+        o.store.projects.return_value = [{"key": "JB"}, {"key": "RW"}]
+        p = {"key": "JB"}
+        self.assertEqual(o.mode(p), "auto")
+        self.assertEqual(o.set_mode(p, "observe", "li"), "observe")
+        conf = json.loads((data / "autoflow.json").read_text(encoding="utf-8"))
+        self.assertEqual((conf["on"], conf["ai_accept"], conf["merge"], conf["ai_accept_observe"]), (["JB"], [], [], ["JB"]))
+        self.assertTrue(ai_accept.observing(o.autoflow(), "JB"))
+        self.assertEqual(o.set_mode(p, "manual", "li"), "manual")
+        conf = json.loads((data / "autoflow.json").read_text(encoding="utf-8"))
+        self.assertEqual((conf["on"], conf["ai_accept_observe"]), ([], []))
+        self.assertEqual(conf["modes_log"][-2]["mode"], "observe")
+        with self.assertRaises(ValueError):
+            o.set_mode(p, "shadow", "li")
+
+
 if __name__ == "__main__":
     unittest.main()

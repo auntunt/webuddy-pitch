@@ -75,7 +75,7 @@ class Orchestra:
     TEST_GLOBS = ["**/test/**", "**/tests/**", "**/__tests__/**", "**/test_*.py", "**/*_test.*", "**/*.test.*", "**/*.spec.*"]
 
     def autoflow(self) -> dict:
-        conf = {"on": True, "agent": "", "plan": True, "fix": True, "commit": True, "max_lines": 400, "assignee": "", "refix": 2, "holdout": 0.1, "ai_accept": []}
+        conf = {"on": True, "agent": "", "plan": True, "fix": True, "commit": True, "max_lines": 400, "assignee": "", "refix": 2, "holdout": 0.1, "ai_accept": [], "ai_accept_observe": []}
         f = self.data_dir / "autoflow.json"
         if f.exists():
             try:
@@ -262,6 +262,9 @@ class Orchestra:
         from . import learn
         later = (t.get("links") or {}).get("later")
         out = {} if later else learn.on_accept(self, p, t, passed, note, by)
+        if not later:
+            from . import ai_accept
+            ai_accept.compare(self.store, t, passed, by)
         conf = self.autoflow()
 
         def tell(gave_up: str = "") -> dict:
@@ -306,20 +309,22 @@ class Orchestra:
     MODES = ("on", "ai_accept", "merge")
 
     def mode(self, p: dict) -> str:
-        """"auto": the line runs, AI accepts and closes, accepted changes merge with a version; "partial": the line runs but
+        """"auto": the line runs, AI accepts and closes, accepted changes merge with a version; "observe": the line runs and
+        AI says how it would accept, but people accept (its verdict is compared with theirs); "partial": the line runs but
         something (AI acceptance or the merge) is left to a person; "manual": every step waits for a person."""
         try:
             conf = json.loads((self.data_dir / "autoflow.json").read_text(encoding="utf-8"))
         except (OSError, ValueError):
             conf = {}
         has = [isinstance(conf.get(k), list) and p["key"] in conf[k] for k in self.MODES]
-        return "auto" if all(has) else "partial" if has[0] else "manual"
+        watch = isinstance(conf.get("ai_accept_observe"), list) and p["key"] in conf["ai_accept_observe"]
+        return "auto" if all(has) else "observe" if has[0] and watch and not has[1] else "partial" if has[0] else "manual"
 
     def set_mode(self, p: dict, mode: str, by: str) -> str:
         from . import release
         from .util_conf import update_autoflow
-        if mode not in ("auto", "manual"):
-            raise ValueError("模式只能是 auto（全自动）或 manual（每一步人工）")
+        if mode not in ("auto", "observe", "manual"):
+            raise ValueError("模式只能是 auto（全自动）、observe（AI 验收只观察）或 manual（每一步人工）")
         line = release.line(self, p) if mode == "auto" else ""
         try:
             conf = json.loads((self.data_dir / "autoflow.json").read_text(encoding="utf-8"))
@@ -330,8 +335,10 @@ class Orchestra:
         for k in self.MODES:
             v = conf.get(k)
             v = list(v) if isinstance(v, list) else ([q for q in keys if q != p["key"]] if k == "on" and v is True else [])
-            v = [q for q in v if q != p["key"]] + ([p["key"]] if mode == "auto" else [])
+            v = [q for q in v if q != p["key"]] + ([p["key"]] if mode == "auto" or (k == "on" and mode == "observe") else [])
             ch[k] = v
+        v = conf.get("ai_accept_observe")
+        ch["ai_accept_observe"] = [q for q in (v if isinstance(v, list) else []) if q != p["key"]] + ([p["key"]] if mode == "observe" else [])
         ch["modes_log"] = (conf.get("modes_log") if isinstance(conf.get("modes_log"), list) else [])[-49:] + [
             {"project": p["key"], "mode": mode, "by": by, "line": line, "ts": time.strftime("%Y-%m-%d %H:%M:%S")}]
         update_autoflow(self.data_dir, ch)
