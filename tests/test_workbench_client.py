@@ -82,11 +82,10 @@ class WorkbenchClientTest(unittest.TestCase):
         self.assertIn('connect', caught.exception.message)
         self.assertEqual(self.requests, [])
 
-    def test_tenant_credentials_cannot_enable_execution_or_human_decision(self):
+    def test_tenant_credentials_cannot_make_human_decisions(self):
         client = Client(self.endpoint + '/t/default', tool_token='wbt_fixture.secret',
                         allow_execution=True, operator=True, operator_token='operator')
         for operation, args in (
-            ('run_start', dict(ticket='AGENT-1', mode='analyze', engine='codex', request_id='never')),
             ('candidate_decide', dict(candidate_id=1, evidence_hash='a' * 64,
                                      decision='reject', note='no', request_id='never')),
             ('library_unlink', dict(project='AGENT', binding_id=1, request_id='never')),

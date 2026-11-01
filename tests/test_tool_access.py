@@ -106,6 +106,9 @@ class ToolAccessTest(unittest.TestCase):
         for scope in ("read", "content"):
             self.assertFalse(set(A.allowed_operations(scope)) & {"run_start", "candidate_adopt", "review", "accept", "close", "operation", "message_dispatch"})
         self.assertEqual(A.allowed_operations("operator"), ())
+        self.assertEqual(set(A.allowed_operations("execute")) - set(A.allowed_operations("content")),
+                         {"run_start", "run_cancel", "run_retry", "ticket_hold"})
+        self.assertFalse(set(A.allowed_operations("execute")) & {"run_recheck", "preview_start", "candidate_assess", "candidate_decide", "library_reference"})
 
     def test_create_validates_payload_before_any_write(self):
         for fields in ({"project_ids": []}, {"project_ids": [True]}, {"project_ids": ["1"]}, {"project_ids": [0]}, {"project_ids": [1, 1]}, {"expires_days": True}, {"expires_days": 0}, {"expires_days": 31}, {"label": " "}, {"label": "x" * 121}, {"request_id": "has space"}, {"action": "revoke"}):

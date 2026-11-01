@@ -373,4 +373,24 @@ body.ast-on #ast{z-index:25}
 @media(max-width:1100px){.ws-flow-layout{grid-template-columns:minmax(260px,1fr) minmax(330px,1.1fr);gap:18px}.ws-detail{padding:18px}.ws-stage-strip button{min-width:84px}}
 @media(max-width:900px){.ws-flow-layout{grid-template-columns:minmax(0,1fr)}.ws-detail{margin-top:2px}.ws-stage-strip{gap:6px}.ws-stage-strip button{flex:1 1 90px}.hf-head h2{font-size:21px}}
 @media(max-width:520px){.ws-flow-row{padding:15px}.ws-detail{padding:16px}.ws-stage-strip button{min-width:0;font-size:12px}.hf-head{flex-wrap:wrap}.hf-head h2{margin-bottom:8px}.hf-facts{grid-template-columns:85px minmax(0,1fr)}.ws-filter-label{width:100%;justify-content:space-between}.ws-filter-label select{flex:1;max-width:220px}.hf-progress{align-items:flex-start;flex-wrap:wrap}.hf-field textarea{font-size:16px}.ws-row-owners{grid-template-columns:85px minmax(0,1fr)}.hf-source{padding:8px}.hf-head button{min-height:40px}.ws-work-links a{padding:7px 0}}
+
+/* Polish: tinted status chips, calmer tables and filters. */
+.pill{font-weight:600;border:1px solid transparent;padding:1px 9px}
+.pill[style*="--s-new"]{background:#F2F4F7!important;color:#475467;border-color:#E4E7EC}
+.pill[style*="--s-analyzing"]{background:#EAF2FF!important;color:#1D4FD7;border-color:#CFE0FF}
+.pill[style*="--s-confirm"]{background:#F4EEFE!important;color:#6D3FC6;border-color:#E3D6FB}
+.pill[style*="--s-doing"]{background:#E7F6F6!important;color:#0E7C7C;border-color:#C9ECEC}
+.pill[style*="--s-verify"]{background:#FDEEF5!important;color:#B4316F;border-color:#F8D3E5}
+.pill[style*="--s-closed"]{background:#E8F6EF!important;color:#1E7F52;border-color:#C8EBD8}
+table th{font-size:12px;font-weight:600;color:var(--mut);background:#F9FAFB;letter-spacing:.02em}
+table tr.click:hover td{background:#F7F9FC}
+td.key{font-family:var(--mono);font-size:12px;color:var(--mut);white-space:nowrap}
+.pri-urgent,.pri-high{font-weight:600}
+.pri-urgent::before,.pri-high::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:middle;background:currentColor}
+.ws-boundary{font-size:12px;color:var(--mut);margin:4px 0 12px;max-width:72ch}
+.ws-stage-strip{gap:6px;padding:4px;background:var(--soft);border:1px solid var(--line);border-radius:10px;width:max-content;max-width:100%}
+.ws-stage-strip button{min-height:32px;min-width:0;padding:4px 12px;gap:8px;border-color:transparent;background:transparent;border-radius:7px}
+.ws-stage-strip button b{font-size:13px;color:var(--mut)}
+.ws-stage-strip button[aria-pressed=true]{background:#fff;border-color:var(--line);box-shadow:0 1px 2px rgba(16,24,40,.06)}
+.ws-stage-strip button[aria-pressed=true] b{color:var(--blue)}
 """

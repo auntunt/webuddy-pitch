@@ -869,6 +869,61 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual(code, 200, d)
         return t, d["decision"].split(":", 1)[1].split("@")[0]
 
+    def test_full_auto_mode_gets_a_delivery_line_and_a_version_can_be_rolled_back(self):
+        from tmh.platform import release
+        self.team()
+        repo = git_repo(JAVA)
+        kb.build(repo)
+        from tmh import config as cfgmod
+        cfg = cfgmod.load(repo)
+        cfg["commands"]["test"] = "%s -c pass" % sys.executable
+        cfgmod.save(repo, cfg)
+
+        def git_(*a):
+            return subprocess.run(["git", "-C", str(repo)] + list(a), capture_output=True, text=True).stdout.strip()
+        git_("add", "-A")
+        git_("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "kb")
+        git_("checkout", "-q", "--detach")  # like the JB checkout: a bare commit, no branch
+        self.call("POST", "/api/projects", {"key": "BACK", "name": "回滚", "root": str(repo)})
+        old, release.MERGE = release.MERGE, ""
+        try:
+            self.assertEqual(self.call("GET", "/api/projects/BACK/mode")[1]["mode"], "manual")
+            code, m = self.call("POST", "/api/projects/BACK/mode", {"mode": "auto"})
+            self.assertEqual((code, m.get("mode"), m.get("main")), (200, "auto", "webuddy/BACK"), m)
+            self.assertEqual(git_("rev-parse", "--abbrev-ref", "HEAD"), "webuddy/BACK")
+            conf = json.loads((self.data / "autoflow.json").read_text(encoding="utf-8"))
+            self.assertTrue(all("BACK" in conf[k] for k in ("on", "ai_accept", "merge")))
+            self.assertEqual(release.settings(self.data, "OTHER")["merge"], "off")
+
+            _, t = self.call("POST", "/api/tickets", {"project": "BACK", "title": "请假审批提交后状态不刷新", "body": "提交后状态没变", "auto": False})
+            for mode in ("plan", "fix"):
+                _, r = self.call("POST", "/api/tickets/%s/runs" % t["key"], {"agent": "team", "mode": mode})
+                r = self.wait_run(r["id"])
+            self.call("POST", "/api/runs/%d/decide" % r["id"], {"decision": "accept"})
+            before = git_("rev-parse", "HEAD")
+            self.call("POST", "/api/tickets/%s/accept" % t["key"], {"result": "pass"})
+            rel = release.releases(self.data, "BACK")
+            self.assertEqual(len(rel), 1, self.P.store.events(t["id"])[-1])
+            merged = git_("rev-parse", "HEAD")
+            self.assertNotEqual(merged, before)
+
+            code, rb = self.call("POST", "/api/projects/BACK/releases/%s/rollback" % rel[0]["version"], {})
+            self.assertEqual((code, rb["kind"], rb["of"]), (200, "rollback", rel[0]["version"]))
+            self.assertEqual(git_("rev-parse", "HEAD^"), merged)  # a revert on top, nothing rewritten
+            self.assertEqual(git_("diff", before, "HEAD", "--", "src"), "")  # the code is back to what it was
+            self.assertIn(rb["tag"], git_("tag"))
+            back = self.P.store.ticket(t["id"])
+            self.assertEqual((back["status"], bool(back["links"].get("hold"))), ("doing", True))
+            _, listed = self.call("GET", "/api/projects/BACK/releases")
+            self.assertEqual(listed["releases"][1]["undone_by"], rb["version"])
+            self.assertEqual(self.call("POST", "/api/projects/BACK/releases/%s/rollback" % rel[0]["version"], {})[0], 409)
+
+            code, m = self.call("POST", "/api/projects/BACK/mode", {"mode": "manual"})
+            self.assertEqual((code, m["mode"]), (200, "manual"))
+            self.assertEqual(release.settings(self.data, "BACK")["merge"], "off")
+        finally:
+            release.MERGE = old
+
     def test_an_accepted_change_is_merged_given_a_version_and_a_conflict_goes_back(self):
         from tmh.platform import release
         self.team()
@@ -2712,6 +2767,8 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "attach", "ac": "A1", "image": "data:text/html;base64,PGI+"})[0], 400)
             code, a = self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "attach", "ac": "A1", "note": "提交后列表显示“审批中”", "image": png})
             self.assertEqual(code, 200, a)
+            shot = self.call("GET", "/api/tickets/%s" % t["key"])[1]["package"]["shots"][-1]
+            self.assertEqual((shot["ac"], shot["file"]), ("A1", shot["sha256"] + ".png"))
             self.assertEqual(self.call("POST", "/api/tickets/%s/evidence" % t["key"], {"kind": "nope"})[0], 400)
 
             # a one-time link for the named signer

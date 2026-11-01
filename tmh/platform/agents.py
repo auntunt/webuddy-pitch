@@ -219,9 +219,10 @@ MODE_TEXT = {
 5. 逐条对照验收标准，判断这次改动和工单要的是什么关系：equivalent（等价，每条都做到了）、partial（只做到一部分）、
    different（方向不同，改了别的地方或别的行为）、wrong（改错了，或者是靠删功能、跳过测试绕过去的）。这只是推断，在 match_why 里写依据。
 6. 有阻断项时，evidence、cause、files、guide 只写阻断项要的，不要把建议也塞进下一轮。
+7. 上面列了“逐条核对的验收标准”时，每一条都写进 ac：pass（读代码或构建测试能确认做到了）、fail（没做到，同时要列成阻断项）、unverified（只有跑起来才知道，读代码判断不了）。how 写依据（文件:行号，或哪条构建测试）。平台会拿它决定能不能由 AI 直接验收，不要凭感觉写 pass。
 构建或测试失败时不能判定通过。最后输出：
 ```tmh-diag
-{"verdict": "pass 或 fail", "blocking": [{"ac": "没做到的验收标准", "scenario": "输入或操作 → 错误结果", "where": "文件:行号"}], "advisory": ["不影响结论的建议"], "prior": [{"item": "之前的阻断项", "resolved": true}], "match": "equivalent / partial / different / wrong", "match_why": "对照验收标准的依据", "evidence": "失败的证据", "cause": "原因", "files": [{"path": "相对路径", "goal": "要做到什么"}], "guide": "下一轮怎么改"}
+{"verdict": "pass 或 fail", "blocking": [{"ac": "没做到的验收标准", "scenario": "输入或操作 → 错误结果", "where": "文件:行号"}], "advisory": ["不影响结论的建议"], "prior": [{"item": "之前的阻断项", "resolved": true}], "ac": [{"id": "A1", "result": "pass / fail / unverified", "how": "依据"}], "match": "equivalent / partial / different / wrong", "match_why": "对照验收标准的依据", "evidence": "失败的证据", "cause": "原因", "files": [{"path": "相对路径", "goal": "要做到什么"}], "guide": "下一轮怎么改"}
 ```""",
     "kb": """## 你的任务：撰写知识页
 1. 运行 `tmh kb next --page {target}` 领取页面，按它给出的说明阅读代码并填写页面（只改 .tmh/knowledge/ 下的这个页面）。

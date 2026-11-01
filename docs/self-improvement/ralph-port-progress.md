@@ -175,3 +175,43 @@
 - `FixLoop`：模型判 fail 但 `blocking` 是空列表时记为 `unknown`（不替它判通过；旧格式没有 `blocking` 字段的 fail 照旧算 fail）。同一工单下一次修改的诊断会带上紧挨着的上一次修改的 `blocking/evidence/cause/guide`（上一次是 pass 就不带）。连续 `STALL_AFTER=3` 次修改诊断都是 fail（中间遇到非 fail 即重新计数）时，`verify.json` 写 `stalled`，摘要显示“在兜圈子”并建议先实测或由人定方向；工单接口带出 `stalled`，运行说明里同步提示。摘要新增“阻断项”和“建议（不影响结论）”两节。
 - 测试：`tests/test_agent_routes.py` 新增 4 个用例（无阻断项的 fail → unknown；advisory 不影响 pass；上一次阻断项进入提示 + 连续三次 → stalled；上一次 pass 打断循环），`tests/test_recheck_summary.py` 补 `vfy` 的兜圈子提示断言。相关 9 个测试文件 162 个通过，唯一失败仍是与本次无关的 `test_readiness_checks_the_real_machine_worst_first`（本机 Git 旧）。
 - Devin Review 跟进：`blocking` 只算 `ac` 和 `scenario` 都非空的项（`fixloop.blockers`），`[{}]` 之类按没有阻断项处理；被改成 unknown 的 fail 在 `verify.json` 写 `vague_fail`，`fix_gate` 据此留给人看，不会自动提交（原来的 unknown 照旧）；兜圈子只数诊断本身判 fail 的次数，不把构建失败但诊断通过的修改算进去。新增 3 个用例。
+
+### 2026-10-30 按项目开关的 AI 验收与关单；JB 前端构建检查改用项目自己的 vite build
+
+- 用户选择：“全部交给 AI，包括验收和关单（改 AGENTS.md 规则，按项目开关）”，并说明 Windows 不重要。`AGENTS.md` 增加例外：只有 `autoflow.json` 的 `ai_accept` 列出的项目，由平台自己的 `tmh/platform/ai_accept.py` 在确定性闸门全部满足时签收并关单；人工验收入口的 guard 不变，开发用 Agent 仍不得手工代人验收。
+- `ai_accept.after_commit` 挂在 `Orchestra.committed`（自动流转 `_flow_commit` 提交成功之后）。签收条件全部满足才做：项目开了 `ai_accept`；没人接手；工单在 `verify`；不是固定候选单；`epic.refuse` 放行；证据包已生成、完整、快照对应的正是这次运行；`verify.json` 当前有效、构建测试 `pass`、诊断 `pass` 且无阻断项、没改方案外文件；证据包里每条验收标准都有诊断逐条给出的 `pass`（缺条目、`unverified`、`fail`、待确认的标准都不行）。签收在 `verification_guard` 里调用 `_record_accept`（签收人 `AI 验收`，`via` 为 `AI 验收`，`basis` 写运行号和每条标准的依据），事件带 `ai: true`，状态改为 `closed`，然后照常 `flow.accepted` 走合并发布。任何一项不满足只记一条“AI 没有验收：原因，留给人验收”。
+- 诊断提示新增“逐条核对的验收标准”（客户确认的优先，否则取方案的），`tmh-diag` 新增 `ac: [{id, result: pass/fail/unverified, how}]`，`verify.json` 保留 `ac`，摘要新增“逐条验收”一节。
+- `autoflow.json` 的 `on` 可以写项目列表（`Orchestra.switched_on`），只让列出的项目自动流转；`true/false` 含义不变。
+- `testbox.build_commands`：前端检查优先用项目自己的 `type:check`，其次项目 `build` 脚本里的 `vite build`，最后才猜 `vue-tsc`/`tsc`。JeecgBoot 原代码 `vue-tsc` 必然失败，而在测试机上对原代码跑 `pnpm install --prefer-offline && pnpm exec vite build` 退出码 0、92 秒。
+- 测试：新增 `tests/test_ai_accept.py`（开关按项目、证据不全的 8 种情况留给人、签收+关单+发布、关闭/接手/证据包对应别的运行/被改动时不签），`test_agent_routes` 新增逐条验收进提示和摘要，`test_testbox` 新增前端检查选择。相关 16 个测试文件全部通过（除本机 Git 旧导致的 `test_readiness_checks_the_real_machine_worst_first`）。
+
+## 2026-10-31 JB 真实验证环境（pstack「Prove It Works」第一步）
+
+- 用户选择：在 Windows 测试机上起 JB 前后端做预览，AI 在真实页面上按验收标准逐条操作并截图；只有能复现的问题才阻断。
+- 测试机 WSL（Ubuntu-24.04，15G 内存）：apt 换 aliyun 镜像，装 mysql 8（lower_case_table_names=1，导入 JB 自带开发库 `jeecg-boot`）、redis、maven；后端 jar 由 systemd `jb-backend` 跑在 :8080（`/jeecg-boot`）。WSL 的 sshd 经 frp（生产 12122）接入，生产 ubuntu 用户的公钥已加到 WSL `auntu`。
+- 前端：`~/pv/base` 为生产 JB 仓库 HEAD 的克隆，pnpm（npmmirror）依赖已装；vite 按 `VITE_PUBLIC_PATH/VITE_GLOB_API_URL/VITE_PROXY` 带预览前缀启动，6 秒可响应。
+- 浏览器：WSL 里 Playwright 1.48.2 + chromium（npmmirror）。`tools/verify/jb/` 的 doctor 实测：页面渲染、经验证码真实登录成功（验证码从 redis 按 JB 自身算法反查，不改 JB 代码），截图可见该提交的「AI助手」改动。
+- 默认组织（受信宿主运行时）的托管进程可以按项目列表开自动流转（`on` 必须是列表）；自动合并在托管进程里仍强制关闭，其他租户仍全关（提交 b475114）。
+- 下一步：验证器模块把候选提交送到 WSL、按验收标准跑 Playwright、截图回传写证据链，再接入 AI 验收的闸门。
+
+## 2026-10-31 真实应用验证器接入 AI 验收（pstack「Prove It Works」）
+
+- 新模块 `tmh/platform/browser_verify.py`：项目在 `<data>/verify-hosts.json` 配了验证机时，把被测版本（已提交的候选 commit，或 run 工作树的 base + diff）经 SSH 送到验证机，在独立工作树里起前端（后端与数据库是验证机自己的隔离开发库），由诊断执行器按验收标准写 Playwright 脚本（每条标准一个 test、每步截图），真实浏览器跑完把 JSON 报告和截图传回。
+- 判定：断言失败 = 复现（fail）；测试通过且有截图 = pass；超时、步骤执行不了、跳过、没截图、环境起不来 = unverified。只有全部 pass 才算证明。
+- 结果写进证据链：每条标准最多 3 张截图（`signoff.attach`，按 sha256 落盘），外加一条 `verify` 事件记录 run、base、diff_sha256、spec_sha256 与逐条结论。
+- AI 验收（`ai_accept.after_commit`）：配了验证机的项目，必须页面实测全部 pass 才签收；诊断里某条标准「没法确认」不再阻断，但诊断判某条 fail 仍阻断。签收依据带 `real: pass`。
+- 生产上实测传输链路：WSL 里登录 JB，A1（顶部有「AI助手」）pass，故意写错的 A2 判 fail（断言失败），两张截图回传。原 `tools/verify/jb/` 的 helper 已并入模块。
+- 本机 node 是 v12，UI 测试需 `PATH=~/.nvm/versions/node/v24.19.0/bin:$PATH`。
+
+## 2026-10-31 JB 无人化链路：实测误报与代码位置识别
+
+- JB-49：页面还在 JeecgBoot 加载动画上就断言，A1 被误判为复现问题。修复 `22f0d31`：helpers 包装 `page.goto` 等 networkidle 且 `.app-loading` 消失，globalSetup 预热冷 Vite，等不到算 `TMH_SETUP`（未证明）。用该候选直接复跑，A1/A2 通过（约 44 秒）。
+- JB-50：生成的定位同时命中隐藏的注册表单，触发 strict mode。修复 `1ac747a`：strict mode 判为未证明；脚本自身错误交回诊断执行器修一次，断言不许删改，结论绑定新的 `spec_sha256` 并记 `repaired_from`。真实断言失败、环境错误不修，最多修一次。
+- JB-51 / JB-52：Opus 写的代码位置用了反引号包路径（`57e1c54`）、Markdown 表格分列，平台按 refs=0 停在分析。`4e92ddf` 改为按行宽松识别（`tmh/platform/coderefs.py`）：路径后同一行的「第 N 行」、`:N`、`#LN`、`LN` 或表格相邻的数字格都算；用 JB-48..52 的真实分析结论核对过。
+- JB-53：分析 refs=3，自动走到 WSL 实测。两条 test 都卡在生成脚本的前置定位 `button` 文案 `^登录$` 上（Ant Design 两字按钮渲染为「登 录」），平台按断言失败判 fail，因此没有触发修脚本，也没有签收。修复 `e12b765`：前置条件改用 `anchor()`，找不到判 `TMH_ANCHOR`（未证明、可修一次脚本），只有标准本身的断言失败才算复现；提示里写明两字按钮带空格。
+- 现状：还没有一张生产单零人工走完 AI 验收和关单。JB-44..53 都没有人工采纳、验收或关单。
+- JB-53 复核：生成的脚本还打开了 `TMH_BASE + '/sys/login'`（多了一个斜杠，路由也不对），并且在第一次 `shot` 之前就断言了登录按钮。修复 `b790198`：截图之前的断言失败判为未证明（可修一次脚本），因为看不到页面实际状态，不能算复现；提示里写明 `TMH_BASE` 以 `/` 结尾、登录页是 `user/login`，进入页面后先截图再断言。
+- JB-54（b790198）：零人工跑到实测。A2 通过；A1 判 fail，但 A1 自己的截图上，复选框旁清楚显示「记住账号」。原因是脚本假设文案在 `<label>` 里，实际页面是 checkbox 加一段 text。修复 `d356ecd` / `c2bdbfe`：第一份脚本只当草稿。凡是没通过的标准（环境没起来的除外），都带上失败时的页面结构（Playwright 1.48 没有 ariaSnapshot，退回 accessibility 树，一行一个元素）交回复核一次：页面确实没做到就原样保留，脚本写错了才改，改后的脚本必须保留标准里引号中的检查内容（`keeps()`），否则不采用。生产上用 JB-53 候选做了冒烟，故意用错的 label 定位，页面结构里能看到 `checkbox` 和 `text "记住账号"`。
+- JB-55（c2bdbfe）：自动提交后停在诊断。Opus 判了 pass，但 `tmh-diag` 的字符串里有没转义的双引号（`实现"记住账号"功能`），JSON 解析失败，平台按「没给结论」处理。修复：`fixloop.loads()` 先按严格 JSON 解析，失败后把字符串里不在 `, : } ]` 之前的裸引号转义再解析，结构本身坏了仍然返回 None。用 JB-55 的真实输出核对：verdict=pass，A1 静态 unverified，其余 pass。
+- JB-56（f3df2ae）：第一张零人工走完 AI 验收并关单的生产单。链路：analyze #323 → plan #324 → Luna fix #325 → 测试机 `vite build` 81 秒 → Opus 诊断 pass → 自动提交 `tmh/JB-56-r325`（13f53ff9）→ spec #326。原始脚本先 `login()` 再打开登录页，结果落到登录后的 404，A1/A2 都是 TMH_ANCHOR。review #327 只删掉了 login，断言原样保留，重跑后 A1/A2 通过，各 2 张截图，`repaired_from` 记的是原 spec 的 hash。AI 验收（ai:true，basis 里 real=pass，KEPT 为 A3–A5）后关单。合并发布停在 waiting（项目目录是 detached HEAD），自动合并本来就关着。证据包页面关单后仍列出缺少「验证门全部通过」和「乙方复核人」，待查。
+- 全自动 / 每步人工 / 回滚（用户：“先不卡，我们先做全自动，然后做好版本管理，就可以及时回滚和人工介入，当然也需要可以切换为原本的各个步骤都要人介入的情况”）：AI 验收不加 pack gates 和乙方复核。新增项目模式 `auto`（autoflow.json 的 `on`、`ai_accept`、`merge` 三个列表都含该项目）/`partial`/`manual`，设置页逐项目切换（`POST /api/projects/<key>/mode`，租户模式下仅 default+legacy 的 platform owner）。切到全自动时，项目目录停在游离提交上就就地建 `webuddy/<KEY>` 分支作交付主线（文件不动，写入 autoflow.json `main`），已有分支就用它，名字冲突则拒绝。`release.settings` 的 `merge` 支持项目列表；托管 worker 只为 `auto` 模式的项目合并。回滚：`POST /api/projects/<key>/releases/<version>/rollback` → 在主线上 `git revert`（merge 提交用 `-m 1`），作为新版本打 tag 记入 releases.jsonl（`kind: rollback`, `of`），历史不改写，不推送不部署；冲突时 `revert --abort`，主线不动；该版本的工单重开为 doing 并设 hold 转人工。版本列表显示「回滚」/「已回滚（新版本）」。测试 `test_full_auto_mode_gets_a_delivery_line_and_a_version_can_be_rolled_back`（游离提交→建主线→合并→回滚→代码回到合并前→重复回滚 409→切回人工 merge off）。

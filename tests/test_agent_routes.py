@@ -148,6 +148,32 @@ class AgentRoutesTest(unittest.TestCase):
         self.runner.start.assert_not_called()
         self.assertTrue(any("不可用" in event["body"] for event in self.store.events(self.ticket["id"])))
 
+    def test_ticket_handed_back_while_doing_goes_on_from_analysis_to_plan(self):
+        self.write()
+        self.store.update_ticket(self.ticket["id"], "li", status="doing")
+        self.P.flow._flow_analyze(self.project, self.ticket["id"], {"agent": "claude", "plan": True})
+        then = self.runner.start.call_args.kwargs["then"]
+        with patch.object(self.P.flow, "_flow_plan") as plan:
+            then({"status": "done", "result": "see src/a.vue:10"})
+            plan.assert_called_once()
+            self.store.update_ticket(self.ticket["id"], "li", status="verify")
+            then({"status": "done", "result": "see src/a.vue:10"})
+            plan.assert_called_once()
+
+    def test_criteria_the_client_confirmed_let_a_plan_without_its_own_go_on_to_the_fix(self):
+        self.write()
+        tid = self.ticket["id"]
+        self.store.update_ticket(tid, "li", status="doing")
+        self.P.flow._flow_plan(self.project, tid, {"fix": True}, "claude")
+        then = self.runner.start.call_args.kwargs["then"]
+        with patch.object(self.P.flow, "_flow_fix") as fix:
+            then({"id": 1, "status": "done", "result": "A1 prose only"})
+            fix.assert_not_called()
+            self.assertTrue(any("没有验收标准" in e["body"] for e in self.store.events(tid)))
+            with patch("tmh.platform.signoff.client_ac", return_value=[{"id": "A1", "text": "x"}]):
+                then({"id": 1, "status": "done", "result": "A1 prose only"})
+            fix.assert_called_once()
+
     def test_codex_only_route_blocks_direct_api_chooser_and_model_triage(self):
         self.write()
         with patch("tmh.kbqa.router_conf") as config, patch("tmh.kbqa.triage", return_value={}) as triage:
@@ -270,7 +296,7 @@ class AgentRoutesTest(unittest.TestCase):
                 self.assertEqual(verdict, "pass" if diagnosed else "unknown")
 
 
-    def _diagnose_on_ticket(self, said, earlier=()):
+    def _diagnose_on_ticket(self, said, earlier=(), setup=None, raw=None):
         from tmh.platform.fixloop import FixLoop
         self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex",
                     "allowed_agents": ["cloudwave-codex", "claude"], "steps": {"diagnose": "claude"}}}})
@@ -288,7 +314,7 @@ class AgentRoutesTest(unittest.TestCase):
         (self.data / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)
         runner = Mock(data_dir=self.data, store=self.store)
         runner.stop_reason.return_value = ""
-        runner.invoke.return_value = (0, "```tmh-diag\n%s\n```" % json.dumps(said, ensure_ascii=False))
+        runner.invoke.return_value = (0, raw or "```tmh-diag\n%s\n```" % json.dumps(said, ensure_ascii=False))
         diff = "diff --git a/a.vue b/a.vue\n--- a/a.vue\n+++ b/a.vue\n@@ -1 +1 @@\n-x\n+y\n"
         with patch("tmh.platform.fixloop.git", return_value="abc\n"), patch("tmh.platform.fixloop.worktree_diff", return_value=diff), \
                 patch("tmh.platform.fixloop.learning_context_current", return_value=True):
@@ -296,9 +322,37 @@ class AgentRoutesTest(unittest.TestCase):
             loop.commands = Mock(return_value=([], "no build here"))
             loop.whole = Mock()
             loop.context = Mock(return_value="ticket")
+            if setup:
+                setup(loop)
             _, summary = loop.run()
         verify = json.loads((self.data / "runs" / str(rid) / "verify.json").read_text(encoding="utf-8"))
         return verify, summary, runner.invoke.call_args.args[6]
+
+    def test_a_plan_that_lists_no_files_is_built_on_the_test_machine_from_what_was_changed(self):
+        def setup(loop):
+            loop.box = Mock()
+            loop.commands = Mock(side_effect=lambda goals=None: ([("build", "pnpm exec vite build")], "") if goals else ([], "no files"))
+            loop.baseline = Mock(return_value="")
+            loop.execute = Mock(return_value=[{"kind": "build", "command": "pnpm exec vite build", "exit_code": 0, "seconds": 1, "tail": ""}])
+            self.loop = loop
+        verify, _, _ = self._diagnose_on_ticket({"verdict": "pass", "blocking": []}, setup=setup)
+        self.assertEqual((verify["check"], verify["skip"], verify["verdict"]), ("pass", "", "pass"))
+        self.assertEqual(self.loop.commands.call_args.args[0], {"a.vue": ""})
+        self.loop.baseline.assert_called_once()
+
+    def test_a_diagnosis_wrapped_in_a_json_block_under_its_own_name_is_read(self):
+        from tmh.platform.fixloop import fenced
+        said = {"verdict": "PASS", "blocking_issues": [], "ac": [{"id": "A1", "result": "pass", "how": "a.vue:3"}]}
+        out = "看完了\n```json\n%s\n```" % json.dumps({"tmh-diag": said}, ensure_ascii=False)
+        self.assertEqual(fenced("tmh-diag", out), said)
+        bare = '```tmh-diag\n{\n  "verdict": "pass",\n  "advisory": ["如果未来需要实现"记住账号"功能，注意 \\"a\\""],\n  "ac": [{"id": "A1", "result": "pass", "how": "sys.ts:78"}]\n}\n```'
+        self.assertEqual(fenced("tmh-diag", bare)["advisory"], ['如果未来需要实现"记住账号"功能，注意 "a"'])
+        self.assertEqual(fenced("tmh-diag", bare)["verdict"], "pass")
+        self.assertIsNone(fenced("tmh-diag", '```tmh-diag\n{"verdict": "pass", \n```'))
+        self.assertIsNone(fenced("tmh-diag", "```json\n{\"verdict\": \"pass\"}\n```"))
+        self.assertEqual(fenced("tmh-diag", out + "\n```tmh-diag\n{\"verdict\": \"fail\"}\n```"), {"verdict": "fail"})
+        verify, _, _ = self._diagnose_on_ticket({}, raw=out)
+        self.assertEqual((verify["verdict"], verify["diagnosis"]["blocking"]), ("pass", []))
 
     def test_a_fail_that_names_no_blocker_is_no_verdict(self):
         verify, _, _ = self._diagnose_on_ticket({"verdict": "fail", "blocking": [], "advisory": ["可能需要深拷贝"]})
@@ -317,6 +371,16 @@ class AgentRoutesTest(unittest.TestCase):
         verify, _, _ = self._diagnose_on_ticket(said, earlier=(("fail", "pass"), ("fail", "pass")))
         self.assertEqual(verify["verdict"], "fail")
         self.assertNotIn("stalled", verify)
+
+    def test_each_criterion_is_put_to_the_diagnosis_and_its_answer_shown(self):
+        plan = self.store.create_run(self.project["id"], self.ticket["id"], "claude", "plan", "alice", "p")["id"]
+        self.store.update_run(plan, status="done", result='```tmh-plan\n{"files": [], "ac": [{"id": "A1", "text": "取消后恢复原值", "check": "点取消"}]}\n```')
+        said = {"verdict": "pass", "blocking": [], "ac": [{"id": "A1", "result": "pass", "how": "a.vue:3"}]}
+        verify, summary, prompt = self._diagnose_on_ticket(said)
+        self.assertIn("逐条核对的验收标准", prompt)
+        self.assertIn("A1：取消后恢复原值", prompt)
+        self.assertEqual(verify["diagnosis"]["ac"], said["ac"])
+        self.assertIn("A1：通过（a.vue:3）", summary)
 
     def test_a_doubt_is_advice_and_does_not_send_the_work_back(self):
         verify, summary, _ = self._diagnose_on_ticket({"verdict": "pass", "blocking": [], "advisory": ["可能需要深拷贝"]})
@@ -343,3 +407,21 @@ class AgentRoutesTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FileLineTest(unittest.TestCase):
+    def test_code_locations_written_the_chinese_way_count_as_evidence(self):
+        from tmh.platform.orchestra import Orchestra
+        text = "// jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts 第 78 行\na.vue:12，b.ts#L3，C.java (line 9)，d.vue（行 4）"
+        self.assertEqual(Orchestra.FILE_LINE.findall(text), [("jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts", "78"), ("a.vue", "12"),
+                                                             ("b.ts", "3"), ("C.java", "9"), ("d.vue", "4")])
+        self.assertEqual(Orchestra.FILE_LINE.findall("改 sys.ts 里的 rememberMe，共 3 处"), [])
+        self.assertEqual(
+            Orchestra.FILE_LINE.findall("- 文件：`jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts` 第 78 行；**a.vue** 的第 5 行；`b.ts`:7"),
+            [("jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts", "78"), ("a.vue", "5"), ("b.ts", "7")])
+        from tmh.platform.server import Platform
+        self.assertIs(Platform.FILE_LINE, Orchestra.FILE_LINE)
+        table = "| 文件 | 行号 | 内容 |\n|---|---|---|\n| `jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts` | 第 78 行 | rememberMe |\n| LoginForm.vue | 45 | 复选框 |"
+        self.assertEqual(Orchestra.FILE_LINE.findall(table),
+                         [("jeecgboot-vue3/src/locales/lang/zh-CN/sys.ts", "78"), ("LoginForm.vue", "45")])
+        self.assertEqual(Orchestra.FILE_LINE.findall("| a.vue | 组件 | 共 3 处 |\nsys.ts 和 b.vue 都要改"), [])

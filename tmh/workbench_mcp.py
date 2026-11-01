@@ -33,8 +33,11 @@ TENANT_INSTRUCTIONS = (
     " This is a personal tenant connection, restricted to the member's current "
     "tenant, projects and live scope. Tool labels are display/routing labels, "
     "not independent identities or reviewers. Only authorised reads and, for "
-    "content scope, ticket creation and task messages are available. Execution, "
-    "candidate assessment, knowledge adoption and human decisions are disabled. "
+    "content scope, ticket creation and task messages are available. The execute "
+    "scope adds starting/stopping analyze, plan and fix runs and taking over or "
+    "handing back automation, only where the member may run them in the web. "
+    "Candidate assessment, knowledge adoption, acceptance, merge, release, rollback "
+    "and human decisions are disabled. "
     "Request receipts belong to the authenticated member, not the tool label. "
     "The gateway rechecks expiry, revocation and project permission on every call."
 )
@@ -62,9 +65,10 @@ def build_server(client, read_only=False, allow_execution=False):
     tenant = bool(getattr(client, "tenant", None))
     live_allowed = None
     if tenant:
-        if allow_execution:
-            raise ClientError("个人工具连接不允许执行；请移除 --allow-execution", "tool_operation_forbidden")
-        live_allowed = set(client.connection_status()["allowed_operations"])
+        status = client.connection_status()
+        if allow_execution and status["tool_connection"]["scope"] != "execute":
+            raise ClientError("这个个人工具连接没有授权启动运行；请在网页「工具连接」新建「执行」范围的连接，或移除 --allow-execution", "tool_operation_forbidden")
+        live_allowed = set(status["allowed_operations"])
 
     allowed = {
         "webuddy_" + operation: operation
@@ -74,7 +78,7 @@ def build_server(client, read_only=False, allow_execution=False):
         and not spec.get("operator")
         and (not tenant or (operation in live_allowed and client.permits(operation)))
     }
-    client.allow_execution = bool(allow_execution and not read_only and not tenant)
+    client.allow_execution = bool(allow_execution and not read_only)
     server = Server("webuddy_mcp", version=__version__, instructions=INSTRUCTIONS + (TENANT_INSTRUCTIONS if tenant else ""))
     # Keep a real bound on active HTTP calls even after an MCP cancellation.
     # Non-abandoned workers hold their slot until the client's bounded request

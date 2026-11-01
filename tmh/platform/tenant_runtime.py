@@ -57,23 +57,38 @@ class TenantContext:
             if tool['user'] != actor or tool['tenant'] != self.tenant_id:
                 raise error(403, '工具连接与当前成员不匹配', 'tool_invalid')
             # A personal admin may issue a tool token, but never delegate their
-            # admin, execution or human-signoff authority to that connection.
-            role = 'contributor' if tool['scope'] == 'content' else 'viewer'
-            result.update(role='member' if tool['scope'] == 'content' else 'viewer', platform_owner=False,
+            # admin or human-signoff authority. The execute scope carries only
+            # the execution the member already holds in the web.
+            writes = tool['scope'] in ('content', 'execute')
+            role = 'contributor' if writes else 'viewer'
+            caps = value['capabilities']
+            result.update(role='member' if writes else 'viewer', platform_owner=False,
                           can_manage=False, project_grants={keys[str(pid)]: role for pid in tool['project_ids'] if str(pid) in keys},
                           tool_connection=tool,
-                          capabilities={k: k == 'read' or k == 'write' and tool['scope'] == 'content'
-                                        for k in value['capabilities']})
+                          capabilities={k: k == 'read' or k == 'write' and writes
+                                        or k == 'execution' and tool['scope'] == 'execute' and bool(caps.get('execution'))
+                                        for k in caps})
         return result
 
     def directory(self):
         return self.registry.directory(self.tenant_id)
 
+    def trusted_host(self):
+        """The default tenant on the original host runtime: the operator's own projects, not a hosted customer."""
+        t = self.registry.one('SELECT runtime FROM tenants WHERE id=?', (self.tenant_id,))
+        return self.tenant_id == 'default' and bool(t) and t['runtime'] == 'legacy'
+
+    PLATFORM_ACTORS = ('自动流转', 'AI 验收')
+
     def runtime_allowed(self, actor):
+        tool = TOOL.get()
+        if tool is not None and actor == 'agent:member:' + tool['user']:
+            actor = tool['user']
         try:
             return bool(self.current_actor(actor)['capabilities']['execution'])
         except ApiError:
-            return False
+            # the platform's own automatic line, on the operator's own projects only; never a name a member holds
+            return actor in self.PLATFORM_ACTORS and self.trusted_host()
 
     def workspace_allowed(self, value):
         """Only server-approved roots; existing legacy project roots stay fixed."""

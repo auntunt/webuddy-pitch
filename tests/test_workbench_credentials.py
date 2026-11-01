@@ -210,10 +210,15 @@ class WorkbenchCredentialsTest(unittest.TestCase):
             self.assertNotIn(self.value["token"], out + err)
             self.assertNotIn("WEBUDDY_TOKEN", out)
         for command in (("config", "claude"), ("mcp",)):
-            result, out, err = self.invoke(*command, "--credential-file", str(self.path), "--allow-execution")
+            with patch.object(Client, "connection_status", lambda client: self.status()):
+                result, out, err = self.invoke(*command, "--credential-file", str(self.path), "--allow-execution")
             self.assertEqual(result, 1)
             self.assertEqual(json.loads(err)["code"], "tool_operation_forbidden")
             self.assertEqual(out, "")
+        with patch.object(Client, "connection_status", lambda client: self.status(scope="execute", execution=True)):
+            result, out, err = self.invoke("config", "claude", "--credential-file", str(self.path), "--allow-execution")
+        self.assertEqual(result, 0, err)
+        self.assertIn("--allow-execution", out)
 
 
 class UnsupportedCredentialPlatformTest(unittest.TestCase):

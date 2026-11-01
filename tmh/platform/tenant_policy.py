@@ -147,6 +147,9 @@ GET /api/projects/<key>/releases
 POST /api/tickets/<key>/release
 GET /api/tickets/<key>/preview
 POST /api/tickets/<key>/preview
+GET /api/projects/<key>/mode
+POST /api/projects/<key>/mode
+POST /api/projects/<key>/releases/<version>/rollback
 GET /api/projects/<key>/preview-conf
 POST /api/projects/<key>/preview-conf
 GET /api/tickets/<key>/starter
@@ -202,7 +205,7 @@ messages_list request_get run_get run_start run_cancel run_retry run_recheck pre
 candidates_list candidate_get candidate_submit candidate_verify candidate_cancel candidate_preview
 candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel
 harness_library library_get library_search library_read library_build library_cancel library_resume
-library_reference library_unlink""".split())
+library_reference library_unlink ticket_hold""".split())
 SAFE_POSTS = frozenset((
     # Personal trial records only: no models, process launch or task moves.
     "/api/projects/<key>/pilots", "/api/projects/<key>/pilots/<pid>",
@@ -468,7 +471,8 @@ def _agent(P, who, operation, body):
     elif not projects and operation not in ("status", "harness_recipes") and who["role"] != "admin" and not (
             tool and operation in ('projects_list', 'tickets_list', 'messages_list')):
         raise ApiError(403, "请明确选择获准的项目或工单")
-    if spec.get("execution"):
+    if spec.get("execution") or operation == "ticket_hold" and not args["hold"]:
+        # Handing back restarts automatic runs; taking over only stops them.
         require_execution(P, who["actor"])
     if operation == "library_build":
         require_workspace(P, who["actor"], projects[0]["root"])

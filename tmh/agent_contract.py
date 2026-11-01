@@ -40,6 +40,7 @@ SPECS = {
     "run_cancel": spec("请求停止运行并回收其进程。读取后续 run_get 的停止回执确认结果；不删除已产出代码和证据。", {"run_id": RID, "request_id": REQUEST}, ["run_id", "request_id"], write=True, execution=True),
     "run_retry": spec("显式重试失败或取消的运行，沿用平台停止回执与安全检查；未清理干净时拒绝。可能消耗模型额度。", {"run_id": RID, "request_id": REQUEST}, ["run_id", "request_id"], write=True, execution=True),
     "run_recheck": spec("重新构建并验证已有改动，立即返回操作状态；旧证据失效，跟进 run_get。不会重新改码或替人批准。", {"run_id": RID, "request_id": REQUEST}, ["run_id", "request_id"], write=True, execution=True),
+    "ticket_hold": spec("接管或交回自动：hold=true 暂停这张工单的自动处理，由人接手，正在跑的步骤跑完后不再往下走；hold=false 交回自动，从停下的地方接着跑。不代人验收、合并或发布。", {"ticket": KEY, "hold": dict(type="boolean", description="true 接管；false 交回自动"), "request_id": REQUEST}, ["ticket", "hold", "request_id"], write=True),
     "preview_get": spec("查询指定候选的预览状态和版本；链接可打开不代表业务验收通过。", {"ticket": KEY, "run_id": RID}, ["ticket"]),
     "preview_start": spec("启动已采纳运行所绑定的本地候选预览，复用平台版本检查；可能启动应用进程。没有已采纳候选时拒绝。", {"ticket": KEY, "run_id": RID, "request_id": REQUEST}, ["ticket", "run_id", "request_id"], write=True, execution=True),
 }
@@ -140,6 +141,9 @@ def _validate_value(name, prop, v):
             raise ValueError("%s 不能为空白" % name)
         if "pattern" in prop and not re.fullmatch(prop["pattern"], v):
             raise ValueError("%s 格式不正确" % name)
+    elif prop["type"] == "boolean":
+        if not isinstance(v, bool):
+            raise ValueError("%s 必须是 true 或 false" % name)
     elif type(v) is not int or v < prop.get("minimum", 0) or v > prop.get("maximum", float("inf")):
         raise ValueError("%s 必须是允许范围内的整数" % name)
     if "enum" in prop and v not in prop["enum"]:
