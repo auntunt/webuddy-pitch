@@ -359,6 +359,19 @@ class AgentRoutesTest(unittest.TestCase):
         self.assertEqual(verify["verdict"], "unknown")
         self.assertNotIn("stalled", verify)
 
+    def test_a_fail_whose_blocking_is_not_a_list_is_no_verdict(self):
+        for blocking in (None, {"ac": "A1", "scenario": "x → y"}):
+            verify, _, _ = self._diagnose_on_ticket({"verdict": "fail", "blocking": blocking})
+            self.assertEqual((verify["verdict"], verify["diagnosis"]["blocking"]), ("unknown", []))
+            self.assertTrue(verify["vague_fail"])
+
+    def test_only_a_diagnosis_without_the_blocking_field_keeps_a_bare_fail(self):
+        from tmh.platform.fixloop import settle_fail
+        self.assertEqual(settle_fail({"verdict": "fail"}, "fail"), ("fail", False))
+        self.assertEqual(settle_fail({"verdict": "fail", "blocking": []}, "fail"), ("unknown", True))
+        named = {"verdict": "fail", "blocking": [{"ac": "A1", "scenario": "x → y"}]}
+        self.assertEqual(settle_fail(named, "fail"), ("fail", False))
+
     def test_blockers_without_a_criterion_or_scenario_are_no_blockers_and_wait_for_a_person(self):
         verify, _, _ = self._diagnose_on_ticket({"verdict": "fail", "blocking": [{}, None, {"ac": "A1", "scenario": " "}]})
         self.assertEqual(verify["verdict"], "unknown")

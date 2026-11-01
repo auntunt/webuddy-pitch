@@ -135,6 +135,8 @@ class RunHandoffTest(unittest.TestCase):
 
     def test_recheck_refreshes_changed_code_and_invalidates_old_diagnosis(self):
         root, run, wt, folder, before = self.recheck_fixture()
+        old = json.loads((folder / "verify.json").read_text())
+        (folder / "verify.json").write_text(json.dumps(dict(old, stalled=3)))
         (wt / "app.py").write_text("VALUE = 2\n")
         current = worktree_diff(wt)
         result = recheck(self.runner, run["id"])
@@ -145,6 +147,8 @@ class RunHandoffTest(unittest.TestCase):
         self.assertEqual(result["diagnosis"], {})
         self.assertEqual(result["previous_verifications"][0]["diff"], before)
         self.assertEqual(result["previous_verifications"][0]["verification"]["verdict"], "fail")
+        self.assertNotIn("stalled", result)
+        self.assertEqual(result["previous_verifications"][0]["verification"]["stalled"], 3)
         self.assertEqual(self.store.run(run["id"])["diff"], current)
         self.assertFalse(result["code_changed_during_check"])
 
