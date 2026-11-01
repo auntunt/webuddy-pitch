@@ -1,4 +1,6 @@
 import json
+import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -30,6 +32,7 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(repo_sync.web(c, "branch", "webuddy/JB"), "https://github.com/a/b/tree/webuddy/JB")
 
 
+@unittest.skipUnless(shutil.which("ssh-keygen"), "needs ssh-keygen")
 class PushTest(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="tmh-rs-"))
@@ -49,7 +52,8 @@ class PushTest(unittest.TestCase):
         self.assertEqual((v["name"], v["on"], v["url"]), ("auntunt/JeecgBoot", False, "git@github.com:auntunt/JeecgBoot.git"))
         self.assertTrue(v["deploy_key"].startswith("ssh-ed25519 "))
         key = repo_sync.key_file(self.data, "JB")
-        self.assertEqual(key.stat().st_mode & 0o777, 0o600)
+        if os.name == "posix":
+            self.assertEqual(key.stat().st_mode & 0o777, 0o600)
         self.assertNotIn("PRIVATE", json.dumps(v))
         self.assertEqual(git(self.root, "config", "--get", "remote.webuddy.url"), "git@github.com:auntunt/JeecgBoot.git")
         with self.assertRaises(ValueError):
