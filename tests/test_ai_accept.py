@@ -315,5 +315,50 @@ class ShadowModeSwitchTest(unittest.TestCase):
             o.set_mode(p, "shadow", "li")
 
 
+class MandateTest(unittest.TestCase):
+    def test_the_fingerprint_covers_only_this_project_s_switches_and_names_who_set_the_mode(self):
+        data = Path(tempfile.mkdtemp(prefix="tmh-ai-"))
+        (data / "autoflow.json").write_text(json.dumps({"on": ["JB", "RW"], "ai_accept": ["JB"], "merge": ["JB"], "modes_log": [
+            {"project": "JB", "mode": "auto", "by": "li", "ts": "2026-11-01 10:00:00"}, {"project": "RW", "mode": "manual", "by": "wang", "ts": "x"}]}), encoding="utf-8")
+        conf = {"on": ["JB", "RW"], "ai_accept": ["JB"], "plan": True, "fix": True, "commit": True, "max_lines": {"JB": 400, "*": 20}, "refix": 2}
+        m = ai_accept.mandate(conf, "JB", data)
+        self.assertEqual((m["mode"], m["switches"]["merge"], m["switches"]["max_lines"], m["set_by"]["by"]), ("auto", True, 400, "li"))
+        self.assertIn("全自动", ai_accept.describe(m))
+        self.assertIn("li 于 2026-11-01 10:00:00", ai_accept.describe(m))
+        other = dict(conf, on=["JB"], ai_accept=["JB", "XX"])  # RW switched off, XX switched on: JB's policy is the same
+        self.assertEqual(ai_accept.mandate(other, "JB", data)["policy"], m["policy"])
+        self.assertNotEqual(ai_accept.mandate(dict(conf, ai_accept=[]), "JB", data)["policy"], m["policy"])
+        self.assertEqual(ai_accept.mandate(conf, "RW", data)["mode"], "partial")
+        self.assertEqual(ai_accept.mandate({"on": ["JB"], "ai_accept_observe": ["JB"]}, "JB")["mode"], "observe")
+        self.assertEqual(ai_accept.mandate({}, "JB")["mode"], "manual")
+
+
+class MandateOnVerdictTest(unittest.TestCase):
+    run_it = AiAcceptFlowTest.run_it
+
+    def setUp(self):
+        AiAcceptFlowTest.setUp(self)
+
+    def test_the_verdict_carries_the_mandate_and_says_when_it_changed_since_the_start(self):
+        start = ai_accept.mandate({"on": ["JB"], "ai_accept_observe": ["JB"]}, "JB", self.data)
+        self.P.store.events.return_value = [{"id": 1, "kind": "intake", "data": json.dumps({"mandate": start})}]
+        out, rec = self.run_it()
+        self.assertTrue(out["accepted"])
+        m = rec.call_args.kwargs["basis"]["mandate"]
+        self.assertEqual(m["changed_from"], start["policy"])
+        self.assertTrue(m["switches"]["ai_accept"])
+        self.assertIn("授权改过", rec.call_args.args[4])
+
+    def test_an_unchanged_policy_is_not_called_changed(self):
+        conf = self.P.flow.autoflow.return_value
+        start = ai_accept.mandate(conf, "JB", self.data)
+        self.P.store.events.return_value = [{"id": 1, "kind": "intake", "data": json.dumps({"mandate": start})}]
+        _, rec = self.run_it()
+        m = rec.call_args.kwargs["basis"]["mandate"]
+        self.assertNotIn("changed_from", m)
+        self.assertEqual(m["policy"], start["policy"])
+        self.assertNotIn("授权改过", rec.call_args.args[4])
+
+
 if __name__ == "__main__":
     unittest.main()

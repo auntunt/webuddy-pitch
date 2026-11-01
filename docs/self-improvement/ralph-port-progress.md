@@ -231,3 +231,15 @@
 - 人之后验收或退回时（`Orchestra.accepted` → `ai_accept.compare`），对最近一次影子结论记一条「AI 影子验收和人一致/不一致」（`shadow_compare: {run, ai, person, agree, by}`），每次影子结论只对比一次；AI 自己的验收不参与对比。
 - 项目模式新增 `observe`（`on` 含项目、`ai_accept_observe` 含项目、`ai_accept` 不含）。`POST /api/projects/<key>/mode {"mode": "observe"}` 切换，权限同原来。`GET .../mode` 多返回 `shadow: {shadow, compared, agree, disagree}`。设置页显示「AI 验收观察中」和「对比 N 单，一致 M 单（不一致：…）」，可以在全自动、观察、每步人工三者之间切换。
 - 测试：`tests/test_ai_accept.py` 新增 ShadowAcceptTest、ShadowCompareTest、ShadowModeSwitchTest。相关套件 475 passed（不含本机环境导致的就绪检查用例）。
+- 发布：PR #9 合并为 `1290293`，已发到生产（release `1290293642bf-ai-accept-observe-20261101`），服务器上 `tests.test_ai_accept` 19 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，journal 里没有新报错。JB 仍是 on+ai_accept，merge 未开（半自动），模式没动。
+
+## 2026-11-01 授权快照（借鉴 dsh-superagent 的 Mandate）
+
+- 第 3 项：每次自动开工、每次 AI 结论都记下当时凭什么能做。
+- `ai_accept.mandate(conf, key, data_dir)` 返回 `{policy, mode, switches, set_by}`：
+  - `switches` 只取对这个项目生效的开关（on、ai_accept、observe、merge、plan、fix、commit、该项目的 max_lines、refix），所以别的项目改了不影响这个指纹；
+  - `policy` 是这些开关的 sha256 前 12 位；
+  - `set_by` 是 modes_log 里这个项目最近一次切换（by、ts、mode）。
+- 自动受理（`_intake` 的 intake 事件）的 data 里写 `mandate`。AI 验收的 basis 里写 `mandate`，随签收进证据包、受 hash 约束；影子结论的事件 data 里也写一份。签收说明末尾写「授权：全自动（策略 xxxx，li 于 … 切换）」。
+- 策略在这单开始后改过：不中断，按现在的授权判断。basis 里记 `changed_from`（开工时的策略），说明里写「这单开始后授权改过（原策略 …），按现在的授权判断」。
+- 测试：`MandateTest`、`MandateOnVerdictTest`。
