@@ -281,3 +281,11 @@
 - 测试：`tests/test_repo_sync.py`（地址解析与拒绝、密钥生成与复用、测试连接前不能开推送、本地 bare 仓库模拟 GitHub 的分支/标签普通推送、非快进被拒、项目群隔离与失败不抛错）。CI 上没有 git 身份时打附注标签会失败，测试里显式给了身份；`test_full_auto_mode…` 只在版本确实打了标签时核对标签。
 - 发布：PR #17 合并为 `af7a0b3`，已发到生产（release `af7a0b3c81bb-repo-sync-20261101`）。服务器上解出的包里 `test_repo_sync`、`test_tenant_policy`、`test_ai_accept` 共 58 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0。
 - 还没接通：飞书企业自建应用的凭证没配（生产没有 `TMH_FEISHU_*`），没有群可绑；也还没有目标 GitHub 私有仓库，JB 没绑仓库，推送是关的。
+
+### 代码仓库支持自己机器上的 SSH 裸仓库；JB 已绑定 Windows 测试机 WSL 私有仓库
+
+- 用户选择把私有仓库放在 Windows 测试机的 WSL 里（不放 GitHub 组织）。`repo_sync` 新增 `kind: "ssh"`：地址 `ssh://用户@主机:端口/路径/仓库.git`，绑定时固定主机密钥（`hostkey`，按 `[host]:port` 记，可直接给出或绑定时读一次），每个项目单独的 `keys/<KEY>-known_hosts`，`StrictHostKeyChecking=yes`；这种仓库没有网页链接。GitHub 一路不变。
+- 发布：PR #19 合并为 `f778586`，已发到生产（release `f778586bb09e-selfhost-repo-20261102`）。服务器上解出的包里 `test_repo_sync`、`test_tenant_policy` 共 38 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，journal 无报错。
+- WSL 一侧：裸仓库 `/home/auntu/git/JeecgBoot.git`（`receive.denyNonFastForwards`、`receive.denyDeletes`）。生产的 JB 部署公钥写进 auntu 的 `authorized_keys`，带 `restrict,command="/home/auntu/git/webuddy-git-only.sh"`，只放行对这一个仓库的 `git-receive-pack` / `git-upload-pack`（实测要 shell、读别的目录都被拒）。改之前备份了 `authorized_keys`。主机密钥指纹 `SHA256:IV+/0HYcdROF3qjfK8WVVydnCxOb6BJvXAWCUekU0pg`，与 WSL 上 `/etc/ssh/ssh_host_ed25519_key.pub` 核对一致。
+- 生产经本机 frp 端口访问：`ssh://auntu@127.0.0.1:12122/home/auntu/git/JeecgBoot.git`。测试连接通过后打开了推送；已有的 52 条候选分支 `tmh/JB-*` 首次整批推上去（约 100 MiB，44 秒），再用 `repo_sync.push` 推了一次 `tmh/JB-56-r325` 验证普通推送路径。JB 当前是半自动（没有 `webuddy/JB` 交付主线和版本标签），之后自动提交的候选分支会自动推上去。
+- 已知局限：测试机关机、休眠或 frp 断开时推送失败，只在工单上记一条，本机结果不受影响，下次一起推；仓库在 WSL 里只有一份，生产的 JB checkout 本身持有同样的提交，可作为恢复来源。
