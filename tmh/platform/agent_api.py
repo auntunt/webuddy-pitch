@@ -411,7 +411,7 @@ def _execute(P, req, actor, operation, a):
             from .. import __version__
             return {'version': __version__, 'agent': actor,
                     'tool_connection': dict(tool, execution=tool['scope'] == 'execute'),
-                    'engines': server.api_meta(P, _req(req, actor))['agents'] if tool['scope'] == 'execute' else [],
+                    'engines': server.available(P.data_dir) if tool['scope'] == 'execute' and P.tenant_context.runtime_allowed(actor) else [],
                     'allowed_operations': sorted(tool_access.allowed_operations(tool['scope'])),
                     'boundaries': _boundaries(tool)}
         meta = server.api_meta(P, _req(req, actor))

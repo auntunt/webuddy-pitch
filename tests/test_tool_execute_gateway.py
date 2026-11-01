@@ -55,7 +55,9 @@ class ToolExecuteGatewayTests(unittest.TestCase):
         self.assertTrue(out['tool_connection']['execution'])
         self.assertIn('run_start', out['allowed_operations'])
         self.assertIn('ticket_hold', out['allowed_operations'])
-        self.assertEqual(out['engines'], self.call(owner, 'status', {}, execution=True)[1]['engines'])
+        from tmh.platform.agents import available
+        self.assertTrue(available(data))
+        self.assertEqual([e['name'] for e in out['engines']], [e['name'] for e in available(data)])
         status, out = self.call(owner, 'ticket_hold', {'ticket': ticket['key'], 'hold': True, 'request_id': 'h1'})
         self.assertEqual(status, 200, out)
         self.assertEqual(self.hold(data, ticket['id']), 'owner')
@@ -81,6 +83,7 @@ class ToolExecuteGatewayTests(unittest.TestCase):
         alice = self.grant('alice', project, 'execute')
         status, out = self.call(alice, 'status', {})
         self.assertEqual(status, 200, out)
+        self.assertEqual(out['engines'], [])
         status, out = self.call(alice, 'ticket_hold', {'ticket': ticket['key'], 'hold': True, 'request_id': 'a1'})
         self.assertEqual(status, 200, out)
         self.assertEqual(self.hold(data, ticket['id']), 'alice')
