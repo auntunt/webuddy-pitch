@@ -886,6 +886,15 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         git_("checkout", "-q", "--detach")  # like the JB checkout: a bare commit, no branch
         self.call("POST", "/api/projects", {"key": "BACK", "name": "回滚", "root": str(repo)})
         old, release.MERGE = release.MERGE, ""
+        bare = Path(tempfile.mkdtemp(prefix="tmh-gh-")) / "BACK.git"
+        subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+        code, integ = self.call("POST", "/api/projects/BACK/repo", {"url": "git@github.com:team/BACK.git"})
+        self.assertEqual((code, integ["repo"]["name"], integ["repo"]["on"]), (200, "team/BACK", False), integ)
+        self.assertEqual(self.call("POST", "/api/projects/BACK/repo", {"on": True})[0], 409)  # not before a passed check
+        git_("remote", "set-url", "webuddy", str(bare))  # a local stand-in for GitHub
+        code, integ = self.call("POST", "/api/projects/BACK/repo", {"check": True, "on": True})
+        self.assertEqual((code, integ["repo"]["checked"], integ["repo"]["on"]), (200, "ok", True), integ)
+        remote = lambda ref: subprocess.run(["git", "-C", str(bare), "rev-parse", ref], capture_output=True, text=True).stdout.strip()
         try:
             self.assertEqual(self.call("GET", "/api/projects/BACK/mode")[1]["mode"], "manual")
             code, m = self.call("POST", "/api/projects/BACK/mode", {"mode": "auto"})
@@ -906,12 +915,15 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             self.assertEqual(len(rel), 1, self.P.store.events(t["id"])[-1])
             merged = git_("rev-parse", "HEAD")
             self.assertNotEqual(merged, before)
+            self.assertEqual(remote("webuddy/BACK"), merged)  # the delivery line and its tag went to the repository
+            self.assertEqual(remote(rel[0]["tag"] + "^{commit}"), merged)
 
             code, rb = self.call("POST", "/api/projects/BACK/releases/%s/rollback" % rel[0]["version"], {})
             self.assertEqual((code, rb["kind"], rb["of"]), (200, "rollback", rel[0]["version"]))
             self.assertEqual(git_("rev-parse", "HEAD^"), merged)  # a revert on top, nothing rewritten
             self.assertEqual(git_("diff", before, "HEAD", "--", "src"), "")  # the code is back to what it was
             self.assertIn(rb["tag"], git_("tag"))
+            self.assertEqual((rb["push"]["state"], remote("webuddy/BACK")), ("pushed", git_("rev-parse", "HEAD")))
             back = self.P.store.ticket(t["id"])
             self.assertEqual((back["status"], bool(back["links"].get("hold"))), ("doing", True))
             _, listed = self.call("GET", "/api/projects/BACK/releases")

@@ -2732,6 +2732,52 @@ def api_mode_set(P, req, key):
     return api_mode(P, req, key)
 
 
+@route("GET", "/api/projects/<key>/channels")
+def api_channels(P, req, key):
+    """The project's code repository (GitHub) and team group (飞书 / 钉钉 / 企业微信)."""
+    p = P.project(key)
+    from . import announce, repo_sync
+    return {"project": p["key"], "repo": repo_sync.view(P, p), "notify": announce.view(P, p)}
+
+
+@route("POST", "/api/projects/<key>/repo")
+def api_repo_set(P, req, key):
+    """{"url": "git@github.com:团队/仓库.git"} binds the project (makes its deploy key); {"check": true} tests the
+    connection; {"on": true|false} turns pushing on or off; {"url": ""} unbinds."""
+    p = P.project(key)
+    actor = _platform_admin(P, req, "设置项目的代码仓库")
+    from . import repo_sync
+    b = req.body
+    try:
+        if "url" in b:
+            repo_sync.setup(P, p, b["url"], actor) if b["url"] else repo_sync.unbind(P, p, actor)
+        if b.get("check"):
+            repo_sync.check(P, p)
+        if "on" in b:
+            repo_sync.switch(P, p, bool(b["on"]), actor)
+    except ValueError as e:
+        raise ApiError(409, str(e))
+    return api_channels(P, req, key)
+
+
+@route("POST", "/api/projects/<key>/notify")
+def api_notify_set(P, req, key):
+    """{"target": "<conversation key>"} binds the project's team group; "" unbinds; {"test": true} sends a test line."""
+    p = P.project(key)
+    actor = _platform_admin(P, req, "设置项目的通知群")
+    from . import announce
+    try:
+        if "target" in req.body:
+            announce.bind(P, p, str(req.body["target"] or ""), actor)
+        if req.body.get("test"):
+            if not announce.conf(P.data_dir, p["key"]):
+                raise ValueError("还没绑定项目群")
+            announce.say(P, p, "这是 Webuddy 的测试消息：%s 的通知会发到这个群（%s 设置）。" % (p["key"], actor))
+    except ValueError as e:
+        raise ApiError(409, str(e))
+    return api_channels(P, req, key)
+
+
 @route("POST", "/api/projects/<key>/releases/<version>/rollback")
 def api_rollback(P, req, key, version):
     """A person undoes a version: a revert commit on the main line as a new version; its tickets reopen for a person."""

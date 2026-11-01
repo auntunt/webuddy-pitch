@@ -177,6 +177,7 @@ class Orchestra:
             ask = human_action(res)
             st.update_ticket(tid, by, status="doing")
             if ask:
+                self.tell_team(p, tid, "需要人先回答：%s" % ask)
                 return st.event(tid, by, "flow", "分析需要人先回答：%s" % ask, {"refs": refs, "human_action": ask})
             go = refs and conf.get("plan") and not self.held(tid)
             st.event(tid, by, "flow", ("已定位到 %d 处代码，进入处理中%s" % (refs, "，接着起草修改方案" if go else "")) if refs
@@ -251,6 +252,9 @@ class Orchestra:
             self.runner.decide(run["id"], "accept", by)
         except (ValueError, RuntimeError) as e:
             return st.event(tid, by, "flow", "自动提交改动失败（%s），留给人审阅" % e, {"run": run["id"]})
+        done = (st.run(run["id"]) or {}).get("decision") or ""
+        if done.startswith("accepted:"):
+            self.push(p, tid, [done.split(":", 1)[1].rsplit("@", 1)[0]], "改动分支")
         for fn in self.committed:
             try:
                 fn(p, tid, run["id"])
@@ -360,6 +364,38 @@ class Orchestra:
             st.update_ticket(t["id"], by, links=links, **({"status": "doing"} if t["status"] == "closed" else {}))
             st.event(t["id"], by, "release", "版本 %s 已回滚（新版本 %s，提交 %s），工单重开，转人工处理" % (version, r["version"], r["commit"]),
                      {"version": r["version"], "of": version, "commit": r["commit"], "rollback": True})
+        first = next((x for x in r["tickets"] if x.get("key")), None)
+        tid = (st.one("SELECT id FROM tickets WHERE project_id=? AND num=?", (p["id"], int(first["key"].rsplit("-", 1)[-1])))
+               or {}).get("id") if first and first["key"].rsplit("-", 1)[-1].isdigit() else 0
+        r["push"] = self.push(p, tid, [r["main"], r["tag"]], "回滚版本")
+        self.tell_team(p, 0, "%s 回滚了 %s %s（新版本 %s），涉及 %s，已重开并转人工" % (
+            by, p["key"], version, r["version"], "、".join(x["key"] for x in r["tickets"]) or "无工单"))
+        return r
+
+    def tell_team(self, p: dict, tid: int, text: str) -> None:
+        """Tell the project's team group, if one is bound (announce.py). Never raises."""
+        from . import announce
+        try:
+            t = self.store.ticket(tid) if tid else None
+            announce.say(self, p, ("**%s %s** " % (t["key"], t["title"]) if t else "") + text, t)
+        except Exception:  # noqa: BLE001 - telling is a courtesy
+            pass
+
+    def push(self, p: dict, tid: int, refs: list, what: str) -> dict:
+        """Push what the platform just wrote to the project's code repository (repo_sync.py), said on the ticket."""
+        from . import repo_sync
+        try:
+            r = repo_sync.push(self, p, refs)
+        except Exception as e:  # noqa: BLE001 - the local result stands whatever happens to the push
+            r = {"state": "failed", "why": str(e)[:300]}
+        if r["state"] == "pushed" and tid:
+            self.store.event(tid, self.BY, "flow", "%s已推送到 %s：%s" % (what, r["repo"], "、".join(x.split("/", 2)[2] for x in r["refs"])),
+                             {"push": "ok", "refs": r["refs"], "links": r["links"]})
+        elif r["state"] == "failed":
+            if tid:
+                self.store.event(tid, self.BY, "flow", "%s没能推送到代码仓库（%s），本机的结果不受影响，修好后下次会一起推上去" % (what, r["why"]),
+                                 {"push": "failed", "why": r["why"]})
+            self.tell_team(p, tid, "%s没能推送到代码仓库：%s" % (what, r["why"]))
         return r
 
     def ship_again(self, p: dict, t: dict, by: str) -> dict:
@@ -391,6 +427,9 @@ class Orchestra:
                     fn(p, t, r)
                 except Exception as e:  # noqa: BLE001 - the merge stands whatever a listener does
                     st.event(t["id"], self.BY, "flow", "新版本已合并，但后续处理没做成（%s）" % e)
+            pushed = self.push(p, t["id"], [r["main"], r["tag"]], "新版本")
+            self.tell_team(p, t["id"], "验收通过（%s），已合并进 %s，版本 %s%s" % (
+                by, r["main"], r["version"], "，已推到 " + pushed["repo"] if pushed["state"] == "pushed" else ""))
         elif r["state"] == "conflict":
             st.update_ticket(t["id"], self.BY, status="doing")
             n = 1 + sum(1 for e in st.events(t["id"]) if e["kind"] in ("reject", "conflict"))  # this one counts too, as a rejection does
@@ -409,9 +448,12 @@ class Orchestra:
                 why = ("有人接手" if self.held(t["id"]) else "重做次数用完了（%d 次）" % (n - 1) if agent else
                        "自动处理没开" if not (self.switched_on(conf, p) and conf.get("fix")) else "没有可用的智能体")
                 st.event(t["id"], self.BY, "flow", "%s，需要有人在最新的主干上重做，或手动合并分支 %s" % (why, r["branch"]))
+                self.tell_team(p, t["id"], "验收通过的改动和主干冲突，%s，需要有人处理" % why)
         elif r["state"] in ("waiting", "none"):
             st.event(t["id"], self.BY, "flow", ("验收通过了，还没合并进主干：%s。处理好后在工单上点“重试合并”" if r["state"] == "waiting" else
                                                 "验收通过了，没有自动合并：%s") % r["why"], {"release": r["state"]})
+            if r["state"] == "waiting":
+                self.tell_team(p, t["id"], "验收通过了，还没合并进主干：%s" % r["why"])
         return r
 
     def recheck(self, rid: int, by: str, wait: bool = False) -> dict:
