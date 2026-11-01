@@ -278,7 +278,7 @@ class LessonRuntimeReceiptTests(unittest.TestCase):
         received = self.data / "received-prompt.bin"
         conf = {"fake": {"cmd": [sys.executable, "-c",
             "import pathlib,sys;pathlib.Path(sys.argv[1]).write_bytes(sys.argv[2].encode());print('synthetic done')",
-            str(received), "{prompt}"], "timeout": 5}}
+            str(received), "{prompt}"], "timeout": 5, "report_repair": False}}
         (self.data / "agents.json").write_text(json.dumps(conf))
         runner = agents.Runner(self.store, self.data)
         with patch.object(agents.threading, "Thread"), patch.object(agents, "knowledge", return_value="NO_EXTRA_CONTEXT"):

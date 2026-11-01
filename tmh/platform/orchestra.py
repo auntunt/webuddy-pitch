@@ -30,6 +30,7 @@ import time
 from pathlib import Path
 
 from .coderefs import FILE_LINE
+from .reports import human_action
 
 
 class Orchestra:
@@ -172,7 +173,10 @@ class Orchestra:
                 lk["flows"] = list(dict.fromkeys((lk.get("flows") or []) + cited))[:8]
                 st.update_ticket(tid, by, links=lk)
             refs = len(self.FILE_LINE.findall(res))
+            ask = human_action(res)
             st.update_ticket(tid, by, status="doing")
+            if ask:
+                return st.event(tid, by, "flow", "分析需要人先回答：%s" % ask, {"refs": refs, "human_action": ask})
             go = refs and conf.get("plan") and not self.held(tid)
             st.event(tid, by, "flow", ("已定位到 %d 处代码，进入处理中%s" % (refs, "，接着起草修改方案" if go else "")) if refs
                      else "分析没有找到代码证据，进入处理中，需要人工补充信息", {"refs": refs})

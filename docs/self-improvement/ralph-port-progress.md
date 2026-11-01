@@ -215,3 +215,10 @@
 - JB-55（c2bdbfe）：自动提交后停在诊断。Opus 判了 pass，但 `tmh-diag` 的字符串里有没转义的双引号（`实现"记住账号"功能`），JSON 解析失败，平台按「没给结论」处理。修复：`fixloop.loads()` 先按严格 JSON 解析，失败后把字符串里不在 `, : } ]` 之前的裸引号转义再解析，结构本身坏了仍然返回 None。用 JB-55 的真实输出核对：verdict=pass，A1 静态 unverified，其余 pass。
 - JB-56（f3df2ae）：第一张零人工走完 AI 验收并关单的生产单。链路：analyze #323 → plan #324 → Luna fix #325 → 测试机 `vite build` 81 秒 → Opus 诊断 pass → 自动提交 `tmh/JB-56-r325`（13f53ff9）→ spec #326。原始脚本先 `login()` 再打开登录页，结果落到登录后的 404，A1/A2 都是 TMH_ANCHOR。review #327 只删掉了 login，断言原样保留，重跑后 A1/A2 通过，各 2 张截图，`repaired_from` 记的是原 spec 的 hash。AI 验收（ai:true，basis 里 real=pass，KEPT 为 A3–A5）后关单。合并发布停在 waiting（项目目录是 detached HEAD），自动合并本来就关着。证据包页面关单后仍列出缺少「验证门全部通过」和「乙方复核人」，待查。
 - 全自动 / 每步人工 / 回滚（用户：“先不卡，我们先做全自动，然后做好版本管理，就可以及时回滚和人工介入，当然也需要可以切换为原本的各个步骤都要人介入的情况”）：AI 验收不加 pack gates 和乙方复核。新增项目模式 `auto`（autoflow.json 的 `on`、`ai_accept`、`merge` 三个列表都含该项目）/`partial`/`manual`，设置页逐项目切换（`POST /api/projects/<key>/mode`，租户模式下仅 default+legacy 的 platform owner）。切到全自动时，项目目录停在游离提交上就就地建 `webuddy/<KEY>` 分支作交付主线（文件不动，写入 autoflow.json `main`），已有分支就用它，名字冲突则拒绝。`release.settings` 的 `merge` 支持项目列表；托管 worker 只为 `auto` 模式的项目合并。回滚：`POST /api/projects/<key>/releases/<version>/rollback` → 在主线上 `git revert`（merge 提交用 `-m 1`），作为新版本打 tag 记入 releases.jsonl（`kind: rollback`, `of`），历史不改写，不推送不部署；冲突时 `revert --abort`，主线不动；该版本的工单重开为 doing 并设 hold 转人工。版本列表显示「回滚」/「已回滚（新版本）」。测试 `test_full_auto_mode_gets_a_delivery_line_and_a_version_can_be_rolled_back`（游离提交→建主线→合并→回滚→代码回到合并前→重复回滚 409→切回人工 merge off）。
+
+## 2026-11-01 执行器结构化汇报（借鉴 dsh-superagent 的 `human_action` 与结构化报告）
+
+- 用户：「你一直操作即可」；按约定顺序先做第 1 项：平台只读执行器的固定结论块，不再从正文里猜。
+- 分析步骤新增 ```tmh-report {"refs": [{"path", "line"}], "human_action": ""}```（`tmh/platform/reports.py`，提示词在 `MODE_TEXT["analyze"]` 末尾）。`FILE_LINE.findall` 先读报告里的 refs（路径经 `rel_path` 校验、行号须为正整数）；没有报告或 refs 为空的老回答仍走正文识别。
+- `human_action` 非空：自动流转在分析后停下，动态写「分析需要人先回答：…」，不起草方案；人回答后「交给自动处理」照常从分析接着走。
+- 格式修复：分析、方案（Runner，带工单且不是交付流程的单）和诊断（FixLoop）缺块或块不合法时，把原回答交回同一执行器补一次块，只补格式、不许改结论；补不出就保持原结论（诊断仍记「没给结论」）。修复过的诊断在 verify.json 里记 `format_repaired`。执行器配置 `report_repair: false` 可关掉分析/方案的修复。

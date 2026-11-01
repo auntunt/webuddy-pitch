@@ -43,6 +43,7 @@ import math
 import tempfile
 from pathlib import Path
 
+from .reports import ANALYZE_REPORT
 from .store import RUN_MODES, Store, now
 
 BUILTIN = {
@@ -159,7 +160,7 @@ MODE_TEXT = {
 3. 每条结论标明【核实】（读过代码确认）或【推断】（依据不足），给出 文件:行号。
 4. 最后列出还需要人确认的问题。
 
-输出用中文，按这几节：结论（3 句以内）、涉及的业务流与表、代码位置、原因分析、待确认问题。""",
+输出用中文，按这几节：结论（3 句以内）、涉及的业务流与表、代码位置、原因分析、待确认问题。""" + ANALYZE_REPORT,
     "plan": """## 你的任务：修改方案（只读，不要修改任何文件）
 基于工单和前面的分析结论，给出可以直接照做的修改方案：
 1. 要改哪些文件、哪些方法，每处改什么（给 文件:行号）。
@@ -1746,6 +1747,13 @@ class Runner:
                                                workdir, model, resume=sid, fresh=prompt)
                 else:
                     code, result = self.invoke(rid, invoke_project, ticket, agent, conf, mode, prompt, workdir, model)
+                if code == 0 and ticket and not (ticket.get("links") or {}).get("delivery") and mode in ("analyze", "plan") \
+                        and (conf.get(agent) or {}).get("report_repair") is not False:
+                    from . import reports
+                    result, fixed = reports.repair(mode, result, lambda ask: self.invoke(
+                        rid, invoke_project, ticket, agent, conf, mode, ask, workdir, model, tag="-report")[1])
+                    if fixed:
+                        st.append_output(rid, "— 回答缺少机器读的结论块，已让执行器按原回答补上（不改结论）\n")
             # Fixed-source receipts still need their owned checkout while the
             # run is active. Check before the finally block removes that view.
             if not learning_context_current(st, self.data_dir, project, st.run(rid), running=True):

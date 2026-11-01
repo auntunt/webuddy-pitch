@@ -39,6 +39,19 @@ class RunHandoffTest(unittest.TestCase):
         for name, value in (("需求", body), ("方案", plan), ("补充", comment), ("退回", rejection)):
             self.assertTrue(value in prompt, name + "必须完整保留")
 
+    def test_a_plan_without_its_block_gets_one_format_repair(self):
+        run = self.store.create_run(self.project["id"], self.ticket["id"], "codex", "plan", "agent", "")
+        block = '```tmh-plan\n{"files": [{"path": "app.py", "goal": "g"}], "ac": [{"id": "A1", "text": "t", "check": "c"}]}\n```'
+        with mock.patch("tmh.platform.agents.earlier_session", return_value=("", None)), \
+                mock.patch.object(self.runner, "invoke", side_effect=[(0, "方案正文"), (0, block)]) as invoke:
+            self.runner._go(run["id"], self.project, self.ticket, "codex", "plan", "写方案", {})
+        self.assertEqual(invoke.call_count, 2)
+        self.assertEqual(invoke.call_args.kwargs["tag"], "-report")
+        self.assertIn("方案正文", invoke.call_args.args[6])
+        done = self.store.run(run["id"])
+        self.assertTrue(done["result"].startswith("方案正文"))
+        self.assertIn('"id": "A1"', done["result"])
+
     def test_resumed_plan_and_fix_receive_current_full_contract(self):
         previous = self.store.create_run(self.project["id"], self.ticket["id"], "codex", "analyze", "agent", "")
         self.store.update_run(previous["id"], status="done", exit_code=0, result="上轮分析", ended="2026-10-18 00:00:00")
@@ -46,8 +59,9 @@ class RunHandoffTest(unittest.TestCase):
         run = self.store.create_run(self.project["id"], self.ticket["id"], "codex", "plan", "agent", "")
         current = "需求已修改：503重试必须更新原id，不能新增记录"
         with mock.patch("tmh.platform.agents.earlier_session", return_value=("session", previous)), \
-                mock.patch.object(self.runner, "invoke", return_value=(0, "方案")) as invoke:
+                mock.patch.object(self.runner, "invoke", return_value=(0, '方案\n```tmh-plan\n{"files": [], "ac": []}\n```')) as invoke:
             self.runner._go(run["id"], self.project, self.ticket, "codex", "plan", current, {})
+        invoke.assert_called_once()
         self.assertIn(current, invoke.call_args.args[6])
         self.assertEqual(invoke.call_args.kwargs["resume"], "session")
         ancestry = json.loads((self.data / "runs" / str(run["id"]) / "session-context.json").read_text())
