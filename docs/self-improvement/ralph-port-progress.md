@@ -269,3 +269,5 @@
 
 - `kbqa._post`（需求理解、`llm.chat`、分诊 `choose` 都走它）遇到 408、429、500、502、503、504、529 或连接不上，按 2、5、10 秒退避重试三次，`Retry-After` 更长时按它等（最多 30 秒）；其他错误和读超时照旧立刻抛出。智能体进程本来就有 `BUSY_WAITS` 重试，这次只补了直接 API 这一路。
 - 测试：`tests/test_intake_llm.py` 新增一例（忙→连不上→忙→成功；400 不重试；连续 5xx 四次后抛出；读超时不重试）。
+- 发布：PR #15 合并为 `6c3dd8f`，已发到生产（release `6c3dd8fa0e7d-llm-retry-20261101`）。服务器上解出的包里 `test_intake_llm`、`test_stage` 共 31 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，发布后 journal 无报错。
+- DeepSeek docs 零碎项核对：自动合并改动行数上限已有（autoflow `max_lines`，默认 400，可按项目设）；全局暂停已有（autoflow `on: false` 写在文件里，重启后仍生效）；智能体进程的繁忙重试已有（`BUSY_WAITS`），这次补的是直接 API 一路。
