@@ -454,7 +454,7 @@ function newTicket(prefill){
 function simList(xs){return `<div class="sim">${xs.map(x=>`<a class="drow" href="#/t/${h(x.key)}" onclick="closeModal()"><span class="grow"><b>${h(x.key)}</b> ${h(x.title)}<span class="sub">${h(x.shared.join('、'))}${x.external?' · '+h(x.external):''}</span></span>${stPill(x.status)}<small class="sub">${Math.round(x.score*100)}%</small></a>`).join('')}</div>`}
 // The ticket page answers three questions in order: where is it in the flow, what should happen next (one
 // button), and what did we find. Everything else (manual agent runs, raw logs) sits folded below.
-const FLOW=[['intake','受理'],['analyze','分析定位'],['plan','修改方案'],['fix','修改代码'],['verify','人工验收'],['closed','闭环']];
+const FLOW=[['intake','受理'],['analyze','分析定位'],['plan','修改方案'],['fix','修改代码'],['verify','验收'],['closed','闭环']];
 function flowState(d){
   const t=d.ticket,R=m=>d.runs.find(r=>r.mode===m),ev=k=>d.events.filter(e=>e.kind===k).pop();
   const an=R('analyze'),pl=R('plan'),fx=R('fix'),live=d.runs.find(r=>r.status==='running'||r.status==='queued');
@@ -693,14 +693,14 @@ async function vTicket(key,sub){
      <dt>根因</dt><dd>${causeTxt}${!f.live&&an&&/待确认/.test(cause)?' <span class="ev-tag warn">待确认</span>':''}</dd>
      ${plan?`<dt>方案</dt><dd>${h(plan)}</dd>`:''}
      <dt>证据</dt><dd>${res?evi+` <a href="javascript:void 0" id="evOpen">看完整${res.mode==='plan'?'方案':'分析'}和代码位置</a>`:'<span class="sub">分析后在这里列出核实和推断的条数</span>'}</dd>
-     <dt>等谁</dt><dd id="tNextText" class="na ${na.tone}">${na.text}</dd></dl>
-     ${na.acc?`<div class="cact">${accUi}</div>`:''}<div id="tNextActions" class="row cact" style="gap:8px" ${na.btns?'':'hidden'}>${na.btns||''}</div>
+     </dl><span id="tNextText" hidden></span>
+     ${na.acc?`<div class="cact">${accUi}</div>`:''}
      ${res?`<div class="cbox" id="cbox" hidden><div class="sub" style="margin-bottom:6px">${res.mode==='plan'?'修改方案':'分析结论'} · ${h(res.agent)}${mTag(res)} · ${ago(res.ended)}</div>${md(planReadable(res.result))}</div>`:''}</div>`;
   // the timeline: people's words stay in view; what the machines did folds into one line per run of steps
   const tl=ticketTimeline(d.events);
   const nAuto=d.events.filter(x=>isMachine(x.author)&&x.kind!=='comment').length;
   $('#main').innerHTML=`<div class="sub" style="margin-bottom:6px"><a href="#/tickets">工单</a> / <a href="#/projects/${encodeURIComponent(d.project.key)}">${h(d.project.key)}</a> / ${t.key}</div>
-  <div class="hdr"><h1 class="grow" id="ttl" title="点击修改">${h(t.title)}</h1><span id="tStatus">${stPill(t.status)}</span><button onclick="A.toggle(true);A.enterTicket(S.cur.ticket)">在助手中讨论</button></div>
+  <div class="hdr"><h1 class="grow" id="ttl" title="点击修改">${h(t.title)}</h1><span id="tStatus" hidden>${stPill(t.status)}</span><button onclick="A.toggle(true);A.enterTicket(S.cur.ticket)">在助手中讨论</button></div>
   <div class="props"><span class="tag">${h(d.project.key)}</span>
    <label>状态<select id="fs" data-autosave="1" ${d.epic?'disabled title="父单的状态跟着子单走"':''}>${opt(S.meta.statuses.filter(([k])=>k!=='closed'||t.status==='closed'),t.status)}</select></label>
    <label>类型<select id="fy" data-autosave="1">${opt(S.meta.types,t.type)}</select></label>
