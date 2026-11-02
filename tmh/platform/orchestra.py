@@ -93,10 +93,18 @@ class Orchestra:
 
     def submit(self, p: dict, t: dict, wait: bool = False) -> None:
         """A task enters the line. Returns at once (wait=True blocks until the first step has been started)."""
-        th = threading.Thread(target=self._intake, args=(p, t), daemon=True)
+        th = threading.Thread(target=self._as_line, args=(self._intake, p, t), daemon=True)
         th.start()
         if wait:
             th.join()
+
+    def _as_line(self, fn, *a) -> None:
+        """In a tenant worker the line acts as itself, not as whoever (or whichever chat robot) submitted the task."""
+        ctx = getattr(self, "tenant_context", None)
+        if ctx is None:
+            return fn(*a)
+        with ctx.acting(self.BY):
+            return fn(*a)
 
     def _flow_agent(self, conf: dict, project: dict | None = None) -> str:
         from .agents import available

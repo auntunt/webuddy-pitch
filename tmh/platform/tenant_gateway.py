@@ -19,6 +19,7 @@ from urllib.parse import parse_qs, quote, urlsplit
 
 from . import login, tenancy
 from .errors import ApiError
+from .tenant_runtime import BOT_HEADERS
 
 
 def error(code, message, reason="access_denied"):
@@ -216,6 +217,23 @@ def make_handler(registry, workers, *, brand="webuddy"):
                 return PendingProxy(tenant, connection['user'], method, '/api/agent/' + operation,
                                     raw, headers, {}, False)
 
+        def _bot(self, method, tenant, path, kind, query):
+            # A chat platform's callback: no session or X-TMH, the platform signs it.
+            # It reaches only the tenant's bot handler, which checks that signature.
+            if method != "POST" and kind != "wecom":
+                raise error(405, "机器人回调只接受 POST", "method_denied")
+            row = reg.one("SELECT status FROM tenants WHERE id=?", (tenant,))
+            if not row or row["status"] != "active":
+                raise error(404, "没有这个机器人地址", "route_denied")
+            length = int(self.headers.get("Content-Length") or 0)
+            if length < 0 or length > 1024 * 1024:
+                raise error(413, "请求太大", "invalid_request")
+            raw = self.rfile.read(length) if length else b""
+            workers.ensure(tenant)
+            headers = {k: v for k, v in self.headers.items() if k.lower() in ("content-type",) + BOT_HEADERS}
+            headers["X-Webuddy-Public"] = "bot"
+            return PendingProxy(tenant, "bot:" + kind, method, path + ("?" + query if query else ""), raw, headers, {}, False)
+
         def _dispatch(self, method):
             try:
                 url = urlsplit(self.path)
@@ -224,6 +242,9 @@ def make_handler(registry, workers, *, brand="webuddy"):
                 query = parse_qs(url.query)
                 if url.path == "/login":
                     return self._login(method, query)
+                bot = re.fullmatch(r"/t/([A-Za-z0-9_-]+)(/bot/(dingtalk|feishu|wecom|api)/[A-Za-z0-9_-]+)", url.path)
+                if bot:
+                    return self._bot(method, bot[1], bot[2], bot[3], url.query)
                 if method == "POST":
                     self._origin()
                     if self.headers.get("X-TMH") != "1":

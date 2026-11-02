@@ -1856,7 +1856,8 @@ def api_bots(P, req, key):
     from .. import bots
     p = P.project(key)
     st = bots.status(P.root(p))
-    st["paths"] = {k: "/bot/%s/%s" % (k, p["key"]) for k in bots.KINDS}
+    ctx = getattr(P, "tenant_context", None)
+    st["paths"] = {k: "%s/bot/%s/%s" % ("/t/" + ctx.tenant_id if ctx else "", k, p["key"]) for k in bots.KINDS}
     return st
 
 

@@ -142,6 +142,16 @@ class TenantRuntimeTest(unittest.TestCase):
         with self.assertRaises(ApiError):
             verify_request(key, normal, args[0], *args[2:], lesson_actor='alice')
 
+    def test_public_bot_proof_is_bound_to_its_marker(self):
+        key, raw = b'k' * 32, b'{}'
+        proof = sign_request(key, 'default', 'bot:feishu', 'POST', '/bot/feishu/JB', raw, public='bot')
+        self.assertEqual(verify_request(key, proof, 'default', 'POST', '/bot/feishu/JB', raw, public='bot'), 'bot:feishu')
+        for public in ('', 'hook'):
+            with self.assertRaises(ApiError):
+                verify_request(key, proof, 'default', 'POST', '/bot/feishu/JB', raw, public=public)
+        with self.assertRaises(ApiError):
+            verify_request(key, sign_request(key, 'default', 'alice', 'POST', '/bot/feishu/JB', raw), 'default', 'POST', '/bot/feishu/JB', raw, public='bot')
+
     def test_tool_actor_context_narrows_admin_and_always_resets_after_error(self):
         a, _ = self.projects()
         tool = dict(id='a' * 32, user='owner', tenant='default', scope='read', project_ids=[a['id']])
