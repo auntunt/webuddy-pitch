@@ -301,6 +301,49 @@ class TenantGatewayTest(unittest.TestCase):
             status, headers, _ = raw("/login/feishu/callback?code=good&state=" + state, flow)
             self.assertFalse(any(c.startswith("tmh_session=") and not c.startswith("tmh_session=;") for c in cookies(headers)))
 
+    def test_feishu_members_of_our_enterprise_join_the_default_organization(self):
+        env = {"TMH_FEISHU_APP_ID": "cli_x", "TMH_FEISHU_APP_SECRET": "s", "TMH_PUBLIC_URL": "https://w.example", "TMH_FEISHU_TENANT_KEY": "tk"}
+        who = {"open_id": "ou_9", "tenant_key": "tk", "name": "王 小明"}
+
+        def fake(url, body=None, token=""):
+            return {"code": 0, "access_token": "u"} if url.endswith("/oauth/token") else {"code": 0, "data": dict(who)}
+
+        def sign_in():
+            status, headers, _ = self.request("GET", "/login/feishu?next=%2F")
+            state = parse_qs(urlsplit(headers["Location"]).query)["state"][0]
+            conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=15)
+            try:
+                conn.request("GET", "/login/feishu/callback?code=c&state=" + state, headers={"Cookie": headers["Set-Cookie"].split(";")[0]})
+                r = conn.getresponse(); r.read()
+                return r.status, [v for k, v in r.getheaders() if k == "Set-Cookie"]
+            finally:
+                conn.close()
+
+        def session(cookies):
+            c = next((c for c in cookies if c.startswith("tmh_session=") and not c.startswith("tmh_session=;")), "")
+            return login.read_session(self.data, c.split(";")[0].split("=", 1)[1]) if c else ""
+
+        with patch.dict(os.environ, env), patch.object(feishu_login, "_call", fake):
+            status, cookies = sign_in()
+            self.assertEqual((status, session(cookies)), (303, "王小明"))
+            self.assertEqual(self.reg.one("SELECT role FROM memberships WHERE tenant_id='default' AND user='王小明'")["role"], "member")
+            self.assertEqual(self.reg.one("SELECT action FROM access_audit ORDER BY id DESC LIMIT 1")["action"], "feishu_join")
+            self.assertFalse(login.verify(self.data, "王小明", ""))
+            # the same person signs in again without a second account; a namesake gets a distinct one
+            self.assertEqual(session(sign_in()[1]), "王小明")
+            who["open_id"] = "ou_8888"
+            self.assertEqual(session(sign_in()[1]), "王小明-8888")
+            self.assertEqual(self.reg.one("SELECT COUNT(*) n FROM feishu_identities")["n"], 2)
+            # another enterprise gets nothing
+            who.update(open_id="ou_7", tenant_key="other")
+            status, cookies = sign_in()
+            self.assertEqual((status, session(cookies)), (401, ""))
+        # without an enterprise key, unbound identities still need a password binding first
+        with patch.dict(os.environ, dict(env, TMH_FEISHU_TENANT_KEY="")), patch.object(feishu_login, "_call", fake):
+            who.update(open_id="ou_6", tenant_key="tk")
+            self.assertEqual(session(sign_in()[1]), "")
+            self.assertIsNone(self.reg.one("SELECT 1 FROM feishu_identities WHERE open_id='ou_6'"))
+
     def test_disabled_accounts_and_unsupported_public_endpoints_fail_closed(self):
         for suffix in ("/bot/a", "/hook/alert/a", "/capture/x", "/pv/a", "/v/a", "/sign/a", "/ask/a"):
             self.assertEqual(self.request("GET", "/t/" + self.a + suffix, "owner")[0], 403)

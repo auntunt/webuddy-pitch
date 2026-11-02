@@ -146,3 +146,41 @@ def bind(reg, user: str, ident: dict) -> None:
         rev = db.execute("SELECT revision FROM access_meta").fetchone()[0]
         db.execute("INSERT INTO access_audit(actor,action,tenant_id,payload,revision,created) VALUES(?,?,?,?,?,?)",
                    (user, "feishu_bind", "", encoded({"user": user, "feishu": ident.get("name", "")}), rev, now()))
+
+
+def provision(reg, ident: dict) -> str:
+    """Our enterprise (TMH_FEISHU_TENANT_KEY) signs in by default: a member with no binding yet
+    gets an account in the default organization, role TMH_FEISHU_ROLE (member); project grants stay with admins."""
+    from . import tool_access
+    from .login import hash_password
+    from .tenancy import TENANT_ROLES, _username, encoded, now
+    if not os.environ.get("TMH_FEISHU_TENANT_KEY") or not allowed(ident):
+        return ""
+    role = os.environ.get("TMH_FEISHU_ROLE", "member")
+    role = role if role in TENANT_ROLES and role != "admin" else "member"
+    shown = "".join((ident.get("name") or "").split())[:30]
+    pw = hash_password(secrets.token_urlsafe(32))
+    with reg.transaction() as db:
+        if db.execute("SELECT 1 FROM feishu_identities WHERE app_id=? AND open_id=?", (ident["app_id"], ident["open_id"])).fetchone():
+            return ""
+        name = ""
+        for cand in (shown, shown + "-" + ident["open_id"][-4:], "fs-" + ident["open_id"][-10:]):
+            try:
+                _username(cand)
+            except Exception:
+                continue
+            if not db.execute("SELECT 1 FROM accounts WHERE name=?", (cand,)).fetchone():
+                name = cand
+                break
+        if not name:
+            return ""
+        db.execute("INSERT INTO accounts VALUES(?,?,1,?,?)", (name, pw, secrets.token_hex(16), now()))
+        db.execute("INSERT INTO memberships VALUES('default',?,?) ON CONFLICT(tenant_id,user) DO NOTHING", (name, role))
+        db.execute("INSERT INTO feishu_identities VALUES(?,?,?,?,?,?)",
+                   (ident["app_id"], ident["open_id"], ident.get("tenant_key", ""), name, ident.get("name", ""), now()))
+        tool_access.invalidate_for_change(db, "account_set", "", name)
+        db.execute("UPDATE access_meta SET revision=revision+1")
+        rev = db.execute("SELECT revision FROM access_meta").fetchone()[0]
+        db.execute("INSERT INTO access_audit(actor,action,tenant_id,payload,revision,created) VALUES(?,?,?,?,?,?)",
+                   (name, "feishu_join", "default", encoded({"user": name, "feishu": ident.get("name", ""), "role": role}), rev, now()))
+    return name
