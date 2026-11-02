@@ -14,10 +14,10 @@ import threading
 import time
 import unittest
 from unittest.mock import patch
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, quote, urlencode, urlsplit
 
 from tmh.bots import feishu_encrypt
-from tmh.platform import login, tenancy, tenant_gateway
+from tmh.platform import feishu_login, login, tenancy, tenant_gateway
 from tmh.platform.store import Store
 from tmh.platform.tenant_runtime import Workers
 
@@ -207,6 +207,99 @@ class TenantGatewayTest(unittest.TestCase):
             # tenant b has the same project key but no robot: its own worker answers, not a's
             self.assertEqual(call("/t/%s/bot/feishu/SAME" % self.b, probe)[0], 404)
             self.assertEqual(call("/t/%s/bot/feishu/SAME/x" % self.a, probe)[0], 403)
+
+    def test_feishu_login_binds_once_with_password_then_signs_in(self):
+        env = {"TMH_FEISHU_APP_ID": "cli_x", "TMH_FEISHU_APP_SECRET": "s", "TMH_PUBLIC_URL": "https://w.example"}
+        seen, who = [], {"open_id": "ou_1"}
+
+        def fake(url, body=None, token=""):
+            seen.append((url, body, token))
+            if url.endswith("/oauth/token"):
+                return {"code": 0, "access_token": "u-tok"} if body["code"] == "good" else {"code": 20003}
+            return {"code": 0, "data": {"open_id": who["open_id"], "tenant_key": "tk", "name": "小李"}}
+
+        def begin(nxt="/t/x/#/t/JB-1"):
+            status, headers, _ = self.request("GET", "/login/feishu?next=" + quote(nxt, safe=""))
+            self.assertEqual(status, 303)
+            q = parse_qs(urlsplit(headers["Location"]).query)
+            self.assertEqual((q["client_id"], q["redirect_uri"], q["code_challenge_method"]),
+                             (["cli_x"], ["https://w.example/login/feishu/callback"], ["S256"]))
+            return q["state"][0], headers["Set-Cookie"].split(";")[0]
+
+        def cookies(headers):
+            return [v for k, v in headers if k == "Set-Cookie"]
+
+        def raw(path, cookie):
+            conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=15)
+            try:
+                conn.request("GET", path, headers={"Cookie": cookie})
+                r = conn.getresponse()
+                return r.status, r.getheaders(), r.read().decode()
+            finally:
+                conn.close()
+
+        self.assertEqual(self.request("GET", "/login/feishu")[0], 404)
+        self.assertNotIn("用飞书登录", self.request("GET", "/login")[2])
+        with patch.dict(os.environ, env), patch.object(feishu_login, "_call", fake):
+            self.assertIn("用飞书登录", self.request("GET", "/login")[2])
+            state, flow = begin()
+            # a forged or replayed state never reaches 飞书
+            self.assertEqual(raw("/login/feishu/callback?code=good&state=other", flow)[0], 401)
+            self.assertEqual(raw("/login/feishu/callback?code=good&state=" + state, "")[0], 401)
+            self.assertEqual(seen, [])
+            self.assertEqual(raw("/login/feishu/callback?code=bad&state=" + state, flow)[0], 401)
+            state, flow = begin()
+            status, headers, _ = raw("/login/feishu/callback?code=good&state=" + state, flow)
+            self.assertEqual(status, 303)
+            self.assertEqual(dict(headers)["Location"], "/login?next=" + quote("/t/x/#/t/JB-1", safe=""))
+            self.assertEqual(seen[-2][1]["code_verifier"] and seen[-1][2], "u-tok")
+            bind = next(c for c in cookies(headers) if c.startswith("tmh_feishu_bind=")).split(";")[0]
+            self.assertFalse(any(c.startswith("tmh_session=") for c in cookies(headers)))
+            status, _, page = self.request("GET", "/login", headers={"Cookie": bind})
+            self.assertIn("小李", page)
+            # wrong password binds nothing; the right one binds and signs in
+            status, _, _ = self.request("POST", "/login", body={"username": "alice", "password": "nope"}, form=True, headers={"Cookie": bind})
+            self.assertEqual(status, 401)
+            self.assertIsNone(self.reg.one("SELECT 1 FROM feishu_identities"))
+            conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=15)
+            conn.request("POST", "/login", urlencode({"username": "alice", "password": "synthetic-password", "next": "/"}),
+                         {"Content-Type": "application/x-www-form-urlencoded", "Cookie": bind})
+            r = conn.getresponse(); r.read(); conn.close()
+            self.assertEqual(r.status, 303)
+            self.assertTrue(any(c.startswith("tmh_feishu_bind=;") for c in cookies(r.getheaders())))
+            self.assertEqual(self.reg.one("SELECT user,tenant_key FROM feishu_identities"), {"user": "alice", "tenant_key": "tk"})
+            self.assertEqual(self.reg.one("SELECT action FROM access_audit ORDER BY id DESC LIMIT 1")["action"], "feishu_bind")
+            # replaying the pending cookie with another password cannot take the identity away
+            self.request("POST", "/login", body={"username": "owner", "password": "synthetic-password"}, form=True, headers={"Cookie": bind})
+            self.assertEqual(self.reg.one("SELECT user FROM feishu_identities WHERE open_id='ou_1'")["user"], "alice")
+            # from now on 飞书 alone signs alice in and lands on the page she asked for
+            state, flow = begin("/t/%s/" % self.a)
+            status, headers, _ = raw("/login/feishu/callback?code=good&state=" + state, flow)
+            self.assertEqual((status, dict(headers)["Location"]), (303, "/t/%s/" % self.a))
+            session = next(c for c in cookies(headers) if c.startswith("tmh_session=")).split(";")[0]
+            self.assertEqual(login.read_session(self.data, session.split("=", 1)[1]), "alice")
+            # signed in already: an unbound 飞书 identity binds to the open session
+            who["open_id"] = "ou_2"
+            state, flow = begin("/t/%s/" % self.a)
+            status, headers, _ = raw("/login/feishu/callback?code=good&state=" + state, flow + "; " + self.cookies["owner"])
+            self.assertEqual((status, dict(headers)["Location"]), (303, "/t/%s/" % self.a))
+            self.assertEqual(self.reg.one("SELECT user FROM feishu_identities WHERE open_id='ou_2'")["user"], "owner")
+            who["open_id"] = "ou_1"
+            # logging out inside 飞书 does not sign straight back in
+            self.assertEqual(self.request("GET", "/logout", "owner")[1]["Location"], "/login?out=1")
+            self.assertNotIn("location.replace", self.request("GET", "/login?out=1")[2])
+            self.assertIn("location.replace", self.request("GET", "/login")[2])
+            # another enterprise is refused before any binding, and a disabled account does not sign in
+            with patch.dict(os.environ, {"TMH_FEISHU_TENANT_KEY": "other"}):
+                state, flow = begin()
+                status, headers, _ = raw("/login/feishu/callback?code=good&state=" + state, flow)
+                self.assertEqual(status, 401)
+                self.assertFalse(any(c.startswith(("tmh_session=", "tmh_feishu_bind=")) for c in cookies(headers)))
+            self.reg.db.execute("UPDATE accounts SET active=0 WHERE name='alice'")
+            self.reg.db.commit()
+            state, flow = begin()
+            status, headers, _ = raw("/login/feishu/callback?code=good&state=" + state, flow)
+            self.assertFalse(any(c.startswith("tmh_session=") and not c.startswith("tmh_session=;") for c in cookies(headers)))
 
     def test_disabled_accounts_and_unsupported_public_endpoints_fail_closed(self):
         for suffix in ("/bot/a", "/hook/alert/a", "/capture/x", "/pv/a", "/v/a", "/sign/a", "/ask/a"):

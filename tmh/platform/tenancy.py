@@ -31,6 +31,7 @@ DDL = (
     "CREATE TABLE IF NOT EXISTS project_grants(tenant_id TEXT NOT NULL,project_id TEXT NOT NULL,user TEXT NOT NULL,role TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,user))",
     "CREATE TABLE IF NOT EXISTS access_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,actor TEXT NOT NULL,action TEXT NOT NULL,tenant_id TEXT NOT NULL,payload TEXT NOT NULL,revision INTEGER NOT NULL,created TEXT NOT NULL)",
     "CREATE TABLE IF NOT EXISTS access_requests(actor TEXT NOT NULL,request_id TEXT NOT NULL,fingerprint TEXT NOT NULL,result TEXT NOT NULL,context_tenant TEXT NOT NULL DEFAULT '',context_digest TEXT NOT NULL DEFAULT '',PRIMARY KEY(actor,request_id))",
+    "CREATE TABLE IF NOT EXISTS feishu_identities(app_id TEXT NOT NULL,open_id TEXT NOT NULL,tenant_key TEXT NOT NULL,user TEXT NOT NULL,name TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(app_id,open_id))",
 )
 _LOCKS = {}
 _LOCKS_LOCK = threading.Lock()
