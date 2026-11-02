@@ -185,7 +185,7 @@ class Orchestra:
             ask = human_action(res)
             st.update_ticket(tid, by, status="doing")
             if ask:
-                self.tell_team(p, tid, "需要人先回答：%s" % ask)
+                self.tell_team(p, tid, "需要人先回答：%s" % ask, "等你回答", "orange")
                 return st.event(tid, by, "flow", "分析需要人先回答：%s" % ask, {"refs": refs, "human_action": ask})
             go = refs and conf.get("plan") and not self.held(tid)
             st.event(tid, by, "flow", ("已定位到 %d 处代码，进入处理中%s" % (refs, "，接着起草修改方案" if go else "")) if refs
@@ -377,15 +377,15 @@ class Orchestra:
                or {}).get("id") if first and first["key"].rsplit("-", 1)[-1].isdigit() else 0
         r["push"] = self.push(p, tid, [r["main"], r["tag"]], "回滚版本")
         self.tell_team(p, 0, "%s 回滚了 %s %s（新版本 %s），涉及 %s，已重开并转人工" % (
-            by, p["key"], version, r["version"], "、".join(x["key"] for x in r["tickets"]) or "无工单"))
+            by, p["key"], version, r["version"], "、".join(x["key"] for x in r["tickets"]) or "无工单"), "版本已回滚", "red")
         return r
 
-    def tell_team(self, p: dict, tid: int, text: str) -> None:
+    def tell_team(self, p: dict, tid: int, text: str, title: str = "", tone: str = "blue") -> None:
         """Tell the project's team group, if one is bound (announce.py). Never raises."""
         from . import announce
         try:
             t = self.store.ticket(tid) if tid else None
-            announce.say(self, p, ("**%s %s** " % (t["key"], t["title"]) if t else "") + text, t)
+            announce.say(self, p, ("**%s %s**\n" % (t["key"], t["title"]) if t else "") + text, t, title, tone)
         except Exception:  # noqa: BLE001 - telling is a courtesy
             pass
 
@@ -403,7 +403,7 @@ class Orchestra:
             if tid:
                 self.store.event(tid, self.BY, "flow", "%s没能推送到代码仓库（%s），本机的结果不受影响，修好后下次会一起推上去" % (what, r["why"]),
                                  {"push": "failed", "why": r["why"]})
-            self.tell_team(p, tid, "%s没能推送到代码仓库：%s" % (what, r["why"]))
+            self.tell_team(p, tid, "%s没能推送到代码仓库：%s" % (what, r["why"]), "推送代码仓库失败", "red")
         return r
 
     def ship_again(self, p: dict, t: dict, by: str) -> dict:
@@ -437,7 +437,7 @@ class Orchestra:
                     st.event(t["id"], self.BY, "flow", "新版本已合并，但后续处理没做成（%s）" % e)
             pushed = self.push(p, t["id"], [r["main"], r["tag"]], "新版本")
             self.tell_team(p, t["id"], "验收通过（%s），已合并进 %s，版本 %s%s" % (
-                by, r["main"], r["version"], "，已推到 " + pushed["repo"] if pushed["state"] == "pushed" else ""))
+                by, r["main"], r["version"], "，已推到 " + pushed["repo"] if pushed["state"] == "pushed" else ""), "验收通过，已出版本", "green")
         elif r["state"] == "conflict":
             st.update_ticket(t["id"], self.BY, status="doing")
             n = 1 + sum(1 for e in st.events(t["id"]) if e["kind"] in ("reject", "conflict"))  # this one counts too, as a rejection does
@@ -456,12 +456,12 @@ class Orchestra:
                 why = ("有人接手" if self.held(t["id"]) else "重做次数用完了（%d 次）" % (n - 1) if agent else
                        "自动处理没开" if not (self.switched_on(conf, p) and conf.get("fix")) else "没有可用的智能体")
                 st.event(t["id"], self.BY, "flow", "%s，需要有人在最新的主干上重做，或手动合并分支 %s" % (why, r["branch"]))
-                self.tell_team(p, t["id"], "验收通过的改动和主干冲突，%s，需要有人处理" % why)
+                self.tell_team(p, t["id"], "验收通过的改动和主干冲突，%s，需要有人处理" % why, "合并冲突", "red")
         elif r["state"] in ("waiting", "none"):
             st.event(t["id"], self.BY, "flow", ("验收通过了，还没合并进主干：%s。处理好后在工单上点“重试合并”" if r["state"] == "waiting" else
                                                 "验收通过了，没有自动合并：%s") % r["why"], {"release": r["state"]})
             if r["state"] == "waiting":
-                self.tell_team(p, t["id"], "验收通过了，还没合并进主干：%s" % r["why"])
+                self.tell_team(p, t["id"], "验收通过了，还没合并进主干：%s" % r["why"], "等合并进主干", "orange")
         return r
 
     def recheck(self, rid: int, by: str, wait: bool = False) -> dict:

@@ -147,7 +147,7 @@ class AnnounceTest(unittest.TestCase):
             "OA:feishu:oc_other": {"project": "OA", "channel": "feishu", "dest": {"kind": "feishu", "chat_id": "oc_other"}}})
         self.sent, self.events = [], []
         self._send, self._async = bots.send, bots.ASYNC
-        bots.send, bots.ASYNC = (lambda root, dest, text: self.sent.append((dest["chat_id"], text)) or True), False
+        bots.send, bots.ASYNC = (lambda root, dest, text, **kw: self.sent.append((dest["chat_id"], text, kw)) or True), False
         self.addCleanup(setattr, bots, "send", self._send)
         self.addCleanup(setattr, bots, "ASYNC", self._async)
         store = SimpleNamespace(event=lambda tid, by, kind, body, data=None: self.events.append((tid, kind, body)))
@@ -166,9 +166,15 @@ class AnnounceTest(unittest.TestCase):
         v = announce.bind(self.P, self.p, "JB:feishu:oc_abcdef123456", "li")
         self.assertTrue(v["bound"])
         self.assertTrue(announce.say(self.P, self.p, "**JB-1 标题** 验收通过", {"id": 7, "key": "JB-1"}))
-        self.assertEqual(self.sent, [("oc_abcdef123456", "**JB-1 标题** 验收通过\n[打开工单](https://webuddy.example/#/t/JB-1)")])
+        self.assertEqual(self.sent, [("oc_abcdef123456", "**JB-1 标题** 验收通过", {
+            "title": "JB · 项目通知", "url": "https://webuddy.example/#/t/JB-1", "button": "打开工单", "tone": "blue"})])
         self.assertEqual(self.events, [(7, "chat", "已告知项目群：**JB-1 标题** 验收通过")])
         self.assertFalse(announce.bind(self.P, self.p, "", "li")["bound"])
+
+    def test_without_a_ticket_the_card_opens_webuddy(self):
+        announce.bind(self.P, self.p, "JB:feishu:oc_abcdef123456", "li")
+        announce.say(self.P, self.p, "回滚了", title="版本已回滚", tone="red")
+        self.assertEqual(self.sent[-1][2], {"title": "JB · 版本已回滚", "url": "https://webuddy.example/", "button": "打开 Webuddy", "tone": "red"})
 
     def test_a_failing_send_never_raises(self):
         from tmh import bots
@@ -179,6 +185,73 @@ class AnnounceTest(unittest.TestCase):
         bots.send = boom
         self.assertTrue(announce.say(self.P, self.p, "x", {"id": 1, "key": "JB-1"}))
         self.assertIn("没能告知项目群", self.events[-1][2])
+
+
+class CardTest(unittest.TestCase):
+    def setUp(self):
+        from tmh import bots
+        self.tmp = Path(tempfile.mkdtemp(prefix="tmh-card-"))
+        (self.tmp / ".tmh").mkdir()
+        (self.tmp / ".tmh" / "config.json").write_text(json.dumps({"bots": {
+            "feishu": {"app_id_env": "X"}, "dingtalk": {"secret_env": "Y"}}}), encoding="utf-8")
+        self.calls = []
+        self._http, self._tok = bots._http, bots._feishu_token
+        bots._http = lambda url, body=None, headers=None, timeout=15: self.calls.append((url, body)) or {"code": 0}
+        bots._feishu_token = lambda c: "t"
+        self.addCleanup(setattr, bots, "_http", self._http)
+        self.addCleanup(setattr, bots, "_feishu_token", self._tok)
+
+    def test_feishu_card_has_a_title_and_a_button_to_webuddy(self):
+        from tmh import bots
+        self.assertTrue(bots.send(self.tmp, {"kind": "feishu", "chat_id": "oc_1"}, "**JB-1** 通过", title="JB · 已出版本",
+                                  url="https://w.example/#/t/JB-1", button="打开工单", tone="green"))
+        card = json.loads(self.calls[0][1]["content"])
+        self.assertEqual(self.calls[0][1]["msg_type"], "interactive")
+        self.assertEqual(card["header"], {"title": {"tag": "plain_text", "content": "JB · 已出版本"}, "template": "green"})
+        self.assertEqual(card["elements"][0], {"tag": "markdown", "content": "**JB-1** 通过"})
+        btn = card["elements"][1]["actions"][0]
+        self.assertEqual((btn["text"]["content"], btn["url"]), ("打开工单", "https://w.example/#/t/JB-1"))
+
+    def test_plain_card_without_title_or_link(self):
+        from tmh import bots
+        card = bots.feishu_card("hi")
+        self.assertNotIn("header", card)
+        self.assertEqual(len(card["elements"]), 1)
+
+    def test_other_channels_get_the_link_as_markdown(self):
+        from tmh import bots
+        bots.send(self.tmp, {"kind": "dingtalk", "hook": "https://oapi.example/x"}, "正文", title="标题", url="https://w.example/")
+        self.assertEqual(self.calls[0][1]["markdown"]["text"], "**标题**\n\n正文\n\n[打开 Webuddy](https://w.example/)")
+
+    def test_intake_may_answer_with_a_card(self):
+        from tmh import bots
+        old = bots.INTAKE
+        self.addCleanup(setattr, bots, "INTAKE", old)
+        bots.INTAKE = lambda root, text, channel, sender, conv: {"kind": "brief", "title": "简报", "reply": "2 个项目", "url": "https://w.example/"}
+        r = bots.handle(self.tmp, "@_user_1 简报", "feishu", "ou_1", use_model=False, conv={"id": "oc_1"})
+        self.assertEqual((r["kind"], r["title"], r["reply"], r["url"]), ("brief", "简报", "2 个项目", "https://w.example/"))
+
+
+class BriefTest(unittest.TestCase):
+    def test_platform_questions_are_told_apart_from_requirements(self):
+        for t in ("简报", "概况。", "帮我看看我们有多少项目在你管理下", "平台上接入了哪些项目？"):
+            self.assertTrue(chat.wants_brief(t), t)
+        for t in ("项目状态显示错了", "这个部门有多少项目", "导出项目列表时报错", "简报页面打不开"):
+            self.assertFalse(chat.wants_brief(t), t)
+
+    def test_brief_counts_each_project(self):
+        import time
+        today = time.strftime("%Y-%m-%d")
+        ps = [{"id": 1, "key": "JB", "name": "JeecgBoot"}, {"id": 2, "key": "OA", "name": ""}]
+        ib = {1: {"mine": [{"key": "JB-5", "title": "登录页", "label": "改好了，等你验收"}], "open": 3, "running": 1},
+              2: {"mine": [], "open": 0, "running": 0}}
+        store = SimpleNamespace(projects=lambda: ps, one=lambda sql, a: {"n": 2 if a[0] == 1 and a[1] == today else 0})
+        P = SimpleNamespace(store=store, inbox=lambda p: ib[p["id"]], public_url="https://w.example")
+        r = chat.brief(P)
+        self.assertEqual((r["kind"], r["url"], r["button"]), ("brief", "https://w.example/", "打开 Webuddy"))
+        self.assertIn("管理 **2** 个项目", r["reply"])
+        self.assertIn("**JB** JeecgBoot：等你处理 1 · 未关单 3 · 进行中 1 · 今天关单 2", r["reply"])
+        self.assertIn("JB-5 登录页（改好了，等你验收）", r["reply"])
 
 
 if __name__ == "__main__":

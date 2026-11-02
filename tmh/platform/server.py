@@ -2777,7 +2777,7 @@ def api_notify_set(P, req, key):
         if req.body.get("test"):
             if not announce.conf(P.data_dir, p["key"]):
                 raise ValueError("还没绑定项目群")
-            announce.say(P, p, "这是 Webuddy 的测试消息：%s 的通知会发到这个群（%s 设置）。" % (p["key"], actor))
+            announce.say(P, p, "这是 Webuddy 的测试消息：%s 的通知会发到这个群（%s 设置）。" % (p["key"], actor), title="测试消息")
     except ValueError as e:
         raise ApiError(409, str(e))
     return api_channels(P, req, key)

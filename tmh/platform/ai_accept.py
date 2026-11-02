@@ -211,7 +211,7 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
         return {"accepted": False, "shadow": True, "would_accept": False, "why": why}
     if why:
         st.event(tid, BY, "flow", "AI 没有验收：%s，留给人验收" % why, {"run": rid})
-        P.flow.tell_team(p, tid, "AI 没有验收：%s，等人验收" % why)
+        P.flow.tell_team(p, tid, "AI 没有验收：%s，等人验收" % why, "等你验收", "orange")
         return {"accepted": False, "why": why}
     from .fixloop import verified
     said = {str(a.get("id")): a for a in (verified(P.data_dir, rid).get("diagnosis") or {}).get("ac") or [] if isinstance(a, dict)}
@@ -235,6 +235,6 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
     except (ApiError, ValueError) as e:
         why = getattr(e, "msg", None) or str(e)
         st.event(tid, BY, "flow", "AI 没有验收：%s，留给人验收" % why, {"run": rid})
-        P.flow.tell_team(p, tid, "AI 没有验收：%s，等人验收" % why)
+        P.flow.tell_team(p, tid, "AI 没有验收：%s，等人验收" % why, "等你验收", "orange")
         return {"accepted": False, "why": why}
     return {"accepted": True, "evidence": sealed}
