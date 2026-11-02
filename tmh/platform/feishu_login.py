@@ -152,6 +152,7 @@ def provision(reg, ident: dict) -> str:
     """Our enterprise (TMH_FEISHU_TENANT_KEY) signs in by default: a member with no binding yet
     gets an account in the default organization, role TMH_FEISHU_ROLE (member); project grants stay with admins."""
     from . import tool_access
+    from .errors import ApiError
     from .login import hash_password
     from .tenancy import TENANT_ROLES, _username, encoded, now
     if not os.environ.get("TMH_FEISHU_TENANT_KEY") or not allowed(ident):
@@ -167,7 +168,7 @@ def provision(reg, ident: dict) -> str:
         for cand in (shown, shown + "-" + ident["open_id"][-4:], "fs-" + ident["open_id"][-10:]):
             try:
                 _username(cand)
-            except Exception:
+            except ApiError:
                 continue
             if not db.execute("SELECT 1 FROM accounts WHERE name=?", (cand,)).fetchone():
                 name = cand
