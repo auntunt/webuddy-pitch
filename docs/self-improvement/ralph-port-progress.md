@@ -302,3 +302,14 @@
   - 钉钉和企业微信没有卡片，标题和链接写成 markdown。
   - 生产 `/etc/webuddy.env` 新增 `TMH_PUBLIC_URL=https://webuddy.bbstack.date`，卡片按钮的链接从这里取。
 - 发布：服务器上解出的包里 `test_repo_sync`、`test_tenant_gateway`、`test_tenant_runtime` 共 47 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，journal 无报错。发布后用生产代码往 JB 通知会话发了一张测试卡片，飞书接口返回成功。
+
+### 飞书登录：企业飞书账号登录已绑定的 Webuddy 账号
+
+- 用户确认飞书卡片和简报都能用之后指出：还没有基于飞书的登录。PR #24（合并为 `353b541`，release `353b541f2824-feishu-login-20261102`）在租户网关加了飞书 OAuth 登录，复用「Webuddy 交付助手」的 App ID/Secret；没配这两个环境变量时登录页和以前一样，`/login/feishu` 404。
+- 流程：`/login/feishu` 跳 `accounts.feishu.cn/open-apis/authen/v1/authorize`（state + PKCE S256，签名 flow cookie 10 分钟）→ `/login/feishu/callback` 核对 state，服务端用 `authen/v2/oauth/token` 换令牌、`authen/v1/user_info` 取 `open_id`/`tenant_key`/姓名，飞书令牌不落库。已绑定且账号启用 → 发普通 `tmh_session`；未绑定 → 签名 `tmh_feishu_bind` cookie，回登录页提示用密码登录一次完成绑定；已经登录着 → 直接绑到当前账号。
+- 边界：飞书不建账号、不授权，只能登进已用密码（或当前会话）证明过的账号；账号停用即失效；绑定记 `tenant_key`，登录时必须一致，可选 `TMH_FEISHU_TENANT_KEY` 只认指定企业（不符的在发绑定凭证前就拒）；已绑定的飞书身份不会被另一个账号改绑；绑定写 `access_audit` 的 `feishu_bind`。表 `feishu_identities(app_id, open_id, tenant_key, user, name, created)` 在 `tenancy.DDL`，启动时自动建。
+- 飞书客户端里（UA 含 Lark/Feishu）登录页自动跳飞书授权，所以卡片按钮点开就是登录状态；`location.hash` 拼进 next，`#/t/JB-1` 这类链接登录后不丢。退出跳 `/login?out=1`，这一页不自动跳，避免退出后立刻被登回去。
+- Devin Review 两轮：改绑、非本企业仍发绑定凭证、已登录时绑定提示被跳过、飞书内退出即重登 4 条已修；「HTTP 下 cookie 不带 Secure」不改（生产只走 HTTPS，`_scheme` 为 https 时带 Secure，与 `tmh_session` 同一规则）。
+- 飞书开放平台：安全设置的重定向 URL 加了 `https://webuddy.bbstack.date/login/feishu/callback`。授权页只要「获取用户身份标识」一项权限。
+- 发布：服务器上解出的包里 `test_tenant_gateway`、`test_login` 共 19 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，journal 无报错；生产 `/login` 有「用飞书登录」，`/login/feishu` 303 到飞书授权、`redirect_uri` 正确。
+- 真实验证：在 Devin 的浏览器里（已登录 li、飞书已登录李逸斌）走了一遍，飞书授权后真实换到令牌和身份，走「已登录直接绑定」把 李逸斌 绑到了 `li`（`access_audit` 有 `feishu_bind`）。退出后点「用飞书登录」，在飞书授权页点「授权」后不输密码直接回到 li 的工作台（普通浏览器里飞书每次都显示授权页；飞书客户端内是否免确认还没验证）。还没在飞书手机/桌面客户端里点卡片验证自动登录。
