@@ -151,6 +151,8 @@ def make_handler(registry, workers, *, brand="webuddy"):
                     # Already signed in: the person proved both, so bind to the open session.
                     feishu_login.bind(reg, current, ident)
                     user = feishu_login.bound_user(reg, ident)
+                if not user:
+                    user = feishu_login.provision(reg, ident)
                 session = login.make_session(reg.data_dir, user) if user else ""
             if not user:
                 bind = self._cookie(feishu_login.pending(reg.data_dir, ident), feishu_login.BIND_SECONDS, feishu_login.BIND_COOKIE, "/login")
