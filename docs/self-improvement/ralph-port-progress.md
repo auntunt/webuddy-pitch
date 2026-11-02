@@ -313,3 +313,14 @@
 - 飞书开放平台：安全设置的重定向 URL 加了 `https://webuddy.bbstack.date/login/feishu/callback`。授权页只要「获取用户身份标识」一项权限。
 - 发布：服务器上解出的包里 `test_tenant_gateway`、`test_login` 共 19 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，journal 无报错；生产 `/login` 有「用飞书登录」，`/login/feishu` 303 到飞书授权、`redirect_uri` 正确。
 - 真实验证：在 Devin 的浏览器里（已登录 li、飞书已登录李逸斌）走了一遍，飞书授权后真实换到令牌和身份，走「已登录直接绑定」把 李逸斌 绑到了 `li`（`access_audit` 有 `feishu_bind`）。退出后点「用飞书登录」，在飞书授权页点「授权」后不输密码直接回到 li 的工作台（普通浏览器里飞书每次都显示授权页；飞书客户端内是否免确认还没验证）。还没在飞书手机/桌面客户端里点卡片验证自动登录。
+
+## 2026-11-02 飞书登录改为本企业默认开户（PR #26，生产 dfb8688bf06a）
+
+- 用户要求：权限系统接入飞书后默认绑定本企业飞书，权限不做复杂设计。配置了 `TMH_FEISHU_TENANT_KEY` 时，本企业的飞书成员第一次用飞书登录、且未绑定任何账号，就由 `feishu_login.provision()` 在同一事务里完成：建账号、加入 `default` 组织、写 `feishu_identities`、修订号 +1、记审计 `feishu_join`。
+- 账号名依次试：飞书姓名去掉空白、`姓名-<open_id后4位>`、`fs-<open_id后10位>`，取第一个可用的。密码是随机哈希，不能用密码登录。
+- 角色取 `TMH_FEISHU_ROLE`，默认 `member`，只允许 `member` 或 `viewer`，永远不会给 `admin`。项目权限仍由管理员在「成员与权限」里授予。
+- 别的企业照旧在 `identity()` 里被拒。已绑定的身份不会被改绑。没配企业键时，仍按原来的方式先用密码绑定。
+- 生产：`/etc/webuddy.env` 追加 `TMH_FEISHU_TENANT_KEY`，取值为已绑定的 李逸斌 身份的企业键（改前备份为 `webuddy.env.bak-pre-feishu-tenant-20261102`）。
+- 发布：服务器上解出的包里 `test_tenant_gateway`、`test_login`、`test_tenant_policy` 共 47 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，journal 无报错；`/login/feishu` 303 到飞书授权。
+- 在生产库副本上用发布包代码模拟（不写生产库）：本企业新身份自动开出 `测试成员`（default/member）；再登一次不重复开户；li 原有的绑定不变；别的企业被拒。还没有真实的第二位本企业成员登录过。
+- CI：Ubuntu 全过；Windows full suite 在基线上同样失败（与本改动无关）。
