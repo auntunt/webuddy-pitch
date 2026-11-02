@@ -207,6 +207,10 @@ input::placeholder{color:var(--mut);opacity:1}:where(button,input,a):focus-visib
 .err{background:var(--bad-s);color:#B42318;border:1px solid #F9C6C6;border-radius:6px;padding:10px 14px;margin-bottom:18px;font-size:13px}
 .hint{margin:22px 0 0;text-align:center;color:var(--mut);font-size:12px}
 .mmark{display:none}
+.or{display:flex;align-items:center;gap:10px;margin:18px 0 12px;color:var(--mut);font-size:12px}.or:before,.or:after{content:"";flex:1;border-top:1px solid #E4E7EC}
+.fs{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--fg);font-size:15px;font-weight:600;text-decoration:none}
+.fs:hover{background:#F6F7F9}
+.note{background:#EEF4FF;color:#1D3A8A;border:1px solid #C7D7FE;border-radius:6px;padding:10px 14px;margin-bottom:18px;font-size:13px}
 @media (max-width:860px){body{display:block;background:#F6F7F9}.side{display:none}.main{min-height:100%;padding:28px 16px}
 .mmark{display:flex;justify-content:center;align-items:center;gap:10px;color:var(--fg);font-size:20px;font-weight:700;margin-bottom:22px}
 .wrap{width:100%;max-width:380px}.card{padding:30px 22px 26px}}
@@ -229,17 +233,30 @@ input::placeholder{color:var(--mut);opacity:1}:where(button,input,a):focus-visib
       <button type="button" onclick="const i=document.getElementById('p');const s=i.type==='password';i.type=s?'text':'password';this.textContent=s?'隐藏':'显示'">显示</button></div></div>
     <input type="hidden" name="next" value="{next}">
     <button class="go" type="submit">登 录</button>
+    {feishu}
     <p class="hint">忘记密码请联系管理员重置</p>
   </form>
 </div></main>
 </body></html>"""
 
 
-def page(brand: str, err: str = "", name: str = "", next_: str = "/") -> str:
+FEISHU = ('<div class="or">或</div><a class="fs" id="fs" href="/login/feishu?next={qnext}">用飞书登录</a>'
+          '<script>(function(){var a=document.getElementById("fs"),n=document.querySelector("input[name=next]");'
+          'if(location.hash&&n.value.indexOf("#")<0){n.value+=location.hash;a.href="/login/feishu?next="+encodeURIComponent(n.value)}'
+          '{auto}})()</script>')
+AUTO = 'if(/Lark|Feishu/i.test(navigator.userAgent))location.replace(a.href);'
+
+
+def page(brand: str, err: str = "", name: str = "", next_: str = "/", feishu: bool = False, notice: str = "", auto: bool = True) -> str:
+    """The sign-in page; with `feishu`, a 飞书 button, followed automatically inside the 飞书 client."""
+    from urllib.parse import quote
     e = '<div class="err" role="alert">%s</div>' % html.escape(err) if err else ""
-    b = html.escape(brand)
+    if notice:
+        e += '<div class="note" role="status">%s</div>' % html.escape(notice)
+    b, nxt = html.escape(brand), safe_next(next_)
+    fs = FEISHU.replace("{qnext}", html.escape(quote(nxt, safe=""))).replace("{auto}", AUTO if auto and not err and not notice else "") if feishu else ""
     return (PAGE.replace("{logo}", LOGO).replace("{brand}", b).replace("{err}", e).replace("{year}", time.strftime("%Y"))
-            .replace("{name}", html.escape(name)).replace("{next}", html.escape(safe_next(next_))))
+            .replace("{name}", html.escape(name)).replace("{next}", html.escape(nxt)).replace("{feishu}", fs))
 
 
 def safe_next(n: str) -> str:

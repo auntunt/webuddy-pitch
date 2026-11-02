@@ -10,6 +10,7 @@ from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import html
 import json
+import os
 from pathlib import Path
 import re
 import signal
@@ -17,7 +18,7 @@ import sqlite3
 import threading
 from urllib.parse import parse_qs, quote, urlsplit
 
-from . import login, tenancy
+from . import feishu_login, login, tenancy
 from .errors import ApiError
 from .tenant_runtime import BOT_HEADERS
 
@@ -97,7 +98,8 @@ def make_handler(registry, workers, *, brand="webuddy"):
             self.send_header("X-Frame-Options", "DENY")
             self.send_header("Content-Security-Policy", "frame-ancestors 'none'")
             for key, value in (headers or {}).items():
-                self.send_header(key, value)
+                for one in value if isinstance(value, list) else [value]:
+                    self.send_header(key, one)
             self.end_headers()
             if self.command != "HEAD":
                 self.wfile.write(body)
@@ -105,18 +107,50 @@ def make_handler(registry, workers, *, brand="webuddy"):
         def _json(self, code, value):
             return self._send(code, json.dumps(value, ensure_ascii=False).encode(), "application/json; charset=utf-8")
 
-        def _session(self):
+        def _read_cookie(self, name):
             cookie = SimpleCookie()
             try:
                 cookie.load(self.headers.get("Cookie", ""))
-                value = cookie["tmh_session"].value if "tmh_session" in cookie else ""
-                return login.read_session(reg.data_dir, value)
+                return cookie[name].value if name in cookie else ""
             except (ValueError, TypeError, CookieError):
                 return ""
 
-        def _cookie(self, value, age):
+        def _session(self):
+            return login.read_session(reg.data_dir, self._read_cookie("tmh_session"))
+
+        def _cookie(self, value, age, name="tmh_session", path="/"):
             secure = "; Secure" if self._scheme() == "https" else ""
-            return "tmh_session=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=Lax%s" % (value, age, secure)
+            return "%s=%s; Path=%s; Max-Age=%d; HttpOnly; SameSite=Lax%s" % (name, value, path, age, secure)
+
+        def _page(self, code, **kw):
+            pending = feishu_login.read_pending(reg.data_dir, self._read_cookie(feishu_login.BIND_COOKIE)) if feishu_login.enabled() else {}
+            if pending and not kw.get("notice"):
+                kw["notice"] = "飞书账号「%s」还没绑定 Webuddy 账号。用账号密码登录一次就会绑定，以后可以直接用飞书登录。" % (pending.get("name") or "")
+            return self._send(code, login.page(brand, feishu=feishu_login.enabled(), **kw).encode(), "text/html; charset=utf-8")
+
+        def _base(self):
+            return os.environ.get("TMH_PUBLIC_URL", "").rstrip("/") or self._scheme() + "://" + self.headers.get("Host", "")
+
+        def _feishu(self, method, path, query):
+            if method not in ("GET", "HEAD") or not feishu_login.enabled():
+                raise error(404, "未开启飞书登录", "route_denied")
+            if path == "/login/feishu":
+                url, flow = feishu_login.start(reg.data_dir, self._base(), (query.get("next") or ["/"])[0])
+                return self._send(303, headers={"Location": url, "Set-Cookie": self._cookie(flow, feishu_login.FLOW_SECONDS, feishu_login.FLOW_COOKIE, "/login")})
+            done = self._cookie("", 0, feishu_login.FLOW_COOKIE, "/login")
+            try:
+                ident, nxt = feishu_login.identity(reg.data_dir, self._base(), self._read_cookie(feishu_login.FLOW_COOKIE),
+                                                   (query.get("code") or [""])[0], (query.get("state") or [""])[0])
+            except feishu_login.FeishuLoginError as e:
+                code, body, kind, _ = self._page(401, err=str(e))
+                return code, body, kind, {"Set-Cookie": done}
+            with reg.authorization_guard():
+                user = feishu_login.bound_user(reg, ident)
+                session = login.make_session(reg.data_dir, user) if user else ""
+            if not user:
+                bind = self._cookie(feishu_login.pending(reg.data_dir, ident), feishu_login.BIND_SECONDS, feishu_login.BIND_COOKIE, "/login")
+                return self._send(303, headers={"Location": "/login?next=" + quote(nxt, safe=""), "Set-Cookie": [done, bind]})
+            return self._send(303, headers={"Location": nxt, "Set-Cookie": [done, self._cookie(session, login.SESSION_DAYS * 86400)]})
 
         def _scheme(self):
             # Forwarded transport is accepted only from the loopback reverse proxy.
@@ -152,7 +186,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
                     user = self._session()
                 if user:
                     return self._send(303, headers={"Location": nxt})
-                return self._send(200, login.page(brand, next_=nxt).encode(), "text/html; charset=utf-8")
+                return self._page(200, next_=nxt)
             self._origin()
             fields = parse_qs(self._body(8192).decode("utf-8"))
             name = (fields.get("username") or [""])[0].strip()
@@ -162,14 +196,20 @@ def make_handler(registry, workers, *, brand="webuddy"):
             if client in ("127.0.0.1", "::1") and self.headers.get("X-Forwarded-For"):
                 client = self.headers["X-Forwarded-For"].split(",")[-1].strip()
             if throttle.blocked(client):
-                return self._send(429, login.page(brand, "密码错误次数太多，请稍后重试", name, nxt).encode(), "text/html; charset=utf-8")
+                return self._page(429, err="密码错误次数太多，请稍后重试", name=name, next_=nxt)
+            pending = feishu_login.read_pending(reg.data_dir, self._read_cookie(feishu_login.BIND_COOKIE)) if feishu_login.enabled() else {}
             with reg.authorization_guard():
                 if not login.verify(reg.data_dir, name, password):
                     throttle.fail(client)
-                    return self._send(401, login.page(brand, "账号或密码不正确", name, nxt).encode(), "text/html; charset=utf-8")
+                    return self._page(401, err="账号或密码不正确", name=name, next_=nxt)
                 cookie = login.make_session(reg.data_dir, name)
+                if pending:
+                    feishu_login.bind(reg, name, pending)
             throttle.ok(client)
-            return self._send(303, headers={"Location": nxt, "Set-Cookie": self._cookie(cookie, login.SESSION_DAYS * 86400)})
+            cookies = [self._cookie(cookie, login.SESSION_DAYS * 86400)]
+            if pending:
+                cookies.append(self._cookie("", 0, feishu_login.BIND_COOKIE, "/login"))
+            return self._send(303, headers={"Location": nxt, "Set-Cookie": cookies if pending else cookies[0]})
 
         def _home(self, user):
             rows = reg.q("SELECT t.id,t.name FROM tenants t JOIN memberships m ON m.tenant_id=t.id WHERE m.user=? AND t.status='active' ORDER BY t.created,t.id", (user,))
@@ -242,6 +282,8 @@ def make_handler(registry, workers, *, brand="webuddy"):
                 query = parse_qs(url.query)
                 if url.path == "/login":
                     return self._login(method, query)
+                if url.path in ("/login/feishu", feishu_login.CALLBACK):
+                    return self._feishu(method, url.path, query)
                 bot = re.fullmatch(r"/t/([A-Za-z0-9_-]+)(/bot/(dingtalk|feishu|wecom|api)/[A-Za-z0-9_-]+)", url.path)
                 if bot:
                     return self._bot(method, bot[1], bot[2], bot[3], url.query)
