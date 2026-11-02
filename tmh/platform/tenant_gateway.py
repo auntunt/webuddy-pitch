@@ -146,6 +146,11 @@ def make_handler(registry, workers, *, brand="webuddy"):
                 return code, body, kind, {"Set-Cookie": done}
             with reg.authorization_guard():
                 user = feishu_login.bound_user(reg, ident)
+                current = self._session()
+                if not user and current:
+                    # Already signed in: the person proved both, so bind to the open session.
+                    feishu_login.bind(reg, current, ident)
+                    user = feishu_login.bound_user(reg, ident)
                 session = login.make_session(reg.data_dir, user) if user else ""
             if not user:
                 bind = self._cookie(feishu_login.pending(reg.data_dir, ident), feishu_login.BIND_SECONDS, feishu_login.BIND_COOKIE, "/login")
@@ -186,7 +191,8 @@ def make_handler(registry, workers, *, brand="webuddy"):
                     user = self._session()
                 if user:
                     return self._send(303, headers={"Location": nxt})
-                return self._page(200, next_=nxt)
+                # After a logout the 飞书 client must not sign straight back in.
+                return self._page(200, next_=nxt, auto=not query.get("out"))
             self._origin()
             fields = parse_qs(self._body(8192).decode("utf-8"))
             name = (fields.get("username") or [""])[0].strip()
@@ -307,7 +313,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
                         return self._send(303, headers={"Location": "/login?next=" + quote(self.path, safe="")})
                     raise error(401, "请使用个人账号登录", "session_invalid")
                 if url.path == "/logout":
-                    return self._send(303, headers={"Location": "/login", "Set-Cookie": self._cookie("", 0)})
+                    return self._send(303, headers={"Location": "/login?out=1", "Set-Cookie": self._cookie("", 0)})
                 if url.path == "/" and method == "GET":
                     with reg.authorization_guard():
                         if self._session() != user:
@@ -318,7 +324,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
                     raise error(404, "请通过固定租户地址访问", "route_denied")
                 tenant, path = match[1], match[2] or "/"
                 if path == "/logout":
-                    return self._send(303, headers={"Location": "/login", "Set-Cookie": self._cookie("", 0)})
+                    return self._send(303, headers={"Location": "/login?out=1", "Set-Cookie": self._cookie("", 0)})
                 if path.startswith(("/bot/", "/hook/", "/capture/", "/pv/", "/v/", "/sign/", "/ask/")) or path == "/login":
                     raise error(403, "此入口尚未接入租户隔离", "route_denied")
                 raw = self._body() if method == "POST" else b""

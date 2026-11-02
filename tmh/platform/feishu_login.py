@@ -106,14 +106,21 @@ def identity(data, base: str, flow_cookie: str, code: str, state: str) -> tuple[
     u = info.get("data") or {}
     if info.get("code") or not u.get("open_id"):
         raise FeishuLoginError("读不到飞书账号信息（%s）" % (info.get("code") or "无 open_id"))
-    return {"app_id": app_id, "open_id": u["open_id"], "tenant_key": u.get("tenant_key") or "",
-            "name": (u.get("name") or "")[:60]}, flow["n"]
+    ident = {"app_id": app_id, "open_id": u["open_id"], "tenant_key": u.get("tenant_key") or "", "name": (u.get("name") or "")[:60]}
+    if not allowed(ident):
+        raise FeishuLoginError("这个飞书账号不属于允许登录的企业")
+    return ident, flow["n"]
+
+
+def allowed(ident: dict) -> bool:
+    """TMH_FEISHU_TENANT_KEY, when set, admits only that enterprise."""
+    want = os.environ.get("TMH_FEISHU_TENANT_KEY", "")
+    return not want or ident.get("tenant_key") == want
 
 
 def bound_user(reg, ident: dict) -> str:
     """The active Webuddy account this 飞书 identity is bound to, or ""."""
-    allowed = os.environ.get("TMH_FEISHU_TENANT_KEY", "")
-    if allowed and ident.get("tenant_key") != allowed:
+    if not allowed(ident):
         return ""
     row = reg.one("SELECT f.user,f.tenant_key FROM feishu_identities f JOIN accounts a ON a.name=f.user "
                   "WHERE f.app_id=? AND f.open_id=? AND a.active=1", (ident["app_id"], ident["open_id"]))
@@ -130,12 +137,12 @@ def read_pending(data, token: str) -> dict:
 
 
 def bind(reg, user: str, ident: dict) -> None:
-    """Bind after the person proved the account with its password; rebinding moves the identity."""
+    """Bind after the person proved the account; an identity already bound to someone stays theirs."""
     from .tenancy import encoded, now
     with reg.transaction() as db:
-        db.execute("INSERT INTO feishu_identities VALUES(?,?,?,?,?,?) ON CONFLICT(app_id,open_id) DO UPDATE SET "
-                   "tenant_key=excluded.tenant_key,user=excluded.user,name=excluded.name,created=excluded.created",
-                   (ident["app_id"], ident["open_id"], ident.get("tenant_key", ""), user, ident.get("name", ""), now()))
+        if db.execute("INSERT INTO feishu_identities VALUES(?,?,?,?,?,?) ON CONFLICT(app_id,open_id) DO NOTHING",
+                      (ident["app_id"], ident["open_id"], ident.get("tenant_key", ""), user, ident.get("name", ""), now())).rowcount != 1:
+            return
         rev = db.execute("SELECT revision FROM access_meta").fetchone()[0]
         db.execute("INSERT INTO access_audit(actor,action,tenant_id,payload,revision,created) VALUES(?,?,?,?,?,?)",
                    (user, "feishu_bind", "", encoded({"user": user, "feishu": ident.get("name", "")}), rev, now()))

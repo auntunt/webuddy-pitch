@@ -210,13 +210,13 @@ class TenantGatewayTest(unittest.TestCase):
 
     def test_feishu_login_binds_once_with_password_then_signs_in(self):
         env = {"TMH_FEISHU_APP_ID": "cli_x", "TMH_FEISHU_APP_SECRET": "s", "TMH_PUBLIC_URL": "https://w.example"}
-        seen = []
+        seen, who = [], {"open_id": "ou_1"}
 
         def fake(url, body=None, token=""):
             seen.append((url, body, token))
             if url.endswith("/oauth/token"):
                 return {"code": 0, "access_token": "u-tok"} if body["code"] == "good" else {"code": 20003}
-            return {"code": 0, "data": {"open_id": "ou_1", "tenant_key": "tk", "name": "小李"}}
+            return {"code": 0, "data": {"open_id": who["open_id"], "tenant_key": "tk", "name": "小李"}}
 
         def begin(nxt="/t/x/#/t/JB-1"):
             status, headers, _ = self.request("GET", "/login/feishu?next=" + quote(nxt, safe=""))
@@ -269,18 +269,32 @@ class TenantGatewayTest(unittest.TestCase):
             self.assertTrue(any(c.startswith("tmh_feishu_bind=;") for c in cookies(r.getheaders())))
             self.assertEqual(self.reg.one("SELECT user,tenant_key FROM feishu_identities"), {"user": "alice", "tenant_key": "tk"})
             self.assertEqual(self.reg.one("SELECT action FROM access_audit ORDER BY id DESC LIMIT 1")["action"], "feishu_bind")
+            # replaying the pending cookie with another password cannot take the identity away
+            self.request("POST", "/login", body={"username": "owner", "password": "synthetic-password"}, form=True, headers={"Cookie": bind})
+            self.assertEqual(self.reg.one("SELECT user FROM feishu_identities WHERE open_id='ou_1'")["user"], "alice")
             # from now on 飞书 alone signs alice in and lands on the page she asked for
             state, flow = begin("/t/%s/" % self.a)
             status, headers, _ = raw("/login/feishu/callback?code=good&state=" + state, flow)
             self.assertEqual((status, dict(headers)["Location"]), (303, "/t/%s/" % self.a))
             session = next(c for c in cookies(headers) if c.startswith("tmh_session=")).split(";")[0]
             self.assertEqual(login.read_session(self.data, session.split("=", 1)[1]), "alice")
-            # another enterprise, or a disabled account, does not sign in
+            # signed in already: an unbound 飞书 identity binds to the open session
+            who["open_id"] = "ou_2"
+            state, flow = begin("/t/%s/" % self.a)
+            status, headers, _ = raw("/login/feishu/callback?code=good&state=" + state, flow + "; " + self.cookies["owner"])
+            self.assertEqual((status, dict(headers)["Location"]), (303, "/t/%s/" % self.a))
+            self.assertEqual(self.reg.one("SELECT user FROM feishu_identities WHERE open_id='ou_2'")["user"], "owner")
+            who["open_id"] = "ou_1"
+            # logging out inside 飞书 does not sign straight back in
+            self.assertEqual(self.request("GET", "/logout", "owner")[1]["Location"], "/login?out=1")
+            self.assertNotIn("location.replace", self.request("GET", "/login?out=1")[2])
+            self.assertIn("location.replace", self.request("GET", "/login")[2])
+            # another enterprise is refused before any binding, and a disabled account does not sign in
             with patch.dict(os.environ, {"TMH_FEISHU_TENANT_KEY": "other"}):
                 state, flow = begin()
                 status, headers, _ = raw("/login/feishu/callback?code=good&state=" + state, flow)
-                self.assertTrue(dict(headers)["Location"].startswith("/login?"))
-                self.assertFalse(any(c.startswith("tmh_session=") for c in cookies(headers)))
+                self.assertEqual(status, 401)
+                self.assertFalse(any(c.startswith(("tmh_session=", "tmh_feishu_bind=")) for c in cookies(headers)))
             self.reg.db.execute("UPDATE accounts SET active=0 WHERE name='alice'")
             self.reg.db.commit()
             state, flow = begin()
