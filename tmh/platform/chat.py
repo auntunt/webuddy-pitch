@@ -73,7 +73,7 @@ def wire(P) -> None:
 
 # ---------------------------------------------------------------- the conversation
 
-def route(P, root: Path, text: str, channel: str, sender: str, conv: dict) -> str | None:
+def route(P, root: Path, text: str, channel: str, sender: str, conv: dict) -> str | dict | None:
     p = _project(P, root)
     if not p:
         return None
@@ -84,13 +84,43 @@ def route(P, root: Path, text: str, channel: str, sender: str, conv: dict) -> st
             return "这一步没处理成（%s），请再发一次。" % (e.args[0] if e.args else type(e).__name__)
 
 
-def _route(P, p: dict, t: str, sender: str, conv: dict) -> str | None:
+_BRIEF_WORD = re.compile(r"^(简报|日报|概况|总览|项目简报|项目概况|项目列表)[。.!！?？]?$")
+_BRIEF_ASK = re.compile(r"(多少|几个|哪些)个?项目")
+_BRIEF_WHO = re.compile(r"你|平台|webuddy|管理|在管|接入", re.I)
+
+
+def wants_brief(t: str) -> bool:
+    """「简报」, or a question about the platform itself (“我们有多少项目在你管理下”), not a requirement of the project."""
+    return bool(_BRIEF_WORD.match(t) or (_BRIEF_ASK.search(t) and _BRIEF_WHO.search(t)))
+
+
+def brief(P) -> dict:
+    """Every project this platform looks after, in one card: what waits for a person, what is open, what closed today."""
+    from .announce import home
+    st, today = P.store, time.strftime("%Y-%m-%d")
+    ps = st.projects()
+    L, urgent = ["Webuddy 现在管理 **%d** 个项目：" % len(ps)], []
+    for p in ps:
+        ib = P.inbox(p)
+        done = st.one("SELECT COUNT(*) n FROM tickets WHERE project_id=? AND status='closed' AND updated>=?", (p["id"], today))["n"]
+        L.append("- **%s** %s：等你处理 %d · 未关单 %d · 进行中 %d · 今天关单 %d" % (
+            p["key"], _md(p.get("name") or ""), len(ib["mine"]), ib["open"], ib["running"], done))
+        urgent += ib["mine"][:2]
+    if urgent:
+        L.append("\n先看这几单：")
+        L += ["- %s %s（%s）" % (x["key"], _md(x["title"]), x["label"]) for x in urgent[:5]]
+    return {"kind": "brief", "title": "Webuddy 简报 · %s" % today, "reply": "\n".join(L), "url": home(P), "button": "打开 Webuddy"}
+
+
+def _route(P, p: dict, t: str, sender: str, conv: dict) -> str | dict | None:
     kind = (conv.get("dest") or {}).get("kind") or "chat"  # the channel the message really came by, not what it says
     ck = "%s:%s:%s" % (p["key"], kind, conv["id"])
     cs = _load(P.data_dir, "convs.json")
     c = cs.setdefault(ck, {"project": p["key"], "channel": kind, "tickets": [], "drafts": {}})
     c["dest"], c["seen"] = conv.get("dest") or {}, time.strftime("%Y-%m-%d %H:%M:%S")
     _save(P.data_dir, "convs.json", cs)
+    if wants_brief(t):
+        return brief(P)
     if t in ("进度", "进展", "到哪了"):
         return progress(P, c) if c["tickets"] else "这个群里还没有提过要做的事。直接说哪里不对、想要什么就行。"
     s = None

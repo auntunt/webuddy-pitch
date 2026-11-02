@@ -86,8 +86,13 @@ def link(P, key: str) -> str:
     return "%s/#/t/%s" % (base, key) if base else ""
 
 
-def say(P, p: dict, text: str, t: dict | None = None) -> bool:
-    """Tell the project's group `text` (markdown), with a link to ticket `t`. Never raises."""
+def home(P) -> str:
+    base = os.environ.get("TMH_PUBLIC_URL", "").rstrip("/") or getattr(P, "public_url", "") or ""
+    return base + "/" if base else ""
+
+
+def say(P, p: dict, text: str, t: dict | None = None, title: str = "", tone: str = "blue") -> bool:
+    """Tell the project's group `text` (markdown) on a card titled `title`, with a button to ticket `t`. Never raises."""
     c = conf(P.data_dir, p["key"])
     if not c:
         return False
@@ -95,9 +100,10 @@ def say(P, p: dict, text: str, t: dict | None = None) -> bool:
 
     def go():
         from .. import bots
-        body = text + ("\n[打开工单](%s)" % link(P, t["key"]) if t and link(P, t["key"]) else "")
+        url = link(P, t["key"]) if t else home(P)
         try:
-            ok, why = bots.send(P.root(p), c["dest"], body), ""
+            ok, why = bots.send(P.root(p), c["dest"], text, title="%s · %s" % (p["key"], title or "项目通知"), url=url,
+                                button="打开工单" if t else "打开 Webuddy", tone=tone), ""
         except Exception as e:  # noqa: BLE001
             ok, why = False, str(e)[:120]
         if t:

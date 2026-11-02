@@ -100,6 +100,21 @@ HELP = ("直接说哪里不对、想要什么：我会说我的理解，一个�
 _MENTION = re.compile(r"@_user_\d+|^\s*@\S+\s+")
 
 
+def public_url() -> str:
+    return os.environ.get("TMH_PUBLIC_URL", "").rstrip("/")
+
+
+def feishu_card(text: str, title: str = "", url: str = "", button: str = "打开 Webuddy", tone: str = "blue") -> dict:
+    """A 飞书 message card: a coloured title, the markdown, and a button that opens Webuddy."""
+    card = {"config": {"wide_screen_mode": True}, "elements": [{"tag": "markdown", "content": text}]}
+    if title:
+        card["header"] = {"title": {"tag": "plain_text", "content": title[:60]}, "template": tone or "blue"}
+    if url:
+        card["elements"].append({"tag": "action", "actions": [{"tag": "button", "type": "primary",
+                                                                "text": {"tag": "plain_text", "content": button}, "url": url}]})
+    return card
+
+
 def clean(text: str) -> str:
     t = _MENTION.sub(" ", text or "")
     return " ".join(t.split())
@@ -135,6 +150,8 @@ def handle(root: Path, text: str, channel: str, sender: str, use_model: bool = T
         return {"kind": "overrule", "reply": "已记录改判 %s。" % m.group(1)}
     if INTAKE and conv and conv.get("id"):  # a requirement (or the answer to the robot's last question) goes to intake
         r = INTAKE(root, t, channel, who, conv)
+        if isinstance(r, dict) and r.get("reply"):
+            return dict({"kind": "intake"}, **r)
         if r:
             return {"kind": "intake", "reply": r}
     res = kbqa.triage(root, t, use_model=use_model, channel=channel, sender=who)
@@ -332,7 +349,8 @@ def feishu(root: Path, headers: dict, raw: bytes) -> tuple[int, dict]:
     def go():
         r = handle(root, text, "feishu", sender, conv=conv)
         base = (c.get("base_url") or "https://open.feishu.cn").rstrip("/")
-        card = {"config": {"wide_screen_mode": True}, "elements": [{"tag": "markdown", "content": r["reply"]}]}
+        card = feishu_card(r["reply"], r.get("title") or TITLE.get(r["kind"], "知识库预判"), r.get("url") or public_url(),
+                           r.get("button") or "打开 Webuddy", r.get("tone") or "blue")
         _http(base + "/open-apis/im/v1/messages/%s/reply" % urllib.parse.quote(msg.get("message_id", "")),
               {"msg_type": "interactive", "content": json.dumps(card, ensure_ascii=False)},
               {"Authorization": "Bearer " + _feishu_token(c)})
@@ -468,11 +486,16 @@ def _dingtalk_token(dc: dict) -> str:
     return d["accessToken"]
 
 
-def send(root: Path, dest: dict, text: str) -> bool:
+def send(root: Path, dest: dict, text: str, title: str = "", url: str = "", button: str = "打开 Webuddy",
+         tone: str = "blue") -> bool:
     """Post `text` into the conversation `dest` came from. False when this channel cannot reach it any more (a
-    钉钉 session webhook expires; then the group robot's own webhook is used when one is configured)."""
+    钉钉 session webhook expires; then the group robot's own webhook is used when one is configured).
+    飞书 gets a card titled `title` with a button to `url`; the others get the link as a line of markdown."""
     c = conf(root)
     kind = dest.get("kind")
+    plain = text
+    if kind != "feishu":
+        text = ("**%s**\n\n" % title if title else "") + text + ("\n\n[%s](%s)" % (button, url) if url else "")
     if kind == "dingtalk":
         hook = dest.get("hook") or ""
         if hook and (not dest.get("exp") or dest["exp"] > time.time() * 1000 + 60000):
@@ -489,7 +512,7 @@ def send(root: Path, dest: dict, text: str) -> bool:
     if kind == "feishu" and dest.get("chat_id") and c.get("feishu") is not None:
         fc = c["feishu"]
         base = (fc.get("base_url") or "https://open.feishu.cn").rstrip("/")
-        card = {"config": {"wide_screen_mode": True}, "elements": [{"tag": "markdown", "content": text}]}
+        card = feishu_card(plain, title, url, button, tone)
         d = _http(base + "/open-apis/im/v1/messages?receive_id_type=chat_id",
                   {"receive_id": dest["chat_id"], "msg_type": "interactive", "content": json.dumps(card, ensure_ascii=False)},
                   {"Authorization": "Bearer " + _feishu_token(fc)})
