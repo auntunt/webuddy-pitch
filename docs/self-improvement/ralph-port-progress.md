@@ -289,3 +289,16 @@
 - WSL 一侧：裸仓库 `/home/auntu/git/JeecgBoot.git`（`receive.denyNonFastForwards`、`receive.denyDeletes`）。生产的 JB 部署公钥写进 auntu 的 `authorized_keys`，带 `restrict,command="/home/auntu/git/webuddy-git-only.sh"`，只放行对这一个仓库的 `git-receive-pack` / `git-upload-pack`（实测要 shell、读别的目录都被拒）。改之前备份了 `authorized_keys`。主机密钥指纹 `SHA256:IV+/0HYcdROF3qjfK8WVVydnCxOb6BJvXAWCUekU0pg`，与 WSL 上 `/etc/ssh/ssh_host_ed25519_key.pub` 核对一致。
 - 生产经本机 frp 端口访问：`ssh://auntu@127.0.0.1:12122/home/auntu/git/JeecgBoot.git`。测试连接通过后打开了推送；已有的 52 条候选分支 `tmh/JB-*` 首次整批推上去（约 100 MiB，44 秒），再用 `repo_sync.push` 推了一次 `tmh/JB-56-r325` 验证普通推送路径。JB 当前是半自动（没有 `webuddy/JB` 交付主线和版本标签），之后自动提交的候选分支会自动推上去。
 - 已知局限：测试机关机、休眠或 frp 断开时推送失败，只在工单上记一条，本机结果不受影响，下次一起推；仓库在 WSL 里只有一份，生产的 JB checkout 本身持有同样的提交，可作为恢复来源。
+
+### 飞书接入：租户入口的机器人回调、企业自建应用、真实消息进来；通知和回复改成带按钮的卡片
+
+- 生产的多租户网关原来拒绝所有没有 `X-TMH` 的外部回调，飞书消息进不来。PR #21（`d4b9518`，release `d4b95185c989-bot-callbacks-20261102`）新增 `/t/<租户>/bot/<平台>/<项目>`：只有 active 租户可进，正文不超过 1 MiB，转给该租户的 worker。worker 凭据绑定租户、`bot:<平台>`、方法、路径、正文 hash、时间和公开标记 `X-Webuddy-Public: bot`。飞书自己的签名、Encrypt Key、Verification Token 照旧在 `bots.feishu` 里校验。其他公开入口仍然关着。
+- 飞书应用：企业「云涌世纪」下新建了企业自建应用「Webuddy 交付助手」（`cli_aa6d45bff2f81bfe`）。原本打算复用「webuddy-云涌助手」，但它是长连接模式，可能还有别的程序在用，所以没动它。机器人能力已开；事件订阅用开发者服务器模式，回调地址 `https://webuddy.bbstack.date/t/default/bot/feishu/JB`，订阅 `im.message.receive_v1`；1.0.0 版已发布，可用人数在 6 人以内，免审批。四项凭证只写在 `/etc/webuddy.env`（改前有备份），JB 的 `.tmh/config.json` 里只记环境变量名。
+- 真实消息验证：用户在和机器人的会话里 @ 了它，2026-11-02 12:09:46 生产收到，生成了 intake `9e2bc2d35916`，`convs.json` 登记了 `JB:feishu:oc_86d07bda59b6e0d90a6ffd2212f4f3fd`。JB 的项目通知绑到了这个会话（`autoflow.json` 改前备份在 `backups/autoflow.json.pre-feishu-bind-1793592637`），测试消息发送返回成功。这个应用没有 `im:message.group_msg` 权限，读不了群历史，所以发出去的消息有没有显示，要靠人在飞书里看。
+- PR #22（`f6c488f`，release `f6c488f96177-feishu-cards-20261102`）：
+  - `bots.feishu_card`：卡片带彩色标题，下面一个按钮，点了进 Webuddy。
+  - `announce.say`：卡片标题写「JB · 事件」，有工单时按钮是「打开工单」，没有时是「打开 Webuddy」。`tell_team` 的各个调用点标了事件名和颜色。
+  - 群里说「简报」，或者问平台本身（比如「多少项目在你管理下」），机器人不再去查知识库，直接回一张卡片：`chat.brief` 列出各项目等你处理、未关单、进行中、今天关单的数量。
+  - 钉钉和企业微信没有卡片，标题和链接写成 markdown。
+  - 生产 `/etc/webuddy.env` 新增 `TMH_PUBLIC_URL=https://webuddy.bbstack.date`，卡片按钮的链接从这里取。
+- 发布：服务器上解出的包里 `test_repo_sync`、`test_tenant_gateway`、`test_tenant_runtime` 共 47 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，journal 无报错。发布后用生产代码往 JB 通知会话发了一张测试卡片，飞书接口返回成功。
