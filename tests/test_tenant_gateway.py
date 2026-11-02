@@ -1,5 +1,6 @@
 """Real loopback gateway and private worker integration; all data is synthetic."""
 import concurrent.futures
+import hashlib
 from http.server import ThreadingHTTPServer
 import http.client
 import json
@@ -15,6 +16,7 @@ import unittest
 from unittest.mock import patch
 from urllib.parse import urlencode
 
+from tmh.bots import feishu_encrypt
 from tmh.platform import login, tenancy, tenant_gateway
 from tmh.platform.store import Store
 from tmh.platform.tenant_runtime import Workers
@@ -174,6 +176,37 @@ class TenantGatewayTest(unittest.TestCase):
         self.assertEqual(self.request("POST", path, "owner", body, token=token, headers={"X-TMH": "1", "Origin": "https://bad.invalid"})[0], 403)
         self.assertEqual(self.request("POST", path, "owner", body, token=token, headers={"X-TMH": "1"})[0], 404)
         self.assertEqual(self.reg.q("SELECT * FROM access_requests WHERE request_id='grant-missing'"), [])
+
+    def test_feishu_callback_reaches_only_the_tenant_bot_handler(self):
+        root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (self.a,))["path"]) / "repositories" / "same" / ".tmh"
+        root.mkdir()
+        (root / "config.json").write_text(json.dumps({"bots": {"feishu": {
+            "app_id_env": "T_FS_APP", "app_secret_env": "T_FS_SECRET", "verification_token_env": "T_FS_TOKEN",
+            "encrypt_key_env": "T_FS_KEY", "base_url": "http://127.0.0.1:9"}}}))
+        env = {"T_FS_APP": "cli_x", "T_FS_SECRET": "s", "T_FS_TOKEN": "vtok", "T_FS_KEY": "ekey"}
+
+        def call(path, payload, key="ekey", method="POST"):
+            raw = json.dumps({"encrypt": feishu_encrypt("ekey", payload)}).encode()
+            sig = hashlib.sha256(("1700000000" + "n1" + key).encode() + raw).hexdigest()
+            conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=15)
+            try:
+                conn.request(method, path, raw, {"Content-Type": "application/json", "X-Lark-Signature": sig,
+                                                 "X-Lark-Request-Timestamp": "1700000000", "X-Lark-Request-Nonce": "n1"})
+                r = conn.getresponse()
+                return r.status, json.loads(r.read() or b"{}")
+            finally:
+                conn.close()
+
+        probe = {"type": "url_verification", "challenge": "c-1", "token": "vtok"}
+        with patch.dict(os.environ, env):
+            self.assertEqual(call("/t/%s/bot/feishu/SAME" % self.a, probe), (200, {"challenge": "c-1"}))
+            self.assertEqual(call("/t/%s/bot/feishu/SAME" % self.a, probe, key="wrong")[0], 401)
+            self.assertEqual(call("/t/%s/bot/feishu/SAME" % self.a, dict(probe, token="other"))[0], 401)
+            self.assertEqual(call("/t/%s/bot/feishu/SAME" % self.a, probe, method="GET")[0], 405)
+            self.assertEqual(call("/t/nosuch/bot/feishu/SAME", probe)[0], 404)
+            # tenant b has the same project key but no robot: its own worker answers, not a's
+            self.assertEqual(call("/t/%s/bot/feishu/SAME" % self.b, probe)[0], 404)
+            self.assertEqual(call("/t/%s/bot/feishu/SAME/x" % self.a, probe)[0], 403)
 
     def test_disabled_accounts_and_unsupported_public_endpoints_fail_closed(self):
         for suffix in ("/bot/a", "/hook/alert/a", "/capture/x", "/pv/a", "/v/a", "/sign/a", "/ask/a"):

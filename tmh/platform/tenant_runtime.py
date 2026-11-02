@@ -15,6 +15,7 @@ import http.client
 import io
 import json
 import os
+import re
 from pathlib import Path
 import signal
 import socket
@@ -29,6 +30,8 @@ from .errors import ApiError
 from . import filelock
 
 ACTOR = ContextVar('tenant_actor', default='')
+BOT_HEADERS = ('x-lark-signature', 'x-lark-request-timestamp', 'x-lark-request-nonce', 'timestamp', 'sign', 'authorization')
+BOT_PATH = re.compile(r'/bot/(dingtalk|feishu|wecom|api)/[A-Za-z0-9_-]+(\?[^#]*)?')
 TOOL = ContextVar('tenant_tool_connection', default=None)
 
 
@@ -122,9 +125,11 @@ class TenantContext:
             ACTOR.reset(token)
 
 
-def sign_request(key, tenant, actor, method, path, body, context_token='', tool_connection='', lesson_actor=''):
+def sign_request(key, tenant, actor, method, path, body, context_token='', tool_connection='', lesson_actor='', public=''):
     value = {'tenant': tenant, 'actor': actor, 'method': method, 'path': path,
              'body': hashlib.sha256(body).hexdigest(), 'time': time.time(), 'context': context_token}
+    if public:
+        value['public'] = public
     if tool_connection:
         value['tool_connection'] = tool_connection
     if lesson_actor:
@@ -133,7 +138,7 @@ def sign_request(key, tenant, actor, method, path, body, context_token='', tool_
     return encoded + '.' + hmac.new(key, encoded.encode(), hashlib.sha256).hexdigest()
 
 
-def verify_request(key, proof, tenant, method, path, body, context_token='', tool_connection='', lesson_actor=''):
+def verify_request(key, proof, tenant, method, path, body, context_token='', tool_connection='', lesson_actor='', public=''):
     try:
         encoded, signature = proof.split('.')
         if not hmac.compare_digest(signature, hmac.new(key, encoded.encode(), hashlib.sha256).hexdigest()):
@@ -141,7 +146,7 @@ def verify_request(key, proof, tenant, method, path, body, context_token='', too
         value = json.loads(base64.urlsafe_b64decode(encoded))
         if (value['tenant'] != tenant or value['method'] != method or value['path'] != path or
                 value.get('context') != context_token or value.get('tool_connection', '') != tool_connection or
-                value.get('lesson_actor', '') != lesson_actor or
+                value.get('lesson_actor', '') != lesson_actor or value.get('public', '') != public or
                 value['body'] != hashlib.sha256(body).hexdigest() or abs(time.time() - value['time']) > 30 or
                 not isinstance(value['actor'], str) or not value['actor']):
             raise ValueError()
@@ -252,12 +257,15 @@ class Workers:
         else:
             current = self._start(tenant)
         conn = UnixConnection(current['socket'])
-        safe = {k: v for k, v in (headers or {}).items() if k.lower() in
-                ('content-type', 'x-tmh', 'x-webuddy-context', 'x-webuddy-agent', 'x-webuddy-execution', 'x-webuddy-tool', 'x-webuddy-lesson-actor', 'referer')}
+        public = next((v for k, v in (headers or {}).items() if k.lower() == 'x-webuddy-public'), '')
+        allowed = ('content-type', 'x-tmh', 'x-webuddy-context', 'x-webuddy-agent', 'x-webuddy-execution', 'x-webuddy-tool', 'x-webuddy-lesson-actor', 'referer')
+        if public == 'bot':  # only what the chat platforms sign their callbacks with
+            allowed = ('content-type', 'x-webuddy-public') + BOT_HEADERS
+        safe = {k: v for k, v in (headers or {}).items() if k.lower() in allowed}
         context_token = next((v for k, v in safe.items() if k.lower() == 'x-webuddy-context'), '')
         tool_id = next((v for k, v in safe.items() if k.lower() == 'x-webuddy-tool'), '')
         lesson_actor = next((v for k, v in safe.items() if k.lower() == 'x-webuddy-lesson-actor'), '')
-        safe['X-Webuddy-Worker-Proof'] = sign_request(current['key'], tenant, actor, method, path, body, context_token, tool_id, lesson_actor)
+        safe['X-Webuddy-Worker-Proof'] = sign_request(current['key'], tenant, actor, method, path, body, context_token, tool_id, lesson_actor, public)
         safe['Host'] = 'localhost'
         try:
             conn.request(method, path, body, safe)
@@ -356,10 +364,19 @@ def worker(data, tenant, address, keyfile, parent_pid):
                     raise error(413, '请求大小不合适')
                 raw = self.rfile.read(length) if length else b''
                 tool_id = self.headers.get('X-Webuddy-Tool', '')
-                actor = verify_request(key, self.headers.get('X-Webuddy-Worker-Proof', ''), tenant, method, self.path, raw, self.headers.get('X-Webuddy-Context', ''), tool_id, self.headers.get('X-Webuddy-Lesson-Actor', ''))
+                public = self.headers.get('X-Webuddy-Public', '')
+                actor = verify_request(key, self.headers.get('X-Webuddy-Worker-Proof', ''), tenant, method, self.path, raw, self.headers.get('X-Webuddy-Context', ''), tool_id, self.headers.get('X-Webuddy-Lesson-Actor', ''), public)
+                self.rfile = io.BytesIO(raw)
+                if public:
+                    # A chat platform's callback: no member session. The platform's
+                    # own signature is checked by the bot handler; nothing else is reachable.
+                    m = BOT_PATH.fullmatch(self.path)
+                    if public != 'bot' or tool_id or not m or actor != 'bot:' + m[1]:
+                        raise error(403, '公开入口与内部凭据不匹配', 'route_denied')
+                    with registry.authorization_guard(), context.acting(actor):
+                        return super()._dispatch(method)
                 self._tenant_actor = actor
                 self._who = actor
-                self.rfile = io.BytesIO(raw)
                 url = urlsplit(self.path)
                 query = parse_qs(url.query)
                 body = json.loads(raw) if method == 'POST' and raw else {}
