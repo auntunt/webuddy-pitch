@@ -1,5 +1,6 @@
 """执行中插话：人对正在跑的 AI 说一句，写进运行的 notes 文件（AI 每步读），也进日志和工单时间线；运行结束后不能再插话。"""
 import json
+import os
 import sys
 import tempfile
 import threading
@@ -66,6 +67,7 @@ class RunSteerTest(unittest.TestCase):
         self.assertIn("steer", [e["kind"] for e in self.P.store.events(self.ticket["id"])])
         self.assertEqual(self.call("POST", "/api/runs/%d/say" % rid, {"text": " "})[0], 400)
 
+    @unittest.skipUnless(os.name == 'posix', 'supervised execution requires POSIX')
     def test_a_word_said_after_the_last_look_is_flagged_unread(self):
         bot = self.data / "late_bot.py"
         bot.write_text(
