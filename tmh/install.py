@@ -138,10 +138,13 @@ def refresh_mcp(repo: Path) -> None:
         _write_codex_mcp(repo)
 
 
-def vendor_tool(repo: Path) -> Path:
-    """Write the project's own `.tmh/tool/tmh.py`, replacing whatever was there."""
+def vendor_tool(repo: Path, strict: bool = True) -> Path:
+    """Write the project's own `.tmh/tool/tmh.py`, replacing whatever was there.
+
+    Not strict: a server release that ships only the runtime still gets a working tool; docs it lacks are skipped.
+    """
     repo = repo.resolve()
-    assets = list(resources.files(HOME))
+    assets = list(resources.files(HOME, strict))
     x = cfgmod.tmh_dir(repo)
     x.mkdir(parents=True, exist_ok=True)
     tool = x / "tool"

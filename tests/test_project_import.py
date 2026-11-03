@@ -7,7 +7,9 @@ import unittest
 import zipfile
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
+from tmh import resources
 from tmh.platform import project_import as imp
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
@@ -66,6 +68,12 @@ class ProjectImportTest(unittest.TestCase):
         p = self.store.project("OA")
         self.assertEqual((p["name"], p["root"]), ("OA 系统", str(root)))
         self.assertFalse((self.P.data_dir / "project-imports" / st["job"] / "upload.zip").exists())
+
+    def test_runtime_only_release_still_gets_the_project_tool(self):
+        with mock.patch.object(resources, "FILES", (*resources.FILES, "docs/not-shipped-on-the-server.md")):
+            st = self.upload(make_zip({"a.txt": "ok"}))
+        self.assertEqual(st["status"], "done", st.get("error"))
+        self.assertTrue((Path(st["root"]) / ".tmh" / "tool" / "tmh.py").is_file())
 
     def test_traversal_fails_and_leaves_nothing(self):
         st = self.upload(make_zip({"a.txt": "ok", "../evil.txt": "x"}))

@@ -20,11 +20,13 @@ def root() -> Path:
     return bundled if bundled.is_dir() else PKG.parent
 
 
-def files(base: Path):
-    """Yield every required asset, failing before installation if one is absent."""
+def files(base: Path, strict: bool = True):
+    """Yield every required asset, failing before installation if one is absent (strict) or skipping it."""
     for name in DIRECTORIES:
         directory = base / name
         if not directory.is_dir():
+            if not strict:
+                continue
             raise FileNotFoundError("missing tmh resource directory: %s" % directory)
         for path in sorted(directory.rglob("*")):
             if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc" and path.name != ".DS_Store":
@@ -32,5 +34,7 @@ def files(base: Path):
     for name in FILES:
         path = base / name
         if not path.is_file():
+            if not strict:
+                continue
             raise FileNotFoundError("missing tmh resource file: %s" % path)
         yield path, name

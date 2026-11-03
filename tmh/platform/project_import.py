@@ -199,7 +199,7 @@ def _guard(P, job: str, work, arg):
         tmp.parent.mkdir(parents=True, exist_ok=True)
         info = work(P, job, st, tmp, arg)
         _step(P, job, step="正在安装项目工具")
-        vendor_tool(tmp)
+        vendor_tool(tmp, strict=False)
         exclude = tmp / ".git" / "info" / "exclude"
         exclude.parent.mkdir(parents=True, exist_ok=True)
         with exclude.open("a", encoding="utf-8") as f:
