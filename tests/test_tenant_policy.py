@@ -85,7 +85,7 @@ class TenantPolicyTest(unittest.TestCase):
                     if isinstance(item, ast.Call) and isinstance(item.func, ast.Name) and item.func.id == "route":
                         actual.add(tuple(ast.literal_eval(arg) for arg in item.args))
         self.assertEqual(actual, policy.API_ROUTES)
-        self.assertEqual(len(actual), 177)  # Original 167 + four personal trial routes + project mode and rollback + code repository and team group.
+        self.assertEqual(len(actual), 181)  # Original 167 + four personal trial routes + project mode and rollback + code repository and team group + Git/zip import.
         import re
         for method, template in actual:
             with self.subTest(method=method, template=template):
@@ -268,6 +268,10 @@ class TenantPolicyTest(unittest.TestCase):
         self.denied("/api/projects", actor="owner", method="POST", body=dict(payload, root=str(self.root)))
         self.denied("/api/projects/ALPHA/library", actor="admin", method="POST", body={"action": "add_source", "root": payload["root"]})
         self.denied("/api/projects/bootstrap", actor="owner", method="POST", body={"key": "NEW"})
+        self.denied("/api/projects/import", actor="owner", method="POST", body={"key": "NEW", "source": "zip", "size": 1})
+        self.denied("/api/projects/import", method="POST", body={"key": "NEW", "source": "zip", "size": 1})
+        self.denied("/api/projects/import/" + "a" * 24 + "/chunk", method="POST", body={"seq": 0, "data": ""})
+        self.denied("/api/projects/import/" + "a" * 24)
 
     def test_library_source_and_derived_destination_stay_in_approved_workspace(self):
         self.context.tenant_id = "default"

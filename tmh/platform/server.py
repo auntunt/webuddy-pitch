@@ -1471,6 +1471,38 @@ def api_bootstrap_project(P, req):
     return create(P, req.body, req.user)
 
 
+def _importer(req):
+    if req.h.headers.get('X-Webuddy-Agent') or req.user.startswith('agent:'):
+        raise ApiError(403, '导入项目代码需由登录的操作者发起')
+
+
+@route("POST", "/api/projects/import")
+def api_import_project(P, req):
+    from .project_import import start
+    _importer(req)
+    return start(P, req.body, req.user)
+
+
+@route("GET", "/api/projects/import/<job>")
+def api_import_status(P, req, job):
+    from .project_import import status
+    return status(P, job)
+
+
+@route("POST", "/api/projects/import/<job>/chunk")
+def api_import_chunk(P, req, job):
+    from .project_import import chunk
+    _importer(req)
+    return chunk(P, job, req.body, req.user)
+
+
+@route("POST", "/api/projects/import/<job>/finish")
+def api_import_finish(P, req, job):
+    from .project_import import finish
+    _importer(req)
+    return finish(P, job, req.user)
+
+
 @route("GET", "/api/delivery/catalog")
 def api_delivery_catalog(P, req):
     from .delivery import catalog

@@ -135,6 +135,42 @@ function libraryWorkspace(c,action,revision){
     }catch(error){if(current())status.textContent=error.message}finally{LIB.pending.delete(token);if(current())button.disabled=false}
   };
 }
+function libB64(buf){const b=new Uint8Array(buf);let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode.apply(null,b.subarray(i,i+32768));return btoa(s)}
+function libraryImportProject(){
+  modal(`<div id="libImportDialog"><h2>新建项目</h2><p class="sub">提交已有系统的代码。导入后 Webuddy 先读懂代码、建好项目知识，再按你的需求修改代码。</p>
+   <div class="seg" role="tablist" id="libImportSeg"><button type="button" id="liSegGit" class="on" aria-pressed="true">Git 仓库</button><button type="button" id="liSegZip" aria-pressed="false">上传 zip</button></div>
+   <form id="libImportForm" class="form">
+    <div id="libImportGit"><label>仓库地址<input class="full" id="liUrl" placeholder="https://github.com/组织/仓库.git 或 git@主机:组织/仓库.git"></label><label>分支（可不填，默认主分支）<input id="liBranch" placeholder="main"></label><div class="sub">私有仓库可以在 https 地址里带访问令牌，平台只在拉取时使用，保存时去掉；ssh 地址需要服务器已有访问权限。</div></div>
+    <div id="libImportZip" hidden><label>代码压缩包（.zip，1 GB 以内）<input type="file" id="liFile" accept=".zip,application/zip"></label><div class="sub">压缩包里的 .git 目录和符号链接会被忽略，平台会建立新的代码基线。</div></div>
+    <div class="row"><label>代号（需求编号前缀）<input id="liKey" required placeholder="OA" size="8"></label><label class="grow">名称<input class="full" id="liName" placeholder="OA 系统"></label></div>
+    <div id="libImportStatus" class="sub" role="status" aria-live="polite"></div>
+    <div class="row"><button class="primary" id="liGo">开始导入</button><button type="button" onclick="closeModal()">取消</button><span class="grow"></span><button type="button" class="ghost" id="liPath">代码已在服务器上？登记目录</button></div>
+   </form></div>`);
+  const dialog=$('#libImportDialog'),status=$('#libImportStatus'),go=$('#liGo'),alive=()=>$('#libImportDialog')===dialog&&!$('#modal').hidden;let mode='git';
+  const guess=v=>{if(!$('#liKey').dataset.t){const n=(v||'').replace(/[.]git$|[.]zip$/i,'').split(/[/:]/).filter(Boolean).pop()||'';$('#liKey').value=n.replace(/[^A-Za-z0-9]/g,'').replace(/^[0-9]+/,'').slice(0,6).toUpperCase()}if(!$('#liName').dataset.t)$('#liName').value=(v||'').replace(/[.]git$|[.]zip$/i,'').split(/[/:]/).filter(Boolean).pop()||''};
+  $('#liKey').oninput=()=>$('#liKey').dataset.t=1;$('#liName').oninput=()=>$('#liName').dataset.t=1;
+  $('#liUrl').oninput=()=>guess($('#liUrl').value);$('#liFile').onchange=()=>{const f=$('#liFile').files[0];if(f)guess(f.name)};
+  const seg={git:$('#liSegGit'),zip:$('#liSegZip')};for(const [m,b] of Object.entries(seg))b.onclick=()=>{mode=m;for(const [n,x] of Object.entries(seg)){x.className=n===m?'on':'';x.ariaPressed=String(n===m)}$('#libImportGit').hidden=m!=='git';$('#libImportZip').hidden=m!=='zip'};
+  $('#liPath').onclick=()=>{closeModal();libraryRegisterProject()};
+  $('#libImportForm').onsubmit=async e=>{e.preventDefault();if(go.disabled)return;const key=$('#liKey').value.trim(),name=$('#liName').value.trim();
+    if(!key){status.textContent='请填写代号。';return}
+    const file=mode==='zip'?$('#liFile').files[0]:null;if(mode==='git'&&!$('#liUrl').value.trim()){status.textContent='请填写仓库地址。';return}if(mode==='zip'&&!file){status.textContent='请选择 zip 文件。';return}
+    go.disabled=true;
+    try{let job;
+      if(mode==='git'){status.textContent='正在拉取代码…';job=await post('/api/projects/import',{source:'git',key,name,url:$('#liUrl').value.trim(),branch:$('#liBranch').value.trim()})}
+      else{job=await post('/api/projects/import',{source:'zip',key,name,size:file.size,filename:file.name});const size=LIB.importChunk||3145728;
+        for(let off=0,seq=0;off<file.size;off+=size,seq++){if(!alive())return;status.textContent='正在上传 '+Math.floor(off*100/file.size)+'%';
+          await post('/api/projects/import/'+job.job+'/chunk',{seq,data:libB64(await file.slice(off,off+size).arrayBuffer())})}
+        status.textContent='上传完成，正在解压…';job=await post('/api/projects/import/'+job.job+'/finish',{})}
+      while(job.status==='running'||job.status==='uploading'){await new Promise(r=>setTimeout(r,LIB.importPoll||1500));job=await get('/api/projects/import/'+job.job);if(alive())status.textContent=(job.step||'处理中')+'…'}
+      if(job.status!=='done')throw Error(job.error||'导入失败');
+      S.projects=S.projects.filter(p=>p.key!==job.key).concat({key:job.key,name:job.name});
+      if(!alive())return;
+      dialog.innerHTML=`<h2>代码已导入</h2><p>${h(job.name)}（${h(job.key)}）共 ${job.files||0} 个文件，基线提交 <span class="key">${h((job.commit||'').slice(0,12))}</span>。</p><p class="sub">下一步：让 AI 读懂代码、构建项目知识。知识建好后，就可以提需求让 AI 修改代码。</p><div class="row"><button class="primary" id="liKb">开始分析代码、建知识库</button><button type="button" onclick="closeModal()">稍后</button></div>`;
+      $('#liKb').onclick=()=>{closeModal();setProj(job.key);location.hash='#/kb'}
+    }catch(err){if(alive())status.textContent=err.message}finally{go.disabled=false}
+  };
+}
 function libraryRegisterProject(){
   modal(`<div id="libRegisterDialog"><h2>登记已有项目</h2><form id="libRegisterForm" class="form"><label>项目目录（本机绝对路径）<input class="full" id="pr" required placeholder="/Users/me/workspace/product"></label><div class="row"><label>代号（工单编号前缀）<input id="pk" required placeholder="OA" size="8"></label><label class="grow">名称<input class="full" id="pn" placeholder="OA 标品"></label></div><div class="row"><label class="lib-check"><input type="checkbox" id="libRegisterProduct">标品项目</label><label class="lib-check"><input type="checkbox" id="libRegisterReference">参考项目</label></div><label>工作流<select id="libRegisterWorkflow"><option value="development">开发与维护</option><option value="reference">仅供知识查阅</option></select></label><p class="sub">登记不会执行来源脚本。查阅项目可构建固定知识版本，之后通过“开始维护”创建独立工作区；角色不授予跨项目共享权限。</p><div><button class="primary" id="pa">登记项目</button></div><div id="libRegisterStatus" class="lib-status" role="status"></div></form></div>`);
   const dialog=$('#libRegisterDialog'),button=$('#pa'),status=$('#libRegisterStatus'),project=S.proj,route=location.hash,current=()=>$('#libRegisterDialog')===dialog&&!$('#modal').hidden&&S.proj===project&&location.hash===route;

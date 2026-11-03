@@ -352,3 +352,12 @@
 - 成员与权限仍按 `can_manage` 显示；后台、权限检查、阶段判定和验收闸门都没动。
 - 测试：`test_ui_navigation` 的路由表补上新分组（team 现在归到需求），断言结构不变；`tests/test_ui*.py` 与 `test_workbench` 共 308 个通过。
 - 发布（生产 08cc9923dff4）：服务器上解出的包里 `test_ui_navigation`、`test_stage`、`test_workbench_states` 共 29 个通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，发布后日志没有报错。CI Ubuntu 全过，Windows full suite 仍是基线失败。
+
+## 2026-11-03 新建项目：Git 地址或上传 zip 导入代码，导入后直接进入建知识库
+
+- 用户要求收窄为：好用的界面提交项目代码（Git 之外还要能手动传 zip）→ LLM 分析、建知识库 → 提需求 → 看能否改对代码。原来「新建项目」只能填服务器上的绝对路径。
+- 新增 `tmh/platform/project_import.py` 与 4 个接口：`POST /api/projects/import`（source=git|zip）、`POST /api/projects/import/<job>/chunk`（base64 分片，单片 ≤3 MB，避开网关 5 MB 上限）、`POST /api/projects/import/<job>/finish`、`GET /api/projects/import/<job>`。目录由平台决定：`<data>/repositories/<KEY>`，请求字段不会变成路径或命令。
+- Git：只收 https:// 与 ssh 地址，禁 file/ext 协议、不拉子模块、不弹密码；地址里的令牌只用于拉取，保存和 origin 都去掉。zip：拒绝越界路径，丢弃 .git、符号链接和 __MACOSX，限 1 GB / 解压 4 GB / 30 万个文件，失败不留目录；解压后新建 Git 基线提交。导入在后台线程跑，状态写在 `<data>/project-imports/<job>/state.json`。
+- 租户策略：4 个接口进清单（181 条），写操作按工作区配置处理，需平台管理员且目标在批准目录内；查询状态只给管理员。Agent 身份不能发起导入。
+- 界面：「新建项目」改成 Git 仓库 / 上传 zip 两种方式，自动从地址或文件名猜代号；显示上传百分比和后台步骤；完成后给出「开始分析代码、建知识库」，进入项目的知识库建设引导（已有的图谱 + 智能体写业务说明流程）。原来的「登记服务器目录」保留为对话框里的次要入口。
+- 测试：新增 `test_project_import`（zip 导入成 Git 项目且不带上传的 .git/链接、越界失败不留痕、分片顺序和发起人校验、Git 地址校验和去令牌）、`test_tenant_policy` 补拒绝用例、`test_ui_library` 补 zip 分片上传到进入知识库的界面用例。本机起服务实测：zip 导入 DEMO、Git 导入 octocat/Hello-World 都完成并登记。

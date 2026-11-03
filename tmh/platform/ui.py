@@ -1827,7 +1827,7 @@ async function testbox(d){
   if($('#tbI1'))$('#tbI1').onclick=()=>{$('#tbI').innerHTML=`<div class="sub">会在测试机上下载并解压：${h(L.missing.join('、'))}，可能要几分钟到几十分钟。</div><div class="row" style="gap:8px"><button class="primary" id="tbI2">确认下载安装</button><button id="tbI3">取消</button></div>`;
     $('#tbI3').onclick=()=>testbox();
     $('#tbI2').onclick=async()=>{$('#tbI2').disabled=true;$('#tbI2').textContent='正在下载安装…';try{await post('/api/testbox/install',{})}catch(e){toast(e.message,5000)}testbox()}}}
-function newProject(){return libraryRegisterProject()}
+function newProject(){return libraryImportProject()}
 
 // ---------- closed-loop assistant (right drawer)
 // ---------- maintenance assistant: one session at a time; each session keeps its own messages, draft and context
