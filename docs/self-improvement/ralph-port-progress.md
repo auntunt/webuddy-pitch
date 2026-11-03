@@ -411,3 +411,9 @@
 - 运行 #348（PETS 无执行器路由，按默认走 `claude`，即 aixoras 上的 Claude Code）23 秒失败：上游 403「预扣费额度失败，剩余 $0.09」。用户说明应该都用 Codex。生产 `agent-routes.json` 为 PETS 加路由 `agent: cloudwave-codex`（原文件备份 `/opt/webuddy/backups/agent-routes.json.pre-pets-codex-20261103`）。JB 仍是 `analyze/plan/diagnose → claude`，其余步骤 Codex，未改，待用户决定。
 - 运行 #349（cloudwave-codex）39 秒完成，基于 `500158f` 写出 `owner/vet/system` 三张图，平台校验 0 问题；owner 8 条规则、vet 2 条、system 0 条；没有问题路径（AI 说明找不到能具体指出的规则突破）。只写了 `.tmh/knowledge/statecharts/`。
 - 显示修正：大图原来被缩成看不清，小图被放得过大；改为缩放限制在 0.85–1.3，放不下就滚动。没有规则的图不再显示 ✓。
+
+## 2026-11-03：生产执行器全部改为 Codex
+
+- 用户决定「都换成codex」。生产 `agent-routes.json`：去掉各项目 `steps`（原 CWWEB/GROUPRISK/JB/PPTAUTO/WEIGHBILL 的 analyze/plan/diagnose → claude），各项目 `agent` 统一为 `cloudwave-codex`，并加 `default: {agent: cloudwave-codex}`，没有登记路由的项目（OFBIZ、RW、以后新导入的）也走 Codex。`direct_api` 未改。备份 `/opt/webuddy/backups/agent-routes.json.pre-all-codex-20261103`。路由每次运行时读取，无需重启；修改时 running/queued 运行为 0。
+- 核对（`agent_routes.resolve` + `step_agent`，8 个项目 × analyze/plan/fix/edit/diagnose/kb/chart/ask）：全部为 `cloudwave-codex`。
+- 影响：`fixloop` 在诊断与修改同一执行器时，不跑构建的小改动不再做只读诊断复查（原来因诊断交给另一个执行器而保留），直接留给人；跑构建的改动照常诊断。AI 验收本来就要求构建通过，不受影响。
