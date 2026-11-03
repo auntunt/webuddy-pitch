@@ -458,10 +458,10 @@ class Orchestra:
                 st.event(t["id"], self.BY, "flow", "%s，需要有人在最新的主干上重做，或手动合并分支 %s" % (why, r["branch"]))
                 self.tell_team(p, t["id"], "验收通过的改动和主干冲突，%s，需要有人处理" % why, "合并冲突", "red")
         elif r["state"] in ("waiting", "none"):
-            st.event(t["id"], self.BY, "flow", ("验收通过了，还没合并进主干：%s。处理好后在工单上点“重试合并”" if r["state"] == "waiting" else
+            st.event(t["id"], self.BY, "flow", ("验收通过了，还没上线：%s。处理好后在需求上点“重试上线”" if r["state"] == "waiting" else
                                                 "验收通过了，没有自动合并：%s") % r["why"], {"release": r["state"]})
             if r["state"] == "waiting":
-                self.tell_team(p, t["id"], "验收通过了，还没合并进主干：%s" % r["why"], "等合并进主干", "orange")
+                self.tell_team(p, t["id"], "验收通过了，还没上线：%s" % r["why"], "等你确认上线", "orange")
         return r
 
     def recheck(self, rid: int, by: str, wait: bool = False) -> dict:

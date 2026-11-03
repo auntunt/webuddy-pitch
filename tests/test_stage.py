@@ -27,7 +27,7 @@ class TableTest(unittest.TestCase):
     def test_closed_wins_over_everything(self):
         f = dict(ON, live={"mode": "fix", "status": "running"}, last={"status": "failed"})
         self.assertEqual(decide(T("closed", hold="li"), f)["key"], "closed")
-        self.assertEqual(decide(T("closed"), dict(f, version="v3"))["label"], "已出版本 v3")
+        self.assertEqual(decide(T("closed"), dict(f, version="v3"))["label"], "已上线 v3")
 
     def test_a_live_run_wins_over_waiting_on_people(self):
         g = decide(T("verify", hold="li", open_ac=2), dict(ON, live={"mode": "fix", "status": "running"}))
@@ -56,7 +56,7 @@ class TableTest(unittest.TestCase):
     def test_signing_and_expired_links(self):
         link = {"signer": "王总", "expires": "2099-01-01 00:00:00", "ts": "2026-01-01"}
         g = decide(T("verify"), dict(ON, ev={"status": "ready", "links": [link]}))
-        self.assertEqual((g["key"], g["who"], g["label"]), ("signing", "client", "等王总签收"))
+        self.assertEqual((g["key"], g["who"], g["label"]), ("signing", "client", "等王总签字"))
         g = decide(T("verify"), dict(ON, ev={"status": "ready", "links": [dict(link, expires="2000-01-01")]}))
         self.assertEqual((g["key"], g["who"]), ("expired", "person"))
 
@@ -82,7 +82,7 @@ class TableTest(unittest.TestCase):
         self.assertEqual(decide(T("new"), dict(ON, next_step=lambda t: ""))["key"], "queued")  # untouched: the line picks it up
         self.assertEqual(decide(T("new", later="等前一批"), ON)["key"], "later")
         g = decide(T("doing"), dict(ON, next_step=lambda t: "", last={"mode": "plan", "status": "done"}))
-        self.assertEqual((g["key"], g["who"], g["label"]), ("idle", "person", "方案已完成，等你决定如何实现"))
+        self.assertEqual((g["key"], g["who"], g["label"]), ("idle", "person", "方案好了，等你决定怎么做"))
         g = decide(T("new"), dict(ON, auto=False, stall="自动处理关着，没人接手"))
         self.assertEqual((g["key"], g["who"], g["label"]), ("stalled", "person", "自动处理关着，没人接手"))
 
@@ -146,7 +146,7 @@ class SurfacesAgreeTest(unittest.TestCase):
         t = self.ticket()
         self.update(t, status="closed")
         self.P.store.event(t["id"], "自动流转", "flow", "验收通过了，还没合并进主干：这个项目不在全自动模式", {"release": "waiting"})
-        self.check(t, "release_waiting", "done", "还没合并进主干")
+        self.check(t, "release_waiting", "done", "等你确认上线")
         self.assertEqual(self.P.inbox(self.project)["open"], 0)
         self.P.store.event(t["id"], "li", "release", "已合并进主干 main，版本 v1", {"version": "v1"})
         self.assertFalse(any(x["key"] == t["key"] for x in self.P.inbox(self.project)["mine"]))

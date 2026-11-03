@@ -13,35 +13,35 @@ from .store import now as _now
 
 # key, who, step, label, action: the rows in the order `decide` tries them
 TABLE = [
-    ("release_waiting", "person", "closed", "验收通过了，还没合并进主干", "重试合并"),
-    ("shipped", "none", "closed", "已出版本", ""),
+    ("release_waiting", "person", "closed", "等你确认上线", "重试上线"),
+    ("shipped", "none", "closed", "已上线", ""),
     ("closed", "none", "closed", "已关闭", ""),
     ("running", "agent", "", "AI 正在处理", "看实时过程"),
-    ("handwork_check", "agent", "fix", "正在构建和审查提交", ""),
-    ("client_change", "person", "intake", "客户的答复改动了已确认的验收标准，等你决定", "去决定"),
-    ("recovering", "agent", "intake", "正在根据已保存答复补全验收标准", ""),
-    ("recovery_stuck", "person", "intake", "客户答复已保存，再理解未完成，等工程师处理", "去处理"),
-    ("open_ac", "client", "intake", "验收标准要和客户确认", "看要确认的问题"),
-    ("recheck", "person", "verify", "重新验证待处理", "查看当前重新验证"),
-    ("failed", "person", "", "智能体没跑成", "看原因"),
-    ("review", "person", "fix", "改好了，等你审阅", "审阅改动"),
-    ("returned", "person", "verify", "甲方退回了", "看退回原因"),
+    ("handwork_check", "agent", "fix", "正在构建和检查提交", ""),
+    ("client_change", "person", "intake", "客户改了已确认的检查项，等你决定", "去决定"),
+    ("recovering", "agent", "intake", "AI 正在按客户答复补全检查项", ""),
+    ("recovery_stuck", "person", "intake", "客户答复已保存，AI 没理解完，等你处理", "去处理"),
+    ("open_ac", "client", "intake", "等客户确认需求", "看要确认的问题"),
+    ("recheck", "person", "verify", "等你重新验证", "去重新验证"),
+    ("failed", "person", "", "AI 没做成，需要你看看", "看原因"),
+    ("review", "person", "fix", "改好了，请你看一下改动", "看改动"),
+    ("returned", "person", "verify", "客户退回了", "看退回原因"),
     ("rejected", "person", "verify", "验收没通过", "看退回原因"),
     ("expired", "person", "verify", "签收链接过期了", "重发链接"),
-    ("signing", "client", "verify", "等甲方签收", "看证据包"),
-    ("verify", "person", "verify", "改好了，等你验收", "去验收"),
-    ("agent_request", "person", "", "CLI / MCP 已接续，等待明确的下一步", "去处理"),
+    ("signing", "client", "verify", "等客户签字", "看测试记录"),
+    ("verify", "person", "verify", "改好了，请你验收", "去验收"),
+    ("agent_request", "person", "", "CLI / MCP 已接上，等你给下一步", "去处理"),
     ("handwork_failed", "person", "fix", "提交检查没通过", "看检查结果"),
     ("handwork", "assignee", "fix", "人工在写", ""),
-    ("hold", "person", "", "已接管，自动处理暂停", "去处理"),
+    ("hold", "person", "", "你已接管，AI 暂停", "去处理"),
     ("epic_paused", "person", "", "大需求暂停", "去处理"),
-    ("later", "agent", "", "排队", ""),
-    ("accepted", "person", "verify", "改动已提交到分支，等转待验证", "转待验证"),
-    ("confirm", "person", "analyze", "分析出结论，等你确认", "看结论"),
-    ("cancelled", "person", "", "运行已取消，等你继续", "去处理"),
-    ("stalled", "person", "", "自动处理关着，没人接手", "去处理"),
-    ("queued", "agent", "", "等待自动处理继续", ""),
-    ("idle", "person", "", "没有可自动执行的下一步，等你处理", "去处理"),
+    ("later", "agent", "", "排队中", ""),
+    ("accepted", "person", "verify", "改完了，等开始测试", "开始测试"),
+    ("confirm", "person", "analyze", "AI 有结论了，等你确认", "看结论"),
+    ("cancelled", "person", "", "AI 运行已取消，等你继续", "去处理"),
+    ("stalled", "person", "", "没人在处理", "接手"),
+    ("queued", "agent", "", "排队中", ""),
+    ("idle", "person", "", "等你决定下一步", "去处理"),
 ]
 ROW = {k: (who, step, label, action) for k, who, step, label, action in TABLE}
 MODE_STEP = {"analyze": "analyze", "plan": "plan", "fix": "fix", "verify": "verify"}
@@ -67,13 +67,13 @@ def decide(t: dict, f: dict) -> dict:
     if s == "closed":
         if f.get("release_wait"):
             return row("release_waiting", note=f["release_wait"][:120], state="done")
-        return row("shipped", label="已出版本 " + f["version"]) if f.get("version") else row("closed")
+        return row("shipped", label="已上线 " + f["version"]) if f.get("version") else row("closed")
     if live:
         m = modes.get(live["mode"], "处理")
         why = "等待智能体开始%s" % m if live["status"] == "queued" else "AI 正在%s" % m
         return row("running", label=why + ("；当前步骤结束后暂停" if lk.get("hold") else ""), step=MODE_STEP.get(live["mode"], ""))
     if f.get("handwork_busy"):
-        return row("handwork_check", label="正在构建和审查%s的提交" % (manual or "人工"))
+        return row("handwork_check", label="正在构建和检查%s的提交" % (manual or "人工"))
     if lk.get("client_change"):
         return row("client_change")
     if recovery.get("status") == "running":
@@ -81,7 +81,7 @@ def decide(t: dict, f: dict) -> dict:
     if recovery.get("status") in ("failed", "blocked"):
         return row("recovery_stuck")
     if lk.get("open_ac"):
-        return row("open_ac", label="有 %s 条验收标准要和客户确认" % lk["open_ac"])
+        return row("open_ac", label="有 %s 项检查要和客户确认" % lk["open_ac"])
     wait = f.get("wait")
     if wait:
         g = row("recheck", label=wait.get("why"), since=r.get("ended"))
@@ -96,15 +96,15 @@ def decide(t: dict, f: dict) -> dict:
         d = ev.get("decision") or {}
         note = (d.get("note") or "")[:80]
         if d.get("via") == "签收链接":  # the platform's own 验收不通过 is the team's verdict, not the client's
-            return row("returned", label="%s退回了" % (d.get("signer") or "甲方"), note=note, since=d.get("ts"))
+            return row("returned", label="%s退回了" % (d.get("signer") or "客户"), note=note, since=d.get("ts"))
         return row("rejected", label="%s验收没通过" % (d.get("signer") or ""), note=note, since=d.get("ts"))
     if s == "verify":
         link = (ev.get("links") or [None])[-1]
         if link and ev.get("status") in ("ready", "incomplete") and (link.get("expires") or "9") < (f.get("now") or _now()):
-            return row("expired", label="给%s的签收链接过期了" % (link.get("signer") or "甲方"), since=link.get("expires"))
+            return row("expired", label="给%s的签收链接过期了" % (link.get("signer") or "客户"), since=link.get("expires"))
         if link and ev.get("status") in ("ready", "incomplete"):
-            return row("signing", label="等%s签收" % (link.get("signer") or "甲方"), since=link.get("ts"))
-        return row("verify", label="改好了，等你验收（证据还不齐）" if ev.get("status") == "incomplete" else "")
+            return row("signing", label="等%s签字" % (link.get("signer") or "客户"), since=link.get("ts"))
+        return row("verify", label="改好了，请你验收（测试记录还不齐）" if ev.get("status") == "incomplete" else "")
     if lk.get("agent_request"):
         return row("agent_request")
     if manual:
@@ -113,13 +113,13 @@ def decide(t: dict, f: dict) -> dict:
             return row("handwork_failed", label=("提交检查没通过" if verdict == "fail" else "提交还没检查完") + "，等 %s 处理" % manual)
         return row("handwork", label="%s 在写" % manual)
     if lk.get("hold"):
-        return row("hold", label="%s 已接管，自动处理暂停" % lk["hold"], step=step)
+        return row("hold", label="%s 已接管，AI 暂停" % lk["hold"], step=step)
     if (lk.get("epic") or {}).get("paused"):
         return row("epic_paused", label="大需求暂停：" + lk["epic"]["paused"])
     if lk.get("later"):
         return row("later", label=lk["later"])
     if r.get("mode") == "fix" and (r.get("decision") or "").startswith("accepted"):
-        return row("accepted", label="改动已提交到分支 %s，等转待验证" % r["decision"][9:].split("@")[0])
+        return row("accepted", label="改动在分支 %s，等开始测试" % r["decision"][9:].split("@")[0])
     if s == "confirm":
         return row("confirm")
     if r.get("status") == "cancelled":
@@ -127,10 +127,10 @@ def decide(t: dict, f: dict) -> dict:
     if not f.get("auto") or not f.get("agent"):
         if s in ("new", "analyzing") and not r and not t.get("assignee"):  # nothing has started it yet
             return row("stalled", label=f.get("stall") or "")
-        return row("stalled", label="自动处理已关闭，等人继续" if not f.get("auto") else "没有可用的智能体，等你处理")
+        return row("stalled", label="自动处理已关闭，等人继续" if not f.get("auto") else "没有可用的 AI，等你处理")
     if (s in ("new", "analyzing") and not r) or (f.get("next_step") and f["next_step"](t)):
         return row("queued", step=step)
-    return row("idle", step=step, label={"analyze": "分析已完成，等你确认下一步", "plan": "方案已完成，等你决定如何实现"}.get(r.get("mode"), ""))
+    return row("idle", step=step, label={"analyze": "分析完了，等你确认下一步", "plan": "方案好了，等你决定怎么做"}.get(r.get("mode"), ""))
 
 
 def compute(P, tickets: list) -> dict:
