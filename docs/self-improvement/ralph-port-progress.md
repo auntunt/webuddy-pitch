@@ -405,3 +405,9 @@
 - [PR #40](https://github.com/auntunt/webuddy-pitch/pull/40) 合并后发布：`/opt/webuddy/releases/b88ef1d4f4ff-statecharts-20261103/app`，备份 `/opt/webuddy/backups/pre-b88ef1d4f4ff-activation-20261103`。服务器上用发布包跑 `test_statecharts test_platform test_memory_workspace` 92 项、`test_ui_memory` 16 项通过（首轮 `test_ui_memory` 因 tests 目录不在 PYTHONPATH 导入失败，补路径后通过）；running_runs=0；两库 integrity ok；本机/公网 `/login` 200；NRestarts=0；日志无报错。
 - 勘误：上线后在生产租户入口 `/t/default/` 打开业务状态图，`/api/projects/PETS/statecharts` 和 `/ui/pele.js` 均 403。原因：租户策略 `tenant_policy.API_ROUTES` 是冻结清单，新路由没登记；`/ui/pele.js` 是脚本标签请求，带不上 `X-Webuddy-Context`。本地验证漏跑了 `tests/test_tenant_policy.py`（其清单测试会直接失败）。
 - 修复：渲染器改为项目读接口 `GET /api/projects/<key>/statecharts/renderer`（返回 `{js}`，页面用带上下文头的 `get()` 取回后注入），删掉 `/ui/pele.js`；两个路由登记进 `API_ROUTES`，清单数 181→183。业务与代码图谱新样式在生产已核对正常。
+
+## 2026-11-03：生产 PETS 首次由 AI 画业务状态图
+
+- 运行 #348（PETS 无执行器路由，按默认走 `claude`，即 aixoras 上的 Claude Code）23 秒失败：上游 403「预扣费额度失败，剩余 $0.09」。用户说明应该都用 Codex。生产 `agent-routes.json` 为 PETS 加路由 `agent: cloudwave-codex`（原文件备份 `/opt/webuddy/backups/agent-routes.json.pre-pets-codex-20261103`）。JB 仍是 `analyze/plan/diagnose → claude`，其余步骤 Codex，未改，待用户决定。
+- 运行 #349（cloudwave-codex）39 秒完成，基于 `500158f` 写出 `owner/vet/system` 三张图，平台校验 0 问题；owner 8 条规则、vet 2 条、system 0 条；没有问题路径（AI 说明找不到能具体指出的规则突破）。只写了 `.tmh/knowledge/statecharts/`。
+- 显示修正：大图原来被缩成看不清，小图被放得过大；改为缩放限制在 0.85–1.3，放不下就滚动。没有规则的图不再显示 ✓。
