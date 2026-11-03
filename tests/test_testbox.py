@@ -125,6 +125,14 @@ class TestBoxTest(unittest.TestCase):
         self.assertEqual(FixLoop.baseline(fl, [("build", "cd java && mvn -B -q compile -DskipTests")]), "")  # nothing to build yet
         self.assertEqual(len(calls), 2)
 
+    def test_a_change_that_never_reached_the_machine_is_not_a_failed_build(self):
+        from tmh.platform.fixloop import handover_failure
+        lost = [{"kind": "setup", "command": "把改动传到测试机", "exit_code": -2, "seconds": 0, "tail": "scp: Connection closed"}]
+        self.assertIn("测试机没准备好（把改动传到测试机）：scp: Connection closed", handover_failure(lost))
+        built = [{"kind": "build", "command": "mvn -B -q compile", "exit_code": 1, "seconds": 9, "tail": "ERROR"}]
+        self.assertEqual(handover_failure(built), "")  # a real build failure stays a failure
+        self.assertEqual(handover_failure([]), "")
+
     def test_the_untouched_code_is_built_even_when_the_change_is_already_there(self):
         # building a finished change again: its worktree already holds the change, which must not count as the
         # commit's own result (else a broken change reads as "the original code fails" for every later ticket)

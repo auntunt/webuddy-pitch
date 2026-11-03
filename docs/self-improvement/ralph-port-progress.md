@@ -376,3 +376,10 @@
 - 修复：`TestBox.prepare` 切换工作副本时同时 `git -C repos/<项目> update-ref --no-deref HEAD <基线>`，克隆自己的 HEAD 与工作副本一致。测试机上已先手工把 PETS 的克隆 HEAD 指到基线，未改动代码 `mvn -B -q compile -DskipTests` 61 秒通过（退出码 0）。
 - 验证：`tests/test_testbox.py` 新断言（无修复时失败）；testbox/fixloop/recheck 相关 222 个测试中只有两个与本改动无关的已有失败（`test_recheck_summary` old_proof 未改动时同样失败；`test_team_workspace` 本机 Node 太旧不支持 `?.`）。
 - 发布：生产 `8a04344decb3`（PR #36）。服务器上用发布包跑 `tests.test_testbox`、`tests.test_project_import` 14 个通过；manifest、两个库完整性、running_runs=0、本机/公网 HTTP、NRestarts=0 均正常。生产上 PETS-1（run 339）重新验证：原代码 `mvn -B -q compile -DskipTests` 16.7 秒通过，带改动 15.3 秒通过，结果「重新验证：通过」。PETS 旧的失败基线缓存移到 `/opt/webuddy/backups/pets-checks-githead-20261103/`，没有删除。
+
+## 2026-11-03 测试机连不上时，不再记成「构建没通过」；只通过 Webuddy 复验测试机修复
+
+- 用户要求：只验证 Webuddy，不直接改项目和测试环境。于是把手工改过的 PETS 克隆 HEAD 改回未出生的 `refs/heads/master`，旧的基线缓存移到 `/opt/webuddy/backups/pets-checks-revert-manual-20261103/`，然后只在 Webuddy 界面上点「重新验证本次改动」（PETS-1，run 339，重新验证记录 #3）。
+- 结果：生产 `8a04344` 自己把克隆 HEAD 指到了基线 `500158f`，原代码 `mvn -B -q compile -DskipTests` 16.1 秒通过，证明 PR #36 的修复确实生效，不依赖手工。带改动那一步在传代码时 `scp: Connection closed`（setup，退出码 -2），平台却显示「重新验证：构建没通过」，`verify.check=fail`。
+- 测试机连不上的原因：生产机上的 frps 把 12022 端口开放到公网，104.105.159.113 从 20:42 起向它发起约 1.5 万次连接（每分钟 160 次左右），Windows 的 sshd 被挤爆，正常连接也被断开。已在生产机加 iptables：12022 只允许本机（lo 和 43.153.76.85）访问，其余丢弃；之后该来源 0 次连接，测试机恢复可达。规则没有持久化，重启后会失效。
+- 修复：新增 `fixloop.handover_failure`。代码根本没送到测试机（setup 失败）时，修改轮和重新验证都按「测试机没准备好（…）」处理，记 `check=skip`，不算构建失败；修改轮不会拿连接错误当编译错误回炉。`fix_gate` 遇到这种 skip 一律留给人或等重新验证，不会无构建自动提交；AI 验收本来就要求 `check=pass`，规则不变。

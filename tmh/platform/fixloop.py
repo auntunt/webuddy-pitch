@@ -160,6 +160,12 @@ def settings(data_dir: Path) -> dict:
     return conf
 
 
+def handover_failure(res: list) -> str:
+    """Why the code never reached the test machine ("" when it did): says nothing about the code."""
+    bad = [x for x in res if x.get("kind") == "setup" and x.get("exit_code") != 0]
+    return "测试机没准备好（%s）：%s" % (bad[0]["command"], str(bad[0].get("tail") or "")[:300]) if bad else ""
+
+
 class FixLoop:
     def __init__(self, runner, rid, project, ticket, agent, conf, model, explicit, prompt, wt):
         self.r, self.st, self.rid = runner, runner.store, rid
@@ -363,7 +369,7 @@ class FixLoop:
                 f.write_text(json.dumps(res, ensure_ascii=False), encoding="utf-8")
         bad = [x for x in res if x["exit_code"] != 0]
         if bad and bad[0].get("kind") == "setup":
-            return "测试机没准备好（%s）：%s" % (bad[0]["command"], str(bad[0].get("tail") or "")[:300])
+            return handover_failure(bad)
         return "原代码在这台机器上跑 `%s` 就失败（退出码 %s）" % (bad[0]["command"], bad[0]["exit_code"]) if bad else ""
 
     # ------------------------------------------------------------ the steps
@@ -563,6 +569,10 @@ class FixLoop:
             res = self.execute(seq) if seq else []
             if self.cancelled():
                 break
+            lost = handover_failure(res)
+            if lost:
+                self.say(lost + "；不是代码的问题，这一轮按没跑构建处理")
+                skip, res = lost, []
             broke = any(x["exit_code"] != 0 for x in res)
             if not review:
                 self.log.append("第 %d 轮：改了 %d 个文件；没跑构建测试，改动不大，不另做诊断，交给人验收" % (rnd + 1, len(files)))
@@ -815,6 +825,9 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -
                 seq, skip = [], why
         if seq:
             res = fl.execute(seq)
+            lost = handover_failure(res)
+            if lost:
+                skip, res = lost, []
         check = ("fail" if any(x["exit_code"] != 0 for x in res) else "pass") if res else "skip"
         final_diff = worktree_diff(wt)
         stale = final_diff != checked_diff

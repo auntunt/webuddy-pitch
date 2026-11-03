@@ -515,6 +515,8 @@ class Orchestra:
         v = verified(self.data_dir, rid) if rid else {}
         if v.get("verification_current") is False:
             return "当前重新验证尚未有效完成，先检查停止回执或重新验证"
+        if str(v.get("skip") or "").startswith("测试机没准备好"):
+            return "测试机没准备好，改动没构建过，先重新验证"
         if v.get("check") == "fail":
             bad = [c for c in v.get("commands") or [] if c.get("exit_code")]
             return "%d 轮修改后构建测试仍没通过（%s）" % (v.get("rounds") or 0, bad[0]["command"] if bad else "构建测试")
