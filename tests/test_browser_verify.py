@@ -244,3 +244,9 @@ class AskAgentTest(unittest.TestCase):
             self.assertEqual(bv._ask(P, {"key": "PETS"}, {"key": "PETS-2"}, "q"), "spec")
         self.assertEqual(P.runner.start.call_args.args[2], "cloudwave-codex")
 
+
+class DriverStartTest(unittest.TestCase):
+    def test_a_host_checkout_without_head_gets_the_base_and_a_dead_app_ends_the_wait(self):
+        self.assertIn("rev-parse -q --verify HEAD >/dev/null || git -C $REPO update-ref --no-deref HEAD $BASE", bv.DRIVER)
+        self.assertIn('kill -0 $VP 2>/dev/null || { say "app exited before it was ready"; finish; }', bv.DRIVER)
+
