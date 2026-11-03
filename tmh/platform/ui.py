@@ -489,7 +489,7 @@ function vfy(r){const v=r&&r.verify;if(!v)return '';if(v.verification_current===
 function adopted(d){const r=d.runs.find(x=>x.mode==='fix');if(!r?.decision?.startsWith('accepted:'))return null;
   const e=d.events.filter(x=>x.kind==='adopt'&&String((x.data||{}).run)===String(r.id)).pop(),[branch,commit]=r.decision.slice(9).split('@');
   return {branch:branch||'',commit:commit||'',auto:e?.author==='自动流转'}}
-function autoChip(d){const t=d.ticket;if(!(S.meta.autoflow||{}).on||['verify','closed'].includes(t.status))return '';const lk=t.links||{},held=lk.hold;
+function autoChip(d){const t=d.ticket,af=(S.meta.autoflow||{}).on,pk=String(t.key||'').replace(/-\d+$/,'');if(!(Array.isArray(af)?af.includes(pk):af)||['verify','closed'].includes(t.status))return '';const lk=t.links||{},held=lk.hold;
   if(!held&&lk.open_ac)return `<span class="autoc off" title="验收标准有待确认的，答清楚前不自动开始">等客户确认</span>`;
   if(!held&&lk.later)return `<span class="autoc off" title="${h(lk.later)}">${d.epic?'大需求父单':'排队等前一批'}</span>`;
   return `<span class="autoc ${held?'off':''}" title="${held?'自动处理已暂停，由人处理':'智能体会自动分析、出方案、在独立分支上改代码并提交，停在等人验收'}">${held?'人工处理中':'自动处理中'}<button class="link" data-hold="${held?0:1}">${held?'交回自动':'接管'}</button></span>`}
@@ -1097,6 +1097,7 @@ function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true
   const head=`<div class="sub" style="margin-top:10px">${u.by==='LLM'?'<span class="ev-tag ok">AI 理解</span> 普通 LLM（不读代码、不改文件）':u.by==='智能体'?`<span class="ev-tag ok">AI 理解</span> ${h(u.agent||'')}`:`<span class="ev-tag mute">按规则理解</span>${u.why?' <span class="sub">（AI 没用上：'+h(clip(u.why,60))+'）</span>':''}`}
     ${s.title?` · 标题「${h(s.title)}」`:''}${(s.attachments||[]).length?` · 附件：${s.attachments.map(a=>`<span title="sha256:${h(a.sha256)}${a.note?' · '+h(a.note):''}">${h(a.name)}${a.note?'（'+h(clip(a.note,20))+'）':''}</span>`).join('、')}`:''}${(s.dropped||[]).length?` · 去掉了 ${s.dropped.length} 句寒暄或转述：<span title="${h(s.dropped.join(' / '))}">${h(clip(s.dropped.join(' / '),40))}</span>`:''}</div>`;
   const hasQ=s.items.some(it=>(it.questions||[]).some(q=>q.slot!=='flow'));
+  const allQ=!s.big&&s.items.length>0&&s.items.every(it=>it.kind==='question');
   B.innerHTML=head+s.items.map((it,i)=>`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">第 ${i+1} 件：${h(clip(it.title||it.text,40))}</b>
      <select data-i="${i}" class="inK" ${done?'disabled':''}>${Object.entries(IKIND).map(([k,l])=>`<option value="${k}" ${k===it.kind?'selected':''}>${l}</option>`).join('')}</select></div>
      <div class="sub" style="margin-top:4px">客户原话：${h(clip(it.text,120))}</div>
@@ -1109,7 +1110,7 @@ function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true
    (s.big?inSpec(s,done):s.suggest_big&&!done?`<div class="sub" style="margin-top:10px">这几件如果是一个整体、要一起验收：<button class="ghost" id="inBig">作为大需求</button> 写一张规格卡，拆成子单分批上线，最后整体验收。</div>`:'')+
    (hasQ&&s.state!=='dropped'?`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">问题让客户自己答</b>${asks.length?`<span class="sub">已发过 ${asks.length} 次</span>`:''}</div><div class="sub">生成一个链接发给客户（微信、短信都行），客户用大白话回答；答复会写回验收标准${done?'，等着的工单自动开工':''}。</div><div class="row" style="margin-top:6px"><button class="ghost" id="inAsk">把问题发给客户</button></div><div id="inAskOut"></div></div>`:'')+
    (done?'':`<div class="row" style="gap:8px;margin-top:10px">${s.state==='asking'?'<button class="primary" id="inAns">提交回答</button>':''}
-     <button class="${s.state==='asking'?'ghost':'primary'}" id="inOk">${s.state==='asking'?'先这样建单（没答的记为待确认）':s.big?'确认规格卡，建父单和子单':'确认，建单'}</button><button class="ghost" id="inNo">放弃</button></div>`);
+     ${allQ?'<span class="sub">都是咨询，已经直接答复，不用建单。</span><button class="ghost" id="inNo">结束对话</button>':`<button class="${s.state==='asking'?'ghost':'primary'}" id="inOk">${s.state==='asking'?'先这样建单（没答的记为待确认）':s.big?'确认规格卡，建父单和子单':'确认，建单'}</button><button class="ghost" id="inNo">放弃</button>`}</div>`);
   const pick={};B.querySelectorAll('.inO').forEach(c=>c.onclick=()=>{const i=c.dataset.i,sl=c.dataset.s;(pick[i]=pick[i]||{})[sl]=c.dataset.v;
     B.querySelectorAll(`.inO[data-i="${i}"][data-s="${sl}"]`).forEach(x=>x.classList.toggle('on',x===c))});
   const gather=()=>{const a=JSON.parse(JSON.stringify(pick));B.querySelectorAll('.inA').forEach(x=>{if(x.value.trim())(a[x.dataset.i]=a[x.dataset.i]||{})[x.dataset.s]=x.value.trim()});
