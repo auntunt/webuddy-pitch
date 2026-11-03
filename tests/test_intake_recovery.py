@@ -229,6 +229,16 @@ class IntakeRecoveryTest(unittest.TestCase):
         self.complete_job(sid)
         self.assertFalse(self.store.ticket(key)["links"].get("open_ac"))
 
+    def test_answers_given_while_talking_after_a_good_reading_are_not_a_stuck_recovery(self):
+        r = self.store.create_run(self.project["id"], None, "llm", "understand", "工程师", "x", "初次理解")
+        self.store.update_run(r["id"], status="done", exit_code=0)
+        s = {"id": "abcdefabcdef", "understood": {"by": "LLM", "agent": "llm", "run": r["id"]},
+             "items": [{"by": "智能体", "ticket": "X-1", "ac": [{"id": "A1", "open": True}],
+                        "agent_q": [{"slot": "q1", "blocks": ["A1"]}], "slots": {"q1": {"value": "待只读查询核实", "from": "客户"}}}]}
+        self.assertIsNone(intake._recovery_recipe(self.P, s))
+        s["understood"]["why"] = "智能体没理解完，按规则"
+        self.assertEqual(intake._recovery_recipe(self.P, s)["status"], "failed")
+
     def test_changed_answer_or_contract_requires_explicit_review(self):
         sid, key, _ = self.failed()
         s = intake.load(self.data, sid, self.P)

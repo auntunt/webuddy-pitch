@@ -33,6 +33,9 @@ from .coderefs import FILE_LINE
 from .reports import human_action
 
 
+OPS_NOTE = "运维工单不自动改代码：留给运维排查（相似经验、只读查数据、记结论）"
+
+
 class Orchestra:
     FILE_LINE = FILE_LINE
 
@@ -119,7 +122,7 @@ class Orchestra:
         if not self.switched_on(conf, p) or self.mine(t["id"]):  # a person claimed it (我来写) before the line got to it
             return
         if (st.ticket(t["id"]) or t).get("type") == "ops":
-            st.event(t["id"], by, "flow", "运维工单不自动改代码：留给运维排查（相似经验、只读查数据、记结论）")
+            st.event(t["id"], by, "flow", OPS_NOTE)
             return
         try:
             rel = self.knowledge.related(p, "%s %s" % (t["title"], (t.get("body") or "")[:400]), limit=3)
