@@ -183,6 +183,8 @@ POST /api/runs/<rid>/decide
 POST /api/runs/<rid>/recheck
 GET /api/runs/<rid>/recheck
 POST /api/runs/<rid>/recheck/recover
+POST /api/runs/<rid>/page-check
+GET /api/runs/<rid>/page-check
 GET /api/projects/<key>/metrics
 GET /api/projects/<key>/report
 GET /api/tickets/<key>/prompt

@@ -15,6 +15,8 @@ import re
 import shlex
 import subprocess
 import tarfile
+import threading
+import time
 from pathlib import Path
 
 CONF = "verify-hosts.json"
@@ -94,6 +96,8 @@ export function captchaFor(checkKey) {
 
 export async function login(page, user = 'admin', pass = '123456') {
   const base = process.env.TMH_BASE;
+  // only JeecgBoot has a captcha login wired here; other projects open their home page
+  if (!process.env.TMH_JB_YML) { await page.goto(base); await ready(page); return; }
   let checkKey = '';
   page.on('request', (r) => { const m = r.url().match(/randomImage\/([^/?]+)/); if (m) checkKey = m[1]; });
   await page.goto(base + 'user/login');
@@ -129,7 +133,7 @@ export default async function () {
   try {
     const page = await browser.newPage();
     for (let i = 0; i < 2; i++) {
-      await page.goto(process.env.TMH_BASE + 'user/login', { timeout: 240000 });
+      await page.goto(process.env.TMH_BASE + (process.env.TMH_JB_YML ? 'user/login' : ''), { timeout: 240000 });
       await ready(page);
       await page.waitForTimeout(5000);
     }
@@ -146,30 +150,39 @@ CONFIG = """export default { testDir: '.', testMatch: 'tmh-verify.spec.mjs', tim
 """
 
 DRIVER = r"""set -u
-J=$1; BASE=$2; PORT=$3; PFX=$4; APP=$5; API=$6; YML=$7
+J=$1; BASE=$2; PORT=$3; PFX=$4; APP=$5; API=$6; YML=$7; REPO=${8:-pv/base}; START=${9:-}
+case "$REPO" in /*) ;; *) REPO=$HOME/$REPO;; esac
 export PATH=~/.local/bin:$PATH
 D=~/pv/verifier/jobs/$J; OUT=$D/out; mkdir -p $OUT; cd $D
 say() { echo "{\"setup\": \"$1\"}" > $OUT/report.json; }
-finish() { [ -n "${VP:-}" ] && kill -- -$VP 2>/dev/null; git -C ~/pv/base worktree remove --force $D/src >/dev/null 2>&1
-  git -C ~/pv/base update-ref -d refs/tmh/$J >/dev/null 2>&1; tar cz -C $OUT .; rm -rf $D; exit 0; }
+finish() { [ -n "${VP:-}" ] && kill -- -$VP 2>/dev/null; git -C $REPO worktree remove --force $D/src >/dev/null 2>&1
+  git -C $REPO update-ref -d refs/tmh/$J >/dev/null 2>&1; tar cz -C $OUT .; rm -rf $D; exit 0; }
 if [ -f in.bundle ]; then
-  git -C ~/pv/base fetch -q $D/in.bundle "+refs/tmh-verify/$J:refs/tmh/$J" >&2 || { say "candidate bundle did not fetch"; finish; }
+  git -C $REPO fetch -q $D/in.bundle "+refs/tmh-verify/$J:refs/tmh/$J" >&2 || { say "candidate bundle did not fetch"; finish; }
 fi
-git -C ~/pv/base worktree add -f --detach $D/src $BASE >&2 || { say "base commit not on host"; finish; }
+git -C $REPO worktree add -f --detach $D/src $BASE >&2 || { say "base commit not on host"; finish; }
 cd $D/src
 if [ -s $D/patch.diff ]; then git apply --whitespace=nowarn $D/patch.diff >&2 || { say "patch does not apply"; finish; }; fi
+if [ -n "$START" ]; then
+  # a project that says how it starts (e.g. a Spring Boot app): run that, on $PORT under $PFX
+  PORT=$PORT PFX=$PFX setsid bash -c "$START" > $OUT/app.log 2>&1 < /dev/null &
+  VP=$!
+else
 cd $APP
-if cmp -s package.json ~/pv/base/$APP/package.json && cmp -s pnpm-lock.yaml ~/pv/base/$APP/pnpm-lock.yaml; then
-  ln -s ~/pv/base/$APP/node_modules node_modules
+if cmp -s package.json $REPO/$APP/package.json && cmp -s pnpm-lock.yaml $REPO/$APP/pnpm-lock.yaml; then
+  ln -s $REPO/$APP/node_modules node_modules
 else
   pnpm install --prefer-offline >&2 || { say "dependency install failed"; finish; }
 fi
 VITE_PUBLIC_PATH=$PFX/ VITE_GLOB_API_URL=$PFX/jeecgboot VITE_USE_MOCK=false VITE_PROXY="[[\"$PFX/jeecgboot\",\"$API\"]]" \
   setsid pnpm exec vite --host 127.0.0.1 --port $PORT --strictPort > $OUT/app.log 2>&1 < /dev/null &
 VP=$!
-for i in $(seq 1 120); do [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT$PFX/)" = 200 ] && break; sleep 2; done
-[ "$i" = 120 ] && { say "app did not start"; finish; }
-cd $D && TMH_BASE=http://127.0.0.1:$PORT$PFX/ TMH_OUT=$OUT TMH_JB_YML=$D/src/$YML timeout 1200 npx playwright test -c playwright.config.mjs >&2
+fi
+N=150; [ -n "$START" ] && N=450  # a JVM app may first fetch its dependencies
+for i in $(seq 1 $N); do [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT$PFX/)" = 200 ] && break; sleep 2; done
+[ "$i" = $N ] && { say "app did not start"; finish; }
+[ -n "$YML" ] && export TMH_JB_YML=$D/src/$YML
+cd $D && TMH_BASE=http://127.0.0.1:$PORT$PFX/ TMH_OUT=$OUT timeout 1200 npx playwright test -c playwright.config.mjs >&2
 [ -f $OUT/report.json ] || say "verifier produced no report"
 finish
 """
@@ -319,25 +332,30 @@ def _tar(entries: dict) -> bytes:
 
 def run_remote(c: dict, repo: Path, base: str, diff: str, spec: str, job: str, port: int) -> tuple[dict, dict]:
     """Run `spec` against base+diff on the verification host. Returns (playwright json report, files by name)."""
-    code, head = _ssh(c, "git -C ~/pv/base rev-parse HEAD")
+    repo_dir = c.get("repo") or "pv/base"  # on the host, relative to its home
+    code, head = _ssh(c, "git -C %s rev-parse HEAD" % shlex.quote(repo_dir))
     entries = {"patch.diff": diff.encode("utf-8"), "tmh-verify.spec.mjs": spec.encode("utf-8"),
                "tmh-helpers.mjs": HELPERS.encode("utf-8"), "tmh-warm.mjs": WARM.encode("utf-8"), "playwright.config.mjs": CONFIG.encode("utf-8"),
                "driver.sh": DRIVER.encode("utf-8")}
     have = head.decode().strip()
     if code != 0 or not re.fullmatch(r"[0-9a-f]{40}", have):
-        return {"setup": "verification host unreachable"}, {}
+        # a project new to this host gets an empty checkout; the bundle below then carries its whole history
+        code, _ = _ssh(c, "mkdir -p {0} && git -C {0} init -q && git -C {0} rev-parse --git-dir".format(shlex.quote(repo_dir)))
+        if code != 0:
+            return {"setup": "verification host unreachable"}, {}
+        have = ""
     if have != base:
         ref = "refs/tmh-verify/" + job
         subprocess.run(["git", "-C", str(repo), "update-ref", ref, base], check=True)
         try:
-            b = subprocess.run(["git", "-C", str(repo), "bundle", "create", "-", ref, "^" + have] if _known(repo, have)
+            b = subprocess.run(["git", "-C", str(repo), "bundle", "create", "-", ref, "^" + have] if have and _known(repo, have)
                                else ["git", "-C", str(repo), "bundle", "create", "-", ref], capture_output=True, check=True).stdout
         finally:
             subprocess.run(["git", "-C", str(repo), "update-ref", "-d", ref])
         entries["in.bundle"] = b
     prefix = "/pv/verify/" + job
     remote = "mkdir -p ~/pv/verifier/jobs/%s && tar xz -C ~/pv/verifier/jobs/%s && bash ~/pv/verifier/jobs/%s/driver.sh %s" % (
-        job, job, job, " ".join(shlex.quote(str(x)) for x in (job, base, port, prefix, c["app"], c.get("api", ""), c.get("yml", ""))))
+        job, job, job, " ".join(shlex.quote(str(x)) for x in (job, base, port, prefix, c["app"], c.get("api", ""), c.get("yml", ""), repo_dir, c.get("start", ""))))
     code, out = _ssh(c, remote, _tar(entries), timeout=TIMEOUT)
     files, report = {}, {}
     try:
@@ -383,15 +401,15 @@ def _ask(P, p: dict, t: dict, prompt: str) -> str:
     return ""
 
 
-def _record(P, t: dict, rid: int, items: list, result: str, bind: dict, why: str) -> None:
+def _record(P, t: dict, rid: int, items: list, result: str, bind: dict, why: str, by: str = BY) -> None:
     import base64
     from . import signoff
     for i in items:
         for name, data in list(i["shots"].items())[-3:]:
-            signoff.attach(P, t, BY, i["id"], "%s：%s（%s）" % (i["result"], i["how"][:300], name),
+            signoff.attach(P, t, by, i["id"], "%s：%s（%s）" % (i["result"], i["how"][:300], name),
                            "data:image/png;base64," + base64.b64encode(data).decode())
     said = {"pass": "页面实测全部通过", "fail": "页面实测复现了问题", "unverified": "页面实测没能证明"}[result]
-    P.store.event(t["id"], BY, "verify", "%s%s" % (said, "（%s）" % why if why else ""),
+    P.store.event(t["id"], by, "verify", "%s%s" % (said, "（%s）" % why if why else ""),
                   dict(bind, run=rid, result=result, ac=[{k: i[k] for k in ("id", "result", "how")} for i in items]))
 
 
@@ -408,7 +426,7 @@ def _job(p: dict, rid: int, bind: dict) -> str:
     return "%s-r%d-%s" % (p["key"].lower(), rid, bind["spec_sha256"][:8])
 
 
-def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=None) -> dict:
+def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=None, by: str = BY) -> dict:
     """Drive the real app for run `rid` (its committed `commit`, else its worktree's base plus its diff)."""
     c = conf(P.data_dir, p["key"])
     if not c:
@@ -428,7 +446,7 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
     bind = binding(base, diff, spec)
     if not spec:
         items = results({}, acs, {})
-        _record(P, t, rid, items, "unverified", bind, "没有写出实测脚本")
+        _record(P, t, rid, items, "unverified", bind, "没有写出实测脚本", by)
         return dict(bind, result="unverified", why="没有写出实测脚本", ac=items)
     report, files = run_remote(c, Path(p["root"]), base, diff, spec, _job(p, rid, bind), 23100 + rid % 800)
     items = results(report, acs, files)
@@ -441,5 +459,76 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
             items = results(report, acs, files)
             why = str(report.get("setup") or "")
     result = "unverified" if why else overall(items)
-    _record(P, t, rid, items, result, bind, why)
+    _record(P, t, rid, items, result, bind, why, by)
     return dict(bind, result=result, why=why, ac=items)
+
+
+PAGE = "page-check.json"
+PAGE_BY = "页面实测"
+_page_lock = threading.Lock()
+_page_busy: set = set()
+
+
+def _page_file(P, rid: int) -> Path:
+    return Path(P.data_dir) / "runs" / str(rid) / PAGE
+
+
+def page_state(P, rid: int) -> dict:
+    """The last page check of run `rid` and whether its project has a host to run one."""
+    try:
+        s = json.loads(_page_file(P, rid).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        s = {}
+    run = P.store.run(rid)
+    p = P.store.project(run["project_id"]) if run else None
+    s["available"] = bool(p and conf(P.data_dir, p["key"]))
+    s["running"] = rid in _page_busy
+    return s
+
+
+def page_criteria(P, t: dict) -> list:
+    """What to check on the page: the signed-off criteria, else the plan's; not the ones kept by the build."""
+    from . import signoff
+    from .fixloop import plan_ac
+    acs = (signoff.state(P.data_dir, t["key"]).get("snapshot") or {}).get("ac") or []
+    if not acs:
+        done = [r for r in P.store.runs(ticket_id=t["id"]) if r["mode"] == "plan" and r["status"] == "done"]
+        acs = plan_ac(P.store.run(done[0]["id"])["result"] or "") if done else []
+    return [a for a in acs if not a.get("keep")]
+
+
+def page_check(P, rid: int, user: str) -> dict:
+    """Start the app with this change on the verification host and check the ticket's criteria in a real browser.
+    For changes no build covers (a template, a label); it records evidence, it never accepts anything."""
+    run = P.store.run(rid)
+    if not run or run["mode"] != "fix" or run["status"] != "done" or not run.get("diff") or not run.get("ticket_id"):
+        raise ValueError("这次运行没有可以实测的改动")
+    p, t = P.store.project(run["project_id"]), P.store.ticket(run["ticket_id"])
+    if not conf(P.data_dir, p["key"]):
+        raise ValueError("这个项目还没有配页面实测环境")
+    with _page_lock:
+        if rid in _page_busy:
+            raise ValueError("正在实测这次改动")
+        _page_busy.add(rid)
+    started = time.strftime("%Y-%m-%d %H:%M:%S")
+    _page_file(P, rid).parent.mkdir(parents=True, exist_ok=True)
+    _page_file(P, rid).write_text(json.dumps({"status": "running", "by": user, "started": started}, ensure_ascii=False), encoding="utf-8")
+
+    def work():
+        out = {"status": "done", "by": user, "started": started}
+        try:
+            acs = page_criteria(P, t)
+            res = verify(P, p, t, rid, acs, by=PAGE_BY) if acs else \
+                {"result": "unverified", "why": "没有找到要在页面上实测的检查项", "ac": []}
+            out.update(result=res["result"], why=res.get("why") or "",
+                       ac=[{k: i.get(k) for k in ("id", "result", "how")} for i in res.get("ac") or []])
+        except Exception as e:  # noqa: BLE001 - whatever stopped it, the run shows it was not proven
+            out.update(result="unverified", why="实测没跑完：%s" % type(e).__name__, ac=[])
+        finally:
+            out["finished"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            _page_file(P, rid).write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+            with _page_lock:
+                _page_busy.discard(rid)
+    threading.Thread(target=work, daemon=True, name="page-check-%d" % rid).start()
+    return page_state(P, rid)
+

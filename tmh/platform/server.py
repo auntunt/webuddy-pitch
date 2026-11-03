@@ -3193,6 +3193,26 @@ def api_recheck_state(P, req, rid):
             "operation": operation, "verify": v or None}
 
 
+@route("POST", "/api/runs/<rid>/page-check")
+def api_page_check(P, req, rid):
+    """Check this change in a real browser on the project's verification host; poll GET for the result."""
+    _require_unmanaged_run(P, rid)
+    from . import browser_verify
+    try:
+        return browser_verify.page_check(P, int(rid), req.user)
+    except ValueError as e:
+        raise ApiError(400, str(e))
+
+
+@route("GET", "/api/runs/<rid>/page-check")
+def api_page_check_state(P, req, rid):
+    _require_unmanaged_run(P, rid)
+    from . import browser_verify
+    if not P.store.run(int(rid)):
+        raise ApiError(404, "没有这个运行")
+    return browser_verify.page_state(P, int(rid))
+
+
 @route("POST", "/api/runs/<rid>/recheck/recover")
 def api_recheck_recover(P, req, rid):
     _require_unmanaged_run(P, rid)
