@@ -458,3 +458,10 @@
   - 每一步都必须是个人账号操作（`_human_action`），追加记录到 `<data>/versions/prod-requests.jsonl`，并写进版本所含每张工单的时间线，事件为 `prod_request`、`prod_approve`、`prod_reject`、`prod_deployed`、`prod_failed`。
   - 租户入口：批准和驳回需要 manager 权限。
   - 新增路由已登记到 `tenant_policy`（共 187 条）。
+- 新增「执行中插话」（演示脚本第 ③ 段）。原来只能等运行结束后，在讨论里补一句再重跑。
+  - 运行详情页：运行进行中时，日志下方有输入框。调用 `POST /api/runs/<rid>/say`（必须是个人操作；受管实验的运行不行；已结束的运行返回 409），写入的地方：
+    - `<data>/runs/<rid>/notes.md`；
+    - 运行日志里的「— X 插话：…」；
+    - 工单时间线（事件 `steer`）。
+  - 执行器拿到环境变量 `TMH_NOTES`。analyze / plan / fix / understand / chart / kb 这几类运行的首轮提示词带 `agents.steer_hint`：开始时和每一步之前 `cat "$TMH_NOTES"`，按最新的话调整，并在最终回复里写明怎么处理的。重试轮和续接会话不再追加这段。
+  - `tests/test_platform.py::test_readiness_checks_the_real_machine_worst_first` 在改动前的基线上同样失败，属于本机环境问题，跟这次无关。

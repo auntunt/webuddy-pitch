@@ -177,6 +177,7 @@ POST /api/projects/<key>/runs
 GET /api/runs
 GET /api/runs/<rid>
 POST /api/runs/<rid>/cancel
+POST /api/runs/<rid>/say
 POST /api/runs/<rid>/retry
 POST /api/runs/<rid>/recover
 POST /api/runs/<rid>/decide
