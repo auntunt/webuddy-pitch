@@ -39,6 +39,7 @@ TABLE = [
     ("accepted", "person", "verify", "改完了，等开始测试", "开始测试"),
     ("confirm", "person", "analyze", "AI 有结论了，等你确认", "看结论"),
     ("cancelled", "person", "", "AI 运行已取消，等你继续", "去处理"),
+    ("ops", "person", "", "运维排查：查相似经验、只读查数据、记结论", "去排查"),
     ("stalled", "person", "", "没人在处理", "接手"),
     ("queued", "agent", "", "排队中", ""),
     ("idle", "person", "", "等你决定下一步", "去处理"),
@@ -124,6 +125,8 @@ def decide(t: dict, f: dict) -> dict:
         return row("confirm")
     if r.get("status") == "cancelled":
         return row("cancelled", step=step)
+    if t.get("type") == "ops" and not r:  # the automatic line never takes an ops ticket: it waits for ops, not a queue
+        return row("ops")
     if not f.get("auto") or not f.get("agent"):
         if s in ("new", "analyzing") and not r and not t.get("assignee"):  # nothing has started it yet
             return row("stalled", label=f.get("stall") or "")
@@ -185,8 +188,9 @@ def compute(P, tickets: list) -> dict:
             except ValueError as exc:
                 agents[pk] = ("", str(exc))
         agent, stall = agents[pk]
+        on = P.flow.switched_on(conf, {"key": pk})
         f = {"now": now(), "last": r, "live": live.get(t["id"]), "modes": modes, "version": rel.get(t["id"], ""),
-             "auto": bool(conf.get("on")), "agent": agent, "stall": stall, "check": checks.get(t["id"]),
+             "auto": on, "agent": agent, "stall": stall if on else "自动处理关着，没人接手", "check": checks.get(t["id"]),
              "release_wait": waits.get(t["id"]),
              "next_step": lambda x, conf=conf: P.flow.next_step(x, conf)[0]}
         if t["status"] != "closed" and not f["live"]:

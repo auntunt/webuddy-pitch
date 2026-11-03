@@ -513,3 +513,10 @@
   - 带待确认标准的运维单写 `OPS_NOTE`，并注明「还有验收标准待和客户确认」；
   - 首次理解成功、也没有失败原因时，不再按旧记录构造恢复包。
   测试：`tests/test_intake_recovery.py::test_answers_given_while_talking_after_a_good_reading_are_not_a_stuck_recovery`、`tests/test_ops_diag.py::test_an_ops_ticket_with_open_criteria_does_not_promise_to_start_on_the_answer`。`test_stage`、`test_intake_recovery_ui` 里的 JS 用例因为本机 node 版本旧（不支持 `??`），改动前就失败。
+- 完整验收续测（`f884d95`）：PETS 每步人工时，用「新建工单」直接建的运维单 PETS-14 没有任何运行，头部却显示「排队中」。原因有两个：
+  - `stage.compute` 用全局 `bool(conf["on"])` 判断自动处理，只要别的项目（JB）开着，PETS 也算开；
+  - 运维单本来就不进自动线，却也落到 `queued`。
+  修复：
+  - 自动处理改按项目判断（`Orchestra.switched_on`）；
+  - 没有运行的运维单显示新阶段 `ops`「运维排查：查相似经验、只读查数据、记结论」，卡片指向下方的「运维排查」。
+  测试：`tests/test_stage.py::test_an_ops_ticket_waits_for_ops_not_the_automatic_line`。`test_platform.py::test_readiness_checks_the_real_machine_worst_first` 在改动前就失败，与本次无关。

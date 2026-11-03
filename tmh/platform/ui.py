@@ -560,6 +560,7 @@ function nextAction(d,f){
   const r=pick(ROUTE[g.key]||[]);
   // signing / expired: the verify card plus who it waits on; queued with nothing the auto line words: say so
   if(r)return ['signing','expired'].includes(g.key)?Object.assign({},r,{text:`<b>${h(g.label)}</b>。`+r.text}):r;
+  if(g.key==='ops')return {tone:'info',text:`<b>${h(g.label)}</b>。自动处理不改运维单的代码，在下面「运维排查」里处理。`,btns:''};
   if(g.who==='agent')return {tone:'info',text:`<span class="spin"></span> ${h(g.label)}。`,btns:onAuto(d)?'<button class="ghost" data-hold="1">接管</button>':''};
   const p=pick(PROGRESS);
   // taken over, paused, or nobody will start it: say why above the manual next step
