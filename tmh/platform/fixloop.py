@@ -149,6 +149,13 @@ def settle_fail(diag: dict, said: str) -> tuple:
     return said, False
 
 
+PAGE_CHECKS_LATER = """## 之后还有页面实测
+这个项目配了页面实测：改动提交到独立分支后，平台会在真实浏览器里逐条实测验收标准并截图，全部通过才会由 AI 验收。所以：
+- 页面上实际显示什么、操作后怎样、截图，读代码确认不了的写 unverified；不要因为现在还没有页面实测或截图判不通过，也不要把它列成阻断项；
+- 部署、上线、通知这类不在代码里的事由平台流程管，不要因为缺这类记录判不通过；
+- 阻断项仍然只写读代码或构建测试能指出的具体失败场景。"""
+
+
 def settings(data_dir: Path) -> dict:
     conf = {"check": "", "rounds": 3, "check_timeout": 1200, "recheck_timeout": 0, "max_files": 16, "split_from": 5}
     f = Path(data_dir) / "autoflow.json"
@@ -465,6 +472,9 @@ class FixLoop:
         acs = self.criteria()
         if acs:
             L += ["", "## 逐条核对的验收标准"] + ["- %s：%s" % (a["id"], a["text"]) for a in acs]
+        from . import browser_verify
+        if browser_verify.conf(self.r.data_dir, self.p["key"]):
+            L += ["", PAGE_CHECKS_LATER]
         L += ["", MODE_TEXT["diagnose"]]
         self.say("诊断这一轮的改动（%s）" % (self.models["diagnose"] or "默认模型"))
         out = self.call("diagnose", "\n".join(L))
