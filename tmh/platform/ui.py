@@ -33,7 +33,7 @@ HTML = r"""<!doctype html>
 <body>
 <a class="skip-link" href="#main" onclick="event.preventDefault();document.getElementById('main').focus()">跳到主要内容</a>
 <header id="top">
-  <a class="brand" href="#/workspace" aria-label="Webuddy 工作台"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="m7 10 4 12 5-8 5 8 4-12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="brandName">闭环工作台</span></a>
+  <a class="brand" href="#/workspace" aria-label="Webuddy 总览"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="m7 10 4 12 5-8 5 8 4-12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="brandName">闭环工作台</span></a>
   <div id="tenantScope" hidden><label for="tenantSel">租户</label><select id="tenantSel" aria-label="当前租户"></select><span id="tenantRole"></span></div>
   <select id="projSel" title="切换项目" aria-label="项目范围"></select>
   <nav id="svc" aria-label="服务"><a data-s="ops" href="#/board">运维<span>服务</span></a><a data-s="reform" href="#/reform">重构<span>服务</span></a></nav>
@@ -157,16 +157,19 @@ document.addEventListener('click',e=>{const d=document.querySelector('#tabs .tmo
 function paintTabs(tab){
   paintNav();$('#svc').hidden=true;document.body.classList.toggle('svc-reform',S.svc==='reform');ls.set('tmh.svc',S.svc);
   const v=curView(), group=navOf(v), sets={
-    workspace:[['workspace','工作台'],['today','动态与待办']],
-    projects:[['projects','项目'],['reform','重构计划'],['deliveries','交付'],['versions','版本'],['atlas','项目图谱']],
-    tasks:[['tickets','工单列表'],['board','状态看板'],['reqs','需求对话'],['rtickets','重构工单']],
+    workspace:[['workspace','总览'],['today','动态与待办']],
+    projects:[['projects','项目'],['reform','重构计划'],['settings','设置']],
+    tasks:[['tickets','全部需求'],['board','状态看板'],['reqs','需求对话'],['rtickets','重构工单']],
+    deliveries:[['deliveries','交付记录'],['versions','版本']],
+    runs:[['runs','AI 工作记录']],
+    insights:[['lead','运维成效'],['overview','监控'],['eff','提效报告']],
     team:[['team','分配与复核']],
-    memory:[['memory','知识与记忆'],['handoff','项目交接'],['kb','知识页'],['library','参考与引用'],['learn','经验复盘']]};
-  const rows=sets[group]||sets.projects, extras=[['clients','客户'],['overview','监控'],['eff','提效报告'],['lead','运维成效'],['map','架构依据'],['rdeps','依赖清单'],['runs','智能体运行'],['int','外部系统'],['settings','设置']];
+    memory:[['memory','项目知识'],['kb','知识页'],['atlas','业务与代码图谱'],['map','架构依据'],['library','参考与引用'],['learn','经验复盘'],['handoff','项目交接']]};
+  const rows=sets[group]||sets.projects, extras=[['clients','客户'],['team','分配与复核'],['rdeps','依赖清单'],['int','外部系统'],['settings','设置']];
   $('#tabs').hidden=['workspace','projects','team','memory','access'].includes(v);
   $('#tabs').setAttribute('aria-label','当前工作区');
   const link=([k,l])=>`<a data-r="${k}" href="#/${k==='handoff'?'handoff/'+encodeURIComponent(S.proj):k}" class="${k===v||(v==='t'&&k==='tickets')?'on':''}" ${k===v?'aria-current="page"':''}>${l}</a>`;
-  $('#tabs').innerHTML=rows.map(link).join('')+`<details class="tmore"><summary>项目工具</summary><div class="tmp"><div class="tmg">${extras.map(link).join('')}</div></div></details>`;
+  $('#tabs').innerHTML=rows.map(link).join('')+`<details class="tmore"><summary>更多</summary><div class="tmp"><div class="tmg">${extras.map(link).join('')}</div></div></details>`;
 }
 async function boot(){
   try{S.meta=await get('/api/meta');accessBind(S.meta)}catch(e){if(ACCESS.base){accessLock(e.message);return}$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}

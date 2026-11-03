@@ -94,18 +94,18 @@ function workIcon(name){const icons={
   dot:'<circle cx="12" cy="12" r="4"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'};
   return `<svg class="wicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[name]||icons.dot}</svg>`}
-const NAV=[['workspace','工作台','#/workspace','today'],['projects','项目','#/projects','versions'],['tasks','工单','#/tickets','reqs'],['team','团队协作','#/team','clients'],['memory','知识与记忆','#/memory','message']];
+const NAV=[['workspace','总览','#/workspace','today'],['tasks','需求','#/tickets','reqs'],['deliveries','版本','#/deliveries','deliveries'],['memory','项目知识','#/memory','message'],['runs','AI 工作记录','#/runs','clock'],['insights','成效','#/lead','up']];
 const WK=['workspace','projects','team','memory','handoff','deliveries','delivery','today','clients','c','reqs','versions','t'];
 function isEng(v){return !WK.includes(v)}
-function navOf(v){return ['workspace','today','meetings'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn'].includes(v)?'memory':['tickets','t','reqs','board','home','rtickets'].includes(v)?'tasks':'projects'}
-function navCurrent(v){return ['delivery','deliveries'].includes(v)?'deliveries':['c','clients'].includes(v)?'clients':['settings','access'].includes(v)?v:navOf(v)}
+function navOf(v){return ['workspace','today','meetings'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn','atlas','map'].includes(v)?'memory':['tickets','t','reqs','board','home','rtickets'].includes(v)?'tasks':['deliveries','delivery','versions'].includes(v)?'deliveries':v==='runs'?'runs':['lead','overview','eff'].includes(v)?'insights':'projects'}
+function navCurrent(v){return ['c','clients'].includes(v)?'clients':v==='team'?'tasks':['settings','access','projects'].includes(v)?v:navOf(v)}
 function paintNav(){const cur=navCurrent(curView()),nav=$('#nav5');
   const signature=JSON.stringify([cur,curView(),!!S.meta?.access?.can_manage]);if(nav.dataset.signature===signature)return;
   const focused=nav.contains(document.activeElement)?document.activeElement.closest('[data-n]')?.dataset.n:null;
   const link=([k,l,u,ic])=>`<a href="${u}" class="${k===cur?'on':''}" data-n="${k}" ${k===cur?'aria-current="page"':''}><i aria-hidden="true">${workIcon(ic)}</i><span>${l}</span></a>`;
-  const management=[['deliveries','交付','#/deliveries','deliveries'],['clients','客户','#/clients','clients'],['settings','设置','#/settings','eng']];
+  const management=[['projects','项目','#/projects','versions'],['clients','客户','#/clients','clients'],['settings','设置','#/settings','eng']];
   if(S.meta?.access?.can_manage)management.push(['access','成员与权限','#/access','clients']);
-  nav.innerHTML='<span class="ws-nav-label">工作空间</span>'+NAV.map(link).join('')+`<div class="ws-nav-secondary"><span class="ws-nav-label">管理</span>${management.map(link).join('')}</div>`;
+  nav.innerHTML='<span class="ws-nav-label">维护交付</span>'+NAV.map(link).join('')+`<div class="ws-nav-secondary"><span class="ws-nav-label">管理</span>${management.map(link).join('')}</div>`;
   nav.dataset.signature=signature;if(focused)nav.querySelector(`[data-n="${focused}"]`)?.focus()}
 const STL={talk:'需求澄清',doing:'执行中',you:'待复核',client:'待客户确认',shipped:'已出版本',done:'已完成'};
 const stChip=s=>`<span class="st ${h(s)}">${h(STL[s]||s)}</span>`;
