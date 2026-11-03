@@ -443,3 +443,5 @@
 - 本次修复：
   - `cli._load_flows`：`flows.json` 只是缓存，写不进去就跳过，只读检出里照样能返回结果。
   - `verify`：AI 回复里没有脚本时，再问一次，并提示它按工单和改动来写；第二次仍然没有，才记「没有写出实测脚本」。
+- [PR #50](https://github.com/auntunt/webuddy-pitch/pull/50) 发布到生产（`6f72a29`）后，从界面重跑了 PETS-2（运行 343）：A1、A2、A3 三条都**通过**，分别有 1 / 4 / 2 张截图。加上 PETS-3（运行 347）A1 也已通过，两张只改页面模板的单现在都由 Webuddy 自己在真实应用里逐条实测通过。两张单仍停在等人确认，没有替人验收或关单。
+  - 发布时的问题：服务器上用发布包跑测试那一步，`test_python_flows` 有 5 个报错，原因是 verification 包里没有 `docs/self-improvement/evidence/runtime-2026-10-18/bootv2` 这批测试样例。命令写的是 `... | tail -2 && activate`，管道的退出码只看 tail，所以测试报错也照样激活了。其余 82 个测试全部通过，本次改动的测试就在其中。以后这一步要加 `set -o pipefail`。
