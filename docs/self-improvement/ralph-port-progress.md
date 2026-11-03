@@ -375,3 +375,4 @@
 - 原因：没有公开 https 源的项目，测试机上的克隆是 `git init` + 拉 bundle 的 `refs/tmh-send/*`，主仓库 HEAD 一直是未出生的 `refs/heads/master`；工作副本 `work/PETS` 是它的 worktree，JGit 经 commondir 读主仓库 HEAD，于是失败。JB 同样是未出生 HEAD，只是没用这个插件。
 - 修复：`TestBox.prepare` 切换工作副本时同时 `git -C repos/<项目> update-ref --no-deref HEAD <基线>`，克隆自己的 HEAD 与工作副本一致。测试机上已先手工把 PETS 的克隆 HEAD 指到基线，未改动代码 `mvn -B -q compile -DskipTests` 61 秒通过（退出码 0）。
 - 验证：`tests/test_testbox.py` 新断言（无修复时失败）；testbox/fixloop/recheck 相关 222 个测试中只有两个与本改动无关的已有失败（`test_recheck_summary` old_proof 未改动时同样失败；`test_team_workspace` 本机 Node 太旧不支持 `?.`）。
+- 发布：生产 `8a04344decb3`（PR #36）。服务器上用发布包跑 `tests.test_testbox`、`tests.test_project_import` 14 个通过；manifest、两个库完整性、running_runs=0、本机/公网 HTTP、NRestarts=0 均正常。生产上 PETS-1（run 339）重新验证：原代码 `mvn -B -q compile -DskipTests` 16.7 秒通过，带改动 15.3 秒通过，结果「重新验证：通过」。PETS 旧的失败基线缓存移到 `/opt/webuddy/backups/pets-checks-githead-20261103/`，没有删除。
