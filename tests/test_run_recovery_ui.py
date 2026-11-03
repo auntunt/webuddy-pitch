@@ -103,6 +103,7 @@ class RunRecoveryUiTest(unittest.TestCase):
 const assert=require('node:assert/strict');
 const h=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const notifications=[];
+const document={activeElement:null};
 """ + harness + source + r"""
 const stopped={...detail(7),status:'cancelled',exit_code:124,can_retry:false,retry_blocked:['进程还在回收'],
  lifecycle:{started_at:'2026-10-18 20:00:00',timeout_seconds:600,stopped_reason:'cancelled',attempts:[],finished:false}};
