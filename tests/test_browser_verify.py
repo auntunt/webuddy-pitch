@@ -223,3 +223,11 @@ class PageCheckTest(unittest.TestCase):
         self.assertEqual((s["status"], s["result"], s["ac"]), ("done", "pass", [{"id": "A1", "result": "pass", "how": "看到了"}]))
         self.assertFalse(s["running"])
 
+    def test_the_client_criteria_come_before_the_plan(self):
+        P = self._p({})
+        client = [{"id": "A1", "text": "主人详情页不再有 Add New Pet 按钮"}, {"id": "A2", "text": "测试通过", "keep": True}]
+        with mock.patch("tmh.platform.signoff.state", return_value={"snapshot": {}}), \
+                mock.patch("tmh.platform.signoff.client_ac", return_value=client):
+            self.assertEqual(bv.page_criteria(P, {"id": 1, "key": "PETS-2"}), client[:1])
+        P.store.runs.assert_not_called()
+

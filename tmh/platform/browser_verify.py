@@ -487,10 +487,10 @@ def page_state(P, rid: int) -> dict:
 
 
 def page_criteria(P, t: dict) -> list:
-    """What to check on the page: the signed-off criteria, else the plan's; not the ones kept by the build."""
+    """What to check on the page: the signed-off criteria, else the client's, else the plan's; not the ones kept by the build."""
     from . import signoff
     from .fixloop import plan_ac
-    acs = (signoff.state(P.data_dir, t["key"]).get("snapshot") or {}).get("ac") or []
+    acs = (signoff.state(P.data_dir, t["key"]).get("snapshot") or {}).get("ac") or signoff.client_ac(P.data_dir, t["key"])
     if not acs:
         done = [r for r in P.store.runs(ticket_id=t["id"]) if r["mode"] == "plan" and r["status"] == "done"]
         acs = plan_ac(P.store.run(done[0]["id"])["result"] or "") if done else []
