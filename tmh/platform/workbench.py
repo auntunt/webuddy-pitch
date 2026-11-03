@@ -679,9 +679,12 @@ def wire(P, *, background=True) -> None:
 
 def versions(P, project: str) -> dict:
     """A project's versions, newest first, each with what it holds in plain words: which requirement, for which client."""
-    from . import release
+    from . import prod_release, release
     p = P.project(project)
     cl = {c["id"]: c["name"] for c in clients(P)}
+    prod = {}
+    for r in prod_release.requests(P.data_dir, p["key"]):
+        prod.setdefault(r["version"], r)
     out = []
     for r in release.releases(P.data_dir, p["key"], 200):
         items = []
@@ -691,10 +694,11 @@ def versions(P, project: str) -> dict:
             items.append({"key": x.get("key"), "title": (t or x).get("title", ""), "said": _said(t) if t else "",
                           "type": x.get("type", ""), "client": cid, "client_name": cl.get(cid, "")})
         out.append({"version": r["version"], "ts": r.get("ts"), "commit": r.get("commit"), "tag": r.get("tag"), "by": r.get("by"),
-                    "main": r.get("main"), "items": items,
+                    "main": r.get("main"), "items": items, "prod": prod.get(r["version"]),
                     "note": "；".join(("给%s：" % i["client_name"] if i["client_name"] else "") + i["title"] for i in items)})
     return {"project": {"key": p["key"], "name": p["name"]}, "versions": out, "standing": standing(P, p),
-            "shares": shares(P, p["key"]), "merge": release.settings(P.data_dir)["merge"]}
+            "shares": shares(P, p["key"]), "merge": release.settings(P.data_dir)["merge"],
+            "prod_deploy": bool(prod_release.deploy_command(P.data_dir, p["key"]))}
 
 
 # ---------------------------------------------------------------- links a client opens: /v/<token>
