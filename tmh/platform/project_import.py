@@ -21,6 +21,7 @@ import zipfile
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit, urlunsplit
 
+from ..install import vendor_tool
 from .errors import ApiError
 
 CHUNK = 3 * 1024 * 1024
@@ -197,6 +198,12 @@ def _guard(P, job: str, work, arg):
         st = _state(P.data_dir, job)
         tmp.parent.mkdir(parents=True, exist_ok=True)
         info = work(P, job, st, tmp, arg)
+        _step(P, job, step="正在安装项目工具")
+        vendor_tool(tmp, strict=False)
+        exclude = tmp / ".git" / "info" / "exclude"
+        exclude.parent.mkdir(parents=True, exist_ok=True)
+        with exclude.open("a", encoding="utf-8") as f:
+            f.write("\n/.tmh/\n")
         _step(P, job, step="正在登记项目")
         with _LOCK:
             dest = destination(P.data_dir, st["key"])
@@ -246,6 +253,10 @@ def _count(root: Path) -> int:
     return sum(len(files) for d, _, files in os.walk(root) if "/.git" not in d.replace(os.sep, "/") + "/" and not d.endswith(".git"))
 
 
+def _vendored(p: PurePosixPath) -> bool:
+    return any(p.parts[k:k + 2] == (".tmh", "tool") for k in range(len(p.parts)))
+
+
 def _members(z: zipfile.ZipFile) -> list:
     infos = z.infolist()
     if len(infos) > MAX_ENTRIES:
@@ -256,7 +267,7 @@ def _members(z: zipfile.ZipFile) -> list:
         p = PurePosixPath(name)
         if name.startswith("/") or re.match(r"^[A-Za-z]:", name) or ".." in p.parts:
             raise ApiError(400, f"zip 里有越界路径：{name[:200]}")
-        if i.is_dir() or stat.S_ISLNK(i.external_attr >> 16) or ".git" in p.parts or "__MACOSX" in p.parts:
+        if i.is_dir() or stat.S_ISLNK(i.external_attr >> 16) or ".git" in p.parts or "__MACOSX" in p.parts or _vendored(p):
             continue
         total += i.file_size
         if total > MAX_UNPACKED:

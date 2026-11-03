@@ -7,7 +7,9 @@ import unittest
 import zipfile
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
+from tmh import resources
 from tmh.platform import project_import as imp
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
@@ -49,7 +51,7 @@ class ProjectImportTest(unittest.TestCase):
 
     def test_zip_becomes_registered_git_project_without_uploaded_git_or_links(self):
         raw = make_zip({"oa/pom.xml": "<project/>", "oa/src/A.java": "class A {}", "oa/.git/config": "[core]\nfsmonitor = touch /tmp/pwn\n",
-                        "oa/__MACOSX/._A": "x"}, links=["oa/link"])
+                        "oa/__MACOSX/._A": "x", "oa/.tmh/tool/tmh.py": "print('uploaded')"}, links=["oa/link"])
         st = self.upload(raw, chunk=7)
         self.assertEqual(st["status"], "done", st.get("error"))
         root = Path(st["root"])
@@ -58,11 +60,20 @@ class ProjectImportTest(unittest.TestCase):
         self.assertFalse((root / "link").exists() or (root / "__MACOSX").exists())
         self.assertNotIn("fsmonitor", (root / ".git" / "config").read_text())
         self.assertEqual(st["files"], 2)
+        tool = (root / ".tmh" / "tool" / "tmh.py").read_text()
+        self.assertIn("from tmh.cli import main", tool)
+        self.assertTrue((root / ".tmh" / "tool" / "tmh" / "cli.py").is_file())
         clean = subprocess.run(["git", "status", "--porcelain"], cwd=root, capture_output=True, text=True, check=True).stdout
         self.assertEqual(clean, "")
         p = self.store.project("OA")
         self.assertEqual((p["name"], p["root"]), ("OA 系统", str(root)))
         self.assertFalse((self.P.data_dir / "project-imports" / st["job"] / "upload.zip").exists())
+
+    def test_runtime_only_release_still_gets_the_project_tool(self):
+        with mock.patch.object(resources, "FILES", (*resources.FILES, "docs/not-shipped-on-the-server.md")):
+            st = self.upload(make_zip({"a.txt": "ok"}))
+        self.assertEqual(st["status"], "done", st.get("error"))
+        self.assertTrue((Path(st["root"]) / ".tmh" / "tool" / "tmh.py").is_file())
 
     def test_traversal_fails_and_leaves_nothing(self):
         st = self.upload(make_zip({"a.txt": "ok", "../evil.txt": "x"}))

@@ -138,14 +138,18 @@ def refresh_mcp(repo: Path) -> None:
         _write_codex_mcp(repo)
 
 
-def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]:
+def vendor_tool(repo: Path, strict: bool = True) -> Path:
+    """Write the project's own `.tmh/tool/tmh.py`, replacing whatever was there.
+
+    Not strict: a server release that ships only the runtime still gets a working tool; docs it lacks are skipped.
+    """
     repo = repo.resolve()
-    assets = list(resources.files(HOME))
-    done = []
+    assets = list(resources.files(HOME, strict))
     x = cfgmod.tmh_dir(repo)
     x.mkdir(parents=True, exist_ok=True)
-    # 1. Vendored tool: the repo stays self-contained and works offline.
     tool = x / "tool"
+    if not PKG.is_relative_to(tool.resolve()):
+        shutil.rmtree(tool, ignore_errors=True)
     tool.mkdir(exist_ok=True)
     _copytree(PKG, tool / "tmh")
     # Keep the vendored command self-contained, including reinstallation and
@@ -158,6 +162,15 @@ def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]
     (tool / "tmh.py").write_text(
         "import os, sys\nsys.dont_write_bytecode = True\nsys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n"
         "from tmh.cli import main\nsys.exit(main())\n", encoding="utf-8")
+    return tool / "tmh.py"
+
+
+def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]:
+    repo = repo.resolve()
+    done = []
+    x = cfgmod.tmh_dir(repo)
+    # 1. Vendored tool: the repo stays self-contained and works offline.
+    vendor_tool(repo)
     done.append(".tmh/tool/ (内置工具，python3 .tmh/tool/tmh.py)")
     # 2. Knowledge base and project-knowledge skeleton.
     _copytree(HOME / "kb", x / "kb")

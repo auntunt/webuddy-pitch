@@ -361,3 +361,10 @@
 - 租户策略：4 个接口进清单（181 条），写操作按工作区配置处理，需平台管理员且目标在批准目录内；查询状态只给管理员。Agent 身份不能发起导入。
 - 界面：「新建项目」改成 Git 仓库 / 上传 zip 两种方式，自动从地址或文件名猜代号；显示上传百分比和后台步骤；完成后给出「开始分析代码、建知识库」，进入项目的知识库建设引导（已有的图谱 + 智能体写业务说明流程）。原来的「登记服务器目录」保留为对话框里的次要入口。
 - 测试：新增 `test_project_import`（zip 导入成 Git 项目且不带上传的 .git/链接、越界失败不留痕、分片顺序和发起人校验、Git 地址校验和去令牌）、`test_tenant_policy` 补拒绝用例、`test_ui_library` 补 zip 分片上传到进入知识库的界面用例。本机起服务实测：zip 导入 DEMO、Git 导入 octocat/Hello-World 都完成并登记。
+
+## 2026-11-03 导入的项目自带 tmh 项目工具；记录需求默认选当前项目
+
+- 生产走查 PETS（spring-petclinic，Git 导入，128 个文件）时，知识页 run 330 写出了内容，但智能体找不到 `tmh`，没通过 `tmh kb done`，survey 正确记为未完成。原因：JB 的 `.tmh/tool/tmh.py` 是早先手动 `tmh install` 的，Git/zip 导入的项目没有。
+- 修复：`tmh/install.py` 抽出 `vendor_tool(repo)`（install 第 1 步原样复用；从仓库内的 vendored 工具重装时不删自身）。`project_import._guard` 在登记前调用它，并把 `/.tmh/` 写进导入仓库的 `.git/info/exclude`，代码基线保持干净；zip 里自带的 `.tmh/tool/` 一律丢弃，工具只用平台自己的。
+- 记录需求弹窗：非跨项目视图里默认选顶栏当前项目（`S.proj`），不再沿用跨项目视图残留的筛选（走查时顶栏是 PETS，弹窗默认 JB）。
+- 验证：`tests/test_project_import.py`、`test_distribution.py`、`test_tmh.py`、`test_integrations.py` 72 passed；`tests/test_ui*.py` 305 passed；ruff 通过。
