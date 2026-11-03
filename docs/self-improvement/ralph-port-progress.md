@@ -520,3 +520,4 @@
   - 自动处理改按项目判断（`Orchestra.switched_on`）；
   - 没有运行的运维单显示新阶段 `ops`「运维排查：查相似经验、只读查数据、记结论」，卡片指向下方的「运维排查」。
   测试：`tests/test_stage.py::test_an_ops_ticket_waits_for_ops_not_the_automatic_line`。`test_platform.py::test_readiness_checks_the_real_machine_worst_first` 在改动前就失败，与本次无关。
+- 完整验收续测（`5265850`）：在运维单上执行只读查询后，查询结果很快就消失了。原因是每次查询都会写一条时间线事件，工单页随之重绘，`opsDiag` 被重建，输入框和结果都清空。修复：按工单把 SQL、结论草稿和最近一次结果保存在 `S.opsKeep`，重绘时恢复。测试：`tests/test_ops_diag.py::OpsDiagUiTest`。
