@@ -121,7 +121,8 @@ async function pasteModal(text,cid){
   if(!S.projects.length)return newProject();
   let cs=[];try{cs=(await get('/api/clients')).clients}catch(e){}
   const want=cid!=null?String(cid):(ls.get('tmh.lastClient')||''),has=cs.some(c=>String(c.id)===want);
-  const np=(isCross()?pk0():S.proj)||S.proj;
+  const tk=curView()==='t'?decodeURIComponent(location.hash.split('/')[2]||'').replace(/-\d+$/,'').toUpperCase():'';
+  const np=(tk&&S.projects.some(p=>p.key===tk)?tk:(isCross()?pk0():S.proj))||S.proj;
   modal(`<h2>记录需求</h2><p class="sub">保留原话和上下文，先澄清目标与验收标准。</p>
    <div class="wk-fields"><label class="wk-field full" for="pmT">需求原文<textarea id="pmT" style="min-height:140px" placeholder="例如：请假审批通过后列表里还是草稿；另外，希望请假单能导出 Excel。">${h(text||'')}</textarea></label>
     <label class="wk-field" for="pmC">客户<select id="pmC"><option value="">不记客户</option>${cs.map(c=>`<option value="${c.id}" ${String(c.id)===want?'selected':''}>${h(c.name)}</option>`).join('')}<option value="__new" ${!cs.length?'selected':''}>＋ 新客户…</option></select></label>
