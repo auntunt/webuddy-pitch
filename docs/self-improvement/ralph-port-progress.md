@@ -342,3 +342,5 @@
 - 用户认同「老系统的 AI 维护交付平台、以一次可验证交付为中心」的定位，但指出工单命名不够人类友好。样稿规则：标题在前、编号退后；状态写「谁 + 做什么」；内部术语换日常用词（验收标准→检查项、候选→预览版、合并主干→上线、证据包→测试记录、甲方→客户、智能体→AI）。
 - 本次只改 `stage.TABLE` 及 `decide` 动态文字、收件箱分组 `G`、详情卡「重试上线」按钮和合并等待的事件/通知文字。阶段键、who/step、判定顺序和状态迁移都不变。
 - 测试：`test_stage`、`test_workbench_states` 期望文字按新说法更新，断言结构不变；`test_stage`、`test_workbench_states`、`test_platform`、`test_workbench`、`test_ui_ticket_run_sync`、`test_repo_sync` 等通过。`test_platform::test_readiness_checks_the_real_machine_worst_first` 在改动前的基线上同样失败（本机环境，与本改动无关）。ruff 对改动文件的告警数与基线相同。
+- 补充（PR #30）：CI 发现 `test_intake_recovery_api` 断言「已保存答复」，`recovering` 的文字改成「AI 正在按已保存答复补全检查项」。本机全量 2743 通过，只剩改动前就失败的 readiness 一项；CI Ubuntu 全过，Windows full suite 仍是基线上的 141 个失败加 1 个错误。
+- 发布（生产 720bc43c1a90）：服务器上解出的包里 `test_stage`、`test_workbench_states`、`test_intake_recovery_api`、`test_repo_sync` 共 54 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0。
