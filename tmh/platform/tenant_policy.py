@@ -69,6 +69,8 @@ GET /api/projects/<key>/kb
 GET /api/projects/<key>/kb/tree
 GET /api/projects/<key>/atlas
 GET /api/projects/<key>/atlas/flow/<fid>
+GET /api/projects/<key>/statecharts
+GET /api/projects/<key>/statecharts/renderer
 GET /api/projects/<key>/arch
 GET /api/projects/<key>/arch/<did>
 GET /api/projects/<key>/kb/page

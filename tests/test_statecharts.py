@@ -74,7 +74,7 @@ class StatechartTests(unittest.TestCase):
         html = page()
         self.assertIn("['states','业务状态图']", html)
         self.assertIn("states:()=>vStates(", html)
-        self.assertIn("appPath('/ui/pele.js')", html)
+        self.assertIn("/statecharts/renderer", html)
         self.assertNotIn("var pele=", html, "the renderer is fetched by the page that needs it, not inlined")
         vendor = Path(statecharts.__file__).parent / "vendor"
         self.assertTrue((vendor / "pele.global.js").read_text(encoding="utf-8").startswith("/*! Pele"))

@@ -399,3 +399,9 @@
 - 业务与代码图谱从深色主题改为浅色产品令牌；统计口径改为「被业务流读写的表」「业务流已写说明」，避免和架构依据的「数据库表 9 张」看起来对不上。项目知识首页、知识页、架构依据本来就用产品令牌，本轮审查未改。
 - 本地验证：`tests/test_statecharts.py` 5 项；本地演示数据导入 spring-petclinic，手写一份示例状态图（仅本地演示数据，不进仓库、不进生产项目）截图核对 `#/memory #/kb #/atlas #/states #/map #/library`，哈希切页无前端报错。`test_platform::test_readiness_checks_the_real_machine_worst_first` 在未改动的基线上同样失败（本机 git 检查为 warn），与本批无关。
 - 未验证：真实智能体在 `chart` 模式下画图的质量（本 VM 没有 Claude/Codex 可执行文件）；生产上需由人点「让 AI 画状态图」后才会有图。
+
+## 2026-11-03 发布：业务状态图（`b88ef1d`）与租户入口补漏
+
+- [PR #40](https://github.com/auntunt/webuddy-pitch/pull/40) 合并后发布：`/opt/webuddy/releases/b88ef1d4f4ff-statecharts-20261103/app`，备份 `/opt/webuddy/backups/pre-b88ef1d4f4ff-activation-20261103`。服务器上用发布包跑 `test_statecharts test_platform test_memory_workspace` 92 项、`test_ui_memory` 16 项通过（首轮 `test_ui_memory` 因 tests 目录不在 PYTHONPATH 导入失败，补路径后通过）；running_runs=0；两库 integrity ok；本机/公网 `/login` 200；NRestarts=0；日志无报错。
+- 勘误：上线后在生产租户入口 `/t/default/` 打开业务状态图，`/api/projects/PETS/statecharts` 和 `/ui/pele.js` 均 403。原因：租户策略 `tenant_policy.API_ROUTES` 是冻结清单，新路由没登记；`/ui/pele.js` 是脚本标签请求，带不上 `X-Webuddy-Context`。本地验证漏跑了 `tests/test_tenant_policy.py`（其清单测试会直接失败）。
+- 修复：渲染器改为项目读接口 `GET /api/projects/<key>/statecharts/renderer`（返回 `{js}`，页面用带上下文头的 `get()` 取回后注入），删掉 `/ui/pele.js`；两个路由登记进 `API_ROUTES`，清单数 181→183。业务与代码图谱新样式在生产已核对正常。

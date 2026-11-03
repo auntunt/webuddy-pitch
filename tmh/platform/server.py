@@ -1603,6 +1603,13 @@ def api_statecharts(P, req, key):
     return P.kb.statecharts(P.project(key))
 
 
+@route("GET", "/api/projects/<key>/statecharts/renderer")
+def api_statechart_renderer(P, req, key):
+    """The chart renderer (vendor/pele.global.js) as JSON, so tenant pages fetch it with their context header like any read."""
+    P.project(key)
+    return {"js": (Path(__file__).parent / "vendor" / "pele.global.js").read_text(encoding="utf-8")}
+
+
 @route("GET", "/api/projects/<key>/arch")
 def api_arch(P, req, key):
     return P.kb.arch(P.project(key))
@@ -3778,11 +3785,6 @@ def make_handler(P: Platform, token: str = ""):
                         f.unlink(missing_ok=True)
                     return self._send(200, data, "application/octet-stream",
                                       {"Content-Disposition": "attachment; filename=\"%s.bundle\"" % m.group(1).upper()})
-                if path == "/ui/pele.js":  # the state-chart renderer, loaded only by the 业务状态图 page
-                    if not self._authorized(q):
-                        return self._send(401, b"unauthorized", "text/plain")
-                    return self._send(200, (Path(__file__).parent / "vendor" / "pele.global.js").read_bytes(),
-                                      "application/javascript; charset=utf-8", {"Cache-Control": "private, max-age=86400"})
                 m = re.match(r"^/p/([^/]+)/report/(.*)$", path)
                 if m:
                     if not self._authorized(q):
