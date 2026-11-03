@@ -417,3 +417,10 @@
 - 用户决定「都换成codex」。生产 `agent-routes.json`：去掉各项目 `steps`（原 CWWEB/GROUPRISK/JB/PPTAUTO/WEIGHBILL 的 analyze/plan/diagnose → claude），各项目 `agent` 统一为 `cloudwave-codex`，并加 `default: {agent: cloudwave-codex}`，没有登记路由的项目（OFBIZ、RW、以后新导入的）也走 Codex。`direct_api` 未改。备份 `/opt/webuddy/backups/agent-routes.json.pre-all-codex-20261103`。路由每次运行时读取，无需重启；修改时 running/queued 运行为 0。
 - 核对（`agent_routes.resolve` + `step_agent`，8 个项目 × analyze/plan/fix/edit/diagnose/kb/chart/ask）：全部为 `cloudwave-codex`。
 - 影响：`fixloop` 在诊断与修改同一执行器时，不跑构建的小改动不再做只读诊断复查（原来因诊断交给另一个执行器而保留），直接留给人；跑构建的改动照常诊断。AI 验收本来就要求构建通过，不受影响。
+
+## 2026-11-03：只改页面模板的改动也能在浏览器里实测
+
+- 问题：PETS-2/PETS-3 只改了模板和文案，平台不跑构建，也没有页面实测；`browser_verify` 只由 AI 验收调用，且驱动脚本写死 JeecgBoot 前端（vite + 验证码登录）。
+- 改动：`verify-hosts.json` 的项目可以写 `repo`（实测机上的检出目录，相对家目录，默认 `pv/base`）和 `start`（启动命令，拿到 `$PORT`、`$PFX`）；写了 `start` 就运行它，不走 vite，等待启动最长 900 秒。没有 `yml` 时 `login()` 只打开首页。项目第一次用到的实测机目录会自动 `git init`，再由 bundle 带上完整历史。
+- 新接口 `POST/GET /api/runs/<rid>/page-check`（已登记租户策略，路由数 185）。运行详情页的「试用本次改动」里多了「在页面上实测」按钮，结果按检查项逐条显示，截图附在工单证据里，署名「页面实测」。它只记录证据，不验收也不关单。检查项优先取签收快照，没有时取方案里的。
+- 实测机（WSL）：新建 `~/.m2/settings.xml`，镜像指向阿里云（Maven Central 在那里连不通）。

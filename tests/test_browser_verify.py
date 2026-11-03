@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from tmh.platform import browser_verify as bv
 
@@ -82,7 +83,7 @@ class DriverBundleTest(unittest.TestCase):
         (root / "in.bundle").write_bytes(subprocess.run(["git", "-C", str(root / "src"), "bundle", "create", "-", "refs/tmh-verify/j1", "^" + have],
                                                         capture_output=True, check=True).stdout)
         line = next(x for x in bv.DRIVER.splitlines() if "fetch -q" in x)
-        cmd = line.split("||")[0].strip().replace("~/pv/base", str(root / "host")).replace("$D", str(root)).replace("$J", "j1")
+        cmd = line.split("||")[0].strip().replace("$REPO", str(root / "host")).replace("$D", str(root)).replace("$J", "j1")
         subprocess.run(cmd, shell=True, check=True, executable="/bin/bash")
         self.assertEqual(g(root / "host", "rev-parse", "refs/tmh/j1"), cand)
 
@@ -162,3 +163,63 @@ class RepairTest(unittest.TestCase):
         broken = {"suites": [{"specs": [spec("A1 x", "failed", msg=self.STRICT), spec("A2 y", "passed", ["A2-x.png"])]}]}
         out, asked, ran = self.run_verify(broken, broken)
         self.assertEqual((out["result"], len(asked), len(ran)), ("unverified", 2, 2))
+
+
+class StartCommandTest(unittest.TestCase):
+    """A project that is not the JeecgBoot front end says how it starts; the host runs that from its own checkout."""
+
+    def test_the_host_gets_the_project_checkout_and_start_command(self):
+        sent = []
+
+        def fake(c, remote, data=None, timeout=120):
+            sent.append(remote)
+            return 1, b""
+        c = {"ssh": "u@h", "app": ".", "repo": "pv/PETS/base", "start": "mvn spring-boot:run"}
+        with mock.patch.object(bv, "_ssh", side_effect=fake):
+            report, _ = bv.run_remote(c, Path("."), "a" * 40, "", "spec", "j1", 23001)
+        self.assertEqual(report, {"setup": "verification host unreachable"})
+        self.assertIn("git -C pv/PETS/base rev-parse HEAD", sent[0])
+        self.assertIn("git -C pv/PETS/base init -q", sent[1])
+        self.assertIn('[ -n "$START" ]', bv.DRIVER)
+        self.assertIn("REPO=${8:-pv/base}; START=${9:-}", bv.DRIVER)
+
+    def test_login_opens_the_home_page_when_there_is_no_jeecg_config(self):
+        self.assertIn("if (!process.env.TMH_JB_YML) { await page.goto(base); await ready(page); return; }", bv.HELPERS)
+
+
+class PageCheckTest(unittest.TestCase):
+    def _p(self, run, hosts=None):
+        d = Path(tempfile.mkdtemp())
+        if hosts:
+            (d / bv.CONF).write_text(json.dumps({"projects": hosts}), encoding="utf-8")
+        store = mock.Mock()
+        store.run.return_value = run
+        store.project.return_value = {"key": "PETS", "root": "."}
+        store.ticket.return_value = {"id": 1, "key": "PETS-2"}
+        return mock.Mock(data_dir=d, store=store)
+
+    def test_a_project_without_a_host_shows_no_page_check(self):
+        P = self._p({"project_id": 1, "mode": "fix"})
+        self.assertEqual(bv.page_state(P, 7)["available"], False)
+
+    def test_only_a_finished_change_is_checked(self):
+        P = self._p({"project_id": 1, "ticket_id": 1, "mode": "fix", "status": "failed", "diff": "x"},
+                    {"PETS": {"ssh": "u@h", "app": "."}})
+        with self.assertRaises(ValueError):
+            bv.page_check(P, 7, "li")
+        self.assertTrue(bv.page_state(P, 7)["available"])
+
+    def test_the_result_is_recorded_on_the_run(self):
+        P = self._p({"project_id": 1, "ticket_id": 1, "mode": "fix", "status": "done", "diff": "x"},
+                    {"PETS": {"ssh": "u@h", "app": "."}})
+        res = {"result": "pass", "ac": [{"id": "A1", "result": "pass", "how": "看到了", "shots": {"a.png": b"x"}}]}
+        with mock.patch.object(bv, "page_criteria", return_value=[{"id": "A1", "text": "t"}]), \
+                mock.patch.object(bv, "verify", return_value=res) as v, \
+                mock.patch.object(bv.threading, "Thread") as th:
+            bv.page_check(P, 7, "li")
+            th.call_args.kwargs["target"]()
+        self.assertEqual(v.call_args.kwargs["by"], bv.PAGE_BY)
+        s = bv.page_state(P, 7)
+        self.assertEqual((s["status"], s["result"], s["ac"]), ("done", "pass", [{"id": "A1", "result": "pass", "how": "看到了"}]))
+        self.assertFalse(s["running"])
+
