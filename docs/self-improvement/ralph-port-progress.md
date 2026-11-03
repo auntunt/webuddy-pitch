@@ -506,3 +506,10 @@
   - 签收文案照实写：「构建通过（这个项目没跑自动测试）」「页面逐条实测 N 条」「必须保持项由自动测试证明」，以及「证据包里还缺：…」；
   - 页面没证明的原因会把漏测的条目都列出来。
   已签收的 PETS-11/12 记录不动，报告里逐条写明每条是怎么证明的。测试：`tests/test_ai_accept.py::test_what_must_keep_working_is_proven_by_the_tests_or_else_on_the_page`。
+- 完整验收再测（`61c0de4`）：通过「记录需求」建的运维单 PETS-13，AI 理解时追问了正确金额。追问已经在对话里答了，但 A1 仍记为待确认，于是：
+  - 时间线写的是「有验收标准还待确认……答复回来就自动开始」。运维单本来就不会自动改代码，这句话会让人误会。
+  - 头部报「客户答复已保存，AI 没理解完……缺少原失败运行绑定」。原因是旧记录兼容逻辑 `_recovery_recipe` 把「对话中答过、首次理解成功」当成了「再理解失败」。
+  修复：
+  - 带待确认标准的运维单写 `OPS_NOTE`，并注明「还有验收标准待和客户确认」；
+  - 首次理解成功、也没有失败原因时，不再按旧记录构造恢复包。
+  测试：`tests/test_intake_recovery.py::test_answers_given_while_talking_after_a_good_reading_are_not_a_stuck_recovery`、`tests/test_ops_diag.py::test_an_ops_ticket_with_open_criteria_does_not_promise_to_start_on_the_answer`。`test_stage`、`test_intake_recovery_ui` 里的 JS 用例因为本机 node 版本旧（不支持 `??`），改动前就失败。

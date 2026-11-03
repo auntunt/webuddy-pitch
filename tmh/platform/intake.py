@@ -842,6 +842,14 @@ def _recovery_session(P, key: str) -> tuple[dict | None, dict | None]:
         return ticket, None
 
 
+def open_ac_note(t: dict) -> str:
+    """What a new ticket with criteria still open with the client says it waits for."""
+    if t.get("type") == "ops":
+        from .orchestra import OPS_NOTE
+        return OPS_NOTE + "；还有验收标准待和客户确认"
+    return "有验收标准还待确认，先不自动开始：把问题发给客户，答复回来就自动开始"
+
+
 def _recovery_recipe(P, s: dict) -> dict | None:
     if s.get("understanding_recovery"):
         return copy_json(s["understanding_recovery"])
@@ -870,6 +878,8 @@ def _recovery_recipe(P, s: dict) -> dict | None:
     # A previous successful first reading is not evidence that a subsequent
     # customer-answer process was reaped. Unknown legacy state stays blocked.
     rid = run["id"] if run and run["mode"] == "understand" and run["status"] in ("failed", "cancelled") and run.get("target", "").startswith("再读：") else None
+    if not rid and not understood.get("why") and run and run["status"] == "done":
+        return None  # answered while talking and read fine: the still-open criteria wait for the client, nothing failed
     return {"id": "legacy-" + s["id"], "status": "failed", "job": "legacy", "run": rid, "no_spawn": False,
             "reason": understood.get("why") or "旧记录的客户答案已保存，但再理解未完成", "refine": refine,
             "slots": slots, "open_ac": opened, "attempts": [], "legacy": True,
@@ -1506,7 +1516,7 @@ def _confirm(P, sid: str, by: str, items: list | None = None, deps: dict | None 
                 P.store.update_ticket(t["id"], by, links=dict(links, open_ac=len([a for a in it["ac"] if a["open"]])))
         elif any(a["open"] for a in it["ac"]):  # the ticket itself says open criteria must not be built: they wait for a person
             P.store.update_ticket(t["id"], by, links=dict(links, open_ac=len([a for a in it["ac"] if a["open"]])))
-            P.store.event(t["id"], by, "flow", "有验收标准还待确认，先不自动开始：把问题发给客户，答复回来就自动开始")
+            P.store.event(t["id"], by, "flow", open_ac_note(t))
         else:
             P.flow.submit(p, P.store.ticket(t["id"]))  # like any new ticket: the line picks it up (or says why it waits)
     if not made:

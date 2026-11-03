@@ -312,7 +312,8 @@ def release(P, proj: dict, parent: dict, by: str, n: int | None = None, when_don
     for c in made:
         P.store.event(c["id"], by, "comment", "由大需求 %s 放出，第 %d 批" % (parent["key"], batch))
         if c["links"].get("open_ac"):
-            P.store.event(c["id"], by, "flow", "有验收标准还待确认，先不自动开始：把问题发给客户，答复回来就自动开始")
+            from .intake import open_ac_note
+            P.store.event(c["id"], by, "flow", open_ac_note(c))
         else:
             P.flow.submit(proj, c)
     total = len(parent["links"].get("children") or [])

@@ -78,6 +78,11 @@ class OpsDiagTest(RunSteerTest):
         self.assertFalse(self.P.store.runs(ticket_id=t["id"]))
         self.assertIn("运维工单不自动改代码", self.P.store.events(t["id"])[-1]["body"])
 
+    def test_an_ops_ticket_with_open_criteria_does_not_promise_to_start_on_the_answer(self):
+        from tmh.platform import intake
+        self.assertIn("运维工单不自动改代码", intake.open_ac_note({"type": "ops"}))
+        self.assertIn("答复回来就自动开始", intake.open_ac_note({"type": "feature"}))
+
     def test_no_source_configured(self):
         self.assertEqual(ops_diag.source(self.data, "NOPE"), {})
 
