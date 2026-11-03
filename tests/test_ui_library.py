@@ -71,7 +71,7 @@ class LibraryUiTest(unittest.TestCase):
         self.assertIn("library:vLibrary", html)
         self.assertIn("知识与引用','#/library'", html)
         self.assertIn('data-project-library="', html)
-        self.assertIn("function newProject(){return libraryRegisterProject()}", html)
+        self.assertIn("function newProject(){return libraryImportProject()}", html)
         result = subprocess.run(
             [shutil.which("node"), "--check"],
             input=html.split("<script>", 1)[1].split("</script>", 1)[0],
@@ -251,6 +251,20 @@ closeModal();libraryWorkspace(LIB.view,'maintain','a'.repeat(32));assert.equal($
 location.hash='#/settings';libraryRegisterProject();assert.equal($('#libRegisterWorkflow').value,'development');$('#pr').value='/tmp/complex-product';$('#pr').fire('input');assert.equal($('#pk').value,'COM');$('#pk').value='STD';$('#pn').value='复杂标品';$('#libRegisterProduct').checked=true;$('#libRegisterReference').checked=true;$('#libRegisterWorkflow').value='reference';
 const pending=later();postHandler=()=>pending.promise;getHandler=()=>S.projects;const first=submit('#libRegisterForm'),second=submit('#libRegisterForm');assert.equal(mutations.length,1);assert.deepEqual(mutations[0],{url:'/api/projects',body:{root:'/tmp/complex-product',key:'STD',name:'复杂标品',roles:['product','reference'],workflow:'reference'}});
 pending.resolve({key:'STD',name:'复杂标品'});await first;await second;assert.equal(location.hash,'#/library');assert.equal(S.proj,'STD');assert.equal(overlay.hidden,true);assert.equal(mutations.length,1);
+""")
+
+    def test_zip_import_uploads_in_order_polls_and_offers_knowledge_build(self):
+        self.run_js(r"""
+location.hash='#/settings';libraryImportProject();$('#liSegZip').onclick();assert.equal($('#libImportZip').hidden,false);
+const bytes=Buffer.from('PK-zip-bytes-0123456789');const file={name:'oa-system.zip',size:bytes.length,slice:(a,b)=>({arrayBuffer:async()=>bytes.subarray(a,b)})};$('#liFile').files=[file];$('#liFile').onchange();assert.equal($('#liKey').value,'OASYST');
+$('#liKey').value='OA';LIB.importChunk=10;LIB.importPoll=1;let polls=0;
+postHandler=(url,body)=>url==='/api/projects/import'?{job:'a'.repeat(24),status:'uploading'}:url.endsWith('/finish')?{job:'a'.repeat(24),status:'running'}:{status:'uploading'};
+getHandler=url=>{polls++;return polls<2?{job:'a'.repeat(24),status:'running',step:'正在建立代码基线'}:{job:'a'.repeat(24),status:'done',key:'OA',name:'oa-system',files:3,commit:'c'.repeat(40)}};
+await submit('#libImportForm');
+assert.deepEqual(mutations[0],{url:'/api/projects/import',body:{source:'zip',key:'OA',name:'oa-system',size:bytes.length,filename:'oa-system.zip'}});
+assert.deepEqual(mutations.slice(1,4).map(m=>m.body.seq),[0,1,2]);assert.equal(Buffer.concat(mutations.slice(1,4).map(m=>Buffer.from(m.body.data,'base64'))).toString(),bytes.toString());
+assert.ok(mutations[4].url.endsWith('/finish'));assert.ok($('#libImportDialog').innerHTML.includes('开始分析代码、建知识库'));assert.ok(S.projects.some(p=>p.key==='OA'));
+$('#liKb').onclick();assert.equal(S.proj,'OA');assert.equal(location.hash,'#/kb');
 """)
 
     def test_closed_workspace_dialog_does_not_reopen_after_late_success(self):

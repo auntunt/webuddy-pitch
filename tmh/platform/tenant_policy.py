@@ -54,6 +54,10 @@ GET /api/org/knowledge
 GET /api/projects/<key>/habits
 GET /api/projects/<key>
 POST /api/projects/bootstrap
+POST /api/projects/import
+GET /api/projects/import/<job>
+POST /api/projects/import/<job>/chunk
+POST /api/projects/import/<job>/finish
 GET /api/delivery/catalog
 GET /api/deliveries
 POST /api/deliveries
@@ -565,7 +569,7 @@ def authorize(P, method, path, query, body, actor):
     cross_project = template == "/api/projects/<key>/library" and values.get("action") in ("grant", "revoke")
     if not cross_project and len({p["id"] for p in targets}) > 1:
         raise ApiError(400, "请求中的资源不属于同一项目")
-    if not targets and template not in FILTERED_LISTS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap"):
+    if not targets and template not in FILTERED_LISTS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap") and not (method == "POST" and template.startswith("/api/projects/import")):
         if who["role"] != "admin":
             raise ApiError(403, "请明确选择获准的项目或工单")
     if method == "GET":
@@ -574,7 +578,7 @@ def authorize(P, method, path, query, body, actor):
             require_execution(P, actor)
         return scope
     action = body.get("action")
-    path_config = template in ("/api/projects", "/api/projects/bootstrap", "/api/projects/<key>/preview-conf", "/api/testbox") or (
+    path_config = template.startswith("/api/projects/import") or template in ("/api/projects", "/api/projects/bootstrap", "/api/projects/<key>/preview-conf", "/api/testbox") or (
         template.endswith("/library") and action in ("configure", "add_source", "derive", "maintain"))
     if path_config:
         if not who["platform_owner"]:
@@ -585,6 +589,11 @@ def authorize(P, method, path, query, body, actor):
             if not isinstance(key, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9]{0,9}", key):
                 raise ApiError(400, "项目代号不正确")
             roots = [str(Path(P.data_dir) / "projects" / key.upper())]
+        if template.startswith("/api/projects/import"):
+            key = body.get("key")
+            if template == "/api/projects/import" and (not isinstance(key, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9]{0,9}", key)):
+                raise ApiError(400, "项目代号不正确")
+            roots = [str(Path(P.data_dir) / "repositories" / (key.upper() if template == "/api/projects/import" else ""))]
         if not roots and template != "/api/testbox":
             raise ApiError(403, "没有获准的工作区")
         for root in roots:
