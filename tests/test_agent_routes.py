@@ -424,6 +424,15 @@ class AgentRoutesTest(unittest.TestCase):
         self.assertEqual(verify["diagnosis"]["ac"], said["ac"])
         self.assertIn("A1：通过（a.vue:3）", summary)
 
+    def test_with_page_checks_the_diagnosis_is_told_they_come_after_the_commit(self):
+        from tmh.platform import browser_verify
+        _, _, prompt = self._diagnose_on_ticket({"verdict": "pass", "blocking": []})
+        self.assertNotIn("之后还有页面实测", prompt)
+        with patch.object(browser_verify, "conf", return_value={"ssh": "u@h", "app": "web"}):
+            _, _, prompt = self._diagnose_on_ticket({"verdict": "pass", "blocking": []})
+        self.assertIn("之后还有页面实测", prompt)
+        self.assertIn("不要因为现在还没有页面实测或截图判不通过", prompt)
+
     def test_a_doubt_is_advice_and_does_not_send_the_work_back(self):
         verify, summary, _ = self._diagnose_on_ticket({"verdict": "pass", "blocking": [], "advisory": ["可能需要深拷贝"]})
         self.assertEqual(verify["verdict"], "pass")

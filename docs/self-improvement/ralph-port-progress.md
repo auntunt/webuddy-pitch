@@ -500,3 +500,4 @@
   - `build_commands`：`src/main/resources/`、`src/main/webapp/` 下的页面文件（模板、静态文件）也编译所在的 Maven 模块；
   - `ai_accept.after_commit`：改动全是页面文件（`testbox.page_only`）而项目没配页面实测时，留给人验收（编译只能证明能打包）；配了页面实测的，照旧要求每条验收标准在页面上实测通过才签收。
   - 测试：`tests/test_testbox.py::test_a_page_template_compiles_its_module_and_counts_as_page_only`、`tests/test_ai_accept.py::test_a_page_only_change_needs_page_checks_to_be_signed`。
+- 完整验收再测（`a1ad736`）：模板子单 PETS-11 的修改 #377 已经真跑了 Maven 编译，但诊断 4 轮都判不通过，原因是「没有浏览器实测和截图」「没有部署记录」。页面实测要等改动提交后才跑，诊断却在提交前就要页面证据，顺序上永远满足不了。现在项目配了页面实测时，诊断提示里会多一段「之后还有页面实测」：读代码确认不了的页面效果写 unverified，不因缺页面实测、截图、部署记录判不通过；阻断项仍然只写代码层面的具体失败场景。AI 验收仍要求每条标准在页面上实测通过。测试：`tests/test_agent_routes.py::test_with_page_checks_the_diagnosis_is_told_they_come_after_the_commit`。
