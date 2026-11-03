@@ -872,7 +872,7 @@ function mrBlock(d){
   return `<div class="blk mr"><h3>代码改动 ${st}</h3><div class="sub">${msg}</div></div>`}
 function prompt2(title,val,cb){modal(`<h2>${h(title)}</h2><input class="full" id="pv" value="${h(val)}"><div style="margin-top:10px"><button class="primary" id="pok">保存</button></div>`);$('#pv').focus();$('#pok').onclick=()=>{closeModal();cb($('#pv').value)}}
 function evHtml(e){
-  const icon={prompt:'提示词','prompt-clear':'提示词',created:'创建',status:'状态',assign:'指派',edit:'编辑',comment:'',run:'智能体','run-done':'智能体','run-failed':'智能体','run-cancelled':'智能体',accept:'采纳',discard:'放弃',link:'关联',verify:'页面实测',evidence:'证据',flow:'自动流转',release:'发版',adopt:'提交候选',import:'导入',sync:'同步',kb:'知识库'}[e.kind]||e.kind;
+  const icon={prompt:'提示词','prompt-clear':'提示词',created:'创建',status:'状态',assign:'指派',edit:'编辑',comment:'',run:'智能体','run-done':'智能体','run-failed':'智能体','run-cancelled':'智能体',accept:'采纳',discard:'放弃',link:'关联',verify:'页面实测',evidence:'证据',flow:'自动流转',release:'发版',prod_request:'上生产申请',prod_approve:'批准上生产',prod_reject:'驳回上生产',prod_deployed:'已上生产',prod_failed:'部署失败',adopt:'提交候选',import:'导入',sync:'同步',kb:'知识库'}[e.kind]||e.kind;
   if(e.kind==='comment')return `<div class="ev comment"><div class="dot"></div><div class="grow" style="min-width:0"><span class="who">${h(e.author||'-')}</span><span class="when">${ago(e.ts)}</span><div class="cbody">${md(e.body)}</div></div></div>`;
   const rr=(e.data||{}).run;
   return `<div class="ev ${h(e.kind)}${isMachine(e.author)?' auto':''}"><div class="dot"></div><div class="grow" style="min-width:0"><span class="who">${h(e.author||'-')}</span> ${h(e.body)}${rr?` <a href="javascript:void 0" onclick="showRun(${rr})">#${rr}</a>`:''}<span class="when">${ago(e.ts)}</span>

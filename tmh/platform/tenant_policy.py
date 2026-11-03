@@ -197,6 +197,8 @@ POST /api/clients/<cid>
 POST /api/workbench/intake
 GET /api/requirements
 GET /api/projects/<key>/versions
+GET /api/projects/<key>/prod-requests
+POST /api/projects/<key>/prod-requests
 POST /api/projects/<key>/standing
 POST /api/projects/<key>/shares
 POST /api/projects/<key>/shares/<sid>/revoke
@@ -542,6 +544,7 @@ def authorize(P, method, path, query, body, actor):
     if method == "POST" and (template == "/api/team" and body.get("action") == "assign" or
             template.endswith("/library") or template.endswith("/shares") or template.endswith("/capture-token") or
             template.endswith("/lessons/<lid>") or template.endswith("/preview-conf") or
+            template.endswith("/prod-requests") and body.get("action") in ("approve", "reject") or
             template == "/api/tickets/<key>" and "assignee" in body or
             template == "/api/memory" and body.get("action") in ("lesson_share", "lesson_unshare", "lesson_take", "lesson_untake")):
         level = "manager"

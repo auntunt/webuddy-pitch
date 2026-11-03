@@ -451,3 +451,10 @@
   - 生产 `/etc/webuddy.env` 里的 `TMH_BRAND` 改为「网梯运维系统」。
   - Git 提交作者、域名和内部代号不变。
   - 本机 node 是 v12，`tests/test_ui_access.py` 在本机跑不了，和这次改动无关。
+- 新增「上生产申请」（演示脚本第 ⑤ 段：验证环境验收 → 申请上生产 → 人工确认）。
+  - 原来「上线」只到合进主干、打版本号；发到客户生产这一步没有记录，也没有人工确认节点。
+  - 版本页每个版本多一行「生产」状态：申请（必须写在验证环境里看过什么）→ 批准 / 驳回（驳回要写原因）→ 部署。
+  - 部署：项目在 autoflow.json 的 `prod_deploy` 里配了命令，批准后自动执行并记下输出；没配，就由人点「登记已部署」。
+  - 每一步都必须是个人账号操作（`_human_action`），追加记录到 `<data>/versions/prod-requests.jsonl`，并写进版本所含每张工单的时间线，事件为 `prod_request`、`prod_approve`、`prod_reject`、`prod_deployed`、`prod_failed`。
+  - 租户入口：批准和驳回需要 manager 权限。
+  - 新增路由已登记到 `tenant_policy`（共 187 条）。

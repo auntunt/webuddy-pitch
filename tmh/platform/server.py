@@ -3342,6 +3342,33 @@ def api_versions(P, req, key):
     return workbench.versions(P, key)
 
 
+@route("GET", "/api/projects/<key>/prod-requests")
+def api_prod_requests(P, req, key):
+    from . import prod_release
+    p = P.project(key)
+    return {"requests": prod_release.requests(P.data_dir, p["key"]), "deploy_command": bool(prod_release.deploy_command(P.data_dir, p["key"]))}
+
+
+@route("POST", "/api/projects/<key>/prod-requests")
+def api_prod_request_act(P, req, key):
+    """{"action": "request", "version", "checked", "note"} | {"action": "approve" | "reject" | "deployed", "id", "note"}.
+    Every step is a person's: tokens and agents cannot ask for, approve or record a production release."""
+    from . import prod_release
+    _human_action(P, req)
+    p, b = P.project(key), req.body
+    a, note = b.get("action"), str(b.get("note") or "")
+    if a == "request":
+        return prod_release.request(P, p["key"], str(b.get("version") or ""), req.user, note, str(b.get("checked") or ""))
+    r = prod_release.get(P.data_dir, str(b.get("id") or ""))
+    if r["project"] != p["key"]:
+        raise ApiError(404, "没有这条上生产申请")
+    if a in ("approve", "reject"):
+        return prod_release.decide(P, r["id"], a == "approve", req.user, note)
+    if a == "deployed":
+        return prod_release.deployed(P, r["id"], req.user, note)
+    raise ApiError(400, "action 只能是 request、approve、reject、deployed")
+
+
 @route("POST", "/api/projects/<key>/standing")
 def api_standing(P, req, key):
     """{"action": "start" | "stop"}: the main line's current version, running for people and clients to open."""
