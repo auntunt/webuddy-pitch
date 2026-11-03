@@ -49,7 +49,7 @@ class ProjectImportTest(unittest.TestCase):
 
     def test_zip_becomes_registered_git_project_without_uploaded_git_or_links(self):
         raw = make_zip({"oa/pom.xml": "<project/>", "oa/src/A.java": "class A {}", "oa/.git/config": "[core]\nfsmonitor = touch /tmp/pwn\n",
-                        "oa/__MACOSX/._A": "x"}, links=["oa/link"])
+                        "oa/__MACOSX/._A": "x", "oa/.tmh/tool/tmh.py": "print('uploaded')"}, links=["oa/link"])
         st = self.upload(raw, chunk=7)
         self.assertEqual(st["status"], "done", st.get("error"))
         root = Path(st["root"])
@@ -58,6 +58,9 @@ class ProjectImportTest(unittest.TestCase):
         self.assertFalse((root / "link").exists() or (root / "__MACOSX").exists())
         self.assertNotIn("fsmonitor", (root / ".git" / "config").read_text())
         self.assertEqual(st["files"], 2)
+        tool = (root / ".tmh" / "tool" / "tmh.py").read_text()
+        self.assertIn("from tmh.cli import main", tool)
+        self.assertTrue((root / ".tmh" / "tool" / "tmh" / "cli.py").is_file())
         clean = subprocess.run(["git", "status", "--porcelain"], cwd=root, capture_output=True, text=True, check=True).stdout
         self.assertEqual(clean, "")
         p = self.store.project("OA")
