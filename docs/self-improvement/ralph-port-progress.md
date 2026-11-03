@@ -336,3 +336,9 @@
 - 发布：服务器上解出的包里 `test_tenant_gateway`、`test_login`、`test_ui_access`、`test_tenancy` 共 83 个用例通过（UI 用例要把 `tests` 加进 PYTHONPATH）。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，发布后 journal 无报错。
 - CI：Ubuntu 全过；Windows full suite 仍是同样的 141 个失败加 1 个错误，和 PR #26 时一致，没有 UI 用例失败。
 - 定位（和用户对齐）：Webuddy 负责老项目的维护交付（需求 → AI 改代码 → 构建、独立诊断、浏览器实测 → 证据 → 验收关单 → 版本和回滚），不是通用的团队工作台。飞书负责身份和沟通入口。
+
+## 2026-11-03 工单状态改成人话（第 1 步：只换显示文字）
+
+- 用户认同「老系统的 AI 维护交付平台、以一次可验证交付为中心」的定位，但指出工单命名不够人类友好。样稿规则：标题在前、编号退后；状态写「谁 + 做什么」；内部术语换日常用词（验收标准→检查项、候选→预览版、合并主干→上线、证据包→测试记录、甲方→客户、智能体→AI）。
+- 本次只改 `stage.TABLE` 及 `decide` 动态文字、收件箱分组 `G`、详情卡「重试上线」按钮和合并等待的事件/通知文字。阶段键、who/step、判定顺序和状态迁移都不变。
+- 测试：`test_stage`、`test_workbench_states` 期望文字按新说法更新，断言结构不变；`test_stage`、`test_workbench_states`、`test_platform`、`test_workbench`、`test_ui_ticket_run_sync`、`test_repo_sync` 等通过。`test_platform::test_readiness_checks_the_real_machine_worst_first` 在改动前的基线上同样失败（本机环境，与本改动无关）。ruff 对改动文件的告警数与基线相同。

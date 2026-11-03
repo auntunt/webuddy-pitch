@@ -69,11 +69,11 @@ class WorkbenchStatesTest(unittest.TestCase):
         self.P.flow.take_over(self.P.store.ticket(t["id"]), True, "李工")
         self.same_everywhere(t, "doing", "当前步骤结束后暂停")
         self.P.store.update_run(r["id"], status="done")
-        self.same_everywhere(t, "you", "李工 已接管，自动处理暂停")
+        self.same_everywhere(t, "you", "李工 已接管，AI 暂停")
 
     def test_unconfirmed_criteria_and_a_change_to_the_contract_have_different_owners(self):
         t = self.ticket(open_ac=2)
-        self.same_everywhere(t, "client", "2 条验收标准")
+        self.same_everywhere(t, "client", "2 项检查")
         links = dict(t["links"], client_change={"reason": "客户改了已确认的余额口径"})
         self.update(t, links=links)
         self.same_everywhere(t, "you", "等你决定")
@@ -82,7 +82,7 @@ class WorkbenchStatesTest(unittest.TestCase):
         t = self.ticket()
         self.update(t, status="doing")
         r = self.record_run(t, status="failed")
-        self.same_everywhere(t, "you", "没跑成")
+        self.same_everywhere(t, "you", "没做成")
         self.P.store.update_run(r["id"], status="cancelled")
         self.same_everywhere(t, "you", "已取消")
         self.P.store.update_run(r["id"], status="queued")
@@ -91,14 +91,14 @@ class WorkbenchStatesTest(unittest.TestCase):
         self.same_everywhere(t, "doing", "AI 正在修改代码")
         self.P.store.update_run(r["id"], status="failed")
         self.record_run(t, mode="ask")  # an unrelated assistant answer must not hide the failed coding run
-        self.same_everywhere(t, "you", "没跑成")
+        self.same_everywhere(t, "you", "没做成")
 
     def test_manual_submission_shows_its_check_and_failure_instead_of_still_saying_writing(self):
         t = self.ticket()
         handwork.claim(self.P, t, "李工")
         run = self.record_run(t, status="done", agent="人工")
         with mock.patch.object(handwork, "busy", side_effect=lambda key: key == t["key"]):
-            self.same_everywhere(t, "doing", "构建和审查李工的提交")
+            self.same_everywhere(t, "doing", "构建和检查李工的提交")
         self.P.store.event(t["id"], "我来写", "flow", "构建测试没通过", {"run": run["id"], "verdict": "fail"})
         self.same_everywhere(t, "you", "检查没通过")
         self.P.store.event(t["id"], "我来写", "flow", "构建环境未就绪", {"run": run["id"], "verdict": "unknown"})
@@ -115,7 +115,7 @@ class WorkbenchStatesTest(unittest.TestCase):
         newer = self.record_run(t, status="done", agent="人工")
         self.P.store.event(t["id"], "我来写", "flow", "收到新提交，开始构建和审查", {"run": newer["id"]})
         with mock.patch.object(handwork, "busy", side_effect=lambda key: key == t["key"]):
-            self.same_everywhere(t, "doing", "正在构建和审查")
+            self.same_everywhere(t, "doing", "正在构建和检查")
         self.P.store.event(t["id"], "我来写", "flow", "新提交检查通过", {"run": newer["id"], "verdict": "pass"})
         self.same_everywhere(t, "doing", "李工 在写")
         self.P.store.event(t["id"], "我来写", "flow", "上一份提交迟到的失败结果", {"run": run["id"], "verdict": "fail"})
@@ -128,16 +128,16 @@ class WorkbenchStatesTest(unittest.TestCase):
         self.P.store.update_run(run["id"], result="LeaveService.java:12 提交时没有更新状态")
         with mock.patch.object(self.P.flow, "agent", return_value="test-agent"):
             self.assertEqual(self.P.flow.next_step(t)[0], "")
-            self.same_everywhere(t, "you", "分析已完成，等你确认下一步")
+            self.same_everywhere(t, "you", "分析完了，等你确认下一步")
             (self.data / "autoflow.json").write_text('{"on": true, "plan": true}', encoding="utf-8")
             self.assertEqual(self.P.flow.next_step(t)[0], "plan")
-            self.same_everywhere(t, "doing", "等待自动处理继续")
+            self.same_everywhere(t, "doing", "排队中")
 
     def test_signing_link_and_expiry_are_shared_with_the_ticket_header(self):
         t = self.ticket()
         t = self.update(t, status="verify")
         signoff.issue(self.P, t, "tester", "王总", note="由测试人员复核缺少的证据后签收")
-        self.same_everywhere(t, "client", "等王总签收")
+        self.same_everywhere(t, "client", "等王总签字")
         with mock.patch("tmh.platform.server.now", return_value="2099-01-01 00:00:00"):
             self.same_everywhere(t, "you", "过期")
 

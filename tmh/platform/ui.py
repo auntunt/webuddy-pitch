@@ -288,7 +288,7 @@ async function paintInbox(){
   document.title=(d.mine.length?`(${d.mine.length}) `:'')+S.meta.brand;
   const PR={urgent:['bad','紧急'],high:['warn','高'],normal:['mute','中'],medium:['mute','中'],low:['mute','低']};
   // grouped by what is asked of you, the most pressing kind first; a group shows its 3 most urgent and folds the rest
-  const G=[['recheck','warn','重新验证待处理'],['returned','bad','甲方退回'],['rejected','bad','验收没通过'],['failed','bad','智能体没跑成'],['expired','warn','签收链接过期'],['verify','warn','等你验收'],['review','info','改好了，等你审阅'],['accepted','info','改动已提交，等转待验证'],['release_waiting','warn','验收通过，等合并'],['client_change','warn','客户改了验收标准'],['recovery_stuck','warn','客户答复没理解完'],['handwork_failed','bad','提交检查没通过'],['agent_request','info','CLI / MCP 等下一步'],['confirm','info','分析出结论，等你确认'],['hold','mute','已接管'],['epic_paused','mute','大需求暂停'],['cancelled','mute','运行已取消'],['idle','mute','等你决定下一步']];
+  const G=[['recheck','warn','等你重新验证'],['returned','bad','客户退回了'],['rejected','bad','验收没通过'],['failed','bad','AI 没做成'],['expired','warn','签收链接过期'],['verify','warn','请你验收'],['review','info','请你看一下改动'],['accepted','info','改完了，等开始测试'],['release_waiting','warn','等你确认上线'],['client_change','warn','客户改了检查项'],['recovery_stuck','warn','客户答复没理解完'],['handwork_failed','bad','提交检查没通过'],['agent_request','info','CLI / MCP 等下一步'],['confirm','info','AI 有结论了'],['hold','mute','你已接管'],['epic_paused','mute','大需求暂停'],['cancelled','mute','运行已取消'],['idle','mute','等你决定下一步']];
   const gname=k=>(G.find(g=>g[0]===k)||[])[2];
   const row=x=>{const sub=[x.label!==gname(x.reason)?h(x.label):'',x.note?'“'+h(x.note)+'”':'',x.since?'等了 '+waited(x.since):'',h(x.assignee)].filter(Boolean).join(' · ');
     return `<a class="ibx" href="#/t/${h(x.key)}"><span class="ev-tag ${(PR[x.priority]||PR.normal)[0]}">${(PR[x.priority]||PR.normal)[1]}</span>
@@ -530,7 +530,7 @@ function nextAction(d,f){
   closed:()=>{if(t.status==='closed'){const ev=d.events||[],rl=ev.filter(e=>e.kind==='release').slice(-1)[0],wt=ev.filter(e=>e.kind==='flow'&&(e.data||{}).release==='waiting').slice(-1)[0];
     const hold=wt&&(!rl||wt.id>rl.id);
     return {tone:hold?'warn':'ok',text:`已闭环${f.acc&&f.acc.kind==='accept'?'：'+h(f.acc.author)+' 验收通过':''}。`+(rl&&!hold?h(rl.body)+'。':'')+(hold?'<b>'+h(wt.body)+'</b>':''),
-      btns:(hold?B('naShip','重试合并','primary'):'')+B('naReopen','重新打开','ghost')}}},
+      btns:(hold?B('naShip','重试上线','primary'):'')+B('naReopen','重新打开','ghost')}}},
   review:()=>{if(f.review){const why=d.events.filter(e=>e.kind==='flow'&&(e.data||{}).run===f.fx.id).pop();
     return {tone:'warn',text:`运行 #${h(f.fx.id)}：`+vfy(f.fx)+(why?h(why.body.replace(/^改动已生成，/,'').replace(/，留给人审阅后再提交$/,''))+'，所以没有自动提交。':'智能体改好了代码，')+'<b>等你审阅</b>。采纳后提交到独立分支，不动你的工作目录。',btns:B('naReview','审阅改动','primary')}}},
   noDiff:()=>{if(!['verify','closed'].includes(t.status)&&!f.live&&f.fx&&f.fx.status==='done'&&!f.fx.decision&&f.fx.diff_bytes===0)return {tone:'warn',text:`运行 #${h(f.fx.id)}：智能体<b>没有改任何代码</b>，原因见执行结论。可以补充信息后重新出方案，或自己改完转待验证。`,btns:B('naLog','查看执行结论','primary')+B('naPlan','重新出方案','ghost')};},
