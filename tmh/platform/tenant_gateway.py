@@ -467,7 +467,7 @@ def serve(data_dir, host="127.0.0.1", port=8790):
         # No user is impersonated and managed workers never resume background
         # execution on construction. New tenants remain demand-started.
         workers.ensure('default')
-        server = ThreadingHTTPServer((host, port), make_handler(reg, workers))
+        server = ThreadingHTTPServer((host, port), make_handler(reg, workers, brand=os.environ.get("TMH_BRAND", "") or "webuddy"))
         server.daemon_threads = True
         if threading.current_thread() is threading.main_thread():
             def stop(signum, frame):
