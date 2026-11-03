@@ -755,8 +755,9 @@ class Timing:
     CMD = re.compile(r"^ (?:succeeded|exited -?\d+|failed) in ([\d.]+)(ms|s)\b")
     BUSY = re.compile(r"at capacity|overloaded|rate.?limit|too many requests|\b(429|503|529)\b|stream disconnected", re.I)
 
-    def __init__(self, resume: str = ""):
+    def __init__(self, resume: str = "", notes: Path | None = None):
         self.t0 = time.time()
+        self.notes, self.notes_seen = notes, None  # bytes of the steer notes there were when the agent last looked
         self.first = None
         self.cmd = self.hooks = 0.0
         self.commands = 0
@@ -784,6 +785,10 @@ class Timing:
                     self.first = now_
                 if ev.get("type") == "item.started" and (ev.get("item") or {}).get("type") == "command_execution":
                     self.commands += 1
+                    if "TMH_NOTES" in str((ev.get("item") or {}).get("command") or ""):
+                        self.saw_notes()
+                if ev.get("type") == "assistant" and "tool_use" in s and "TMH_NOTES" in s:
+                    self.saw_notes()
                 if ev.get("type") in ("error", "turn.failed") and self.BUSY.search(s):
                     self.busy = True
         if s.startswith("ERROR") and self.BUSY.search(s):
@@ -816,6 +821,21 @@ class Timing:
                 self.tokens = int(s.strip().replace(",", ""))
         elif s.strip() == "tokens used":
             self.want_tokens = True
+
+    def saw_notes(self) -> None:
+        try:
+            self.notes_seen = self.notes.stat().st_size if self.notes else None
+        except OSError:
+            self.notes_seen = 0
+
+    def unread_notes(self, after: int = 0) -> tuple[str, int]:
+        """What people said to the run after the agent last read its notes (all of it if it never did), skipping the
+        first `after` bytes, and how long the notes are now."""
+        try:
+            data = self.notes.read_bytes() if self.notes else b""
+        except OSError:
+            return "", after
+        return data[max(self.notes_seen or 0, after):].decode("utf-8", "replace").strip(), len(data)
 
     def done(self) -> dict:
         total = max(0.0, self.last - self.t0)
@@ -2022,7 +2042,7 @@ class Runner:
             # Earlier attempt copies remain in attempts/, including an interrupted final answer.
             lm.unlink()
         engine = engine_name(agent, conf[agent])
-        parser, clock = StreamParser(engine), Timing(resume)
+        parser, clock = StreamParser(engine), Timing(resume, notes_file(self.data_dir, rid))
         try:
             cmd = command(conf, agent, mode, prompt, pf, workdir, lm, str(Path(project["root"]) / ".tmh" / "tool" / "tmh.py"), model, resume)
         except ValueError as e:
@@ -2086,6 +2106,21 @@ class Runner:
         timing.update(process_reason=process.reason, process_seconds=process.elapsed,
                       total_remaining_seconds=round(self.remaining(rid), 3), evidence=str(folder.relative_to(self.data_dir)))
         (folder / "timing.json").write_text(json.dumps(timing, ensure_ascii=False, indent=2), encoding="utf-8")
+        unread, flagged = "", rdir / "notes.unread"  # retries of one run share its notes: say each unread word once
+        if mode in STEER_MODES:
+            try:
+                before = int(flagged.read_text(encoding="utf-8") or 0)
+            except (OSError, ValueError):
+                before = 0
+            unread, size = clock.unread_notes(before)
+            if unread:
+                flagged.write_text(str(size), encoding="utf-8")
+        if unread:
+            note = ("插话没被读到：AI 最后一次查看之后才到，这次运行已经按原来的要求结束。"
+                    "要让 AI 按这句话做，请写进工单讨论再让 AI 接着做。\n" + unread)
+            st.append_output(rid, "\n— " + note + "\n")
+            if ticket:
+                st.event(ticket["id"], "system", "flow", note, {"run": rid})
         if parser.session:
             (folder / "session.txt").write_text(parser.session, encoding="utf-8")
         if process.reason != "exited":
