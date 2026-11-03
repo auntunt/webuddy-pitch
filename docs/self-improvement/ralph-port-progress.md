@@ -344,3 +344,10 @@
 - 测试：`test_stage`、`test_workbench_states` 期望文字按新说法更新，断言结构不变；`test_stage`、`test_workbench_states`、`test_platform`、`test_workbench`、`test_ui_ticket_run_sync`、`test_repo_sync` 等通过。`test_platform::test_readiness_checks_the_real_machine_worst_first` 在改动前的基线上同样失败（本机环境，与本改动无关）。ruff 对改动文件的告警数与基线相同。
 - 补充（PR #30）：CI 发现 `test_intake_recovery_api` 断言「已保存答复」，`recovering` 的文字改成「AI 正在按已保存答复补全检查项」。本机全量 2743 通过，只剩改动前就失败的 readiness 一项；CI Ubuntu 全过，Windows full suite 仍是基线上的 141 个失败加 1 个错误。
 - 发布（生产 720bc43c1a90）：服务器上解出的包里 `test_stage`、`test_workbench_states`、`test_intake_recovery_api`、`test_repo_sync` 共 54 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0。
+
+## 2026-11-03 主导航按「一次可验证交付」重排（第 2 步的第一部分）
+
+- 顶部主导航从「工作台 / 项目 / 工单 / 团队协作 / 知识与记忆 + 管理：交付 / 客户 / 设置」改成「总览 / 需求 / 版本 / 项目知识 / AI 工作记录 / 成效 + 管理：项目 / 客户 / 设置 / 成员与权限」，对应样稿里的项目内标签。
+- 只改 `NAV`、`navOf`、`navCurrent`、管理区和 `paintTabs` 的分组与文字；路由一个没删，旧链接（`#/team`、`#/atlas`、`#/kb`、`#/versions`、`#/overview`、`#/eff` 等）照常打开，并高亮到新归属（团队协作 → 需求，图谱/架构 → 项目知识，版本 → 版本，监控/提效 → 成效）。「项目工具」改名「更多」，团队协作移进「更多」。
+- 成员与权限仍按 `can_manage` 显示；后台、权限检查、阶段判定和验收闸门都没动。
+- 测试：`test_ui_navigation` 的路由表补上新分组（team 现在归到需求），断言结构不变；`tests/test_ui*.py` 与 `test_workbench` 共 308 个通过。
