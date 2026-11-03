@@ -437,3 +437,9 @@
   - 定位器没找到、但失败时的页面内容里有它要找的文字：记为「没能证明」，并交给修复脚本那一步，不再判 fail。页面里真没有这段文字的，仍然判 fail。
   - SPEC_RULES 加了一条：表格里的文字用 `getByText` 找，不依赖 `columnheader` 角色。
   - 实测机 `~/pv/verifier` 的 `@playwright/test` 从 1.48.2 升到 1.56.1。浏览器 chromium-1194 原本就缓存在机器上，没有重新下载。升级后失败时能拿到带角色的 `ariaSnapshot`，之前只能拿到摊平的页面大纲。旧的 package.json 和 lock 备份为 `*.bak-1.48.2`。
+- [PR #49](https://github.com/auntunt/webuddy-pitch/pull/49) 发布到生产（`e30e870`）之后，从界面重跑了 PETS-2、PETS-3：
+  - PETS-3（运行 347）：A1 **通过**，3 张截图。脚本改用了 `table.getByText('Pet Count', { exact: true })`，并逐行核对「Pet Count」列的数字等于 Pets 列里的宠物个数。
+  - PETS-2（运行 343）：「没有写出实测脚本」，12 秒就结束了（运行 357）。Codex 在只读沙箱里跑 `tmh flows get-owners-ownerid`，这个命令要往 `.tmh/flows.json` 写缓存，写失败就报错退出了，Codex 随后放弃，没写脚本。
+- 本次修复：
+  - `cli._load_flows`：`flows.json` 只是缓存，写不进去就跳过，只读检出里照样能返回结果。
+  - `verify`：AI 回复里没有脚本时，再问一次，并提示它按工单和改动来写；第二次仍然没有，才记「没有写出实测脚本」。

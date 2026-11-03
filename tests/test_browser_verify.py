@@ -276,3 +276,31 @@ class ReviewTest(unittest.TestCase):
         self.assertIn("仓库目录里还没有这份改动", prompt)
         self.assertIn("不管改没改，都输出完整脚本", prompt)
         self.assertNotIn("仓库目录里还没有这份改动", bv.repair_prompt("S", [], ""))
+
+
+class NoSpecTest(unittest.TestCase):
+    def test_a_reply_without_a_script_is_asked_once_more(self):
+        from types import SimpleNamespace
+        from unittest import mock
+        P = SimpleNamespace(data_dir=Path("."), store=SimpleNamespace(run=lambda rid: {"diff": "d"}))
+        replies, asked = iter(["读不到代码，没法写", "读不到代码，没法写"]), []
+
+        def ask(P, p, t, prompt):
+            asked.append(prompt)
+            return next(replies)
+        with mock.patch.object(bv, "conf", return_value={"ssh": "h", "app": "a"}), \
+                mock.patch.object(bv, "full_sha", return_value="a" * 40), \
+                mock.patch.object(bv, "run_remote") as remote, \
+                mock.patch.object(bv, "_record"):
+            out = bv.verify(P, {"key": "PETS", "root": "."}, {"title": "t"}, 3, ACS[:1], commit="abc", ask=ask)
+        self.assertEqual(len(asked), 2)
+        self.assertIn("上一次没有交回脚本", asked[1])
+        self.assertEqual(out["why"], "没有写出实测脚本")
+        remote.assert_not_called()
+
+    def test_flows_answer_in_a_read_only_checkout(self):
+        from unittest import mock
+        from tmh import cli
+        with mock.patch("tmh.flow.build_flows", return_value={"flows": []}), \
+                mock.patch.object(Path, "write_text", side_effect=OSError(30, "Read-only file system")):
+            self.assertEqual(cli._load_flows(Path(".")), {"flows": []})
