@@ -383,3 +383,10 @@
 - 结果：生产 `8a04344` 自己把克隆 HEAD 指到了基线 `500158f`，原代码 `mvn -B -q compile -DskipTests` 16.1 秒通过，证明 PR #36 的修复确实生效，不依赖手工。带改动那一步在传代码时 `scp: Connection closed`（setup，退出码 -2），平台却显示「重新验证：构建没通过」，`verify.check=fail`。
 - 测试机连不上的原因：生产机上的 frps 把 12022 端口开放到公网，104.105.159.113 从 20:42 起向它发起约 1.5 万次连接（每分钟 160 次左右），Windows 的 sshd 被挤爆，正常连接也被断开。已在生产机加 iptables：12022 只允许本机（lo 和 43.153.76.85）访问，其余丢弃；之后该来源 0 次连接，测试机恢复可达。规则没有持久化，重启后会失效。
 - 修复：新增 `fixloop.handover_failure`。代码根本没送到测试机（setup 失败）时，修改轮和重新验证都按「测试机没准备好（…）」处理，记 `check=skip`，不算构建失败；修改轮不会拿连接错误当编译错误回炉。`fix_gate` 遇到这种 skip 一律留给人或等重新验证，不会无构建自动提交；AI 验收本来就要求 `check=pass`，规则不变。
+
+## 2026-11-03 发布：测试机没准备好不再记成构建没通过（`ed3d4f6`）
+
+- [PR #38](https://github.com/auntunt/webuddy-pitch/pull/38) 合并后发布到生产：`/opt/webuddy/releases/ed3d4f6c1891-testbox-setup-not-build-20261103/app`，备份 `/opt/webuddy/backups/pre-ed3d4f6c1891-activation-20261103`。发布前服务器上用发布包跑 `tests.test_testbox tests.test_project_import tests.test_recheck_publication tests.test_run_handoff` 36 项通过；running_runs=0；两库 `integrity_check` ok；本机/公网 `/login` 200；NRestarts=0；日志无报错。
+- CI：Ubuntu 两项全量通过。Windows 两项全量失败，但合并前的主线 `3cc9365`、PR #36、PR #37 的 Windows 全量同样失败（主线 py3.11 164 failed，本 PR 141 failed，集中在 learning 与 Windows SQLite 文件占用）；本 PR 失败里的 3 个 `test_platform` 用例本机单跑通过。
+- 只经 Webuddy 界面验证（未改 PETS 代码、仓库 HEAD 或测试机项目状态）：PETS-1 运行 #339 点「重新验证本次改动」，重新验证记录 #4，22:49:33–22:50:15，测试机 `mvn -B -q compile -DskipTests` 14.2 秒通过，结果「重新验证：通过」。历史记录 #3 保留为 `kind=setup`「把改动传到测试机」exit -2（scp Connection closed），不再算构建失败。
+- 生产主机同日重启：`webuddy-guard.service` 开机加回 12022 白名单与 104.105.159.113 封禁；factory 控制台按用户决定不恢复。
