@@ -260,7 +260,7 @@ def build_commands(repo: Path, files: list) -> tuple[list, str]:
     planned = {(repo / f).parent for f in files if f.replace("\\", "/").rsplit("/", 1)[-1] == "pom.xml"}
     for f in files:
         p = (repo / f).parent
-        if f.endswith((".java", ".xml", ".yml", ".yaml", ".properties")):
+        if f.endswith((".java", ".xml", ".yml", ".yaml", ".properties")) or page_resource(f):
             pom = _up(repo, p, "pom.xml", planned)
             if pom is not None:
                 top = pom
@@ -294,6 +294,20 @@ def build_commands(repo: Path, files: list) -> tuple[list, str]:
         if check:
             seq.append(("build", ("cd %s && " % where if where != "." else "") + "pnpm install --prefer-offline && " + check))
     return seq, ("" if seq else "改动里没有能在测试机上编译检查的文件（Java 模块或带类型检查的前端）")
+
+
+PAGE_DIRS = ("/src/main/resources/", "/src/main/webapp/")
+
+
+def page_resource(f: str) -> bool:
+    """A page template or static file packaged into a Maven module (Thymeleaf, JSP, FreeMarker, its CSS and JS)."""
+    g = "/" + f.replace("\\", "/")
+    return any(d in g for d in PAGE_DIRS) and not g.endswith((".java", ".xml", ".yml", ".yaml", ".properties"))
+
+
+def page_only(files: list) -> bool:
+    """Every changed file is a page resource: compiling the module proves it packages, not that the page is right."""
+    return bool(files) and all(page_resource(f) for f in files)
 
 
 def _up(repo: Path, p: Path, name: str, planned: set = frozenset()):

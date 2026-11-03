@@ -84,6 +84,15 @@ class TestBoxTest(unittest.TestCase):
         self.assertEqual(seq, [("build", "cd app && mvn -B -q compile -DskipTests -pl core -am")], why)
         self.assertEqual(testbox.build_commands(self.repo, ["README.md"])[0], [])
 
+    def test_a_page_template_compiles_its_module_and_counts_as_page_only(self):
+        tpl = "app/core/src/main/resources/templates/vets/vetList.html"
+        seq, why = testbox.build_commands(self.repo, [tpl])
+        self.assertEqual(seq, [("build", "cd app && mvn -B -q compile -DskipTests -pl core -am")], why)
+        self.assertTrue(testbox.page_only([tpl, "app/core/src/main/webapp/a.jsp"]))
+        self.assertFalse(testbox.page_only([tpl, "app/core/A.java"]))
+        self.assertFalse(testbox.page_only([]))
+        self.assertFalse(testbox.page_only(["app/core/src/main/resources/application.properties"]))
+
     def test_a_front_end_is_checked_the_way_the_project_builds_it(self):
         import json as _json
         web = self.repo / "web"
