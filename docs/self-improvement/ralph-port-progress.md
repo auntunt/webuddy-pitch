@@ -324,3 +324,15 @@
 - 发布：服务器上解出的包里 `test_tenant_gateway`、`test_login`、`test_tenant_policy` 共 47 个用例通过。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，journal 无报错；`/login/feishu` 303 到飞书授权。
 - 在生产库副本上用发布包代码模拟（不写生产库）：本企业新身份自动开出 `测试成员`（default/member）；再登一次不重复开户；li 原有的绑定不变；别的企业被拒。还没有真实的第二位本企业成员登录过。
 - CI：Ubuntu 全过；Windows full suite 在基线上同样失败（与本改动无关）。
+
+## 2026-11-03 只有一个组织时界面不再出现租户（PR #28，生产 17cbbc305867）
+
+- 用户飞书登录成功后指出：都用飞书了，界面上的「租户 / 平台管理员 / 默认组织」没有必要。只改前端显示，后端租户、成员关系、权限检查和接口都不动。
+- `accessSingle(data)` = 租户数少于 2。成立时：
+  - 顶栏 `#tenantScope` 不显示；
+  - 「成员与权限」页隐藏「当前租户」「管理目标租户」，操作列表 `accessActionRows` 过滤掉 `tenant_*`，标题「当前租户成员」改为「成员」。
+- 有两个及以上租户时界面照旧；之后要隔离第二家客户，仍可通过接口建租户，界面会自动恢复。
+- 测试：`accessData` 夹具默认改成两个租户，原有走 `tenant_rename` 表单的用例按多租户场景跑，断言不变；新增 `test_single_tenant_hides_tenant_selector_and_tenant_actions`。
+- 发布：服务器上解出的包里 `test_tenant_gateway`、`test_login`、`test_ui_access`、`test_tenancy` 共 83 个用例通过（UI 用例要把 `tests` 加进 PYTHONPATH）。发布检查：MANIFEST_OK、两个库 integrity=ok、running_runs=0、本机和公网 /login 200、/api/projects 401、NRestarts=0，发布后 journal 无报错。
+- CI：Ubuntu 全过；Windows full suite 仍是同样的 141 个失败加 1 个错误，和 PR #26 时一致，没有 UI 用例失败。
+- 定位（和用户对齐）：Webuddy 负责老项目的维护交付（需求 → AI 改代码 → 构建、独立诊断、浏览器实测 → 证据 → 验收关单 → 版本和回滚），不是通用的团队工作台。飞书负责身份和沟通入口。
