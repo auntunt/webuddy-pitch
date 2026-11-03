@@ -231,3 +231,16 @@ class PageCheckTest(unittest.TestCase):
             self.assertEqual(bv.page_criteria(P, {"id": 1, "key": "PETS-2"}), client[:1])
         P.store.runs.assert_not_called()
 
+
+class AskAgentTest(unittest.TestCase):
+    def test_without_a_diagnose_step_the_script_is_written_by_the_route_agent(self):
+        d = Path(tempfile.mkdtemp())
+        (d / "agent-routes.json").write_text(json.dumps({"schema": 1, "default": {"agent": "cloudwave-codex", "allowed_agents": ["cloudwave-codex"]}}), encoding="utf-8")
+        P = mock.Mock(data_dir=d)
+        P.flow.autoflow.return_value = {"agent": "codex"}
+        P.runner.start.return_value = {"id": 9}
+        P.store.run.return_value = {"status": "done", "result": "spec"}
+        with mock.patch("tmh.platform.agents.available", return_value=[{"name": "cloudwave-codex", "available": True}]):
+            self.assertEqual(bv._ask(P, {"key": "PETS"}, {"key": "PETS-2"}, "q"), "spec")
+        self.assertEqual(P.runner.start.call_args.args[2], "cloudwave-codex")
+

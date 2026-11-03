@@ -389,8 +389,9 @@ ASK_S = 900
 def _ask(P, p: dict, t: dict, prompt: str) -> str:
     """The criteria-to-script step goes to the project's diagnose agent (the one that did not write the change)."""
     import time
-    from .agent_routes import step_agent
-    agent = step_agent(P.data_dir, p, "diagnose", "") or P.flow.autoflow().get("agent") or "claude"
+    from .agent_routes import resolve, step_agent
+    # no diagnose step of its own: the project's route agent, never an engine the route does not allow
+    agent = step_agent(P.data_dir, p, "diagnose", "") or resolve(P.data_dir, p, None, P.flow.autoflow().get("agent") or "claude")
     r = P.runner.start(p, t, agent, "ask", BY, question=prompt)
     end = time.monotonic() + ASK_S
     while time.monotonic() < end:
@@ -523,7 +524,7 @@ def page_check(P, rid: int, user: str) -> dict:
             out.update(result=res["result"], why=res.get("why") or "",
                        ac=[{k: i.get(k) for k in ("id", "result", "how")} for i in res.get("ac") or []])
         except Exception as e:  # noqa: BLE001 - whatever stopped it, the run shows it was not proven
-            out.update(result="unverified", why="实测没跑完：%s" % type(e).__name__, ac=[])
+            out.update(result="unverified", why="实测没跑完：%s" % (str(e)[:200] or type(e).__name__), ac=[])
         finally:
             out["finished"] = time.strftime("%Y-%m-%d %H:%M:%S")
             _page_file(P, rid).write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
