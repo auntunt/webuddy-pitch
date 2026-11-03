@@ -126,16 +126,23 @@ async function pasteModal(text,cid){
    <div class="wk-fields"><label class="wk-field full" for="pmT">需求原文<textarea id="pmT" style="min-height:140px" placeholder="例如：请假审批通过后列表里还是草稿；另外，希望请假单能导出 Excel。">${h(text||'')}</textarea></label>
     <label class="wk-field" for="pmC">客户<select id="pmC"><option value="">不记客户</option>${cs.map(c=>`<option value="${c.id}" ${String(c.id)===want?'selected':''}>${h(c.name)}</option>`).join('')}<option value="__new" ${!cs.length?'selected':''}>＋ 新客户…</option></select></label>
     <label class="wk-field" id="pmNL" for="pmN" ${cs.length?'hidden':''}>客户称呼<input id="pmN" placeholder="例如：王总（某某集团）" ${cs.length?'hidden':''}></label>
-    ${S.projects.length>1?`<label class="wk-field" for="pmP">所属项目<select id="pmP">${S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===np?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')}</select></label>`:''}</div>
+    ${S.projects.length>1?`<label class="wk-field" for="pmP">所属项目<select id="pmP">${S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===np?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')}</select></label>`:''}
+    <label class="wk-field" for="pmS">系统<select id="pmS"><option value="">不选系统</option></select></label>
+    <label class="wk-field" id="pmSNL" for="pmSN" hidden>系统名称<input id="pmSN" placeholder="例如：开评标系统（私有化部署）"></label></div>
    <div class="wk-actions"><button class="primary" id="pmGo">交给 AI 理清</button><button type="button" id="pmOld" class="ghost">直接填写工单</button></div>`,true);
   if(!has&&want&&cid==null)$('#pmC').value='';
+  const sysLoad=async()=>{const pk=$('#pmP')?$('#pmP').value:np;let ss=[];try{ss=(await get('/api/projects/'+encodeURIComponent(pk)+'/systems')).systems}catch(e){}
+    const last=ls.get('tmh.lastSystem.'+pk)||'';$('#pmS').innerHTML=`<option value="">不选系统</option>${ss.map(x=>`<option value="${x.id}" ${String(x.id)===last?'selected':''}>${h(x.name)}</option>`).join('')}<option value="__new">＋ 新系统…</option>`;$('#pmS').onchange()};
+  $('#pmS').onchange=()=>{$('#pmSNL').hidden=$('#pmS').value!=='__new';if(!$('#pmSNL').hidden)$('#pmSN').focus()};
+  if($('#pmP'))$('#pmP').addEventListener('change',sysLoad);sysLoad();
   $('#pmC').onchange=()=>{$('#pmN').hidden=$('#pmC').value!=='__new';$('#pmNL').hidden=$('#pmN').hidden;if(!$('#pmN').hidden)$('#pmN').focus()};
   if(!text)$('#pmT').focus();
   $('#pmOld').onclick=()=>{const v=$('#pmT').value;closeModal();newTicket({title:v.split('\n')[0].slice(0,60),body:v})};
   $('#pmGo').onclick=async()=>{const v=$('#pmT').value,c=$('#pmC').value,pk=$('#pmP')?$('#pmP').value:np;
     const b={project:pk,text:v};if(c==='__new'){const n=$('#pmN').value.trim();if(!n)return toast('写上客户的称呼，或者选“不记客户”');b.client_name=n}else if(c)b.client=+c;
+    const sv=$('#pmS').value;if(sv==='__new'){const n=$('#pmSN').value.trim();if(!n)return toast('写上系统名称，或者选“不选系统”');b.system_name=n}else if(sv)b.system=+sv;
     $('#pmGo').disabled=true;$('#pmGo').textContent='正在理清…';
-    try{const s=await post('/api/workbench/intake',b);ls.set('tmh.lastClient',s.client?String(s.client):'');
+    try{const s=await post('/api/workbench/intake',b);ls.set('tmh.lastClient',s.client?String(s.client):'');ls.set('tmh.lastSystem.'+pk,s.system?String(s.system):'');
       const name=c==='__new'?b.client_name:(cs.find(x=>x.id===s.client)||{}).name||'';
       intakeOpen(s,name)}catch(e){toast(e.message,5000);$('#pmGo').disabled=false;$('#pmGo').textContent='交给 AI 理清'}}}
 // the existing requirement conversation, opened on a talk that already started
@@ -206,11 +213,12 @@ function clientForm(c){c=c||{};const F=$('#clF');
   if($('#cfD'))$('#cfD').onclick=async()=>{if(!confirm('删除客户“'+c.name+'”？他的需求和工单都还在，只是不再记在他名下。'))return;try{await post('/api/clients/'+c.id,{action:'delete'});location.hash='#/clients'}catch(e){toast(e.message)}}}
 async function vClient(id){
   const d=await get('/api/clients/'+encodeURIComponent(id)),c=d.client;S.client=c;
-  const reqRow=x=>`<a class="wr" href="${x.key?'#/t/'+h(x.key):'javascript:void 0'}" ${x.talk?`data-talk="${h(x.talk)}" data-cn="${h(c.name)}"`:''}>${stChip(x.state)}<span class="grow"><b>${h(x.title)}</b><span class="sub">${h(x.why||'')}${x.version?' · 版本 '+h(x.version):''}${x.key?' · '+h(x.key):''}</span></span></a>`;
+  const reqRow=x=>`<a class="wr" href="${x.key?'#/t/'+h(x.key):'javascript:void 0'}" ${x.talk?`data-talk="${h(x.talk)}" data-cn="${h(c.name)}"`:''}>${stChip(x.state)}<span class="grow"><b>${h(x.title)}</b><span class="sub">${h(x.why||'')}${x.version?' · 版本 '+h(x.version):''}${x.key?' · '+h(x.key):''}${x.project?' · '+h(x.project)+(x.system_name?' / '+h(x.system_name):''):''}</span></span></a>`;
   const CH={web:'网页',chat:'群聊',feishu:'飞书',dingtalk:'钉钉',wecom:'企业微信',api:'接口'};
   $('#main').innerHTML=`<div class="wk"><div class="sub" style="margin-bottom:4px"><a href="#/clients">客户</a> / ${h(c.name)}</div>
    <div class="wkh"><h1 class="grow">${h(c.name)}</h1><button class="primary" id="ccSay">＋ 记录新需求</button><button id="ccEd">编辑</button><button class="ghost" id="ccLk">关联群聊或工单</button></div>
    <div class="sub" style="margin:-8px 0 12px">${h(c.contact||'没有联系方式')} · 项目 ${c.projects.map(h).join('、')||'无'}${c.notes?' · '+h(c.notes):''}</div><div id="clF"></div><div id="ccL"></div>
+   ${(d.tree||[]).length?`<section class="card" style="margin-bottom:14px" data-client-tree><h2>项目与系统</h2>${d.tree.map(p=>`<div class="wr"><span class="grow"><b>${h(p.project)}</b><span class="sub">${p.systems.length?p.systems.map(s=>`${h(s.name)}（${s.tickets} 张工单）`).join('、'):'还没有登记系统'}</span></span><button type="button" class="ghost" data-sys-add="${h(p.project)}">＋ 系统</button></div>`).join('')}</section>`:''}
    <div class="wkg"><div style="display:flex;flex-direction:column;gap:14px;min-width:0">
     <section class="card"><h2>待交付需求 ${d.owed.length?`<span class="ibn">${d.owed.length}</span>`:''}</h2>${d.owed.length?d.owed.map(reqRow).join(''):'<div class="wke">暂无待交付需求。</div>'}</section>
     <section class="card"><h2>沟通记录</h2>${d.asked.length?d.asked.map(a=>`<div class="wr"><span class="ico">${workIcon('message')}</span><span class="grow"><span class="sub">${h((a.ts||'').slice(0,16))} · ${h(CH[a.channel]||a.channel||'工单')} · ${h(a.project||'')}</span>“${h(a.text||'')}”
@@ -219,6 +227,7 @@ async function vClient(id){
     <section class="card"><h2>需求状态</h2>${d.requirements.length?d.requirements.map(x=>reqRow(x)).join(''):'<div class="wke">还没有建成需求的事。</div>'}</section>
     <section class="card"><h2>相关版本</h2>${d.versions.length?`<div class="vtl">${d.versions.map(v=>`<div><b>${h(v.project)} ${h(v.version)}</b> <span class="sub">${h((v.ts||'').slice(0,16))}</span><ul>${v.items.map(i=>`<li><a href="#/t/${h(i.key)}">${h(i.key)}</a> ${h(i.title)}</li>`).join('')}</ul></div>`).join('')}</div>`:'<div class="wke">还没有给他出过版本。</div>'}
      ${c.projects.length?`<div class="row" style="margin-top:6px;gap:8px">${c.projects.map(p=>`<a class="btn" href="#/versions/${h(p)}">查看 ${h(p)} 版本与分享</a>`).join('')}</div>`:''}</section></div></div></div>`;
+  document.querySelectorAll('[data-sys-add]').forEach(b=>b.onclick=async()=>{const n=prompt('在 '+b.dataset.sysAdd+' 下登记一个系统（例如：开评标系统（私有化部署））');if(!n||!n.trim())return;try{await post('/api/projects/'+encodeURIComponent(b.dataset.sysAdd)+'/systems',{name:n.trim()});toast('已登记');vClient(c.id)}catch(e){toast(e.message,5000)}});
   $('#ccSay').onclick=()=>pasteModal('',c.id);$('#ccEd').onclick=()=>clientForm(c);
   $('#ccLk').onclick=async()=>{let ch=[];try{ch=(await get('/api/chats')).chats}catch(e){}
     $('#ccL').innerHTML=`<div class="card" style="margin-bottom:14px;display:flex;flex-direction:column;gap:8px"><h2 style="margin:0">关联到 ${h(c.name)}</h2>
@@ -232,7 +241,7 @@ async function vClient(id){
 async function vReqs(){
   const d=await get('/api/requirements?project='+encodeURIComponent(scopeQ()));
   const item=x=>x.kind==='talk'?`<a class="rqi" href="javascript:void 0" data-talk="${h(x.id)}" data-cn="${h(x.client_name)}"><b>${h(x.title)}</b><span class="sub">${x.client_name?h(x.client_name)+' · ':''}${h(x.why)}</span></a>`
-    :`<a class="rqi" href="#/t/${h(x.key)}"><b>${h(x.title)}</b><span class="sub">${x.client_name?h(x.client_name)+' · ':''}${h(x.why||'')}${x.version?' · '+h(x.version):''}</span><span class="sub">${h(x.key)}${x.epic?' · 大需求':''}${x.parent?' · 属于 '+h(x.parent):''}</span></a>`;
+    :`<a class="rqi" href="#/t/${h(x.key)}"><b>${h(x.title)}</b><span class="sub">${x.client_name?h(x.client_name)+' · ':''}${x.system_name?h(x.system_name)+' · ':''}${h(x.why||'')}${x.version?' · '+h(x.version):''}</span><span class="sub">${h(x.key)}${x.epic?' · 大需求':''}${x.parent?' · 属于 '+h(x.parent):''}</span></a>`;
   $('#main').innerHTML=`<div class="wk"><div class="wkh"><div class="wk-heading"><h1>需求</h1><div class="sub">${d.columns.reduce((n,c)=>n+c.items.length,0)} 项需求 · 按当前状态推进</div></div><button class="primary" onclick="pasteModal('')">＋ 记录需求</button></div>
    <div class="rqb">${d.columns.map(c=>`<div class="rqc"><h3><span>${stChip(c.key)}</span><span class="sub">${c.items.length}</span></h3>${c.items.length?c.items.map(item).join(''):'<div class="wke">暂无需求</div>'}</div>`).join('')}</div></div>`;
   poll(async()=>{if(!$('.rqb')||document.hidden)return;try{const n=await get('/api/requirements?project='+encodeURIComponent(scopeQ()));if(JSON.stringify(n)!==JSON.stringify(d))vReqs()}catch(e){}},8000,'page')}
@@ -290,7 +299,9 @@ async function ticketTopWire(d,na){const t=d.ticket,key=t.key;
   if($('#ttNo'))$('#ttNo').onclick=()=>{const n=$('#accNote');n.scrollIntoView({block:'center',behavior:'smooth'});n.focus();n.placeholder='写明哪里不对，写好后点“验收不通过”';toast('写明哪里不对，再点“验收不通过”',4000)};
   if($('#ttSend'))$('#ttSend').onclick=()=>{if(!ticketSignoffGuard(d))return;const b=$('#pkLink');if(!b)return toast('证据包还没打好，稍等一下');b.click();$('#pkg').scrollIntoView({block:'start',behavior:'smooth'});const nm=S.ttClient;if(nm&&$('#pkS'))$('#pkS').value=nm};
   if($('#ttHw'))$('#ttHw').onclick=()=>{$('#engc').open=true;setTimeout(()=>{const c=$('#hwc');if(c&&!c.hidden)c.scrollIntoView({block:'start',behavior:'smooth'})},300)};
-  S.ttClient='';const cid=(t.links||{}).client;
-  if(cid)get('/api/clients').then(r=>{const c=r.clients.find(x=>x.id===cid);if(c&&$('#ttCl')){S.ttClient=c.name;$('#ttCl').innerHTML=`<a class="tag" href="#/c/${c.id}">${h(c.name)}</a>`}}).catch(()=>{});
+  S.ttClient='';const cid=(t.links||{}).client,sid=(t.links||{}).system,pk=key.replace(/-\d+$/,'');
+  Promise.all([cid?get('/api/clients').catch(()=>({clients:[]})):{clients:[]},get('/api/projects/'+encodeURIComponent(pk)+'/systems').catch(()=>({systems:[]}))]).then(([r,sy])=>{const el=$('#ttCl');if(!el)return;const c=(r.clients||[]).find(x=>x.id===cid);if(c)S.ttClient=c.name;
+    el.innerHTML=`<span class="sub" data-archive>${c?`<a class="tag" href="#/c/${c.id}">${h(c.name)}</a>`:'<span class="tag">未记客户</span>'} / <span class="tag">${h(pk)}</span> / <select id="ttSys" aria-label="系统" style="padding:2px 6px"><option value="">未选系统</option>${(sy.systems||[]).map(x=>`<option value="${x.id}" ${x.id===sid?'selected':''}>${h(x.name)}</option>`).join('')}</select></span>`;
+    $('#ttSys').onchange=async e=>{try{await post('/api/tickets/'+key+'/system',{system:e.target.value?+e.target.value:null});toast(e.target.value?'已归到系统':'已取消系统归档')}catch(x){toast(x.message,5000)}}}).catch(()=>{});
   if($('#ttPv'))await pvLoad(key)}
 """

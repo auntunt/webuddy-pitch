@@ -39,6 +39,12 @@ CREATE TABLE IF NOT EXISTS client_links (
   id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL, kind TEXT NOT NULL, ref TEXT NOT NULL, ts TEXT NOT NULL, who TEXT DEFAULT '',
   UNIQUE(kind, ref));
 CREATE INDEX IF NOT EXISTS ix_client_links ON client_links(client_id);
+CREATE TABLE IF NOT EXISTS systems (
+  id INTEGER PRIMARY KEY, project TEXT NOT NULL, name TEXT NOT NULL, notes TEXT DEFAULT '', created TEXT NOT NULL, who TEXT DEFAULT '',
+  UNIQUE(project, name));
+CREATE TABLE IF NOT EXISTS system_links (
+  id INTEGER PRIMARY KEY, system_id INTEGER NOT NULL, kind TEXT NOT NULL, ref TEXT NOT NULL, ts TEXT NOT NULL, who TEXT DEFAULT '',
+  UNIQUE(kind, ref));
 """
 KINDS = ("intake", "chat", "ticket")
 SHARE_DAYS = 30
@@ -196,6 +202,120 @@ def _set_client(P, t: dict, cid, by: str, why: str) -> None:
     P.store.event(t["id"], by or "平台", "client", text, {"client": cid, "from": old})
 
 
+# ---------------------------------------------------------------- systems: client → project → system
+# A project is one code base; a system is one deployment of it (a client's private install of the product, a
+# module run on its own). A requirement talk or a ticket is filed under one system of its project.
+
+def systems(P, project=None) -> list:
+    _db(P)
+    rows = (P.store.q("SELECT * FROM systems WHERE project=? ORDER BY name", (project.upper(),)) if project
+            else P.store.q("SELECT * FROM systems ORDER BY project, name"))
+    n = {}
+    for t in P.store.q("SELECT links FROM tickets WHERE links LIKE '%\"system\"%'"):
+        sid = (t["links"] or {}).get("system")
+        if sid:
+            n[sid] = n.get(sid, 0) + 1
+    for r in rows:
+        r["tickets"] = n.get(r["id"], 0)
+    return rows
+
+
+def system(P, sid) -> dict:
+    _db(P)
+    try:
+        r = P.store.one("SELECT * FROM systems WHERE id=?", (int(sid),))
+    except (TypeError, ValueError):
+        r = None
+    if not r:
+        raise ApiError(404, "没有这个系统")
+    return r
+
+
+def create_system(P, project: str, name: str, notes: str = "", by: str = "") -> dict:
+    _db(P)
+    p = P.project(project)
+    name = str(name or "").strip()[:40]
+    if not name:
+        raise ApiError(400, "写上系统名称，比如“开评标系统（私有化）”")
+    if P.store.one("SELECT id FROM systems WHERE project=? AND name=?", (p["key"], name)):
+        raise ApiError(409, "%s 下已经有叫“%s”的系统了" % (p["key"], name))
+    sid = P.store.x("INSERT INTO systems(project,name,notes,created,who) VALUES(?,?,?,?,?)",
+                    (p["key"], name, str(notes or "").strip()[:500], now(), by or ""))
+    return system(P, sid)
+
+
+def system_names(P) -> dict:
+    _db(P)
+    return {r["id"]: r["name"] for r in P.store.q("SELECT id, name FROM systems")}
+
+
+def system_of(P, kind: str, ref: str):
+    _db(P)
+    r = P.store.one("SELECT system_id FROM system_links WHERE kind=? AND ref=?", (kind, str(ref)))
+    return r["system_id"] if r else None
+
+
+def _set_system(P, t: dict, sid, by: str, why: str = "") -> bool:
+    links = dict(t.get("links") or {})
+    old = links.get("system")
+    if old == sid:
+        return False
+    if sid:
+        links["system"] = sid
+    else:
+        links.pop("system", None)
+    P.store.update_ticket(t["id"], by, links=links, drop_system=not sid)
+    names = system_names(P)
+    text = ("归到系统 %s" % names.get(sid, sid) if sid else "不再归到系统 %s" % names.get(old, old)) + (("，" + why) if why else "")
+    P.store.event(t["id"], by or "平台", "system", text, {"system": sid, "from": old})
+    return True
+
+
+def link_system(P, sid, kind: str, ref: str, by: str = "") -> dict:
+    """File a requirement talk or a ticket under one system of its own project (sid empty: take the ticket off)."""
+    _db(P)
+    if kind not in ("intake", "ticket"):
+        raise ApiError(400, "只能把需求对话（intake）或工单（ticket）归到系统")
+    s = system(P, sid) if sid else None
+    if kind == "intake":
+        from . import intake
+        proj = intake.load(P.data_dir, str(ref)).get("project", "")
+    else:
+        t = P.ticket(ref)
+        ref, proj = t["key"], t["key"].rsplit("-", 1)[0]
+    if s and s["project"] != proj:
+        raise ApiError(409, "系统“%s”属于项目 %s，不是 %s" % (s["name"], s["project"], proj))
+    if s:
+        P.store.x("INSERT INTO system_links(system_id,kind,ref,ts,who) VALUES(?,?,?,?,?) "
+                  "ON CONFLICT(kind, ref) DO UPDATE SET system_id=excluded.system_id, ts=excluded.ts, who=excluded.who",
+                  (s["id"], kind, str(ref), now(), by or ""))
+    else:
+        P.store.x("DELETE FROM system_links WHERE kind=? AND ref=?", (kind, str(ref)))
+    if kind == "ticket":
+        _set_system(P, P.store.ticket(ref), s["id"] if s else None, by, "")
+    else:
+        sync(P, by)
+    return {"system": s["id"] if s else None, "kind": kind, "ref": str(ref)}
+
+
+def _sync_systems(P, by: str) -> int:
+    """A ticket made from a talk filed under a system, or under a parent that has one, gets that system."""
+    n = 0
+    for r in P.store.q("SELECT * FROM system_links WHERE kind='intake'"):
+        for k in _keys_of(P, "intake", r["ref"]):
+            for t in [P.store.ticket(k)] + _children(P, k):
+                if t and not (t.get("links") or {}).get("system"):
+                    n += _set_system(P, t, r["system_id"], by or "平台", "来自需求对话")
+    for t in P.store.q("SELECT id, links FROM tickets WHERE links LIKE '%\"parent\"%'"):
+        links = t["links"] or {}
+        if links.get("parent") and not links.get("system"):
+            pt = P.store.ticket(links["parent"])
+            ps = (pt.get("links") or {}).get("system") if pt else None
+            if ps:
+                n += _set_system(P, P.store.ticket(t["id"]), ps, by or "平台", "跟着大需求 %s" % pt["key"])
+    return n
+
+
 def _keys_of(P, kind: str, ref: str) -> list:
     """The tickets made from a requirement talk or a group conversation."""
     if kind == "intake":
@@ -331,7 +451,7 @@ def sync(P, by: str = "") -> int:
         if t and not (t.get("links") or {}).get("client"):
             _set_client(P, t, cid, by or "平台", why)
             n += 1
-    return n
+    return n + _sync_systems(P, by)
 
 
 # ---------------------------------------------------------------- plain states
@@ -411,6 +531,7 @@ def requirements(P, project=None) -> dict:
     """Every requirement, in plain-word columns: the talks still being understood, then the tickets."""
     project = (project or "").upper() or None
     cl = {c["id"]: c["name"] for c in clients(P)}
+    sn = system_names(P)
     cols = {k: [] for k, _ in STATES}
     for s in _talks(P):
         if s.get("state") in ("confirmed", "dropped") or (project and s.get("project") != project):
@@ -418,6 +539,7 @@ def requirements(P, project=None) -> dict:
         cid = client_of(P, "intake", s["id"])
         cols["talk"].append({"kind": "talk", "id": s["id"], "project": s.get("project"), "title": re.sub(r"\s+", " ", s.get("text") or "")[:80],
                              "client": cid, "client_name": cl.get(cid, ""), "since": s.get("created"), "questions": _open_questions(s),
+                             "system_name": sn.get(system_of(P, "intake", s["id"]), ""),
                              "why": "还有 %d 个问题没答" % _open_questions(s) if _open_questions(s) else "理清了，等你确认建单"})
     ts = _tickets(P, project)
     st = states(P, ts)
@@ -425,6 +547,7 @@ def requirements(P, project=None) -> dict:
         x = st[t["key"]]
         cid = (t.get("links") or {}).get("client")
         cols[x["state"]].append({"kind": "ticket", "key": t["key"], "title": t["title"], "client": cid, "client_name": cl.get(cid, ""),
+                                 "system_name": sn.get((t.get("links") or {}).get("system"), ""),
                                  "why": x["why"], "version": x["version"], "since": t["updated"], "status": t["status"],
                                  "epic": bool((t.get("links") or {}).get("epic")), "parent": (t.get("links") or {}).get("parent", "")})
     cols["done"] = cols["done"][:30]
@@ -452,12 +575,15 @@ def client_view(P, cid) -> dict:
                           "tickets": conv.get("tickets") or []})
     ts = _tickets(P, client_id=c["id"])
     st = states(P, ts)
+    sn = system_names(P)
     reqs = []
     from_talk = {k for a in asked for k in a.get("tickets") or []}
     for t in ts:
         x = st[t["key"]]
         reqs.append({"key": t["key"], "title": t["title"], "said": _said(t), "created": t["created"], "updated": t["updated"],
                      "state": x["state"], "label": x["label"], "why": x["why"], "version": x["version"],
+                     "project": t["key"].rsplit("-", 1)[0], "system": (t.get("links") or {}).get("system"),
+                     "system_name": sn.get((t.get("links") or {}).get("system"), ""),
                      "parent": (t.get("links") or {}).get("parent", "")})
         if t["key"] not in from_talk:
             asked.append({"kind": "ticket", "id": t["key"], "ts": t["created"], "text": _said(t), "project": t["key"].rsplit("-", 1)[0],
@@ -475,7 +601,9 @@ def client_view(P, cid) -> dict:
     owed += [{"kind": "talk", "key": "", "title": a["text"][:60], "state": "talk", "label": STATE_LABEL["talk"],
               "why": "还有 %d 个问题没答" % a["questions"] if a.get("questions") else "理清了，等你确认建单", "talk": a["id"]}
              for a in asked if a["kind"] == "talk" and a.get("state") not in ("confirmed", "dropped")]
-    return {"client": c, "asked": asked[:50], "requirements": reqs, "versions": versions[:30], "owed": owed,
+    projs = sorted(set(c["projects"]) | {t["key"].rsplit("-", 1)[0] for t in ts})
+    tree = [{"project": k, "systems": systems(P, k)} for k in projs]
+    return {"client": c, "tree": tree, "asked": asked[:50], "requirements": reqs, "versions": versions[:30], "owed": owed,
             "counts": {k: sum(1 for x in reqs if x["state"] == k) for k, _ in STATES}}
 
 
@@ -642,12 +770,21 @@ def reap(P, at: float | None = None) -> list:
 def _inherit(P, t: dict, who: str) -> None:
     """A ticket made under a parent (a big requirement's child) is for the parent's client."""
     par = (t.get("links") or {}).get("parent")
-    if not par or (t.get("links") or {}).get("client"):
+    if not par:
+        return
+    if (t.get("links") or {}).get("client"):
+        pt = P.store.ticket(par)
+        sid = (pt.get("links") or {}).get("system") if pt else None
+        if sid and not (t.get("links") or {}).get("system"):
+            _set_system(P, P.store.ticket(t["id"]), sid, who or "平台", "跟着大需求 %s" % pt["key"])
         return
     pt = P.store.ticket(par)
     cid = (pt.get("links") or {}).get("client") if pt else None
     if cid:
         _set_client(P, t, cid, who or "平台", "跟着大需求 %s" % pt["key"])
+    sid = (pt.get("links") or {}).get("system") if pt else None
+    if sid and not (t.get("links") or {}).get("system"):
+        _set_system(P, P.store.ticket(t["id"]), sid, who or "平台", "跟着大需求 %s" % pt["key"])
 
 
 def wire(P, *, background=True) -> None:

@@ -465,3 +465,17 @@
     - 工单时间线（事件 `steer`）。
   - 执行器拿到环境变量 `TMH_NOTES`。analyze / plan / fix / understand / chart / kb 这几类运行的首轮提示词带 `agents.steer_hint`：开始时和每一步之前 `cat "$TMH_NOTES"`，按最新的话调整，并在最终回复里写明怎么处理的。重试轮和续接会话不再追加这段。
   - `tests/test_platform.py::test_readiness_checks_the_real_machine_worst_first` 在改动前的基线上同样失败，属于本机环境问题，跟这次无关。
+- 新增「客户 → 项目 → 系统」三级归档（演示脚本第 ① 段）。原来只有客户和项目两级，项目又只是一份代码库，同一份标品私有化部署给不同客户，没地方区分是哪一套。
+  - workbench 增加 `systems` 表（`project + name` 唯一）和 `system_links` 表（`kind = intake | ticket`）。
+  - 工单 `links.system` 存所属系统；`store.update_ticket` 像保留 client 一样保留 system，除非显式传 `drop_system`。
+  - `sync` / `_inherit`：从需求对话建出来的单、大需求下的子单，自动跟着归到同一个系统。
+  - 新增接口：
+    - `GET /api/projects/<key>/systems`、`POST /api/projects/<key>/systems`：列出 / 登记系统；
+    - `POST /api/tickets/<key>/system {system}`：给工单设置或取消系统。系统不属于工单所在项目时返回 409。
+  - `/api/workbench/intake` 接受 `system`；也接受 `system_name`，没有同名系统就新建。
+  - 界面：
+    - 「记录需求」窗口多一个「系统」下拉；
+    - 工单顶部显示「客户 / 项目 / 系统」，系统可以直接改；
+    - 客户页多一块「项目与系统」，能登记新系统；
+    - 需求列表和客户页的需求行带上系统名。
+  - 租户策略增加 3 条路由，共 191 条。测试：`tests/test_systems.py`。

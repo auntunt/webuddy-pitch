@@ -3346,11 +3346,41 @@ def api_workbench_intake(P, req):
                 if not hit:
                     raise
                 cid = hit["id"]
+    sid = b.get("system")
+    if sid:
+        if workbench.system(P, sid)["project"] != p["key"]:
+            raise ApiError(409, "这个系统不属于项目 %s" % p["key"])
+    elif (b.get("system_name") or "").strip():
+        name = b["system_name"].strip()[:40]
+        hit = next((x for x in workbench.systems(P, p["key"]) if x["name"] == name), None)
+        sid = hit["id"] if hit else workbench.create_system(P, p["key"], name, "", req.user)["id"]
     s = intake.start(P, p, b.get("text", ""), req.user, b.get("channel") or "web", _chooser(P, p) if b.get("model", True) is not False else None,
                      big=bool(b.get("big")), agent=b.get("model", True) is not False)
     if cid:
         workbench.link(P, cid, "intake", s["id"], req.user)
-    return dict(s, client=int(cid) if cid else None)
+    if sid:
+        workbench.link_system(P, sid, "intake", s["id"], req.user)
+    return dict(s, client=int(cid) if cid else None, system=int(sid) if sid else None)
+
+
+@route("GET", "/api/projects/<key>/systems")
+def api_systems(P, req, key):
+    from . import workbench
+    return {"systems": workbench.systems(P, P.project(key)["key"])}
+
+
+@route("POST", "/api/projects/<key>/systems")
+def api_system_new(P, req, key):
+    """{"name", "notes"}: a deployment of this project (客户 → 项目 → 系统)."""
+    from . import workbench
+    return workbench.create_system(P, key, req.body.get("name", ""), req.body.get("notes", ""), req.user)
+
+
+@route("POST", "/api/tickets/<key>/system")
+def api_ticket_system(P, req, key):
+    """{"system": id | null}: file the ticket under one system of its project."""
+    from . import workbench
+    return workbench.link_system(P, req.body.get("system"), "ticket", key, req.user)
 
 
 @route("GET", "/api/requirements")
