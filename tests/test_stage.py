@@ -86,6 +86,12 @@ class TableTest(unittest.TestCase):
         g = decide(T("new"), dict(ON, auto=False, stall="自动处理关着，没人接手"))
         self.assertEqual((g["key"], g["who"], g["label"]), ("stalled", "person", "自动处理关着，没人接手"))
 
+    def test_an_ops_ticket_waits_for_ops_not_the_automatic_line(self):
+        g = decide(dict(T("new"), type="ops"), ON)
+        self.assertEqual((g["key"], g["who"]), ("ops", "person"))
+        self.assertEqual(decide(dict(T("new"), type="ops"), dict(ON, auto=False))["key"], "ops")
+        self.assertEqual(decide(dict(T("new", open_ac=1), type="ops"), ON)["key"], "open_ac")
+
     def test_confirm_and_cancelled(self):
         self.assertEqual(decide(T("confirm"), ON)["key"], "confirm")
         self.assertEqual(decide(T("doing"), dict(ON, last={"mode": "fix", "status": "cancelled"}))["key"], "cancelled")
