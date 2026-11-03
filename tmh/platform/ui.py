@@ -6,6 +6,7 @@ The product name comes from --brand; the visual contract is recorded in DESIGN.m
 from __future__ import annotations
 
 from .ui_atlas import ATLAS_CSS, ATLAS_JS
+from .ui_states import STATES_CSS, STATES_JS
 from .ui_access import ACCESS_BOOT_JS, ACCESS_CSS, ACCESS_JS
 from .ui_css import CSS
 from .ui_work import WORK_CSS, WORK_JS
@@ -24,7 +25,7 @@ from .ui_pilots import PILOTS_CSS, PILOTS_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS + COORDINATION_CSS + PILOTS_CSS).replace("/*JS*/", ACCESS_BOOT_JS + JS + ATLAS_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS + COORDINATION_JS + PILOTS_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + STATES_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS + COORDINATION_CSS + PILOTS_CSS).replace("/*JS*/", ACCESS_BOOT_JS + JS + ATLAS_JS + STATES_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS + COORDINATION_JS + PILOTS_JS)
 
 
 HTML = r"""<!doctype html>
@@ -164,7 +165,7 @@ function paintTabs(tab){
     runs:[['runs','AI 工作记录']],
     insights:[['lead','运维成效'],['overview','监控'],['eff','提效报告']],
     team:[['team','分配与复核']],
-    memory:[['memory','项目知识'],['kb','知识页'],['atlas','业务与代码图谱'],['map','架构依据'],['library','参考与引用'],['learn','经验复盘'],['handoff','项目交接']]};
+    memory:[['memory','项目知识'],['kb','知识页'],['atlas','业务与代码图谱'],['states','业务状态图'],['map','架构依据'],['library','参考与引用'],['learn','经验复盘'],['handoff','项目交接']]};
   const rows=sets[group]||sets.projects, extras=[['clients','客户'],['team','分配与复核'],['rdeps','依赖清单'],['int','外部系统'],['settings','设置']];
   $('#tabs').hidden=['workspace','projects','team','memory','access'].includes(v);
   $('#tabs').setAttribute('aria-label','当前工作区');
@@ -212,7 +213,7 @@ function render(){
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
   if(!S.proj&&!['settings','access','deliveries','delivery','workspace','projects','memory','team','meetings','pilots'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
-  const V={pilots:()=>vPilots(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||''),decodeURIComponent(r[3]||''),decodeURIComponent(r[4]||'')),meetings:()=>vMeetings(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings,access:vAccess}[view]||(()=>{location.hash='#/workspace'});
+  const V={pilots:()=>vPilots(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||''),decodeURIComponent(r[3]||''),decodeURIComponent(r[4]||'')),meetings:()=>vMeetings(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),states:()=>vStates(decodeURIComponent(r[1]||'')),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings,access:vAccess}[view]||(()=>{location.hash='#/workspace'});
   if(view!=='t')A.setTicket(null);
   paintSel();
   if(view==='atlas'&&$('#atl')){S.renderP=Promise.resolve(vAtlas(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}
@@ -228,7 +229,7 @@ function remember(){const r=location.hash||'#/';const t=(($('#main h1')||{}).tex
 function recents(){try{return JSON.parse(ls.get('tmh.recent.'+S.proj)||'[]')}catch(e){return[]}}
 async function showPoints(){
   const r=await get('/api/projects/'+S.proj+'/points');
-  const L={ask:'助手起草',analyze:'分析定位',plan:'修改方案',fix:'修改代码',kb:'撰写知识页'};
+  const L={ask:'助手起草',analyze:'分析定位',plan:'修改方案',fix:'修改代码',kb:'撰写知识页',chart:'画业务状态图'};
   modal(`<h2>点卡 · ${h(S.proj)}</h2><div class="row" style="align-items:baseline;gap:10px"><b style="font-size:30px;font-variant-numeric:tabular-nums">${r.balance.toLocaleString()}</b><span class="sub">剩余点数</span></div>
    <div class="hint" style="margin:10px 0">点卡按实际消耗计：只有“生成”类动作扣点（助手起草、分析定位、修改方案、修改代码、撰写知识页），看工单、查依据、打开详情都不扣。单价待定（19 号确认），现在是演示价。</div>
    <h3>演示价</h3><div class="tags" style="margin-bottom:12px">${Object.entries(r.prices).map(([k,v])=>`<span class="ev-tag mute">${h(L[k]||k)} ${v} 点</span>`).join('')}</div>

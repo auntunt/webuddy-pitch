@@ -20,7 +20,7 @@ import re
 from .store import STATUSES
 
 STATUS = dict(STATUSES)
-MODE = {"analyze": "分析定位", "plan": "修改方案", "fix": "修改代码", "kb": "撰写知识页", "ask": "助手问答"}
+MODE = {"analyze": "分析定位", "plan": "修改方案", "fix": "修改代码", "kb": "撰写知识页", "chart": "画业务状态图", "ask": "助手问答"}
 KEY = re.compile(r"\b([A-Za-z][A-Za-z0-9]{0,9})-(\d{1,5})\b")
 
 # why a run failed, from the tail of what the agent printed; first match wins

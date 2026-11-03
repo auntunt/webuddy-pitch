@@ -46,10 +46,12 @@ from pathlib import Path
 from .reports import ANALYZE_REPORT
 from .store import RUN_MODES, Store, now
 
+from .statecharts import FORMAT as STATECHART_FORMAT
+
 BUILTIN = {
     "claude": {"title": "Claude Code", "bin": "claude",
                "models": [["opus", "Opus（最强，适合方案和改码）"], ["sonnet", "Sonnet（均衡，适合分析和写知识页）"], ["haiku", "Haiku（最快最省）"]],
-               "defaults": {"plan": "opus", "fix": "opus", "analyze": "sonnet", "kb": "sonnet", "ask": "sonnet",
+               "defaults": {"plan": "opus", "fix": "opus", "analyze": "sonnet", "kb": "sonnet", "chart": "sonnet", "ask": "sonnet",
                             "edit": "sonnet", "diagnose": "opus", "understand": "sonnet"}},
     "codex": {"title": "Codex", "bin": "codex",
               "models": [["gpt-5-codex", "GPT-5 Codex"], ["gpt-5", "GPT-5"]], "defaults": {}},
@@ -229,6 +231,20 @@ MODE_TEXT = {
 1. 运行 `tmh kb next --page {target}` 领取页面，按它给出的说明阅读代码并填写页面（只改 .tmh/knowledge/ 下的这个页面）。
 2. 写完运行 `tmh kb done {target}` 校验，按提示修正直到通过。
 3. 不要修改业务代码。最后用中文概括这个页面写了什么、有哪些【推断】需要人确认。""",
+    "chart": """## 你的任务：画业务状态图（只写 .tmh/knowledge/statecharts/ 下的文件，不改业务代码）
+范围：{target}
+1. 先读 .tmh/flows.json、.tmh/knowledge/domains.json 和已有知识页，再读相关代码：入口、表单校验、跳转、保存。
+2. 每个业务域写一个文件 `.tmh/knowledge/statecharts/<业务域 key>.json`（已有就在原文件上改），格式：
+```json
+""" + STATECHART_FORMAT + """
+```
+3. 状态写成使用者在页面上看得到的样子（如“主人详情”“添加宠物”），步骤写成触发它的操作或条件（如“点保存”“电话不是 10 位”）。
+   状态 id 只用英文字母、数字和下划线，用 `state "中文名" as id` 标名字；一张图不超过 15 个状态。
+4. 规则只写代码里真的有的约束，或业务人员一看就会认同的约定，一条一句话，where 写 `文件:行号`。
+5. 只有能在代码里指出一条具体路径会打破某条规则时，才写进 paths：steps 按顺序列出经过的状态 id，最后一个是打破规则的状态，
+   note 写这一步发生了什么（带 文件:行号）。拿不准就不写，放进最后的说明里。
+6. commit 写 `git rev-parse HEAD` 的结果；不要写 status（平台按“待确认”处理，由人确认）。
+7. 写完用 `python3 -m json.tool <文件>` 检查每个文件都能解析。最后用中文逐张概括画了什么、有哪些【推断】需要人确认。""",
 }
 
 
@@ -628,13 +644,13 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
             cmd += ["--allowedTools", "", "--disallowedTools", ",".join(NO_TOOLS)]
         elif mode in ("fix", "edit"):
             cmd += ["--permission-mode", "acceptEdits", "--allowedTools", ",".join(read + ["Edit", "Write", "MultiEdit"])]
-        elif mode == "kb":
+        elif mode in ("kb", "chart"):
             cmd += ["--permission-mode", "acceptEdits", "--allowedTools", ",".join(read + ["Edit", "Write"])]
         else:
             cmd += ["--allowedTools", ",".join(read), "--disallowedTools", "Edit,Write,MultiEdit,NotebookEdit"]
         return cmd + extra
     if engine == "codex":
-        sandbox = "workspace-write" if mode in ("fix", "edit", "kb") else "read-only"
+        sandbox = "workspace-write" if mode in ("fix", "edit", "kb", "chart") else "read-only"
         if c.get("profile"):
             extra = ["--profile", c["profile"]] + extra
         if c.get("engine") == "codex" and "--json" not in extra:
@@ -1460,6 +1476,8 @@ class Runner:
             member_profile, member_binding = member_codex_binding(conf[agent], model)
             member_route = member_route_binding(self.data_dir, project, agent)
             batch = 'member:' + secrets.token_hex(16)
+        if mode == "chart" and not target:
+            target = "全部业务域，每个业务域一张"
         if mode == "kb" and not target:
             raise ValueError("撰写知识页需要指定页面 id")
         if mode == "ask" and not question.strip():
@@ -1590,7 +1608,7 @@ class Runner:
 
     def _take(self, rid, mode) -> bool:
         """Wait for a slot; False when the run was cancelled meanwhile. max_agents in autoflow.json (default 4, 0 = no limit)."""
-        item = (1 if mode == "kb" else 0, rid)
+        item = (1 if mode in ("kb", "chart") else 0, rid)
         with self.slots:
             self.waiting.append(item)
             try:

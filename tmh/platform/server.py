@@ -159,7 +159,7 @@ class Platform:
     # Usage is shown as points so the cost of generating is visible where it happens.
     # Fixed prices per action (demo-friendly, no token counting on stage); override in <data>/pricing.json:
     # {"initial": 20000, "prices": {"ask": 3, "analyze": 10, ...}}. Reading and evidence lookups are free.
-    PRICES = {"ask": 3, "analyze": 10, "plan": 10, "fix": 30, "kb": 5}
+    PRICES = {"ask": 3, "analyze": 10, "plan": 10, "fix": 30, "kb": 5, "chart": 10}
     INITIAL = 20000
 
     def _load_pricing(self) -> dict:
@@ -1596,6 +1596,11 @@ def api_atlas(P, req, key):
 @route("GET", "/api/projects/<key>/atlas/flow/<fid>")
 def api_atlas_flow(P, req, key, fid):
     return P.kb.atlas_flow(P.project(key), unquote(fid))
+
+
+@route("GET", "/api/projects/<key>/statecharts")
+def api_statecharts(P, req, key):
+    return P.kb.statecharts(P.project(key))
 
 
 @route("GET", "/api/projects/<key>/arch")
@@ -3773,6 +3778,11 @@ def make_handler(P: Platform, token: str = ""):
                         f.unlink(missing_ok=True)
                     return self._send(200, data, "application/octet-stream",
                                       {"Content-Disposition": "attachment; filename=\"%s.bundle\"" % m.group(1).upper()})
+                if path == "/ui/pele.js":  # the state-chart renderer, loaded only by the 业务状态图 page
+                    if not self._authorized(q):
+                        return self._send(401, b"unauthorized", "text/plain")
+                    return self._send(200, (Path(__file__).parent / "vendor" / "pele.global.js").read_bytes(),
+                                      "application/javascript; charset=utf-8", {"Cache-Control": "private, max-age=86400"})
                 m = re.match(r"^/p/([^/]+)/report/(.*)$", path)
                 if m:
                     if not self._authorized(q):

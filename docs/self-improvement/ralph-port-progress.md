@@ -390,3 +390,12 @@
 - CI：Ubuntu 两项全量通过。Windows 两项全量失败，但合并前的主线 `3cc9365`、PR #36、PR #37 的 Windows 全量同样失败（主线 py3.11 164 failed，本 PR 141 failed，集中在 learning 与 Windows SQLite 文件占用）；本 PR 失败里的 3 个 `test_platform` 用例本机单跑通过。
 - 只经 Webuddy 界面验证（未改 PETS 代码、仓库 HEAD 或测试机项目状态）：PETS-1 运行 #339 点「重新验证本次改动」，重新验证记录 #4，22:49:33–22:50:15，测试机 `mvn -B -q compile -DskipTests` 14.2 秒通过，结果「重新验证：通过」。历史记录 #3 保留为 `kind=setup`「把改动传到测试机」exit -2（scp Connection closed），不再算构建失败。
 - 生产主机同日重启：`webuddy-guard.service` 开机加回 12022 白名单与 104.105.159.113 封禁；factory 控制台按用户决定不恢复。
+
+## 2026-11-03：业务状态图页与项目知识页统一样式
+
+- 用户看过 pstack/poteto 思路的样稿后要求：状态图顺应 Webuddy 自己的风格而不是另起主题，其他知识页一同调整，然后审查。
+- 新增「项目知识 → 业务状态图」（`#/states`，`ui_states.py`）：每个业务域一张状态图，用 Pele（MIT，`tmh/platform/vendor/pele.global.js`，只在这一页通过 `/ui/pele.js` 按需加载）渲染；右侧是规则（`文件:行号`）、走到问题的编号路径（蓝色虚线，打破规则的状态红框）、依据。颜色全部取 `ui_theme.py` 的令牌。
+- 数据：智能体用新运行模式 `chart`（画业务状态图）写 `.tmh/knowledge/statecharts/<域>.json`；`statecharts.py` 只读回、校验格式（必须 stateDiagram、路径状态必须在图里、路径必须指向规则），路径会把对应规则标成未守住；图里写的提交之后、规则引用的文件有改动时标「代码改了，这张图要重看」。智能体不能把图标成已确认，一律「待确认」。
+- 业务与代码图谱从深色主题改为浅色产品令牌；统计口径改为「被业务流读写的表」「业务流已写说明」，避免和架构依据的「数据库表 9 张」看起来对不上。项目知识首页、知识页、架构依据本来就用产品令牌，本轮审查未改。
+- 本地验证：`tests/test_statecharts.py` 5 项；本地演示数据导入 spring-petclinic，手写一份示例状态图（仅本地演示数据，不进仓库、不进生产项目）截图核对 `#/memory #/kb #/atlas #/states #/map #/library`，哈希切页无前端报错。`test_platform::test_readiness_checks_the_real_machine_worst_first` 在未改动的基线上同样失败（本机 git 检查为 warn），与本批无关。
+- 未验证：真实智能体在 `chart` 模式下画图的质量（本 VM 没有 Claude/Codex 可执行文件）；生产上需由人点「让 AI 画状态图」后才会有图。

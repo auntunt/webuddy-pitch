@@ -31,7 +31,7 @@ import hashlib
 # about luck than about habits (same floor as learn.MIN_N / impact.fair).
 MIN_SAMPLE = 5
 
-MODES = ("ask", "analyze", "plan", "fix", "verify", "kb", "understand")
+MODES = ("ask", "analyze", "plan", "fix", "verify", "kb", "chart", "understand")
 OTHER = "其他"
 UNKNOWN_MODE = "未知"
 

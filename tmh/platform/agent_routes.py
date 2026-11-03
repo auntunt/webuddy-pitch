@@ -17,7 +17,7 @@ import re
 
 AGENT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$")
 PROJECT = re.compile(r"^[A-Za-z][A-Za-z0-9]{0,9}$")
-STEPS = ("analyze", "plan", "fix", "edit", "diagnose", "ask", "kb")
+STEPS = ("analyze", "plan", "fix", "edit", "diagnose", "ask", "kb", "chart")
 
 
 def _object(pairs):
