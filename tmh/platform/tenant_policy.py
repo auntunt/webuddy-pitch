@@ -196,6 +196,9 @@ POST /api/clients
 GET /api/clients/<cid>
 POST /api/clients/<cid>
 POST /api/workbench/intake
+GET /api/projects/<key>/systems
+POST /api/projects/<key>/systems
+POST /api/tickets/<key>/system
 GET /api/requirements
 GET /api/projects/<key>/versions
 GET /api/projects/<key>/prod-requests

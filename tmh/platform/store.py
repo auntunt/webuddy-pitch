@@ -245,6 +245,8 @@ class Store:
             v = f[k]
             if k == "links" and isinstance(v, dict) and (t.get("links") or {}).get("client") and "client" not in v and not f.get("drop_client"):
                 v = dict(v, client=t["links"]["client"])  # written from an older copy of the ticket: whose it is stays
+            if k == "links" and isinstance(v, dict) and (t.get("links") or {}).get("system") and "system" not in v and not f.get("drop_system"):
+                v = dict(v, system=t["links"]["system"])
             if k == "status":
                 v = _pick(v, STATUSES, None)
                 if not v:
