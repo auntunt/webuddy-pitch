@@ -879,6 +879,22 @@ def search_words(body: str) -> str:
 CONTINUES = {"plan": ("analyze",), "fix": ("plan", "analyze")}  # a step continues the session of the step before it
 
 
+STEER_MODES = ("analyze", "plan", "fix", "understand", "chart", "kb")
+
+
+def steer_hint(mode: str) -> str:
+    """People can add a word while a run is going (POST /api/runs/<rid>/say); the agent reads it between steps."""
+    if mode not in STEER_MODES:
+        return ""
+    return ("\n\n## 执行中人可能插话\n负责的人会在你执行过程中补充要求或纠正方向，写在环境变量 TMH_NOTES 指向的文件里。"
+            "开始时和每做完一步（改文件、跑命令之前），运行 `cat \"$TMH_NOTES\" 2>/dev/null` 看有没有新的话；"
+            "有就以最新的话为准调整做法，并在最后的回复里写明收到了哪句话、怎么处理的。文件不存在或为空就照原计划做。\n")
+
+
+def notes_file(data_dir: Path, rid: int) -> Path:
+    return Path(data_dir) / "runs" / str(rid) / "notes.md"
+
+
 def max_agents(data_dir: Path) -> int:
     """How many agent runs may go at once (autoflow.json "max_agents"; 0 means no limit)."""
     try:
@@ -1997,6 +2013,8 @@ class Runner:
         st = self.store
         rdir = self.data_dir / "runs" / str(rid)
         pf, lm = rdir / ("prompt%s.md" % tag), rdir / ("last-message%s.md" % tag)
+        if not tag and not resume:  # a retry or resumed session already carries it
+            prompt += steer_hint(mode)
         pf.write_bytes(prompt.encode("utf-8"))
         if lm.exists():
             # Earlier attempt copies remain in attempts/, including an interrupted final answer.
@@ -2008,7 +2026,7 @@ class Runner:
         except ValueError as e:
             st.append_output(rid, "— %s\n" % e)
             return 2, str(e), parser, clock.done()
-        env = dict(os.environ, TMH_RUN=str(rid), TMH_TICKET=ticket["key"] if ticket else "")
+        env = dict(os.environ, TMH_RUN=str(rid), TMH_TICKET=ticket["key"] if ticket else "", TMH_NOTES=str(notes_file(self.data_dir, rid)))
         tool = Path(project["root"]) / ".tmh" / "tool"
         if tool.is_dir():
             env["PYTHONPATH"] = str(tool) + os.pathsep + env.get("PYTHONPATH", "")

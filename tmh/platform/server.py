@@ -3131,6 +3131,32 @@ def api_cancel(P, req, rid):
         raise ApiError(400, str(e))
 
 
+@route("POST", "/api/runs/<rid>/say")
+def api_run_say(P, req, rid):
+    """{"text": "..."}: a person's word to a running agent. It is appended to the run's notes file, which the agent
+    reads between steps (agents.steer_hint), shown in the run's log and written on the ticket."""
+    from .agents import notes_file
+    _require_unmanaged_run(P, rid)
+    _human_action(P, req)
+    r = P.store.run(int(rid))
+    if not r:
+        raise ApiError(404, "没有运行 #%s" % rid)
+    if r["status"] not in ("running", "queued"):
+        raise ApiError(409, "运行 #%s 已经结束，补充的话请写在工单讨论里，再让 AI 接着做" % rid)
+    text = str(req.body.get("text") or "").strip()
+    if not text:
+        raise ApiError(400, "插话内容不能为空")
+    text = text[:2000]
+    f = notes_file(P.data_dir, int(rid))
+    f.parent.mkdir(parents=True, exist_ok=True)
+    with f.open("a", encoding="utf-8") as fh:
+        fh.write("[%s %s] %s\n" % (time.strftime("%H:%M:%S"), req.user, text))
+    P.store.append_output(int(rid), "\n— %s 插话：%s\n" % (req.user, text))
+    if r.get("ticket_id"):
+        P.store.event(r["ticket_id"], req.user, "steer", text, {"run": int(rid)})
+    return {"ok": True, "run": int(rid), "notes": len(f.read_text(encoding="utf-8").splitlines())}
+
+
 @route("POST", "/api/runs/<rid>/retry")
 def api_retry_run(P, req, rid):
     _require_unmanaged_run(P, rid)
