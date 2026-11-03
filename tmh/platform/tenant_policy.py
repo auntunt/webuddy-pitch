@@ -199,6 +199,8 @@ POST /api/workbench/intake
 GET /api/projects/<key>/systems
 POST /api/projects/<key>/systems
 POST /api/tickets/<key>/system
+GET /api/tickets/<key>/ops
+POST /api/tickets/<key>/ops
 GET /api/requirements
 GET /api/projects/<key>/versions
 GET /api/projects/<key>/prod-requests

@@ -1883,6 +1883,28 @@ def api_ticket_similar(P, req, key):
     return {"similar": similar(pool, t["title"], t["body"], exclude=t["id"])}
 
 
+@route("GET", "/api/tickets/<key>/ops")
+def api_ticket_ops(P, req, key):
+    """Ops investigation: similar tickets, matching experience, read-only queries so far, the conclusion."""
+    from . import ops_diag
+    return ops_diag.look(P, P.ticket(key))
+
+
+@route("POST", "/api/tickets/<key>/ops")
+def api_ticket_ops_act(P, req, key):
+    """{"action": "query", "sql"} read-only look at the business data, or
+    {"action": "conclude", "cause", "text", "fix", "distill"} write down the cause (no code change unless cause=code)."""
+    from . import ops_diag
+    t = P.ticket(key)
+    b = req.body if isinstance(req.body, dict) else {}
+    by = _human_action(P, req)
+    if b.get("action") == "query":
+        return ops_diag.query(P, t, b.get("sql", ""), by)
+    if b.get("action") == "conclude":
+        return ops_diag.conclude(P, t, str(b.get("cause") or ""), b.get("text", ""), b.get("fix", ""), by, bool(b.get("distill")))
+    raise ApiError(400, "action 只能是 query 或 conclude")
+
+
 @route("POST", "/api/projects/<key>/similar")
 def api_project_similar(P, req, key):
     """While a new ticket is being written: does it repeat an existing one?"""
