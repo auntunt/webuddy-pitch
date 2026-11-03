@@ -522,3 +522,5 @@
   测试：`tests/test_stage.py::test_an_ops_ticket_waits_for_ops_not_the_automatic_line`。`test_platform.py::test_readiness_checks_the_real_machine_worst_first` 在改动前就失败，与本次无关。
 - 完整验收续测（`5265850`）：在运维单上执行只读查询后，查询结果很快就消失了。原因是每次查询都会写一条时间线事件，工单页随之重绘，`opsDiag` 被重建，输入框和结果都清空。修复：按工单把 SQL、结论草稿和最近一次结果保存在 `S.opsKeep`，重绘时恢复。测试：`tests/test_ops_diag.py::OpsDiagUiTest`。
 - 完整验收续测（`5d5513f`）：在 PETS-16 的只读分析（#388）中插话「错误提示用中文：生日不能早于1990-01-01」。toast、日志和时间线 steer 都只出现一次，但 AI 的最终回复没有遵循这句话。查了原始输出：AI 一共跑了 5 条命令，每条之前都 `cat "$TMH_NOTES"`；插话在 04:00:34 写入，那时 AI 已经跑完最后一条命令、正在写最终回复，所以没有读到。当时平台不会提示，人会误以为 AI 收到了。修复：`Timing` 记下 AI 最后一次读 notes 时文件有多长；运行结束后，比这更晚写进来的插话会进日志，并在工单时间线上记一条 flow「插话没被读到……请写进工单讨论再让 AI 接着做」。同一次运行的重试共用 `notes.unread` 标记，同一句话只提示一次。测试：`tests/test_run_steer.py` 新增 2 条；相关的 129 条测试通过，跳过了已知的 readiness 基线失败。
+
+- 2026-11-04 补：CI 全量里 `test_run_recovery_ui.py::test_stopping_toast_is_a_request_not_a_claim_of_cleanup` 自 PR #57（插话草稿保留，`paint()` 读 `document.activeElement`）起就在 node 测试壳里报 `document is not defined`，停止后的重绘被吞掉。测试壳补 `document={activeElement:null}`（与 `test_ui_ticket_run_sync.py` 一致），断言不变；本机 41 条相关 UI/插话测试通过。
