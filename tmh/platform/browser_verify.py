@@ -205,6 +205,7 @@ SPEC_RULES = """写一个 Playwright 实测脚本，在真实运行的应用里�
 - 断言某样东西「不存在 / 不再显示」之前，先用 `anchor` 确认同一页面上一个本来就该在的元素可见，证明页面已经加载出来。
 - Ant Design 的两个汉字按钮会显示成「登 录」这样中间带空格：按钮名用正则，如 `getByRole('button', { name: /登\\s*录/ })`。
 - 页面上常有隐藏的同类元素（比如登录页里隐藏的注册、手机登录表单）：优先 `getByRole` / `getByText(..., { exact: true })`，定位输入框等元素时加 `:visible` 或限定在可见的表单里，保证只命中一个。
+- 表格里的表头和单元格文字用 `表格.getByText('…', { exact: true })` 找，不要依赖 `columnheader` / `rowheader` 角色（不同 Playwright 版本对没写 scope 的 `<th>` 判的角色不一样）。
 - 用 `expect(...)` 断言这条标准能看到的结果；断言失败表示“实测没做到”，所以只断言标准本身要求的东西。
 - 不 mock 接口，不改数据库，不写 `page.evaluate` 改组件状态。没法在页面上验证的标准写成 `test.skip('A2 ...', ...)` 并在注释里写原因。
 """
@@ -241,6 +242,21 @@ def _walk(suite: dict):
         yield from _walk(child)
 
 
+_SOUGHT = re.compile(r"""(?:name|hasText):\s*(['"])(.+?)\1|getBy(?:Text|Label|Title|Placeholder)\((['"])(.+?)\3""")
+
+
+def _shown(msg: str, seen: str) -> str:
+    """What a locator that found nothing was looking for, when the page the test saw does show it."""
+    if "not found" not in msg or not seen:
+        return ""
+    loc = next((ln for ln in msg.splitlines() if ln.strip().startswith("Locator:")), "")
+    for m in _SOUGHT.finditer(loc):
+        want = m.group(2) or m.group(4)
+        if want and want in seen:
+            return want
+    return ""
+
+
 def results(report: dict, acs: list, files: dict) -> list:
     """One entry per criterion: result, what happened, and the screenshots (name -> bytes) of its test."""
     by_id = {}
@@ -271,6 +287,8 @@ def results(report: dict, acs: list, files: dict) -> list:
             res, how = "unverified", "实测脚本的定位命中了多个元素：" + msg
         elif status == "failed" and re.search(r"\bexpect\(", msg) and "TMH_SETUP" not in msg and not shots:
             res, how = "unverified", "实测脚本在截下页面之前就断言失败，看不到页面实际是什么样：" + msg
+        elif status == "failed" and (shown := _shown(msg, seen)):
+            res, how = "unverified", "实测脚本没定位到，但页面上有「%s」：%s" % (shown, msg)
         elif status == "failed" and re.search(r"\bexpect\(", msg) and "TMH_SETUP" not in msg:
             res, how = "fail", "页面上实测没做到：" + msg
         elif status == "skipped":
@@ -297,13 +315,18 @@ def keeps(spec: str, fixed: str, acs: list) -> bool:
     return all(q in fixed for a in acs for q in QUOTED.findall(a.get("text") or "") if q in spec)
 
 
-def repair_prompt(spec: str, items: list) -> str:
-    L = ["下面这个 Playwright 实测脚本在真实应用里跑过一次，有的标准没通过。逐条对照「页面实际内容」判断：",
+def repair_prompt(spec: str, items: list, diff: str = "") -> str:
+    L = ["下面这个 Playwright 实测脚本在真实应用里跑过一次，有的标准没通过。逐条对照「页面实际内容」和截图判断：",
          "- 页面实际已经做到了标准，是脚本的定位、等待、步骤或对页面结构的假设错了：修脚本；",
          "- 页面实际确实没做到标准：这条 test 一字不改。",
          "每条 test 检查的内容和标准要求保持不变，不许删掉、跳过或放松断言，不许改成检查别的东西。"
-         "只输出完整脚本，一个 ```tmh-spec 代码块。", "",
-         SPEC_RULES, "原脚本：", "```js", spec, "```", "", "每条标准的结果："]
+         "不管改没改，都输出完整脚本，一个 ```tmh-spec 代码块。", "",
+         SPEC_RULES, "原脚本：", "```js", spec, "```", ""]
+    if diff:
+        # the project checkout is the version before the change: judged from it, every criterion looks undone
+        L += ["被测版本是仓库代码加上下面这份改动；仓库目录里还没有这份改动，不要拿仓库里的代码判断标准有没有做到。",
+              "```diff", diff[:30000], "```", ""]
+    L += ["每条标准的结果："]
     for i in items:
         L.append("- %s %s：%s" % (i["id"], i["result"], i["how"][:600]))
         if i.get("page"):
@@ -459,7 +482,7 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
     items = results(report, acs, files)
     why = str(report.get("setup") or "")
     if not why and repairable(items):
-        fixed = spec_from((ask or _ask)(P, p, t, repair_prompt(spec, items)))
+        fixed = spec_from((ask or _ask)(P, p, t, repair_prompt(spec, items, diff)))
         if fixed and fixed != spec and keeps(spec, fixed, acs):
             bind = dict(binding(base, diff, fixed), repaired_from=bind["spec_sha256"])
             report, files = run_remote(c, Path(p["root"]), base, diff, fixed, _job(p, rid, bind), 23100 + rid % 800)

@@ -428,3 +428,12 @@
 - 再次实测 PETS-2 时报 `ValueError`：写实测脚本的 `_ask` 在路由里找不到 diagnose 步骤（执行器统一改成 Codex 后已经删掉），于是退回到 autoflow 的 `codex`，而这个执行器不在路由的允许列表里。JB 的 AI 验收实测也会因此失败。现在没有 diagnose 步骤时，改用 `agent_routes.resolve` 给出的项目执行器；实测没跑完时，原因直接写出异常信息。
 - 第三次实测 PETS-2：Codex 写好了脚本（运行 #350），bundle 也送到了实测机，但 Spring Boot 启动失败。git-commit-id 插件报错 `Could not get HEAD Ref ... /home/auntu/pv/PETS/base/.git`，因为平台新建的检出只拉了 bundle，HEAD 还是空的（和 Windows 测试机上那次是同一类问题）。驱动现在会在 HEAD 为空时把它指到被测的基线。另外，等待启动期间应用进程退出了，就立刻结束并报「app exited before it was ready」，不用再白等 900 秒。
 - 第四次实测 PETS-2：Spring Boot 起来了，Playwright 也跑了，但三条检查项都报 `TypeError: Cannot read properties of undefined (reading 'replace')`。原因是 AI 写的脚本调用了 `shot(page, '步骤名')`，少传了 testInfo。`shot()` 现在兼容这种写法，自动用 `test.info()` 补上。
+- 第五次实测（PETS-2 运行 343、PETS-3 运行 347，都从界面发起）：两个应用都起来了，也都截到了图。
+  - PETS-2：A1（详情页不再显示 Add New Pet）、A2（详情页其余内容保留）都通过。A3 没能证明：脚本把列表页的标题写成了 Find Owners，实际是 Owners。
+  - PETS-3：判了 fail，但这是**误判**。截图上「Pet Count」列和每行的数量都在，失败的是脚本里的 `getByRole('columnheader', { name: 'Pet Count' })`。实测机的 Playwright 1.48.2 和升级后的 1.56.1 都把没写 scope 的 `<th>` 识别成 `cell`；本机 1.64 识别成 `columnheader`。
+  - 两次修复脚本的步骤都没交回脚本。PETS-3 那次，修复的 AI 拿仓库里还没改的代码去对照，断定「确实没做到」。原因是 `repair_prompt` 没带改动，仓库目录里也还没有这份改动。
+- 本次修复：
+  - `repair_prompt` 带上候选改动（只在验证基线加改动、还没提交时带），说明仓库目录里还没有这份改动，并要求不管改没改都交回完整脚本。
+  - 定位器没找到、但失败时的页面内容里有它要找的文字：记为「没能证明」，并交给修复脚本那一步，不再判 fail。页面里真没有这段文字的，仍然判 fail。
+  - SPEC_RULES 加了一条：表格里的文字用 `getByText` 找，不依赖 `columnheader` 角色。
+  - 实测机 `~/pv/verifier` 的 `@playwright/test` 从 1.48.2 升到 1.56.1。浏览器 chromium-1194 原本就缓存在机器上，没有重新下载。升级后失败时能拿到带角色的 `ariaSnapshot`，之前只能拿到摊平的页面大纲。旧的 package.json 和 lock 备份为 `*.bak-1.48.2`。

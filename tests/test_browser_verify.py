@@ -253,3 +253,26 @@ class DriverStartTest(unittest.TestCase):
     def test_a_screenshot_without_test_info_still_lands(self):
         self.assertIn("if (typeof testInfo === 'string' || !testInfo) { name = testInfo; testInfo = base.info(); }", bv.HELPERS)
 
+
+
+class ReviewTest(unittest.TestCase):
+    NOT_FOUND = ("Error: Timed out 5000ms waiting for expect(locator).toBeVisible()\n\n"
+                 "Locator: locator('#owners').getByRole('columnheader', { name: 'Pet Count' })\n"
+                 "Expected: visible\nReceived: <element(s) not found>")
+
+    def test_a_locator_that_found_nothing_the_page_shows_is_the_scripts_fault(self):
+        seen = {"A1-01.png": PNG, "A1-page.txt": b'- text "Pets"\n- text "Pet Count"\n'}
+        items = bv.results({"suites": [{"specs": [spec("A1 x", "failed", msg=self.NOT_FOUND)]}]}, ACS[:1], seen)
+        self.assertEqual(items[0]["result"], "unverified")
+        self.assertIn("「Pet Count」", items[0]["how"])
+        self.assertTrue(bv.repairable(items))
+        absent = {"A1-01.png": PNG, "A1-page.txt": b'- text "Pets"\n'}
+        items = bv.results({"suites": [{"specs": [spec("A1 x", "failed", msg=self.NOT_FOUND)]}]}, ACS[:1], absent)
+        self.assertEqual(items[0]["result"], "fail")
+
+    def test_the_reviewer_sees_the_change_and_always_returns_a_script(self):
+        prompt = bv.repair_prompt("S", [{"id": "A1", "result": "fail", "how": "x"}], "+<th>Pet Count</th>")
+        self.assertIn("+<th>Pet Count</th>", prompt)
+        self.assertIn("仓库目录里还没有这份改动", prompt)
+        self.assertIn("不管改没改，都输出完整脚本", prompt)
+        self.assertNotIn("仓库目录里还没有这份改动", bv.repair_prompt("S", [], ""))
