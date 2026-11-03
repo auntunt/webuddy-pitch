@@ -161,6 +161,8 @@ if [ -f in.bundle ]; then
   git -C $REPO fetch -q $D/in.bundle "+refs/tmh-verify/$J:refs/tmh/$J" >&2 || { say "candidate bundle did not fetch"; finish; }
 fi
 git -C $REPO worktree add -f --detach $D/src $BASE >&2 || { say "base commit not on host"; finish; }
+# a checkout the host only fetched into has no HEAD; build plugins that read it (git-commit-id) then fail
+git -C $REPO rev-parse -q --verify HEAD >/dev/null || git -C $REPO update-ref --no-deref HEAD $BASE
 cd $D/src
 if [ -s $D/patch.diff ]; then git apply --whitespace=nowarn $D/patch.diff >&2 || { say "patch does not apply"; finish; }; fi
 if [ -n "$START" ]; then
@@ -179,7 +181,8 @@ VITE_PUBLIC_PATH=$PFX/ VITE_GLOB_API_URL=$PFX/jeecgboot VITE_USE_MOCK=false VITE
 VP=$!
 fi
 N=150; [ -n "$START" ] && N=450  # a JVM app may first fetch its dependencies
-for i in $(seq 1 $N); do [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT$PFX/)" = 200 ] && break; sleep 2; done
+for i in $(seq 1 $N); do [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT$PFX/)" = 200 ] && break
+  kill -0 $VP 2>/dev/null || { say "app exited before it was ready"; finish; }; sleep 2; done
 [ "$i" = $N ] && { say "app did not start"; finish; }
 [ -n "$YML" ] && export TMH_JB_YML=$D/src/$YML
 cd $D && TMH_BASE=http://127.0.0.1:$PORT$PFX/ TMH_OUT=$OUT timeout 1200 npx playwright test -c playwright.config.mjs >&2
