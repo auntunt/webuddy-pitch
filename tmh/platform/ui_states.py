@@ -16,10 +16,10 @@ STATES_CSS = r"""
   background:radial-gradient(circle at 1px 1px,var(--line) 1px,transparent 0) 0 0/18px 18px}
 .stc-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
 .stc-bar h2{margin:0;font-size:15px}
-.stc-cv{flex:1;display:flex;padding:20px 24px 46px;min-height:0;overflow:hidden;
+.stc-cv{flex:1;display:flex;padding:20px 24px 46px;min-height:0;overflow:auto;
   --pele-bg:transparent;--pele-fg:var(--fg);--pele-muted:var(--mut);--pele-line:#98A2B3;--pele-surface:var(--panel);--pele-surface-alt:var(--soft);
   --pele-border:var(--control-line);--pele-accent:var(--blue);--pele-font-mono:var(--mono)}
-.stc-cv svg{width:100%!important;height:100%!important;max-width:100%!important;overflow:visible}
+.stc-cv svg{margin:auto;flex:none;max-width:none!important;overflow:visible}
 .stc-cv .pele-node,.stc-cv .pele-edge,.stc-cv .pele-edge-label{transition:opacity .35s}
 .stc-cv.tracing .pele-node,.stc-cv.tracing .pele-edge,.stc-cv.tracing .pele-edge-label{opacity:.35}
 .stc-cv .lit{opacity:1!important}
@@ -88,7 +88,7 @@ function stcBindDraw(){
     try{await post('/api/projects/'+S.proj+'/runs',{mode:'chart'});toast('AI 开始画状态图，画好后回到这一页查看');b.textContent='AI 正在画…'}
     catch(e){b.disabled=false;toast(e.message)}}}
 function stcFlag(c){if(c.problems&&c.problems.length)return '<em class="bad">!</em>';if(c.paths&&c.paths.length)return `<em class="bad">${c.paths.length}</em>`;
-  if(c.changed&&c.changed.length)return '<em class="chg">改</em>';return '<em class="ok">✓</em>'}
+  if(c.changed&&c.changed.length)return '<em class="chg">改</em>';return c.rules&&c.rules.length?'<em class="ok">✓</em>':''}
 function stcPaint(){
   clearInterval(STCH.timer);STCH.step=-1;
   const d=STCH.d,c=d.charts.find(x=>x.id===STCH.cur);
@@ -100,9 +100,14 @@ function stcPaint(){
   try{cv.innerHTML=pele.render(c.mermaid,{idPrefix:'stc-'+c.id.replace(/[^A-Za-z0-9_-]/g,''),fontSize:14,autoDirection:false,
     fontFamily:getComputedStyle(document.body).fontFamily}).svg}
   catch(e){cv.innerHTML=`<div class="stc-err">这张图画不出来：${h(e.message)}</div>`}
+  stcFit(cv);
   (c.paths||[]).forEach(p=>{const last=p.steps[p.steps.length-1];if(last)stcMark(last.state,'end')});
   stcSide(c);
   if((c.paths||[]).length)setTimeout(()=>stcTrace(0),350)}
+// fit the chart, but keep labels readable: a small chart is not blown up, a big one scrolls instead of shrinking to dots
+function stcFit(cv){const svg=cv.querySelector('svg');if(!svg)return;const vb=(svg.getAttribute('viewBox')||'').split(/\s+/).map(Number);if(vb.length<4||!vb[2]||!vb[3])return;
+  const cs=getComputedStyle(cv),cw=cv.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),ch=cv.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+  const k=Math.max(.85,Math.min(1.3,cw/vb[2],ch/vb[3]));svg.setAttribute('width',Math.round(vb[2]*k));svg.setAttribute('height',Math.round(vb[3]*k));svg.style.width='';svg.style.height=''}
 function stcMark(id,cls){const n=[...$('#stcCv').querySelectorAll('.pele-node')].find(x=>x.dataset.id===id);if(n)n.classList.add(cls)}
 function stcSide(c){
   const p=(c.paths||[])[0];
