@@ -30,11 +30,11 @@ def page() -> str:
 
 HTML = r"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>闭环工作台</title><style>/*CSS*/</style></head>
+<title>网梯运维系统</title><style>/*CSS*/</style></head>
 <body>
 <a class="skip-link" href="#main" onclick="event.preventDefault();document.getElementById('main').focus()">跳到主要内容</a>
 <header id="top">
-  <a class="brand" href="#/workspace" aria-label="Webuddy 总览"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="m7 10 4 12 5-8 5 8 4-12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="brandName">闭环工作台</span></a>
+  <a class="brand" href="#/workspace" aria-label="总览"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="m7 10 4 12 5-8 5 8 4-12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="brandName">网梯运维系统</span></a>
   <div id="tenantScope" hidden><label for="tenantSel">租户</label><select id="tenantSel" aria-label="当前租户"></select><span id="tenantRole"></span></div>
   <select id="projSel" title="切换项目" aria-label="项目范围"></select>
   <nav id="svc" aria-label="服务"><a data-s="ops" href="#/board">运维<span>服务</span></a><a data-s="reform" href="#/reform">重构<span>服务</span></a></nav>

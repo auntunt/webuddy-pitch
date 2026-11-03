@@ -445,3 +445,9 @@
   - `verify`：AI 回复里没有脚本时，再问一次，并提示它按工单和改动来写；第二次仍然没有，才记「没有写出实测脚本」。
 - [PR #50](https://github.com/auntunt/webuddy-pitch/pull/50) 发布到生产（`6f72a29`）后，从界面重跑了 PETS-2（运行 343）：A1、A2、A3 三条都**通过**，分别有 1 / 4 / 2 张截图。加上 PETS-3（运行 347）A1 也已通过，两张只改页面模板的单现在都由 Webuddy 自己在真实应用里逐条实测通过。两张单仍停在等人确认，没有替人验收或关单。
   - 发布时的问题：服务器上用发布包跑测试那一步，`test_python_flows` 有 5 个报错，原因是 verification 包里没有 `docs/self-improvement/evidence/runtime-2026-10-18/bootv2` 这批测试样例。命令写的是 `... | tail -2 && activate`，管道的退出码只看 tail，所以测试报错也照样激活了。其余 82 个测试全部通过，本次改动的测试就在其中。以后这一步要加 `set -o pipefail`。
+- 产品对外名称改为「网梯运维系统」（用户 11/4 要求，用于给客户录屏的演示）。
+  - 界面里写死的默认名称、工具连接页、侧边栏助手的提示词，都改成了这个名字。
+  - 组织入口（tenant_gateway）原来固定显示 webuddy，现在跟单机版一样读环境变量 `TMH_BRAND`。
+  - 生产 `/etc/webuddy.env` 里的 `TMH_BRAND` 改为「网梯运维系统」。
+  - Git 提交作者、域名和内部代号不变。
+  - 本机 node 是 v12，`tests/test_ui_access.py` 在本机跑不了，和这次改动无关。
