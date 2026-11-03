@@ -496,3 +496,7 @@
 - 在工单页（`#/t/<KEY>`）打开「记录需求」时，项目默认取这张工单的项目。原来取的是顶栏的全局范围，在 PETS-6 上打开会默认选成 JB。运行页实时日志原来会把同一段输出显示两遍：两次轮询都带着同一个 `since` 并发发出，两次的结果都被追加到页面上。数据库里只存了一份，重新打开就只剩一条。现在按 `output_len` 算出这段输出从哪里开始，只追加 `since` 之后还没显示过的部分。
 - 完整验收准备时发现：项目开成全自动后，新建的运维工单（`type=ops`）也会被自动线受理，进入分析、方案、修改和 AI 验收，和「运维单只排查、不改代码、不自动关单」冲突。现在 `Orchestra._intake()` 遇到运维单只记一条说明就返回，`next_step()` 对运维单也不再给出下一步，「交给自动处理」的等待队列因此不会收它。测试：`tests/test_ops_diag.py::test_auto_line_leaves_ops_tickets_alone`。
 - 完整验收里 PETS-8 自动跑完方案和修改，构建也通过了，但 AI 往已有的 `VetControllerTests.java` 里加了一条断言（标题文字），被「改了已有测试或受保护文件」规则拦住，没有自动提交。规则本身没改；方案和修改的提示词改为：已有测试只在不改就会失败时才动，不为给新行为补断言去改已有测试。
+- 完整验收续测：PETS-8 重新出方案（#372）后交回自动线，修改 #373 只动了 `vetList.html`，平台自动提交，但 AI 验收停在「没跑构建测试」：`testbox.build_commands` 只为 Java / 带类型检查的前端安排构建，Maven 模块里的页面模板一律跳过。用户选择改平台：
+  - `build_commands`：`src/main/resources/`、`src/main/webapp/` 下的页面文件（模板、静态文件）也编译所在的 Maven 模块；
+  - `ai_accept.after_commit`：改动全是页面文件（`testbox.page_only`）而项目没配页面实测时，留给人验收（编译只能证明能打包）；配了页面实测的，照旧要求每条验收标准在页面上实测通过才签收。
+  - 测试：`tests/test_testbox.py::test_a_page_template_compiles_its_module_and_counts_as_page_only`、`tests/test_ai_accept.py::test_a_page_only_change_needs_page_checks_to_be_signed`。

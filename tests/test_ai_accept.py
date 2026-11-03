@@ -85,6 +85,21 @@ class AiAcceptFlowTest(unittest.TestCase):
         kinds = [c.args[2] for c in self.P.store.event.call_args_list]
         self.assertEqual(kinds, ["accept"])
 
+    def test_a_page_only_change_needs_page_checks_to_be_signed(self):
+        page = "diff --git a/src/main/resources/templates/v.html b/src/main/resources/templates/v.html\n+x\n"
+        self.P.store.run.return_value = {"id": 7, "diff": page}
+        out, rec = self.run_it()
+        self.assertFalse(out["accepted"])
+        self.assertIn("只改了页面文件", out["why"])
+        rec.assert_not_called()
+        a, b = self.real("pass", {"A1": "pass", "A2": "pass"})
+        with a, b:
+            out, rec = self.run_it()
+        self.assertTrue(out["accepted"])
+        self.P.store.run.return_value = {"id": 7, "diff": page.replace("templates/v.html", "java/V.java")}
+        self.ticket["status"] = "verify"
+        self.assertTrue(self.run_it()[0]["accepted"])
+
     def real(self, result, ac, why=""):
         from tmh.platform import browser_verify
         items = [{"id": k, "result": v, "how": "实测 " + k, "shots": {}} for k, v in ac.items()]

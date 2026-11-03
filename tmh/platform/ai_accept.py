@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 BY = "AI 验收"
@@ -189,6 +190,12 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
            ("证据包被改动过：%s" % s.get("problem") if not s.get("intact") else "") or
            ("证据包对应的不是这次改动" if ((s.get("snapshot") or {}).get("change") or {}).get("run") != rid else "") or
            why_not(P.data_dir, rid, acs, real=bool(browser_verify.conf(P.data_dir, p["key"]))))
+    if not why and not browser_verify.conf(P.data_dir, p["key"]):
+        from .testbox import page_only
+        r = st.run(rid)
+        diff = r.get("diff") if isinstance(r, dict) else ""
+        if page_only(re.findall(r"(?m)^diff --git a/(\S+) b/", diff or "")):
+            why = "只改了页面文件，构建只能证明能打包；这个项目没配页面实测"
     seen = {}
     if not why and browser_verify.conf(P.data_dir, p["key"]):
         commit = committed(s.get("snapshot") or {}, rid)
