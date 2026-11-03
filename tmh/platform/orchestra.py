@@ -118,6 +118,9 @@ class Orchestra:
         conf = self.autoflow()
         if not self.switched_on(conf, p) or self.mine(t["id"]):  # a person claimed it (我来写) before the line got to it
             return
+        if (st.ticket(t["id"]) or t).get("type") == "ops":
+            st.event(t["id"], by, "flow", "运维工单不自动改代码：留给运维排查（相似经验、只读查数据、记结论）")
+            return
         try:
             rel = self.knowledge.related(p, "%s %s" % (t["title"], (t.get("body") or "")[:400]), limit=3)
         except Exception:  # noqa: BLE001 - no knowledge base yet is not a reason to stop the flow
@@ -597,7 +600,7 @@ class Orchestra:
         A step that failed or was cancelled stops the line; with `retry` (a person handing the ticket on) it is run again."""
         conf = conf or self.autoflow()
         lk = t.get("links") or {}
-        if not self.switched_on(conf, t["project_id"]) or lk.get("hold") or lk.get("later") or t["status"] not in ("new", "analyzing", "confirm", "doing"):
+        if not self.switched_on(conf, t["project_id"]) or lk.get("hold") or lk.get("later") or t.get("type") == "ops" or t["status"] not in ("new", "analyzing", "confirm", "doing"):
             return "", None
         runs = [r for r in self.store.runs(ticket_id=t["id"]) if r["mode"] in ("analyze", "plan", "fix")]
         if retry:

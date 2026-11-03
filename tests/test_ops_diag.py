@@ -66,6 +66,18 @@ class OpsDiagTest(RunSteerTest):
         hit = next(x for x in look["tickets"] if x["key"] == self.ops)
         self.assertIn("万元填成了元", hit["conclusion"])
 
+    def test_auto_line_leaves_ops_tickets_alone(self):
+        on = dict(self.P.flow.autoflow(), on=True)
+        t = self.P.store.ticket(self.ops)
+        self.assertEqual(self.P.flow.next_step(t, on)[0], "")
+        (self.data / "autoflow.json").write_text(json.dumps({"on": ["ST"], "plan": True, "fix": True}), encoding="utf-8")
+        try:
+            self.P.flow._intake(self.P.project("ST"), t)
+        finally:
+            (self.data / "autoflow.json").unlink()
+        self.assertFalse(self.P.store.runs(ticket_id=t["id"]))
+        self.assertIn("运维工单不自动改代码", self.P.store.events(t["id"])[-1]["body"])
+
     def test_no_source_configured(self):
         self.assertEqual(ops_diag.source(self.data, "NOPE"), {})
 
