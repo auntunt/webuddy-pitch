@@ -19,7 +19,7 @@ TABLE = [
     ("running", "agent", "", "AI 正在处理", "看实时过程"),
     ("handwork_check", "agent", "fix", "正在构建和检查提交", ""),
     ("client_change", "person", "intake", "客户改了已确认的检查项，等你决定", "去决定"),
-    ("recovering", "agent", "intake", "AI 正在按客户答复补全检查项", ""),
+    ("recovering", "agent", "intake", "AI 正在按已保存答复补全检查项", ""),
     ("recovery_stuck", "person", "intake", "客户答复已保存，AI 没理解完，等你处理", "去处理"),
     ("open_ac", "client", "intake", "等客户确认需求", "看要确认的问题"),
     ("recheck", "person", "verify", "等你重新验证", "去重新验证"),
