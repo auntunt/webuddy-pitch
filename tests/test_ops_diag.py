@@ -89,3 +89,31 @@ class OpsDiagTest(RunSteerTest):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OpsDiagUiTest(unittest.TestCase):
+    def test_a_rerender_keeps_the_typed_query_and_its_result(self):
+        import re as _re
+        import shutil
+        import subprocess
+        from tmh.platform import ui_work
+        if not shutil.which("node"):
+            self.skipTest("node not installed")
+        src = Path(ui_work.__file__).read_text(encoding="utf-8")
+        fn = _re.search(r"async function opsDiag\(key\)\{.*?\n(?=async function ticketTopWire)", src, _re.S).group(0)
+        js = r"""
+const assert=require('node:assert/strict');const h=s=>String(s??'');const S={};let toastMsg='';const toast=m=>{toastMsg=m};
+const els={};const mk=id=>els[id]||(els[id]={id,value:'',innerHTML:'',disabled:false});
+const box={set innerHTML(v){this._h=v;for(const k of Object.keys(els))if(k!=='opsDiag')delete els[k];for(const m of v.matchAll(/id="(\w+)"/g))mk(m[1])},get innerHTML(){return this._h}};
+els.opsDiag=box;const $=q=>els[q.slice(1)]||null;
+const d={lessons:[],tickets:[],datasource:{kind:'sqlite'},queries:[],conclusion:null,causes:{data:'数据问题'}};
+const get=async()=>d;const post=async(u,b)=>({count:1,ms:2,more:false,columns:['no'],rows:[['ZB-002']]});
+%s
+(async()=>{await opsDiag('ST-1');$('#opsSql').value='SELECT no FROM bid';$('#opsSql').oninput();await $('#opsRun').onclick();
+assert.match($('#opsOut').innerHTML,/ZB-002/);
+await opsDiag('ST-1');
+assert.equal($('#opsSql').value,'SELECT no FROM bid');assert.match($('#opsOut').innerHTML,/ZB-002/);
+})().catch(e=>{console.error(e);process.exit(1)});
+""" % fn
+        r = subprocess.run(["node", "-e", js], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
