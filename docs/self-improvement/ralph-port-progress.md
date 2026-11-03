@@ -501,3 +501,8 @@
   - `ai_accept.after_commit`：改动全是页面文件（`testbox.page_only`）而项目没配页面实测时，留给人验收（编译只能证明能打包）；配了页面实测的，照旧要求每条验收标准在页面上实测通过才签收。
   - 测试：`tests/test_testbox.py::test_a_page_template_compiles_its_module_and_counts_as_page_only`、`tests/test_ai_accept.py::test_a_page_only_change_needs_page_checks_to_be_signed`。
 - 完整验收再测（`a1ad736`）：模板子单 PETS-11 的修改 #377 已经真跑了 Maven 编译，但诊断 4 轮都判不通过，原因是「没有浏览器实测和截图」「没有部署记录」。页面实测要等改动提交后才跑，诊断却在提交前就要页面证据，顺序上永远满足不了。现在项目配了页面实测时，诊断提示里会多一段「之后还有页面实测」：读代码确认不了的页面效果写 unverified，不因缺页面实测、截图、部署记录判不通过；阻断项仍然只写代码层面的具体失败场景。AI 验收仍要求每条标准在页面上实测通过。测试：`tests/test_agent_routes.py::test_with_page_checks_the_diagnosis_is_told_they_come_after_the_commit`。
+- 完整验收再测（`2a4ad3d`）：PETS-11、PETS-12 由 AI 签收了，但 PETS-12 的 A3–A6 这几条必须保持项只靠「测试机上构建通过」。PETS 只编译（`-DskipTests`），test 门是未知；签收文案却写的是「构建测试通过……在页面上逐条实测 6 条」，说多了。已改：
+  - 项目没跑自动测试，或者这次只改了页面文件时，必须保持项也要在页面上实测，不再拿构建结果代替；跑过自动测试的仍由测试证明；
+  - 签收文案照实写：「构建通过（这个项目没跑自动测试）」「页面逐条实测 N 条」「必须保持项由自动测试证明」，以及「证据包里还缺：…」；
+  - 页面没证明的原因会把漏测的条目都列出来。
+  已签收的 PETS-11/12 记录不动，报告里逐条写明每条是怎么证明的。测试：`tests/test_ai_accept.py::test_what_must_keep_working_is_proven_by_the_tests_or_else_on_the_page`。

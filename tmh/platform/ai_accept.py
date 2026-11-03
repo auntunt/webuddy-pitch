@@ -153,7 +153,6 @@ def why_not(data_dir: Path, rid: int, acs: list, real: bool = False) -> str:
 
 
 KEPT = "必须保持项：构建测试在测试机上通过，由自动测试证明"
-KEPT_BUILD = "必须保持项：测试机上构建通过（这个项目没跑自动测试，只证明改后能构建）"
 
 
 def committed(snap: dict, rid: int) -> str:
@@ -197,19 +196,24 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
         if page_only(re.findall(r"(?m)^diff --git a/(\S+) b/", diff or "")):
             why = "只改了页面文件，构建只能证明能打包；这个项目没配页面实测"
     seen = {}
+    tested = any(g.get("id") == "test" and g.get("state") == "pass" for g in (s.get("snapshot") or {}).get("gates") or [])
+    kept = []
     if not why and browser_verify.conf(P.data_dir, p["key"]):
+        from .testbox import page_only
         commit = committed(s.get("snapshot") or {}, rid)
-        # what must keep working is proven by the build and tests that passed above, as at the client's sign-off
-        page = [a for a in acs if not a.get("keep")]
+        r = st.run(rid)
+        files = re.findall(r"(?m)^diff --git a/(\S+) b/", (r.get("diff") if isinstance(r, dict) else "") or "")
+        # what must keep working is proven by automated tests that passed; with none, or a page-only change, on the page too
+        page = [a for a in acs if not a.get("keep")] if tested and not page_only(files) else list(acs)
+        kept = [a for a in acs if a not in page] if page else []
         res = browser_verify.verify(P, p, t, rid, page, commit=commit) if page else \
             {"result": "unverified", "why": "没有要在页面上实测的验收标准", "ac": []}
         seen = {i["id"]: i for i in res.get("ac") or []}
-        tested = any(g.get("id") == "test" and g.get("state") == "pass" for g in (s.get("snapshot") or {}).get("gates") or [])
-        seen.update({a["id"]: {"id": a["id"], "result": "pass", "how": KEPT if tested else KEPT_BUILD} for a in acs if a.get("keep")} if page else {})
+        seen.update({a["id"]: {"id": a["id"], "result": "pass", "how": KEPT} for a in kept})
         why = ("" if res["result"] == "pass" and all((seen.get(a["id"]) or {}).get("result") == "pass" for a in acs) else
                "页面实测复现了问题（%s）" % "、".join(k for k, i in seen.items() if i["result"] == "fail") if res["result"] == "fail" else
                "页面实测没能证明%s" % ("：" + res["why"] if res.get("why") else "（%s 未验证）" % "、".join(
-                   k for k, i in seen.items() if i["result"] != "pass")))
+                   a["id"] for a in acs if (seen.get(a["id"]) or {}).get("result") != "pass")))
         s = signoff.state(P.data_dir, t["key"])
         why = why or ("证据包被改动过：%s" % s.get("problem") if not s.get("intact") else "")
     if why and shadow:
@@ -227,8 +231,12 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
     if seen:
         basis["real"] = "pass"
     basis["mandate"] = now
-    note = "AI 验收通过：构建测试通过，独立诊断没有阻断项，%s %d 条验收标准（%s）都做到了。%s" % (
-        "在页面上逐条实测" if seen else "逐条核对", len(acs), "、".join(a["id"] for a in acs), auth)
+    real = [a["id"] for a in acs if a not in kept]
+    note = "AI 验收通过：%s，独立诊断没有阻断项，%s %d 条验收标准（%s）都做到了%s。%s%s" % (
+        "构建测试通过" if tested else "构建通过（这个项目没跑自动测试）",
+        "在页面上逐条实测" if seen else "逐条核对", len(real), "、".join(real),
+        "；必须保持项 %s 由自动测试证明" % "、".join(a["id"] for a in kept) if kept else "",
+        "证据包里还缺：%s。" % "、".join(s["missing"]) if s.get("missing") else "", auth)
     if shadow:
         st.event(tid, BY, "flow", "AI 影子验收：本会验收通过（%s）。观察模式不签收，留给人验收" % note,
                  {"run": rid, "shadow": {"would_accept": True, "why": "", "basis": basis}, "mandate": now})
