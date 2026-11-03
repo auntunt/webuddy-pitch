@@ -24,7 +24,7 @@ const assigned=[];location.assign=url=>assigned.push(url);location.pathname='/';
 
 UI_FIXTURE = r"""
 location.hash='#/access';S.meta={login:true,user:'alice',access:{can_manage:true,tenant:{id:'alpha',name:'甲租户'},user:'alice',tenants:[{id:'alpha',name:'甲租户',url:'/t/alpha/'},{id:'beta',name:'乙租户',url:'/t/beta/'}]}};
-const accessData=(extra={})=>({revision:4,viewer:'alice',current_tenant:{id:'alpha',name:'甲租户',status:'active'},members:[{id:'alice',name:'Alice',role:'admin',active:true,actions:{member_set:true,member_remove:false}},{id:'bob',name:'Bob',role:'member',active:true,actions:{member_set:true,member_remove:true}}],accounts:[{id:'alice',name:'Alice',active:true},{id:'bob',name:'Bob',active:true}],projects:[{id:'1',key:'APP',name:'项目'}],project_grants:[{project_id:'1',user:'bob',role:'contributor'}],permissions:{member_manage:true,project_manage:true,tenant_manage:true,tenant_create:false,account_manage:false},roles:{tenant:['admin','member','viewer'],project:['manager','contributor','viewer']},audit:[],...extra});
+const accessData=(extra={})=>({revision:4,viewer:'alice',current_tenant:{id:'alpha',name:'甲租户',status:'active'},members:[{id:'alice',name:'Alice',role:'admin',active:true,actions:{member_set:true,member_remove:false}},{id:'bob',name:'Bob',role:'member',active:true,actions:{member_set:true,member_remove:true}}],accounts:[{id:'alice',name:'Alice',active:true},{id:'bob',name:'Bob',active:true}],projects:[{id:'1',key:'APP',name:'项目'}],project_grants:[{project_id:'1',user:'bob',role:'contributor'}],permissions:{member_manage:true,project_manage:true,tenant_manage:true,tenant_create:false,account_manage:false},roles:{tenant:['admin','member','viewer'],project:['manager','contributor','viewer']},audit:[],tenants:[{id:'alpha',name:'甲租户',status:'active'},{id:'beta',name:'乙租户',status:'active'}],...extra});
 let directory=accessData();getHandler=()=>directory;postHandler=(path,body)=>({revision:5,operation:body.action,tenant_id:'alpha',changed:true,replayed:false,request_id:body.request_id});
 const choose=async action=>{await vAccess();$('#accessAction').value=action;await $('#accessAction').fire('change')};
 const change=(field,value)=>{const node=main.querySelector('[data-access-field="'+field+'"]');node.value=value;node.fire('input');return node};
@@ -124,6 +124,12 @@ globalThis.fetch=async()=>({ok:false,status:403,json:async()=>({code:'permission
     def test_renders_real_members_and_full_audit_escaped(self):
         self.run_js(r"""
 directory=accessData({audit:[{note:'<script>attack</script>'+ '完整'.repeat(6000)}]});await vAccess();assert.ok(main.textContent.includes('Alice'));assert.ok(main.textContent.includes('完整'.repeat(6000)));assert.ok($('#accessRecords').innerHTML.includes('&lt;script&gt;'));assert.ok(!$('#accessRecords').innerHTML.includes('<script>'));assert.ok(main.textContent.includes('项目协作者'));
+""")
+
+    def test_single_tenant_hides_tenant_selector_and_tenant_actions(self):
+        self.run_js(r"""
+directory=accessData({tenants:[{id:'alpha',name:'甲租户',status:'active'}],permissions:{...accessData().permissions,tenant_manage:true,tenant_create:true}});await vAccess();const options=$('#accessAction').innerHTML;assert.ok(options.includes('member_set'),options);assert.ok(!options.includes('tenant_'),options);assert.equal($('#accessTarget').hidden,true);assert.equal($('#accessTenantNow').hidden,true);assert.ok($('#accessRecords').textContent.includes('成员'));assert.ok(!$('#accessRecords').textContent.includes('当前租户成员'));
+directory=accessData({permissions:{...accessData().permissions,tenant_manage:true}});await vAccess();assert.ok($('#accessAction').innerHTML.includes('tenant_rename'));assert.equal($('#accessTarget').hidden,false);
 """)
 
     def test_readonly_permissions_prevent_mutations(self):
