@@ -368,3 +368,10 @@
 - 修复：`tmh/install.py` 抽出 `vendor_tool(repo)`（install 第 1 步原样复用；从仓库内的 vendored 工具重装时不删自身）。`project_import._guard` 在登记前调用它，并把 `/.tmh/` 写进导入仓库的 `.git/info/exclude`，代码基线保持干净；zip 里自带的 `.tmh/tool/` 一律丢弃，工具只用平台自己的。
 - 记录需求弹窗：非跨项目视图里默认选顶栏当前项目（`S.proj`），不再沿用跨项目视图残留的筛选（走查时顶栏是 PETS，弹窗默认 JB）。
 - 验证：`tests/test_project_import.py`、`test_distribution.py`、`test_tmh.py`、`test_integrations.py` 72 passed；`tests/test_ui*.py` 305 passed；ruff 通过。
+
+## 2026-11-03 测试机上项目克隆的 HEAD 跟着工作副本走（PETS 构建读不到 git 信息）
+
+- 现象：PETS-1 重查时测试机上基线构建 197 秒后失败，`git-commit-id-maven-plugin:9.2.0:revision` 报 `Could not get HEAD Ref`，`dotGitDirectory` 指向 `C:\tmh-runner\repos\PETS\.git`。
+- 原因：没有公开 https 源的项目，测试机上的克隆是 `git init` + 拉 bundle 的 `refs/tmh-send/*`，主仓库 HEAD 一直是未出生的 `refs/heads/master`；工作副本 `work/PETS` 是它的 worktree，JGit 经 commondir 读主仓库 HEAD，于是失败。JB 同样是未出生 HEAD，只是没用这个插件。
+- 修复：`TestBox.prepare` 切换工作副本时同时 `git -C repos/<项目> update-ref --no-deref HEAD <基线>`，克隆自己的 HEAD 与工作副本一致。测试机上已先手工把 PETS 的克隆 HEAD 指到基线，未改动代码 `mvn -B -q compile -DskipTests` 61 秒通过（退出码 0）。
+- 验证：`tests/test_testbox.py` 新断言（无修复时失败）；testbox/fixloop/recheck 相关 222 个测试中只有两个与本改动无关的已有失败（`test_recheck_summary` old_proof 未改动时同样失败；`test_team_workspace` 本机 Node 太旧不支持 `?.`）。

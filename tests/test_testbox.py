@@ -152,6 +152,9 @@ class TestBoxTest(unittest.TestCase):
         res = box.run("JB", self.repo, self.base, b"", [("build", "grep -q 'class A {}' app/core/A.java")], 60)
         self.assertEqual(res[0]["exit_code"], 0, res)
         self.assertEqual(list((self.tmp / "home").iterdir()), [])  # the copied bundle and patch are removed after use
+        clone = self.tmp / "remote" / "repos" / "JB"
+        head = subprocess.run(["git", "-C", str(clone), "rev-parse", "--verify", "HEAD"], capture_output=True, text=True)
+        self.assertEqual(head.stdout.strip(), self.base, head.stderr)  # Maven's git plugins read this HEAD
 
     def test_code_reaches_the_machine_even_when_its_stdin_never_ends(self):
         # Windows OpenSSH may not pass on the end of stdin: a remote side that reads stdin to the end then hangs

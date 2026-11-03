@@ -207,9 +207,11 @@ class TestBox:
                 code, out = self.script(body, timeout=self.c["timeout"])
                 if code != 0:
                     return "把代码传到测试机失败（退出码 %s）：%s" % (code, out[-1500:])
+        # the clone's own HEAD follows the working copy: tools reading Git through the worktree's common dir
+        # (JGit in git-commit-id-maven-plugin) fail on the unborn HEAD a `git init` leaves
         body = ("if(-not (Test-Path '{w}')){{git -C '{r}' worktree add --detach -f '{w}' '{b}' 2>&1}};"
-                "git -C '{w}' checkout -q -f --detach '{b}' 2>&1;git -C '{w}' clean -q -fd -e node_modules -e target 2>&1;exit $LASTEXITCODE" if win else
-                "[ -d '{w}' ] || git -C '{r}' worktree add --detach -f '{w}' '{b}' 2>&1; git -C '{w}' checkout -q -f --detach '{b}' 2>&1 && "
+                "git -C '{r}' update-ref --no-deref HEAD '{b}' 2>&1;git -C '{w}' checkout -q -f --detach '{b}' 2>&1;git -C '{w}' clean -q -fd -e node_modules -e target 2>&1;exit $LASTEXITCODE" if win else
+                "[ -d '{w}' ] || git -C '{r}' worktree add --detach -f '{w}' '{b}' 2>&1; git -C '{r}' update-ref --no-deref HEAD '{b}' 2>&1 && git -C '{w}' checkout -q -f --detach '{b}' 2>&1 && "
                 "git -C '{w}' clean -q -fd -e node_modules -e target 2>&1").format(r=r, w=w, b=base)
         code, out = self.script(body, timeout=600)
         return "" if code == 0 else "测试机上切换代码失败（退出码 %s）：%s" % (code, out[-1500:])
