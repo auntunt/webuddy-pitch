@@ -361,6 +361,15 @@ class Knowledge:
                           "tickets": sum(len(v) for v in tk.values()), "written": sum(d["written"] for d in doms)},
                 "built_at": self.kb_overview(p).get("built_at", "")}
 
+    def statecharts(self, p: dict) -> dict:
+        """业务状态图: the charts agents drew (.tmh/knowledge/statecharts/*.json) and whether one is being drawn now."""
+        from ..graph import graph_path
+        from . import statecharts
+        root = self.root(p)
+        running = [r["id"] for r in self.store.runs(project_id=p["id"], limit=50)
+                   if r["mode"] == "chart" and r["status"] in ("queued", "running")]
+        return {"built": graph_path(root).exists(), "charts": statecharts.load(root), "running": running}
+
     LAYER = {"entry": "入口", "controller": "入口", "service": "业务", "biz": "业务", "dao": "数据", "mapper": "数据", "repository": "数据"}
 
     def atlas_flow(self, p: dict, fid: str) -> dict:

@@ -97,7 +97,7 @@ function workIcon(name){const icons={
 const NAV=[['workspace','总览','#/workspace','today'],['tasks','需求','#/tickets','reqs'],['deliveries','版本','#/deliveries','deliveries'],['memory','项目知识','#/memory','message'],['runs','AI 工作记录','#/runs','clock'],['insights','成效','#/lead','up']];
 const WK=['workspace','projects','team','memory','handoff','deliveries','delivery','today','clients','c','reqs','versions','t'];
 function isEng(v){return !WK.includes(v)}
-function navOf(v){return ['workspace','today','meetings'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn','atlas','map'].includes(v)?'memory':['tickets','t','reqs','board','home','rtickets'].includes(v)?'tasks':['deliveries','delivery','versions'].includes(v)?'deliveries':v==='runs'?'runs':['lead','overview','eff'].includes(v)?'insights':'projects'}
+function navOf(v){return ['workspace','today','meetings'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn','atlas','states','map'].includes(v)?'memory':['tickets','t','reqs','board','home','rtickets'].includes(v)?'tasks':['deliveries','delivery','versions'].includes(v)?'deliveries':v==='runs'?'runs':['lead','overview','eff'].includes(v)?'insights':'projects'}
 function navCurrent(v){return ['c','clients'].includes(v)?'clients':v==='team'?'tasks':['settings','access','projects'].includes(v)?v:navOf(v)}
 function paintNav(){const cur=navCurrent(curView()),nav=$('#nav5');
   const signature=JSON.stringify([cur,curView(),!!S.meta?.access?.can_manage]);if(nav.dataset.signature===signature)return;
