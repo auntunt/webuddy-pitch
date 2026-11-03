@@ -250,3 +250,6 @@ class DriverStartTest(unittest.TestCase):
         self.assertIn("rev-parse -q --verify HEAD >/dev/null || git -C $REPO update-ref --no-deref HEAD $BASE", bv.DRIVER)
         self.assertIn('kill -0 $VP 2>/dev/null || { say "app exited before it was ready"; finish; }', bv.DRIVER)
 
+    def test_a_screenshot_without_test_info_still_lands(self):
+        self.assertIn("if (typeof testInfo === 'string' || !testInfo) { name = testInfo; testInfo = base.info(); }", bv.HELPERS)
+
