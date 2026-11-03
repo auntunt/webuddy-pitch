@@ -125,24 +125,50 @@ class AiAcceptFlowTest(unittest.TestCase):
         self.assertEqual(ai_accept.committed({"adopted": {"branch": "tmh/JB-1-r70", "commit": "x"}}, 7), "")
         self.assertEqual(ai_accept.committed({"change": {"commit": "f" * 40}, "adopted": {"branch": "tmh/JB-1-r7", "commit": "x"}}, 7), "f" * 40)
 
-    def test_what_must_keep_working_is_proven_by_the_tests_not_driven_on_the_page(self):
+    def test_what_must_keep_working_is_proven_by_the_tests_or_else_on_the_page(self):
         keep = {"id": "A3", "text": "必须保持：其他环节和其他用户的现有行为不变", "keep": True}
         self.pack["snapshot"]["ac"] = ACS + [keep]
+        self.pack["missing"] = ["验证门全部通过（没有没过或未知的）", "乙方复核人"]
         a, b = self.real("pass", {"A1": "pass", "A2": "pass"})
         with a, b as v:
             out, rec = self.run_it()
+        self.assertFalse(out["accepted"])
+        self.assertEqual([x["id"] for x in v.call_args.args[4]], ["A1", "A2", "A3"])
+        self.assertIn("A3 未验证", out["why"])
+        self.setUp()
+        self.pack["snapshot"]["ac"] = ACS + [keep]
+        self.pack["missing"] = ["验证门全部通过（没有没过或未知的）", "乙方复核人"]
+        a, b = self.real("pass", {"A1": "pass", "A2": "pass", "A3": "pass"})
+        with a, b:
+            out, rec = self.run_it()
         self.assertTrue(out["accepted"])
-        self.assertEqual([x["id"] for x in v.call_args.args[4]], ["A1", "A2"])
-        self.assertEqual(rec.call_args.kwargs["basis"]["ac"]["A3"], ai_accept.KEPT_BUILD)
+        self.assertEqual(rec.call_args.kwargs["basis"]["ac"]["A3"], "实测 A3")
+        note = rec.call_args.args[4]
+        self.assertIn("构建通过（这个项目没跑自动测试）", note)
+        self.assertIn("在页面上逐条实测 3 条验收标准（A1、A2、A3）", note)
+        self.assertIn("证据包里还缺：验证门全部通过（没有没过或未知的）、乙方复核人", note)
         self.setUp()
         self.pack["snapshot"]["ac"] = ACS + [keep]
         self.pack["snapshot"]["gates"] = [{"id": "test", "state": "pass"}]
         a, b = self.real("pass", {"A1": "pass", "A2": "pass"})
-        with a, b:
+        with a, b as v:
             out, rec = self.run_it()
+        self.assertEqual([x["id"] for x in v.call_args.args[4]], ["A1", "A2"])
         self.assertEqual(rec.call_args.kwargs["basis"]["ac"]["A3"], ai_accept.KEPT)
+        note = rec.call_args.args[4]
+        self.assertIn("构建测试通过", note)
+        self.assertIn("在页面上逐条实测 2 条验收标准（A1、A2）都做到了；必须保持项 A3 由自动测试证明", note)
+        self.setUp()
+        self.pack["snapshot"]["ac"] = ACS + [keep]
+        self.pack["snapshot"]["gates"] = [{"id": "test", "state": "pass"}]
+        self.P.store.run.return_value = {"id": 7, "diff": "diff --git a/src/main/resources/templates/v.html b/src/main/resources/templates/v.html\n"}
+        a, b = self.real("pass", {"A1": "pass", "A2": "pass", "A3": "pass"})
+        with a, b as v:
+            self.assertTrue(self.run_it()[0]["accepted"])
+        self.assertEqual([x["id"] for x in v.call_args.args[4]], ["A1", "A2", "A3"])
         self.setUp()
         self.pack["snapshot"]["ac"] = [keep]
+        self.pack["snapshot"]["gates"] = [{"id": "test", "state": "pass"}]
         a, b = self.real("pass", {})
         with a, b as v:
             out, rec = self.run_it()
