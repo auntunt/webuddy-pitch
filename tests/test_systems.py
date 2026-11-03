@@ -7,8 +7,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(HERE))
 
-from tmh.platform import workbench  # noqa: E402
-from test_run_steer import RunSteerTest  # noqa: E402
+from test_run_steer import RunSteerTest
+
+from tmh.platform import workbench
 
 
 class SystemsTest(RunSteerTest):
