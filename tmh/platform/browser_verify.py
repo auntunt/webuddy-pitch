@@ -220,6 +220,10 @@ def conf(data_dir: Path, key: str) -> dict | None:
     return c if isinstance(c, dict) and c.get("ssh") and c.get("app") else None
 
 
+NO_SPEC = ("\n\n上一次没有交回脚本。读不到的代码或工具就按工单、验收标准和上面的改动来写，"
+           "页面结构拿不准就用文字和角色定位；必须输出一个 ```tmh-spec 代码块。")
+
+
 def spec_prompt(t: dict, acs: list, diff: str) -> str:
     L = [SPEC_RULES, "工单：%s" % t.get("title", ""), (t.get("body") or "")[:2000], "", "验收标准："]
     L += ["- %s %s" % (a["id"], a.get("text", "")) for a in acs]
@@ -472,7 +476,8 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
         base, diff = "", ""
     if not re.fullmatch(r"[0-9a-f]{40}", base):
         return {"result": "unverified", "why": "找不到被测版本", "ac": []}
-    spec = spec_from((ask or _ask)(P, p, t, spec_prompt(t, acs, run.get("diff") or "")))
+    prompt = spec_prompt(t, acs, run.get("diff") or "")
+    spec = spec_from((ask or _ask)(P, p, t, prompt)) or spec_from((ask or _ask)(P, p, t, prompt + NO_SPEC))
     bind = binding(base, diff, spec)
     if not spec:
         items = results({}, acs, {})

@@ -496,8 +496,11 @@ def _load_flows(root: Path) -> dict:
     from . import flow
     data = flow.build_flows(root)
     x = cfgmod.tmh_dir(root)
-    x.mkdir(parents=True, exist_ok=True)
-    (x / "flows.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    try:  # only a cache: a read-only checkout still answers the query
+        x.mkdir(parents=True, exist_ok=True)
+        (x / "flows.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    except OSError:
+        pass
     return data
 
 
