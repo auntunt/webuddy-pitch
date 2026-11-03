@@ -117,6 +117,9 @@ export async function login(page, user = 'admin', pass = '123456') {
 }
 
 export async function shot(page, testInfo, name) {
+  // scripts sometimes call shot(page, '步骤名'): take the running test's info instead of failing the check
+  if (typeof testInfo === 'string' || !testInfo) { name = testInfo; testInfo = base.info(); }
+  name = String(name || 'shot');
   const file = path.join(process.env.TMH_OUT, 'shots', testInfo.title.split(' ')[0] + '-' + name.replace(/[^\w-]/g, '_') + '.png');
   fs.mkdirSync(path.dirname(file), { recursive: true });
   await page.screenshot({ path: file });

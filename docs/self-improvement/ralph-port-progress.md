@@ -427,3 +427,4 @@
 - 生产首次从界面实测 PETS-2（运行 #343），结果是「没有找到要在页面上实测的检查项」：PETS-2 的方案输出里没有 `tmh-plan` 块，签收快照也是空的，而客户检查项（7 条）只存在 `signoff.client_ac` 里。现在检查项依次取签收快照、客户检查项、方案，和 `signoff`、`fixloop.criteria` 的取法一致。
 - 再次实测 PETS-2 时报 `ValueError`：写实测脚本的 `_ask` 在路由里找不到 diagnose 步骤（执行器统一改成 Codex 后已经删掉），于是退回到 autoflow 的 `codex`，而这个执行器不在路由的允许列表里。JB 的 AI 验收实测也会因此失败。现在没有 diagnose 步骤时，改用 `agent_routes.resolve` 给出的项目执行器；实测没跑完时，原因直接写出异常信息。
 - 第三次实测 PETS-2：Codex 写好了脚本（运行 #350），bundle 也送到了实测机，但 Spring Boot 启动失败。git-commit-id 插件报错 `Could not get HEAD Ref ... /home/auntu/pv/PETS/base/.git`，因为平台新建的检出只拉了 bundle，HEAD 还是空的（和 Windows 测试机上那次是同一类问题）。驱动现在会在 HEAD 为空时把它指到被测的基线。另外，等待启动期间应用进程退出了，就立刻结束并报「app exited before it was ready」，不用再白等 900 秒。
+- 第四次实测 PETS-2：Spring Boot 起来了，Playwright 也跑了，但三条检查项都报 `TypeError: Cannot read properties of undefined (reading 'replace')`。原因是 AI 写的脚本调用了 `shot(page, '步骤名')`，少传了 testInfo。`shot()` 现在兼容这种写法，自动用 `test.info()` 补上。
