@@ -1,6 +1,6 @@
 """业务状态图: each business flow as a Pele-drawn statechart, with its rules and the numbered path to a broken one.
 
-The renderer (vendor/pele.global.js) is fetched only when this page opens. Colours come from the shared theme
+The renderer (vendor/pele.global.js) is fetched through the project API only when this page opens. Colours come from the shared theme
 tokens so the chart reads as part of Webuddy, not as a separate tool.
 """
 
@@ -62,8 +62,8 @@ const STCH={d:null,cur:'',timer:0,step:-1,load:null};
 function stcLib(){
   if(window.pele)return Promise.resolve();
   if(STCH.load)return STCH.load;
-  STCH.load=new Promise((ok,no)=>{const s=document.createElement('script');s.src=appPath('/ui/pele.js');s.onload=ok;
-    s.onerror=()=>{STCH.load=null;s.remove();no(apiErr('状态图组件没能加载，刷新试试。'))};document.head.appendChild(s)});
+  STCH.load=get('/api/projects/'+S.proj+'/statecharts/renderer').then(r=>{const s=document.createElement('script');s.textContent=r.js;document.head.appendChild(s);
+    if(!window.pele)throw apiErr('状态图组件没能加载，刷新试试。')}).catch(e=>{STCH.load=null;throw e});
   return STCH.load}
 async function vStates(cid){
   clearInterval(STCH.timer);
