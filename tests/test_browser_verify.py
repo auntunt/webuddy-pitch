@@ -1,4 +1,5 @@
 import json
+import shlex
 import tempfile
 import unittest
 from pathlib import Path
@@ -182,6 +183,21 @@ class StartCommandTest(unittest.TestCase):
         self.assertIn("git -C pv/PETS/base init -q", sent[1])
         self.assertIn('[ -n "$START" ]', bv.DRIVER)
         self.assertIn("REPO=${8:-pv/base}; START=${9:-}", bv.DRIVER)
+
+    def test_a_form_login_config_reaches_the_host_without_the_password(self):
+        sent = []
+
+        def fake(c, remote, data=None, timeout=120):
+            sent.append(remote)
+            return (0, b"a" * 40 + b"\n") if len(sent) == 1 else (1, b"")
+        login = {"path": "login", "user": "demo_admin", "pass_var": "BID_DEMO_PASS", "env_file": "~/.bidding-demo.env"}
+        c = {"ssh": "u@h", "app": ".", "repo": "pv/BID/base", "start": "bash demo/start.sh", "login": login}
+        with mock.patch.object(bv, "_ssh", side_effect=fake):
+            bv.run_remote(c, Path("."), "a" * 40, "", "spec", "j1", 23001)
+        self.assertIn(shlex.quote(json.dumps(login, ensure_ascii=False)), sent[-1])
+        self.assertIn("LOGIN=${10:-}", bv.DRIVER)
+        self.assertIn('[ -n "$LOGIN" ] && export TMH_LOGIN=$LOGIN', bv.DRIVER)
+        self.assertIn("if (process.env.TMH_LOGIN) return formLogin(page, JSON.parse(process.env.TMH_LOGIN));", bv.HELPERS)
 
     def test_login_opens_the_home_page_when_there_is_no_jeecg_config(self):
         self.assertIn("if (!process.env.TMH_JB_YML) { await page.goto(base); await ready(page); return; }", bv.HELPERS)

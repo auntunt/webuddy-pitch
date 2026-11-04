@@ -26,6 +26,7 @@ HELPERS = r"""import { test as base, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 export { expect };
@@ -94,9 +95,38 @@ export function captchaFor(checkKey) {
   return '';
 }
 
+function hostEnv(file) {
+  const out = {};
+  try {
+    for (const line of fs.readFileSync(file.replace(/^~(?=\/)/, os.homedir()), 'utf8').split('\n')) {
+      const m = line.match(/^\s*(?:export\s+)?([A-Za-z_]\w*)=(.*)$/);
+      if (m) out[m[1]] = m[2].trim().replace(/^(['"])(.*)\1$/, '$2');
+    }
+  } catch (e) { /* no file: the variables may already be in the environment */ }
+  return out;
+}
+
+// a plain form login (verify-hosts.json "login": path, user / user_var, pass_var, env_file): the account stays on the host
+async function formLogin(page, c) {
+  const env = { ...hostEnv(c.env_file || ''), ...process.env }, where = c.path || 'login';
+  const user = env[c.user_var || ''] || c.user || '', pass = env[c.pass_var || ''] || '';
+  if (!user || !pass) throw new Error('TMH_SETUP login account not found on the verification host');
+  await page.goto(process.env.TMH_BASE + where);
+  await ready(page);
+  const pw = page.locator('input[type=password]:visible').first();
+  await pw.waitFor({ timeout: 240000 });
+  await page.locator('input:not([type=password]):not([type=hidden]):not([type=checkbox]):not([type=radio]):visible').first().fill(user);
+  await pw.fill(pass);
+  await page.getByRole('button', { name: /登\s*录|log\s*in|sign\s*in/i }).first().click();
+  await page.waitForURL((u) => !u.pathname.replace(/\/$/, '').endsWith('/' + where.replace(/^\/|\/$/g, '')), { timeout: 60000 });
+  await ready(page);
+  await page.waitForTimeout(2000);
+}
+
 export async function login(page, user = 'admin', pass = '123456') {
   const base = process.env.TMH_BASE;
-  // only JeecgBoot has a captcha login wired here; other projects open their home page
+  if (process.env.TMH_LOGIN) return formLogin(page, JSON.parse(process.env.TMH_LOGIN));
+  // JeecgBoot has its captcha login wired here; other projects without a "login" open their home page
   if (!process.env.TMH_JB_YML) { await page.goto(base); await ready(page); return; }
   let checkKey = '';
   page.on('request', (r) => { const m = r.url().match(/randomImage\/([^/?]+)/); if (m) checkKey = m[1]; });
@@ -136,7 +166,7 @@ export default async function () {
   try {
     const page = await browser.newPage();
     for (let i = 0; i < 2; i++) {
-      await page.goto(process.env.TMH_BASE + (process.env.TMH_JB_YML ? 'user/login' : ''), { timeout: 240000 });
+      await page.goto(process.env.TMH_BASE + (process.env.TMH_JB_YML ? 'user/login' : process.env.TMH_LOGIN ? JSON.parse(process.env.TMH_LOGIN).path || 'login' : ''), { timeout: 240000 });
       await ready(page);
       await page.waitForTimeout(5000);
     }
@@ -153,7 +183,7 @@ CONFIG = """export default { testDir: '.', testMatch: 'tmh-verify.spec.mjs', tim
 """
 
 DRIVER = r"""set -u
-J=$1; BASE=$2; PORT=$3; PFX=$4; APP=$5; API=$6; YML=$7; REPO=${8:-pv/base}; START=${9:-}
+J=$1; BASE=$2; PORT=$3; PFX=$4; APP=$5; API=$6; YML=$7; REPO=${8:-pv/base}; START=${9:-}; LOGIN=${10:-}
 case "$REPO" in /*) ;; *) REPO=$HOME/$REPO;; esac
 export PATH=~/.local/bin:$PATH
 D=~/pv/verifier/jobs/$J; OUT=$D/out; mkdir -p $OUT; cd $D
@@ -188,6 +218,7 @@ for i in $(seq 1 $N); do [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.
   kill -0 $VP 2>/dev/null || { say "app exited before it was ready"; finish; }; sleep 2; done
 [ "$i" = $N ] && { say "app did not start"; finish; }
 [ -n "$YML" ] && export TMH_JB_YML=$D/src/$YML
+[ -n "$LOGIN" ] && export TMH_LOGIN=$LOGIN
 cd $D && TMH_BASE=http://127.0.0.1:$PORT$PFX/ TMH_OUT=$OUT timeout 1200 npx playwright test -c playwright.config.mjs >&2
 [ -f $OUT/report.json ] || say "verifier produced no report"
 finish
@@ -388,7 +419,8 @@ def run_remote(c: dict, repo: Path, base: str, diff: str, spec: str, job: str, p
         entries["in.bundle"] = b
     prefix = "/pv/verify/" + job
     remote = "mkdir -p ~/pv/verifier/jobs/%s && tar xz -C ~/pv/verifier/jobs/%s && bash ~/pv/verifier/jobs/%s/driver.sh %s" % (
-        job, job, job, " ".join(shlex.quote(str(x)) for x in (job, base, port, prefix, c["app"], c.get("api", ""), c.get("yml", ""), repo_dir, c.get("start", ""))))
+        job, job, job, " ".join(shlex.quote(str(x)) for x in (job, base, port, prefix, c["app"], c.get("api", ""), c.get("yml", ""), repo_dir, c.get("start", ""),
+                                                  json.dumps(c["login"], ensure_ascii=False) if c.get("login") else "")))
     code, out = _ssh(c, remote, _tar(entries), timeout=TIMEOUT)
     files, report = {}, {}
     try:
