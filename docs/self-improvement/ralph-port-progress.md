@@ -547,3 +547,10 @@
 - 验证：本机 UI 相关 632 passed、协作相关 170 passed；服务器用发布包跑 15 个相关模块 230 项 OK，失败清单与 `0064bfd` 一致（都为空）。
 - 发布：备份 `/opt/webuddy/backups/pre-9cd16f331039-activation-20261104`；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
 - 招投标演示项目选型：wzhnbb/bidding 只有介绍页；luhongbin/bidding（MIT，litemall 改的招投标/报价）可用，待导入。
+
+## 2026-11-04 首页改成闭环总览（生产 5dc4642）
+
+- 用户要求：状态看板的闭环图应该是首页形式。现在 `#/`、`#/home` 打开「闭环总览」：左边闭环图，右边流转中/失败/已关闭、点节点列出的工单、「等你处理」；深色指标带和智能洞察移到下方。工作台改为总览下的第二个标签 `#/workspace`，`#/board` 仍兼容。
+- 顺带修复：选「全部项目」时首页显示「没有这个项目」。原因是租户网关把路径里的 `*` 当项目键去查（`tenant_policy._project` 拒绝 `*`）。新增 `ALL_PROJECT_PATHS`（GET `/loop`、`/inbox`）：`*`/`all` 只对租户管理员放行（`P.loop(None)` 不按权限过滤），其他人 403；前端 `boardQ()` 对非管理员改用当前项目。`POST /catchup` 的 `*` 仍拒绝，首页在全部项目时不显示一键交给自动处理。测试：`test_tenant_policy.py::test_all_project_boards_are_admin_only`。
+- 验证：本机 UI 307 passed，UI+租户 350 passed；服务器发布包 15 个模块 231 项 OK，失败清单为空。
+- 发布：383dc03 → bf14588 → 5dc4642，备份 `/opt/webuddy/backups/pre-<commit>-activation-20261104`；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。生产实测 li（全部项目，79 单）与 LYB（当前项目，57 单）首页闭环图都在第一屏。
