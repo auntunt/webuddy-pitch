@@ -1,6 +1,12 @@
 """Tab-local comment drafts. No automatic transmission and no attachment serialization."""
 
 DRAFT_JS = r"""
+function intakeDraftFor(project){
+  const scope=JSON.stringify([S.meta?.access?.tenant?.id||'',S.meta?.data_dir||'',S.meta?.login?S.meta.user:S.user||S.meta?.user||'',project]);
+  if(S.intakeDraft?.scope!==scope)S.intakeDraft={scope,text:'',taskId:''};
+  return S.intakeDraft;
+}
+
 function commentDraftActor(){return Array.from((S.meta?.login?S.meta.user:S.user||S.meta?.user)||'我').slice(0,40).join('')}
 function commentDraftScope(d){return JSON.stringify([...(S.meta?.access?.tenant?.id?[S.meta.access.tenant.id]:[]),S.meta?.data_dir||'',S.meta?.login?S.meta.user:S.user||S.meta?.user||'',d.project.id,d.project.key,d.ticket.id,d.ticket.key,d.ticket.created])}
 function commentDraftOpen(scope,storage,cache){

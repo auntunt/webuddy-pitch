@@ -101,10 +101,10 @@ function isEng(v){return !WK.includes(v)}
 function navOf(v){return ['home','workspace','today','meetings'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn','atlas','states','map'].includes(v)?'memory':['tickets','t','reqs','board','rtickets'].includes(v)?'tasks':['deliveries','delivery','versions'].includes(v)?'deliveries':v==='runs'?'runs':['lead','overview','eff'].includes(v)?'insights':'projects'}
 function navCurrent(v){return ['c','clients'].includes(v)?'clients':v==='team'?'tasks':['settings','access','projects'].includes(v)?v:navOf(v)}
 function paintNav(){const cur=navCurrent(curView()),nav=$('#nav5');
-  const signature=JSON.stringify([cur,curView(),!!S.meta?.access?.can_manage]);if(nav.dataset.signature===signature)return;
+  const signature=JSON.stringify([cur,curView(),!!S.meta?.access?.can_manage,S.meta?.access?.role]);if(nav.dataset.signature===signature)return;
   const focused=nav.contains(document.activeElement)?document.activeElement.closest('[data-n]')?.dataset.n:null;
   const link=([k,l,u,ic])=>`<a href="${u}" class="${k===cur?'on':''}" data-n="${k}" ${k===cur?'aria-current="page"':''}><i aria-hidden="true">${workIcon(ic)}</i><span>${l}</span></a>`;
-  const management=[['projects','项目','#/projects','versions'],['clients','客户','#/clients','clients'],['settings','设置','#/settings','eng']];
+  const management=[['projects','项目','#/projects','versions'],...(!S.meta?.access||S.meta.access.role==='admin'?[['clients','客户','#/clients','clients']]:[]),['settings','设置','#/settings','eng']];
   if(S.meta?.access?.can_manage)management.push(['access','成员与权限','#/access','clients']);
   nav.innerHTML='<span class="ws-nav-label">维护交付</span>'+NAV.map(link).join('')+`<div class="ws-nav-secondary"><span class="ws-nav-label">管理</span>${management.map(link).join('')}</div>`;
   nav.dataset.signature=signature;if(focused)nav.querySelector(`[data-n="${focused}"]`)?.focus()}
@@ -116,37 +116,55 @@ function nowStr(d){d=d||new Date();const p=n=>String(n).padStart(2,'0');return `
 
 // ---------- 粘贴客户的话: one box on every page, the requirement conversation with the client recorded
 function sayWire(){/* Pasting keeps focus; recording begins only on explicit submit. */}
-function sayOpen(){const i=$('#sayIn'),v=i?i.value:'';if(i)i.value='';const c=location.hash.match(/^#\/c\/(\d+)/);pasteModal(v,c?+c[1]:undefined)}
+async function sayOpen(){const i=$('#sayIn'),v=i?i.value:'';const c=location.hash.match(/^#\/c\/(\d+)/);try{if(await pasteModal(v,c?+c[1]:undefined)&&i&&i.value===v)i.value=''}catch(e){toast(e.message,5000)}}
 async function pasteModal(text,cid){
-  if(!S.projects.length)return newProject();
-  let cs=[];try{cs=(await get('/api/clients')).clients}catch(e){}
+  if(!S.projects.length){toast('没有可记录需求的项目，请联系管理员授权。');return false}
+  if(!S.projects.some(p=>accessCanWrite(p.key))){toast('当前账号只有查看权限，请联系项目负责人记录需求。');return false}
+  const clientAccess=!S.meta?.access||S.meta.access.role==='admin';
+  let cs=[],clientError='';if(clientAccess){try{cs=(await get('/api/clients')).clients}catch(e){clientError=e.status===403?'没有读取客户目录的权限，可先按项目记录。':'客户目录读取失败，可重试或先按项目记录。'}}
   const want=cid!=null?String(cid):(ls.get('tmh.lastClient')||''),has=cs.some(c=>String(c.id)===want);
   const tk=curView()==='t'?decodeURIComponent(location.hash.split('/')[2]||'').replace(/-\d+$/,'').toUpperCase():'';
   const np=(tk&&S.projects.some(p=>p.key===tk)?tk:(isCross()?pk0():S.proj))||S.proj;
-  modal(`<h2>记录需求</h2><ol class="sub intake-guide" style="margin:4px 0 10px;padding-left:18px;line-height:1.7"><li><b>贴原话</b>：客户或前线需求人员怎么说就怎么贴，截图里的文字也可以。</li><li><b>归档</b>：选客户、项目、系统；没有就选「＋ 新…」当场建。</li><li><b>交给 AI 理清</b>：AI 会追问缺的信息、整理验收标准，你确认后才建工单。</li></ol>
+  modal(`<h2>记录需求</h2><ol class="sub intake-guide" style="margin:4px 0 10px;padding-left:18px;line-height:1.7"><li><b>贴原话</b>：客户或前线需求人员怎么说就怎么贴，截图里的文字也可以。</li><li><b>归档</b>：选客户、项目、系统；没有就选「＋ 新…」当场建。</li><li><b>记录与交接</b>：有执行权限时交给 AI 理清；否则先归档，由项目成员继续处理。</li></ol>
    <div class="wk-fields"><label class="wk-field full" for="pmT">需求原文<textarea id="pmT" style="min-height:140px" placeholder="例如：评标报告里加一列「投标报价（万元）」，导出 Excel 时按万元汇总。">${h(text||'')}</textarea></label>
     <label class="wk-field full" for="pmR">谁提的（可选）<input id="pmR" placeholder="例如：张工（客户现场前线需求人员），微信群里提的"></label>
-    <label class="wk-field" for="pmC">客户<select id="pmC"><option value="">不记客户</option>${cs.map(c=>`<option value="${c.id}" ${String(c.id)===want?'selected':''}>${h(c.name)}</option>`).join('')}<option value="__new" ${!cs.length?'selected':''}>＋ 新客户…</option></select></label>
-    <label class="wk-field" id="pmNL" for="pmN" ${cs.length?'hidden':''}>客户称呼<input id="pmN" placeholder="例如：王总（某某集团）" ${cs.length?'hidden':''}></label>
+    <label class="wk-field" for="pmC">客户<select id="pmC" ${!clientAccess||clientError?'disabled':''}><option value="">不记客户</option>${cs.map(c=>`<option value="${c.id}" ${String(c.id)===want?'selected':''}>${h(c.name)}</option>`).join('')}${clientAccess&&!clientError?'<option value="__new">＋ 新客户…</option>':''}</select></label>
+    <label class="wk-field" id="pmNL" for="pmN" hidden>客户称呼<input id="pmN" placeholder="例如：王总（某某集团）" hidden></label>
+    ${clientError?`<div class="wk-field full" role="alert">${h(clientError)} <button type="button" id="pmClientRetry">重试客户目录</button></div>`:!clientAccess?'<div class="wk-field full">客户目录由管理员维护，本次按项目记录。</div>':''}
     ${S.projects.length>1?`<label class="wk-field" for="pmP">所属项目<select id="pmP">${S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===np?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')}</select></label>`:''}
     <label class="wk-field" for="pmS">系统<select id="pmS"><option value="">不选系统</option></select></label>
     <label class="wk-field" id="pmSNL" for="pmSN" hidden>系统名称<input id="pmSN" placeholder="例如：开评标系统（私有化部署）"></label></div>
    <div class="wk-actions"><button class="primary" id="pmGo">${S.meta.access&&!accessCanExecute(np)?'记录并归档':'交给 AI 理清'}</button><button type="button" id="pmOld" class="ghost">直接填写工单</button></div>`,true);
-  if(!has&&want&&cid==null)$('#pmC').value='';
-  const sysLoad=async()=>{const pk=$('#pmP')?$('#pmP').value:np;let ss=[];try{ss=(await get('/api/projects/'+encodeURIComponent(pk)+'/systems')).systems}catch(e){}
-    const last=ls.get('tmh.lastSystem.'+pk)||'';$('#pmS').innerHTML=`<option value="">不选系统</option>${ss.map(x=>`<option value="${x.id}" ${String(x.id)===last?'selected':''}>${h(x.name)}</option>`).join('')}<option value="__new">＋ 新系统…</option>`;$('#pmS').onchange()};
+  if(!has||!clientAccess||clientError)$('#pmC').value='';
+  const chosen=()=>$('#pmP')?$('#pmP').value:np;
+  const syncAction=()=>{const pk=chosen(),write=accessCanWrite(pk);$('#pmGo').disabled=!write;$('#pmOld').disabled=!write;$('#pmGo').textContent=!write?'仅可查看':accessCanExecute(pk)?'交给 AI 理清':'记录并归档'};
+  syncAction();
+  const host=$('#pmT');let draft=intakeDraftFor(chosen());if(text){draft.text=text;draft.taskId=''}
+  host.oninput=()=>{draft.text=host.value;draft.taskId=''};
+  const restore=document.createElement('button');restore.type='button';restore.id='pmRestore';restore.textContent='恢复本次输入';
+  restore.hidden=!!text||!(draft.text||draft.taskId);host.insertAdjacentElement('afterend',restore);
+  restore.onclick=()=>{if(draft.taskId)talkOpen(draft.taskId);else{host.value=draft.text;restore.hidden=true}};
+  if($('#pmP'))$('#pmP').addEventListener('change',()=>{draft=intakeDraftFor(chosen());host.value='';restore.hidden=!(draft.text||draft.taskId)});
+  if($('#pmClientRetry'))$('#pmClientRetry').onclick=async()=>{const button=$('#pmClientRetry');button.disabled=true;try{cs=(await get('/api/clients')).clients;clientError='';$('#pmC').disabled=false;$('#pmC').innerHTML='<option value="">不记客户</option>'+cs.map(c=>`<option value="${c.id}">${h(c.name)}</option>`).join('')+'<option value="__new">＋ 新客户…</option>';button.parentElement.remove()}catch(e){toast(e.message,5000);button.disabled=false}};
+  let systemRead=0;
+  const sysLoad=async()=>{const pk=chosen(),version=++systemRead,select=$('#pmS');select.disabled=true;select.innerHTML='<option value="">正在读取系统…</option>';
+    try{const ss=(await get('/api/projects/'+encodeURIComponent(pk)+'/systems')).systems;
+      if($('#pmT')!==host||chosen()!==pk||version!==systemRead)return;
+      const last=ls.get('tmh.lastSystem.'+pk)||'';select.innerHTML=`<option value="">不选系统</option>${ss.map(x=>`<option value="${x.id}" ${String(x.id)===last?'selected':''}>${h(x.name)}</option>`).join('')}<option value="__new">＋ 新系统…</option>`;select.disabled=false;select.onchange();
+    }catch(e){if($('#pmT')===host&&chosen()===pk&&version===systemRead){select.innerHTML='<option value="">系统读取失败，本次不关联系统</option>';toast(e.message,5000)}}};
   $('#pmS').onchange=()=>{$('#pmSNL').hidden=$('#pmS').value!=='__new';if(!$('#pmSNL').hidden)$('#pmSN').focus()};
-  if($('#pmP'))$('#pmP').addEventListener('change',sysLoad);sysLoad();
+  if($('#pmP'))$('#pmP').addEventListener('change',()=>{syncAction();sysLoad()});sysLoad();
   $('#pmC').onchange=()=>{$('#pmN').hidden=$('#pmC').value!=='__new';$('#pmNL').hidden=$('#pmN').hidden;if(!$('#pmN').hidden)$('#pmN').focus()};
   if(!text)$('#pmT').focus();
   $('#pmOld').onclick=()=>{const v=$('#pmT').value,who=($('#pmR')?.value||'').trim();closeModal();newTicket({title:v.split('\n')[0].slice(0,60),body:who?'提出人：'+who+'\n'+v:v})};
   $('#pmGo').onclick=async()=>{const v=$('#pmT').value,c=$('#pmC').value,pk=$('#pmP')?$('#pmP').value:np;
+    if(!accessCanWrite(pk))return toast('当前项目只有查看权限，不能记录需求。');
     const who=($('#pmR')?.value||'').trim(),b={project:pk,text:who?'提出人：'+who+'\n'+v:v};if(S.meta.access&&!accessCanExecute(pk))b.model=false;if(c==='__new'){const n=$('#pmN').value.trim();if(!n)return toast('写上客户的称呼，或者选“不记客户”');b.client_name=n}else if(c)b.client=+c;
     const sv=$('#pmS').value;if(sv==='__new'){const n=$('#pmSN').value.trim();if(!n)return toast('写上系统名称，或者选“不选系统”');b.system_name=n}else if(sv)b.system=+sv;
-    $('#pmGo').disabled=true;$('#pmGo').textContent='正在理清…';
+    $('#pmGo').disabled=true;$('#pmGo').textContent=b.model===false?'正在归档…':'正在理清…';
     try{const s=await post('/api/workbench/intake',b);ls.set('tmh.lastClient',s.client?String(s.client):'');ls.set('tmh.lastSystem.'+pk,s.system?String(s.system):'');
       const name=c==='__new'?b.client_name:(cs.find(x=>x.id===s.client)||{}).name||'';
-      intakeOpen(s,name)}catch(e){toast(e.message,5000);$('#pmGo').disabled=false;$('#pmGo').textContent='交给 AI 理清'}}}
+      draft.taskId=s.id;draft.text=v;if($('#pmT')===host&&!$('#modal').hidden)intakeOpen(s,name)}catch(e){if($('#pmT')===host&&!$('#modal').hidden){toast(e.message,5000);syncAction()}}};return true}
 // the existing requirement conversation, opened on a talk that already started
 function intakeOpen(s,clientName){intakeModal(s.project,s.text);intakePaint(s);
   const h2=$('#mbody h2');if(h2&&clientName)h2.insertAdjacentHTML('afterend',`<div style="margin:2px 0 6px"><span class="ev-tag info">来自 ${h(clientName)}</span></div>`)}
@@ -165,7 +183,7 @@ async function vToday(){
     <div class="row"><button class="primary" id="sbGo">交给 AI 理清</button><span class="sub">先澄清目标与验收标准，再进入执行。</span></div></form>
    <div class="wkg"><div style="display:flex;flex-direction:column;gap:14px;min-width:0"><section class="card" id="tNeed"></section><section class="card" id="tCl"></section></div>
     <div style="display:flex;flex-direction:column;gap:14px;min-width:0"><section class="card" id="tNow"></section><section class="card" id="tDid"></section></div></div></div>`;
-  $('#sbGo').onclick=()=>{const v=$('#sbT').value;$('#sbT').value='';pasteModal(v)};
+  $('#sbGo').onclick=async()=>{const input=$('#sbT'),v=input.value;try{if(await pasteModal(v)&&input.value===v)input.value=''}catch(e){toast(e.message,5000)}};
   todayPaint(d);
   poll(async()=>{if(!$('#tNow')||document.hidden)return;try{todayPaint(await get('/api/today?since='+encodeURIComponent(since)))}catch(e){}},5000,'page')}
 function todayPaint(d){
@@ -269,8 +287,8 @@ function versionCard(v,cs){const p=v.project,s=v.standing,K=h(p.key),last=(((v.v
       ${v.shares.length?`<div style="margin-top:8px">${v.shares.map(x=>`<div class="sub" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">给 ${h(x.client_name||'未指定')} · ${h(x.created.slice(5,16))} 发 · ${h(x.expires.slice(0,10))} 前有效 <button class="ghost" data-vrev="${h(x.id)}">收回</button></div>`).join('')}</div>`:''}</div>`:''}</div>
    <h3 style="margin-top:14px">版本记录</h3><div class="sub" style="margin:2px 0 8px">上生产四步：① 在验证环境（预览）里看一遍 → ② 填写看过什么，申请上生产 → ③ 负责人批准或驳回 → ④ 部署后登记「已部署」。没有批准不能登记。</div>${v.versions.length?`<div class="vtl">${v.versions.map(x=>`<div><b>${h(x.version)}</b> <span class="sub">${h((x.ts||'').slice(0,16))} · 提交 ${h(x.commit||'')}</span>${prodBox(x,v)}<ul>${x.items.map(i=>`<li>${i.client_name?`<span class="tag">${h(i.client_name)}</span> `:''}${h(i.title)} <a href="#/t/${h(i.key)}" class="sub">${h(i.key)}</a></li>`).join('')}</ul></div>`).join('')}</div>`
     :'<div class="wke">还没有版本记录。改动合入主干并形成版本后，会显示在这里。</div>'}</section>`}
-function prodBox(x,v){const r=x.prod,V=h(x.version),T={requested:'warn',approved:'info',deploying:'info',deployed:'ok',rejected:'bad',failed:'bad'};
-  const steps=r?r.steps.map(s=>`<li><span class="sub">${h((s.ts||'').slice(5,16))}</span> ${h(s.by)} · ${h({request:'申请上生产',decide:s.state==='approved'?'批准':'驳回',deploy:'开始部署',deployed:'登记已上生产',deploy_failed:'部署失败'}[s.step]||s.step)}${s.checked?'：验证环境 '+h(s.checked):''}${s.note?'：'+h(s.note):''}</li>`).join(''):'';
+function prodBox(x,v){const r=x.prod,V=h(x.version),T={requested:'warn',approved:'info',deploying:'info',deployed:r?.verification==='pass'?'ok':r?.verification==='fail'?'bad':'warn',rejected:'bad',failed:'bad',ambiguous:'warn'};
+  const steps=r?r.steps.map(s=>`<li><span class="sub">${h((s.ts||'').slice(5,16))}</span> ${h(s.by)} · ${h({request:'申请上生产',decide:s.state==='approved'?'批准':'驳回',deploy:'开始部署',deployed:s.source==='manual'?'人工登记已部署':s.verification==='pass'?'部署验证通过':s.verification==='fail'?'部署验证失败':'命令完成，部署未验证',deploy_failed:s.execution==='unknown'?'部署结果待核对':'部署失败'}[s.step]||s.step)}${s.checked?'：验证环境 '+h(s.checked):''}${s.note?'：'+h(s.note):''}${s.verification_note?'：'+h(s.verification_note):''}</li>`).join(''):'';
   const form=(act,label,ph,cls)=>`<div class="lnk prod-act"><input data-prod-note="${act}" placeholder="${h(ph)}"><button class="${cls||''}" data-prod="${act}" data-v="${V}" data-id="${r?h(r.id):''}">${label}</button></div>`;
   const acts=!r||r.state==='rejected'?form('request','申请上生产','在验证环境里看过什么（必填）','primary'):r.state==='requested'?form('approve','批准上生产','批准意见（可空）','primary')+form('reject','驳回','驳回原因（必填）','ghost'):(r.state==='approved'&&!v.prod_deploy)||r.state==='failed'?form('deployed','登记已部署','部署说明，例如部署人、时间窗口',''):'';
   return `<div class="prod-box">${r?`<span class="ev-tag ${T[r.state]||'mute'}">生产：${h(r.state_text)}</span>`:'<span class="ev-tag mute">还没申请上生产</span>'}${steps?`<ol class="sub prod-steps">${steps}</ol>`:''}${acts}</div>`}

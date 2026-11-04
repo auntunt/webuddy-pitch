@@ -191,10 +191,12 @@ class Platform:
             self.store.add_points(run["project_id"], -n, dict(RUN_MODES).get(run["mode"], run["mode"]), run["author"], run["id"], run["ticket_id"])
 
     # ------------------------------------------------------------ closed-loop board
-    def loop(self, p: dict | None) -> dict:
+    def loop(self, p: dict | None, allowed_projects=None) -> dict:
         """The closed-loop board for one project, or for every project when p is None."""
         st = self.store
         ps = [p] if p else st.projects()
+        if allowed_projects is not None:
+            ps = [x for x in ps if x["id"] in allowed_projects]
         ids = [x["id"] for x in ps] or [-1]
         # 运维 only: reform pieces are followed on the reform service's own pages
         tinn = "project_id IN (%s) AND links NOT LIKE '%s'" % (",".join("?" * len(ids)), REFORM_LIKE)
@@ -237,7 +239,7 @@ class Platform:
         else:
             facts.append("还没有工单")
         return {"total": total, "by_status": by, "failed": len(failed), "failed_ids": failed, "open": open_, "closed": closed,
-                "waiting": len(self.flow.waiting(p)) if open_ else 0,
+                "waiting": sum(len(self.flow.waiting(x)) for x in ps) if open_ else 0,
                 "metrics": [
                     {"key": "loop", "label": "闭环完成率", "pct": pct(closed, total), "sub": "共 %d 单 · 已闭环 %d" % (total, closed)},
                     {"key": "agent", "label": "智能体分析覆盖", "pct": pct(analyzed, total), "sub": "%d 单有分析结论" % analyzed},
@@ -252,9 +254,11 @@ class Platform:
     # waiting first; and, apart, what waits on someone outside the team (a client's sign-off link that is out).
     PRI_RANK = {"urgent": 0, "high": 1, "normal": 2, "medium": 2, "low": 3}
 
-    def inbox(self, p: dict | None) -> dict:
+    def inbox(self, p: dict | None, allowed_projects=None) -> dict:
         st = self.store
         ps = [p] if p else st.projects()
+        if allowed_projects is not None:
+            ps = [x for x in ps if x["id"] in allowed_projects]
         ids = [x["id"] for x in ps] or [-1]
         keys = {x["id"]: x["key"] for x in ps}
         q = ",".join("?" * len(ids))
@@ -2019,13 +2023,13 @@ def api_catchup(P, req, key):
 
 @route("GET", "/api/projects/<key>/loop")
 def api_loop(P, req, key):
-    return P.loop(None if key in ("*", "all") else P.project(key))
+    return P.loop(None if key in ("*", "all") else P.project(key), allowed_projects=_allowed_project_ids(P, req))
 
 
 @route("GET", "/api/projects/<key>/inbox")
 def api_inbox(P, req, key):
     """What waits for a person now, and what waits on someone outside the team."""
-    return P.inbox(None if key in ("*", "all") else P.project(key))
+    return P.inbox(None if key in ("*", "all") else P.project(key), allowed_projects=_allowed_project_ids(P, req))
 
 
 @route("GET", "/api/projects/<key>/points")

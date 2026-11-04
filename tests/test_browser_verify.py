@@ -129,7 +129,7 @@ class RepairTest(unittest.TestCase):
                 mock.patch.object(bv, "full_sha", return_value="a" * 40), \
                 mock.patch.object(bv, "run_remote", side_effect=remote), \
                 mock.patch.object(bv, "_record", side_effect=lambda *a: rec.append(a)):
-            out = bv.verify(P, {"key": "JB", "root": "."}, {"title": "t"}, 3, ACS[:2], commit="abc", ask=ask)
+            out = bv.verify(P, {"key": "JB", "root": "."}, {"key": "JB-1", "title": "t"}, 3, ACS[:2], commit="abc", ask=ask)
         return out, asked, ran
 
     def test_strict_mode_is_a_script_fault_not_a_reproduced_defect(self):
@@ -263,7 +263,7 @@ class PageCheckTest(unittest.TestCase):
         client = [{"id": "A1", "text": "主人详情页不再有 Add New Pet 按钮"}, {"id": "A2", "text": "测试通过", "keep": True}]
         with mock.patch("tmh.platform.signoff.state", return_value={"snapshot": {}}), \
                 mock.patch("tmh.platform.signoff.client_ac", return_value=client):
-            self.assertEqual(bv.page_criteria(P, {"id": 1, "key": "PETS-2"}), client[:1])
+            self.assertEqual(bv.page_criteria(P, {"id": 1, "key": "PETS-2"}), client)
         P.store.runs.assert_not_called()
 
 
@@ -327,7 +327,7 @@ class NoSpecTest(unittest.TestCase):
                 mock.patch.object(bv, "full_sha", return_value="a" * 40), \
                 mock.patch.object(bv, "run_remote") as remote, \
                 mock.patch.object(bv, "_record"):
-            out = bv.verify(P, {"key": "PETS", "root": "."}, {"title": "t"}, 3, ACS[:1], commit="abc", ask=ask)
+            out = bv.verify(P, {"key": "PETS", "root": "."}, {"key": "JB-1", "title": "t"}, 3, ACS[:1], commit="abc", ask=ask)
         self.assertEqual(len(asked), 2)
         self.assertIn("上一次没有交回脚本", asked[1])
         self.assertEqual(out["why"], "没有写出实测脚本")

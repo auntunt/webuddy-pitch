@@ -12,6 +12,7 @@ import hashlib
 import io
 import json
 import re
+import secrets
 import shlex
 import subprocess
 import tarfile
@@ -232,7 +233,7 @@ SPEC_RULES = """写一个 Playwright 实测脚本，在真实运行的应用里�
 
 脚本要求：
 - ESM：`import { test, expect, anchor, login, shot } from './tmh-helpers.mjs';`（这里的 `page.goto` 会等页面加载完）
-- 只为最后列出的验收标准写 test（工单正文里其他「必须保持」之类的条目由自动测试证明，不要写）。每条一个 test，标题以编号开头，例如 `test('A1 取消后恢复原值', async ({ page }, testInfo) => { ... })`。
+- 只为最后列出的验收标准写 test（未列出的正文条目不要自行扩展；列出的必须保持项也必须逐项实测）。每条一个 test，标题以编号开头，例如 `test('A1 取消后恢复原值', async ({ page }, testInfo) => { ... })`。
 - 先 `await login(page);`（已处理验证码，登录后在首页），再用 `page.goto(process.env.TMH_BASE + '路由')` 或点菜单进入要测的页面。路由从仓库代码里查；`TMH_BASE` 已以 `/` 结尾，路由不要再加开头的 `/`；登录页是 `TMH_BASE + 'user/login'`。
 - 进入页面后先 `shot` 一张，再做任何断言：没截到页面就失败的，不能算标准没做到。
 - 像用户一样操作（点击、输入、选择），每个关键步骤后 `await shot(page, testInfo, '步骤名');`。
@@ -479,6 +480,9 @@ def _record(P, t: dict, rid: int, items: list, result: str, bind: dict, why: str
         for name, data in list(i["shots"].items())[-3:]:
             signoff.attach(P, t, by, i["id"], "%s：%s（%s）" % (i["result"], i["how"][:300], name),
                            "data:image/png;base64," + base64.b64encode(data).decode())
+    if bind.get("pack_hash"):
+        signoff._add(signoff.epath(P.data_dir, t["key"]), "criterion_check", by,
+                     dict(bind, run=rid, result=result, ac=[{k: i[k] for k in ("id", "result", "how")} for i in items]))
     said = {"pass": "页面实测全部通过", "fail": "页面实测复现了问题", "unverified": "页面实测没能证明"}[result]
     P.store.event(t["id"], by, "verify", "%s%s" % (said, "（%s）" % why if why else ""),
                   dict(bind, run=rid, result=result, ac=[{k: i[k] for k in ("id", "result", "how")} for i in items]))
@@ -510,6 +514,15 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
     c = conf(P.data_dir, p["key"])
     if not c:
         return {"result": "unverified", "why": "这个项目没有配真实验证环境", "ac": []}
+    from . import signoff
+    from .. import evidence as ev
+    pack = ev.latest(signoff.records(P.data_dir, t["key"]), "pack")
+    context = {"check_id": secrets.token_hex(12), "ticket": t["key"], "project": p["key"], "criteria_sha256": signoff.criteria_digest(acs),
+               "environment_sha256": hashlib.sha256(ev.canon(c).encode()).hexdigest()}
+    if pack:
+        context["pack_hash"] = pack["hash"]
+        signoff._add(signoff.epath(P.data_dir, t["key"]), "criterion_check", by,
+                     dict(context, run=rid, result="running", ac=[]))
     run = P.store.run(rid)
     wt = Path(run.get("workdir") or "")
     if commit:
@@ -524,7 +537,7 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
         return {"result": "unverified", "why": "找不到被测版本", "ac": []}
     prompt = spec_prompt(t, acs, run.get("diff") or "")
     spec = spec_from((ask or _ask)(P, p, t, prompt)) or spec_from((ask or _ask)(P, p, t, prompt + NO_SPEC))
-    bind = binding(base, diff, spec)
+    bind = dict(binding(base, diff, spec), **context)
     if not spec:
         items = results({}, acs, {})
         _record(P, t, rid, items, "unverified", bind, "没有写出实测脚本", by)
@@ -535,7 +548,7 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
     if not why and repairable(items):
         fixed = spec_from((ask or _ask)(P, p, t, repair_prompt(spec, items, diff)))
         if fixed and fixed != spec and keeps(spec, fixed, acs):
-            bind = dict(binding(base, diff, fixed), repaired_from=bind["spec_sha256"])
+            bind = dict(binding(base, diff, fixed), repaired_from=bind["spec_sha256"], **context)
             report, files = run_remote(c, Path(p["root"]), base, diff, fixed, _job(p, rid, bind), 23100 + rid % 800)
             items = results(report, acs, files)
             why = str(report.get("setup") or "")
@@ -568,14 +581,14 @@ def page_state(P, rid: int) -> dict:
 
 
 def page_criteria(P, t: dict) -> list:
-    """What to check on the page: the signed-off criteria, else the client's, else the plan's; not the ones kept by the build."""
+    """What to check on the page: all signed-off criteria, else the client's, else the plan's."""
     from . import signoff
     from .fixloop import plan_ac
     acs = (signoff.state(P.data_dir, t["key"]).get("snapshot") or {}).get("ac") or signoff.client_ac(P.data_dir, t["key"])
     if not acs:
         done = [r for r in P.store.runs(ticket_id=t["id"]) if r["mode"] == "plan" and r["status"] == "done"]
         acs = plan_ac(P.store.run(done[0]["id"])["result"] or "") if done else []
-    return [a for a in acs if not a.get("keep")]
+    return acs
 
 
 def page_check(P, rid: int, user: str) -> dict:

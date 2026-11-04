@@ -116,6 +116,32 @@ class TenantGatewayTest(unittest.TestCase):
         self.assertNotIn("PRIVATE", str(projects))
         self.assertEqual(self.request("GET", "/t/" + self.a + "/api/projects/PRIVATE", "alice", token=token)[0], 403)
 
+    def test_all_project_boards_filter_real_worker_data_and_reject_revoked_context(self):
+        root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (self.a,))["path"])
+        store = Store(root / "platform.db")
+        try:
+            store.create_ticket(2, "不可见项目的私密工单", author="owner")
+        finally:
+            store.db.close()
+        token = self.token("alice", self.a)
+        base = "/t/" + self.a + "/api/projects/"
+        status, _, board = self.request("GET", base + "*/loop", "alice", token=token, headers={"X-TMH-User": "owner"})
+        self.assertEqual(status, 200, board)
+        self.assertEqual((board["total"], board["projects"]), (1, 1))
+        status, _, inbox = self.request("GET", base + "all/inbox", "alice", token=token)
+        self.assertEqual(status, 200, inbox)
+        self.assertEqual(inbox["open"], 1)
+        self.assertNotIn("不可见", str(inbox))
+        self.assertNotIn("PRIVATE", str(inbox))
+        for suffix in ("PRIVATE/loop", "PRIVATE/inbox"):
+            self.assertEqual(self.request("GET", base + suffix, "alice", token=token)[0], 403)
+        self.assertEqual(self.request("GET", "/t/" + self.b + "/api/projects/*/loop", "alice", token=token)[0], 403)
+        self.change("project_revoke", tenant=self.a, user="alice", project_id=1)
+        self.assertEqual(self.request("GET", base + "*/loop", "alice", token=token)[0], 409)
+        status, _, empty = self.request("GET", base + "*/loop", "alice", token=self.token("alice", self.a))
+        self.assertEqual(status, 200, empty)
+        self.assertEqual((empty["total"], empty["projects"]), (0, 0))
+
     def test_global_login_home_membership_and_no_token_fallback(self):
         status, headers, _ = self.request("POST", "/login", body={"username": "alice", "password": "synthetic-password", "next": "//bad.invalid"}, form=True)
         self.assertEqual((status, headers["Location"]), (303, "/"))

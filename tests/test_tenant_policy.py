@@ -130,11 +130,13 @@ class TenantPolicyTest(unittest.TestCase):
         self.denied("/api/stats")
         self.auth("/api/stats", query={"project": ["ALPHA"]})
 
-    def test_all_project_boards_are_admin_only(self):
+    def test_all_project_boards_require_authorized_aggregation(self):
         for path in ("/api/projects/*/loop", "/api/projects/all/inbox"):
             with self.subTest(path=path):
-                self.denied(path)
-                self.denied(path, actor="reader")
+                for actor in ("alice", "reader"):
+                    scope = self.auth(path, actor=actor)
+                    self.assertTrue(scope["filter_required"])
+                    self.assertEqual(scope["allowed_project_keys"], ["ALPHA"])
                 self.auth(path, actor="admin")
         self.auth("/api/projects/ALPHA/loop")
         self.denied("/api/projects/BETA/loop")

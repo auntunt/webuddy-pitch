@@ -90,6 +90,7 @@ const get=p=>api('GET',p),post=(p,b,headers)=>api('POST',p,b||{},headers);
 function toast(t,ms){const e=$('#toast');if(!e)return;e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,ms||2600)}
 let modalReturnFocus=null;
 function modal(html,wide){
+  clearTimeout(window._inPoll);
   if(!$('#modal'))return;const opening=$('#modal').hidden;if(opening)modalReturnFocus=document.activeElement;
   $('#mbody').innerHTML=html;$('#modal').hidden=false;$('.mbox').classList.toggle('wide',!!wide);
   $('.mbox').setAttribute('aria-label',($('#mbody h2')||$('#mbody h1'))?.textContent||'详情与操作');
@@ -104,7 +105,7 @@ function syncDialogScope(){
   $('.mbox').setAttribute('aria-modal',String(active&&$('#ast').hidden));
 }
 window.addEventListener('resize',()=>{syncDialogScope();if($('.mbox')?.inert&&$('.mbox').contains(document.activeElement))$('#aq').focus()});
-function closeModal(){const active=!$('#modal').hidden;$('#modal').hidden=true;stopPolls('modal');syncDialogScope();
+function closeModal(){clearTimeout(window._inPoll);const active=!$('#modal').hidden;$('#modal').hidden=true;stopPolls('modal');syncDialogScope();
   if(active){const target=modalReturnFocus;modalReturnFocus=null;if(target&&target.isConnected&&!target.closest('[hidden],[inert]'))target.focus();else $('#main').focus()}}
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
 document.addEventListener('keydown',e=>{
@@ -166,7 +167,7 @@ function paintTabs(tab){
     insights:[['lead','运维成效'],['overview','监控'],['eff','提效报告']],
     team:[['team','分配与复核']],
     memory:[['memory','项目知识'],['kb','知识页'],['atlas','业务与代码图谱'],['states','业务状态图'],['map','架构依据'],['library','参考与引用'],['learn','经验复盘'],['handoff','项目交接']]};
-  const rows=sets[group]||sets.projects, extras=[['clients','客户'],['team','分配与复核'],['rdeps','依赖清单'],['int','外部系统'],['settings','设置']];
+  const rows=sets[group]||sets.projects, extras=[...(!S.meta?.access||S.meta.access.role==='admin'?[['clients','客户']]:[]),['team','分配与复核'],['rdeps','依赖清单'],['int','外部系统'],['settings','设置']];
   $('#tabs').hidden=['projects','team','memory','access'].includes(v);
   $('#tabs').setAttribute('aria-label','当前工作区');
   const link=([k,l])=>`<a data-r="${k}" href="#/${k==='handoff'?'handoff/'+encodeURIComponent(S.proj):k}" class="${k===v||(v==='t'&&k==='tickets')?'on':''}" ${k===v?'aria-current="page"':''}>${l}</a>`;
@@ -206,15 +207,15 @@ function paintSel(){accessPaintPermissions();const cross=isCross()&&!['t','deliv
   $('#projSel').title=cross?(['deliveries','delivery'].includes(curView())?'查看项目范围（默认全部）':'看哪些项目的工单（默认全部）'):'这一页属于哪个项目'}
 function setProj(k){if(!k||k===S.proj)return;S.proj=k;ls.set('tmh.proj',k);A.reset();loadPoints()}
 const scopeQ=()=>S.scope==='*'?'*':S.scope;
-// The all-project board reads every project, so only tenant admins get it; others see their current project.
-const boardQ=()=>S.scope==='*'&&S.meta?.access&&S.meta.access.role!=='admin'&&S.proj?S.proj:scopeQ();
+// All-project boards aggregate only projects authorized by the server.
+const boardQ=()=>scopeQ();
 async function loadPoints(){if(!S.proj){$('#ptsN').textContent='-';return}try{const r=await get('/api/projects/'+S.proj+'/points');S.points=r;$('#ptsN').textContent=r.balance.toLocaleString();if(A.open)A.paintFoot()}catch(e){}}
 function render(){
   if(ACCESS.blocked)return;if(accessControlOnly())return accessRenderControl();stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'home';
   document.body.classList.toggle('delivery-surface',['deliveries','delivery'].includes(view));
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
-  if(!S.proj&&!['settings','access','deliveries','delivery','workspace','projects','memory','team','meetings','pilots'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
+  if(!S.proj&&!['home','board','settings','access','deliveries','delivery','workspace','projects','memory','team','meetings','pilots'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
   const V={pilots:()=>vPilots(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||''),decodeURIComponent(r[3]||''),decodeURIComponent(r[4]||'')),meetings:()=>vMeetings(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),states:()=>vStates(decodeURIComponent(r[1]||'')),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings,access:vAccess}[view]||(()=>{location.hash='#/workspace'});
   if(view!=='t')A.setTicket(null);
   paintSel();
@@ -252,7 +253,9 @@ const GLYPH={doc:'<path d="M-7-10h9l5 5v15h-14z M2-10v5h5 M-3 0h7 M-3 4h7" />',s
   flask:'<path d="M-3-10h6 M-2-10v7l-7 12h18l-7-12v-7 M-5 4h10"/>',check:'<circle r="10"/><path d="M-4.5 0l3 3 6-6.5"/>'};
 function gaugeSvg(p,col,sz){sz=sz||62;const r=sz/2-5,c=2*Math.PI*r;return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" role="img" aria-label="${p}%"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="#3F4D66" stroke-width="5"/><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c*p/100} ${c}" transform="rotate(-90 ${sz/2} ${sz/2})"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" style="fill:#fff;font-size:${sz>56?15:13}px;font-weight:700">${p}%</text></svg>`}
 async function vHome(){
+  const scope=scopeQ(),route=location.hash,request=S.homeRead=(S.homeRead||0)+1;
   const [L,ts]=await Promise.all([get('/api/projects/'+encodeURIComponent(boardQ())+'/loop'),get('/api/tickets?svc=ops&project='+encodeURIComponent(scopeQ()))]);
+  if(scope!==scopeQ()||route!==location.hash||request!==S.homeRead)return;
   S.loop=L;S.home=S.home||{view:'ring',sel:''};$('#ptsN').textContent=L.points.toLocaleString();
   if(!L.total){$('#main').innerHTML=firstRun(L);poll(async()=>{if(!$('#first'))return;try{const n=await get('/api/projects/'+encodeURIComponent(boardQ())+'/loop');if(n.total||n.kb_built!==L.kb_built)vHome()}catch(e){}},15000,'page');return}
   const gc=['#52C41A','#4096FF','#9254DE','#36CFC9'];
@@ -261,7 +264,7 @@ async function vHome(){
     <div class="cap" data-sel="failed">${ic('#F5222D','<circle r="9"/><path d="M-3.5-3.5l7 7M3.5-3.5l-7 7"/>')}<div><b>${L.failed}</b><span>失败</span></div></div>
     <div class="cap" data-sel="closed">${ic('#52C41A','<circle r="9"/><path d="M-4 0l3 3 5.5-6"/>')}<div><b>${L.closed}</b><span>已关闭</span></div></div>
     <div class="today">今日新建 ${L.today.created} · 今日闭环 ${L.today.closed}</div></div>`;
-  $('#main').innerHTML=`<div class="hdr home-hd"><div class="grow"><h1>闭环总览</h1><div class="sub">每张工单走到了哪一步、在等谁。点环上的节点，右边列出这一步的工单。</div></div>
+  $('#main').innerHTML=`<div class="hdr home-hd"><div class="grow"><h1>${S.scope==='*'?'全部授权项目':h(S.projects.find(p=>p.key===S.scope)?.name||S.scope)} · 闭环总览</h1><div class="sub">每张工单走到了哪一步、在等谁。点环上的节点，右边列出这一步的工单。</div></div>
    <div class="viewbar"><div class="seg"><button data-v="ring" class="${S.home.view==='ring'?'on':''}">闭环视图</button><button data-v="board" class="${S.home.view==='board'?'on':''}">列表看板</button></div><span class="sub">更新于 ${new Date().toTimeString().slice(0,5)}</span><button id="hRef">刷新</button></div></div>
   <div class="home-grid${S.home.view==='board'?' wide':''}"><div id="hView"></div>
    <div class="home-side">${caps}${L.waiting?`<div class="catch" title="自动处理只接新进来的工单；这些是之前就在、或自动处理关着时进来的。交给它后会从各自停下的那一步接着做，同时最多跑 2 张。"><span><b>${L.waiting} 张早先进来的工单</b>还没交给自动处理${S.scope==='*'?'，选定项目后可一并交给它':''}。</span>${S.scope==='*'?'':'<button class="primary" id="catchUp">全部交给自动处理</button>'}</div>`:''}<div id="hList"><div class="sub home-pick">点环上的数字或上面的分类，这里列出对应的工单。</div></div><div id="inbox"></div></div></div>
@@ -278,14 +281,11 @@ async function vHome(){
   if(S.home.sel)homeList(S.home.sel,ts,true);
   paintInbox();
   poll(async()=>{if(!$('#hView'))return;try{const n=await get('/api/projects/'+encodeURIComponent(boardQ())+'/loop');if(JSON.stringify(n.by_status)!==JSON.stringify(S.loop.by_status)||n.failed!==S.loop.failed||n.waiting!==S.loop.waiting)vHome();else paintInbox()}catch(e){}},15000,'page')}
-// A board with no tickets is a ring of zeros; a first visit gets the three steps to a first closed loop instead.
-function firstRun(L){const has=S.projects.length,kb=L.kb_built,auto=(!S.meta.autoflow||S.meta.autoflow.on)&&(S.meta.agents||[]).some(a=>a.available);
-  const step=(n,done,title,body,btn)=>`<div class="frs${done?' done':''}"><span class="frn">${done?'✓':n}</span><div class="grow" style="min-width:0"><b>${title}</b><div class="sub">${body}</div></div>${done?'':btn||''}</div>`;
-  return `<div class="card first" id="first"><h2>三步跑通第一张工单</h2><div class="sub" style="margin:-4px 0 12px">工单进来后，智能体先定位到业务和代码，再出方案和改动；需要人拍板的那一步会出现在首页“等你处理”。</div>
-   ${step(1,has,'接入项目代码',has?'已接入 '+S.projects.map(p=>h(p.name||p.key)).join('、'):'填本机项目目录，工单编号会用它的代号开头。','<button class="primary" onclick="newProject()">添加项目</button>')}
-   ${step(2,kb,'建设知识库（推荐）',kb?'已构建，工单会自动关联到业务流、表和代码位置。':'从代码解析出业务域、表和入口，分析会更准。不建也能先建工单。',has?'<a class="btn" href="#/kb">去建设</a>':'')}
-   ${step(3,false,'提交第一张工单','用一句话描述现象就行，比如“月结凭证没传到 NC”。'+(auto?'系统会追问缺的信息，然后自动开始分析。':'现在还不会自动分析：'+(S.meta.autoflow&&!S.meta.autoflow.on?'自动处理关着。':'这台机器上没有可用的智能体，到“设置”里配置一个。')),has?'<button class="primary" onclick="newTicket()">新建工单</button>':'')}
-   <div class="sub frk" style="margin-top:10px">也可以按 <kbd>Ctrl K</kbd> 打开 AI 助手，直接说“帮我建一张工单：……”。</div></div>`}
+// Empty states use the selected authorized scope, independently of execution readiness.
+function firstRun(L){const ps=S.scope==='*'?S.projects:S.projects.filter(p=>p.key===S.scope),canRecord=ps.some(p=>accessCanWrite(p.key));
+  const title=!ps.length?'没有可访问的项目':S.scope==='*'?'当前授权项目还没有工单':'当前项目还没有工单';
+  const action=canRecord?'<button class="primary" onclick="pasteModal(\'\')">记录需求</button>':!ps.length&&(!S.meta?.access||S.meta.access.platform_owner)?'<button class="primary" onclick="newProject()">添加项目</button>':'<p>请联系项目负责人获取项目或编辑权限。</p>';
+  return `<div class="card first" id="first"><h2>${title}</h2>${action}${ps.length&&canRecord?'<p class="sub">可以先记录和交接需求，执行条件由项目负责人配置。</p>':''}</div>`}
 // What waits for me right now, with the one thing to do on each; what waits on people outside the team, apart.
 // The board above says how the loop is doing; this says where to start.
 async function paintInbox(){
@@ -382,15 +382,18 @@ function ticketTable(ts,compact){
   return `<table class="t"><tr><th>编号</th><th>标题</th>${compact?'':'<th>类型</th><th>优先级</th>'}<th>状态</th>${compact?'':'<th>经办人</th>'}<th>更新</th></tr>`+
   ts.map(t=>`<tr class="click" onclick="location.hash='#/t/${t.key}'"><td class="key">${t.key}</td><td>${h(t.title)}${(t.external||{}).key?` <span class="tag">${h(t.external.key)}</span>`:''}</td>${compact?'':`<td>${tyLabel(t.type)}</td><td class="pri-${t.priority}">${prLabel(t.priority)}</td>`}<td>${stPill(t.status)}</td>${compact?'':`<td>${h(t.assignee||'-')}</td>`}<td class="sub">${ago(t.updated)}</td></tr>`).join('')+'</table>'}
 async function vTickets(){
+  const scope=scopeQ(),route=location.hash,request=S.ticketListRead=(S.ticketListRead||0)+1;
   const f=JSON.parse(sessionStorage.getItem('tmh.f')||'{}');
   const q=new URLSearchParams({svc:'ops',project:scopeQ(),status:f.status||'',q:f.q||'',assignee:f.mine?S.user:''});
-  let ts=await get('/api/tickets?'+q);if(f.open)ts=ts.filter(t=>t.status!=='closed');
-  $('#main').innerHTML=`<div class="hdr"><h1 class="grow">工单${S.scope==='*'&&S.projects.length>1?' <span class="sub" style="font-size:13px;font-weight:400">全部 '+S.projects.length+' 个项目</span>':''}</h1>
+  let ts=await get('/api/tickets?'+q);if(scope!==scopeQ()||route!==location.hash||request!==S.ticketListRead)return;if(f.open)ts=ts.filter(t=>t.status!=='closed');
+  const filtered=!!(f.q||f.status||f.open||f.mine),empty=filtered?'<div class="empty">没有匹配的工单 <button id="clearTicketFilters">清除筛选</button></div>':'<div class="empty">当前范围还没有工单</div>';
+  $('#main').innerHTML=`<div class="hdr"><h1 class="grow">${scope==='*'?'全部授权项目':h(S.projects.find(p=>p.key===scope)?.name||scope)} · 工单</h1>
    <input id="fq" placeholder="搜索标题或描述" value="${h(f.q||'')}">
    <select id="fs"><option value="">全部状态</option>${S.meta.statuses.map(([k,l])=>`<option value="${k}" ${f.status===k?'selected':''}>${l}</option>`).join('')}</select>
    <label class="sub"><input type="checkbox" id="fo" ${f.open?'checked':''}> 只看未关闭</label>
    <label class="sub"><input type="checkbox" id="fm" ${f.mine?'checked':''}> 指派给我</label>
-   <button class="primary" onclick="newTicket()">＋ 新建</button></div><div class="tw">${ticketTable(ts)}</div><div class="sub" style="margin-top:8px">共 ${ts.length} 张</div>`;
+   <button class="primary" onclick="newTicket()">＋ 新建</button></div><div class="tw">${ts.length?ticketTable(ts):empty}</div><div class="sub" style="margin-top:8px">共 ${ts.length} 张</div>`;
+  if($('#clearTicketFilters'))$('#clearTicketFilters').onclick=()=>{sessionStorage.removeItem('tmh.f');vTickets()};
   const upd=()=>{sessionStorage.setItem('tmh.f',JSON.stringify({q:$('#fq').value,status:$('#fs').value,open:$('#fo').checked,mine:$('#fm').checked}));vTickets()};
   $('#fs').onchange=upd;$('#fo').onchange=upd;$('#fm').onchange=upd;$('#fq').onkeydown=e=>{if(e.key==='Enter')upd()}}
 function boardHtml(ts){
@@ -899,7 +902,7 @@ function mrBlock(d){
   return `<div class="blk mr"><h3>代码改动 ${st}</h3><div class="sub">${msg}</div></div>`}
 function prompt2(title,val,cb){modal(`<h2>${h(title)}</h2><input class="full" id="pv" value="${h(val)}"><div style="margin-top:10px"><button class="primary" id="pok">保存</button></div>`);$('#pv').focus();$('#pok').onclick=()=>{closeModal();cb($('#pv').value)}}
 function evHtml(e){
-  const icon={prompt:'提示词','prompt-clear':'提示词',created:'创建',status:'状态',assign:'指派',edit:'编辑',comment:'',run:'智能体','run-done':'智能体','run-failed':'智能体','run-cancelled':'智能体',accept:'采纳',discard:'放弃',link:'关联',verify:'页面实测',evidence:'证据',flow:'自动流转',release:'发版',steer:'插话',system:'系统',ops_query:'只读查询',ops_conclusion:'排查结论',prod_request:'上生产申请',prod_approve:'批准上生产',prod_reject:'驳回上生产',prod_deployed:'已上生产',prod_failed:'部署失败',adopt:'提交候选',import:'导入',sync:'同步',kb:'知识库'}[e.kind]||e.kind;
+  const icon={prompt:'提示词','prompt-clear':'提示词',created:'创建',status:'状态',assign:'指派',edit:'编辑',comment:'',run:'智能体','run-done':'智能体','run-failed':'智能体','run-cancelled':'智能体',accept:'采纳',discard:'放弃',link:'关联',verify:'页面实测',evidence:'证据',flow:'自动流转',release:'发版',steer:'插话',system:'系统',ops_query:'只读查询',ops_conclusion:'排查结论',prod_request:'上生产申请',prod_approve:'批准上生产',prod_reject:'驳回上生产',prod_deploy_result:'部署结果',prod_deployed:'已上生产',prod_failed:'部署失败',adopt:'提交候选',import:'导入',sync:'同步',kb:'知识库'}[e.kind]||e.kind;
   if(e.kind==='comment')return `<div class="ev comment"><div class="dot"></div><div class="grow" style="min-width:0"><span class="who">${h(e.author||'-')}</span><span class="when">${ago(e.ts)}</span><div class="cbody">${md(e.body)}</div></div></div>`;
   const rr=(e.data||{}).run;
   return `<div class="ev ${h(e.kind)}${isMachine(e.author)?' auto':''}"><div class="dot"></div><div class="grow" style="min-width:0"><span class="who">${h(e.author||'-')}</span> ${h(e.body)}${rr?` <a href="javascript:void 0" onclick="showRun(${rr})">#${rr}</a>`:''}<span class="when">${ago(e.ts)}</span>
@@ -1098,13 +1101,42 @@ function intakeModal(pk,text,pin){
    <div class="row" style="margin-top:8px;gap:8px;align-items:center"><button class="primary" id="inGo">开始</button>
    <label class="btn ghost" style="cursor:pointer">附件<input type="file" id="inF" multiple accept="image/png,image/jpeg,image/webp,.txt,.md,.csv,.log,.json,.docx,.xlsx,.pdf" hidden></label>
    <span class="sub">截图可直接粘贴；Word、Excel、PDF、文本会抽出文字一起理解，原件按哈希留档</span></div><div id="inFiles" class="chips" style="margin-top:6px"></div><div id="inBox"></div>`,true);
-  const files=[],addFile=f=>new Promise(r=>{const rd=new FileReader();rd.onload=()=>{files.push({name:f.name||'截图.png',type:f.type,data:rd.result});
-    $('#inFiles').innerHTML=files.map((x,i)=>`<span class="chip" data-i="${i}" title="点击移除">${h(x.name)} ×</span>`).join('');
-    $('#inFiles').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{files.splice(+c.dataset.i,1);c.remove()});r()};rd.readAsDataURL(f)});
-  $('#inF').onchange=e=>[...e.target.files].forEach(addFile);
-  $('#inT').addEventListener('paste',e=>[...(e.clipboardData?.files||[])].forEach(addFile));
-  $('#inT').addEventListener('drop',e=>{if(e.dataTransfer?.files?.length){e.preventDefault();[...e.dataTransfer.files].forEach(addFile)}});
-  $('#inGo').onclick=async()=>{try{intakePaint(await post(pin?'/api/pins/'+pin.id+'/intake':'/api/projects/'+encodeURIComponent(pk)+'/intake',{text:$('#inT').value,attachments:files}))}catch(e){toast(e.message,5000)}}}
+  const host=$('#inBox'),input=$('#inT'),go=$('#inGo'),list=$('#inFiles'),picker=$('#inF');
+  const current=()=>$('#inBox')===host&&!$('#modal').hidden;
+  const draft=intakeDraftFor(pk);if(text)draft.text=text;
+  input.oninput=()=>{draft.text=input.value;draft.taskId=''};
+  if(!text&&draft.text){const restore=document.createElement('button');restore.type='button';restore.textContent=draft.taskId?'恢复上次需求':'恢复本次输入';
+    restore.onclick=()=>{if(draft.taskId)talkOpen(draft.taskId);else{input.value=draft.text;restore.remove()}};host.appendChild(restore)}
+  const files=new Map();let nextFile=0;
+  const draw=()=>{if(!current())return;
+    list.innerHTML=[...files.values()].map(x=>`<button type="button" class="chip" data-file="${x.id}" aria-label="移除 ${h(x.name)}">${h(x.name)}${x.state==='reading'?' · 读取中':x.state==='failed'?' · 读取失败，请移除后重选':''} ×</button>`).join('');
+    list.querySelectorAll('[data-file]').forEach(c=>c.onclick=()=>{files.delete(+c.dataset.file);draw()});
+    go.disabled=[...files.values()].some(x=>x.state!=='ready')};
+  const addFile=f=>{const x={id:++nextFile,name:f.name||'截图.png',type:f.type,state:'reading',data:null};files.set(x.id,x);draw();
+    const rd=new FileReader();rd.onload=()=>{if(!files.has(x.id))return;x.data=rd.result;x.state='ready';draw()};
+    rd.onerror=rd.onabort=()=>{if(!files.has(x.id))return;x.state='failed';draw()};rd.readAsDataURL(f)};
+  picker.onchange=e=>{[...e.target.files].forEach(addFile);picker.value=''};
+  input.addEventListener('paste',e=>[...(e.clipboardData?.files||[])].forEach(addFile));
+  input.addEventListener('drop',e=>{if(e.dataTransfer?.files?.length){e.preventDefault();[...e.dataTransfer.files].forEach(addFile)}});
+  go.onclick=async()=>{if(go.disabled)return;go.disabled=true;draft.text=input.value;
+    try{const result=await post(pin?'/api/pins/'+pin.id+'/intake':'/api/projects/'+encodeURIComponent(pk)+'/intake',
+      {text:input.value,attachments:[...files.values()].map(({name,type,data})=>({name,type,data}))});
+      draft.taskId=result.id;if(current())intakePaint(result);
+    }catch(e){if(current()){draw();toast(e.message,5000)}}};
+}
+function intakePoll(s,B){
+  const current=()=>$('#inBox')===B&&!$('#modal').hidden&&B.taskId===s.id;
+  let failures=0;
+  const read=async()=>{if(!current())return;clearTimeout(window._inPoll);const version=++B.readVersion;
+    try{const next=await get('/api/intake/'+encodeURIComponent(s.id));if(!current()||version!==B.readVersion)return;intakePaint(next)}
+    catch(e){if(!current()||version!==B.readVersion)return;failures++;
+      const denied=e.status===401||e.status===403||e.access;
+      $('#inConnection').innerHTML=`<span role="alert">${h(denied?e.message:'暂时断连，尚未取得最新状态。')}</span>${denied?'':' <button type="button" id="inRetry">立即重试</button>'}`;
+      if(!denied){$('#inRetry').onclick=read;window._inPoll=setTimeout(read,Math.min(1500*2**failures,15000))}}
+  };
+  window._inPoll=setTimeout(read,1500);
+}
+
 function inQ(q,i){return `<div style="margin-top:8px"><div>${h(q.q)}</div>${q.options.length?`<div class="chips" style="margin-top:4px">${q.options.map(o=>`<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="${h(o)}">${h(o)}</span>`).join('')}<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="不清楚">不清楚</span></div>`+(q.slot==='flow'?'':`<input class="inA" data-i="${i}" data-s="${h(q.slot)}" placeholder="都不合适就直接写；写了以这里为准" style="width:100%;margin-top:4px">`)
    :`<input class="inA" data-i="${i}" data-s="${h(q.slot)}" placeholder="写一句就行；不知道就写“不清楚”" style="width:100%;margin-top:4px">`}</div>`}
 function inSpec(s,done){const sp=s.spec,work=s.items.map((it,i)=>[it,i]).filter(([it])=>it.kind!=='question');
@@ -1116,17 +1148,22 @@ function inSpec(s,done){const sp=s.spec,work=s.items.map((it,i)=>[it,i]).filter(
     `<div style="margin-top:10px"><b style="font-size:13px">顺序和分批</b><div class="sub">子单按顺序分批放出，一批全部验收通过再放下一批；依赖前面某件的，等它通过后从它的代码开始。</div>
      ${work.slice(1).map(([it,i],n)=>`<div class="sub" style="margin-top:4px">第 ${n+2} 件「${h(clip(it.text,24))}」在 <select class="inDep" data-i="${i}"><option value="">不依赖</option>${work.slice(0,n+1).map(([x,j],m)=>`<option value="${j}">第 ${m+1} 件之后</option>`).join('')}</select></div>`).join('')}
      <label class="sub" style="display:flex;gap:6px;align-items:center;margin-top:6px">每批 <input id="inWave" type="number" min="1" max="10" value="2" style="width:56px"> 个子单</label></div>`}</div>`}
-function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true;$('#inGo').hidden=true;
-  clearTimeout(window._inPoll);
-  if(s.state==='understanding'){B.innerHTML=`<div class="card" style="margin-top:10px"><span class="spin"></span> AI 正在读这段话${(s.attachments||[]).length?'和 '+s.attachments.length+' 个附件':''}：拆开每件事、对上业务地图、写验收标准。一般几十秒；读不出来就按规则理解，不用等。<div class="row" style="margin-top:8px"><button class="ghost" id="inNo">放弃</button></div></div>`;
-    $('#inNo').onclick=()=>post('/api/intake/'+s.id,{action:'drop'}).then(closeModal).catch(e=>toast(e.message,5000));
-    window._inPoll=setTimeout(()=>{if($('#inBox'))get('/api/intake/'+s.id).then(intakePaint).catch(()=>{})},1500);return}
+function intakePaint(s){const B=$('#inBox');if(!B||$('#modal').hidden)return;if(B.taskId&&B.taskId!==s.id)return;
+  B.taskId=s.id;B.readVersion=(B.readVersion||0)+1;
+  const draft=intakeDraftFor(s.project);draft.taskId=s.id;draft.text=s.text;
+  if(['confirmed','dropped'].includes(s.state)){draft.text='';draft.taskId=''}
+  $('#inT').readOnly=true;$('#inGo').hidden=true;clearTimeout(window._inPoll);
+  if(s.state==='understanding'){B.innerHTML=`<div class="card" style="margin-top:10px"><span class="spin"></span> AI 正在理清需求。<div id="inConnection" role="status"></div><div class="row" style="margin-top:8px"><button class="ghost" id="inNo">取消任务</button></div></div>`;
+    $('#inNo').onclick=async()=>{const button=$('#inNo');button.disabled=true;button.textContent='取消中…';clearTimeout(window._inPoll);B.readVersion++;
+      try{const next=await post('/api/intake/'+s.id,{action:'drop'});if($('#inBox')===B&&!$('#modal').hidden)intakePaint(next)}
+      catch(e){if($('#inBox')===B&&!$('#modal').hidden){button.disabled=false;button.textContent='取消任务';$('#inConnection').textContent='取消未完成：'+e.message;intakePoll(s,B)}}};
+    intakePoll(s,B);return}
+  if(s.state==='dropped'){B.innerHTML='<p role="status">任务已取消。</p>';return}
   const done=s.state==='confirmed',u=s.understood||{},asks=s.asked_client||[];
   const head=`<div class="sub" style="margin-top:10px">${u.by==='LLM'?'<span class="ev-tag ok">AI 理解</span> 普通 LLM（不读代码、不改文件）':u.by==='智能体'?`<span class="ev-tag ok">AI 理解</span> ${h(u.agent||'')}`:`<span class="ev-tag mute">按规则理解</span>${u.why?' <span class="sub">（AI 没用上：'+h(clip(u.why,60))+'）</span>':''}`}
     ${s.title?` · 标题「${h(s.title)}」`:''}${(s.attachments||[]).length?` · 附件：${s.attachments.map(a=>`<span title="sha256:${h(a.sha256)}${a.note?' · '+h(a.note):''}">${h(a.name)}${a.note?'（'+h(clip(a.note,20))+'）':''}</span>`).join('、')}`:''}${(s.dropped||[]).length?` · 去掉了 ${s.dropped.length} 句寒暄或转述：<span title="${h(s.dropped.join(' / '))}">${h(clip(s.dropped.join(' / '),40))}</span>`:''}</div>`;
   const ruleOnly=!done&&u.by==='规则'&&!(s.tickets||[]).length,canAI=ruleOnly&&typeof accessCanExecute==='function'&&accessCanExecute(s.project);
   const aiRow=ruleOnly?`<div class="card" style="margin-top:10px">${canAI?'<button class="primary" id="inAI">让 AI 理清</button> <span class="sub">客户原话和客户、系统归档不变，AI 拆事项、写验收标准、提出要确认的问题</span>':'<span class="ev-tag info">已记录并归档</span> <span class="sub">这个账号不能调用 AI。请项目里有执行权限的人在「总览 → 动态与待办」的客户沟通里点这条的「继续理清」，再点「让 AI 理清」</span>'}</div>`:'';
-  setTimeout(()=>{const x=$('#inAI');if(x)x.onclick=()=>{x.disabled=true;post('/api/intake/'+s.id,{action:'understand'}).then(intakePaint).catch(e=>{x.disabled=false;toast(e.message,5000)})}},0);
   const hasQ=s.items.some(it=>(it.questions||[]).some(q=>q.slot!=='flow'));
   const allQ=!s.big&&s.items.length>0&&s.items.every(it=>it.kind==='question');
   B.innerHTML=head+aiRow+s.items.map((it,i)=>`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">第 ${i+1} 件：${h(clip(it.title||it.text,40))}</b>
@@ -1142,24 +1179,25 @@ function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true
    (hasQ&&s.state!=='dropped'?`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">问题让客户自己答</b>${asks.length?`<span class="sub">已发过 ${asks.length} 次</span>`:''}</div><div class="sub">生成一个链接发给客户（微信、短信都行），客户用大白话回答；答复会写回验收标准${done?'，等着的工单自动开工':''}。</div><div class="row" style="margin-top:6px"><button class="ghost" id="inAsk">把问题发给客户</button></div><div id="inAskOut"></div></div>`:'')+
    (done?'':`<div class="row" style="gap:8px;margin-top:10px">${s.state==='asking'?'<button class="primary" id="inAns">提交回答</button>':''}
      ${allQ?'<span class="sub">都是咨询，已经直接答复，不用建单。</span><button class="ghost" id="inNo">结束对话</button>':`<button class="${s.state==='asking'?'ghost':'primary'}" id="inOk">${s.state==='asking'?'先这样建单（没答的记为待确认）':s.big?'确认规格卡，建父单和子单':'确认，建单'}</button><button class="ghost" id="inNo">放弃</button>`}</div>`);
+  const aiButton=$('#inAI');if(aiButton)aiButton.onclick=async()=>{aiButton.disabled=true;try{const next=await post('/api/intake/'+s.id,{action:'understand'});if($('#inBox')===B&&!$('#modal').hidden)intakePaint(next)}catch(e){if($('#inBox')===B){aiButton.disabled=false;toast(e.message,5000)}}};
   const pick={};B.querySelectorAll('.inO').forEach(c=>c.onclick=()=>{const i=c.dataset.i,sl=c.dataset.s,free=B.querySelector(`.inA[data-i="${i}"][data-s="${sl}"]`);
     if(free&&/^其他|请说明/.test(c.dataset.v)){if(pick[i])delete pick[i][sl];free.focus();B.querySelectorAll(`.inO[data-i="${i}"][data-s="${sl}"]`).forEach(x=>x.classList.toggle('on',x===c));return}
     (pick[i]=pick[i]||{})[sl]=c.dataset.v;
     B.querySelectorAll(`.inO[data-i="${i}"][data-s="${sl}"]`).forEach(x=>x.classList.toggle('on',x===c))});
   const gather=()=>{const a=JSON.parse(JSON.stringify(pick));B.querySelectorAll('.inA').forEach(x=>{if(x.value.trim())(a[x.dataset.i]=a[x.dataset.i]||{})[x.dataset.s]=x.value.trim()});
     B.querySelectorAll('.inK').forEach(x=>{const it=s.items[x.dataset.i];if(x.value!==it.kind)(a[x.dataset.i]=a[x.dataset.i]||{}).kind=x.value});return a};
-  const act=b=>post('/api/intake/'+s.id,b).then(intakePaint).catch(e=>toast(e.message,5000));
-  B.querySelectorAll('.inK').forEach(x=>x.onchange=()=>act({action:'answer',answers:gather()}));
-  if($('#inAns'))$('#inAns').onclick=()=>act({action:'answer',answers:gather()});
-  if($('#inAsk'))$('#inAsk').onclick=async()=>{try{const r=await post('/api/intake/'+s.id,{action:'ask_client'});const url=location.origin+r.path;
+  const act=async b=>{const next=await post('/api/intake/'+s.id,b);if($('#inBox')===B&&!$('#modal').hidden)intakePaint(next);return next};
+  B.querySelectorAll('.inK').forEach(x=>x.onchange=()=>act({action:'answer',answers:gather()}).catch(e=>toast(e.message,5000)));
+  if($('#inAns'))$('#inAns').onclick=()=>act({action:'answer',answers:gather()}).catch(e=>toast(e.message,5000));
+  if($('#inAsk'))$('#inAsk').onclick=async()=>{try{const r=await post('/api/intake/'+s.id,{action:'ask_client'});if($('#inBox')!==B||$('#modal').hidden)return;const url=location.origin+r.path;
     $('#inAskOut').innerHTML=`<div style="margin-top:8px"><input class="full" readonly value="${h(url)}" onclick="this.select()"><div class="sub">${r.questions} 个问题，${h(r.expires.slice(5,16))} 前有效${r.told_chat?'；已同时发到群里':''}。</div></div>`;
     try{await navigator.clipboard.writeText(url);toast('链接已复制，发给客户就行',4000)}catch(e){}}catch(e){toast(e.message,5000)}};
-  if($('#inOk'))$('#inOk').onclick=async()=>{const a=gather();try{if(Object.keys(a).length){const r=await post('/api/intake/'+s.id,{action:'answer',answers:a});if(r.state==='understanding'){intakePaint(r);return toast('AI 正在按回答重写验收标准，写好再确认',4000)}}
+  if($('#inOk'))$('#inOk').onclick=async()=>{const a=gather();try{if(Object.keys(a).length){const r=await post('/api/intake/'+s.id,{action:'answer',answers:a});if($('#inBox')!==B||$('#modal').hidden)return;if(r.state==='understanding'){intakePaint(r);return toast('AI 正在按回答重写验收标准，写好再确认',4000)}}
     const b={action:'confirm',hand:[...B.querySelectorAll('.inHand')].filter(x=>x.checked).map(x=>+x.dataset.i)};if(s.big){b.deps={};B.querySelectorAll('.inDep').forEach(x=>{if(x.value!=='')b.deps[x.dataset.i]=[+x.value]});b.wave=+($('#inWave')||{}).value||2}
-    const r=await post('/api/intake/'+s.id,b);intakePaint(r);toast(r.epic?'已建大需求 '+r.epic+'，第一批子单开工':'已建单 '+r.tickets.join('、'),5000)}catch(e){toast(e.message,5000)}};
-  if($('#inBig'))$('#inBig').onclick=()=>act({action:'big',on:true});
-  if($('#inUnbig'))$('#inUnbig').onclick=()=>act({action:'big',on:false});
-  if($('#inNo'))$('#inNo').onclick=()=>act({action:'drop'}).then(closeModal)}
+    const r=await post('/api/intake/'+s.id,b);if($('#inBox')!==B||$('#modal').hidden)return;intakePaint(r);toast(r.epic?'已建大需求 '+r.epic+'，第一批子单开工':'已建单 '+r.tickets.join('、'),5000)}catch(e){toast(e.message,5000)}};
+  if($('#inBig'))$('#inBig').onclick=()=>act({action:'big',on:true}).catch(e=>toast(e.message,5000));
+  if($('#inUnbig'))$('#inUnbig').onclick=()=>act({action:'big',on:false}).catch(e=>toast(e.message,5000));
+  if($('#inNo'))$('#inNo').onclick=()=>act({action:'drop'}).then(()=>{if($('#inBox')===B)closeModal()}).catch(e=>toast(e.message,5000))}
 
 // ---------- the change itself, running: a link the person and the client open before accepting
 const PVL={up:['ok','可以打开'],starting:['info','启动中'],unhealthy:['bad','暂不可用'],checking:['info','待重新核对'],failed:['bad','没起来']};

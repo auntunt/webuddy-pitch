@@ -214,7 +214,7 @@ GET /api/chats
 
 LEVELS = {"viewer": 1, "contributor": 2, "manager": 3}
 FILTERED_LISTS = frozenset(("/api/projects", "/api/workspace", "/api/tickets", "/api/runs"))
-# Path-keyed boards that read every project for "*"; unfiltered, so admin only.
+# Path-keyed boards apply the same authorized project filter before aggregating.
 ALL_PROJECT_PATHS = frozenset(("/api/projects/<key>/loop", "/api/projects/<key>/inbox"))
 PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/sign/", "/ask/")
 # These projections still read across projects, even when their UI shows a
@@ -528,7 +528,7 @@ def authorize(P, method, path, query, body, actor):
     scope = {"tenant_id": who["tenant_id"], "actor": actor, "tenant_role": who["role"],
              "platform_owner": who["platform_owner"], "authz_revision": who["authz_revision"],
              "allowed_project_keys": sorted(allowed), "project_roles": allowed,
-             "filter_required": method == "GET" and template in FILTERED_LISTS,
+             "filter_required": method == "GET" and template in FILTERED_LISTS | ALL_PROJECT_PATHS,
              "route": template}
     if template == "/api/agent/<operation>":
         _agent(P, who, params["operation"], body)
@@ -570,8 +570,7 @@ def authorize(P, method, path, query, body, actor):
             targets.append(_check(P, who, _resource_project(P, kind, value), level))
     if "key" in params:
         if method == "GET" and template in ALL_PROJECT_PATHS and params["key"] in ("*", "all"):
-            if who["role"] != "admin":
-                raise ApiError(403, "此汇总尚未提供项目权限过滤")
+            scope["filter_required"] = True
         else:
             add("ticket" if template.startswith(("/api/tickets/", "/e/")) else "project", params["key"])
     for prefix, name, kind in (("/api/runs/", "rid", "run"), ("/api/sessions/", "sid", "session"),
@@ -596,7 +595,7 @@ def authorize(P, method, path, query, body, actor):
     cross_project = template == "/api/projects/<key>/library" and values.get("action") in ("grant", "revoke")
     if not cross_project and len({p["id"] for p in targets}) > 1:
         raise ApiError(400, "请求中的资源不属于同一项目")
-    if not targets and template not in FILTERED_LISTS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap") and not (method == "POST" and template.startswith("/api/projects/import")):
+    if not targets and template not in FILTERED_LISTS | ALL_PROJECT_PATHS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap") and not (method == "POST" and template.startswith("/api/projects/import")):
         if who["role"] != "admin":
             raise ApiError(403, "请明确选择获准的项目或工单")
     if method == "GET":

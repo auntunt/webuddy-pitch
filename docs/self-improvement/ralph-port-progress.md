@@ -600,3 +600,13 @@
 - 验证：本机 UI 相关 404 passed（新增 `test_unloaded_project_follows_default_route_and_quota_failure_offers_another_agent`）；`test_platform` 里 `test_readiness_checks_the_real_machine_worst_first` 在基线上同样失败（本机环境）。服务器用发布包跑既定验证集 + `tests.test_ui_agent_routes`，失败清单与 0615fe3 相同（SAME_FAILS）。
 - 发布 `d8f0c0f340ab-agent-pick-20261104`：MANIFEST_OK，platform.db / access.db integrity=ok，running_runs=0，本机与公网 /login 200、未认证 /api/projects 401，active，NRestarts=0。备份 `/opt/webuddy/backups/pre-d8f0c0f340ab-activation-20261104`。
 - 生产页面核对：`S.meta.agent_route_default.agent=cloudwave-codex`；JSHERP-1、PETS-9 的「手动指派」默认都是 Cloudwave · 官方 Codex。额度失败提示用页面里的真实函数和一条模拟的 403 运行核对过（文字和默认选中的 Codex 都对），生产上暂时没有停在这种状态的工单可截图。
+
+## 2026-11-05 第一批产品修复与阿里云发布
+
+- 基线：devin/1793765109-bidding-demo-ui / 86eb560；用户授权按 v2 第一批实施并上线阿里云。旧 iteration/context-pack-v2 保留，不合入独立 Codex 实验线。
+- 范围：D1/D2 范围与权限，D3 轮询，D4 附件，D6 逐项证据，D7 申请 ID，D8 发布状态与回执，U2a 同会话输入交接；追加用户提供的开发规范，原 AGENTS.md 保留。
+- 实机预检：zct-server 严格主机校验登录成功，webuddy:d8f0c0f running/restart0，Python3.11.2，Compose 与独立数据卷已核对；不操作腾讯云站点。
+- 当前进行中：实现与定向验证。第二批及产品扩展保留后续任务，未启动。
+- 实现完成：授权范围先过滤后汇总；导航/录入遵循权限；轮询退避、取消反馈与迟到响应隔离；附件稳定 ID 与读取状态；同会话输入交接恢复；逐项证据绑定当前包/提交/环境且复测撤销旧结果；发布随机 ID 与历史冲突隔离；命令完成、人工登记和回执验证分别展示。
+- 本机集成验证：19 个相关模块 258 tests OK；最后弹窗响应校验后复验 47 tests OK，完整页面脚本解析通过，git diff --check 通过。受控 Node/HTTP/子进程检查不代表真实浏览器验收；浏览器访问 host 不可用，尚未完成真实页面交互检查。
+- 发布前阿里云：原镜像 webuddy:d8f0c0f，running_runs=0，platform.db quick_check=ok；准备精确提交镜像及服务器备份。
