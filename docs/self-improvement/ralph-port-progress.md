@@ -537,3 +537,13 @@
 - 发布：5116edb1f119，备份在 `/opt/webuddy/backups/pre-5116edb1f119-activation-20261104`。MANIFEST_OK，两个库 integrity=ok，running_runs=0，内外网 login 200、未登录访问 /api/projects 返回 401，active，NRestarts=0。
 - 生产 E2E（LYB，干净的 HOME 和 venv）：下载 `webuddy_client-0.4.0-py3-none-any.whl`；直接运行 `webuddy` 显示 `https://webuddy.bbstack.date/t/default` 和下一步；没导入凭据时 `status` 指向 `/tools` 页，输出里没有 127.0.0.1。之后依次跑通 `connect --stdin`、`status`、`config codex --read-only`；MCP 列出 13 个工具，`webuddy_projects_list` 返回 RW。临时连接已撤销。
 - 后续（同日）：用户反映创建连接后「没有弹出下载选项」。原因：凭据区在页面顶部，在页面下方点「创建」时看不到；而且每 15 秒核对身份、切换窗口时会清掉凭据区（这条安全设计保留）。修复：创建后由 `saveCredential()` 自动下载 `webuddy-credential.json`，并滚动到凭据区；步骤文案改成「已自动下载」。生产实测（LYB）：点创建后浏览器立即下载，文件里的 endpoint 是生产地址，测试连接已撤销。
+
+## 2026-11-04 界面人机优化第一批（PR #70，生产 9cd16f3）
+
+- 背景：用户要求「先做好界面优化，让人一目了然哪里该怎么填」，并在演示流程里加入「前线需求人员」（在客户现场收原话，排在 FDE 之前）。
+- 记录需求弹窗：三步说明（贴原话 → 归档客户/项目/系统 → 交给 AI 理清，确认后才建单）；可选「谁提的」，填写后以 `提出人：…` 前缀并入原文留痕，不新增后端字段。
+- 运维单进度条改为 受理 → 运维排查 → 记下结论 → 沉淀经验 → 闭环（`opsStepper`），不再显示改代码步骤。
+- 版本页：预览启动命令收进「预览环境设置（管理员填一次即可）」；版本记录上方写明上生产四步。工作台「编写工作简报」默认收起。
+- 验证：本机 UI 相关 632 passed、协作相关 170 passed；服务器用发布包跑 15 个相关模块 230 项 OK，失败清单与 `0064bfd` 一致（都为空）。
+- 发布：备份 `/opt/webuddy/backups/pre-9cd16f331039-activation-20261104`；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
+- 招投标演示项目选型：wzhnbb/bidding 只有介绍页；luhongbin/bidding（MIT，litemall 改的招投标/报价）可用，待导入。
