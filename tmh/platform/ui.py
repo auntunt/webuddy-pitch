@@ -151,7 +151,7 @@ function diffHtml(d){return '<pre class="diff">'+d.split('\n').map(l=>{const c=l
 // waves). Each has its own pages and its own numbers; the knowledge base, the map, agent runs and settings serve both.
 const SVC={ops:{name:'运维服务',tabs:[['home','工单看板','#/board'],['tickets','工单列表','#/tickets'],['lead','运维成效','#/lead'],['overview','监控总览','#/overview'],['eff','提效报告','#/eff'],['learn','闭环改进','#/learn'],['int','外部系统','#/int']]},
   reform:{name:'重构服务',tabs:[['reform','改造计划','#/reform'],['rtickets','改造工单','#/rtickets'],['rdeps','依赖清单','#/rdeps']]}};
-const SHARED=[['atlas','项目图谱','#/atlas'],['kb','知识库','#/kb'],['library','知识与引用','#/library'],['map','架构与依据','#/map'],['runs','智能体运行','#/runs'],['settings','设置','#/settings']];
+const SHARED=[['atlas','项目图谱','#/atlas'],['kb','知识库','#/kb'],['library','知识与引用','#/library'],['map','业务与代码概览','#/map'],['runs','智能体运行','#/runs'],['settings','设置','#/settings']];
 const TOP=['home','tickets','lead','kb','reform','rtickets','rdeps'];
 S.svc=localStorage.getItem('tmh.svc')==='reform'?'reform':'ops';
 function svcOf(view){for(const k in SVC)if(SVC[k].tabs.some(t=>t[0]===view))return k;return S.svc}
@@ -166,7 +166,7 @@ function paintTabs(tab){
     runs:[['runs','AI 工作记录']],
     insights:[['lead','运维成效'],['overview','监控'],['eff','提效报告']],
     team:[['team','分配与复核']],
-    memory:[['memory','项目知识'],['kb','知识页'],['atlas','业务与代码图谱'],['states','业务状态图'],['map','架构依据'],['library','参考与引用'],['learn','经验复盘'],['handoff','项目交接']]};
+    memory:[['memory','项目知识'],['kb','知识页'],['atlas','业务与代码图谱'],['states','业务状态图'],['map','业务与代码概览'],['library','参考与引用'],['learn','经验复盘'],['handoff','项目交接']]};
   const rows=sets[group]||sets.projects, extras=[...(!S.meta?.access||S.meta.access.role==='admin'?[['clients','客户']]:[]),['team','分配与复核'],['rdeps','依赖清单'],['int','外部系统'],['settings','设置']];
   $('#tabs').hidden=['projects','team','memory','access'].includes(v);
   $('#tabs').setAttribute('aria-label','当前工作区');
@@ -1532,24 +1532,24 @@ async function vMap(did){
   const a=await get('/api/projects/'+encodeURIComponent(project)+'/arch');
   if(project!==S.proj||request!==S.archRequest||curView()!=='map')return;
   const rep=`/p/${encodeURIComponent(project)}/report/index.html`;
-  const head=pageHead('架构与依据','',`<a class="btn" href="#/atlas">查看关系图谱</a>${a.report?`<a class="btn" href="${rep}" target="_blank" rel="noopener">完整报告 ↗</a>`:''}`);
-  if(!a.built){$('#main').innerHTML=head+'<div class="card"><h2>还没有代码分析结果</h2><p>完成全项目分析后，这里会显示业务域、入口与数据操作。</p><a class="btn" href="#/kb">前往知识库</a></div>';return}
+  const head=pageHead('业务与代码概览','从功能分组查找业务流、数据操作与代码依据。',`<a class="btn" href="#/atlas">查看关系图谱</a>${a.report?`<a class="btn" href="${rep}" target="_blank" rel="noopener">完整报告 ↗</a>`:''}`);
+  if(!a.built){$('#main').innerHTML=head+'<div class="card"><h2>还没有代码分析结果</h2><p>完成全项目分析后，这里会显示功能分组、入口与数据操作。</p><a class="btn" href="#/kb">前往知识库</a></div>';return}
   $('#main').innerHTML=head+`<section class="arch-overview" aria-label="业务与代码概览">
-    <div class="arch-summary"><div><strong>${a.domains.length}</strong><span>业务域</span></div><div><strong>${a.flows}</strong><span>业务流</span></div><div><strong>${a.tables}</strong><span>数据表</span></div><div><strong>${a.ext.length}</strong><span>外部调用类型</span></div></div>
-    <div class="arch-layout"><section class="arch-domains"><div class="arch-toolbar"><h2>业务域 <span id="archCount">${a.domains.length}</span></h2><input id="archSearch" type="search" aria-label="搜索业务域" placeholder="搜索业务域"></div>
+    <div class="arch-summary"><div><strong>${a.domains.length}</strong><span>功能分组</span></div><div><strong>${a.flows}</strong><span>业务流</span></div><div><strong>${a.tables}</strong><span>数据表</span></div><div><strong>${a.ext.length}</strong><span>外部调用类型</span></div></div>
+    <div class="arch-layout"><section class="arch-domains"><div class="arch-toolbar"><h2>功能分组 <span id="archCount">${a.domains.length}</span></h2><input id="archSearch" type="search" aria-label="搜索功能分组" placeholder="搜索功能分组"></div>
       <div class="arch-domain-grid" id="archDomains"></div></section>
       <aside class="arch-facts" aria-label="代码分析统计"><section><h2>入口类型</h2><dl>${a.entries.map(([name,n])=>`<div><dt>${h(name)}</dt><dd>${n}<span> 条业务流</span></dd></div>`).join('')||'<p class="sub">未识别入口类型</p>'}</dl></section>
         <section><h2>高频数据表</h2><p class="arch-caption">按关联业务流数量排序 · ${a.top_tables.length} / ${a.tables} 张</p><dl>${a.top_tables.map(([name,n])=>`<div><dt><a href="#/kb/${encodeURIComponent('tbl:'+name)}">${h(name)}</a></dt><dd>${n}<span> 条</span></dd></div>`).join('')||'<p class="sub">未识别数据表关联</p>'}</dl></section>
         <section><h2>外部调用</h2><dl>${a.ext.map(e=>`<div><dt>${h(e.title)}</dt><dd>${e.users}<span> 处</span></dd></div>`).join('')||'<p class="sub">未识别外部调用</p>'}</dl></section>
       </aside></div>
     <details class="arch-basis"><summary>分析依据${a.unresolved?' · '+a.unresolved+' 处调用待核对':''}<span>${h(a.built_at)}</span></summary>
-      <p>统计来自源码解析，业务域名称和说明沿用知识库；不代表生产部署拓扑。</p>
+      <p>统计来自源码解析，分组名称和说明沿用知识库；分组不等同于已确认的业务边界，也不表示应用组件或部署架构。</p>
       <p>${a.unresolved?`${a.unresolved} 处调用未能静态解析，相关路径需要进一步核对。`:'静态分析未报告断开的调用；动态行为仍需结合运行结果核对。'} 部署包与源码版本的一致性尚需核实。</p>
       <p>系统总览：${h(a.overview_status||'未撰写')}。<a href="#/kb">查看知识库</a></p>
     </details></section>`;
   const paint=()=>{const query=$('#archSearch').value.trim().toLowerCase(),domains=a.domains.filter(d=>[d.title,d.id,d.summary].join(' ').toLowerCase().includes(query));
     $('#archCount').textContent=query?domains.length+' / '+a.domains.length:String(a.domains.length);
-    $('#archDomains').innerHTML=archDomainCards(domains)||(query?'<div class="arch-empty"><p>没有匹配的业务域</p><button id="archClear">清除搜索</button></div>':'<div class="arch-empty">尚未划分业务域</div>');
+    $('#archDomains').innerHTML=archDomainCards(domains)||(query?'<div class="arch-empty"><p>没有匹配的功能分组</p><button id="archClear">清除搜索</button></div>':'<div class="arch-empty">尚未划分功能分组</div>');
     if($('#archClear'))$('#archClear').onclick=()=>{$('#archSearch').value='';paint();$('#archSearch').focus()}};
   $('#archSearch').oninput=paint;paint();
 }
@@ -1560,7 +1560,7 @@ function archDomainCards(domains){
 async function archDomain(did){
   const d=await get('/api/projects/'+S.proj+'/arch/'+encodeURIComponent(did));
   const ops={C:'增',R:'查',U:'改',D:'删',P:'过程'};
-  $('#main').innerHTML=`<div class="crumb"><a href="#/map">架构与依据</a> / ${h(d.title)}</div>`+pageHead(d.title,d.summary||'这个业务域还没有业务说明；下面是工具从代码解析出的入口、处理和数据操作。',`<div class="row" style="gap:8px">${kst(d.status)}<a class="btn" href="#/kb/${encodeURIComponent(d.id)}">读业务说明</a></div>`)+
+  $('#main').innerHTML=`<div class="crumb"><a href="#/map">业务与代码概览</a> / ${h(d.title)}</div>`+pageHead(d.title,d.summary||'这个功能分组还没有业务说明；下面是工具从代码解析出的入口、处理和数据操作。',`<div class="row" style="gap:8px">${kst(d.status)}<a class="btn" href="#/kb/${encodeURIComponent(d.id)}">读业务说明</a></div>`)+
    `<div class="card"><div class="row" style="align-items:center;margin-bottom:8px"><h2 class="grow" style="margin:0">业务流 · ${d.flows.length} 条</h2><span class="ev-tag info">代码事实</span><span class="ev-tag warn">断开处需人工确认</span></div>
     <div class="tw"><table class="t"><tr><th>业务流</th><th>入口</th><th>处理</th><th>数据操作</th><th>代码位置</th><th></th></tr>${d.flows.map(f=>`<tr class="click" onclick="showFlow('${h(f.id)}')"><td><b>${h(f.title)}</b><div>${kst(f.status)}</div></td><td><span class="tag">${h(f.entry_kind||'入口')}</span><div class="key" style="white-space:normal">${h(f.entry)}</div></td><td class="key" style="white-space:normal">${h(f.handler)}<div class="sub">${f.steps} 步调用${f.states?' · '+f.states+' 处状态变化':''}</div></td>
       <td>${Object.entries(f.crud).map(([t,o])=>`<span class="tag">${h(t)} <b>${h(String(o).split('').map(c=>ops[c]||c).join(''))}</b></span>`).join(' ')||'<span class="sub">无</span>'}</td><td class="key" style="white-space:normal">${h(f.file)}:${f.line}</td><td>${f.unresolved?`<span class="ev-tag warn" title="动态表名、反射或按配置分派">${f.unresolved} 处断开</span>`:''}</td></tr>`).join('')}</table></div></div>`}
@@ -2059,7 +2059,7 @@ const A={
     const grp=(title,inner,n,open)=>`<details class="hg" ${open?'open':''}><summary>${title}<small>${n}</small></summary>${inner||'<div class="sub" style="padding:4px 10px">没有</div>'}</details>`;
     const rc=recents();
     return `<div class="hist"><input id="hq" placeholder="搜索会话标题或工单号" value="${h(this.q)}" aria-label="搜索会话">
-      <div class="hg"><div class="hgt">跳转</div><div class="jump">${[['#/home','闭环总览'],['#/workspace','工作台'],['#/kb','知识库'],['#/map','架构与依据'],['#/eff','提效报告'],['#/settings','设置']].map(([r,t])=>`<a class="tag" href="${r}">${t}</a>`).join('')}</div>
+      <div class="hg"><div class="hgt">跳转</div><div class="jump">${[['#/home','闭环总览'],['#/workspace','工作台'],['#/kb','知识库'],['#/map','业务与代码概览'],['#/eff','提效报告'],['#/settings','设置']].map(([r,t])=>`<a class="tag" href="${r}">${t}</a>`).join('')}</div>
        ${rc.length?`<div class="hgt">最近访问</div><div class="jump">${rc.map(x=>`<a class="tag" href="${h(x.r)}" title="${h(x.t)}">${h(x.t)}</a>`).join('')}</div>`:''}</div>
       ${grp('项目咨询',act.filter(s=>s.kind!=='ticket').map(row).join(''),act.filter(s=>s.kind!=='ticket').length,true)}
       ${grp('关联工单',act.filter(s=>s.kind==='ticket').map(s=>row(Object.assign({},s,{title:s.title}))).join(''),act.filter(s=>s.kind==='ticket').length,true)}

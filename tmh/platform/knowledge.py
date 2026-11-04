@@ -402,7 +402,7 @@ class Knowledge:
                 "tickets": self._open_tickets_by_flow(p).get(n["id"], [])}
 
     def domain_detail(self, p: dict, did: str) -> dict:
-        """One business domain for 架构与依据: each flow's entry, handler, file:line, tables and the boundaries tools could not resolve."""
+        """One functional group for 业务与代码概览: each flow's entry, handler, file:line, tables and the boundaries tools could not resolve."""
         from .. import kb
         from ..graph import Graph
         root = self.root(p)
