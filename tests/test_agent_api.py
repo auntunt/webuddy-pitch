@@ -75,6 +75,22 @@ class AgentAPITest(unittest.TestCase):
                                 result=result or '```tmh-plan\n{"ac":[{"text":"持久保存","check":"重启后读回"}]}\n```')
         return self.P.store.run(r['id'])
 
+    def test_intake_is_recorded_without_a_model_and_ai_reading_needs_execution(self):
+        args = {'project': 'AGENT', 'text': '投标列表要导出报价汇总', 'requester': '前线小王', 'request_id': 'in-1'}
+        out = self.call('intake_start', args)
+        s = out['session']
+        self.assertFalse(out['model_called'])
+        self.assertEqual((s['understood']['by'], s['channel'], s['tickets']), ('规则', 'mcp', []))
+        self.assertTrue(s['text'].startswith('提出人：前线小王\n投标列表'))
+        self.assertEqual(self.call('intake_start', args)['session']['id'], s['id'])
+        self.assertEqual(self.call('intake_get', {'session': s['id']})['session']['text'], s['text'])
+        with self.assertRaises(ApiError) as e:
+            self.call('intake_understand', {'session': s['id'], 'request_id': 'in-2'})
+        self.assertEqual(e.exception.code, 403)
+        with self.assertRaises(ApiError) as e:
+            self.call('intake_get', {'session': 'nope'})
+        self.assertEqual(e.exception.code, 400)
+
     def test_create_is_held_agent_attributed_and_replayed_exactly(self):
         one = self.call('ticket_create', self.args)
         two = self.call('ticket_create', self.args)

@@ -45,6 +45,17 @@ SPECS = {
     "preview_start": spec("启动已采纳运行所绑定的本地候选预览，复用平台版本检查；可能启动应用进程。没有已采纳候选时拒绝。", {"ticket": KEY, "run_id": RID, "request_id": REQUEST}, ["ticket", "run_id", "request_id"], write=True, execution=True),
 }
 
+SID = text("需求对话编号；intake_start 返回的 session.id", pattern=r"^[0-9a-f]{12}$")
+ANSWERS = dict(type="array", minItems=1, maxItems=50, items=dict(type="object", additionalProperties=False,
+    properties={"item": integer("事项序号，从 0 开始，即 items 里的位置"), "slot": text("问题的 slot", pattern=r"^[A-Za-z0-9_]{1,40}$"),
+                "value": text("回答原文；不知道就写“不清楚”", minLength=1, maxLength=2000)}, required=["item", "slot", "value"]))
+SPECS.update({
+    "intake_get": spec("读取需求对话：客户原话、拆出的事项、验收标准、待回答的问题和理解状态；understanding 时稍后再读。", {"session": SID}, ["session"]),
+    "intake_start": spec("记录一段需求原话并归到项目（可写提出人）；只按规则整理，不调用模型，不建工单。需要 AI 理清时再调用 intake_understand。", {"project": PROJECT, "text": text("客户原话", minLength=1, maxLength=4000), "requester": text("谁提的，例如前线需求人员姓名", maxLength=60), "request_id": REQUEST}, ["project", "text", "request_id"], write=True),
+    "intake_understand": spec("让 AI 理清已记录的需求：拆事项、写验收标准、提出要确认的问题；会调用模型，立即返回，用 intake_get 跟进。不建工单。", {"session": SID, "request_id": REQUEST}, ["session", "request_id"], write=True, execution=True),
+    "intake_answer": spec("回答 AI 的追问；AI 按回答重读并补全验收标准（会调用模型），用 intake_get 跟进。确认建单仍在网页上由人完成。", {"session": SID, "answers": ANSWERS, "request_id": REQUEST}, ["session", "answers", "request_id"], write=True, execution=True),
+})
+
 CID = integer("外部候选编号", minimum=1)
 SHA = text("完整Git提交编号", pattern=r"^[0-9a-f]{40}$")
 DIGEST = text("读取接口返回的完整版本哈希", pattern=r"^[0-9a-f]{64}$")

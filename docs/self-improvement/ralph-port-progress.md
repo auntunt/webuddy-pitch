@@ -562,3 +562,13 @@
 - 无执行权限的成员（LLA、LYB）「记录需求」：按钮显示「记录并归档」，请求带 `model:false`，按规则保存原话、提出人、客户/系统；有执行权限的人在工作台「继续理清」里点「让 AI 理清」（新 `POST /api/intake/<id> {action:"understand"}`，仍走原执行权限 guard），同一段对话交给 AI。「直接填写工单」也保留提出人。测试 `test_rules_only_record_is_handed_to_ai_later`。
 - 验证：本机 intake/租户/工作台/系统/UI 410 passed。
 - 发布：700614b → 42f911e，备份 `/opt/webuddy/backups/pre-42f911e035d6-activation-20261104`；发布包相关 23 个模块失败清单为空、与上一版一致；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
+
+## 2026-11-04 MCP 也能提需求、让 AI 理清、回答追问；运行结束后页面实测按运行分支找被测版本
+
+- 生产实测：BID-3 用 content 连接 `ticket_create` 直接建单，没有经过需求理解，所以终端演示不到「AI 澄清 → 回答 → 补全验收标准」。新增四个工具操作，复用 `intake.start/understand/answer` 与原执行权限 guard：
+  - `intake_get`（read）：读客户原话、事项、验收标准、待回答问题；
+  - `intake_start`（content）：记录原话和提出人（channel=mcp），只按规则整理，不调用模型、不建工单；
+  - `intake_understand`、`intake_answer`（execute，需 `X-Webuddy-Execution: 1`，且 `tenant_policy` 走 `require_execution`）：让 AI 理清、按回答重读。确认建单仍在网页上由人做。
+  - 租户策略按需求对话所属项目核对权限（新资源类型 `intake`）；工具连接按项目可见范围过滤。测试 `test_intake_is_recorded_without_a_model_and_ai_reading_needs_execution`。
+- 生产实测：BID-1 #408 运行结束后点「在页面上实测」得到「找不到被测版本」。原因：手动入口不传 commit，`verify` 只看运行工作树，工作树在运行结束后已删除。改为工作树不在时取运行自己的分支 `tmh/<工单>-r<运行>` 的提交（`run_branch_head`）；测试 `test_a_finished_run_is_found_on_its_own_branch`。
+- 验证：本机 browser_verify/agent_api/MCP/租户策略/工具连接/AI 验收/intake 191 passed。

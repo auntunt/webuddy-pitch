@@ -488,6 +488,14 @@ def full_sha(root: Path, commit: str) -> str:
     return out if re.fullmatch(r"[0-9a-f]{40}", out) and out.startswith(commit) else ""
 
 
+def run_branch_head(root: Path, t: dict, rid: int) -> str:
+    """The tip of run `rid`'s own branch tmh/<ticket>-r<rid>, empty when there is none."""
+    out = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", "--quiet",
+                          "refs/heads/tmh/%s-r%d^{commit}" % (t["key"], rid)],
+                         capture_output=True, text=True, check=False).stdout.strip()
+    return out if re.fullmatch(r"[0-9a-f]{40}", out) else ""
+
+
 def _job(p: dict, rid: int, bind: dict) -> str:
     return "%s-r%d-%s" % (p["key"].lower(), rid, bind["spec_sha256"][:8])
 
@@ -505,7 +513,8 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
         base = subprocess.run(["git", "-C", str(wt), "rev-parse", "HEAD"], capture_output=True, text=True, check=False).stdout.strip()
         diff = run.get("diff") or ""
     else:
-        base, diff = "", ""
+        # the worktree is gone once the run ends; its commits stay on the run's branch
+        base, diff = run_branch_head(Path(p["root"]), t, rid), ""
     if not re.fullmatch(r"[0-9a-f]{40}", base):
         return {"result": "unverified", "why": "找不到被测版本", "ac": []}
     prompt = spec_prompt(t, acs, run.get("diff") or "")

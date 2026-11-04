@@ -51,6 +51,25 @@ class BrowserVerifyTest(unittest.TestCase):
             for bad in ("", "HEAD", full[:4], "0" * 8, "main"):
                 self.assertEqual(bv.full_sha(Path(d), bad), "")
 
+    def test_a_finished_run_is_found_on_its_own_branch(self):
+        import subprocess
+        from types import SimpleNamespace
+        with tempfile.TemporaryDirectory() as d:
+            git = ["git", "-C", d, "-c", "user.name=t", "-c", "user.email=t@t"]
+            subprocess.run(git + ["init", "-q"], check=True)
+            subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", "base"], check=True)
+            subprocess.run(git + ["checkout", "-q", "-b", "tmh/BID-1-r408"], check=True)
+            subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", "change"], check=True)
+            tip = subprocess.run(git + ["rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+            self.assertEqual(bv.run_branch_head(Path(d), {"key": "BID-1"}, 408), tip)
+            self.assertEqual(bv.run_branch_head(Path(d), {"key": "BID-1"}, 409), "")
+            P = SimpleNamespace(data_dir=Path(d), store=SimpleNamespace(run=lambda rid: {"workdir": d + "/gone"}))
+            with mock.patch.object(bv, "conf", return_value={"ssh": "u@h"}), \
+                    mock.patch.object(bv, "run_remote", side_effect=RuntimeError("reached")) as remote:
+                with self.assertRaises(RuntimeError):
+                    bv.verify(P, {"key": "BID", "root": d}, {"key": "BID-1", "title": "t"}, 408, ACS[:1], ask=lambda *a: "```tmh-spec\nimport a\n```")
+            self.assertEqual(remote.call_args.args[2], tip)
+
     def test_spec_and_config(self):
         self.assertEqual(bv.spec_from("x\n```tmh-spec\nimport a\n```\n"), "import a\n")
         self.assertEqual(bv.spec_from("no block"), "")

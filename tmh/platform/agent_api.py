@@ -34,7 +34,7 @@ def _boundaries(tool=None):
     if tool and tool.get('scope') == 'execute':
         result.update(identity='身份来自本人授权的工具连接；工具标签仅用于显示或消息路由，不能更换操作主体。',
                       candidate='仅可读取已有候选与历史证据；此连接不登记、评审或批准候选。',
-                      execution='可启动/停止分析、方案、修改，接管或交回自动；只在本人网页上也能运行时生效。不代人验收、合并、发布或回滚。')
+                      execution='可让 AI 理清需求、回答追问，可启动/停止分析、方案、修改，接管或交回自动；只在本人网页上也能运行时生效。不代人验收、合并、发布或回滚。')
     elif tool:
         result.update(identity='身份来自本人授权的工具连接；工具标签仅用于显示或消息路由，不能更换操作主体。',
                       candidate='仅可读取已有候选与历史证据；此连接不登记、执行、评审或批准候选。',
@@ -137,6 +137,17 @@ def _run(P, rid):
     return r
 
 
+def _intake(P, sid, visible_ids=None):
+    from . import intake
+    try:
+        s = intake.load(P.data_dir, sid, P)
+    except (ApiError, OSError, ValueError):
+        raise ApiError(404, "没有这段需求对话") from None
+    if visible_ids is not None and _project(P, s["project"])["id"] not in visible_ids:
+        raise ApiError(404, "没有这段需求对话")
+    return s
+
+
 def _req(req, actor, body=None, query=None):
     q = query or {}
     return SimpleNamespace(h=req.h, body=body or {}, user=actor, query=q,
@@ -160,6 +171,10 @@ def _resource(P, operation, args):
         return "ticket:%d" % r["ticket_id"] if r["ticket_id"] else "run:%d" % r["id"]
     if operation == "ticket_create":
         return "project:%d:create" % _project(P, args["project"])["id"]
+    if operation == "intake_start":
+        return "project:%d:intake" % _project(P, args["project"])["id"]
+    if "session" in args:
+        return "intake:" + args["session"]
     return ""
 
 
@@ -268,6 +283,8 @@ def dispatch(P, req, operation):
             target = P.store.project(P.store.ticket(int(resource.split(':')[1]))['project_id'])
         elif resource.startswith('run:'):
             target = P.store.project(P.store.run(int(resource.split(':')[1]))['project_id'])
+        elif resource.startswith('intake:'):
+            target = _project(P, _intake(P, args['session'])['project'])
         elif args.get('project'):
             target = _project(P, args['project'])
         if target:
@@ -487,6 +504,27 @@ def _execute(P, req, actor, operation, a):
         t = st.create_ticket(p["id"], a["title"], actor, body=a["body"], type=a.get("type", "feature"),
                              assignee=actor, links={"hold": actor, "handwork": actor, "agent_request": a["request_id"]})
         return {"ticket": t, "execution_started": False, "request_id": a["request_id"]}
+    if operation.startswith("intake_"):
+        from . import intake
+        by = req.user if tool else actor
+        if operation == "intake_start":
+            p = _project(P, a["project"])
+            if visible_ids is not None and p["id"] not in visible_ids:
+                raise ApiError(404, "没有这个项目")
+            who = (a.get("requester") or "").strip()
+            req.agent_side_effect_started = True
+            s = intake.start(P, P.project(p["key"]), ("提出人：%s\n" % who if who else "") + a["text"], by, "mcp", None, agent=False)
+            return {"session": s, "model_called": False, "request_id": a["request_id"]}
+        s = _intake(P, a["session"], visible_ids)
+        if operation == "intake_get":
+            return {"session": s}
+        req.agent_side_effect_started = True
+        if operation == "intake_understand":
+            return {"session": intake.understand(P, s["id"], by), "request_id": a["request_id"]}
+        answers = {}
+        for x in a["answers"]:
+            answers.setdefault(str(x["item"]), {})[x["slot"]] = x["value"]
+        return {"session": intake.answer(P, s["id"], by, answers), "request_id": a["request_id"]}
     if operation == "message_send":
         t = _ticket(P, a["ticket"])
         reply = a.get("reply_to")

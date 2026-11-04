@@ -226,7 +226,8 @@ messages_list request_get run_get run_start run_cancel run_retry run_recheck pre
 candidates_list candidate_get candidate_submit candidate_verify candidate_cancel candidate_preview
 candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel
 harness_library library_get library_search library_read library_build library_cancel library_resume
-library_reference library_unlink ticket_hold""".split())
+library_reference library_unlink ticket_hold
+intake_get intake_start intake_understand intake_answer""".split())
 SAFE_POSTS = frozenset((
     # Personal trial records only: no models, process launch or task moves.
     "/api/projects/<key>/pilots", "/api/projects/<key>/pilots/<pid>",
@@ -437,6 +438,13 @@ def _resource_project(P, kind, value):
         if not isinstance(row, dict):
             raise ApiError(404, "没有这个资源")
         return _project(P, row.get("project"))
+    elif kind == "intake":
+        from . import intake
+        try:
+            key = intake.load(P.data_dir, value, P)["project"]
+        except (ApiError, OSError, ValueError):
+            raise ApiError(404, "没有这段需求对话") from None
+        return _project(P, P.store.project(key)["id"])
     elif kind == "probe":
         return _resource_project(P, "candidate", _row(P, "harness_probe_runs", value)["candidate_id"])
     elif kind == "candidate":
@@ -466,7 +474,7 @@ def _agent(P, who, operation, body):
     level = "manager" if operation in ("library_reference", "library_unlink") else "contributor" if spec.get("write") else "viewer"
     projects = []
     for field, kind in (("project", "project"), ("ticket", "ticket"), ("run_id", "run"),
-                        ("candidate_id", "candidate"), ("probe_id", "probe")):
+                        ("candidate_id", "candidate"), ("probe_id", "probe"), ("session", "intake")):
         if field in args:
             projects.append(_check(P, who, _resource_project(P, kind, args[field]), level))
     if len({p["id"] for p in projects}) > 1:

@@ -12,7 +12,8 @@ import time
 from .agent_contract import SPECS, validate
 from . import workbench_credentials as credentials
 
-TENANT_WRITES = ("ticket_create", "message_send", "run_start", "run_cancel", "run_retry", "ticket_hold")
+TENANT_WRITES = ("ticket_create", "message_send", "run_start", "run_cancel", "run_retry", "ticket_hold",
+                 "intake_start", "intake_understand", "intake_answer")
 
 
 class ClientError(Exception):
