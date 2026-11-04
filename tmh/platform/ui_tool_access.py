@@ -2,17 +2,25 @@
 
 
 def page():
-    return HTML
+    from .tool_client import FILENAME
+    return HTML.replace('__CLIENT__', FILENAME)
 
 
 HTML = r'''<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>我的工具连接 · 网梯运维系统</title><style>
 :root{font-family:system-ui,-apple-system,sans-serif;color:#182b38;background:#f5f6f8;font-size:15px}*{box-sizing:border-box}body{margin:0}header{background:white;border-bottom:1px solid #dbe1e7;padding:20px max(24px,calc((100vw - 1120px)/2));display:flex;gap:24px;align-items:center}a{color:#195e70}main{max-width:1120px;margin:32px auto;padding:0 24px}h1{font-size:30px;margin:0 0 12px}h2{font-size:19px;margin:0 0 16px}p{line-height:1.75;margin:10px 0}.muted{color:#526473}.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;margin-top:24px}.panel{background:white;border:1px solid #dbe1e7;border-radius:12px;padding:24px;min-width:0}label{display:block;margin:16px 0 7px;font-weight:600}input,select,textarea,button{font:inherit}input:not([type=checkbox]),select,textarea{width:100%;padding:11px;border:1px solid #9cabb7;border-radius:5px;min-width:0}input[type=checkbox]{width:18px;height:18px;flex-shrink:0}button,.button{min-height:42px;padding:9px 15px;border:1px solid #bdc9d1;background:white;border-radius:6px;cursor:pointer;color:#182b38}.primary{background:#195e70;border-color:#195e70;color:white}button:disabled{opacity:.55;cursor:default}.row{border-top:1px solid #e2e7eb;padding:16px 0;overflow-wrap:anywhere}.row:first-child{border:0;padding-top:0}.row h3{font-size:16px;margin:0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.check{display:flex;gap:10px;align-items:flex-start;font-weight:400}.note{padding:14px 16px;background:#eaf1f3;border-radius:7px;overflow-wrap:anywhere}.error{color:#9e2d22}.badge{display:inline-block;border:1px solid #d4dfe5;border-radius:5px;padding:3px 7px;margin:6px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}textarea{min-height:132px;resize:vertical}#notice{margin:18px 0;white-space:pre-wrap;overflow-wrap:anywhere}#secret{margin-top:24px;border:2px solid #195e70}#projects{max-height:320px;overflow:auto}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #428aa0;outline-offset:3px}[hidden]{display:none!important}@media(max-width:760px){.layout{grid-template-columns:1fr}main{margin-top:24px;padding:0 16px}.panel{padding:18px}header{padding:16px}h1{font-size:25px}}
-</style></head><body><header><strong>网梯运维系统</strong><a id="back">返回工作台</a></header><main>
-<h1>我的工具连接</h1><p class="muted">让自己的 Claude、Cursor 或命令行读取获准资料、记录工作进展。每个连接都有明确的项目范围和有效期。</p>
+.steps{margin:0;padding-left:22px;line-height:1.75}.steps li{margin:6px 0}#howto{margin:20px 0}#howto pre,#guide{background:#f2f5f7;border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:pre}</style></head><body><header><strong>网梯运维系统</strong><a id="back">返回工作台</a></header><main>
+<h1>我的工具连接</h1><p class="muted">让自己的 Codex、Claude Code、Cursor 或命令行通过 MCP 读取获准资料、记录工作进展。每个连接都有明确的项目范围和有效期。</p>
 <p class="note">只读和协作连接不启动服务端模型、构建或预览；「执行」连接可启动分析、方案、修改，接管或交回自动，但只在本人网页上也能运行时生效。任何连接都不能替人确认知识、验收、关单、合并、发布或回滚。工具名称只用于辨认连接，所有操作仍归属于授权成员。连接状态以最近一次读回为准，使用时服务器会再次核验权限。</p>
 <div id="notice" role="status" aria-live="polite">正在核对个人身份与项目权限…</div>
+<section class="panel" id="howto"><h2>怎么连接</h2><ol class="steps">
+<li>准备一台 macOS 或 Linux 电脑（Windows 请在 WSL 里操作），装好 Python 3.10 或以上。</li>
+<li><a id="client" download="__CLIENT__">下载客户端</a>，在终端安装到单独的目录：<pre>python3 -m venv ~/.webuddy
+~/.webuddy/bin/pip install ~/Downloads/__CLIENT__</pre></li>
+<li>在下方「授权一个工具连接」里选项目、操作范围和有效期，创建后下载凭据文件。</li>
+<li>创建成功后，本页会给出导入凭据、生成 Codex / Claude Code / Cursor 配置的命令，照着复制执行，然后重启工具即可。</li>
+</ol><p class="muted">客户端只包含命令行和 MCP 桥接程序，在你的电脑上运行，通过 HTTPS 连到本系统；凭据只保存在你自己的电脑。</p></section>
 <div id="pending" class="note" hidden><p>上次操作的结果尚未确认。请用原请求核对，避免重复创建连接。</p><button id="retry">核对原请求</button></div>
 <section id="secret" class="panel" hidden><h2>保存这份连接凭据</h2><p>凭据仅在本次响应中显示。请保存到自己的电脑，不要发送到聊天、提交到代码库或交给其他成员。切换页面、每 15 秒重新核对身份或刷新列表时会清除本页凭据，请及时下载。未保存时需撤销该连接并重新创建。</p><textarea id="credential" readonly aria-label="连接凭据 JSON" spellcheck="false" autocomplete="off"></textarea><div class="actions"><button id="download" class="primary">下载凭据文件</button><button id="dismiss">已保存，清除页面凭据</button></div><pre id="guide"></pre></section>
 <div class="layout"><section class="panel"><h2>授权一个工具连接</h2><form id="create"><label for="label">连接名称</label><input id="label" maxlength="80" required placeholder="例如：我的 Claude 工作电脑" autocomplete="off"><label for="scope">允许的操作</label><select id="scope"><option value="read">只读：任务、知识和已有回执</option><option value="content">协作：另可创建待办、记录消息</option><option value="execute">执行：另可启动分析/方案/修改、接管和交回自动</option></select><label for="days">有效期</label><select id="days"><option value="1">1 天</option><option value="7" selected>7 天</option><option value="30">30 天</option></select><label>可访问项目</label><div id="projects"></div><p class="muted">权限减少、成员移除、密码重置或主动撤销后，旧凭据失效；恢复权限不会复活旧连接。</p><button id="submit" class="primary" disabled>创建限定范围的连接</button></form></section>
@@ -22,7 +30,7 @@ const initialPath=location.pathname, initialOrigin=location.origin;
 const base=initialPath.match(/^\/t\/[A-Za-z0-9_-]+(?=\/|$)/)?.[0]||'', tenant=base.split('/')[2]||'';
 const $=s=>document.querySelector(s), h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let context='',owner='',pending=null,busy=false,credential=null,credentialBinding=null,directorySnapshot=null,locked=false,storageKey='',ready=false,epoch=0,loadVersion=0,sensitiveEpoch=0,identityVersion=0;
-$('#back').href=base+'/';
+$('#back').href=base+'/';$('#client').href=base+'/tools/client';
 function notice(text,error=false){$('#notice').textContent=text;$('#notice').className=error?'error':''}
 function clearSecret(){credential=null;credentialBinding=null;$('#credential').value='';$('#guide').textContent='';$('#secret').hidden=true;$('#download').disabled=true}
 function invalidateSensitive(){
@@ -122,7 +130,8 @@ function showCredential(token,item,body,data){
   confirmedConnection(item,body,data);
   credentialBinding={item,body,data};
   credential={schema:1,endpoint:initialOrigin+base,token};$('#credential').value=JSON.stringify(credential,null,2);$('#secret').hidden=false;
-  $('#guide').textContent='在自己的终端导入下载的 JSON（下列文件名可替换）：\nmkdir -p ~/.config/webuddy\nwebuddy connect --stdin --save-to ~/.config/webuddy/my-tool.json < webuddy-credential.json\nwebuddy --credential-file ~/.config/webuddy/my-tool.json status\n确认导入成功后，删除下载目录中的临时凭据文件。';
+  const file='~/.config/webuddy/'+item.id.slice(0,8)+'.json',run='~/.webuddy/bin/webuddy --credential-file '+file,mcpFlag=item.scope==='execute'?' --allow-execution':item.scope==='read'?' --read-only':'';
+  $('#guide').textContent=['1. 先点上方「下载凭据文件」，再在终端导入（只需一次）：','mkdir -m 700 -p ~/.config/webuddy','~/.webuddy/bin/webuddy connect --stdin --save-to '+file+' < ~/Downloads/webuddy-credential.json','rm ~/Downloads/webuddy-credential.json','','2. 确认连接可用：',run+' status','','3. 生成你所用工具的配置（只打印，不改任何文件），任选一个：','# Codex：追加到 ~/.codex/config.toml',run+' config codex'+mcpFlag+' >> ~/.codex/config.toml','# Claude Code：把输出合并进项目根目录的 .mcp.json',run+' config claude'+mcpFlag,'# Cursor：把输出合并进 ~/.cursor/mcp.json',run+' config cursor'+mcpFlag,'','4. 重启工具，让它「列出网梯运维系统里我能看到的项目」确认已接通。'].join('\n');
   setBusy(busy);
 }
 function render(data){

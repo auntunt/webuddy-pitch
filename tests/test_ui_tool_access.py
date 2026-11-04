@@ -59,13 +59,30 @@ class ToolAccessUiTest(unittest.TestCase):
         parsed = subprocess.run([shutil.which('node'), '--check'], input=script, text=True, capture_output=True)
         self.assertEqual(parsed.returncode, 0, parsed.stderr)
         result = self.run_js("await start(body());process.stdout.write($('#guide').textContent);")
-        lines = [line for line in result.splitlines() if line.startswith('webuddy ')]
-        self.assertEqual(len(lines), 2)
+        lines = [line for line in result.splitlines() if line.startswith('~/.webuddy/bin/webuddy ')]
+        self.assertEqual(len(lines), 5)
         for line in lines:
-            args = shlex.split(line.split(' < ', 1)[0])[1:]
+            args = shlex.split(line.split(' < ', 1)[0].split(' >> ', 1)[0])[1:]
             parser().parse_args(args)
         self.assertIn('--stdin', lines[0])
-        self.assertIn('mkdir -p ~/.config/webuddy', result)
+        self.assertEqual([parser().parse_args(shlex.split(line.split(' >> ', 1)[0])[1:]).client for line in lines[2:]],
+                         ['codex', 'claude', 'cursor'])
+        self.assertIn('mkdir -m 700 -p ~/.config/webuddy', result)
+        self.assertNotIn('wbt_', result)
+
+    def test_connect_instructions_visible_before_any_connection(self):
+        html = page()
+        self.assertIn('怎么连接', html)
+        self.assertIn('pip install ~/Downloads/webuddy_client-', html)
+        self.assertNotIn('__CLIENT__', html)
+        self.assertEqual(self.run_js("process.stdout.write($('#client').href);"), '/t/alpha/tools/client')
+
+    def test_execute_connection_guide_enables_execution_in_generated_config(self):
+        result = self.run_js("await start({...body(),scope:'execute'});process.stdout.write($('#guide').textContent);")
+        configs = [line for line in result.splitlines() if ' config ' in line]
+        self.assertEqual(len(configs), 3)
+        for line in configs:
+            self.assertTrue(parser().parse_args(shlex.split(line.split(' >> ', 1)[0])[1:]).allow_execution)
 
     def test_unknown_result_retries_exact_original_request_after_refresh(self):
         self.run_js("postHandler=()=>{throw Error('response lost')};await start(body());assert.equal(mutations.length,1);const original=JSON.stringify(mutations[0]);await load();postHandler=b=>success(b,{token:undefined,replayed:true,credential_unavailable:true});await $('#retry').fire('click');assert.equal(mutations.length,2);assert.equal(JSON.stringify(mutations[1]),original);assert.equal(pending,null);assert.equal(values.size,0);assert.ok($('#notice').textContent.includes('不会再次显示'));assert.equal(credential,null);")
