@@ -955,6 +955,24 @@ def recovery_state(P, key: str) -> dict:
     return _recovery_view(P, ticket, s, _recovery_recipe(P, s) if s else None)
 
 
+def understand(P, sid: str, by: str, wait: bool = False) -> dict:
+    """A conversation the rules read alone (recorded by someone who may not call a model): AI reads it now."""
+    with _LOCK:
+        s = load(P.data_dir, sid, P)
+        if s["state"] != "asking" or s.get("tickets") or (s.get("understood") or {}).get("by") != "规则":
+            raise ApiError(409, "这段需求已经由 AI 理解过或已建单，不用再理清")
+        p = P.project(s["project"])
+        name = understander(P, p)
+        if not name:
+            raise ApiError(409, "当前没有可用的需求理解智能体")
+        s["state"] = "understanding"
+        s["understanding_job"] = _new_job(name)
+        _save(P.data_dir, s)
+        _note(P, s, f"{by} 让 AI 理清这段需求；客户原话和归档不变")
+    _spawn(P, p, s, name, wait)
+    return load(P.data_dir, sid, P)
+
+
 def retry_understanding(P, key: str, by: str, wait: bool = False) -> dict:
     with _LOCK:
         ticket, s = _recovery_session(P, key)

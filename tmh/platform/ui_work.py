@@ -131,7 +131,7 @@ async function pasteModal(text,cid){
     ${S.projects.length>1?`<label class="wk-field" for="pmP">所属项目<select id="pmP">${S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===np?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')}</select></label>`:''}
     <label class="wk-field" for="pmS">系统<select id="pmS"><option value="">不选系统</option></select></label>
     <label class="wk-field" id="pmSNL" for="pmSN" hidden>系统名称<input id="pmSN" placeholder="例如：开评标系统（私有化部署）"></label></div>
-   <div class="wk-actions"><button class="primary" id="pmGo">交给 AI 理清</button><button type="button" id="pmOld" class="ghost">直接填写工单</button></div>`,true);
+   <div class="wk-actions"><button class="primary" id="pmGo">${S.meta.access&&!accessCanExecute(np)?'记录并归档':'交给 AI 理清'}</button><button type="button" id="pmOld" class="ghost">直接填写工单</button></div>`,true);
   if(!has&&want&&cid==null)$('#pmC').value='';
   const sysLoad=async()=>{const pk=$('#pmP')?$('#pmP').value:np;let ss=[];try{ss=(await get('/api/projects/'+encodeURIComponent(pk)+'/systems')).systems}catch(e){}
     const last=ls.get('tmh.lastSystem.'+pk)||'';$('#pmS').innerHTML=`<option value="">不选系统</option>${ss.map(x=>`<option value="${x.id}" ${String(x.id)===last?'selected':''}>${h(x.name)}</option>`).join('')}<option value="__new">＋ 新系统…</option>`;$('#pmS').onchange()};
@@ -139,9 +139,9 @@ async function pasteModal(text,cid){
   if($('#pmP'))$('#pmP').addEventListener('change',sysLoad);sysLoad();
   $('#pmC').onchange=()=>{$('#pmN').hidden=$('#pmC').value!=='__new';$('#pmNL').hidden=$('#pmN').hidden;if(!$('#pmN').hidden)$('#pmN').focus()};
   if(!text)$('#pmT').focus();
-  $('#pmOld').onclick=()=>{const v=$('#pmT').value;closeModal();newTicket({title:v.split('\n')[0].slice(0,60),body:v})};
+  $('#pmOld').onclick=()=>{const v=$('#pmT').value,who=($('#pmR')?.value||'').trim();closeModal();newTicket({title:v.split('\n')[0].slice(0,60),body:who?'提出人：'+who+'\n'+v:v})};
   $('#pmGo').onclick=async()=>{const v=$('#pmT').value,c=$('#pmC').value,pk=$('#pmP')?$('#pmP').value:np;
-    const who=($('#pmR')?.value||'').trim(),b={project:pk,text:who?'提出人：'+who+'\n'+v:v};if(c==='__new'){const n=$('#pmN').value.trim();if(!n)return toast('写上客户的称呼，或者选“不记客户”');b.client_name=n}else if(c)b.client=+c;
+    const who=($('#pmR')?.value||'').trim(),b={project:pk,text:who?'提出人：'+who+'\n'+v:v};if(S.meta.access&&!accessCanExecute(pk))b.model=false;if(c==='__new'){const n=$('#pmN').value.trim();if(!n)return toast('写上客户的称呼，或者选“不记客户”');b.client_name=n}else if(c)b.client=+c;
     const sv=$('#pmS').value;if(sv==='__new'){const n=$('#pmSN').value.trim();if(!n)return toast('写上系统名称，或者选“不选系统”');b.system_name=n}else if(sv)b.system=+sv;
     $('#pmGo').disabled=true;$('#pmGo').textContent='正在理清…';
     try{const s=await post('/api/workbench/intake',b);ls.set('tmh.lastClient',s.client?String(s.client):'');ls.set('tmh.lastSystem.'+pk,s.system?String(s.system):'');

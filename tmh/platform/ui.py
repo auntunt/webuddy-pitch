@@ -1106,9 +1106,12 @@ function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true
   const done=s.state==='confirmed',u=s.understood||{},asks=s.asked_client||[];
   const head=`<div class="sub" style="margin-top:10px">${u.by==='LLM'?'<span class="ev-tag ok">AI 理解</span> 普通 LLM（不读代码、不改文件）':u.by==='智能体'?`<span class="ev-tag ok">AI 理解</span> ${h(u.agent||'')}`:`<span class="ev-tag mute">按规则理解</span>${u.why?' <span class="sub">（AI 没用上：'+h(clip(u.why,60))+'）</span>':''}`}
     ${s.title?` · 标题「${h(s.title)}」`:''}${(s.attachments||[]).length?` · 附件：${s.attachments.map(a=>`<span title="sha256:${h(a.sha256)}${a.note?' · '+h(a.note):''}">${h(a.name)}${a.note?'（'+h(clip(a.note,20))+'）':''}</span>`).join('、')}`:''}${(s.dropped||[]).length?` · 去掉了 ${s.dropped.length} 句寒暄或转述：<span title="${h(s.dropped.join(' / '))}">${h(clip(s.dropped.join(' / '),40))}</span>`:''}</div>`;
+  const ruleOnly=!done&&u.by==='规则'&&!(s.tickets||[]).length,canAI=ruleOnly&&typeof accessCanExecute==='function'&&accessCanExecute(s.project);
+  const aiRow=ruleOnly?`<div class="card" style="margin-top:10px">${canAI?'<button class="primary" id="inAI">让 AI 理清</button> <span class="sub">客户原话和客户、系统归档不变，AI 拆事项、写验收标准、提出要确认的问题</span>':'<span class="ev-tag info">已记录并归档</span> <span class="sub">这个账号不能调用 AI。请项目里有执行权限的人在工作台点这条的「继续理清」，再点「让 AI 理清」</span>'}</div>`:'';
+  setTimeout(()=>{const x=$('#inAI');if(x)x.onclick=()=>{x.disabled=true;post('/api/intake/'+s.id,{action:'understand'}).then(intakePaint).catch(e=>{x.disabled=false;toast(e.message,5000)})}},0);
   const hasQ=s.items.some(it=>(it.questions||[]).some(q=>q.slot!=='flow'));
   const allQ=!s.big&&s.items.length>0&&s.items.every(it=>it.kind==='question');
-  B.innerHTML=head+s.items.map((it,i)=>`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">第 ${i+1} 件：${h(clip(it.title||it.text,40))}</b>
+  B.innerHTML=head+aiRow+s.items.map((it,i)=>`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">第 ${i+1} 件：${h(clip(it.title||it.text,40))}</b>
      <select data-i="${i}" class="inK" ${done?'disabled':''}>${Object.entries(IKIND).map(([k,l])=>`<option value="${k}" ${k===it.kind?'selected':''}>${l}</option>`).join('')}</select></div>
      <div class="sub" style="margin-top:4px">客户原话：${h(clip(it.text,120))}</div>
      <div style="margin-top:4px">${h(it.restated?(it.restated.startsWith('我理解的是')?it.restated:'我理解的是：'+it.restated):'我理解的是：'+(it.title||it.text))}${it.flow?` <span class="ev-tag info">${h(it.flow.name)}</span>`:it.new_module?' <span class="ev-tag warn">新模块</span>':''}</div>

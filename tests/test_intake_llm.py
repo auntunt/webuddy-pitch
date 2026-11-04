@@ -51,6 +51,17 @@ class IntakeLLMTest(unittest.TestCase):
         env.start()
         self.addCleanup(env.stop)
 
+    def test_rules_only_record_is_handed_to_ai_later(self):
+        s = intake.start(self.P, self.project, "点提交就一直转圈", "前线", agent=False)
+        self.assertEqual((s["state"], s["understood"]["by"]), ("asking", "规则"))
+        with mock.patch.object(llm.kbqa, "_post", return_value={"choices": [{"message": {"content": REPLY}}]}):
+            s = intake.understand(self.P, s["id"], "li", wait=True)
+        self.assertEqual(s["understood"]["by"], "LLM")
+        self.assertEqual(s["text"], "点提交就一直转圈")
+        with self.assertRaises(ApiError) as e:
+            intake.understand(self.P, s["id"], "li")
+        self.assertEqual(e.exception.code, 409)
+
     def test_llm_reads_without_starting_an_agent_and_records_the_run(self):
         with mock.patch.object(llm.kbqa, "_post", return_value={"choices": [{"message": {"content": REPLY}}]}) as post:
             s = intake.start(self.P, self.project, "在吗？？点提交就一直转圈", "工程师", wait=True)

@@ -1736,9 +1736,11 @@ def api_intake_act(P, req, sid):
         return s
     if a == "drop":
         return intake.drop(P, sid, req.user)
+    if a == "understand":  # recorded with the rules only; someone who may call a model hands it to AI
+        return intake.understand(P, sid, req.user, wait=bool(req.body.get("wait")))
     if a == "ask_client":  # the open questions on a link of the client's own
         return intake.ask_client(P, sid, req.user, req.body.get("items"))
-    raise ApiError(400, "action 只能是 answer、big、confirm、drop、ask_client")
+    raise ApiError(400, "action 只能是 answer、big、confirm、drop、understand、ask_client")
 
 
 @route("POST", "/api/tickets/<key>/ask-client")
