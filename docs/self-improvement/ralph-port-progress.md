@@ -685,3 +685,13 @@
 - 基于Moby v26.1.3完整默认seccomp策略（上游原文件SHA256 `9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76`），仅追加clone带CLONE_NEWUSER、unshare参数仅CLONE_NEWUSER，以及mount/umount2/pivot_root。原规则与顶层默认拒绝配置逐项保持。逐项移除这5类均失败；setns无需开放并已移除。
 - 临时容器真实Codex沙箱9项通过：读取、工作区写入、只读拒写、外部拒写、符号链接越界拒写、Git元数据拒写、TCP拒绝、Unix socket拒绝、CapEff=0/Seccomp=2。默认策略反例仍失败在namespace创建。无模型调用或业务任务重跑。
 - 部署策略和离线验证脚本纳入scripts/deploy；应用代码与模型配置保持原版本。准备完整备份后更新Compose的此服务seccomp路径并重建容器；不使用privileged、CAP_SYS_ADMIN、unconfined或关闭Codex沙箱，不修改宿主机sysctl。
+- 已提交并推送策略 `f93e716`；宿主机部署文件 `~/webuddy/security/seccomp-codex-f93e716.json` SHA256 `280cde4a2eea3f83ae37da2043a7bc2d01729dd09a5cd1f24cb49464b80a06c1` 与精确提交一致。Compose只增加此服务security_opt，应用镜像仍9c6900b（运行源码未变），用户weppt、privileged=false、capadd=null。
+- 发布前running_runs=0；完整备份 `/home/Liyibin/webuddy/backups/pre-sandbox-f93e716-20261104T193729Z`，14库integrity全部ok。旧Compose、镜像、业务/Codex卷保留；回退恢复旧Compose，仅重建容器，不恢复数据库。
+- 现役生产容器中的同一9项真实Codex沙箱检查全部通过；即时HTTP内外登录200/未登录配置API401，运行文件2305清单一致、两主库完整性ok，running/restart0。仅临时自有夹具读写，验证后已清理；未重跑GROUPRISK业务任务或调用模型。
+
+## 2026-11-05 阿里云宿主机部署准备
+
+- 用户要求停用应用容器、直接部署服务器。准备用户级 systemd 服务 webuddy-native，开启 linger，独立 HOME/CODEX_HOME；保留原数据路径与 UTC 存储，页面继续北京时间。
+- 精确应用版本9c6900b，原生Python3.11.14/SQLite3.50.4；宿主机358项回归通过（90.179s），14个真实数据库副本完整性及Store初始化通过。Codex0.166.0在宿主机及NoNewPrivileges=yes的临时systemd单元均通过9项沙箱检查；未调用模型。
+- 原生入口192.168.112.1:8791只绑定现有隧道桥接地址；临时HTTP探针已确认容器到宿主机200。准备先停止应用容器、备份并迁移全部卷、核验后启动原生服务，再切换Webuddy单条隧道路由。共享隧道容器保留。
+- 回退须先停原生服务并备份当前数据，将最新data/repos/codex同步回原卷并恢复1100属主后再启动旧容器；不得直接启动停用容器读取旧快照或恢复旧数据库。切换完成情况随后补记。
