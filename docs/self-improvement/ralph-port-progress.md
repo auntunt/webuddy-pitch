@@ -678,3 +678,10 @@
 - 用户要求本批完成后检查。查到GROUPRISK最近运行464（kb）、463（chart）、461（kb）包含bwrap错误；项目根和知识目录存在，但`.tmh/tool/tmh.py`缺失。容器PATH上也没有`tmh`入口；`python3 -m tmh --help`在平台目录正常，说明平台模块已部署，不能说整个tmh没有部署。
 - 固定无业务命令探针：宿主机`unshare -Ur /bin/true`成功；同一现役容器内返回Operation not permitted。容器非privileged、无额外cap、Seccomp=2，用户namespace内核开关允许；Codex0.162.1直接沙箱调用出现与截图一致的bwrap namespace拒绝。已定位到容器执行限制，未冒充模型额度或认证失败。
 - 之前固定文字Codex连通测试只验证模型回复，不验证命令派发。本次未调用模型、未重跑业务任务、未修改沙箱/容器权限、项目工具或原运行记录。后续修复需补齐项目工具并验证受限命令执行、只读和越界写入约束；不能以关闭沙箱当修复。
+
+## 2026-11-05 恢复阿里云容器中的 Codex 沙箱
+
+- 用户授权修复容器无法开启沙箱。现役Webuddy镜像9c6900b、Docker26.1.3、Codex0.162.1。依据官方文档与现役CLI帮助，在无业务卷/凭据、无外部网络的临时容器复现默认策略下namespace拒绝。
+- 基于Moby v26.1.3完整默认seccomp策略（上游原文件SHA256 `9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76`），仅追加clone带CLONE_NEWUSER、unshare参数仅CLONE_NEWUSER，以及mount/umount2/pivot_root。原规则与顶层默认拒绝配置逐项保持。逐项移除这5类均失败；setns无需开放并已移除。
+- 临时容器真实Codex沙箱9项通过：读取、工作区写入、只读拒写、外部拒写、符号链接越界拒写、Git元数据拒写、TCP拒绝、Unix socket拒绝、CapEff=0/Seccomp=2。默认策略反例仍失败在namespace创建。无模型调用或业务任务重跑。
+- 部署策略和离线验证脚本纳入scripts/deploy；应用代码与模型配置保持原版本。准备完整备份后更新Compose的此服务seccomp路径并重建容器；不使用privileged、CAP_SYS_ADMIN、unconfined或关闭Codex沙箱，不修改宿主机sysctl。
