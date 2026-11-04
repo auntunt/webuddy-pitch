@@ -116,7 +116,7 @@ function nowStr(d){d=d||new Date();const p=n=>String(n).padStart(2,'0');return `
 
 // ---------- 粘贴客户的话: one box on every page, the requirement conversation with the client recorded
 function sayWire(){/* Pasting keeps focus; recording begins only on explicit submit. */}
-function sayOpen(){const i=$('#sayIn'),v=i?i.value:'';if(S.meta?.access&&S.meta.access.capabilities?.execution!==true){newTicket({body:v});return}if(i)i.value='';const c=location.hash.match(/^#\/c\/(\d+)/);pasteModal(v,c?+c[1]:undefined)}
+function sayOpen(){const i=$('#sayIn'),v=i?i.value:'';if(i)i.value='';const c=location.hash.match(/^#\/c\/(\d+)/);pasteModal(v,c?+c[1]:undefined)}
 async function pasteModal(text,cid){
   if(!S.projects.length)return newProject();
   let cs=[];try{cs=(await get('/api/clients')).clients}catch(e){}
