@@ -132,7 +132,7 @@ function showCredential(token,item,body,data){
   credentialBinding={item,body,data};
   credential={schema:1,endpoint:initialOrigin+base,token};$('#credential').value=JSON.stringify(credential,null,2);$('#secret').hidden=false;
   const run='~/.webuddy/bin/webuddy',mcpFlag=item.scope==='execute'?' --allow-execution':item.scope==='read'?' --read-only':'';
-  $('#guide').textContent=['1. 先点上方「下载凭据文件」，再在终端导入（只需一次；客户端已经知道服务器地址）：',run+' connect --stdin < ~/Downloads/webuddy-credential.json','rm ~/Downloads/webuddy-credential.json','','2. 确认连接可用：',run+' status','','3. 生成你所用工具的配置（只打印，不改任何文件），任选一个：','# Codex：追加到 ~/.codex/config.toml',run+' config codex'+mcpFlag+' >> ~/.codex/config.toml','# Claude Code：把输出合并进项目根目录的 .mcp.json',run+' config claude'+mcpFlag,'# Cursor：把输出合并进 ~/.cursor/mcp.json',run+' config cursor'+mcpFlag,'','4. 重启工具，让它「列出网梯运维系统里我能看到的项目」确认已接通。'].join('\n');
+  $('#guide').textContent=['1. 凭据文件已自动下载到 ~/Downloads（没有的话点上方「下载凭据文件」），在终端导入（只需一次；客户端已经知道服务器地址）：',run+' connect --stdin < ~/Downloads/webuddy-credential.json','rm ~/Downloads/webuddy-credential.json','','2. 确认连接可用：',run+' status','','3. 生成你所用工具的配置（只打印，不改任何文件），任选一个：','# Codex：追加到 ~/.codex/config.toml',run+' config codex'+mcpFlag+' >> ~/.codex/config.toml','# Claude Code：把输出合并进项目根目录的 .mcp.json',run+' config claude'+mcpFlag,'# Cursor：把输出合并进 ~/.cursor/mcp.json',run+' config cursor'+mcpFlag,'','4. 重启工具，让它「列出网梯运维系统里我能看到的项目」确认已接通。'].join('\n');
   setBusy(busy);
   saveCredential();
   $('#secret').scrollIntoView?.({behavior:'smooth',block:'start'});

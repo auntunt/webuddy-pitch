@@ -536,3 +536,4 @@
 - 服务器的 umask 是 002：第一版用 `mkdir(parents=True)` 建出来的 `~/.config` 是 775，被凭据路径检查拒绝。已改成逐级 0700 创建，并补了测试。服务器上 test_workbench_client 有 16 项在基线上就失败（环境原因），这次的失败清单和基线 482e3eb 完全一样。
 - 发布：5116edb1f119，备份在 `/opt/webuddy/backups/pre-5116edb1f119-activation-20261104`。MANIFEST_OK，两个库 integrity=ok，running_runs=0，内外网 login 200、未登录访问 /api/projects 返回 401，active，NRestarts=0。
 - 生产 E2E（LYB，干净的 HOME 和 venv）：下载 `webuddy_client-0.4.0-py3-none-any.whl`；直接运行 `webuddy` 显示 `https://webuddy.bbstack.date/t/default` 和下一步；没导入凭据时 `status` 指向 `/tools` 页，输出里没有 127.0.0.1。之后依次跑通 `connect --stdin`、`status`、`config codex --read-only`；MCP 列出 13 个工具，`webuddy_projects_list` 返回 RW。临时连接已撤销。
+- 后续（同日）：用户反映创建连接后「没有弹出下载选项」。原因：凭据区在页面顶部，在页面下方点「创建」时看不到；而且每 15 秒核对身份、切换窗口时会清掉凭据区（这条安全设计保留）。修复：创建后由 `saveCredential()` 自动下载 `webuddy-credential.json`，并滚动到凭据区；步骤文案改成「已自动下载」。生产实测（LYB）：点创建后浏览器立即下载，文件里的 endpoint 是生产地址，测试连接已撤销。
