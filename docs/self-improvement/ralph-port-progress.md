@@ -695,3 +695,8 @@
 - 精确应用版本9c6900b，原生Python3.11.14/SQLite3.50.4；宿主机358项回归通过（90.179s），14个真实数据库副本完整性及Store初始化通过。Codex0.166.0在宿主机及NoNewPrivileges=yes的临时systemd单元均通过9项沙箱检查；未调用模型。
 - 原生入口192.168.112.1:8791只绑定现有隧道桥接地址；临时HTTP探针已确认容器到宿主机200。准备先停止应用容器、备份并迁移全部卷、核验后启动原生服务，再切换Webuddy单条隧道路由。共享隧道容器保留。
 - 回退须先停原生服务并备份当前数据，将最新data/repos/codex同步回原卷并恢复1100属主后再启动旧容器；不得直接启动停用容器读取旧快照或恢复旧数据库。切换完成情况随后补记。
+- 原生切换已执行：切换前running_runs=0，停止容器后完整备份至 `/home/Liyibin/webuddy/backups/pre-native-20261104T195006Z`；全部data/repos/codex复制后diff逐文件一致，再转属主1001:1002。14库完整性通过，11个项目根全部存在，2305源码文件清单匹配。
+- 仅将cloudwave-codex.bin改成PATH上的codex；密钥和账号/会话原样迁移。为GROUPRISK缺失的.tmh/tool补装同版本工具，项目内和全局tmh --version均0.4.0，未修改知识或重跑业务任务。
+- 用户级webuddy-native已enable/start，旧webuddy容器停止且restart=no。Cloudflare配置v5→v6，只将Webuddy ingress改为http://192.168.112.1:8791，另两站和404兜底保持。即时内外登录200、未登录配置API401；同服务HOME/PATH/NoNewPrivileges环境的9项真实Codex沙箱检查再次通过。原生操作与保留新数据的回退说明见scripts/deploy/NATIVE.md。
+- 原生HTTPS检查发现uv Python默认CA路径不匹配阿里云系统，已显式配置SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt并重启；未关闭TLS校验。服务器Python访问公网登录探针随后返回403，不能认定为应用来源拒绝；Mac curl同源超长正文返回413 invalid_request，证明通过来源校验且未进入密码验证。
+- 补验：系统CA下原生Python访问HTTPS返回200；Mac公网跨站正文403 origin_denied，同源413 invalid_request。会话密钥与旧卷字节相同，现役14库再次完整性ok；内外登录200/API401。仅验证技术入口与沙箱，未代用户登录、执行真实模型任务或人工验收。

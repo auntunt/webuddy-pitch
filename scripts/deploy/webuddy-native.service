@@ -9,6 +9,7 @@ EnvironmentFile=/opt/webuddy/config/webuddy.env
 Environment=HOME=/opt/webuddy/home
 Environment=CODEX_HOME=/opt/webuddy/codex
 Environment=TZ=UTC
+Environment=SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
 Environment=PYTHONUNBUFFERED=1
 Environment=PATH=/opt/webuddy/bin:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/opt/webuddy/venv/bin/python3 -m tmh serve --host 192.168.112.1 --port 8791 --data /opt/webuddy/data
