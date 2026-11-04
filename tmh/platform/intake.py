@@ -668,6 +668,9 @@ def _apply(s: dict, answers: dict, by: str, client: dict | None = None, got: dic
     return sorted(set(fresh))
 
 
+READERS = ("智能体", "LLM")  # readings that are read again with the answers, so the criteria say what was answered
+
+
 def answer(P, sid: str, by: str, answers: dict, wait: bool = False, gather: bool = False) -> dict:
     """answers: {"<item index>": {"<slot>": "value"}}; "不清楚" leaves it as 待确认. Items the agent read are read
     again with the answers (in the background; `wait` to block), so the criteria say what was answered. `gather`
@@ -687,7 +690,7 @@ def answer(P, sid: str, by: str, answers: dict, wait: bool = False, gather: bool
             else:
                 s.pop("gathered_items", None)
                 fresh = sorted(pend)
-        name = understander(P, P.project(s["project"])) if fresh and (s.get("understood") or {}).get("by") == "智能体" else ""
+        name = understander(P, P.project(s["project"])) if fresh and (s.get("understood") or {}).get("by") in READERS else ""
         if name:
             s["state"] = "understanding"
             s["understanding_job"] = _new_job(name, refine=fresh)
@@ -1762,7 +1765,7 @@ def client_answer(P, token: str, answers: dict, name: str = "", wait: bool = Fal
         if was == "confirmed":
             s["state"] = "confirmed"
         s["client_pending"] = {"by": who, "items": sorted(got)}
-        name_ = understander(P, P.project(s["project"])) if fresh and (s.get("understood") or {}).get("by") == "智能体" else ""
+        name_ = understander(P, P.project(s["project"])) if fresh and (s.get("understood") or {}).get("by") in READERS else ""
         if name_:
             s["state_before"] = s["state"]
             s["state"] = "understanding"
@@ -1772,7 +1775,7 @@ def client_answer(P, token: str, answers: dict, name: str = "", wait: bool = Fal
                 s["understanding_job"]["binding"] = _recovery_binding(P, s, s["understanding_job"])
                 s["understanding_job"]["contracts"] = _contract_snapshot(P, s, fresh)
         else:
-            if fresh and was == "confirmed" and (s.get("understood") or {}).get("by") == "智能体":
+            if fresh and was == "confirmed" and (s.get("understood") or {}).get("by") in READERS:
                 s["state_before"] = "confirmed"
                 job = _new_job("", refine=fresh, slots={str(i): v for i, v in got.items()}, client=True,
                                open_ac=_open_contract(P, s, fresh))

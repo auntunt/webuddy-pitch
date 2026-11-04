@@ -1087,7 +1087,7 @@ function intakeModal(pk,text,pin){
   $('#inT').addEventListener('paste',e=>[...(e.clipboardData?.files||[])].forEach(addFile));
   $('#inT').addEventListener('drop',e=>{if(e.dataTransfer?.files?.length){e.preventDefault();[...e.dataTransfer.files].forEach(addFile)}});
   $('#inGo').onclick=async()=>{try{intakePaint(await post(pin?'/api/pins/'+pin.id+'/intake':'/api/projects/'+encodeURIComponent(pk)+'/intake',{text:$('#inT').value,attachments:files}))}catch(e){toast(e.message,5000)}}}
-function inQ(q,i){return `<div style="margin-top:8px"><div>${h(q.q)}</div>${q.options.length?`<div class="chips" style="margin-top:4px">${q.options.map(o=>`<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="${h(o)}">${h(o)}</span>`).join('')}<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="不清楚">不清楚</span></div>`
+function inQ(q,i){return `<div style="margin-top:8px"><div>${h(q.q)}</div>${q.options.length?`<div class="chips" style="margin-top:4px">${q.options.map(o=>`<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="${h(o)}">${h(o)}</span>`).join('')}<span class="chip inO" data-i="${i}" data-s="${h(q.slot)}" data-v="不清楚">不清楚</span></div>`+(q.slot==='flow'?'':`<input class="inA" data-i="${i}" data-s="${h(q.slot)}" placeholder="都不合适就直接写；写了以这里为准" style="width:100%;margin-top:4px">`)
    :`<input class="inA" data-i="${i}" data-s="${h(q.slot)}" placeholder="写一句就行；不知道就写“不清楚”" style="width:100%;margin-top:4px">`}</div>`}
 function inSpec(s,done){const sp=s.spec,work=s.items.map((it,i)=>[it,i]).filter(([it])=>it.kind!=='question');
   return `<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">大需求规格卡</b><span class="ev-tag info">一张父单 + ${work.length} 个子单，分批上线，最后整体验收</span>${done?'':' <a href="javascript:void 0" id="inUnbig">不按大需求做</a>'}</div>
@@ -1124,7 +1124,9 @@ function intakePaint(s){const B=$('#inBox');if(!B)return;$('#inT').readOnly=true
    (hasQ&&s.state!=='dropped'?`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">问题让客户自己答</b>${asks.length?`<span class="sub">已发过 ${asks.length} 次</span>`:''}</div><div class="sub">生成一个链接发给客户（微信、短信都行），客户用大白话回答；答复会写回验收标准${done?'，等着的工单自动开工':''}。</div><div class="row" style="margin-top:6px"><button class="ghost" id="inAsk">把问题发给客户</button></div><div id="inAskOut"></div></div>`:'')+
    (done?'':`<div class="row" style="gap:8px;margin-top:10px">${s.state==='asking'?'<button class="primary" id="inAns">提交回答</button>':''}
      ${allQ?'<span class="sub">都是咨询，已经直接答复，不用建单。</span><button class="ghost" id="inNo">结束对话</button>':`<button class="${s.state==='asking'?'ghost':'primary'}" id="inOk">${s.state==='asking'?'先这样建单（没答的记为待确认）':s.big?'确认规格卡，建父单和子单':'确认，建单'}</button><button class="ghost" id="inNo">放弃</button>`}</div>`);
-  const pick={};B.querySelectorAll('.inO').forEach(c=>c.onclick=()=>{const i=c.dataset.i,sl=c.dataset.s;(pick[i]=pick[i]||{})[sl]=c.dataset.v;
+  const pick={};B.querySelectorAll('.inO').forEach(c=>c.onclick=()=>{const i=c.dataset.i,sl=c.dataset.s,free=B.querySelector(`.inA[data-i="${i}"][data-s="${sl}"]`);
+    if(free&&/^其他|请说明/.test(c.dataset.v)){if(pick[i])delete pick[i][sl];free.focus();B.querySelectorAll(`.inO[data-i="${i}"][data-s="${sl}"]`).forEach(x=>x.classList.toggle('on',x===c));return}
+    (pick[i]=pick[i]||{})[sl]=c.dataset.v;
     B.querySelectorAll(`.inO[data-i="${i}"][data-s="${sl}"]`).forEach(x=>x.classList.toggle('on',x===c))});
   const gather=()=>{const a=JSON.parse(JSON.stringify(pick));B.querySelectorAll('.inA').forEach(x=>{if(x.value.trim())(a[x.dataset.i]=a[x.dataset.i]||{})[x.dataset.s]=x.value.trim()});
     B.querySelectorAll('.inK').forEach(x=>{const it=s.items[x.dataset.i];if(x.value!==it.kind)(a[x.dataset.i]=a[x.dataset.i]||{}).kind=x.value});return a};
