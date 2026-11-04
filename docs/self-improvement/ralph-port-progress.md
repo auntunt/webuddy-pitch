@@ -580,3 +580,4 @@
 - 「记录并归档」后给无执行权限成员的提示改为指向「总览 → 动态与待办」里的「继续理清」（工作台没有这个入口）。
 - 生产只读查证：LLA 归档的会话 f4fcfe7bebe6 的客户、系统在 `client_links`/`system_links` 里，「让 AI 理清」的返回值不带这两个字段，不是丢失。
 - 验证：本机 browser_verify/ai_accept 48 passed，UI/intake 313 passed。
+- 发布：acfe736 → f7ae844，备份 `/opt/webuddy/backups/pre-f7ae844b729d-activation-20261104`；发布包 25 个模块失败清单与上一版一致（SAME_FAILS）；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
