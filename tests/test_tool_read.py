@@ -141,6 +141,10 @@ class ToolReadTests(unittest.TestCase):
             'tenant_id': 'synthetic', 'actor': 'alice', 'authz_revision': 1}))
         self.patch.enter_context(patch.object(tenant_policy, 'visible_projects', return_value=[self.p]))
 
+    def intake_session(self):
+        from tmh.platform import intake
+        return intake.start(self.P, dict(self.p), '投标信息列表增加导出', 'alice', 'mcp', None, agent=False)['id']
+
     def call(self, op, **args):
         from tmh.agent_contract import validate
         return agent_api._execute(self.P, self.req, self.actor, op, validate(op, args))
@@ -153,7 +157,7 @@ class ToolReadTests(unittest.TestCase):
                  'candidates_list': {'ticket': self.t['key']}, 'candidate_get': {'candidate_id': self.cid},
                  'library_get': {'project': 'APP'}, 'library_search': {'project': 'APP', 'query': 'synthetic'},
                  'library_read': {'project': 'APP', 'revision_id': 'a' * 32, 'path': 'rules.md'},
-                 'preview_get': {'ticket': self.t['key']}}
+                 'preview_get': {'ticket': self.t['key']}, 'intake_get': {'session': self.intake_session()}}
         self.assertEqual(set(cases), set(tool_access.READ_OPERATIONS))
         before = snapshot(self.st)
         # Library schema is initialized at fixture registration, preserving the
