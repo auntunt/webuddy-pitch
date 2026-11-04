@@ -214,6 +214,8 @@ GET /api/chats
 
 LEVELS = {"viewer": 1, "contributor": 2, "manager": 3}
 FILTERED_LISTS = frozenset(("/api/projects", "/api/workspace", "/api/tickets", "/api/runs"))
+# Path-keyed boards that read every project for "*"; unfiltered, so admin only.
+ALL_PROJECT_PATHS = frozenset(("/api/projects/<key>/loop", "/api/projects/<key>/inbox"))
 PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/sign/", "/ask/")
 # These projections still read across projects, even when their UI shows a
 # project selector. They remain admin-only until their query layer is scoped.
@@ -559,7 +561,11 @@ def authorize(P, method, path, query, body, actor):
         if value not in (None, ""):
             targets.append(_check(P, who, _resource_project(P, kind, value), level))
     if "key" in params:
-        add("ticket" if template.startswith(("/api/tickets/", "/e/")) else "project", params["key"])
+        if method == "GET" and template in ALL_PROJECT_PATHS and params["key"] in ("*", "all"):
+            if who["role"] != "admin":
+                raise ApiError(403, "此汇总尚未提供项目权限过滤")
+        else:
+            add("ticket" if template.startswith(("/api/tickets/", "/e/")) else "project", params["key"])
     for prefix, name, kind in (("/api/runs/", "rid", "run"), ("/api/sessions/", "sid", "session"),
                                ("/api/intake/", "sid", "intake"), ("/api/pins/", "pid", "pin"),
                                ("/api/deliveries/", "did", "delivery")):

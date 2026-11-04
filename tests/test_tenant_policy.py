@@ -130,6 +130,16 @@ class TenantPolicyTest(unittest.TestCase):
         self.denied("/api/stats")
         self.auth("/api/stats", query={"project": ["ALPHA"]})
 
+    def test_all_project_boards_are_admin_only(self):
+        for path in ("/api/projects/*/loop", "/api/projects/all/inbox"):
+            with self.subTest(path=path):
+                self.denied(path)
+                self.denied(path, actor="reader")
+                self.auth(path, actor="admin")
+        self.auth("/api/projects/ALPHA/loop")
+        self.denied("/api/projects/BETA/loop")
+        self.denied("/api/projects/*/catchup", actor="admin", method="POST")
+
     def test_direct_and_nested_resource_ids_use_the_same_tenant_store(self):
         for kind, ident in (("tickets", "BETA-1"), ("runs", self.runs["BETA"]["id"])):
             self.denied("/api/%s/%s" % (kind, ident))

@@ -206,6 +206,8 @@ function paintSel(){accessPaintPermissions();const cross=isCross()&&!['t','deliv
   $('#projSel').title=cross?(['deliveries','delivery'].includes(curView())?'查看项目范围（默认全部）':'看哪些项目的工单（默认全部）'):'这一页属于哪个项目'}
 function setProj(k){if(!k||k===S.proj)return;S.proj=k;ls.set('tmh.proj',k);A.reset();loadPoints()}
 const scopeQ=()=>S.scope==='*'?'*':S.scope;
+// The all-project board reads every project, so only tenant admins get it; others see their current project.
+const boardQ=()=>S.scope==='*'&&S.meta?.access&&S.meta.access.role!=='admin'&&S.proj?S.proj:scopeQ();
 async function loadPoints(){if(!S.proj){$('#ptsN').textContent='-';return}try{const r=await get('/api/projects/'+S.proj+'/points');S.points=r;$('#ptsN').textContent=r.balance.toLocaleString();if(A.open)A.paintFoot()}catch(e){}}
 function render(){
   if(ACCESS.blocked)return;if(accessControlOnly())return accessRenderControl();stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'home';
@@ -250,9 +252,9 @@ const GLYPH={doc:'<path d="M-7-10h9l5 5v15h-14z M2-10v5h5 M-3 0h7 M-3 4h7" />',s
   flask:'<path d="M-3-10h6 M-2-10v7l-7 12h18l-7-12v-7 M-5 4h10"/>',check:'<circle r="10"/><path d="M-4.5 0l3 3 6-6.5"/>'};
 function gaugeSvg(p,col,sz){sz=sz||62;const r=sz/2-5,c=2*Math.PI*r;return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" role="img" aria-label="${p}%"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="#3F4D66" stroke-width="5"/><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c*p/100} ${c}" transform="rotate(-90 ${sz/2} ${sz/2})"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" style="fill:#fff;font-size:${sz>56?15:13}px;font-weight:700">${p}%</text></svg>`}
 async function vHome(){
-  const [L,ts]=await Promise.all([get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop'),get('/api/tickets?svc=ops&project='+encodeURIComponent(scopeQ()))]);
+  const [L,ts]=await Promise.all([get('/api/projects/'+encodeURIComponent(boardQ())+'/loop'),get('/api/tickets?svc=ops&project='+encodeURIComponent(scopeQ()))]);
   S.loop=L;S.home=S.home||{view:'ring',sel:''};$('#ptsN').textContent=L.points.toLocaleString();
-  if(!L.total){$('#main').innerHTML=firstRun(L);poll(async()=>{if(!$('#first'))return;try{const n=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop');if(n.total||n.kb_built!==L.kb_built)vHome()}catch(e){}},15000,'page');return}
+  if(!L.total){$('#main').innerHTML=firstRun(L);poll(async()=>{if(!$('#first'))return;try{const n=await get('/api/projects/'+encodeURIComponent(boardQ())+'/loop');if(n.total||n.kb_built!==L.kb_built)vHome()}catch(e){}},15000,'page');return}
   const gc=['#52C41A','#4096FF','#9254DE','#36CFC9'];
   const ic=(bg,svg)=>`<div class="ic" style="background:${bg}"><svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg></div>`;
   const caps=`<div class="caps home-caps"><div class="cap" data-sel="open">${ic('#1677FF','<path d="M2-10l-8 12h7l-2 8 8-12h-7z"/>')}<div><b>${L.open}</b><span>流转中</span></div></div>
@@ -276,7 +278,7 @@ async function vHome(){
   else{$('#hView').innerHTML=boardHtml(ts);bindBoard()}
   if(S.home.sel)homeList(S.home.sel,ts,true);
   paintInbox();
-  poll(async()=>{if(!$('#hView'))return;try{const n=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop');if(JSON.stringify(n.by_status)!==JSON.stringify(S.loop.by_status)||n.failed!==S.loop.failed||n.waiting!==S.loop.waiting)vHome();else paintInbox()}catch(e){}},15000,'page')}
+  poll(async()=>{if(!$('#hView'))return;try{const n=await get('/api/projects/'+encodeURIComponent(boardQ())+'/loop');if(JSON.stringify(n.by_status)!==JSON.stringify(S.loop.by_status)||n.failed!==S.loop.failed||n.waiting!==S.loop.waiting)vHome();else paintInbox()}catch(e){}},15000,'page')}
 // A board with no tickets is a ring of zeros; a first visit gets the three steps to a first closed loop instead.
 function firstRun(L){const has=S.projects.length,kb=L.kb_built,auto=(!S.meta.autoflow||S.meta.autoflow.on)&&(S.meta.agents||[]).some(a=>a.available);
   const step=(n,done,title,body,btn)=>`<div class="frs${done?' done':''}"><span class="frn">${done?'✓':n}</span><div class="grow" style="min-width:0"><b>${title}</b><div class="sub">${body}</div></div>${done?'':btn||''}</div>`;
@@ -288,7 +290,7 @@ function firstRun(L){const has=S.projects.length,kb=L.kb_built,auto=(!S.meta.aut
 // What waits for me right now, with the one thing to do on each; what waits on people outside the team, apart.
 // The board above says how the loop is doing; this says where to start.
 async function paintInbox(){
-  let d;try{d=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/inbox')}catch(e){return}
+  let d;try{d=await get('/api/projects/'+encodeURIComponent(boardQ())+'/inbox')}catch(e){return}
   const box=$('#inbox');if(!box)return;S.inbox=d;S.home.open=S.home.open||{};
   // tickets nobody will start share one cause (the line is off / no agent): one line for the cause, not a row each
   const stalled=d.mine.filter(x=>x.reason==='stalled');d=Object.assign({},d,{mine:d.mine.filter(x=>x.reason!=='stalled')});
