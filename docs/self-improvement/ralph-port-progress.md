@@ -637,3 +637,5 @@
 - 用户截图明确 origin_denied：请求在密码验证前被拒绝。公网用合法 Origin + 超长空测试正文复现相同403（正文校验在来源校验后、认证前，不尝试任何账号密码）。此前密码记录差异不是此报错的原因，未重置账号。
 - 根因：_scheme 仅信任回环代理；阿里云 Cloudflare Tunnel 经容器网络连接，外部 HTTPS 被认作 HTTP。修复使用服务端配置 TMH_PUBLIC_URL 确定对外协议及固定来源，同时保留 Host 一致和 Sec-Fetch-Site 跨站拒绝，HTTPS 会话附 Secure。
 - 新增隔离真实 HTTP 回归：修前合法来源登录403，修后正确合成密码303且 cookie Secure；错误协议、外部来源、null、跨站及伪造Host仍403。本机网关+登录23 tests OK（9.427s），diff检查通过。
+- 已上线 `7fbad9a15bde6b0586e1a72e3f51e325c8bb6ddf` / webuddy:7fbad9a；服务器23 tests OK（25.957s）、2264文件清单一致；12库完整性通过。备份 /home/Liyibin/webuddy/backups/pre-7fbad9a-20261104T183856Z，旧镜像3ec27cb保留。
+- 公网同源超长正文探针：修前403 origin_denied，修后413 invalid_request（来源已通过，正文按大小拒绝，未进入密码校验）；跨站探针仍403 origin_denied。内外登录GET200、未认证配置API401，主库完整性ok，running/restart0。隔离合成账号成功登录303已测，未代用户登录li。
