@@ -295,7 +295,7 @@ def overview(a):
         result["tool_connection"] = client.connection_status()["tool_connection"]
         result["next"] = ["webuddy config codex >> ~/.codex/config.toml（Claude Code 用 config claude，Cursor 用 config cursor）", "重启工具后让它列出网梯运维系统里能看到的项目", "webuddy --help 查看全部命令"]
     elif endpoint:
-        result["next"] = ["登录 %s/tools 创建工具连接，下载凭据文件" % endpoint, "webuddy connect --stdin < ~/Downloads/webuddy-credential.json", "webuddy status"]
+        result["next"] = [f"登录 {endpoint}/tools 创建工具连接，下载凭据文件", "webuddy connect --stdin < ~/Downloads/webuddy-credential.json", "webuddy status"]
     else:
         result["next"] = ["请从网梯运维系统「我的工具连接」页下载客户端；或用 --endpoint https://<服务器>/t/<租户> 指定地址"]
     print(json.dumps(result, ensure_ascii=False, indent=2))

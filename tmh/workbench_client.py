@@ -52,7 +52,7 @@ class Client:
         self.tenant = u.path.split("/")[-1] if u.path else None
         self.tool_token = tool_token
         if self.tenant and not self.tool_token:
-            raise ClientError("还没有导入个人工具凭据。请登录 %s/tools 创建工具连接并下载凭据文件，然后运行：webuddy connect --stdin < ~/Downloads/webuddy-credential.json" % self.endpoint, "tool_credential_required")
+            raise ClientError(f"还没有导入个人工具凭据。请登录 {self.endpoint}/tools 创建工具连接并下载凭据文件，然后运行：webuddy connect --stdin < ~/Downloads/webuddy-credential.json", "tool_credential_required")
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,32}", agent):
             raise ClientError("连接名必须为 1–32 个英文字母、数字、下划线或连字符", "invalid_agent")
         if not isinstance(timeout, (int, float)) or not 0 < timeout <= 60:
