@@ -415,13 +415,15 @@ function modelSel(id,agent,mode){const member=memberAgentCatalog(),a=(member||((
   return `<select id="${id}" data-agent="${h(agent)}" title="这次用哪个模型；自动＝按任务类型选" aria-label="模型"><option value="auto">${h(auto)}</option>${ms.map(([v,l])=>`<option value="${h(v)}" ${v===saved?'selected':''}>${h(l)}</option>`).join('')}<option value="" ${saved===''?'selected':''}>沿用本机设置</option></select>`}
 function bindModel(id){const e=$('#'+id);if(e)e.onchange=()=>{try{localStorage.setItem('tmh.model.'+e.dataset.agent,e.value)}catch(x){}}}
 function mTag(r){return r&&r.model?' · '+h(r.model):''}
-function projectAgents(project=S.proj){const p=(S.projects||[]).find(p=>p.key===project)||{};if(p.agent_route_error)return [];const r=p.agent_route||{};
+function projectAgents(project=S.proj){const p=(S.projects||[]).find(p=>p.key===project);if(p&&p.agent_route_error)return [];const r=projectRoute(project,p);
   const member=memberAgentCatalog(project),ags=(member||((S.meta&&S.meta.agents)||[])).filter(a=>(!member||a.engine==='codex'&&a.available===true)&&(!r.allowed_agents||r.allowed_agents.includes(a.name))).slice();
   if(!member&&r.agent&&!ags.some(a=>a.name===r.agent))ags.push({name:r.agent,title:r.agent,available:false,configuration_error:'项目指定的执行器尚未配置'});
   return ags.sort((a,b)=>Number(b.name===r.agent)-Number(a.name===r.agent))}
+// a project this page has not loaded yet (just created, or 全部项目) follows the platform default route, not the first agent in the list
+function projectRoute(project,p=(S.projects||[]).find(x=>x.key===project)){return p?(p.agent_route||{}):((S.meta&&S.meta.agent_route_default)||{})}
 function memberAgentCatalog(project=S.proj){return typeof accessCanMemberFix==='function'&&accessCanMemberFix(project)&&!accessCanExecute(project)?S.meta.member_execution.agents:null}
 function memberFixNeedsClaim(d){return typeof accessCanMemberFix==='function'&&accessCanMemberFix(d.project.key)&&!accessCanExecute(d.project.key)&&!(d.ticket.links||{}).hold}
-function preferredAgent(project=S.proj,saved=''){const p=(S.projects||[]).find(p=>p.key===project)||{},ags=projectAgents(project),r=p.agent_route||{};
+function preferredAgent(project=S.proj,saved=''){const ags=projectAgents(project),r=projectRoute(project);
   return (ags.find(a=>a.name===r.agent)||ags.find(a=>a.name===saved&&a.available)||ags.find(a=>a.available)||ags[0]||{}).name||''}
 function projectAgentKey(project){return 'tmh.agent.project.'+[S.meta?.access?.tenant?.id||'local',S.meta?.user||'local',project].map(encodeURIComponent).join(':')}
 function selectedProjectAgent(project=S.proj){let saved='';try{saved=localStorage.getItem(projectAgentKey(project))||''}catch(e){}
@@ -502,7 +504,22 @@ function autoChip(d){const t=d.ticket,af=(S.meta.autoflow||{}).on,pk=String(t.ke
   return `<span class="autoc ${held?'off':''}" title="${held?'自动处理已暂停，由人处理':'智能体会自动分析、出方案、在独立分支上改代码并提交，停在等人验收'}">${held?'人工处理中':'自动处理中'}<button class="link" data-hold="${held?0:1}">${held?'交回自动':'接管'}</button></span>`}
 // The ticket's next step, one card. The stage table (tmh/platform/stage.py, d.stage) picks which card; each card
 // only words it and offers its buttons. Without a stage (an old payload) the cards are tried in the table's order.
-function nextAction(d,f){
+function nextAction(d,f){const r=nextActionCore(d,f);return r?withAgentPick(d,r):r}
+const AGENT_QUOTA=/额度|余额|quota|insufficient|balance|Failed to authenticate|unauthori[sz]ed|\b40[13]\b|\b429\b|rate.?limit/i;
+function agentQuotaFailure(d){const r=(d.runs||[])[0];return r&&r.status==='failed'&&['analyze','plan','fix'].includes(r.mode)&&AGENT_QUOTA.test(r.result||'')?r:null}
+// every analyze/plan/fix button says which executor it goes to and can switch it there; an executor out of quota is not picked again
+function withAgentPick(d,r){
+  if(typeof projectAgents!=='function'||!d.project)return r;
+  const key=d.project.key,ags=projectAgents(key);if(!ags.length)return r;
+  const bad=agentQuotaFailure(d),ids={analyze:'naAn',plan:'naPlan',fix:'naFix'},again={analyze:'重新分析定位',plan:'重新出方案',fix:'重新修改代码'};
+  let btns=r.btns||'',text=r.text;
+  if(bad){const a=(S.meta.agents||[]).find(x=>x.name===bad.agent);text=`上一次${h(moLabel(bad.mode))}用的 <b>${h(a?a.title:bad.agent)}</b> 额度不足或认证失败（原因见执行记录）。换一个执行器重试就行。`;
+    if(!btns.includes(`id="${ids[bad.mode]}"`))btns=`<button id="${ids[bad.mode]}" class="primary">换执行器${again[bad.mode]}</button>`+btns.replace(/class="primary"/g,'class="ghost"')}
+  if(!/id="na(An|Plan|Fix)"/.test(btns))return r;
+  const keep=selectedProjectAgent(key),alt=bad&&keep===bad.agent?(ags.find(a=>a.available&&a.name!==bad.agent)||{}).name:'',pick=alt||keep;
+  const opts=ags.map(a=>`<option value="${h(a.name)}" ${a.name===pick?'selected':''}>${h(a.title)}${a.available?'':'（不可用）'}</option>`).join('');
+  return Object.assign({},r,{text,btns:btns+`<label class="sub" style="display:inline-flex;gap:4px;align-items:center">执行器 <select id="naAg" aria-label="这一步用哪个执行器">${opts}</select></label>`})}
+function nextActionCore(d,f){
   const t=d.ticket,pr=(S.points&&S.points.prices)||{},cost=m=>pr[m]?`（${pr[m]} 点）`:'';
   const B=(id,label,cls)=>`<button id="${id}" class="${cls||''}">${label}</button>`;
   const auto=onAuto(d),br=adopted(d);
@@ -794,7 +811,8 @@ async function vTicket(key,sub){
     const a=S.meta.agents.find(x=>x.name===agent);if(a&&!a.available)toast('本机没找到 '+a.title+'，仍会尝试启动');
     try{const r=await post('/api/tickets/'+key+'/runs',{agent,mode,model,kb_after:mode==='analyze'&&$('#kbAfter').checked?2:0});toast('已交给 '+((x=>x?x.title:(r.agent||agent))(S.meta.agents.find(x=>x.name===(r.agent||agent))))+' '+moLabel(mode)+(r.model?'（'+r.model+'）':''));vTicket(key)}catch(e){toast(e.message)}};
   const wireNext=()=>{const go={naAn:'analyze',naPlan:'plan',naFix:'fix'};
-  Object.entries(go).forEach(([id,m])=>{if($('#'+id))$('#'+id).onclick=()=>run(m,$('#ag')?.value||defAgent(),'auto')});
+  Object.entries(go).forEach(([id,m])=>{if($('#'+id))$('#'+id).onclick=()=>run(m,$('#naAg')?.value||$('#ag')?.value||defAgent(),'auto')});
+  if($('#naAg'))$('#naAg').onchange=e=>{saveProjectAgent(d.project.key,e.target.value);if($('#ag')){$('#ag').value=e.target.value;paintMd()}};
   if($('#naVerify'))$('#naVerify').onclick=()=>save({status:'verify'});
   if($('#naShip'))$('#naShip').onclick=()=>post('/api/tickets/'+key+'/release',{}).then(r=>{toast(r.state==='merged'?'已合并，版本 '+r.version:r.why,6000);vTicket(key)}).catch(e=>toast(e.message,6000));
   if($('#naGo'))$('#naGo').onclick=()=>save({auto:'go'}).then(()=>toast('已交给自动处理'));
@@ -821,7 +839,7 @@ async function vTicket(key,sub){
     if(b.dataset.m==='fix'&&!(typeof accessCanMemberFix==='function'&&accessCanMemberFix(d.project.key)&&!accessCanExecute(d.project.key))&&!d.runs.some(r=>r.mode!=='fix'&&r.status==='done')){if(!window.confirmFix){window.confirmFix=1;toast('还没有分析或方案结论，建议先分析定位。再点一次直接修改。',4000);return}}
     run(b.dataset.m,$('#ag').value,$('#md').value)});
   const paintMd=()=>{$('#mdw').innerHTML=modelSel('md',$('#ag').value);bindModel('md')};paintMd();
-  $('#ag').onchange=e=>{saveProjectAgent(d.project.key,e.target.value);paintMd()};
+  $('#ag').onchange=e=>{saveProjectAgent(d.project.key,e.target.value);paintMd();if($('#naAg'))$('#naAg').value=e.target.value};
   try{$('#kbAfter').checked=localStorage.getItem('tmh.kbAfter')!=='0'}catch(e){$('#kbAfter').checked=true}
   $('#kbAfter').onchange=e=>{try{localStorage.setItem('tmh.kbAfter',e.target.checked?'1':'0')}catch(x){}};
   if(sub==='prompt'){promptPane(t);return}

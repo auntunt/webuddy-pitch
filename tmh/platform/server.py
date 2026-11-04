@@ -992,6 +992,7 @@ def api_meta(P, req):
             "operator_authenticated": bool(getattr(req.h, '_who', '')), "brand": P.brand, "statuses": STATUSES, "types": TYPES, "priorities": PRIORITIES,
             "modes": RUN_MODES, "agents": available(P.data_dir) if can_execute else [], "data_dir": "" if managed else str(P.data_dir), "workspace": _workspace_id(P), "autoflow": P.flow.autoflow(),
             "member_execution": member_execution,
+            "agent_route_default": _route_metadata(P, None)["agent_route"] if can_execute else {},
             "apps": __import__("tmh.platform.apps", fromlist=["APPS"]).APPS}
 
 
