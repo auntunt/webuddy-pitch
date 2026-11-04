@@ -364,6 +364,7 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 .autoc.off{background:var(--warn-s);color:var(--warn)}
 .autoc button.link{border:0;background:transparent;color:var(--blue);padding:0 4px;font-size:12px;cursor:pointer;height:auto}
 .autoc button.link:hover{text-decoration:underline}
+[data-ops-tables] button.link{border:0;background:transparent;color:var(--blue);padding:0;font:inherit;font-family:var(--mono,monospace);cursor:pointer;height:auto}
 .first{max-width:760px}.frs{display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
 .frn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
 .frs.done .frn{background:var(--ok)}.frs.done b{color:var(--mut)}
