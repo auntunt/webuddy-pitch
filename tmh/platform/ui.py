@@ -263,9 +263,8 @@ async function vHome(){
     <div class="today">今日新建 ${L.today.created} · 今日闭环 ${L.today.closed}</div></div>`;
   $('#main').innerHTML=`<div class="hdr home-hd"><div class="grow"><h1>闭环总览</h1><div class="sub">每张工单走到了哪一步、在等谁。点环上的节点，右边列出这一步的工单。</div></div>
    <div class="viewbar"><div class="seg"><button data-v="ring" class="${S.home.view==='ring'?'on':''}">闭环视图</button><button data-v="board" class="${S.home.view==='board'?'on':''}">列表看板</button></div><span class="sub">更新于 ${new Date().toTimeString().slice(0,5)}</span><button id="hRef">刷新</button></div></div>
-   ${L.waiting?`<div class="catch" title="自动处理只接新进来的工单；这些是之前就在、或自动处理关着时进来的。交给它后会从各自停下的那一步接着做，同时最多跑 2 张。"><span><b>${L.waiting} 张早先进来的工单</b>还没交给自动处理。</span><button class="primary" id="catchUp">全部交给自动处理</button></div>`:''}
   <div class="home-grid${S.home.view==='board'?' wide':''}"><div id="hView"></div>
-   <div class="home-side">${caps}<div id="hList"><div class="sub home-pick">点环上的数字或上面的分类，这里列出对应的工单。</div></div><div id="inbox"></div></div></div>
+   <div class="home-side">${caps}${L.waiting?`<div class="catch" title="自动处理只接新进来的工单；这些是之前就在、或自动处理关着时进来的。交给它后会从各自停下的那一步接着做，同时最多跑 2 张。"><span><b>${L.waiting} 张早先进来的工单</b>还没交给自动处理${S.scope==='*'?'，选定项目后可一并交给它':''}。</span>${S.scope==='*'?'':'<button class="primary" id="catchUp">全部交给自动处理</button>'}</div>`:''}<div id="hList"><div class="sub home-pick">点环上的数字或上面的分类，这里列出对应的工单。</div></div><div id="inbox"></div></div></div>
   <div id="rels"></div>
   <div class="band"><div class="gauges">${L.metrics.map((m,i)=>`<div class="gauge">${gaugeSvg(m.pct,gc[i])}<div style="min-width:0"><div class="gl">${h(m.label)}</div><div class="gs">${h(m.sub)}</div></div></div>`).join('')}</div>
    <div class="insight"><b>智能洞察</b><span>${S.scope==='*'&&L.projects>1?h(L.projects+' 个项目合计：'):''}${h(L.insight)}</span></div></div>`;

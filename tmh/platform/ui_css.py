@@ -106,6 +106,7 @@ table.t{width:100%;border-collapse:collapse;background:var(--panel)}
 .home-caps .cap span,.home-caps .today{color:var(--mut)}
 .home-pick{padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
 .home-side .inbox{margin-bottom:0}
+.home-side .catch{margin:0;padding:8px 12px;font-size:13px;gap:10px}
 .board{display:grid;grid-template-columns:repeat(6,minmax(180px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px}
 .col{background:var(--soft);border-radius:10px;padding:10px;min-height:300px}
 .col h3{display:flex;justify-content:space-between;align-items:center}
