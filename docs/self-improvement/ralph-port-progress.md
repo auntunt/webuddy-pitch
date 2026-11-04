@@ -588,3 +588,15 @@
 - 本机：UI/工具连接/工作台/命令相关测试 398 passed, 17 skipped。服务器用发布包跑既定验证集，失败清单与 f7ae844 相同（SAME_FAILS）。
 - 发布 `0615fe365bb7-brand-webuddy-20261104`：MANIFEST_OK，platform.db / access.db integrity=ok，running_runs=0，本机与公网 /login 200、未认证 /api/projects 401，ActiveState=active，NRestarts=0。备份 `/opt/webuddy/backups/pre-0615fe365bb7-activation-20261104`。
 - 同时统计了生产 Codex（cloudwave-codex / gpt-6-luna）的输出速度：按 timing.json 的 output_tokens / model_seconds，中位数 kb≈45、analyze≈69、ask≈80、fix≈86、plan≈93 token/s；单次输入 8–23 万 token（约 80% 命中缓存），kb 是最慢的一步。
+
+## 2026-11-04 执行器不再默认落到 Claude：按钮旁可选执行器，额度不足时提示换一个重试（d8f0c0f 上线）
+
+- 生产实测：JSHERP-1 分析 #456、#457 用的是 Claude Code · Opus 5.5，两次都因网关 403「预扣费额度失败」失败；项目默认路由其实是 `cloudwave-codex`。用 Codex 手动重跑 #458，约 1 分钟完成。
+- 原因：页面还没加载到项目（新建的项目、全部项目）时，`projectAgents/preferredAgent` 拿不到 `agent_route`，就按执行器列表顺序选第一个可用的，也就是 Claude。
+- 改动：
+  - `/api/meta` 带上平台默认路由 `agent_route_default`（只有路由策略，没有密钥）；新增 `projectRoute()`，项目没加载时按默认路由选执行器、按 allowed_agents 过滤。
+  - 下一步里出现「分析定位 / 出方案 / 修改代码」按钮时，旁边加上「执行器」下拉框（`#naAg`），点按钮就用这里选的执行器；切换会记在这个人、这个租户、这个项目上，并跟「手动指派」保持一致。
+  - 最近一次分析/方案/修改失败，且原因是额度不足或认证失败（403、401、429、额度、余额、Failed to authenticate 等）时，下一步写明「上一次用的 X 额度不足或认证失败」，给出「换执行器重新…」按钮，下拉框默认选另一个可用的执行器。不会自动换执行器去跑。
+- 验证：本机 UI 相关 404 passed（新增 `test_unloaded_project_follows_default_route_and_quota_failure_offers_another_agent`）；`test_platform` 里 `test_readiness_checks_the_real_machine_worst_first` 在基线上同样失败（本机环境）。服务器用发布包跑既定验证集 + `tests.test_ui_agent_routes`，失败清单与 0615fe3 相同（SAME_FAILS）。
+- 发布 `d8f0c0f340ab-agent-pick-20261104`：MANIFEST_OK，platform.db / access.db integrity=ok，running_runs=0，本机与公网 /login 200、未认证 /api/projects 401，active，NRestarts=0。备份 `/opt/webuddy/backups/pre-d8f0c0f340ab-activation-20261104`。
+- 生产页面核对：`S.meta.agent_route_default.agent=cloudwave-codex`；JSHERP-1、PETS-9 的「手动指派」默认都是 Cloudwave · 官方 Codex。额度失败提示用页面里的真实函数和一条模拟的 403 运行核对过（文字和默认选中的 Codex 都对），生产上暂时没有停在这种状态的工单可截图。
