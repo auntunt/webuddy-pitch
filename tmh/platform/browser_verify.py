@@ -44,7 +44,11 @@ export async function ready(page) {
 // a step the criterion itself does not ask about (the page is there, a button to reach it): not finding it is the script's fault
 export async function anchor(locator, what = '') {
   try {
-    await expect(locator).toBeVisible({ timeout: 30000 });
+    // a precondition only needs the thing to be there: the same text in the menu, a filter label and a header is fine
+    await expect.poll(async () => {
+      for (let i = await locator.count() - 1; i >= 0; i--) if (await locator.nth(i).isVisible()) return true;
+      return false;
+    }, { timeout: 30000 }).toBe(true);
   } catch (e) {
     throw new Error('TMH_ANCHOR ' + what + ': ' + e.message);
   }
@@ -236,6 +240,7 @@ SPEC_RULES = """写一个 Playwright 实测脚本，在真实运行的应用里�
 - 断言某样东西「不存在 / 不再显示」之前，先用 `anchor` 确认同一页面上一个本来就该在的元素可见，证明页面已经加载出来。
 - Ant Design 的两个汉字按钮会显示成「登 录」这样中间带空格：按钮名用正则，如 `getByRole('button', { name: /登\\s*录/ })`。
 - 页面上常有隐藏的同类元素（比如登录页里隐藏的注册、手机登录表单）：优先 `getByRole` / `getByText(..., { exact: true })`，定位输入框等元素时加 `:visible` 或限定在可见的表单里，保证只命中一个。
+- 同一段文字常同时出现在菜单、筛选条件和表头里：`expect` 断言要限定在内容区或表格里（如 `page.locator('.el-table')`），保证只命中要验证的那一处。
 - 表格里的表头和单元格文字用 `表格.getByText('…', { exact: true })` 找，不要依赖 `columnheader` / `rowheader` 角色（不同 Playwright 版本对没写 scope 的 `<th>` 判的角色不一样）。
 - 用 `expect(...)` 断言这条标准能看到的结果；断言失败表示“实测没做到”，所以只断言标准本身要求的东西。
 - 不 mock 接口，不改数据库，不写 `page.evaluate` 改组件状态。没法在页面上验证的标准写成 `test.skip('A2 ...', ...)` 并在注释里写原因。

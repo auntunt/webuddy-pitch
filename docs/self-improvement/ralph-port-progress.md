@@ -573,3 +573,10 @@
 - 生产实测：BID-1 #408 运行结束后点「在页面上实测」得到「找不到被测版本」。原因：手动入口不传 commit，`verify` 只看运行工作树，工作树在运行结束后已删除。改为工作树不在时取运行自己的分支 `tmh/<工单>-r<运行>` 的提交（`run_branch_head`）；测试 `test_a_finished_run_is_found_on_its_own_branch`。
 - 验证：本机 browser_verify/agent_api/MCP/租户策略/工具连接/AI 验收/intake 191 passed。
 - 发布：0cce32f → acfe736，备份 `/opt/webuddy/backups/pre-acfe7360c48d-activation-20261104`；发布包相关 25 个模块失败清单与上一版一致（SAME_FAILS）；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
+
+## 2026-11-04 页面实测前置定位只要有一处可见；断言限定到内容区
+
+- 生产实测（acfe736，BID-1 #408，绑定 c86c785）：已能登录评标系统并截到投标信息页（5 条构造记录、万元汇总按钮），但 A1–A3 都因 `anchor(getByText('招标项目', {exact:true}))` 命中菜单、筛选、表头 5 处触发 strict mode，业务断言没执行。`anchor` 只证明前置条件在，改为任一匹配可见即可；实测脚本提示补一条：`expect` 断言限定在内容区或表格里。
+- 「记录并归档」后给无执行权限成员的提示改为指向「总览 → 动态与待办」里的「继续理清」（工作台没有这个入口）。
+- 生产只读查证：LLA 归档的会话 f4fcfe7bebe6 的客户、系统在 `client_links`/`system_links` 里，「让 AI 理清」的返回值不带这两个字段，不是丢失。
+- 验证：本机 browser_verify/ai_accept 48 passed，UI/intake 313 passed。
