@@ -475,10 +475,13 @@ function flowState(d){
     fix:fx?(fx.decision?(fx.decision.startsWith('accepted')?(adopted(d)&&adopted(d).auto?'已自动提交':'已采纳'):'已放弃'):fx.status==='done'?(fx.diff===''?'无改动':'待审阅'):({running:'进行中',queued:'排队',failed:'失败',cancelled:'已取消'}[fx.status]||'')):'',
     verify:review?'等待审阅最新改动':acc?h(acc.author)+' · '+(acc.kind==='accept'?'通过':'不通过'):t.status==='verify'?'等验收':'',closed:t.status==='closed'?ago(t.updated):''};
   if(t.status!=='closed'&&fx?.verify?.verification_current===false){sub.fix='实现记录保留';sub.verify=fx.recheck_wait?.status==='running'?'等待当前重新验证':'旧结果失效，检查回执';st.verify='todo'}
-  return {st,sub,an,pl,fx,live,acc,review,stage:d.stage||null}}
+  return {st,sub,an,pl,fx,live,acc,review,stage:d.stage||null,ops:t.type==='ops',done:t.status==='closed'}}
 // the stage table (tmh/platform/stage.py) says which step the ticket is at and who it waits for; the bar marks that step
 const WHO={person:'等你',client:'等客户',agent:'AI 在做',assignee:'人工在做'};
-function stepper(f){const g=f.stage,at=g&&g.step&&WHO[g.who]?g.step:'';return `<ol class="fsteps">${FLOW.map(([k,l],i)=>`<li class="${f.st[k]}${k===at?' now':''}"${k===at?` title="${h(g.label)}"`:''}><span class="dot">${f.st[k]==='done'?'✓':f.st[k]==='bad'?'!':i+1}</span><b>${l}</b>${k===at?`<em class="who ${h(g.who)}">${WHO[g.who]}</em>`:''}<small>${f.sub[k]||(f.st[k]==='skip'?'跳过':'')}</small></li>`).join('')}</ol>`}
+// ops tickets never change code: their bar is 受理 → 排查 → 结论 → 沉淀 → 闭环
+const OPS_FLOW=[['受理','提交即受理'],['运维排查','查相似经验、只读看数据'],['记下结论','原因和处理办法'],['沉淀经验','人工采用后生效'],['闭环','确认后关单']];
+function opsStepper(f){return `<ol class="fsteps">${OPS_FLOW.map(([l,sub],i)=>{const c=f.done||i===0?'done':i===1?'cur':'todo';return `<li class="${c}"><span class="dot">${c==='done'?'✓':i+1}</span><b>${l}</b><small>${sub}</small></li>`}).join('')}</ol>`}
+function stepper(f){if(f.ops)return opsStepper(f);const g=f.stage,at=g&&g.step&&WHO[g.who]?g.step:'';return `<ol class="fsteps">${FLOW.map(([k,l],i)=>`<li class="${f.st[k]}${k===at?' now':''}"${k===at?` title="${h(g.label)}"`:''}><span class="dot">${f.st[k]==='done'?'✓':f.st[k]==='bad'?'!':i+1}</span><b>${l}</b>${k===at?`<em class="who ${h(g.who)}">${WHO[g.who]}</em>`:''}<small>${f.sub[k]||(f.st[k]==='skip'?'跳过':'')}</small></li>`).join('')}</ol>`}
 function defAgent(){return selectedProjectAgent(S.proj)}
 // Tickets run on their own until the change sits on its own branch; a person can take one over and hand it back.
 const MERGE_ON=()=>(S.meta.autoflow||{}).merge==='auto';
