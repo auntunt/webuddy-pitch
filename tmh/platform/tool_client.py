@@ -42,7 +42,7 @@ def wheel(endpoint=None):
         info = f"{NAME}-{__version__}.dist-info/"
         files = sources + [
             (info + "METADATA", (f"Metadata-Version: 2.1\nName: webuddy-client\nVersion: {__version__}\n"
-                                 "Summary: 网梯运维系统个人工具连接客户端（命令行与 MCP）\n"
+                                 "Summary: Webuddy 个人工具连接客户端（命令行与 MCP）\n"
                                  "Requires-Python: >=3.10\nRequires-Dist: mcp<2,>=1.30\n").encode()),
             (info + "WHEEL", b"Wheel-Version: 1.0\nGenerator: tmh\nRoot-Is-Purelib: true\nTag: py3-none-any\n"),
             (info + "entry_points.txt", b"[console_scripts]\nwebuddy = tmh.workbench:main\n"),
