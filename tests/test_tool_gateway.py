@@ -362,6 +362,28 @@ class ToolGatewayTest(unittest.TestCase):
         self.assertTrue(replay['credential_unavailable'])
         self.assertNotIn('token', replay)
 
+    def test_client_download_needs_personal_web_session(self):
+        import http.client
+        import io
+        import zipfile
+        def fetch(headers):
+            conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=15)
+            try:
+                conn.request('GET', '/t/' + self.a + '/tools/client', headers=headers)
+                response = conn.getresponse()
+                return response.status, dict(response.getheaders()), response.read()
+            finally:
+                conn.close()
+        status, headers, data = fetch({'Cookie': self.cookies['alice']})
+        self.assertEqual(status, 200, data[:200])
+        self.assertIn('webuddy_client-', headers['Content-Disposition'])
+        names = zipfile.ZipFile(io.BytesIO(data)).namelist()
+        self.assertIn('tmh/workbench_mcp.py', names)
+        self.assertFalse([n for n in names if n.startswith('tmh/platform/')])
+        grant = self.grant()
+        self.assertEqual(fetch({'Authorization': 'Bearer ' + grant['token']})[0], 403)
+        self.assertIn(fetch({})[0], (302, 303, 401))
+
     def test_concurrent_alias_retries_produce_one_event(self):
         grant = self.grant()
         body = {'ticket': 'SAME-1', 'body': 'one event', 'request_id': 'parallel'}

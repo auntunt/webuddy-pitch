@@ -336,7 +336,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
                 if path == "/api/access" and method == "POST":
                     body.setdefault("tenant", tenant)
                 initial = reg.context(user, tenant)
-                local = path in ("/", "/index.html", "/api/access", "/tools", "/api/tool-connections") or path == "/api/meta" and (not initial["role"] or initial["tenant"]["status"] != "active")
+                local = path in ("/", "/index.html", "/api/access", "/tools", "/tools/client", "/api/tool-connections") or path == "/api/meta" and (not initial["role"] or initial["tenant"]["status"] != "active")
                 if not local:
                     if initial["tenant"]["status"] != "active" or not initial["role"]:
                         raise error(403, "当前租户未授权或已停用", "tenant_disabled" if initial["tenant"]["status"] != "active" else "membership_revoked")
@@ -354,12 +354,19 @@ def make_handler(registry, workers, *, brand="webuddy"):
                             raise error(405, "此页面仅支持读取", "method_denied")
                         from .ui import page
                         return self._send(200, page().encode(), "text/html; charset=utf-8")
-                    if path in ('/tools', '/api/tool-connections'):
+                    if path in ('/tools', '/tools/client', '/api/tool-connections'):
                         from . import tool_access
                         if current['tenant']['status'] != 'active' or not current['role']:
                             raise error(403, '当前租户未授权或已停用', 'membership_revoked')
                         if self.headers.get('X-Webuddy-Agent') or self.headers.get('X-Webuddy-Operator'):
                             raise error(403, '请由本人在网页登录后管理工具连接', 'personal_session_required')
+                        if path == '/tools/client':
+                            if method != 'GET':
+                                raise error(405, '此页面仅支持读取', 'method_denied')
+                            from .tool_client import wheel
+                            name, data = wheel()
+                            return self._send(200, data, 'application/zip',
+                                              {'Content-Disposition': f'attachment; filename="{name}"'})
                         if path == '/tools':
                             if method != 'GET':
                                 raise error(405, '此页面仅支持读取', 'method_denied')
