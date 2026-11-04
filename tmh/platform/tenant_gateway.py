@@ -160,6 +160,9 @@ def make_handler(registry, workers, *, brand="webuddy"):
             return self._send(303, headers={"Location": nxt, "Set-Cookie": [done, self._cookie(session, login.SESSION_DAYS * 86400)]})
 
         def _scheme(self):
+            public = urlsplit(os.environ.get("TMH_PUBLIC_URL", ""))
+            if public.scheme in ("http", "https") and public.netloc:
+                return public.scheme
             # Forwarded transport is accepted only from the loopback reverse proxy.
             return "https" if self.client_address[0] in ("127.0.0.1", "::1") and self.headers.get("X-Forwarded-Proto") == "https" else "http"
 
@@ -169,7 +172,9 @@ def make_handler(registry, workers, *, brand="webuddy"):
                 raise error(403, "拒绝跨站请求", "origin_denied")
             if origin:
                 parsed = urlsplit(origin)
-                if parsed.scheme != self._scheme() or parsed.netloc != self.headers.get("Host") or parsed.path not in ("", "/"):
+                expected = urlsplit(self._base())
+                if (parsed.scheme != expected.scheme or parsed.netloc != expected.netloc
+                        or parsed.netloc != self.headers.get("Host") or parsed.path not in ("", "/")):
                     raise error(403, "请求来源与当前站点不同", "origin_denied")
 
         def _body(self, maximum=5 * 1024 * 1024):

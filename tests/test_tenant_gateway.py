@@ -95,6 +95,19 @@ class TenantGatewayTest(unittest.TestCase):
     def token(self, user, tenant):
         return self.reg.context(user, tenant)["context_token"]
 
+    def test_configured_https_origin_login_behind_container_proxy(self):
+        with patch.dict(os.environ, {"TMH_PUBLIC_URL": "https://webuddy.example.test"}):
+            headers = {"Host": "webuddy.example.test", "Origin": "https://webuddy.example.test", "Sec-Fetch-Site": "same-origin"}
+            status, response, body = self.request("POST", "/login", body={"username": "alice", "password": "synthetic-password"}, headers=headers, form=True)
+            self.assertEqual(status, 303, body)
+            self.assertIn("; Secure", response["Set-Cookie"])
+            for origin in ("http://webuddy.example.test", "https://attacker.example", "null"):
+                status, _, body = self.request("POST", "/login", body={}, headers=dict(headers, Origin=origin), form=True)
+                self.assertEqual(status, 403)
+                self.assertEqual(body["code"], "origin_denied")
+            self.assertEqual(self.request("POST", "/login", body={}, headers={**headers, "Sec-Fetch-Site": "cross-site"}, form=True)[0], 403)
+            self.assertEqual(self.request("POST", "/login", body={}, headers={**headers, "Host": "attacker.example", "Origin": "https://attacker.example"}, form=True)[0], 403)
+
     def test_real_workers_keep_same_project_ids_and_sessions_in_separate_tenants(self):
         for user, tenant, expected, excluded in (("alice", self.a, "甲的真实记录", "乙的真实记录"), ("bob", self.b, "乙的真实记录", "甲的真实记录")):
             status, _, meta = self.request("GET", "/t/" + tenant + "/api/meta", user, headers={"X-TMH-User": "owner"})

@@ -631,3 +631,9 @@
 - Codex 确认的迁移遗漏：cloudwave-codex.bin 仍为腾讯云 /home/ubuntu/.npm-global/bin/codex，现容器实际 /usr/local/bin/codex；引用的 webuddy-cloudwave.config.toml 不存在。此前配置兼容检查只证明能读配置，未证明该执行器可运行。
 - 已在阿里云外部配置修正 bin，新增独立 profile 继承既有 aiseat provider、gpt-6-luna 与服务器凭据；未复制密钥、未修改默认路由及其他执行器。原配置备份 /opt/webuddy/data/maintenance-backups/codex-access-20261104T183307。
 - 使用平台实际 command 构建器在临时空目录以 understand/read-only 模式调用官方 CLI，要求不用工具、只答 WEBUDDY_CODEX_OK：15.2 秒、exit0、completed=true、结果精确匹配、无认证/额度错误。未触发业务任务或验收。配置热读取，无需重启服务。
+
+## 2026-11-05 修复阿里云 HTTPS 登录来源误判
+
+- 用户截图明确 origin_denied：请求在密码验证前被拒绝。公网用合法 Origin + 超长空测试正文复现相同403（正文校验在来源校验后、认证前，不尝试任何账号密码）。此前密码记录差异不是此报错的原因，未重置账号。
+- 根因：_scheme 仅信任回环代理；阿里云 Cloudflare Tunnel 经容器网络连接，外部 HTTPS 被认作 HTTP。修复使用服务端配置 TMH_PUBLIC_URL 确定对外协议及固定来源，同时保留 Host 一致和 Sec-Fetch-Site 跨站拒绝，HTTPS 会话附 Secure。
+- 新增隔离真实 HTTP 回归：修前合法来源登录403，修后正确合成密码303且 cookie Secure；错误协议、外部来源、null、跨站及伪造Host仍403。本机网关+登录23 tests OK（9.427s），diff检查通过。
