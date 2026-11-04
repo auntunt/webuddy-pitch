@@ -32,7 +32,7 @@ from .coderefs import FILE_LINE
 from .errors import ApiError
 from .knowledge import Knowledge
 from .orchestra import Orchestra
-from .store import PRIORITIES, REFORM_LIKE, RUN_MODES, STATUSES, TYPES, Store, now
+from .store import PRIORITIES, REFORM_LIKE, RUN_MODES, STATUSES, TYPES, Store, now, timestamp_offset
 
 
 def _routed_agent(P, project, requested=None, fallback=""):
@@ -213,9 +213,9 @@ class Platform:
         analyzed = st.one("SELECT COUNT(DISTINCT ticket_id) n FROM runs WHERE %s AND mode IN ('analyze','plan') AND status='done'" % inn, ids)["n"]
         fixes = st.q("SELECT decision FROM runs WHERE %s AND mode='fix' AND status='done' AND decision!=''" % inn, ids)
         accepted = sum(1 for r in fixes if r["decision"].startswith("accepted"))
-        today = now()[:10]
-        t_new = st.one("SELECT COUNT(*) n FROM tickets WHERE %s AND substr(created,1,10)=?" % tinn, ids + [today])["n"]
-        t_closed = st.one("SELECT COUNT(*) n FROM tickets WHERE %s AND status='closed' AND substr(updated,1,10)=?" % tinn, ids + [today])["n"]
+        today = time.strftime("%Y-%m-%d", time.gmtime(time.time() + 8 * 3600))
+        t_new = st.one("SELECT COUNT(*) n FROM tickets WHERE %s AND date(created || ?, '+8 hours')=?" % tinn, ids + [timestamp_offset(), today])["n"]
+        t_closed = st.one("SELECT COUNT(*) n FROM tickets WHERE %s AND status='closed' AND date(updated || ?, '+8 hours')=?" % tinn, ids + [timestamp_offset(), today])["n"]
         written = inscope = 0
         built = False
         for x in ps:
@@ -993,6 +993,7 @@ def api_meta(P, req):
         except (ApiError, OSError, ValueError):
             pass
     return {"version": __version__, "user": req.user, "login": managed or has_accounts(P.data_dir),
+            "display_timezone": "Asia/Shanghai", "timestamp_offset": timestamp_offset(),
             "operator_authenticated": bool(getattr(req.h, '_who', '')), "brand": P.brand, "statuses": STATUSES, "types": TYPES, "priorities": PRIORITIES,
             "modes": RUN_MODES, "agents": available(P.data_dir) if can_execute else [], "data_dir": "" if managed else str(P.data_dir), "workspace": _workspace_id(P), "autoflow": P.flow.autoflow(),
             "member_execution": member_execution,

@@ -74,6 +74,11 @@ def now() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S")
 
 
+def timestamp_offset() -> str:
+    offset = time.strftime("%z")
+    return offset[:3] + ":" + offset[3:]
+
+
 class Store:
     def __init__(self, path: Path):
         self.path = Path(path)
@@ -505,9 +510,9 @@ class Store:
             ordinary = unmanaged_run_clause(self, "r")
             run_where = "WHERE " + ordinary + (" AND r.project_id=?" if project_id else "")
             runs = {r["status"]: r["n"] for r in self.q("SELECT r.status, COUNT(*) n FROM runs r %s GROUP BY r.status" % run_where, a)}
-        days = self.q("SELECT substr(created,1,10) d, COUNT(*) n FROM tickets %s GROUP BY d ORDER BY d DESC LIMIT 14" % w, a)
-        closed = self.q("SELECT substr(updated,1,10) d, COUNT(*) n FROM tickets %s %s status='closed' GROUP BY d ORDER BY d DESC LIMIT 14"
-                        % (w, "AND" if w else "WHERE"), a)
+        days = self.q("SELECT date(created || ?, '+8 hours') d, COUNT(*) n FROM tickets %s GROUP BY d ORDER BY d DESC LIMIT 14" % w, (timestamp_offset(), *a))
+        closed = self.q("SELECT date(updated || ?, '+8 hours') d, COUNT(*) n FROM tickets %s %s status='closed' GROUP BY d ORDER BY d DESC LIMIT 14"
+                        % (w, "AND" if w else "WHERE"), (timestamp_offset(), *a))
         return {"by_status": by_status, "by_type": by_type, "open_by_priority": by_pri, "runs": runs,
                 "created_by_day": [[r["d"], r["n"]] for r in days][::-1], "closed_by_day": [[r["d"], r["n"]] for r in closed][::-1]}
 

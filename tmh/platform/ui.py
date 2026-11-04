@@ -10,6 +10,7 @@ from .ui_states import STATES_CSS, STATES_JS
 from .ui_access import ACCESS_BOOT_JS, ACCESS_CSS, ACCESS_JS
 from .ui_css import CSS
 from .ui_work import WORK_CSS, WORK_JS
+from .ui_time import TIME_JS
 from .ui_delivery import DELIVERY_CSS, DELIVERY_JS
 from .ui_theme import THEME_CSS
 from .ui_drafts import DRAFT_JS
@@ -25,7 +26,7 @@ from .ui_pilots import PILOTS_CSS, PILOTS_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + STATES_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS + COORDINATION_CSS + PILOTS_CSS).replace("/*JS*/", ACCESS_BOOT_JS + JS + ATLAS_JS + STATES_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS + COORDINATION_JS + PILOTS_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + STATES_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS + COORDINATION_CSS + PILOTS_CSS).replace("/*JS*/", TIME_JS + ACCESS_BOOT_JS + JS + ATLAS_JS + STATES_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS + COORDINATION_JS + PILOTS_JS)
 
 
 HTML = r"""<!doctype html>
@@ -123,8 +124,8 @@ document.addEventListener('keydown',e=>{
 const L=(pairs,k)=>{const f=(pairs||[]).find(x=>x[0]===k);return f?f[1]:k};
 const stLabel=k=>L(S.meta.statuses,k),tyLabel=k=>L(S.meta.types,k),prLabel=k=>L(S.meta.priorities,k),moLabel=k=>L(S.meta.modes,k);
 const stPill=k=>`<span class="pill" style="background:var(--s-${k})">${h(stLabel(k))}</span>`;
-const ago=ts=>{if(!ts)return'';const d=(Date.now()-new Date(ts.replace(' ','T')).getTime())/1000;
-  if(d<60)return'刚刚';if(d<3600)return Math.floor(d/60)+' 分钟前';if(d<86400)return Math.floor(d/3600)+' 小时前';if(d<86400*30)return Math.floor(d/86400)+' 天前';return ts.slice(0,10)};
+const ago=ts=>{if(!ts)return'';const d=(Date.now()-serverDate(ts).getTime())/1000;
+  if(d<60)return'刚刚';if(d<3600)return Math.floor(d/60)+' 分钟前';if(d<86400)return Math.floor(d/3600)+' 小时前';if(d<86400*30)return Math.floor(d/86400)+' 天前';return chinaTime(ts).slice(0,10)};
 function stopPolls(tag){S.polls=S.polls.filter(p=>{if(!tag||p.tag===tag){clearInterval(p.id);return false}return true})}
 function poll(fn,ms,tag){const id=setInterval(fn,ms);S.polls.push({id,tag:tag||'page'});return id}
 
@@ -236,7 +237,7 @@ async function showPoints(){
   modal(`<h2>点卡 · ${h(S.proj)}</h2><div class="row" style="align-items:baseline;gap:10px"><b style="font-size:30px;font-variant-numeric:tabular-nums">${r.balance.toLocaleString()}</b><span class="sub">剩余点数</span></div>
    <div class="hint" style="margin:10px 0">点卡按实际消耗计：只有“生成”类动作扣点（助手起草、分析定位、修改方案、修改代码、撰写知识页），看工单、查依据、打开详情都不扣。单价待定（19 号确认），现在是演示价。</div>
    <h3>演示价</h3><div class="tags" style="margin-bottom:12px">${Object.entries(r.prices).map(([k,v])=>`<span class="ev-tag mute">${h(L[k]||k)} ${v} 点</span>`).join('')}</div>
-   <h3>最近记录</h3><div class="tw"><table class="t"><tr><th>时间</th><th>动作</th><th>人</th><th style="text-align:right">点数</th></tr>${r.log.map(x=>`<tr><td class="sub">${h(x.ts.slice(5,16))}</td><td>${h(x.reason)}${x.run_id?` <a href="javascript:void 0" onclick="showRun(${x.run_id})">#${x.run_id}</a>`:''}</td><td>${h(x.author)}</td><td style="text-align:right;font-variant-numeric:tabular-nums;color:${x.delta<0?'var(--bad)':'var(--ok)'}">${x.delta>0?'+':''}${x.delta}</td></tr>`).join('')}</table></div>
+   <h3>最近记录</h3><div class="tw"><table class="t"><tr><th>时间</th><th>动作</th><th>人</th><th style="text-align:right">点数</th></tr>${r.log.map(x=>`<tr><td class="sub">${h(chinaTime(x.ts).slice(5,16))}</td><td>${h(x.reason)}${x.run_id?` <a href="javascript:void 0" onclick="showRun(${x.run_id})">#${x.run_id}</a>`:''}</td><td>${h(x.author)}</td><td style="text-align:right;font-variant-numeric:tabular-nums;color:${x.delta<0?'var(--bad)':'var(--ok)'}">${x.delta>0?'+':''}${x.delta}</td></tr>`).join('')}</table></div>
    <div class="row" style="margin-top:12px;align-items:center"><input id="ptAdd" type="number" placeholder="充值点数" style="width:140px"><button id="ptGo">充值（演示）</button></div>`,true);
   $('#ptGo').onclick=async()=>{try{await post('/api/projects/'+S.proj+'/points',{delta:+$('#ptAdd').value,reason:'充值（演示）'});closeModal();loadPoints();toast('已充值')}catch(e){toast(e.message)}}}
 
@@ -265,7 +266,7 @@ async function vHome(){
     <div class="cap" data-sel="closed">${ic('#52C41A','<circle r="9"/><path d="M-4 0l3 3 5.5-6"/>')}<div><b>${L.closed}</b><span>已关闭</span></div></div>
     <div class="today">今日新建 ${L.today.created} · 今日闭环 ${L.today.closed}</div></div>`;
   $('#main').innerHTML=`<div class="hdr home-hd"><div class="grow"><h1>${S.scope==='*'?'全部授权项目':h(S.projects.find(p=>p.key===S.scope)?.name||S.scope)} · 闭环总览</h1><div class="sub">每张工单走到了哪一步、在等谁。点环上的节点，右边列出这一步的工单。</div></div>
-   <div class="viewbar"><div class="seg"><button data-v="ring" class="${S.home.view==='ring'?'on':''}">闭环视图</button><button data-v="board" class="${S.home.view==='board'?'on':''}">列表看板</button></div><span class="sub">更新于 ${new Date().toTimeString().slice(0,5)}</span><button id="hRef">刷新</button></div></div>
+   <div class="viewbar"><div class="seg"><button data-v="ring" class="${S.home.view==='ring'?'on':''}">闭环视图</button><button data-v="board" class="${S.home.view==='board'?'on':''}">列表看板</button></div><span class="sub">更新于 ${chinaTime(new Date()).slice(11,16)}</span><button id="hRef">刷新</button></div></div>
   <div class="home-grid${S.home.view==='board'?' wide':''}"><div id="hView"></div>
    <div class="home-side">${caps}${L.waiting?`<div class="catch" title="自动处理只接新进来的工单；这些是之前就在、或自动处理关着时进来的。交给它后会从各自停下的那一步接着做，同时最多跑 2 张。"><span><b>${L.waiting} 张早先进来的工单</b>还没交给自动处理${S.scope==='*'?'，选定项目后可一并交给它':''}。</span>${S.scope==='*'?'':'<button class="primary" id="catchUp">全部交给自动处理</button>'}</div>`:''}<div id="hList"><div class="sub home-pick">点环上的数字或上面的分类，这里列出对应的工单。</div></div><div id="inbox"></div></div></div>
   <div id="rels"></div>
@@ -310,7 +311,7 @@ async function paintInbox(){
    ${d.mine.length?groups:`<div class="sub" style="padding:6px 0">现在没有要你处理的事。${d.running?'智能体在跑的工单有结果后，需要你的会出现在这里。':d.open?'在流转的工单都还没到需要人的那一步。':'新工单进来后，需要人的那一步会出现在这里。'}${!d.auto?' 自动处理现在关着，新工单要有人手动开始。':!d.agent?' 这台机器上还没有可用的智能体，新工单不会自动分析，到“设置”里配置一个。':''}</div>`}
    ${d.others.length?`<details class="ibo"><summary class="sub">等客户 ${d.others.length} 张</summary>${d.others.map(row).join('')}</details>`:''}</div>`;
   box.querySelectorAll('.ibmore').forEach(b=>b.onclick=()=>{S.home.open[b.dataset.g]=1;paintInbox()})}
-function waited(ts){const m=Math.max(0,(Date.now()-new Date(ts.replace(' ','T')).getTime())/6e4);
+function waited(ts){const m=Math.max(0,(Date.now()-serverDate(ts).getTime())/6e4);
   return m<60?Math.max(1,Math.round(m))+' 分钟':m<1440?Math.round(m/60)+' 小时':Math.round(m/1440)+' 天'}
 function ringSvg(L){
   const W=620,cx=310,cy=300,R=215,by=L.by_status||{},pct=L.metrics[0].pct;
@@ -355,7 +356,7 @@ async function vOverview(){
   <div class="card"><h2>最近的智能体运行</h2>${runList(d.runs)}</div></div></div>`;
   $('#main').innerHTML=html}
 function chart(s){
-  const days=[];for(let i=13;i>=0;i--){const d=new Date(Date.now()-i*864e5);days.push(d.toISOString().slice(0,10))}
+  const days=[];for(let i=13;i>=0;i--){const d=new Date(Date.now()-i*864e5);days.push(chinaTime(d).slice(0,10))}
   const c=Object.fromEntries(s.created_by_day),x=Object.fromEntries(s.closed_by_day);
   const mx=Math.max(1,...days.map(d=>Math.max(c[d]||0,x[d]||0)));const W=560,H=150,bw=W/14;
   let g='';days.forEach((d,i)=>{const a=(c[d]||0)/mx*(H-24),b=(x[d]||0)/mx*(H-24);
@@ -538,7 +539,7 @@ function nextActionCore(d,f){
   recheck:()=>{if(t.status!=='closed'&&f.fx?.verify?.verification_current===false){const waiting=f.fx.recheck_wait;return {tone:waiting?.status==='running'?'info':'warn',text:h(waiting?.why||'旧验证结果已失效；请查看当前重新验证记录或检查停止回执。')+'。原实现记录保留，当前不能按旧结果采纳或签收。',btns:B('naReview','查看当前重新验证','primary')}};},
   recovery:()=>{if(t.status!=='closed'&&ir&&['failed','blocked','running'].includes(ir.status)){
     const answers=(ir.items||[]).flatMap(it=>(it.answers||[]).map(a=>`<div style="margin-top:6px;white-space:pre-wrap">${h(a.question)}<br><b>${h(a.value)}</b> <span class="sub">${h(a.from||'')}</span></div>`)).join('');
-    const history=(ir.attempts||[]).map(a=>`<div style="margin-top:6px;white-space:pre-wrap">${h(a.at||'')}${a.run?' · 运行 #'+h(a.run):''}：${h(a.reason||a.status||'')}</div>`).join('');
+    const history=(ir.attempts||[]).map(a=>`<div style="margin-top:6px;white-space:pre-wrap">${h(chinaTime(a.at||''))}${a.run?' · 运行 #'+h(a.run):''}：${h(a.reason||a.status||'')}</div>`).join('');
     return {tone:ir.status==='running'?'info':'warn',text:(ir.status==='running'?'<span class="spin"></span> 正在根据已保存答复补全验收标准。':'<b>客户答复已保存，再理解未完成。</b> 请处理已保存的答复。')+
       '<div class="sub">已有答案无需重复填写；已确认的标准继续保留。</div>'+
       (ir.status!=='running'&&(ir.blocked||[]).length?'<div style="white-space:pre-wrap">'+ir.blocked.map(h).join('<br>')+'</div>':'')+
@@ -620,7 +621,7 @@ function ticketRunHistory(runs){return runs.length>1?'<span class="sub">全部�
 function ticketTimeline(events){
   const groups=[];events.forEach(ev=>{const m=isMachine(ev.author)&&ev.kind!=='comment',g=groups[groups.length-1];if(m&&g&&g.auto)g.evs.push(ev);else groups.push({auto:m,evs:[ev]})});
   return groups.map(g=>{if(!g.auto||g.evs.length<2)return g.evs.map(evHtml).join('');
-    const a=g.evs[0].ts,z=g.evs[g.evs.length-1].ts,span=(new Date(z.replace(' ','T'))-new Date(a.replace(' ','T')))/36e5;
+    const a=g.evs[0].ts,z=g.evs[g.evs.length-1].ts,span=(serverDate(z)-serverDate(a))/36e5;
     return `<details class="evg"><summary><span class="dot"></span><b>自动处理</b> · ${g.evs.length} 步${span>0?' · 用时 '+dur(span):''}<span class="when">${ago(z)}</span></summary>${g.evs.map(evHtml).join('')}</details>`}).join('');
 }
 function ticketSummarySync(initial,changed){
@@ -763,7 +764,7 @@ async function vTicket(key,sub){
    <label>优先级<select id="fp" data-autosave="1">${opt(S.meta.priorities,t.priority)}</select></label>
    <label>经办人<input id="fa" ${d.team_assignment?.revision?'disabled title="在团队协作中调整分配"':''} data-autosave="1" value="${h(t.assignee)}" placeholder="无人" size="6"></label>
    ${autoChip(d)}${d.parent?`<span class="tag">大需求 <a href="#/t/${h(d.parent.key)}">${h(d.parent.key)}</a> 的第 ${h(String((t.links||{}).order||''))} 个子单</span>`:''}${(t.links||{}).alert?`<span class="ev-tag bad" title="监控告警自动开的单，同一告警再触发只累计次数">告警 ×${t.links.alert.count||1}</span>`:''}
-   <span class="sub">${h(t.reporter||'-')} 提交 · ${h(t.created.slice(5,16))}${ext.key?' · '+h(ext.system)+' '+(ext.url?`<a href="${h(ext.url)}" target="_blank" rel="noopener">${h(ext.key)}</a>`:h(ext.key)):''}</span></div>
+   <span class="sub">${h(t.reporter||'-')} 提交 · ${h(chinaTime(t.created).slice(5,16))}${ext.key?' · '+h(ext.system)+' '+(ext.url?`<a href="${h(ext.url)}" target="_blank" rel="noopener">${h(ext.key)}</a>`:h(ext.key)):''}</span></div>
   <div id="tTop" ${sub==='prompt'?'hidden':''}>${ticketTop(d,f,na)}</div>
   <nav class="ttabs"><a href="#/t/${t.key}" class="${sub==='prompt'?'':'on'}">工单详情</a><a href="#/t/${t.key}/prompt" class="${sub==='prompt'?'on':''}">提示词</a></nav>
   <div id="pp" ${sub==='prompt'?'':'hidden'}></div>
@@ -821,7 +822,7 @@ async function vTicket(key,sub){
   if($('#naShip'))$('#naShip').onclick=()=>post('/api/tickets/'+key+'/release',{}).then(r=>{toast(r.state==='merged'?'已合并，版本 '+r.version:r.why,6000);vTicket(key)}).catch(e=>toast(e.message,6000));
   if($('#naGo'))$('#naGo').onclick=()=>save({auto:'go'}).then(()=>toast('已交给自动处理'));
   if($('#naAsk'))$('#naAsk').onclick=async()=>{try{const r=await post('/api/tickets/'+key+'/ask-client',{});const url=location.origin+r.path;
-    try{await navigator.clipboard.writeText(url)}catch(e){}modal(`<h2>把问题发给客户</h2><div class="sub">${r.questions} 个问题，${h(r.expires.slice(5,16))} 前有效${r.told_chat?'；已同时发到这单来源的群里':''}。客户用大白话回答，答复会写回验收标准，答清楚就自动开始。</div><input class="full" readonly value="${h(url)}" onclick="this.select()" style="margin-top:8px"><div class="sub" style="margin-top:6px">链接已复制，发给客户（微信、短信都行）。</div>`)}catch(e){toast(e.message,6000)}};
+    try{await navigator.clipboard.writeText(url)}catch(e){}modal(`<h2>把问题发给客户</h2><div class="sub">${r.questions} 个问题，${h(chinaTime(r.expires).slice(5,16))} 前有效${r.told_chat?'；已同时发到这单来源的群里':''}。客户用大白话回答，答复会写回验收标准，答清楚就自动开始。</div><input class="full" readonly value="${h(url)}" onclick="this.select()" style="margin-top:8px"><div class="sub" style="margin-top:6px">链接已复制，发给客户（微信、短信都行）。</div>`)}catch(e){toast(e.message,6000)}};
   ['naCcYes','naCcNo'].forEach(id=>{if($('#'+id))$('#'+id).onclick=()=>post('/api/tickets/'+key+'/client-change',{accept:id==='naCcYes'}).then(()=>{toast(id==='naCcYes'?'已采用，验收标准已更新':'已保留原来的验收标准');vTicket(key)}).catch(e=>toast(e.message,6000))});
   if($('#naIntakeRetry')){const button=$('#naIntakeRetry');button.onclick=async()=>{if(button.disabled)return;button.disabled=true;const refresh=S.ticketRefresh;
     try{await post('/api/tickets/'+key+'/intake-retry',{});if(S.ticketRefresh===refresh&&S.cur?.ticket?.key===key){await refresh();watchIntakeRecovery(key)}}
@@ -860,7 +861,7 @@ function epicCard(e){const c=e.counts,sp=e.spec,w=x=>c.total?x/c.total*100:0;
    <div class="row" style="gap:10px;align-items:center;margin:10px 0"><div class="rfbar"><i class="ok" style="width:${w(c.closed)}%"></i><i class="vf" style="width:${w(c.verify)}%"></i><i class="rl" style="width:${w(c.released-c.closed-c.verify)}%"></i></div><span class="sub" style="white-space:nowrap">完成 ${c.closed} · 待验收 ${c.verify} · 已放出 ${c.released} / ${c.total}</span><label class="sub rfau"><input type="checkbox" id="epAuto" ${e.auto?'checked':''}> 通过一批自动放下一批</label></div>
    <div class="tw"><table class="t"><tr><th class="num">#</th><th>子单</th><th>批次</th><th>依赖</th><th>状态</th><th>版本</th></tr>${e.children.map(x=>`<tr><td class="num">${x.order}</td><td><a href="#/t/${h(x.key)}">${h(x.key)}</a> ${h(x.title)}${x.follow_up?' <span class="ev-tag warn">整体验收退回的跟进</span>':''}${x.rejects?` <span class="ev-tag bad">退回 ${x.rejects}</span>`:''}${x.open_ac?' <span class="ev-tag warn">有待确认</span>':''}</td><td>${x.released?'第 '+x.batch+' 批':'<span class="sub">排队</span>'}</td><td>${x.after.length?x.after.map(h).join('、'):'<span class="sub">无</span>'}</td><td>${x.released?stPill(x.status):'<span class="sub">未放出</span>'}</td><td>${x.version?`<span class="key">${h(x.version)}</span>`:'<span class="sub">-</span>'}</td></tr>`).join('')}</table></div>
    ${e.status!=='closed'&&e.children.some(x=>!x.released)?'<div class="row" style="margin-top:8px"><button class="ghost" id="epRel">现在放出下一批</button></div>':''}
-   ${e.log.length?`<div class="rflog">${e.log.slice(-6).reverse().map(x=>`<div><span class="sub">${h(x.at.slice(5,16))}</span> ${h(x.text)}</div>`).join('')}</div>`:''}</div>`}
+   ${e.log.length?`<div class="rflog">${e.log.slice(-6).reverse().map(x=>`<div><span class="sub">${h(chinaTime(x.at).slice(5,16))}</span> ${h(x.text)}</div>`).join('')}</div>`:''}</div>`}
 function epicWire(d){const e=d.epic;if(!e)return;const P='/api/tickets/'+e.key+'/epic',re=()=>vTicket(e.key);
   if($('#epRes'))$('#epRes').onclick=()=>post(P,{action:'resume'}).then(()=>{toast('已恢复自动推进');re()}).catch(x=>toast(x.message));
   if($('#epAuto'))$('#epAuto').onchange=ev=>post(P,{action:'auto',on:ev.target.checked}).then(re).catch(x=>toast(x.message));
@@ -954,7 +955,7 @@ function runLifecycleHtml(r){
   const stopping=c.finished===false&&(!!c.stopped_reason||['failed','cancelled'].includes(r.status)),incomplete=attempts.some(a=>a.cleanup?.complete===false);
   const phase=blocked?'无法确认受管进程已安全停止，不能重新运行；请检查完整回执。':invalid?'运行停止回执格式异常，尚不能确认进程回收状态。':c.stopped_reason==='recovery_pending'?'平台重启后的停止回执尚未核对完成，不能重新运行。':recovery?.state==='complete'&&!ready?'恢复回执仍不完整，无法确认进程回收状态，不能重新运行。':stopping?'正在回收运行进程，完成前不能重新运行。':c.finished===true?(incomplete?'进程回收未完成，请查看回执中的残留进程与错误。':attempts.length&&attempts.every(a=>a.cleanup?.complete===true)?'本轮执行已结束，进程回收完成。':'本轮执行已结束；进程回收情况以各次回执为准。'):'本轮运行尚未结束。';
   const errors=recovery?(Array.isArray(recovery.errors)?recovery.errors:recovery.errors?[recovery.errors]:[]):[];
-  return `<section class="run-check" aria-label="运行时限与停止状态"><p role="status"><b>${h(phase)}</b></p>${reason?`<p>停止原因：${h(reason)}</p>`:''}${recovery?`<div class="sub" style="white-space:pre-wrap;overflow-wrap:anywhere">${h(recovery.reason||'')}</div><p class="sub">${recovery.output_complete===true?'已确认输出完整。':'输出尚未确认完整，请核对原始回执与日志。'} 恢复记录只说明进程收尾，不代表业务成功，也不代表测试或验收通过。</p>${errors.length?'<ul>'+errors.map(e=>'<li style="white-space:pre-wrap;overflow-wrap:anywhere">'+h(typeof e==='string'?e:JSON.stringify(e,null,2))+'</li>').join('')+'</ul>':''}`:''}<p class="sub">${c.started_at?'开始：'+h(c.started_at)+' · ':''}整次任务总时限：${h(c.timeout_seconds==null?'未记录':c.timeout_seconds+' 秒')}${c.elapsed_seconds==null?'':' · 已记录耗时：'+h(c.elapsed_seconds)+' 秒'}</p>${attempts.length?`<details><summary>查看每次执行的退出与回收结果（${attempts.length} 次）</summary>${attempts.map(a=>`<p>第 ${h(a.attempt)} 次 · ${h(a.kind||'执行')} · 退出码 ${h(a.returncode==null?'尚未记录':a.returncode)} · ${a.cleanup?.complete===true?'回收完成':a.cleanup?.complete===false?'回收未完成':'尚无回收回执'}</p>`).join('')}</details>`:''}<details><summary>查看完整运行停止回执</summary><pre class="log">${h(JSON.stringify(c,null,2))}</pre></details></section>`}
+  return `<section class="run-check" aria-label="运行时限与停止状态"><p role="status"><b>${h(phase)}</b></p>${reason?`<p>停止原因：${h(reason)}</p>`:''}${recovery?`<div class="sub" style="white-space:pre-wrap;overflow-wrap:anywhere">${h(recovery.reason||'')}</div><p class="sub">${recovery.output_complete===true?'已确认输出完整。':'输出尚未确认完整，请核对原始回执与日志。'} 恢复记录只说明进程收尾，不代表业务成功，也不代表测试或验收通过。</p>${errors.length?'<ul>'+errors.map(e=>'<li style="white-space:pre-wrap;overflow-wrap:anywhere">'+h(typeof e==='string'?e:JSON.stringify(e,null,2))+'</li>').join('')+'</ul>':''}`:''}<p class="sub">${c.started_at?'开始：'+h(chinaTime(c.started_at))+' · ':''}整次任务总时限：${h(c.timeout_seconds==null?'未记录':c.timeout_seconds+' 秒')}${c.elapsed_seconds==null?'':' · 已记录耗时：'+h(c.elapsed_seconds)+' 秒'}</p>${attempts.length?`<details><summary>查看每次执行的退出与回收结果（${attempts.length} 次）</summary>${attempts.map(a=>`<p>第 ${h(a.attempt)} 次 · ${h(a.kind||'执行')} · 退出码 ${h(a.returncode==null?'尚未记录':a.returncode)} · ${a.cleanup?.complete===true?'回收完成':a.cleanup?.complete===false?'回收未完成':'尚无回收回执'}</p>`).join('')}</details>`:''}<details><summary>查看完整运行停止回执</summary><pre class="log">${h(JSON.stringify(c,null,2))}</pre></details></section>`}
 function runRecoveryHtml(r){
   if(!['failed','cancelled'].includes(r.status))return '';
   const reasons=Array.isArray(r.retry_blocked)?r.retry_blocked:[],ready=runStopReceiptReady(r),details=(reasons.length?`<p class="sub">${h(reasons.join('；'))}</p>`:'')+(!ready?'<p class="sub">停止回执尚不完整，不能重新运行；请检查完整回执。</p>':'')+(runRecoveryBlocked(r)?'<button type="button" data-run-recover>重新检查停止回执</button>':'');
@@ -1079,9 +1080,9 @@ async function vLead(){
   const proj=`<div class="tw"><table class="t"><tr><th>项目</th><th class="num">新建</th><th class="num">闭环</th><th class="num">在途</th><th class="num">周期中位</th><th class="num">AI 参与</th><th class="num">知识页 已写/已确认</th><th class="num">消耗点数</th></tr>${d.by_project.map(p=>`<tr><td><b>${h(p.key)}</b> <span class="sub">${h(p.name)}</span></td><td class="num">${p.created}</td><td class="num">${p.closed}</td><td class="num">${p.open}</td><td class="num">${dur(p.cycle.median_h)}</td><td class="num">${p.ai}</td><td class="num">${p.kb_written.toLocaleString()} / ${p.kb_confirmed.toLocaleString()}</td><td class="num">${p.spent.toLocaleString()}</td></tr>`).join('')}</table></div>`;
   const ai=`<div class="facts">${d.ai.map(x=>`<div class="fact"><span class="grow">${x.label}</span>${x.value==null?'<span class="ev-tag mute">未启用</span>':`<b>${x.value}</b> <span class="sub">${x.unit}</span>`}</div>`).join('')}</div>`;
   const done=d.done.length?d.done.map(t=>`<a class="drow done" href="#/t/${h(t.key)}"><span class="grow"><b>${h(t.key)}</b> ${h(t.title)}
-     <span class="sub">${t.reporter?h(t.reporter)+' 报单 · ':''}${t.cause?'根因：'+h(t.cause)+' · ':''}${t.by?h(t.by)+' 解决 · ':''}用时 ${dur(t.cycle_h)}${t.rejected?' · 退回过 '+t.rejected+' 次':''}</span></span><small class="sub">${h(t.closed.slice(5,10))}</small></a>`).join(''):'<div class="sub">这段时间还没有闭环的工单</div>';
+     <span class="sub">${t.reporter?h(t.reporter)+' 报单 · ':''}${t.cause?'根因：'+h(t.cause)+' · ':''}${t.by?h(t.by)+' 解决 · ':''}用时 ${dur(t.cycle_h)}${t.rejected?' · 退回过 '+t.rejected+' 次':''}</span></span><small class="sub">${h(chinaTime(t.closed).slice(5,10))}</small></a>`).join(''):'<div class="sub">这段时间还没有闭环的工单</div>';
   const lst=(xs,f)=>xs.length?xs.map(f).join(''):'<div class="sub">没有</div>';
-  $('#main').innerHTML=`<div class="ph"><div class="grow"><div class="eyebrow">全部 ${d.projects} 个项目 · ${d.kpi.people} 人参与</div><h1>运维成效</h1><div class="sub">近 ${d.days} 天（${h(d.since)} 起），和上一个 ${d.days} 天比。全部来自工单动态和运行记录，没有估算。</div></div>${right}</div>
+  $('#main').innerHTML=`<div class="ph"><div class="grow"><div class="eyebrow">全部 ${d.projects} 个项目 · ${d.kpi.people} 人参与</div><h1>运维成效</h1><div class="sub">近 ${d.days} 天（${h(chinaTime(d.since))} 起），和上一个 ${d.days} 天比。全部来自工单动态和运行记录，没有估算。</div></div>${right}</div>
   <div class="grid4" style="margin-bottom:16px">${d.core.map(c=>tile(c).replace('</div><div class="chg">',`<div class="sub">${HINT[c.key]}</div></div><div class="chg">`)).join('')}</div>
   <div class="grid2"><div style="display:flex;flex-direction:column;gap:16px;min-width:0">
    <div class="card"><h2>本期做成了什么 <span class="sub" style="font-weight:400">闭环 ${d.kpi.closed} 张</span></h2>${done}</div>
@@ -1197,7 +1198,7 @@ function intakePaint(s){const B=$('#inBox');if(!B||$('#modal').hidden)return;if(
   B.querySelectorAll('.inK').forEach(x=>x.onchange=()=>act({action:'answer',answers:gather()}).catch(e=>toast(e.message,5000)));
   if($('#inAns'))$('#inAns').onclick=()=>act({action:'answer',answers:gather()}).catch(e=>toast(e.message,5000));
   if($('#inAsk'))$('#inAsk').onclick=async()=>{try{const r=await post('/api/intake/'+s.id,{action:'ask_client'});if($('#inBox')!==B||$('#modal').hidden)return;const url=location.origin+r.path;
-    $('#inAskOut').innerHTML=`<div style="margin-top:8px"><input class="full" readonly value="${h(url)}" onclick="this.select()"><div class="sub">${r.questions} 个问题，${h(r.expires.slice(5,16))} 前有效${r.told_chat?'；已同时发到群里':''}。</div></div>`;
+    $('#inAskOut').innerHTML=`<div style="margin-top:8px"><input class="full" readonly value="${h(url)}" onclick="this.select()"><div class="sub">${r.questions} 个问题，${h(chinaTime(r.expires).slice(5,16))} 前有效${r.told_chat?'；已同时发到群里':''}。</div></div>`;
     try{await navigator.clipboard.writeText(url);toast('链接已复制，发给客户就行',4000)}catch(e){}}catch(e){toast(e.message,5000)}};
   if($('#inOk'))$('#inOk').onclick=async()=>{const a=gather();try{if(Object.keys(a).length){const r=await post('/api/intake/'+s.id,{action:'answer',answers:a});if($('#inBox')!==B||$('#modal').hidden)return;if(r.state==='understanding'){intakePaint(r);return toast('AI 正在按回答重写验收标准，写好再确认',4000)}}
     const b={action:'confirm',hand:[...B.querySelectorAll('.inHand')].filter(x=>x.checked).map(x=>+x.dataset.i)};if(s.big){b.deps={};B.querySelectorAll('.inDep').forEach(x=>{if(x.value!=='')b.deps[x.dataset.i]=[+x.value]});b.wave=+($('#inWave')||{}).value||2}
@@ -1268,9 +1269,9 @@ function pkgSummary(d){const k=d.package||{};if(!k.status)return '';
    ${k.missing.length?`<div style="margin-top:6px"><b style="font-size:13px">还缺</b> ${k.missing.map(x=>`<span class="ev-tag warn">${h(x)}</span>`).join(' ')}</div>`:'<div class="ok" style="margin-top:6px">证据齐全</div>'}
    ${k.gates?`<div style="margin-top:8px"><b style="font-size:13px">验证门</b> <span class="sub">从便宜到贵，每道给出通过、没过或未知</span>
      <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">${k.gates.map(g=>`<div style="font-size:13px"><span class="ev-tag ${GTC[g.state]}">${GTL[g.state]}</span> ${h(g.name)}<span class="sub"> ${h(clip(g.why,90))}${g.waived?` · ${h(g.waived.by)} 放行：${h(clip(g.waived.reason,40))}`:''}</span></div>`).join('')}</div></div>`:''}
-   ${k.review?`<div class="sub" style="margin-top:4px">乙方复核：${h(k.review.by)} · ${h((k.review.ts||'').slice(5,16))}</div>`:''}
-   ${dec?`<div style="margin-top:6px">${dec.kind==='sign'?'签收':'退回'}：<b>${h(dec.signer)}</b>${dec.role?'（'+h(dec.role)+'）':''} · ${h(dec.ts.slice(5,16))} · ${h(dec.via)}${dec.note?`<div class="sub">${h(dec.note)}</div>`:''}</div>`
-     :ln?`<div class="sub" style="margin-top:4px">已发签收链接给 ${h(ln.signer)}，有效至 ${h(ln.expires.slice(5,16))}</div>`:''}`}`}
+   ${k.review?`<div class="sub" style="margin-top:4px">乙方复核：${h(k.review.by)} · ${h(chinaTime((k.review.ts||'')).slice(5,16))}</div>`:''}
+   ${dec?`<div style="margin-top:6px">${dec.kind==='sign'?'签收':'退回'}：<b>${h(dec.signer)}</b>${dec.role?'（'+h(dec.role)+'）':''} · ${h(chinaTime(dec.ts).slice(5,16))} · ${h(dec.via)}${dec.note?`<div class="sub">${h(dec.note)}</div>`:''}</div>`
+     :ln?`<div class="sub" style="margin-top:4px">已发签收链接给 ${h(ln.signer)}，有效至 ${h(chinaTime(ln.expires).slice(5,16))}</div>`:''}`}`}
 function pkgActions(d){const t=d.ticket;if(!d.package?.status||d.package.status==='none')return '';
   return `<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><a class="btn" href="${h(appPath('/e/'+encodeURIComponent(t.key)))}" target="_blank" rel="noopener">打开证据包</a><a class="btn ghost" href="${h(appPath('/e/'+encodeURIComponent(t.key)+'.intoto.json'))}" download title="in-toto 格式，甲方可以离线核对">下载</a>
     <button class="ghost" id="pkShot">补截图</button><button class="ghost" id="pkRev"${pkgReviewReason(d)?' disabled title="'+h(pkgReviewReason(d))+'"':''}>证据复核</button>${d.package.stale===true?'<button id="pkPack"'+(pkgRepackReason(d)||S.pkgPacking?.[t.key]?' disabled':'')+'>按当前验证重新打包</button>':''}${t.status==='verify'?'<button class="primary" id="pkLink"'+ticketSignoffAttrs(d)+'>发签收链接</button>':''}</div>`;}
@@ -1324,7 +1325,7 @@ function pkgWire(d){ticketSignoffSync(d);const key=d.ticket.key,F=$('#pkForm');i
   if($('#pkLink'))$('#pkLink').onclick=()=>{if(!ticketSignoffGuard(d))return;const m=(S.cur.package||{}).missing||[];F.innerHTML=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px"><input id="pkS" placeholder="签收人姓名（甲方业务确认人）"><input id="pkR" placeholder="角色，如 人事业务负责人">
      ${m.length?`<textarea id="pkN" placeholder="证据还缺 ${h(m.join('、'))}，写明为什么现在就请甲方签" style="min-height:48px"></textarea>`:''}<button class="primary" id="pkLgo">生成链接</button><div id="pkOut"></div></div>`;
     $('#pkLgo').onclick=async()=>{if(!ticketSignoffGuard(d))return;try{const r=await P({kind:'link',signer:$('#pkS').value,role:$('#pkR').value,note:$('#pkN')?$('#pkN').value:''});const url=location.origin+r.path;
-      $('#pkOut').innerHTML=`<div class="sub">发给 ${h(r.signer)}，${h(r.expires.slice(0,16))} 前有效，只能用一次。对方打开就能签，不用登录，页面上没有代码：</div><input id="pkU" readonly value="${h(url)}"><button id="pkCp">复制链接</button>`;
+      $('#pkOut').innerHTML=`<div class="sub">发给 ${h(r.signer)}，${h(chinaTime(r.expires).slice(0,16))} 前有效，只能用一次。对方打开就能签，不用登录，页面上没有代码：</div><input id="pkU" readonly value="${h(url)}"><button id="pkCp">复制链接</button>`;
       $('#pkCp').onclick=()=>{navigator.clipboard.writeText(url).then(()=>toast('已复制')).catch(()=>{$('#pkU').select()})}}catch(e){toast(e.message,6000)}}};
 }
 function upCard(u){if(!u)return '';
@@ -1343,11 +1344,11 @@ async function upWire(d){const t=d.ticket,box=$('#upc');if(!box)return;const key
   const s=u.summary||{},dr=u.draft,ap=u.approved;
   box.innerHTML=`<div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">外部 PR</h2><span class="ev-tag ${u.state==='merged'?'ok':u.state==='closed'?'bad':'info'}">${h(u.label)}</span></div>
    <div class="sub">${h(up.repo)}${up.issue?` · <a href="https://github.com/${h(up.repo)}/issues/${h(up.issue)}" target="_blank" rel="noopener">issue #${h(up.issue)}</a>`:''}${up.pr?` · <a href="${h(up.url)}" target="_blank" rel="noopener">PR #${h(up.pr)}</a>`:''}</div>
-   ${up.pr?`<div class="sub" style="margin-top:4px">CI ${h(u.ci||'—')} · 评审 ${s.rounds??'—'} 轮${s.maintainer_commits?' · 维护者加了 '+s.maintainer_commits+' 个提交':''}${u.synced?' · 同步于 '+h(u.synced.slice(5,16)):''}</div>
+   ${up.pr?`<div class="sub" style="margin-top:4px">CI ${h(u.ci||'—')} · 评审 ${s.rounds??'—'} 轮${s.maintainer_commits?' · 维护者加了 '+s.maintainer_commits+' 个提交':''}${u.synced?' · 同步于 '+h(chinaTime(u.synced).slice(5,16)):''}</div>
      ${(u.reviews||[]).slice(-3).map(r=>`<div class="cbody sub" style="margin-top:4px"><b>${h(r.by)}</b> ${h(r.state)}：${h(clip(r.body||'',160))}</div>`).join('')}
      <div class="row" style="gap:6px;margin-top:8px"><button id="upSync">从 GitHub 同步</button>${u.state==='closed'&&!(u.outcome||{}).reason?'<button class="ghost" id="upWhy">补记关闭原因</button>':''}</div>`
    :dr?`<div style="margin-top:6px"><b>${h(dr.title)}</b><div class="sub">${h(dr.head)} → ${h(dr.base)}</div><div class="cbox">${md(dr.body)}</div>
-     ${ap?`<div class="ok" style="margin-top:4px">${h(ap.by)} 已批准提交（${h(ap.at.slice(5,16))}）</div>`:'<div class="warn" style="margin-top:4px">等人过目：这是用你的账号对外发布，批准后才能提交</div>'}
+     ${ap?`<div class="ok" style="margin-top:4px">${h(ap.by)} 已批准提交（${h(chinaTime(ap.at).slice(5,16))}）</div>`:'<div class="warn" style="margin-top:4px">等人过目：这是用你的账号对外发布，批准后才能提交</div>'}
      <div class="row" style="gap:6px;margin-top:8px">${ap?'<button class="primary" id="upGo">提交到 GitHub</button>':'<button class="primary" id="upOk">我看过了，批准提交</button>'}<button class="ghost" id="upEd">改草稿</button></div></div>`
    :'<div class="row" style="margin-top:8px"><button class="primary" id="upEd">起草 PR</button></div>'}</div>`;
   const edit=()=>modal(`<h2>上游 PR 草稿</h2><input class="full" id="dT" placeholder="标题（照项目的提交规范）" value="${h(dr?dr.title:t.title)}"><input class="full" id="dH" placeholder="分支，如 auntunt:fix-xxx" value="${h(dr?dr.head:'')}" style="margin-top:6px"><input class="full" id="dB" placeholder="目标分支" value="${h(dr?dr.base:'trunk')}" style="margin-top:6px"><textarea class="full" id="dD" style="min-height:200px;margin-top:6px" placeholder="描述：照项目的 PR 模板写，按项目规则写明 AI 辅助">${h(dr?dr.body:'')}</textarea><div style="margin-top:8px"><button class="primary" id="dS">保存草稿</button></div>`,true);
@@ -1375,10 +1376,10 @@ function ledgerCard(L){if(!L)return '';const T=L.totals;
 function dur(x){if(x==null)return '—';if(x<1)return Math.max(1,Math.round(x*60))+' 分钟';if(x<48)return x.toFixed(1)+' 小时';return (x/24).toFixed(1)+' 天'}
 function chg(c,better){if(c==null)return '';const good=better==='down'?c<0:c>0;return `<span class="ev-tag ${c===0?'mute':good?'ok':'bad'}">${c>0?'+':''}${c}%</span>`}
 async function vEff(){
-  const mo=S.effMonth===undefined?new Date().toISOString().slice(0,7):S.effMonth;
+  const mo=S.effMonth===undefined?chinaTime(new Date()).slice(0,7):S.effMonth;
   const m=await get('/api/projects/'+S.proj+'/metrics?month='+mo);const cand=m.baseline,p=m.pilot,k=m.kb,G=m.gate,L=m.ledger;
   const b=G.sealed?m.sealed.stats:{n:0,cycle:{},cycle_by_type:{},systems:[]};
-  const months=[];const d0=new Date();for(let i=0;i<12;i++){const x=new Date(d0.getFullYear(),d0.getMonth()-i,1);months.push(x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0'))}
+  const months=[];const d0=chinaTime(new Date()).slice(0,7).split('-').map(Number);for(let i=0;i<12;i++){const x=new Date(Date.UTC(d0[0],d0[1]-1-i,1));months.push(x.getUTCFullYear()+'-'+String(x.getUTCMonth()+1).padStart(2,'0'))}
   const kpi=(l,v,sub,extra)=>`<div class="card kpi"><div class="l">${l} <span class="ev-tag mute" style="font-size:11px;padding:0 5px">实测</span></div><div class="n">${v}</div><div class="sub">${sub}</div>${extra||''}</div>`;
   const pc=x=>x==null?'—':x+'%';
   const C=m.compare[0];
@@ -1396,7 +1397,7 @@ async function vEff(){
   </div>
   <div class="grid2"><div style="display:flex;flex-direction:column;gap:16px;min-width:0">
     <div class="card"><h2>基线与本期对比</h2><div class="tw"><table class="t"><tr><th>指标</th><th>基线</th><th>本期</th><th>变化</th></tr>${m.compare.map(c=>`<tr><td>${h(c.label)}</td><td class="sub">${h(c.baseline)}</td><td><b>${h(c.pilot)}</b></td><td>${chg(c.change,c.better)||'<span class="sub">—</span>'}</td></tr>`).join('')}</table></div>
-      <div class="sub" style="margin-top:8px">${G.sealed?`封存基线：${b.n} 张从 ${h(b.systems.join('、')||'外部系统')} 导入、已在原系统关闭的工单，窗口 ${h(m.sealed.window[0])} 至 ${h(m.sealed.window[1])}；${h(m.sealed.sealed_at.slice(0,16))} 由 ${h(m.sealed.sealed_by)} 封存，哈希 <code>${h(m.sealed.hash.slice(0,16))}</code>，之后不能改。`
+      <div class="sub" style="margin-top:8px">${G.sealed?`封存基线：${b.n} 张从 ${h(b.systems.join('、')||'外部系统')} 导入、已在原系统关闭的工单，窗口 ${h(m.sealed.window[0])} 至 ${h(m.sealed.window[1])}；${h(chinaTime(m.sealed.sealed_at).slice(0,16))} 由 ${h(m.sealed.sealed_by)} 封存，哈希 <code>${h(m.sealed.hash.slice(0,16))}</code>，之后不能改。`
         :`<span class="bad">${h(G.reason)}。</span>${cand.n?`已导入 ${cand.n} 张已关闭的历史工单（${cand.range[0]} 至 ${cand.range[1]}）。选好窗口封存一次，之后口径和样本都不能改：
         <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap"><input type="date" id="blF" value="${cand.range[0]}"><input type="date" id="blT" value="${cand.range[1]}"><input id="blN" placeholder="说明（如：试点前 6 个月）" size="16"><button class="primary" id="blSeal">封存基线</button></div>`
         :'先在<a href="#/int">外部系统</a>里导入过去 3～6 个月的 Jira 或禅道工单，已关闭的可以封存为基线。'}`}</div></div>
@@ -1521,7 +1522,7 @@ function kbMetrics(mm){const m=mm.metrics,pc=x=>x==null?'—':Math.round(x*100)+
    <div class="row" style="gap:24px;margin:6px 0 10px"><div><b>${pc(m.auto_rate)}</b><div class="sub">不用找人直接答（${m.auto} 次）</div></div>
     <div><b>${pc(m.adopted_rate)}</b><div class="sub">采纳率（被改判 ${m.overruled} 次）</div></div><div><b>${m.handoff}</b><div class="sub">转人工</div></div>
     <div><b>${m.answer_wait_hours==null?'—':m.answer_wait_hours+' 小时'}</b><div class="sub">业务方平均答复（还在等 ${m.waiting} 个）</div></div></div>
-   ${mm.recent.length?`<div class="tw"><table class="t"><tr><th>编号</th><th>时间</th><th>来源</th><th>需求</th><th>结论</th><th></th></tr>${mm.recent.map(r=>`<tr><td class="key">${h(r.id||'')}</td><td class="sub">${h(r.at||'')}</td><td class="sub">${h(r.channel||'cli')}${r.sender?' · '+h(r.sender):''}</td><td>${h(r.request||'')}</td>
+   ${mm.recent.length?`<div class="tw"><table class="t"><tr><th>编号</th><th>时间</th><th>来源</th><th>需求</th><th>结论</th><th></th></tr>${mm.recent.map(r=>`<tr><td class="key">${h(r.id||'')}</td><td class="sub">${h(chinaTime(r.at||''))}</td><td class="sub">${h(r.channel||'cli')}${r.sender?' · '+h(r.sender):''}</td><td>${h(r.request||'')}</td>
      <td>${h(r.verdict)} <small class="sub">${h(r.confidence||'')}</small></td><td style="white-space:nowrap">${r.overruled?`<span class="sub">${h(r.overruled.by)} 已改判</span>`:r.id?`<button class="ghost" data-ovr="${h(r.id)}">改判</button>`:''}</td></tr>`).join('')}</table></div>`:''}</div>`}
 function kbOverrule(id){modal(`<h2>改判预判 ${h(id)}</h2><select id="ovV" class="full"><option value="">正确结论（可不选）</option><option>可以做</option><option>不能做</option><option>需要人判断</option></select>
   <textarea class="full" id="ovR" rows="3" placeholder="为什么不对" style="margin-top:8px"></textarea><div class="sub" style="margin:6px 0">改判会从少找人的采纳率里扣掉，并记进项目动态。</div>
@@ -1629,7 +1630,7 @@ async function vReform(){
      <div class="sub" style="white-space:pre-wrap">${h(p.goal)}</div>${p.target?`<div class="sub" style="margin-top:4px"><b>目标目录：</b><span class="key">${h(p.target)}/</span>（原代码只读）</div>`:''}${p.keep?`<div class="sub" style="margin-top:4px"><b>不能变：</b>${h(p.keep)}</div>`:''}
      ${p.paused?`<div class="rfpz"><span class="grow"><b>已暂停自动推进：</b>${h(p.paused)}</span><button class="ghost" data-res="${h(p.id)}">处理好了，恢复</button></div>`:''}
      <div class="row" style="gap:10px;align-items:center;margin:10px 0">${bar(c)}<span class="sub" style="white-space:nowrap">闭环 ${c.closed} · 待验收 ${c.verify} · 已放出 ${c.released} / ${c.total}</span><label class="sub rfau"><input type="checkbox" data-auto="${h(p.id)}" ${p.auto?'checked':''}> 通过一批自动放下一批</label></div>
-     <details ${c.released?'open':''}><summary>${c.lead?'先导部分 + '+(c.total-1):c.total} 个业务域，按牵连从少到多</summary>${table(p.items)}${(p.log||[]).length?`<div class="rflog">${p.log.slice(-6).reverse().map(x=>`<div><span class="sub">${h(x.at.slice(5,16))}</span> ${h(x.text)}</div>`).join('')}</div>`:''}<div class="row" style="margin-top:8px"><span class="sub grow">${h(p.by)} 建于 ${h(p.created.slice(0,16))} · 每批 ${p.wave} 张</span><button class="ghost" data-rm="${h(p.id)}">删除计划（已开的工单保留）</button></div></details></div>`};
+     <details ${c.released?'open':''}><summary>${c.lead?'先导部分 + '+(c.total-1):c.total} 个业务域，按牵连从少到多</summary>${table(p.items)}${(p.log||[]).length?`<div class="rflog">${p.log.slice(-6).reverse().map(x=>`<div><span class="sub">${h(chinaTime(x.at).slice(5,16))}</span> ${h(x.text)}</div>`).join('')}</div>`:''}<div class="row" style="margin-top:8px"><span class="sub grow">${h(p.by)} 建于 ${h(chinaTime(p.created).slice(0,16))} · 每批 ${p.wave} 张</span><button class="ghost" data-rm="${h(p.id)}">删除计划（已开的工单保留）</button></div></details></div>`};
   const list=d.plans.length?d.plans.map(plan).join(''):`<div class="empty">还没有改造计划。点右上角“新建改造计划”：写清目标，选业务域，系统按牵连从少到多排好顺序，分批放出改动工单。</div>`;
   const T=d.plans.reduce((a,p)=>{for(const k in p.counts)a[k]=(a[k]||0)+p.counts[k];return a},{}),paused=d.plans.filter(p=>p.paused).length;
   const kpi=d.plans.length?`<div class="kpis"><div><span>改造计划</span><b>${d.plans.length}</b><small>${paused?paused+' 个暂停等人处理':'没有暂停的计划'}</small></div>
@@ -1703,7 +1704,7 @@ async function vLearn(){
   const last=d.batches[0];
   const KL={reject:['bad','验收没通过'],'human-fix':['warn','人工补改'],review:['warn','对照官方复盘'],pass:['ok','通过的做法']};
   const SRC={accepted:['ok','验收入库'],history:['info','历史工单'],manual:['mute','手动']};
-  const bt=d.batches.length?`<div class="tw"><table class="t"><tr><th>时间</th><th>智能体</th><th class="num">用例</th><th class="num">找全率</th><th class="num">准确率</th></tr>${d.batches.map((b,i)=>`<tr class="click" onclick="document.getElementById('evb${i}').hidden^=1"><td>${h(b.ts.slice(5,16))}</td><td>${h(b.agent||'')}${b.model?' · '+h(b.model):''}</td><td class="num">${b.scored}/${b.n}</td><td class="num"><b>${pc(b.recall)}</b></td><td class="num">${pc(b.precision)}</td></tr>
+  const bt=d.batches.length?`<div class="tw"><table class="t"><tr><th>时间</th><th>智能体</th><th class="num">用例</th><th class="num">找全率</th><th class="num">准确率</th></tr>${d.batches.map((b,i)=>`<tr class="click" onclick="document.getElementById('evb${i}').hidden^=1"><td>${h(chinaTime(b.ts).slice(5,16))}</td><td>${h(b.agent||'')}${b.model?' · '+h(b.model):''}</td><td class="num">${b.scored}/${b.n}</td><td class="num"><b>${pc(b.recall)}</b></td><td class="num">${pc(b.precision)}</td></tr>
     <tr id="evb${i}" hidden><td colspan="5">${Object.keys(b.sources||{}).length>1?`<div class="sub" style="margin-bottom:6px">${Object.entries(b.sources).map(([k,v])=>`${(SRC[k]||[0,k])[1]} ${v.n} 个：找全 ${pc(v.recall)} · 准确 ${pc(v.precision)}`).join('；')}</div>`:''}${b.rows.map(r=>`<div class="fact" style="flex-direction:column;align-items:stretch"><div class="row" style="gap:8px"><b class="grow">${h(r.case)} ${h(r.title||'')}</b>${r.error?`<span class="ev-tag bad">${h(r.error)}</span>`:`<span class="ev-tag ${r.recall>=0.99?'ok':r.recall>0?'warn':'bad'}">找全 ${pc(r.recall)}</span><span class="ev-tag mute">准确 ${pc(r.precision)}</span>`}${r.run?`<a href="javascript:void 0" onclick="showRun(${r.run})">#${r.run}</a>`:''}</div>
       ${(r.missed||[]).length?`<div class="sub">漏掉：<span class="key">${r.missed.map(h).join('、')}</span></div>`:''}${(r.extra||[]).length?`<div class="sub">多列：<span class="key">${r.extra.slice(0,8).map(h).join('、')}</span></div>`:''}</div>`).join('')}</td></tr>`).join('')}</table></div>`:'<div class="sub">还没回放过。</div>';
   const cs=d.cases.length?d.cases.map(c=>`<div class="fact"><span class="grow" style="min-width:0"><b>${h(c.id)}</b> ${c.ticket?`<a href="#/t/${h(c.ticket)}">${h(c.ticket)}</a> `:''}${h(c.title)}<div class="sub key" style="white-space:normal;overflow-wrap:anywhere">${c.gold.map(h).join('、')}</div></span><span class="ev-tag ${(SRC[c.source]||SRC.manual)[0]}">${(SRC[c.source]||SRC.manual)[1]}</span><button class="ghost" data-rm="${h(c.id)}">移除</button></div>`).join(''):'<div class="sub">验收通过的自动改动会自动成为用例，也可以在下面手动加。</div>';
@@ -1711,11 +1712,11 @@ async function vLearn(){
   const LF=[['symptom','现象'],['cause','根因'],['fix','改法'],['verify','验法'],['anti','别这样改']];
   const lsum=d.lesson_summary||{};
   const ls=d.lessons.length?d.lessons.map(l=>{const st=l.stats||{},n=(st.passed||0)+(st.failed||0),sl=LS[l.status]||LS.active,pv=l.provenance||{};
-    return `<div class="fact" data-legacy-lesson="${h(l.id)}" style="flex-direction:column;align-items:stretch"><div class="row" style="gap:8px;flex-wrap:wrap"><b>${h(l.id)}</b><span class="ev-tag ${(KL[l.kind]||['mute'])[0]}">${(KL[l.kind]||['',l.kind])[1]}</span><span class="ev-tag ${sl[0]}">${sl[1]}</span><a href="#/t/${h(l.ticket)}">${h(l.ticket)}</a><span class="grow"></span><span class="sub">${h((l.ts||'').slice(5,16))}</span></div>
+    return `<div class="fact" data-legacy-lesson="${h(l.id)}" style="flex-direction:column;align-items:stretch"><div class="row" style="gap:8px;flex-wrap:wrap"><b>${h(l.id)}</b><span class="ev-tag ${(KL[l.kind]||['mute'])[0]}">${(KL[l.kind]||['',l.kind])[1]}</span><span class="ev-tag ${sl[0]}">${sl[1]}</span><a href="#/t/${h(l.ticket)}">${h(l.ticket)}</a><span class="grow"></span><span class="sub">${h(chinaTime((l.ts||'')).slice(5,16))}</span></div>
     <div style="font-weight:600;margin:2px 0">${h(l.title)}</div>${l.note&&!l.snapshot?`<div class="sub" style="white-space:normal">${h(l.note)}</div>`:''}${(l.snapshot?[]:LF).filter(([k])=>l[k]).map(([k,lb])=>`<div class="sub" style="white-space:normal"><span style="font-size:inherit;font-weight:600">${lb}：</span>${h(l[k])}</div>`).join('')}
     ${(l.files||[]).length&&!l.snapshot?`<div class="sub key" style="white-space:normal;overflow-wrap:anywhere">${l.files.map(h).join('、')}</div>`:''}
     <div class="sub">${st.used?`放进提示词 ${st.used} 次`:'还没被用过'}${n?` · 之后验收通过 ${st.passed}、没通过 ${st.failed}`:''}${st.cited?` · 智能体明确引用 ${st.cited} 次`:''}${pv.package_hash?` · 来自证据包 <span class="key">${h(pv.package_hash.slice(0,12))}</span>${pv.signer?'，'+h(pv.signer)+' 签收':''}`:''}</div>
-    ${lessonReviewHTML(l.snapshot,false)}<div class="row" style="gap:6px;margin-top:4px">${l.status==='candidate'?`<button class="primary" data-ls="${h(l.id)}" data-act="confirm">确认入库</button>`:''}${l.status==='probation'||l.status==='retired'?`<button data-ls="${h(l.id)}" data-act="restore">恢复使用</button>`:''}${l.status!=='retired'?`<button class="ghost" data-ls="${h(l.id)}" data-act="retire">停用</button>`:''}${l.shared?`<span class="ev-tag info" title="${h(l.shared.by)} 于 ${h((l.shared.ts||'').slice(0,16))} 共享">已共享</span><button class="ghost" data-ls="${h(l.id)}" data-act="unshare">收回共享</button>`:l.status==='active'?`<button class="ghost" data-lshare="${h(l.id)}">共享给其他项目</button>`:''}<details style="flex:1"><summary class="sub">修改</summary><div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">${LF.map(([k,lb])=>`<textarea data-lf="${h(l.id)}" data-k="${k}" placeholder="${lb}" style="min-height:38px">${h(l[k]||'')}</textarea>`).join('')}<div><button data-lsave="${h(l.id)}">保存</button></div></div></details></div><div data-lesson-state></div></div>`}).join(''):'<div class="sub">还没有。验收不通过、自动提交后有人又改过的工单会直接留下经验；带证据通过验收的工单会留一条待确认的做法，确认后才用。</div>';
+    ${lessonReviewHTML(l.snapshot,false)}<div class="row" style="gap:6px;margin-top:4px">${l.status==='candidate'?`<button class="primary" data-ls="${h(l.id)}" data-act="confirm">确认入库</button>`:''}${l.status==='probation'||l.status==='retired'?`<button data-ls="${h(l.id)}" data-act="restore">恢复使用</button>`:''}${l.status!=='retired'?`<button class="ghost" data-ls="${h(l.id)}" data-act="retire">停用</button>`:''}${l.shared?`<span class="ev-tag info" title="${h(l.shared.by)} 于 ${h(chinaTime((l.shared.ts||'')).slice(0,16))} 共享">已共享</span><button class="ghost" data-ls="${h(l.id)}" data-act="unshare">收回共享</button>`:l.status==='active'?`<button class="ghost" data-lshare="${h(l.id)}">共享给其他项目</button>`:''}<details style="flex:1"><summary class="sub">修改</summary><div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">${LF.map(([k,lb])=>`<textarea data-lf="${h(l.id)}" data-k="${k}" placeholder="${lb}" style="min-height:38px">${h(l[k]||'')}</textarea>`).join('')}<div><button data-lsave="${h(l.id)}">保存</button></div></div></details></div><div data-lesson-state></div></div>`}).join(''):'<div class="sub">还没有。验收不通过、自动提交后有人又改过的工单会直接留下经验；带证据通过验收的工单会留一条待确认的做法，确认后才用。</div>';
   const a=d.alerts,url=location.origin+a.path;
   const ast=!a.configured?'<span class="ev-tag mute">未开启</span>':a.ready?'<span class="ev-tag ok">已就绪</span>':`<span class="ev-tag warn">缺环境变量 ${h(a.key_env)}</span>`;
   const at=a.tickets.length?a.tickets.map(t=>`<a class="drow" href="#/t/${h(t.key)}"><span class="grow"><b>${h(t.key)}</b> ${h(t.title)}<span class="sub">${h(t.source||'告警')} · 触发 ${t.count} 次 · ${ago(t.created)}</span></span>${stPill(t.status)}</a>`).join(''):'<div class="sub">还没有告警开的单</div>';
@@ -1736,7 +1737,7 @@ async function vLearn(){
      ${(d.shared_in||[]).length?(()=>{const nt=d.shared_in.filter(x=>x.taken).length;return `<details style="margin-bottom:8px"><summary class="sub">其他项目共享来的经验 ${d.shared_in.length} 条，本项目引入了 ${nt} 条（引入的才会在相近时放 1 条进提示词）</summary><div class="sub" style="margin:4px 0 6px;white-space:normal">这些是别的项目的人写的，已脱敏。读过、觉得适用再引入；它在本项目跟着失败多于通过时会自动不再使用。</div>${d.shared_in.map(x=>`<div class="fact" style="flex-direction:column;align-items:stretch"><div class="row" style="gap:8px"><span class="grow"><b>${h(x.id)}</b> ${h(x.title)}</span>${x.here&&x.here.used?`<span class="sub">本项目用过 ${x.here.used} 次，通过 ${x.here.passed} 次</span>`:''}${x.taken?`<span class="ev-tag info">已引入</span><button class="ghost" data-ltake="${h(x.id)}" data-act="untake">不再引入</button>`:`<button data-ltake="${h(x.id)}" data-act="take">引入本项目</button>`}</div>${LF.filter(([k])=>x[k]).map(([k,lb])=>`<div class="sub" style="white-space:normal"><b style="font-size:inherit">${lb}：</b>${h(x[k])}</div>`).join('')}</div>`).join('')}</details>`})():''}
      ${(()=>{const im=d.impact||{},c=im.carried||{},hd=im.held||{},no=im.none||{},pr=x=>x.rate==null?`${x.n} 张`:`${pc(x.rate)}（${x.n} 张）`;return `<div class="imp"><div class="row" style="gap:8px;align-items:baseline"><b class="grow">经验有没有用</b><label class="sub" title="对所有项目生效">对照组（全平台）<select id="hoSel">${[[0,'关'],[0.1,'10%'],[0.2,'20%']].concat([0,0.1,0.2].some(v=>Math.abs((im.holdout||0)-v)<1e-9)?[]:[[im.holdout,Math.round(im.holdout*100)+'%']]).map(([v,lb])=>`<option value="${v}"${Math.abs((im.holdout||0)-v)<1e-9?' selected':''}>${lb}</option>`).join('')}</select></label></div>
        <div class="impg"><div><span class="sub">带经验</span><b>${pr(c)}</b></div><div><span class="sub">对照（相近但没放）</span><b>${im.holdout||hd.n?pr(hd):'未开'}</b></div><div><span class="sub">没有相近经验</span><b>${pr(no)}</b></div></div>
-       <div class="sub" style="white-space:normal">${h(im.verdict||'')}。比的是第一次验收就通过的比例${im.since?'，从 '+h(im.since.slice(0,10))+' 开对照组起算':''}。${im.holdout?'':'打开对照组后，有相近经验的工单里会按比例固定留一部分不放经验，这样两组问题相近，差别才算经验的作用。'}</div></div>`})()}
+       <div class="sub" style="white-space:normal">${h(im.verdict||'')}。比的是第一次验收就通过的比例${im.since?'，从 '+h(chinaTime(im.since).slice(0,10))+' 开对照组起算':''}。${im.holdout?'':'打开对照组后，有相近经验的工单里会按比例固定留一部分不放经验，这样两组问题相近，差别才算经验的作用。'}</div></div>`})()}
      <div class="sub" style="margin-bottom:8px">在用 ${lsum.active||0} · 待确认 ${lsum.candidate||0} · 暂停 ${lsum.probation||0} · 停用 ${lsum.retired||0}${lsum.pass_rate!=null?` · 用过的经验，之后验收通过率 ${pc(lsum.pass_rate)}`:''}。只有"在用"的会放进相近工单的提示词，每次最多 3 条；跟着失败的次数多于通过的，会自动暂停等人看。</div>${ls}</div>
    <div class="card"><div class="hdr" style="margin-bottom:6px"><h2 class="grow" style="margin:0">告警自动开单</h2>${ast}</div>
      <div class="sub" style="margin-bottom:6px">监控（Alertmanager、SkyWalking、日志平台等）POST 到 <span class="key">${h(url)}</span>，带 <span class="key">Authorization: Bearer 密钥</span>。同一告警只累计次数，堆栈会对到项目代码，开单后直接进入自动处理。${a.configured?'':'在数据目录的 alerts.json 里写 {"'+h(S.proj)+'":{"key_env":"环境变量名"}} 开启。'}</div>
@@ -1833,7 +1834,7 @@ async function pinCard(bm){const el=$('#pinC');if(!el)return;let d;try{d=await g
    <div class="row" style="gap:8px;margin-top:8px;align-items:center">${bm?`<a class="btn primary" href="${h(bm)}" onclick="return false" draggable="true">框选报问题 · ${h(S.proj)}</a><span class="sub">拖到书签栏；旧书签已失效</span>`
      :`<button id="pinT">${d.has_token?'重新生成书签（旧的会失效）':'生成书签'}</button>`}</div>
    <div style="margin-top:10px">${d.pins.length?d.pins.map(x=>`<div class="flowrow" style="align-items:flex-start"><span class="grow" style="min-width:0"><b>${h(clip(x.capture.note||x.capture.texts.join(' '),50)||'（没写说明）')}</b>
-      <div class="sub">${h(clip(x.capture.url,70))} · ${h(x.at.slice(5,16))} · ${h(L(x))}</div>
+      <div class="sub">${h(clip(x.capture.url,70))} · ${h(chinaTime(x.at).slice(5,16))} · ${h(L(x))}</div>
       <details><summary class="sub">定位结果</summary><pre class="log" style="white-space:pre-wrap">${h(x.summary)}
 
 ${h(x.found.basis.join('\n'))}</pre></details></span>
@@ -1914,7 +1915,7 @@ async function pinteg(el){const k=el.dataset.pinteg,u='/api/projects/'+encodeURI
     `${r.web?`<a href="${h(r.web)}" target="_blank" rel="noopener">${h(r.name)}</a>`:`<span title="${h(r.url)}${r.hostkey?' · 主机密钥 '+h(r.hostkey):''}">${h(r.name)}</span>`} <span class="tag ${r.on?'':'warn'}">${r.on?'推送开':'推送关'}</span>${r.checked&&r.checked!=='ok'?` <span class="sub" title="${h(r.checked)}">连接没通过</span>`:''} <button class="ghost" data-a="check">测试连接</button> <button class="ghost" data-a="${r.on?'off':'on'}">${r.on?'关掉推送':'打开推送'}</button>
      <details style="display:inline-block"><summary class="sub">部署密钥</summary><div class="sub">${r.deploy_keys_page?`把这把公钥加到 <a href="${h(r.deploy_keys_page)}" target="_blank" rel="noopener">仓库的 Deploy keys</a>，勾选 Allow write access：`:`把这把公钥加到那台机器上仓库所属账号的 authorized_keys（建议限定 git-shell）：`}</div><code style="word-break:break-all;user-select:all">${h(r.deploy_key)}</code><div><button class="ghost" data-a="unbind">解除绑定</button></div></details>`;
   const opts=n.targets.map(x=>`<option value="${h(x.id)}" ${x.id===n.conv?'selected':''}>${h(x.title)}</option>`).join('');
-  const group=n.bound?`<span title="${h(n.by)} ${h(n.ts)}">${h(n.title)}</span> <button class="ghost" data-a="ntest">发测试消息</button> <button class="ghost" data-a="nunbind">解除</button>`:
+  const group=n.bound?`<span title="${h(n.by)} ${h(chinaTime(n.ts))}">${h(n.title)}</span> <button class="ghost" data-a="ntest">发测试消息</button> <button class="ghost" data-a="nunbind">解除</button>`:
     n.targets.length?`<select data-a="npick"><option value="">选择项目群…</option>${opts}</select>`:`<span class="sub" title="把机器人拉进群并在群里 @ 它说一句话，这里就能选">未绑定项目群</span>`;
   el.innerHTML=`<div class="sub">代码仓库：${repo}</div><div class="sub">通知群：${group}</div>`;
   el.querySelectorAll('[data-a]').forEach(b=>{const a=b.dataset.a;
@@ -1949,7 +1950,7 @@ async function testbox(d){
    <div class="row" style="margin-top:8px"><label class="grow">地址 <input class="full" id="tbH" placeholder="用户名@地址，或 ~/.ssh/config 里的名字" value="${h(c.host||'')}"></label><label>端口 <input id="tbP" size="6" placeholder="默认" value="${h(c.port?String(c.port):'')}"></label></div>
    <label>工作目录（可不填，Windows 默认 C:/tmh-runner）<input class="full" id="tbD" value="${h(c.dir||'')}"></label>
    <div class="row" style="gap:8px"><button class="primary" id="tbS">保存</button>${c.host?'<button id="tbC">体检</button>':''}</div>
-   ${L?`<div style="margin-top:10px">${L.error?`<div class="sub" style="color:var(--bad)">${h(L.error)}</div>`:`<div class="sub">${h(L.os==='windows'?'Windows':'Linux/macOS')} · ${h(L.dir||'')} · ${h(L.at||'')}</div>${tools}`}</div>`:''}
+   ${L?`<div style="margin-top:10px">${L.error?`<div class="sub" style="color:var(--bad)">${h(L.error)}</div>`:`<div class="sub">${h(L.os==='windows'?'Windows':'Linux/macOS')} · ${h(L.dir||'')} · ${h(chinaTime(L.at||''))}</div>${tools}`}</div>`:''}
    ${L&&L.missing&&L.missing.length?`<div style="margin-top:8px" id="tbI"><div class="sub">缺 ${h(L.missing.join('、'))}。可以让平台在测试机上下载免安装版，解压到工作目录的 tools 下（不需要管理员权限，不改系统设置）。</div><button id="tbI1">下载安装缺的工具</button></div>`:''}
    ${L&&L.log?`<pre class="log">${h(L.log.join('\n'))}</pre>`:''}`;
   $('#tbS').onclick=async()=>{try{testbox(await post('/api/testbox',{host:$('#tbH').value.trim(),port:+$('#tbP').value||0,dir:$('#tbD').value.trim()}));toast('已保存')}catch(e){toast(e.message,5000)}};
@@ -2085,7 +2086,7 @@ const A={
     if(!this.sid){el.innerHTML=`<div class="sub" style="padding:8px 2px">直接在下面输入就会开始一个会话。可以提问项目里的业务和代码，也可以让助手替你操作页面：“打开知识库”“新建工单：审批后单据未生效”“给这单写评论：已联系现场”。要提交或保存的操作，会先停下来等你确认。</div>`;return}
     if(!this.msgs.length&&!this.pending){el.innerHTML=`<div class="sub" style="padding:8px 2px">${this.ticket?'问这张工单的任何事：为什么失败、哪条没验收、改动影响哪些业务。':'问项目里的业务和代码。'}也可以直接说要做什么，比如“给这单写评论：……”“打开知识库里的请假审批”，助手会在页面上替你填好，提交前等你确认。回答带依据，查不到会明说。</div>`;this.paintSugg();return}
     el.innerHTML=this.msgs.map((m,i)=>{
-      const d=m.data||{};const tm=(m.ts||'').slice(11,16);
+      const d=m.data||{};const tm=chinaTime(m.ts||'').slice(11,16);
       if(d.kind==='cmd'&&m.role==='user'){const nx=this.msgs[i+1];if(nx&&(nx.data||{}).kind==='cmd'&&nx.role!=='user')return '';return `<div class="m-u">${h(m.body)}<div class="m-time" style="justify-content:flex-end">${h(m.author)} ${tm}</div></div>`}
       if(m.role==='user')return `<div class="m-u">${h(m.body)}<div class="m-time" style="justify-content:flex-end">${h(m.author)} ${tm}</div></div>`;
       if(d.kind==='cmd')return this.cmdCard(m,tm);

@@ -4,10 +4,11 @@ import subprocess
 import unittest
 
 from tmh.platform.ui import page
+from tmh.platform.ui_time import TIME_JS
 from tmh.platform.ui_library import LIBRARY_JS
 
 
-HARNESS = r"""
+HARNESS = TIME_JS + r"""
 const assert=require('node:assert/strict');
 const h=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const unescape=s=>s.replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
