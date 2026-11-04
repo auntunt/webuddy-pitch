@@ -19,7 +19,7 @@ const nav={dataset:{},innerHTML:'',contains:()=>false};
 const $=()=>nav,curView=()=>view;
 '''
         checks = r'''
-const routes={workspace:'workspace',today:'workspace',tickets:'tasks',t:'tasks',projects:'projects',team:'tasks',memory:'memory',kb:'memory',atlas:'memory',deliveries:'deliveries',delivery:'deliveries',versions:'deliveries',runs:'runs',lead:'insights',overview:'insights',clients:'clients',c:'clients',settings:'settings',access:'access'};
+const routes={home:'workspace',board:'tasks',workspace:'workspace',today:'workspace',tickets:'tasks',t:'tasks',projects:'projects',team:'tasks',memory:'memory',kb:'memory',atlas:'memory',deliveries:'deliveries',delivery:'deliveries',versions:'deliveries',runs:'runs',lead:'insights',overview:'insights',clients:'clients',c:'clients',settings:'settings',access:'access'};
 for(const [route,current] of Object.entries(routes)){
  view=route;paintNav();
  const selected=[...nav.innerHTML.matchAll(/<a\b[^>]*aria-current="page"[^>]*>/g)];

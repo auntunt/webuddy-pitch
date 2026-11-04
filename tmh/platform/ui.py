@@ -158,7 +158,7 @@ document.addEventListener('click',e=>{const d=document.querySelector('#tabs .tmo
 function paintTabs(tab){
   paintNav();$('#svc').hidden=true;document.body.classList.toggle('svc-reform',S.svc==='reform');ls.set('tmh.svc',S.svc);
   const v=curView(), group=navOf(v), sets={
-    workspace:[['workspace','总览'],['today','动态与待办']],
+    workspace:[['home','闭环总览'],['workspace','工作台'],['today','动态与待办']],
     projects:[['projects','项目'],['reform','重构计划'],['settings','设置']],
     tasks:[['tickets','全部需求'],['board','状态看板'],['reqs','需求对话'],['rtickets','重构工单']],
     deliveries:[['deliveries','交付记录'],['versions','版本']],
@@ -167,7 +167,7 @@ function paintTabs(tab){
     team:[['team','分配与复核']],
     memory:[['memory','项目知识'],['kb','知识页'],['atlas','业务与代码图谱'],['states','业务状态图'],['map','架构依据'],['library','参考与引用'],['learn','经验复盘'],['handoff','项目交接']]};
   const rows=sets[group]||sets.projects, extras=[['clients','客户'],['team','分配与复核'],['rdeps','依赖清单'],['int','外部系统'],['settings','设置']];
-  $('#tabs').hidden=['workspace','projects','team','memory','access'].includes(v);
+  $('#tabs').hidden=['projects','team','memory','access'].includes(v);
   $('#tabs').setAttribute('aria-label','当前工作区');
   const link=([k,l])=>`<a data-r="${k}" href="#/${k==='handoff'?'handoff/'+encodeURIComponent(S.proj):k}" class="${k===v||(v==='t'&&k==='tickets')?'on':''}" ${k===v?'aria-current="page"':''}>${l}</a>`;
   $('#tabs').innerHTML=rows.map(link).join('')+`<details class="tmore"><summary>更多</summary><div class="tmp"><div class="tmg">${extras.map(link).join('')}</div></div></details>`;
@@ -199,7 +199,7 @@ async function loadProjects(){
 // Work that spans projects (board, list, 运维成效) shows every project unless narrowed; pages about one codebase
 // (knowledge base, map, runs…) follow the project of whatever you opened last, so nobody has to pick one by hand.
 const CROSS=['home','board','tickets','lead','t','today','clients','c','reqs','versions','deliveries','delivery','workspace','projects','team','memory','meetings'];
-function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'workspace'}
+function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'home'}
 function isCross(){return CROSS.includes(curView())}
 function paintSel(){accessPaintPermissions();const cross=isCross()&&!['t','delivery'].includes(curView()),v=cross?S.scope:S.proj;
   $('#projSel').innerHTML=(cross?`<option value="*" ${v==='*'?'selected':''}>全部项目（${S.projects.length}）</option>`:'')+S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===v?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')+(cross?'':'<option value="*">全部项目</option>')+(!S.meta.access||S.meta.access.platform_owner?'<option value="__new">＋ 添加项目…</option>':'');
@@ -208,7 +208,7 @@ function setProj(k){if(!k||k===S.proj)return;S.proj=k;ls.set('tmh.proj',k);A.res
 const scopeQ=()=>S.scope==='*'?'*':S.scope;
 async function loadPoints(){if(!S.proj){$('#ptsN').textContent='-';return}try{const r=await get('/api/projects/'+S.proj+'/points');S.points=r;$('#ptsN').textContent=r.balance.toLocaleString();if(A.open)A.paintFoot()}catch(e){}}
 function render(){
-  if(ACCESS.blocked)return;if(accessControlOnly())return accessRenderControl();stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'workspace';
+  if(ACCESS.blocked)return;if(accessControlOnly())return accessRenderControl();stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'home';
   document.body.classList.toggle('delivery-surface',['deliveries','delivery'].includes(view));
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
@@ -255,20 +255,23 @@ async function vHome(){
   if(!L.total){$('#main').innerHTML=firstRun(L);poll(async()=>{if(!$('#first'))return;try{const n=await get('/api/projects/'+encodeURIComponent(scopeQ())+'/loop');if(n.total||n.kb_built!==L.kb_built)vHome()}catch(e){}},15000,'page');return}
   const gc=['#52C41A','#4096FF','#9254DE','#36CFC9'];
   const ic=(bg,svg)=>`<div class="ic" style="background:${bg}"><svg width="20" height="20" viewBox="-12 -12 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg></div>`;
-  $('#main').innerHTML=`<div id="inbox"></div><div id="rels"></div><div class="band"><div class="gauges">${L.metrics.map((m,i)=>`<div class="gauge">${gaugeSvg(m.pct,gc[i])}<div style="min-width:0"><div class="gl">${h(m.label)}</div><div class="gs">${h(m.sub)}</div></div></div>`).join('')}</div>
-   <div class="caps"><div class="cap" data-sel="open">${ic('#1677FF','<path d="M2-10l-8 12h7l-2 8 8-12h-7z"/>')}<div><b>${L.open}</b><span>流转中</span></div></div>
+  const caps=`<div class="caps home-caps"><div class="cap" data-sel="open">${ic('#1677FF','<path d="M2-10l-8 12h7l-2 8 8-12h-7z"/>')}<div><b>${L.open}</b><span>流转中</span></div></div>
     <div class="cap" data-sel="failed">${ic('#F5222D','<circle r="9"/><path d="M-3.5-3.5l7 7M3.5-3.5l-7 7"/>')}<div><b>${L.failed}</b><span>失败</span></div></div>
     <div class="cap" data-sel="closed">${ic('#52C41A','<circle r="9"/><path d="M-4 0l3 3 5.5-6"/>')}<div><b>${L.closed}</b><span>已关闭</span></div></div>
-    <div class="today">今日新建 ${L.today.created} · 今日闭环 ${L.today.closed}</div></div>
-   ${L.waiting?`<div class="catch"><span><b>${L.waiting} 张已有工单还没走自动处理</b>（自动处理只接新进来的工单；这些是之前就在、或自动处理关着时进来的）。交给它后会从各自停下的那一步接着做，同时最多跑 2 张。</span><button class="primary" id="catchUp">全部交给自动处理</button></div>`:''}
-   <div class="insight"><b>智能洞察</b><span>${S.scope==='*'&&L.projects>1?h(L.projects+' 个项目合计：'):''}${h(L.insight)}</span></div></div>
-  <div class="viewbar"><div class="seg"><button data-v="ring" class="${S.home.view==='ring'?'on':''}">闭环视图</button><button data-v="board" class="${S.home.view==='board'?'on':''}">列表看板</button></div><span class="grow"></span><span class="sub">最后更新 ${new Date().toTimeString().slice(0,8)}</span><button id="hRef">刷新</button></div>
-  <div id="hView"></div><div id="hList" style="margin-top:14px"></div>`;
+    <div class="today">今日新建 ${L.today.created} · 今日闭环 ${L.today.closed}</div></div>`;
+  $('#main').innerHTML=`<div class="hdr home-hd"><div class="grow"><h1>闭环总览</h1><div class="sub">每张工单走到了哪一步、在等谁。点环上的节点，右边列出这一步的工单。</div></div>
+   <div class="viewbar"><div class="seg"><button data-v="ring" class="${S.home.view==='ring'?'on':''}">闭环视图</button><button data-v="board" class="${S.home.view==='board'?'on':''}">列表看板</button></div><span class="sub">更新于 ${new Date().toTimeString().slice(0,5)}</span><button id="hRef">刷新</button></div></div>
+   ${L.waiting?`<div class="catch" title="自动处理只接新进来的工单；这些是之前就在、或自动处理关着时进来的。交给它后会从各自停下的那一步接着做，同时最多跑 2 张。"><span><b>${L.waiting} 张早先进来的工单</b>还没交给自动处理。</span><button class="primary" id="catchUp">全部交给自动处理</button></div>`:''}
+  <div class="home-grid${S.home.view==='board'?' wide':''}"><div id="hView"></div>
+   <div class="home-side">${caps}<div id="hList"><div class="sub home-pick">点环上的数字或上面的分类，这里列出对应的工单。</div></div><div id="inbox"></div></div></div>
+  <div id="rels"></div>
+  <div class="band"><div class="gauges">${L.metrics.map((m,i)=>`<div class="gauge">${gaugeSvg(m.pct,gc[i])}<div style="min-width:0"><div class="gl">${h(m.label)}</div><div class="gs">${h(m.sub)}</div></div></div>`).join('')}</div>
+   <div class="insight"><b>智能洞察</b><span>${S.scope==='*'&&L.projects>1?h(L.projects+' 个项目合计：'):''}${h(L.insight)}</span></div></div>`;
   document.querySelectorAll('.viewbar .seg button').forEach(b=>b.onclick=()=>{S.home.view=b.dataset.v;vHome()});
   $('#hRef').onclick=()=>vHome();rels();
   if($('#catchUp'))$('#catchUp').onclick=async()=>{try{const r=await post('/api/projects/'+encodeURIComponent(scopeQ())+'/catchup',{});toast(`已交给自动处理 ${r.queued} 张，按顺序开始`);vHome()}catch(e){toast(e.message)}};
   document.querySelectorAll('.cap').forEach(c=>c.onclick=()=>homeList(c.dataset.sel,ts));
-  if(S.home.view==='ring'){$('#hView').innerHTML=ringSvg(L)+'<div class="ringhint">点击环上的数字看该节点的工单，再点单条工单看详情</div>';
+  if(S.home.view==='ring'){$('#hView').innerHTML=ringSvg(L);
     document.querySelectorAll('.ring [data-s]').forEach(n=>n.addEventListener('click',()=>homeList(n.dataset.s,ts)))}
   else{$('#hView').innerHTML=boardHtml(ts);bindBoard()}
   if(S.home.sel)homeList(S.home.sel,ts,true);
@@ -332,7 +335,7 @@ function homeList(sel,ts,quiet){
   const pick={open:t=>t.status!=='closed',failed:t=>f.has(t.id),closed:t=>t.status==='closed'}[sel]||(t=>t.status===sel);
   const name={open:'流转中',failed:'失败（最近一次智能体运行失败）',closed:'已关闭'}[sel]||(NODES.find(n=>n.s===sel)||{}).l||sel;
   const list=ts.filter(pick);
-  $('#hList').innerHTML=`<div class="hdr" style="margin-bottom:8px"><h2 style="margin:0" class="grow">${h(name)} · ${list.length} 单</h2><button class="ghost" onclick="S.home.sel='';$('#hList').innerHTML=''">收起</button></div>`+(list.length?`<div class="tw">${ticketTable(list)}</div>`:'<div class="empty">这个节点没有工单</div>');
+  $('#hList').innerHTML=`<div class="hdr" style="margin-bottom:8px"><h2 style="margin:0" class="grow">${h(name)} · ${list.length} 单</h2><button class="ghost" onclick="S.home.sel='';$('#hList').innerHTML='<div class=&quot;sub home-pick&quot;>点环上的数字或上面的分类，这里列出对应的工单。</div>'">收起</button></div>`+(list.length?`<div class="tw">${ticketTable(list)}</div>`:'<div class="empty">这个节点没有工单</div>');
   if(!quiet)$('#hList').scrollIntoView({behavior:'smooth',block:'nearest'})}
 
 // ---------- overview
@@ -1956,7 +1959,7 @@ const A={
     const grp=(title,inner,n,open)=>`<details class="hg" ${open?'open':''}><summary>${title}<small>${n}</small></summary>${inner||'<div class="sub" style="padding:4px 10px">没有</div>'}</details>`;
     const rc=recents();
     return `<div class="hist"><input id="hq" placeholder="搜索会话标题或工单号" value="${h(this.q)}" aria-label="搜索会话">
-      <div class="hg"><div class="hgt">跳转</div><div class="jump">${[['#/','今天'],['#/board','工单看板'],['#/kb','知识库'],['#/map','架构与依据'],['#/eff','提效报告'],['#/settings','设置']].map(([r,t])=>`<a class="tag" href="${r}">${t}</a>`).join('')}</div>
+      <div class="hg"><div class="hgt">跳转</div><div class="jump">${[['#/home','闭环总览'],['#/workspace','工作台'],['#/kb','知识库'],['#/map','架构与依据'],['#/eff','提效报告'],['#/settings','设置']].map(([r,t])=>`<a class="tag" href="${r}">${t}</a>`).join('')}</div>
        ${rc.length?`<div class="hgt">最近访问</div><div class="jump">${rc.map(x=>`<a class="tag" href="${h(x.r)}" title="${h(x.t)}">${h(x.t)}</a>`).join('')}</div>`:''}</div>
       ${grp('项目咨询',act.filter(s=>s.kind!=='ticket').map(row).join(''),act.filter(s=>s.kind!=='ticket').length,true)}
       ${grp('关联工单',act.filter(s=>s.kind==='ticket').map(s=>row(Object.assign({},s,{title:s.title}))).join(''),act.filter(s=>s.kind==='ticket').length,true)}

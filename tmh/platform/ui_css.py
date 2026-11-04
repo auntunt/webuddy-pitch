@@ -97,6 +97,15 @@ table.t{width:100%;border-collapse:collapse;background:var(--panel)}
 .ring text{font-family:inherit}
 .ring .nl{font-size:13px;font-weight:600;fill:var(--fg)}.ring .nr{font-size:11px}
 .ringhint{text-align:center;color:var(--mut);font-size:12px;margin-top:4px}
+.home-hd{align-items:flex-end;margin-bottom:10px}.home-hd .viewbar{margin:0}
+.home-grid{display:grid;grid-template-columns:minmax(0,600px) minmax(320px,1fr);gap:20px;align-items:start;margin:8px 0 16px}
+.home-grid.wide{grid-template-columns:minmax(0,1fr)}
+@media (max-width:1100px){.home-grid{grid-template-columns:minmax(0,1fr)}}
+.home-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.home-caps{margin-top:0;gap:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.home-caps .cap span,.home-caps .today{color:var(--mut)}
+.home-pick{padding:10px 12px;border:1px dashed var(--line);border-radius:8px}
+.home-side .inbox{margin-bottom:0}
 .board{display:grid;grid-template-columns:repeat(6,minmax(180px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px}
 .col{background:var(--soft);border-radius:10px;padding:10px;min-height:300px}
 .col h3{display:flex;justify-content:space-between;align-items:center}
