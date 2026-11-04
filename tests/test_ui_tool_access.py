@@ -120,7 +120,7 @@ class ToolAccessUiTest(unittest.TestCase):
         self.run_js("await start(body());assert.ok(credential);await start({action:'revoke',connection_id:'a'.repeat(32),request_id:'revoke-visible'});assert.equal(mutations.length,1);assert.ok($('#notice').textContent.includes('清除'));assert.ok($('#notice').textContent.includes('凭据'));")
 
     def test_secret_stays_only_in_memory_dom_and_explicit_download(self):
-        self.run_js("await start(body());assert.ok(credential);assert.equal(values.size,0);assert.ok($('#credential').value.includes('wbt_'));await $('#download').fire('click');assert.equal(blobs.length,1);assert.ok((await blobs[0].text()).includes('wbt_'));await $('#dismiss').fire('click');assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal($('#guide').textContent,'');assert.equal($('#secret').hidden,true);")
+        self.run_js("await start(body());assert.ok(credential);assert.equal(values.size,0);assert.ok($('#credential').value.includes('wbt_'));assert.equal(blobs.length,1);assert.ok((await blobs[0].text()).includes('wbt_'));assert.ok($('#notice').textContent.includes('已自动下载'));await $('#download').fire('click');assert.equal(blobs.length,2);assert.ok((await blobs[1].text()).includes('wbt_'));await $('#dismiss').fire('click');assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal($('#guide').textContent,'');assert.equal($('#secret').hidden,true);")
 
     def test_dismiss_reports_clear_and_preserves_pending_or_refresh_warnings(self):
         self.run_js("await start(body());await $('#dismiss').fire('click');assert.equal($('#notice').textContent,'页面凭据已清除。可在列表管理连接。');assert.equal($('#notice').className,'');assert.equal(credential,null);assert.equal($('#credential').value,'');")
@@ -155,18 +155,18 @@ class ToolAccessUiTest(unittest.TestCase):
         self.run_js("await start(body());assert.ok(credential);signedUser='bob';authContext='bob-context';await events.get('focus')();assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal($('#connections').textContent,'');assert.equal($('#projects').textContent,'');assert.equal($('#identity').textContent,'');assert.equal($('#submit').disabled,true);assert.equal(watches[0].ms,15000);")
 
     def test_focus_identity_barrier_clears_secret_before_response_and_failed_check_cannot_download(self):
-        self.run_js("await start(body());assert.ok(credential);signedUser='bob';authContext='bob-context';const delayed=later();getMeta=()=>delayed.promise;const checking=events.get('focus')();assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal($('#secret').hidden,true);await $('#download').fire('click');assert.equal(blobs.length,0);delayed.reject(Error('identity unavailable'));await checking;await $('#download').fire('click');assert.equal(blobs.length,0);assert.equal(credential,null);assert.equal(ready,false);")
+        self.run_js("await start(body());assert.ok(credential);signedUser='bob';authContext='bob-context';const delayed=later();getMeta=()=>delayed.promise;const checking=events.get('focus')();assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal($('#secret').hidden,true);await $('#download').fire('click');assert.equal(blobs.length,1);delayed.reject(Error('identity unavailable'));await checking;await $('#download').fire('click');assert.equal(blobs.length,1);assert.equal(credential,null);assert.equal(ready,false);")
 
     def test_focus_during_pending_post_prevents_late_secret_from_reappearing(self):
         self.run_js("const delayed=later();postHandler=()=>delayed.promise;const writing=start(body());await tick();assert.equal(mutations.length,1);await events.get('focus')();delayed.resolve(success(body()));await writing;assert.equal(credential,null);assert.equal($('#credential').value,'');await $('#download').fire('click');assert.equal(blobs.length,0);assert.ok($('#notice').textContent.includes('重新创建'));")
 
     def test_periodic_check_and_refresh_clear_old_secret_synchronously(self):
         self.run_js("await start(body());const delayed=later();getMeta=()=>delayed.promise;const checking=watches[0].fn();assert.equal(credential,null);assert.equal($('#credential').value,'');delayed.resolve(meta());await checking;assert.equal(credential,null);assert.ok($('#notice').textContent.includes('重新创建'));")
-        self.run_js("await start(body());const delayed=later();getMeta=()=>delayed.promise;const reading=load();assert.equal(credential,null);assert.equal($('#credential').value,'');await $('#download').fire('click');assert.equal(blobs.length,0);delayed.resolve(meta());await reading;assert.equal(credential,null);")
+        self.run_js("await start(body());const delayed=later();getMeta=()=>delayed.promise;const reading=load();assert.equal(credential,null);assert.equal($('#credential').value,'');await $('#download').fire('click');assert.equal(blobs.length,1);delayed.resolve(meta());await reading;assert.equal(credential,null);")
 
     def test_blur_and_hidden_clear_secret_without_discarding_original_pending(self):
-        self.run_js("failRemove=true;await start(body());assert.ok(credential);const original=JSON.stringify(pending);events.get('blur')();assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal(JSON.stringify(pending),original);assert.equal(values.size,1);await $('#download').fire('click');assert.equal(blobs.length,0);")
-        self.run_js("await start(body());document.hidden=true;events.get('document:visibilitychange')();assert.equal(credential,null);assert.equal($('#secret').hidden,true);await $('#download').fire('click');assert.equal(blobs.length,0);")
+        self.run_js("failRemove=true;await start(body());assert.ok(credential);const original=JSON.stringify(pending);events.get('blur')();assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal(JSON.stringify(pending),original);assert.equal(values.size,1);await $('#download').fire('click');assert.equal(blobs.length,1);")
+        self.run_js("await start(body());document.hidden=true;events.get('document:visibilitychange')();assert.equal(credential,null);assert.equal($('#secret').hidden,true);await $('#download').fire('click');assert.equal(blobs.length,1);")
 
     def test_latest_identity_barrier_prevents_late_post_secret_display(self):
         self.run_js("const delayed=later();let reads=0;getMeta=()=>{reads++;return reads===3?delayed.promise:meta()};const writing=start(body());await tick();assert.equal(credential,null);assert.ok(pending);signedUser='bob';authContext='bob-context';delayed.resolve(meta());await writing;assert.equal(credential,null);assert.equal($('#credential').value,'');assert.equal(locked,true);assert.equal(values.size,1);")
@@ -233,7 +233,7 @@ await start({...body(),request_id:'must-not-duplicate'});assert.equal(mutations.
     def test_matching_final_row_accepts_same_project_set_and_scope(self):
         for scope in ('read', 'content'):
             with self.subTest(scope=scope):
-                self.run_js("const original={...body(),scope:" + json.dumps(scope) + ",project_ids:[2,1]};getList=()=>({...directory(),connections:records.map(row=>({...row,project_ids:[1,2]}))});await start(original);assert.ok(credential);assert.equal(pending,null);assert.deepEqual(mutations[0],original);await $('#download').fire('click');assert.equal(blobs.length,1);assert.equal(JSON.parse(await blobs[0].text()).token,credential.token);")
+                self.run_js("const original={...body(),scope:" + json.dumps(scope) + ",project_ids:[2,1]};getList=()=>({...directory(),connections:records.map(row=>({...row,project_ids:[1,2]}))});await start(original);assert.ok(credential);assert.equal(pending,null);assert.deepEqual(mutations[0],original);await $('#download').fire('click');assert.equal(blobs.length,2);assert.equal(JSON.parse(await blobs[0].text()).token,credential.token);")
 
     def test_expiry_crossing_final_identity_barrier_never_displays_secret(self):
         self.run_js(r'''
@@ -250,9 +250,9 @@ await $('#download').fire('click');assert.equal(blobs.length,0);assert.deepEqual
         self.run_js(r'''
 let now=1900000000000;Date.now=()=>now;
 postHandler=b=>success(b,{connection:connection(b,{expires_at:now/1000+1})});
-await start(body());assert.ok(credential);await $('#download').fire('click');assert.equal(blobs.length,1);
+await start(body());assert.ok(credential);assert.equal(blobs.length,1);await $('#download').fire('click');assert.equal(blobs.length,2);
 const count=requests.length;now+=1000;await $('#download').fire('click');
-assert.equal(requests.length,count);assert.equal(blobs.length,1);assert.equal(credential,null);
+assert.equal(requests.length,count);assert.equal(blobs.length,2);assert.equal(credential,null);
 assert.equal($('#credential').value,'');assert.equal($('#secret').hidden,true);assert.equal($('#download').disabled,true);
 assert.ok($('#notice').textContent.includes('过期'));assert.equal(pending,null);
 ''')
