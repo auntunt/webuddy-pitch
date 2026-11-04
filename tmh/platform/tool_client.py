@@ -9,6 +9,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import io
+import json
 import zipfile
 from pathlib import Path
 
@@ -18,6 +19,7 @@ NAME = "webuddy_client"
 FILENAME = f"{NAME}-{__version__}-py3-none-any.whl"
 MODULES = ("__init__.py", "agent_contract.py", "workbench.py", "workbench_client.py",
            "workbench_credentials.py", "workbench_entry.py", "workbench_mcp.py")
+SITE = "workbench_site.json"
 _cache = {}
 
 
@@ -25,10 +27,16 @@ def _digest(data):
     return "sha256=" + base64.urlsafe_b64encode(hashlib.sha256(data).digest()).rstrip(b"=").decode()
 
 
-def wheel():
-    """Return (filename, bytes); deterministic for the running release."""
+def wheel(endpoint=None):
+    """Return (filename, bytes); deterministic for the running release.
+
+    endpoint (https://host/t/<tenant>) is written into the client so a bare
+    `webuddy` knows which server it came from.
+    """
     root = Path(__file__).resolve().parent.parent
     sources = [("tmh/" + name, (root / name).read_bytes()) for name in MODULES]
+    if endpoint:
+        sources.append(("tmh/" + SITE, json.dumps({"endpoint": endpoint}).encode()))
     key = hashlib.sha256(b"".join(data for _, data in sources)).hexdigest()
     if key not in _cache:
         info = f"{NAME}-{__version__}.dist-info/"

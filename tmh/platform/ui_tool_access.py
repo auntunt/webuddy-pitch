@@ -17,8 +17,9 @@ HTML = r'''<!doctype html>
 <section class="panel" id="howto"><h2>怎么连接</h2><ol class="steps">
 <li>准备一台 macOS 或 Linux 电脑（Windows 请在 WSL 里操作），装好 Python 3.10 或以上。</li>
 <li><a id="client" download="__CLIENT__">下载客户端</a>，在终端安装到单独的目录：<pre>python3 -m venv ~/.webuddy
-~/.webuddy/bin/pip install ~/Downloads/__CLIENT__</pre></li>
-<li>在下方「授权一个工具连接」里选项目、操作范围和有效期，创建后下载凭据文件。</li>
+~/.webuddy/bin/pip install ~/Downloads/__CLIENT__
+~/.webuddy/bin/webuddy</pre>最后一条会显示客户端连接的服务器地址（就是本系统）和下一步。</li>
+<li>在下方「授权一个工具连接」里选项目、操作范围和有效期，创建后凭据文件会自动下载（webuddy-credential.json）。凭据只在创建时提供一次，丢了就新建一个连接。</li>
 <li>创建成功后，本页会给出导入凭据、生成 Codex / Claude Code / Cursor 配置的命令，照着复制执行，然后重启工具即可。</li>
 </ol><p class="muted">客户端只包含命令行和 MCP 桥接程序，在你的电脑上运行，通过 HTTPS 连到本系统；凭据只保存在你自己的电脑。</p></section>
 <div id="pending" class="note" hidden><p>上次操作的结果尚未确认。请用原请求核对，避免重复创建连接。</p><button id="retry">核对原请求</button></div>
@@ -130,9 +131,11 @@ function showCredential(token,item,body,data){
   confirmedConnection(item,body,data);
   credentialBinding={item,body,data};
   credential={schema:1,endpoint:initialOrigin+base,token};$('#credential').value=JSON.stringify(credential,null,2);$('#secret').hidden=false;
-  const file='~/.config/webuddy/'+item.id.slice(0,8)+'.json',run='~/.webuddy/bin/webuddy --credential-file '+file,mcpFlag=item.scope==='execute'?' --allow-execution':item.scope==='read'?' --read-only':'';
-  $('#guide').textContent=['1. 先点上方「下载凭据文件」，再在终端导入（只需一次）：','mkdir -m 700 -p ~/.config/webuddy','~/.webuddy/bin/webuddy connect --stdin --save-to '+file+' < ~/Downloads/webuddy-credential.json','rm ~/Downloads/webuddy-credential.json','','2. 确认连接可用：',run+' status','','3. 生成你所用工具的配置（只打印，不改任何文件），任选一个：','# Codex：追加到 ~/.codex/config.toml',run+' config codex'+mcpFlag+' >> ~/.codex/config.toml','# Claude Code：把输出合并进项目根目录的 .mcp.json',run+' config claude'+mcpFlag,'# Cursor：把输出合并进 ~/.cursor/mcp.json',run+' config cursor'+mcpFlag,'','4. 重启工具，让它「列出网梯运维系统里我能看到的项目」确认已接通。'].join('\n');
+  const run='~/.webuddy/bin/webuddy',mcpFlag=item.scope==='execute'?' --allow-execution':item.scope==='read'?' --read-only':'';
+  $('#guide').textContent=['1. 凭据文件已自动下载到 ~/Downloads（没有的话点上方「下载凭据文件」），在终端导入（只需一次；客户端已经知道服务器地址）：',run+' connect --stdin < ~/Downloads/webuddy-credential.json','rm ~/Downloads/webuddy-credential.json','','2. 确认连接可用：',run+' status','','3. 生成你所用工具的配置（只打印，不改任何文件），任选一个：','# Codex：追加到 ~/.codex/config.toml',run+' config codex'+mcpFlag+' >> ~/.codex/config.toml','# Claude Code：把输出合并进项目根目录的 .mcp.json',run+' config claude'+mcpFlag,'# Cursor：把输出合并进 ~/.cursor/mcp.json',run+' config cursor'+mcpFlag,'','4. 重启工具，让它「列出网梯运维系统里我能看到的项目」确认已接通。'].join('\n');
   setBusy(busy);
+  saveCredential();
+  $('#secret').scrollIntoView?.({behavior:'smooth',block:'start'});
 }
 function render(data){
   $('#identity').textContent='当前成员：'+owner+' · 只显示本人授权的连接';
@@ -184,7 +187,7 @@ async function submitPending(){
     if(result.token&&displayVersion===sensitiveEpoch)showCredential(result.token,result.connection,original,data);
     let cleanupFailed=false;
     try{cleared()}catch(error){cleanupFailed=true}
-    const message=cleanupFailed?'操作已完成，但本机未能清除重试记录。请先核对原请求；若尚未保存凭据，请撤销该连接并重新创建。':result.credential_unavailable?'原创建已完成，但凭据不会再次显示。请在列表中撤销该连接，再重新创建。':result.token?(credential?'连接已创建。请及时保存凭据；重新核对身份时会清除页面凭据。':'操作已完成，但页面或身份核验已变化，本次凭据未显示。请在列表中撤销该连接并重新创建。'):'操作已完成。';
+    const message=cleanupFailed?'操作已完成，但本机未能清除重试记录。请先核对原请求；若尚未保存凭据，请撤销该连接并重新创建。':result.credential_unavailable?'原创建已完成，但凭据不会再次显示。请在列表中撤销该连接，再重新创建。':result.token?(credential?'连接已创建，凭据文件 webuddy-credential.json 已自动下载（见浏览器下载栏）；没看到就点「下载凭据文件」。切换窗口或 15 秒后页面上的凭据会清除。':'操作已完成，但页面或身份核验已变化，本次凭据未显示。请在列表中撤销该连接并重新创建。'):'操作已完成。';
     notice(message,cleanupFailed||!!result.token&&!credential);
   }catch(error){
     if(live(version)){ready=false;pendingView();notice(error.message+' 原请求已保留，请核对后重试。',true)}
@@ -211,8 +214,11 @@ $('#dismiss').onclick=()=>{const hadCredential=!!credential;clearSecret();setBus
 $('#download').onclick=()=>{
   if(!credential||!live()||!ready||busy)return;
   try{if(!credentialBinding)throw Error('缺少连接核对记录');confirmedConnection(credentialBinding.item,credentialBinding.body,credentialBinding.data)}catch(error){clearSecret();setBusy(busy);notice('连接状态已变化或凭据已过期，页面凭据已清除。请刷新列表核对原连接。',true);return}
-  try{const url=URL.createObjectURL(new Blob([JSON.stringify(credential,null,2)+'\n'],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download='webuddy-credential.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(error){notice('凭据下载未完成，请保留页面并复制完整凭据到自己的本地文件。',true)}
+  saveCredential();
 };
+function saveCredential(){
+  try{const url=URL.createObjectURL(new Blob([JSON.stringify(credential,null,2)+'\n'],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download='webuddy-credential.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return true}catch(error){notice('凭据下载未完成，请保留页面并复制完整凭据到自己的本地文件。',true);return false}
+}
 async function checkIdentity(){
   invalidateSensitive();
   if(busy||!live())return;

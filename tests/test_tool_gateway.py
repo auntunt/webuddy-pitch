@@ -379,6 +379,9 @@ class ToolGatewayTest(unittest.TestCase):
         self.assertIn('webuddy_client-', headers['Content-Disposition'])
         names = zipfile.ZipFile(io.BytesIO(data)).namelist()
         self.assertIn('tmh/workbench_mcp.py', names)
+        import json
+        site = json.loads(zipfile.ZipFile(io.BytesIO(data)).read('tmh/workbench_site.json'))
+        self.assertTrue(site['endpoint'].endswith('/t/' + self.a), site)
         self.assertFalse([n for n in names if n.startswith('tmh/platform/')])
         grant = self.grant()
         self.assertEqual(fetch({'Authorization': 'Bearer ' + grant['token']})[0], 403)
