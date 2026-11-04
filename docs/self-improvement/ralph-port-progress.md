@@ -554,3 +554,11 @@
 - 顺带修复：选「全部项目」时首页显示「没有这个项目」。原因是租户网关把路径里的 `*` 当项目键去查（`tenant_policy._project` 拒绝 `*`）。新增 `ALL_PROJECT_PATHS`（GET `/loop`、`/inbox`）：`*`/`all` 只对租户管理员放行（`P.loop(None)` 不按权限过滤），其他人 403；前端 `boardQ()` 对非管理员改用当前项目。`POST /catchup` 的 `*` 仍拒绝，首页在全部项目时不显示一键交给自动处理。测试：`test_tenant_policy.py::test_all_project_boards_are_admin_only`。
 - 验证：本机 UI 307 passed，UI+租户 350 passed；服务器发布包 15 个模块 231 项 OK，失败清单为空。
 - 发布：383dc03 → bf14588 → 5dc4642，备份 `/opt/webuddy/backups/pre-<commit>-activation-20261104`；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。生产实测 li（全部项目，79 单）与 LYB（当前项目，57 单）首页闭环图都在第一屏。
+
+## 2026-11-04 BID 澄清：普通 LLM 读过的需求按回答再读；无执行权限成员按规则归档
+
+- 生产实测（BID 会话 34fd87676a5d）：普通 LLM 读需求后提出「汇总范围和计算方式」，回答后问题消失，但 A1 仍是 `【待确认：…】`，只在“怎么验”后附了「按补充」。原因：`intake.answer` 和客户链接回答只对 `understood.by == "智能体"` 再读，普通 LLM（`by == "LLM"`）读的不再读。改为 `READERS = ("智能体", "LLM")` 三处统一；测试 `test_llm_reading_is_read_again_with_the_answer`（旧代码失败）。
+- 带选项的问题（除业务流）也给输入框，写了以输入为准；点「其他，请说明」类选项转到输入框，不把选项原文当回答。
+- 无执行权限的成员（LLA、LYB）「记录需求」：按钮显示「记录并归档」，请求带 `model:false`，按规则保存原话、提出人、客户/系统；有执行权限的人在工作台「继续理清」里点「让 AI 理清」（新 `POST /api/intake/<id> {action:"understand"}`，仍走原执行权限 guard），同一段对话交给 AI。「直接填写工单」也保留提出人。测试 `test_rules_only_record_is_handed_to_ai_later`。
+- 验证：本机 intake/租户/工作台/系统/UI 410 passed。
+- 发布：700614b → 42f911e，备份 `/opt/webuddy/backups/pre-42f911e035d6-activation-20261104`；发布包相关 23 个模块失败清单为空、与上一版一致；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
