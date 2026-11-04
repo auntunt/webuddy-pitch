@@ -1528,35 +1528,35 @@ function kbQuestions(qq){const open=qq.questions.filter(q=>q.open),st=qq.stats;
 // ---------- architecture & evidence: overview → domain → flow → call chain and code
 async function vMap(did){
   if(did)return archDomain(did);
-  const a=await get('/api/projects/'+S.proj+'/arch');
-  const rep=`/p/${encodeURIComponent(S.proj)}/report/index.html`;
-  const head=pageHead('架构与依据','项目组件、业务模块与代码证据。',a.report?`<a class="btn" href="${rep}" target="_blank" rel="noopener">完整业务全景报告 ↗</a>`:'');
-  if(!a.built){$('#main').innerHTML=head+'<div class="hint">还没有知识图谱。到“知识库 → 建设进度”开始一次全项目分析。</div>';return}
-  $('#main').innerHTML=head+`<div class="card"><div class="row" style="align-items:center"><h2 class="grow" style="margin:0">系统结构概览</h2><span class="ev-tag info">代码事实 · 工具解析</span><span class="ev-tag mute">部署关系未核实</span></div>
-    <div class="sub" style="margin:4px 0 8px">入口、业务域、数据表和外部调用都是从代码解析出来的；服务器、代理、缓存等部署结构不在代码事实里，图里不画。更新于 ${h(a.built_at)}。</div>
-    <div class="archwrap">${archSvg(a)}</div></div>
-   <div class="grid2" style="margin-top:16px"><div class="card"><h2>从业务进入依据</h2>${a.domains.map(d=>`<a class="drow" href="#/map/${encodeURIComponent(d.id)}"><span class="grow"><b>${h(d.title)} →</b><span class="sub">${d.flows} 条业务流 · ${d.tables} 张表${d.summary?' · '+h(d.summary.slice(0,40)):''}</span></span>${kst(d.status)}</a>`).join('')}</div>
-    <div class="card"><h2>维护时先核对什么</h2><ul class="chk2">
-     <li>部署包和这份源码是否一致（反编译源码尤其要核对版本）。</li>
-     <li>${a.unresolved?`<b>${a.unresolved} 处</b>静态分析断开（动态表名、按配置分派、反射），相关结论只能算推断。`:'静态分析没有发现断开的调用（动态表名、反射等）。'}</li>
-     <li>结论是代码事实、模型推断还是待确认：知识页里分别标为“代码核实”和“【推断】”。</li>
-     <li>系统总览${a.overview_status&&a.overview_status!=='仅事实'&&a.overview_status!=='未分析'?'已撰写（'+h(a.overview_status)+'）':'还没写，可以在知识库里用“业务地图”模式先写业务域和总览'}。</li></ul>
-     <a class="btn" href="#/kb">阅读相关业务说明 →</a></div></div>`}
-function archSvg(a){
-  const W=980,colX=[20,330,700],bw=[230,300,260];const doms=a.domains.slice(0,6);const more=a.domains.length-doms.length;
-  const ent=a.entries.slice(0,4);const ext=a.ext.slice(0,3);
-  const rows=Math.max(doms.length+(more?1:0),ent.length,2+ext.length);const RH=62,H=Math.max(300,40+rows*RH);
-  const box=(x,y,w,t,s,cls,href)=>`${href?`<a href="${href}">`:''}<g class="ab ${cls||''}"><rect x="${x}" y="${y}" width="${w}" height="50" rx="8"/><text x="${x+14}" y="${y+21}" class="t1">${h(t)}</text><text x="${x+14}" y="${y+39}" class="t2">${h(s)}</text></g>${href?'</a>':''}`;
-  const ey=i=>30+i*RH*(rows/Math.max(ent.length,1))*.8,dy=i=>30+i*RH,ry=i=>30+i*RH*1.1;
-  let g='';const cx1=colX[0]+bw[0],cx2=colX[1],cx3=colX[1]+bw[1],cx4=colX[2];
-  const mid=(H-20)/2;
-  ent.forEach(([k,n],i)=>{const y=ey(i);g+=`<path class="ln" d="M${cx1} ${y+25} C ${cx1+50} ${y+25}, ${cx2-50} ${mid}, ${cx2} ${mid}"/>`;g+=box(colX[0],y,bw[0],k,n+' 个入口','e')});
-  doms.forEach((d,i)=>{const y=dy(i);g+=`<path class="ln" d="M${cx3} ${y+25} C ${cx3+50} ${y+25}, ${cx4-50} ${55}, ${cx4} ${55}"/>`;g+=box(colX[1],y,bw[1],d.title,`${d.flows} 条业务流 · ${d.tables} 张表`,'d',`#/map/${encodeURIComponent(d.id)}`)});
-  if(more)g+=`<text x="${colX[1]+14}" y="${dy(doms.length)+28}" class="t2">另有 ${more} 个业务域 …</text>`;
-  g+=box(colX[2],30,bw[2],`数据库表 ${a.tables} 张`,'最常用：'+a.top_tables.slice(0,2).map(x=>x[0]).join('、'),'t');
-  ext.forEach((e,i)=>{const y=ry(i+1)+10;g+=`<path class="ln dash" d="M${cx3} ${dy(0)+25} C ${cx3+60} ${dy(0)+25}, ${cx4-60} ${y+25}, ${cx4} ${y+25}"/>`;g+=box(colX[2],y,bw[2],e.title,e.users+' 处调用','x')});
-  const lab=(x,t)=>`<text x="${x}" y="16" class="cap">${t}</text>`;
-  return `<svg viewBox="0 0 ${W} ${H}" class="arch" role="img" aria-label="系统结构概览">${lab(colX[0],'入口（'+a.flows+' 条业务流）')}${lab(colX[1],'业务域')}${lab(colX[2],'数据与外部调用')}${g}</svg>`}
+  const project=S.proj,request=S.archRequest=(S.archRequest||0)+1;
+  const a=await get('/api/projects/'+encodeURIComponent(project)+'/arch');
+  if(project!==S.proj||request!==S.archRequest||curView()!=='map')return;
+  const rep=`/p/${encodeURIComponent(project)}/report/index.html`;
+  const head=pageHead('架构与依据','',`<a class="btn" href="#/atlas">查看关系图谱</a>${a.report?`<a class="btn" href="${rep}" target="_blank" rel="noopener">完整报告 ↗</a>`:''}`);
+  if(!a.built){$('#main').innerHTML=head+'<div class="card"><h2>还没有代码分析结果</h2><p>完成全项目分析后，这里会显示业务域、入口与数据操作。</p><a class="btn" href="#/kb">前往知识库</a></div>';return}
+  $('#main').innerHTML=head+`<section class="arch-overview" aria-label="业务与代码概览">
+    <div class="arch-summary"><div><strong>${a.domains.length}</strong><span>业务域</span></div><div><strong>${a.flows}</strong><span>业务流</span></div><div><strong>${a.tables}</strong><span>数据表</span></div><div><strong>${a.ext.length}</strong><span>外部调用类型</span></div></div>
+    <div class="arch-layout"><section class="arch-domains"><div class="arch-toolbar"><h2>业务域 <span id="archCount">${a.domains.length}</span></h2><input id="archSearch" type="search" aria-label="搜索业务域" placeholder="搜索业务域"></div>
+      <div class="arch-domain-grid" id="archDomains"></div></section>
+      <aside class="arch-facts" aria-label="代码分析统计"><section><h2>入口类型</h2><dl>${a.entries.map(([name,n])=>`<div><dt>${h(name)}</dt><dd>${n}<span> 条业务流</span></dd></div>`).join('')||'<p class="sub">未识别入口类型</p>'}</dl></section>
+        <section><h2>高频数据表</h2><p class="arch-caption">按关联业务流数量排序 · ${a.top_tables.length} / ${a.tables} 张</p><dl>${a.top_tables.map(([name,n])=>`<div><dt><a href="#/kb/${encodeURIComponent('tbl:'+name)}">${h(name)}</a></dt><dd>${n}<span> 条</span></dd></div>`).join('')||'<p class="sub">未识别数据表关联</p>'}</dl></section>
+        <section><h2>外部调用</h2><dl>${a.ext.map(e=>`<div><dt>${h(e.title)}</dt><dd>${e.users}<span> 处</span></dd></div>`).join('')||'<p class="sub">未识别外部调用</p>'}</dl></section>
+      </aside></div>
+    <details class="arch-basis"><summary>分析依据${a.unresolved?' · '+a.unresolved+' 处调用待核对':''}<span>${h(a.built_at)}</span></summary>
+      <p>统计来自源码解析，业务域名称和说明沿用知识库；不代表生产部署拓扑。</p>
+      <p>${a.unresolved?`${a.unresolved} 处调用未能静态解析，相关路径需要进一步核对。`:'静态分析未报告断开的调用；动态行为仍需结合运行结果核对。'} 部署包与源码版本的一致性尚需核实。</p>
+      <p>系统总览：${h(a.overview_status||'未撰写')}。<a href="#/kb">查看知识库</a></p>
+    </details></section>`;
+  const paint=()=>{const query=$('#archSearch').value.trim().toLowerCase(),domains=a.domains.filter(d=>[d.title,d.id,d.summary].join(' ').toLowerCase().includes(query));
+    $('#archCount').textContent=query?domains.length+' / '+a.domains.length:String(a.domains.length);
+    $('#archDomains').innerHTML=archDomainCards(domains)||(query?'<div class="arch-empty"><p>没有匹配的业务域</p><button id="archClear">清除搜索</button></div>':'<div class="arch-empty">尚未划分业务域</div>');
+    if($('#archClear'))$('#archClear').onclick=()=>{$('#archSearch').value='';paint();$('#archSearch').focus()}};
+  $('#archSearch').oninput=paint;paint();
+}
+function archDomainCards(domains){
+  return domains.map(d=>`<a class="arch-domain" href="#/map/${encodeURIComponent(d.id)}"><div class="arch-domain-title"><h3>${h(d.title)}</h3><span aria-hidden="true">↗</span></div>
+    ${d.summary?`<p>${h(d.summary)}</p>`:''}<div class="arch-domain-meta"><span><b>${d.flows}</b> 条业务流</span><span><b>${d.tables}</b> 张表</span></div><div class="arch-domain-status">${kst(d.status)}</div></a>`).join('');
+}
 async function archDomain(did){
   const d=await get('/api/projects/'+S.proj+'/arch/'+encodeURIComponent(did));
   const ops={C:'增',R:'查',U:'改',D:'删',P:'过程'};
