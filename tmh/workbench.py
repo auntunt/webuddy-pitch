@@ -16,8 +16,8 @@ from . import workbench_credentials as credentials
 
 def _connection(p, suppress=False):
     default = argparse.SUPPRESS if suppress else None
-    p.add_argument("--endpoint", default=default, help="工作台地址；默认 WEBUDDY_URL 或 http://127.0.0.1:8791")
-    p.add_argument("--credential-file", default=default, help="个人工具凭据文件；默认 WEBUDDY_CREDENTIAL_FILE；不传令牌正文")
+    p.add_argument("--endpoint", default=default, help="工作台地址；默认 WEBUDDY_URL、已导入凭据绑定的地址，或下载客户端的服务器")
+    p.add_argument("--credential-file", default=default, help="个人工具凭据文件；默认 WEBUDDY_CREDENTIAL_FILE 或 ~/.config/webuddy/credential.json；不传令牌正文")
     p.add_argument("--agent", default=argparse.SUPPRESS if suppress else "cli", help="工具显示/消息标签，例如 codex/cursor；不是独立个人身份")
     p.add_argument("--timeout", type=float, default=argparse.SUPPRESS if suppress else 15, help="单次 HTTP 超时秒数（最多 60）")
 
@@ -25,7 +25,7 @@ def _connection(p, suppress=False):
 def parser():
     p = argparse.ArgumentParser(prog="webuddy", description="Webuddy CLI / MCP：共享需求、消息、运行与证据。默认输出完整 JSON。")
     _connection(p)
-    sub = p.add_subparsers(dest="command", required=True)
+    sub = p.add_subparsers(dest="command")
 
     def add(name, help):
         q = sub.add_parser(name, help=help)
@@ -47,7 +47,7 @@ def parser():
     add("status", "检查连接、执行器和能力边界")
     q = add("connect", "验证网页登录签发的个人工具凭据并保存到私有文件")
     q.add_argument("--stdin", action="store_true", help="从标准输入读取完整凭据 JSON 或令牌；不放入命令参数")
-    q.add_argument("--save-to", required=True, help="新 0600 凭据文件路径；父目录须安全且已存在，不覆盖旧文件")
+    q.add_argument("--save-to", help="另存为新的 0600 凭据文件（不覆盖旧文件）；默认保存为 ~/.config/webuddy/credential.json，并替换之前导入的默认连接")
     page(add("projects", "列项目"))
     q = add("tickets", "查工单")
     page(q)
@@ -269,7 +269,7 @@ def connect(a):
         if selected and credentials.endpoint(selected)[0] != value["endpoint"]:
             raise ClientError("工作台地址与导入凭据绑定地址不同", "credential_endpoint_mismatch")
     else:
-        selected = a.endpoint or os.environ.get("WEBUDDY_URL")
+        selected = a.endpoint or os.environ.get("WEBUDDY_URL") or credentials.site_endpoint()
         if not selected:
             raise ClientError("导入单独令牌时须指定 --endpoint https://host/t/<租户>", "invalid_endpoint")
         value = credentials.document(dict(schema=1, endpoint=selected, token=raw))
@@ -277,15 +277,36 @@ def connect(a):
     status = client.connection_status()
     # Preserve only the binding needed for future requests. Untrusted imported
     # metadata is never an identity assertion or part of the printed result.
-    path = credentials.save(a.save_to, {key: value[key] for key in ("schema", "endpoint", "token")})
+    binding = {key: value[key] for key in ("schema", "endpoint", "token")}
+    path = credentials.save(a.save_to, binding) if a.save_to else credentials.save_default(binding)
     public = {key: status["tool_connection"][key] for key in ("id", "user", "tenant", "scope", "project_ids", "expires_at", "execution")}
     print(json.dumps(dict(credential_file=path, endpoint=client.endpoint, tool_connection=public), ensure_ascii=False, indent=2))
+    return 0
+
+
+def overview(a):
+    """Bare `webuddy`: where it connects and what to do next."""
+    site = credentials.site_endpoint()
+    saved = a.credential_file or os.environ.get("WEBUDDY_CREDENTIAL_FILE") or credentials.default_file()
+    endpoint = a.endpoint or os.environ.get("WEBUDDY_URL") or (credentials.load(saved)["endpoint"] if saved else site)
+    result = {"endpoint": endpoint, "credential_file": saved}
+    if saved:
+        client = Client(a.endpoint, a.agent, timeout=a.timeout, credential_file=saved)
+        result["tool_connection"] = client.connection_status()["tool_connection"]
+        result["next"] = ["webuddy config codex >> ~/.codex/config.toml（Claude Code 用 config claude，Cursor 用 config cursor）", "重启工具后让它列出网梯运维系统里能看到的项目", "webuddy --help 查看全部命令"]
+    elif endpoint:
+        result["next"] = ["登录 %s/tools 创建工具连接，下载凭据文件" % endpoint, "webuddy connect --stdin < ~/Downloads/webuddy-credential.json", "webuddy status"]
+    else:
+        result["next"] = ["请从网梯运维系统「我的工具连接」页下载客户端；或用 --endpoint https://<服务器>/t/<租户> 指定地址"]
+    print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
 
 def main(argv=None):
     a = parser().parse_args(argv)
     try:
+        if a.command is None:
+            return overview(a)
         if a.command == "connect":
             return connect(a)
         if a.command == "config":

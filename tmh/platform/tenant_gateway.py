@@ -364,7 +364,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
                             if method != 'GET':
                                 raise error(405, '此页面仅支持读取', 'method_denied')
                             from .tool_client import wheel
-                            name, data = wheel()
+                            name, data = wheel(self._base() + '/t/' + tenant)
                             return self._send(200, data, 'application/zip',
                                               {'Content-Disposition': f'attachment; filename="{name}"'})
                         if path == '/tools':

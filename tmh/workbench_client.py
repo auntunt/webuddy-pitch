@@ -33,6 +33,10 @@ class Client:
         selected = endpoint or os.environ.get("WEBUDDY_URL")
         self.credential_file = credential_file if credential_file is not None else os.environ.get("WEBUDDY_CREDENTIAL_FILE")
         try:
+            if self.credential_file is None and tool_token is None and credentials.default_file():
+                saved = credentials.load(credentials.default_file())
+                if not selected or credentials.endpoint(selected)[0] == saved["endpoint"]:
+                    self.credential_file = credentials.default_file()
             if self.credential_file:
                 if tool_token is not None:
                     raise credentials.CredentialError("不能同时指定凭据文件与内存凭据", "credential_conflict")
@@ -40,7 +44,7 @@ class Client:
                 if selected and credentials.endpoint(selected)[0] != saved["endpoint"]:
                     raise credentials.CredentialError("工作台地址与凭据绑定地址不同；不得将凭据转发到其他地址", "credential_endpoint_mismatch")
                 selected, tool_token = saved["endpoint"], saved["token"]
-            self.endpoint, u = credentials.endpoint(selected or "http://127.0.0.1:8791")
+            self.endpoint, u = credentials.endpoint(selected or credentials.site_endpoint() or "http://127.0.0.1:8791")
             if tool_token is not None:
                 credentials.document(dict(schema=1, endpoint=self.endpoint, token=tool_token))
         except credentials.CredentialError as exc:
@@ -48,7 +52,7 @@ class Client:
         self.tenant = u.path.split("/")[-1] if u.path else None
         self.tool_token = tool_token
         if self.tenant and not self.tool_token:
-            raise ClientError("租户连接需要个人工具凭据。请在网页登录个人工具连接，运行 connect --stdin --save-to <私有文件>，再使用 --credential-file。", "tool_credential_required")
+            raise ClientError("还没有导入个人工具凭据。请登录 %s/tools 创建工具连接并下载凭据文件，然后运行：webuddy connect --stdin < ~/Downloads/webuddy-credential.json" % self.endpoint, "tool_credential_required")
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,32}", agent):
             raise ClientError("连接名必须为 1–32 个英文字母、数字、下划线或连字符", "invalid_agent")
         if not isinstance(timeout, (int, float)) or not 0 < timeout <= 60:

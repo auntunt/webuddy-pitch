@@ -10,6 +10,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 import json
 import os
+import pkgutil
 from pathlib import Path
 import re
 import secrets
@@ -84,6 +85,35 @@ def _parent(path):
         raise CredentialError("无法安全访问凭据文件；父目录必须存在且不得使用符号链接", "unsafe_credential_path") from exc
     finally:
         os.close(fd)
+
+
+DEFAULT_FILE = "~/.config/webuddy/credential.json"
+
+
+def site_endpoint():
+    """The server a downloaded client came from (written into its wheel)."""
+    try:
+        value = json.loads(pkgutil.get_data(__package__, "workbench_site.json").decode("utf-8"))
+        return endpoint(value["endpoint"])[0]
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return None
+
+
+def default_file():
+    path = Path(os.path.expanduser(DEFAULT_FILE))
+    return str(path) if path.is_file() else None
+
+
+def save_default(value):
+    """Save to DEFAULT_FILE; a new import replaces the previous default connection."""
+    path = Path(os.path.expanduser(DEFAULT_FILE))
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if not path.exists():
+        return save(path, value)
+    staged = path.with_name(".credential-" + secrets.token_hex(8) + ".json")
+    save(staged, value)
+    os.replace(staged, path)
+    return str(path)
 
 
 def load(path):

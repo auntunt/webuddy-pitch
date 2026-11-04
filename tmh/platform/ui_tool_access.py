@@ -17,7 +17,8 @@ HTML = r'''<!doctype html>
 <section class="panel" id="howto"><h2>怎么连接</h2><ol class="steps">
 <li>准备一台 macOS 或 Linux 电脑（Windows 请在 WSL 里操作），装好 Python 3.10 或以上。</li>
 <li><a id="client" download="__CLIENT__">下载客户端</a>，在终端安装到单独的目录：<pre>python3 -m venv ~/.webuddy
-~/.webuddy/bin/pip install ~/Downloads/__CLIENT__</pre></li>
+~/.webuddy/bin/pip install ~/Downloads/__CLIENT__
+~/.webuddy/bin/webuddy</pre>最后一条会显示客户端连接的服务器地址（就是本系统）和下一步。</li>
 <li>在下方「授权一个工具连接」里选项目、操作范围和有效期，创建后下载凭据文件。</li>
 <li>创建成功后，本页会给出导入凭据、生成 Codex / Claude Code / Cursor 配置的命令，照着复制执行，然后重启工具即可。</li>
 </ol><p class="muted">客户端只包含命令行和 MCP 桥接程序，在你的电脑上运行，通过 HTTPS 连到本系统；凭据只保存在你自己的电脑。</p></section>
@@ -130,8 +131,8 @@ function showCredential(token,item,body,data){
   confirmedConnection(item,body,data);
   credentialBinding={item,body,data};
   credential={schema:1,endpoint:initialOrigin+base,token};$('#credential').value=JSON.stringify(credential,null,2);$('#secret').hidden=false;
-  const file='~/.config/webuddy/'+item.id.slice(0,8)+'.json',run='~/.webuddy/bin/webuddy --credential-file '+file,mcpFlag=item.scope==='execute'?' --allow-execution':item.scope==='read'?' --read-only':'';
-  $('#guide').textContent=['1. 先点上方「下载凭据文件」，再在终端导入（只需一次）：','mkdir -m 700 -p ~/.config/webuddy','~/.webuddy/bin/webuddy connect --stdin --save-to '+file+' < ~/Downloads/webuddy-credential.json','rm ~/Downloads/webuddy-credential.json','','2. 确认连接可用：',run+' status','','3. 生成你所用工具的配置（只打印，不改任何文件），任选一个：','# Codex：追加到 ~/.codex/config.toml',run+' config codex'+mcpFlag+' >> ~/.codex/config.toml','# Claude Code：把输出合并进项目根目录的 .mcp.json',run+' config claude'+mcpFlag,'# Cursor：把输出合并进 ~/.cursor/mcp.json',run+' config cursor'+mcpFlag,'','4. 重启工具，让它「列出网梯运维系统里我能看到的项目」确认已接通。'].join('\n');
+  const run='~/.webuddy/bin/webuddy',mcpFlag=item.scope==='execute'?' --allow-execution':item.scope==='read'?' --read-only':'';
+  $('#guide').textContent=['1. 先点上方「下载凭据文件」，再在终端导入（只需一次；客户端已经知道服务器地址）：',run+' connect --stdin < ~/Downloads/webuddy-credential.json','rm ~/Downloads/webuddy-credential.json','','2. 确认连接可用：',run+' status','','3. 生成你所用工具的配置（只打印，不改任何文件），任选一个：','# Codex：追加到 ~/.codex/config.toml',run+' config codex'+mcpFlag+' >> ~/.codex/config.toml','# Claude Code：把输出合并进项目根目录的 .mcp.json',run+' config claude'+mcpFlag,'# Cursor：把输出合并进 ~/.cursor/mcp.json',run+' config cursor'+mcpFlag,'','4. 重启工具，让它「列出网梯运维系统里我能看到的项目」确认已接通。'].join('\n');
   setBusy(busy);
 }
 function render(data){

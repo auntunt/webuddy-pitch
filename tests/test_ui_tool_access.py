@@ -67,7 +67,7 @@ class ToolAccessUiTest(unittest.TestCase):
         self.assertIn('--stdin', lines[0])
         self.assertEqual([parser().parse_args(shlex.split(line.split(' >> ', 1)[0])[1:]).client for line in lines[2:]],
                          ['codex', 'claude', 'cursor'])
-        self.assertIn('mkdir -m 700 -p ~/.config/webuddy', result)
+        self.assertNotIn('--credential-file', result)
         self.assertNotIn('wbt_', result)
 
     def test_connect_instructions_visible_before_any_connection(self):
