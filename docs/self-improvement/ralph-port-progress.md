@@ -572,3 +572,4 @@
   - 租户策略按需求对话所属项目核对权限（新资源类型 `intake`）；工具连接按项目可见范围过滤。测试 `test_intake_is_recorded_without_a_model_and_ai_reading_needs_execution`。
 - 生产实测：BID-1 #408 运行结束后点「在页面上实测」得到「找不到被测版本」。原因：手动入口不传 commit，`verify` 只看运行工作树，工作树在运行结束后已删除。改为工作树不在时取运行自己的分支 `tmh/<工单>-r<运行>` 的提交（`run_branch_head`）；测试 `test_a_finished_run_is_found_on_its_own_branch`。
 - 验证：本机 browser_verify/agent_api/MCP/租户策略/工具连接/AI 验收/intake 191 passed。
+- 发布：0cce32f → acfe736，备份 `/opt/webuddy/backups/pre-acfe7360c48d-activation-20261104`；发布包相关 25 个模块失败清单与上一版一致（SAME_FAILS）；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
