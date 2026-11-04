@@ -528,3 +528,11 @@
 2026-11-04 补：PR #66（插话在 AI 最后一次查看之后才到时，运行结束在日志和工单时间线说明「插话没被读到」，`notes.unread` 防重复，不自动重跑）合并后上线生产 `f5a2250`。新增的真跑执行器测试在非 POSIX 上跳过（同 `test_agent_profiles`）；Windows 全量套件在基线上本来就失败（大量 Windows 环境问题），ubuntu 全量两版通过。发布前服务器用发布包跑 15 组相关测试退出码 0；备份 `/opt/webuddy/backups/pre-f5a2250af61a-activation-20261104`，两库 integrity=ok，切换时 running_runs=0，login 200、未登录 /api/projects 401，NRestarts=0。插话未读提示尚未在生产界面上用真实运行复测。
 
 2026-11-04 补：工具连接页直接给出连接步骤（PR #68，上线生产 `482e3eb`）。创建前常驻「怎么连接」和 `/t/<租户>/tools/client` 客户端下载（`tool_client.py` 现生成 wheel，只含 CLI + stdio MCP 桥，`mcp<2,>=1.30`，入口 `webuddy`；只认本人网页会话，工具令牌 403）；创建后按连接范围给出导入、`status`、Codex/Claude Code/Cursor 配置命令，命令不含令牌。发布前服务器用发布包跑 4 组相关测试 68 条通过；备份 `/opt/webuddy/backups/pre-482e3eb1bdaf-activation-20261104`，两库 integrity=ok，running_runs=0，login 200、未登录 401，NRestarts=0。生产实测：LYB 下载 wheel、干净 venv 安装、`connect --stdin`、`status`、`config codex --read-only`，再用 MCP SDK 按生成的配置连上，`list_tools` 13 个，`webuddy_projects_list` 只返回授权的 RW。验证建的 4 个 LYB 临时连接均已撤销；li 的「我的codex电脑」未动。
+
+## 2026-11-04 下载的客户端记住服务器（PR #69，生产 5116edb）
+
+- 问题：从工具连接页下载的客户端，不带参数直接运行时去连 `http://127.0.0.1:8791`，服务器部署时用户无从下手。
+- 修复：`/t/<租户>/tools/client` 下载时把 `<对外地址>/t/<租户>` 写进 wheel 的 `tmh/workbench_site.json`。直接运行 `webuddy` 会显示服务器地址和下一步该做什么。`connect --stdin` 不带 `--save-to` 时，凭据默认存到 `~/.config/webuddy/credential.json`（目录按 0700 逐级创建，不受 umask 影响），之后 `status`、`config` 都不用再传 `--credential-file`。地址优先级：`--endpoint` > `WEBUDDY_URL` > 凭据里绑定的地址 > 下载时写进去的服务器。
+- 服务器的 umask 是 002：第一版用 `mkdir(parents=True)` 建出来的 `~/.config` 是 775，被凭据路径检查拒绝。已改成逐级 0700 创建，并补了测试。服务器上 test_workbench_client 有 16 项在基线上就失败（环境原因），这次的失败清单和基线 482e3eb 完全一样。
+- 发布：5116edb1f119，备份在 `/opt/webuddy/backups/pre-5116edb1f119-activation-20261104`。MANIFEST_OK，两个库 integrity=ok，running_runs=0，内外网 login 200、未登录访问 /api/projects 返回 401，active，NRestarts=0。
+- 生产 E2E（LYB，干净的 HOME 和 venv）：下载 `webuddy_client-0.4.0-py3-none-any.whl`；直接运行 `webuddy` 显示 `https://webuddy.bbstack.date/t/default` 和下一步；没导入凭据时 `status` 指向 `/tools` 页，输出里没有 127.0.0.1。之后依次跑通 `connect --stdin`、`status`、`config codex --read-only`；MCP 列出 13 个工具，`webuddy_projects_list` 返回 RW。临时连接已撤销。
