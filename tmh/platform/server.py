@@ -2756,6 +2756,26 @@ def _api_update_ticket(P, req, key):
         raise ApiError(400, str(e))
 
 
+@route("GET", "/api/agent-settings")
+def api_agent_settings(P, req):
+    from . import agent_settings
+    data = agent_settings.view(P.data_dir)
+    try:
+        _platform_admin(P, req, "配置智能体")
+        data["can_edit"] = True
+    except ApiError:
+        data["can_edit"] = False
+    return data
+
+
+@route("POST", "/api/agent-settings")
+def api_agent_settings_save(P, req):
+    _platform_admin(P, req, "配置智能体")
+    from . import agent_settings
+    agent_settings.save(P.data_dir, req.body)
+    return api_agent_settings(P, req)
+
+
 @route("GET", "/api/testbox")
 def api_testbox(P, req):
     from . import testbox

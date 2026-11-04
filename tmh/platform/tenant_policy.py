@@ -148,6 +148,8 @@ GET /api/projects/<key>/baseline
 POST /api/projects/<key>/baseline/seal
 GET /api/projects/<key>/ledger
 POST /api/tickets/<key>
+GET /api/agent-settings
+POST /api/agent-settings
 GET /api/testbox
 GET /api/projects/<key>/releases
 POST /api/tickets/<key>/release
@@ -598,6 +600,8 @@ def authorize(P, method, path, query, body, actor):
     if not targets and template not in FILTERED_LISTS | ALL_PROJECT_PATHS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap") and not (method == "POST" and template.startswith("/api/projects/import")):
         if who["role"] != "admin":
             raise ApiError(403, "请明确选择获准的项目或工单")
+    if template == "/api/agent-settings" and method == "POST" and not who["platform_owner"]:
+        raise ApiError(403, "智能体配置只能由平台管理员管理")
     if method == "GET":
         if template in ("/p/<key>/report/<path>", "/p/<key>/code.bundle"):
             # Reports are active same-origin content; bundles invoke Git.

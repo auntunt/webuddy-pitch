@@ -1838,10 +1838,48 @@ async function pushExt(key,body){
   try{const r=await post(`/api/tickets/${key}/push`,{body,confirm:false});
     modal(`<h2>同步评论到外部工单</h2><div class="sub">将发出的请求（预演，尚未发送）：</div><pre class="diff">${h(JSON.stringify(r.result,null,2))}</pre><button class="primary" id="pc">确认发送</button>`);
     $('#pc').onclick=async()=>{try{await post(`/api/tickets/${key}/push`,{body,confirm:true});closeModal();toast('已同步');vTicket(key)}catch(e){toast(e.message,5000)}}}catch(e){toast(e.message,5000)}}
+async function agentSettingsLoad(){
+  const el=$('#agentSettings');if(!el)return;
+  if(S.meta.access&&!S.meta.access.can_manage){el.innerHTML='<h2>智能体</h2><p>请联系管理员查看和配置智能体。项目中的执行器选择仍按你的权限提供。</p>';return}
+  try{const d=await get('/api/agent-settings');if($('#agentSettings')!==el)return;
+    const route=d.route||{};
+    el.innerHTML=`<div class="hdr"><h2 class="grow">智能体</h2><button id="agentRefresh">刷新状态</button>${d.can_edit?'<button id="agentAdd">添加 Codex 执行器</button>':''}</div>
+      ${route.agent?`<p>默认执行器：<b>${h(route.agent)}</b></p>`:''}
+      ${d.agents.map(a=>`<div class="flowrow"><span class="grow"><b>${h(a.title)}</b><span class="sub"> · ${h(a.name)}</span><div class="sub">${h(a.engine||'自定义命令')}${a.profile?' · '+h(a.profile):''}</div></span><span class="tag ${a.available?'':'warn'}">${a.available?'命令已安装':a.configuration_error?'配置错误':'命令未找到'}</span><button data-agent-edit="${h(a.name)}">${d.can_edit?'配置':'查看'}</button></div>`).join('')}
+      <p class="sub">安装状态不代表账号已登录或模型调用成功。凭据沿用服务器现有配置。</p><div id="agentSettingsError" role="status"></div>`;
+    $('#agentRefresh').onclick=agentSettingsLoad;
+    if($('#agentAdd'))$('#agentAdd').onclick=()=>agentSettingsEdit(d,null);
+    el.querySelectorAll('[data-agent-edit]').forEach(b=>b.onclick=()=>agentSettingsEdit(d,d.agents.find(a=>a.name===b.dataset.agentEdit)));
+  }catch(e){if($('#agentSettings')===el){el.innerHTML='<h2>智能体</h2><p role="alert">'+h(e.message)+'</p><button id="agentRefresh">重试</button>';$('#agentRefresh').onclick=agentSettingsLoad}}
+}
+function agentSettingsEdit(d,a){
+  const fresh=!a;a=a||{name:'',title:'',engine:'codex',profile:'',models:[],defaults:{},timeout:1800};
+  const labels={analyze:'分析',plan:'方案',fix:'修改',edit:'编辑',diagnose:'诊断',ask:'问答',kb:'知识',chart:'图解',understand:'需求理清'};
+  modal(`<h2>${fresh?'添加 Codex 执行器':h(a.title)}</h2><form id="agentForm" class="form">
+    <label>代号<input class="full" id="agentName" value="${h(a.name)}" ${fresh?'required':'readonly'}></label>
+    <label>显示名称<input class="full" id="agentTitle" value="${h(a.title)}" required maxlength="100"></label>
+    ${a.engine==='codex'&&!a.custom?`<label>Codex 配置档<input class="full" id="agentProfile" value="${h(a.profile)}" placeholder="留空沿用默认配置"></label>`:''}
+    <label>模型列表（每行一个模型 ID，可在空格后填写名称）<textarea class="full" id="agentModels" rows="4">${h(a.models.map(m=>m[0]+' '+m[1]).join('\n'))}</textarea></label>
+    <div class="grid2">${d.modes.map(m=>`<label>${h(labels[m]||m)}默认模型<input class="full" data-agent-mode="${h(m)}" value="${h(a.defaults[m]||'')}" placeholder="沿用执行器配置"></label>`).join('')}</div>
+    <label>任务超时（秒）<input id="agentTimeout" type="number" min="1" max="86400" value="${h(a.timeout)}" required></label>
+    ${a.configuration_error?`<p role="alert">${h(a.configuration_error)}</p>`:''}
+    <div id="agentSaveState" role="status"></div>${d.can_edit?'<button class="primary" type="submit" id="agentSave">保存配置</button>':'<p>仅平台管理员可修改配置。</p>'}</form>`);
+  const form=$('#agentForm');if(!d.can_edit){form.querySelectorAll('input').forEach(x=>x.disabled=true);$('#agentModels').disabled=true;return}
+  form.onsubmit=async e=>{e.preventDefault();const button=$('#agentSave'),status=$('#agentSaveState');button.disabled=true;status.textContent='保存中…';
+    const models=$('#agentModels').value.split('\n').map(x=>x.trim()).filter(Boolean).map(x=>{const [id,...name]=x.split(/\s+/);return [id,name.join(' ')||id]});
+    const defaults={};form.querySelectorAll('[data-agent-mode]').forEach(x=>defaults[x.dataset.agentMode]=x.value.trim());
+    const config={title:$('#agentTitle').value.trim(),models,defaults,timeout:Number($('#agentTimeout').value)};
+    if($('#agentProfile'))config.profile=$('#agentProfile').value.trim();
+    try{const saved=await post('/api/agent-settings',{name:$('#agentName').value.trim(),revision:d.revision,config});d.revision=saved.revision;
+      if($('#agentForm')===form&&!$('#modal').hidden){status.textContent='已保存，新任务使用新配置';button.disabled=false;button.textContent='保存配置';$('#agentName').readOnly=true}
+      await agentSettingsLoad();const meta=await get('/api/meta');if($('#agentSettings'))S.meta={...S.meta,...meta};
+    }catch(error){if($('#agentForm')===form){status.textContent=error.message;button.disabled=false}}
+  };
+}
+
 async function vSettings(){
   $('#main').innerHTML=`<h1>设置</h1><div class="card" id="rdy" style="margin-top:14px"><h2>上线体检</h2><div class="sub">检查中…</div></div><div class="grid2" style="margin-top:14px"><div class="card form"><h2>我</h2>${S.meta.login?`<p>已登录账号：<b>${h(S.meta.user)}</b></p><p class="sub">操作身份来自登录会话，不能通过修改显示名字代替其他成员。</p>`:`<label>名字（写在评论、指派和审阅记录里）<input class="full" id="un" value="${h(S.user)}"></label><div><button class="primary" id="us">保存</button></div>`}${S.meta.access?.can_manage?`<p>当前租户：${h(S.meta.access.tenant.name)}</p><a class="btn" href="#/access">成员与权限</a>`:''}</div>
-  <div class="card"><h2>智能体</h2>${S.meta.agents.map(a=>`<div class="flowrow"><span>${h(a.title)} <span class="key">${h(a.name)}</span></span><span class="tag">${a.available?'可用':'本机未找到'}</span></div>`).join('')}
-  <div class="hint" style="margin-top:10px">平台用本机已安装的 <code>claude</code>（Claude Code）和 <code>codex</code> 命令，沿用它们自己的登录或环境变量。接第三方模型用 <code>tmh agent-config</code> 生成配置。也可以在 <code>${h(S.meta.data_dir)}/agents.json</code> 里加自研智能体：<code>{"my": {"title":"自研","cmd":["my-agent","--dir","{workdir}","{prompt_file}"]}}</code></div></div>
+  <div class="card" id="agentSettings"><h2>智能体</h2><p>加载中…</p></div>
   <div class="card"><h2>项目</h2>${S.projects.map(p=>`<div class="flowrow"><span><b>${h(p.key)}</b> ${h(p.name)}<div class="sub">${h(p.root)}${p.exists?'':'（目录不存在）'}</div></span><span class="sub">${p.open} 张未关闭</span><span class="pmode" data-pmode="${h(p.key)}"></span><span class="pinteg" data-pinteg="${h(p.key)}"></span><button data-project-library="${h(p.key)}">知识与引用</button></div>`).join('')}<div style="margin-top:10px"><button onclick="newProject()">＋ 登记已有项目</button></div></div>
   <div class="card form" id="tbx"><h2>测试机</h2><div class="sub">加载中…</div></div>
   <div class="card"><h2>数据</h2><div class="sub">工单、讨论和运行记录都在 <code>${h(S.meta.data_dir)}/platform.db</code>（SQLite），修改代码用的工作树在 <code>worktrees/</code>。备份这个目录即可。</div></div></div>`;
@@ -1849,7 +1887,7 @@ async function vSettings(){
   document.querySelectorAll('[data-project-library]').forEach(button=>button.onclick=()=>libraryOpen(button.dataset.projectLibrary));
   document.querySelectorAll('[data-pmode]').forEach(pmode);
   document.querySelectorAll('[data-pinteg]').forEach(pinteg);
-  testbox();readiness()}
+  testbox();readiness();agentSettingsLoad()}
 // ---------- per project: fully automatic (AI fixes, accepts, closes, merges with a version) or a person at every step
 async function pmode(el){const k=el.dataset.pmode;let d;try{d=await get('/api/projects/'+encodeURIComponent(k)+'/mode')}catch(e){return}
   const M={auto:['全自动','AI 改代码、页面实测、AI 验收关单，验收通过的改动合并到 '+h(d.main||'主线')+' 并打版本，可以随时回滚','切到全自动：AI 改代码、AI 验收并关单，验收通过的改动自动合并并打版本（不推送、不部署），可以在版本列表里回滚。确定？'],
