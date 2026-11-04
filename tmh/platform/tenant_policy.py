@@ -222,7 +222,7 @@ PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/si
 # These projections still read across projects, even when their UI shows a
 # project selector. They remain admin-only until their query layer is scoped.
 ADMIN_GLOBAL = frozenset(("/api/org/knowledge", "/api/lead", "/api/readiness", "/api/testbox",
-                         "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
+                         "/api/agent-settings", "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
 AGENT_OPERATIONS = frozenset("""status projects_list tickets_list ticket_get ticket_create message_send
 messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
 candidates_list candidate_get candidate_submit candidate_verify candidate_cancel candidate_preview

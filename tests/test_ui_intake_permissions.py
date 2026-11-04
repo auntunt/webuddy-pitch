@@ -113,3 +113,12 @@ assert.match(firstRun({}),/当前项目还没有工单/);
 assert.ok(!firstRun({}).includes('新建工单'));
 S.scope='*';assert.match(firstRun({}),/当前授权项目还没有工单/);
 ''')
+
+    def test_late_response_cannot_overwrite_another_project_draft(self):
+        self.run_js(r'''
+S.meta.access.role='admin';await pasteModal('A原文');const pending=later();postHandler=()=>pending.promise;
+const sending=$('#pmGo').onclick();$('#pmP').value='STD';$('#pmP').fire('change');
+$('#pmT').value='B新原文';$('#pmT').fire('input');closeModal();
+pending.resolve({id:'A-task',project:'APP',client:null,system:null});await sending;
+assert.ok(S.intakeDraft.scope.includes('STD'));assert.equal(S.intakeDraft.text,'B新原文');assert.equal(S.intakeDraft.taskId,'');
+''')

@@ -519,10 +519,10 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
     pack = ev.latest(signoff.records(P.data_dir, t["key"]), "pack")
     context = {"check_id": secrets.token_hex(12), "ticket": t["key"], "project": p["key"], "criteria_sha256": signoff.criteria_digest(acs),
                "environment_sha256": hashlib.sha256(ev.canon(c).encode()).hexdigest()}
-    if pack:
-        context["pack_hash"] = pack["hash"]
-        signoff._add(signoff.epath(P.data_dir, t["key"]), "criterion_check", by,
-                     dict(context, run=rid, result="running", ac=[]))
+    from .ai_accept import committed
+    snapshot = pack["data"]["snapshot"] if pack else {}
+    expected = committed(snapshot, rid) if snapshot else ""
+    matching = (snapshot.get("change") or {}).get("run") == rid and (not commit or expected and (expected.startswith(commit) or commit.startswith(expected)))
     run = P.store.run(rid)
     wt = Path(run.get("workdir") or "")
     if commit:
@@ -533,6 +533,10 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
     else:
         # the worktree is gone once the run ends; its commits stay on the run's branch
         base, diff = run_branch_head(Path(p["root"]), t, rid), ""
+    if pack and matching and not diff and (not base or expected and base.startswith(expected)):
+        context["pack_hash"] = pack["hash"]
+        signoff._add(signoff.epath(P.data_dir, t["key"]), "criterion_check", by,
+                     dict(context, run=rid, result="running", ac=[]))
     if not re.fullmatch(r"[0-9a-f]{40}", base):
         return {"result": "unverified", "why": "找不到被测版本", "ac": []}
     prompt = spec_prompt(t, acs, run.get("diff") or "")

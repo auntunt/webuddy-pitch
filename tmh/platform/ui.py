@@ -215,8 +215,8 @@ function render(){
   document.body.classList.toggle('delivery-surface',['deliveries','delivery'].includes(view));
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
-  if(!S.proj&&!['home','board','settings','access','deliveries','delivery','workspace','projects','memory','team','meetings','pilots'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
-  const V={pilots:()=>vPilots(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||''),decodeURIComponent(r[3]||''),decodeURIComponent(r[4]||'')),meetings:()=>vMeetings(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),states:()=>vStates(decodeURIComponent(r[1]||'')),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings,access:vAccess}[view]||(()=>{location.hash='#/workspace'});
+  if(!S.proj&&!['intake','home','board','settings','access','deliveries','delivery','workspace','projects','memory','team','meetings','pilots'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
+  const V={intake:()=>vIntake(decodeURIComponent(r[1]||'')),pilots:()=>vPilots(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||''),decodeURIComponent(r[3]||''),decodeURIComponent(r[4]||'')),meetings:()=>vMeetings(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),states:()=>vStates(decodeURIComponent(r[1]||'')),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings,access:vAccess}[view]||(()=>{location.hash='#/workspace'});
   if(view!=='t')A.setTicket(null);
   paintSel();
   if(view==='atlas'&&$('#atl')){S.renderP=Promise.resolve(vAtlas(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}
@@ -289,8 +289,9 @@ function firstRun(L){const ps=S.scope==='*'?S.projects:S.projects.filter(p=>p.ke
 // What waits for me right now, with the one thing to do on each; what waits on people outside the team, apart.
 // The board above says how the loop is doing; this says where to start.
 async function paintInbox(){
-  let d;try{d=await get('/api/projects/'+encodeURIComponent(boardQ())+'/inbox')}catch(e){return}
-  const box=$('#inbox');if(!box)return;S.inbox=d;S.home.open=S.home.open||{};
+  const scope=boardQ(),box=$('#inbox'),request=S.inboxRequest=(S.inboxRequest||0)+1;if(!box)return;
+  let d;try{d=await get('/api/projects/'+encodeURIComponent(scope)+'/inbox')}catch(e){return}
+  if(scope!==boardQ()||box!==$('#inbox')||request!==S.inboxRequest)return;S.inbox=d;S.home.open=S.home.open||{};
   // tickets nobody will start share one cause (the line is off / no agent): one line for the cause, not a row each
   const stalled=d.mine.filter(x=>x.reason==='stalled');d=Object.assign({},d,{mine:d.mine.filter(x=>x.reason!=='stalled')});
   document.title=(d.mine.length?`(${d.mine.length}) `:'')+S.meta.brand;
@@ -1094,6 +1095,11 @@ async function vLead(){
 
 // ---------- requirement conversation: split, restate on the business map, ask only what is missing, EARS criteria
 const IKIND={bug:'缺陷',feature:'新功能',change:'改动',question:'咨询',data:'数据问题'};
+async function vIntake(id){
+  const route=location.hash,s=await get('/api/intake/'+encodeURIComponent(id));if(location.hash!==route)return;
+  $('#main').innerHTML=pageHead('需求交接','',`<a class="btn" href="#/home">返回总览</a>`)+`<div class="card"><p>${h(s.text)}</p><button id="reopenIntake">继续理清</button></div>`;
+  $('#reopenIntake').onclick=()=>talkOpen(id);intakeOpen(s);
+}
 function intakeModal(pk,text,pin){
   modal(`<h2>理清需求 · ${h(pk)}</h2><div class="sub">直接说现象或想要什么，几件事一起说也行。平台会拆开、复述理解、只问缺的，最后生成验收标准，你确认后才建单。</div>
    ${pin?`<pre class="log" style="margin-top:8px;white-space:pre-wrap">${h(pin.summary)}</pre><div class="sub">框选的位置会写进工单（第 2、3 层是推断）。</div>`:''}
@@ -1103,26 +1109,27 @@ function intakeModal(pk,text,pin){
    <span class="sub">截图可直接粘贴；Word、Excel、PDF、文本会抽出文字一起理解，原件按哈希留档</span></div><div id="inFiles" class="chips" style="margin-top:6px"></div><div id="inBox"></div>`,true);
   const host=$('#inBox'),input=$('#inT'),go=$('#inGo'),list=$('#inFiles'),picker=$('#inF');
   const current=()=>$('#inBox')===host&&!$('#modal').hidden;
-  const draft=intakeDraftFor(pk);if(text)draft.text=text;
-  input.oninput=()=>{draft.text=input.value;draft.taskId=''};
+  const draft=intakeDraftFor(pk);if(text){draft.text=text;draft.version++}
+  input.oninput=()=>{draft.text=input.value;draft.taskId='';draft.version++};
   if(!text&&draft.text){const restore=document.createElement('button');restore.type='button';restore.textContent=draft.taskId?'恢复上次需求':'恢复本次输入';
     restore.onclick=()=>{if(draft.taskId)talkOpen(draft.taskId);else{input.value=draft.text;restore.remove()}};host.appendChild(restore)}
-  const files=new Map();let nextFile=0;
+  const files=new Map();let nextFile=0,submitting=false;
   const draw=()=>{if(!current())return;
     list.innerHTML=[...files.values()].map(x=>`<button type="button" class="chip" data-file="${x.id}" aria-label="移除 ${h(x.name)}">${h(x.name)}${x.state==='reading'?' · 读取中':x.state==='failed'?' · 读取失败，请移除后重选':''} ×</button>`).join('');
     list.querySelectorAll('[data-file]').forEach(c=>c.onclick=()=>{files.delete(+c.dataset.file);draw()});
-    go.disabled=[...files.values()].some(x=>x.state!=='ready')};
+    go.disabled=submitting||[...files.values()].some(x=>x.state!=='ready')};
   const addFile=f=>{const x={id:++nextFile,name:f.name||'截图.png',type:f.type,state:'reading',data:null};files.set(x.id,x);draw();
     const rd=new FileReader();rd.onload=()=>{if(!files.has(x.id))return;x.data=rd.result;x.state='ready';draw()};
     rd.onerror=rd.onabort=()=>{if(!files.has(x.id))return;x.state='failed';draw()};rd.readAsDataURL(f)};
   picker.onchange=e=>{[...e.target.files].forEach(addFile);picker.value=''};
   input.addEventListener('paste',e=>[...(e.clipboardData?.files||[])].forEach(addFile));
   input.addEventListener('drop',e=>{if(e.dataTransfer?.files?.length){e.preventDefault();[...e.dataTransfer.files].forEach(addFile)}});
-  go.onclick=async()=>{if(go.disabled)return;go.disabled=true;draft.text=input.value;
+  go.onclick=async()=>{if(submitting||go.disabled)return;submitting=true;go.disabled=true;draft.text=input.value;const version=draft.version;
     try{const result=await post(pin?'/api/pins/'+pin.id+'/intake':'/api/projects/'+encodeURIComponent(pk)+'/intake',
       {text:input.value,attachments:[...files.values()].map(({name,type,data})=>({name,type,data}))});
-      draft.taskId=result.id;if(current())intakePaint(result);
-    }catch(e){if(current()){draw();toast(e.message,5000)}}};
+      if(draft.version===version){draft.taskId=result.id;if(current()&&S.intakeDraft===draft)intakePaint(result)}
+      else{submitting=false;draw()}
+    }catch(e){submitting=false;if(current()){draw();toast(e.message,5000)}}};
 }
 function intakePoll(s,B){
   const current=()=>$('#inBox')===B&&!$('#modal').hidden&&B.taskId===s.id;
@@ -1163,7 +1170,7 @@ function intakePaint(s){const B=$('#inBox');if(!B||$('#modal').hidden)return;if(
   const head=`<div class="sub" style="margin-top:10px">${u.by==='LLM'?'<span class="ev-tag ok">AI 理解</span> 普通 LLM（不读代码、不改文件）':u.by==='智能体'?`<span class="ev-tag ok">AI 理解</span> ${h(u.agent||'')}`:`<span class="ev-tag mute">按规则理解</span>${u.why?' <span class="sub">（AI 没用上：'+h(clip(u.why,60))+'）</span>':''}`}
     ${s.title?` · 标题「${h(s.title)}」`:''}${(s.attachments||[]).length?` · 附件：${s.attachments.map(a=>`<span title="sha256:${h(a.sha256)}${a.note?' · '+h(a.note):''}">${h(a.name)}${a.note?'（'+h(clip(a.note,20))+'）':''}</span>`).join('、')}`:''}${(s.dropped||[]).length?` · 去掉了 ${s.dropped.length} 句寒暄或转述：<span title="${h(s.dropped.join(' / '))}">${h(clip(s.dropped.join(' / '),40))}</span>`:''}</div>`;
   const ruleOnly=!done&&u.by==='规则'&&!(s.tickets||[]).length,canAI=ruleOnly&&typeof accessCanExecute==='function'&&accessCanExecute(s.project);
-  const aiRow=ruleOnly?`<div class="card" style="margin-top:10px">${canAI?'<button class="primary" id="inAI">让 AI 理清</button> <span class="sub">客户原话和客户、系统归档不变，AI 拆事项、写验收标准、提出要确认的问题</span>':'<span class="ev-tag info">已记录并归档</span> <span class="sub">这个账号不能调用 AI。请项目里有执行权限的人在「总览 → 动态与待办」的客户沟通里点这条的「继续理清」，再点「让 AI 理清」</span>'}</div>`:'';
+  const aiRow=ruleOnly?`<div class="card" style="margin-top:10px">${canAI?'<button class="primary" id="inAI">让 AI 理清</button> <span class="sub">客户原话和客户、系统归档不变，AI 拆事项、写验收标准、提出要确认的问题</span>':'<span class="ev-tag info">已记录并归档</span> <span class="sub">这个账号不能调用 AI。请将下方需求链接交给项目里有执行权限的人，打开后点「让 AI 理清」</span>'}${!canAI?`<label class="sub">需求链接<input class="full" readonly value="${h(location.origin+location.pathname+'#/intake/'+encodeURIComponent(s.id))}" onclick="this.select()"></label>`:''}</div>`:'';
   const hasQ=s.items.some(it=>(it.questions||[]).some(q=>q.slot!=='flow'));
   const allQ=!s.big&&s.items.length>0&&s.items.every(it=>it.kind==='question');
   B.innerHTML=head+aiRow+s.items.map((it,i)=>`<div class="card" style="margin-top:10px"><div class="hdr"><b class="grow">第 ${i+1} 件：${h(clip(it.title||it.text,40))}</b>
@@ -1853,7 +1860,7 @@ async function agentSettingsLoad(){
   }catch(e){if($('#agentSettings')===el){el.innerHTML='<h2>智能体</h2><p role="alert">'+h(e.message)+'</p><button id="agentRefresh">重试</button>';$('#agentRefresh').onclick=agentSettingsLoad}}
 }
 function agentSettingsEdit(d,a){
-  const fresh=!a;a=a||{name:'',title:'',engine:'codex',profile:'',models:[],defaults:{},timeout:1800};
+  let fresh=!a;a=a||{name:'',title:'',engine:'codex',profile:'',models:[],defaults:{},timeout:1800};
   const labels={analyze:'分析',plan:'方案',fix:'修改',edit:'编辑',diagnose:'诊断',ask:'问答',kb:'知识',chart:'图解',understand:'需求理清'};
   modal(`<h2>${fresh?'添加 Codex 执行器':h(a.title)}</h2><form id="agentForm" class="form">
     <label>代号<input class="full" id="agentName" value="${h(a.name)}" ${fresh?'required':'readonly'}></label>
@@ -1870,10 +1877,12 @@ function agentSettingsEdit(d,a){
     const defaults={};form.querySelectorAll('[data-agent-mode]').forEach(x=>defaults[x.dataset.agentMode]=x.value.trim());
     const config={title:$('#agentTitle').value.trim(),models,defaults,timeout:Number($('#agentTimeout').value)};
     if($('#agentProfile'))config.profile=$('#agentProfile').value.trim();
-    try{const saved=await post('/api/agent-settings',{name:$('#agentName').value.trim(),revision:d.revision,config});d.revision=saved.revision;
+    try{const saved=await post('/api/agent-settings',{action:fresh?'create':'update',name:$('#agentName').value.trim(),revision:d.revision,config});d.revision=saved.revision;fresh=false;
       if($('#agentForm')===form&&!$('#modal').hidden){status.textContent='已保存，新任务使用新配置';button.disabled=false;button.textContent='保存配置';$('#agentName').readOnly=true}
-      await agentSettingsLoad();const meta=await get('/api/meta');if($('#agentSettings'))S.meta={...S.meta,...meta};
-    }catch(error){if($('#agentForm')===form){status.textContent=error.message;button.disabled=false}}
+    }catch(error){if($('#agentForm')===form){status.textContent=error.message;button.disabled=false}return}
+    await agentSettingsLoad();
+    try{const meta=await get('/api/meta');if($('#agentSettings'))S.meta={...S.meta,...meta}}
+    catch(error){if($('#agentForm')===form)status.textContent='配置已保存；状态刷新失败：'+error.message}
   };
 }
 

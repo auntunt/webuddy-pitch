@@ -29,6 +29,7 @@ import time
 from pathlib import Path
 
 from .errors import ApiError
+from .browser_verify import full_sha
 
 STATES = {"requested": "待批准", "approved": "已批准，待部署", "deploying": "正在部署", "deployed": "已上生产",
           "rejected": "已驳回", "failed": "部署失败"}
@@ -122,7 +123,7 @@ def deploy_command(data_dir, project: str) -> str:
     return deploy_config(data_dir, project).get("cmd", "")
 
 
-def _receipt(path, binding):
+def _receipt(path, binding, root=None):
     if not path.exists():
         return "unverified", None, "部署脚本没有提交验证回执"
     try:
@@ -134,7 +135,11 @@ def _receipt(path, binding):
                 checks[k].get("result") not in ("pass", "fail") or not isinstance(checks[k].get("evidence"), str) or
                 not checks[k]["evidence"].strip() for k in ("health", "version", "smoke")):
             return "unverified", receipt, "回执缺少健康、版本或业务冒烟检查依据"
-        if receipt.get("observed_commit") != binding["commit"] or any(checks[k]["result"] != "pass" for k in ("health", "version", "smoke")):
+        expected = full_sha(Path(root), binding["commit"]) if root is not None else binding["commit"]
+        observed = full_sha(Path(root), receipt.get("observed_commit") or "") if root is not None else receipt.get("observed_commit")
+        if not expected:
+            return "unverified", receipt, "申请提交无法在项目仓库中唯一解析"
+        if not observed or observed != expected or any(checks[k]["result"] != "pass" for k in ("health", "version", "smoke")):
             return "fail", receipt, "运行版本不符或部署检查失败"
         return "pass", receipt, "健康、运行版本和业务冒烟检查通过"
     except (OSError, UnicodeError, ValueError, KeyError):
@@ -156,6 +161,9 @@ def request(P, project: str, version: str, by: str, note: str = "", checked: str
         raise ApiError(404, "没有版本 %s" % version)
     if not (checked or "").strip():
         raise ApiError(400, "写一句在验证环境里看过什么，再申请上生产")
+    commit = full_sha(Path(p["root"]), rel.get("commit", ""))
+    if not commit:
+        raise ApiError(409, "版本提交无法在项目仓库中唯一解析，请核对版本记录")
     with _LOCK:
         open_ = [r for r in requests(P.data_dir, p["key"]) if r["version"] == version and (r["state"] in ("requested", "approved", "deploying", "deployed", "ambiguous") or r["source"] == "command" and r["execution"] == "unknown")]
         if open_:
@@ -163,7 +171,7 @@ def request(P, project: str, version: str, by: str, note: str = "", checked: str
         rid = "PR-" + secrets.token_hex(16)
         tickets = [x.get("key") for x in rel.get("tickets") or [] if x.get("key")]
         rec = {"id": rid, "step": "request", "state": "requested", "project": p["key"], "version": version,
-               "commit": rel.get("commit", ""), "tickets": tickets, "by": by, "ts": _now(), "note": note.strip()[:2000],
+               "commit": commit, "tickets": tickets, "by": by, "ts": _now(), "note": note.strip()[:2000],
                "checked": checked.strip()[:2000]}
         _append(P.data_dir, rec)
     r = get(P.data_dir, rid)
@@ -204,10 +212,16 @@ def _deploy(P, rid: str, by: str) -> None:
                                  "by": by, "ts": _now(), "source": "command", "execution": "not_started",
                                  "verification": "unverified", "verification_note": "部署配置与批准时不同，请重新申请"})
             return
-        cmd = config["cmd"].replace("{version}", r["version"]).replace("{commit}", r["commit"])
+        commit = full_sha(Path(p["root"]), r["commit"])
+        if not commit:
+            _append(P.data_dir, {"id": rid, "project": p["key"], "step": "deploy_failed", "state": "failed",
+                                 "by": by, "ts": _now(), "source": "command", "execution": "not_started",
+                                 "verification": "unverified", "verification_note": "申请提交无法在项目仓库中唯一解析，未执行部署"})
+            return
+        cmd = config["cmd"].replace("{version}", r["version"]).replace("{commit}", commit)
         started = _now()
         binding = {"schema": "webuddy-deploy-receipt-v1", "request_id": rid, "nonce": secrets.token_hex(24),
-                   "target": config["target"], "version": r["version"], "commit": r["commit"], "started_at": started,
+                   "target": config["target"], "version": r["version"], "commit": commit, "started_at": started,
                    "command_sha256": config_hash}
         _ACTIVE.add(rid)
         _append(P.data_dir, {"id": rid, "project": p["key"], "step": "deploy", "state": "deploying", "by": by,
@@ -224,7 +238,7 @@ def _deploy(P, rid: str, by: str) -> None:
             execution = "completed" if exit_code == 0 else "failed"
             out = (x.stdout or "") + (x.stderr or "")
             if execution == "completed":
-                verification, receipt, why = _receipt(path, binding)
+                verification, receipt, why = _receipt(path, binding, p["root"])
             else:
                 why = "部署命令失败"
     except subprocess.TimeoutExpired:

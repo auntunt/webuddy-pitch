@@ -24,6 +24,7 @@ Element.prototype.remove=function(){this.parent.children=this.parent.children.fi
 document.createElement=tag=>new Element(tag);
 const readers=[];class FileReader{constructor(){readers.push(this)}readAsDataURL(f){this.file=f}finish(){this.result='data:text/plain;base64,'+Buffer.from(this.file.name).toString('base64');this.onload()}}
 S.meta={user:'alice',login:true,data_dir:'/synthetic',access:{tenant:{id:1}}};
+const pageHead=()=>'';const intakeOpen=s=>{assert.equal(s.id,'one')};
 const accessCanExecute=()=>false;const talkOpen=id=>requests.push('reopen:'+id);
 const task=(id,state='understanding')=>({id,project:'APP',text:'原始需求',state,items:[],attachments:[],tickets:[]});
 const addFiles=(...names)=>$('#inF').onchange({target:{files:names.map(name=>({name,type:'text/plain'}))}});
@@ -101,4 +102,43 @@ S.meta.access.tenant.id=2;assert.equal(intakeDraftFor('APP').text,'');
 main.innerHTML='<input id="sayIn">';$('#sayIn').value='重要原话';let fail=true;
 const pasteModal=async()=>{if(fail)throw Error('打开失败');return true};
 await sayOpen();assert.equal($('#sayIn').value,'重要原话');fail=false;await sayOpen();assert.equal($('#sayIn').value,'');
+''')
+
+    def test_attachment_refresh_keeps_request_locked(self):
+        self.run_js(r'''
+intakeModal('APP','原文');const pending=later();postHandler=()=>pending.promise;
+const one=$('#inGo').onclick();addFiles('new.txt');readers[0].finish();
+assert.equal($('#inGo').disabled,true);await $('#inGo').onclick();assert.equal(mutations.length,1);
+pending.resolve(task('same'));await one;
+''')
+
+    def test_new_input_survives_pending_success_and_can_submit(self):
+        self.run_js(r'''
+intakeModal('APP','原文');const pending=later();postHandler=()=>pending.promise;
+const one=$('#inGo').onclick();$('#inT').value='另一条';$('#inT').oninput();
+pending.resolve(task('old'));await one;
+assert.equal(S.intakeDraft.text,'另一条');assert.equal(S.intakeDraft.taskId,'');assert.equal($('#inGo').disabled,false);
+''')
+
+    def test_inbox_ignores_previous_scope_and_older_same_scope(self):
+        source=JS[JS.index('async function paintInbox(){'):JS.index('function waited(',JS.index('async function paintInbox(){'))]
+        self.run_js(source+r'''
+const boardQ=()=>S.scope;S.home={open:{}};S.meta.brand='Fixture';main.innerHTML='<div id="inbox"></div>';
+const a=later(),b=later();getHandler=url=>url.includes('/APP/')?a.promise:b.promise;
+const response=marker=>({marker,mine:[],others:[],running:0,open:0,auto:true,agent:true});
+S.scope='APP';const first=paintInbox();S.scope='STD';main.innerHTML='<div id="inbox"></div>';const second=paintInbox();
+b.resolve(response('B'));await second;a.resolve(response('A'));await first;assert.equal(S.inbox.marker,'B');
+const c=later(),d=later();let n=0;getHandler=()=>++n===1?c.promise:d.promise;
+const third=paintInbox(),fourth=paintInbox();d.resolve(response('D'));await fourth;c.resolve(response('C'));await third;
+assert.equal(S.inbox.marker,'D');
+''')
+
+    def test_handoff_link_preserves_tenant_and_same_task(self):
+        self.run_js(r'''
+location.origin='https://example.invalid';location.pathname='/t/default/';location.hash='#/intake/one';
+intakeModal('APP','原文');const s={...task('one','ready'),understood:{by:'规则'}};intakePaint(s);
+assert.ok($('#inBox').innerHTML.includes('https://example.invalid/t/default/#/intake/one'));
+getHandler=url=>{assert.equal(url,'/api/intake/one');return s};
+await vIntake('one');
+$('#reopenIntake').onclick();assert.ok(requests.includes('reopen:one'));
 ''')

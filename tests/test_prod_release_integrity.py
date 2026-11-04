@@ -21,7 +21,7 @@ class ReleaseIntegrityTest(unittest.TestCase):
         self.p = FakeP(self.root.name)
         self.addCleanup(shutil.rmtree, self.p.data_dir)
         with (self.p.data_dir / 'releases.jsonl').open('a') as f:
-            f.write(json.dumps({'project': 'BID', 'version': 'v2', 'commit': 'def5678', 'tickets': []})+'\n')
+            f.write(json.dumps({'project': 'BID', 'version': 'v2', 'commit': self.p.commit[:7], 'tickets': []})+'\n')
 
     def request(self, version='v1.0.3'):
         return prod.request(self.p, 'BID', version, 'fde', checked='合成验证通过')
@@ -175,6 +175,23 @@ for (const verification of ['pass','fail','unverified']) {
         self.assertEqual(len(r['steps']), 3)
         with self.assertRaises(ApiError):
             self.request()
+
+
+    def test_real_observed_git_sha_matches_historical_short_request(self):
+        self.script("import subprocess\nr=json.loads(os.environ['WEBUDDY_DEPLOY_CONTEXT'])\n"
+                    "r['observed_commit']=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()\n"
+                    "r['checks']={k:{'result':'pass','evidence':'local fixture check'} for k in ['health','version','smoke']}\n"
+                    "Path(os.environ['WEBUDDY_DEPLOY_RECEIPT']).write_text(json.dumps(r))\n")
+        r=self.run_deploy()
+        self.assertEqual(r['verification'],'pass')
+        self.assertEqual(r['commit'],self.p.commit)
+        path=Path(self.root.name)/'receipt.json'
+        receipt={'commit':self.p.commit[:7],'observed_commit':self.p.commit,'checks':{k:{'result':'pass','evidence':'fixture'} for k in ('health','version','smoke')}}
+        path.write_text(json.dumps(receipt))
+        self.assertEqual(prod._receipt(path,{'commit':self.p.commit[:7]},self.root.name)[0],'pass')
+        for observed in ('','HEAD','f'*40):
+            receipt['observed_commit']=observed;path.write_text(json.dumps(receipt))
+            self.assertEqual(prod._receipt(path,{'commit':self.p.commit[:7]},self.root.name)[0],'fail')
 
 
 if __name__ == '__main__':

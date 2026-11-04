@@ -3,7 +3,7 @@
 DRAFT_JS = r"""
 function intakeDraftFor(project){
   const scope=JSON.stringify([S.meta?.access?.tenant?.id||'',S.meta?.data_dir||'',S.meta?.login?S.meta.user:S.user||S.meta?.user||'',project]);
-  if(S.intakeDraft?.scope!==scope)S.intakeDraft={scope,text:'',taskId:''};
+  if(S.intakeDraft?.scope!==scope)S.intakeDraft={scope,text:'',taskId:'',version:0};
   return S.intakeDraft;
 }
 

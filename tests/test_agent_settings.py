@@ -21,7 +21,7 @@ class AgentSettingsTest(unittest.TestCase):
                                                   'env': {'TOKEN': 'private-secret'}}}))
 
     def body(self, name='codex'):
-        return {'name': name, 'revision': settings.view(self.root)['revision'],
+        return {'action': 'update' if name in ('codex','claude','custom') or name in json.loads(self.path.read_text()) else 'create', 'name': name, 'revision': settings.view(self.root)['revision'],
                 'config': {'title':'Configured','models':[['model-x','Model X']],
                            'defaults':{'fix':'model-x'},'timeout':90}}
 
@@ -74,3 +74,10 @@ class AgentSettingsTest(unittest.TestCase):
         self.assertTrue(server.api_agent_settings_save(P,req)['can_edit'])
         req.h.headers={'X-Webuddy-Agent':'bot'}
         with self.assertRaises(ApiError):server.api_agent_settings_save(P,req)
+
+    def test_create_collision_and_missing_update_do_not_write(self):
+        for name, action, code in [('claude','create',409),('absent','update',404)]:
+            body=self.body(name);body['action']=action;before=self.path.read_bytes()
+            with self.assertRaises(ApiError) as caught:settings.save(self.root,body)
+            self.assertEqual(caught.exception.code,code)
+            self.assertEqual(self.path.read_bytes(),before)

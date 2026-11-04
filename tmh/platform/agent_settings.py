@@ -38,8 +38,10 @@ def view(data_dir):
 
 
 def save(data_dir, body):
-    if set(body) != {'name', 'revision', 'config'}:
-        raise ApiError(400, '需要智能体名称、配置和当前版本')
+    if set(body) != {'action', 'name', 'revision', 'config'}:
+        raise ApiError(400, '需要创建或更新操作、智能体名称、配置和当前版本')
+    if body['action'] not in ('create', 'update'):
+        raise ApiError(400, '操作必须是 create 或 update')
     name, value = body['name'], body['config']
     if not isinstance(name, str) or not agent_routes.AGENT.fullmatch(name):
         raise ApiError(400, '智能体代号只能使用字母、数字、短横线和下划线')
@@ -64,6 +66,10 @@ def save(data_dir, body):
         if body['revision'] != revision:
             raise ApiError(409, '配置已被更新，请重新打开后编辑')
         existing = name in raw or name in agents.BUILTIN
+        if body['action'] == 'create' and existing:
+            raise ApiError(409, '此代号已存在，请打开已有智能体配置编辑')
+        if body['action'] == 'update' and not existing:
+            raise ApiError(404, '智能体不存在，请重新读取配置')
         c = dict(agents.BUILTIN.get(name, {}), **raw.get(name, {}))
         if not existing:
             c.update(engine='codex', prompt_transport='stdin', resume=False, retry_busy=False)

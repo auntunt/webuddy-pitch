@@ -137,10 +137,11 @@ async function pasteModal(text,cid){
    <div class="wk-actions"><button class="primary" id="pmGo">${S.meta.access&&!accessCanExecute(np)?'记录并归档':'交给 AI 理清'}</button><button type="button" id="pmOld" class="ghost">直接填写工单</button></div>`,true);
   if(!has||!clientAccess||clientError)$('#pmC').value='';
   const chosen=()=>$('#pmP')?$('#pmP').value:np;
-  const syncAction=()=>{const pk=chosen(),write=accessCanWrite(pk);$('#pmGo').disabled=!write;$('#pmOld').disabled=!write;$('#pmGo').textContent=!write?'仅可查看':accessCanExecute(pk)?'交给 AI 理清':'记录并归档'};
+  let submitting=false;
+  const syncAction=()=>{const pk=chosen(),write=accessCanWrite(pk);$('#pmGo').disabled=submitting||!write;$('#pmOld').disabled=!write;$('#pmGo').textContent=!write?'仅可查看':accessCanExecute(pk)?'交给 AI 理清':'记录并归档'};
   syncAction();
-  const host=$('#pmT');let draft=intakeDraftFor(chosen());if(text){draft.text=text;draft.taskId=''}
-  host.oninput=()=>{draft.text=host.value;draft.taskId=''};
+  const host=$('#pmT');let draft=intakeDraftFor(chosen());if(text){draft.text=text;draft.taskId='';draft.version++}
+  host.oninput=()=>{draft.text=host.value;draft.taskId='';draft.version++};
   const restore=document.createElement('button');restore.type='button';restore.id='pmRestore';restore.textContent='恢复本次输入';
   restore.hidden=!!text||!(draft.text||draft.taskId);host.insertAdjacentElement('afterend',restore);
   restore.onclick=()=>{if(draft.taskId)talkOpen(draft.taskId);else{host.value=draft.text;restore.hidden=true}};
@@ -157,14 +158,18 @@ async function pasteModal(text,cid){
   $('#pmC').onchange=()=>{$('#pmN').hidden=$('#pmC').value!=='__new';$('#pmNL').hidden=$('#pmN').hidden;if(!$('#pmN').hidden)$('#pmN').focus()};
   if(!text)$('#pmT').focus();
   $('#pmOld').onclick=()=>{const v=$('#pmT').value,who=($('#pmR')?.value||'').trim();closeModal();newTicket({title:v.split('\n')[0].slice(0,60),body:who?'提出人：'+who+'\n'+v:v})};
-  $('#pmGo').onclick=async()=>{const v=$('#pmT').value,c=$('#pmC').value,pk=$('#pmP')?$('#pmP').value:np;
+  $('#pmGo').onclick=async()=>{if(submitting)return;const v=$('#pmT').value,c=$('#pmC').value,pk=$('#pmP')?$('#pmP').value:np;
     if(!accessCanWrite(pk))return toast('当前项目只有查看权限，不能记录需求。');
     const who=($('#pmR')?.value||'').trim(),b={project:pk,text:who?'提出人：'+who+'\n'+v:v};if(S.meta.access&&!accessCanExecute(pk))b.model=false;if(c==='__new'){const n=$('#pmN').value.trim();if(!n)return toast('写上客户的称呼，或者选“不记客户”');b.client_name=n}else if(c)b.client=+c;
     const sv=$('#pmS').value;if(sv==='__new'){const n=$('#pmSN').value.trim();if(!n)return toast('写上系统名称，或者选“不选系统”');b.system_name=n}else if(sv)b.system=+sv;
+    const submittedDraft=draft,version=draft.version;submitting=true;
     $('#pmGo').disabled=true;$('#pmGo').textContent=b.model===false?'正在归档…':'正在理清…';
     try{const s=await post('/api/workbench/intake',b);ls.set('tmh.lastClient',s.client?String(s.client):'');ls.set('tmh.lastSystem.'+pk,s.system?String(s.system):'');
       const name=c==='__new'?b.client_name:(cs.find(x=>x.id===s.client)||{}).name||'';
-      draft.taskId=s.id;draft.text=v;if($('#pmT')===host&&!$('#modal').hidden)intakeOpen(s,name)}catch(e){if($('#pmT')===host&&!$('#modal').hidden){toast(e.message,5000);syncAction()}}};return true}
+      if(submittedDraft.version===version){submittedDraft.taskId=s.id;submittedDraft.text=v;
+        if(S.intakeDraft===submittedDraft&&$('#pmT')===host&&!$('#modal').hidden&&chosen()===pk)intakeOpen(s,name)}
+    }catch(e){if($('#pmT')===host&&!$('#modal').hidden&&draft===submittedDraft)toast(e.message,5000)}
+    finally{submitting=false;if($('#pmT')===host&&!$('#modal').hidden)syncAction()}};return true}
 // the existing requirement conversation, opened on a talk that already started
 function intakeOpen(s,clientName){intakeModal(s.project,s.text);intakePaint(s);
   const h2=$('#mbody h2');if(h2&&clientName)h2.insertAdjacentHTML('afterend',`<div style="margin:2px 0 6px"><span class="ev-tag info">来自 ${h(clientName)}</span></div>`)}

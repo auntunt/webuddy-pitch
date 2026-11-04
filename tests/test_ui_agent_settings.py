@@ -44,3 +44,12 @@ S.meta.access.can_manage=false;requests.length=0;await agentSettingsLoad();asser
 getHandler=()=>{throw new Error('无权读取')};await agentSettingsLoad();assert.match(main.textContent,/无权读取/);assert.ok($('#agentRefresh'));
 data.can_edit=false;agentSettingsEdit(data,data.agents[0]);assert.equal($('#agentSave'),null);assert.equal($('#agentModels').disabled,true);
 ''')
+
+    def test_saved_result_survives_refresh_failure_and_create_becomes_update(self):
+        self.run_js(r'''
+await agentSettingsLoad();agentSettingsEdit(data,null);$('#agentName').value='new-codex';
+postHandler=()=>({...data,revision:'two'});
+getHandler=url=>{if(url==='/api/meta')throw Error('刷新失败');return data};await submit('#agentForm');
+assert.equal(mutations[0].body.action,'create');assert.match($('#agentSaveState').textContent,/配置已保存；状态刷新失败/);
+await submit('#agentForm');assert.equal(mutations[1].body.action,'update');assert.equal(mutations[1].body.revision,'two');
+''')

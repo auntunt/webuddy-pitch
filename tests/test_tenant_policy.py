@@ -392,5 +392,13 @@ class TenantPolicyTest(unittest.TestCase):
         policy.require_execution(self.P, "")
 
 
+    def test_agent_settings_read_cannot_be_widened_by_scope(self):
+        for query in ({},{'project':['ALPHA']},{'project':['*']},{'scope':['ALPHA']}):
+            for actor in ('alice','reader','outsider'):
+                self.denied('/api/agent-settings',actor=actor,query=query)
+            self.auth('/api/agent-settings',actor='admin',query=query)
+        self.denied('/api/today',query={'project':['ALPHA']})
+
+
 if __name__ == "__main__":
     unittest.main()

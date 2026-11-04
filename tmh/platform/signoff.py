@@ -423,9 +423,8 @@ def state(data_dir: Path, key: str) -> dict:
     out["complete"] = not out["missing"]
     out["status"] = signs[-1]["kind"] + "ed" if signs else ("ready" if out["complete"] else "incomplete")
     out["criterion_evidence"] = current_page_evidence(data_dir, key, out, after) if ok and not stale else {}
-    checks = [r for r in after if r["kind"] == "criterion_check"]
-    evidence_seq = max((a["evidence_seq"] for a in out["criterion_evidence"].values()), default=0)
-    if checks and (not out["criterion_evidence"] or signs and evidence_seq > signs[-1]["seq"]):
+    checks = candidate_checks(out, after)
+    if checks and ((not out["criterion_evidence"] and (not signs or signs[-1]["data"].get("via") == "AI 验收")) or signs and checks[-1]["seq"] > signs[-1]["seq"]):
         if out["decision"]:
             out["previous_decision"], out["decision"] = out["decision"], None
         out["status"] = "incomplete"
@@ -439,17 +438,36 @@ def criteria_digest(acs: list) -> str:
     return hashlib.sha256(ev.canon([{k: a.get(k) for k in ("id", "text", "check", "open", "keep")} for a in acs]).encode()).hexdigest()
 
 
+def candidate_checks(state: dict, after: list) -> list:
+    from .ai_accept import committed
+    snap = state["snapshot"]
+    rid = (snap.get("change") or {}).get("run")
+    commit = committed(snap, rid) if rid else ""
+    selected = []
+    for r in after:
+        d = r["data"]
+        if (r["kind"] != "criterion_check" or d.get("pack_hash") != state["pack_hash"]
+                or d.get("run") != rid or d.get("project") != snap["project"]["key"]
+                or d.get("ticket") != snap["ticket"]["key"]
+                or d.get("criteria_sha256") != criteria_digest(snap["ac"])):
+            continue
+        if d.get("base") and (not commit or not str(d["base"]).startswith(commit)):
+            continue
+        selected.append(r)
+    starts = [r for r in selected if r["data"].get("result") == "running"]
+    if starts:
+        check_id = starts[-1]["data"]["check_id"]
+        selected = [r for r in selected if r["data"].get("check_id") == check_id]
+    return selected
+
+
 def current_page_evidence(data_dir: Path, key: str, state: dict, after: list) -> dict:
     from . import browser_verify
     from .ai_accept import committed
     snap = state["snapshot"]
-    checks = [r for r in after if r["kind"] == "criterion_check"]
+    checks = candidate_checks(state, after)
     if not checks:
         return {}
-    starts = [r for r in checks if r["data"].get("result") == "running"]
-    if starts:
-        check_id = starts[-1]["data"]["check_id"]
-        checks = [r for r in checks if r["data"].get("check_id") == check_id]
     d = checks[-1]["data"]  # older concurrent responses cannot replace the latest attempt
     project = snap["project"]["key"]
     rid = (snap.get("change") or {}).get("run")
@@ -463,8 +481,7 @@ def current_page_evidence(data_dir: Path, key: str, state: dict, after: list) ->
             or d.get("diff_sha256") != hashlib.sha256(b"").hexdigest()
             or d.get("result") not in ("pass", "fail", "unverified")):
         return {}
-    return {a["id"]: dict(a, result="unverified" if d["result"] == "unverified" else a["result"],
-                           evidence_hash=checks[-1]["hash"], evidence_seq=checks[-1]["seq"]) for a in d.get("ac") or []}
+    return {a["id"]: dict(a, evidence_hash=checks[-1]["hash"], evidence_seq=checks[-1]["seq"]) for a in d.get("ac") or []}
 
 
 PROOF_STATE = {"proven": "逐项实测已证明", "todo": "等您确认", "pass": "已确认通过", "fail": "没通过", "open": "还没说清楚，不该开工"}

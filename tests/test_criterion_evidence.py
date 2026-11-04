@@ -108,7 +108,7 @@ class CriterionEvidenceTest(unittest.TestCase):
         self.assertEqual(image.read_bytes(), b"original fixture image")
         # An unsuccessful new attempt supersedes the former pass immediately.
         with mock.patch.object(browser_verify, "full_sha", return_value=""):
-            result = browser_verify.verify(P, {"key": "APP", "root": str(self.data)}, t, 7, self.acs, commit="b" * 40)
+            result = browser_verify.verify(P, {"key": "APP", "root": str(self.data)}, t, 7, self.acs, commit="a" * 40)
         self.assertEqual(result["result"], "unverified")
         self.assertEqual(self.state()["proofs"][0]["state"], "todo")
 
@@ -127,6 +127,45 @@ class CriterionEvidenceTest(unittest.TestCase):
         signoff._save_links(self.data, {signoff._th(token): {"key": "APP-1", "signer": "客户", "role": "", "expires": "9999", "used": "", "pack_hash": self.pack["hash"]}})
         with self.assertRaisesRegex(ApiError, "A1 没确认通过"):
             signoff._decide(P, token, "sign", "客户", {}, "")
+
+
+    def test_history_does_not_hide_current_or_new_human_decision(self):
+        self.record()
+        signoff._add(signoff.epath(self.data,'APP-1'),'sign','person',{'ac':{'A1':'pass'}})
+        decision=self.state()['decision']
+        self.record(run=6,result='running',ac=[],check_id='history')
+        self.record(run=6,check_id='history')
+        self.assertEqual(self.state()['decision'],decision)
+        self.assertEqual(self.state()['criterion_evidence']['A1']['result'],'pass')
+        self.record(result='running',ac=[],check_id='current')
+        self.assertIsNone(self.state()['decision'])
+        signoff._add(signoff.epath(self.data,'APP-1'),'sign','person',{'ac':{'A1':'pass'}})
+        self.assertIsNotNone(self.state()['decision'])
+        self.record(check_id='history')
+        self.assertIsNotNone(self.state()['decision'])
+
+    def test_partial_results_preserve_independent_pass_but_block_ai_accept(self):
+        self.acs.append({'id':'A2','text':'另一项','check':'独立检查','keep':True})
+        self.pack=signoff._add(signoff.epath(self.data,'APP-1'),'pack','fixture',{'snapshot':self.snap})
+        self.context.update(pack_hash=self.pack['hash'],criteria_sha256=signoff.criteria_digest(self.acs))
+        self.record(result='unverified',ac=[{'id':'A1','result':'pass','how':'valid assertion'},{'id':'A2','result':'unverified','how':'missing'}])
+        self.assertEqual(self.state()['criterion_evidence']['A1']['result'],'pass')
+        with self.assertRaises(ApiError):
+            signoff._record_accept(SimpleNamespace(data_dir=self.data),{'key':'APP-1'},ai_accept.BY,True,'fixture',via=ai_accept.BY,basis={'run':7,'pack_hash':self.pack['hash']})
+
+    def test_changed_environment_invalidates_ai_decision(self):
+        self.record()
+        signoff._record_accept(SimpleNamespace(data_dir=self.data),{'key':'APP-1'},ai_accept.BY,True,'fixture',via=ai_accept.BY,basis={'run':7,'pack_hash':self.pack['hash']})
+        (self.data/browser_verify.CONF).write_text(json.dumps({'projects':{'APP':dict(self.environment,app='changed')}}))
+        self.assertIsNone(self.state()['decision'])
+
+    def test_historical_browser_attempt_is_not_bound_to_latest_pack(self):
+        self.record()
+        P=SimpleNamespace(data_dir=self.data,store=SimpleNamespace(run=lambda rid:{'diff':'','workdir':''},event=mock.Mock()))
+        with mock.patch.object(browser_verify,'full_sha',return_value=''):
+            browser_verify.verify(P,{'key':'APP','root':str(self.data)},{'id':1,'key':'APP-1','title':'fixture'},6,self.acs,commit='b'*40)
+        self.assertEqual(self.state()['criterion_evidence']['A1']['result'],'pass')
+        self.assertEqual(len(signoff.records(self.data,'APP-1')),2)
 
 
 if __name__ == "__main__":
