@@ -623,3 +623,11 @@
 - 已推送并上线：`3ec27cb8d2759dbdaf9119aa00c704eae66523fa`，阿里云 `webuddy:3ec27cb`。服务器 Python3.11 隔离容器 141 tests OK（51.487s），2264 发布文件 SHA 清单一致，现有3个智能体配置只读兼容检查通过。
 - 发布前 running_runs=0；完整卷/外部配置备份 `/home/Liyibin/webuddy/backups/pre-3ec27cb-20261104T181450Z`；12库完整性检查通过，上线后两主库再次 ok；回环及公网登录200、未登录新配置API401，容器 running/restart0。原镜像 f614118 保留，回退只切镜像不覆盖数据。
 - 使用入口：刷新“设置 → 智能体”，点“配置”或“查看”。新增 Codex 执行器不会自动改变路由允许列表；本轮不提供 API 密钥编辑或真实模型付费连通测试，也未修改生产上的模型配置。
+
+## 2026-11-05 阿里云 Codex 实际接入修复与 li 登录排查
+
+- 用户反馈 li 登录失败并要求直接配置 Codex。只读查证 li active=1、平台管理员、default 组织 admin，组织 active；账号和 session.key 与第一批发布前完整备份一致。本轮未修改密码、权限或伪造用户会话。
+- 当前控制库 li 密码记录与旧 users.json 的记录不同（未输出哈希）；仅能判定记录有差异，尚未收到登录错误提示，不能据此断言根因。仍待区分密码错误、限流、会话或组织跳转。
+- Codex 确认的迁移遗漏：cloudwave-codex.bin 仍为腾讯云 /home/ubuntu/.npm-global/bin/codex，现容器实际 /usr/local/bin/codex；引用的 webuddy-cloudwave.config.toml 不存在。此前配置兼容检查只证明能读配置，未证明该执行器可运行。
+- 已在阿里云外部配置修正 bin，新增独立 profile 继承既有 aiseat provider、gpt-6-luna 与服务器凭据；未复制密钥、未修改默认路由及其他执行器。原配置备份 /opt/webuddy/data/maintenance-backups/codex-access-20261104T183307。
+- 使用平台实际 command 构建器在临时空目录以 understand/read-only 模式调用官方 CLI，要求不用工具、只答 WEBUDDY_CODEX_OK：15.2 秒、exit0、completed=true、结果精确匹配、无认证/额度错误。未触发业务任务或验收。配置热读取，无需重启服务。
