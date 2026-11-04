@@ -66,6 +66,7 @@ class ToolClientWheelTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home:
             old = os.environ.get('HOME')
             os.environ['HOME'] = home
+            mask = os.umask(0o002)
             try:
                 value = {'schema': 1, 'endpoint': endpoint, 'token': 'wbt_' + 'a' * 16 + '.' + 'a' * 32}
                 first = credentials.save_default(value)
@@ -74,7 +75,9 @@ class ToolClientWheelTest(unittest.TestCase):
                 self.assertEqual(credentials.default_file(), first)
                 self.assertEqual(credentials.load(first)['token'], 'wbt_' + 'b' * 16 + '.' + 'b' * 32)
                 self.assertEqual(sorted(os.listdir(os.path.dirname(first))), ['credential.json'])
+                self.assertEqual(os.stat(os.path.join(home, '.config')).st_mode & 0o777, 0o700)
             finally:
+                os.umask(mask)
                 os.environ['HOME'] = old
 
 

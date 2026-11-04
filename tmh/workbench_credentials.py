@@ -107,7 +107,13 @@ def default_file():
 def save_default(value):
     """Save to DEFAULT_FILE; a new import replaces the previous default connection."""
     path = Path(os.path.expanduser(DEFAULT_FILE))
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    missing, parent = [], path.parent
+    while not parent.exists():
+        missing.append(parent)
+        parent = parent.parent
+    for directory in reversed(missing):
+        directory.mkdir(mode=0o700)
+        os.chmod(directory, 0o700)
     if not path.exists():
         return save(path, value)
     staged = path.with_name(".credential-" + secrets.token_hex(8) + ".json")
