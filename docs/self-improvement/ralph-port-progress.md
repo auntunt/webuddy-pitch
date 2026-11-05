@@ -771,3 +771,13 @@
 - Cloudflare新增webuddy.bbstack.date A→43.153.76.85，DNS only、TTL300，记录0b4a3855dc4af0fdd29ae1fb26fe0f9e。只在43 Caddy现有Webuddy站点增加此域名，原webuddy-us.bbstack.date及其他站点保留；配置验证通过后reload。备份/opt/webuddy/backups/domain-test-20261105T035751Z/Caddyfile。reload提示既有systemd单元磁盘变化，未为此改动其他服务或执行daemon-reload。
 - 43现役webuddy.service active/PID731180，app仍/opt/webuddy/releases/d8f0c0f340ab-agent-pick-20261104/app，TMH_PUBLIC_URL原本就是https://webuddy.bbstack.date，不改env、不重启Webuddy、不迁移数据。本次只恢复域名，没有同步最新产品代码。
 - 公共DNS1.1.1.1已解析43.153.76.85；Mac正常DNS和指定IP保留SNI的TLS登录均200，匿名API401，同源超限413、跨站403。阿里云生产DNS仍webuddy.cloudwaveai.cn→8.141.121.22、DNS only，本轮不改生产应用或配置。
+
+## 2026-11-05 43测试站同步当前版本
+
+- 用户要求43同步好；仅发布测试环境，不改阿里云生产。精确源码`d61738a7dbdcd0cc798d484e07e9f354f1ea9532`，包含此前网页助手、GitHub导入恢复、逐项纠错/北京时间、智能体配置和Codex SSH测试机闭环。
+- 43 Python3.12.3上526项针对回归全部通过（138.951秒）；2316文件清单匹配；12个原有数据库完整性和副本Store初始化通过，所有项目根仍位于原data/repos目录。发布前无queued/running任务。
+- 43原Codex0.162.1经真实Runner._spawn使用新MCP成功：修改临时app.js、SSH到Windows、npm install、启动Node、HTTP断言status=ok、exit0，测试回执33.923秒。无需升级CLI或修改模型/路由/密钥；测试端口18974无监听，合成远端目录已定向清理。证据`/tmp/webuddy-43-testbox-c983fipb`仅留43。
+- 网页助手也用43原路由真实完成status→projects_list→ticket_create→结果，临时数据隔离并清理；没有使用真人会话写业务数据或代人验收。
+- 复用原root0600发布锁，停服完整备份`/opt/webuddy/backups/pre-d61738a-test-20261105T043917Z`：data/repos、ubuntu的.codex、env与服务配置，旧程序保留。app现指向`/opt/webuddy/releases/d61738a/app`，12:39:49 CST启动，PID1052555；不复制阿里云数据库或账号。补齐此前缺少的/home/ubuntu/.local/bin/tmh入口，版本0.4.0且在实际服务PATH上。
+- 即时内外登录200、匿名API401、同源超限413、跨站403；运行cwd/清单/12库完整性通过，active/running/NRestarts0。沿用已加载的systemd单元，未因既有磁盘mtime警告改动其他服务。阿里云只读核验仍0741715/PID803799/active/NRestarts0。
+- 12:41:36 CST延迟复核（启动后107秒）：PID1052555保持、active/running/NRestarts0，2316清单及12库完整性再次通过，内外登录200/API401。操作说明补入scripts/deploy/TESTING.md；本次记录提交不重复重启应用。
