@@ -981,15 +981,15 @@ def confirm(root: Path, pid: str, who: str, note: str = "", *,
             # the machine-reviewed revision saved by an earlier decision.
             page = page_path(root, pid)
             before = page.read_bytes().decode("utf-8")
-            head = re.match(r"\A---\n(.*?)\n---\n", before, re.S)
+            head = re.match(r"\A---(\r?\n)(.*?)\r?\n---\r?\n", before, re.S)
             if not head:
                 raise ValueError("知识页面登记字段已变化，请先修复并重新核对")
-            metadata = head.group(1)
+            newline, metadata = head.group(1), head.group(2)
             if re.search(r"^status:", metadata, re.M):
-                metadata = re.sub(r"^status:[^\n]*", "status: " + STATUS_OK, metadata, flags=re.M)
+                metadata = re.sub(r"^status:[^\r\n]*", "status: " + STATUS_OK, metadata, flags=re.M)
             else:
-                metadata += "\nstatus: " + STATUS_OK
-            text = "---\n" + metadata + "\n---\n" + before[head.end():]
+                metadata += newline + "status: " + STATUS_OK
+            text = "---" + newline + metadata + newline + "---" + newline + before[head.end():]
             sha256 = hashlib.sha256(text.encode("utf-8")).hexdigest()
             state.setdefault("manual_confirmations", []).append({
                 "by": who, "at": time.strftime("%Y-%m-%d %H:%M"), "note": note,

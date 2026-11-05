@@ -38,7 +38,7 @@ class LearningContextTests(unittest.TestCase):
         kb.save_registry(self.root, {"index": {"title": "项目说明", "status": kb.STATUS_DRAFT,
                                                "summary": "UNIQUE_VERIFIED_FACT"}})
         graph_path(self.root).parent.mkdir(exist_ok=True)
-        graph_path(self.root).write_text("synthetic retrieval graph")
+        graph_path(self.root).write_text("synthetic retrieval graph", newline="")
         item = L._origin(self.P, self.p, "fact:index")
         self.r = L.capture(self.P, self.p, item["key"], item["fingerprint"], "writer")
         F.project_revision(self.P, self.p, self.r, "alice", "first", F.revision_token(self.P, self.p, "index"), "人工检查")
@@ -91,7 +91,7 @@ class LearningContextTests(unittest.TestCase):
     def test_page_changes_after_retrieval_cannot_receive_old_revision_receipt(self):
         def collect(*args, **kwargs):
             pack = self.pack()
-            self.page.write_text(self.page.read_text() + "\n后来改变的完整正文")
+            self.page.write_text(self.page.read_text() + "\n后来改变的完整正文", newline="")
             return pack
         self.assertNotIn("UNIQUE_VERIFIED_FACT", self.prompt(collect))
         self.assertFalse(self.receipt()["learning_revisions"][0]["included"])
@@ -156,7 +156,7 @@ class LearningContextTests(unittest.TestCase):
                 self.assertEqual(agents.take_context_meta(), receipts_before)
 
     def test_new_legacy_human_confirmation_is_not_reported_as_old_adoption(self):
-        self.page.write_text(self.page.read_text() + "\n人重新核对后的说明")
+        self.page.write_text(self.page.read_text() + "\n人重新核对后的说明", newline="")
         kb.confirm(self.root, "index", "bob", "对当前完整正文重新确认")
         self.assertIn("UNIQUE_VERIFIED_FACT", self.prompt())
         receipt = self.receipt()["learning_revisions"][0]

@@ -29,7 +29,7 @@ class LearningDecisionsTests(unittest.TestCase):
         self.root = Path(self.temp.name) / "project"
         self.root.mkdir()
         self.source = self.root / "app.py"
-        self.source.write_text("STATUS = 'OPEN'\n", encoding="utf-8")
+        self.source.write_text("STATUS = 'OPEN'\n", encoding="utf-8", newline="")
         self.store = Store(self.data / "platform.db")
         self.addCleanup(self.store.db.close)
         self.P = SimpleNamespace(store=self.store, data_dir=self.data)
@@ -106,7 +106,7 @@ class LearningDecisionsTests(unittest.TestCase):
                     "custom: 保留原始登记字段\n---\n# 状态查询\n\n" + kb.FACTS_START +
                     "\n固定状态值 OPEN，依据 `app.py:1`。\n" + kb.FACTS_END + "\n\n" +
                     "\n\n".join("## " + title + "\n状态值是 OPEN，依据 `app.py:1`。" for title in kb.SECTIONS["index"]) + "\n")
-        page.write_text(original, encoding="utf-8")
+        page.write_text(original, encoding="utf-8", newline="")
         kb.save_registry(self.root, {"index": {"status": kb.STATUS_DRAFT, "title": "状态查询",
                                               "summary": "查询固定的应用状态", "custom": {"keep": [1, 2, 3]}}})
         item = L._origin(self.P, self.p, "fact:index")
@@ -281,7 +281,7 @@ class LearningDecisionsTests(unittest.TestCase):
             with self.subTest(content=content), self.assertRaises(ApiError) as caught:
                 L.propose(self.P, self.p, first["id"], content, "agent:writer")
             self.assertEqual(caught.exception.code, 400)
-        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8")
+        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8", newline="")
         self.assert_conflict(lambda: L.propose(self.P, self.p, first["id"], first["content"] + "\n新说明", "agent:writer"))
         self.assertEqual((page.read_bytes(), regpath.read_bytes()), before)
         self.assertEqual(self.store.q("SELECT id FROM learning_revisions"), revisions)
@@ -357,7 +357,7 @@ class LearningDecisionsTests(unittest.TestCase):
         self.assertEqual(learn.active_revision(self.data, self.card["id"]), self.r["id"])
         self.assertIsNotNone(learn.projection_receipt(self.data, row["id"]))
         learn.set_status(self.data, self.card["id"], "retired", "bob", "新证据要求停用")
-        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8")
+        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8", newline="")
         before = learn._log(self.data)
         recovered = self.decide(job)
         self.assertEqual(recovered["status"], "applied")
@@ -490,7 +490,7 @@ class LearningDecisionsTests(unittest.TestCase):
         before = E._baseline(self.P, self.p, self.r)
         self.assertEqual(before["revision_id"], self.r["id"])
         self.assertEqual(before["content"], self.r["content"])
-        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8")
+        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8", newline="")
         after = E._baseline(self.P, self.p, self.r)
         self.assertEqual(after, {"revision_id": None, "content": "", "token": before["token"]})
         self.assertEqual(learn.active_revision(self.data, self.card["id"]), self.r["id"])
@@ -502,7 +502,7 @@ class LearningDecisionsTests(unittest.TestCase):
         job = self.start(fresh)
         self.assertEqual(job["options"]["evaluation"]["baseline"], after)
         self.assertTrue(E.current(self.P, self.p, job))
-        self.source.write_text("STATUS = 'OPEN'\n", encoding="utf-8")
+        self.source.write_text("STATUS = 'OPEN'\n", encoding="utf-8", newline="")
         self.assertFalse(E.current(self.P, self.p, job))
 
     def test_revoked_lesson_baseline_is_empty_and_keeps_the_new_human_token(self):
@@ -615,7 +615,7 @@ class LearningDecisionsTests(unittest.TestCase):
 
     def test_source_change_after_intent_blocks_initial_projection(self):
         pending = self.pending(self.passed())
-        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8")
+        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8", newline="")
         self.assert_conflict(lambda: D.project_decision(self.P, self.p, pending["id"]))
         self.assertIsNone(learn.projection_receipt(self.data, pending["id"]))
         self.assertEqual(learn.lesson(self.data, self.card["id"])["status"], "candidate")
@@ -638,7 +638,7 @@ class LearningDecisionsTests(unittest.TestCase):
     def test_changed_source_disables_current_adoption_without_erasing_history(self):
         adopted = self.decide(self.passed())
         cards = learn.lessons(self.data, self.p["key"])
-        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8")
+        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8", newline="")
         usable, receipts = D.usable_lessons(self.store, self.p, cards)
         self.assertEqual(usable, [])
         self.assertEqual(receipts, [{"kind": "lesson", "origin_id": self.card["id"],
@@ -687,7 +687,7 @@ class LearningDecisionsTests(unittest.TestCase):
         learn.set_shared(self.data, self.card["id"], True, "alice", "公开经验", {"fix": "公开的处理步骤"})
         learn.take_shared(self.data, self.card["id"], self.other["key"], True, "bob")
         shared = learn.shared(self.data, self.other["key"])
-        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8")
+        self.source.write_text("STATUS = 'CLOSED'\n", encoding="utf-8", newline="")
         self.assertEqual(D.usable_lessons(self.store, self.other, shared)[0], [])
 
     def test_revoke_and_old_adoption_retry_never_reactivate(self):

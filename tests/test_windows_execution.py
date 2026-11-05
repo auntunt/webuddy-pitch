@@ -11,6 +11,28 @@ from tmh import kb
 from tmh.platform.learning_facts import _status
 
 class NewlineContracts(unittest.TestCase):
+    def test_supervisor_preserves_mixed_newline_output_bytes(self):
+        from tmh.platform.supervised_process import run_supervised
+        with tempfile.TemporaryDirectory() as td:
+            folder=Path(td)/'output'
+            raw=b'first\r\nsecond\nthird\r\n'
+            result=run_supervised([sys.executable,'-c','import sys;sys.stdout.buffer.write('+repr(raw)+')'],
+                                 folder=folder,owner={'token':'newline','run_id':1,'data_dir':td},timeout=15)
+            self.assertEqual(result.returncode,0)
+            self.assertEqual(result.output_bytes,raw)
+            self.assertEqual((folder/'output.txt').read_bytes(),raw)
+            self.assertEqual((folder/'output.bin').read_bytes(),raw)
+
+    def test_managed_human_confirmation_preserves_crlf_body(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td);page=kb.page_path(root,'index');page.parent.mkdir(parents=True)
+            (root/'.tmh'/'cache').mkdir()
+            original='---\r\nid: index\r\nstatus: 待确认\r\n---\r\n# 标题\r\n完整正文\r\n'
+            page.write_bytes(original.encode('utf-8'))
+            kb.save_registry(root,{'index':{'status':kb.STATUS_DRAFT,'learning':{}}})
+            kb.confirm(root,'index','synthetic-human')
+            self.assertEqual(page.read_bytes(),original.replace('待确认','已确认').encode('utf-8'))
+
     def test_crlf_page_identity_and_status_preserve_original_body(self):
         text='---\r\nid: index\r\nstatus: 待确认\r\n---\r\n# 标题\r\n原始正文\r\n'
         self.assertEqual(kb.parse_page(text)['meta']['id'],'index')
@@ -51,6 +73,8 @@ class WindowsOwnership(unittest.TestCase):
             folder=Path(td)/'normal'
             result=run_supervised([sys.executable,'-c','print("real windows")'],folder=folder,owner=owner,timeout=15)
             self.assertEqual(result.returncode,0)
+            self.assertEqual((folder/'output.txt').read_bytes(),result.output.encode('utf-8'))
+            self.assertEqual((folder/'output.bin').read_bytes(),result.output_bytes)
             self.assertTrue(read_receipt(folder,owner)['cleanup']['complete'])
             folder=Path(td)/'lost'
             script='from tmh.platform.supervised_process import run_supervised;import sys;run_supervised([sys.executable,"-c","import time;time.sleep(60)"],folder='+repr(str(folder))+',owner='+repr(owner)+',timeout=60)'

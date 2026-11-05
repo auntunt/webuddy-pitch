@@ -260,7 +260,7 @@ def _project_locked(P, p, r, actor, decision_id, expected_token, reason, action)
             _sources_current(P, p, r["source"])
         if L.digest(text) == receipt["before_sha256"]:
             kb._atomic_text(page, receipt["draft_content"])
-        if L.digest(page.read_text(encoding="utf-8")) not in (receipt["draft_sha256"], receipt["final_sha256"]):
+        if L.digest(page.read_bytes().decode("utf-8")) not in (receipt["draft_sha256"], receipt["final_sha256"]):
             raise ApiError(409, "事实发布期间正文发生变化")
         if action == "adopt":
             kb.confirm(root, r["origin_id"], actor, reason, _locked=True,

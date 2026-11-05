@@ -39,8 +39,8 @@ class LearningAPITests(unittest.TestCase):
         self.page.parent.mkdir(parents=True)
         self.body = ("---\nid: index\ntitle: 项目知识\nstatus: 已确认\n---\n"
                      "# 项目知识\n\n状态是 OPEN，依据 `app.py:1`。\n" + "保留完整业务说明。" * 700)
-        self.page.write_text(self.body, encoding="utf-8")
-        (self.root / "app.py").write_text('STATUS = "OPEN"\n', encoding="utf-8")
+        self.page.write_text(self.body, encoding="utf-8", newline="")
+        (self.root / "app.py").write_text('STATUS = "OPEN"\n', encoding="utf-8", newline="")
         kb.save_registry(self.root, {"index": {"status": kb.STATUS_OK, "title": "项目知识",
                                                "confirmed_by": "原始确认人", "confirmed_at": "2026-10-01",
                                                "confirm_note": "原始确认说明"}})
@@ -291,10 +291,10 @@ class LearningAPITests(unittest.TestCase):
         executable.write_text(
             "#!/bin/sh\n"
             '[ "$#" -eq 1 ] && [ "$1" = "--help" ] || exit 97\n'
-            "printf '%s\\n' '" + "\n".join(R._REQUIRED_FLAGS) + "'\n", encoding="utf-8")
+            "printf '%s\\n' '" + "\n".join(R._REQUIRED_FLAGS) + "'\n", encoding="utf-8", newline="")
         executable.chmod(0o700)
         (self.data / "agents.json").write_text(
-            json.dumps({"claude": {"bin": str(executable)}}), encoding="utf-8")
+            json.dumps({"claude": {"bin": str(executable)}}), encoding="utf-8", newline="")
         options = {"agent": "claude", "model": "synthetic-model", "max_calls": 6,
                    "max_revisions": 2, "timeout_seconds": 600}
         headers = {"X-Webuddy-Agent": "reviewer", "X-Webuddy-Execution": "1"}

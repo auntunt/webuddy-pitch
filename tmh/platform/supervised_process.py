@@ -247,7 +247,7 @@ def _worker(request_fd, control_fd):
             result.cleanup.setdefault("errors", []).append("original output could not be completely persisted")
             if result.reason != "owner_lost":
                 result.reason, result.returncode = "error", 125
-        with open(folder / "output.txt", "x", encoding="utf-8") as text:
+        with open(folder / "output.txt", "x", encoding="utf-8", newline="") as text:
             text.write(raw.decode("utf-8", "replace"))
             text.flush()
             os.fsync(text.fileno())
