@@ -37,6 +37,7 @@ for name, args, result in [
     ('QueryInformationJobObject', [W.HANDLE, ctypes.c_int, W.LPVOID, W.DWORD, W.LPVOID], W.BOOL),
     ('TerminateJobObject', [W.HANDLE, W.UINT], W.BOOL),
     ('CloseHandle', [W.HANDLE], W.BOOL),
+    ('CreateFileW', [W.LPCWSTR, W.DWORD, W.DWORD, W.LPVOID, W.DWORD, W.DWORD, W.HANDLE], W.HANDLE),
 ]:
     fn = getattr(K, name); fn.argtypes = args; fn.restype = result
 
@@ -45,6 +46,21 @@ def checked(value):
     if not value:
         raise ctypes.WinError(ctypes.get_last_error())
     return value
+
+
+def read_shared(path):
+    """Permit atomic receipt replacement while this reader owns the old file."""
+    import msvcrt
+    handle = K.CreateFileW(str(path), 0x80000000, 7, None, 3, 0x80, None)
+    if handle == W.HANDLE(-1).value:
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        descriptor = msvcrt.open_osfhandle(handle, os.O_RDONLY | os.O_BINARY)
+    except BaseException:
+        K.CloseHandle(handle)
+        raise
+    with os.fdopen(descriptor, 'r', encoding='utf-8', newline='') as stream:
+        return stream.read()
 
 
 def run(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None, stdin=None,

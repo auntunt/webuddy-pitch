@@ -49,6 +49,31 @@ class NewlineContracts(unittest.TestCase):
 
 @unittest.skipUnless(os.name=='nt','Windows Job Object API')
 class WindowsOwnership(unittest.TestCase):
+    def test_receipt_reader_does_not_block_atomic_publication(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from tmh.platform.supervised_process import _atomic_json, _json
+        with tempfile.TemporaryDirectory() as td:
+            path=Path(td)/'supervisor.json'
+            _atomic_json(path,{'revision':0,'body':'完整原文'*10000})
+            stop=threading.Event();ready=threading.Event()
+            def reading():
+                count=0
+                while not stop.is_set():
+                    value=_json(path)
+                    self.assertEqual(value['body'],'完整原文'*10000)
+                    self.assertIn(value['revision'],range(51))
+                    count+=1;ready.set()
+                return count
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                reader=pool.submit(reading)
+                try:
+                    self.assertTrue(ready.wait(5))
+                    for revision in range(1,51):
+                        _atomic_json(path,{'revision':revision,'body':'完整原文'*10000})
+                finally:stop.set()
+                self.assertGreater(reader.result(timeout=5),0)
+            self.assertEqual(_json(path)['revision'],50)
+
     def run_command(self,script,**kwargs):
         from tmh.platform.process_control import run_process
         return run_process([sys.executable,'-c',script],**kwargs)
@@ -81,7 +106,7 @@ class WindowsOwnership(unittest.TestCase):
             self.assertEqual(list(Path(td).iterdir()),[])
 
     def test_supervisor_seals_receipt_and_owner_loss(self):
-        from tmh.platform.supervised_process import run_supervised,read_receipt
+        from tmh.platform.supervised_process import run_supervised,read_receipt,_json
         with tempfile.TemporaryDirectory() as td:
             owner={'token':'test-owner','run_id':1,'data_dir':td}
             folder=Path(td)/'normal'
@@ -96,7 +121,7 @@ class WindowsOwnership(unittest.TestCase):
             try:
                 deadline=time.monotonic()+15
                 while time.monotonic()<deadline:
-                    if (folder/'supervisor.json').exists() and '"running"' in (folder/'supervisor.json').read_text():break
+                    if (folder/'supervisor.json').exists() and _json(folder/'supervisor.json').get('phase')=='running':break
                     time.sleep(.05)
                 else:self.fail('target did not start')
                 parent.kill();parent.wait()

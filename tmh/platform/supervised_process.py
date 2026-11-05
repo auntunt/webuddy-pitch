@@ -64,7 +64,15 @@ def _identity(folder, owner):
 
 def _json(path):
     try:
-        value = json.loads(Path(path).read_text(encoding="utf-8"))
+        if os.name == "nt":
+            if __package__:
+                from .windows_process import read_shared
+            else:
+                from windows_process import read_shared
+            content = read_shared(path)
+        else:
+            content = Path(path).read_text(encoding="utf-8")
+        value = json.loads(content)
     except (OSError, ValueError, UnicodeError) as exc:
         raise ValueError("cannot read supervised receipt: " + str(exc)) from exc
     if not isinstance(value, dict):
