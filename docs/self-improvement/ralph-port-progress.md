@@ -714,3 +714,12 @@
 - 用户明确要求gld与li相同权限；实际账号为GLD。GLD原已是default/admin，缺平台所有者；本次仅补platform_owners，并在authorization_guard/事务内更新授权revision、按既有逻辑失效权限变化的工具连接、写local-maintenance审计。未模拟li会话、未改账号密码/epoch/有效状态。
 - 控制库完整备份~/webuddy/backups/permission-GLD-20261105T094345/access.db，仅保存在服务器0600。修改后Registry.context的role/platform_owner/project_grants/capabilities/can_manage与li逐项相同，双方accounts记录原样保持，完整性ok。无需重启或运行代码发布。
 - 免费证书说明核对Let's Encrypt官方FAQ及DNS-01文档：可免费签发并部署国内服务器；本次未申请证书或切换国内直连入口。
+
+## 2026-11-05 关闭Webuddy代理，恢复国内直连
+
+- 用户明确要求A记录指向8.141.121.22、DNS only。已将代理CNAME替换为A（记录5cf22fd16237a5ac6043f31e918fb1ea），移除Webuddy隧道ingress（配置v9），其他两站隧道保持。
+- 沿用宿主机Nginx和Certbot，为webuddy.cloudwaveai.cn新增独立站点与Let's Encrypt证书，到期2027-02-03；HTTP跳转HTTPS，ACME webroot保留，反代现役192.168.112.1:8791。应用服务未重启、数据未改。证书私钥仅在服务器。
+- 首次证书请求ACME读超时；确认主机可达后再次申请成功。首次管理命令因镜像默认非root无法chroot，随后限定root助手；不共享PID时systemctl不可用，切换host PID后操作成功。Nginx测试通过（其他既有站点有protocol options警告）；reload刚发出时一次直连仍收到旧默认证书，reload生效后TLS校验正常。
+- 原certbot-renew.timer已enable但inactive，已启动；既有deploy hook负责nginx reload，下次运行显示14:48 CST。全局tmh及沙箱配置不变。
+- 直连TLS登录200；当前Mac无代理强制直连三次0.035590/0.045683/0.041439秒；这组是当前探针，不代表所有国内网络。API401、同源正文413、跨站403，响应server=nginx且无Cloudflare头；未代用户登录。
+- Certbot定向dry-run续期成功；公共DNS已返回8.141.121.22。原生应用和Nginx、续期timer正常。配置与操作说明入库，未为记录重启应用。

@@ -14,7 +14,7 @@
 
 ## 当前主站部署补充（2026-11-05）
 
-主站 `https://webuddy.cloudwaveai.cn` 已迁至阿里云，通过 `ssh zct-server` 接入，使用 `systemctl --user` 管理 `webuddy-native.service`，现役目录为 `/opt/webuddy`，旧应用容器已停用。部署前读取 `/Users/auntlee/.codex/memories/aliyun-webuddy-deployment.md` 并核验实际状态。上文 `webuddy.service` 为腾讯云历史部署方式；本轮及后续默认发布阿里云主站，不覆盖已分叉的腾讯云数据。
+主站 `https://webuddy.cloudwaveai.cn` 已迁至阿里云，通过 `ssh zct-server` 接入，使用 `systemctl --user` 管理 `webuddy-native.service`，现役目录为 `/opt/webuddy`，旧应用容器已停用。DNS为A记录8.141.121.22、DNS only，宿主机Nginx提供HTTPS；不得擅自改回Cloudflare代理隧道。部署前读取 `/Users/auntlee/.codex/memories/aliyun-webuddy-deployment.md` 并核验实际状态。上文 `webuddy.service` 为腾讯云历史部署方式；本轮及后续默认发布阿里云主站，不覆盖已分叉的腾讯云数据。
 
 # 智能体协作与执行约定
 
