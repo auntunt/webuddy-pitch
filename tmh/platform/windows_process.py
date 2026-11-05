@@ -1,5 +1,7 @@
 """Windows process trees owned by a non-inheritable kill-on-close Job Object."""
 import base64
+from contextlib import contextmanager
+import hashlib
 import codecs
 import ctypes
 from ctypes import wintypes as W
@@ -37,7 +39,9 @@ for name, args, result in [
     ('QueryInformationJobObject', [W.HANDLE, ctypes.c_int, W.LPVOID, W.DWORD, W.LPVOID], W.BOOL),
     ('TerminateJobObject', [W.HANDLE, W.UINT], W.BOOL),
     ('CloseHandle', [W.HANDLE], W.BOOL),
-    ('CreateFileW', [W.LPCWSTR, W.DWORD, W.DWORD, W.LPVOID, W.DWORD, W.DWORD, W.HANDLE], W.HANDLE),
+    ('CreateMutexW', [W.LPVOID, W.BOOL, W.LPCWSTR], W.HANDLE),
+    ('WaitForSingleObject', [W.HANDLE, W.DWORD], W.DWORD),
+    ('ReleaseMutex', [W.HANDLE], W.BOOL),
 ]:
     fn = getattr(K, name); fn.argtypes = args; fn.restype = result
 
@@ -48,19 +52,26 @@ def checked(value):
     return value
 
 
-def read_shared(path):
-    """Permit atomic receipt replacement while this reader owns the old file."""
-    import msvcrt
-    handle = K.CreateFileW(str(path), 0x80000000, 7, None, 3, 0x80, None)
-    if handle == W.HANDLE(-1).value:
-        raise ctypes.WinError(ctypes.get_last_error())
+@contextmanager
+def receipt_lock(path):
+    """Serialize readers and replacement without creating a file on read."""
+    name = 'Local\\WebuddyReceipt-' + hashlib.sha256(os.path.normcase(os.path.abspath(path)).encode('utf-8')).hexdigest()
+    handle = checked(K.CreateMutexW(None, False, name))
+    acquired = False
     try:
-        descriptor = msvcrt.open_osfhandle(handle, os.O_RDONLY | os.O_BINARY)
-    except BaseException:
+        status = K.WaitForSingleObject(handle, 5000)
+        if status == 0x102:
+            raise TimeoutError('supervised receipt lock timed out')
+        if status not in (0, 0x80):
+            raise ctypes.WinError(ctypes.get_last_error())
+        # Abandoned ownership grants the lock; the existing JSON and identity
+        # checks still decide whether a crashed writer left usable evidence.
+        acquired = True
+        yield
+    finally:
+        if acquired:
+            K.ReleaseMutex(handle)
         K.CloseHandle(handle)
-        raise
-    with os.fdopen(descriptor, 'r', encoding='utf-8', newline='') as stream:
-        return stream.read()
 
 
 def run(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None, stdin=None,

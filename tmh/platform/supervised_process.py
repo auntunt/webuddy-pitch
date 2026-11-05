@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import codecs
+from contextlib import nullcontext
 import hashlib
 import json
 import math
@@ -28,28 +29,39 @@ else:  # The worker is launched by absolute filename, independent of target cwd.
     from process_control import ProcessResult, run_process
 
 
+if os.name == "nt":
+    if __package__:
+        from .windows_process import receipt_lock
+    else:
+        from windows_process import receipt_lock
+else:
+    def receipt_lock(path):
+        return nullcontext()
+
+
 SCHEMA = 1
 
 
 def _atomic_json(path, data, exclusive=False):
     """Never expose a partial receipt, including when the caller is killed."""
-    path = Path(path)
-    temporary = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
-    try:
-        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        with os.fdopen(fd, "w", encoding="utf-8") as stream:
-            json.dump(data, stream, ensure_ascii=False, indent=2)
-            stream.flush()
-            os.fsync(stream.fileno())
-        if exclusive:
-            os.link(temporary, path)  # Atomic claim: an existing attempt is immutable.
-        else:
-            os.replace(temporary, path)
-    finally:
+    with receipt_lock(path):
+        path = Path(path)
+        temporary = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
         try:
-            temporary.unlink()
-        except FileNotFoundError:
-            pass
+            fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                json.dump(data, stream, ensure_ascii=False, indent=2)
+                stream.flush()
+                os.fsync(stream.fileno())
+            if exclusive:
+                os.link(temporary, path)  # Atomic claim: an existing attempt is immutable.
+            else:
+                os.replace(temporary, path)
+        finally:
+            try:
+                temporary.unlink()
+            except FileNotFoundError:
+                pass
 
 
 def _identity(folder, owner):
@@ -64,15 +76,8 @@ def _identity(folder, owner):
 
 def _json(path):
     try:
-        if os.name == "nt":
-            if __package__:
-                from .windows_process import read_shared
-            else:
-                from windows_process import read_shared
-            content = read_shared(path)
-        else:
-            content = Path(path).read_text(encoding="utf-8")
-        value = json.loads(content)
+        with receipt_lock(path):
+            value = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError, UnicodeError) as exc:
         raise ValueError("cannot read supervised receipt: " + str(exc)) from exc
     if not isinstance(value, dict):
