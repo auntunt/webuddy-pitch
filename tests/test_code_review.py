@@ -1,5 +1,6 @@
 import hashlib
 import json
+import subprocess
 import sys
 import unittest
 from types import SimpleNamespace
@@ -98,6 +99,20 @@ class ManualReviewTest(unittest.TestCase):
         self.assertTrue(result['commands'])
         self.assertTrue(result['diagnosis']['review']['complete'])
         self.assertEqual(verified(self.data, self.rid), result)
+
+    def test_configured_build_preserves_quoted_paths_and_arguments(self):
+        import os
+        import shlex
+        from tmh import config
+        script = self.root / 'check with spaces.py'
+        script.write_text('import sys\nassert sys.argv[1] == "value with spaces"\nprint("quoted build passed")\n')
+        argv = [sys.executable, str(script), 'value with spaces']
+        cfg = config.load(self.root)
+        cfg['commands']['build'] = subprocess.list2cmdline(argv) if os.name == 'nt' else shlex.join(argv)
+        config.save(self.root, cfg)
+        result = recheck(self.runner, self.rid)
+        self.assertEqual(result['check'], 'pass', result)
+        self.assertIn('quoted build passed', result['commands'][0]['output'])
 
     def test_review_failure_does_not_reuse_previous_pass(self):
         (self.data/'review-fixture.py').write_text('raise SystemExit(7)\n')

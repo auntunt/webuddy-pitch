@@ -368,7 +368,8 @@ class FixLoop:
                 break
             self.say("构建测试：%s" % cmd)
             t0 = time.time()
-            shell = [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/s", "/c", cmd] if os.name == "nt" else ["/bin/sh", "-c", cmd]
+            shell = (subprocess.list2cmdline([os.environ.get("COMSPEC", "cmd.exe")]) + ' /d /s /c "' + cmd + '"'
+                     if os.name == "nt" else ["/bin/sh", "-c", cmd])
             r, folder = self.r.run_command(self.rid, shell, where,
                 timeout=float(self.set.get("check_timeout") or 1200), kind="check:" + kind)
             code, text = r.returncode, r.output
