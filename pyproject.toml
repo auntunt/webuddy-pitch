@@ -21,3 +21,4 @@ packages = ["tmh", "tmh.integrations", "tmh.platform", "tmh.probes"]
 
 [tool.setuptools.package-data]
 tmh = ["rules/*.json"]
+"tmh.platform" = ["*.cjs"]

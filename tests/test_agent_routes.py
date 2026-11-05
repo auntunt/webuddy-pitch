@@ -273,7 +273,7 @@ class AgentRoutesTest(unittest.TestCase):
         self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex", "allowed_agents": ["cloudwave-codex", "claude"],
                     "steps": {"plan": "claude", "diagnose": "claude"}}}})
         conf = {"cloudwave-codex": {"defaults": {}}, "claude": {"defaults": {"diagnose": "opus-x"}}}
-        runner = Mock(data_dir=self.data, store=self.store)
+        runner = Mock(data_dir=self.data, evidence_root=self.data, store=self.store)
         runner.invoke.return_value = (0, "ok")
         with patch("tmh.platform.fixloop.git", return_value="abc\n"), \
                 patch("tmh.platform.fixloop.learning_context_current", return_value=True):
@@ -324,7 +324,7 @@ class AgentRoutesTest(unittest.TestCase):
         rid = self.store.create_run(self.project["id"], self.ticket["id"], "cloudwave-codex", "fix", "alice", "p")["id"]
         self.store.update_run(rid, status="running")
         (self.data / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)
-        runner = Mock(data_dir=self.data, store=self.store)
+        runner = Mock(data_dir=self.data, evidence_root=self.data, store=self.store)
         runner.stop_reason.return_value = ""
         runner.invoke.return_value = (0, raw or "```tmh-diag\n%s\n```" % json.dumps(said, ensure_ascii=False))
         diff = "diff --git a/a.vue b/a.vue\n--- a/a.vue\n+++ b/a.vue\n@@ -1 +1 @@\n-x\n+y\n"

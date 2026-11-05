@@ -2816,6 +2816,21 @@ def _platform_admin(P, req, what):
     return actor
 
 
+@route("GET", "/api/projects/<key>/tests")
+def api_project_tests(P, req, key):
+    from . import project_tests
+    p = P.project(key)
+    return project_tests.view(P.data_dir, p["key"])
+
+
+@route("POST", "/api/projects/<key>/tests")
+def api_project_tests_save(P, req, key):
+    from . import project_tests
+    p = P.project(key)
+    _platform_admin(P, req, "配置项目测试命令")
+    return project_tests.save(P.data_dir, p["key"], req.body)
+
+
 @route("GET", "/api/projects/<key>/mode")
 def api_mode(P, req, key):
     p = P.project(key)

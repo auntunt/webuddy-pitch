@@ -983,11 +983,17 @@ function runVerificationHtml(r){
   if(!runRecheckInvalid(r))return runVerificationRecordHtml(r);
   const v=r.verification,previous=v?.previous_current_verification;
   return '<div class="hint" role="status"><b>旧验证结果已失效</b><p>本次重新验证尚未形成有效结论，不能据此采纳或签收。请查看重新验证过程与停止回执。</p></div>'+(!previous&&v?.verification_current===false?runVerificationRecordHtml(r):'')+'<details class="run-check"><summary>上次验证记录（仅供历史参考）</summary>'+runVerificationRecordHtml({...r,verification:previous||v})+'</details>'}
+function projectTestsReportHtml(commands){
+  const reports=commands.map(c=>c.project_tests).filter(Boolean);
+  if(!reports.length)return '<p class="hint">尚无项目测试报告，现有命令结果不代表完整项目测试。</p>';
+  return reports.map(r=>`<section><h3>项目测试 · ${r.status==='pass'?'通过':'未通过'}</h3>${r.code_changed?'<p class="bad">测试期间代码变化，需修复后重新验证。</p>':''}${r.stages.map(s=>`<details ${s.status!=='pass'?'open':''}><summary>${h(s.id)} · ${s.status==='pass'?'通过':'未通过'}${s.required?' · 必需':''} · ${s.cases.length} 个用例</summary>${s.error?`<p class="bad">${h(s.error)}</p>`:''}<pre>${h(s.command)}</pre>${s.cases.map(c=>`<p>${h(c.id)} · ${h({pass:'通过',fail:'失败',skip:'跳过'}[c.status])}</p>`).join('')}<details><summary>完整执行日志</summary><pre class="log">${h(s.output)}</pre></details></details>`).join('')}${r.require_all_criteria&&!r.criteria.length?'<p class="bad">尚无验收标准，无法完成要求的逐项覆盖。</p>':''}${r.uncovered_criteria.length?`<p class="${r.require_all_criteria?'bad':'hint'}">缺少通过用例的验收项：${r.uncovered_criteria.map(h).join('、')}</p>`:''}<details><summary>验收关联与证据位置</summary><pre class="log">${h(JSON.stringify(r.criterion_evidence,null,2))}</pre><code>${h(r.evidence)}</code></details></section>`).join('');
+}
+
 function runVerificationRecordHtml(r){
   const v=r.verification,labels={pass:'通过',fail:'失败',skip:'未执行',unknown:'未知'};
   if(!v||typeof v!=='object')return '<div class="hint">没有实际验证记录。运行完成不代表构建或测试通过；请先重新验证，或检查项目的验证命令。</div>';
   const commands=Array.isArray(v.commands)?v.commands:[];
-  return `<p>命令检查：<b>${h(labels[v.check]||'尚无结论')}</b> · 实现诊断：<b>${h(v.diagnosis_invalidated?'未知（待重新诊断）':labels[v.diagnosis?.verdict]||'尚无结论')}</b></p><p class="sub">以下是实际执行的命令。构建、测试和其他检查各自以记录为准；人工复核不会改变这些结果。</p>${runCodeReviewHtml(r)}${runHumanReviewHtml(r)}${v.skip?`<div class="hint">${h(v.skip)}</div>`:''}${commands.length?commands.map(c=>`<details class="run-check" ${c.exit_code!==0?'open':''}><summary>${h(c.kind||'检查')} · ${c.exit_code===0?'通过':'未通过'} · 退出码 ${h(c.exit_code==null?'未记录':c.exit_code)}</summary><pre>${h(Array.isArray(c.command)?c.command.join(' '):c.command||'命令未记录')}</pre>${c.output||c.tail?`<pre class="log">${h(c.output||c.tail)}</pre>`:''}</details>`).join(''):'<div class="hint">没有执行命令的记录，不能据此判断测试通过。</div>'}<details class="run-check"><summary>查看完整验证记录</summary><pre class="log">${h(JSON.stringify(v,null,2))}</pre></details>`}
+  return `<p>命令检查：<b>${h(labels[v.check]||'尚无结论')}</b> · 实现诊断：<b>${h(v.diagnosis_invalidated?'未知（待重新诊断）':labels[v.diagnosis?.verdict]||'尚无结论')}</b></p><p class="sub">以下是实际执行的命令。构建、测试和其他检查各自以记录为准；人工复核不会改变这些结果。</p>${projectTestsReportHtml(commands)}${runCodeReviewHtml(r)}${runHumanReviewHtml(r)}${v.skip?`<div class="hint">${h(v.skip)}</div>`:''}${commands.length?commands.map(c=>`<details class="run-check" ${c.exit_code!==0?'open':''}><summary>${h(c.kind||'检查')} · ${c.exit_code===0?'通过':'未通过'} · 退出码 ${h(c.exit_code==null?'未记录':c.exit_code)}</summary><pre>${h(Array.isArray(c.command)?c.command.join(' '):c.command||'命令未记录')}</pre>${c.output||c.tail?`<pre class="log">${h(c.output||c.tail)}</pre>`:''}</details>`).join(''):'<div class="hint">没有执行命令的记录，不能据此判断测试通过。</div>'}<details class="run-check"><summary>查看完整验证记录</summary><pre class="log">${h(JSON.stringify(v,null,2))}</pre></details>`}
 function runHumanReviewHtml(r){
   const record=r.human_review,review=record?.review,decision=record?.decision;
   return `<section class="run-review"><h3>人工复核与验收</h3><p>${record?.current?(review?'复核：'+h(review.by):'待人工复核'):'当前运行尚无有效的人工复核证据'}</p>${decision?`<p>${decision.kind==='sign'?'验收通过':'验收退回'} · ${h(decision.signer||decision.by||'')} ${h(decision.note||'')}</p>`:''}<p class="sub">测试和 AI Review 不代替人工决定。逐项实测证据在工单证据包中查看。</p></section>`}
@@ -1898,14 +1904,33 @@ function agentSettingsEdit(d,a){
   };
 }
 
+async function projectTestsOpen(key){
+  let data;try{data=await get('/api/projects/'+encodeURIComponent(key)+'/tests')}catch(e){toast(e.message);return}
+  const profile=data.profile||{executor:'testbox',require_all_criteria:true,stages:[]};
+  modal(`<h2>项目测试 · ${h(key)}</h2><form id="projectTestForm" class="form"><label>执行位置<select id="testExecutor"><option value="testbox">SSH 测试机</option><option value="local">平台本机</option></select></label><label><input type="checkbox" id="testAllCriteria">要求每项验收标准都有通过的用例</label><div id="testStages"></div><button type="button" id="testAddStage">添加检查阶段</button><p id="testSaveStatus" role="status"></p><button class="primary" type="submit">保存测试配置</button></form>`,true);
+  const form=$('#projectTestForm'),stages=form.querySelector('#testStages');
+  form.querySelector('#testExecutor').value=profile.executor;form.querySelector('#testAllCriteria').checked=profile.require_all_criteria;
+  const labels={setup:'准备依赖',build:'构建',static:'静态检查',unit:'单元测试',integration:'集成测试',e2e:'端到端测试',security:'安全检查',performance:'性能测试',migration:'数据迁移',mutation:'变异测试',cleanup:'清理'};
+  function add(stage={id:'',kind:'unit',command:'',required:true,timeout:300}){
+    const row=document.createElement('fieldset');row.className='form';row.style.minWidth='0';
+    row.innerHTML=`<legend>检查阶段</legend><div class="grid2"><label>代号<input data-field="id" value="${h(stage.id)}" required></label><label>类型<select data-field="kind">${data.kinds.map(k=>`<option value="${k}" ${stage.kind===k?'selected':''}>${h(labels[k])}</option>`).join('')}</select></label></div><label>命令<textarea class="full" data-field="command" required>${h(stage.command)}</textarea></label><div class="grid2"><label>超时（秒）<input type="number" min="1" max="7200" data-field="timeout" value="${stage.timeout}" required></label><label><input type="checkbox" data-field="required" ${stage.required?'checked':''}>必需通过</label></div><label>依赖阶段（代号，以逗号分隔）<input class="full" data-field="depends_on" value="${h((stage.depends_on||[]).join(','))}"></label><div class="grid2"><label>报告格式<select data-field="format"><option value="">无用例报告</option><option value="junit">JUnit XML</option><option value="json">JSON 用例报告</option></select></label><label>报告相对路径<input class="full" data-field="path" value="${h(stage.report?.path||'')}"></label></div><details><summary>验收项与用例关联</summary><label>JSON 对象：验收项代号对应精确用例 ID 数组<textarea class="full" data-field="criteria">${h(JSON.stringify(stage.criteria||{},null,2))}</textarea></label></details><button type="button" data-remove>移除此阶段</button>`;
+    row.querySelector('[data-field="format"]').value=stage.report?.format||'';row.querySelector('[data-remove]').onclick=()=>row.remove();stages.append(row);
+  }
+  profile.stages.forEach(add);form.querySelector('#testAddStage').onclick=()=>add();
+  form.onsubmit=async event=>{event.preventDefault();const button=form.querySelector('[type="submit"]'),status=form.querySelector('#testSaveStatus');if(button.disabled)return;
+    try{const value={executor:form.querySelector('#testExecutor').value,require_all_criteria:form.querySelector('#testAllCriteria').checked,stages:[...stages.children].map(row=>{const f=k=>row.querySelector('[data-field="'+k+'"]');const stage={id:f('id').value.trim(),kind:f('kind').value,command:f('command').value,required:f('required').checked,timeout:Number(f('timeout').value),depends_on:f('depends_on').value.split(',').map(s=>s.trim()).filter(Boolean),criteria:JSON.parse(f('criteria').value)};if(f('format').value)stage.report={format:f('format').value,path:f('path').value.trim()};return stage})};button.disabled=true;const saved=await post('/api/projects/'+encodeURIComponent(key)+'/tests',{revision:data.revision,profile:value});data=saved;status.textContent='已保存。新运行和重新验证使用此配置。';}
+    catch(e){status.textContent=e.message}finally{button.disabled=false}};
+}
+
 async function vSettings(){
   $('#main').innerHTML=`<h1>设置</h1><div class="card" id="rdy" style="margin-top:14px"><h2>上线体检</h2><div class="sub">检查中…</div></div><div class="grid2" style="margin-top:14px"><div class="card form"><h2>我</h2>${S.meta.login?`<p>已登录账号：<b>${h(S.meta.user)}</b></p><p class="sub">操作身份来自登录会话，不能通过修改显示名字代替其他成员。</p>`:`<label>名字（写在评论、指派和审阅记录里）<input class="full" id="un" value="${h(S.user)}"></label><div><button class="primary" id="us">保存</button></div>`}${S.meta.access?.can_manage?`<p>当前租户：${h(S.meta.access.tenant.name)}</p><a class="btn" href="#/access">成员与权限</a>`:''}</div>
   <div class="card" id="agentSettings"><h2>智能体</h2><p>加载中…</p></div>
-  <div class="card"><h2>项目</h2>${S.projects.map(p=>`<div class="flowrow"><span><b>${h(p.key)}</b> ${h(p.name)}<div class="sub">${h(p.root)}${p.exists?'':'（目录不存在）'}</div></span><span class="sub">${p.open} 张未关闭</span><span class="pmode" data-pmode="${h(p.key)}"></span><span class="pinteg" data-pinteg="${h(p.key)}"></span><button data-project-library="${h(p.key)}">知识与引用</button></div>`).join('')}<div style="margin-top:10px"><button onclick="newProject()">＋ 登记已有项目</button></div></div>
+  <div class="card"><h2>项目</h2>${S.projects.map(p=>`<div class="flowrow"><span><b>${h(p.key)}</b> ${h(p.name)}<div class="sub">${h(p.root)}${p.exists?'':'（目录不存在）'}</div></span><span class="sub">${p.open} 张未关闭</span><span class="pmode" data-pmode="${h(p.key)}"></span><span class="pinteg" data-pinteg="${h(p.key)}"></span><button data-project-library="${h(p.key)}">知识与引用</button><button data-project-tests="${h(p.key)}">项目测试</button></div>`).join('')}<div style="margin-top:10px"><button onclick="newProject()">＋ 登记已有项目</button></div></div>
   <div class="card form" id="tbx"><h2>测试机</h2><div class="sub">加载中…</div></div>
   <div class="card"><h2>数据</h2><div class="sub">工单、讨论和运行记录都在 <code>${h(S.meta.data_dir)}/platform.db</code>（SQLite），修改代码用的工作树在 <code>worktrees/</code>。备份这个目录即可。</div></div></div>`;
   if($('#us'))$('#us').onclick=()=>{S.user=$('#un').value.trim();try{localStorage.setItem('tmh.user',S.user)}catch(e){}$('#me').textContent='当前用户：'+S.user;toast('已保存')};
   document.querySelectorAll('[data-project-library]').forEach(button=>button.onclick=()=>libraryOpen(button.dataset.projectLibrary));
+  document.querySelectorAll('[data-project-tests]').forEach(button=>button.onclick=()=>projectTestsOpen(button.dataset.projectTests));
   document.querySelectorAll('[data-pmode]').forEach(pmode);
   document.querySelectorAll('[data-pinteg]').forEach(pinteg);
   testbox();readiness();agentSettingsLoad()}

@@ -197,7 +197,9 @@ class FixLoop:
         tb = testbox.settings(runner.data_dir)
         self.box = testbox.TestBox(tb, runner.data_dir) if tb else None  # builds run on the test machine
         from .agents import engine_name
-        self.remote_testing = bool(self.box) and engine_name(agent, conf[agent]) == 'codex' and 'cmd' not in conf[agent]
+        from . import project_tests
+        profile = project_tests.view(runner.data_dir, project['key'])['profile']
+        self.remote_testing = not profile and bool(self.box) and engine_name(agent, conf[agent]) == 'codex' and 'cmd' not in conf[agent]
         self.base = git(self.wt, "rev-parse", "HEAD").strip()
         self.nobuild = ""  # said to every agent when the platform runs no build or tests this time
         self.log = []  # one line per round
@@ -228,7 +230,10 @@ class FixLoop:
             full = self.prompt if (self.t or {}).get("links", {}).get("delivery") else additional_context_prompt(self.st, self.r.data_dir, self.p, self.t, self.rid, "fix")
             instruction = GREENFIELD_FIX if GREENFIELD_FIX in full else MODE_TEXT["fix"]
             self._ctx = full[:full.rfind(instruction)].rstrip() if instruction in full else full
-        return self._ctx
+        from . import project_tests
+        profile = project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["profile"]
+        contract = "\n\n## 项目测试契约（平台独立执行）\n按以下命令和报告格式维护实际测试；关联的用例 ID 须精确匹配。不得用空报告、跳过或假结果代替断言。\n" + json.dumps(profile, ensure_ascii=False) if profile else ""
+        return self._ctx + contract
 
     def dirty(self) -> dict:
         """Changed files in the worktree -> their bytes (None for a deleted file)."""
@@ -276,6 +281,11 @@ class FixLoop:
         """[(kind, command)] to build and test the change, or ([], why not)."""
         from .. import config as cfgmod
         from ..verify import detect_commands
+        from . import project_tests
+        profile = project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["profile"]
+        if profile:
+            project_tests.validate(profile)
+            return [("test", "project-tests:" + project_tests.digest(profile))], ""
         v = self.set.get("check")
         if isinstance(v, dict):
             v = v.get(self.p["key"], v.get("*", ""))
@@ -323,6 +333,18 @@ class FixLoop:
     def execute(self, seq: list, untouched: bool = False) -> list:
         """Run the build commands on the change, or with `untouched` on the commit without it (the working tree may
         already hold the change, as when a finished change is built again)."""
+        if seq and seq[0][1].startswith("project-tests:"):
+            from . import project_tests
+            try:
+                profile = project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["profile"]
+                if not profile or seq[0][1] != "project-tests:" + project_tests.digest(profile):
+                    raise ValueError("测试配置已变化，请重新验证")
+                result = project_tests.execute(self, profile)
+                if project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["revision"] != project_tests.digest(profile):
+                    raise ValueError("测试期间配置已变化，请重新验证")
+                return result + (self.execute(seq[1:]) if len(seq) > 1 else [])
+            except (ValueError, OSError) as exc:
+                return [{"kind": "test", "command": "项目测试", "exit_code": 1, "seconds": 0, "output": str(exc)}]
         if self.box:
             git(self.wt, "add", "-A", "-N", ".")
             patch = b"" if untouched else subprocess.run(["git", "-C", str(self.wt), "diff", "--binary", "HEAD"], capture_output=True).stdout
@@ -359,6 +381,9 @@ class FixLoop:
 
     def baseline(self, seq: list) -> str:
         """Run the commands on the untouched code once per commit: "" when they pass, otherwise why they can't be used."""
+        if seq and seq[0][1].startswith("project-tests:"):
+            # New project tests must run on the candidate even if the old base cannot pass them.
+            return ""
         seq = [x for x in seq if testbox.runs_on(self.wt, x[1], "HEAD")]  # a module the change creates has nothing to build yet
         if not seq:
             return ""
@@ -499,7 +524,7 @@ class FixLoop:
     def criteria(self) -> list:
         """What the change is accepted against: the criteria the client confirmed, else the plan's."""
         from .signoff import client_ac
-        return (client_ac(self.r.data_dir, self.t["key"]) if self.t else []) or plan_ac(getattr(self, "plan", "") or "")
+        return (client_ac(getattr(self.r, "evidence_root", self.r.data_dir), self.t["key"]) if self.t else []) or plan_ac(getattr(self, "plan", "") or "")
 
     def earlier_fixes(self) -> list:
         """Earlier finished change runs of this ticket with their verification, newest first."""
@@ -682,6 +707,15 @@ def _verification(data_dir: Path, rid: int) -> dict:
         return {}
 
 
+def _project_tests_current(data_dir, rid, value):
+    from . import project_tests
+    issue = project_tests.current_issue(data_dir, rid, value)
+    if issue:
+        return {"check": "unknown", "verdict": "unknown", "commands": [], "diagnosis": {},
+                "verification_current": False, "skip": issue, "previous_current_verification": value}
+    return value
+
+
 def verified(data_dir: Path, rid: int) -> dict:
     """A previous pass is historical as soon as a newer verification begins."""
     v = _verification(data_dir, rid)
@@ -691,7 +725,7 @@ def verified(data_dir: Path, rid: int) -> dict:
     except (OSError, ValueError) as exc:
         operation = {"status": "blocked", "result": str(exc), "can_retry": False}
     if not operation:
-        return v
+        return _project_tests_current(data_dir, rid, v)
     bound = v.get("recheck_operation") or {}
     current = (isinstance(bound, dict) and bound.get("id") == operation.get("id")
                and bound.get("source_run") == rid and operation.get("source_run") == rid
@@ -711,7 +745,7 @@ def verified(data_dir: Path, rid: int) -> dict:
         except (OSError, ValueError, TypeError, AttributeError):
             current = False
     if current:
-        return dict(v, verification_current=True)
+        return _project_tests_current(data_dir, rid, dict(v, verification_current=True))
     return {"check": "unknown", "verdict": "unknown", "commands": [], "diagnosis": {},
             "verification_current": False, "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
             "recheck_operation": {"id": operation.get("id"), "status": operation.get("status"), "result": operation.get("result", "")},
@@ -831,7 +865,10 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None, k
     fl = FixLoop.__new__(FixLoop)
     executor = recheck_operations(runner).runner if operation else runner
     fl.r, fl.st, fl.rid, fl.p, fl.t, fl.wt = executor, executor.store, operation["id"] if operation else rid, p, t, wt
+    fl.source_run = rid
     fl.set = settings(runner.data_dir)
+    plans = [x for x in st.runs(ticket_id=t["id"]) if x["mode"] == "plan" and x["status"] == "done"] if t else []
+    fl.plan = st.run(plans[0]["id"])["result"] if plans else ""
     tb = testbox.settings(runner.data_dir)
     fl.box = testbox.TestBox(tb, runner.data_dir) if tb else None
     fl.base = git(wt, "rev-parse", "HEAD").strip()

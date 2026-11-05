@@ -174,7 +174,10 @@ def checks(v: dict) -> list:
     """baseline, build and test from what the fix loop ran."""
     cmds = v.get("commands") or []
     skip = str(v.get("skip") or "")
-    if skip.startswith(("原代码", "测试机没准备好")):
+    suites = [c["project_tests"] for c in cmds if c.get("project_tests")]
+    if suites:
+        base = gate("baseline", UNKNOWN, "已验证候选代码；尚无原版本的项目测试基线，不能推断原版本通过")
+    elif skip.startswith(("原代码", "测试机没准备好")):
         base = gate("baseline", UNKNOWN, skip[:200])
     elif cmds:
         base = gate("baseline", PASS, "原代码先构建测试过一遍，能跑通")
@@ -183,7 +186,9 @@ def checks(v: dict) -> list:
     out = [base]
     for kind, gid in (("build", "build"), ("test", "test")):
         mine = [c for c in cmds if c.get("kind") in (kind, "check")] if kind == "build" else [c for c in cmds if c.get("kind") == "test"]
-        if kind == "build" and not mine and any(c.get("kind") == "test" for c in cmds):
+        if kind == "build" and suites:
+            mine += [dict(stage, exit_code=0 if stage["status"] == "pass" else 1) for suite in suites for stage in suite["stages"] if stage["kind"] == "build" and stage["required"]]
+        if kind == "build" and not suites and not mine and any(c.get("kind") == "test" for c in cmds):
             mine = [c for c in cmds if c.get("kind") == "test"]  # a test run builds first
         bad = [c for c in mine if c.get("exit_code") != 0]
         if bad:

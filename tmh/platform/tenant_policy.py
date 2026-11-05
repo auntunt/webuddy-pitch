@@ -156,6 +156,8 @@ GET /api/projects/<key>/releases
 POST /api/tickets/<key>/release
 GET /api/tickets/<key>/preview
 POST /api/tickets/<key>/preview
+GET /api/projects/<key>/tests
+POST /api/projects/<key>/tests
 GET /api/projects/<key>/mode
 POST /api/projects/<key>/mode
 POST /api/projects/<key>/releases/<version>/rollback
@@ -609,7 +611,7 @@ def authorize(P, method, path, query, body, actor):
             require_execution(P, actor)
         return scope
     action = body.get("action")
-    path_config = template.startswith("/api/projects/import") or template in ("/api/projects", "/api/projects/bootstrap", "/api/projects/<key>/preview-conf", "/api/testbox") or (
+    path_config = template.startswith("/api/projects/import") or template in ("/api/projects", "/api/projects/bootstrap", "/api/projects/<key>/preview-conf", "/api/projects/<key>/tests", "/api/testbox") or (
         template.endswith("/library") and action in ("configure", "add_source", "derive", "maintain"))
     if path_config:
         if not who["platform_owner"]:

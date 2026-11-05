@@ -31,6 +31,8 @@ def review(loop, diff, commands, skip, previous):
     for index, (header, text) in enumerate(batches, 1):
         prompt = ('审查分批 %d/%d：%s\n仅对本批及其调用关系形成结论；可只读查看工作树核对上下文。'
                   '不要修改代码或把代码阅读当作实测。不相关验收项不填入 ac，不能以未阅读部分推断通过。\n'
+                  '阻断问题须写明文件、行号、触发条件和实际影响，区分本次引入与既有问题；安全边界、权限和数据写入优先检查。'
+                  '复审仅追踪尚未解决的问题及新差异，不重复已解决项，不以风格建议阻断交付。\n'
                   % (index, len(batches), header)) + text
         answer = loop.diagnose_part(prompt, commands, skip, previous)
         verdict, vague = settle_fail(answer, str(answer.get('verdict') or '').lower())

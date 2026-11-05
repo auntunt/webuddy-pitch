@@ -1,0 +1,41 @@
+{
+  "executor": "testbox",
+  "require_all_criteria": false,
+  "stages": [
+    {
+      "id": "backend_build",
+      "kind": "build",
+      "required": true,
+      "timeout": 900,
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .webuddy-tests/backend.ps1 -JavaHome C:/tmh-runner/tools/jdk8/jdk8u504-b01 -Goal compile",
+      "criteria": {}
+    },
+    {
+      "id": "backend",
+      "kind": "unit",
+      "required": true,
+      "timeout": 900,
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .webuddy-tests/backend.ps1 -JavaHome C:/tmh-runner/tools/jdk8/jdk8u504-b01",
+      "report": {
+        "format": "junit",
+        "path": "jshERP-boot/target/surefire-reports/TEST-*.xml"
+      },
+      "criteria": {},
+      "depends_on": [
+        "backend_build"
+      ]
+    },
+    {
+      "id": "frontend",
+      "kind": "unit",
+      "required": true,
+      "timeout": 60,
+      "command": "node -e \"require('fs').mkdirSync('target',{recursive:true})\" && node --experimental-vm-modules --test --test-reporter=junit --test-reporter-destination=target/frontend.xml .webuddy-tests/frontend.test.cjs",
+      "report": {
+        "format": "junit",
+        "path": "target/frontend.xml"
+      },
+      "criteria": {}
+    }
+  ]
+}
