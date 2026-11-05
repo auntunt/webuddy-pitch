@@ -2,7 +2,7 @@
 
 2026-11-05 起应用由 Liyibin 的用户级 `webuddy-native.service` 管理，linger 已启用。公网为 https://webuddy.cloudwaveai.cn，DNS A记录直连8.141.121.22（DNS only）。宿主机Nginx负责HTTPS；共享Cloudflare Tunnel仅服务其他站点，不应停止。
 
-- 应用：`/opt/webuddy/app` → `releases/9c6900b`，精确版本由 RELEASE.json 和 MANIFEST.json 核对。
+- 应用：`/opt/webuddy/app` → `releases/2875e0e`，精确版本由 RELEASE.json 和 MANIFEST.json 核对。
 - Python：`/opt/webuddy/venv/bin/python3`（3.11.14）；tmh：`/opt/webuddy/bin/tmh`。
 - 业务数据、仓库、Codex 配置：`/opt/webuddy/data`、`repos`、`codex`。服务 HOME 为 `/opt/webuddy/home`，`.codex` 链接到独立 Codex 配置目录。
 - 外部环境：`/opt/webuddy/config/webuddy.env`，600，仅在服务器管理，不入库。
