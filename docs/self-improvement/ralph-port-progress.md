@@ -724,3 +724,11 @@
 - 直连TLS登录200；当前Mac无代理强制直连三次0.035590/0.045683/0.041439秒；这组是当前探针，不代表所有国内网络。API401、同源正文413、跨站403，响应server=nginx且无Cloudflare头；未代用户登录。
 - Certbot定向dry-run续期成功；公共DNS已返回8.141.121.22。原生应用和Nginx、续期timer正常。配置与操作说明入库，未为记录重启应用。
 - 补记DNS过渡观察：公共1.1.1.1查询已是8.141.121.22，但Mac系统解析随后仍命中旧104.21.0.95，普通curl在15秒超时；指定真实IP并保留域名/SNI的直连检查通过。旧本地/运营商DNS缓存仍可能短时访问旧入口，不将其描述为所有用户已完成解析切换。
+
+## 2026-11-05 MCP配置随服务器迁移同步
+
+- 用户要求MCP配置同步。服务端wheel按当前公共地址生成，现役包workbench_site.json已读回为https://webuddy.cloudwaveai.cn/t/default，无需改产品代码或重启。文档旧端点同步，并补迁移说明。
+- 本机~/.webuddy客户端从现役同版本wheel重新安装；~/.config/webuddy/credential.json仅更新endpoint，原token字节保持，私有备份保留。status实查原li连接active、execute、原8个项目范围；没有创建连接或扩大权限。
+- 本机Codex原没有webuddy条目，已按客户端生成结果追加到~/.codex/config.toml，保留其他MCP与设置；解释器和桥接脚本指向安装目录、仅引用凭据文件，允许原连接既有execution，未发起业务操作。旧配置私有备份，TOML读回通过。
+- Mac系统DNS仍返回旧Cloudflare IP；一次status及配置生成成功，标准MCP握手随后网络超时。dscacheutil非root刷新无效，sudo -n要求密码，未改系统DNS/hosts。临时验证进程仅将该域名解析至已验证阿里云IP、保留域名TLS校验：官方MCP SDK initialize成功，23工具列出，projects_list成功。此临时解析未写入正式MCP配置，不能把测试等同于当前Mac DNS问题已解决。
+- 其他成员已下载的客户端/凭据不随本机修改自动更新；需在新工具连接页重新下载/导入。未替其他成员签发凭据，未触发真实模型任务。
