@@ -22,13 +22,16 @@ class LoginTest(unittest.TestCase):
         cls.data = Path(cls.tmp.name)
         (cls.data / "autoflow.json").write_text('{"on": false}', encoding="utf-8")
         login.set_user(cls.data, "li", "correct-horse")
-        cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(Platform(cls.data, "tester"), "tok123"))
+        cls.platform = Platform(cls.data, "tester")
+        cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(cls.platform, "tok123"))
         cls.port = cls.httpd.server_address[1]
         threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
 
     @classmethod
     def tearDownClass(cls):
         cls.httpd.shutdown()
+        cls.httpd.server_close()
+        cls.platform.store.db.close()
         cls.tmp.cleanup()
 
     def req(self, method, path, body=None, headers=None):

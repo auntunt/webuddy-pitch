@@ -216,8 +216,6 @@ def run_process(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None,
     Root exit with remaining group members yields ``orphaned`` and status 125,
     even if the root returned zero. Timeout/cancellation yield 124/130.
     """
-    if os.name != "posix":
-        raise NotImplementedError("run_process requires POSIX process groups")
     if timeout is not None and (not math.isfinite(timeout) or timeout < 0):
         raise ValueError("timeout must be a finite nonnegative number or None")
     if not math.isfinite(terminate_grace) or terminate_grace < 0:
@@ -234,6 +232,14 @@ def run_process(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None,
                    "output_complete": True, "reaped": True, "complete": True}
         return ProcessResult(130 if cancelled else 124, reason, time.monotonic() - started,
                              None, None, "", b"", cleanup)
+    if os.name == "nt":
+        if __package__:
+            from .windows_process import run
+        else:
+            from windows_process import run
+        return run(cmd, cwd=cwd, env=env, timeout=timeout, cancel_event=cancel_event,
+                   stdin=stdin, on_output=on_output, on_spawn=on_spawn,
+                   terminate_grace=terminate_grace, on_bytes=on_bytes)
     # Allocate the selector before creating a child: an allocation/OS failure
     # here must not strand a process which has not yet entered the cleanup scope.
     selector = selectors.DefaultSelector()

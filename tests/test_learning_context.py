@@ -30,11 +30,11 @@ class LearningContextTests(unittest.TestCase):
         self.page = self.root / ".tmh/knowledge/index.md"
         self.page.parent.mkdir(parents=True)
         self.source = self.root / "app.py"
-        self.source.write_text("OPEN = True\n", encoding="utf-8")
+        self.source.write_text("OPEN = True\n", encoding="utf-8", newline="")
         text = ("---\nid: index\ntitle: 项目说明\nsummary: 当前项目事实\nstatus: 待确认\n---\n# 项目说明\n\n" +
                 kb.FACTS_START + "\n固定生成事实\n" + kb.FACTS_END + "\n\n" +
                 "\n\n".join("## " + title + "\n基于 `app.py:1` 的完整说明。" for title in kb.SECTIONS["index"]))
-        self.page.write_text(text, encoding="utf-8")
+        self.page.write_text(text, encoding="utf-8", newline="")
         kb.save_registry(self.root, {"index": {"title": "项目说明", "status": kb.STATUS_DRAFT,
                                                "summary": "UNIQUE_VERIFIED_FACT"}})
         graph_path(self.root).parent.mkdir(exist_ok=True)
@@ -75,7 +75,7 @@ class LearningContextTests(unittest.TestCase):
         self.assertEqual(saved, agents.take_context_meta())
 
     def test_changed_source_is_excluded_but_keeps_human_pointer_and_full_handle(self):
-        self.source.write_text("OPEN = False\n", encoding="utf-8")
+        self.source.write_text("OPEN = False\n", encoding="utf-8", newline="")
         self.assertEqual(F.active_revision(self.P, self.p, "index"), self.r["id"])
         self.assertFalse(D.adopted_current(self.P, self.p, self.r))
         text = self.prompt()
@@ -133,7 +133,7 @@ class LearningContextTests(unittest.TestCase):
         ticket = self.store.create_ticket(self.p["id"], "项目说明", "test", auto=False)
         self.P.ticket = self.store.ticket
         self.P.root = lambda p: Path(p["root"])
-        self.source.write_text("OPEN = False\n", encoding="utf-8")
+        self.source.write_text("OPEN = False\n", encoding="utf-8", newline="")
         with patch.object(cp, "assemble", side_effect=self.pack):
             response = server.api_ticket_context(self.P, None, ticket["key"])
         self.assertNotIn("UNIQUE_VERIFIED_FACT", response["text"])
@@ -143,7 +143,7 @@ class LearningContextTests(unittest.TestCase):
         for changed in (False, True):
             with self.subTest(source_changed=changed):
                 if changed:
-                    self.source.write_text("OPEN = False\n", encoding="utf-8")
+                    self.source.write_text("OPEN = False\n", encoding="utf-8", newline="")
                 text = self.prompt()
                 receipts_before = agents.take_context_meta()
                 with patch.object(cp, "assemble", side_effect=self.pack):

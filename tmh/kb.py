@@ -220,14 +220,13 @@ def save_registry(root: Path, reg: dict, *, _atomic: bool = False) -> None:
 # ---- page files ---------------------------------------------------------------
 def parse_page(text: str) -> dict:
     meta, body = {}, text
-    if text.startswith("---\n"):
-        end = text.find("\n---\n", 4)
-        if end > 0:
-            for line in text[4:end].splitlines():
-                k, _, v = line.partition(":")
-                if k.strip():
-                    meta[k.strip()] = v.strip()
-            body = text[end + 5:]
+    front = re.match(r"\A---\r?\n(.*?)\r?\n---\r?\n", text, re.S)
+    if front:
+        for line in front.group(1).splitlines():
+            k, _, v = line.partition(":")
+            if k.strip():
+                meta[k.strip()] = v.strip()
+        body = text[front.end():]
     else:  # notes written before the knowledge base existed: "状态：待确认" line
         sm = re.search(r"^状态[:：]\s*(\S+)", text, re.M)
         if sm:

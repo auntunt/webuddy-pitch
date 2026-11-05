@@ -273,8 +273,6 @@ def run_supervised(cmd, *, folder, owner, cwd=None, env=None, timeout=None, canc
     descriptor is inherited only by the supervisor. The target gets no control
     pipe descriptor. Calls use a fresh evidence folder and never replace output.
     """
-    if os.name != "posix":
-        raise NotImplementedError("supervised execution requires POSIX")
     if timeout is not None and (not math.isfinite(timeout) or timeout < 0):
         raise ValueError("timeout must be finite and nonnegative or None")
     if not math.isfinite(terminate_grace) or terminate_grace < 0:
@@ -313,10 +311,26 @@ def run_supervised(cmd, *, folder, owner, cwd=None, env=None, timeout=None, canc
         with tempfile.TemporaryFile() as payload:
             payload.write(json.dumps(request, ensure_ascii=False).encode("utf-8"))
             payload.seek(0)
-            process = subprocess.Popen([sys.executable, str(Path(__file__).resolve()), str(payload.fileno()), str(read_fd)],
-                                       env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                                       stderr=subprocess.DEVNULL, pass_fds=(payload.fileno(), read_fd),
-                                       close_fds=True, start_new_session=True)
+            if os.name == "nt":
+                import msvcrt
+                handles = [msvcrt.get_osfhandle(payload.fileno()), msvcrt.get_osfhandle(read_fd)]
+                startup = subprocess.STARTUPINFO()
+                startup.lpAttributeList = {"handle_list": handles}
+                try:
+                    for handle in handles:
+                        os.set_handle_inheritable(handle, True)
+                    process = subprocess.Popen([sys.executable, str(Path(__file__).resolve()),
+                                                '--windows-handles', *map(str, handles)],
+                                               env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                               stderr=subprocess.DEVNULL, startupinfo=startup, close_fds=True)
+                finally:
+                    for handle in handles:
+                        os.set_handle_inheritable(handle, False)
+            else:
+                process = subprocess.Popen([sys.executable, str(Path(__file__).resolve()), str(payload.fileno()), str(read_fd)],
+                                           env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                           stderr=subprocess.DEVNULL, pass_fds=(payload.fileno(), read_fd),
+                                           close_fds=True, start_new_session=True)
         os.close(read_fd)
         read_fd = None
         while True:
@@ -395,4 +409,9 @@ def run_supervised(cmd, *, folder, owner, cwd=None, env=None, timeout=None, canc
 
 
 if __name__ == "__main__":
-    raise SystemExit(_worker(int(sys.argv[1]), int(sys.argv[2])))
+    if sys.argv[1] == '--windows-handles':
+        import msvcrt
+        request_fd, control_fd = [msvcrt.open_osfhandle(int(h), os.O_RDONLY | os.O_BINARY) for h in sys.argv[2:4]]
+    else:
+        request_fd, control_fd = int(sys.argv[1]), int(sys.argv[2])
+    raise SystemExit(_worker(request_fd, control_fd))
