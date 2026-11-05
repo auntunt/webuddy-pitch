@@ -708,3 +708,9 @@
 - Mac与服务器新域名HTTPS登录200，未登录配置API401；同源超长正文413 invalid_request，旧域名Origin403 origin_denied。未输入用户密码。飞书启用，其回调地址由公共地址生成，新地址为https://webuddy.cloudwaveai.cn/login/feishu/callback；尚未核验飞书开发者后台的允许列表或真人OAuth登录。
 - 同步AGENTS.md与原生部署说明，避免后续误发旧容器/旧域名。域名变化不迁移浏览器cookie，需要在新域名重新登录。
 - 超过60秒延迟核验：09:34:06 CST原PID702348保持、active、NRestarts=0；新域名登录继续200。
+
+## 2026-11-05 GLD 权限与 li 对齐
+
+- 用户明确要求gld与li相同权限；实际账号为GLD。GLD原已是default/admin，缺平台所有者；本次仅补platform_owners，并在authorization_guard/事务内更新授权revision、按既有逻辑失效权限变化的工具连接、写local-maintenance审计。未模拟li会话、未改账号密码/epoch/有效状态。
+- 控制库完整备份~/webuddy/backups/permission-GLD-20261105T094345/access.db，仅保存在服务器0600。修改后Registry.context的role/platform_owner/project_grants/capabilities/can_manage与li逐项相同，双方accounts记录原样保持，完整性ok。无需重启或运行代码发布。
+- 免费证书说明核对Let's Encrypt官方FAQ及DNS-01文档：可免费签发并部署国内服务器；本次未申请证书或切换国内直连入口。
