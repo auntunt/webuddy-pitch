@@ -1,6 +1,6 @@
 # 阿里云 Webuddy 原生部署
 
-2026-11-05 起应用由 Liyibin 的用户级 `webuddy-native.service` 管理，linger 已启用。公网仍是 https://webuddy.bbstack.date。共享 Cloudflare Tunnel 容器继续服务其他站点，不应停止。
+2026-11-05 起应用由 Liyibin 的用户级 `webuddy-native.service` 管理，linger 已启用。公网仍是 https://webuddy.cloudwaveai.cn。共享 Cloudflare Tunnel 容器继续服务其他站点，不应停止。
 
 - 应用：`/opt/webuddy/app` → `releases/9c6900b`，精确版本由 RELEASE.json 和 MANIFEST.json 核对。
 - Python：`/opt/webuddy/venv/bin/python3`（3.11.14）；tmh：`/opt/webuddy/bin/tmh`。
@@ -20,6 +20,6 @@
 1. 先停止原生服务，确认无残留任务进程。完整备份**当前** data/repos/codex 及配置；保留迁移前备份。
 2. 在两端均停止时，将当前三个目录完整同步回原命名卷，含删除项、隐藏文件和链接，校验文件内容、数据库及会话密钥。卷属主恢复旧容器 UID1100；使用旧容器实际 GID。不要把旧快照覆盖到当前数据。
 3. cloudwave-codex.bin 为可移植的 `codex`，原容器 PATH 可解析。核对环境、模型配置和全部项目根，再启动旧容器并验证原入口。
-4. 只将 Cloudflare 的 webuddy.bbstack.date ingress 恢复到 `http://webuddy:8790`，保留其他项。确认公网健康后禁用原生服务自动启动，确保只有一个写入实例。
+4. 只将 Cloudflare 的 webuddy.cloudwaveai.cn ingress 恢复到 `http://webuddy:8790`，保留其他项。确认公网健康后禁用原生服务自动启动，确保只有一个写入实例。
 
 回退是程序切换与最新数据转移，不是恢复历史数据库。本说明不是已执行回退的证明。

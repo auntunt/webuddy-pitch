@@ -3,7 +3,7 @@
 用户在 2026-10-22 明确授权：“推到服务器和github。每次修改完都是自动推送”。
 
 - 本项目的修改完成并通过相应验证后，自动提交、推送到 `github` 远端的当前工作分支，并部署到 Webuddy 生产环境，无需重复询问发布许可。用户后续明确要求只做本地工作时，以该次要求为准。
-- 发布目标为 `https://webuddy.bbstack.date`、`webuddy.service`；部署前先读取本机 `/Users/auntlee/.codex/memories/webuddy-production-access.md`，核对当时的授权、真实现役版本和数据位置。私钥、令牌、业务数据库与外部配置不得进入 Git 或聊天。
+- 发布目标为 `https://webuddy.cloudwaveai.cn`、用户级 `webuddy-native.service`；部署前先读取本机 `/Users/auntlee/.codex/memories/webuddy-production-access.md`，核对当时的授权、真实现役版本和数据位置。私钥、令牌、业务数据库与外部配置不得进入 Git 或聊天。
 - 推送采用普通快进，不强推、不改 Git 配置。验证失败时先修复；无法修复则记录阻塞，不发布未通过的产品变更。
 - 运行代码发布前验证精确提交的文件清单、服务器兼容性及必要的数据库副本迁移；保留旧版本和完整备份。发布后核验运行版本、HTTP、数据库及延迟健康状态。回滚只切换程序，不以旧数据库覆盖用户的新写入。
 - 仅补充发布记录等文档时，推送记录并核对最新提交的运行文件仍与线上一致；不为记录本身反复重启服务。
@@ -14,7 +14,7 @@
 
 ## 当前主站部署补充（2026-11-05）
 
-主站 `https://webuddy.bbstack.date` 已迁至阿里云，通过 `ssh zct-server` 接入，使用 `~/webuddy/compose.yaml` 管理 `webuddy` 容器。部署前读取 `/Users/auntlee/.codex/memories/aliyun-webuddy-deployment.md` 并核验实际状态。上文 `webuddy.service` 为腾讯云历史部署方式；本轮及后续默认发布阿里云主站，不覆盖已分叉的腾讯云数据。
+主站 `https://webuddy.cloudwaveai.cn` 已迁至阿里云，通过 `ssh zct-server` 接入，使用 `systemctl --user` 管理 `webuddy-native.service`，现役目录为 `/opt/webuddy`，旧应用容器已停用。部署前读取 `/Users/auntlee/.codex/memories/aliyun-webuddy-deployment.md` 并核验实际状态。上文 `webuddy.service` 为腾讯云历史部署方式；本轮及后续默认发布阿里云主站，不覆盖已分叉的腾讯云数据。
 
 # 智能体协作与执行约定
 

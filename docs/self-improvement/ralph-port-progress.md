@@ -700,3 +700,11 @@
 - 用户级webuddy-native已enable/start，旧webuddy容器停止且restart=no。Cloudflare配置v5→v6，只将Webuddy ingress改为http://192.168.112.1:8791，另两站和404兜底保持。即时内外登录200、未登录配置API401；同服务HOME/PATH/NoNewPrivileges环境的9项真实Codex沙箱检查再次通过。原生操作与保留新数据的回退说明见scripts/deploy/NATIVE.md。
 - 原生HTTPS检查发现uv Python默认CA路径不匹配阿里云系统，已显式配置SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt并重启；未关闭TLS校验。服务器Python访问公网登录探针随后返回403，不能认定为应用来源拒绝；Mac curl同源超长正文返回413 invalid_request，证明通过来源校验且未进入密码验证。
 - 补验：系统CA下原生Python访问HTTPS返回200；Mac公网跨站正文403 origin_denied，同源413 invalid_request。会话密钥与旧卷字节相同，现役14库再次完整性ok；内外登录200/API401。仅验证技术入口与沙箱，未代用户登录、执行真实模型任务或人工验收。
+
+## 2026-11-05 主域名改为 webuddy.cloudwaveai.cn
+
+- 用户要求脱离个人BBstack域名。将webuddy.cloudwaveai.cn原直连A记录8.141.121.22改为代理CNAME，指向现有阿里云Cloudflare Tunnel；配置v8只保留新Webuddy入口，另两站和404兜底不变。旧webuddy.bbstack.date的CNAME和ingress已删除，未改个人域名其他记录。
+- 服务TMH_PUBLIC_URL改为https://webuddy.cloudwaveai.cn，原配置备份于/home/Liyibin/webuddy/backups/domain-20261105T093242/webuddy.env；重启前running_runs=0。现役仍原生9c6900b，无运行代码或业务数据改动。
+- Mac与服务器新域名HTTPS登录200，未登录配置API401；同源超长正文413 invalid_request，旧域名Origin403 origin_denied。未输入用户密码。飞书启用，其回调地址由公共地址生成，新地址为https://webuddy.cloudwaveai.cn/login/feishu/callback；尚未核验飞书开发者后台的允许列表或真人OAuth登录。
+- 同步AGENTS.md与原生部署说明，避免后续误发旧容器/旧域名。域名变化不迁移浏览器cookie，需要在新域名重新登录。
+- 超过60秒延迟核验：09:34:06 CST原PID702348保持、active、NRestarts=0；新域名登录继续200。
