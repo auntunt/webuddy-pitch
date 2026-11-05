@@ -58,6 +58,12 @@ class WindowsOwnership(unittest.TestCase):
         self.assertEqual(r.returncode,7);self.assertEqual(r.output_bytes,b'x'*200000)
         self.assertTrue(r.cleanup['complete'])
 
+    def test_short_process_exit_is_not_mistaken_for_an_orphan(self):
+        for _ in range(12):
+            result=self.run_command('pass',timeout=15)
+            self.assertEqual((result.reason,result.returncode),('exited',0),result.cleanup)
+            self.assertTrue(result.cleanup['complete'])
+
     def test_timeout_cancel_and_orphan_kill_descendant(self):
         with tempfile.TemporaryDirectory() as td:
             for kind in ('timeout','cancel','orphan'):

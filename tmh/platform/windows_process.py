@@ -112,8 +112,8 @@ def run(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None, stdin=None,
             except queue.Empty:pass
             except BaseException as exc:
                 failure=exc;on_output=on_bytes=None;reason='exception'
-            info=Accounting();checked(K.QueryInformationJobObject(job,1,ctypes.byref(info),ctypes.sizeof(info),None))
             rc=proc.poll()
+            info=Accounting();checked(K.QueryInformationJobObject(job,1,ctypes.byref(info),ctypes.sizeof(info),None))
             if stop_at is None:
                 if failure:reason='exception'
                 elif cancel_event is not None and cancel_event.is_set():reason='cancelled'
