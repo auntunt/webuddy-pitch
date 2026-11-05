@@ -35,3 +35,5 @@ Windows 使用 `.webuddy-tests/backend.ps1 -JavaHome <Java8目录>`。`profile.w
 **仍须单独验证：**连接真实隔离 MySQL/Redis 的采购、库存、销售与财务流程；应用启动；浏览器交互；数据库迁移、并发负载及依赖漏洞扫描。本目录的单元与接口契约测试不冒充这些结果。阶段类型已支持这些检查，但必须接入实际命令、数据和判定阈值后才能宣称通过。
 
 实测记录：Linux Java 8 后端40项、Node前端14项通过；Mac前端使用 `npm install --legacy-peer-deps --no-audit --no-fund` 后构建成功。依赖审计检出187项（严重36、高危59、中危81、低危11），安全检查尚未通过。此安装参数解决既有webpack4的peer依赖解析冲突，不代表这些旧依赖已修复。
+
+43测试站现已在JSHERP启用本机执行配置（2026-11-05），Java8/Maven在`/opt/webuddy/tools`。Windows合成测试通过，但Java8安装受下载中断阻碍；`profile.windows.json`保留为环境就绪后的切换配置，不表示ERP已在Windows验收。43 ERP本地提交`cfac6d95`，未推上游公共仓库。

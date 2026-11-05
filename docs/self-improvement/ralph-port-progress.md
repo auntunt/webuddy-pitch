@@ -804,3 +804,12 @@
 - 本机255项相关回归通过41.242秒，新增取消用例后20项项目测试通过5.255秒。POSIX后台服务跨阶段/取消与日志回收已实际验证，Windows早期合成报告流程通过，后续ERP环境尚未完成。
 - jshERP隔离源码40项Java/14项Node通过；修复真实单笔退款转负数字符数组错误，保留源码CRLF。前端构建成功；依赖审计187项含59高危/36严重，未冒称安全通过。数据库、真实HTTP业务和浏览器E2E仍未验。
 - 实现说明docs/project-testing.md；ERP测试与安装补丁examples/project-testing/jsherp；详细进度docs/self-improvement/project-testing-progress.md。只部署43，阿里云生产不动；上线结果随后补记。
+
+## 2026-11-05 20:57 项目测试已发布43，ERP回归已接入
+
+- 实现提交`062801866d62eed92f353e616f52ed01a3b54f5b`普通快进推送github；43 app→`/opt/webuddy/releases/0628018/app`，2336文件精确清单核对；Linux256项回归通过81.202秒，本机255项通过41.242秒，随后20项项目测试含新增取消检查通过5.255秒。
+- 停服完整无损gzip备份`/opt/webuddy/backups/pre-0628018-test-20261105T125028Z/state.tar.gz`，46211文件逐字节校验；14库完整性和副本Store初始化通过。保留旧程序与备份，回退只切程序不恢复旧库。现役20:51:50 CST启动、PID1195456；20:53:22（92秒）、20:57:24检查同PID、active/running、重启0、2336清单、14库、内外200/401均通过。阿里云未操作。
+- ERP实际平台执行器在43隔离工作树完成backend_build、backend40用例、frontend14用例，均通过；原始平台证据`/opt/webuddy/data/project-test-baselines/JSHERP-20261105`。确认注册根干净且无活动任务后，将精确补丁提交到43 JSHERP的master，提交`cfac6d956ca8cedbcdfa8329dbc8021fcd36113e`；未推上游jishenghua。平台外置project-tests.json启用JSHERP，executor=local。Java8/Maven保存在/opt/webuddy/tools；新运行/复检读取配置。
+- Windows链路有间歇超时；SSH简单命令成功后仍出现下载/命令超时。最终新版本真实Windows合成测试通过，证据`/tmp/webuddy-project-remote-dc7xg9m9`，不等于ERP已在Windows通过。Java8官方TLS下载失败、SCP断连，临时回环SSH隧道下载也中断，未关闭证书验证。ERP维持已验证Linux配置。
+- ERP真实MySQL/Redis、业务HTTP与浏览器E2E、并发/性能/迁移仍未覆盖；Mac前端构建成功，npm审计187项含36严重/59高危，不能称为安全通过。未代人验收/关单。
+- 本机原始日志、原图、构建/审计JSON及实际解析的package-lock保留`../部署包/project-tests-0628018/`，源图字节未改。43仅删除本次已被正式版本替代的88MB临时候选源码，业务/旧备份保留，剩余约446MB，空间仍偏紧。
