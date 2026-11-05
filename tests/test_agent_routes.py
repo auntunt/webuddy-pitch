@@ -284,11 +284,11 @@ class AgentRoutesTest(unittest.TestCase):
         self.assertEqual(calls, [("claude", "diagnose", "opus-x"), ("cloudwave-codex", "fix", "luna")])
 
 
-    def test_fix_loop_has_the_routed_engine_diagnose_a_small_unbuilt_change(self):
+    def test_fix_loop_reviews_small_unbuilt_changes_with_or_without_a_separate_engine(self):
         from tmh.platform.fixloop import FixLoop
         conf = {"cloudwave-codex": {"defaults": {}}, "claude": {"defaults": {"diagnose": "opus-x"}}}
         diff = "diff --git a/a.vue b/a.vue\n--- a/a.vue\n+++ b/a.vue\n@@ -1 +1 @@\n-x\n+y\n"
-        for steps, diagnosed in (({"diagnose": "claude"}, True), ({}, False)):
+        for steps, diagnosed in (({"diagnose": "claude"}, True), ({}, True)):
             with self.subTest(steps=steps):
                 self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex",
                             "allowed_agents": ["cloudwave-codex", "claude"], "steps": steps}}})

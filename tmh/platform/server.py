@@ -3154,6 +3154,15 @@ def api_run(P, req, rid):
     r["ticket_key"] = t["key"] if t else ""
     r["verification"] = verified(P.data_dir, r["id"]) if r["mode"] == "fix" else None
     r["recheck"] = api_recheck_state(P, req, rid) if r["mode"] == "fix" else None
+    r["human_review"] = None
+    if t and r["mode"] == "fix" and r["status"] == "done":
+        from . import signoff
+        evidence = signoff.state(P.data_dir, t["key"])
+        bound = ((evidence.get("snapshot") or {}).get("change") or {}).get("run") == r["id"]
+        current = bound and evidence.get("intact") and not evidence.get("stale") and not evidence.get("binding_blocked")
+        r["human_review"] = {"current": bool(current), "review": evidence.get("review") if current else None,
+                             "decision": evidence.get("decision") if current else None,
+                             "proofs": evidence.get("proofs", []) if current else []}
     r["lifecycle"], r["lifecycle_error"] = None, ""
     try:
         receipt = Path(P.data_dir) / "runs" / str(r["id"]) / "lifecycle.json"
@@ -3258,7 +3267,7 @@ def api_recheck(P, req, rid):
     """Build a finished change again without redoing it; poll GET .../recheck for the result."""
     _require_unmanaged_run(P, rid)
     try:
-        return P.flow.recheck(int(rid), req.user, wait=bool(req.body.get("wait")))
+        return P.flow.recheck(int(rid), req.user, wait=bool(req.body.get("wait")), kind=req.body.get("kind", "tests"))
     except (ValueError, RuntimeError) as e:
         raise ApiError(400, str(e))
 

@@ -16,8 +16,8 @@ One "修改代码" run goes like this, in its own git worktree:
    change of the same ticket is diagnosed against the last one's blockers first, and a ticket whose changes keep
    failing is marked as going in circles. On a fail it names the files to revise and what each must do, and
    only those run again, up to `rounds` more times (3; more rounds hardly help). When no build or tests run there
-   is one round only, and the diagnosis is made only for a change split across files or when the project's route
-   gives diagnosis to another executor; otherwise a small change goes straight to a person.
+   is one round only. Every change receives a read-only review, including small changes.
+   A route may select a different executor; the review records the actual executor and model.
 
 The outcome is kept in runs/<id>/verify.json; a change whose build or tests still fail, or that the diagnosis
 says does not solve the ticket, is not committed by the automatic flow.
@@ -456,7 +456,11 @@ class FixLoop:
                     inbox[to].append("%s：%s" % (path, str(m["need"]).strip()[:600]))
 
     def diagnose(self, diff: str, res: list, skip: str, prev: dict | None) -> dict:
-        L = [self.context(), "", "## 本轮改动", "```diff", diff[:14000] + ("\n…（后面省略）" if len(diff) > 14000 else ""), "```", "", "## 构建测试"]
+        from .code_review import review
+        return review(self, diff, res, skip, prev)
+
+    def diagnose_part(self, diff: str, res: list, skip: str, prev: dict | None) -> dict:
+        L = [self.context(), "", "## 本轮改动", "```diff", diff, "```", "", "## 构建测试"]
         if res:
             for x in res:
                 L += ["`%s`：%s（%s 秒）" % (x["command"], "通过" if x["exit_code"] == 0 else "失败，退出码 %s" % x["exit_code"], x["seconds"])]
@@ -536,13 +540,10 @@ class FixLoop:
         rounds = max(0, int(self.set.get("rounds") if self.set.get("rounds") is not None else 3))
         diag, res, verdict, files, vague = None, [], "unknown", [], False
         split = len(goals) >= int(self.set.get("split_from") or 0)
-        # Without a build or tests nothing new is learnt after the first round: a diagnosis that can only read the
-        # code guesses, and the next round acts on the guess (it widened changes and cost a quarter of an hour).
-        # So one round; a large change still gets one reading-only review, a small one goes straight to a person
-        # unless the route gives diagnosis to another executor: then that independent reading is the point.
+        # No repeated speculative fix rounds without execution evidence, but every
+        # completed change receives one read-only code review.
         if not seq and not self.remote_testing:
             rounds = 0
-        review = self.remote_testing or bool(seq) or split or getattr(self, "agents", {}).get("diagnose", self.agent) != self.agent
         if goals and split:
             self.say("按方案分工修改 %d 个文件：%s" % (len(goals), "、".join(goals)))
         elif goals:
@@ -592,13 +593,13 @@ class FixLoop:
             if self.remote_testing:
                 res.append(testbox_mcp.latest_result(self.r.data_dir, self.rid, self.wt))
             broke = any(x["exit_code"] != 0 for x in res)
-            if not review:
-                self.log.append("第 %d 轮：改了 %d 个文件；没跑构建测试，改动不大，不另做诊断，交给人验收" % (rnd + 1, len(files)))
-                self.say(self.log[-1])
-                break
             diag = self.diagnose(diff, res, skip, diag)
+            if worktree_diff(self.wt) != diff:
+                diag["verdict"] = "unknown"
+                diag["review"].update(complete=False, uncovered=["审查期间代码变化，请重新验证"])
             said = str(diag.get("verdict", "")).lower()
             said, vague = settle_fail(diag, said)
+            vague = vague or diag.get("vague_fail", False)
             if vague:  # a fail that names nothing it blocks on cannot send the work back
                 self.say("诊断判了不通过，但没有列出阻断项，按没有给出结论处理，留给人看")
             diag["verdict"] = said
@@ -619,7 +620,7 @@ class FixLoop:
         out = {"check": check, "skip": skip if check == "skip" else "", "verdict": verdict, "rounds": len(self.log), "beyond_plan": beyond,
                "split": bool(goals) and split, "files": files, "commands": res, "remote_test_required": self.remote_testing,
                "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide",
-                                                                "blocking", "advisory", "prior", "ac")}}
+                                                                "blocking", "advisory", "prior", "ac", "review")}}
         if (diag or {}).get("format_repaired"):
             out["diagnosis"]["format_repaired"] = True
         if vague and verdict == "unknown":
@@ -736,10 +737,15 @@ def start_recheck(runner, rid, by=""):
     p = runner.store.project(r['project_id'])
     with project_guard(runner.store, p, execution=True):
         require_run_current(runner.store, p, rid)
-        return recheck_operations(runner).start(rid, by, float(config.get("recheck_timeout") or config.get("check_timeout") or 1200))
+        previous = verified(runner.data_dir, rid)
+        op = recheck_operations(runner).start(rid, by, float(config.get("recheck_timeout") or config.get("check_timeout") or 1200))
+        op["previous_verification"] = previous
+        return op
 
 
-def recheck(runner, rid: int, *, allow_running: bool = False, operation=None, by="") -> dict:
+def recheck(runner, rid: int, *, allow_running: bool = False, operation=None, by="", kind="tests") -> dict:
+    if kind not in ("tests", "review", "all"):
+        raise ValueError("验证类型只能是 tests、review 或 all")
     # Handwork invokes this inside its already-active run and shared budget.
     if allow_running:
         return _recheck(runner, rid, allow_running=True)
@@ -752,8 +758,11 @@ def recheck(runner, rid: int, *, allow_running: bool = False, operation=None, by
     try:
         if before.exists():
             _original_bytes(folder / "verification.before.json", before.read_bytes())
-        v = _recheck(runner, rid, operation=operation)
-        operations.finish(oid, 1 if v["check"] == "fail" else 0, "重新验证：" + {"pass": "通过", "fail": "失败", "skip": "未执行"}[v["check"]])
+        v = _recheck(runner, rid, operation=operation, kind=kind)
+        result = "测试：" + {"pass": "通过", "fail": "失败", "skip": "未执行"}[v["check"]]
+        if kind in ("review", "all"):
+            result += "；AI Review：" + {"pass": "通过", "fail": "发现阻断问题"}.get((v.get("diagnosis") or {}).get("verdict"), "未形成结论")
+        operations.finish(oid, 1 if v["check"] == "fail" else 0, result)
         return verified(runner.data_dir, rid)
     except BaseException as exc:
         try:
@@ -768,7 +777,7 @@ def recheck(runner, rid: int, *, allow_running: bool = False, operation=None, by
         raise
 
 
-def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -> dict:
+def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None, kind="tests") -> dict:
     """Build an earlier change again without changing it: the same baseline and build the fix loop runs, on the
     change as it stands (its worktree, or for an adopted change its commit). Overwrites the run's verify.json and
     returns it. The diagnosis stays as it was for unchanged code. If someone corrects the worktree after the
@@ -830,38 +839,51 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -
     changed = checked_diff != r["diff"]
     if operation:
         recheck_operations(runner).bind(operation["id"], {"run": rid, "decision": r["decision"], "commit": sha,
-            "base": fl.base, "workdir": str(wt), "diff": checked_diff,
+            "base": fl.base, "workdir": str(wt), "diff": checked_diff, "kind": kind,
             "diff_sha256": hashlib.sha256(checked_diff.encode("utf-8")).hexdigest()})
     try:
-        fl.say("重新验证（不改代码）：在%s上构建这次的改动" % ("测试机" if fl.box else "本机"))
-        files = sorted(set(re.findall(r"(?m)^diff --git a/(\S+) b/", worktree_diff(wt))))
-        seq, skip = fl.commands({f: "" for f in files})
-        res = []
-        if seq:
-            why = fl.baseline(seq)
-            if why:
-                seq, skip = [], why
-        remote_receipt = None
-        if _verification(runner.data_dir, rid).get('remote_test_required'):
-            receipts = sorted((runner.data_dir / 'runs' / str(rid) / 'testbox').glob('*.json'))
-            if not fl.box or not receipts:
-                raise ValueError('本次改动需要测试机验证；测试机配置或测试脚本回执缺失')
-            remote_receipt = json.loads(receipts[-1].read_text(encoding='utf-8'))
-            script = remote_receipt['script']
-            script_path = (wt / script).resolve()
-            if not script_path.is_relative_to(wt.resolve()) or not script_path.is_file():
-                raise ValueError('本次版本缺少测试脚本，不能只以编译通过代替测试机验证')
-            seq.append(('test', testbox_mcp.script_command(script, fl.box._detect() == 'windows', max(1, min(1170, int(fl.set.get('check_timeout') or 1200) - 30)))))
-        if seq:
-            res = fl.execute(seq)
-            if remote_receipt and res and res[-1]['kind'] == 'test':
-                res[-1]['command'] = remote_receipt['command']
-            lost = handover_failure(res)
-            if lost:
-                skip, res = lost, []
-        check = ("fail" if any(x["exit_code"] != 0 for x in res) else "pass") if res else "skip"
+        diagnosis = None
+        if kind == "review":
+            old = operation.get("previous_verification") or {}
+            old_base = old.get("checked_base") or ((old.get("diagnosis") or {}).get("review") or {}).get("base")
+            current = not changed and old_base == fl.base and old.get("verification_current") is not False and old.get("check") in ("pass", "fail", "skip")
+            files = sorted(set(re.findall(r"(?m)^diff --git a/(\S+) b/", checked_diff)))
+            res = old.get("commands", []) if current else []
+            check = old["check"] if current else "skip"
+            skip = old.get("skip", "") if current else "代码已变化或旧测试无效，请重新运行测试"
+        else:
+            fl.say("重新验证（不改代码）：在%s上构建这次的改动" % ("测试机" if fl.box else "本机"))
+            files = sorted(set(re.findall(r"(?m)^diff --git a/(\S+) b/", worktree_diff(wt))))
+            seq, skip = fl.commands({f: "" for f in files})
+            res = []
+            if seq:
+                why = fl.baseline(seq)
+                if why:
+                    seq, skip = [], why
+            remote_receipt = None
+            if _verification(runner.data_dir, rid).get('remote_test_required'):
+                receipts = sorted((runner.data_dir / 'runs' / str(rid) / 'testbox').glob('*.json'))
+                if not fl.box or not receipts:
+                    raise ValueError('本次改动需要测试机验证；测试机配置或测试脚本回执缺失')
+                remote_receipt = json.loads(receipts[-1].read_text(encoding='utf-8'))
+                script = remote_receipt['script']
+                script_path = (wt / script).resolve()
+                if not script_path.is_relative_to(wt.resolve()) or not script_path.is_file():
+                    raise ValueError('本次版本缺少测试脚本，不能只以编译通过代替测试机验证')
+                seq.append(('test', testbox_mcp.script_command(script, fl.box._detect() == 'windows', max(1, min(1170, int(fl.set.get('check_timeout') or 1200) - 30)))))
+            if seq:
+                res = fl.execute(seq)
+                if remote_receipt and res and res[-1]['kind'] == 'test':
+                    res[-1]['command'] = remote_receipt['command']
+                lost = handover_failure(res)
+                if lost:
+                    skip, res = lost, []
+            check = ("fail" if any(x["exit_code"] != 0 for x in res) else "pass") if res else "skip"
+        if kind in ("review", "all"):
+            from .code_review import manual
+            diagnosis = manual(fl, runner, r, operation, res, skip, checked_diff)
         final_diff = worktree_diff(wt)
-        stale = final_diff != checked_diff
+        stale = final_diff != checked_diff or git(wt, "rev-parse", "HEAD").strip() != fl.base
         if stale:
             check = "fail"
     finally:
@@ -891,6 +913,13 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -
         v["diagnosis_invalidated"] = "代码在重新验证期间变化，当前结果不能证明新改动；请重新验证"
     else:
         v.pop("after_check_diff", None)  # the previous value remains in previous_verifications
+    if diagnosis is not None and not stale:
+        v["diagnosis"] = diagnosis
+        v["verdict"] = "fail" if check == "fail" or diagnosis["verdict"] == "fail" else diagnosis["verdict"]
+        v.pop("diagnosis_invalidated", None)
+        v.pop("vague_fail", None)
+        v.pop("stalled", None)
+    v["verification_kind"] = kind
     v.pop("diagnosis_dropped", None)
     (runner.data_dir / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)  # a change taken from a branch has no run folder yet
     if operation:

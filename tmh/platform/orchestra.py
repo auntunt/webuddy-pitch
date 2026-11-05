@@ -470,7 +470,7 @@ class Orchestra:
                 self.tell_team(p, t["id"], "验收通过了，还没上线：%s" % r["why"], "等你确认上线", "orange")
         return r
 
-    def recheck(self, rid: int, by: str, wait: bool = False) -> dict:
+    def recheck(self, rid: int, by: str, wait: bool = False, kind: str = "tests") -> dict:
         """Build a finished change again without redoing it (after the build setup was fixed, say). In the background
         unless `wait`; when the build passes and the ticket is still on the automatic line, the change is committed
         as if its own run had just passed; a failed build leaves it for a person."""
@@ -482,13 +482,15 @@ class Orchestra:
             raise ValueError("这次改动正在重新验证")
         if r["status"] != "done" or not r["diff"] or (r["decision"] and not r["decision"].startswith("accepted:")):
             raise ValueError("这次运行没有可以重新验证的改动")
+        if kind not in ("tests", "review", "all"):
+            raise ValueError("验证类型只能是 tests、review 或 all")
         operation = start_recheck(self.runner, rid, by)
         self.rechecking.add(rid)
         tid = r["ticket_id"]
 
         def go():
             try:
-                v = recheck(self.runner, rid, operation=operation, by=by)
+                v = recheck(self.runner, rid, operation=operation, by=by, kind=kind)
             except Exception as e:  # noqa: BLE001
                 if tid:
                     self.store.event(tid, by, "flow", "重新验证没做成（%s）" % e, {"run": rid})
@@ -497,11 +499,13 @@ class Orchestra:
                 self.rechecking.discard(rid)
             run = self.store.run(rid)
             said = {"pass": "构建通过", "fail": "构建没通过", "skip": "没有跑构建（%s）" % v.get("skip")}.get(v["check"], v.get("skip") or "当前验证尚未完整结束")
+            if kind in ("review", "all"):
+                said += "；AI Review：" + {"pass": "通过", "fail": "发现阻断问题"}.get((v.get("diagnosis") or {}).get("verdict"), "未形成结论")
             if tid:
                 self.store.event(tid, by, "flow", "重新验证了运行 #%d 的改动（没改代码）：%s" % (rid, said), {"run": rid, "check": v["check"]})
                 conf = self.autoflow()
                 t = self.store.ticket(tid)
-                if v["check"] == "pass" and not run["decision"] and self.switched_on(conf, run["project_id"]) and not self.held(tid) and t["status"] == "doing":
+                if kind != "review" and v["check"] == "pass" and not run["decision"] and self.switched_on(conf, run["project_id"]) and not self.held(tid) and t["status"] == "doing":
                     self._flow_commit(self.store.project(run["project_id"]), tid, conf, run)
             return v
         if wait:
