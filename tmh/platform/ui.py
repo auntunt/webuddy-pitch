@@ -11,6 +11,7 @@ from .ui_access import ACCESS_BOOT_JS, ACCESS_CSS, ACCESS_JS
 from .ui_css import CSS
 from .ui_work import WORK_CSS, WORK_JS
 from .ui_time import TIME_JS
+from .ui_assistant import ASSISTANT_CSS, ASSISTANT_JS
 from .ui_delivery import DELIVERY_CSS, DELIVERY_JS
 from .ui_theme import THEME_CSS
 from .ui_drafts import DRAFT_JS
@@ -26,7 +27,7 @@ from .ui_pilots import PILOTS_CSS, PILOTS_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + STATES_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS + COORDINATION_CSS + PILOTS_CSS).replace("/*JS*/", TIME_JS + ACCESS_BOOT_JS + JS + ATLAS_JS + STATES_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS + COORDINATION_JS + PILOTS_JS)
+    return HTML.replace("/*CSS*/", CSS + ATLAS_CSS + STATES_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS + COORDINATION_CSS + PILOTS_CSS + ASSISTANT_CSS).replace("/*JS*/", TIME_JS + ACCESS_BOOT_JS + JS + ATLAS_JS + STATES_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS + COORDINATION_JS + PILOTS_JS + ASSISTANT_JS)
 
 
 HTML = r"""<!doctype html>
@@ -42,7 +43,7 @@ HTML = r"""<!doctype html>
   <span class="sp"></span>
   <button class="pts" id="ptsBtn" title="点卡：只有生成类动作扣点"><span class="dot"></span><span class="w">剩余</span> <b id="ptsN">-</b> 点</button>
   <form id="say" autocomplete="off" onsubmit="event.preventDefault();sayOpen()"><input id="sayIn" placeholder="记录新的需求或问题…" aria-label="粘贴客户的话"><button id="sayGo" type="submit" aria-label="录入客户需求">＋<span> 记录需求</span></button></form>
-  <button id="astToggle" title="AI 助手：提问，或一句话打开页面、代填表单（Ctrl+K）" aria-controls="ast" aria-expanded="false">AI 助手 <kbd>Ctrl K</kbd></button>
+  <button id="astToggle" title="AI 助手：查进度、提需求、执行任务（Ctrl+K）" aria-controls="ast" aria-expanded="false">AI 助手 <kbd>Ctrl K</kbd></button>
   <div id="account"><a id="personalTools" hidden>工具连接</a><button class="me" id="me" title="用户与设置"></button><a id="logout" href="/logout" hidden>退出</a></div>
 </header>
 <div id="accessContextNotice" role="status" hidden></div>

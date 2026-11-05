@@ -115,6 +115,7 @@ POST /api/projects/<key>/sessions
 GET /api/sessions/<sid>
 POST /api/sessions/<sid>
 POST /api/sessions/<sid>/messages
+POST /api/sessions/<sid>/assistant
 POST /api/projects/<key>/command
 POST /api/sessions/<sid>/command/<mid>
 POST /api/sessions/<sid>/ticket-draft

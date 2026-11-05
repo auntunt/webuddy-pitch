@@ -2167,6 +2167,17 @@ def api_session_ask(P, req, sid):
     return api_session(P, req, sid)
 
 
+@route("POST", "/api/sessions/<sid>/assistant")
+def api_session_assistant(P, req, sid):
+    from . import assistant
+    session = P.session_of(sid, req.user)
+    if session['archived_at']:
+        raise ApiError(400, '会话已归档，恢复后才能继续')
+    if req.body.get('message') is not None:
+        return assistant.step(P, req, session, req.body['message'])
+    return assistant.start(P, req, session)
+
+
 @route("POST", "/api/projects/<key>/command")
 def api_command(P, req, key):
     """Plan one sentence from the side panel as UI steps (see command.py). The browser runs them; saves wait for the person.

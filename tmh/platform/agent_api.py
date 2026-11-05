@@ -388,7 +388,7 @@ def _execute(P, req, actor, operation, a):
     st = P.store
     from . import tenant_policy
     who = tenant_policy.identity(P, req.user) if tenant_policy.enabled(P) else {}
-    tool = who.get('tool_connection')
+    tool = who.get('tool_connection') or getattr(req, 'assistant_scope', None)
     # Scope before pagination; never disclose ungranted counts or row contents.
     visible_ids = [p['id'] for p in tenant_policy.visible_projects(P, req.user)] if tool else None
     if tool:
@@ -428,7 +428,7 @@ def _execute(P, req, actor, operation, a):
             from .. import __version__
             return {'version': __version__, 'agent': actor,
                     'tool_connection': dict(tool, execution=tool['scope'] == 'execute'),
-                    'engines': server.available(P.data_dir) if tool['scope'] == 'execute' and P.tenant_context.runtime_allowed(actor) else [],
+                    'engines': server.available(P.data_dir) if tool['scope'] == 'execute' and (not tenant_policy.enabled(P) or P.tenant_context.runtime_allowed(req.user)) else [],
                     'allowed_operations': sorted(tool_access.allowed_operations(tool['scope'])),
                     'boundaries': _boundaries(tool)}
         meta = server.api_meta(P, _req(req, actor))

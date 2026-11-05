@@ -240,10 +240,19 @@ def _git(cwd, *args, timeout=GIT_SECONDS) -> str:
 
 def _clone(P, job, st, tmp: Path, url: str) -> dict:
     args = ["clone", "--no-recurse-submodules"] + (["--branch", st["branch"]] if st.get("branch") else []) + ["--", url, str(tmp)]
-    try:
-        _git(tmp.parent, *args, timeout=CLONE_SECONDS)
-    except ApiError as e:
-        raise ApiError(500, str(e.args[0]).replace(url, st["url"])) from None
+    for attempt in range(3):
+        try:
+            _git(tmp.parent, *args, timeout=CLONE_SECONDS)
+            break
+        except ApiError as e:
+            transient = any(message in str(e).lower() for message in (
+                "ssl_error_syscall", "connection reset", "failed to connect", "early eof", "connection timed out"))
+            if urlsplit(url).hostname != "github.com" or not transient or attempt == 2:
+                raise ApiError(500, str(e.args[0]).replace(url, st["url"])) from None
+            # Only this new import's temporary checkout can be discarded.
+            if tmp.exists():
+                shutil.rmtree(tmp)
+            time.sleep(2 * (attempt + 1))
     if clean_url(url) != url:
         _git(tmp, "remote", "set-url", "origin", st["url"])
     return {"files": _count(tmp)}
