@@ -11,6 +11,14 @@ from tmh import kb
 from tmh.platform.learning_facts import _status
 
 class NewlineContracts(unittest.TestCase):
+    def test_agent_fences_accept_lf_and_crlf_without_changing_payload(self):
+        from tmh.platform.fixloop import fenced
+        for label in ('tmh-intake','tmh-diag','tmh-plan'):
+            for newline in ('\n','\r\n'):
+                self.assertEqual(fenced(label,'```'+label+newline+'{"text":"keep\\r\\nexact"}'+newline+'```'),
+                                 {'text':'keep\r\nexact'})
+                self.assertIsNone(fenced(label,'```'+label+newline+'invalid JSON'+newline+'```'))
+
     def test_supervisor_preserves_mixed_newline_output_bytes(self):
         from tmh.platform.supervised_process import run_supervised
         with tempfile.TemporaryDirectory() as td:

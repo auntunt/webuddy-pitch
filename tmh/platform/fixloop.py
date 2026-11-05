@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shlex
 import shutil
@@ -44,7 +45,7 @@ from .agents import (GREENFIELD_EDIT, GREENFIELD_FIX, MODE_TEXT, additional_cont
                      follow_up, git, learning_context_current, record_session_context,
                      reviewed_delivery_plan, worktree_diff)
 
-FENCE = r"```%s[ \t]*\n(.*?)```"
+FENCE = r"```%s[ \t]*\r?\n(.*?)```"
 
 
 def _requote(s: str) -> str:
@@ -367,7 +368,8 @@ class FixLoop:
                 break
             self.say("构建测试：%s" % cmd)
             t0 = time.time()
-            r, folder = self.r.run_command(self.rid, ["/bin/sh", "-c", cmd], where,
+            shell = [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/s", "/c", cmd] if os.name == "nt" else ["/bin/sh", "-c", cmd]
+            r, folder = self.r.run_command(self.rid, shell, where,
                 timeout=float(self.set.get("check_timeout") or 1200), kind="check:" + kind)
             code, text = r.returncode, r.output
             res = {"kind": kind, "command": cmd, "exit_code": code, "seconds": round(time.time() - t0, 1),
