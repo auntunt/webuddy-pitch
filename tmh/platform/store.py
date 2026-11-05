@@ -38,6 +38,12 @@ CREATE TABLE IF NOT EXISTS runs (
   status TEXT NOT NULL, author TEXT DEFAULT '', created TEXT NOT NULL, started TEXT DEFAULT '', ended TEXT DEFAULT '',
   prompt TEXT DEFAULT '', output TEXT DEFAULT '', result TEXT DEFAULT '', diff TEXT DEFAULT '',
   exit_code INTEGER, workdir TEXT DEFAULT '', target TEXT DEFAULT '', decision TEXT DEFAULT '');
+CREATE TABLE IF NOT EXISTS review_feedback (
+  id INTEGER PRIMARY KEY, run_id INTEGER NOT NULL, project_id INTEGER NOT NULL,
+  actor TEXT NOT NULL, request_id TEXT NOT NULL, binding TEXT NOT NULL,
+  payload_digest TEXT NOT NULL, created TEXT NOT NULL, data TEXT NOT NULL,
+  UNIQUE(run_id, actor, request_id));
+CREATE INDEX IF NOT EXISTS ix_review_feedback_project ON review_feedback(project_id, run_id);
 CREATE TABLE IF NOT EXISTS points (
   id INTEGER PRIMARY KEY, project_id INTEGER NOT NULL, ts TEXT NOT NULL, delta INTEGER NOT NULL,
   reason TEXT DEFAULT '', run_id INTEGER, ticket_id INTEGER, author TEXT DEFAULT '');

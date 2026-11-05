@@ -129,6 +129,41 @@ class TenantGatewayTest(unittest.TestCase):
         self.assertNotIn("PRIVATE", str(projects))
         self.assertEqual(self.request("GET", "/t/" + self.a + "/api/projects/PRIVATE", "alice", token=token)[0], 403)
 
+    def test_review_feedback_is_human_project_scoped_and_preserves_run(self):
+        from tmh.platform.review_feedback import snapshot
+        root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (self.a,))["path"])
+        store = Store(root / "platform.db")
+        self.addCleanup(store.db.close)
+        runs = []
+        verification = {"diagnosis": {"review": {"base": "a" * 40, "diff_sha256": "b" * 64,
+                         "created": "2026-11-06"}, "blocking": [], "advisory": []}}
+        for pid in (1, 2):
+            run = store.create_run(pid, None, "fixture", "fix", "alice", "")
+            store.update_run(run["id"], status="done", exit_code=0)
+            runs.append(store.run(run["id"]))
+            folder = root / "runs" / str(run["id"])
+            folder.mkdir(parents=True)
+            (folder / "verify.json").write_text(json.dumps(verification), encoding="utf-8")
+        body = {"request_id": "synthetic-feedback", "binding": snapshot(verification)["binding"],
+                "minutes": 3, "findings": [], "missed": [], "note": "隔离HTTP测试，不是真人效果数据"}
+        base = "/t/" + self.a + "/api/runs/"
+        path = base + str(runs[0]["id"]) + "/review-feedback"
+        token = self.token("alice", self.a)
+        self.assertEqual(self.request("POST", path, body=body, headers={"X-TMH": "1"})[0], 401)
+        self.assertEqual(self.request("POST", path, "bob", body, token=self.token("bob", self.b), headers={"X-TMH": "1"})[0], 403)
+        self.assertEqual(self.request("POST", base + str(runs[1]["id"]) + "/review-feedback",
+                                      "alice", body, token=token, headers={"X-TMH": "1"})[0], 403)
+        self.assertEqual(self.request("POST", path, "alice", body, token=token,
+                                      headers={"X-Webuddy-Agent": "codex", "X-TMH": "1"})[0], 403)
+        status, _, saved = self.request("POST", path, "alice", body, token=token,
+                                        headers={"X-TMH-User": "owner", "X-TMH": "1"})
+        self.assertEqual(status, 200, saved)
+        self.assertEqual(saved["actor"], "alice")
+        self.assertEqual(store.run(runs[0]["id"]), runs[0])
+        self.change("member_set", tenant=self.a, user="alice", role="viewer")
+        self.assertEqual(self.request("POST", path, "alice", body, token=self.token("alice", self.a), headers={"X-TMH": "1"})[0], 403)
+        self.assertEqual(len(store.q("SELECT * FROM review_feedback")), 1)
+
     def test_all_project_boards_filter_real_worker_data_and_reject_revoked_context(self):
         root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (self.a,))["path"])
         store = Store(root / "platform.db")

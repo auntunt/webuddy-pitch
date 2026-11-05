@@ -157,6 +157,7 @@ POST /api/tickets/<key>/release
 GET /api/tickets/<key>/preview
 POST /api/tickets/<key>/preview
 GET /api/runs/<rid>/test-report
+POST /api/runs/<rid>/review-feedback
 GET /api/projects/<key>/tests
 POST /api/projects/<key>/tests
 GET /api/projects/<key>/mode
@@ -235,6 +236,7 @@ harness_library library_get library_search library_read library_build library_ca
 library_reference library_unlink ticket_hold
 intake_get intake_start intake_understand intake_answer""".split())
 SAFE_POSTS = frozenset((
+    "/api/runs/<rid>/review-feedback",  # Human observations only; no execution or signoff.
     # Personal trial records only: no models, process launch or task moves.
     "/api/projects/<key>/pilots", "/api/projects/<key>/pilots/<pid>",
     "/api/projects/<key>/meetings", "/api/projects/<key>/meetings/<mid>",

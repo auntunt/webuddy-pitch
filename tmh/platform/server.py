@@ -755,6 +755,8 @@ class Platform:
         m["qa"] = kbqa.metrics(self.root(p), month=month)
         from . import upstream
         m["upstream"] = upstream.metrics(self, p, month)
+        from . import review_feedback
+        m["review_feedback"] = review_feedback.summary(self, p["id"])
         return m
 
     # ------------------------------------------------------------ ticket prompts
@@ -3191,6 +3193,16 @@ def api_run(P, req, rid):
     r["ticket_key"] = t["key"] if t else ""
     r["verification"] = verified(P.data_dir, r["id"]) if r["mode"] == "fix" else None
     r["recheck"] = api_recheck_state(P, req, rid) if r["mode"] == "fix" else None
+    from . import review_feedback
+    r["review_feedback"] = review_feedback.view(P, r, r["verification"])
+    from . import tenant_policy
+    try:
+        tenant_policy.authorize(P, "POST", "/api/runs/%s/review-feedback" % rid, {}, {}, req.user)
+        r["review_feedback"]["can_record"] = True
+    except ApiError as exc:
+        if exc.code not in (401, 403):
+            raise
+        r["review_feedback"]["can_record"] = False
     r["human_review"] = None
     if t and r["mode"] == "fix" and r["status"] == "done":
         from . import signoff
@@ -3236,6 +3248,22 @@ def api_cancel(P, req, rid):
         return P.runner.cancel(int(rid), req.user)
     except ValueError as e:
         raise ApiError(400, str(e))
+
+
+@route("POST", "/api/runs/<rid>/review-feedback")
+def api_review_feedback(P, req, rid):
+    from . import review_feedback
+    run = P.store.run(int(rid))
+    if not run:
+        raise ApiError(404, "没有这次运行")
+    if req.h.headers.get('X-Webuddy-Agent') or req.user.startswith('agent:'):
+        raise ApiError(403, 'Review效果请由人工记录')
+    actor = _session_actor(req)
+    if not actor:
+        from .operator_access import require
+        require(P, req.h.headers)
+        actor = req.user
+    return review_feedback.save(P, run, actor, req.body)
 
 
 @route("POST", "/api/runs/<rid>/say")
