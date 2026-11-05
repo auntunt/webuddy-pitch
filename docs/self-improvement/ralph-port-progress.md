@@ -732,3 +732,11 @@
 - 本机Codex原没有webuddy条目，已按客户端生成结果追加到~/.codex/config.toml，保留其他MCP与设置；解释器和桥接脚本指向安装目录、仅引用凭据文件，允许原连接既有execution，未发起业务操作。旧配置私有备份，TOML读回通过。
 - Mac系统DNS仍返回旧Cloudflare IP；一次status及配置生成成功，标准MCP握手随后网络超时。dscacheutil非root刷新无效，sudo -n要求密码，未改系统DNS/hosts。临时验证进程仅将该域名解析至已验证阿里云IP、保留域名TLS校验：官方MCP SDK initialize成功，23工具列出，projects_list成功。此临时解析未写入正式MCP配置，不能把测试等同于当前Mac DNS问题已解决。
 - 其他成员已下载的客户端/凭据不随本机修改自动更新；需在新工具连接页重新下载/导入。未替其他成员签发凭据，未触发真实模型任务。
+
+## 2026-11-05 恢复阿里云到Windows测试机连接
+
+- 用户确认服务器已加入白名单，授权配置连接。现测8.141.121.22→43.153.76.85:12022的TCP与Windows SSH banner成功；平台实际SSH失败为publickey，旧页面仍展示此前超时。
+- 为Liyibin生成专用/home/Liyibin/.ssh/webuddy_testbox_ed25519，私钥0600只留阿里云。SSH配置按host43.153.76.85+user auntu匹配专用IdentityFile/IdentitiesOnly，不影响其他主机。OpenSSH使用实际Unix账号的.ssh而非服务HOME覆盖值。
+- 经Mac既有授权密钥严格校验登录旧中转机，再经其既有本机转发进入Windows，仅追加新公钥到C:/ProgramData/ssh/administrators_authorized_keys，追加前完整备份；限制agent/port/X11转发和PTY，保留原有密钥与ACL。没有迁移或输出旧私钥，没有放宽防火墙。
+- Windows可信会话读回ECDSA主机公钥指纹与阿里云known_hosts相同；阿里云严格主机校验登录返回Windows_NT。首次PowerShell检查因远端命令引用/本地UTF8解码失败，修正完整命令引用后成功。
+- 用现役平台TestBox.check及服务环境完成实际体检：Windows，C:/tmh-runner；Git2.47.1、Java17.0.20.1、Maven3.9.9、Node20.18.0、pnpm9.15.0、Docker29.1.3全部检出，missing=[]。旧testbox-check.json备份后更新，时间按UTC存储；readiness._build实际返回ok。未运行项目构建、业务任务或模型，应用无重启、NRestarts=0。
