@@ -4,7 +4,7 @@
 
 - 主机：ubuntu@43.153.76.85；系统级 `webuddy.service`，`systemctl` 管理，需要现有 sudo 权限。
 - 接入前读取本机 `~/.codex/memories/webuddy-production-access.md`，核验密钥授权和主机身份。不要在仓库保存私钥或环境变量内容。
-- 当前代码：`/opt/webuddy/app` → `/opt/webuddy/releases/d61738a/app`。后续以实际链接、RELEASE.json、MANIFEST.json 和进程 cwd 为准。
+- 当前代码：`/opt/webuddy/app` → `/opt/webuddy/releases/0bdc135/app`。后续以实际链接、RELEASE.json、MANIFEST.json 和进程 cwd 为准。
 - 数据：`/opt/webuddy/data`、`/opt/webuddy/repos`；外部配置 `/etc/webuddy.env`，Codex `/home/ubuntu/.codex`。保留43的独立数据与账号，不从阿里云复制覆盖。
 - 运行环境：系统 Python 3.12.3；全局工具 `/home/ubuntu/.local/bin/tmh` 调用当前 app 的 tmh.py，版本0.4.0。现有Codex0.162.1的真实MCP测试机调用已经验证，无需为此次同步升级。
 - HTTP：应用127.0.0.1:8790；Caddy处理HTTPS。DNS A→43.153.76.85，DNS only；同一站点保留webuddy-us.bbstack.date。
