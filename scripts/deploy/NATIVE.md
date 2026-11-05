@@ -1,5 +1,7 @@
 # 阿里云 Webuddy 原生部署
 
+**环境约定（2026-11-05）：本机为生产，仅在用户明确要求发布里程碑时更新。日常修改默认部署43测试环境：https://webuddy.bbstack.date（webuddy.service）。两边数据不互相覆盖。**
+
 2026-11-05 起应用由 Liyibin 的用户级 `webuddy-native.service` 管理，linger 已启用。公网为 https://webuddy.cloudwaveai.cn，DNS A记录直连8.141.121.22（DNS only）。宿主机Nginx负责HTTPS；共享Cloudflare Tunnel仅服务其他站点，不应停止。
 
 - 应用：`/opt/webuddy/app` → `releases/0741715`，精确版本由 RELEASE.json 和 MANIFEST.json 核对。

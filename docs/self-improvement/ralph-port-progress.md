@@ -764,3 +764,10 @@
 - 实现提交`0741715368739e88d161839b901daf353e177733`已推送github产品分支并部署原生app→releases/0741715，2316文件清单匹配；14个生产库完整性及副本初始化通过，切换前无queued/running任务。完整停服备份`/home/Liyibin/webuddy/backups/pre-0741715-20261105T024906Z`保留data/repos/codex/config/home、旧链接与服务配置；回退只切程序、不恢复旧数据库。
 - 启动后公网登录200、匿名项目API401、同源超限请求413、跨站403；运行清单及14库完整性通过。新任务使用新工具；未重跑历史失败业务任务或代人验收，测试机实测使用隔离合成应用。
 - 10:50:39 CST延迟核验（10:49:15启动后84秒）：原PID803799、active/running、NRestarts0，cwd=0741715；2316文件清单、14库完整性、内外登录200/匿名API401保持。后续交付记录提交不重启服务。
+
+## 2026-11-05 明确生产/测试分离并恢复BBstack测试入口
+
+- 用户最新要求覆盖此前自动生产发布授权：日常修改/功能迭代默认在43测试站，里程碑后只有用户明确要求才更新阿里云生产。GitHub提交推送继续自动；AGENTS.md、原生部署说明及两份本机接入记忆已同步。生产数据与测试数据保留各自分叉，不能互相覆盖。
+- Cloudflare新增webuddy.bbstack.date A→43.153.76.85，DNS only、TTL300，记录0b4a3855dc4af0fdd29ae1fb26fe0f9e。只在43 Caddy现有Webuddy站点增加此域名，原webuddy-us.bbstack.date及其他站点保留；配置验证通过后reload。备份/opt/webuddy/backups/domain-test-20261105T035751Z/Caddyfile。reload提示既有systemd单元磁盘变化，未为此改动其他服务或执行daemon-reload。
+- 43现役webuddy.service active/PID731180，app仍/opt/webuddy/releases/d8f0c0f340ab-agent-pick-20261104/app，TMH_PUBLIC_URL原本就是https://webuddy.bbstack.date，不改env、不重启Webuddy、不迁移数据。本次只恢复域名，没有同步最新产品代码。
+- 公共DNS1.1.1.1已解析43.153.76.85；Mac正常DNS和指定IP保留SNI的TLS登录均200，匿名API401，同源超限413、跨站403。阿里云生产DNS仍webuddy.cloudwaveai.cn→8.141.121.22、DNS only，本轮不改生产应用或配置。

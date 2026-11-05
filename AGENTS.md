@@ -2,8 +2,8 @@
 
 用户在 2026-10-22 明确授权：“推到服务器和github。每次修改完都是自动推送”。
 
-- 本项目的修改完成并通过相应验证后，自动提交、推送到 `github` 远端的当前工作分支，并部署到 Webuddy 生产环境，无需重复询问发布许可。用户后续明确要求只做本地工作时，以该次要求为准。
-- 发布目标为 `https://webuddy.cloudwaveai.cn`、用户级 `webuddy-native.service`；部署前先读取本机 `/Users/auntlee/.codex/memories/webuddy-production-access.md`，核对当时的授权、真实现役版本和数据位置。私钥、令牌、业务数据库与外部配置不得进入 Git 或聊天。
+- **2026-11-05 最新约定覆盖此前自动生产发布授权：**修改完成并通过相应验证后，自动提交、推送到 `github` 远端的当前工作分支，默认部署到 43 测试环境。达到里程碑后，只有用户再次明确要求才更新阿里云生产环境；不得把“继续”“提交”或普通修复请求视作生产发布授权。用户明确只做本地时，以当次要求为准。
+- 默认测试目标为 `https://webuddy.bbstack.date`、`ubuntu@43.153.76.85`、系统级 `webuddy.service`；操作前读取 `/Users/auntlee/.codex/memories/webuddy-production-access.md`。生产为 `https://webuddy.cloudwaveai.cn`、阿里云 `8.141.121.22`、用户级 `webuddy-native.service`；仅获当次明确生产发布指令后操作，并先读 `aliyun-webuddy-deployment.md`。核对真实版本和数据位置；两边数据已分叉，不互相覆盖。私钥、令牌、业务数据库与外部配置不得进入 Git 或聊天。
 - 推送采用普通快进，不强推、不改 Git 配置。验证失败时先修复；无法修复则记录阻塞，不发布未通过的产品变更。
 - 运行代码发布前验证精确提交的文件清单、服务器兼容性及必要的数据库副本迁移；保留旧版本和完整备份。发布后核验运行版本、HTTP、数据库及延迟健康状态。回滚只切换程序，不以旧数据库覆盖用户的新写入。
 - 仅补充发布记录等文档时，推送记录并核对最新提交的运行文件仍与线上一致；不为记录本身反复重启服务。
@@ -14,7 +14,7 @@
 
 ## 当前主站部署补充（2026-11-05）
 
-主站 `https://webuddy.cloudwaveai.cn` 已迁至阿里云，通过 `ssh zct-server` 接入，使用 `systemctl --user` 管理 `webuddy-native.service`，现役目录为 `/opt/webuddy`，旧应用容器已停用。DNS为A记录8.141.121.22、DNS only，宿主机Nginx提供HTTPS；不得擅自改回Cloudflare代理隧道。部署前读取 `/Users/auntlee/.codex/memories/aliyun-webuddy-deployment.md` 并核验实际状态。上文 `webuddy.service` 为腾讯云历史部署方式；本轮及后续默认发布阿里云主站，不覆盖已分叉的腾讯云数据。
+主站 `https://webuddy.cloudwaveai.cn` 已迁至阿里云，通过 `ssh zct-server` 接入，使用 `systemctl --user` 管理 `webuddy-native.service`，现役目录为 `/opt/webuddy`，旧应用容器已停用。DNS为A记录8.141.121.22、DNS only，宿主机Nginx提供HTTPS；不得擅自改回Cloudflare代理隧道。部署前读取 `/Users/auntlee/.codex/memories/aliyun-webuddy-deployment.md` 并核验实际状态。从2026-11-05最新环境约定起，阿里云只作生产；43上的 `webuddy.service` 重新作为默认开发测试环境。生产只有用户明确要求时更新；两边数据分别保留，不互相覆盖。
 
 # 智能体协作与执行约定
 
@@ -107,4 +107,4 @@ model_path = config["model_path"]
 
 ## 开发与测试机执行授权（2026-11-05）
 
-用户明确要求开发、测试默认给予完整操作权限，不逐次确认。平台 Codex 可通过已配置测试机的运行专属工具安装项目依赖、启动测试服务、执行接口/页面测试并清理本次进程。沿用已有自动提交、推送、验证后生产发布约定。测试必须有对应代码版本的实际回执；不以模型一句“OK”代替验证。实现与操作说明见 `docs/self-improvement/testbox-codex-workflow.md`。
+用户明确要求开发、测试默认给予完整操作权限，不逐次确认。平台 Codex 可通过已配置测试机的运行专属工具安装项目依赖、启动测试服务、执行接口/页面测试并清理本次进程。自动提交、推送、验证后默认发布43测试环境；生产必须由用户明确要求。测试必须有对应代码版本的实际回执；不以模型一句“OK”代替验证。实现与操作说明见 `docs/self-improvement/testbox-codex-workflow.md`。
