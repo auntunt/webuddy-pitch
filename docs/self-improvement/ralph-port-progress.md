@@ -824,3 +824,9 @@
 - 本机隔离MySQL8/Redis7/Java8/Chrome环境，通过平台实际执行器完成构建40项后端、17项前端及4项业务用例，共61项。A1单账户12.50、A2双账户7.25+5.25、A3/A4重复单号拒绝均有精确用例关联，require_all_criteria=true；实际HTTP、数据库、API重读及页面金额一致，单据保持未审核。填表使用真实Vue组件接口、点击真实保存，不声称覆盖所有键盘/下拉框。
 - 构建与运行绑定Git基准/完整差异、JAR、前端入口和容器身份；平台current_issue为空。原始截图/报告/日志及失败尝试完整保存在../部署包/project-test-business-20261105，SHA256读回校验；v4为最终成功证据。未代人签收、未执行财务过账；无伪造AI Review结论。
 - 43保留现有本机回归配置，Docker业务配置单独交付，不直接启用到缺少Docker/Chrome的43。阿里云生产不操作。43旧pre-0bdc135备份已无损gzip，解压摘要与原tar一致，记录lossless-compression.json；原内容完整保留。待精确提交发布后追加运行版本与健康记录。
+
+- 发布实现提交`c730623dda70b5ee228ccbe2479098696187a5df`已推送github；43精确2343文件重建，315项回归通过104.737秒。15库完整性及副本初始化通过，完整备份`/opt/webuddy/backups/pre-c730623-test-20261105T151931Z/state.tar.gz`逐字节校验46323文件。旧程序和完整备份保留，回退仅切程序。
+- 43于23:21:02 CST启动，app→releases/c730623/app，PID1235942；23:21:05、23:49:56和23:51:41实查同PID、active/running、NRestarts0，运行清单/数据库/内外登录200与匿名API401通过。既有systemd单元mtime提示未扩展修改。阿里云未操作。
+- 43 ERP独立工作树40项Java测试通过27.525秒；手工前端命令漏--experimental-vm-modules导致17项hook失败，按既有配置补齐参数后17项通过。注册根干净、无活动运行时应用精确补丁，本地master提交`65bcbd28fc8815bc4f082036fd827721285ff84b`；未推上游，原外置测试配置保持。报告保存`/opt/webuddy/data/project-test-baselines/JSHERP-20261105-array`。本次sudo生成的ERP文件所有者恢复ubuntu，注册根干净。
+- GitHub Actions本提交运行42053087633：Linux3.11/3.13完整套件各2918 passed、39 skipped、1894 subtests passed；快速与安装包检查全部成功。Windows完整套件3.11为147 failed/991 passed/215 skipped/1 error，3.13为169 failed/1023 passed/215 skipped/1 error；166个可提取失败标识中142个出现在上一提交日志，其他未逐项完成根因确认，不宣称全部为历史问题或全平台CI全绿。工作流总状态success源于原Windows continue-on-error；未改工作流、未降低断言。这不阻断已完整通过的Linux部署，但Windows平台兼容性仍须单独修复。
+- 43备份后可用空间约683MB；未删除业务数据或旧备份。最后记录更新只推送文档，不重启已验证服务。

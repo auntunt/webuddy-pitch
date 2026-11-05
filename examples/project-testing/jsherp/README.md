@@ -32,8 +32,10 @@ Windows 使用 `.webuddy-tests/backend.ps1 -JavaHome <Java8目录>`。`profile.w
 
 此配置是通用回归基线，所以未将套件映射成某张工单的全部验收项。具体需求应新增真实用例、设置精确映射，并按需要打开 `require_all_criteria`。
 
-**仍须单独验证：**连接真实隔离 MySQL/Redis 的采购、库存、销售与财务流程；应用启动；浏览器交互；数据库迁移、并发负载及依赖漏洞扫描。本目录的单元与接口契约测试不冒充这些结果。阶段类型已支持这些检查，但必须接入实际命令、数据和判定阈值后才能宣称通过。
+新增 [销售退货业务验证](business-proof/README.md)：在独立本机 MySQL/Redis/应用/Chrome 环境验证单账户和多账户保存、读取、页面金额及重复单号拒绝；4 条方案标准逐项关联用例。使用 `profile.business-local.json`，不能直接覆盖 43 的普通回归配置。单据未审核，不代表财务过账或库存审核。
 
-实测记录：Linux Java 8 后端40项、Node前端14项通过；Mac前端使用 `npm install --legacy-peer-deps --no-audit --no-fund` 后构建成功。依赖审计检出187项（严重36、高危59、中危81、低危11），安全检查尚未通过。此安装参数解决既有webpack4的peer依赖解析冲突，不代表这些旧依赖已修复。
+**仍须单独验证：**其他采购、库存、销售与财务流程；完整键盘/下拉框交互；数据库迁移、并发负载及依赖漏洞修复。
 
-43测试站现已在JSHERP启用本机执行配置（2026-11-05），Java8/Maven在`/opt/webuddy/tools`。Windows合成测试通过，但Java8安装受下载中断阻碍；`profile.windows.json`保留为环境就绪后的切换配置，不表示ERP已在Windows验收。43 ERP本地提交`cfac6d95`，未推上游公共仓库。
+实测记录：Linux Java 8 后端40项、Node前端17项通过（新增3项数组输入回归）；Mac前端使用 `npm install --legacy-peer-deps --no-audit --no-fund` 后构建成功。依赖审计检出187项（严重36、高危59、中危81、低危11），安全检查尚未通过。此安装参数解决既有webpack4的peer依赖解析冲突，不代表这些旧依赖已修复。
+
+43测试站现已在JSHERP启用本机执行配置（2026-11-05），Java8/Maven在`/opt/webuddy/tools`。Windows合成测试通过，但Java8安装受下载中断阻碍；`profile.windows.json`保留为环境就绪后的切换配置，不表示ERP已在Windows验收。43 ERP本地提交`65bcbd28`（数组修复及业务测试资产，后端40/前端17项在43通过），未推上游公共仓库。
