@@ -39,7 +39,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from . import reports, testbox
+from . import reports, testbox, testbox_mcp
 from .agents import (GREENFIELD_EDIT, GREENFIELD_FIX, MODE_TEXT, additional_context_prompt, earlier_session,
                      follow_up, git, learning_context_current, record_session_context,
                      reviewed_delivery_plan, worktree_diff)
@@ -196,6 +196,8 @@ class FixLoop:
         self.brought = set()  # files the per-file agents asked to bring in
         tb = testbox.settings(runner.data_dir)
         self.box = testbox.TestBox(tb, runner.data_dir) if tb else None  # builds run on the test machine
+        from .agents import engine_name
+        self.remote_testing = bool(self.box) and engine_name(agent, conf[agent]) == 'codex' and 'cmd' not in conf[agent]
         self.base = git(self.wt, "rev-parse", "HEAD").strip()
         self.nobuild = ""  # said to every agent when the platform runs no build or tests this time
         self.log = []  # one line per round
@@ -525,10 +527,12 @@ class FixLoop:
             self.nobuild = ("## 构建和测试由平台在测试机上跑\n这台机器上没有构建环境。不要尝试编译、跑测试、启动服务或调接口，也不要为此去改构建配置；"
                             "改完后平台会在测试机上编译（%s），没通过的话会把报错发给你再改。\n\n" % "；".join(c for _, c in seq))
         if not seq:
-            self.say("不跑构建测试：%s" % skip)
+            self.say("未配置固定构建命令：%s" % skip)
             # otherwise every agent finds out for itself that there is no maven/node/docker here, a third of its commands
             self.nobuild = ("## 这次不跑构建和测试\n%s。不要尝试编译、跑测试、启动服务或调接口（mvn、gradle、npm、java、docker、curl 等），"
                             "也不要为此去改构建配置；只靠读代码确认改动正确，没能验证的写进最后的说明。\n\n" % skip)
+        if self.remote_testing:
+            self.nobuild = testbox_mcp.INSTRUCTION + '\n固定构建命令仍由平台复核；测试机执行失败须修复后重测。\n'
         rounds = max(0, int(self.set.get("rounds") if self.set.get("rounds") is not None else 3))
         diag, res, verdict, files, vague = None, [], "unknown", [], False
         split = len(goals) >= int(self.set.get("split_from") or 0)
@@ -536,9 +540,9 @@ class FixLoop:
         # code guesses, and the next round acts on the guess (it widened changes and cost a quarter of an hour).
         # So one round; a large change still gets one reading-only review, a small one goes straight to a person
         # unless the route gives diagnosis to another executor: then that independent reading is the point.
-        if not seq:
+        if not seq and not self.remote_testing:
             rounds = 0
-        review = bool(seq) or split or getattr(self, "agents", {}).get("diagnose", self.agent) != self.agent
+        review = self.remote_testing or bool(seq) or split or getattr(self, "agents", {}).get("diagnose", self.agent) != self.agent
         if goals and split:
             self.say("按方案分工修改 %d 个文件：%s" % (len(goals), "、".join(goals)))
         elif goals:
@@ -558,6 +562,8 @@ class FixLoop:
                     targets = {p: "" for p in goals}
             if targets and split:
                 self.collaborate(targets, diag)
+                if self.remote_testing and not self.cancelled():
+                    self.call('fix', self.context() + testbox_mcp.INSTRUCTION + '\n各文件修改已完成。现在编写/更新测试脚本并执行测试机验证；不要更改业务代码，失败原因交给下一轮修复。')
             else:
                 self.whole(diag)
             if self.cancelled():
@@ -583,6 +589,8 @@ class FixLoop:
             if lost:
                 self.say(lost + "；不是代码的问题，这一轮按没跑构建处理")
                 skip, res = lost, []
+            if self.remote_testing:
+                res.append(testbox_mcp.latest_result(self.r.data_dir, self.rid, self.wt))
             broke = any(x["exit_code"] != 0 for x in res)
             if not review:
                 self.log.append("第 %d 轮：改了 %d 个文件；没跑构建测试，改动不大，不另做诊断，交给人验收" % (rnd + 1, len(files)))
@@ -609,7 +617,7 @@ class FixLoop:
         if beyond:
             self.say("超出方案：改了方案没列的 %s" % "、".join(beyond[:6]))
         out = {"check": check, "skip": skip if check == "skip" else "", "verdict": verdict, "rounds": len(self.log), "beyond_plan": beyond,
-               "split": bool(goals) and split, "files": files, "commands": res,
+               "split": bool(goals) and split, "files": files, "commands": res, "remote_test_required": self.remote_testing,
                "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide",
                                                                 "blocking", "advisory", "prior", "ac")}}
         if (diag or {}).get("format_repaired"):
@@ -833,8 +841,21 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -
             why = fl.baseline(seq)
             if why:
                 seq, skip = [], why
+        remote_receipt = None
+        if _verification(runner.data_dir, rid).get('remote_test_required'):
+            receipts = sorted((runner.data_dir / 'runs' / str(rid) / 'testbox').glob('*.json'))
+            if not fl.box or not receipts:
+                raise ValueError('本次改动需要测试机验证；测试机配置或测试脚本回执缺失')
+            remote_receipt = json.loads(receipts[-1].read_text(encoding='utf-8'))
+            script = remote_receipt['script']
+            script_path = (wt / script).resolve()
+            if not script_path.is_relative_to(wt.resolve()) or not script_path.is_file():
+                raise ValueError('本次版本缺少测试脚本，不能只以编译通过代替测试机验证')
+            seq.append(('test', testbox_mcp.script_command(script, fl.box._detect() == 'windows', max(1, min(1170, int(fl.set.get('check_timeout') or 1200) - 30)))))
         if seq:
             res = fl.execute(seq)
+            if remote_receipt and res and res[-1]['kind'] == 'test':
+                res[-1]['command'] = remote_receipt['command']
             lost = handover_failure(res)
             if lost:
                 skip, res = lost, []

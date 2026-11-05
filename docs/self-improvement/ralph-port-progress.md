@@ -752,3 +752,11 @@
 - 发布前14个数据库完整性及副本Store初始化通过，全部库无queued/running任务；停服完整备份data/repos/codex/config/home至`/home/Liyibin/webuddy/backups/pre-2875e0e-20261105T022657Z/state.tar`（1.3G），原env/服务单元/旧链接保留。旧9c6900b程序不删；回退只切程序，绝不恢复旧数据库覆盖新写入。
 - 停服备份期间外网两次探针502；新服务启动后公网与内部登录200、匿名项目API401、同源超限正文413、跨站403。运行cwd与RELEASE精确匹配，2311清单与14库再次通过，PID776903/active/running/NRestarts0。未在生产用户会话中提交业务需求；真实模型写入验证使用隔离临时数据。
 - 10:28:41 CST（启动超过60秒）延迟复核：原PID776903、active/running、NRestarts0保持，运行清单/14库完整性、内外登录200与匿名API401再次通过。此次记录更新不重启服务。
+
+## 2026-11-05 Codex直接驱动SSH测试机闭环
+
+- 用户要求Codex改完代码直接SSH到测试机安装/启动/测试，并明确开发测试默认完整授权。复用现有TestBox传输与配置，给普通Codex修改运行注入专属MCP testbox_info/testbox_run；SSH密钥留服务器，Codex工作区沙箱保持。未开放个人隔离路径或改人工业务验收。
+- 工具绑定运行/工作目录，按数据目录摘要+运行号隔离远端目录。同步HEAD+二进制补丁，脚本使用现有Windows PowerShell；保存完整日志、退出码、基准版本与补丁摘要。默认授权仅作用这两项工具；不逐次弹窗。
+- 修复环要求最后一次测试对应当前改动，缺失/失败/未完成/代码变更均不通过；分文件修改完成后由主Codex执行测试。原固定构建和独立诊断保留。重新验证也重跑该脚本，不再只凭编译覆盖原测试结果。
+- 本机104项针对回归通过（19.433秒），覆盖真实Git补丁传输、脚本失败、缺回执、过期回执、取消、路径越界、MCP协议及重新验证失败。Windows实机普通脚本exit0、超时脚本exit124通过；远端看护在超时后终止该脚本进程树。
+- 首次真实Codex调用被默认MCP审批策略拒绝，已按官方单工具approval_mode=approve配置并复验，未关闭沙箱或改全局审批。第二次真实平台Runner._spawn中，Codex读取测试机→修改临时app.js→编写check.ps1→SSH同步→npm install→启动Node→HTTP断言status=ok→finally清理→返回exit0，脚本回执耗时60.538秒。证据只在服务器`/tmp/webuddy-testbox-live-7r9kkeaz`，测试数据独立，无真实业务工单写入。

@@ -107,6 +107,7 @@ class RunHandoffTest(unittest.TestCase):
         loop.r, loop.rid, loop.t = SimpleNamespace(data_dir=self.data), 77, None
         loop.wt, loop.set = self.data, {"rounds": 0, "split_from": 3}
         loop.box, loop.nobuild, loop.ok = None, "", True
+        loop.remote_testing = False
         loop.brought, loop.log, loop.notes = set(), [], {}
         loop.commands = mock.Mock(return_value=([("test", "python3 -m unittest")], ""))
         loop.baseline = mock.Mock(return_value="")

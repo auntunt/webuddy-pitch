@@ -1,6 +1,6 @@
 """A test machine: a separate computer the platform builds and tests changes on, reached over SSH.
 
-The agents never touch it. After an agent has changed the code, the platform sends the change there, applies it
+Agents can use the run-bound testbox MCP bridge. The platform sends the change there, applies it
 on the same commit the ticket is pinned to, runs the build and the tests, and hands the result back to the agent.
 The machine may start empty: `check` lists what it has, `install` puts the missing tools (Git, JDK, Maven, Node
 and pnpm) as unpacked archives under its folder, without administrator rights and without touching the system.
@@ -243,7 +243,7 @@ class TestBox:
                 body = ("Set-Location '{w}';cmd /c '{c} 2>&1';exit $LASTEXITCODE" if win else "cd '{w}' && {c} 2>&1").format(w=w, c=cmd.replace("'", "''") if win else cmd)
                 code, out = self.script(body, timeout=timeout)
                 x = {"kind": kind, "command": cmd, "exit_code": code, "seconds": round(time.time() - t0, 1),
-                     "tail": "\n".join(out.strip().splitlines()[-60:]), "where": "测试机"}
+                     "tail": "\n".join(out.strip().splitlines()[-60:]), "where": "测试机", "output": out}
                 res.append(x)
                 say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, x["seconds"]))
                 if code != 0:

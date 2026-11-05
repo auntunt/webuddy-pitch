@@ -2037,6 +2037,10 @@ class Runner:
         pf, lm = rdir / ("prompt%s.md" % tag), rdir / ("last-message%s.md" % tag)
         if not tag and not resume:  # a retry or resumed session already carries it
             prompt += steer_hint(mode)
+        from . import testbox, testbox_mcp
+        remote_testing = mode == 'fix' and engine_name(agent, conf[agent]) == 'codex' and 'cmd' not in conf[agent] and bool(testbox.settings(self.data_dir))
+        if remote_testing:
+            prompt += testbox_mcp.INSTRUCTION
         pf.write_bytes(prompt.encode("utf-8"))
         if lm.exists():
             # Earlier attempt copies remain in attempts/, including an interrupted final answer.
@@ -2048,6 +2052,8 @@ class Runner:
         except ValueError as e:
             st.append_output(rid, "— %s\n" % e)
             return 2, str(e), parser, clock.done()
+        if remote_testing:
+            cmd[2:2] = testbox_mcp.config_args(self.data_dir, rid, workdir)
         env = dict(os.environ, TMH_RUN=str(rid), TMH_TICKET=ticket["key"] if ticket else "", TMH_NOTES=str(notes_file(self.data_dir, rid)))
         tool = Path(project["root"]) / ".tmh" / "tool"
         if tool.is_dir():
