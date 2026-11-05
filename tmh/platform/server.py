@@ -2820,7 +2820,29 @@ def _platform_admin(P, req, what):
 def api_project_tests(P, req, key):
     from . import project_tests
     p = P.project(key)
-    return project_tests.view(P.data_dir, p["key"])
+    result = project_tests.view(P.data_dir, p["key"])
+    try:
+        _platform_admin(P, req, "配置项目测试命令")
+        result['can_edit'] = True
+    except ApiError as exc:
+        if exc.code != 403:
+            raise
+        result['can_edit'] = False
+    result['managed_by'] = '平台管理员'
+    result['recent_cases'] = []
+    from .fixloop import _verification
+    for run in P.store.runs(project_id=p['id'], limit=30):
+        reports = [c['project_tests'] for c in _verification(P.data_dir, run['id']).get('commands', []) if c.get('project_tests')]
+        if reports:
+            result['recent_cases'] = [{'stage': stage['id'], 'id': case['id'], 'run': run['id']} for report in reports for stage in report['stages'] for case in stage['cases']]
+            break
+    return result
+
+
+@route("GET", "/api/runs/<rid>/test-report")
+def api_project_test_report(P, req, rid):
+    from . import project_tests
+    return project_tests.artifact(P.data_dir, int(rid), req.arg('stage'), req.arg('artifact'))
 
 
 @route("POST", "/api/projects/<key>/tests")

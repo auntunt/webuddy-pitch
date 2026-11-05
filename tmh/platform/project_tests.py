@@ -116,7 +116,12 @@ def cases(raw, format):
             if not name:
                 raise ValueError('JUnit 用例缺少名称')
             status = 'fail' if node.find('failure') is not None or node.find('error') is not None else 'skip' if node.find('skipped') is not None else 'pass'
-            result.append({'id': (node.get('classname', '') + '::' + name).lstrip(':'), 'status': status})
+            case = {'id': (node.get('classname', '') + '::' + name).lstrip(':'), 'status': status}
+            for prop in node.findall('./properties/property'):
+                field = prop.get('name', '')
+                if field in ('webuddy.input', 'webuddy.expected', 'webuddy.actual'):
+                    case[field.split('.')[1]] = prop.get('value') if prop.get('value') is not None else prop.text or ''
+            result.append(case)
         for suite in root.iter():
             if suite.tag not in ('testsuite', 'testsuites'):
                 continue
@@ -156,6 +161,7 @@ def collect(profile, envelope, folder, criteria):
         item['log_sha256'] = hashlib.sha256(log).hexdigest()
         item['output'] = log.decode('utf-8', 'replace')
         item['status'] = 'pass' if record['exit_code'] == 0 and not record['error'] else 'fail'
+        item['report_valid'] = not bool(stage.get('report'))
         if stage.get('report'):
             try:
                 if not record.get('reports'):
@@ -172,16 +178,18 @@ def collect(profile, envelope, folder, criteria):
                     item['cases'].extend(cases((folder / artifact['path']).read_bytes(), stage['report']['format']))
                 if len({c['id'] for c in item['cases']}) != len(item['cases']):
                     raise ValueError('多个报告中的用例 ID 重复')
+                item['report_valid'] = True
                 if any(c['status'] != 'pass' for c in item['cases']):
                     item['status'] = 'fail'
                     item['error'] = '报告有失败或跳过用例'
             except (ValueError, ET.ParseError) as exc:
                 item.update(status='fail', error=str(exc))
-        if stage['kind'] != 'cleanup' and any(next(r for r in results if r['id'] == dep)['status'] != 'pass' for dep in stage.get('depends_on', [])):
+        item['dependencies_valid'] = all(next(r for r in results if r['id'] == dep)['status'] == 'pass' for dep in stage.get('depends_on', []))
+        if stage['kind'] != 'cleanup' and not item['dependencies_valid']:
             item.update(status='fail', error=item['error'] or '依赖阶段未通过，本阶段结果不能用于交付')
         indexed = {c['id']: c['status'] for c in item['cases']}
         for criterion, ids in stage.get('criteria', {}).items():
-            passed = item['exit_code'] == 0 and not record['error'] and item['error'] in ('', '报告有失败或跳过用例') and all(indexed.get(i) == 'pass' for i in ids)
+            passed = item['exit_code'] == 0 and not record['error'] and item['report_valid'] and item['dependencies_valid'] and all(indexed.get(i) == 'pass' for i in ids)
             proofs.setdefault(criterion, []).append({'stage': stage['id'], 'cases': ids, 'status': 'pass' if passed else 'unverified'})
         results.append(item)
     missing = [str(c['id']) for c in criteria if not proofs.get(str(c['id'])) or any(p['status'] != 'pass' for p in proofs[str(c['id'])])]
@@ -190,13 +198,42 @@ def collect(profile, envelope, folder, criteria):
             'require_all_criteria': profile['require_all_criteria'], 'criteria_digest': digest(criteria), 'criteria': criteria, 'profile_digest': digest(profile)}
 
 
+def criteria_contract(data_dir, rid):
+    """Resolve the same effective acceptance contract for execution and freshness checks."""
+    import sqlite3
+    from contextlib import closing
+    from .signoff import client_ac
+    from .fixloop import plan_ac
+    with closing(sqlite3.connect((Path(data_dir) / 'platform.db').resolve().as_uri() + '?mode=ro', uri=True)) as db:
+        db.row_factory = sqlite3.Row
+        row = db.execute('SELECT t.id, t.num, t.links, p.key FROM runs r LEFT JOIN tickets t ON t.id=r.ticket_id JOIN projects p ON p.id=r.project_id WHERE r.id=?', (rid,)).fetchone()
+        if row is None:
+            raise ValueError('无法确认验收标准所属运行')
+        if row['id'] is None:
+            return {'source': 'none', 'version': '', 'criteria': []}
+        confirmed = client_ac(data_dir, row['key'] + '-' + str(row['num']))
+        if confirmed:
+            return {'source': 'client', 'version': digest(confirmed), 'criteria': confirmed}
+        links = json.loads(row['links'])
+        if links.get('delivery'):
+            plan = db.execute("SELECT id,result FROM runs WHERE id=? AND ticket_id=? AND mode='plan' AND status='done' AND exit_code=0", (links.get('delivery_plan_run'), row['id'])).fetchone()
+            if plan is None:
+                raise ValueError('交付绑定的方案不再有效')
+        else:
+            plan = db.execute("SELECT id,result FROM runs WHERE ticket_id=? AND mode='plan' AND status='done' ORDER BY id DESC LIMIT 1", (row['id'],)).fetchone()
+        if plan is None:
+            return {'source': 'none', 'version': '', 'criteria': []}
+        return {'source': 'plan', 'version': str(plan['id']) + ':' + digest(plan['result']), 'criteria': plan_ac(plan['result'])}
+
+
 def execute(loop, profile):
     from .agents import git
     data = Path(getattr(loop.r, 'evidence_root', loop.r.data_dir))
     token = uuid.uuid4().hex
     folder = Path(loop.r.data_dir) / 'runs' / str(loop.rid) / 'project-tests' / token
     folder.mkdir(parents=True)
-    criteria = loop.criteria()
+    contract = criteria_contract(data, getattr(loop, 'source_run', loop.rid))
+    criteria = contract['criteria']
     plan = {'stages': profile['stages'], 'nonce': token}
     if profile['executor'] == 'local':
         plan['artifact_dir'] = str(folder / 'raw')
@@ -240,6 +277,7 @@ def execute(loop, profile):
     report = collect(profile, envelope, folder, criteria)
     if envelope['code_identity'] != base + ':' + hashlib.sha256(patch).hexdigest():
         report.update(status='fail', code_changed=True, identity_error='执行机代码与申请版本不一致')
+    report['criteria_contract'] = contract
     report.update(source_run=getattr(loop, 'source_run', loop.rid), project=loop.p['key'], ticket=loop.t['key'] if loop.t else '', executor=profile['executor'], base=base, diff_sha256=hashlib.sha256(patch).hexdigest(), evidence=str(folder.relative_to(data)))
     if profile['executor'] == 'testbox':
         report['remote_workspace'] = loop.box.dir + '/work/' + key
@@ -274,11 +312,12 @@ def current_issue(data_dir, rid, verification):
             return '项目测试报告属于其他运行'
         if report['project'] != key or report['profile_digest'] != digest(profile):
             return '项目测试配置已变化，请重新验证'
-        if report.get('ticket'):
-            from .signoff import client_ac
-            current = client_ac(data_dir, report['ticket'])
-            if current and digest(current) != report['criteria_digest']:
-                return '验收标准已变化，请重新运行项目测试'
+        try:
+            contract = criteria_contract(data_dir, rid)
+        except ValueError as exc:
+            return str(exc)
+        if report.get('criteria_contract') != contract:
+            return '验收标准内容、来源或方案版本已变化，请重新运行项目测试'
         folder = Path(data_dir) / report['evidence']
         if not folder.resolve().is_relative_to(Path(data_dir).resolve()):
             return '项目测试证据路径无效'
@@ -295,3 +334,31 @@ def current_issue(data_dir, rid, verification):
         except (OSError, ValueError):
             return '项目测试原始证据缺失或不可读'
     return ''
+
+
+def artifact(data_dir, rid, stage_id, name):
+    from .fixloop import _verification
+    value = _verification(data_dir, rid)
+    for command in value.get('commands', []):
+        report = command.get('project_tests')
+        if not report or report.get('source_run') != rid:
+            continue
+        for stage in report['stages']:
+            if stage['id'] != stage_id:
+                continue
+            for entry in stage.get('reports', []):
+                if entry['path'] != name:
+                    continue
+                root = Path(data_dir).resolve()
+                folder = (root / report['evidence']).resolve()
+                path = (folder / name).resolve()
+                if not folder.is_relative_to(root) or not path.is_relative_to(folder):
+                    raise ApiError(409, '报告路径无效')
+                try:
+                    raw = path.read_bytes()
+                except OSError as exc:
+                    raise ApiError(404, '原始报告不存在') from exc
+                if hashlib.sha256(raw).hexdigest() != entry['sha256']:
+                    raise ApiError(409, '原始报告内容已变化')
+                return {'name': name, 'sha256': entry['sha256'], 'base64': base64.b64encode(raw).decode(), 'text': raw.decode('utf-8', 'replace')}
+    raise ApiError(404, '本次运行没有该报告')

@@ -390,4 +390,5 @@ details.more summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
 .res-shots{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.res-shots img{width:180px;height:112px;object-fit:cover;object-position:top;border:1px solid var(--line);border-radius:8px;display:block}.res-shots a:hover img{border-color:var(--ac,#2563EB)}
 .res-basis{margin-top:10px;font-size:13px}.res-basis summary{cursor:pointer;font-weight:600}.res-bind{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12.5px}.res-bind code{font-size:12px}
 @media (max-width:720px){.res .res-steps{grid-template-columns:1fr}.res-shots img{width:44vw}}
+.project-proof{width:100%;min-width:680px;border-collapse:collapse;table-layout:fixed}.project-proof th,.project-proof td{text-align:left;padding:12px;vertical-align:top;border-bottom:1px solid var(--line,#e2e8f0);overflow-wrap:anywhere}.project-proof th{font-weight:600}.project-proof td button{white-space:normal}
 """

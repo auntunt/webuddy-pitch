@@ -156,6 +156,7 @@ GET /api/projects/<key>/releases
 POST /api/tickets/<key>/release
 GET /api/tickets/<key>/preview
 POST /api/tickets/<key>/preview
+GET /api/runs/<rid>/test-report
 GET /api/projects/<key>/tests
 POST /api/projects/<key>/tests
 GET /api/projects/<key>/mode

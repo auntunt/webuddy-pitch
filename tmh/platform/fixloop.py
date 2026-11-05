@@ -524,7 +524,11 @@ class FixLoop:
     def criteria(self) -> list:
         """What the change is accepted against: the criteria the client confirmed, else the plan's."""
         from .signoff import client_ac
-        return (client_ac(getattr(self.r, "evidence_root", self.r.data_dir), self.t["key"]) if self.t else []) or plan_ac(getattr(self, "plan", "") or "")
+        from . import project_tests
+        data = getattr(self.r, "evidence_root", self.r.data_dir)
+        if project_tests.view(data, self.p['key'])['profile']:
+            return project_tests.criteria_contract(data, getattr(self, 'source_run', self.rid))['criteria']
+        return (client_ac(data, self.t["key"]) if self.t else []) or plan_ac(getattr(self, "plan", "") or "")
 
     def earlier_fixes(self) -> list:
         """Earlier finished change runs of this ticket with their verification, newest first."""

@@ -38,3 +38,7 @@ test('large identifier sums agree with exact integer arithmetic across carry bou
   assert.equal(utils.addBigNumbers(a,b),String(BigInt(a)+BigInt(b)));
  }
 });
+
+test('refund supports empty array from single-account form',()=>assert.equal(JSON.stringify(utils.changeListFmtMinus([])),'[]'));
+test('refund supports one amount array from form',()=>assert.equal(JSON.stringify(utils.changeListFmtMinus(['12.50'])),'["-12.5"]'));
+test('refund supports multiple account array from form',()=>assert.equal(JSON.stringify(utils.changeListFmtMinus([7.25,5.25])),'["-7.25","-5.25"]'));

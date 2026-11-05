@@ -15,6 +15,8 @@ for file in source.rglob('*'):
         target = root / file.relative_to(source)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(file, target)
+# Keep the real browser/database regression with the project that it verifies.
+shutil.copytree(Path(__file__).with_name('business-proof'), root / '.webuddy-tests/business-proof', dirs_exist_ok=True)
 # The old compiler configuration disables test compilation; execute the new tests.
 pom = root / 'jshERP-boot/pom.xml'
 text = pom.read_text(encoding='utf-8')
@@ -24,10 +26,11 @@ util = root / 'jshERP-web/src/utils/util.js'
 raw = util.read_bytes()
 newline = b'\r\n' if b'\r\n' in raw else b'\n'
 old = "    if(str.indexOf(',')>-1) {\n      arr = str.split(',')\n    } else {\n      arr = str\n    }".encode().replace(b'\n', newline)
-new = b"    arr = str.split(',')"
-if old not in raw and new not in raw:
+previous = b"    arr = str.split(',')"
+new = b"    arr = Array.isArray(str) ? str : str.split(',')"
+if old not in raw and previous not in raw and new not in raw:
     raise SystemExit('金额函数已变化，需核对补丁，未自动重写')
-util.write_bytes(raw.replace(old, new))
+util.write_bytes(raw.replace(old, new).replace(previous, new))
 ignore = root / '.gitignore'
 text = ignore.read_text(encoding='utf-8')
 for line in ('**/node_modules/', '**/dist/', '**/target/'):

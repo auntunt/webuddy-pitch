@@ -149,6 +149,13 @@ class ProjectTests(unittest.TestCase):
         with self.assertRaises(ValueError):pt.cases(b'<testsuite/>','junit')
         with self.assertRaises(ValueError):pt.cases(b'<testsuite><testcase name="x"/><testcase name="x"/></testsuite>','junit')
 
+    def test_business_values_are_preserved_without_invention(self):
+        raw=b'<testsuite><testcase name="refund"><properties><property name="webuddy.input" value="12.50"/><property name="webuddy.expected" value="-12.5"/><property name="webuddy.actual" value="-12.5"/></properties></testcase><testcase name="unrecorded"/></testsuite>'
+        values=pt.cases(raw,'junit')
+        self.assertEqual(values[0]['actual'],'-12.5')
+        self.assertNotIn('actual',values[1])
+        self.assertEqual(pt.cases(b'{"cases":[{"id":"refund","status":"pass","input":"12.50","expected":-12.5,"actual":-12.5}]}','json')[0]['actual'],-12.5)
+
     def test_unit_suite_does_not_invent_build_or_baseline_evidence(self):
         from tmh.platform import gates
         report=self.execute(self.profile())
@@ -224,6 +231,39 @@ class RecheckProjectTests(unittest.TestCase):
         (self.data/report['evidence']/'unit-0.json').write_text('{}')
         self.assertFalse(verified(self.data,self.fixture.rid)['verification_current'])
 
+    def test_effective_plan_and_client_contract_changes_invalidate(self):
+        from tmh.platform.fixloop import recheck, verified
+        from tmh.platform import signoff
+        st=self.fixture.store;run=self.fixture.run
+        plan=st.create_run(run['project_id'],run['ticket_id'],'fixture','plan','tester','')
+        def content(text):
+            return '```tmh-plan\n'+json.dumps({'ac':[{'id':'A1','text':text,'check':'assert result'}]})+'\n```'
+        st.update_run(plan['id'],status='done',exit_code=0,result=content('original'))
+        result=recheck(self.fixture.runner,self.fixture.rid)
+        self.assertEqual(result['commands'][0]['project_tests']['criteria_contract']['source'],'plan')
+        st.update_run(plan['id'],result=content('changed'))
+        self.assertFalse(verified(self.data,self.fixture.rid)['verification_current'])
+        ticket=st.ticket(run['ticket_id'])
+        signoff._add(signoff.epath(self.data,ticket['key']),'intake','tester',{'ac':[{'id':'A1','text':'confirmed','check':'assert'}]})
+        result=recheck(self.fixture.runner,self.fixture.rid)
+        self.assertEqual(result['commands'][0]['project_tests']['criteria_contract']['source'],'client')
+        signoff._add(signoff.epath(self.data,ticket['key']),'intake','tester',{'ac':[]})
+        self.assertFalse(verified(self.data,self.fixture.rid)['verification_current'])
+        result=recheck(self.fixture.runner,self.fixture.rid)
+        self.assertEqual(result['commands'][0]['project_tests']['criteria_contract']['source'],'plan')
+
+    def test_report_download_is_bound_to_run_and_original_bytes(self):
+        from tmh.platform.fixloop import recheck
+        result=recheck(self.fixture.runner,self.fixture.rid)
+        payload=pt.artifact(self.data,self.fixture.rid,'unit','unit-0.json')
+        self.assertEqual(json.loads(base64.b64decode(payload['base64']))['cases'][0]['id'],'sum')
+        for name in ('../platform.db','result.json','not-found'):
+            with self.assertRaises(ApiError):pt.artifact(self.data,self.fixture.rid,'unit',name)
+        report=result['commands'][0]['project_tests']
+        (self.data/report['evidence']/'unit-0.json').write_text('{}')
+        with self.assertRaises(ApiError) as err:pt.artifact(self.data,self.fixture.rid,'unit','unit-0.json')
+        self.assertEqual(err.exception.code,409)
+
     def test_new_profile_does_not_inherit_legacy_pass(self):
         from tmh.platform.fixloop import verified
         result=verified(self.data,self.fixture.rid)
@@ -235,6 +275,15 @@ class ProjectTestPermissions(unittest.TestCase):
     def test_owner_commands_and_member_project_scope(self):
         from tests.test_tenant_policy import TenantPolicyTest
         fixture=TenantPolicyTest();fixture.setUp();self.addCleanup(fixture.doCleanups)
+        from tmh.platform.server import api_project_tests
+        from types import SimpleNamespace
+        fixture.P.project=lambda key: fixture.projects[key]
+        fixture.context.trusted_host=lambda: True
+        for actor,expected in [('alice',False),('owner',True)]:
+            request=SimpleNamespace(h=SimpleNamespace(_who=actor,headers={}))
+            self.assertEqual(api_project_tests(fixture.P,request,'ALPHA')['can_edit'],expected)
+        fixture.auth('/api/runs/%s/test-report' % fixture.runs['ALPHA']['id'])
+        fixture.denied('/api/runs/%s/test-report' % fixture.runs['BETA']['id'],query={'project':'ALPHA'})
         fixture.auth('/api/projects/ALPHA/tests')
         fixture.denied('/api/projects/BETA/tests')
         fixture.denied('/api/projects/BETA/tests',query={'project':'ALPHA'})
@@ -262,6 +311,18 @@ class MultiReportTests(unittest.TestCase):
         r=self.execute(p)
         self.assertEqual(r['stages'][1]['status'],'fail')
         self.assertIn('依赖阶段未通过',r['stages'][1]['error'])
+
+    def test_optional_dependency_with_mixed_report_cannot_prove_criterion(self):
+        p=self.profile();p['stages'][0]['criteria']={}
+        command=p['stages'][0]['command']
+        for id,cases,deps,mapping in [('pre',"{id:'bad',status:'fail'}",[],{}),('dependent',"{id:'sum',status:'pass'},{id:'bad',status:'fail'}",['pre'],{'A1':['sum']})]:
+            p['stages'].append(dict(id=id,kind='unit',required=False,timeout=3,command=command.replace("{id:'sum',status:'pass'}",cases).replace('report.json',id+'.json'),depends_on=deps,report={'format':'json','path':id+'.json'},criteria=mapping))
+        with (self.root/'.gitignore').open('a') as f:f.write('pre.json\ndependent.json\n')
+        result=self.execute(p)
+        self.assertEqual(result['status'],'fail')
+        self.assertEqual(result['criterion_evidence']['A1'][0]['status'],'unverified')
+        self.assertFalse(result['stages'][2]['dependencies_valid'])
+        self.assertTrue(result['stages'][2]['report_valid'])
 
 
 if __name__ == '__main__':

@@ -4,10 +4,11 @@ import subprocess
 import unittest
 
 from tmh.platform.ui import JS
+from tmh.platform.ui_time import TIME_JS
 
 
 # A minimal DOM double drives the shipped event handlers; no browser or real API is used.
-ASYNC_HARNESS = r"""
+ASYNC_HARNESS = TIME_JS + r"""
 const S={polls:[]};
 class TestElement {
   constructor(attrs=''){this.attrs=attrs;this.dataset={};this.disabled=/\bdisabled\b/.test(attrs);this.hidden=/\bhidden\b/.test(attrs);this.isConnected=true;this.classList={toggle(){}};for(const m of attrs.matchAll(/data-([\w-]+)(?:="([^"]*)")?/g))this.dataset[m[1].replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]=m[2]||'';this.nodes=[];this._html=''}
