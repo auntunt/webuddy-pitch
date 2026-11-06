@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "label": "linux-stage-manifest-database-regression",
+  "actor": "Codex",
+  "actor_type": "agent",
+  "identity_verified": false,
+  "method": "terminal_command",
+  "started_at": "2026-11-06T19:11:23.279671+00:00",
+  "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness",
+  "command": [
+    "ssh",
+    "-i",
+    "/Users/auntlee/Downloads/cc-deploy-20260923",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "StrictHostKeyChecking=yes",
+    "ubuntu@43.153.76.85",
+    "sudo -n python3 /tmp/knowledge-stage.py && sudo -n python3 /tmp/webuddy-native-check.py /opt/webuddy/releases/cd01b4c/app && cd /opt/webuddy/releases/cd01b4c/app && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -m unittest test_tenant_policy test_org_knowledge_api test_org_knowledge_trust test_memory_workspace test_project_library test_knowledge_agent_api test_tool_read test_ui_library test_ui_memory test_tenant_gateway.TenantGatewayTest.test_member_knowledge_catalog_and_memory_are_scoped_over_http"
+  ],
+  "state": "completed",
+  "acceptance": false,
+  "exit_code": 0,
+  "ended_at": "2026-11-06T19:12:31.118580+00:00",
+  "artifacts": {
+    "stdout.bin": {
+      "bytes": 67,
+      "sha256": "6ae3b812bb46cffe55e588912734906b83385cbdfda689da9169639c4286340f"
+    },
+    "stderr.bin": {
+      "bytes": 279,
+      "sha256": "9ea806522b0b5cbca33baf5365af2748e40ec9c66a8156d95700d9d6275b9b4d"
+    }
+  }
+}
