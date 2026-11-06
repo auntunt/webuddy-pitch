@@ -2621,14 +2621,15 @@ def api_ticket(P, req, key):
         if r["mode"] == "fix":
             r["diff_bytes"] = len((P.store.run(r["id"]) or {}).get("diff") or "")
             v = verified(P.data_dir, r["id"])
-            r["verify"] = {k: v.get(k) for k in ("check", "skip", "verdict", "rounds", "split", "beyond_plan", "verification_current", "recheck_operation", "stalled")} if v else None
+            r["verify"] = {k: v.get(k) for k in ("check", "skip", "verdict", "rounds", "split", "beyond_plan", "verification_current", "recheck_operation", "stalled", "outcome")} if v else None
             r["recheck_wait"] = P.flow.verification_wait(r["id"]) if v.get("verification_current") is False else None
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
-    from . import epic, signoff, stage, workbench, intake, team
+    from . import epic, signoff, stage, workbench, intake, team, ai_accept
     par = P.store.ticket(t["links"]["parent"]) if (t.get("links") or {}).get("parent") else None
     return {"ticket": t, "project": p, "events": P.store.events(t["id"]), "runs": [r for r in runs if r["mode"] != "ask"],
             "team_assignment": team.assignment(P, t),
+            "workflow_policy": ai_accept.mandate(P.flow.autoflow(), p["key"], P.data_dir),
             "intake_recovery": intake.recovery_state(P, t["key"]),
             "plain_state": workbench.states(P, [t])[t["key"]],
             "stage": stage.compute(P, [t])[t["key"]],

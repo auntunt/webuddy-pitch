@@ -172,8 +172,8 @@ class Throttle:
             self.fails.pop(who, None)
 
 
-LOGO = ('<svg width="44" height="44" viewBox="-13 -13 26 26" fill="none" stroke="#1D4ED8" stroke-width="2.2" stroke-linecap="round">'
-        '<path d="M-9 4a10 10 0 1 1 18 0"/><path d="M0 2l5-6"/><circle r="1.6" cy="2" fill="#1D4ED8"/></svg>')
+LOGO = ('<svg width="40" height="40" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#1D4ED8"/>'
+        '<path d="m7 10 4 12 5-8 5 8 4-12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>')
 
 PAGE = r"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -182,14 +182,6 @@ PAGE = r"""<!doctype html>
 :root{--navy:#1D2939;--navy2:#26334A;--teal:#1D4ED8;--blue:#1D4ED8;--fg:#111827;--mut:#4B5563;--line:#D0D5DD;--bad:#E5484D;--bad-s:#FDECEC;color-scheme:light}
 *{box-sizing:border-box}html,body{height:100%}
 body{margin:0;font:14px/1.55 -apple-system,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;color:var(--fg);background:#F6F7F9;display:flex}
-.side{flex:1.1;background:#F0F2F5;color:var(--fg);border-right:1px solid #DCE1E8;display:flex;flex-direction:column;justify-content:space-between;padding:48px 56px;position:relative;overflow:hidden}
-
-.mark{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700;letter-spacing:.5px}
-.pitch h1{font-size:34px;line-height:1.3;margin:0 0 14px;font-weight:700;letter-spacing:.5px}
-.pitch p{margin:0;color:var(--mut);font-size:15px;max-width:30em}
-.pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
-.pills span{border:1px solid #DCE1E8;background:#fff;border-radius:999px;padding:5px 14px;font-size:13px;color:var(--mut)}
-.foot{color:var(--mut);font-size:12px}
 .main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 20px}
 .card{width:100%;max-width:380px;background:#fff;border:1px solid #DCE1E8;border-radius:6px;padding:36px 32px 30px;box-shadow:none}
 .card h2{margin:0 0 4px;font-size:22px}
@@ -206,7 +198,7 @@ input::placeholder{color:var(--mut);opacity:1}:where(button,input,a):focus-visib
 .go:hover{background:#0958D9}.go:disabled{opacity:.6;cursor:default}
 .err{background:var(--bad-s);color:#B42318;border:1px solid #F9C6C6;border-radius:6px;padding:10px 14px;margin-bottom:18px;font-size:13px}
 .hint{margin:22px 0 0;text-align:center;color:var(--mut);font-size:12px}
-.mmark{display:none}
+.wrap{width:100%;max-width:420px}.card{max-width:420px;border-radius:8px;padding:32px}.mmark{display:flex;align-items:center;gap:10px;justify-content:center;font-size:24px;font-weight:650;margin-bottom:28px}.main{min-height:100vh}.card h2{font-size:24px}.hint{font-size:13px}
 .or{display:flex;align-items:center;gap:10px;margin:18px 0 12px;color:var(--mut);font-size:12px}.or:before,.or:after{content:"";flex:1;border-top:1px solid #E4E7EC}
 .fs{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--fg);font-size:15px;font-weight:600;text-decoration:none}
 .fs:hover{background:#F6F7F9}
@@ -216,13 +208,6 @@ input::placeholder{color:var(--mut);opacity:1}:where(button,input,a):focus-visib
 .wrap{width:100%;max-width:380px}.card{padding:30px 22px 26px}}
 </style></head>
 <body>
-<section class="side" aria-hidden="true">
-  <div class="mark">{logo}<span>{brand}</span></div>
-  <div class="pitch"><h1>让 AI 接住每一张工单<br>从需求到交付全程闭环</h1>
-  <p>工单分析、方案确认、编码修改、测试验证，智能体与工程师在同一张工作台上协作，每一步都留痕可查。</p>
-  <div class="pills"><span>运维服务</span><span>重构服务</span><span>业务全景</span><span>知识库</span></div></div>
-  <div class="foot">© {year} {brand}</div>
-</section>
 <main class="main"><div class="wrap">
   <div class="mmark">{logo}<span>{brand}</span></div>
   <form class="card" method="post" action="/login" onsubmit="this.querySelector('.go').disabled=true">
@@ -232,7 +217,7 @@ input::placeholder{color:var(--mut);opacity:1}:where(button,input,a):focus-visib
     <div class="f"><label for="p">密码</label><div class="pw"><input id="p" name="password" type="password" autocomplete="current-password" required>
       <button type="button" onclick="const i=document.getElementById('p');const s=i.type==='password';i.type=s?'text':'password';this.textContent=s?'隐藏':'显示'">显示</button></div></div>
     <input type="hidden" name="next" value="{next}">
-    <button class="go" type="submit">登 录</button>
+    <button class="go" type="submit">登录</button>
     {feishu}
     <p class="hint">忘记密码请联系管理员重置</p>
   </form>

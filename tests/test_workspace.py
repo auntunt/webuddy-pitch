@@ -14,7 +14,10 @@ class WorkspaceTests(TestCase):
         self.tmp = TemporaryDirectory()
         self.data = Path(self.tmp.name)
         self.store = Store(self.data / "platform.db")
-        self.P = SimpleNamespace(store=self.store, data_dir=self.data)
+        self.P = SimpleNamespace(store=self.store, data_dir=self.data,
+                                 flow=SimpleNamespace(autoflow=lambda: {"on": False},
+                                     agent=lambda *args: "", switched_on=lambda *args: False,
+                                     next_step=lambda *args: ("", ""), verification_wait=lambda *args: {}))
         self.a = self.store.add_project("A", "项目甲", str(self.data))
         self.b = self.store.add_project("B", "项目乙", str(self.data))
         self.users = mock.patch("tmh.platform.login.load_users", return_value={"lin": {}, "chen": {}})
@@ -59,3 +62,18 @@ class WorkspaceTests(TestCase):
         for query in ({"project": "UNKNOWN"}, {"offset": "oops"}, {"view": "unknown"}):
             with self.assertRaises(ApiError):
                 workspace.read(self.P, query, "lin")
+
+    def test_attention_unifies_owner_and_reviewer_without_duplicate_counts(self):
+        owned = self.ticket()
+        reviewed = self.ticket(assignee="chen")
+        self.ticket(self.b, assignee="chen")
+        team.schema(self.P)
+        self.store.update_ticket(reviewed["id"], "tester", status="verify")
+        self.store.x("INSERT INTO ticket_team VALUES(?,?,?,?,?)", (reviewed["id"], "lin", 1, reviewed["updated"], "chen"))
+        data = workspace.read(self.P, {"view": "attention", "project": "A"}, "lin")
+        self.assertEqual({t["key"] for t in data["items"]}, {owned["key"], reviewed["key"]})
+        self.assertEqual((data["total"], data["attention_count"]), (2, 2))
+        self.assertTrue(all(t["attention_reason"] for t in data["items"]))
+        self.assertEqual(data["stage"], "all")
+        import json
+        json.dumps(data)  # the projection must remain a serializable HTTP payload

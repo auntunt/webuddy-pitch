@@ -95,7 +95,7 @@ function workIcon(name){const icons={
   dot:'<circle cx="12" cy="12" r="4"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'};
   return `<svg class="wicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[name]||icons.dot}</svg>`}
-const NAV=[['workspace','总览','#/home','today'],['tasks','需求','#/tickets','reqs'],['deliveries','版本','#/deliveries','deliveries'],['memory','项目知识','#/memory','message'],['runs','AI 工作记录','#/runs','clock'],['insights','成效','#/lead','up']];
+const NAV=[['workspace','工作台','#/workspace','today'],['tasks','需求与变更','#/tickets','reqs'],['deliveries','验证与交付','#/deliveries','deliveries'],['memory','项目知识','#/memory','message']];
 const WK=['workspace','projects','team','memory','handoff','deliveries','delivery','today','clients','c','reqs','versions','t'];
 function isEng(v){return !WK.includes(v)}
 function navOf(v){return ['home','workspace','today','meetings'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn','atlas','states','map'].includes(v)?'memory':['tickets','t','reqs','board','rtickets'].includes(v)?'tasks':['deliveries','delivery','versions'].includes(v)?'deliveries':v==='runs'?'runs':['lead','overview','eff'].includes(v)?'insights':'projects'}
@@ -104,9 +104,9 @@ function paintNav(){const cur=navCurrent(curView()),nav=$('#nav5');
   const signature=JSON.stringify([cur,curView(),!!S.meta?.access?.can_manage,S.meta?.access?.role]);if(nav.dataset.signature===signature)return;
   const focused=nav.contains(document.activeElement)?document.activeElement.closest('[data-n]')?.dataset.n:null;
   const link=([k,l,u,ic])=>`<a href="${u}" class="${k===cur?'on':''}" data-n="${k}" ${k===cur?'aria-current="page"':''}><i aria-hidden="true">${workIcon(ic)}</i><span>${l}</span></a>`;
-  const management=[['projects','项目','#/projects','versions'],...(!S.meta?.access||S.meta.access.role==='admin'?[['clients','客户','#/clients','clients']]:[]),['settings','设置','#/settings','eng']];
+  const management=[['projects','项目与环境','#/projects','versions'],['runs','运行记录','#/runs','clock'],['insights','流程与统计','#/lead','up'],...(!S.meta?.access||S.meta.access.role==='admin'?[['clients','客户','#/clients','clients']]:[]),['settings','设置','#/settings','eng']];
   if(S.meta?.access?.can_manage)management.push(['access','成员与权限','#/access','clients']);
-  nav.innerHTML='<span class="ws-nav-label">维护交付</span>'+NAV.map(link).join('')+`<div class="ws-nav-secondary"><span class="ws-nav-label">管理</span>${management.map(link).join('')}</div>`;
+  nav.innerHTML='<span class="ws-nav-label">日常工作</span>'+NAV.map(link).join('')+`<div class="ws-nav-secondary"><span class="ws-nav-label">管理</span>${management.map(link).join('')}</div>`;
   nav.dataset.signature=signature;if(focused)nav.querySelector(`[data-n="${focused}"]`)?.focus()}
 const STL={talk:'需求澄清',doing:'执行中',you:'待复核',client:'待客户确认',shipped:'已出版本',done:'已完成'};
 const stChip=s=>`<span class="st ${h(s)}">${h(STL[s]||s)}</span>`;
@@ -317,7 +317,7 @@ function ticketTop(d,f,na){const t=d.ticket,[s,why]=plainState(d,f);const said=s
   return `<div class="card ttop"><div class="row" style="margin:0;align-items:center;gap:8px">${stChip(s)}<span class="sub">${h(why)}</span><span id="ttCl"></span></div>
    ${d.intake_recovery?.status==='resolved'?`<details style="margin-top:10px"><summary>已根据保存答复补全标准 · 查看恢复记录</summary>${(d.intake_recovery.attempts||[]).map(a=>`<div style="margin-top:8px;white-space:pre-wrap">${h(chinaTime(a.at||''))} · ${h(a.requested_by||'客户答复处理')}<br>${h(a.reason||a.status||'')}${a.run?` <a href="javascript:void 0" onclick="showRun(${Number(a.run)})">查看运行 #${h(a.run)}</a>`:''}</div>`).join('')}</details>`:''}
    <dl><dt>客户要的</dt><dd>${h(said)}</dd><dt>下一步</dt><dd class="na ${na.tone}">${na.text}</dd></dl>
-   <div class="row" style="gap:8px;align-items:center"><span id="tNextActions" class="row" style="gap:8px;margin:0" ${na.btns?'':'hidden'}>${na.btns||''}</span><span id="ttPv"></span>${t.status!=='closed'&&d.intake_recovery?.can_retry?'<button class="primary" id="ttIntakeRetry">重试理解已保存答复</button>':''}${na.acc?'<button class="primary" id="ttOk"'+ticketSignoffAttrs(d)+'>验收通过</button><button class="danger" id="ttNo">退回重改</button>':''}${t.status==='verify'&&(d.package||{}).status&&d.package.status!=='none'?'<button id="ttSend"'+ticketSignoffAttrs(d)+'>发给客户签收</button>':''}${!['closed','verify'].includes(t.status)&&!(t.links||{}).handwork&&(!S.meta?.access||accessCanExecute(d.project.key))?'<button class="ghost" id="ttHw" title="自动处理不接这张单，下载开工包自己（或用自己的 AI 工具）写">我来写</button>':''}</div></div>`}
+   <div class="row" style="gap:8px;align-items:center"><span id="tNextActions" class="row" style="gap:8px;margin:0" ${na.btns?'':'hidden'}>${na.btns||''}</span><span id="ttPv"></span>${t.status!=='closed'&&d.intake_recovery?.can_retry?'<button class="primary" id="ttIntakeRetry">重试理解已保存答复</button>':''}${na.acc?'<button class="primary" id="ttOk"'+ticketSignoffAttrs(d)+'>查看验收依据</button><button class="ghost" id="ttNo">退回重改</button>':''}${t.status==='verify'&&(d.package||{}).status&&d.package.status!=='none'?'<button id="ttSend"'+ticketSignoffAttrs(d)+'>发给客户签收</button>':''}${!['closed','verify'].includes(t.status)&&!(t.links||{}).handwork&&(!S.meta?.access||accessCanExecute(d.project.key))?'<button class="ghost" id="ttHw" title="自动处理不接这张单，下载开工包自己（或用自己的 AI 工具）写">我来写</button>':''}</div></div>`}
 async function opsDiag(key){const box=$('#opsDiag');if(!box)return;const K=(S.opsKeep=S.opsKeep||{})[key]||(S.opsKeep[key]={});let d;try{d=await get('/api/tickets/'+key+'/ops')}catch(e){box.innerHTML='<h2>运维排查</h2><p class="sub">'+h(e.message)+'</p>';return}
   const tbl=(cols,rows)=>`<div style="overflow:auto;max-height:320px"><table class="tbl" style="font-size:12px"><thead><tr>${cols.map(c=>`<th>${h(c)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(v=>`<td>${h(v==null?'':String(v))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   const c=d.conclusion;
@@ -342,12 +342,12 @@ async function opsDiag(key){const box=$('#opsDiag');if(!box)return;const K=(S.op
   $('#opsDone').onclick=async()=>{try{const r=await post('/api/tickets/'+key+'/ops',{action:'conclude',cause:$('#opsCause').value,text:$('#opsText').value,fix:$('#opsFix').value,distill:$('#opsDistill').checked});delete K.text;delete K.fix;toast(r.lesson?'结论已记下，经验候选 '+r.lesson+' 等人工采用':'结论已记下',5000);opsDiag(key)}catch(e){toast(e.message,5000)}};}
 async function ticketTopWire(d,na){const t=d.ticket,key=t.key;if(typeof opsDiag==='function')opsDiag(key);
   if($('#ttIntakeRetry'))$('#ttIntakeRetry').onclick=()=>$('#naIntakeRetry')?.click();
-  if($('#ttOk'))$('#ttOk').onclick=()=>{if(ticketSignoffGuard(d))$('#accOk').click()};
-  if($('#ttNo'))$('#ttNo').onclick=()=>{const n=$('#accNote');n.scrollIntoView({block:'center',behavior:'smooth'});n.focus();n.placeholder='写明哪里不对，写好后点“验收不通过”';toast('写明哪里不对，再点“验收不通过”',4000)};
-  if($('#ttSend'))$('#ttSend').onclick=()=>{if(!ticketSignoffGuard(d))return;const b=$('#pkLink');if(!b)return toast('证据包还没打好，稍等一下');b.click();$('#pkg').scrollIntoView({block:'start',behavior:'smooth'});const nm=S.ttClient;if(nm&&$('#pkS'))$('#pkS').value=nm};
-  if($('#ttHw'))$('#ttHw').onclick=()=>{$('#engc').open=true;setTimeout(()=>{const c=$('#hwc');if(c&&!c.hidden)c.scrollIntoView({block:'start',behavior:'smooth'})},300)};
-  S.ttClient='';const cid=(t.links||{}).client,sid=(t.links||{}).system,pk=key.replace(/-\d+$/,'');
-  Promise.all([cid?get('/api/clients').catch(()=>({clients:[]})):{clients:[]},get('/api/projects/'+encodeURIComponent(pk)+'/systems').catch(()=>({systems:[]}))]).then(([r,sy])=>{const el=$('#ttCl');if(!el)return;const c=(r.clients||[]).find(x=>x.id===cid);if(c)S.ttClient=c.name;
+  if($('#ttOk'))$('#ttOk').onclick=()=>{if(!ticketSignoffGuard(d))return;taskTab('evidence');$('#taskEvidence').scrollIntoView({block:'start'})};
+  if($('#ttNo'))$('#ttNo').onclick=()=>{taskTab('evidence');const n=$('#accNote');n.scrollIntoView({block:'center',behavior:'smooth'});n.focus();n.placeholder='写明哪里不对，写好后点“验收不通过”';toast('写明哪里不对，再点“验收不通过”',4000)};
+  if($('#ttSend'))$('#ttSend').onclick=()=>{if(!ticketSignoffGuard(d))return;taskTab('evidence');const b=$('#pkLink');if(!b)return toast('证据包还没打好，稍等一下');b.click();$('#pkg').scrollIntoView({block:'start',behavior:'smooth'});const nm=S.ttClient;if(nm&&$('#pkS'))$('#pkS').value=nm};
+  if($('#ttHw'))$('#ttHw').onclick=()=>{taskTab('records');$('#engc').open=true;setTimeout(()=>{const c=$('#hwc');if(c&&!c.hidden)c.scrollIntoView({block:'start',behavior:'smooth'})},300)};
+  S.ttClient='';const clientHost=$('#ttCl');const cid=(t.links||{}).client,sid=(t.links||{}).system,pk=key.replace(/-\d+$/,'');
+  Promise.all([cid?get('/api/clients').catch(()=>({clients:[]})):{clients:[]},get('/api/projects/'+encodeURIComponent(pk)+'/systems').catch(()=>({systems:[]}))]).then(([r,sy])=>{const el=$('#ttCl');if(!el||el!==clientHost||S.cur?.ticket?.key!==key)return;const c=(r.clients||[]).find(x=>x.id===cid);if(c)S.ttClient=c.name;
     el.innerHTML=`<span class="sub" data-archive>${c?`<a class="tag" href="#/c/${c.id}">${h(c.name)}</a>`:'<span class="tag">未记客户</span>'} / <span class="tag">${h(pk)}</span> / <select id="ttSys" aria-label="系统" style="padding:2px 6px"><option value="">未选系统</option>${(sy.systems||[]).map(x=>`<option value="${x.id}" ${x.id===sid?'selected':''}>${h(x.name)}</option>`).join('')}</select></span>`;
     $('#ttSys').onchange=async e=>{try{await post('/api/tickets/'+key+'/system',{system:e.target.value?+e.target.value:null});toast(e.target.value?'已归到系统':'已取消系统归档')}catch(x){toast(x.message,5000)}}}).catch(()=>{});
   if($('#ttPv'))await pvLoad(key)}
