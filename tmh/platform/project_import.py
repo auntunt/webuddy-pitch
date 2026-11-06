@@ -212,6 +212,8 @@ def _guard(P, job: str, work, arg):
             os.replace(tmp, dest)
             P.store.add_project(st["key"], st["name"], str(dest), "")
         commit = _git(dest, "rev-parse", "HEAD").strip()
+        # Publish completion only after the uploaded archive is removed.
+        (_jobs(P.data_dir) / job / "upload.zip").unlink(missing_ok=True)
         _step(P, job, status="done", step="已导入", project=st["key"], root=str(dest), commit=commit, **info)
     except Exception as e:  # noqa: BLE001 - the job records any failure; the request thread is long gone
         msg = e.args[0] if isinstance(e, ApiError) and e.args else str(e)
