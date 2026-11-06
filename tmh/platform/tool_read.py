@@ -364,4 +364,4 @@ def delivery_get(P, key, visible_ids):
             'current_validity': 'not_checked', 'ready_to_merge': None,
             'notice': NOTICE, 'execution': False,
             'next_step': '在候选详情核对当前有效证据；由有权限的人员复核，再按项目策略确认合并。',
-            'links': {'task': '#/ticket/' + t['key'], 'review': '#/team/ticket/' + t['key']}}
+            'links': {'task': '#/t/' + t['key'], 'review': '#/team/ticket/' + t['key']}}

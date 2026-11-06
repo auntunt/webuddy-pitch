@@ -192,6 +192,7 @@ class ToolReadTests(unittest.TestCase):
         self.assertEqual(packet['candidates'][0]['commit'], 'b'*40)
         self.assertEqual(packet['runs'][0]['run']['output'], self.st.run(self.rid)['output'])
         self.assertEqual(packet['development']['state'], 'not_selected')
+        self.assertEqual(packet['links']['task'], '#/t/'+self.t['key'])
         with self.assertRaises(ApiError) as error:
             self.call('delivery_get', ticket=self.hidden['key'])
         self.assertEqual(error.exception.code, 403)
