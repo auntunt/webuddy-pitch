@@ -168,8 +168,39 @@ class TenantPolicyTest(unittest.TestCase):
                 self.auth(path, actor="admin", query=query, body=body, method=method)
             self.assertEqual(caught.exception.code, 400)
 
+    def test_knowledge_catalog_filters_before_merge_count_and_project_picker(self):
+        from tmh.platform import memory, server
+        for key, project in self.projects.items():
+            folder = Path(project['root']) / '.tmh' / 'knowledge'
+            folder.mkdir(parents=True)
+            (folder / 'decisions.md').write_text('- 共享标题：' + key + ' confidential rule\n')
+        # Include a private lesson from the unreadable project, too.
+        (self.P.data_dir / 'lessons.jsonl').write_text(json.dumps({
+            'id': 'secret', 'project': 'BETA', 'status': 'active',
+            'symptom': 'private BETA', 'fix': 'hidden lesson'}) + '\n')
+        for actor in ('alice', 'reader'):
+            self.auth('/api/org/knowledge', actor=actor)
+            self.auth('/api/memory', actor=actor)
+            req = SimpleNamespace(user=actor, arg=lambda key: '')
+            result = server.api_org_knowledge(self.P, req)
+            self.assertEqual(result['count'], 1)
+            self.assertEqual(result['returned'], 1)
+            self.assertEqual(result['provenance_projects'], ['ALPHA'])
+            self.assertNotIn('BETA', json.dumps(result))
+            result = memory.dispatch_read(self.P, {'section': 'knowledge'}, actor)
+            self.assertEqual([p['key'] for p in result['projects']], ['ALPHA'])
+            self.assertNotIn('BETA', json.dumps(result))
+            with self.assertRaises(ApiError):
+                memory.dispatch_read(self.P, {'project': 'BETA'}, actor)
+        self.context.people['alice']['project_grants'] = {}
+        result = server.api_org_knowledge(self.P, SimpleNamespace(user='alice', arg=lambda key: ''))
+        self.assertEqual(result['count'], 0)
+        self.assertEqual(result['projects'], [])
+        self.assertEqual(memory.dispatch_read(self.P, {}, 'alice')['projects'], [])
+
     def test_memory_and_client_links_do_not_trust_a_project_selector(self):
-        self.denied("/api/memory", query={"project": ["ALPHA"]})
+        self.auth("/api/memory", query={"project": ["ALPHA"]})
+        self.denied("/api/memory", query={"project": ["BETA"]})
         self.auth("/api/memory", actor="admin", query={"project": ["ALPHA"]})
         for fields in ({"client": 1}, {"client_name": "foreign client"}):
             self.denied("/api/workbench/intake", method="POST", body={"project": "ALPHA", "model": False, **fields})

@@ -1478,6 +1478,8 @@ def api_org_knowledge(P, req):
     with provenance. Never writes, never runs a build, an agent or a command.
     """
     from . import org_knowledge as org
+    from .tenant_policy import visible_projects
+    allowed = {p["key"] for p in visible_projects(P, req.user)}
     q = (req.arg("q") or "").strip()
     types = [t.strip() for t in (req.arg("type") or "").split(",") if t.strip()]
     bad = [t for t in types if t not in org.TYPES]
@@ -1490,14 +1492,15 @@ def api_org_knowledge(P, req):
     if limit < 1 or limit > 200:
         raise ApiError(400, "limit 取值范围 1–200")
     if q:
-        items = org.search(P.store, q, limit=limit, types=types or None)
+        items = org.search(P.store, q, limit=limit, types=types or None, allowed_project_keys=allowed)
         return {"query": q, "types": types or list(org.TYPES), "limit": limit,
                 "items": items, "count": len(items), "readonly": True}
-    built = org.build(P.store)
-    items = [i for i in built["items"] if not types or i["type"] in types][:limit]
+    built = org.build(P.store, allowed_project_keys=allowed)
+    filtered = [i for i in built["items"] if not types or i["type"] in types]
+    items = filtered[:limit]
     return {"query": "", "summary": built["stats"], "projects": built["projects_read"],
             "provenance_projects": built["provenance_projects"], "items": items,
-            "count": len(built["items"]), "notice": built["notice"], "readonly": True}
+            "count": len(filtered), "returned": len(items), "notice": built["notice"], "readonly": True}
 
 
 @route("GET", "/api/projects/<key>/habits")

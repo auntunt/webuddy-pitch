@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "label": "scoped-knowledge-regression",
+  "actor": "Codex",
+  "actor_type": "agent",
+  "identity_verified": false,
+  "method": "terminal_command",
+  "started_at": "2026-11-06T19:03:22.448937+00:00",
+  "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness",
+  "command": [
+    "/Users/auntlee/.local/bin/python3.11",
+    "-m",
+    "unittest",
+    "test_tenant_policy",
+    "test_org_knowledge_api",
+    "test_org_knowledge_trust",
+    "test_memory_workspace",
+    "test_project_library",
+    "test_ui_library",
+    "test_ui_memory"
+  ],
+  "state": "completed",
+  "acceptance": false,
+  "exit_code": 0,
+  "ended_at": "2026-11-06T19:03:53.572708+00:00",
+  "artifacts": {
+    "stdout.bin": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr.bin": {
+      "bytes": 227,
+      "sha256": "4a4695b706ce527a1840982774b49557bea7ef48634973b612b47ca7449c7e5f"
+    }
+  }
+}

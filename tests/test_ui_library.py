@@ -247,6 +247,15 @@ await submit('#libWorkspaceForm');assert.deepEqual(mutations[0].body,{action:'de
 closeModal();libraryWorkspace(LIB.view,'maintain','a'.repeat(32));assert.equal($('#libDerivedKey'),null);postHandler=async()=>({project:{key:'APP',name:'APP 项目'},commit:'b'.repeat(40)});await submit('#libWorkspaceForm');assert.deepEqual(mutations[1].body,{action:'maintain',revision_id:'a'.repeat(32)});assert.equal(S.proj,'APP');assert.ok($('#libWorkspaceDialog').innerHTML.includes('本项目已进入维护'));
 """)
 
+    def test_prepare_new_reference_preserves_draft_and_requires_explicit_save(self):
+        self.run_js(r"""
+Object.defineProperty(Element.prototype,'options',{get(){return this.all().filter(n=>n.tag==='option')}});
+currentData=overview('APP',{references:[{id:1,revision_id:'old',commit:'a'.repeat(40),source_project:'HIDDEN',source_name:'授权来源',scopes:['docs'],purpose:'核对审批',available:true,update_available:true,latest_revision:{id:'new',commit:'b'.repeat(40)}}]});
+await vLibrary();assert.ok(main.textContent.includes('来源已有新版本'));
+$('#libPurpose').value='未保存草稿';await main.querySelector('[data-lib-prepare]').fire('click');assert.equal($('#libPurpose').value,'未保存草稿');assert.equal(mutations.length,0);
+$('#libPurpose').value='';await main.querySelector('[data-lib-prepare]').fire('click');assert.equal($('#libSource').value,'HIDDEN');assert.equal($('#libSourceRevision').value,'new');assert.equal($('#libScopes').value,'docs');assert.equal($('#libPurpose').value,'核对审批');assert.equal($('#libGrant').checked,false);assert.equal(mutations.length,0);assert.equal(currentData.references[0].revision_id,'old');
+""")
+
     def test_registration_submits_composable_roles_without_automatic_build(self):
         self.run_js(r"""
 location.hash='#/settings';libraryRegisterProject();assert.equal($('#libRegisterWorkflow').value,'development');$('#pr').value='/tmp/complex-product';$('#pr').fire('input');assert.equal($('#pk').value,'COM');$('#pk').value='STD';$('#pn').value='复杂标品';$('#libRegisterProduct').checked=true;$('#libRegisterReference').checked=true;$('#libRegisterWorkflow').value='reference';

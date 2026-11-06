@@ -1,0 +1,13 @@
+F
+======================================================================
+FAIL: test_member_knowledge_catalog_and_memory_are_scoped_over_http (test_tenant_gateway.TenantGatewayTest.test_member_knowledge_catalog_and_memory_are_scoped_over_http)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_tenant_gateway.py", line 108, in test_member_knowledge_catalog_and_memory_are_scoped_over_http
+    self.assertNotIn('private', json.dumps(result))
+AssertionError: 'private' unexpectedly found in '{"query": "", "summary": {"items": 1, "raw_candidates": 1, "by_type": {"term": 0, "pattern": 0, "component": 0, "rule": 1}, "projects_contributing": 1, "cross_project_items": 0}, "projects": [{"key": "SAME", "name": "\\u7532\\u7684\\u771f\\u5b9e\\u8bb0\\u5f55", "root": "/private/tmp/tmh-gateway-pq6mfwlz/tenants/bdb86885f8add188e97d5ea5/data/repositories/same"}], "provenance_projects": ["SAME"], "items": [{"id": "rule-7789419e05b8ea9fd717591a", "type": "rule", "type_label": "\\u884c\\u4e1a\\u89c4\\u5219", "title": "\\u4e1a\\u52a1\\u89c4\\u5219", "summary": "\\u4e1a\\u52a1\\u89c4\\u5219\\uff1asame distinctive rule", "dedup_key": "7789419e05b8ea9fd717591abbe7e5790a873d0b17cb92443b3ee55395b8d3f1", "status": "\\u5f85\\u786e\\u8ba4", "reviewed": false, "provenance": [{"project": "SAME", "project_id": 1, "kind": "doc", "ref": "decisions.md", "id": "\\u4e1a\\u52a1\\u89c4\\u5219", "revision": "", "confirmed": false, "root": "/private/tmp/tmh-gateway-pq6mfwlz/tenants/bdb86885f8add188e97d5ea5/data/repositories/same", "status": "\\u5f85\\u786e\\u8ba4", "content_sha256": "194930d6e83950f10e7106203d2847933cf79b9a1147ac09066b1f5a7d3938f1"}]}], "count": 1, "returned": 1, "notice": "\\u53ea\\u8bfb\\u805a\\u5408\\uff1a\\u6bcf\\u6761\\u7684\\u5168\\u6587\\u4ecd\\u5728\\u6765\\u6e90\\u9879\\u76ee\\u91cc\\uff1b\\u540c\\u540d\\u4f46\\u5185\\u5bb9\\u4e0d\\u540c\\u7684\\u6761\\u76ee\\u4e0d\\u4f1a\\u88ab\\u5408\\u5e76\\u3002", "readonly": true}'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.925s
+
+FAILED (failures=1)

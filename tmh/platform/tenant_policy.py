@@ -232,7 +232,7 @@ ALL_PROJECT_PATHS = frozenset(("/api/projects/<key>/loop", "/api/projects/<key>/
 PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/sign/", "/ask/")
 # These projections still read across projects, even when their UI shows a
 # project selector. They remain admin-only until their query layer is scoped.
-ADMIN_GLOBAL = frozenset(("/api/org/knowledge", "/api/lead", "/api/readiness", "/api/testbox",
+ADMIN_GLOBAL = frozenset(("/api/lead", "/api/readiness", "/api/testbox",
                          "/api/agent-settings", "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
 AGENT_OPERATIONS = frozenset("""status projects_list tickets_list ticket_get delivery_get ticket_create message_send
 messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
@@ -566,9 +566,8 @@ def authorize(P, method, path, query, body, actor):
     if template in ADMIN_GLOBAL or template.startswith("/api/clients/") or template == "/api/learn/holdout" or template.startswith("/api/testbox/"):
         if who["role"] != "admin":
             raise ApiError(403, "此汇总或配置接口仅租户管理员可用")
-    if (method == "GET" and template == "/api/memory" or template == "/api/workbench/intake" and (body.get("client") or body.get("client_name"))) and who["role"] != "admin":
-        # Memory returns the unfiltered project picker; clients have tenant-wide
-        # links. A supplied project field does not scope either projection.
+    if template == "/api/workbench/intake" and (body.get("client") or body.get("client_name")) and who["role"] != "admin":
+        # Client associations remain tenant-wide; a project selector does not scope them.
         raise ApiError(403, "此目录或客户关联尚未提供项目权限过滤")
     # The legacy assistant GET creates a default session when one is missing.
     level = "viewer" if method == "GET" and template != "/api/assist" else "contributor"
@@ -610,7 +609,7 @@ def authorize(P, method, path, query, body, actor):
     cross_project = template == "/api/projects/<key>/library" and values.get("action") in ("grant", "revoke")
     if not cross_project and len({p["id"] for p in targets}) > 1:
         raise ApiError(400, "请求中的资源不属于同一项目")
-    if not targets and template not in FILTERED_LISTS | ALL_PROJECT_PATHS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap") and not (method == "POST" and template.startswith("/api/projects/import")):
+    if not targets and template not in FILTERED_LISTS | ALL_PROJECT_PATHS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap") and not (method == "GET" and template in ("/api/org/knowledge", "/api/memory")) and not (method == "POST" and template.startswith("/api/projects/import")):
         if who["role"] != "admin":
             raise ApiError(403, "请明确选择获准的项目或工单")
     if template == "/api/agent-settings" and method == "POST" and not who["platform_owner"]:

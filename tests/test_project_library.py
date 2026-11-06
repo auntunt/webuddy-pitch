@@ -128,6 +128,32 @@ class ProjectLibraryTest(unittest.TestCase):
             call(*args)
         self.assertEqual(raised.exception.code, code)
 
+    def test_source_update_is_advisory_and_revocation_hides_new_revision(self):
+        source, target = self.project('SOURCE'), self.project('TARGET')
+        old = self.build(source)
+        library.grant(self.store, source, target['key'], ['docs'], 'synthetic-human')
+        library.reference(self.store, target, old['id'], ['docs'], '审批参考', 'synthetic-human')
+        bindings = library.bindings(self.store, target)
+        self.assertFalse(library.view(self.store, target)['references'][0]['update_available'])
+        (Path(source['root']) / 'docs/guide.md').write_text('新版审批说明')
+        self.commit(source)
+        new = self.build(source)
+        ref = library.view(self.store, target)['references'][0]
+        self.assertTrue(ref['update_available'])
+        self.assertEqual(ref['latest_revision']['id'], new['id'])
+        from tmh.platform import tool_read
+        before = self.store.db.total_changes
+        self.assertEqual(tool_read.library_get(self.platform, target)['references'], [ref])
+        self.assertEqual(self.store.db.total_changes, before)
+        self.assertEqual(ref['revision_id'], old['id'])
+        self.assertEqual(library.bindings(self.store, target), bindings)
+        self.assert_api_error(403, library.read, self.store, target, new['id'], 'docs/guide.md')
+        self.store.x('DELETE FROM knowledge_grants WHERE source_project=?', (source['id'],))
+        ref = library.view(self.store, target)['references'][0]
+        self.assertFalse(ref['available'])
+        self.assertFalse(ref['update_available'])
+        self.assertNotIn('latest_revision', ref)
+
     def test_fixed_commit_survives_head_advance_and_dirty_source_is_untouched(self):
         source = self.project("STD")
         original = self.git(source["root"], "rev-parse", "HEAD")

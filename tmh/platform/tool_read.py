@@ -341,7 +341,7 @@ def library_get(P, p):
                                history={'historical': True, 'record': dict(r)},
                                recorded_status=r['status'], runtime_status='not_checked', historical=True)
                           for r in rows(st, 'knowledge_revisions', 'WHERE project_id=? ORDER BY seq DESC', (p['id'],))],
-            'references': library.reference_state(st, p),
+            'references': library.reference_overview(st, p),
             'derivation': derivations[0] if derivations else None,
             'grants': rows(st, 'knowledge_grants', 'WHERE source_project=? ORDER BY target_project', (p['id'],)),
             'runtime_status': 'not_checked', 'execution': False, 'notice': NOTICE}

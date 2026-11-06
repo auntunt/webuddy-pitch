@@ -466,6 +466,10 @@ def dispatch_read(P, query, user):
     if not isinstance(key, str) or not isinstance(q, str):
         raise ApiError(400, "project 和 q 必须是文字")
     p = _project(P, key) if key else None
+    from .tenant_policy import visible_projects, require_member
+    projects = visible_projects(P, user)
+    if p:
+        require_member(P, user, p, "viewer")
     if section == "brief":
         return read_brief(P, key, query.get("revision") or "")
     if section == "clusters":
@@ -473,9 +477,10 @@ def dispatch_read(P, query, user):
     items = _lesson_workspace(P, p, q)
     # Organization knowledge is a browsing catalog, not an authorization to
     # inject its full private project contents into other projects' tasks.
-    browsing = {"include_drafts": bool(p), "project_key": p["key"] if p else ""}
+    browsing = {"include_drafts": bool(p), "project_key": p["key"] if p else "",
+                "allowed_project_keys": {x["key"] for x in projects}}
     knowledge = org_knowledge.search(P.store, q, limit=200, **browsing) if q else org_knowledge.build(P.store, **browsing)["items"]
-    result = {"section": section, "project": p, "query": q, "projects": [{"key": x["key"], "name": x["name"]} for x in P.store.projects()],
+    result = {"section": section, "project": p, "query": q, "projects": [{"key": x["key"], "name": x["name"]} for x in projects],
               "lessons": items, "knowledge": knowledge, "readonly": True,
               "scope_notice": "项目知识保留来源；组织目录用于查阅。跨项目自动使用仅限人工共享并由当前项目引入的经验或明确绑定的固定知识。",
               "summary": {"lessons": len(items), "active": sum(x.get("auto_use", False) for x in items),

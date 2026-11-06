@@ -34,6 +34,13 @@ class MemoryUiTests(unittest.TestCase):
                                 text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_knowledge_feedback_is_only_a_source_bound_draft(self):
+        self.run_js(r"""
+S.scope='APP';memoryResponse=memoryData({knowledge:[{type_label:'规则',title:'审批',summary:'规则待核对',provenance:[{project:'APP',kind:'doc',ref:'decisions.md',content_sha256:'source-hash',status:'待确认'}]}]});
+await vMemory('knowledge');await main.querySelector('[data-mem-feedback]').fire('click');assert.ok(ticketDraft.body.includes('decisions.md'));assert.ok(ticketDraft.body.includes('source-hash'));assert.equal(mutations.length,0);
+S.meta.access={};globalThis.accessCanWrite=()=>false;await vMemory('knowledge');assert.equal(main.querySelector('[data-mem-feedback]'),null);
+""")
+
     def test_global_scope_and_project_switch_are_explicit(self):
         self.run_js(r"""
 await vMemory();assert.ok(requests[0].includes('project=&section=overview'));assert.equal($('#memProject').value,'');

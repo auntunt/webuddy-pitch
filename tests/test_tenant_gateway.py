@@ -95,6 +95,24 @@ class TenantGatewayTest(unittest.TestCase):
     def token(self, user, tenant):
         return self.reg.context(user, tenant)["context_token"]
 
+    def test_member_knowledge_catalog_and_memory_are_scoped_over_http(self):
+        root = Path(self.reg.one('SELECT path FROM tenants WHERE id=?', (self.a,))['path'])
+        for name in ('same', 'private'):
+            folder = root / 'repositories' / name / '.tmh' / 'knowledge'
+            folder.mkdir(parents=True)
+            (folder / 'decisions.md').write_text('- 业务规则：' + name + ' distinctive rule\n')
+        for route in ('/api/org/knowledge', '/api/org/knowledge?q=rule',
+                      '/api/memory?section=knowledge', '/api/memory?section=knowledge&project=SAME'):
+            status, _, result = self.request('GET', '/t/' + self.a + route, 'alice', token=self.token('alice', self.a))
+            self.assertEqual(status, 200, result)
+            self.assertNotIn('private distinctive rule', json.dumps(result))
+            self.assertNotIn('PRIVATE', json.dumps(result))
+            self.assertIn('SAME', json.dumps(result))
+        status, _, result = self.request('GET', '/t/' + self.a + '/api/memory?project=PRIVATE', 'alice', token=self.token('alice', self.a))
+        self.assertEqual(status, 403, result)
+        status, _, result = self.request('GET', '/t/' + self.b + '/api/org/knowledge', 'alice')
+        self.assertEqual(status, 403, result)
+
     def test_configured_https_origin_login_behind_container_proxy(self):
         with patch.dict(os.environ, {"TMH_PUBLIC_URL": "https://webuddy.example.test"}):
             headers = {"Host": "webuddy.example.test", "Origin": "https://webuddy.example.test", "Sec-Fetch-Site": "same-origin"}
