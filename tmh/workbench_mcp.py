@@ -26,7 +26,12 @@ INSTRUCTIONS = (
     "continue. Cancelling an MCP request does not cancel an accepted workbench "
     "run. After an uncertain write, inspect the task/receipt before retrying and "
     "reuse the original request ID where supported. This server exposes no human "
-    "approval, merge, release, arbitrary HTTP or shell tool."
+    "approval, merge, release, arbitrary HTTP or shell tool. "
+    "After answering questions, ask whether to use system execution or the current developer tool. "
+    "Answers and requirement confirmation never start coding. The owner records execution choice "
+    "with webuddy develop TICKET --action execution. For local execution, call webuddy_workspace_preflight "
+    "with the actual absolute editor working directory, and resolve every mismatch before coding. "
+    "For system execution, use existing explicit run_start plan/fix calls and inspect receipts. "
 )
 
 TENANT_INSTRUCTIONS = (
@@ -86,6 +91,12 @@ def build_server(client, read_only=False, allow_execution=False):
     # finishes. They never start local model subprocesses or retry a mutation.
     http_slots = CapacityLimiter(4)
 
+    local_preflight = not tenant or {'development_get', 'library_get'} <= live_allowed
+    preflight_schema = {"type": "object", "properties": {
+        "ticket": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+        "directory": {"type": "string", "description": "Actual absolute working directory on the developer machine; never the platform server path"}},
+        "required": ["ticket", "directory"], "additionalProperties": False}
+
     @server.list_tools()
     async def list_tools():
         return [
@@ -103,7 +114,8 @@ def build_server(client, read_only=False, allow_execution=False):
                 ),
             )
             for name, operation in allowed.items()
-        ]
+        ] + ([types.Tool(name="webuddy_workspace_preflight", description="只读核对开发者当前目录、仓库、版本、未提交内容与知识来源；不执行开发或人工确认。",
+                        inputSchema=preflight_schema, annotations=types.ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True))] if local_preflight else [])
 
     def result(payload, is_error=False):
         text = json.dumps(payload, ensure_ascii=False, allow_nan=False)
@@ -126,6 +138,16 @@ def build_server(client, read_only=False, allow_execution=False):
     # receives a complete structured error, not SDK-generated plain text only.
     @server.call_tool(validate_input=False)
     async def call_tool(name, arguments):
+        if name == 'webuddy_workspace_preflight' and local_preflight:
+            import re
+            if not isinstance(arguments, dict) or set(arguments) != {'ticket','directory'} or not isinstance(arguments['ticket'], str) or not re.fullmatch(r'[A-Za-z0-9_-]+', arguments['ticket']):
+                return error('invalid_arguments', '需要任务编号和当前开发目录的绝对路径')
+            from .workspace_preflight import inspect
+            try:
+                payload = await to_thread.run_sync(inspect, client, arguments['ticket'], arguments['directory'], limiter=http_slots, abandon_on_cancel=False)
+                return result(payload)
+            except ClientError as exc:
+                return error(exc.code, exc.message, exc.status)
         operation = allowed.get(name)
         if operation is None:
             return error("tool_not_enabled", "Tool is not enabled; list tools for available operations.")

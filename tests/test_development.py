@@ -12,7 +12,7 @@ class DevelopmentTest(unittest.TestCase):
         self.fixture.setUp()
         self.P=self.fixture.P
         self.key=self.fixture.ticket['key']
-        self.P.store.update_ticket(self.fixture.ticket['id'],'fixture',assignee='developer')
+        self.P.store.update_ticket(self.fixture.ticket['id'],'fixture',assignee='developer',links=dict(self.P.store.ticket(self.key)['links'],base=self.fixture.base))
         self.n=0
 
     def act(self,action,**body):
@@ -27,8 +27,9 @@ class DevelopmentTest(unittest.TestCase):
             questions=[{'id':'amount','question':'Expected amount?','options':['12.50','Other'],'required':True}])
 
     def confirm(self,state):
-        return development.act(self.P,'developer','confirm',dict(ticket=self.key,revision=state['revision'],
+        confirmed = development.act(self.P,'developer','confirm',dict(ticket=self.key,revision=state['revision'],
              digest=state['digest'],request_id='human-'+str(self.n)),human=True)
+        return development.act(self.P,'developer','execution',dict(ticket=self.key,revision=confirmed['revision'],digest=confirmed['digest'],mode='local',request_id='mode-'+str(self.n)),human=True)
 
     def test_historical_prompt_never_reads_current_ticket_confirmation(self):
         from unittest.mock import patch
@@ -95,3 +96,55 @@ class DevelopmentTest(unittest.TestCase):
         revised=self.act('propose',revision=old['revision'],**{k:payload[k] for k in ('summary','design','test_plan','criteria','questions')})
         self.assertEqual(revised['state'],'clarifying')
         self.assertFalse(revised['payload']['answers'])
+
+    def choose(self,state,mode,actor='developer',request_id='choice'):
+        return development.act(self.P,actor,'execution',dict(ticket=self.key,revision=state['revision'],
+            digest=state['digest'],mode=mode,request_id=request_id),human=True)
+
+    def test_choice_requires_current_human_confirmation_and_owner(self):
+        state=self.propose()
+        with self.assertRaises(ApiError):self.choose(state,'local')
+        state=self.act('answer',revision=state['revision'],answers=[{'question_id':'amount','answer':'12.50','resolved':True}])
+        state=self.confirm(state)
+        with self.assertRaises(ApiError):self.choose(state,'system',actor='someone-else')
+        with self.assertRaises(ApiError):
+            development.act(self.P,'agent','execution',dict(ticket=self.key,revision=state['revision'],digest=state['digest'],mode='system',request_id='forged-mode'))
+        self.P.store.event(self.fixture.ticket['id'],'customer','comment','Changed rule')
+        with self.assertRaises(ApiError):self.choose(state,'system')
+
+    def test_explicit_choice_does_not_execute_and_replays(self):
+        state=self.propose()
+        state=self.act('answer',revision=state['revision'],answers=[{'question_id':'amount','answer':'12.50','resolved':True}])
+        state=self.confirm(state)
+        before=agent_api._requirement(self.P.store.ticket(self.key),self.P.store)
+        state=self.choose(state,'system')
+        self.assertEqual(self.P.store.runs(ticket_id=self.fixture.ticket['id']),[])
+        self.assertEqual(state['execution']['base_commit'],self.fixture.base)
+        self.assertNotEqual(before,agent_api._requirement(self.P.store.ticket(self.key),self.P.store))
+        self.assertTrue(self.choose(state,'system')['replayed'])
+        with self.assertRaises(ValueError):development.require_execution(self.P.store,self.P.store.ticket(self.key),'local')
+        self.assertTrue(development.require_execution(self.P.store,self.P.store.ticket(self.key),'system'))
+        with self.assertRaises(ApiError):self.fixture.submit(request_id='wrong-mode')
+        self.assertTrue(self.P.store.ticket(self.key)['links']['hold'])
+        self.assertFalse(self.P.store.ticket(self.key)['links']['handwork'])
+
+    def test_confirmation_without_choice_cannot_start_writer(self):
+        state=self.propose()
+        state=self.act('answer',revision=state['revision'],answers=[{'question_id':'amount','answer':'12.50','resolved':True}])
+        state=development.act(self.P,'developer','confirm',dict(ticket=self.key,revision=state['revision'],digest=state['digest'],request_id='confirm-only'),human=True)
+        self.assertEqual(state['next_action'],'choose_execution')
+        with self.assertRaises(ValueError):development.require_execution(self.P.store,self.P.store.ticket(self.key),'system')
+        with self.assertRaises(ApiError):self.fixture.submit()
+
+    def test_execution_baseline_uses_personal_git_scope(self):
+        from unittest.mock import patch
+        from tmh.platform import agents, project_git
+        state=self.propose()
+        state=self.act('answer',revision=state['revision'],answers=[{'question_id':'amount','answer':'12.50','resolved':True}])
+        state=self.confirm(state)
+        original=agents.git
+        def checked(*args,**kwargs):
+            self.assertEqual(project_git.SCOPE.get()['user'],'developer')
+            self.assertIs(project_git.SCOPE.get()['platform'],self.P)
+            return original(*args,**kwargs)
+        with patch.object(agents,'git',side_effect=checked):self.choose(state,'system')

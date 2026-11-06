@@ -38,8 +38,14 @@ def row(store, tid):
 
 def identity(store, tid):
     current = row(store, tid)
-    return {'revision': current['revision'], 'digest': digest(json.loads(current['payload'])),
-            'confirmed_digest': current['confirmed_digest']} if current else None
+    if not current:
+        return None
+    selected = store.one("SELECT payload FROM development_events WHERE ticket_id=? AND action='execution' ORDER BY id DESC LIMIT 1", (tid,))
+    value = {'revision': current['revision'], 'digest': digest(json.loads(current['payload'])),
+             'confirmed_digest': current['confirmed_digest']}
+    if selected:
+        value['execution'] = digest(json.loads(selected['payload']))
+    return value
 
 
 def source(store, ticket):
@@ -58,13 +64,17 @@ def read(store, ticket):
     pending = [q for q in payload['questions'] if q['required'] and not payload['answers'].get(q['id'], {}).get('resolved')]
     confirmed = not stale and current['confirmed_digest'] == binding
     state = 'stale' if stale else 'confirmed' if confirmed else 'clarifying' if pending or not payload['summary'] else 'awaiting_confirmation'
-    return {'ticket': ticket['key'], 'revision': current['revision'], 'state': state, 'digest': binding,
+    selected = store.one("SELECT actor,payload,created FROM development_events WHERE ticket_id=? AND action='execution' ORDER BY id DESC LIMIT 1", (ticket['id'],))
+    execution = json.loads(selected['payload']) if selected else {}
+    execution = dict(execution, actor=selected['actor'], created=selected['created'],
+                     current=confirmed and execution.get('digest') == binding) if selected else {'current': False}
+    return {'execution': execution, 'ticket': ticket['key'], 'revision': current['revision'], 'state': state, 'digest': binding,
             'source_hash': current['source_hash'], 'confirmed_by': current['confirmed_by'] if confirmed else '',
             'payload': payload, 'pending_questions': pending,
             'history': [{'revision': e['revision'], 'action': e['action'], 'actor': e['actor'],
                          'created': e['created'], 'payload': json.loads(e['payload'])}
                         for e in store.q('SELECT revision,action,actor,created,payload FROM development_events WHERE ticket_id=? ORDER BY id', (ticket['id'],))],
-            'next_questions': pending[:3], 'next_action': {'stale':'development_propose', 'confirmed':'develop',
+            'next_questions': pending[:3], 'next_action': {'stale':'development_propose', 'confirmed':'develop' if execution.get('current') else 'choose_execution',
             'clarifying':'ask_developer' if payload['summary'] else 'development_propose', 'awaiting_confirmation':'human_terminal_confirm'}[state],
             'instructions': '在Agent终端分批向开发人员提问，展示选项并允许自由回答。不猜测回答；不清楚记resolved=false。全部问题处理后展示完整需求、设计和测试方案，由本人在独立人工终端确认。确认不是业务验收。'}
 
@@ -78,13 +88,22 @@ def require_confirmed(store, ticket):
     return state
 
 
+def require_execution(store, ticket, mode):
+    state = require_confirmed(store, ticket)
+    if state and (state['payload'].get('execution_choice_required') or state['execution'].get('mode')):
+        choice = state['execution']
+        if not choice.get('current') or choice.get('mode') != mode:
+            raise ValueError('请负责人在人工终端为当前确认稿选择' + ('系统执行' if mode == 'system' else '本地执行'))
+    return state
+
+
 def act(P, actor, action, body, *, human=False):
     from .agent_api import _ticket
     from ..agent_contract import validate, _validate_value, KEY, REQUEST, DIGEST
-    if action == 'confirm':
+    if action in ('confirm', 'execution'):
         if not human:
             raise ApiError(403, 'Agent不能提交人工需求确认')
-        if set(body) != {'ticket','revision','digest','request_id'}:
+        if set(body) != ({'ticket','revision','digest','request_id'} | ({'mode'} if action == 'execution' else set())):
             raise ApiError(400, '确认需要任务、修订、摘要和请求编号')
         try:
             for field, rule in (('ticket',KEY),('digest',DIGEST),('request_id',REQUEST)):
@@ -98,6 +117,8 @@ def act(P, actor, action, body, *, human=False):
             body = validate('development_' + action, body)
         except ValueError as exc:
             raise ApiError(400, str(exc)) from exc
+    if action == 'execution' and body['mode'] not in ('local', 'system'):
+        raise ApiError(400, '请选择local或system')
     st = P.store
     schema(st)
     fingerprint = digest({'action':action,'body':body})
@@ -114,7 +135,7 @@ def act(P, actor, action, body, *, human=False):
                 st.db.commit()
                 return dict(read(st,ticket), replayed=True, recorded_revision=receipt['revision'])
             current = row(st,ticket['id'])
-            if human and action == 'confirm':
+            if human and action in ('confirm', 'execution'):
                 from .team import assignment
                 assignee = assignment(P,ticket)['assignee']
                 if assignee and assignee != actor:
@@ -125,7 +146,7 @@ def act(P, actor, action, body, *, human=False):
                     return read(st,ticket)
                 if st.one("SELECT id FROM runs WHERE ticket_id=? AND status IN ('running','queued')",(ticket['id'],)):
                     raise ApiError(409, '任务正在执行，请先结束或停止原运行再接管')
-                payload = {'summary':'','design':'','test_plan':'','criteria':[], 'questions':[], 'answers':{}}
+                payload = {'summary':'','design':'','test_plan':'','criteria':[], 'questions':[], 'answers':{}, 'execution_choice_required':True}
                 revision = 1
                 links = dict(ticket.get('links') or {}, hold=True, handwork=True)
                 st.db.execute('UPDATE tickets SET links=?,updated=? WHERE id=?',(encode(links),now(),ticket['id']))
@@ -134,7 +155,31 @@ def act(P, actor, action, body, *, human=False):
                     raise ApiError(409, '开发会话已变化，请重新读取；不会覆盖其他人的回答')
                 payload = json.loads(current['payload'])
                 revision = current['revision']
-                if action == 'confirm':
+                if action == 'execution':
+                    state = read(st,ticket)
+                    if state['state'] != 'confirmed' or state['digest'] != body['digest']:
+                        raise ApiError(409, '请先确认当前方案，再选择执行方式')
+                    if st.one("SELECT id FROM runs WHERE ticket_id=? AND status IN ('running','queued')", (ticket['id'],)):
+                        raise ApiError(409, '任务正在执行，请先停止并核对回执')
+                    from pathlib import Path
+                    from .agents import git
+                    from . import repo_sync
+                    project = st.project(ticket['project_id'])
+                    links = ticket.get('links') or {}
+                    base = links.get('code_at') or links.get('base') or 'HEAD'
+                    from .project_git import personal_scope
+                    with personal_scope(P, actor):
+                        base = git(Path(project['root']), 'rev-parse', '--verify', '--end-of-options', str(base)+'^{commit}', check=False).strip()
+                    import re
+                    if not re.fullmatch(r'[0-9a-f]{40}|[0-9a-f]{64}', base):
+                        raise ApiError(409, '项目基线不可解析，请先补齐登记仓库')
+                    repo = repo_sync.conf(P.data_dir, project['key'])
+                    body = dict(body, base_commit=base, project=project['key'],
+                                repository=repo_sync.ssh_url(repo) if repo else '')
+                    # Keep automation held: choosing a mode never starts work.
+                    links = dict(links, hold=True, handwork=body['mode']=='local')
+                    st.db.execute('UPDATE tickets SET links=?,updated=? WHERE id=?', (encode(links),now(),ticket['id']))
+                elif action == 'confirm':
                     state = read(st,ticket)
                     if state['state'] not in ('awaiting_confirmation','confirmed') or state['digest'] != body['digest']:
                         raise ApiError(409, '有未回答问题、来源变化或确认稿已更新，请重新核对')
@@ -156,6 +201,7 @@ def act(P, actor, action, body, *, human=False):
                                if current['source_hash'] == source(st,ticket) and old_questions.get(q['id']) == q and q['id'] in payload['answers']}
                     payload = {k:body[k] for k in ('summary','design','test_plan','criteria','questions')}
                     payload['answers'] = answers
+                    payload['execution_choice_required'] = json.loads(current['payload']).get('execution_choice_required', False)
                     revision += 1
                 elif action == 'answer':
                     if current['source_hash'] != source(st,ticket):
@@ -168,7 +214,7 @@ def act(P, actor, action, body, *, human=False):
                             raise ApiError(400, '回答不属于当前问题集')
                         payload['answers'][answer['question_id']] = dict(answer, actor=actor, via='human_terminal' if human else 'agent_relay')
                     revision += 1
-            if action != 'confirm':
+            if action not in ('confirm', 'execution'):
                 st.db.execute('INSERT OR REPLACE INTO development_sessions VALUES(?,?,?,?,?,?,?)',
                               (ticket['id'],revision,source(st,ticket),encode(payload),'','',now()))
             st.db.execute('INSERT INTO development_events(ticket_id,actor,request_id,fingerprint,revision,action,payload,created) VALUES(?,?,?,?,?,?,?,?)',

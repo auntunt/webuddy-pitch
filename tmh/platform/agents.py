@@ -1475,9 +1475,10 @@ class Runner:
         from . import project_library as library
         project = self.store.project(project['id'])
         library.require_development(self.store, project)
+        development = None
         if ticket and mode == 'fix':
-            from .development import require_confirmed
-            require_confirmed(self.store,self.store.ticket(ticket['id']))
+            from .development import require_execution
+            development = require_execution(self.store,self.store.ticket(ticket['id']), 'system')
         reference_inputs = library.bindings(self.store, project)
         if any(not r['available'] for r in reference_inputs):
             raise ValueError('项目参考授权已变化，请先处理不可用引用')
@@ -1506,7 +1507,7 @@ class Runner:
             from .agent_api import _requirement
             from .project_mcp import BoundJob
             from .project_snapshot import resolve as resolve_source
-            member_ref = code_at(ticket) or 'HEAD'
+            member_ref = development['execution']['base_commit'] if development and development['execution'].get('current') else code_at(ticket) or 'HEAD'
             pending_job = BoundJob(author,project['key'],(self.data_dir/'runs'/'pending').resolve(),authority.image)
             member_base = resolve_source(authority.image,Path(project['root']),member_ref,
                                          cancel=lambda:not authority.current(pending_job))
@@ -1533,6 +1534,11 @@ class Runner:
             raise ValueError("问题是空的")
         if mode == "fix" and (ticket or {}).get("links", {}).get("delivery"):
             reviewed_delivery_plan(self.store, ticket)
+        if development and development['execution'].get('current') and not authority:
+            selected_base = development['execution']['base_commit']
+            if base and base != selected_base:
+                raise ValueError('执行起点与负责人选择时固定的版本不同，请重新核对交接')
+            base = selected_base
         source = delivery_source(self.store, project, ticket, mode, base)
         if source and session_id is not None:
             raise ValueError("固定版本的交付检查必须使用独立运行，不能绑定既有会话")

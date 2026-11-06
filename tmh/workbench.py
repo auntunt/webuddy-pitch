@@ -46,7 +46,8 @@ def parser():
 
     q = add("develop", "个人终端问答、需求确认、Leader复核和合并；凭据不交给MCP")
     q.add_argument("ticket")
-    q.add_argument("--action", choices=["status","ask","confirm","assess","review","reject","merge"],default="ask")
+    q.add_argument("--action", choices=["status","ask","confirm","assess","review","reject","merge","execution"],default="ask")
+    q.add_argument("--mode", choices=["system", "local"], help="明确选择执行位置；不会自动启动开发")
     q.add_argument("--candidate-id",type=int)
     q.add_argument("--user",help="个人登录账号，密码交互输入")
     q = add("ci-config", "项目管理员配置必需GitHub Actions检查")
@@ -66,6 +67,9 @@ def parser():
     q.add_argument("--query", dest="q")
     q = add("ticket", "读取完整任务与证据包")
     q.add_argument("ticket")
+    q = add("preflight", "只读核对当前本地目录、项目仓库、固定基线和知识版本")
+    q.add_argument("ticket")
+    q.add_argument("--directory", required=True, help="当前开发工作目录的绝对路径")
     q = add("create", "创建需求；暂停自动执行")
     q.add_argument("project")
     q.add_argument("title")
@@ -337,6 +341,11 @@ def main(argv=None):
             except ImportError:
                 raise ClientError("MCP 需要 Python 3.10+ 和可选依赖：python -m pip install -e '.[mcp]'。CLI 无需该依赖。", "missing_mcp_sdk")
             return serve(client, read_only=a.read_only, allow_execution=a.allow_execution and not a.read_only) or 0
+        if a.command == "preflight":
+            from .workspace_preflight import inspect
+            result = inspect(client, a.ticket, a.directory)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ready"] else 1
         op, args = _arguments(a)
         if a.command in ("approve", "reject"):
             if not sys.stdin.isatty():

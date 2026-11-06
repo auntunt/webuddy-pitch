@@ -109,6 +109,17 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                     self.assertTrue(initialization.capabilities.tools)
                     yield session
 
+    async def test_local_preflight_requires_absolute_directory_and_never_starts_work(self):
+        async with self.session("--read-only") as session:
+            bad=await session.call_tool("webuddy_workspace_preflight", {"ticket":"PROJ-1","directory":"."})
+            self.assertTrue(bad.isError)
+            self.assertEqual(bad.structuredContent['code'],'directory_required')
+            self.assertEqual(self.requests,[])
+            value=await session.call_tool("webuddy_workspace_preflight", {"ticket":"PROJ-1","directory":str(ROOT)})
+            self.assertFalse(value.isError)
+            self.assertFalse(value.structuredContent['ready'])
+            self.assertEqual([r['path'].rsplit('/',1)[-1] for r in self.requests],['development_get'])
+
     def assert_full_json(self, result):
         self.assertEqual(len(result.content), 1)
         self.assertEqual(result.content[0].type, "text")
@@ -159,7 +170,8 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                         initialized = await session.initialize()
                         self.assertEqual(initialized.serverInfo.name, "webuddy_mcp")
                         tools = (await session.list_tools()).tools
-                        self.assertEqual(len(tools), 19)
+                        self.assertEqual(len(tools), 20)
+                        self.assertIn("webuddy_workspace_preflight", {t.name for t in tools})
                         self.assertTrue({"webuddy_development_get","webuddy_candidate_ci"} <= {tool.name for tool in tools})
                         self.assertTrue(all(tool.annotations.readOnlyHint for tool in tools))
                         reply = await session.call_tool("webuddy_status", {})
@@ -319,8 +331,12 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
         async with self.session() as session:
             discovered = (await session.list_tools()).tools
             expected = {"webuddy_" + op for op, spec in SPECS.items() if not spec["execution"] and not spec.get("operator")}
-            self.assertEqual({tool.name for tool in discovered}, expected)
+            self.assertEqual({tool.name for tool in discovered}, expected | {"webuddy_workspace_preflight"})
             for tool in discovered:
+                if tool.name == "webuddy_workspace_preflight":
+                    self.assertTrue(tool.annotations.readOnlyHint)
+                    self.assertEqual(set(tool.inputSchema["required"]), {"ticket", "directory"})
+                    continue
                 op = tool.name[len("webuddy_"):]
                 self.assertEqual(tool.inputSchema, schema(op))
                 self.assertEqual(tool.annotations.readOnlyHint, not SPECS[op]["write"])
@@ -354,7 +370,7 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
         from tmh.agent_contract import SPECS
         async with self.session("--read-only", "--allow-execution") as session:
             names = {tool.name for tool in (await session.list_tools()).tools}
-            self.assertEqual(names, {"webuddy_" + op for op, spec in SPECS.items() if not spec["write"]})
+            self.assertEqual(names, {"webuddy_" + op for op, spec in SPECS.items() if not spec["write"]} | {"webuddy_workspace_preflight"})
             for name, arguments in (
                 ("webuddy_message_send", {"ticket": "BOOTV2-1", "body": "blocked", "request_id": "blocked"}),
                 ("webuddy_run_start", {"ticket": "BOOTV2-1", "mode": "fix", "engine": "codex", "request_id": "blocked"}),

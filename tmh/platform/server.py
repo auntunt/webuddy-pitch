@@ -1197,7 +1197,7 @@ def api_development_action(P, req, key):
     actor = _human_action(P, req, strict=True)
     body = dict(req.body)
     action = body.pop('action', '')
-    if action not in ('answer', 'confirm') or body.get('ticket') != key:
+    if action not in ('answer', 'confirm', 'execution') or body.get('ticket') != key:
         raise ApiError(400, '请选择当前任务的回答或确认操作')
     return development.act(P,actor,action,body,human=True)
 

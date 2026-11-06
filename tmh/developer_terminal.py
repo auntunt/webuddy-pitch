@@ -101,7 +101,17 @@ def run(args):
             state=_mutation(client,path,{'action':'answer','ticket':ticket,'revision':state['revision'],
                 'answers':[{'question_id':question['id'],'answer':answer,'resolved':raw!='?'}]})
         print(json.dumps(state,ensure_ascii=False,indent=2));return 0
-    if args.action=='confirm':
+    if args.action=='execution':
+        print(json.dumps(state,ensure_ascii=False,indent=2))
+        if state['state']!='confirmed':
+            raise ClientError('请先完成当前方案的人工确认','not_ready')
+        mode=args.mode or input('执行方式（system交给系统 / local在当前开发工具执行）：').strip()
+        if mode not in ('system','local'):
+            raise ClientError('请选择system或local','invalid_mode')
+        phrase='EXECUTE '+ticket+' '+mode+' '+state['digest'][:12]
+        if input('只记录交接、不会开始开发。输入 '+phrase+'：').strip()!=phrase:return 0
+        result=_mutation(client,path,{'action':'execution','ticket':ticket,'revision':state['revision'],'digest':state['digest'],'mode':mode})
+    elif args.action=='confirm':
         print(json.dumps(state,ensure_ascii=False,indent=2))
         if state['state']!='awaiting_confirmation':
             raise ClientError('请先完成当前问题并更新确认稿；当前状态：'+state['state'],'not_ready')

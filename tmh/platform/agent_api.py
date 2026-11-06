@@ -624,6 +624,13 @@ def _execute(P, req, actor, operation, a):
                     if chosen is not None:
                         break
                 chosen = chosen if chosen is not None else (t.get("links") or {}).get("base") or "HEAD"
+                from .development import require_execution
+                try:
+                    development = require_execution(st, t, 'system')
+                except ValueError as exc:
+                    raise ApiError(409, str(exc)) from exc
+                if development and development['execution'].get('current'):
+                    chosen = development['execution']['base_commit']
                 base = git(Path(p["root"]), "rev-parse", "--verify", str(chosen or "HEAD") + "^{commit}", check=False).strip()
                 if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", base):
                     raise ApiError(409, "代码起点无法解析，未启动修改")

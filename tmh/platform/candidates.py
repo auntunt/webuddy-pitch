@@ -136,8 +136,13 @@ def submit(P, actor, args, mutation):
     root = Path(p["root"])
     with guard(P, t["id"]), st.lock:
         _ready(P, t)
-        from .development import require_confirmed
-        development = require_confirmed(st,t)
+        from .development import require_execution
+        try:
+            development = require_execution(st,t,'local')
+        except ValueError as exc:
+            raise ApiError(409, str(exc)) from exc
+        if development and development['execution'].get('current') and args['base_commit'] != development['execution']['base_commit']:
+            raise ApiError(409, '候选起点与负责人选择执行方式时固定的版本不同')
         if development and args['criteria'] != development['payload']['criteria']:
             raise ApiError(409,'候选验收标准必须与开发人员确认稿一致')
         if _requirement(t, st) != args["requirement_hash"]:
