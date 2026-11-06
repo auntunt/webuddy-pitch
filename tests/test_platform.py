@@ -457,7 +457,7 @@ class PlatformApiTest(unittest.TestCase):
             self.assertEqual(fx["verify"]["check"], "skip")
             self.assertFalse(fx["decision"])
             n_runs = len(d["runs"])
-            # the build works now: built again, not redone, and committed as if its own run had passed
+            # A changed check contract invalidates the old diagnosis: build again without rewriting code.
             (self.data / "autoflow.json").write_text(json.dumps({"on": True, "agent": "fixer", "check": ok}), encoding="utf-8")
             code, v = self.call("POST", "/api/runs/%d/recheck" % fx["id"], {"wait": True})
             self.assertEqual(code, 200, v)
@@ -466,7 +466,16 @@ class PlatformApiTest(unittest.TestCase):
             _, d = self.call("GET", "/api/tickets/" + t["key"])
             self.assertEqual(len(d["runs"]), n_runs, "no agent ran again")
             fx = [r for r in d["runs"] if r["mode"] == "fix"][0]
-            self.assertTrue(fx["decision"].startswith("accepted:"), [e["body"] for e in d["events"]])
+            self.assertFalse(fx["decision"], "changed checks require a new review before adoption")
+            self.assertEqual(v["verdict"], "unknown")
+            self.assertIn("检查契约", v["diagnosis_invalidated"])
+            self.assertTrue(v["previous_verifications"], "retain historical evidence")
+            # Explicit synthetic human review preserves coverage of rechecking an adopted commit.
+            code, accepted = self.call("POST", "/api/runs/%d/decide" % fx["id"], {"decision": "accept"})
+            self.assertEqual(code, 200, accepted)
+            _, d = self.call("GET", "/api/tickets/" + t["key"])
+            fx = next(r for r in d["runs"] if r["id"] == fx["id"])
+            self.assertTrue(fx["decision"].startswith("accepted:"))
             self.assertEqual(d["ticket"]["status"], "verify")
             self.assertTrue(any("重新验证了运行" in e["body"] and "构建通过" in e["body"] for e in d["events"]))
             # an adopted change is built from its commit, in a worktree that is gone afterwards

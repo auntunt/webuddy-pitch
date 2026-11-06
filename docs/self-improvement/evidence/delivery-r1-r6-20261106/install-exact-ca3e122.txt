@@ -1,0 +1,22 @@
+Processing /tmp/webuddy-r6-ca3e122
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: tmh-harness
+  Building wheel for tmh-harness (pyproject.toml): started
+  Building wheel for tmh-harness (pyproject.toml): finished with status 'done'
+  Created wheel for tmh-harness: filename=tmh_harness-0.4.0-py3-none-any.whl size=1528986 sha256=aa4840b08ee64ac206bdbc7c790c1e6c2655517dc82922b7356398c822bc1f5d
+  Stored in directory: /Users/auntlee/Library/Caches/pip/wheels/f4/77/1f/6352306964fc8d3610e604b8efa7041e5e0641ffc8de1307d1
+Successfully built tmh-harness
+Installing collected packages: tmh-harness
+  Attempting uninstall: tmh-harness
+    Found existing installation: tmh-harness 0.4.0
+    Uninstalling tmh-harness-0.4.0:
+      Successfully uninstalled tmh-harness-0.4.0
+Successfully installed tmh-harness-0.4.0
+
+[notice] A new release of pip is available: 24.0 -> 26.3
+[notice] To update, run: /tmp/webuddy-r6-install-20261106/bin/python -m pip install --upgrade pip

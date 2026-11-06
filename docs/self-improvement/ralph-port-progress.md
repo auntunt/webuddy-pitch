@@ -945,3 +945,10 @@
 干净 venv 安装：第一次从现工作目录构建的安装文件出现空模块，CLI 导入失败；保留失败结论。随后将 210 个源码文件逐一核对字节长度复制到无 build 缓存的临时源码目录，强制安装成功，离开源码目录执行 tmh --version 输出 0.4.0、webuddy --help 成功。这是 macOS CLI 安装检查，不证明 Linux 客户主机或 Windows 凭据支持。交付用精确 Git 提交的隔离源码重新构建，包显示版本不充当代码版本。
 
 证据：[本轮日志与截图](evidence/delivery-r1-r6-20261106/)。客户待提供：主机/终端系统、可达网络、怀柔仓库与 CI、规则与数据副本、模型通道/计量依据、需求/开发/Leader/验收/推送发布责任人。接入材料已补入 DEPLOY.md、developer-terminal.md、team-pilots.md。远端 CI 和 43 发布结果待本候选推送后追加；阿里云生产未操作。
+
+
+精确候选 `ca3e122` 的 CI（Actions 42180012807 / 42180021287）：快速、安装包、Windows 执行与证据专项成功；Linux 完整套件发现两项旧测试仍期待检查契约变化后自动采纳，首次 3.11 结果 2990 passed、2 failed、45 skipped。产品现在正确阻止失效诊断放行。补齐两项测试：断言 unknown、历史保留和未采纳，再由合成测试中的明确人工 decide 操作采纳，保留已采纳提交复验与清理覆盖；本地两项通过，未放宽产品门禁。新提交推送后重新等待精确 CI；未部署失败候选。
+
+用户随后明确可用现有 Windows 设备，SSH `webuddy-win` 本轮连通。实际系统 Windows NT 10.0.26200、Python 3.11.9、Git 2.55、Node 24.18；在 `C:\tmh-runner\work\webuddy-ca3e122-r1r6` 新隔离目录运行，包 SHA256 `e31197e72060ad0a5b8e2e1a45ac66b180761b311d62b3914e05007dea94b43a` 核对通过。183 项：141 通过、41 既有平台条件跳过、1 报错。唯一报错为 test_tool_client 的个人凭据保存触发 credential_platform_unsupported，说明原生 Windows 个人 MCP 接入仍未支持；未删除保护或新增 skip。此设备不是甲方怀柔环境，不算客户联调。完整 Windows 回执与日志另存本轮证据目录。
+
+完整 `git archive ca3e122` 源码在 Mac 新 venv 安装后，`python -I -X utf8 scripts/installed-smoke.py <site-packages>` 通过来源、CLI、项目工具安装/刷新、全部资源和离线安装。仅导出 tmh/pyproject 的初次实验包不含 setup.py/安装资源，不能作为完整交付包，已改用完整提交归档。

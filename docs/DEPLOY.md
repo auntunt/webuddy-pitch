@@ -3,7 +3,7 @@
 面向**专用机器直接部署**：Linux 服务器上安装交付记录中的固定代码版本、装 Python 依赖（零第三方运行时依赖）、起服务、
 Caddy 反代、systemd 托管，并给出备份/升级/回滚/冒烟/安全清单。
 
-- 目标运行环境：**Tencent Cloud Linux**（Ubuntu 22.04 / 24.04 或同代 CentOS/OpenCloudOS 均可），Python **3.12.3**。
+- 目标运行环境：**Linux**（现役 43 环境；其他 Ubuntu/CentOS/OpenCloudOS 版本需按本手册另行验证），Python **3.12.3**。
 - 本仓库运行时**没有第三方依赖**（`pyproject.toml` 的 `dependencies = []`）；`pyproject.toml` 声明
   `requires-python >= 3.8`，但生产/CI 目标是 3.11–3.12，3.8 仅保证语法兼容。
 - 唯一可选依赖是 **MCP**：`pip install ".[mcp]"`（需要 `mcp>=1.30`，仅使用平台/工作台的 stdio MCP 时才需要）。
@@ -285,7 +285,7 @@ TMH_USER=admin TMH_PASS=*** node ops/ops.mjs evidence verify <工单号> --ancho
 cd /opt/webuddy/app
 git log -1 --oneline | tee /opt/webuddy/backups/last-good.txt
 # 1) 备份（同 §6）
-# 2) 拉分支
+# 2) 获取已通过目标平台检查的交付提交
 git fetch origin
 git status --porcelain            # 必须为空；有本地改动先停手
 git fetch origin "$WEBUDDY_RELEASE_SHA"
@@ -295,7 +295,7 @@ git log -1 --oneline
 # 3) 重装到 venv
 . /opt/webuddy/venv/bin/activate
 python -m pip install --force-reinstall .
-python -c "import tmh; print(tmh.__version__)"     # 必须等于 CHANGELOG 里的版本
+python -c "import tmh; print(tmh.__version__)"     # 包版本仅供诊断，核对交付 SHA 与运行文件清单
 # 4) 重启并冒烟
 sudo systemctl restart webuddy
 sleep 3 && systemctl is-active webuddy
