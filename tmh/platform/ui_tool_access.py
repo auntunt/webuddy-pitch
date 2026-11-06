@@ -17,7 +17,7 @@ HTML = r'''<!doctype html>
 <section class="panel" id="howto"><h2>怎么连接</h2><ol class="steps">
 <li>准备一台 macOS 或 Linux 电脑（Windows 请在 WSL 里操作），装好 Python 3.10 或以上。</li>
 <li><a id="client" download="__CLIENT__">下载客户端</a>，在终端安装到单独的目录：<pre>python3 -m venv ~/.webuddy
-~/.webuddy/bin/pip install ~/Downloads/__CLIENT__
+~/.webuddy/bin/pip install --upgrade --force-reinstall ~/Downloads/__CLIENT__
 ~/.webuddy/bin/webuddy</pre>最后一条会显示客户端连接的服务器地址（就是本系统）和下一步。</li>
 <li>在下方「授权一个工具连接」里选项目、操作范围和有效期，创建后凭据文件会自动下载（webuddy-credential.json）。凭据只在创建时提供一次，丢了就新建一个连接。</li>
 <li>创建成功后，本页会给出导入凭据、生成 Codex / Claude Code / Cursor 配置的命令，照着复制执行，然后重启工具即可。</li>
