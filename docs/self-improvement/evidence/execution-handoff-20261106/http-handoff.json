@@ -1,0 +1,523 @@
+{
+  "selected": {
+    "status": 200,
+    "value": {
+      "execution": {
+        "base_commit": "ccc612632cd174c3992fdce5b9050aa6cc302a7c",
+        "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+        "mode": "system",
+        "project": "EXT",
+        "repository": "",
+        "request_id": "browser-system-once",
+        "revision": 3,
+        "ticket": "EXT-1",
+        "actor": "developer",
+        "created": "2026-11-06 16:53:57",
+        "current": true
+      },
+      "ticket": "EXT-1",
+      "revision": 3,
+      "state": "confirmed",
+      "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+      "source_hash": "026022c4686631d009079bd06b2adb6cc668c5afc61c376af00b364f03993756",
+      "confirmed_by": "developer",
+      "payload": {
+        "answers": {
+          "amount": {
+            "actor": "agent:writer",
+            "answer": "12.50",
+            "question_id": "amount",
+            "resolved": true,
+            "via": "agent_relay"
+          }
+        },
+        "criteria": [
+          {
+            "check": "Read the app and run its test",
+            "id": "A1",
+            "text": "Value 2 is returned"
+          }
+        ],
+        "design": "Validate before write",
+        "execution_choice_required": true,
+        "questions": [
+          {
+            "id": "amount",
+            "options": [
+              "12.50",
+              "Other"
+            ],
+            "question": "Expected amount?",
+            "required": true
+          }
+        ],
+        "summary": "Refund correctly",
+        "test_plan": "Check saved amount and duplicate submission"
+      },
+      "pending_questions": [],
+      "history": [
+        {
+          "revision": 1,
+          "action": "start",
+          "actor": "agent:writer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "request_id": "dev-1",
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 2,
+          "action": "propose",
+          "actor": "agent:writer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "criteria": [
+              {
+                "check": "Read the app and run its test",
+                "id": "A1",
+                "text": "Value 2 is returned"
+              }
+            ],
+            "design": "Validate before write",
+            "questions": [
+              {
+                "id": "amount",
+                "options": [
+                  "12.50",
+                  "Other"
+                ],
+                "question": "Expected amount?",
+                "required": true
+              }
+            ],
+            "request_id": "dev-2",
+            "revision": 1,
+            "summary": "Refund correctly",
+            "test_plan": "Check saved amount and duplicate submission",
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "answer",
+          "actor": "agent:writer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "answers": [
+              {
+                "answer": "12.50",
+                "question_id": "amount",
+                "resolved": true
+              }
+            ],
+            "request_id": "dev-3",
+            "revision": 2,
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "confirm",
+          "actor": "developer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+            "request_id": "human-3",
+            "revision": 3,
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "execution",
+          "actor": "developer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "base_commit": "ccc612632cd174c3992fdce5b9050aa6cc302a7c",
+            "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+            "mode": "local",
+            "project": "EXT",
+            "repository": "",
+            "request_id": "mode-3",
+            "revision": 3,
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "execution",
+          "actor": "developer",
+          "created": "2026-11-06 16:53:57",
+          "payload": {
+            "base_commit": "ccc612632cd174c3992fdce5b9050aa6cc302a7c",
+            "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+            "mode": "system",
+            "project": "EXT",
+            "repository": "",
+            "request_id": "browser-system-once",
+            "revision": 3,
+            "ticket": "EXT-1"
+          }
+        }
+      ],
+      "next_questions": [],
+      "next_action": "develop",
+      "instructions": "在Agent终端分批向开发人员提问，展示选项并允许自由回答。不猜测回答；不清楚记resolved=false。全部问题处理后展示完整需求、设计和测试方案，由本人在独立人工终端确认。确认不是业务验收。"
+    }
+  },
+  "replayed": {
+    "status": 200,
+    "value": {
+      "execution": {
+        "base_commit": "ccc612632cd174c3992fdce5b9050aa6cc302a7c",
+        "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+        "mode": "system",
+        "project": "EXT",
+        "repository": "",
+        "request_id": "browser-system-once",
+        "revision": 3,
+        "ticket": "EXT-1",
+        "actor": "developer",
+        "created": "2026-11-06 16:53:57",
+        "current": true
+      },
+      "ticket": "EXT-1",
+      "revision": 3,
+      "state": "confirmed",
+      "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+      "source_hash": "026022c4686631d009079bd06b2adb6cc668c5afc61c376af00b364f03993756",
+      "confirmed_by": "developer",
+      "payload": {
+        "answers": {
+          "amount": {
+            "actor": "agent:writer",
+            "answer": "12.50",
+            "question_id": "amount",
+            "resolved": true,
+            "via": "agent_relay"
+          }
+        },
+        "criteria": [
+          {
+            "check": "Read the app and run its test",
+            "id": "A1",
+            "text": "Value 2 is returned"
+          }
+        ],
+        "design": "Validate before write",
+        "execution_choice_required": true,
+        "questions": [
+          {
+            "id": "amount",
+            "options": [
+              "12.50",
+              "Other"
+            ],
+            "question": "Expected amount?",
+            "required": true
+          }
+        ],
+        "summary": "Refund correctly",
+        "test_plan": "Check saved amount and duplicate submission"
+      },
+      "pending_questions": [],
+      "history": [
+        {
+          "revision": 1,
+          "action": "start",
+          "actor": "agent:writer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "request_id": "dev-1",
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 2,
+          "action": "propose",
+          "actor": "agent:writer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "criteria": [
+              {
+                "check": "Read the app and run its test",
+                "id": "A1",
+                "text": "Value 2 is returned"
+              }
+            ],
+            "design": "Validate before write",
+            "questions": [
+              {
+                "id": "amount",
+                "options": [
+                  "12.50",
+                  "Other"
+                ],
+                "question": "Expected amount?",
+                "required": true
+              }
+            ],
+            "request_id": "dev-2",
+            "revision": 1,
+            "summary": "Refund correctly",
+            "test_plan": "Check saved amount and duplicate submission",
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "answer",
+          "actor": "agent:writer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "answers": [
+              {
+                "answer": "12.50",
+                "question_id": "amount",
+                "resolved": true
+              }
+            ],
+            "request_id": "dev-3",
+            "revision": 2,
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "confirm",
+          "actor": "developer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+            "request_id": "human-3",
+            "revision": 3,
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "execution",
+          "actor": "developer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "base_commit": "ccc612632cd174c3992fdce5b9050aa6cc302a7c",
+            "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+            "mode": "local",
+            "project": "EXT",
+            "repository": "",
+            "request_id": "mode-3",
+            "revision": 3,
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "execution",
+          "actor": "developer",
+          "created": "2026-11-06 16:53:57",
+          "payload": {
+            "base_commit": "ccc612632cd174c3992fdce5b9050aa6cc302a7c",
+            "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+            "mode": "system",
+            "project": "EXT",
+            "repository": "",
+            "request_id": "browser-system-once",
+            "revision": 3,
+            "ticket": "EXT-1"
+          }
+        }
+      ],
+      "next_questions": [],
+      "next_action": "develop",
+      "instructions": "在Agent终端分批向开发人员提问，展示选项并允许自由回答。不猜测回答；不清楚记resolved=false。全部问题处理后展示完整需求、设计和测试方案，由本人在独立人工终端确认。确认不是业务验收。",
+      "replayed": true,
+      "recorded_revision": 3
+    }
+  },
+  "answered": {
+    "status": 200,
+    "value": {
+      "execution": {
+        "base_commit": "ccc612632cd174c3992fdce5b9050aa6cc302a7c",
+        "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+        "mode": "system",
+        "project": "EXT",
+        "repository": "",
+        "request_id": "browser-system-once",
+        "revision": 3,
+        "ticket": "EXT-1",
+        "actor": "developer",
+        "created": "2026-11-06 16:53:57",
+        "current": false
+      },
+      "ticket": "EXT-1",
+      "revision": 4,
+      "state": "awaiting_confirmation",
+      "digest": "6a6baf07fc815638184bcbabf52e96df8f699b1caa2c2f9f89547ccd92075f9f",
+      "source_hash": "026022c4686631d009079bd06b2adb6cc668c5afc61c376af00b364f03993756",
+      "confirmed_by": "",
+      "payload": {
+        "answers": {
+          "amount": {
+            "actor": "developer",
+            "answer": "13.50",
+            "question_id": "amount",
+            "resolved": true,
+            "via": "human_terminal"
+          }
+        },
+        "criteria": [
+          {
+            "check": "Read the app and run its test",
+            "id": "A1",
+            "text": "Value 2 is returned"
+          }
+        ],
+        "design": "Validate before write",
+        "execution_choice_required": true,
+        "questions": [
+          {
+            "id": "amount",
+            "options": [
+              "12.50",
+              "Other"
+            ],
+            "question": "Expected amount?",
+            "required": true
+          }
+        ],
+        "summary": "Refund correctly",
+        "test_plan": "Check saved amount and duplicate submission"
+      },
+      "pending_questions": [],
+      "history": [
+        {
+          "revision": 1,
+          "action": "start",
+          "actor": "agent:writer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "request_id": "dev-1",
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 2,
+          "action": "propose",
+          "actor": "agent:writer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "criteria": [
+              {
+                "check": "Read the app and run its test",
+                "id": "A1",
+                "text": "Value 2 is returned"
+              }
+            ],
+            "design": "Validate before write",
+            "questions": [
+              {
+                "id": "amount",
+                "options": [
+                  "12.50",
+                  "Other"
+                ],
+                "question": "Expected amount?",
+                "required": true
+              }
+            ],
+            "request_id": "dev-2",
+            "revision": 1,
+            "summary": "Refund correctly",
+            "test_plan": "Check saved amount and duplicate submission",
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "answer",
+          "actor": "agent:writer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "answers": [
+              {
+                "answer": "12.50",
+                "question_id": "amount",
+                "resolved": true
+              }
+            ],
+            "request_id": "dev-3",
+            "revision": 2,
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "confirm",
+          "actor": "developer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+            "request_id": "human-3",
+            "revision": 3,
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "execution",
+          "actor": "developer",
+          "created": "2026-11-06 16:50:35",
+          "payload": {
+            "base_commit": "ccc612632cd174c3992fdce5b9050aa6cc302a7c",
+            "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+            "mode": "local",
+            "project": "EXT",
+            "repository": "",
+            "request_id": "mode-3",
+            "revision": 3,
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 3,
+          "action": "execution",
+          "actor": "developer",
+          "created": "2026-11-06 16:53:57",
+          "payload": {
+            "base_commit": "ccc612632cd174c3992fdce5b9050aa6cc302a7c",
+            "digest": "629fedaf86e347e08739ebe3cf14398fc06309a47ebe4b56515a49b3fc28b62b",
+            "mode": "system",
+            "project": "EXT",
+            "repository": "",
+            "request_id": "browser-system-once",
+            "revision": 3,
+            "ticket": "EXT-1"
+          }
+        },
+        {
+          "revision": 4,
+          "action": "answer",
+          "actor": "developer",
+          "created": "2026-11-06 16:53:57",
+          "payload": {
+            "answers": [
+              {
+                "answer": "13.50",
+                "question_id": "amount",
+                "resolved": true
+              }
+            ],
+            "request_id": "browser-answer-change",
+            "revision": 3,
+            "ticket": "EXT-1"
+          }
+        }
+      ],
+      "next_questions": [],
+      "next_action": "human_terminal_confirm",
+      "instructions": "在Agent终端分批向开发人员提问，展示选项并允许自由回答。不猜测回答；不清楚记resolved=false。全部问题处理后展示完整需求、设计和测试方案，由本人在独立人工终端确认。确认不是业务验收。"
+    }
+  }
+}

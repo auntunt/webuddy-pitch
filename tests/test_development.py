@@ -148,3 +148,12 @@ class DevelopmentTest(unittest.TestCase):
             self.assertIs(project_git.SCOPE.get()['platform'],self.P)
             return original(*args,**kwargs)
         with patch.object(agents,'git',side_effect=checked):self.choose(state,'system')
+
+    def test_reassignment_invalidates_execution_choice(self):
+        state=self.propose()
+        state=self.act('answer',revision=state['revision'],answers=[{'question_id':'amount','answer':'12.50','resolved':True}])
+        self.confirm(state)
+        self.P.store.update_ticket(self.fixture.ticket['id'],'fixture',assignee='new-developer')
+        current=self.P.store.ticket(self.key)
+        self.assertFalse(development.read(self.P.store,current)['execution']['current'])
+        with self.assertRaises(ValueError):development.require_execution(self.P.store,current,'local')

@@ -67,7 +67,7 @@ def read(store, ticket):
     selected = store.one("SELECT actor,payload,created FROM development_events WHERE ticket_id=? AND action='execution' ORDER BY id DESC LIMIT 1", (ticket['id'],))
     execution = json.loads(selected['payload']) if selected else {}
     execution = dict(execution, actor=selected['actor'], created=selected['created'],
-                     current=confirmed and execution.get('digest') == binding) if selected else {'current': False}
+                     current=confirmed and execution.get('digest') == binding and (not ticket.get('assignee') or selected['actor'] == ticket['assignee'])) if selected else {'current': False}
     return {'execution': execution, 'ticket': ticket['key'], 'revision': current['revision'], 'state': state, 'digest': binding,
             'source_hash': current['source_hash'], 'confirmed_by': current['confirmed_by'] if confirmed else '',
             'payload': payload, 'pending_questions': pending,
