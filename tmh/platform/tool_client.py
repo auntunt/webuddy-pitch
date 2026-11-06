@@ -18,7 +18,7 @@ from .. import __version__
 NAME = "webuddy_client"
 FILENAME = f"{NAME}-{__version__}-py3-none-any.whl"
 MODULES = ("__init__.py", "agent_contract.py", "workbench.py", "workbench_client.py",
-           "workbench_credentials.py", "workbench_entry.py", "workbench_mcp.py")
+           "workbench_credentials.py", "workbench_entry.py", "workbench_mcp.py", "developer_terminal.py")
 SITE = "workbench_site.json"
 _cache = {}
 
