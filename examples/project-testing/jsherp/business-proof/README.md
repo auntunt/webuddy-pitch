@@ -39,7 +39,7 @@ Chrome 使用独立临时配置启动，调试端口 18982，不能连接用户�
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --remote-debugging-port=18982 --user-data-dir=/tmp/webuddy-erp-test-chrome --no-first-run about:blank
 ```
 
-为该测试环境配置 `../profile.business-local.json`，并使用 `acceptance.json` 中的四条方案标准。该配置要求逐项覆盖，包含构建、前端回归、真实业务测试及清理。**43 没有这套 Docker/Chrome 环境，不能直接把此配置覆盖它现有的本机回归配置。**
+为该测试环境配置 `../profile.business-local.json`，并使用 `acceptance.json` 中的五条方案标准。该配置要求逐项覆盖，包含构建、前端回归、真实业务测试及清理。**43 没有这套 Docker/Chrome 环境，不能直接把此配置覆盖它现有的本机回归配置。**
 
 也可在准备好依赖后直接执行：
 
@@ -52,3 +52,6 @@ python3 .webuddy-tests/business-proof/cleanup.py
 准备阶段重新构建后端和前端，绑定 Git 基准/完整差异摘要、JAR、前端入口和实际容器身份。源码或运行版本变化后拒绝复用旧构建。平台会另外保存本次报告、日志和验收契约。清理阶段停止本次应用和构建容器，数据库、Redis、静态代理及 Chrome 由启动者在查看证据后关闭。
 
 种子数据的账号为仓库自带的 `jsh / 123456`；这是隔离测试数据，不是任何线上账号。依赖审计的既有高危问题不因本样例通过而消失。
+
+
+2026-11-06 增加 A5：不携带登录凭据分别提交新的单账户、多账户退款单，核对拒绝响应及数据库计数为 0。当前 ERP 的 `LogCostFilter` 使用 HTTP 500 和 `loginOut` 表示未登录，前端 `request.js` 也按此契约处理；测试核对这两个精确值，不把任意 500 视为通过。此检查不覆盖跨租户授权或财务过账。

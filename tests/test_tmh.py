@@ -178,7 +178,8 @@ class GuardAndVerifyTest(unittest.TestCase):
         (self.repo / "target" / "classes" / "application.yml").write_text("url: jdbc:oracle:thin:@x\n", encoding="utf-8")
         r = verify.verify(self.repo, run_tests=False)
         self.assertEqual(r["changed_files"], [])
-        self.assertTrue(r["passed"])
+        self.assertTrue(r["static_passed"])
+        self.assertFalse(r["passed"])
 
     def test_verify_catches_weakened_test(self):
         t = self.repo / "src/test/java/com/acme/oa/LeaveServiceTest.java"
@@ -191,7 +192,8 @@ class GuardAndVerifyTest(unittest.TestCase):
         svc = self.repo / "src/main/java/com/acme/oa/service/LeaveService.java"
         svc.write_text(svc.read_text(encoding="utf-8") + "\n// tidy\n", encoding="utf-8")
         r = verify.verify(self.repo, run_tests=False)
-        self.assertTrue(r["passed"], r)
+        self.assertTrue(r["static_passed"], r)
+        self.assertFalse(r["passed"], r)
         self.assertEqual(r["changed_files"], ["src/main/java/com/acme/oa/service/LeaveService.java"])
 
 

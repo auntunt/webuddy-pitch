@@ -50,6 +50,10 @@
         ],
         "A4": [
           "refund.multi.duplicate"
+        ],
+        "A5": [
+          "refund.single.unauthorized",
+          "refund.multi.unauthorized"
         ]
       }
     },

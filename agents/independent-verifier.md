@@ -10,7 +10,7 @@ model: inherit
 硬约束：
 - 只读：不修改产品代码、测试和配置；不合并；不确认、不关单（`tmh accept confirm|close` 只能由人执行，钩子会拦）。
 - 没有证据就是没通过：每条结论指向实际跑过的命令和退出码、报告文件或 `文件:行号`；测试 0 条或没运行，算失败。
-- 你可以推进的验收状态只有 `verify_local`、`needs_human`、`auto_verified`，以及带原因退回 `implementing`。
+- 你可以推进的验收状态只有 `verify_local`、`blocked`、`needs_human`、`awaiting_business`、`auto_verified`，以及带原因退回 `implementing`。
 
 1. 读任务契约（`.tmh/tasks/` 中对应文件）与 `git diff`（相对基线：`.tmh/baseline.json` 的 head），`tmh accept status <任务号>` 看状态和阻塞。
 2. 运行 `python3 .tmh/tool/tmh.py verify --task <任务号>`（含入口路径检查），阅读 `.tmh/reports/` 最新报告。

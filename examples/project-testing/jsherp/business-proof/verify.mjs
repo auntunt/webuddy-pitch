@@ -17,7 +17,9 @@ const ws=new WebSocket(tabs.find(x=>x.type==='page').webSocketDebuggerUrl);await
 const call=(method,params={})=>new Promise((resolve,reject)=>{const n=++id;pending.set(n,{resolve,reject});ws.send(JSON.stringify({id:n,method,params}))});
 const evaluate=async expression=>{const result=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(result.exceptionDetails)throw result.exceptionDetails;return result.result.value};
 
-
+// Each run owns this isolated origin; discard the previous runtime's login session.
+await call('Page.navigate',{url:'about:blank'});
+await call('Storage.clearDataForOrigin',{origin,storageTypes:'all'});
 
 async function until(expression){
  const deadline=Date.now()+30000;
@@ -69,7 +71,17 @@ for(const variant of ['single','multi']){
  assert([8500022,8500032].includes(duplicate.code));
  await new Promise(r=>setTimeout(r,2100));
  const delayed=await evaluate(`(async()=>{const token=document.querySelector('#app').__vue__.$store.getters.token;return await (await fetch('/jshERP-boot/depotHead/addDepotHeadAndDetail',{method:'POST',headers:{'X-Access-Token':token,'Content-Type':'application/json'},body:JSON.stringify(${JSON.stringify(post.body)})})).json()})()`);assert.equal(delayed.code,8500022);assert.equal(sql(`SELECT count(*) FROM jsh_depot_head WHERE number='${browser.number}'`),'1');
- raw.push({variant,number:browser.number,request:post.body,response:post.response,database:rows,detail,duplicate,delayed});
+ const rejectedBody=structuredClone(post.body),rejectedNumber='WB-NOAUTH-'+Date.now()+'-'+variant;
+ const rejectedInfo=JSON.parse(rejectedBody.info);rejectedInfo.number=rejectedNumber;rejectedBody.info=JSON.stringify(rejectedInfo);
+ const unauthorizedResponse=await fetch(origin+'/jshERP-boot/depotHead/addDepotHeadAndDetail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rejectedBody)});
+ const unauthorizedText=await unauthorizedResponse.text();
+ const unauthorized={httpStatus:unauthorizedResponse.status,body:unauthorizedText};
+ fs.writeFileSync(path.join(output,variant+'-unauthorized.json'),JSON.stringify({request:rejectedBody,response:unauthorized},null,2));
+ // LogCostFilter uses HTTP 500 + loginOut for missing authentication; request.js recognizes that contract.
+ assert.equal(unauthorized.httpStatus,500);assert.equal(unauthorizedText,'loginOut');
+ const unauthorizedCount=sql(`SELECT count(*) FROM jsh_depot_head WHERE number='${rejectedNumber}'`);assert.equal(unauthorizedCount,'0');
+ cases.push({id:'refund.'+variant+'.unauthorized',status:'pass',input:'未携带登录凭据提交新的退款单',expected:'拒绝且数据库没有新增单据',actual:{...unauthorized,count:Number(unauthorizedCount)}});
+ raw.push({variant,number:browser.number,request:post.body,response:post.response,database:rows,detail,duplicate,delayed,unauthorized});
  cases.push({id:'refund.'+variant+'.save_and_read',status:'pass',input:variant==='multi'?{amounts:[7.25,5.25],quantity:1}:{amount:12.50,quantity:1},expected:{refund:-12.5,quantity:1,uiRefund:12.5,status:'未审核'},actual:{refund:Number(rows[0]),quantity:Number(rows[4]),uiRefund:browser.uiRefund,uiContainsDocument:browser.ui.includes(browser.number),status:rows[3]},number:browser.number});
  cases.push({id:'refund.'+variant+'.duplicate',status:'pass',input:'重复提交同一单号',expected:'拒绝且数据库仍为1单',actual:{immediateCode:duplicate.code,delayedCode:delayed.code,count:1}});
 }

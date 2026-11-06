@@ -199,11 +199,33 @@ def verification_outcome(value):
         return 'blocked'
     if any(c.get('verification_state') == 'blocked' for c in value.get('commands', [])):
         return 'blocked'
+    if value.get('repair_stop'):
+        return 'technical_required'
     if value.get('check') == 'fail' or value.get('verdict') == 'fail':
         return 'repair_required'
     if value.get('check') != 'pass' or value.get('verdict') != 'pass':
         return 'manual_required'
     return 'review_required'
+
+
+def repair_attempts(history, contract):
+    """A new run does not reset the budget for the same confirmed requirement."""
+    used = 0
+    for _, value in history:
+        if not value.get("verification_contract"):
+            continue
+        if value.get("verification_contract") != contract:
+            break
+        if value.get("check") == "pass" and value.get("verdict") == "pass":
+            break
+        used += len(value.get("round_evidence", []))
+    return used
+
+
+def failure_signature(commands, diagnosis):
+    failed = [(c.get("kind"), c.get("command"), c.get("exit_code"), c.get("tail", c.get("output", "")))
+              for c in commands if c.get("exit_code") != 0]
+    return hashlib.sha256(json.dumps([failed, diagnosis.get("blocking", [])], sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 def handover_failure(res: list) -> str:
@@ -598,7 +620,7 @@ class FixLoop:
         if not self.t:
             return []
         return [(r["id"], _verification(self.r.data_dir, r["id"])) for r in self.st.runs(ticket_id=self.t["id"])
-                if r["mode"] == "fix" and r["status"] == "done" and r["id"] < self.rid]
+                if r["mode"] == "fix" and r["status"] not in ("running", "queued") and r["id"] < self.rid]
 
     # ------------------------------------------------------------ the loop
     def run(self) -> tuple[int, str]:
@@ -632,6 +654,11 @@ class FixLoop:
         if self.remote_testing:
             self.nobuild = testbox_mcp.INSTRUCTION + '\n固定构建命令仍由平台复核；测试机执行失败须修复后重测。\n'
         rounds = max(0, int(self.set.get("rounds") if self.set.get("rounds") is not None else 3))
+        budget = rounds + 1  # existing setting counts repairs after the first attempt
+        used = repair_attempts(self.earlier_fixes(), contract)
+        remaining = max(0, budget - used)
+        repair_stop = "task_budget" if not remaining else ""
+        signatures = []
         diag, res, verdict, files, vague = None, [], "unknown", [], False
         split = len(goals) >= int(self.set.get("split_from") or 0)
         # No repeated speculative fix rounds without execution evidence, but every
@@ -642,7 +669,7 @@ class FixLoop:
             self.say("按方案分工修改 %d 个文件：%s" % (len(goals), "、".join(goals)))
         elif goals:
             self.say("方案只涉及 %d 个文件（%s），由一个智能体改完，不分工" % (len(goals), "、".join(goals)))
-        for rnd in range(rounds + 1):
+        for rnd in range(min(rounds + 1, remaining)):
             if self.cancelled():
                 break
             self.say("第 %d 轮" % (rnd + 1))
@@ -718,6 +745,12 @@ class FixLoop:
             self.say(self.log[-1])
             if verdict != "fail" or any(x.get("verification_state") == "blocked" for x in res):
                 break
+            signatures.append(failure_signature(res, diag))
+            if len(signatures) >= STALL_AFTER and len(set(signatures[-STALL_AFTER:])) == 1:
+                repair_stop = "repeated_failure"
+                break
+            if rnd + 1 >= remaining:
+                repair_stop = "task_budget"
         check = ("fail" if any(x["exit_code"] != 0 for x in res) else "pass") if res else "skip"
         # changed although the plan did not list them (a file another file's agent asked to bring in is not)
         beyond = [f for f in files if goals and f not in goals and f not in self.brought]
@@ -727,7 +760,7 @@ class FixLoop:
                "split": bool(goals) and split, "files": files, "commands": res, "remote_test_required": self.remote_testing,
                "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide",
                                                                 "blocking", "advisory", "prior", "ac", "review", "scope")}}
-        out.update(verification_contract=contract, baseline=getattr(self, "baseline_result", {"base": self.base, "state": "not_run", "commands": []}),
+        out.update(repair_stop=repair_stop, repair_budget={"limit": budget, "previous_attempts": used, "attempts": len(round_evidence)}, verification_contract=contract, baseline=getattr(self, "baseline_result", {"base": self.base, "state": "not_run", "commands": []}),
                    round_evidence=round_evidence)
         if round_evidence:
             out.update(checked_base=round_evidence[-1]["base"], checked_diff=diff, scope=round_evidence[-1]["scope"])
@@ -749,7 +782,7 @@ class FixLoop:
         if stopped:
             out.update(stopped_reason=stopped, verdict="unknown", interrupted=True)
         out['outcome'] = verification_outcome(out)
-        if out['outcome'] in ('repair_required', 'blocked', 'manual_required'):
+        if out['outcome'] in ('repair_required', 'blocked', 'manual_required', 'technical_required'):
             out['manual_reason'] = '验证受阻，补齐条件后重新验证' if out['outcome'] == 'blocked' else '达到本轮停止条件，保留代码和证据等待处理'
         (self.r.data_dir / "runs" / str(self.rid) / "verify.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
         return (124 if stopped == "timeout" else 125 if stopped else 0 if self.ok and not getattr(self, "failed_call", False) else 1), self.summary(out, diag)
@@ -1065,6 +1098,8 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None, k
     if contract_changed:
         v.update(check="fail", verdict="unknown", diagnosis={}, verification_current=False,
                  skip="验证期间检查契约变化，请重新验证")
+    if v.get('check') == 'pass' and v.get('verdict') == 'pass':
+        v.pop('repair_stop', None)
     v['scope'] = {"declared": plan_scope(fl.plan),
                   "reviewed": (v.get("diagnosis") or {}).get("scope", {}), "changed_files": files,
                   "coverage_basis": "configured_checks"}
