@@ -41,7 +41,7 @@ sudo mkdir -p /opt/webuddy && sudo chown deploy:deploy /opt/webuddy
 
 ```sh
 sudo -u deploy -i            # 之后都用 deploy 用户
-export WEBUDDY_RELEASE_SHA="d83c267ae5308fcd8de365688136e8d09a7c3cff" # 本轮43测试交付版；以后升级须取新的通过记录
+export WEBUDDY_RELEASE_SHA="3561a3b1143b9ad17191168c7471a2e03d1cc8ea" # 本轮43测试交付版；以后升级须取新的通过记录
 git clone https://github.com/auntunt/webuddy-pitch.git /opt/webuddy/app
 cd /opt/webuddy/app
 git fetch origin "$WEBUDDY_RELEASE_SHA"
