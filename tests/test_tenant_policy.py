@@ -85,7 +85,7 @@ class TenantPolicyTest(unittest.TestCase):
                     if isinstance(item, ast.Call) and isinstance(item.func, ast.Name) and item.func.id == "route":
                         actual.add(tuple(ast.literal_eval(arg) for arg in item.args))
         self.assertEqual(actual, policy.API_ROUTES)
-        self.assertEqual(len(actual), 205)  # Five developer/CI routes + original 167 + four personal trial routes + project mode and rollback + code repository and team group + Git/zip import + statecharts and their renderer + page check + production release requests + run steering + systems + browser assistant.
+        self.assertEqual(len(actual), 206)  # Five developer/CI routes + original 167 + four personal trial routes + project mode and rollback + code repository and team group + Git/zip import + statecharts and their renderer + page check + production release requests + run steering + systems + browser assistant.
         import re
         for method, template in actual:
             with self.subTest(method=method, template=template):
@@ -93,6 +93,13 @@ class TenantPolicyTest(unittest.TestCase):
                 self.assertEqual(policy._match(method, path)[0], template)
         from tmh.agent_contract import SPECS
         self.assertEqual(set(SPECS), policy.AGENT_OPERATIONS)
+
+    def test_delivery_packet_uses_ticket_project_scope_and_read_permission(self):
+        for actor in ('alice','bob','reader'):
+            self.auth('/api/tickets/ALPHA-1/delivery', actor=actor)
+        self.denied('/api/tickets/BETA-1/delivery', actor='alice')
+        self.denied('/api/tickets/ALPHA-1/delivery', actor='outsider')
+        self.denied('/api/tickets/ALPHA-1/delivery', actor='alice', method='POST')
 
     def test_unknown_routes_and_methods_deny_even_platform_owner(self):
         for path, method in (("/api/new-admin-feature", "POST"), ("/api/projects/ALPHA", "DELETE"),

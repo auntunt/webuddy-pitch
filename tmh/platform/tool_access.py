@@ -18,7 +18,7 @@ from .errors import ApiError
 from .store import now
 
 READ_OPERATIONS = (
-    "status", "projects_list", "tickets_list", "ticket_get", "messages_list",
+    "status", "projects_list", "tickets_list", "ticket_get", "delivery_get", "messages_list",
     "request_get", "run_get", "candidates_list", "candidate_get", "candidate_ci", "library_get",
     "library_search", "library_read", "preview_get", "intake_get", "development_get",
 )

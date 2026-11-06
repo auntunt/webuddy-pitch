@@ -22,6 +22,7 @@ POST /api/agent/<operation>
 GET /api/projects/<key>/ci
 POST /api/projects/<key>/ci
 GET /api/tickets/<key>/ci
+GET /api/tickets/<key>/delivery
 GET /api/tickets/<key>/development
 POST /api/tickets/<key>/development
 GET /api/workspace
@@ -233,7 +234,7 @@ PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/si
 # project selector. They remain admin-only until their query layer is scoped.
 ADMIN_GLOBAL = frozenset(("/api/org/knowledge", "/api/lead", "/api/readiness", "/api/testbox",
                          "/api/agent-settings", "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
-AGENT_OPERATIONS = frozenset("""status projects_list tickets_list ticket_get ticket_create message_send
+AGENT_OPERATIONS = frozenset("""status projects_list tickets_list ticket_get delivery_get ticket_create message_send
 messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
 candidates_list candidate_get candidate_ci candidate_submit candidate_verify candidate_cancel candidate_preview
 candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel

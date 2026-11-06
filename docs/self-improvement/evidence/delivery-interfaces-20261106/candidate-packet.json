@@ -1,0 +1,952 @@
+{
+  "schema_version": 1,
+  "ticket": {
+    "id": 1,
+    "project_id": 1,
+    "num": 1,
+    "title": "Use value 2",
+    "body": "Use value 2 and preserve the test.",
+    "type": "feature",
+    "status": "doing",
+    "priority": "normal",
+    "assignee": "developer",
+    "reporter": "agent:writer",
+    "labels": [],
+    "links": {
+      "agent_request": "create",
+      "base": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+      "handwork": true,
+      "hold": true
+    },
+    "external": {},
+    "created": "2026-11-06 18:56:37",
+    "updated": "2026-11-06 18:56:38",
+    "key": "EXT-1"
+  },
+  "project": {
+    "id": 1,
+    "key": "EXT",
+    "name": "Fixture",
+    "root": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-candidate-gom2_b6u/repo",
+    "description": "",
+    "created": "2026-11-06 18:56:37"
+  },
+  "development": {
+    "execution": {
+      "base_commit": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+      "digest": "49c1ed84911738aafe0885a0f41823bc1defcd06eb947c76458e7cf43c059f8b",
+      "mode": "local",
+      "project": "EXT",
+      "repository": "",
+      "request_id": "mode-3",
+      "revision": 3,
+      "ticket": "EXT-1",
+      "actor": "developer",
+      "created": "2026-11-06 18:56:37",
+      "current": true
+    },
+    "ticket": "EXT-1",
+    "revision": 3,
+    "state": "confirmed",
+    "digest": "49c1ed84911738aafe0885a0f41823bc1defcd06eb947c76458e7cf43c059f8b",
+    "source_hash": "fb406fa4edc53137641f0dfaa3562830c88bc9501486ce4ac131a91e086b3a33",
+    "confirmed_by": "developer",
+    "payload": {
+      "answers": {
+        "amount": {
+          "actor": "agent:writer",
+          "answer": "12.50",
+          "question_id": "amount",
+          "resolved": true,
+          "via": "agent_relay"
+        }
+      },
+      "criteria": [
+        {
+          "check": "Read the app and run its test",
+          "id": "A1",
+          "text": "Value 2 is returned"
+        }
+      ],
+      "design": "Validate before write",
+      "execution_choice_required": true,
+      "questions": [
+        {
+          "id": "amount",
+          "options": [
+            "12.50",
+            "Other"
+          ],
+          "question": "Expected amount?",
+          "required": true
+        }
+      ],
+      "summary": "Refund correctly",
+      "test_plan": "Check saved amount and duplicate submission"
+    },
+    "pending_questions": [],
+    "history": [
+      {
+        "revision": 1,
+        "action": "start",
+        "actor": "agent:writer",
+        "created": "2026-11-06 18:56:37",
+        "payload": {
+          "request_id": "dev-1",
+          "ticket": "EXT-1"
+        }
+      },
+      {
+        "revision": 2,
+        "action": "propose",
+        "actor": "agent:writer",
+        "created": "2026-11-06 18:56:37",
+        "payload": {
+          "criteria": [
+            {
+              "check": "Read the app and run its test",
+              "id": "A1",
+              "text": "Value 2 is returned"
+            }
+          ],
+          "design": "Validate before write",
+          "questions": [
+            {
+              "id": "amount",
+              "options": [
+                "12.50",
+                "Other"
+              ],
+              "question": "Expected amount?",
+              "required": true
+            }
+          ],
+          "request_id": "dev-2",
+          "revision": 1,
+          "summary": "Refund correctly",
+          "test_plan": "Check saved amount and duplicate submission",
+          "ticket": "EXT-1"
+        }
+      },
+      {
+        "revision": 3,
+        "action": "answer",
+        "actor": "agent:writer",
+        "created": "2026-11-06 18:56:37",
+        "payload": {
+          "answers": [
+            {
+              "answer": "12.50",
+              "question_id": "amount",
+              "resolved": true
+            }
+          ],
+          "request_id": "dev-3",
+          "revision": 2,
+          "ticket": "EXT-1"
+        }
+      },
+      {
+        "revision": 3,
+        "action": "confirm",
+        "actor": "developer",
+        "created": "2026-11-06 18:56:37",
+        "payload": {
+          "digest": "49c1ed84911738aafe0885a0f41823bc1defcd06eb947c76458e7cf43c059f8b",
+          "request_id": "human-3",
+          "revision": 3,
+          "ticket": "EXT-1"
+        }
+      },
+      {
+        "revision": 3,
+        "action": "execution",
+        "actor": "developer",
+        "created": "2026-11-06 18:56:37",
+        "payload": {
+          "base_commit": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+          "digest": "49c1ed84911738aafe0885a0f41823bc1defcd06eb947c76458e7cf43c059f8b",
+          "mode": "local",
+          "project": "EXT",
+          "repository": "",
+          "request_id": "mode-3",
+          "revision": 3,
+          "ticket": "EXT-1"
+        }
+      }
+    ],
+    "next_questions": [],
+    "next_action": "develop",
+    "instructions": "在Agent终端分批向开发人员提问，展示选项并允许自由回答。不猜测回答；不清楚记resolved=false。全部问题处理后展示完整需求、设计和测试方案，由本人在独立人工终端确认。确认不是业务验收。"
+  },
+  "repository": {
+    "root": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-candidate-gom2_b6u/repo",
+    "head": "",
+    "head_status": "not_checked",
+    "commands": {
+      "build": "/Users/auntlee/.local/bin/python3.11 -m py_compile app.py",
+      "test": "/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v",
+      "extra_checks": []
+    }
+  },
+  "team_assignment": {
+    "assignee": "developer",
+    "reviewer": "",
+    "revision": 0,
+    "updated": "2026-11-06 18:56:38"
+  },
+  "requirement_hash": "8d3d98673f285176a3ebbd494f2173c6d2c322ab1fd026fca36f372ca3d3cca8",
+  "knowledge": {
+    "workflow": "development",
+    "references": [],
+    "references_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "search": {
+      "operation": "library_search",
+      "project": "EXT"
+    },
+    "read": {
+      "operation": "library_read",
+      "project": "EXT"
+    }
+  },
+  "runs": [
+    {
+      "historical": true,
+      "run": {
+        "id": 1,
+        "ticket_id": 1,
+        "project_id": 1,
+        "agent": "external:writer",
+        "mode": "fix",
+        "status": "done",
+        "author": "agent:writer",
+        "created": "2026-11-06 18:56:38",
+        "started": "",
+        "ended": "2026-11-06 18:56:38",
+        "prompt": "外部候选登记；不是平台模型执行或人工采纳",
+        "output": "",
+        "result": "External fixture implementation",
+        "diff": "diff --git a/app.py b/app.py\nindex b15b1b0..c8fcecd 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 1\n+VALUE = 2\n",
+        "exit_code": 0,
+        "workdir": "",
+        "target": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+        "decision": "",
+        "session_id": null,
+        "batch": "",
+        "model": "",
+        "retry_of": null
+      },
+      "verification": {
+        "historical": true,
+        "record_status": "stored",
+        "raw": "{\n  \"verdict\": \"unknown\",\n  \"diagnosis\": {},\n  \"diagnosis_invalidated\": \"代码或检查契约已变化，旧诊断不再适用于当前改动\",\n  \"verification_contract\": \"cde5d86933e0ac069d759a01bc5eaf655b156569feebc139abe38e46c8a8e20f\",\n  \"baseline\": {\n    \"base\": \"a1bdac5e259bce340ead6cb17c50812c142615b1\",\n    \"commands\": [\n      {\n        \"kind\": \"build\",\n        \"command\": \"/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\",\n        \"exit_code\": 0,\n        \"seconds\": 0.1,\n        \"tail\": \"\",\n        \"output\": \"\",\n        \"reason\": \"exited\",\n        \"evidence\": \"verification-operations/runs/1/attempts/0001\",\n        \"cleanup\": {\n          \"trigger\": null,\n          \"term_sent\": false,\n          \"kill_sent\": false,\n          \"signals\": [],\n          \"errors\": [],\n          \"remaining_group\": false,\n          \"output_complete\": true,\n          \"reaped\": true,\n          \"complete\": true\n        }\n      },\n      {\n        \"kind\": \"test\",\n        \"command\": \"/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\",\n        \"exit_code\": 0,\n        \"seconds\": 0.1,\n        \"tail\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\",\n        \"output\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\\n\",\n        \"reason\": \"exited\",\n        \"evidence\": \"verification-operations/runs/1/attempts/0002\",\n        \"cleanup\": {\n          \"trigger\": null,\n          \"term_sent\": false,\n          \"kill_sent\": false,\n          \"signals\": [],\n          \"errors\": [],\n          \"remaining_group\": false,\n          \"output_complete\": true,\n          \"reaped\": true,\n          \"complete\": true\n        }\n      }\n    ],\n    \"state\": \"pass\"\n  },\n  \"test_reuse\": {\n    \"reused\": false,\n    \"reason\": \"本轮未复用测试\"\n  },\n  \"check\": \"pass\",\n  \"skip\": \"\",\n  \"commands\": [\n    {\n      \"kind\": \"build\",\n      \"command\": \"/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\",\n      \"exit_code\": 0,\n      \"seconds\": 0.1,\n      \"tail\": \"\",\n      \"output\": \"\",\n      \"reason\": \"exited\",\n      \"evidence\": \"verification-operations/runs/1/attempts/0003\",\n      \"cleanup\": {\n        \"trigger\": null,\n        \"term_sent\": false,\n        \"kill_sent\": false,\n        \"signals\": [],\n        \"errors\": [],\n        \"remaining_group\": false,\n        \"output_complete\": true,\n        \"reaped\": true,\n        \"complete\": true\n      }\n    },\n    {\n      \"kind\": \"test\",\n      \"command\": \"/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\",\n      \"exit_code\": 0,\n      \"seconds\": 0.1,\n      \"tail\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\",\n      \"output\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\\n\",\n      \"reason\": \"exited\",\n      \"evidence\": \"verification-operations/runs/1/attempts/0004\",\n      \"cleanup\": {\n        \"trigger\": null,\n        \"term_sent\": false,\n        \"kill_sent\": false,\n        \"signals\": [],\n        \"errors\": [],\n        \"remaining_group\": false,\n        \"output_complete\": true,\n        \"reaped\": true,\n        \"complete\": true\n      }\n    }\n  ],\n  \"files\": [\n    \"app.py\"\n  ],\n  \"code_changed_during_check\": false,\n  \"checked_commit\": \"7deb9a1896959842b6a7e91c51d0ce2bff420a3f\",\n  \"checked_base\": \"a1bdac5e259bce340ead6cb17c50812c142615b1\",\n  \"checked_diff\": \"diff --git a/app.py b/app.py\\nindex b15b1b0..c8fcecd 100644\\n--- a/app.py\\n+++ b/app.py\\n@@ -1 +1 @@\\n-VALUE = 1\\n+VALUE = 2\\n\",\n  \"previous_verifications\": [],\n  \"rechecked\": \"2026-11-06 18:56:38\",\n  \"scope\": {\n    \"declared\": {},\n    \"reviewed\": {},\n    \"changed_files\": [\n      \"app.py\"\n    ],\n    \"coverage_basis\": \"configured_checks\"\n  },\n  \"verification_current\": true,\n  \"verification_kind\": \"tests\",\n  \"recheck_operation\": {\n    \"id\": 1,\n    \"source_run\": 1\n  },\n  \"outcome\": \"manual_required\"\n}",
+        "recorded": {
+          "verdict": "unknown",
+          "diagnosis": {},
+          "diagnosis_invalidated": "代码或检查契约已变化，旧诊断不再适用于当前改动",
+          "verification_contract": "cde5d86933e0ac069d759a01bc5eaf655b156569feebc139abe38e46c8a8e20f",
+          "baseline": {
+            "base": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+            "commands": [
+              {
+                "kind": "build",
+                "command": "/Users/auntlee/.local/bin/python3.11 -m py_compile app.py",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "",
+                "output": "",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0001",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              },
+              {
+                "kind": "test",
+                "command": "/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v",
+                "exit_code": 0,
+                "seconds": 0.1,
+                "tail": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+                "output": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+                "reason": "exited",
+                "evidence": "verification-operations/runs/1/attempts/0002",
+                "cleanup": {
+                  "trigger": null,
+                  "term_sent": false,
+                  "kill_sent": false,
+                  "signals": [],
+                  "errors": [],
+                  "remaining_group": false,
+                  "output_complete": true,
+                  "reaped": true,
+                  "complete": true
+                }
+              }
+            ],
+            "state": "pass"
+          },
+          "test_reuse": {
+            "reused": false,
+            "reason": "本轮未复用测试"
+          },
+          "check": "pass",
+          "skip": "",
+          "commands": [
+            {
+              "kind": "build",
+              "command": "/Users/auntlee/.local/bin/python3.11 -m py_compile app.py",
+              "exit_code": 0,
+              "seconds": 0.1,
+              "tail": "",
+              "output": "",
+              "reason": "exited",
+              "evidence": "verification-operations/runs/1/attempts/0003",
+              "cleanup": {
+                "trigger": null,
+                "term_sent": false,
+                "kill_sent": false,
+                "signals": [],
+                "errors": [],
+                "remaining_group": false,
+                "output_complete": true,
+                "reaped": true,
+                "complete": true
+              }
+            },
+            {
+              "kind": "test",
+              "command": "/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v",
+              "exit_code": 0,
+              "seconds": 0.1,
+              "tail": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+              "output": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+              "reason": "exited",
+              "evidence": "verification-operations/runs/1/attempts/0004",
+              "cleanup": {
+                "trigger": null,
+                "term_sent": false,
+                "kill_sent": false,
+                "signals": [],
+                "errors": [],
+                "remaining_group": false,
+                "output_complete": true,
+                "reaped": true,
+                "complete": true
+              }
+            }
+          ],
+          "files": [
+            "app.py"
+          ],
+          "code_changed_during_check": false,
+          "checked_commit": "7deb9a1896959842b6a7e91c51d0ce2bff420a3f",
+          "checked_base": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+          "checked_diff": "diff --git a/app.py b/app.py\nindex b15b1b0..c8fcecd 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 1\n+VALUE = 2\n",
+          "previous_verifications": [],
+          "rechecked": "2026-11-06 18:56:38",
+          "scope": {
+            "declared": {},
+            "reviewed": {},
+            "changed_files": [
+              "app.py"
+            ],
+            "coverage_basis": "configured_checks"
+          },
+          "verification_current": true,
+          "verification_kind": "tests",
+          "recheck_operation": {
+            "id": 1,
+            "source_run": 1
+          },
+          "outcome": "manual_required"
+        },
+        "binding_status": "stored_match"
+      },
+      "lifecycle": {
+        "historical": true,
+        "record_status": "missing",
+        "raw": "",
+        "recorded": null
+      },
+      "rechecks": [
+        {
+          "record": {
+            "id": 1,
+            "source_run": 1,
+            "project_id": 1,
+            "ticket_id": 1,
+            "author": "agent:writer",
+            "status": "done",
+            "created": "2026-11-06 18:56:38",
+            "started": "2026-11-06 18:56:38",
+            "ended": "2026-11-06 18:56:38",
+            "exit_code": 0,
+            "result": "测试：通过",
+            "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\n— 通过，0.1 秒\n— 构建测试：/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\n— 通过，0.1 秒\n— 构建测试：/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\n— 通过，0.1 秒\n— 构建测试：/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\n— 通过，0.1 秒\n— 重新验证：构建通过\n"
+          },
+          "verification": {
+            "historical": true,
+            "record_status": "stored",
+            "raw": "{\n  \"verdict\": \"unknown\",\n  \"diagnosis\": {},\n  \"diagnosis_invalidated\": \"代码或检查契约已变化，旧诊断不再适用于当前改动\",\n  \"verification_contract\": \"cde5d86933e0ac069d759a01bc5eaf655b156569feebc139abe38e46c8a8e20f\",\n  \"baseline\": {\n    \"base\": \"a1bdac5e259bce340ead6cb17c50812c142615b1\",\n    \"commands\": [\n      {\n        \"kind\": \"build\",\n        \"command\": \"/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\",\n        \"exit_code\": 0,\n        \"seconds\": 0.1,\n        \"tail\": \"\",\n        \"output\": \"\",\n        \"reason\": \"exited\",\n        \"evidence\": \"verification-operations/runs/1/attempts/0001\",\n        \"cleanup\": {\n          \"trigger\": null,\n          \"term_sent\": false,\n          \"kill_sent\": false,\n          \"signals\": [],\n          \"errors\": [],\n          \"remaining_group\": false,\n          \"output_complete\": true,\n          \"reaped\": true,\n          \"complete\": true\n        }\n      },\n      {\n        \"kind\": \"test\",\n        \"command\": \"/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\",\n        \"exit_code\": 0,\n        \"seconds\": 0.1,\n        \"tail\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\",\n        \"output\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\\n\",\n        \"reason\": \"exited\",\n        \"evidence\": \"verification-operations/runs/1/attempts/0002\",\n        \"cleanup\": {\n          \"trigger\": null,\n          \"term_sent\": false,\n          \"kill_sent\": false,\n          \"signals\": [],\n          \"errors\": [],\n          \"remaining_group\": false,\n          \"output_complete\": true,\n          \"reaped\": true,\n          \"complete\": true\n        }\n      }\n    ],\n    \"state\": \"pass\"\n  },\n  \"test_reuse\": {\n    \"reused\": false,\n    \"reason\": \"本轮未复用测试\"\n  },\n  \"check\": \"pass\",\n  \"skip\": \"\",\n  \"commands\": [\n    {\n      \"kind\": \"build\",\n      \"command\": \"/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\",\n      \"exit_code\": 0,\n      \"seconds\": 0.1,\n      \"tail\": \"\",\n      \"output\": \"\",\n      \"reason\": \"exited\",\n      \"evidence\": \"verification-operations/runs/1/attempts/0003\",\n      \"cleanup\": {\n        \"trigger\": null,\n        \"term_sent\": false,\n        \"kill_sent\": false,\n        \"signals\": [],\n        \"errors\": [],\n        \"remaining_group\": false,\n        \"output_complete\": true,\n        \"reaped\": true,\n        \"complete\": true\n      }\n    },\n    {\n      \"kind\": \"test\",\n      \"command\": \"/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\",\n      \"exit_code\": 0,\n      \"seconds\": 0.1,\n      \"tail\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\",\n      \"output\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\\n\",\n      \"reason\": \"exited\",\n      \"evidence\": \"verification-operations/runs/1/attempts/0004\",\n      \"cleanup\": {\n        \"trigger\": null,\n        \"term_sent\": false,\n        \"kill_sent\": false,\n        \"signals\": [],\n        \"errors\": [],\n        \"remaining_group\": false,\n        \"output_complete\": true,\n        \"reaped\": true,\n        \"complete\": true\n      }\n    }\n  ],\n  \"files\": [\n    \"app.py\"\n  ],\n  \"code_changed_during_check\": false,\n  \"checked_commit\": \"7deb9a1896959842b6a7e91c51d0ce2bff420a3f\",\n  \"checked_base\": \"a1bdac5e259bce340ead6cb17c50812c142615b1\",\n  \"checked_diff\": \"diff --git a/app.py b/app.py\\nindex b15b1b0..c8fcecd 100644\\n--- a/app.py\\n+++ b/app.py\\n@@ -1 +1 @@\\n-VALUE = 1\\n+VALUE = 2\\n\",\n  \"previous_verifications\": [],\n  \"rechecked\": \"2026-11-06 18:56:38\",\n  \"scope\": {\n    \"declared\": {},\n    \"reviewed\": {},\n    \"changed_files\": [\n      \"app.py\"\n    ],\n    \"coverage_basis\": \"configured_checks\"\n  },\n  \"verification_current\": true,\n  \"verification_kind\": \"tests\",\n  \"recheck_operation\": {\n    \"id\": 1,\n    \"source_run\": 1\n  },\n  \"outcome\": \"manual_required\"\n}",
+            "recorded": {
+              "verdict": "unknown",
+              "diagnosis": {},
+              "diagnosis_invalidated": "代码或检查契约已变化，旧诊断不再适用于当前改动",
+              "verification_contract": "cde5d86933e0ac069d759a01bc5eaf655b156569feebc139abe38e46c8a8e20f",
+              "baseline": {
+                "base": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+                "commands": [
+                  {
+                    "kind": "build",
+                    "command": "/Users/auntlee/.local/bin/python3.11 -m py_compile app.py",
+                    "exit_code": 0,
+                    "seconds": 0.1,
+                    "tail": "",
+                    "output": "",
+                    "reason": "exited",
+                    "evidence": "verification-operations/runs/1/attempts/0001",
+                    "cleanup": {
+                      "trigger": null,
+                      "term_sent": false,
+                      "kill_sent": false,
+                      "signals": [],
+                      "errors": [],
+                      "remaining_group": false,
+                      "output_complete": true,
+                      "reaped": true,
+                      "complete": true
+                    }
+                  },
+                  {
+                    "kind": "test",
+                    "command": "/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v",
+                    "exit_code": 0,
+                    "seconds": 0.1,
+                    "tail": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+                    "output": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+                    "reason": "exited",
+                    "evidence": "verification-operations/runs/1/attempts/0002",
+                    "cleanup": {
+                      "trigger": null,
+                      "term_sent": false,
+                      "kill_sent": false,
+                      "signals": [],
+                      "errors": [],
+                      "remaining_group": false,
+                      "output_complete": true,
+                      "reaped": true,
+                      "complete": true
+                    }
+                  }
+                ],
+                "state": "pass"
+              },
+              "test_reuse": {
+                "reused": false,
+                "reason": "本轮未复用测试"
+              },
+              "check": "pass",
+              "skip": "",
+              "commands": [
+                {
+                  "kind": "build",
+                  "command": "/Users/auntlee/.local/bin/python3.11 -m py_compile app.py",
+                  "exit_code": 0,
+                  "seconds": 0.1,
+                  "tail": "",
+                  "output": "",
+                  "reason": "exited",
+                  "evidence": "verification-operations/runs/1/attempts/0003",
+                  "cleanup": {
+                    "trigger": null,
+                    "term_sent": false,
+                    "kill_sent": false,
+                    "signals": [],
+                    "errors": [],
+                    "remaining_group": false,
+                    "output_complete": true,
+                    "reaped": true,
+                    "complete": true
+                  }
+                },
+                {
+                  "kind": "test",
+                  "command": "/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v",
+                  "exit_code": 0,
+                  "seconds": 0.1,
+                  "tail": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+                  "output": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+                  "reason": "exited",
+                  "evidence": "verification-operations/runs/1/attempts/0004",
+                  "cleanup": {
+                    "trigger": null,
+                    "term_sent": false,
+                    "kill_sent": false,
+                    "signals": [],
+                    "errors": [],
+                    "remaining_group": false,
+                    "output_complete": true,
+                    "reaped": true,
+                    "complete": true
+                  }
+                }
+              ],
+              "files": [
+                "app.py"
+              ],
+              "code_changed_during_check": false,
+              "checked_commit": "7deb9a1896959842b6a7e91c51d0ce2bff420a3f",
+              "checked_base": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+              "checked_diff": "diff --git a/app.py b/app.py\nindex b15b1b0..c8fcecd 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 1\n+VALUE = 2\n",
+              "previous_verifications": [],
+              "rechecked": "2026-11-06 18:56:38",
+              "scope": {
+                "declared": {},
+                "reviewed": {},
+                "changed_files": [
+                  "app.py"
+                ],
+                "coverage_basis": "configured_checks"
+              },
+              "verification_current": true,
+              "verification_kind": "tests",
+              "recheck_operation": {
+                "id": 1,
+                "source_run": 1
+              },
+              "outcome": "manual_required"
+            }
+          },
+          "binding_status": "stored_match"
+        }
+      ]
+    }
+  ],
+  "evidence": [],
+  "evidence_original": {
+    "historical": true,
+    "record_status": "missing",
+    "raw": "",
+    "recorded": null,
+    "jsonl_status": "complete"
+  },
+  "candidates": [
+    {
+      "id": 1,
+      "ticket": "EXT-1",
+      "ticket_id": 1,
+      "project_id": 1,
+      "project": "EXT",
+      "run_id": 1,
+      "author": "agent:writer",
+      "base_commit": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+      "commit": "7deb9a1896959842b6a7e91c51d0ce2bff420a3f",
+      "ref": "refs/webuddy/candidates/dda5c5489d5a620b8640a1b7f39f2f44391a981ec4bd9d5545d5d46866c32ed3",
+      "requirement_hash": "8d3d98673f285176a3ebbd494f2173c6d2c322ab1fd026fca36f372ca3d3cca8",
+      "criteria": [
+        {
+          "check": "Read the app and run its test",
+          "id": "A1",
+          "text": "Value 2 is returned"
+        }
+      ],
+      "summary": "External fixture implementation",
+      "state": "not_checked",
+      "current": null,
+      "verification_status": "not_checked",
+      "verification": null,
+      "verification_passed": null,
+      "verification_hash": "",
+      "preview": {
+        "state": "not_checked"
+      },
+      "preview_ready": null,
+      "preview_hash": "",
+      "preview_url": "",
+      "preview_entry_path": "",
+      "assessment": null,
+      "harness_probe": null,
+      "technical_acceptance": null,
+      "ready_for_human": null,
+      "human_decision": null,
+      "human_accepted": null,
+      "evidence_hash": "",
+      "blocked": null,
+      "missing": null,
+      "history": {
+        "historical": true,
+        "candidate": {
+          "id": 1,
+          "ticket_id": 1,
+          "run_id": 1,
+          "agent": "agent:writer",
+          "base_commit": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+          "commit_sha": "7deb9a1896959842b6a7e91c51d0ce2bff420a3f",
+          "requirement_hash": "8d3d98673f285176a3ebbd494f2173c6d2c322ab1fd026fca36f372ca3d3cca8",
+          "configuration_hash": "220ceb86698b9c8ce3e3ace1013edf6f8c1f8dc9873959cf690481cf557bfe58",
+          "criteria": "[{\"check\":\"Read the app and run its test\",\"id\":\"A1\",\"text\":\"Value 2 is returned\"}]",
+          "summary": "External fixture implementation",
+          "fingerprint": "dda5c5489d5a620b8640a1b7f39f2f44391a981ec4bd9d5545d5d46866c32ed3",
+          "ref": "refs/webuddy/candidates/dda5c5489d5a620b8640a1b7f39f2f44391a981ec4bd9d5545d5d46866c32ed3",
+          "artifact_dir": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-candidate-gom2_b6u/data/candidates/dda5c5489d5a620b8640a1b7f39f2f44391a981ec4bd9d5545d5d46866c32ed3",
+          "created": "2026-11-06 18:56:38"
+        },
+        "run": {
+          "historical": true,
+          "run": {
+            "id": 1,
+            "ticket_id": 1,
+            "project_id": 1,
+            "agent": "external:writer",
+            "mode": "fix",
+            "status": "done",
+            "author": "agent:writer",
+            "created": "2026-11-06 18:56:38",
+            "started": "",
+            "ended": "2026-11-06 18:56:38",
+            "prompt": "外部候选登记；不是平台模型执行或人工采纳",
+            "output": "",
+            "result": "External fixture implementation",
+            "diff": "diff --git a/app.py b/app.py\nindex b15b1b0..c8fcecd 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 1\n+VALUE = 2\n",
+            "exit_code": 0,
+            "workdir": "",
+            "target": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+            "decision": "",
+            "session_id": null,
+            "batch": "",
+            "model": "",
+            "retry_of": null
+          },
+          "verification": {
+            "historical": true,
+            "record_status": "stored",
+            "raw": "{\n  \"verdict\": \"unknown\",\n  \"diagnosis\": {},\n  \"diagnosis_invalidated\": \"代码或检查契约已变化，旧诊断不再适用于当前改动\",\n  \"verification_contract\": \"cde5d86933e0ac069d759a01bc5eaf655b156569feebc139abe38e46c8a8e20f\",\n  \"baseline\": {\n    \"base\": \"a1bdac5e259bce340ead6cb17c50812c142615b1\",\n    \"commands\": [\n      {\n        \"kind\": \"build\",\n        \"command\": \"/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\",\n        \"exit_code\": 0,\n        \"seconds\": 0.1,\n        \"tail\": \"\",\n        \"output\": \"\",\n        \"reason\": \"exited\",\n        \"evidence\": \"verification-operations/runs/1/attempts/0001\",\n        \"cleanup\": {\n          \"trigger\": null,\n          \"term_sent\": false,\n          \"kill_sent\": false,\n          \"signals\": [],\n          \"errors\": [],\n          \"remaining_group\": false,\n          \"output_complete\": true,\n          \"reaped\": true,\n          \"complete\": true\n        }\n      },\n      {\n        \"kind\": \"test\",\n        \"command\": \"/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\",\n        \"exit_code\": 0,\n        \"seconds\": 0.1,\n        \"tail\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\",\n        \"output\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\\n\",\n        \"reason\": \"exited\",\n        \"evidence\": \"verification-operations/runs/1/attempts/0002\",\n        \"cleanup\": {\n          \"trigger\": null,\n          \"term_sent\": false,\n          \"kill_sent\": false,\n          \"signals\": [],\n          \"errors\": [],\n          \"remaining_group\": false,\n          \"output_complete\": true,\n          \"reaped\": true,\n          \"complete\": true\n        }\n      }\n    ],\n    \"state\": \"pass\"\n  },\n  \"test_reuse\": {\n    \"reused\": false,\n    \"reason\": \"本轮未复用测试\"\n  },\n  \"check\": \"pass\",\n  \"skip\": \"\",\n  \"commands\": [\n    {\n      \"kind\": \"build\",\n      \"command\": \"/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\",\n      \"exit_code\": 0,\n      \"seconds\": 0.1,\n      \"tail\": \"\",\n      \"output\": \"\",\n      \"reason\": \"exited\",\n      \"evidence\": \"verification-operations/runs/1/attempts/0003\",\n      \"cleanup\": {\n        \"trigger\": null,\n        \"term_sent\": false,\n        \"kill_sent\": false,\n        \"signals\": [],\n        \"errors\": [],\n        \"remaining_group\": false,\n        \"output_complete\": true,\n        \"reaped\": true,\n        \"complete\": true\n      }\n    },\n    {\n      \"kind\": \"test\",\n      \"command\": \"/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\",\n      \"exit_code\": 0,\n      \"seconds\": 0.1,\n      \"tail\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\",\n      \"output\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\\n\",\n      \"reason\": \"exited\",\n      \"evidence\": \"verification-operations/runs/1/attempts/0004\",\n      \"cleanup\": {\n        \"trigger\": null,\n        \"term_sent\": false,\n        \"kill_sent\": false,\n        \"signals\": [],\n        \"errors\": [],\n        \"remaining_group\": false,\n        \"output_complete\": true,\n        \"reaped\": true,\n        \"complete\": true\n      }\n    }\n  ],\n  \"files\": [\n    \"app.py\"\n  ],\n  \"code_changed_during_check\": false,\n  \"checked_commit\": \"7deb9a1896959842b6a7e91c51d0ce2bff420a3f\",\n  \"checked_base\": \"a1bdac5e259bce340ead6cb17c50812c142615b1\",\n  \"checked_diff\": \"diff --git a/app.py b/app.py\\nindex b15b1b0..c8fcecd 100644\\n--- a/app.py\\n+++ b/app.py\\n@@ -1 +1 @@\\n-VALUE = 1\\n+VALUE = 2\\n\",\n  \"previous_verifications\": [],\n  \"rechecked\": \"2026-11-06 18:56:38\",\n  \"scope\": {\n    \"declared\": {},\n    \"reviewed\": {},\n    \"changed_files\": [\n      \"app.py\"\n    ],\n    \"coverage_basis\": \"configured_checks\"\n  },\n  \"verification_current\": true,\n  \"verification_kind\": \"tests\",\n  \"recheck_operation\": {\n    \"id\": 1,\n    \"source_run\": 1\n  },\n  \"outcome\": \"manual_required\"\n}",
+            "recorded": {
+              "verdict": "unknown",
+              "diagnosis": {},
+              "diagnosis_invalidated": "代码或检查契约已变化，旧诊断不再适用于当前改动",
+              "verification_contract": "cde5d86933e0ac069d759a01bc5eaf655b156569feebc139abe38e46c8a8e20f",
+              "baseline": {
+                "base": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+                "commands": [
+                  {
+                    "kind": "build",
+                    "command": "/Users/auntlee/.local/bin/python3.11 -m py_compile app.py",
+                    "exit_code": 0,
+                    "seconds": 0.1,
+                    "tail": "",
+                    "output": "",
+                    "reason": "exited",
+                    "evidence": "verification-operations/runs/1/attempts/0001",
+                    "cleanup": {
+                      "trigger": null,
+                      "term_sent": false,
+                      "kill_sent": false,
+                      "signals": [],
+                      "errors": [],
+                      "remaining_group": false,
+                      "output_complete": true,
+                      "reaped": true,
+                      "complete": true
+                    }
+                  },
+                  {
+                    "kind": "test",
+                    "command": "/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v",
+                    "exit_code": 0,
+                    "seconds": 0.1,
+                    "tail": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+                    "output": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+                    "reason": "exited",
+                    "evidence": "verification-operations/runs/1/attempts/0002",
+                    "cleanup": {
+                      "trigger": null,
+                      "term_sent": false,
+                      "kill_sent": false,
+                      "signals": [],
+                      "errors": [],
+                      "remaining_group": false,
+                      "output_complete": true,
+                      "reaped": true,
+                      "complete": true
+                    }
+                  }
+                ],
+                "state": "pass"
+              },
+              "test_reuse": {
+                "reused": false,
+                "reason": "本轮未复用测试"
+              },
+              "check": "pass",
+              "skip": "",
+              "commands": [
+                {
+                  "kind": "build",
+                  "command": "/Users/auntlee/.local/bin/python3.11 -m py_compile app.py",
+                  "exit_code": 0,
+                  "seconds": 0.1,
+                  "tail": "",
+                  "output": "",
+                  "reason": "exited",
+                  "evidence": "verification-operations/runs/1/attempts/0003",
+                  "cleanup": {
+                    "trigger": null,
+                    "term_sent": false,
+                    "kill_sent": false,
+                    "signals": [],
+                    "errors": [],
+                    "remaining_group": false,
+                    "output_complete": true,
+                    "reaped": true,
+                    "complete": true
+                  }
+                },
+                {
+                  "kind": "test",
+                  "command": "/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v",
+                  "exit_code": 0,
+                  "seconds": 0.1,
+                  "tail": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+                  "output": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+                  "reason": "exited",
+                  "evidence": "verification-operations/runs/1/attempts/0004",
+                  "cleanup": {
+                    "trigger": null,
+                    "term_sent": false,
+                    "kill_sent": false,
+                    "signals": [],
+                    "errors": [],
+                    "remaining_group": false,
+                    "output_complete": true,
+                    "reaped": true,
+                    "complete": true
+                  }
+                }
+              ],
+              "files": [
+                "app.py"
+              ],
+              "code_changed_during_check": false,
+              "checked_commit": "7deb9a1896959842b6a7e91c51d0ce2bff420a3f",
+              "checked_base": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+              "checked_diff": "diff --git a/app.py b/app.py\nindex b15b1b0..c8fcecd 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 1\n+VALUE = 2\n",
+              "previous_verifications": [],
+              "rechecked": "2026-11-06 18:56:38",
+              "scope": {
+                "declared": {},
+                "reviewed": {},
+                "changed_files": [
+                  "app.py"
+                ],
+                "coverage_basis": "configured_checks"
+              },
+              "verification_current": true,
+              "verification_kind": "tests",
+              "recheck_operation": {
+                "id": 1,
+                "source_run": 1
+              },
+              "outcome": "manual_required"
+            },
+            "binding_status": "stored_match"
+          },
+          "lifecycle": {
+            "historical": true,
+            "record_status": "missing",
+            "raw": "",
+            "recorded": null
+          },
+          "rechecks": [
+            {
+              "record": {
+                "id": 1,
+                "source_run": 1,
+                "project_id": 1,
+                "ticket_id": 1,
+                "author": "agent:writer",
+                "status": "done",
+                "created": "2026-11-06 18:56:38",
+                "started": "2026-11-06 18:56:38",
+                "ended": "2026-11-06 18:56:38",
+                "exit_code": 0,
+                "result": "测试：通过",
+                "output": "— 重新验证（不改代码）：在本机上构建这次的改动\n— 先在没改过的代码上跑一遍构建测试，确认这台机器能跑通\n— 构建测试：/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\n— 通过，0.1 秒\n— 构建测试：/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\n— 通过，0.1 秒\n— 构建测试：/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\n— 通过，0.1 秒\n— 构建测试：/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\n— 通过，0.1 秒\n— 重新验证：构建通过\n"
+              },
+              "verification": {
+                "historical": true,
+                "record_status": "stored",
+                "raw": "{\n  \"verdict\": \"unknown\",\n  \"diagnosis\": {},\n  \"diagnosis_invalidated\": \"代码或检查契约已变化，旧诊断不再适用于当前改动\",\n  \"verification_contract\": \"cde5d86933e0ac069d759a01bc5eaf655b156569feebc139abe38e46c8a8e20f\",\n  \"baseline\": {\n    \"base\": \"a1bdac5e259bce340ead6cb17c50812c142615b1\",\n    \"commands\": [\n      {\n        \"kind\": \"build\",\n        \"command\": \"/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\",\n        \"exit_code\": 0,\n        \"seconds\": 0.1,\n        \"tail\": \"\",\n        \"output\": \"\",\n        \"reason\": \"exited\",\n        \"evidence\": \"verification-operations/runs/1/attempts/0001\",\n        \"cleanup\": {\n          \"trigger\": null,\n          \"term_sent\": false,\n          \"kill_sent\": false,\n          \"signals\": [],\n          \"errors\": [],\n          \"remaining_group\": false,\n          \"output_complete\": true,\n          \"reaped\": true,\n          \"complete\": true\n        }\n      },\n      {\n        \"kind\": \"test\",\n        \"command\": \"/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\",\n        \"exit_code\": 0,\n        \"seconds\": 0.1,\n        \"tail\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\",\n        \"output\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\\n\",\n        \"reason\": \"exited\",\n        \"evidence\": \"verification-operations/runs/1/attempts/0002\",\n        \"cleanup\": {\n          \"trigger\": null,\n          \"term_sent\": false,\n          \"kill_sent\": false,\n          \"signals\": [],\n          \"errors\": [],\n          \"remaining_group\": false,\n          \"output_complete\": true,\n          \"reaped\": true,\n          \"complete\": true\n        }\n      }\n    ],\n    \"state\": \"pass\"\n  },\n  \"test_reuse\": {\n    \"reused\": false,\n    \"reason\": \"本轮未复用测试\"\n  },\n  \"check\": \"pass\",\n  \"skip\": \"\",\n  \"commands\": [\n    {\n      \"kind\": \"build\",\n      \"command\": \"/Users/auntlee/.local/bin/python3.11 -m py_compile app.py\",\n      \"exit_code\": 0,\n      \"seconds\": 0.1,\n      \"tail\": \"\",\n      \"output\": \"\",\n      \"reason\": \"exited\",\n      \"evidence\": \"verification-operations/runs/1/attempts/0003\",\n      \"cleanup\": {\n        \"trigger\": null,\n        \"term_sent\": false,\n        \"kill_sent\": false,\n        \"signals\": [],\n        \"errors\": [],\n        \"remaining_group\": false,\n        \"output_complete\": true,\n        \"reaped\": true,\n        \"complete\": true\n      }\n    },\n    {\n      \"kind\": \"test\",\n      \"command\": \"/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v\",\n      \"exit_code\": 0,\n      \"seconds\": 0.1,\n      \"tail\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\",\n      \"output\": \"test_value (test_app.Test.test_value) ... ok\\n\\n----------------------------------------------------------------------\\nRan 1 test in 0.000s\\n\\nOK\\n\",\n      \"reason\": \"exited\",\n      \"evidence\": \"verification-operations/runs/1/attempts/0004\",\n      \"cleanup\": {\n        \"trigger\": null,\n        \"term_sent\": false,\n        \"kill_sent\": false,\n        \"signals\": [],\n        \"errors\": [],\n        \"remaining_group\": false,\n        \"output_complete\": true,\n        \"reaped\": true,\n        \"complete\": true\n      }\n    }\n  ],\n  \"files\": [\n    \"app.py\"\n  ],\n  \"code_changed_during_check\": false,\n  \"checked_commit\": \"7deb9a1896959842b6a7e91c51d0ce2bff420a3f\",\n  \"checked_base\": \"a1bdac5e259bce340ead6cb17c50812c142615b1\",\n  \"checked_diff\": \"diff --git a/app.py b/app.py\\nindex b15b1b0..c8fcecd 100644\\n--- a/app.py\\n+++ b/app.py\\n@@ -1 +1 @@\\n-VALUE = 1\\n+VALUE = 2\\n\",\n  \"previous_verifications\": [],\n  \"rechecked\": \"2026-11-06 18:56:38\",\n  \"scope\": {\n    \"declared\": {},\n    \"reviewed\": {},\n    \"changed_files\": [\n      \"app.py\"\n    ],\n    \"coverage_basis\": \"configured_checks\"\n  },\n  \"verification_current\": true,\n  \"verification_kind\": \"tests\",\n  \"recheck_operation\": {\n    \"id\": 1,\n    \"source_run\": 1\n  },\n  \"outcome\": \"manual_required\"\n}",
+                "recorded": {
+                  "verdict": "unknown",
+                  "diagnosis": {},
+                  "diagnosis_invalidated": "代码或检查契约已变化，旧诊断不再适用于当前改动",
+                  "verification_contract": "cde5d86933e0ac069d759a01bc5eaf655b156569feebc139abe38e46c8a8e20f",
+                  "baseline": {
+                    "base": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+                    "commands": [
+                      {
+                        "kind": "build",
+                        "command": "/Users/auntlee/.local/bin/python3.11 -m py_compile app.py",
+                        "exit_code": 0,
+                        "seconds": 0.1,
+                        "tail": "",
+                        "output": "",
+                        "reason": "exited",
+                        "evidence": "verification-operations/runs/1/attempts/0001",
+                        "cleanup": {
+                          "trigger": null,
+                          "term_sent": false,
+                          "kill_sent": false,
+                          "signals": [],
+                          "errors": [],
+                          "remaining_group": false,
+                          "output_complete": true,
+                          "reaped": true,
+                          "complete": true
+                        }
+                      },
+                      {
+                        "kind": "test",
+                        "command": "/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v",
+                        "exit_code": 0,
+                        "seconds": 0.1,
+                        "tail": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+                        "output": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+                        "reason": "exited",
+                        "evidence": "verification-operations/runs/1/attempts/0002",
+                        "cleanup": {
+                          "trigger": null,
+                          "term_sent": false,
+                          "kill_sent": false,
+                          "signals": [],
+                          "errors": [],
+                          "remaining_group": false,
+                          "output_complete": true,
+                          "reaped": true,
+                          "complete": true
+                        }
+                      }
+                    ],
+                    "state": "pass"
+                  },
+                  "test_reuse": {
+                    "reused": false,
+                    "reason": "本轮未复用测试"
+                  },
+                  "check": "pass",
+                  "skip": "",
+                  "commands": [
+                    {
+                      "kind": "build",
+                      "command": "/Users/auntlee/.local/bin/python3.11 -m py_compile app.py",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "",
+                      "output": "",
+                      "reason": "exited",
+                      "evidence": "verification-operations/runs/1/attempts/0003",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    },
+                    {
+                      "kind": "test",
+                      "command": "/Users/auntlee/.local/bin/python3.11 -m unittest discover -s tests -v",
+                      "exit_code": 0,
+                      "seconds": 0.1,
+                      "tail": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+                      "output": "test_value (test_app.Test.test_value) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+                      "reason": "exited",
+                      "evidence": "verification-operations/runs/1/attempts/0004",
+                      "cleanup": {
+                        "trigger": null,
+                        "term_sent": false,
+                        "kill_sent": false,
+                        "signals": [],
+                        "errors": [],
+                        "remaining_group": false,
+                        "output_complete": true,
+                        "reaped": true,
+                        "complete": true
+                      }
+                    }
+                  ],
+                  "files": [
+                    "app.py"
+                  ],
+                  "code_changed_during_check": false,
+                  "checked_commit": "7deb9a1896959842b6a7e91c51d0ce2bff420a3f",
+                  "checked_base": "a1bdac5e259bce340ead6cb17c50812c142615b1",
+                  "checked_diff": "diff --git a/app.py b/app.py\nindex b15b1b0..c8fcecd 100644\n--- a/app.py\n+++ b/app.py\n@@ -1 +1 @@\n-VALUE = 1\n+VALUE = 2\n",
+                  "previous_verifications": [],
+                  "rechecked": "2026-11-06 18:56:38",
+                  "scope": {
+                    "declared": {},
+                    "reviewed": {},
+                    "changed_files": [
+                      "app.py"
+                    ],
+                    "coverage_basis": "configured_checks"
+                  },
+                  "verification_current": true,
+                  "verification_kind": "tests",
+                  "recheck_operation": {
+                    "id": 1,
+                    "source_run": 1
+                  },
+                  "outcome": "manual_required"
+                }
+              },
+              "binding_status": "stored_match"
+            }
+          ]
+        },
+        "assessments": [],
+        "decisions": [],
+        "team_decisions": [],
+        "merges": [],
+        "ticket_preview": {
+          "historical": true,
+          "scope": "ticket",
+          "ticket_id": 1,
+          "project_id": 1,
+          "binding_status": "not_checked",
+          "recorded": {}
+        },
+        "harness_probes": []
+      },
+      "execution": false,
+      "notice": "仅提供已保存的历史记录；当前提交、进程、健康、验证及人工决定有效性均未核对。历史 URL 仅为原文，不是可导航的有效预览。"
+    }
+  ],
+  "ci_configuration": {
+    "config": null,
+    "revision": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+  },
+  "current_validity": "not_checked",
+  "ready_to_merge": null,
+  "notice": "仅提供已保存的历史记录；当前提交、进程、健康、验证及人工决定有效性均未核对。历史 URL 仅为原文，不是可导航的有效预览。",
+  "execution": false,
+  "next_step": "在候选详情核对当前有效证据；由有权限的人员复核，再按项目策略确认合并。",
+  "links": {
+    "task": "#/ticket/EXT-1",
+    "review": "#/team/ticket/EXT-1"
+  }
+}

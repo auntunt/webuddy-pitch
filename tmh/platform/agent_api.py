@@ -398,6 +398,10 @@ def _execute(P, req, actor, operation, a):
     tool = who.get('tool_connection') or getattr(req, 'assistant_scope', None)
     # Scope before pagination; never disclose ungranted counts or row contents.
     visible_ids = [p['id'] for p in tenant_policy.visible_projects(P, req.user)] if tool else None
+    if operation == 'delivery_get':
+        from . import tool_read
+        scope = [p['id'] for p in tenant_policy.visible_projects(P, req.user)]
+        return tool_read.delivery_get(P, a['ticket'], scope)
     if tool:
         from . import tool_read
         if operation == 'candidate_get':

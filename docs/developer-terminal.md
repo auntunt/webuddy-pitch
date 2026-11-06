@@ -76,7 +76,7 @@ webuddy develop ERP-1 --action merge --candidate-id 12
 | 杭州开发终端 | 系统、Python、Codex/Claude Code、MCP 版本、个人账号：待提供 |
 | 网络 | VPN/HTTPS 地址、访问白名单、Git 与模型出口、负责人：待提供 |
 | 怀柔项目 | 正式仓库、登记仓库、基线分支、源码与数据副本授权：待提供 |
-| CI | GitHub/GitLab/Jenkins 实际来源、必需检查名、完整 SHA 查询权限：待提供；目前只复用已有 GitHub 适配 |
+| CI | GitHub/GitLab/Jenkins 实际来源、必需检查名、完整 SHA 查询权限：待提供；支持 GitHub Actions、登记连接的 GitLab/Gitea；Jenkins 尚未适配 |
 | 业务责任 | 需求确认人、开发负责人、独立 Leader、业务验收人、推送/发布负责人：待提供 |
 | 模型 | 实际供应商/网关、模型与配置、发送范围、用量/账单依据：待提供；演示点数不是费用 |
 
@@ -128,3 +128,44 @@ MCP 提供同一只读检查：`webuddy_workspace_preflight(ticket, directory)`�
 这是开工快照核对，不是对外部编辑器的强制沙箱，也不能证明开发者之后没有更换目录。候选提交仍由服务器核对完整提交、基线、确认契约和验收标准，测试、Review 和合并门禁继续生效。
 
 客户端升级后重新安装下载包并重连 MCP，才能加载新预检工具。原生 Windows 的个人 MCP 凭据保护仍未支持；本次不绕过该限制，Git 预检可在隔离测试中单独验证。客户 Cursor 桌面实际连接与真实两机业务链路需现场验证，协议夹具通过不等于现场完成。
+
+
+## 网页与 MCP 获取同一份交付依据
+
+任务详情「验收依据」可下载完整 JSON。`GET /api/tickets/<key>/delivery`、MCP `webuddy_delivery_get(ticket)` 和 `webuddy delivery ERP-1` 使用同一只读数据组装逻辑，遵守当前租户和项目权限。旧 MCP 进程需在升级客户端后重连，才能发现新增工具。
+
+内容包括原始需求、终端需求/设计/测试方案与确认修订、完整运行产出和差异、基线与候选验证报告、逐项证据原文、候选提交、技术评估、人工决定、合并历史及 CI 配置。没有生成的内容保持缺失；历史报告不自动变成当前通过。导出包 `current_validity=not_checked`、`ready_to_merge=null`，不是可执行批准凭证。当前验证与复核门禁仍在候选详情实时核对，MCP 不替人作决定。文件可能包含项目源码和业务资料，只在授权人员间保存和传递。
+
+查看顺序：先看已确认的业务预期与测试方案，再看同一候选的实际检查、未执行/受阻/未覆盖项，最后由指定人员技术复核和业务验收。总测试数不替代逐条要求；需求确认、技术通过、业务验收和生产发布分别判断。
+
+## 私有 Git 与 CI
+
+平台已有本地 Git、隔离工作区、候选 ref、固定提交核对和本地主干合并。远端同步支持 GitHub 与自建 SSH Git；自建仓库使用 `ssh://git@host/path/repo.git`，按现有仓库配置登记部署公钥和固定主机指纹。平台不是 Git 托管服务。本地合并仍返回 `pushed=false`、`deployed=false`，正式推送和发布由指定维护者及项目原有流程承担。
+
+CI 仓库来源独立配置。GitHub Actions 沿用 `--repository owner/repo --required-check NAME`。GitLab/Gitea 由运维在租户数据目录写入 `ci-connections.json`，文件只允许平台运维修改；凭据只通过服务环境变量注入，不能写入项目配置、Git 或报告。示例为占位值：
+
+```json
+{
+  "intranet": {
+    "provider": "gitlab",
+    "url": "https://git.example.internal",
+    "token_env": "WEBUDDY_INTERNAL_CI_TOKEN",
+    "projects": {"ERP": ["team/subgroup/repo"]}
+  }
+}
+```
+
+只允许 HTTPS，保留系统证书校验；企业 CA 安装到服务的受信任证书环境，不关闭 TLS 校验。拒绝跳转。运维明确授权连接可访问的项目与仓库；项目管理员不能通过 API 指定任意地址或读取凭据。修改连接时暂停合并，使用现有 `.project-ci.lock` 独占锁并原子替换配置，完成后重新读取 CI。
+
+项目管理员在本人终端执行并确认：
+
+```sh
+webuddy ci-config ERP --provider gitlab --connection intranet \
+  --repository team/subgroup/repo --required-check business-tests --required-check regression
+```
+
+Gitea 将 provider 改为 `gitea`，仓库只能为 `owner/repo`，required-check 对应 commit status context。部署方需限制能写入这些状态的 CI 身份；不把开发 Agent 自报状态作为可信 CI。GitLab 使用完整 SHA 下最新流水线的成功状态及具备相同 SHA/流水线绑定的必需 job；旧失败流水线保留在 CI，成功重跑可重新验证。GitLab 下游子流水线、Jenkins、GitHub Enterprise 当前不自动适配，使用前需按真实环境补齐。不会回退到另一仓库的绿色记录。
+
+查询有时间、体积和分页上限，超限或异常受阻。失败、取消、跳过、缺失、未完成均不通过。MCP `webuddy_candidate_ci(candidate_id)` 和网页既有 CI API 查询当前精确提交；合并时服务端再次查询。本轮 GitLab/Gitea 是协议夹具验证，尚未连接客户真实 CI；需要提供实际产品版本、地址、仓库、必需检查、服务账号和可达网络进行联调。
+
+协议依据：[GitLab pipelines](https://docs.gitlab.com/api/pipelines/)、[GitLab jobs](https://docs.gitlab.com/api/jobs/)、[Gitea combined status](https://docs.gitea.com/api/1.25/operations/repo-get-combined-status-by-ref/)。

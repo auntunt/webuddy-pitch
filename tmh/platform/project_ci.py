@@ -1,4 +1,4 @@
-"""GitHub check runs read by the server for the exact candidate commit."""
+"""Server-side required CI checks bound to the exact candidate commit."""
 import json
 import http.client
 import time
@@ -23,24 +23,41 @@ def configuration(data, key):
     path = Path(data)/'project-ci.json'
     values = json.loads(path.read_text()) if path.exists() else {}
     value = values.get(key)
-    return {'config':value, 'revision':digest(value)}
+    binding = value
+    if value and value.get('connection'):
+        path = Path(data)/'ci-connections.json'
+        connections = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
+        binding = {'config': value, 'connection': connections.get(value['connection'])}
+    return {'config':value, 'revision':digest(binding)}
 
 
 def save(data, key, body):
     if set(body) != {'revision','config'}:
         raise ApiError(400,'需要CI配置和当前修订')
     value = body['config']
-    if not isinstance(value,dict) or set(value) != {'repository','required_checks'}:
-        raise ApiError(400,'需要GitHub仓库和必需检查名称')
-    if not isinstance(value['repository'],str) or len(value['repository']) > 200 or not re.fullmatch(r'[A-Za-z0-9_-]+/[A-Za-z0-9_][A-Za-z0-9_.-]*',value['repository']):
+    if not isinstance(value,dict) or set(value) not in ({'repository','required_checks'}, {'repository','required_checks','provider','connection'}):
+        raise ApiError(400,'需要仓库、必需检查及可选的已登记CI连接')
+    if not isinstance(value['repository'],str) or len(value['repository']) > 200 or not re.fullmatch(r'[A-Za-z0-9_-]+(?:/[A-Za-z0-9_][A-Za-z0-9_.-]*)+',value['repository']):
         raise ApiError(400,'仓库格式为owner/repository')
+    if 'provider' in value:
+        from .private_ci import connection
+        if value['provider'] not in ('gitlab', 'gitea') or not isinstance(value['connection'], str):
+            raise ApiError(400, '请选择已支持的私有CI连接')
+        if value['provider'] == 'gitea' and value['repository'].count('/') != 1:
+            raise ApiError(400, 'Gitea仓库格式为owner/repository')
+        try:
+            connection(data, key, value)
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise ApiError(400, 'CI连接未登记或未授权给当前项目和仓库') from exc
+    elif value['repository'].count('/') != 1:
+        raise ApiError(400, 'GitHub仓库格式为owner/repository')
     checks = value['required_checks']
     if not isinstance(checks,list) or not 1 <= len(checks) <= 50 or any(not isinstance(n,str) or not n.strip() for n in checks) or len(set(checks)) != len(checks):
-        raise ApiError(400,'请配置不重复的必需GitHub Actions检查名称，不能以空检查列表通过')
+        raise ApiError(400,'请配置不重复的必需CI检查名称，不能以空检查列表通过')
     path = Path(data)/'project-ci.json'
     with guard(data):
         values = json.loads(path.read_text()) if path.exists() else {}
-        if digest(values.get(key)) != body['revision']:
+        if configuration(data,key)['revision'] != body['revision']:
             raise ApiError(409,'CI配置已变化，请重新读取')
         values[key] = value
         fd,name = tempfile.mkstemp(prefix='.project-ci-',dir=data)
@@ -61,6 +78,12 @@ def check(data, key, commit):
         return dict(state='not_configured', commit=commit, checks=[], message='尚未配置该项目的必需CI检查', **configured)
     if not re.fullmatch(r'[0-9a-f]{40}',commit):
         raise ApiError(400,'CI必须绑定完整提交编号')
+    if config.get('provider'):
+        from .private_ci import check as private_check
+        try:
+            return dict(private_check(data,key,config,commit), **configured)
+        except (OSError,http.client.HTTPException,ValueError,KeyError,TypeError,AttributeError):
+            return dict(state='blocked',commit=commit,checks=[],message='无法核实私有CI；请检查连接授权、凭据和原始回执',**configured)
     headers = {'Accept':'application/vnd.github+json','User-Agent':'Webuddy-CI','X-GitHub-Api-Version':'2022-11-28'}
     if os.environ.get('GITHUB_TOKEN'):
         headers['Authorization'] = 'Bearer ' + os.environ['GITHUB_TOKEN']

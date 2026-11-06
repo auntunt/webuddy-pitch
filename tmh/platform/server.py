@@ -1182,6 +1182,14 @@ def api_ticket_ci(P, req, key):
     return check(P.data_dir,P.store.project(t['project_id'])['key'],candidate['commit_sha'])
 
 
+@route("GET", "/api/tickets/<key>/delivery")
+def api_delivery_packet(P, req, key):
+    from . import tool_read
+    t = P.ticket(key)
+    scope = _allowed_project_ids(P, req)
+    return tool_read.delivery_get(P, key, scope if scope is not None else [t['project_id']])
+
+
 @route("GET", "/api/tickets/<key>/development")
 def api_development(P, req, key):
     from . import development, team

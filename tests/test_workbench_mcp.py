@@ -170,9 +170,9 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                         initialized = await session.initialize()
                         self.assertEqual(initialized.serverInfo.name, "webuddy_mcp")
                         tools = (await session.list_tools()).tools
-                        self.assertEqual(len(tools), 20)
+                        self.assertEqual(len(tools), 21)
                         self.assertIn("webuddy_workspace_preflight", {t.name for t in tools})
-                        self.assertTrue({"webuddy_development_get","webuddy_candidate_ci"} <= {tool.name for tool in tools})
+                        self.assertTrue({"webuddy_development_get","webuddy_candidate_ci","webuddy_delivery_get"} <= {tool.name for tool in tools})
                         self.assertTrue(all(tool.annotations.readOnlyHint for tool in tools))
                         reply = await session.call_tool("webuddy_status", {})
                         self.assertFalse(reply.isError)
@@ -182,6 +182,15 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.requests[0]["path"], "/api/agent/status")
         self.assertEqual(self.requests[0]["headers"]["x-webuddy-agent"], client_name)
         self.assertEqual(self.requests[0]["headers"]["x-tmh-token"], "stdio-fixture-token")
+
+    async def test_delivery_read_roundtrip_needs_no_execution_or_write_permission(self):
+        async with self.session('--read-only') as session:
+            reply = await session.call_tool('webuddy_delivery_get', {'ticket':'ERP-1'})
+            self.assertFalse(reply.isError)
+            self.assert_full_json(reply)
+            self.assertEqual(reply.structuredContent['operation'], 'delivery_get')
+        self.assertEqual(self.requests[-1]['path'], '/api/agent/delivery_get')
+        self.assertEqual(self.requests[-1]['body'], {'ticket':'ERP-1'})
 
     async def test_generated_claude_configuration_launches_from_unrelated_directory(self):
         await self.check_generated_configuration("claude")

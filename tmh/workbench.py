@@ -50,10 +50,12 @@ def parser():
     q.add_argument("--mode", choices=["system", "local"], help="明确选择执行位置；不会自动启动开发")
     q.add_argument("--candidate-id",type=int)
     q.add_argument("--user",help="个人登录账号，密码交互输入")
-    q = add("ci-config", "项目管理员配置必需GitHub Actions检查")
+    q = add("ci-config", "项目管理员配置必需CI检查")
     q.add_argument("project")
     q.add_argument("--repository",required=True)
     q.add_argument("--required-check",action="append",required=True)
+    q.add_argument("--provider", choices=["gitlab", "gitea"])
+    q.add_argument("--connection", help="管理员登记的CI连接名称")
     q.add_argument("--user")
     add("status", "检查连接、执行器和能力边界")
     q = add("connect", "验证网页登录签发的个人工具凭据并保存到私有文件")
@@ -65,6 +67,8 @@ def parser():
     q.add_argument("--project")
     q.add_argument("--status")
     q.add_argument("--query", dest="q")
+    q = add("delivery", "读取产出、测试方案、原始结果与复核合并历史")
+    q.add_argument("ticket")
     q = add("ticket", "读取完整任务与证据包")
     q.add_argument("ticket")
     q = add("preflight", "只读核对当前本地目录、项目仓库、固定基线和知识版本")
@@ -221,7 +225,7 @@ def _tenant_execution(client, wanted):
 
 
 def _arguments(a):
-    names = {"projects": "projects_list", "tickets": "tickets_list", "ticket": "ticket_get", "create": "ticket_create", "send": "message_send", "inbox": "messages_list", "request": "request_get", "run": "run_get", "start": "run_start", "cancel": "run_cancel", "retry": "run_retry", "recheck": "run_recheck"}
+    names = {"projects": "projects_list", "tickets": "tickets_list", "ticket": "ticket_get", "delivery": "delivery_get", "create": "ticket_create", "send": "message_send", "inbox": "messages_list", "request": "request_get", "run": "run_get", "start": "run_start", "cancel": "run_cancel", "retry": "run_retry", "recheck": "run_recheck"}
     names.update({"candidates": "candidates_list", "candidate": "candidate_get", "acceptance": "candidate_get", "submit": "candidate_submit", "verify": "candidate_verify", "cancel-verification": "candidate_cancel", "candidate-preview": "candidate_preview", "assess": "candidate_assess", "approve": "candidate_decide", "reject": "candidate_decide"})
     names["hold"] = "ticket_hold"
     names.update({"harness-recipes": "harness_recipes", "harness-probe": "harness_probe_start", "harness-report": "harness_probe_get", "harness-stop": "harness_probe_cancel", "harness-library": "harness_library"})

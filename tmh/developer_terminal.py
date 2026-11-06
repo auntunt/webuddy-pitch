@@ -81,6 +81,8 @@ def run(args):
         path='/api/projects/'+args.project+'/ci'
         old=client.request('GET',path)
         value={'repository':args.repository,'required_checks':args.required_check}
+        if args.provider or args.connection:
+            value.update(provider=args.provider,connection=args.connection)
         print(json.dumps(value,ensure_ascii=False,indent=2))
         if input('输入 SAVE '+args.project+' 保存必需CI配置：').strip()!='SAVE '+args.project:
             return 0

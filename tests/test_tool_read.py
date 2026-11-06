@@ -153,7 +153,7 @@ class ToolReadTests(unittest.TestCase):
         self.st.x("INSERT INTO agent_requests(agent,request_id,operation,fingerprint,arguments,resource,state,created,updated) VALUES(?,?,?,?,?,?,?,?,?)",
                   (self.actor, 'pending', 'message_send', 'hash', '{}', 'ticket:' + str(self.t['id']), 'pending', 'old', 'old'))
         cases = {'status': {}, 'projects_list': {}, 'tickets_list': {}, 'ticket_get': {'ticket': self.t['key']},
-                 'messages_list': {}, 'request_get': {'request_id': 'pending'}, 'run_get': {'run_id': self.rid},
+                 'delivery_get': {'ticket': self.t['key']}, 'messages_list': {}, 'request_get': {'request_id': 'pending'}, 'run_get': {'run_id': self.rid},
                  'candidates_list': {'ticket': self.t['key']}, 'candidate_get': {'candidate_id': self.cid},
                  'library_get': {'project': 'APP'}, 'library_search': {'project': 'APP', 'query': 'synthetic'},
                  'library_read': {'project': 'APP', 'revision_id': 'a' * 32, 'path': 'rules.md'},
@@ -183,6 +183,18 @@ class ToolReadTests(unittest.TestCase):
                 with self.subTest(op=op), self.assertRaises(ApiError) as error:
                     self.call(op, **args)
                 self.assertEqual(error.exception.code, 403)
+
+    def test_delivery_packet_preserves_outputs_and_unknown_validity(self):
+        with no_live_effects(self.st):
+            packet = self.call('delivery_get', ticket=self.t['key'])
+        self.assertIsNone(packet['ready_to_merge'])
+        self.assertEqual(packet['current_validity'], 'not_checked')
+        self.assertEqual(packet['candidates'][0]['commit'], 'b'*40)
+        self.assertEqual(packet['runs'][0]['run']['output'], self.st.run(self.rid)['output'])
+        self.assertEqual(packet['development']['state'], 'not_selected')
+        with self.assertRaises(ApiError) as error:
+            self.call('delivery_get', ticket=self.hidden['key'])
+        self.assertEqual(error.exception.code, 403)
 
     def test_candidate_ci_queries_only_authorized_project_and_exact_commit(self):
         before = snapshot(self.st)

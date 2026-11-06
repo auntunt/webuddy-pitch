@@ -345,3 +345,23 @@ def library_get(P, p):
             'derivation': derivations[0] if derivations else None,
             'grants': rows(st, 'knowledge_grants', 'WHERE source_project=? ORDER BY target_project', (p['id'],)),
             'runtime_status': 'not_checked', 'execution': False, 'notice': NOTICE}
+
+
+def delivery_get(P, key, visible_ids):
+    """One stored evidence packet for web and MCP; never an acceptance verdict."""
+    from . import development, project_ci
+    packet = ticket_get(P, key, visible_ids)
+    t = packet['ticket']
+    candidates = [candidate(P, row['id'], visible_ids) for row in packet['external_candidates']]
+    return {'schema_version': 1, 'ticket': t, 'project': packet['project'],
+            'development': development.read(P.store, t),
+            'repository': packet['repository'], 'team_assignment': packet['team_assignment'],
+            'requirement_hash': packet['requirement_hash'], 'knowledge': packet['knowledge'],
+            'runs': packet['history']['runs'], 'evidence': packet['history']['evidence'],
+            'evidence_original': packet['history']['evidence_original'],
+            'candidates': candidates,
+            'ci_configuration': project_ci.configuration(P.data_dir, packet['project']['key']),
+            'current_validity': 'not_checked', 'ready_to_merge': None,
+            'notice': NOTICE, 'execution': False,
+            'next_step': '在候选详情核对当前有效证据；由有权限的人员复核，再按项目策略确认合并。',
+            'links': {'task': '#/ticket/' + t['key'], 'review': '#/team/ticket/' + t['key']}}
