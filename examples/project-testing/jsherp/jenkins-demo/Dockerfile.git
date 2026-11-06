@@ -1,0 +1,6 @@
+FROM jenkins/jenkins:lts-jdk21@sha256:74401de6a6f92e1afe1b02d1c8e3d0c33f263bfb5275dd8813f9150355f2367b
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-server && rm -rf /var/lib/apt/lists/* && useradd -m -s /usr/bin/git-shell git && mkdir -p /run/sshd /home/git/.ssh
+RUN usermod -p '*' git
+COPY git-sshd.conf /etc/ssh/sshd_config
+ENTRYPOINT ["/usr/sbin/sshd", "-D", "-e"]

@@ -76,7 +76,7 @@ webuddy develop ERP-1 --action merge --candidate-id 12
 | 杭州开发终端 | 系统、Python、Codex/Claude Code、MCP 版本、个人账号：待提供 |
 | 网络 | VPN/HTTPS 地址、访问白名单、Git 与模型出口、负责人：待提供 |
 | 怀柔项目 | 正式仓库、登记仓库、基线分支、源码与数据副本授权：待提供 |
-| CI | GitHub/GitLab/Jenkins 实际来源、必需检查名、完整 SHA 查询权限：待提供；支持 GitHub Actions、登记连接的 GitLab/Gitea；Jenkins 尚未适配 |
+| CI | GitHub/GitLab/Jenkins 实际来源、必需检查名、完整 SHA 查询权限：待提供；支持 GitHub Actions、登记连接的 GitLab/Gitea；Jenkins 接口及自建验证见下文，客户联调待完成 |
 | 业务责任 | 需求确认人、开发负责人、独立 Leader、业务验收人、推送/发布负责人：待提供 |
 | 模型 | 实际供应商/网关、模型与配置、发送范围、用量/账单依据：待提供；演示点数不是费用 |
 
@@ -164,8 +164,38 @@ webuddy ci-config ERP --provider gitlab --connection intranet \
   --repository team/subgroup/repo --required-check business-tests --required-check regression
 ```
 
-Gitea 将 provider 改为 `gitea`，仓库只能为 `owner/repo`，required-check 对应 commit status context。部署方需限制能写入这些状态的 CI 身份；不把开发 Agent 自报状态作为可信 CI。GitLab 使用完整 SHA 下最新流水线的成功状态及具备相同 SHA/流水线绑定的必需 job；旧失败流水线保留在 CI，成功重跑可重新验证。GitLab 下游子流水线、Jenkins、GitHub Enterprise 当前不自动适配，使用前需按真实环境补齐。不会回退到另一仓库的绿色记录。
+Gitea 将 provider 改为 `gitea`，仓库只能为 `owner/repo`，required-check 对应 commit status context。部署方需限制能写入这些状态的 CI 身份；不把开发 Agent 自报状态作为可信 CI。GitLab 使用完整 SHA 下最新流水线的成功状态及具备相同 SHA/流水线绑定的必需 job；旧失败流水线保留在 CI，成功重跑可重新验证。GitLab 下游子流水线、GitHub Enterprise 当前不自动适配，使用前需按真实环境补齐。不会回退到另一仓库的绿色记录。
 
 查询有时间、体积和分页上限，超限或异常受阻。失败、取消、跳过、缺失、未完成均不通过。MCP `webuddy_candidate_ci(candidate_id)` 和网页既有 CI API 查询当前精确提交；合并时服务端再次查询。本轮 GitLab/Gitea 是协议夹具验证，尚未连接客户真实 CI；需要提供实际产品版本、地址、仓库、必需检查、服务账号和可达网络进行联调。
 
 协议依据：[GitLab pipelines](https://docs.gitlab.com/api/pipelines/)、[GitLab jobs](https://docs.gitlab.com/api/jobs/)、[Gitea combined status](https://docs.gitea.com/api/1.25/operations/repo-get-combined-status-by-ref/)。
+
+### Jenkins 自建连接
+
+新增 `provider=jenkins`，沿用同一候选 CI 查询与合并门禁。下列配置在当前开发代码中实现；实际构建验证记录见 JSHERP Jenkins 演练目录，不能把自建环境结果视为客户 Jenkins 已接通。
+
+```json
+{
+  "company-jenkins": {
+    "provider": "jenkins",
+    "url": "https://jenkins.example.internal",
+    "user_env": "WEBUDDY_JENKINS_USER",
+    "token_env": "WEBUDDY_JENKINS_TOKEN",
+    "projects": {"ERP": ["company/erp"]},
+    "repositories": {
+      "company/erp": {
+        "remote_urls": ["ssh://git@git.example.internal/company/erp.git"],
+        "jobs": {"erp-verification": ["ERP", "verification"]}
+      }
+    }
+  }
+}
+```
+
+项目 CI 配置填写同一个 connection、repository 和 required_checks。jobs 的数组是 Jenkins 文件夹与任务路径段，不是任意 URL。注册的 remote_urls 必须与 Git 插件实际 checkout 的仓库 URL 一致；别名应由运维显式登记。账号只需 Overall/Read 和相关 Job/Read；不授予 Build、Configure 或管理员权限。使用 API token，HTTPS 必须校验证书；私有 CA 安装到平台信任环境，不关闭校验。
+
+读取 Git 插件 BuildData 的 remoteUrls 与完整 lastBuiltRevision.SHA1，再读取构建结果；不信任任务参数里的 GIT_COMMIT。每个必需任务选择最近100次中当前仓库/提交的最新构建。完成且 SUCCESS 才通过；UNSTABLE、FAILURE、ABORTED、NOT_BUILT、执行中、无记录、未知SCM或查询异常均受阻。较新构建没有可核对的 checkout 记录时，不借旧成功放行。
+
+适用前提：Jenkins 使用 Git 插件 checkout，构建任务及必需检查由可信维护者管理。仅用 shell git clone、无 BuildData、下游聚合、特殊多仓库 checkout 需实际核对，不能自动声称兼容。配置连接只查询，不触发构建；候选需先同步到登记远端，由现有 Jenkins 流程构建。本地合并仍 `pushed=false`、`deployed=false`。
+
+接口依据：[Jenkins Remote API](https://www.jenkins.io/doc/book/using/remote-access-api/)、[Git 插件](https://plugins.jenkins.io/git/)。

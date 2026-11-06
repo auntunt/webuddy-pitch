@@ -54,7 +54,7 @@ def parser():
     q.add_argument("project")
     q.add_argument("--repository",required=True)
     q.add_argument("--required-check",action="append",required=True)
-    q.add_argument("--provider", choices=["gitlab", "gitea"])
+    q.add_argument("--provider", choices=["gitlab", "gitea", "jenkins"])
     q.add_argument("--connection", help="管理员登记的CI连接名称")
     q.add_argument("--user")
     add("status", "检查连接、执行器和能力边界")

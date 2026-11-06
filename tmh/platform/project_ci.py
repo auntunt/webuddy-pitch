@@ -41,7 +41,7 @@ def save(data, key, body):
         raise ApiError(400,'仓库格式为owner/repository')
     if 'provider' in value:
         from .private_ci import connection
-        if value['provider'] not in ('gitlab', 'gitea') or not isinstance(value['connection'], str):
+        if value['provider'] not in ('gitlab', 'gitea', 'jenkins') or not isinstance(value['connection'], str):
             raise ApiError(400, '请选择已支持的私有CI连接')
         if value['provider'] == 'gitea' and value['repository'].count('/') != 1:
             raise ApiError(400, 'Gitea仓库格式为owner/repository')

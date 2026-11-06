@@ -1,4 +1,5 @@
 """Operator-owned CI endpoints. Project members cannot supply destinations or secrets."""
+import base64
 import http.client
 import json
 import os
@@ -25,6 +26,9 @@ def connection(data, key, config):
     token_env = value.get('token_env', '')
     if token_env and not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', token_env):
         raise ValueError('Invalid credential environment name')
+    if value['provider'] == 'jenkins':
+        if not token_env or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', value.get('user_env', '')):
+            raise ValueError('Jenkins needs registered user and token environment names')
     return value
 
 
@@ -36,7 +40,12 @@ def check(data, key, config, commit):
         raise ValueError('Configured CI credential is unavailable')
     provider = config['provider']
     headers = {'Accept': 'application/json', 'User-Agent': 'Webuddy-CI'}
-    if token:
+    if provider == 'jenkins':
+        user = os.environ.get(value['user_env'], '')
+        if not user or ':' in user or not token:
+            raise ValueError('Jenkins user/token are unavailable')
+        headers['Authorization'] = 'Basic ' + base64.b64encode((user + ':' + token).encode()).decode('ascii')
+    elif token:
         headers.update({'PRIVATE-TOKEN': token} if provider == 'gitlab' else {'Authorization': 'token ' + token})
     deadline = time.monotonic() + 20
     requests = 0
@@ -72,6 +81,11 @@ def check(data, key, config, commit):
         raise ValueError('CI pagination incomplete')
 
     checks = []
+    if provider == 'jenkins':
+        from .jenkins_ci import checks as jenkins_checks
+        results = jenkins_checks(get, value, config, commit)
+        return {'state': 'pass' if all(r['state'] == 'pass' for r in results) else 'blocked',
+                'commit': commit, 'checks': results}
     if provider == 'gitlab':
         root = '/api/v4/projects/' + quote(config['repository'], safe='')
         pipelines = pages(root + '/pipelines?sha=' + commit)
