@@ -86,7 +86,10 @@ class PrivateCITest(unittest.TestCase):
         result,calls=self.query([{'sha':self.sha,'total_count':1,'statuses':[success]}])
         self.assertEqual(result['state'],'pass')
         self.assertIn('/api/v1/repos/team/repo/commits/'+self.sha,calls[0])
-        for result in ({'sha':'b'*40,'total_count':1,'statuses':[success]},
+        for result in ({'sha':self.sha,'total_count':0,'statuses':[success]},
+                       {'sha':self.sha,'total_count':-1,'statuses':[success]},
+                       {'sha':self.sha,'total_count':2,'statuses':[success,success]},
+                       {'sha':'b'*40,'total_count':1,'statuses':[success]},
                        {'sha':self.sha,'total_count':0,'statuses':[]},
                        {'sha':self.sha,'total_count':1,'statuses':[dict(success,status='pending')]}):
             self.assertEqual(self.query([result])[0]['state'],'blocked')

@@ -1,0 +1,33 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+test_connection_change_invalidates_configuration_revision (tests.test_private_ci.PrivateCITest.test_connection_change_invalidates_configuration_revision) ... ok
+test_gitea_commit_and_all_required_statuses (tests.test_private_ci.PrivateCITest.test_gitea_commit_and_all_required_statuses) ... ok
+test_gitlab_exact_sha_encoded_repository_and_jobs (tests.test_private_ci.PrivateCITest.test_gitlab_exact_sha_encoded_repository_and_jobs) ... ok
+test_invalid_destination_rejected_at_configuration (tests.test_private_ci.PrivateCITest.test_invalid_destination_rejected_at_configuration) ... ok
+test_latest_pipeline_must_finish_and_rerun_can_replace_failure (tests.test_private_ci.PrivateCITest.test_latest_pipeline_must_finish_and_rerun_can_replace_failure) ... ok
+test_no_pipeline_missing_job_failure_skip_cancel_pending (tests.test_private_ci.PrivateCITest.test_no_pipeline_missing_job_failure_skip_cancel_pending) ... ok
+test_pagination_does_not_accept_partial_results (tests.test_private_ci.PrivateCITest.test_pagination_does_not_accept_partial_results) ... ok
+test_redirect_credentials_revocation_and_project_grant (tests.test_private_ci.PrivateCITest.test_redirect_credentials_revocation_and_project_grant) ... ok
+test_wrong_pipeline_and_job_binding_never_pass (tests.test_private_ci.PrivateCITest.test_wrong_pipeline_and_job_binding_never_pass) ... ok
+test_config_conflict_and_empty_required_checks (tests.test_project_ci.ProjectCITest.test_config_conflict_and_empty_required_checks) ... ok
+test_exact_success (tests.test_project_ci.ProjectCITest.test_exact_success) ... ok
+test_fail_skip_cancel_pending_and_duplicate_failure_cannot_pass (tests.test_project_ci.ProjectCITest.test_fail_skip_cancel_pending_and_duplicate_failure_cannot_pass) ... ok
+test_malformed_report_cannot_pass (tests.test_project_ci.ProjectCITest.test_malformed_report_cannot_pass) ... ok
+test_missing_wrong_sha_or_wrong_app_cannot_pass (tests.test_project_ci.ProjectCITest.test_missing_wrong_sha_or_wrong_app_cannot_pass) ... ok
+test_no_configuration_is_not_success (tests.test_project_ci.ProjectCITest.test_no_configuration_is_not_success) ... ok
+test_redirect_is_not_followed (tests.test_project_ci.ProjectCITest.test_redirect_is_not_followed) ... ok
+test_short_sha_rejected (tests.test_project_ci.ProjectCITest.test_short_sha_rejected) ... ok
+test_assessment_keeps_unknown_and_exact_verification (tests.test_developer_terminal.DeveloperTerminalTest.test_assessment_keeps_unknown_and_exact_verification) ... ok
+test_cancel_does_not_submit (tests.test_developer_terminal.DeveloperTerminalTest.test_cancel_does_not_submit) ... ok
+test_empty_reason_cannot_approve (tests.test_developer_terminal.DeveloperTerminalTest.test_empty_reason_cannot_approve) ... ok
+test_leader_approval_uses_accept_and_bound_evidence (tests.test_developer_terminal.DeveloperTerminalTest.test_leader_approval_uses_accept_and_bound_evidence) ... ok
+test_leader_rejection_preserves_reason (tests.test_developer_terminal.DeveloperTerminalTest.test_leader_rejection_preserves_reason) ... ok
+test_missing_ci_prevents_merge (tests.test_developer_terminal.DeveloperTerminalTest.test_missing_ci_prevents_merge) ... ok
+test_pipe_cannot_submit_human_actions (tests.test_developer_terminal.DeveloperTerminalTest.test_pipe_cannot_submit_human_actions) ... ok
+test_stale_candidate_rejected_before_confirmation (tests.test_developer_terminal.DeveloperTerminalTest.test_stale_candidate_rejected_before_confirmation) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 0.240s
+
+OK

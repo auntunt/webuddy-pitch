@@ -94,16 +94,27 @@ def check(data, key, config, commit):
                 checks.append({'name': job['name'], 'status': job['status'], 'id': job['id'], 'url': job['web_url']})
     elif provider == 'gitea':
         root = '/api/v1/repos/' + config['repository'] + '/commits/' + commit + '/status'
+        expected_total = None
+        seen = set()
         for page in range(1, 11):
             result = get(root + '?limit=100&page=' + str(page))
             if (not isinstance(result, dict) or result.get('sha') != commit
                     or type(result.get('total_count')) is not int or not isinstance(result.get('statuses'), list)):
                 raise ValueError('Commit status binding mismatch')
+            total = result['total_count']
+            if total < 0 or (expected_total is not None and total != expected_total):
+                raise ValueError('CI status count changed or is invalid')
+            expected_total = total
             for status in result['statuses']:
                 if not isinstance(status, dict) or any(f not in status for f in ('context', 'status', 'id', 'target_url')):
                     raise ValueError('Incomplete commit status')
+                if type(status['id']) is not int or status['id'] in seen:
+                    raise ValueError('Duplicate or invalid CI status identity')
+                seen.add(status['id'])
                 checks.append({'name': status['context'], 'status': status['status'], 'id': status['id'], 'url': status['target_url']})
-            if len(checks) >= result['total_count']:
+            if len(checks) > total:
+                raise ValueError('CI status count does not match response')
+            if len(checks) == total:
                 break
         else:
             raise ValueError('CI pagination incomplete')
