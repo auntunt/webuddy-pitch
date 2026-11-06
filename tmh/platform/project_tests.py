@@ -155,7 +155,9 @@ def collect(profile, envelope, folder, criteria):
         if record['id'] != stage['id']:
             raise ValueError('执行回执阶段身份不匹配')
         item = {k: record[k] for k in ('id', 'exit_code', 'seconds', 'error')}
-        item.update(kind=stage['kind'], required=stage['required'], command=stage['command'], cases=[])
+        item.update(kind=stage['kind'], required=stage['required'], command=stage['command'], cases=[],
+                    execution_status=record.get('execution_status', 'completed' if record['exit_code'] == 0 else 'failed'),
+                    failure_kind=record.get('failure_kind', ''))
         log = base64.b64decode(record['log'], validate=True)
         (folder / (stage['id'] + '.log')).write_bytes(log)
         item['log_sha256'] = hashlib.sha256(log).hexdigest()
@@ -184,9 +186,11 @@ def collect(profile, envelope, folder, criteria):
                     item['error'] = '报告有失败或跳过用例'
             except (ValueError, ET.ParseError) as exc:
                 item.update(status='fail', error=str(exc))
+                if not item['failure_kind']:
+                    item.update(execution_status='blocked', failure_kind='report')
         item['dependencies_valid'] = all(next(r for r in results if r['id'] == dep)['status'] == 'pass' for dep in stage.get('depends_on', []))
         if stage['kind'] != 'cleanup' and not item['dependencies_valid']:
-            item.update(status='fail', error=item['error'] or '依赖阶段未通过，本阶段结果不能用于交付')
+            item.update(status='fail', error=item['error'] or '依赖阶段未通过，本阶段结果不能用于交付', failure_kind='dependency')
         indexed = {c['id']: c['status'] for c in item['cases']}
         for criterion, ids in stage.get('criteria', {}).items():
             passed = item['exit_code'] == 0 and not record['error'] and item['report_valid'] and item['dependencies_valid'] and all(indexed.get(i) == 'pass' for i in ids)
@@ -283,10 +287,11 @@ def execute(loop, profile):
         report['remote_workspace'] = loop.box.dir + '/work/' + key
         report['remote_artifacts'] = envelope['artifact_dir']
     (folder / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
+    blocked = report['code_changed'] or any(s['required'] and s['execution_status'] == 'blocked' and s['failure_kind'] != 'dependency' for s in report['stages'])
     return [{'kind': 'test', 'command': '项目测试：' + ' → '.join(s['id'] for s in profile['stages']),
              'exit_code': 0 if report['status'] == 'pass' else 1, 'seconds': sum(s['seconds'] for s in report['stages']),
              'output': '\n'.join(s['id'] + ': ' + s['status'] + (' · ' + s['error'] if s['error'] else '') for s in report['stages']),
-             'project_tests': report}]
+             'project_tests': report, 'verification_state': 'passed' if report['status'] == 'pass' else 'blocked' if blocked else 'failed'}]
 
 
 def current_issue(data_dir, rid, verification):

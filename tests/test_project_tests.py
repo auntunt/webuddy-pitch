@@ -43,6 +43,17 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual((self.root/'report.json').read_bytes(),(self.root/'evidence/unit-0.json').read_bytes())
         self.assertEqual(report['criterion_evidence']['A1'][0]['status'],'pass')
 
+    def test_source_mutation_blocks_later_stage_instead_of_mixing_versions(self):
+        p = self.profile()
+        p['stages'].insert(0, dict(id='mutate',kind='static',required=True,timeout=3,
+            command="node -e \"require('fs').writeFileSync('business.js','changed')\""))
+        result = self.execute(p)
+        self.assertTrue(result['code_changed'])
+        self.assertEqual(result['status'], 'fail')
+        self.assertEqual(result['stages'][1]['execution_status'], 'not_run')
+        self.assertFalse((self.root/'report.json').exists())
+        self.assertEqual(result['uncovered_criteria'], ['A1'])
+
     def test_zero_exit_failed_assertion_blocks(self):
         p=self.profile();p['stages'][0]['command']=p['stages'][0]['command'].replace("status:'pass'","status:'fail'")
         r=self.execute(p)
@@ -65,6 +76,9 @@ class ProjectTests(unittest.TestCase):
         p['stages'] += [dict(id='integration',kind='static',required=True,timeout=2,command='echo should-not-run',depends_on=['unit']),dict(id='cleanup',kind='cleanup',required=True,timeout=2,command='echo cleanup-ran',depends_on=['unit'])]
         r=self.execute(p)
         self.assertEqual(r['stages'][0]['exit_code'],124)
+        self.assertEqual(r['stages'][0]['execution_status'],'blocked')
+        self.assertEqual(r['stages'][0]['failure_kind'],'timeout')
+        self.assertEqual(r['stages'][1]['execution_status'],'not_run')
         self.assertIn('未执行',r['stages'][1]['error'])
         self.assertIn('cleanup-ran',r['stages'][2]['output'])
         self.assertEqual(r['status'],'fail')
@@ -223,6 +237,31 @@ class RecheckProjectTests(unittest.TestCase):
         stale=verified(self.data,self.fixture.rid)
         self.assertFalse(stale['verification_current'])
         self.assertIn('配置已变化',stale['skip'])
+
+    def test_project_baseline_failure_is_retained_and_candidate_still_runs(self):
+        from tmh.platform.fixloop import recheck
+        self.profile['stages'][0]['command'] = "node -e \"const f=require('fs');f.writeFileSync('report.json',JSON.stringify({cases:[{id:'sum',status:f.readFileSync('app.py','utf8').includes('VALUE = 1')?'pass':'fail'}]}))\""
+        pt.save(self.data,self.key,{'revision':pt.view(self.data,self.key)['revision'],'profile':self.profile})
+        result = recheck(self.fixture.runner,self.fixture.rid)
+        self.assertEqual(result['baseline']['state'], 'fail')
+        self.assertEqual(result['baseline']['commands'][0]['project_tests']['stages'][0]['cases'][0]['status'], 'fail')
+        self.assertEqual(result['check'], 'pass')
+        base = result['baseline']['commands'][0]['project_tests']
+        candidate = result['commands'][0]['project_tests']
+        self.assertEqual(base['base'], candidate['base'])
+        self.assertNotEqual(base['diff_sha256'], candidate['diff_sha256'])
+        self.assertNotEqual(base['evidence'], candidate['evidence'])
+        self.assertEqual((self.fixture.wt/'app.py').read_text(), 'VALUE = 1\n')
+
+    def test_test_failure_with_unexecuted_dependents_still_requests_repair(self):
+        from tmh.platform.fixloop import recheck
+        self.profile['stages'][0]['command'] = self.profile['stages'][0]['command'].replace("status:'pass'", "status:'fail'") + ' && node -e "process.exit(1)"'
+        self.profile['stages'].append(dict(id='dependent',kind='build',required=True,timeout=2,command='echo should-not-run',depends_on=['unit']))
+        pt.save(self.data,self.key,{'revision':pt.view(self.data,self.key)['revision'],'profile':self.profile})
+        result = recheck(self.fixture.runner,self.fixture.rid)
+        self.assertEqual(result['commands'][0]['project_tests']['stages'][1]['execution_status'], 'not_run')
+        self.assertEqual(result['commands'][0]['verification_state'], 'failed')
+        self.assertEqual(result['outcome'], 'repair_required')
 
     def test_original_artifact_tampering_invalidates(self):
         from tmh.platform.fixloop import recheck,verified

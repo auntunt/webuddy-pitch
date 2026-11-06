@@ -80,15 +80,24 @@ function run(command, timeout, logfile) {
 (async () => {
   const initialCode = codeIdentity();
   const stages = [];
+  let codeChanged = false;
   for (const s of plan.stages) {
     const start = Date.now(), logfile = path.join(work, s.id + '.log');
     const report = s.report ? s.report.path : null;
-    let record = {id:s.id,exit_code:1,error:'',log:'',seconds:0}, before;
+    let record = {id:s.id,exit_code:1,error:'',log:'',seconds:0,execution_status:'not_run'}, before;
     try {
       before = new Map(report ? reportFiles(report).map(p=>[p,signature(p)]) : []);
       const blocked = (s.depends_on || []).some(id => stages.find(x=>x.id===id)?.exit_code !== 0);
-      if (blocked && s.kind !== 'cleanup') record.error = '依赖阶段未成功，未执行';
-      else Object.assign(record, await run(s.command, s.timeout, logfile));
+      codeChanged ||= initialCode !== codeIdentity();
+      if ((blocked || codeChanged) && s.kind !== 'cleanup') {
+        record.error = codeChanged ? '代码版本已变化，未执行' : '依赖阶段未成功，未执行';
+        record.failure_kind = codeChanged ? 'code_changed' : 'dependency';
+      } else {
+        Object.assign(record, await run(s.command, s.timeout, logfile));
+        record.execution_status = record.exit_code === 0 ? 'completed' : [124,127].includes(record.exit_code) ? 'blocked' : 'failed';
+        if(record.exit_code !== 0) record.failure_kind = record.exit_code === 124 ? 'timeout' : record.exit_code === 127 ? 'environment' : 'command';
+      }
+      codeChanged ||= initialCode !== codeIdentity();
       if (report) {
         const files = reportFiles(report);
         if (!files.length) record.report_error = '缺少报告';
@@ -101,12 +110,12 @@ function run(command, timeout, logfile) {
           }
         }
       }
-    } catch(error) {record.error = error.message; record.exit_code = 1;}
+    } catch(error) {record.error = error.message; record.exit_code = 1; record.execution_status = 'blocked'; record.failure_kind = 'environment';}
     record.seconds = (Date.now() - start) / 1000;
     stages.push(record);
   }
   if(process.platform !== 'win32') killChildren();
   for(const record of stages) {const logfile=path.join(work,record.id+'.log');if(fs.existsSync(logfile))record.log=fs.readFileSync(logfile).toString('base64');}
-  process.stdout.write('TMH_PROJECT_TESTS_' + plan.nonce + ':' + Buffer.from(JSON.stringify({stages,code_changed:initialCode !== codeIdentity(),code_identity:initialCode,artifact_dir:work})).toString('base64') + '\n');
+  process.stdout.write('TMH_PROJECT_TESTS_' + plan.nonce + ':' + Buffer.from(JSON.stringify({stages,code_changed:codeChanged || initialCode !== codeIdentity(),code_identity:initialCode,artifact_dir:work})).toString('base64') + '\n');
   if(plan.artifact_dir) fs.rmSync(work, {recursive:true});
 })().catch(error => {if(process.platform !== 'win32') killChildren(); console.error('项目测试执行错误，原始日志：' + work, error); process.exitCode = 1;});

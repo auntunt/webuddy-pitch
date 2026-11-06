@@ -59,6 +59,7 @@ class TestboxBridgeTest(unittest.TestCase):
         folder = self.data / 'runs' / str(self.rid); folder.mkdir(parents=True)
         loop = FixLoop.__new__(FixLoop)
         loop.r, loop.rid, loop.t = SimpleNamespace(data_dir=self.data), self.rid, None
+        loop.p, loop.base = self.store.project(self.store.run(self.rid)['project_id']), 'baseline'
         loop.wt, loop.set = self.repo, {'rounds': 0, 'split_from': 3}
         loop.box, loop.nobuild, loop.ok, loop.remote_testing = self.bridge.box, '', True, True
         loop.brought, loop.log, loop.notes = set(), [], {}

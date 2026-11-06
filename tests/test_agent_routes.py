@@ -297,7 +297,8 @@ class AgentRoutesTest(unittest.TestCase):
                 runner.stop_reason.return_value = ""
                 (self.data / "runs" / "1").mkdir(parents=True, exist_ok=True)
                 with patch("tmh.platform.fixloop.git", return_value="abc\n"), \
-                        patch("tmh.platform.fixloop.worktree_diff", return_value=diff):
+                        patch("tmh.platform.fixloop.worktree_diff", return_value=diff), \
+                        patch("tmh.platform.fixloop.verification_contract", return_value="fixture-contract"):
                     loop = FixLoop(runner, 1, self.project, None, "cloudwave-codex", conf, "luna", False, "prompt", self.root)
                     loop.commands = Mock(return_value=([], "no build here"))
                     loop.whole = Mock()

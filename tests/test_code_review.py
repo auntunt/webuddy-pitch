@@ -114,6 +114,30 @@ class ManualReviewTest(unittest.TestCase):
         self.assertEqual(result['check'], 'pass', result)
         self.assertIn('quoted build passed', result['commands'][0]['output'])
 
+    def test_build_configuration_change_invalidates_before_review_and_prevents_reuse(self):
+        from tmh import config
+        tested = recheck(self.runner, self.rid)
+        cfg = config.load(self.root)
+        cfg['commands']['build'] = 'python -c "raise SystemExit(23)"'
+        config.save(self.root, cfg)
+        stale = verified(self.data, self.rid)
+        self.assertFalse(stale['verification_current'])
+        self.assertEqual(stale['previous_current_verification']['commands'], tested['commands'])
+        result = recheck(self.runner, self.rid, kind='review')
+        self.assertEqual(result['check'], 'skip')
+        self.assertEqual(result['commands'], [])
+        self.assertFalse(result['test_reuse']['reused'])
+        self.assertEqual(result['diagnosis']['verdict'], 'pass')
+
+    def test_configuration_changed_during_review_cannot_publish_current_pass(self):
+        recheck(self.runner, self.rid)
+        config_path = self.root / '.tmh' / 'config.json'
+        with (self.data/'review-fixture.py').open('a') as f:
+            f.write("from pathlib import Path\np=Path(%r)\nv=json.loads(p.read_text())\nv['commands']['build']='exit 23'\np.write_text(json.dumps(v))\n" % str(config_path))
+        result = recheck(self.runner, self.rid, kind='review')
+        self.assertFalse(result['verification_current'])
+        self.assertEqual(result['check'], 'unknown')
+
     def test_review_failure_does_not_reuse_previous_pass(self):
         (self.data/'review-fixture.py').write_text('raise SystemExit(7)\n')
         result = recheck(self.runner, self.rid, kind='review')
@@ -130,6 +154,24 @@ class ManualReviewTest(unittest.TestCase):
 
 
 class ReviewUiTest(unittest.TestCase):
+    def test_baseline_blocked_and_unexecuted_are_visible_without_signoff_claim(self):
+        from tests.test_ui_run_preview import RunPreviewUiTest
+        RunPreviewUiTest().run_js(r'''
+const r=detail(7);
+r.verification={check:'fail',verdict:'unknown',outcome:'blocked',baseline:{base:'original',state:'fail',commands:[{output:'original assertion failed'}]},commands:[]};
+const html=runVerificationRecordHtml(r);
+assert.ok(html.includes('验证受阻，补齐条件后重测'));
+assert.ok(html.includes('修改前基线 · 未通过'));
+assert.ok(html.includes('original assertion failed'));
+r.verification.scope={declared:{new:['A1'],regression:['A2'],invariants:['A3'],gaps:[]},reviewed:{}};
+assert.ok(runVerificationRecordHtml(r).includes('受影响的旧功能'));
+assert.ok(!html.includes('可提交人工业务验收'));
+const report={criteria:[],criterion_evidence:{},stages:[{id:'timeout',status:'fail',execution_status:'blocked',required:true,cases:[],output:'timed out'}, {id:'dependent',status:'fail',execution_status:'not_run',required:true,cases:[],output:''}],uncovered_criteria:[],status:'fail'};
+const stages=projectTestsReportHtml([{project_tests:report}]);
+assert.ok(stages.includes('timeout · 验证受阻'));
+assert.ok(stages.includes('dependent · 未执行'));
+''', controller=True)
+
     def test_manual_buttons_share_lock_and_send_distinct_actions(self):
         from tests.test_ui_run_preview import RunPreviewUiTest
         RunPreviewUiTest().run_js(r'''
