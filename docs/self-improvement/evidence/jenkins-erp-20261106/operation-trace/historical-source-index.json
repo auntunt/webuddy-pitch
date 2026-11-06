@@ -1,0 +1,86 @@
+[
+  {
+    "source": "/tmp/webuddy-demo-bootstrap.py",
+    "preserved_as": "proof/operator-source/webuddy-demo-bootstrap.py",
+    "sha256": "c4ef302d1cdd250072bd6a5bda7f05c2ba953db11abc4953de8ef83af05c5980",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-demo-start.py",
+    "preserved_as": "proof/operator-source/webuddy-demo-start.py",
+    "sha256": "f0b0ab92243ebc22e6bdf2e583d72b6a7916afa7c9afad207f52efcf189d9f94",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-demo-tls.py",
+    "preserved_as": "proof/operator-source/webuddy-demo-tls.py",
+    "sha256": "ec35637f10b412fd1a5a64d88bd547a9786ea24dc1cf50d984e5302b85e7de96",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-demo-data.py",
+    "preserved_as": "proof/operator-source/webuddy-demo-data.py",
+    "sha256": "5ceede038c5d34158ec7c1ca016aef5d1e710b29dc7cffed8ef09b5d0905c8e4",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-demo-jenkins-api.py",
+    "preserved_as": "proof/operator-source/webuddy-demo-jenkins-api.py",
+    "sha256": "7a5ae81bbdaa430bec7e9986fa7e4025beed5c037e9ef9a6c5cf2cd34bbf9af2",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-demo-http.py",
+    "preserved_as": "proof/operator-source/webuddy-demo-http.py",
+    "sha256": "a3bf94cb1282c0d83112e71f76bbdb3fed74695bef0ae45a2d9fb9376e3b305e",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-demo-ci-query.py",
+    "preserved_as": "proof/operator-source/webuddy-demo-ci-query.py",
+    "sha256": "662d7adb9d5b9f6271eb7e4faa62cfb343ac18264632f9a815b2e48c713ee416",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-demo-next-build.py",
+    "preserved_as": "proof/operator-source/webuddy-demo-next-build.py",
+    "sha256": "bc225711049e416b977343ffa81775a2365b7c729d35260ec69fed0adb5045e1",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-erp-preview-check.mjs",
+    "preserved_as": "proof/operator-source/webuddy-erp-preview-check.mjs",
+    "sha256": "5543e5af5bf57ae16072ddce22f8a72c2a89023d8c2cdec469d86a920c48f212",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-erp-packet-browser.mjs",
+    "preserved_as": "proof/operator-source/webuddy-erp-packet-browser.mjs",
+    "sha256": "0824331d861d0043400e3cc200857c9da27b8388b8bb9b00efc111315448b7a5",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-erp-mcp-check.py",
+    "preserved_as": "proof/operator-source/webuddy-erp-mcp-check.py",
+    "sha256": "08127215200568f68d5ad39774819b329758c1c069d12d4da22767799f96f23c",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  },
+  {
+    "source": "/tmp/webuddy-erp-mcp-launcher-check.py",
+    "preserved_as": "proof/operator-source/webuddy-erp-mcp-launcher-check.py",
+    "sha256": "a56b140158dc9f1374f142c3f6901f173e284cb0916f6fcc627ae1d6bd57f0d0",
+    "status": "preserved",
+    "history_note": "保存当前脚本原件，不能证明更早各次执行使用相同字节"
+  }
+]

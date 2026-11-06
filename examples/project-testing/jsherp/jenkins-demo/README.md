@@ -66,3 +66,7 @@ ERP后台容器另用 `docker start webuddy-demo-erp` 启动；五个基础容�
 本轮证据：[Jenkins/ERP验证记录](../../../../docs/self-improvement/evidence/jenkins-erp-20261106/README.md)。
 
 Cursor/Claude Code 的本机只读演示MCP配置已生成在 `<演示根目录>/private/cursor-mcp.json`。它调用 `mcp_launcher.py`，令牌只在进程启动时从本机演示凭据读取，不写入配置或源码。已用官方MCP SDK执行这份配置、列工具和读取ERP-1完整交付依据；未自动修改用户现有Cursor配置，也未宣称Cursor桌面人工操作已验证。该配置引用本机MCP虚拟环境，迁移机器需按实际Python位置更新。正式客户接入仍走产品个人工具连接及其授权范围。
+
+## 全过程留痕
+
+从本轮起按 [逐步操作与测试记录](操作留痕.md) 执行：区分Agent命令、自动测试、真人界面操作和业务决定。14步现场人工流程均列出输入、动作、预期及待填记录；未真实执行的不勾选。命令操作使用capture_step.py保存原始stdout/stderr、时间、退出码与摘要。早期没有逐步记录的过程明确标缺失，不根据结果倒填。当前补测见 [本轮留痕回执](../../../../docs/self-improvement/evidence/jenkins-erp-20261106/operation-trace/README.md)。
