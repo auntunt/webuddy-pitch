@@ -37,3 +37,32 @@ python3 examples/project-testing/jsherp/jenkins-demo/manage.py start
 原始截图不缩放像素、不重新编码压缩。失败构建和失败输入保留。依赖源、锁文件或测试宿主变化需要重新形成证据，不把旧版本成功挪给新版本。
 
 此实例为单人受控演示，构建运行在控制器容器，只使用公开源码和合成凭据，**不是不可信多租户执行隔离方案**。客户接入应使用其已有受限构建节点和凭据管理，不能让任意项目代码读取控制器主目录。演示数据库采用Docker内网明文连接，和该ERP既有JDBC配置一致；Jenkins外部API始终使用校验证书的HTTPS。不能直接把这些演示网络与数据库设置复制为客户生产配置。
+
+## 本次已跑通的入口（2026-11-06）
+
+| 入口 | 用途 |
+|---|---|
+| <http://127.0.0.1:18981/> | 定制ERP，Jenkins #8归档产物，候选4172462 |
+| <http://127.0.0.1:18985/#/t/ERP-1> | Webuddy隔离演示任务、待澄清方案与交付依据下载 |
+| <http://127.0.0.1:18080/job/erp-verification/> | Jenkins原始失败/成功构建、报告和归档 |
+
+这些地址只在当前Mac本机可用。ERP公开种子账号为 `jsh`，演示密码 `123456`；Webuddy为 `demo-owner`，密码读取本机 `private/accounts.json` 的 admin_password；Jenkins管理员账号读取同文件的 admin_user。该文件为本机合成凭据，不提交、不复制到分享材料。外部演示需要另行确定网络访问方式。
+
+Jenkins #7：基线75a9311，原57项JUnit通过，但新增业务检查发现空说明被接受并写库，整体失败。#8：候选4172462，60项JUnit和14条真实业务检查通过；说明校验有新增的3项后端测试。Webuddy通过只读Jenkins账号核对该仓库和完整SHA，得到pass。浏览器另外验证说明字段错误出现与合法值恢复，未提交这张补充检查表单。
+
+Webuddy中的两条运行明确标为 `external:jenkins-import / external_test`，是实际Jenkins回执的历史导入，**不是Webuddy自动执行器从需求到交付的完整运行记录**。网页下载与官方MCP SDK经真实stdio/HTTP读取同样的方案和完整输出，均保持 `current_validity=not_checked`、`ready_to_merge=null`。本次MCP使用隔离实例合成操作令牌和只读客户端；不是客户个人工具连接联调。
+
+任务仍待人回答并确认；没有代人批准、签收或合并。ERP定制由本轮工程实现完成，未记录平台内置模型自动改码的收益。本次没有财务过账、库存审核或跨真实客户系统验证。手机截图保留了原ERP导航抽屉遮挡情况，不称移动端适配完成；演示以桌面为主。
+
+若两个Python演示服务停止，可在安装了本版本Webuddy的Python3.11环境分别运行：
+
+```sh
+python3.11 examples/project-testing/jsherp/jenkins-demo/preview_server.py "<演示根目录>/preview/4172462/dist"
+python3.11 examples/project-testing/jsherp/jenkins-demo/evidence_server.py "<演示根目录>"
+```
+
+ERP后台容器另用 `docker start webuddy-demo-erp` 启动；五个基础容器用 manage.py。不要同时重复启动同一端口。已生成 `erp-demo.bundle` 并通过git bundle verify，可离线保留源码与前后版本；它不包含数据库、Jenkins账号或私钥。
+
+本轮证据：[Jenkins/ERP验证记录](../../../../docs/self-improvement/evidence/jenkins-erp-20261106/README.md)。
+
+Cursor/Claude Code 的本机只读演示MCP配置已生成在 `<演示根目录>/private/cursor-mcp.json`。它调用 `mcp_launcher.py`，令牌只在进程启动时从本机演示凭据读取，不写入配置或源码。已用官方MCP SDK执行这份配置、列工具和读取ERP-1完整交付依据；未自动修改用户现有Cursor配置，也未宣称Cursor桌面人工操作已验证。该配置引用本机MCP虚拟环境，迁移机器需按实际Python位置更新。正式客户接入仍走产品个人工具连接及其授权范围。
