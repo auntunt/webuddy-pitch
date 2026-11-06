@@ -131,6 +131,15 @@ def plan_ac(text: str) -> list:
     return out
 
 
+def plan_scope(text):
+    plan = fenced('tmh-plan', text)
+    scope = plan.get('scope') if isinstance(plan, dict) else None
+    if not isinstance(scope, dict):
+        return {}
+    return {k: scope[k] for k in ('new', 'regression', 'invariants', 'gaps')
+            if isinstance(scope.get(k), list) and all(isinstance(item, str) for item in scope[k])}
+
+
 PRIOR_KEYS = ("blocking", "evidence", "cause", "guide")  # what the next diagnosis checks first
 STALL_AFTER = 3  # failed diagnoses in a row on one ticket before asking for a real check instead of another round
 
@@ -689,7 +698,7 @@ class FixLoop:
                 "verification_contract": contract, "commands": res, "diagnosis": diag,
                 "invalidated": candidate_changed or contract_changed,
                 "impact": {"changed_files": files, "planned_files": list(goals), "repair_targets": list(targets)},
-                "scope": {"criteria": plan_ac(plan), "declared": (fenced("tmh-plan", plan) or {}).get("scope", {}),
+                "scope": {"criteria": plan_ac(plan), "declared": plan_scope(plan),
                           "reviewed": diag.get("scope", {}), "coverage_basis": "configured_checks"}})
             if candidate_changed or contract_changed:
                 skip = "验证期间代码或检查契约变化，请重新验证"
@@ -1056,7 +1065,7 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None, k
     if contract_changed:
         v.update(check="fail", verdict="unknown", diagnosis={}, verification_current=False,
                  skip="验证期间检查契约变化，请重新验证")
-    v['scope'] = {"declared": (fenced("tmh-plan", fl.plan) or {}).get("scope", {}),
+    v['scope'] = {"declared": plan_scope(fl.plan),
                   "reviewed": (v.get("diagnosis") or {}).get("scope", {}), "changed_files": files,
                   "coverage_basis": "configured_checks"}
     v['verification_current'] = not contract_changed
