@@ -55,13 +55,15 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                     payload = {"ok": True, "workspace": "协议测试夹具", "engines": [], "scope": "fixture"}
                     if self.path.startswith("/t/default/"):
                         allowed = ["status", "projects_list", "ticket_get", "request_get"]
-                        if owner.tenant_scope in ("content", "execute"):
+                        if owner.tenant_scope in ("content", "execute", "develop"):
                             allowed += ["ticket_create", "message_send", "candidate_assess", "run_start"]
-                        if owner.tenant_scope == "execute":
+                        if owner.tenant_scope in ("execute", "develop"):
                             allowed += ["ticket_hold", "run_cancel", "run_recheck", "candidate_decide"]
+                        if owner.tenant_scope == "develop":
+                            allowed += ["development_get","development_start","development_propose","development_answer","candidate_submit","candidate_verify"]
                         payload.update(tool_connection=dict(id="fixture", user="member", tenant="default",
                             scope=owner.tenant_scope, project_ids=[1], expires_at=1800000000, status="active",
-                            execution=owner.tenant_scope == "execute"),
+                            execution=owner.tenant_scope in ("execute", "develop")),
                             allowed_operations=allowed)
                 elif operation == "ticket_get":
                     payload = {"ticket": {"key": body["ticket"], "body": owner.long_text},
@@ -157,7 +159,8 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                         initialized = await session.initialize()
                         self.assertEqual(initialized.serverInfo.name, "webuddy_mcp")
                         tools = (await session.list_tools()).tools
-                        self.assertEqual(len(tools), 17)
+                        self.assertEqual(len(tools), 19)
+                        self.assertTrue({"webuddy_development_get","webuddy_candidate_ci"} <= {tool.name for tool in tools})
                         self.assertTrue(all(tool.annotations.readOnlyHint for tool in tools))
                         reply = await session.call_tool("webuddy_status", {})
                         self.assertFalse(reply.isError)
@@ -205,6 +208,19 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn(header, request["headers"])
 
     @unittest.skipUnless(os.name == "posix", "personal credential files require POSIX checks")
+    async def test_develop_scope_exposes_conversation_but_never_human_confirmation(self):
+        from tmh.workbench_credentials import save
+        self.tenant_scope = "develop"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "develop.json"
+            save(path, dict(schema=1, endpoint=self.endpoint + "/t/default", token="wbt_fixture.secret"))
+            async with self.session("--endpoint", self.endpoint + "/t/default", "--credential-file", str(path), "--allow-execution") as session:
+                names = {tool.name for tool in (await session.list_tools()).tools}
+                self.assertTrue({"webuddy_development_get","webuddy_development_start","webuddy_development_propose","webuddy_development_answer","webuddy_candidate_submit","webuddy_candidate_verify"} <= names)
+                self.assertFalse({"webuddy_development_confirm","webuddy_candidate_decide","webuddy_candidate_assess","webuddy_candidate_merge"} & names)
+                result=await session.call_tool("webuddy_development_start",dict(ticket="AGENT-1",request_id="select-once"))
+                self.assertFalse(result.isError)
+
     async def test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides(self):
         from tmh.workbench_credentials import save
         self.tenant_scope = "execute"

@@ -210,11 +210,23 @@ def criteria_contract(data_dir, rid):
     from .fixloop import plan_ac
     with closing(sqlite3.connect((Path(data_dir) / 'platform.db').resolve().as_uri() + '?mode=ro', uri=True)) as db:
         db.row_factory = sqlite3.Row
-        row = db.execute('SELECT t.id, t.num, t.links, p.key FROM runs r LEFT JOIN tickets t ON t.id=r.ticket_id JOIN projects p ON p.id=r.project_id WHERE r.id=?', (rid,)).fetchone()
+        row = db.execute('SELECT t.id, t.num, t.links, t.title, t.body, t.type, t.priority, t.reporter, t.external, p.key FROM runs r LEFT JOIN tickets t ON t.id=r.ticket_id JOIN projects p ON p.id=r.project_id WHERE r.id=?', (rid,)).fetchone()
         if row is None:
             raise ValueError('无法确认验收标准所属运行')
         if row['id'] is None:
             return {'source': 'none', 'version': '', 'criteria': []}
+        if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='development_sessions'").fetchone():
+            session = db.execute('SELECT * FROM development_sessions WHERE ticket_id=?',(row['id'],)).fetchone()
+            if session:
+                payload = json.loads(session['payload'])
+                from .development import digest as development_digest
+                binding = development_digest({'source':session['source_hash'],'revision':session['revision'],'payload':payload})
+                if not session['confirmed_digest'] or session['confirmed_digest'] != binding:
+                    raise ValueError('终端开发需求尚未确认或已经变化')
+                client = client_ac(data_dir, row['key'] + '-' + str(row['num']))
+                discussion = [dict(event) for event in db.execute("SELECT * FROM events WHERE ticket_id=? AND kind IN ('comment','reject','conflict') ORDER BY id",(row['id'],))]
+                version = digest({'confirmed':binding,'ticket':dict(row),'client':client,'discussion':discussion})
+                return {'source':'development','version':version,'criteria':payload['criteria']}
         confirmed = client_ac(data_dir, row['key'] + '-' + str(row['num']))
         if confirmed:
             return {'source': 'client', 'version': digest(confirmed), 'criteria': confirmed}

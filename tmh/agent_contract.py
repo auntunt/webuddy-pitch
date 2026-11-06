@@ -68,6 +68,7 @@ RESULTS = dict(type="array", minItems=1, maxItems=100, items=dict(type="object",
     required=["id", "status", "evidence"]))
 SPECS.update({
     "candidates_list": spec("分页读取工单外部候选与验收状态。", dict(PAGE, ticket=KEY), ["ticket"]),
+    "candidate_ci": spec("读取固定候选的GitHub必需检查结果；缺失、失败或未完成不算通过。不会合并或发布。", {"candidate_id": CID}, ["candidate_id"]),
     "candidate_get": spec("读取完整固定候选、平台验证、预览、逐项技术验收与人工决定；ready_for_human不是已签收。", {"candidate_id": CID}, ["candidate_id"]),
     "candidate_submit": spec("登记已在项目Git仓库中的完整外部提交，不启动构建、不自动采纳。先读取ticket_get的requirement_hash；传入完整基线和验收条件。", {"ticket": KEY, "base_commit": SHA, "commit": SHA, "requirement_hash": DIGEST, "criteria": CRITERIA, "summary": text("完整实现说明", minLength=1), "request_id": REQUEST}, ["ticket", "base_commit", "commit", "requirement_hash", "criteria", "summary", "request_id"], write=True, execution=True),
     "candidate_verify": spec("在独立工作树验证固定候选，复用受管总时限与进程回收。立即返回操作编号，用candidate_get跟进；新验证使旧验收失效。", {"candidate_id": CID, "request_id": REQUEST}, ["candidate_id", "request_id"], write=True, execution=True),
@@ -96,6 +97,28 @@ SPECS.update({
     "library_resume": spec("显式继续指定知识修订的构建，仍使用其固定来源版本及配置，不能覆盖其他已发布修订。", {"project": PROJECT, "revision_id": REVISION, "request_id": REQUEST}, ["project", "revision_id", "request_id"], write=True, execution=True),
     "library_reference": spec("绑定来源已授权共享的固定知识修订与模块范围。Agent 不能授予共享权限；只引用资料，不复制代码、不继承人工验收。", {"project": PROJECT, "revision_id": REVISION, "scopes": {"type": "array", "items": text("来源相对模块路径", minLength=1), "default": []}, "purpose": text("完整引用用途与适用范围", minLength=1), "request_id": REQUEST}, ["project", "revision_id", "purpose", "request_id"], write=True),
     "library_unlink": spec("移除本项目的一项知识引用；保留历史回执，不修改来源项目或授予其他权限。", {"project": PROJECT, "binding_id": integer("本项目的引用关系编号", minimum=1), "request_id": REQUEST}, ["project", "binding_id", "request_id"], write=True),
+})
+
+
+QUESTION = dict(type="object", additionalProperties=False, properties={
+    "id": text("稳定问题编号", pattern=r"^[A-Za-z0-9_-]{1,40}$"),
+    "question": text("向开发人员提出的问题", minLength=1),
+    "options": dict(type="array", maxItems=8, items=text("可选择的回答，仍允许自由回复", minLength=1)),
+    "required": dict(type="boolean", description="是否必须澄清后才能确认需求")}, required=["id","question","options","required"])
+DEVELOPMENT_ANSWERS = dict(type="array", minItems=1, maxItems=100, items=dict(type="object", additionalProperties=False,
+    properties={"question_id":text("当前问题编号",minLength=1), "answer":text("开发人员回答原文",minLength=1),
+                "resolved":dict(type="boolean",description="明确回答才为true；不清楚、待补充为false")},required=["question_id","answer","resolved"]))
+SPECS.update({
+    "development_get": spec("读取已选择任务的开发契约、问答、待确认修订。先逐批向开发人员提问，不猜测、不代确认。", {"ticket":KEY}, ["ticket"]),
+    "development_start": spec("选择任务进入终端协作开发，暂停该任务自动流转；保留原工单。接下来读取完整上下文，分析并提出问题。", {"ticket":KEY,"request_id":REQUEST}, ["ticket","request_id"],write=True),
+    "development_propose": spec("提交分析后的需求确认稿、设计、测试方案和问题。保留完整内容；问题改动后旧回答不能自动沿用。会使此前确认失效。", {
+        "ticket":KEY,"revision":integer("读取时的修订",minimum=1),"summary":text("完整需求和范围",minLength=1),
+        "design":text("设计与取舍",minLength=1),"test_plan":text("具体测试、基线、回归和不变约束",minLength=1),
+        "criteria":CRITERIA,"questions":dict(type="array",maxItems=100,items=QUESTION),"request_id":REQUEST},
+        ["ticket","revision","summary","design","test_plan","criteria","questions","request_id"],write=True),
+    "development_answer": spec("原样记录开发人员在Agent终端的回答，缺少信息标resolved=false。只是转述，不授予人工确认或合并。", {
+        "ticket":KEY,"revision":integer("读取时的修订",minimum=1),"answers":DEVELOPMENT_ANSWERS,"request_id":REQUEST},
+        ["ticket","revision","answers","request_id"],write=True),
 })
 
 

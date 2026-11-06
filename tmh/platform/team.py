@@ -67,6 +67,28 @@ def assignment(P, ticket):
             "revision": row["revision"] if row else 0, "updated": row["updated"] if row else ticket["updated"]}
 
 
+def require_merger(P, ticket, user):
+    """Selected terminal tasks require their developer's final merge confirmation.
+
+    Candidate merge still independently requires the current Leader approval.
+    Other task workflows keep their existing reviewer-only merge policy.
+    """
+    from . import development
+    t = _ticket(P, ticket['id'] if isinstance(ticket, dict) else ticket)
+    if not development.row(P.store, t['id']):
+        return require_reviewer(P, t, user)
+    require_user(P, user)
+    from .tenant_policy import require_member
+    require_member(P, user, t['project_id'])
+    if assignment(P, t)['assignee'] != user:
+        raise ApiError(403, '请由当前任务负责人在个人终端确认合并')
+    try:
+        development.require_confirmed(P.store, t)
+    except ValueError as exc:
+        raise ApiError(409, str(exc)) from exc
+    return t
+
+
 def require_reviewer(P, ticket, user):
     """Use from legacy human approval routes too; never infer reviewer from author."""
     require_user(P, user)
@@ -263,13 +285,14 @@ def _action(P, t, b, user, mutation):
                 return project_vue_diagnostic.run(P, row, user)
             except ValueError as exc:
                 raise ApiError(409, str(exc)) from exc
-        if action in ("review", "candidate_assess", "candidate_merge", "business_accept"):
+        if action in ("review", "candidate_assess", "business_accept"):
             require_reviewer(P, t, user)
         if action == "business_accept":
             if b.get("result") not in ("pass", "fail"):
                 raise ApiError(400, "业务验收结果必须是 pass 或 fail")
             return candidates.browser_accept(P, row["id"], user, b.get("evidence_hash", ""), b["result"] == "pass", b.get("note", ""), mutation)
         if action == "candidate_merge":
+            require_merger(P, t, user)
             ctx=getattr(P,'tenant_context',None)
             if ctx and not ctx.runtime_allowed(user):
                 from . import project_merge
@@ -437,7 +460,8 @@ def item(P, t, user):
             "candidate_id": source["candidate"], "evidence_hash": source["evidence_hash"], "result": source["result"],
             "note": source["note"], "project": source["memory_snapshot"]["project"],
             "can_retry": bool(status["pending"] and can_review and business["author"] == user)}
-    return {"ticket": t, "assignment": dict(a, assignee_active=a["assignee"] in members, reviewer_active=a["reviewer"] in members),
+    from .development import row as development_row
+    return {"terminal_development": bool(development_row(P.store,t["id"])), "ticket": t, "assignment": dict(a, assignee_active=a["assignee"] in members, reviewer_active=a["reviewer"] in members),
             "state": state, "label": label, "technical": technical, "human": human, "merge": merge,
             "candidate": candidate, "candidate_error": error, "run": run, "requirement_hash": _requirement(t, P.store),
             "acceptance_memory": acceptance_memory,

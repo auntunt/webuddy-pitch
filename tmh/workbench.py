@@ -44,6 +44,16 @@ def parser():
     def request(q):
         q.add_argument("--request-id", required=True, help="重试复用原编号；新意图用新编号")
 
+    q = add("develop", "个人终端问答、需求确认、Leader复核和合并；凭据不交给MCP")
+    q.add_argument("ticket")
+    q.add_argument("--action", choices=["status","ask","confirm","assess","review","reject","merge"],default="ask")
+    q.add_argument("--candidate-id",type=int)
+    q.add_argument("--user",help="个人登录账号，密码交互输入")
+    q = add("ci-config", "项目管理员配置必需GitHub Actions检查")
+    q.add_argument("project")
+    q.add_argument("--repository",required=True)
+    q.add_argument("--required-check",action="append",required=True)
+    q.add_argument("--user")
     add("status", "检查连接、执行器和能力边界")
     q = add("connect", "验证网页登录签发的个人工具凭据并保存到私有文件")
     q.add_argument("--stdin", action="store_true", help="从标准输入读取完整凭据 JSON 或令牌；不放入命令参数")
@@ -202,7 +212,7 @@ def configuration(a, client):
 
 def _tenant_execution(client, wanted):
     """A personal connection may start runs only when the web granted the execute scope."""
-    if client.tenant and wanted and client.connection_status()["tool_connection"]["scope"] != "execute":
+    if client.tenant and wanted and client.connection_status()["tool_connection"]["scope"] not in ("execute", "develop"):
         raise ClientError("这个个人工具连接没有授权启动运行；请在网页「工具连接」新建「执行」范围的连接，或移除 --allow-execution", "tool_operation_forbidden")
 
 
@@ -305,6 +315,9 @@ def overview(a):
 def main(argv=None):
     a = parser().parse_args(argv)
     try:
+        if a.command in ("develop", "ci-config"):
+            from .developer_terminal import run
+            return run(a)
         if a.command is None:
             return overview(a)
         if a.command == "connect":
@@ -365,6 +378,9 @@ def main(argv=None):
             time.sleep(min(1, max(0, deadline - time.monotonic())))
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
+    except (EOFError, KeyboardInterrupt):
+        print("操作已中断；如请求已发出，请先核对任务与请求回执。", file=sys.stderr)
+        return 130
     except (ClientError, credentials.CredentialError, OSError, UnicodeError) as e:
         error = e.as_dict() if isinstance(e, ClientError) else {"error": str(e), "code": getattr(e, "code", "input_error")}
         print(json.dumps(error, ensure_ascii=False), file=sys.stderr)

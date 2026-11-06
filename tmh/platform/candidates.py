@@ -136,6 +136,10 @@ def submit(P, actor, args, mutation):
     root = Path(p["root"])
     with guard(P, t["id"]), st.lock:
         _ready(P, t)
+        from .development import require_confirmed
+        development = require_confirmed(st,t)
+        if development and args['criteria'] != development['payload']['criteria']:
+            raise ApiError(409,'候选验收标准必须与开发人员确认稿一致')
         if _requirement(t, st) != args["requirement_hash"]:
             raise ApiError(409, "需求版本已变化，请重新读取完整任务后提交")
         for key in ("base_commit", "commit"):
@@ -501,25 +505,32 @@ def browser_merge(P, cid, user, evidence_hash, request_id, mutation=lambda: None
     from .project_library import require_development
     from .recheck_operations import source_guard
     row = _row(P, cid)
-    t = team.require_reviewer(P, row["ticket_id"], user)
+    t = team.require_merger(P, row["ticket_id"], user)
     p = P.store.project(t["project_id"])
     try:
         require_development(P.store, p)
     except ValueError as exc:
         raise ApiError(409, str(exc)) from exc
     root = Path(p["root"])
-    with guard(P, t["id"]), source_guard(P.data_dir, row["run_id"]), _merge_guard(root), P.store.lock:
+    from .project_ci import guard as ci_guard
+    with ci_guard(P.data_dir), guard(P, t["id"]), source_guard(P.data_dir, row["run_id"]), _merge_guard(root), P.store.lock:
         st = P.store
         # Keep this transaction through the short local Git fast-forward: other
         # service processes cannot append requirements or change responsibility.
         try:
             st.db.execute("BEGIN IMMEDIATE")
-            team.require_reviewer(P, t["id"], user)
+            team.require_merger(P, t["id"], user)
             v = view(P, cid)
             if not isinstance(evidence_hash, str) or evidence_hash != v["evidence_hash"]:
                 raise ApiError(409, "证据包已变化，请重新查看后合并")
             if not v["human_accepted"] or not browser_review_current(P, cid):
                 raise ApiError(409, "当前版本尚未由当前指定复核人确认，不能合并")
+            from .development import require_confirmed
+            from .project_ci import check, configuration
+            development = require_confirmed(st,t)
+            ci = check(P.data_dir,p['key'],row['commit_sha']) if development or configuration(P.data_dir,p['key'])['config'] else None
+            if ci and ci['state'] != 'pass':
+                raise ApiError(409,'必需CI尚未通过，不能合并：' + ci.get('message','请查看当前提交的检查结果'))
             main = release.main_branch(root, P.data_dir, p["key"])
             if not main or _git(root, "symbolic-ref", "--quiet", "--short", "HEAD").strip() != main:
                 raise ApiError(409, "项目工作区必须停在已配置的主干分支上")
@@ -555,7 +566,7 @@ def browser_merge(P, cid, user, evidence_hash, request_id, mutation=lambda: None
             # and repeat evidence/identity checks before the mutation.
             st.db.commit()
             st.db.execute("BEGIN IMMEDIATE")
-            team.require_reviewer(P, t["id"], user)
+            team.require_merger(P, t["id"], user)
             current = view(P, cid)
             if current["evidence_hash"] != evidence_hash or not current["human_accepted"] or not browser_review_current(P, cid):
                 raise ApiError(409, "准备合并期间证据或复核责任变化，尚未合并")
@@ -569,9 +580,9 @@ def browser_merge(P, cid, user, evidence_hash, request_id, mutation=lambda: None
             st.db.execute("UPDATE candidate_merges SET state='merged',updated=? WHERE candidate_id=?", (now(), cid))
             st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,'candidate_merge',?,?)",
                           (t["id"], now(), user, "已合并固定候选到本地主干；尚未推送或部署",
-                           _json({"candidate": cid, "commit": row["commit_sha"], "main": main, "evidence_hash": evidence_hash})))
+                           _json({"candidate": cid, "commit": row["commit_sha"], "main": main, "evidence_hash": evidence_hash, "ci": ci})))
             st.db.commit()
-            return dict(merge_receipt(P, cid), pushed=False, deployed=False, replayed=False)
+            return dict(merge_receipt(P, cid), pushed=False, deployed=False, replayed=False, ci=ci)
         except BaseException:
             st.db.rollback()
             raise

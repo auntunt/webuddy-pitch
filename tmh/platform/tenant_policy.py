@@ -19,6 +19,11 @@ from .errors import ApiError
 API_ROUTES = frozenset(tuple(line.split(" ", 1)) for line in """
 GET /api/meta
 POST /api/agent/<operation>
+GET /api/projects/<key>/ci
+POST /api/projects/<key>/ci
+GET /api/tickets/<key>/ci
+GET /api/tickets/<key>/development
+POST /api/tickets/<key>/development
 GET /api/workspace
 GET /api/projects/<key>/pilots
 POST /api/projects/<key>/pilots
@@ -230,11 +235,12 @@ ADMIN_GLOBAL = frozenset(("/api/org/knowledge", "/api/lead", "/api/readiness", "
                          "/api/agent-settings", "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
 AGENT_OPERATIONS = frozenset("""status projects_list tickets_list ticket_get ticket_create message_send
 messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
-candidates_list candidate_get candidate_submit candidate_verify candidate_cancel candidate_preview
+candidates_list candidate_get candidate_ci candidate_submit candidate_verify candidate_cancel candidate_preview
 candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel
 harness_library library_get library_search library_read library_build library_cancel library_resume
 library_reference library_unlink ticket_hold
-intake_get intake_start intake_understand intake_answer""".split())
+intake_get intake_start intake_understand intake_answer
+development_get development_start development_propose development_answer""".split())
 SAFE_POSTS = frozenset((
     "/api/runs/<rid>/review-feedback",  # Human observations only; no execution or signoff.
     # Personal trial records only: no models, process launch or task moves.
@@ -647,6 +653,9 @@ def authorize(P, method, path, query, body, actor):
                 require_member(P, body[field], p, "contributor")
     safe = template in SAFE_POSTS or personal_static_preview
     safe |= template == "/api/tickets" and (body.get("handwork") is True or body.get("auto") is False and not (body.get("agent") and body.get("mode"))) and not body.get("code_at")
+    if template == "/api/projects/<key>/ci" and method == 'POST':
+        _check(P,who,_project(P,params['key']),'manager')
+    safe |= template in ("/api/tickets/<key>/development", "/api/projects/<key>/ci")
     safe |= template == "/api/team" and action == "assign"
     safe |= template == "/api/team" and action == "comment"
     if (template == "/api/tickets/<key>/claim" and body.get("on", True) is True

@@ -265,7 +265,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
                            'X-Webuddy-Context': tool_access.context_token(connection),
                            'X-Webuddy-Tool': connection['id'],
                            'X-Webuddy-Agent': self.headers.get('X-Webuddy-Agent', 'tool')}
-                if connection['scope'] == 'execute' and self.headers.get('X-Webuddy-Execution') == '1':
+                if connection['scope'] in ('execute', 'develop') and self.headers.get('X-Webuddy-Execution') == '1':
                     headers['X-Webuddy-Execution'] = '1'
                 return PendingProxy(tenant, connection['user'], method, '/api/agent/' + operation,
                                     raw, headers, {}, False)

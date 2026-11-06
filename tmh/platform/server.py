@@ -1155,6 +1155,53 @@ def api_work_brief_save(P, req, key):
     return coordination.save_brief(P, key, req.body, _human_action(P, req, strict=True))
 
 
+@route("GET", "/api/projects/<key>/ci")
+def api_project_ci(P, req, key):
+    from .project_ci import configuration
+    return configuration(P.data_dir, P.project(key)['key'])
+
+
+@route("POST", "/api/projects/<key>/ci")
+def api_project_ci_save(P, req, key):
+    from .project_ci import save
+    _human_action(P, req, strict=True)
+    return save(P.data_dir,P.project(key)['key'],req.body)
+
+
+@route("GET", "/api/tickets/<key>/ci")
+def api_ticket_ci(P, req, key):
+    from .candidates import _row
+    from .project_ci import check
+    t = P.ticket(key)
+    try:
+        candidate = _row(P,int(req.arg('candidate_id')))
+    except ValueError as exc:
+        raise ApiError(400,'请选择候选编号') from exc
+    if candidate['ticket_id'] != t['id']:
+        raise ApiError(404,'此任务没有该候选')
+    return check(P.data_dir,P.store.project(t['project_id'])['key'],candidate['commit_sha'])
+
+
+@route("GET", "/api/tickets/<key>/development")
+def api_development(P, req, key):
+    from . import development, team
+    t = P.ticket(key)
+    result = development.read(P.store,t)
+    result['work'] = team.item(P,t,_session_actor(req))
+    return result
+
+
+@route("POST", "/api/tickets/<key>/development")
+def api_development_action(P, req, key):
+    from . import development
+    actor = _human_action(P, req, strict=True)
+    body = dict(req.body)
+    action = body.pop('action', '')
+    if action not in ('answer', 'confirm') or body.get('ticket') != key:
+        raise ApiError(400, '请选择当前任务的回答或确认操作')
+    return development.act(P,actor,action,body,human=True)
+
+
 @route("GET", "/api/team")
 def api_team(P, req):
     from . import team

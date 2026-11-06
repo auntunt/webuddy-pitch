@@ -19,12 +19,13 @@ from .store import now
 
 READ_OPERATIONS = (
     "status", "projects_list", "tickets_list", "ticket_get", "messages_list",
-    "request_get", "run_get", "candidates_list", "candidate_get", "library_get",
-    "library_search", "library_read", "preview_get", "intake_get",
+    "request_get", "run_get", "candidates_list", "candidate_get", "candidate_ci", "library_get",
+    "library_search", "library_read", "preview_get", "intake_get", "development_get",
 )
 CONTENT_OPERATIONS = ("ticket_create", "message_send", "intake_start")
 EXECUTE_OPERATIONS = ("run_start", "run_cancel", "run_retry", "ticket_hold", "intake_understand", "intake_answer")
-SCOPES = ("read", "content", "execute")
+DEVELOP_OPERATIONS = ("development_start", "development_propose", "development_answer", "candidate_submit", "candidate_verify", "candidate_cancel", "run_recheck")
+SCOPES = ("read", "content", "execute", "develop")
 DDL = (
     "CREATE TABLE IF NOT EXISTS tool_connections(id TEXT PRIMARY KEY,user TEXT NOT NULL,tenant TEXT NOT NULL,label TEXT NOT NULL,project_ids TEXT NOT NULL,scope TEXT NOT NULL,secret_hash TEXT NOT NULL,account_epoch TEXT NOT NULL,authority_hash TEXT NOT NULL,created TEXT NOT NULL,expires_at INTEGER NOT NULL,revoked_at TEXT NOT NULL DEFAULT '',revoke_reason TEXT NOT NULL DEFAULT '')",
     "CREATE TABLE IF NOT EXISTS tool_access_requests(user TEXT NOT NULL,tenant TEXT NOT NULL,request_id TEXT NOT NULL,fingerprint TEXT NOT NULL,action TEXT NOT NULL,connection_id TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(user,tenant,request_id))",
@@ -42,8 +43,8 @@ def allowed_operations(scope):
         return READ_OPERATIONS
     if scope == "content":
         return READ_OPERATIONS + CONTENT_OPERATIONS
-    if scope == "execute":
-        return READ_OPERATIONS + CONTENT_OPERATIONS + EXECUTE_OPERATIONS
+    if scope in ("execute", "develop"):
+        return READ_OPERATIONS + CONTENT_OPERATIONS + EXECUTE_OPERATIONS + (DEVELOP_OPERATIONS if scope == "develop" else ())
     return ()
 
 
@@ -151,7 +152,7 @@ def _body(body, action):
         if not isinstance(projects, list) or not projects or any(type(p) is not int or p <= 0 or p > 9223372036854775807 for p in projects) or len(set(projects)) != len(projects):
             raise _error(400, "请选择不重复的有效项目编号", "invalid_tool_request")
         if scope not in SCOPES:
-            raise _error(400, "工具连接只允许读取、内容协作或启动运行", "invalid_tool_request")
+            raise _error(400, "请选择读取、内容协作、执行或协作开发范围", "invalid_tool_request")
         if type(days) is not int or not 1 <= days <= 30:
             raise _error(400, "连接期限应为1至30天", "invalid_tool_request")
     else:

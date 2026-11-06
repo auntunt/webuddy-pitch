@@ -62,14 +62,14 @@ class TenantContext:
             # A personal admin may issue a tool token, but never delegate their
             # admin or human-signoff authority. The execute scope carries only
             # the execution the member already holds in the web.
-            writes = tool['scope'] in ('content', 'execute')
+            writes = tool['scope'] in ('content', 'execute', 'develop')
             role = 'contributor' if writes else 'viewer'
             caps = value['capabilities']
             result.update(role='member' if writes else 'viewer', platform_owner=False,
                           can_manage=False, project_grants={keys[str(pid)]: role for pid in tool['project_ids'] if str(pid) in keys},
                           tool_connection=tool,
                           capabilities={k: k == 'read' or k == 'write' and writes
-                                        or k == 'execution' and tool['scope'] == 'execute' and bool(caps.get('execution'))
+                                        or k == 'execution' and tool['scope'] in ('execute', 'develop') and bool(caps.get('execution'))
                                         for k in caps})
         return result
 

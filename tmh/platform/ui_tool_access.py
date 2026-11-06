@@ -24,7 +24,7 @@ HTML = r'''<!doctype html>
 </ol><p class="muted">客户端只包含命令行和 MCP 桥接程序，在你的电脑上运行，通过 HTTPS 连到本系统；凭据只保存在你自己的电脑。</p></section>
 <div id="pending" class="note" hidden><p>上次操作的结果尚未确认。请用原请求核对，避免重复创建连接。</p><button id="retry">核对原请求</button></div>
 <section id="secret" class="panel" hidden><h2>保存这份连接凭据</h2><p>凭据仅在本次响应中显示。请保存到自己的电脑，不要发送到聊天、提交到代码库或交给其他成员。切换页面、每 15 秒重新核对身份或刷新列表时会清除本页凭据，请及时下载。未保存时需撤销该连接并重新创建。</p><textarea id="credential" readonly aria-label="连接凭据 JSON" spellcheck="false" autocomplete="off"></textarea><div class="actions"><button id="download" class="primary">下载凭据文件</button><button id="dismiss">已保存，清除页面凭据</button></div><pre id="guide"></pre></section>
-<div class="layout"><section class="panel"><h2>授权一个工具连接</h2><form id="create"><label for="label">连接名称</label><input id="label" maxlength="80" required placeholder="例如：我的 Claude 工作电脑" autocomplete="off"><label for="scope">允许的操作</label><select id="scope"><option value="read">只读：任务、知识和已有回执</option><option value="content">协作：另可创建待办、记录消息</option><option value="execute">执行：另可启动分析/方案/修改、接管和交回自动</option></select><label for="days">有效期</label><select id="days"><option value="1">1 天</option><option value="7" selected>7 天</option><option value="30">30 天</option></select><label>可访问项目</label><div id="projects"></div><p class="muted">权限减少、成员移除、密码重置或主动撤销后，旧凭据失效；恢复权限不会复活旧连接。</p><button id="submit" class="primary" disabled>创建限定范围的连接</button></form></section>
+<div class="layout"><section class="panel"><h2>授权一个工具连接</h2><form id="create"><label for="label">连接名称</label><input id="label" maxlength="80" required placeholder="例如：我的 Claude 工作电脑" autocomplete="off"><label for="scope">允许的操作</label><select id="scope"><option value="read">只读：任务、知识和已有回执</option><option value="content">协作：另可创建待办、记录消息</option><option value="execute">执行：另可启动分析/方案/修改、接管和交回自动</option><option value="develop">协作开发：另可澄清需求、登记候选及触发验证；人工确认独立进行</option></select><label for="days">有效期</label><select id="days"><option value="1">1 天</option><option value="7" selected>7 天</option><option value="30">30 天</option></select><label>可访问项目</label><div id="projects"></div><p class="muted">权限减少、成员移除、密码重置或主动撤销后，旧凭据失效；恢复权限不会复活旧连接。</p><button id="submit" class="primary" disabled>创建限定范围的连接</button></form></section>
 <section class="panel"><h2>已授权的连接</h2><p id="identity" class="muted"></p><div id="connections"></div><button id="refresh">刷新列表</button></section></div></main>
 <script>
 const initialPath=location.pathname, initialOrigin=location.origin;
@@ -88,7 +88,7 @@ function validPending(value){
   const keys=value.action==='create'?['action','label','project_ids','scope','expires_days','request_id']:value.action==='revoke'?['action','connection_id','request_id']:[];
   if(Object.keys(value).length!==keys.length||Object.keys(value).some(key=>!keys.includes(key)))return false;
   if(value.action==='revoke')return typeof value.connection_id==='string'&&/^[a-f0-9]{32}$/.test(value.connection_id);
-  return typeof value.label==='string'&&!!value.label.trim()&&value.label.length<=120&&['read','content','execute'].includes(value.scope)&&Number.isInteger(value.expires_days)&&value.expires_days>=1&&value.expires_days<=30&&Array.isArray(value.project_ids)&&value.project_ids.length>0&&value.project_ids.every(id=>Number.isSafeInteger(id)&&id>0)&&new Set(value.project_ids).size===value.project_ids.length;
+  return typeof value.label==='string'&&!!value.label.trim()&&value.label.length<=120&&['read','content','execute','develop'].includes(value.scope)&&Number.isInteger(value.expires_days)&&value.expires_days>=1&&value.expires_days<=30&&Array.isArray(value.project_ids)&&value.project_ids.length>0&&value.project_ids.every(id=>Number.isSafeInteger(id)&&id>0)&&new Set(value.project_ids).size===value.project_ids.length;
 }
 function readPending(){
   const saved=sessionStorage.getItem(storageKey);
@@ -131,7 +131,7 @@ function showCredential(token,item,body,data){
   confirmedConnection(item,body,data);
   credentialBinding={item,body,data};
   credential={schema:1,endpoint:initialOrigin+base,token};$('#credential').value=JSON.stringify(credential,null,2);$('#secret').hidden=false;
-  const run='~/.webuddy/bin/webuddy',mcpFlag=item.scope==='execute'?' --allow-execution':item.scope==='read'?' --read-only':'';
+  const run='~/.webuddy/bin/webuddy',mcpFlag=['execute','develop'].includes(item.scope)?' --allow-execution':item.scope==='read'?' --read-only':'';
   $('#guide').textContent=['1. 凭据文件已自动下载到 ~/Downloads（没有的话点上方「下载凭据文件」），在终端导入（只需一次；客户端已经知道服务器地址）：',run+' connect --stdin < ~/Downloads/webuddy-credential.json','rm ~/Downloads/webuddy-credential.json','','2. 确认连接可用：',run+' status','','3. 生成你所用工具的配置（只打印，不改任何文件），任选一个：','# Codex：追加到 ~/.codex/config.toml',run+' config codex'+mcpFlag+' >> ~/.codex/config.toml','# Claude Code：把输出合并进项目根目录的 .mcp.json',run+' config claude'+mcpFlag,'# Cursor：把输出合并进 ~/.cursor/mcp.json',run+' config cursor'+mcpFlag,'','4. 重启工具，让它「列出 Webuddy 里我能看到的项目」确认已接通。'].join('\n');
   setBusy(busy);
   saveCredential();
@@ -142,7 +142,7 @@ function render(data){
   const selected=new Set([...document.querySelectorAll('[name=project]:checked')].map(node=>node.value));
   $('#projects').innerHTML=data.projects.map(project=>`<label class="check"><input type="checkbox" name="project" value="${h(project.id)}" data-role="${h(project.role)}" ${selected.has(String(project.id))?'checked':''}><span>${h(project.name)} · ${h(project.key)}${project.role==='viewer'?'（只读）':''}</span></label>`).join('')||'<p class="muted">尚无获准项目，请联系组织管理员。</p>';
   const statuses={active:'有效',revoked:'已撤销',expired:'已过期',invalidated:'权限已失效'};
-  $('#connections').innerHTML=data.connections.map(connection=>`<article class="row"><h3>${h(connection.label)}</h3><span class="badge">${h(statuses[connection.status]||connection.status)}</span><p>${({content:'内容协作',execute:'执行'})[connection.scope]||'只读'} · 项目 ${h(connection.project_ids.join('、'))}</p><p class="muted">有效至 ${h(new Date(connection.expires_at*1000).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false}))}</p>${connection.active?`<button data-revoke="${h(connection.id)}">撤销连接</button>`:''}</article>`).join('')||'<p class="muted">尚未创建连接。</p>';
+  $('#connections').innerHTML=data.connections.map(connection=>`<article class="row"><h3>${h(connection.label)}</h3><span class="badge">${h(statuses[connection.status]||connection.status)}</span><p>${({develop:'协作开发：问答、候选与验证；不授予人工确认或合并',content:'内容协作',execute:'执行'})[connection.scope]||'只读'} · 项目 ${h(connection.project_ids.join('、'))}</p><p class="muted">有效至 ${h(new Date(connection.expires_at*1000).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false}))}</p>${connection.active?`<button data-revoke="${h(connection.id)}">撤销连接</button>`:''}</article>`).join('')||'<p class="muted">尚未创建连接。</p>';
   for(const button of document.querySelectorAll('[data-revoke]'))button.onclick=()=>start({action:'revoke',connection_id:button.dataset.revoke,request_id:crypto.randomUUID()});
 }
 async function load({withinWrite=false}={}){

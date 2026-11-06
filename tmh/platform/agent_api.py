@@ -31,7 +31,7 @@ BOUNDARIES = {
 
 def _boundaries(tool=None):
     result = dict(BOUNDARIES)
-    if tool and tool.get('scope') == 'execute':
+    if tool and tool.get('scope') in ('execute', 'develop'):
         result.update(identity='身份来自本人授权的工具连接；工具标签仅用于显示或消息路由，不能更换操作主体。',
                       candidate='仅可读取已有候选与历史证据；此连接不登记、评审或批准候选。',
                       execution='可让 AI 理清需求、回答追问，可启动/停止分析、方案、修改，接管或交回自动；只在本人网页上也能运行时生效。不代人验收、合并、发布或回滚。')
@@ -39,6 +39,8 @@ def _boundaries(tool=None):
         result.update(identity='身份来自本人授权的工具连接；工具标签仅用于显示或消息路由，不能更换操作主体。',
                       candidate='仅可读取已有候选与历史证据；此连接不登记、执行、评审或批准候选。',
                       execution='此个人工具连接仅提供获准内容操作；不启动模型、构建或预览，也不代人确认。')
+    if tool and tool.get('scope') == 'develop':
+        result['candidate'] = '可记录开发问答、提交与验证固定候选；保留原有执行权限。AI不能代人确认需求、批准、合并或发布。'
     return result
 
 
@@ -76,7 +78,7 @@ def _digest(value):
     return hashlib.sha256(_json(value).encode("utf-8")).hexdigest()
 
 
-def _requirement(t, store, *, reference_inputs=None, contract_records=None):
+def _requirement(t, store, *, reference_inputs=None, contract_records=None, include_development=True):
     """Bind requirement sources, including conversation and the client contract.
 
     This is deliberately conservative: even an informational comment invalidates
@@ -96,6 +98,11 @@ def _requirement(t, store, *, reference_inputs=None, contract_records=None):
     references = bindings(store, store.project(t['project_id'])) if reference_inputs is None else reference_inputs
     if references:  # Keep the exact legacy identity for projects without references.
         value['knowledge_references'] = references
+    if include_development:
+        from .development import identity
+        development = identity(store,t['id'])
+        if development:
+            value['development_contract'] = development
     return _digest(value)
 
 
@@ -403,19 +410,31 @@ def _execute(P, req, actor, operation, a):
             packet = tool_read.ticket_get(P, a['ticket'], visible_ids)
             from .tool_access import allowed_operations
             packet['boundaries'] = _boundaries(tool)
-            packet['supported_actions'] = [v for v in ('message_send', 'messages_list', 'run_get', 'run_start', 'run_cancel', 'run_retry', 'ticket_hold', 'preview_get', 'candidates_list', 'candidate_get')
+            packet['supported_actions'] = [v for v in ('message_send', 'messages_list', 'run_get', 'run_start', 'run_cancel', 'run_retry', 'ticket_hold', 'preview_get', 'candidates_list', 'candidate_get', 'development_get', 'development_start', 'development_propose', 'development_answer', 'candidate_submit', 'candidate_verify', 'candidate_cancel')
                                            if v in allowed_operations(tool['scope'])]
             return packet
         if operation == 'library_get':
             from .project_library import schema
             schema(st)  # Preserve the existing compatible schema migration.
             return tool_read.library_get(P, _project(P, a['project']))
+    if operation.startswith("development_"):
+        from . import development
+        ticket = _ticket(P, a['ticket'])
+        if operation == 'development_get':
+            return development.read(st,ticket)
+        return development.act(P,actor,operation.removeprefix('development_'),a)
     if operation.startswith("library_"):
         from .project_library import execute
         return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
     if operation.startswith("harness_"):
         from .harness_probes import execute
         return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
+    if operation == 'candidate_ci':
+        from .candidates import _row
+        from .project_ci import check
+        candidate = _row(P,a['candidate_id'])
+        ticket = st.ticket(candidate['ticket_id'])
+        return check(P.data_dir,st.project(ticket['project_id'])['key'],candidate['commit_sha'])
     if operation.startswith("candidate_") or operation == "candidates_list":
         from .candidates import execute
         try:
@@ -427,8 +446,8 @@ def _execute(P, req, actor, operation, a):
             from . import tool_access
             from .. import __version__
             return {'version': __version__, 'agent': actor,
-                    'tool_connection': dict(tool, execution=tool['scope'] == 'execute'),
-                    'engines': server.available(P.data_dir) if tool['scope'] == 'execute' and (not tenant_policy.enabled(P) or P.tenant_context.runtime_allowed(req.user)) else [],
+                    'tool_connection': dict(tool, execution=tool['scope'] in ('execute', 'develop')),
+                    'engines': server.available(P.data_dir) if tool['scope'] in ('execute', 'develop') and (not tenant_policy.enabled(P) or P.tenant_context.runtime_allowed(req.user)) else [],
                     'allowed_operations': sorted(tool_access.allowed_operations(tool['scope'])),
                     'boundaries': _boundaries(tool)}
         meta = server.api_meta(P, _req(req, actor))

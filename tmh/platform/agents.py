@@ -372,6 +372,11 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         delivery_context = prompt_context(store.path.parent, links["delivery"])
     out = (["你在维护项目「%s」（代码目录 %s）。" % (project["name"], root)] if isolated else
            ["你在维护项目「%s」（目录 %s）。业务知识库在 %s。" % (project["name"], root, root / ".tmh" / "knowledge")])
+    if ticket:
+        from .development import read
+        development = read(store,ticket)
+        if development['state'] != 'not_selected':
+            out.append("## 开发人员确认稿与问答（当前状态：%s）\n%s" % (development['state'], json.dumps(development['payload'],ensure_ascii=False)))
     tool = root / ".tmh" / "tool" / "tmh.py"
     if isolated:
         out.append("平台知识以本任务中实际提供的上下文和来源为准；隔离工作区不包含 .tmh 工具。缺少的依据应明确说明。")
@@ -1469,6 +1474,9 @@ class Runner:
         from . import project_library as library
         project = self.store.project(project['id'])
         library.require_development(self.store, project)
+        if ticket and mode == 'fix':
+            from .development import require_confirmed
+            require_confirmed(self.store,self.store.ticket(ticket['id']))
         reference_inputs = library.bindings(self.store, project)
         if any(not r['available'] for r in reference_inputs):
             raise ValueError('项目参考授权已变化，请先处理不可用引用')

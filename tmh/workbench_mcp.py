@@ -36,8 +36,9 @@ TENANT_INSTRUCTIONS = (
     "content scope, ticket creation and task messages are available. The execute "
     "scope adds starting/stopping analyze, plan and fix runs and taking over or "
     "handing back automation, only where the member may run them in the web. "
+    "The develop scope also permits developer conversations, candidate submission and verification. Ask the developer the returned next_questions using the host's native question UI; include options and free text, record actual replies, and never answer for the developer. Resume the same ticket/revision. Before coding, require development_get.state=confirmed. Human confirmation uses the separate interactive 'webuddy develop TICKET' command; never invoke it on the developer's behalf. "
     "Candidate assessment, knowledge adoption, acceptance, merge, release, rollback "
-    "and human decisions are disabled. "
+    "and human decisions remain disabled in MCP. "
     "Request receipts belong to the authenticated member, not the tool label. "
     "The gateway rechecks expiry, revocation and project permission on every call."
 )
@@ -66,7 +67,7 @@ def build_server(client, read_only=False, allow_execution=False):
     live_allowed = None
     if tenant:
         status = client.connection_status()
-        if allow_execution and status["tool_connection"]["scope"] != "execute":
+        if allow_execution and status["tool_connection"]["scope"] not in ("execute", "develop"):
             raise ClientError("这个个人工具连接没有授权启动运行；请在网页「工具连接」新建「执行」范围的连接，或移除 --allow-execution", "tool_operation_forbidden")
         live_allowed = set(status["allowed_operations"])
 

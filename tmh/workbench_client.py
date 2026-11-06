@@ -14,6 +14,7 @@ from . import workbench_credentials as credentials
 
 TENANT_WRITES = ("ticket_create", "message_send", "run_start", "run_cancel", "run_retry", "ticket_hold",
                  "intake_start", "intake_understand", "intake_answer")
+DEVELOP_WRITES = ("development_start", "development_propose", "development_answer", "candidate_submit", "candidate_verify", "candidate_cancel", "run_recheck")
 
 
 class ClientError(Exception):
@@ -59,6 +60,7 @@ class Client:
         if not isinstance(timeout, (int, float)) or not 0 < timeout <= 60:
             raise ClientError("HTTP 超时必须大于 0 且不超过 60 秒", "invalid_timeout")
         self.agent, self.timeout, self.allow_execution = agent, timeout, allow_execution
+        self.live_scope = None
         self.operator = operator
         self.operator_token = operator_token
         self.token = token if token is not None else os.environ.get("WEBUDDY_TOKEN", "")
@@ -82,9 +84,9 @@ class Client:
         value = self.call("status")
         info, allowed = value.get("tool_connection"), value.get("allowed_operations")
         if (not isinstance(info, dict) or info.get("tenant") != self.tenant
-                or info.get("scope") not in ("read", "content", "execute")
+                or info.get("scope") not in ("read", "content", "execute", "develop")
                 or not info.get("user") or not info.get("id")
-                or info.get("execution") is not (info.get("scope") == "execute")
+                or info.get("execution") is not (info.get("scope") in ("execute", "develop"))
                 or info.get("status") != "active"
                 or not isinstance(info.get("project_ids"), list)
                 or not info.get("expires_at")
@@ -93,12 +95,13 @@ class Client:
             raise ClientError("服务未返回有效的个人工具身份与权限；未保存凭据，请核对租户工具接入版本。", "invalid_tool_status")
         if info["scope"] == "read" and any(SPECS.get(op, {}).get("write") for op in allowed):
             raise ClientError("服务返回的权限与只读凭据不一致", "invalid_tool_status")
+        self.live_scope = info['scope']
         return value
 
     def permits(self, operation):
         spec = SPECS[operation]
         return (not self.tenant or (not spec.get("operator")
-                and (not spec["write"] or operation in TENANT_WRITES)))
+                and (not spec["write"] or operation in TENANT_WRITES or self.live_scope == 'develop' and operation in DEVELOP_WRITES)))
 
     def call(self, operation, args=None):
         try:
@@ -106,6 +109,8 @@ class Client:
         except ValueError as e:
             raise ClientError(str(e), "invalid_arguments") from e
         spec = SPECS[operation]
+        if self.tenant and operation in DEVELOP_WRITES and self.live_scope is None:
+            self.connection_status()
         if not self.permits(operation):
             raise ClientError("个人租户工具连接仅支持授权项目读取、创建任务、留言、启动/停止运行和接管/交回自动；不允许评审、采用或人工决定。", "tool_operation_forbidden")
         if spec.get("operator") and not self.operator:
