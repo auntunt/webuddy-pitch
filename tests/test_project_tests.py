@@ -189,6 +189,8 @@ class ProjectTests(unittest.TestCase):
         result=self.execute(p)
         self.assertEqual(result['status'],'fail')
         self.assertTrue(result['code_changed'])
+        self.assertEqual(result['criterion_evidence']['A1'][0]['status'], 'unverified')
+        self.assertEqual(result['uncovered_criteria'], ['A1'])
 
     def test_independent_criterion_fact_survives_other_failure(self):
         p=self.profile();p['stages'][0]['command']=p['stages'][0]['command'].replace("{id:'sum',status:'pass'}","{id:'sum',status:'pass'},{id:'other',status:'fail'}")

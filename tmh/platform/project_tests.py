@@ -193,7 +193,7 @@ def collect(profile, envelope, folder, criteria):
             item.update(status='fail', error=item['error'] or '依赖阶段未通过，本阶段结果不能用于交付', failure_kind='dependency')
         indexed = {c['id']: c['status'] for c in item['cases']}
         for criterion, ids in stage.get('criteria', {}).items():
-            passed = item['exit_code'] == 0 and not record['error'] and item['report_valid'] and item['dependencies_valid'] and all(indexed.get(i) == 'pass' for i in ids)
+            passed = not envelope['code_changed'] and item['exit_code'] == 0 and not record['error'] and item['report_valid'] and item['dependencies_valid'] and all(indexed.get(i) == 'pass' for i in ids)
             proofs.setdefault(criterion, []).append({'stage': stage['id'], 'cases': ids, 'status': 'pass' if passed else 'unverified'})
         results.append(item)
     missing = [str(c['id']) for c in criteria if not proofs.get(str(c['id'])) or any(p['status'] != 'pass' for p in proofs[str(c['id'])])]
@@ -278,9 +278,11 @@ def execute(loop, profile):
     if result['exit_code'] != 0 or len(lines) != 1:
         raise ValueError('项目测试执行器未完成：' + (result.get('tail') or str(result['exit_code'])))
     envelope = json.loads(base64.b64decode(lines[0], validate=True))
+    identity_mismatch = envelope['code_identity'] != base + ':' + hashlib.sha256(patch).hexdigest()
+    envelope['code_changed'] = envelope['code_changed'] or identity_mismatch
     report = collect(profile, envelope, folder, criteria)
-    if envelope['code_identity'] != base + ':' + hashlib.sha256(patch).hexdigest():
-        report.update(status='fail', code_changed=True, identity_error='执行机代码与申请版本不一致')
+    if identity_mismatch:
+        report['identity_error'] = '执行机代码与申请版本不一致'
     report['criteria_contract'] = contract
     report.update(source_run=getattr(loop, 'source_run', loop.rid), project=loop.p['key'], ticket=loop.t['key'] if loop.t else '', executor=profile['executor'], base=base, diff_sha256=hashlib.sha256(patch).hexdigest(), evidence=str(folder.relative_to(data)))
     if profile['executor'] == 'testbox':
