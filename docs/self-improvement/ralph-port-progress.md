@@ -952,3 +952,13 @@
 用户随后明确可用现有 Windows 设备，SSH `webuddy-win` 本轮连通。实际系统 Windows NT 10.0.26200、Python 3.11.9、Git 2.55、Node 24.18；在 `C:\tmh-runner\work\webuddy-ca3e122-r1r6` 新隔离目录运行，包 SHA256 `e31197e72060ad0a5b8e2e1a45ac66b180761b311d62b3914e05007dea94b43a` 核对通过。183 项：141 通过、41 既有平台条件跳过、1 报错。唯一报错为 test_tool_client 的个人凭据保存触发 credential_platform_unsupported，说明原生 Windows 个人 MCP 接入仍未支持；未删除保护或新增 skip。此设备不是甲方怀柔环境，不算客户联调。完整 Windows 回执与日志另存本轮证据目录。
 
 完整 `git archive ca3e122` 源码在 Mac 新 venv 安装后，`python -I -X utf8 scripts/installed-smoke.py <site-packages>` 通过来源、CLI、项目工具安装/刷新、全部资源和离线安装。仅导出 tmh/pyproject 的初次实验包不含 setup.py/安装资源，不能作为完整交付包，已改用完整提交归档。
+
+
+### 2026-11-06 R1—R6 最终测试交付
+
+- 运行代码提交 `d83c267ae5308fcd8de365688136e8d09a7c3cff`（核心实现 `ca3e122`，两者运行文件零差异）。[Actions 42181939561](https://github.com/auntunt/webuddy-pitch/actions/runs/42181939561)：Linux Python 3.11/3.13 完整套件各 **2992 passed、45 skipped**；快速、安装包、Windows执行/证据专项成功。部署前程序核对精确SHA及10个必需/专项任务 success。Windows3.13完整为 **30 failed、1143 passed、215 skipped**；截至本次记录Windows3.11完整仍在运行，不引用workflow容错总状态作全平台结论。失败涉及CLI验收夹具的POSIX引号、Windows文件锁/并发读、预览/固定代码查询以及未支持的原子知识登记；不是本轮Linux发布路径通过的替代证明，Windows整个平台支持尚未完成。
+- 自有Windows设备额外实测 **183项：141通过、41既有跳过、1凭据门禁错误**。安装包在原生Windows新venv的安装、CLI、项目工具install/refresh、完整资源和offline install全部通过，原始输出与回执已归档；个人MCP原生凭据仍明确不支持，不能用chmod代替ACL。测试后无遗留Python/Node进程，远端原日志SHA与下载原件一致。不是甲方设备/怀柔业务联调。
+- 43候选校验 **2380文件、15数据库完整性/副本初始化、120项相关回归**通过；先通过CI再部署。备份 `/opt/webuddy/backups/pre-d83c267-test-20261106T075519Z/state.tar.gz` **55848文件逐字节核对**。现役 `/opt/webuddy/app` → `/opt/webuddy/releases/d83c267/app`，`webuddy.service` 于15:56:57 CST启动，PID1502105；15:57:03即时及15:59:58延迟检查同PID、NRestarts0、active/running，运行cwd/清单/数据库与内外登录200、匿名API401通过。启动等待循环首次端口未就绪后正常恢复，原日志不删。
+- 延迟检查后验证最近三份完整归档，保留pre-d7e2ed1/pre-afddfca/pre-d83c267；仅删除旧pre-f566a90的state.tar.gz（646516336字节），程序和恢复元数据保留；root审计 `/opt/webuddy/backups/retention-20261106-r1-r6.json`。磁盘约18GiB可用。恢复入口为备份中的old-app.txt及旧程序 `/opt/webuddy/releases/afddfca/app`；只切换程序，不用旧库覆盖新写入。阿里云生产未操作。
+- [原始证据入口](evidence/delivery-r1-r6-20261106/README.md)：本轮回归、实际浏览器原图、Mac/Windows安装、Windows设备回执、精确CI门槛、服务器切换与延迟健康。此条记录提交晚于代码提交，运行文件一致性另行核对，不为文档重启服务。
+- 结论分开：**代码修复与43测试交付完成；客户接入说明/核对表/试点模板已准备；客户真实联调未完成；真实项目价值尚未验证。** 接下来需甲方主机与终端系统/原生Windows个人MCP要求、实际仓库与CI、网络/模型通道、规则/数据副本和指定需求确认/开发/Leader/验收/推送发布人员。已有公开演练和自有设备测试不登记成怀柔成功样本。

@@ -41,7 +41,7 @@ sudo mkdir -p /opt/webuddy && sudo chown deploy:deploy /opt/webuddy
 
 ```sh
 sudo -u deploy -i            # 之后都用 deploy 用户
-export WEBUDDY_RELEASE_SHA="填写交付记录中的40位代码SHA"
+export WEBUDDY_RELEASE_SHA="d83c267ae5308fcd8de365688136e8d09a7c3cff" # 本轮43测试交付版；以后升级须取新的通过记录
 git clone https://github.com/auntunt/webuddy-pitch.git /opt/webuddy/app
 cd /opt/webuddy/app
 git fetch origin "$WEBUDDY_RELEASE_SHA"
@@ -367,7 +367,7 @@ Caddy 需要 80/443 可达；检查 `journalctl -u caddy`、DNS 是否指向本�
 |---|---|---|
 | 平台主机 | 默认路径为 Linux + Python 3.11/3.12 + Git + Node（项目测试适配器）；43 是 Linux 测试服务，不代表任意发行版均验证 | 甲方电脑系统、CPU、管理员权限待确认；原生 Windows 平台完整套件未通过 |
 | 个人 CLI/MCP | macOS/Linux 的个人凭据路径；Python 与 MCP 依赖按当前包安装；宿主 Codex/Claude Code 需重启 MCP 进程 | 杭州终端系统、模型通道、个人账号待确认 |
-| Windows 个人 MCP | 原生凭据权限隔离仍有 unsupported 门禁，不可删除后宣称支持；WSL/虚拟机只是候选路径 | 未完成客户 Windows/WSL 实测，须确认选择后验证 |
+| Windows 个人 MCP | 原生凭据权限隔离仍有 unsupported 门禁，不可删除后宣称支持；WSL/虚拟机只是候选路径 | 自有 Windows 设备本轮已验证安装与相关回归，个人凭据仍明确拒绝；客户 Windows/WSL 尚未实测 |
 | 项目执行/测试机 | 项目自身构建、数据库、浏览器及账号依赖；按项目 readiness 分别核对记录、执行、验证、发布条件 | 怀柔源码、数据库副本、账号、业务规则与测试命令待提供 |
 
 本轮安装检查结果见进度记录；目标系统未实测的格子保持“未验证”。平台源码保存在 app，平台工单/知识/证据在指定 data，客户项目代码及 `.tmh` 在登记仓库。模型请求可能包含所选任务、代码差异、引用和日志；本地保存不等于内容不出网。现场须核对 `agents.json`、执行器环境和已配置网关的实际目的地与发送范围，不在说明中填写真实密钥。

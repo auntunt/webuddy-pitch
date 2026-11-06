@@ -1,0 +1,23 @@
+MANIFEST_OK 2380
+DATABASE_COPIES_OK 15
+MANIFEST_OK 2380
+DATABASE_COPIES_OK 15
+BACKUP_BYTES_VERIFIED 55848
+curl: (7) Failed to connect to 127.0.0.1 port 8790 after 0 ms: Couldn't connect to server
+active
+BACKUP=/opt/webuddy/backups/pre-d83c267-test-20261106T075519Z
+RELEASE_MANIFEST_DATABASE_OK
+MainPID=1502105
+NRestarts=0
+ActiveState=active
+SubState=running
+ActiveEnterTimestamp=Fri 2026-11-06 15:56:57 CST
+
+/login 200
+/t/default/api/projects 401
+RUNNING_CWD_OK 1502105
+http://127.0.0.1:8790 /login 200
+http://127.0.0.1:8790 /t/default/api/projects 401
+https://webuddy.bbstack.date /login 200
+https://webuddy.bbstack.date /t/default/api/projects 401
+HEALTH_AT 2026-11-06T15:57:03.208041+08:00

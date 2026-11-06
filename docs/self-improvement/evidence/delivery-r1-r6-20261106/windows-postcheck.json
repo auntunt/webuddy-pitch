@@ -1,0 +1,6 @@
+{
+  "test_log_sha256": "72705ac3dad5a60381fb31f5a7f89fdce09d11f29eea36be2332e4f47ad8ccb0",
+  "remote_log_hash_matched": true,
+  "python_node_processes_after_tests": [],
+  "scope": "Self-owned Windows test device; not customer business acceptance"
+}
