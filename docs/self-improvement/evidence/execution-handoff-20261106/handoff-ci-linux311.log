@@ -1,0 +1,1094 @@
+﻿2026-11-06T08:59:40.1027789Z Current runner version: '2.338.2'
+2026-11-06T08:59:40.1055758Z ##[group]Runner Image Provisioner
+2026-11-06T08:59:40.1057189Z Hosted Compute Agent
+2026-11-06T08:59:40.1057927Z Version: 20261028.624
+2026-11-06T08:59:40.1058636Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-06T08:59:40.1059362Z Build Date: 2026-10-28T21:51:42Z
+2026-11-06T08:59:40.1060116Z Worker ID: {fb0dee35-9c51-4f00-b4ac-2876b8c925e4}
+2026-11-06T08:59:40.1060834Z Region: eastus
+2026-11-06T08:59:40.1061374Z Cloud: Azure
+2026-11-06T08:59:40.1062017Z ##[endgroup]
+2026-11-06T08:59:40.1063642Z ##[group]Operating System
+2026-11-06T08:59:40.1064402Z Ubuntu
+2026-11-06T08:59:40.1064949Z 24.04.5
+2026-11-06T08:59:40.1065491Z LTS
+2026-11-06T08:59:40.1066404Z ##[endgroup]
+2026-11-06T08:59:40.1067076Z ##[group]Runner Image
+2026-11-06T08:59:40.1067740Z Image: ubuntu-24.04
+2026-11-06T08:59:40.1068340Z Version: 20261101.360.1
+2026-11-06T08:59:40.1070199Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-06T08:59:40.1071831Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+2026-11-06T08:59:40.1072877Z ##[endgroup]
+2026-11-06T08:59:40.1074078Z ##[group]GITHUB_TOKEN Permissions
+2026-11-06T08:59:40.1076846Z Contents: read
+2026-11-06T08:59:40.1077455Z Metadata: read
+2026-11-06T08:59:40.1078092Z Packages: read
+2026-11-06T08:59:40.1078687Z ##[endgroup]
+2026-11-06T08:59:40.1080951Z Secret source: Actions
+2026-11-06T08:59:40.1082060Z Cache mode: write
+2026-11-06T08:59:40.1083087Z Prepare workflow directory
+2026-11-06T08:59:40.1510550Z Prepare all required actions
+2026-11-06T08:59:40.1563973Z Getting action download info
+2026-11-06T08:59:40.3833734Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-06T08:59:40.5030362Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-11-06T08:59:40.6956708Z Complete job name: full suite (ubuntu-latest / py3.11)
+2026-11-06T08:59:40.7918666Z ##[group]Run actions/checkout@v4
+2026-11-06T08:59:40.7919630Z with:
+2026-11-06T08:59:40.7920105Z   repository: auntunt/webuddy-pitch
+2026-11-06T08:59:40.7924270Z   token: ***
+2026-11-06T08:59:40.7924710Z   ssh-strict: true
+2026-11-06T08:59:40.7925161Z   ssh-user: git
+2026-11-06T08:59:40.7925612Z   persist-credentials: true
+2026-11-06T08:59:40.7926366Z   clean: true
+2026-11-06T08:59:40.7926840Z   sparse-checkout-cone-mode: true
+2026-11-06T08:59:40.7927360Z   fetch-depth: 1
+2026-11-06T08:59:40.7927791Z   fetch-tags: false
+2026-11-06T08:59:40.7928243Z   show-progress: true
+2026-11-06T08:59:40.7928696Z   lfs: false
+2026-11-06T08:59:40.7929115Z   submodules: false
+2026-11-06T08:59:40.7929562Z   set-safe-directory: true
+2026-11-06T08:59:40.7930078Z   allow-unsafe-pr-checkout: false
+2026-11-06T08:59:40.7930923Z env:
+2026-11-06T08:59:40.7931355Z   PYTHONIOENCODING: utf-8
+2026-11-06T08:59:40.7931840Z   PYTHONUTF8: 1
+2026-11-06T08:59:40.7932283Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-06T08:59:40.7932860Z ##[endgroup]
+2026-11-06T08:59:41.1273615Z Syncing repository: auntunt/webuddy-pitch
+2026-11-06T08:59:41.1277782Z ##[group]Getting Git version info
+2026-11-06T08:59:41.1279471Z Working directory is '/home/runner/work/webuddy-pitch/webuddy-pitch'
+2026-11-06T08:59:41.1281874Z [command]/usr/bin/git version
+2026-11-06T08:59:41.1439132Z git version 2.56.0
+2026-11-06T08:59:41.1467902Z ##[endgroup]
+2026-11-06T08:59:41.1488413Z Temporarily overriding HOME='/home/runner/work/_temp/d5cc7e85-b209-4f11-b4e0-8c4de08533e2' before making global git config changes
+2026-11-06T08:59:41.1528396Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-06T08:59:41.1547029Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-06T08:59:41.1617300Z Deleting the contents of '/home/runner/work/webuddy-pitch/webuddy-pitch'
+2026-11-06T08:59:41.1620685Z ##[group]Initializing the repository
+2026-11-06T08:59:41.1635666Z [command]/usr/bin/git init /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-06T08:59:41.1742761Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-06T08:59:41.1744430Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-06T08:59:41.1745508Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-06T08:59:41.1746862Z hint: call:
+2026-11-06T08:59:41.1747349Z hint:
+2026-11-06T08:59:41.1747950Z hint: 	git config --global init.defaultBranch <name>
+2026-11-06T08:59:41.1748623Z hint:
+2026-11-06T08:59:41.1749266Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-06T08:59:41.1750272Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-06T08:59:41.1751070Z hint:
+2026-11-06T08:59:41.1751536Z hint: 	git branch -m <name>
+2026-11-06T08:59:41.1752059Z hint:
+2026-11-06T08:59:41.1754040Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-06T08:59:41.1761567Z Initialized empty Git repository in /home/runner/work/webuddy-pitch/webuddy-pitch/.git/
+2026-11-06T08:59:41.1774734Z [command]/usr/bin/git remote add origin https://github.com/auntunt/webuddy-pitch
+2026-11-06T08:59:41.1839334Z ##[endgroup]
+2026-11-06T08:59:41.1840489Z ##[group]Disabling automatic garbage collection
+2026-11-06T08:59:41.1843819Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-06T08:59:41.1902543Z ##[endgroup]
+2026-11-06T08:59:41.1903662Z ##[group]Setting up auth
+2026-11-06T08:59:41.1908388Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-06T08:59:41.1964246Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-06T08:59:41.2451000Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-06T08:59:41.2505208Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-06T08:59:41.2771820Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-06T08:59:41.2822785Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-06T08:59:41.3087877Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-06T08:59:41.3146912Z ##[endgroup]
+2026-11-06T08:59:41.3147990Z ##[group]Fetching the repository
+2026-11-06T08:59:41.3160567Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +8ab6b1f0a96212ed5249964a7957da8d85c0c425:refs/remotes/origin/devin/1793765109-bidding-demo-ui
+2026-11-06T08:59:42.5382969Z From https://github.com/auntunt/webuddy-pitch
+2026-11-06T08:59:42.5386725Z  * [new ref]         8ab6b1f0a96212ed5249964a7957da8d85c0c425 -> origin/devin/1793765109-bidding-demo-ui
+2026-11-06T08:59:42.5389798Z ##[endgroup]
+2026-11-06T08:59:42.5390389Z ##[group]Determining the checkout info
+2026-11-06T08:59:42.5391394Z ##[endgroup]
+2026-11-06T08:59:42.5398037Z [command]/usr/bin/git sparse-checkout disable
+2026-11-06T08:59:42.5468554Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-06T08:59:42.5520900Z ##[group]Checking out the ref
+2026-11-06T08:59:42.5521882Z [command]/usr/bin/git checkout --progress --force -B devin/1793765109-bidding-demo-ui refs/remotes/origin/devin/1793765109-bidding-demo-ui
+2026-11-06T08:59:42.9248416Z Switched to a new branch 'devin/1793765109-bidding-demo-ui'
+2026-11-06T08:59:42.9256945Z branch 'devin/1793765109-bidding-demo-ui' set up to track 'origin/devin/1793765109-bidding-demo-ui'.
+2026-11-06T08:59:42.9287749Z ##[endgroup]
+2026-11-06T08:59:42.9353923Z [command]/usr/bin/git log -1 --format=%H
+2026-11-06T08:59:42.9395212Z 8ab6b1f0a96212ed5249964a7957da8d85c0c425
+2026-11-06T08:59:42.9712129Z ##[group]Run actions/setup-python@v5
+2026-11-06T08:59:42.9712515Z with:
+2026-11-06T08:59:42.9712731Z   python-version: 3.11
+2026-11-06T08:59:42.9712973Z   check-latest: false
+2026-11-06T08:59:42.9715756Z   token: ***
+2026-11-06T08:59:42.9716003Z   update-environment: true
+2026-11-06T08:59:42.9716502Z   allow-prereleases: false
+2026-11-06T08:59:42.9716752Z   freethreaded: false
+2026-11-06T08:59:42.9716971Z env:
+2026-11-06T08:59:42.9717170Z   PYTHONIOENCODING: utf-8
+2026-11-06T08:59:42.9717411Z   PYTHONUTF8: 1
+2026-11-06T08:59:42.9717641Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-06T08:59:42.9717900Z ##[endgroup]
+2026-11-06T08:59:43.1255681Z ##[group]Installed versions
+2026-11-06T08:59:43.1361798Z (node:2334) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-06T08:59:43.1363751Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-06T08:59:43.1404896Z Successfully set up CPython (3.11.18)
+2026-11-06T08:59:43.1405887Z ##[endgroup]
+2026-11-06T08:59:43.1581022Z ##[group]Run python -m pip install --upgrade pip pytest
+2026-11-06T08:59:43.1581827Z [36;1mpython -m pip install --upgrade pip pytest[0m
+2026-11-06T08:59:43.1632537Z shell: /usr/bin/bash -e {0}
+2026-11-06T08:59:43.1633018Z env:
+2026-11-06T08:59:43.1633366Z   PYTHONIOENCODING: utf-8
+2026-11-06T08:59:43.1744508Z   PYTHONUTF8: 1
+2026-11-06T08:59:43.1745375Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-06T08:59:43.1746440Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-06T08:59:43.1747513Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-06T08:59:43.1748339Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-06T08:59:43.1749014Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-06T08:59:43.1749739Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-06T08:59:43.1750510Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-06T08:59:43.1751127Z ##[endgroup]
+2026-11-06T08:59:44.1435050Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages (26.2.2)
+2026-11-06T08:59:44.2366019Z Collecting pip
+2026-11-06T08:59:44.2879802Z   Downloading pip-26.3-py3-none-any.whl.metadata (4.6 kB)
+2026-11-06T08:59:44.3224416Z Collecting pytest
+2026-11-06T08:59:44.3274293Z   Downloading pytest-9.2.0-py3-none-any.whl.metadata (7.9 kB)
+2026-11-06T08:59:44.3419481Z Collecting iniconfig>=2 (from pytest)
+2026-11-06T08:59:44.3461574Z   Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+2026-11-06T08:59:44.3632202Z Collecting packaging>=24 (from pytest)
+2026-11-06T08:59:44.3678369Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+2026-11-06T08:59:44.3810456Z Collecting pluggy<2,>=1.6 (from pytest)
+2026-11-06T08:59:44.3855183Z   Downloading pluggy-1.7.0-py3-none-any.whl.metadata (5.0 kB)
+2026-11-06T08:59:44.4039996Z Collecting pygments>=2.15 (from pytest)
+2026-11-06T08:59:44.4086859Z   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+2026-11-06T08:59:44.4264804Z Downloading pip-26.3-py3-none-any.whl (2.0 MB)
+2026-11-06T08:59:44.4772410Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 56.2 MB/s  0:00:00
+2026-11-06T08:59:44.4818773Z Downloading pytest-9.2.0-py3-none-any.whl (411 kB)
+2026-11-06T08:59:44.4946411Z Downloading pluggy-1.7.0-py3-none-any.whl (27 kB)
+2026-11-06T08:59:44.5009038Z Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+2026-11-06T08:59:44.5071323Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+2026-11-06T08:59:44.5145627Z Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+2026-11-06T08:59:44.5304992Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 85.2 MB/s  0:00:00
+2026-11-06T08:59:44.6193960Z Installing collected packages: pygments, pluggy, pip, packaging, iniconfig, pytest
+2026-11-06T08:59:45.3672247Z   Attempting uninstall: pip
+2026-11-06T08:59:45.3686981Z     Found existing installation: pip 26.2.2
+2026-11-06T08:59:45.4327059Z     Uninstalling pip-26.2.2:
+2026-11-06T08:59:45.4389717Z       Successfully uninstalled pip-26.2.2
+2026-11-06T08:59:46.7633712Z 
+2026-11-06T08:59:46.7645345Z Successfully installed iniconfig-2.3.1 packaging-26.3 pip-26.3 pluggy-1.7.0 pygments-2.21.0 pytest-9.2.0
+2026-11-06T08:59:46.8551406Z ##[group]Run python -m pytest tests -q -p no:cacheprovider
+2026-11-06T08:59:46.8551948Z [36;1mpython -m pytest tests -q -p no:cacheprovider[0m
+2026-11-06T08:59:46.8574716Z shell: /usr/bin/bash -e {0}
+2026-11-06T08:59:46.8574994Z env:
+2026-11-06T08:59:46.8575212Z   PYTHONIOENCODING: utf-8
+2026-11-06T08:59:46.8575463Z   PYTHONUTF8: 1
+2026-11-06T08:59:46.8575684Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-06T08:59:46.8576029Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-06T08:59:46.8576852Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-06T08:59:46.8577344Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-06T08:59:46.8577795Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-06T08:59:46.8578235Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-06T08:59:46.8578670Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-06T08:59:46.8579035Z ##[endgroup]
+2026-11-06T08:59:57.5974752Z ............................................... [  1%]
+2026-11-06T09:00:05.2938082Z .................................................. [  3%]
+2026-11-06T09:00:16.3422500Z ............................................................................................................ [  6%]
+2026-11-06T09:00:19.9195517Z ............................................... [  8%]
+2026-11-06T09:00:33.2514630Z ............................................................ [ 10%]
+2026-11-06T09:00:44.0342141Z ....................................................................................................... [ 13%]
+2026-11-06T09:00:54.6082492Z ..........................FFFFFFFF..................... [ 15%]
+2026-11-06T09:01:06.9989732Z .................................................................. [ 17%]
+2026-11-06T09:01:27.2397633Z ........................................................................ [ 19%]
+2026-11-06T09:01:46.8004673Z ........................................................ [ 21%]
+2026-11-06T09:02:10.3142914Z ................................................................s..... [ 24%]
+2026-11-06T09:02:14.6431606Z ...................................................... [ 25%]
+2026-11-06T09:02:21.0883247Z .................................................. [ 27%]
+2026-11-06T09:03:11.0102107Z ...................................................................... [ 29%]
+2026-11-06T09:03:51.5981229Z ........................................................................................................................................................................................................................... [ 36%]
+2026-11-06T09:03:53.5630807Z ....................................................... [ 38%]
+2026-11-06T09:04:03.6428818Z ................................................. [ 40%]
+2026-11-06T09:04:15.8585416Z ........................................................ [ 42%]
+2026-11-06T09:04:28.9150302Z .................................................................... [ 44%]
+2026-11-06T09:05:31.4549776Z ........................................................................ [ 46%]
+2026-11-06T09:06:14.9821086Z ............................................................................................... [ 49%]
+2026-11-06T09:06:21.0715828Z ............................................. [ 51%]
+2026-11-06T09:06:30.8117047Z ....................................... [ 52%]
+2026-11-06T09:06:50.0058142Z .................................................................. [ 54%]
+2026-11-06T09:07:15.4124502Z .................................................................. [ 56%]
+2026-11-06T09:07:38.7572669Z ....................................sssssssss......................sss................................ [ 60%]
+2026-11-06T09:10:12.4538950Z ...............................................................................................................................................................................................................ssssss.... [ 67%]
+2026-11-06T09:10:25.3217826Z ...................................... [ 68%]
+2026-11-06T09:10:32.6289635Z .................................................... [ 70%]
+2026-11-06T09:11:18.8721781Z ..........................................................................s......s...................... [ 73%]
+2026-11-06T09:11:32.9732316Z ........................................................................ [ 76%]
+2026-11-06T09:12:15.1496999Z .................................................................................... [ 78%]
+2026-11-06T09:12:31.2056324Z ....................................................................................... [ 81%]
+2026-11-06T09:12:44.2157426Z ............................................................... [ 83%]
+2026-11-06T09:12:57.2264767Z ..................................s................................................... [ 86%]
+2026-11-06T09:13:00.7780101Z ........................................................................ [ 88%]
+2026-11-06T09:13:04.7385367Z ..................................................................... [ 91%]
+2026-11-06T09:13:09.0795119Z ........................................................................ [ 93%]
+2026-11-06T09:14:05.6720614Z .............................................................................................sssss...... [ 96%]
+2026-11-06T09:14:08.3477984Z .................................... [ 98%]
+2026-11-06T09:14:13.3399861Z .....sssssssssssssssssss................................. [100%]
+2026-11-06T09:14:13.3400721Z =================================== FAILURES ===================================
+2026-11-06T09:14:13.3401623Z _ DeveloperMergeTest.test_confirmed_criteria_are_used_and_answer_changes_invalidate_report_contract _
+2026-11-06T09:14:13.3402364Z 
+2026-11-06T09:14:13.3402816Z P = <tmh.platform.server.Platform object at 0x7f322335e110>, actor = 'alice'
+2026-11-06T09:14:13.3404694Z args = {'ticket': 'TEAM-1', 'base_commit': '72c7faecd71092d8f97b1e3e4fbf90a3c244f06b', 'commit': '61b707ff9cb615bf13dec3d7fa14c12f6e13e312', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3407208Z mutation = <function _request.<locals>.mutation at 0x7f321f447f60>
+2026-11-06T09:14:13.3407723Z 
+2026-11-06T09:14:13.3407927Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3408558Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3409393Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3410193Z         st = P.store
+2026-11-06T09:14:13.3410651Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3411178Z         if not t:
+2026-11-06T09:14:13.3411962Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3412606Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3413122Z         root = Path(p["root"])
+2026-11-06T09:14:13.3413610Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3413949Z             _ready(P, t)
+2026-11-06T09:14:13.3414294Z             from .development import require_execution
+2026-11-06T09:14:13.3414647Z             try:
+2026-11-06T09:14:13.3414946Z >               development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3415350Z                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3415593Z 
+2026-11-06T09:14:13.3415717Z tmh/platform/candidates.py:141: 
+2026-11-06T09:14:13.3416387Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3416727Z 
+2026-11-06T09:14:13.3416916Z store = <tmh.platform.store.Store object at 0x7f3221f3f150>
+2026-11-06T09:14:13.3417591Z ticket = {'id': 1, 'project_id': 1, 'num': 1, 'title': '保存后刷新仍可查看', ...}
+2026-11-06T09:14:13.3418364Z mode = 'local'
+2026-11-06T09:14:13.3418484Z 
+2026-11-06T09:14:13.3418606Z     def require_execution(store, ticket, mode):
+2026-11-06T09:14:13.3418922Z         state = require_confirmed(store, ticket)
+2026-11-06T09:14:13.3419616Z         if state and (state['payload'].get('execution_choice_required') or state['execution'].get('mode')):
+2026-11-06T09:14:13.3420136Z             choice = state['execution']
+2026-11-06T09:14:13.3420477Z             if not choice.get('current') or choice.get('mode') != mode:
+2026-11-06T09:14:13.3421097Z >               raise ValueError('请负责人在人工终端为当前确认稿选择' + ('系统执行' if mode == 'system' else '本地执行'))
+2026-11-06T09:14:13.3421588Z E               ValueError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3421799Z 
+2026-11-06T09:14:13.3421924Z tmh/platform/development.py:96: ValueError
+2026-11-06T09:14:13.3422123Z 
+2026-11-06T09:14:13.3422311Z The above exception was the direct cause of the following exception:
+2026-11-06T09:14:13.3422594Z 
+2026-11-06T09:14:13.3423046Z self = <test_developer_merge.DeveloperMergeTest testMethod=test_confirmed_criteria_are_used_and_answer_changes_invalidate_report_contract>
+2026-11-06T09:14:13.3423614Z 
+2026-11-06T09:14:13.3423698Z     def setUp(self):
+2026-11-06T09:14:13.3424143Z         self.f=fixtures.TeamWorkspaceTest('runTest');self.addCleanup(self.f.doCleanups);self.f.setUp()
+2026-11-06T09:14:13.3424695Z         self.P=self.f.P;self.key=self.f.ticket['key']
+2026-11-06T09:14:13.3425226Z         state=development.act(self.P,'agent:member:alice','start',{'ticket':self.key,'request_id':'select'})
+2026-11-06T09:14:13.3425943Z         state=development.act(self.P,'agent:member:alice','propose',{'ticket':self.key,'request_id':'proposal',
+2026-11-06T09:14:13.3427017Z             'revision':state['revision'],'summary':'Persist saved record','design':'Write and reload','test_plan':'Save then reload',
+2026-11-06T09:14:13.3427785Z             'criteria':[{'id':'AC1','text':'保存后仍存在','check':'创建并刷新核对'}],'questions':[]})
+2026-11-06T09:14:13.3428315Z         development.act(self.P,'alice','confirm',{'ticket':self.key,'request_id':'confirm',
+2026-11-06T09:14:13.3428858Z             'revision':state['revision'],'digest':state['digest']},human=True)
+2026-11-06T09:14:13.3429309Z >       self.f.candidate();self.f.synthetic_checks();self.f.assess()
+2026-11-06T09:14:13.3429661Z         ^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3429810Z 
+2026-11-06T09:14:13.3429920Z tests/test_developer_merge.py:19: 
+2026-11-06T09:14:13.3430234Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3430598Z tests/test_team_workspace.py:75: in candidate
+2026-11-06T09:14:13.3430951Z     result = self.action("candidate_submit", **self.args)
+2026-11-06T09:14:13.3431291Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3431595Z tests/test_team_workspace.py:56: in action
+2026-11-06T09:14:13.3432029Z     return team.dispatch_action(self.P, {"action": action, "ticket": self.ticket["key"],
+2026-11-06T09:14:13.3432482Z tmh/platform/project_git.py:83: in wrapped
+2026-11-06T09:14:13.3432794Z     try: return fn(P,*args,**kwargs)
+2026-11-06T09:14:13.3433055Z                 ^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3433321Z tmh/platform/team.py:338: in dispatch_action
+2026-11-06T09:14:13.3434009Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3434840Z                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3435284Z tmh/platform/team.py:213: in _request
+2026-11-06T09:14:13.3435553Z     result = fn(mutation)
+2026-11-06T09:14:13.3435772Z              ^^^^^^^^^^^^
+2026-11-06T09:14:13.3435998Z tmh/platform/team.py:338: in <lambda>
+2026-11-06T09:14:13.3436927Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3438036Z                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3438555Z tmh/platform/team.py:320: in _action
+2026-11-06T09:14:13.3439017Z     return candidates.execute(P, user, op, args, mutation)
+2026-11-06T09:14:13.3439368Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3439677Z tmh/platform/candidates.py:324: in execute
+2026-11-06T09:14:13.3439973Z     result = submit(P, actor, a, mutation)
+2026-11-06T09:14:13.3440238Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3440545Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3440789Z 
+2026-11-06T09:14:13.3441006Z P = <tmh.platform.server.Platform object at 0x7f322335e110>, actor = 'alice'
+2026-11-06T09:14:13.3442059Z args = {'ticket': 'TEAM-1', 'base_commit': '72c7faecd71092d8f97b1e3e4fbf90a3c244f06b', 'commit': '61b707ff9cb615bf13dec3d7fa14c12f6e13e312', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3443097Z mutation = <function _request.<locals>.mutation at 0x7f321f447f60>
+2026-11-06T09:14:13.3443373Z 
+2026-11-06T09:14:13.3443484Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3443789Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3444195Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3444570Z         st = P.store
+2026-11-06T09:14:13.3445102Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3445537Z         if not t:
+2026-11-06T09:14:13.3446073Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3446859Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3447365Z         root = Path(p["root"])
+2026-11-06T09:14:13.3447778Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3448067Z             _ready(P, t)
+2026-11-06T09:14:13.3448336Z             from .development import require_execution
+2026-11-06T09:14:13.3448630Z             try:
+2026-11-06T09:14:13.3448885Z                 development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3449223Z             except ValueError as exc:
+2026-11-06T09:14:13.3449507Z >               raise ApiError(409, str(exc)) from exc
+2026-11-06T09:14:13.3449990Z E               tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3450251Z 
+2026-11-06T09:14:13.3450362Z tmh/platform/candidates.py:143: ApiError
+2026-11-06T09:14:13.3450806Z _ DeveloperMergeTest.test_developer_merges_after_leader_and_ci_with_audited_commit _
+2026-11-06T09:14:13.3451157Z 
+2026-11-06T09:14:13.3451369Z P = <tmh.platform.server.Platform object at 0x7f321f3cd910>, actor = 'alice'
+2026-11-06T09:14:13.3452413Z args = {'ticket': 'TEAM-1', 'base_commit': '72c7faecd71092d8f97b1e3e4fbf90a3c244f06b', 'commit': '74b20b351a125ccf2b46ae4c97ff5e1600245a8f', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3454223Z mutation = <function _request.<locals>.mutation at 0x7f321f4ecea0>
+2026-11-06T09:14:13.3454702Z 
+2026-11-06T09:14:13.3454883Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3455477Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3456528Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3457304Z         st = P.store
+2026-11-06T09:14:13.3457724Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3458171Z         if not t:
+2026-11-06T09:14:13.3458704Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3459032Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3459307Z         root = Path(p["root"])
+2026-11-06T09:14:13.3459557Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3459819Z             _ready(P, t)
+2026-11-06T09:14:13.3460339Z             from .development import require_execution
+2026-11-06T09:14:13.3460628Z             try:
+2026-11-06T09:14:13.3460883Z >               development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3461209Z                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3461406Z 
+2026-11-06T09:14:13.3461637Z tmh/platform/candidates.py:141: 
+2026-11-06T09:14:13.3461952Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3462201Z 
+2026-11-06T09:14:13.3462360Z store = <tmh.platform.store.Store object at 0x7f321f3cd5d0>
+2026-11-06T09:14:13.3462873Z ticket = {'id': 1, 'project_id': 1, 'num': 1, 'title': '保存后刷新仍可查看', ...}
+2026-11-06T09:14:13.3463216Z mode = 'local'
+2026-11-06T09:14:13.3463339Z 
+2026-11-06T09:14:13.3463457Z     def require_execution(store, ticket, mode):
+2026-11-06T09:14:13.3463788Z         state = require_confirmed(store, ticket)
+2026-11-06T09:14:13.3464292Z         if state and (state['payload'].get('execution_choice_required') or state['execution'].get('mode')):
+2026-11-06T09:14:13.3464798Z             choice = state['execution']
+2026-11-06T09:14:13.3465137Z             if not choice.get('current') or choice.get('mode') != mode:
+2026-11-06T09:14:13.3465713Z >               raise ValueError('请负责人在人工终端为当前确认稿选择' + ('系统执行' if mode == 'system' else '本地执行'))
+2026-11-06T09:14:13.3466564Z E               ValueError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3466794Z 
+2026-11-06T09:14:13.3466912Z tmh/platform/development.py:96: ValueError
+2026-11-06T09:14:13.3467119Z 
+2026-11-06T09:14:13.3467360Z The above exception was the direct cause of the following exception:
+2026-11-06T09:14:13.3467654Z 
+2026-11-06T09:14:13.3468072Z self = <test_developer_merge.DeveloperMergeTest testMethod=test_developer_merges_after_leader_and_ci_with_audited_commit>
+2026-11-06T09:14:13.3468559Z 
+2026-11-06T09:14:13.3468643Z     def setUp(self):
+2026-11-06T09:14:13.3469078Z         self.f=fixtures.TeamWorkspaceTest('runTest');self.addCleanup(self.f.doCleanups);self.f.setUp()
+2026-11-06T09:14:13.3469620Z         self.P=self.f.P;self.key=self.f.ticket['key']
+2026-11-06T09:14:13.3470137Z         state=development.act(self.P,'agent:member:alice','start',{'ticket':self.key,'request_id':'select'})
+2026-11-06T09:14:13.3470845Z         state=development.act(self.P,'agent:member:alice','propose',{'ticket':self.key,'request_id':'proposal',
+2026-11-06T09:14:13.3471621Z             'revision':state['revision'],'summary':'Persist saved record','design':'Write and reload','test_plan':'Save then reload',
+2026-11-06T09:14:13.3472369Z             'criteria':[{'id':'AC1','text':'保存后仍存在','check':'创建并刷新核对'}],'questions':[]})
+2026-11-06T09:14:13.3473164Z         development.act(self.P,'alice','confirm',{'ticket':self.key,'request_id':'confirm',
+2026-11-06T09:14:13.3474108Z             'revision':state['revision'],'digest':state['digest']},human=True)
+2026-11-06T09:14:13.3474787Z >       self.f.candidate();self.f.synthetic_checks();self.f.assess()
+2026-11-06T09:14:13.3475134Z         ^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3475287Z 
+2026-11-06T09:14:13.3475395Z tests/test_developer_merge.py:19: 
+2026-11-06T09:14:13.3475706Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3476063Z tests/test_team_workspace.py:75: in candidate
+2026-11-06T09:14:13.3476753Z     result = self.action("candidate_submit", **self.args)
+2026-11-06T09:14:13.3477087Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3477384Z tests/test_team_workspace.py:56: in action
+2026-11-06T09:14:13.3477811Z     return team.dispatch_action(self.P, {"action": action, "ticket": self.ticket["key"],
+2026-11-06T09:14:13.3478254Z tmh/platform/project_git.py:83: in wrapped
+2026-11-06T09:14:13.3478533Z     try: return fn(P,*args,**kwargs)
+2026-11-06T09:14:13.3478784Z                 ^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3479050Z tmh/platform/team.py:338: in dispatch_action
+2026-11-06T09:14:13.3479730Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3480867Z                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3481424Z tmh/platform/team.py:213: in _request
+2026-11-06T09:14:13.3481694Z     result = fn(mutation)
+2026-11-06T09:14:13.3481907Z              ^^^^^^^^^^^^
+2026-11-06T09:14:13.3482127Z tmh/platform/team.py:338: in <lambda>
+2026-11-06T09:14:13.3482761Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3483565Z                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3483994Z tmh/platform/team.py:320: in _action
+2026-11-06T09:14:13.3484315Z     return candidates.execute(P, user, op, args, mutation)
+2026-11-06T09:14:13.3484658Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3484953Z tmh/platform/candidates.py:324: in execute
+2026-11-06T09:14:13.3485243Z     result = submit(P, actor, a, mutation)
+2026-11-06T09:14:13.3485513Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3485824Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3486071Z 
+2026-11-06T09:14:13.3486666Z P = <tmh.platform.server.Platform object at 0x7f321f3cd910>, actor = 'alice'
+2026-11-06T09:14:13.3487730Z args = {'ticket': 'TEAM-1', 'base_commit': '72c7faecd71092d8f97b1e3e4fbf90a3c244f06b', 'commit': '74b20b351a125ccf2b46ae4c97ff5e1600245a8f', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3509412Z mutation = <function _request.<locals>.mutation at 0x7f321f4ecea0>
+2026-11-06T09:14:13.3509917Z 
+2026-11-06T09:14:13.3510119Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3510643Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3511337Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3511949Z         st = P.store
+2026-11-06T09:14:13.3512223Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3512497Z         if not t:
+2026-11-06T09:14:13.3512842Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3513132Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3513411Z         root = Path(p["root"])
+2026-11-06T09:14:13.3513664Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3513932Z             _ready(P, t)
+2026-11-06T09:14:13.3514198Z             from .development import require_execution
+2026-11-06T09:14:13.3514497Z             try:
+2026-11-06T09:14:13.3514753Z                 development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3515079Z             except ValueError as exc:
+2026-11-06T09:14:13.3515370Z >               raise ApiError(409, str(exc)) from exc
+2026-11-06T09:14:13.3515818Z E               tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3516361Z 
+2026-11-06T09:14:13.3516515Z tmh/platform/candidates.py:143: ApiError
+2026-11-06T09:14:13.3516945Z ____________ DeveloperMergeTest.test_failed_ci_keeps_main_unchanged ____________
+2026-11-06T09:14:13.3517270Z 
+2026-11-06T09:14:13.3517481Z P = <tmh.platform.server.Platform object at 0x7f3220a818d0>, actor = 'alice'
+2026-11-06T09:14:13.3518522Z args = {'ticket': 'TEAM-1', 'base_commit': '8f5a22f269d633cb69d07208daddf522de5626c1', 'commit': 'dd98cc99cd030c39b5b61964b87c858a757fead0', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3519532Z mutation = <function _request.<locals>.mutation at 0x7f321f4ec540>
+2026-11-06T09:14:13.3519809Z 
+2026-11-06T09:14:13.3519913Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3520485Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3520927Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3521332Z         st = P.store
+2026-11-06T09:14:13.3521560Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3521811Z         if not t:
+2026-11-06T09:14:13.3522230Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3522517Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3522796Z         root = Path(p["root"])
+2026-11-06T09:14:13.3523050Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3523310Z             _ready(P, t)
+2026-11-06T09:14:13.3523577Z             from .development import require_execution
+2026-11-06T09:14:13.3523868Z             try:
+2026-11-06T09:14:13.3524119Z >               development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3524448Z                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3524651Z 
+2026-11-06T09:14:13.3524762Z tmh/platform/candidates.py:141: 
+2026-11-06T09:14:13.3525073Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3525321Z 
+2026-11-06T09:14:13.3525485Z store = <tmh.platform.store.Store object at 0x7f3220a82fd0>
+2026-11-06T09:14:13.3525981Z ticket = {'id': 1, 'project_id': 1, 'num': 1, 'title': '保存后刷新仍可查看', ...}
+2026-11-06T09:14:13.3526589Z mode = 'local'
+2026-11-06T09:14:13.3526707Z 
+2026-11-06T09:14:13.3526828Z     def require_execution(store, ticket, mode):
+2026-11-06T09:14:13.3527142Z         state = require_confirmed(store, ticket)
+2026-11-06T09:14:13.3527637Z         if state and (state['payload'].get('execution_choice_required') or state['execution'].get('mode')):
+2026-11-06T09:14:13.3528122Z             choice = state['execution']
+2026-11-06T09:14:13.3528456Z             if not choice.get('current') or choice.get('mode') != mode:
+2026-11-06T09:14:13.3529040Z >               raise ValueError('请负责人在人工终端为当前确认稿选择' + ('系统执行' if mode == 'system' else '本地执行'))
+2026-11-06T09:14:13.3529525Z E               ValueError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3529743Z 
+2026-11-06T09:14:13.3529865Z tmh/platform/development.py:96: ValueError
+2026-11-06T09:14:13.3530062Z 
+2026-11-06T09:14:13.3530248Z The above exception was the direct cause of the following exception:
+2026-11-06T09:14:13.3530542Z 
+2026-11-06T09:14:13.3530823Z self = <test_developer_merge.DeveloperMergeTest testMethod=test_failed_ci_keeps_main_unchanged>
+2026-11-06T09:14:13.3531209Z 
+2026-11-06T09:14:13.3531292Z     def setUp(self):
+2026-11-06T09:14:13.3531721Z         self.f=fixtures.TeamWorkspaceTest('runTest');self.addCleanup(self.f.doCleanups);self.f.setUp()
+2026-11-06T09:14:13.3532256Z         self.P=self.f.P;self.key=self.f.ticket['key']
+2026-11-06T09:14:13.3532771Z         state=development.act(self.P,'agent:member:alice','start',{'ticket':self.key,'request_id':'select'})
+2026-11-06T09:14:13.3533470Z         state=development.act(self.P,'agent:member:alice','propose',{'ticket':self.key,'request_id':'proposal',
+2026-11-06T09:14:13.3534244Z             'revision':state['revision'],'summary':'Persist saved record','design':'Write and reload','test_plan':'Save then reload',
+2026-11-06T09:14:13.3534988Z             'criteria':[{'id':'AC1','text':'保存后仍存在','check':'创建并刷新核对'}],'questions':[]})
+2026-11-06T09:14:13.3535523Z         development.act(self.P,'alice','confirm',{'ticket':self.key,'request_id':'confirm',
+2026-11-06T09:14:13.3536041Z             'revision':state['revision'],'digest':state['digest']},human=True)
+2026-11-06T09:14:13.3536761Z >       self.f.candidate();self.f.synthetic_checks();self.f.assess()
+2026-11-06T09:14:13.3537112Z         ^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3537256Z 
+2026-11-06T09:14:13.3537377Z tests/test_developer_merge.py:19: 
+2026-11-06T09:14:13.3537692Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3538054Z tests/test_team_workspace.py:75: in candidate
+2026-11-06T09:14:13.3538693Z     result = self.action("candidate_submit", **self.args)
+2026-11-06T09:14:13.3539528Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3540058Z tests/test_team_workspace.py:56: in action
+2026-11-06T09:14:13.3540833Z     return team.dispatch_action(self.P, {"action": action, "ticket": self.ticket["key"],
+2026-11-06T09:14:13.3541829Z tmh/platform/project_git.py:83: in wrapped
+2026-11-06T09:14:13.3542346Z     try: return fn(P,*args,**kwargs)
+2026-11-06T09:14:13.3542665Z                 ^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3542938Z tmh/platform/team.py:338: in dispatch_action
+2026-11-06T09:14:13.3543636Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3544480Z                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3544940Z tmh/platform/team.py:213: in _request
+2026-11-06T09:14:13.3545215Z     result = fn(mutation)
+2026-11-06T09:14:13.3545437Z              ^^^^^^^^^^^^
+2026-11-06T09:14:13.3545662Z tmh/platform/team.py:338: in <lambda>
+2026-11-06T09:14:13.3546696Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3547550Z                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3548006Z tmh/platform/team.py:320: in _action
+2026-11-06T09:14:13.3548330Z     return candidates.execute(P, user, op, args, mutation)
+2026-11-06T09:14:13.3548672Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3548978Z tmh/platform/candidates.py:324: in execute
+2026-11-06T09:14:13.3549270Z     result = submit(P, actor, a, mutation)
+2026-11-06T09:14:13.3549540Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3549850Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3550099Z 
+2026-11-06T09:14:13.3550313Z P = <tmh.platform.server.Platform object at 0x7f3220a818d0>, actor = 'alice'
+2026-11-06T09:14:13.3551363Z args = {'ticket': 'TEAM-1', 'base_commit': '8f5a22f269d633cb69d07208daddf522de5626c1', 'commit': 'dd98cc99cd030c39b5b61964b87c858a757fead0', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3552379Z mutation = <function _request.<locals>.mutation at 0x7f321f4ec540>
+2026-11-06T09:14:13.3552652Z 
+2026-11-06T09:14:13.3552752Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3553061Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3553467Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3553865Z         st = P.store
+2026-11-06T09:14:13.3554110Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3554365Z         if not t:
+2026-11-06T09:14:13.3554676Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3554964Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3555238Z         root = Path(p["root"])
+2026-11-06T09:14:13.3555494Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3555757Z             _ready(P, t)
+2026-11-06T09:14:13.3556019Z             from .development import require_execution
+2026-11-06T09:14:13.3556711Z             try:
+2026-11-06T09:14:13.3556967Z                 development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3557307Z             except ValueError as exc:
+2026-11-06T09:14:13.3557589Z >               raise ApiError(409, str(exc)) from exc
+2026-11-06T09:14:13.3558036Z E               tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3558286Z 
+2026-11-06T09:14:13.3558404Z tmh/platform/candidates.py:143: ApiError
+2026-11-06T09:14:13.3558855Z _ DeveloperMergeTest.test_http_confirmation_requires_real_personal_session_and_assignee _
+2026-11-06T09:14:13.3559507Z 
+2026-11-06T09:14:13.3559802Z P = <tmh.platform.server.Platform object at 0x7f321f325050>, actor = 'alice'
+2026-11-06T09:14:13.3561000Z args = {'ticket': 'TEAM-1', 'base_commit': '8f5a22f269d633cb69d07208daddf522de5626c1', 'commit': '9e0e6bd7bb4a94aa28ae6b7e643eee11f8ee309e', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3562032Z mutation = <function _request.<locals>.mutation at 0x7f321f4ee020>
+2026-11-06T09:14:13.3562298Z 
+2026-11-06T09:14:13.3562412Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3562726Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3563126Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3563505Z         st = P.store
+2026-11-06T09:14:13.3563728Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3563978Z         if not t:
+2026-11-06T09:14:13.3564262Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3564548Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3564816Z         root = Path(p["root"])
+2026-11-06T09:14:13.3565062Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3565320Z             _ready(P, t)
+2026-11-06T09:14:13.3565584Z             from .development import require_execution
+2026-11-06T09:14:13.3565873Z             try:
+2026-11-06T09:14:13.3566274Z >               development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3566610Z                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3566810Z 
+2026-11-06T09:14:13.3566910Z tmh/platform/candidates.py:141: 
+2026-11-06T09:14:13.3567213Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3567457Z 
+2026-11-06T09:14:13.3567617Z store = <tmh.platform.store.Store object at 0x7f321f325350>
+2026-11-06T09:14:13.3568139Z ticket = {'id': 1, 'project_id': 1, 'num': 1, 'title': '保存后刷新仍可查看', ...}
+2026-11-06T09:14:13.3568484Z mode = 'local'
+2026-11-06T09:14:13.3568600Z 
+2026-11-06T09:14:13.3568720Z     def require_execution(store, ticket, mode):
+2026-11-06T09:14:13.3569035Z         state = require_confirmed(store, ticket)
+2026-11-06T09:14:13.3569526Z         if state and (state['payload'].get('execution_choice_required') or state['execution'].get('mode')):
+2026-11-06T09:14:13.3570010Z             choice = state['execution']
+2026-11-06T09:14:13.3570345Z             if not choice.get('current') or choice.get('mode') != mode:
+2026-11-06T09:14:13.3570909Z >               raise ValueError('请负责人在人工终端为当前确认稿选择' + ('系统执行' if mode == 'system' else '本地执行'))
+2026-11-06T09:14:13.3571379Z E               ValueError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3571574Z 
+2026-11-06T09:14:13.3571694Z tmh/platform/development.py:96: ValueError
+2026-11-06T09:14:13.3571887Z 
+2026-11-06T09:14:13.3572075Z The above exception was the direct cause of the following exception:
+2026-11-06T09:14:13.3572371Z 
+2026-11-06T09:14:13.3572767Z self = <test_developer_merge.DeveloperMergeTest testMethod=test_http_confirmation_requires_real_personal_session_and_assignee>
+2026-11-06T09:14:13.3573269Z 
+2026-11-06T09:14:13.3573351Z     def setUp(self):
+2026-11-06T09:14:13.3573785Z         self.f=fixtures.TeamWorkspaceTest('runTest');self.addCleanup(self.f.doCleanups);self.f.setUp()
+2026-11-06T09:14:13.3574311Z         self.P=self.f.P;self.key=self.f.ticket['key']
+2026-11-06T09:14:13.3574829Z         state=development.act(self.P,'agent:member:alice','start',{'ticket':self.key,'request_id':'select'})
+2026-11-06T09:14:13.3575527Z         state=development.act(self.P,'agent:member:alice','propose',{'ticket':self.key,'request_id':'proposal',
+2026-11-06T09:14:13.3576414Z             'revision':state['revision'],'summary':'Persist saved record','design':'Write and reload','test_plan':'Save then reload',
+2026-11-06T09:14:13.3577173Z             'criteria':[{'id':'AC1','text':'保存后仍存在','check':'创建并刷新核对'}],'questions':[]})
+2026-11-06T09:14:13.3577942Z         development.act(self.P,'alice','confirm',{'ticket':self.key,'request_id':'confirm',
+2026-11-06T09:14:13.3578910Z             'revision':state['revision'],'digest':state['digest']},human=True)
+2026-11-06T09:14:13.3579717Z >       self.f.candidate();self.f.synthetic_checks();self.f.assess()
+2026-11-06T09:14:13.3580289Z         ^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3580451Z 
+2026-11-06T09:14:13.3580559Z tests/test_developer_merge.py:19: 
+2026-11-06T09:14:13.3580880Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3581244Z tests/test_team_workspace.py:75: in candidate
+2026-11-06T09:14:13.3581592Z     result = self.action("candidate_submit", **self.args)
+2026-11-06T09:14:13.3581919Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3582215Z tests/test_team_workspace.py:56: in action
+2026-11-06T09:14:13.3582640Z     return team.dispatch_action(self.P, {"action": action, "ticket": self.ticket["key"],
+2026-11-06T09:14:13.3583098Z tmh/platform/project_git.py:83: in wrapped
+2026-11-06T09:14:13.3583386Z     try: return fn(P,*args,**kwargs)
+2026-11-06T09:14:13.3583635Z                 ^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3583907Z tmh/platform/team.py:338: in dispatch_action
+2026-11-06T09:14:13.3584591Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3585406Z                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3585843Z tmh/platform/team.py:213: in _request
+2026-11-06T09:14:13.3586384Z     result = fn(mutation)
+2026-11-06T09:14:13.3586658Z              ^^^^^^^^^^^^
+2026-11-06T09:14:13.3586885Z tmh/platform/team.py:338: in <lambda>
+2026-11-06T09:14:13.3587546Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3588359Z                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3588797Z tmh/platform/team.py:320: in _action
+2026-11-06T09:14:13.3589112Z     return candidates.execute(P, user, op, args, mutation)
+2026-11-06T09:14:13.3589446Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3589741Z tmh/platform/candidates.py:324: in execute
+2026-11-06T09:14:13.3590030Z     result = submit(P, actor, a, mutation)
+2026-11-06T09:14:13.3590297Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3590614Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3590854Z 
+2026-11-06T09:14:13.3591062Z P = <tmh.platform.server.Platform object at 0x7f321f325050>, actor = 'alice'
+2026-11-06T09:14:13.3592117Z args = {'ticket': 'TEAM-1', 'base_commit': '8f5a22f269d633cb69d07208daddf522de5626c1', 'commit': '9e0e6bd7bb4a94aa28ae6b7e643eee11f8ee309e', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3593133Z mutation = <function _request.<locals>.mutation at 0x7f321f4ee020>
+2026-11-06T09:14:13.3593408Z 
+2026-11-06T09:14:13.3593510Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3593815Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3594230Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3594615Z         st = P.store
+2026-11-06T09:14:13.3594836Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3595086Z         if not t:
+2026-11-06T09:14:13.3595382Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3595661Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3595935Z         root = Path(p["root"])
+2026-11-06T09:14:13.3596533Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3596799Z             _ready(P, t)
+2026-11-06T09:14:13.3597062Z             from .development import require_execution
+2026-11-06T09:14:13.3597349Z             try:
+2026-11-06T09:14:13.3597601Z                 development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3598041Z             except ValueError as exc:
+2026-11-06T09:14:13.3598328Z >               raise ApiError(409, str(exc)) from exc
+2026-11-06T09:14:13.3598756Z E               tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3599011Z 
+2026-11-06T09:14:13.3599128Z tmh/platform/candidates.py:143: ApiError
+2026-11-06T09:14:13.3599553Z _ DeveloperMergeTest.test_leader_cannot_replace_developers_final_confirmation __
+2026-11-06T09:14:13.3599893Z 
+2026-11-06T09:14:13.3600095Z P = <tmh.platform.server.Platform object at 0x7f321f311110>, actor = 'alice'
+2026-11-06T09:14:13.3601125Z args = {'ticket': 'TEAM-1', 'base_commit': '8ba5e3923cc0bb3c9c7e906bf80a14c69c964288', 'commit': 'e16fe703848958d6d39f47c3ee998e34a71358c4', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3602182Z mutation = <function _request.<locals>.mutation at 0x7f321f4eef20>
+2026-11-06T09:14:13.3602452Z 
+2026-11-06T09:14:13.3602560Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3602869Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3603281Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3603655Z         st = P.store
+2026-11-06T09:14:13.3603871Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3604115Z         if not t:
+2026-11-06T09:14:13.3604372Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3604643Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3604911Z         root = Path(p["root"])
+2026-11-06T09:14:13.3605170Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3605430Z             _ready(P, t)
+2026-11-06T09:14:13.3605701Z             from .development import require_execution
+2026-11-06T09:14:13.3605987Z             try:
+2026-11-06T09:14:13.3606377Z >               development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3606706Z                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3606900Z 
+2026-11-06T09:14:13.3607013Z tmh/platform/candidates.py:141: 
+2026-11-06T09:14:13.3607319Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3607564Z 
+2026-11-06T09:14:13.3607721Z store = <tmh.platform.store.Store object at 0x7f321f3105d0>
+2026-11-06T09:14:13.3608263Z ticket = {'id': 1, 'project_id': 1, 'num': 1, 'title': '保存后刷新仍可查看', ...}
+2026-11-06T09:14:13.3608612Z mode = 'local'
+2026-11-06T09:14:13.3608725Z 
+2026-11-06T09:14:13.3608843Z     def require_execution(store, ticket, mode):
+2026-11-06T09:14:13.3609154Z         state = require_confirmed(store, ticket)
+2026-11-06T09:14:13.3609641Z         if state and (state['payload'].get('execution_choice_required') or state['execution'].get('mode')):
+2026-11-06T09:14:13.3610132Z             choice = state['execution']
+2026-11-06T09:14:13.3610466Z             if not choice.get('current') or choice.get('mode') != mode:
+2026-11-06T09:14:13.3611029Z >               raise ValueError('请负责人在人工终端为当前确认稿选择' + ('系统执行' if mode == 'system' else '本地执行'))
+2026-11-06T09:14:13.3611506Z E               ValueError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3611712Z 
+2026-11-06T09:14:13.3611832Z tmh/platform/development.py:96: ValueError
+2026-11-06T09:14:13.3612027Z 
+2026-11-06T09:14:13.3612217Z The above exception was the direct cause of the following exception:
+2026-11-06T09:14:13.3612665Z 
+2026-11-06T09:14:13.3613306Z self = <test_developer_merge.DeveloperMergeTest testMethod=test_leader_cannot_replace_developers_final_confirmation>
+2026-11-06T09:14:13.3614098Z 
+2026-11-06T09:14:13.3614257Z     def setUp(self):
+2026-11-06T09:14:13.3615046Z         self.f=fixtures.TeamWorkspaceTest('runTest');self.addCleanup(self.f.doCleanups);self.f.setUp()
+2026-11-06T09:14:13.3616560Z         self.P=self.f.P;self.key=self.f.ticket['key']
+2026-11-06T09:14:13.3617109Z         state=development.act(self.P,'agent:member:alice','start',{'ticket':self.key,'request_id':'select'})
+2026-11-06T09:14:13.3618039Z         state=development.act(self.P,'agent:member:alice','propose',{'ticket':self.key,'request_id':'proposal',
+2026-11-06T09:14:13.3618822Z             'revision':state['revision'],'summary':'Persist saved record','design':'Write and reload','test_plan':'Save then reload',
+2026-11-06T09:14:13.3619612Z             'criteria':[{'id':'AC1','text':'保存后仍存在','check':'创建并刷新核对'}],'questions':[]})
+2026-11-06T09:14:13.3620149Z         development.act(self.P,'alice','confirm',{'ticket':self.key,'request_id':'confirm',
+2026-11-06T09:14:13.3620667Z             'revision':state['revision'],'digest':state['digest']},human=True)
+2026-11-06T09:14:13.3621109Z >       self.f.candidate();self.f.synthetic_checks();self.f.assess()
+2026-11-06T09:14:13.3621462Z         ^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3621607Z 
+2026-11-06T09:14:13.3621717Z tests/test_developer_merge.py:19: 
+2026-11-06T09:14:13.3622029Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3622387Z tests/test_team_workspace.py:75: in candidate
+2026-11-06T09:14:13.3622738Z     result = self.action("candidate_submit", **self.args)
+2026-11-06T09:14:13.3623063Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3623356Z tests/test_team_workspace.py:56: in action
+2026-11-06T09:14:13.3623778Z     return team.dispatch_action(self.P, {"action": action, "ticket": self.ticket["key"],
+2026-11-06T09:14:13.3624222Z tmh/platform/project_git.py:83: in wrapped
+2026-11-06T09:14:13.3624506Z     try: return fn(P,*args,**kwargs)
+2026-11-06T09:14:13.3624765Z                 ^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3625030Z tmh/platform/team.py:338: in dispatch_action
+2026-11-06T09:14:13.3625713Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3626826Z                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3627274Z tmh/platform/team.py:213: in _request
+2026-11-06T09:14:13.3627538Z     result = fn(mutation)
+2026-11-06T09:14:13.3627752Z              ^^^^^^^^^^^^
+2026-11-06T09:14:13.3627974Z tmh/platform/team.py:338: in <lambda>
+2026-11-06T09:14:13.3628625Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3629433Z                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3630019Z tmh/platform/team.py:320: in _action
+2026-11-06T09:14:13.3630333Z     return candidates.execute(P, user, op, args, mutation)
+2026-11-06T09:14:13.3630666Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3630962Z tmh/platform/candidates.py:324: in execute
+2026-11-06T09:14:13.3631255Z     result = submit(P, actor, a, mutation)
+2026-11-06T09:14:13.3631525Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3631837Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3632078Z 
+2026-11-06T09:14:13.3632290Z P = <tmh.platform.server.Platform object at 0x7f321f311110>, actor = 'alice'
+2026-11-06T09:14:13.3633329Z args = {'ticket': 'TEAM-1', 'base_commit': '8ba5e3923cc0bb3c9c7e906bf80a14c69c964288', 'commit': 'e16fe703848958d6d39f47c3ee998e34a71358c4', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3634331Z mutation = <function _request.<locals>.mutation at 0x7f321f4eef20>
+2026-11-06T09:14:13.3634606Z 
+2026-11-06T09:14:13.3634709Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3635012Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3635422Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3635922Z         st = P.store
+2026-11-06T09:14:13.3636294Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3636587Z         if not t:
+2026-11-06T09:14:13.3636865Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3637140Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3637410Z         root = Path(p["root"])
+2026-11-06T09:14:13.3637654Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3637913Z             _ready(P, t)
+2026-11-06T09:14:13.3638173Z             from .development import require_execution
+2026-11-06T09:14:13.3638460Z             try:
+2026-11-06T09:14:13.3638706Z                 development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3639036Z             except ValueError as exc:
+2026-11-06T09:14:13.3639314Z >               raise ApiError(409, str(exc)) from exc
+2026-11-06T09:14:13.3639734Z E               tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3639986Z 
+2026-11-06T09:14:13.3640092Z tmh/platform/candidates.py:143: ApiError
+2026-11-06T09:14:13.3640511Z _____ DeveloperMergeTest.test_leader_rejection_blocks_even_with_ci_success _____
+2026-11-06T09:14:13.3640838Z 
+2026-11-06T09:14:13.3641040Z P = <tmh.platform.server.Platform object at 0x7f321f7c7910>, actor = 'alice'
+2026-11-06T09:14:13.3642081Z args = {'ticket': 'TEAM-1', 'base_commit': '8ba5e3923cc0bb3c9c7e906bf80a14c69c964288', 'commit': 'e16fe703848958d6d39f47c3ee998e34a71358c4', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3643075Z mutation = <function _request.<locals>.mutation at 0x7f321f4efec0>
+2026-11-06T09:14:13.3643338Z 
+2026-11-06T09:14:13.3643445Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3643756Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3644157Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3644529Z         st = P.store
+2026-11-06T09:14:13.3644746Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3644993Z         if not t:
+2026-11-06T09:14:13.3645254Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3645529Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3645795Z         root = Path(p["root"])
+2026-11-06T09:14:13.3646039Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3646529Z             _ready(P, t)
+2026-11-06T09:14:13.3646875Z             from .development import require_execution
+2026-11-06T09:14:13.3647163Z             try:
+2026-11-06T09:14:13.3647414Z >               development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3647750Z                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3648108Z 
+2026-11-06T09:14:13.3648214Z tmh/platform/candidates.py:141: 
+2026-11-06T09:14:13.3648522Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3648759Z 
+2026-11-06T09:14:13.3648921Z store = <tmh.platform.store.Store object at 0x7f321f7c4f90>
+2026-11-06T09:14:13.3649535Z ticket = {'id': 1, 'project_id': 1, 'num': 1, 'title': '保存后刷新仍可查看', ...}
+2026-11-06T09:14:13.3649874Z mode = 'local'
+2026-11-06T09:14:13.3649994Z 
+2026-11-06T09:14:13.3650111Z     def require_execution(store, ticket, mode):
+2026-11-06T09:14:13.3650425Z         state = require_confirmed(store, ticket)
+2026-11-06T09:14:13.3650909Z         if state and (state['payload'].get('execution_choice_required') or state['execution'].get('mode')):
+2026-11-06T09:14:13.3651400Z             choice = state['execution']
+2026-11-06T09:14:13.3651727Z             if not choice.get('current') or choice.get('mode') != mode:
+2026-11-06T09:14:13.3652277Z >               raise ValueError('请负责人在人工终端为当前确认稿选择' + ('系统执行' if mode == 'system' else '本地执行'))
+2026-11-06T09:14:13.3652751Z E               ValueError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3652951Z 
+2026-11-06T09:14:13.3653062Z tmh/platform/development.py:96: ValueError
+2026-11-06T09:14:13.3653260Z 
+2026-11-06T09:14:13.3653449Z The above exception was the direct cause of the following exception:
+2026-11-06T09:14:13.3653730Z 
+2026-11-06T09:14:13.3654057Z self = <test_developer_merge.DeveloperMergeTest testMethod=test_leader_rejection_blocks_even_with_ci_success>
+2026-11-06T09:14:13.3654494Z 
+2026-11-06T09:14:13.3654580Z     def setUp(self):
+2026-11-06T09:14:13.3655005Z         self.f=fixtures.TeamWorkspaceTest('runTest');self.addCleanup(self.f.doCleanups);self.f.setUp()
+2026-11-06T09:14:13.3655525Z         self.P=self.f.P;self.key=self.f.ticket['key']
+2026-11-06T09:14:13.3656037Z         state=development.act(self.P,'agent:member:alice','start',{'ticket':self.key,'request_id':'select'})
+2026-11-06T09:14:13.3657032Z         state=development.act(self.P,'agent:member:alice','propose',{'ticket':self.key,'request_id':'proposal',
+2026-11-06T09:14:13.3657861Z             'revision':state['revision'],'summary':'Persist saved record','design':'Write and reload','test_plan':'Save then reload',
+2026-11-06T09:14:13.3658608Z             'criteria':[{'id':'AC1','text':'保存后仍存在','check':'创建并刷新核对'}],'questions':[]})
+2026-11-06T09:14:13.3659143Z         development.act(self.P,'alice','confirm',{'ticket':self.key,'request_id':'confirm',
+2026-11-06T09:14:13.3659881Z             'revision':state['revision'],'digest':state['digest']},human=True)
+2026-11-06T09:14:13.3660738Z >       self.f.candidate();self.f.synthetic_checks();self.f.assess()
+2026-11-06T09:14:13.3661184Z         ^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3661332Z 
+2026-11-06T09:14:13.3661443Z tests/test_developer_merge.py:19: 
+2026-11-06T09:14:13.3661756Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3662116Z tests/test_team_workspace.py:75: in candidate
+2026-11-06T09:14:13.3662473Z     result = self.action("candidate_submit", **self.args)
+2026-11-06T09:14:13.3662800Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3663102Z tests/test_team_workspace.py:56: in action
+2026-11-06T09:14:13.3663536Z     return team.dispatch_action(self.P, {"action": action, "ticket": self.ticket["key"],
+2026-11-06T09:14:13.3663980Z tmh/platform/project_git.py:83: in wrapped
+2026-11-06T09:14:13.3664273Z     try: return fn(P,*args,**kwargs)
+2026-11-06T09:14:13.3664523Z                 ^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3664787Z tmh/platform/team.py:338: in dispatch_action
+2026-11-06T09:14:13.3665465Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3666591Z                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3667243Z tmh/platform/team.py:213: in _request
+2026-11-06T09:14:13.3667516Z     result = fn(mutation)
+2026-11-06T09:14:13.3667736Z              ^^^^^^^^^^^^
+2026-11-06T09:14:13.3667970Z tmh/platform/team.py:338: in <lambda>
+2026-11-06T09:14:13.3668771Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3669624Z                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3670065Z tmh/platform/team.py:320: in _action
+2026-11-06T09:14:13.3670395Z     return candidates.execute(P, user, op, args, mutation)
+2026-11-06T09:14:13.3670736Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3671040Z tmh/platform/candidates.py:324: in execute
+2026-11-06T09:14:13.3671333Z     result = submit(P, actor, a, mutation)
+2026-11-06T09:14:13.3671605Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3671909Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3672158Z 
+2026-11-06T09:14:13.3672371Z P = <tmh.platform.server.Platform object at 0x7f321f7c7910>, actor = 'alice'
+2026-11-06T09:14:13.3673413Z args = {'ticket': 'TEAM-1', 'base_commit': '8ba5e3923cc0bb3c9c7e906bf80a14c69c964288', 'commit': 'e16fe703848958d6d39f47c3ee998e34a71358c4', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3674419Z mutation = <function _request.<locals>.mutation at 0x7f321f4efec0>
+2026-11-06T09:14:13.3674690Z 
+2026-11-06T09:14:13.3674791Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3675096Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3675504Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3675875Z         st = P.store
+2026-11-06T09:14:13.3676245Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3676495Z         if not t:
+2026-11-06T09:14:13.3676791Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3677068Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3677338Z         root = Path(p["root"])
+2026-11-06T09:14:13.3677588Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3677846Z             _ready(P, t)
+2026-11-06T09:14:13.3678102Z             from .development import require_execution
+2026-11-06T09:14:13.3678393Z             try:
+2026-11-06T09:14:13.3678638Z                 development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3678956Z             except ValueError as exc:
+2026-11-06T09:14:13.3679234Z >               raise ApiError(409, str(exc)) from exc
+2026-11-06T09:14:13.3679658Z E               tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3679915Z 
+2026-11-06T09:14:13.3680019Z tmh/platform/candidates.py:143: ApiError
+2026-11-06T09:14:13.3680440Z ____ DeveloperMergeTest.test_requirement_change_blocks_old_review_and_merge ____
+2026-11-06T09:14:13.3680773Z 
+2026-11-06T09:14:13.3680974Z P = <tmh.platform.server.Platform object at 0x7f321f65fd50>, actor = 'alice'
+2026-11-06T09:14:13.3682026Z args = {'ticket': 'TEAM-1', 'base_commit': '348adada305cec922a24ce3decf5c8b7e90d94e7', 'commit': 'dab5b509d2c3adea15478b89812a92ee67c216c6', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3683047Z mutation = <function _request.<locals>.mutation at 0x7f321f6a4ae0>
+2026-11-06T09:14:13.3683314Z 
+2026-11-06T09:14:13.3683421Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3683730Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3684138Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3684512Z         st = P.store
+2026-11-06T09:14:13.3684733Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3685127Z         if not t:
+2026-11-06T09:14:13.3685392Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3685666Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3685936Z         root = Path(p["root"])
+2026-11-06T09:14:13.3686365Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3686750Z             _ready(P, t)
+2026-11-06T09:14:13.3687017Z             from .development import require_execution
+2026-11-06T09:14:13.3687302Z             try:
+2026-11-06T09:14:13.3687543Z >               development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3687873Z                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3688073Z 
+2026-11-06T09:14:13.3688182Z tmh/platform/candidates.py:141: 
+2026-11-06T09:14:13.3688488Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3688726Z 
+2026-11-06T09:14:13.3688888Z store = <tmh.platform.store.Store object at 0x7f321f65d6d0>
+2026-11-06T09:14:13.3689378Z ticket = {'id': 1, 'project_id': 1, 'num': 1, 'title': '保存后刷新仍可查看', ...}
+2026-11-06T09:14:13.3689718Z mode = 'local'
+2026-11-06T09:14:13.3689834Z 
+2026-11-06T09:14:13.3689947Z     def require_execution(store, ticket, mode):
+2026-11-06T09:14:13.3690257Z         state = require_confirmed(store, ticket)
+2026-11-06T09:14:13.3690745Z         if state and (state['payload'].get('execution_choice_required') or state['execution'].get('mode')):
+2026-11-06T09:14:13.3691237Z             choice = state['execution']
+2026-11-06T09:14:13.3691566Z             if not choice.get('current') or choice.get('mode') != mode:
+2026-11-06T09:14:13.3692118Z >               raise ValueError('请负责人在人工终端为当前确认稿选择' + ('系统执行' if mode == 'system' else '本地执行'))
+2026-11-06T09:14:13.3692590Z E               ValueError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3692791Z 
+2026-11-06T09:14:13.3692902Z tmh/platform/development.py:96: ValueError
+2026-11-06T09:14:13.3693102Z 
+2026-11-06T09:14:13.3693281Z The above exception was the direct cause of the following exception:
+2026-11-06T09:14:13.3693575Z 
+2026-11-06T09:14:13.3693918Z self = <test_developer_merge.DeveloperMergeTest testMethod=test_requirement_change_blocks_old_review_and_merge>
+2026-11-06T09:14:13.3694373Z 
+2026-11-06T09:14:13.3694461Z     def setUp(self):
+2026-11-06T09:14:13.3694889Z         self.f=fixtures.TeamWorkspaceTest('runTest');self.addCleanup(self.f.doCleanups);self.f.setUp()
+2026-11-06T09:14:13.3695418Z         self.P=self.f.P;self.key=self.f.ticket['key']
+2026-11-06T09:14:13.3695928Z         state=development.act(self.P,'agent:member:alice','start',{'ticket':self.key,'request_id':'select'})
+2026-11-06T09:14:13.3696746Z         state=development.act(self.P,'agent:member:alice','propose',{'ticket':self.key,'request_id':'proposal',
+2026-11-06T09:14:13.3697509Z             'revision':state['revision'],'summary':'Persist saved record','design':'Write and reload','test_plan':'Save then reload',
+2026-11-06T09:14:13.3698243Z             'criteria':[{'id':'AC1','text':'保存后仍存在','check':'创建并刷新核对'}],'questions':[]})
+2026-11-06T09:14:13.3698773Z         development.act(self.P,'alice','confirm',{'ticket':self.key,'request_id':'confirm',
+2026-11-06T09:14:13.3699289Z             'revision':state['revision'],'digest':state['digest']},human=True)
+2026-11-06T09:14:13.3699735Z >       self.f.candidate();self.f.synthetic_checks();self.f.assess()
+2026-11-06T09:14:13.3700082Z         ^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3700224Z 
+2026-11-06T09:14:13.3700324Z tests/test_developer_merge.py:19: 
+2026-11-06T09:14:13.3700631Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3700989Z tests/test_team_workspace.py:75: in candidate
+2026-11-06T09:14:13.3701329Z     result = self.action("candidate_submit", **self.args)
+2026-11-06T09:14:13.3701658Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3701953Z tests/test_team_workspace.py:56: in action
+2026-11-06T09:14:13.3702372Z     return team.dispatch_action(self.P, {"action": action, "ticket": self.ticket["key"],
+2026-11-06T09:14:13.3702952Z tmh/platform/project_git.py:83: in wrapped
+2026-11-06T09:14:13.3703242Z     try: return fn(P,*args,**kwargs)
+2026-11-06T09:14:13.3703495Z                 ^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3703759Z tmh/platform/team.py:338: in dispatch_action
+2026-11-06T09:14:13.3704552Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3705380Z                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3705821Z tmh/platform/team.py:213: in _request
+2026-11-06T09:14:13.3706260Z     result = fn(mutation)
+2026-11-06T09:14:13.3706486Z              ^^^^^^^^^^^^
+2026-11-06T09:14:13.3706709Z tmh/platform/team.py:338: in <lambda>
+2026-11-06T09:14:13.3707347Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3708166Z                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3708612Z tmh/platform/team.py:320: in _action
+2026-11-06T09:14:13.3708931Z     return candidates.execute(P, user, op, args, mutation)
+2026-11-06T09:14:13.3709270Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3709571Z tmh/platform/candidates.py:324: in execute
+2026-11-06T09:14:13.3709861Z     result = submit(P, actor, a, mutation)
+2026-11-06T09:14:13.3710122Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3710423Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3710672Z 
+2026-11-06T09:14:13.3710918Z P = <tmh.platform.server.Platform object at 0x7f321f65fd50>, actor = 'alice'
+2026-11-06T09:14:13.3711965Z args = {'ticket': 'TEAM-1', 'base_commit': '348adada305cec922a24ce3decf5c8b7e90d94e7', 'commit': 'dab5b509d2c3adea15478b89812a92ee67c216c6', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3712982Z mutation = <function _request.<locals>.mutation at 0x7f321f6a4ae0>
+2026-11-06T09:14:13.3713257Z 
+2026-11-06T09:14:13.3713360Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3713677Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3714078Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3714459Z         st = P.store
+2026-11-06T09:14:13.3714684Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3714933Z         if not t:
+2026-11-06T09:14:13.3715206Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3715484Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3715754Z         root = Path(p["root"])
+2026-11-06T09:14:13.3716010Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3716408Z             _ready(P, t)
+2026-11-06T09:14:13.3716675Z             from .development import require_execution
+2026-11-06T09:14:13.3716974Z             try:
+2026-11-06T09:14:13.3717223Z                 development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3717557Z             except ValueError as exc:
+2026-11-06T09:14:13.3717840Z >               raise ApiError(409, str(exc)) from exc
+2026-11-06T09:14:13.3718272Z E               tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3718525Z 
+2026-11-06T09:14:13.3718631Z tmh/platform/candidates.py:143: ApiError
+2026-11-06T09:14:13.3719042Z ___ DeveloperMergeTest.test_terminal_login_and_read_use_real_signed_session ____
+2026-11-06T09:14:13.3719374Z 
+2026-11-06T09:14:13.3719581Z P = <tmh.platform.server.Platform object at 0x7f3220a9af50>, actor = 'alice'
+2026-11-06T09:14:13.3720617Z args = {'ticket': 'TEAM-1', 'base_commit': '348adada305cec922a24ce3decf5c8b7e90d94e7', 'commit': 'dab5b509d2c3adea15478b89812a92ee67c216c6', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3721766Z mutation = <function _request.<locals>.mutation at 0x7f321f6a5620>
+2026-11-06T09:14:13.3722029Z 
+2026-11-06T09:14:13.3722241Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3722547Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3722949Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3723321Z         st = P.store
+2026-11-06T09:14:13.3723541Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3723791Z         if not t:
+2026-11-06T09:14:13.3724051Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3724319Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3724584Z         root = Path(p["root"])
+2026-11-06T09:14:13.3724829Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3725086Z             _ready(P, t)
+2026-11-06T09:14:13.3725348Z             from .development import require_execution
+2026-11-06T09:14:13.3725633Z             try:
+2026-11-06T09:14:13.3725879Z >               development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3726497Z                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3726725Z 
+2026-11-06T09:14:13.3726831Z tmh/platform/candidates.py:141: 
+2026-11-06T09:14:13.3727141Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3727385Z 
+2026-11-06T09:14:13.3727547Z store = <tmh.platform.store.Store object at 0x7f3220a9b750>
+2026-11-06T09:14:13.3728038Z ticket = {'id': 1, 'project_id': 1, 'num': 1, 'title': '保存后刷新仍可查看', ...}
+2026-11-06T09:14:13.3728374Z mode = 'local'
+2026-11-06T09:14:13.3728492Z 
+2026-11-06T09:14:13.3728607Z     def require_execution(store, ticket, mode):
+2026-11-06T09:14:13.3728920Z         state = require_confirmed(store, ticket)
+2026-11-06T09:14:13.3729413Z         if state and (state['payload'].get('execution_choice_required') or state['execution'].get('mode')):
+2026-11-06T09:14:13.3729907Z             choice = state['execution']
+2026-11-06T09:14:13.3730241Z             if not choice.get('current') or choice.get('mode') != mode:
+2026-11-06T09:14:13.3730797Z >               raise ValueError('请负责人在人工终端为当前确认稿选择' + ('系统执行' if mode == 'system' else '本地执行'))
+2026-11-06T09:14:13.3731258Z E               ValueError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3731460Z 
+2026-11-06T09:14:13.3731569Z tmh/platform/development.py:96: ValueError
+2026-11-06T09:14:13.3731775Z 
+2026-11-06T09:14:13.3731958Z The above exception was the direct cause of the following exception:
+2026-11-06T09:14:13.3732243Z 
+2026-11-06T09:14:13.3732588Z self = <test_developer_merge.DeveloperMergeTest testMethod=test_terminal_login_and_read_use_real_signed_session>
+2026-11-06T09:14:13.3733030Z 
+2026-11-06T09:14:13.3733117Z     def setUp(self):
+2026-11-06T09:14:13.3733538Z         self.f=fixtures.TeamWorkspaceTest('runTest');self.addCleanup(self.f.doCleanups);self.f.setUp()
+2026-11-06T09:14:13.3734071Z         self.P=self.f.P;self.key=self.f.ticket['key']
+2026-11-06T09:14:13.3734581Z         state=development.act(self.P,'agent:member:alice','start',{'ticket':self.key,'request_id':'select'})
+2026-11-06T09:14:13.3735287Z         state=development.act(self.P,'agent:member:alice','propose',{'ticket':self.key,'request_id':'proposal',
+2026-11-06T09:14:13.3736060Z             'revision':state['revision'],'summary':'Persist saved record','design':'Write and reload','test_plan':'Save then reload',
+2026-11-06T09:14:13.3736936Z             'criteria':[{'id':'AC1','text':'保存后仍存在','check':'创建并刷新核对'}],'questions':[]})
+2026-11-06T09:14:13.3737456Z         development.act(self.P,'alice','confirm',{'ticket':self.key,'request_id':'confirm',
+2026-11-06T09:14:13.3737975Z             'revision':state['revision'],'digest':state['digest']},human=True)
+2026-11-06T09:14:13.3738426Z >       self.f.candidate();self.f.synthetic_checks();self.f.assess()
+2026-11-06T09:14:13.3738922Z         ^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3739069Z 
+2026-11-06T09:14:13.3739171Z tests/test_developer_merge.py:19: 
+2026-11-06T09:14:13.3739481Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3739832Z tests/test_team_workspace.py:75: in candidate
+2026-11-06T09:14:13.3740297Z     result = self.action("candidate_submit", **self.args)
+2026-11-06T09:14:13.3740631Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3740928Z tests/test_team_workspace.py:56: in action
+2026-11-06T09:14:13.3741346Z     return team.dispatch_action(self.P, {"action": action, "ticket": self.ticket["key"],
+2026-11-06T09:14:13.3741787Z tmh/platform/project_git.py:83: in wrapped
+2026-11-06T09:14:13.3742074Z     try: return fn(P,*args,**kwargs)
+2026-11-06T09:14:13.3742325Z                 ^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3742588Z tmh/platform/team.py:338: in dispatch_action
+2026-11-06T09:14:13.3743263Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3744086Z                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3744525Z tmh/platform/team.py:213: in _request
+2026-11-06T09:14:13.3744786Z     result = fn(mutation)
+2026-11-06T09:14:13.3744999Z              ^^^^^^^^^^^^
+2026-11-06T09:14:13.3745223Z tmh/platform/team.py:338: in <lambda>
+2026-11-06T09:14:13.3745860Z     result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
+2026-11-06T09:14:13.3746859Z                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3747302Z tmh/platform/team.py:320: in _action
+2026-11-06T09:14:13.3747612Z     return candidates.execute(P, user, op, args, mutation)
+2026-11-06T09:14:13.3747945Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3748242Z tmh/platform/candidates.py:324: in execute
+2026-11-06T09:14:13.3748532Z     result = submit(P, actor, a, mutation)
+2026-11-06T09:14:13.3748799Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-06T09:14:13.3749100Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2026-11-06T09:14:13.3749346Z 
+2026-11-06T09:14:13.3749549Z P = <tmh.platform.server.Platform object at 0x7f3220a9af50>, actor = 'alice'
+2026-11-06T09:14:13.3750600Z args = {'ticket': 'TEAM-1', 'base_commit': '348adada305cec922a24ce3decf5c8b7e90d94e7', 'commit': 'dab5b509d2c3adea15478b89812a92ee67c216c6', 'requirement_hash': 'b967368db1d949a30cccdcc7944c0db421d535f00a25c5872493c35a687e180c', ...}
+2026-11-06T09:14:13.3751608Z mutation = <function _request.<locals>.mutation at 0x7f321f6a5620>
+2026-11-06T09:14:13.3751879Z 
+2026-11-06T09:14:13.3751982Z     def submit(P, actor, args, mutation):
+2026-11-06T09:14:13.3752287Z         from .agent_api import _ready, _requirement
+2026-11-06T09:14:13.3752690Z         from .project_library import bindings, _write_run_inputs, run_current
+2026-11-06T09:14:13.3753070Z         st = P.store
+2026-11-06T09:14:13.3753294Z         t = st.ticket(args["ticket"])
+2026-11-06T09:14:13.3753540Z         if not t:
+2026-11-06T09:14:13.3753817Z             raise ApiError(404, "没有这个工单")
+2026-11-06T09:14:13.3754094Z         p = st.project(t["project_id"])
+2026-11-06T09:14:13.3754363Z         root = Path(p["root"])
+2026-11-06T09:14:13.3754611Z         with guard(P, t["id"]), st.lock:
+2026-11-06T09:14:13.3754872Z             _ready(P, t)
+2026-11-06T09:14:13.3755131Z             from .development import require_execution
+2026-11-06T09:14:13.3755418Z             try:
+2026-11-06T09:14:13.3755665Z                 development = require_execution(st,t,'local')
+2026-11-06T09:14:13.3756360Z             except ValueError as exc:
+2026-11-06T09:14:13.3756644Z >               raise ApiError(409, str(exc)) from exc
+2026-11-06T09:14:13.3757093Z E               tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3757340Z 
+2026-11-06T09:14:13.3757452Z tmh/platform/candidates.py:143: ApiError
+2026-11-06T09:14:13.3757908Z =========================== short test summary info ============================
+2026-11-06T09:14:13.3759063Z FAILED tests/test_developer_merge.py::DeveloperMergeTest::test_confirmed_criteria_are_used_and_answer_changes_invalidate_report_contract - tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3760500Z FAILED tests/test_developer_merge.py::DeveloperMergeTest::test_developer_merges_after_leader_and_ci_with_audited_commit - tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3761724Z FAILED tests/test_developer_merge.py::DeveloperMergeTest::test_failed_ci_keeps_main_unchanged - tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.3762997Z FAILED tests/test_developer_merge.py::DeveloperMergeTest::test_http_confirmation_requires_real_personal_session_and_assignee - tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.5801583Z FAILED tests/test_developer_merge.py::DeveloperMergeTest::test_leader_cannot_replace_developers_final_confirmation - tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.5803784Z FAILED tests/test_developer_merge.py::DeveloperMergeTest::test_leader_rejection_blocks_even_with_ci_success - tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.5805795Z FAILED tests/test_developer_merge.py::DeveloperMergeTest::test_requirement_change_blocks_old_review_and_merge - tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.5808126Z FAILED tests/test_developer_merge.py::DeveloperMergeTest::test_terminal_login_and_read_use_real_signed_session - tmh.platform.errors.ApiError: 请负责人在人工终端为当前确认稿选择本地执行
+2026-11-06T09:14:13.5809425Z 8 failed, 2999 passed, 46 skipped, 1915 subtests passed in 866.22s (0:14:26)
+2026-11-06T09:14:14.0796450Z ##[error]Process completed with exit code 1.
+2026-11-06T09:14:14.0982771Z Post job cleanup.
+2026-11-06T09:14:14.2038097Z [command]/usr/bin/git version
+2026-11-06T09:14:14.2109424Z git version 2.56.0
+2026-11-06T09:14:14.2151086Z Temporarily overriding HOME='/home/runner/work/_temp/6921b5ce-6dfb-4f8c-a046-a3ce303d4b86' before making global git config changes
+2026-11-06T09:14:14.2152704Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-06T09:14:14.2158053Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-06T09:14:14.2221662Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-06T09:14:14.2284875Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-06T09:14:14.2617344Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-06T09:14:14.2650095Z http.https://github.com/.extraheader
+2026-11-06T09:14:14.2662023Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-06T09:14:14.2712014Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-06T09:14:14.3098323Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-06T09:14:14.3181272Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-06T09:14:14.3664340Z Cleaning up orphan processes
+2026-11-06T09:14:14.4074832Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

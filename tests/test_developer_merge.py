@@ -16,6 +16,10 @@ class DeveloperMergeTest(unittest.TestCase):
             'criteria':[{'id':'AC1','text':'保存后仍存在','check':'创建并刷新核对'}],'questions':[]})
         development.act(self.P,'alice','confirm',{'ticket':self.key,'request_id':'confirm',
             'revision':state['revision'],'digest':state['digest']},human=True)
+        selected=development.act(self.P,'alice','execution',{'ticket':self.key,'request_id':'execution',
+            'revision':state['revision'],'digest':state['digest'],'mode':'local'},human=True)
+        self.assertTrue(selected['execution']['current'])
+        self.assertEqual(selected['execution']['base_commit'],self.f.base)
         self.f.candidate();self.f.synthetic_checks();self.f.assess()
         current=candidates.view(self.P,self.f.cid)
         self.f.action('review','bob',candidate_id=self.f.cid,evidence_hash=current['evidence_hash'],decision='accept',note='Synthetic independent review')
@@ -86,3 +90,18 @@ class DeveloperMergeTest(unittest.TestCase):
         state=client.request('GET','/api/tickets/'+self.key+'/development')
         self.assertEqual(state['state'],'confirmed')
         self.assertEqual(state['work']['assignment']['assignee'],'alice')
+
+    def test_http_execution_choice_keeps_personal_session_and_assignee_gate(self):
+        server=self.f.start_http()
+        state=development.read(self.P.store,self.P.store.ticket(self.key))
+        body={'action':'execution','ticket':self.key,'revision':state['revision'],'digest':state['digest'],
+              'mode':'local','request_id':'http-execution'}
+        path='/api/tickets/'+self.key+'/development'
+        for user,headers in ((None,{'X-TMH-User':'alice'}),('alice',{'X-Webuddy-Agent':'codex'}),('bob',{})):
+            with self.subTest(user=user,headers=headers):
+                status,result=self.f.http(server,'POST',path,body,user=user,headers=headers)
+                self.assertEqual(status,403,result)
+        status,result=self.f.http(server,'POST',path,body,user='alice')
+        self.assertEqual(status,200,result)
+        self.assertTrue(result['execution']['current'])
+        self.assertEqual(result['execution']['actor'],'alice')
