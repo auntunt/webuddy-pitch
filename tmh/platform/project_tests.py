@@ -191,6 +191,15 @@ def collect(profile, envelope, folder, criteria):
         item['dependencies_valid'] = all(next(r for r in results if r['id'] == dep)['status'] == 'pass' for dep in stage.get('depends_on', []))
         if stage['kind'] != 'cleanup' and not item['dependencies_valid']:
             item.update(status='fail', error=item['error'] or '依赖阶段未通过，本阶段结果不能用于交付', failure_kind='dependency')
+        item['blocked_by'] = []
+        if stage['kind'] != 'cleanup':
+            for dep in stage.get('depends_on', []):
+                parent = next(r for r in results if r['id'] == dep)
+                for cause in parent['blocked_by']:
+                    if cause not in item['blocked_by']:
+                        item['blocked_by'].append(cause)
+        if item['execution_status'] == 'blocked' and item['failure_kind'] != 'dependency':
+            item['blocked_by'].append({'stage': item['id'], 'kind': item['failure_kind'], 'error': item['error']})
         indexed = {c['id']: c['status'] for c in item['cases']}
         for criterion, ids in stage.get('criteria', {}).items():
             passed = not envelope['code_changed'] and item['exit_code'] == 0 and not record['error'] and item['report_valid'] and item['dependencies_valid'] and all(indexed.get(i) == 'pass' for i in ids)
@@ -198,7 +207,8 @@ def collect(profile, envelope, folder, criteria):
         results.append(item)
     missing = [str(c['id']) for c in criteria if not proofs.get(str(c['id'])) or any(p['status'] != 'pass' for p in proofs[str(c['id'])])]
     ok = not envelope['code_changed'] and all(s['status'] == 'pass' for s in results if s['required']) and (not profile['require_all_criteria'] or bool(criteria) and not missing)
-    return {'status': 'pass' if ok else 'fail', 'code_changed': envelope['code_changed'], 'code_identity': envelope['code_identity'], 'stages': results, 'criterion_evidence': proofs, 'uncovered_criteria': missing,
+    blocked = envelope['code_changed'] or any(s['required'] and s['blocked_by'] for s in results)
+    return {'verification_state': 'passed' if ok else 'blocked' if blocked else 'failed', 'status': 'pass' if ok else 'fail', 'code_changed': envelope['code_changed'], 'code_identity': envelope['code_identity'], 'stages': results, 'criterion_evidence': proofs, 'uncovered_criteria': missing,
             'require_all_criteria': profile['require_all_criteria'], 'criteria_digest': digest(criteria), 'criteria': criteria, 'profile_digest': digest(profile)}
 
 
@@ -301,11 +311,10 @@ def execute(loop, profile):
         report['remote_workspace'] = loop.box.dir + '/work/' + key
         report['remote_artifacts'] = envelope['artifact_dir']
     (folder / 'result.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
-    blocked = report['code_changed'] or any(s['required'] and s['execution_status'] == 'blocked' and s['failure_kind'] != 'dependency' for s in report['stages'])
     return [{'kind': 'test', 'command': '项目测试：' + ' → '.join(s['id'] for s in profile['stages']),
              'exit_code': 0 if report['status'] == 'pass' else 1, 'seconds': sum(s['seconds'] for s in report['stages']),
              'output': '\n'.join(s['id'] + ': ' + s['status'] + (' · ' + s['error'] if s['error'] else '') for s in report['stages']),
-             'project_tests': report, 'verification_state': 'passed' if report['status'] == 'pass' else 'blocked' if blocked else 'failed'}]
+             'project_tests': report, 'verification_state': report['verification_state']}]
 
 
 def current_issue(data_dir, rid, verification):

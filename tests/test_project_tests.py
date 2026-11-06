@@ -37,6 +37,27 @@ class ProjectTests(unittest.TestCase):
         folder.mkdir(exist_ok=True)
         return pt.collect(profile,receipt,folder,[{'id':'A1','text':'sum works'}])
 
+    def test_optional_blocked_root_propagates_only_to_required_dependents(self):
+        p = self.profile()
+        setup = dict(id='setup', kind='setup', required=False, timeout=1,
+                     command='node -e "setTimeout(()=>{},10000)"')
+        middle = dict(id='middle', kind='static', required=False, timeout=2,
+                      command='echo middle', depends_on=['setup'])
+        p['stages'] = [setup, middle] + p['stages']
+        p['stages'][-1]['depends_on'] = ['middle']
+        blocked = self.execute(p)
+        self.assertEqual(blocked['verification_state'], 'blocked')
+        self.assertEqual(blocked['stages'][-1]['blocked_by'][0]['stage'], 'setup')
+        self.assertEqual(blocked['stages'][-1]['execution_status'], 'not_run')
+        self.assertEqual(blocked['uncovered_criteria'], ['A1'])
+        p['stages'][-1]['depends_on'] = []
+        self.assertEqual(self.execute(p)['verification_state'], 'passed')
+        p['stages'][-1]['depends_on'] = ['middle']
+        setup['command'] = 'echo ready'
+        self.assertEqual(self.execute(p)['verification_state'], 'passed')
+        setup['command'] = 'node -e "process.exit(1)"'
+        self.assertEqual(self.execute(p)['verification_state'], 'failed')
+
     def test_actual_command_and_raw_artifacts(self):
         report=self.execute(self.profile())
         self.assertEqual(report['status'],'pass')
@@ -254,6 +275,19 @@ class RecheckProjectTests(unittest.TestCase):
         self.assertNotEqual(base['diff_sha256'], candidate['diff_sha256'])
         self.assertNotEqual(base['evidence'], candidate['evidence'])
         self.assertEqual((self.fixture.wt/'app.py').read_text(), 'VALUE = 1\n')
+
+    def test_optional_environment_dependency_blocks_recheck_without_writer(self):
+        from unittest.mock import patch
+        from tmh.platform.fixloop import recheck
+        self.profile['stages'].insert(0, dict(id='setup',kind='setup',required=False,timeout=1,
+            command='node -e "setTimeout(()=>{},10000)"'))
+        self.profile['stages'][1]['depends_on'] = ['setup']
+        pt.save(self.data,self.key,{'revision':pt.view(self.data,self.key)['revision'],'profile':self.profile})
+        with patch.object(self.fixture.runner, 'invoke', side_effect=AssertionError('blocked verification must not invoke writer')):
+            result = recheck(self.fixture.runner,self.fixture.rid)
+        self.assertEqual(result['outcome'], 'blocked')
+        report = result['commands'][0]['project_tests']
+        self.assertEqual(report['stages'][1]['blocked_by'][0]['stage'], 'setup')
 
     def test_test_failure_with_unexecuted_dependents_still_requests_repair(self):
         from tmh.platform.fixloop import recheck

@@ -51,7 +51,7 @@ def read(P, query, viewer):
     for t in rows:
         a = team.assignment(P, t)
         needs_review = t["status"] in ("confirm", "verify")
-        if viewer and a["reviewer"] == viewer and t["status"] != "closed":
+        if t["status"] != "closed":
             has_candidate = P.store.one("SELECT id FROM code_candidates WHERE ticket_id=? LIMIT 1", (t["id"],))
             if has_candidate:
                 work_cache[t["key"]] = team.item(P, t, viewer)
@@ -59,13 +59,14 @@ def read(P, query, viewer):
             elif P.store.one("SELECT id FROM runs WHERE ticket_id=? AND mode='fix' AND status='done' AND decision='' LIMIT 1", (t["id"],)):
                 needs_review = True
         handoff = summaries.get(t["id"])
+        terminal_merge = work_cache.get(t["key"], {}).get("terminal_development") and work_cache[t["key"]]["state"] == "approved"
         recorded_stage = handoff["stage"] if handoff else "unrecorded"
         items.append({"key": t["key"], "title": t["title"], "project": t["key"].rsplit("-", 1)[0], "status": t["status"],
                       "priority": t["priority"], "updated": t["updated"], "assignee": a["assignee"], "reviewer": a["reviewer"],
                       "needs_review": needs_review, "reform": bool((t.get("links") or {}).get("reform")),
                       "stage": recorded_stage, "stage_label": STAGES[recorded_stage],
                       "stage_source": "handoff" if handoff else "unrecorded", "handoff": handoff,
-                      "next_actor": handoff["next_actor"] if handoff else (a["reviewer"] if needs_review and a["reviewer"] else a["assignee"]) or None,
+                      "next_actor": a["assignee"] if terminal_merge else handoff["next_actor"] if handoff else (a["reviewer"] if needs_review and a["reviewer"] else a["assignee"]) or None,
                       "waiting_seconds": handoff["waiting_seconds"] if handoff else None})
     active = [t for t in items if t["status"] != "closed"]
     predicates = {"mine": lambda t: bool(viewer) and (t["assignee"] == viewer or (t["handoff"] and t["next_actor"] == viewer)),
@@ -118,7 +119,12 @@ def read(P, query, viewer):
         t["running"] = bool(work.get("run") and work["run"]["status"] in ("queued", "running")) or work["state"] == "checking"
         if work["needs_review"]:
             t["action_label"] = "查看复核与证据"
-        t["action_href"] = ("#/team/ticket/" if work["needs_review"] else "#/t/") + t["key"]
+        terminal_merge = work.get("terminal_development") and work["state"] == "approved"
+        if terminal_merge:
+            t["next_actor"] = t["assignee"] or None
+            t["attention_reason"] = work["label"]
+            t["action_label"] = "确认合并"
+        t["action_href"] = ("#/team/ticket/" if work["needs_review"] or terminal_merge else "#/t/") + t["key"]
     projects = []
     for p in visible:
         if scope and p["id"] != scope["id"]:

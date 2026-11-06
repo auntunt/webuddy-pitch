@@ -1,6 +1,6 @@
 # 部署手册（Webuddy / tmh 运维平台）
 
-面向**专用机器直接部署**：Linux 服务器上从分支拉代码、装 Python 依赖（零第三方运行时依赖）、起服务、
+面向**专用机器直接部署**：Linux 服务器上安装交付记录中的固定代码版本、装 Python 依赖（零第三方运行时依赖）、起服务、
 Caddy 反代、systemd 托管，并给出备份/升级/回滚/冒烟/安全清单。
 
 - 目标运行环境：**Tencent Cloud Linux**（Ubuntu 22.04 / 24.04 或同代 CentOS/OpenCloudOS 均可），Python **3.12.3**。
@@ -35,12 +35,18 @@ sudo mkdir -p /opt/webuddy && sudo chown deploy:deploy /opt/webuddy
 
 ## 2. 安装
 
-### 2.1 拉分支 + venv + `pip install .`
+### 2.1 固定交付提交 + venv + `pip install .`
+
+从本轮交付记录取得通过目标平台必需检查的完整代码 SHA，设置 `WEBUDDY_RELEASE_SHA`。不要把开发分支 HEAD、文档提交或包显示版本号当成已验证发布版本；尚无通过记录时停止正式安装，先做隔离验证。
 
 ```sh
 sudo -u deploy -i            # 之后都用 deploy 用户
-git clone -b iteration/context-pack-v2 https://github.com/auntunt/webuddy-pitch.git /opt/webuddy/app
+export WEBUDDY_RELEASE_SHA="填写交付记录中的40位代码SHA"
+git clone https://github.com/auntunt/webuddy-pitch.git /opt/webuddy/app
 cd /opt/webuddy/app
+git fetch origin "$WEBUDDY_RELEASE_SHA"
+git checkout --detach "$WEBUDDY_RELEASE_SHA"
+test "$(git rev-parse HEAD)" = "$WEBUDDY_RELEASE_SHA"
 git log -1 --oneline         # 记录发布提交，回滚要用
 
 python3 -m venv /opt/webuddy/venv
@@ -53,7 +59,7 @@ python -m pip install .                 # 运行时零依赖；只装 tmh 包本
 安装后验证 CLI 入口：
 
 ```sh
-tmh --version            # 必须输出 0.4.0
+tmh --version            # 包版本仅供诊断；代码 SHA 才是交付版本
 webuddy --help | head     # workbench CLI 存在
 python -c "import tmh; print(tmh.__version__)"
 ```
@@ -282,12 +288,13 @@ git log -1 --oneline | tee /opt/webuddy/backups/last-good.txt
 # 2) 拉分支
 git fetch origin
 git status --porcelain            # 必须为空；有本地改动先停手
-git checkout iteration/context-pack-v2
-git pull --ff-only origin iteration/context-pack-v2
+git fetch origin "$WEBUDDY_RELEASE_SHA"
+git checkout --detach "$WEBUDDY_RELEASE_SHA"
+test "$(git rev-parse HEAD)" = "$WEBUDDY_RELEASE_SHA"
 git log -1 --oneline
 # 3) 重装到 venv
 . /opt/webuddy/venv/bin/activate
-python -m pip install --upgrade .
+python -m pip install --force-reinstall .
 python -c "import tmh; print(tmh.__version__)"     # 必须等于 CHANGELOG 里的版本
 # 4) 重启并冒烟
 sudo systemctl restart webuddy
@@ -302,7 +309,7 @@ bash scripts/release-check.sh
 cd /opt/webuddy/app
 git checkout <last-good-commit>
 . /opt/webuddy/venv/bin/activate
-python -m pip install --upgrade .
+python -m pip install --force-reinstall .
 sudo systemctl restart webuddy
 ```
 
@@ -352,3 +359,19 @@ sudo systemctl restart webuddy
 **Q7：证书没自动续上？**
 Caddy 需要 80/443 可达；检查 `journalctl -u caddy`、DNS 是否指向本机；内网环境改用内部 CA 或
 `tls internal`，并把相应根证书发给用户。
+
+
+## 客户安装支持边界与现场核对
+
+| 角色 | 当前依据与条件 | 客户现场状态 |
+|---|---|---|
+| 平台主机 | 默认路径为 Linux + Python 3.11/3.12 + Git + Node（项目测试适配器）；43 是 Linux 测试服务，不代表任意发行版均验证 | 甲方电脑系统、CPU、管理员权限待确认；原生 Windows 平台完整套件未通过 |
+| 个人 CLI/MCP | macOS/Linux 的个人凭据路径；Python 与 MCP 依赖按当前包安装；宿主 Codex/Claude Code 需重启 MCP 进程 | 杭州终端系统、模型通道、个人账号待确认 |
+| Windows 个人 MCP | 原生凭据权限隔离仍有 unsupported 门禁，不可删除后宣称支持；WSL/虚拟机只是候选路径 | 未完成客户 Windows/WSL 实测，须确认选择后验证 |
+| 项目执行/测试机 | 项目自身构建、数据库、浏览器及账号依赖；按项目 readiness 分别核对记录、执行、验证、发布条件 | 怀柔源码、数据库副本、账号、业务规则与测试命令待提供 |
+
+本轮安装检查结果见进度记录；目标系统未实测的格子保持“未验证”。平台源码保存在 app，平台工单/知识/证据在指定 data，客户项目代码及 `.tmh` 在登记仓库。模型请求可能包含所选任务、代码差异、引用和日志；本地保存不等于内容不出网。现场须核对 `agents.json`、执行器环境和已配置网关的实际目的地与发送范围，不在说明中填写真实密钥。
+
+客户远程连接优先使用其批准的 VPN/反向代理与 HTTPS，浏览器访问平台，个人工具只使用授权项目连接。不要直接开放数据库、共享管理员账号或把 MCP 的任务读取等同于无人值守远程执行。连接、执行位置与职责核对见 [终端协作](developer-terminal.md#客户接入核对与两机演练)。
+
+客户端下载后按网页命令强制重装；仅覆盖安装文件不会更新已启动的 MCP 进程，须断开并重连。升级平台时保留完整旧程序、数据与配置备份，核对数据库副本迁移、精确运行文件和即时/延迟健康。程序回滚只切换代码；不要用旧数据库覆盖升级后新写入。数据库恢复属单独的故障恢复操作，需先保全当前数据并明确恢复范围。

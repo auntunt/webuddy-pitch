@@ -356,7 +356,7 @@ def _fence(text: str) -> str:
     return (text or "").replace("<<<", "‹‹‹").replace(">>>", "›››").replace("```", "ˋˋˋ")
 
 
-def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None, isolated=False) -> str:
+def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None, isolated=False, historical_case=False) -> str:
     from . import project_library as library
     if reference_inputs is None:
         reference_inputs = library.bindings(store, project)
@@ -372,7 +372,8 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         delivery_context = prompt_context(store.path.parent, links["delivery"])
     out = (["你在维护项目「%s」（代码目录 %s）。" % (project["name"], root)] if isolated else
            ["你在维护项目「%s」（目录 %s）。业务知识库在 %s。" % (project["name"], root, root / ".tmh" / "knowledge")])
-    if ticket:
+    # Historical inputs carry case provenance, never a persistent ticket identity.
+    if ticket and not historical_case:
         from .development import read
         development = read(store,ticket)
         if development['state'] != 'not_selected':

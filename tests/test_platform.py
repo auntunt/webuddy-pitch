@@ -543,11 +543,14 @@ class PlatformApiTest(unittest.TestCase):
             vf.write_text(json.dumps(v, ensure_ascii=False), encoding="utf-8")
             (self.data / "autoflow.json").write_text(json.dumps({"on": True, "agent": "fixer", "check": ok}), encoding="utf-8")
             code, v = self.call("POST", "/api/runs/%d/recheck" % fx["id"], {"wait": True})
-            self.assertEqual((code, v["check"], v["verdict"]), (200, "pass", "fail"), v)
+            self.assertEqual((code, v["check"], v["verdict"]), (200, "pass", "unknown"), v)
+            self.assertIn("检查契约", v["diagnosis_invalidated"])
+            self.assertTrue(any(old["verification"].get("diagnosis", {}).get("cause", "").startswith("遗漏方案")
+                                for old in v["previous_verifications"]))
             _, d = self.call("GET", "/api/tickets/" + t["key"])
             fx = [r for r in d["runs"] if r["mode"] == "fix"][0]
             self.assertFalse(fx["decision"], "not committed")
-            self.assertTrue(any("诊断认为还没解决" in e["body"] and "Controller" in e["body"] for e in d["events"]), [e["body"] for e in d["events"]])
+            self.assertNotEqual(v["verdict"], "pass", "失效诊断不能放行当前改动")
         finally:
             conf.pop("fixer", None)
             (self.data / "agents.json").write_text(json.dumps(conf), encoding="utf-8")

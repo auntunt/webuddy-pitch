@@ -533,7 +533,7 @@ function nextActionCore(d,f){
   const auto=onAuto(d),br=adopted(d);
   const ir=d.intake_recovery;
   const lt=(t.links||{}).later;  // held off the line by an app: a feature's parent, or a child waiting for its batch
-  const hw=(t.links||{}).handwork,memberFix=typeof accessCanMemberFix==='function'&&accessCanMemberFix(d.project.key)&&!accessCanExecute(d.project.key);
+  const rawHw=(t.links||{}).handwork,hw=typeof rawHw==='boolean'?(rawHw?(t.assignee||'待分配'):''):rawHw,memberFix=typeof accessCanMemberFix==='function'&&accessCanMemberFix(d.project.key)&&!accessCanExecute(d.project.key);
   const hwe=(d.events||[]).filter(e=>e.author==='我来写').pop();
   const hwr=(d.runs||[]).find(r=>r.mode!=='ask'),hwc=hwr&&hwr.agent==='人工'&&(d.events||[]).filter(e=>e.author==='我来写'&&e.kind==='flow'&&(e.data||{}).run===hwr.id&&['pass','fail','unknown'].includes((e.data||{}).verdict)).pop();
   const oa=(t.links||{}).open_ac;

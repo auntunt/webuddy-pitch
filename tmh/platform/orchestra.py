@@ -530,6 +530,8 @@ class Orchestra:
         if v.get("check") == "fail":
             bad = [c for c in v.get("commands") or [] if c.get("exit_code")]
             return "%d 轮修改后构建测试仍没通过（%s）" % (v.get("rounds") or 0, bad[0]["command"] if bad else "构建测试")
+        if v.get("diagnosis_invalidated"):
+            return "旧诊断已失效，需重新技术复核：" + str(v["diagnosis_invalidated"])
         if v.get("vague_fail"):
             return "诊断判了不通过但没说清阻断项，留给人看"
         if v.get("verdict") == "fail":

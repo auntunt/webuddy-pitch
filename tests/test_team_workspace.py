@@ -235,6 +235,24 @@ class TeamWorkspaceTest(unittest.TestCase):
         self.assertEqual(self.git("rev-parse", "HEAD"), self.base)
         self.assertNotEqual(self.P.store.ticket(self.ticket["id"])["status"], "closed")
 
+    def test_terminal_approved_queue_moves_to_owner_without_changing_legacy(self):
+        from tmh.platform import workspace
+        self.approve()
+        ticket = self.P.store.ticket(self.ticket['id'])
+        self.assertTrue(team.item(self.P, ticket, 'bob')['needs_review'])
+        # Only the terminal selection is synthetic; approval and queue reads use real stores.
+        with patch('tmh.platform.development.row', return_value={'ticket_id':ticket['id']}), patch('tmh.platform.development.identity', return_value=None):
+            item = team.item(self.P, ticket, 'bob')
+            self.assertFalse(item['needs_review'])
+            self.assertIn('待负责人确认合并', item['label'])
+            review = workspace.read(self.P, {'view':'review'}, 'bob')
+            self.assertEqual(review['total'], 0)
+            mine = workspace.read(self.P, {'view':'mine', 'limit':'1'}, 'alice')
+            self.assertEqual(mine['total'], 1)
+            self.assertEqual(mine['items'][0]['next_actor'], 'alice')
+            self.assertEqual(mine['items'][0]['action_label'], '确认合并')
+            self.assertEqual(mine['counts']['review'], 0)
+
     def test_changed_requirement_invalidates_approval_and_blocks_merge(self):
         approved = self.approve()
         self.action("comment", body="新增业务要求")

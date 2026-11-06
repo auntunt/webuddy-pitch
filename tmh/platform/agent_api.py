@@ -421,6 +421,8 @@ def _execute(P, req, actor, operation, a):
         from . import development
         ticket = _ticket(P, a['ticket'])
         if operation == 'development_get':
+            if tool:
+                ticket = tool_read.ticket(P, a['ticket'], visible_ids)
             return development.read(st,ticket)
         return development.act(P,actor,operation.removeprefix('development_'),a)
     if operation.startswith("library_"):
@@ -434,6 +436,9 @@ def _execute(P, req, actor, operation, a):
         from .project_ci import check
         candidate = _row(P,a['candidate_id'])
         ticket = st.ticket(candidate['ticket_id'])
+        if tool:
+            ticket = tool_read.ticket(P, ticket['key'], visible_ids)
+            tool_read.bound_run(P, candidate['run_id'], ticket, visible_ids)
         return check(P.data_dir,st.project(ticket['project_id'])['key'],candidate['commit_sha'])
     if operation.startswith("candidate_") or operation == "candidates_list":
         from .candidates import execute

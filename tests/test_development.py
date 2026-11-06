@@ -30,6 +30,18 @@ class DevelopmentTest(unittest.TestCase):
         return development.act(self.P,'developer','confirm',dict(ticket=self.key,revision=state['revision'],
              digest=state['digest'],request_id='human-'+str(self.n)),human=True)
 
+    def test_historical_prompt_never_reads_current_ticket_confirmation(self):
+        from unittest.mock import patch
+        from tmh.platform.agents import build_prompt
+        ticket = self.P.store.ticket(self.key)
+        project = self.P.store.project(ticket['project_id'])
+        historical = {k:v for k,v in ticket.items() if k != 'id'}
+        with patch.object(development, 'read', side_effect=AssertionError('history must not read live confirmation')):
+            prompt = build_prompt(self.P.store, project, historical, 'plan', historical_case=True)
+        self.assertIn(ticket['title'], prompt)
+        with self.assertRaises(KeyError):
+            build_prompt(self.P.store, project, historical, 'plan')
+
     def test_roundtrip_answers_and_human_confirmation(self):
         proposed=self.propose()
         with self.assertRaises(ApiError):self.confirm(proposed)

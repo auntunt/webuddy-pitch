@@ -157,6 +157,7 @@ class ToolReadTests(unittest.TestCase):
                  'candidates_list': {'ticket': self.t['key']}, 'candidate_get': {'candidate_id': self.cid},
                  'library_get': {'project': 'APP'}, 'library_search': {'project': 'APP', 'query': 'synthetic'},
                  'library_read': {'project': 'APP', 'revision_id': 'a' * 32, 'path': 'rules.md'},
+                 'development_get': {'ticket': self.t['key']}, 'candidate_ci': {'candidate_id': self.cid},
                  'preview_get': {'ticket': self.t['key']}, 'intake_get': {'session': self.intake_session()}}
         self.assertEqual(set(cases), set(tool_access.READ_OPERATIONS))
         before = snapshot(self.st)
@@ -172,6 +173,22 @@ class ToolReadTests(unittest.TestCase):
                     else:
                         result = self.call(op, **args)
                         self.assertIsInstance(result, dict)
+        self.assertEqual(snapshot(self.st), before)
+
+    def test_new_reads_reject_foreign_project_before_external_ci_query(self):
+        hidden_cid, _ = seed_candidate(self.st, self.hidden)
+        with patch('tmh.platform.project_ci.check', side_effect=AssertionError('must authorize before query')):
+            for op, args in [('development_get', {'ticket':self.hidden['key']}),
+                             ('candidate_ci', {'candidate_id':hidden_cid})]:
+                with self.subTest(op=op), self.assertRaises(ApiError) as error:
+                    self.call(op, **args)
+                self.assertEqual(error.exception.code, 403)
+
+    def test_candidate_ci_queries_only_authorized_project_and_exact_commit(self):
+        before = snapshot(self.st)
+        with patch('tmh.platform.project_ci.check', return_value={'state':'blocked'}) as query:
+            self.assertEqual(self.call('candidate_ci', candidate_id=self.cid)['state'], 'blocked')
+        query.assert_called_once_with(self.data, 'APP', 'b'*40)
         self.assertEqual(snapshot(self.st), before)
 
     def test_candidate_preserves_all_historical_records_and_uses_unknown(self):

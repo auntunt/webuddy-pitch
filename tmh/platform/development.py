@@ -61,6 +61,9 @@ def read(store, ticket):
     return {'ticket': ticket['key'], 'revision': current['revision'], 'state': state, 'digest': binding,
             'source_hash': current['source_hash'], 'confirmed_by': current['confirmed_by'] if confirmed else '',
             'payload': payload, 'pending_questions': pending,
+            'history': [{'revision': e['revision'], 'action': e['action'], 'actor': e['actor'],
+                         'created': e['created'], 'payload': json.loads(e['payload'])}
+                        for e in store.q('SELECT revision,action,actor,created,payload FROM development_events WHERE ticket_id=? ORDER BY id', (ticket['id'],))],
             'next_questions': pending[:3], 'next_action': {'stale':'development_propose', 'confirmed':'develop',
             'clarifying':'ask_developer' if payload['summary'] else 'development_propose', 'awaiting_confirmation':'human_terminal_confirm'}[state],
             'instructions': '在Agent终端分批向开发人员提问，展示选项并允许自由回答。不猜测回答；不清楚记resolved=false。全部问题处理后展示完整需求、设计和测试方案，由本人在独立人工终端确认。确认不是业务验收。'}

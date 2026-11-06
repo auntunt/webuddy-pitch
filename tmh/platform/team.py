@@ -461,11 +461,14 @@ def item(P, t, user):
             "note": source["note"], "project": source["memory_snapshot"]["project"],
             "can_retry": bool(status["pending"] and can_review and business["author"] == user)}
     from .development import row as development_row
-    return {"terminal_development": bool(development_row(P.store,t["id"])), "ticket": t, "assignment": dict(a, assignee_active=a["assignee"] in members, reviewer_active=a["reviewer"] in members),
+    terminal = bool(development_row(P.store,t["id"]))
+    if terminal and state == "approved":
+        label = "Leader 已复核，待负责人确认合并"
+    return {"terminal_development": terminal, "ticket": t, "assignment": dict(a, assignee_active=a["assignee"] in members, reviewer_active=a["reviewer"] in members),
             "state": state, "label": label, "technical": technical, "human": human, "merge": merge,
             "candidate": candidate, "candidate_error": error, "run": run, "requirement_hash": _requirement(t, P.store),
             "acceptance_memory": acceptance_memory,
-            "needs_review": state in ("assessment", "review", "approved", "merged", "legacy_review", "acceptance"),
+            "needs_review": state in ("assessment", "review", "approved", "merged", "legacy_review", "acceptance") and not (terminal and state == "approved"),
             "can_review": can_review, "personal_decisions_available":metadata_review,
             "personal_verification_reason":personal_verification_reason,
             "personal_preview_reason":personal_preview_reason, "personal_static_preview":bool(static_config),

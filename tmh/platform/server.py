@@ -2625,10 +2625,11 @@ def api_ticket(P, req, key):
             r["recheck_wait"] = P.flow.verification_wait(r["id"]) if v.get("verification_current") is False else None
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
-    from . import epic, signoff, stage, workbench, intake, team, ai_accept
+    from . import epic, signoff, stage, workbench, intake, team, ai_accept, development
     par = P.store.ticket(t["links"]["parent"]) if (t.get("links") or {}).get("parent") else None
     return {"ticket": t, "project": p, "events": P.store.events(t["id"]), "runs": [r for r in runs if r["mode"] != "ask"],
             "team_assignment": team.assignment(P, t),
+            "development": development.read(P.store, t),
             "workflow_policy": ai_accept.mandate(P.flow.autoflow(), p["key"], P.data_dir),
             "intake_recovery": intake.recovery_state(P, t["key"]),
             "plain_state": workbench.states(P, [t])[t["key"]],
