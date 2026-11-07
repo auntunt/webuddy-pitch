@@ -1153,3 +1153,10 @@ d421的Linux3.13完整CI失败：3058通过/54跳过/4失败/1926子用例通过
 完整备份pre-reform-984b3dd4-test-20261107T075635Z/state.tar.gz逐字节58963文件校验。兼容程序回退releases/reform-cf710375/app；不得回退到旧JSON程序e282或用旧库覆盖新写入。初次SSH发布响应超时后查询持久systemd发布单元确认正在执行，未重发；最终ExecMainStatus0。首个启动curl未就绪失败保留，随后即时/延迟实际成功。
 
 本次按已验证范围交付，不宣称A—D全验收：真实页面宿主不可用（T13和截图未完成），三个桌面客户端、跨日任务、真实客户跨模块业务决定未完成；四边界SIGKILL为真实子进程+明确执行替身，不等于43全服务边界演练。活跃范围后继修订、完整活跃工作树交接、时间指标及所有证据失效组合仍有缺口。详情reform-20261107-delivery.md、reform-long-running-implementation.md及evidence/reform-20261107。仅记录提交不重启服务。
+
+
+### 2026-11-07 租户启动503反例与修复候选
+
+用户实测BBstack个人MCP status/projects_list返回503。43主服务仍984/PID1858317/重启0，不能据主进程与匿名HTTP健康宣称租户可用。真实worker日志定位到reconcile重放旧先导验收调用_tip/Git，被原隔离审计拒绝并退出。新增正式SDK→stdio→签名HTTP→独立受限worker反例稳定503；修复在历史事件重放前重查原计划当前负责人/连接/项目执行授权，合法重放置于其受管身份上下文，缺授权历史保留可读、不执行Git或调度。不捕获PermissionError放行，不削弱隔离。
+
+55项相关回归/9子用例通过，含旧先导已验收与adopt记录、首次MCP status/projects/reform读回及worker重启重连，原JSON字节保持；隔离全量SDK回归另保留。首个新增fixture把pending误预期not_checked的失败原件保留，修正为现有真实枚举pending，不允许误报accepted。该候选尚待精确CI和实际43认证链路验证，不宣称已修复线上。

@@ -746,17 +746,28 @@ def reconcile(P):
                     _dispatch(P,project,p['id'],pending)
             # Replay only a real persisted business verdict. Closed status alone is insufficient.
             latest=plan(P.data_dir,project['key'],p['id'])
-            for item in latest['items']+latest.get('integrations',[]):
-                if not item.get('ticket'):
+            context=getattr(P,'tenant_context',None)
+            if context is not None:
+                from .reform_authority import require
+                from .errors import ApiError
+                try:
+                    require(P,project,latest)
+                except ApiError:
+                    # History remains readable; replay can resolve Git or release work.
+                    # A saved verdict alone does not grant startup execution authority.
                     continue
-                t=P.store.ticket(item['ticket'])
-                if not t or t['status']!='closed':
-                    continue
-                verdict=next((event for event in reversed(P.store.events(t['id'])) if event['kind'] in ('accept','reject')),None)
-                if verdict and verdict['kind']=='accept' and item.get('outcome_event')!=verdict['id']:
-                    outcome(P,project,t,True,verdict['body'].partition('：')[2])
-            if latest.get('parent'):
-                parent=P.store.ticket(latest['parent'])
-                event=next((e for e in reversed(P.store.events(parent['id'])) if e['kind'] in ('accept','reject')),None)
-                if event and latest.get('overall',{}).get('event_id')!=event['id']:
-                    outcome(P,project,parent,event['kind']=='accept',event['body'].partition('：')[2])
+            with context.acting(latest['execution_owner']) if context is not None else nullcontext():
+                for item in latest['items']+latest.get('integrations',[]):
+                    if not item.get('ticket'):
+                        continue
+                    t=P.store.ticket(item['ticket'])
+                    if not t or t['status']!='closed':
+                        continue
+                    verdict=next((event for event in reversed(P.store.events(t['id'])) if event['kind'] in ('accept','reject')),None)
+                    if verdict and verdict['kind']=='accept' and item.get('outcome_event')!=verdict['id']:
+                        outcome(P,project,t,True,verdict['body'].partition('：')[2])
+                if latest.get('parent'):
+                    parent=P.store.ticket(latest['parent'])
+                    event=next((e for e in reversed(P.store.events(parent['id'])) if e['kind'] in ('accept','reject')),None)
+                    if event and latest.get('overall',{}).get('event_id')!=event['id']:
+                        outcome(P,project,parent,event['kind']=='accept',event['body'].partition('：')[2])

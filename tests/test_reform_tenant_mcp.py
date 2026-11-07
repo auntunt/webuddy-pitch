@@ -51,6 +51,39 @@ class ReformTenantMCPTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(bool(r.isError),error,r)
         return r.structuredContent
 
+    async def test_legacy_accepted_lead_does_not_crash_read_only_worker_startup(self):
+        from tmh.platform import reform
+        from tmh.platform.store import Store
+        f=self.fixture
+        data=Path(f.reg.one('SELECT path FROM tenants WHERE id=?',(f.a,))['path'])
+        store=Store(data/'platform.db')
+        try:
+            plan=reform.create(data,'SAME',{'built':'fixed','domains':[{'id':'sales','title':'Sales','tables':0}]},
+                {'title':'Legacy reform','goal':'Keep old evidence','wave':1},'owner')
+            plan['id']='r1'
+            plan.pop('uid')
+            plan['items'][0].update(ticket='SAME-1',lead=True)
+            store.update_ticket(1,'fixture',status='closed',links={'reform':{'plan':'r1','order':plan['items'][0]['order']}})
+            store.event(1,'fixture','adopt','synthetic historical adoption',{'branch':'historic','commit':'a'*40})
+            store.event(1,'fixture','accept','验收通过：synthetic old verdict')
+            folder=data/'reforms';folder.mkdir(exist_ok=True)
+            original=json.dumps([plan],ensure_ascii=False).encode()
+            (folder/'SAME.json').write_bytes(original)
+            store.x('DELETE FROM reform_catalog WHERE project_key=?',('SAME',))
+        finally:
+            store.db.close()
+        for restart in (False,True):
+            if restart:
+                f.workers.stop(f.a)
+            async with self.session(self.grant) as session:
+                state=await self.call(session,'status',{})
+                projects=await self.call(session,'projects_list',{})
+                self.assertEqual([p['key'] for p in projects['items']],['SAME'])
+                current=await self.call(session,'reform_get',{'project':'SAME','plan_id':'r1'})
+                self.assertIn('旧计划缺少固定源版本',current['blocked'])
+                self.assertEqual(current['evidence']['integrated_delivery'],'pending')
+        self.assertEqual((folder/'SAME.json').read_bytes(),original)
+
     async def test_tenant_reconnect_worker_restart_project_scope_and_revocation(self):
         f=self.fixture
         async with self.session(self.grant) as session:
