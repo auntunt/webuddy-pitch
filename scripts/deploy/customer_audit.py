@@ -55,7 +55,7 @@ def inspect_zip(package, *, resource_files=None, prefix='', official_stdlib=Fals
             if TOKEN.search(data):
                 findings.append(dict(path=path, category='credential_like_value'))
             if '/_resources/' in name or name.startswith(('docs/', 'templates/', 'skills/', 'agents/', 'kb/')):
-                if any(mark in data for mark in (b'docs/self-improvement/', b'43.153.76.85', b'/Users/auntlee', b'ralph-port-progress')):
+                if any(mark in data for mark in (b'docs/self-improvement/', b'43.153.76.85', b'/Users/auntlee', b'ralph-port-progress', b'JeecgBoot', b'JB-6', '那轮评审'.encode())):
                     findings.append(dict(path=path, category='internal_resource_content'))
     return dict(ok=not findings, files=len(seen) + nested_files, findings=findings,
                 check='paths_nested_archives_resources_and_high_confidence_credentials')

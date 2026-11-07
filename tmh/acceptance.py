@@ -11,7 +11,7 @@ evidence, never a verdict. So a task moves through explicit states, and each mov
 
 State, history and evidence pointers live in .tmh/acceptance/<task>.json; the contract's "验收状态" line mirrors
 the current state for people reading the contract. Layers: L1 contract and flow review, L2 independent rerun,
-L3 retest after deployment, L4 a person on the real system (docs/acceptance.md).
+L3 retest after deployment, L4 a person on the real system (.tmh/docs/acceptance.md).
 """
 from __future__ import annotations
 
@@ -106,7 +106,7 @@ def ac_problems(text: str) -> list[str]:
         return ["第 4 节没有验收标准（AC）表"]
     out = []
     if not any("层级" in l for l in _section(text, 4).splitlines() if "验收条款" in l):
-        out.append("第 4 节的表没有“层级”列（旧契约：按 docs/acceptance.md 的迁移说明补一列 L1–L4）")
+        out.append("第 4 节的表没有“层级”列（旧契约：按 .tmh/docs/acceptance.md 的迁移说明补一列 L1–L4）")
     for r in rows:
         if PLACEHOLDER.match(r["clause"]):
             out.append("%s 没有写验收条款" % r["id"])

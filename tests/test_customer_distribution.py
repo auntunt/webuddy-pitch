@@ -40,12 +40,14 @@ class CustomerDistributionTest(unittest.TestCase):
         outer = io.BytesIO()
         with zipfile.ZipFile(outer, 'w') as z:
             z.writestr('nested.zip', inner.getvalue())
+            z.writestr('tmh/_resources/skills/acceptance-l2/SKILL.md', 'JeecgBoot JB-6 internal case')
             z.writestr('Webuddy/tools/node/node-v24/node_modules/undici/lib/web/cache/cache.js', 'export function cache() {}')
             z.writestr('Webuddy/cache/generated.json', '{}')
             z.writestr('tmh/_resources/docs/self-improvement/verification-runtime-2026-10-18.md', 'internal')
         with zipfile.ZipFile(outer) as z:
             result = audit.inspect_zip(z, resource_files=resources.FILES)
         self.assertFalse(result['ok'])
+        self.assertIn({'path': 'tmh/_resources/skills/acceptance-l2/SKILL.md', 'category': 'internal_resource_content'}, result['findings'])
         self.assertIn({'path': 'nested.zip!/private.pem', 'category': 'private_key_material'}, result['findings'])
         self.assertTrue(any(f['path'].endswith('generated.json') for f in result['findings']))
         self.assertFalse(any(f['path'].endswith('cache.js') for f in result['findings']))
