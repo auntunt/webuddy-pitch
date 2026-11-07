@@ -38,6 +38,11 @@ CREATE TABLE IF NOT EXISTS runs (
   status TEXT NOT NULL, author TEXT DEFAULT '', created TEXT NOT NULL, started TEXT DEFAULT '', ended TEXT DEFAULT '',
   prompt TEXT DEFAULT '', output TEXT DEFAULT '', result TEXT DEFAULT '', diff TEXT DEFAULT '',
   exit_code INTEGER, workdir TEXT DEFAULT '', target TEXT DEFAULT '', decision TEXT DEFAULT '');
+CREATE TABLE IF NOT EXISTS run_execution_contracts (
+ run_id INTEGER PRIMARY KEY, identity TEXT NOT NULL, authorized_base TEXT NOT NULL, actual_base TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS run_recovery_snapshots (
+ commit_sha TEXT PRIMARY KEY, from_run INTEGER NOT NULL, original_head TEXT NOT NULL,
+ original_worktree TEXT NOT NULL, created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS review_feedback (
   id INTEGER PRIMARY KEY, run_id INTEGER NOT NULL, project_id INTEGER NOT NULL,
   actor TEXT NOT NULL, request_id TEXT NOT NULL, binding TEXT NOT NULL,

@@ -1060,3 +1060,7 @@ fcadb650精确CI42279767492：Linux3.11完整3034通过、47跳过；3.13为3033
 自有Windows确定性反例定位预览_alive的os.kill(pid,0)：隔离目标只输出before即以0退出，没有after；退出码0不代表检查完成。最小修复用OpenProcess(SYNCHRONIZE)+WaitForSingleObject(0)查询并关闭句柄，不发信号、不新增终止权限。实机修后输出before/alive True/after，新回归验证当前进程、存活子进程、退出子进程且禁止os.kill，通过。Mac相关17通过/6 Windows专用跳过。Windows执行模块8过/2失败，两项supervisor owner_lost在原21f4e73和修后代码均真实复现，已保留前后原回执，未归零或忽略。全量平台模块300秒预算不足导致后续用例缺失，改为通过pytest原生收集后逐用例执行该模块，其他模块不变，所有原断言保留；runner本机门禁模块实际通过。下一候选重新验证。
 
 owner_lost进一步通过真实解释器对照定位：同源码使用Windows基础Python成功，venv启动器多一层进程导致原监督器的parent_pid核对误拒。最小修复仅Windows分支用sys._base_executable直接启动stdlib-only监督器，项目命令/环境、管道所有权、取消/超时/清理与父进程核对不变。新增真实venv回归：旧代码退出1，修后Windows执行模块11项全部通过；Mac相关46通过/7 Windows专用跳过/8子用例通过。实机补丁与最终提交绑定后再次跑完整套件。此前失败与受阻记录不删除。
+
+### 2026-11-07 老项目长期改造 A1（R1）
+
+基线e282afab，GitHub产品分支一致；原目录Windows进度与证据未提交，独立worktree施工。当前实现清单见reform-long-running-implementation.md。R1两个原失败已保存：system恢复快照与固定基线冲突，确认稿变化预检仍可续跑。新增SQLite执行契约/快照来源登记，保留原授权基线，实际起点沿已登记恢复快照；预检、登记和执行边界重新检查确认稿，旧无绑定明确阻塞交接；不删除固定起点检查、不改UNIQUE retry_of。Git专用引用保留未验证快照。定向64项与26子用例通过，含真实受监管替身写文件失败及保留二进制/未跟踪改动后续跑；不是客户模型执行或业务签收。原失败、首轮和最终结果在evidence/reform-20261107。R2—R8/B—D继续实施，尚未宣称全部完成。未操作阿里云。

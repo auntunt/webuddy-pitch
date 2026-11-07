@@ -1536,9 +1536,18 @@ class Runner:
             reviewed_delivery_plan(self.store, ticket)
         if development and development['execution'].get('current') and not authority:
             selected_base = development['execution']['base_commit']
-            if base and base != selected_base:
+            if retry_of is not None:
+                retry_state = self.retry_state(retry_of)
+                if not retry_state['can_retry']:
+                    raise ValueError('；'.join(retry_state['retry_blocked']))
+                self._retry_execution_contract(retry_of, ticket)
+                snapshot = self.store.one("SELECT * FROM run_recovery_snapshots WHERE commit_sha=? AND from_run=?", (base, retry_of))
+                if not snapshot:
+                    raise ValueError('恢复快照未绑定原运行，不能更换执行起点')
+            elif base and base != selected_base:
                 raise ValueError('执行起点与负责人选择时固定的版本不同，请重新核对交接')
-            base = selected_base
+            else:
+                base = selected_base
         source = delivery_source(self.store, project, ticket, mode, base)
         if source and session_id is not None:
             raise ValueError("固定版本的交付检查必须使用独立运行，不能绑定既有会话")
@@ -1551,10 +1560,23 @@ class Runner:
             prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
         if library.bindings(self.store, project) != reference_inputs:
             raise ValueError('组装提示词期间参考知识已变化，请重新启动任务')
+        def contract_marker(rid):
+            if development and development['execution'].get('current'):
+                from .development import identity, encode, require_execution
+                fresh = self.store.ticket(ticket['id'])
+                current = require_execution(self.store, fresh, 'system')
+                if (not current or current['digest'] != development['digest'] or
+                        current['execution'] != development['execution']):
+                    raise ValueError('登记前执行确认稿已变化，请重新核对')
+                if retry_of is not None:
+                    self._retry_execution_contract(retry_of, fresh)
+                self.store.db.execute('INSERT INTO run_execution_contracts VALUES(?,?,?,?)',
+                    (rid, encode(identity(self.store, ticket['id'])), development['execution']['base_commit'], base))
+
         def register(marker=None):
             return self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
                 session_id=session_id, batch=batch, model=recorded, expected_root=project['root'], reference_inputs=reference_inputs,
-                **({'require_idle_ticket':True,'before_commit':marker} if authority else {}),
+                **({'require_idle_ticket':True,'before_commit':marker} if authority else {'before_commit':contract_marker}),
                 **({"retry_of": retry_of} if retry_of is not None else {}))
         if authority:
             from .project_mcp import BoundJob
@@ -1742,6 +1764,8 @@ class Runner:
         from . import project_library as library
         library.require_development(st, st.project(project['id']))
         library.require_run_current(st, project, rid)
+        if ticket and mode == 'fix':
+            self._retry_execution_contract(rid, st.ticket(ticket['id']))
         rdir = self.data_dir / "runs" / str(rid)
         rdir.mkdir(parents=True, exist_ok=True)
         (rdir / "prompt.md").write_text(prompt, encoding="utf-8")
@@ -2175,6 +2199,20 @@ class Runner:
             self.slots.notify_all()
         return self.store.run(rid)
 
+    def _retry_execution_contract(self, rid: int, ticket: dict) -> None:
+        from .development import require_execution, identity, encode
+        original = self.store.run(rid)
+        if (not original or original['ticket_id'] != ticket['id'] or
+                original['project_id'] != ticket['project_id'] or original['mode'] != 'fix'):
+            raise ValueError('原运行不属于当前项目工单')
+        state = require_execution(self.store, ticket, 'system')
+        binding = self.store.one('SELECT * FROM run_execution_contracts WHERE run_id=?', (rid,))
+        if state and state['execution'].get('current'):
+            if not binding or binding['identity'] != encode(identity(self.store, ticket['id'])):
+                raise ValueError('原运行缺少当前确认稿的执行绑定，请核对原运行与负责人交接')
+        elif binding:
+            raise ValueError('原运行的执行确认稿已变化，请重新核对负责人交接')
+
     def retry_state(self, rid: int) -> dict:
         r = self.store.run(rid)
         blocked = []
@@ -2198,6 +2236,13 @@ class Runner:
             blocked.append("请从需求沟通页重新理解")
         if r.get("decision"):
             blocked.append("这次改动已经处理，请从工单继续")
+        if t and r['mode'] == 'fix':
+            try:
+                self._retry_execution_contract(rid, t)
+                from .project_library import require_run_current
+                require_run_current(self.store, self.store.project(r['project_id']), rid)
+            except ValueError as exc:
+                blocked.append(str(exc))
         if t and t["status"] == "closed":
             blocked.append("工单已关闭，先明确新的需求")
         try:
@@ -2263,6 +2308,9 @@ class Runner:
                     tree = snapshot("write-tree").decode().strip()
                     head = snapshot("rev-parse", "HEAD").decode().strip()
                     base = snapshot("commit-tree", tree, "-p", head, "-m", "Unverified recovery snapshot of run #%d" % rid).decode().strip()
+                    snapshot("update-ref", "refs/webuddy/recovery/run-%d/%s" % (rid, base), base)
+                    self.store.x('INSERT OR IGNORE INTO run_recovery_snapshots VALUES(?,?,?,?,?)',
+                                 (base, rid, head, str(wt), now()))
                     (recovery / "source.patch").write_bytes(snapshot("diff", "--binary", head, base))
                     (recovery / "snapshot.json").write_text(json.dumps({"commit": base, "parent": head,
                         "notice": "未验证的恢复快照，不是采纳、签收或发布", "original_worktree": str(wt)}, ensure_ascii=False, indent=2))
