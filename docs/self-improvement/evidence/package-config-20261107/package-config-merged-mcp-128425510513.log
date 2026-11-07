@@ -1,0 +1,422 @@
+﻿2026-11-07T14:06:39.6979115Z Current runner version: '2.338.2'
+2026-11-07T14:06:39.6997759Z ##[group]Runner Image Provisioner
+2026-11-07T14:06:39.6998316Z Hosted Compute Agent
+2026-11-07T14:06:39.6998796Z Version: 20261028.624
+2026-11-07T14:06:39.6999192Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-07T14:06:39.6999666Z Build Date: 2026-10-28T21:51:42Z
+2026-11-07T14:06:39.7000142Z Worker ID: {f94e57c2-833d-4be5-986b-97190b547e18}
+2026-11-07T14:06:39.7000598Z Region: northcentralus
+2026-11-07T14:06:39.7001016Z Cloud: Azure
+2026-11-07T14:06:39.7001363Z ##[endgroup]
+2026-11-07T14:06:39.7002191Z ##[group]Operating System
+2026-11-07T14:06:39.7002623Z Ubuntu
+2026-11-07T14:06:39.7002956Z 24.04.5
+2026-11-07T14:06:39.7003324Z LTS
+2026-11-07T14:06:39.7003652Z ##[endgroup]
+2026-11-07T14:06:39.7003988Z ##[group]Runner Image
+2026-11-07T14:06:39.7004440Z Image: ubuntu-24.04
+2026-11-07T14:06:39.7004838Z Version: 20261101.360.1
+2026-11-07T14:06:39.7006101Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-07T14:06:39.7007017Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+2026-11-07T14:06:39.7007948Z ##[endgroup]
+2026-11-07T14:06:39.7008767Z ##[group]GITHUB_TOKEN Permissions
+2026-11-07T14:06:39.7010671Z Contents: read
+2026-11-07T14:06:39.7011040Z Metadata: read
+2026-11-07T14:06:39.7011499Z Packages: read
+2026-11-07T14:06:39.7011870Z ##[endgroup]
+2026-11-07T14:06:39.7013493Z Secret source: Actions
+2026-11-07T14:06:39.7014144Z Cache mode: write
+2026-11-07T14:06:39.7014790Z Prepare workflow directory
+2026-11-07T14:06:39.7300198Z Prepare all required actions
+2026-11-07T14:06:39.7332372Z Getting action download info
+2026-11-07T14:06:39.9228998Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-07T14:06:40.0167026Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-11-07T14:06:40.1732625Z Complete job name: Reform MCP protocol (ubuntu-latest / py3.13)
+2026-11-07T14:06:40.2254117Z ##[group]Run actions/checkout@v4
+2026-11-07T14:06:40.2254530Z with:
+2026-11-07T14:06:40.2254786Z   repository: auntunt/webuddy-pitch
+2026-11-07T14:06:40.2256944Z   token: ***
+2026-11-07T14:06:40.2257185Z   ssh-strict: true
+2026-11-07T14:06:40.2257431Z   ssh-user: git
+2026-11-07T14:06:40.2257685Z   persist-credentials: true
+2026-11-07T14:06:40.2257955Z   clean: true
+2026-11-07T14:06:40.2258201Z   sparse-checkout-cone-mode: true
+2026-11-07T14:06:40.2258493Z   fetch-depth: 1
+2026-11-07T14:06:40.2258739Z   fetch-tags: false
+2026-11-07T14:06:40.2258986Z   show-progress: true
+2026-11-07T14:06:40.2259236Z   lfs: false
+2026-11-07T14:06:40.2259465Z   submodules: false
+2026-11-07T14:06:40.2259718Z   set-safe-directory: true
+2026-11-07T14:06:40.2259999Z   allow-unsafe-pr-checkout: false
+2026-11-07T14:06:40.2260356Z env:
+2026-11-07T14:06:40.2260590Z   PYTHONIOENCODING: utf-8
+2026-11-07T14:06:40.2260852Z   PYTHONUTF8: 1
+2026-11-07T14:06:40.2261102Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T14:06:40.2261427Z ##[endgroup]
+2026-11-07T14:06:40.4202479Z Syncing repository: auntunt/webuddy-pitch
+2026-11-07T14:06:40.4203798Z ##[group]Getting Git version info
+2026-11-07T14:06:40.4204286Z Working directory is '/home/runner/work/webuddy-pitch/webuddy-pitch'
+2026-11-07T14:06:40.4205120Z [command]/usr/bin/git version
+2026-11-07T14:06:40.4251047Z git version 2.56.0
+2026-11-07T14:06:40.4271682Z ##[endgroup]
+2026-11-07T14:06:40.4286134Z Temporarily overriding HOME='/home/runner/work/_temp/d4052f1e-a70e-4484-a368-586f31650304' before making global git config changes
+2026-11-07T14:06:40.4290361Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-07T14:06:40.4291569Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-07T14:06:40.4536053Z Deleting the contents of '/home/runner/work/webuddy-pitch/webuddy-pitch'
+2026-11-07T14:06:40.4544201Z ##[group]Initializing the repository
+2026-11-07T14:06:40.4550543Z [command]/usr/bin/git init /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-07T14:06:40.4651086Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-07T14:06:40.4651755Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-07T14:06:40.4652423Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-07T14:06:40.4652928Z hint: call:
+2026-11-07T14:06:40.4653162Z hint:
+2026-11-07T14:06:40.4653476Z hint: 	git config --global init.defaultBranch <name>
+2026-11-07T14:06:40.4653827Z hint:
+2026-11-07T14:06:40.4654175Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-07T14:06:40.4654993Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-07T14:06:40.4655627Z hint:
+2026-11-07T14:06:40.4656115Z hint: 	git branch -m <name>
+2026-11-07T14:06:40.4656521Z hint:
+2026-11-07T14:06:40.4657091Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-07T14:06:40.4658033Z Initialized empty Git repository in /home/runner/work/webuddy-pitch/webuddy-pitch/.git/
+2026-11-07T14:06:40.4671498Z [command]/usr/bin/git remote add origin https://github.com/auntunt/webuddy-pitch
+2026-11-07T14:06:40.4716365Z ##[endgroup]
+2026-11-07T14:06:40.4717076Z ##[group]Disabling automatic garbage collection
+2026-11-07T14:06:40.4719735Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-07T14:06:40.4758576Z ##[endgroup]
+2026-11-07T14:06:40.4759233Z ##[group]Setting up auth
+2026-11-07T14:06:40.4764728Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-07T14:06:40.4804958Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-07T14:06:40.5103115Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-07T14:06:40.5142226Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-07T14:06:40.5343629Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-07T14:06:40.5383612Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-07T14:06:40.5580564Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-07T14:06:40.5623867Z ##[endgroup]
+2026-11-07T14:06:40.5624575Z ##[group]Fetching the repository
+2026-11-07T14:06:40.5631480Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +6e202604ce11dfff033dc707c42ae000ffdfe977:refs/remotes/origin/devin/1793765109-bidding-demo-ui
+2026-11-07T14:06:42.5155342Z From https://github.com/auntunt/webuddy-pitch
+2026-11-07T14:06:42.5157048Z  * [new ref]         6e202604ce11dfff033dc707c42ae000ffdfe977 -> origin/devin/1793765109-bidding-demo-ui
+2026-11-07T14:06:42.5176934Z ##[endgroup]
+2026-11-07T14:06:42.5177841Z ##[group]Determining the checkout info
+2026-11-07T14:06:42.5178614Z ##[endgroup]
+2026-11-07T14:06:42.5179120Z [command]/usr/bin/git sparse-checkout disable
+2026-11-07T14:06:42.5218640Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-07T14:06:42.5256386Z ##[group]Checking out the ref
+2026-11-07T14:06:42.5257107Z [command]/usr/bin/git checkout --progress --force -B devin/1793765109-bidding-demo-ui refs/remotes/origin/devin/1793765109-bidding-demo-ui
+2026-11-07T14:06:42.8907761Z Switched to a new branch 'devin/1793765109-bidding-demo-ui'
+2026-11-07T14:06:42.8910427Z branch 'devin/1793765109-bidding-demo-ui' set up to track 'origin/devin/1793765109-bidding-demo-ui'.
+2026-11-07T14:06:42.8954892Z ##[endgroup]
+2026-11-07T14:06:42.9003424Z [command]/usr/bin/git log -1 --format=%H
+2026-11-07T14:06:42.9035328Z 6e202604ce11dfff033dc707c42ae000ffdfe977
+2026-11-07T14:06:42.9244144Z ##[group]Run actions/setup-python@v5
+2026-11-07T14:06:42.9244405Z with:
+2026-11-07T14:06:42.9244581Z   python-version: 3.13
+2026-11-07T14:06:42.9244769Z   check-latest: false
+2026-11-07T14:06:42.9246543Z   token: ***
+2026-11-07T14:06:42.9246733Z   update-environment: true
+2026-11-07T14:06:42.9246936Z   allow-prereleases: false
+2026-11-07T14:06:42.9247132Z   freethreaded: false
+2026-11-07T14:06:42.9247310Z env:
+2026-11-07T14:06:42.9247481Z   PYTHONIOENCODING: utf-8
+2026-11-07T14:06:42.9247674Z   PYTHONUTF8: 1
+2026-11-07T14:06:42.9247856Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T14:06:42.9248060Z ##[endgroup]
+2026-11-07T14:06:43.0161602Z ##[group]Installed versions
+2026-11-07T14:06:43.0220853Z (node:2108) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-07T14:06:43.0221597Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-07T14:06:43.0222065Z Successfully set up CPython (3.13.18)
+2026-11-07T14:06:43.0263032Z ##[endgroup]
+2026-11-07T14:06:43.0504422Z ##[group]Run python -m pip install --upgrade pip pytest cryptography ".[mcp]"
+2026-11-07T14:06:43.0505226Z [36;1mpython -m pip install --upgrade pip pytest cryptography ".[mcp]"[0m
+2026-11-07T14:06:43.0536123Z shell: /usr/bin/bash -e {0}
+2026-11-07T14:06:43.0536361Z env:
+2026-11-07T14:06:43.0536555Z   PYTHONIOENCODING: utf-8
+2026-11-07T14:06:43.0536762Z   PYTHONUTF8: 1
+2026-11-07T14:06:43.0536948Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T14:06:43.0537209Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-07T14:06:43.0537535Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib/pkgconfig
+2026-11-07T14:06:43.0537847Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-07T14:06:43.0538159Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-07T14:06:43.0538478Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-07T14:06:43.0538815Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib
+2026-11-07T14:06:43.0539146Z ##[endgroup]
+2026-11-07T14:06:43.5821234Z Processing ./.
+2026-11-07T14:06:43.5834880Z   Installing build dependencies: started
+2026-11-07T14:06:44.1426675Z   Installing build dependencies: finished with status 'done'
+2026-11-07T14:06:44.1430747Z   Getting requirements to build wheel: started
+2026-11-07T14:06:44.5967825Z   Getting requirements to build wheel: finished with status 'done'
+2026-11-07T14:06:44.5975435Z   Preparing metadata (pyproject.toml): started
+2026-11-07T14:06:44.7371369Z   Preparing metadata (pyproject.toml): finished with status 'done'
+2026-11-07T14:06:44.7391834Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages (26.2.2)
+2026-11-07T14:06:44.7918937Z Collecting pip
+2026-11-07T14:06:44.8272375Z   Downloading pip-26.3-py3-none-any.whl.metadata (4.6 kB)
+2026-11-07T14:06:44.8467447Z Collecting pytest
+2026-11-07T14:06:44.8496165Z   Downloading pytest-9.2.0-py3-none-any.whl.metadata (7.9 kB)
+2026-11-07T14:06:44.9491034Z Collecting cryptography
+2026-11-07T14:06:44.9522303Z   Downloading cryptography-50.0.2-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (4.4 kB)
+2026-11-07T14:06:44.9641434Z Collecting mcp<2,>=1.30 (from tmh-harness==0.4.0)
+2026-11-07T14:06:44.9668953Z   Downloading mcp-1.30.0-py3-none-any.whl.metadata (9.3 kB)
+2026-11-07T14:06:44.9791739Z Collecting anyio>=4.5 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:44.9818460Z   Downloading anyio-4.16.0-py3-none-any.whl.metadata (4.7 kB)
+2026-11-07T14:06:45.0019713Z Collecting httpx-sse>=0.4 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.0044659Z   Downloading httpx_sse-0.4.3-py3-none-any.whl.metadata (9.7 kB)
+2026-11-07T14:06:45.0149246Z Collecting httpx<1.0.0,>=0.27.1 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.0174404Z   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+2026-11-07T14:06:45.0299361Z Collecting jsonschema>=4.20.0 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.0324584Z   Downloading jsonschema-4.26.0-py3-none-any.whl.metadata (7.6 kB)
+2026-11-07T14:06:45.0430031Z Collecting pydantic-settings>=2.5.2 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.0456274Z   Downloading pydantic_settings-2.16.2-py3-none-any.whl.metadata (4.0 kB)
+2026-11-07T14:06:45.1013570Z Collecting pydantic<3.0.0,>=2.11.0 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.1044974Z   Downloading pydantic-2.14.3-py3-none-any.whl.metadata (141 kB)
+2026-11-07T14:06:45.1216840Z Collecting pyjwt>=2.10.1 (from pyjwt[crypto]>=2.10.1->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.1243707Z   Downloading pyjwt-2.15.1-py3-none-any.whl.metadata (3.5 kB)
+2026-11-07T14:06:45.1370224Z Collecting python-multipart>=0.0.9 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.1398272Z   Downloading python_multipart-0.0.33-py3-none-any.whl.metadata (6.3 kB)
+2026-11-07T14:06:45.1516753Z Collecting sse-starlette>=1.6.1 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.1544023Z   Downloading sse_starlette-3.7.0-py3-none-any.whl.metadata (15 kB)
+2026-11-07T14:06:45.1706014Z Collecting starlette>=0.27 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.1736119Z   Downloading starlette-1.10.0-py3-none-any.whl.metadata (6.6 kB)
+2026-11-07T14:06:45.1956389Z Collecting typing-extensions>=4.9.0 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.1982737Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+2026-11-07T14:06:45.2067090Z Collecting typing-inspection>=0.4.1 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.2092689Z   Downloading typing_inspection-0.4.5-py3-none-any.whl.metadata (2.6 kB)
+2026-11-07T14:06:45.2228428Z Collecting uvicorn>=0.31.1 (from mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.2257041Z   Downloading uvicorn-0.54.0-py3-none-any.whl.metadata (6.6 kB)
+2026-11-07T14:06:45.2400646Z Collecting certifi (from httpx<1.0.0,>=0.27.1->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.2429699Z   Downloading certifi-2026.10.23-py3-none-any.whl.metadata (2.5 kB)
+2026-11-07T14:06:45.2530794Z Collecting httpcore==1.* (from httpx<1.0.0,>=0.27.1->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.2555852Z   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+2026-11-07T14:06:45.2795147Z Collecting idna (from httpx<1.0.0,>=0.27.1->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.2823063Z   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+2026-11-07T14:06:45.2912702Z Collecting h11>=0.16 (from httpcore==1.*->httpx<1.0.0,>=0.27.1->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.2939263Z   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+2026-11-07T14:06:45.3025600Z Collecting annotated-types>=0.6.0 (from pydantic<3.0.0,>=2.11.0->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.3052294Z   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+2026-11-07T14:06:45.6640892Z Collecting pydantic-core==2.50.4 (from pydantic<3.0.0,>=2.11.0->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:45.6672627Z   Downloading pydantic_core-2.50.4-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (6.6 kB)
+2026-11-07T14:06:46.1101133Z Collecting iniconfig>=2 (from pytest)
+2026-11-07T14:06:46.1132566Z   Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+2026-11-07T14:06:46.3813345Z Collecting packaging>=24 (from pytest)
+2026-11-07T14:06:46.3842362Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+2026-11-07T14:06:46.3935013Z Collecting pluggy<2,>=1.6 (from pytest)
+2026-11-07T14:06:46.3961169Z   Downloading pluggy-1.7.0-py3-none-any.whl.metadata (5.0 kB)
+2026-11-07T14:06:46.4065537Z Collecting pygments>=2.15 (from pytest)
+2026-11-07T14:06:46.4091570Z   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+2026-11-07T14:06:46.4619731Z Collecting cffi>=2.0.0 (from cryptography)
+2026-11-07T14:06:46.4648958Z   Downloading cffi-2.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+2026-11-07T14:06:46.4747058Z Collecting pycparser (from cffi>=2.0.0->cryptography)
+2026-11-07T14:06:46.4772730Z   Downloading pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
+2026-11-07T14:06:46.4869197Z Collecting attrs>=22.2.0 (from jsonschema>=4.20.0->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:46.4893974Z   Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+2026-11-07T14:06:46.4976840Z Collecting jsonschema-specifications>=2023.03.6 (from jsonschema>=4.20.0->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:46.5002084Z   Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl.metadata (2.9 kB)
+2026-11-07T14:06:46.5116325Z Collecting referencing>=0.28.4 (from jsonschema>=4.20.0->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:46.5143238Z   Downloading referencing-0.37.0-py3-none-any.whl.metadata (2.8 kB)
+2026-11-07T14:06:46.6878606Z Collecting rpds-py>=0.25.0 (from jsonschema>=4.20.0->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:46.6908617Z   Downloading rpds_py-2026.9.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.1 kB)
+2026-11-07T14:06:46.7127276Z Collecting python-dotenv>=1.2.2 (from pydantic-settings>=2.5.2->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:46.7155127Z   Downloading python_dotenv-1.2.4-py3-none-any.whl.metadata (29 kB)
+2026-11-07T14:06:46.7408717Z Collecting click>=7.0 (from uvicorn>=0.31.1->mcp<2,>=1.30->tmh-harness==0.4.0)
+2026-11-07T14:06:46.7437248Z   Downloading click-8.5.1-py3-none-any.whl.metadata (2.6 kB)
+2026-11-07T14:06:46.7506415Z Downloading mcp-1.30.0-py3-none-any.whl (234 kB)
+2026-11-07T14:06:46.7568893Z Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+2026-11-07T14:06:46.7611796Z Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+2026-11-07T14:06:46.7651726Z Downloading pydantic-2.14.3-py3-none-any.whl (494 kB)
+2026-11-07T14:06:46.7729541Z Downloading pydantic_core-2.50.4-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.3 MB)
+2026-11-07T14:06:46.8163652Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 50.2 MB/s  0:00:00
+2026-11-07T14:06:46.8202116Z Downloading pip-26.3-py3-none-any.whl (2.0 MB)
+2026-11-07T14:06:46.8407333Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 90.1 MB/s  0:00:00
+2026-11-07T14:06:46.8438526Z Downloading pytest-9.2.0-py3-none-any.whl (411 kB)
+2026-11-07T14:06:46.8497536Z Downloading pluggy-1.7.0-py3-none-any.whl (27 kB)
+2026-11-07T14:06:46.8545354Z Downloading cryptography-50.0.2-cp311-abi3-manylinux_2_34_x86_64.whl (4.8 MB)
+2026-11-07T14:06:46.9115237Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.8/4.8 MB 81.5 MB/s  0:00:00
+2026-11-07T14:06:46.9143362Z Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+2026-11-07T14:06:46.9188369Z Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+2026-11-07T14:06:46.9230723Z Downloading cffi-2.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)
+2026-11-07T14:06:46.9274997Z Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+2026-11-07T14:06:46.9314122Z Downloading httpx_sse-0.4.3-py3-none-any.whl (9.0 kB)
+2026-11-07T14:06:46.9352935Z Downloading idna-3.20-py3-none-any.whl (69 kB)
+2026-11-07T14:06:46.9396127Z Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+2026-11-07T14:06:46.9437460Z Downloading jsonschema-4.26.0-py3-none-any.whl (90 kB)
+2026-11-07T14:06:46.9483757Z Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+2026-11-07T14:06:46.9531473Z Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+2026-11-07T14:06:46.9572664Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+2026-11-07T14:06:46.9614846Z Downloading pydantic_settings-2.16.2-py3-none-any.whl (81 kB)
+2026-11-07T14:06:46.9657296Z Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+2026-11-07T14:06:46.9724462Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 221.5 MB/s  0:00:00
+2026-11-07T14:06:46.9750122Z Downloading pyjwt-2.15.1-py3-none-any.whl (33 kB)
+2026-11-07T14:06:46.9790084Z Downloading python_dotenv-1.2.4-py3-none-any.whl (23 kB)
+2026-11-07T14:06:46.9867863Z Downloading python_multipart-0.0.33-py3-none-any.whl (32 kB)
+2026-11-07T14:06:47.0082374Z Downloading referencing-0.37.0-py3-none-any.whl (26 kB)
+2026-11-07T14:06:47.0125203Z Downloading rpds_py-2026.9.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (370 kB)
+2026-11-07T14:06:47.0171613Z Downloading sse_starlette-3.7.0-py3-none-any.whl (18 kB)
+2026-11-07T14:06:47.0211531Z Downloading starlette-1.10.0-py3-none-any.whl (80 kB)
+2026-11-07T14:06:47.0251978Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+2026-11-07T14:06:47.0291644Z Downloading typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+2026-11-07T14:06:47.0330859Z Downloading uvicorn-0.54.0-py3-none-any.whl (87 kB)
+2026-11-07T14:06:47.0371583Z Downloading click-8.5.1-py3-none-any.whl (126 kB)
+2026-11-07T14:06:47.0412764Z Downloading certifi-2026.10.23-py3-none-any.whl (135 kB)
+2026-11-07T14:06:47.0454117Z Downloading pycparser-3.12-py3-none-any.whl (62 kB)
+2026-11-07T14:06:47.1097959Z Building wheels for collected packages: tmh-harness
+2026-11-07T14:06:47.1104828Z   Building wheel for tmh-harness (pyproject.toml): started
+2026-11-07T14:06:47.4593326Z   Building wheel for tmh-harness (pyproject.toml): finished with status 'done'
+2026-11-07T14:06:47.4608714Z   Created wheel for tmh-harness: filename=tmh_harness-0.4.0-py3-none-any.whl size=2013543 sha256=87e86987fa0de6f65b10ea02129e3ba448736fa02bc729ed787111bac087530c
+2026-11-07T14:06:47.4609648Z   Stored in directory: /tmp/pip-ephem-wheel-cache-8vkm7cqs/wheels/1a/2a/36/fb14fb440045b53ccc3dd650575b0447f3b6a748077e17e8c9
+2026-11-07T14:06:47.4627595Z Successfully built tmh-harness
+2026-11-07T14:06:47.5008731Z Installing collected packages: typing-extensions, tmh-harness, rpds-py, python-multipart, python-dotenv, pyjwt, pygments, pycparser, pluggy, pip, packaging, iniconfig, idna, httpx-sse, h11, click, certifi, attrs, annotated-types, uvicorn, typing-inspection, referencing, pytest, pydantic-core, httpcore, cffi, anyio, starlette, pydantic, jsonschema-specifications, httpx, cryptography, sse-starlette, pydantic-settings, jsonschema, mcp
+2026-11-07T14:06:48.7190587Z   Attempting uninstall: pip
+2026-11-07T14:06:48.7208679Z     Found existing installation: pip 26.2.2
+2026-11-07T14:06:48.7733189Z     Uninstalling pip-26.2.2:
+2026-11-07T14:06:48.7774634Z       Successfully uninstalled pip-26.2.2
+2026-11-07T14:06:50.9964670Z 
+2026-11-07T14:06:50.9987373Z Successfully installed annotated-types-0.8.0 anyio-4.16.0 attrs-26.1.0 certifi-2026.10.23 cffi-2.1.1 click-8.5.1 cryptography-50.0.2 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 httpx-sse-0.4.3 idna-3.20 iniconfig-2.3.1 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 mcp-1.30.0 packaging-26.3 pip-26.3 pluggy-1.7.0 pycparser-3.12 pydantic-2.14.3 pydantic-core-2.50.4 pydantic-settings-2.16.2 pygments-2.21.0 pyjwt-2.15.1 pytest-9.2.0 python-dotenv-1.2.4 python-multipart-0.0.33 referencing-0.37.0 rpds-py-2026.9.1 sse-starlette-3.7.0 starlette-1.10.0 tmh-harness-0.4.0 typing-extensions-4.16.0 typing-inspection-0.4.5 uvicorn-0.54.0
+2026-11-07T14:06:51.1335615Z ##[group]Run python -B -m pytest -q -p no:cacheprovider tests/test_reform_mcp.py tests/test_reform_tenant_mcp.py tests/test_workbench_mcp.py tests/test_reform_process_crash.py
+2026-11-07T14:06:51.1336408Z [36;1mpython -B -m pytest -q -p no:cacheprovider tests/test_reform_mcp.py tests/test_reform_tenant_mcp.py tests/test_workbench_mcp.py tests/test_reform_process_crash.py[0m
+2026-11-07T14:06:51.1354233Z shell: /usr/bin/bash -e {0}
+2026-11-07T14:06:51.1354373Z env:
+2026-11-07T14:06:51.1354490Z   PYTHONIOENCODING: utf-8
+2026-11-07T14:06:51.1354622Z   PYTHONUTF8: 1
+2026-11-07T14:06:51.1354745Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T14:06:51.1354927Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-07T14:06:51.1355167Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib/pkgconfig
+2026-11-07T14:06:51.1355401Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-07T14:06:51.1355727Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-07T14:06:51.1356082Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-07T14:06:51.1356299Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib
+2026-11-07T14:06:51.1356483Z ##[endgroup]
+2026-11-07T14:07:35.7793081Z ..................FFF..............                                  [100%]
+2026-11-07T14:07:35.7793454Z =================================== FAILURES ===================================
+2026-11-07T14:07:35.7793910Z _ WorkbenchMCPTest.test_generated_claude_configuration_launches_from_unrelated_directory _
+2026-11-07T14:07:35.7794360Z   + Exception Group Traceback (most recent call last):
+2026-11-07T14:07:35.7794999Z   |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 196, in test_generated_claude_configuration_launches_from_unrelated_directory
+2026-11-07T14:07:35.7796006Z   |     await self.check_generated_configuration("claude")
+2026-11-07T14:07:35.7796603Z   |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 168, in check_generated_configuration
+2026-11-07T14:07:35.7797230Z   |     async with stdio_client(params, errlog=errlog) as (read, write):
+2026-11-07T14:07:35.7797582Z   |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7798024Z   |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/contextlib.py", line 235, in __aexit__
+2026-11-07T14:07:35.7798448Z   |     await self.gen.athrow(value)
+2026-11-07T14:07:35.7798944Z   |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+2026-11-07T14:07:35.7799458Z   |     anyio.create_task_group() as tg,
+2026-11-07T14:07:35.7799717Z   |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+2026-11-07T14:07:35.7800184Z   |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+2026-11-07T14:07:35.7800925Z   |     raise BaseExceptionGroup(
+2026-11-07T14:07:35.7801215Z   |         "unhandled errors in a TaskGroup", self._exceptions
+2026-11-07T14:07:35.7801420Z   |     ) from None
+2026-11-07T14:07:35.7801599Z   | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+2026-11-07T14:07:35.7801816Z   +-+---------------- 1 ----------------
+2026-11-07T14:07:35.7801997Z     | Exception Group Traceback (most recent call last):
+2026-11-07T14:07:35.7802341Z     |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 169, in check_generated_configuration
+2026-11-07T14:07:35.7802945Z     |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10)) as session:
+2026-11-07T14:07:35.7803407Z     |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7803939Z     |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/mcp/shared/session.py", line 238, in __aexit__
+2026-11-07T14:07:35.7804637Z     |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+2026-11-07T14:07:35.7804868Z     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7805191Z     |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+2026-11-07T14:07:35.7805503Z     |     raise BaseExceptionGroup(
+2026-11-07T14:07:35.7805841Z     |         "unhandled errors in a TaskGroup", self._exceptions
+2026-11-07T14:07:35.7806079Z     |     ) from None
+2026-11-07T14:07:35.7806258Z     | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+2026-11-07T14:07:35.7806468Z     +-+---------------- 1 ----------------
+2026-11-07T14:07:35.7806626Z       | Traceback (most recent call last):
+2026-11-07T14:07:35.7806935Z       |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 173, in check_generated_configuration
+2026-11-07T14:07:35.7807337Z       |     self.assertEqual(len(tools), 26)  # five new plan read tools; mutation tools remain excluded
+2026-11-07T14:07:35.7807717Z       |     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7807869Z       | AssertionError: 27 != 26
+2026-11-07T14:07:35.7808014Z       +------------------------------------
+2026-11-07T14:07:35.7808248Z _ WorkbenchMCPTest.test_generated_codex_toml_launches_from_unrelated_directory _
+2026-11-07T14:07:35.7808501Z   + Exception Group Traceback (most recent call last):
+2026-11-07T14:07:35.7808882Z   |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 336, in test_generated_codex_toml_launches_from_unrelated_directory
+2026-11-07T14:07:35.7809259Z   |     await self.check_generated_configuration("codex")
+2026-11-07T14:07:35.7809582Z   |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 168, in check_generated_configuration
+2026-11-07T14:07:35.7809928Z   |     async with stdio_client(params, errlog=errlog) as (read, write):
+2026-11-07T14:07:35.7810134Z   |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7810390Z   |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/contextlib.py", line 235, in __aexit__
+2026-11-07T14:07:35.7810647Z   |     await self.gen.athrow(value)
+2026-11-07T14:07:35.7810952Z   |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+2026-11-07T14:07:35.7811263Z   |     anyio.create_task_group() as tg,
+2026-11-07T14:07:35.7811408Z   |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+2026-11-07T14:07:35.7811691Z   |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+2026-11-07T14:07:35.7811998Z   |     raise BaseExceptionGroup(
+2026-11-07T14:07:35.7812169Z   |         "unhandled errors in a TaskGroup", self._exceptions
+2026-11-07T14:07:35.7812340Z   |     ) from None
+2026-11-07T14:07:35.7812509Z   | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+2026-11-07T14:07:35.7812711Z   +-+---------------- 1 ----------------
+2026-11-07T14:07:35.7812883Z     | Exception Group Traceback (most recent call last):
+2026-11-07T14:07:35.7813207Z     |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 169, in check_generated_configuration
+2026-11-07T14:07:35.7813600Z     |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10)) as session:
+2026-11-07T14:07:35.7813880Z     |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7814202Z     |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/mcp/shared/session.py", line 238, in __aexit__
+2026-11-07T14:07:35.7814541Z     |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+2026-11-07T14:07:35.7814758Z     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7815187Z     |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+2026-11-07T14:07:35.7815518Z     |     raise BaseExceptionGroup(
+2026-11-07T14:07:35.7815975Z     |         "unhandled errors in a TaskGroup", self._exceptions
+2026-11-07T14:07:35.7816152Z     |     ) from None
+2026-11-07T14:07:35.7816329Z     | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+2026-11-07T14:07:35.7816533Z     +-+---------------- 1 ----------------
+2026-11-07T14:07:35.7816689Z       | Traceback (most recent call last):
+2026-11-07T14:07:35.7816997Z       |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 173, in check_generated_configuration
+2026-11-07T14:07:35.7817399Z       |     self.assertEqual(len(tools), 26)  # five new plan read tools; mutation tools remain excluded
+2026-11-07T14:07:35.7817643Z       |     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7817791Z       | AssertionError: 27 != 26
+2026-11-07T14:07:35.7817937Z       +------------------------------------
+2026-11-07T14:07:35.7818281Z _ WorkbenchMCPTest.test_generated_cursor_configuration_launches_from_unrelated_directory _
+2026-11-07T14:07:35.7818549Z   + Exception Group Traceback (most recent call last):
+2026-11-07T14:07:35.7818938Z   |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 199, in test_generated_cursor_configuration_launches_from_unrelated_directory
+2026-11-07T14:07:35.7819333Z   |     await self.check_generated_configuration("cursor")
+2026-11-07T14:07:35.7819673Z   |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 168, in check_generated_configuration
+2026-11-07T14:07:35.7820019Z   |     async with stdio_client(params, errlog=errlog) as (read, write):
+2026-11-07T14:07:35.7820219Z   |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7820474Z   |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/contextlib.py", line 235, in __aexit__
+2026-11-07T14:07:35.7820731Z   |     await self.gen.athrow(value)
+2026-11-07T14:07:35.7821037Z   |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+2026-11-07T14:07:35.7821351Z   |     anyio.create_task_group() as tg,
+2026-11-07T14:07:35.7821500Z   |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+2026-11-07T14:07:35.7821787Z   |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+2026-11-07T14:07:35.7822094Z   |     raise BaseExceptionGroup(
+2026-11-07T14:07:35.7822267Z   |         "unhandled errors in a TaskGroup", self._exceptions
+2026-11-07T14:07:35.7822440Z   |     ) from None
+2026-11-07T14:07:35.7822609Z   | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+2026-11-07T14:07:35.7822812Z   +-+---------------- 1 ----------------
+2026-11-07T14:07:35.7822986Z     | Exception Group Traceback (most recent call last):
+2026-11-07T14:07:35.7823318Z     |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 169, in check_generated_configuration
+2026-11-07T14:07:35.7823719Z     |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10)) as session:
+2026-11-07T14:07:35.7823997Z     |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7824321Z     |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/mcp/shared/session.py", line 238, in __aexit__
+2026-11-07T14:07:35.7824663Z     |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+2026-11-07T14:07:35.7824882Z     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7825201Z     |   File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+2026-11-07T14:07:35.7825507Z     |     raise BaseExceptionGroup(
+2026-11-07T14:07:35.7825817Z     |         "unhandled errors in a TaskGroup", self._exceptions
+2026-11-07T14:07:35.7826101Z     |     ) from None
+2026-11-07T14:07:35.7826280Z     | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+2026-11-07T14:07:35.7826488Z     +-+---------------- 1 ----------------
+2026-11-07T14:07:35.7826641Z       | Traceback (most recent call last):
+2026-11-07T14:07:35.7826949Z       |   File "/home/runner/work/webuddy-pitch/webuddy-pitch/tests/test_workbench_mcp.py", line 173, in check_generated_configuration
+2026-11-07T14:07:35.7827344Z       |     self.assertEqual(len(tools), 26)  # five new plan read tools; mutation tools remain excluded
+2026-11-07T14:07:35.7827586Z       |     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+2026-11-07T14:07:35.7827733Z       | AssertionError: 27 != 26
+2026-11-07T14:07:35.7827878Z       +------------------------------------
+2026-11-07T14:07:35.8997824Z =========================== short test summary info ============================
+2026-11-07T14:07:35.8998854Z FAILED tests/test_workbench_mcp.py::WorkbenchMCPTest::test_generated_claude_configuration_launches_from_unrelated_directory - AssertionError('27 != 26') [single exception in ExceptionGroup]
+2026-11-07T14:07:35.9000371Z FAILED tests/test_workbench_mcp.py::WorkbenchMCPTest::test_generated_codex_toml_launches_from_unrelated_directory - AssertionError('27 != 26') [single exception in ExceptionGroup]
+2026-11-07T14:07:35.9001211Z FAILED tests/test_workbench_mcp.py::WorkbenchMCPTest::test_generated_cursor_configuration_launches_from_unrelated_directory - AssertionError('27 != 26') [single exception in ExceptionGroup]
+2026-11-07T14:07:35.9001643Z 3 failed, 32 passed, 4 subtests passed in 44.15s
+2026-11-07T14:07:36.1368691Z ##[error]Process completed with exit code 1.
+2026-11-07T14:07:36.1468459Z Post job cleanup.
+2026-11-07T14:07:36.2076947Z [command]/usr/bin/git version
+2026-11-07T14:07:36.2118125Z git version 2.56.0
+2026-11-07T14:07:36.2149931Z Temporarily overriding HOME='/home/runner/work/_temp/00ef8b2d-c74f-424a-8eaf-2451e749ee65' before making global git config changes
+2026-11-07T14:07:36.2150646Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-07T14:07:36.2153065Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-07T14:07:36.2195408Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-07T14:07:36.2257989Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-07T14:07:36.2494233Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-07T14:07:36.2532379Z http.https://github.com/.extraheader
+2026-11-07T14:07:36.2554210Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-07T14:07:36.2598383Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-07T14:07:36.2845604Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-07T14:07:36.2887784Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-07T14:07:36.3245208Z Cleaning up orphan processes
+2026-11-07T14:07:36.3539767Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
