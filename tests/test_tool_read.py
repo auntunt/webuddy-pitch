@@ -168,6 +168,9 @@ class ToolReadTests(unittest.TestCase):
         cases.update(reforms_list={'project':'APP'},reform_preview={'project':'APP','scope_mode':'selected','domains':['sales']},
             reform_get={'project':'APP','plan_id':self.reform['id']},reform_events={'project':'APP','plan_id':self.reform['id']},
             reform_resume_preview={'project':'APP','plan_id':self.reform['id']})
+        from tmh.platform import report_exports
+        manifest=report_exports.create(self.P,self.p,self.reform,self.actor,dict(project='APP',plan_id=self.reform['id'],expected_revision=self.reform['revision'],request_id='read-only-export-fixture'))
+        cases['reform_report_get']={'project':'APP','plan_id':self.reform['id'],'export_id':manifest['export_id']}
         self.assertEqual(set(cases), set(tool_access.READ_OPERATIONS))
         before = snapshot(self.st)
         # Library schema is initialized at fixture registration, preserving the

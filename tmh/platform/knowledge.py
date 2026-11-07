@@ -372,7 +372,7 @@ class Knowledge:
 
     LAYER = {"entry": "入口", "controller": "入口", "service": "业务", "biz": "业务", "dao": "数据", "mapper": "数据", "repository": "数据"}
 
-    def atlas_flow(self, p: dict, fid: str) -> dict:
+    def atlas_flow(self, p: dict, fid: str, offset=0, limit=60) -> dict:
         """One flow as a chain: entry, the methods it runs (with layer, file:line and what each reads or writes), tables, side effects."""
         from .. import kb
         from ..graph import Graph
@@ -383,7 +383,10 @@ class Knowledge:
         reg = kb.load_registry(self.root(p))
         r = reg.get(n["id"], {})
         steps, seen = [], set()
-        for e in g.out(n["id"], "step")[:60]:
+        all_steps = list({e["dst"]:e for e in g.out(n["id"], "step")}.values())
+        if offset < 0 or not 1 <= limit <= 60:
+            raise ApiError(400,"步骤分页范围不正确")
+        for e in all_steps[offset:offset+limit]:
             m = g.node(e["dst"])
             if not m or m["id"] in seen:
                 continue
@@ -398,7 +401,9 @@ class Knowledge:
         d = n["data"]
         return {"id": n["id"], "title": r.get("title") or n["name"], "summary": r.get("summary", ""), "status": self._kb_status(r) if r else "仅事实",
                 "entry": d.get("trigger", ""), "kind": d.get("entry_kind", ""), "handler": d.get("handler", ""), "crud": d.get("crud") or {},
-                "file": n["file"], "line": n["line"], "steps": steps, "unresolved": d.get("unresolved") or 0,
+                "file": n["file"], "line": n["line"], "steps": steps, "steps_total":len(all_steps), "offset":offset,
+                "next_offset":offset+limit if offset+limit<len(all_steps) else None, "provenance":g.provenance(),
+                "relationship_basis":"静态解析；流程关联不代表逐方法调用或实测", "unresolved": d.get("unresolved") or 0,
                 "tickets": self._open_tickets_by_flow(p).get(n["id"], [])}
 
     def domain_detail(self, p: dict, did: str) -> dict:

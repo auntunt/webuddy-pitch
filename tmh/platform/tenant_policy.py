@@ -235,7 +235,7 @@ PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/si
 # project selector. They remain admin-only until their query layer is scoped.
 ADMIN_GLOBAL = frozenset(("/api/lead", "/api/readiness", "/api/testbox",
                          "/api/agent-settings", "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
-AGENT_OPERATIONS = frozenset("""reforms_list reform_get reform_preview reform_events reform_resume_preview reform_create reform_update reform_control reform_archive run_recover status projects_list tickets_list ticket_get delivery_get ticket_create message_send
+AGENT_OPERATIONS = frozenset("""reform_report_create reform_report_get reforms_list reform_get reform_preview reform_events reform_resume_preview reform_create reform_update reform_control reform_archive run_recover status projects_list tickets_list ticket_get delivery_get ticket_create message_send
 messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
 candidates_list candidate_get candidate_ci candidate_submit candidate_verify candidate_cancel candidate_preview
 candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel
@@ -672,7 +672,7 @@ def authorize(P, method, path, query, body, actor):
     if template == "/api/projects/<key>/ci" and method == 'POST':
         _check(P,who,_project(P,params['key']),'manager')
     safe |= template == '/api/projects/<key>/reforms'  # draft creation and read-only preview
-    safe |= template == '/api/projects/<key>/reforms/<pid>' and action in ('update','archive','remove')
+    safe |= template == '/api/projects/<key>/reforms/<pid>' and action in ('update','archive','remove','report_create')
     safe |= template in ("/api/tickets/<key>/development", "/api/projects/<key>/ci")
     safe |= template == "/api/team" and action == "assign"
     safe |= template == "/api/team" and action == "comment"

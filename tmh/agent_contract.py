@@ -81,6 +81,11 @@ SPECS.update({
     "run_recover":spec("核对已有运行的停止回执和所有权，可能进行受管回收；不重跑、不批准。",dict(project=PROJECT,run_id=RID,request_id=REQUEST),["project","run_id","request_id"],write=True,execution=True),
 })
 
+SPECS.update({
+    'reform_report_create':spec('显式生成冻结报告与完整附件。写入导出记录，不调用模型、不验收；原请求号可查询回执。',REFORM_MUTATION,list(REFORM_MUTATION),write=True),
+    'reform_report_get':spec('读取已有冻结清单或48KiB附件分段；逐段及整文件SHA256校验。同一export_id可恢复，不生成内容。',dict(REFORM_RESOURCE,export_id=text(pattern=r'^[0-9a-f]{64}$'),file=text(),offset=integer(minimum=0)),['project','plan_id','export_id']),
+})
+
 SID = text("需求对话编号；intake_start 返回的 session.id", pattern=r"^[0-9a-f]{12}$")
 ANSWERS = dict(type="array", minItems=1, maxItems=50, items=dict(type="object", additionalProperties=False,
     properties={"item": integer("事项序号，从 0 开始，即 items 里的位置"), "slot": text("问题的 slot", pattern=r"^[A-Za-z0-9_]{1,40}$"),

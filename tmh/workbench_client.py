@@ -13,7 +13,7 @@ import time
 from .agent_contract import SPECS, validate
 from . import workbench_credentials as credentials
 
-TENANT_WRITES = ("reform_create", "reform_update", "reform_control", "reform_archive", "run_recover", "ticket_create", "message_send", "run_start", "run_cancel", "run_retry", "ticket_hold",
+TENANT_WRITES = ("reform_report_create","reform_create", "reform_update", "reform_control", "reform_archive", "run_recover", "ticket_create", "message_send", "run_start", "run_cancel", "run_retry", "ticket_hold",
                  "intake_start", "intake_understand", "intake_answer")
 DEVELOP_WRITES = ("development_start", "development_propose", "development_answer", "candidate_submit", "candidate_verify", "candidate_cancel", "run_recheck")
 

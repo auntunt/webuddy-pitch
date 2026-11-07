@@ -420,3 +420,19 @@ data/agent-venv/bin/python -m unittest tests.test_workbench_mcp -v
 `reform_get` 的 `view=report` 与网页「下载场景报告」读取同一保存记录。报告包含场景材料、计划历史及关联子任务的交付依据，返回 Markdown 与完整 JSON；`current_validity=not_checked`。任务「下载阅读版」与 `delivery_get.report_markdown` 提供相同阅读格式。报告生成时间不表示重新执行测试，导出不能签收或合并。
 
 `reform_control` 启动/续排可能创建任务并触发既有执行器消耗；暂停只停止后续调度，不证明当前进程停止。`run_recover` 只核对并可能收尾原运行，不自动继续写代码。使用原请求号核对未知回执，不用新编号重复派发。
+
+### 固定版本完整报告与中断恢复（本轮增量）
+
+网页「生成或恢复场景报告」和 `reform_report_create` 是明确的内容写操作，要求当前计划修订与唯一请求号；不会执行测试或作出业务验收。重复请求读取同一导出。需要新的证据截点时明确生成新版本。
+
+`reform_report_get(project, plan_id, export_id)` 读取冻结清单；指定 `file` 和 `offset` 按清单的 `chunk_bytes` 分段读取。返回分段及整文件 SHA-256。每次仍校验当前租户、项目和连接权限，旧导出标识不授予权限。旧 `reform_get(view=report)` 仍保留原完整字段；大报告使用新的分段入口。
+
+更新个人客户端并重连 MCP 后，可以运行：
+
+```sh
+webuddy report-download PROJECT PLAN_ID EXPORT_ID ./delivery
+```
+
+此命令只读取已有导出，在本地保存清单、完整原始 JSON 和阅读版 Markdown。断线后使用同一命令继续；已有分段和最终文件都核对哈希。损坏文件保留供核对，不自动覆盖。报告生成后新的任务结果不会进入该导出，需另行生成新版本。冻结报告不声称证据当前仍有效。
+
+服务端导出随项目数据库备份与归档保存，不因读取或超时自动删除。浏览器缓存存于本站 IndexedDB，可通过浏览器清除此站点数据删除；清理后仍可按同一导出重新下载。下载到本人设备的文件按客户资料管理规则保存。升级新增两张独立导出表，旧业务表不变；程序回退不恢复旧数据库。新旧客户端工具列表不同，安装包升级后须重启 MCP 进程。

@@ -96,6 +96,21 @@ class ReformTenantMCPTest(unittest.IsolatedAsyncioTestCase):
                 lead={'title':'','body':''},wave=1,source_version='a'*40,target_environment='isolated fixture',
                 criteria=['Keep behavior'],dependencies=[],target='',knowledge_revision=preview['knowledge_revision'],request_id='tenant-plan-create'))
             resource={'project':'SAME','plan_id':plan['id']}
+            export_args=dict(resource,expected_revision=plan['revision'],request_id='frozen-report')
+            manifest=await self.call(session,'reform_report_create',export_args)
+            self.assertEqual(await self.call(session,'reform_report_create',export_args),manifest)
+            exported=dict(resource,export_id=manifest['export_id'])
+            chunk=await self.call(session,'reform_report_get',dict(exported,file='plan.json',offset=0))
+            import base64,hashlib
+            self.assertEqual(hashlib.sha256(base64.b64decode(chunk['data_base64'])).hexdigest(),chunk['sha256'])
+            denied=await self.call(session,'reform_report_get',dict(exported,project='PRIVATE'),True)
+            self.assertIn(denied['status'],(403,404))
+            reader=f.grant(scope='read',rid='report-reader')
+            async with self.session(reader) as readonly:
+                self.assertEqual(await self.call(readonly,'reform_report_get',exported),manifest)
+                result=await readonly.call_tool('webuddy_reform_report_create',dict(export_args,request_id='read-denied'))
+                self.assertTrue(result.isError)
+
             denied=await self.call(session,'reform_get',dict(resource,project='PRIVATE'),True)
             self.assertIn(denied['status'],(403,404))
             denied=await self.call(session,'reform_archive',dict(resource,expected_revision=plan['revision'],request_id='not-manager'),True)
@@ -106,7 +121,10 @@ class ReformTenantMCPTest(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(current['id'],plan['id'])
             receipt=await self.call(session,'request_get',{'request_id':'tenant-plan-create'})
             self.assertEqual(receipt['state'],'complete')
+            self.assertEqual(await self.call(session,'reform_report_get',exported),manifest)
             f.change('project_revoke',tenant=f.a,user='alice',project_id=1)
+            denied=await self.call(session,'reform_report_get',dict(exported,file='plan.json',offset=0),True)
+            self.assertIn(denied['status'],(401,403))
             denied=await self.call(session,'reform_get',resource,True)
             self.assertIn(denied['status'],(401,403))
             denied=await self.call(session,'request_get',{'request_id':'tenant-plan-create'},True)

@@ -1667,7 +1667,11 @@ def api_atlas(P, req, key):
 
 @route("GET", "/api/projects/<key>/atlas/flow/<fid>")
 def api_atlas_flow(P, req, key, fid):
-    return P.kb.atlas_flow(P.project(key), unquote(fid))
+    try:
+        offset = int(req.arg("offset") or 0)
+    except ValueError:
+        raise ApiError(400, "步骤分页偏移必须是整数")
+    return P.kb.atlas_flow(P.project(key), unquote(fid), offset)
 
 
 @route("GET", "/api/projects/<key>/statecharts")
@@ -2546,6 +2550,9 @@ def api_reforms(P, req, key):
             value = reform.plan(P.data_dir,p['key'],req.arg('plan_id'))
         except KeyError:
             raise ApiError(404,'没有这个项目的改造计划') from None
+        if req.arg('view')=='export':
+            from .report_exports import read
+            return read(P,p,value,{'export_id':req.arg('export_id'),'file':req.arg('file'),'offset':int(req.arg('offset') or 0)})
         if req.arg('view')=='report':
             return report(P,p,value)
         return resume_preview(P,p,value) if req.arg('view')=='resume' else packet(P,p,value)
@@ -2594,7 +2601,7 @@ def api_reform_act(P, req, key, pid):
     from . import reform
     p = P.project(key)
     try:
-        if req.body.get('action') in ('update','control','archive'):
+        if req.body.get('action') in ('update','control','archive','report_create'):
             from .reform_api import execute
             from ..agent_contract import validate
             operation = 'reform_'+req.body['action']

@@ -232,9 +232,9 @@ function atlDom(id){
   atlLegend([['#6941A5','业务流'],['#0F766E','数据表'],['#B45309','黄线：写入'],['#0F766E','青线：读取'],['#17643E','绿点：知识页已确认']]);
   atlSide(id)}
 // ---- level 3: 业务流的代码链路
-async function atlFlow(id){
+async function atlFlow(id,offset=0){
   AT.view='flow';AT.arg=id;const D=AT.d,f0=D.fm[id];
-  const F=await get('/api/projects/'+S.proj+'/atlas/flow/'+encodeURIComponent(id));AT.flow=F;
+  const F=await get('/api/projects/'+S.proj+'/atlas/flow/'+encodeURIComponent(id)+'?offset='+offset);AT.flow=F;
   const dm=f0&&D.dm[f0.domain];atlCrumb([dm?`<a href="#/atlas/${encodeURIComponent(dm.id)}">${h(dm.title)}</a>`:'',`<b>${h(F.title)}</b>`].filter(Boolean));
   // vertical layers: entry on top, then one band per layer (入口/业务/数据/其他), tables and outside calls at the bottom
   const W=250,H=66,GX=36,GY=70,PER=4,nodes=[],edges=[];const order=['入口','业务','数据','其他'];
@@ -242,23 +242,24 @@ async function atlFlow(id){
     it.x=(c-(inRow-1)/2)*(w+GX);it.y=y+r*(H+24);nodes.push(it)});y+=rows*(H+24)-24+GY};
   band([{id:'ep',w:W+40,h:H,c:'#C2410C',ty:'入口'+(F.kind?' · '+F.kind:''),title:F.entry||F.title,sub:F.handler}],W,1);
   order.forEach(l=>{const ss=F.steps.filter(s=>s.layer===l);if(!ss.length)return;
-    band(ss.map(s=>({id:s.id,w:W,h:H,c:LCOL[s.layer],ty:`第 ${F.steps.indexOf(s)+1} 步 · ${s.layer}层`,title:s.label,sub:s.comment||(s.file.split('/').pop()+':'+s.line)})),W,PER)});
+    band(ss.map(s=>({id:s.id,w:W,h:H,c:LCOL[s.layer],ty:`第 ${offset+F.steps.indexOf(s)+1} 项 · ${s.layer}层`,title:s.label,sub:s.comment||(s.file.split('/').pop()+':'+s.line)})),W,PER)});
   const ids=new Set(F.steps.map(s=>s.id)),hasIn=new Set();
-  F.steps.forEach(s=>s.calls.forEach(t=>{if(ids.has(t)&&t!==s.id){edges.push({a:s.id,b:t,c:'#4338CA',o:.7,w:1.4,curve:'v',cls:'flowing'});hasIn.add(t)}}));
-  if(F.steps[0]){edges.push({a:'ep',b:F.steps[0].id,c:'#C2410C',o:.8,w:1.6,curve:'v',cls:'flowing'});hasIn.add(F.steps[0].id)}
-  F.steps.forEach((s,i)=>{if(i&&!hasIn.has(s.id))edges.push({a:F.steps[i-1].id,b:s.id,c:'#64748B',o:.5,w:1,curve:'v',dash:'3 5'})});
+  F.steps.forEach(s=>s.calls.forEach(t=>{if(ids.has(t)&&t!==s.id){edges.push({a:s.id,b:t,label:'静态调用',c:'#4338CA',o:.7,w:1.4,curve:'v',cls:'flowing'});hasIn.add(t)}}));
+  if(F.steps[0]){edges.push({a:'ep',b:F.steps[0].id,label:'流程关联',dash:'3 5',c:'#C2410C',o:.8,w:1.6,curve:'v',cls:'flowing'});hasIn.add(F.steps[0].id)}
   const tabs=Object.keys(F.crud),fx=[...new Set(F.steps.flatMap(s=>s.effects))];
   band([...tabs.map(t=>{const T=D.tm[t]||{};return {id:'tbl:'+t,w:220,h:H-6,c:'#0F766E',ty:'数据表 · '+String(F.crud[t]).split('').map(o=>OPN[o]||o).join(''),title:t+(T.label?' '+T.label:''),sub:T.summary||''}}),
     ...fx.map(x=>({id:'fx:'+x,w:220,h:H-6,c:'#0369A1',ty:'外部调用',title:x}))],220,5);
   F.steps.forEach(s=>{s.io.forEach(io=>{if(F.crud[io.table]!=null)edges.push({a:s.id,b:'tbl:'+io.table,c:opCol(io.op),o:.75,w:1.4,curve:'v',label:OPN[io.op]||io.op,lc:'hi'})});s.effects.forEach(x=>edges.push({a:s.id,b:'fx:'+x,c:'#0369A1',o:.6,w:1.2,curve:'v',dash:'4 4'}))});
-  if(!F.steps.some(s=>s.io.length))tabs.forEach(t=>{const last=F.steps[F.steps.length-1];if(last)edges.push({a:last.id,b:'tbl:'+t,c:opCol(F.crud[t]),o:.5,w:1.1,curve:'v',dash:'3 5'})});
+  tabs.forEach(t=>{if(!F.steps.some(s=>s.io.some(io=>io.table===t)))edges.push({a:'ep',b:'tbl:'+t,c:'#64748B',dash:'3 5',label:'流程级关联·方法未知',o:.5,w:1,curve:'v'})});
   // open tickets stack to the left of the entry; past a few they fold into one "+N" card (the full list is in the side panel)
   const tks=F.tickets.slice(0,F.tickets.length>3?2:3),TX=-(W+40)/2-GX-W/2-30;
   const tk=(id,i,o)=>{nodes.push(Object.assign({id,x:TX,y:i*(H+8),w:W,h:H-6,c:'#B42318'},o));edges.push({a:id,b:'ep',c:'#B42318',o:.5,w:1,dash:'4 4',curve:'h'})};
   tks.forEach((t,i)=>tk('tk:'+t.key,i,{ty:'在办工单 · '+(S.meta.statuses.find(x=>x[0]===t.status)||[0,t.status])[1],title:t.key+' '+t.title}));
   if(F.tickets.length>tks.length)tk('tkmore',tks.length,{ty:'在办工单',title:`还有 ${F.tickets.length-tks.length} 张`,sub:'右侧列表里看全部'});
   atlDraw(nodes,edges);atlFit(null,40,1.05,.55);
-  $('#atlTl').innerHTML=`<b style="color:#6941A5">${h(F.title)}</b> · ${F.steps.length} 步 · ${tabs.length} 张表${F.unresolved?` · <span style="color:#B45309">${F.unresolved} 处静态分析断开</span>`:''}`;
+  $('#atlTl').innerHTML=`<b style="color:#6941A5">${h(F.title)}</b> · ${F.steps.length?offset+1:0}–${offset+F.steps.length} / ${F.steps_total} 项 · ${tabs.length} 张表${F.unresolved?` · <span style="color:#B45309">${F.unresolved} 处静态分析断开</span>`:''}`;
+  const source=document.createElement('details');source.innerHTML=`<summary>${h({current:'索引与当前源码一致',stale:'历史索引，当前源码已变化',unverifiable:'索引来源无法核对'}[F.provenance?.index_status]||'索引来源未知')}</summary><p>静态调用来自解析；流程关联不证明调用顺序或实测。尚有 ${Math.max(0,F.steps_total-offset-F.steps.length)} 项未在本页展开。</p><code>${h(F.provenance?.source_version||'旧索引未记录来源')}</code>`;$('#atlTl').append(source);
+  if(offset||F.next_offset!=null){const nav=document.createElement('span');for(const [label,page] of [['上一组',offset-60],['下一组',F.next_offset]])if(page!=null&&page>=0){const b=document.createElement('button');b.textContent=label;b.onclick=()=>atlFlow(id,page);nav.append(b)}$('#atlTl').append(nav)}
   atlLegend([['#C2410C','入口'],['#6941A5','业务层'],['#15803D','数据层'],['#0F766E','数据表'],['#0369A1','外部调用'],['#B42318','在办工单']]);
   atlSide(id)}
 // ---- side panel

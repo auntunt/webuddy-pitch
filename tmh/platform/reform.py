@@ -254,6 +254,23 @@ def dependencies(root: Path, limit: int = 300) -> list:
 
 # ---------------------------------------------------------------- plans and tickets
 
+# User-authored contract only. Runtime policy/batches are derived separately.
+CONTRACT_FIELDS = ('kind','title','goal','keep','scope_mode','domains','wave','target',
+    'source_version','target_environment','criteria','dependencies','knowledge_revision','scenario','lead')
+
+def contract(plan):
+    value = {k:plan[k] for k in CONTRACT_FIELDS if k in plan}
+    if 'items' in plan:
+        value['lead'] = next(({'title':i['title'],'body':i['body']} for i in plan['items'] if i.get('lead')), {'title':'','body':''})
+    return value
+
+def contract_changes(plan):
+    old=plan.get('predecessor_contract',{})
+    current=contract(plan)
+    return [{'field':k,'before':old.get(k),'before_status':'recorded' if k in old else '旧版本未记录',
+             'after':current.get(k)} for k in CONTRACT_FIELDS if k not in old or old[k]!=current.get(k)]
+
+
 def create(data_dir: Path, key: str, atlas: dict, b: dict, by: str, *, _db=None, _persist=True) -> dict:
     fingerprint = hashlib.sha256(json.dumps({'operation':'reform_create','arguments':dict(b,project=key)},ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
     if b.get('request_id') and _persist:
@@ -323,7 +340,7 @@ def create(data_dir: Path, key: str, atlas: dict, b: dict, by: str, *, _db=None,
             p['scenario'] = scenario
         if predecessor:
             p['supersedes'] = dict(predecessor)
-            p['predecessor_contract'] = {k:original.get(k) for k in ('goal','keep','criteria','target_environment','source_version','scenario','domains')}
+            p['predecessor_contract'] = contract(original)
         if b.get('source_version'):
             p['base'] = b['source_version']
             p['integration_policy'] = 'serial_batches'

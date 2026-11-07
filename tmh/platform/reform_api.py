@@ -38,23 +38,25 @@ def packet(P, project, p):
     value['scenario_record'] = recorded(p.get('scenario'))
     if p.get('supersedes'):
         old=p.get('predecessor_contract',{})
-        value['scope_changes']=[{'field':k,'before':v,'after':p.get(k)} for k,v in old.items() if v!=p.get(k)]
+        value['scope_changes']=reform.contract_changes(p)
     return value
 
 
 
-def report(P,project,p):
+def report(P,project,p, *, render=True):
     from .tool_read import delivery_get
     from ..scenario_contract import recorded
     from .scenario_report import markdown
     keys=list(dict.fromkeys(i['ticket'] for i in p['items']+p.get('integrations',[]) if i.get('ticket')))
-    children=[delivery_get(P,key,[project['id']]) for key in keys]
+    children=[delivery_get(P,key,[project['id']],render=render) for key in keys]
     value={'generated_at':now(),'ticket':{'key':p['id'],'title':p['title'],'body':p['goal']},
         'scenario':dict(recorded(p.get('scenario')),revision=p['revision'],source_version=p.get('source_version'),
                         target_environment=p.get('target_environment'),criteria=p.get('criteria'),keep=p.get('keep')),
         'plan_record':p,'child_evidence':children,'consumption':[r for c in children for r in c['consumption']],
         'current_validity':'not_checked','ready_to_merge':None,
         'next_step':'核对逐项要求、缺口及当前候选；由项目授权人员作出业务决定。保存报告不触发执行、签收或发布。'}
+    if not render:
+        return value
     return {'plan_id':p['id'],'revision':p['revision'],'generated_at':value['generated_at'],
             'current_validity':'not_checked','report_markdown':markdown(value),'record':value}
 
@@ -128,6 +130,11 @@ def execute(P, req, actor, operation, a):
         p = reform.plan(P.data_dir,project['key'],a['plan_id'],store=P.store)
     except KeyError:
         raise ApiError(404,'没有这个项目的改造计划') from None
+    if operation in ('reform_report_create','reform_report_get'):
+        from . import report_exports
+        if operation.endswith('create'):
+            req.agent_side_effect_started = True
+        return report_exports.create(P,project,p,actor,a) if operation.endswith('create') else report_exports.read(P,project,p,a)
     if operation == 'reform_get' and a.get('view')=='report':
         return report(P,project,p)
     if operation == 'reform_get':
@@ -177,10 +184,10 @@ def execute(P, req, actor, operation, a):
                 if 'supersedes' in changes:
                     raise ApiError(409,'后继关联不能原地改写；请建立新的关联草稿')
                 p.setdefault('revisions',[]).append(dict(revision=p['revision'],at=now(),actor=actor,reason=a['reason'],
-                    contract={key:p.get(key) for key in ('kind','title','goal','keep','scope_mode','domains','wave','target','source_version','target_environment','criteria','dependencies','knowledge_revision','scenario')},items=p['items']))
+                    contract=reform.contract(p),items=p['items']))
                 if not changes:
                     raise ApiError(400,'请明确要修订的字段')
-                body = {k:p.get(k) for k in ('kind','title','goal','keep','scope_mode','domains','wave','target','source_version','target_environment','criteria','dependencies','knowledge_revision','scenario')}
+                body = reform.contract(p)
                 body = {k:v for k,v in body.items() if v is not None}
                 body['lead'] = next(({'title':i['title'],'body':i['body']} for i in p['items'] if i.get('lead')),{'title':'','body':''})
                 body.update(changes)

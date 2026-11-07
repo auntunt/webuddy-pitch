@@ -363,7 +363,7 @@ def library_get(P, p):
             'runtime_status': 'not_checked', 'execution': False, 'notice': NOTICE}
 
 
-def delivery_get(P, key, visible_ids):
+def delivery_get(P, key, visible_ids, *, render=True):
     """One stored evidence packet for web and MCP; never an acceptance verdict."""
     from . import development, project_ci
     packet = ticket_get(P, key, visible_ids)
@@ -411,5 +411,6 @@ def delivery_get(P, key, visible_ids):
             'links': {'task': '#/t/' + t['key'], 'review': '#/team/ticket/' + t['key']}}
     from .store import now
     result['generated_at']=now()
-    result['report_markdown']=scenario_markdown(result)
+    if render:
+        result['report_markdown']=scenario_markdown(result)
     return result

@@ -17,13 +17,13 @@ import time
 from .errors import ApiError
 from .store import now
 
-READ_OPERATIONS = (
+READ_OPERATIONS = ("reform_report_get",
     "reforms_list", "reform_get", "reform_preview", "reform_events", "reform_resume_preview",
     "status", "projects_list", "tickets_list", "ticket_get", "delivery_get", "messages_list",
     "request_get", "run_get", "candidates_list", "candidate_get", "candidate_ci", "library_get",
     "library_search", "library_read", "preview_get", "intake_get", "development_get",
 )
-CONTENT_OPERATIONS = ("reform_create", "reform_update", "reform_archive", "ticket_create", "message_send", "intake_start")
+CONTENT_OPERATIONS = ("reform_report_create","reform_create", "reform_update", "reform_archive", "ticket_create", "message_send", "intake_start")
 EXECUTE_OPERATIONS = ("reform_control", "run_recover", "run_start", "run_cancel", "run_retry", "ticket_hold", "intake_understand", "intake_answer")
 DEVELOP_OPERATIONS = ("development_start", "development_propose", "development_answer", "candidate_submit", "candidate_verify", "candidate_cancel", "run_recheck")
 SCOPES = ("read", "content", "execute", "develop")
