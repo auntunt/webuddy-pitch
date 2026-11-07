@@ -11,7 +11,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from tmh import kb, context_pack as cp
-from tmh.graph import graph_path
+from tmh.graph import build as build_graph
 from tmh.platform import agents, learning as L, learning_facts as F, learning_decisions as D, learning_eval as E, server
 from tmh.platform.store import Store
 
@@ -37,8 +37,7 @@ class LearningContextTests(unittest.TestCase):
         self.page.write_text(text, encoding="utf-8", newline="")
         kb.save_registry(self.root, {"index": {"title": "项目说明", "status": kb.STATUS_DRAFT,
                                                "summary": "UNIQUE_VERIFIED_FACT"}})
-        graph_path(self.root).parent.mkdir(exist_ok=True)
-        graph_path(self.root).write_text("synthetic retrieval graph", newline="")
+        build_graph(self.root)
         item = L._origin(self.P, self.p, "fact:index")
         self.r = L.capture(self.P, self.p, item["key"], item["fingerprint"], "writer")
         F.project_revision(self.P, self.p, self.r, "alice", "first", F.revision_token(self.P, self.p, "index"), "人工检查")
