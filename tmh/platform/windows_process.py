@@ -42,8 +42,20 @@ for name, args, result in [
     ('CreateMutexW', [W.LPVOID, W.BOOL, W.LPCWSTR], W.HANDLE),
     ('WaitForSingleObject', [W.HANDLE, W.DWORD], W.DWORD),
     ('ReleaseMutex', [W.HANDLE], W.BOOL),
+    ('OpenProcess', [W.DWORD, W.BOOL, W.DWORD], W.HANDLE),
 ]:
     fn = getattr(K, name); fn.argtypes = args; fn.restype = result
+
+
+def is_running(pid):
+    """Observe exit state without sending a console event or terminating a PID."""
+    handle = K.OpenProcess(0x00100000, False, pid)  # SYNCHRONIZE, query only
+    if not handle:
+        return False
+    try:
+        return K.WaitForSingleObject(handle, 0) == 0x102  # WAIT_TIMEOUT
+    finally:
+        K.CloseHandle(handle)
 
 
 def checked(value):

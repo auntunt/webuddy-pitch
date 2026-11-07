@@ -1054,3 +1054,7 @@ fcadb650精确CI42279767492：Linux3.11完整3034通过、47跳过；3.13为3033
 第一轮精确检查9965b355/run42337432312发现Windows预览测试中断会连带结束外层分片进程：3.11/3.13分片6只记录13/30模块，不能称跑完。新增Windows CREATE_NEW_PROCESS_GROUP隔离每个pytest控制台进程组，原失败/缺失报告保留，下一轮重新完整执行。Mac MCP对照35项及67子用例通过、0跳过，只用于区别平台原因，不替代Windows结论。首轮本机检查因未安装pytest返回非零且无JUnit，已保留，安装隔离依赖后runner正常完成门禁模块。
 
 第二轮21f4e73/run42337860567显示新进程组仍不足：test_workbench已产生JUnit但控制器收到KeyboardInterrupt，分片6缺最后一条回执。改用DETACHED_PROCESS，测试与控制器不共享控制台；不吞掉中断或修改测试结果，继续重新执行。自有Windows从公网直连超时，改经43的已有SSH转发成功，真实Python3.11.9/Git2.55/Node24.18、12线程约32GB；GitHubTLS拉取失败，固定源码包传输与独立依赖安装继续，未关闭TLS或修改服务器网络配置。
+
+自有测试机MCP已真实完成（2026-11-07 12:33 CST）：固定21f4e73的tmh与官方MCP专项包SHA95ecb54d51de203375fcd29d2492d81d1c3ad55a749abd26582138a29d91dea3，远端验证后运行，15通过/1失败/4既有POSIX跳过，退出1，23.36秒；个人凭据unsupported为唯一失败，未删除安全门禁。原始JUnit与日志已下载读回，见evidence/windows-full-20261107。完整浅克隆包f01c90d112a5bf12953a464a6730c6a09ddc5c61c27f6cd8a283dcff849fa282（39209984字节）经既有SSH通道传输中；远端/本机脚本webuddy-win-full.ps1等待完整摘要，随后应用a9ce6f20增量并启动8分片。第三轮云端run42338796236进行中；未声明全量通过或全量完成。
+
+自有Windows确定性反例定位预览_alive的os.kill(pid,0)：隔离目标只输出before即以0退出，没有after；退出码0不代表检查完成。最小修复用OpenProcess(SYNCHRONIZE)+WaitForSingleObject(0)查询并关闭句柄，不发信号、不新增终止权限。实机修后输出before/alive True/after，新回归验证当前进程、存活子进程、退出子进程且禁止os.kill，通过。Mac相关17通过/6 Windows专用跳过。Windows执行模块8过/2失败，两项supervisor owner_lost在原21f4e73和修后代码均真实复现，已保留前后原回执，未归零或忽略。全量平台模块300秒预算不足导致后续用例缺失，改为通过pytest原生收集后逐用例执行该模块，其他模块不变，所有原断言保留；runner本机门禁模块实际通过。下一候选重新验证。

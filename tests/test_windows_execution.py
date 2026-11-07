@@ -49,6 +49,23 @@ class NewlineContracts(unittest.TestCase):
 
 @unittest.skipUnless(os.name=='nt','Windows Job Object API')
 class WindowsOwnership(unittest.TestCase):
+    def test_preview_liveness_never_signals_a_live_process(self):
+        from tmh.platform.preview import _alive
+        from unittest.mock import patch
+        with patch('os.kill', side_effect=AssertionError('liveness must not signal')):
+            self.assertTrue(_alive(os.getpid()))
+            self.assertFalse(_alive(0))
+            child = subprocess.Popen([sys.executable, '-c', 'import sys; sys.stdin.read()'],
+                                     stdin=subprocess.PIPE)
+            try:
+                self.assertTrue(_alive(child.pid))
+                child.communicate(timeout=5)
+                self.assertFalse(_alive(child.pid))
+            finally:
+                if child.poll() is None:
+                    child.kill()
+                    child.wait()
+
     def test_receipt_reader_does_not_block_atomic_publication(self):
         from concurrent.futures import ThreadPoolExecutor
         from tmh.platform.supervised_process import _atomic_json, _json
