@@ -44,6 +44,32 @@ class ReformIntegrationTest(unittest.TestCase):
         self.assertEqual(saved['batch'],2)
         self.assertEqual(len(saved['integrations']),1)
 
+    def test_paused_fixed_batch_completion_resumes_integration_then_one_next_part(self):
+        first=reform.release(self.P,self.p,self.plan['id'],None,'fixture-owner')[0]
+        def pause():
+            with reform._transaction(self.P.data_dir,self.P.store) as db:
+                plans=reform._load(self.P.data_dir,'EXT',db)
+                plans[0]['paused']='synthetic pause: current executor may continue'
+                reform._save(self.P.data_dir,'EXT',plans,db)
+        pause()
+        self.assertEqual(reform.outcome(self.P,self.p,self.accepted_fixture(first,self.fixture.sha),True,'fixture'),[])
+        registered=reform.resume(self.P,self.p,self.plan['id'],'fixture-owner')
+        self.assertEqual(len(registered['opened']),1)
+        integration=self.P.store.ticket(registered['opened'][0])
+        self.assertEqual(integration['links']['reform']['role'],'integration')
+        self.assertEqual(reform.resume(self.P,self.p,self.plan['id'],'fixture-owner')['opened'],[])
+        pause()
+        accepted=self.accepted_fixture(integration['key'],self.fixture.sha)
+        with patch('tmh.platform.reform_state.ticket',return_value={'evidence_validity':'valid'}):
+            self.assertEqual(reform.outcome(self.P,self.p,accepted,True,'fixture'),[])
+            resumed=reform.resume(self.P,self.p,self.plan['id'],'fixture-owner')
+            self.assertEqual(len(resumed['opened']),1)
+            self.assertEqual(self.P.store.ticket(resumed['opened'][0])['links']['base'],self.fixture.sha)
+            self.assertEqual(reform.resume(self.P,self.p,self.plan['id'],'fixture-owner')['opened'],[])
+        saved=reform.plan(self.P.data_dir,'EXT',self.plan['id'])
+        self.assertEqual(saved['batch'],2)
+        self.assertEqual(len(saved['integrations']),1)
+
     def test_closed_integration_without_current_evidence_never_releases_next_batch(self):
         first=reform.release(self.P,self.p,self.plan['id'],None,'fixture-owner')[0]
         opened=reform.outcome(self.P,self.p,self.accepted_fixture(first,self.fixture.sha),True,'fixture')

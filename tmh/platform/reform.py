@@ -173,10 +173,15 @@ def split(atlas: dict, domains: list, scope_mode: str | None = None) -> list:
 def preview(atlas, body):
     revision = hashlib.sha256(json.dumps(atlas,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
     items=split(atlas,list(body.get('domains') or []),body.get('scope_mode')) if atlas.get('built') else []
+    lead = body.get("lead") or {}
+    if items and ((lead.get("title") or "").strip() or (lead.get("body") or "").strip()):
+        items.insert(0, {"order": 0, "lead": True, "domain": "", "title": (lead.get("title") or "先导部分").strip(),
+                         "body": lead.get("body") or "", "flows": 0, "tables": 0, "flow_ids": [], "files": [],
+                         "shared": [], "unresolved": 0, "score": 0, "risk": "低"})
     return {'items':items,'knowledge_revision':revision,
         'requested_wave':body.get('wave',1),'effective_wave':1,'execution_strategy':'serial_batches',
         'scheduling_reason':'未登记代码可并行关系；每个代码部分完成固定集成验证后再推进',
-        'batches':[dict(batch=index+1,domains=[item['domain']]) for index,item in enumerate(items)]}
+        'batches':[dict(batch=index+1,kind='lead' if item.get('lead') else 'domain',orders=[item['order']],domains=[] if item.get('lead') else [item['domain']]) for index,item in enumerate(items)]}
 
 
 # ---------------------------------------------------------------- dependencies
@@ -268,10 +273,11 @@ def create(data_dir: Path, key: str, atlas: dict, b: dict, by: str, *, _db=None,
         raise ValueError("写清楚要改成什么样：目标、范围和不能变的东西")
     if not atlas.get("built"):
         raise ValueError("项目还没有知识库，没法按业务域拆分。先在知识库页建设一次")
-    knowledge_revision = preview(atlas,b)['knowledge_revision']
+    prepared = preview(atlas,b)
+    knowledge_revision = prepared['knowledge_revision']
     if b.get('knowledge_revision') and b['knowledge_revision'] != knowledge_revision:
         raise ValueError('项目知识已变化，请重新预览；原稿未修改')
-    items = split(atlas, list(b.get("domains") or []), b.get('scope_mode'))
+    items = prepared['items']
     if not items:
         raise ValueError("没有选中任何业务域")
     target = (b.get("target") or "").strip().strip("/")
@@ -279,11 +285,6 @@ def create(data_dir: Path, key: str, atlas: dict, b: dict, by: str, *, _db=None,
         raise ValueError("跨语言重写要写明新代码放在哪个目录，例如 java")
     if target and (target.startswith(".") or ".." in target.split("/") or ":" in target):
         raise ValueError("目标目录要写项目里的相对路径，例如 java")
-    lead = b.get("lead") or {}
-    if (lead.get("title") or "").strip() or (lead.get("body") or "").strip():
-        items.insert(0, {"order": 0, "lead": True, "domain": "", "title": (lead.get("title") or "先导部分").strip(),
-                         "body": lead.get("body") or "", "flows": 0, "tables": 0, "flow_ids": [], "files": [],
-                         "shared": [], "unresolved": 0, "score": 0, "risk": "低"})
     with (nullcontext(_db) if _db is not None else _transaction(data_dir)) as db:
         ps = _load(data_dir, key, db)
         if b.get('request_id') and _persist:

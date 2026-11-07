@@ -220,3 +220,16 @@ class ReformDurabilityTest(unittest.TestCase):
         self.close(a['key'])
         current=reform.view(self.P,self.proj,saved)
         self.assertEqual((current['counts']['first_pass'],current['counts']['first_verdict_total']),(1,2))
+
+    def test_preview_and_saved_plan_share_the_complete_lead_and_scope(self):
+        body=dict(title='Exact preview',goal='Keep all requirements',scope_mode='selected',domains=['0','1'],
+            lead={'title':'Foundation','body':'Full lead contract\n'+'tail'*4000},wave=2)
+        preview=reform.preview(self.atlas,body)
+        saved=reform.create(self.data,'RF',self.atlas,dict(body,knowledge_revision=preview['knowledge_revision']),'owner')
+        self.assertEqual(preview['items'],saved['items'])
+        self.assertTrue(preview['items'][0]['lead'])
+        self.assertEqual(preview['batches'][0]['kind'],'lead')
+        empty=dict(body,domains=[])
+        self.assertEqual(reform.preview(self.atlas,empty)['items'],[])
+        with self.assertRaisesRegex(ValueError,'没有选中'):
+            reform.create(self.data,'RF',self.atlas,empty,'owner')

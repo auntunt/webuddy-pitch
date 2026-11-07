@@ -1,4 +1,5 @@
 """Official MCP SDK/stdio against the actual HTTP service and durable SQLite plans."""
+import asyncio
 import json
 import os
 import sys
@@ -120,6 +121,43 @@ class ReformMCPTest(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(receipt['state'],'complete')
             conflict=await self.call(session,'reform_control',dict(original,action='resume'),True)
             self.assertEqual(conflict['status'],409)
+
+    async def test_two_stdio_clients_concurrently_start_one_batch_and_replay_one_receipt(self):
+        async with self.session('--allow-execution') as first, self.session('--allow-execution') as second:
+            plan,_=await self.create(first)
+            resource=dict(project='EXT',plan_id=plan['id'])
+            arguments=[dict(resource,expected_revision=plan['revision'],action='start',request_id='concurrent-'+str(i)) for i in range(2)]
+            results=await asyncio.gather(*(session.call_tool('webuddy_reform_control',body) for session,body in zip((first,second),arguments)))
+            self.assertEqual(sum(not result.isError for result in results),1)
+            loser=next(result for result in results if result.isError)
+            self.assertEqual(loser.structuredContent['status'],409)
+            winner=next(i for i,result in enumerate(results) if not result.isError)
+            replay=await first.call_tool('webuddy_reform_control',arguments[winner])
+            self.assertFalse(replay.isError)
+            self.assertEqual(replay.structuredContent,results[winner].structuredContent)
+            self.assertEqual(len(self.submitted),1)
+            self.assertEqual(len(self.P.store.q('SELECT * FROM reform_dispatch')),1)
+        async with self.session('--allow-execution') as reconnected:
+            current=await self.call(reconnected,'reform_get',resource)
+            self.assertEqual(current['batch'],1)
+            self.assertEqual(current['counts']['released'],1)
+            receipt=await self.call(reconnected,'request_get',{'request_id':arguments[winner]['request_id']})
+            self.assertEqual(receipt['state'],'complete')
+            self.assertEqual(len(self.submitted),1)
+
+    async def test_typed_preview_with_lead_matches_created_plan_without_start(self):
+        async with self.session() as session:
+            _,args=await self.create(session)
+            lead={'title':'Shared foundation','body':'Full foundation scope\n'+'tail'*4000}
+            preview=await self.call(session,'reform_preview',dict(project='EXT',scope_mode='selected',domains=['sales'],wave=2,lead=lead))
+            saved=await self.call(session,'reform_create',dict(args,lead=lead,wave=2,knowledge_revision=preview['knowledge_revision'],request_id='lead-preview-create'))
+            self.assertEqual(preview['items'],[{key:item[key] for key in expected} for expected,item in zip(preview['items'],saved['items'])])
+            self.assertEqual(len(preview['items']),len(saved['items']))
+            self.assertEqual(preview['batches'][0]['kind'],'lead')
+            self.assertEqual(saved['counts']['released'],0)
+            scope=await self.call(session,'reform_get',dict(project='EXT',plan_id=saved['id'],view='scope'))
+            self.assertEqual(scope['scope']['lead'],lead)
+            self.assertEqual(self.submitted,[])
 
     def web(self,path,body=None):
         request=urllib.request.Request(self.endpoint+path,data=json.dumps(body).encode() if body is not None else None,

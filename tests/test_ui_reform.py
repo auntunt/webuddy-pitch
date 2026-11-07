@@ -41,3 +41,6 @@ class ReformUiTest(unittest.TestCase):
 
     def test_list_keeps_bound_deep_link_and_current_counts(self):
         self.run_js("getHandler=()=>({items:[{...plan,state:'paused'}],built:true,has_more:false});await rfList('APP');assert.ok(main.querySelector('[href=\"#/projects/APP/reforms/plan-1\"]'));assert.match(main.textContent,/已验收 0 [/] 4/);assert.match(main.textContent,/第 1 批/);assert.equal(mutations.length,0);")
+
+    def test_scope_keeps_full_lead_dependencies_and_contract_text(self):
+        self.run_js(r"plan.goal='完整目标';plan.keep='接口不变';plan.dependencies=['先核对退款规则'];plan.items=[{lead:true,title:'先导',body:'正文'.repeat(4000)+'尾部约束'}];await rfWorkspace('APP','plan-1','scope');assert.match(main.textContent,/完整目标/);assert.match(main.textContent,/接口不变/);assert.match(main.textContent,/先核对退款规则/);assert.match(main.textContent,/尾部约束/);")

@@ -67,7 +67,7 @@ REFORM_MUTATION = dict(REFORM_RESOURCE,expected_revision=integer("当前计划�
 SPECS.update({
     "reforms_list":spec("按项目分页读取同一套持久改造计划。归档与活动分开；不启动执行。",dict(PAGE,project=PROJECT,archived=dict(type="boolean",default=False),status=text(enum=["draft","active","paused","blocked","accepted","cancelled","archived"])),["project"]),
     "reform_get":spec("读取当前摘要；scope/tasks/checkpoints视图读取完整范围或分页内容。not_checked不能当作通过。",dict(PAGE,**REFORM_RESOURCE,view=text(enum=["summary","scope","tasks","checkpoints"])),["project","plan_id"]),
-    "reform_preview":spec("按明确范围与固定知识修订预览拆分；不建单、不调用模型。",dict(project=PROJECT,scope_mode=REFORM_FIELDS['scope_mode'],domains=REFORM_FIELDS['domains'],wave=REFORM_FIELDS['wave']),["project","scope_mode","domains"]),
+    "reform_preview":spec("按明确范围与固定知识修订预览拆分；不建单、不调用模型。",dict(project=PROJECT,scope_mode=REFORM_FIELDS['scope_mode'],domains=REFORM_FIELDS['domains'],wave=REFORM_FIELDS['wave'],lead=REFORM_FIELDS['lead']),["project","scope_mode","domains"]),
     "reform_events":spec("按稳定事件ID分页读取完整已保存历史；早期历史缺口会明确标注。",dict(PAGE,**REFORM_RESOURCE),["project","plan_id"]),
     "reform_resume_preview":spec("读取计划及现行运行恢复预检，不清除未知结果，不启动执行。",REFORM_RESOURCE,["project","plan_id"]),
     "reform_create":spec("保存完整改造草稿，返回身份和修订；创建不会启动执行。",dict(REFORM_FIELDS,project=PROJECT,request_id=REQUEST),list(REFORM_FIELDS)+["project","request_id"],write=True),
