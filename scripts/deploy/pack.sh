@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # 在本机打部署包：平台代码 + 一份平台数据（运维 JeecgBoot 和重构 RealWorld 两个项目合在一起）+ 两个项目的知识库和改动分支。
-# 不含源码仓库本身（服务器上从 GitHub 克隆），不含任何密钥。
+# 历史演示数据迁移专用，不用于 Docker 镜像或公开分发。
+# data 是完整运行数据，可能含账号、会话和签名密钥；按私有备份管理。
+# 通用镜像及外部配置见 docs/deployment-config.md；原数据不能随镜像发布。
 # 用法：pack.sh <平台代码目录> <JeecgBoot 测试目录> <重构数据快照目录> <输出目录>
 #   例：pack.sh ~/Desktop/workspace/运维智能体/tob-maintenance-harness ~/tmh-jeecg-test \
 #             ~/Desktop/workspace/运维智能体/实测项目/_截图数据/RW ~/Desktop/webuddy-包
