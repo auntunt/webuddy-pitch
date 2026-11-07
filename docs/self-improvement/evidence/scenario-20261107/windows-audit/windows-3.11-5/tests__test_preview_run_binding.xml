@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="44" time="81.115" timestamp="2026-11-07T12:32:09.043925+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_bound_grants_and_forwarding_preserve_prefix_and_form_body" time="3.702" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_bound_stop_does_not_stop_another_runs_preview" time="6.028" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit" time="3.789"><failure message="subprocess.TimeoutExpired: Command '['git', '-C', 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmh-preview-binding-xm_2c2ff\\repo', 'rev-parse', '--disambiguate=b98aec6a30']' timed out after None seconds">input = None, capture_output = True, timeout = None, check = False
+popenargs = (['git', '-C', 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmh-preview-binding-xm_2c2ff\\repo', 'rev-parse', '--disambiguate=b98aec6a30'],)
+kwargs = {'text': True, 'stdout': -1, 'stderr': -1}
+
+    def run(*popenargs,
+            input=None, capture_output=False, timeout=None, check=False, **kwargs):
+        """Run command with arguments and return a CompletedProcess instance.
+    
+        The returned instance will have attributes args, returncode, stdout and
+        stderr. By default, stdout and stderr are not captured, and those attributes
+        will be None. Pass stdout=PIPE and/or stderr=PIPE in order to capture them,
+        or pass capture_output=True to capture both.
+    
+        If check is True and the exit code was non-zero, it raises a
+        CalledProcessError. The CalledProcessError object will have the return code
+        in the returncode attribute, and output &amp; stderr attributes if those streams
+        were captured.
+    
+        If timeout is given, and the process takes too long, a TimeoutExpired
+        exception will be raised.
+    
+        There is an optional argument "input", allowing you to
+        pass bytes or a string to the subprocess's stdin.  If you use this argument
+        you may not also use the Popen constructor's "stdin" argument, as
+        it will be used internally.
+    
+        By default, all communication is in bytes, and therefore any "input" should
+        be bytes, and the stdout and stderr will be bytes. If in text mode, any
+        "input" should be a string, and stdout and stderr will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode is
+        triggered by setting any of text, encoding, errors or universal_newlines.
+    
+        The other arguments are the same as for the Popen constructor.
+        """
+        if input is not None:
+            if kwargs.get('stdin') is not None:
+                raise ValueError('stdin and input arguments may not both be used.')
+            kwargs['stdin'] = PIPE
+    
+        if capture_output:
+            if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+                raise ValueError('stdout and stderr arguments may not be used '
+                                 'with capture_output.')
+            kwargs['stdout'] = PIPE
+            kwargs['stderr'] = PIPE
+    
+        with Popen(*popenargs, **kwargs) as process:
+            try:
+&gt;               stdout, stderr = process.communicate(input, timeout=timeout)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\subprocess.py:550: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;Popen: returncode: 1 args: ['git', '-C', 'C:\\Users\\runneradmin\\AppData\\...&gt;
+input = None, timeout = None
+
+    def communicate(self, input=None, timeout=None):
+        """Interact with process: Send data to stdin and close it.
+        Read data from stdout and stderr, until end-of-file is
+        reached.  Wait for process to terminate.
+    
+        The optional "input" argument should be data to be sent to the
+        child process, or None, if no data should be sent to the child.
+        communicate() returns a tuple (stdout, stderr).
+    
+        By default, all communication is in bytes, and therefore any
+        "input" should be bytes, and the (stdout, stderr) will be bytes.
+        If in text mode (indicated by self.text_mode), any "input" should
+        be a string, and (stdout, stderr) will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode
+        is triggered by setting any of text, encoding, errors or
+        universal_newlines.
+        """
+    
+        if self._communication_started and input:
+            raise ValueError("Cannot send input after starting communication")
+    
+        # Optimization: If we are not worried about timeouts, we haven't
+        # started communicating, and we have one or zero pipes, using select()
+        # or threads is unnecessary.
+        if (timeout is None and not self._communication_started and
+            [self.stdin, self.stdout, self.stderr].count(None) &gt;= 2):
+            stdout = None
+            stderr = None
+            if self.stdin:
+                self._stdin_write(input)
+            elif self.stdout:
+                stdout = self.stdout.read()
+                self.stdout.close()
+            elif self.stderr:
+                stderr = self.stderr.read()
+                self.stderr.close()
+            self.wait()
+        else:
+            if timeout is not None:
+                endtime = _time() + timeout
+            else:
+                endtime = None
+    
+            try:
+&gt;               stdout, stderr = self._communicate(input, endtime, timeout)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\subprocess.py:1209: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;Popen: returncode: 1 args: ['git', '-C', 'C:\\Users\\runneradmin\\AppData\\...&gt;
+input = None, endtime = None, orig_timeout = None
+
+    def _communicate(self, input, endtime, orig_timeout):
+        # Start reader threads feeding into a list hanging off of this
+        # object, unless they've already been started.
+        if self.stdout and not hasattr(self, "_stdout_buff"):
+            self._stdout_buff = []
+            self.stdout_thread = \
+                    threading.Thread(target=self._readerthread,
+                                     args=(self.stdout, self._stdout_buff))
+            self.stdout_thread.daemon = True
+            self.stdout_thread.start()
+        if self.stderr and not hasattr(self, "_stderr_buff"):
+            self._stderr_buff = []
+            self.stderr_thread = \
+                    threading.Thread(target=self._readerthread,
+                                     args=(self.stderr, self._stderr_buff))
+            self.stderr_thread.daemon = True
+            self.stderr_thread.start()
+    
+        if self.stdin:
+            self._stdin_write(input)
+    
+        # Wait for the reader threads, or time out.  If we time out, the
+        # threads remain reading and the fds left open in case the user
+        # calls communicate again.
+        if self.stdout is not None:
+            self.stdout_thread.join(self._remaining_time(endtime))
+            if self.stdout_thread.is_alive():
+&gt;               raise TimeoutExpired(self.args, orig_timeout)
+E               subprocess.TimeoutExpired: Command '['git', '-C', 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmh-preview-binding-xm_2c2ff\\repo', 'rev-parse', '--disambiguate=b98aec6a30']' timed out after None seconds
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\subprocess.py:1630: TimeoutExpired
+
+During handling of the above exception, another exception occurred:
+
+self = &lt;unittest.case._Outcome object at 0x000002AFE80E0FD0&gt;
+test_case = &lt;test_preview_run_binding.PreviewRunBindingTest testMethod=test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_preview_run_binding.PreviewRunBindingTest testMethod=test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit&gt;
+result = &lt;TestCaseFunction test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_preview_run_binding.PreviewRunBindingTest testMethod=test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit&gt;
+method = &lt;bound method PreviewRunBindingTest.test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit of &lt;test_preview_run_binding.PreviewRunBindingTest testMethod=test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_preview_run_binding.PreviewRunBindingTest testMethod=test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit&gt;
+
+    def test_branch_moves_but_post_and_real_worktree_stay_on_adopted_commit(self):
+        self.git("branch", "-f", "tmh/first", self.second)
+        process = SimpleNamespace(pid=999999)
+        popen = subprocess.Popen
+        launch = lambda *args, **kwargs: process if kwargs.get("shell") else popen(*args, **kwargs)
+        with mock.patch.object(preview.subprocess, "Popen", side_effect=launch), \
+                mock.patch.object(preview.threading, "Thread"), mock.patch.object(preview, "_alive", return_value=True):
+&gt;           result = server.api_preview_do(self.P, self.req({"action": "start", "run_id": self.r1["id"]}), self.ticket["key"])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_preview_run_binding.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(store=&lt;tmh.platform.store.Store object at 0x000002AFE8313F90&gt;, data_dir=WindowsPath('C:/Users/RUNNER~1/AppDa....platform.store.Store object at 0x000002AFE8313F90&gt;&gt;, runner=&lt;tmh.platform.agents.Runner object at 0x000002AFE831CE10&gt;)
+req = &lt;tmh.platform.server.Req object at 0x000002AFE81116D0&gt;, key = 'APP-1'
+
+    @route("POST", "/api/tickets/&lt;key&gt;/preview")
+    def api_preview_do(P, req, key):
+        """{"action": "start" | "stop", "run_id": N?}: preview the specified run's exact adopted commit."""
+        from . import preview
+        t = P.ticket(key)
+        act, run_id = req.body.get("action"), req.body.get("run_id")
+        if act == "stop":
+            return preview.stop_for_ticket(P, t, req.user, run_id)
+        elif act == "start":
+&gt;           return preview.start_for_ticket(P, t, req.user, run_id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\server.py:3079: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(store=&lt;tmh.platform.store.Store object at 0x000002AFE8313F90&gt;, data_dir=WindowsPath('C:/Users/RUNNER~1/AppDa....platform.store.Store object at 0x000002AFE8313F90&gt;&gt;, runner=&lt;tmh.platform.agents.Runner object at 0x000002AFE831CE10&gt;)
+t = {'id': 1, 'project_id': 1, 'num': 1, 'title': 'First ticket', ...}
+by = '自动流转', run_id = 1
+
+    def start_for_ticket(P, t: dict, by: str, run_id=None) -&gt; dict:
+&gt;       binding = run_binding(P, t, run_id) if run_id is not None else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\preview.py:219: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(store=&lt;tmh.platform.store.Store object at 0x000002AFE8313F90&gt;, data_dir=WindowsPath('C:/Users/RUNNER~1/AppDa....platform.store.Store object at 0x000002AFE8313F90&gt;&gt;, runner=&lt;tmh.platform.agents.Runner object at 0x000002AFE831CE10&gt;)
+t = {'id': 1, 'project_id': 1, 'num': 1, 'title': 'First ticket', ...}
+run_id = 1
+
+    def run_binding(P, t: dict, run_id) -&gt; dict:
+        """The accepted commit of exactly this run, independent of newer adoptions or moving branches."""
+        if not ((type(run_id) is int and run_id &gt; 0) or
+                (isinstance(run_id, str) and re.fullmatch(r"[1-9][0-9]{0,18}", run_id))):
+            raise ApiError(400, "run_id 必须是正整数")
+        rid = int(run_id)
+        if rid &gt; 2 ** 63 - 1:
+            raise ApiError(400, "run_id 超出有效范围")
+        with P.store.lock:
+            r = P.store.run(rid)
+            if not r or r["ticket_id"] != t["id"] or r["project_id"] != t["project_id"]:
+                raise ApiError(404, "这张工单没有这次运行")
+            decision = re.fullmatch(r"accepted:(.+)@([0-9a-fA-F]{4,64})", r.get("decision") or "")
+            if r["mode"] != "fix" or not decision:
+                raise ApiError(409, "这次运行还没有已采纳的代码提交，暂时不能预览")
+            p = P.store.project(t["project_id"])
+&gt;           commit = _commit(Path(p["root"]), decision.group(2)) if p else ""
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\preview.py:198: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmh-preview-binding-xm_2c2ff/repo')
+value = 'b98aec6a30'
+
+    def _commit(root: Path, value) -&gt; str:
+        """Resolve a stored commit id, including an older abbreviated id; never resolve a branch here."""
+        if not isinstance(value, str) or not re.fullmatch(r"[0-9a-fA-F]{4,64}", value):
+            return ""
+        try:
+            # Revision syntax can prefer a hex-named branch over an abbreviated object id.
+            # Enumerate objects instead, and reject an ambiguous prefix rather than guessing.
+&gt;           objects = git(root, "rev-parse", "--disambiguate=" + value.lower(), check=False).splitlines()
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\preview.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cwd = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmh-preview-binding-xm_2c2ff/repo')
+check = False, args = ('rev-parse', '--disambiguate=b98aec6a30')
+
+    def git(cwd: Path, *args, check=True) -&gt; str:
+        from .project_git import read
+        r = read(cwd,args,text=True)
+        if r is None:
+&gt;           r = subprocess.run(["git", "-C", str(cwd)] + list(args), capture_output=True, text=True)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\agents.py:889: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+input = None, capture_output = True, timeout = None, check = False
+popenargs = (['git', '-C', 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmh-preview-binding-xm_2c2ff\\repo', 'rev-parse', '--disambiguate=b98aec6a30'],)
+kwargs = {'text': True, 'stdout': -1, 'stderr': -1}
+
+    def run(*popenargs,
+            input=None, capture_output=False, timeout=None, check=False, **kwargs):
+        """Run command with arguments and return a CompletedProcess instance.
+    
+        The returned instance will have attributes args, returncode, stdout and
+        stderr. By default, stdout and stderr are not captured, and those attributes
+        will be None. Pass stdout=PIPE and/or stderr=PIPE in order to capture them,
+        or pass capture_output=True to capture both.
+    
+        If check is True and the exit code was non-zero, it raises a
+        CalledProcessError. The CalledProcessError object will have the return code
+        in the returncode attribute, and output &amp; stderr attributes if those streams
+        were captured.
+    
+        If timeout is given, and the process takes too long, a TimeoutExpired
+        exception will be raised.
+    
+        There is an optional argument "input", allowing you to
+        pass bytes or a string to the subprocess's stdin.  If you use this argument
+        you may not also use the Popen constructor's "stdin" argument, as
+        it will be used internally.
+    
+        By default, all communication is in bytes, and therefore any "input" should
+        be bytes, and the stdout and stderr will be bytes. If in text mode, any
+        "input" should be a string, and stdout and stderr will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode is
+        triggered by setting any of text, encoding, errors or universal_newlines.
+    
+        The other arguments are the same as for the Popen constructor.
+        """
+        if input is not None:
+            if kwargs.get('stdin') is not None:
+                raise ValueError('stdin and input arguments may not both be used.')
+            kwargs['stdin'] = PIPE
+    
+        if capture_output:
+            if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+                raise ValueError('stdout and stderr arguments may not be used '
+                                 'with capture_output.')
+            kwargs['stdout'] = PIPE
+            kwargs['stderr'] = PIPE
+    
+        with Popen(*popenargs, **kwargs) as process:
+            try:
+                stdout, stderr = process.communicate(input, timeout=timeout)
+            except TimeoutExpired as exc:
+                process.kill()
+                if _mswindows:
+                    # Windows accumulates the output in a single blocking
+                    # read() call run on child threads, with the timeout
+                    # being done in a join() on those threads.  communicate()
+                    # _after_ kill() is required to collect that and add it
+                    # to the exception.
+&gt;                   exc.stdout, exc.stderr = process.communicate()
+                                             ^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\subprocess.py:559: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;Popen: returncode: 1 args: ['git', '-C', 'C:\\Users\\runneradmin\\AppData\\...&gt;
+input = None, timeout = None
+
+    def communicate(self, input=None, timeout=None):
+        """Interact with process: Send data to stdin and close it.
+        Read data from stdout and stderr, until end-of-file is
+        reached.  Wait for process to terminate.
+    
+        The optional "input" argument should be data to be sent to the
+        child process, or None, if no data should be sent to the child.
+        communicate() returns a tuple (stdout, stderr).
+    
+        By default, all communication is in bytes, and therefore any
+        "input" should be bytes, and the (stdout, stderr) will be bytes.
+        If in text mode (indicated by self.text_mode), any "input" should
+        be a string, and (stdout, stderr) will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode
+        is triggered by setting any of text, encoding, errors or
+        universal_newlines.
+        """
+    
+        if self._communication_started and input:
+            raise ValueError("Cannot send input after starting communication")
+    
+        # Optimization: If we are not worried about timeouts, we haven't
+        # started communicating, and we have one or zero pipes, using select()
+        # or threads is unnecessary.
+        if (timeout is None and not self._communication_started and
+            [self.stdin, self.stdout, self.stderr].count(None) &gt;= 2):
+            stdout = None
+            stderr = None
+            if self.stdin:
+                self._stdin_write(input)
+            elif self.stdout:
+                stdout = self.stdout.read()
+                self.stdout.close()
+            elif self.stderr:
+                stderr = self.stderr.read()
+                self.stderr.close()
+            self.wait()
+        else:
+            if timeout is not None:
+                endtime = _time() + timeout
+            else:
+                endtime = None
+    
+            try:
+&gt;               stdout, stderr = self._communicate(input, endtime, timeout)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\subprocess.py:1209: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;Popen: returncode: 1 args: ['git', '-C', 'C:\\Users\\runneradmin\\AppData\\...&gt;
+input = None, endtime = None, orig_timeout = None
+
+    def _communicate(self, input, endtime, orig_timeout):
+        # Start reader threads feeding into a list hanging off of this
+        # object, unless they've already been started.
+        if self.stdout and not hasattr(self, "_stdout_buff"):
+            self._stdout_buff = []
+            self.stdout_thread = \
+                    threading.Thread(target=self._readerthread,
+                                     args=(self.stdout, self._stdout_buff))
+            self.stdout_thread.daemon = True
+            self.stdout_thread.start()
+        if self.stderr and not hasattr(self, "_stderr_buff"):
+            self._stderr_buff = []
+            self.stderr_thread = \
+                    threading.Thread(target=self._readerthread,
+                                     args=(self.stderr, self._stderr_buff))
+            self.stderr_thread.daemon = True
+            self.stderr_thread.start()
+    
+        if self.stdin:
+            self._stdin_write(input)
+    
+        # Wait for the reader threads, or time out.  If we time out, the
+        # threads remain reading and the fds left open in case the user
+        # calls communicate again.
+        if self.stdout is not None:
+            self.stdout_thread.join(self._remaining_time(endtime))
+            if self.stdout_thread.is_alive():
+&gt;               raise TimeoutExpired(self.args, orig_timeout)
+E               subprocess.TimeoutExpired: Command '['git', '-C', 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmh-preview-binding-xm_2c2ff\\repo', 'rev-parse', '--disambiguate=b98aec6a30']' timed out after None seconds
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\subprocess.py:1630: TimeoutExpired</failure></testcase><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_concurrent_preview_replacement_is_rechecked_before_bound_stop" time="4.489" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_exact_old_run_is_resolved_without_latest_adopt_event" time="4.765" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_forward_connects_to_pinned_process_under_start_stop_lock" time="3.640" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_get_binding_does_not_mutate_business_state" time="4.481" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_hex_named_branch_cannot_override_adopted_commit_object" time="5.387" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_invalid_ids_and_non_owned_runs_are_rejected" time="3.593" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_legacy_grant_opens_current_bound_prefix_without_extending_expiry" time="5.526" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_legacy_preview_response_and_start_keep_latest_branch_behavior" time="4.062" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_matching_commit_alone_does_not_claim_preview_is_up" time="5.384" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_open_url_and_existing_tab_requests_reject_a_replacement_preview" time="4.196" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_real_http_bound_page_links_form_and_two_tabs_do_not_cross_versions" time="5.460" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_run_detail_exposes_ticket_key_and_actual_verification" time="3.656" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_running_old_preview_does_not_expose_url_for_second_fix" time="4.457" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_same_commit_legacy_prefix_must_restart_before_exposing_bound_url" time="3.903" /><testcase classname="tests.test_preview_run_binding.PreviewRunBindingTest" name="test_unadopted_non_fix_missing_and_malformed_commit_are_rejected" time="4.052" /></testsuite></testsuites>

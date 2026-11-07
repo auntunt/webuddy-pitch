@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 5 items
+
+tests/test_lesson_renderer_labels.py::LessonRendererLabelsTests::test_chinese_semantic_labels_preserve_existing_prompt_contract PASSED [ 20%]
+tests/test_lesson_renderer_labels.py::LessonRendererLabelsTests::test_full_original_crlf_unicode_fences_and_long_tail_remain_readable PASSED [ 40%]
+tests/test_lesson_renderer_labels.py::LessonRendererLabelsTests::test_index_does_not_fill_missing_null_or_strip_empty_strings 
+tests/test_lesson_renderer_labels.py::LessonRendererLabelsTests::test_index_does_not_fill_missing_null_or_strip_empty_strings PASSED [ 60%]
+tests/test_lesson_renderer_labels.py::LessonRendererLabelsTests::test_new_renderer_version_rejects_old_frozen_runtime_block PASSED [ 80%]
+tests/test_lesson_renderer_labels.py::LessonRendererLabelsTests::test_public_index_never_reads_unpublished_fields PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_lesson_renderer_labels.xml -
+==================== 5 passed, 3 subtests passed in 0.11s =====================

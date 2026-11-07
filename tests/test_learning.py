@@ -27,8 +27,8 @@ class LearningTests(unittest.TestCase):
         self.page = self.root / ".tmh/knowledge/flows/demo.md"
         self.page.parent.mkdir(parents=True)
         self.body = "---\nid: flow:demo\ntitle: 示例\nstatus: 已确认\n---\n# 示例\n\n返回真实值 `a.py:1`。\n" + "完整正文。" * 1000
-        self.page.write_text(self.body)
-        (self.root / "a.py").write_text("def answer(): return 42\n")
+        self.page.write_text(self.body, newline="")
+        (self.root / "a.py").write_text("def answer(): return 42\n", newline="")
 
     def tearDown(self):
         self.store.db.close()
@@ -76,12 +76,12 @@ class LearningTests(unittest.TestCase):
 
     def test_source_content_workspace_and_reference_changes_invalidate(self):
         r = self.capture()
-        (self.root / "a.py").write_text("def answer(): return 0\n")
+        (self.root / "a.py").write_text("def answer(): return 0\n", newline="")
         self.assertFalse(L.revision_current(self.P, self.p, r))
-        (self.root / "a.py").write_text("def answer(): return 42\n")
-        self.page.write_text(self.body + "changed")
+        (self.root / "a.py").write_text("def answer(): return 42\n", newline="")
+        self.page.write_text(self.body + "changed", newline="")
         self.assertFalse(L.revision_current(self.P, self.p, r))
-        self.page.write_text(self.body)
+        self.page.write_text(self.body, newline="")
         self.store.x("UPDATE projects SET root=? WHERE id=?", (self.other["root"], self.p["id"]))
         self.assertFalse(L.revision_current(self.P, self.p, r))
         self.store.x("UPDATE projects SET root=? WHERE id=?", (str(self.root), self.p["id"]))
@@ -90,7 +90,7 @@ class LearningTests(unittest.TestCase):
 
     def test_evidence_missing_or_symlink_or_secret_is_not_silently_ignored(self):
         for ref in ("missing.py:1", "secret.pem:1", "../outside.py:1", "link.py:1"):
-            self.page.write_text(self.body.replace("a.py:1", ref))
+            self.page.write_text(self.body.replace("a.py:1", ref), newline="")
             (self.root / "link.py").unlink(missing_ok=True)
             (self.root / "link.py").symlink_to(self.root / "a.py")
             with self.subTest(ref=ref), self.assertRaises(ApiError):

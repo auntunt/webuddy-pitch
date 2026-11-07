@@ -51,6 +51,30 @@ class IntakeLLMTest(unittest.TestCase):
         env.start()
         self.addCleanup(env.stop)
 
+    def test_llm_reading_is_read_again_with_the_answer(self):
+        ask = REPLY.replace('"questions": []', '"questions": [{"q": "汇总范围和计算方式？", "options": ["按项目汇总", "其他，请说明"], "blocks": ["A1"]}]').replace(
+            "当提交报销单时，系统应当在 3 秒内提示结果", "当提交报销单时，系统应当按【待确认：汇总范围和计算方式】执行")
+        with mock.patch.object(llm.kbqa, "_post", return_value={"choices": [{"message": {"content": ask}}]}):
+            s = intake.start(self.P, self.project, "点提交就一直转圈", "前线", wait=True)
+        self.assertEqual(s["understood"]["by"], "LLM")
+        self.assertIn("待确认", s["items"][0]["agent_ac"][0]["text"])
+        with mock.patch.object(llm.kbqa, "_post", return_value={"choices": [{"message": {"content": REPLY}}]}) as post:
+            s = intake.answer(self.P, s["id"], "li", {"0": {"q1": "按项目汇总投标报价"}}, wait=True)
+        self.assertIn("按项目汇总投标报价", json.dumps(post.call_args, ensure_ascii=False))
+        self.assertNotIn("待确认", s["items"][0]["agent_ac"][0]["text"])
+        self.assertEqual(s["text"], "点提交就一直转圈")
+
+    def test_rules_only_record_is_handed_to_ai_later(self):
+        s = intake.start(self.P, self.project, "点提交就一直转圈", "前线", agent=False)
+        self.assertEqual((s["state"], s["understood"]["by"]), ("asking", "规则"))
+        with mock.patch.object(llm.kbqa, "_post", return_value={"choices": [{"message": {"content": REPLY}}]}):
+            s = intake.understand(self.P, s["id"], "li", wait=True)
+        self.assertEqual(s["understood"]["by"], "LLM")
+        self.assertEqual(s["text"], "点提交就一直转圈")
+        with self.assertRaises(ApiError) as e:
+            intake.understand(self.P, s["id"], "li")
+        self.assertEqual(e.exception.code, 409)
+
     def test_llm_reads_without_starting_an_agent_and_records_the_run(self):
         with mock.patch.object(llm.kbqa, "_post", return_value={"choices": [{"message": {"content": REPLY}}]}) as post:
             s = intake.start(self.P, self.project, "在吗？？点提交就一直转圈", "工程师", wait=True)

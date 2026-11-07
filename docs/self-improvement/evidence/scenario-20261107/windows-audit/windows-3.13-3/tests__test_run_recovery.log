@@ -1,0 +1,31 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 10 items
+
+tests/test_run_recovery.py::RunRecoveryTest::test_active_run_and_other_work_on_same_ticket_prevent_recovery SKIPPED [ 10%]
+tests/test_run_recovery.py::RunRecoveryTest::test_changed_system_contract_blocks_preflight_before_snapshot SKIPPED [ 20%]
+tests/test_run_recovery.py::RunRecoveryTest::test_closed_ticket_and_delivery_stage_cannot_bypass_their_workflow SKIPPED [ 30%]
+tests/test_run_recovery.py::RunRecoveryTest::test_concurrent_retry_clicks_create_exactly_one_new_run SKIPPED [ 40%]
+tests/test_run_recovery.py::RunRecoveryTest::test_failed_and_cancelled_recovery_include_all_git_bytes_without_changing_original_scene SKIPPED [ 50%]
+tests/test_run_recovery.py::RunRecoveryTest::test_missing_or_unmanaged_worktree_never_silently_restarts_from_main SKIPPED [ 60%]
+tests/test_run_recovery.py::RunRecoveryTest::test_new_run_gets_a_fresh_budget_without_resetting_old_timeout_or_logs SKIPPED [ 70%]
+tests/test_run_recovery.py::RunRecoveryTest::test_selected_system_retries_snapshot_preserving_fixed_authorization SKIPPED [ 80%]
+tests/test_run_recovery.py::RunRecoveryTest::test_system_failure_before_worktree_keeps_preflight_and_retry_consistent SKIPPED [ 90%]
+tests/test_run_recovery.py::RunRecoveryTest::test_uncertain_cleanup_or_malformed_receipts_never_allow_recovery SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_run_recovery.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_run_recovery.py:332: managed POSIX process lifecycle
+SKIPPED [1] tests\test_run_recovery.py:261: managed POSIX process lifecycle
+SKIPPED [1] tests\test_run_recovery.py:343: managed POSIX process lifecycle
+SKIPPED [1] tests\test_run_recovery.py:271: managed POSIX process lifecycle
+SKIPPED [1] tests\test_run_recovery.py:184: managed POSIX process lifecycle
+SKIPPED [1] tests\test_run_recovery.py:354: managed POSIX process lifecycle
+SKIPPED [1] tests\test_run_recovery.py:290: managed POSIX process lifecycle
+SKIPPED [1] tests\test_run_recovery.py:234: managed POSIX process lifecycle
+SKIPPED [1] tests\test_run_recovery.py:248: managed POSIX process lifecycle
+SKIPPED [1] tests\test_run_recovery.py:309: managed POSIX process lifecycle
+============================= 10 skipped in 0.14s =============================

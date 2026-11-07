@@ -1,0 +1,35 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 16 items
+
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_evidence_page_download_and_original_image_stay_in_tenant PASSED [  6%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_execute_tool_actor_runs_with_the_members_own_execution_only 
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_execute_tool_actor_runs_with_the_members_own_execution_only PASSED [ 12%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_filters_precede_limit_counts_and_hidden_projection PASSED [ 18%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_internal_proof_binds_actor_tenant_method_path_and_body 
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_internal_proof_binds_actor_tenant_method_path_and_body PASSED [ 25%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_no_recovery_background_or_automatic_execution_during_constructor PASSED [ 31%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_project_revocation_marks_assignment_unavailable_even_with_tenant_membership PASSED [ 37%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_public_bot_proof_is_bound_to_its_marker PASSED [ 43%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_reviewed_lesson_actor_is_signed_metadata_not_authenticated_identity 
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_reviewed_lesson_actor_is_signed_metadata_not_authenticated_identity PASSED [ 50%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_rules_intake_never_starts_agent_and_ticket_does_not_autoflow PASSED [ 56%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_tool_actor_context_narrows_admin_and_always_resets_after_error PASSED [ 62%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_tool_proof_cannot_be_removed_replaced_or_added_to_browser_request 
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_tool_proof_cannot_be_removed_replaced_or_added_to_browser_request PASSED [ 68%]
+tests/test_tenant_runtime.py::TenantRuntimeTest::test_workspace_symlink_and_unregistered_roots_fail_closed PASSED [ 75%]
+tests/test_tenant_runtime.py::WorkerLifecycleTest::test_failed_spawn_and_early_exit_remove_private_credentials SKIPPED [ 81%]
+tests/test_tenant_runtime.py::WorkerLifecycleTest::test_lifetime_lock_and_constructor_failure_release_ownership SKIPPED [ 87%]
+tests/test_tenant_runtime.py::WorkerLifecycleTest::test_real_worker_close_and_crash_never_restart_inside_authorization_guard SKIPPED [ 93%]
+tests/test_tenant_runtime.py::WorkerLifecycleTest::test_worker_holds_authorization_until_real_business_commit SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_tenant_runtime.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_tenant_runtime.py:243: tenant workers require POSIX Unix sockets
+SKIPPED [1] tests\test_tenant_runtime.py:230: tenant workers require POSIX Unix sockets
+SKIPPED [1] tests\test_tenant_runtime.py:331: tenant workers require POSIX Unix sockets
+SKIPPED [1] tests\test_tenant_runtime.py:271: tenant workers require POSIX Unix sockets
+======== 12 passed, 4 skipped, 12 subtests passed in 60.44s (0:01:00) =========

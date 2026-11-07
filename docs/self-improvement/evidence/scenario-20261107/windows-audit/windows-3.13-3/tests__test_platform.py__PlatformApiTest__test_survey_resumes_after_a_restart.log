@@ -1,0 +1,11 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 1 item
+
+tests/test_platform.py::PlatformApiTest::test_survey_resumes_after_a_restart PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_platform.py__PlatformApiTest__test_survey_resumes_after_a_restart.xml -
+============================== 1 passed in 5.92s ==============================

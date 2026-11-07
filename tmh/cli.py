@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -762,6 +763,24 @@ def _print_cov(c: dict) -> None:
         print("累计投入上下文约 %d 万字符（≈ %d k tokens）" % (c["context_chars"] // 10000, c["context_chars"] // 3000))
 
 
+def cmd_source(a) -> int:
+    from .graph import Graph
+    g=Graph(_root(a))
+    try:
+        node=g.node(a.node)
+        if not node:raise ValueError('索引没有这个节点')
+        raw=g.source_bytes(node['file'])
+        try:text=raw.decode('utf-8')
+        except UnicodeError:text=raw.decode('gb18030')
+        lines=text.splitlines(keepends=True);start=a.line or max(1,node['line'])
+        if start<1 or not 1<=a.limit<=100:raise ValueError('源码分页范围不正确')
+        _out(dict(node=node,provenance=g.provenance(),source_status='saved_snapshot',line=start,
+            text=''.join(lines[start-1:start-1+a.limit]),total_lines=len(lines),
+            next_line=start+a.limit if start-1+a.limit<len(lines) else None))
+        return 0
+    finally:g.db.close()
+
+
 def cmd_context(a) -> int:
     from .context import build_context
     from .graph import graph_path
@@ -810,12 +829,21 @@ def cmd_offline_pack(a) -> int:
 
 def cmd_serve(a) -> int:
     import getpass
+    from .deployment import load_secrets
+    load_secrets()
     from .platform.server import serve
     project = None
     if a.project or (_root(a) / ".tmh").is_dir():
         project = Path(a.project or a.repo).resolve()
     return serve(Path(a.data).expanduser(), a.host, a.port, a.user or getpass.getuser(), project, a.key, a.open, a.brand or "",
                  getattr(a, "preview_port", 0) or 0)
+
+
+def cmd_deployment_check(a) -> int:
+    from .deployment import check_config
+    report = check_config(Path(a.data).expanduser())
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return 0 if report['ok'] else 2
 
 
 def cmd_access_init(a) -> int:
@@ -968,6 +996,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--who", default="agent", help="领取/提交者（并行时区分子代理；confirm 时写确认人）")
     p.add_argument("--budget", type=int, help="上下文包字符上限")
     p.add_argument("--no-cache", action="store_true", help="忽略解析缓存，全部重新解析")
+    p = add("source", cmd_source, "读取索引节点对应的固定源码；不读取当前工作树代替")
+    p.add_argument("node")
+    p.add_argument("--line", type=int)
+    p.add_argument("--limit", type=int, default=60)
     p = add("context", cmd_context, "按需求/关键词取出相关的知识页、业务流、表和代码位置（任务开始时先用它）")
     p.add_argument("query", nargs="+")
     p.add_argument("--budget", type=int, default=8000)
@@ -978,9 +1010,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--label", help="当前项目在上下文包里的显示名")
     p.add_argument("--require-all", action="store_true", help="任一来源不可用时报错，不静默降级")
     p = add("serve", cmd_serve, "启动 tmh 运维平台（网页）：工单、看板、业务全景、知识库，内置 Claude Code / Codex")
-    p.add_argument("--port", type=int, default=8790)
-    p.add_argument("--host", default="127.0.0.1", help="对局域网开放用 0.0.0.0，需先设置 TMH_TOKEN")
-    p.add_argument("--data", default="~/.tmh/platform", help="平台数据目录（工单库、运行记录、工作树）")
+    p.add_argument("--port", type=int, default=os.environ.get("TMH_PORT", "8790"))
+    p.add_argument("--host", default=os.environ.get("TMH_HOST", "127.0.0.1"), help="对局域网开放用 0.0.0.0，需先设置 TMH_TOKEN")
+    p.add_argument("--data", default=os.environ.get("TMH_DATA_DIR", "~/.tmh/platform"), help="平台数据目录（工单库、运行记录、工作树）")
     p.add_argument("--project", help="启动时登记这个项目目录（默认：当前目录有 .tmh/ 时登记当前目录）")
     p.add_argument("--key", default="", help="登记项目时用的代号，例如 TOG")
     p.add_argument("--user", default="", help="默认用户名（网页里可改）")
@@ -988,13 +1020,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--brand", help="界面上显示的产品名，例如 \"OA 闭环监控\"（默认“webuddy”，也可用环境变量 TMH_BRAND）")
     p.add_argument("--preview-port", type=int, default=0, help="预览版本用的独立端口（另一个源，和平台完全隔开）；"
                    "有反向代理给它起了名字时再设 TMH_PREVIEW_BASE=https://pv.example.com")
+    p = add("deployment-check", cmd_deployment_check, "只读检查外部配置JSON，不输出配置值或启动执行")
+    p.add_argument("--data", default=os.environ.get("TMH_DATA_DIR", "~/.tmh/platform"), help="平台数据与外部配置目录")
     p = add("access-init", cmd_access_init, "启用租户权限：指定一个已存在的个人账号作为平台所有者，原数据保留为 default")
-    p.add_argument("--data", default="~/.tmh/platform", help="已有平台数据目录")
+    p.add_argument("--data", default=os.environ.get("TMH_DATA_DIR", "~/.tmh/platform"), help="已有平台数据目录")
     p.add_argument("--owner", required=True, help="显式指定已有个人账号；不按账号排序猜测")
     p = add("user", cmd_user, "管理平台登录账号：add（新建或改密码）/ del / list；有账号后网页改为账号密码登录")
     p.add_argument("action", choices=["add", "del", "list"])
     p.add_argument("name", nargs="?", default="")
-    p.add_argument("--data", default="~/.tmh/platform", help="平台数据目录（与 tmh serve --data 相同）")
+    p.add_argument("--data", default=os.environ.get("TMH_DATA_DIR", "~/.tmh/platform"), help="平台数据目录（与 tmh serve --data 相同）")
     p.add_argument("--password-stdin", action="store_true", help="从标准输入读一行作为密码（脚本用）")
     p = add("evidence-verify", cmd_evidence_verify, "离线核对导出的证据包（<工单>.intoto.json）：哈希链、摘要、你记下的哈希")
     p.add_argument("file")
@@ -1006,7 +1040,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--verify", help="校验一个离线包，不打包")
     p = add("platform", lambda a: 0,
             "平台只读视图：组织知识库（G8）、开发习惯（G9）；--data 指向正在运行的平台数据目录")
-    p.add_argument("--data", default="~/.tmh/platform", help="平台数据目录（与 tmh serve --data 相同）")
+    p.add_argument("--data", default=os.environ.get("TMH_DATA_DIR", "~/.tmh/platform"), help="平台数据目录（与 tmh serve --data 相同）")
     psub = p.add_subparsers(dest="action", required=True)
 
     def padd(name, fn, help_):
@@ -1039,7 +1073,7 @@ def main(argv=None) -> int:
     a = build_parser().parse_args(argv)
     rc = a.fn(a) or 0
     quiet = a.cmd == "kb" and a.action in ("status", "show", "pack", "done", "read", "questions", "ask", "answer", "overrule", "metrics")  # done logs its own entry
-    quiet = quiet or a.cmd == "mcp" or (a.cmd == "int" and a.action in ("list", "types"))
+    quiet = quiet or a.cmd in ("mcp","source") or (a.cmd == "int" and a.action in ("list", "types"))
     if a.cmd not in ("hook", "note", "status", "agent-config", "install", "verify", "serve", "access-init", "offline-pack", "evidence-verify", "platform") and not quiet:  # verify writes its own report
         from . import activity
         argv_s = " ".join(sys.argv[1:] if argv is None else argv)

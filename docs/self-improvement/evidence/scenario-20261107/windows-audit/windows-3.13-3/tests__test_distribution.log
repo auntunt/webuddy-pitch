@@ -1,0 +1,12 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 2 items
+
+tests/test_distribution.py::DistributionTest::test_missing_distribution_resources_do_not_partially_modify_project PASSED [ 50%]
+tests/test_distribution.py::DistributionTest::test_offline_archive_installs_and_refreshes_outside_checkout PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_distribution.xml -
+============================== 2 passed in 2.36s ==============================

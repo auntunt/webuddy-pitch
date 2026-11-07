@@ -1,0 +1,7 @@
+Processing /private/tmp/webuddy-scenario-20261107/client-cf6143be/webuddy_client-0.4.0-py3-none-any.whl
+Installing collected packages: webuddy-client
+  Attempting uninstall: webuddy-client
+    Found existing installation: webuddy-client 0.4.0
+    Uninstalling webuddy-client-0.4.0:
+      Successfully uninstalled webuddy-client-0.4.0
+Successfully installed webuddy-client-0.4.0

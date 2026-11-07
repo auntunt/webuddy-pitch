@@ -1,0 +1,43 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 28 items
+
+tests/test_learning_facts.py::LearningFactsTests::test_abandon_preserves_changed_body_and_history_and_remains_unconfirmed PASSED [  3%]
+tests/test_learning_facts.py::LearningFactsTests::test_abandon_requires_current_cas_identity_and_the_same_pending_decision 
+tests/test_learning_facts.py::LearningFactsTests::test_abandon_requires_current_cas_identity_and_the_same_pending_decision PASSED [  7%]
+tests/test_learning_facts.py::LearningFactsTests::test_applied_replay_audits_history_even_after_page_removal_or_invalid_edit 
+tests/test_learning_facts.py::LearningFactsTests::test_applied_replay_audits_history_even_after_page_removal_or_invalid_edit PASSED [ 10%]
+tests/test_learning_facts.py::LearningFactsTests::test_applied_replay_rejects_corrupt_receipt_without_republishing PASSED [ 14%]
+tests/test_learning_facts.py::LearningFactsTests::test_applied_retry_is_read_only_and_changed_identity_is_rejected PASSED [ 17%]
+tests/test_learning_facts.py::LearningFactsTests::test_atomic_replace_failure_never_falls_back_to_overwriting_page PASSED [ 21%]
+tests/test_learning_facts.py::LearningFactsTests::test_concurrent_page_or_registry_change_rejects_original_token 
+tests/test_learning_facts.py::LearningFactsTests::test_concurrent_page_or_registry_change_rejects_original_token PASSED [ 25%]
+tests/test_learning_facts.py::LearningFactsTests::test_concurrent_pending_retry_and_abandon_only_apply_one_decision PASSED [ 28%]
+tests/test_learning_facts.py::LearningFactsTests::test_crash_after_final_page_before_registry_is_pending_and_resumable PASSED [ 32%]
+tests/test_learning_facts.py::LearningFactsTests::test_human_gate_and_revision_identity_are_checked_before_writes 
+tests/test_learning_facts.py::LearningFactsTests::test_human_gate_and_revision_identity_are_checked_before_writes PASSED [ 35%]
+tests/test_learning_facts.py::LearningFactsTests::test_invalid_structure_is_rejected_before_prepared_receipt PASSED [ 39%]
+tests/test_learning_facts.py::LearningFactsTests::test_legacy_human_confirmation_cannot_cover_an_unfinished_projection PASSED [ 42%]
+tests/test_learning_facts.py::LearningFactsTests::test_managed_confirmation_without_a_content_hash_is_never_treated_as_confirmed 
+tests/test_learning_facts.py::LearningFactsTests::test_managed_confirmation_without_a_content_hash_is_never_treated_as_confirmed PASSED [ 46%]
+tests/test_learning_facts.py::LearningFactsTests::test_new_legacy_human_confirmation_has_its_own_hash_and_clears_old_machine_adoption PASSED [ 50%]
+tests/test_learning_facts.py::LearningFactsTests::test_new_publication_after_abandon_is_not_blocked_or_overwritten_by_old_retry PASSED [ 53%]
+tests/test_learning_facts.py::LearningFactsTests::test_pending_retry_never_overwrites_newer_body_or_registry PASSED [ 57%]
+tests/test_learning_facts.py::LearningFactsTests::test_pending_retry_rechecks_all_evidence_and_workspace_binding PASSED [ 60%]
+tests/test_learning_facts.py::LearningFactsTests::test_post_publication_content_change_and_newline_change_invalidate_confirmation PASSED [ 64%]
+tests/test_learning_facts.py::LearningFactsTests::test_prepared_is_never_confirmed_and_only_explicit_retry_recovers PASSED [ 67%]
+tests/test_learning_facts.py::LearningFactsTests::test_projection_preserves_callers_database_transaction PASSED [ 71%]
+tests/test_learning_facts.py::LearningFactsTests::test_publication_preserves_full_text_and_binds_confirmation_to_exact_content PASSED [ 75%]
+tests/test_learning_facts.py::LearningFactsTests::test_readers_are_pure_and_legacy_confirmation_is_unchanged PASSED [ 78%]
+tests/test_learning_facts.py::LearningFactsTests::test_revoke_keeps_current_body_and_receipts_and_old_adopt_cannot_republish PASSED [ 82%]
+tests/test_learning_facts.py::LearningFactsTests::test_sources_changed_after_final_page_cannot_commit_confirmation PASSED [ 85%]
+tests/test_learning_facts.py::LearningFactsTests::test_stale_sources_preserve_human_pointer_for_revocation_without_revalidation PASSED [ 89%]
+tests/test_learning_facts.py::LearningFactsTests::test_successfully_applied_publication_cannot_be_abandoned PASSED [ 92%]
+tests/test_learning_facts.py::LearningFactsTests::test_two_concurrent_decisions_have_one_winner_without_deadlock PASSED [ 96%]
+tests/test_learning_facts.py::LearningFactsTests::test_unregistered_or_unreadable_page_has_no_active_revision PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_facts.xml -
+=================== 28 passed, 20 subtests passed in 32.18s ===================

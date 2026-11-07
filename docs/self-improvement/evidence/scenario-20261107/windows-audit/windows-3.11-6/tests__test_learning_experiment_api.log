@@ -1,0 +1,31 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 17 items
+
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_catalog_query_matches_original_card_without_exposing_private_candidate PASSED [  5%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_create_and_replay_return_only_committed_safe_receipt PASSED [ 11%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_cross_project_experiment_never_resolves_by_identifier_only PASSED [ 17%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_curator_full_and_manager_safe_use_same_current_personal_boundary PASSED [ 23%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_internal_catalog_without_authorized_projection_refuses_managed_revision PASSED [ 29%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_managed_revision_and_catalog_classify_before_legacy_live_reads PASSED [ 35%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_managed_run_all_generic_mutations_refuse_before_runner_calls 
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_managed_run_all_generic_mutations_refuse_before_runner_calls PASSED [ 41%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_managed_run_detail_and_tool_read_skip_live_probes PASSED [ 47%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_no_display_header_agent_or_shared_actor_can_create 
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_no_display_header_agent_or_shared_actor_can_create PASSED [ 52%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_ordinary_revision_keeps_original_detail_and_catalog_behavior PASSED [ 58%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_project_viewer_cannot_mutate_even_when_named_curator 
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_project_viewer_cannot_mutate_even_when_named_curator PASSED [ 64%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_recapture_same_managed_revision_uses_current_personal_view PASSED [ 70%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_synthetic_run_cannot_inflate_operational_dashboard_counts PASSED [ 76%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_unisolated_manager_cannot_start_or_claim_execution PASSED [ 82%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_unknown_field_and_body_actor_never_become_authority 
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_unknown_field_and_body_actor_never_become_authority PASSED [ 88%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_unmanaged_sibling_keeps_manual_controls_with_protected_experiment_history PASSED [ 94%]
+tests/test_learning_experiment_api.py::ExperimentApiTests::test_value_error_after_verified_rollback_preserves_safe_to_replace_code PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_experiment_api.xml -
+=================== 17 passed, 15 subtests passed in 19.81s ===================

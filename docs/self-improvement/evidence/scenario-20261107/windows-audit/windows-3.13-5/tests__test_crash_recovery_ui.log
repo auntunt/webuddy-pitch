@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 6 items
+
+tests/test_crash_recovery_ui.py::CrashRecoveryUiTest::test_blocked_receipt_has_no_spinner_or_retry_and_preserves_full_errors PASSED [ 16%]
+tests/test_crash_recovery_ui.py::CrashRecoveryUiTest::test_incomplete_or_malformed_receipts_never_offer_retry_even_if_flag_is_true PASSED [ 33%]
+tests/test_crash_recovery_ui.py::CrashRecoveryUiTest::test_manual_receipt_recheck_posts_once_and_preserves_ticket_drafts PASSED [ 50%]
+tests/test_crash_recovery_ui.py::CrashRecoveryUiTest::test_manual_recheck_error_and_late_response_keep_the_current_view PASSED [ 66%]
+tests/test_crash_recovery_ui.py::CrashRecoveryUiTest::test_owner_loss_and_restart_explain_process_cleanup_without_claiming_success PASSED [ 83%]
+tests/test_crash_recovery_ui.py::CrashRecoveryUiTest::test_pending_recovery_polls_read_only_then_stops_when_blocked PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_crash_recovery_ui.xml -
+============================== 6 passed in 2.39s ==============================

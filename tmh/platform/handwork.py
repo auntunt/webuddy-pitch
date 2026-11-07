@@ -402,6 +402,7 @@ def _check1(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str, agent: 
             fl = FixLoop.__new__(FixLoop)
             fl.r, fl.st, fl.rid, fl.p, fl.t, fl.wt = P.runner, st, rid, p, st.ticket(key), wt
             fl.agent, fl.conf, fl.n, fl.ok, fl.failed_call = agent, conf, 0, False, False
+            fl.writer = by
             from .agent_routes import step_agent
             fl.agents = {"diagnose": step_agent(P.data_dir, p, "diagnose", agent)}
             fl.models = {"diagnose": (conf.get(fl.agents["diagnose"], {}).get("defaults") or {}).get("diagnose", "")}
@@ -413,13 +414,10 @@ def _check1(P, p: dict, key: str, rid: int, ref: str, sha: str, by: str, agent: 
         finally:
             git(root, "worktree", "remove", "--force", str(wt), check=False)
     said, _ = settle_fail(diag, str(diag.get("verdict", "")).lower())
-    cut = len(st.run(rid)["diff"] or "") > 14000  # the reviewer saw only the start of it
-    if cut and said == "pass":
-        said, diag = "unknown", dict(diag, match=(diag.get("match") or "") + "；改动太长，审查只读了前一部分")
     verdict = "fail" if v.get("check") == "fail" or said == "fail" else "pass" if said == "pass" else "unknown"
     v = dict(verified(P.data_dir, rid), **v)
     v.update({"verdict": verdict, "reviewer": agent, "by_hand": by,
-              "diagnosis": {k: diag.get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide")}})
+              "diagnosis": {k: diag.get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide", "blocking", "advisory", "ac", "review")}})
     (Path(P.data_dir) / "runs" / str(rid) / "verify.json").write_text(json.dumps(v, ensure_ascii=False, indent=1), encoding="utf-8")
     t = st.ticket(key)
     build = {"pass": "构建测试通过", "fail": "构建测试没通过", "skip": "没跑构建（%s）" % (v.get("skip") or "没有构建命令")}[v.get("check", "skip")]

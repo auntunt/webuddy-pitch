@@ -1,0 +1,15 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 5 items
+
+tests/test_g4_local_pilot.py::G4LocalPilotTest::test_binding_only_accepts_explicit_records PASSED [ 20%]
+tests/test_g4_local_pilot.py::G4LocalPilotTest::test_cache_reuse_requires_same_analyzer PASSED [ 40%]
+tests/test_g4_local_pilot.py::G4LocalPilotTest::test_derivation_never_writes_to_the_source PASSED [ 60%]
+tests/test_g4_local_pilot.py::G4LocalPilotTest::test_fixed_revision_does_not_move_when_source_head_moves PASSED [ 80%]
+tests/test_g4_local_pilot.py::G4LocalPilotTest::test_retrieval_keeps_two_sources_separate_and_only_bound_sources PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_g4_local_pilot.xml -
+============================== 5 passed in 6.00s ==============================

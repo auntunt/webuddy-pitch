@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 6 items
+
+tests/test_recheck_signoff_ui.py::RecheckSignoffUiTest::test_binding_failure_disables_and_guards_every_signoff_entry PASSED [ 16%]
+tests/test_recheck_signoff_ui.py::RecheckSignoffUiTest::test_known_recheck_invalid_blocks_without_package_flag_and_old_history_does_not PASSED [ 33%]
+tests/test_recheck_signoff_ui.py::RecheckSignoffUiTest::test_refresh_blocks_an_already_open_link_form_without_replacing_draft_nodes PASSED [ 50%]
+tests/test_recheck_signoff_ui.py::RecheckSignoffUiTest::test_repack_busy_survives_rewiring_and_errors_are_retryable_without_late_page_mutation PASSED [ 66%]
+tests/test_recheck_signoff_ui.py::RecheckSignoffUiTest::test_repack_is_visible_only_for_stale_package_and_requires_current_stopped_verification PASSED [ 83%]
+tests/test_recheck_signoff_ui.py::RecheckSignoffUiTest::test_repack_refreshes_only_summary_preserves_file_and_retains_customer_missing_items PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_recheck_signoff_ui.xml -
+============================== 6 passed in 1.65s ==============================

@@ -1,0 +1,27 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 12 items
+
+tests/test_rsi_evaluator_types.py::TypedWorkerReplayTests::test_array_order_and_extra_fields_are_not_ignored PASSED [  8%]
+tests/test_rsi_evaluator_types.py::TypedWorkerReplayTests::test_changed_text_and_wrong_json_type_are_not_equal PASSED [ 16%]
+tests/test_rsi_evaluator_types.py::TypedWorkerReplayTests::test_integer_and_float_representations_are_distinct PASSED [ 25%]
+tests/test_rsi_evaluator_types.py::TypedWorkerReplayTests::test_malformed_oracle_and_wrong_role_keep_fixed_error_boundary 
+tests/test_rsi_evaluator_types.py::TypedWorkerReplayTests::test_malformed_oracle_and_wrong_role_keep_fixed_error_boundary PASSED [ 33%]
+tests/test_rsi_evaluator_types.py::TypedWorkerReplayTests::test_nested_false_is_not_integer_zero PASSED [ 41%]
+tests/test_rsi_evaluator_types.py::TypedWorkerReplayTests::test_nested_true_is_not_integer_one PASSED [ 50%]
+tests/test_rsi_evaluator_types.py::TypedWorkerReplayTests::test_object_key_order_is_irrelevant PASSED [ 58%]
+tests/test_rsi_evaluator_types.py::TypedWorkerReplayTests::test_same_complete_deep_blocks_preserve_long_text_and_null PASSED [ 66%]
+tests/test_rsi_evaluator_types.py::TypedWorkerReplayTests::test_same_parsed_finite_float_representation_is_equal PASSED [ 75%]
+tests/test_rsi_evaluator_types.py::TypedEvaluatorKernelTests::test_real_deep_false_vs_zero_is_false SKIPPED [ 83%]
+tests/test_rsi_evaluator_types.py::TypedEvaluatorKernelTests::test_real_deep_true_vs_one_is_false SKIPPED [ 91%]
+tests/test_rsi_evaluator_types.py::TypedEvaluatorKernelTests::test_real_identical_long_full_blocks_are_true SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_evaluator_types.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rsi_evaluator_types.py:110: explicit temporary root-owned Linux typed evaluator fixture
+SKIPPED [1] tests\test_rsi_evaluator_types.py:109: explicit temporary root-owned Linux typed evaluator fixture
+SKIPPED [1] tests\test_rsi_evaluator_types.py:111: explicit temporary root-owned Linux typed evaluator fixture
+=============== 9 passed, 3 skipped, 3 subtests passed in 0.26s ===============

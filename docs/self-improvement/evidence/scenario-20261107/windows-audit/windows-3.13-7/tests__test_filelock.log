@@ -1,0 +1,28 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 15 items
+
+tests/test_filelock.py::FileLockTest::test_blocking_waits_for_owner_and_then_acquires PASSED [  6%]
+tests/test_filelock.py::FileLockTest::test_exclusion_unlock_and_close_release PASSED [ 13%]
+tests/test_filelock.py::FileLockTest::test_four_consumers_import_and_use_windows_backend_without_fcntl PASSED [ 20%]
+tests/test_filelock.py::FileLockTest::test_kb_interrupted_native_acquisition_closes_its_descriptor PASSED [ 26%]
+tests/test_filelock.py::FileLockTest::test_kb_native_contention_still_retries_and_times_out_with_closed_descriptor PASSED [ 33%]
+tests/test_filelock.py::FileLockTest::test_kb_native_windows_lock_and_no_backend_fallback PASSED [ 40%]
+tests/test_filelock.py::FileLockTest::test_kb_windows_initialization_error_is_not_reported_as_contention PASSED [ 46%]
+tests/test_filelock.py::FileLockTest::test_killed_process_releases_lock_without_removing_the_file SKIPPED [ 53%]
+tests/test_filelock.py::FileLockTest::test_posix_shared_readers_exclude_a_writer SKIPPED [ 60%]
+tests/test_filelock.py::FileLockTest::test_windows_blocking_retries_beyond_crt_ten_attempts PASSED [ 66%]
+tests/test_filelock.py::FileLockTest::test_windows_byte_zero_initialization_offset_and_modes PASSED [ 73%]
+tests/test_filelock.py::FileLockTest::test_windows_consumers_preserve_busy_errors_and_live_owner_checks PASSED [ 80%]
+tests/test_filelock.py::FileLockTest::test_windows_initialization_failure_releases_acquired_lock PASSED [ 86%]
+tests/test_filelock.py::FileLockTest::test_windows_non_contention_error_is_not_hidden_or_retried PASSED [ 93%]
+tests/test_filelock.py::FileLockTest::test_windows_nonblocking_contention_is_normalized_without_writing PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_filelock.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_filelock.py:66: real killed-owner proof is POSIX-only
+SKIPPED [1] tests\test_filelock.py:95: POSIX shared reader semantics
+======================== 13 passed, 2 skipped in 0.34s ========================

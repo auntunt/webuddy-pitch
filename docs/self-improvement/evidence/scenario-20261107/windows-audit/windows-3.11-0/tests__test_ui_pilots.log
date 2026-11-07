@@ -1,0 +1,18 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 8 items
+
+tests/test_ui_pilots.py::PilotUITest::test_complete_shipped_page_javascript_parses PASSED [ 12%]
+tests/test_ui_pilots.py::PilotUITest::test_late_result_never_renders_after_identity_or_route_change PASSED [ 25%]
+tests/test_ui_pilots.py::PilotUITest::test_pending_request_prevents_changed_body_and_actor_replay PASSED [ 37%]
+tests/test_ui_pilots.py::PilotUITest::test_read_failure_after_receipt_does_not_resubmit_mutation PASSED [ 50%]
+tests/test_ui_pilots.py::PilotUITest::test_storage_and_drafts_bind_tenant_actor_project_object_and_source PASSED [ 62%]
+tests/test_ui_pilots.py::PilotUITest::test_successful_labor_clears_only_own_pending_draft PASSED [ 75%]
+tests/test_ui_pilots.py::PilotUITest::test_unchanged_textarea_preserves_original_line_endings PASSED [ 87%]
+tests/test_ui_pilots.py::PilotUITest::test_unknown_post_reuses_identical_request_after_remount PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_ui_pilots.xml -
+============================== 8 passed in 1.78s ==============================

@@ -75,7 +75,7 @@ class IndependentIntakeRecoveryTest(unittest.TestCase):
     def confirmed(self, extra_question=False):
         self.response(self.reply(extra_question=extra_question))
         s = intake.start(self.P, self.project, "提交报销单后财务看不到", "受理人甲", wait=True)
-        self.assertEqual(s["understood"]["by"], "智能体")
+        self.assertEqual(s["understood"]["by"], "智能体", s["understood"])
         self.sid = s["id"]
         # A historical contract can carry a different layer; recovery must preserve it.
         s["items"][0]["agent_ac"][1]["layer"] = "L4"
@@ -99,6 +99,7 @@ class IndependentIntakeRecoveryTest(unittest.TestCase):
         self.assertTrue(self.store.ticket(self.key)["links"].get("open_ac"))
         self.failed_run = s["understood"]["run"]
         self.assertEqual(self.store.run(self.failed_run)["status"], "failed")
+        self.assertEqual(self.store.run(self.failed_run)["exit_code"], 23, self.store.run(self.failed_run)["result"])
         receipt = json.loads((self.data / "runs" / str(self.failed_run) / "lifecycle.json").read_text())
         self.assertTrue(receipt["finished"])
         self.assertTrue(all(x["cleanup"]["complete"] for x in receipt["attempts"]))

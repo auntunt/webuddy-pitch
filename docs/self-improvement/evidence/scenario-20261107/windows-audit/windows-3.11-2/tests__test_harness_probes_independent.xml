@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="2" tests="9" time="117.499" timestamp="2026-11-07T12:28:51.451860+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_legacy_source_without_verification_digest_is_readable_and_stale" time="22.994"><failure message="AssertionError: False is not true : {'id': 1, 'candidate_id': 1, 'author': 'agent:independent-fixture', 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'INDEP-1', 'project_id': 1, 'base': 'c442dfbcefd8a4ddabd4eb85bc6ebbf7458f2205', 'commit': '4d0ce62b44dab7e27a90b55cc13aaac94afa2273', 'requirement_hash': '20136a2024bb6a193e260ce7c2d79714dfb57173021265759413df9ebb1a6d23', 'criteria': [{'check': 'Independent recipe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Independent r...&#10;[truncated; full report in element text]">self = &lt;unittest.case._Outcome object at 0x000001F5565E2790&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+result = &lt;TestCaseFunction test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+method = &lt;bound method HarnessProbeIndependentTest.test_legacy_source_without_verification_digest_is_readable_and_stale of &lt;tes...dependent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+
+    def test_legacy_source_without_verification_digest_is_readable_and_stale(self):
+        self.prepare_candidate()
+        started = self.call("harness_probe_start", {"candidate_id": self.cid,
+            "recipe": "bootv2-items-search-v1", "request_id": "legacy-binding"})
+        state = self.finish_probe(started["probe_id"])
+&gt;       self.assertTrue(state["passed"], state)
+
+tests\test_harness_probes_independent.py:249: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+expr = False
+msg = "False is not true : {'id': 1, 'candidate_id': 1, 'author': 'agent:independent-fixture', 'source': {'candidate_id': 1,...ata\\\\Local\\\\Temp\\\\webuddy-probe-independent-9kc7914w\\\\data\\\\harness-probes\\\\1', 'human_acceptance': False}"
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+&gt;           raise self.failureException(msg)
+E           AssertionError: False is not true : {'id': 1, 'candidate_id': 1, 'author': 'agent:independent-fixture', 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'INDEP-1', 'project_id': 1, 'base': 'c442dfbcefd8a4ddabd4eb85bc6ebbf7458f2205', 'commit': '4d0ce62b44dab7e27a90b55cc13aaac94afa2273', 'requirement_hash': '20136a2024bb6a193e260ce7c2d79714dfb57173021265759413df9ebb1a6d23', 'criteria': [{'check': 'Independent recipe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Independent recipe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Independent recipe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Independent recipe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': 'dfaf2a1a8c4970b238053915d729e532b419fb1b0d8892923bdd2deb38c54750', 'verification_digest': '777b4d9103759d4943b36d547c8fcb954d9f4fe0d9cea325b6c4a4152d39c903', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': 'b779d20a3a10406dd779dadf9cce28805016478c3fff93000fb2deb1d6d5ab7c', 'runner_sha256': '5943b9e76d9d8b0c25c2d810496542b68ffde0dd2d5f2a191963656cbfb60877', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '529af0590c01c18799994df534589c4dbbb0fd5d0f957f2deebc7eff7e57efa3'}}, 'status': 'done', 'created': '2026-11-07 12:29:10', 'ended': '2026-11-07 12:29:14', 'result_hash': 'ad500d4807f182e06d19097f63d262126262f3f7e6b5489abac6fbb5e220c208', 'running': False, 'cleanup_complete': True, 'passed': False, 'observed_passed': False, 'source_current': True, 'blocked': [], 'result': {'schema': 1, 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'INDEP-1', 'project_id': 1, 'base': 'c442dfbcefd8a4ddabd4eb85bc6ebbf7458f2205', 'commit': '4d0ce62b44dab7e27a90b55cc13aaac94afa2273', 'requirement_hash': '20136a2024bb6a193e260ce7c2d79714dfb57173021265759413df9ebb1a6d23', 'criteria': [{'check': 'Independent recipe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Independent recipe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Independent recipe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Independent recipe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': 'dfaf2a1a8c4970b238053915d729e532b419fb1b0d8892923bdd2deb38c54750', 'verification_digest': '777b4d9103759d4943b36d547c8fcb954d9f4fe0d9cea325b6c4a4152d39c903', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': 'b779d20a3a10406dd779dadf9cce28805016478c3fff93000fb2deb1d6d5ab7c', 'runner_sha256': '5943b9e76d9d8b0c25c2d810496542b68ffde0dd2d5f2a191963656cbfb60877', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '529af0590c01c18799994df534589c4dbbb0fd5d0f957f2deebc7eff7e57efa3'}}, 'arms': {'baseline': {'commit': 'c442dfbcefd8a4ddabd4eb85bc6ebbf7458f2205', 'passed': False, 'conclusive': False, 'results': [{'id': 'A1', 'status': 'pass', 'error': '', 'observation_start': 6, 'observation_end': 12}, {'id': 'A2', 'status': 'pass', 'error': '', 'observation_start': 12, 'observation_end': 18}, {'id': 'A3', 'status': 'pass', 'error': '', 'observation_start': 18, 'observation_end': 23}, {'id': 'A4', 'status': 'unknown', 'error': "PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\webuddy-probe-independent-9kc7914w\\\\data\\\\harness-probes\\\\1\\\\baseline\\\\observations\\\\items.db' -&gt; 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\webuddy-probe-independent-9kc7914w\\\\data\\\\harness-probes\\\\1\\\\baseline\\\\observations\\\\items.saved'", 'observation_start': 23, 'observation_end': 25}], 'error': '', 'source_changed': [], 'process': {'exit_code': 0, 'reason': 'exited', 'cleanup': {'trigger': None, 'term_sent': False, 'kill_sent': False, 'signals': [], 'errors': [], 'remaining_group': False, 'output_complete': True, 'reaped': True, 'complete': True}, 'elapsed_seconds': 0.9369999999999834}}, 'candidate': {'commit': '4d0ce62b44dab7e27a90b55cc13aaac94afa2273', 'passed': False, 'conclusive': False, 'results': [{'id': 'A1', 'status': 'pass', 'error': '', 'observation_start': 6, 'observation_end': 12}, {'id': 'A2', 'status': 'pass', 'error': '', 'observation_start': 12, 'observation_end': 18}, {'id': 'A3', 'status': 'pass', 'error': '', 'observation_start': 18, 'observation_end': 23}, {'id': 'A4', 'status': 'unknown', 'error': "PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\webuddy-probe-independent-9kc7914w\\\\data\\\\harness-probes\\\\1\\\\candidate\\\\observations\\\\items.db' -&gt; 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\webuddy-probe-independent-9kc7914w\\\\data\\\\harness-probes\\\\1\\\\candidate\\\\observations\\\\items.saved'", 'observation_start': 23, 'observation_end': 25}], 'error': '', 'source_changed': [], 'process': {'exit_code': 0, 'reason': 'exited', 'cleanup': {'trigger': None, 'term_sent': False, 'kill_sent': False, 'signals': [], 'errors': [], 'remaining_group': False, 'output_complete': True, 'reaped': True, 'complete': True}, 'elapsed_seconds': 0.9369999999999834}}}, 'candidate_passed': False, 'comparison': 'unknown', 'limitations': 'One task, two source versions. This is behavioral evidence, not model improvement or a causal harness A/B estimate.', 'artifacts': {'owner.json': '1dc0f22b2716e1f568a692c55c60f3e48efcc859ccf9f011286c6b9c734f4893', 'recipe.py': 'b779d20a3a10406dd779dadf9cce28805016478c3fff93000fb2deb1d6d5ab7c', 'source.json': 'b3f98e47da529ceacad31e4d2d05b981cce8766f09130d199c46c898e3f87a31', 'baseline\\source-files.json': 'dc9b32ae155a13a7136175400b576f52efebcf1f0b2a0d0227efc1a5cfca3a02', 'baseline\\observations\\application-1794054551753845100.log': '7e17f955a0d1ee08387c9cbc43f807d6cf963d6f33ef072ff84d5eef6c29da02', 'baseline\\observations\\items.db': '0a04c8257e6dadd56a7263c899abc311682032d5d9b1854fec40af8ba0dfbe53', 'baseline\\observations\\report.json': 'bfd7a8b468b482251de48bb5a58836f8894269b2bddba875e5fe581a134ec457', 'baseline\\process\\output.bin': 'f8f850b1435722392aba327a05e126f37d142bc9c8f22ab29f68c4fa7f1c3368', 'baseline\\process\\output.txt': 'f8f850b1435722392aba327a05e126f37d142bc9c8f22ab29f68c4fa7f1c3368', 'baseline\\process\\supervisor-result.json': '188524c65d62e33928ca3ea9d9eff660cc619bc2d646a83d0c8615eb51956b2d', 'baseline\\process\\supervisor.json': 'ac3e1f1ee16528bcb1d53d14eda8787eac1dd864be0e08967ccf5ac745642e56', 'baseline\\workspace\\.gitignore': '32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b', 'baseline\\workspace\\app.py': '3993f8962f37b9e2eba2ae02880c6b10028d1a8c490000c0957c247e654bb1ef', 'baseline\\workspace\\project.json': '325852a2a33ded1881f61145dca553dca53cbae11ef30e2535e6347d8d8a13af', 'baseline\\workspace\\.tmh\\config.json': '9cf52e0d70badf42043fc09a224f20fd7af240bc96b3a9e313e238a82f80b738', 'candidate\\source-files.json': 'ad4e3211d43c331932fc7e9ade4d432b8cdc7be5e41b47fd8370688f6aa7d463', 'candidate\\observations\\application-1794054553473087600.log': '2510ec57d91e4c3b2fa1cafe2930575b23d36f21771f692e368a15640d4e451f', 'candidate\\observations\\items.db': '0a04c8257e6dadd56a7263c899abc311682032d5d9b1854fec40af8ba0dfbe53', 'candidate\\observations\\report.json': '8284028518897600b451186daa55c77e5e6da1b171227e1e4189e154edf4dfe1', 'candidate\\process\\output.bin': '9ee4e20d529e2ff7ca370a8e010bfac412f5ff7c7538e960822579b5eef67fb5', 'candidate\\process\\output.txt': '9ee4e20d529e2ff7ca370a8e010bfac412f5ff7c7538e960822579b5eef67fb5', 'candidate\\process\\supervisor-result.json': 'bf4d62f34b4e644a7900c404d67af4ab89544e424eb51e070af31bdf63d2123f', 'candidate\\process\\supervisor.json': '1ce1b4ea2ea2f2e8b04fd73eb22531bc06fd1cbed2e6a395c77d9de305ecdb36', 'candidate\\workspace\\.gitignore': '32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b', 'candidate\\workspace\\app.py': '0305a3ae236908f35df8c7ac5cca6fbd36c55af844f252ebfd0df330ae77e2a3', 'candidate\\workspace\\project.json': '325852a2a33ded1881f61145dca553dca53cbae11ef30e2535e6347d8d8a13af', 'candidate\\workspace\\.tmh\\config.json': '9cf52e0d70badf42043fc09a224f20fd7af240bc96b3a9e313e238a82f80b738'}}, 'evidence_hash': '', 'artifact_dir': 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\webuddy-probe-independent-9kc7914w\\data\\harness-probes\\1', 'human_acceptance': False}
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:715: AssertionError</failure></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_optimized_python_cannot_turn_broken_search_into_a_pass" time="0.000"><skipped type="pytest.skip" message="supervised execution requires POSIX">D:\a\webuddy-pitch\webuddy-pitch\tests\test_harness_probes_independent.py:109: supervised execution requires POSIX</skipped></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_requirement_change_at_last_process_completion_blocks_pass" time="23.310" /><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_second_store_cannot_launch_duplicate_probe" time="21.885" /><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_snapshot_never_expands_export_subst_in_tracked_source" time="1.413" /><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_snapshot_preserves_export_ignored_tracked_source" time="1.355" /><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass" time="22.840" /><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_timeout_preserves_application_output_without_a_final_newline" time="0.000"><skipped type="pytest.skip" message="supervised execution requires POSIX">D:\a\webuddy-pitch\webuddy-pitch\tests\test_harness_probes_independent.py:138: supervised execution requires POSIX</skipped></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_verification_replacement_invalidates_current_pass_but_retains_history" time="23.493"><failure message="AssertionError: False is not true : {'id': 1, 'candidate_id': 1, 'author': 'agent:independent-fixture', 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'INDEP-1', 'project_id': 1, 'base': '138d8e5c9c179690c1aee2e5649a33cd3d1af51b', 'commit': '821406a9b948434eae59df08a55546437a7b9169', 'requirement_hash': '20136a2024bb6a193e260ce7c2d79714dfb57173021265759413df9ebb1a6d23', 'criteria': [{'check': 'Independent recipe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Independent r...&#10;[truncated; full report in element text]">self = &lt;unittest.case._Outcome object at 0x000001F5579BF3D0&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+result = &lt;TestCaseFunction test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+method = &lt;bound method HarnessProbeIndependentTest.test_verification_replacement_invalidates_current_pass_but_retains_history o...ent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+
+    def test_verification_replacement_invalidates_current_pass_but_retains_history(self):
+        self.prepare_candidate()
+        started = self.call("harness_probe_start", {"candidate_id": self.cid,
+            "recipe": "bootv2-items-search-v1", "request_id": "before-verification-change"})
+        state = self.finish_probe(started["probe_id"])
+&gt;       self.assertTrue(state["passed"], state)
+
+tests\test_harness_probes_independent.py:226: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+expr = False
+msg = "False is not true : {'id': 1, 'candidate_id': 1, 'author': 'agent:independent-fixture', 'source': {'candidate_id': 1,...ata\\\\Local\\\\Temp\\\\webuddy-probe-independent-uydzj_5q\\\\data\\\\harness-probes\\\\1', 'human_acceptance': False}"
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+&gt;           raise self.failureException(msg)
+E           AssertionError: False is not true : {'id': 1, 'candidate_id': 1, 'author': 'agent:independent-fixture', 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'INDEP-1', 'project_id': 1, 'base': '138d8e5c9c179690c1aee2e5649a33cd3d1af51b', 'commit': '821406a9b948434eae59df08a55546437a7b9169', 'requirement_hash': '20136a2024bb6a193e260ce7c2d79714dfb57173021265759413df9ebb1a6d23', 'criteria': [{'check': 'Independent recipe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Independent recipe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Independent recipe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Independent recipe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': 'dfaf2a1a8c4970b238053915d729e532b419fb1b0d8892923bdd2deb38c54750', 'verification_digest': '318ed29f66411d63161c929b4845525e96ffab4bd54124e2773d0848caeb4061', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': 'b779d20a3a10406dd779dadf9cce28805016478c3fff93000fb2deb1d6d5ab7c', 'runner_sha256': '5943b9e76d9d8b0c25c2d810496542b68ffde0dd2d5f2a191963656cbfb60877', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '529af0590c01c18799994df534589c4dbbb0fd5d0f957f2deebc7eff7e57efa3'}}, 'status': 'done', 'created': '2026-11-07 12:30:44', 'ended': '2026-11-07 12:30:48', 'result_hash': '6128ff2d12ab41a020568b77778e0c346c6ff6c05b9defd00df5c2dddd3473ef', 'running': False, 'cleanup_complete': True, 'passed': False, 'observed_passed': False, 'source_current': True, 'blocked': [], 'result': {'schema': 1, 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'INDEP-1', 'project_id': 1, 'base': '138d8e5c9c179690c1aee2e5649a33cd3d1af51b', 'commit': '821406a9b948434eae59df08a55546437a7b9169', 'requirement_hash': '20136a2024bb6a193e260ce7c2d79714dfb57173021265759413df9ebb1a6d23', 'criteria': [{'check': 'Independent recipe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Independent recipe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Independent recipe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Independent recipe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': 'dfaf2a1a8c4970b238053915d729e532b419fb1b0d8892923bdd2deb38c54750', 'verification_digest': '318ed29f66411d63161c929b4845525e96ffab4bd54124e2773d0848caeb4061', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': 'b779d20a3a10406dd779dadf9cce28805016478c3fff93000fb2deb1d6d5ab7c', 'runner_sha256': '5943b9e76d9d8b0c25c2d810496542b68ffde0dd2d5f2a191963656cbfb60877', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '529af0590c01c18799994df534589c4dbbb0fd5d0f957f2deebc7eff7e57efa3'}}, 'arms': {'baseline': {'commit': '138d8e5c9c179690c1aee2e5649a33cd3d1af51b', 'passed': False, 'conclusive': False, 'results': [{'id': 'A1', 'status': 'pass', 'error': '', 'observation_start': 6, 'observation_end': 12}, {'id': 'A2', 'status': 'pass', 'error': '', 'observation_start': 12, 'observation_end': 18}, {'id': 'A3', 'status': 'pass', 'error': '', 'observation_start': 18, 'observation_end': 23}, {'id': 'A4', 'status': 'unknown', 'error': "PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\webuddy-probe-independent-uydzj_5q\\\\data\\\\harness-probes\\\\1\\\\baseline\\\\observations\\\\items.db' -&gt; 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\webuddy-probe-independent-uydzj_5q\\\\data\\\\harness-probes\\\\1\\\\baseline\\\\observations\\\\items.saved'", 'observation_start': 23, 'observation_end': 25}], 'error': '', 'source_changed': [], 'process': {'exit_code': 0, 'reason': 'exited', 'cleanup': {'trigger': None, 'term_sent': False, 'kill_sent': False, 'signals': [], 'errors': [], 'remaining_group': False, 'output_complete': True, 'reaped': True, 'complete': True}, 'elapsed_seconds': 1.0319999999999823}}, 'candidate': {'commit': '821406a9b948434eae59df08a55546437a7b9169', 'passed': False, 'conclusive': False, 'results': [{'id': 'A1', 'status': 'pass', 'error': '', 'observation_start': 6, 'observation_end': 12}, {'id': 'A2', 'status': 'pass', 'error': '', 'observation_start': 12, 'observation_end': 18}, {'id': 'A3', 'status': 'pass', 'error': '', 'observation_start': 18, 'observation_end': 23}, {'id': 'A4', 'status': 'unknown', 'error': "PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\webuddy-probe-independent-uydzj_5q\\\\data\\\\harness-probes\\\\1\\\\candidate\\\\observations\\\\items.db' -&gt; 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\webuddy-probe-independent-uydzj_5q\\\\data\\\\harness-probes\\\\1\\\\candidate\\\\observations\\\\items.saved'", 'observation_start': 23, 'observation_end': 25}], 'error': '', 'source_changed': [], 'process': {'exit_code': 0, 'reason': 'exited', 'cleanup': {'trigger': None, 'term_sent': False, 'kill_sent': False, 'signals': [], 'errors': [], 'remaining_group': False, 'output_complete': True, 'reaped': True, 'complete': True}, 'elapsed_seconds': 0.9850000000000136}}}, 'candidate_passed': False, 'comparison': 'unknown', 'limitations': 'One task, two source versions. This is behavioral evidence, not model improvement or a causal harness A/B estimate.', 'artifacts': {'owner.json': 'd04a446d0703b8bc5e3e0cbebe216b3cbcc33a4e657ad5456d799a6ccd031933', 'recipe.py': 'b779d20a3a10406dd779dadf9cce28805016478c3fff93000fb2deb1d6d5ab7c', 'source.json': '8244c971b61c7497ed19dc1c5b4f918c199efc6438869c720bf1a33046ca6951', 'baseline\\source-files.json': 'dc9b32ae155a13a7136175400b576f52efebcf1f0b2a0d0227efc1a5cfca3a02', 'baseline\\observations\\application-1794054645730453800.log': '1fd052591beb50c2390e824d0b325f8b016bb14b4b29a0c960d53a7000f46295', 'baseline\\observations\\items.db': '0a04c8257e6dadd56a7263c899abc311682032d5d9b1854fec40af8ba0dfbe53', 'baseline\\observations\\report.json': 'c9ea15226482fca946ce69ba2d32d8b24e573847897fcf698b260ff2fea3fd76', 'baseline\\process\\output.bin': '8afea647dac91024a3d195849e1cfaa98cb1dcf9b72b4a7c4911737868dc44c7', 'baseline\\process\\output.txt': '8afea647dac91024a3d195849e1cfaa98cb1dcf9b72b4a7c4911737868dc44c7', 'baseline\\process\\supervisor-result.json': '052e1617ad21947e46fab8fbeaaad73f35ea95ef465ea7570f1ff09c50c4c7c5', 'baseline\\process\\supervisor.json': '4ebf0a2cf05842fce4fd1bfe816fa2acbee8d99d0b458a4b76543ae17e47bc6e', 'baseline\\workspace\\.gitignore': '32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b', 'baseline\\workspace\\app.py': '3993f8962f37b9e2eba2ae02880c6b10028d1a8c490000c0957c247e654bb1ef', 'baseline\\workspace\\project.json': '325852a2a33ded1881f61145dca553dca53cbae11ef30e2535e6347d8d8a13af', 'baseline\\workspace\\.tmh\\config.json': '9cf52e0d70badf42043fc09a224f20fd7af240bc96b3a9e313e238a82f80b738', 'candidate\\source-files.json': 'ad4e3211d43c331932fc7e9ade4d432b8cdc7be5e41b47fd8370688f6aa7d463', 'candidate\\observations\\application-1794054647691823100.log': '53d1cfa83dc09989b9a41e4603b9603ff78834a781b4c43275e14dce7c578eb5', 'candidate\\observations\\items.db': '0a04c8257e6dadd56a7263c899abc311682032d5d9b1854fec40af8ba0dfbe53', 'candidate\\observations\\report.json': '770bcd411a2c3eb9d5b63520616f4d240ecdd22c4df322b4c9518f59978b128c', 'candidate\\process\\output.bin': 'ef2a8ef8c132273d7fe11cf489d4678f25d1ff580c4b2d23a47928c74e7e560a', 'candidate\\process\\output.txt': 'ef2a8ef8c132273d7fe11cf489d4678f25d1ff580c4b2d23a47928c74e7e560a', 'candidate\\process\\supervisor-result.json': '43e006eaa5cda5c0e3c34f352ded5b5dcb77f7f8c7592d4c50666b5d213eaebe', 'candidate\\process\\supervisor.json': '17c8f236bc52768a98f07762b6235d810de402cc1083937f3362bac2d83ed3b1', 'candidate\\workspace\\.gitignore': '32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b', 'candidate\\workspace\\app.py': '0305a3ae236908f35df8c7ac5cca6fbd36c55af844f252ebfd0df330ae77e2a3', 'candidate\\workspace\\project.json': '325852a2a33ded1881f61145dca553dca53cbae11ef30e2535e6347d8d8a13af', 'candidate\\workspace\\.tmh\\config.json': '9cf52e0d70badf42043fc09a224f20fd7af240bc96b3a9e313e238a82f80b738'}}, 'evidence_hash': '', 'artifact_dir': 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\webuddy-probe-independent-uydzj_5q\\data\\harness-probes\\1', 'human_acceptance': False}
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:715: AssertionError</failure></testcase></testsuite></testsuites>

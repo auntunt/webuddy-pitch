@@ -1,0 +1,38 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ ReformTenantMCPTest.test_legacy_accepted_lead_does_not_crash_read_only_worker_startup _
+  + Exception Group Traceback (most recent call last):
+  |   File "/private/tmp/webuddy-reform-20261107/tests/test_reform_tenant_mcp.py", line 78, in test_legacy_accepted_lead_does_not_crash_read_only_worker_startup
+  |     async with self.session(self.grant) as session:
+  |   File "/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(typ, value, traceback)
+  |   File "/private/tmp/webuddy-reform-20261107/tests/test_reform_tenant_mcp.py", line 44, in session
+  |     async with stdio_client(params) as (read,write):
+  |   File "/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(typ, value, traceback)
+  |   File "/tmp/webuddy-win-audit-venv/lib/python3.11/site-packages/mcp/client/stdio/__init__.py", line 182, in stdio_client
+  |     async with (
+  |   File "/tmp/webuddy-win-audit-venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/private/tmp/webuddy-reform-20261107/tests/test_reform_tenant_mcp.py", line 45, in session
+    |     async with ClientSession(read,write,read_timeout_seconds=timedelta(seconds=15)) as session:
+    |   File "/tmp/webuddy-win-audit-venv/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/private/tmp/webuddy-reform-20261107/tests/test_reform_tenant_mcp.py", line 84, in test_legacy_accepted_lead_does_not_crash_read_only_worker_startup
+      |     self.assertEqual(current['evidence']['integrated_delivery'],'not_checked')
+      | AssertionError: 'pending' != 'not_checked'
+      | - pending
+      | + not_checked
+      | 
+      +------------------------------------
+------------------------------ Captured log call -------------------------------
+WARNING  asyncio:base_events.py:1931 Executing <Task pending name='Task-2' coro=<ReformTenantMCPTest.test_legacy_accepted_lead_does_not_crash_read_only_worker_startup() running at /private/tmp/webuddy-reform-20261107/tests/test_reform_tenant_mcp.py:78> cb=[_run_until_complete_cb() at /Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/base_events.py:181] created at /Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/runners.py:100> took 0.250 seconds
+=========================== short test summary info ============================
+FAILED tests/test_reform_tenant_mcp.py::ReformTenantMCPTest::test_legacy_accepted_lead_does_not_crash_read_only_worker_startup
+1 failed, 1 deselected in 1.43s

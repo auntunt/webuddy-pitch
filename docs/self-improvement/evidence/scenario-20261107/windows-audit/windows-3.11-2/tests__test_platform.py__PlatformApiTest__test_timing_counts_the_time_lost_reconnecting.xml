@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="2.362" timestamp="2026-11-07T12:32:47.757928+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_platform.PlatformApiTest" name="test_timing_counts_the_time_lost_reconnecting" time="2.275" /></testsuite></testsuites>

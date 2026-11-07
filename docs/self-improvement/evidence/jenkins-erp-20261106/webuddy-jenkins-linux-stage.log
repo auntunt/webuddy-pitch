@@ -1,0 +1,4 @@
+EXACT_MANIFEST_REBUILT 2476
+MANIFEST_OK 2476
+DATABASE_COPIES_OK 15
+bash: line 1: /opt/webuddy/venv/bin/python: No such file or directory

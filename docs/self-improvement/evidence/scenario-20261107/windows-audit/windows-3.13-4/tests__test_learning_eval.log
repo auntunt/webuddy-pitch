@@ -1,0 +1,22 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 12 items
+
+tests/test_learning_eval.py::EvaluationTests::test_actual_assertions_pass_only_candidate_and_no_oracle_in_prompts PASSED [  8%]
+tests/test_learning_eval.py::EvaluationTests::test_baseline_status_or_edit_changes_fail_currentness PASSED [ 16%]
+tests/test_learning_eval.py::EvaluationTests::test_cost_limit_still_rejects_unbounded_candidate_output PASSED [ 25%]
+tests/test_learning_eval.py::EvaluationTests::test_frozen_inputs_do_not_read_later_active_memories_or_mutated_request PASSED [ 33%]
+tests/test_learning_eval.py::EvaluationTests::test_generation_and_insufficient_samples_cannot_qualify PASSED [ 41%]
+tests/test_learning_eval.py::EvaluationTests::test_holdout_reservation_blocks_reuse_for_revised_content_and_rolls_back PASSED [ 50%]
+tests/test_learning_eval.py::EvaluationTests::test_json_validator_keeps_boolean_numeric_types_distinct PASSED [ 58%]
+tests/test_learning_eval.py::EvaluationTests::test_missing_generation_duplicate_inputs_and_budget_are_rejected PASSED [ 66%]
+tests/test_learning_eval.py::EvaluationTests::test_negative_assertion_regression_and_equal_score_do_not_pass PASSED [ 75%]
+tests/test_learning_eval.py::EvaluationTests::test_policy_pack_uses_runner_preparation_and_binds_revision_receipts PASSED [ 83%]
+tests/test_learning_eval.py::EvaluationTests::test_policy_requires_real_context_and_diverse_scenarios PASSED [ 91%]
+tests/test_learning_eval.py::EvaluationTests::test_unexecuted_or_empty_output_is_never_success PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_eval.xml -
+============================= 12 passed in 10.74s =============================

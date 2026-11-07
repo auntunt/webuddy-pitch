@@ -1,0 +1,300 @@
+﻿2026-11-07T07:43:08.7157896Z Current runner version: '2.338.2'
+2026-11-07T07:43:08.7176320Z ##[group]Runner Image Provisioner
+2026-11-07T07:43:08.7176936Z Hosted Compute Agent
+2026-11-07T07:43:08.7177306Z Version: 20261028.624
+2026-11-07T07:43:08.7177799Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-07T07:43:08.7178245Z Build Date: 2026-10-28T21:51:42Z
+2026-11-07T07:43:08.7178680Z Worker ID: {e749357b-6493-43e0-8a59-a28abbb5c2fd}
+2026-11-07T07:43:08.7179120Z Region: centralus
+2026-11-07T07:43:08.7179462Z Cloud: Azure
+2026-11-07T07:43:08.7179844Z ##[endgroup]
+2026-11-07T07:43:08.7180859Z ##[group]Operating System
+2026-11-07T07:43:08.7181218Z Ubuntu
+2026-11-07T07:43:08.7181590Z 24.04.5
+2026-11-07T07:43:08.7181910Z LTS
+2026-11-07T07:43:08.7182317Z ##[endgroup]
+2026-11-07T07:43:08.7182653Z ##[group]Runner Image
+2026-11-07T07:43:08.7183004Z Image: ubuntu-24.04
+2026-11-07T07:43:08.7183392Z Version: 20261101.360.1
+2026-11-07T07:43:08.7184156Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-07T07:43:08.7185129Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+2026-11-07T07:43:08.7185915Z ##[endgroup]
+2026-11-07T07:43:08.7187062Z ##[group]GITHUB_TOKEN Permissions
+2026-11-07T07:43:08.7188425Z Contents: read
+2026-11-07T07:43:08.7188860Z Metadata: read
+2026-11-07T07:43:08.7189204Z Packages: read
+2026-11-07T07:43:08.7189562Z ##[endgroup]
+2026-11-07T07:43:08.7190948Z Secret source: Actions
+2026-11-07T07:43:08.7191578Z Cache mode: write
+2026-11-07T07:43:08.7192152Z Prepare workflow directory
+2026-11-07T07:43:08.7474127Z Prepare all required actions
+2026-11-07T07:43:08.7504588Z Getting action download info
+2026-11-07T07:43:08.9625855Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-07T07:43:09.0514738Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-11-07T07:43:09.2176538Z Complete job name: full suite (ubuntu-latest / py3.11)
+2026-11-07T07:43:09.2677814Z ##[group]Run actions/checkout@v4
+2026-11-07T07:43:09.2678230Z with:
+2026-11-07T07:43:09.2678479Z   repository: auntunt/webuddy-pitch
+2026-11-07T07:43:09.2680401Z   token: ***
+2026-11-07T07:43:09.2680629Z   ssh-strict: true
+2026-11-07T07:43:09.2680863Z   ssh-user: git
+2026-11-07T07:43:09.2681102Z   persist-credentials: true
+2026-11-07T07:43:09.2681362Z   clean: true
+2026-11-07T07:43:09.2681602Z   sparse-checkout-cone-mode: true
+2026-11-07T07:43:09.2681879Z   fetch-depth: 1
+2026-11-07T07:43:09.2682110Z   fetch-tags: false
+2026-11-07T07:43:09.2682349Z   show-progress: true
+2026-11-07T07:43:09.2682590Z   lfs: false
+2026-11-07T07:43:09.2682811Z   submodules: false
+2026-11-07T07:43:09.2683051Z   set-safe-directory: true
+2026-11-07T07:43:09.2683319Z   allow-unsafe-pr-checkout: false
+2026-11-07T07:43:09.2683656Z env:
+2026-11-07T07:43:09.2683877Z   PYTHONIOENCODING: utf-8
+2026-11-07T07:43:09.2684132Z   PYTHONUTF8: 1
+2026-11-07T07:43:09.2684371Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T07:43:09.2684688Z ##[endgroup]
+2026-11-07T07:43:09.4953773Z Syncing repository: auntunt/webuddy-pitch
+2026-11-07T07:43:09.4955058Z ##[group]Getting Git version info
+2026-11-07T07:43:09.4955706Z Working directory is '/home/runner/work/webuddy-pitch/webuddy-pitch'
+2026-11-07T07:43:09.4956782Z [command]/usr/bin/git version
+2026-11-07T07:43:09.5022368Z git version 2.56.0
+2026-11-07T07:43:09.5034964Z ##[endgroup]
+2026-11-07T07:43:09.5046967Z Temporarily overriding HOME='/home/runner/work/_temp/de4228bd-302f-459b-aabb-a954e4a18100' before making global git config changes
+2026-11-07T07:43:09.5048571Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-07T07:43:09.5051044Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-07T07:43:09.5110185Z Deleting the contents of '/home/runner/work/webuddy-pitch/webuddy-pitch'
+2026-11-07T07:43:09.5111347Z ##[group]Initializing the repository
+2026-11-07T07:43:09.5112175Z [command]/usr/bin/git init /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-07T07:43:09.5206983Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-07T07:43:09.5208089Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-07T07:43:09.5209066Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-07T07:43:09.5209864Z hint: call:
+2026-11-07T07:43:09.5210266Z hint:
+2026-11-07T07:43:09.5210804Z hint: 	git config --global init.defaultBranch <name>
+2026-11-07T07:43:09.5211492Z hint:
+2026-11-07T07:43:09.5212055Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-07T07:43:09.5212993Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-07T07:43:09.5213757Z hint:
+2026-11-07T07:43:09.5214173Z hint: 	git branch -m <name>
+2026-11-07T07:43:09.5214634Z hint:
+2026-11-07T07:43:09.5215280Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-07T07:43:09.5217940Z Initialized empty Git repository in /home/runner/work/webuddy-pitch/webuddy-pitch/.git/
+2026-11-07T07:43:09.5227840Z [command]/usr/bin/git remote add origin https://github.com/auntunt/webuddy-pitch
+2026-11-07T07:43:09.5274380Z ##[endgroup]
+2026-11-07T07:43:09.5275197Z ##[group]Disabling automatic garbage collection
+2026-11-07T07:43:09.5278295Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-07T07:43:09.5308641Z ##[endgroup]
+2026-11-07T07:43:09.5314439Z ##[group]Setting up auth
+2026-11-07T07:43:09.5314971Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-07T07:43:09.5345662Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-07T07:43:09.5673050Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-07T07:43:09.5709444Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-07T07:43:09.5902070Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-07T07:43:09.5939036Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-07T07:43:09.6127962Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-07T07:43:09.6170895Z ##[endgroup]
+2026-11-07T07:43:09.6171414Z ##[group]Fetching the repository
+2026-11-07T07:43:09.6177845Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +984b3dd4bf5debf97aeb35594d5a597eaec0e6e5:refs/remotes/origin/devin/1793765109-bidding-demo-ui
+2026-11-07T07:43:11.4617957Z From https://github.com/auntunt/webuddy-pitch
+2026-11-07T07:43:11.4620187Z  * [new ref]         984b3dd4bf5debf97aeb35594d5a597eaec0e6e5 -> origin/devin/1793765109-bidding-demo-ui
+2026-11-07T07:43:11.4622846Z ##[endgroup]
+2026-11-07T07:43:11.4623733Z ##[group]Determining the checkout info
+2026-11-07T07:43:11.4624863Z ##[endgroup]
+2026-11-07T07:43:11.4626760Z [command]/usr/bin/git sparse-checkout disable
+2026-11-07T07:43:11.4680480Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-07T07:43:11.4714764Z ##[group]Checking out the ref
+2026-11-07T07:43:11.4717298Z [command]/usr/bin/git checkout --progress --force -B devin/1793765109-bidding-demo-ui refs/remotes/origin/devin/1793765109-bidding-demo-ui
+2026-11-07T07:43:11.7590115Z Switched to a new branch 'devin/1793765109-bidding-demo-ui'
+2026-11-07T07:43:11.7594380Z branch 'devin/1793765109-bidding-demo-ui' set up to track 'origin/devin/1793765109-bidding-demo-ui'.
+2026-11-07T07:43:11.7620818Z ##[endgroup]
+2026-11-07T07:43:11.7674795Z [command]/usr/bin/git log -1 --format=%H
+2026-11-07T07:43:11.7699884Z 984b3dd4bf5debf97aeb35594d5a597eaec0e6e5
+2026-11-07T07:43:11.7902750Z ##[group]Run actions/setup-python@v5
+2026-11-07T07:43:11.7902949Z with:
+2026-11-07T07:43:11.7903062Z   python-version: 3.11
+2026-11-07T07:43:11.7903188Z   check-latest: false
+2026-11-07T07:43:11.7904563Z   token: ***
+2026-11-07T07:43:11.7904691Z   update-environment: true
+2026-11-07T07:43:11.7904825Z   allow-prereleases: false
+2026-11-07T07:43:11.7904948Z   freethreaded: false
+2026-11-07T07:43:11.7905062Z env:
+2026-11-07T07:43:11.7905170Z   PYTHONIOENCODING: utf-8
+2026-11-07T07:43:11.7905298Z   PYTHONUTF8: 1
+2026-11-07T07:43:11.7905417Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T07:43:11.7905781Z ##[endgroup]
+2026-11-07T07:43:11.8818898Z ##[group]Installed versions
+2026-11-07T07:43:11.8897434Z (node:2124) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-07T07:43:11.8898161Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-07T07:43:11.8898678Z Successfully set up CPython (3.11.18)
+2026-11-07T07:43:11.8899168Z ##[endgroup]
+2026-11-07T07:43:11.9042475Z ##[group]Run python -m pip install --upgrade pip pytest
+2026-11-07T07:43:11.9042882Z [36;1mpython -m pip install --upgrade pip pytest[0m
+2026-11-07T07:43:11.9081804Z shell: /usr/bin/bash -e {0}
+2026-11-07T07:43:11.9162074Z env:
+2026-11-07T07:43:11.9162316Z   PYTHONIOENCODING: utf-8
+2026-11-07T07:43:11.9162464Z   PYTHONUTF8: 1
+2026-11-07T07:43:11.9162588Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T07:43:11.9162792Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T07:43:11.9163096Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-07T07:43:11.9163385Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T07:43:11.9163650Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T07:43:11.9163901Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T07:43:11.9164180Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-07T07:43:11.9164398Z ##[endgroup]
+2026-11-07T07:43:14.1820633Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages (26.2.2)
+2026-11-07T07:43:14.3221898Z Collecting pip
+2026-11-07T07:43:14.4096974Z   Downloading pip-26.3-py3-none-any.whl.metadata (4.6 kB)
+2026-11-07T07:43:14.4542461Z Collecting pytest
+2026-11-07T07:43:14.4696855Z   Downloading pytest-9.2.0-py3-none-any.whl.metadata (7.9 kB)
+2026-11-07T07:43:14.4919499Z Collecting iniconfig>=2 (from pytest)
+2026-11-07T07:43:14.5076306Z   Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+2026-11-07T07:43:14.5297063Z Collecting packaging>=24 (from pytest)
+2026-11-07T07:43:14.5449864Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+2026-11-07T07:43:14.5676310Z Collecting pluggy<2,>=1.6 (from pytest)
+2026-11-07T07:43:14.5828679Z   Downloading pluggy-1.7.0-py3-none-any.whl.metadata (5.0 kB)
+2026-11-07T07:43:14.6068529Z Collecting pygments>=2.15 (from pytest)
+2026-11-07T07:43:14.6223164Z   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+2026-11-07T07:43:14.6414845Z Downloading pip-26.3-py3-none-any.whl (2.0 MB)
+2026-11-07T07:43:14.7207098Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 42.0 MB/s  0:00:00
+2026-11-07T07:43:14.7365247Z Downloading pytest-9.2.0-py3-none-any.whl (411 kB)
+2026-11-07T07:43:14.7547608Z Downloading pluggy-1.7.0-py3-none-any.whl (27 kB)
+2026-11-07T07:43:14.7719664Z Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+2026-11-07T07:43:14.7900786Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+2026-11-07T07:43:14.8086250Z Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+2026-11-07T07:43:14.8148322Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 248.5 MB/s  0:00:00
+2026-11-07T07:43:14.9810069Z Installing collected packages: pygments, pluggy, pip, packaging, iniconfig, pytest
+2026-11-07T07:43:15.3753752Z   Attempting uninstall: pip
+2026-11-07T07:43:15.3762562Z     Found existing installation: pip 26.2.2
+2026-11-07T07:43:15.4231256Z     Uninstalling pip-26.2.2:
+2026-11-07T07:43:15.4273218Z       Successfully uninstalled pip-26.2.2
+2026-11-07T07:43:16.4336635Z 
+2026-11-07T07:43:16.4344715Z Successfully installed iniconfig-2.3.1 packaging-26.3 pip-26.3 pluggy-1.7.0 pygments-2.21.0 pytest-9.2.0
+2026-11-07T07:43:16.5555884Z ##[group]Run python -m pytest tests -q -p no:cacheprovider
+2026-11-07T07:43:16.5556178Z [36;1mpython -m pytest tests -q -p no:cacheprovider[0m
+2026-11-07T07:43:16.5575118Z shell: /usr/bin/bash -e {0}
+2026-11-07T07:43:16.5575252Z env:
+2026-11-07T07:43:16.5575372Z   PYTHONIOENCODING: utf-8
+2026-11-07T07:43:16.5575499Z   PYTHONUTF8: 1
+2026-11-07T07:43:16.5575772Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T07:43:16.5575952Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T07:43:16.5576187Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-07T07:43:16.5576418Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T07:43:16.5576640Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T07:43:16.5576848Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T07:43:16.5577058Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-07T07:43:16.5577236Z ##[endgroup]
+2026-11-07T07:43:24.5935474Z ............................................... [  1%]
+2026-11-07T07:43:31.0115939Z .................................................. [  3%]
+2026-11-07T07:43:32.5599571Z .......................................... [  4%]
+2026-11-07T07:43:39.5531890Z .................................................................. [  6%]
+2026-11-07T07:43:43.0241694Z ............................................... [  8%]
+2026-11-07T07:43:53.3387790Z ............................................................ [  9%]
+2026-11-07T07:44:03.5795943Z ....................................................................................................... [ 13%]
+2026-11-07T07:44:13.2624446Z ............................................. [ 14%]
+2026-11-07T07:44:26.0755234Z .................................................................. [ 16%]
+2026-11-07T07:44:33.0241567Z ........................................................................ [ 19%]
+2026-11-07T07:44:57.6322632Z ............................................................. [ 21%]
+2026-11-07T07:45:18.3664157Z ............................................................... [ 23%]
+2026-11-07T07:45:21.0058747Z ..................s................... [ 24%]
+2026-11-07T07:45:22.0137941Z ................ [ 24%]
+2026-11-07T07:45:26.3600298Z .......................................................... [ 26%]
+2026-11-07T07:46:11.3353182Z ..................................................................... [ 28%]
+2026-11-07T07:46:16.0171570Z ......................................... [ 30%]
+2026-11-07T07:46:19.0559490Z ................................. [ 31%]
+2026-11-07T07:46:21.7919862Z .............................................. [ 32%]
+2026-11-07T07:46:29.5753140Z ...................................................... [ 34%]
+2026-11-07T07:46:45.3904866Z ................................................. [ 35%]
+2026-11-07T07:46:46.3860892Z ............................................. [ 37%]
+2026-11-07T07:47:03.7326377Z ...................................................................................................... [ 40%]
+2026-11-07T07:47:58.7454669Z ............................................................................................................................................ [ 45%]
+2026-11-07T07:48:37.4736077Z ................................................................................................. [ 48%]
+2026-11-07T07:49:08.7205448Z ............................................................................................................................................. [ 52%]
+2026-11-07T07:49:23.0608891Z ............................................................... [ 54%]
+2026-11-07T07:49:35.2761097Z ..................................................................... [ 56%]
+2026-11-07T07:49:37.4914849Z sssssssss........s.....................................ssssss [ 58%]
+2026-11-07T07:49:51.5321916Z sss......................sss................. [ 60%]
+2026-11-07T07:49:55.9827814Z ................................. [ 61%]
+2026-11-07T07:49:55.9909349Z ............... [ 61%]
+2026-11-07T07:51:15.7185962Z .................................................................. [ 63%]
+2026-11-07T07:51:20.3295865Z ...................... [ 64%]
+2026-11-07T07:51:20.3503771Z ............ [ 64%]
+2026-11-07T07:51:29.9872596Z ................................................................. [ 67%]
+2026-11-07T07:51:41.6408511Z .........ssssss................................ [ 68%]
+2026-11-07T07:51:48.5549368Z .................................................. [ 70%]
+2026-11-07T07:52:21.3350203Z ................................................ [ 71%]
+2026-11-07T07:52:30.6476831Z .........................................s......s....... [ 73%]
+2026-11-07T07:52:37.9822888Z ............................................................. [ 75%]
+2026-11-07T07:52:57.0783495Z ........................................................ [ 77%]
+2026-11-07T07:53:10.9916871Z ........................................ [ 78%]
+2026-11-07T07:53:23.8316618Z ....................................... [ 79%]
+2026-11-07T07:53:30.8784297Z .................................... [ 80%]
+2026-11-07T07:53:35.0934711Z .................................................................. [ 82%]
+2026-11-07T07:53:50.3462125Z .................................................... [ 84%]
+2026-11-07T07:53:51.8528202Z .........s.......... [ 85%]
+2026-11-07T07:53:54.1543334Z ........................................................................ [ 87%]
+2026-11-07T07:53:56.5986559Z ........................................................................ [ 89%]
+2026-11-07T07:53:58.9756062Z ..................................................................... [ 92%]
+2026-11-07T07:54:01.9503039Z ........................................................................ [ 94%]
+2026-11-07T07:54:25.8873219Z .................................... [ 95%]
+2026-11-07T07:54:53.4946101Z ..................................sssssss............... [ 97%]
+2026-11-07T07:54:54.7291642Z ................................ssssss [ 98%]
+2026-11-07T07:54:58.0112104Z ssssssssssssss.................................                     [100%]
+2026-11-07T07:54:58.0114309Z =============================== warnings summary ===============================
+2026-11-07T07:54:58.0115382Z tests/test_preview_run_binding.py::PreviewRunBindingTest::test_concurrent_preview_replacement_is_rechecked_before_bound_stop
+2026-11-07T07:54:58.0116275Z   /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/_pytest/threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-1185 (_watch)
+2026-11-07T07:54:58.0116867Z   
+2026-11-07T07:54:58.0117043Z   Traceback (most recent call last):
+2026-11-07T07:54:58.0122282Z     File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
+2026-11-07T07:54:58.0122613Z       self.run()
+2026-11-07T07:54:58.0122850Z     File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/threading.py", line 982, in run
+2026-11-07T07:54:58.0123115Z       self._target(*self._args, **self._kwargs)
+2026-11-07T07:54:58.0123397Z     File "/home/runner/work/webuddy-pitch/webuddy-pitch/tmh/platform/preview.py", line 459, in _watch
+2026-11-07T07:54:58.0123658Z       health = _health(rec)
+2026-11-07T07:54:58.0123788Z                ^^^^^^^^^^^^
+2026-11-07T07:54:58.0124039Z     File "/home/runner/work/webuddy-pitch/webuddy-pitch/tmh/platform/preview.py", line 516, in _health
+2026-11-07T07:54:58.0124301Z       return _http_health(url)
+2026-11-07T07:54:58.0124440Z              ^^^^^^^^^^^^^^^^^
+2026-11-07T07:54:58.0124696Z     File "/home/runner/work/webuddy-pitch/webuddy-pitch/tmh/platform/preview.py", line 551, in _http_health
+2026-11-07T07:54:58.0125412Z       timer = threading.Timer(remaining, expire)
+2026-11-07T07:54:58.0125755Z               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T07:54:58.0126017Z     File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/threading.py", line 1387, in __init__
+2026-11-07T07:54:58.0126262Z       Thread.__init__(self)
+2026-11-07T07:54:58.0126650Z     File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/unittest/mock.py", line 2109, in __init__
+2026-11-07T07:54:58.0126941Z       _safe_super(MagicMixin, self).__init__(*args, **kw)
+2026-11-07T07:54:58.0127224Z     File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/unittest/mock.py", line 1106, in __init__
+2026-11-07T07:54:58.0127484Z       _safe_super(CallableMixin, self).__init__(
+2026-11-07T07:54:58.0127761Z     File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/unittest/mock.py", line 457, in __init__
+2026-11-07T07:54:58.0128072Z       self._mock_add_spec(spec, spec_set, _spec_as_instance, _eat_self)
+2026-11-07T07:54:58.0128403Z     File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/unittest/mock.py", line 515, in _mock_add_spec
+2026-11-07T07:54:58.0128690Z       if iscoroutinefunction(getattr(spec, attr, None)):
+2026-11-07T07:54:58.0128869Z                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-07T07:54:58.0129131Z     File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/threading.py", line 1218, in daemon
+2026-11-07T07:54:58.0129402Z       assert self._initialized, "Thread.__init__() not called"
+2026-11-07T07:54:58.0129580Z              ^^^^^^^^^^^^^^^^^
+2026-11-07T07:54:58.0129727Z   AssertionError: Thread.__init__() not called
+2026-11-07T07:54:58.0129881Z   
+2026-11-07T07:54:58.0130038Z   Enable tracemalloc to get traceback where the object was allocated.
+2026-11-07T07:54:58.0130374Z   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+2026-11-07T07:54:58.0130697Z     warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+2026-11-07T07:54:58.0130862Z 
+2026-11-07T07:54:58.0130978Z -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+2026-11-07T07:54:58.0131258Z 3076 passed, 59 skipped, 1 warning, 1957 subtests passed in 700.93s (0:11:40)
+2026-11-07T07:54:58.3034467Z Post job cleanup.
+2026-11-07T07:54:58.3823642Z (node:38117) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-07T07:54:58.3824071Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-07T07:54:58.3962973Z Post job cleanup.
+2026-11-07T07:54:58.4557802Z [command]/usr/bin/git version
+2026-11-07T07:54:58.4592464Z git version 2.56.0
+2026-11-07T07:54:58.4618115Z Temporarily overriding HOME='/home/runner/work/_temp/8615afac-70e9-41e9-a99f-5ff3aa81d52b' before making global git config changes
+2026-11-07T07:54:58.4618732Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-07T07:54:58.4622060Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-07T07:54:58.4655012Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-07T07:54:58.4684849Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-07T07:54:58.4903152Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-07T07:54:58.4928428Z http.https://github.com/.extraheader
+2026-11-07T07:54:58.4937704Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-07T07:54:58.4969047Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-07T07:54:58.5240938Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-07T07:54:58.5288013Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-07T07:54:58.5649139Z Cleaning up orphan processes
+2026-11-07T07:54:58.5893518Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

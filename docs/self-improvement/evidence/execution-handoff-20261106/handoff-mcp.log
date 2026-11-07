@@ -1,0 +1,257 @@
+Executing <Task pending name='Task-2' coro=<WorkbenchMCPTest.test_complete_multiline_context_and_message_survive_stdio() running at /Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py:339> cb=[_run_until_complete_cb() at /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py:181] created at /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:110> took 0.305 seconds
+======================================================================
+ERROR: test_generated_claude_configuration_launches_from_unrelated_directory (tests.test_workbench_mcp.WorkbenchMCPTest.test_generated_claude_configuration_launches_from_unrelated_directory)
+----------------------------------------------------------------------
+  + Exception Group Traceback (most recent call last):
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py", line 128, in run
+  |     return self._loop.run_until_complete(task)
+  |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+  |     return future.result()
+  |            ~~~~~~~~~~~~~^^
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 175, in test_generated_claude_configuration_launches_from_unrelated_directory
+  |     await self.check_generated_configuration("claude")
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 157, in check_generated_configuration
+  |     async with stdio_client(params, errlog=errlog) as (read, write):
+  |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 158, in check_generated_configuration
+    |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10)) as session:
+    |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/shared/session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+    |     raise BaseExceptionGroup(
+    |         "unhandled errors in a TaskGroup", self._exceptions
+    |     ) from None
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 162, in check_generated_configuration
+      |     self.assertEqual(len(tools), 19)
+      |     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+      | AssertionError: 20 != 19
+      +------------------------------------
+
+======================================================================
+ERROR: test_generated_codex_toml_launches_from_unrelated_directory (tests.test_workbench_mcp.WorkbenchMCPTest.test_generated_codex_toml_launches_from_unrelated_directory)
+----------------------------------------------------------------------
+  + Exception Group Traceback (most recent call last):
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py", line 128, in run
+  |     return self._loop.run_until_complete(task)
+  |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+  |     return future.result()
+  |            ~~~~~~~~~~~~~^^
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 315, in test_generated_codex_toml_launches_from_unrelated_directory
+  |     await self.check_generated_configuration("codex")
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 157, in check_generated_configuration
+  |     async with stdio_client(params, errlog=errlog) as (read, write):
+  |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 158, in check_generated_configuration
+    |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10)) as session:
+    |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/shared/session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+    |     raise BaseExceptionGroup(
+    |         "unhandled errors in a TaskGroup", self._exceptions
+    |     ) from None
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 162, in check_generated_configuration
+      |     self.assertEqual(len(tools), 19)
+      |     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+      | AssertionError: 20 != 19
+      +------------------------------------
+
+======================================================================
+ERROR: test_generated_cursor_configuration_launches_from_unrelated_directory (tests.test_workbench_mcp.WorkbenchMCPTest.test_generated_cursor_configuration_launches_from_unrelated_directory)
+----------------------------------------------------------------------
+  + Exception Group Traceback (most recent call last):
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py", line 128, in run
+  |     return self._loop.run_until_complete(task)
+  |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+  |     return future.result()
+  |            ~~~~~~~~~~~~~^^
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 178, in test_generated_cursor_configuration_launches_from_unrelated_directory
+  |     await self.check_generated_configuration("cursor")
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 157, in check_generated_configuration
+  |     async with stdio_client(params, errlog=errlog) as (read, write):
+  |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 158, in check_generated_configuration
+    |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10)) as session:
+    |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/shared/session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+    |     raise BaseExceptionGroup(
+    |         "unhandled errors in a TaskGroup", self._exceptions
+    |     ) from None
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 162, in check_generated_configuration
+      |     self.assertEqual(len(tools), 19)
+      |     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+      | AssertionError: 20 != 19
+      +------------------------------------
+
+======================================================================
+ERROR: test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter (tests.test_workbench_mcp.WorkbenchMCPTest.test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter)
+----------------------------------------------------------------------
+  + Exception Group Traceback (most recent call last):
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py", line 128, in run
+  |     return self._loop.run_until_complete(task)
+  |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+  |     return future.result()
+  |            ~~~~~~~~~~~~~^^
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 319, in test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter
+  |     async with self.session() as session:
+  |                ~~~~~~~~~~~~^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 105, in session
+  |     async with stdio_client(params, errlog=stderr) as (read, write):
+  |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 106, in session
+    |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10)) as session:
+    |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/shared/session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+    |     raise BaseExceptionGroup(
+    |         "unhandled errors in a TaskGroup", self._exceptions
+    |     ) from None
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 110, in session
+      |     yield session
+      |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 322, in test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter
+      |     self.assertEqual({tool.name for tool in discovered}, expected)
+      |     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      | AssertionError: Items in the first set but not the second:
+      | 'webuddy_workspace_preflight'
+      +------------------------------------
+
+======================================================================
+ERROR: test_read_only_hides_writes_and_rejects_direct_calls_before_http (tests.test_workbench_mcp.WorkbenchMCPTest.test_read_only_hides_writes_and_rejects_direct_calls_before_http)
+----------------------------------------------------------------------
+  + Exception Group Traceback (most recent call last):
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py", line 128, in run
+  |     return self._loop.run_until_complete(task)
+  |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+  |     return future.result()
+  |            ~~~~~~~~~~~~~^^
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 355, in test_read_only_hides_writes_and_rejects_direct_calls_before_http
+  |     async with self.session("--read-only", "--allow-execution") as session:
+  |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 105, in session
+  |     async with stdio_client(params, errlog=stderr) as (read, write):
+  |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 106, in session
+    |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10)) as session:
+    |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/shared/session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+    |     raise BaseExceptionGroup(
+    |         "unhandled errors in a TaskGroup", self._exceptions
+    |     ) from None
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 110, in session
+      |     yield session
+      |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 357, in test_read_only_hides_writes_and_rejects_direct_calls_before_http
+      |     self.assertEqual(names, {"webuddy_" + op for op, spec in SPECS.items() if not spec["write"]})
+      |     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      | AssertionError: Items in the first set but not the second:
+      | 'webuddy_workspace_preflight'
+      +------------------------------------
+
+----------------------------------------------------------------------
+Ran 19 tests in 18.956s
+
+FAILED (errors=5)

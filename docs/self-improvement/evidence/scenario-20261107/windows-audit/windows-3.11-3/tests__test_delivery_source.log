@@ -1,0 +1,22 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 11 items
+
+tests/test_delivery_source.py::DeliverySourceTest::test_failed_inspection_can_retry_without_reviewing_old_output PASSED [  9%]
+tests/test_delivery_source.py::DeliverySourceTest::test_hex_named_refs_cannot_shadow_the_stored_commit PASSED [ 18%]
+tests/test_delivery_source.py::DeliverySourceTest::test_invalid_utf8_receipt_is_reported_as_missing_evidence_not_page_error PASSED [ 27%]
+tests/test_delivery_source.py::DeliverySourceTest::test_main_branch_movement_and_later_ordinary_plan_do_not_replace_source PASSED [ 36%]
+tests/test_delivery_source.py::DeliverySourceTest::test_malformed_or_mismatched_receipts_never_collect 
+tests/test_delivery_source.py::DeliverySourceTest::test_malformed_or_mismatched_receipts_never_collect PASSED [ 45%]
+tests/test_delivery_source.py::DeliverySourceTest::test_missing_legacy_fix_binding_never_falls_back_to_latest_plan PASSED [ 54%]
+tests/test_delivery_source.py::DeliverySourceTest::test_missing_receipt_blocks_collection_but_permits_rerun PASSED [ 63%]
+tests/test_delivery_source.py::DeliverySourceTest::test_nondict_verification_blocks_instead_of_crashing PASSED [ 72%]
+tests/test_delivery_source.py::DeliverySourceTest::test_old_database_without_binding_is_read_conservatively_then_migrated PASSED [ 81%]
+tests/test_delivery_source.py::DeliverySourceTest::test_rechecked_implementation_requires_new_inspection_after_rereview PASSED [ 90%]
+tests/test_delivery_source.py::DeliverySourceTest::test_reviewing_implementation_again_does_not_resurrect_quality_review PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_delivery_source.xml -
+============== 11 passed, 6 subtests passed in 139.14s (0:02:19) ==============

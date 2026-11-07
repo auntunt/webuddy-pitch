@@ -175,21 +175,23 @@ MODE_TEXT = {
 
 输出用中文，按这几节：方案概要、逐处修改、影响面、风险、验证步骤、验收标准。
 
+验收标准要覆盖新增行为、受影响的旧功能和明确不能改变的业务规则；scope 按这三类引用 ac 编号。没有依据的范围写 gaps，不编造覆盖；空数组不代表无需回归。
 最后附上一个机器读的文件清单（文件多时修改代码会按文件分工，每个文件交给一个只改它的智能体）：
 只列必须改动的文件：改动本身，以及不跟着改就会出错的调用方、配置和已有测试（用 `tmh impact` 核实，漏掉的文件没人会改）。
 看过、确认不用改的文件不要列；不要为了能跑测试去改构建配置（pom.xml、package.json 之类），除非工单本身就是构建问题。
 不要新增测试文件，除非验证步骤会真的跑测试、项目里也已有同类测试；建议补的测试写进“验证步骤”给人看。
-已有的测试文件只在不改就会失败时才列；不要为了给新行为补断言去改已有测试（改了已有测试的改动不会自动提交，要停下等人审阅）。
+为新增行为和受影响旧功能补必要断言，保留原有有效断言，不得降低标准使测试通过；测试文件的改动继续交人审阅。
 多数修复只动 1 到 3 个文件，最多 8 个；路径相对项目根目录；新文件也可以列。格式（ac 是第 5 节的验收标准，至少一条）：
 ```tmh-plan
 {"files": [{"path": "src/main/java/.../LeaveService.java", "goal": "这个文件要做到什么（一两句）", "role": "改动|调用方|配置|测试"}],
- "ac": [{"id": "A1", "text": "做到什么算修好", "layer": "L1|L2|L3|L4", "check": "怎么检查"}]}
+ "ac": [{"id": "A1", "text": "做到什么算修好", "layer": "L1|L2|L3|L4", "check": "怎么检查"}],
+ "scope": {"new": ["A1"], "regression": [], "invariants": [], "gaps": ["尚缺的业务规则或检查条件"]}}
 ```""",
     "fix": """## 你的任务：修改代码
 你在一个独立的 git 工作树里，改动不会影响任何人的工作目录，由人审阅后再合入。
 1. 按工单和前面的方案修改，只改方案列出的文件，改动尽量小，保持原有代码风格；不要顺手重构无关代码。
    不要新增测试文件，除非这次会跑构建测试、项目里也已有同类测试；觉得该补的测试写进最后的说明。
-   已有的测试文件只在不改就会失败时才动，不要往里加新断言；改了已有测试的改动不会自动提交，要等人审阅。
+   为新增行为和受影响旧功能补必要断言，不删除或放宽原有有效断言；改了测试的改动仍须等人审阅。
 2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；不要为了能跑测试去改构建配置（pom.xml、package.json 之类）。
 3. 能编译或有测试时，跑一下相关的部分。
 4. 结束时用中文说明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。""",
@@ -354,7 +356,7 @@ def _fence(text: str) -> str:
     return (text or "").replace("<<<", "‹‹‹").replace(">>>", "›››").replace("```", "ˋˋˋ")
 
 
-def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None, isolated=False) -> str:
+def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None, isolated=False, historical_case=False) -> str:
     from . import project_library as library
     if reference_inputs is None:
         reference_inputs = library.bindings(store, project)
@@ -370,6 +372,12 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         delivery_context = prompt_context(store.path.parent, links["delivery"])
     out = (["你在维护项目「%s」（代码目录 %s）。" % (project["name"], root)] if isolated else
            ["你在维护项目「%s」（目录 %s）。业务知识库在 %s。" % (project["name"], root, root / ".tmh" / "knowledge")])
+    # Historical inputs carry case provenance, never a persistent ticket identity.
+    if ticket and not historical_case:
+        from .development import read
+        development = read(store,ticket)
+        if development['state'] != 'not_selected':
+            out.append("## 开发人员确认稿与问答（当前状态：%s）\n%s" % (development['state'], json.dumps(development['payload'],ensure_ascii=False)))
     tool = root / ".tmh" / "tool" / "tmh.py"
     if isolated:
         out.append("平台知识以本任务中实际提供的上下文和来源为准；隔离工作区不包含 .tmh 工具。缺少的依据应明确说明。")
@@ -399,6 +407,12 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         ext = ticket.get("external") or {}
         if ext.get("key"):
             out += ["外部工单：%s %s %s" % (ext.get("system", ""), ext["key"], ext.get("url", "")), ""]
+        if ticket.get('id') and links.get('map_refs') and not historical_case:
+            from .code_maps import context as map_context
+            text,receipt=map_context(store,project,links['map_refs'],budget=max(0,learning_policy['context_budget']//3))
+            learning_policy=dict(learning_policy,context_budget=max(0,learning_policy['context_budget']-receipt['used']))
+            _CTX_META.meta=getattr(_CTX_META,'meta',[])+[receipt]
+            out.extend(['## 选中的固定地图（资料，不是权限或验收依据）',_fence(text),''])
         flows = (ticket.get("links") or {}).get("flows") or []
         if flows:
             out += ["## 已关联的业务流", "、".join(flows), ""]
@@ -672,6 +686,8 @@ class StreamParser:
         self.text = []
         self.session = ""  # the agent's own session id, to continue it in the next step
         self.usage = {}
+        self.reported_cost_usd = None
+        self.reported_model = None
         self.completed = False
         self.failed = False
 
@@ -731,10 +747,14 @@ class StreamParser:
         if t == "result":
             self.result = ev.get("result") or ""
             cost = ev.get("total_cost_usd")
+            self.reported_cost_usd = cost if type(cost) in (int,float) and math.isfinite(cost) and cost>=0 else None
+            if isinstance(ev.get('usage'),dict):
+                self.usage = dict(ev['usage']) # Preserve CLI cumulative/cache semantics, do not add assistant events.
             return "— 结束：%s，%d 轮%s\n" % ("成功" if not ev.get("is_error") else "出错", ev.get("num_turns") or 0,
                                          "，约 $%.2f" % cost if cost else "")
         if t == "system" and ev.get("subtype") == "init":
             self.session = ev.get("session_id") or self.session
+            self.reported_model = ev.get("model")
             return "— 启动 %s（模型 %s）\n" % (ev.get("cwd", ""), ev.get("model", ""))
         return ""
 
@@ -1385,10 +1405,13 @@ class Runner:
                 limit = float(settings.get("run_timeout") or settings.get("timeout") or 1800)
                 if not math.isfinite(limit) or limit <= 0:
                     raise ValueError("运行总时限必须是正数秒")
+                invocation_limit=settings.get('max_model_invocations')
+                if invocation_limit is not None and (type(invocation_limit) is not int or invocation_limit<1):
+                    raise ValueError('模型进程调用次数上限必须是正整数')
                 owner = self._claim(rid)
                 self.controls[rid] = {"event": threading.Event(), "start": time.monotonic(),
                     "started_at": now(), "timeout_seconds": limit, "stopped_reason": "",
-                    "attempts": [], "finished": False, "owner": owner}
+                    "attempts": [], "finished": False, "owner": owner, "max_model_invocations": invocation_limit}
                 self._save_lifecycle(rid)
             return self.controls[rid]
 
@@ -1444,7 +1467,7 @@ class Runner:
         label = {"timeout": "达到整次任务总时限", "cancelled": "已请求取消",
                  "orphaned": "启动器退出后仍有子进程存活", "cleanup_failed": "进程回收未完成",
                  "owner_lost": "平台连接中断，受管进程已停止",
-                 "error": "执行或证据保存发生错误"}.get(reason, reason)
+                 "model_invocation_limit": "达到模型进程调用次数上限", "error": "执行或证据保存发生错误"}.get(reason, reason)
         return "运行停止：%s。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。" % label if reason else ""
 
     def finish_invocation(self, rid, code, result):
@@ -1467,6 +1490,12 @@ class Runner:
         from . import project_library as library
         project = self.store.project(project['id'])
         library.require_development(self.store, project)
+        from .reform_authority import run as reform_authority
+        reform_authority(self,project,ticket,new_run=True)
+        development = None
+        if ticket and mode == 'fix':
+            from .development import require_execution
+            development = require_execution(self.store,self.store.ticket(ticket['id']), 'system')
         reference_inputs = library.bindings(self.store, project)
         if any(not r['available'] for r in reference_inputs):
             raise ValueError('项目参考授权已变化，请先处理不可用引用')
@@ -1495,7 +1524,7 @@ class Runner:
             from .agent_api import _requirement
             from .project_mcp import BoundJob
             from .project_snapshot import resolve as resolve_source
-            member_ref = code_at(ticket) or 'HEAD'
+            member_ref = development['execution']['base_commit'] if development and development['execution'].get('current') else code_at(ticket) or 'HEAD'
             pending_job = BoundJob(author,project['key'],(self.data_dir/'runs'/'pending').resolve(),authority.image)
             member_base = resolve_source(authority.image,Path(project['root']),member_ref,
                                          cancel=lambda:not authority.current(pending_job))
@@ -1522,6 +1551,22 @@ class Runner:
             raise ValueError("问题是空的")
         if mode == "fix" and (ticket or {}).get("links", {}).get("delivery"):
             reviewed_delivery_plan(self.store, ticket)
+        if development and development['execution'].get('current') and not authority:
+            selected_base = development['execution']['base_commit']
+            if retry_of is not None:
+                retry_state = self.retry_state(retry_of)
+                if not retry_state['can_retry']:
+                    raise ValueError('；'.join(retry_state['retry_blocked']))
+                self._retry_execution_contract(retry_of, ticket)
+                snapshot = self.store.one("SELECT * FROM run_recovery_snapshots WHERE commit_sha=? AND from_run=?", (base, retry_of))
+                if not snapshot:
+                    if base or self.store.run(retry_of)['workdir']:
+                        raise ValueError('恢复快照未绑定原运行，不能更换执行起点')
+                    base = selected_base
+            elif base and base != selected_base:
+                raise ValueError('执行起点与负责人选择时固定的版本不同，请重新核对交接')
+            else:
+                base = selected_base
         source = delivery_source(self.store, project, ticket, mode, base)
         if source and session_id is not None:
             raise ValueError("固定版本的交付检查必须使用独立运行，不能绑定既有会话")
@@ -1534,10 +1579,23 @@ class Runner:
             prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
         if library.bindings(self.store, project) != reference_inputs:
             raise ValueError('组装提示词期间参考知识已变化，请重新启动任务')
+        def contract_marker(rid):
+            if development and development['execution'].get('current'):
+                from .development import identity, encode, require_execution
+                fresh = self.store.ticket(ticket['id'])
+                current = require_execution(self.store, fresh, 'system')
+                if (not current or current['digest'] != development['digest'] or
+                        current['execution'] != development['execution']):
+                    raise ValueError('登记前执行确认稿已变化，请重新核对')
+                if retry_of is not None:
+                    self._retry_execution_contract(retry_of, fresh)
+                self.store.db.execute('INSERT INTO run_execution_contracts VALUES(?,?,?,?)',
+                    (rid, encode(identity(self.store, ticket['id'])), development['execution']['base_commit'], base))
+
         def register(marker=None):
             return self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
                 session_id=session_id, batch=batch, model=recorded, expected_root=project['root'], reference_inputs=reference_inputs,
-                **({'require_idle_ticket':True,'before_commit':marker} if authority else {}),
+                **({'require_idle_ticket':True,'before_commit':marker} if authority else {'before_commit':contract_marker}),
                 **({"retry_of": retry_of} if retry_of is not None else {}))
         if authority:
             from .project_mcp import BoundJob
@@ -1725,6 +1783,8 @@ class Runner:
         from . import project_library as library
         library.require_development(st, st.project(project['id']))
         library.require_run_current(st, project, rid)
+        if ticket and mode == 'fix':
+            self._retry_execution_contract(rid, st.ticket(ticket['id']))
         rdir = self.data_dir / "runs" / str(rid)
         rdir.mkdir(parents=True, exist_ok=True)
         (rdir / "prompt.md").write_text(prompt, encoding="utf-8")
@@ -1887,7 +1947,7 @@ class Runner:
         starts over in a new session with `fresh`, the full prompt. The session id and a time breakdown are kept
         next to the prompt (session<tag>.txt, timing<tag>.json)."""
         from .agent_routes import resolve
-        if resolve(self.data_dir, project, agent) != agent:
+        if resolve(getattr(self, "evidence_root", self.data_dir), project, agent) != agent:
             raise ValueError("项目执行器路由已变化，不能切换既有运行的执行器")
         settings = conf.get(agent) or {}
         engine_name(agent, settings)
@@ -1903,13 +1963,15 @@ class Runner:
         # use their own frozen proof and must not inherit ordinary CLI memory.
         guarded_context = (rdir / "session-context.json").exists()
         def spawn(current_prompt, current_resume):
+            from .reform_authority import run as reform_authority
+            reform_authority(self,project,ticket)
             if guarded_context:
                 run = self.store.run(rid)
                 current_project = self.store.project(run["project_id"])
                 if (not (rdir / "session-context.json").exists() or not current_project or
                         not learning_context_current(self.store, self.data_dir, current_project, run, running=True)):
                     raise ValueError("学习输入或继承会话已变化；当前冻结提示词及重试已停止，请重新启动任务")
-            if resolve(self.data_dir, project, agent) != agent:
+            if resolve(getattr(self, "evidence_root", self.data_dir), project, agent) != agent:
                 raise ValueError("项目执行器路由已变化，不能切换既有运行的执行器")
             return self._spawn(rid, project, ticket, agent, conf, mode, current_prompt, workdir, model, tag, current_resume)
         if resume and "cmd" in (conf.get(agent) or {}) and "{resume}" not in conf[agent]["cmd"]:  # a custom command that cannot continue
@@ -1958,6 +2020,11 @@ class Runner:
             self.stop_reason(rid)
             timeout = min(float(timeout), self.remaining(rid)) if timeout is not None else self.remaining(rid)
         with self.lock:
+            if active and kind.startswith('model:') and c.get('max_model_invocations') is not None:
+                used=sum(a['kind'].startswith('model:') for a in c['attempts'])
+                if used>=c['max_model_invocations']:
+                    self._stopped(rid,'model_invocation_limit')
+                    raise OSError('达到模型进程调用次数上限；未启动新的进程，不能据此保证CLI内部请求费用上限')
             parent = self.data_dir / "runs" / str(rid) / "attempts"
             parent.mkdir(parents=True, exist_ok=True)
             index = max([int(x.name) for x in parent.iterdir() if x.is_dir() and x.name.isdigit()] or [0]) + 1
@@ -2037,6 +2104,10 @@ class Runner:
         pf, lm = rdir / ("prompt%s.md" % tag), rdir / ("last-message%s.md" % tag)
         if not tag and not resume:  # a retry or resumed session already carries it
             prompt += steer_hint(mode)
+        from . import testbox, testbox_mcp
+        remote_testing = mode == 'fix' and engine_name(agent, conf[agent]) == 'codex' and 'cmd' not in conf[agent] and bool(testbox.settings(self.data_dir))
+        if remote_testing:
+            prompt += testbox_mcp.INSTRUCTION
         pf.write_bytes(prompt.encode("utf-8"))
         if lm.exists():
             # Earlier attempt copies remain in attempts/, including an interrupted final answer.
@@ -2048,6 +2119,8 @@ class Runner:
         except ValueError as e:
             st.append_output(rid, "— %s\n" % e)
             return 2, str(e), parser, clock.done()
+        if remote_testing:
+            cmd[2:2] = testbox_mcp.config_args(self.data_dir, rid, workdir)
         env = dict(os.environ, TMH_RUN=str(rid), TMH_TICKET=ticket["key"] if ticket else "", TMH_NOTES=str(notes_file(self.data_dir, rid)))
         tool = Path(project["root"]) / ".tmh" / "tool"
         if tool.is_dir():
@@ -2103,6 +2176,8 @@ class Runner:
             timing["usage"] = parser.usage
             if "input_tokens" in parser.usage and "output_tokens" in parser.usage:
                 timing["tokens"] = parser.usage["input_tokens"] + parser.usage["output_tokens"]
+        timing.update(reported_model=parser.reported_model,reported_cost_usd=parser.reported_cost_usd,
+                      cost_source='CLI report; not supplier invoice' if parser.reported_cost_usd is not None else 'unknown')
         timing.update(process_reason=process.reason, process_seconds=process.elapsed,
                       total_remaining_seconds=round(self.remaining(rid), 3), evidence=str(folder.relative_to(self.data_dir)))
         (folder / "timing.json").write_text(json.dumps(timing, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -2152,6 +2227,20 @@ class Runner:
             self.slots.notify_all()
         return self.store.run(rid)
 
+    def _retry_execution_contract(self, rid: int, ticket: dict) -> None:
+        from .development import require_execution, identity, encode
+        original = self.store.run(rid)
+        if (not original or original['ticket_id'] != ticket['id'] or
+                original['project_id'] != ticket['project_id'] or original['mode'] != 'fix'):
+            raise ValueError('原运行不属于当前项目工单')
+        state = require_execution(self.store, ticket, 'system')
+        binding = self.store.one('SELECT * FROM run_execution_contracts WHERE run_id=?', (rid,))
+        if state and state['execution'].get('current'):
+            if not binding or binding['identity'] != encode(identity(self.store, ticket['id'])):
+                raise ValueError('原运行缺少当前确认稿的执行绑定，请核对原运行与负责人交接')
+        elif binding:
+            raise ValueError('原运行的执行确认稿已变化，请重新核对负责人交接')
+
     def retry_state(self, rid: int) -> dict:
         r = self.store.run(rid)
         blocked = []
@@ -2175,6 +2264,13 @@ class Runner:
             blocked.append("请从需求沟通页重新理解")
         if r.get("decision"):
             blocked.append("这次改动已经处理，请从工单继续")
+        if t and r['mode'] == 'fix':
+            try:
+                self._retry_execution_contract(rid, t)
+                from .project_library import require_run_current
+                require_run_current(self.store, self.store.project(r['project_id']), rid)
+            except ValueError as exc:
+                blocked.append(str(exc))
         if t and t["status"] == "closed":
             blocked.append("工单已关闭，先明确新的需求")
         try:
@@ -2240,6 +2336,9 @@ class Runner:
                     tree = snapshot("write-tree").decode().strip()
                     head = snapshot("rev-parse", "HEAD").decode().strip()
                     base = snapshot("commit-tree", tree, "-p", head, "-m", "Unverified recovery snapshot of run #%d" % rid).decode().strip()
+                    snapshot("update-ref", "refs/webuddy/recovery/run-%d/%s" % (rid, base), base)
+                    self.store.x('INSERT OR IGNORE INTO run_recovery_snapshots VALUES(?,?,?,?,?)',
+                                 (base, rid, head, str(wt), now()))
                     (recovery / "source.patch").write_bytes(snapshot("diff", "--binary", head, base))
                     (recovery / "snapshot.json").write_text(json.dumps({"commit": base, "parent": head,
                         "notice": "未验证的恢复快照，不是采纳、签收或发布", "original_worktree": str(wt)}, ensure_ascii=False, indent=2))

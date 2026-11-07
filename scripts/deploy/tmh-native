@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /opt/webuddy/venv/bin/python3 /opt/webuddy/app/tmh.py "$@"

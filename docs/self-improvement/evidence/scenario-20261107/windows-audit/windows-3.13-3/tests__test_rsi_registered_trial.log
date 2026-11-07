@@ -1,0 +1,43 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 18 items
+
+tests/test_rsi_registered_trial.py::ProductionCaptureTests::test_changed_scope_or_corrupt_capture_rejected PASSED [  5%]
+tests/test_rsi_registered_trial.py::ProductionCaptureTests::test_exception_restores_existing_metadata PASSED [ 11%]
+tests/test_rsi_registered_trial.py::ProductionCaptureTests::test_pair_permits_only_policy_with_lossless_unicode 
+tests/test_rsi_registered_trial.py::ProductionCaptureTests::test_pair_permits_only_policy_with_lossless_unicode PASSED [ 16%]
+tests/test_rsi_registered_trial.py::ProductionCaptureTests::test_real_factory_and_original_window_with_full_source_history PASSED [ 22%]
+tests/test_rsi_registered_trial.py::ProductionCaptureTests::test_real_selector_and_renderer_preserve_selected_long_lesson PASSED [ 27%]
+tests/test_rsi_registered_trial.py::ProductionCaptureTests::test_wrong_history_type_rejects_before_factory_without_coercion 
+tests/test_rsi_registered_trial.py::ProductionCaptureTests::test_wrong_history_type_rejects_before_factory_without_coercion PASSED [ 33%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_admission_is_visible_only_after_atomic_publication SKIPPED [ 38%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_budget_and_terminal_consumption_stay_on_original_root SKIPPED [ 44%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_catalog_never_replaces_an_existing_id SKIPPED [ 50%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_changed_broker_code_cancels_and_preserves_original_worst_hold SKIPPED [ 55%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_changed_provenance_cannot_relabel_same_http_bytes SKIPPED [ 61%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_external_cancellation_replay_preserves_unknown_without_second_http SKIPPED [ 66%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_historical_attempt_never_backfilled_with_plan SKIPPED [ 72%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_live_mode_is_denied_before_reservation_or_admission_anchor SKIPPED [ 77%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_missing_wrong_scope_and_arbitrary_command_plan_zero_dispatch SKIPPED [ 83%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_registered_ids_dispatch_complete_input_and_original_receipt_once SKIPPED [ 88%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_registered_input_change_cancels_and_unknown_never_resends SKIPPED [ 94%]
+tests/test_rsi_registered_trial.py::RegisteredBrokerTests::test_two_registered_callers_use_one_original_intent SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_registered_trial.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rsi_registered_trial.py:153: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:262: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:149: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:187: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:140: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:226: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:256: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:246: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:130: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:119: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:204: original metered supervisor requires POSIX
+SKIPPED [1] tests\test_rsi_registered_trial.py:171: original metered supervisor requires POSIX
+============== 6 passed, 12 skipped, 8 subtests passed in 4.84s ===============

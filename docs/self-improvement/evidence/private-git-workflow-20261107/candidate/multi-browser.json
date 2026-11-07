@@ -1,0 +1,19 @@
+{
+  "number": "WEBUDDY-REFUND-1794032425535",
+  "records": [
+    {
+      "id": "15520.935",
+      "url": "http://127.0.0.1:18980/jshERP-boot/depotHead/addDepotHeadAndDetail",
+      "body": {
+        "info": "{\"defaultNumber\":\"XSTH00000000686\",\"organId\":58,\"operTime\":\"2026-11-07 06:20:25\",\"number\":\"WEBUDDY-REFUND-1794032425535\",\"remark\":\"Webuddy隔离业务回归\",\"discount\":0,\"discountMoney\":0,\"discountLastMoney\":12.5,\"otherMoney\":0,\"accountId\":\"\",\"changeAmount\":-12.5,\"debt\":\"0.00\",\"type\":\"入库\",\"subType\":\"销售退货\",\"totalPrice\":-12.5,\"accountIdList\":\"[17,18]\",\"accountMoneyList\":\"[\\\"-7.25\\\",\\\"-5.25\\\"]\",\"fileName\":\"\",\"salesMan\":\"\",\"status\":\"0\"}",
+        "rows": "[{\"id\":\"17940324251310457354\",\"name\":\"商品1\",\"standard\":\"\",\"model\":\"\",\"color\":\"\",\"brand\":\"\",\"mfrs\":\"\",\"otherField1\":\"\",\"otherField2\":\"\",\"otherField3\":\"\",\"stock\":\"\",\"unit\":\"个\",\"snList\":\"\",\"batchNumber\":\"\",\"expirationDate\":\"\",\"sku\":\"\",\"preNumber\":\"\",\"finishNumber\":\"\",\"operNumber\":1,\"unitPrice\":12.5,\"allPrice\":12.5,\"taxRate\":0,\"taxMoney\":0,\"taxLastMoney\":12.5,\"remark\":\"\",\"linkId\":\"\",\"depotId\":14,\"barCode\":\"1001\"}]"
+      },
+      "response": {
+        "msg": "操作成功",
+        "code": 200
+      }
+    }
+  ],
+  "ui": "管伊佳ERP\n首页\n零售管理\n采购管理\n销售管理\n销售订单\n销售出库\n销售退货\n仓库管理\n财务管理\n报表查询\n商品管理\n基础资料\n系统管理\n公司test\n欢迎您，测试用户 退出登录\n首页\n单据编号\n商品信息\n单据日期\n~\n查 询重 置 展开 \n新增删除审核反审核列设置\n\t\n\t\n操作\n\t\n客户\n\t\n单据编号\n\t\n商品信息\n\t\n单据日期\n\t\n操作员\n\t\n数量\n\t\n金额合计\n\t\n含税合计\n\t\n待退金额\n\t\n本次退款\n\t\n本次欠款\n\t\n状态\n\t\n\t查看编辑复制删除\t客户1\tWEBUDDY-REFUND-1794032425535\t商品1 sp1\t2026-11-07 06:20:25\t测试用户\t1\t12.5\t12.50\t12.50\t12.5\t0\t未审核\n\t\n\t查看编辑复制删除\t客户1\tWEBUDDY-REFUND-1794032410659\t商品1 sp1\t2026-11-07 06:20:10\t测试用户\t1\t12.5\t12.50\t12.50\t12.5\t0\t未审核\n\t\n\t查看编辑复制删除\t客户1\tWB-REASON-1794032253196-empty\t商品1 sp1\t2026-11-07 06:17:29\t测试用户\t1\t12.5\t12.50\t12.50\t12.5\t0\t未审核\n\t\n\t查看编辑复制删除\t客户1\tWEBUDDY-REFUND-1794032249957\t商品1 sp1\t2026-11-07 06:17:29\t测试用户\t1\t12.5\t12.50\t12.50\t12.5\t0\t未审核\n\t\n\t查看编辑复制删除\t客户1\tWEBUDDY-REFUND-1793968039001\t商品1 sp1\t2026-11-06 12:27:18\t测试用户\t1\t12.5\t12.50\t12.50\t12.5\t0\t未审核\n\t\n\t查看编辑复制删除\t客户1\tWEBUDDY-REFUND-1793968024855\t商品1 sp1\t2026-11-06 12:27:04\t测试用户\t1\t12.5\t12.50\t12.50\t12.5\t0\t未审核\n\t\n\t查看编辑复制删除\t客户1\tWB-REASON-1793966730240-empty\t商品1 sp1\t2026-11-06 12:05:26\t测试用户\t1\t12.5\t12.50\t12.50\t12.5\t0\t未审核\n\t\n\t查看编辑复制删除\t客户1\tWEBUDDY-REFUND-1793966727076\t商品1 sp1\t2026-11-06 12:05:26\t测试用户\t1\t12.5\t12.50\t12.50\t12.5\t0\t未审核\n\t\n\t查看编辑复制删除\t客户1\tWEBUDDY-REFUND-1793966577544\t商品1 sp1\t2026-11-06 12:02:57\t测试用户\t1\t12.5\t12.50\t12.50\t12.5\t0\t未审核\n\t\n\t查看编辑复制删除\t客户1\tWEBUDDY-REFUND-1793966563901\t商品1 sp1\t2026-11-06 12:02:43\t测试用户\t1\t12.5\t12.50\t12.50\t12.5\t0\t未审核\n1-10 共17条\n1\n2\n10 条/页\n跳至页\n新增\n客户\n客户1\n单据日期\n单据编号\n关联单据\n插入行\n扫码录入\n#\n仓库名称 \n条码\n名称\n规格\n库存\n单位\n数量\n单价\n金额\n税率\n税额\n价税合计\n备注\n暂无数据\n优惠率\n%\n退款优惠\n优惠后金额\n其它费用\n结算账户\n多账户\n本次退款\n本次欠款\n销售人员\n请选择销售人员\n \n附件\n点击上传\n取 消保存并审核保存（Ctrl+S）\n整体风格设置\n主题色\n固定 Header\n下滑时隐藏 Header\n固定侧边菜单\n语言设置\n选择语言\n简体中文\n其他设置\n色弱模式",
+  "uiRefund": 12.5
+}

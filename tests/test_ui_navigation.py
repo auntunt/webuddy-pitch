@@ -14,12 +14,12 @@ class NavigationTests(unittest.TestCase):
         harness = r'''
 const assert=require('node:assert/strict');
 let view='workspace';
-const S={meta:{access:{can_manage:true}}},document={activeElement:null};
+const S={meta:{access:{can_manage:true,role:"admin"}}},document={activeElement:null};
 const nav={dataset:{},innerHTML:'',contains:()=>false};
 const $=()=>nav,curView=()=>view;
 '''
         checks = r'''
-const routes={workspace:'workspace',today:'workspace',tickets:'tasks',t:'tasks',projects:'projects',team:'tasks',memory:'memory',kb:'memory',atlas:'memory',deliveries:'deliveries',delivery:'deliveries',versions:'deliveries',runs:'runs',lead:'insights',overview:'insights',clients:'clients',c:'clients',settings:'settings',access:'access'};
+const routes={home:'workspace',board:'tasks',workspace:'workspace',today:'workspace',tickets:'tasks',t:'tasks',projects:'projects',team:'tasks',memory:'memory',kb:'memory',atlas:'memory',deliveries:'deliveries',delivery:'deliveries',versions:'deliveries',runs:'runs',lead:'insights',overview:'insights',clients:'clients',c:'clients',settings:'settings',access:'access'};
 for(const [route,current] of Object.entries(routes)){
  view=route;paintNav();
  const selected=[...nav.innerHTML.matchAll(/<a\b[^>]*aria-current="page"[^>]*>/g)];
@@ -28,8 +28,9 @@ for(const [route,current] of Object.entries(routes)){
  assert.ok(selected[0][0].includes('class="on"'),route+' has visible selected styling');
 }
 assert.equal(navOf('settings'),'projects','existing project tab grouping is unchanged');
-S.meta.access.can_manage=false;view='settings';paintNav();
+S.meta.access.can_manage=false;S.meta.access.role='member';view='settings';paintNav();
 assert.ok(!nav.innerHTML.includes('href="#/access"'),'admin entry remains permission gated');
+assert.ok(!nav.innerHTML.includes('href="#/clients"'),'tenant-wide clients are not member navigation');
 assert.ok(nav.innerHTML.includes('href="#/settings" class="on"'),'settings stays current');
 '''
         result = subprocess.run(['node', '-e', harness + source + checks], capture_output=True, text=True)

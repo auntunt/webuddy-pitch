@@ -1,0 +1,5 @@
+import {call,evaluate,ws} from './cdp.mjs';
+await call('Page.navigate',{url:"file:///Users/auntlee/Desktop/workspace/%E8%BF%90%E7%BB%B4%E6%99%BA%E8%83%BD%E4%BD%93/tob-maintenance-harness/docs/self-improvement/evidence/map-20261107/local-map/synthetic-scenario/addb80473a54b6ff9b331cf1aca933ae5d9d82886a7d40695628957aaeb24b09/report.html"});
+await new Promise(r=>setTimeout(r,500));
+const text=await evaluate('document.body.innerText');if(!text.includes('1250')||!text.includes('失败')||!text.includes('保存检查通过'))throw Error('Report content missing');
+await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await evaluate(`Array.from(document.querySelectorAll('p')).find(x=>x.textContent.includes('结论：失败')).scrollIntoView({block:'center'})`);const s=await call('Page.captureScreenshot',{format:'png'});(await import('node:fs')).writeFileSync('/private/tmp/webuddy-map-20261107/report-failed-check.png',Buffer.from(s.data,'base64'));console.log('Rendered original report with both failed and passed saved checks');ws.close();

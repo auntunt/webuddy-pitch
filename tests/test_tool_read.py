@@ -123,6 +123,12 @@ class ToolReadTests(unittest.TestCase):
         self.hidden = self.st.create_ticket(self.other['id'], 'hidden', 'owner')
         self.cid, self.rid = seed_candidate(self.st, self.t)
         self.P = SimpleNamespace(store=self.st, data_dir=self.data)
+        from tmh.platform import reform
+        reform.initialize(self.data,self.st)
+        self.atlas={'built':'fixed','domains':[{'id':'sales','title':'Sales','tables':0,'flows':0}]}
+        self.reform=reform.create(self.data,'APP',self.atlas,dict(title='Read fixture',goal='Full contract',scope_mode='selected',domains=['sales']),'alice')
+        self.P.project=lambda key:self.st.project(key)
+        self.P.kb=SimpleNamespace(atlas=lambda project:self.atlas,root=lambda project:Path(project['root']))
         self.req = SimpleNamespace(user='alice', h=SimpleNamespace(headers={'X-Webuddy-Agent': 'fixture'}))
         self.actor = agent_api.member_actor('alice')
         self.tool = {'scope': 'read', 'project_ids': [self.p['id']], 'user': 'alice', 'tenant': 'synthetic'}
@@ -134,12 +140,16 @@ class ToolReadTests(unittest.TestCase):
         # and revocation are covered by the real gateway tests, not this stub.
         self.authorization_lease = threading.RLock()
         self.P.tenant_context = SimpleNamespace(
-            registry=SimpleNamespace(authorization_guard=lambda: self.authorization_lease))
+            registry=SimpleNamespace(authorization_guard=lambda: self.authorization_lease),runtime_allowed=lambda actor:False)
         self.patch.enter_context(patch.object(tenant_policy, 'enabled', return_value=True))
         self.patch.enter_context(patch.object(tenant_policy, 'identity', return_value={
             'tool_connection': self.tool, 'role': 'member', 'project_grants': {'APP': 'viewer'},
             'tenant_id': 'synthetic', 'actor': 'alice', 'authz_revision': 1}))
         self.patch.enter_context(patch.object(tenant_policy, 'visible_projects', return_value=[self.p]))
+
+    def intake_session(self):
+        from tmh.platform import intake
+        return intake.start(self.P, dict(self.p), '投标信息列表增加导出', 'alice', 'mcp', None, agent=False)['id']
 
     def call(self, op, **args):
         from tmh.agent_contract import validate
@@ -149,11 +159,25 @@ class ToolReadTests(unittest.TestCase):
         self.st.x("INSERT INTO agent_requests(agent,request_id,operation,fingerprint,arguments,resource,state,created,updated) VALUES(?,?,?,?,?,?,?,?,?)",
                   (self.actor, 'pending', 'message_send', 'hash', '{}', 'ticket:' + str(self.t['id']), 'pending', 'old', 'old'))
         cases = {'status': {}, 'projects_list': {}, 'tickets_list': {}, 'ticket_get': {'ticket': self.t['key']},
-                 'messages_list': {}, 'request_get': {'request_id': 'pending'}, 'run_get': {'run_id': self.rid},
+                 'delivery_get': {'ticket': self.t['key']}, 'messages_list': {}, 'request_get': {'request_id': 'pending'}, 'run_get': {'run_id': self.rid},
                  'candidates_list': {'ticket': self.t['key']}, 'candidate_get': {'candidate_id': self.cid},
                  'library_get': {'project': 'APP'}, 'library_search': {'project': 'APP', 'query': 'synthetic'},
                  'library_read': {'project': 'APP', 'revision_id': 'a' * 32, 'path': 'rules.md'},
-                 'preview_get': {'ticket': self.t['key']}}
+                 'development_get': {'ticket': self.t['key']}, 'candidate_ci': {'candidate_id': self.cid},
+                 'preview_get': {'ticket': self.t['key']}, 'intake_get': {'session': self.intake_session()}}
+        cases.update(reforms_list={'project':'APP'},reform_preview={'project':'APP','scope_mode':'selected','domains':['sales']},
+            reform_get={'project':'APP','plan_id':self.reform['id']},reform_events={'project':'APP','plan_id':self.reform['id']},
+            reform_resume_preview={'project':'APP','plan_id':self.reform['id']})
+        from tmh.platform import report_exports
+        manifest=report_exports.create(self.P,self.p,self.reform,self.actor,dict(project='APP',plan_id=self.reform['id'],expected_revision=self.reform['revision'],request_id='read-only-export-fixture'))
+        cases['reform_report_get']={'project':'APP','plan_id':self.reform['id'],'export_id':manifest['export_id']}
+        from tmh import graph
+        from tmh.platform import code_maps
+        (self.data/'app'/'refund.py').write_text('def refund():\n    return 1250\n')
+        graph.build(self.data/'app')
+        saved_map=code_maps.create(self.P,self.p,self.actor,dict(project='APP',question='refund',request_id='read-map'))
+        cases['maps_list']={'project':'APP'}
+        cases['map_get']={'project':'APP','map_id':saved_map['id']}
         self.assertEqual(set(cases), set(tool_access.READ_OPERATIONS))
         before = snapshot(self.st)
         # Library schema is initialized at fixture registration, preserving the
@@ -168,6 +192,42 @@ class ToolReadTests(unittest.TestCase):
                     else:
                         result = self.call(op, **args)
                         self.assertIsInstance(result, dict)
+        self.assertEqual(snapshot(self.st), before)
+
+    def test_new_reads_reject_foreign_project_before_external_ci_query(self):
+        hidden_cid, _ = seed_candidate(self.st, self.hidden)
+        with patch('tmh.platform.project_ci.check', side_effect=AssertionError('must authorize before query')):
+            for op, args in [('development_get', {'ticket':self.hidden['key']}),
+                             ('candidate_ci', {'candidate_id':hidden_cid}),
+                             ('reforms_list',{'project':'PRIVATE'}),('reform_preview',{'project':'PRIVATE','scope_mode':'all','domains':[]}),
+                             *[(op,{'project':'PRIVATE','plan_id':self.reform['id']}) for op in ('reform_get','reform_events','reform_resume_preview')]]:
+                with self.subTest(op=op), self.assertRaises(ApiError) as error:
+                    self.call(op, **args)
+                self.assertEqual(error.exception.code, 403)
+
+    def test_delivery_packet_preserves_outputs_and_unknown_validity(self):
+        with no_live_effects(self.st):
+            packet = self.call('delivery_get', ticket=self.t['key'])
+            self.assertIn('完整结构化依据',packet['report_markdown'])
+            self.assertIn('generated_at',packet)
+            self.assertEqual(packet['conclusions']['engineering_gate'],'not_checked')
+            for row in packet['consumption']:
+                self.assertIsNone(row['actual_cost'])
+        self.assertIsNone(packet['ready_to_merge'])
+        self.assertEqual(packet['current_validity'], 'not_checked')
+        self.assertEqual(packet['candidates'][0]['commit'], 'b'*40)
+        self.assertEqual(packet['runs'][0]['run']['output'], self.st.run(self.rid)['output'])
+        self.assertEqual(packet['development']['state'], 'not_selected')
+        self.assertEqual(packet['links']['task'], '#/t/'+self.t['key'])
+        with self.assertRaises(ApiError) as error:
+            self.call('delivery_get', ticket=self.hidden['key'])
+        self.assertEqual(error.exception.code, 403)
+
+    def test_candidate_ci_queries_only_authorized_project_and_exact_commit(self):
+        before = snapshot(self.st)
+        with patch('tmh.platform.project_ci.check', return_value={'state':'blocked'}) as query:
+            self.assertEqual(self.call('candidate_ci', candidate_id=self.cid)['state'], 'blocked')
+        query.assert_called_once_with(self.data, 'APP', 'b'*40)
         self.assertEqual(snapshot(self.st), before)
 
     def test_candidate_preserves_all_historical_records_and_uses_unknown(self):

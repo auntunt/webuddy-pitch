@@ -1,0 +1,60 @@
+{
+  "installed_sdk": true,
+  "real_test_network": true,
+  "export_id": "13830a74cbdba6af9e5eff22f29e171a1e0a803c49dbdefd0268638ab963242e",
+  "files": [
+    {
+      "name": "RW-1.json",
+      "bytes": 1500065,
+      "sha256": "230c674b825ed6b1078a43ebee0dfbfd75d38cdebdeb8f873cf63c3cc392f48e"
+    },
+    {
+      "name": "RW-2.json",
+      "bytes": 623534,
+      "sha256": "b5ddaedebf052960d89acd9070ab5032af636b0ea36d3058c87fc02857ce64da"
+    },
+    {
+      "name": "RW-3.json",
+      "bytes": 742625,
+      "sha256": "d95dd9f4903dcac6a5354cff742c152a7b9e4d33dec5607053e05d3c4f4eb592"
+    },
+    {
+      "name": "RW-4.json",
+      "bytes": 918928,
+      "sha256": "d0d199cd094c848d9430fdd7054a0cbd4ab61c10f60bd36585abd2d7bb72b485"
+    },
+    {
+      "name": "RW-5.json",
+      "bytes": 897895,
+      "sha256": "72f33d64505ea3a98bd3c577ecc59a99b654712d5a03dae317c5fcd13404f38a"
+    },
+    {
+      "name": "RW-6.json",
+      "bytes": 1097538,
+      "sha256": "374afb081eeef005a2a5f2a119a89d086bfade105f573fc7dd0f8fbcc09428d8"
+    },
+    {
+      "name": "RW-7.json",
+      "bytes": 1189241,
+      "sha256": "b154e2319758c1f65f378ee25f8bb1542b99e588b8d528262846071e4a1a8931"
+    },
+    {
+      "name": "RW-8.json",
+      "bytes": 1469428,
+      "sha256": "3e360505d7f70cd9f928eca6ac7834119d104c7761f4d5f2b2d6fa919c6e70ee"
+    },
+    {
+      "name": "plan.json",
+      "bytes": 17726,
+      "sha256": "617cbab6fce4064e9d702c906403e455574d34a79ea5b0a7306224b8349c0407"
+    },
+    {
+      "name": "report.md",
+      "bytes": 40008,
+      "sha256": "bcdf34d98ee5cb175377c1a36a554ca7c3bfd1c7ad1e25ecace47104d3552bc7"
+    }
+  ],
+  "total_bytes": 8496988,
+  "all_hashes_verified": true,
+  "actual_host_write": false
+}

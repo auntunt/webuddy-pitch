@@ -15,6 +15,7 @@ from types import SimpleNamespace
 from ..agent_contract import SPECS
 from .errors import ApiError
 from .store import now, _keyed
+from . import reform_api
 
 
 WRITES = frozenset(name for name, spec in SPECS.items() if spec["write"])
@@ -31,14 +32,16 @@ BOUNDARIES = {
 
 def _boundaries(tool=None):
     result = dict(BOUNDARIES)
-    if tool and tool.get('scope') == 'execute':
+    if tool and tool.get('scope') in ('execute', 'develop'):
         result.update(identity='身份来自本人授权的工具连接；工具标签仅用于显示或消息路由，不能更换操作主体。',
                       candidate='仅可读取已有候选与历史证据；此连接不登记、评审或批准候选。',
-                      execution='可启动/停止分析、方案、修改，接管或交回自动；只在本人网页上也能运行时生效。不代人验收、合并、发布或回滚。')
+                      execution='可让 AI 理清需求、回答追问，可启动/停止分析、方案、修改，接管或交回自动；只在本人网页上也能运行时生效。不代人验收、合并、发布或回滚。')
     elif tool:
         result.update(identity='身份来自本人授权的工具连接；工具标签仅用于显示或消息路由，不能更换操作主体。',
                       candidate='仅可读取已有候选与历史证据；此连接不登记、执行、评审或批准候选。',
                       execution='此个人工具连接仅提供获准内容操作；不启动模型、构建或预览，也不代人确认。')
+    if tool and tool.get('scope') == 'develop':
+        result['candidate'] = '可记录开发问答、提交与验证固定候选；保留原有执行权限。AI不能代人确认需求、批准、合并或发布。'
     return result
 
 
@@ -76,7 +79,7 @@ def _digest(value):
     return hashlib.sha256(_json(value).encode("utf-8")).hexdigest()
 
 
-def _requirement(t, store, *, reference_inputs=None, contract_records=None):
+def _requirement(t, store, *, reference_inputs=None, contract_records=None, include_development=True):
     """Bind requirement sources, including conversation and the client contract.
 
     This is deliberately conservative: even an informational comment invalidates
@@ -96,6 +99,11 @@ def _requirement(t, store, *, reference_inputs=None, contract_records=None):
     references = bindings(store, store.project(t['project_id'])) if reference_inputs is None else reference_inputs
     if references:  # Keep the exact legacy identity for projects without references.
         value['knowledge_references'] = references
+    if include_development:
+        from .development import identity
+        development = identity(store,t['id'])
+        if development:
+            value['development_contract'] = development
     return _digest(value)
 
 
@@ -137,6 +145,17 @@ def _run(P, rid):
     return r
 
 
+def _intake(P, sid, visible_ids=None):
+    from . import intake
+    try:
+        s = intake.load(P.data_dir, sid, P)
+    except (ApiError, OSError, ValueError):
+        raise ApiError(404, "没有这段需求对话") from None
+    if visible_ids is not None and _project(P, s["project"])["id"] not in visible_ids:
+        raise ApiError(404, "没有这段需求对话")
+    return s
+
+
 def _req(req, actor, body=None, query=None):
     q = query or {}
     return SimpleNamespace(h=req.h, body=body or {}, user=actor, query=q,
@@ -144,6 +163,10 @@ def _req(req, actor, body=None, query=None):
 
 
 def _resource(P, operation, args):
+    if operation in ("maps_list","map_get","map_create"):
+        return "project:%d:maps" % _project(P,args["project"])["id"]
+    if operation.startswith('reform'):
+        return "project:%d:reform:%s" % (_project(P,args['project'])['id'],args.get('plan_id','create'))
     if operation.startswith("library_"):
         return "project:%d:library" % _project(P, args["project"])["id"]
     if "probe_id" in args:
@@ -160,6 +183,10 @@ def _resource(P, operation, args):
         return "ticket:%d" % r["ticket_id"] if r["ticket_id"] else "run:%d" % r["id"]
     if operation == "ticket_create":
         return "project:%d:create" % _project(P, args["project"])["id"]
+    if operation == "intake_start":
+        return "project:%d:intake" % _project(P, args["project"])["id"]
+    if "session" in args:
+        return "intake:" + args["session"]
     return ""
 
 
@@ -201,13 +228,22 @@ def _write(P, req, actor, operation, args):
                 st.db.commit()
                 if row["fingerprint"] != fingerprint:
                     raise ApiError(409, "同一 request_id 已用于不同操作或内容，请保留原回执并为新操作使用新编号")
+                if row['state'] in ('pending','uncertain') and operation.startswith('reform'):
+                    receipt = st.one('SELECT * FROM reform_operations WHERE actor=? AND request_id=?',(actor,request_id)) if st.one("SELECT name FROM sqlite_master WHERE name='reform_operations'") else None
+                    if receipt and receipt['fingerprint']==fingerprint:
+                        recovered = json.loads(receipt['result'])
+                        if operation=='reform_create':
+                            from .reform_api import packet
+                            recovered=dict(packet(P,_project(P,args['project']),recovered),operation_id=request_id,request_id=request_id,request_state='succeeded')
+                        st.x("UPDATE agent_requests SET state='complete',result=?,error='',updated=? WHERE agent=? AND request_id=?",(_json(recovered),now(),actor,request_id))
+                        return recovered
                 return _replay(row)
             # A lost launch receipt must prevent another launch, but must never
             # prevent stopping that run or discussing what happened. Cancellation
             # and message receipts do not themselves own an execution resource.
             pending = None
-            if operation not in ("run_cancel", "candidate_cancel", "harness_probe_cancel", "library_cancel", "message_send"):
-                pending = st.db.execute("SELECT request_id FROM agent_requests WHERE resource=? AND state IN ('pending','uncertain') AND operation IN ('ticket_create','run_start','run_retry','run_recheck','preview_start','candidate_submit','candidate_verify','candidate_preview','candidate_decide','candidate_assess','harness_probe_start','library_build','library_resume','library_reference','library_unlink') LIMIT 1", (resource,)).fetchone()
+            if operation not in ("run_recover", "run_cancel", "candidate_cancel", "harness_probe_cancel", "library_cancel", "message_send") and not (operation=="reform_control" and args["action"] in ("pause","cancel")):
+                pending = st.db.execute("SELECT request_id FROM agent_requests WHERE resource=? AND state IN ('pending','uncertain') AND operation IN ('reform_create','reform_update','reform_control','reform_archive','ticket_create','run_start','run_retry','run_recheck','preview_start','candidate_submit','candidate_verify','candidate_preview','candidate_decide','candidate_assess','harness_probe_start','library_build','library_resume','library_reference','library_unlink') LIMIT 1", (resource,)).fetchone()
             if pending:
                 raise ApiError(409, "needs_reconcile: 此对象还有未确认的请求 %s；先核对原始回执，不会开始重复操作" % pending["request_id"])
             ts = now()
@@ -260,7 +296,7 @@ def dispatch(P, req, operation):
     if operation in EXECUTIONS and req.h.headers.get("X-Webuddy-Execution") != "1":
         raise ApiError(403, "此操作会启动模型、构建或预览进程；客户端需显式启用执行权限 X-Webuddy-Execution: 1")
     _schema(P.store)
-    if operation in EXECUTIONS and not operation.startswith('library_') and not operation.endswith('_cancel'):
+    if operation in EXECUTIONS and operation!='run_recover' and not operation.startswith('library_') and not operation.endswith('_cancel') and not (operation=='reform_control' and args['action'] in ('pause','cancel')):
         from .project_library import require_development
         resource = _resource(P, operation, args)
         target = None
@@ -268,6 +304,8 @@ def dispatch(P, req, operation):
             target = P.store.project(P.store.ticket(int(resource.split(':')[1]))['project_id'])
         elif resource.startswith('run:'):
             target = P.store.project(P.store.run(int(resource.split(':')[1]))['project_id'])
+        elif resource.startswith('intake:'):
+            target = _project(P, _intake(P, args['session'])['project'])
         elif args.get('project'):
             target = _project(P, args['project'])
         if target:
@@ -371,9 +409,33 @@ def _execute(P, req, actor, operation, a):
     st = P.store
     from . import tenant_policy
     who = tenant_policy.identity(P, req.user) if tenant_policy.enabled(P) else {}
-    tool = who.get('tool_connection')
+    tool = who.get('tool_connection') or getattr(req, 'assistant_scope', None)
     # Scope before pagination; never disclose ungranted counts or row contents.
     visible_ids = [p['id'] for p in tenant_policy.visible_projects(P, req.user)] if tool else None
+    if operation in ('maps_list','map_get','map_create'):
+        from . import code_maps
+        project=_project(P,a['project'])
+        if visible_ids is not None and project['id'] not in visible_ids:
+            raise ApiError(403,'工具未获此项目的读取权限')
+        if operation=='map_create':req.agent_side_effect_started=True
+        return code_maps.execute(P,project,actor,operation,a)
+    if operation.startswith('reform'):
+        project=_project(P,a['project'])
+        if visible_ids is not None and project['id'] not in visible_ids:
+            raise ApiError(403,'工具未获此项目的读取权限')
+        return reform_api.execute(P,req,actor,operation,a)
+    if operation == 'run_recover':
+        run = _run(P,a['run_id'])
+        if run['project_id'] != _project(P,a['project'])['id']:
+            raise ApiError(404,'运行不属于当前项目')
+        req.agent_side_effect_started = True
+        server.api_recover_run(P,_req(req,actor),str(a['run_id']))
+        from .tool_read import run_get
+        return run_get(P,a['run_id'],0,[run['project_id']],req.user)
+    if operation == 'delivery_get':
+        from . import tool_read
+        scope = [p['id'] for p in tenant_policy.visible_projects(P, req.user)]
+        return tool_read.delivery_get(P, a['ticket'], scope)
     if tool:
         from . import tool_read
         if operation == 'candidate_get':
@@ -386,19 +448,36 @@ def _execute(P, req, actor, operation, a):
             packet = tool_read.ticket_get(P, a['ticket'], visible_ids)
             from .tool_access import allowed_operations
             packet['boundaries'] = _boundaries(tool)
-            packet['supported_actions'] = [v for v in ('message_send', 'messages_list', 'run_get', 'run_start', 'run_cancel', 'run_retry', 'ticket_hold', 'preview_get', 'candidates_list', 'candidate_get')
+            packet['supported_actions'] = [v for v in ('message_send', 'messages_list', 'run_get', 'run_start', 'run_cancel', 'run_retry', 'ticket_hold', 'preview_get', 'candidates_list', 'candidate_get', 'development_get', 'development_start', 'development_propose', 'development_answer', 'candidate_submit', 'candidate_verify', 'candidate_cancel')
                                            if v in allowed_operations(tool['scope'])]
             return packet
         if operation == 'library_get':
             from .project_library import schema
             schema(st)  # Preserve the existing compatible schema migration.
             return tool_read.library_get(P, _project(P, a['project']))
+    if operation.startswith("development_"):
+        from . import development
+        ticket = _ticket(P, a['ticket'])
+        if operation == 'development_get':
+            if tool:
+                ticket = tool_read.ticket(P, a['ticket'], visible_ids)
+            return development.read(st,ticket)
+        return development.act(P,actor,operation.removeprefix('development_'),a)
     if operation.startswith("library_"):
         from .project_library import execute
         return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
     if operation.startswith("harness_"):
         from .harness_probes import execute
         return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
+    if operation == 'candidate_ci':
+        from .candidates import _row
+        from .project_ci import check
+        candidate = _row(P,a['candidate_id'])
+        ticket = st.ticket(candidate['ticket_id'])
+        if tool:
+            ticket = tool_read.ticket(P, ticket['key'], visible_ids)
+            tool_read.bound_run(P, candidate['run_id'], ticket, visible_ids)
+        return check(P.data_dir,st.project(ticket['project_id'])['key'],candidate['commit_sha'])
     if operation.startswith("candidate_") or operation == "candidates_list":
         from .candidates import execute
         try:
@@ -410,8 +489,8 @@ def _execute(P, req, actor, operation, a):
             from . import tool_access
             from .. import __version__
             return {'version': __version__, 'agent': actor,
-                    'tool_connection': dict(tool, execution=tool['scope'] == 'execute'),
-                    'engines': server.available(P.data_dir) if tool['scope'] == 'execute' and P.tenant_context.runtime_allowed(actor) else [],
+                    'tool_connection': dict(tool, execution=tool['scope'] in ('execute', 'develop')),
+                    'engines': server.available(P.data_dir) if tool['scope'] in ('execute', 'develop') and (not tenant_policy.enabled(P) or P.tenant_context.runtime_allowed(req.user)) else [],
                     'allowed_operations': sorted(tool_access.allowed_operations(tool['scope'])),
                     'boundaries': _boundaries(tool)}
         meta = server.api_meta(P, _req(req, actor))
@@ -487,6 +566,27 @@ def _execute(P, req, actor, operation, a):
         t = st.create_ticket(p["id"], a["title"], actor, body=a["body"], type=a.get("type", "feature"),
                              assignee=actor, links={"hold": actor, "handwork": actor, "agent_request": a["request_id"]})
         return {"ticket": t, "execution_started": False, "request_id": a["request_id"]}
+    if operation.startswith("intake_"):
+        from . import intake
+        by = req.user if tool else actor
+        if operation == "intake_start":
+            p = _project(P, a["project"])
+            if visible_ids is not None and p["id"] not in visible_ids:
+                raise ApiError(404, "没有这个项目")
+            who = (a.get("requester") or "").strip()
+            req.agent_side_effect_started = True
+            s = intake.start(P, P.project(p["key"]), ("提出人：%s\n" % who if who else "") + a["text"], by, "mcp", None, agent=False)
+            return {"session": s, "model_called": False, "request_id": a["request_id"]}
+        s = _intake(P, a["session"], visible_ids)
+        if operation == "intake_get":
+            return {"session": s}
+        req.agent_side_effect_started = True
+        if operation == "intake_understand":
+            return {"session": intake.understand(P, s["id"], by), "request_id": a["request_id"]}
+        answers = {}
+        for x in a["answers"]:
+            answers.setdefault(str(x["item"]), {})[x["slot"]] = x["value"]
+        return {"session": intake.answer(P, s["id"], by, answers), "request_id": a["request_id"]}
     if operation == "message_send":
         t = _ticket(P, a["ticket"])
         reply = a.get("reply_to")
@@ -562,6 +662,13 @@ def _execute(P, req, actor, operation, a):
                     if chosen is not None:
                         break
                 chosen = chosen if chosen is not None else (t.get("links") or {}).get("base") or "HEAD"
+                from .development import require_execution
+                try:
+                    development = require_execution(st, t, 'system')
+                except ValueError as exc:
+                    raise ApiError(409, str(exc)) from exc
+                if development and development['execution'].get('current'):
+                    chosen = development['execution']['base_commit']
                 base = git(Path(p["root"]), "rev-parse", "--verify", str(chosen or "HEAD") + "^{commit}", check=False).strip()
                 if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", base):
                     raise ApiError(409, "代码起点无法解析，未启动修改")
@@ -596,8 +703,16 @@ def _execute(P, req, actor, operation, a):
         t = _ticket(P, r["ticket_id"])
         requirement_hash = _requirement(t, st)
         binding = st.one("SELECT * FROM agent_run_sources WHERE run_id=?", (r["id"],))
-        if (binding and binding["requirement_hash"] != requirement_hash) or (r["mode"] == "fix" and not binding):
+        if binding and binding["requirement_hash"] != requirement_hash:
             raise ApiError(409, "原运行未绑定当前需求；请先为当前需求运行新方案，不能用旧上下文直接接续改代码")
+        if r['mode'] == 'fix' and not binding:
+            contract = st.one('SELECT run_id FROM run_execution_contracts WHERE run_id=?',(r['id'],))
+            if not contract:
+                raise ApiError(409,'网页来源运行缺少可核对的当前执行契约，请先处理负责人交接')
+            try:
+                P.runner._retry_execution_contract(r['id'],t)
+            except ValueError as exc:
+                raise ApiError(409,str(exc)) from exc
         retry = P.runner.retry_state(r["id"])
         if not retry["can_retry"]:
             raise ApiError(409, "；".join(retry["retry_blocked"]))

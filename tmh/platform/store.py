@@ -38,6 +38,17 @@ CREATE TABLE IF NOT EXISTS runs (
   status TEXT NOT NULL, author TEXT DEFAULT '', created TEXT NOT NULL, started TEXT DEFAULT '', ended TEXT DEFAULT '',
   prompt TEXT DEFAULT '', output TEXT DEFAULT '', result TEXT DEFAULT '', diff TEXT DEFAULT '',
   exit_code INTEGER, workdir TEXT DEFAULT '', target TEXT DEFAULT '', decision TEXT DEFAULT '');
+CREATE TABLE IF NOT EXISTS run_execution_contracts (
+ run_id INTEGER PRIMARY KEY, identity TEXT NOT NULL, authorized_base TEXT NOT NULL, actual_base TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS run_recovery_snapshots (
+ commit_sha TEXT PRIMARY KEY, from_run INTEGER NOT NULL, original_head TEXT NOT NULL,
+ original_worktree TEXT NOT NULL, created TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS review_feedback (
+  id INTEGER PRIMARY KEY, run_id INTEGER NOT NULL, project_id INTEGER NOT NULL,
+  actor TEXT NOT NULL, request_id TEXT NOT NULL, binding TEXT NOT NULL,
+  payload_digest TEXT NOT NULL, created TEXT NOT NULL, data TEXT NOT NULL,
+  UNIQUE(run_id, actor, request_id));
+CREATE INDEX IF NOT EXISTS ix_review_feedback_project ON review_feedback(project_id, run_id);
 CREATE TABLE IF NOT EXISTS points (
   id INTEGER PRIMARY KEY, project_id INTEGER NOT NULL, ts TEXT NOT NULL, delta INTEGER NOT NULL,
   reason TEXT DEFAULT '', run_id INTEGER, ticket_id INTEGER, author TEXT DEFAULT '');
@@ -72,6 +83,11 @@ LATER_COLS = {"chats": [("session_id", "INTEGER")], "runs": [("session_id", "INT
 
 def now() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def timestamp_offset() -> str:
+    offset = time.strftime("%z")
+    return offset[:3] + ":" + offset[3:]
 
 
 class Store:
@@ -215,20 +231,27 @@ class Store:
             t = self.one("SELECT t.*, p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id WHERE t.id=?", (int(tid),))
         return _keyed(t) if t else None
 
-    def create_ticket(self, project_id: int, title: str, author: str = "", **f) -> dict:
+    def _create_ticket_in_tx(self, project_id: int, title: str, author: str = "", **f) -> dict:
+        if not self.db.in_transaction:
+            raise RuntimeError('ticket registration requires the caller transaction')
         if not (title or "").strip():
             raise ValueError("标题不能为空")
-        with self.lock:
-            n = (self.one("SELECT MAX(num) AS m FROM tickets WHERE project_id=?", (project_id,)) or {}).get("m") or 0
-            ts = now()
-            tid = self.x("INSERT INTO tickets(project_id,num,title,body,type,status,priority,assignee,reporter,labels,links,external,created,updated)"
-                         " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                         (project_id, n + 1, title.strip(), f.get("body", ""), _pick(f.get("type"), TYPES, "bug"), "new",
-                          _pick(f.get("priority"), PRIORITIES, "normal"), f.get("assignee", ""), author,
-                          json.dumps(f.get("labels") or [], ensure_ascii=False), json.dumps(f.get("links") or {}, ensure_ascii=False),
-                          json.dumps(f.get("external") or {}, ensure_ascii=False), ts, ts))
-        self.event(tid, author, "created", "创建工单")
-        t = self.ticket(tid)
+        n = (self.one("SELECT MAX(num) AS m FROM tickets WHERE project_id=?", (project_id,)) or {}).get("m") or 0
+        ts = now()
+        tid = self.db.execute("INSERT INTO tickets(project_id,num,title,body,type,status,priority,assignee,reporter,labels,links,external,created,updated)"
+                     " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                     (project_id, n + 1, title.strip(), f.get("body", ""), _pick(f.get("type"), TYPES, "bug"), "new",
+                      _pick(f.get("priority"), PRIORITIES, "normal"), f.get("assignee", ""), author,
+                      json.dumps(f.get("labels") or [], ensure_ascii=False), json.dumps(f.get("links") or {}, ensure_ascii=False),
+                      json.dumps(f.get("external") or {}, ensure_ascii=False), ts, ts)).lastrowid
+        self.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+                        (tid,ts,author,'created','创建工单','{}'))
+        return self.ticket(tid)
+
+    def create_ticket(self, project_id: int, title: str, author: str = "", **f) -> dict:
+        with self.lock, self.db:
+            self.db.execute('BEGIN IMMEDIATE')
+            t = self._create_ticket_in_tx(project_id,title,author,**f)
         for fn in self.on_create:
             fn(t, author)
         return t
@@ -505,9 +528,9 @@ class Store:
             ordinary = unmanaged_run_clause(self, "r")
             run_where = "WHERE " + ordinary + (" AND r.project_id=?" if project_id else "")
             runs = {r["status"]: r["n"] for r in self.q("SELECT r.status, COUNT(*) n FROM runs r %s GROUP BY r.status" % run_where, a)}
-        days = self.q("SELECT substr(created,1,10) d, COUNT(*) n FROM tickets %s GROUP BY d ORDER BY d DESC LIMIT 14" % w, a)
-        closed = self.q("SELECT substr(updated,1,10) d, COUNT(*) n FROM tickets %s %s status='closed' GROUP BY d ORDER BY d DESC LIMIT 14"
-                        % (w, "AND" if w else "WHERE"), a)
+        days = self.q("SELECT date(created || ?, '+8 hours') d, COUNT(*) n FROM tickets %s GROUP BY d ORDER BY d DESC LIMIT 14" % w, (timestamp_offset(), *a))
+        closed = self.q("SELECT date(updated || ?, '+8 hours') d, COUNT(*) n FROM tickets %s %s status='closed' GROUP BY d ORDER BY d DESC LIMIT 14"
+                        % (w, "AND" if w else "WHERE"), (timestamp_offset(), *a))
         return {"by_status": by_status, "by_type": by_type, "open_by_priority": by_pri, "runs": runs,
                 "created_by_day": [[r["d"], r["n"]] for r in days][::-1], "closed_by_day": [[r["d"], r["n"]] for r in closed][::-1]}
 

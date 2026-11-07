@@ -1,0 +1,11 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+e282afab238e658e495e5508e64c94b72101dfc2
+:100755 100644 58cf135 0000000 M	scripts/deploy/tmh-native
+diff --git a/scripts/deploy/tmh-native b/scripts/deploy/tmh-native
+old mode 100755
+new mode 100644
+58cf13532dbb8e7f6688172390c239279b8d884d
+58cf13532dbb8e7f6688172390c239279b8d884d
+{"script": "/private/tmp/webuddy-win-source-check.ps1", "started": "2026-11-07T05:21:32.313813+00:00", "ended": "2026-11-07T05:21:44.634177+00:00", "exit_code": 0}

@@ -1,0 +1,20 @@
+.F..                                                                     [100%]
+=================================== FAILURES ===================================
+_ ReformStateTest.test_external_accepted_candidate_is_preserved_in_checkpoint __
+
+self = <test_reform_state.ReformStateTest testMethod=test_external_accepted_candidate_is_preserved_in_checkpoint>
+
+    def test_external_accepted_candidate_is_preserved_in_checkpoint(self):
+        submitted=self.fixture.submit()
+        candidate=self.P.store.one('SELECT commit_sha FROM code_candidates WHERE id=?',(submitted['candidate_id'],))
+        self.P.store.event(self.fixture.ticket['id'],'fixture','accept','synthetic fixed external acceptance',
+            {'candidate':submitted['candidate_id'],'commit':candidate['commit_sha']})
+        saved=dict(self.plan,items=[{'ticket':self.fixture.ticket['key'],'batch':1}])
+        cp=reform_state.checkpoint(self.P,self.p,saved,'synthetic acceptance checkpoint')
+>       self.assertEqual(cp['items'][0]['commit'],candidate['commit_sha'])
+E       AssertionError: None != '23621c69c8255ee22a0e23b86d3982e58bed0d08'
+
+tests/test_reform_state.py:79: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_reform_state.py::ReformStateTest::test_external_accepted_candidate_is_preserved_in_checkpoint
+1 failed, 3 passed in 1.64s

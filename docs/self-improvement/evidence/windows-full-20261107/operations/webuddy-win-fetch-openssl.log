@@ -1,0 +1,5 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+fatal: unable to access 'https://github.com/auntunt/webuddy-pitch.git/': TLS connect error: error:0A000126:SSL routines::unexpected eof while reading
+{"script": "/private/tmp/webuddy-win-fetch-openssl.ps1", "started": "2026-11-07T04:27:55.899898+00:00", "ended": "2026-11-07T04:28:13.868260+00:00", "exit_code": 128}

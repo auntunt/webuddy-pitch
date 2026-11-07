@@ -1,0 +1,115 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 1 item
+
+tests/test_platform.py::PlatformApiTest::test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open FAILED [100%]
+
+================================== FAILURES ===================================
+_ PlatformApiTest.test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open _
+
+self = <unittest.case._Outcome object at 0x000001D3FE2F5650>
+test_case = <test_platform.PlatformApiTest testMethod=test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_platform.PlatformApiTest testMethod=test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open>
+result = <TestCaseFunction test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_platform.PlatformApiTest testMethod=test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open>
+method = <bound method PlatformApiTest.test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open of <test_platform.PlatformApiTest testMethod=test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_platform.PlatformApiTest testMethod=test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open>
+
+    def test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open(self):
+        from tmh.platform import preview, signoff
+        self.team()
+        repo = git_repo(JAVA)
+        (repo / "app.py").write_text(PREVIEW_APP, encoding="utf-8")
+        kb.build(repo)
+        from tmh import config as cfgmod
+        cfg = cfgmod.load(repo)
+        cfg["commands"]["test"] = "%s -c pass" % sys.executable
+        cfgmod.save(repo, cfg)
+        subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+        subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "app"], check=True)
+        self.call("POST", "/api/projects", {"key": "PV", "name": "预览", "root": str(repo)})
+        code, r = self.call("POST", "/api/projects/PV/preview-conf", {"cmd": "python3 app.py"})
+        self.assertEqual(code, 400)  # no port: the platform could not find it
+        code, r = self.call("POST", "/api/projects/PV/preview-conf", {"cmd": "%s app.py {port} {prefix}" % sys.executable})
+        self.assertEqual(code, 200, r)
+        try:
+            _, t = self.call("POST", "/api/tickets", {"project": "PV", "title": "请假审批提交后状态不刷新", "body": "提交后状态没变", "auto": False})
+            for mode in ("plan", "fix"):
+                _, run = self.call("POST", "/api/tickets/%s/runs" % t["key"], {"agent": "team", "mode": mode})
+                run = self.wait_run(run["id"])
+            self.call("POST", "/api/runs/%d/decide" % run["id"], {"decision": "accept"})  # committed: waiting for acceptance
+            for _ in range(150):
+                _, pv = self.call("GET", "/api/tickets/%s/preview" % t["key"])
+                if pv["preview"].get("state") in ("up", "failed"):
+                    break
+                time.sleep(0.1)
+>           self.assertEqual(pv["preview"]["state"], "up", pv["preview"].get("tail"))
+                             ^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'state'
+
+tests\test_platform.py:1091: KeyError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_platform.py__PlatformApiTest__test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open.xml -
+============================= 1 failed in 31.45s ==============================

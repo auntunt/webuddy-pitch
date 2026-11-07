@@ -1,0 +1,51 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 20 items
+
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_ambiguous_or_incomplete_policy_still_counts_usage_but_cannot_bind SKIPPED [  5%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_bound_original_replacement_cancels_the_inflight_request SKIPPED [ 10%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_caller_declared_wrong_candidate_never_passes_original_derivation_check SKIPPED [ 15%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_changed_original_response_is_not_accepted_as_cached_or_derived SKIPPED [ 20%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_legacy_fixture_broker_does_not_silently_inherit_token_protocol SKIPPED [ 25%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_messages_missing_cache_parent_dimensions_do_not_become_zero SKIPPED [ 30%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_messages_original_response_derives_exact_policy_and_same_root_terminal SKIPPED [ 35%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_missing_or_unverified_bound_refuses_without_attempt_or_http SKIPPED [ 40%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_pending_root_or_wrong_frozen_arm_policy_refuses_before_http SKIPPED [ 45%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_pure_protocol_usage_rejects_each_unknown_missing_or_inconsistent_dimension SKIPPED [ 50%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_real_cancellation_after_request_keeps_hold_and_never_reissues SKIPPED [ 55%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_real_responses_timeout_preserves_hold_and_reaps_original_transport SKIPPED [ 60%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_response_tool_output_is_never_an_executable_or_candidate_policy SKIPPED [ 65%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_responses_cache_writes_are_a_parent_subset_and_not_added_twice SKIPPED [ 70%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_responses_missing_contradictory_or_boolean_usage_holds_maximum_and_no_retry SKIPPED [ 75%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_responses_wire_full_text_inclusive_cache_reasoning_and_replay SKIPPED [ 80%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_root_budget_refuses_reservation_before_http_even_with_valid_profile SKIPPED [ 85%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_two_threads_same_request_get_one_real_transport SKIPPED [ 90%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_unapproved_total_bound_and_fixture_live_substitution_refuse SKIPPED [ 95%]
+tests/test_rsi_token_adapter.py::TokenAdapterTests::test_uncertain_proxy_retries_or_incomplete_usage_cannot_approve_a_token_bound SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_token_adapter.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rsi_token_adapter.py:164: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:136: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:108: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:228: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:120: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:197: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:70: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:115: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:100: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:178: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:233: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:212: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:222: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:192: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:171: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:84: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:157: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:203: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:149: private registry/real supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_token_adapter.py:126: private registry/real supervised loopback require POSIX
+============================= 20 skipped in 0.19s =============================

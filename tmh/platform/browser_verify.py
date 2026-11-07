@@ -12,6 +12,7 @@ import hashlib
 import io
 import json
 import re
+import secrets
 import shlex
 import subprocess
 import tarfile
@@ -26,6 +27,7 @@ HELPERS = r"""import { test as base, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 export { expect };
@@ -43,7 +45,11 @@ export async function ready(page) {
 // a step the criterion itself does not ask about (the page is there, a button to reach it): not finding it is the script's fault
 export async function anchor(locator, what = '') {
   try {
-    await expect(locator).toBeVisible({ timeout: 30000 });
+    // a precondition only needs the thing to be there: the same text in the menu, a filter label and a header is fine
+    await expect.poll(async () => {
+      for (let i = await locator.count() - 1; i >= 0; i--) if (await locator.nth(i).isVisible()) return true;
+      return false;
+    }, { timeout: 30000 }).toBe(true);
   } catch (e) {
     throw new Error('TMH_ANCHOR ' + what + ': ' + e.message);
   }
@@ -94,9 +100,38 @@ export function captchaFor(checkKey) {
   return '';
 }
 
+function hostEnv(file) {
+  const out = {};
+  try {
+    for (const line of fs.readFileSync(file.replace(/^~(?=\/)/, os.homedir()), 'utf8').split('\n')) {
+      const m = line.match(/^\s*(?:export\s+)?([A-Za-z_]\w*)=(.*)$/);
+      if (m) out[m[1]] = m[2].trim().replace(/^(['"])(.*)\1$/, '$2');
+    }
+  } catch (e) { /* no file: the variables may already be in the environment */ }
+  return out;
+}
+
+// a plain form login (verify-hosts.json "login": path, user / user_var, pass_var, env_file): the account stays on the host
+async function formLogin(page, c) {
+  const env = { ...hostEnv(c.env_file || ''), ...process.env }, where = c.path || 'login';
+  const user = env[c.user_var || ''] || c.user || '', pass = env[c.pass_var || ''] || '';
+  if (!user || !pass) throw new Error('TMH_SETUP login account not found on the verification host');
+  await page.goto(process.env.TMH_BASE + where);
+  await ready(page);
+  const pw = page.locator('input[type=password]:visible').first();
+  await pw.waitFor({ timeout: 240000 });
+  await page.locator('input:not([type=password]):not([type=hidden]):not([type=checkbox]):not([type=radio]):visible').first().fill(user);
+  await pw.fill(pass);
+  await page.getByRole('button', { name: /登\s*录|log\s*in|sign\s*in/i }).first().click();
+  await page.waitForURL((u) => !u.pathname.replace(/\/$/, '').endsWith('/' + where.replace(/^\/|\/$/g, '')), { timeout: 60000 });
+  await ready(page);
+  await page.waitForTimeout(2000);
+}
+
 export async function login(page, user = 'admin', pass = '123456') {
   const base = process.env.TMH_BASE;
-  // only JeecgBoot has a captcha login wired here; other projects open their home page
+  if (process.env.TMH_LOGIN) return formLogin(page, JSON.parse(process.env.TMH_LOGIN));
+  // JeecgBoot has its captcha login wired here; other projects without a "login" open their home page
   if (!process.env.TMH_JB_YML) { await page.goto(base); await ready(page); return; }
   let checkKey = '';
   page.on('request', (r) => { const m = r.url().match(/randomImage\/([^/?]+)/); if (m) checkKey = m[1]; });
@@ -136,7 +171,7 @@ export default async function () {
   try {
     const page = await browser.newPage();
     for (let i = 0; i < 2; i++) {
-      await page.goto(process.env.TMH_BASE + (process.env.TMH_JB_YML ? 'user/login' : ''), { timeout: 240000 });
+      await page.goto(process.env.TMH_BASE + (process.env.TMH_JB_YML ? 'user/login' : process.env.TMH_LOGIN ? JSON.parse(process.env.TMH_LOGIN).path || 'login' : ''), { timeout: 240000 });
       await ready(page);
       await page.waitForTimeout(5000);
     }
@@ -153,7 +188,7 @@ CONFIG = """export default { testDir: '.', testMatch: 'tmh-verify.spec.mjs', tim
 """
 
 DRIVER = r"""set -u
-J=$1; BASE=$2; PORT=$3; PFX=$4; APP=$5; API=$6; YML=$7; REPO=${8:-pv/base}; START=${9:-}
+J=$1; BASE=$2; PORT=$3; PFX=$4; APP=$5; API=$6; YML=$7; REPO=${8:-pv/base}; START=${9:-}; LOGIN=${10:-}
 case "$REPO" in /*) ;; *) REPO=$HOME/$REPO;; esac
 export PATH=~/.local/bin:$PATH
 D=~/pv/verifier/jobs/$J; OUT=$D/out; mkdir -p $OUT; cd $D
@@ -188,6 +223,7 @@ for i in $(seq 1 $N); do [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.
   kill -0 $VP 2>/dev/null || { say "app exited before it was ready"; finish; }; sleep 2; done
 [ "$i" = $N ] && { say "app did not start"; finish; }
 [ -n "$YML" ] && export TMH_JB_YML=$D/src/$YML
+[ -n "$LOGIN" ] && export TMH_LOGIN=$LOGIN
 cd $D && TMH_BASE=http://127.0.0.1:$PORT$PFX/ TMH_OUT=$OUT timeout 1200 npx playwright test -c playwright.config.mjs >&2
 [ -f $OUT/report.json ] || say "verifier produced no report"
 finish
@@ -197,7 +233,7 @@ SPEC_RULES = """写一个 Playwright 实测脚本，在真实运行的应用里�
 
 脚本要求：
 - ESM：`import { test, expect, anchor, login, shot } from './tmh-helpers.mjs';`（这里的 `page.goto` 会等页面加载完）
-- 只为最后列出的验收标准写 test（工单正文里其他「必须保持」之类的条目由自动测试证明，不要写）。每条一个 test，标题以编号开头，例如 `test('A1 取消后恢复原值', async ({ page }, testInfo) => { ... })`。
+- 只为最后列出的验收标准写 test（未列出的正文条目不要自行扩展；列出的必须保持项也必须逐项实测）。每条一个 test，标题以编号开头，例如 `test('A1 取消后恢复原值', async ({ page }, testInfo) => { ... })`。
 - 先 `await login(page);`（已处理验证码，登录后在首页），再用 `page.goto(process.env.TMH_BASE + '路由')` 或点菜单进入要测的页面。路由从仓库代码里查；`TMH_BASE` 已以 `/` 结尾，路由不要再加开头的 `/`；登录页是 `TMH_BASE + 'user/login'`。
 - 进入页面后先 `shot` 一张，再做任何断言：没截到页面就失败的，不能算标准没做到。
 - 像用户一样操作（点击、输入、选择），每个关键步骤后 `await shot(page, testInfo, '步骤名');`。
@@ -205,6 +241,7 @@ SPEC_RULES = """写一个 Playwright 实测脚本，在真实运行的应用里�
 - 断言某样东西「不存在 / 不再显示」之前，先用 `anchor` 确认同一页面上一个本来就该在的元素可见，证明页面已经加载出来。
 - Ant Design 的两个汉字按钮会显示成「登 录」这样中间带空格：按钮名用正则，如 `getByRole('button', { name: /登\\s*录/ })`。
 - 页面上常有隐藏的同类元素（比如登录页里隐藏的注册、手机登录表单）：优先 `getByRole` / `getByText(..., { exact: true })`，定位输入框等元素时加 `:visible` 或限定在可见的表单里，保证只命中一个。
+- 同一段文字常同时出现在菜单、筛选条件和表头里：`expect` 断言要限定在内容区或表格里（如 `page.locator('.el-table')`），保证只命中要验证的那一处。
 - 表格里的表头和单元格文字用 `表格.getByText('…', { exact: true })` 找，不要依赖 `columnheader` / `rowheader` 角色（不同 Playwright 版本对没写 scope 的 `<th>` 判的角色不一样）。
 - 用 `expect(...)` 断言这条标准能看到的结果；断言失败表示“实测没做到”，所以只断言标准本身要求的东西。
 - 不 mock 接口，不改数据库，不写 `page.evaluate` 改组件状态。没法在页面上验证的标准写成 `test.skip('A2 ...', ...)` 并在注释里写原因。
@@ -388,7 +425,8 @@ def run_remote(c: dict, repo: Path, base: str, diff: str, spec: str, job: str, p
         entries["in.bundle"] = b
     prefix = "/pv/verify/" + job
     remote = "mkdir -p ~/pv/verifier/jobs/%s && tar xz -C ~/pv/verifier/jobs/%s && bash ~/pv/verifier/jobs/%s/driver.sh %s" % (
-        job, job, job, " ".join(shlex.quote(str(x)) for x in (job, base, port, prefix, c["app"], c.get("api", ""), c.get("yml", ""), repo_dir, c.get("start", ""))))
+        job, job, job, " ".join(shlex.quote(str(x)) for x in (job, base, port, prefix, c["app"], c.get("api", ""), c.get("yml", ""), repo_dir, c.get("start", ""),
+                                                  json.dumps(c["login"], ensure_ascii=False) if c.get("login") else "")))
     code, out = _ssh(c, remote, _tar(entries), timeout=TIMEOUT)
     files, report = {}, {}
     try:
@@ -442,6 +480,9 @@ def _record(P, t: dict, rid: int, items: list, result: str, bind: dict, why: str
         for name, data in list(i["shots"].items())[-3:]:
             signoff.attach(P, t, by, i["id"], "%s：%s（%s）" % (i["result"], i["how"][:300], name),
                            "data:image/png;base64," + base64.b64encode(data).decode())
+    if bind.get("pack_hash"):
+        signoff._add(signoff.epath(P.data_dir, t["key"]), "criterion_check", by,
+                     dict(bind, run=rid, result=result, ac=[{k: i[k] for k in ("id", "result", "how")} for i in items]))
     said = {"pass": "页面实测全部通过", "fail": "页面实测复现了问题", "unverified": "页面实测没能证明"}[result]
     P.store.event(t["id"], by, "verify", "%s%s" % (said, "（%s）" % why if why else ""),
                   dict(bind, run=rid, result=result, ac=[{k: i[k] for k in ("id", "result", "how")} for i in items]))
@@ -456,6 +497,14 @@ def full_sha(root: Path, commit: str) -> str:
     return out if re.fullmatch(r"[0-9a-f]{40}", out) and out.startswith(commit) else ""
 
 
+def run_branch_head(root: Path, t: dict, rid: int) -> str:
+    """The tip of run `rid`'s own branch tmh/<ticket>-r<rid>, empty when there is none."""
+    out = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", "--quiet",
+                          "refs/heads/tmh/%s-r%d^{commit}" % (t["key"], rid)],
+                         capture_output=True, text=True, check=False).stdout.strip()
+    return out if re.fullmatch(r"[0-9a-f]{40}", out) else ""
+
+
 def _job(p: dict, rid: int, bind: dict) -> str:
     return "%s-r%d-%s" % (p["key"].lower(), rid, bind["spec_sha256"][:8])
 
@@ -465,6 +514,15 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
     c = conf(P.data_dir, p["key"])
     if not c:
         return {"result": "unverified", "why": "这个项目没有配真实验证环境", "ac": []}
+    from . import signoff
+    from .. import evidence as ev
+    pack = ev.latest(signoff.records(P.data_dir, t["key"]), "pack")
+    context = {"check_id": secrets.token_hex(12), "ticket": t["key"], "project": p["key"], "criteria_sha256": signoff.criteria_digest(acs),
+               "environment_sha256": hashlib.sha256(ev.canon(c).encode()).hexdigest()}
+    from .ai_accept import committed
+    snapshot = pack["data"]["snapshot"] if pack else {}
+    expected = committed(snapshot, rid) if snapshot else ""
+    matching = (snapshot.get("change") or {}).get("run") == rid and (not commit or expected and (expected.startswith(commit) or commit.startswith(expected)))
     run = P.store.run(rid)
     wt = Path(run.get("workdir") or "")
     if commit:
@@ -473,12 +531,17 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
         base = subprocess.run(["git", "-C", str(wt), "rev-parse", "HEAD"], capture_output=True, text=True, check=False).stdout.strip()
         diff = run.get("diff") or ""
     else:
-        base, diff = "", ""
+        # the worktree is gone once the run ends; its commits stay on the run's branch
+        base, diff = run_branch_head(Path(p["root"]), t, rid), ""
+    if pack and matching and not diff and (not base or expected and base.startswith(expected)):
+        context["pack_hash"] = pack["hash"]
+        signoff._add(signoff.epath(P.data_dir, t["key"]), "criterion_check", by,
+                     dict(context, run=rid, result="running", ac=[]))
     if not re.fullmatch(r"[0-9a-f]{40}", base):
         return {"result": "unverified", "why": "找不到被测版本", "ac": []}
     prompt = spec_prompt(t, acs, run.get("diff") or "")
     spec = spec_from((ask or _ask)(P, p, t, prompt)) or spec_from((ask or _ask)(P, p, t, prompt + NO_SPEC))
-    bind = binding(base, diff, spec)
+    bind = dict(binding(base, diff, spec), **context)
     if not spec:
         items = results({}, acs, {})
         _record(P, t, rid, items, "unverified", bind, "没有写出实测脚本", by)
@@ -489,7 +552,7 @@ def verify(P, p: dict, t: dict, rid: int, acs: list, *, commit: str = "", ask=No
     if not why and repairable(items):
         fixed = spec_from((ask or _ask)(P, p, t, repair_prompt(spec, items, diff)))
         if fixed and fixed != spec and keeps(spec, fixed, acs):
-            bind = dict(binding(base, diff, fixed), repaired_from=bind["spec_sha256"])
+            bind = dict(binding(base, diff, fixed), repaired_from=bind["spec_sha256"], **context)
             report, files = run_remote(c, Path(p["root"]), base, diff, fixed, _job(p, rid, bind), 23100 + rid % 800)
             items = results(report, acs, files)
             why = str(report.get("setup") or "")
@@ -522,14 +585,14 @@ def page_state(P, rid: int) -> dict:
 
 
 def page_criteria(P, t: dict) -> list:
-    """What to check on the page: the signed-off criteria, else the client's, else the plan's; not the ones kept by the build."""
+    """What to check on the page: all signed-off criteria, else the client's, else the plan's."""
     from . import signoff
     from .fixloop import plan_ac
     acs = (signoff.state(P.data_dir, t["key"]).get("snapshot") or {}).get("ac") or signoff.client_ac(P.data_dir, t["key"])
     if not acs:
         done = [r for r in P.store.runs(ticket_id=t["id"]) if r["mode"] == "plan" and r["status"] == "done"]
         acs = plan_ac(P.store.run(done[0]["id"])["result"] or "") if done else []
-    return [a for a in acs if not a.get("keep")]
+    return acs
 
 
 def page_check(P, rid: int, user: str) -> dict:

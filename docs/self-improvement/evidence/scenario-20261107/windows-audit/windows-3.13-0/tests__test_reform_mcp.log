@@ -1,0 +1,24 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 12 items
+
+tests/test_reform_mcp.py::ReformMCPTest::test_create_reconnect_conflict_and_lookup_same_plan PASSED [  8%]
+tests/test_reform_mcp.py::ReformMCPTest::test_incomplete_mcp_draft_is_saved_but_cannot_start PASSED [ 16%]
+tests/test_reform_mcp.py::ReformMCPTest::test_legacy_draft_upgrade_copies_normalized_execution_policy PASSED [ 25%]
+tests/test_reform_mcp.py::ReformMCPTest::test_lost_outer_receipt_is_reconciled_only_by_original_write_replay PASSED [ 33%]
+tests/test_reform_mcp.py::ReformMCPTest::test_missing_initial_source_preview_and_control_agree PASSED [ 41%]
+tests/test_reform_mcp.py::ReformMCPTest::test_scenario_materials_and_successor_do_not_rewrite_active_contract PASSED [ 50%]
+tests/test_reform_mcp.py::ReformMCPTest::test_sdk_readonly_hides_and_rejects_writes_and_execution_flag_is_required PASSED [ 58%]
+tests/test_reform_mcp.py::ReformMCPTest::test_sdk_recovers_web_origin_supervised_run_without_restarting_it SKIPPED [ 66%]
+tests/test_reform_mcp.py::ReformMCPTest::test_two_stdio_clients_concurrently_start_one_batch_and_replay_one_receipt PASSED [ 75%]
+tests/test_reform_mcp.py::ReformMCPTest::test_typed_preview_with_lead_matches_created_plan_without_start PASSED [ 83%]
+tests/test_reform_mcp.py::ReformMCPTest::test_web_create_response_loss_replay_survives_knowledge_change PASSED [ 91%]
+tests/test_reform_mcp.py::ReformMCPTest::test_web_update_mcp_conflict_and_same_live_projection PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_reform_mcp.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_reform_mcp.py:292: real supervised recovery requires POSIX
+================== 11 passed, 1 skipped in 83.10s (0:01:23) ===================

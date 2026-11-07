@@ -1,0 +1,23 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 12 items
+
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_answers_given_while_talking_after_a_good_reading_are_not_a_stuck_recovery PASSED [  8%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_changed_answer_or_contract_requires_explicit_review PASSED [ 16%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_concurrent_retry_starts_one_job_and_old_completion_cannot_execute PASSED [ 25%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_legacy_failure_is_recovered_only_with_original_answers_and_finished_run PASSED [ 33%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_repeated_failure_and_cancel_remain_retryable_with_history PASSED [ 41%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_retry_success_keeps_confirmed_contract_and_customer_source PASSED [ 50%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_running_recovery_blocks_old_session_actions PASSED [ 58%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_sweep_recovers_confirmed_session_with_expired_unspawned_retry PASSED [ 66%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_takeover_dependency_closed_and_global_off_survive_recovery 
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_takeover_dependency_closed_and_global_off_survive_recovery PASSED [ 75%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_timeout_preserves_answer_and_exposes_a_bound_read_only_recovery PASSED [ 83%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_unavailable_reader_keeps_unspawned_attempt_distinct_from_initial_run PASSED [ 91%]
+tests/test_intake_recovery.py::IntakeRecoveryTest::test_unknown_answers_and_unverified_cleanup_do_not_become_executable PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_intake_recovery.xml -
+=================== 12 passed, 5 subtests passed in 20.57s ====================

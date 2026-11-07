@@ -1,0 +1,17 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 7 items
+
+tests/test_reform_integration.py::ReformIntegrationTest::test_batch_registers_one_integration_and_next_uses_accepted_fixed_base PASSED [ 14%]
+tests/test_reform_integration.py::ReformIntegrationTest::test_closed_integration_without_current_evidence_never_releases_next_batch PASSED [ 28%]
+tests/test_reform_integration.py::ReformIntegrationTest::test_final_integration_waits_for_whole_acceptance_and_rejection_creates_linked_repair PASSED [ 42%]
+tests/test_reform_integration.py::ReformIntegrationTest::test_fixed_lead_does_not_move_integration_base_to_unaccepted_branch_tip PASSED [ 57%]
+tests/test_reform_integration.py::ReformIntegrationTest::test_invalid_evidence_blocks_pass_but_not_explicit_rejection PASSED [ 71%]
+tests/test_reform_integration.py::ReformIntegrationTest::test_paused_fixed_batch_completion_resumes_integration_then_one_next_part PASSED [ 85%]
+tests/test_reform_integration.py::ReformIntegrationTest::test_shared_signoff_refuses_parent_without_current_integration PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_reform_integration.xml -
+============================= 7 passed in 56.53s ==============================

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import codecs
+from contextlib import nullcontext
 import hashlib
 import json
 import math
@@ -28,28 +29,39 @@ else:  # The worker is launched by absolute filename, independent of target cwd.
     from process_control import ProcessResult, run_process
 
 
+if os.name == "nt":
+    if __package__:
+        from .windows_process import receipt_lock
+    else:
+        from windows_process import receipt_lock
+else:
+    def receipt_lock(path):
+        return nullcontext()
+
+
 SCHEMA = 1
 
 
 def _atomic_json(path, data, exclusive=False):
     """Never expose a partial receipt, including when the caller is killed."""
-    path = Path(path)
-    temporary = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
-    try:
-        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        with os.fdopen(fd, "w", encoding="utf-8") as stream:
-            json.dump(data, stream, ensure_ascii=False, indent=2)
-            stream.flush()
-            os.fsync(stream.fileno())
-        if exclusive:
-            os.link(temporary, path)  # Atomic claim: an existing attempt is immutable.
-        else:
-            os.replace(temporary, path)
-    finally:
+    with receipt_lock(path):
+        path = Path(path)
+        temporary = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
         try:
-            temporary.unlink()
-        except FileNotFoundError:
-            pass
+            fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                json.dump(data, stream, ensure_ascii=False, indent=2)
+                stream.flush()
+                os.fsync(stream.fileno())
+            if exclusive:
+                os.link(temporary, path)  # Atomic claim: an existing attempt is immutable.
+            else:
+                os.replace(temporary, path)
+        finally:
+            try:
+                temporary.unlink()
+            except FileNotFoundError:
+                pass
 
 
 def _identity(folder, owner):
@@ -64,7 +76,8 @@ def _identity(folder, owner):
 
 def _json(path):
     try:
-        value = json.loads(Path(path).read_text(encoding="utf-8"))
+        with receipt_lock(path):
+            value = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError, UnicodeError) as exc:
         raise ValueError("cannot read supervised receipt: " + str(exc)) from exc
     if not isinstance(value, dict):
@@ -247,7 +260,7 @@ def _worker(request_fd, control_fd):
             result.cleanup.setdefault("errors", []).append("original output could not be completely persisted")
             if result.reason != "owner_lost":
                 result.reason, result.returncode = "error", 125
-        with open(folder / "output.txt", "x", encoding="utf-8") as text:
+        with open(folder / "output.txt", "x", encoding="utf-8", newline="") as text:
             text.write(raw.decode("utf-8", "replace"))
             text.flush()
             os.fsync(text.fileno())
@@ -273,8 +286,6 @@ def run_supervised(cmd, *, folder, owner, cwd=None, env=None, timeout=None, canc
     descriptor is inherited only by the supervisor. The target gets no control
     pipe descriptor. Calls use a fresh evidence folder and never replace output.
     """
-    if os.name != "posix":
-        raise NotImplementedError("supervised execution requires POSIX")
     if timeout is not None and (not math.isfinite(timeout) or timeout < 0):
         raise ValueError("timeout must be finite and nonnegative or None")
     if not math.isfinite(terminate_grace) or terminate_grace < 0:
@@ -313,10 +324,29 @@ def run_supervised(cmd, *, folder, owner, cwd=None, env=None, timeout=None, canc
         with tempfile.TemporaryFile() as payload:
             payload.write(json.dumps(request, ensure_ascii=False).encode("utf-8"))
             payload.seek(0)
-            process = subprocess.Popen([sys.executable, str(Path(__file__).resolve()), str(payload.fileno()), str(read_fd)],
-                                       env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                                       stderr=subprocess.DEVNULL, pass_fds=(payload.fileno(), read_fd),
-                                       close_fds=True, start_new_session=True)
+            if os.name == "nt":
+                import msvcrt
+                handles = [msvcrt.get_osfhandle(payload.fileno()), msvcrt.get_osfhandle(read_fd)]
+                startup = subprocess.STARTUPINFO()
+                startup.lpAttributeList = {"handle_list": handles}
+                try:
+                    for handle in handles:
+                        os.set_handle_inheritable(handle, True)
+                    # Windows venv python.exe is a redirector. Launch this
+                    # stdlib-only supervisor directly so its parent is the
+                    # actual pipe owner, not the redirector's extra process.
+                    process = subprocess.Popen([sys._base_executable, str(Path(__file__).resolve()),
+                                                '--windows-handles', *map(str, handles)],
+                                               env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                               stderr=subprocess.DEVNULL, startupinfo=startup, close_fds=True)
+                finally:
+                    for handle in handles:
+                        os.set_handle_inheritable(handle, False)
+            else:
+                process = subprocess.Popen([sys.executable, str(Path(__file__).resolve()), str(payload.fileno()), str(read_fd)],
+                                           env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                           stderr=subprocess.DEVNULL, pass_fds=(payload.fileno(), read_fd),
+                                           close_fds=True, start_new_session=True)
         os.close(read_fd)
         read_fd = None
         while True:
@@ -395,4 +425,9 @@ def run_supervised(cmd, *, folder, owner, cwd=None, env=None, timeout=None, canc
 
 
 if __name__ == "__main__":
-    raise SystemExit(_worker(int(sys.argv[1]), int(sys.argv[2])))
+    if sys.argv[1] == '--windows-handles':
+        import msvcrt
+        request_fd, control_fd = [msvcrt.open_osfhandle(int(h), os.O_RDONLY | os.O_BINARY) for h in sys.argv[2:4]]
+    else:
+        request_fd, control_fd = int(sys.argv[1]), int(sys.argv[2])
+    raise SystemExit(_worker(request_fd, control_fd))

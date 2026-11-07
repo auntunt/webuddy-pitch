@@ -1,0 +1,29 @@
+{
+  "runtime_commit": "9edce45a5364d7f20a373929815bbbfec40a3c7f",
+  "implementation_commit": "62df3d7d",
+  "test_url": "https://webuddy.bbstack.date",
+  "release": "/opt/webuddy/releases/maps-9edce45a/app",
+  "fallback_program": "/opt/webuddy/releases/package-3261e871/app",
+  "backup": "/opt/webuddy/backups/pre-maps-9edce45a-test-20261107T152724Z/state.tar.gz",
+  "backup_verified_members": 57847,
+  "manifest_files": 4628,
+  "database_copies": 15,
+  "ci_run": 42384825276,
+  "ci_head": "9edce45a5364d7f20a373929815bbbfec40a3c7f",
+  "tested_merge": "9c4e56ddd9b38c82633cf970249ed583b9bcc70a",
+  "identical_full_tree": "56362944d4b46fd9f2e9124baef9b3d49566c002",
+  "push_run_failure_retained": 42384820365,
+  "human_decisions_performed": false,
+  "production_changed": false,
+  "actual_host_write_verified": false,
+  "pid": 1983706,
+  "restarts": 0,
+  "first_health_at": "2026-11-07T23:29:41.974331+08:00",
+  "delayed_health_at": "2026-11-07T23:31:07.745744+08:00",
+  "authorized_projects_read": 8,
+  "old_frozen_report_unchanged": true,
+  "windows_full": {
+    "python3.13": "failure: access violation",
+    "python3.11": "in_progress_at_recording"
+  }
+}

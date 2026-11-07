@@ -1,0 +1,36 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 22 items
+
+tests/test_delivery.py::DeliveryTest::test_artifact_revision_history_and_explicit_human_review PASSED [  4%]
+tests/test_delivery.py::DeliveryTest::test_catalog_all_types_persist_and_create_does_not_run PASSED [  9%]
+tests/test_delivery.py::DeliveryTest::test_closed_ticket_blocks_code_but_permits_delivery_document_work PASSED [ 13%]
+tests/test_delivery.py::DeliveryTest::test_collect_rejects_changed_dependency_or_manually_edited_body PASSED [ 18%]
+tests/test_delivery.py::DeliveryTest::test_concurrent_starts_launch_only_one_and_concurrent_saves_preserve_every_revision PASSED [ 22%]
+tests/test_delivery.py::DeliveryTest::test_empty_hold_is_replaced_and_ticket_cannot_switch_after_a_run PASSED [ 27%]
+tests/test_delivery.py::DeliveryTest::test_exit_zero_with_failed_missing_skipped_or_out_of_scope_verification_cannot_pass 
+tests/test_delivery.py::DeliveryTest::test_exit_zero_with_failed_missing_skipped_or_out_of_scope_verification_cannot_pass PASSED [ 31%]
+tests/test_delivery.py::DeliveryTest::test_failed_cancelled_and_wrong_stage_results_cannot_be_collected PASSED [ 36%]
+tests/test_delivery.py::DeliveryTest::test_failed_rerun_cannot_review_old_artifact_until_new_draft PASSED [ 40%]
+tests/test_delivery.py::DeliveryTest::test_fix_pins_the_reviewed_plan_even_if_ticket_has_a_newer_unreviewed_plan PASSED [ 45%]
+tests/test_delivery.py::DeliveryTest::test_get_and_prompt_reads_do_not_write_business_records PASSED [ 50%]
+tests/test_delivery.py::DeliveryTest::test_invalid_create_is_rejected_before_partial_business_writes 
+tests/test_delivery.py::DeliveryTest::test_invalid_create_is_rejected_before_partial_business_writes PASSED [ 54%]
+tests/test_delivery.py::DeliveryTest::test_manual_develop_document_cannot_fake_an_implementation PASSED [ 59%]
+tests/test_delivery.py::DeliveryTest::test_plan_review_allows_fix_but_only_verified_fix_review_unlocks_quality PASSED [ 63%]
+tests/test_delivery.py::DeliveryTest::test_prompt_keeps_full_reviewed_content_and_escapes_data_fences PASSED [ 68%]
+tests/test_delivery.py::DeliveryTest::test_real_runner_executes_only_local_fake_process_and_collects_actual_output SKIPPED [ 72%]
+tests/test_delivery.py::DeliveryTest::test_recheck_changes_revoke_implementation_and_downstream_reviews PASSED [ 77%]
+tests/test_delivery.py::DeliveryTest::test_release_review_does_not_create_a_version_or_deployment PASSED [ 81%]
+tests/test_delivery.py::DeliveryTest::test_start_one_stage_collect_full_output_idempotently_without_auto_review PASSED [ 86%]
+tests/test_delivery.py::DeliveryTest::test_ticket_association_preserves_manual_controls_and_blocks_code PASSED [ 90%]
+tests/test_delivery.py::DeliveryTest::test_transitive_review_changes_never_resurrect_downstream_review PASSED [ 95%]
+tests/test_delivery.py::DeliveryTest::test_updated_spec_requires_new_code_run_not_review_of_old_code PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_delivery.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_delivery.py:492: supervised execution requires POSIX
+======== 21 passed, 1 skipped, 20 subtests passed in 81.41s (0:01:21) =========

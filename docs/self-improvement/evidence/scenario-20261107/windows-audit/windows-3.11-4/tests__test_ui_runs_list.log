@@ -1,0 +1,15 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 5 items
+
+tests/test_ui_runs_list.py::RunsListBehaviorTest::test_batches_keep_their_children_and_filters_do_not_duplicate_runs PASSED [ 20%]
+tests/test_ui_runs_list.py::RunsListBehaviorTest::test_delivery_ask_without_session_is_visible_and_opens_actual_run PASSED [ 40%]
+tests/test_ui_runs_list.py::RunsListBehaviorTest::test_long_output_and_target_remain_complete_but_are_labelled_history PASSED [ 60%]
+tests/test_ui_runs_list.py::RunsListBehaviorTest::test_real_markdown_escapes_html_in_output_and_metadata PASSED [ 80%]
+tests/test_ui_runs_list.py::RunsListBehaviorTest::test_status_filters_include_sessionless_asks_and_preserve_recovery PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_ui_runs_list.xml -
+============================== 5 passed in 1.40s ==============================

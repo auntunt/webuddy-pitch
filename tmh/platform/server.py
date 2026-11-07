@@ -8,6 +8,7 @@ Serving to a team on the LAN: `tmh serve --host 0.0.0.0` with TMH_TOKEN set.
 from __future__ import annotations
 
 import errno
+from .http_encoding import encode_json
 import hashlib
 import hmac
 import http.client
@@ -32,7 +33,7 @@ from .coderefs import FILE_LINE
 from .errors import ApiError
 from .knowledge import Knowledge
 from .orchestra import Orchestra
-from .store import PRIORITIES, REFORM_LIKE, RUN_MODES, STATUSES, TYPES, Store, now
+from .store import PRIORITIES, REFORM_LIKE, RUN_MODES, STATUSES, TYPES, Store, now, timestamp_offset
 
 
 def _routed_agent(P, project, requested=None, fallback=""):
@@ -93,6 +94,10 @@ class Platform:
         from .operator_access import initialize
         self.operator_key_path = initialize(self.data_dir)
         self.store = Store(self.data_dir / "platform.db")
+        from . import reform
+        reform.initialize(self.data_dir,self.store)
+        from .external_requirements import initialize as initialize_external_requirements
+        initialize_external_requirements(self.store)
         self.runner = Runner(self.store, self.data_dir)
         self.runner.tenant_context = tenant_context
         if tenant_context is not None:
@@ -107,6 +112,7 @@ class Platform:
         self.kb = Knowledge(self.store, self.runner)
         self.flow = Orchestra(self.store, self.runner, self.data_dir, self.kb)
         self.flow.tenant_context = tenant_context
+        self.flow.rechecks.runner.tenant_context = tenant_context
         if tenant_context is None:
             self.flow.rechecks.recover()
         from . import apps
@@ -191,10 +197,12 @@ class Platform:
             self.store.add_points(run["project_id"], -n, dict(RUN_MODES).get(run["mode"], run["mode"]), run["author"], run["id"], run["ticket_id"])
 
     # ------------------------------------------------------------ closed-loop board
-    def loop(self, p: dict | None) -> dict:
+    def loop(self, p: dict | None, allowed_projects=None) -> dict:
         """The closed-loop board for one project, or for every project when p is None."""
         st = self.store
         ps = [p] if p else st.projects()
+        if allowed_projects is not None:
+            ps = [x for x in ps if x["id"] in allowed_projects]
         ids = [x["id"] for x in ps] or [-1]
         # 运维 only: reform pieces are followed on the reform service's own pages
         tinn = "project_id IN (%s) AND links NOT LIKE '%s'" % (",".join("?" * len(ids)), REFORM_LIKE)
@@ -211,9 +219,9 @@ class Platform:
         analyzed = st.one("SELECT COUNT(DISTINCT ticket_id) n FROM runs WHERE %s AND mode IN ('analyze','plan') AND status='done'" % inn, ids)["n"]
         fixes = st.q("SELECT decision FROM runs WHERE %s AND mode='fix' AND status='done' AND decision!=''" % inn, ids)
         accepted = sum(1 for r in fixes if r["decision"].startswith("accepted"))
-        today = now()[:10]
-        t_new = st.one("SELECT COUNT(*) n FROM tickets WHERE %s AND substr(created,1,10)=?" % tinn, ids + [today])["n"]
-        t_closed = st.one("SELECT COUNT(*) n FROM tickets WHERE %s AND status='closed' AND substr(updated,1,10)=?" % tinn, ids + [today])["n"]
+        today = time.strftime("%Y-%m-%d", time.gmtime(time.time() + 8 * 3600))
+        t_new = st.one("SELECT COUNT(*) n FROM tickets WHERE %s AND date(created || ?, '+8 hours')=?" % tinn, ids + [timestamp_offset(), today])["n"]
+        t_closed = st.one("SELECT COUNT(*) n FROM tickets WHERE %s AND status='closed' AND date(updated || ?, '+8 hours')=?" % tinn, ids + [timestamp_offset(), today])["n"]
         written = inscope = 0
         built = False
         for x in ps:
@@ -237,7 +245,7 @@ class Platform:
         else:
             facts.append("还没有工单")
         return {"total": total, "by_status": by, "failed": len(failed), "failed_ids": failed, "open": open_, "closed": closed,
-                "waiting": len(self.flow.waiting(p)) if open_ else 0,
+                "waiting": sum(len(self.flow.waiting(x)) for x in ps) if open_ else 0,
                 "metrics": [
                     {"key": "loop", "label": "闭环完成率", "pct": pct(closed, total), "sub": "共 %d 单 · 已闭环 %d" % (total, closed)},
                     {"key": "agent", "label": "智能体分析覆盖", "pct": pct(analyzed, total), "sub": "%d 单有分析结论" % analyzed},
@@ -252,9 +260,11 @@ class Platform:
     # waiting first; and, apart, what waits on someone outside the team (a client's sign-off link that is out).
     PRI_RANK = {"urgent": 0, "high": 1, "normal": 2, "medium": 2, "low": 3}
 
-    def inbox(self, p: dict | None) -> dict:
+    def inbox(self, p: dict | None, allowed_projects=None) -> dict:
         st = self.store
         ps = [p] if p else st.projects()
+        if allowed_projects is not None:
+            ps = [x for x in ps if x["id"] in allowed_projects]
         ids = [x["id"] for x in ps] or [-1]
         keys = {x["id"]: x["key"] for x in ps}
         q = ",".join("?" * len(ids))
@@ -751,6 +761,8 @@ class Platform:
         m["qa"] = kbqa.metrics(self.root(p), month=month)
         from . import upstream
         m["upstream"] = upstream.metrics(self, p, month)
+        from . import review_feedback
+        m["review_feedback"] = review_feedback.summary(self, p["id"])
         return m
 
     # ------------------------------------------------------------ ticket prompts
@@ -989,9 +1001,11 @@ def api_meta(P, req):
         except (ApiError, OSError, ValueError):
             pass
     return {"version": __version__, "user": req.user, "login": managed or has_accounts(P.data_dir),
+            "display_timezone": "Asia/Shanghai", "timestamp_offset": timestamp_offset(),
             "operator_authenticated": bool(getattr(req.h, '_who', '')), "brand": P.brand, "statuses": STATUSES, "types": TYPES, "priorities": PRIORITIES,
             "modes": RUN_MODES, "agents": available(P.data_dir) if can_execute else [], "data_dir": "" if managed else str(P.data_dir), "workspace": _workspace_id(P), "autoflow": P.flow.autoflow(),
             "member_execution": member_execution,
+            "agent_route_default": _route_metadata(P, None)["agent_route"] if can_execute else {},
             "apps": __import__("tmh.platform.apps", fromlist=["APPS"]).APPS}
 
 
@@ -1145,6 +1159,61 @@ def api_work_brief(P, req, key):
 def api_work_brief_save(P, req, key):
     from . import coordination
     return coordination.save_brief(P, key, req.body, _human_action(P, req, strict=True))
+
+
+@route("GET", "/api/projects/<key>/ci")
+def api_project_ci(P, req, key):
+    from .project_ci import configuration
+    return configuration(P.data_dir, P.project(key)['key'])
+
+
+@route("POST", "/api/projects/<key>/ci")
+def api_project_ci_save(P, req, key):
+    from .project_ci import save
+    _human_action(P, req, strict=True)
+    return save(P.data_dir,P.project(key)['key'],req.body)
+
+
+@route("GET", "/api/tickets/<key>/ci")
+def api_ticket_ci(P, req, key):
+    from .candidates import _row
+    from .project_ci import check
+    t = P.ticket(key)
+    try:
+        candidate = _row(P,int(req.arg('candidate_id')))
+    except ValueError as exc:
+        raise ApiError(400,'请选择候选编号') from exc
+    if candidate['ticket_id'] != t['id']:
+        raise ApiError(404,'此任务没有该候选')
+    return check(P.data_dir,P.store.project(t['project_id'])['key'],candidate['commit_sha'])
+
+
+@route("GET", "/api/tickets/<key>/delivery")
+def api_delivery_packet(P, req, key):
+    from . import tool_read
+    t = P.ticket(key)
+    scope = _allowed_project_ids(P, req)
+    return tool_read.delivery_get(P, key, scope if scope is not None else [t['project_id']])
+
+
+@route("GET", "/api/tickets/<key>/development")
+def api_development(P, req, key):
+    from . import development, team
+    t = P.ticket(key)
+    result = development.read(P.store,t)
+    result['work'] = team.item(P,t,_session_actor(req))
+    return result
+
+
+@route("POST", "/api/tickets/<key>/development")
+def api_development_action(P, req, key):
+    from . import development
+    actor = _human_action(P, req, strict=True)
+    body = dict(req.body)
+    action = body.pop('action', '')
+    if action not in ('answer', 'confirm', 'execution') or body.get('ticket') != key:
+        raise ApiError(400, '请选择当前任务的回答或确认操作')
+    return development.act(P,actor,action,body,human=True)
 
 
 @route("GET", "/api/team")
@@ -1415,6 +1484,8 @@ def api_org_knowledge(P, req):
     with provenance. Never writes, never runs a build, an agent or a command.
     """
     from . import org_knowledge as org
+    from .tenant_policy import visible_projects
+    allowed = {p["key"] for p in visible_projects(P, req.user)}
     q = (req.arg("q") or "").strip()
     types = [t.strip() for t in (req.arg("type") or "").split(",") if t.strip()]
     bad = [t for t in types if t not in org.TYPES]
@@ -1427,14 +1498,15 @@ def api_org_knowledge(P, req):
     if limit < 1 or limit > 200:
         raise ApiError(400, "limit 取值范围 1–200")
     if q:
-        items = org.search(P.store, q, limit=limit, types=types or None)
+        items = org.search(P.store, q, limit=limit, types=types or None, allowed_project_keys=allowed)
         return {"query": q, "types": types or list(org.TYPES), "limit": limit,
                 "items": items, "count": len(items), "readonly": True}
-    built = org.build(P.store)
-    items = [i for i in built["items"] if not types or i["type"] in types][:limit]
+    built = org.build(P.store, allowed_project_keys=allowed)
+    filtered = [i for i in built["items"] if not types or i["type"] in types]
+    items = filtered[:limit]
     return {"query": "", "summary": built["stats"], "projects": built["projects_read"],
             "provenance_projects": built["provenance_projects"], "items": items,
-            "count": len(built["items"]), "notice": built["notice"], "readonly": True}
+            "count": len(filtered), "returned": len(items), "notice": built["notice"], "readonly": True}
 
 
 @route("GET", "/api/projects/<key>/habits")
@@ -1588,6 +1660,31 @@ def api_kb_tree(P, req, key):
     return t
 
 
+@route("GET", "/api/projects/<key>/maps")
+def api_code_maps(P, req, key):
+    from . import code_maps
+    from ..agent_contract import validate
+    operation='map_get' if req.arg('map_id') else 'maps_list'
+    args={'project':key}
+    for name in ('map_id','node_id','knowledge_id','request_id'):
+        if req.arg(name):args[name]=req.arg(name)
+    try:
+        for name in ('line','limit','after'):
+            if req.arg(name):args[name]=int(req.arg(name))
+        args=validate(operation,args)
+    except ValueError as exc:raise ApiError(400,str(exc)) from exc
+    return code_maps.execute(P,P.project(key),req.user,operation,args)
+
+
+@route("POST", "/api/projects/<key>/maps")
+def api_code_map_create(P, req, key):
+    from . import code_maps
+    from ..agent_contract import validate
+    try:args=validate('map_create',dict(req.body,project=key))
+    except ValueError as exc:raise ApiError(400,str(exc)) from exc
+    return code_maps.create(P,P.project(key),req.user,args)
+
+
 @route("GET", "/api/projects/<key>/atlas")
 def api_atlas(P, req, key):
     return P.kb.atlas(P.project(key))
@@ -1595,7 +1692,11 @@ def api_atlas(P, req, key):
 
 @route("GET", "/api/projects/<key>/atlas/flow/<fid>")
 def api_atlas_flow(P, req, key, fid):
-    return P.kb.atlas_flow(P.project(key), unquote(fid))
+    try:
+        offset = int(req.arg("offset") or 0)
+    except ValueError:
+        raise ApiError(400, "步骤分页偏移必须是整数")
+    return P.kb.atlas_flow(P.project(key), unquote(fid), offset)
 
 
 @route("GET", "/api/projects/<key>/statecharts")
@@ -1736,9 +1837,11 @@ def api_intake_act(P, req, sid):
         return s
     if a == "drop":
         return intake.drop(P, sid, req.user)
+    if a == "understand":  # recorded with the rules only; someone who may call a model hands it to AI
+        return intake.understand(P, sid, req.user, wait=bool(req.body.get("wait")))
     if a == "ask_client":  # the open questions on a link of the client's own
         return intake.ask_client(P, sid, req.user, req.body.get("items"))
-    raise ApiError(400, "action 只能是 answer、big、confirm、drop、ask_client")
+    raise ApiError(400, "action 只能是 answer、big、confirm、drop、understand、ask_client")
 
 
 @route("POST", "/api/tickets/<key>/ask-client")
@@ -2016,13 +2119,13 @@ def api_catchup(P, req, key):
 
 @route("GET", "/api/projects/<key>/loop")
 def api_loop(P, req, key):
-    return P.loop(None if key in ("*", "all") else P.project(key))
+    return P.loop(None if key in ("*", "all") else P.project(key), allowed_projects=_allowed_project_ids(P, req))
 
 
 @route("GET", "/api/projects/<key>/inbox")
 def api_inbox(P, req, key):
     """What waits for a person now, and what waits on someone outside the team."""
-    return P.inbox(None if key in ("*", "all") else P.project(key))
+    return P.inbox(None if key in ("*", "all") else P.project(key), allowed_projects=_allowed_project_ids(P, req))
 
 
 @route("GET", "/api/projects/<key>/points")
@@ -2159,6 +2262,17 @@ def api_session_ask(P, req, sid):
     return api_session(P, req, sid)
 
 
+@route("POST", "/api/sessions/<sid>/assistant")
+def api_session_assistant(P, req, sid):
+    from . import assistant
+    session = P.session_of(sid, req.user)
+    if session['archived_at']:
+        raise ApiError(400, '会话已归档，恢复后才能继续')
+    if req.body.get('message') is not None:
+        return assistant.step(P, req, session, req.body['message'])
+    return assistant.start(P, req, session)
+
+
 @route("POST", "/api/projects/<key>/command")
 def api_command(P, req, key):
     """Plan one sentence from the side panel as UI steps (see command.py). The browser runs them; saves wait for the person.
@@ -2279,8 +2393,9 @@ def api_accept(P, req, key):
         raise ApiError(409, why)
     with signoff.verification_guard(P, key):
         sealed = signoff._record_accept(P, t, req.user, res == "pass", note)
+        integration_commit = t['links'].get('reform_integration_commit') if res == 'pass' else None
         P.store.event(t["id"], req.user, "accept" if res == "pass" else "reject", ("验收通过" if res == "pass" else "验收不通过") + ("：" + note if note else ""),
-                      dict({"result": res}, **({"evidence": sealed} if sealed else {})))
+                      dict({"result": res}, **({"integration_commit": integration_commit} if integration_commit else {}), **({"evidence": sealed} if sealed else {})))
         P.store.update_ticket(t["id"], req.user, status="closed" if res == "pass" else "doing")
         P.flow.accepted(P.store.project(t["project_id"]), P.store.ticket(t["id"]), res == "pass", note, req.user)
         return P.store.ticket(t["id"])
@@ -2443,15 +2558,45 @@ def api_alert_paste(P, req, key):
     return alerts.receive(P, p, alerts.parse(text.encode("utf-8")), 10 ** 6)
 
 
+@route("POST", "/api/projects/<key>/external-requirements")
+def api_external_requirement(P, req, key):
+    from .external_requirements import sync
+    return sync(P,P.project(key),req.user,req.body)
+
+
 @route("GET", "/api/projects/<key>/reforms")
 def api_reforms(P, req, key):
     """Reform plans (restructuring, upgrades, migrations) with the live state of their tickets, and the domains to choose from."""
     from . import reform
     p = P.project(key)
+    if req.arg('plan_id'):
+        from .reform_api import packet, resume_preview, report
+        try:
+            value = reform.plan(P.data_dir,p['key'],req.arg('plan_id'))
+        except KeyError:
+            raise ApiError(404,'没有这个项目的改造计划') from None
+        if req.arg('view')=='export':
+            from .report_exports import read
+            return read(P,p,value,{'export_id':req.arg('export_id'),'file':req.arg('file'),'offset':int(req.arg('offset') or 0)})
+        if req.arg('view')=='report':
+            return report(P,p,value)
+        return resume_preview(P,p,value) if req.arg('view')=='resume' else packet(P,p,value)
     at = P.kb.atlas(p)
     doms = [{"id": d["id"], "title": d["title"], "flows": d["flows"], "tables": d["tables"]} for d in at.get("domains") or []]
+    if req.arg('view')=='list':
+        from ..agent_contract import validate
+        from .reform_api import execute
+        try:
+            args=dict(project=p['key'],after=int(req.arg('after') or 0),limit=int(req.arg('limit') or 20),archived=req.arg('archived')=='1')
+            if req.arg('status'):
+                args['status']=req.arg('status')
+            args=validate('reforms_list',args)
+        except ValueError as exc:
+            raise ApiError(400,str(exc)) from exc
+        return dict(execute(P,req,req.user,'reforms_list',args),
+            kinds={k:{'label':v[0],'desc':v[1]} for k,v in reform.KINDS.items()},built=bool(at.get('built')),domains=doms)
     return {"kinds": {k: {"label": v[0], "desc": v[1]} for k, v in reform.KINDS.items()}, "built": bool(at.get("built")), "domains": doms,
-            "plans": [reform.view(P, p, x) for x in reform.plans(P.data_dir, p["key"])][::-1]}
+            "plans": [reform.view(P, p, x) for x in reform.plans(P.data_dir, p["key"],include_archived=req.arg("include_archived")=="1")][::-1]}
 
 
 @route("GET", "/api/projects/<key>/reforms/deps")
@@ -2466,10 +2611,13 @@ def api_reform_new(P, req, key):
     from . import reform
     p = P.project(key)
     at = P.kb.atlas(p)
-    if req.body.get("preview"):
-        return {"items": reform.split(at, list(req.body.get("domains") or [])) if at.get("built") else []}
     try:
-        return reform.view(P, p, reform.create(P.data_dir, p["key"], at, req.body, req.user))
+        if req.body.get("preview"):
+            return reform.preview(at,req.body)
+        from .reform_api import packet
+        from .code_maps import validate_refs
+        validate_refs(P.store,p,req.body.get('map_refs',[]))
+        return packet(P, p, reform.create(P.data_dir, p["key"], at, req.body, req.user))
     except ValueError as e:
         raise ApiError(400, str(e))
 
@@ -2480,6 +2628,15 @@ def api_reform_act(P, req, key, pid):
     from . import reform
     p = P.project(key)
     try:
+        if req.body.get('action') in ('update','control','archive','report_create'):
+            from .reform_api import execute
+            from ..agent_contract import validate
+            operation = 'reform_'+req.body['action']
+            body = {k:v for k,v in req.body.items() if k!='action'}
+            if operation == 'reform_control':
+                body['action'] = body.pop('control_action',None)
+            body.update(project=p['key'],plan_id=pid)
+            return execute(P,req,req.user,operation,validate(operation,body))
         if req.body.get("action") == "remove":
             reform.remove(P.data_dir, p["key"], pid)
             return {"removed": pid}
@@ -2487,7 +2644,9 @@ def api_reform_act(P, req, key, pid):
             n = req.body.get("n")
             keys = reform.release(P, p, pid, int(n) if n else None, req.user)
             return dict(reform.view(P, p, reform.plan(P.data_dir, p["key"], pid)), opened=keys)
-        if req.body.get("action") in ("auto", "resume"):
+        if req.body.get("action") == "resume":
+            return reform.resume(P,p,pid,req.user)
+        if req.body.get("action") == "auto":
             auto = req.body.get("on") if req.body.get("action") == "auto" else None
             reform.configure(P.data_dir, p["key"], pid, None if auto is None else bool(auto), req.body.get("action") == "resume")
             return reform.view(P, p, reform.plan(P.data_dir, p["key"], pid))
@@ -2553,19 +2712,23 @@ def api_ticket(P, req, key):
         if r["mode"] == "fix":
             r["diff_bytes"] = len((P.store.run(r["id"]) or {}).get("diff") or "")
             v = verified(P.data_dir, r["id"])
-            r["verify"] = {k: v.get(k) for k in ("check", "skip", "verdict", "rounds", "split", "beyond_plan", "verification_current", "recheck_operation", "stalled")} if v else None
+            r["verify"] = {k: v.get(k) for k in ("check", "skip", "verdict", "rounds", "split", "beyond_plan", "verification_current", "recheck_operation", "stalled", "outcome")} if v else None
             r["recheck_wait"] = P.flow.verification_wait(r["id"]) if v.get("verification_current") is False else None
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
-    from . import epic, signoff, stage, workbench, intake, team
+    from . import epic, signoff, stage, workbench, intake, team, ai_accept, development
+    from . import reform_state
     par = P.store.ticket(t["links"]["parent"]) if (t.get("links") or {}).get("parent") else None
     return {"ticket": t, "project": p, "events": P.store.events(t["id"]), "runs": [r for r in runs if r["mode"] != "ask"],
             "team_assignment": team.assignment(P, t),
+            "development": development.read(P.store, t),
+            "workflow_policy": ai_accept.mandate(P.flow.autoflow(), p["key"], P.data_dir),
             "intake_recovery": intake.recovery_state(P, t["key"]),
             "plain_state": workbench.states(P, [t])[t["key"]],
             "stage": stage.compute(P, [t])[t["key"]],
             "evidence": P.ticket_evidence(p, t, runs), "auto_next": P.flow.next_step(t, retry=True)[0],
             "package": dict(signoff.brief(P.data_dir, t["key"]), personal_review=_personal_review_access(P, req, t)), "epic": epic.view(P, t) if epic.is_parent(t) else None,
+            "reform_state": reform_state.ticket(P,p,t) if t["links"].get("reform") else None,
             "parent": {"key": par["key"], "title": par["title"], "status": par["status"]} if par else None}
 
 
@@ -2749,6 +2912,26 @@ def _api_update_ticket(P, req, key):
         raise ApiError(400, str(e))
 
 
+@route("GET", "/api/agent-settings")
+def api_agent_settings(P, req):
+    from . import agent_settings
+    data = agent_settings.view(P.data_dir)
+    try:
+        _platform_admin(P, req, "配置智能体")
+        data["can_edit"] = True
+    except ApiError:
+        data["can_edit"] = False
+    return data
+
+
+@route("POST", "/api/agent-settings")
+def api_agent_settings_save(P, req):
+    _platform_admin(P, req, "配置智能体")
+    from . import agent_settings
+    agent_settings.save(P.data_dir, req.body)
+    return api_agent_settings(P, req)
+
+
 @route("GET", "/api/testbox")
 def api_testbox(P, req):
     from . import testbox
@@ -2775,6 +2958,43 @@ def _platform_admin(P, req, what):
     if ctx is not None and not ((ctx.current_actor(actor) or {}).get("platform_owner") and ctx.trusted_host()):
         raise ApiError(403, "只有平台管理员能" + what)
     return actor
+
+
+@route("GET", "/api/projects/<key>/tests")
+def api_project_tests(P, req, key):
+    from . import project_tests
+    p = P.project(key)
+    result = project_tests.view(P.data_dir, p["key"])
+    try:
+        _platform_admin(P, req, "配置项目测试命令")
+        result['can_edit'] = True
+    except ApiError as exc:
+        if exc.code != 403:
+            raise
+        result['can_edit'] = False
+    result['managed_by'] = '平台管理员'
+    result['recent_cases'] = []
+    from .fixloop import _verification
+    for run in P.store.runs(project_id=p['id'], limit=30):
+        reports = [c['project_tests'] for c in _verification(P.data_dir, run['id']).get('commands', []) if c.get('project_tests')]
+        if reports:
+            result['recent_cases'] = [{'stage': stage['id'], 'id': case['id'], 'run': run['id']} for report in reports for stage in report['stages'] for case in stage['cases']]
+            break
+    return result
+
+
+@route("GET", "/api/runs/<rid>/test-report")
+def api_project_test_report(P, req, rid):
+    from . import project_tests
+    return project_tests.artifact(P.data_dir, int(rid), req.arg('stage'), req.arg('artifact'))
+
+
+@route("POST", "/api/projects/<key>/tests")
+def api_project_tests_save(P, req, key):
+    from . import project_tests
+    p = P.project(key)
+    _platform_admin(P, req, "配置项目测试命令")
+    return project_tests.save(P.data_dir, p["key"], req.body)
 
 
 @route("GET", "/api/projects/<key>/mode")
@@ -3115,6 +3335,25 @@ def api_run(P, req, rid):
     r["ticket_key"] = t["key"] if t else ""
     r["verification"] = verified(P.data_dir, r["id"]) if r["mode"] == "fix" else None
     r["recheck"] = api_recheck_state(P, req, rid) if r["mode"] == "fix" else None
+    from . import review_feedback
+    r["review_feedback"] = review_feedback.view(P, r, r["verification"])
+    from . import tenant_policy
+    try:
+        tenant_policy.authorize(P, "POST", "/api/runs/%s/review-feedback" % rid, {}, {}, req.user)
+        r["review_feedback"]["can_record"] = True
+    except ApiError as exc:
+        if exc.code not in (401, 403):
+            raise
+        r["review_feedback"]["can_record"] = False
+    r["human_review"] = None
+    if t and r["mode"] == "fix" and r["status"] == "done":
+        from . import signoff
+        evidence = signoff.state(P.data_dir, t["key"])
+        bound = ((evidence.get("snapshot") or {}).get("change") or {}).get("run") == r["id"]
+        current = bound and evidence.get("intact") and not evidence.get("stale") and not evidence.get("binding_blocked")
+        r["human_review"] = {"current": bool(current), "review": evidence.get("review") if current else None,
+                             "decision": evidence.get("decision") if current else None,
+                             "proofs": evidence.get("proofs", []) if current else []}
     r["lifecycle"], r["lifecycle_error"] = None, ""
     try:
         receipt = Path(P.data_dir) / "runs" / str(r["id"]) / "lifecycle.json"
@@ -3151,6 +3390,22 @@ def api_cancel(P, req, rid):
         return P.runner.cancel(int(rid), req.user)
     except ValueError as e:
         raise ApiError(400, str(e))
+
+
+@route("POST", "/api/runs/<rid>/review-feedback")
+def api_review_feedback(P, req, rid):
+    from . import review_feedback
+    run = P.store.run(int(rid))
+    if not run:
+        raise ApiError(404, "没有这次运行")
+    if req.h.headers.get('X-Webuddy-Agent') or req.user.startswith('agent:'):
+        raise ApiError(403, 'Review效果请由人工记录')
+    actor = _session_actor(req)
+    if not actor:
+        from .operator_access import require
+        require(P, req.h.headers)
+        actor = req.user
+    return review_feedback.save(P, run, actor, req.body)
 
 
 @route("POST", "/api/runs/<rid>/say")
@@ -3219,7 +3474,7 @@ def api_recheck(P, req, rid):
     """Build a finished change again without redoing it; poll GET .../recheck for the result."""
     _require_unmanaged_run(P, rid)
     try:
-        return P.flow.recheck(int(rid), req.user, wait=bool(req.body.get("wait")))
+        return P.flow.recheck(int(rid), req.user, wait=bool(req.body.get("wait")), kind=req.body.get("kind", "tests"))
     except (ValueError, RuntimeError) as e:
         raise ApiError(400, str(e))
 
@@ -3665,6 +3920,7 @@ def make_handler(P: Platform, token: str = ""):
             pass
 
         def _send(self, code: int, body: bytes, ctype: str, extra: dict | None = None):
+            body, extra = encode_json(body, ctype, self.headers.get("Accept-Encoding", ""), extra)
             self.send_response(code)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
@@ -4189,6 +4445,8 @@ def serve(data_dir: Path, host: str = "127.0.0.1", port: int = 8790, user: str =
             P.preview_port = preview_port
             threading.Thread(target=pv.serve_forever, daemon=True).start()
             print("预览版本地址：%s" % (os.environ.get("TMH_PREVIEW_BASE") or "端口 %d" % preview_port))
+    from . import reform
+    reform.reconcile(P)
     from . import handwork
     handwork.heartbeat(P)  # 我来写: wb/* branches pushed by people are picked up every minute
     from . import intake

@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 6 items
+
+tests/test_handoff_api.py::HandoffHTTPTests::test_committed_receipt_survives_projection_error_and_replays_once PASSED [ 16%]
+tests/test_handoff_api.py::HandoffHTTPTests::test_complete_testing_delivery_path_never_changes_acceptance_or_assignment PASSED [ 33%]
+tests/test_handoff_api.py::HandoffHTTPTests::test_deleted_user_cannot_use_old_signed_cookie_or_receive PASSED [ 50%]
+tests/test_handoff_api.py::HandoffHTTPTests::test_missing_and_cross_scope_reads_are_rejected PASSED [ 66%]
+tests/test_handoff_api.py::HandoffHTTPTests::test_personal_cookie_required_and_display_or_agent_cannot_act PASSED [ 83%]
+tests/test_handoff_api.py::HandoffHTTPTests::test_source_change_blocks_receive_but_sender_can_withdraw PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_handoff_api.xml -
+============================= 6 passed in 12.16s ==============================

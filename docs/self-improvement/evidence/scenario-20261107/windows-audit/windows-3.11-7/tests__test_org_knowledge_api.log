@@ -1,0 +1,21 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 10 items
+
+tests/test_org_knowledge_api.py::OrgKnowledgeApiTest::test_all_three_plain_notes_remain_discoverable_without_confirmation PASSED [ 10%]
+tests/test_org_knowledge_api.py::OrgKnowledgeApiTest::test_bad_limit_is_400 PASSED [ 20%]
+tests/test_org_knowledge_api.py::OrgKnowledgeApiTest::test_preview_origin_referer_is_403 PASSED [ 30%]
+tests/test_org_knowledge_api.py::OrgKnowledgeApiTest::test_readonly_snapshot_unchanged PASSED [ 40%]
+tests/test_org_knowledge_api.py::OrgKnowledgeApiTest::test_search_returns_cross_project_provenance PASSED [ 50%]
+tests/test_org_knowledge_api.py::OrgKnowledgeApiTest::test_summary_shape_and_type_counts PASSED [ 60%]
+tests/test_org_knowledge_api.py::OrgKnowledgeApiTest::test_type_filter_and_bad_type PASSED [ 70%]
+tests/test_org_knowledge_api.py::OrgKnowledgeApiTest::test_without_token_is_401 PASSED [ 80%]
+tests/test_org_knowledge_api.py::DraftKnowledgeReaderApiTest::test_memory_source_opens_complete_draft_without_confirming_it PASSED [ 90%]
+tests/test_org_knowledge_api.py::KnowledgeFixtureIsolationTest::test_http_fixtures_restore_the_previous_bot_intake 
+tests/test_org_knowledge_api.py::KnowledgeFixtureIsolationTest::test_http_fixtures_restore_the_previous_bot_intake PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_org_knowledge_api.xml -
+==================== 10 passed, 2 subtests passed in 7.11s ====================

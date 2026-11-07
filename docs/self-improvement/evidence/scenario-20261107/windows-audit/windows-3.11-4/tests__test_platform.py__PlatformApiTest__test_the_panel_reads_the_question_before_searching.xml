@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="4.347" timestamp="2026-11-07T12:43:09.584741+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_platform.PlatformApiTest" name="test_the_panel_reads_the_question_before_searching" time="4.191" /></testsuite></testsuites>

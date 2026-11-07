@@ -1,0 +1,42 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 21 items
+
+tests/test_learning_api.py::LearningAPITests::test_agent_cancel_is_allowed_without_launch_opt_in_and_preserves_evidence PASSED [  4%]
+tests/test_learning_api.py::LearningAPITests::test_agent_capture_and_propose_are_audited_without_implicit_adoption PASSED [  9%]
+tests/test_learning_api.py::LearningAPITests::test_agent_execution_preserves_kind_budget_request_and_agent_actor PASSED [ 14%]
+tests/test_learning_api.py::LearningAPITests::test_agent_identity_validation_cannot_be_replaced_by_display_or_session 
+tests/test_learning_api.py::LearningAPITests::test_agent_identity_validation_cannot_be_replaced_by_display_or_session PASSED [ 19%]
+tests/test_learning_api.py::LearningAPITests::test_agent_review_evaluate_and_resume_require_exact_execution_opt_in 
+tests/test_learning_api.py::LearningAPITests::test_agent_review_evaluate_and_resume_require_exact_execution_opt_in PASSED [ 23%]
+tests/test_learning_api.py::LearningAPITests::test_authenticated_personal_decision_uses_session_not_supplied_actor PASSED [ 28%]
+tests/test_learning_api.py::LearningAPITests::test_capture_idempotency_and_stale_fingerprint_are_exposed_by_api PASSED [ 33%]
+tests/test_learning_api.py::LearningAPITests::test_catalog_get_is_pure_and_preserves_legacy_confirmation PASSED [ 38%]
+tests/test_learning_api.py::LearningAPITests::test_cross_project_and_missing_jobs_are_404_without_mutation 
+tests/test_learning_api.py::LearningAPITests::test_cross_project_and_missing_jobs_are_404_without_mutation PASSED [ 42%]
+tests/test_learning_api.py::LearningAPITests::test_cross_project_and_missing_revisions_are_404_before_execution 
+tests/test_learning_api.py::LearningAPITests::test_cross_project_and_missing_revisions_are_404_before_execution PASSED [ 47%]
+tests/test_learning_api.py::LearningAPITests::test_cross_project_decision_retry_and_abandon_are_404 
+tests/test_learning_api.py::LearningAPITests::test_cross_project_decision_retry_and_abandon_are_404 PASSED [ 52%]
+tests/test_learning_api.py::LearningAPITests::test_detail_and_job_get_return_complete_outputs_and_never_recover PASSED [ 57%]
+tests/test_learning_api.py::LearningAPITests::test_execution_response_requires_a_persisted_job_before_returning 
+tests/test_learning_api.py::LearningAPITests::test_execution_response_requires_a_persisted_job_before_returning PASSED [ 61%]
+tests/test_learning_api.py::LearningAPITests::test_get_does_not_recreate_missing_run_schema PASSED [ 66%]
+tests/test_learning_api.py::LearningAPITests::test_human_decisions_reject_agent_shared_token_and_display_impersonation 
+tests/test_learning_api.py::LearningAPITests::test_human_decisions_reject_agent_shared_token_and_display_impersonation PASSED [ 71%]
+tests/test_learning_api.py::LearningAPITests::test_invalid_request_shapes_actions_and_projects_do_not_mutate PASSED [ 76%]
+tests/test_learning_api.py::LearningAPITests::test_personal_abandon_forwards_exact_token_reason_and_session_actor PASSED [ 80%]
+tests/test_learning_api.py::LearningAPITests::test_personal_decisions_require_explicit_expected_active_even_when_empty PASSED [ 85%]
+tests/test_learning_api.py::LearningAPITests::test_query_repetition_is_rejected_without_side_effects 
+tests/test_learning_api.py::LearningAPITests::test_query_repetition_is_rejected_without_side_effects PASSED [ 90%]
+tests/test_learning_api.py::LearningAPITests::test_real_start_returns_the_registered_ordinary_job SKIPPED [ 95%]
+tests/test_learning_api.py::LearningAPITests::test_reserved_nonhuman_sessions_cannot_reach_any_decision_mutation 
+tests/test_learning_api.py::LearningAPITests::test_reserved_nonhuman_sessions_cannot_reach_any_decision_mutation PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_api.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_learning_api.py:285: 合成 --help 可执行夹具使用 POSIX shebang；不声称 Windows 执行器已验证
+============= 20 passed, 1 skipped, 82 subtests passed in 20.06s ==============

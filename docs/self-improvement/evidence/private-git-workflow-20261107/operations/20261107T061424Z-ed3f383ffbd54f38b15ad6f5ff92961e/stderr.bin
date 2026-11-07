@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/examples/project-testing/jsherp/jenkins-demo/rehearse.py", line 149, in <module>
+    if __name__ == '__main__':main()
+                              ^^^^^^
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/examples/project-testing/jsherp/jenkins-demo/rehearse.py", line 131, in main
+    raise RuntimeError('No completed candidate CI receipt; merge refused')
+RuntimeError: No completed candidate CI receipt; merge refused

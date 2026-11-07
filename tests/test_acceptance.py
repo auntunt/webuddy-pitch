@@ -5,6 +5,8 @@ import re
 import shutil
 import subprocess
 import tempfile
+import sys
+import shlex
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -65,6 +67,14 @@ class AcceptanceTest(unittest.TestCase):
         g("init", "-q")
         g("add", "-A")
         g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "base")
+        from tmh import config
+        cfg = config.load(self.root)
+        script = self.root / "check_fixture.py"
+        script.write_text("import json, pathlib\np=pathlib.Path('.tmh/test-output/cases.json');p.parent.mkdir(parents=True,exist_ok=True)\nassert pathlib.Path('src/main/java/com/acme/oa/controller/LeaveController.java').is_file()\np.write_text(json.dumps({'cases':[{'id':'entry-exists','status':'pass'}]}))\n")
+        cfg["commands"].update(test=shlex.quote(sys.executable) + " check_fixture.py", test_report={"path":".tmh/test-output/cases.json", "format":"json"}, criteria={"A1":["entry-exists"]})
+        config.save(self.root, cfg)
+        g("add", "check_fixture.py")
+        g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "test fixture")
         take_baseline(self.root)
         self.c = task.new_task(self.root, "请假列表按审批状态筛选", "feature", "按状态筛选")
         self.addCleanup(shutil.rmtree, self.root.parent, True)
@@ -78,6 +88,106 @@ class AcceptanceTest(unittest.TestCase):
     def edit(self, rel, fn):
         p = self.root / rel
         p.write_text(fn(p.read_text(encoding="utf-8")), encoding="utf-8")
+
+    def prepare_verification(self):
+        self.fill()
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate\n")
+        result = verify(self.root, task="T001")
+        self.assertTrue(result["passed"], result)
+        return result
+
+    def test_exact_l2_cases_can_reach_automatic_evidence_state(self):
+        self.fill("\n".join(line for line in AC.splitlines() if not line.startswith("| A2")) + "\n")
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate")
+        self.assertTrue(verify(self.root, task="T001")["passed"])
+        acc.advance(self.root, "T001", "verify_local")
+        acc.advance(self.root, "T001", "merged", ref="record-only")
+        acc.advance(self.root, "T001", "deployed_awaiting_verify", build="record-only")
+        self.assertEqual(acc.advance(self.root, "T001", "auto_verified")["state"], "auto_verified")
+
+    def test_new_head_invalidates_an_old_report(self):
+        self.prepare_verification()
+        subprocess.run(["git", "add", SVC], cwd=self.root, check=True, capture_output=True)
+        subprocess.run(["git", "-c", "user.name=test", "-c", "user.email=t@t", "commit", "-qm", "candidate"], cwd=self.root, check=True, capture_output=True)
+        with self.assertRaises(acc.Refused):
+            acc.advance(self.root, "T001", "verify_local")
+
+    def test_no_tests_cannot_enter_local_verification(self):
+        self.fill()
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate\n")
+        result = verify(self.root, run_tests=False, task="T001")
+        self.assertTrue(result["static_passed"])
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["outcome"], "blocked")
+        with self.assertRaises(acc.Refused):
+            acc.advance(self.root, "T001", "verify_local")
+
+    def test_other_tasks_report_is_not_evidence(self):
+        self.prepare_verification()
+        second = task.new_task(self.root, "另一个任务", "feature", "隔离")
+        second.write_text(self.c.read_text().replace("T001", "T002"))
+        acc.advance(self.root, "T002", "implementing")
+        with self.assertRaisesRegex(acc.Refused, "任务/代码/契约"):
+            acc.advance(self.root, "T002", "verify_local")
+
+    def test_dirty_code_and_contract_changes_invalidate_evidence(self):
+        for change in (lambda: self.edit(SVC, lambda s: s + "\n// later"),
+                       lambda: self.edit(self.c.relative_to(self.root), lambda s: s.replace("只返回该状态", "返回所有状态"))):
+            with self.subTest(change=change):
+                if acc.load(self.root, "T001")["state"] == "draft_contract":
+                    self.prepare_verification()
+                else:
+                    verify(self.root, task="T001")
+                change()
+                with self.assertRaises(acc.Refused):
+                    acc.advance(self.root, "T001", "verify_local")
+
+    def test_report_is_immutable_and_latest_is_only_a_pointer(self):
+        result = self.prepare_verification()
+        acc.advance(self.root, "T001", "verify_local")
+        verify(self.root, run_tests=False)
+        acc.advance(self.root, "T001", "merged", ref="recorded-reference")
+        original = self.root / result["report"]
+        original.write_text(original.read_text() + " ")
+        with self.assertRaisesRegex(acc.Refused, "证据缺失或已失效"):
+            acc.advance(self.root, "T001", "deployed_awaiting_verify", build="build-1")
+
+    def test_prose_pass_does_not_replace_case_evidence(self):
+        self.fill(AC.replace("L4", "L2").replace("未验证", "通过"))
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate")
+        verify(self.root, task="T001")
+        acc.advance(self.root, "T001", "verify_local")
+        acc.advance(self.root, "T001", "merged", ref="recorded-reference")
+        acc.advance(self.root, "T001", "deployed_awaiting_verify", build="build-1")
+        with self.assertRaisesRegex(acc.Refused, "逐项执行证据"):
+            acc.advance(self.root, "T001", "auto_verified")
+        acc.advance(self.root, "T001", "needs_human", note="缺少 A2 用例")
+        with self.assertRaisesRegex(acc.Refused, "不能从"):
+            acc.advance(self.root, "T001", "user_confirmed_fix", who="张三")
+
+    def test_stale_or_tampered_case_reports_do_not_pass(self):
+        result = self.prepare_verification()
+        artifact = self.root / result["commands"][0]["artifact"]
+        artifact.write_text('{"cases": []}')
+        with self.assertRaises(acc.Refused):
+            acc.advance(self.root, "T001", "verify_local")
+        (self.root / "check_fixture.py").write_text("pass\n")
+        stale = verify(self.root, task="T001")
+        self.assertFalse(stale["passed"])
+        self.assertIn("evidence_error", stale["commands"][0])
+
+    def test_execution_mutation_is_blocked(self):
+        self.fill()
+        script = self.root / "check_fixture.py"
+        script.write_text(script.read_text() + "p=pathlib.Path(" + repr(SVC) + ");p.write_text(p.read_text()+'\\n// changed')\n")
+        result = verify(self.root, task="T001")
+        self.assertTrue(result["code_changed"])
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["outcome"], "blocked")
 
     def test_a_new_contract_starts_as_a_draft_and_shows_its_state(self):
         self.assertIn("- 验收状态：draft_contract（草拟契约）", self.c.read_text(encoding="utf-8"))
@@ -104,14 +214,14 @@ class AcceptanceTest(unittest.TestCase):
         r = path_check(self.root, "T001")
         self.assertFalse(r["ok"])
         self.assertTrue(any("listByStatus" in b and "平行实现" in b for b in r["breaks"]), r)
-        self.assertFalse(verify(self.root, run_tests=False, task="T001")["passed"])
+        self.assertFalse(verify(self.root, task="T001")["passed"])
         with self.assertRaisesRegex(acc.Refused, "verify"):
             acc.advance(self.root, "T001", "verify_local")
         # wired into the endpoint, the same method is on the path
         self.edit(CTL, lambda s: s.replace("return leaveService.list(page);", "return leaveService.listByStatus(page, null);"))
         r = path_check(self.root, "T001")
         self.assertTrue(r["ok"], r)
-        self.assertTrue(verify(self.root, run_tests=False, task="T001")["passed"])
+        self.assertTrue(verify(self.root, task="T001")["passed"])
         rec = acc.advance(self.root, "T001", "verify_local")
         self.assertEqual(rec["state"], "verify_local")
         self.assertEqual(rec["evidence"][-1]["type"], "tmh_verify")
@@ -132,7 +242,7 @@ class AcceptanceTest(unittest.TestCase):
         acc.advance(self.root, "T001", "implementing")
         self.edit(SVC, lambda s: s.replace("return mapper.selectPage((page - 1) * 20, page * 20);",
                                            "return mapper.selectPage((page - 1) * 20, page * 20); // status"))
-        verify(self.root, run_tests=False, task="T001")
+        verify(self.root, task="T001")
         acc.advance(self.root, "T001", "verify_local")
         with self.assertRaisesRegex(acc.Refused, "--ref"):
             acc.advance(self.root, "T001", "merged")
@@ -140,7 +250,7 @@ class AcceptanceTest(unittest.TestCase):
         acc.advance(self.root, "T001", "deployed_awaiting_verify", build="jenkins-42")
         with self.assertRaisesRegex(acc.Refused, "L4"):  # A2 needs a person: no auto_verified
             acc.advance(self.root, "T001", "auto_verified")
-        acc.advance(self.root, "T001", "needs_human", note="A2 要业务方在测试环境确认")
+        acc.advance(self.root, "T001", "awaiting_business", note="A2 要业务方在测试环境确认")
         with self.assertRaisesRegex(acc.Refused, "不能从"):  # closing skips nobody's confirmation
             acc.advance(self.root, "T001", "closed", who="张三")
         with mock.patch.dict(os.environ, dict(NO_AGENT, CLAUDECODE="1")):
@@ -161,14 +271,14 @@ class AcceptanceTest(unittest.TestCase):
         self.assertEqual((recs[1]["data"]["signer"], recs[1]["data"]["package_hash"]), ("张三", recs[0]["hash"]))
         self.assertEqual(ev.check(recs), (True, ""))
         self.assertEqual([h["to"] for h in acc.load(self.root, "T001")["history"]],
-                         ["draft_contract", "implementing", "verify_local", "merged", "deployed_awaiting_verify", "needs_human",
+                         ["draft_contract", "implementing", "verify_local", "merged", "deployed_awaiting_verify", "awaiting_business",
                           "user_confirmed_fix", "closed"])
 
     def test_a_failed_check_goes_back_with_its_reason(self):
         self.fill()
         acc.advance(self.root, "T001", "implementing")
         self.edit(SVC, lambda s: s.replace("page * 20);", "page * 20); // x", 1))
-        verify(self.root, run_tests=False, task="T001")
+        verify(self.root, task="T001")
         acc.advance(self.root, "T001", "verify_local")
         with self.assertRaisesRegex(acc.Refused, "原因"):
             acc.advance(self.root, "T001", "implementing")

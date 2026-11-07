@@ -1,0 +1,21 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 5 items
+
+tests/test_handwork_lifecycle.py::HandworkLifecycleTest::test_build_timeout_closes_lifecycle_without_starting_review SKIPPED [ 20%]
+tests/test_handwork_lifecycle.py::HandworkLifecycleTest::test_cancel_during_build_remains_cancelled_and_recheck_api_stays_guarded SKIPPED [ 40%]
+tests/test_handwork_lifecycle.py::HandworkLifecycleTest::test_failed_reviewer_cannot_turn_its_printed_pass_into_adoption SKIPPED [ 60%]
+tests/test_handwork_lifecycle.py::HandworkLifecycleTest::test_review_shares_time_spent_on_baseline_and_candidate_checks SKIPPED [ 80%]
+tests/test_handwork_lifecycle.py::HandworkLifecycleTest::test_successful_direct_review_finishes_before_adoption SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_handwork_lifecycle.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_handwork_lifecycle.py:93: requires POSIX process groups
+SKIPPED [1] tests\test_handwork_lifecycle.py:104: requires POSIX process groups
+SKIPPED [1] tests\test_handwork_lifecycle.py:147: requires POSIX process groups
+SKIPPED [1] tests\test_handwork_lifecycle.py:121: requires POSIX process groups
+SKIPPED [1] tests\test_handwork_lifecycle.py:156: requires POSIX process groups
+============================= 5 skipped in 0.15s ==============================

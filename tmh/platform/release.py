@@ -181,7 +181,7 @@ def ship(P, p: dict, t: dict, by: str) -> dict:
             back = git(root, "rev-parse", "HEAD", check=False).strip() == head and not (gd / "MERGE_HEAD").exists()
             return {"state": "waiting", "why": ("合并没做成：%s" % err[:300]) if back else
                     "合并没做成，而且项目目录没能恢复原样，请人马上看一下（git status）：%s" % err[:300]}
-        new = git(root, "rev-parse", "--short", "HEAD").strip()
+        new = git(root, "rev-parse", "HEAD").strip()
         tag = "webuddy-%s-%s" % (p["key"], version)
         tagged = _run_ok(root, "tag", "-a", tag, "-m", "%s %s" % (t["key"], t["title"]), "HEAD")
         if branch and branch.startswith("tmh/"):
@@ -268,7 +268,7 @@ def rollback(P, p: dict, version: str, by: str) -> dict:
             if git(root, "rev-parse", "HEAD").strip() == head:
                 _run(root, "reset", "-q", "--merge")
             raise ValueError("回滚没做成，主干没动（多半是后来的版本改了同样的地方，先回滚后来的版本）：%s" % (r.stderr or r.stdout).strip()[:300])
-        new = git(root, "rev-parse", "--short", "HEAD").strip()
+        new = git(root, "rev-parse", "HEAD").strip()
         tag = "webuddy-%s-%s" % (p["key"], new_version)
         tagged = _run_ok(root, "tag", "-a", tag, "-m", "回滚 %s" % version, "HEAD")
         out = {"project": p["key"], "version": new_version, "kind": "rollback", "of": version, "tag": tag if tagged else "",

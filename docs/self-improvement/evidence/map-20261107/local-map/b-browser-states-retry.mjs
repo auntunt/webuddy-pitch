@@ -1,0 +1,8 @@
+import fs from 'node:fs';import {call,evaluate,ws} from './cdp.mjs';
+const out='/private/tmp/webuddy-map-20261107',info=JSON.parse(fs.readFileSync(out+'/b-ui-responsive.log','utf8').split('\n')[0]),origin=new URL(info.url).origin;
+const wait=async expr=>{for(let i=0;i<100;i++){if(await evaluate(expr))return;await new Promise(r=>setTimeout(r,100));}throw Error(expr)};
+await call('Page.navigate',{url:origin+'/#/maps/OTHER'});await wait('!!document.querySelector("#cmQuestion")');
+await evaluate(`document.querySelector('#cmQ').value='zzqxvvnonexistent';document.querySelector('#cmQ').dispatchEvent(new Event('input'));document.querySelector('#cmQuestion').requestSubmit()`);await wait('!!document.querySelector("#cmNodes")');if(!await evaluate('document.querySelector("#cmNodes").textContent.includes("没有定位到")'))throw Error('No hits not explained');
+await call('Page.navigate',{url:origin+'/#/maps/EXT/map'+'0'.repeat(32)});await wait('document.querySelector("#main").textContent.includes("地图暂不可读")');if(!await evaluate('document.querySelector("#main").textContent.includes("没有这个项目")'))throw Error('Missing map not rejected');
+await call('Page.navigate',{url:origin+'/#/maps/EXT'});await wait('!!document.querySelector("#cmQuestion")');await evaluate(`document.querySelector('#cmQ').value='尚未提交的业务问题';document.querySelector('#cmQ').dispatchEvent(new Event('input'))`);await call('Page.reload');await wait('!!document.querySelector("#cmQuestion")');if(!await evaluate(`document.querySelector('#cmQ').value==='尚未提交的业务问题'`))throw Error('Draft lost');
+console.log('Authenticated empty project, no matched nodes, missing map rejection and unsent draft refresh passed');ws.close();

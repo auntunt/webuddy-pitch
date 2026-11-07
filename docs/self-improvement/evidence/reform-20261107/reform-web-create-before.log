@@ -1,0 +1,52 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ ReformMCPTest.test_web_create_response_loss_replay_survives_knowledge_change _
+
+self = <test_reform_mcp.ReformMCPTest testMethod=test_web_create_response_loss_replay_survives_knowledge_change>
+
+    async def test_web_create_response_loss_replay_survives_knowledge_change(self):
+        async with self.session() as session:
+            _,args=await self.create(session)
+        body=dict(args,request_id='web-response-lost-create')
+        first=self.web('/api/projects/EXT/reforms',body)
+        changed=dict(self.atlas,built='updated-after-response-loss')
+        with patch.object(self.P.kb,'atlas',return_value=changed):
+>           recovered=self.web('/api/projects/EXT/reforms',body)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_reform_mcp.py:158: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_reform_mcp.py:125: in web
+    with urllib.request.urlopen(request) as response:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/urllib/request.py:216: in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/urllib/request.py:525: in open
+    response = meth(req, response)
+               ^^^^^^^^^^^^^^^^^^^
+/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/urllib/request.py:634: in http_response
+    response = self.parent.error(
+/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/urllib/request.py:563: in error
+    return self._call_chain(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/urllib/request.py:496: in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <urllib.request.HTTPDefaultErrorHandler object at 0x10869f750>
+req = <urllib.request.Request object at 0x108539a50>
+fp = <http.client.HTTPResponse object at 0x1086b32e0>, code = 400
+msg = 'Bad Request', hdrs = <http.client.HTTPMessage object at 0x108851990>
+
+    def http_error_default(self, req, fp, code, msg, hdrs):
+>       raise HTTPError(req.full_url, code, msg, hdrs, fp)
+E       urllib.error.HTTPError: HTTP Error 400: Bad Request
+
+/Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/urllib/request.py:643: HTTPError
+------------------------------ Captured log call -------------------------------
+WARNING  asyncio:base_events.py:1931 Executing <Task pending name='Task-2' coro=<ReformMCPTest.test_web_create_response_loss_replay_survives_knowledge_change() running at /private/tmp/webuddy-reform-20261107/tests/test_reform_mcp.py:152> cb=[_run_until_complete_cb() at /Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/base_events.py:181] created at /Users/auntlee/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/asyncio/runners.py:100> took 0.274 seconds
+=========================== short test summary info ============================
+FAILED tests/test_reform_mcp.py::ReformMCPTest::test_web_create_response_loss_replay_survives_knowledge_change
+1 failed, 4 deselected in 1.43s

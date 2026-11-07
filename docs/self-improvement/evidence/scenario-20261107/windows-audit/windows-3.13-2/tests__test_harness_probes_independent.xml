@@ -1,0 +1,1911 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="5" failures="5" skipped="2" tests="14" time="125.470" timestamp="2026-11-07T12:32:32.531595+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_legacy_source_without_verification_digest_is_readable_and_stale" time="21.276"><failure message="AssertionError: real verification fixture did not finish">self = &lt;unittest.case._Outcome object at 0x000001A8D12ECC20&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+result = &lt;TestCaseFunction test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+method = &lt;bound method HarnessProbeIndependentTest.test_legacy_source_without_verification_digest_is_readable_and_stale of &lt;tes...dependent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+
+    def test_legacy_source_without_verification_digest_is_readable_and_stale(self):
+&gt;       self.prepare_candidate()
+
+tests\test_harness_probes_independent.py:245: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+
+    def prepare_candidate(self):
+        (self.repo / "app.py").write_bytes((Path(__file__).parent / "fixtures/bootv2-search/app.py").read_bytes())
+        (self.repo / "project.json").write_text('{"name":"Independent fixture"}')
+        (self.repo / ".gitignore").write_text("__pycache__/\n")
+        (self.repo / ".tmh").mkdir()
+        (self.repo / ".tmh/config.json").write_text(json.dumps({"commands": {
+            "build": sys.executable + " -m py_compile app.py",
+            "test": sys.executable + " -m py_compile app.py"}}))
+        base = self.commit()
+        with (self.repo / "app.py").open("a") as stream:
+            stream.write("\n# Separate immutable candidate for lifecycle testing.\n")
+        commit = self.commit()
+        self.P = Platform(self.root / "data", user="fixture-owner")
+        self.addCleanup(self.P.store.db.close)
+        self.P.store.add_project("INDEP", "Independent fixture", str(self.repo))
+        self.ticket = self.call("ticket_create", {"project": "INDEP", "title": "Search lifecycle",
+            "body": "Use the same recipe against both immutable versions", "request_id": "create"})["ticket"]
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": base,
+            "commit": commit, "requirement_hash": packet["requirement_hash"],
+            "criteria": [{"id": key, "text": value, "check": "Independent recipe"}
+                         for key, value in harness_probes.recipes()[0]["checks"].items()],
+            "summary": "Isolated lifecycle regression; generic compile is not business validation",
+            "request_id": "candidate"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() &lt; deadline:
+            if candidates.view(self.P, self.cid)["verification_passed"]:
+                return
+            time.sleep(.02)
+&gt;       self.fail("real verification fixture did not finish")
+
+tests\test_harness_probes_independent.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+msg = 'real verification fixture did not finish'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: real verification fixture did not finish
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:732: AssertionError</failure></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_legacy_source_without_verification_digest_is_readable_and_stale" time="0.000"><error message="failed on teardown with &quot;PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-m27b_50o\\data\\verification-operations\\runs\\1\\owner.lock'&quot;">path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-m27b_50o'
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D1312480&gt;
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+&gt;                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-m27b_50o\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:625: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = &lt;unittest.case._Outcome object at 0x000001A8D12ECC20&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+&gt;               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:688: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_legacy_source_without_verification_digest_is_readable_and_stale&gt;
+function = &lt;bound method TemporaryDirectory.cleanup of &lt;TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-m27b_50o'&gt;&gt;
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+&gt;       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:614: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-m27b_50o'&gt;
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+&gt;           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:956: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = &lt;class 'tempfile.TemporaryDirectory'&gt;
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-m27b_50o'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onexc(func, path, exc):
+            # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+            if isinstance(exc, (PermissionError, IsADirectoryError)):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        if not _os.path.isdir(path) or _os.path.isjunction(path):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif isinstance(exc, FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+&gt;       _shutil.rmtree(name, onexc=onexc)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:936: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-m27b_50o'
+ignore_errors = False, onerror = None
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D1312480&gt;
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, onexc=None, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onexc or
+        onerror is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        the value of exc_info describes the exception. For onexc it is the
+        exception instance, and for onerror it is a tuple as returned by
+        sys.exc_info().  If ignore_errors is false and both onexc and
+        onerror are None, the exception is reraised.
+    
+        onerror is deprecated and only remains for backwards compatibility.
+        If both onerror and onexc are set, onerror is ignored and onexc is used.
+        """
+    
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onexc(*args):
+                pass
+        elif onerror is None and onexc is None:
+            def onexc(*args):
+                raise
+        elif onexc is None:
+            if onerror is None:
+                def onexc(*args):
+                    raise
+            else:
+                # delegate to onerror
+                def onexc(*args):
+                    func, path, exc = args
+                    if exc is None:
+                        exc_info = None, None, None
+                    else:
+                        exc_info = type(exc), exc, exc.__traceback__
+                    return onerror(func, path, exc_info)
+    
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            stack = [(os.lstat, dir_fd, path, None)]
+            try:
+                while stack:
+                    _rmtree_safe_fd(stack, onexc)
+            finally:
+                # Close any file descriptors still on the stack.
+                while stack:
+                    func, fd, path, entry = stack.pop()
+                    if func is not os.close:
+                        continue
+                    try:
+                        os.close(fd)
+                    except OSError as err:
+                        onexc(os.close, path, err)
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                st = os.lstat(path)
+            except OSError as err:
+                onexc(os.lstat, path, err)
+                return
+            try:
+                if _rmtree_islink(st):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError as err:
+                onexc(os.path.islink, path, err)
+                # can't continue even if onexc hook returns
+                return
+&gt;           return _rmtree_unsafe(path, onexc)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-m27b_50o'
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D1312480&gt;
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.unlink(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+&gt;                   onexc(os.unlink, fullname, err)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = &lt;built-in function unlink&gt;
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-m27b_50o\\data\\verification-operations\\runs\\1\\owner.lock'
+exc = PermissionError(13, 'The process cannot access the file because it is being used by another process')
+
+    def onexc(func, path, exc):
+        # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+        if isinstance(exc, (PermissionError, IsADirectoryError)):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+&gt;                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-m27b_50o\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:911: PermissionError</error></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_optimized_python_cannot_turn_broken_search_into_a_pass" time="0.002"><skipped type="pytest.skip" message="supervised execution requires POSIX">D:\a\webuddy-pitch\webuddy-pitch\tests\test_harness_probes_independent.py:109: supervised execution requires POSIX</skipped></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_requirement_change_at_last_process_completion_blocks_pass" time="21.579"><failure message="AssertionError: real verification fixture did not finish">self = &lt;unittest.case._Outcome object at 0x000001A8D12F0A50&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_requirement_change_at_last_process_completion_blocks_pass&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_requirement_change_at_last_process_completion_blocks_pass&gt;
+result = &lt;TestCaseFunction test_requirement_change_at_last_process_completion_blocks_pass&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_requirement_change_at_last_process_completion_blocks_pass&gt;
+method = &lt;bound method HarnessProbeIndependentTest.test_requirement_change_at_last_process_completion_blocks_pass of &lt;test_harn...bes_independent.HarnessProbeIndependentTest testMethod=test_requirement_change_at_last_process_completion_blocks_pass&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_requirement_change_at_last_process_completion_blocks_pass&gt;
+
+    def test_requirement_change_at_last_process_completion_blocks_pass(self):
+&gt;       self.prepare_candidate()
+
+tests\test_harness_probes_independent.py:198: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_requirement_change_at_last_process_completion_blocks_pass&gt;
+
+    def prepare_candidate(self):
+        (self.repo / "app.py").write_bytes((Path(__file__).parent / "fixtures/bootv2-search/app.py").read_bytes())
+        (self.repo / "project.json").write_text('{"name":"Independent fixture"}')
+        (self.repo / ".gitignore").write_text("__pycache__/\n")
+        (self.repo / ".tmh").mkdir()
+        (self.repo / ".tmh/config.json").write_text(json.dumps({"commands": {
+            "build": sys.executable + " -m py_compile app.py",
+            "test": sys.executable + " -m py_compile app.py"}}))
+        base = self.commit()
+        with (self.repo / "app.py").open("a") as stream:
+            stream.write("\n# Separate immutable candidate for lifecycle testing.\n")
+        commit = self.commit()
+        self.P = Platform(self.root / "data", user="fixture-owner")
+        self.addCleanup(self.P.store.db.close)
+        self.P.store.add_project("INDEP", "Independent fixture", str(self.repo))
+        self.ticket = self.call("ticket_create", {"project": "INDEP", "title": "Search lifecycle",
+            "body": "Use the same recipe against both immutable versions", "request_id": "create"})["ticket"]
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": base,
+            "commit": commit, "requirement_hash": packet["requirement_hash"],
+            "criteria": [{"id": key, "text": value, "check": "Independent recipe"}
+                         for key, value in harness_probes.recipes()[0]["checks"].items()],
+            "summary": "Isolated lifecycle regression; generic compile is not business validation",
+            "request_id": "candidate"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() &lt; deadline:
+            if candidates.view(self.P, self.cid)["verification_passed"]:
+                return
+            time.sleep(.02)
+&gt;       self.fail("real verification fixture did not finish")
+
+tests\test_harness_probes_independent.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_requirement_change_at_last_process_completion_blocks_pass&gt;
+msg = 'real verification fixture did not finish'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: real verification fixture did not finish
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:732: AssertionError</failure></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_requirement_change_at_last_process_completion_blocks_pass" time="0.000"><error message="failed on teardown with &quot;PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-em569t7j\\data\\verification-operations\\runs\\1\\attempts\\0003\\output.bin'&quot;">path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-em569t7j'
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D2690220&gt;
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+&gt;                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-em569t7j\\data\\verification-operations\\runs\\1\\attempts\\0003\\output.bin'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:625: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = &lt;unittest.case._Outcome object at 0x000001A8D12F0A50&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_requirement_change_at_last_process_completion_blocks_pass&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_requirement_change_at_last_process_completion_blocks_pass&gt;
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+&gt;               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:688: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_requirement_change_at_last_process_completion_blocks_pass&gt;
+function = &lt;bound method TemporaryDirectory.cleanup of &lt;TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-em569t7j'&gt;&gt;
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+&gt;       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:614: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-em569t7j'&gt;
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+&gt;           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:956: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = &lt;class 'tempfile.TemporaryDirectory'&gt;
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-em569t7j'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onexc(func, path, exc):
+            # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+            if isinstance(exc, (PermissionError, IsADirectoryError)):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        if not _os.path.isdir(path) or _os.path.isjunction(path):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif isinstance(exc, FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+&gt;       _shutil.rmtree(name, onexc=onexc)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:936: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-em569t7j'
+ignore_errors = False, onerror = None
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D2690220&gt;
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, onexc=None, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onexc or
+        onerror is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        the value of exc_info describes the exception. For onexc it is the
+        exception instance, and for onerror it is a tuple as returned by
+        sys.exc_info().  If ignore_errors is false and both onexc and
+        onerror are None, the exception is reraised.
+    
+        onerror is deprecated and only remains for backwards compatibility.
+        If both onerror and onexc are set, onerror is ignored and onexc is used.
+        """
+    
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onexc(*args):
+                pass
+        elif onerror is None and onexc is None:
+            def onexc(*args):
+                raise
+        elif onexc is None:
+            if onerror is None:
+                def onexc(*args):
+                    raise
+            else:
+                # delegate to onerror
+                def onexc(*args):
+                    func, path, exc = args
+                    if exc is None:
+                        exc_info = None, None, None
+                    else:
+                        exc_info = type(exc), exc, exc.__traceback__
+                    return onerror(func, path, exc_info)
+    
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            stack = [(os.lstat, dir_fd, path, None)]
+            try:
+                while stack:
+                    _rmtree_safe_fd(stack, onexc)
+            finally:
+                # Close any file descriptors still on the stack.
+                while stack:
+                    func, fd, path, entry = stack.pop()
+                    if func is not os.close:
+                        continue
+                    try:
+                        os.close(fd)
+                    except OSError as err:
+                        onexc(os.close, path, err)
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                st = os.lstat(path)
+            except OSError as err:
+                onexc(os.lstat, path, err)
+                return
+            try:
+                if _rmtree_islink(st):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError as err:
+                onexc(os.path.islink, path, err)
+                # can't continue even if onexc hook returns
+                return
+&gt;           return _rmtree_unsafe(path, onexc)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-em569t7j'
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D2690220&gt;
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.unlink(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+&gt;                   onexc(os.unlink, fullname, err)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = &lt;built-in function unlink&gt;
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-em569t7j\\data\\verification-operations\\runs\\1\\attempts\\0003\\output.bin'
+exc = PermissionError(13, 'The process cannot access the file because it is being used by another process')
+
+    def onexc(func, path, exc):
+        # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+        if isinstance(exc, (PermissionError, IsADirectoryError)):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+&gt;                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-em569t7j\\data\\verification-operations\\runs\\1\\attempts\\0003\\output.bin'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:911: PermissionError</error></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_second_store_cannot_launch_duplicate_probe" time="23.385"><failure message="AssertionError: real verification fixture did not finish">self = &lt;unittest.case._Outcome object at 0x000001A8D12F0CD0&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_second_store_cannot_launch_duplicate_probe&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_second_store_cannot_launch_duplicate_probe&gt;
+result = &lt;TestCaseFunction test_second_store_cannot_launch_duplicate_probe&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_second_store_cannot_launch_duplicate_probe&gt;
+method = &lt;bound method HarnessProbeIndependentTest.test_second_store_cannot_launch_duplicate_probe of &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_second_store_cannot_launch_duplicate_probe&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_second_store_cannot_launch_duplicate_probe&gt;
+
+    def test_second_store_cannot_launch_duplicate_probe(self):
+&gt;       self.prepare_candidate()
+
+tests\test_harness_probes_independent.py:165: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_second_store_cannot_launch_duplicate_probe&gt;
+
+    def prepare_candidate(self):
+        (self.repo / "app.py").write_bytes((Path(__file__).parent / "fixtures/bootv2-search/app.py").read_bytes())
+        (self.repo / "project.json").write_text('{"name":"Independent fixture"}')
+        (self.repo / ".gitignore").write_text("__pycache__/\n")
+        (self.repo / ".tmh").mkdir()
+        (self.repo / ".tmh/config.json").write_text(json.dumps({"commands": {
+            "build": sys.executable + " -m py_compile app.py",
+            "test": sys.executable + " -m py_compile app.py"}}))
+        base = self.commit()
+        with (self.repo / "app.py").open("a") as stream:
+            stream.write("\n# Separate immutable candidate for lifecycle testing.\n")
+        commit = self.commit()
+        self.P = Platform(self.root / "data", user="fixture-owner")
+        self.addCleanup(self.P.store.db.close)
+        self.P.store.add_project("INDEP", "Independent fixture", str(self.repo))
+        self.ticket = self.call("ticket_create", {"project": "INDEP", "title": "Search lifecycle",
+            "body": "Use the same recipe against both immutable versions", "request_id": "create"})["ticket"]
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": base,
+            "commit": commit, "requirement_hash": packet["requirement_hash"],
+            "criteria": [{"id": key, "text": value, "check": "Independent recipe"}
+                         for key, value in harness_probes.recipes()[0]["checks"].items()],
+            "summary": "Isolated lifecycle regression; generic compile is not business validation",
+            "request_id": "candidate"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() &lt; deadline:
+            if candidates.view(self.P, self.cid)["verification_passed"]:
+                return
+            time.sleep(.02)
+&gt;       self.fail("real verification fixture did not finish")
+
+tests\test_harness_probes_independent.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_second_store_cannot_launch_duplicate_probe&gt;
+msg = 'real verification fixture did not finish'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: real verification fixture did not finish
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:732: AssertionError</failure></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_second_store_cannot_launch_duplicate_probe" time="0.000"><error message="failed on teardown with &quot;PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-20ws2td3\\data\\verification-operations\\runs\\1\\owner.lock'&quot;">path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-20ws2td3'
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D27F2160&gt;
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+&gt;                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-20ws2td3\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:625: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = &lt;unittest.case._Outcome object at 0x000001A8D12F0CD0&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_second_store_cannot_launch_duplicate_probe&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_second_store_cannot_launch_duplicate_probe&gt;
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+&gt;               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:688: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_second_store_cannot_launch_duplicate_probe&gt;
+function = &lt;bound method TemporaryDirectory.cleanup of &lt;TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-20ws2td3'&gt;&gt;
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+&gt;       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:614: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-20ws2td3'&gt;
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+&gt;           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:956: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = &lt;class 'tempfile.TemporaryDirectory'&gt;
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-20ws2td3'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onexc(func, path, exc):
+            # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+            if isinstance(exc, (PermissionError, IsADirectoryError)):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        if not _os.path.isdir(path) or _os.path.isjunction(path):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif isinstance(exc, FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+&gt;       _shutil.rmtree(name, onexc=onexc)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:936: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-20ws2td3'
+ignore_errors = False, onerror = None
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D27F2160&gt;
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, onexc=None, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onexc or
+        onerror is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        the value of exc_info describes the exception. For onexc it is the
+        exception instance, and for onerror it is a tuple as returned by
+        sys.exc_info().  If ignore_errors is false and both onexc and
+        onerror are None, the exception is reraised.
+    
+        onerror is deprecated and only remains for backwards compatibility.
+        If both onerror and onexc are set, onerror is ignored and onexc is used.
+        """
+    
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onexc(*args):
+                pass
+        elif onerror is None and onexc is None:
+            def onexc(*args):
+                raise
+        elif onexc is None:
+            if onerror is None:
+                def onexc(*args):
+                    raise
+            else:
+                # delegate to onerror
+                def onexc(*args):
+                    func, path, exc = args
+                    if exc is None:
+                        exc_info = None, None, None
+                    else:
+                        exc_info = type(exc), exc, exc.__traceback__
+                    return onerror(func, path, exc_info)
+    
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            stack = [(os.lstat, dir_fd, path, None)]
+            try:
+                while stack:
+                    _rmtree_safe_fd(stack, onexc)
+            finally:
+                # Close any file descriptors still on the stack.
+                while stack:
+                    func, fd, path, entry = stack.pop()
+                    if func is not os.close:
+                        continue
+                    try:
+                        os.close(fd)
+                    except OSError as err:
+                        onexc(os.close, path, err)
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                st = os.lstat(path)
+            except OSError as err:
+                onexc(os.lstat, path, err)
+                return
+            try:
+                if _rmtree_islink(st):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError as err:
+                onexc(os.path.islink, path, err)
+                # can't continue even if onexc hook returns
+                return
+&gt;           return _rmtree_unsafe(path, onexc)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-20ws2td3'
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D27F2160&gt;
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.unlink(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+&gt;                   onexc(os.unlink, fullname, err)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = &lt;built-in function unlink&gt;
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-20ws2td3\\data\\verification-operations\\runs\\1\\owner.lock'
+exc = PermissionError(13, 'The process cannot access the file because it is being used by another process')
+
+    def onexc(func, path, exc):
+        # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+        if isinstance(exc, (PermissionError, IsADirectoryError)):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+&gt;                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-20ws2td3\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:911: PermissionError</error></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_snapshot_never_expands_export_subst_in_tracked_source" time="3.328" /><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_snapshot_preserves_export_ignored_tracked_source" time="2.470" /><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass" time="23.250"><failure message="AssertionError: real verification fixture did not finish">self = &lt;unittest.case._Outcome object at 0x000001A8D12D57F0&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;
+result = &lt;TestCaseFunction test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;
+method = &lt;bound method HarnessProbeIndependentTest.test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass of &lt;...endent.HarnessProbeIndependentTest testMethod=test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;
+
+    def test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass(self):
+&gt;       self.prepare_candidate()
+
+tests\test_harness_probes_independent.py:262: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;
+
+    def prepare_candidate(self):
+        (self.repo / "app.py").write_bytes((Path(__file__).parent / "fixtures/bootv2-search/app.py").read_bytes())
+        (self.repo / "project.json").write_text('{"name":"Independent fixture"}')
+        (self.repo / ".gitignore").write_text("__pycache__/\n")
+        (self.repo / ".tmh").mkdir()
+        (self.repo / ".tmh/config.json").write_text(json.dumps({"commands": {
+            "build": sys.executable + " -m py_compile app.py",
+            "test": sys.executable + " -m py_compile app.py"}}))
+        base = self.commit()
+        with (self.repo / "app.py").open("a") as stream:
+            stream.write("\n# Separate immutable candidate for lifecycle testing.\n")
+        commit = self.commit()
+        self.P = Platform(self.root / "data", user="fixture-owner")
+        self.addCleanup(self.P.store.db.close)
+        self.P.store.add_project("INDEP", "Independent fixture", str(self.repo))
+        self.ticket = self.call("ticket_create", {"project": "INDEP", "title": "Search lifecycle",
+            "body": "Use the same recipe against both immutable versions", "request_id": "create"})["ticket"]
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": base,
+            "commit": commit, "requirement_hash": packet["requirement_hash"],
+            "criteria": [{"id": key, "text": value, "check": "Independent recipe"}
+                         for key, value in harness_probes.recipes()[0]["checks"].items()],
+            "summary": "Isolated lifecycle regression; generic compile is not business validation",
+            "request_id": "candidate"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() &lt; deadline:
+            if candidates.view(self.P, self.cid)["verification_passed"]:
+                return
+            time.sleep(.02)
+&gt;       self.fail("real verification fixture did not finish")
+
+tests\test_harness_probes_independent.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;
+msg = 'real verification fixture did not finish'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: real verification fixture did not finish
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:732: AssertionError</failure></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass" time="0.000"><error message="failed on teardown with &quot;PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-xlyzrwi4\\data\\verification-operations\\runs\\1\\owner.lock'&quot;">path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-xlyzrwi4'
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D27F0EA0&gt;
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+&gt;                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-xlyzrwi4\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:625: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = &lt;unittest.case._Outcome object at 0x000001A8D12D57F0&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+&gt;               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:688: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_stop_acknowledged_after_candidate_process_exit_cannot_publish_pass&gt;
+function = &lt;bound method TemporaryDirectory.cleanup of &lt;TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-xlyzrwi4'&gt;&gt;
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+&gt;       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:614: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-xlyzrwi4'&gt;
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+&gt;           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:956: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = &lt;class 'tempfile.TemporaryDirectory'&gt;
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-xlyzrwi4'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onexc(func, path, exc):
+            # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+            if isinstance(exc, (PermissionError, IsADirectoryError)):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        if not _os.path.isdir(path) or _os.path.isjunction(path):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif isinstance(exc, FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+&gt;       _shutil.rmtree(name, onexc=onexc)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:936: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-xlyzrwi4'
+ignore_errors = False, onerror = None
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D27F0EA0&gt;
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, onexc=None, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onexc or
+        onerror is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        the value of exc_info describes the exception. For onexc it is the
+        exception instance, and for onerror it is a tuple as returned by
+        sys.exc_info().  If ignore_errors is false and both onexc and
+        onerror are None, the exception is reraised.
+    
+        onerror is deprecated and only remains for backwards compatibility.
+        If both onerror and onexc are set, onerror is ignored and onexc is used.
+        """
+    
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onexc(*args):
+                pass
+        elif onerror is None and onexc is None:
+            def onexc(*args):
+                raise
+        elif onexc is None:
+            if onerror is None:
+                def onexc(*args):
+                    raise
+            else:
+                # delegate to onerror
+                def onexc(*args):
+                    func, path, exc = args
+                    if exc is None:
+                        exc_info = None, None, None
+                    else:
+                        exc_info = type(exc), exc, exc.__traceback__
+                    return onerror(func, path, exc_info)
+    
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            stack = [(os.lstat, dir_fd, path, None)]
+            try:
+                while stack:
+                    _rmtree_safe_fd(stack, onexc)
+            finally:
+                # Close any file descriptors still on the stack.
+                while stack:
+                    func, fd, path, entry = stack.pop()
+                    if func is not os.close:
+                        continue
+                    try:
+                        os.close(fd)
+                    except OSError as err:
+                        onexc(os.close, path, err)
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                st = os.lstat(path)
+            except OSError as err:
+                onexc(os.lstat, path, err)
+                return
+            try:
+                if _rmtree_islink(st):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError as err:
+                onexc(os.path.islink, path, err)
+                # can't continue even if onexc hook returns
+                return
+&gt;           return _rmtree_unsafe(path, onexc)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-xlyzrwi4'
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D27F0EA0&gt;
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.unlink(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+&gt;                   onexc(os.unlink, fullname, err)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = &lt;built-in function unlink&gt;
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-xlyzrwi4\\data\\verification-operations\\runs\\1\\owner.lock'
+exc = PermissionError(13, 'The process cannot access the file because it is being used by another process')
+
+    def onexc(func, path, exc):
+        # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+        if isinstance(exc, (PermissionError, IsADirectoryError)):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+&gt;                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-xlyzrwi4\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:911: PermissionError</error></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_timeout_preserves_application_output_without_a_final_newline" time="0.001"><skipped type="pytest.skip" message="supervised execution requires POSIX">D:\a\webuddy-pitch\webuddy-pitch\tests\test_harness_probes_independent.py:138: supervised execution requires POSIX</skipped></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_verification_replacement_invalidates_current_pass_but_retains_history" time="29.102"><failure message="AssertionError: real verification fixture did not finish">self = &lt;unittest.case._Outcome object at 0x000001A8D12B2360&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+result = &lt;TestCaseFunction test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+method = &lt;bound method HarnessProbeIndependentTest.test_verification_replacement_invalidates_current_pass_but_retains_history o...ent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+
+    def test_verification_replacement_invalidates_current_pass_but_retains_history(self):
+&gt;       self.prepare_candidate()
+
+tests\test_harness_probes_independent.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+
+    def prepare_candidate(self):
+        (self.repo / "app.py").write_bytes((Path(__file__).parent / "fixtures/bootv2-search/app.py").read_bytes())
+        (self.repo / "project.json").write_text('{"name":"Independent fixture"}')
+        (self.repo / ".gitignore").write_text("__pycache__/\n")
+        (self.repo / ".tmh").mkdir()
+        (self.repo / ".tmh/config.json").write_text(json.dumps({"commands": {
+            "build": sys.executable + " -m py_compile app.py",
+            "test": sys.executable + " -m py_compile app.py"}}))
+        base = self.commit()
+        with (self.repo / "app.py").open("a") as stream:
+            stream.write("\n# Separate immutable candidate for lifecycle testing.\n")
+        commit = self.commit()
+        self.P = Platform(self.root / "data", user="fixture-owner")
+        self.addCleanup(self.P.store.db.close)
+        self.P.store.add_project("INDEP", "Independent fixture", str(self.repo))
+        self.ticket = self.call("ticket_create", {"project": "INDEP", "title": "Search lifecycle",
+            "body": "Use the same recipe against both immutable versions", "request_id": "create"})["ticket"]
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": base,
+            "commit": commit, "requirement_hash": packet["requirement_hash"],
+            "criteria": [{"id": key, "text": value, "check": "Independent recipe"}
+                         for key, value in harness_probes.recipes()[0]["checks"].items()],
+            "summary": "Isolated lifecycle regression; generic compile is not business validation",
+            "request_id": "candidate"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() &lt; deadline:
+            if candidates.view(self.P, self.cid)["verification_passed"]:
+                return
+            time.sleep(.02)
+&gt;       self.fail("real verification fixture did not finish")
+
+tests\test_harness_probes_independent.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+msg = 'real verification fixture did not finish'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: real verification fixture did not finish
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:732: AssertionError</failure></testcase><testcase classname="tests.test_harness_probes_independent.HarnessProbeIndependentTest" name="test_verification_replacement_invalidates_current_pass_but_retains_history" time="0.000"><error message="failed on teardown with &quot;PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-3lc3ab7f\\data\\verification-operations\\runs\\1\\owner.lock'&quot;">path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-3lc3ab7f'
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D2852700&gt;
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+&gt;                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-3lc3ab7f\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:625: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = &lt;unittest.case._Outcome object at 0x000001A8D12B2360&gt;
+test_case = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+&gt;               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:688: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history&gt;
+function = &lt;bound method TemporaryDirectory.cleanup of &lt;TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-3lc3ab7f'&gt;&gt;
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+&gt;       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:614: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-3lc3ab7f'&gt;
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+&gt;           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:956: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = &lt;class 'tempfile.TemporaryDirectory'&gt;
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-3lc3ab7f'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onexc(func, path, exc):
+            # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+            if isinstance(exc, (PermissionError, IsADirectoryError)):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        if not _os.path.isdir(path) or _os.path.isjunction(path):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif isinstance(exc, FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+&gt;       _shutil.rmtree(name, onexc=onexc)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:936: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-3lc3ab7f'
+ignore_errors = False, onerror = None
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D2852700&gt;
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, onexc=None, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onexc or
+        onerror is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        the value of exc_info describes the exception. For onexc it is the
+        exception instance, and for onerror it is a tuple as returned by
+        sys.exc_info().  If ignore_errors is false and both onexc and
+        onerror are None, the exception is reraised.
+    
+        onerror is deprecated and only remains for backwards compatibility.
+        If both onerror and onexc are set, onerror is ignored and onexc is used.
+        """
+    
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onexc(*args):
+                pass
+        elif onerror is None and onexc is None:
+            def onexc(*args):
+                raise
+        elif onexc is None:
+            if onerror is None:
+                def onexc(*args):
+                    raise
+            else:
+                # delegate to onerror
+                def onexc(*args):
+                    func, path, exc = args
+                    if exc is None:
+                        exc_info = None, None, None
+                    else:
+                        exc_info = type(exc), exc, exc.__traceback__
+                    return onerror(func, path, exc_info)
+    
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            stack = [(os.lstat, dir_fd, path, None)]
+            try:
+                while stack:
+                    _rmtree_safe_fd(stack, onexc)
+            finally:
+                # Close any file descriptors still on the stack.
+                while stack:
+                    func, fd, path, entry = stack.pop()
+                    if func is not os.close:
+                        continue
+                    try:
+                        os.close(fd)
+                    except OSError as err:
+                        onexc(os.close, path, err)
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                st = os.lstat(path)
+            except OSError as err:
+                onexc(os.lstat, path, err)
+                return
+            try:
+                if _rmtree_islink(st):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError as err:
+                onexc(os.path.islink, path, err)
+                # can't continue even if onexc hook returns
+                return
+&gt;           return _rmtree_unsafe(path, onexc)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-3lc3ab7f'
+onexc = &lt;function TemporaryDirectory._rmtree.&lt;locals&gt;.onexc at 0x000001A8D2852700&gt;
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.unlink(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+&gt;                   onexc(os.unlink, fullname, err)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = &lt;built-in function unlink&gt;
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-3lc3ab7f\\data\\verification-operations\\runs\\1\\owner.lock'
+exc = PermissionError(13, 'The process cannot access the file because it is being used by another process')
+
+    def onexc(func, path, exc):
+        # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+        if isinstance(exc, (PermissionError, IsADirectoryError)):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+&gt;                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-probe-independent-3lc3ab7f\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:911: PermissionError</error></testcase></testsuite></testsuites>

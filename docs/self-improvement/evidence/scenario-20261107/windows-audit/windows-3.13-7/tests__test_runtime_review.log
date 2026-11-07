@@ -1,0 +1,29 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 9 items
+
+tests/test_runtime_review.py::RuntimeReviewTest::test_accepted_cancel_before_finalization_cannot_become_done SKIPPED [ 11%]
+tests/test_runtime_review.py::RuntimeReviewTest::test_cancel_during_worktree_preparation_cannot_become_running SKIPPED [ 22%]
+tests/test_runtime_review.py::RuntimeReviewTest::test_failed_binary_readback_preserves_original_evidence_and_cleanup SKIPPED [ 33%]
+tests/test_runtime_review.py::RuntimeReviewTest::test_failed_process_receipt_write_does_not_leave_a_phantom_process SKIPPED [ 44%]
+tests/test_runtime_review.py::RuntimeReviewTest::test_final_commit_and_cancel_are_serialized_across_threads SKIPPED [ 55%]
+tests/test_runtime_review.py::RuntimeReviewTest::test_missing_text_evidence_path_preserves_raw_bytes_and_cleanup SKIPPED [ 66%]
+tests/test_runtime_review.py::RuntimeRecoveryReviewTest::test_failed_lifecycle_retry_link_still_returns_one_durable_successor SKIPPED [ 77%]
+tests/test_runtime_review.py::RuntimeRecoveryReviewTest::test_failed_supplemental_retry_receipt_keeps_database_idempotency SKIPPED [ 88%]
+tests/test_runtime_review.py::RuntimeRecoveryReviewTest::test_independent_runners_commit_and_dispatch_only_one_retry SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_runtime_review.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_runtime_review.py:34: requires POSIX owned process groups
+SKIPPED [1] tests\test_runtime_review.py:89: requires POSIX owned process groups
+SKIPPED [1] tests\test_runtime_review.py:184: requires POSIX owned process groups
+SKIPPED [1] tests\test_runtime_review.py:114: requires POSIX owned process groups
+SKIPPED [1] tests\test_runtime_review.py:57: requires POSIX owned process groups
+SKIPPED [1] tests\test_runtime_review.py:187: requires POSIX owned process groups
+SKIPPED [1] tests\test_runtime_review.py:231: requires POSIX owned process groups
+SKIPPED [1] tests\test_runtime_review.py:247: requires POSIX owned process groups
+SKIPPED [1] tests\test_runtime_review.py:260: requires POSIX owned process groups
+============================= 9 skipped in 0.17s ==============================

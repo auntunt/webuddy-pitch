@@ -1,0 +1,19 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 7 items
+
+tests/test_rsi_preregistration_v2.py::PreregistrationV2Tests::test_bc_cannot_be_used_to_choose_a_winner_or_refresh_root 
+tests/test_rsi_preregistration_v2.py::PreregistrationV2Tests::test_bc_cannot_be_used_to_choose_a_winner_or_refresh_root PASSED [ 14%]
+tests/test_rsi_preregistration_v2.py::PreregistrationV2Tests::test_calendar_task_denominator_and_role_cost_bounds 
+tests/test_rsi_preregistration_v2.py::PreregistrationV2Tests::test_calendar_task_denominator_and_role_cost_bounds PASSED [ 28%]
+tests/test_rsi_preregistration_v2.py::PreregistrationV2Tests::test_comparison_without_minimum_gain_or_full_input_proof_blocks PASSED [ 42%]
+tests/test_rsi_preregistration_v2.py::PreregistrationV2Tests::test_mode_and_sample_minimum_cannot_be_weakened PASSED [ 57%]
+tests/test_rsi_preregistration_v2.py::PreregistrationV2Tests::test_positive_declarations_still_no_scoring_or_execution PASSED [ 71%]
+tests/test_rsi_preregistration_v2.py::PreregistrationV2Tests::test_template_is_blocked_without_fabricating_numeric_thresholds PASSED [ 85%]
+tests/test_rsi_preregistration_v2.py::PreregistrationV2Tests::test_v1_historical_format_remains_declaration_only PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_preregistration_v2.xml -
+==================== 7 passed, 12 subtests passed in 0.16s ====================

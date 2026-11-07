@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="16.363" timestamp="2026-11-07T12:32:19.115788+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_platform.PlatformApiTest" name="test_change_is_split_by_file_built_and_diagnosed" time="16.024"><failure message="AssertionError: run 2 did not finish">self = &lt;unittest.case._Outcome object at 0x000001F567984350&gt;
+test_case = &lt;test_platform.PlatformApiTest testMethod=test_change_is_split_by_file_built_and_diagnosed&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_platform.PlatformApiTest testMethod=test_change_is_split_by_file_built_and_diagnosed&gt;
+result = &lt;TestCaseFunction test_change_is_split_by_file_built_and_diagnosed&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_platform.PlatformApiTest testMethod=test_change_is_split_by_file_built_and_diagnosed&gt;
+method = &lt;bound method PlatformApiTest.test_change_is_split_by_file_built_and_diagnosed of &lt;test_platform.PlatformApiTest testMethod=test_change_is_split_by_file_built_and_diagnosed&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_platform.PlatformApiTest testMethod=test_change_is_split_by_file_built_and_diagnosed&gt;
+
+    def test_change_is_split_by_file_built_and_diagnosed(self):
+        key = self.project()
+        conf = json.loads((self.data / "agents.json").read_text(encoding="utf-8"))
+        bot, check = self.data / "fake_team.py", self.data / "check.py"
+        bot.write_text(FAKE_TEAM, encoding="utf-8")
+        check.write_text("import pathlib, sys\nsys.exit(1 if 'BROKEN' in pathlib.Path(%r).read_text() else 0)\n" % SVC, encoding="utf-8")
+        conf["team"] = {"cmd": [sys.executable, str(bot), "{mode}", "{prompt_file}"]}
+        (self.data / "agents.json").write_text(json.dumps(conf), encoding="utf-8")
+    
+        def run(k, mode):
+            code, r = self.call("POST", "/api/tickets/%s/runs" % k, {"agent": "team", "mode": mode})
+            self.assertEqual(code, 200, r)
+            return self.wait_run(r["id"])
+        try:
+            (self.data / "autoflow.json").write_text(json.dumps({"on": False, "split_from": 1, "check": "%s %s" % (sys.executable, check)}), encoding="utf-8")
+            _, t = self.call("POST", "/api/tickets", {"project": key, "title": "请假提交后状态不更新", "body": "提交后状态没变"})
+            run(t["key"], "plan")
+&gt;           r = run(t["key"], "fix")
+                ^^^^^^^^^^^^^^^^^^^^
+
+tests\test_platform.py:831: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+k = 'OA-1', mode = 'fix'
+
+    def run(k, mode):
+        code, r = self.call("POST", "/api/tickets/%s/runs" % k, {"agent": "team", "mode": mode})
+        self.assertEqual(code, 200, r)
+&gt;       return self.wait_run(r["id"])
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_platform.py:826: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_platform.PlatformApiTest testMethod=test_change_is_split_by_file_built_and_diagnosed&gt;
+rid = 2
+
+    def wait_run(self, rid):
+        for _ in range(200):
+            _, r = self.call("GET", "/api/runs/%d" % rid)
+            if r["status"] not in ("queued", "running"):
+                return r
+            time.sleep(0.05)
+&gt;       self.fail("run %d did not finish" % rid)
+
+tests\test_platform.py:234: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_platform.PlatformApiTest testMethod=test_change_is_split_by_file_built_and_diagnosed&gt;
+msg = 'run 2 did not finish'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: run 2 did not finish
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError</failure></testcase></testsuite></testsuites>

@@ -1,4 +1,5 @@
 """上生产申请：申请要写验证环境看过什么，批准/驳回/登记部署各是一步，记录写进版本里的每张工单。"""
+import subprocess
 import json
 import sys
 import tempfile
@@ -28,8 +29,12 @@ class FakeP:
         self.data_dir = Path(tempfile.mkdtemp(prefix="tmh-prod-"))
         self.store = FakeStore()
         self.root = root
+        subprocess.run(['git', 'init', '-q', str(root)], check=True)
+        subprocess.run(['git', '-C', str(root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                        'commit', '--allow-empty', '-qm', 'synthetic release'], check=True)
+        self.commit = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
         (self.data_dir / "releases.jsonl").write_text(json.dumps(
-            {"project": "BID", "version": "v1.0.3", "commit": "abc1234", "tickets": [{"key": "BID-1", "title": "按万元汇总"}]}) + "\n", encoding="utf-8")
+            {"project": "BID", "version": "v1.0.3", "commit": self.commit[:7], "tickets": [{"key": "BID-1", "title": "按万元汇总"}]}) + "\n", encoding="utf-8")
 
     def project(self, key):
         if key.upper() != "BID":
@@ -51,7 +56,7 @@ class ProdReleaseTest(unittest.TestCase):
 
     def test_request_approve_deployed_is_traced_on_tickets(self):
         r = prod_release.request(self.P, "BID", "v1.0.3", "fde", checked="验证环境导出评标报告，万元合计正确")
-        self.assertEqual((r["state"], r["tickets"], r["commit"]), ("requested", ["BID-1"], "abc1234"))
+        self.assertEqual((r["state"], r["tickets"], r["commit"]), ("requested", ["BID-1"], self.P.commit))
         with self.assertRaises(ApiError):
             prod_release.request(self.P, "BID", "v1.0.3", "fde", checked="again")
         with self.assertRaises(ApiError):

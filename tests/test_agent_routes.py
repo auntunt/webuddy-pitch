@@ -273,7 +273,7 @@ class AgentRoutesTest(unittest.TestCase):
         self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex", "allowed_agents": ["cloudwave-codex", "claude"],
                     "steps": {"plan": "claude", "diagnose": "claude"}}}})
         conf = {"cloudwave-codex": {"defaults": {}}, "claude": {"defaults": {"diagnose": "opus-x"}}}
-        runner = Mock(data_dir=self.data, store=self.store)
+        runner = Mock(data_dir=self.data, evidence_root=self.data, store=self.store)
         runner.invoke.return_value = (0, "ok")
         with patch("tmh.platform.fixloop.git", return_value="abc\n"), \
                 patch("tmh.platform.fixloop.learning_context_current", return_value=True):
@@ -284,11 +284,11 @@ class AgentRoutesTest(unittest.TestCase):
         self.assertEqual(calls, [("claude", "diagnose", "opus-x"), ("cloudwave-codex", "fix", "luna")])
 
 
-    def test_fix_loop_has_the_routed_engine_diagnose_a_small_unbuilt_change(self):
+    def test_fix_loop_reviews_small_unbuilt_changes_with_or_without_a_separate_engine(self):
         from tmh.platform.fixloop import FixLoop
         conf = {"cloudwave-codex": {"defaults": {}}, "claude": {"defaults": {"diagnose": "opus-x"}}}
         diff = "diff --git a/a.vue b/a.vue\n--- a/a.vue\n+++ b/a.vue\n@@ -1 +1 @@\n-x\n+y\n"
-        for steps, diagnosed in (({"diagnose": "claude"}, True), ({}, False)):
+        for steps, diagnosed in (({"diagnose": "claude"}, True), ({}, True)):
             with self.subTest(steps=steps):
                 self.write({"schema": 1, "projects": {"ALPHA": {"agent": "cloudwave-codex",
                             "allowed_agents": ["cloudwave-codex", "claude"], "steps": steps}}})
@@ -297,7 +297,8 @@ class AgentRoutesTest(unittest.TestCase):
                 runner.stop_reason.return_value = ""
                 (self.data / "runs" / "1").mkdir(parents=True, exist_ok=True)
                 with patch("tmh.platform.fixloop.git", return_value="abc\n"), \
-                        patch("tmh.platform.fixloop.worktree_diff", return_value=diff):
+                        patch("tmh.platform.fixloop.worktree_diff", return_value=diff), \
+                        patch("tmh.platform.fixloop.verification_contract", return_value="fixture-contract"):
                     loop = FixLoop(runner, 1, self.project, None, "cloudwave-codex", conf, "luna", False, "prompt", self.root)
                     loop.commands = Mock(return_value=([], "no build here"))
                     loop.whole = Mock()
@@ -324,7 +325,7 @@ class AgentRoutesTest(unittest.TestCase):
         rid = self.store.create_run(self.project["id"], self.ticket["id"], "cloudwave-codex", "fix", "alice", "p")["id"]
         self.store.update_run(rid, status="running")
         (self.data / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)
-        runner = Mock(data_dir=self.data, store=self.store)
+        runner = Mock(data_dir=self.data, evidence_root=self.data, store=self.store)
         runner.stop_reason.return_value = ""
         runner.invoke.return_value = (0, raw or "```tmh-diag\n%s\n```" % json.dumps(said, ensure_ascii=False))
         diff = "diff --git a/a.vue b/a.vue\n--- a/a.vue\n+++ b/a.vue\n@@ -1 +1 @@\n-x\n+y\n"

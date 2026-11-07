@@ -14,6 +14,10 @@ from .store import now
 
 def criteria(P,ticket):
     """Use full already-confirmed requirements; never invent missing criteria."""
+    from .development import row, read
+    if row(P.store,ticket['id']):
+        contract=read(P.store,ticket)
+        return contract['payload']['criteria'] if contract['state']=='confirmed' else None
     try:
         records=signoff.records(P.data_dir,ticket['key'])
         if not evidence.check(records)[0]:

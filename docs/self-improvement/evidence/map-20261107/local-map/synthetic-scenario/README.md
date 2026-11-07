@@ -1,0 +1,5 @@
+# 合成退款演练
+
+当前成套报告：[addb80473a54b6ff9b331cf1aca933ae5d9d82886a7d40695628957aaeb24b09/report.html](addb80473a54b6ff9b331cf1aca933ae5d9d82886a7d40695628957aaeb24b09/report.html)。固定地图为 `map9ad4fc24e4070c40d9bb55d5621b22a0`，与 `saved-map.json`、原始运行1/2和报告JSON一致。清单中的所有附件已按字节数与SHA256读回核对。
+
+另一个导出目录是此前复跑原件，保留但不与本次地图或运行混用。这里没有真人业务验收或真实模型费用。

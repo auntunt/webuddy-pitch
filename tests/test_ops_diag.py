@@ -33,6 +33,12 @@ class OpsDiagTest(RunSteerTest):
         assert code == 200, t
         cls.ops = t["key"]
 
+    def test_lists_the_tables_that_can_be_queried(self):
+        code, d = self.call("GET", f"/api/tickets/{self.ops}/ops")
+        self.assertEqual(code, 200, d)
+        self.assertEqual(d["datasource"]["tables"], [{"name": "bid", "columns": ["no", "amount", "unit"]}])
+        self.assertEqual(ops_diag.tables({"kind": "sqlite", "path": str(self.data / "missing.db")}), [])
+
     def test_only_reads(self):
         for bad in ("UPDATE bid SET unit='万元'", "select 1; drop table bid", "DELETE FROM bid", "PRAGMA writable_schema=1",
                     "WITH x AS (SELECT 1) INSERT INTO bid SELECT * FROM bid", ""):
@@ -61,7 +67,7 @@ class OpsDiagTest(RunSteerTest):
         self.assertEqual(self.P.store.ticket(self.ops)["status"], t["status"])  # recording a cause does not close it for anyone
         code, t2 = self.call("POST", "/api/tickets", {"project": "ST", "title": "标书 ZB-009 投标金额异常", "type": "ops", "body": "金额大了一万倍"})
         look = self.call("GET", "/api/tickets/%s/ops" % t2["key"])[1]
-        self.assertEqual(look["datasource"], {"kind": "sqlite"})
+        self.assertEqual(look["datasource"], {"kind": "sqlite", "tables": [{"name": "bid", "columns": ["no", "amount", "unit"]}]})
         self.assertIn(r["lesson"], [x["id"] for x in look["lessons"]])
         hit = next(x for x in look["tickets"] if x["key"] == self.ops)
         self.assertIn("万元填成了元", hit["conclusion"])

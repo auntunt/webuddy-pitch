@@ -1,0 +1,29 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 11 items
+
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_anchor_missing_or_wrong_hash_fails_with_409 
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_anchor_missing_or_wrong_hash_fails_with_409 PASSED [  9%]
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_anchor_noninteger_and_out_of_order_sequence_fails_with_409 
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_anchor_noninteger_and_out_of_order_sequence_fails_with_409 PASSED [ 18%]
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_anchor_payload_wrong_types_fail_with_409 
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_anchor_payload_wrong_types_fail_with_409 PASSED [ 27%]
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_bad_anchor_json_is_rejected_without_writes_or_live_probes PASSED [ 36%]
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_draft_and_cancelled_before_seal_are_valid_without_seal 
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_draft_and_cancelled_before_seal_are_valid_without_seal PASSED [ 45%]
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_empty_partial_full_exposure_and_historical_sealed_reads_remain_lossless 
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_empty_partial_full_exposure_and_historical_sealed_reads_remain_lossless PASSED [ 54%]
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_missing_create_anchor_is_rejected_in_draft_and_sealed_reads 
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_missing_create_anchor_is_rejected_in_draft_and_sealed_reads PASSED [ 63%]
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_missing_or_duplicate_sealed_anchor_is_rejected 
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_missing_or_duplicate_sealed_anchor_is_rejected PASSED [ 72%]
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_rehashed_draft_also_requires_original_create_anchor PASSED [ 81%]
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_rehashed_missing_unexposed_oracle_rejected_by_all_read_routes 
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_rehashed_missing_unexposed_oracle_rejected_by_all_read_routes PASSED [ 90%]
+tests/test_learning_experiment_view_integrity.py::ExperimentViewIntegrityTests::test_unsealed_draft_rejects_unexpected_seal_event PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_experiment_view_integrity.xml -
+=================== 11 passed, 52 subtests passed in 19.27s ===================

@@ -537,3 +537,767 @@
 - 发布：5116edb1f119，备份在 `/opt/webuddy/backups/pre-5116edb1f119-activation-20261104`。MANIFEST_OK，两个库 integrity=ok，running_runs=0，内外网 login 200、未登录访问 /api/projects 返回 401，active，NRestarts=0。
 - 生产 E2E（LYB，干净的 HOME 和 venv）：下载 `webuddy_client-0.4.0-py3-none-any.whl`；直接运行 `webuddy` 显示 `https://webuddy.bbstack.date/t/default` 和下一步；没导入凭据时 `status` 指向 `/tools` 页，输出里没有 127.0.0.1。之后依次跑通 `connect --stdin`、`status`、`config codex --read-only`；MCP 列出 13 个工具，`webuddy_projects_list` 返回 RW。临时连接已撤销。
 - 后续（同日）：用户反映创建连接后「没有弹出下载选项」。原因：凭据区在页面顶部，在页面下方点「创建」时看不到；而且每 15 秒核对身份、切换窗口时会清掉凭据区（这条安全设计保留）。修复：创建后由 `saveCredential()` 自动下载 `webuddy-credential.json`，并滚动到凭据区；步骤文案改成「已自动下载」。生产实测（LYB）：点创建后浏览器立即下载，文件里的 endpoint 是生产地址，测试连接已撤销。
+
+## 2026-11-04 界面人机优化第一批（PR #70，生产 9cd16f3）
+
+- 背景：用户要求「先做好界面优化，让人一目了然哪里该怎么填」，并在演示流程里加入「前线需求人员」（在客户现场收原话，排在 FDE 之前）。
+- 记录需求弹窗：三步说明（贴原话 → 归档客户/项目/系统 → 交给 AI 理清，确认后才建单）；可选「谁提的」，填写后以 `提出人：…` 前缀并入原文留痕，不新增后端字段。
+- 运维单进度条改为 受理 → 运维排查 → 记下结论 → 沉淀经验 → 闭环（`opsStepper`），不再显示改代码步骤。
+- 版本页：预览启动命令收进「预览环境设置（管理员填一次即可）」；版本记录上方写明上生产四步。工作台「编写工作简报」默认收起。
+- 验证：本机 UI 相关 632 passed、协作相关 170 passed；服务器用发布包跑 15 个相关模块 230 项 OK，失败清单与 `0064bfd` 一致（都为空）。
+- 发布：备份 `/opt/webuddy/backups/pre-9cd16f331039-activation-20261104`；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
+- 招投标演示项目选型：wzhnbb/bidding 只有介绍页；luhongbin/bidding（MIT，litemall 改的招投标/报价）可用，待导入。
+
+## 2026-11-04 首页改成闭环总览（生产 5dc4642）
+
+- 用户要求：状态看板的闭环图应该是首页形式。现在 `#/`、`#/home` 打开「闭环总览」：左边闭环图，右边流转中/失败/已关闭、点节点列出的工单、「等你处理」；深色指标带和智能洞察移到下方。工作台改为总览下的第二个标签 `#/workspace`，`#/board` 仍兼容。
+- 顺带修复：选「全部项目」时首页显示「没有这个项目」。原因是租户网关把路径里的 `*` 当项目键去查（`tenant_policy._project` 拒绝 `*`）。新增 `ALL_PROJECT_PATHS`（GET `/loop`、`/inbox`）：`*`/`all` 只对租户管理员放行（`P.loop(None)` 不按权限过滤），其他人 403；前端 `boardQ()` 对非管理员改用当前项目。`POST /catchup` 的 `*` 仍拒绝，首页在全部项目时不显示一键交给自动处理。测试：`test_tenant_policy.py::test_all_project_boards_are_admin_only`。
+- 验证：本机 UI 307 passed，UI+租户 350 passed；服务器发布包 15 个模块 231 项 OK，失败清单为空。
+- 发布：383dc03 → bf14588 → 5dc4642，备份 `/opt/webuddy/backups/pre-<commit>-activation-20261104`；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。生产实测 li（全部项目，79 单）与 LYB（当前项目，57 单）首页闭环图都在第一屏。
+
+## 2026-11-04 BID 澄清：普通 LLM 读过的需求按回答再读；无执行权限成员按规则归档
+
+- 生产实测（BID 会话 34fd87676a5d）：普通 LLM 读需求后提出「汇总范围和计算方式」，回答后问题消失，但 A1 仍是 `【待确认：…】`，只在“怎么验”后附了「按补充」。原因：`intake.answer` 和客户链接回答只对 `understood.by == "智能体"` 再读，普通 LLM（`by == "LLM"`）读的不再读。改为 `READERS = ("智能体", "LLM")` 三处统一；测试 `test_llm_reading_is_read_again_with_the_answer`（旧代码失败）。
+- 带选项的问题（除业务流）也给输入框，写了以输入为准；点「其他，请说明」类选项转到输入框，不把选项原文当回答。
+- 无执行权限的成员（LLA、LYB）「记录需求」：按钮显示「记录并归档」，请求带 `model:false`，按规则保存原话、提出人、客户/系统；有执行权限的人在工作台「继续理清」里点「让 AI 理清」（新 `POST /api/intake/<id> {action:"understand"}`，仍走原执行权限 guard），同一段对话交给 AI。「直接填写工单」也保留提出人。测试 `test_rules_only_record_is_handed_to_ai_later`。
+- 验证：本机 intake/租户/工作台/系统/UI 410 passed。
+- 发布：700614b → 42f911e，备份 `/opt/webuddy/backups/pre-42f911e035d6-activation-20261104`；发布包相关 23 个模块失败清单为空、与上一版一致；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
+
+## 2026-11-04 MCP 也能提需求、让 AI 理清、回答追问；运行结束后页面实测按运行分支找被测版本
+
+- 生产实测：BID-3 用 content 连接 `ticket_create` 直接建单，没有经过需求理解，所以终端演示不到「AI 澄清 → 回答 → 补全验收标准」。新增四个工具操作，复用 `intake.start/understand/answer` 与原执行权限 guard：
+  - `intake_get`（read）：读客户原话、事项、验收标准、待回答问题；
+  - `intake_start`（content）：记录原话和提出人（channel=mcp），只按规则整理，不调用模型、不建工单；
+  - `intake_understand`、`intake_answer`（execute，需 `X-Webuddy-Execution: 1`，且 `tenant_policy` 走 `require_execution`）：让 AI 理清、按回答重读。确认建单仍在网页上由人做。
+  - 租户策略按需求对话所属项目核对权限（新资源类型 `intake`）；工具连接按项目可见范围过滤。测试 `test_intake_is_recorded_without_a_model_and_ai_reading_needs_execution`。
+- 生产实测：BID-1 #408 运行结束后点「在页面上实测」得到「找不到被测版本」。原因：手动入口不传 commit，`verify` 只看运行工作树，工作树在运行结束后已删除。改为工作树不在时取运行自己的分支 `tmh/<工单>-r<运行>` 的提交（`run_branch_head`）；测试 `test_a_finished_run_is_found_on_its_own_branch`。
+- 验证：本机 browser_verify/agent_api/MCP/租户策略/工具连接/AI 验收/intake 191 passed。
+- 发布：0cce32f → acfe736，备份 `/opt/webuddy/backups/pre-acfe7360c48d-activation-20261104`；发布包相关 25 个模块失败清单与上一版一致（SAME_FAILS）；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
+
+## 2026-11-04 页面实测前置定位只要有一处可见；断言限定到内容区
+
+- 生产实测（acfe736，BID-1 #408，绑定 c86c785）：已能登录评标系统并截到投标信息页（5 条构造记录、万元汇总按钮），但 A1–A3 都因 `anchor(getByText('招标项目', {exact:true}))` 命中菜单、筛选、表头 5 处触发 strict mode，业务断言没执行。`anchor` 只证明前置条件在，改为任一匹配可见即可；实测脚本提示补一条：`expect` 断言限定在内容区或表格里。
+- 「记录并归档」后给无执行权限成员的提示改为指向「总览 → 动态与待办」里的「继续理清」（工作台没有这个入口）。
+- 生产只读查证：LLA 归档的会话 f4fcfe7bebe6 的客户、系统在 `client_links`/`system_links` 里，「让 AI 理清」的返回值不带这两个字段，不是丢失。
+- 验证：本机 browser_verify/ai_accept 48 passed，UI/intake 313 passed。
+- 发布：acfe736 → f7ae844，备份 `/opt/webuddy/backups/pre-f7ae844b729d-activation-20261104`；发布包 25 个模块失败清单与上一版一致（SAME_FAILS）；MANIFEST_OK，两库 integrity=ok，running_runs=0，内外网 login 200、未登录 /api/projects 401，active，NRestarts=0。
+
+## 2026-11-04 界面名称改回 Webuddy（0615fe3 上线）
+
+- 用户要求系统名改为 webuddy：界面标题、页头、工具连接页、侧边栏助手提示、下载客户端说明里的“网梯运维系统”统一改为 `Webuddy`；生产 `/etc/webuddy.env` 的 `TMH_BRAND=Webuddy`。
+- 本机：UI/工具连接/工作台/命令相关测试 398 passed, 17 skipped。服务器用发布包跑既定验证集，失败清单与 f7ae844 相同（SAME_FAILS）。
+- 发布 `0615fe365bb7-brand-webuddy-20261104`：MANIFEST_OK，platform.db / access.db integrity=ok，running_runs=0，本机与公网 /login 200、未认证 /api/projects 401，ActiveState=active，NRestarts=0。备份 `/opt/webuddy/backups/pre-0615fe365bb7-activation-20261104`。
+- 同时统计了生产 Codex（cloudwave-codex / gpt-6-luna）的输出速度：按 timing.json 的 output_tokens / model_seconds，中位数 kb≈45、analyze≈69、ask≈80、fix≈86、plan≈93 token/s；单次输入 8–23 万 token（约 80% 命中缓存），kb 是最慢的一步。
+
+## 2026-11-04 执行器不再默认落到 Claude：按钮旁可选执行器，额度不足时提示换一个重试（d8f0c0f 上线）
+
+- 生产实测：JSHERP-1 分析 #456、#457 用的是 Claude Code · Opus 5.5，两次都因网关 403「预扣费额度失败」失败；项目默认路由其实是 `cloudwave-codex`。用 Codex 手动重跑 #458，约 1 分钟完成。
+- 原因：页面还没加载到项目（新建的项目、全部项目）时，`projectAgents/preferredAgent` 拿不到 `agent_route`，就按执行器列表顺序选第一个可用的，也就是 Claude。
+- 改动：
+  - `/api/meta` 带上平台默认路由 `agent_route_default`（只有路由策略，没有密钥）；新增 `projectRoute()`，项目没加载时按默认路由选执行器、按 allowed_agents 过滤。
+  - 下一步里出现「分析定位 / 出方案 / 修改代码」按钮时，旁边加上「执行器」下拉框（`#naAg`），点按钮就用这里选的执行器；切换会记在这个人、这个租户、这个项目上，并跟「手动指派」保持一致。
+  - 最近一次分析/方案/修改失败，且原因是额度不足或认证失败（403、401、429、额度、余额、Failed to authenticate 等）时，下一步写明「上一次用的 X 额度不足或认证失败」，给出「换执行器重新…」按钮，下拉框默认选另一个可用的执行器。不会自动换执行器去跑。
+- 验证：本机 UI 相关 404 passed（新增 `test_unloaded_project_follows_default_route_and_quota_failure_offers_another_agent`）；`test_platform` 里 `test_readiness_checks_the_real_machine_worst_first` 在基线上同样失败（本机环境）。服务器用发布包跑既定验证集 + `tests.test_ui_agent_routes`，失败清单与 0615fe3 相同（SAME_FAILS）。
+- 发布 `d8f0c0f340ab-agent-pick-20261104`：MANIFEST_OK，platform.db / access.db integrity=ok，running_runs=0，本机与公网 /login 200、未认证 /api/projects 401，active，NRestarts=0。备份 `/opt/webuddy/backups/pre-d8f0c0f340ab-activation-20261104`。
+- 生产页面核对：`S.meta.agent_route_default.agent=cloudwave-codex`；JSHERP-1、PETS-9 的「手动指派」默认都是 Cloudwave · 官方 Codex。额度失败提示用页面里的真实函数和一条模拟的 403 运行核对过（文字和默认选中的 Codex 都对），生产上暂时没有停在这种状态的工单可截图。
+
+## 2026-11-05 第一批产品修复与阿里云发布
+
+- 基线：devin/1793765109-bidding-demo-ui / 86eb560；用户授权按 v2 第一批实施并上线阿里云。旧 iteration/context-pack-v2 保留，不合入独立 Codex 实验线。
+- 范围：D1/D2 范围与权限，D3 轮询，D4 附件，D6 逐项证据，D7 申请 ID，D8 发布状态与回执，U2a 同会话输入交接；追加用户提供的开发规范，原 AGENTS.md 保留。
+- 实机预检：zct-server 严格主机校验登录成功，webuddy:d8f0c0f running/restart0，Python3.11.2，Compose 与独立数据卷已核对；不操作腾讯云站点。
+- 当前进行中：实现与定向验证。第二批及产品扩展保留后续任务，未启动。
+- 实现完成：授权范围先过滤后汇总；导航/录入遵循权限；轮询退避、取消反馈与迟到响应隔离；附件稳定 ID 与读取状态；同会话输入交接恢复；逐项证据绑定当前包/提交/环境且复测撤销旧结果；发布随机 ID 与历史冲突隔离；命令完成、人工登记和回执验证分别展示。
+- 本机集成验证：19 个相关模块 258 tests OK；最后弹窗响应校验后复验 47 tests OK，完整页面脚本解析通过，git diff --check 通过。受控 Node/HTTP/子进程检查不代表真实浏览器验收；浏览器访问 host 不可用，尚未完成真实页面交互检查。
+- 发布前阿里云：原镜像 webuddy:d8f0c0f，running_runs=0，platform.db quick_check=ok；准备精确提交镜像及服务器备份。
+- 已发布：实现提交 f6141189c329d634f657b695328a5887b858ac78 已推送 GitHub 产品分支，阿里云镜像 webuddy:f614118 已启动；服务器 258 tests OK（53.478s），2260 文件清单匹配，12 库 integrity_check=ok，延迟检查 running/restart0。本机及公网 curl 登录200、未登录项目API401；一次服务器 urllib 公网403保留为核验差异。
+- 完整卷与配置备份：/home/Liyibin/webuddy/backups/pre-f614118-20261104T175810Z。回退仅切程序，保留新数据。
+- 逐项代码、测试、未验证范围及回退说明见 [v2 第一批交付对照](webuddy-batch1-v2-delivery.md)。真实浏览器交互仍未验收；后续批次与 BID-1 未纳入。
+
+## 2026-11-05 智能体配置界面
+
+- 用户反馈设置页只有命令说明，没有具体配置界面。本次补独立读取/保存 API 与设置页列表、详情和表单；管理员可查看，平台管理员且现役受信主机可保存。
+- 支持显示名称、模型列表、各步骤默认模型、任务超时、Codex profile 和新增 Codex 执行器。凭据沿用服务器配置，接口不回传命令参数/环境变量/密钥；不通过保存启动模型任务，不改变项目路由和授权。
+- 保存保留未编辑字段，原子替换 agents.json，并用文件摘要拒绝过期提交；错误保留表单输入。命令可用仅显示“命令已安装”，不冒充已登录或调用成功。
+- 本机 82 项设置/API/权限/UI 回归通过，59 项路由和 Codex 兼容性通过；完整页面脚本解析和 diff 检查通过。浏览器访问 host 仍 unavailable，无真实浏览器验收截图。
+- 已推送并上线：`3ec27cb8d2759dbdaf9119aa00c704eae66523fa`，阿里云 `webuddy:3ec27cb`。服务器 Python3.11 隔离容器 141 tests OK（51.487s），2264 发布文件 SHA 清单一致，现有3个智能体配置只读兼容检查通过。
+- 发布前 running_runs=0；完整卷/外部配置备份 `/home/Liyibin/webuddy/backups/pre-3ec27cb-20261104T181450Z`；12库完整性检查通过，上线后两主库再次 ok；回环及公网登录200、未登录新配置API401，容器 running/restart0。原镜像 f614118 保留，回退只切镜像不覆盖数据。
+- 使用入口：刷新“设置 → 智能体”，点“配置”或“查看”。新增 Codex 执行器不会自动改变路由允许列表；本轮不提供 API 密钥编辑或真实模型付费连通测试，也未修改生产上的模型配置。
+
+## 2026-11-05 阿里云 Codex 实际接入修复与 li 登录排查
+
+- 用户反馈 li 登录失败并要求直接配置 Codex。只读查证 li active=1、平台管理员、default 组织 admin，组织 active；账号和 session.key 与第一批发布前完整备份一致。本轮未修改密码、权限或伪造用户会话。
+- 当前控制库 li 密码记录与旧 users.json 的记录不同（未输出哈希）；仅能判定记录有差异，尚未收到登录错误提示，不能据此断言根因。仍待区分密码错误、限流、会话或组织跳转。
+- Codex 确认的迁移遗漏：cloudwave-codex.bin 仍为腾讯云 /home/ubuntu/.npm-global/bin/codex，现容器实际 /usr/local/bin/codex；引用的 webuddy-cloudwave.config.toml 不存在。此前配置兼容检查只证明能读配置，未证明该执行器可运行。
+- 已在阿里云外部配置修正 bin，新增独立 profile 继承既有 aiseat provider、gpt-6-luna 与服务器凭据；未复制密钥、未修改默认路由及其他执行器。原配置备份 /opt/webuddy/data/maintenance-backups/codex-access-20261104T183307。
+- 使用平台实际 command 构建器在临时空目录以 understand/read-only 模式调用官方 CLI，要求不用工具、只答 WEBUDDY_CODEX_OK：15.2 秒、exit0、completed=true、结果精确匹配、无认证/额度错误。未触发业务任务或验收。配置热读取，无需重启服务。
+
+## 2026-11-05 修复阿里云 HTTPS 登录来源误判
+
+- 用户截图明确 origin_denied：请求在密码验证前被拒绝。公网用合法 Origin + 超长空测试正文复现相同403（正文校验在来源校验后、认证前，不尝试任何账号密码）。此前密码记录差异不是此报错的原因，未重置账号。
+- 根因：_scheme 仅信任回环代理；阿里云 Cloudflare Tunnel 经容器网络连接，外部 HTTPS 被认作 HTTP。修复使用服务端配置 TMH_PUBLIC_URL 确定对外协议及固定来源，同时保留 Host 一致和 Sec-Fetch-Site 跨站拒绝，HTTPS 会话附 Secure。
+- 新增隔离真实 HTTP 回归：修前合法来源登录403，修后正确合成密码303且 cookie Secure；错误协议、外部来源、null、跨站及伪造Host仍403。本机网关+登录23 tests OK（9.427s），diff检查通过。
+- 已上线 `7fbad9a15bde6b0586e1a72e3f51e325c8bb6ddf` / webuddy:7fbad9a；服务器23 tests OK（25.957s）、2264文件清单一致；12库完整性通过。备份 /home/Liyibin/webuddy/backups/pre-7fbad9a-20261104T183856Z，旧镜像3ec27cb保留。
+- 公网同源超长正文探针：修前403 origin_denied，修后413 invalid_request（来源已通过，正文按大小拒绝，未进入密码校验）；跨站探针仍403 origin_denied。内外登录GET200、未认证配置API401，主库完整性ok，running/restart0。隔离合成账号成功登录303已测，未代用户登录li。
+
+## 2026-11-05 架构与依据页面改版
+
+- 用户指出系统结构图不好看且表达有误。源码确认旧 archSvg 将入口统一连至中部位置、所有业务域连总表、所有外部调用连首个业务域，连线并非实际依赖；本次移除该示意图，保留现有真实项目图谱入口。
+- 改为业务域总览：顶部4项规模统计、完整可搜索的业务域网格、右侧入口类型/高频数据表/全部外部调用；保留全部业务域、原始名称、完整说明、状态和跳转。高频表明确显示所列数量/总数，数据表可进知识页；分析来源/更新时间/待核对事项收进可展开区域。
+- 响应式单列、长名称换行、键盘焦点、搜索零结果及清除入口；项目切换后迟到请求不重绘。无新增后端/数据变更，无自动翻译或改写知识事实。
+- 本机31项架构页面/导航/完整脚本检查通过，diff检查通过。浏览器访问host不可用，已请求连接；未完成桌面/窄屏实际渲染，不宣称视觉验收已完成。
+- 已推送并上线 `8a14b35459978fa1803c9df3bd4332966ac83efc` / webuddy:8a14b35；服务器31项测试通过（1.520s）、2265文件清单一致。切换前running_runs=0，备份 /home/Liyibin/webuddy/backups/pre-8a14b35-20261104T184921Z，12库完整性ok，上线后主库再次ok，服务running/restart0，内外登录200/未认证API401。回退镜像7fbad9a保留，不覆盖新数据；实际视觉渲染检查仍待浏览器连接恢复。
+
+## 2026-11-05 修正业务与代码概览的定位文案
+
+- 用户认可该页是源码业务/代码概览，而非完整架构，授权调整描述。页面标题、导航、助手跳转和命令入口统一“业务与代码概览”；本页统计、搜索、空状态和详情说明使用“功能分组”。保留知识库中的实际名称与其他业务流程用语，不改数据或路由。
+- 页面说明改为“从功能分组查找业务流、数据操作与代码依据”；展开依据明确分组并非已确认业务边界或应用/部署架构。旧搜索别名仍可找到此页。
+- 本机31项页面/导航/脚本检查与6项命令测试通过，diff检查通过；本轮仅文案，无布局变化。
+- 已上线 `2a27d847d70cb639e0302d5e1899d1dc630ae076` / webuddy:2a27d84。服务器37 tests OK（1.508s），2265文件清单一致；备份 /home/Liyibin/webuddy/backups/pre-2a27d84-20261104T185558Z，12库完整性ok，内外登录200/API401，running/restart0。回退保留8a14b35镜像与现有数据。
+
+## 2026-11-05 GPT Pro 复核缺口纠错
+
+- 用户授权“可以修，然后提交”。基线 0b541fc；完成10项：历史运行与当前候选检查隔离、人工决定按事件顺序投影；项目/输入版本隔离迟到草稿；新增/编辑配置分离且重名409；附件读取不能解除提交锁；完整Git提交身份及历史短SHA唯一解析；配置读取固定管理员权限；首页待办范围/容器/请求代际隔离；同一需求的受项目授权直达交接链接；保留独立验收项结果但不放宽整单AI验收；保存成功与刷新失败分别反馈。
+- 保留原人工审批、证据包/环境绑定、原子配置写入及版本摘要检查。AI签收在环境变化后仍失效；历史运行与过期并发响应不影响当前候选。新输入在请求成功返回后保留且可继续提交。
+- 验证：16个相关模块215 tests OK（20.936s）；补强部分通过/未知混合验收的完整basis后，证据模块13 tests OK。10个新增缺陷用例在修改前基线均失败；当前版本全部通过。实际执行了Node页面函数、临时Git与部署回执脚本、隔离HTTP网关测试；未作真实浏览器视觉验收或业务人工签收。
+- 发布前观察：阿里云 webuddy:2a27d84 running/restart0，Python3.11.2；当前容器时区UTC。用户另要求本批提交后修复中国时区，作为下一次独立提交。
+
+## 2026-11-05 北京时间显示修复
+
+- 前批10项修复已提交并推送 d1b5b81。用户追加中国时区问题：生产容器的无时区时间按UTC存储，页面曾原样显示或按浏览器当地时间解析。
+- 页面统一用 Asia/Shanghai 格式化：工单/运行/对话/签收/交接/发布/知识/配置连接到期等时间；相对时间使用服务端明确偏移，不依赖浏览器地区。服务端保持现有存储时区，通过meta提供偏移；不改写历史业务记录或哈希链、不调整凭据有效期。
+- 首页“今天”、工单日图及月度效率筛选按中国日历归属。传回API的“上次查看”游标仍使用服务端时间格式；日期型业务约定原样保留，原始日志与下载证据保持原件。
+- 验证：整合27个模块/指定测试358 tests OK（55.061s），涵盖前批缺口及本轮UI/API/日月边界；最后补封存时间和对话时分显示后29 tests OK。UTC/上海/洛杉矶三种浏览器环境显示同一北京时间；临时SQLite跨日统计正确且原时间字节未改。完整脚本解析、diff检查通过；测试夹具有既存ResourceWarning，退出0，无失败。
+- 两次独立实现提交合并为一次生产切换，避免重复停服。用户追加截图中的 bwrap namespace 拒绝与tmh命令可用性，待本次上线后独立核对。
+- 已推送并上线：运行提交 `9c6900b60602b1118edd20242992747f73155cd2` 包含前批 `d1b5b81`，阿里云镜像 webuddy:9c6900b。服务器初次356项运行通过，另外2项因发布测试包未带examples/legacy-java-oa在类初始化失败；从同一精确提交补齐examples后2项通过（1.842s），无产品代码变更。清单2305文件逐字节匹配。
+- 发布前running_runs=0，完整数据/仓库/Codex卷与外部配置备份 `/home/Liyibin/webuddy/backups/pre-9c6900b-20261104T192935Z`；14个SQLite库完整性通过。保留旧镜像2a27d84和rollback-pre-9c6900b；回退只切程序，不覆盖新数据。
+- 即时与超过60秒延迟核验：容器running/restart0，主业务库和控制库integrity=ok；回环及公网登录200，未登录配置API401；Mac公网登录200。生产没有代人创建需求、保存智能体配置或验收；浏览器视觉交互未实测。
+
+## 2026-11-05 截图中的 tmh 与 bwrap 问题核查（只读）
+
+- 用户要求本批完成后检查。查到GROUPRISK最近运行464（kb）、463（chart）、461（kb）包含bwrap错误；项目根和知识目录存在，但`.tmh/tool/tmh.py`缺失。容器PATH上也没有`tmh`入口；`python3 -m tmh --help`在平台目录正常，说明平台模块已部署，不能说整个tmh没有部署。
+- 固定无业务命令探针：宿主机`unshare -Ur /bin/true`成功；同一现役容器内返回Operation not permitted。容器非privileged、无额外cap、Seccomp=2，用户namespace内核开关允许；Codex0.162.1直接沙箱调用出现与截图一致的bwrap namespace拒绝。已定位到容器执行限制，未冒充模型额度或认证失败。
+- 之前固定文字Codex连通测试只验证模型回复，不验证命令派发。本次未调用模型、未重跑业务任务、未修改沙箱/容器权限、项目工具或原运行记录。后续修复需补齐项目工具并验证受限命令执行、只读和越界写入约束；不能以关闭沙箱当修复。
+
+## 2026-11-05 恢复阿里云容器中的 Codex 沙箱
+
+- 用户授权修复容器无法开启沙箱。现役Webuddy镜像9c6900b、Docker26.1.3、Codex0.162.1。依据官方文档与现役CLI帮助，在无业务卷/凭据、无外部网络的临时容器复现默认策略下namespace拒绝。
+- 基于Moby v26.1.3完整默认seccomp策略（上游原文件SHA256 `9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76`），仅追加clone带CLONE_NEWUSER、unshare参数仅CLONE_NEWUSER，以及mount/umount2/pivot_root。原规则与顶层默认拒绝配置逐项保持。逐项移除这5类均失败；setns无需开放并已移除。
+- 临时容器真实Codex沙箱9项通过：读取、工作区写入、只读拒写、外部拒写、符号链接越界拒写、Git元数据拒写、TCP拒绝、Unix socket拒绝、CapEff=0/Seccomp=2。默认策略反例仍失败在namespace创建。无模型调用或业务任务重跑。
+- 部署策略和离线验证脚本纳入scripts/deploy；应用代码与模型配置保持原版本。准备完整备份后更新Compose的此服务seccomp路径并重建容器；不使用privileged、CAP_SYS_ADMIN、unconfined或关闭Codex沙箱，不修改宿主机sysctl。
+- 已提交并推送策略 `f93e716`；宿主机部署文件 `~/webuddy/security/seccomp-codex-f93e716.json` SHA256 `280cde4a2eea3f83ae37da2043a7bc2d01729dd09a5cd1f24cb49464b80a06c1` 与精确提交一致。Compose只增加此服务security_opt，应用镜像仍9c6900b（运行源码未变），用户weppt、privileged=false、capadd=null。
+- 发布前running_runs=0；完整备份 `/home/Liyibin/webuddy/backups/pre-sandbox-f93e716-20261104T193729Z`，14库integrity全部ok。旧Compose、镜像、业务/Codex卷保留；回退恢复旧Compose，仅重建容器，不恢复数据库。
+- 现役生产容器中的同一9项真实Codex沙箱检查全部通过；即时HTTP内外登录200/未登录配置API401，运行文件2305清单一致、两主库完整性ok，running/restart0。仅临时自有夹具读写，验证后已清理；未重跑GROUPRISK业务任务或调用模型。
+
+## 2026-11-05 阿里云宿主机部署准备
+
+- 用户要求停用应用容器、直接部署服务器。准备用户级 systemd 服务 webuddy-native，开启 linger，独立 HOME/CODEX_HOME；保留原数据路径与 UTC 存储，页面继续北京时间。
+- 精确应用版本9c6900b，原生Python3.11.14/SQLite3.50.4；宿主机358项回归通过（90.179s），14个真实数据库副本完整性及Store初始化通过。Codex0.166.0在宿主机及NoNewPrivileges=yes的临时systemd单元均通过9项沙箱检查；未调用模型。
+- 原生入口192.168.112.1:8791只绑定现有隧道桥接地址；临时HTTP探针已确认容器到宿主机200。准备先停止应用容器、备份并迁移全部卷、核验后启动原生服务，再切换Webuddy单条隧道路由。共享隧道容器保留。
+- 回退须先停原生服务并备份当前数据，将最新data/repos/codex同步回原卷并恢复1100属主后再启动旧容器；不得直接启动停用容器读取旧快照或恢复旧数据库。切换完成情况随后补记。
+- 原生切换已执行：切换前running_runs=0，停止容器后完整备份至 `/home/Liyibin/webuddy/backups/pre-native-20261104T195006Z`；全部data/repos/codex复制后diff逐文件一致，再转属主1001:1002。14库完整性通过，11个项目根全部存在，2305源码文件清单匹配。
+- 仅将cloudwave-codex.bin改成PATH上的codex；密钥和账号/会话原样迁移。为GROUPRISK缺失的.tmh/tool补装同版本工具，项目内和全局tmh --version均0.4.0，未修改知识或重跑业务任务。
+- 用户级webuddy-native已enable/start，旧webuddy容器停止且restart=no。Cloudflare配置v5→v6，只将Webuddy ingress改为http://192.168.112.1:8791，另两站和404兜底保持。即时内外登录200、未登录配置API401；同服务HOME/PATH/NoNewPrivileges环境的9项真实Codex沙箱检查再次通过。原生操作与保留新数据的回退说明见scripts/deploy/NATIVE.md。
+- 原生HTTPS检查发现uv Python默认CA路径不匹配阿里云系统，已显式配置SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt并重启；未关闭TLS校验。服务器Python访问公网登录探针随后返回403，不能认定为应用来源拒绝；Mac curl同源超长正文返回413 invalid_request，证明通过来源校验且未进入密码验证。
+- 补验：系统CA下原生Python访问HTTPS返回200；Mac公网跨站正文403 origin_denied，同源413 invalid_request。会话密钥与旧卷字节相同，现役14库再次完整性ok；内外登录200/API401。仅验证技术入口与沙箱，未代用户登录、执行真实模型任务或人工验收。
+
+## 2026-11-05 主域名改为 webuddy.cloudwaveai.cn
+
+- 用户要求脱离个人BBstack域名。将webuddy.cloudwaveai.cn原直连A记录8.141.121.22改为代理CNAME，指向现有阿里云Cloudflare Tunnel；配置v8只保留新Webuddy入口，另两站和404兜底不变。旧webuddy.bbstack.date的CNAME和ingress已删除，未改个人域名其他记录。
+- 服务TMH_PUBLIC_URL改为https://webuddy.cloudwaveai.cn，原配置备份于/home/Liyibin/webuddy/backups/domain-20261105T093242/webuddy.env；重启前running_runs=0。现役仍原生9c6900b，无运行代码或业务数据改动。
+- Mac与服务器新域名HTTPS登录200，未登录配置API401；同源超长正文413 invalid_request，旧域名Origin403 origin_denied。未输入用户密码。飞书启用，其回调地址由公共地址生成，新地址为https://webuddy.cloudwaveai.cn/login/feishu/callback；尚未核验飞书开发者后台的允许列表或真人OAuth登录。
+- 同步AGENTS.md与原生部署说明，避免后续误发旧容器/旧域名。域名变化不迁移浏览器cookie，需要在新域名重新登录。
+- 超过60秒延迟核验：09:34:06 CST原PID702348保持、active、NRestarts=0；新域名登录继续200。
+
+## 2026-11-05 GLD 权限与 li 对齐
+
+- 用户明确要求gld与li相同权限；实际账号为GLD。GLD原已是default/admin，缺平台所有者；本次仅补platform_owners，并在authorization_guard/事务内更新授权revision、按既有逻辑失效权限变化的工具连接、写local-maintenance审计。未模拟li会话、未改账号密码/epoch/有效状态。
+- 控制库完整备份~/webuddy/backups/permission-GLD-20261105T094345/access.db，仅保存在服务器0600。修改后Registry.context的role/platform_owner/project_grants/capabilities/can_manage与li逐项相同，双方accounts记录原样保持，完整性ok。无需重启或运行代码发布。
+- 免费证书说明核对Let's Encrypt官方FAQ及DNS-01文档：可免费签发并部署国内服务器；本次未申请证书或切换国内直连入口。
+
+## 2026-11-05 关闭Webuddy代理，恢复国内直连
+
+- 用户明确要求A记录指向8.141.121.22、DNS only。已将代理CNAME替换为A（记录5cf22fd16237a5ac6043f31e918fb1ea），移除Webuddy隧道ingress（配置v9），其他两站隧道保持。
+- 沿用宿主机Nginx和Certbot，为webuddy.cloudwaveai.cn新增独立站点与Let's Encrypt证书，到期2027-02-03；HTTP跳转HTTPS，ACME webroot保留，反代现役192.168.112.1:8791。应用服务未重启、数据未改。证书私钥仅在服务器。
+- 首次证书请求ACME读超时；确认主机可达后再次申请成功。首次管理命令因镜像默认非root无法chroot，随后限定root助手；不共享PID时systemctl不可用，切换host PID后操作成功。Nginx测试通过（其他既有站点有protocol options警告）；reload刚发出时一次直连仍收到旧默认证书，reload生效后TLS校验正常。
+- 原certbot-renew.timer已enable但inactive，已启动；既有deploy hook负责nginx reload，下次运行显示14:48 CST。全局tmh及沙箱配置不变。
+- 直连TLS登录200；当前Mac无代理强制直连三次0.035590/0.045683/0.041439秒；这组是当前探针，不代表所有国内网络。API401、同源正文413、跨站403，响应server=nginx且无Cloudflare头；未代用户登录。
+- Certbot定向dry-run续期成功；公共DNS已返回8.141.121.22。原生应用和Nginx、续期timer正常。配置与操作说明入库，未为记录重启应用。
+- 补记DNS过渡观察：公共1.1.1.1查询已是8.141.121.22，但Mac系统解析随后仍命中旧104.21.0.95，普通curl在15秒超时；指定真实IP并保留域名/SNI的直连检查通过。旧本地/运营商DNS缓存仍可能短时访问旧入口，不将其描述为所有用户已完成解析切换。
+
+## 2026-11-05 MCP配置随服务器迁移同步
+
+- 用户要求MCP配置同步。服务端wheel按当前公共地址生成，现役包workbench_site.json已读回为https://webuddy.cloudwaveai.cn/t/default，无需改产品代码或重启。文档旧端点同步，并补迁移说明。
+- 本机~/.webuddy客户端从现役同版本wheel重新安装；~/.config/webuddy/credential.json仅更新endpoint，原token字节保持，私有备份保留。status实查原li连接active、execute、原8个项目范围；没有创建连接或扩大权限。
+- 本机Codex原没有webuddy条目，已按客户端生成结果追加到~/.codex/config.toml，保留其他MCP与设置；解释器和桥接脚本指向安装目录、仅引用凭据文件，允许原连接既有execution，未发起业务操作。旧配置私有备份，TOML读回通过。
+- Mac系统DNS仍返回旧Cloudflare IP；一次status及配置生成成功，标准MCP握手随后网络超时。dscacheutil非root刷新无效，sudo -n要求密码，未改系统DNS/hosts。临时验证进程仅将该域名解析至已验证阿里云IP、保留域名TLS校验：官方MCP SDK initialize成功，23工具列出，projects_list成功。此临时解析未写入正式MCP配置，不能把测试等同于当前Mac DNS问题已解决。
+- 其他成员已下载的客户端/凭据不随本机修改自动更新；需在新工具连接页重新下载/导入。未替其他成员签发凭据，未触发真实模型任务。
+
+## 2026-11-05 恢复阿里云到Windows测试机连接
+
+- 用户确认服务器已加入白名单，授权配置连接。现测8.141.121.22→43.153.76.85:12022的TCP与Windows SSH banner成功；平台实际SSH失败为publickey，旧页面仍展示此前超时。
+- 为Liyibin生成专用/home/Liyibin/.ssh/webuddy_testbox_ed25519，私钥0600只留阿里云。SSH配置按host43.153.76.85+user auntu匹配专用IdentityFile/IdentitiesOnly，不影响其他主机。OpenSSH使用实际Unix账号的.ssh而非服务HOME覆盖值。
+- 经Mac既有授权密钥严格校验登录旧中转机，再经其既有本机转发进入Windows，仅追加新公钥到C:/ProgramData/ssh/administrators_authorized_keys，追加前完整备份；限制agent/port/X11转发和PTY，保留原有密钥与ACL。没有迁移或输出旧私钥，没有放宽防火墙。
+- Windows可信会话读回ECDSA主机公钥指纹与阿里云known_hosts相同；阿里云严格主机校验登录返回Windows_NT。首次PowerShell检查因远端命令引用/本地UTF8解码失败，修正完整命令引用后成功。
+- 用现役平台TestBox.check及服务环境完成实际体检：Windows，C:/tmh-runner；Git2.47.1、Java17.0.20.1、Maven3.9.9、Node20.18.0、pnpm9.15.0、Docker29.1.3全部检出，missing=[]。旧testbox-check.json备份后更新，时间按UTC存储；readiness._build实际返回ok。未运行项目构建、业务任务或模型，应用无重启、NRestarts=0。
+
+## 2026-11-05 网页助手复用MCP操作与GitHub导入重试
+
+- 网页助手改为对话→真实工具→回执→结果，复用MCP同一23项成员操作、参数契约、执行服务与权限检查；按当前用户过滤项目并逐次核权，不开放shell或人工验收/合并/发布。沿用现有模型路由、会话和持久化结构，无新增依赖/数据库schema。
+- 每步持久化调用与请求编号，未知结果重试复用原回执；支持继续/停止，重复点击不重复建单。输入响应固定会话/项目，切换项目或继续输入不会被迟到结果清空。桌面520px、移动全宽，折叠完整操作参数/结果，历史会话保留。
+- GitHub已在阿里云真实浅克隆产品分支（4.86秒）并fetch成功；针对GitHub导入时已观察到的短暂连接中断增加最多3次重试，只清理该次新导入临时目录。认证错误/其他主机不重试；未使用镜像、关闭TLS或改全局Git配置。
+- 本机109项针对回归通过（19.262秒）；补充Node异步输入检查通过，覆盖重复提交、项目切换、新输入保留和迟到建会话响应。隔离Chrome实际渲染1440×1000和390×844、发送并完成一次工具对话，无水平溢出。
+- 阿里云使用候选代码、服务器真实路由模型与临时Platform：status→projects_list→ticket_create→最终回答完成，确实创建且只创建一张测试工单，运行数0。临时数据已清理；没有访问真实业务会话或代人验收。待完成精确提交发布与上线核验后补记。
+- 实现提交 `2875e0e1b3d8eb4702efbfe9407ac45cc11dc4d4` 已推送github产品分支，并于10:27:31 CST切换阿里云原生服务；app→releases/2875e0e。服务器109项回归（59.074秒）+1项Node输入隔离测试通过，候选受测479文件逐字节与发布包一致，发布清单2311文件匹配。
+- 发布前14个数据库完整性及副本Store初始化通过，全部库无queued/running任务；停服完整备份data/repos/codex/config/home至`/home/Liyibin/webuddy/backups/pre-2875e0e-20261105T022657Z/state.tar`（1.3G），原env/服务单元/旧链接保留。旧9c6900b程序不删；回退只切程序，绝不恢复旧数据库覆盖新写入。
+- 停服备份期间外网两次探针502；新服务启动后公网与内部登录200、匿名项目API401、同源超限正文413、跨站403。运行cwd与RELEASE精确匹配，2311清单与14库再次通过，PID776903/active/running/NRestarts0。未在生产用户会话中提交业务需求；真实模型写入验证使用隔离临时数据。
+- 10:28:41 CST（启动超过60秒）延迟复核：原PID776903、active/running、NRestarts0保持，运行清单/14库完整性、内外登录200与匿名API401再次通过。此次记录更新不重启服务。
+
+## 2026-11-05 Codex直接驱动SSH测试机闭环
+
+- 用户要求Codex改完代码直接SSH到测试机安装/启动/测试，并明确开发测试默认完整授权。复用现有TestBox传输与配置，给普通Codex修改运行注入专属MCP testbox_info/testbox_run；SSH密钥留服务器，Codex工作区沙箱保持。未开放个人隔离路径或改人工业务验收。
+- 工具绑定运行/工作目录，按数据目录摘要+运行号隔离远端目录。同步HEAD+二进制补丁，脚本使用现有Windows PowerShell；保存完整日志、退出码、基准版本与补丁摘要。默认授权仅作用这两项工具；不逐次弹窗。
+- 修复环要求最后一次测试对应当前改动，缺失/失败/未完成/代码变更均不通过；分文件修改完成后由主Codex执行测试。原固定构建和独立诊断保留。重新验证也重跑该脚本，不再只凭编译覆盖原测试结果。
+- 本机104项针对回归通过（19.433秒），覆盖真实Git补丁传输、脚本失败、缺回执、过期回执、取消、路径越界、MCP协议及重新验证失败。Windows实机普通脚本exit0、超时脚本exit124通过；远端看护在超时后终止该脚本进程树。
+- 首次真实Codex调用被默认MCP审批策略拒绝，已按官方单工具approval_mode=approve配置并复验，未关闭沙箱或改全局审批。第二次真实平台Runner._spawn中，Codex读取测试机→修改临时app.js→编写check.ps1→SSH同步→npm install→启动Node→HTTP断言status=ok→finally清理→返回exit0，脚本回执耗时60.538秒。证据只在服务器`/tmp/webuddy-testbox-live-7r9kkeaz`，测试数据独立，无真实业务工单写入。
+- 阿里云104项针对回归通过（44.637秒），最终发布包443个运行/测试文件与受测目录逐字节一致；Windows远端看护脚本重用提取前后的字符串完全一致。首次Get-NetTCPConnection清理核验60秒超时，改用netstat后确认测试端口18973未监听，再仅删除本次合成运行的远端repo/work目录，真实项目目录未动。
+- 实现提交`0741715368739e88d161839b901daf353e177733`已推送github产品分支并部署原生app→releases/0741715，2316文件清单匹配；14个生产库完整性及副本初始化通过，切换前无queued/running任务。完整停服备份`/home/Liyibin/webuddy/backups/pre-0741715-20261105T024906Z`保留data/repos/codex/config/home、旧链接与服务配置；回退只切程序、不恢复旧数据库。
+- 启动后公网登录200、匿名项目API401、同源超限请求413、跨站403；运行清单及14库完整性通过。新任务使用新工具；未重跑历史失败业务任务或代人验收，测试机实测使用隔离合成应用。
+- 10:50:39 CST延迟核验（10:49:15启动后84秒）：原PID803799、active/running、NRestarts0，cwd=0741715；2316文件清单、14库完整性、内外登录200/匿名API401保持。后续交付记录提交不重启服务。
+
+## 2026-11-05 明确生产/测试分离并恢复BBstack测试入口
+
+- 用户最新要求覆盖此前自动生产发布授权：日常修改/功能迭代默认在43测试站，里程碑后只有用户明确要求才更新阿里云生产。GitHub提交推送继续自动；AGENTS.md、原生部署说明及两份本机接入记忆已同步。生产数据与测试数据保留各自分叉，不能互相覆盖。
+- Cloudflare新增webuddy.bbstack.date A→43.153.76.85，DNS only、TTL300，记录0b4a3855dc4af0fdd29ae1fb26fe0f9e。只在43 Caddy现有Webuddy站点增加此域名，原webuddy-us.bbstack.date及其他站点保留；配置验证通过后reload。备份/opt/webuddy/backups/domain-test-20261105T035751Z/Caddyfile。reload提示既有systemd单元磁盘变化，未为此改动其他服务或执行daemon-reload。
+- 43现役webuddy.service active/PID731180，app仍/opt/webuddy/releases/d8f0c0f340ab-agent-pick-20261104/app，TMH_PUBLIC_URL原本就是https://webuddy.bbstack.date，不改env、不重启Webuddy、不迁移数据。本次只恢复域名，没有同步最新产品代码。
+- 公共DNS1.1.1.1已解析43.153.76.85；Mac正常DNS和指定IP保留SNI的TLS登录均200，匿名API401，同源超限413、跨站403。阿里云生产DNS仍webuddy.cloudwaveai.cn→8.141.121.22、DNS only，本轮不改生产应用或配置。
+
+## 2026-11-05 43测试站同步当前版本
+
+- 用户要求43同步好；仅发布测试环境，不改阿里云生产。精确源码`d61738a7dbdcd0cc798d484e07e9f354f1ea9532`，包含此前网页助手、GitHub导入恢复、逐项纠错/北京时间、智能体配置和Codex SSH测试机闭环。
+- 43 Python3.12.3上526项针对回归全部通过（138.951秒）；2316文件清单匹配；12个原有数据库完整性和副本Store初始化通过，所有项目根仍位于原data/repos目录。发布前无queued/running任务。
+- 43原Codex0.162.1经真实Runner._spawn使用新MCP成功：修改临时app.js、SSH到Windows、npm install、启动Node、HTTP断言status=ok、exit0，测试回执33.923秒。无需升级CLI或修改模型/路由/密钥；测试端口18974无监听，合成远端目录已定向清理。证据`/tmp/webuddy-43-testbox-c983fipb`仅留43。
+- 网页助手也用43原路由真实完成status→projects_list→ticket_create→结果，临时数据隔离并清理；没有使用真人会话写业务数据或代人验收。
+- 复用原root0600发布锁，停服完整备份`/opt/webuddy/backups/pre-d61738a-test-20261105T043917Z`：data/repos、ubuntu的.codex、env与服务配置，旧程序保留。app现指向`/opt/webuddy/releases/d61738a/app`，12:39:49 CST启动，PID1052555；不复制阿里云数据库或账号。补齐此前缺少的/home/ubuntu/.local/bin/tmh入口，版本0.4.0且在实际服务PATH上。
+- 即时内外登录200、匿名API401、同源超限413、跨站403；运行cwd/清单/12库完整性通过，active/running/NRestarts0。沿用已加载的systemd单元，未因既有磁盘mtime警告改动其他服务。阿里云只读核验仍0741715/PID803799/active/NRestarts0。
+- 12:41:36 CST延迟复核（启动后107秒）：PID1052555保持、active/running/NRestarts0，2316清单及12库完整性再次通过，内外登录200/API401。操作说明补入scripts/deploy/TESTING.md；本次记录提交不重复重启应用。
+
+## 2026-11-05 自动与手动验证、AI Review（实施完成，待43发布）
+
+- 用户授权本轮全部实现后部署43试用，阿里云生产保持。增加完整分批只读审查，普通小改动也审查；外部手写代码共用覆盖结果，不再只读取前14000字符。记录执行器/模型、基准和完整diff摘要、每批范围、未知/二进制未覆盖项。
+- 原复检API增加kind=tests/review/all，复用持久操作、锁、预算、进程回收和封存。单独Review只有在旧测试有效且代码/基准相同时保留测试；新代码或审查期间变化不继承旧通过。重跑Review本身不触发自动采纳。人工复核/验收权限与固定候选规则保持。
+- 运行详情集中展示实际测试、AI判断和绑定当前运行的人工结果，提供三种复检按钮和人工复核入口；完成后的进程日志折叠。独立执行器与同执行器步骤明确区分，不把模型判断当实测。
+- 本机229项针对回归通过（36.670秒）；后续界面与HTTP相关39项通过（4.957秒）。初次扩展回归的旧mock Git夹具/小改动免审预期失败，已调整公共Git调用点及本次明确改变的审查预期，后续routes+新审查48项通过。原ResourceWarning保留。
+- 隔离HTTP实际执行review/all各200，错误kind返回400；GET正确返回版本覆盖与未签收状态。真实Chrome独立临时配置渲染1440和390宽度，无页面水平溢出、可见报错；本地合成执行器不冒充真实模型。浏览器工具宿主不可用，使用本机独立headless Chrome完成渲染。
+- 43 SSH指纹/0600/严格known_hosts/sudo核验通过；原d61738a服务active、PID1052555、重启0。精确提交、Linux测试、真实Codex隔离审查和发布记录后续追加。
+
+- 代码提交 `0bdc13579d7bb0c12c51d827d212681be97eb1c7` 已普通快进推送github。43精确发布清单2320文件，沿用既有部署范围；全量上传链路慢，停止后改用459361字节差量（SHA256 `87b2d21912f88df5398364b806c41bda80ca85a8ac264c2cb8e0984b21c17bd8`），未变文件逐摘要核对复用，不改变图片编码或业务数据。
+- Linux精确代码230项针对测试通过（81.066秒）；12个数据库完整性和副本Store初始化通过。真实cloudwave-codex在独立临时项目执行“测试并Review”，测试pass、审查pass、1/1批完整，原运行decision保持空；完整进程回执及结果保留43 `/tmp/webuddy-review-live-22ypqv6n`，没有操作业务工单或真人签收。
+- 2026-11-05 16:46:13 CST，43 app切换到`/opt/webuddy/releases/0bdc135/app`，webuddy.service PID1126083、active/running、NRestarts0。共用root0600发布锁；停服完整备份旧app、data/repos、Codex与外部配置到`/opt/webuddy/backups/pre-0bdc135-test-20261105T084510Z/state.tar`，44742文件逐字节校验通过，旧程序保留。沿用已加载服务单元，原mtime提醒未触发其他服务daemon-reload。
+- 16:46:22 CST即时检查：2320文件、12数据库、进程cwd及版本一致；回环和公网登录200、匿名项目API401。阿里云生产未操作。最终延迟检查另记，本次文档补记不重启服务。
+- 16:47:31 CST延迟复核（启动后78秒）：同PID1126083、active/running、重启0；2320文件、12库完整性、cwd、内外登录200和匿名API401再次通过。Mac独立公网检查同样200/401，跨站登录403，实际完整9000字节超限登录正文413。首个“声明100MB但只发1字节”的不完整正文探针15秒超时，不计为通过；改用完整正文后413通过。
+- 最终补测本机73项通过（4.355秒），页面折叠日志后的1440/390宽度再次真实渲染核对，无水平溢出。使用与API说明见`docs/verification-review.md`；本记录和测试站版本说明作为文档提交，不重复重启。
+
+## 2026-11-05 项目测试配置、用例证据及ERP接入（发布准备）
+
+- 平台增加项目管理员配置、分阶段本机/SSH执行、JUnit/JSON原始报告、逐项关联、版本与证据失效检查；自动修改和手动复检共用执行器。未修改人工签收或业务关单规则。配置API及实际保存→复检→结果展开已验。
+- 本机255项相关回归通过41.242秒，新增取消用例后20项项目测试通过5.255秒。POSIX后台服务跨阶段/取消与日志回收已实际验证，Windows早期合成报告流程通过，后续ERP环境尚未完成。
+- jshERP隔离源码40项Java/14项Node通过；修复真实单笔退款转负数字符数组错误，保留源码CRLF。前端构建成功；依赖审计187项含59高危/36严重，未冒称安全通过。数据库、真实HTTP业务和浏览器E2E仍未验。
+- 实现说明docs/project-testing.md；ERP测试与安装补丁examples/project-testing/jsherp；详细进度docs/self-improvement/project-testing-progress.md。只部署43，阿里云生产不动；上线结果随后补记。
+
+## 2026-11-05 20:57 项目测试已发布43，ERP回归已接入
+
+- 实现提交`062801866d62eed92f353e616f52ed01a3b54f5b`普通快进推送github；43 app→`/opt/webuddy/releases/0628018/app`，2336文件精确清单核对；Linux256项回归通过81.202秒，本机255项通过41.242秒，随后20项项目测试含新增取消检查通过5.255秒。
+- 停服完整无损gzip备份`/opt/webuddy/backups/pre-0628018-test-20261105T125028Z/state.tar.gz`，46211文件逐字节校验；14库完整性和副本Store初始化通过。保留旧程序与备份，回退只切程序不恢复旧库。现役20:51:50 CST启动、PID1195456；20:53:22（92秒）、20:57:24检查同PID、active/running、重启0、2336清单、14库、内外200/401均通过。阿里云未操作。
+- ERP实际平台执行器在43隔离工作树完成backend_build、backend40用例、frontend14用例，均通过；原始平台证据`/opt/webuddy/data/project-test-baselines/JSHERP-20261105`。确认注册根干净且无活动任务后，将精确补丁提交到43 JSHERP的master，提交`cfac6d956ca8cedbcdfa8329dbc8021fcd36113e`；未推上游jishenghua。平台外置project-tests.json启用JSHERP，executor=local。Java8/Maven保存在/opt/webuddy/tools；新运行/复检读取配置。
+- Windows链路有间歇超时；SSH简单命令成功后仍出现下载/命令超时。最终新版本真实Windows合成测试通过，证据`/tmp/webuddy-project-remote-dc7xg9m9`，不等于ERP已在Windows通过。Java8官方TLS下载失败、SCP断连，临时回环SSH隧道下载也中断，未关闭证书验证。ERP维持已验证Linux配置。
+- ERP真实MySQL/Redis、业务HTTP与浏览器E2E、并发/性能/迁移仍未覆盖；Mac前端构建成功，npm审计187项含36严重/59高危，不能称为安全通过。未代人验收/关单。
+- 本机原始日志、原图、构建/审计JSON及实际解析的package-lock保留`../部署包/project-tests-0628018/`，源图字节未改。43仅删除本次已被正式版本替代的88MB临时候选源码，业务/旧备份保留，剩余约446MB，空间仍偏紧。
+
+
+## 2026-11-05 项目测试证据纠错与真实ERP业务验证
+
+- 修复依赖失败仍被用于验收证明的问题，报告有效性和依赖有效性分别保存；执行和失效检查统一绑定实际验收内容、来源及方案版本，覆盖方案变化和客户标准清空。
+- 验证界面增加业务输入/预期/实际/关联用例表；原始报告经运行权限、路径与摘要核验后可打开和原样下载。普通成员只读；管理员可从最近报告选择用例关联。桌面1440与移动390真实Chrome检查无页面水平溢出，打开/下载、关联和只读行为通过；界面检查使用独立合成工单。
+- 本机260项关联回归通过43.089秒。旧aa32aa0 CI的17项Linux失败已本机复现：16项测试夹具漏载实际北京时间函数，1项旧断言仍把整套成功等同逐项证明；加载实际函数并要求无逐项证据时人工确认全部标准，未放宽产品门槛。补充58项UI及14项需求测试通过。历史Windows进程/文件占用失败未在此宣称解决，全仓CI仍须观察新提交。
+- 真实ERP销售退货链路发现上一轮金额修复遗漏数组输入，页面保存前出现split is not a function。保持字符串与实际数组契约，新增3项数组用例先失败、修复后17项前端用例通过。
+- 本机隔离MySQL8/Redis7/Java8/Chrome环境，通过平台实际执行器完成构建40项后端、17项前端及4项业务用例，共61项。A1单账户12.50、A2双账户7.25+5.25、A3/A4重复单号拒绝均有精确用例关联，require_all_criteria=true；实际HTTP、数据库、API重读及页面金额一致，单据保持未审核。填表使用真实Vue组件接口、点击真实保存，不声称覆盖所有键盘/下拉框。
+- 构建与运行绑定Git基准/完整差异、JAR、前端入口和容器身份；平台current_issue为空。原始截图/报告/日志及失败尝试完整保存在../部署包/project-test-business-20261105，SHA256读回校验；v4为最终成功证据。未代人签收、未执行财务过账；无伪造AI Review结论。
+- 43保留现有本机回归配置，Docker业务配置单独交付，不直接启用到缺少Docker/Chrome的43。阿里云生产不操作。43旧pre-0bdc135备份已无损gzip，解压摘要与原tar一致，记录lossless-compression.json；原内容完整保留。待精确提交发布后追加运行版本与健康记录。
+
+- 发布实现提交`c730623dda70b5ee228ccbe2479098696187a5df`已推送github；43精确2343文件重建，315项回归通过104.737秒。15库完整性及副本初始化通过，完整备份`/opt/webuddy/backups/pre-c730623-test-20261105T151931Z/state.tar.gz`逐字节校验46323文件。旧程序和完整备份保留，回退仅切程序。
+- 43于23:21:02 CST启动，app→releases/c730623/app，PID1235942；23:21:05、23:49:56和23:51:41实查同PID、active/running、NRestarts0，运行清单/数据库/内外登录200与匿名API401通过。既有systemd单元mtime提示未扩展修改。阿里云未操作。
+- 43 ERP独立工作树40项Java测试通过27.525秒；手工前端命令漏--experimental-vm-modules导致17项hook失败，按既有配置补齐参数后17项通过。注册根干净、无活动运行时应用精确补丁，本地master提交`65bcbd28fc8815bc4f082036fd827721285ff84b`；未推上游，原外置测试配置保持。报告保存`/opt/webuddy/data/project-test-baselines/JSHERP-20261105-array`。本次sudo生成的ERP文件所有者恢复ubuntu，注册根干净。
+- GitHub Actions本提交运行42053087633：Linux3.11/3.13完整套件各2918 passed、39 skipped、1894 subtests passed；快速与安装包检查全部成功。Windows完整套件3.11为147 failed/991 passed/215 skipped/1 error，3.13为169 failed/1023 passed/215 skipped/1 error；166个可提取失败标识中142个出现在上一提交日志，其他未逐项完成根因确认，不宣称全部为历史问题或全平台CI全绿。工作流总状态success源于原Windows continue-on-error；未改工作流、未降低断言。这不阻断已完整通过的Linux部署，但Windows平台兼容性仍须单独修复。
+- 43备份后可用空间约683MB；未删除业务数据或旧备份。最后记录更新只推送文档，不重启已验证服务。
+
+
+## 2026-11-06 43测试服务器缓存清理
+
+- 用户授权清理旧缓存腾出空间。清理前可用710033408字节，根盘99%；现役c730623、PID1235942、重启0。
+- 通过rootless Docker原生builder prune清理闲置构建缓存（先24小时之前，再全部unused）；删除Snap下载缓存中仅单硬链接、超过60分钟的4个文件共492195840字节，以及/root/.cache/pip约158MiB。未清理镜像、容器、数据卷、业务数据、测试报告、日志、完整备份、回滚程序或已安装浏览器。
+- 清理后可用3767590912字节（约3.77GB/3.51GiB），净增加3057557504字节（约3.06GB），使用率94%。Docker构建缓存0；13镜像/1运行容器/7数据卷保持，weppt容器ID与运行状态保持。构建缓存大小含共享层，不把工具报告的逻辑大小当实际释放量。
+- 01:09:03 CST验证：2343运行文件清单及数据库完整性通过，Webuddy同PID、active/running、NRestarts0；内外登录200、匿名API401。未重启服务，未操作阿里云。原始清理/健康日志保留本机../部署包/cache-clean-20261106/。本次仅记录提交，无程序部署。
+
+
+## 2026-11-06 we-ppt停用与历史备份收敛
+
+- 用户明确we-ppt可以清理，并提出Webuddy备份无需保留过多。停止并删除rootless Docker容器weppt-dev-weppt-1；仅删除weppt-dev的6个标签和weppt-dev-deps专用镜像，其他镜像不动。实际可用空间从3766558720增至7279120384字节，释放约3.51GB。we-ppt作品/账号/配置卷、源码与原图保留，不宣称已删除作品或彻底卸载所有文件；未修改共享Caddy。
+- 在原发布锁内核验最近3份完整备份：pre-0bdc135-test-20261105T084510Z、pre-0628018-test-20261105T125028Z、pre-c730623-test-20261105T151931Z。gzip完整性、data/repos/Codex/env成员及其中platform.db提取后integrity_check通过。
+- 保留上述3份完整备份；只删除更早pre-<Git SHA>-发布备份中的app/data/projects/control和state.tar归档，共256个精确目标。旧config/清单、小型独立账号或域名备份保留。删除列表和完成状态留服务器root0600的/opt/webuddy/backups/retention-20261106.json。当前及旧版本releases均未清理。
+- 备份目录约15GiB降至2.1GiB；此步净释放13738598400字节（约13.74GB）。最终可用21017382912字节（约21.02GB/19.57GiB），磁盘66%。后续无需为本次容量继续删业务数据。默认以最近3份已验证完整发布备份作为保留目标，新备份验证成功后再淘汰旧完整副本；本轮未新增定时清理任务。
+- 01:20:12 CST现役仍c730623/PID1235942、active/running、重启0，运行清单与数据库检查、内外200/401通过。阿里云未操作。原始日志在本机../部署包/cache-clean-20261106/，本次仅推送记录，不重启Webuddy。
+
+
+## 2026-11-06 广联达POC题库、Review记录与Windows执行兼容
+
+- 用户要求参考会议转写准备更多复杂需求。新增 `examples/client-tickets/广联达POC场景与澄清问题.md`：6组场景、三级验证清单、21项澄清问题，标明甲方原话时间与推导场景。现役BID为domiegg/springboot-vue1810演示替身；真实政策、接口、源码与业务预期尚未提供，未擅自实现正式评标算法，不能称客户POC已验收。
+- Review效果记录已落地：真人逐项记有效/误报/待核实、人工另行发现及实际分钟数；绑定具体Review，幂等保存、保留历史，效率页按人/运行/当前审查汇总。无真人样本，不估算节省时间，不改变签收/采纳/关单。72项相关回归通过，真实HTTP覆盖匿名/租户/项目/只读角色/智能体拒绝与会话身份；独立Chrome验证表单、防重复、关闭后的响应隔离和只读入口，原图已亲自打开。
+- Windows新增Job Object子进程树监管、控制管道继承；修复原始输出换行、CRLF代码块和知识页、命令解释器与引号语义，以及退出采样顺序。共享删除读取方案在Windows压力测试仍失败，最终用命名内核互斥协调监管回执的读取与原子替换，读操作不创建磁盘锁文件；保留JSON、身份、原始字节与清理完整性校验。
+- 最终实现 `e08b0a9e9490e936dc45e50ddfb3b29f9a02ca7c` 已普通快进推送github。Actions 42088218237：Windows3.11/3.13专项各141 passed、12 skipped、134 subtests passed；快速门禁和安装包成功。截至02:59完整Linux/Windows套件仍运行，不声称完整CI或全平台通过；Windows人工经验登记的原子持久化边界仍保留。Windows测试机SSH 43:12022两次超时，实际Windows证据来自GitHub runner。
+- 43先完成371项相关回归、随后按新增差异分别143/58/45项复验（含平台专属跳过；这些数量有重叠，不相加作场景数）。最终2349文件精确清单、15数据库完整性与副本初始化通过；完整备份 `pre-e08b0a9-test-20261105T185618Z/state.tar.gz` 46245文件逐字节核对。未发布失败候选80d0061/fd44c91；两者仅留候选目录。
+- 43现役app→releases/e08b0a9/app，webuddy.service于02:57:47 CST启动，PID1295605。02:57:50及02:59:09延迟82秒检查同PID、active/running、NRestarts0，清单/数据库/运行cwd及内外登录200、匿名API401通过。阿里云生产未操作。
+- 新备份验证后保留pre-05402f5、pre-781b4e9、pre-e08b0a9三份完整归档；只删除先前三份pre-0bdc135/pre-0628018/pre-c730623的state.tar.gz，元数据与程序版本保留。root0600审计 `/opt/webuddy/backups/retention-20261106-feedback.json`，约20GB可用、67%已用。
+- 原始Windows失败/通过日志、服务器验证、浏览器原图和合成脚本保留 `../部署包/poc-windows-review-20261106/`，SHA256读回验证。本次交付记录提交不重启服务；后续先查看上述精确实现CI结果，勿把此前取消或失败记录重做为当前缺陷。
+
+
+## 2026-11-06 验证流程核对后的修复（发布准备）
+
+- 修复旧式命令配置变化后Review-only仍复用旧测试通过：新记录绑定命令、项目profile、测试机配置、超时和实际验收契约；读取时重新核对，旧证据保留历史，复用需明确契约一致。隔离反例已转为实际临时Git/数据库/执行器回归；同时覆盖审查中配置变化。
+- 项目profile补修改前独立工作树基线，失败结果与候选分别保存且继续验证候选。逐阶段/逐命令检查源码身份，版本变化停止后续普通阶段、保留清理；自动流程额外绑定每轮HEAD/差异/契约、完整命令和诊断。不是操作系统级源码只读，不能声称防止同权限进程在单阶段内改后还原。
+- 阶段区分受阻、未执行、失败；自动修复遇到明确受阻停止，真正代码失败及其依赖未执行仍要求返修。验证页显示基线、当前范围和问题处理出口；范围由方案与审查声明并记录，不把声明当实际覆盖。保留人工签收、门槛、原始断言及修复轮次/时间预算。
+- 本机关联172项曾全部通过；其后基线缓存加入环境配置摘要触发一处旧SimpleNamespace夹具缺少set字段，补齐夹具后11项通过。最终变化相关65项通过24.578秒、范围展示及复检27项通过11.223秒，数量有重叠不相加。原始失败和通过日志保留../部署包/verification-flow-20261106；未声称全仓CI/Windows或生产业务端到端已验。
+- 新鲜SSH权限、指纹、严格known_hosts与sudo已核验；43仍e08b0a9、PID1295605、重启0、约19GiB可用。只发布43测试站，阿里云生产不操作。精确提交服务器验证、备份与延迟健康结果发布后另记。
+
+- 046c61e精确服务器源码2349文件与15数据库副本检查通过，Linux173项通过65.201秒，尚未切换现役。交付复核补充版本变化逐项证据失效：测试期源码变化或执行机身份不符时，关联验收项保持unverified；本机40项通过18.751秒。最终提交将在此基础上执行针对复验再发布，046c61e不作为已上线版本。
+
+- 358addf服务器精确清单/15数据库副本及40项针对回归通过10.797秒，仍未切换；范围字段补真实模型输入边界校验，非对象或非字符串数组记未声明，避免新增展示字段阻断验证。本机28项通过13.252秒；最终范围边界提交只需复验对应差异，不重复已验证全流程。
+
+- 最终实现01bb05250945d550760c027f04a8471d874b16e6已普通快进推送github并发布43：2349文件精确重建、15数据库完整性和副本初始化通过；主体173项Linux回归通过，后续版本身份40项/范围解析28项分别通过10.797秒/16.188秒（重叠数量不相加）。
+- 发布前完整备份pre-01bb052-test-20261106T031600Z/state.tar.gz，46245文件逐字节核对。43于11:17:26 CST启动，app→releases/01bb052/app，PID1419119；11:17:28即时及11:18:45延迟79秒检查同PID、active/running、重启0、源码清单/数据库/运行cwd及内外登录200/匿名API401通过；Mac独立公网200。旧systemd单元mtime提示保持，未改其他服务，启动最初一次连接未就绪后原就绪重试成功。
+- 新备份验证后，复验保留的3份完整归档gzip及platform.db完整性，仅删除旧pre-05402f5的state.tar.gz（648515751字节），保留pre-781b4e9、pre-e08b0a9、pre-01bb052完整归档、旧程序与元数据。审计/opt/webuddy/backups/retention-20261106-verification.json，磁盘约19GiB可用。阿里云生产未操作；未代人业务验收/关单。
+- GitHub本提交Push CI 42155325653于11:18查询时全量仍运行；快速门禁、Linux/Windows安装包、Windows3.13执行证据专项已成功，其他任务未作全绿声明。此记录只推文档，不重复重启。原始日志及SHA256在../部署包/verification-flow-20261106。
+
+
+## 2026-11-06 终端协作开发、Leader复核与CI门槛（发布准备）
+
+- 新增 develop 个人工具范围：选现有工单、持久分析稿/问题/回答、按修订继续。来源、问题、回答变化会撤销原确认；保留客户已确认验收要求。确认稿进入开发上下文、候选身份和项目测试契约，未确认不能启动所选任务的fix或登记候选。
+- 人工终端独立个人登录：查看、问答、确认、逐项复核、批准、退回与合并。密码/会话只在进程内，MCP无人工确认/合并操作；后端继续检查真实会话、指定独立复核人和固定证据。所选终端任务由Leader批准后负责人再次确认合并，旧任务合并策略保持。
+- 本仓库已有CI；增加项目管理员配置的GitHub Actions必需检查，查询精确完整SHA，失败/缺失/跳过/取消/未完成不通过，不跟随重定向传递凭据。合并重新核对并记录CI快照，配置锁阻止并发覆盖。本地主干快进明确pushed=false/deployed=false，项目远端推送/CD与业务验收仍独立。
+- 本机114项相关回归通过20.353秒；团队与合并43项通过20.780秒；官方SDK19项stdio/租户协议检查通过15.795秒，真实HTTP个人登录读取通过。启动互斥与新scope另有针对复验；数量有重叠。临时Git合并使用合成测试/预览/CI边界夹具，不宣称客户业务验收。实现细节与使用入口见docs/developer-terminal.md。
+- 146项首轮回归曾有两项断言失败：不存在工单返回404而非预期403、新增五条HTTP路由使数量200→205；已按实际契约修正并复验，权限与拒绝断言保持。发现并修复开发分派位置、approve/accept枚举、租户develop角色映射和旧来源回答复用问题。未全仓/Windows或生产端到端验收。
+- 43新鲜SSH、sudo、登记指纹/0600和现役01bb052/PID1419119/重启0已核验，19GiB可用。待精确提交Linux验证、完整备份与发布；阿里云生产不操作。原始日志本机/tmp/webuddy-developer-*.log，交付归档随后补充。
+
+- 7375b1b在43完成2358文件和15数据库副本检查，245项Linux回归通过125.497秒。尚未切换：发布助手残留旧路径被停服前预检拒绝，现役保持01bb052。已修正本机助手的模板替换；另补网页轻量客户端下载漏打包的developer_terminal.py，11项客户端/终端复验通过（Mac使用真实/private/tmp，保留凭据父目录禁符号链接要求）。最终补丁仅复验下载包差异，不重跑前述全组。
+
+- 最终运行提交f566a90fb059fe564650cc435a6b6c6d81687279已普通快进推送github并发布43。下载客户端模块/安装说明补丁12项服务器复验通过0.465秒，主体245项回归保持；2358文件精确重建、15库完整性及副本开发表初始化通过。未发布7375b1b/91f1133，旧脚本路径错误在停服前拒绝，没有切换旧版本。
+- 完整备份pre-f566a90-test-20261106T050043Z/state.tar.gz共46260文件逐字节核验；现役app→releases/f566a90/app，13:02:14 CST启动PID1448500。13:02:24即时、13:04:13延迟119秒均同PID/重启0，清单/数据库/运行cwd与内外200/401通过。启动最初一次连接未就绪后原重试成功；没有回灌数据库、代人验收或操作阿里云。
+- 验证最近3份完整归档gzip及platform.db完整性后保留pre-e08b0a9、pre-01bb052、pre-f566a90；只删除旧pre-781b4e9的state.tar.gz（646401108字节），旧程序和元数据保留。审计/opt/webuddy/backups/retention-20261106-developer.json，磁盘19GiB可用、68%已用。
+- 本机安装分发包smoke通过；网页轻量包另验脱离仓库独立运行。一次Mac临时目录/var符号链接触发既有凭据保护，使用真实/private/tmp复验通过，不修改保护规则。安装提示使用force-reinstall并要求重连MCP，避免同版本包被跳过。
+- GitHub最终Push CI 42165690965/PR 42165696077交付查询仍运行；快速门槛和两个安装包任务已成功，未宣称全平台完整CI通过。完整日志（含失败与复验）及SHA256读回验证保留../部署包/developer-terminal-20261106。本记录只推文档，不再重启。
+
+## 2026-11-06 CLI证据约束、返修停止和ERP故障检查（发布准备）
+
+- 修复旧CLI静态检查/仅构建误记完整通过。验证绑定任务、完整HEAD、工作区内容、有效契约、配置和基线；执行前后比对，UUID原报告与用例原件保留，状态推进核对摘要。复用平台JSON/JUnit解析器，L2逐项关联用例；手写“通过”不再放行。CLI尚不产生L1/L3逐项权威记录，相关任务使用既有平台候选/复核/部署回执，未把登记ref/build当实际合并部署。
+- needs_human改为待技术处理，增加blocked/awaiting_business，技术缺口不能直接签收；人工guard保留。平台同契约跨运行累计返修预算，单次运行连续三次同样失败或跨运行预算耗尽转technical_required；复验通过后解除停止标记。更新界面状态、验收文档和随客户端分发的操作说明。
+- Mac Python3.11最终151项针对回归通过42.207秒；另安装4项通过，前序100/54/61项有重叠不累加。新增循环测试实际确认耗尽预算不调用writer、重复失败三次停止。最初Miniconda第三方tests包抢占导致11项导入错误，改用项目Python3.11复验；skills/.DS_Store导致安装测试误读，原文件移至/tmp保留，无产品代码绕过。
+- ERP隔离环境重新构建：40项Java、17项Node及6项真实业务检查通过，含页面保存、HTTP/MySQL/API回读、防重复、未登录提交零新增。新增预期先误认401，源码确认LogCostFilter/request.js的既有500+loginOut契约后采用精确断言；另修复测试浏览器残留旧登录会话导致页面超时，每次清理专用回环源会话。保留失败与复跑日志。财务过账/库存审核未扩充，未宣称ERP全业务验证完成。
+- 43发布前新鲜SSH/登记公钥0600/sudo核验通过，现役f566a90、PID1448500、重启0、19GiB可用；阿里云不操作。待精确提交Linux回归、完整备份及延迟健康检查。原始材料本机../部署包/reliability-implementation-20261106，发布后补记录。
+
+- 运行提交d7e2ed1de22af3e863e6ec334f91b16d339b5e37已普通快进推送github并发布43。精确2359文件、15库完整性/副本检查通过；同提交Linux151项回归通过36.858秒。完整备份pre-d7e2ed1-test-20261106T053946Z/state.tar.gz校验46255文件字节一致后切换；启动初次curl尚未就绪，原重试随后成功。
+- 43现役app→releases/d7e2ed1/app，13:41:08 CST启动PID1461441；13:41:18即时、13:42:29延迟81秒同PID/重启0，文件清单、15库、运行目录、内外登录200/匿名API401均通过。阿里云未操作，未代人签收。ERP本轮启动的应用/数据库/Redis、专用Chrome及本机代理均已停止，测试数据和原始证据保留。
+- 最近三份完整归档gzip及platform.db核验后保留pre-01bb052/pre-f566a90/pre-d7e2ed1，只移除pre-e08b0a9的state.tar.gz（646402505字节）；旧程序和元数据保留，审计backups/retention-20261106-reliability.json，19GiB可用。
+- GitHub Push CI42169577583、PR CI42169584684仍在运行；已观察快速门槛、Linux/Windows安装包和Windows3.11执行证据专项成功，未宣称完整CI或全平台通过。最终记录纠正独立安装检查为4项，并明确重复失败三次为单次运行停止、总预算跨运行累计；仅文档变更，不重启服务。
+
+### 2026-11-06 工作台、任务详情与登录改版（发布准备）
+
+- 基线 `c154ae9` / 运行 `d7e2ed1`，当前产品分支；四项日常导航、默认个人工作台、按需交接、任务阶段页签、业务证据主视图与范围、居中真实登录。运行/统计/客户/运维/重构/执行器/测试机/知识入口保留，额度进入账号菜单。工作台新增兼容只读投影，任务显示真实执行/验收/合并策略；不修改状态机或权限、验收门禁。
+- 本机 UI 328、后端相关 86 通过；最后证据表与页面变更针对复验 48 通过。迟到详情响应不重建新任务草稿，提示词/交付请求有上下文保护；验收提交加锁，未知结果先查询。首次新 attention 计数回归发现详情投影变更影响计数，已改为分页投影前计算并复验。
+- 隔离真实服务三重点页五尺寸检查（1440×900、768×1024、390×844、1920×1080、2560×1080），无整页溢出；19 项交互、3 项网络/迟到响应检查。改变实际测试契约复现失效；合成运行/关闭状态仅证明显示。没有对业务任务代人签收、关单、执行模型或发布。角色权限由回归覆盖，浏览器未逐个真实租户角色登录。
+- 原始前后 PNG 与交互日志：`../部署包/ui-redesign-20261106/index.html`；说明 `docs/ui-redesign-20261106.md`。43 当前现场仍 `d7e2ed1`，健康、重启 0、19GiB 可用。下一步精确提交测试发布；未操作阿里云生产。
+
+- 已发布 43：主实现 `7f43c44`，最终运行提交 `afddfca5d67875e05528f483c847ae3b6fad2179`（补正依据不足时顶部误示待验收）。均已普通快进推送。Linux 主实现 UI328+相关后端86通过；最终增量17项针对复验通过。2360份文件精确重建、15库完整性与迁移副本检查通过。
+- 完整备份 `pre-afddfca-test-20261106T061907Z/state.tar.gz` 逐字节校验46256文件后切换。14:20:29 CST启动PID1474508，14:20:31即时及14:22:19延迟约110秒健康通过、同PID/重启0。回环及公网登录200、匿名API401，运行目录/文件清单/15库均一致。启动首次curl未就绪后按既有重试成功，原日志保留。
+- 浏览器重新打开43实时登录页，1440×900、768×1024、390×844无整页溢出，真实飞书入口保持；未登录43业务账号。隔离当前提交三重点页五尺寸截图在 `afddfca/`，账号菜单及额度入口两项实际检查通过。前后对比 `../部署包/ui-redesign-20261106/index.html`；实际验收范围见 `docs/ui-redesign-20261106.md`。
+- 三份保留归档全部gzip与platform.db核验后，仅移除最旧pre-01bb052的state.tar.gz（646401669字节）；保留pre-f566a90、pre-d7e2ed1、pre-afddfca、所有旧程序和元数据。审计 `backups/retention-20261106-ui-redesign.json`，可用19GiB。阿里云生产未操作，未代人验收/签收/关单。本次完整GitHub CI状态未作通过结论。
+
+
+### 2026-11-06 R1—R6 交付修复（进行中）
+
+基线为产品分支 `devin/1793765109-bidding-demo-ui` 的 `5147f70`，已核对 github 远端一致，工作区干净。范围：历史评测身份契约、依赖受阻分流、终端交接和确认稿展示、相关 CI、安装与客户试点准备。每项保留反例和实际验证；精确代码提交的目标平台必需 CI 通过后才部署 43。客户真实环境、人工决定及怀柔价值验证分别记录，不以演练代替。
+
+
+本轮实现与本地检查：
+
+| 条目 | 根因与修复 | 本轮依据 / 边界 |
+|---|---|---|
+| R1 | 历史输入被当持久工单；`build_prompt` 明确历史案例契约，评测不读现工单确认 | 生命周期/资料变更拒绝/开发确认等 62 项通过；合成执行器，不是业务正确率 |
+| R2 | 可选上游受阻未计入必需依赖；项目测试保留递归 blocked_by 并将汇总标受阻 | 超时多级依赖、无关可选失败、真实测试失败、补齐重跑及不调用 writer 检查通过 |
+| R3 | approved 一律计入 Leader 待办；布尔 handwork 被当姓名 | 终端批准转负责人，计数/分页/入口统一；历史流程保留；Leader 重复批准按钮禁用 |
+| R4 | 详情只读平台 plan | 授权任务响应加入只读确认稿与修订事件；无 plan 仍显示，需求确认不充当实测/业务验收 |
+| R5 | 新只读操作缺读取层项目校验；契约失效后 unknown 仍可自动采纳 | 增加范围与候选运行绑定，外部查询前拒绝；失效诊断阻止自动采纳；不修改 CI 容错或跳过规则 |
+| R6 | 安装与升级指向旧分支 | 改固定交付 SHA、支持矩阵、重连与职责；追加客户核对和怀柔对照模板 |
+
+实际执行 Mac/Python 3.11：`test_direct_invocation_lifecycle test_library_review test_development test_project_tests` 62 项；`test_tool_read test_development test_stage test_workspace test_team_workspace test_project_tests` 116 项；补充后定向 67 项、最终相关 64 项；UI discover 328 项，末次 UI 架构 4 项。各批有重叠，不能相加为不同场景数。命令均 `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$PWD/tests:$PWD" python3.11 -m unittest ...`（早期 62 项未设禁写字节码）。首次进程回执异常及 KeyError 保留原日志；最小监督进程探针与随后重跑通过。一次只读检查遇 Python 首次导入写 pyc，被审计正确拒绝；禁写字节码后通过。误写不存在 UI 测试模块的命令未计通过，已改为实际架构测试。
+
+真实 Chrome + 隔离 HTTP 服务：终端确认无 plan/无实测、确认人和修订、页签草稿保留；合成候选批准的 Leader 页面禁用重复批准，review 队列为空；1440×900、390×844 无整页横向溢出，原始截图已保存并实际打开检查。合成账号/证据仅用于界面与责任边界，不是真实客户验收。未执行真实怀柔/Windows/两机联调。
+
+干净 venv 安装：第一次从现工作目录构建的安装文件出现空模块，CLI 导入失败；保留失败结论。随后将 210 个源码文件逐一核对字节长度复制到无 build 缓存的临时源码目录，强制安装成功，离开源码目录执行 tmh --version 输出 0.4.0、webuddy --help 成功。这是 macOS CLI 安装检查，不证明 Linux 客户主机或 Windows 凭据支持。交付用精确 Git 提交的隔离源码重新构建，包显示版本不充当代码版本。
+
+证据：[本轮日志与截图](evidence/delivery-r1-r6-20261106/)。客户待提供：主机/终端系统、可达网络、怀柔仓库与 CI、规则与数据副本、模型通道/计量依据、需求/开发/Leader/验收/推送发布责任人。接入材料已补入 DEPLOY.md、developer-terminal.md、team-pilots.md。远端 CI 和 43 发布结果待本候选推送后追加；阿里云生产未操作。
+
+
+精确候选 `ca3e122` 的 CI（Actions 42180012807 / 42180021287）：快速、安装包、Windows 执行与证据专项成功；Linux 完整套件发现两项旧测试仍期待检查契约变化后自动采纳，首次 3.11 结果 2990 passed、2 failed、45 skipped。产品现在正确阻止失效诊断放行。补齐两项测试：断言 unknown、历史保留和未采纳，再由合成测试中的明确人工 decide 操作采纳，保留已采纳提交复验与清理覆盖；本地两项通过，未放宽产品门禁。新提交推送后重新等待精确 CI；未部署失败候选。
+
+用户随后明确可用现有 Windows 设备，SSH `webuddy-win` 本轮连通。实际系统 Windows NT 10.0.26200、Python 3.11.9、Git 2.55、Node 24.18；在 `C:\tmh-runner\work\webuddy-ca3e122-r1r6` 新隔离目录运行，包 SHA256 `e31197e72060ad0a5b8e2e1a45ac66b180761b311d62b3914e05007dea94b43a` 核对通过。183 项：141 通过、41 既有平台条件跳过、1 报错。唯一报错为 test_tool_client 的个人凭据保存触发 credential_platform_unsupported，说明原生 Windows 个人 MCP 接入仍未支持；未删除保护或新增 skip。此设备不是甲方怀柔环境，不算客户联调。完整 Windows 回执与日志另存本轮证据目录。
+
+完整 `git archive ca3e122` 源码在 Mac 新 venv 安装后，`python -I -X utf8 scripts/installed-smoke.py <site-packages>` 通过来源、CLI、项目工具安装/刷新、全部资源和离线安装。仅导出 tmh/pyproject 的初次实验包不含 setup.py/安装资源，不能作为完整交付包，已改用完整提交归档。
+
+
+### 2026-11-06 R1—R6 最终测试交付
+
+- 运行代码提交 `d83c267ae5308fcd8de365688136e8d09a7c3cff`（核心实现 `ca3e122`，两者运行文件零差异）。[Actions 42181939561](https://github.com/auntunt/webuddy-pitch/actions/runs/42181939561)：Linux Python 3.11/3.13 完整套件各 **2992 passed、45 skipped**；快速、安装包、Windows执行/证据专项成功。部署前程序核对精确SHA及10个必需/专项任务 success。Windows3.13完整为 **30 failed、1143 passed、215 skipped**；截至本次记录Windows3.11完整仍在运行，不引用workflow容错总状态作全平台结论。失败涉及CLI验收夹具的POSIX引号、Windows文件锁/并发读、预览/固定代码查询以及未支持的原子知识登记；不是本轮Linux发布路径通过的替代证明，Windows整个平台支持尚未完成。
+- 自有Windows设备额外实测 **183项：141通过、41既有跳过、1凭据门禁错误**。安装包在原生Windows新venv的安装、CLI、项目工具install/refresh、完整资源和offline install全部通过，原始输出与回执已归档；个人MCP原生凭据仍明确不支持，不能用chmod代替ACL。测试后无遗留Python/Node进程，远端原日志SHA与下载原件一致。不是甲方设备/怀柔业务联调。
+- 43候选校验 **2380文件、15数据库完整性/副本初始化、120项相关回归**通过；先通过CI再部署。备份 `/opt/webuddy/backups/pre-d83c267-test-20261106T075519Z/state.tar.gz` **55848文件逐字节核对**。现役 `/opt/webuddy/app` → `/opt/webuddy/releases/d83c267/app`，`webuddy.service` 于15:56:57 CST启动，PID1502105；15:57:03即时及15:59:58延迟检查同PID、NRestarts0、active/running，运行cwd/清单/数据库与内外登录200、匿名API401通过。启动等待循环首次端口未就绪后正常恢复，原日志不删。
+- 延迟检查后验证最近三份完整归档，保留pre-d7e2ed1/pre-afddfca/pre-d83c267；仅删除旧pre-f566a90的state.tar.gz（646516336字节），程序和恢复元数据保留；root审计 `/opt/webuddy/backups/retention-20261106-r1-r6.json`。磁盘约18GiB可用。恢复入口为备份中的old-app.txt及旧程序 `/opt/webuddy/releases/afddfca/app`；只切换程序，不用旧库覆盖新写入。阿里云生产未操作。
+- [原始证据入口](evidence/delivery-r1-r6-20261106/README.md)：本轮回归、实际浏览器原图、Mac/Windows安装、Windows设备回执、精确CI门槛、服务器切换与延迟健康。此条记录提交晚于代码提交，运行文件一致性另行核对，不为文档重启服务。
+- 结论分开：**代码修复与43测试交付完成；客户接入说明/核对表/试点模板已准备；客户真实联调未完成；真实项目价值尚未验证。** 接下来需甲方主机与终端系统/原生Windows个人MCP要求、实际仓库与CI、网络/模型通道、规则/数据副本和指定需求确认/开发/Leader/验收/推送发布人员。已有公开演练和自有设备测试不登记成怀柔成功样本。
+
+### 2026-11-06 系统与本地开发交接（进行中）
+
+- 基线 `5d80631`，已核对产品分支 github HEAD 一致、工作区干净。沿用 Codex/Claude Code 调用内核，不新增 Cursor 后端。
+- 本轮目标：人工确认后明确选择系统/本地执行；回答、确认及选择不隐式开工。本地 CLI/MCP 只读检查实际目录、登记仓库、完整 HEAD、未提交内容和知识修订；差异显式保留。保持权限、独立复核与合并门禁。
+- 新任务要求当前执行选择；历史未带新字段的会话保持原兼容行为。选择绑定当前确认摘要与固定代码起点，变更使旧候选契约失效。待定向回归、协议与安装检查后提交精确候选 CI。
+- 定向本机首轮50项（18项因该解释器无可选MCP SDK跳过）；官方SDK独立复验20项通过，覆盖Cursor/Claude/Codex生成配置启动及新预检只读边界。相关集成107项初次1项Mac临时目录符号链接触发凭据保护；指定真实 `/private/tmp` 后31项复验通过，未修改凭据保护。最终受影响调用/权限/UI结构44项通过。
+- 自有Windows设备Python3.11真实Git隔离目录28项通过（16.522秒），包括worktree、脏目录保留、远端/HEAD/知识版本不匹配和交接门禁；没有绕过原生Windows个人MCP凭据限制，未宣称客户Cursor桌面联调完成。
+- 本机隔离HTTP服务、合成账号任务在Chrome检查1440×900、768×1024、390×844：确认稿、选择方式和固定起点可见，无整页溢出。证据 `docs/self-improvement/evidence/execution-handoff-20261106/` 保留原始截图与首次失败/复验日志。未对真实任务代人确认或执行模型。
+- 最后复核将选择执行方式的基线查询纳入既有 `personal_scope`，不允许普通租户直接使用宿主Git。权限/交接32项、增加作用域断言后开发会话11项通过。模型调用实现未重写；仅在开工入口核对执行选择与固定起点。
+- `d7354ab` 已推送；独立安装/刷新/离线安装通过，43隔离发布目录70项回归通过，Windows精确候选29项通过17.345秒。HTTP合成交接、重复请求、回答变化失效及页面显示通过。
+- 复核补齐负责人变化时旧执行选择失效，59项定向回归通过；作为后续候选重新触发CI，不借用d7354ab的检查结果发布。此前快检、安装包和Windows执行证据专项成功，Linux完整当时仍运行。43尚未切换。
+- `8ab6b1f` 精确CI `42191554868`：Linux3.11/3.13各8失败、2999通过、46跳过（Windows完整尚运行）；8项均在 `test_developer_merge` 的旧夹具确认后未选择执行方式而被新门禁拒绝。按新流程补负责人本地选择和固定起点断言，保留原合并/CI/身份断言，另补真实HTTP选择的伪造身份/非负责人拒绝与本人成功。21项复验通过；产品运行文件不变。失败日志保留，不部署失败候选，推送测试修订后等待精确CI。
+- 测试修订提交 `3561a3b1143b9ad17191168c7471a2e03d1cc8ea`，与8ab6b1f的 `tmh/` 运行文件一致；精确CI `42193823161`。同提交43准备目录2421文件/15数据库副本通过，合并回归9项通过9.094秒；Windows隔离副本9项通过25.628秒。没有合并真实业务任务。待完整Linux门槛后切换43，阿里云不操作。
+- 已完成43交付：运行 `3561a3b1143b9ad17191168c7471a2e03d1cc8ea`。精确CI42193823161的Linux3.11/3.13完整套件各3008通过、46跳过、1921子用例通过；快检、Linux/Windows安装包及Windows执行证据专项均成功。17:36记录时Windows完整套件仍运行，不宣称全平台通过。
+- 2421文件清单、15数据库完整性与迁移副本核对通过。完整备份 `pre-3561a3b-test-20261106T093303Z/state.tar.gz` 55868文件逐字节一致。17:34:54 CST启动PID1528368；17:34:58即时、17:36:12延迟约74秒检查同PID、重启0，运行版本/目录、清单/数据库、内外登录200与匿名API401均通过。启动首次curl未就绪后既有重试成功；原始日志保留。
+- 安装说明固定版本更新为3561a3b。实际运行代码与8ab6b1f一致；主实现d7354ab。客户Cursor桌面/怀柔项目两机链路未实测，Windows个人MCP凭据保护限制仍保留；自有Windows专项不替代客户接入或全平台兼容结论。阿里云生产未操作，真实业务任务未代人确认、复核、验收或合并。
+- 三份保留备份均gzip及备份内platform.db完整性核验通过：pre-afddfca、pre-d83c267、pre-3561a3b。仅删除最旧pre-d7e2ed1的state.tar.gz（646443220字节），旧程序和元数据保留；审计 `/opt/webuddy/backups/retention-20261106-execution-handoff.json`。磁盘可用18GiB。后续仅补记录，不重启服务。
+
+
+### 2026-11-06 网页与 MCP 交付依据、私有 CI 接入（进行中）
+
+基线 811a49b，产品分支与远端一致，开始时工作区干净。复用内部 Git、候选、测试与人工门禁；增加同源只读交付依据入口，保留完整原始报告和当前有效性未知状态。私有 CI 按明确服务器连接配置接入，协议测试与客户现场联调分别记录。未提供客户 CI 地址和账号，真实联调尚未完成。
+
+- 已实现同源 `delivery_get` / 网页下载 / CLI delivery：需求确认稿、测试方案、产出与差异、基线/候选报告、逐项证据、评估和人工历史；只读不运行 Git/进程/外部请求，当前有效性保持未知。候选页新增精确提交的必需 CI 查询，保留人工门禁。
+- 私有 CI 新增运维登记的 HTTPS GitLab/Gitea 连接，按项目和仓库授权、环境变量凭据、完整 SHA 与必需检查核对；连接变化改变配置修订，查询异常、分页超限、缺失、失败/跳过/取消/未完成都受阻。GitLab 读取最新流水线，成功复跑不被旧失败永久阻塞。Jenkins、GitHub Enterprise及客户真实CI尚未接通，不宣称普遍兼容。
+- Mac 114项定向回归、官方MCP SDK20项、团队/界面41项分别通过（部分重叠）。实际Chrome三尺寸下载和两尺寸候选CI查看通过；合成任务无测试/无CI不会显示可合并。初次路由清单计数失败保留，新增权限拒绝覆盖后复验。证据 [delivery-interfaces-20261106](evidence/delivery-interfaces-20261106/README.md)。待精确提交CI；43尚未发布本批。
+
+- 初候选05f9b63已推送；Mac精确归档安装检查通过，自有Windows设备隔离源码25项CI/人工终端回归通过。复核发现Gitea畸形total_count或重复状态回执应明确拒绝，补校验和反例；17项CI复验通过，重新提交后等待新精确CI，不使用旧候选绿灯发布。
+
+- 用户补充：客户CI尚未确定，授权先自建Jenkins，基于开源ERP进行定制并完整运行，准备终端追问、开发、测试与人工合并演示。采用已有JSHERP快照与回归资产，独立演示副本，不改原临时工作区的未提交修改。Jenkins需要真实自建协议与SCM绑定验证；此前“尚未适配”为当时状态，后续实现和实测另记。客户业务类型待答，正式规则不编造。
+
+- 网页/MCP/GitLab/Gitea接口批次已发布43，运行代码89a5202390a092ae986cc8fba0d66f7cf32871c1，精确CI42207176912的10项必需检查全部success。Windows完整套件在该快照仍运行，未宣称全平台通过。最终候选2452文件清单、15数据库及40项差异回归通过，前批114项Linux回归亦通过。19:26:41 CST启动PID1555772，外部/回环200与匿名401即时通过；延迟检查回执另存证据目录。Jenkins新增适配仍在隔离环境开发，未混入本次发布包。
+
+- 89a5202 延迟检查于19:29:46 CST完成，距启动约185秒，PID1555772不变、NRestarts0，运行目录/清单/数据库及内外200/401通过。备份 pre-89a5202-test-20261106T112505Z/state.tar.gz核对55909文件；代码回退入口releases/3561a3b/app，不能恢复旧库覆盖新写入。保留pre-d83c267/pre-3561a3b/pre-89a5202三份完整归档，仅移除pre-afddfca归档646450778字节，审计retention-20261106-delivery-interfaces.json。原始延迟与清理日志保留。
+
+### 2026-11-06 自建 Jenkins + JSHERP 演练（进行中）
+
+- Webuddy代码基线89a5202，远端产品HEAD一致。新增Jenkins只读适配，使用可信连接/项目/仓库/任务登记、Git插件完整SHA和结果；25项当前协议回归通过。真实Jenkins只读用户读取成功，POST build及config.xml均403。真实取消、失败构建查询均阻断；不是模拟返回或客户联调。
+- 本机独立Docker网络启动SSH Git、Jenkins HTTPS、MySQL及Redis。原/tmp/webuddy-jsherp-local未提交改动保留。导入快照与原回归固定76dfc2c；首次构建因旧Maven源耗时取消；第二次后端成功，前端因无锁文件失败。新锁文件固定75a9311，第三次构建执行中。失败记录留独立部署包proof，不删除或写成通过。
+- 新增退款说明演示规则、分轮问题、现场失败分支和既有试点模板链接；仅为演示假设，客户规则未确认。新增API/UI定制及真实浏览器断言待运行；尚未宣称完整ERP演示完成或发布Jenkins适配。
+
+- Jenkins当前适配26项协议检查通过；从GitHub精确基线归档加本轮变更的独立副本58项权限/只读/合并集成通过。本机原目录读取pyc及部分源文件曾长时间阻塞，原运行中止/诊断保留，未删缓存或用户代码。
+- ERP演示基线75a9311与候选4172462分开固定；新增退款说明5—200字符、仅非零销售退款、保存/修改共用后端校验与页面提示。真实诊断已得到旧版空说明保存成功且写1单、新版单/多账户拒绝非法说明且不写库，原保存/回读/防重复/未登录拒绝保持。首次浏览器脚本发现路由时序、宽屏表头分离与缺中文字库，修复测试宿主后重新执行，不冒充产品业务缺陷。正式Jenkins7/8前后对照运行中。
+
+- 自建Jenkins正式前后对照完成：#7基线75a9311原57项JUnit通过，新规则空说明仍返回200且写1单，整体FAILURE；#8候选4172462的60项JUnit、14条真实MySQL/HTTP/浏览器业务检查通过，整体SUCCESS。同一控制侧脚本摘要，源代码/JAR/首页/进程身份绑定，结束源码不变。Webuddy适配器实际查询当前仓库/完整SHA得pass。
+- ERP预览http://127.0.0.1:18981使用#8归档JAR与dist，下载后核对摘要；源代码另存erp-demo.bundle并verify通过。Webuddy隔离任务http://127.0.0.1:18985/#/t/ERP-1保存待澄清方案与真实Jenkins外部记录，明确external_test，未代人确认/审核/验收/合并。网页实际下载、官方MCP SDK真实stdio/HTTP读取一致，current_validity未知、ready_to_merge=null。此为合成操作令牌，不是客户个人连接联调。
+- ERP字段校验和合法值恢复的实际浏览器补充检查通过，三尺寸原图保留；手机仍有原导航抽屉遮挡，不称移动适配完成。Webuddy任务三尺寸截图和真实下载保留。所有截图原编码原分辨率。提问材料20组及现场分支已准备；规则明确为演示假设，客户正式政策未编造。
+- Webuddy实现638c256a851ecbcbbf3e2309bdf0d8fca57c2e3e已推送。精确CI42214979985十个必需检查成功；Windows完整3.11/3.13均失败，不称全平台通过。43准备2476文件清单与15数据库副本通过，58项精确回归通过。初次venv路径不存在，未执行测试；改用实际python3后通过，失败日志保留。
+- 43于22:28:05 CST启动638c256，PID1598476；22:28:11即时和22:30:24延迟139秒同PID/重启0，运行清单、数据库、内外登录200/匿名API401通过。备份pre-638c256-test-20261106T142624Z/state.tar.gz，代码回退入口releases/89a5202/app；不以旧库覆盖新写入。阿里云未操作。容量保留结果后补。
+
+- 638c256完整备份55940文件逐字节核对。22:31保留pre-3561a3b/pre-89a5202/pre-638c256三份已验证归档，只移除pre-d83c267归档734981754字节，旧程序与元数据不动；审计retention-20261106-jenkins.json。本轮仅43测试发布，未操作阿里云。
+- 已生成本机Cursor/Claude只读演示MCP启动配置，官方SDK按该精确配置实际读取ERP-1成功；没有修改用户Cursor配置或声称桌面联调。配置与凭据留部署包private，不进入Git。记录提交晚于运行代码，tmh运行文件与638c256一致，不为材料重复重启。
+- 结论：Jenkins接口、独立ERP定制与真实前后验证、网页/MCP历史依据读取和演示问题材料已交付；任务仍待人确认，Leader复核/负责人合并未代做。平台自动执行器从需求到合并的全链路、客户Jenkins/怀柔系统联调与实际提效均不在本轮已完成结论内。
+
+### 2026-11-06 逐步操作留痕补齐
+
+用户明确要求全部留痕，包含每一步手动操作。基线1ca49ac，工作区干净。本轮新增演示操作手册、14步真人现场记录表、历史实际方法与缺口说明，区分Agent/API/组件脚本与真人操作。未将早期缺少时间或逐键记录的历史倒填为完整；未替真人确认/复核/合并。
+
+新增capture_step.py，逐次独立目录保存命令、操作者类型、实际UTC起止、退出码、完整stdout/stderr及SHA256；标签不是认证身份，exit0不等于验收。1项回归覆盖成功/失败/超时/启动失败及二进制字节完整性；本轮实际58项定向回归、真实官方SDK配置读取、5个基础容器状态查询都通过并逐步记录。产品tmh文件未变化；ERP原14项业务结果沿用此前记录，不说成这轮重跑。
+
+13份仍在/tmp的历史脚本原件保存到部署包proof/operator-source，当前字节与摘要入索引；不保证代表每次早期执行版本。实际人工H01—H14均待真人执行。记录中另列截图上方“在写”与开发会话待澄清的展示映射待核对点，不隐去、不称本轮修复。证据入口evidence/jenkins-erp-20261106/operation-trace/。本轮只增加操作留痕资产与测试，不需重启43服务。
+
+### 2026-11-07 项目知识共享协作优化（进行中）
+
+基线7e2a57f，产品分支devin/1793765109-bidding-demo-ui与GitHub一致，开工工作区干净。复用项目知识、固定引用、共享经验和工单反馈，不改模型调用内核、不代人采用知识。目标：普通成员按授权项目检索且计数一致；固定来源更新可见但不自动升级；可带来源起草反馈；网页与原library_get接口共用结果。验收包含空权限、越权项目、撤权、私有经验、固定输入保持、真实HTTP和桌面/窄屏。
+
+首轮126项定向回归通过。真实HTTP首验缺上下文令牌得到409，补夹具后因负断言误匹配Mac /private/tmp路径失败；改为匹配不可见业务内容后通过，失败原件保留。浏览器隔离服务合成普通成员已验证项目过滤、来源反馈草稿、新版提示；首次脚本误用nbody选择器，实际产品字段为nb，修正后通过。截图发现反馈弹窗在hash跳转时仍保留（保护草稿），补显式关闭后再检查引用页，不以遮挡截图冒充布局验收。后续验证和发布另记。
+
+完成本轮功能：目录/搜索/项目选择与计数按账号权限前置过滤；固定引用只提示同来源已ready的新版本，撤权隐藏新版；网页可准备新版表单但保留旧引用与已有草稿；MCP library_get共用只读提示。反馈带来源及版本进入现有工单草稿，只读成员不显示起草。未新增模型执行、自动采用、跨项目通知或验收行为。
+
+最终相关93项（92过、1可选SDK跳过）；前批126项与44项UI检查存在重叠，不相加。真实HTTP隔离1项通过；实际Chrome合成租户普通成员在1440×900和390×844验证授权目录、反馈草稿、固定引用提示和准备新版，未提交采用。原PNG及逐步命令回执见[evidence/knowledge-collaboration-20261107](evidence/knowledge-collaboration-20261107/README.md)。真实客户多人共享、人工试用、收益尚未验证。代码待精确CI及43测试交付，阿里云不操作。
+
+代码候选cd01b4c1dd4670cddfe9b91ea3b5c66250e5cb81已普通推送。43隔离发布目录2565文件与精确清单一致，15数据库副本检查通过；当前Linux定向166项（165通过、1可选MCP SDK跳过），未切换服务。自有隔离Chrome和两个合成租户服务已关闭，未遗留登录会话或修改真实业务。待同提交必需CI完成后发布43。
+
+cd01b4c精确CI42277266622的Linux3.11失败：3032通过、47跳过、2失败，均是test_lesson_decision_api仍期待普通成员读取/api/memory为403的旧契约。没有部署该候选。按本轮授权检索语义补齐真实HTTP断言：完整快照与正文、仅本项目列表、不泄露其他项目原文、只读账本不变；原旧确认409/越权403/错误项目404断言保留。产品运行代码未改，复验结果另记；失败完整日志已保留。
+
+fcadb650精确CI42279767492：Linux3.11完整3034通过、47跳过；3.13为3033通过、47跳过、1失败。唯一失败是既有project_import先公布done、再finally删除upload.zip的竞态，与本轮知识代码无关但阻断必需门槛。完整日志保留。新增在done发布瞬间观察原文件的确定性反例：修前[True]失败，修后[False]通过；原导入模块6项通过。首版事件等待夹具5秒未进入清理，失败保留，改为拦截实际状态发布，不放宽原导入时限。最小产品修复仅在公布成功前移除上传归档，finally失败清理保持。未部署fcadb650，下一候选重新触发精确CI。
+
+最终运行候选e96151541794e31b462a86581853b2ae71a2fa60。精确push CI42282872142十项必需检查全部success；Linux3.11/3.13各3035通过、47跳过、1943子用例通过，完整原始日志保留，不相加当作独立场景数。Windows完整套件在门槛检查时仍运行，不宣称全平台完整通过。
+
+43最终目录2586文件清单、15数据库副本、导入6项回归通过。04:07:48 CST启动新版本，PID1678745，04:07:51即时健康通过（清单/数据库、内外登录200、匿名API401、重启0）。完整备份pre-e961515-test-20261106T200609Z/state.tar.gz逐字节核验55964文件；旧程序恢复入口releases/638c256/app，仅切程序，不覆盖用户新数据。阿里云生产未操作。延迟结果随后追加。
+
+04:10:16 CST延迟约148秒检查通过：同PID1678745、NRestarts0，运行目录/2586文件清单/数据库、内外登录200/匿名401保持。最终读取CI时Windows3.11/3.13完整任务均failure，原JSON记录保留；Windows专项与安装成功不替代完整兼容性，本轮不扩展修复Windows全量。代码实现、授权检索/引用/反馈与43交付完成；真实客户多人知识采用和实际收益仍待真人试用。记录提交晚于运行e9615154，仅补证据，不重复重启。
+
+### 2026-11-07 Windows 完整套件与 MCP 实测（进行中）
+
+用户要求 Windows 完整跑一圈，重点 MCP。基线8799e97f与github产品分支一致、工作区干净。自有webuddy-win入口两次ConnectTimeout，尚未进入设备；改用GitHub真实Windows runner推进，设备现场联调不冒充完成。新增独立检查工作流，安装.[mcp]、cryptography，Python3.11/3.13全量模块分片；每个模块独立pytest进程，记录完整日志、JUnit、命令/退出码/超时，某模块中断不吞掉失败也不阻止后续模块。既有断言/skip/业务门禁不变，未改运行代码、凭据保护或模型内核。原完整套件中断仍保留，最终运行结果另记。
+
+第一轮精确检查9965b355/run42337432312发现Windows预览测试中断会连带结束外层分片进程：3.11/3.13分片6只记录13/30模块，不能称跑完。新增Windows CREATE_NEW_PROCESS_GROUP隔离每个pytest控制台进程组，原失败/缺失报告保留，下一轮重新完整执行。Mac MCP对照35项及67子用例通过、0跳过，只用于区别平台原因，不替代Windows结论。首轮本机检查因未安装pytest返回非零且无JUnit，已保留，安装隔离依赖后runner正常完成门禁模块。
+
+第二轮21f4e73/run42337860567显示新进程组仍不足：test_workbench已产生JUnit但控制器收到KeyboardInterrupt，分片6缺最后一条回执。改用DETACHED_PROCESS，测试与控制器不共享控制台；不吞掉中断或修改测试结果，继续重新执行。自有Windows从公网直连超时，改经43的已有SSH转发成功，真实Python3.11.9/Git2.55/Node24.18、12线程约32GB；GitHubTLS拉取失败，固定源码包传输与独立依赖安装继续，未关闭TLS或修改服务器网络配置。
+
+自有测试机MCP已真实完成（2026-11-07 12:33 CST）：固定21f4e73的tmh与官方MCP专项包SHA95ecb54d51de203375fcd29d2492d81d1c3ad55a749abd26582138a29d91dea3，远端验证后运行，15通过/1失败/4既有POSIX跳过，退出1，23.36秒；个人凭据unsupported为唯一失败，未删除安全门禁。原始JUnit与日志已下载读回，见evidence/windows-full-20261107。完整浅克隆包f01c90d112a5bf12953a464a6730c6a09ddc5c61c27f6cd8a283dcff849fa282（39209984字节）经既有SSH通道传输中；远端/本机脚本webuddy-win-full.ps1等待完整摘要，随后应用a9ce6f20增量并启动8分片。第三轮云端run42338796236进行中；未声明全量通过或全量完成。
+
+自有Windows确定性反例定位预览_alive的os.kill(pid,0)：隔离目标只输出before即以0退出，没有after；退出码0不代表检查完成。最小修复用OpenProcess(SYNCHRONIZE)+WaitForSingleObject(0)查询并关闭句柄，不发信号、不新增终止权限。实机修后输出before/alive True/after，新回归验证当前进程、存活子进程、退出子进程且禁止os.kill，通过。Mac相关17通过/6 Windows专用跳过。Windows执行模块8过/2失败，两项supervisor owner_lost在原21f4e73和修后代码均真实复现，已保留前后原回执，未归零或忽略。全量平台模块300秒预算不足导致后续用例缺失，改为通过pytest原生收集后逐用例执行该模块，其他模块不变，所有原断言保留；runner本机门禁模块实际通过。下一候选重新验证。
+
+owner_lost进一步通过真实解释器对照定位：同源码使用Windows基础Python成功，venv启动器多一层进程导致原监督器的parent_pid核对误拒。最小修复仅Windows分支用sys._base_executable直接启动stdlib-only监督器，项目命令/环境、管道所有权、取消/超时/清理与父进程核对不变。新增真实venv回归：旧代码退出1，修后Windows执行模块11项全部通过；Mac相关46通过/7 Windows专用跳过/8子用例通过。实机补丁与最终提交绑定后再次跑完整套件。此前失败与受阻记录不删除。
+
+### 2026-11-07 老项目长期改造 A1（R1）
+
+基线e282afab，GitHub产品分支一致；原目录Windows进度与证据未提交，独立worktree施工。当前实现清单见reform-long-running-implementation.md。R1两个原失败已保存：system恢复快照与固定基线冲突，确认稿变化预检仍可续跑。新增SQLite执行契约/快照来源登记，保留原授权基线，实际起点沿已登记恢复快照；预检、登记和执行边界重新检查确认稿，旧无绑定明确阻塞交接；不删除固定起点检查、不改UNIQUE retry_of。Git专用引用保留未验证快照。定向64项与26子用例通过，含真实受监管替身写文件失败及保留二进制/未跟踪改动后续跑；不是客户模型执行或业务签收。原失败、首轮和最终结果在evidence/reform-20261107。R2—R8/B—D继续实施，尚未宣称全部完成。未操作阿里云。
+
+### 2026-11-07 Windows 完整测试最终记录
+
+最终候选e282afab的push CI42341011443十项必需检查均成功。Linux3.11/3.13各3035通过、49跳过、1943子用例通过；两个新增跳过为Windows专用用例，不相加当不同业务场景。Windows完整检查另由42341045304全量分片及自有测试机执行，结果单列。43隔离清单2606文件、15数据库副本、46通过/7跳过后发布；完整备份pre-e282afa-test-20261107T051731Z/state.tar.gz逐字节56074文件。13:19:17 CST运行e282afa、PID1812014，13:19:20即时与13:20:31延迟健康均通过，同PID/重启0，清单/数据库/内外200与匿名401符合预期。旧程序恢复releases/e961515/app，只切程序，不恢复旧库覆盖新写入；阿里云未操作。
+
+自有Windows完整源码包39209984字节SHA f01c90d112a5bf12953a464a6730c6a09ddc5c61c27f6cd8a283dcff849fa282，于13:20完成校验，应用Git bundle后精确HEAD e282afab。源码仅scripts/deploy/tmh-native的100755→100644执行位差异，其Git内容对象58cf13532dbb8e7f6688172390c239279b8d884d一致；未修改Git配置。隔离venv实际构建安装后启动8分片，最终结果待回执。
+
+最终Windows结果固定e282afab：GitHub audit42341045304双版本各307/307执行单元全部有JUnit、0超时，去重3084用例；3.11为2340通过/129失败或错误/615跳过，3.13为2341/128/615。自有Windows主分片307/307已尝试；签名与SSH夹具模块各300秒超时，19个原用例单独补跑后18项有JUnit、1个签名用例仍超时。实机总范围3084：2338通过/130失败或错误/615跳过/1超时未完成。未新增skip或删断言。每种环境MCP专项15通过/1失败/4跳过，个人凭据原生保护unsupported仍阻断；Windows进程专项11通过0跳过。记录与原件见evidence/windows-full-20261107，完整实机包442922字节SHA dd22ea324017c7f4796bd5f96ab22e23fcf77e0e76509246175aa33db4b4c702，下载核对并解包读取。
+
+远程SSH后续断线，但实机主运行13:36:05、补跑13:41:14已结束；重连查文件及进程后导出，未重启整套测试。原标准CI42341011443十项必需仍success，Windows两完整任务因后续提交取消，不能称该工作流全绿；专用全量audit已结束failure。产品远端后续8d5600ed的运行代码不在本轮Windows结论范围内；交付记录合并时保留该提交，不覆盖。客户桌面登录、原生个人MCP接入、真实业务与提效仍未完成。
+
+### 2026-11-07 老项目长期改造 A2（候选）
+
+在R1的8d5600ed/ca9d455d后继续；R1另补“工作树建立前失败”的实际续跑，20项故障/接续检查与9子用例通过。A2将计划JSON一次导入platform.db并保留原件，建单、唯一部分映射、批次与待领取登记同事务提交；持久领取防重，领取后回执丢失保留待核对，不自动重放。暂停后恢复重新计算当前批次。UUID身份不复用；归档保留关系并拒绝活跃/待领取工作，错误归属和旧事件不推进新计划。完整需求不再固定字符裁剪；显式all/selected，预览知识修订冲突拒绝，部分零选择不变全量。保留完整后续日志，旧版此前已截断历史明确有缺口。网页新增真实标签、草稿保存与项目/计划深链接兼容入口；尚未实际浏览器验收。
+
+反例：R3强制并发旧实现稳定放出8项而非4；其他反例包括映射失败遗留2工单、错误归属改变暂停、活跃删除、长输入裁剪、resume不推进。原失败保留。13项改造定向、84项平台/开发契约组合及104项相关API/MCP/阶段/接续回归通过（存在重叠，不相加）。SQLite变化尚需43真实数据副本迁移和回退兼容检查；浏览器工具返回Browsers access host unavailable，UI不记为通过。A2尚不等于阶段A全部完成：R8统一现行投影、跨批集成、检查点、MCP完整验证、浏览器及跨日仍需推进。未操作阿里云。
+
+### 2026-11-07 改造计划 MCP 管理候选
+
+接通10个新增改造/恢复工具的schema、stdio、客户端写开关、scope、租户资源权限、agent_api登记与共享reform_api服务；草稿创建不启动，修订使用expected_revision，管理请求使用request_id，持久领取结果未知时阻止后续领取。网页typed update/control/archive复用同一服务，归档要求项目管理权限。原个人连接执行能力保留，未开放代人签收/合并/发布。180项相关回归及276子用例通过；最后领取边界13项通过。官方MCP SDK真实stdio→HTTP→SQLite与租户签名网关→独立worker验证创建/修订冲突/重连/原请求重放/撤权拒绝及worker重启读回；调度submit为明确替身，不冒充模型业务执行。Claude Code/Codex/Cursor宿主、检查点集成、实际页面和跨日尚未验证，本批不宣称阶段B完成。证据见evidence/reform-20261107/mcp-*.log。
+
+### 2026-11-07 自建Git与Jenkins完整技术演练
+
+用户要求自建仓库并模拟操作与设计。核对发现已有SSH Git服务，复用而未另建仓库平台；在独立ERP克隆建立rehearsal/git-workflow-20261107/main与refund，固定基线75a9311与候选942949a49b7f73d66428ea225a12381add8623c2（复用4172462业务实现，补设计说明）。真实Jenkins#9基线57JUnit通过但空说明新规则失败；#10候选60JUnit及14条DB/API/Chromium检查通过，控制侧三脚本摘要一致。实际快进演练分支并推私有Git，核对远端SHA；明确agent模拟操作、非真人Review/业务验收、非正式主干/生产发布。
+
+增加可复跑rehearse.py及设计操作文档；证据服务和只读MCP启动器支持独立演练目录/端口，旧默认入口保持。缺完成回执、重复构建、重复合并均实际拒绝；Webuddy真实Jenkins适配器对基线/缺失SHA blocked、候选pass。真实Chrome合成账号登录、下载交付依据及三尺寸原图；官方SDK经实际生成配置读取同一完整数据，保留clarifying/current_validity=not_checked/ready_to_merge=null。首次MCP读取错误原件保留，补诊断与配置复验通过，瞬时原因未确定。只读账号读配置403，管理员读取验证实际Jenkinsfile一致，未扩权。
+
+本轮材料evidence/private-git-workflow-20261107；完整日志/JUnit/原始PNG/逐步命令在本机部署包对应proof，未压缩图片。所有操作记录Agent身份，不倒填真人步骤。仅本机演练资产与文档改变，无产品内核变更，不重启43或发布阿里云；Windows未作为本轮Jenkins节点，个人MCP限制保持。当前SSH Git不提供网页PR/受保护分支，客户人员确认、真实环境联调和收益尚待现场。
+
+本轮推送前产品分支已推进到48014573，保留并合入并行改造提交和进度；未强推。演示服务冻结产品71cfd2c6加本轮脚本的独立源码副本，MCP配置同时指向该副本，重启后的真实配置复验通过、两条外部运行未重复导入；原始PNG保持。测试Chrome已关闭，18986保留可访问。此次是本机演练交付，不以后续产品代码冒充已测，也不触发43程序替换。
+
+### 2026-11-07 改造计划 B 后端增量（候选）
+
+在最新f998aa1e继续，未覆盖原目录改动。新增共享现行证据投影、真实固定提交检查点与保护引用、测试配置摘要、单实例/租户分别重建、执行时当前授权复查。没有运行回执的线程提交在重启后明确needs_reconcile，未知领取不重放。暂停不启动新run，当前run继续；检查点对象不可访问时实际恢复也阻断，不用HEAD替代。外部候选已验收提交此前遗漏于检查点，确定性反例失败后修复。整体验收退回不要求已有有效证据；通过仍须固定集成版本。共享签收门禁覆盖原平台按钮/链接/AI路径，未扩大AI策略适用项目。
+
+有source_version的新计划采用明确保守串行批次（wave保留申请上限），固定输入集成子单通过当前技术验证与业务决定后，下一批才继承该精确提交。epic整体验收父单保留业务入口；整体退回关联返修，不把子单closed当整计划交付。跨批测试中的验收是合成夹具，技术候选实际验证另测，不冒充客户业务签收。
+
+实际回归：167项与23子用例通过；之后暂停边界34项/9子用例、检查点恢复边界23项分别通过（范围重叠，不累加）。官方SDK实际stdio→HTTP与租户网关→worker包含响应丢失、原号查回、scope/manager/撤权、重连与旧修订冲突。读连接不执行宿主Git，无法核验时返回not_checked。未找到测试模块导致的两次no tests ran及初始夹具方法错误均保留；未改为通过记录。
+
+43只读核对仍运行e282afab，PID1812014、重启0；有1份旧计划关联8单，尚无reform_catalog。旧JSON导入后保持原字节，但旧程序不读取SQLite新写入，直接程序降级不安全，此为激活阻塞，不能套用旧通用回退脚本。浏览器host本次仍unavailable，未进行桌面/窄屏工作区验收；UI候选与后端分开。尚未做三个实际宿主、客户跨模块完整业务、服务器kill边界演练或跨日观察；不宣称B—D完成。详见reform-long-running-implementation.md和evidence/reform-20261107。未操作阿里云。
+
+后端d421db65已普通推送，精确CI42348445483/42348449029启动。继续补齐网页分页/状态筛选、创建原号找回与项目绑定；真实HTTP反例证明知识变更会挡住已保存创建回执，修复后原号找回同计划，跨项目相同编号冲突。候选自动测试通过后只显示“交付决定待核对”，不越过独立复核/负责人合并而写成可业务验收。旧已派发计划缺少固定源版本时显示历史批次待核对，不当作新草稿或已集成交付。
+
+43使用d421精确源码在15库副本检查：主库原72张表内容不变、1份原计划/8单原始关联保持，原JSON字节不变；只新增控制表，未写真实业务库。原始结果与copy-migration.py入证据。首次未压缩源码传输60秒超时，带SHA的压缩源码包随后成功；完整发布包单次上传亦超时（只留下1773568字节部分文件），改为分块校验传输，未激活。为解决旧JSON程序无法安全读新SQLite状态的问题，正在准备d421兼容恢复程序与后续修复程序分别固定、验证；只有两份兼容版本门槛都满足才发布。旧e282不能作为接受新计划写入后的直接回退程序；不得恢复旧库。浏览器与跨日/实际宿主未通过的状态保持。
+
+d421的Linux3.13完整CI失败：3058通过/54跳过/4失败/1926子用例通过。3项为新增签收门禁对原key-only参数的兼容问题，已修复；1项原只读全覆盖断言指出新增5工具未列入。保留断言并补齐所有新增分支和越权分支后，实际审计进一步要求读路径不得懒迁移：现把旧计划导入移至Platform启动（单实例与租户共用），读取仅SELECT，不开写事务或启动模型。修复组合63项/97子用例通过，使用Python -B避免解释器首次导入写pyc干扰叶子业务副作用审计；原禁止文件/进程/线程/网络/数据库写的断言完整保留。首次独立执行因pyc写入失败原件保留。
+
+43在独立临时venv安装pytest/MCP SDK后，d421精确相关38项零跳过通过（pytest尝试写只读程序目录缓存的警告保留，不影响业务数据）；此结果不覆盖失败的完整CI，d421不激活也不称可用回退版本。新官方SDK恢复用真实受监管短进程，活跃所有者拒绝、释放后核对原停止回执、无agent_run_sources的网页来源可合法恢复；重连同号读原回执，原输出字节保持、未重跑。首版夹具误读attempts/lifecycle路径失败，修正到原run目录后通过，失败原件保留。后续管理组合27项通过。跨日和客户签收未发生。
+
+### 2026-11-07 改造当前验收投影修正
+
+首次验收统计反例证明：closed但没有真实验收事件原先被当首次通过，修复后样本为0；首个reject即计样本，后续通过不改写首次结果。新增first_verdict_total/business_accepted，保留历史closed数量，网页/MCP共享。整体验收父单改用计划相同投影，不再凭父单closed误报集成交付。当前组合56项/89子用例通过，原失败保留。682164e5精确CI仍运行，未激活43。
+
+### 2026-11-07 改造工作区 C 候选与进程中断演练
+
+新增ui_reform.py并沿用现有品牌/导航：固定项目计划深链接、分页筛选列表、进展/批次任务/接续证据/范围历史、负责人/阻塞/检查点、共享预检后恢复、原请求号找回、修订差异与原稿保留。主列表和子单显示共享证据；首次通过使用真实首个决定的样本分母。旧入口继续代理新工作区。完整导出脚本Node语法通过，相关85项/89子用例通过；最后新增处理函数与真实进程中断6项/4子用例通过。Node DOM夹具只算处理函数测试，不作为实际页面验收；浏览器host不可用，桌面/窄屏/真实宿主与跨日仍待验证。
+
+四个隔离子进程在建单后映射提交前、映射提交后领取前、持久领取后、替身执行回执fsync后各实际SIGKILL。恢复不重复建单，已提交映射可读回，未知外部结果阻塞后续领取，保留替身回执。此为实际OS进程故障注入，调度为明确替身；不等于客户模型业务或43整机kill演练。682精确清单2834文件已重建到非活动目录，尚未激活，副本迁移另记。
+
+682精确程序的43真实Linux专项32项零skip通过（实际SDK/stdio、HTTP、租户worker、恢复和集成定向）；新启动迁移15库副本保持原72/52表与1计划8关联及JSON字节。未触及真实库。新增独立CI Reform MCP protocol双Linux Python版本，显式安装.[mcp]/cryptography，避免旧full只装pytest导致核心协议测试可选跳过；本机完全相同测试命令28项/4子用例零skip通过。既有full、Windows检查与断言未删改。新增协议门也纳入本轮激活要求。
+
+兼容程序恢复在43新数据库副本实测通过：b44创建16000字符完整需求，682读到相同身份与正文并归档，b44读回同一归档及完整契约，integrity_check通过。仅临时副本，不迁移真实库。首个夹具项目编号超出既有10字符限制失败，保留原件，改合规夹具编号后通过；未改产品校验。最新工作区恢复按钮去重复、暂停时明确当前run继续，修订后服务端暂不可读仍保留原稿并显示错误，5项处理函数与完整脚本语法通过。
+
+### 2026-11-07 完整CI的首次模块加载修复
+
+682完整Linux3.13失败：3063通过/56跳过/6失败（含5个子分支）/1948子用例通过，唯一根因是新增reform_api首次在审计读路径导入时写pyc；只用-B定向通过不能替代普通解释器完整CI。修复把reform_api导入放到agent_api模块初始化，dispatch直接用已载入服务；保留所有原文件/SQL/进程/网络审计断言。普通Python相关组合71项/101子用例通过。独立冷缓存仅跑旧叶子夹具还暴露server/preview/team等既有懒导入pyc限制；两次诊断原件保留，不为此扩大修改旧模块或放宽审计。682仍不能作已通过恢复版本，需修复版本精确CI。4ce在43精确39项零skip通过及15库副本保持不覆盖其待完成CI。4ce独立MCP CI两个Linux版本均成功；其完整结果仍待收尾。
+
+### 2026-11-07 预览先导一致性与跨客户端并发补验
+
+隔离反例证明创建有先导正文而预览遗漏先导。改为创建直接复用共享preview的完整items，preview schema允许有类型lead、批次明确lead/domain与部分编号；部分模式零选择即使有先导也拒绝。网页先导变化刷新预览，范围区展示完整先导与依赖，创建增加明确依赖输入。普通解释器相关90项/101子用例通过，含真实SDK从带先导预览到完整创建/读回且不启动，及两stdio客户端并发只推进一批、旧修订409、原号重放和重连无新增派发。首次SDK夹具把当前投影额外字段与纯契约混比失败，修正为逐字段比完整契约且保留数量断言，原件保留。
+
+固定源两部分计划补验暂停期间业务/集成夹具完成后恢复：先只登记一个集成单，再暂停完成该集成，恢复只启动一个后续部分并绑定固定提交；重复恢复不新增。验收仍为明确合成夹具，技术验证在该用例隔离，不冒充客户验收。0504/cf710独立完整CI均仍运行。
+
+### 2026-11-07 初始源预检与先导固定集成修正
+
+两个确定反例保留：无检查点草稿的源提交不存在，预检仍声称可start但实际拒绝；先导验收后main移动到未验收提交，_tip把浮动顶端带入集成基线。共享预检现在核对初始固定源，不具备运行条件的受管只读连接仍not_checked且不执行Git；serial_batches先导保留原基线，集成只登记固定已验收输入，通过当前验证与业务决定后下一部分才继承固定集成版本。普通Python最终99项/101子用例通过，含真实SDK预检/实际控制同样拒绝缺失初始源。未删除原固定起点检查或旧反例。
+
+0504产品与cf710兼容恢复版本的12项要求已各通过，含Linux完整3.11/3.13与专门MCP协议；两个Windows完整任务当时仍运行，不记全平台全绿。774精确候选43专项44项零skip、恢复程序32项零skip通过；15库副本及新写入互读保持，后台原e282/PID1812014/重启0未改、预检无活跃run、余量约15.4GB。上述成功不覆盖本条新源修正提交，后者须新精确CI后才能激活。
+
+
+### 2026-11-07 15:59 老项目长期改造阶段发布43
+
+运行代码984b3dd4bf5debf97aeb35594d5a597eaec0e6e5已在43上线，app→releases/reform-984b3dd4/app，15:58:20 CST启动PID1858317，15:58:52即时与15:59:36延迟约76秒同PID/重启0、2874清单/15库完整性及内外登录200/匿名401通过。原1计划/8关联与JSON字节读回保持。阿里云生产未操作，无客户签收/合并代办。
+
+精确目标CI42352425024与兼容恢复CI42351228880各12要求成功，包含两套Linux全量、两套正式SDK MCP；目标各3076通过/59跳过/1957子用例，恢复各3064通过/56跳过/1953子用例。Windows完整另记，不宣称全平台全绿。984精确43专项47项零skip，副本15库原72/52表保持；984/cf710互读16000字符新需求及归档状态通过。原失败全部保留。
+
+完整备份pre-reform-984b3dd4-test-20261107T075635Z/state.tar.gz逐字节58963文件校验。兼容程序回退releases/reform-cf710375/app；不得回退到旧JSON程序e282或用旧库覆盖新写入。初次SSH发布响应超时后查询持久systemd发布单元确认正在执行，未重发；最终ExecMainStatus0。首个启动curl未就绪失败保留，随后即时/延迟实际成功。
+
+本次按已验证范围交付，不宣称A—D全验收：真实页面宿主不可用（T13和截图未完成），三个桌面客户端、跨日任务、真实客户跨模块业务决定未完成；四边界SIGKILL为真实子进程+明确执行替身，不等于43全服务边界演练。活跃范围后继修订、完整活跃工作树交接、时间指标及所有证据失效组合仍有缺口。详情reform-20261107-delivery.md、reform-long-running-implementation.md及evidence/reform-20261107。仅记录提交不重启服务。
+
+
+### 2026-11-07 租户启动503反例与修复候选
+
+用户实测BBstack个人MCP status/projects_list返回503。43主服务仍984/PID1858317/重启0，不能据主进程与匿名HTTP健康宣称租户可用。真实worker日志定位到reconcile重放旧先导验收调用_tip/Git，被原隔离审计拒绝并退出。新增正式SDK→stdio→签名HTTP→独立受限worker反例稳定503；修复在历史事件重放前重查原计划当前负责人/连接/项目执行授权，合法重放置于其受管身份上下文，缺授权历史保留可读、不执行Git或调度。不捕获PermissionError放行，不削弱隔离。
+
+55项相关回归/9子用例通过，含旧先导已验收与adopt记录、首次MCP status/projects/reform读回及worker重启重连，原JSON字节保持；隔离全量SDK回归另保留。首个新增fixture把pending误预期not_checked的失败原件保留，修正为现有真实枚举pending，不允许误报accepted。该候选尚待精确CI和实际43认证链路验证，不宣称已修复线上。
+
+
+### 2026-11-07 17:11 BBstack真实MCP恢复
+
+847f86051d5934461a01e95f765d45eab326c766已上线43，17:09:39启动PID1877418；17:10:05即时与17:10:56延迟77秒同PID/重启0，2874清单/15库完整性、内外200/401、旧1计划8关联与JSON字节保持。完整备份pre-reform-847f8605-test-20261107T090755Z/state.tar.gz，59232文件逐字节核验。未操作阿里云、未执行模型、未代人签收。
+
+用本机Codex当前webuddy配置和原BBstack专用凭据真实SDK/stdio初始化25工具、status/projects_list读到8项目；断开后独立重连再次同样成功。此前原配置503原件保留。没有重签或转发默认生产凭据；测试日志不含令牌。这个是实际配置协议/HTTP联通，不等于三宿主GUI全验收。
+
+精确push CI42356902053两套Linux各3076通过/60跳过；新增MCP协议两版另行实际通过。Windows3.13监督器首次失败，保留原件，原作业原断言重跑146通过/12跳过后12要求全部成功。为允许重跑，只取消了未结束的可选Windows全量，记未完成，不记通过。另一同树PR Linux3.13既有主线预览用例出现多余启动失败，原因未确认，日志保留；未修改用例、断言或skip来掩盖。采用push精确SHA门槛激活。
+
+首次984仅匿名健康漏掉租户启动，是本次真实交付缺陷，已补实际个人MCP门槛与旧先导重放反例。缺当前授权的历史不在启动执行Git/调度，隔离门禁不变。进展与未完成大任务范围沿用reform-20261107-delivery.md；旧兼容回退程序可能恢复本次503，禁止用旧库覆盖新写入。仅记录提交，不再重启服务。
+
+
+### 2026-11-07 最新分支与测试闭环文档核对
+
+fetch GitHub 产品分支后本地仍 c80251ed，fast-forward 无新增代码；未回退、未修改产品或断言。更新 verification-review.md，串联需求、基线、候选、实测、独立审查、受阻／返修、人工或已授权项目 AI 决定、合并／推送／发布和反馈；项目测试与 testbox 文档链接同一规范。逐步人工操作记录与 Agent 演练明确分开。
+
+Mac Python3.14.6 复跑浏览器结果分类、项目测试、测试机 MCP、改造与个人 MCP：90 项及 7 子用例通过、零失败跳过，92.97秒。首次临时 venv 缺 pytest 在收集前失败，原件保留，安装依赖后实际重跑。合成数据／执行替身范围已标明，不是客户 E2E。当前 c802 两条 CI 的 Linux 完整、MCP、Windows 专项成功，但 Windows 完整取消，总状态 cancelled，未称全平台通过。
+
+computer use 实际读到应用清单和访达界面；浏览器宿主返回 unavailable，点击／输入／截图与 Windows GUI 未验证。受限项目客户端禁用宿主 computer_use，产品 Playwright 另走登记测试机，未混同能力。43 只读 active/PID1877418/重启0，218个 tmh 运行文件摘要与当前一致；文档交付不重启、不写数据库、不操作阿里云。证据：evidence/testing-loop-20261107/README.md。
+
+### 2026-11-07 场景级变更增量：开工基线与分批边界
+
+当前本地/远端均969b4004，工作区开工干净。A批先复现worker身份双实例、旧草稿派生策略和实际UI状态，再修复并回归；B批复用需求确认、项目知识与逐项证据补场景来源/纠偏/报告；C批核对长任务、真实宿主、通道用量预算和最小连接器；D批需要客户真实规则、环境、验收人与观察数据。已有持久化、固定源、MCP协议、项目测试和试点记录不重建。浏览器、Windows原生凭据、客户接口/价格/容量不能从旧演练推定通过。完整用户请求仍在推进，不把本开工记录写成完成。
+
+两个新增反例在969产品代码上实测失败：真实gateway→python -m worker预检合法execute连接无start；旧草稿补齐后integration_policy为None。最小修复迁出ContextVar唯一来源，并拷贝规范化派生策略；21项相关回归通过。UI补充反例暴露不完整草稿后端仍可start，继续补服务端条件与受影响回归。原始失败保存在本机/private/tmp/webuddy-scenario-20261107，交付时归档。
+
+### 2026-11-07 场景增量本地验证与缺口
+
+A批身份、旧草稿和实际UI修复完成隔离验证；场景/后继/报告、只入草稿的外部需求幂等接口、CLI原始用量和模型进程次数限制已实现。真实Chrome登录检查1440/768/390，未代人确认。完整诊断6失败原件保留：旧平台fixture缺执行条件、Mac符号链接路径、运行时schema变化；冻结后受影响92项通过。阅读报告38项/89子用例通过。实际Codex宿主只读成功，创建被自动审批policy never拒绝，不绕过、不记全链路通过。金额预算、全链路出域策略及完整客户连接器仍是产品缺口；目标容量、Windows GUI、跨日与怀柔真实验收待条件。见evidence/scenario-20261107/README.md。此记录尚不表示远端CI或43部署完成。
+
+### 2026-11-07 43报告读取暴露大响应传输问题
+
+ec7a64b6的push精确12门禁通过并发布43，15库副本/新旧互读及56362文件完整备份通过。真实身份读8项目和原计划预检成功，但新报告响应约35MB，TLS/SSH两种实际链路读完整响应失败，未记报告测试站通过。临时解析只连已登记43且保留TLS/凭据绑定；本机默认DNS域名不匹配是独立阻碍，旧个人客户端25工具需升级，当前源客户端37工具。
+
+补最小无损JSON传输：只有明确Accept-Encoding:gzip的大JSON使用gzip；旧客户端继续原始JSON，新CLI/MCP完整解码。字段、原始日志与图片引用不裁剪、不改验收。新客户端反例在旧实现失败；网关新增夹具补正确上下文后2项通过，网关全20项通过。首次组合87通过/3失败原件保留，其中2个原网关用例超时，1个新夹具漏上下文返回409；未放宽超时、权限或断言。其余只读/MCP/安装检查已通过。
+
+同ec7提交的PR合并树Linux3.11有两项harness probe来源瞬时失效失败，原件保留，43同两模块16项复跑通过；未确认根因、未改探测门禁。不能把push成功写成所有CI全绿。后续传输候选仍须自身精确CI与真实报告读取复验。
+
+### 2026-11-07 传输候选CI清理竞态
+
+1d69d455的Linux3.13完整套件唯一失败为独立复验fixture删除临时目录时监督进程仍写attempts/0004，报Directory not empty；3087项通过、63跳过、1958子用例，原日志保留。补fixture等待所有已登记监督进程退出后再清理，并断言等待成功，不删除业务断言、不扩大skip、不忽略清理失败。8项与3子用例本地复验通过。此补充不改变产品运行文件，仍等待新精确CI，不借其他提交绿色结果发布传输修复。
+
+
+### 2026-11-07 场景增量的测试站发布与传输复验
+
+ec7a64b6于19:51:38 CST在43启动（PID1918698、NRestarts0），备份pre-scenario-ec7a64b6-test-20261107T114959Z/state.tar.gz逐字节56362文件核验；2949清单/15库及19:52:58延迟健康通过。真实授权客户端读到8项目及原计划预检；原安装客户端仅25工具，源客户端37工具。没有改写真实任务、代人签收或更新阿里云。
+
+真实报告HTTP200但完整35412325字节响应在时限内未读完，此项没有计通过。1d69d455修复协商无损gzip和客户端解码，不裁剪字段；73项43回归及本机完整字节比对/20项网关回归通过。该提交Linux3.13遇到原监督器清理竞态；cf6143be补等待监督器退出后才清理，8项Mac/8项43复验通过，运行文件与1d一致。精确CF的最终CI、激活和真实报告结果继续追加。
+
+Windows精确CF分模块审计42372572908已经实际执行并持续保留每模块退出码/JUnit；存在凭据平台限制、冷导入字节码审计、SQLite清理占用等失败，不能称原生个人MCP或Windows完整全绿。用户自有Windows设备GUI仍未实测。本轮实际Codex宿主读取成功，但reform_create被自动审批“requires approval, but approval policy is never”拒绝；没有绕过，完整宿主写链路未验证。
+
+证据入口evidence/scenario-20261107/README.md新增十二项验收边界、实际操作、容量与未知费用。完整语义冲突/后继自动处置、金额预算及跨进程预留、所有通道外发限制、客户回调仍是产品缺口；客户规则、数据、环境与真实人工事件另列，未以客户条件掩盖未实现能力。
+
+
+### 2026-11-07 20:50 场景增量最终43记录
+
+cf6143bee2778cc14f09c0857ae45c57438b83bd已按精确CI42372559676的12要求成功激活；Linux两版各3088通过/63跳过。20:49:10启动PID1937441，20:50:40延迟90秒同PID/重启0，2950清单/15库、内外HTTP通过。备份pre-scenario-cf6143be-test-20261107T124731Z/state.tar.gz核验56441文件；兼容程序回退scenario-ec7a64b6，禁止旧库覆盖新数据。阿里云未动。
+
+已升级本机个人客户端，9模块与候选一致，未改凭据/配置；实际初始化37工具、8项目与原计划预检通过。完整大报告仍失败：无损gzip已降低至7550177字节，但原30秒、合法60秒SSH与直连均BrokenPipe；120秒被原上限拒绝。保留原件并停止重复，需保留完整证据的分段/可恢复下载，不称报告真实读取通过。
+
+Windows42372572908全16分片完成failure；两版各316单元，非零49/50、模块超时0，原日志/JUnit与跳过归档。没有改skip或断言。真实Codex写调用仍被宿主自动审批拒绝，完整宿主/客户POC未完成。交付文档列明产品剩余缺口及客户最小输入。本次后续仅记录推送，不为文档重启服务。
+
+
+### 2026-11-07 地图与报告增量开工
+
+基线本地/远端f5727dff，工作区干净。当前A批：图谱来源与固定源码、关系含义、后继完整契约/网页补条件、显式报告生成与分段校验、真实冷启动只读。B批在现有Atlas上增加有界局部地图/固定来源/上下文交接；C批复用计划状态与MCP加入路线和证据导航。每批独立验证提交交付43，不动阿里云；原审批拒绝、Windows历史失败和大报告原件保留。当前未完成，下一步新增来源错配反例并修复。
+
+### 2026-11-07 批次 A 隔离验证与候选准备
+- 基于 f5727dff 接续；来源快照/旧索引状态、Atlas真实关系及分页、完整后继契约与草稿前提、冻结报告分段续传、冷读字节码策略已实现。
+- 定向主体127项/96子项通过；36MB中断/新版本并存/损坏/撤权反例通过；真实SDK→worker权限与持久性通过。实际浏览器发现清单顺序误判并修复，随后实际下载落盘；桌面/窄屏后继和65项分页验证。记录 docs/self-improvement/evidence/map-20261107/README.md。
+- 本批不代人确认、采用、验收、合并。实际宿主写审批拒绝、Windows完整历史失败不消失。下一步精确CI→43备份兼容核验与部署→认证下载；随后继续B/C，不发布阿里云。
+### 2026-11-07 安装包清理与外部配置
+
+从最新f5727dff隔离工作树实施，按用户要求镜像留到下次。修复wheel缺状态图vendor JS/许可证，补server可选依赖、固定提交全新目录构建脚本及未来构建输入允许列表。原生serve支持TMH_DATA_DIR/HOST/PORT与TOKEN/FEISHU_APP_SECRET的_FILE输入；CLI显式参数优先，JSON仍沿用现有数据目录。新增deployment-check只检查七个JSON语法/顶层对象，不回显配置、不修改数据。
+
+88项及31子用例通过，包含真实子进程启动、HTTP匿名401/文件密钥200和数据位置验证；新wheel源码外安装smoke通过。旧wheel缺资源失败、Mac临时路径guard失败与误写测试文件名原件保留，未削弱断言。精确提交构建、CI与43发布尚待后续记录。证据evidence/package-config-20261107；未删数据/原图/旧备份，未改租户执行或人工验收边界，阿里云未操作。
+
+
+### 2026-11-07 包配置精确验证与合并版协议契约
+
+c927d8d4已普通推送并完成固定提交wheel/源码外smoke、全新server/mcp依赖安装与pip check；43的15库副本、4318清单和7项配置/HTTP实测通过。原CI Linux3.13为3095通过/63跳过，3.11被另一会话合并6e202604的推送取消，未发布不完整门槛候选。
+
+已接续6e202604，包配置实现原样保留；新干净wheel与源码外smoke、9项/2子用例通过。该合并版真实MCP门槛发现新增只读report_get后旧工具数断言26未更新（实际27），两版均3失败/32通过，原件保留。按已确认工具契约更新27，并新增report_get存在/report_create不可见断言；原只读/鉴权/来源断言保持，35项/4子用例真实协议复验通过。等待新精确CI后再43激活，阿里云未操作。证据evidence/package-config-20261107，未覆盖原工作区其他会话的未提交改动。
+
+### 批次 A 精确 CI 修复
+- 普通推送遇远端新增 c927d8d4 安装/外部配置修复；保留双方记录并合并为6e202604，交叉定向17项/2子项通过。
+- 6e精确CI的MCP专项失败来自旧测试硬编码26个只读工具，现新增报告读取为27。改为核对完整只读契约、明确报告读取存在，并实际调用生成操作确认只读宿主拒绝且未发出HTTP。隔离A工作树复验22项通过，未降低权限或改skip。原日志保留；待新精确CI后发布43。
+
+
+### 2026-11-07 合并候选学习上下文fixture修订
+
+25a4959a两版MCP通过，但Windows执行专项暴露8个学习上下文失败：旧fixture用普通文本模拟graph.db，新来源校验真实读取SQLite。Mac原样8失败/4通过；fixture改用真实graph.build后，42项及2子用例通过，不改产品/业务断言、不扩skip。原始CI和本机失败保留于package-config-20261107证据。25精确wheel和源码外smoke通过；43的4364清单/15库副本与7项HTTP配置测试通过。服务器首次检查早于传输完成的原失败也保留，按顺序重查通过。现役未切换，待修订精确CI满足门槛后43交付，不操作阿里云。
+
+### 2026-11-07 局部地图 B / 路线关联 C 进行中（未提交）
+- A运行代码已随25a4959a及远端3261e871保留；本地e3c60b7c只合并双方原始证据，与3261运行/测试/CI无差异。远端也独立修复同一知识fixture，采用其等价真实Graph初始化。不要重复改写或回退其安装配置成果。
+- 当前未提交B/C：code_maps保存现有图谱的有限子图、源码快照、关系类型及未展开项；局部地图网页、map_create/maps_list/map_get与本地source MCP；map_refs进入原草稿修订、派发工单、实际prompt上下文回执与交付报告。模型调用内核未改；当前问题定位为关键词/静态索引，不宣称模型语义推理。
+- /private/tmp/webuddy-map-20261107保存全部失败/复验与浏览器脚本。B定向47项、组合96项/100子项通过；真实SDK跨项目/只读/撤权以及固定源码、上下文失效反例通过。地图→草稿修订→刷新不派单→返回原图已登录浏览器通过。后续知识引用/分页小改尚待复验。
+- 下一步：补知识历史读取、范围交接与独立预期示范报告检查，重跑最终UI与必要回归；A等待3261精确Linux完整CI（Windows执行专项/MCP/安装/快速门已成功），先核对43是否已由包配置会话交付，避免重复重启。B/C不得混入A发布清单。阿里云不发布；客户验收、真实宿主写审批仍不代替。
+
+### 2026-11-07 局部地图 B / 路线证据 C 候选验证
+- 已保存局部地图与固定源码、知识历史引用、项目授权、幂等回执查询、有限展开、草稿 map_refs、真实执行器上下文注入/失效省略、地图与路线双向链接及报告引用。关键词/静态索引实现，不改LLM内核，不宣称语义完整。
+- 最终主体132项/100子项；最后手机分区与独立退款示范材料差异46项/7子项通过。登录浏览器地图→选择→刷新→草稿→读回→返回原图通过。手机原长列表妨碍导航已改步骤/地图/依据分区，实际复验及原图保留。
+- A已随另一包配置会话3261发布43，勿重复激活。安装客户端已升级；冻结8,496,988字节/10附件报告完成首段真实中断，正在原版本续读，尚不能计完成。真实报告仅私有tmp保留，不提交业务内容。
+- 证据docs/self-improvement/evidence/map-20261107/local-map，含独立预期1250分的错误/正确候选原始测试与可读报告。下一步提交B/C、精确CI、43按既有备份/兼容门部署并核对；实际宿主写审批和客户POC仍待，不发布阿里云。
+
+### 2026-11-07 22:41 包配置与合并修订已交付43
+
+实现c927d8d4、产品合并6e202604、协议25a4959a和fixture3261e871已一起交付；精确326 CI42380916509及兼容cf6143be的12门槛成功。Linux两版各3105通过/63跳过/1961子项，Windows执行专项各147通过/12跳过，安装分发/MCP门槛通过；Windows完整记录时仍运行，不宣称全平台通过。
+
+43 app→releases/package-3261e871/app；22:39:08启动PID1965848，22:41:48延迟160秒同PID/重启0，4389清单/15库、内外200/401通过。真实个人配置SDK初始化37工具并读取8授权项目成功（仅临时固定登记域名解析，TLS/绑定/凭据不改）；未重跑原大报告，也不冒充三宿主写入验收。备份pre-package-3261e871-test-20261107T143726Z/state.tar.gz核验56440文件成员；回退scenario-cf6143be程序，不恢复旧库。原备份/数据/图片/未提交其他会话改动保留，阿里云未动。
+
+精确326 wheel2013543字节、SHA25608151a1c0e7343930cc15c6b568a1932892850bf692d0a2dd6b5f52b99df3179，源码外smoke通过；已归档部署包/package-config-20261107/3261e871d33b。配置与命令见docs/deployment-config.md，证据package-config-20261107/release-receipt.json。Docker镜像按用户选择下次交付，本轮仅包与配置能力。此后记录提交不重启服务。
+
+### 2026-11-07 地图候选完整CI的路由清单修订
+- 91744d2f精确CI42383319727两版Linux唯一失败为test_tenant_policy旧路由数量207，新地图GET/POST使实际209。原路由集合一致性已通过；保留严格数量/集合校验并显式断言两地图路由，新增读者可读、内容成员可写、读者不可写、跨项目及撤权拒绝反例。原失败日志保留，不放宽权限或skip。
+- 917运行包4608文件/15库副本与43地图9项定向通过，但未激活；仍等待修订后精确CI。43继续运行3261e871。真实冻结报告已完成8,496,988字节完整续读与校验，技术回执入库，原业务内容不入Git。
+
+### 地图交付接续点（9edce45a等待精确CI）
+- 当前产品候选9edce45a5364d7f20a373929815bbbfec40a3c7f，与91744d2f产品运行/CI配置完全一致，只修tests/test_tenant_policy.py的新增两路由契约和权限负例。36项/261子项本机通过，43定向权限复验通过；完整原日志保留。
+- 精确push CI42384820365（PR另有42384825276）。43仍运行package-3261e871/app，不能把已上传的maps-9edce45a/app当已发布；4628清单、15库副本及配置核验通过。新门槛通过前不切换。
+- 发布助手/tmp/maps-final-{ci-gates.py,activate.sh,activation.py,health.py,native.py}，目标9edce45a、回退package-3261e871，共享锁/完整备份及程序回退保持。CI核对命令参数42384820365 42380916509；后者12必要门已成功，旧Windows完整因后续推送取消，不当通过。
+- 客户端B已重新安装，运行模块与候选一致（原构建绑定91744d2f）；上线后执行/private/tmp/webuddy-map-20261107/installed-b-live.py核对真实授权项目地图列表和既有冻结报告同版本/同哈希。该脚本不派单不代人决定。发布后即时和至少60秒延迟健康、原始CI日志与交付记录仍待。
+- 43真实报告8,496,988字节/10附件已完整续传通过；原始业务内容仅私有tmp/平台冻结存储，仓库只技术回执。隔离11个浏览器fixture服务已定向停止，原始材料保留。
+
+### 2026-11-07 23:31 地图与路线增量已交付43
+- 运行9edce45a5364d7f20a373929815bbbfec40a3c7f，app→releases/maps-9edce45a/app，23:29:08启动PID1983706；23:29:41与23:31:07（间隔86秒）均同PID/重启0，4628文件、15库、内外HTTP和真实个人连接8授权项目地图列表/原冻结报告哈希通过。阿里云未操作；未代人确认、派发真实任务或验收。
+- 备份pre-maps-9edce45a-test-20261107T152724Z/state.tar.gz完整核验57847文件成员；回退程序package-3261e871，禁止旧数据库覆盖新写入。原备份未删除。
+- 精确头9edce45a的PR CI42384825276十二必要门通过；实际checkout9c4e56dd与9edce45a完整Git树均56362944d4b46fd9f2e9124baef9b3d49566c002。两版Linux完整各3115通过/64跳过/1965子项。push CI42384820365的3.11有独立探测来源瞬时失效1项失败，原16项服务器定向复验通过，根因未确认；尝试原job复跑被GitHub拒绝，日志保留。不把push失败改写为通过，不改变来源门禁，以已证明同完整文件树的PR成功检查作为此候选依据。
+- Windows3.13完整发生access violation，涉及后台_charge读取数据库与测试清理并存，根因未闭合；3.11完整记录时仍运行。原continue-on-error未改，不宣称全平台通过。真实宿主写审批拒绝与客户POC仍未完成。
+- 报告8,496,988字节/10附件已在43真实网络完成原导出续传，已安装客户端新11模块读回一致；真实数据仅平台/私有目录，仓库仅技术回执。地图新建/源码/选择/草稿读回/刷新/有限展开/手机三分区在隔离登录服务实测；关键词静态定位，不宣称完整语义或测试覆盖。
+- 证据docs/self-improvement/evidence/map-20261107/release-9edce45a/receipt.json；可读退款演练及原始失败/修正检查见同目录上级local-map/synthetic-scenario。此后仅记录推送，不重启服务。
+
+### 2026-11-08 Windows x64 离线包候选（等待 Windows 启动验证）
+- 用户确认优先搜索并复用本机 Codex/Claude/Git，缺少时使用随包官方文件。隔离工作树基线7fc48cb7，原工作区保持干净；新增独立Python运行目录、固定第三方哈希、外部JSON配置和启动器，不修改平台运行/授权代码，不交付Docker镜像，不更新阿里云或43运行程序。
+- 本机11项/2子项通过；首次1项失败来自Mac /var真实路径差异，修订夹具比较resolve后通过，原失败保留。全ZIP12980文件逐字节SHA读回通过。候选536200088字节，完整SHA见evidence/windows-offline-20261108/local-bundle-candidate.json；运行源7fc48cb7，Python3.14.10、Codex0.166.0、Claude2.1.314、Git2.56.0.4、Node24.22.2。模型访问/账号/沙箱实际执行未核验，不含凭据、模型权重或业务数据。
+- 实际Windows11测试机已成功读取OS、已有工具和7zip路径；43:12022随后间歇中断。大ZIP传输太慢已停止该次传输；改传小构建输入后SFTP断连，原失败不改成成功。独立Windows CI会用固定源构建并临时阻止测试程序出站，验证真实启动/重启/鉴权/回收；通过前只称候选。既有Windows全量access violation限制保持。本次只增加打包/测试/说明文件，43站点不为离线包重启。
+
+### 离线包 Windows CI 首次反例与修复
+- 87f21a69已普通推送。Windows离线CI42389723641真实构建通过，360条程序级出站禁止规则下，本机/包内工具版本检测及cmd入口通过；MCP导入在pywintypes缺失处失败，未达到网页启动。finally已清理全部测试规则。原因是Mac跨平台pip忽略Windows marker，遗漏pywin32；原日志保留，不跳过MCP导入。
+- 新增pywin32 312 cp314官方wheel，按上游SHA核对；构建前按Windows/Python3.14和server/mcp extras检查完整依赖闭包。保留pywin32配套.pth/DLL，将官方postinstall脚本仅移入私有Scripts，不执行系统安装，RECORD同步迁移。13项/2子项与31个实际Windows依赖闭包本机通过，新增反例可在非Windows主机检测同类漏项。旧511MiB包仍为失败候选，不交付；等待修订的真实Windows断网复验。

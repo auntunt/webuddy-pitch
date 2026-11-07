@@ -1,0 +1,10 @@
+{
+  "request": {
+    "info": "{\"defaultNumber\":\"XSTH00000000686\",\"organId\":58,\"operTime\":\"2026-11-07 06:20:25\",\"number\":\"WB-NOAUTH-1794032437489-multi\",\"remark\":\"Webuddy隔离业务回归\",\"discount\":0,\"discountMoney\":0,\"discountLastMoney\":12.5,\"otherMoney\":0,\"accountId\":\"\",\"changeAmount\":-12.5,\"debt\":\"0.00\",\"type\":\"入库\",\"subType\":\"销售退货\",\"totalPrice\":-12.5,\"accountIdList\":\"[17,18]\",\"accountMoneyList\":\"[\\\"-7.25\\\",\\\"-5.25\\\"]\",\"fileName\":\"\",\"salesMan\":\"\",\"status\":\"0\"}",
+    "rows": "[{\"id\":\"17940324251310457354\",\"name\":\"商品1\",\"standard\":\"\",\"model\":\"\",\"color\":\"\",\"brand\":\"\",\"mfrs\":\"\",\"otherField1\":\"\",\"otherField2\":\"\",\"otherField3\":\"\",\"stock\":\"\",\"unit\":\"个\",\"snList\":\"\",\"batchNumber\":\"\",\"expirationDate\":\"\",\"sku\":\"\",\"preNumber\":\"\",\"finishNumber\":\"\",\"operNumber\":1,\"unitPrice\":12.5,\"allPrice\":12.5,\"taxRate\":0,\"taxMoney\":0,\"taxLastMoney\":12.5,\"remark\":\"\",\"linkId\":\"\",\"depotId\":14,\"barCode\":\"1001\"}]"
+  },
+  "response": {
+    "httpStatus": 500,
+    "body": "loginOut"
+  }
+}

@@ -1,0 +1,5 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+39209984 f01c90d112a5bf12953a464a6730c6a09ddc5c61c27f6cd8a283dcff849fa282
+{"started": "2026-11-07T05:09:03.760654+00:00", "ended": "2026-11-07T05:20:37.392384+00:00", "prefix_bytes": 31611904, "prefix_sha256": "a788d2fa65306498433528d49a85d60bba51b1097ff5b99b7da945fdf3638e07", "status": 0}

@@ -1,0 +1,27 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 17 items
+
+tests/test_context_pack.py::ContextPackTest::test_assembly_is_recorded_for_later_experience_mining PASSED [  5%]
+tests/test_context_pack.py::ContextPackTest::test_budget_limits_expansion_not_evidence PASSED [ 11%]
+tests/test_context_pack.py::ContextPackTest::test_cli_context_defaults_to_v2_and_legacy_flag_still_works PASSED [ 17%]
+tests/test_context_pack.py::ContextPackTest::test_cli_context_json_is_machine_readable PASSED [ 23%]
+tests/test_context_pack.py::ContextPackTest::test_duplicate_directory_names_still_get_unique_namespaces PASSED [ 29%]
+tests/test_context_pack.py::ContextPackTest::test_generous_budget_is_complete PASSED [ 35%]
+tests/test_context_pack.py::ContextPackTest::test_legacy_build_context_reports_truncation_instead_of_hiding_it PASSED [ 41%]
+tests/test_context_pack.py::ContextPackTest::test_output_is_deterministic PASSED [ 47%]
+tests/test_context_pack.py::ContextPackTest::test_pack_carries_source_version_and_full_text_handle PASSED [ 52%]
+tests/test_context_pack.py::ContextPackTest::test_pack_never_splits_an_item PASSED [ 58%]
+tests/test_context_pack.py::ContextPackTest::test_page_and_code_items_expose_the_right_full_text_commands PASSED [ 64%]
+tests/test_context_pack.py::ContextPackTest::test_reference_source_is_separate_and_current_comes_first PASSED [ 70%]
+tests/test_context_pack.py::ContextPackTest::test_relevant_flow_survives_render PASSED [ 76%]
+tests/test_context_pack.py::ContextPackTest::test_rendered_ids_survive_budget_trimming PASSED [ 82%]
+tests/test_context_pack.py::ContextPackTest::test_rendered_items_keep_canonical_ids PASSED [ 88%]
+tests/test_context_pack.py::ContextPackTest::test_sections_account_for_what_is_rendered PASSED [ 94%]
+tests/test_context_pack.py::ContextPackTest::test_unavailable_source_is_explicit_and_can_fail_closed PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_context_pack.xml -
+============================= 17 passed in 8.82s ==============================

@@ -14,6 +14,9 @@ import json
 import shlex
 import subprocess
 import time
+import uuid
+import os
+from xml.etree.ElementTree import ParseError
 from pathlib import Path
 
 from . import config as cfgmod
@@ -103,14 +106,42 @@ def run_commands(root: Path, cfg: dict, timeout: int = 3600) -> list[dict]:
     seq += [("check", c) for c in cfg.get("commands", {}).get("extra_checks", [])]
     results = []
     for kind, cmd in seq:
+        report_spec = cfg.get("commands", {}).get("test_report") if kind == "test" else None
+        report_path = None
+        if report_spec:
+            report_path = (root / report_spec["path"]).resolve()
+            if not (root / ".tmh" / "test-output").resolve().is_relative_to(root) or not report_path.is_relative_to((root / ".tmh" / "test-output").resolve()):
+                raise ValueError("CLI 用例报告必须放在 .tmh/test-output 下")
+            if report_spec["format"] not in ("json", "junit"):
+                raise ValueError("CLI 用例报告格式必须为 json 或 junit")
+            # Move stale output aside; never let a successful no-op reuse it.
+            if report_path.exists():
+                archive = cfgmod.tmh_dir(root) / "reports" / ("previous-" + uuid.uuid4().hex)
+                archive.parent.mkdir(parents=True, exist_ok=True)
+                report_path.replace(archive)
         t0 = time.time()
         try:
             r = subprocess.run(cmd, shell=True, cwd=str(root), capture_output=True, text=True, timeout=timeout, errors="replace")
             code, outp = r.returncode, (r.stdout + "\n" + r.stderr)
-        except subprocess.TimeoutExpired:
-            code, outp = -1, "超时 (%ds)" % timeout
+        except subprocess.TimeoutExpired as exc:
+            def decoded(value):
+                return value.decode("utf-8", errors="replace") if isinstance(value, bytes) else value or ""
+            code, outp = -1, decoded(exc.stdout) + "\n" + decoded(exc.stderr) + "\n超时 (%ds)" % timeout
         results.append({"kind": kind, "command": cmd, "exit_code": code, "seconds": round(time.time() - t0, 1),
-                        "tail": "\n".join(outp.strip().splitlines()[-40:])})
+                        "output": outp, "tail": "\n".join(outp.strip().splitlines()[-40:])})
+        if report_path:
+            from .platform.project_tests import cases
+            try:
+                raw = report_path.read_bytes()
+                artifact = cfgmod.tmh_dir(root) / "reports" / ("cases-" + uuid.uuid4().hex + "." + ("xml" if report_spec["format"] == "junit" else "json"))
+                artifact.parent.mkdir(parents=True, exist_ok=True)
+                artifact.write_bytes(raw)
+                results[-1].update(cases=cases(raw, report_spec["format"]), artifact=artifact.relative_to(root).as_posix(), artifact_sha256=sha256_file(artifact))
+                if any(c["status"] != "pass" for c in results[-1]["cases"]):
+                    results[-1]["evidence_error"] = "报告含失败或跳过用例"
+            except (OSError, ValueError, ParseError) as exc:
+                results[-1]["evidence_error"] = str(exc)
+                results[-1]["verification_state"] = "blocked"
     return results
 
 
@@ -136,14 +167,69 @@ def new_findings(root: Path, cfg: dict, base: dict | None, changed: list[str] | 
     return [f for f in scan["findings"] if f["severity"] in BLOCKING_SEVERITIES and fingerprint(f) not in known]
 
 
+def evidence_identity(root: Path, task: str = "") -> dict:
+    """Bind verification to source bytes, configuration and the effective contract."""
+    from .acceptance import find_contract, ac_rows, _tid
+    from .fsutil import git
+    tracked = git(root, "ls-files", "-z")
+    others = git(root, "ls-files", "--others", "--exclude-standard", "-z")
+    paths = set((tracked or "").split("\0")) | set(source_changes((others or "").split("\0")))
+    files = {}
+    for name in sorted(paths):
+        if not name or name.startswith(HARNESS_PATHS):
+            continue
+        path = root / name
+        if path.is_symlink():
+            files[name] = ["symlink", os.readlink(path)]
+        elif path.is_file():
+            files[name] = [sha256_file(path), bool(path.stat().st_mode & 0o111)]
+        else:
+            files[name] = None
+    contract = None
+    if task:
+        path = find_contract(root, task)
+        task = _tid(path)
+        text = path.read_text(encoding="utf-8")
+        # Status and observed results are presentation; requirements and checks are inputs.
+        import re
+        text = re.sub(r"^- 验收状态：.*$", "", text, flags=re.M)
+        rows = ac_rows(text)
+        section = re.search(r"^## 4\..*?$(.*?)(?=^## \d+\.|\Z)", text, re.M | re.S)
+        if section:
+            text = text[:section.start(1)] + json.dumps([{k:v for k,v in r.items() if k != "result"} for r in rows], ensure_ascii=False) + text[section.end(1):]
+        contract = hashlib.sha256(text.encode()).hexdigest()
+    payload = {"files": files, "config": cfgmod.load(root), "baseline": load_baseline(root), "contract": contract}
+    return {"task": task, "head": git_head(root), "sha256": hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()}
+
+
+def current_report(root: Path, task: str, report: dict) -> bool:
+    import re
+    if not re.fullmatch(r"[0-9a-f]{32}", report.get("id", "")) or report.get("report") != ".tmh/reports/verify-" + report["id"] + ".json":
+        return False
+    original = root / report["report"]
+    try:
+        if json.loads(original.read_text(encoding="utf-8")) != report:
+            return False
+    except (OSError, ValueError):
+        return False
+    for command in report.get("commands", []):
+        if command.get("artifact"):
+            artifact = (root / command["artifact"]).resolve()
+            if not artifact.is_relative_to((cfgmod.tmh_dir(root) / "reports").resolve()) or not artifact.is_file() or sha256_file(artifact) != command.get("artifact_sha256"):
+                return False
+    return bool(report.get("passed") and report.get("tests_ran") and report.get("identity") == evidence_identity(root, task))
+
+
 def verify(root: Path, run_tests: bool = True, timeout: int = 3600, task: str = "") -> dict:
     root = root.resolve()
     cfg = cfgmod.load(root)
     base = load_baseline(root)
+    identity = evidence_identity(root, task)
     changed = git_changed_files(root, base.get("head") if base else None)
     if changed is not None:
         changed = source_changes(changed)
     result = {
+        "id": uuid.uuid4().hex, "identity": identity, "task": identity["task"],
         "time": now(), "head": git_head(root), "baseline_head": base.get("head") if base else None,
         "changed_files": changed, "protected_violations": check_protected(root, cfg, base) if base else [],
         "new_findings": new_findings(root, cfg, base, changed), "commands": [], "notes": [],
@@ -167,10 +253,25 @@ def verify(root: Path, run_tests: bool = True, timeout: int = 3600, task: str = 
             result["path_check"] = dict(path_check(root, task), task=task)
         except (Refused, OSError) as e:
             result["path_check"] = {"ok": False, "task": task, "entries": [], "flows": [], "covered": [], "manual": [], "problems": [str(e)]}
-    failed_cmds = [c for c in result["commands"] if c["exit_code"] != 0]
-    result["passed"] = not result["protected_violations"] and not result["new_findings"] and not failed_cmds \
+    failed_cmds = [c for c in result["commands"] if c["exit_code"] != 0 or c.get("evidence_error")]
+    result["static_passed"] = not result["protected_violations"] and not result["new_findings"] \
         and (result.get("path_check") or {"ok": True})["ok"]
-    result["tests_ran"] = bool(result["commands"])
+    result["tests_ran"] = any(c["kind"] == "test" for c in result["commands"])
+    result["code_changed"] = identity != evidence_identity(root, task)
+    result["passed"] = bool(base and identity["head"] and result["static_passed"] and not failed_cmds and result["tests_ran"] and not result["code_changed"])
+    result["outcome"] = "blocked" if not base or not identity["head"] or not result["tests_ran"] or result["code_changed"] or any(c.get("verification_state") == "blocked" or c["exit_code"] in (-1, 126, 127) for c in result["commands"]) else "review_required" if result["passed"] else "repair_required"
+    if result["code_changed"]:
+        result["notes"].append("执行期间代码或验证契约变化，报告不能支持当前候选。")
+    if not result["tests_ran"]:
+        result["notes"].append("测试未执行；静态检查或构建成功不代表完整验证通过。")
+    proofs = {}
+    for criterion, ids in cfg.get("commands", {}).get("criteria", {}).items():
+        if not isinstance(ids, list) or not ids or any(not isinstance(i, str) for i in ids):
+            raise ValueError("验收项用例关联必须是非空用例 ID 数组")
+        command = next((c for c in result["commands"] if c["kind"] == "test"), {})
+        indexed = {c["id"]: c["status"] for c in command.get("cases", [])}
+        proofs[criterion] = {"status": "pass" if result["passed"] and all(indexed.get(i) == "pass" for i in ids) else "unverified", "cases": ids, "artifact": command.get("artifact")}
+    result["criterion_evidence"] = proofs
     _write_report(root, result)
     return result
 
@@ -178,7 +279,8 @@ def verify(root: Path, run_tests: bool = True, timeout: int = 3600, task: str = 
 def _write_report(root: Path, r: dict) -> None:
     d = cfgmod.tmh_dir(root) / "reports"
     d.mkdir(parents=True, exist_ok=True)
-    stamp = time.strftime("%Y%m%d-%H%M%S")
+    stamp = r["id"]
+    r["report"] = ".tmh/reports/verify-%s.json" % stamp
     (d / ("verify-%s.json" % stamp)).write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding="utf-8")
     (d / "verify-latest.json").write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding="utf-8")
     md = verify_md(r)
@@ -191,7 +293,7 @@ def verify_md(r: dict) -> str:
     if r["changed_files"] is not None:
         out.append("改动文件 %d 个。\n" % len(r["changed_files"]))
     out.append("## 受保护文件\n")
-    out.extend(["- ❌ `%s` %s" % (p["file"], p["problem"]) for p in r["protected_violations"]] or ["- ✅ 未改动基线测试与配置"])
+    out.extend(["- ❌ `%s` %s" % (p["file"], p["problem"]) for p in r["protected_violations"]] or (["- ✅ 未改动基线测试与配置"] if r["baseline_head"] else ["- 未建立基线，未执行此检查"]))
     out.append("\n## 新引入的信创不兼容点\n")
     out.extend(["- ❌ `%s:%d` %s %s — `%s`" % (f["file"], f["line"], f["rule"], f["title"], f["snippet"][:100]) for f in r["new_findings"]] or ["- ✅ 无"])
     out.append("\n## 构建与测试\n")

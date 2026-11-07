@@ -74,7 +74,7 @@ function accessFenceControls(root=document){
  if(!accessCanWrite())disable(['[onclick="newTicket()"]'],'当前账号只有查看权限，不能登记新任务。');
  if(!accessCanExecute(S.proj)){
   const reason='当前身份或租户尚未配置隔离执行权限，模型、Git 证据核对、构建和预览不可用。';
-  disable(['#nIn','#naAn','#naPlan','#naGo','#svGo','#trGo','#astToggle','#astOpen','#astSend','#aiCard [data-m]:not([data-m="fix"])','[data-run-recheck]','[data-run-page-go]','[data-run-decision]'],reason);
+  disable(['#nIn','#naAn','#naPlan','#naGo','#svGo','#trGo','#astToggle','#astOpen','#astSend','#aiCard [data-m]:not([data-m="fix"])','[data-run-recheck]','[data-run-review]','[data-run-verify-all]','[data-run-page-go]','[data-run-decision]'],reason);
   if(!accessCanMemberFix(S.proj))disable(['#naFix','#aiCard [data-m="fix"]'],reason);
  }
 }

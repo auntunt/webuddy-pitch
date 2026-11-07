@@ -1,0 +1,15 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 2 items
+
+tests/test_learning_experiment_gateway.py::ExperimentGatewayTests::test_fixed_synthetic_cycle_uses_real_worker_and_curator_tool_cannot_read_raw_result SKIPPED [ 50%]
+tests/test_learning_experiment_gateway.py::ExperimentGatewayTests::test_unisolated_tenant_can_register_but_cannot_dispatch_and_other_tenant_cannot_read SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_experiment_gateway.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_learning_experiment_gateway.py:78: private workers require Unix sockets
+SKIPPED [1] tests\test_learning_experiment_gateway.py:131: private workers require Unix sockets
+============================= 2 skipped in 0.21s ==============================

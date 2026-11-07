@@ -1,0 +1,202 @@
+[
+  {
+    "variant": "single",
+    "number": "WEBUDDY-REFUND-1794032410659",
+    "request": {
+      "info": "{\"defaultNumber\":\"XSTH00000000685\",\"organId\":58,\"operTime\":\"2026-11-07 06:20:10\",\"number\":\"WEBUDDY-REFUND-1794032410659\",\"remark\":\"Webuddy隔离业务回归\",\"discount\":0,\"discountMoney\":0,\"discountLastMoney\":12.5,\"otherMoney\":0,\"accountId\":17,\"changeAmount\":-12.5,\"debt\":0,\"type\":\"入库\",\"subType\":\"销售退货\",\"totalPrice\":-12.5,\"accountIdList\":\"\",\"accountMoneyList\":\"\",\"fileName\":\"\",\"salesMan\":\"\",\"status\":\"0\"}",
+      "rows": "[{\"id\":\"17940324102620339817\",\"name\":\"商品1\",\"standard\":\"\",\"model\":\"\",\"color\":\"\",\"brand\":\"\",\"mfrs\":\"\",\"otherField1\":\"\",\"otherField2\":\"\",\"otherField3\":\"\",\"stock\":\"\",\"unit\":\"个\",\"snList\":\"\",\"batchNumber\":\"\",\"expirationDate\":\"\",\"sku\":\"\",\"preNumber\":\"\",\"finishNumber\":\"\",\"operNumber\":1,\"unitPrice\":12.5,\"allPrice\":12.5,\"taxRate\":0,\"taxMoney\":0,\"taxLastMoney\":12.5,\"remark\":\"\",\"linkId\":\"\",\"depotId\":14,\"barCode\":\"1001\"}]"
+    },
+    "response": {
+      "msg": "操作成功",
+      "code": 200
+    },
+    "database": [
+      "-12.500000",
+      "-12.500000",
+      "",
+      "0",
+      "1.000000",
+      "12.500000"
+    ],
+    "detail": {
+      "code": 200,
+      "data": {
+        "id": 292,
+        "type": "入库",
+        "subType": "销售退货",
+        "defaultNumber": "XSTH00000000685",
+        "number": "WEBUDDY-REFUND-1794032410659",
+        "createTime": "2026-11-07T06:20:11.000+0000",
+        "operTime": "2026-11-06T22:20:10.000+0000",
+        "organId": 58,
+        "creator": 63,
+        "accountId": 17,
+        "changeAmount": 12.5,
+        "backAmount": 0,
+        "totalPrice": 12.5,
+        "payType": "现付",
+        "billType": null,
+        "remark": "Webuddy隔离业务回归",
+        "fileName": "",
+        "salesMan": "",
+        "accountIdList": "",
+        "accountMoneyList": "",
+        "discount": 0,
+        "discountMoney": 0,
+        "discountLastMoney": 12.5,
+        "otherMoney": 0,
+        "deposit": 0,
+        "lastDeposit": 0,
+        "debt": 0,
+        "lastDebt": 0,
+        "status": "0",
+        "purchaseStatus": "0",
+        "source": "0",
+        "linkNumber": null,
+        "linkApply": null,
+        "tenantId": 63,
+        "deleteFlag": "0",
+        "projectName": null,
+        "organName": "客户1",
+        "userName": null,
+        "accountName": "账户1",
+        "allocationProjectName": null,
+        "materialsList": "商品1  sp1 ",
+        "salesManStr": null,
+        "operTimeStr": "2026-11-07 06:20:10",
+        "finishDebt": null,
+        "depotHeadType": "销售退货入库",
+        "creatorName": "测试用户",
+        "contacts": "小李",
+        "telephone": "",
+        "address": "",
+        "finishDeposit": null,
+        "needDebt": null,
+        "materialCount": 1,
+        "hasFinancialFlag": null,
+        "hasBackFlag": false,
+        "realNeedDebt": null,
+        "bankName": "",
+        "accountNumber": "",
+        "taxNum": "",
+        "phoneNum": "12345678"
+      }
+    },
+    "duplicate": {
+      "code": 8500022,
+      "data": {
+        "message": "抱歉，单据编号已经存在"
+      }
+    },
+    "delayed": {
+      "code": 8500022,
+      "data": {
+        "message": "抱歉，单据编号已经存在"
+      }
+    },
+    "unauthorized": {
+      "httpStatus": 500,
+      "body": "loginOut"
+    }
+  },
+  {
+    "variant": "multi",
+    "number": "WEBUDDY-REFUND-1794032425535",
+    "request": {
+      "info": "{\"defaultNumber\":\"XSTH00000000686\",\"organId\":58,\"operTime\":\"2026-11-07 06:20:25\",\"number\":\"WEBUDDY-REFUND-1794032425535\",\"remark\":\"Webuddy隔离业务回归\",\"discount\":0,\"discountMoney\":0,\"discountLastMoney\":12.5,\"otherMoney\":0,\"accountId\":\"\",\"changeAmount\":-12.5,\"debt\":\"0.00\",\"type\":\"入库\",\"subType\":\"销售退货\",\"totalPrice\":-12.5,\"accountIdList\":\"[17,18]\",\"accountMoneyList\":\"[\\\"-7.25\\\",\\\"-5.25\\\"]\",\"fileName\":\"\",\"salesMan\":\"\",\"status\":\"0\"}",
+      "rows": "[{\"id\":\"17940324251310457354\",\"name\":\"商品1\",\"standard\":\"\",\"model\":\"\",\"color\":\"\",\"brand\":\"\",\"mfrs\":\"\",\"otherField1\":\"\",\"otherField2\":\"\",\"otherField3\":\"\",\"stock\":\"\",\"unit\":\"个\",\"snList\":\"\",\"batchNumber\":\"\",\"expirationDate\":\"\",\"sku\":\"\",\"preNumber\":\"\",\"finishNumber\":\"\",\"operNumber\":1,\"unitPrice\":12.5,\"allPrice\":12.5,\"taxRate\":0,\"taxMoney\":0,\"taxLastMoney\":12.5,\"remark\":\"\",\"linkId\":\"\",\"depotId\":14,\"barCode\":\"1001\"}]"
+    },
+    "response": {
+      "msg": "操作成功",
+      "code": 200
+    },
+    "database": [
+      "-12.500000",
+      "-12.500000",
+      "-7.25,-5.25",
+      "0",
+      "1.000000",
+      "12.500000"
+    ],
+    "detail": {
+      "code": 200,
+      "data": {
+        "id": 293,
+        "type": "入库",
+        "subType": "销售退货",
+        "defaultNumber": "XSTH00000000686",
+        "number": "WEBUDDY-REFUND-1794032425535",
+        "createTime": "2026-11-07T06:20:26.000+0000",
+        "operTime": "2026-11-06T22:20:25.000+0000",
+        "organId": 58,
+        "creator": 63,
+        "accountId": null,
+        "changeAmount": 12.5,
+        "backAmount": 0,
+        "totalPrice": 12.5,
+        "payType": "现付",
+        "billType": null,
+        "remark": "Webuddy隔离业务回归",
+        "fileName": "",
+        "salesMan": "",
+        "accountIdList": "17,18",
+        "accountMoneyList": "-7.25,-5.25",
+        "discount": 0,
+        "discountMoney": 0,
+        "discountLastMoney": 12.5,
+        "otherMoney": 0,
+        "deposit": 0,
+        "lastDeposit": 0,
+        "debt": 0,
+        "lastDebt": 0,
+        "status": "0",
+        "purchaseStatus": "0",
+        "source": "0",
+        "linkNumber": null,
+        "linkApply": null,
+        "tenantId": 63,
+        "deleteFlag": "0",
+        "projectName": null,
+        "organName": "客户1",
+        "userName": null,
+        "accountName": "账户1(7.25元) 账户2(5.25元) ",
+        "allocationProjectName": null,
+        "materialsList": "商品1  sp1 ",
+        "salesManStr": null,
+        "operTimeStr": "2026-11-07 06:20:25",
+        "finishDebt": null,
+        "depotHeadType": "销售退货入库",
+        "creatorName": "测试用户",
+        "contacts": "小李",
+        "telephone": "",
+        "address": "",
+        "finishDeposit": null,
+        "needDebt": null,
+        "materialCount": 1,
+        "hasFinancialFlag": null,
+        "hasBackFlag": false,
+        "realNeedDebt": null,
+        "bankName": "",
+        "accountNumber": "",
+        "taxNum": "",
+        "phoneNum": "12345678"
+      }
+    },
+    "duplicate": {
+      "code": 8500022,
+      "data": {
+        "message": "抱歉，单据编号已经存在"
+      }
+    },
+    "delayed": {
+      "code": 8500022,
+      "data": {
+        "message": "抱歉，单据编号已经存在"
+      }
+    },
+    "unauthorized": {
+      "httpStatus": 500,
+      "body": "loginOut"
+    }
+  }
+]

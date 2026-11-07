@@ -5,6 +5,7 @@ import unittest
 
 from tmh.platform.ui import JS
 from tmh.platform.ui_work import WORK_JS
+from tmh.platform.ui_workspace import WORKSPACE_JS
 from tests.test_ui_run_preview import ASYNC_HARNESS
 
 
@@ -17,6 +18,7 @@ class TicketRunSyncUiTest(unittest.TestCase):
         runs = JS.split("// ---------- runs\n", 1)[1].split("async function showPrompt", 1)[0]
         top = "function plainState" + WORK_JS.split("function plainState", 1)[1].split("async function ticketTopWire", 1)[0]
         chips = "const STL=" + WORK_JS.split("const STL=", 1)[1].split("const MODE=", 1)[0]
+        tabs = "function taskTab" + WORKSPACE_JS.split("function taskTab", 1)[1].split("function taskLayout", 1)[0]
         wiring = "const wireNext=()=>{" + JS.split("  const wireNext=()=>{", 1)[1].split("  wireNext();pkgWire", 1)[0]
         harness = ASYNC_HARNESS.replace(
             "const $=selector=>selector==='#mbody'?body:selector==='#modal'?modalBox:null;",
@@ -60,7 +62,7 @@ getHandler=async url=>{
  if(url.startsWith('/api/runs/'))return current;
  throw new Error('unexpected request '+url);
 };
-""" + chips + top + helpers + related + handwork + runs + wiring + r"""
+""" + chips + top + helpers + related + handwork + runs + tabs + wiring + r"""
 f=flowState(d);na=nextAction(d,f);S.cur=d;
 nodes.fs.value=d.ticket.status;nodes.tTop.innerHTML=ticketTop(d,f,na);nodes.tSteps.innerHTML=stepper(f);
 nodes.tNextText.innerHTML=na.text;nodes.tNextActions.innerHTML=na.btns;nodes.tRunCount.textContent=ticketRunCount(d.runs);

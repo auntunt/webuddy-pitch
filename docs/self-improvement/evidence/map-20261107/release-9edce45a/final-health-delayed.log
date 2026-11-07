@@ -1,0 +1,16 @@
+RELEASE_MANIFEST_DATABASE_OK
+MainPID=1983706
+NRestarts=0
+ActiveState=active
+SubState=running
+ActiveEnterTimestamp=Sat 2026-11-07 23:29:08 CST
+
+/login 200
+/t/default/api/projects 401
+RUNNING_CWD_OK 1983706
+http://127.0.0.1:8790 /login 200
+http://127.0.0.1:8790 /t/default/api/projects 401
+https://webuddy.bbstack.date /login 200
+https://webuddy.bbstack.date /t/default/api/projects 401
+HEALTH_AT 2026-11-07T23:31:07.745744+08:00
+SERVICE_ACTIVE_RUNNING_ZERO_RESTARTS

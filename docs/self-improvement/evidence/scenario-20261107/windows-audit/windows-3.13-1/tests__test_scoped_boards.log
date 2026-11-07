@@ -1,0 +1,12 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 2 items
+
+tests/test_scoped_boards.py::ScopedBoardTests::test_inbox_filters_before_stage_computation_and_counts PASSED [ 50%]
+tests/test_scoped_boards.py::ScopedBoardTests::test_member_aggregate_counts_only_authorized_projects_and_waiting PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_scoped_boards.xml -
+============================== 2 passed in 2.36s ==============================

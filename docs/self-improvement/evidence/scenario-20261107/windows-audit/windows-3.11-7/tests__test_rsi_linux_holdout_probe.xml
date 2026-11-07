@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="67" time="0.254" timestamp="2026-11-07T12:42:26.823414+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_rsi_linux_holdout_probe.LinuxProbeContractTests" name="test_cleanup_is_required_and_failure_remains_failure" time="0.009"><failure message="ValueError: probe fixture/identity mismatch">self = &lt;unittest.case._Outcome object at 0x0000029539A72390&gt;
+test_case = &lt;test_rsi_linux_holdout_probe.LinuxProbeContractTests testMethod=test_cleanup_is_required_and_failure_remains_failure&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_rsi_linux_holdout_probe.LinuxProbeContractTests testMethod=test_cleanup_is_required_and_failure_remains_failure&gt;
+result = &lt;TestCaseFunction test_cleanup_is_required_and_failure_remains_failure&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_rsi_linux_holdout_probe.LinuxProbeContractTests testMethod=test_cleanup_is_required_and_failure_remains_failure&gt;
+method = &lt;bound method LinuxProbeContractTests.test_cleanup_is_required_and_failure_remains_failure of &lt;test_rsi_linux_holdout_probe.LinuxProbeContractTests testMethod=test_cleanup_is_required_and_failure_remains_failure&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_rsi_linux_holdout_probe.LinuxProbeContractTests testMethod=test_cleanup_is_required_and_failure_remains_failure&gt;
+
+    def test_cleanup_is_required_and_failure_remains_failure(self):
+        for key,value in [('complete',False),('reaped',False),('output_complete',False),('remaining_group',True),('errors',['failure'])]:
+            v=declared_report();v['cleanup'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):M.classify(v,Path('/tmp/fixture'),1000)
+        v=declared_report();v.update(probe_passed=False,returncode=1,checks={})
+&gt;       self.assertEqual(M.classify(v,Path('/tmp/fixture'),1000)['status'],'failed')
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_rsi_linux_holdout_probe.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+report = {'probe_passed': False, 'returncode': 1, 'reason': 'exited', 'fixture_root': '/tmp/fixture', ...}
+root = WindowsPath('/tmp/fixture'), owner_uid = 1000
+
+    def classify(report, root, owner_uid):
+        # Structural consistency is not independent verification of a supplied report.
+        if not isinstance(report, dict) or report.get('fixture_root') != str(root) or report.get('owner_uid') != owner_uid or report.get('test_uid') != 65534:
+&gt;           raise ValueError('probe fixture/identity mismatch')
+E           ValueError: probe fixture/identity mismatch
+
+scripts\rsi\linux_holdout_probe.py:121: ValueError</failure></testcase><testcase classname="tests.test_rsi_linux_holdout_probe.LinuxProbeContractTests" name="test_complete_declaration_is_only_a_probe" time="0.001"><failure message="ValueError: probe fixture/identity mismatch">self = &lt;unittest.case._Outcome object at 0x0000029539C94E10&gt;
+test_case = &lt;test_rsi_linux_holdout_probe.LinuxProbeContractTests testMethod=test_complete_declaration_is_only_a_probe&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_rsi_linux_holdout_probe.LinuxProbeContractTests testMethod=test_complete_declaration_is_only_a_probe&gt;
+result = &lt;TestCaseFunction test_complete_declaration_is_only_a_probe&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_rsi_linux_holdout_probe.LinuxProbeContractTests testMethod=test_complete_declaration_is_only_a_probe&gt;
+method = &lt;bound method LinuxProbeContractTests.test_complete_declaration_is_only_a_probe of &lt;test_rsi_linux_holdout_probe.LinuxProbeContractTests testMethod=test_complete_declaration_is_only_a_probe&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_rsi_linux_holdout_probe.LinuxProbeContractTests testMethod=test_complete_declaration_is_only_a_probe&gt;
+
+    def test_complete_declaration_is_only_a_probe(self):
+&gt;       result=M.classify(declared_report(),Path('/tmp/fixture'),1000)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_rsi_linux_holdout_probe.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+report = {'probe_passed': True, 'returncode': 0, 'reason': 'exited', 'fixture_root': '/tmp/fixture', ...}
+root = WindowsPath('/tmp/fixture'), owner_uid = 1000
+
+    def classify(report, root, owner_uid):
+        # Structural consistency is not independent verification of a supplied report.
+        if not isinstance(report, dict) or report.get('fixture_root') != str(root) or report.get('owner_uid') != owner_uid or report.get('test_uid') != 65534:
+&gt;           raise ValueError('probe fixture/identity mismatch')
+E           ValueError: probe fixture/identity mismatch
+
+scripts\rsi\linux_holdout_probe.py:121: ValueError</failure></testcase><testcase classname="tests.test_rsi_linux_holdout_probe.LinuxProbeContractTests" name="test_missing_or_failing_negative_control_cannot_pass" time="0.010" /><testcase classname="tests.test_rsi_linux_holdout_probe.LinuxProbeContractTests" name="test_unsupported_platform_never_calls_sudo_or_creates_fixture" time="0.001" /><testcase classname="tests.test_rsi_linux_holdout_probe.LinuxProbeContractTests" name="test_wrong_identity_or_claimed_production_qualification_rejected" time="0.003" /></testsuite></testsuites>

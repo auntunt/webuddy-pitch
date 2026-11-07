@@ -1,0 +1,12 @@
+{
+  "ci": {
+    "baseline": "blocked",
+    "candidate": "pass",
+    "missing": "blocked"
+  },
+  "same_web_mcp_evidence": true,
+  "mcp_read_only": true,
+  "requirement_confirmed": false,
+  "human_approved": false,
+  "business_accepted": false
+}

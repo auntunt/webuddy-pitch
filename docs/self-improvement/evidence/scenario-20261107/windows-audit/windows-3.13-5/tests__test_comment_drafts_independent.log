@@ -1,0 +1,22 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 12 items
+
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_authenticated_actor_uses_server_identity_not_stale_local_display_name PASSED [  8%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_changed_authenticated_identity_blocks_old_submit_handler PASSED [ 16%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_corrupt_pending_metadata_never_overwrites_original_record PASSED [ 25%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_edit_away_and_back_during_send_is_a_new_draft_even_when_text_matches PASSED [ 33%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_failure_to_remove_completed_record_retries_same_receipt_without_loss PASSED [ 41%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_identity_change_blocks_old_handler_and_keeps_both_scoped_bodies PASSED [ 50%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_late_receipt_after_leaving_and_returning_refreshes_the_current_ticket PASSED [ 58%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_long_unicode_author_matches_server_codepoint_identity_without_truncating_draft PASSED [ 66%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_pending_retry_never_sends_new_draft_and_new_send_gets_new_receipt PASSED [ 75%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_quota_failure_never_posts_unrecoverable_request_or_truncates_body PASSED [ 83%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_real_summary_refresh_updates_discussion_without_replacing_selected_file PASSED [ 91%]
+tests/test_comment_drafts_independent.py::CommentDraftIndependentTest::test_unmatched_receipt_preserves_pending_and_edited_body_after_reload PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_comment_drafts_independent.xml -
+============================= 12 passed in 5.92s ==============================

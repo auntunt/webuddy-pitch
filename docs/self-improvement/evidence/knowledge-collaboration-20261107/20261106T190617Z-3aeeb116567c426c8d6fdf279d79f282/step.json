@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "label": "real-http-scoped-catalog",
+  "actor": "Codex",
+  "actor_type": "agent",
+  "identity_verified": false,
+  "method": "terminal_command",
+  "started_at": "2026-11-06T19:06:17.803244+00:00",
+  "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness",
+  "command": [
+    "/Users/auntlee/.local/bin/python3.11",
+    "-m",
+    "unittest",
+    "test_tenant_gateway.TenantGatewayTest.test_member_knowledge_catalog_and_memory_are_scoped_over_http"
+  ],
+  "state": "completed",
+  "acceptance": false,
+  "exit_code": 0,
+  "ended_at": "2026-11-06T19:06:18.882321+00:00",
+  "artifacts": {
+    "stdout.bin": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr.bin": {
+      "bytes": 98,
+      "sha256": "f489c8226095c8768123b62682e5cb695262d3493efb2098ba542f5f0839e968"
+    }
+  }
+}

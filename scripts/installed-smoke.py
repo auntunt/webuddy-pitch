@@ -28,6 +28,11 @@ def main():
     module = Path(tmh.__file__).resolve()
     module.relative_to(installed)  # refuse a checkout/global-package false positive
     print("installed module: %s" % module, flush=True)
+    from types import SimpleNamespace
+    from tmh.platform.server import api_statechart_renderer
+    renderer = api_statechart_renderer(SimpleNamespace(project=lambda key: {}), None, 'FIXTURE')
+    assert renderer['js'], 'installed statechart renderer is missing'
+    assert (module.parent / 'platform/vendor/pele-LICENSE').is_file()
     bootstrap = (
         "import sys; sys.path.insert(0, sys.argv.pop(1)); "
         "from tmh.cli import main; raise SystemExit(main())"

@@ -1,0 +1,13 @@
+F
+======================================================================
+FAIL: test_member_knowledge_catalog_and_memory_are_scoped_over_http (test_tenant_gateway.TenantGatewayTest.test_member_knowledge_catalog_and_memory_are_scoped_over_http)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_tenant_gateway.py", line 107, in test_member_knowledge_catalog_and_memory_are_scoped_over_http
+    self.assertEqual(status, 200, result)
+AssertionError: 409 != 200 : {'error': '成员身份或权限已变化，请重新读取', 'code': 'context_changed'}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.864s
+
+FAILED (failures=1)

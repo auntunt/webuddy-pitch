@@ -1,0 +1,22 @@
+MANIFEST_OK 2586
+DATABASE_COPIES_OK 15
+MANIFEST_OK 2586
+DATABASE_COPIES_OK 15
+BACKUP_BYTES_VERIFIED 55964
+active
+BACKUP=/opt/webuddy/backups/pre-e961515-test-20261106T200609Z
+RELEASE_MANIFEST_DATABASE_OK
+MainPID=1678745
+NRestarts=0
+ActiveState=active
+SubState=running
+ActiveEnterTimestamp=Sat 2026-11-07 04:07:48 CST
+
+/login 200
+/t/default/api/projects 401
+RUNNING_CWD_OK 1678745
+http://127.0.0.1:8790 /login 200
+http://127.0.0.1:8790 /t/default/api/projects 401
+https://webuddy.bbstack.date /login 200
+https://webuddy.bbstack.date /t/default/api/projects 401
+HEALTH_AT 2026-11-07T04:07:51.378951+08:00

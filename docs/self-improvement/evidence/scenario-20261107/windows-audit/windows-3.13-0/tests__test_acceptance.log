@@ -1,0 +1,1163 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 36 items
+
+tests/test_acceptance.py::SizeWarningsTest::test_count_and_characters_compare_to_five_peer_medians PASSED [  2%]
+tests/test_acceptance.py::SizeWarningsTest::test_explicit_new_file_estimates_warn_only_above_three PASSED [  5%]
+tests/test_acceptance.py::SizeWarningsTest::test_normal_contract_has_no_warning PASSED [  8%]
+tests/test_acceptance.py::SizeWarningsTest::test_parallel_titles_warn PASSED [ 11%]
+tests/test_acceptance.py::SizeWarningsTest::test_small_samples_use_absolute_limits PASSED [ 13%]
+tests/test_acceptance.py::AcceptanceTest::test_a_failed_check_goes_back_with_its_reason FAILED [ 16%]
+tests/test_acceptance.py::AcceptanceTest::test_a_new_contract_starts_as_a_draft_and_shows_its_state PASSED [ 19%]
+tests/test_acceptance.py::AcceptanceTest::test_a_parallel_implementation_does_not_pass_the_path_check FAILED [ 22%]
+tests/test_acceptance.py::AcceptanceTest::test_adopted_original_headings_cannot_supply_the_new_contracts_ac PASSED [ 25%]
+tests/test_acceptance.py::AcceptanceTest::test_agents_are_stopped_before_they_confirm_or_close PASSED [ 27%]
+tests/test_acceptance.py::AcceptanceTest::test_concurrent_proposals_cannot_exceed_two_pending PASSED [ 30%]
+tests/test_acceptance.py::AcceptanceTest::test_confirmation_receipt_does_not_follow_a_preexisting_staging_symlink PASSED [ 33%]
+tests/test_acceptance.py::AcceptanceTest::test_confirmation_retry_after_receipt_failure_reuses_the_new_draft PASSED [ 36%]
+tests/test_acceptance.py::AcceptanceTest::test_confirmation_retry_refuses_a_changed_proposal_snapshot PASSED [ 38%]
+tests/test_acceptance.py::AcceptanceTest::test_corrections_that_recur_ask_for_a_reviewed_skill_change PASSED [ 41%]
+tests/test_acceptance.py::AcceptanceTest::test_dirty_code_and_contract_changes_invalidate_evidence 
+tests/test_acceptance.py::AcceptanceTest::test_dirty_code_and_contract_changes_invalidate_evidence PASSED [ 44%]
+tests/test_acceptance.py::AcceptanceTest::test_exact_l2_cases_can_reach_automatic_evidence_state FAILED [ 47%]
+tests/test_acceptance.py::AcceptanceTest::test_execution_mutation_is_blocked FAILED [ 50%]
+tests/test_acceptance.py::AcceptanceTest::test_human_command_guard_handles_shell_words_and_cli_options 
+tests/test_acceptance.py::AcceptanceTest::test_human_command_guard_handles_shell_words_and_cli_options PASSED [ 52%]
+tests/test_acceptance.py::AcceptanceTest::test_new_head_invalidates_an_old_report FAILED [ 55%]
+tests/test_acceptance.py::AcceptanceTest::test_no_acceptance_criteria_no_implementation PASSED [ 58%]
+tests/test_acceptance.py::AcceptanceTest::test_no_tests_cannot_enter_local_verification PASSED [ 61%]
+tests/test_acceptance.py::AcceptanceTest::test_only_a_person_confirms_and_closes FAILED [ 63%]
+tests/test_acceptance.py::AcceptanceTest::test_only_tests_or_config_do_not_reach_the_entry PASSED [ 66%]
+tests/test_acceptance.py::AcceptanceTest::test_other_tasks_report_is_not_evidence FAILED [ 69%]
+tests/test_acceptance.py::AcceptanceTest::test_pending_proposals_are_capped_per_source_and_old_corrections_are_unchanged PASSED [ 72%]
+tests/test_acceptance.py::AcceptanceTest::test_proposal_cli_and_agent_hook PASSED [ 75%]
+tests/test_acceptance.py::AcceptanceTest::test_proposal_confirmation_rejects_paths_outside_the_proposal_directory PASSED [ 77%]
+tests/test_acceptance.py::AcceptanceTest::test_proposal_confirmation_requires_a_person_and_creates_only_a_draft PASSED [ 80%]
+tests/test_acceptance.py::AcceptanceTest::test_proposal_directory_symlink_cannot_write_or_confirm_outside_the_repo PASSED [ 83%]
+tests/test_acceptance.py::AcceptanceTest::test_prose_pass_does_not_replace_case_evidence FAILED [ 86%]
+tests/test_acceptance.py::AcceptanceTest::test_report_is_immutable_and_latest_is_only_a_pointer FAILED [ 88%]
+tests/test_acceptance.py::AcceptanceTest::test_size_warnings_are_visible_without_blocking_check_or_advance PASSED [ 91%]
+tests/test_acceptance.py::AcceptanceTest::test_stale_or_tampered_case_reports_do_not_pass FAILED [ 94%]
+tests/test_acceptance.py::AcceptanceTest::test_structural_corrections_create_proposals_outside_the_state_machine PASSED [ 97%]
+tests/test_acceptance.py::AcceptanceTest::test_unsandboxed_codex_session_cannot_adopt_a_proposal PASSED [100%]
+
+================================== FAILURES ===================================
+________ AcceptanceTest.test_a_failed_check_goes_back_with_its_reason _________
+
+self = <unittest.case._Outcome object at 0x0000022CCC50B530>
+test_case = <test_acceptance.AcceptanceTest testMethod=test_a_failed_check_goes_back_with_its_reason>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_a_failed_check_goes_back_with_its_reason>
+result = <TestCaseFunction test_a_failed_check_goes_back_with_its_reason>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_a_failed_check_goes_back_with_its_reason>
+method = <bound method AcceptanceTest.test_a_failed_check_goes_back_with_its_reason of <test_acceptance.AcceptanceTest testMethod=test_a_failed_check_goes_back_with_its_reason>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_a_failed_check_goes_back_with_its_reason>
+
+    def test_a_failed_check_goes_back_with_its_reason(self):
+        self.fill()
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s.replace("page * 20);", "page * 20); // x", 1))
+        verify(self.root, task="T001")
+>       acc.advance(self.root, "T001", "verify_local")
+
+tests\test_acceptance.py:282: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmpu7d2u6vt/oa')
+tid = 'T001', to = 'verify_local', who = '', note = '', ref = '', build = ''
+path_result = None
+
+    def advance(root: Path, tid: str, to: str, who: str = "", note: str = "", ref: str = "", build: str = "",
+                path_result: dict | None = None) -> dict:
+        """Move a task to state `to` if the rules allow it; raises Refused with the reason otherwise."""
+        root = root.resolve()
+        rec = load(root, tid)
+        cur = rec["state"]
+        if to not in LABEL:
+            raise Refused("未知状态 %s，可选：%s" % (to, "、".join(LABEL)))
+        if to not in MOVES.get(cur, ()):
+            raise Refused("不能从“%s”直接到“%s”，可以去：%s" % (LABEL[cur], LABEL[to], "、".join(LABEL[x] for x in MOVES.get(cur, ())) or "无"))
+        text = (root / rec["file"]).read_text(encoding="utf-8")
+        ev = None
+        if to in HUMAN_ONLY or cur == "closed":
+            _human(who, to if to in HUMAN_ONLY else "closed")
+        if to == "implementing" and cur != "draft_contract" and not note.strip():
+            raise Refused("退回实现要写原因：--note \"哪条 AC 没过、证据在哪\"")
+        if to == "implementing" and cur == "draft_contract":
+            probs = ac_problems(text)
+            if probs:
+                raise Refused("没有完整的验收标准，不能进入实现：\n  - " + "\n  - ".join(probs))
+        if to == "verify_local":
+            rep = cfgmod.tmh_dir(root) / "reports" / "verify-latest.json"
+            v = json.loads(rep.read_text(encoding="utf-8")) if rep.exists() else None
+            from .verify import current_report
+            if not v or not current_report(root, rec["task"], v):
+>               raise Refused("先运行 tmh verify --task %s 并通过（%s）" % (rec["task"], "还没有验证报告" if not v else "报告未通过、未执行测试或与当前任务/代码/契约不一致"))
+E               tmh.acceptance.Refused: 先运行 tmh verify --task T001 并通过（报告未通过、未执行测试或与当前任务/代码/契约不一致）
+
+tmh\acceptance.py:253: Refused
+_ AcceptanceTest.test_a_parallel_implementation_does_not_pass_the_path_check __
+
+self = <unittest.case._Outcome object at 0x0000022CCC594050>
+test_case = <test_acceptance.AcceptanceTest testMethod=test_a_parallel_implementation_does_not_pass_the_path_check>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_a_parallel_implementation_does_not_pass_the_path_check>
+result = <TestCaseFunction test_a_parallel_implementation_does_not_pass_the_path_check>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_a_parallel_implementation_does_not_pass_the_path_check>
+method = <bound method AcceptanceTest.test_a_parallel_implementation_does_not_pass_the_path_check of <test_acceptance.AcceptanceTest testMethod=test_a_parallel_implementation_does_not_pass_the_path_check>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_a_parallel_implementation_does_not_pass_the_path_check>
+
+    def test_a_parallel_implementation_does_not_pass_the_path_check(self):
+        self.fill()
+        acc.advance(self.root, "T001", "implementing")
+        # a new method nobody calls: tests could pass against it, the endpoint never reaches it
+        self.edit(SVC, lambda s: s.rstrip().rstrip("}") + "\n    public List<Map<String, Object>> listByStatus(int page, String status) {\n"
+                                 "        return mapper.selectPage((page - 1) * 20, page * 20);\n    }\n}\n")
+        r = path_check(self.root, "T001")
+        self.assertFalse(r["ok"])
+        self.assertTrue(any("listByStatus" in b and "平行实现" in b for b in r["breaks"]), r)
+        self.assertFalse(verify(self.root, task="T001")["passed"])
+        with self.assertRaisesRegex(acc.Refused, "verify"):
+            acc.advance(self.root, "T001", "verify_local")
+        # wired into the endpoint, the same method is on the path
+        self.edit(CTL, lambda s: s.replace("return leaveService.list(page);", "return leaveService.listByStatus(page, null);"))
+        r = path_check(self.root, "T001")
+        self.assertTrue(r["ok"], r)
+>       self.assertTrue(verify(self.root, task="T001")["passed"])
+
+tests\test_acceptance.py:224: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_a_parallel_implementation_does_not_pass_the_path_check>
+expr = False, msg = 'False is not true'
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+_ AcceptanceTest.test_dirty_code_and_contract_changes_invalidate_evidence (change=<function AcceptanceTest.test_dirty_code_and_contract_changes_invalidate_evidence.<locals>.<lambda> at 0x0000022CCC84AB60>) _
+
+self = <unittest.case._Outcome object at 0x0000022CCC5ECA10>
+test_case = <unittest.case._SubTest testMethod=runTest>, subTest = True
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_dirty_code_and_contract_changes_invalidate_evidence>
+msg = <object object at 0x0000022CC8931300>
+params = {'change': <function AcceptanceTest.test_dirty_code_and_contract_changes_invalidate_evidence.<locals>.<lambda> at 0x0000022CCC84AB60>}
+
+    @contextlib.contextmanager
+    def subTest(self, msg=_subtest_msg_sentinel, **params):
+        """Return a context manager that will return the enclosed block
+        of code in a subtest identified by the optional message and
+        keyword parameters.  A failure in the subtest marks the test
+        case as failed but resumes execution at the end of the enclosed
+        block, allowing further test code to be executed.
+        """
+        if self._outcome is None or not self._outcome.result_supports_subtests:
+            yield
+            return
+        parent = self._subtest
+        if parent is None:
+            params_map = _OrderedChainMap(params)
+        else:
+            params_map = parent.params.new_child(params)
+        self._subtest = _SubTest(self, msg, params_map)
+        try:
+            with self._outcome.testPartExecutor(self._subtest, subTest=True):
+>               yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:556: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_dirty_code_and_contract_changes_invalidate_evidence>
+
+    def test_dirty_code_and_contract_changes_invalidate_evidence(self):
+        for change in (lambda: self.edit(SVC, lambda s: s + "\n// later"),
+                       lambda: self.edit(self.c.relative_to(self.root), lambda s: s.replace("只返回该状态", "返回所有状态"))):
+            with self.subTest(change=change):
+                if acc.load(self.root, "T001")["state"] == "draft_contract":
+>                   self.prepare_verification()
+
+tests\test_acceptance.py:141: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_dirty_code_and_contract_changes_invalidate_evidence>
+
+    def prepare_verification(self):
+        self.fill()
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate\n")
+        result = verify(self.root, task="T001")
+>       self.assertTrue(result["passed"], result)
+
+tests\test_acceptance.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_dirty_code_and_contract_changes_invalidate_evidence>
+expr = False
+msg = "False is not true : {'id': '542f3ed00f084e86af26ef8c28d48211', 'identity': {'task': 'T001', 'head': 'c2a44bcd2a9961be... 'cases': ['entry-exists'], 'artifact': None}}, 'report': '.tmh/reports/verify-542f3ed00f084e86af26ef8c28d48211.json'}"
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true : {'id': '542f3ed00f084e86af26ef8c28d48211', 'identity': {'task': 'T001', 'head': 'c2a44bcd2a9961bec95ec84e547e7c70f81328de', 'sha256': 'b20f012177e4ffef82f599deca8327c979b9edaa0a2ab7e7f7c47ec17bdf86d7'}, 'task': 'T001', 'time': '2026-11-07 12:31', 'head': 'c2a44bcd2a9961bec95ec84e547e7c70f81328de', 'baseline_head': 'c2a44bcd2a9961bec95ec84e547e7c70f81328de', 'changed_files': ['src/main/java/com/acme/oa/service/LeaveService.java'], 'protected_violations': [], 'new_findings': [], 'commands': [{'kind': 'test', 'command': "'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\python.exe' check_fixture.py", 'exit_code': 1, 'seconds': 0.0, 'output': '\nThe filename, directory name, or volume label syntax is incorrect.\n', 'tail': 'The filename, directory name, or volume label syntax is incorrect.', 'evidence_error': "[Errno 2] No such file or directory: 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmppau1gf5b\\\\oa\\\\.tmh\\\\test-output\\\\cases.json'", 'verification_state': 'blocked'}], 'notes': [], 'changed_lines': {'src/main/java/com/acme/oa/service/LeaveService.java': [(57, 58)]}, 'path_check': {'ok': True, 'entries': ['LeaveController.list'], 'flows': ['get-leave-list'], 'covered': ['src/main/java/com/acme/oa/service/LeaveService.java:57 入口路径上的类里的声明改动'], 'breaks': [], 'manual': [], 'problems': [], 'task': 'T001'}, 'static_passed': True, 'tests_ran': True, 'code_changed': False, 'passed': False, 'outcome': 'blocked', 'criterion_evidence': {'A1': {'status': 'unverified', 'cases': ['entry-exists'], 'artifact': None}}, 'report': '.tmh/reports/verify-542f3ed00f084e86af26ef8c28d48211.json'}
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+____ AcceptanceTest.test_exact_l2_cases_can_reach_automatic_evidence_state ____
+
+self = <unittest.case._Outcome object at 0x0000022CCC1A1010>
+test_case = <test_acceptance.AcceptanceTest testMethod=test_exact_l2_cases_can_reach_automatic_evidence_state>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_exact_l2_cases_can_reach_automatic_evidence_state>
+result = <TestCaseFunction test_exact_l2_cases_can_reach_automatic_evidence_state>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_exact_l2_cases_can_reach_automatic_evidence_state>
+method = <bound method AcceptanceTest.test_exact_l2_cases_can_reach_automatic_evidence_state of <test_acceptance.AcceptanceTest testMethod=test_exact_l2_cases_can_reach_automatic_evidence_state>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_exact_l2_cases_can_reach_automatic_evidence_state>
+
+    def test_exact_l2_cases_can_reach_automatic_evidence_state(self):
+        self.fill("\n".join(line for line in AC.splitlines() if not line.startswith("| A2")) + "\n")
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate")
+>       self.assertTrue(verify(self.root, task="T001")["passed"])
+
+tests\test_acceptance.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_exact_l2_cases_can_reach_automatic_evidence_state>
+expr = False, msg = 'False is not true'
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+______________ AcceptanceTest.test_execution_mutation_is_blocked ______________
+
+self = <unittest.case._Outcome object at 0x0000022CCC5890D0>
+test_case = <test_acceptance.AcceptanceTest testMethod=test_execution_mutation_is_blocked>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_execution_mutation_is_blocked>
+result = <TestCaseFunction test_execution_mutation_is_blocked>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_execution_mutation_is_blocked>
+method = <bound method AcceptanceTest.test_execution_mutation_is_blocked of <test_acceptance.AcceptanceTest testMethod=test_execution_mutation_is_blocked>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_execution_mutation_is_blocked>
+
+    def test_execution_mutation_is_blocked(self):
+        self.fill()
+        script = self.root / "check_fixture.py"
+        script.write_text(script.read_text() + "p=pathlib.Path(" + repr(SVC) + ");p.write_text(p.read_text()+'\\n// changed')\n")
+        result = verify(self.root, task="T001")
+>       self.assertTrue(result["code_changed"])
+
+tests\test_acceptance.py:188: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_execution_mutation_is_blocked>
+expr = False, msg = 'False is not true'
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+___________ AcceptanceTest.test_new_head_invalidates_an_old_report ____________
+
+self = <unittest.case._Outcome object at 0x0000022CCC80D630>
+test_case = <test_acceptance.AcceptanceTest testMethod=test_new_head_invalidates_an_old_report>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_new_head_invalidates_an_old_report>
+result = <TestCaseFunction test_new_head_invalidates_an_old_report>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_new_head_invalidates_an_old_report>
+method = <bound method AcceptanceTest.test_new_head_invalidates_an_old_report of <test_acceptance.AcceptanceTest testMethod=test_new_head_invalidates_an_old_report>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_new_head_invalidates_an_old_report>
+
+    def test_new_head_invalidates_an_old_report(self):
+>       self.prepare_verification()
+
+tests\test_acceptance.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_new_head_invalidates_an_old_report>
+
+    def prepare_verification(self):
+        self.fill()
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate\n")
+        result = verify(self.root, task="T001")
+>       self.assertTrue(result["passed"], result)
+
+tests\test_acceptance.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_new_head_invalidates_an_old_report>
+expr = False
+msg = "False is not true : {'id': '31c0bbeb259941b491275071b4190a8f', 'identity': {'task': 'T001', 'head': '1da35ba63cfe8cc5... 'cases': ['entry-exists'], 'artifact': None}}, 'report': '.tmh/reports/verify-31c0bbeb259941b491275071b4190a8f.json'}"
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true : {'id': '31c0bbeb259941b491275071b4190a8f', 'identity': {'task': 'T001', 'head': '1da35ba63cfe8cc5c1f856200193fdfeacc2eb58', 'sha256': 'f5c95e82ca353c1fcca5b54e05cf3b78bfcc663883bd86d681d23562957e62fe'}, 'task': 'T001', 'time': '2026-11-07 12:32', 'head': '1da35ba63cfe8cc5c1f856200193fdfeacc2eb58', 'baseline_head': '1da35ba63cfe8cc5c1f856200193fdfeacc2eb58', 'changed_files': ['src/main/java/com/acme/oa/service/LeaveService.java'], 'protected_violations': [], 'new_findings': [], 'commands': [{'kind': 'test', 'command': "'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\python.exe' check_fixture.py", 'exit_code': 1, 'seconds': 0.0, 'output': '\nThe filename, directory name, or volume label syntax is incorrect.\n', 'tail': 'The filename, directory name, or volume label syntax is incorrect.', 'evidence_error': "[Errno 2] No such file or directory: 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmpi302gcwr\\\\oa\\\\.tmh\\\\test-output\\\\cases.json'", 'verification_state': 'blocked'}], 'notes': [], 'changed_lines': {'src/main/java/com/acme/oa/service/LeaveService.java': [(57, 58)]}, 'path_check': {'ok': True, 'entries': ['LeaveController.list'], 'flows': ['get-leave-list'], 'covered': ['src/main/java/com/acme/oa/service/LeaveService.java:57 入口路径上的类里的声明改动'], 'breaks': [], 'manual': [], 'problems': [], 'task': 'T001'}, 'static_passed': True, 'tests_ran': True, 'code_changed': False, 'passed': False, 'outcome': 'blocked', 'criterion_evidence': {'A1': {'status': 'unverified', 'cases': ['entry-exists'], 'artifact': None}}, 'report': '.tmh/reports/verify-31c0bbeb259941b491275071b4190a8f.json'}
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+____________ AcceptanceTest.test_only_a_person_confirms_and_closes ____________
+
+self = <unittest.case._Outcome object at 0x0000022CCC7DBCD0>
+test_case = <test_acceptance.AcceptanceTest testMethod=test_only_a_person_confirms_and_closes>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_only_a_person_confirms_and_closes>
+result = <TestCaseFunction test_only_a_person_confirms_and_closes>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_only_a_person_confirms_and_closes>
+method = <bound method AcceptanceTest.test_only_a_person_confirms_and_closes of <test_acceptance.AcceptanceTest testMethod=test_only_a_person_confirms_and_closes>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_only_a_person_confirms_and_closes>
+
+    def test_only_a_person_confirms_and_closes(self):
+        self.fill()
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s.replace("return mapper.selectPage((page - 1) * 20, page * 20);",
+                                           "return mapper.selectPage((page - 1) * 20, page * 20); // status"))
+        verify(self.root, task="T001")
+>       acc.advance(self.root, "T001", "verify_local")
+
+tests\test_acceptance.py:246: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmpjlvl7ruc/oa')
+tid = 'T001', to = 'verify_local', who = '', note = '', ref = '', build = ''
+path_result = None
+
+    def advance(root: Path, tid: str, to: str, who: str = "", note: str = "", ref: str = "", build: str = "",
+                path_result: dict | None = None) -> dict:
+        """Move a task to state `to` if the rules allow it; raises Refused with the reason otherwise."""
+        root = root.resolve()
+        rec = load(root, tid)
+        cur = rec["state"]
+        if to not in LABEL:
+            raise Refused("未知状态 %s，可选：%s" % (to, "、".join(LABEL)))
+        if to not in MOVES.get(cur, ()):
+            raise Refused("不能从“%s”直接到“%s”，可以去：%s" % (LABEL[cur], LABEL[to], "、".join(LABEL[x] for x in MOVES.get(cur, ())) or "无"))
+        text = (root / rec["file"]).read_text(encoding="utf-8")
+        ev = None
+        if to in HUMAN_ONLY or cur == "closed":
+            _human(who, to if to in HUMAN_ONLY else "closed")
+        if to == "implementing" and cur != "draft_contract" and not note.strip():
+            raise Refused("退回实现要写原因：--note \"哪条 AC 没过、证据在哪\"")
+        if to == "implementing" and cur == "draft_contract":
+            probs = ac_problems(text)
+            if probs:
+                raise Refused("没有完整的验收标准，不能进入实现：\n  - " + "\n  - ".join(probs))
+        if to == "verify_local":
+            rep = cfgmod.tmh_dir(root) / "reports" / "verify-latest.json"
+            v = json.loads(rep.read_text(encoding="utf-8")) if rep.exists() else None
+            from .verify import current_report
+            if not v or not current_report(root, rec["task"], v):
+>               raise Refused("先运行 tmh verify --task %s 并通过（%s）" % (rec["task"], "还没有验证报告" if not v else "报告未通过、未执行测试或与当前任务/代码/契约不一致"))
+E               tmh.acceptance.Refused: 先运行 tmh verify --task T001 并通过（报告未通过、未执行测试或与当前任务/代码/契约不一致）
+
+tmh\acceptance.py:253: Refused
+___________ AcceptanceTest.test_other_tasks_report_is_not_evidence ____________
+
+self = <unittest.case._Outcome object at 0x0000022CCC309390>
+test_case = <test_acceptance.AcceptanceTest testMethod=test_other_tasks_report_is_not_evidence>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_other_tasks_report_is_not_evidence>
+result = <TestCaseFunction test_other_tasks_report_is_not_evidence>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_other_tasks_report_is_not_evidence>
+method = <bound method AcceptanceTest.test_other_tasks_report_is_not_evidence of <test_acceptance.AcceptanceTest testMethod=test_other_tasks_report_is_not_evidence>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_other_tasks_report_is_not_evidence>
+
+    def test_other_tasks_report_is_not_evidence(self):
+>       self.prepare_verification()
+
+tests\test_acceptance.py:129: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_other_tasks_report_is_not_evidence>
+
+    def prepare_verification(self):
+        self.fill()
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate\n")
+        result = verify(self.root, task="T001")
+>       self.assertTrue(result["passed"], result)
+
+tests\test_acceptance.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_other_tasks_report_is_not_evidence>
+expr = False
+msg = "False is not true : {'id': '8e9460a0618c4a829ae52de14a2b1b47', 'identity': {'task': 'T001', 'head': '3ca2f8964b9769a5... 'cases': ['entry-exists'], 'artifact': None}}, 'report': '.tmh/reports/verify-8e9460a0618c4a829ae52de14a2b1b47.json'}"
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true : {'id': '8e9460a0618c4a829ae52de14a2b1b47', 'identity': {'task': 'T001', 'head': '3ca2f8964b9769a552d0bc01d1ac11a5ac076e80', 'sha256': '507d06470a514ded2384981ac55cc045d63dc07cae9b8f3b2577102897c1b6e8'}, 'task': 'T001', 'time': '2026-11-07 12:32', 'head': '3ca2f8964b9769a552d0bc01d1ac11a5ac076e80', 'baseline_head': '3ca2f8964b9769a552d0bc01d1ac11a5ac076e80', 'changed_files': ['src/main/java/com/acme/oa/service/LeaveService.java'], 'protected_violations': [], 'new_findings': [], 'commands': [{'kind': 'test', 'command': "'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\python.exe' check_fixture.py", 'exit_code': 1, 'seconds': 0.0, 'output': '\nThe filename, directory name, or volume label syntax is incorrect.\n', 'tail': 'The filename, directory name, or volume label syntax is incorrect.', 'evidence_error': "[Errno 2] No such file or directory: 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmpzu4fwo80\\\\oa\\\\.tmh\\\\test-output\\\\cases.json'", 'verification_state': 'blocked'}], 'notes': [], 'changed_lines': {'src/main/java/com/acme/oa/service/LeaveService.java': [(57, 58)]}, 'path_check': {'ok': True, 'entries': ['LeaveController.list'], 'flows': ['get-leave-list'], 'covered': ['src/main/java/com/acme/oa/service/LeaveService.java:57 入口路径上的类里的声明改动'], 'breaks': [], 'manual': [], 'problems': [], 'task': 'T001'}, 'static_passed': True, 'tests_ran': True, 'code_changed': False, 'passed': False, 'outcome': 'blocked', 'criterion_evidence': {'A1': {'status': 'unverified', 'cases': ['entry-exists'], 'artifact': None}}, 'report': '.tmh/reports/verify-8e9460a0618c4a829ae52de14a2b1b47.json'}
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+________ AcceptanceTest.test_prose_pass_does_not_replace_case_evidence ________
+
+self = <unittest.case._Outcome object at 0x0000022CCC393C40>
+test_case = <test_acceptance.AcceptanceTest testMethod=test_prose_pass_does_not_replace_case_evidence>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_prose_pass_does_not_replace_case_evidence>
+result = <TestCaseFunction test_prose_pass_does_not_replace_case_evidence>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_prose_pass_does_not_replace_case_evidence>
+method = <bound method AcceptanceTest.test_prose_pass_does_not_replace_case_evidence of <test_acceptance.AcceptanceTest testMethod=test_prose_pass_does_not_replace_case_evidence>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_prose_pass_does_not_replace_case_evidence>
+
+    def test_prose_pass_does_not_replace_case_evidence(self):
+        self.fill(AC.replace("L4", "L2").replace("未验证", "通过"))
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate")
+        verify(self.root, task="T001")
+>       acc.advance(self.root, "T001", "verify_local")
+
+tests\test_acceptance.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmpbgkulz54/oa')
+tid = 'T001', to = 'verify_local', who = '', note = '', ref = '', build = ''
+path_result = None
+
+    def advance(root: Path, tid: str, to: str, who: str = "", note: str = "", ref: str = "", build: str = "",
+                path_result: dict | None = None) -> dict:
+        """Move a task to state `to` if the rules allow it; raises Refused with the reason otherwise."""
+        root = root.resolve()
+        rec = load(root, tid)
+        cur = rec["state"]
+        if to not in LABEL:
+            raise Refused("未知状态 %s，可选：%s" % (to, "、".join(LABEL)))
+        if to not in MOVES.get(cur, ()):
+            raise Refused("不能从“%s”直接到“%s”，可以去：%s" % (LABEL[cur], LABEL[to], "、".join(LABEL[x] for x in MOVES.get(cur, ())) or "无"))
+        text = (root / rec["file"]).read_text(encoding="utf-8")
+        ev = None
+        if to in HUMAN_ONLY or cur == "closed":
+            _human(who, to if to in HUMAN_ONLY else "closed")
+        if to == "implementing" and cur != "draft_contract" and not note.strip():
+            raise Refused("退回实现要写原因：--note \"哪条 AC 没过、证据在哪\"")
+        if to == "implementing" and cur == "draft_contract":
+            probs = ac_problems(text)
+            if probs:
+                raise Refused("没有完整的验收标准，不能进入实现：\n  - " + "\n  - ".join(probs))
+        if to == "verify_local":
+            rep = cfgmod.tmh_dir(root) / "reports" / "verify-latest.json"
+            v = json.loads(rep.read_text(encoding="utf-8")) if rep.exists() else None
+            from .verify import current_report
+            if not v or not current_report(root, rec["task"], v):
+>               raise Refused("先运行 tmh verify --task %s 并通过（%s）" % (rec["task"], "还没有验证报告" if not v else "报告未通过、未执行测试或与当前任务/代码/契约不一致"))
+E               tmh.acceptance.Refused: 先运行 tmh verify --task T001 并通过（报告未通过、未执行测试或与当前任务/代码/契约不一致）
+
+tmh\acceptance.py:253: Refused
+____ AcceptanceTest.test_report_is_immutable_and_latest_is_only_a_pointer _____
+
+self = <unittest.case._Outcome object at 0x0000022CCC330980>
+test_case = <test_acceptance.AcceptanceTest testMethod=test_report_is_immutable_and_latest_is_only_a_pointer>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_report_is_immutable_and_latest_is_only_a_pointer>
+result = <TestCaseFunction test_report_is_immutable_and_latest_is_only_a_pointer>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_report_is_immutable_and_latest_is_only_a_pointer>
+method = <bound method AcceptanceTest.test_report_is_immutable_and_latest_is_only_a_pointer of <test_acceptance.AcceptanceTest testMethod=test_report_is_immutable_and_latest_is_only_a_pointer>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_report_is_immutable_and_latest_is_only_a_pointer>
+
+    def test_report_is_immutable_and_latest_is_only_a_pointer(self):
+>       result = self.prepare_verification()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_acceptance.py:149: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_report_is_immutable_and_latest_is_only_a_pointer>
+
+    def prepare_verification(self):
+        self.fill()
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate\n")
+        result = verify(self.root, task="T001")
+>       self.assertTrue(result["passed"], result)
+
+tests\test_acceptance.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_report_is_immutable_and_latest_is_only_a_pointer>
+expr = False
+msg = "False is not true : {'id': '6da4296ada694533b0de0749cfcead29', 'identity': {'task': 'T001', 'head': '09f84dd8bae8cf90... 'cases': ['entry-exists'], 'artifact': None}}, 'report': '.tmh/reports/verify-6da4296ada694533b0de0749cfcead29.json'}"
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true : {'id': '6da4296ada694533b0de0749cfcead29', 'identity': {'task': 'T001', 'head': '09f84dd8bae8cf9064b68172182c3e2df2115468', 'sha256': 'b08e3f8464814efe8d6f34cc496bbb5c2e191bc618a51c561196a7b76f480a27'}, 'task': 'T001', 'time': '2026-11-07 12:32', 'head': '09f84dd8bae8cf9064b68172182c3e2df2115468', 'baseline_head': '09f84dd8bae8cf9064b68172182c3e2df2115468', 'changed_files': ['src/main/java/com/acme/oa/service/LeaveService.java'], 'protected_violations': [], 'new_findings': [], 'commands': [{'kind': 'test', 'command': "'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\python.exe' check_fixture.py", 'exit_code': 1, 'seconds': 0.0, 'output': '\nThe filename, directory name, or volume label syntax is incorrect.\n', 'tail': 'The filename, directory name, or volume label syntax is incorrect.', 'evidence_error': "[Errno 2] No such file or directory: 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmpi6brj5hb\\\\oa\\\\.tmh\\\\test-output\\\\cases.json'", 'verification_state': 'blocked'}], 'notes': [], 'changed_lines': {'src/main/java/com/acme/oa/service/LeaveService.java': [(57, 58)]}, 'path_check': {'ok': True, 'entries': ['LeaveController.list'], 'flows': ['get-leave-list'], 'covered': ['src/main/java/com/acme/oa/service/LeaveService.java:57 入口路径上的类里的声明改动'], 'breaks': [], 'manual': [], 'problems': [], 'task': 'T001'}, 'static_passed': True, 'tests_ran': True, 'code_changed': False, 'passed': False, 'outcome': 'blocked', 'criterion_evidence': {'A1': {'status': 'unverified', 'cases': ['entry-exists'], 'artifact': None}}, 'report': '.tmh/reports/verify-6da4296ada694533b0de0749cfcead29.json'}
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+_______ AcceptanceTest.test_stale_or_tampered_case_reports_do_not_pass ________
+
+self = <unittest.case._Outcome object at 0x0000022CCC870440>
+test_case = <test_acceptance.AcceptanceTest testMethod=test_stale_or_tampered_case_reports_do_not_pass>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_stale_or_tampered_case_reports_do_not_pass>
+result = <TestCaseFunction test_stale_or_tampered_case_reports_do_not_pass>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_stale_or_tampered_case_reports_do_not_pass>
+method = <bound method AcceptanceTest.test_stale_or_tampered_case_reports_do_not_pass of <test_acceptance.AcceptanceTest testMethod=test_stale_or_tampered_case_reports_do_not_pass>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_stale_or_tampered_case_reports_do_not_pass>
+
+    def test_stale_or_tampered_case_reports_do_not_pass(self):
+>       result = self.prepare_verification()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_acceptance.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_stale_or_tampered_case_reports_do_not_pass>
+
+    def prepare_verification(self):
+        self.fill()
+        acc.advance(self.root, "T001", "implementing")
+        self.edit(SVC, lambda s: s + "\n// candidate\n")
+        result = verify(self.root, task="T001")
+>       self.assertTrue(result["passed"], result)
+
+tests\test_acceptance.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_acceptance.AcceptanceTest testMethod=test_stale_or_tampered_case_reports_do_not_pass>
+expr = False
+msg = "False is not true : {'id': '45f10a715e6143dc8fbc570dc001473f', 'identity': {'task': 'T001', 'head': '91c99b8c0d609518... 'cases': ['entry-exists'], 'artifact': None}}, 'report': '.tmh/reports/verify-45f10a715e6143dc8fbc570dc001473f.json'}"
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true : {'id': '45f10a715e6143dc8fbc570dc001473f', 'identity': {'task': 'T001', 'head': '91c99b8c0d609518ed05147aa9680c291bdf8063', 'sha256': '852aa12c44de29e7a0190287dcb2119e1cd49c98783d8bb49297cd644fc43628'}, 'task': 'T001', 'time': '2026-11-07 12:33', 'head': '91c99b8c0d609518ed05147aa9680c291bdf8063', 'baseline_head': '91c99b8c0d609518ed05147aa9680c291bdf8063', 'changed_files': ['src/main/java/com/acme/oa/service/LeaveService.java'], 'protected_violations': [], 'new_findings': [], 'commands': [{'kind': 'test', 'command': "'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\python.exe' check_fixture.py", 'exit_code': 1, 'seconds': 0.0, 'output': '\nThe filename, directory name, or volume label syntax is incorrect.\n', 'tail': 'The filename, directory name, or volume label syntax is incorrect.', 'evidence_error': "[Errno 2] No such file or directory: 'C:\\\\Users\\\\runneradmin\\\\AppData\\\\Local\\\\Temp\\\\tmpz_sz115d\\\\oa\\\\.tmh\\\\test-output\\\\cases.json'", 'verification_state': 'blocked'}], 'notes': [], 'changed_lines': {'src/main/java/com/acme/oa/service/LeaveService.java': [(57, 58)]}, 'path_check': {'ok': True, 'entries': ['LeaveController.list'], 'flows': ['get-leave-list'], 'covered': ['src/main/java/com/acme/oa/service/LeaveService.java:57 入口路径上的类里的声明改动'], 'breaks': [], 'manual': [], 'problems': [], 'task': 'T001'}, 'static_passed': True, 'tests_ran': True, 'code_changed': False, 'passed': False, 'outcome': 'blocked', 'criterion_evidence': {'A1': {'status': 'unverified', 'cases': ['entry-exists'], 'artifact': None}}, 'report': '.tmh/reports/verify-45f10a715e6143dc8fbc570dc001473f.json'}
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_acceptance.xml -
+======== 11 failed, 26 passed, 14 subtests passed in 132.81s (0:02:12) ========

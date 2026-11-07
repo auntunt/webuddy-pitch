@@ -1,0 +1,28 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+From C:/tmh-runner/work/webuddy-win-e282-delta.bundle
+ * branch            HEAD       -> FETCH_HEAD
+HEAD is now at e282afa 修复Windows虚拟环境监督器误判父进程丢失
+source_archive_sha256=f01c90d112a5bf12953a464a6730c6a09ddc5c61c27f6cd8a283dcff849fa282 commit=e282afab238e658e495e5508e64c94b72101dfc2
+ M scripts/deploy/tmh-native
+Processing c:\tmh-runner\work\webuddy-full-e282afab-20261107
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: tmh-harness
+  Building wheel for tmh-harness (pyproject.toml): started
+  Building wheel for tmh-harness (pyproject.toml): finished with status 'done'
+  Created wheel for tmh-harness: filename=tmh_harness-0.4.0-py3-none-any.whl size=1690438 sha256=422592c4d93c2ac1cdd92047fadc561c034c937706b765af0de5ea188e33fa8e
+  Stored in directory: c:\tmh-runner\work\webuddy-full-e282afab-20261107\pip\cache\wheels\0a\1a\1f\2294b45e6551cd05872ec773bbc1e2a7ad8289098fb66ca20b
+Successfully built tmh-harness
+Installing collected packages: tmh-harness
+Successfully installed tmh-harness-0.4.0
+
+[notice] A new release of pip is available: 24.0 -> 26.3
+[notice] To update, run: C:\tmh-runner\work\webuddy-windows-full-venv-20261107\Scripts\python.exe -m pip install --upgrade pip
+Timeout, server 43.153.76.85 not responding.
+{"script": "/private/tmp/webuddy-win-full-final.ps1", "started": "2026-11-07T05:03:40.201724+00:00", "ended": "2026-11-07T05:53:36.712524+00:00", "exit_code": 255}

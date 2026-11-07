@@ -29,6 +29,8 @@
 
 环境：CLI 只依赖 Python 3.8+ 标准库；平台里的项目 Codex 执行需要 Python 3.11+（读取 TOML 配置）。
 
+服务端包、配置外置与后续容器化准备见 [部署配置说明](docs/deployment-config.md)。
+
 **路径一：装进项目，在 Codex / Claude Code 里用**
 
 ```sh

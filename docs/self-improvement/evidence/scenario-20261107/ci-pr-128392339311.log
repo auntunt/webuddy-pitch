@@ -1,0 +1,306 @@
+﻿2026-11-07T11:35:18.3618526Z Current runner version: '2.338.2'
+2026-11-07T11:35:18.3647750Z ##[group]Runner Image Provisioner
+2026-11-07T11:35:18.3648727Z Hosted Compute Agent
+2026-11-07T11:35:18.3649556Z Version: 20261028.624
+2026-11-07T11:35:18.3650288Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-07T11:35:18.3651170Z Build Date: 2026-10-28T21:51:42Z
+2026-11-07T11:35:18.3652222Z Worker ID: {aa207871-57f4-4c75-a2bc-a055727238f2}
+2026-11-07T11:35:18.3653105Z Region: eastus
+2026-11-07T11:35:18.3653899Z Cloud: Azure
+2026-11-07T11:35:18.3654600Z ##[endgroup]
+2026-11-07T11:35:18.3656926Z ##[group]Operating System
+2026-11-07T11:35:18.3657802Z Ubuntu
+2026-11-07T11:35:18.3658511Z 24.04.5
+2026-11-07T11:35:18.3659327Z LTS
+2026-11-07T11:35:18.3659941Z ##[endgroup]
+2026-11-07T11:35:18.3660630Z ##[group]Runner Image
+2026-11-07T11:35:18.3661275Z Image: ubuntu-24.04
+2026-11-07T11:35:18.3662200Z Version: 20261101.360.1
+2026-11-07T11:35:18.3663757Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-07T11:35:18.3665818Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+2026-11-07T11:35:18.3666989Z ##[endgroup]
+2026-11-07T11:35:18.3668542Z ##[group]GITHUB_TOKEN Permissions
+2026-11-07T11:35:18.3670884Z Contents: read
+2026-11-07T11:35:18.3671652Z Metadata: read
+2026-11-07T11:35:18.3672522Z Packages: read
+2026-11-07T11:35:18.3673237Z ##[endgroup]
+2026-11-07T11:35:18.3676057Z Secret source: Actions
+2026-11-07T11:35:18.3677163Z Cache mode: write
+2026-11-07T11:35:18.3678331Z Prepare workflow directory
+2026-11-07T11:35:18.4115095Z Prepare all required actions
+2026-11-07T11:35:18.4170133Z Getting action download info
+2026-11-07T11:35:18.5646388Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-07T11:35:18.6503858Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-11-07T11:35:18.8428916Z Complete job name: full suite (ubuntu-latest / py3.11)
+2026-11-07T11:35:18.9139094Z ##[group]Run actions/checkout@v4
+2026-11-07T11:35:18.9139801Z with:
+2026-11-07T11:35:18.9140199Z   repository: auntunt/webuddy-pitch
+2026-11-07T11:35:18.9143533Z   token: ***
+2026-11-07T11:35:18.9143911Z   ssh-strict: true
+2026-11-07T11:35:18.9144291Z   ssh-user: git
+2026-11-07T11:35:18.9144675Z   persist-credentials: true
+2026-11-07T11:35:18.9145091Z   clean: true
+2026-11-07T11:35:18.9145491Z   sparse-checkout-cone-mode: true
+2026-11-07T11:35:18.9145943Z   fetch-depth: 1
+2026-11-07T11:35:18.9146304Z   fetch-tags: false
+2026-11-07T11:35:18.9146685Z   show-progress: true
+2026-11-07T11:35:18.9147059Z   lfs: false
+2026-11-07T11:35:18.9147408Z   submodules: false
+2026-11-07T11:35:18.9147795Z   set-safe-directory: true
+2026-11-07T11:35:18.9148219Z   allow-unsafe-pr-checkout: false
+2026-11-07T11:35:18.9148831Z env:
+2026-11-07T11:35:18.9149181Z   PYTHONIOENCODING: utf-8
+2026-11-07T11:35:18.9149582Z   PYTHONUTF8: 1
+2026-11-07T11:35:18.9149959Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T11:35:18.9150449Z ##[endgroup]
+2026-11-07T11:35:19.1174605Z Syncing repository: auntunt/webuddy-pitch
+2026-11-07T11:35:19.1176729Z ##[group]Getting Git version info
+2026-11-07T11:35:19.1177604Z Working directory is '/home/runner/work/webuddy-pitch/webuddy-pitch'
+2026-11-07T11:35:19.1179031Z [command]/usr/bin/git version
+2026-11-07T11:35:19.1239555Z git version 2.56.0
+2026-11-07T11:35:19.1259001Z ##[endgroup]
+2026-11-07T11:35:19.1273001Z Temporarily overriding HOME='/home/runner/work/_temp/06af9486-34a9-4c13-9f60-029fdde30836' before making global git config changes
+2026-11-07T11:35:19.1274931Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-07T11:35:19.1277911Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-07T11:35:19.1327571Z Deleting the contents of '/home/runner/work/webuddy-pitch/webuddy-pitch'
+2026-11-07T11:35:19.1333284Z ##[group]Initializing the repository
+2026-11-07T11:35:19.1337290Z [command]/usr/bin/git init /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-07T11:35:19.1424289Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-07T11:35:19.1426410Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-07T11:35:19.1428660Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-07T11:35:19.1430493Z hint: call:
+2026-11-07T11:35:19.1431301Z hint:
+2026-11-07T11:35:19.1432576Z hint: 	git config --global init.defaultBranch <name>
+2026-11-07T11:35:19.1433974Z hint:
+2026-11-07T11:35:19.1435362Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-07T11:35:19.1437618Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-07T11:35:19.1439259Z hint:
+2026-11-07T11:35:19.1440278Z hint: 	git branch -m <name>
+2026-11-07T11:35:19.1441596Z hint:
+2026-11-07T11:35:19.1443127Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-07T11:35:19.1445375Z Initialized empty Git repository in /home/runner/work/webuddy-pitch/webuddy-pitch/.git/
+2026-11-07T11:35:19.1453418Z [command]/usr/bin/git remote add origin https://github.com/auntunt/webuddy-pitch
+2026-11-07T11:35:19.1497697Z ##[endgroup]
+2026-11-07T11:35:19.1499272Z ##[group]Disabling automatic garbage collection
+2026-11-07T11:35:19.1500945Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-07T11:35:19.1536124Z ##[endgroup]
+2026-11-07T11:35:19.1537368Z ##[group]Setting up auth
+2026-11-07T11:35:19.1542386Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-07T11:35:19.1579379Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-07T11:35:19.1933511Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-07T11:35:19.1976638Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-07T11:35:19.2192385Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-07T11:35:19.2236332Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-07T11:35:19.2451651Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-07T11:35:19.2498724Z ##[endgroup]
+2026-11-07T11:35:19.2500065Z ##[group]Fetching the repository
+2026-11-07T11:35:19.2507650Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +810285c8616ae13cbb07aa632b110625921c6f8e:refs/remotes/pull/70/merge
+2026-11-07T11:35:20.1460709Z From https://github.com/auntunt/webuddy-pitch
+2026-11-07T11:35:20.1462954Z  * [new ref]         810285c8616ae13cbb07aa632b110625921c6f8e -> pull/70/merge
+2026-11-07T11:35:20.1465549Z ##[endgroup]
+2026-11-07T11:35:20.1466112Z ##[group]Determining the checkout info
+2026-11-07T11:35:20.1467153Z ##[endgroup]
+2026-11-07T11:35:20.1478386Z [command]/usr/bin/git sparse-checkout disable
+2026-11-07T11:35:20.1527839Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-07T11:35:20.1560574Z ##[group]Checking out the ref
+2026-11-07T11:35:20.1564185Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/70/merge
+2026-11-07T11:35:20.4916576Z Note: switching to 'refs/remotes/pull/70/merge'.
+2026-11-07T11:35:20.4917009Z 
+2026-11-07T11:35:20.4917278Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-07T11:35:20.4917722Z changes and commit them, and you can discard any commits you make in this
+2026-11-07T11:35:20.4918175Z state without impacting any branches by switching back to a branch.
+2026-11-07T11:35:20.4918461Z 
+2026-11-07T11:35:20.4919121Z If you want to create a new branch to retain commits you create, you may
+2026-11-07T11:35:20.4919518Z do so (now or later) by using -c with the switch command. Example:
+2026-11-07T11:35:20.4919754Z 
+2026-11-07T11:35:20.4919873Z   git switch -c <new-branch-name>
+2026-11-07T11:35:20.4920082Z 
+2026-11-07T11:35:20.4920204Z Or undo this operation with:
+2026-11-07T11:35:20.4920356Z 
+2026-11-07T11:35:20.4920455Z   git switch -
+2026-11-07T11:35:20.4920607Z 
+2026-11-07T11:35:20.4920807Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-07T11:35:20.4921118Z 
+2026-11-07T11:35:20.4921410Z HEAD is now at 810285c Merge ec7a64b6f042682ad4d2d314cf6b828515ecd3b6 into e4c8dc62327c7795746b1eea4bb58d3f6e8165a6
+2026-11-07T11:35:20.4946420Z ##[endgroup]
+2026-11-07T11:35:20.4994085Z [command]/usr/bin/git log -1 --format=%H
+2026-11-07T11:35:20.5024693Z 810285c8616ae13cbb07aa632b110625921c6f8e
+2026-11-07T11:35:20.5337435Z ##[group]Run actions/setup-python@v5
+2026-11-07T11:35:20.5337922Z with:
+2026-11-07T11:35:20.5338230Z   python-version: 3.11
+2026-11-07T11:35:20.5338540Z   check-latest: false
+2026-11-07T11:35:20.5342181Z   token: ***
+2026-11-07T11:35:20.5342537Z   update-environment: true
+2026-11-07T11:35:20.5342906Z   allow-prereleases: false
+2026-11-07T11:35:20.5343297Z   freethreaded: false
+2026-11-07T11:35:20.5343603Z env:
+2026-11-07T11:35:20.5343885Z   PYTHONIOENCODING: utf-8
+2026-11-07T11:35:20.5344239Z   PYTHONUTF8: 1
+2026-11-07T11:35:20.5344562Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T11:35:20.5344941Z ##[endgroup]
+2026-11-07T11:35:20.6631293Z ##[group]Installed versions
+2026-11-07T11:35:20.6728850Z (node:2113) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-07T11:35:20.6729762Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-07T11:35:20.6730490Z Successfully set up CPython (3.11.18)
+2026-11-07T11:35:20.6731169Z ##[endgroup]
+2026-11-07T11:35:20.6845148Z ##[group]Run python -m pip install --upgrade pip pytest
+2026-11-07T11:35:20.6845680Z [36;1mpython -m pip install --upgrade pip pytest[0m
+2026-11-07T11:35:20.6875870Z shell: /usr/bin/bash -e {0}
+2026-11-07T11:35:20.6876147Z env:
+2026-11-07T11:35:20.6876375Z   PYTHONIOENCODING: utf-8
+2026-11-07T11:35:20.6876615Z   PYTHONUTF8: 1
+2026-11-07T11:35:20.6876835Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T11:35:20.6877137Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T11:35:20.6877531Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-07T11:35:20.6877917Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T11:35:20.6878259Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T11:35:20.6878601Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T11:35:20.6878943Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-07T11:35:20.6879239Z ##[endgroup]
+2026-11-07T11:35:21.3031288Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages (26.2.2)
+2026-11-07T11:35:21.3874994Z Collecting pip
+2026-11-07T11:35:21.4272295Z   Downloading pip-26.3-py3-none-any.whl.metadata (4.6 kB)
+2026-11-07T11:35:21.4519759Z Collecting pytest
+2026-11-07T11:35:21.4556939Z   Downloading pytest-9.2.0-py3-none-any.whl.metadata (7.9 kB)
+2026-11-07T11:35:21.4662660Z Collecting iniconfig>=2 (from pytest)
+2026-11-07T11:35:21.4699278Z   Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+2026-11-07T11:35:21.4815512Z Collecting packaging>=24 (from pytest)
+2026-11-07T11:35:21.4849638Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+2026-11-07T11:35:21.4975239Z Collecting pluggy<2,>=1.6 (from pytest)
+2026-11-07T11:35:21.5009343Z   Downloading pluggy-1.7.0-py3-none-any.whl.metadata (5.0 kB)
+2026-11-07T11:35:21.5144616Z Collecting pygments>=2.15 (from pytest)
+2026-11-07T11:35:21.5177283Z   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+2026-11-07T11:35:21.5244359Z Downloading pip-26.3-py3-none-any.whl (2.0 MB)
+2026-11-07T11:35:21.5671506Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 60.8 MB/s  0:00:00
+2026-11-07T11:35:21.5710408Z Downloading pytest-9.2.0-py3-none-any.whl (411 kB)
+2026-11-07T11:35:21.5803685Z Downloading pluggy-1.7.0-py3-none-any.whl (27 kB)
+2026-11-07T11:35:21.5850270Z Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+2026-11-07T11:35:21.5895700Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+2026-11-07T11:35:21.5944250Z Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+2026-11-07T11:35:21.6100576Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 80.7 MB/s  0:00:00
+2026-11-07T11:35:21.7570914Z Installing collected packages: pygments, pluggy, pip, packaging, iniconfig, pytest
+2026-11-07T11:35:22.3210514Z   Attempting uninstall: pip
+2026-11-07T11:35:22.3221574Z     Found existing installation: pip 26.2.2
+2026-11-07T11:35:22.3732232Z     Uninstalling pip-26.2.2:
+2026-11-07T11:35:22.3780808Z       Successfully uninstalled pip-26.2.2
+2026-11-07T11:35:23.4370415Z 
+2026-11-07T11:35:23.4379054Z Successfully installed iniconfig-2.3.1 packaging-26.3 pip-26.3 pluggy-1.7.0 pygments-2.21.0 pytest-9.2.0
+2026-11-07T11:35:23.5025893Z ##[group]Run python -m pytest tests -q -p no:cacheprovider
+2026-11-07T11:35:23.5026519Z [36;1mpython -m pytest tests -q -p no:cacheprovider[0m
+2026-11-07T11:35:23.5053062Z shell: /usr/bin/bash -e {0}
+2026-11-07T11:35:23.5053385Z env:
+2026-11-07T11:35:23.5053641Z   PYTHONIOENCODING: utf-8
+2026-11-07T11:35:23.5053943Z   PYTHONUTF8: 1
+2026-11-07T11:35:23.5054212Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T11:35:23.5054644Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T11:35:23.5055187Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib/pkgconfig
+2026-11-07T11:35:23.5055735Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T11:35:23.5056204Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T11:35:23.5056680Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.18/x64
+2026-11-07T11:35:23.5057161Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.18/x64/lib
+2026-11-07T11:35:23.5057557Z ##[endgroup]
+2026-11-07T11:35:33.2016721Z ............................................... [  1%]
+2026-11-07T11:35:40.1446403Z .................................................. [  3%]
+2026-11-07T11:35:41.8088690Z .......................................... [  4%]
+2026-11-07T11:35:49.7227530Z .................................................................. [  6%]
+2026-11-07T11:35:53.6224613Z ............................................... [  8%]
+2026-11-07T11:36:04.8967519Z ............................................................ [  9%]
+2026-11-07T11:36:15.3238806Z ....................................................................................................... [ 13%]
+2026-11-07T11:36:24.8552739Z ............................................. [ 14%]
+2026-11-07T11:36:38.7828167Z .................................................................. [ 16%]
+2026-11-07T11:36:45.9984858Z ........................................................................ [ 18%]
+2026-11-07T11:37:12.7757610Z ...........F..............F.................................. [ 20%]
+2026-11-07T11:37:34.4778272Z ............................................................... [ 22%]
+2026-11-07T11:37:37.1599997Z ....................s................................. [ 24%]
+2026-11-07T11:37:41.9201865Z .......................................................... [ 26%]
+2026-11-07T11:38:38.0360839Z ............................................................................................................................................... [ 31%]
+2026-11-07T11:38:41.2146684Z .............................................. [ 32%]
+2026-11-07T11:38:50.5489652Z ...................................................... [ 34%]
+2026-11-07T11:39:07.0240481Z ................................................. [ 35%]
+2026-11-07T11:39:07.9435505Z ............................................. [ 37%]
+2026-11-07T11:39:26.6024328Z ...................................................................................................... [ 40%]
+2026-11-07T11:39:36.3184923Z ...................................................................... [ 42%]
+2026-11-07T11:40:18.3358500Z ...................................................................... [ 44%]
+2026-11-07T11:41:09.2879936Z ................................................................................................. [ 47%]
+2026-11-07T11:41:18.8112186Z ................................................ [ 49%]
+2026-11-07T11:41:41.0128321Z ............................................................................................. [ 52%]
+2026-11-07T11:42:11.9855422Z .................................................................................................................................... [ 56%]
+2026-11-07T11:42:15.0168446Z ...ssssssssssss.........ss................................... [ 58%]
+2026-11-07T11:42:25.7014093Z ..sssssssss......................sss......... [ 59%]
+2026-11-07T11:42:35.1101172Z ...................................... [ 61%]
+2026-11-07T11:42:35.1226204Z .......... [ 61%]
+2026-11-07T11:44:07.0787812Z .................................................................. [ 63%]
+2026-11-07T11:44:36.6968162Z ................................................................................................... [ 66%]
+2026-11-07T11:44:56.9380244Z .................ssssss.......................................................................... [ 69%]
+2026-11-07T11:45:24.5178107Z ................................................ [ 71%]
+2026-11-07T11:45:45.4295981Z ....................................................s... [ 73%]
+2026-11-07T11:45:50.6595101Z ...s......................................................... [ 75%]
+2026-11-07T11:46:11.5131304Z ........................................................ [ 76%]
+2026-11-07T11:46:22.8822526Z ........................................ [ 78%]
+2026-11-07T11:46:44.2921877Z ................................................ [ 79%]
+2026-11-07T11:46:49.9301136Z ............................. [ 80%]
+2026-11-07T11:46:56.5982729Z ..................................................................... [ 82%]
+2026-11-07T11:47:15.4332914Z .......................................................... [ 84%]
+2026-11-07T11:47:19.5063170Z ...........s.................................................................... [ 87%]
+2026-11-07T11:47:22.1672182Z ........................................................................ [ 89%]
+2026-11-07T11:47:25.0508536Z ..................................................................... [ 91%]
+2026-11-07T11:47:28.4312678Z ........................................................................ [ 93%]
+2026-11-07T11:47:43.6968264Z ...................................... [ 95%]
+2026-11-07T11:48:22.3677386Z ...............................................sssssss......... [ 97%]
+2026-11-07T11:48:27.5950679Z ......................................ssssssssssssssssssss.................................      [100%]
+2026-11-07T11:48:27.5951415Z =================================== FAILURES ===================================
+2026-11-07T11:48:27.5952219Z _ HarnessProbeTest.test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass _
+2026-11-07T11:48:27.5952691Z 
+2026-11-07T11:48:27.5953189Z self = <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+2026-11-07T11:48:27.5953702Z 
+2026-11-07T11:48:27.5953900Z     def test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass(self):
+2026-11-07T11:48:27.5954478Z         (self.repo / "app.py").write_text(FIXTURE.read_text().replace("if keyword in text.casefold()", "if True") + "\n# broken candidate\n")
+2026-11-07T11:48:27.5954952Z         self.git("commit", "-am", "regress literal search")
+2026-11-07T11:48:27.5955243Z         self.commit = self.git("rev-parse", "HEAD")
+2026-11-07T11:48:27.5955490Z         self.prepare()
+2026-11-07T11:48:27.5956020Z         result = self.finish(self.start())
+2026-11-07T11:48:27.5956251Z         self.assertFalse(result["passed"])
+2026-11-07T11:48:27.5956509Z >       self.assertEqual(result["status"], "done", result)
+2026-11-07T11:48:27.5956765Z E       AssertionError: 'failed' != 'done'
+2026-11-07T11:48:27.5957011Z E       - failed
+2026-11-07T11:48:27.5957204Z E       + done
+2026-11-07T11:48:27.5972225Z E        : {'id': 1, 'candidate_id': 1, 'author': 'agent:writer', 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'PROBE-1', 'project_id': 1, 'base': '91c8d899d37e3ddd12342dde45dc4cab6989ef13', 'commit': '4f25df5d15b4e5e6eda7a967817b7e0f746fb092', 'requirement_hash': '90d09a2fca28a323ce2fe484fcfdbc8b0fb61a89e538629935b5bf964447a581', 'criteria': [{'check': 'Run independent HTTP and SQLite probe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': '5a44ffe123fa7913d2077e27504ee7f04b52b691dcef1321c755d76f3bdada53', 'verification_digest': '001dec339676f2544b85ee02e1b902469409aa7319bb703865a1f1a7409b92a8', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'runner_sha256': '785837adb30348bfe3000485e2c1bad524b261100bd064c94c06b0170765353d', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '72696ac8595cd0831774d4c39461b8a3491f65f447c97fe8e812bf5cdcd0612e'}}, 'status': 'failed', 'created': '2026-11-07 11:36:53', 'ended': '2026-11-07 11:36:53', 'result_hash': 'e8435b51e373dc1c5ec4cdb0e5bcfb0b962ce32fcc2c81f84f8c00c71f4639e6', 'running': False, 'cleanup_complete': True, 'passed': False, 'observed_passed': False, 'source_current': True, 'blocked': [], 'result': {'schema': 1, 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'PROBE-1', 'project_id': 1, 'base': '91c8d899d37e3ddd12342dde45dc4cab6989ef13', 'commit': '4f25df5d15b4e5e6eda7a967817b7e0f746fb092', 'requirement_hash': '90d09a2fca28a323ce2fe484fcfdbc8b0fb61a89e538629935b5bf964447a581', 'criteria': [{'check': 'Run independent HTTP and SQLite probe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': '5a44ffe123fa7913d2077e27504ee7f04b52b691dcef1321c755d76f3bdada53', 'verification_digest': '001dec339676f2544b85ee02e1b902469409aa7319bb703865a1f1a7409b92a8', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'runner_sha256': '785837adb30348bfe3000485e2c1bad524b261100bd064c94c06b0170765353d', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '72696ac8595cd0831774d4c39461b8a3491f65f447c97fe8e812bf5cdcd0612e'}}, 'arms': {}, 'candidate_passed': False, 'comparison': 'unknown', 'limitations': 'One task, two source versions. This is behavioral evidence, not model improvement or a causal harness A/B estimate.', 'error': 'RuntimeError: 候选或验证来源在探测期间失效，停止后续执行', 'artifacts': {'recipe.py': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'owner.json': '9ef617dcec31e6845852310bc19ff029dd5d8da14ac44276185f52334ac285a4', 'source.json': 'a095e234fb7a723391784678e77c96162395cdd7284b3ceabcec7ba0fe13638f'}}, 'evidence_hash': '', 'artifact_dir': '/tmp/webuddy-harness-probe-1n3hzaun/data/harness-probes/1', 'human_acceptance': False}
+2026-11-07T11:48:27.5983359Z 
+2026-11-07T11:48:27.5983485Z tests/test_harness_probes.py:141: AssertionError
+2026-11-07T11:48:27.5983926Z _ HarnessProbeIndependentTest.test_verification_replacement_invalidates_current_pass_but_retains_history _
+2026-11-07T11:48:27.5984251Z 
+2026-11-07T11:48:27.5984636Z self = <test_harness_probes_independent.HarnessProbeIndependentTest testMethod=test_verification_replacement_invalidates_current_pass_but_retains_history>
+2026-11-07T11:48:27.5985087Z 
+2026-11-07T11:48:27.5985279Z     def test_verification_replacement_invalidates_current_pass_but_retains_history(self):
+2026-11-07T11:48:27.5985732Z         self.prepare_candidate()
+2026-11-07T11:48:27.5986019Z         started = self.call("harness_probe_start", {"candidate_id": self.cid,
+2026-11-07T11:48:27.5986433Z             "recipe": "bootv2-items-search-v1", "request_id": "before-verification-change"})
+2026-11-07T11:48:27.5986790Z         state = self.finish_probe(started["probe_id"])
+2026-11-07T11:48:27.5987047Z >       self.assertTrue(state["passed"], state)
+2026-11-07T11:48:27.6000248Z E       AssertionError: False is not true : {'id': 1, 'candidate_id': 1, 'author': 'agent:independent-fixture', 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'INDEP-1', 'project_id': 1, 'base': '97328d4db7fe06cd65dab00427a06830142db555', 'commit': '61f75820c716158e996495c660889fa11e80de07', 'requirement_hash': '20136a2024bb6a193e260ce7c2d79714dfb57173021265759413df9ebb1a6d23', 'criteria': [{'check': 'Independent recipe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Independent recipe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Independent recipe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Independent recipe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': '059d1c7a21a2d43add7d18b3cf8add81905a714e85f33ab1563184ca64a64e2d', 'verification_digest': 'b3dfc804750a9843221f5c027165ffc4fbb9f1fd0fd3d4cf0c6c7a3ab9321439', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'runner_sha256': '785837adb30348bfe3000485e2c1bad524b261100bd064c94c06b0170765353d', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '72696ac8595cd0831774d4c39461b8a3491f65f447c97fe8e812bf5cdcd0612e'}}, 'status': 'failed', 'created': '2026-11-07 11:37:11', 'ended': '2026-11-07 11:37:11', 'result_hash': '151af27deeaf10576d9fde40a9d11f7b6c66917fdf439ecadcfe212de88a3085', 'running': False, 'cleanup_complete': True, 'passed': False, 'observed_passed': False, 'source_current': True, 'blocked': [], 'result': {'schema': 1, 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'INDEP-1', 'project_id': 1, 'base': '97328d4db7fe06cd65dab00427a06830142db555', 'commit': '61f75820c716158e996495c660889fa11e80de07', 'requirement_hash': '20136a2024bb6a193e260ce7c2d79714dfb57173021265759413df9ebb1a6d23', 'criteria': [{'check': 'Independent recipe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Independent recipe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Independent recipe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Independent recipe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': '059d1c7a21a2d43add7d18b3cf8add81905a714e85f33ab1563184ca64a64e2d', 'verification_digest': 'b3dfc804750a9843221f5c027165ffc4fbb9f1fd0fd3d4cf0c6c7a3ab9321439', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'runner_sha256': '785837adb30348bfe3000485e2c1bad524b261100bd064c94c06b0170765353d', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '72696ac8595cd0831774d4c39461b8a3491f65f447c97fe8e812bf5cdcd0612e'}}, 'arms': {}, 'candidate_passed': False, 'comparison': 'unknown', 'limitations': 'One task, two source versions. This is behavioral evidence, not model improvement or a causal harness A/B estimate.', 'error': 'RuntimeError: 候选或验证来源在探测期间失效，停止后续执行', 'artifacts': {'recipe.py': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'owner.json': '9b31fea07ab349618d9dec7a3ea0e377e6de80de84d81c009040caf2dae47670', 'source.json': 'ea1adacab0158d16161b593eaa19336235648932a36ba448eb788a3834ab9e60'}}, 'evidence_hash': '', 'artifact_dir': '/tmp/webuddy-probe-independent-2fql2_pq/data/harness-probes/1', 'human_acceptance': False}
+2026-11-07T11:48:27.6010998Z 
+2026-11-07T11:48:27.6011146Z tests/test_harness_probes_independent.py:226: AssertionError
+2026-11-07T11:48:27.6011462Z =========================== short test summary info ============================
+2026-11-07T11:48:27.6012303Z FAILED tests/test_harness_probes.py::HarnessProbeTest::test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass - AssertionError: 'failed' != 'done'
+2026-11-07T11:48:27.6012841Z - failed
+2026-11-07T11:48:27.6013006Z + done
+2026-11-07T11:48:27.6026041Z  : {'id': 1, 'candidate_id': 1, 'author': 'agent:writer', 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'PROBE-1', 'project_id': 1, 'base': '91c8d899d37e3ddd12342dde45dc4cab6989ef13', 'commit': '4f25df5d15b4e5e6eda7a967817b7e0f746fb092', 'requirement_hash': '90d09a2fca28a323ce2fe484fcfdbc8b0fb61a89e538629935b5bf964447a581', 'criteria': [{'check': 'Run independent HTTP and SQLite probe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': '5a44ffe123fa7913d2077e27504ee7f04b52b691dcef1321c755d76f3bdada53', 'verification_digest': '001dec339676f2544b85ee02e1b902469409aa7319bb703865a1f1a7409b92a8', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'runner_sha256': '785837adb30348bfe3000485e2c1bad524b261100bd064c94c06b0170765353d', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '72696ac8595cd0831774d4c39461b8a3491f65f447c97fe8e812bf5cdcd0612e'}}, 'status': 'failed', 'created': '2026-11-07 11:36:53', 'ended': '2026-11-07 11:36:53', 'result_hash': 'e8435b51e373dc1c5ec4cdb0e5bcfb0b962ce32fcc2c81f84f8c00c71f4639e6', 'running': False, 'cleanup_complete': True, 'passed': False, 'observed_passed': False, 'source_current': True, 'blocked': [], 'result': {'schema': 1, 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'PROBE-1', 'project_id': 1, 'base': '91c8d899d37e3ddd12342dde45dc4cab6989ef13', 'commit': '4f25df5d15b4e5e6eda7a967817b7e0f746fb092', 'requirement_hash': '90d09a2fca28a323ce2fe484fcfdbc8b0fb61a89e538629935b5bf964447a581', 'criteria': [{'check': 'Run independent HTTP and SQLite probe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Run independent HTTP and SQLite probe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': '5a44ffe123fa7913d2077e27504ee7f04b52b691dcef1321c755d76f3bdada53', 'verification_digest': '001dec339676f2544b85ee02e1b902469409aa7319bb703865a1f1a7409b92a8', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'runner_sha256': '785837adb30348bfe3000485e2c1bad524b261100bd064c94c06b0170765353d', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '72696ac8595cd0831774d4c39461b8a3491f65f447c97fe8e812bf5cdcd0612e'}}, 'arms': {}, 'candidate_passed': False, 'comparison': 'unknown', 'limitations': 'One task, two source versions. This is behavioral evidence, not model improvement or a causal harness A/B estimate.', 'error': 'RuntimeError: 候选或验证来源在探测期间失效，停止后续执行', 'artifacts': {'recipe.py': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'owner.json': '9ef617dcec31e6845852310bc19ff029dd5d8da14ac44276185f52334ac285a4', 'source.json': 'a095e234fb7a723391784678e77c96162395cdd7284b3ceabcec7ba0fe13638f'}}, 'evidence_hash': '', 'artifact_dir': '/tmp/webuddy-harness-probe-1n3hzaun/data/harness-probes/1', 'human_acceptance': False}
+2026-11-07T11:48:27.7862790Z FAILED tests/test_harness_probes_independent.py::HarnessProbeIndependentTest::test_verification_replacement_invalidates_current_pass_but_retains_history - AssertionError: False is not true : {'id': 1, 'candidate_id': 1, 'author': 'agent:independent-fixture', 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'INDEP-1', 'project_id': 1, 'base': '97328d4db7fe06cd65dab00427a06830142db555', 'commit': '61f75820c716158e996495c660889fa11e80de07', 'requirement_hash': '20136a2024bb6a193e260ce7c2d79714dfb57173021265759413df9ebb1a6d23', 'criteria': [{'check': 'Independent recipe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Independent recipe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Independent recipe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Independent recipe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': '059d1c7a21a2d43add7d18b3cf8add81905a714e85f33ab1563184ca64a64e2d', 'verification_digest': 'b3dfc804750a9843221f5c027165ffc4fbb9f1fd0fd3d4cf0c6c7a3ab9321439', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'runner_sha256': '785837adb30348bfe3000485e2c1bad524b261100bd064c94c06b0170765353d', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '72696ac8595cd0831774d4c39461b8a3491f65f447c97fe8e812bf5cdcd0612e'}}, 'status': 'failed', 'created': '2026-11-07 11:37:11', 'ended': '2026-11-07 11:37:11', 'result_hash': '151af27deeaf10576d9fde40a9d11f7b6c66917fdf439ecadcfe212de88a3085', 'running': False, 'cleanup_complete': True, 'passed': False, 'observed_passed': False, 'source_current': True, 'blocked': [], 'result': {'schema': 1, 'source': {'candidate_id': 1, 'ticket_id': 1, 'ticket': 'INDEP-1', 'project_id': 1, 'base': '97328d4db7fe06cd65dab00427a06830142db555', 'commit': '61f75820c716158e996495c660889fa11e80de07', 'requirement_hash': '20136a2024bb6a193e260ce7c2d79714dfb57173021265759413df9ebb1a6d23', 'criteria': [{'check': 'Independent recipe', 'id': 'A1', 'text': '中文、Unicode 大小写及特殊字符按字面搜索'}, {'check': 'Independent recipe', 'id': 'A2', 'text': '全部/未完成/已完成与关键词组合筛选、空结果及清除'}, {'check': 'Independent recipe', 'id': 'A3', 'text': '固定路径、刷新、编辑取消及保存保持筛选条件'}, {'check': 'Independent recipe', 'id': 'A4', 'text': '原编号/状态、200字换行、失败重试和重启后持久保存'}], 'configuration_hash': '059d1c7a21a2d43add7d18b3cf8add81905a714e85f33ab1563184ca64a64e2d', 'verification_digest': 'b3dfc804750a9843221f5c027165ffc4fbb9f1fd0fd3d4cf0c6c7a3ab9321439', 'recipe': {'id': 'bootv2-items-search-v1', 'name': '事项管理搜索、筛选及持久保存', 'checks': {'A1': '中文、Unicode 大小写及特殊字符按字面搜索', 'A2': '全部/未完成/已完成与关键词组合筛选、空结果及清除', 'A3': '固定路径、刷新、编辑取消及保存保持筛选条件', 'A4': '原编号/状态、200字换行、失败重试和重启后持久保存'}, 'scope': 'Python BOOTV2 starter app.py CLI with a fresh SQLite database; not a universal web app verifier', 'source_sha256': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'runner_sha256': '785837adb30348bfe3000485e2c1bad524b261100bd064c94c06b0170765353d', 'total_seconds': 90, 'upstream': {'repository': 'https://github.com/google-research/harness2', 'commit': '1cfe254e8d25b15f37048c3730134686abe60335', 'license': 'Apache-2.0'}, 'version': '72696ac8595cd0831774d4c39461b8a3491f65f447c97fe8e812bf5cdcd0612e'}}, 'arms': {}, 'candidate_passed': False, 'comparison': 'unknown', 'limitations': 'One task, two source versions. This is behavioral evidence, not model improvement or a causal harness A/B estimate.', 'error': 'RuntimeError: 候选或验证来源在探测期间失效，停止后续执行', 'artifacts': {'recipe.py': '98965d3a89f760b25b1d4d26c756bff3bebf9e5754651f12e9805215042617ee', 'owner.json': '9b31fea07ab349618d9dec7a3ea0e377e6de80de84d81c009040caf2dae47670', 'source.json': 'ea1adacab0158d16161b593eaa19336235648932a36ba448eb788a3834ab9e60'}}, 'evidence_hash': '', 'artifact_dir': '/tmp/webuddy-probe-independent-2fql2_pq/data/harness-probes/1', 'human_acceptance': False}
+2026-11-07T11:48:27.7873876Z 2 failed, 3084 passed, 63 skipped, 1958 subtests passed in 783.81s (0:13:03)
+2026-11-07T11:48:28.1483322Z ##[error]Process completed with exit code 1.
+2026-11-07T11:48:28.1624859Z Post job cleanup.
+2026-11-07T11:48:28.2355791Z [command]/usr/bin/git version
+2026-11-07T11:48:28.2393483Z git version 2.56.0
+2026-11-07T11:48:28.2423044Z Temporarily overriding HOME='/home/runner/work/_temp/ff716535-3373-414d-aaf3-8a4ce5f4b7b7' before making global git config changes
+2026-11-07T11:48:28.2428055Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-07T11:48:28.2430795Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/webuddy-pitch/webuddy-pitch
+2026-11-07T11:48:28.2463562Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-07T11:48:28.2496613Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-07T11:48:28.2733732Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-07T11:48:28.2757076Z http.https://github.com/.extraheader
+2026-11-07T11:48:28.2767266Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-07T11:48:28.2799692Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-07T11:48:28.3052197Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-07T11:48:28.3100997Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-07T11:48:28.3528422Z Cleaning up orphan processes
+2026-11-07T11:48:28.3910514Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

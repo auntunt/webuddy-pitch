@@ -1,0 +1,21 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 11 items
+
+tests/test_candidate_memory.py::CandidateMemoryTests::test_delayed_memory_retry_cannot_credit_memory_used_after_the_verdict PASSED [  9%]
+tests/test_candidate_memory.py::CandidateMemoryTests::test_delayed_older_verdict_does_not_consume_newer_same_memory_use PASSED [ 18%]
+tests/test_candidate_memory.py::CandidateMemoryTests::test_explicit_success_creates_full_draft_with_exact_candidate_and_human_sources PASSED [ 27%]
+tests/test_candidate_memory.py::CandidateMemoryTests::test_failed_memory_write_keeps_verdict_and_explicit_retry_recovers_once PASSED [ 36%]
+tests/test_candidate_memory.py::CandidateMemoryTests::test_failure_is_a_draft_counterexample_and_retries_do_not_duplicate_it PASSED [ 45%]
+tests/test_candidate_memory.py::CandidateMemoryTests::test_later_failure_pauses_only_success_memory_for_the_same_fixed_candidate PASSED [ 54%]
+tests/test_candidate_memory.py::CandidateMemoryTests::test_partial_projection_stays_pending_until_credit_is_recovered PASSED [ 63%]
+tests/test_candidate_memory.py::CandidateMemoryTests::test_reused_memory_outcome_is_credited_once_by_the_human_verdict PASSED [ 72%]
+tests/test_candidate_memory.py::CandidateMemoryTests::test_review_and_merge_are_not_business_verdicts PASSED [ 81%]
+tests/test_candidate_memory.py::CandidateMemoryTests::test_same_second_new_injection_of_same_memory_survives_delayed_verdict PASSED [ 90%]
+tests/test_candidate_memory.py::CandidateMemoryTests::test_success_replay_after_close_reuses_the_original_acceptance_and_memory PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_candidate_memory.xml -
+======================= 11 passed in 139.12s (0:02:19) ========================

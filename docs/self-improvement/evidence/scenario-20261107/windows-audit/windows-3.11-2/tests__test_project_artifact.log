@@ -1,0 +1,131 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 1 item
+
+tests/test_project_artifact.py::ProjectArtifactTest::test_real_git_bundle_preserves_base_and_exact_binary_change FAILED [100%]
+
+================================== FAILURES ===================================
+_ ProjectArtifactTest.test_real_git_bundle_preserves_base_and_exact_binary_change _
+
+self = <unittest.case._Outcome object at 0x0000027622BAA4D0>
+test_case = <test_project_artifact.ProjectArtifactTest testMethod=test_real_git_bundle_preserves_base_and_exact_binary_change>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_artifact.ProjectArtifactTest testMethod=test_real_git_bundle_preserves_base_and_exact_binary_change>
+result = <TestCaseFunction test_real_git_bundle_preserves_base_and_exact_binary_change>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_artifact.ProjectArtifactTest testMethod=test_real_git_bundle_preserves_base_and_exact_binary_change>
+method = <bound method ProjectArtifactTest.test_real_git_bundle_preserves_base_and_exact_binary_change of <test_project_artifact.ProjectArtifactTest testMethod=test_real_git_bundle_preserves_base_and_exact_binary_change>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_artifact.ProjectArtifactTest testMethod=test_real_git_bundle_preserves_base_and_exact_binary_change>
+
+    def test_real_git_bundle_preserves_base_and_exact_binary_change(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root=Path(raw).resolve();repo=root/'repo';repo.mkdir();workspace=root/'workspace';workspace.mkdir()
+            def git(path,*args):
+                return subprocess.run(['git','-C',str(path),*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
+            git(repo,'init','-q')
+            (repo/'app.py').write_text('old\n');(repo/'binary.bin').write_bytes(b'\x00old\xff');(repo/'removed.txt').write_text('keep in source')
+            git(repo,'add','app.py','binary.bin','removed.txt')
+            git(repo,'-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','base')
+            base=git(repo,'rev-parse','HEAD').decode().strip()
+            (workspace/'app.py').write_text('new\n');(workspace/'binary.bin').write_bytes(b'\x00new\xff')
+            script=BUILD.replace('/source/.git/objects',str(repo/'.git/objects')).replace('/workspace',str(workspace)).replace('/tmp/job-index',str(root/'index')).replace('/tmp/job.git',str(root/'scratch.git')).replace('/tmp/candidate.bundle',str(root/'output.bundle'))
+            env=dict(os.environ,GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL='/dev/null',GIT_TERMINAL_PROMPT='0')
+            result=subprocess.run(['python3','-I','-c',script,base],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env)
+>           self.assertEqual(result.returncode,0,result.stderr.decode(errors='replace'))
+
+tests\test_project_artifact.py:28: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_artifact.ProjectArtifactTest testMethod=test_real_git_bundle_preserves_base_and_exact_binary_change>
+first = 1, second = 0
+msg = '  File "<string>", line 3\r\n    base=sys.argv[1];lfs=json.load(open(sys.argv[2])) if len(sys.argv)>2 else {};env=dic...axError: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 2-3: truncated \\UXXXXXXXX escape\r\n'
+
+    def assertEqual(self, first, second, msg=None):
+        """Fail if the two objects are unequal as determined by the '=='
+           operator.
+        """
+        assertion_func = self._getAssertEqualityFunc(first, second)
+>       assertion_func(first, second, msg=msg)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:873: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_artifact.ProjectArtifactTest testMethod=test_real_git_bundle_preserves_base_and_exact_binary_change>
+first = 1, second = 0
+msg = '1 != 0 :   File "<string>", line 3\r\n    base=sys.argv[1];lfs=json.load(open(sys.argv[2])) if len(sys.argv)>2 else {...axError: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 2-3: truncated \\UXXXXXXXX escape\r\n'
+
+    def _baseAssertEqual(self, first, second, msg=None):
+        """The default assertEqual implementation, not type specific."""
+        if not first == second:
+            standardMsg = '%s != %s' % _common_shorten_repr(first, second)
+            msg = self._formatMessage(msg, standardMsg)
+>           raise self.failureException(msg)
+E           AssertionError: 1 != 0 :   File "<string>", line 3
+E               base=sys.argv[1];lfs=json.load(open(sys.argv[2])) if len(sys.argv)>2 else {};env=dict(os.environ,GIT_INDEX_FILE='C:\Users\runneradmin\AppData\Local\Temp\tmpzg_c0omc\index',
+E                                                                                                                                                                                          ^
+E           SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \UXXXXXXXX escape
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:866: AssertionError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_project_artifact.xml -
+============================== 1 failed in 1.04s ==============================

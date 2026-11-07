@@ -1,0 +1,36 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 26 items
+
+tests/test_handoffs.py::HandoffsTest::test_block_resume_preserves_original_wait_and_notes PASSED [  3%]
+tests/test_handoffs.py::HandoffsTest::test_candidate_inspection_never_holds_sqlite_write_transaction PASSED [  7%]
+tests/test_handoffs.py::HandoffsTest::test_candidate_snapshot_has_full_verified_identity_and_latest_change_stales PASSED [ 11%]
+tests/test_handoffs.py::HandoffsTest::test_candidate_tamper_is_stale_and_client_cannot_forge_sha PASSED [ 15%]
+tests/test_handoffs.py::HandoffsTest::test_close_is_readonly_but_exact_successful_receipt_still_replays PASSED [ 19%]
+tests/test_handoffs.py::HandoffsTest::test_competing_sends_across_connections_preserve_one_pending PASSED [ 23%]
+tests/test_handoffs.py::HandoffsTest::test_concurrent_same_request_retries_one_durable_receipt PASSED [ 26%]
+tests/test_handoffs.py::HandoffsTest::test_conflicting_actions_across_connections_have_one_winner PASSED [ 30%]
+tests/test_handoffs.py::HandoffsTest::test_database_cas_alone_rejects_racing_actions_after_same_source_read PASSED [ 34%]
+tests/test_handoffs.py::HandoffsTest::test_deleted_receiver_can_be_withdrawn_without_impersonation PASSED [ 38%]
+tests/test_handoffs.py::HandoffsTest::test_fault_at_audit_event_rolls_back_update PASSED [ 42%]
+tests/test_handoffs.py::HandoffsTest::test_fault_at_receipt_insertion_rolls_back_every_row PASSED [ 46%]
+tests/test_handoffs.py::HandoffsTest::test_legacy_event_timestamp_remains_compatible_with_response_metrics PASSED [ 50%]
+tests/test_handoffs.py::HandoffsTest::test_legacy_migration_is_idempotent_and_ddl_failure_rolls_back PASSED [ 53%]
+tests/test_handoffs.py::HandoffsTest::test_legacy_owner_and_project_root_changes_invalidate_source PASSED [ 57%]
+tests/test_handoffs.py::HandoffsTest::test_nested_schema_refuses_without_committing_outer_transaction PASSED [ 61%]
+tests/test_handoffs.py::HandoffsTest::test_payload_idempotency_is_exact_and_different_request_cas_conflicts PASSED [ 65%]
+tests/test_handoffs.py::HandoffsTest::test_real_identities_and_server_authorship_only PASSED [ 69%]
+tests/test_handoffs.py::HandoffsTest::test_real_reference_grant_revocation_prevents_receive PASSED [ 73%]
+tests/test_handoffs.py::HandoffsTest::test_reference_mode_refuses_new_handoff_and_preserves_safe_return PASSED [ 76%]
+tests/test_handoffs.py::HandoffsTest::test_removed_actor_during_preparation_cannot_write PASSED [ 80%]
+tests/test_handoffs.py::HandoffsTest::test_reviewer_and_reference_grant_changes_invalidate_source PASSED [ 84%]
+tests/test_handoffs.py::HandoffsTest::test_source_changes_during_capture_refuse_without_partial_write PASSED [ 88%]
+tests/test_handoffs.py::HandoffsTest::test_stale_source_rejects_receive_but_allows_reasoned_return PASSED [ 92%]
+tests/test_handoffs.py::HandoffsTest::test_two_handoffs_receive_return_and_full_material_history PASSED [ 96%]
+tests/test_handoffs.py::HandoffsTest::test_unrecorded_wait_is_unknown_and_directory_has_only_people PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_handoffs.xml -
+============================= 26 passed in 34.96s =============================

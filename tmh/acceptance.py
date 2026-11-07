@@ -5,8 +5,8 @@ evidence, never a verdict. So a task moves through explicit states, and each mov
 
   draft_contract → implementing            only when every acceptance criterion (AC) has a check and a layer
   implementing → verify_local              only after a passing `tmh verify` and a path check (path.py)
-  verify_local → merged → deployed_awaiting_verify → auto_verified | needs_human
-  auto_verified | needs_human → user_confirmed_fix → closed      a person only (confirm / close)
+  verify_local → merged → deployed_awaiting_verify → auto_verified | awaiting_business | needs_human
+  auto_verified | awaiting_business → user_confirmed_fix → closed      a person only (confirm / close)
   any check state → implementing           a failed check sends the task back, with the reason
 
 State, history and evidence pointers live in .tmh/acceptance/<task>.json; the contract's "验收状态" line mirrors
@@ -16,6 +16,7 @@ L3 retest after deployment, L4 a person on the real system (docs/acceptance.md).
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 import tempfile
@@ -28,19 +29,21 @@ from .report import now
 
 STATES = [
     ("draft_contract", "草拟契约"), ("implementing", "实现中"), ("verify_local", "本地验证通过"), ("merged", "已合并"),
-    ("deployed_awaiting_verify", "已部署待回测"), ("auto_verified", "自动证据齐全"), ("needs_human", "待人工验收"),
+    ("deployed_awaiting_verify", "已部署待回测"), ("auto_verified", "自动证据齐全"), ("needs_human", "待技术处理"), ("awaiting_business", "待业务验收"), ("blocked", "验证受阻"),
     ("user_confirmed_fix", "用户已确认"), ("closed", "已关闭"),
 ]
 LABEL = dict(STATES)
-CHECKING = ("verify_local", "merged", "deployed_awaiting_verify", "auto_verified", "needs_human")
+CHECKING = ("verify_local", "merged", "deployed_awaiting_verify", "auto_verified", "needs_human", "awaiting_business", "blocked")
 MOVES = {  # state -> states it may move to
     "draft_contract": ("implementing",),
-    "implementing": ("verify_local",),
+    "implementing": ("verify_local", "blocked", "needs_human"),
     "verify_local": ("merged", "needs_human", "implementing"),
     "merged": ("deployed_awaiting_verify", "needs_human", "implementing"),
-    "deployed_awaiting_verify": ("auto_verified", "needs_human", "implementing"),
+    "deployed_awaiting_verify": ("auto_verified", "awaiting_business", "blocked", "needs_human", "implementing"),
     "auto_verified": ("user_confirmed_fix", "needs_human", "implementing"),
-    "needs_human": ("user_confirmed_fix", "implementing"),
+    "needs_human": ("implementing",),
+    "blocked": ("implementing",),
+    "awaiting_business": ("user_confirmed_fix", "implementing", "needs_human"),
     "user_confirmed_fix": ("closed", "implementing"),
     "closed": ("implementing",),  # reopened by a person
 }
@@ -245,17 +248,26 @@ def advance(root: Path, tid: str, to: str, who: str = "", note: str = "", ref: s
     if to == "verify_local":
         rep = cfgmod.tmh_dir(root) / "reports" / "verify-latest.json"
         v = json.loads(rep.read_text(encoding="utf-8")) if rep.exists() else None
-        if not v or not v.get("passed"):
-            raise Refused("先运行 tmh verify --task %s 并通过（%s）" % (rec["task"], "还没有验证报告" if not v else "最近一次未通过"))
+        from .verify import current_report
+        if not v or not current_report(root, rec["task"], v):
+            raise Refused("先运行 tmh verify --task %s 并通过（%s）" % (rec["task"], "还没有验证报告" if not v else "报告未通过、未执行测试或与当前任务/代码/契约不一致"))
         if path_result is None:
             from .path import path_check
             path_result = path_check(root, rec["task"])
         if not path_result["ok"]:
             raise Refused("入口路径检查没通过：\n  - " + "\n  - ".join(path_result["problems"]))
-        ev = {"type": "tmh_verify", "at": v.get("time"), "ok": True, "report": ".tmh/reports/verify-latest.json",
+        ev = {"type": "tmh_verify", "at": v.get("time"), "ok": True, "report": v["report"], "identity": v["identity"],
+              "sha256": hashlib.sha256((root / v["report"]).read_bytes()).hexdigest(),
               "path_check": {"entries": path_result["entries"], "covered": len(path_result["covered"]), "manual": len(path_result["manual"])}}
         rec["blockers"] = [b for b in rec["blockers"] if not b.startswith("path_unverified")]
         rec["blockers"] += ["path_unverified: %s" % m for m in path_result["manual"]]
+    if to in ("merged", "deployed_awaiting_verify", "auto_verified", "awaiting_business", "user_confirmed_fix", "closed"):
+        from .verify import current_report
+        from .fsutil import sha256_file
+        prior = next((e for e in reversed(rec["evidence"]) if e.get("type") == "tmh_verify"), None)
+        report = root / prior["report"] if prior else None
+        if not report or not report.is_file() or sha256_file(report) != prior.get("sha256") or not current_report(root, rec["task"], json.loads(report.read_text(encoding="utf-8"))):
+            raise Refused("验证证据缺失或已失效，请退回实现并重新运行 tmh verify --task " + rec["task"])
     if to == "merged":
         if not ref.strip():
             raise Refused("写明合并到哪里：--ref <提交号或合并请求>")
@@ -266,19 +278,22 @@ def advance(root: Path, tid: str, to: str, who: str = "", note: str = "", ref: s
             raise Refused("写明部署的是哪个可测构建：--build <构建号或版本>")
         rec["build_id"] = build.strip()
         ev = {"type": "deploy", "at": now(), "build_id": rec["build_id"]}
-    if to == "auto_verified":
+    if to in ("auto_verified", "awaiting_business"):
         kinds = {e.get("type") for e in rec["evidence"]}
         lack = [lb for k, lb in (("tmh_verify", "本地验证和入口路径检查"), ("deploy", "部署的构建号")) if k not in kinds]
         if lack:
             raise Refused("证据包缺 %s，不能标“自动证据齐全”" % "、".join(lack))
         rows = ac_rows(text)
-        left = [r["id"] for r in rows if not passed(r["result"])]
-        l4 = [r["id"] for r in rows if r["layer"] == "L4"]
-        why = (["AC %s 还没有“通过”的结果" % "、".join(left)] if left else []) + (["AC %s 是 L4，要人验收" % "、".join(l4)] if l4 else []) \
+        proofs = json.loads(report.read_text(encoding="utf-8")).get("criterion_evidence", {})
+        left = [r["id"] for r in rows if r["layer"] != "L4" and (r["layer"] != "L2" or proofs.get(r["id"], {}).get("status") != "pass")]
+        l4 = [r["id"] for r in rows if r["layer"] == "L4" and to == "auto_verified"]
+        why = (["AC %s 缺少绑定候选的逐项执行证据（结果栏文字不能代替验证，请使用平台候选复核）" % "、".join(left)] if left else []) + (["AC %s 是 L4，要人验收" % "、".join(l4)] if l4 else []) \
             + (["还有阻塞：%s" % "；".join(rec["blockers"])] if rec["blockers"] else [])
         if why:
-            raise Refused("证据不齐，不能标“自动证据齐全”，请改去“待人工验收”（needs_human）：\n  - " + "\n  - ".join(why))
+            raise Refused("证据不齐，不能标“自动证据齐全”，请先处理缺口（needs_human），不要进入业务验收：\n  - " + "\n  - ".join(why))
         ev = {"type": "ac_results", "at": now(), "ok": True, "build_id": rec["build_id"]}
+    if to in ("needs_human", "blocked") and not note.strip():
+        raise Refused("写明受阻或待技术处理的原因：--note")
     if to == "user_confirmed_fix":
         rec["confirmed_by"], rec["confirmed_at"] = who.strip(), now()
         ev = {"type": "user_confirmed", "at": rec["confirmed_at"], "by": rec["confirmed_by"], "note": note}
@@ -304,7 +319,7 @@ def _chain(root: Path, rec: dict, cur: str, to: str, who: str, note: str, text: 
     from . import evidence as ev
     path = evidence_path(root, rec["task"])
     recs = ev.read(path)
-    if to in ("auto_verified", "needs_human"):
+    if to in ("auto_verified", "awaiting_business"):
         data = {"state": to, "contract": rec["file"], "contract_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
                 "ac": ac_rows(text), "entries": entries(text), "evidence": rec["evidence"], "blockers": rec["blockers"],
                 "build_id": rec.get("build_id"), "ref": rec.get("ref")}

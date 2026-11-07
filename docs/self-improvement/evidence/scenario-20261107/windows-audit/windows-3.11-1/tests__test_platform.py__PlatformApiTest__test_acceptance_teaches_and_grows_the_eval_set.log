@@ -1,0 +1,124 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 1 item
+
+tests/test_platform.py::PlatformApiTest::test_acceptance_teaches_and_grows_the_eval_set FAILED [100%]
+
+================================== FAILURES ===================================
+_______ PlatformApiTest.test_acceptance_teaches_and_grows_the_eval_set ________
+
+self = <unittest.case._Outcome object at 0x000002B8FB4358D0>
+test_case = <test_platform.PlatformApiTest testMethod=test_acceptance_teaches_and_grows_the_eval_set>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_platform.PlatformApiTest testMethod=test_acceptance_teaches_and_grows_the_eval_set>
+result = <TestCaseFunction test_acceptance_teaches_and_grows_the_eval_set>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_platform.PlatformApiTest testMethod=test_acceptance_teaches_and_grows_the_eval_set>
+method = <bound method PlatformApiTest.test_acceptance_teaches_and_grows_the_eval_set of <test_platform.PlatformApiTest testMethod=test_acceptance_teaches_and_grows_the_eval_set>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_platform.PlatformApiTest testMethod=test_acceptance_teaches_and_grows_the_eval_set>
+
+    def test_acceptance_teaches_and_grows_the_eval_set(self):
+        from tmh.platform import learn
+        from tmh.platform.agents import build_prompt
+        self.personal_session("lesson-reviewer")
+        self.team()
+        try:
+            # passed, but a person had to add a commit on top of the automatic one: a lesson, and an eval case
+            t, branch = self.fixed("请假审批提交后状态不刷新")
+            wt = self.data / "human-wt"
+            subprocess.run(["git", "-C", str(self.repo), "worktree", "add", "-q", str(wt), branch], check=True)
+            readme = wt / "src" / "main" / "resources" / "leave-note.txt"
+            readme.parent.mkdir(parents=True, exist_ok=True)
+            readme.write_text("状态刷新要在提交事务之后\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(wt), "add", "-A"], check=True)
+            subprocess.run(["git", "-C", str(wt), "-c", "user.name=li", "-c", "user.email=li@x", "commit", "-q", "-m", "补充事务说明"], check=True)
+            subprocess.run(["git", "-C", str(self.repo), "worktree", "remove", "--force", str(wt)], check=True)
+            code, _ = self.call("POST", "/api/tickets/%s/accept" % t["key"], {"result": "pass", "note": "合并后验证通过"})
+            self.assertEqual(code, 200)
+            ls = learn.lessons(self.data, "OA")
+            self.assertEqual((ls[0]["kind"], ls[0]["ticket"]), ("human-fix", t["key"]), ls[0])
+            self.assertIn("补充事务说明", ls[0]["note"])
+            self.assertIn("src/main/resources/leave-note.txt", ls[0]["files"])
+            case = [c for c in learn.cases(self.data, "OA") if c["ticket"] == t["key"]][0]
+            self.assertIn(SVC, case["gold"])
+            self.assertIn("src/main/resources/leave-note.txt", case["gold"])  # the human fix counts as part of the right answer
+            # a related ticket's prompt carries the lesson; the ticket itself does not get its own lesson twice
+            _, t2 = self.call("POST", "/api/tickets", {"project": "OA", "title": "请假审批提交后状态还是不刷新", "body": "LeaveService 提交"})
+            p = self.P.store.project(t2["project_id"])
+            self.assertIn("以往的经验", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "plan"))
+            self.assertIn("补充事务说明", build_prompt(self.P.store, p, self.P.store.ticket(t2["id"]), "fix"))
+            self.assertNotIn("以往的经验", build_prompt(self.P.store, p, self.P.store.ticket(t["id"]), "plan"))
+            lid = ls[0]["id"]
+            self.assertEqual(learn.lesson(self.data, lid)["stats"]["used"], 1)  # two prompts before a verdict count once
+            # people look after the cards: a reason is needed to take one out, and then it stays out of prompts
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "retire", "expected_token": learn.revision_token(self.data, lid), "request_id": "retire-missing-reason"}, headers={"X-Webuddy-Lesson-Actor": "lesson-reviewer"})
+            self.assertEqual(code, 400, r)
+            code, r = self.call("POST", "/api/projects/OA/lessons/%s" % lid, {"action": "retire", "why": "事务问题已统一修掉", "expected_token": learn.revision_token(self.data, lid), "request_id": "retire-card"}, headers={"X-Webuddy-Lesson-Actor": "lesson-reviewer"})
+>           self.assertEqual((code, r["status"]), (200, "retired"), r)
+                                    ^^^^^^^^^^^
+E           KeyError: 'status'
+
+tests\test_platform.py:1410: KeyError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_platform.py__PlatformApiTest__test_acceptance_teaches_and_grows_the_eval_set.xml -
+============================= 1 failed in 24.73s ==============================

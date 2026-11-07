@@ -1,0 +1,142 @@
+[
+  {
+    "path": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.AccessFilterTest.xml",
+    "bytes": 31530,
+    "sha256": "d6ef822bc8246d6dc9e5f01545a0b86cc277c10caaf82c7cd3204c64d23ce87c"
+  },
+  {
+    "path": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.AuthenticationRulesTest.xml",
+    "bytes": 31901,
+    "sha256": "f59a9b29e552fd0d3a3b712665d0721b9db26a40e1a40c9ceda2588f55d040f2"
+  },
+  {
+    "path": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.CaptchaRulesTest.xml",
+    "bytes": 31726,
+    "sha256": "09f43a6d49d85f18a1f1f4b2db597ee08989d2e699b285838623ff3d749fd09d"
+  },
+  {
+    "path": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.FinancialInputTest.xml",
+    "bytes": 32322,
+    "sha256": "67333ae6d893ba3a71f49cd5afda0a4898b44b6f778dd8af38e7e1a842703fc5"
+  },
+  {
+    "path": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.SequenceHttpTest.xml",
+    "bytes": 31283,
+    "sha256": "95b7ec29a443f50a80a86bbdaf217b0d9ed46ae4bde29b5ec02d1b83d06bc5ab"
+  },
+  {
+    "path": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.SequenceServiceTest.xml",
+    "bytes": 31550,
+    "sha256": "e6ecdda6394c93e458b640819bfe5fddb9d45d95c0386b4cd777ea2f9ad32a56"
+  },
+  {
+    "path": "jshERP-web/dist/static/android-code.png",
+    "bytes": 21661,
+    "sha256": "464638f476fc1d01355ac59ae4717cdd4932c4478ecf111ba5b7d66e87de0077"
+  },
+  {
+    "path": "jshERP-web/dist/static/Android.png",
+    "bytes": 3102,
+    "sha256": "b5d470de26d56eb99fc1daa11b783c1f233eb366a0022afdb5315cb6fea38ac3"
+  },
+  {
+    "path": "jshERP-web/dist/static/bgimg.png",
+    "bytes": 238418,
+    "sha256": "395c25d0a3536d6a240d36d3bd760ef5ee4a6e0e045c633db93256db1cbf9b49"
+  },
+  {
+    "path": "jshERP-web/dist/static/blue.png",
+    "bytes": 42984,
+    "sha256": "f2ae084c961859e967b80d7943e330b2883943ba0bb05b3bd70348b2111033d6"
+  },
+  {
+    "path": "jshERP-web/dist/static/iphone-code.png",
+    "bytes": 24255,
+    "sha256": "91435e1d0bfb541c499986f298317dddea978f444238d43af4570859a51af93e"
+  },
+  {
+    "path": "jshERP-web/dist/static/iPhone.png",
+    "bytes": 3155,
+    "sha256": "02aa6958ceb0667b35159b4a6018df360382b884bc52c1bc7fe8c6c01079fff7"
+  },
+  {
+    "path": "jshERP-web/dist/static/mini-program.png",
+    "bytes": 6849,
+    "sha256": "b556315ce3b44ddd1dbc7dd0ef493ed16ba937014c185f6c1f34e47be37a29ce"
+  },
+  {
+    "path": "jshERP-web/dist/static/rightImg.png",
+    "bytes": 264344,
+    "sha256": "72b93d143bcaf3e26a45af0b61658ffd5cfc4cceda43c3fe92eee20272b6ae99"
+  },
+  {
+    "path": "jshERP-web/dist/static/weixin-code.png",
+    "bytes": 22572,
+    "sha256": "cdc6a466dc404d700d8e4acb2acbdeb17a5941d18e7c31542b6c18997e593c51"
+  },
+  {
+    "path": "target/business/build.json",
+    "bytes": 623,
+    "sha256": "68213a7e85df4b1e7c16d87bc1fdb5b7c014c12b8e0c942499064220e3d4e604"
+  },
+  {
+    "path": "target/business/chromium.log",
+    "bytes": 5371,
+    "sha256": "f6fadb06157b859ee54425a4eb9741ec717064aa15dee9d0356d15e7595c011a"
+  },
+  {
+    "path": "target/business/erp.log",
+    "bytes": 210336,
+    "sha256": "c765e179091de120b8f6793edd0240d4395df22e358c5bc936174e7f6ea6bc02"
+  },
+  {
+    "path": "target/business/failure-page.json",
+    "bytes": 2500,
+    "sha256": "a634f6e40c3fd4d5e72760b2ad9513a66c1f865b0127eeca31d8a58eb07b73cc"
+  },
+  {
+    "path": "target/business/failure.png",
+    "bytes": 149344,
+    "sha256": "5f07c8a8677e224ca1fa6ca8df9f8cea24f29f86e57959c0080287a044c29a02"
+  },
+  {
+    "path": "target/business/proxy.log",
+    "bytes": 42279,
+    "sha256": "f9088b0afd4c63e95275dce2de3f5e26c54fb485001402858de7704e1a699333"
+  },
+  {
+    "path": "target/business/report.json",
+    "bytes": 172,
+    "sha256": "e9131f7eb82ecc0a3b80d9e880fc6f1172f0d3e8a54b410c854a2682a2e95d5d"
+  },
+  {
+    "path": "target/business/single-browser.json",
+    "bytes": 4221,
+    "sha256": "4d4a93c7bd2f47b19732ef1095eb3069f6a6055d33bad50c4be59de7a1431ec3"
+  },
+  {
+    "path": "target/business/single-input.png",
+    "bytes": 84401,
+    "sha256": "bc326f2d4a666b41bed7f03453cf9fb68288ca934f69b532578c76e79b8dd8e7"
+  },
+  {
+    "path": "target/business/single-reason-empty.json",
+    "bytes": 1156,
+    "sha256": "4ac04f8c5e8dad00d485d119eac33aa27ebb32a98b983c9d86f795cf37162830"
+  },
+  {
+    "path": "target/business/single-result.png",
+    "bytes": 147746,
+    "sha256": "05c5398caa79426408dbe69cf8465ad3db9a08fb920a160087a179be9689beb6"
+  },
+  {
+    "path": "target/business/single-table.json",
+    "bytes": 537,
+    "sha256": "70bec5d8c76ddc9143ba9712e63e78d57fc44013bc3e9bb2ef5dca485e9d40c1"
+  },
+  {
+    "path": "target/frontend.xml",
+    "bytes": 3341,
+    "sha256": "46c3a2be965a40b77bf2e3a4470aacb730739c37c4189c4f3dad027d1ee25138"
+  }
+]

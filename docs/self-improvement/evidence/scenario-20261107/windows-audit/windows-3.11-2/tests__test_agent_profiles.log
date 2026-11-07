@@ -1,0 +1,333 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 13 items
+
+tests/test_agent_profiles.py::AgentProfilesTest::test_busy_retry_rechecks_revoked_broken_or_removed_route_config SKIPPED [  7%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_busy_retry_with_unchanged_route_starts_second_real_process SKIPPED [ 15%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_direct_invoke_rechecks_project_route_before_execution PASSED [ 23%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_invalid_profile_and_conflicts_fail_before_process_launch 
+tests/test_agent_profiles.py::AgentProfilesTest::test_invalid_profile_and_conflicts_fail_before_process_launch PASSED [ 30%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_profile_command_separates_identity_from_engine_and_keeps_permissions PASSED [ 38%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_profile_defaults_to_codex_binary_and_keeps_other_engines PASSED [ 46%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_real_stdin_json_reply_usage_and_original_evidence SKIPPED [ 53%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_resume_disabled_uses_full_fresh_task_and_never_retries_busy SKIPPED [ 61%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_resume_fallback_rechecks_route_before_starting_fresh_process SKIPPED [ 69%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_start_uses_route_and_preserves_alias_in_run SKIPPED [ 76%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary FAILED [ 84%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_zero_exit_completed_turn_with_only_logs_or_empty_message_fails SKIPPED [ 92%]
+tests/test_agent_profiles.py::AgentProfilesTest::test_zero_exit_without_complete_reply_or_with_failed_turn_is_not_success SKIPPED [100%]
+
+================================== FAILURES ===================================
+_ AgentProfilesTest.test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary _
+
+self = <unittest.case._Outcome object at 0x000001695E03C390>
+test_case = <test_agent_profiles.AgentProfilesTest testMethod=test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_agent_profiles.AgentProfilesTest testMethod=test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary>
+result = <TestCaseFunction test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_agent_profiles.AgentProfilesTest testMethod=test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary>
+method = <bound method AgentProfilesTest.test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary of <test_agent_profiles.AgentProfilesTest testMethod=test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_agent_profiles.AgentProfilesTest testMethod=test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary>
+
+    def test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary(self):
+        # This exercises production wiring with a local synthetic CLI, not an LLM.
+        (self.root / 'app.py').write_text('VALUE = 0\n')
+        (self.root / 'check.py').write_text(
+            "from pathlib import Path\n"
+            "namespace = {}\n"
+            "exec(compile(Path('app.py').read_text(), 'app.py', 'exec'), namespace)\n"
+            "assert type(namespace['VALUE']) is int\n"
+            "print('project check VALUE=' + str(namespace['VALUE']))\n")
+        for args in (['init', '-q'], ['add', 'app.py', 'check.py'],
+                     ['-c', 'user.name=Synthetic Test', '-c', 'user.email=synthetic@example.invalid',
+                      'commit', '-qm', 'Synthetic fixture baseline']):
+            subprocess.run(['git', *args], cwd=self.root, check=True, capture_output=True)
+        original_head = agents.git(self.root, 'rev-parse', 'HEAD').strip()
+        platform_data = (self.data / 'api-platform').resolve()
+        platform_data.mkdir()
+        config = dict(self.config, args=['--fixture-code-flow'])
+        (platform_data / 'agents.json').write_text(json.dumps({'cloudwave-codex': config}))
+        (platform_data / 'agent-routes.json').write_text(json.dumps({'schema': 1, 'projects': {
+            'FLOW': {'agent': 'cloudwave-codex', 'allowed_agents': ['cloudwave-codex']}}}))
+        (platform_data / 'autoflow.json').write_text(json.dumps({
+            'on': False, 'rounds': 0, 'check': shlex.quote(sys.executable) + ' check.py'}))
+        platform = Platform(platform_data, 'synthetic-operator')
+        self.addCleanup(platform.store.db.close)
+        platform.store.add_project('FLOW', 'Synthetic route flow', str(self.root))
+        httpd = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(platform))
+        self.addCleanup(httpd.server_close)
+        self.addCleanup(httpd.shutdown)
+        threading.Thread(target=httpd.serve_forever, daemon=True).start()
+        base = 'http://127.0.0.1:%d' % httpd.server_address[1]
+    
+        def api(method, path, body=None):
+            request = urllib.request.Request(base + path, method=method,
+                headers={'X-TMH': '1', 'Content-Type': 'application/json'},
+                data=json.dumps(body).encode() if body is not None else None)
+            with urllib.request.urlopen(request, timeout=10) as response:
+                self.assertEqual(response.status, 200)
+                return json.loads(response.read())
+    
+        ticket = api('POST', '/api/tickets', {'project': 'FLOW', 'title': 'Set fixture VALUE to 1',
+            'body': 'Change app.py VALUE from 0 to 1. Preserve check.py. Await human review.',
+            'type': 'feature', 'auto': False})
+        run = api('POST', '/api/tickets/%s/runs' % ticket['key'], {'mode': 'fix'})
+        deadline = time.monotonic() + 12
+        while time.monotonic() < deadline:
+            run = api('GET', '/api/runs/%d' % run['id'])
+            if run['status'] not in ('queued', 'running') and run['id'] not in platform.runner.busy:
+                break
+            time.sleep(.02)
+>       self.assertEqual((run['agent'], run['status'], run['exit_code']),
+                         ('cloudwave-codex', 'done', 0), run['result'])
+
+tests\test_agent_profiles.py:375: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_agent_profiles.AgentProfilesTest testMethod=test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary>
+first = ('cloudwave-codex', 'failed', 1)
+second = ('cloudwave-codex', 'done', 0)
+msg = "验证：没有跑构建测试（原代码在这台机器上跑 `'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\python.exe' check.py` 就失败（退出码 1）），诊断没有给出结论...                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nOSError: [WinError 193] %1 is not a valid Win32 application"
+
+    def assertEqual(self, first, second, msg=None):
+        """Fail if the two objects are unequal as determined by the '=='
+           operator.
+        """
+        assertion_func = self._getAssertEqualityFunc(first, second)
+>       assertion_func(first, second, msg=msg)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:873: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_agent_profiles.AgentProfilesTest testMethod=test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary>
+tuple1 = ('cloudwave-codex', 'failed', 1)
+tuple2 = ('cloudwave-codex', 'done', 0)
+msg = "验证：没有跑构建测试（原代码在这台机器上跑 `'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\python.exe' check.py` 就失败（退出码 1）），诊断没有给出结论...                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nOSError: [WinError 193] %1 is not a valid Win32 application"
+
+    def assertTupleEqual(self, tuple1, tuple2, msg=None):
+        """A tuple-specific equality assertion.
+    
+        Args:
+            tuple1: The first tuple to compare.
+            tuple2: The second tuple to compare.
+            msg: Optional message to use on failure instead of a list of
+                    differences.
+        """
+>       self.assertSequenceEqual(tuple1, tuple2, msg, seq_type=tuple)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:1090: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_agent_profiles.AgentProfilesTest testMethod=test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary>
+seq1 = ('cloudwave-codex', 'failed', 1), seq2 = ('cloudwave-codex', 'done', 0)
+msg = "Tuples differ: ('cloudwave-codex', 'failed', 1) != ('cloudwave-codex', 'done', 0)\n\nFirst differing element 1:\n'fai...                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nOSError: [WinError 193] %1 is not a valid Win32 application"
+seq_type = <class 'tuple'>
+
+    def assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None):
+        """An equality assertion for ordered sequences (like lists and tuples).
+    
+        For the purposes of this function, a valid ordered sequence type is one
+        which can be indexed, has a length, and has an equality operator.
+    
+        Args:
+            seq1: The first sequence to compare.
+            seq2: The second sequence to compare.
+            seq_type: The expected datatype of the sequences, or None if no
+                    datatype should be enforced.
+            msg: Optional message to use on failure instead of a list of
+                    differences.
+        """
+        if seq_type is not None:
+            seq_type_name = seq_type.__name__
+            if not isinstance(seq1, seq_type):
+                raise self.failureException('First sequence is not a %s: %s'
+                                        % (seq_type_name, safe_repr(seq1)))
+            if not isinstance(seq2, seq_type):
+                raise self.failureException('Second sequence is not a %s: %s'
+                                        % (seq_type_name, safe_repr(seq2)))
+        else:
+            seq_type_name = "sequence"
+    
+        differing = None
+        try:
+            len1 = len(seq1)
+        except (TypeError, NotImplementedError):
+            differing = 'First %s has no length.    Non-sequence?' % (
+                    seq_type_name)
+    
+        if differing is None:
+            try:
+                len2 = len(seq2)
+            except (TypeError, NotImplementedError):
+                differing = 'Second %s has no length.    Non-sequence?' % (
+                        seq_type_name)
+    
+        if differing is None:
+            if seq1 == seq2:
+                return
+    
+            differing = '%ss differ: %s != %s\n' % (
+                    (seq_type_name.capitalize(),) +
+                    _common_shorten_repr(seq1, seq2))
+    
+            for i in range(min(len1, len2)):
+                try:
+                    item1 = seq1[i]
+                except (TypeError, IndexError, NotImplementedError):
+                    differing += ('\nUnable to index element %d of first %s\n' %
+                                 (i, seq_type_name))
+                    break
+    
+                try:
+                    item2 = seq2[i]
+                except (TypeError, IndexError, NotImplementedError):
+                    differing += ('\nUnable to index element %d of second %s\n' %
+                                 (i, seq_type_name))
+                    break
+    
+                if item1 != item2:
+                    differing += ('\nFirst differing element %d:\n%s\n%s\n' %
+                                 ((i,) + _common_shorten_repr(item1, item2)))
+                    break
+            else:
+                if (len1 == len2 and seq_type is None and
+                    type(seq1) != type(seq2)):
+                    # The sequences are the same, but have differing types.
+                    return
+    
+            if len1 > len2:
+                differing += ('\nFirst %s contains %d additional '
+                             'elements.\n' % (seq_type_name, len1 - len2))
+                try:
+                    differing += ('First extra element %d:\n%s\n' %
+                                  (len2, safe_repr(seq1[len2])))
+                except (TypeError, IndexError, NotImplementedError):
+                    differing += ('Unable to index element %d '
+                                  'of first %s\n' % (len2, seq_type_name))
+            elif len1 < len2:
+                differing += ('\nSecond %s contains %d additional '
+                             'elements.\n' % (seq_type_name, len2 - len1))
+                try:
+                    differing += ('First extra element %d:\n%s\n' %
+                                  (len1, safe_repr(seq2[len1])))
+                except (TypeError, IndexError, NotImplementedError):
+                    differing += ('Unable to index element %d '
+                                  'of second %s\n' % (len1, seq_type_name))
+        standardMsg = differing
+        diffMsg = '\n' + '\n'.join(
+            difflib.ndiff(pprint.pformat(seq1).splitlines(),
+                          pprint.pformat(seq2).splitlines()))
+    
+        standardMsg = self._truncateMessage(standardMsg, diffMsg)
+        msg = self._formatMessage(msg, standardMsg)
+>       self.fail(msg)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:1061: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_agent_profiles.AgentProfilesTest testMethod=test_synthetic_api_ticket_fix_routes_profile_and_keeps_human_review_boundary>
+msg = "Tuples differ: ('cloudwave-codex', 'failed', 1) != ('cloudwave-codex', 'done', 0)\n\nFirst differing element 1:\n'fai...                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nOSError: [WinError 193] %1 is not a valid Win32 application"
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+>       raise self.failureException(msg)
+E       AssertionError: Tuples differ: ('cloudwave-codex', 'failed', 1) != ('cloudwave-codex', 'done', 0)
+E       
+E       First differing element 1:
+E       'failed'
+E       'done'
+E       
+E       - ('cloudwave-codex', 'failed', 1)
+E       ?                      ^^^^ -   ^
+E       
+E       + ('cloudwave-codex', 'done', 0)
+E       ?                      ^^^    ^
+E        : 验证：没有跑构建测试（原代码在这台机器上跑 `'C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe' check.py` 就失败（退出码 1）），诊断没有给出结论（0 轮）
+E       
+E       ## 改了什么
+E       
+E       Traceback (most recent call last):
+E         File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\windows_process.py", line 190, in <module>
+E           child=subprocess.Popen(request['command'],stdin=subprocess.PIPE if data is not None else subprocess.DEVNULL)
+E                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E         File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\subprocess.py", line 1026, in __init__
+E           self._execute_child(args, executable, preexec_fn, close_fds,
+E         File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\subprocess.py", line 1538, in _execute_child
+E           hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+E                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       OSError: [WinError 193] %1 is not a valid Win32 application
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_agent_profiles.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_agent_profiles.py:206: supervised execution requires POSIX
+SKIPPED [1] tests\test_agent_profiles.py:242: supervised execution requires POSIX
+SKIPPED [1] tests\test_agent_profiles.py:167: supervised execution requires POSIX
+SKIPPED [1] tests\test_agent_profiles.py:190: supervised execution requires POSIX
+SKIPPED [1] tests\test_agent_profiles.py:263: supervised execution requires POSIX
+SKIPPED [1] tests\test_agent_profiles.py:422: supervised execution requires POSIX
+SKIPPED [1] tests\test_agent_profiles.py:306: supervised execution requires POSIX
+SKIPPED [1] tests\test_agent_profiles.py:296: supervised execution requires POSIX
+========= 1 failed, 4 passed, 8 skipped, 13 subtests passed in 8.93s ==========

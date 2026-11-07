@@ -46,6 +46,19 @@ class WorkbenchClientTest(unittest.TestCase):
         self.addCleanup(self.thread.join, 2)
         self.addCleanup(self.http.shutdown)
 
+    def test_complete_gzip_json_response_is_decoded_without_losing_records(self):
+        import gzip
+        payload={'records':['完整测试依据'*100 for _ in range(200)]}
+        def respond(h, body):
+            raw=gzip.compress(json.dumps(payload,ensure_ascii=False).encode())
+            h.send_response(200)
+            h.send_header('Content-Encoding','gzip')
+            h.send_header('Content-Length',str(len(raw)))
+            h.end_headers();h.wfile.write(raw)
+        self.respond=respond
+        self.assertEqual(Client(self.endpoint).call('status'),payload)
+        self.assertEqual(self.requests[-1]['headers']['accept-encoding'],'gzip')
+
     @staticmethod
     def reply(h, value, status=200):
         raw = json.dumps(value, ensure_ascii=False).encode('utf-8')

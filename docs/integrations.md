@@ -181,3 +181,13 @@ class MyIssues(Integration):
   - 还没有连过真实的 Jira、Jenkins、GitLab、禅道、SonarQube、Confluence 和群机器人。接口格式是按各家公开文档写的，不同版本的字段可能有差异，第一次接入请先跑 `tmh int test`。
   - 禅道评论接口：禅道 v1 没有独立的评论接口，目前是通过编辑接口的 `comment` 字段写入，不同版本可能不支持。
   - Codex 的 `env_vars` 透传：按 Codex 文档写的，还没有在 Codex 里实际跑过。
+
+## 外部需求入站最小接口（2026-11-07）
+
+`POST /api/projects/<key>/external-requirements` 复用现有登录与项目写权限；租户只读、跨项目和撤权请求不能写入。先在项目 `.tmh/config.json` 的 `integrations.tools` 登记 `source` 名称。该接口不主动调用外部系统，也不使用 Jenkins 身份替代产研平台身份。
+
+请求必须包含字符串字段：`source`、`external_id`、`revision`、`previous_revision`、`source_url`、`title`、`body`、`request_id`。第一次 `previous_revision` 为空；后续必须等于最后已登记修订。同项目/来源/外部编号唯一绑定工单。相同操作者和请求号重放返回原回执；同号不同内容、乱序修订或未登记来源拒绝，不重复建单。
+
+首次创建暂停自动执行的草稿。后续原文追加到工单 `external_requirement_revision` 事件，回执为 `needs_review`；不覆盖原需求正文，不改变确认、验收或工单状态。回执给出任务链接、来源修订和处理方向。接口不自动回写外部系统，因此不会形成双向回调循环；失败后沿原请求号核对。修改请求内容需新的请求号和正确前置修订。
+
+客户适配器仍需将真实身份与项目映射到获准调用者，提供接口地址、鉴权、字段/状态事实来源及重试规则。当前只验证隔离入站契约；外部回调投递队列、客户系统实连和双向同步尚未完成，不能把私有 CI 接通说成集团产研平台已接入。

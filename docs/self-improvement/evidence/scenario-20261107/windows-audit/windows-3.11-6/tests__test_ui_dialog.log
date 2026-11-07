@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 6 items
+
+tests/test_ui_dialog.py::DialogBehaviorTest::test_assistant_and_dialog_tab_cycle_never_reaches_background PASSED [ 16%]
+tests/test_ui_dialog.py::DialogBehaviorTest::test_missing_return_target_falls_back_to_main_without_reopening PASSED [ 33%]
+tests/test_ui_dialog.py::DialogBehaviorTest::test_mobile_overlay_assistant_excludes_covered_dialog_from_focus PASSED [ 50%]
+tests/test_ui_dialog.py::DialogBehaviorTest::test_open_close_restores_trigger_and_background_access PASSED [ 66%]
+tests/test_ui_dialog.py::DialogBehaviorTest::test_replacing_dialog_content_keeps_original_return_target PASSED [ 83%]
+tests/test_ui_dialog.py::DialogBehaviorTest::test_resize_and_assistant_close_restore_the_visible_dialog_or_trigger PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_ui_dialog.xml -
+============================== 6 passed in 1.02s ==============================

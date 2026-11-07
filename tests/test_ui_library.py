@@ -4,10 +4,11 @@ import subprocess
 import unittest
 
 from tmh.platform.ui import page
+from tmh.platform.ui_time import TIME_JS
 from tmh.platform.ui_library import LIBRARY_JS
 
 
-HARNESS = r"""
+HARNESS = TIME_JS + r"""
 const assert=require('node:assert/strict');
 const h=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const unescape=s=>s.replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
@@ -244,6 +245,15 @@ currentData=overview('APP',{profile:{roles:['product','reference'],workflow:'ref
 libraryWorkspace(LIB.view,'derive','a'.repeat(32));$('#libDerivedKey').value='CLIENTA';$('#libDerivedName').value='客户甲';postHandler=async()=>({project:{key:'CLIENTA',name:'客户甲'},commit:'b'.repeat(40)});getHandler=url=>url==='/api/projects'?[...S.projects,{key:'CLIENTA',name:'客户甲'}]:currentData;
 await submit('#libWorkspaceForm');assert.deepEqual(mutations[0].body,{action:'derive',revision_id:'a'.repeat(32),key:'CLIENTA',name:'客户甲'});assert.equal(S.proj,'APP');assert.ok($('#libWorkspaceDialog').innerHTML.includes('客户项目已创建'));
 closeModal();libraryWorkspace(LIB.view,'maintain','a'.repeat(32));assert.equal($('#libDerivedKey'),null);postHandler=async()=>({project:{key:'APP',name:'APP 项目'},commit:'b'.repeat(40)});await submit('#libWorkspaceForm');assert.deepEqual(mutations[1].body,{action:'maintain',revision_id:'a'.repeat(32)});assert.equal(S.proj,'APP');assert.ok($('#libWorkspaceDialog').innerHTML.includes('本项目已进入维护'));
+""")
+
+    def test_prepare_new_reference_preserves_draft_and_requires_explicit_save(self):
+        self.run_js(r"""
+Object.defineProperty(Element.prototype,'options',{get(){return this.all().filter(n=>n.tag==='option')}});
+currentData=overview('APP',{references:[{id:1,revision_id:'old',commit:'a'.repeat(40),source_project:'HIDDEN',source_name:'授权来源',scopes:['docs'],purpose:'核对审批',available:true,update_available:true,latest_revision:{id:'new',commit:'b'.repeat(40)}}]});
+await vLibrary();assert.ok(main.textContent.includes('来源已有新版本'));
+$('#libPurpose').value='未保存草稿';await main.querySelector('[data-lib-prepare]').fire('click');assert.equal($('#libPurpose').value,'未保存草稿');assert.equal(mutations.length,0);
+$('#libPurpose').value='';await main.querySelector('[data-lib-prepare]').fire('click');assert.equal($('#libSource').value,'HIDDEN');assert.equal($('#libSourceRevision').value,'new');assert.equal($('#libScopes').value,'docs');assert.equal($('#libPurpose').value,'核对审批');assert.equal($('#libGrant').checked,false);assert.equal(mutations.length,0);assert.equal(currentData.references[0].revision_id,'old');
 """)
 
     def test_registration_submits_composable_roles_without_automatic_build(self):

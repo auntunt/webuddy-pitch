@@ -1,0 +1,241 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ WorkbenchClientTest.test_complete_gzip_json_response_is_decoded_without_losing_records _
+
+self = <tmh.workbench_client.Client object at 0x10b19be00>, operation = 'status'
+args = {}
+
+    def call(self, operation, args=None):
+        try:
+            args = validate(operation, {} if args is None else args)
+        except ValueError as e:
+            raise ClientError(str(e), "invalid_arguments") from e
+        spec = SPECS[operation]
+        if self.tenant and operation in DEVELOP_WRITES and self.live_scope is None:
+            self.connection_status()
+        if not self.permits(operation):
+            raise ClientError("个人租户工具连接仅支持授权项目读取、创建任务、留言、启动/停止运行和接管/交回自动；不允许评审、采用或人工决定。", "tool_operation_forbidden")
+        if spec.get("operator") and not self.operator:
+            raise ClientError("需要操作者在终端明确确认；Agent/MCP不能代签", "operator_required")
+        if spec.get("operator") and not self.operator_token:
+            raise ClientError("缺少独立操作者凭据，工作区Agent令牌不能代替", "operator_credential_required")
+        if spec["execution"] and not self.allow_execution:
+            raise ClientError("此连接未启用执行。MCP 启动时添加 --allow-execution；CLI 使用明确的 start/retry/recheck/preview --start 命令。", "execution_disabled")
+        headers = {"Content-Type": "application/json", "X-TMH": "1", "X-Webuddy-Agent": self.agent}
+        if spec.get("operator"):
+            headers.pop("X-Webuddy-Agent")
+            headers["X-Webuddy-Operator"] = "1"
+            headers["X-Webuddy-Operator-Token"] = self.operator_token
+        if self.tool_token:
+            headers["Authorization"] = "Bearer " + self.tool_token
+        elif self.token:
+            headers["X-TMH-Token"] = self.token
+        if self.allow_execution:
+            headers["X-Webuddy-Execution"] = "1"
+        # Direct connection: never forward credentials via redirects or environment
+        # proxies. A deadline closes the socket even if a peer continuously drips
+        # headers/body (socket's inactivity timeout alone does not cover that).
+        cls = http.client.HTTPSConnection if self.address.scheme == "https" else http.client.HTTPConnection
+        conn = cls(self.address.hostname, self.address.port, timeout=self.timeout)
+        deadline = time.monotonic() + self.timeout
+        timer = None
+        expired = threading.Event()
+        try:
+            conn.connect()
+            sock = conn.sock
+    
+            def expire():
+                expired.set()
+                try:
+                    sock.shutdown(socket.SHUT_RDWR)
+                except OSError:
+                    pass
+    
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError("deadline")
+            sock.settimeout(remaining)
+            timer = threading.Timer(remaining, expire)
+            timer.daemon = True
+            timer.start()
+            conn.request("POST", self.address.path + "/api/agent/" + operation, body=json.dumps(args, ensure_ascii=False).encode("utf-8"), headers=headers)
+            response = conn.getresponse()
+            raw = response.read()
+            if expired.is_set() or time.monotonic() > deadline:
+                raise TimeoutError("deadline")
+            try:
+>               payload = json.loads(raw.decode("utf-8"))
+                                     ^^^^^^^^^^^^^^^^^^^
+E               UnicodeDecodeError: 'utf-8' codec can't decode byte 0x8b in position 1: invalid start byte
+
+tmh/workbench_client.py:165: UnicodeDecodeError
+
+The above exception was the direct cause of the following exception:
+
+self = <test_workbench_client.WorkbenchClientTest testMethod=test_complete_gzip_json_response_is_decoded_without_losing_records>
+
+    def test_complete_gzip_json_response_is_decoded_without_losing_records(self):
+        import gzip
+        payload={'records':['完整测试依据'*100 for _ in range(200)]}
+        def respond(h, body):
+            raw=gzip.compress(json.dumps(payload,ensure_ascii=False).encode())
+            h.send_response(200)
+            h.send_header('Content-Encoding','gzip')
+            h.send_header('Content-Length',str(len(raw)))
+            h.end_headers();h.wfile.write(raw)
+        self.respond=respond
+>       self.assertEqual(Client(self.endpoint).call('status'),payload)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_workbench_client.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tmh.workbench_client.Client object at 0x10b19be00>, operation = 'status'
+args = {}
+
+    def call(self, operation, args=None):
+        try:
+            args = validate(operation, {} if args is None else args)
+        except ValueError as e:
+            raise ClientError(str(e), "invalid_arguments") from e
+        spec = SPECS[operation]
+        if self.tenant and operation in DEVELOP_WRITES and self.live_scope is None:
+            self.connection_status()
+        if not self.permits(operation):
+            raise ClientError("个人租户工具连接仅支持授权项目读取、创建任务、留言、启动/停止运行和接管/交回自动；不允许评审、采用或人工决定。", "tool_operation_forbidden")
+        if spec.get("operator") and not self.operator:
+            raise ClientError("需要操作者在终端明确确认；Agent/MCP不能代签", "operator_required")
+        if spec.get("operator") and not self.operator_token:
+            raise ClientError("缺少独立操作者凭据，工作区Agent令牌不能代替", "operator_credential_required")
+        if spec["execution"] and not self.allow_execution:
+            raise ClientError("此连接未启用执行。MCP 启动时添加 --allow-execution；CLI 使用明确的 start/retry/recheck/preview --start 命令。", "execution_disabled")
+        headers = {"Content-Type": "application/json", "X-TMH": "1", "X-Webuddy-Agent": self.agent}
+        if spec.get("operator"):
+            headers.pop("X-Webuddy-Agent")
+            headers["X-Webuddy-Operator"] = "1"
+            headers["X-Webuddy-Operator-Token"] = self.operator_token
+        if self.tool_token:
+            headers["Authorization"] = "Bearer " + self.tool_token
+        elif self.token:
+            headers["X-TMH-Token"] = self.token
+        if self.allow_execution:
+            headers["X-Webuddy-Execution"] = "1"
+        # Direct connection: never forward credentials via redirects or environment
+        # proxies. A deadline closes the socket even if a peer continuously drips
+        # headers/body (socket's inactivity timeout alone does not cover that).
+        cls = http.client.HTTPSConnection if self.address.scheme == "https" else http.client.HTTPConnection
+        conn = cls(self.address.hostname, self.address.port, timeout=self.timeout)
+        deadline = time.monotonic() + self.timeout
+        timer = None
+        expired = threading.Event()
+        try:
+            conn.connect()
+            sock = conn.sock
+    
+            def expire():
+                expired.set()
+                try:
+                    sock.shutdown(socket.SHUT_RDWR)
+                except OSError:
+                    pass
+    
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError("deadline")
+            sock.settimeout(remaining)
+            timer = threading.Timer(remaining, expire)
+            timer.daemon = True
+            timer.start()
+            conn.request("POST", self.address.path + "/api/agent/" + operation, body=json.dumps(args, ensure_ascii=False).encode("utf-8"), headers=headers)
+            response = conn.getresponse()
+            raw = response.read()
+            if expired.is_set() or time.monotonic() > deadline:
+                raise TimeoutError("deadline")
+            try:
+                payload = json.loads(raw.decode("utf-8"))
+            except (ValueError, UnicodeError):
+                if 200 <= response.status < 300:
+                    raise
+                payload = {}
+            if not isinstance(payload, dict):
+                if 200 <= response.status < 300:
+                    raise ValueError("response must be an object")
+                payload = {}
+            payload = self.safe_value(payload)
+            if 200 <= response.status < 300:
+                # The server gives a workbench-relative authenticated entry;
+                # never send users directly to the cookie-protected preview port.
+                for item in [payload, *(payload.get("items", []) if isinstance(payload.get("items"), list) else [])]:
+                    if isinstance(item, dict) and isinstance(item.get("preview_entry_path"), str) and item["preview_entry_path"].startswith("/pv/"):
+                        item["preview_url"] = self.endpoint + item["preview_entry_path"]
+                return payload
+            message = payload.get("error") or "工作台返回 HTTP %s" % response.status
+            if response.status == 401:
+                message = ("个人工具凭据无效、已撤销或已过期。请在网页登录个人工具连接核对权限，再用 connect 导入新凭据。" if self.tenant else
+                           "工作台需要认证。通过 WEBUDDY_TOKEN 环境变量提供管理员已配置的 TMH_TOKEN；不要把令牌写入参数或聊天。")
+            raise ClientError(message, payload.get("code") or ("needs_reconcile" if "needs_reconcile" in str(message) else "http_error"), response.status,
+                              bool(payload.get("uncertain")) or "needs_reconcile" in str(message) or (spec["write"] and response.status >= 500), args.get("request_id") if spec["write"] else None)
+        except (OSError, http.client.HTTPException, ValueError, UnicodeError) as e:
+            # A lost response is not evidence that a POST failed. Never auto retry.
+            message = "连接或响应失败（%s）。" % type(e).__name__
+            if spec["write"]:
+                message += "结果未知；用 request_get 查询原 request_id，勿换编号重复操作。"
+            else:
+                message += "请检查工作台地址和服务状态。"
+>           raise ClientError(message, "connection_error", uncertain=spec["write"], request_id=args.get("request_id") if spec["write"] else None) from e
+E           tmh.workbench_client.ClientError: 连接或响应失败（UnicodeDecodeError）。请检查工作台地址和服务状态。
+
+tmh/workbench_client.py:195: ClientError
+____ TenantGatewayTest.test_large_authenticated_json_is_lossless_and_opt_in ____
+
+self = <test_tenant_gateway.TenantGatewayTest testMethod=test_large_authenticated_json_is_lossless_and_opt_in>
+
+    def test_large_authenticated_json_is_lossless_and_opt_in(self):
+        import gzip
+        root=Path(self.reg.one('SELECT path FROM tenants WHERE id=?',(self.a,))['path'])
+        store=Store(root/'platform.db')
+        original='完整历史结果，不裁剪。'*20000
+        store.update_ticket(1,'owner',body=original);store.db.close()
+        path='/t/'+self.a+'/api/tickets/SAME-1'
+>       plain=self.request('GET',path,'alice')[2]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_tenant_gateway.py:105: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_tenant_gateway.py:85: in request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py:1459: in getresponse
+    response.begin()
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py:336: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py:297: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.SocketIO object at 0x10b0ae590>, b = <memory at 0x10b3eb640>
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+>           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py:729: TimeoutError
+=========================== short test summary info ============================
+FAILED tests/test_workbench_client.py::WorkbenchClientTest::test_complete_gzip_json_response_is_decoded_without_losing_records
+FAILED tests/test_tenant_gateway.py::TenantGatewayTest::test_large_authenticated_json_is_lossless_and_opt_in
+2 failed in 69.84s (0:01:09)

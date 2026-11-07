@@ -1,0 +1,35 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 25 items
+
+tests/test_rsi_local_eval.py::ParserTest::test_bare_file_name_and_windows_separators_are_resolved PASSED [  4%]
+tests/test_rsi_local_eval.py::ParserTest::test_bare_json_array_with_full_paths PASSED [  8%]
+tests/test_rsi_local_eval.py::ParserTest::test_empty_and_malformed_answers_are_counted_not_raised PASSED [ 12%]
+tests/test_rsi_local_eval.py::ParserTest::test_empty_json_array_is_a_valid_but_empty_answer PASSED [ 16%]
+tests/test_rsi_local_eval.py::ParserTest::test_fenced_and_prose_wrapped_array PASSED [ 20%]
+tests/test_rsi_local_eval.py::ParserTest::test_object_with_files_key PASSED [ 24%]
+tests/test_rsi_local_eval.py::ParserTest::test_unmatched_path_is_kept_as_hallucination PASSED [ 28%]
+tests/test_rsi_local_eval.py::PromptTest::test_cold_prompt_has_no_retrieved_context PASSED [ 32%]
+tests/test_rsi_local_eval.py::PromptTest::test_pack_prompt_contains_pack_and_requirement PASSED [ 36%]
+tests/test_rsi_local_eval.py::PromptTest::test_unknown_condition_is_rejected PASSED [ 40%]
+tests/test_rsi_local_eval.py::MetricsTest::test_compare_applies_the_min_gain_rule PASSED [ 44%]
+tests/test_rsi_local_eval.py::MetricsTest::test_run_task_maps_request_errors PASSED [ 48%]
+tests/test_rsi_local_eval.py::MetricsTest::test_run_task_scores_files_and_records_real_tokens PASSED [ 52%]
+tests/test_rsi_local_eval.py::MetricsTest::test_summarize_counts_failures_and_keeps_them_in_recall PASSED [ 56%]
+tests/test_rsi_local_eval.py::ClientDegradationTest::test_available_accepts_listed_model PASSED [ 60%]
+tests/test_rsi_local_eval.py::ClientDegradationTest::test_available_reports_missing_model PASSED [ 64%]
+tests/test_rsi_local_eval.py::ClientDegradationTest::test_available_reports_unreachable_daemon PASSED [ 68%]
+tests/test_rsi_local_eval.py::ClientDegradationTest::test_chat_http_error_degrades PASSED [ 72%]
+tests/test_rsi_local_eval.py::ClientDegradationTest::test_chat_parses_native_response_and_forces_measured_parameters PASSED [ 76%]
+tests/test_rsi_local_eval.py::ClientDegradationTest::test_chat_timeout_degrades PASSED [ 80%]
+tests/test_rsi_local_eval.py::TuningDecisionTest::test_negative_gain_is_not_adopted PASSED [ 84%]
+tests/test_rsi_local_eval.py::TuningDecisionTest::test_real_gain_within_budget_is_adopted PASSED [ 88%]
+tests/test_rsi_local_eval.py::TuningDecisionTest::test_token_blowup_is_not_adopted PASSED [ 92%]
+tests/test_rsi_local_eval.py::DefaultParamsTest::test_search_defaults_are_the_historical_baseline PASSED [ 96%]
+tests/test_rsi_local_eval.py::ProjectFilesTest::test_project_files_skips_metadata_directories PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_local_eval.xml -
+============================= 25 passed in 0.13s ==============================

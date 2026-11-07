@@ -1,0 +1,2900 @@
+{
+  "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+  "actions": [
+    {
+      "_class": "hudson.model.ParametersAction",
+      "parameters": [
+        {
+          "_class": "hudson.model.StringParameterValue",
+          "name": "CANDIDATE_SHA",
+          "value": "75a9311d5bd485e7fe0701c042520831aa1fa44c"
+        }
+      ]
+    },
+    {
+      "_class": "hudson.model.CauseAction",
+      "causes": [
+        {
+          "_class": "hudson.model.Cause$UserIdCause",
+          "shortDescription": "Started by user demo-admin",
+          "userId": "demo-admin",
+          "userName": "demo-admin"
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.libs.LibrariesAction"
+    },
+    {},
+    {},
+    {
+      "_class": "hudson.plugins.git.util.BuildData",
+      "buildsByBranchName": {
+        "detached": {
+          "_class": "hudson.plugins.git.util.Build",
+          "buildNumber": 9,
+          "buildResult": null,
+          "marked": {
+            "SHA1": "75a9311d5bd485e7fe0701c042520831aa1fa44c",
+            "branch": [
+              {
+                "SHA1": "75a9311d5bd485e7fe0701c042520831aa1fa44c",
+                "name": "detached"
+              }
+            ]
+          },
+          "revision": {
+            "SHA1": "75a9311d5bd485e7fe0701c042520831aa1fa44c",
+            "branch": [
+              {
+                "SHA1": "75a9311d5bd485e7fe0701c042520831aa1fa44c",
+                "name": "detached"
+              }
+            ]
+          }
+        }
+      },
+      "lastBuiltRevision": {
+        "SHA1": "75a9311d5bd485e7fe0701c042520831aa1fa44c",
+        "branch": [
+          {
+            "SHA1": "75a9311d5bd485e7fe0701c042520831aa1fa44c",
+            "name": "detached"
+          }
+        ]
+      },
+      "remoteUrls": [
+        "ssh://git@webuddy-demo-git/repos/erp.git"
+      ],
+      "scmName": ""
+    },
+    {},
+    {
+      "_class": "hudson.tasks.junit.TestResultAction",
+      "failCount": 0,
+      "skipCount": 0,
+      "totalCount": 57,
+      "urlName": "testReport"
+    },
+    {},
+    {
+      "_class": "org.jenkinsci.plugins.displayurlapi.actions.RunDisplayAction"
+    },
+    {
+      "_class": "org.jenkinsci.plugins.pipeline.modeldefinition.actions.RestartDeclarativePipelineAction"
+    },
+    {},
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.views.FlowGraphAction"
+    },
+    {},
+    {}
+  ],
+  "artifacts": [
+    {
+      "displayPath": null,
+      "fileName": "jshERP.jar",
+      "relativePath": "jshERP-boot/target/jshERP.jar"
+    },
+    {
+      "displayPath": null,
+      "fileName": "com.jsh.erp.verification.AccessFilterTest.txt",
+      "relativePath": "jshERP-boot/target/surefire-reports/com.jsh.erp.verification.AccessFilterTest.txt"
+    },
+    {
+      "displayPath": null,
+      "fileName": "com.jsh.erp.verification.AuthenticationRulesTest.txt",
+      "relativePath": "jshERP-boot/target/surefire-reports/com.jsh.erp.verification.AuthenticationRulesTest.txt"
+    },
+    {
+      "displayPath": null,
+      "fileName": "com.jsh.erp.verification.CaptchaRulesTest.txt",
+      "relativePath": "jshERP-boot/target/surefire-reports/com.jsh.erp.verification.CaptchaRulesTest.txt"
+    },
+    {
+      "displayPath": null,
+      "fileName": "com.jsh.erp.verification.FinancialInputTest.txt",
+      "relativePath": "jshERP-boot/target/surefire-reports/com.jsh.erp.verification.FinancialInputTest.txt"
+    },
+    {
+      "displayPath": null,
+      "fileName": "com.jsh.erp.verification.SequenceHttpTest.txt",
+      "relativePath": "jshERP-boot/target/surefire-reports/com.jsh.erp.verification.SequenceHttpTest.txt"
+    },
+    {
+      "displayPath": null,
+      "fileName": "com.jsh.erp.verification.SequenceServiceTest.txt",
+      "relativePath": "jshERP-boot/target/surefire-reports/com.jsh.erp.verification.SequenceServiceTest.txt"
+    },
+    {
+      "displayPath": null,
+      "fileName": "TEST-com.jsh.erp.verification.AccessFilterTest.xml",
+      "relativePath": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.AccessFilterTest.xml"
+    },
+    {
+      "displayPath": null,
+      "fileName": "TEST-com.jsh.erp.verification.AuthenticationRulesTest.xml",
+      "relativePath": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.AuthenticationRulesTest.xml"
+    },
+    {
+      "displayPath": null,
+      "fileName": "TEST-com.jsh.erp.verification.CaptchaRulesTest.xml",
+      "relativePath": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.CaptchaRulesTest.xml"
+    },
+    {
+      "displayPath": null,
+      "fileName": "TEST-com.jsh.erp.verification.FinancialInputTest.xml",
+      "relativePath": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.FinancialInputTest.xml"
+    },
+    {
+      "displayPath": null,
+      "fileName": "TEST-com.jsh.erp.verification.SequenceHttpTest.xml",
+      "relativePath": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.SequenceHttpTest.xml"
+    },
+    {
+      "displayPath": null,
+      "fileName": "TEST-com.jsh.erp.verification.SequenceServiceTest.xml",
+      "relativePath": "jshERP-boot/target/surefire-reports/TEST-com.jsh.erp.verification.SequenceServiceTest.xml"
+    },
+    {
+      "displayPath": null,
+      "fileName": "app.36559dba.css",
+      "relativePath": "jshERP-web/dist/css/app.36559dba.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "app.36559dba.css.gz",
+      "relativePath": "jshERP-web/dist/css/app.36559dba.css.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-01df45b9.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-01df45b9.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-02218484.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-02218484.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0387aa2f.8f72cb4a.css",
+      "relativePath": "jshERP-web/dist/css/chunk-0387aa2f.8f72cb4a.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-06b53ff6.9f9e5d38.css",
+      "relativePath": "jshERP-web/dist/css/chunk-06b53ff6.9f9e5d38.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-06e0b7e8.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-06e0b7e8.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0d7ab4ad.16db6d7f.css",
+      "relativePath": "jshERP-web/dist/css/chunk-0d7ab4ad.16db6d7f.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0de1cbac.dadcd8ad.css",
+      "relativePath": "jshERP-web/dist/css/chunk-0de1cbac.dadcd8ad.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0e589848.3debb3ed.css",
+      "relativePath": "jshERP-web/dist/css/chunk-0e589848.3debb3ed.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0f5d604a.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-0f5d604a.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0fd43c55.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-0fd43c55.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-11d591d6.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-11d591d6.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-11fd8c41.508e186c.css",
+      "relativePath": "jshERP-web/dist/css/chunk-11fd8c41.508e186c.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-159beab0.6208fe33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-159beab0.6208fe33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-15abdcf4.561d368d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-15abdcf4.561d368d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-16ad1694.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-16ad1694.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-16b21e1c.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-16b21e1c.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-17acab87.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-17acab87.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-19504e65.c11750fd.css",
+      "relativePath": "jshERP-web/dist/css/chunk-19504e65.c11750fd.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-19fbabbc.fcf08d4d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-19fbabbc.fcf08d4d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1a370d0b.b3db1300.css",
+      "relativePath": "jshERP-web/dist/css/chunk-1a370d0b.b3db1300.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1a472a2f.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-1a472a2f.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1ba64544.fcf08d4d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-1ba64544.fcf08d4d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1bb66505.6208fe33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-1bb66505.6208fe33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1c1aaf54.6208fe33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-1c1aaf54.6208fe33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1cb1a65f.65f9329c.css",
+      "relativePath": "jshERP-web/dist/css/chunk-1cb1a65f.65f9329c.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1d5cd13e.92647ec0.css",
+      "relativePath": "jshERP-web/dist/css/chunk-1d5cd13e.92647ec0.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1e7e1ade.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-1e7e1ade.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1fb51007.04a08058.css",
+      "relativePath": "jshERP-web/dist/css/chunk-1fb51007.04a08058.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-21161ebc.46c9164b.css",
+      "relativePath": "jshERP-web/dist/css/chunk-21161ebc.46c9164b.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-21161ebc.46c9164b.css.gz",
+      "relativePath": "jshERP-web/dist/css/chunk-21161ebc.46c9164b.css.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-212edb2c.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-212edb2c.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-22ede617.dad3569a.css",
+      "relativePath": "jshERP-web/dist/css/chunk-22ede617.dad3569a.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-23be649b.8534b635.css",
+      "relativePath": "jshERP-web/dist/css/chunk-23be649b.8534b635.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-23df44ec.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-23df44ec.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2485918d.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-2485918d.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-24d3eddc.d6d36acf.css",
+      "relativePath": "jshERP-web/dist/css/chunk-24d3eddc.d6d36acf.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-27cddde6.0680e7eb.css",
+      "relativePath": "jshERP-web/dist/css/chunk-27cddde6.0680e7eb.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-27cddde6.0680e7eb.css.gz",
+      "relativePath": "jshERP-web/dist/css/chunk-27cddde6.0680e7eb.css.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2825469a.6208fe33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-2825469a.6208fe33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-28c63a0f.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-28c63a0f.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2ada37fe.778584df.css",
+      "relativePath": "jshERP-web/dist/css/chunk-2ada37fe.778584df.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2b406051.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-2b406051.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2c520138.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-2c520138.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2c978be6.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-2c978be6.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d2cc003.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-2d2cc003.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2e8b1438.d8eba030.css",
+      "relativePath": "jshERP-web/dist/css/chunk-2e8b1438.d8eba030.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-30b7015b.f37cc3ee.css",
+      "relativePath": "jshERP-web/dist/css/chunk-30b7015b.f37cc3ee.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-31c3a698.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-31c3a698.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-33c2109a.1b3bdc50.css",
+      "relativePath": "jshERP-web/dist/css/chunk-33c2109a.1b3bdc50.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-37eca133.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-37eca133.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-380129fb.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-380129fb.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-39c352ad.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-39c352ad.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-3a8d14b8.ca043da9.css",
+      "relativePath": "jshERP-web/dist/css/chunk-3a8d14b8.ca043da9.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-3deba139.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-3deba139.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-3e6a3755.8534b635.css",
+      "relativePath": "jshERP-web/dist/css/chunk-3e6a3755.8534b635.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-41e1694e.6208fe33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-41e1694e.6208fe33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4301fc7e.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-4301fc7e.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-43573597.bf0b40f5.css",
+      "relativePath": "jshERP-web/dist/css/chunk-43573597.bf0b40f5.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-472241f4.78f48e08.css",
+      "relativePath": "jshERP-web/dist/css/chunk-472241f4.78f48e08.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-477a40d9.fcf08d4d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-477a40d9.fcf08d4d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4984531e.561d368d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-4984531e.561d368d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4a2a498b.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-4a2a498b.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4a9babee.fcf08d4d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-4a9babee.fcf08d4d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4aef4670.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-4aef4670.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4c8b8043.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-4c8b8043.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4fa97cbd.88a961e5.css",
+      "relativePath": "jshERP-web/dist/css/chunk-4fa97cbd.88a961e5.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-50909d2d.92647ec0.css",
+      "relativePath": "jshERP-web/dist/css/chunk-50909d2d.92647ec0.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-516deb9c.fcf08d4d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-516deb9c.fcf08d4d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-51a7db6e.fcf08d4d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-51a7db6e.fcf08d4d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-550d3d29.fcf08d4d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-550d3d29.fcf08d4d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-590de59d.af069986.css",
+      "relativePath": "jshERP-web/dist/css/chunk-590de59d.af069986.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-59a5c701.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-59a5c701.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5b51729c.fcf08d4d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-5b51729c.fcf08d4d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5b565423.1ed90bfc.css",
+      "relativePath": "jshERP-web/dist/css/chunk-5b565423.1ed90bfc.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5c9cbe92.fcf08d4d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-5c9cbe92.fcf08d4d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5cdea127.201f9324.css",
+      "relativePath": "jshERP-web/dist/css/chunk-5cdea127.201f9324.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5ddfa154.6208fe33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-5ddfa154.6208fe33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5ea0eb80.384fcb31.css",
+      "relativePath": "jshERP-web/dist/css/chunk-5ea0eb80.384fcb31.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5f674dc4.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-5f674dc4.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5f8ce73b.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-5f8ce73b.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-619f8738.cfb43ae2.css",
+      "relativePath": "jshERP-web/dist/css/chunk-619f8738.cfb43ae2.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-61e6b294.5c5327a1.css",
+      "relativePath": "jshERP-web/dist/css/chunk-61e6b294.5c5327a1.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-61fa8682.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-61fa8682.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-62f29d38.8b00a0c9.css",
+      "relativePath": "jshERP-web/dist/css/chunk-62f29d38.8b00a0c9.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-638762b4.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-638762b4.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-645ac086.55c05765.css",
+      "relativePath": "jshERP-web/dist/css/chunk-645ac086.55c05765.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-64641616.55c05765.css",
+      "relativePath": "jshERP-web/dist/css/chunk-64641616.55c05765.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-64f87e1a.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-64f87e1a.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-65878718.c1c0dd86.css",
+      "relativePath": "jshERP-web/dist/css/chunk-65878718.c1c0dd86.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-66d6dabf.6ca7a06d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-66d6dabf.6ca7a06d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-67e74bdc.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-67e74bdc.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6c5c513d.6208fe33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-6c5c513d.6208fe33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6d0c3f90.561d368d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-6d0c3f90.561d368d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6df31804.a1554b5e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-6df31804.a1554b5e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6e2cdadb.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-6e2cdadb.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6fc4e438.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-6fc4e438.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7208f5c4.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-7208f5c4.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-72dbd198.6bbd74c2.css",
+      "relativePath": "jshERP-web/dist/css/chunk-72dbd198.6bbd74c2.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-74667537.dc6543dd.css",
+      "relativePath": "jshERP-web/dist/css/chunk-74667537.dc6543dd.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-74667537.dc6543dd.css.gz",
+      "relativePath": "jshERP-web/dist/css/chunk-74667537.dc6543dd.css.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-74932de7.d5022fd4.css",
+      "relativePath": "jshERP-web/dist/css/chunk-74932de7.d5022fd4.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-75930912.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-75930912.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7683a88c.561d368d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-7683a88c.561d368d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-76a71d9a.13358940.css",
+      "relativePath": "jshERP-web/dist/css/chunk-76a71d9a.13358940.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-772f7328.2af5efab.css",
+      "relativePath": "jshERP-web/dist/css/chunk-772f7328.2af5efab.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-772f7328.2af5efab.css.gz",
+      "relativePath": "jshERP-web/dist/css/chunk-772f7328.2af5efab.css.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-773e160a.0078bfb1.css",
+      "relativePath": "jshERP-web/dist/css/chunk-773e160a.0078bfb1.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-773e160a.0078bfb1.css.gz",
+      "relativePath": "jshERP-web/dist/css/chunk-773e160a.0078bfb1.css.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-78ca28d9.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-78ca28d9.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-79dc9d80.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-79dc9d80.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7a3f211c.3ba4589b.css",
+      "relativePath": "jshERP-web/dist/css/chunk-7a3f211c.3ba4589b.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7ac8ac7a.0b0c93fb.css",
+      "relativePath": "jshERP-web/dist/css/chunk-7ac8ac7a.0b0c93fb.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7ad5c5c0.561d368d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-7ad5c5c0.561d368d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7c039a74.ee3a167a.css",
+      "relativePath": "jshERP-web/dist/css/chunk-7c039a74.ee3a167a.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7cbf2bd6.1ed90bfc.css",
+      "relativePath": "jshERP-web/dist/css/chunk-7cbf2bd6.1ed90bfc.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7dfa9306.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-7dfa9306.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7ea0412e.bf0b40f5.css",
+      "relativePath": "jshERP-web/dist/css/chunk-7ea0412e.bf0b40f5.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-864ee452.6208fe33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-864ee452.6208fe33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-878b8482.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-878b8482.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-8b0ce27c.6208fe33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-8b0ce27c.6208fe33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-91e1c1d4.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-91e1c1d4.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-94efe5f6.fcf08d4d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-94efe5f6.fcf08d4d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-9735e122.002ec413.css",
+      "relativePath": "jshERP-web/dist/css/chunk-9735e122.002ec413.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-9752a9d0.50c554ae.css",
+      "relativePath": "jshERP-web/dist/css/chunk-9752a9d0.50c554ae.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-af596498.6208fe33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-af596498.6208fe33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-b5239f02.b7099467.css",
+      "relativePath": "jshERP-web/dist/css/chunk-b5239f02.b7099467.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-b5bc5be8.37cffef2.css",
+      "relativePath": "jshERP-web/dist/css/chunk-b5bc5be8.37cffef2.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-b5ca799a.2aac1b72.css",
+      "relativePath": "jshERP-web/dist/css/chunk-b5ca799a.2aac1b72.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-b763d4ca.2611186a.css",
+      "relativePath": "jshERP-web/dist/css/chunk-b763d4ca.2611186a.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-bfdca74c.8534b635.css",
+      "relativePath": "jshERP-web/dist/css/chunk-bfdca74c.8534b635.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c0c4dea8.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-c0c4dea8.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c271b50a.f07bd5be.css",
+      "relativePath": "jshERP-web/dist/css/chunk-c271b50a.f07bd5be.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c3bdd56e.b01c36d8.css",
+      "relativePath": "jshERP-web/dist/css/chunk-c3bdd56e.b01c36d8.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c6c279c0.d473cb62.css",
+      "relativePath": "jshERP-web/dist/css/chunk-c6c279c0.d473cb62.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-cd91ad42.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-cd91ad42.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-cfb59f24.c926595e.css",
+      "relativePath": "jshERP-web/dist/css/chunk-cfb59f24.c926595e.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-d1758f90.d9e2709a.css",
+      "relativePath": "jshERP-web/dist/css/chunk-d1758f90.d9e2709a.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-e0c48d78.d8510eba.css",
+      "relativePath": "jshERP-web/dist/css/chunk-e0c48d78.d8510eba.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-e27b2d42.db4bd290.css",
+      "relativePath": "jshERP-web/dist/css/chunk-e27b2d42.db4bd290.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-eb2ff2de.6944d836.css",
+      "relativePath": "jshERP-web/dist/css/chunk-eb2ff2de.6944d836.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-f88b8898.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-f88b8898.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-facb71e4.41291779.css",
+      "relativePath": "jshERP-web/dist/css/chunk-facb71e4.41291779.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-fc9c270c.f79ba79d.css",
+      "relativePath": "jshERP-web/dist/css/chunk-fc9c270c.f79ba79d.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-ff008666.a434ba48.css",
+      "relativePath": "jshERP-web/dist/css/chunk-ff008666.a434ba48.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-ffbdf304.4df42a33.css",
+      "relativePath": "jshERP-web/dist/css/chunk-ffbdf304.4df42a33.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-vendors.953769bc.css",
+      "relativePath": "jshERP-web/dist/css/chunk-vendors.953769bc.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-vendors.953769bc.css.gz",
+      "relativePath": "jshERP-web/dist/css/chunk-vendors.953769bc.css.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "fail.8534b635.css",
+      "relativePath": "jshERP-web/dist/css/fail.8534b635.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "user.2aac1b72.css",
+      "relativePath": "jshERP-web/dist/css/user.2aac1b72.css"
+    },
+    {
+      "displayPath": null,
+      "fileName": "apply_item_template.xls",
+      "relativePath": "jshERP-web/dist/doc/apply_item_template.xls"
+    },
+    {
+      "displayPath": null,
+      "fileName": "buy_sale_item_template.xls",
+      "relativePath": "jshERP-web/dist/doc/buy_sale_item_template.xls"
+    },
+    {
+      "displayPath": null,
+      "fileName": "customer_template.xls",
+      "relativePath": "jshERP-web/dist/doc/customer_template.xls"
+    },
+    {
+      "displayPath": null,
+      "fileName": "goods_template.xls",
+      "relativePath": "jshERP-web/dist/doc/goods_template.xls"
+    },
+    {
+      "displayPath": null,
+      "fileName": "in_out_item_template.xls",
+      "relativePath": "jshERP-web/dist/doc/in_out_item_template.xls"
+    },
+    {
+      "displayPath": null,
+      "fileName": "member_template.xls",
+      "relativePath": "jshERP-web/dist/doc/member_template.xls"
+    },
+    {
+      "displayPath": null,
+      "fileName": "order_item_template.xls",
+      "relativePath": "jshERP-web/dist/doc/order_item_template.xls"
+    },
+    {
+      "displayPath": null,
+      "fileName": "vendor_template.xls",
+      "relativePath": "jshERP-web/dist/doc/vendor_template.xls"
+    },
+    {
+      "displayPath": null,
+      "fileName": "dark.da07f9c2.svg",
+      "relativePath": "jshERP-web/dist/img/dark.da07f9c2.svg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "default-skin.b257fa9c.svg",
+      "relativePath": "jshERP-web/dist/img/default-skin.b257fa9c.svg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "light.262af236.svg",
+      "relativePath": "jshERP-web/dist/img/light.262af236.svg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "index.html",
+      "relativePath": "jshERP-web/dist/index.html"
+    },
+    {
+      "displayPath": null,
+      "fileName": "app.abd178c0.js",
+      "relativePath": "jshERP-web/dist/js/app.abd178c0.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "app.abd178c0.js.gz",
+      "relativePath": "jshERP-web/dist/js/app.abd178c0.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-01df45b9.beb3e7f0.js",
+      "relativePath": "jshERP-web/dist/js/chunk-01df45b9.beb3e7f0.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-01df45b9.beb3e7f0.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-01df45b9.beb3e7f0.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-02218484.bfec9ac5.js",
+      "relativePath": "jshERP-web/dist/js/chunk-02218484.bfec9ac5.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0387aa2f.cede7ef3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-0387aa2f.cede7ef3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-06b53ff6.f9c76fcc.js",
+      "relativePath": "jshERP-web/dist/js/chunk-06b53ff6.f9c76fcc.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-06b53ff6.f9c76fcc.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-06b53ff6.f9c76fcc.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-06e0b7e8.682af452.js",
+      "relativePath": "jshERP-web/dist/js/chunk-06e0b7e8.682af452.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0d7ab4ad.6e5db26b.js",
+      "relativePath": "jshERP-web/dist/js/chunk-0d7ab4ad.6e5db26b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0de1cbac.19f43352.js",
+      "relativePath": "jshERP-web/dist/js/chunk-0de1cbac.19f43352.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0de1cbac.19f43352.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-0de1cbac.19f43352.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0e589848.d094b3d2.js",
+      "relativePath": "jshERP-web/dist/js/chunk-0e589848.d094b3d2.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0e589848.d094b3d2.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-0e589848.d094b3d2.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0f5d604a.1217aaf8.js",
+      "relativePath": "jshERP-web/dist/js/chunk-0f5d604a.1217aaf8.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0f5d604a.1217aaf8.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-0f5d604a.1217aaf8.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0f73a554.17e8151a.js",
+      "relativePath": "jshERP-web/dist/js/chunk-0f73a554.17e8151a.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0fd43c55.ce76e5c4.js",
+      "relativePath": "jshERP-web/dist/js/chunk-0fd43c55.ce76e5c4.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-0fd43c55.ce76e5c4.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-0fd43c55.ce76e5c4.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-11d591d6.e787ec3f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-11d591d6.e787ec3f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-11d591d6.e787ec3f.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-11d591d6.e787ec3f.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-11fd8c41.a8816b39.js",
+      "relativePath": "jshERP-web/dist/js/chunk-11fd8c41.a8816b39.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-11fd8c41.a8816b39.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-11fd8c41.a8816b39.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-141161a5.788ab0ff.js",
+      "relativePath": "jshERP-web/dist/js/chunk-141161a5.788ab0ff.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-159beab0.e4d035ec.js",
+      "relativePath": "jshERP-web/dist/js/chunk-159beab0.e4d035ec.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-159beab0.e4d035ec.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-159beab0.e4d035ec.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-15abdcf4.e3ec9b57.js",
+      "relativePath": "jshERP-web/dist/js/chunk-15abdcf4.e3ec9b57.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-15abdcf4.e3ec9b57.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-15abdcf4.e3ec9b57.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-16ad1694.94b795b1.js",
+      "relativePath": "jshERP-web/dist/js/chunk-16ad1694.94b795b1.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-16ad1694.94b795b1.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-16ad1694.94b795b1.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-16b21e1c.11ebe0c4.js",
+      "relativePath": "jshERP-web/dist/js/chunk-16b21e1c.11ebe0c4.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-16b21e1c.11ebe0c4.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-16b21e1c.11ebe0c4.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-17acab87.75c6c8ba.js",
+      "relativePath": "jshERP-web/dist/js/chunk-17acab87.75c6c8ba.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-17acab87.75c6c8ba.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-17acab87.75c6c8ba.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-191de679.df83ffa3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-191de679.df83ffa3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-19504e65.a8e6723f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-19504e65.a8e6723f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-19fbabbc.e75ee610.js",
+      "relativePath": "jshERP-web/dist/js/chunk-19fbabbc.e75ee610.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-19fbabbc.e75ee610.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-19fbabbc.e75ee610.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1a370d0b.494619c1.js",
+      "relativePath": "jshERP-web/dist/js/chunk-1a370d0b.494619c1.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1a370d0b.494619c1.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-1a370d0b.494619c1.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1a472a2f.1c73a37b.js",
+      "relativePath": "jshERP-web/dist/js/chunk-1a472a2f.1c73a37b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1a472a2f.1c73a37b.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-1a472a2f.1c73a37b.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1a820668.82174cce.js",
+      "relativePath": "jshERP-web/dist/js/chunk-1a820668.82174cce.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1ba64544.00ff2bae.js",
+      "relativePath": "jshERP-web/dist/js/chunk-1ba64544.00ff2bae.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1ba64544.00ff2bae.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-1ba64544.00ff2bae.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1bb66505.7a7669b0.js",
+      "relativePath": "jshERP-web/dist/js/chunk-1bb66505.7a7669b0.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1bb66505.7a7669b0.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-1bb66505.7a7669b0.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1c1aaf54.ae868745.js",
+      "relativePath": "jshERP-web/dist/js/chunk-1c1aaf54.ae868745.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1c1aaf54.ae868745.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-1c1aaf54.ae868745.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1cb1a65f.2442d82e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-1cb1a65f.2442d82e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1d5cd13e.7a92d8e9.js",
+      "relativePath": "jshERP-web/dist/js/chunk-1d5cd13e.7a92d8e9.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1d5cd13e.7a92d8e9.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-1d5cd13e.7a92d8e9.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1e7e1ade.9c27b5f2.js",
+      "relativePath": "jshERP-web/dist/js/chunk-1e7e1ade.9c27b5f2.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1e7e1ade.9c27b5f2.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-1e7e1ade.9c27b5f2.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1fb51007.1fedc4c3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-1fb51007.1fedc4c3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-1fb51007.1fedc4c3.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-1fb51007.1fedc4c3.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2039a09f.4fdaf48e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2039a09f.4fdaf48e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-21161ebc.170e6656.js",
+      "relativePath": "jshERP-web/dist/js/chunk-21161ebc.170e6656.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-212edb2c.cec8069f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-212edb2c.cec8069f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-224a1fc8.b7189e67.js",
+      "relativePath": "jshERP-web/dist/js/chunk-224a1fc8.b7189e67.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-22ede617.47070609.js",
+      "relativePath": "jshERP-web/dist/js/chunk-22ede617.47070609.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-22ede617.47070609.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-22ede617.47070609.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2314c57b.2ffe2037.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2314c57b.2ffe2037.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-23be649b.f816b163.js",
+      "relativePath": "jshERP-web/dist/js/chunk-23be649b.f816b163.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-23df44ec.3b09a8ab.js",
+      "relativePath": "jshERP-web/dist/js/chunk-23df44ec.3b09a8ab.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-23df44ec.3b09a8ab.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-23df44ec.3b09a8ab.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2485918d.8dc823fd.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2485918d.8dc823fd.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2485918d.8dc823fd.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-2485918d.8dc823fd.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-24d3eddc.b7da754e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-24d3eddc.b7da754e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-24d3eddc.b7da754e.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-24d3eddc.b7da754e.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-27cddde6.a8e73842.js",
+      "relativePath": "jshERP-web/dist/js/chunk-27cddde6.a8e73842.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2825469a.f5d9a60e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2825469a.f5d9a60e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2825469a.f5d9a60e.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-2825469a.f5d9a60e.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-28c63a0f.58b8652f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-28c63a0f.58b8652f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-28c63a0f.58b8652f.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-28c63a0f.58b8652f.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2ada37fe.fd06dd87.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2ada37fe.fd06dd87.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2b406051.3215ef56.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2b406051.3215ef56.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2c520138.30d270fc.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2c520138.30d270fc.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2c978be6.7e8f444e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2c978be6.7e8f444e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2c978be6.7e8f444e.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-2c978be6.7e8f444e.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0a2e13.3a68f56d.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0a2e13.3a68f56d.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0ab2e6.b1da3e0b.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0ab2e6.b1da3e0b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0b16d0.f9ef4575.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0b16d0.f9ef4575.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0b26e6.7e8aceb2.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0b26e6.7e8aceb2.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0b5fb2.756d313a.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0b5fb2.756d313a.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0b6757.aeee7065.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0b6757.aeee7065.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0bacd5.bda7b694.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0bacd5.bda7b694.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0bdf09.24dd7bf3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0bdf09.24dd7bf3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0c02f2.a58fa775.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0c02f2.a58fa775.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0c05f5.51470aec.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0c05f5.51470aec.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0c0a3a.c37e57e9.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0c0a3a.c37e57e9.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0c113c.56173574.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0c113c.56173574.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0c2632.9736e748.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0c2632.9736e748.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0c5788.fc44d03b.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0c5788.fc44d03b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0c976a.de46683e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0c976a.de46683e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0cc484.36f1a4cb.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0cc484.36f1a4cb.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0ceb45.b03e09b0.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0ceb45.b03e09b0.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0d09f7.079c2679.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0d09f7.079c2679.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0d3e45.dd987d39.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0d3e45.dd987d39.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0d5f54.92669ad2.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0d5f54.92669ad2.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0d5f54.92669ad2.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0d5f54.92669ad2.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0d8378.d6098c47.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0d8378.d6098c47.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0d9f90.4adf91be.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0d9f90.4adf91be.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0da3e1.07a28764.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0da3e1.07a28764.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0dd6ac.a0b597d9.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0dd6ac.a0b597d9.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0dd6ac.a0b597d9.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0dd6ac.a0b597d9.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0e1bc0.f7b322cc.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0e1bc0.f7b322cc.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0e1bc0.f7b322cc.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0e1bc0.f7b322cc.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0e1c1c.d73d6e23.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0e1c1c.d73d6e23.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0e55b5.d6426e99.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0e55b5.d6426e99.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0e5f08.e64c6423.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0e5f08.e64c6423.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0e9773.f9dc0842.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0e9773.f9dc0842.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0f09e5.2ba5d08c.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0f09e5.2ba5d08c.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d0f1595.d43b9354.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d0f1595.d43b9354.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d208db0.26b58a6f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d208db0.26b58a6f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d20e8a3.f5176ef4.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d20e8a3.f5176ef4.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d20ede5.1b9fa810.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d20ede5.1b9fa810.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d2109ff.91051a84.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d2109ff.91051a84.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d217dd2.a6fcf1df.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d217dd2.a6fcf1df.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d21e3e9.34577d97.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d21e3e9.34577d97.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d221f48.6af16592.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d221f48.6af16592.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d222cee.e4116227.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d222cee.e4116227.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d22528e.74ebe306.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d22528e.74ebe306.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d225b46.707e3031.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d225b46.707e3031.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d225ff5.c73046da.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d225ff5.c73046da.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d22613d.cdb256d3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d22613d.cdb256d3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d22db3a.d3035aed.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d22db3a.d3035aed.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d230e17.eda13bbe.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d230e17.eda13bbe.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d230e2a.04ff69cb.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d230e2a.04ff69cb.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d2cc003.fc12ad06.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2d2cc003.fc12ad06.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2d2cc003.fc12ad06.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-2d2cc003.fc12ad06.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2e8b1438.7308e9f0.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2e8b1438.7308e9f0.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-2eba4a4a.ab99bb46.js",
+      "relativePath": "jshERP-web/dist/js/chunk-2eba4a4a.ab99bb46.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-30b7015b.c8512c1b.js",
+      "relativePath": "jshERP-web/dist/js/chunk-30b7015b.c8512c1b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-30b7015b.c8512c1b.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-30b7015b.c8512c1b.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-31c3a698.4639daa3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-31c3a698.4639daa3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-31c3a698.4639daa3.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-31c3a698.4639daa3.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-33c2109a.4703cdfd.js",
+      "relativePath": "jshERP-web/dist/js/chunk-33c2109a.4703cdfd.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-34cb347e.d2fbac7f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-34cb347e.d2fbac7f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-37eca133.63fac955.js",
+      "relativePath": "jshERP-web/dist/js/chunk-37eca133.63fac955.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-37eca133.63fac955.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-37eca133.63fac955.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-380129fb.45e51835.js",
+      "relativePath": "jshERP-web/dist/js/chunk-380129fb.45e51835.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-380129fb.45e51835.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-380129fb.45e51835.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-38dabca1.344254e6.js",
+      "relativePath": "jshERP-web/dist/js/chunk-38dabca1.344254e6.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-38dabca1.344254e6.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-38dabca1.344254e6.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-39c352ad.1a7e495e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-39c352ad.1a7e495e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-39c352ad.1a7e495e.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-39c352ad.1a7e495e.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-39da1207.ea1ea76b.js",
+      "relativePath": "jshERP-web/dist/js/chunk-39da1207.ea1ea76b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-3a17b8b5.60a01e13.js",
+      "relativePath": "jshERP-web/dist/js/chunk-3a17b8b5.60a01e13.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-3a8d14b8.50d86f30.js",
+      "relativePath": "jshERP-web/dist/js/chunk-3a8d14b8.50d86f30.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-3a8d14b8.50d86f30.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-3a8d14b8.50d86f30.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-3deba139.47d5b466.js",
+      "relativePath": "jshERP-web/dist/js/chunk-3deba139.47d5b466.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-3deba139.47d5b466.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-3deba139.47d5b466.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-3e6a3755.22d98c1a.js",
+      "relativePath": "jshERP-web/dist/js/chunk-3e6a3755.22d98c1a.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-3f274cd1.51967f23.js",
+      "relativePath": "jshERP-web/dist/js/chunk-3f274cd1.51967f23.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-407f071c.63899dfe.js",
+      "relativePath": "jshERP-web/dist/js/chunk-407f071c.63899dfe.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-409bb0c0.0231fc1f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-409bb0c0.0231fc1f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-40aba36a.1f22fb29.js",
+      "relativePath": "jshERP-web/dist/js/chunk-40aba36a.1f22fb29.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-41e1694e.a20437c6.js",
+      "relativePath": "jshERP-web/dist/js/chunk-41e1694e.a20437c6.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-41e1694e.a20437c6.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-41e1694e.a20437c6.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4301fc7e.4cc9fa08.js",
+      "relativePath": "jshERP-web/dist/js/chunk-4301fc7e.4cc9fa08.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4301fc7e.4cc9fa08.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-4301fc7e.4cc9fa08.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-43573597.6d6c122e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-43573597.6d6c122e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-43573597.6d6c122e.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-43573597.6d6c122e.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-472241f4.88cdb75a.js",
+      "relativePath": "jshERP-web/dist/js/chunk-472241f4.88cdb75a.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-472241f4.88cdb75a.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-472241f4.88cdb75a.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-477a40d9.0c2e4ddf.js",
+      "relativePath": "jshERP-web/dist/js/chunk-477a40d9.0c2e4ddf.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-477a40d9.0c2e4ddf.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-477a40d9.0c2e4ddf.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4984531e.318e930c.js",
+      "relativePath": "jshERP-web/dist/js/chunk-4984531e.318e930c.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4984531e.318e930c.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-4984531e.318e930c.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4a2a498b.7c492b65.js",
+      "relativePath": "jshERP-web/dist/js/chunk-4a2a498b.7c492b65.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4a2a498b.7c492b65.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-4a2a498b.7c492b65.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4a9babee.dd62da20.js",
+      "relativePath": "jshERP-web/dist/js/chunk-4a9babee.dd62da20.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4a9babee.dd62da20.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-4a9babee.dd62da20.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4aef4670.92635836.js",
+      "relativePath": "jshERP-web/dist/js/chunk-4aef4670.92635836.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4aef4670.92635836.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-4aef4670.92635836.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4b1998d3.e3bd0d8e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-4b1998d3.e3bd0d8e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4c8b8043.a463e781.js",
+      "relativePath": "jshERP-web/dist/js/chunk-4c8b8043.a463e781.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4c8b8043.a463e781.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-4c8b8043.a463e781.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4fa97cbd.7fbef34b.js",
+      "relativePath": "jshERP-web/dist/js/chunk-4fa97cbd.7fbef34b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-4fa97cbd.7fbef34b.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-4fa97cbd.7fbef34b.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5005a329.1d629718.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5005a329.1d629718.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-50909d2d.dee5d0d9.js",
+      "relativePath": "jshERP-web/dist/js/chunk-50909d2d.dee5d0d9.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-50909d2d.dee5d0d9.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-50909d2d.dee5d0d9.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-516deb9c.054760d5.js",
+      "relativePath": "jshERP-web/dist/js/chunk-516deb9c.054760d5.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-516deb9c.054760d5.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-516deb9c.054760d5.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-51a7db6e.71d07fba.js",
+      "relativePath": "jshERP-web/dist/js/chunk-51a7db6e.71d07fba.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-51a7db6e.71d07fba.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-51a7db6e.71d07fba.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-550d3d29.28cb5cb3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-550d3d29.28cb5cb3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-550d3d29.28cb5cb3.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-550d3d29.28cb5cb3.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-590de59d.d77f3591.js",
+      "relativePath": "jshERP-web/dist/js/chunk-590de59d.d77f3591.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-590de59d.d77f3591.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-590de59d.d77f3591.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-59a5c701.30656d97.js",
+      "relativePath": "jshERP-web/dist/js/chunk-59a5c701.30656d97.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-59a5c701.30656d97.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-59a5c701.30656d97.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-59ce80e6.9011ade3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-59ce80e6.9011ade3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5b51729c.cd03c9de.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5b51729c.cd03c9de.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5b51729c.cd03c9de.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-5b51729c.cd03c9de.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5b565423.462d72ab.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5b565423.462d72ab.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5b84ffa5.a528ce2c.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5b84ffa5.a528ce2c.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5c9cbe92.598aa2e0.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5c9cbe92.598aa2e0.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5c9cbe92.598aa2e0.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-5c9cbe92.598aa2e0.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5cdea127.b62c12f6.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5cdea127.b62c12f6.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5cdea127.b62c12f6.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-5cdea127.b62c12f6.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5ddfa154.06feeb75.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5ddfa154.06feeb75.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5ddfa154.06feeb75.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-5ddfa154.06feeb75.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5ea0eb80.9e4f8337.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5ea0eb80.9e4f8337.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5ea0eb80.9e4f8337.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-5ea0eb80.9e4f8337.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5ec6bf44.0cab85bb.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5ec6bf44.0cab85bb.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5f674dc4.7f97e31f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5f674dc4.7f97e31f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5f674dc4.7f97e31f.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-5f674dc4.7f97e31f.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5f8ce73b.87e1bf42.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5f8ce73b.87e1bf42.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-5ff1d97f.a2346fb7.js",
+      "relativePath": "jshERP-web/dist/js/chunk-5ff1d97f.a2346fb7.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-60eee0d0.20df913a.js",
+      "relativePath": "jshERP-web/dist/js/chunk-60eee0d0.20df913a.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-619f8738.e70aeedb.js",
+      "relativePath": "jshERP-web/dist/js/chunk-619f8738.e70aeedb.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-61e6b294.f6f1670d.js",
+      "relativePath": "jshERP-web/dist/js/chunk-61e6b294.f6f1670d.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-61fa8682.eeead6aa.js",
+      "relativePath": "jshERP-web/dist/js/chunk-61fa8682.eeead6aa.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-61fa8682.eeead6aa.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-61fa8682.eeead6aa.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-629c8219.5bb551bf.js",
+      "relativePath": "jshERP-web/dist/js/chunk-629c8219.5bb551bf.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-62f29d38.bd4a424e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-62f29d38.bd4a424e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-638762b4.3ab5c0d3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-638762b4.3ab5c0d3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-638762b4.3ab5c0d3.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-638762b4.3ab5c0d3.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-645ac086.062d3746.js",
+      "relativePath": "jshERP-web/dist/js/chunk-645ac086.062d3746.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-64641616.12a806b4.js",
+      "relativePath": "jshERP-web/dist/js/chunk-64641616.12a806b4.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-64e48865.988b428b.js",
+      "relativePath": "jshERP-web/dist/js/chunk-64e48865.988b428b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-64f87e1a.26468e59.js",
+      "relativePath": "jshERP-web/dist/js/chunk-64f87e1a.26468e59.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-65878718.97018b6b.js",
+      "relativePath": "jshERP-web/dist/js/chunk-65878718.97018b6b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-65878718.97018b6b.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-65878718.97018b6b.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-66452030.7613b2a4.js",
+      "relativePath": "jshERP-web/dist/js/chunk-66452030.7613b2a4.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-66d6dabf.040ddc17.js",
+      "relativePath": "jshERP-web/dist/js/chunk-66d6dabf.040ddc17.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-66d6dabf.040ddc17.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-66d6dabf.040ddc17.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-67e74bdc.c38b0902.js",
+      "relativePath": "jshERP-web/dist/js/chunk-67e74bdc.c38b0902.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6c5c513d.082ddf81.js",
+      "relativePath": "jshERP-web/dist/js/chunk-6c5c513d.082ddf81.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6d0c3f90.012ab345.js",
+      "relativePath": "jshERP-web/dist/js/chunk-6d0c3f90.012ab345.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6d0c3f90.012ab345.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-6d0c3f90.012ab345.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6df31804.16750ef8.js",
+      "relativePath": "jshERP-web/dist/js/chunk-6df31804.16750ef8.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6e2cdadb.5cf8684e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-6e2cdadb.5cf8684e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6e2cdadb.5cf8684e.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-6e2cdadb.5cf8684e.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6fc4e438.fe953366.js",
+      "relativePath": "jshERP-web/dist/js/chunk-6fc4e438.fe953366.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-6fc4e438.fe953366.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-6fc4e438.fe953366.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7208f5c4.cf0ad523.js",
+      "relativePath": "jshERP-web/dist/js/chunk-7208f5c4.cf0ad523.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7208f5c4.cf0ad523.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-7208f5c4.cf0ad523.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-72dbd198.4ecfcfe4.js",
+      "relativePath": "jshERP-web/dist/js/chunk-72dbd198.4ecfcfe4.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-72dbd198.4ecfcfe4.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-72dbd198.4ecfcfe4.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-745a7bbd.fc025243.js",
+      "relativePath": "jshERP-web/dist/js/chunk-745a7bbd.fc025243.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-745a7bbd.fc025243.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-745a7bbd.fc025243.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-74667537.8e263cfb.js",
+      "relativePath": "jshERP-web/dist/js/chunk-74667537.8e263cfb.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-74932de7.58c017d3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-74932de7.58c017d3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-75930912.a2bdd585.js",
+      "relativePath": "jshERP-web/dist/js/chunk-75930912.a2bdd585.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-75930912.a2bdd585.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-75930912.a2bdd585.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7683a88c.1539e2a6.js",
+      "relativePath": "jshERP-web/dist/js/chunk-7683a88c.1539e2a6.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7683a88c.1539e2a6.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-7683a88c.1539e2a6.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-76a71d9a.50c4a810.js",
+      "relativePath": "jshERP-web/dist/js/chunk-76a71d9a.50c4a810.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-76a71d9a.50c4a810.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-76a71d9a.50c4a810.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-772f7328.583c2154.js",
+      "relativePath": "jshERP-web/dist/js/chunk-772f7328.583c2154.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-773e160a.1da12fc6.js",
+      "relativePath": "jshERP-web/dist/js/chunk-773e160a.1da12fc6.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-77a6f2ce.96ab2ce3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-77a6f2ce.96ab2ce3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-787fac0d.eaaace0d.js",
+      "relativePath": "jshERP-web/dist/js/chunk-787fac0d.eaaace0d.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-787fac0d.eaaace0d.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-787fac0d.eaaace0d.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-78bc69de.b9cf3988.js",
+      "relativePath": "jshERP-web/dist/js/chunk-78bc69de.b9cf3988.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-78ca28d9.56fbfe3c.js",
+      "relativePath": "jshERP-web/dist/js/chunk-78ca28d9.56fbfe3c.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-78ca28d9.56fbfe3c.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-78ca28d9.56fbfe3c.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-79bf91e2.dea37653.js",
+      "relativePath": "jshERP-web/dist/js/chunk-79bf91e2.dea37653.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-79bf91e2.dea37653.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-79bf91e2.dea37653.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-79dc9d80.4bad2be4.js",
+      "relativePath": "jshERP-web/dist/js/chunk-79dc9d80.4bad2be4.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-79dc9d80.4bad2be4.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-79dc9d80.4bad2be4.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7a3f211c.2f3977e9.js",
+      "relativePath": "jshERP-web/dist/js/chunk-7a3f211c.2f3977e9.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7ac8ac7a.58469dce.js",
+      "relativePath": "jshERP-web/dist/js/chunk-7ac8ac7a.58469dce.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7ad5c5c0.44a5d1a0.js",
+      "relativePath": "jshERP-web/dist/js/chunk-7ad5c5c0.44a5d1a0.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7ad5c5c0.44a5d1a0.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-7ad5c5c0.44a5d1a0.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7c039a74.a4a64758.js",
+      "relativePath": "jshERP-web/dist/js/chunk-7c039a74.a4a64758.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7cbf2bd6.a00cac16.js",
+      "relativePath": "jshERP-web/dist/js/chunk-7cbf2bd6.a00cac16.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7d3ae704.47bc03ef.js",
+      "relativePath": "jshERP-web/dist/js/chunk-7d3ae704.47bc03ef.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7dfa9306.183b9dd3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-7dfa9306.183b9dd3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7ea0412e.6493b829.js",
+      "relativePath": "jshERP-web/dist/js/chunk-7ea0412e.6493b829.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-7ea0412e.6493b829.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-7ea0412e.6493b829.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-864ee452.311a7a01.js",
+      "relativePath": "jshERP-web/dist/js/chunk-864ee452.311a7a01.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-864ee452.311a7a01.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-864ee452.311a7a01.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-878b8482.8b8d6f61.js",
+      "relativePath": "jshERP-web/dist/js/chunk-878b8482.8b8d6f61.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-8b0ce27c.f0fe3693.js",
+      "relativePath": "jshERP-web/dist/js/chunk-8b0ce27c.f0fe3693.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-8b0ce27c.f0fe3693.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-8b0ce27c.f0fe3693.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-91e1c1d4.15abd7e4.js",
+      "relativePath": "jshERP-web/dist/js/chunk-91e1c1d4.15abd7e4.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-91e1c1d4.15abd7e4.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-91e1c1d4.15abd7e4.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-94efe5f6.b9073da1.js",
+      "relativePath": "jshERP-web/dist/js/chunk-94efe5f6.b9073da1.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-94efe5f6.b9073da1.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-94efe5f6.b9073da1.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-956282cc.bc12958f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-956282cc.bc12958f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-9735e122.80d7eeff.js",
+      "relativePath": "jshERP-web/dist/js/chunk-9735e122.80d7eeff.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-9752a9d0.4b2add16.js",
+      "relativePath": "jshERP-web/dist/js/chunk-9752a9d0.4b2add16.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-a538f554.79b2e24e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-a538f554.79b2e24e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-a82b4092.986fe8bc.js",
+      "relativePath": "jshERP-web/dist/js/chunk-a82b4092.986fe8bc.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-a90c3e30.1f6184c1.js",
+      "relativePath": "jshERP-web/dist/js/chunk-a90c3e30.1f6184c1.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-acf0bcce.6f9a88f1.js",
+      "relativePath": "jshERP-web/dist/js/chunk-acf0bcce.6f9a88f1.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-af596498.f3e2c115.js",
+      "relativePath": "jshERP-web/dist/js/chunk-af596498.f3e2c115.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-b5239f02.15d24964.js",
+      "relativePath": "jshERP-web/dist/js/chunk-b5239f02.15d24964.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-b5239f02.15d24964.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-b5239f02.15d24964.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-b5bc5be8.d6eb110f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-b5bc5be8.d6eb110f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-b5ca799a.f2b3790d.js",
+      "relativePath": "jshERP-web/dist/js/chunk-b5ca799a.f2b3790d.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-b763d4ca.b9d2efaf.js",
+      "relativePath": "jshERP-web/dist/js/chunk-b763d4ca.b9d2efaf.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-bacaf390.7a637505.js",
+      "relativePath": "jshERP-web/dist/js/chunk-bacaf390.7a637505.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-bd402180.b399de46.js",
+      "relativePath": "jshERP-web/dist/js/chunk-bd402180.b399de46.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-bd402180.b399de46.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-bd402180.b399de46.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-bfdca74c.f85b52fc.js",
+      "relativePath": "jshERP-web/dist/js/chunk-bfdca74c.f85b52fc.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c0c4dea8.1638e2eb.js",
+      "relativePath": "jshERP-web/dist/js/chunk-c0c4dea8.1638e2eb.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c26d54de.b7ac76e5.js",
+      "relativePath": "jshERP-web/dist/js/chunk-c26d54de.b7ac76e5.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c271b50a.d454e1ef.js",
+      "relativePath": "jshERP-web/dist/js/chunk-c271b50a.d454e1ef.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c271b50a.d454e1ef.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-c271b50a.d454e1ef.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c3bdd56e.8d990231.js",
+      "relativePath": "jshERP-web/dist/js/chunk-c3bdd56e.8d990231.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c3bdd56e.8d990231.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-c3bdd56e.8d990231.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-c6c279c0.04fee8a3.js",
+      "relativePath": "jshERP-web/dist/js/chunk-c6c279c0.04fee8a3.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-cd91ad42.271b501f.js",
+      "relativePath": "jshERP-web/dist/js/chunk-cd91ad42.271b501f.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-cd91ad42.271b501f.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-cd91ad42.271b501f.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-cd9b9450.d31bda61.js",
+      "relativePath": "jshERP-web/dist/js/chunk-cd9b9450.d31bda61.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-cfb59f24.0aaf036e.js",
+      "relativePath": "jshERP-web/dist/js/chunk-cfb59f24.0aaf036e.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-d13a1aac.a38007db.js",
+      "relativePath": "jshERP-web/dist/js/chunk-d13a1aac.a38007db.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-d1758f90.795efc5b.js",
+      "relativePath": "jshERP-web/dist/js/chunk-d1758f90.795efc5b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-d1758f90.795efc5b.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-d1758f90.795efc5b.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-da099bf8.9ce464bb.js",
+      "relativePath": "jshERP-web/dist/js/chunk-da099bf8.9ce464bb.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-e0c48d78.895b9f28.js",
+      "relativePath": "jshERP-web/dist/js/chunk-e0c48d78.895b9f28.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-e0c48d78.895b9f28.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-e0c48d78.895b9f28.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-e27b2d42.ca5e38df.js",
+      "relativePath": "jshERP-web/dist/js/chunk-e27b2d42.ca5e38df.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-e27b2d42.ca5e38df.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-e27b2d42.ca5e38df.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-e3260b3e.cf78ed71.js",
+      "relativePath": "jshERP-web/dist/js/chunk-e3260b3e.cf78ed71.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-eb2ff2de.96d3733d.js",
+      "relativePath": "jshERP-web/dist/js/chunk-eb2ff2de.96d3733d.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-eb2ff2de.96d3733d.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-eb2ff2de.96d3733d.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-f6cc1444.0d659ef5.js",
+      "relativePath": "jshERP-web/dist/js/chunk-f6cc1444.0d659ef5.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-f88b8898.371786e1.js",
+      "relativePath": "jshERP-web/dist/js/chunk-f88b8898.371786e1.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-f88b8898.371786e1.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-f88b8898.371786e1.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-facb71e4.b3fddb69.js",
+      "relativePath": "jshERP-web/dist/js/chunk-facb71e4.b3fddb69.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-fc9c270c.405f0102.js",
+      "relativePath": "jshERP-web/dist/js/chunk-fc9c270c.405f0102.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-fc9c270c.405f0102.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-fc9c270c.405f0102.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-fef9d5ca.81ae06b2.js",
+      "relativePath": "jshERP-web/dist/js/chunk-fef9d5ca.81ae06b2.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-ff008666.757714e8.js",
+      "relativePath": "jshERP-web/dist/js/chunk-ff008666.757714e8.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-ff008666.757714e8.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-ff008666.757714e8.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-ffbdf304.d6a3c044.js",
+      "relativePath": "jshERP-web/dist/js/chunk-ffbdf304.d6a3c044.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-vendors.2d993d6a.js",
+      "relativePath": "jshERP-web/dist/js/chunk-vendors.2d993d6a.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chunk-vendors.2d993d6a.js.gz",
+      "relativePath": "jshERP-web/dist/js/chunk-vendors.2d993d6a.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "dashboard.f8984c9b.js",
+      "relativePath": "jshERP-web/dist/js/dashboard.f8984c9b.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "fail.813f7154.js",
+      "relativePath": "jshERP-web/dist/js/fail.813f7154.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "user.ac0c7fff.js",
+      "relativePath": "jshERP-web/dist/js/user.ac0c7fff.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "android-code.png",
+      "relativePath": "jshERP-web/dist/static/android-code.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "Android.png",
+      "relativePath": "jshERP-web/dist/static/Android.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "banner-home.jpg",
+      "relativePath": "jshERP-web/dist/static/banner-home.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "banner-small.jpg",
+      "relativePath": "jshERP-web/dist/static/banner-small.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "bgimg.png",
+      "relativePath": "jshERP-web/dist/static/bgimg.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "blue.png",
+      "relativePath": "jshERP-web/dist/static/blue.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "color.less",
+      "relativePath": "jshERP-web/dist/static/color.less"
+    },
+    {
+      "displayPath": null,
+      "fileName": "color.less.gz",
+      "relativePath": "jshERP-web/dist/static/color.less.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "favicon.ico",
+      "relativePath": "jshERP-web/dist/static/favicon.ico"
+    },
+    {
+      "displayPath": null,
+      "fileName": "iphone-code.png",
+      "relativePath": "jshERP-web/dist/static/iphone-code.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "iPhone.png",
+      "relativePath": "jshERP-web/dist/static/iPhone.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "less.min.js",
+      "relativePath": "jshERP-web/dist/static/less.min.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "less.min.js.gz",
+      "relativePath": "jshERP-web/dist/static/less.min.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "mini-program.png",
+      "relativePath": "jshERP-web/dist/static/mini-program.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "rightImg.png",
+      "relativePath": "jshERP-web/dist/static/rightImg.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "1.jpg",
+      "relativePath": "jshERP-web/dist/static/screenshot/1.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "10.jpg",
+      "relativePath": "jshERP-web/dist/static/screenshot/10.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "2.jpg",
+      "relativePath": "jshERP-web/dist/static/screenshot/2.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "3.jpg",
+      "relativePath": "jshERP-web/dist/static/screenshot/3.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "4.jpg",
+      "relativePath": "jshERP-web/dist/static/screenshot/4.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "5.jpg",
+      "relativePath": "jshERP-web/dist/static/screenshot/5.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "6.jpg",
+      "relativePath": "jshERP-web/dist/static/screenshot/6.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "7.jpg",
+      "relativePath": "jshERP-web/dist/static/screenshot/7.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "8.jpg",
+      "relativePath": "jshERP-web/dist/static/screenshot/8.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "9.jpg",
+      "relativePath": "jshERP-web/dist/static/screenshot/9.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "translate.js",
+      "relativePath": "jshERP-web/dist/static/translate.js"
+    },
+    {
+      "displayPath": null,
+      "fileName": "translate.js.gz",
+      "relativePath": "jshERP-web/dist/static/translate.js.gz"
+    },
+    {
+      "displayPath": null,
+      "fileName": "weixin-code.png",
+      "relativePath": "jshERP-web/dist/static/weixin-code.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "weixin.jpg",
+      "relativePath": "jshERP-web/dist/static/weixin.jpg"
+    },
+    {
+      "displayPath": null,
+      "fileName": "build.json",
+      "relativePath": "target/business/build.json"
+    },
+    {
+      "displayPath": null,
+      "fileName": "chromium.log",
+      "relativePath": "target/business/chromium.log"
+    },
+    {
+      "displayPath": null,
+      "fileName": "erp.log",
+      "relativePath": "target/business/erp.log"
+    },
+    {
+      "displayPath": null,
+      "fileName": "failure-page.json",
+      "relativePath": "target/business/failure-page.json"
+    },
+    {
+      "displayPath": null,
+      "fileName": "failure.png",
+      "relativePath": "target/business/failure.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "proxy.log",
+      "relativePath": "target/business/proxy.log"
+    },
+    {
+      "displayPath": null,
+      "fileName": "report.json",
+      "relativePath": "target/business/report.json"
+    },
+    {
+      "displayPath": null,
+      "fileName": "single-browser.json",
+      "relativePath": "target/business/single-browser.json"
+    },
+    {
+      "displayPath": null,
+      "fileName": "single-input.png",
+      "relativePath": "target/business/single-input.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "single-reason-empty.json",
+      "relativePath": "target/business/single-reason-empty.json"
+    },
+    {
+      "displayPath": null,
+      "fileName": "single-result.png",
+      "relativePath": "target/business/single-result.png"
+    },
+    {
+      "displayPath": null,
+      "fileName": "single-table.json",
+      "relativePath": "target/business/single-table.json"
+    },
+    {
+      "displayPath": null,
+      "fileName": "frontend.xml",
+      "relativePath": "target/frontend.xml"
+    }
+  ],
+  "building": false,
+  "description": null,
+  "displayName": "#9",
+  "duration": 196247,
+  "estimatedDuration": 868912,
+  "executor": null,
+  "fullDisplayName": "erp-verification #9",
+  "id": "9",
+  "keepLog": false,
+  "number": 9,
+  "queueId": 17,
+  "result": "FAILURE",
+  "timestamp": 1794032059264,
+  "url": "https://127.0.0.1:18443/job/erp-verification/9/",
+  "changeSets": [],
+  "culprits": [],
+  "inProgress": false,
+  "nextBuild": {
+    "number": 10,
+    "url": "https://127.0.0.1:18443/job/erp-verification/10/"
+  },
+  "previousBuild": {
+    "number": 8,
+    "url": "https://127.0.0.1:18443/job/erp-verification/8/"
+  }
+}

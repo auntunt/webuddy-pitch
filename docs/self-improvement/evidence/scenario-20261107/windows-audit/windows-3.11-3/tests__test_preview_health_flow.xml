@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="7.084" timestamp="2026-11-07T12:36:04.532725+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_preview_health_flow.PreviewHealthFlowTest" name="test_real_database_failure_blocks_assessment_and_recovers_same_preview" time="6.896"><failure message="tmh.platform.errors.ApiError: 创建检查未完成，已保留目录和诊断：C:\Users\runneradmin\AppData\Local\Temp\webuddy-health-flow-iq_i3ku8\data\projects\HP">P = &lt;tmh.platform.server.Platform object at 0x0000017F3C6CCE50&gt;
+body = {'key': 'HP', 'name': '预览健康恢复夹具', 'brief': '隔离的 HTTP/SQLite 验收场景，不计新业务实现或人工签收。'}
+by = 'health-fixture'
+
+    def create(P, body: dict, by: str) -&gt; dict:
+        if not isinstance(body, dict):
+            raise ApiError(400, "项目内容必须是对象")
+        key = str(body.get("key") or "").strip().upper()
+        name = str(body.get("name") or "").strip()
+        brief = str(body.get("brief") or "").strip()
+        if not re.fullmatch(r"[A-Z][A-Z0-9]{0,9}", key):
+            raise ApiError(400, "项目代号需为字母开头的 1–10 位字母数字")
+        if not name or len(name) &gt; 120 or len(brief) &gt; 20000:
+            raise ApiError(400, "填写项目名称（最多 120 字），目标最多 20000 字")
+        if body.get("template", "web") != "web":
+            raise ApiError(400, "目前支持轻量 Web 应用起点，其他技术栈请接入已有仓库")
+        # The path is wholly server-owned. Never accept a request-supplied shell command or destination.
+        with _LOCK:
+            parent = P.data_dir / "projects"
+            if parent.is_symlink():
+                raise ApiError(409, "项目目录不能是符号链接")
+            root = parent / key
+            if P.store.project(key) or root.exists() or root.is_symlink():
+                raise ApiError(409, "项目代号或目录已存在，请选一个新代号；原内容没有被覆盖")
+            root.mkdir(parents=True)
+            (root / "tests").mkdir()
+            (root / "app.py").write_text(APP, encoding="utf-8")
+            (root / "tests" / "test_app.py").write_text(TESTS, encoding="utf-8")
+            (root / "project.json").write_text(json.dumps({"name": name, "brief": brief}, ensure_ascii=False, indent=2), encoding="utf-8")
+            (root / ".gitignore").write_text("__pycache__/\n*.pyc\n*.db\n.env\n.venv/\n", encoding="utf-8")
+            (root / "README.md").write_text("# %s\n\n%s\n\n## 运行\n\n`python3 app.py 8000`\n\n## 测试\n\n`python3 -m unittest discover -s tests -v`\n\n这是可运行的开发起点，具体业务目标仍需实现并验收。\n" % (name, brief), encoding="utf-8")
+            cfg = config.load(root)
+            py = shlex.quote(sys.executable)
+            cfg["project"] = {"name": name, "description": brief}
+            cfg["commands"].update(build=py + " -m py_compile app.py", test=py + " -m unittest discover -s tests -v")
+            config.save(root, cfg)
+            checks = {}
+            try:
+                for label, argv in (("build", [sys.executable, "-m", "py_compile", "app.py"]),
+                                    ("test", [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"])):
+                    r = subprocess.run(argv, cwd=root, capture_output=True, text=True, timeout=30)
+                    checks[label] = {"exit_code": r.returncode, "output": r.stdout + r.stderr, "command": argv}
+                    if r.returncode:
+&gt;                       raise RuntimeError("%s 检查失败" % label)
+E                       RuntimeError: test 检查失败
+
+tmh\platform\project_bootstrap.py:1033: RuntimeError
+
+The above exception was the direct cause of the following exception:
+
+self = &lt;unittest.case._Outcome object at 0x0000017F3C49D1D0&gt;
+test_case = &lt;test_preview_health_flow.PreviewHealthFlowTest testMethod=test_real_database_failure_blocks_assessment_and_recovers_same_preview&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_preview_health_flow.PreviewHealthFlowTest testMethod=test_real_database_failure_blocks_assessment_and_recovers_same_preview&gt;
+result = &lt;TestCaseFunction test_real_database_failure_blocks_assessment_and_recovers_same_preview&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_preview_health_flow.PreviewHealthFlowTest testMethod=test_real_database_failure_blocks_assessment_and_recovers_same_preview&gt;
+method = &lt;bound method PreviewHealthFlowTest.test_real_database_failure_blocks_assessment_and_recovers_same_preview of &lt;test_pr...w_health_flow.PreviewHealthFlowTest testMethod=test_real_database_failure_blocks_assessment_and_recovers_same_preview&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_preview_health_flow.PreviewHealthFlowTest testMethod=test_real_database_failure_blocks_assessment_and_recovers_same_preview&gt;
+
+    def test_real_database_failure_blocks_assessment_and_recovers_same_preview(self):
+&gt;       fixture = prepare(self.P)
+                  ^^^^^^^^^^^^^^^
+
+tests\test_preview_health_flow.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = &lt;tmh.platform.server.Platform object at 0x0000017F3C6CCE50&gt;
+
+    def prepare(P):
+&gt;       created = project_bootstrap.create(P, {"key": "HP", "name": "预览健康恢复夹具",
+            "brief": "隔离的 HTTP/SQLite 验收场景，不计新业务实现或人工签收。"}, "health-fixture")
+
+tests\test_preview_health_flow.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = &lt;tmh.platform.server.Platform object at 0x0000017F3C6CCE50&gt;
+body = {'key': 'HP', 'name': '预览健康恢复夹具', 'brief': '隔离的 HTTP/SQLite 验收场景，不计新业务实现或人工签收。'}
+by = 'health-fixture'
+
+    def create(P, body: dict, by: str) -&gt; dict:
+        if not isinstance(body, dict):
+            raise ApiError(400, "项目内容必须是对象")
+        key = str(body.get("key") or "").strip().upper()
+        name = str(body.get("name") or "").strip()
+        brief = str(body.get("brief") or "").strip()
+        if not re.fullmatch(r"[A-Z][A-Z0-9]{0,9}", key):
+            raise ApiError(400, "项目代号需为字母开头的 1–10 位字母数字")
+        if not name or len(name) &gt; 120 or len(brief) &gt; 20000:
+            raise ApiError(400, "填写项目名称（最多 120 字），目标最多 20000 字")
+        if body.get("template", "web") != "web":
+            raise ApiError(400, "目前支持轻量 Web 应用起点，其他技术栈请接入已有仓库")
+        # The path is wholly server-owned. Never accept a request-supplied shell command or destination.
+        with _LOCK:
+            parent = P.data_dir / "projects"
+            if parent.is_symlink():
+                raise ApiError(409, "项目目录不能是符号链接")
+            root = parent / key
+            if P.store.project(key) or root.exists() or root.is_symlink():
+                raise ApiError(409, "项目代号或目录已存在，请选一个新代号；原内容没有被覆盖")
+            root.mkdir(parents=True)
+            (root / "tests").mkdir()
+            (root / "app.py").write_text(APP, encoding="utf-8")
+            (root / "tests" / "test_app.py").write_text(TESTS, encoding="utf-8")
+            (root / "project.json").write_text(json.dumps({"name": name, "brief": brief}, ensure_ascii=False, indent=2), encoding="utf-8")
+            (root / ".gitignore").write_text("__pycache__/\n*.pyc\n*.db\n.env\n.venv/\n", encoding="utf-8")
+            (root / "README.md").write_text("# %s\n\n%s\n\n## 运行\n\n`python3 app.py 8000`\n\n## 测试\n\n`python3 -m unittest discover -s tests -v`\n\n这是可运行的开发起点，具体业务目标仍需实现并验收。\n" % (name, brief), encoding="utf-8")
+            cfg = config.load(root)
+            py = shlex.quote(sys.executable)
+            cfg["project"] = {"name": name, "description": brief}
+            cfg["commands"].update(build=py + " -m py_compile app.py", test=py + " -m unittest discover -s tests -v")
+            config.save(root, cfg)
+            checks = {}
+            try:
+                for label, argv in (("build", [sys.executable, "-m", "py_compile", "app.py"]),
+                                    ("test", [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"])):
+                    r = subprocess.run(argv, cwd=root, capture_output=True, text=True, timeout=30)
+                    checks[label] = {"exit_code": r.returncode, "output": r.stdout + r.stderr, "command": argv}
+                    if r.returncode:
+                        raise RuntimeError("%s 检查失败" % label)
+                for args in (("init", "-b", "main"), ("add", "."),
+                             ("-c", "user.name=Webuddy", "-c", "user.email=webuddy@localhost", "commit", "-m", "Create runnable web foundation")):
+                    subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=True, timeout=15)
+                commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True).stdout.strip()
+            except (OSError, subprocess.SubprocessError, RuntimeError) as e:
+                (root / "bootstrap-diagnostic.json").write_text(json.dumps({"error": str(e), "checks": checks}, ensure_ascii=False, indent=2), encoding="utf-8")
+&gt;               raise ApiError(500, "创建检查未完成，已保留目录和诊断：%s" % root) from e
+E               tmh.platform.errors.ApiError: 创建检查未完成，已保留目录和诊断：C:\Users\runneradmin\AppData\Local\Temp\webuddy-health-flow-iq_i3ku8\data\projects\HP
+
+tmh\platform\project_bootstrap.py:1040: ApiError</failure></testcase></testsuite></testsuites>

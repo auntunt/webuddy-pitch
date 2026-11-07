@@ -1,0 +1,164 @@
+{
+  "coverage": "局部范围；全仓相关内容总数未知",
+  "created_at": "2026-11-07 22:46:31",
+  "created_by": "fixture",
+  "explanation_basis": "现有关键词检索与一层静态关系；没有调用模型或推测业务顺序",
+  "from_map": null,
+  "id": "map9ad4fc24e4070c40d9bb55d5621b22a0",
+  "knowledge_references": [],
+  "nodes": [
+    {
+      "data": {
+        "cls": "cls:py:refund.py",
+        "layer": "service",
+        "lines": 2
+      },
+      "domain": "",
+      "end_line": 2,
+      "file": "refund.py",
+      "hash": "a515f12738e6a2ae",
+      "id": "fn:py:refund.py.refund",
+      "kind": "fn",
+      "label": "py:refund.py.refund",
+      "line": 1,
+      "module": ".",
+      "name": "refund"
+    },
+    {
+      "data": {
+        "bkey": "py:refund-check",
+        "kind_": "module",
+        "layer": "service"
+      },
+      "domain": "",
+      "end_line": 1,
+      "file": "refund-check.py",
+      "hash": "b09eef7bc02fba12",
+      "id": "cls:py:refund-check.py",
+      "kind": "cls",
+      "label": "py:refund-check.py",
+      "line": 1,
+      "module": ".",
+      "name": "py:refund-check.py"
+    },
+    {
+      "data": {
+        "bkey": "py:refund",
+        "kind_": "module",
+        "layer": "service"
+      },
+      "domain": "",
+      "end_line": 1,
+      "file": "refund.py",
+      "hash": "ac15ae3be12580e6",
+      "id": "cls:py:refund.py",
+      "kind": "cls",
+      "label": "py:refund.py",
+      "line": 1,
+      "module": ".",
+      "name": "py:refund.py"
+    },
+    {
+      "data": {
+        "analysis_scope": "Python AST 静态索引；不执行项目代码",
+        "analysis_status": "parsed",
+        "churn": 1,
+        "diagnostics": [],
+        "test": false
+      },
+      "domain": "",
+      "end_line": 1,
+      "file": "refund-check.py",
+      "hash": "",
+      "id": "file:refund-check.py",
+      "kind": "file",
+      "label": "refund-check.py",
+      "line": 1,
+      "module": ".",
+      "name": "refund-check.py"
+    },
+    {
+      "data": {
+        "analysis_scope": "Python AST 静态索引；不执行项目代码",
+        "analysis_status": "parsed",
+        "churn": 1,
+        "diagnostics": [],
+        "test": false
+      },
+      "domain": "",
+      "end_line": 1,
+      "file": "refund.py",
+      "hash": "",
+      "id": "file:refund.py",
+      "kind": "file",
+      "label": "refund.py",
+      "line": 1,
+      "module": ".",
+      "name": "refund.py"
+    }
+  ],
+  "notice": "静态索引与检索关联；不证明完整调用链、测试覆盖或业务验收。",
+  "project": "EXT",
+  "provenance": {
+    "current_snapshot_sha256": "0e04c731f3abfb03ad53d5fc3f32ebf5d786b878d118a28a95927bd8a1db6807",
+    "file_count": 4,
+    "generated_at": "2026-11-07T14:46:31.072035+00:00",
+    "git_commit": "bddcce30d8d15a2f109f30a41f445c3ce2b980b8",
+    "index_revision": "22f3a236e41ddb7c7569d50c0cea3e6227768a74e94d79ba5768eb4c9cd1c38d",
+    "index_status": "current",
+    "parser_version": "93522e3a559ad03c819601a75e9319e859c2794bf0213395d720217f984b302e",
+    "scope": "repository text candidates; build/VCS/cache directories excluded",
+    "snapshot_sha256": "0e04c731f3abfb03ad53d5fc3f32ebf5d786b878d118a28a95927bd8a1db6807",
+    "source_version": "bddcce30d8d15a2f109f30a41f445c3ce2b980b8"
+  },
+  "question": "refund",
+  "relations": [
+    {
+      "basis": "static_parser",
+      "dst": "fn:py:refund.py.refund",
+      "file": "",
+      "kind": "contains",
+      "line": 0,
+      "meaning": "静态包含",
+      "op": "",
+      "src": "cls:py:refund.py"
+    },
+    {
+      "basis": "static_parser",
+      "dst": "cls:py:refund-check.py",
+      "file": "",
+      "kind": "contains",
+      "line": 0,
+      "meaning": "静态包含",
+      "op": "",
+      "src": "file:refund-check.py"
+    },
+    {
+      "basis": "static_parser",
+      "dst": "cls:py:refund.py",
+      "file": "",
+      "kind": "contains",
+      "line": 0,
+      "meaning": "静态包含",
+      "op": "",
+      "src": "file:refund.py"
+    }
+  ],
+  "request_id": "scenario-map",
+  "revision": 1,
+  "sources": {
+    "refund-check.py": {
+      "base64": "aW1wb3J0IGpzb24sc3lzCmZyb20gcmVmdW5kIGltcG9ydCByZWZ1bmQKZXhwZWN0ZWQ9MTI1MAphY3R1YWw9cmVmdW5kKDEyNTApCnBhc3NlZD1hY3R1YWw9PWV4cGVjdGVkCm9wZW4oJ3JlcG9ydC5qc29uJywndycpLndyaXRlKGpzb24uZHVtcHMoeydjYXNlcyc6W3snaWQnOidzdW0nLCdzdGF0dXMnOidwYXNzJyBpZiBwYXNzZWQgZWxzZSAnZmFpbCcsJ2lucHV0JzoxMjUwLCdleHBlY3RlZCc6ZXhwZWN0ZWQsJ2FjdHVhbCc6YWN0dWFsfV19KSkKc3lzLmV4aXQoMCBpZiBwYXNzZWQgZWxzZSAxKQo=",
+      "bytes": 284,
+      "sha256": "399ac9f2cc29c75911137e9ef9eb9e7cc4ccf235c9a6287ee90342afa02deaed"
+    },
+    "refund.py": {
+      "base64": "ZGVmIHJlZnVuZChhbW91bnQpOgogICAgcmV0dXJuIGFtb3VudAo=",
+      "bytes": 38,
+      "sha256": "20c438014b18a3a71a69bfe008c568647968fb50c3a348a25b15d801c2accd92"
+    }
+  },
+  "unexpanded": [],
+  "unknown_nodes": [],
+  "visited": []
+}

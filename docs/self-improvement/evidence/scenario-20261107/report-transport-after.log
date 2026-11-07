@@ -1,0 +1,125 @@
+..............................F.F.......F........ [ 54%]
+.........................................               [100%]
+=================================== FAILURES ===================================
+_ TenantGatewayTest.test_all_project_boards_filter_real_worker_data_and_reject_revoked_context _
+
+self = <test_tenant_gateway.TenantGatewayTest testMethod=test_all_project_boards_filter_real_worker_data_and_reject_revoked_context>
+
+    def test_all_project_boards_filter_real_worker_data_and_reject_revoked_context(self):
+        root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (self.a,))["path"])
+        store = Store(root / "platform.db")
+        try:
+            store.create_ticket(2, "不可见项目的私密工单", author="owner")
+        finally:
+            store.db.close()
+        token = self.token("alice", self.a)
+        base = "/t/" + self.a + "/api/projects/"
+>       status, _, board = self.request("GET", base + "*/loop", "alice", token=token, headers={"X-TMH-User": "owner"})
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_tenant_gateway.py:216: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_tenant_gateway.py:85: in request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py:1459: in getresponse
+    response.begin()
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py:336: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py:297: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.SocketIO object at 0x10bbf1480>, b = <memory at 0x10bf27c40>
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+>           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py:729: TimeoutError
+____ TenantGatewayTest.test_context_is_bound_to_url_user_and_live_revision _____
+
+self = <test_tenant_gateway.TenantGatewayTest testMethod=test_context_is_bound_to_url_user_and_live_revision>
+
+    def test_context_is_bound_to_url_user_and_live_revision(self):
+        alice = self.token("alice", self.a)
+        owner = self.token("owner", self.a)
+        path = "/t/" + self.a + "/api/projects"
+>       self.assertEqual(self.request("GET", path, "alice")[0], 409)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_tenant_gateway.py:248: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_tenant_gateway.py:85: in request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py:1459: in getresponse
+    response.begin()
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py:336: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/client.py:297: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <socket.SocketIO object at 0x10bbf0ee0>, b = <memory at 0x10bd5a140>
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        try:
+>           return self._sock.recv_into(b)
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+E           TimeoutError: timed out
+
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py:729: TimeoutError
+____ TenantGatewayTest.test_large_authenticated_json_is_lossless_and_opt_in ____
+
+self = <test_tenant_gateway.TenantGatewayTest testMethod=test_large_authenticated_json_is_lossless_and_opt_in>
+
+    def test_large_authenticated_json_is_lossless_and_opt_in(self):
+        import gzip
+        root=Path(self.reg.one('SELECT path FROM tenants WHERE id=?',(self.a,))['path'])
+        store=Store(root/'platform.db')
+        original='完整历史结果，不裁剪。'*20000
+        store.update_ticket(1,'owner',body=original);store.db.close()
+        path='/t/'+self.a+'/api/tickets/SAME-1'
+        plain=self.request('GET',path,'alice')[2]
+        conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=15)
+        try:
+            conn.request('GET',path,headers={'Cookie':self.cookies['alice'],'Accept-Encoding':'gzip'})
+            response=conn.getresponse();encoded=response.read()
+>           self.assertEqual(response.status,200)
+E           AssertionError: 409 != 200
+
+tests/test_tenant_gateway.py:110: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_tenant_gateway.py::TenantGatewayTest::test_all_project_boards_filter_real_worker_data_and_reject_revoked_context
+FAILED tests/test_tenant_gateway.py::TenantGatewayTest::test_context_is_bound_to_url_user_and_live_revision
+FAILED tests/test_tenant_gateway.py::TenantGatewayTest::test_large_authenticated_json_is_lossless_and_opt_in
+3 failed, 87 passed, 112 subtests passed in 170.60s (0:02:50)

@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "label": "test43-backup-activate-health",
+  "actor": "Codex",
+  "actor_type": "agent",
+  "identity_verified": false,
+  "method": "terminal_command",
+  "started_at": "2026-11-06T20:06:15.725832+00:00",
+  "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness",
+  "command": [
+    "python3",
+    "/private/tmp/knowledge_release.py"
+  ],
+  "state": "completed",
+  "acceptance": false,
+  "exit_code": 0,
+  "ended_at": "2026-11-06T20:08:01.700780+00:00",
+  "artifacts": {
+    "stdout.bin": {
+      "bytes": 603,
+      "sha256": "1e289d90db9956d832c114f2d785e7ef5add282c73fbe5ec9dfb38961f969bc3"
+    },
+    "stderr.bin": {
+      "bytes": 90,
+      "sha256": "ac1c1c1c4e4e33a0f5562bf27070fe313b9ad852f0fce3c18224b43aa2982c44"
+    }
+  }
+}

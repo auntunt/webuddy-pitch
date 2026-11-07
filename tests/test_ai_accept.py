@@ -65,7 +65,8 @@ class AiAcceptFlowTest(unittest.TestCase):
         flow.autoflow.return_value = {"ai_accept": ["JB"]}
         flow.held.return_value = False
         self.P = mock.MagicMock(store=store, flow=flow, data_dir=self.data)
-        self.pack = {"packed": True, "intact": True, "snapshot": {"ac": ACS, "change": {"run": 7}}}
+        self.pack = {"packed": True, "intact": True, "snapshot": {"ac": ACS, "change": {"run": 7}},
+                     "criterion_evidence": {a["id"]: {"id": a["id"], "result": "pass", "how": "实测 " + a["id"]} for a in ACS}}
 
     def run_it(self):
         from tmh.platform import signoff
@@ -80,10 +81,19 @@ class AiAcceptFlowTest(unittest.TestCase):
         self.assertEqual(self.ticket["status"], "closed")
         args, kw = rec.call_args
         self.assertEqual((args[2], args[3], kw["via"]), ("AI 验收", True, "AI 验收"))
-        self.assertEqual(kw["basis"]["ac"], {"A1": "a.vue:10", "A2": "a.vue:20"})
+        self.assertEqual(kw["basis"]["ac"], {"A1": "实测 A1", "A2": "实测 A2"})
         self.P.flow.accepted.assert_called_once()
         kinds = [c.args[2] for c in self.P.store.event.call_args_list]
         self.assertEqual(kinds, ["accept"])
+
+    def test_suite_and_diagnosis_without_item_evidence_do_not_auto_accept(self):
+        self.pack["criterion_evidence"] = {}
+        self.pack["snapshot"]["gates"] = [{"id": "test", "state": "pass"}]
+        out, rec = self.run_it()
+        self.assertFalse(out["accepted"])
+        self.assertIn("逐项实测依据", out["why"])
+        rec.assert_not_called()
+        self.assertEqual(self.ticket["status"], "verify")
 
     def test_a_page_only_change_needs_page_checks_to_be_signed(self):
         page = "diff --git a/src/main/resources/templates/v.html b/src/main/resources/templates/v.html\n+x\n"
@@ -103,6 +113,7 @@ class AiAcceptFlowTest(unittest.TestCase):
     def real(self, result, ac, why=""):
         from tmh.platform import browser_verify
         items = [{"id": k, "result": v, "how": "实测 " + k, "shots": {}} for k, v in ac.items()]
+        self.pack["criterion_evidence"] = {i["id"]: i for i in items}
         return mock.patch.object(browser_verify, "conf", return_value={"ssh": "u@h", "app": "web"}), \
             mock.patch.object(browser_verify, "verify", return_value={"result": result, "why": why, "ac": items})
 
@@ -125,7 +136,7 @@ class AiAcceptFlowTest(unittest.TestCase):
         self.assertEqual(ai_accept.committed({"adopted": {"branch": "tmh/JB-1-r70", "commit": "x"}}, 7), "")
         self.assertEqual(ai_accept.committed({"change": {"commit": "f" * 40}, "adopted": {"branch": "tmh/JB-1-r7", "commit": "x"}}, 7), "f" * 40)
 
-    def test_what_must_keep_working_is_proven_by_the_tests_or_else_on_the_page(self):
+    def test_keep_criteria_need_their_own_page_evidence_even_when_suite_passes(self):
         keep = {"id": "A3", "text": "必须保持：其他环节和其他用户的现有行为不变", "keep": True}
         self.pack["snapshot"]["ac"] = ACS + [keep]
         self.pack["missing"] = ["验证门全部通过（没有没过或未知的）", "乙方复核人"]
@@ -153,11 +164,10 @@ class AiAcceptFlowTest(unittest.TestCase):
         a, b = self.real("pass", {"A1": "pass", "A2": "pass"})
         with a, b as v:
             out, rec = self.run_it()
-        self.assertEqual([x["id"] for x in v.call_args.args[4]], ["A1", "A2"])
-        self.assertEqual(rec.call_args.kwargs["basis"]["ac"]["A3"], ai_accept.KEPT)
-        note = rec.call_args.args[4]
-        self.assertIn("构建测试通过", note)
-        self.assertIn("在页面上逐条实测 2 条验收标准（A1、A2）都做到了；必须保持项 A3 由自动测试证明", note)
+        self.assertEqual([x["id"] for x in v.call_args.args[4]], ["A1", "A2", "A3"])
+        self.assertFalse(out["accepted"])
+        rec.assert_not_called()
+        self.assertIn("A3 未验证", out["why"])
         self.setUp()
         self.pack["snapshot"]["ac"] = ACS + [keep]
         self.pack["snapshot"]["gates"] = [{"id": "test", "state": "pass"}]
@@ -173,8 +183,9 @@ class AiAcceptFlowTest(unittest.TestCase):
         with a, b as v:
             out, rec = self.run_it()
         self.assertFalse(out["accepted"])
-        v.assert_not_called()
-        self.assertIn("没有要在页面上实测的验收标准", out["why"])
+        v.assert_called_once()
+        self.assertEqual(v.call_args.args[4], [keep])
+        self.assertIn("A3 未验证", out["why"])
 
     def test_with_a_verification_host_a_reproduced_failure_or_anything_unproven_leaves_it_for_people(self):
         for result, ac, why, want in (("fail", {"A1": "pass", "A2": "fail"}, "", "复现了问题（A2）"),
@@ -286,7 +297,7 @@ class ShadowAcceptTest(unittest.TestCase):
         self.assertEqual(self.ticket["status"], "verify")
         [sh] = self.shadow()
         self.assertTrue(sh["would_accept"])
-        self.assertEqual(sh["basis"]["ac"], {"A1": "a.vue:10", "A2": "a.vue:20"})
+        self.assertEqual(sh["basis"]["ac"], {"A1": "实测 A1", "A2": "实测 A2"})
 
     def test_short_evidence_says_why_it_would_not(self):
         a, b = self.real("fail", {"A1": "fail", "A2": "pass"})

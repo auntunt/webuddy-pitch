@@ -1,0 +1,564 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 9 items
+
+tests/test_project_bootstrap.py::BootstrapTest::test_delivery_prompt_preserves_full_acceptance_and_scopes_new_product_rules PASSED [ 11%]
+tests/test_project_bootstrap.py::BootstrapTest::test_delivery_runner_sends_current_request_instead_of_short_session_followup PASSED [ 22%]
+tests/test_project_bootstrap.py::BootstrapTest::test_input_cannot_escape_owned_directory 
+tests/test_project_bootstrap.py::BootstrapTest::test_input_cannot_escape_owned_directory PASSED [ 33%]
+tests/test_project_bootstrap.py::BootstrapTest::test_preview_configuration_failure_preserves_created_project_and_receipt FAILED [ 44%]
+tests/test_project_bootstrap.py::BootstrapTest::test_runnable_project_has_tests_git_baseline_and_preview FAILED [ 55%]
+tests/test_project_bootstrap.py::BootstrapTest::test_unwritable_receipt_does_not_hide_registered_project FAILED [ 66%]
+tests/test_project_bootstrap.py::DeliveryExecutionPromptTest::test_fix_uses_reviewed_plan_binding_even_when_a_newer_plan_exists PASSED [ 77%]
+tests/test_project_bootstrap.py::DeliveryExecutionPromptTest::test_per_file_work_keeps_stage_request_and_only_its_own_file_instruction PASSED [ 88%]
+tests/test_project_bootstrap.py::DeliveryExecutionPromptTest::test_whole_and_retry_keep_current_packet_and_failure_evidence PASSED [100%]
+
+================================== FAILURES ===================================
+_ BootstrapTest.test_preview_configuration_failure_preserves_created_project_and_receipt _
+
+P = namespace(data_dir=WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmp0drc3z7r'), store=<tmh.platform.store.Store object at 0x000001F7BCE58FC0>, project=<function BootstrapTest.setUp.<locals>.<lambda> at 0x000001F7BCE45D00>)
+body = {'key': 'RECOVER', 'name': '可恢复项目'}, by = 'Li'
+
+    def create(P, body: dict, by: str) -> dict:
+        if not isinstance(body, dict):
+            raise ApiError(400, "项目内容必须是对象")
+        key = str(body.get("key") or "").strip().upper()
+        name = str(body.get("name") or "").strip()
+        brief = str(body.get("brief") or "").strip()
+        if not re.fullmatch(r"[A-Z][A-Z0-9]{0,9}", key):
+            raise ApiError(400, "项目代号需为字母开头的 1–10 位字母数字")
+        if not name or len(name) > 120 or len(brief) > 20000:
+            raise ApiError(400, "填写项目名称（最多 120 字），目标最多 20000 字")
+        if body.get("template", "web") != "web":
+            raise ApiError(400, "目前支持轻量 Web 应用起点，其他技术栈请接入已有仓库")
+        # The path is wholly server-owned. Never accept a request-supplied shell command or destination.
+        with _LOCK:
+            parent = P.data_dir / "projects"
+            if parent.is_symlink():
+                raise ApiError(409, "项目目录不能是符号链接")
+            root = parent / key
+            if P.store.project(key) or root.exists() or root.is_symlink():
+                raise ApiError(409, "项目代号或目录已存在，请选一个新代号；原内容没有被覆盖")
+            root.mkdir(parents=True)
+            (root / "tests").mkdir()
+            (root / "app.py").write_text(APP, encoding="utf-8")
+            (root / "tests" / "test_app.py").write_text(TESTS, encoding="utf-8")
+            (root / "project.json").write_text(json.dumps({"name": name, "brief": brief}, ensure_ascii=False, indent=2), encoding="utf-8")
+            (root / ".gitignore").write_text("__pycache__/\n*.pyc\n*.db\n.env\n.venv/\n", encoding="utf-8")
+            (root / "README.md").write_text("# %s\n\n%s\n\n## 运行\n\n`python3 app.py 8000`\n\n## 测试\n\n`python3 -m unittest discover -s tests -v`\n\n这是可运行的开发起点，具体业务目标仍需实现并验收。\n" % (name, brief), encoding="utf-8")
+            cfg = config.load(root)
+            py = shlex.quote(sys.executable)
+            cfg["project"] = {"name": name, "description": brief}
+            cfg["commands"].update(build=py + " -m py_compile app.py", test=py + " -m unittest discover -s tests -v")
+            config.save(root, cfg)
+            checks = {}
+            try:
+                for label, argv in (("build", [sys.executable, "-m", "py_compile", "app.py"]),
+                                    ("test", [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"])):
+                    r = subprocess.run(argv, cwd=root, capture_output=True, text=True, timeout=30)
+                    checks[label] = {"exit_code": r.returncode, "output": r.stdout + r.stderr, "command": argv}
+                    if r.returncode:
+>                       raise RuntimeError("%s 检查失败" % label)
+E                       RuntimeError: test 检查失败
+
+tmh\platform\project_bootstrap.py:1033: RuntimeError
+
+The above exception was the direct cause of the following exception:
+
+self = <unittest.case._Outcome object at 0x000001F7BCE58B00>
+test_case = <test_project_bootstrap.BootstrapTest testMethod=test_preview_configuration_failure_preserves_created_project_and_receipt>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_bootstrap.BootstrapTest testMethod=test_preview_configuration_failure_preserves_created_project_and_receipt>
+result = <TestCaseFunction test_preview_configuration_failure_preserves_created_project_and_receipt>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_bootstrap.BootstrapTest testMethod=test_preview_configuration_failure_preserves_created_project_and_receipt>
+method = <bound method BootstrapTest.test_preview_configuration_failure_preserves_created_project_and_receipt of <test_project_bootstrap.BootstrapTest testMethod=test_preview_configuration_failure_preserves_created_project_and_receipt>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_bootstrap.BootstrapTest testMethod=test_preview_configuration_failure_preserves_created_project_and_receipt>
+
+    def test_preview_configuration_failure_preserves_created_project_and_receipt(self):
+        broken = self.P.data_dir / "previews.json"
+        broken.write_text("{invalid json", encoding="utf-8")
+>       result = project_bootstrap.create(self.P, {"key": "RECOVER", "name": "可恢复项目"}, "Li")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_bootstrap.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(data_dir=WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmp0drc3z7r'), store=<tmh.platform.store.Store object at 0x000001F7BCE58FC0>, project=<function BootstrapTest.setUp.<locals>.<lambda> at 0x000001F7BCE45D00>)
+body = {'key': 'RECOVER', 'name': '可恢复项目'}, by = 'Li'
+
+    def create(P, body: dict, by: str) -> dict:
+        if not isinstance(body, dict):
+            raise ApiError(400, "项目内容必须是对象")
+        key = str(body.get("key") or "").strip().upper()
+        name = str(body.get("name") or "").strip()
+        brief = str(body.get("brief") or "").strip()
+        if not re.fullmatch(r"[A-Z][A-Z0-9]{0,9}", key):
+            raise ApiError(400, "项目代号需为字母开头的 1–10 位字母数字")
+        if not name or len(name) > 120 or len(brief) > 20000:
+            raise ApiError(400, "填写项目名称（最多 120 字），目标最多 20000 字")
+        if body.get("template", "web") != "web":
+            raise ApiError(400, "目前支持轻量 Web 应用起点，其他技术栈请接入已有仓库")
+        # The path is wholly server-owned. Never accept a request-supplied shell command or destination.
+        with _LOCK:
+            parent = P.data_dir / "projects"
+            if parent.is_symlink():
+                raise ApiError(409, "项目目录不能是符号链接")
+            root = parent / key
+            if P.store.project(key) or root.exists() or root.is_symlink():
+                raise ApiError(409, "项目代号或目录已存在，请选一个新代号；原内容没有被覆盖")
+            root.mkdir(parents=True)
+            (root / "tests").mkdir()
+            (root / "app.py").write_text(APP, encoding="utf-8")
+            (root / "tests" / "test_app.py").write_text(TESTS, encoding="utf-8")
+            (root / "project.json").write_text(json.dumps({"name": name, "brief": brief}, ensure_ascii=False, indent=2), encoding="utf-8")
+            (root / ".gitignore").write_text("__pycache__/\n*.pyc\n*.db\n.env\n.venv/\n", encoding="utf-8")
+            (root / "README.md").write_text("# %s\n\n%s\n\n## 运行\n\n`python3 app.py 8000`\n\n## 测试\n\n`python3 -m unittest discover -s tests -v`\n\n这是可运行的开发起点，具体业务目标仍需实现并验收。\n" % (name, brief), encoding="utf-8")
+            cfg = config.load(root)
+            py = shlex.quote(sys.executable)
+            cfg["project"] = {"name": name, "description": brief}
+            cfg["commands"].update(build=py + " -m py_compile app.py", test=py + " -m unittest discover -s tests -v")
+            config.save(root, cfg)
+            checks = {}
+            try:
+                for label, argv in (("build", [sys.executable, "-m", "py_compile", "app.py"]),
+                                    ("test", [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"])):
+                    r = subprocess.run(argv, cwd=root, capture_output=True, text=True, timeout=30)
+                    checks[label] = {"exit_code": r.returncode, "output": r.stdout + r.stderr, "command": argv}
+                    if r.returncode:
+                        raise RuntimeError("%s 检查失败" % label)
+                for args in (("init", "-b", "main"), ("add", "."),
+                             ("-c", "user.name=Webuddy", "-c", "user.email=webuddy@localhost", "commit", "-m", "Create runnable web foundation")):
+                    subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=True, timeout=15)
+                commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True).stdout.strip()
+            except (OSError, subprocess.SubprocessError, RuntimeError) as e:
+                (root / "bootstrap-diagnostic.json").write_text(json.dumps({"error": str(e), "checks": checks}, ensure_ascii=False, indent=2), encoding="utf-8")
+>               raise ApiError(500, "创建检查未完成，已保留目录和诊断：%s" % root) from e
+E               tmh.platform.errors.ApiError: 创建检查未完成，已保留目录和诊断：C:\Users\RUNNER~1\AppData\Local\Temp\tmp0drc3z7r\projects\RECOVER
+
+tmh\platform\project_bootstrap.py:1040: ApiError
+___ BootstrapTest.test_runnable_project_has_tests_git_baseline_and_preview ____
+
+P = namespace(data_dir=WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmpsc8m4c5o'), store=<tmh.platform.store.Store object at 0x000001F7BCE595B0>, project=<function BootstrapTest.setUp.<locals>.<lambda> at 0x000001F7BCE72660>)
+body = {'key': 'DEMO', 'name': '发布工作台', 'brief': '保留所有需求'}, by = 'Li'
+
+    def create(P, body: dict, by: str) -> dict:
+        if not isinstance(body, dict):
+            raise ApiError(400, "项目内容必须是对象")
+        key = str(body.get("key") or "").strip().upper()
+        name = str(body.get("name") or "").strip()
+        brief = str(body.get("brief") or "").strip()
+        if not re.fullmatch(r"[A-Z][A-Z0-9]{0,9}", key):
+            raise ApiError(400, "项目代号需为字母开头的 1–10 位字母数字")
+        if not name or len(name) > 120 or len(brief) > 20000:
+            raise ApiError(400, "填写项目名称（最多 120 字），目标最多 20000 字")
+        if body.get("template", "web") != "web":
+            raise ApiError(400, "目前支持轻量 Web 应用起点，其他技术栈请接入已有仓库")
+        # The path is wholly server-owned. Never accept a request-supplied shell command or destination.
+        with _LOCK:
+            parent = P.data_dir / "projects"
+            if parent.is_symlink():
+                raise ApiError(409, "项目目录不能是符号链接")
+            root = parent / key
+            if P.store.project(key) or root.exists() or root.is_symlink():
+                raise ApiError(409, "项目代号或目录已存在，请选一个新代号；原内容没有被覆盖")
+            root.mkdir(parents=True)
+            (root / "tests").mkdir()
+            (root / "app.py").write_text(APP, encoding="utf-8")
+            (root / "tests" / "test_app.py").write_text(TESTS, encoding="utf-8")
+            (root / "project.json").write_text(json.dumps({"name": name, "brief": brief}, ensure_ascii=False, indent=2), encoding="utf-8")
+            (root / ".gitignore").write_text("__pycache__/\n*.pyc\n*.db\n.env\n.venv/\n", encoding="utf-8")
+            (root / "README.md").write_text("# %s\n\n%s\n\n## 运行\n\n`python3 app.py 8000`\n\n## 测试\n\n`python3 -m unittest discover -s tests -v`\n\n这是可运行的开发起点，具体业务目标仍需实现并验收。\n" % (name, brief), encoding="utf-8")
+            cfg = config.load(root)
+            py = shlex.quote(sys.executable)
+            cfg["project"] = {"name": name, "description": brief}
+            cfg["commands"].update(build=py + " -m py_compile app.py", test=py + " -m unittest discover -s tests -v")
+            config.save(root, cfg)
+            checks = {}
+            try:
+                for label, argv in (("build", [sys.executable, "-m", "py_compile", "app.py"]),
+                                    ("test", [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"])):
+                    r = subprocess.run(argv, cwd=root, capture_output=True, text=True, timeout=30)
+                    checks[label] = {"exit_code": r.returncode, "output": r.stdout + r.stderr, "command": argv}
+                    if r.returncode:
+>                       raise RuntimeError("%s 检查失败" % label)
+E                       RuntimeError: test 检查失败
+
+tmh\platform\project_bootstrap.py:1033: RuntimeError
+
+The above exception was the direct cause of the following exception:
+
+self = <unittest.case._Outcome object at 0x000001F7BCE590F0>
+test_case = <test_project_bootstrap.BootstrapTest testMethod=test_runnable_project_has_tests_git_baseline_and_preview>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_bootstrap.BootstrapTest testMethod=test_runnable_project_has_tests_git_baseline_and_preview>
+result = <TestCaseFunction test_runnable_project_has_tests_git_baseline_and_preview>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_bootstrap.BootstrapTest testMethod=test_runnable_project_has_tests_git_baseline_and_preview>
+method = <bound method BootstrapTest.test_runnable_project_has_tests_git_baseline_and_preview of <test_project_bootstrap.BootstrapTest testMethod=test_runnable_project_has_tests_git_baseline_and_preview>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_bootstrap.BootstrapTest testMethod=test_runnable_project_has_tests_git_baseline_and_preview>
+
+    def test_runnable_project_has_tests_git_baseline_and_preview(self):
+>       result = project_bootstrap.create(self.P, {"key": "DEMO", "name": "发布工作台", "brief": "保留所有需求"}, "Li")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_bootstrap.py:28: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(data_dir=WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmpsc8m4c5o'), store=<tmh.platform.store.Store object at 0x000001F7BCE595B0>, project=<function BootstrapTest.setUp.<locals>.<lambda> at 0x000001F7BCE72660>)
+body = {'key': 'DEMO', 'name': '发布工作台', 'brief': '保留所有需求'}, by = 'Li'
+
+    def create(P, body: dict, by: str) -> dict:
+        if not isinstance(body, dict):
+            raise ApiError(400, "项目内容必须是对象")
+        key = str(body.get("key") or "").strip().upper()
+        name = str(body.get("name") or "").strip()
+        brief = str(body.get("brief") or "").strip()
+        if not re.fullmatch(r"[A-Z][A-Z0-9]{0,9}", key):
+            raise ApiError(400, "项目代号需为字母开头的 1–10 位字母数字")
+        if not name or len(name) > 120 or len(brief) > 20000:
+            raise ApiError(400, "填写项目名称（最多 120 字），目标最多 20000 字")
+        if body.get("template", "web") != "web":
+            raise ApiError(400, "目前支持轻量 Web 应用起点，其他技术栈请接入已有仓库")
+        # The path is wholly server-owned. Never accept a request-supplied shell command or destination.
+        with _LOCK:
+            parent = P.data_dir / "projects"
+            if parent.is_symlink():
+                raise ApiError(409, "项目目录不能是符号链接")
+            root = parent / key
+            if P.store.project(key) or root.exists() or root.is_symlink():
+                raise ApiError(409, "项目代号或目录已存在，请选一个新代号；原内容没有被覆盖")
+            root.mkdir(parents=True)
+            (root / "tests").mkdir()
+            (root / "app.py").write_text(APP, encoding="utf-8")
+            (root / "tests" / "test_app.py").write_text(TESTS, encoding="utf-8")
+            (root / "project.json").write_text(json.dumps({"name": name, "brief": brief}, ensure_ascii=False, indent=2), encoding="utf-8")
+            (root / ".gitignore").write_text("__pycache__/\n*.pyc\n*.db\n.env\n.venv/\n", encoding="utf-8")
+            (root / "README.md").write_text("# %s\n\n%s\n\n## 运行\n\n`python3 app.py 8000`\n\n## 测试\n\n`python3 -m unittest discover -s tests -v`\n\n这是可运行的开发起点，具体业务目标仍需实现并验收。\n" % (name, brief), encoding="utf-8")
+            cfg = config.load(root)
+            py = shlex.quote(sys.executable)
+            cfg["project"] = {"name": name, "description": brief}
+            cfg["commands"].update(build=py + " -m py_compile app.py", test=py + " -m unittest discover -s tests -v")
+            config.save(root, cfg)
+            checks = {}
+            try:
+                for label, argv in (("build", [sys.executable, "-m", "py_compile", "app.py"]),
+                                    ("test", [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"])):
+                    r = subprocess.run(argv, cwd=root, capture_output=True, text=True, timeout=30)
+                    checks[label] = {"exit_code": r.returncode, "output": r.stdout + r.stderr, "command": argv}
+                    if r.returncode:
+                        raise RuntimeError("%s 检查失败" % label)
+                for args in (("init", "-b", "main"), ("add", "."),
+                             ("-c", "user.name=Webuddy", "-c", "user.email=webuddy@localhost", "commit", "-m", "Create runnable web foundation")):
+                    subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=True, timeout=15)
+                commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True).stdout.strip()
+            except (OSError, subprocess.SubprocessError, RuntimeError) as e:
+                (root / "bootstrap-diagnostic.json").write_text(json.dumps({"error": str(e), "checks": checks}, ensure_ascii=False, indent=2), encoding="utf-8")
+>               raise ApiError(500, "创建检查未完成，已保留目录和诊断：%s" % root) from e
+E               tmh.platform.errors.ApiError: 创建检查未完成，已保留目录和诊断：C:\Users\RUNNER~1\AppData\Local\Temp\tmpsc8m4c5o\projects\DEMO
+
+tmh\platform\project_bootstrap.py:1040: ApiError
+___ BootstrapTest.test_unwritable_receipt_does_not_hide_registered_project ____
+
+P = namespace(data_dir=WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmp2_du42t7'), store=<tmh.platform.store.Store object at 0x000001F7BCAE70B0>, project=<function BootstrapTest.setUp.<locals>.<lambda> at 0x000001F7BCC27D80>)
+body = {'key': 'RECEIPT', 'name': '回执恢复'}, by = 'Li'
+
+    def create(P, body: dict, by: str) -> dict:
+        if not isinstance(body, dict):
+            raise ApiError(400, "项目内容必须是对象")
+        key = str(body.get("key") or "").strip().upper()
+        name = str(body.get("name") or "").strip()
+        brief = str(body.get("brief") or "").strip()
+        if not re.fullmatch(r"[A-Z][A-Z0-9]{0,9}", key):
+            raise ApiError(400, "项目代号需为字母开头的 1–10 位字母数字")
+        if not name or len(name) > 120 or len(brief) > 20000:
+            raise ApiError(400, "填写项目名称（最多 120 字），目标最多 20000 字")
+        if body.get("template", "web") != "web":
+            raise ApiError(400, "目前支持轻量 Web 应用起点，其他技术栈请接入已有仓库")
+        # The path is wholly server-owned. Never accept a request-supplied shell command or destination.
+        with _LOCK:
+            parent = P.data_dir / "projects"
+            if parent.is_symlink():
+                raise ApiError(409, "项目目录不能是符号链接")
+            root = parent / key
+            if P.store.project(key) or root.exists() or root.is_symlink():
+                raise ApiError(409, "项目代号或目录已存在，请选一个新代号；原内容没有被覆盖")
+            root.mkdir(parents=True)
+            (root / "tests").mkdir()
+            (root / "app.py").write_text(APP, encoding="utf-8")
+            (root / "tests" / "test_app.py").write_text(TESTS, encoding="utf-8")
+            (root / "project.json").write_text(json.dumps({"name": name, "brief": brief}, ensure_ascii=False, indent=2), encoding="utf-8")
+            (root / ".gitignore").write_text("__pycache__/\n*.pyc\n*.db\n.env\n.venv/\n", encoding="utf-8")
+            (root / "README.md").write_text("# %s\n\n%s\n\n## 运行\n\n`python3 app.py 8000`\n\n## 测试\n\n`python3 -m unittest discover -s tests -v`\n\n这是可运行的开发起点，具体业务目标仍需实现并验收。\n" % (name, brief), encoding="utf-8")
+            cfg = config.load(root)
+            py = shlex.quote(sys.executable)
+            cfg["project"] = {"name": name, "description": brief}
+            cfg["commands"].update(build=py + " -m py_compile app.py", test=py + " -m unittest discover -s tests -v")
+            config.save(root, cfg)
+            checks = {}
+            try:
+                for label, argv in (("build", [sys.executable, "-m", "py_compile", "app.py"]),
+                                    ("test", [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"])):
+                    r = subprocess.run(argv, cwd=root, capture_output=True, text=True, timeout=30)
+                    checks[label] = {"exit_code": r.returncode, "output": r.stdout + r.stderr, "command": argv}
+                    if r.returncode:
+>                       raise RuntimeError("%s 检查失败" % label)
+E                       RuntimeError: test 检查失败
+
+tmh\platform\project_bootstrap.py:1033: RuntimeError
+
+The above exception was the direct cause of the following exception:
+
+self = <unittest.case._Outcome object at 0x000001F7BCAE72F0>
+test_case = <test_project_bootstrap.BootstrapTest testMethod=test_unwritable_receipt_does_not_hide_registered_project>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_bootstrap.BootstrapTest testMethod=test_unwritable_receipt_does_not_hide_registered_project>
+result = <TestCaseFunction test_unwritable_receipt_does_not_hide_registered_project>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_bootstrap.BootstrapTest testMethod=test_unwritable_receipt_does_not_hide_registered_project>
+method = <bound method BootstrapTest.test_unwritable_receipt_does_not_hide_registered_project of <test_project_bootstrap.BootstrapTest testMethod=test_unwritable_receipt_does_not_hide_registered_project>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_bootstrap.BootstrapTest testMethod=test_unwritable_receipt_does_not_hide_registered_project>
+
+    def test_unwritable_receipt_does_not_hide_registered_project(self):
+        (self.P.data_dir / "project-bootstrap").write_text("existing file", encoding="utf-8")
+>       result = project_bootstrap.create(self.P, {"key": "RECEIPT", "name": "回执恢复"}, "Li")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_bootstrap.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(data_dir=WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmp2_du42t7'), store=<tmh.platform.store.Store object at 0x000001F7BCAE70B0>, project=<function BootstrapTest.setUp.<locals>.<lambda> at 0x000001F7BCC27D80>)
+body = {'key': 'RECEIPT', 'name': '回执恢复'}, by = 'Li'
+
+    def create(P, body: dict, by: str) -> dict:
+        if not isinstance(body, dict):
+            raise ApiError(400, "项目内容必须是对象")
+        key = str(body.get("key") or "").strip().upper()
+        name = str(body.get("name") or "").strip()
+        brief = str(body.get("brief") or "").strip()
+        if not re.fullmatch(r"[A-Z][A-Z0-9]{0,9}", key):
+            raise ApiError(400, "项目代号需为字母开头的 1–10 位字母数字")
+        if not name or len(name) > 120 or len(brief) > 20000:
+            raise ApiError(400, "填写项目名称（最多 120 字），目标最多 20000 字")
+        if body.get("template", "web") != "web":
+            raise ApiError(400, "目前支持轻量 Web 应用起点，其他技术栈请接入已有仓库")
+        # The path is wholly server-owned. Never accept a request-supplied shell command or destination.
+        with _LOCK:
+            parent = P.data_dir / "projects"
+            if parent.is_symlink():
+                raise ApiError(409, "项目目录不能是符号链接")
+            root = parent / key
+            if P.store.project(key) or root.exists() or root.is_symlink():
+                raise ApiError(409, "项目代号或目录已存在，请选一个新代号；原内容没有被覆盖")
+            root.mkdir(parents=True)
+            (root / "tests").mkdir()
+            (root / "app.py").write_text(APP, encoding="utf-8")
+            (root / "tests" / "test_app.py").write_text(TESTS, encoding="utf-8")
+            (root / "project.json").write_text(json.dumps({"name": name, "brief": brief}, ensure_ascii=False, indent=2), encoding="utf-8")
+            (root / ".gitignore").write_text("__pycache__/\n*.pyc\n*.db\n.env\n.venv/\n", encoding="utf-8")
+            (root / "README.md").write_text("# %s\n\n%s\n\n## 运行\n\n`python3 app.py 8000`\n\n## 测试\n\n`python3 -m unittest discover -s tests -v`\n\n这是可运行的开发起点，具体业务目标仍需实现并验收。\n" % (name, brief), encoding="utf-8")
+            cfg = config.load(root)
+            py = shlex.quote(sys.executable)
+            cfg["project"] = {"name": name, "description": brief}
+            cfg["commands"].update(build=py + " -m py_compile app.py", test=py + " -m unittest discover -s tests -v")
+            config.save(root, cfg)
+            checks = {}
+            try:
+                for label, argv in (("build", [sys.executable, "-m", "py_compile", "app.py"]),
+                                    ("test", [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"])):
+                    r = subprocess.run(argv, cwd=root, capture_output=True, text=True, timeout=30)
+                    checks[label] = {"exit_code": r.returncode, "output": r.stdout + r.stderr, "command": argv}
+                    if r.returncode:
+                        raise RuntimeError("%s 检查失败" % label)
+                for args in (("init", "-b", "main"), ("add", "."),
+                             ("-c", "user.name=Webuddy", "-c", "user.email=webuddy@localhost", "commit", "-m", "Create runnable web foundation")):
+                    subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=True, timeout=15)
+                commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True).stdout.strip()
+            except (OSError, subprocess.SubprocessError, RuntimeError) as e:
+                (root / "bootstrap-diagnostic.json").write_text(json.dumps({"error": str(e), "checks": checks}, ensure_ascii=False, indent=2), encoding="utf-8")
+>               raise ApiError(500, "创建检查未完成，已保留目录和诊断：%s" % root) from e
+E               tmh.platform.errors.ApiError: 创建检查未完成，已保留目录和诊断：C:\Users\RUNNER~1\AppData\Local\Temp\tmp2_du42t7\projects\RECEIPT
+
+tmh\platform\project_bootstrap.py:1040: ApiError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_project_bootstrap.xml -
+=============== 3 failed, 6 passed, 5 subtests passed in 21.93s ===============

@@ -145,23 +145,30 @@ def browser_merge(P, cid, user, evidence_hash, request_id, mutation):
     from .recheck_operations import source_guard
     from .store import now
     row=candidates._row(P,cid)
-    ticket=team.require_reviewer(P,row['ticket_id'],user)
+    ticket=team.require_merger(P,row['ticket_id'],user)
     project=P.store.project(ticket['project_id'])
     try:require_development(P.store,project)
     except ValueError as exc:raise ApiError(409,str(exc)) from exc
     authority=capture(P,user,project)
     job=BoundJob(user,project['key'],Path(P.data_dir)/'runs'/str(row['run_id']),authority.image)
     root=Path(project['root']);st=P.store
-    with P.tenant_context.registry.authorization_guard(), candidates.guard(P,ticket['id']), \
+    from .project_ci import guard as ci_guard
+    with P.tenant_context.registry.authorization_guard(), ci_guard(P.data_dir), candidates.guard(P,ticket['id']), \
             source_guard(P.data_dir,row['run_id']), _repository_guard(root), st.lock:
         try:
             st.db.execute('BEGIN IMMEDIATE')
-            team.require_reviewer(P,ticket['id'],user)
+            team.require_merger(P,ticket['id'],user)
             view=candidates.view(P,cid)
             if (not authority.current(job) or not isinstance(evidence_hash,str) or
                     evidence_hash!=view['evidence_hash'] or not view['human_accepted'] or
                     not candidates.browser_review_current(P,cid)):
                 raise ApiError(409,'授权、证据或指定复核人已变化，尚不能合并')
+            from .development import require_confirmed
+            from .project_ci import check, configuration
+            development=require_confirmed(st,ticket)
+            ci=check(P.data_dir,project['key'],row['commit_sha']) if development or configuration(P.data_dir,project['key'])['config'] else None
+            if ci and ci['state']!='pass':
+                raise ApiError(409,'必需CI尚未通过，不能合并')
             main=release.main_branch(root,P.data_dir,project['key'])
             if not main:raise ApiError(409,'请管理员先配置项目主干')
             head=candidates._git(root,'rev-parse','HEAD').strip()
@@ -189,7 +196,7 @@ def browser_merge(P, cid, user, evidence_hash, request_id, mutation):
                     (user,request_id,evidence_hash,main,head,stamp,cid))
             st.db.commit()
             st.db.execute('BEGIN IMMEDIATE')
-            team.require_reviewer(P,ticket['id'],user)
+            team.require_merger(P,ticket['id'],user)
             view=candidates.view(P,cid)
             if (not authority.current(job) or view['evidence_hash']!=evidence_hash or
                     not view['human_accepted'] or not candidates.browser_review_current(P,cid) or
@@ -206,9 +213,9 @@ def browser_merge(P, cid, user, evidence_hash, request_id, mutation):
             st.db.execute("UPDATE candidate_merges SET state='merged',updated=? WHERE candidate_id=?",(now(),cid))
             st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,'candidate_merge',?,?)",
                 (ticket['id'],now(),user,'已合并固定候选到本地主干；尚未推送或部署',
-                 candidates._json({'candidate':cid,'commit':row['commit_sha'],'main':main,'evidence_hash':evidence_hash})))
+                 candidates._json({'candidate':cid,'commit':row['commit_sha'],'main':main,'evidence_hash':evidence_hash,'ci':ci})))
             st.db.commit()
-            return dict(candidates.merge_receipt(P,cid),pushed=False,deployed=False,replayed=bool(recover))
+            return dict(candidates.merge_receipt(P,cid),pushed=False,deployed=False,replayed=bool(recover),ci=ci)
         except BaseException:
             st.db.rollback()
             raise

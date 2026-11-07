@@ -1,0 +1,29 @@
+{
+  "state": "pass",
+  "commit": "4172462acc9fce18f023aa88c0d229b9212ebe8d",
+  "checks": [
+    {
+      "name": "erp-verification",
+      "state": "pass",
+      "runs": [
+        {
+          "id": 8,
+          "status": "completed",
+          "conclusion": "SUCCESS",
+          "commit": "4172462acc9fce18f023aa88c0d229b9212ebe8d",
+          "url": "https://127.0.0.1:18443/job/erp-verification/8/"
+        }
+      ],
+      "message": ""
+    }
+  ],
+  "config": {
+    "provider": "jenkins",
+    "connection": "demo-jenkins",
+    "repository": "demo/erp",
+    "required_checks": [
+      "erp-verification"
+    ]
+  },
+  "revision": "1ad57f17c3650710cfe8f2c978a75c601997b2dab8667966b53bbe44acf769c8"
+}

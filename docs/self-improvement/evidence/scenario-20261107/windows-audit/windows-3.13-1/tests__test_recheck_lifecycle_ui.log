@@ -1,0 +1,23 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 13 items
+
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_blocked_or_unreadable_recheck_prevents_discard_without_posting PASSED [  7%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_blocked_recheck_stops_polling_preserves_full_escaped_receipts_and_disables_actions PASSED [ 15%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_current_failed_commands_are_current_evidence_but_cannot_be_adopted PASSED [ 23%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_explicit_receipt_recovery_posts_once_and_keeps_drafts PASSED [ 30%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_failed_recheck_keeps_original_done_but_invalidates_old_proof_and_adoption PASSED [ 38%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_manual_recheck_creates_new_operation_and_preserves_old_receipts PASSED [ 46%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_missing_cleanup_never_allows_new_recheck_even_when_server_flag_is_true PASSED [ 53%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_operation_free_legacy_state_keeps_existing_actions PASSED [ 61%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_operation_only_transition_refreshes_ticket_summary_without_clearing_drafts PASSED [ 69%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_recheck_read_failure_is_actionable_and_old_view_cannot_override_navigation PASSED [ 76%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_running_recheck_polls_get_only_and_updates_interruption_without_infinite_spinner PASSED [ 84%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_server_invalidated_verification_keeps_full_previous_record_in_history PASSED [ 92%]
+tests/test_recheck_lifecycle_ui.py::RecheckLifecycleUiTest::test_terminal_unowned_blocked_proof_never_spins_or_allows_retry PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_recheck_lifecycle_ui.xml -
+============================= 13 passed in 3.64s ==============================

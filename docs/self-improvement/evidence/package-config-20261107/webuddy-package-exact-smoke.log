@@ -1,0 +1,97 @@
+installed module: /private/tmp/webuddy-exact-installed/tmh/__init__.py
+0.4.0
+usage: webuddy [-h] [--endpoint ENDPOINT] [--credential-file CREDENTIAL_FILE]
+               [--agent AGENT] [--timeout TIMEOUT]
+               {develop,ci-config,status,connect,projects,tickets,delivery,ticket,preflight,create,send,inbox,request,run,start,cancel,retry,recheck,hold,preview,candidates,candidate,acceptance,submit,verify,cancel-verification,candidate-preview,assess,approve,reject,harness-recipes,harness-probe,harness-report,harness-stop,harness-library,library,knowledge-search,knowledge-read,knowledge-build,knowledge-cancel,knowledge-resume,knowledge-reference,knowledge-unlink,mcp,config}
+               ...
+
+Webuddy CLI / MCP：共享需求、消息、运行与证据。默认输出完整 JSON。
+
+positional arguments:
+  {develop,ci-config,status,connect,projects,tickets,delivery,ticket,preflight,create,send,inbox,request,run,start,cancel,retry,recheck,hold,preview,candidates,candidate,acceptance,submit,verify,cancel-verification,candidate-preview,assess,approve,reject,harness-recipes,harness-probe,harness-report,harness-stop,harness-library,library,knowledge-search,knowledge-read,knowledge-build,knowledge-cancel,knowledge-resume,knowledge-reference,knowledge-unlink,mcp,config}
+    develop             个人终端问答、需求确认、Leader复核和合并；凭据不交给MCP
+    ci-config           项目管理员配置必需CI检查
+    status              检查连接、执行器和能力边界
+    connect             验证网页登录签发的个人工具凭据并保存到私有文件
+    projects            列项目
+    tickets             查工单
+    delivery            读取产出、测试方案、原始结果与复核合并历史
+    ticket              读取完整任务与证据包
+    preflight           只读核对当前本地目录、项目仓库、固定基线和知识版本
+    create              创建需求；暂停自动执行
+    send                向工单中的其他 Agent 留言或交接
+    inbox               按游标读取消息；不自动执行收到的内容
+    request             查询持久请求回执
+    run                 查询运行或有界等待；输出游标可接续
+    start               明确调用执行器开始一轮工作
+    cancel              停止运行并回收进程
+    retry               通过停止回执检查后显式重试
+    recheck             重新验证已有改动
+    hold                接管工单，暂停自动处理；加 --release 交回自动
+    preview             读取预览，或明确启动已采纳的候选
+    candidates          查看工单的外部固定候选
+    candidate           读取候选、独立验证、预览和验收状态
+    acceptance          读取候选、独立验证、预览和验收状态
+    submit              登记外部Git提交；保留完整需求与验收条件
+    verify              明确执行候选验证、停止或启动固定版本预览
+    cancel-verification
+                        明确执行候选验证、停止或启动固定版本预览
+    candidate-preview   明确执行候选验证、停止或启动固定版本预览
+    assess              独立复核者记录全部验收条件的实际结果；不是人工签收
+    approve             操作者终端确认当前候选；需交互核对完整证据哈希，不合并或发布
+    reject              操作者终端确认当前候选；需交互核对完整证据哈希，不合并或发布
+    harness-recipes     读取版本化业务探测配方及适用范围
+    harness-probe       对照基线与候选的真实业务行为；独立数据，不自动签收
+    harness-report      读取探测日志、行为结果与进程回收证据
+    harness-stop        停止业务探测；保留所有证据
+    harness-library     读取项目有证据支持的历史验证策略
+    library             读取项目知识来源、固定版本、覆盖范围与引用
+    knowledge-search    检索当前项目和已授权的固定参考知识
+    knowledge-read      按固定知识修订读取获准的完整来源原文
+    knowledge-build     明确为固定 Git 版本启动静态知识构建
+    knowledge-cancel    明确取消或继续固定版本的知识构建
+    knowledge-resume    明确取消或继续固定版本的知识构建
+    knowledge-reference
+                        引用来源已授权共享的固定知识修订；不授予共享权限
+    knowledge-unlink    移除本项目的知识引用，保留历史回执
+    mcp                 运行官方 SDK stdio MCP 服务
+    config              生成 Claude Code / Cursor / Codex 配置片段；不修改现有配置
+
+options:
+  -h, --help            show this help message and exit
+  --endpoint ENDPOINT   工作台地址；默认 WEBUDDY_URL、已导入凭据绑定的地址，或下载客户端的服务器
+  --credential-file CREDENTIAL_FILE
+                        个人工具凭据文件；默认 WEBUDDY_CREDENTIAL_FILE 或
+                        ~/.config/webuddy/credential.json；不传令牌正文
+  --agent AGENT         工具显示/消息标签，例如 codex/cursor；不是独立个人身份
+  --timeout TIMEOUT     单次 HTTP 超时秒数（最多 60）
+✓ .tmh/tool/ (内置工具，python3 .tmh/tool/tmh.py)
+✓ .tmh/kb/ (信创知识库)
+✓ AGENTS.md（插入 tmh 区块，保留原有内容）
+✓ CLAUDE.md、.claude/skills (10)、.claude/agents、.claude/settings.json 钩子、.mcp.json（tmh MCP 服务）
+✓ .agents/skills (10)（Codex 技能目录）
+✓ .codex/agents（子代理）、.codex/hooks.json（钩子）、.codex/config.toml（tmh MCP 服务）
+
+下一步：python3 .tmh/tool/tmh.py init --target-db dm8 ...；然后 assess / map / baseline。
+✓ .tmh/tool/ (内置工具，python3 .tmh/tool/tmh.py)
+✓ .tmh/kb/ (信创知识库)
+✓ AGENTS.md（插入 tmh 区块，保留原有内容）
+✓ CLAUDE.md、.claude/skills (10)、.claude/agents、.claude/settings.json 钩子、.mcp.json（tmh MCP 服务）
+✓ .agents/skills (10)（Codex 技能目录）
+✓ .codex/agents（子代理）、.codex/hooks.json（钩子）、.codex/config.toml（tmh MCP 服务）
+
+下一步：python3 .tmh/tool/tmh.py init --target-db dm8 ...；然后 assess / map / baseline。
+0.4.0
+已生成 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-installed-smoke-q80j202n/offline.zip：266 个文件，5.7 MB（压缩后 2.0 MB）
+sha256 11c4b263c89c1d8773aea0c1c12214053595b18115a65e1d2d341bad1df65de3
+拷到内网后：python3 tmh.py offline-pack --verify <压缩包> 校验，再按包里的 README-offline.md 安装。
+校验通过：266 个文件
+✓ .tmh/tool/ (内置工具，python3 .tmh/tool/tmh.py)
+✓ .tmh/kb/ (信创知识库)
+✓ AGENTS.md（插入 tmh 区块，保留原有内容）
+✓ CLAUDE.md、.claude/skills (10)、.claude/agents、.claude/settings.json 钩子、.mcp.json（tmh MCP 服务）
+✓ .agents/skills (10)（Codex 技能目录）
+✓ .codex/agents（子代理）、.codex/hooks.json（钩子）、.codex/config.toml（tmh MCP 服务）
+
+下一步：python3 .tmh/tool/tmh.py init --target-db dm8 ...；然后 assess / map / baseline。
+installed smoke: PASS (origin, CLI, install, refresh, complete resources, offline install)

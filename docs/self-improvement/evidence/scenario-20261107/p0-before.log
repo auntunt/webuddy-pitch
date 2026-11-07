@@ -1,0 +1,52 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ ToolExecuteGatewayTests.test_reform_preflight_uses_actual_worker_identity_and_connection_scope _
+
+self = <test_tool_execute_gateway.ToolExecuteGatewayTests testMethod=test_reform_preflight_uses_actual_worker_identity_and_connection_scope>
+
+    def test_reform_preflight_uses_actual_worker_identity_and_connection_scope(self):
+        import subprocess
+        import concurrent.futures
+        from tmh.platform import reform
+        project, _, data = self.seed()
+        root = Path(project['root'])
+        subprocess.run(['git','init','-q',str(root)],check=True)
+        subprocess.run(['git','-C',str(root),'-c','user.name=fixture','-c','user.email=fixture@example.invalid',
+                        'commit','-q','--allow-empty','-m','fixed source'],check=True)
+        sha=subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()
+        plan=reform.create(data,'EXEC',{'built':'fixture','domains':[{'id':'sales','title':'Sales'}]},
+            dict(title='Identity',goal='Preserve behavior',source_version=sha,criteria=['Preserved'],target_environment='fixture'), 'owner')
+        resource={'project':'EXEC','plan_id':plan['id']}
+        execute=self.grant('owner',project,'execute')
+        content=self.grant('owner',project,'content')
+        read=self.grant('owner',project,'read')
+        def check(token):
+            status,result=self.call(token,'reform_resume_preview',resource)
+            self.assertEqual(status,200,result)
+            return result
+>       self.assertIn('start',check(execute)['allowed_actions'])
+E       AssertionError: 'start' not found in []
+
+tests/test_tool_execute_gateway.py:116: AssertionError
+__ ReformMCPTest.test_legacy_draft_upgrade_copies_normalized_execution_policy __
+
+self = <test_reform_mcp.ReformMCPTest testMethod=test_legacy_draft_upgrade_copies_normalized_execution_policy>
+
+    async def test_legacy_draft_upgrade_copies_normalized_execution_policy(self):
+        self.atlas['domains'].append({'id':'tax','title':'Tax','tables':1})
+        legacy=reform.create(self.P.data_dir,'EXT',self.atlas,
+            dict(title='Legacy',goal='Two modules',wave=2),'web-fixture')
+        changes=dict(source_version=self.fixture.sha,target_environment='fixture',criteria=['Both modules preserved'])
+        updated=self.web('/api/projects/EXT/reforms/'+legacy['id'],dict(action='update',
+            changes=changes,reason='Complete old contract',expected_revision=legacy['revision'],request_id='upgrade-old'))
+        fresh=reform.create(self.P.data_dir,'EXT',self.atlas,
+            dict(title='Fresh',goal='Two modules',wave=2,**changes),'web-fixture')
+        for field in ('integration_policy','effective_wave','scheduling_reason','base'):
+>           self.assertEqual(updated.get(field),fresh[field],field)
+E           AssertionError: None != 'serial_batches' : integration_policy
+
+tests/test_reform_mcp.py:71: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_tool_execute_gateway.py::ToolExecuteGatewayTests::test_reform_preflight_uses_actual_worker_identity_and_connection_scope
+FAILED tests/test_reform_mcp.py::ReformMCPTest::test_legacy_draft_upgrade_copies_normalized_execution_policy
+2 failed in 1.89s

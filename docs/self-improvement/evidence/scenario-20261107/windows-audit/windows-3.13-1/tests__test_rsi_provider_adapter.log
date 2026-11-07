@@ -1,0 +1,87 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 38 items
+
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_all_phases_share_root_and_terminal_consumption SKIPPED [  2%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_bad_cache_breakdown_is_unknown SKIPPED [  5%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_boolean_usage_is_unknown SKIPPED [  7%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_cache_sum_counts_toward_full_input_cap SKIPPED [ 10%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_cancel_before_intent_never_sends_or_reserves_money SKIPPED [ 13%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_chunked_response_is_complete SKIPPED [ 15%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_concurrent_callers_commit_one_actual_dispatch SKIPPED [ 18%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_corrupt_original_output_replay_never_reports_complete_or_resends SKIPPED [ 21%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_credential_generation_rotation_cancels_unknown SKIPPED [ 23%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_duplicate_json_is_unknown SKIPPED [ 26%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_existing_intent_missing_originals_is_never_backfilled SKIPPED [ 28%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_http_server_failure_holds_full_amount SKIPPED [ 31%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_input_token_and_money_caps_deny_before_network SKIPPED [ 34%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_invalid_utf8_is_unknown_with_original_bytes SKIPPED [ 36%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_json_list_is_unknown_and_holds_full_reservation SKIPPED [ 39%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_late_original_reconciliation_does_not_unblock_or_resend SKIPPED [ 42%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_max_tokens_and_tool_content_are_not_task_success_or_executed SKIPPED [ 44%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_mismatched_actual_model_is_unknown SKIPPED [ 47%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_missing_unapproved_changed_profile_and_material_zero_send SKIPPED [ 50%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_missing_usage_is_unknown SKIPPED [ 52%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_nonfinite_json_is_unknown SKIPPED [ 55%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_original_root_deadline_cannot_be_refreshed SKIPPED [ 57%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_output_cap_is_unknown_and_full_received_bytes_are_preserved SKIPPED [ 60%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_profile_and_credentials_modes_symlinks_and_production_fixture_rejection SKIPPED [ 63%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_profile_revocation_during_request_cancels_unknown SKIPPED [ 65%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_profile_revoke_and_restore_still_invalidates_running_identity SKIPPED [ 68%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_real_request_cancellation_retains_remote_unknown_and_reaps_child SKIPPED [ 71%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_real_timeout_not_a_mock_clock_and_reaps_child SKIPPED [ 73%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_reconcile_uses_originals_without_live_key_or_second_http SKIPPED [ 76%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_registry_directory_replacement_denies_old_descriptor SKIPPED [ 78%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_short_content_length_cannot_pass_from_valid_json_prefix SKIPPED [ 81%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_source_change_cancels_transport_without_modifying_repository SKIPPED [ 84%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_standard_native_optional_usage_fields_are_accepted SKIPPED [ 86%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_success_full_raw_cache_accounting_and_no_credential_artifact SKIPPED [ 89%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_unknown_http_errors_and_redirect_do_not_resend SKIPPED [ 92%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_unquoted_service_tier_is_unknown SKIPPED [ 94%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_unreported_or_extra_usage_is_unknown SKIPPED [ 97%]
+tests/test_rsi_provider_adapter.py::ProviderAdapterTests::test_unsafe_sqlite_durability_denies_before_actual_send SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_provider_adapter.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rsi_provider_adapter.py:171: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:271: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:284: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:267: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:464: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:301: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:383: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:472: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:377: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:275: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:487: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:236: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:186: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:288: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:259: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:416: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:316: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:240: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:197: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:263: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:280: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:481: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:306: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:215: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:371: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:438: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:357: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:363: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:403: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:431: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:293: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:446: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:248: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:146: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:232: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:255: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:244: private directory FDs and supervised HTTP transport require POSIX
+SKIPPED [1] tests\test_rsi_provider_adapter.py:457: private directory FDs and supervised HTTP transport require POSIX
+============================= 38 skipped in 0.19s =============================

@@ -457,7 +457,7 @@ class PlatformApiTest(unittest.TestCase):
             self.assertEqual(fx["verify"]["check"], "skip")
             self.assertFalse(fx["decision"])
             n_runs = len(d["runs"])
-            # the build works now: built again, not redone, and committed as if its own run had passed
+            # A changed check contract invalidates the old diagnosis: build again without rewriting code.
             (self.data / "autoflow.json").write_text(json.dumps({"on": True, "agent": "fixer", "check": ok}), encoding="utf-8")
             code, v = self.call("POST", "/api/runs/%d/recheck" % fx["id"], {"wait": True})
             self.assertEqual(code, 200, v)
@@ -466,7 +466,16 @@ class PlatformApiTest(unittest.TestCase):
             _, d = self.call("GET", "/api/tickets/" + t["key"])
             self.assertEqual(len(d["runs"]), n_runs, "no agent ran again")
             fx = [r for r in d["runs"] if r["mode"] == "fix"][0]
-            self.assertTrue(fx["decision"].startswith("accepted:"), [e["body"] for e in d["events"]])
+            self.assertFalse(fx["decision"], "changed checks require a new review before adoption")
+            self.assertEqual(v["verdict"], "unknown")
+            self.assertIn("检查契约", v["diagnosis_invalidated"])
+            self.assertTrue(v["previous_verifications"], "retain historical evidence")
+            # Explicit synthetic human review preserves coverage of rechecking an adopted commit.
+            code, accepted = self.call("POST", "/api/runs/%d/decide" % fx["id"], {"decision": "accept"})
+            self.assertEqual(code, 200, accepted)
+            _, d = self.call("GET", "/api/tickets/" + t["key"])
+            fx = next(r for r in d["runs"] if r["id"] == fx["id"])
+            self.assertTrue(fx["decision"].startswith("accepted:"))
             self.assertEqual(d["ticket"]["status"], "verify")
             self.assertTrue(any("重新验证了运行" in e["body"] and "构建通过" in e["body"] for e in d["events"]))
             # an adopted change is built from its commit, in a worktree that is gone afterwards
@@ -543,11 +552,14 @@ class PlatformApiTest(unittest.TestCase):
             vf.write_text(json.dumps(v, ensure_ascii=False), encoding="utf-8")
             (self.data / "autoflow.json").write_text(json.dumps({"on": True, "agent": "fixer", "check": ok}), encoding="utf-8")
             code, v = self.call("POST", "/api/runs/%d/recheck" % fx["id"], {"wait": True})
-            self.assertEqual((code, v["check"], v["verdict"]), (200, "pass", "fail"), v)
+            self.assertEqual((code, v["check"], v["verdict"]), (200, "pass", "unknown"), v)
+            self.assertIn("检查契约", v["diagnosis_invalidated"])
+            self.assertTrue(any(old["verification"].get("diagnosis", {}).get("cause", "").startswith("遗漏方案")
+                                for old in v["previous_verifications"]))
             _, d = self.call("GET", "/api/tickets/" + t["key"])
             fx = [r for r in d["runs"] if r["mode"] == "fix"][0]
             self.assertFalse(fx["decision"], "not committed")
-            self.assertTrue(any("诊断认为还没解决" in e["body"] and "Controller" in e["body"] for e in d["events"]), [e["body"] for e in d["events"]])
+            self.assertNotEqual(v["verdict"], "pass", "失效诊断不能放行当前改动")
         finally:
             conf.pop("fixer", None)
             (self.data / "agents.json").write_text(json.dumps(conf), encoding="utf-8")
@@ -1624,6 +1636,21 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             os.environ.pop("TMH_TEST_ALERT", None)
             (self.data / "alerts.json").unlink()
 
+    def complete_legacy_reform_fixture(self, plan_id):
+        """Retain historical wave semantics with real execution prerequisites.
+
+        Current normalized serial plans are covered by reform integration tests.
+        These cases retain the original legacy scheduling/acceptance assertions.
+        """
+        from tmh.platform import reform
+        sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=self.repo, text=True).strip()
+        with reform._transaction(self.data, self.P.store) as db:
+            plans = reform._load(self.data, 'OA', db)
+            saved = next(p for p in plans if p['id'] == plan_id)
+            saved.update(source_version=sha, base=sha, target_environment='isolated OA fixture',
+                         criteria=['Preserve the fixture business interfaces'])
+            reform._save(self.data, 'OA', plans, db)
+
     def test_reform_plan_splits_by_domain_and_releases_in_waves(self):
         key = self.project()
         code, d = self.call("GET", "/api/projects/OA/reforms")
@@ -1638,6 +1665,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         code, p = self.call("POST", "/api/projects/OA/reforms", {"kind": "upgrade", "title": "Spring 升级", "goal": "Spring 4 升到 5",
                                                                  "keep": "对外接口不变", "wave": 1})
         self.assertEqual(code, 200, p)
+        self.complete_legacy_reform_fixture(p["id"])
         self.assertEqual(p["counts"]["released"], 0)  # nothing opens until someone releases the first wave
         code, r = self.call("POST", "/api/projects/OA/reforms/%s" % p["id"], {"action": "release"})
         self.assertEqual(code, 200, r)
@@ -1649,7 +1677,11 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual(r["items"][0]["status"], t["status"])
         code, deps = self.call("GET", "/api/projects/OA/reforms/deps")
         self.assertTrue(any(x["system"] == "Maven" for x in deps["deps"]), deps)
-        self.call("POST", "/api/projects/OA/reforms/%s" % p["id"], {"action": "remove"})
+        code, refused = self.call("POST", "/api/projects/OA/reforms/%s" % p["id"], {"action": "remove"})
+        self.assertEqual(code,400,refused)  # archiving never hides active work
+        self.P.store.update_ticket(t['id'],'fixture',status='closed')
+        code, archived = self.call("POST", "/api/projects/OA/reforms/%s" % p["id"], {"action": "remove"})
+        self.assertEqual(code,200,archived)
         code, d = self.call("GET", "/api/projects/OA/reforms")
         self.assertFalse([x for x in d["plans"] if x["id"] == p["id"]])
         self.assertTrue(self.P.store.ticket(t["id"]))  # its tickets stay
@@ -1660,6 +1692,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         u = "/api/projects/OA/reforms"
         code, p = self.call("POST", u, {"kind": "restructure", "title": "分层整理", "goal": "理清分层", "wave": 1})
         self.assertEqual(code, 200, p)
+        self.complete_legacy_reform_fixture(p["id"])
         self.assertTrue(p["auto"])
         if len(p["items"]) < 3:
             self.skipTest("the sample project needs three business domains")
@@ -1681,8 +1714,11 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual(next(x for x in d["plans"] if x["id"] == p["id"])["counts"]["released"], 2, "paused: no new wave")
         code, v = self.call("POST", u + "/" + p["id"], {"action": "resume"})
         self.assertNotIn("paused", v)
-        code, v = self.call("POST", u + "/" + p["id"], {"action": "release"})
+        self.assertEqual(code,200,v)
+        self.assertEqual(len(v['opened']),1,'resume recomputes the already completed wave')
         self.assertIn("导出的报表少了一列", self.P.store.ticket(v["opened"][0])["body"])
+        code, blocked = self.call("POST", u + "/" + p["id"], {"action": "release"})
+        self.assertEqual(code,400,blocked)  # cannot release past the active wave
         code, v = self.call("POST", u + "/" + p["id"], {"action": "auto", "on": False})
         self.assertFalse(v["auto"])
         self.assertTrue(any("关闭" in x["text"] for x in v["log"]))
@@ -1706,6 +1742,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         code, p = self.call("POST", u, {"kind": "rewrite", "title": "Java 重写", "goal": "用 Spring Boot 重写全部接口", "target": "java/", "wave": 5,
                                         "lead": {"title": "工程骨架", "body": "建 Maven 工程、配置、实体和登录鉴权"}})
         self.assertEqual(code, 200, p)
+        self.complete_legacy_reform_fixture(p["id"])
         self.assertEqual((p["target"], p["items"][0]["order"], p["items"][0]["lead"]), ("java", 0, True))
         code, r = self.call("POST", u + "/" + p["id"], {"action": "release"})
         self.assertEqual(len(r["opened"]), 1, "only the lead goes out first")

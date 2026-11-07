@@ -1,0 +1,20 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 10 items
+
+tests/test_org_knowledge.py::OrgKnowledgeTests::test_aggregates_multiple_projects PASSED [ 10%]
+tests/test_org_knowledge.py::OrgKnowledgeTests::test_draft_browsing_is_opt_in_readonly_and_scoped_before_search PASSED [ 20%]
+tests/test_org_knowledge.py::OrgKnowledgeTests::test_drafts_without_a_reachable_registered_reader_are_not_advertised PASSED [ 30%]
+tests/test_org_knowledge.py::OrgKnowledgeTests::test_duplicate_content_is_deduped_across_projects_with_both_provenance PASSED [ 40%]
+tests/test_org_knowledge.py::OrgKnowledgeTests::test_empty_projects_return_empty_without_error PASSED [ 50%]
+tests/test_org_knowledge.py::OrgKnowledgeTests::test_equal_text_with_different_review_states_is_not_merged PASSED [ 60%]
+tests/test_org_knowledge.py::OrgKnowledgeTests::test_lessons_become_patterns_and_rules_and_cover_four_types PASSED [ 70%]
+tests/test_org_knowledge.py::OrgKnowledgeTests::test_read_only_never_writes_store_or_project PASSED [ 80%]
+tests/test_org_knowledge.py::OrgKnowledgeTests::test_same_name_different_content_is_not_merged PASSED [ 90%]
+tests/test_org_knowledge.py::OrgKnowledgeTests::test_search_returns_traceable_provenance PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_org_knowledge.xml -
+============================= 10 passed in 13.33s =============================

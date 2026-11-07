@@ -1,0 +1,38 @@
+.................................F.F..                       [100%]
+=================================== FAILURES ===================================
+_ ReformIntegrationTest.test_invalid_evidence_blocks_pass_but_not_explicit_rejection _
+
+self = <test_reform_integration.ReformIntegrationTest testMethod=test_invalid_evidence_blocks_pass_but_not_explicit_rejection>
+
+    def test_invalid_evidence_blocks_pass_but_not_explicit_rejection(self):
+        from tmh.platform.reform_delivery import guard
+        with reform._transaction(self.P.data_dir,self.P.store) as db:
+            plans=reform._load(self.P.data_dir,'EXT',db)
+            from tmh.platform.reform_delivery import ensure
+            ensure(self.P,self.p,plans[0],'fixture')
+            reform._save(self.P.data_dir,'EXT',plans,db)
+        saved=reform.plan(self.P.data_dir,'EXT',self.plan['id'])
+        parent=self.P.store.ticket(saved['parent'])
+        with self.assertRaisesRegex(ValueError,'固定集成'):
+            guard(self.P,parent)
+>       self.assertIsNone(guard(self.P,parent,passed=False))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: guard() got an unexpected keyword argument 'passed'
+
+tests/test_reform_integration.py:97: TypeError
+_ ReformStateTest.test_external_accepted_candidate_is_preserved_in_checkpoint __
+
+self = <test_reform_state.ReformStateTest testMethod=test_external_accepted_candidate_is_preserved_in_checkpoint>
+
+    def test_external_accepted_candidate_is_preserved_in_checkpoint(self):
+        from tmh.platform import candidates
+        submitted=self.fixture.submit()
+>       candidate=candidates.get(self.P,submitted['candidate_id'])
+                  ^^^^^^^^^^^^^^
+E       AttributeError: module 'tmh.platform.candidates' has no attribute 'get'
+
+tests/test_reform_state.py:75: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_reform_integration.py::ReformIntegrationTest::test_invalid_evidence_blocks_pass_but_not_explicit_rejection
+FAILED tests/test_reform_state.py::ReformStateTest::test_external_accepted_candidate_is_preserved_in_checkpoint
+2 failed, 36 passed, 12 subtests passed in 7.69s

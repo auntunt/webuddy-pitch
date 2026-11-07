@@ -1,0 +1,257 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 5 items
+
+tests/test_testbox_mcp.py::TestboxBridgeTest::test_actual_transport_patch_exit_and_stale_receipt FAILED [ 20%]
+tests/test_testbox_mcp.py::TestboxBridgeTest::test_fixloop_requires_actual_remote_receipt_even_when_build_and_model_pass PASSED [ 40%]
+tests/test_testbox_mcp.py::TestboxBridgeTest::test_mcp_script_import_and_protocol PASSED [ 60%]
+tests/test_testbox_mcp.py::TestboxBridgeTest::test_missing_test_cancel_and_path_escape_are_not_success PASSED [ 80%]
+tests/test_testbox_mcp.py::TestboxBridgeTest::test_recheck_reruns_remote_script_and_keeps_failure FAILED [100%]
+
+================================== FAILURES ===================================
+____ TestboxBridgeTest.test_actual_transport_patch_exit_and_stale_receipt _____
+
+self = <unittest.case._Outcome object at 0x000001D3199F8AD0>
+test_case = <test_testbox_mcp.TestboxBridgeTest testMethod=test_actual_transport_patch_exit_and_stale_receipt>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox_mcp.TestboxBridgeTest testMethod=test_actual_transport_patch_exit_and_stale_receipt>
+result = <TestCaseFunction test_actual_transport_patch_exit_and_stale_receipt>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox_mcp.TestboxBridgeTest testMethod=test_actual_transport_patch_exit_and_stale_receipt>
+method = <bound method TestboxBridgeTest.test_actual_transport_patch_exit_and_stale_receipt of <test_testbox_mcp.TestboxBridgeTest testMethod=test_actual_transport_patch_exit_and_stale_receipt>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox_mcp.TestboxBridgeTest testMethod=test_actual_transport_patch_exit_and_stale_receipt>
+
+    def test_actual_transport_patch_exit_and_stale_receipt(self):
+        (self.repo / 'check.sh').write_text('test "$(cat result.txt)" = fixed\n')
+        (self.repo / 'result.txt').write_text('fixed\n')
+>       out = self.bridge.call('testbox_run', {'script': 'check.sh'})
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_testbox_mcp.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.testbox_mcp.Bridge object at 0x000001D319BC4D70>
+name = 'testbox_run', args = {'script': 'check.sh'}
+
+    def call(self, name, args):
+        run = self.active()
+        key = 'run-%s-%s' % (hashlib.sha256(str(self.data_dir.resolve()).encode()).hexdigest()[:12], self.rid)
+        if name == 'testbox_info':
+            result = self.box.check()
+            result['workdir'] = self.box.dir + '/work/' + key
+            return result
+        if name != 'testbox_run':
+            raise ValueError('没有这个工具')
+        script = args.get('script')
+        timeout = args.get('timeout', 600)
+        if not isinstance(script, str) or not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 1200:
+            raise ValueError('脚本或超时时间不正确')
+        path = (self.workdir / script).resolve()
+        if not path.is_relative_to(self.workdir) or not path.is_file():
+            raise ValueError('脚本必须是本次代码目录内的文件')
+        rel = path.relative_to(self.workdir).as_posix()
+        # Script paths are inserted into a remote shell command, never accept shell syntax.
+        import re
+        if not re.fullmatch(r'[A-Za-z0-9_./-]+', rel):
+            raise ValueError('测试脚本路径只支持英文字母、数字、点、横线、下划线和目录分隔符')
+>       windows = self.box._detect() == 'windows'
+                  ^^^^^^^^^^^^^^^^^^
+
+tmh\platform\testbox_mcp.py:119: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.testbox.TestBox object at 0x000001D319BC4AD0>
+
+    def _detect(self) -> str:
+        if not self.os:
+            code, out = self._ssh("echo %OS%")
+            if code == 255 or code == -1 or code == 127:
+>               raise RuntimeError(out)
+E               RuntimeError: 连不上测试机（fixture）：ssh: Could not resolve hostname fixture: No such host is known.
+
+tmh\platform\testbox.py:109: RuntimeError
+____ TestboxBridgeTest.test_recheck_reruns_remote_script_and_keeps_failure ____
+
+self = <unittest.case._Outcome object at 0x000001D319938510>
+test_case = <test_testbox_mcp.TestboxBridgeTest testMethod=test_recheck_reruns_remote_script_and_keeps_failure>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox_mcp.TestboxBridgeTest testMethod=test_recheck_reruns_remote_script_and_keeps_failure>
+result = <TestCaseFunction test_recheck_reruns_remote_script_and_keeps_failure>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox_mcp.TestboxBridgeTest testMethod=test_recheck_reruns_remote_script_and_keeps_failure>
+method = <bound method TestboxBridgeTest.test_recheck_reruns_remote_script_and_keeps_failure of <test_testbox_mcp.TestboxBridgeTest testMethod=test_recheck_reruns_remote_script_and_keeps_failure>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox_mcp.TestboxBridgeTest testMethod=test_recheck_reruns_remote_script_and_keeps_failure>
+
+    def test_recheck_reruns_remote_script_and_keeps_failure(self):
+        from tmh.platform.agents import Runner, worktree_diff
+        from tmh.platform.fixloop import _recheck
+        (self.repo / 'check.sh').write_text('test "$(cat result.txt)" = fixed\n')
+        (self.repo / 'result.txt').write_text('fixed\n')
+>       self.bridge.call('testbox_run', {'script': 'check.sh'})
+
+tests\test_testbox_mcp.py:82: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.testbox_mcp.Bridge object at 0x000001D319938640>
+name = 'testbox_run', args = {'script': 'check.sh'}
+
+    def call(self, name, args):
+        run = self.active()
+        key = 'run-%s-%s' % (hashlib.sha256(str(self.data_dir.resolve()).encode()).hexdigest()[:12], self.rid)
+        if name == 'testbox_info':
+            result = self.box.check()
+            result['workdir'] = self.box.dir + '/work/' + key
+            return result
+        if name != 'testbox_run':
+            raise ValueError('没有这个工具')
+        script = args.get('script')
+        timeout = args.get('timeout', 600)
+        if not isinstance(script, str) or not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 1200:
+            raise ValueError('脚本或超时时间不正确')
+        path = (self.workdir / script).resolve()
+        if not path.is_relative_to(self.workdir) or not path.is_file():
+            raise ValueError('脚本必须是本次代码目录内的文件')
+        rel = path.relative_to(self.workdir).as_posix()
+        # Script paths are inserted into a remote shell command, never accept shell syntax.
+        import re
+        if not re.fullmatch(r'[A-Za-z0-9_./-]+', rel):
+            raise ValueError('测试脚本路径只支持英文字母、数字、点、横线、下划线和目录分隔符')
+>       windows = self.box._detect() == 'windows'
+                  ^^^^^^^^^^^^^^^^^^
+
+tmh\platform\testbox_mcp.py:119: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.testbox.TestBox object at 0x000001D3199383E0>
+
+    def _detect(self) -> str:
+        if not self.os:
+            code, out = self._ssh("echo %OS%")
+            if code == 255 or code == -1 or code == 127:
+>               raise RuntimeError(out)
+E               RuntimeError: 连不上测试机（fixture）：ssh: Could not resolve hostname fixture: No such host is known.
+
+tmh\platform\testbox.py:109: RuntimeError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_testbox_mcp.xml -
+======================== 2 failed, 3 passed in 18.34s =========================

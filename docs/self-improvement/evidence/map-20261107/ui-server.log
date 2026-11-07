@@ -1,0 +1,15 @@
+{"url": "http://127.0.0.1:18991/#/projects/EXT/reforms/r1e6bfd4fe0fc4d1aa62ffaf27804c05e", "data": "/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/webuddy-candidate-p0fbpdda/data", "sha": "df2cc32672f1f70bd450bafec0cdff81a22ff2e0"}
+Traceback (most recent call last):
+  File "/private/tmp/webuddy-map-20261107/ui-server.py", line 17, in <module>
+    ThreadingHTTPServer(('127.0.0.1',18991),make_handler(P)).serve_forever()
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 457, in __init__
+    self.server_bind()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 148, in server_bind
+    socketserver.TCPServer.server_bind(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 478, in server_bind
+    self.socket.bind(self.server_address)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 48] Address already in use

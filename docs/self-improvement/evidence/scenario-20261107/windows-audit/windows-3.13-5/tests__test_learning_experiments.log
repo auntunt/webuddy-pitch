@@ -1,0 +1,45 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 30 items
+
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_active_ancestor_manual_blocks_descendant_seal_without_mutating_job PASSED [  3%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_active_claimed_descendant_manual_blocks_parent_seal_until_terminal PASSED [  6%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_active_sibling_and_unrelated_manual_do_not_block_seal PASSED [ 10%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_ancestry_blocks_new_adoption_and_proposal_without_changing_old_reads PASSED [ 13%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_ancestry_missing_cross_project_and_cycles_fail_closed 
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_ancestry_missing_cross_project_and_cycles_fail_closed PASSED [ 16%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_authorization_exit_after_commit_keeps_unknown_not_rollback_classification PASSED [ 20%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_cancel_after_intent_keeps_job_running_until_stopping_evidence PASSED [ 23%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_cancel_between_t2_and_intent_ends_all_registered_records PASSED [ 26%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_changed_candidate_asset_key_cannot_downgrade_sealed_revision_to_manual PASSED [ 30%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_concurrent_seal_same_request_creates_one_plan PASSED [ 33%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_deadline_anchor_cannot_be_extended_or_recreated PASSED [ 36%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_descendant_manual_registration_loses_to_parent_seal_commit PASSED [ 40%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_draft_and_metadata_replay_reauthorize_and_keep_full_material PASSED [ 43%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_experiment_material_uses_own_capture_not_a_fake_manual_job PASSED [ 46%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_exposure_is_explicit_actor_epoch_bound_and_atomic PASSED [ 50%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_four_table_migration_rolls_back_each_statement 
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_four_table_migration_rolls_back_each_statement PASSED [ 53%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_manual_start_rechecks_ownership_after_seal_barrier PASSED [ 56%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_missing_candidate_asset_cannot_downgrade_sealed_revision_to_manual PASSED [ 60%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_not_written_only_after_absent_request_and_proven_rollback PASSED [ 63%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_partial_table_or_false_partial_index_fails_without_ddl PASSED [ 66%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_participant_epoch_change_prevents_replay_and_dispatch PASSED [ 70%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_real_manager_can_prepare_but_cannot_bypass_execution_gate PASSED [ 73%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_receipts_echo_exact_action_and_request_identity PASSED [ 76%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_rehashed_candidate_inner_revision_cannot_claim_another_revision PASSED [ 80%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_second_draft_cannot_seal_same_or_declared_descendant_candidate PASSED [ 83%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_strict_contract_rejects_paid_arbitrary_and_lossy_inputs_without_writes 
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_strict_contract_rejects_paid_arbitrary_and_lossy_inputs_without_writes PASSED [ 86%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_t1_one_job_all_repeats_atomic_and_idempotent PASSED [ 90%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_t2_registers_run_inputs_step_slot_budget_in_one_commit 
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_t2_registers_run_inputs_step_slot_budget_in_one_commit PASSED [ 93%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_unknown_request_query_commit_and_rollback_errors_never_claim_not_written 
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_unknown_request_query_commit_and_rollback_errors_never_claim_not_written PASSED [ 96%]
+tests/test_learning_experiments.py::ExperimentLedgerTests::test_unsealed_contract_and_unrelated_revision_keep_manual_ownership PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_experiments.xml -
+=================== 30 passed, 31 subtests passed in 33.43s ===================

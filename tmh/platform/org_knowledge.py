@@ -205,12 +205,14 @@ def _lesson_items(data_dir: Path) -> list[dict]:
     return out
 
 
-def _collect(store, *, include_drafts: bool = False, project_key: str = "") -> tuple[list[dict], list[dict]]:
+def _collect(store, *, include_drafts: bool = False, project_key: str = "", allowed_project_keys=None) -> tuple[list[dict], list[dict]]:
     """[(item, provenance)] and the project list actually read."""
     raw: list[dict] = []
     projects = []
     data_dir = Path(getattr(store, "path", "")).parent if getattr(store, "path", None) else None
     for project in store.projects():
+        if allowed_project_keys is not None and project["key"] not in allowed_project_keys:
+            continue
         if project_key and project.get("key") != project_key:
             continue
         kb = _kb_dir(project)
@@ -245,6 +247,8 @@ def _collect(store, *, include_drafts: bool = False, project_key: str = "") -> t
                                        "status": "待确认", "content_sha256": rule["content_sha256"]}})
     if data_dir and data_dir.is_dir():
         for lesson in _lesson_items(data_dir):
+            if allowed_project_keys is not None and lesson["project"] not in allowed_project_keys:
+                continue
             if project_key and lesson["project"] != project_key:
                 continue
             prov = {"project": lesson["project"], "project_id": None, "kind": "lesson",
@@ -288,20 +292,39 @@ def _merge(raw: list[dict]) -> list[dict]:
     return sorted(merged.values(), key=lambda i: (TYPES.index(i["type"]) if i["type"] in TYPES else 99, i["id"]))
 
 
-def build(store, *, include_drafts: bool = False, project_key: str = "") -> dict:
+def possible_conflicts(raw):
+    """Only flag concrete same-name/different-content sources in the visible set.
+
+    This is not semantic impact completeness and never chooses a winning rule.
+    """
+    groups={}
+    for row in raw:
+        groups.setdefault((row['type'],_norm(row['title'])),[]).append(row)
+    conflicts=[]
+    for (kind,title),members in groups.items():
+        if len({_norm(row['dedup_text']) for row in members})<2:
+            continue
+        conflicts.append({'kind':'possible_name_conflict','title':title,'type':kind,
+            'status':'needs_review','owner':None,'resolution':None,'affected_tasks_status':'not_checked',
+            'sources':[dict(row['provenance'],content=row['dedup_text']) for row in members],
+            'next_step':'由项目知识负责人核对来源、版本与适用条件；同名不同义不自动合并或选择。'})
+    return conflicts
+
+
+def build(store, *, include_drafts: bool = False, project_key: str = "", allowed_project_keys=None) -> dict:
     """Read-only catalog; plain notes are visible but never treated as confirmed.
 
     Unconfirmed structured pages still require explicit browsing opt-in.
     A file fingerprint identifies source bytes, not a human decision.
     """
     started = time.strftime("%Y-%m-%d %H:%M:%S")
-    raw, projects = _collect(store, include_drafts=include_drafts, project_key=project_key)
+    raw, projects = _collect(store, include_drafts=include_drafts, project_key=project_key, allowed_project_keys=allowed_project_keys)
     items = _merge(raw)
     by_type = {t: sum(1 for i in items if i["type"] == t) for t in TYPES}
     provenance_projects = sorted({p["project"] for i in items for p in i["provenance"] if p.get("project")})
     return {
         "schema": SCHEMA, "generated": started, "readonly": True,
-        "items": items,
+        "items": items, "conflicts": possible_conflicts(raw),
         "projects_read": [{"key": p.get("key"), "name": p.get("name"), "root": p.get("root")} for p in projects],
         "provenance_projects": provenance_projects,
         "stats": {"items": len(items), "raw_candidates": len(raw), "by_type": by_type,
@@ -318,9 +341,9 @@ def _tokens(text: str) -> set[str]:
     return out
 
 
-def search(store, q: str, limit: int = 20, types: tuple | list | None = None, *, include_drafts: bool = False, project_key: str = "") -> list[dict]:
+def search(store, q: str, limit: int = 20, types: tuple | list | None = None, *, include_drafts: bool = False, project_key: str = "", allowed_project_keys=None) -> list[dict]:
     """Search the roll-up. Returns structured items with full provenance; no full text."""
-    built = build(store, include_drafts=include_drafts, project_key=project_key)
+    built = build(store, include_drafts=include_drafts, project_key=project_key, allowed_project_keys=allowed_project_keys)
     wanted = _tokens(q)
     if not wanted:
         return []

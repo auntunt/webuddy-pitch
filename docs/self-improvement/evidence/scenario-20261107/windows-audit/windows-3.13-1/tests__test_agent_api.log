@@ -1,0 +1,43 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 30 items
+
+tests/test_agent_api.py::AgentAPITest::test_active_closed_delivery_and_unreleased_tickets_refuse_runs 
+tests/test_agent_api.py::AgentAPITest::test_active_closed_delivery_and_unreleased_tickets_refuse_runs PASSED [  3%]
+tests/test_agent_api.py::AgentAPITest::test_actor_header_is_required_and_cannot_be_human_identity 
+tests/test_agent_api.py::AgentAPITest::test_actor_header_is_required_and_cannot_be_human_identity PASSED [  6%]
+tests/test_agent_api.py::AgentAPITest::test_api_error_after_write_is_uncertain_and_blocks_replay PASSED [ 10%]
+tests/test_agent_api.py::AgentAPITest::test_create_is_held_agent_attributed_and_replayed_exactly PASSED [ 13%]
+tests/test_agent_api.py::AgentAPITest::test_cross_process_retry_creates_one_ticket PASSED [ 16%]
+tests/test_agent_api.py::AgentAPITest::test_cross_ticket_reply_is_refused_without_message PASSED [ 20%]
+tests/test_agent_api.py::AgentAPITest::test_executions_require_explicit_transport_capability PASSED [ 23%]
+tests/test_agent_api.py::AgentAPITest::test_fix_fails_closed_when_upstream_baseline_callback_fails PASSED [ 26%]
+tests/test_agent_api.py::AgentAPITest::test_fix_requires_bound_successful_plan_and_resolves_base_without_adoption PASSED [ 30%]
+tests/test_agent_api.py::AgentAPITest::test_handwork_scan_never_executes_agent_created_ticket_matching_existing_branch PASSED [ 33%]
+tests/test_agent_api.py::AgentAPITest::test_intake_is_recorded_without_a_model_and_ai_reading_needs_execution PASSED [ 36%]
+tests/test_agent_api.py::AgentAPITest::test_invalid_engine_is_known_precondition_failure_not_uncertain_lock PASSED [ 40%]
+tests/test_agent_api.py::AgentAPITest::test_message_cursor_has_no_loss_or_duplicate_with_broadcast PASSED [ 43%]
+tests/test_agent_api.py::AgentAPITest::test_message_preserves_complete_text_and_replay_with_reply_chain PASSED [ 46%]
+tests/test_agent_api.py::AgentAPITest::test_new_agent_task_waits_without_claiming_execution PASSED [ 50%]
+tests/test_agent_api.py::AgentAPITest::test_new_conversation_requirement_invalidates_plan_without_body_edit PASSED [ 53%]
+tests/test_agent_api.py::AgentAPITest::test_new_run_cannot_bypass_unfinished_process_cleanup PASSED [ 56%]
+tests/test_agent_api.py::AgentAPITest::test_pending_or_uncertain_request_never_reexecutes PASSED [ 60%]
+tests/test_agent_api.py::AgentAPITest::test_plan_binds_requirement_and_fix_refuses_stale_body PASSED [ 63%]
+tests/test_agent_api.py::AgentAPITest::test_real_http_preserves_auth_and_agent_identity PASSED [ 66%]
+tests/test_agent_api.py::AgentAPITest::test_receipts_are_scoped_to_agent_not_caller_human PASSED [ 70%]
+tests/test_agent_api.py::AgentAPITest::test_recheck_unheld_ticket_cannot_trigger_automatic_adoption PASSED [ 73%]
+tests/test_agent_api.py::AgentAPITest::test_rejection_and_customer_contract_changes_invalidate_source_fingerprint PASSED [ 76%]
+tests/test_agent_api.py::AgentAPITest::test_requirement_fingerprint_precedes_runner_prompt_and_late_message PASSED [ 80%]
+tests/test_agent_api.py::AgentAPITest::test_retry_fix_without_source_binding_cannot_skip_current_plan PASSED [ 83%]
+tests/test_agent_api.py::AgentAPITest::test_same_request_different_payload_or_operation_conflicts 
+tests/test_agent_api.py::AgentAPITest::test_same_request_different_payload_or_operation_conflicts PASSED [ 86%]
+tests/test_agent_api.py::AgentAPITest::test_ticket_list_pagination_and_literal_search PASSED [ 90%]
+tests/test_agent_api.py::AgentAPITest::test_ticket_packet_keeps_requirement_and_more_than_100_run_references PASSED [ 93%]
+tests/test_agent_api.py::AgentAPITest::test_uncertain_run_launch_can_be_cancelled_and_discussed PASSED [ 96%]
+tests/test_agent_api.py::AgentAPITest::test_unknown_launch_does_not_block_managed_recovery_or_require_current_workflow PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_agent_api.xml -
+============== 30 passed, 12 subtests passed in 91.28s (0:01:31) ==============

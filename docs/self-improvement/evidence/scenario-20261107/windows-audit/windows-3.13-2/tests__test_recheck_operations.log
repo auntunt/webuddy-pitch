@@ -1,0 +1,39 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 14 items
+
+tests/test_recheck_operations.py::RecheckOperationsTest::test_corrupt_source_binding_is_preserved_and_cannot_be_reported_as_success SKIPPED [  7%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_done_database_row_without_sealed_lifecycle_blocks_new_operation SKIPPED [ 14%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_failed_sealed_command_can_retry_but_missing_receipt_blocks SKIPPED [ 21%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_legacy_read_does_not_initialize_schema_and_corrupt_database_fails_closed SKIPPED [ 28%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_read_status_is_read_only_and_immediately_blocks_previous_result SKIPPED [ 35%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_real_command_is_isolated_from_source_run_and_original_bytes SKIPPED [ 42%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_recovery_uses_operation_table_and_preserves_source_run SKIPPED [ 50%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_source_binding_is_full_id_bound_and_cannot_be_replaced SKIPPED [ 57%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_source_guard_conflicts_until_finish_and_rechecks_current_discard_decision SKIPPED [ 64%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_source_guard_is_cross_process_and_released_when_its_owner_is_killed SKIPPED [ 71%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_success_without_source_binding_is_failed_not_accepted SKIPPED [ 78%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_total_operation_budget_covers_multiple_commands SKIPPED [ 85%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_two_instances_start_exactly_one_operation_and_keep_sqlite_usable SKIPPED [ 92%]
+tests/test_recheck_operations.py::RecheckOperationsTest::test_unadopted_worktree_binding_preserves_explicit_empty_candidate_commit SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_recheck_operations.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_recheck_operations.py:265: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:115: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:125: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:246: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:75: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:57: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:229: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:139: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:160: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:173: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:258: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:200: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:86: requires POSIX ownership leases
+SKIPPED [1] tests\test_recheck_operations.py:152: requires POSIX ownership leases
+============================= 14 skipped in 0.14s =============================

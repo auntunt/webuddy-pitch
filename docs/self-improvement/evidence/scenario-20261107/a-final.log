@@ -1,0 +1,109 @@
+............................................................... [ 94%]
+....                                                                 [100%]
+=================================== FAILURES ===================================
+_ ReformProcessCrashTest.test_restart_at_each_boundary_never_duplicates_or_hides_work (point='before_mapping_commit') _
+
+self = <test_reform_process_crash.ReformProcessCrashTest testMethod=test_restart_at_each_boundary_never_duplicates_or_hides_work>
+
+    def test_restart_at_each_boundary_never_duplicates_or_hides_work(self):
+        for point in ('before_mapping_commit','after_mapping_commit','after_claim','after_executor_receipt'):
+            with self.subTest(point=point), tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);st=Store(root/'platform.db')
+                try:
+                    project=st.add_project('RF','Isolated crash fixture',str(root))
+                    atlas={'built':'fixed','domains':[{'id':str(i),'title':str(i),'tables':0} for i in range(4)]}
+                    plan=reform.create(root,'RF',atlas,dict(title='Crash test',goal='Preserve state',wave=2),'owner')
+                    killed=subprocess.run([sys.executable,'-B','-c',CHILD,str(root),plan['id'],point],capture_output=True,text=True,timeout=20)
+>                   self.assertEqual(killed.returncode,-signal.SIGKILL,killed.stderr)
+E                   AssertionError: 1 != -9 : Traceback (most recent call last):
+E                     File "<string>", line 18, in <module>
+E                       reform.release(P,project,pid,None,'owner')
+E                       ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E                     File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/reform.py", line 549, in release
+E                       made = _release_in_tx(P,proj,p,n,by,db)
+E                     File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/reform.py", line 447, in _release_in_tx
+E                       raise ValueError(why)
+E                   ValueError: 计划执行条件未补齐：固定源版本、目标验证环境、逐项验收标准
+
+tests/test_reform_process_crash.py:46: AssertionError
+_ ReformProcessCrashTest.test_restart_at_each_boundary_never_duplicates_or_hides_work (point='after_mapping_commit') _
+
+self = <test_reform_process_crash.ReformProcessCrashTest testMethod=test_restart_at_each_boundary_never_duplicates_or_hides_work>
+
+    def test_restart_at_each_boundary_never_duplicates_or_hides_work(self):
+        for point in ('before_mapping_commit','after_mapping_commit','after_claim','after_executor_receipt'):
+            with self.subTest(point=point), tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);st=Store(root/'platform.db')
+                try:
+                    project=st.add_project('RF','Isolated crash fixture',str(root))
+                    atlas={'built':'fixed','domains':[{'id':str(i),'title':str(i),'tables':0} for i in range(4)]}
+                    plan=reform.create(root,'RF',atlas,dict(title='Crash test',goal='Preserve state',wave=2),'owner')
+                    killed=subprocess.run([sys.executable,'-B','-c',CHILD,str(root),plan['id'],point],capture_output=True,text=True,timeout=20)
+>                   self.assertEqual(killed.returncode,-signal.SIGKILL,killed.stderr)
+E                   AssertionError: 1 != -9 : Traceback (most recent call last):
+E                     File "<string>", line 18, in <module>
+E                       reform.release(P,project,pid,None,'owner')
+E                       ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E                     File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/reform.py", line 549, in release
+E                       made = _release_in_tx(P,proj,p,n,by,db)
+E                     File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/reform.py", line 447, in _release_in_tx
+E                       raise ValueError(why)
+E                   ValueError: 计划执行条件未补齐：固定源版本、目标验证环境、逐项验收标准
+
+tests/test_reform_process_crash.py:46: AssertionError
+_ ReformProcessCrashTest.test_restart_at_each_boundary_never_duplicates_or_hides_work (point='after_claim') _
+
+self = <test_reform_process_crash.ReformProcessCrashTest testMethod=test_restart_at_each_boundary_never_duplicates_or_hides_work>
+
+    def test_restart_at_each_boundary_never_duplicates_or_hides_work(self):
+        for point in ('before_mapping_commit','after_mapping_commit','after_claim','after_executor_receipt'):
+            with self.subTest(point=point), tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);st=Store(root/'platform.db')
+                try:
+                    project=st.add_project('RF','Isolated crash fixture',str(root))
+                    atlas={'built':'fixed','domains':[{'id':str(i),'title':str(i),'tables':0} for i in range(4)]}
+                    plan=reform.create(root,'RF',atlas,dict(title='Crash test',goal='Preserve state',wave=2),'owner')
+                    killed=subprocess.run([sys.executable,'-B','-c',CHILD,str(root),plan['id'],point],capture_output=True,text=True,timeout=20)
+>                   self.assertEqual(killed.returncode,-signal.SIGKILL,killed.stderr)
+E                   AssertionError: 1 != -9 : Traceback (most recent call last):
+E                     File "<string>", line 18, in <module>
+E                       reform.release(P,project,pid,None,'owner')
+E                       ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E                     File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/reform.py", line 549, in release
+E                       made = _release_in_tx(P,proj,p,n,by,db)
+E                     File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/reform.py", line 447, in _release_in_tx
+E                       raise ValueError(why)
+E                   ValueError: 计划执行条件未补齐：固定源版本、目标验证环境、逐项验收标准
+
+tests/test_reform_process_crash.py:46: AssertionError
+_ ReformProcessCrashTest.test_restart_at_each_boundary_never_duplicates_or_hides_work (point='after_executor_receipt') _
+
+self = <test_reform_process_crash.ReformProcessCrashTest testMethod=test_restart_at_each_boundary_never_duplicates_or_hides_work>
+
+    def test_restart_at_each_boundary_never_duplicates_or_hides_work(self):
+        for point in ('before_mapping_commit','after_mapping_commit','after_claim','after_executor_receipt'):
+            with self.subTest(point=point), tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);st=Store(root/'platform.db')
+                try:
+                    project=st.add_project('RF','Isolated crash fixture',str(root))
+                    atlas={'built':'fixed','domains':[{'id':str(i),'title':str(i),'tables':0} for i in range(4)]}
+                    plan=reform.create(root,'RF',atlas,dict(title='Crash test',goal='Preserve state',wave=2),'owner')
+                    killed=subprocess.run([sys.executable,'-B','-c',CHILD,str(root),plan['id'],point],capture_output=True,text=True,timeout=20)
+>                   self.assertEqual(killed.returncode,-signal.SIGKILL,killed.stderr)
+E                   AssertionError: 1 != -9 : Traceback (most recent call last):
+E                     File "<string>", line 18, in <module>
+E                       reform.release(P,project,pid,None,'owner')
+E                       ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E                     File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/reform.py", line 549, in release
+E                       made = _release_in_tx(P,proj,p,n,by,db)
+E                     File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tmh/platform/reform.py", line 447, in _release_in_tx
+E                       raise ValueError(why)
+E                   ValueError: 计划执行条件未补齐：固定源版本、目标验证环境、逐项验收标准
+
+tests/test_reform_process_crash.py:46: AssertionError
+=========================== short test summary info ============================
+SUBFAILED(point='before_mapping_commit') tests/test_reform_process_crash.py::ReformProcessCrashTest::test_restart_at_each_boundary_never_duplicates_or_hides_work
+SUBFAILED(point='after_mapping_commit') tests/test_reform_process_crash.py::ReformProcessCrashTest::test_restart_at_each_boundary_never_duplicates_or_hides_work
+SUBFAILED(point='after_claim') tests/test_reform_process_crash.py::ReformProcessCrashTest::test_restart_at_each_boundary_never_duplicates_or_hides_work
+SUBFAILED(point='after_executor_receipt') tests/test_reform_process_crash.py::ReformProcessCrashTest::test_restart_at_each_boundary_never_duplicates_or_hides_work
+4 failed, 67 passed, 9 subtests passed in 38.33s

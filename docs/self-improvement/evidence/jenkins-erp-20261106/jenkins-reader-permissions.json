@@ -1,0 +1,10 @@
+[
+  {
+    "path": "/job/erp-verification/build",
+    "status": 403
+  },
+  {
+    "path": "/job/erp-verification/config.xml",
+    "status": 403
+  }
+]

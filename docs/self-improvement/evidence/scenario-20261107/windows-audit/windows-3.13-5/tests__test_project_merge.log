@@ -1,0 +1,437 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 6 items
+
+tests/test_project_merge.py::PersonalMergeTest::test_dirty_or_moved_source_fails_without_overwriting PASSED [ 16%]
+tests/test_project_merge.py::PersonalMergeTest::test_exact_candidate_fast_forwards_without_hooks_or_other_files FAILED [ 33%]
+tests/test_project_merge.py::PersonalMergeTest::test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten FAILED [ 50%]
+tests/test_project_merge.py::PersonalMergeTest::test_lfs_filter_is_refused_with_clear_reason FAILED [ 66%]
+tests/test_project_merge.py::PersonalMergeTest::test_options_cannot_be_injected PASSED [ 83%]
+tests/test_project_merge.py::PersonalMergeTest::test_wrong_ref_or_branch_never_mutates PASSED [100%]
+
+================================== FAILURES ===================================
+_ PersonalMergeTest.test_exact_candidate_fast_forwards_without_hooks_or_other_files _
+
+self = <unittest.case._Outcome object at 0x0000020EB6CCC190>
+test_case = <test_project_merge.PersonalMergeTest testMethod=test_exact_candidate_fast_forwards_without_hooks_or_other_files>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_exact_candidate_fast_forwards_without_hooks_or_other_files>
+result = <TestCaseFunction test_exact_candidate_fast_forwards_without_hooks_or_other_files>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_exact_candidate_fast_forwards_without_hooks_or_other_files>
+method = <bound method PersonalMergeTest.test_exact_candidate_fast_forwards_without_hooks_or_other_files of <test_project_merge.PersonalMergeTest testMethod=test_exact_candidate_fast_forwards_without_hooks_or_other_files>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_exact_candidate_fast_forwards_without_hooks_or_other_files>
+
+    def test_exact_candidate_fast_forwards_without_hooks_or_other_files(self):
+        hook=self.root/'.git/hooks/post-merge';hook.write_text('#!/bin/sh\ntouch hook-ran\n');hook.chmod(0o755)
+        (self.root/'.tmh').mkdir();(self.root/'.tmh/data').write_text('preserved')
+>       result=self.merge()
+               ^^^^^^^^^^^^
+
+tests\test_project_merge.py:52: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_exact_candidate_fast_forwards_without_hooks_or_other_files>
+
+    def merge(self):
+>       return fast_forward('sha256:'+'a'*64,self.root,self.base,self.candidate,self.ref,'main',engine=LocalEngine())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_merge.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+image = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+root = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp8fwaeael')
+base = '4cb5dfd3c06298e016f90f54ab87bff3c37a1b7f'
+commit = 'f7efcdcc34b0fbfeff104d6c011b83cf352e7229'
+ref = 'refs/webuddy/candidates/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+branch = 'main', cancel = <function <lambda> at 0x0000020EB6BECFE0>
+engine = <test_project_merge.LocalEngine object at 0x0000020EB6CCC410>
+
+    def fast_forward(image, root, base, commit, ref, branch, *, cancel=lambda: False, engine=None):
+        """Run the fixed merger; unknown results are deliberately not replayed."""
+        root = Path(root)
+        if any(not isinstance(v,str) or not re.fullmatch('[0-9a-f]{40}',v) for v in (base,commit)):
+            raise ValueError('合并需要完整固定提交')
+        if not isinstance(ref,str) or not re.fullmatch('refs/webuddy/candidates/[0-9a-f]{64}',ref):
+            raise ValueError('候选引用无效')
+        if (not isinstance(branch,str) or not re.fullmatch('[A-Za-z0-9][A-Za-z0-9_./-]*',branch)
+                or '..' in branch or '//' in branch or any(not p or p.startswith('.') or p.endswith(('.', '.lock')) for p in branch.split('/'))):
+            raise ValueError('项目主干名称无效')
+        if not (root/'.git').is_dir() or (root/'.git').is_symlink():
+            raise ValueError('当前项目没有独立 Git 仓库')
+        chunks=[];diagnostics=[]
+>       spec=specification(image,['python3','-I','-c',MERGE,base,commit,ref,branch],root,60,writable=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\project_merge.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+image = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+command = ['python3', '-I', '-c', "\nimport json,os,subprocess,sys\nbase,candidate,ref,branch=sys.argv[1:]\nroot=os.getcwd()\nen...separators=(',',':')))\n", '4cb5dfd3c06298e016f90f54ab87bff3c37a1b7f', 'f7efcdcc34b0fbfeff104d6c011b83cf352e7229', ...]
+workspace = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp8fwaeael')
+seconds = 60, writable = True, mounts = ()
+
+    def specification(image, command, workspace, seconds, *, writable=False, mounts=()):
+        """No raw Docker options, host env, network, devices or arbitrary targets."""
+        if not isinstance(image, str) or not re.fullmatch(r'sha256:[0-9a-f]{64}', image):
+            raise ValueError('项目执行镜像必须固定到完整 image ID')
+        if not isinstance(command, list) or not command or any(not isinstance(x, str) or '\0' in x for x in command):
+            raise ValueError('隔离命令必须是字符串列表')
+        if not math.isfinite(seconds) or seconds <= 0:
+            raise ValueError('隔离任务需要正数总时限')
+>       bindings = [{'Type':'bind', 'Source':_path(workspace), 'Target':'/workspace', 'ReadOnly':not writable}]
+                                             ^^^^^^^^^^^^^^^^
+
+tmh\platform\project_container.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp8fwaeael')
+
+    def _path(path):
+        path = Path(path)
+        if not path.is_absolute() or any(p.is_symlink() for p in (path, *path.parents)):
+            raise ValueError('隔离挂载路径必须是无符号链接的绝对路径')
+        if ',' in str(path) or ':' in str(path) or '\n' in str(path):
+>           raise ValueError('隔离挂载路径包含不支持的字符')
+E           ValueError: 隔离挂载路径包含不支持的字符
+
+tmh\platform\project_container.py:72: ValueError
+_ PersonalMergeTest.test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten _
+
+self = <unittest.case._Outcome object at 0x0000020EB6CCCCD0>
+test_case = <test_project_merge.PersonalMergeTest testMethod=test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten>
+result = <TestCaseFunction test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten>
+method = <bound method PersonalMergeTest.test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten of <test_project_merge.PersonalMergeTest testMethod=test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten>
+
+    def test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten(self):
+        (self.root/'.git/info/exclude').write_text('cache/\nnew.txt\n')
+        (self.root/'cache').mkdir();(self.root/'cache/keep').write_text('cache')
+        (self.root/'new.txt').write_text('user data')
+        with self.assertRaises(ValueError):self.merge()
+        self.assertEqual((self.root/'new.txt').read_text(),'user data')
+        self.assertEqual(self.git('rev-parse','HEAD'),self.base)
+        (self.root/'new.txt').unlink()
+>       self.merge()
+
+tests\test_project_merge.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_ignored_cache_is_preserved_and_ignored_collision_is_never_overwritten>
+
+    def merge(self):
+>       return fast_forward('sha256:'+'a'*64,self.root,self.base,self.candidate,self.ref,'main',engine=LocalEngine())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_merge.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+image = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+root = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp0o7zxr5r')
+base = 'bcf67138d908f2a8cddc50e183dc636ba3ac132e'
+commit = '7a7332f5d44ef302196c8ebe78b308c2c29dcc4d'
+ref = 'refs/webuddy/candidates/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+branch = 'main', cancel = <function <lambda> at 0x0000020EB6BECFE0>
+engine = <test_project_merge.LocalEngine object at 0x0000020EB6B3F5C0>
+
+    def fast_forward(image, root, base, commit, ref, branch, *, cancel=lambda: False, engine=None):
+        """Run the fixed merger; unknown results are deliberately not replayed."""
+        root = Path(root)
+        if any(not isinstance(v,str) or not re.fullmatch('[0-9a-f]{40}',v) for v in (base,commit)):
+            raise ValueError('合并需要完整固定提交')
+        if not isinstance(ref,str) or not re.fullmatch('refs/webuddy/candidates/[0-9a-f]{64}',ref):
+            raise ValueError('候选引用无效')
+        if (not isinstance(branch,str) or not re.fullmatch('[A-Za-z0-9][A-Za-z0-9_./-]*',branch)
+                or '..' in branch or '//' in branch or any(not p or p.startswith('.') or p.endswith(('.', '.lock')) for p in branch.split('/'))):
+            raise ValueError('项目主干名称无效')
+        if not (root/'.git').is_dir() or (root/'.git').is_symlink():
+            raise ValueError('当前项目没有独立 Git 仓库')
+        chunks=[];diagnostics=[]
+>       spec=specification(image,['python3','-I','-c',MERGE,base,commit,ref,branch],root,60,writable=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\project_merge.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+image = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+command = ['python3', '-I', '-c', "\nimport json,os,subprocess,sys\nbase,candidate,ref,branch=sys.argv[1:]\nroot=os.getcwd()\nen...separators=(',',':')))\n", 'bcf67138d908f2a8cddc50e183dc636ba3ac132e', '7a7332f5d44ef302196c8ebe78b308c2c29dcc4d', ...]
+workspace = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp0o7zxr5r')
+seconds = 60, writable = True, mounts = ()
+
+    def specification(image, command, workspace, seconds, *, writable=False, mounts=()):
+        """No raw Docker options, host env, network, devices or arbitrary targets."""
+        if not isinstance(image, str) or not re.fullmatch(r'sha256:[0-9a-f]{64}', image):
+            raise ValueError('项目执行镜像必须固定到完整 image ID')
+        if not isinstance(command, list) or not command or any(not isinstance(x, str) or '\0' in x for x in command):
+            raise ValueError('隔离命令必须是字符串列表')
+        if not math.isfinite(seconds) or seconds <= 0:
+            raise ValueError('隔离任务需要正数总时限')
+>       bindings = [{'Type':'bind', 'Source':_path(workspace), 'Target':'/workspace', 'ReadOnly':not writable}]
+                                             ^^^^^^^^^^^^^^^^
+
+tmh\platform\project_container.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp0o7zxr5r')
+
+    def _path(path):
+        path = Path(path)
+        if not path.is_absolute() or any(p.is_symlink() for p in (path, *path.parents)):
+            raise ValueError('隔离挂载路径必须是无符号链接的绝对路径')
+        if ',' in str(path) or ':' in str(path) or '\n' in str(path):
+>           raise ValueError('隔离挂载路径包含不支持的字符')
+E           ValueError: 隔离挂载路径包含不支持的字符
+
+tmh\platform\project_container.py:72: ValueError
+_______ PersonalMergeTest.test_lfs_filter_is_refused_with_clear_reason ________
+ValueError: 隔离挂载路径包含不支持的字符
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x0000020EB6B3FCE0>
+test_case = <test_project_merge.PersonalMergeTest testMethod=test_lfs_filter_is_refused_with_clear_reason>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_lfs_filter_is_refused_with_clear_reason>
+result = <TestCaseFunction test_lfs_filter_is_refused_with_clear_reason>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_lfs_filter_is_refused_with_clear_reason>
+method = <bound method PersonalMergeTest.test_lfs_filter_is_refused_with_clear_reason of <test_project_merge.PersonalMergeTest testMethod=test_lfs_filter_is_refused_with_clear_reason>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_merge.PersonalMergeTest testMethod=test_lfs_filter_is_refused_with_clear_reason>
+
+    def test_lfs_filter_is_refused_with_clear_reason(self):
+        (self.root/'.git/info/attributes').write_text('example.py filter=lfs\n')
+>       with self.assertRaisesRegex(ValueError,'LFS'):self.merge()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_merge.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.case._AssertRaisesContext object at 0x0000020EB6D3C180>
+exc_type = <class 'ValueError'>, exc_value = ValueError('隔离挂载路径包含不支持的字符')
+tb = <traceback object at 0x0000020EB6D5E1C0>
+
+    def __exit__(self, exc_type, exc_value, tb):
+        if exc_type is None:
+            try:
+                exc_name = self.expected.__name__
+            except AttributeError:
+                exc_name = str(self.expected)
+            if self.obj_name:
+                self._raiseFailure("{} not raised by {}".format(exc_name,
+                                                                self.obj_name))
+            else:
+                self._raiseFailure("{} not raised".format(exc_name))
+        else:
+            traceback.clear_frames(tb)
+        if not issubclass(exc_type, self.expected):
+            # let unexpected exceptions pass through
+            return False
+        # store exception, without traceback, for later retrieval
+        self.exception = exc_value.with_traceback(None)
+        if self.expected_regex is None:
+            return True
+    
+        expected_regex = self.expected_regex
+        if not expected_regex.search(str(exc_value)):
+>           self._raiseFailure('"{}" does not match "{}"'.format(
+                     expected_regex.pattern, str(exc_value)))
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:276: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.case._AssertRaisesContext object at 0x0000020EB6D3C180>
+standardMsg = '"LFS" does not match "隔离挂载路径包含不支持的字符"'
+
+    def _raiseFailure(self, standardMsg):
+        msg = self.test_case._formatMessage(self.msg, standardMsg)
+>       raise self.test_case.failureException(msg)
+E       AssertionError: "LFS" does not match "隔离挂载路径包含不支持的字符"
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:200: AssertionError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_project_merge.xml -
+======================== 3 failed, 3 passed in 14.80s =========================

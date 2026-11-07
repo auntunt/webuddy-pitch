@@ -1,0 +1,23 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 12 items
+
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_answered_unknown_stays_open_even_when_reader_claims_completion PASSED [  8%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_contract_check_and_layer_changed_during_retry_are_not_overwritten PASSED [ 16%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_contract_update_between_landing_read_and_write_is_not_lost PASSED [ 25%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_expired_get_cannot_give_up_a_replacement_job_started_before_lock PASSED [ 33%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_expired_retry_does_not_overwrite_a_newer_contract_during_fallback PASSED [ 41%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_late_success_cannot_replace_a_new_recovery_job PASSED [ 50%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_real_finished_receipt_must_remain_readable_and_confirm_cleanup 
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_real_finished_receipt_must_remain_readable_and_confirm_cleanup PASSED [ 58%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_recovery_read_is_side_effect_free PASSED [ 66%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_retry_preserves_entire_closed_contract_and_distinct_authors PASSED [ 75%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_retry_that_returns_placeholder_is_visible_and_still_retryable PASSED [ 83%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_ticket_closed_while_reader_runs_is_not_reported_as_recovered PASSED [ 91%]
+tests/test_intake_recovery_independent.py::IndependentIntakeRecoveryTest::test_two_retry_requests_create_only_one_new_job PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_intake_recovery_independent.xml -
+=================== 12 passed, 4 subtests passed in 24.38s ====================

@@ -1,0 +1,18 @@
+EXACT_CI_GATE_RECEIPTS_OK
+MANIFEST_OK 2949
+DATABASE_COPIES_OK 15
+MANIFEST_OK 2874
+DATABASE_COPIES_OK 15
+MANIFEST_OK 2949
+DATABASE_COPIES_OK 15
+BACKUP_BYTES_VERIFIED 56362
+curl: (7) Failed to connect to 127.0.0.1 port 8790 after 0 ms: Couldn't connect to server
+active
+BACKUP=/opt/webuddy/backups/pre-scenario-ec7a64b6-test-20261107T114959Z
+/opt/webuddy/releases/scenario-ec7a64b6/app
+MainPID=1918698
+NRestarts=0
+ActiveState=active
+Nov 07 19:49:56 VM-0-17-ubuntu systemd[1]: Started webuddy-scenario-ec7a64b6.service - /bin/bash -c "bash /tmp/scenario-activate.sh > /tmp/scenario-activation.log 2>&1".
+Nov 07 19:51:39 VM-0-17-ubuntu systemd[1]: webuddy-scenario-ec7a64b6.service: Deactivated successfully.
+Nov 07 19:51:39 VM-0-17-ubuntu systemd[1]: webuddy-scenario-ec7a64b6.service: Consumed 1min 17.891s CPU time, 1.2G memory peak, 0B memory swap peak.

@@ -75,6 +75,22 @@ class AgentAPITest(unittest.TestCase):
                                 result=result or '```tmh-plan\n{"ac":[{"text":"持久保存","check":"重启后读回"}]}\n```')
         return self.P.store.run(r['id'])
 
+    def test_intake_is_recorded_without_a_model_and_ai_reading_needs_execution(self):
+        args = {'project': 'AGENT', 'text': '投标列表要导出报价汇总', 'requester': '前线小王', 'request_id': 'in-1'}
+        out = self.call('intake_start', args)
+        s = out['session']
+        self.assertFalse(out['model_called'])
+        self.assertEqual((s['understood']['by'], s['channel'], s['tickets']), ('规则', 'mcp', []))
+        self.assertTrue(s['text'].startswith('提出人：前线小王\n投标列表'))
+        self.assertEqual(self.call('intake_start', args)['session']['id'], s['id'])
+        self.assertEqual(self.call('intake_get', {'session': s['id']})['session']['text'], s['text'])
+        with self.assertRaises(ApiError) as e:
+            self.call('intake_understand', {'session': s['id'], 'request_id': 'in-2'})
+        self.assertEqual(e.exception.code, 403)
+        with self.assertRaises(ApiError) as e:
+            self.call('intake_get', {'session': 'nope'})
+        self.assertEqual(e.exception.code, 400)
+
     def test_create_is_held_agent_attributed_and_replayed_exactly(self):
         one = self.call('ticket_create', self.args)
         two = self.call('ticket_create', self.args)
@@ -263,6 +279,21 @@ class AgentAPITest(unittest.TestCase):
             self.call('run_start', {'ticket': t['key'], 'mode': 'plan', 'engine': 'codex', 'request_id': 'unsafe-restart'}, execution=True)
         self.assertIn('needs_reconcile', str(caught.exception))
         restart.assert_not_called()
+
+    def test_unknown_launch_does_not_block_managed_recovery_or_require_current_workflow(self):
+        t = self.create()
+        run = self.run_record(t, status='failed')
+        agent_api._schema(self.P.store)
+        self.P.store.x("INSERT INTO agent_requests(agent,request_id,operation,fingerprint,arguments,resource,state,created,updated) VALUES(?,?,?,?,?,?,?,?,?)",
+            ('agent:codex','lost-start','run_start','fixture','{}','ticket:'+str(t['id']),'uncertain','fixture','fixture'))
+        with patch('tmh.platform.project_library.require_development', side_effect=ValueError('workflow drift')), \
+                patch('tmh.platform.server.api_recover_run', return_value={}) as recover, \
+                patch.object(self.P.runner,'start') as start:
+            result = self.call('run_recover',{'project':'AGENT','run_id':run['id'],'request_id':'recover-stop'},execution=True)
+        recover.assert_called_once()
+        start.assert_not_called()
+        self.assertEqual(result['id'],run['id'])
+        self.assertEqual(self.call('request_get',{'request_id':'lost-start'})['state'],'uncertain')
 
     def test_cross_process_retry_creates_one_ticket(self):
         payload = json.dumps({'database': str(self.P.store.path), 'args': self.args})
