@@ -1,0 +1,8 @@
+file:///private/tmp/webuddy-map-20261107/b-browser-states.mjs:5
+await evaluate(`document.querySelector('#cmQ').value='no-such-symbol-empty-test';document.querySelector('#cmQ').dispatchEvent(new Event('input'));document.querySelector('#cmQuestion').requestSubmit()`);await wait('!!document.querySelector("#cmNodes")');if(!await evaluate('document.querySelector("#cmNodes").textContent.includes("没有定位到")'))throw Error('No hits not explained');
+                                                                                                                                                                                                                                                                                                                                                          ^
+
+Error: No hits not explained
+    at file:///private/tmp/webuddy-map-20261107/b-browser-states.mjs:5:347
+
+Node.js v24.16.0
