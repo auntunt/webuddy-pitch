@@ -53,6 +53,16 @@ def settings(data_dir: Path) -> dict:
             "timeout": int(v.get("timeout") or 1800)}
 
 
+def local_check() -> dict:
+    """Inventory the server process environment; this does not run project tests."""
+    import shutil
+    import sys
+    return {"ok": True, "executor": "local", "os": "windows" if os.name == "nt" else "posix",
+            "tools": {"python": sys.executable, **{name: shutil.which(name) or ""
+                      for name in ("git", "node", "java", "mvn", "dotnet", "pnpm")}},
+            "notice": "只检查当前平台进程可用的工具；项目测试是否通过以实际执行回执为准。"}
+
+
 class TestBox:
     def __init__(self, conf: dict, data_dir: Path):
         self.c = conf

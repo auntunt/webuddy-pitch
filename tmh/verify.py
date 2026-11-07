@@ -40,11 +40,15 @@ def fingerprint(f: dict) -> str:
 
 def detect_commands(root: Path) -> dict:
     cmds = {"build": "", "test": ""}
-    if (root / "mvnw").exists():
+    if os.name == "nt" and (root / "mvnw.cmd").exists():
+        cmds["test"] = r".\mvnw.cmd -q -B test"
+    elif os.name == "nt" and (root / "gradlew.bat").exists():
+        cmds["test"] = r".\gradlew.bat test"
+    elif os.name != "nt" and (root / "mvnw").exists():
         cmds["test"] = "./mvnw -q -B test"
     elif (root / "pom.xml").exists():
         cmds["test"] = "mvn -q -B test"
-    elif (root / "gradlew").exists():
+    elif os.name != "nt" and (root / "gradlew").exists():
         cmds["test"] = "./gradlew test"
     elif (root / "build.gradle").exists() or (root / "build.gradle.kts").exists():
         cmds["test"] = "gradle test"

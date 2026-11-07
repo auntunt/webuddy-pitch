@@ -36,6 +36,10 @@ class DistributionTest(unittest.TestCase):
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                         encoding="utf-8", timeout=90)
                 self.assertEqual(result.returncode, 0, result.stdout)
+            for engine in ('.agents', '.claude'):
+                for name in ('migrate-to-java/SKILL.md', 'migrate-to-java/references/java-engineering.md', 'migrate-to-java/LICENSE', 'xinchuang-migrate/assets/target-environment.yaml'):
+                    self.assertEqual((project / engine / 'skills' / name).read_bytes(),
+                                     (resources.root() / 'skills' / name).read_bytes())
             self.assertTrue((project / "AGENTS.md").read_text(encoding="utf-8").startswith(original))
             self.assertEqual((project / ".tmh/docs/agent-commands.md").read_bytes(),
                              (resources.root() / "docs/agent-commands.md").read_bytes())

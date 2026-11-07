@@ -2937,7 +2937,10 @@ def api_testbox(P, req):
     from . import testbox
     f = P.data_dir / "testbox-check.json"
     last = json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
-    return {"conf": testbox.settings(P.data_dir), "last": last}
+    conf = testbox.settings(P.data_dir)
+    if last and last.get("configuration") != conf:
+        last = None
+    return {"conf": conf, "executor": "testbox" if conf else "local", "last": last}
 
 
 @route("GET", "/api/projects/<key>/releases")
@@ -3196,7 +3199,14 @@ def api_readiness(P, req):
 def api_testbox_save(P, req):
     """Where the test machine is: {host: "user@host" or an ~/.ssh/config alias, port (empty: the alias's own), dir}; an empty host turns it off. Key login only."""
     host = str(req.body.get("host") or "").strip()
-    if host and not re.match(r"^[\w.-]+@[\w.-]+$", host):
+    executor = req.body.get("executor", "testbox" if host else "local")
+    if executor not in ("local", "testbox"):
+        raise ApiError(400, "执行位置只能是 local 或 testbox")
+    if executor == "testbox" and not host:
+        raise ApiError(400, "选择远程测试机时需要填写 SSH 地址")
+    if executor == "local":
+        host = ""
+    if host and (not re.fullmatch(r"[\w.-]+(?:@[\w.-]+)?", host) or host.startswith("-")):
         raise ApiError(400, "地址写成 用户名@主机，比如 user@build-host.example.invalid")
     from .util_conf import update_autoflow
     try:
@@ -3214,17 +3224,18 @@ def api_testbox_act(P, req, action):
     """check: what the machine has; install: unpack the missing tools there (a person asked for it on the page)."""
     from . import testbox
     conf = testbox.settings(P.data_dir)
-    if not conf:
-        raise ApiError(400, "还没设置测试机")
-    box = testbox.TestBox(conf, P.data_dir)
+    box = testbox.TestBox(conf, P.data_dir) if conf else None
     if action == "check":
-        r = box.check()
+        r = box.check() if box else testbox.local_check()
     elif action == "install":
+        if not box:
+            raise ApiError(400, "本机依赖请按项目要求安装；远程安装入口只用于已配置的 SSH 测试机")
         r = box.install(req.body.get("tools") or None)
         r = dict(r["check"], log=r["log"]) if r.get("check") else r
     else:
         raise ApiError(404, "没有这个操作")
     r["at"] = now()
+    r["configuration"] = conf
     (P.data_dir / "testbox-check.json").write_text(json.dumps(r, ensure_ascii=False), encoding="utf-8")
     return r
 

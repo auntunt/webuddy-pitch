@@ -164,7 +164,8 @@ function paintTabs(tab){
   paintNav();$('#svc').hidden=true;document.body.classList.toggle('svc-reform',S.svc==='reform');ls.set('tmh.svc',S.svc);
   const v=curView(), group=navOf(v), sets={
     workspace:[['workspace','待处理任务'],['today','动态'],['home','流程总览'],['meetings','会议与行动']],
-    projects:[['projects','项目与环境'],['reform','重构计划'],['settings','设置']],
+    projects:[['projects','项目与环境'],['settings','设置']],
+    reform:[['reform','改造计划'],['rtickets','改造工单'],['rdeps','依赖清单']],
     tasks:[['tickets','全部需求'],['board','状态看板'],['reqs','需求对话'],['rtickets','重构工单']],
     deliveries:[['deliveries','交付记录'],['versions','版本']],
     runs:[['runs','AI 工作记录']],
@@ -1937,8 +1938,8 @@ function agentSettingsEdit(d,a){
 
 async function projectTestsOpen(key){
   let data;try{data=await get('/api/projects/'+encodeURIComponent(key)+'/tests')}catch(e){toast(e.message);return}
-  const profile=data.profile||{executor:'testbox',require_all_criteria:true,stages:[]};
-  modal(`<h2>项目测试 · ${h(key)}</h2><form id="projectTestForm" class="form"><label>执行位置<select id="testExecutor"><option value="testbox">SSH 测试机</option><option value="local">平台本机</option></select></label><label><input type="checkbox" id="testAllCriteria">要求每项验收标准都有通过的用例</label><div id="testStages"></div><button type="button" id="testAddStage">添加检查阶段</button><p id="testSaveStatus" role="status"></p><button class="primary" type="submit">保存测试配置</button></form>`,true);
+  const profile=data.profile||{executor:'local',require_all_criteria:true,stages:[]};
+  modal(`<h2>项目测试 · ${h(key)}</h2><form id="projectTestForm" class="form"><label>执行位置<select id="testExecutor"><option value="local">安装机器（本机）</option><option value="testbox">另一台机器（SSH）</option></select></label><label><input type="checkbox" id="testAllCriteria">要求每项验收标准都有通过的用例</label><div id="testStages"></div><button type="button" id="testAddStage">添加检查阶段</button><p id="testSaveStatus" role="status"></p><button class="primary" type="submit">保存测试配置</button></form>`,true);
   const form=$('#projectTestForm'),stages=form.querySelector('#testStages');
   form.querySelector('#testExecutor').value=profile.executor;form.querySelector('#testAllCriteria').checked=profile.require_all_criteria;
   const labels={setup:'准备依赖',build:'构建',static:'静态检查',unit:'单元测试',integration:'集成测试',e2e:'端到端测试',security:'安全检查',performance:'性能测试',migration:'数据迁移',mutation:'变异测试',cleanup:'清理'};
@@ -2013,19 +2014,26 @@ async function readiness(){
   $('#rdyR').onclick=readiness}
 // ---------- the test machine: where the platform builds and tests changes, over SSH with key login
 async function testbox(d){
-  const el=$('#tbx');if(!el)return;try{d=d||await get('/api/testbox')}catch(e){el.innerHTML='<h2>测试机</h2><div class="sub">'+h(e.message)+'</div>';return}
-  const c=d.conf||{},L=d.last;
-  const tools=L&&L.tools?Object.entries(L.tools).map(([k,v])=>`<div class="flowrow"><span>${h(k)}</span><span class="tag ${v?'':'warn'}">${v?h(v.slice(0,40)):'没有'}</span></div>`).join(''):'';
-  el.innerHTML=`<h2>测试机</h2><div class="sub">改完代码后，平台把改动发到这台机器上编译和测试，结果交回给智能体。只用 SSH 密钥登录，不保存密码。不设置就不跑构建。</div>
-   <div class="row" style="margin-top:8px"><label class="grow">地址 <input class="full" id="tbH" placeholder="用户名@地址，或 ~/.ssh/config 里的名字" value="${h(c.host||'')}"></label><label>端口 <input id="tbP" size="6" placeholder="默认" value="${h(c.port?String(c.port):'')}"></label></div>
-   <label>工作目录（可不填，Windows 默认 C:/tmh-runner）<input class="full" id="tbD" value="${h(c.dir||'')}"></label>
-   <div class="row" style="gap:8px"><button class="primary" id="tbS">保存</button>${c.host?'<button id="tbC">体检</button>':''}</div>
-   ${L?`<div style="margin-top:10px">${L.error?`<div class="sub" style="color:var(--bad)">${h(L.error)}</div>`:`<div class="sub">${h(L.os==='windows'?'Windows':'Linux/macOS')} · ${h(L.dir||'')} · ${h(chinaTime(L.at||''))}</div>${tools}`}</div>`:''}
-   ${L&&L.missing&&L.missing.length?`<div style="margin-top:8px" id="tbI"><div class="sub">缺 ${h(L.missing.join('、'))}。可以让平台在测试机上下载免安装版，解压到工作目录的 tools 下（不需要管理员权限，不改系统设置）。</div><button id="tbI1">下载安装缺的工具</button></div>`:''}
-   ${L&&L.log?`<pre class="log">${h(L.log.join('\n'))}</pre>`:''}`;
-  $('#tbS').onclick=async()=>{try{testbox(await post('/api/testbox',{host:$('#tbH').value.trim(),port:+$('#tbP').value||0,dir:$('#tbD').value.trim()}));toast('已保存')}catch(e){toast(e.message,5000)}};
-  if($('#tbC'))$('#tbC').onclick=async()=>{$('#tbC').disabled=true;$('#tbC').textContent='体检中…';try{await post('/api/testbox/check',{})}catch(e){toast(e.message,5000)}testbox()};
-  if($('#tbI1'))$('#tbI1').onclick=()=>{$('#tbI').innerHTML=`<div class="sub">会在测试机上下载并解压：${h(L.missing.join('、'))}，可能要几分钟到几十分钟。</div><div class="row" style="gap:8px"><button class="primary" id="tbI2">确认下载安装</button><button id="tbI3">取消</button></div>`;
+  const el=$('#tbx');if(!el)return;try{d=d||await get('/api/testbox')}catch(e){el.innerHTML='<h2>构建与测试位置</h2><div class="sub">'+h(e.message)+'</div>';return}
+  const c=d.conf||{},L=d.last,current=d.executor||(c.host?'testbox':'local');
+  const tools=L&&L.tools?Object.entries(L.tools).map(([k,v])=>`<div class="flowrow"><span>${h(k)}</span><span class="tag ${v?'':'warn'}" title="${h(v||'')}">${v?h(v.slice(0,60)):'未找到'}</span></div>`).join(''):'';
+  el.innerHTML=`<h2>构建与测试位置</h2>
+   <label>默认执行位置<select id="tbMode"><option value="local">安装机器（本机）</option><option value="testbox">另一台机器（SSH）</option></select></label>
+   <div id="tbLocal" class="sub">使用安装 Webuddy 的机器，无需 SSH。平台在任务工作目录执行项目检查，保留超时、取消和执行回执；工作目录隔离不等于系统沙箱。</div>
+   <div id="tbRemote"><div class="sub">通过 SSH 密钥连接另一台机器。不保存密码，连接失败不会改到本机执行。</div>
+    <div class="row" style="margin-top:8px"><label class="grow">地址<input class="full" id="tbH" placeholder="用户名@地址，或 ~/.ssh/config 里的名字" value="${h(c.host||'')}"></label><label>端口<input id="tbP" size="6" placeholder="默认" value="${h(c.port?String(c.port):'')}"></label></div>
+    <label>远程工作目录（Windows 默认 C:/tmh-runner）<input class="full" id="tbD" value="${h(c.dir||'')}"></label></div>
+   <p class="sub">项目单独配置的执行位置优先。项目仍需可用的依赖和测试命令；未执行不能记为通过。</p>
+   <div class="row" style="gap:8px"><button class="primary" id="tbS">保存</button><button id="tbC">检查环境</button></div><p id="tbPending" role="status"></p>
+   <div id="tbLast">${L?`<div style="margin-top:10px">${L.error?`<div class="sub" style="color:var(--bad)">${h(L.error)}</div>`:`<div class="sub">${h(L.os==='windows'?'Windows':'Linux/macOS')} · ${h(chinaTime(L.at||''))}</div>${L.notice?`<p>${h(L.notice)}</p>`:''}${tools}`}</div>`:''}
+   ${current==='testbox'&&L&&L.missing&&L.missing.length?`<div style="margin-top:8px" id="tbI"><div class="sub">缺 ${h(L.missing.join('、'))}。可在远程工作目录下载免安装工具。</div><button id="tbI1">下载安装缺的工具</button></div>`:''}
+   ${L&&L.log?`<pre class="log">${h(L.log.join('\n'))}</pre>`:''}</div>`;
+  $('#tbMode').value=current;
+  const changed=()=>{const local=$('#tbMode').value==='local',dirty=$('#tbMode').value!==current||$('#tbH').value.trim()!==(c.host||'')||(+$('#tbP').value||0)!==(c.port||0)||$('#tbD').value.trim()!==(c.dir||'');$('#tbLocal').hidden=!local;$('#tbRemote').hidden=local;$('#tbC').disabled=dirty;$('#tbLast').hidden=dirty;$('#tbPending').textContent=dirty?'请先保存，再检查所选环境。':''};
+  $('#tbMode').onchange=changed;for(const id of ['tbH','tbP','tbD'])$('#'+id).oninput=changed;changed();
+  $('#tbS').onclick=async()=>{const executor=$('#tbMode').value;if(executor==='testbox'&&!$('#tbH').value.trim()){toast('请填写远程 SSH 地址');return}try{testbox(await post('/api/testbox',{executor,host:executor==='local'?'':$('#tbH').value.trim(),port:+$('#tbP').value||0,dir:$('#tbD').value.trim()}));toast('已保存')}catch(e){toast(e.message,5000)}};
+  $('#tbC').onclick=async()=>{$('#tbC').disabled=true;$('#tbC').textContent='检查中…';try{await post('/api/testbox/check',{})}catch(e){toast(e.message,5000)}testbox()};
+  if($('#tbI1'))$('#tbI1').onclick=()=>{$('#tbI').innerHTML=`<div class="sub">会在远程机器下载并解压：${h(L.missing.join('、'))}。</div><div class="row" style="gap:8px"><button class="primary" id="tbI2">确认下载安装</button><button id="tbI3">取消</button></div>`;
     $('#tbI3').onclick=()=>testbox();
     $('#tbI2').onclick=async()=>{$('#tbI2').disabled=true;$('#tbI2').textContent='正在下载安装…';try{await post('/api/testbox/install',{})}catch(e){toast(e.message,5000)}testbox()}}}
 function newProject(){return libraryImportProject()}

@@ -36,4 +36,16 @@ include templates/AGENTS.block.md
 include templates/CLAUDE.block.md
 include templates/integration_plugin_example.py
 include templates/knowledge-README.md
+include skills/migrate-to-java/LICENSE
+include skills/migrate-to-java/NOTICE
+include skills/migrate-to-java/references/java-engineering.md
+include skills/migrate-to-java/assets/migration-blueprint.md
+include skills/migrate-to-java/assets/acceptance.md
+include skills/xinchuang-migrate/LICENSE
+include skills/xinchuang-migrate/NOTICE
+include skills/xinchuang-migrate/references/platform-adaptation.md
+include skills/xinchuang-migrate/assets/target-environment.yaml
+include skills/xinchuang-migrate/assets/compatibility-matrix.csv
+include skills/xinchuang-migrate/assets/cutover-rollback.md
+include skills/migrate-to-java/SKILL.md
 global-exclude __pycache__ *.pyc .DS_Store *.db *.sqlite *.sqlite3 *.log

@@ -1,0 +1,20 @@
+Migration Skills — Java and China domestic software adaptation
+
+Workflow inspiration: Google, google/skills, migrate-to-rust.
+Source: https://github.com/google/skills/tree/0b14183791fb3d017b06b7c7718078d82a4afc33/skills/developers/migrate-to-rust
+Source commit: 0b14183791fb3d017b06b7c7718078d82a4afc33
+Original SKILL.md blob: 8b51977ab7518e94013760ac3fb765af0d725354
+Retrieved: 2026-11-05 (Asia/Shanghai)
+Upstream license: Apache License 2.0 (included as LICENSE).
+
+Changes: rewrote the workflow in Chinese for Java migration and China domestic
+software adaptation; replaced Rust-only safety, SIMD, LLVM PGO, fixed coverage
+and storytelling requirements with behavior contracts, environment-specific
+compatibility, evidence-based acceptance and data-aware rollback. Added new
+reference documents, task templates, and independently written Python tools.
+The original telemetry implementation and infographic template are not bundled.
+
+These adaptations are independently prepared and are not Google releases,
+Google endorsements, vendor compatibility certificates, or procurement approvals.
+
+Webuddy integration: adapted task guidance and templates to existing reform contracts, receipts, permissions and reports; standalone scanner/ledger tools are not included.

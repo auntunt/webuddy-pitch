@@ -157,6 +157,8 @@ def _build(P) -> list:
             last = json.loads((Path(P.data_dir) / "testbox-check.json").read_text(encoding="utf-8"))
         except (OSError, ValueError):
             last = None
+        if last and last.get("configuration") != box:
+            last = None
         where = "测试机 %s" % box.get("host", "")
         if not last:
             return [_item("build", "构建和测试", "warn", "%s 还没体检过" % where, "在下面“测试机”里点“体检”", "#/settings")]

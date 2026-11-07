@@ -95,11 +95,11 @@ function workIcon(name){const icons={
   dot:'<circle cx="12" cy="12" r="4"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'};
   return `<svg class="wicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[name]||icons.dot}</svg>`}
-const NAV=[['workspace','工作台','#/workspace','today'],['tasks','需求与变更','#/tickets','reqs'],['deliveries','验证与交付','#/deliveries','deliveries'],['memory','项目知识','#/memory','message']];
+const NAV=[['workspace','工作台','#/workspace','today'],['tasks','需求与变更','#/tickets','reqs'],['reform','改造计划','#/reform','versions'],['deliveries','验证与交付','#/deliveries','deliveries'],['memory','项目知识','#/memory','message']];
 const WK=['workspace','projects','team','memory','handoff','deliveries','delivery','today','clients','c','reqs','versions','t'];
 function isEng(v){return !WK.includes(v)}
-function navOf(v){return ['home','workspace','today','meetings'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn','atlas','states','map'].includes(v)?'memory':['tickets','t','reqs','board','rtickets'].includes(v)?'tasks':['deliveries','delivery','versions'].includes(v)?'deliveries':v==='runs'?'runs':['lead','overview','eff'].includes(v)?'insights':'projects'}
-function navCurrent(v){return ['c','clients'].includes(v)?'clients':v==='team'?'tasks':['settings','access','projects'].includes(v)?v:navOf(v)}
+function navOf(v){return ['home','workspace','today','meetings'].includes(v)?'workspace':['team'].includes(v)?'team':['memory','handoff','kb','library','learn','atlas','states','map'].includes(v)?'memory':['tickets','t','reqs','board'].includes(v)?'tasks':['reform','rtickets','rdeps'].includes(v)?'reform':['deliveries','delivery','versions'].includes(v)?'deliveries':v==='runs'?'runs':['lead','overview','eff'].includes(v)?'insights':'projects'}
+function navCurrent(v){if(v==='projects'&&/^#\/projects\/[^/]+\/reforms\//.test(globalThis.location?.hash||''))return 'reform';return ['c','clients'].includes(v)?'clients':v==='team'?'tasks':['settings','access','projects'].includes(v)?v:navOf(v)}
 function paintNav(){const cur=navCurrent(curView()),nav=$('#nav5');
   const signature=JSON.stringify([cur,curView(),!!S.meta?.access?.can_manage,S.meta?.access?.role]);if(nav.dataset.signature===signature)return;
   const focused=nav.contains(document.activeElement)?document.activeElement.closest('[data-n]')?.dataset.n:null;

@@ -381,8 +381,8 @@ class FixLoop:
             if given.get(k):
                 seq.append((k, given[k]))
             elif found.get(k):
-                exe = shlex.split(found[k])[0]
-                if exe.startswith("./") and (self.wt / where / exe).exists() or shutil.which(exe):
+                exe = shlex.split(found[k], posix=os.name != "nt")[0].strip('"')
+                if (exe.startswith(("./", ".\\")) and (self.wt / where / exe).exists()) or shutil.which(exe):
                     seq.append((k, ("cd %s && %s" % (shlex.quote(where), found[k])) if where else found[k]))
                 else:
                     missing.append(exe)
@@ -440,7 +440,7 @@ class FixLoop:
             res = {"kind": kind, "command": cmd, "exit_code": code, "seconds": round(time.time() - t0, 1),
                    "tail": "\n".join(text.strip().splitlines()[-60:]), "output": text,
                    "reason": r.reason, "evidence": str(folder.relative_to(getattr(self.r, "evidence_root", self.r.data_dir))), "cleanup": r.cleanup}
-            if code in (124, 127) or r.reason in ("timeout", "cancelled"):
+            if code in (124, 127) or (os.name == "nt" and code == 9009) or r.reason in ("timeout", "cancelled"):
                 res['verification_state'] = 'blocked'
             if git(where, "rev-parse", "HEAD").strip() != base or worktree_diff(where) != diff:
                 res.update(exit_code=1, verification_state="blocked", code_changed=True,

@@ -1,0 +1,22 @@
+id,layer,component,required,applicability,source_tuple,target_tuple,change_required,documentation_status,validation_environment,test_case,acceptance_criteria,status,evidence,owner,blocker,next_action
+ENV-01,CPU,型号/ISA/位数/端序,yes,unknown: 必需,unknown,unknown,unknown,unverified,unknown,实机架构探测与制品核对,精确元组一致且所有原生制品可运行,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+ENV-02,OS,产品/edition/版本/SP/内核/libc,yes,unknown: 必需,unknown,unknown,unknown,unverified,unknown,实际系统与环境契约核对,精确元组已确认且业务依赖满足,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+RUN-01,运行时,发行版/版本/build/架构,yes,unknown: 按实际技术栈,unknown,unknown,unknown,unverified,unknown,关键业务与运行时配置回归,目标运行时行为满足已约定契约,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+RUN-02,Java,JDK/JNI/JNA/代理/密码提供者,unknown,unknown: 先判断是否涉及 Java,unknown,unknown,unknown,unverified,unknown,目标 JDK 与原生依赖加载测试,实际涉及的 Java 路径通过,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+APP-01,应用服务器,EE/Servlet/类加载/事务/会话,unknown,unknown: 先判断是否涉及容器,unknown,unknown,unknown,unverified,unknown,部署及 javax/jakarta 依赖检查,指定规范级别及业务行为通过,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+NAT-01,原生依赖,动态库/闭源SDK/原生扩展,unknown,unknown: 先盘点,unknown,unknown,unknown,unverified,unknown,加载与代表业务路径测试,目标 ISA/ABI 构件及授权可用,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+WIN-01,Windows依赖,COM/ActiveX/Office/注册表,unknown,unknown: 先盘点,unknown,unknown,unknown,unverified,unknown,替代边界和文件契约回归,相关业务流程与外部契约保持,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+DOC-01,字体打印,字体/分页/打印驱动/纸张,unknown,unknown: 先盘点,unknown,unknown,unknown,unverified,unknown,代表文档渲染与实体打印,约定版式及输出内容通过,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+DOC-02,报表OCR,报表模板/OCR模型/原生库,unknown,unknown: 先盘点,unknown,unknown,unknown,unverified,unknown,内容版式精度与吞吐评估,约定准确率版式和性能通过,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+DEV-01,设备,外设/密码设备/授权锁,unknown,unknown: 先盘点,unknown,unknown,unknown,unverified,unknown,真实设备连接故障恢复,指定设备与固件下业务通过,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+DB-01,数据库环境,edition/版本/兼容模式/字符集/驱动,unknown,unknown: 先判断是否涉及数据库,unknown,unknown,unknown,unverified,unknown,环境查询和驱动元数据核对,精确组合与支持条件已确认,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+DB-02,数据库对象,表/索引/约束/视图/序列,unknown,unknown: 先盘点,unknown,unknown,unknown,unverified,unknown,对象清单及生成值核对,必需对象存在且语义一致,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+DB-03,数据库语义,SQL/NULL/排序/精度/时区,unknown,unknown: 先盘点,unknown,unknown,unknown,unverified,unknown,同输入差分与边界用例,业务约定的数据和查询结果一致,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+DB-04,数据库程序,存储过程/包/触发器/作业,unknown,unknown: 先盘点,unknown,unknown,unknown,unverified,unknown,程序对象与定时任务回归,控制流异常和副作用满足契约,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+DB-05,事务权限,隔离/锁/提交/角色/审计,unknown,unknown: 先盘点,unknown,unknown,unknown,unverified,unknown,并发异常与最小权限测试,事务结果权限及审计符合要求,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+DB-06,数据迁移,快照/增量/位点/追平/核对,unknown,unknown: 先判断是否迁数据,unknown,unknown,unknown,unverified,unknown,全量增量最终水位演练,冻结边界内数据及业务不变量一致,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+DEL-01,离线交付,系统包/插件/依赖/镜像/授权,unknown,unknown: 按交付要求,unknown,unknown,unknown,unverified,unknown,真实目标无外网安装业务演练,制品完整可追踪且安装业务通过,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+PAR-01,业务差分,API/文件/消息/状态/副作用,yes,unknown: 必需,unknown,unknown,unknown,unverified,unknown,代表业务同输入差分,已约定行为一致且差异有依据,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+PER-01,性能,吞吐/分位延迟/资源/启动,yes,unknown: 按约定 SLO,unknown,unknown,unknown,unverified,unknown,注明硬件数据与并发的负载测试,满足约定指标及资源预算,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+REC-01,恢复,备份恢复/对象/权限/业务,yes,unknown: 必需,unknown,unknown,unknown,unverified,unknown,实际恢复与 RPO/RTO 计时,恢复后业务与数据核对通过,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
+REC-02,新增写入回滚,反向同步/重放/去重/冲突/补偿,unknown,unknown: 涉及可变状态时评估,unknown,unknown,unknown,unverified,unknown,目标接收新写入后的回退演练,新增写入与外部副作用按约定恢复,not-run,,unknown,尚未确定适用范围和精确目标，未执行验证,填写元组与适用性；执行后登记证据
