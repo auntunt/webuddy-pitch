@@ -332,7 +332,10 @@ def run_supervised(cmd, *, folder, owner, cwd=None, env=None, timeout=None, canc
                 try:
                     for handle in handles:
                         os.set_handle_inheritable(handle, True)
-                    process = subprocess.Popen([sys.executable, str(Path(__file__).resolve()),
+                    # Windows venv python.exe is a redirector. Launch this
+                    # stdlib-only supervisor directly so its parent is the
+                    # actual pipe owner, not the redirector's extra process.
+                    process = subprocess.Popen([sys._base_executable, str(Path(__file__).resolve()),
                                                 '--windows-handles', *map(str, handles)],
                                                env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                                                stderr=subprocess.DEVNULL, startupinfo=startup, close_fds=True)

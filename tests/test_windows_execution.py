@@ -49,6 +49,24 @@ class NewlineContracts(unittest.TestCase):
 
 @unittest.skipUnless(os.name=='nt','Windows Job Object API')
 class WindowsOwnership(unittest.TestCase):
+    def test_virtualenv_supervisor_keeps_the_real_owner(self):
+        import venv
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            venv.EnvBuilder(with_pip=False).create(root / 'env')
+            script = (
+                'import sys; from pathlib import Path; '
+                'sys.path.insert(0, ' + repr(str(Path(__file__).resolve().parents[1])) + '); '
+                'from tmh.platform.supervised_process import run_supervised; '
+                'r=run_supervised([sys.executable,"-c","print(123)"], '
+                'folder=Path(sys.argv[1]),owner={"token":"venv-fixture","run_id":1,"data_dir":sys.argv[1]},timeout=15); '
+                'assert (r.returncode,r.reason,r.output_bytes,r.cleanup["complete"]) '
+                '== (0,"exited",b"123\\r\\n",True), (r.returncode,r.reason,r.output_bytes,r.cleanup)'
+            )
+            result = subprocess.run([str(root / 'env' / 'Scripts' / 'python.exe'), '-c', script,
+                                     str(root / 'receipt')], capture_output=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stderr.decode('utf-8', 'replace'))
+
     def test_preview_liveness_never_signals_a_live_process(self):
         from tmh.platform.preview import _alive
         from unittest.mock import patch

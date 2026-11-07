@@ -1058,3 +1058,5 @@ fcadb650精确CI42279767492：Linux3.11完整3034通过、47跳过；3.13为3033
 自有测试机MCP已真实完成（2026-11-07 12:33 CST）：固定21f4e73的tmh与官方MCP专项包SHA95ecb54d51de203375fcd29d2492d81d1c3ad55a749abd26582138a29d91dea3，远端验证后运行，15通过/1失败/4既有POSIX跳过，退出1，23.36秒；个人凭据unsupported为唯一失败，未删除安全门禁。原始JUnit与日志已下载读回，见evidence/windows-full-20261107。完整浅克隆包f01c90d112a5bf12953a464a6730c6a09ddc5c61c27f6cd8a283dcff849fa282（39209984字节）经既有SSH通道传输中；远端/本机脚本webuddy-win-full.ps1等待完整摘要，随后应用a9ce6f20增量并启动8分片。第三轮云端run42338796236进行中；未声明全量通过或全量完成。
 
 自有Windows确定性反例定位预览_alive的os.kill(pid,0)：隔离目标只输出before即以0退出，没有after；退出码0不代表检查完成。最小修复用OpenProcess(SYNCHRONIZE)+WaitForSingleObject(0)查询并关闭句柄，不发信号、不新增终止权限。实机修后输出before/alive True/after，新回归验证当前进程、存活子进程、退出子进程且禁止os.kill，通过。Mac相关17通过/6 Windows专用跳过。Windows执行模块8过/2失败，两项supervisor owner_lost在原21f4e73和修后代码均真实复现，已保留前后原回执，未归零或忽略。全量平台模块300秒预算不足导致后续用例缺失，改为通过pytest原生收集后逐用例执行该模块，其他模块不变，所有原断言保留；runner本机门禁模块实际通过。下一候选重新验证。
+
+owner_lost进一步通过真实解释器对照定位：同源码使用Windows基础Python成功，venv启动器多一层进程导致原监督器的parent_pid核对误拒。最小修复仅Windows分支用sys._base_executable直接启动stdlib-only监督器，项目命令/环境、管道所有权、取消/超时/清理与父进程核对不变。新增真实venv回归：旧代码退出1，修后Windows执行模块11项全部通过；Mac相关46通过/7 Windows专用跳过/8子用例通过。实机补丁与最终提交绑定后再次跑完整套件。此前失败与受阻记录不删除。
