@@ -1,5 +1,8 @@
 """Build an immutable Windows x64 runtime ZIP from a fixed Webuddy wheel and pinned official payloads."""
 import argparse
+import csv
+from email.parser import BytesParser
+import io
 import hashlib
 import json
 from pathlib import Path
@@ -45,6 +48,68 @@ def unzip(archive, destination):
         package.extractall(destination)
 
 
+def check_windows_dependencies(archives):
+    from packaging.requirements import Requirement
+    from packaging.utils import canonicalize_name
+    environment = dict(implementation_name='cpython', implementation_version='3.14.10',
+                       os_name='nt', platform_machine='AMD64', platform_release='10',
+                       platform_system='Windows', platform_version='10.0',
+                       python_full_version='3.14.10', platform_python_implementation='CPython',
+                       python_version='3.14', sys_platform='win32')
+    metadata = {}
+    for archive in archives:
+        with zipfile.ZipFile(archive) as package:
+            info = BytesParser().parsebytes(package.read(next(n for n in package.namelist() if n.endswith('.dist-info/METADATA'))))
+        metadata[canonicalize_name(info['Name'])] = info
+    extras = {'tmh-harness': {'mcp', 'server'}}
+    changed = True
+    while changed:
+        changed = False
+        for name, info in metadata.items():
+            for requirement in info.get_all('Requires-Dist', []):
+                r = Requirement(requirement)
+                if r.marker and not any(r.marker.evaluate(dict(environment, extra=e)) for e in {'', *extras.get(name, set())}):
+                    continue
+                target = canonicalize_name(r.name)
+                if target not in metadata or metadata[target]['Version'] not in r.specifier:
+                    raise ValueError('Missing/incompatible Windows dependency: ' + name + ' -> ' + requirement)
+                requested = set(r.extras) - extras.get(target, set())
+                if requested:
+                    extras.setdefault(target, set()).update(requested)
+                    changed = True
+
+
+def install_wheel(archive, packages, scripts):
+    relocated = {}
+    record = None
+    with zipfile.ZipFile(archive) as package:
+        for info in package.infolist():
+            if info.is_dir():
+                continue
+            parts = info.filename.split('/')
+            if parts[0].endswith('.data'):
+                if len(parts) < 3 or parts[1] != 'scripts':
+                    raise ValueError('Unsupported wheel installation scheme: ' + info.filename)
+                target = scripts.joinpath(*parts[2:])
+                base = scripts
+                relocated[info.filename] = '../../Scripts/' + '/'.join(parts[2:])
+            else:
+                target = packages / info.filename
+                base = packages
+            if not target.resolve().is_relative_to(base.resolve()) or target.exists():
+                raise ValueError('Unsafe or duplicate wheel member: ' + info.filename)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(package.read(info))
+            if info.filename.endswith('.dist-info/RECORD'):
+                record = target
+    if relocated:
+        rows = list(csv.reader(io.StringIO(record.read_text(encoding='utf-8'))))
+        for row in rows:
+            row[0] = relocated.get(row[0], row[0])
+        with record.open('w', encoding='utf-8', newline='') as output:
+            csv.writer(output).writerows(rows)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--wheel-release', type=Path, required=True, help='Directory from build-package.py')
@@ -84,13 +149,10 @@ def main():
         unzip(files['node'], root / 'tools/node')
         packages = root / 'runtime/python/Lib/site-packages'
         wheels = [str(path) for key, path in files.items() if key.startswith('wheel:')]
-        # These pinned wheels have no .data relocation entries. Preserve their bytes and
-        # metadata directly; host pip console wrappers would embed build-machine paths.
-        for archive in [wheel, *map(Path, wheels)]:
-            with zipfile.ZipFile(archive) as package:
-                if any('.data/' in name for name in package.namelist()):
-                    raise ValueError('Wheel requires installation scheme handling: ' + archive.name)
-            unzip(archive, packages)
+        archives = [wheel, *map(Path, wheels)]
+        check_windows_dependencies(archives)
+        for archive in archives:
+            install_wheel(archive, packages, root / 'runtime/python/Scripts')
         (root / 'runtime/python/python314._pth').write_text('python314.zip\n.\nLib/site-packages\nimport site\n', newline='\n')
         for filename in ('launcher.py', 'webuddy.cmd', 'start.cmd', 'check.cmd', 'config.example.json', 'README.txt'):
             shutil.copy2(spec / filename, root / filename)

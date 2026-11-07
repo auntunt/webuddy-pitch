@@ -235,5 +235,11 @@
     "filename": "wheels/uvicorn-0.54.0-py3-none-any.whl",
     "sha256": "505bdb0f318731d45f1f712071fc781a8981f6847a31c902c9f5e652d4f67faf",
     "bytes": 87427
+  },
+  "wheel:pywin32-312-cp314-cp314-win_amd64.whl": {
+    "url": "https://files.pythonhosted.org/packages/21/82/3bf86d2e2808902013132e1ce905a7da0da53790f3836c64bf44d55e24f3/pywin32-312-cp314-cp314-win_amd64.whl",
+    "filename": "wheels/pywin32-312-cp314-cp314-win_amd64.whl",
+    "sha256": "a4dd3a848290ef724347b19f301045831d8e802fa4464f491b98b1e0a081432e",
+    "bytes": 7024157
   }
 }

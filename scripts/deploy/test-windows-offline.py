@@ -25,12 +25,13 @@ def main():
     launch = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(launch)
     assert launch.verify(root) > 1000
+    manifest = json.loads((root / 'MANIFEST.json').read_text())
     work = root.parent / 'synthetic smoke 数据'
     work.mkdir(exist_ok=False)
     python = root / 'runtime/python/python.exe'
     default_env = os.environ.copy()
     default_env.update(PYTHONDONTWRITEBYTECODE='1', PYTHONUTF8='1')
-    records = {}
+    records = {'manifest_sha256': hashlib.sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest()}
     def call(*argv, env=None, ok=True):
         result = subprocess.run([str(python), '-B', str(launcher), *map(str, argv)],
                                 capture_output=True, encoding='utf-8', errors='replace',
@@ -118,6 +119,8 @@ def main():
         finally:
             cancel.set()
             thread.join(15)
+            if outcomes:
+                (work / ('server-%d.log' % attempt)).write_bytes(outcomes[0].output_bytes)
         assert not thread.is_alive()
         assert outcomes[0].cleanup['complete'], outcomes[0]
         records['stop_%d' % attempt] = outcomes[0].cleanup

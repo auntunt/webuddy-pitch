@@ -39,7 +39,7 @@ webuddy.cmd tool claude
 
 ## 构建与来源
 
-构建机需 Python 3.11+、pip 和 `7zz`。用户运行机器无需安装这些构建工具。固定第三方来源、版本、长度和 SHA256 在 `scripts/deploy/windows-offline/payloads.lock.json` 中；依赖 wheel 先按官方 PyPI 摘要核对，Codex/Claude 的 npm 包按 registry integrity 核对，Git/Node 按上游摘要核对。Python 来自官方 HTTPS 下载并固定哈希。工具原始配套文件和许可保留，不运行 npm postinstall。
+构建机需 Python 3.11+、pip、`packaging` 和 `7zz`（或用 `--sevenzip` 指定 7-Zip）。用户运行机器无需安装这些构建工具。固定第三方来源、版本、长度和 SHA256 在 `scripts/deploy/windows-offline/payloads.lock.json` 中；依赖 wheel 先按官方 PyPI 摘要核对，Codex/Claude 的 npm 包按 registry integrity 核对，Git/Node 按上游摘要核对。Python 来自官方 HTTPS 下载并固定哈希。工具原始配套文件和许可保留，不运行 npm postinstall。
 
 ```sh
 python3 scripts/deploy/build-package.py --ref <固定提交> --out /tmp/webuddy-wheel
@@ -49,7 +49,7 @@ python3 scripts/deploy/build-windows-offline.py \
   --out /tmp/webuddy-windows-release
 ```
 
-首次构建在线取回锁定文件，后续加 `--cache-only` 可完全离线重建。不会覆盖已有输出目录；缓存有损坏会报错，不静默覆盖。包内 wheel 按原始文件展开，不生成带构建机路径的 pip 启动器。若将来依赖 wheel 引入 `.data` 安装规则，构建会明确拒绝，需先补充相应安装处理与验证。
+首次构建在线取回锁定文件，后续加 `--cache-only` 可完全离线重建。不会覆盖已有输出目录；缓存有损坏会报错，不静默覆盖。构建按 Windows/Python 3.14 的条件依赖检查闭包，避免跨平台 pip 解析漏掉 `pywin32`。包内 wheel 按原始文件展开，不生成带构建机路径的 pip 启动器。`pywin32` 的 `.data/scripts` 移到运行目录 Scripts，并更新 RECORD；不运行会修改系统的 postinstall。其他尚未支持的 `.data` 安装规则会明确拒绝。
 
 输出含 ZIP、整个 ZIP 的 SHA256/长度回执和使用说明；ZIP 内有 `release.json`、第三方来源锁和逐文件清单。用户应先核对可信渠道提供的 ZIP 哈希，再解压运行；内置清单用于检查损坏，不是代码签名。
 

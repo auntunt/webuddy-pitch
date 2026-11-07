@@ -1,0 +1,39 @@
+offline	Start and restart with outbound access blocked	﻿2026-11-07T16:09:44.8965501Z ##[group]Run $archive = Get-ChildItem "$env:RUNNER_TEMP/bundle/*.zip" | Select-Object -First 1
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.8965943Z ^[[36;1m$archive = Get-ChildItem "$env:RUNNER_TEMP/bundle/*.zip" | Select-Object -First 1^[[0m
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.8966336Z ^[[36;1m./scripts/deploy/test-windows-offline.ps1 -Archive $archive.FullName -Evidence "$env:RUNNER_TEMP/offline-evidence"^[[0m
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9020575Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9020783Z env:
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9020902Z   PYTHONUTF8: 1
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9021025Z   PYTHONDONTWRITEBYTECODE: 1
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9021169Z   NO_PROXY: 127.0.0.1,localhost,::1
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9021364Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.11.9\x64
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9021610Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.11.9\x64/lib/pkgconfig
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9021858Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9022080Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9022323Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+offline	Start and restart with outbound access blocked	2026-11-07T16:09:44.9022498Z ##[endgroup]
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:09.6007903Z FIREWALL_RULES=360
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7736194Z Traceback (most recent call last):
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7745104Z   File "D:\a\webuddy-pitch\webuddy-pitch\scripts\deploy\test-windows-offline.py", line 149, in <module>
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7745604Z     main()
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7745767Z     ~~~~^^
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7746116Z   File "D:\a\webuddy-pitch\webuddy-pitch\scripts\deploy\test-windows-offline.py", line 62, in main
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7746588Z     import sqlite3, ssl, cryptography, pypdf, mcp
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7747580Z   File "D:\a\_temp\offline-evidence\Webuddy 离线 test\Webuddy\runtime\python\Lib\site-packages\mcp\__init__.py", line 2, in <module>
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7748134Z     from .client.session_group import ClientSessionGroup
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7748799Z   File "D:\a\_temp\offline-evidence\Webuddy 离线 test\Webuddy\runtime\python\Lib\site-packages\mcp\client\session_group.py", line 28, in <module>
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7749391Z     from mcp.client.stdio import StdioServerParameters
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7750036Z   File "D:\a\_temp\offline-evidence\Webuddy 离线 test\Webuddy\runtime\python\Lib\site-packages\mcp\client\stdio\__init__.py", line 17, in <module>
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7750554Z     from mcp.os.win32.utilities import (
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7750770Z     ...<4 lines>...
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7750919Z     )
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7751448Z   File "D:\a\_temp\offline-evidence\Webuddy 离线 test\Webuddy\runtime\python\Lib\site-packages\mcp\os\win32\utilities.py", line 22, in <module>
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7752580Z     import pywintypes
+offline	Start and restart with outbound access blocked	2026-11-07T16:10:24.7752793Z ModuleNotFoundError: No module named 'pywintypes'
+offline	Start and restart with outbound access blocked	2026-11-07T16:11:15.6360237Z TEST_FIREWALL_RULES_REMOVED
+offline	Start and restart with outbound access blocked	2026-11-07T16:11:15.7028970Z ^[[31;1mException: ^[[0mD:\a\webuddy-pitch\webuddy-pitch\scripts\deploy\test-windows-offline.ps1:36^[[0m
+offline	Start and restart with outbound access blocked	2026-11-07T16:11:15.7029492Z ^[[31;1m^[[0m^[[36;1mLine |^[[0m
+offline	Start and restart with outbound access blocked	2026-11-07T16:11:15.7029884Z ^[[31;1m^[[0m^[[36;1m^[[36;1m  36 | ^[[0m … f ($LASTEXITCODE -ne 0) {^[[36;1mthrow "Offline smoke failed: $LASTEXITCODE"^[[0m}^[[0m
+offline	Start and restart with outbound access blocked	2026-11-07T16:11:15.7030326Z ^[[31;1m^[[0m^[[36;1m^[[36;1m^[[0m^[[36;1m^[[0m^[[36;1m     | ^[[31;1m                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^[[0m
+offline	Start and restart with outbound access blocked	2026-11-07T16:11:15.7030855Z ^[[31;1m^[[0m^[[36;1m^[[36;1m^[[0m^[[36;1m^[[0m^[[36;1m^[[31;1m^[[31;1m^[[36;1m     | ^[[31;1mOffline smoke failed: 1^[[0m
+offline	Start and restart with outbound access blocked	2026-11-07T16:11:15.7315040Z ##[error]Process completed with exit code 1.

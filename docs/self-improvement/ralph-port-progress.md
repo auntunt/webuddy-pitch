@@ -1297,3 +1297,7 @@ c927d8d4已普通推送并完成固定提交wheel/源码外smoke、全新server/
 - 用户确认优先搜索并复用本机 Codex/Claude/Git，缺少时使用随包官方文件。隔离工作树基线7fc48cb7，原工作区保持干净；新增独立Python运行目录、固定第三方哈希、外部JSON配置和启动器，不修改平台运行/授权代码，不交付Docker镜像，不更新阿里云或43运行程序。
 - 本机11项/2子项通过；首次1项失败来自Mac /var真实路径差异，修订夹具比较resolve后通过，原失败保留。全ZIP12980文件逐字节SHA读回通过。候选536200088字节，完整SHA见evidence/windows-offline-20261108/local-bundle-candidate.json；运行源7fc48cb7，Python3.14.10、Codex0.166.0、Claude2.1.314、Git2.56.0.4、Node24.22.2。模型访问/账号/沙箱实际执行未核验，不含凭据、模型权重或业务数据。
 - 实际Windows11测试机已成功读取OS、已有工具和7zip路径；43:12022随后间歇中断。大ZIP传输太慢已停止该次传输；改传小构建输入后SFTP断连，原失败不改成成功。独立Windows CI会用固定源构建并临时阻止测试程序出站，验证真实启动/重启/鉴权/回收；通过前只称候选。既有Windows全量access violation限制保持。本次只增加打包/测试/说明文件，43站点不为离线包重启。
+
+### 离线包 Windows CI 首次反例与修复
+- 87f21a69已普通推送。Windows离线CI42389723641真实构建通过，360条程序级出站禁止规则下，本机/包内工具版本检测及cmd入口通过；MCP导入在pywintypes缺失处失败，未达到网页启动。finally已清理全部测试规则。原因是Mac跨平台pip忽略Windows marker，遗漏pywin32；原日志保留，不跳过MCP导入。
+- 新增pywin32 312 cp314官方wheel，按上游SHA核对；构建前按Windows/Python3.14和server/mcp extras检查完整依赖闭包。保留pywin32配套.pth/DLL，将官方postinstall脚本仅移入私有Scripts，不执行系统安装，RECORD同步迁移。13项/2子项与31个实际Windows依赖闭包本机通过，新增反例可在非Windows主机检测同类漏项。旧511MiB包仍为失败候选，不交付；等待修订的真实Windows断网复验。

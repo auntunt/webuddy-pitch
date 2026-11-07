@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+import zipfile
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +36,33 @@ class WindowsOfflineBundleTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'Missing cached'):
                     builder.payloads(lock, root, True)
             self.assertFalse((root / 'payload').exists())
+
+    def test_windows_markers_require_pywin32_even_on_mac_or_linux(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            sdk = root / 'sdk.whl'
+            native = root / 'pywin32.whl'
+            with zipfile.ZipFile(sdk, 'w') as z:
+                z.writestr('sdk.dist-info/METADATA', 'Name: sdk\nVersion: 1\nRequires-Dist: pywin32>=311; sys_platform == "win32" and python_version >= "3.14"\n')
+            with self.assertRaisesRegex(ValueError, 'pywin32'):
+                builder.check_windows_dependencies([sdk])
+            with zipfile.ZipFile(native, 'w') as z:
+                z.writestr('pywin32.dist-info/METADATA', 'Name: pywin32\nVersion: 312\n')
+            builder.check_windows_dependencies([sdk, native])
+
+    def test_pywin32_scripts_are_relocated_without_running_postinstall(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            wheel = root / 'native.whl'
+            content = b'raise AssertionError("postinstall must never run")\n'
+            with zipfile.ZipFile(wheel, 'w') as z:
+                z.writestr('native.data/scripts/install.py', content)
+                z.writestr('native.dist-info/RECORD', 'native.data/scripts/install.py,,\nnative.dist-info/RECORD,,\n')
+                z.writestr('native.pth', b'win32\n')
+            builder.install_wheel(wheel, root / 'Lib/site-packages', root / 'Scripts')
+            self.assertEqual((root / 'Scripts/install.py').read_bytes(), content)
+            self.assertIn('../../Scripts/install.py', (root / 'Lib/site-packages/native.dist-info/RECORD').read_text())
+            self.assertEqual((root / 'Lib/site-packages/native.pth').read_bytes(), b'win32\n')
 
     def test_manifest_rejects_missing_corrupt_and_traversal(self):
         with tempfile.TemporaryDirectory() as folder:
