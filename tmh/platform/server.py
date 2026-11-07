@@ -1660,6 +1660,31 @@ def api_kb_tree(P, req, key):
     return t
 
 
+@route("GET", "/api/projects/<key>/maps")
+def api_code_maps(P, req, key):
+    from . import code_maps
+    from ..agent_contract import validate
+    operation='map_get' if req.arg('map_id') else 'maps_list'
+    args={'project':key}
+    for name in ('map_id','node_id','knowledge_id','request_id'):
+        if req.arg(name):args[name]=req.arg(name)
+    try:
+        for name in ('line','limit','after'):
+            if req.arg(name):args[name]=int(req.arg(name))
+        args=validate(operation,args)
+    except ValueError as exc:raise ApiError(400,str(exc)) from exc
+    return code_maps.execute(P,P.project(key),req.user,operation,args)
+
+
+@route("POST", "/api/projects/<key>/maps")
+def api_code_map_create(P, req, key):
+    from . import code_maps
+    from ..agent_contract import validate
+    try:args=validate('map_create',dict(req.body,project=key))
+    except ValueError as exc:raise ApiError(400,str(exc)) from exc
+    return code_maps.create(P,P.project(key),req.user,args)
+
+
 @route("GET", "/api/projects/<key>/atlas")
 def api_atlas(P, req, key):
     return P.kb.atlas(P.project(key))
@@ -2590,6 +2615,8 @@ def api_reform_new(P, req, key):
         if req.body.get("preview"):
             return reform.preview(at,req.body)
         from .reform_api import packet
+        from .code_maps import validate_refs
+        validate_refs(P.store,p,req.body.get('map_refs',[]))
         return packet(P, p, reform.create(P.data_dir, p["key"], at, req.body, req.user))
     except ValueError as e:
         raise ApiError(400, str(e))

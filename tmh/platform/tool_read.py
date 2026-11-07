@@ -169,6 +169,7 @@ def run_history(P, run):
     return {'historical': True, 'run': dict(run),'timing_records':timing_records,
             'verification': run_verification(P, run, folder / 'verify.json'),
             'lifecycle': saved(folder / 'lifecycle.json'),
+            'context_receipt': saved(folder / 'context.json'),
             'rechecks': [recheck_history(P, op) for op in operations]}
 
 

@@ -74,6 +74,8 @@ GET /api/projects/<key>/related
 GET /api/projects/<key>/flows/<fid>
 GET /api/projects/<key>/kb
 GET /api/projects/<key>/kb/tree
+GET /api/projects/<key>/maps
+POST /api/projects/<key>/maps
 GET /api/projects/<key>/atlas
 GET /api/projects/<key>/atlas/flow/<fid>
 GET /api/projects/<key>/statecharts
@@ -235,7 +237,7 @@ PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/si
 # project selector. They remain admin-only until their query layer is scoped.
 ADMIN_GLOBAL = frozenset(("/api/lead", "/api/readiness", "/api/testbox",
                          "/api/agent-settings", "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
-AGENT_OPERATIONS = frozenset("""reform_report_create reform_report_get reforms_list reform_get reform_preview reform_events reform_resume_preview reform_create reform_update reform_control reform_archive run_recover status projects_list tickets_list ticket_get delivery_get ticket_create message_send
+AGENT_OPERATIONS = frozenset("""maps_list map_get map_create reform_report_create reform_report_get reforms_list reform_get reform_preview reform_events reform_resume_preview reform_create reform_update reform_control reform_archive run_recover status projects_list tickets_list ticket_get delivery_get ticket_create message_send
 messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
 candidates_list candidate_get candidate_ci candidate_submit candidate_verify candidate_cancel candidate_preview
 candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel
@@ -244,6 +246,7 @@ library_reference library_unlink ticket_hold
 intake_get intake_start intake_understand intake_answer
 development_get development_start development_propose development_answer""".split())
 SAFE_POSTS = frozenset((
+    "/api/projects/<key>/maps",
     "/api/projects/<key>/external-requirements",
     "/api/runs/<rid>/review-feedback",  # Human observations only; no execution or signoff.
     # Personal trial records only: no models, process launch or task moves.

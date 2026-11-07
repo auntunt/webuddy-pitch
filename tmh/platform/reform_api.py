@@ -106,6 +106,10 @@ def resume_preview(P, project, p):
 
 def execute(P, req, actor, operation, a):
     project = P.project(a['project'])
+    if operation in ('reform_create','reform_update'):
+        from .code_maps import validate_refs
+        refs=(a.get('changes') or a).get('map_refs',[])
+        validate_refs(P.store,project,refs)
     if operation == 'reform_preview':
         return reform.preview(P.kb.atlas(project),a)
     if operation == 'reforms_list':
@@ -143,7 +147,7 @@ def execute(P, req, actor, operation, a):
         if view == 'summary':
             return summary(value)
         if view == 'scope':
-            fields = ('goal','keep','kind','title','wave','scope_mode','domains','criteria','dependencies','scenario','supersedes','target','source_version','target_environment','knowledge_revision','revisions')
+            fields = ('goal','keep','kind','title','wave','scope_mode','domains','criteria','dependencies','scenario','supersedes','target','source_version','target_environment','knowledge_revision','revisions','map_refs')
             scope={key:p.get(key) for key in fields}
             scope['lead']=next(({'title':i['title'],'body':i['body']} for i in p['items'] if i.get('lead')),{'title':'','body':''})
             return dict(summary(value),scope=scope)

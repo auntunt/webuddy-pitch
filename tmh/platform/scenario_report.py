@@ -80,6 +80,15 @@ def markdown(packet, *, include_raw=True):
                          '来源：'+', '.join(conflict['source_ids'])+'；处理人：'+(conflict['owner'] or '尚未指定')])
     else:
         text.append('未关联场景记录；不推断范围完整。')
+    refs=(packet.get('plan_record') or {}).get('map_refs') or (ticket.get('links') or {}).get('map_refs') or []
+    if refs:
+        text.extend(['','## 代码范围与地图引用','这些静态引用不代表测试覆盖；逐项结果仍以下面的保存证据为准。'])
+        for ref in refs:text.append('- 地图 '+ref['map_id']+' 修订 '+str(ref['revision'])+'；选中节点：'+', '.join(ref['nodes']))
+    for history in packet.get('runs',[]):
+        receipt=(history.get('context_receipt') or {}).get('recorded') or []
+        for item in receipt if isinstance(receipt,list) else []:
+            if item.get('mode')=='code_maps':
+                text.extend(['','### 运行 #'+str(history['run']['id'])+' 实际地图上下文',json.dumps(item,ensure_ascii=False)])
     text.extend(evidence_sections(packet))
     text.extend(['','## 用量与费用'])
     for row in packet['consumption']:

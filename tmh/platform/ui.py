@@ -6,6 +6,7 @@ The product name comes from --brand; the visual contract is recorded in DESIGN.m
 from __future__ import annotations
 
 from .ui_atlas import ATLAS_CSS, ATLAS_JS
+from .ui_code_maps import MAP_CSS, MAP_JS
 from .ui_states import STATES_CSS, STATES_JS
 from .ui_access import ACCESS_BOOT_JS, ACCESS_CSS, ACCESS_JS
 from .ui_css import CSS
@@ -28,7 +29,7 @@ from .ui_reform import REFORM_CSS, REFORM_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + REFORM_CSS + ATLAS_CSS + STATES_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS + COORDINATION_CSS + PILOTS_CSS + ASSISTANT_CSS).replace("/*JS*/", REFORM_JS + TIME_JS + ACCESS_BOOT_JS + JS + ATLAS_JS + STATES_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS + COORDINATION_JS + PILOTS_JS + ASSISTANT_JS)
+    return HTML.replace("/*CSS*/", CSS + MAP_CSS + REFORM_CSS + ATLAS_CSS + STATES_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS + COORDINATION_CSS + PILOTS_CSS + ASSISTANT_CSS).replace("/*JS*/", MAP_JS + REFORM_JS + TIME_JS + ACCESS_BOOT_JS + JS + ATLAS_JS + STATES_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS + COORDINATION_JS + PILOTS_JS + ASSISTANT_JS)
 
 
 HTML = r"""<!doctype html>
@@ -187,6 +188,7 @@ async function boot(){
   if(accessControlOnly()){window.addEventListener('hashchange',render);await accessRenderControl();return}
   try{await loadProjects()}catch(e){if(ACCESS.blocked)return;$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}
   $('#projSel').onchange=e=>{WS.offset=0;const v=e.target.value;if(v==='__new'){newProject();paintSel();return}
+    if(curView()==='maps'){if(v==='*'){location.hash='#/workspace'}else{setProj(v);location.hash='#/maps/'+encodeURIComponent(v)}return}
     if(curView()==='meetings'){S.scope=v;ls.set('tmh.scope',v);if(v!=='*')setProj(v);if(location.hash!=='#/meetings')location.hash='#/meetings';else render();return}
     if(/^#\/projects\/[^/]+\/reforms\//.test(location.hash)){if(v==='*'){S.scope='*';ls.set('tmh.scope','*');location.hash='#/projects'}else{setProj(v);location.hash='#/reform'}return}
     if(v==='*'){S.scope='*';ls.set('tmh.scope','*');if(!isCross())location.hash='#/';else render();return}
@@ -220,7 +222,7 @@ function render(){
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
   paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
   if(!S.proj&&!['intake','home','board','settings','access','deliveries','delivery','workspace','projects','memory','team','meetings','pilots'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
-  const V={intake:()=>vIntake(decodeURIComponent(r[1]||'')),pilots:()=>vPilots(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||''),decodeURIComponent(r[3]||''),decodeURIComponent(r[4]||'')),meetings:()=>vMeetings(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>r[2]==='reforms'?vReform(decodeURIComponent(r[1]||''),decodeURIComponent(r[3]||'')):vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),states:()=>vStates(decodeURIComponent(r[1]||'')),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings,access:vAccess}[view]||(()=>{location.hash='#/workspace'});
+  const V={maps:()=>vCodeMaps(decodeURIComponent(r[1]||S.proj),decodeURIComponent(r[2]||'')),intake:()=>vIntake(decodeURIComponent(r[1]||'')),pilots:()=>vPilots(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||''),decodeURIComponent(r[3]||''),decodeURIComponent(r[4]||'')),meetings:()=>vMeetings(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>r[2]==='reforms'?vReform(decodeURIComponent(r[1]||''),decodeURIComponent(r[3]||'')):vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),states:()=>vStates(decodeURIComponent(r[1]||'')),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings,access:vAccess}[view]||(()=>{location.hash='#/workspace'});
   if(view!=='t')A.setTicket(null);
   paintSel();
   if(view==='atlas'&&$('#atl')){S.renderP=Promise.resolve(vAtlas(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}

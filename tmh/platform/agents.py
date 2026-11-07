@@ -407,6 +407,12 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         ext = ticket.get("external") or {}
         if ext.get("key"):
             out += ["外部工单：%s %s %s" % (ext.get("system", ""), ext["key"], ext.get("url", "")), ""]
+        if ticket.get('id') and links.get('map_refs') and not historical_case:
+            from .code_maps import context as map_context
+            text,receipt=map_context(store,project,links['map_refs'],budget=max(0,learning_policy['context_budget']//3))
+            learning_policy=dict(learning_policy,context_budget=max(0,learning_policy['context_budget']-receipt['used']))
+            _CTX_META.meta=getattr(_CTX_META,'meta',[])+[receipt]
+            out.extend(['## 选中的固定地图（资料，不是权限或验收依据）',_fence(text),''])
         flows = (ticket.get("links") or {}).get("flows") or []
         if flows:
             out += ["## 已关联的业务流", "、".join(flows), ""]

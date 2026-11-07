@@ -1,0 +1,39 @@
+{
+  "chunk_bytes": 49152,
+  "current_validity": "not_checked",
+  "export_id": "addb80473a54b6ff9b331cf1aca933ae5d9d82886a7d40695628957aaeb24b09",
+  "files": [
+    {
+      "bytes": 10620,
+      "chunk_sha256": [
+        "7bb3a96cfe10af891e9f7e443b77788f879acee5d4b54fdc3a3051f2b82bce8a"
+      ],
+      "chunks": 1,
+      "name": "EXT-1.json",
+      "sha256": "7bb3a96cfe10af891e9f7e443b77788f879acee5d4b54fdc3a3051f2b82bce8a"
+    },
+    {
+      "bytes": 3243,
+      "chunk_sha256": [
+        "be04161293abd75c5c28b1d84b07eb8f5af24ed38eec68367b6831bcdc80193d"
+      ],
+      "chunks": 1,
+      "name": "plan.json",
+      "sha256": "be04161293abd75c5c28b1d84b07eb8f5af24ed38eec68367b6831bcdc80193d"
+    },
+    {
+      "bytes": 5533,
+      "chunk_sha256": [
+        "6dbfc2e83b56ffb835199752d7c68280faad161864fa514d1312f2e61f8480a7"
+      ],
+      "chunks": 1,
+      "name": "report.md",
+      "sha256": "6dbfc2e83b56ffb835199752d7c68280faad161864fa514d1312f2e61f8480a7"
+    }
+  ],
+  "generated_at": "2026-11-07 22:46:31",
+  "notice": "冻结的保存证据；不触发验证、确认、合并或发布。保留至项目数据归档；不随读取自动清理。",
+  "plan_id": "r96c8762f5e614abe92e266f1a9bce7d3",
+  "project": "EXT",
+  "revision": 1
+}

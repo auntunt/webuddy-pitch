@@ -46,6 +46,13 @@ SPECS = {
     "preview_start": spec("启动已采纳运行所绑定的本地候选预览，复用平台版本检查；可能启动应用进程。没有已采纳候选时拒绝。", {"ticket": KEY, "run_id": RID, "request_id": REQUEST}, ["ticket", "run_id", "request_id"], write=True, execution=True),
 }
 
+MAP = text("固定地图编号",pattern=r"^map[0-9a-f]{32}$")
+SPECS.update({
+    "maps_list":spec("读取项目已保存局部地图；结果未知时用原request_id查询本人保存结果，不生成、不调用模型。",dict(PAGE,project=PROJECT,request_id=REQUEST),["project"]),
+    "map_get":spec("读取固定地图或节点的保存源码片段；不替换为当前工作树。缺来源明确返回未知。",dict(project=PROJECT,map_id=MAP,node_id=text(),knowledge_id=text(),line=integer(minimum=1),limit=integer(minimum=1,maximum=100,default=60)),["project","map_id"]),
+    "map_create":spec("明确保存业务问题的有限静态子图；复用现有索引，不调用模型，不派发或确认。from_map只允许相同索引扩展并生成新地图。",dict(project=PROJECT,question=text(minLength=1,maxLength=2000),limit=integer(minimum=1,maximum=60,default=30),from_map=MAP,request_id=REQUEST),["project","question","request_id"],write=True),
+})
+
 PLAN = text("稳定改造计划编号", pattern=r"^r[A-Za-z0-9]+$")
 REFORM_FIELDS = {
     "kind":text("改造类型",enum=["restructure","upgrade","migrate","adapt","rewrite"]),
@@ -64,6 +71,7 @@ REFORM_FIELDS = {
 }
 from .scenario_contract import SCHEMA as SCENARIO_SCHEMA
 REFORM_REQUIRED = ['title','goal','scope_mode','domains']
+REFORM_FIELDS['map_refs'] = dict(type='array',maxItems=10,items=dict(type='object',additionalProperties=False,required=['map_id','revision','nodes'],properties=dict(map_id=MAP,revision=integer(minimum=1),nodes=dict(type='array',minItems=1,maxItems=60,uniqueItems=True,items=text(minLength=1)))))
 REFORM_FIELDS['scenario'] = SCENARIO_SCHEMA
 REFORM_FIELDS['supersedes'] = dict(type='object',additionalProperties=False,required=['plan_id','revision','reason'],properties={'plan_id':PLAN,'revision':integer(minimum=1),'reason':text(minLength=1)})
 REFORM_RESOURCE = {"project":PROJECT,"plan_id":PLAN}

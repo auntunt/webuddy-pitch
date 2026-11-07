@@ -23,7 +23,11 @@ class ReformTenantMCPTest(unittest.IsolatedAsyncioTestCase):
         root=data/'repositories'/'same'
         node={'id':'dom:sales','kind':'dom','name':'sales','label':'Sales','file':'','line':0,'end':0,
               'domain':'sales','module':'','hash':'fixture','data':{'key':'sales'}}
-        graph._write_db(root,{node['id']:node},[],{'built_at':'fixed-fixture'})
+        from tmh import index_source
+        (root/'refund.py').write_text('def refund():\n    return 1250\n')
+        node.update(file='refund.py',line=1,end=2)
+        sources=index_source.snapshot(root)
+        graph._write_db(root,{node['id']:node},[],{'built_at':'fixed-fixture','provenance':index_source.metadata(root,sources)},sources)
         self.grant=f.grant()
         self.endpoint='http://127.0.0.1:%d/t/%s'%(f.port,f.a)
 
@@ -95,11 +99,22 @@ class ReformTenantMCPTest(unittest.IsolatedAsyncioTestCase):
                 goal='Full tenant contract',keep='Keep behavior',scope_mode='selected',domains=['dom:sales'],
                 lead={'title':'','body':''},wave=1,source_version='a'*40,target_environment='isolated fixture',
                 criteria=['Keep behavior'],dependencies=[],target='',knowledge_revision=preview['knowledge_revision'],request_id='tenant-plan-create'))
+            map_args=dict(project='SAME',question='sales',request_id='map-sdk')
+            saved_map=await self.call(session,'map_create',map_args)
+            self.assertEqual(await self.call(session,'map_create',map_args),saved_map)
+            source=await self.call(session,'map_get',dict(project='SAME',map_id=saved_map['id'],node_id='dom:sales'))
+            self.assertIn('return 1250',source['text'])
+            status,_,web=f.request('GET','/t/'+f.a+'/api/projects/SAME/maps?map_id='+saved_map['id']+'&node_id=dom%3Asales','alice',token=f.token('alice',f.a))
+            self.assertEqual(status,200,web);self.assertEqual(web,source)
+            denied=await self.call(session,'map_get',dict(project='PRIVATE',map_id=saved_map['id']),True)
+            self.assertIn(denied['status'],(403,404))
             resource={'project':'SAME','plan_id':plan['id']}
             export_args=dict(resource,expected_revision=plan['revision'],request_id='frozen-report')
             manifest=await self.call(session,'reform_report_create',export_args)
             self.assertEqual(await self.call(session,'reform_report_create',export_args),manifest)
             exported=dict(resource,export_id=manifest['export_id'])
+            status,_,web=f.request('GET','/t/'+f.a+'/api/projects/SAME/reforms?plan_id='+plan['id']+'&view=export&export_id='+manifest['export_id'],'alice',token=f.token('alice',f.a))
+            self.assertEqual(status,200,web);self.assertEqual(web,manifest)
             chunk=await self.call(session,'reform_report_get',dict(exported,file='plan.json',offset=0))
             import base64,hashlib
             self.assertEqual(hashlib.sha256(base64.b64decode(chunk['data_base64'])).hexdigest(),chunk['sha256'])
@@ -108,6 +123,10 @@ class ReformTenantMCPTest(unittest.IsolatedAsyncioTestCase):
             reader=f.grant(scope='read',rid='report-reader')
             async with self.session(reader) as readonly:
                 self.assertEqual(await self.call(readonly,'reform_report_get',exported),manifest)
+                result=await readonly.call_tool('webuddy_map_create',dict(map_args,request_id='read-map-denied'))
+                self.assertTrue(result.isError)
+                source=await self.call(readonly,'map_get',dict(project='SAME',map_id=saved_map['id'],node_id='dom:sales'))
+                self.assertIn('return 1250',source['text'])
                 result=await readonly.call_tool('webuddy_reform_report_create',dict(export_args,request_id='read-denied'))
                 self.assertTrue(result.isError)
 
@@ -123,6 +142,8 @@ class ReformTenantMCPTest(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(receipt['state'],'complete')
             self.assertEqual(await self.call(session,'reform_report_get',exported),manifest)
             f.change('project_revoke',tenant=f.a,user='alice',project_id=1)
+            denied=await self.call(session,'map_get',dict(project='SAME',map_id=saved_map['id']),True)
+            self.assertIn(denied['status'],(401,403))
             denied=await self.call(session,'reform_report_get',dict(exported,file='plan.json',offset=0),True)
             self.assertIn(denied['status'],(401,403))
             denied=await self.call(session,'reform_get',resource,True)
@@ -138,3 +159,17 @@ class ReformTenantMCPTest(unittest.IsolatedAsyncioTestCase):
             current=await self.call(session,'reform_get',resource)
             archived=await self.call(session,'reform_archive',dict(resource,expected_revision=current['revision'],request_id='manager-archive'))
             self.assertTrue(archived['archived'])
+
+    async def test_web_map_content_permission_is_separate_from_read(self):
+        f=self.fixture
+        path='/t/'+f.a+'/api/projects/SAME/maps'
+        args={'project':'SAME','question':'sales','request_id':'web-map'}
+        status,_,saved=f.request('POST',path,'alice',args,token=f.token('alice',f.a),headers={'X-TMH':'1'})
+        self.assertEqual(status,200,saved)
+        status,_,read=f.request('GET',path+'?map_id='+saved['id'],'alice',token=f.token('alice',f.a))
+        self.assertEqual(status,200,read);self.assertEqual(read['provenance'],saved['provenance'])
+        f.change('project_grant',tenant=f.a,user='alice',project_id=1,role='viewer')
+        status,_,denied=f.request('POST',path,'alice',dict(args,request_id='viewer-write'),token=f.token('alice',f.a),headers={'X-TMH':'1'})
+        self.assertEqual(status,403,denied)
+        status,_,read=f.request('GET',path+'?map_id='+saved['id'],'alice',token=f.token('alice',f.a))
+        self.assertEqual(status,200,read)

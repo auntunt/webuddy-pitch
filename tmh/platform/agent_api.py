@@ -163,6 +163,8 @@ def _req(req, actor, body=None, query=None):
 
 
 def _resource(P, operation, args):
+    if operation in ("maps_list","map_get","map_create"):
+        return "project:%d:maps" % _project(P,args["project"])["id"]
     if operation.startswith('reform'):
         return "project:%d:reform:%s" % (_project(P,args['project'])['id'],args.get('plan_id','create'))
     if operation.startswith("library_"):
@@ -410,6 +412,13 @@ def _execute(P, req, actor, operation, a):
     tool = who.get('tool_connection') or getattr(req, 'assistant_scope', None)
     # Scope before pagination; never disclose ungranted counts or row contents.
     visible_ids = [p['id'] for p in tenant_policy.visible_projects(P, req.user)] if tool else None
+    if operation in ('maps_list','map_get','map_create'):
+        from . import code_maps
+        project=_project(P,a['project'])
+        if visible_ids is not None and project['id'] not in visible_ids:
+            raise ApiError(403,'工具未获此项目的读取权限')
+        if operation=='map_create':req.agent_side_effect_started=True
+        return code_maps.execute(P,project,actor,operation,a)
     if operation.startswith('reform'):
         project=_project(P,a['project'])
         if visible_ids is not None and project['id'] not in visible_ids:

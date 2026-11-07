@@ -26,7 +26,7 @@ class ProjectTests(unittest.TestCase):
              'command':command or '''node -e "require('fs').writeFileSync('report.json',JSON.stringify({cases:[{id:'sum',status:'pass'}]}))"''',
              'report':{'format':'json','path':'report.json'},'criteria':{'A1':['sum']}}]}
 
-    def execute(self, profile):
+    def execute(self, profile, criteria=None):
         pt.validate(profile)
         plan = self.root / 'plan.json'
         plan.write_text(json.dumps({'stages':profile['stages'],'nonce':'fixture'}))
@@ -35,7 +35,7 @@ class ProjectTests(unittest.TestCase):
         receipt = json.loads(base64.b64decode(run.stdout.decode().split('TMH_PROJECT_TESTS_fixture:')[1]))
         folder = self.root/'evidence'
         folder.mkdir(exist_ok=True)
-        return pt.collect(profile,receipt,folder,[{'id':'A1','text':'sum works'}])
+        return pt.collect(profile,receipt,folder,criteria if criteria is not None else [{'id':'A1','text':'sum works'}])
 
     def test_independent_refund_expectation_rejects_controlled_wrong_candidate(self):
         # Synthetic policy fixture: amount must remain exactly 1250 cents.

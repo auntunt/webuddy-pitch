@@ -128,7 +128,7 @@ class ToolReadTests(unittest.TestCase):
         self.atlas={'built':'fixed','domains':[{'id':'sales','title':'Sales','tables':0,'flows':0}]}
         self.reform=reform.create(self.data,'APP',self.atlas,dict(title='Read fixture',goal='Full contract',scope_mode='selected',domains=['sales']),'alice')
         self.P.project=lambda key:self.st.project(key)
-        self.P.kb=SimpleNamespace(atlas=lambda project:self.atlas)
+        self.P.kb=SimpleNamespace(atlas=lambda project:self.atlas,root=lambda project:Path(project['root']))
         self.req = SimpleNamespace(user='alice', h=SimpleNamespace(headers={'X-Webuddy-Agent': 'fixture'}))
         self.actor = agent_api.member_actor('alice')
         self.tool = {'scope': 'read', 'project_ids': [self.p['id']], 'user': 'alice', 'tenant': 'synthetic'}
@@ -171,6 +171,13 @@ class ToolReadTests(unittest.TestCase):
         from tmh.platform import report_exports
         manifest=report_exports.create(self.P,self.p,self.reform,self.actor,dict(project='APP',plan_id=self.reform['id'],expected_revision=self.reform['revision'],request_id='read-only-export-fixture'))
         cases['reform_report_get']={'project':'APP','plan_id':self.reform['id'],'export_id':manifest['export_id']}
+        from tmh import graph
+        from tmh.platform import code_maps
+        (self.data/'app'/'refund.py').write_text('def refund():\n    return 1250\n')
+        graph.build(self.data/'app')
+        saved_map=code_maps.create(self.P,self.p,self.actor,dict(project='APP',question='refund',request_id='read-map'))
+        cases['maps_list']={'project':'APP'}
+        cases['map_get']={'project':'APP','map_id':saved_map['id']}
         self.assertEqual(set(cases), set(tool_access.READ_OPERATIONS))
         before = snapshot(self.st)
         # Library schema is initialized at fixture registration, preserving the

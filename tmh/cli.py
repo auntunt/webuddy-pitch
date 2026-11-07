@@ -763,6 +763,24 @@ def _print_cov(c: dict) -> None:
         print("累计投入上下文约 %d 万字符（≈ %d k tokens）" % (c["context_chars"] // 10000, c["context_chars"] // 3000))
 
 
+def cmd_source(a) -> int:
+    from .graph import Graph
+    g=Graph(_root(a))
+    try:
+        node=g.node(a.node)
+        if not node:raise ValueError('索引没有这个节点')
+        raw=g.source_bytes(node['file'])
+        try:text=raw.decode('utf-8')
+        except UnicodeError:text=raw.decode('gb18030')
+        lines=text.splitlines(keepends=True);start=a.line or max(1,node['line'])
+        if start<1 or not 1<=a.limit<=100:raise ValueError('源码分页范围不正确')
+        _out(dict(node=node,provenance=g.provenance(),source_status='saved_snapshot',line=start,
+            text=''.join(lines[start-1:start-1+a.limit]),total_lines=len(lines),
+            next_line=start+a.limit if start-1+a.limit<len(lines) else None))
+        return 0
+    finally:g.db.close()
+
+
 def cmd_context(a) -> int:
     from .context import build_context
     from .graph import graph_path
@@ -978,6 +996,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--who", default="agent", help="领取/提交者（并行时区分子代理；confirm 时写确认人）")
     p.add_argument("--budget", type=int, help="上下文包字符上限")
     p.add_argument("--no-cache", action="store_true", help="忽略解析缓存，全部重新解析")
+    p = add("source", cmd_source, "读取索引节点对应的固定源码；不读取当前工作树代替")
+    p.add_argument("node")
+    p.add_argument("--line", type=int)
+    p.add_argument("--limit", type=int, default=60)
     p = add("context", cmd_context, "按需求/关键词取出相关的知识页、业务流、表和代码位置（任务开始时先用它）")
     p.add_argument("query", nargs="+")
     p.add_argument("--budget", type=int, default=8000)
@@ -1051,7 +1073,7 @@ def main(argv=None) -> int:
     a = build_parser().parse_args(argv)
     rc = a.fn(a) or 0
     quiet = a.cmd == "kb" and a.action in ("status", "show", "pack", "done", "read", "questions", "ask", "answer", "overrule", "metrics")  # done logs its own entry
-    quiet = quiet or a.cmd == "mcp" or (a.cmd == "int" and a.action in ("list", "types"))
+    quiet = quiet or a.cmd in ("mcp","source") or (a.cmd == "int" and a.action in ("list", "types"))
     if a.cmd not in ("hook", "note", "status", "agent-config", "install", "verify", "serve", "access-init", "offline-pack", "evidence-verify", "platform") and not quiet:  # verify writes its own report
         from . import activity
         argv_s = " ".join(sys.argv[1:] if argv is None else argv)

@@ -1,0 +1,22 @@
+import fs from 'node:fs';
+import {call,evaluate,ws} from './cdp.mjs';
+const out='/private/tmp/webuddy-map-20261107';
+const info=JSON.parse(fs.readFileSync(out+'/b-ui-responsive.log','utf8').split('\n')[0]);
+const wait=async expr=>{for(let i=0;i<100;i++){if(await evaluate(expr))return;await new Promise(r=>setTimeout(r,100));}throw Error('Wait failed: '+expr)};
+await call('Page.navigate',{url:new URL(info.url).origin+'/login'});await wait('!!document.querySelector("input[name=username]")||!location.pathname.includes("login")');
+if(await evaluate('!!document.querySelector("input[name=username]")'))await evaluate(`document.querySelector('[name=username]').value='scenario-owner';document.querySelector('[name=password]').value='isolated-scenario-fixture';document.querySelector('form').requestSubmit()`);await wait('!location.pathname.includes("login")');
+await call('Page.navigate',{url:new URL(info.url).origin+'/#/maps/EXT'});await wait('!!document.querySelector("#cmQuestion")');
+await evaluate(`document.querySelector('#cmQ').value='退款';document.querySelector('#cmQ').dispatchEvent(new Event('input'));document.querySelector('#cmQuestion').requestSubmit()`);await wait('!!document.querySelector("#cmNodes")');
+await evaluate(`document.querySelector('[data-cm-node="flow:refund"]').click()`);await wait('document.querySelector("#cmEvidence pre")?.textContent.includes("VALUE = 2")');
+await evaluate(`document.querySelector('#cmSelect').click()`);
+const id=await evaluate(`location.hash.split('/').at(-1)`);
+await call('Page.reload');await wait('!!document.querySelector("#cmNodes")');await evaluate(`document.querySelector('[data-cm-node="flow:refund"]').click()`);await wait('!!document.querySelector("#cmSelect")');if(!await evaluate(`document.querySelector('#cmSelect').checked`))throw Error('Selection lost on refresh');
+const draft=await evaluate(`post('/api/projects/EXT/reforms',{title:'合成退款改造草稿',goal:'独立样例：保持app.py中VALUE为2',keep:'原权限不变',scope_mode:'all',source_version:${JSON.stringify(info.sha)},target_environment:'隔离浏览器样例',criteria:['读取VALUE必须为2'],request_id:crypto.randomUUID()})`);
+await evaluate(`{const f=document.querySelector('#cmAttach');f.elements.plan.value=${JSON.stringify(draft.id)};f.requestSubmit()}`);await wait('document.querySelector("#cmAttachResult")?.textContent.includes("已保存草稿修订")');
+await evaluate(`document.querySelector('#cmAttachResult a').click()`);await wait('!!document.querySelector(".rf-workspace")');
+const saved=await evaluate(`get('/api/projects/EXT/reforms?plan_id='+${JSON.stringify(draft.id)})`);if(saved.map_refs[0].map_id!==id)throw Error('Map reference missing');
+await call('Page.reload');await wait('!!document.querySelector(".rf-workspace")');const recovered=await evaluate(`get('/api/projects/EXT/reforms?plan_id='+${JSON.stringify(draft.id)})`);if(recovered.revision!==saved.revision||recovered.counts.released!==0)throw Error('Refresh changed execution');
+await evaluate(`document.querySelector('[data-rf-tab=scope]').click()`);await wait('Array.from(document.querySelectorAll("a")).some(a=>a.textContent.includes("返回选中地图"))');
+await evaluate(`Array.from(document.querySelectorAll('a')).find(a=>a.textContent.includes('返回选中地图')).click()`);await wait('!!document.querySelector("#cmNodes")');await evaluate(`document.querySelector('[data-cm-node="flow:refund"]').click()`);await wait('!!document.querySelector("#cmSelect")');
+for(const [width,height] of [[1440,1000],[390,844]]){await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});if(width===390){for(const pane of ['steps','map','source']){await evaluate(`document.querySelector('[data-cm-pane=${pane}]').click()`);const shot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(out+'/local-map-responsive-pane-'+pane+'.png',Buffer.from(shot.data,'base64'));}}const state=await evaluate(`({width:innerWidth,scroll:document.documentElement.scrollWidth})`);if(state.scroll>width)throw Error(JSON.stringify(state));const shot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(out+'/local-map-responsive-'+width+'.png',Buffer.from(shot.data,'base64'));}
+fs.writeFileSync(out+'/local-map-responsive-browser.json',JSON.stringify({synthetic:true,map_id:id,source:'app.py',expected:'VALUE = 2',refreshSelection:true}));console.log('Question, fixed source, selected node, refresh and two sizes passed');ws.close();

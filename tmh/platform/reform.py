@@ -256,7 +256,7 @@ def dependencies(root: Path, limit: int = 300) -> list:
 
 # User-authored contract only. Runtime policy/batches are derived separately.
 CONTRACT_FIELDS = ('kind','title','goal','keep','scope_mode','domains','wave','target',
-    'source_version','target_environment','criteria','dependencies','knowledge_revision','scenario','lead')
+    'source_version','target_environment','criteria','dependencies','knowledge_revision','scenario','lead','map_refs')
 
 def contract(plan):
     value = {k:plan[k] for k in CONTRACT_FIELDS if k in plan}
@@ -330,7 +330,7 @@ def create(data_dir: Path, key: str, atlas: dict, b: dict, by: str, *, _db=None,
         uid = uuid.uuid4().hex
         p = {"id": "r"+uid, "uid":uid, "revision":1, "knowledge_revision":knowledge_revision,
              "scope_mode":b.get('scope_mode') or ('selected' if b.get('domains') else 'all'),
-             "domains":list(b.get('domains') or []), "kind": kind, "title": title, "goal": goal, "keep": b.get("keep") or "",
+             "map_refs":b.get("map_refs",[]), "domains":list(b.get('domains') or []), "kind": kind, "title": title, "goal": goal, "keep": b.get("keep") or "",
              "target": target, "wave": max(1, min(20, int(b.get("wave") or 3))), "auto": b.get("auto", True) is not False, "by": by, "created": now(),
              "items": items, "log": []}
         for field in ('source_version','target_environment','criteria','dependencies'):
@@ -522,7 +522,7 @@ def _release_in_tx(P, proj, p, n, by, db):
     made = []
     for it in todo:
         links = {'flows':it['flow_ids'],'reform':{'plan':p['id'],'uid':p['uid'],
-            'order':it['order'],'batch':batch,'project':proj['key']}}
+            'order':it['order'],'batch':batch,'project':proj['key']},'map_refs':p.get('map_refs',[])}
         if p.get('base'):
             links['base'] = p['base']
         t = P.store._create_ticket_in_tx(proj['id'], '%s：%s（%s%s）' %
