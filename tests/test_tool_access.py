@@ -102,12 +102,12 @@ class ToolAccessTest(unittest.TestCase):
             self.denied(403 if fields.get("project_ids") else 400, lambda fields=fields: A.create(self.reg, "alice", "default", self.body(**fields)))
         item = self.mint(label="owner / admin / reviewer", scope="read", project_ids=[2])
         self.assertEqual(A.authenticate(self.reg, "default", item["token"])["user"], "alice")
-        self.assertEqual(set(A.allowed_operations("content")) - set(A.allowed_operations("read")), {"ticket_create", "message_send", "intake_start"})
+        self.assertEqual(set(A.allowed_operations("content")) - set(A.allowed_operations("read")), {"ticket_create", "message_send", "intake_start", "reform_create", "reform_update", "reform_archive"})
         for scope in ("read", "content"):
             self.assertFalse(set(A.allowed_operations(scope)) & {"run_start", "candidate_adopt", "review", "accept", "close", "operation", "message_dispatch"})
         self.assertEqual(A.allowed_operations("operator"), ())
         self.assertEqual(set(A.allowed_operations("execute")) - set(A.allowed_operations("content")),
-                         {"run_start", "run_cancel", "run_retry", "ticket_hold", "intake_understand", "intake_answer"})
+                         {"run_start", "run_cancel", "run_retry", "ticket_hold", "intake_understand", "intake_answer", "reform_control", "run_recover"})
         self.assertFalse(set(A.allowed_operations("execute")) & {"run_recheck", "preview_start", "candidate_assess", "candidate_decide", "library_reference"})
 
     def test_create_validates_payload_before_any_write(self):

@@ -120,7 +120,7 @@ class ReformDurabilityTest(unittest.TestCase):
         reform.resume(P,self.proj,p['id'],'owner')
         view = reform.view(P,self.proj,reform.plan(self.data,'RF',p['id']))
         self.assertEqual(view['items'][0]['dispatch_state'],'claimed')
-        self.assertNotIn('RF-1',self.submitted)
+        self.assertEqual(self.submitted,[],'unknown claim also blocks the remaining pending steps')
         with self.assertRaises(ValueError):reform.release(P,self.proj,p['id'],None,'owner')
         self.assertEqual(len(self.store.tickets()),2)
 

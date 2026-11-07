@@ -2559,6 +2559,15 @@ def api_reform_act(P, req, key, pid):
     from . import reform
     p = P.project(key)
     try:
+        if req.body.get('action') in ('update','control','archive'):
+            from .reform_api import execute
+            from ..agent_contract import validate
+            operation = 'reform_'+req.body['action']
+            body = {k:v for k,v in req.body.items() if k!='action'}
+            if operation == 'reform_control':
+                body['action'] = body.pop('control_action',None)
+            body.update(project=p['key'],plan_id=pid)
+            return execute(P,req,req.user,operation,validate(operation,body))
         if req.body.get("action") == "remove":
             reform.remove(P.data_dir, p["key"], pid)
             return {"removed": pid}

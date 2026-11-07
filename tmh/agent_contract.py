@@ -46,6 +46,37 @@ SPECS = {
     "preview_start": spec("启动已采纳运行所绑定的本地候选预览，复用平台版本检查；可能启动应用进程。没有已采纳候选时拒绝。", {"ticket": KEY, "run_id": RID, "request_id": REQUEST}, ["ticket", "run_id", "request_id"], write=True, execution=True),
 }
 
+PLAN = text("稳定改造计划编号", pattern=r"^r[A-Za-z0-9]+$")
+REFORM_FIELDS = {
+    "kind":text("改造类型",enum=["restructure","upgrade","migrate","adapt","rewrite"]),
+    "title":text("改造名称",minLength=1), "goal":text("完整目标与范围",minLength=1),
+    "keep":text("不可变约束；无额外约束时明确写无"),
+    "scope_mode":text("明确范围",enum=["all","selected"]),
+    "domains":dict(type="array",uniqueItems=True,items=text(minLength=1)),
+    "lead":dict(type="object",additionalProperties=False,properties={"title":text(),"body":text()},required=["title","body"]),
+    "wave":integer("每批数量",minimum=1,maximum=20),
+    "source_version":text("固定源提交",pattern=r"^[0-9a-f]{40}([0-9a-f]{24})?$"),
+    "target_environment":text("目标环境",minLength=1),
+    "criteria":dict(type="array",minItems=1,items=text(minLength=1)),
+    "dependencies":dict(type="array",items=text(minLength=1)),
+    "target":text("项目内目标目录；重写必填"),
+    "knowledge_revision":text("preview返回的知识修订",pattern=r"^[0-9a-f]{64}$"),
+}
+REFORM_RESOURCE = {"project":PROJECT,"plan_id":PLAN}
+REFORM_MUTATION = dict(REFORM_RESOURCE,expected_revision=integer("当前计划修订",minimum=1),request_id=REQUEST)
+SPECS.update({
+    "reforms_list":spec("按项目分页读取同一套持久改造计划。归档与活动分开；不启动执行。",dict(PAGE,project=PROJECT,archived=dict(type="boolean",default=False)),["project"]),
+    "reform_get":spec("读取完整计划、批次、归属和当前已知证据状态；not_checked不能当作通过。",REFORM_RESOURCE,["project","plan_id"]),
+    "reform_preview":spec("按明确范围与固定知识修订预览拆分；不建单、不调用模型。",dict(project=PROJECT,scope_mode=REFORM_FIELDS['scope_mode'],domains=REFORM_FIELDS['domains']),["project","scope_mode","domains"]),
+    "reform_events":spec("按稳定事件ID分页读取完整已保存历史；早期历史缺口会明确标注。",dict(PAGE,**REFORM_RESOURCE),["project","plan_id"]),
+    "reform_resume_preview":spec("读取计划及现行运行恢复预检，不清除未知结果，不启动执行。",REFORM_RESOURCE,["project","plan_id"]),
+    "reform_create":spec("保存完整改造草稿，返回身份和修订；创建不会启动执行。",dict(REFORM_FIELDS,project=PROJECT,request_id=REQUEST),list(REFORM_FIELDS)+["project","request_id"],write=True),
+    "reform_update":spec("修订尚未派发的完整契约；已开始的契约不能无声改写。",dict(REFORM_MUTATION,reason=text(minLength=1),changes=dict(type="object",additionalProperties=False,minProperties=1,required=[],properties=REFORM_FIELDS)),list(REFORM_MUTATION)+["reason","changes"],write=True),
+    "reform_control":spec("控制计划调度：暂停不停止当前运行；取消保留已派发工作及历史。执行仍受当前授权和批次门禁约束。",dict(REFORM_MUTATION,action=text(enum=["start","release_next","pause","resume","cancel"])),list(REFORM_MUTATION)+["action"],write=True,execution=True),
+    "reform_archive":spec("归档无活跃或待调度工作的计划，保留历史。要求当前项目管理权限，不隐式停止或启动。",REFORM_MUTATION,list(REFORM_MUTATION),write=True),
+    "run_recover":spec("核对已有运行的停止回执和所有权，可能进行受管回收；不重跑、不批准。",dict(project=PROJECT,run_id=RID,request_id=REQUEST),["project","run_id","request_id"],write=True,execution=True),
+})
+
 SID = text("需求对话编号；intake_start 返回的 session.id", pattern=r"^[0-9a-f]{12}$")
 ANSWERS = dict(type="array", minItems=1, maxItems=50, items=dict(type="object", additionalProperties=False,
     properties={"item": integer("事项序号，从 0 开始，即 items 里的位置"), "slot": text("问题的 slot", pattern=r"^[A-Za-z0-9_]{1,40}$"),

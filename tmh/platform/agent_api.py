@@ -162,6 +162,8 @@ def _req(req, actor, body=None, query=None):
 
 
 def _resource(P, operation, args):
+    if operation.startswith('reform'):
+        return "project:%d:reform:%s" % (_project(P,args['project'])['id'],args.get('plan_id','create'))
     if operation.startswith("library_"):
         return "project:%d:library" % _project(P, args["project"])["id"]
     if "probe_id" in args:
@@ -398,6 +400,17 @@ def _execute(P, req, actor, operation, a):
     tool = who.get('tool_connection') or getattr(req, 'assistant_scope', None)
     # Scope before pagination; never disclose ungranted counts or row contents.
     visible_ids = [p['id'] for p in tenant_policy.visible_projects(P, req.user)] if tool else None
+    if operation.startswith('reform'):
+        from .reform_api import execute
+        return execute(P,req,actor,operation,a)
+    if operation == 'run_recover':
+        run = _run(P,a['run_id'])
+        if run['project_id'] != _project(P,a['project'])['id']:
+            raise ApiError(404,'运行不属于当前项目')
+        req.agent_side_effect_started = True
+        server.api_recover_run(P,_req(req,actor),str(a['run_id']))
+        from .tool_read import run_get
+        return run_get(P,a['run_id'],0,[run['project_id']],req.user)
     if operation == 'delivery_get':
         from . import tool_read
         scope = [p['id'] for p in tenant_policy.visible_projects(P, req.user)]
@@ -669,8 +682,16 @@ def _execute(P, req, actor, operation, a):
         t = _ticket(P, r["ticket_id"])
         requirement_hash = _requirement(t, st)
         binding = st.one("SELECT * FROM agent_run_sources WHERE run_id=?", (r["id"],))
-        if (binding and binding["requirement_hash"] != requirement_hash) or (r["mode"] == "fix" and not binding):
+        if binding and binding["requirement_hash"] != requirement_hash:
             raise ApiError(409, "原运行未绑定当前需求；请先为当前需求运行新方案，不能用旧上下文直接接续改代码")
+        if r['mode'] == 'fix' and not binding:
+            contract = st.one('SELECT run_id FROM run_execution_contracts WHERE run_id=?',(r['id'],))
+            if not contract:
+                raise ApiError(409,'网页来源运行缺少可核对的当前执行契约，请先处理负责人交接')
+            try:
+                P.runner._retry_execution_contract(r['id'],t)
+            except ValueError as exc:
+                raise ApiError(409,str(exc)) from exc
         retry = P.runner.retry_state(r["id"])
         if not retry["can_retry"]:
             raise ApiError(409, "；".join(retry["retry_blocked"]))

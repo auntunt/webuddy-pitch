@@ -234,7 +234,7 @@ PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/si
 # project selector. They remain admin-only until their query layer is scoped.
 ADMIN_GLOBAL = frozenset(("/api/lead", "/api/readiness", "/api/testbox",
                          "/api/agent-settings", "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
-AGENT_OPERATIONS = frozenset("""status projects_list tickets_list ticket_get delivery_get ticket_create message_send
+AGENT_OPERATIONS = frozenset("""reforms_list reform_get reform_preview reform_events reform_resume_preview reform_create reform_update reform_control reform_archive run_recover status projects_list tickets_list ticket_get delivery_get ticket_create message_send
 messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
 candidates_list candidate_get candidate_ci candidate_submit candidate_verify candidate_cancel candidate_preview
 candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel
@@ -486,7 +486,7 @@ def _agent(P, who, operation, body):
         from .tool_access import allowed_operations
         if operation not in allowed_operations(tool['scope']):
             raise ApiError(403, '此工具连接未获准执行该操作')
-    level = "manager" if operation in ("library_reference", "library_unlink") else "contributor" if spec.get("write") else "viewer"
+    level = "manager" if operation in ("library_reference", "library_unlink", "reform_archive") else "contributor" if spec.get("write") else "viewer"
     projects = []
     for field, kind in (("project", "project"), ("ticket", "ticket"), ("run_id", "run"),
                         ("candidate_id", "candidate"), ("probe_id", "probe"), ("session", "intake")):
@@ -494,6 +494,12 @@ def _agent(P, who, operation, body):
             projects.append(_check(P, who, _resource_project(P, kind, args[field]), level))
     if len({p["id"] for p in projects}) > 1:
         raise ApiError(400, "请求中的资源不属于同一项目")
+    if args.get('plan_id'):
+        from . import reform
+        try:
+            reform.plan(P.data_dir,args['project'],args['plan_id'])
+        except KeyError:
+            raise ApiError(404,'没有这个项目的改造计划') from None
     if operation == "request_get":
         if tool:
             from .agent_api import member_actor
@@ -576,6 +582,7 @@ def authorize(P, method, path, query, body, actor):
             template.endswith("/lessons/<lid>") or template.endswith("/preview-conf") or
             template.endswith("/prod-requests") and body.get("action") in ("approve", "reject") or
             template == "/api/tickets/<key>" and "assignee" in body or
+            template == "/api/projects/<key>/reforms/<pid>" and body.get("action") in ("archive", "remove") or
             template == "/api/memory" and body.get("action") in ("lesson_share", "lesson_unshare", "lesson_take", "lesson_untake")):
         level = "manager"
     targets = []
@@ -655,6 +662,8 @@ def authorize(P, method, path, query, body, actor):
     safe |= template == "/api/tickets" and (body.get("handwork") is True or body.get("auto") is False and not (body.get("agent") and body.get("mode"))) and not body.get("code_at")
     if template == "/api/projects/<key>/ci" and method == 'POST':
         _check(P,who,_project(P,params['key']),'manager')
+    safe |= template == '/api/projects/<key>/reforms'  # draft creation and read-only preview
+    safe |= template == '/api/projects/<key>/reforms/<pid>' and action in ('update','archive','remove')
     safe |= template in ("/api/tickets/<key>/development", "/api/projects/<key>/ci")
     safe |= template == "/api/team" and action == "assign"
     safe |= template == "/api/team" and action == "comment"

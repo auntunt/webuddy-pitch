@@ -8,7 +8,7 @@ Claude Code、Cursor、Codex 可以通过 CLI 或 MCP 读取 Webuddy 里的需�
 
 租户成员在自己的网页登录 `/t/<租户>/tools` 页面创建连接，指定获准项目、期限和 `read`（只读）或 `content`（读取并创建任务/发送消息）范围。凭据归属于实际个人；每次请求重新检查账号、成员身份、项目授权、期限和撤销状态。凭据不能跨租户，也不能让成员获得原本没有的项目权限。
 
-个人工具连接**不开放执行、候选登记或评审、知识采用、业务签收、合并和关单**；传入 `--allow-execution` 会被拒绝。它不复用管理员浏览器会话、密码或旧共享 Token。旧回环服务的完整执行命令仍保留兼容，但不属于云端成员连接能力。
+个人工具连接按 `read/content/execute/develop` 范围开放操作。`execute/develop` 配合 `--allow-execution` 和当前项目执行权限，可管理获准运行；`develop` 还可提交与验证候选。人工评审、知识采用、业务签收、合并和关单保持原边界。连接不复用管理员浏览器会话、密码或旧共享 Token。
 
 创建连接后令牌仅显示一次。可在交互终端粘贴令牌（不回显），或通过标准输入导入完整 `{schema:1, endpoint, token}` JSON。不要将令牌放入命令参数、聊天、仓库或 MCP 配置：
 
@@ -60,7 +60,7 @@ python3 -m tmh.workbench config codex --credential-file "$HOME/.config/webuddy/t
 
 ## 旧独立服务兼容模式
 
-以下 root URL、共享 Token 与执行命令供旧的独立受信任服务保留，不适用于上述 `/t/<租户>` 个人连接。租户模式不会因为这些例子、工具标签或本地执行开关放宽服务器禁令。
+以下 root URL、共享 Token 与执行命令供旧的独立受信任服务保留，不适用于上述 `/t/<租户>` 个人连接。租户模式仍取实时连接范围、客户端开关与当前项目权限的交集。
 
 ## 安装与连接
 
@@ -306,7 +306,7 @@ CLI、HTTP Agent API 与 MCP 共享 [`tmh/agent_contract.py`](../tmh/agent_contr
 | `webuddy_library_build` / `webuddy_library_cancel` / `webuddy_library_resume` | `knowledge-build` / `knowledge-cancel` / `knowledge-resume` | 仅旧独立服务执行权限：构建、取消或继续知识修订 |
 | `webuddy_library_reference` / `webuddy_library_unlink` | `knowledge-reference` / `knowledge-unlink` | 仅旧独立服务内容权限：调整已授权知识引用，不授予来源共享权限；个人租户工具连接不开放 |
 
-工具数量随版本化目录变化，具体以 `tools/list` 为准；租户个人连接还取实时 `allowed_operations` 的交集，且最多允许创建任务/发送消息两种内容写入。人工决定不在任何 MCP 配置中。执行类写操作仅供旧独立受信任服务，也都要求 `request_id`。工具隐藏之外，桥接调用和 HTTP 入口仍检查参数与权限，不能靠猜工具名越过当前连接的权限配置。
+工具数量随版本化目录变化，具体以 `tools/list` 为准；租户个人连接还取实时 `allowed_operations` 的交集，并开放本轮明确登记的改造草稿管理。人工决定不在任何 MCP 配置中。执行类写操作要求执行范围、客户端执行开关与当前项目执行授权，也都要求 `request_id`。工具隐藏之外，桥接调用和 HTTP 入口仍检查参数与权限，不能靠猜工具名越过当前连接的权限配置。
 
 ## 身份与连接边界
 
@@ -332,7 +332,7 @@ data/agent-venv/bin/python -m unittest tests.test_workbench_mcp -v
 
 | 评估问题 | 预期条件 |
 |---|---|
-| 旧独立服务默认连接公开哪些工具？ | 当前 `tools/list` 返回 21 个工具；没有任何执行类工具。租户模式另外受实时允许列表限制。 |
+| 旧独立服务默认连接公开哪些工具？ | 工具数量以当前 `tools/list` 为准；未启用执行开关时没有执行类工具。租户模式另取实时允许列表的交集。 |
 | 旧独立服务只读连接公开哪些工具？ | 当前 16 个读取工具，没有 `ticket_create` 或 `message_send`。 |
 | 同时传入只读和执行标志时采用哪种配置？ | 旧独立模式仍只有 16 个读取工具；租户模式直接拒绝 `--allow-execution`。 |
 | 如何区分夹具与真实工作台？ | 夹具 `webuddy_status` 的 `scope` 为 `fixture`，不能据此声称真实服务已验收。 |
@@ -361,3 +361,36 @@ data/agent-venv/bin/python -m unittest tests.test_workbench_mcp -v
 - 本地：调用 `webuddy_workspace_preflight`，传入编辑器实际绝对目录。读取登记仓库、固定基线、Git/worktree、未提交内容与知识修订差异；`ready=false` 时停止自动改码并向本人说明差异。工具不会清理工作区。开发后同步准确提交，按原有候选验证、独立复核、负责人合并流程交付。
 
 完整操作与边界见 [开发终端说明](developer-terminal.md#确认后选择系统执行或本地执行)。
+
+
+## 长期改造管理（本轮实现候选，验收进展见进度记录）
+
+网页与MCP复用 `reform.py`、`reform_api.py` 与同一SQLite状态。计划创建不会自动建单或调用模型。稳定链接为 `#/projects/<project>/reforms/<plan_id>`；重新下载桥接配置、升级本地Webuddy并重连后，重新运行 `tools/list` 发现工具。不得按旧版本固定工具数量。
+
+| 实际工具 | 连接范围 | 其他条件 |
+|---|---|---|
+| `webuddy_reforms_list`、`webuddy_reform_get`、`webuddy_reform_preview`、`webuddy_reform_events`、`webuddy_reform_resume_preview` | read及以上 | 当前项目读取权限 |
+| `webuddy_reform_create`、`webuddy_reform_update` | content及以上 | 当前项目写权限；修订要求expected_revision；已派发契约拒绝无声修改 |
+| `webuddy_reform_archive` | content及以上 | 当前项目manager；没有活跃、待领取或结果待核对工作 |
+| `webuddy_reform_control` | execute/develop | --allow-execution与当前项目执行权限；动作限start/release_next/pause/resume/cancel |
+| `webuddy_run_recover` | execute/develop | --allow-execution、项目归属与原有受管运行限制；不重跑 |
+
+写操作全部带稳定 `request_id`。同ID同参数返回原回执；同ID不同参数冲突。更新、控制和归档还要求 `expected_revision`。网页或其他客户端改过后，旧修订收到409，重新读取并核对差异后使用新的请求号提交新意图。网络断开不取消已接受的平台任务。重连先用原号调用 `webuddy_request_get`，不要换号重放。`pending/uncertain/accepted` 均不等于执行成功；读取回执不自动清除未知结果。
+
+创建输入示例（source_version与knowledge_revision必须换成当前项目的固定值）：
+
+```json
+{"project":"ERP","kind":"restructure","title":"销售域分层整理","goal":"完整目标、业务范围与验收标准","keep":"退款口径与对外接口不变","scope_mode":"selected","domains":["dom:sales"],"lead":{"title":"","body":""},"wave":1,"source_version":"<完整提交SHA>","target_environment":"43-test","criteria":["退款接口和报表口径保持一致"],"dependencies":[],"target":"","knowledge_revision":"<reform_preview返回的修订>","request_id":"sales-reform-create-001"}
+```
+
+先调用 `webuddy_reform_preview`：`{"project":"ERP","scope_mode":"selected","domains":["dom:sales"]}`。部分范围零选择返回零项、创建拒绝；清空不会成为全量。预览后知识变化时创建拒绝并保留原稿。
+
+恢复预检目前逐一读取现行Runner的停止与续跑条件；`checkpoint_accessibility=missing/not_checked`、`evidence.current_validity=not_checked` 不能解释为已验证。暂停只停止后续领取；当前运行继续。取消停止后续调度并保留已派发任务；需停止当前运行时使用原run_cancel并核对停止回执。归档不停止运行。已领取但回执丢失保留待核对，不自动再派一次。
+
+三条可直接用于Codex/Claude Code的指令：
+
+1. “查看 ERP 项目当前改造进度，调用 reforms_list 和 reform_get，列出阻塞、下一责任人和允许继续的步骤；不要启动。”
+2. “按这份已确认的完整范围调用 reform_preview，核对知识修订后调用 reform_create，保存计划并返回深链接，暂不启动。”
+3. “找回上次中断的计划与原request_id，调用 request_get、reform_resume_preview 和 run_get 核对代码与停止回执；只有当前权限和预检全部满足才使用同一管理链路继续，报告保留内容和复验范围。”
+
+本轮官方SDK/stdio测试与真实HTTP服务覆盖前两条的调用路径、修订冲突、重连和持久回执，以及第三条的只读预检。三个桌面宿主实机联调、完整跨批集成、检查点可访问性及跨日观察仍须按进度记录逐项验证，不能据SDK测试宣称全部完成。Windows完整兼容限制沿用原记录；新增路径的平台结果单列。

@@ -170,7 +170,7 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                         initialized = await session.initialize()
                         self.assertEqual(initialized.serverInfo.name, "webuddy_mcp")
                         tools = (await session.list_tools()).tools
-                        self.assertEqual(len(tools), 21)
+                        self.assertEqual(len(tools), 26)  # five new plan read tools; mutation tools remain excluded
                         self.assertIn("webuddy_workspace_preflight", {t.name for t in tools})
                         self.assertTrue({"webuddy_development_get","webuddy_candidate_ci","webuddy_delivery_get"} <= {tool.name for tool in tools})
                         self.assertTrue(all(tool.annotations.readOnlyHint for tool in tools))

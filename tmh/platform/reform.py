@@ -577,7 +577,8 @@ def resume(P, proj, pid, by):
         p.pop('paused',None)
         why = _blocked(P,p)
         pending = P.store.q("SELECT t.id FROM tickets t JOIN reform_dispatch d ON d.ticket_id=t.id WHERE d.plan_uid=? AND d.state='pending'",(p['uid'],))
-        made = [P.store.ticket(row['id']) for row in pending]
+        uncertain = P.store.one("SELECT ticket_id FROM reform_dispatch WHERE plan_uid=? AND state='claimed'",(p['uid'],))
+        made = [] if uncertain else [P.store.ticket(row['id']) for row in pending]
         if made:
             why = ''
         if not made and not why:
