@@ -1052,3 +1052,5 @@ fcadb650精确CI42279767492：Linux3.11完整3034通过、47跳过；3.13为3033
 用户要求 Windows 完整跑一圈，重点 MCP。基线8799e97f与github产品分支一致、工作区干净。自有webuddy-win入口两次ConnectTimeout，尚未进入设备；改用GitHub真实Windows runner推进，设备现场联调不冒充完成。新增独立检查工作流，安装.[mcp]、cryptography，Python3.11/3.13全量模块分片；每个模块独立pytest进程，记录完整日志、JUnit、命令/退出码/超时，某模块中断不吞掉失败也不阻止后续模块。既有断言/skip/业务门禁不变，未改运行代码、凭据保护或模型内核。原完整套件中断仍保留，最终运行结果另记。
 
 第一轮精确检查9965b355/run42337432312发现Windows预览测试中断会连带结束外层分片进程：3.11/3.13分片6只记录13/30模块，不能称跑完。新增Windows CREATE_NEW_PROCESS_GROUP隔离每个pytest控制台进程组，原失败/缺失报告保留，下一轮重新完整执行。Mac MCP对照35项及67子用例通过、0跳过，只用于区别平台原因，不替代Windows结论。首轮本机检查因未安装pytest返回非零且无JUnit，已保留，安装隔离依赖后runner正常完成门禁模块。
+
+第二轮21f4e73/run42337860567显示新进程组仍不足：test_workbench已产生JUnit但控制器收到KeyboardInterrupt，分片6缺最后一条回执。改用DETACHED_PROCESS，测试与控制器不共享控制台；不吞掉中断或修改测试结果，继续重新执行。自有Windows从公网直连超时，改经43的已有SSH转发成功，真实Python3.11.9/Git2.55/Node24.18、12线程约32GB；GitHubTLS拉取失败，固定源码包传输与独立依赖安装继续，未关闭TLS或修改服务器网络配置。
