@@ -1,0 +1,51 @@
+# 老项目改造阶段交付（2026-11-07）
+
+本轮已实现确定缺陷修复、共享长期计划服务、MCP管理和专用工作区；尚未完成实际浏览器验收、三个桌面宿主联调和跨日业务观察。不能据此宣称A—D全部验收完成。
+
+43已在2026-11-07 15:58:20 CST启动运行代码 `984b3dd4`，PID1858317、重启0。目标与兼容恢复两份精确提交各12个要求通过；目标CI [42352425024](https://github.com/auntunt/webuddy-pitch/actions/runs/42352425024)，恢复CI [42351228880](https://github.com/auntunt/webuddy-pitch/actions/runs/42351228880)。两套目标Linux各3076通过、59跳过；恢复两套各3064通过、56跳过；专门MCP协议均成功。Windows完整任务另行记录，不宣称全平台全绿。
+
+完整备份为 `/opt/webuddy/backups/pre-reform-984b3dd4-test-20261107T075635Z/state.tar.gz`，58963文件逐字节验证。程序指向 `/opt/webuddy/releases/reform-984b3dd4/app`，兼容回退入口 `/opt/webuddy/releases/reform-cf710375/app`。初次SSH响应超时后读取systemd发布单元确认已执行，未重复启动。启动循环首个curl未就绪失败原件保留，随后健康检查实际通过。
+
+即时15:58:52、延迟15:59:36 CST检查均通过：同PID1858317、重启0、2874文件清单/全部数据库完整性/内外200与401。延迟检查距启动约76秒。线上只读复核确认原1计划/8关联工单与旧JSON仍保持。后续文档提交不改变运行文件，不为记录重新启停服务。
+
+## 版本与验证
+
+开工核对产品最新基线为 `e282afab238e658e495e5508e64c94b72101dfc2`，不是用户提供的旧审查提交。隔离工作树保留原目录未提交内容。已部署运行代码为 `984b3dd4bf5debf97aeb35594d5a597eaec0e6e5`，兼容恢复代码为 `cf7103754c4fef8b25b4458ec8014097212078d5`。普通快进推送，无强推或授权规则变更。
+
+精确候选43专项47项零跳过通过；Mac普通解释器相关99项、101子用例通过，范围重叠不累加。正式SDK实际初始化、tools/list、tools/call、stdio、HTTP、租户独立worker、重连/原号回执和两客户端并发已实测。隔离受监管执行器与合成验收事件是测试替身，不冒充客户业务验收。Node处理函数/语法检查不算浏览器验收。
+
+逐项R1—R8/T1—T13的反例、通过范围和缺口见[实施矩阵](reform-long-running-implementation.md#rt证据边界)。原始失败与成功均保留于[evidence/reform-20261107](evidence/reform-20261107)。本次新增47项精确Linux、15库副本及兼容互读原件均以reform-984命名。
+
+## 数据与恢复
+
+旧计划JSON只在平台启动时导入SQLite并保留原字节，读取不懒迁移。唯一计划UUID、部分/工单映射、批次、待领取和幂等操作持久化。15库副本检查通过；原主库72表、历史库52表与1份旧计划/8关联工单不改归属。原历史签收不改写。
+
+984与cf710在新鲜真实库副本互读16000字符新计划及归档状态通过。接受新写入后不能切回只读旧JSON的e282程序。回退只切兼容程序，不恢复旧数据库；完整备份包含数据、仓库/保护引用、外部配置及旧程序。结果未知的领取保持needs_reconcile，不能以重启或查询清除。
+
+## 工作区与MCP
+
+测试站入口为 `https://webuddy.bbstack.date/t/default#/reform`；计划链接格式为 `#/projects/<project>/reforms/<plan_id>`，从列表或MCP返回的deep_link进入真实计划，不编造客户计划ID。状态来自reform_api.packet/reform_state，SQLite提供计划/批次/关系，候选与项目测试提供当前证据，Runner提供真实停止/续跑条件。
+
+实际新增工具为 `webuddy_reforms_list`、`webuddy_reform_get`、`webuddy_reform_preview`、`webuddy_reform_events`、`webuddy_reform_resume_preview`、`webuddy_reform_create`、`webuddy_reform_update`、`webuddy_reform_control`、`webuddy_reform_archive`、`webuddy_run_recover`。完整参数、输入例、权限矩阵和断线规则见[客户端说明](../workbench-agent.md#长期改造管理本轮实现候选验收进展见进度记录)。
+
+读工具需read和项目读；草稿create/update需content及项目写；archive另需manager且无活跃/待核对工作；control/recover需execute/develop、allow-execution与当前项目执行权。主体来自连接，参数不能伪造human或角色。写操作request_id稳定，同号同参数读原操作，同号异参冲突；现有计划修改还需expected_revision。accepted不是succeeded；未知结果先对账。客户端断开不取消平台任务，执行边界重新核对当前授权。
+
+三条自然语言指令及实际验证路径：
+
+1. “查看 ERP 项目改造当前进度，列出阻塞、下一责任人和可以继续的步骤。” 使用reforms_list/get/events/resume_preview，官方SDK读回同一持久计划及权限正负检查。
+2. “根据这份已确认范围预览批次并创建改造计划，创建后暂不启动。” 使用preview/create/get(scope)，SDK核对完整目标、约束、先导、依赖、验收标准与保存字段一致，零执行；旧知识修订冲突。
+3. “找回上次中断的计划，核对代码与停止回执，只在当前授权和恢复条件满足时继续，报告保留内容和复验范围。” 使用request_get/resume_preview/run_get/recover/control；SDK证明网页来源受监管进程活跃时拒绝、所有权释放后合法核对恢复，原号重连同回执；缺失固定源时预检和实际控制同阻塞。仅获准的隔离调度替身继续，未代人签收。
+
+## 尚未完成
+
+| 项目 | 原因与影响 | 下一步 |
+|---|---|---|
+| 桌面/窄屏、空态/受阻/暂停/恢复/证据失效实际页面 | 浏览器access host不可用；没有实际截图，T13不计通过 | 恢复浏览器宿主后按真实页面逐项检查，保留原图 |
+| Claude Code、Codex、Cursor宿主 | 仅正式SDK协议实测；Cursor CLI不存在 | 使用升级后的真实个人连接逐宿主初始化、发现、调用与重连 |
+| 跨日真实任务 | 尚未经历跨日观察；未用模拟时间冒充 | 在隔离项目登记实际起止时间、过夜接续和检查点证据 |
+| 客户多模块整体验收 | 当前多批、返修和业务事件为隔离夹具 | 使用真实模块、环境和业务负责人完成固定集成版本验收 |
+| 全服务kill边界 | 已做四个真实子进程SIGKILL边界，未做43整服务所有边界 | 维护窗口对隔离项目补服务级中断回执 |
+| 活跃范围修订/完整交接 | 当前拒绝无声改写；关联后继修订流程未补齐，检查点不等于活跃工作树完整快照 | 设计并验证显式关联修订/返修；缺停止回执仍走真实恢复路径 |
+| 时间统计及失效组合 | 未记录时间保持未知；并非所有环境/标准变化均做端到端 | 补真实计时来源与剩余组合，禁止估造完成率或等待时长 |
+
+Windows完整兼容已知限制保留，不宣称全平台通过。阿里云生产没有操作；没有客户人工签收、合并或发布代办。
