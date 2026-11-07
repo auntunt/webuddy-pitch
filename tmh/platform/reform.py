@@ -231,6 +231,15 @@ def dependencies(root: Path, limit: int = 300) -> list:
 # ---------------------------------------------------------------- plans and tickets
 
 def create(data_dir: Path, key: str, atlas: dict, b: dict, by: str, *, _db=None, _persist=True) -> dict:
+    fingerprint = hashlib.sha256(json.dumps({'operation':'reform_create','arguments':dict(b,project=key)},ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    if b.get('request_id') and _persist:
+        with (nullcontext(_db) if _db is not None else _transaction(data_dir)) as db:
+            previous = db.execute('SELECT fingerprint,result FROM reform_operations WHERE actor=? AND request_id=?',(by,b['request_id'])).fetchone()
+            if previous:
+                fp,result = (previous['fingerprint'],previous['result']) if isinstance(previous,dict) else previous
+                if fp != fingerprint:
+                    raise ValueError('请求编号已用于不同项目或内容')
+                return json.loads(result)
     kind = b.get("kind") if b.get("kind") in KINDS else "restructure"
     title = (b.get("title") or "").strip()
     goal = b.get("goal") or ""
@@ -258,7 +267,6 @@ def create(data_dir: Path, key: str, atlas: dict, b: dict, by: str, *, _db=None,
                          "shared": [], "unresolved": 0, "score": 0, "risk": "低"})
     with (nullcontext(_db) if _db is not None else _transaction(data_dir)) as db:
         ps = _load(data_dir, key, db)
-        fingerprint = hashlib.sha256(json.dumps({'operation':'reform_create','arguments':b},ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
         if b.get('request_id') and _persist:
             previous = db.execute('SELECT fingerprint,result FROM reform_operations WHERE actor=? AND request_id=?',(by,b['request_id'])).fetchone()
             if previous:
@@ -391,6 +399,8 @@ def _blocked(P, p):
         return p['paused']
     if p.get('cancelled'):
         return '计划已取消后续调度'
+    if p.get('legacy_history_complete') is False and not p.get('source_version') and any(i.get('ticket') for i in p['items']):
+        return '旧计划缺少固定源版本与批次集成绑定；请由项目负责人核对原工单、版本与历史，再建立有关联的固定范围计划'
     uncertain = P.store.one("SELECT ticket_id FROM reform_dispatch WHERE plan_uid=? AND state IN ('claimed','needs_reconcile')",(p['uid'],))
     if uncertain:
         return '批次领取结果待核对；请核对工单与运行回执，不能重复启动'
@@ -662,8 +672,8 @@ def view(P, proj: dict, p: dict) -> dict:
     integration = integration_state(P,proj,p) if all(i['status']=='closed' for i in items if i.get('ticket')) else {'state':'waiting','blocked':'等待本批子任务','commit':None}
     delivered=bool(c['closed']==c['total'] and integration['state']=='verified' and p.get('overall',{}).get('passed') and p['overall']['commit']==integration['commit'])
     blocked=_blocked(P,p)
-    state='archived' if p.get('archived') else 'cancelled' if p.get('cancelled') else 'paused' if p.get('paused') else 'accepted' if delivered else 'draft' if not p.get('batch') else 'blocked' if blocked else 'active'
-    return dict(p, state=state, items=items, counts=c, integration=integration, evidence={'current_validity':'valid' if integration['state']=='verified' else 'not_checked','integrated_delivery':'accepted' if delivered else 'pending'},next_owner=p.get('execution_owner') or p['by'], status_updated=p.get('updated') or p['created'],blocked=blocked, kind_label=KINDS[p["kind"]][0])
+    state='archived' if p.get('archived') else 'cancelled' if p.get('cancelled') else 'paused' if p.get('paused') else 'accepted' if delivered else 'draft' if not c['released'] else 'blocked' if blocked else 'active'
+    return dict(p, state=state, batch_label=('第 %d 批'%p['batch']) if p.get('batch') else '历史批次待核对' if c['released'] else '尚未派发', items=items, counts=c, integration=integration, evidence={'current_validity':'valid' if integration['state']=='verified' else 'not_checked','integrated_delivery':'accepted' if delivered else 'pending'},next_owner=p.get('execution_owner') or p['by'], status_updated=p.get('updated') or p['created'],blocked=blocked, kind_label=KINDS[p["kind"]][0])
 
 
 def listener(P):

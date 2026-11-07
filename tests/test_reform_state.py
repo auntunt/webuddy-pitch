@@ -58,6 +58,8 @@ class ReformStateTest(unittest.TestCase):
         self.assertTrue(verified['verification_passed'])
         current=reform_state.ticket(self.P,self.p,self.P.store.ticket(self.fixture.ticket['id']))
         self.assertEqual(current['evidence_validity'],'valid')
+        self.assertEqual(current['state'],'verified')
+        self.assertIn('独立复核',current['next_action'])
         closed=self.P.store.update_ticket(self.fixture.ticket['id'],'fixture',status='closed')
         history=reform_state.ticket(self.P,self.p,closed)
         self.assertTrue(history['historical_acceptance'])
@@ -93,9 +95,8 @@ class ReformStateTest(unittest.TestCase):
             reform._save(self.P.data_dir,'EXT',plans,db)
         t=self.P.store.ticket(first)
         run(self.P.runner,self.p,t)
-        with self.assertRaises(ApiError) as caught:
+        with self.assertRaisesRegex(ValueError,'暂停'):
             run(self.P.runner,self.p,t,new_run=True)
-        self.assertEqual(caught.exception.code,409)
 
     def test_pending_resume_blocks_missing_checkpoint_without_floating_head(self):
         with patch.object(reform,'_dispatch',side_effect=OSError('injected disconnect')):

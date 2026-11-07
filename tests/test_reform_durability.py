@@ -179,3 +179,24 @@ class ReformDurabilityTest(unittest.TestCase):
         self.assertEqual(self.submitted,made)
         reform.reconcile(self.P)
         self.assertEqual(self.submitted,made)
+
+    def test_create_request_id_is_bound_to_project_and_original_inputs(self):
+        args=dict(title='Saved',goal='Full saved requirement',scope_mode='selected',domains=['0'],request_id='same-create')
+        first=reform.create(self.data,'RF',self.atlas,args,'owner')
+        self.assertEqual(reform.create(self.data,'RF',dict(self.atlas,built='changed'),args,'owner')['id'],first['id'])
+        with self.assertRaisesRegex(ValueError,'项目或内容'):
+            reform.create(self.data,'OTHER',self.atlas,args,'owner')
+        self.assertEqual(reform.plans(self.data,'OTHER'),[])
+
+    def test_imported_issued_plan_is_not_projected_as_draft_or_currently_verified(self):
+        p=self.create()
+        made=reform.release(self.P,self.proj,p['id'],None,'owner')
+        for key in made:self.close(key)
+        saved=reform.plan(self.data,'RF',p['id'])
+        saved.pop('batch')
+        saved['legacy_history_complete']=False
+        current=reform.view(self.P,self.proj,saved)
+        self.assertEqual(current['state'],'blocked')
+        self.assertEqual(current['batch_label'],'历史批次待核对')
+        self.assertIn('固定源版本',current['blocked'])
+        self.assertNotEqual(current['evidence']['integrated_delivery'],'accepted')

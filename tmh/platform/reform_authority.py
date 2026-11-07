@@ -34,10 +34,13 @@ def run(runner, project, ticket, *, new_run=False):
     members=p['items']+p.get('integrations',[])
     if (ticket['project_id']!=project['id'] or reference.get('uid')!=p['uid'] or
             not any(i.get('ticket')==ticket['key'] and i.get('batch')==reference.get('batch') for i in members)):
-        raise ApiError(409,'运行与当前计划批次归属不一致，不能执行')
+        raise ValueError('运行与当前计划批次归属不一致，不能执行')
     if p.get('archived') or p.get('cancelled'):
-        raise ApiError(409,'计划已取消或归档，不再启动新执行步骤；已有代码与历史保留')
+        raise ValueError('计划已取消或归档，不再启动新执行步骤；已有代码与历史保留')
     if new_run and p.get('paused'):
-        raise ApiError(409,'计划已暂停后续步骤；当前运行继续，新的运行须先从计划核对恢复')
+        raise ValueError('计划已暂停后续步骤；当前运行继续，新的运行须先从计划核对恢复')
     if ctx is not None:
-        require(ctx.platform,project,p)
+        try:
+            require(ctx.platform,project,p)
+        except ApiError as exc:
+            raise ValueError('当前执行授权需要核对：'+str(exc)) from exc

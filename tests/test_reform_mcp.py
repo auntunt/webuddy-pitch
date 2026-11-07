@@ -25,7 +25,7 @@ class ReformMCPTest(unittest.IsolatedAsyncioTestCase):
         dispatch=patch.object(self.P.flow,'submit',side_effect=lambda p,t:self.submitted.append(t['key']))
         dispatch.start()
         self.addCleanup(dispatch.stop)
-        self.atlas={'built':'fixed-knowledge','domains':[{'id':'sales','title':'Sales','tables':1}]}
+        self.atlas={'built':'fixed-knowledge','domains':[{'id':'sales','title':'Sales','tables':1,'flows':1}]}
         patched=patch.object(self.P.kb,'atlas',return_value=self.atlas)
         patched.start()
         self.addCleanup(patched.stop)
@@ -129,6 +129,10 @@ class ReformMCPTest(unittest.IsolatedAsyncioTestCase):
         async with self.session('--allow-execution') as session:
             plan,args=await self.create(session)
             resource=dict(project='EXT',plan_id=plan['id'])
+            listed=self.web('/api/projects/EXT/reforms?view=list&status=draft&limit=1')
+            self.assertEqual([p['id'] for p in listed['items']],[plan['id']])
+            self.assertNotIn('goal',listed['items'][0])
+            self.assertEqual(self.web('/api/projects/EXT/reforms?view=list&status=paused')['items'],[])
             current=self.web('/api/projects/EXT/reforms?plan_id='+plan['id'])
             self.assertEqual(current['revision'],plan['revision'])
             updated=self.web('/api/projects/EXT/reforms/'+plan['id'],dict(action='update',
@@ -143,6 +147,17 @@ class ReformMCPTest(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(scope['scope']['revisions'][0]['contract']['keep'],args['keep'])
             archive=await self.call(session,'reform_archive',dict(resource,expected_revision=latest['revision'],request_id='archive-draft'))
             self.assertTrue(archive['archived'])
+
+    async def test_web_create_response_loss_replay_survives_knowledge_change(self):
+        async with self.session() as session:
+            _,args=await self.create(session)
+        body=dict(args,request_id='web-response-lost-create')
+        first=self.web('/api/projects/EXT/reforms',body)
+        changed=dict(self.atlas,built='updated-after-response-loss')
+        with patch.object(self.P.kb,'atlas',return_value=changed):
+            recovered=self.web('/api/projects/EXT/reforms',body)
+        self.assertEqual(recovered['id'],first['id'])
+        self.assertEqual(len(reform.plans(self.P.data_dir,'EXT')),2)
 
     async def test_sdk_readonly_hides_and_rejects_writes_and_execution_flag_is_required(self):
         async with self.session('--read-only') as session:

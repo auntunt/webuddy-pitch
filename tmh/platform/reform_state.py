@@ -58,7 +58,7 @@ def ticket(P, project, t):
             if any(reason!='工单已关闭' for reason in current['blocked']) or current['verification'].get('verification_current') is False:
                 result.update(evidence_validity='invalid',label='候选依据已变化',next_action='核对候选与当前需求')
             elif current['verification_passed']:
-                result.update(evidence_validity='valid',automatic_verification='passed',state='awaiting_acceptance',label='自动验证通过，待业务验收')
+                result.update(evidence_validity='valid',automatic_verification='passed',state='verified',label='自动验证通过，交付决定待核对',next_action='在团队工作台核对独立复核、负责人合并与业务验收门槛')
         elif commit and v.get('checked_commit')==commit and adopted_run and adopted_run['id']==run['id'] and v.get('verification_contract') and v.get('check')=='pass' and v.get('verdict')=='pass':
             from .project_library import run_current
             full = P.store.run(run['id'])

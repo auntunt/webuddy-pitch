@@ -2538,6 +2538,18 @@ def api_reforms(P, req, key):
         return resume_preview(P,p,value) if req.arg('view')=='resume' else packet(P,p,value)
     at = P.kb.atlas(p)
     doms = [{"id": d["id"], "title": d["title"], "flows": d["flows"], "tables": d["tables"]} for d in at.get("domains") or []]
+    if req.arg('view')=='list':
+        from ..agent_contract import validate
+        from .reform_api import execute
+        try:
+            args=dict(project=p['key'],after=int(req.arg('after') or 0),limit=int(req.arg('limit') or 20),archived=req.arg('archived')=='1')
+            if req.arg('status'):
+                args['status']=req.arg('status')
+            args=validate('reforms_list',args)
+        except ValueError as exc:
+            raise ApiError(400,str(exc)) from exc
+        return dict(execute(P,req,req.user,'reforms_list',args),
+            kinds={k:{'label':v[0],'desc':v[1]} for k,v in reform.KINDS.items()},built=bool(at.get('built')),domains=doms)
     return {"kinds": {k: {"label": v[0], "desc": v[1]} for k, v in reform.KINDS.items()}, "built": bool(at.get("built")), "domains": doms,
             "plans": [reform.view(P, p, x) for x in reform.plans(P.data_dir, p["key"],include_archived=req.arg("include_archived")=="1")][::-1]}
 
