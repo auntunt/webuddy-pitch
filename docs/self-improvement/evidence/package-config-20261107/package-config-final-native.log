@@ -1,0 +1,3 @@
+native EXIT 0
+configuration EXIT 0
+tests EXIT 0

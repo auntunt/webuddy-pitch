@@ -1,0 +1,27 @@
+{
+  "baseline": "f5727dff7716e728ce2cb80def724df2c69bfc4e",
+  "implementation": "c927d8d4207030397b199511159952cb911ff1e1",
+  "product_merge": "6e202604ce11dfff033dc707c42ae000ffdfe977",
+  "runtime_commit": "3261e871d33bc243493abfd1dc34f89f5b2a43b3",
+  "ci": 42380916509,
+  "required_ci_jobs": 12,
+  "wheel": {
+    "source_commit": "3261e871d33bc243493abfd1dc34f89f5b2a43b3",
+    "wheel": "tmh_harness-0.4.0-py3-none-any.whl",
+    "sha256": "08151a1c0e7343930cc15c6b568a1932892850bf692d0a2dd6b5f52b99df3179",
+    "bytes": 2013543
+  },
+  "environment": "43-test",
+  "public_url": "https://webuddy.bbstack.date",
+  "started": "2026-11-07T22:39:08+08:00",
+  "health_delayed": "2026-11-07T22:41:48+08:00",
+  "pid": 1965848,
+  "restarts": 0,
+  "source_manifest_files": 4389,
+  "databases_checked": 15,
+  "backup": "/opt/webuddy/backups/pre-package-3261e871-test-20261107T143726Z/state.tar.gz",
+  "backup_file_members_byte_verified": 56440,
+  "fallback_program": "/opt/webuddy/releases/scenario-cf6143be/app",
+  "docker_image_delivered": false,
+  "aliyun_changed": false
+}
