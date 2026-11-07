@@ -1,0 +1,7 @@
+Cloning into '/Users/auntlee/Desktop/workspace/运维智能体/部署包/jenkins-erp-demo-20261106/git-workflow-20261107'...
+Switched to a new branch 'rehearsal/git-workflow-20261107/main'
+To ssh://127.0.0.1:12222/repos/erp.git
+ * [new branch]      rehearsal/git-workflow-20261107/main -> rehearsal/git-workflow-20261107/main
+Switched to a new branch 'rehearsal/git-workflow-20261107/refund'
+To ssh://127.0.0.1:12222/repos/erp.git
+ * [new branch]      rehearsal/git-workflow-20261107/refund -> rehearsal/git-workflow-20261107/refund

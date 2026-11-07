@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "exercise": "git-workflow-20261107",
+  "baseline": "75a9311d5bd485e7fe0701c042520831aa1fa44c",
+  "candidate": "942949a49b7f73d66428ea225a12381add8623c2",
+  "main_branch": "rehearsal/git-workflow-20261107/main",
+  "feature_branch": "rehearsal/git-workflow-20261107/refund",
+  "remote": "ssh://git@127.0.0.1:12222/repos/erp.git",
+  "actor": "agent",
+  "simulated": true,
+  "business_accepted": false,
+  "production_deployed": false
+}

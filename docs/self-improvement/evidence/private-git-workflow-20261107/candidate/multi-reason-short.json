@@ -1,0 +1,17 @@
+{
+  "input": {
+    "info": "{\"defaultNumber\":\"XSTH00000000686\",\"organId\":58,\"operTime\":\"2026-11-07 06:20:25\",\"number\":\"WB-REASON-1794032432957-short\",\"remark\":\"退货\",\"discount\":0,\"discountMoney\":0,\"discountLastMoney\":12.5,\"otherMoney\":0,\"accountId\":\"\",\"changeAmount\":-12.5,\"debt\":\"0.00\",\"type\":\"入库\",\"subType\":\"销售退货\",\"totalPrice\":-12.5,\"accountIdList\":\"[17,18]\",\"accountMoneyList\":\"[\\\"-7.25\\\",\\\"-5.25\\\"]\",\"fileName\":\"\",\"salesMan\":\"\",\"status\":\"0\"}",
+    "rows": "[{\"id\":\"17940324251310457354\",\"name\":\"商品1\",\"standard\":\"\",\"model\":\"\",\"color\":\"\",\"brand\":\"\",\"mfrs\":\"\",\"otherField1\":\"\",\"otherField2\":\"\",\"otherField3\":\"\",\"stock\":\"\",\"unit\":\"个\",\"snList\":\"\",\"batchNumber\":\"\",\"expirationDate\":\"\",\"sku\":\"\",\"preNumber\":\"\",\"finishNumber\":\"\",\"operNumber\":1,\"unitPrice\":12.5,\"allPrice\":12.5,\"taxRate\":0,\"taxMoney\":0,\"taxLastMoney\":12.5,\"remark\":\"\",\"linkId\":\"\",\"depotId\":14,\"barCode\":\"1001\"}]"
+  },
+  "response": {
+    "code": 8590001,
+    "data": {
+      "message": "退款说明须为5至200个字符，不能只填空白"
+    }
+  },
+  "count": 0,
+  "expected": {
+    "code": 8590001,
+    "count": 0
+  }
+}

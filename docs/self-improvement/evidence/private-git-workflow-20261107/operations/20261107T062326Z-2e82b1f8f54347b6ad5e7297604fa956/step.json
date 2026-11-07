@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "label": "定位MCP读取拒绝原因",
+  "actor": "Codex",
+  "actor_type": "agent",
+  "identity_verified": false,
+  "method": "terminal_command",
+  "started_at": "2026-11-07T06:23:26.305414+00:00",
+  "cwd": "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness",
+  "command": [
+    "/private/tmp/webuddy-developer-mcp-venv/bin/python",
+    "/private/tmp/webuddy-verify-rehearsal.py"
+  ],
+  "state": "completed",
+  "acceptance": false,
+  "exit_code": 0,
+  "ended_at": "2026-11-07T06:23:27.676146+00:00",
+  "artifacts": {
+    "stdout.bin": {
+      "bytes": 93,
+      "sha256": "838152b169d0061367cb7089c0e95a631b558b44aaef295556d511f38d755d45"
+    },
+    "stderr.bin": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

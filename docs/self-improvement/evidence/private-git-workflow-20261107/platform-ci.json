@@ -1,0 +1,81 @@
+{
+  "baseline": {
+    "state": "blocked",
+    "commit": "75a9311d5bd485e7fe0701c042520831aa1fa44c",
+    "checks": [
+      {
+        "name": "erp-verification",
+        "state": "blocked",
+        "runs": [
+          {
+            "id": 9,
+            "status": "completed",
+            "conclusion": "FAILURE",
+            "commit": "75a9311d5bd485e7fe0701c042520831aa1fa44c",
+            "url": "https://127.0.0.1:18443/job/erp-verification/9/"
+          }
+        ],
+        "message": ""
+      }
+    ],
+    "config": {
+      "provider": "jenkins",
+      "connection": "demo-jenkins",
+      "repository": "demo/erp",
+      "required_checks": [
+        "erp-verification"
+      ]
+    },
+    "revision": "1ad57f17c3650710cfe8f2c978a75c601997b2dab8667966b53bbe44acf769c8"
+  },
+  "candidate": {
+    "state": "pass",
+    "commit": "942949a49b7f73d66428ea225a12381add8623c2",
+    "checks": [
+      {
+        "name": "erp-verification",
+        "state": "pass",
+        "runs": [
+          {
+            "id": 10,
+            "status": "completed",
+            "conclusion": "SUCCESS",
+            "commit": "942949a49b7f73d66428ea225a12381add8623c2",
+            "url": "https://127.0.0.1:18443/job/erp-verification/10/"
+          }
+        ],
+        "message": ""
+      }
+    ],
+    "config": {
+      "provider": "jenkins",
+      "connection": "demo-jenkins",
+      "repository": "demo/erp",
+      "required_checks": [
+        "erp-verification"
+      ]
+    },
+    "revision": "1ad57f17c3650710cfe8f2c978a75c601997b2dab8667966b53bbe44acf769c8"
+  },
+  "missing": {
+    "state": "blocked",
+    "commit": "0000000000000000000000000000000000000000",
+    "checks": [
+      {
+        "name": "erp-verification",
+        "state": "missing",
+        "runs": [],
+        "message": "最近100次构建中没有当前仓库和提交"
+      }
+    ],
+    "config": {
+      "provider": "jenkins",
+      "connection": "demo-jenkins",
+      "repository": "demo/erp",
+      "required_checks": [
+        "erp-verification"
+      ]
+    },
+    "revision": "1ad57f17c3650710cfe8f2c978a75c601997b2dab8667966b53bbe44acf769c8"
+  }
+}

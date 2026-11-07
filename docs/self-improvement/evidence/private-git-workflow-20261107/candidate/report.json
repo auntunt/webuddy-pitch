@@ -1,0 +1,188 @@
+{
+  "source": "942949a49b7f73d66428ea225a12381add8623c2:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "build": {
+    "source": "942949a49b7f73d66428ea225a12381add8623c2:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "harness_sha256": {
+      "business.py": "b986b06cbb9ae2c704943c38ffba4865995ca89518dc6510655eaa41ece15c6b",
+      "serve.py": "5d3120c12c1265c6404380549706f8c58580a0468ee914d3a29680ac44103822",
+      "verify.mjs": "e9aec6795c34d1046c98e786d77fb35be7f7890692b04588ffdb0057d8a5344b"
+    },
+    "pid": 15341,
+    "process_start": "36408976",
+    "jar_sha256": "0c43d7dc0454be85268ba0a41ab7272c46e6e3c0b48a427e9ee1a2490af6c4af",
+    "index_sha256": "a0b40abc725ea0ff5d42e667749fbd4ba5a3cea1fb2010bdab1cc29dc96c22f6"
+  },
+  "cases": [
+    {
+      "id": "refund.single.reason.empty",
+      "status": "pass",
+      "input": "",
+      "expected": "明确拒绝且不写库",
+      "actual": {
+        "code": 8590001,
+        "count": 0
+      }
+    },
+    {
+      "id": "refund.single.reason.spaces",
+      "status": "pass",
+      "input": "　 \t",
+      "expected": "明确拒绝且不写库",
+      "actual": {
+        "code": 8590001,
+        "count": 0
+      }
+    },
+    {
+      "id": "refund.single.reason.short",
+      "status": "pass",
+      "input": "退货",
+      "expected": "明确拒绝且不写库",
+      "actual": {
+        "code": 8590001,
+        "count": 0
+      }
+    },
+    {
+      "id": "refund.single.reason.long",
+      "status": "pass",
+      "input": "退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退",
+      "expected": "明确拒绝且不写库",
+      "actual": {
+        "code": 8590001,
+        "count": 0
+      }
+    },
+    {
+      "id": "refund.single.unauthorized",
+      "status": "pass",
+      "input": "未携带登录凭据提交新的退款单",
+      "expected": "拒绝且数据库没有新增单据",
+      "actual": {
+        "httpStatus": 500,
+        "body": "loginOut",
+        "count": 0
+      }
+    },
+    {
+      "id": "refund.single.save_and_read",
+      "status": "pass",
+      "input": {
+        "amount": 12.5,
+        "quantity": 1
+      },
+      "expected": {
+        "refund": -12.5,
+        "quantity": 1,
+        "uiRefund": 12.5,
+        "status": "未审核"
+      },
+      "actual": {
+        "refund": -12.5,
+        "quantity": 1,
+        "uiRefund": 12.5,
+        "uiContainsDocument": true,
+        "status": "0"
+      },
+      "number": "WEBUDDY-REFUND-1794032410659"
+    },
+    {
+      "id": "refund.single.duplicate",
+      "status": "pass",
+      "input": "重复提交同一单号",
+      "expected": "拒绝且数据库仍为1单",
+      "actual": {
+        "immediateCode": 8500022,
+        "delayedCode": 8500022,
+        "count": 1
+      }
+    },
+    {
+      "id": "refund.multi.reason.empty",
+      "status": "pass",
+      "input": "",
+      "expected": "明确拒绝且不写库",
+      "actual": {
+        "code": 8590001,
+        "count": 0
+      }
+    },
+    {
+      "id": "refund.multi.reason.spaces",
+      "status": "pass",
+      "input": "　 \t",
+      "expected": "明确拒绝且不写库",
+      "actual": {
+        "code": 8590001,
+        "count": 0
+      }
+    },
+    {
+      "id": "refund.multi.reason.short",
+      "status": "pass",
+      "input": "退货",
+      "expected": "明确拒绝且不写库",
+      "actual": {
+        "code": 8590001,
+        "count": 0
+      }
+    },
+    {
+      "id": "refund.multi.reason.long",
+      "status": "pass",
+      "input": "退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退退",
+      "expected": "明确拒绝且不写库",
+      "actual": {
+        "code": 8590001,
+        "count": 0
+      }
+    },
+    {
+      "id": "refund.multi.unauthorized",
+      "status": "pass",
+      "input": "未携带登录凭据提交新的退款单",
+      "expected": "拒绝且数据库没有新增单据",
+      "actual": {
+        "httpStatus": 500,
+        "body": "loginOut",
+        "count": 0
+      }
+    },
+    {
+      "id": "refund.multi.save_and_read",
+      "status": "pass",
+      "input": {
+        "amounts": [
+          7.25,
+          5.25
+        ],
+        "quantity": 1
+      },
+      "expected": {
+        "refund": -12.5,
+        "quantity": 1,
+        "uiRefund": 12.5,
+        "status": "未审核"
+      },
+      "actual": {
+        "refund": -12.5,
+        "quantity": 1,
+        "uiRefund": 12.5,
+        "uiContainsDocument": true,
+        "status": "0"
+      },
+      "number": "WEBUDDY-REFUND-1794032425535"
+    },
+    {
+      "id": "refund.multi.duplicate",
+      "status": "pass",
+      "input": "重复提交同一单号",
+      "expected": "拒绝且数据库仍为1单",
+      "actual": {
+        "immediateCode": 8500022,
+        "delayedCode": 8500022,
+        "count": 1
+      }
+    }
+  ]
+}

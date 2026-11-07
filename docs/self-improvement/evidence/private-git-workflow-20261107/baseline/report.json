@@ -1,0 +1,9 @@
+{
+  "cases": [
+    {
+      "id": "refund.workflow",
+      "status": "fail",
+      "actual": "Invalid refund reason must be rejected: empty\n\n200 !== 8590001\n"
+    }
+  ]
+}

@@ -1084,3 +1084,13 @@ owner_lost进一步通过真实解释器对照定位：同源码使用Windows基
 ### 2026-11-07 改造计划 MCP 管理候选
 
 接通10个新增改造/恢复工具的schema、stdio、客户端写开关、scope、租户资源权限、agent_api登记与共享reform_api服务；草稿创建不启动，修订使用expected_revision，管理请求使用request_id，持久领取结果未知时阻止后续领取。网页typed update/control/archive复用同一服务，归档要求项目管理权限。原个人连接执行能力保留，未开放代人签收/合并/发布。180项相关回归及276子用例通过；最后领取边界13项通过。官方MCP SDK真实stdio→HTTP→SQLite与租户签名网关→独立worker验证创建/修订冲突/重连/原请求重放/撤权拒绝及worker重启读回；调度submit为明确替身，不冒充模型业务执行。Claude Code/Codex/Cursor宿主、检查点集成、实际页面和跨日尚未验证，本批不宣称阶段B完成。证据见evidence/reform-20261107/mcp-*.log。
+
+### 2026-11-07 自建Git与Jenkins完整技术演练
+
+用户要求自建仓库并模拟操作与设计。核对发现已有SSH Git服务，复用而未另建仓库平台；在独立ERP克隆建立rehearsal/git-workflow-20261107/main与refund，固定基线75a9311与候选942949a49b7f73d66428ea225a12381add8623c2（复用4172462业务实现，补设计说明）。真实Jenkins#9基线57JUnit通过但空说明新规则失败；#10候选60JUnit及14条DB/API/Chromium检查通过，控制侧三脚本摘要一致。实际快进演练分支并推私有Git，核对远端SHA；明确agent模拟操作、非真人Review/业务验收、非正式主干/生产发布。
+
+增加可复跑rehearse.py及设计操作文档；证据服务和只读MCP启动器支持独立演练目录/端口，旧默认入口保持。缺完成回执、重复构建、重复合并均实际拒绝；Webuddy真实Jenkins适配器对基线/缺失SHA blocked、候选pass。真实Chrome合成账号登录、下载交付依据及三尺寸原图；官方SDK经实际生成配置读取同一完整数据，保留clarifying/current_validity=not_checked/ready_to_merge=null。首次MCP读取错误原件保留，补诊断与配置复验通过，瞬时原因未确定。只读账号读配置403，管理员读取验证实际Jenkinsfile一致，未扩权。
+
+本轮材料evidence/private-git-workflow-20261107；完整日志/JUnit/原始PNG/逐步命令在本机部署包对应proof，未压缩图片。所有操作记录Agent身份，不倒填真人步骤。仅本机演练资产与文档改变，无产品内核变更，不重启43或发布阿里云；Windows未作为本轮Jenkins节点，个人MCP限制保持。当前SSH Git不提供网页PR/受保护分支，客户人员确认、真实环境联调和收益尚待现场。
+
+本轮推送前产品分支已推进到48014573，保留并合入并行改造提交和进度；未强推。演示服务冻结产品71cfd2c6加本轮脚本的独立源码副本，MCP配置同时指向该副本，重启后的真实配置复验通过、两条外部运行未重复导入；原始PNG保持。测试Chrome已关闭，18986保留可访问。此次是本机演练交付，不以后续产品代码冒充已测，也不触发43程序替换。
