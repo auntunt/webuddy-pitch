@@ -1301,3 +1301,10 @@ c927d8d4已普通推送并完成固定提交wheel/源码外smoke、全新server/
 ### 离线包 Windows CI 首次反例与修复
 - 87f21a69已普通推送。Windows离线CI42389723641真实构建通过，360条程序级出站禁止规则下，本机/包内工具版本检测及cmd入口通过；MCP导入在pywintypes缺失处失败，未达到网页启动。finally已清理全部测试规则。原因是Mac跨平台pip忽略Windows marker，遗漏pywin32；原日志保留，不跳过MCP导入。
 - 新增pywin32 312 cp314官方wheel，按上游SHA核对；构建前按Windows/Python3.14和server/mcp extras检查完整依赖闭包。保留pywin32配套.pth/DLL，将官方postinstall脚本仅移入私有Scripts，不执行系统安装，RECORD同步迁移。13项/2子项与31个实际Windows依赖闭包本机通过，新增反例可在非Windows主机检测同类漏项。旧511MiB包仍为失败候选，不交付；等待修订的真实Windows断网复验。
+
+### 2026-11-08 Windows 离线启动包已交付
+- 实现87f21a69、修订093201ea普通推送；专用Windows CI42390393943于00:15:42–00:21:42 CST真实通过，Server2025、Python3.14.10。360条程序级出站禁止下，包内Codex0.166.0/Claude2.1.314/Git2.56.0.4/Node24.22.2、本机Node22/Git复用、cmd入口、MCP/pywin32与Rust依赖、中文空格路径、HTTP200/401、同数据目录重复启动拒绝、两次受监管回收并重启、SQLite完整性及配置保留通过。所有临时防火墙规则已清除。原失败CI42389723641完整保留。
+- 最终13591文件543201603字节，ZIP SHA2563884525753ae15553821e617f99901f1bc79199968f07a0e4e25e645dac03485，文件清单指纹fd710712ed428e81b114d1f011830b0791c880821d675df1cb01f2c7bb0d971d。Mac与Windows有278项行尾、release和wheel RECORD两项元数据差异；保留原Mac构建，用CI原始哈希逐项核对后无损重封装，所有交付文件字节完全匹配Windows实测清单；ZIP容器哈希不同已明确。完整重建脚本、原日志和清单在交付evidence中，未删原件。
+- 最终入口：相邻部署包/offline-runtime-20261108/Windows-x64-093201ea-verified/。解压→check.cmd→start.cmd→127.0.0.1:8790；数据与配置外置，已有工具优先，缺少用包内版本，不改全局PATH/注册表，不含账号/密钥/业务数据。候选Mac构建移入preparation；不是Docker镜像。
+- 本机13项/2子项通过；093快速四门、安装分发两门、Windows执行两门、Linux真实MCP两门通过。常规完整CI记录时仍运行，不宣称整体CI成功。客户Win10/11桌面整包试用（现有测试机转发不稳）、模型登录/真实调用、项目沙箱及三宿主联调未计通过；原全量Windows已知限制保持。单次包检查不代表客户业务已验收。
+- 43只读复验：仍maps-9edce45a/app，229个运行文件与当前HEAD一致，PID1983706、重启0、active/running、回环200/401通过；不为打包改动重启，不动阿里云生产。技术回执见evidence/windows-offline-20261108/{delivery-receipt,windows-ci-receipt}.json及43-runtime-unchanged.log；完整材料在交付目录evidence。

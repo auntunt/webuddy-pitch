@@ -1,0 +1,8 @@
+{"app": "/opt/webuddy/releases/maps-9edce45a/app", "release": {"commit": "9edce45a5364d7f20a373929815bbbfec40a3c7f", "environment": "43-test"}, "runtime_files_match_latest": 229}
+MainPID=1983706
+NRestarts=0
+ActiveState=active
+SubState=running
+
+/login 200
+/t/default/api/projects 401

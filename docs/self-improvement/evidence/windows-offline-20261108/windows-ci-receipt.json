@@ -1,0 +1,159 @@
+{
+  "manifest_sha256": "fd710712ed428e81b114d1f011830b0791c880821d675df1cb01f2c7bb0d971d",
+  "local": {
+    "bundle_files_verified": 13591,
+    "tools": {
+      "node": {
+        "path": "C:\\Program Files\\nodejs\\node.EXE",
+        "source": "local",
+        "version": "v22.23.4"
+      },
+      "git": {
+        "path": "C:\\Program Files\\Git\\bin\\git.EXE",
+        "source": "local",
+        "version": "git version 2.56.0.windows.4"
+      },
+      "codex": {
+        "path": "D:\\a\\_temp\\offline-evidence\\Webuddy 离线 test\\Webuddy\\tools\\codex\\package\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe",
+        "source": "bundled",
+        "version": "codex-cli 0.166.0"
+      },
+      "claude": {
+        "path": "D:\\a\\_temp\\offline-evidence\\Webuddy 离线 test\\Webuddy\\tools\\claude\\package\\claude.exe",
+        "source": "bundled",
+        "version": "2.1.314 (Claude Code)"
+      }
+    },
+    "data_dir": "C:\\Users\\runneradmin\\AppData\\Local\\Webuddy\\data",
+    "url": "http://127.0.0.1:8790/",
+    "configuration": {
+      "ok": true,
+      "check": "json_syntax_and_top_level_type",
+      "files": [
+        {
+          "file": "agents.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "agent-routes.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "autoflow.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "project-tests.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "pricing.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "datasources.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "alerts.json",
+          "state": "not_configured"
+        }
+      ]
+    },
+    "model_access": "not_checked",
+    "authentication": "not_checked"
+  },
+  "bundled": {
+    "bundle_files_verified": 13591,
+    "tools": {
+      "node": {
+        "path": "D:\\a\\_temp\\offline-evidence\\Webuddy 离线 test\\Webuddy\\tools\\node\\node-v24.22.2-win-x64\\node.exe",
+        "source": "bundled",
+        "version": "v24.22.2"
+      },
+      "git": {
+        "path": "D:\\a\\_temp\\offline-evidence\\Webuddy 离线 test\\Webuddy\\tools\\git\\cmd\\git.exe",
+        "source": "bundled",
+        "version": "git version 2.56.0.windows.4"
+      },
+      "codex": {
+        "path": "D:\\a\\_temp\\offline-evidence\\Webuddy 离线 test\\Webuddy\\tools\\codex\\package\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe",
+        "source": "bundled",
+        "version": "codex-cli 0.166.0"
+      },
+      "claude": {
+        "path": "D:\\a\\_temp\\offline-evidence\\Webuddy 离线 test\\Webuddy\\tools\\claude\\package\\claude.exe",
+        "source": "bundled",
+        "version": "2.1.314 (Claude Code)"
+      }
+    },
+    "data_dir": "C:\\Users\\runneradmin\\AppData\\Local\\Webuddy\\data",
+    "url": "http://127.0.0.1:8790/",
+    "configuration": {
+      "ok": true,
+      "check": "json_syntax_and_top_level_type",
+      "files": [
+        {
+          "file": "agents.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "agent-routes.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "autoflow.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "project-tests.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "pricing.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "datasources.json",
+          "state": "not_configured"
+        },
+        {
+          "file": "alerts.json",
+          "state": "not_configured"
+        }
+      ]
+    },
+    "model_access": "not_checked",
+    "authentication": "not_checked"
+  },
+  "cmd_wrapper": "codex-cli 0.166.0",
+  "external_tcp": "blocked",
+  "python": "3.14.10 (tags/v3.14.10:b703b2c, Oct 25 2026, 17:36:52) [MSC v.1944 64 bit (AMD64)]",
+  "sqlite": "3.50.4",
+  "ssl": "OpenSSL 3.5.9 29 Sep 2026",
+  "projects_after_start_0": [],
+  "stop_0": {
+    "trigger": "cancelled",
+    "term_sent": false,
+    "kill_sent": true,
+    "signals": [],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "projects_after_start_1": [],
+  "stop_1": {
+    "trigger": "cancelled",
+    "term_sent": false,
+    "kill_sent": true,
+    "signals": [],
+    "errors": [],
+    "remaining_group": false,
+    "output_complete": true,
+    "reaped": true,
+    "complete": true
+  },
+  "manifest_after_test": 13591
+}

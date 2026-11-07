@@ -60,3 +60,13 @@ python3 scripts/deploy/build-windows-offline.py \
 实际 Windows 检查：使用包内 Python 执行 `scripts/deploy/test-windows-offline.py <解压后的Webuddy目录>`。它只建立独立合成数据，验证原始文件、中文/空格路径、工具复用与缺失回退、损坏拒绝、HTTP 鉴权、重复启动防重、受监管回收、重启读回和数据库完整性。`--expect-network-blocked` 要求测试管理员预先用 Windows 防火墙阻止测试程序出站，并在 finally 中清理临时规则；脚本不自行改防火墙，不调用模型或真实业务。
 
 更新时停止旧服务，备份整个数据目录与包外配置，解压到新目录，显式指定同一数据目录。数据迁移仍由原平台负责；不能用本包覆盖线上数据库。回退只切换兼容程序，不能恢复旧库覆盖新写入。原 Windows 全量测试的已知限制仍保留，针对本包的启动检查不代表全量平台或客户项目验证通过。最新实际结果见进度记录和交付回执。
+
+## 本轮交付结果（2026-11-08）
+
+实现 `87f21a69`，Windows 条件依赖修订 `093201ea`。[固定提交的 Windows 断网构建与启动检查通过](https://github.com/auntunt/webuddy-pitch/actions/runs/42390393943)，运行环境是 Windows Server 2025。13591 文件的最终交付与 CI 清单逐字节一致；Git 行尾设置导致 Mac/Windows 文本构建差异，本轮交付按 CI 哈希核对后无损重封装，ZIP 容器哈希单独记录，不冒充与 CI 容器相同。原始构建与失败保留。
+
+包外 `bundle.json` 和仓库 `evidence/windows-offline-20261108/delivery-receipt.json` 给出最终 ZIP 哈希、来源及验证范围。交付目录为相邻 `部署包/offline-runtime-20261108/Windows-x64-093201ea-verified/`；原 Mac 构建移入 preparation，避免与最终包混淆。
+
+本轮验证包内四工具与本机 Node/Git 复用、MCP Windows 依赖导入、cmd 入口、中文与空格路径、禁止出站、HTTP 鉴权、重复启动拒绝、两次受监管回收及重新启动、数据库完整性、配置不覆盖、损坏和已有坏工具拒绝。模型账号/真实调用、Codex 项目沙箱、客户 Windows10/11 桌面整包试用未验证。13 项/2 子项本机回归通过，不据此宣称 Windows 全量平台已通过。
+
+43 只读核对仍为 maps-9edce45a，229 个运行文件与本轮最新产品一致，PID1983706/重启0、200/401通过。本轮不改运行代码，不重启43，不更新生产。
