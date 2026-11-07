@@ -292,6 +292,25 @@ def _merge(raw: list[dict]) -> list[dict]:
     return sorted(merged.values(), key=lambda i: (TYPES.index(i["type"]) if i["type"] in TYPES else 99, i["id"]))
 
 
+def possible_conflicts(raw):
+    """Only flag concrete same-name/different-content sources in the visible set.
+
+    This is not semantic impact completeness and never chooses a winning rule.
+    """
+    groups={}
+    for row in raw:
+        groups.setdefault((row['type'],_norm(row['title'])),[]).append(row)
+    conflicts=[]
+    for (kind,title),members in groups.items():
+        if len({_norm(row['dedup_text']) for row in members})<2:
+            continue
+        conflicts.append({'kind':'possible_name_conflict','title':title,'type':kind,
+            'status':'needs_review','owner':None,'resolution':None,'affected_tasks_status':'not_checked',
+            'sources':[dict(row['provenance'],content=row['dedup_text']) for row in members],
+            'next_step':'由项目知识负责人核对来源、版本与适用条件；同名不同义不自动合并或选择。'})
+    return conflicts
+
+
 def build(store, *, include_drafts: bool = False, project_key: str = "", allowed_project_keys=None) -> dict:
     """Read-only catalog; plain notes are visible but never treated as confirmed.
 
@@ -305,7 +324,7 @@ def build(store, *, include_drafts: bool = False, project_key: str = "", allowed
     provenance_projects = sorted({p["project"] for i in items for p in i["provenance"] if p.get("project")})
     return {
         "schema": SCHEMA, "generated": started, "readonly": True,
-        "items": items,
+        "items": items, "conflicts": possible_conflicts(raw),
         "projects_read": [{"key": p.get("key"), "name": p.get("name"), "root": p.get("root")} for p in projects],
         "provenance_projects": provenance_projects,
         "stats": {"items": len(items), "raw_candidates": len(raw), "by_type": by_type,

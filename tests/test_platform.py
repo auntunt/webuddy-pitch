@@ -1636,6 +1636,21 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             os.environ.pop("TMH_TEST_ALERT", None)
             (self.data / "alerts.json").unlink()
 
+    def complete_legacy_reform_fixture(self, plan_id):
+        """Retain historical wave semantics with real execution prerequisites.
+
+        Current normalized serial plans are covered by reform integration tests.
+        These cases retain the original legacy scheduling/acceptance assertions.
+        """
+        from tmh.platform import reform
+        sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=self.repo, text=True).strip()
+        with reform._transaction(self.data, self.P.store) as db:
+            plans = reform._load(self.data, 'OA', db)
+            saved = next(p for p in plans if p['id'] == plan_id)
+            saved.update(source_version=sha, base=sha, target_environment='isolated OA fixture',
+                         criteria=['Preserve the fixture business interfaces'])
+            reform._save(self.data, 'OA', plans, db)
+
     def test_reform_plan_splits_by_domain_and_releases_in_waves(self):
         key = self.project()
         code, d = self.call("GET", "/api/projects/OA/reforms")
@@ -1650,6 +1665,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         code, p = self.call("POST", "/api/projects/OA/reforms", {"kind": "upgrade", "title": "Spring 升级", "goal": "Spring 4 升到 5",
                                                                  "keep": "对外接口不变", "wave": 1})
         self.assertEqual(code, 200, p)
+        self.complete_legacy_reform_fixture(p["id"])
         self.assertEqual(p["counts"]["released"], 0)  # nothing opens until someone releases the first wave
         code, r = self.call("POST", "/api/projects/OA/reforms/%s" % p["id"], {"action": "release"})
         self.assertEqual(code, 200, r)
@@ -1676,6 +1692,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         u = "/api/projects/OA/reforms"
         code, p = self.call("POST", u, {"kind": "restructure", "title": "分层整理", "goal": "理清分层", "wave": 1})
         self.assertEqual(code, 200, p)
+        self.complete_legacy_reform_fixture(p["id"])
         self.assertTrue(p["auto"])
         if len(p["items"]) < 3:
             self.skipTest("the sample project needs three business domains")
@@ -1725,6 +1742,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         code, p = self.call("POST", u, {"kind": "rewrite", "title": "Java 重写", "goal": "用 Spring Boot 重写全部接口", "target": "java/", "wave": 5,
                                         "lead": {"title": "工程骨架", "body": "建 Maven 工程、配置、实体和登录鉴权"}})
         self.assertEqual(code, 200, p)
+        self.complete_legacy_reform_fixture(p["id"])
         self.assertEqual((p["target"], p["items"][0]["order"], p["items"][0]["lead"]), ("java", 0, True))
         code, r = self.call("POST", u + "/" + p["id"], {"action": "release"})
         self.assertEqual(len(r["opened"]), 1, "only the lead goes out first")

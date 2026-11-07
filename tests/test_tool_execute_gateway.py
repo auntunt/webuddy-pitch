@@ -93,6 +93,48 @@ class ToolExecuteGatewayTests(unittest.TestCase):
         self.assertEqual(status, 403, out)
         self.assertEqual(self.hold(data, ticket['id']), 'alice')
 
+    def test_reform_preflight_uses_actual_worker_identity_and_connection_scope(self):
+        import subprocess
+        import concurrent.futures
+        from tmh.platform import reform
+        project, _, data = self.seed()
+        (data/'autoflow.json').write_text(__import__('json').dumps({'on':False,'understand':'rules'}))
+        root = Path(project['root'])
+        subprocess.run(['git','init','-q',str(root)],check=True)
+        subprocess.run(['git','-C',str(root),'-c','user.name=fixture','-c','user.email=fixture@example.invalid',
+                        'commit','-q','--allow-empty','-m','fixed source'],check=True)
+        sha=subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()
+        plan=reform.create(data,'EXEC',{'built':'fixture','domains':[{'id':'sales','title':'Sales'}]},
+            dict(title='Identity',goal='Preserve behavior',source_version=sha,criteria=['Preserved'],target_environment='fixture'), 'owner')
+        resource={'project':'EXEC','plan_id':plan['id']}
+        execute=self.grant('owner',project,'execute')
+        content=self.grant('owner',project,'content')
+        read=self.grant('owner',project,'read')
+        def check(token):
+            status,result=self.call(token,'reform_resume_preview',resource)
+            self.assertEqual(status,200,result)
+            return result
+        self.assertIn('start',check(execute)['allowed_actions'])
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+            results=list(pool.map(check,[execute,content,read]*2))
+        for i,result in enumerate(results):
+            self.assertEqual('start' in result['allowed_actions'],i%3==0,result)
+        status,paused=self.call(execute,'reform_control',dict(resource,action='pause',
+            expected_revision=plan['revision'],request_id='pause-identity'),execution=True)
+        self.assertEqual(status,200,paused)
+        self.assertTrue(paused['paused'])
+        self.assertIn('resume',check(execute)['allowed_actions'])
+        self.assertEqual(self.call(content,'reform_control',dict(resource,action='resume',
+            expected_revision=paused['revision'],request_id='deny-content'),execution=True)[0],403)
+        self.assertNotIn('start',check(read)['allowed_actions'])
+        status,started=self.call(execute,'reform_control',dict(resource,action='resume',
+            expected_revision=paused['revision'],request_id='start-after-preflight'),execution=True)
+        self.assertEqual(status,200,started)
+        self.assertEqual(started['counts']['released'],1)
+        store=Store(data/'platform.db')
+        try:self.assertEqual(store.runs(),[]) # auto execution off: no paid model or human decision
+        finally:store.db.close()
+
 
 if __name__ == '__main__':
     unittest.main()

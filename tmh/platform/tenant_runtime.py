@@ -7,7 +7,7 @@ trusted legacy operator. Newly managed tenants never run host code.
 from __future__ import annotations
 
 from contextlib import contextmanager
-from contextvars import ContextVar, copy_context
+from contextvars import copy_context
 import base64
 import hashlib
 import hmac
@@ -29,10 +29,9 @@ import time
 from .errors import ApiError
 from . import filelock
 
-ACTOR = ContextVar('tenant_actor', default='')
+from .tenant_identity import ACTOR, TOOL
 BOT_HEADERS = ('x-lark-signature', 'x-lark-request-timestamp', 'x-lark-request-nonce', 'timestamp', 'sign', 'authorization')
 BOT_PATH = re.compile(r'/bot/(dingtalk|feishu|wecom|api)/[A-Za-z0-9_-]+(\?[^#]*)?')
-TOOL = ContextVar('tenant_tool_connection', default=None)
 
 
 def error(code, message, reason='permission_denied'):

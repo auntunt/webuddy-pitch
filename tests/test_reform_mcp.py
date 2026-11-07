@@ -58,6 +58,70 @@ class ReformMCPTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(plan['counts']['released'],0)
         return plan,args
 
+    async def test_legacy_draft_upgrade_copies_normalized_execution_policy(self):
+        self.atlas['domains'].append({'id':'tax','title':'Tax','tables':1})
+        legacy=reform.create(self.P.data_dir,'EXT',self.atlas,
+            dict(title='Legacy',goal='Two modules',wave=2),'web-fixture')
+        changes=dict(source_version=self.fixture.sha,target_environment='fixture',criteria=['Both modules preserved'])
+        updated=self.web('/api/projects/EXT/reforms/'+legacy['id'],dict(action='update',
+            changes=changes,reason='Complete old contract',expected_revision=legacy['revision'],request_id='upgrade-old'))
+        fresh=reform.create(self.P.data_dir,'EXT',self.atlas,
+            dict(title='Fresh',goal='Two modules',wave=2,**changes),'web-fixture')
+        for field in ('integration_policy','effective_wave','scheduling_reason','base'):
+            self.assertEqual(updated.get(field),fresh[field],field)
+        self.assertEqual(updated['id'],legacy['id'])
+        self.assertEqual(updated['revision'],legacy['revision']+1)
+        for plan in (updated,fresh):
+            opened=reform.release(self.P,self.fixture.p,plan['id'],None,'web-fixture')
+            self.assertEqual(len(opened),1)
+            saved=reform.plan(self.P.data_dir,'EXT',plan['id'])
+            self.assertTrue(saved.get('parent'))
+
+    async def test_scenario_materials_and_successor_do_not_rewrite_active_contract(self):
+        async with self.session('--allow-execution') as session:
+            original,args=await self.create(session)
+            scenario={'sources':[{'id':'policy','kind':'policy','reference':'fixture://policy','version':'v2'}],
+                'rules':['Refund must be 12.50'], 'regressions':['Old pagination'],
+                'open_questions':['Customer decision pending'],
+                'discussions':[{'question':'Which rule?','proposal':'12.50','reason':'Policy example',
+                    'reported_customer_response':'Claimed confirmed; this is not a signed event'}]}
+            updated=await self.call(session,'reform_update',dict(project='EXT',plan_id=original['id'],
+                expected_revision=original['revision'],request_id='scenario-record',reason='Record policy source',changes={'scenario':scenario}))
+            self.assertEqual(updated['scenario'],scenario)
+            report=await self.call(session,'reform_get',dict(project='EXT',plan_id=original['id'],view='report'))
+            self.assertIn('fixture://policy',report['report_markdown'])
+            self.assertEqual(report['current_validity'],'not_checked')
+            self.assertEqual(report['record']['scenario']['materials'],scenario)
+            self.assertEqual(updated['scenario_record']['confirmation_status'],'not_confirmed_by_this_record')
+            with patch.object(self.P.flow,'submit'):
+                reform.release(self.P,self.fixture.p,original['id'],None,'fixture')
+            active=reform.plan(self.P.data_dir,'EXT',original['id'])
+            successor_args=dict(args,request_id='successor',goal='Updated policy scope',scenario=scenario,
+                supersedes={'plan_id':original['id'],'revision':active['revision'],'reason':'New policy'})
+            successor=await self.call(session,'reform_create',successor_args)
+            self.assertEqual(successor['supersedes']['plan_id'],original['id'])
+            self.assertTrue(any(d['field']=='goal' for d in successor['scope_changes']))
+            self.assertEqual(reform.plan(self.P.data_dir,'EXT',original['id']),active)
+            self.assertEqual(successor['counts']['released'],0)
+            denied=await self.call(session,'reform_update',dict(project='EXT',plan_id=original['id'],
+                expected_revision=active['revision'],request_id='rewrite-active',reason='bad',changes={'scenario':{}}),True)
+            self.assertEqual(denied['status'],409)
+            malformed=dict(successor_args,request_id='forged-confirmation',scenario={'confirmed':True})
+            with self.assertRaises(Exception):
+                # Official SDK validates unknown material fields before HTTP.
+                from tmh.agent_contract import validate
+                validate('reform_create',malformed)
+
+    async def test_incomplete_mcp_draft_is_saved_but_cannot_start(self):
+        async with self.session('--allow-execution') as session:
+            draft=await self.call(session,'reform_create',dict(project='EXT',title='Pending policy',goal='Record unresolved scope',
+                scope_mode='selected',domains=['sales'],request_id='incomplete-draft'))
+            self.assertNotIn('start',draft['allowed_actions'])
+            result=await self.call(session,'reform_control',dict(project='EXT',plan_id=draft['id'],
+                expected_revision=draft['revision'],action='start',request_id='incomplete-start'),True)
+            self.assertEqual(result['status'],409)
+            self.assertEqual(self.submitted,[])
+
     async def test_create_reconnect_conflict_and_lookup_same_plan(self):
         async with self.session('--allow-execution') as session:
             names={t.name for t in (await session.list_tools()).tools}

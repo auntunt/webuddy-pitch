@@ -198,6 +198,11 @@ class ToolReadTests(unittest.TestCase):
     def test_delivery_packet_preserves_outputs_and_unknown_validity(self):
         with no_live_effects(self.st):
             packet = self.call('delivery_get', ticket=self.t['key'])
+            self.assertIn('完整结构化依据',packet['report_markdown'])
+            self.assertIn('generated_at',packet)
+            self.assertEqual(packet['conclusions']['engineering_gate'],'not_checked')
+            for row in packet['consumption']:
+                self.assertIsNone(row['actual_cost'])
         self.assertIsNone(packet['ready_to_merge'])
         self.assertEqual(packet['current_validity'], 'not_checked')
         self.assertEqual(packet['candidates'][0]['commit'], 'b'*40)

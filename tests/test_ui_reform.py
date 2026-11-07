@@ -25,6 +25,9 @@ class ReformUiTest(unittest.TestCase):
         result=subprocess.run(['node','-'],input=HARNESS+REFORM_JS+SETUP+'\n(async()=>{'+checks+'})().catch(e=>{console.error(e);process.exitCode=1})',text=True,capture_output=True,timeout=15)
         self.assertEqual(result.returncode,0,result.stderr)
 
+    def test_blocked_history_uses_server_actions_and_keeps_ticket_identity(self):
+        self.run_js("plan.paused='';plan.batch=0;plan.next_owner='';plan.by='old-creator';plan.allowed_actions=['pause','cancel'];plan.items=[{title:'Old item',ticket:'APP-1',current:{label:'历史已派发',next_owner:''}}];await rfWorkspace('APP','plan-1','tasks');assert.ok(!main.querySelector('[data-rf-action=\"start\"]'));assert.match(main.textContent,/历史已派发，批次未记录/);assert.match(main.textContent,/尚未指定负责人/);assert.match(main.textContent,/历史创建者old-creator/);")
+
     def test_complete_page_syntax(self):
         script=page().split('<script>')[1].split('</script>')[0]
         result=subprocess.run(['node','--check'],input=script,text=True,capture_output=True)

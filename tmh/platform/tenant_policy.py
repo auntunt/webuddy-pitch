@@ -19,6 +19,7 @@ from .errors import ApiError
 API_ROUTES = frozenset(tuple(line.split(" ", 1)) for line in """
 GET /api/meta
 POST /api/agent/<operation>
+POST /api/projects/<key>/external-requirements
 GET /api/projects/<key>/ci
 POST /api/projects/<key>/ci
 GET /api/tickets/<key>/ci
@@ -243,6 +244,7 @@ library_reference library_unlink ticket_hold
 intake_get intake_start intake_understand intake_answer
 development_get development_start development_propose development_answer""".split())
 SAFE_POSTS = frozenset((
+    "/api/projects/<key>/external-requirements",
     "/api/runs/<rid>/review-feedback",  # Human observations only; no execution or signoff.
     # Personal trial records only: no models, process launch or task moves.
     "/api/projects/<key>/pilots", "/api/projects/<key>/pilots/<pid>",

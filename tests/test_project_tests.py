@@ -37,6 +37,15 @@ class ProjectTests(unittest.TestCase):
         folder.mkdir(exist_ok=True)
         return pt.collect(profile,receipt,folder,[{'id':'A1','text':'sum works'}])
 
+    def test_independent_refund_expectation_rejects_controlled_wrong_candidate(self):
+        # Synthetic policy fixture: amount must remain exactly 1250 cents.
+        # Expected value is fixed before either implementation executes.
+        for actual,expected_state in ((1200,'failed'),(1250,'passed')):
+            command="node -e \"const actual=%d,expected=1250;require('fs').writeFileSync('report.json',JSON.stringify({cases:[{id:'sum',status:actual===expected?'pass':'fail',input:{cents:1250},expected,actual}]}));\"" % actual
+            result=self.execute(self.profile(command))
+            self.assertEqual(result['verification_state'],expected_state)
+            self.assertEqual(result['status'],'fail' if actual!=1250 else 'pass')
+
     def test_optional_blocked_root_propagates_only_to_required_dependents(self):
         p = self.profile()
         setup = dict(id='setup', kind='setup', required=False, timeout=1,

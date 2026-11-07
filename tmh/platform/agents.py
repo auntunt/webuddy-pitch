@@ -680,6 +680,8 @@ class StreamParser:
         self.text = []
         self.session = ""  # the agent's own session id, to continue it in the next step
         self.usage = {}
+        self.reported_cost_usd = None
+        self.reported_model = None
         self.completed = False
         self.failed = False
 
@@ -739,10 +741,14 @@ class StreamParser:
         if t == "result":
             self.result = ev.get("result") or ""
             cost = ev.get("total_cost_usd")
+            self.reported_cost_usd = cost if type(cost) in (int,float) and math.isfinite(cost) and cost>=0 else None
+            if isinstance(ev.get('usage'),dict):
+                self.usage = dict(ev['usage']) # Preserve CLI cumulative/cache semantics, do not add assistant events.
             return "— 结束：%s，%d 轮%s\n" % ("成功" if not ev.get("is_error") else "出错", ev.get("num_turns") or 0,
                                          "，约 $%.2f" % cost if cost else "")
         if t == "system" and ev.get("subtype") == "init":
             self.session = ev.get("session_id") or self.session
+            self.reported_model = ev.get("model")
             return "— 启动 %s（模型 %s）\n" % (ev.get("cwd", ""), ev.get("model", ""))
         return ""
 
@@ -1393,10 +1399,13 @@ class Runner:
                 limit = float(settings.get("run_timeout") or settings.get("timeout") or 1800)
                 if not math.isfinite(limit) or limit <= 0:
                     raise ValueError("运行总时限必须是正数秒")
+                invocation_limit=settings.get('max_model_invocations')
+                if invocation_limit is not None and (type(invocation_limit) is not int or invocation_limit<1):
+                    raise ValueError('模型进程调用次数上限必须是正整数')
                 owner = self._claim(rid)
                 self.controls[rid] = {"event": threading.Event(), "start": time.monotonic(),
                     "started_at": now(), "timeout_seconds": limit, "stopped_reason": "",
-                    "attempts": [], "finished": False, "owner": owner}
+                    "attempts": [], "finished": False, "owner": owner, "max_model_invocations": invocation_limit}
                 self._save_lifecycle(rid)
             return self.controls[rid]
 
@@ -1452,7 +1461,7 @@ class Runner:
         label = {"timeout": "达到整次任务总时限", "cancelled": "已请求取消",
                  "orphaned": "启动器退出后仍有子进程存活", "cleanup_failed": "进程回收未完成",
                  "owner_lost": "平台连接中断，受管进程已停止",
-                 "error": "执行或证据保存发生错误"}.get(reason, reason)
+                 "model_invocation_limit": "达到模型进程调用次数上限", "error": "执行或证据保存发生错误"}.get(reason, reason)
         return "运行停止：%s。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。" % label if reason else ""
 
     def finish_invocation(self, rid, code, result):
@@ -2005,6 +2014,11 @@ class Runner:
             self.stop_reason(rid)
             timeout = min(float(timeout), self.remaining(rid)) if timeout is not None else self.remaining(rid)
         with self.lock:
+            if active and kind.startswith('model:') and c.get('max_model_invocations') is not None:
+                used=sum(a['kind'].startswith('model:') for a in c['attempts'])
+                if used>=c['max_model_invocations']:
+                    self._stopped(rid,'model_invocation_limit')
+                    raise OSError('达到模型进程调用次数上限；未启动新的进程，不能据此保证CLI内部请求费用上限')
             parent = self.data_dir / "runs" / str(rid) / "attempts"
             parent.mkdir(parents=True, exist_ok=True)
             index = max([int(x.name) for x in parent.iterdir() if x.is_dir() and x.name.isdigit()] or [0]) + 1
@@ -2156,6 +2170,8 @@ class Runner:
             timing["usage"] = parser.usage
             if "input_tokens" in parser.usage and "output_tokens" in parser.usage:
                 timing["tokens"] = parser.usage["input_tokens"] + parser.usage["output_tokens"]
+        timing.update(reported_model=parser.reported_model,reported_cost_usd=parser.reported_cost_usd,
+                      cost_source='CLI report; not supplier invoice' if parser.reported_cost_usd is not None else 'unknown')
         timing.update(process_reason=process.reason, process_seconds=process.elapsed,
                       total_remaining_seconds=round(self.remaining(rid), 3), evidence=str(folder.relative_to(self.data_dir)))
         (folder / "timing.json").write_text(json.dumps(timing, ensure_ascii=False, indent=2), encoding="utf-8")

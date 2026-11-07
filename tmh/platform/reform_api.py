@@ -17,9 +17,46 @@ def packet(P, project, p):
     value.update(plan_id=p['id'],plan_revision=p['revision'],project=project['key'],
         deep_link='#/projects/%s/reforms/%s' % (quote(project['key']),quote(p['id'])),
         status_updated=p.get('updated') or p['created'],
-        next_owner=p.get('execution_owner') or p['by'],checkpoint=p.get('checkpoint'))
+        next_owner=p.get('execution_owner') or '',created_by=p['by'],checkpoint=p.get('checkpoint'))
+    from .tenant_identity import ACTOR
+    from .reform_state import checkpoint_preflight
+    ctx = getattr(P,'tenant_context',None)
+    allowed = ctx is None or ctx.runtime_allowed(ACTOR.get())
+    readiness = checkpoint_preflight(P,project,p)
+    reasons = list(readiness['blocked'])
+    if value.get('blocked'):
+        reasons.append(value['blocked'])
+    if not allowed:
+        reasons.append('当前连接没有执行权限，请由项目执行负责人处理')
+    value['action_blocked'] = list(dict.fromkeys(reasons))
+    value['allowed_actions'] = []
+    if allowed and not p.get('archived') and not p.get('cancelled'):
+        value['allowed_actions'] = ['pause','cancel']
+        if not reasons and not p.get('paused'):
+            value['allowed_actions'].insert(0,'release_next' if p.get('batch') else 'start')
+    from ..scenario_contract import recorded
+    value['scenario_record'] = recorded(p.get('scenario'))
+    if p.get('supersedes'):
+        old=p.get('predecessor_contract',{})
+        value['scope_changes']=[{'field':k,'before':v,'after':p.get(k)} for k,v in old.items() if v!=p.get(k)]
     return value
 
+
+
+def report(P,project,p):
+    from .tool_read import delivery_get
+    from ..scenario_contract import recorded
+    from .scenario_report import markdown
+    keys=list(dict.fromkeys(i['ticket'] for i in p['items']+p.get('integrations',[]) if i.get('ticket')))
+    children=[delivery_get(P,key,[project['id']]) for key in keys]
+    value={'generated_at':now(),'ticket':{'key':p['id'],'title':p['title'],'body':p['goal']},
+        'scenario':dict(recorded(p.get('scenario')),revision=p['revision'],source_version=p.get('source_version'),
+                        target_environment=p.get('target_environment'),criteria=p.get('criteria'),keep=p.get('keep')),
+        'plan_record':p,'child_evidence':children,'consumption':[r for c in children for r in c['consumption']],
+        'current_validity':'not_checked','ready_to_merge':None,
+        'next_step':'核对逐项要求、缺口及当前候选；由项目授权人员作出业务决定。保存报告不触发执行、签收或发布。'}
+    return {'plan_id':p['id'],'revision':p['revision'],'generated_at':value['generated_at'],
+            'current_validity':'not_checked','report_markdown':markdown(value),'record':value}
 
 
 def summary(value):
@@ -91,13 +128,15 @@ def execute(P, req, actor, operation, a):
         p = reform.plan(P.data_dir,project['key'],a['plan_id'],store=P.store)
     except KeyError:
         raise ApiError(404,'没有这个项目的改造计划') from None
+    if operation == 'reform_get' and a.get('view')=='report':
+        return report(P,project,p)
     if operation == 'reform_get':
         value = packet(P,project,p)
         view = a.get('view','summary')
         if view == 'summary':
             return summary(value)
         if view == 'scope':
-            fields = ('goal','keep','kind','title','wave','scope_mode','domains','criteria','dependencies','target','source_version','target_environment','knowledge_revision','revisions')
+            fields = ('goal','keep','kind','title','wave','scope_mode','domains','criteria','dependencies','scenario','supersedes','target','source_version','target_environment','knowledge_revision','revisions')
             scope={key:p.get(key) for key in fields}
             scope['lead']=next(({'title':i['title'],'body':i['body']} for i in p['items'] if i.get('lead')),{'title':'','body':''})
             return dict(summary(value),scope=scope)
@@ -135,11 +174,14 @@ def execute(P, req, actor, operation, a):
                 if any(item.get('ticket') for item in p['items']):
                     raise ApiError(409,'已经派发的任务契约不能被改写；请使用有关联的新修订与返修')
                 changes = a['changes']
+                if 'supersedes' in changes:
+                    raise ApiError(409,'后继关联不能原地改写；请建立新的关联草稿')
                 p.setdefault('revisions',[]).append(dict(revision=p['revision'],at=now(),actor=actor,reason=a['reason'],
-                    contract={key:p.get(key) for key in ('kind','title','goal','keep','scope_mode','domains','wave','target','source_version','target_environment','criteria','dependencies','knowledge_revision')},items=p['items']))
+                    contract={key:p.get(key) for key in ('kind','title','goal','keep','scope_mode','domains','wave','target','source_version','target_environment','criteria','dependencies','knowledge_revision','scenario')},items=p['items']))
                 if not changes:
                     raise ApiError(400,'请明确要修订的字段')
-                body = {k:p.get(k) for k in ('kind','title','goal','keep','scope_mode','domains','wave','target','source_version','target_environment','criteria','dependencies','knowledge_revision')}
+                body = {k:p.get(k) for k in ('kind','title','goal','keep','scope_mode','domains','wave','target','source_version','target_environment','criteria','dependencies','knowledge_revision','scenario')}
+                body = {k:v for k,v in body.items() if v is not None}
                 body['lead'] = next(({'title':i['title'],'body':i['body']} for i in p['items'] if i.get('lead')),{'title':'','body':''})
                 body.update(changes)
                 # Reuse the exact creation validator without starting a second transaction.
@@ -148,8 +190,13 @@ def execute(P, req, actor, operation, a):
                     if field != 'lead':
                         p[field] = draft.get(field,body[field])
                 p['items'] = draft['items']
-                if draft.get('base'):
-                    p['base'] = draft['base']
+                # Derived execution policy belongs to the normalized contract too.
+                # Preserve plan identity/history, never the old draft's scheduling semantics.
+                for field in ('base','integration_policy','effective_wave','scheduling_reason'):
+                    if field in draft:
+                        p[field] = draft[field]
+                    else:
+                        p.pop(field,None)
                 reform._log(p,'修订范围与约束：'+a['reason'])
             elif operation == 'reform_archive':
                 reform.remove(P.data_dir,project['key'],p['id'],_db=db)

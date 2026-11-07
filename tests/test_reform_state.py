@@ -18,6 +18,16 @@ class ReformStateTest(unittest.TestCase):
             source_version=self.fixture.sha,target_environment='fixture',criteria=['Preserve refunds'],
             scope_mode='selected',domains=['sales'],wave=1),'owner')
 
+    def test_packet_does_not_offer_start_for_incomplete_history_or_invent_owner(self):
+        from tmh.platform.reform_api import packet
+        old=reform.create(self.P.data_dir,'EXT',self.atlas,dict(title='Legacy',goal='Keep behavior'),'past-creator')
+        result=packet(self.P,self.p,old)
+        self.assertNotIn('start',result['allowed_actions'])
+        self.assertTrue(result['action_blocked'])
+        self.assertEqual(result['next_owner'],'')
+        self.assertEqual(result['created_by'],'past-creator')
+        self.assertIn('start',packet(self.P,self.p,self.plan)['allowed_actions'])
+
     def test_checkpoint_is_persistent_protected_and_does_not_assert_pass(self):
         with patch.object(self.P.flow,'submit'):
             reform.release(self.P,self.p,self.plan['id'],None,'owner')

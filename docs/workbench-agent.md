@@ -408,3 +408,15 @@ data/agent-venv/bin/python -m unittest tests.test_workbench_mcp -v
 服务重启核对单实例与租户worker各自数据库。已领取但未知结果不重放；只有线程提交、无持久运行回执时显示 `needs_reconcile`，由执行负责人核对自动流转、任务与真实进程。不会把客户端断线当成取消，也不会声称所有外部副作用exactly-once。
 
 `webuddy_reforms_list` 可带 `status` 筛选：`draft/active/paused/blocked/accepted/cancelled/archived`，并使用 `after/limit` 分页。归档列表还需 `archived=true`。`accepted` 要求当前固定集成版本与整体验收相符，不以历史子单数量计算。恢复前读取 `webuddy_reform_resume_preview`；新run在暂停期间会被执行边界拒绝，已运行的步骤按暂停回执继续。
+
+## 场景记录、后继草稿与阅读报告（2026-11-07）
+
+`reform_create` 可保存待补固定源、目标环境或验收标准的草稿。读取 `allowed_actions` 和 `action_blocked` 后再决定操作；未补齐条件时服务端拒绝启动。`reform_update` 与兼容网页创建入口共用字段校验和派生策略；补齐固定源后按串行集成推进，不继承旧草稿的并发上限。
+
+可选 `scenario` 保存来源身份/类型/链接/版本、业务规则、新行为、旧功能回归、不变约束、模块/外部依赖、测试数据/环境缺口、预期来源、拟定验收人、排除范围、问题与现场讨论。`rules` 及 `reported_customer_response` 是材料，不能代表人工确认。`conflicts` 关联至少两个已登记来源，记录冲突、受影响标准、处理人和建议；建议不自动成为已解决结论。实际确认、技术验证和业务验收继续分别走现有受权事件。
+
+已派发计划不能改写契约。新建时可传 `supersedes={plan_id,revision,reason}`，服务端验证同项目的原计划与修订；后继保留原契约快照，`scope_changes` 展示差异。原任务不会自动暂停、取消、返修或继承通过结论。网页「范围与历史」可建立后继草稿；需要停止原工作时必须走其原有控制与回执核对。
+
+`reform_get` 的 `view=report` 与网页「下载场景报告」读取同一保存记录。报告包含场景材料、计划历史及关联子任务的交付依据，返回 Markdown 与完整 JSON；`current_validity=not_checked`。任务「下载阅读版」与 `delivery_get.report_markdown` 提供相同阅读格式。报告生成时间不表示重新执行测试，导出不能签收或合并。
+
+`reform_control` 启动/续排可能创建任务并触发既有执行器消耗；暂停只停止后续调度，不证明当前进程停止。`run_recover` 只核对并可能收尾原运行，不自动继续写代码。使用原请求号核对未知回执，不用新编号重复派发。

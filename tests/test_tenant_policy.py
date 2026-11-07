@@ -75,6 +75,14 @@ class TenantPolicyTest(unittest.TestCase):
         self.assertIn(caught.exception.code, (401, 403, 404))
         self.assertEqual(dump_store(self.store), before)
 
+    def test_external_requirement_sync_is_project_scoped_content_only(self):
+        path='/api/projects/ALPHA/external-requirements'
+        self.auth(path,method='POST',actor='bob')
+        self.denied(path,method='POST',actor='reader')
+        self.denied(path,method='POST',actor='outsider')
+        self.context.people['bob']['project_grants']={}
+        self.denied(path,method='POST',actor='bob')
+
     def test_inventory_is_exact_and_every_entry_matches(self):
         from tmh.platform import server
         tree = ast.parse(Path(server.__file__).read_text(encoding="utf-8"))
@@ -85,7 +93,7 @@ class TenantPolicyTest(unittest.TestCase):
                     if isinstance(item, ast.Call) and isinstance(item.func, ast.Name) and item.func.id == "route":
                         actual.add(tuple(ast.literal_eval(arg) for arg in item.args))
         self.assertEqual(actual, policy.API_ROUTES)
-        self.assertEqual(len(actual), 206)  # Five developer/CI routes + original 167 + four personal trial routes + project mode and rollback + code repository and team group + Git/zip import + statecharts and their renderer + page check + production release requests + run steering + systems + browser assistant.
+        self.assertEqual(len(actual), 207)  # Five developer/CI routes + original 167 + four personal trial routes + project mode and rollback + code repository and team group + Git/zip import + statecharts and their renderer + page check + production release requests + run steering + systems + browser assistant.
         import re
         for method, template in actual:
             with self.subTest(method=method, template=template):

@@ -18,7 +18,7 @@ def ticket(P, project, t):
         ready=integration['state']=='verified' and plan_state['counts']['closed']==plan_state['counts']['total']
         delivered=plan_state['evidence']['integrated_delivery']=='accepted'
         return dict(ticket=t['key'],run_id=None,state='delivered' if delivered else 'awaiting_acceptance' if ready else 'blocked',
-            label=('当前集成版本已整体验收' if delivered else '集成验证通过，待整体验收') if ready else '整体验收尚受阻',next_owner=p.get('execution_owner') or p['by'],
+            label=('当前集成版本已整体验收' if delivered else '集成验证通过，待整体验收') if ready else '整体验收尚受阻',next_owner=p.get('execution_owner') or '',
             candidate_commit=integration.get('commit'),evidence_validity='valid' if ready else 'not_checked',
             automatic_verification='passed' if ready else 'not_checked',historical_acceptance=historical,
             integrated_delivery=plan_state['evidence']['integrated_delivery'],
@@ -30,7 +30,7 @@ def ticket(P, project, t):
     accepted, adopted_run = learn._adopted(P.store,t['id'])
     commit = (accepted or {}).get('commit')
     result = dict(ticket=t['key'],run_id=(active or run or {}).get('id'),
-        state='waiting',label='等待处理',next_owner=t.get('assignee') or t['reporter'],
+        state='waiting',label='等待处理',next_owner=t.get('assignee') or '',
         candidate_commit=commit,evidence_validity='not_checked',automatic_verification='not_checked',
         historical_acceptance=historical,integrated_delivery='not_checked',
         next_action='查看工单与运行',updated=t['updated'])
@@ -115,7 +115,7 @@ def checkpoint(P, project, p, reason):
             available.append(sha)
     value = dict(id=len(p.get('checkpoints',[]))+1,created=now(),reason=reason,plan_revision=p['revision'],
         source_commit=source,available_commits=available,batch=p.get('batch',0),items=records,
-        contract={k:p.get(k) for k in ('goal','keep','scope_mode','domains','criteria','knowledge_revision','target_environment','dependencies','source_version')},
+        contract={k:p.get(k) for k in ('goal','keep','scope_mode','domains','criteria','knowledge_revision','target_environment','dependencies','source_version','scenario')},
         test_configuration=test_configuration(P,project),verification='not_checked',integrated_delivery='not_checked')
     p.setdefault('checkpoints',[]).append(value)
     p['checkpoint'] = value

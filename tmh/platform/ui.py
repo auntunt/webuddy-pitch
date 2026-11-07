@@ -188,6 +188,7 @@ async function boot(){
   try{await loadProjects()}catch(e){if(ACCESS.blocked)return;$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}
   $('#projSel').onchange=e=>{WS.offset=0;const v=e.target.value;if(v==='__new'){newProject();paintSel();return}
     if(curView()==='meetings'){S.scope=v;ls.set('tmh.scope',v);if(v!=='*')setProj(v);if(location.hash!=='#/meetings')location.hash='#/meetings';else render();return}
+    if(/^#\/projects\/[^/]+\/reforms\//.test(location.hash)){if(v==='*'){S.scope='*';ls.set('tmh.scope','*');location.hash='#/projects'}else{setProj(v);location.hash='#/reform'}return}
     if(v==='*'){S.scope='*';ls.set('tmh.scope','*');if(!isCross())location.hash='#/';else render();return}
     if(isCross()){S.scope=v;ls.set('tmh.scope',v)}setProj(v);render()};
   $('#ptsBtn').onclick=showPoints;sayWire();
@@ -205,7 +206,7 @@ async function loadProjects(){
 const CROSS=['home','board','tickets','lead','t','today','clients','c','reqs','versions','deliveries','delivery','workspace','projects','team','memory','meetings'];
 function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'workspace'}
 function isCross(){return CROSS.includes(curView())}
-function paintSel(){accessPaintPermissions();const cross=isCross()&&!['t','delivery'].includes(curView()),v=cross?S.scope:S.proj;
+function paintSel(){accessPaintPermissions();const cross=isCross()&&!['t','delivery'].includes(curView())&&!/^#\/projects\/[^/]+\/reforms\//.test(location.hash),v=cross?S.scope:S.proj;
   $('#projSel').innerHTML=(cross?`<option value="*" ${v==='*'?'selected':''}>全部项目（${S.projects.length}）</option>`:'')+S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===v?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')+(cross?'':'<option value="*">全部项目</option>')+(!S.meta.access||S.meta.access.platform_owner?'<option value="__new">＋ 添加项目…</option>':'');
   $('#projSel').title=cross?(['deliveries','delivery'].includes(curView())?'查看项目范围（默认全部）':'看哪些项目的工单（默认全部）'):'这一页属于哪个项目'}
 function setProj(k){if(!k||k===S.proj)return;S.proj=k;ls.set('tmh.proj',k);A.reset();loadPoints()}

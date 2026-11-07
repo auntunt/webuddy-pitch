@@ -95,6 +95,8 @@ class Platform:
         self.store = Store(self.data_dir / "platform.db")
         from . import reform
         reform.initialize(self.data_dir,self.store)
+        from .external_requirements import initialize as initialize_external_requirements
+        initialize_external_requirements(self.store)
         self.runner = Runner(self.store, self.data_dir)
         self.runner.tenant_context = tenant_context
         if tenant_context is not None:
@@ -2526,17 +2528,25 @@ def api_alert_paste(P, req, key):
     return alerts.receive(P, p, alerts.parse(text.encode("utf-8")), 10 ** 6)
 
 
+@route("POST", "/api/projects/<key>/external-requirements")
+def api_external_requirement(P, req, key):
+    from .external_requirements import sync
+    return sync(P,P.project(key),req.user,req.body)
+
+
 @route("GET", "/api/projects/<key>/reforms")
 def api_reforms(P, req, key):
     """Reform plans (restructuring, upgrades, migrations) with the live state of their tickets, and the domains to choose from."""
     from . import reform
     p = P.project(key)
     if req.arg('plan_id'):
-        from .reform_api import packet, resume_preview
+        from .reform_api import packet, resume_preview, report
         try:
             value = reform.plan(P.data_dir,p['key'],req.arg('plan_id'))
         except KeyError:
             raise ApiError(404,'没有这个项目的改造计划') from None
+        if req.arg('view')=='report':
+            return report(P,p,value)
         return resume_preview(P,p,value) if req.arg('view')=='resume' else packet(P,p,value)
     at = P.kb.atlas(p)
     doms = [{"id": d["id"], "title": d["title"], "flows": d["flows"], "tables": d["tables"]} for d in at.get("domains") or []]
@@ -2571,7 +2581,8 @@ def api_reform_new(P, req, key):
     try:
         if req.body.get("preview"):
             return reform.preview(at,req.body)
-        return reform.view(P, p, reform.create(P.data_dir, p["key"], at, req.body, req.user))
+        from .reform_api import packet
+        return packet(P, p, reform.create(P.data_dir, p["key"], at, req.body, req.user))
     except ValueError as e:
         raise ApiError(400, str(e))
 

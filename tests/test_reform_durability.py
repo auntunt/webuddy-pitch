@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import threading
+import subprocess
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -19,6 +20,9 @@ class ReformDurabilityTest(unittest.TestCase):
         self.data = Path(self.temp.name)
         self.store = Store(self.data/'platform.db')
         self.addCleanup(self.store.db.close)
+        subprocess.run(['git','init','-q',str(self.data)],check=True)
+        subprocess.run(['git','-C',str(self.data),'-c','user.name=fixture','-c','user.email=fixture@example.invalid','commit','-q','--allow-empty','-m','fixed'],check=True)
+        self.sha=subprocess.check_output(['git','-C',str(self.data),'rev-parse','HEAD'],text=True).strip()
         self.proj = self.store.add_project('RF', 'Fixture', str(self.data))
         self.submitted = []
         self.P = SimpleNamespace(data_dir=self.data, store=self.store,
@@ -26,8 +30,17 @@ class ReformDurabilityTest(unittest.TestCase):
         self.atlas = {'built': 'fixed', 'domains': [{'id':str(n), 'title':str(n), 'tables':0} for n in range(8)]}
 
     def create(self, **kw):
-        return reform.create(self.data, 'RF', self.atlas,
+        p = reform.create(self.data, 'RF', self.atlas,
             dict(title='Reform', goal='Full contract', wave=2, **kw), 'owner')
+        # These transaction/receipt tests exercise a saved historical parallel plan.
+        # Give it a real fixed source and complete execution prerequisites; new
+        # serial-policy creation/upgrade is covered by test_reform_integration/MCP.
+        with reform._transaction(self.data,self.store) as db:
+            plans=reform._load(self.data,'RF',db)
+            saved=next(x for x in plans if x['id']==p['id'])
+            saved.update(source_version=self.sha,base=self.sha,target_environment='isolated fixture',criteria=['Preserve fixture behavior'])
+            reform._save(self.data,'RF',plans,db)
+        return reform.plan(self.data,'RF',p['id'])
 
     def close(self, key):
         t = self.store.ticket(key)
@@ -195,6 +208,7 @@ class ReformDurabilityTest(unittest.TestCase):
         for key in made:self.close(key)
         saved=reform.plan(self.data,'RF',p['id'])
         saved.pop('batch')
+        saved.pop('source_version')
         saved['legacy_history_complete']=False
         current=reform.view(self.P,self.proj,saved)
         self.assertEqual(current['state'],'blocked')

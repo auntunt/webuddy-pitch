@@ -62,15 +62,19 @@ REFORM_FIELDS = {
     "target":text("项目内目标目录；重写必填"),
     "knowledge_revision":text("preview返回的知识修订",pattern=r"^[0-9a-f]{64}$"),
 }
+from .scenario_contract import SCHEMA as SCENARIO_SCHEMA
+REFORM_REQUIRED = ['title','goal','scope_mode','domains']
+REFORM_FIELDS['scenario'] = SCENARIO_SCHEMA
+REFORM_FIELDS['supersedes'] = dict(type='object',additionalProperties=False,required=['plan_id','revision','reason'],properties={'plan_id':PLAN,'revision':integer(minimum=1),'reason':text(minLength=1)})
 REFORM_RESOURCE = {"project":PROJECT,"plan_id":PLAN}
 REFORM_MUTATION = dict(REFORM_RESOURCE,expected_revision=integer("当前计划修订",minimum=1),request_id=REQUEST)
 SPECS.update({
     "reforms_list":spec("按项目分页读取同一套持久改造计划。归档与活动分开；不启动执行。",dict(PAGE,project=PROJECT,archived=dict(type="boolean",default=False),status=text(enum=["draft","active","paused","blocked","accepted","cancelled","archived"])),["project"]),
-    "reform_get":spec("读取当前摘要；scope/tasks/checkpoints视图读取完整范围或分页内容。not_checked不能当作通过。",dict(PAGE,**REFORM_RESOURCE,view=text(enum=["summary","scope","tasks","checkpoints"])),["project","plan_id"]),
+    "reform_get":spec("读取当前摘要；scope/tasks/checkpoints视图读取完整范围或分页内容。not_checked不能当作通过。",dict(PAGE,**REFORM_RESOURCE,view=text(enum=["summary","scope","tasks","checkpoints","report"])),["project","plan_id"]),
     "reform_preview":spec("按明确范围与固定知识修订预览拆分；不建单、不调用模型。",dict(project=PROJECT,scope_mode=REFORM_FIELDS['scope_mode'],domains=REFORM_FIELDS['domains'],wave=REFORM_FIELDS['wave'],lead=REFORM_FIELDS['lead']),["project","scope_mode","domains"]),
     "reform_events":spec("按稳定事件ID分页读取完整已保存历史；早期历史缺口会明确标注。",dict(PAGE,**REFORM_RESOURCE),["project","plan_id"]),
     "reform_resume_preview":spec("读取计划及现行运行恢复预检，不清除未知结果，不启动执行。",REFORM_RESOURCE,["project","plan_id"]),
-    "reform_create":spec("保存完整改造草稿，返回身份和修订；创建不会启动执行。",dict(REFORM_FIELDS,project=PROJECT,request_id=REQUEST),list(REFORM_FIELDS)+["project","request_id"],write=True),
+    "reform_create":spec("保存改造草稿，返回身份和修订；允许待补源版本、环境或标准，缺条件时不能启动。创建不调用模型。",dict(REFORM_FIELDS,project=PROJECT,request_id=REQUEST),REFORM_REQUIRED+["project","request_id"],write=True),
     "reform_update":spec("修订尚未派发的完整契约；已开始的契约不能无声改写。",dict(REFORM_MUTATION,reason=text(minLength=1),changes=dict(type="object",additionalProperties=False,minProperties=1,required=[],properties=REFORM_FIELDS)),list(REFORM_MUTATION)+["reason","changes"],write=True),
     "reform_control":spec("控制计划调度：暂停不停止当前运行；取消保留已派发工作及历史。执行仍受当前授权和批次门禁约束。",dict(REFORM_MUTATION,action=text(enum=["start","release_next","pause","resume","cancel"])),list(REFORM_MUTATION)+["action"],write=True,execution=True),
     "reform_archive":spec("归档无活跃或待调度工作的计划，保留历史。要求当前项目管理权限，不隐式停止或启动。",REFORM_MUTATION,list(REFORM_MUTATION),write=True),

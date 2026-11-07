@@ -1,0 +1,42 @@
+{
+  "synthetic": true,
+  "successor": "r7c42bcdc0a9646368966974768a18c49",
+  "scenario": {
+    "sources": [
+      {
+        "id": "policy",
+        "kind": "policy",
+        "reference": "fixture://policy",
+        "version": "v2"
+      }
+    ],
+    "rules": [
+      "退款以分为单位，1250分"
+    ],
+    "regressions": [
+      "原分页和权限保持"
+    ],
+    "environment_gaps": [
+      "尚未运行该任务的业务测试"
+    ],
+    "changed_behaviors": [],
+    "invariants": [],
+    "modules": [],
+    "suspected_impacts": [],
+    "external_dependencies": [],
+    "test_data": [],
+    "expectation_sources": [
+      "合成独立政策v2"
+    ],
+    "excluded": [],
+    "open_questions": [],
+    "acceptance_owner": "",
+    "discussions": []
+  },
+  "original": {
+    "plan_id": "r31768211a87647119e5f72f710f33088",
+    "revision": 1,
+    "reason": "合成政策v2"
+  },
+  "confirmed": "not_confirmed_by_this_record"
+}

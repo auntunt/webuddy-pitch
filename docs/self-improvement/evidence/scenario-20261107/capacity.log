@@ -1,0 +1,5 @@
+[
+  { concurrency: 1, requests: 10, p95_ms: 4.200000047683716 },
+  { concurrency: 4, requests: 40, p95_ms: 10.399999976158142 },
+  { concurrency: 8, requests: 80, p95_ms: 24.100000023841858 }
+]

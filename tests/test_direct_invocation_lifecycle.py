@@ -76,6 +76,18 @@ class DirectInvocationLifecycleTest(unittest.TestCase):
         process_patch.start()
         self.addCleanup(process_patch.stop)
 
+    def test_configured_model_process_budget_stops_before_second_launch(self):
+        self.conf['reader']['max_model_invocations']=1
+        rid=self.new_run()
+        first=self.invoke(rid)
+        self.assertEqual(first[0],0)
+        second=self.invoke(rid)
+        self.assertNotEqual(second[0],0)
+        receipt=self.receipt(rid)
+        self.assertEqual(len(receipt['attempts']),1)
+        self.assertEqual(receipt['stopped_reason'],'model_invocation_limit')
+        self.runner.finish_invocation(rid,*second)
+
     def expire(self, rid):
         remaining = self.runner.remaining(rid)
         self.assertGreater(remaining, 0)

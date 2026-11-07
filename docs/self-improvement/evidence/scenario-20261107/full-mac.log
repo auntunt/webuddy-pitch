@@ -1,0 +1,309 @@
+............................................... [  1%]
+.................................................. [  3%]
+.......................................... [  4%]
+.................................................................. [  6%]
+............................................... [  7%]
+............................................................ [  9%]
+....................................................................................................... [ 13%]
+............................................. [ 14%]
+.................................................................. [ 16%]
+........................................................................ [ 18%]
+............................................................. [ 20%]
+............................................................... [ 22%]
+............................................................................................................. [ 26%]
+....................................................... [ 28%]
+............................ [ 28%]
+.................................... [ 30%]
+................................................................................................................................... [ 34%]
+............................................................................................... [ 37%]
+........................................................... [ 39%]
+..................................... [ 40%]
+...................................................................... [ 42%]
+.................................................................... [ 44%]
+............................................FFF................. [ 46%]
+................................. [ 47%]
+.........................................................................F............................ [ 50%]
+....................................... [ 52%]
+.................................................................. [ 54%]
+.................................................................. [ 56%]
+.................................................................... [ 58%]
+........sssssssss......................sss [ 59%]
+..................................................... [ 61%]
+......................................................... [ 63%]
+................................................................................................... [ 66%]
+..............................ssssss......................... [ 68%]
+............................................. [ 69%]
+....................................... [ 71%]
+........................................................ [ 72%]
+............................................................. [ 74%]
+...................................................................................................................................................... [ 79%]
+............................ [ 80%]
+................................................................ [ 82%]
+....................................F................................................................................................... [ 86%]
+........................................................................ [ 88%]
+..................................................................... [ 91%]
+........................................................................ [ 93%]
+................................................ [ 94%]
+....................................................ssss [ 96%]
+sss............................................................F............................. [ 99%]
+..........                                                               [100%]
+=================================== FAILURES ===================================
+_ PlatformApiTest.test_reform_lead_goes_first_and_later_pieces_start_from_its_commit _
+
+self = <test_platform.PlatformApiTest testMethod=test_reform_lead_goes_first_and_later_pieces_start_from_its_commit>
+
+    def test_reform_lead_goes_first_and_later_pieces_start_from_its_commit(self):
+        self.project()
+        self.untrain()
+        u = "/api/projects/OA/reforms"
+        code, bad = self.call("POST", u, {"kind": "rewrite", "title": "Java 重写", "goal": "用 Java 重写"})
+        self.assertEqual(code, 400, "a rewrite needs a target folder")
+        code, p = self.call("POST", u, {"kind": "rewrite", "title": "Java 重写", "goal": "用 Spring Boot 重写全部接口", "target": "java/", "wave": 5,
+                                        "lead": {"title": "工程骨架", "body": "建 Maven 工程、配置、实体和登录鉴权"}})
+        self.assertEqual(code, 200, p)
+        self.assertEqual((p["target"], p["items"][0]["order"], p["items"][0]["lead"]), ("java", 0, True))
+        code, r = self.call("POST", u + "/" + p["id"], {"action": "release"})
+>       self.assertEqual(len(r["opened"]), 1, "only the lead goes out first")
+                             ^^^^^^^^^^^
+E       KeyError: 'opened'
+
+tests/test_platform.py:1730: KeyError
+_ PlatformApiTest.test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection _
+
+self = <test_platform.PlatformApiTest testMethod=test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection>
+
+    def test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection(self):
+        self.project()
+        self.untrain()  # pieces wait for people; only the plan-level loop is under test
+        u = "/api/projects/OA/reforms"
+        code, p = self.call("POST", u, {"kind": "restructure", "title": "分层整理", "goal": "理清分层", "wave": 1})
+        self.assertEqual(code, 200, p)
+        self.assertTrue(p["auto"])
+        if len(p["items"]) < 3:
+            self.skipTest("the sample project needs three business domains")
+        code, r = self.call("POST", u + "/" + p["id"], {"action": "release"})
+>       k1 = r["opened"][0]
+             ^^^^^^^^^^^
+E       KeyError: 'opened'
+
+tests/test_platform.py:1683: KeyError
+___ PlatformApiTest.test_reform_plan_splits_by_domain_and_releases_in_waves ____
+
+self = <test_platform.PlatformApiTest testMethod=test_reform_plan_splits_by_domain_and_releases_in_waves>
+
+    def test_reform_plan_splits_by_domain_and_releases_in_waves(self):
+        key = self.project()
+        code, d = self.call("GET", "/api/projects/OA/reforms")
+        self.assertEqual(code, 200, d)
+        self.assertTrue(d["built"] and d["domains"])
+        self.assertIn("upgrade", d["kinds"])
+        code, pv = self.call("POST", "/api/projects/OA/reforms", {"preview": True})
+        self.assertEqual([i["order"] for i in pv["items"]], list(range(1, len(pv["items"]) + 1)))
+        self.assertEqual(pv["items"], sorted(pv["items"], key=lambda i: (i["score"], i["title"])))  # least entangled first
+        code, bad = self.call("POST", "/api/projects/OA/reforms", {"title": "x"})
+        self.assertEqual(code, 400)
+        code, p = self.call("POST", "/api/projects/OA/reforms", {"kind": "upgrade", "title": "Spring 升级", "goal": "Spring 4 升到 5",
+                                                                 "keep": "对外接口不变", "wave": 1})
+        self.assertEqual(code, 200, p)
+        self.assertEqual(p["counts"]["released"], 0)  # nothing opens until someone releases the first wave
+        code, r = self.call("POST", "/api/projects/OA/reforms/%s" % p["id"], {"action": "release"})
+>       self.assertEqual(code, 200, r)
+E       AssertionError: 400 != 200 : {'error': '计划执行条件未补齐：固定源版本、目标验证环境、逐项验收标准'}
+
+tests/test_platform.py:1655: AssertionError
+_ ProjectImportTest.test_zip_becomes_registered_git_project_without_uploaded_git_or_links _
+
+self = <test_project_import.ProjectImportTest testMethod=test_zip_becomes_registered_git_project_without_uploaded_git_or_links>
+
+    def test_zip_becomes_registered_git_project_without_uploaded_git_or_links(self):
+        raw = make_zip({"oa/pom.xml": "<project/>", "oa/src/A.java": "class A {}", "oa/.git/config": "[core]\nfsmonitor = touch /tmp/pwn\n",
+                        "oa/__MACOSX/._A": "x", "oa/.tmh/tool/tmh.py": "print('uploaded')"}, links=["oa/link"])
+        st = self.upload(raw, chunk=7)
+        self.assertEqual(st["status"], "done", st.get("error"))
+        root = Path(st["root"])
+        self.assertEqual(root, self.P.data_dir / "repositories" / "OA")
+        self.assertTrue((root / "pom.xml").is_file() and (root / "src" / "A.java").is_file())
+        self.assertFalse((root / "link").exists() or (root / "__MACOSX").exists())
+        self.assertNotIn("fsmonitor", (root / ".git" / "config").read_text())
+        self.assertEqual(st["files"], 2)
+        tool = (root / ".tmh" / "tool" / "tmh.py").read_text()
+        self.assertIn("from tmh.cli import main", tool)
+        self.assertTrue((root / ".tmh" / "tool" / "tmh" / "cli.py").is_file())
+        clean = subprocess.run(["git", "status", "--porcelain"], cwd=root, capture_output=True, text=True, check=True).stdout
+        self.assertEqual(clean, "")
+        p = self.store.project("OA")
+>       self.assertEqual((p["name"], p["root"]), ("OA 系统", str(root)))
+E       AssertionError: Tuples differ: ('OA 系统', '/private/var/folders/s1/w8fs8_h15dd3cf8nzq[52 chars]/OA') != ('OA 系统', '/var/folders/s1/w8fs8_h15dd3cf8nzqcv761400[44 chars]/OA')
+E       
+E       First differing element 1:
+E       '/private/var/folders/s1/w8fs8_h15dd3cf8nzq[51 chars]s/OA'
+E       '/var/folders/s1/w8fs8_h15dd3cf8nzqcv761400[43 chars]s/OA'
+E       
+E         ('OA 系统',
+E       -  '/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-import-goindb68/data/repositories/OA')
+E       ?   --------
+E       
+E       +  '/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-import-goindb68/data/repositories/OA')
+
+tests/test_project_import.py:69: AssertionError
+_ ToolClientWheelTest.test_downloaded_client_knows_its_server_and_imports_to_the_default_file _
+
+path = PosixPath('/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmp4_8n7lvj/.config/webuddy/credential.json')
+
+    @contextmanager
+    def _parent(path):
+        if os.name != "posix" or not hasattr(os, "O_NOFOLLOW"):
+            raise CredentialError("此平台无法验证 owner-only 凭据文件；请使用支持 POSIX 权限的环境", "credential_platform_unsupported")
+        path = Path(os.path.abspath(os.path.expanduser(os.fspath(path))))
+        if not path.name or path.name in (".", ".."):
+            raise CredentialError("请选择凭据文件路径", "unsafe_credential_path")
+        flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+        fd = os.open(path.anchor, flags)
+        try:
+            parts = path.parent.parts[1:]
+            for part in parts:
+>               next_fd = os.open(part, flags, dir_fd=fd)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               NotADirectoryError: [Errno 20] Not a directory: 'var'
+
+tmh/workbench_credentials.py:72: NotADirectoryError
+
+The above exception was the direct cause of the following exception:
+
+self = <test_tool_client.ToolClientWheelTest testMethod=test_downloaded_client_knows_its_server_and_imports_to_the_default_file>
+
+    def test_downloaded_client_knows_its_server_and_imports_to_the_default_file(self):
+        import json
+    
+        from tmh import workbench_credentials as credentials
+        endpoint = 'https://ops.example.com/t/alpha'
+        name, data = wheel(endpoint)
+        self.assertNotEqual(data, wheel()[1])
+        archive = zipfile.ZipFile(io.BytesIO(data))
+        self.assertEqual(json.loads(archive.read('tmh/workbench_site.json')), {'endpoint': endpoint})
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, name)
+            with open(path, 'wb') as f:
+                f.write(data)
+            env = dict(os.environ, PYTHONPATH=path, HOME=tmp)
+            for key in ('WEBUDDY_URL', 'WEBUDDY_CREDENTIAL_FILE', 'WEBUDDY_TOKEN'):
+                env.pop(key, None)
+            bare = subprocess.run([sys.executable, '-m', 'tmh.workbench'], cwd=tmp, env=env,
+                                  capture_output=True, text=True, timeout=60, check=False)
+            self.assertEqual(bare.returncode, 0, bare.stderr)
+            shown = json.loads(bare.stdout)
+            self.assertEqual(shown['endpoint'], endpoint)
+            self.assertIn(endpoint + '/tools', shown['next'][0])
+            status = subprocess.run([sys.executable, '-m', 'tmh.workbench', 'status'], cwd=tmp, env=env,
+                                    capture_output=True, text=True, timeout=60, check=False)
+            self.assertEqual(json.loads(status.stderr)['code'], 'tool_credential_required')
+            self.assertIn(endpoint + '/tools', status.stderr)
+            self.assertNotIn('127.0.0.1', status.stdout + status.stderr)
+        with tempfile.TemporaryDirectory() as home:
+            old = os.environ.get('HOME')
+            os.environ['HOME'] = home
+            mask = os.umask(0o002)
+            try:
+                value = {'schema': 1, 'endpoint': endpoint, 'token': 'wbt_' + 'a' * 16 + '.' + 'a' * 32}
+>               first = credentials.save_default(value)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_tool_client.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tmh/workbench_credentials.py:118: in save_default
+    return save(path, value)
+           ^^^^^^^^^^^^^^^^^
+tmh/workbench_credentials.py:149: in save
+    with _parent(path) as (target, parent_fd):
+         ^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmp4_8n7lvj/.config/webuddy/credential.json')
+
+    @contextmanager
+    def _parent(path):
+        if os.name != "posix" or not hasattr(os, "O_NOFOLLOW"):
+            raise CredentialError("此平台无法验证 owner-only 凭据文件；请使用支持 POSIX 权限的环境", "credential_platform_unsupported")
+        path = Path(os.path.abspath(os.path.expanduser(os.fspath(path))))
+        if not path.name or path.name in (".", ".."):
+            raise CredentialError("请选择凭据文件路径", "unsafe_credential_path")
+        flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+        fd = os.open(path.anchor, flags)
+        try:
+            parts = path.parent.parts[1:]
+            for part in parts:
+                next_fd = os.open(part, flags, dir_fd=fd)
+                os.close(fd)
+                fd = next_fd
+                info = os.fstat(fd)
+                # System sticky temporary roots are traversal-only. The immediate
+                # parent must still be private against writes by other accounts.
+                if info.st_uid not in (0, os.getuid()) or (info.st_mode & 0o022 and not info.st_mode & stat.S_ISVTX):
+                    raise CredentialError("凭据路径经过可被其他账号改写的目录", "unsafe_credential_path")
+            info = os.fstat(fd)
+            if info.st_uid != os.getuid() or info.st_mode & 0o022:
+                raise CredentialError("凭据父目录必须属于当前账号且不可被组或其他账号写入", "unsafe_credential_path")
+            yield path, fd
+        except OSError as exc:
+>           raise CredentialError("无法安全访问凭据文件；父目录必须存在且不得使用符号链接", "unsafe_credential_path") from exc
+E           tmh.workbench_credentials.CredentialError: 无法安全访问凭据文件；父目录必须存在且不得使用符号链接
+
+tmh/workbench_credentials.py:85: CredentialError
+_ WorkbenchMCPTest.test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter _
+  + Exception Group Traceback (most recent call last):
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 340, in test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter
+  |     async with self.session() as session:
+  |                ~~~~~~~~~~~~^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 105, in session
+  |     async with stdio_client(params, errlog=stderr) as (read, write):
+  |                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 106, in session
+    |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=10)) as session:
+    |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/shared/session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+    |     raise BaseExceptionGroup(
+    |         "unhandled errors in a TaskGroup", self._exceptions
+    |     ) from None
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/tests/test_workbench_mcp.py", line 350, in test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter
+      |     self.assertEqual(tool.inputSchema, schema(op))
+      |     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      | AssertionError: {'typ[528 chars]ints', 'report']}}, 'required': ['project', 'p[35 chars]alse} != {'typ[528 chars]ints']}}, 'required': ['project', 'plan_id'], [25 chars]alse}
+      | Diff is 1326 characters long. Set self.maxDiff to None to see it.
+      +------------------------------------
+=============================== warnings summary ===============================
+tests/test_learning_ledger.py::LearningLedgerTests::test_fork_does_not_inherit_reentrant_ownership_or_unlock_parent
+  /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/multiprocessing/popen_fork.py:76: DeprecationWarning: This process (pid=28553) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_platform.py::PlatformApiTest::test_reform_lead_goes_first_and_later_pieces_start_from_its_commit
+FAILED tests/test_platform.py::PlatformApiTest::test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection
+FAILED tests/test_platform.py::PlatformApiTest::test_reform_plan_splits_by_domain_and_releases_in_waves
+FAILED tests/test_project_import.py::ProjectImportTest::test_zip_becomes_registered_git_project_without_uploaded_git_or_links
+FAILED tests/test_tool_client.py::ToolClientWheelTest::test_downloaded_client_knows_its_server_and_imports_to_the_default_file
+FAILED tests/test_workbench_mcp.py::WorkbenchMCPTest::test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter
+6 failed, 3128 passed, 25 skipped, 1 warning, 1963 subtests passed in 962.68s (0:16:02)

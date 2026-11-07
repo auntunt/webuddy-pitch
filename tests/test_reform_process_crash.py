@@ -41,7 +41,10 @@ class ReformProcessCrashTest(unittest.TestCase):
                 try:
                     project=st.add_project('RF','Isolated crash fixture',str(root))
                     atlas={'built':'fixed','domains':[{'id':str(i),'title':str(i),'tables':0} for i in range(4)]}
-                    plan=reform.create(root,'RF',atlas,dict(title='Crash test',goal='Preserve state',wave=2),'owner')
+                    subprocess.run(['git','init','-q',str(root)],check=True)
+                    subprocess.run(['git','-C',str(root),'-c','user.name=fixture','-c','user.email=fixture@example.invalid','commit','-q','--allow-empty','-m','fixed'],check=True)
+                    sha=subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()
+                    plan=reform.create(root,'RF',atlas,dict(title='Crash test',goal='Preserve state',wave=2,source_version=sha,target_environment='fixture',criteria=['Preserve state']),'owner')
                     killed=subprocess.run([sys.executable,'-B','-c',CHILD,str(root),plan['id'],point],capture_output=True,text=True,timeout=20)
                     self.assertEqual(killed.returncode,-signal.SIGKILL,killed.stderr)
                     submissions=[]
@@ -52,20 +55,20 @@ class ReformProcessCrashTest(unittest.TestCase):
                         self.assertEqual(st.q('SELECT * FROM reform_dispatch'),[])
                         self.assertFalse(any(i.get('ticket') for i in saved['items']))
                         reform.release(P,project,plan['id'],None,'owner')
-                        self.assertEqual(len(st.tickets()),2)
-                        self.assertEqual(len(submissions),2)
+                        self.assertEqual(len(st.tickets()),2) # fixed parent + one serial child
+                        self.assertEqual(len(submissions),1)
                     else:
-                        self.assertEqual(len(st.tickets()),2)
-                        self.assertEqual(sum(bool(i.get('ticket')) for i in saved['items']),2)
+                        self.assertEqual(len(st.tickets()),2) # fixed parent + one serial child
+                        self.assertEqual(sum(bool(i.get('ticket')) for i in saved['items']),1)
                         reform.reconcile(P)
                         current=reform.view(P,project,reform.plan(root,'RF',plan['id'],store=st))
                         if point=='after_mapping_commit':
-                            self.assertEqual(len(submissions),2)
+                            self.assertEqual(len(submissions),1)
                         else:
                             self.assertEqual(submissions,[],'unknown claim must block every later pending launch')
                             self.assertIn('待核对',current['blocked'])
                             self.assertEqual(current['items'][0]['dispatch_state'],'claimed')
-                        self.assertEqual(len(st.tickets()),2)
+                        self.assertEqual(len(st.tickets()),2) # fixed parent + one serial child
                         receipt=root/'executor-receipt'
                         self.assertEqual(receipt.exists(),point=='after_executor_receipt')
                         if receipt.exists():
