@@ -245,6 +245,19 @@ class RunRecoveryTest(unittest.TestCase):
         self.assertEqual(self.git_state(Path(old['workdir'])), original)
         self.assertFalse(self.runner.retry_state(old['id'])['can_retry'])
 
+    def test_system_failure_before_worktree_keeps_preflight_and_retry_consistent(self):
+        from unittest.mock import patch
+        self.select_system()
+        self.configure('initial-failure')
+        with patch.object(self.runner,'_execute_run',side_effect=RuntimeError('fixture before checkout')):
+            old = self.wait(self.start()['id'])
+        self.assertFalse(old['workdir'])
+        self.assertTrue(self.runner.retry_state(old['id'])['can_retry'])
+        self.configure('recovered')
+        new = self.wait(self.runner.retry(old['id'],'tester')['id'])
+        self.assertEqual(new['status'],'done',new['result'])
+        self.assertEqual(self.observation(new['id'])['head'],self.original_head)
+
     def test_changed_system_contract_blocks_preflight_before_snapshot(self):
         self.select_system()
         old = self.old_run()

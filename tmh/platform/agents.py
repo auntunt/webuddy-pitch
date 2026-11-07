@@ -1543,7 +1543,9 @@ class Runner:
                 self._retry_execution_contract(retry_of, ticket)
                 snapshot = self.store.one("SELECT * FROM run_recovery_snapshots WHERE commit_sha=? AND from_run=?", (base, retry_of))
                 if not snapshot:
-                    raise ValueError('恢复快照未绑定原运行，不能更换执行起点')
+                    if base or self.store.run(retry_of)['workdir']:
+                        raise ValueError('恢复快照未绑定原运行，不能更换执行起点')
+                    base = selected_base
             elif base and base != selected_base:
                 raise ValueError('执行起点与负责人选择时固定的版本不同，请重新核对交接')
             else:
