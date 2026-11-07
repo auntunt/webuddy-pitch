@@ -15,6 +15,7 @@ examples/legacy-dotnet-erp/Erp.Core/Data/*
 *.sqlite3
 .env
 .env.*
+config/*.env
 *.pem
 *.key
 *.log
