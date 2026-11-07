@@ -35,7 +35,8 @@ def main():
                    '-p', 'no:cacheprovider', '--junitxml=' + str(output / (stem + '.xml'))]
         started = time.monotonic()
         with (output / (stem + '.log')).open('wb') as log:
-            process = subprocess.Popen(command, cwd=root, stdout=log, stderr=subprocess.STDOUT)
+            process = subprocess.Popen(command, cwd=root, stdout=log, stderr=subprocess.STDOUT,
+                                       creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0)
             timed_out = False
             try:
                 code = process.wait(timeout=args.timeout)
