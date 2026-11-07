@@ -1,0 +1,87 @@
+{
+  "source_commit": "4ce7d1788354a1785f9f6be9b4461995fee50404",
+  "mode": "copies_only_no_live_writes",
+  "results": [
+    {
+      "database": "platform.db",
+      "integrity": "ok",
+      "original_tables_unchanged": 72,
+      "plans": 1,
+      "original_ticket_links": 8,
+      "legacy_bytes": "unchanged"
+    },
+    {
+      "database": "demo/bidding-demo.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "demo/bid-demo.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "control/access.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "project-test-baselines/JSHERP-20261105/evidence/platform.db",
+      "integrity": "ok",
+      "original_tables_unchanged": 52,
+      "plans": 0,
+      "original_ticket_links": 0,
+      "legacy_bytes": "unchanged"
+    },
+    {
+      "database": "repositories/JSHERP/.tmh/cache/graph.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "repositories/JSHERP/.tmh/cache/parse.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "repositories/UNMANN/.tmh/cache/graph.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "repositories/UNMANN/.tmh/cache/parse.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "repositories/PETS/.tmh/cache/graph.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "repositories/PETS/.tmh/cache/parse.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "repositories/BID/.tmh/cache/graph.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "repositories/BID/.tmh/cache/parse.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "repositories/AUSTIN/.tmh/cache/graph.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    },
+    {
+      "database": "repositories/AUSTIN/.tmh/cache/parse.db",
+      "integrity": "ok",
+      "migration": "not_platform"
+    }
+  ]
+}
