@@ -1,0 +1,5 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+FULL_SOURCE_VERIFIED f01c90d112a5bf12953a464a6730c6a09ddc5c61c27f6cd8a283dcff849fa282
+{"script": "/private/tmp/webuddy-win-publish-transfer.ps1", "started": "2026-11-07T05:06:01.238312+00:00", "ended": "2026-11-07T05:20:41.590261+00:00", "exit_code": 0}
