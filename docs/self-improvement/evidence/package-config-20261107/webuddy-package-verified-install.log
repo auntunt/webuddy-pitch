@@ -1,6 +1,0 @@
-Processing /tmp/webuddy-final-verified-package/3261e871d33b/tmh_harness-0.4.0-py3-none-any.whl
-Installing collected packages: tmh-harness
-Successfully installed tmh-harness-0.4.0
-
-[notice] A new release of pip is available: 24.0 -> 26.3
-[notice] To update, run: /tmp/webuddy-win-audit-venv/bin/python -m pip install --upgrade pip

@@ -1,5 +1,0 @@
-{"name": "webuddy-demo-git", "running": true, "status": "running", "image": "webuddy-demo-git:20261106"}
-{"name": "webuddy-demo-mysql", "running": true, "status": "running", "image": "mysql:8.0"}
-{"name": "webuddy-demo-redis", "running": true, "status": "running", "image": "redis:7-alpine"}
-{"name": "webuddy-demo-jenkins", "running": true, "status": "running", "image": "webuddy-jenkins-demo:20261106"}
-{"name": "webuddy-demo-jenkins-tls", "running": true, "status": "running", "image": "nginx:1.27-alpine"}

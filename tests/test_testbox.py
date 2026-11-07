@@ -76,8 +76,8 @@ class TestBoxTest(unittest.TestCase):
         (self.tmp / "bin" / "ssh").write_text('#!/bin/sh\necho "$@" > %s\n' % seen)
         testbox.TestBox({"host": "laptop", "port": 0, "dir": "", "timeout": 30}, self.tmp)._ssh("echo hi")
         self.assertNotIn("-p", seen.read_text().split())
-        testbox.TestBox({"host": "u@h", "port": 12022, "dir": "", "timeout": 30}, self.tmp)._ssh("echo hi")
-        self.assertIn("-p 12022", seen.read_text())
+        testbox.TestBox({"host": "u@h", "port": 2222, "dir": "", "timeout": 30}, self.tmp)._ssh("echo hi")
+        self.assertIn("-p 2222", seen.read_text())
 
     def test_commands_compile_the_maven_modules_the_change_touches(self):
         seq, why = testbox.build_commands(self.repo, ["app/core/A.java"])

@@ -41,8 +41,10 @@ sudo mkdir -p /opt/webuddy && sudo chown deploy:deploy /opt/webuddy
 
 ```sh
 sudo -u deploy -i            # 之后都用 deploy 用户
-export WEBUDDY_RELEASE_SHA="3561a3b1143b9ad17191168c7471a2e03d1cc8ea" # 本轮43测试交付版；以后升级须取新的通过记录
-git clone https://github.com/auntunt/webuddy-pitch.git /opt/webuddy/app
+# 从受权发行渠道取得源码地址和已验证的完整提交号。
+: "${WEBUDDY_SOURCE_URL:?请提供受权源码地址}"
+: "${WEBUDDY_RELEASE_SHA:?请提供已验证的完整提交号}"
+git clone "$WEBUDDY_SOURCE_URL" /opt/webuddy/app
 cd /opt/webuddy/app
 git fetch origin "$WEBUDDY_RELEASE_SHA"
 git checkout --detach "$WEBUDDY_RELEASE_SHA"

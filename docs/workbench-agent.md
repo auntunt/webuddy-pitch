@@ -16,7 +16,7 @@ Claude Code、Cursor、Codex 可以通过 CLI 或 MCP 读取 Webuddy 里的需�
 mkdir -m 700 -p "$HOME/.config/webuddy"
 # 交互粘贴令牌；endpoint 必须是网页登录中的确切租户地址。
 python3 -m tmh.workbench connect \
-  --endpoint https://webuddy.cloudwaveai.cn/t/default \
+  --endpoint https://production.example.invalid/t/default \
   --save-to "$HOME/.config/webuddy/team.json"
 
 # 或完整 JSON 从安全保存的下载文件读取，正文不进入命令参数。
@@ -345,9 +345,9 @@ data/agent-venv/bin/python -m unittest tests.test_workbench_mcp -v
 
 实现依据是 [MCP 2025-11-25 传输规范](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports) 与安装版本的官方 Python SDK。此仓库固定在 SDK 1.x 的兼容范围，主分支上的 SDK 2.x 示例不可直接当作本实现接口。客户端接入位置参考上面的 Claude Code 和 Cursor 官方文档；核查日期为 2026-10-19。
 
-## 当前服务器与域名迁移
+## 服务端地址变更后的重连
 
-入口为 `https://webuddy.cloudwaveai.cn/t/default`，个人工具连接页为 `/t/default/tools`。网站直连阿里云；MCP客户端仍通过HTTPS使用域名，不写服务器IP或SSH地址。
+使用服务方提供的HTTPS租户地址，例如 `https://service.example.invalid/t/default`；个人工具连接页为 `/t/default/tools`。MCP客户端通过HTTPS连接，不预置内部服务器IP或SSH地址。
 
 新下载的客户端与新签发的凭据使用当前站点地址。旧电脑已经安装的客户端、凭据和MCP配置不会自动随服务器迁移。更新客户端时重新下载wheel并用 `pip install --force-reinstall` 安装；凭据过期或撤销时由本人在工具连接页重新签发并导入，再重新生成MCP配置。不要把令牌放进配置或聊天。
 

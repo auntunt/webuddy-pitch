@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/tmp/webuddy-flow-stage.py", line 4, in <module>
-    assert hashlib.sha256(archive.read_bytes()).hexdigest()=='20ae6cf9b23af35bd73027eabc37a3839e0b9f52028efc87710fdb745e0a887f'
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError

@@ -1,6 +1,0 @@
-** WARNING: connection is not using a post-quantum key exchange algorithm.
-** This session may be vulnerable to "store now, decrypt later" attacks.
-** The server may need to be upgraded. See https://openssh.com/pq.html
-{"source": "webuddy-mcp-21f4e73-20261107", "exit_code": 1, "expected": 1}
-{"source": "webuddy-alive-fixed-20261107", "exit_code": 0, "expected": 0}
-{"script": "/private/tmp/webuddy-win-supervisor-fix-check.ps1", "started": "2026-11-07T05:01:40.136001+00:00", "ended": "2026-11-07T05:02:08.699869+00:00", "exit_code": 0}

@@ -1,9 +1,0 @@
-file:///private/tmp/webuddy-scenario-20261107/scenario-browser.mjs:5
-const wait=async expr=>{for(let i=0;i<100;i++){if(await evaluate(expr))return;await new Promise(r=>setTimeout(r,100));}throw Error('Wait failed: '+expr)};
-                                                                                                                             ^
-
-Error: Wait failed: !!document.querySelector("input[name=username]")
-    at wait (file:///private/tmp/webuddy-scenario-20261107/scenario-browser.mjs:5:126)
-    at async file:///private/tmp/webuddy-scenario-20261107/scenario-browser.mjs:6:66
-
-Node.js v24.16.0

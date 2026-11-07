@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="19.899" timestamp="2026-11-07T12:42:16.736847+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_platform.PlatformApiTest" name="test_each_project_can_have_its_own_size_limit" time="19.728" /></testsuite></testsuites>

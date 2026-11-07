@@ -5,7 +5,7 @@ from pathlib import Path
 
 from tmh import codeindex, flow, graph, mapper, query
 
-BOOTV2 = Path(__file__).resolve().parents[1] / 'docs/self-improvement/evidence/runtime-2026-10-18/bootv2/candidate/app.py'
+BOOTV2 = Path(__file__).resolve().parents[1] / 'tests/fixtures/python_flows/bootv2.py'
 
 
 class PythonFlowTest(unittest.TestCase):

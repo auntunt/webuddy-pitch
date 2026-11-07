@@ -1,9 +1,0 @@
-Traceback (most recent call last):
-  File "<stdin>", line 39, in <module>
-  File "<stdin>", line 37, in run
-AssertionError: Traceback (most recent call last):
-  File "<string>", line 9, in <module>
-  File "/opt/webuddy/releases/reform-b44ac759/app/tmh/platform/store.py", line 184, in add_project
-    raise ValueError("项目代号只能是字母开头的字母数字，最多 10 位，例如 TOG")
-ValueError: 项目代号只能是字母开头的字母数字，最多 10 位，例如 TOG
-

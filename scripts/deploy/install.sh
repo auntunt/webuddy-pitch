@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 在服务器上装 Webuddy：解开部署包后，在包目录里运行  sudo bash install.sh
 # 装到 /opt/webuddy（WEBUDDY_HOME 可改），起一个服务 webuddy，运维（JeecgBoot）和重构（RealWorld）两个项目都在里面。
-# 平台只听本机 127.0.0.1:8790（PORT 可改），外面用域名 webuddy.bbstack.date（DOMAIN 可改）访问：
+# 平台只听本机 127.0.0.1:8790（PORT 可改），外面用域名 test.example.invalid（DOMAIN 可改）访问：
 # 服务器上有 Caddy 时不碰 nginx，最后打印要加进 Caddyfile 的一段；没有 Caddy 时装 nginx 转发。
 # 访问要带令牌；令牌在 /etc/webuddy.env，安装时随机生成，重装不变。
 # 自动处理默认关着（不会一启动就调用智能体花额度），要用时在页面「设置」里打开。
@@ -9,7 +9,7 @@
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 H=${WEBUDDY_HOME:-/opt/webuddy}
-PORT=${PORT:-8790}; DOMAIN=${DOMAIN:-webuddy.bbstack.date}
+PORT=${PORT:-8790}; DOMAIN=${DOMAIN:?请通过环境变量 DOMAIN 提供客户域名}
 JEECG_GIT=${JEECG_GIT:-https://github.com/jeecgboot/JeecgBoot.git}
 RW_GIT=${RW_GIT:-https://github.com/gothinkster/aspnetcore-realworld-example-app.git}
 RW_SRC=a51468ca042605d22f7c78082e5d6129c1b995c6
@@ -118,8 +118,8 @@ $DOMAIN {
 然后浏览器打开（第一次带上令牌，之后浏览器会记住）：
   https://$DOMAIN/?token=$TMH_TOKEN
 令牌在 /etc/webuddy.env，不要发到群里。
-测试机：平台用 $RUN_AS 的 ssh 密钥登录测试机（auntu@43.153.76.85 -p 12022）。
-  在服务器上用 $RUN_AS 身份执行一次 ssh -p 12022 auntu@43.153.76.85 echo ok 能通，构建测试才能用。
+测试机：平台用 $RUN_AS 的 ssh 密钥登录测试机（user@test-host.example.invalid -p 2222）。
+  在服务器上用 $RUN_AS 身份执行一次 ssh -p 2222 user@test-host.example.invalid echo ok 能通，构建测试才能用。
 DONE
   exit 0
 fi
@@ -167,6 +167,6 @@ cat <<DONE
 然后浏览器打开（第一次带上令牌，之后浏览器会记住）：
   https://$DOMAIN/?token=$TMH_TOKEN
 令牌在 /etc/webuddy.env，不要发到群里。
-测试机：平台用 $RUN_AS 的 ssh 密钥登录测试机（auntu@43.153.76.85 -p 12022）。
-  在服务器上用 $RUN_AS 身份执行一次 ssh -p 12022 auntu@43.153.76.85 echo ok 能通，构建测试才能用。
+测试机：平台用 $RUN_AS 的 ssh 密钥登录测试机（user@test-host.example.invalid -p 2222）。
+  在服务器上用 $RUN_AS 身份执行一次 ssh -p 2222 user@test-host.example.invalid echo ok 能通，构建测试才能用。
 DONE

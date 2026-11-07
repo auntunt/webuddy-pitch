@@ -1,6 +1,0 @@
-** WARNING: connection is not using a post-quantum key exchange algorithm.
-** This session may be vulnerable to "store now, decrypt later" attacks.
-** The server may need to be upgraded. See https://openssh.com/pq.html
-{"exit_code": 0, "stdout": "before\r\nalive True\r\nafter\r\n", "stderr": ""}
-{"regression_exit": 1}
-{"script": "/private/tmp/webuddy-win-alive-fixed.ps1", "started": "2026-11-07T04:47:12.922846+00:00", "ended": "2026-11-07T04:47:36.084061+00:00", "exit_code": 1}

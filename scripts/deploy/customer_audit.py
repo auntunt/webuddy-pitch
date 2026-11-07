@@ -1,5 +1,6 @@
 """Customer artifact checks. Findings contain paths and categories, never matched contents."""
 import io
+import ipaddress
 import re
 from pathlib import PurePosixPath
 import zipfile
@@ -8,7 +9,10 @@ PRIVATE_KEY = re.compile(rb'(?m)^-----BEGIN (?:RSA |EC |OPENSSH |DSA |ENCRYPTED 
 TOKEN = re.compile(rb'\b(?:sk-proj-|sk-ant-|ghp_|github_pat_)[A-Za-z0-9_-]{32,}')
 FORBIDDEN_PARTS = {'.git', '.claude', '.codex', '__pycache__', 'self-improvement', 'progress-archive', 'audit', 'evidence', '.tmh', 'snapshots'}
 STATE_SUFFIXES = ('.db', '.sqlite', '.sqlite3', '.log', '.jsonl', '.pyc')
-TEXT_SUFFIXES = ('.py', '.md', '.txt', '.json', '.toml', '.yaml', '.yml', '.html', '.ini', '.cfg', '.pem', '.key')
+HOME_PATH = re.compile(rb'(?:/Users/|/home/|[A-Za-z]:[\\/]+Users[\\/]+)[A-Za-z0-9_.-]+')
+ACCOUNT_EXAMPLE = re.compile(rb'\b(?!owner:|user:)[A-Za-z0-9_-]+:fix-[A-Za-z0-9_-]+')
+IPV4 = re.compile(rb'(?<![0-9.])(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?![0-9.])')
+TEXT_SUFFIXES = ('.py', '.md', '.txt', '.json', '.toml', '.yaml', '.yml', '.html', '.ini', '.cfg', '.pem', '.key', '.js', '.cjs', '.ps1', '.cmd', '.bat', '.sh')
 
 
 def inspect_zip(package, *, resource_files=None, prefix='', official_stdlib=False):
@@ -54,8 +58,22 @@ def inspect_zip(package, *, resource_files=None, prefix='', official_stdlib=Fals
                 findings.append(dict(path=path, category='private_key_material'))
             if TOKEN.search(data):
                 findings.append(dict(path=path, category='credential_like_value'))
+            product_text = ('site-packages/tmh/' in name or name.startswith('tmh/')) and '/vendor/' not in name
+            if product_text:
+                if ACCOUNT_EXAMPLE.search(data):
+                    findings.append(dict(path=path, category='personal_account_example'))
+                if any(value != b'/home/worker' for value in HOME_PATH.findall(data)):
+                    findings.append(dict(path=path, category='personal_or_server_home_path'))
+                for value in set(IPV4.findall(data)):
+                    try:
+                        address = ipaddress.ip_address(value.decode())
+                    except ValueError:
+                        continue
+                    if not (address.is_loopback or address.is_unspecified or value == b'10.0.0.8' or address in ipaddress.ip_network('192.0.2.0/24') or address in ipaddress.ip_network('198.51.100.0/24') or address in ipaddress.ip_network('203.0.113.0/24')):
+                        findings.append(dict(path=path, category='non_example_network_address'))
+                        break
             if '/_resources/' in name or name.startswith(('docs/', 'templates/', 'skills/', 'agents/', 'kb/')):
-                if any(mark in data for mark in (b'docs/self-improvement/', b'43.153.76.85', b'/Users/auntlee', b'ralph-port-progress', b'JeecgBoot', b'JB-6', '那轮评审'.encode())):
+                if any(mark in data for mark in (b'docs/self-improvement/', b'ralph-port-progress', b'JeecgBoot', b'JB-6', '那轮评审'.encode())):
                     findings.append(dict(path=path, category='internal_resource_content'))
     return dict(ok=not findings, files=len(seen) + nested_files, findings=findings,
                 check='paths_nested_archives_resources_and_high_confidence_credentials')

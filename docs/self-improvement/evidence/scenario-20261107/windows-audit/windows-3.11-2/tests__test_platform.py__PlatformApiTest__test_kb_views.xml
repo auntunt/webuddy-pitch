@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="2.541" timestamp="2026-11-07T12:32:38.679881+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_platform.PlatformApiTest" name="test_kb_views" time="2.450" /></testsuite></testsuites>

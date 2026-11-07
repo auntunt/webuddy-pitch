@@ -1,9 +1,0 @@
-<anonymous_script>:1
-
-
-SyntaxError: Unexpected end of JSON input
-    at JSON.parse (<anonymous>)
-    at file:///private/tmp/webuddy-map-20261107/a-browser.mjs:4:17
-    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
-
-Node.js v24.16.0

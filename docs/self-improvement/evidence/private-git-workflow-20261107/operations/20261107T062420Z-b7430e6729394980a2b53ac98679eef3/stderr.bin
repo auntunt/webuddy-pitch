@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/examples/project-testing/jsherp/jenkins-demo/rehearse.py", line 149, in <module>
-    if __name__ == '__main__':main()
-                              ^^^^^^
-  File "/Users/auntlee/Desktop/workspace/运维智能体/tob-maintenance-harness/examples/project-testing/jsherp/jenkins-demo/rehearse.py", line 138, in main
-    if current != state['baseline']:raise RuntimeError('Exercise main moved; query instead of repeating merge')
-                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-RuntimeError: Exercise main moved; query instead of repeating merge

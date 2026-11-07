@@ -2952,7 +2952,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual((code, u["upstream"]["repo"], u["label"]), (200, "apache/ofbiz-framework", "未开始"))
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "submit"})[0], 409)  # nothing approved
         draft = {"action": "draft", "title": "Fixed: missing permission check in OrderServices", "body": "AI-assisted, reviewed by a person.",
-                 "head": "auntunt:fix-order-perm", "base": "trunk"}
+                 "head": "example-owner:fix-order-perm", "base": "trunk"}
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, draft)[0], 200)
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve"}, {"X-TMH-User": "agent"})[0], 403)
         # no evidence package with gates behind this ticket: approving takes a written reason
@@ -2981,19 +2981,19 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             with mock.patch.dict("os.environ", {"GITHUB_TOKEN": "x"}):
                 code, u = self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "submit", "confirm": True})
         self.assertEqual((code, u["upstream"]["pr"], u["state"]), (200, "2300", "open"), u)
-        self.assertEqual(FakeHub.sent, [("auntunt:fix-order-perm", "trunk", draft["title"])])
+        self.assertEqual(FakeHub.sent, [("example-owner:fix-order-perm", "trunk", draft["title"])])
 
         def status(state, reviews, commits, merged=""):
-            return {"number": 2300, "url": "https://github.com/apache/ofbiz-framework/pull/2300", "title": draft["title"], "author": "auntunt",
+            return {"number": 2300, "url": "https://github.com/apache/ofbiz-framework/pull/2300", "title": draft["title"], "author": "example-owner",
                     "state": state, "draft": False, "created": "2026-10-16T02:00:00Z", "updated": "", "closed": merged, "merged": merged,
                     "merged_by": "jacopoc" if merged else "", "merge_commit": "", "head": "abc", "head_ref": "fix-order-perm", "base": "trunk",
                     "additions": 6, "deletions": 1, "changed_files": 1, "ci": {"state": "success", "checks": []}, "reviews": reviews,
                     "review_comments": [], "comments": [], "commits": commits}
         ask = {"by": "jacopoc", "state": "CHANGES_REQUESTED", "at": "2026-10-16T05:00:00Z", "body": "Please use hasEntityPermission"}
-        c1 = {"sha": "a1", "author": "auntunt", "at": "2026-10-16T02:00:00Z", "message": "Fixed"}
+        c1 = {"sha": "a1", "author": "example-owner", "at": "2026-10-16T02:00:00Z", "message": "Fixed"}
         u = upstream.sync(self.P, self.P.store.ticket(k), status=status("open", [ask], [c1]))
         self.assertEqual((u["state"], u["summary"]["rounds"]), ("changes", 1))
-        c2 = {"sha": "a2", "author": "auntunt", "at": "2026-10-16T06:00:00Z", "message": "Use hasEntityPermission"}
+        c2 = {"sha": "a2", "author": "example-owner", "at": "2026-10-16T06:00:00Z", "message": "Use hasEntityPermission"}
         ok = {"by": "jacopoc", "state": "APPROVED", "at": "2026-10-16T07:00:00Z", "body": ""}
         c3 = {"sha": "a3", "author": "jacopoc", "at": "2026-10-16T07:30:00Z", "message": "Tidy"}
         u = upstream.sync(self.P, self.P.store.ticket(k), status=status("merged", [ask, ok], [c1, c2, c3], "2026-10-16T08:00:00Z"))

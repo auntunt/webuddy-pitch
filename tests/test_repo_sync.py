@@ -20,9 +20,9 @@ def git(root, *a):
 
 class ParseTest(unittest.TestCase):
     def test_forms(self):
-        want = {"host": "github.com", "owner": "auntunt", "repo": "JeecgBoot"}
-        for u in ("git@github.com:auntunt/JeecgBoot.git", "https://github.com/auntunt/JeecgBoot", "ssh://git@github.com/auntunt/JeecgBoot.git",
-                  "auntunt/JeecgBoot", "https://github.com/auntunt/JeecgBoot.git/"):
+        want = {"host": "github.com", "owner": "example-owner", "repo": "JeecgBoot"}
+        for u in ("git@github.com:example-owner/JeecgBoot.git", "https://github.com/example-owner/JeecgBoot", "ssh://git@github.com/example-owner/JeecgBoot.git",
+                  "example-owner/JeecgBoot", "https://github.com/example-owner/JeecgBoot.git/"):
             self.assertEqual(repo_sync.parse(u), want, u)
 
     def test_refuses_credentials_and_other_hosts(self):
@@ -31,10 +31,10 @@ class ParseTest(unittest.TestCase):
                 repo_sync.parse(u)
 
     def test_own_machine_over_ssh(self):
-        c = repo_sync.parse("ssh://auntu@127.0.0.1:12122/home/auntu/git/JeecgBoot.git")
+        c = repo_sync.parse("ssh://local-user@127.0.0.1:12122/home/local-user/git/JeecgBoot.git")
         self.assertEqual((c["kind"], c["host"], c["port"], c["user"], c["path"], c["repo"]),
-                         ("ssh", "127.0.0.1", 12122, "auntu", "/home/auntu/git/JeecgBoot.git", "JeecgBoot"))
-        self.assertEqual(repo_sync.ssh_url(c), "ssh://auntu@127.0.0.1:12122/home/auntu/git/JeecgBoot.git")
+                         ("ssh", "127.0.0.1", 12122, "local-user", "/home/local-user/git/JeecgBoot.git", "JeecgBoot"))
+        self.assertEqual(repo_sync.ssh_url(c), "ssh://local-user@127.0.0.1:12122/home/local-user/git/JeecgBoot.git")
         self.assertEqual(repo_sync.web(c, "branch", "x"), "")
         self.assertEqual(repo_sync.ssh_url(repo_sync.parse("ssh://git@box/srv/r")), "ssh://git@box/srv/r.git")
         for u in ("ssh://a@box/srv/../etc/r.git", "ssh://a@box:0/r.git", "ssh://a:pw@box/r.git", "ssh://a@box/r;x"):
@@ -63,22 +63,22 @@ class PushTest(unittest.TestCase):
         self.p = {"key": "JB", "root": str(self.root)}
 
     def test_bind_makes_a_private_key_and_pushing_waits_for_a_passed_check(self):
-        v = repo_sync.setup(self.P, self.p, "https://github.com/auntunt/JeecgBoot", "li")
-        self.assertEqual((v["name"], v["on"], v["url"]), ("auntunt/JeecgBoot", False, "git@github.com:auntunt/JeecgBoot.git"))
+        v = repo_sync.setup(self.P, self.p, "https://github.com/example-owner/JeecgBoot", "li")
+        self.assertEqual((v["name"], v["on"], v["url"]), ("example-owner/JeecgBoot", False, "git@github.com:example-owner/JeecgBoot.git"))
         self.assertTrue(v["deploy_key"].startswith("ssh-ed25519 "))
         key = repo_sync.key_file(self.data, "JB")
         if os.name == "posix":
             self.assertEqual(key.stat().st_mode & 0o777, 0o600)
         self.assertNotIn("PRIVATE", json.dumps(v))
-        self.assertEqual(git(self.root, "config", "--get", "remote.webuddy.url"), "git@github.com:auntunt/JeecgBoot.git")
+        self.assertEqual(git(self.root, "config", "--get", "remote.webuddy.url"), "git@github.com:example-owner/JeecgBoot.git")
         with self.assertRaises(ValueError):
             repo_sync.switch(self.P, self.p, True, "li")
         self.assertEqual(repo_sync.push(self.P, self.p, ["main"])["state"], "off")
-        again = repo_sync.setup(self.P, self.p, "git@github.com:auntunt/JeecgBoot.git", "li")
+        again = repo_sync.setup(self.P, self.p, "git@github.com:example-owner/JeecgBoot.git", "li")
         self.assertEqual(again["deploy_key"], v["deploy_key"])  # one key per project, made once
 
     def test_push_is_a_plain_fast_forward_of_named_refs(self):
-        repo_sync.setup(self.P, self.p, "auntunt/JeecgBoot", "li")
+        repo_sync.setup(self.P, self.p, "example-owner/JeecgBoot", "li")
         git(self.root, "remote", "set-url", "webuddy", str(self.bare))  # a local stand-in for GitHub
         self.assertEqual(repo_sync.check(self.P, self.p)["checked"], "ok")
         self.assertTrue(repo_sync.switch(self.P, self.p, True, "li")["on"])
@@ -88,7 +88,7 @@ class PushTest(unittest.TestCase):
         self.assertEqual(r["state"], "pushed", r)
         self.assertEqual(r["refs"], ["refs/heads/main", "refs/heads/tmh/JB-1-r1", "refs/tags/webuddy-JB-1"])
         self.assertEqual(git(self.bare, "rev-parse", "main"), git(self.root, "rev-parse", "main"))
-        self.assertIn("https://github.com/auntunt/JeecgBoot/tree/tmh/JB-1-r1", r["links"])
+        self.assertIn("https://github.com/example-owner/JeecgBoot/tree/tmh/JB-1-r1", r["links"])
         # history rewritten here is never forced over the remote
         (self.root / "a.txt").write_text("2\n", encoding="utf-8")
         git(self.root, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qam", "x")
@@ -124,7 +124,7 @@ class PushTest(unittest.TestCase):
         self.assertEqual((r["state"], r["repo"], r["links"]), ("pushed", "测试机", []))
 
     def test_failed_check_turns_pushing_off(self):
-        repo_sync.setup(self.P, self.p, "auntunt/JeecgBoot", "li")
+        repo_sync.setup(self.P, self.p, "example-owner/JeecgBoot", "li")
         git(self.root, "remote", "set-url", "webuddy", str(self.tmp / "nowhere.git"))
         v = repo_sync.check(self.P, self.p)
         self.assertNotEqual(v["checked"], "ok")

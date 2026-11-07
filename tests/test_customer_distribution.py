@@ -62,3 +62,13 @@ class CustomerDistributionTest(unittest.TestCase):
                 z.writestr('tmh/__init__.py', '')
             with self.assertRaisesRegex(ValueError, 'required_resource_missing'):
                 audit.require_clean(path, ['docs/agent-commands.md'])
+
+    def test_product_privacy_rules_use_generic_patterns_and_keep_container_contract(self):
+        package = io.BytesIO()
+        with zipfile.ZipFile(package, 'w') as z:
+            z.writestr('tmh/private.py', 'home="/Users/synthetic-developer/project"\nhost="100.64.0.9"\nhead="synthetic-login:fix-order"')
+            z.writestr('tmh/container.py', 'home="/home/worker"\nhost="127.0.0.1"\nhead="owner:fix-order"')
+        with zipfile.ZipFile(package) as z:
+            result = audit.inspect_zip(z)
+        self.assertEqual({f['category'] for f in result['findings']}, {'personal_account_example', 'personal_or_server_home_path', 'non_example_network_address'})
+        self.assertTrue(all(f['path'] == 'tmh/private.py' for f in result['findings']))

@@ -42,3 +42,19 @@ benchmarks/tmp/
 .vscode/settings.json
 *.swp
 *~
+
+# Private development/deployment records stay local, never in public commits.
+/docs/self-improvement/
+/audit/
+/.private/
+/docs/design/organization-workspace-2026-10-23/implementation-evidence/github-ci-snapshot.json
+/docs/design/tenant-access-2026-10-23/github-ci-snapshot.json
+/docs/design/tool-connections-2026-10-24/read-fix/fixture-final.json
+/ITERATION.md
+/docs/windows-offline.md
+/docs/ui-redesign-20261106.md
+/docs/design/context-pack-v2-2026-10-20.md
+/docs/design/workspace-2026-10-22/README.md
+/docs/design/workspace-2026-10-22/VERIFICATION.md
+/scripts/deploy/NATIVE.md
+/scripts/deploy/TESTING.md

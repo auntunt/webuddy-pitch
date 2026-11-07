@@ -1,1 +1,0 @@
-{"mode": "fresh_live_database_backup_only", "current": "reform-984b3dd4", "fallback": "reform-cf710375", "new_write_read_by_fallback": true, "fallback_archive_read_by_current": true, "full_goal_characters": 16000, "stable_identity": true, "integrity": "ok"}

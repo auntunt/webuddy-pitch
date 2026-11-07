@@ -1,1 +1,0 @@
-2026-11-07：首次将git archive d421db65的tmh/pyproject源码经SSH传至独立/tmp目录；未压缩传输在60秒触发本地subprocess.TimeoutExpired，未执行迁移脚本或切换服务。完整异常在会话工具回执；该尝试未提前写本地stdout日志，不能补称完整逐字节回执。随后换独立-v2目录，gzip代码包1694586字节，SHA256 699e8744ca902265dacdcff0c430044634d141d325d56031f9dee01eb153d277远端核对后解包，副本迁移通过。没有压缩或改写交付图片。
