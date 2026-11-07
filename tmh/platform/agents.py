@@ -1475,6 +1475,8 @@ class Runner:
         from . import project_library as library
         project = self.store.project(project['id'])
         library.require_development(self.store, project)
+        from .reform_authority import run as reform_authority
+        reform_authority(self,project,ticket,new_run=True)
         development = None
         if ticket and mode == 'fix':
             from .development import require_execution
@@ -1946,6 +1948,8 @@ class Runner:
         # use their own frozen proof and must not inherit ordinary CLI memory.
         guarded_context = (rdir / "session-context.json").exists()
         def spawn(current_prompt, current_resume):
+            from .reform_authority import run as reform_authority
+            reform_authority(self,project,ticket)
             if guarded_context:
                 run = self.store.run(rid)
                 current_project = self.store.project(run["project_id"])

@@ -3,6 +3,7 @@ import json
 from http.server import ThreadingHTTPServer
 import threading
 import unittest
+import urllib.request
 from unittest.mock import patch
 
 from tests import test_workbench_mcp as mcp_fixtures
@@ -60,6 +61,10 @@ class ReformMCPTest(unittest.IsolatedAsyncioTestCase):
             self.assertTrue({'webuddy_reform_create','webuddy_reform_get','webuddy_reform_control','webuddy_reform_events','webuddy_run_recover'}<=names)
             plan,args=await self.create(session)
             resource=dict(project='EXT',plan_id=plan['id'])
+            drafts=await self.call(session,'reforms_list',{'project':'EXT','status':'draft','limit':1})
+            self.assertEqual([p['id'] for p in drafts['items']],[plan['id']])
+            blocked_list=await self.call(session,'reforms_list',{'project':'EXT','status':'blocked'})
+            self.assertEqual(blocked_list['items'],[])
             state=await self.call(session,'reform_resume_preview',resource)
             self.assertEqual(state['evidence']['current_validity'],'not_checked')
             self.assertEqual(state['counts']['released'],0)
@@ -90,6 +95,54 @@ class ReformMCPTest(unittest.IsolatedAsyncioTestCase):
             events=await self.call(session,'reform_events',dict(resource,limit=1))
             self.assertEqual(len(events['items']),1)
             self.assertTrue(events['has_more'])
+
+
+
+    async def test_lost_outer_receipt_is_reconciled_only_by_original_write_replay(self):
+        async with self.session('--allow-execution') as session:
+            plan,args=await self.create(session)
+            resource=dict(project='EXT',plan_id=plan['id'])
+            original=dict(resource,expected_revision=plan['revision'],request_id='response-lost-start',action='start')
+            accepted=await self.call(session,'reform_control',original)
+            self.assertEqual(len(self.submitted),1)
+            # Fault at the outer receipt boundary: inner plan/mapping/outbox receipt remains committed.
+            self.P.store.x("UPDATE agent_requests SET state='uncertain',result='' WHERE request_id=?",(original['request_id'],))
+            receipt=await self.call(session,'request_get',{'request_id':original['request_id']})
+            self.assertEqual(receipt['state'],'uncertain')
+            self.assertTrue(receipt['needs_reconcile'])
+            self.assertEqual(self.P.store.one('SELECT state FROM agent_requests WHERE request_id=?',(original['request_id'],))['state'],'uncertain')
+            recovered=await self.call(session,'reform_control',original)
+            self.assertEqual(recovered,accepted)
+            self.assertEqual(len(self.submitted),1)
+            receipt=await self.call(session,'request_get',{'request_id':original['request_id']})
+            self.assertEqual(receipt['state'],'complete')
+            conflict=await self.call(session,'reform_control',dict(original,action='resume'),True)
+            self.assertEqual(conflict['status'],409)
+
+    def web(self,path,body=None):
+        request=urllib.request.Request(self.endpoint+path,data=json.dumps(body).encode() if body is not None else None,
+            headers={'X-TMH-Token':'stdio-fixture-token','X-TMH':'1','Content-Type':'application/json'})
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
+    async def test_web_update_mcp_conflict_and_same_live_projection(self):
+        async with self.session('--allow-execution') as session:
+            plan,args=await self.create(session)
+            resource=dict(project='EXT',plan_id=plan['id'])
+            current=self.web('/api/projects/EXT/reforms?plan_id='+plan['id'])
+            self.assertEqual(current['revision'],plan['revision'])
+            updated=self.web('/api/projects/EXT/reforms/'+plan['id'],dict(action='update',
+                expected_revision=current['revision'],request_id='web-edit',reason='Fixture web change',changes={'keep':'Web confirmed constraints'}))
+            stale=await self.call(session,'reform_control',dict(resource,expected_revision=plan['revision'],
+                request_id='mcp-after-web-stale',action='start'),True)
+            self.assertEqual(stale['status'],409)
+            latest=await self.call(session,'reform_get',resource)
+            scope=await self.call(session,'reform_get',dict(resource,view='scope'))
+            self.assertEqual(latest['revision'],updated['revision'])
+            self.assertEqual(scope['scope']['keep'],'Web confirmed constraints')
+            self.assertEqual(scope['scope']['revisions'][0]['contract']['keep'],args['keep'])
+            archive=await self.call(session,'reform_archive',dict(resource,expected_revision=latest['revision'],request_id='archive-draft'))
+            self.assertTrue(archive['archived'])
 
     async def test_sdk_readonly_hides_and_rejects_writes_and_execution_flag_is_required(self):
         async with self.session('--read-only') as session:

@@ -107,6 +107,7 @@ class Platform:
         self.kb = Knowledge(self.store, self.runner)
         self.flow = Orchestra(self.store, self.runner, self.data_dir, self.kb)
         self.flow.tenant_context = tenant_context
+        self.flow.rechecks.runner.tenant_context = tenant_context
         if tenant_context is None:
             self.flow.rechecks.recover()
         from . import apps
@@ -2358,8 +2359,9 @@ def api_accept(P, req, key):
         raise ApiError(409, why)
     with signoff.verification_guard(P, key):
         sealed = signoff._record_accept(P, t, req.user, res == "pass", note)
+        integration_commit = t['links'].get('reform_integration_commit') if res == 'pass' else None
         P.store.event(t["id"], req.user, "accept" if res == "pass" else "reject", ("验收通过" if res == "pass" else "验收不通过") + ("：" + note if note else ""),
-                      dict({"result": res}, **({"evidence": sealed} if sealed else {})))
+                      dict({"result": res}, **({"integration_commit": integration_commit} if integration_commit else {}), **({"evidence": sealed} if sealed else {})))
         P.store.update_ticket(t["id"], req.user, status="closed" if res == "pass" else "doing")
         P.flow.accepted(P.store.project(t["project_id"]), P.store.ticket(t["id"]), res == "pass", note, req.user)
         return P.store.ticket(t["id"])
@@ -2527,6 +2529,13 @@ def api_reforms(P, req, key):
     """Reform plans (restructuring, upgrades, migrations) with the live state of their tickets, and the domains to choose from."""
     from . import reform
     p = P.project(key)
+    if req.arg('plan_id'):
+        from .reform_api import packet, resume_preview
+        try:
+            value = reform.plan(P.data_dir,p['key'],req.arg('plan_id'))
+        except KeyError:
+            raise ApiError(404,'没有这个项目的改造计划') from None
+        return resume_preview(P,p,value) if req.arg('view')=='resume' else packet(P,p,value)
     at = P.kb.atlas(p)
     doms = [{"id": d["id"], "title": d["title"], "flows": d["flows"], "tables": d["tables"]} for d in at.get("domains") or []]
     return {"kinds": {k: {"label": v[0], "desc": v[1]} for k, v in reform.KINDS.items()}, "built": bool(at.get("built")), "domains": doms,
@@ -2648,6 +2657,7 @@ def api_ticket(P, req, key):
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
     from . import epic, signoff, stage, workbench, intake, team, ai_accept, development
+    from . import reform_state
     par = P.store.ticket(t["links"]["parent"]) if (t.get("links") or {}).get("parent") else None
     return {"ticket": t, "project": p, "events": P.store.events(t["id"]), "runs": [r for r in runs if r["mode"] != "ask"],
             "team_assignment": team.assignment(P, t),
@@ -2658,6 +2668,7 @@ def api_ticket(P, req, key):
             "stage": stage.compute(P, [t])[t["key"]],
             "evidence": P.ticket_evidence(p, t, runs), "auto_next": P.flow.next_step(t, retry=True)[0],
             "package": dict(signoff.brief(P.data_dir, t["key"]), personal_review=_personal_review_access(P, req, t)), "epic": epic.view(P, t) if epic.is_parent(t) else None,
+            "reform_state": reform_state.ticket(P,p,t) if t["links"].get("reform") else None,
             "parent": {"key": par["key"], "title": par["title"], "status": par["status"]} if par else None}
 
 
@@ -4373,6 +4384,8 @@ def serve(data_dir: Path, host: str = "127.0.0.1", port: int = 8790, user: str =
             P.preview_port = preview_port
             threading.Thread(target=pv.serve_forever, daemon=True).start()
             print("预览版本地址：%s" % (os.environ.get("TMH_PREVIEW_BASE") or "端口 %d" % preview_port))
+    from . import reform
+    reform.reconcile(P)
     from . import handwork
     handwork.heartbeat(P)  # 我来写: wb/* branches pushed by people are picked up every minute
     from . import intake

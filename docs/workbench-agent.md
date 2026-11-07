@@ -394,3 +394,17 @@ data/agent-venv/bin/python -m unittest tests.test_workbench_mcp -v
 3. “找回上次中断的计划与原request_id，调用 request_get、reform_resume_preview 和 run_get 核对代码与停止回执；只有当前权限和预检全部满足才使用同一管理链路继续，报告保留内容和复验范围。”
 
 本轮官方SDK/stdio测试与真实HTTP服务覆盖前两条的调用路径、修订冲突、重连和持久回执，以及第三条的只读预检。三个桌面宿主实机联调、完整跨批集成、检查点可访问性及跨日观察仍须按进度记录逐项验证，不能据SDK测试宣称全部完成。Windows完整兼容限制沿用原记录；新增路径的平台结果单列。
+
+### 当前摘要、分页与批次门槛
+
+`webuddy_reform_get` 默认返回摘要；读取完整契约用 `view="scope"`，任务用 `view="tasks"`，检查点用 `view="checkpoints"`。后两种使用 `after/limit` 与 `next_cursor`。`webuddy_reform_events` 按稳定事件ID游标读取全部已保存历史；旧版曾丢失的历史明确标记不完整。摘要不能替代原始需求。
+
+有固定源版本的新计划目前使用保守串行集成策略。`wave` 是申请上限，预览返回 `effective_wave`、实际批次和原因。未登记可靠依赖不表示所有代码可并行改。每批业务子单后会登记固定输入的集成任务，当前证据有效且业务验收完成后，下一批绑定该精确集成提交。各子单关闭不等于计划整体交付；epic父单提供原有业务决定入口，整体退回建立关联返修。
+
+检查点包含可找回提交及受保护Git引用、契约修订、测试配置摘要、任务/运行关系。检查点不代表验证通过；对象失去访问时阻断，不换成HEAD。`read/content`连接在受管环境不能执行宿主Git，当前版本/停止条件可能返回 `not_checked` 并指向执行负责人；这不影响其读取持久历史。具备执行授权的预检使用现行服务，真正执行仍重新检查。
+
+响应丢失后先读 `webuddy_request_get`。若仍为 `uncertain`，相同原始计划写请求可用**原request_id和原参数**再次调用；仅当服务端能按主体与参数指纹找到内层持久回执时返回该回执，不再次调度。没有内层回执则继续待核对；查询本身不会清除未知结果。停止、取消后续调度与合法run_recover不被未知启动回执或开发工作流漂移锁死；当前执行权限与原受管运行门禁仍保留。
+
+服务重启核对单实例与租户worker各自数据库。已领取但未知结果不重放；只有线程提交、无持久运行回执时显示 `needs_reconcile`，由执行负责人核对自动流转、任务与真实进程。不会把客户端断线当成取消，也不会声称所有外部副作用exactly-once。
+
+`webuddy_reforms_list` 可带 `status` 筛选：`draft/active/paused/blocked/accepted/cancelled/archived`，并使用 `after/limit` 分页。归档列表还需 `archived=true`。`accepted` 要求当前固定集成版本与整体验收相符，不以历史子单数量计算。恢复前读取 `webuddy_reform_resume_preview`；新run在暂停期间会被执行边界拒绝，已运行的步骤按暂停回执继续。

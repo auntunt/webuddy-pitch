@@ -416,6 +416,8 @@ def worker(data, tenant, address, keyfile, parent_pid):
     server = Server(address, Handler)
     os.chmod(address, 0o600)
     stopping = threading.Event()
+    from . import reform
+    reform.reconcile(P)  # Current tenant/connection authority is rechecked before each claim.
     # Snapshot before readiness: a newly submitted experiment must never enter
     # startup recovery. Recovery only reconciles stops, never dispatches work.
     recovery_thread = None

@@ -78,3 +78,12 @@ class ReformTenantMCPTest(unittest.IsolatedAsyncioTestCase):
             self.assertIn(denied['status'],(401,403))
             denied=await self.call(session,'request_get',{'request_id':'tenant-plan-create'},True)
             self.assertIn(denied['status'],(401,403))
+
+        # A newly issued content connection may archive only after the current
+        # member actually receives project management authority.
+        f.change('project_grant',tenant=f.a,user='alice',project_id=1,role='manager')
+        manager=f.grant(rid='new-manager-connection')
+        async with self.session(manager) as session:
+            current=await self.call(session,'reform_get',resource)
+            archived=await self.call(session,'reform_archive',dict(resource,expected_revision=current['revision'],request_id='manager-archive'))
+            self.assertTrue(archived['archived'])

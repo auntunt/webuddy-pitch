@@ -199,3 +199,9 @@ Gitea 将 provider 改为 `gitea`，仓库只能为 `owner/repo`，required-chec
 适用前提：Jenkins 使用 Git 插件 checkout，构建任务及必需检查由可信维护者管理。仅用 shell git clone、无 BuildData、下游聚合、特殊多仓库 checkout 需实际核对，不能自动声称兼容。配置连接只查询，不触发构建；候选需先同步到登记远端，由现有 Jenkins 流程构建。本地合并仍 `pushed=false`、`deployed=false`。
 
 接口依据：[Jenkins Remote API](https://www.jenkins.io/doc/book/using/remote-access-api/)、[Git 插件](https://plugins.jenkins.io/git/)。
+
+## 长期改造计划共用管理
+
+个人连接可按 `read/content/execute/develop` 的交集使用改造计划读取、内容修订及执行管理能力，并非笼统只读。`--allow-writes`、`--allow-execution`、当前项目权限和受管隔离要求继续生效。实际工具、输入示例、冲突/幂等、重连与分页规则见 [长期改造管理](workbench-agent.md#长期改造管理本轮实现候选验收进展见进度记录)。
+
+网页与MCP都指向同一 `#/projects/<project>/reforms/<plan_id>`；换客户端后按计划、请求和运行编号找回。业务验收、独立技术复核、合并及发布不包含在普通计划管理工具中。三个桌面宿主联调与浏览器工作区验收状态见实施证据，官方SDK协议通过不替代宿主实测。

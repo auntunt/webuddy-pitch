@@ -491,7 +491,14 @@ def _agent(P, who, operation, body):
     for field, kind in (("project", "project"), ("ticket", "ticket"), ("run_id", "run"),
                         ("candidate_id", "candidate"), ("probe_id", "probe"), ("session", "intake")):
         if field in args:
-            projects.append(_check(P, who, _resource_project(P, kind, args[field]), level))
+            target = _resource_project(P,kind,args[field])
+            if operation=='reform_archive' and tool:
+                _check(P,who,target,'contributor')  # connection scope and selected projects
+                with P.tenant_context.acting(who['actor']):
+                    _check(P,identity(P,who['actor']),target,'manager')
+                projects.append(target)
+            else:
+                projects.append(_check(P,who,target,level))
     if len({p["id"] for p in projects}) > 1:
         raise ApiError(400, "请求中的资源不属于同一项目")
     if args.get('plan_id'):

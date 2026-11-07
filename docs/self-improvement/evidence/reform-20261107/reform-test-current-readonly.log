@@ -1,0 +1,5 @@
+{"app": "/opt/webuddy/releases/e282afa/app", "release": {"commit": "e282afab238e658e495e5508e64c94b72101dfc2", "environment": "43-test"}, "service": "MainPID=1812014\nNRestarts=0\nActiveState=active\n"}
+LEGACY_REFORM_FILES 1
+REFORM_SOURCE reforms/RW.json plans 1 linked 8
+DATABASE platform.db reform_catalog False
+DATABASE project-test-baselines/JSHERP-20261105/evidence/platform.db reform_catalog False

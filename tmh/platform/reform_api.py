@@ -17,34 +17,52 @@ def packet(P, project, p):
     value.update(plan_id=p['id'],plan_revision=p['revision'],project=project['key'],
         deep_link='#/projects/%s/reforms/%s' % (quote(project['key']),quote(p['id'])),
         status_updated=p.get('updated') or p['created'],
-        next_owner=p['by'],checkpoint=p.get('checkpoint'),
-        evidence={'current_validity':'not_checked','integrated_delivery':'not_checked'})
+        next_owner=p.get('execution_owner') or p['by'],checkpoint=p.get('checkpoint'))
     return value
 
+
+
+def summary(value):
+    omitted = ('goal','keep','log','revisions','checkpoints','items')
+    result = {key:item for key,item in value.items() if key not in omitted}
+    result['scope_ref'] = {'operation':'reform_get','project':value['project'],'plan_id':value['id'],'view':'scope'}
+    result['tasks_ref'] = dict(result['scope_ref'],view='tasks')
+    result['events_ref'] = {'operation':'reform_events','project':value['project'],'plan_id':value['id']}
+    return result
 
 def resume_preview(P, project, p):
     ready = dict(p)
     ready.pop('paused',None)
     blocked = reform._blocked(P,ready)
+    from .reform_state import checkpoint_preflight
+    checkpoint = checkpoint_preflight(P,project,p)
+    blocked = '; '.join(checkpoint['blocked']) or blocked
     runs = []
-    for item in p['items']:
+    ctx=getattr(P,'tenant_context',None)
+    from .tenant_runtime import ACTOR
+    may_check=ctx is None or ctx.runtime_allowed(ACTOR.get())
+    if not may_check:
+        blocked='当前连接不具备执行及恢复核对权限；请由项目执行负责人处理'
+    for item in p['items']+p.get('integrations',[]):
         if not item.get('ticket'):
             continue
         ticket = P.store.ticket(item['ticket'])
         if not ticket or ticket['project_id'] != project['id']:
             raise ApiError(409,'计划与子任务归属不一致，请核对历史')
         for run in P.store.runs(ticket_id=ticket['id']):
-            if run['status'] in ('failed','cancelled'):
+            if run['status'] in ('failed','cancelled') and not may_check:
+                runs.append(dict(run_id=run['id'],ticket=ticket['key'],can_retry=None,check_status='not_checked',blocked=['需要当前执行授权核对停止回执与代码']))
+            elif run['status'] in ('failed','cancelled'):
                 current = P.runner.retry_state(run['id'])
                 runs.append(dict(run_id=run['id'],ticket=ticket['key'],can_retry=current['can_retry'],
                     blocked=current['retry_blocked'],retry_run=current.get('retry_run')))
             elif run['status'] in ('running','queued'):
                 runs.append(dict(run_id=run['id'],ticket=ticket['key'],can_retry=False,blocked=['原运行仍活跃，不能创建副本']))
-    return dict(packet(P,project,p),recovery_runs=runs,blocked=blocked,
-        allowed_actions=['pause','cancel'] if blocked else ['resume' if p.get('paused') else 'start' if not p.get('batch') else 'release_next','pause','cancel'],
+    return dict(summary(packet(P,project,p)),recovery_runs=runs,blocked=blocked,
+        allowed_actions=[] if not may_check else ['pause','cancel'] if blocked else ['resume' if p.get('paused') else 'start' if not p.get('batch') else 'release_next','pause','cancel'],
         retained='原运行、代码、未验证快照及历史证据保留；不把历史通过当作当前通过',
         revalidation='续跑会形成新证据；集成版本及环境仍须独立核对',
-        checkpoint_accessibility='not_checked' if p.get('checkpoint') else 'missing')
+        checkpoint_accessibility=checkpoint['status'],checkpoint_preflight=checkpoint)
 
 
 def execute(P, req, actor, operation, a):
@@ -54,11 +72,13 @@ def execute(P, req, actor, operation, a):
     if operation == 'reforms_list':
         rows = reform.plans(P.data_dir,project['key'],include_archived=True)
         rows = [p for p in rows if bool(p.get('archived')) == a.get('archived',False)]
+        if a.get('status'):
+            rows=[p for p in rows if packet(P,project,p)['state']==a['status']]
         # Array offsets remain opaque to clients; immutable plan identities travel in every row.
         offset,limit = a.get('after',0),a.get('limit',20)
         selected = rows[offset:offset+limit]
         more = len(rows)>offset+len(selected)
-        return {'items':[packet(P,project,p) for p in selected],
+        return {'items':[summary(packet(P,project,p)) for p in selected],
                 'next_cursor':offset+len(selected) if more else None,'next_after':offset+len(selected),'has_more':more}
     if operation == 'reform_create':
         try:
@@ -72,7 +92,17 @@ def execute(P, req, actor, operation, a):
     except KeyError:
         raise ApiError(404,'没有这个项目的改造计划') from None
     if operation == 'reform_get':
-        return packet(P,project,p)
+        value = packet(P,project,p)
+        view = a.get('view','summary')
+        if view == 'summary':
+            return summary(value)
+        if view == 'scope':
+            fields = ('goal','keep','kind','title','scope_mode','domains','criteria','dependencies','target','source_version','target_environment','knowledge_revision','revisions')
+            return dict(summary(value),scope={key:p.get(key) for key in fields})
+        rows = value['items'] if view=='tasks' else p.get('checkpoints',[])
+        offset,limit = a.get('after',0),a.get('limit',20)
+        selected = rows[offset:offset+limit]
+        return dict(summary(value),items=selected,next_cursor=offset+len(selected) if len(rows)>offset+len(selected) else None)
     if operation == 'reform_resume_preview':
         return resume_preview(P,project,p)
     if operation == 'reform_events':
@@ -103,6 +133,8 @@ def execute(P, req, actor, operation, a):
                 if any(item.get('ticket') for item in p['items']):
                     raise ApiError(409,'已经派发的任务契约不能被改写；请使用有关联的新修订与返修')
                 changes = a['changes']
+                p.setdefault('revisions',[]).append(dict(revision=p['revision'],at=now(),actor=actor,reason=a['reason'],
+                    contract={key:p.get(key) for key in ('kind','title','goal','keep','scope_mode','domains','wave','target','source_version','target_environment','criteria','dependencies','knowledge_revision')},items=p['items']))
                 if not changes:
                     raise ApiError(400,'请明确要修订的字段')
                 body = {k:p.get(k) for k in ('kind','title','goal','keep','scope_mode','domains','wave','target','source_version','target_environment','criteria','dependencies','knowledge_revision')}
@@ -130,9 +162,15 @@ def execute(P, req, actor, operation, a):
                         p['auto'] = False
                         p['paused'] = '计划已取消后续调度；已派发任务保留，停止运行需核对各自回执'
                     reform._log(p,p['paused'])
+                    from .reform_state import checkpoint
+                    checkpoint(P,project,p,'受控暂停；当前运行继续，停止回执仍须逐项核对')
                 else:
                     if p.get('cancelled'):
                         raise ApiError(409,'计划已取消，不能创建新的执行链')
+                    from .reform_state import checkpoint_preflight
+                    missing = checkpoint_preflight(P,project,p)['blocked']
+                    if missing:
+                        raise ApiError(409,'; '.join(missing))
                     if action == 'start' and p.get('batch'):
                         raise ApiError(409,'计划已启动，请读取当前批次后使用release_next或resume')
                     if action == 'release_next' and not p.get('batch'):
@@ -140,7 +178,7 @@ def execute(P, req, actor, operation, a):
                     if action == 'resume':
                         p.pop('paused',None)
                         pending = P.store.q("SELECT ticket_id FROM reform_dispatch WHERE plan_uid=? AND state='pending'",(p['uid'],))
-                        uncertain = P.store.one("SELECT ticket_id FROM reform_dispatch WHERE plan_uid=? AND state='claimed'",(p['uid'],))
+                        uncertain = P.store.one("SELECT ticket_id FROM reform_dispatch WHERE plan_uid=? AND state IN ('claimed','needs_reconcile')",(p['uid'],))
                         made = [] if uncertain else [P.store.ticket(row['ticket_id']) for row in pending]
                     why = reform._blocked(P,p)
                     if why and not made:
@@ -149,6 +187,8 @@ def execute(P, req, actor, operation, a):
                         made = reform._release_in_tx(P,project,p,None,req.user,db)
             else:
                 raise ApiError(400,'未知计划操作')
+            from .reform_delivery import sync
+            sync(P,project,p,db)
             p['revision'] += 1
             p['updated'] = now()
             reform._save(P.data_dir,project['key'],ps,db)

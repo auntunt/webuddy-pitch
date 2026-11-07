@@ -280,6 +280,21 @@ class AgentAPITest(unittest.TestCase):
         self.assertIn('needs_reconcile', str(caught.exception))
         restart.assert_not_called()
 
+    def test_unknown_launch_does_not_block_managed_recovery_or_require_current_workflow(self):
+        t = self.create()
+        run = self.run_record(t, status='failed')
+        agent_api._schema(self.P.store)
+        self.P.store.x("INSERT INTO agent_requests(agent,request_id,operation,fingerprint,arguments,resource,state,created,updated) VALUES(?,?,?,?,?,?,?,?,?)",
+            ('agent:codex','lost-start','run_start','fixture','{}','ticket:'+str(t['id']),'uncertain','fixture','fixture'))
+        with patch('tmh.platform.project_library.require_development', side_effect=ValueError('workflow drift')), \
+                patch('tmh.platform.server.api_recover_run', return_value={}) as recover, \
+                patch.object(self.P.runner,'start') as start:
+            result = self.call('run_recover',{'project':'AGENT','run_id':run['id'],'request_id':'recover-stop'},execution=True)
+        recover.assert_called_once()
+        start.assert_not_called()
+        self.assertEqual(result['id'],run['id'])
+        self.assertEqual(self.call('request_get',{'request_id':'lost-start'})['state'],'uncertain')
+
     def test_cross_process_retry_creates_one_ticket(self):
         payload = json.dumps({'database': str(self.P.store.path), 'args': self.args})
         def run_worker(_):

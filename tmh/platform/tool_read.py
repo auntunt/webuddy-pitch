@@ -311,7 +311,9 @@ def ticket_get(P, key, visible_ids):
     requirement = None
     if evidence_original['jsonl_status'] == 'complete':
         requirement = _requirement(t, P.store, reference_inputs=inputs, contract_records=evidence)
+    from . import reform_state
     return {'ticket': t, 'project': p, 'events': P.store.events(t['id']), 'runs': runs,
+            'reform_state': reform_state.ticket(P,p,t) if t['links'].get('reform') else None,
             'team_assignment': team.assignment(P, t), 'history': {'historical': True,
                 'runs': [run_history(P, run) for run in runs],
                 'evidence': evidence, 'evidence_original': evidence_original},

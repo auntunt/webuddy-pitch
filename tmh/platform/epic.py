@@ -369,6 +369,8 @@ def _follow_up(P, proj: dict, parent: dict, note: str, by: str) -> str:
 
 def outcome(P, proj: dict, t: dict, v: dict) -> list:
     """A verdict on a child or on the parent: move the feature on. Returns the keys of tickets it opened."""
+    if (t.get('links') or {}).get('reform',{}).get('role')=='parent':
+        return []  # The reform's durable transaction owns batches and linked repairs.
     if is_parent(t):
         if v["passed"]:
             _edit(P, t, lambda e, links: _log(e, "%s 整体验收通过，大需求完成" % v["by"]))
@@ -431,6 +433,8 @@ def act(P, parent: dict, b: dict, by: str) -> dict:
     """{"action": "release" | "resume" | "auto" (on) | "wave" (n)}: what a person can do on the parent's page."""
     if not is_parent(parent):
         raise ValueError("这张工单不是大需求的父单")
+    if parent['links'].get('reform',{}).get('role')=='parent':
+        raise ValueError('请从改造计划工作区控制批次，避免绕过集成与持久领取门槛')
     proj = P.store.project(parent["project_id"])
     a = b.get("action")
     if parent["status"] == "closed":
