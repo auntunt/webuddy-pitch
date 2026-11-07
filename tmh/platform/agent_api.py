@@ -410,6 +410,9 @@ def _execute(P, req, actor, operation, a):
     # Scope before pagination; never disclose ungranted counts or row contents.
     visible_ids = [p['id'] for p in tenant_policy.visible_projects(P, req.user)] if tool else None
     if operation.startswith('reform'):
+        project=_project(P,a['project'])
+        if visible_ids is not None and project['id'] not in visible_ids:
+            raise ApiError(403,'工具未获此项目的读取权限')
         from .reform_api import execute
         return execute(P,req,actor,operation,a)
     if operation == 'run_recover':

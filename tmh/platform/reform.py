@@ -88,9 +88,28 @@ def _file(data_dir: Path, key: str) -> Path:
     return Path(data_dir) / "reforms" / ("%s.json" % key)
 
 
-def plans(data_dir: Path, key: str, include_archived=False) -> list:
-    with _transaction(data_dir) as db:
-        ps = _load(data_dir,key,db)
+def initialize(data_dir, store):
+    """Import existing project plans during startup, never during a tool read."""
+    with _transaction(data_dir,store) as db:
+        for project in store.projects():
+            _load(data_dir,project['key'],db)
+
+
+def plans(data_dir: Path, key: str, include_archived=False, *, store=None) -> list:
+    if store is not None:
+        row=store.one('SELECT payload FROM reform_catalog WHERE project_key=?',(key,))
+    else:
+        import sqlite3
+        database=Path(data_dir)/'platform.db'
+        if not database.exists():
+            return []
+        with sqlite3.connect(database.resolve().as_uri()+'?mode=ro',uri=True) as db:
+            if not db.execute("SELECT name FROM sqlite_master WHERE name='reform_catalog'").fetchone():
+                if _file(data_dir,key).exists():
+                    raise ValueError('旧改造计划尚未导入，请在服务启动阶段完成迁移')
+                return []
+            row=db.execute('SELECT payload FROM reform_catalog WHERE project_key=?',(key,)).fetchone()
+    ps=json.loads(row['payload'] if isinstance(row,dict) else row[0]) if row else []
     return ps if include_archived else [p for p in ps if not p.get('archived')]
 
 
@@ -103,8 +122,8 @@ def _save(data_dir: Path, key: str, ps: list, db=None) -> None:
                (key,json.dumps(ps,ensure_ascii=False)))
 
 
-def plan(data_dir: Path, key: str, pid: str) -> dict:
-    for x in plans(data_dir, key, include_archived=True):
+def plan(data_dir: Path, key: str, pid: str, *, store=None) -> dict:
+    for x in plans(data_dir, key, include_archived=True,store=store):
         if x["id"] == pid:
             return x
     raise KeyError(pid)

@@ -93,6 +93,8 @@ class Platform:
         from .operator_access import initialize
         self.operator_key_path = initialize(self.data_dir)
         self.store = Store(self.data_dir / "platform.db")
+        from . import reform
+        reform.initialize(self.data_dir,self.store)
         self.runner = Runner(self.store, self.data_dir)
         self.runner.tenant_context = tenant_context
         if tenant_context is not None:

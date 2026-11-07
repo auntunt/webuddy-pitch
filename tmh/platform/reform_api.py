@@ -70,7 +70,7 @@ def execute(P, req, actor, operation, a):
     if operation == 'reform_preview':
         return reform.preview(P.kb.atlas(project),a)
     if operation == 'reforms_list':
-        rows = reform.plans(P.data_dir,project['key'],include_archived=True)
+        rows = reform.plans(P.data_dir,project['key'],include_archived=True,store=P.store)
         rows = [p for p in rows if bool(p.get('archived')) == a.get('archived',False)]
         if a.get('status'):
             rows=[p for p in rows if packet(P,project,p)['state']==a['status']]
@@ -88,7 +88,7 @@ def execute(P, req, actor, operation, a):
         req.agent_side_effect_started = True
         return dict(packet(P,project,p),operation_id=a['request_id'],request_id=a['request_id'],request_state='succeeded')
     try:
-        p = reform.plan(P.data_dir,project['key'],a['plan_id'])
+        p = reform.plan(P.data_dir,project['key'],a['plan_id'],store=P.store)
     except KeyError:
         raise ApiError(404,'没有这个项目的改造计划') from None
     if operation == 'reform_get':
@@ -97,8 +97,10 @@ def execute(P, req, actor, operation, a):
         if view == 'summary':
             return summary(value)
         if view == 'scope':
-            fields = ('goal','keep','kind','title','scope_mode','domains','criteria','dependencies','target','source_version','target_environment','knowledge_revision','revisions')
-            return dict(summary(value),scope={key:p.get(key) for key in fields})
+            fields = ('goal','keep','kind','title','wave','scope_mode','domains','criteria','dependencies','target','source_version','target_environment','knowledge_revision','revisions')
+            scope={key:p.get(key) for key in fields}
+            scope['lead']=next(({'title':i['title'],'body':i['body']} for i in p['items'] if i.get('lead')),{'title':'','body':''})
+            return dict(summary(value),scope=scope)
         rows = value['items'] if view=='tasks' else p.get('checkpoints',[])
         offset,limit = a.get('after',0),a.get('limit',20)
         selected = rows[offset:offset+limit]

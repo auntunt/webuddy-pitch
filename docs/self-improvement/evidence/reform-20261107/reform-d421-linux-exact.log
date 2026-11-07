@@ -1,0 +1,8 @@
+......................................                                   [100%]
+=============================== warnings summary ===============================
+../../../../../tmp/webuddy-reform-verify-d421/lib/python3.12/site-packages/_pytest/cacheprovider.py:475
+  /tmp/webuddy-reform-verify-d421/lib/python3.12/site-packages/_pytest/cacheprovider.py:475: PytestCacheWarning: could not create cache path /opt/webuddy/releases/reform-d421db65/app/.pytest_cache/v/cache/nodeids: [Errno 13] Permission denied: '/opt/webuddy/releases/reform-d421db65/app/pytest-cache-files-th9jbaj1'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+38 passed, 1 warning in 33.27s

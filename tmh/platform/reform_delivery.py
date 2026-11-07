@@ -41,7 +41,7 @@ def sync(P, project, p, db):
 
 
 def guard(P, t, *, passed=True):
-    reference=t['links'].get('reform') or {}
+    reference=(t.get('links') or {}).get('reform') or {}
     if reference.get('role')!='parent':
         return None
     from . import reform

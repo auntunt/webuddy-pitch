@@ -133,6 +133,7 @@ class ReformDurabilityTest(unittest.TestCase):
         f = self.data/'reforms'/'RF.json'
         f.parent.mkdir()
         f.write_bytes(original)
+        reform.initialize(self.data,self.store)
         imported = reform.plan(self.data,'RF','r1')
         self.assertTrue(imported['uid'])
         self.assertEqual(f.read_bytes(),original)

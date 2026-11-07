@@ -123,6 +123,12 @@ class ToolReadTests(unittest.TestCase):
         self.hidden = self.st.create_ticket(self.other['id'], 'hidden', 'owner')
         self.cid, self.rid = seed_candidate(self.st, self.t)
         self.P = SimpleNamespace(store=self.st, data_dir=self.data)
+        from tmh.platform import reform
+        reform.initialize(self.data,self.st)
+        self.atlas={'built':'fixed','domains':[{'id':'sales','title':'Sales','tables':0,'flows':0}]}
+        self.reform=reform.create(self.data,'APP',self.atlas,dict(title='Read fixture',goal='Full contract',scope_mode='selected',domains=['sales']),'alice')
+        self.P.project=lambda key:self.st.project(key)
+        self.P.kb=SimpleNamespace(atlas=lambda project:self.atlas)
         self.req = SimpleNamespace(user='alice', h=SimpleNamespace(headers={'X-Webuddy-Agent': 'fixture'}))
         self.actor = agent_api.member_actor('alice')
         self.tool = {'scope': 'read', 'project_ids': [self.p['id']], 'user': 'alice', 'tenant': 'synthetic'}
@@ -134,7 +140,7 @@ class ToolReadTests(unittest.TestCase):
         # and revocation are covered by the real gateway tests, not this stub.
         self.authorization_lease = threading.RLock()
         self.P.tenant_context = SimpleNamespace(
-            registry=SimpleNamespace(authorization_guard=lambda: self.authorization_lease))
+            registry=SimpleNamespace(authorization_guard=lambda: self.authorization_lease),runtime_allowed=lambda actor:False)
         self.patch.enter_context(patch.object(tenant_policy, 'enabled', return_value=True))
         self.patch.enter_context(patch.object(tenant_policy, 'identity', return_value={
             'tool_connection': self.tool, 'role': 'member', 'project_grants': {'APP': 'viewer'},
@@ -159,6 +165,9 @@ class ToolReadTests(unittest.TestCase):
                  'library_read': {'project': 'APP', 'revision_id': 'a' * 32, 'path': 'rules.md'},
                  'development_get': {'ticket': self.t['key']}, 'candidate_ci': {'candidate_id': self.cid},
                  'preview_get': {'ticket': self.t['key']}, 'intake_get': {'session': self.intake_session()}}
+        cases.update(reforms_list={'project':'APP'},reform_preview={'project':'APP','scope_mode':'selected','domains':['sales']},
+            reform_get={'project':'APP','plan_id':self.reform['id']},reform_events={'project':'APP','plan_id':self.reform['id']},
+            reform_resume_preview={'project':'APP','plan_id':self.reform['id']})
         self.assertEqual(set(cases), set(tool_access.READ_OPERATIONS))
         before = snapshot(self.st)
         # Library schema is initialized at fixture registration, preserving the
@@ -179,7 +188,9 @@ class ToolReadTests(unittest.TestCase):
         hidden_cid, _ = seed_candidate(self.st, self.hidden)
         with patch('tmh.platform.project_ci.check', side_effect=AssertionError('must authorize before query')):
             for op, args in [('development_get', {'ticket':self.hidden['key']}),
-                             ('candidate_ci', {'candidate_id':hidden_cid})]:
+                             ('candidate_ci', {'candidate_id':hidden_cid}),
+                             ('reforms_list',{'project':'PRIVATE'}),('reform_preview',{'project':'PRIVATE','scope_mode':'all','domains':[]}),
+                             *[(op,{'project':'PRIVATE','plan_id':self.reform['id']}) for op in ('reform_get','reform_events','reform_resume_preview')]]:
                 with self.subTest(op=op), self.assertRaises(ApiError) as error:
                     self.call(op, **args)
                 self.assertEqual(error.exception.code, 403)

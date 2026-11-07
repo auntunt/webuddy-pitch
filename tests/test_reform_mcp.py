@@ -1,5 +1,7 @@
 """Official MCP SDK/stdio against the actual HTTP service and durable SQLite plans."""
 import json
+import os
+import sys
 from http.server import ThreadingHTTPServer
 import threading
 import unittest
@@ -144,6 +146,8 @@ class ReformMCPTest(unittest.IsolatedAsyncioTestCase):
             scope=await self.call(session,'reform_get',dict(resource,view='scope'))
             self.assertEqual(latest['revision'],updated['revision'])
             self.assertEqual(scope['scope']['keep'],'Web confirmed constraints')
+            self.assertEqual(scope['scope']['lead'],args['lead'])
+            self.assertEqual(scope['scope']['wave'],args['wave'])
             self.assertEqual(scope['scope']['revisions'][0]['contract']['keep'],args['keep'])
             archive=await self.call(session,'reform_archive',dict(resource,expected_revision=latest['revision'],request_id='archive-draft'))
             self.assertTrue(archive['archived'])
@@ -170,3 +174,36 @@ class ReformMCPTest(unittest.IsolatedAsyncioTestCase):
             names={t.name for t in (await session.list_tools()).tools}
             self.assertIn('webuddy_reform_create',names)
             self.assertNotIn('webuddy_reform_control',names)
+
+    @unittest.skipUnless(os.name=='posix','real supervised recovery requires POSIX')
+    async def test_sdk_recovers_web_origin_supervised_run_without_restarting_it(self):
+        from tmh.platform.agents import Runner
+        from tmh.platform.store import now
+        t=self.fixture.ticket
+        run=self.P.store.create_run(t['project_id'],t['id'],'fixture','analyze','web-fixture','original recovery contract')
+        rid=run['id']
+        self.P.runner._control(rid)
+        self.P.store.update_run(rid,status='running',started=now())
+        process,folder=self.P.runner.run_command(rid,[sys.executable,'-c',"print('retained supervised output')"],self.fixture.repo)
+        self.assertEqual(process.returncode,0)
+        raw=(folder/'output.bin').read_bytes()
+        args={'project':'EXT','run_id':rid,'request_id':'sdk-web-run-recover'}
+        async with self.session('--allow-execution') as session:
+            denied=await self.call(session,'run_recover',dict(args,request_id='recover-live-owner'),True)
+            self.assertEqual(denied['status'],409)
+        self.assertEqual(self.P.store.run(rid)['status'],'running')
+        self.P.runner._release(rid)
+        self.P.runner=Runner(self.P.store,self.P.data_dir)
+        async with self.session('--allow-execution') as session:
+            recovered=await self.call(session,'run_recover',args)
+            self.assertEqual(recovered['status'],'failed')
+            self.assertEqual(recovered['exit_code'],125)
+            self.assertFalse(self.P.store.one('SELECT * FROM agent_run_sources WHERE run_id=?',(rid,)))
+        async with self.session('--allow-execution') as session:
+            self.assertEqual(await self.call(session,'run_recover',args),recovered)
+            receipt=await self.call(session,'request_get',{'request_id':args['request_id']})
+            self.assertEqual(receipt['state'],'complete')
+        self.assertEqual((folder/'output.bin').read_bytes(),raw)
+        self.assertTrue(json.loads((self.P.data_dir/'runs'/str(rid)/'lifecycle.json').read_text())['finished'])
+        self.assertEqual(len(self.P.store.runs(ticket_id=t['id'])),1)
+        self.assertEqual(self.submitted,[])
