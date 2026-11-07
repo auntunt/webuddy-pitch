@@ -1,0 +1,84 @@
+F.FFFF                                                                   [100%]
+=================================== FAILURES ===================================
+_ ReformDurabilityTest.test_active_archive_refused_and_old_identity_never_reused _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_active_archive_refused_and_old_identity_never_reused>
+
+    def test_active_archive_refused_and_old_identity_never_reused(self):
+        p = self.create()
+        made = reform.release(self.P,self.proj,p['id'],None,'owner')
+>       with self.assertRaises(ValueError):reform.remove(self.data,'RF',p['id'])
+E       AssertionError: ValueError not raised
+
+tests/test_reform_durability.py:77: AssertionError
+_ ReformDurabilityTest.test_full_contract_is_not_truncated_and_explicit_empty_scope_is_empty _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_full_contract_is_not_truncated_and_explicit_empty_scope_is_empty>
+
+    def test_full_contract_is_not_truncated_and_explicit_empty_scope_is_empty(self):
+        goal, keep, body = '目标'*5000, '约束'*3000, '先导'*4000
+        p = reform.create(self.data,'RF',self.atlas,dict(title='x',goal=goal,keep=keep,
+            lead={'body':body},scope_mode='selected',domains=['0']),'owner')
+        saved = reform.plan(self.data,'RF',p['id'])
+>       self.assertEqual((saved['goal'],saved['keep'],saved['items'][0]['body']),(goal,keep,body))
+E       AssertionError: Tuples differ: ('目标目[3992 chars]标目标目标', '约束约束约束约束约束约束约束约束约束约束约束约束约束约束约束约束约束约束约[5964 chars]导先导') != ('目标目[3992 chars]标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目[19964 chars]导先导')
+E       
+E       First differing element 0:
+E       '目标目标[3991 chars]标目标目标'
+E       '目标目标[3991 chars]标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目标目[5955 chars]目标目标'
+E       
+E       Diff is 34042 characters long. Set self.maxDiff to None to see it.
+
+tests/test_reform_durability.py:60: AssertionError
+_ ReformDurabilityTest.test_pause_completed_wave_resume_advances_without_another_event _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_pause_completed_wave_resume_advances_without_another_event>
+
+    def test_pause_completed_wave_resume_advances_without_another_event(self):
+        p = self.create()
+        made = reform.release(self.P,self.proj,p['id'],None,'owner')
+        reform.configure(self.data,'RF',p['id'],auto=False)
+        for key in made:reform.outcome(self.P,self.proj,self.close(key),True,'fixture')
+        reform.configure(self.data,'RF',p['id'],auto=True)
+>       result = reform.resume(self.P,self.proj,p['id'],'owner')
+                 ^^^^^^^^^^^^^
+E       AttributeError: module 'tmh.platform.reform' has no attribute 'resume'
+
+tests/test_reform_durability.py:70: AttributeError
+_ ReformDurabilityTest.test_save_failure_after_ticket_insert_rolls_back_all_business_work _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_save_failure_after_ticket_insert_rolls_back_all_business_work>
+
+    def test_save_failure_after_ticket_insert_rolls_back_all_business_work(self):
+        p = self.create()
+        with patch.object(reform,'_save',side_effect=OSError('injected mapping failure')):
+            with self.assertRaises(OSError):reform.release(self.P,self.proj,p['id'],None,'owner')
+>       self.assertEqual(self.store.tickets(),[])
+E       AssertionError: Lists differ: [{'id': 1, 'project_id': 1, 'num': 1, 'tit[1055 chars]-2'}] != []
+E       
+E       First list contains 2 additional elements.
+E       First extra element 0:
+E       {'id': 1, 'project_id': 1, 'num': 1, 'title': '结构重构：Reform（0）', 'body': '结构重构「Reform」的第 1/8 部分：业务域「0」。\n\n## 改造目标\nFull contract\n\n## 这一类改造的要求\n只调整代码结构，业务行为不变：拆分过大的类和方法、去掉重复代码、理清分层。\n\n## 范围\n只改业务域「0」里的代码（0 条业务流，0 张表）。别的业务域留给各自的工单。\n\n## 验收条件\n- 构建和测试通过\n- 涉及的业务流行为与改造前一致', 'type': 'change', 'status': 'new', 'priority': 'normal', 'assignee': '', 'reporter': 'owner', 'labels': ['结构重构'], 'links': {'flows': [], 'reform': {'plan': 'r1', 'order': 1}}, 'external': {}, 'created': '2026-11-07 13:30:03', 'updated': '2026-11-07 13:30:03', 'key': 'RF-1'}
+E       
+E       Diff is 1623 characters long. Set self.maxDiff to None to see it.
+
+tests/test_reform_durability.py:49: AssertionError
+_________ ReformDurabilityTest.test_wrong_ticket_cannot_advance_a_plan _________
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_wrong_ticket_cannot_advance_a_plan>
+
+    def test_wrong_ticket_cannot_advance_a_plan(self):
+        p = self.create()
+        foreign = self.store.create_ticket(self.proj['id'],'foreign','fixture',links={'reform':{'plan':p['id'],'order':1}})
+        reform.outcome(self.P,self.proj,foreign,False,'forged','no redo')
+>       self.assertNotIn('paused',reform.plan(self.data,'RF',p['id']))
+E       AssertionError: 'paused' unexpectedly found in {'id': 'r1', 'kind': 'restructure', 'title': 'Reform', 'goal': 'Full contract', 'keep': '', 'target': '', 'wave': 2, 'auto': True, 'by': 'owner', 'created': '2026-11-07 13:30:03', 'items': [{'domain': '0', 'title': '0', 'flows': 0, 'tables': 0, 'flow_ids': [], 'files': [], 'shared': [], 'unresolved': 0, 'score': 0, 'order': 1, 'risk': '低'}, {'domain': '1', 'title': '1', 'flows': 0, 'tables': 0, 'flow_ids': [], 'files': [], 'shared': [], 'unresolved': 0, 'score': 0, 'order': 2, 'risk': '低'}, {'domain': '2', 'title': '2', 'flows': 0, 'tables': 0, 'flow_ids': [], 'files': [], 'shared': [], 'unresolved': 0, 'score': 0, 'order': 3, 'risk': '低'}, {'domain': '3', 'title': '3', 'flows': 0, 'tables': 0, 'flow_ids': [], 'files': [], 'shared': [], 'unresolved': 0, 'score': 0, 'order': 4, 'risk': '低'}, {'domain': '4', 'title': '4', 'flows': 0, 'tables': 0, 'flow_ids': [], 'files': [], 'shared': [], 'unresolved': 0, 'score': 0, 'order': 5, 'risk': '低'}, {'domain': '5', 'title': '5', 'flows': 0, 'tables': 0, 'flow_ids': [], 'files': [], 'shared': [], 'unresolved': 0, 'score': 0, 'order': 6, 'risk': '低'}, {'domain': '6', 'title': '6', 'flows': 0, 'tables': 0, 'flow_ids': [], 'files': [], 'shared': [], 'unresolved': 0, 'score': 0, 'order': 7, 'risk': '低'}, {'domain': '7', 'title': '7', 'flows': 0, 'tables': 0, 'flow_ids': [], 'files': [], 'shared': [], 'unresolved': 0, 'score': 0, 'order': 8, 'risk': '低'}], 'log': [{'at': '2026-11-07 13:30:03', 'text': '暂停自动推进：第 1 部分「」验收没通过，no redo。退回原因：forged'}], 'paused': '第 1 部分「」验收没通过，no redo。退回原因：forged'}
+
+tests/test_reform_durability.py:91: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_reform_durability.py::ReformDurabilityTest::test_active_archive_refused_and_old_identity_never_reused
+FAILED tests/test_reform_durability.py::ReformDurabilityTest::test_full_contract_is_not_truncated_and_explicit_empty_scope_is_empty
+FAILED tests/test_reform_durability.py::ReformDurabilityTest::test_pause_completed_wave_resume_advances_without_another_event
+FAILED tests/test_reform_durability.py::ReformDurabilityTest::test_save_failure_after_ticket_insert_rolls_back_all_business_work
+FAILED tests/test_reform_durability.py::ReformDurabilityTest::test_wrong_ticket_cannot_advance_a_plan
+5 failed, 1 passed in 0.20s

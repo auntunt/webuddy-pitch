@@ -1,0 +1,78 @@
+.........FF.....                                                         [100%]
+=================================== FAILURES ===================================
+_ PlatformApiTest.test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection _
+
+self = <test_platform.PlatformApiTest testMethod=test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection>
+
+    def test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection(self):
+        self.project()
+        self.untrain()  # pieces wait for people; only the plan-level loop is under test
+        u = "/api/projects/OA/reforms"
+        code, p = self.call("POST", u, {"kind": "restructure", "title": "分层整理", "goal": "理清分层", "wave": 1})
+        self.assertEqual(code, 200, p)
+        self.assertTrue(p["auto"])
+        if len(p["items"]) < 3:
+            self.skipTest("the sample project needs three business domains")
+        code, r = self.call("POST", u + "/" + p["id"], {"action": "release"})
+        k1 = r["opened"][0]
+        code, a = self.call("POST", "/api/tickets/%s/accept" % k1, {"result": "pass", "note": "审批页的按钮顺序别动"})
+        self.assertEqual(code, 200, a)
+        code, d = self.call("GET", u)
+        v = next(x for x in d["plans"] if x["id"] == p["id"])
+        self.assertEqual(v["counts"]["released"], 2, "a passed wave releases the next one by itself")
+        k2 = v["items"][1]["ticket"]
+        self.assertIn("审批页的按钮顺序别动", self.P.store.ticket(k2)["body"], "what acceptance said carries to later pieces")
+        self.call("POST", "/api/tickets/%s/accept" % k2, {"result": "fail", "note": "导出的报表少了一列"})
+        code, d = self.call("GET", u)
+        v = next(x for x in d["plans"] if x["id"] == p["id"])
+        self.assertIn("导出的报表少了一列", v.get("paused", ""), "a piece nobody will redo automatically pauses the plan")
+        self.call("POST", "/api/tickets/%s/accept" % k2, {"result": "pass"})
+        code, d = self.call("GET", u)
+        self.assertEqual(next(x for x in d["plans"] if x["id"] == p["id"])["counts"]["released"], 2, "paused: no new wave")
+        code, v = self.call("POST", u + "/" + p["id"], {"action": "resume"})
+        self.assertNotIn("paused", v)
+        code, v = self.call("POST", u + "/" + p["id"], {"action": "release"})
+>       self.assertIn("导出的报表少了一列", self.P.store.ticket(v["opened"][0])["body"])
+                                                       ^^^^^^^^^^^
+E       KeyError: 'opened'
+
+tests/test_platform.py:1697: KeyError
+___ PlatformApiTest.test_reform_plan_splits_by_domain_and_releases_in_waves ____
+
+self = <test_platform.PlatformApiTest testMethod=test_reform_plan_splits_by_domain_and_releases_in_waves>
+
+    def test_reform_plan_splits_by_domain_and_releases_in_waves(self):
+        key = self.project()
+        code, d = self.call("GET", "/api/projects/OA/reforms")
+        self.assertEqual(code, 200, d)
+        self.assertTrue(d["built"] and d["domains"])
+        self.assertIn("upgrade", d["kinds"])
+        code, pv = self.call("POST", "/api/projects/OA/reforms", {"preview": True})
+        self.assertEqual([i["order"] for i in pv["items"]], list(range(1, len(pv["items"]) + 1)))
+        self.assertEqual(pv["items"], sorted(pv["items"], key=lambda i: (i["score"], i["title"])))  # least entangled first
+        code, bad = self.call("POST", "/api/projects/OA/reforms", {"title": "x"})
+        self.assertEqual(code, 400)
+        code, p = self.call("POST", "/api/projects/OA/reforms", {"kind": "upgrade", "title": "Spring 升级", "goal": "Spring 4 升到 5",
+                                                                 "keep": "对外接口不变", "wave": 1})
+        self.assertEqual(code, 200, p)
+        self.assertEqual(p["counts"]["released"], 0)  # nothing opens until someone releases the first wave
+        code, r = self.call("POST", "/api/projects/OA/reforms/%s" % p["id"], {"action": "release"})
+        self.assertEqual(code, 200, r)
+        self.assertEqual(len(r["opened"]), 1)
+        t = self.P.store.ticket(r["opened"][0])
+        self.assertEqual((t["type"], t["links"]["reform"]["plan"]), ("change", p["id"]))
+        self.assertIn("对外接口不变", t["body"])
+        self.assertIn(r["items"][0]["title"], t["title"])
+        self.assertEqual(r["items"][0]["status"], t["status"])
+        code, deps = self.call("GET", "/api/projects/OA/reforms/deps")
+        self.assertTrue(any(x["system"] == "Maven" for x in deps["deps"]), deps)
+        self.call("POST", "/api/projects/OA/reforms/%s" % p["id"], {"action": "remove"})
+        code, d = self.call("GET", "/api/projects/OA/reforms")
+>       self.assertFalse([x for x in d["plans"] if x["id"] == p["id"]])
+E       AssertionError: [{'id': 'rfd6ff3a995dd43379d322e47a40b2e1a', 'uid': 'fd6ff3a995dd43379d322e47a40b2e1a', 'revision': 2, 'knowledge_revision': '46f775984b6b1d4067028f8df08b9bda7a37ff604d05e811e13a86ad4344e164', 'scope_mode': 'all', 'domains': [], 'kind': 'upgrade', 'title': 'Spring 升级', 'goal': 'Spring 4 升到 5', 'keep': '对外接口不变', 'target': '', 'wave': 1, 'auto': True, 'by': 'tester', 'created': '2026-11-07 13:31:58', 'items': [{'domain': 'dom:user', 'title': 'user', 'flows': 2, 'tables': 1, 'flow_ids': ['flow:post-user-add', 'flow:post-user-disable'], 'files': ['src/main/java/com/acme/oa/controller/UserController.java'], 'shared': [['expense', 1]], 'unresolved': 0, 'score': 4, 'order': 1, 'risk': '低', 'ticket': 'OA-15', 'released': '2026-11-07 13:31:58', 'batch': 1, 'status': 'new', 'rejects': 0}, {'domain': 'dom:expense', 'title': 'expense', 'flows': 4, 'tables': 4, 'flow_ids': ['flow:post-expense-submit', 'flow:post-expense-audit', 'flow:post-expense-pay', 'flow:get-expense-mine'], 'files': ['src/main/java/com/acme/oa/controller/ExpenseController.java'], 'shared': [['leave', 1], ['user', 1]], 'unresolved': 0, 'score': 8, 'order': 2, 'risk': '中', 'status': '', 'rejects': 0}, {'domain': 'dom:leave', 'title': 'leave', 'flows': 6, 'tables': 3, 'flow_ids': ['flow:post-leave-submit', 'flow:post-leave-approve', 'flow:post-leave-reject', 'flow:get-leave-list', 'flow:reportjob-expire', 'flow:reportjob-export'], 'files': ['src/main/java/com/acme/oa/controller/LeaveController.java', 'src/main/java/com/acme/oa/job/ReportJob.java'], 'shared': [['expense', 1]], 'unresolved': 0, 'score': 8, 'order': 3, 'risk': '中', 'status': '', 'rejects': 0}], 'log': [{'at': '2026-11-07 13:31:58', 'text': 'tester 放出第 1 批：OA-15'}], 'batch': 1, 'updated': '2026-11-07 13:31:58', 'counts': {'total': 3, 'lead': False, 'released': 1, 'closed': 0, 'verify': 0, 'rejected': 0, 'first_pass': 0}, 'kind_label': '依赖升级'}] is not false
+
+tests/test_platform.py:1666: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_platform.py::PlatformApiTest::test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection
+FAILED tests/test_platform.py::PlatformApiTest::test_reform_plan_splits_by_domain_and_releases_in_waves
+2 failed, 14 passed, 46 deselected in 12.38s

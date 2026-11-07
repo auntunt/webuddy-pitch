@@ -1,0 +1,14 @@
+test_concurrent_duplicate_outcomes_release_one_wave (tests.test_reform_durability.ReformDurabilityTest.test_concurrent_duplicate_outcomes_release_one_wave) ... FAIL
+
+======================================================================
+FAIL: test_concurrent_duplicate_outcomes_release_one_wave (tests.test_reform_durability.ReformDurabilityTest.test_concurrent_duplicate_outcomes_release_one_wave)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/webuddy-reform-20261107/tests/test_reform_durability.py", line 50, in test_concurrent_duplicate_outcomes_release_one_wave
+    self.assertEqual(sum(bool(i.get('ticket')) for i in saved['items']),4)
+AssertionError: 8 != 4
+
+----------------------------------------------------------------------
+Ran 1 test in 0.066s
+
+FAILED (failures=1)

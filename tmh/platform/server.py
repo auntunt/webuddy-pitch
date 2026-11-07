@@ -2530,7 +2530,7 @@ def api_reforms(P, req, key):
     at = P.kb.atlas(p)
     doms = [{"id": d["id"], "title": d["title"], "flows": d["flows"], "tables": d["tables"]} for d in at.get("domains") or []]
     return {"kinds": {k: {"label": v[0], "desc": v[1]} for k, v in reform.KINDS.items()}, "built": bool(at.get("built")), "domains": doms,
-            "plans": [reform.view(P, p, x) for x in reform.plans(P.data_dir, p["key"])][::-1]}
+            "plans": [reform.view(P, p, x) for x in reform.plans(P.data_dir, p["key"],include_archived=req.arg("include_archived")=="1")][::-1]}
 
 
 @route("GET", "/api/projects/<key>/reforms/deps")
@@ -2545,9 +2545,9 @@ def api_reform_new(P, req, key):
     from . import reform
     p = P.project(key)
     at = P.kb.atlas(p)
-    if req.body.get("preview"):
-        return {"items": reform.split(at, list(req.body.get("domains") or [])) if at.get("built") else []}
     try:
+        if req.body.get("preview"):
+            return reform.preview(at,req.body)
         return reform.view(P, p, reform.create(P.data_dir, p["key"], at, req.body, req.user))
     except ValueError as e:
         raise ApiError(400, str(e))
@@ -2566,7 +2566,9 @@ def api_reform_act(P, req, key, pid):
             n = req.body.get("n")
             keys = reform.release(P, p, pid, int(n) if n else None, req.user)
             return dict(reform.view(P, p, reform.plan(P.data_dir, p["key"], pid)), opened=keys)
-        if req.body.get("action") in ("auto", "resume"):
+        if req.body.get("action") == "resume":
+            return reform.resume(P,p,pid,req.user)
+        if req.body.get("action") == "auto":
             auto = req.body.get("on") if req.body.get("action") == "auto" else None
             reform.configure(P.data_dir, p["key"], pid, None if auto is None else bool(auto), req.body.get("action") == "resume")
             return reform.view(P, p, reform.plan(P.data_dir, p["key"], pid))

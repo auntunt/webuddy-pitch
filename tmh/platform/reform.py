@@ -19,13 +19,15 @@ lay their own groundwork. The project's own branch is never touched.
 For upgrades and migrations the plan also lists the project's declared dependencies (Maven, npm, NuGet, pip),
 so the goal can name what moves from which version to which.
 
-Plans are kept in <data>/reforms/<项目代号>.json.
+Plans are stored with tickets in platform.db; legacy JSON is imported once and retained.
 """
 from __future__ import annotations
 
 import json
 import re
-import threading
+import uuid
+import hashlib
+from contextlib import contextmanager, nullcontext
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -38,31 +40,71 @@ KINDS = {
     "adapt": ("兼容适配", "适配新的数据库、中间件、操作系统或浏览器，例如国产化替换。"),
     "rewrite": ("跨语言重写", "用另一种语言或技术栈重新实现原系统。原代码只读，作为对照；新代码写在目标目录里，对外接口和数据保持一致。"),
 }
-_LOCK = threading.Lock()
+DDL = (
+    "CREATE TABLE IF NOT EXISTS reform_operations(actor TEXT NOT NULL,request_id TEXT NOT NULL,fingerprint TEXT NOT NULL,plan_uid TEXT NOT NULL,result TEXT NOT NULL,created TEXT NOT NULL,PRIMARY KEY(actor,request_id))",
+    "CREATE TABLE IF NOT EXISTS reform_catalog(project_key TEXT PRIMARY KEY,payload TEXT NOT NULL)",
+    "CREATE TABLE IF NOT EXISTS reform_dispatch(plan_uid TEXT NOT NULL,item_order INTEGER NOT NULL,batch INTEGER NOT NULL,ticket_id INTEGER NOT NULL UNIQUE,state TEXT NOT NULL,actor TEXT NOT NULL,updated TEXT NOT NULL,PRIMARY KEY(plan_uid,item_order))",
+)
+
+
+@contextmanager
+def _transaction(data_dir, store=None):
+    from ..fsutil import open_db
+    db = store.db if store else open_db(Path(data_dir)/'platform.db', timeout=30)
+    lock = store.lock if store else nullcontext()
+    try:
+        with lock:
+            db.execute('BEGIN IMMEDIATE')
+            try:
+                for statement in DDL:
+                    db.execute(statement)
+                yield db
+                db.commit()
+            except BaseException:
+                db.rollback()
+                raise
+    finally:
+        if not store:
+            db.close()
+
+
+def _load(data_dir, key, db):
+    row = db.execute('SELECT payload FROM reform_catalog WHERE project_key=?', (key,)).fetchone()
+    if row:
+        return json.loads(row['payload'] if isinstance(row, dict) else row[0])
+    f = _file(data_dir, key)
+    ps = json.loads(f.read_text(encoding='utf-8')) if f.exists() else []
+    if not isinstance(ps,list):
+        raise ValueError('改造计划存储损坏，请核对原始JSON')
+    for p in ps:
+        p.setdefault('uid', uuid.uuid4().hex)
+        p.setdefault('revision',1)
+        p['legacy_history_complete'] = False
+    _save(data_dir,key,ps,db)
+    return ps
 
 
 def _file(data_dir: Path, key: str) -> Path:
     return Path(data_dir) / "reforms" / ("%s.json" % key)
 
 
-def plans(data_dir: Path, key: str) -> list:
-    f = _file(data_dir, key)
-    if not f.exists():
-        return []
-    try:
-        return json.loads(f.read_text(encoding="utf-8"))
-    except ValueError:
-        return []
+def plans(data_dir: Path, key: str, include_archived=False) -> list:
+    with _transaction(data_dir) as db:
+        ps = _load(data_dir,key,db)
+    return ps if include_archived else [p for p in ps if not p.get('archived')]
 
 
-def _save(data_dir: Path, key: str, ps: list) -> None:
-    f = _file(data_dir, key)
-    f.parent.mkdir(parents=True, exist_ok=True)
-    f.write_text(json.dumps(ps, ensure_ascii=False, indent=1), encoding="utf-8")
+def _save(data_dir: Path, key: str, ps: list, db=None) -> None:
+    if db is None:
+        with _transaction(data_dir) as connection:
+            _save(data_dir,key,ps,connection)
+        return
+    db.execute('INSERT INTO reform_catalog VALUES(?,?) ON CONFLICT(project_key) DO UPDATE SET payload=excluded.payload',
+               (key,json.dumps(ps,ensure_ascii=False)))
 
 
 def plan(data_dir: Path, key: str, pid: str) -> dict:
-    for x in plans(data_dir, key):
+    for x in plans(data_dir, key, include_archived=True):
         if x["id"] == pid:
             return x
     raise KeyError(pid)
@@ -70,10 +112,16 @@ def plan(data_dir: Path, key: str, pid: str) -> dict:
 
 # ---------------------------------------------------------------- splitting
 
-def split(atlas: dict, domains: list) -> list:
+def split(atlas: dict, domains: list, scope_mode: str | None = None) -> list:
     """One piece per chosen domain, least entangled first: [{domain, title, flows, tables, shared, risk, order}]."""
     doms = {d["id"]: d for d in atlas.get("domains") or []}
-    pick = [d for d in domains if d in doms] or [d for d in doms if d != "dom:_"]
+    if scope_mode not in (None,'all','selected'):
+        raise ValueError('范围模式只能是all或selected')
+    if scope_mode == 'selected' and any(d not in doms for d in domains):
+        raise ValueError('所选业务域已变化，请刷新预览')
+    selected = [d for d in domains if d in doms]
+    pick = ([d for d in doms if d != 'dom:_'] if scope_mode == 'all' else selected
+            if scope_mode == 'selected' else selected or [d for d in doms if d != 'dom:_'])
     shared = {d: {} for d in pick}
     for l in atlas.get("links") or []:
         for a, b in ((l["a"], l["b"]), (l["b"], l["a"])):
@@ -101,6 +149,12 @@ def split(atlas: dict, domains: list) -> list:
             level = "低" if (n - 1) * 3 < len(items) else "中" if (n - 1) * 3 < 2 * len(items) else "高"
         it["risk"] = level
     return items
+
+
+def preview(atlas, body):
+    revision = hashlib.sha256(json.dumps(atlas,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+    return {'items':split(atlas,list(body.get('domains') or []),body.get('scope_mode')) if atlas.get('built') else [],
+            'knowledge_revision':revision}
 
 
 # ---------------------------------------------------------------- dependencies
@@ -173,17 +227,20 @@ def dependencies(root: Path, limit: int = 300) -> list:
 
 # ---------------------------------------------------------------- plans and tickets
 
-def create(data_dir: Path, key: str, atlas: dict, b: dict, by: str) -> dict:
+def create(data_dir: Path, key: str, atlas: dict, b: dict, by: str, *, _db=None, _persist=True) -> dict:
     kind = b.get("kind") if b.get("kind") in KINDS else "restructure"
     title = (b.get("title") or "").strip()
-    goal = (b.get("goal") or "").strip()
+    goal = b.get("goal") or ""
     if not title:
         raise ValueError("改造计划需要一个名称")
-    if not goal:
+    if not goal.strip():
         raise ValueError("写清楚要改成什么样：目标、范围和不能变的东西")
     if not atlas.get("built"):
         raise ValueError("项目还没有知识库，没法按业务域拆分。先在知识库页建设一次")
-    items = split(atlas, list(b.get("domains") or []))
+    knowledge_revision = preview(atlas,b)['knowledge_revision']
+    if b.get('knowledge_revision') and b['knowledge_revision'] != knowledge_revision:
+        raise ValueError('项目知识已变化，请重新预览；原稿未修改')
+    items = split(atlas, list(b.get("domains") or []), b.get('scope_mode'))
     if not items:
         raise ValueError("没有选中任何业务域")
     target = (b.get("target") or "").strip().strip("/")
@@ -193,28 +250,67 @@ def create(data_dir: Path, key: str, atlas: dict, b: dict, by: str) -> dict:
         raise ValueError("目标目录要写项目里的相对路径，例如 java")
     lead = b.get("lead") or {}
     if (lead.get("title") or "").strip() or (lead.get("body") or "").strip():
-        items.insert(0, {"order": 0, "lead": True, "domain": "", "title": (lead.get("title") or "先导部分").strip()[:100],
-                         "body": (lead.get("body") or "").strip()[:4000], "flows": 0, "tables": 0, "flow_ids": [], "files": [],
+        items.insert(0, {"order": 0, "lead": True, "domain": "", "title": (lead.get("title") or "先导部分").strip(),
+                         "body": lead.get("body") or "", "flows": 0, "tables": 0, "flow_ids": [], "files": [],
                          "shared": [], "unresolved": 0, "score": 0, "risk": "低"})
-    with _LOCK:
-        ps = plans(data_dir, key)
-        n = max([int(x["id"][1:]) for x in ps if re.match(r"^r\d+$", x["id"])] + [0]) + 1
-        p = {"id": "r%d" % n, "kind": kind, "title": title[:100], "goal": goal[:4000], "keep": (b.get("keep") or "").strip()[:2000],
+    with (nullcontext(_db) if _db is not None else _transaction(data_dir)) as db:
+        ps = _load(data_dir, key, db)
+        fingerprint = hashlib.sha256(json.dumps({'operation':'reform_create','arguments':b},ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        if b.get('request_id') and _persist:
+            previous = db.execute('SELECT fingerprint,result FROM reform_operations WHERE actor=? AND request_id=?',(by,b['request_id'])).fetchone()
+            if previous:
+                fp,result = (previous['fingerprint'],previous['result']) if isinstance(previous,dict) else previous
+                if fp != fingerprint:
+                    raise ValueError('请求编号已用于不同内容')
+                return json.loads(result)
+        uid = uuid.uuid4().hex
+        p = {"id": "r"+uid, "uid":uid, "revision":1, "knowledge_revision":knowledge_revision,
+             "scope_mode":b.get('scope_mode') or ('selected' if b.get('domains') else 'all'),
+             "domains":list(b.get('domains') or []), "kind": kind, "title": title, "goal": goal, "keep": b.get("keep") or "",
              "target": target, "wave": max(1, min(20, int(b.get("wave") or 3))), "auto": b.get("auto", True) is not False, "by": by, "created": now(),
              "items": items, "log": []}
-        ps.append(p)
-        _save(data_dir, key, ps)
+        for field in ('source_version','target_environment','criteria','dependencies'):
+            if field in b:
+                p[field] = b[field]
+        if b.get('source_version'):
+            p['base'] = b['source_version']
+        if _persist:
+            ps.append(p)
+            _save(data_dir, key, ps, db)
+            if b.get('request_id'):
+                db.execute('INSERT INTO reform_operations VALUES(?,?,?,?,?,?)',
+                    (by,b['request_id'],fingerprint,p['uid'],json.dumps(p,ensure_ascii=False),now()))
     return p
 
 
-def remove(data_dir: Path, key: str, pid: str) -> None:
-    with _LOCK:
-        _save(data_dir, key, [x for x in plans(data_dir, key) if x["id"] != pid])
+def remove(data_dir: Path, key: str, pid: str, *, _db=None) -> None:
+    with (nullcontext(_db) if _db is not None else _transaction(data_dir)) as db:
+        ps = _load(data_dir,key,db)
+        p = next((x for x in ps if x['id']==pid),None)
+        if not p:
+            raise KeyError(pid)
+        pending = db.execute("SELECT ticket_id FROM reform_dispatch WHERE plan_uid=? AND state IN ('pending','claimed')",(p['uid'],)).fetchone()
+        if pending:
+            raise ValueError('计划仍有待调度或结果待核对工作，不能归档')
+        for it in p['items']:
+            if it.get('ticket'):
+                project_key,num = it['ticket'].rsplit('-',1)
+                row = db.execute("SELECT t.status FROM tickets t JOIN projects p ON p.id=t.project_id WHERE p.key=? AND t.num=?",(project_key,int(num))).fetchone()
+                active = db.execute("SELECT r.id FROM runs r JOIN tickets t ON t.id=r.ticket_id JOIN projects p ON p.id=t.project_id WHERE p.key=? AND t.num=? AND r.status IN ('queued','running')",(project_key,int(num))).fetchone()
+                if active or not row or (row['status'] if isinstance(row,dict) else row[0]) != 'closed':
+                    raise ValueError('计划仍有未完成工作，请先暂停并核对或取消；归档不会停止运行')
+        if p.get('archived'):
+            return
+        p['archived'] = now()
+        p['auto'] = False
+        p['revision'] += 1
+        _log(p,'计划已归档，历史与工单关系保留')
+        _save(data_dir,key,ps,db)
 
 
 def _log(p: dict, text: str) -> None:
     p.setdefault("log", []).append({"at": now(), "text": text})
-    p["log"] = p["log"][-50:]
+    p["updated"] = now()
 
 
 def earlier(P, p: dict, before: int) -> list:
@@ -278,79 +374,167 @@ def ticket_body(p: dict, it: dict, total: int, notes: list | None = None) -> str
     return "\n".join(lines)
 
 
+def _blocked(P, p):
+    if p.get('archived'):
+        return '计划已归档'
+    if p.get('paused'):
+        return p['paused']
+    if p.get('cancelled'):
+        return '计划已取消后续调度'
+    uncertain = P.store.one("SELECT ticket_id FROM reform_dispatch WHERE plan_uid=? AND state='claimed'",(p['uid'],))
+    if uncertain:
+        return '批次领取结果待核对；请核对工单与运行回执，不能重复启动'
+    for it in p['items']:
+        if it.get('ticket'):
+            ticket = P.store.ticket(it['ticket'])
+            if not ticket or ticket['status'] != 'closed':
+                return '等待本批工单 %s 完成；请查看当前状态与验收依据' % it['ticket']
+    return ''
+
+
+def _release_in_tx(P, proj, p, n, by, db):
+    why = _blocked(P,p)
+    if why:
+        raise ValueError(why)
+    ld = _lead(p)
+    if ld and not ld.get('ticket'):
+        todo = [ld]
+    elif ld and not p.get('lead_passed'):
+        raise ValueError('先导部分还没验收通过，请核对验收回执')
+    else:
+        todo = [it for it in p['items'] if not it.get('ticket')][:n or p['wave']]
+    if not todo:
+        return []
+    if p.get('source_version'):
+        from .agents import git
+        source = p['source_version']
+        root = Path(proj['root'])
+        actual = git(root,'rev-parse','--verify','--end-of-options',source+'^{commit}',check=False).strip()
+        if actual != source:
+            raise ValueError('固定源版本不可访问，请核对项目登记仓库；不会改用HEAD')
+        git(root,'update-ref','refs/webuddy/reforms/'+p['uid']+'/source',source)
+    if by != P.flow.BY:
+        p['execution_owner'] = by
+        if getattr(P,'tenant_context',None) is not None:
+            from . import tenant_policy
+            who = tenant_policy.identity(P,by)
+            p['execution_connection'] = (who.get('tool_connection') or {}).get('id')
+    batch = p.get('batch',0)+1
+    domains = sum(not x.get('lead') for x in p['items'])
+    made = []
+    for it in todo:
+        links = {'flows':it['flow_ids'],'reform':{'plan':p['id'],'uid':p['uid'],
+            'order':it['order'],'batch':batch,'project':proj['key']}}
+        if p.get('base') and not it.get('lead'):
+            links['base'] = p['base']
+        t = P.store._create_ticket_in_tx(proj['id'], '%s：%s（%s%s）' %
+            (KINDS[p['kind']][0],p['title'],'先导：' if it.get('lead') else '',it['title']),by,
+            body=ticket_body(p,it,domains,earlier(P,p,it['order'])),type='change',priority='normal',
+            labels=[KINDS[p['kind']][0]],links=links)
+        db.execute('INSERT INTO reform_dispatch VALUES(?,?,?,?,?,?,?)',
+            (p['uid'],it['order'],batch,t['id'],'pending',by,now()))
+        it.update(ticket=t['key'],released=now(),batch=batch)
+        made.append(t)
+    p['batch'] = batch
+    p['revision'] += 1
+    _log(p,'%s 放出第 %d 批：%s' % (by,batch,'、'.join(t['key'] for t in made)))
+    return made
+
+
+def _dispatch(P, proj, pid, made):
+    for t in made:
+        with _transaction(P.data_dir,P.store) as db:
+            ps = _load(P.data_dir,proj['key'],db)
+            p = next(x for x in ps if x['id']==pid)
+            if getattr(P,'tenant_context',None) is not None:
+                from . import tenant_policy
+                from .errors import ApiError
+                owner = p.get('execution_owner')
+                try:
+                    if not owner:
+                        raise ApiError(403,'旧计划缺少执行负责人，请从受权入口重新核对')
+                    who = tenant_policy.identity(P,owner)
+                    if p.get('execution_connection'):
+                        from .tool_access import validate_connection
+                        ctx = P.tenant_context
+                        connection = validate_connection(ctx.registry,ctx.tenant_id,p['execution_connection'],owner)
+                        if connection['scope'] not in ('execute','develop') or proj['id'] not in connection['project_ids']:
+                            raise ApiError(403,'原工具连接不再授权本项目执行')
+                    tenant_policy._check(P,who,proj,'contributor')
+                    tenant_policy.require_execution(P,owner)
+                except ApiError as exc:
+                    p['paused'] = '执行授权需要重新核对：'+str(exc)
+                    p['revision'] += 1
+                    _log(p,p['paused'])
+                    _save(P.data_dir,proj['key'],ps,db)
+                    continue
+            if p.get('paused') or p.get('archived') or p.get('cancelled'):
+                continue
+            claimed = db.execute("UPDATE reform_dispatch SET state='claimed',updated=? WHERE ticket_id=? AND state='pending'",
+                                 (now(),t['id'])).rowcount
+        if not claimed:
+            continue
+        # A crash after claiming leaves a visible reconciliation requirement;
+        # replay never resubmits an action whose external result is unknown.
+        for fn in P.store.on_create:
+            fn(t,t['reporter'])
+        P.flow.submit(proj,t)
+        with _transaction(P.data_dir,P.store) as db:
+            db.execute("UPDATE reform_dispatch SET state='submitted',updated=? WHERE ticket_id=? AND state='claimed'",(now(),t['id']))
+
+
 def release(P, proj: dict, pid: str, n: int | None, by: str) -> list:
-    """Open change tickets for the next `n` pieces (the plan's wave size by default); returns the new ticket keys."""
-    key = proj["key"]
-    with _LOCK:
-        ps = plans(P.data_dir, key)
-        p = next((x for x in ps if x["id"] == pid), None)
+    with _transaction(P.data_dir,P.store) as db:
+        ps = _load(P.data_dir,proj['key'],db)
+        p = next((x for x in ps if x['id']==pid),None)
         if not p:
             raise KeyError(pid)
-        ld = _lead(p)
-        if ld and not ld.get("ticket"):
-            todo = [ld]  # the groundwork goes alone
-        elif ld and not p.get("lead_passed"):
-            raise ValueError("先导部分「%s」还没验收通过，其余部分要等它" % ld["title"])
-        else:
-            todo = [it for it in p["items"] if not it.get("ticket")][: (n or p["wave"])]
-        domains = len([x for x in p["items"] if not x.get("lead")])
-        made = []
-        for it in todo:
-            links = {"flows": it["flow_ids"], "reform": {"plan": pid, "order": it["order"]}}
-            if p.get("base") and not it.get("lead"):
-                links["base"] = p["base"]  # the coding line starts this change from the lead's commit
-            t = P.store.create_ticket(proj["id"], "%s：%s（%s%s）" % (KINDS[p["kind"]][0], p["title"], "先导：" if it.get("lead") else "", it["title"]), by,
-                                      body=ticket_body(p, it, domains, earlier(P, p, it["order"])), type="change", priority="normal",
-                                      labels=[KINDS[p["kind"]][0]], links=links)
-            it["ticket"] = t["key"]
-            it["released"] = now()
-            made.append(t)
-        if made:
-            p.pop("paused", None)
-            keys = "、".join(t["key"] for t in made)
-            _log(p, "上一批全部验收通过，自动放出 " + keys if by == P.flow.BY else "%s 放出 %s" % (by, keys))
-        _save(P.data_dir, key, ps)
-    for t in made:
-        P.store.event(t["id"], by, "comment", "由改造计划「%s」放出，第 %d 部分" % (p["title"], t["links"]["reform"]["order"]))
-        P.flow.submit(proj, t)
-    return [t["key"] for t in made]
+        made = _release_in_tx(P,proj,p,n,by,db)
+        _save(P.data_dir,proj['key'],ps,db)
+    _dispatch(P,proj,pid,made)
+    return [t['key'] for t in made]
 
 
 def outcome(P, proj: dict, t: dict, passed: bool, note: str, gave_up: str = "") -> list:
-    """A piece was accepted or rejected: advance the plan, or pause it (`gave_up` says why nothing will redo it
-    automatically). Returns the keys of tickets it opened."""
-    ref = (t.get("links") or {}).get("reform") or {}
-    if not ref.get("plan"):
+    ref = (t.get('links') or {}).get('reform') or {}
+    if not ref.get('plan') or t['project_id'] != proj['id']:
         return []
-    with _LOCK:
-        ps = plans(P.data_dir, proj["key"])
-        p = next((x for x in ps if x["id"] == ref["plan"]), None)
-        if not p:
+    made = []
+    with _transaction(P.data_dir,P.store) as db:
+        ps = _load(P.data_dir,proj['key'],db)
+        p = next((x for x in ps if x['id']==ref['plan']),None)
+        if not p or p.get('archived') or (ref.get('uid') and ref['uid'] != p['uid']):
             return []
-        it = next((x for x in p["items"] if x.get("ticket") == t["key"]), {})
-        name = "第 %d 部分「%s」" % (ref.get("order") or 0, it.get("title", ""))
+        it = next((x for x in p['items'] if x.get('ticket')==t['key'] and x['order']==ref.get('order')),None)
+        if not it or (it.get('batch') is not None and it['batch'] != ref.get('batch')):
+            return []
+        current = P.store.ticket(t['id'])
+        if not current or current['project_id'] != proj['id'] or current['links'].get('reform') != ref:
+            return []
+        verdict = {'passed':passed,'note':note,'gave_up':gave_up}
+        if it.get('outcome') == verdict:
+            return []
+        if passed and current['status'] != 'closed':
+            return []
+        it['outcome'] = verdict
+        p['revision'] += 1
+        name = '第 %d 部分「%s」' % (it['order'],it['title'])
         if not passed:
             if gave_up:
-                p["paused"] = "%s验收没通过，%s。退回原因：%s" % (name, gave_up, note[:200])
-                _log(p, "暂停自动推进：" + p["paused"])
+                p['paused'] = '%s验收没通过，%s。退回原因：%s' % (name,gave_up,note)
+                _log(p,'暂停自动推进：'+p['paused'])
             else:
-                _log(p, "%s验收没通过，正在自动重改" % name)
-            _save(P.data_dir, proj["key"], ps)
-            return []
-        _log(p, "%s验收通过" % name)
-        if it.get("lead"):
-            p["lead_passed"] = True
-            p["base"] = _tip(P, proj, t)
-            _log(p, "后面各部分从先导的提交 %s 开始" % p["base"][:10] if p["base"] else "先导不是自动提交的，后面各部分从项目当前代码开始")
-        _save(P.data_dir, proj["key"], ps)
-        if not p.get("auto") or p.get("paused") or all(x.get("ticket") for x in p["items"]):
-            return []
-        for x in p["items"]:
-            if x.get("ticket"):
-                xt = P.store.ticket(x["ticket"])
-                if xt and xt["status"] != "closed":
-                    return []  # the wave is not done yet
-    return release(P, proj, p["id"], None, P.flow.BY)
+                _log(p,name+'验收没通过，正在自动重改')
+        else:
+            _log(p,name+'验收通过')
+            if it.get('lead'):
+                p['lead_passed'] = True
+                p['base'] = _tip(P,proj,t)
+            if p.get('auto') and not _blocked(P,p):
+                made = _release_in_tx(P,proj,p,None,P.flow.BY,db)
+        _save(P.data_dir,proj['key'],ps,db)
+    _dispatch(P,proj,p['id'],made)
+    return [t['key'] for t in made]
 
 
 def _tip(P, proj: dict, t: dict) -> str:
@@ -365,18 +549,45 @@ def _tip(P, proj: dict, t: dict) -> str:
 
 
 def configure(data_dir: Path, key: str, pid: str, auto: bool | None = None, resume: bool = False) -> dict:
-    with _LOCK:
-        ps = plans(data_dir, key)
-        p = next((x for x in ps if x["id"] == pid), None)
+    with _transaction(data_dir) as db:
+        ps = _load(data_dir,key,db)
+        p = next((x for x in ps if x['id']==pid),None)
         if not p:
             raise KeyError(pid)
+        if p.get('archived'):
+            raise ValueError('计划已归档')
         if auto is not None:
-            p["auto"] = bool(auto)
-            _log(p, "自动推进已" + ("打开" if auto else "关闭"))
-        if resume and p.pop("paused", None):
-            _log(p, "人工恢复自动推进")
-        _save(data_dir, key, ps)
+            p['auto'] = bool(auto)
+            _log(p,'自动推进已'+('打开' if auto else '关闭'))
+        if resume and p.pop('paused',None):
+            _log(p,'人工恢复自动推进')
+        p['revision'] += 1
+        _save(data_dir,key,ps,db)
     return p
+
+
+def resume(P, proj, pid, by):
+    with _transaction(P.data_dir,P.store) as db:
+        ps = _load(P.data_dir,proj['key'],db)
+        p = next((x for x in ps if x['id']==pid),None)
+        if not p:
+            raise KeyError(pid)
+        if p.get('archived'):
+            raise ValueError('计划已归档')
+        p.pop('paused',None)
+        why = _blocked(P,p)
+        pending = P.store.q("SELECT t.id FROM tickets t JOIN reform_dispatch d ON d.ticket_id=t.id WHERE d.plan_uid=? AND d.state='pending'",(p['uid'],))
+        made = [P.store.ticket(row['id']) for row in pending]
+        if made:
+            why = ''
+        if not made and not why:
+            made = _release_in_tx(P,proj,p,None,by,db)
+        p['revision'] += 1
+        _log(p,'恢复计划；'+(why or '已核对当前批次'))
+        _save(P.data_dir,proj['key'],ps,db)
+    _dispatch(P,proj,pid,made)
+    return dict(view(P,proj,p),opened=[t['key'] for t in made],blocked=why,
+                next_action='查看本批工单' if why else '查看下一批')
 
 
 def view(P, proj: dict, p: dict) -> dict:
@@ -387,11 +598,16 @@ def view(P, proj: dict, p: dict) -> dict:
             t = P.store.ticket(it["ticket"])
             st[it["ticket"]] = t["status"] if t else "gone"
             rej[it["ticket"]] = sum(1 for e in P.store.events(t["id"]) if e["kind"] == "reject") if t else 0
-    items = [dict(it, status=st.get(it.get("ticket"), ""), rejects=rej.get(it.get("ticket"), 0)) for it in p["items"]]
+    dispatch = {}
+    if P.store.one("SELECT name FROM sqlite_master WHERE name='reform_dispatch'"):
+        dispatch = {r['item_order']:r['state'] for r in P.store.q('SELECT item_order,state FROM reform_dispatch WHERE plan_uid=?',(p['uid'],))}
+    items = [dict(it, status=st.get(it.get("ticket"), ""), rejects=rej.get(it.get("ticket"), 0),
+                  dispatch_state=dispatch.get(it['order'],'legacy' if it.get('ticket') else 'not_released'),
+                  evidence_validity='not_checked') for it in p["items"]]
     c = {"total": len(items), "lead": bool(_lead(p)), "released": sum(1 for i in items if i.get("ticket")), "closed": sum(1 for i in items if i["status"] == "closed"),
          "verify": sum(1 for i in items if i["status"] == "verify"), "rejected": sum(1 for i in items if i["rejects"]),
          "first_pass": sum(1 for i in items if i["status"] == "closed" and not i["rejects"])}
-    return dict(p, items=items, counts=c, kind_label=KINDS[p["kind"]][0])
+    return dict(p, items=items, counts=c, blocked=_blocked(P,p), kind_label=KINDS[p["kind"]][0])
 
 
 def listener(P):

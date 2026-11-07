@@ -231,20 +231,27 @@ class Store:
             t = self.one("SELECT t.*, p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id WHERE t.id=?", (int(tid),))
         return _keyed(t) if t else None
 
-    def create_ticket(self, project_id: int, title: str, author: str = "", **f) -> dict:
+    def _create_ticket_in_tx(self, project_id: int, title: str, author: str = "", **f) -> dict:
+        if not self.db.in_transaction:
+            raise RuntimeError('ticket registration requires the caller transaction')
         if not (title or "").strip():
             raise ValueError("标题不能为空")
-        with self.lock:
-            n = (self.one("SELECT MAX(num) AS m FROM tickets WHERE project_id=?", (project_id,)) or {}).get("m") or 0
-            ts = now()
-            tid = self.x("INSERT INTO tickets(project_id,num,title,body,type,status,priority,assignee,reporter,labels,links,external,created,updated)"
-                         " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                         (project_id, n + 1, title.strip(), f.get("body", ""), _pick(f.get("type"), TYPES, "bug"), "new",
-                          _pick(f.get("priority"), PRIORITIES, "normal"), f.get("assignee", ""), author,
-                          json.dumps(f.get("labels") or [], ensure_ascii=False), json.dumps(f.get("links") or {}, ensure_ascii=False),
-                          json.dumps(f.get("external") or {}, ensure_ascii=False), ts, ts))
-        self.event(tid, author, "created", "创建工单")
-        t = self.ticket(tid)
+        n = (self.one("SELECT MAX(num) AS m FROM tickets WHERE project_id=?", (project_id,)) or {}).get("m") or 0
+        ts = now()
+        tid = self.db.execute("INSERT INTO tickets(project_id,num,title,body,type,status,priority,assignee,reporter,labels,links,external,created,updated)"
+                     " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                     (project_id, n + 1, title.strip(), f.get("body", ""), _pick(f.get("type"), TYPES, "bug"), "new",
+                      _pick(f.get("priority"), PRIORITIES, "normal"), f.get("assignee", ""), author,
+                      json.dumps(f.get("labels") or [], ensure_ascii=False), json.dumps(f.get("links") or {}, ensure_ascii=False),
+                      json.dumps(f.get("external") or {}, ensure_ascii=False), ts, ts)).lastrowid
+        self.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+                        (tid,ts,author,'created','创建工单','{}'))
+        return self.ticket(tid)
+
+    def create_ticket(self, project_id: int, title: str, author: str = "", **f) -> dict:
+        with self.lock, self.db:
+            self.db.execute('BEGIN IMMEDIATE')
+            t = self._create_ticket_in_tx(project_id,title,author,**f)
         for fn in self.on_create:
             fn(t, author)
         return t

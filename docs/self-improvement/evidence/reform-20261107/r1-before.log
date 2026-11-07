@@ -1,0 +1,117 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ RunRecoveryTest.test_changed_system_contract_blocks_preflight_before_snapshot _
+
+self = <test_run_recovery.RunRecoveryTest testMethod=test_changed_system_contract_blocks_preflight_before_snapshot>
+
+    def test_changed_system_contract_blocks_preflight_before_snapshot(self):
+        self.select_system()
+        old = self.old_run()
+        self.store.x("UPDATE development_sessions SET revision=revision+1 WHERE ticket_id=?", (self.ticket['id'],))
+        state = self.runner.retry_state(old['id'])
+>       self.assertFalse(state['can_retry'], state)
+E       AssertionError: True is not false : {'can_retry': True, 'retry_blocked': [], 'delivery_id': '', 'delivery_stage': ''}
+
+tests/test_run_recovery.py:253: AssertionError
+_ RunRecoveryTest.test_selected_system_retries_snapshot_preserving_fixed_authorization _
+
+self = <test_run_recovery.RunRecoveryTest testMethod=test_selected_system_retries_snapshot_preserving_fixed_authorization>
+
+    def test_selected_system_retries_snapshot_preserving_fixed_authorization(self):
+        self.select_system()
+        old = self.old_run()
+        original = self.git_state(Path(old['workdir']))
+        self.configure('recovered')
+>       new = self.wait(self.runner.retry(old['id'], 'tester')['id'])
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_run_recovery.py:239: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tmh/platform/agents.py:2272: in retry
+    new = self.start(project, ticket, old["agent"], old["mode"], author,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tmh.platform.agents.Runner object at 0x10719f050>
+project = {'id': 1, 'key': 'RESTORE', 'name': '恢复现场', 'root': '/private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recovery-i2zlidhh/project', ...}
+ticket = {'id': 1, 'project_id': 1, 'num': 1, 'title': '继续保留的改动', ...}
+agent = 'checker', mode = 'fix', author = 'tester', target = '原始完整任务：保留记录并继续。'
+then = None
+question = "## 继续失败运行 #1（不是已完成或已验收）\n原始任务全文：\n你在维护项目「恢复现场」（目录 /private/var/folders/s1/w8fs8_h15dd3cf8nzqcv76140000gn/T/tmh-recove...明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。\n\n## 上次停止记录\n运行执行失败：'criteria'。原始日志和工作树保留。\n\n已有 Git 改动已保留在本轮基线中；先核对再继续，不要重复创建已存在的数据或改动。"
+history = None, session_id = None, batch = '', model = ''
+base = 'beb3077de8dea8d7d308d4136dff3839325d12be', retry_of = 1
+
+    def start(self, project: dict, ticket: dict | None, agent: str, mode: str, author: str, target: str = "", then=None,
+              question: str = "", history: list | None = None, session_id=None, batch: str = "", model=None, base: str = "", retry_of=None) -> dict:
+        from . import project_library as library
+        project = self.store.project(project['id'])
+        library.require_development(self.store, project)
+        development = None
+        if ticket and mode == 'fix':
+            from .development import require_execution
+            development = require_execution(self.store,self.store.ticket(ticket['id']), 'system')
+        reference_inputs = library.bindings(self.store, project)
+        if any(not r['available'] for r in reference_inputs):
+            raise ValueError('项目参考授权已变化，请先处理不可用引用')
+        if mode == 'fix' and ticket:
+            plans = [r for r in self.store.runs(ticket_id=ticket['id']) if r['mode'] in ('plan', 'analyze') and r['status'] == 'done']
+            if plans:
+                library.require_run_current(self.store, project, plans[0]['id'])
+        if mode not in dict(RUN_MODES) or mode == "understand":  # understanding is started by the requirement conversation
+            raise ValueError("未知模式：%s" % mode)
+        from .agent_routes import resolve, step_agent
+        agent = resolve(self.data_dir, project, step_agent(self.data_dir, project, mode, agent))
+        conf = load_config(self.data_dir)
+        if agent not in conf:
+            raise ValueError("没有这个智能体：%s" % agent)
+        engine = engine_name(agent, conf[agent])
+        authority = None
+        ctx = getattr(self, 'tenant_context', None)
+        if ctx and not ctx.runtime_allowed(author):
+            if (not ticket or mode != 'fix' or engine != 'codex' or then or session_id is not None or
+                    retry_of is not None or base):
+                raise ValueError('个人隔离执行当前只接受项目工单的官方 Codex 开发任务')
+            from .agent_api import _ready
+            from .project_authority import capture
+            _ready(ctx.platform, ticket)
+            authority = capture(ctx.platform, author, project)
+            from .agent_api import _requirement
+            from .project_mcp import BoundJob
+            from .project_snapshot import resolve as resolve_source
+            member_ref = development['execution']['base_commit'] if development and development['execution'].get('current') else code_at(ticket) or 'HEAD'
+            pending_job = BoundJob(author,project['key'],(self.data_dir/'runs'/'pending').resolve(),authority.image)
+            member_base = resolve_source(authority.image,Path(project['root']),member_ref,
+                                         cancel=lambda:not authority.current(pending_job))
+            if member_ref != 'HEAD' and member_base != resolve_source(authority.image,Path(project['root']),'HEAD',
+                                                                      cancel=lambda:not authority.current(pending_job)):
+                raise ValueError('指定代码版本与当前项目知识来源不一致，请先核对后再运行')
+            member_requirement = _requirement(self.store.ticket(ticket['id']),self.store,reference_inputs=reference_inputs)
+            from . import team, candidates
+            member_assignment = {k:v for k,v in team.assignment(ctx.platform,self.store.ticket(ticket['id'])).items()
+                                 if k in ('assignee','reviewer','revision')}
+            member_configuration = candidates.configuration(ctx.platform,project)
+        explicit = model not in (None, "auto")  # a model the person picked applies to every step of the run
+        model = pick_model(conf[agent], mode, model)
+        recorded = model or (configured_model(conf[agent]) if not authority else "")
+        if authority:
+            member_profile, member_binding = member_codex_binding(conf[agent], model)
+            member_route = member_route_binding(self.data_dir, project, agent)
+            batch = 'member:' + secrets.token_hex(16)
+        if mode == "chart" and not target:
+            target = "全部业务域，每个业务域一张"
+        if mode == "kb" and not target:
+            raise ValueError("撰写知识页需要指定页面 id")
+        if mode == "ask" and not question.strip():
+            raise ValueError("问题是空的")
+        if mode == "fix" and (ticket or {}).get("links", {}).get("delivery"):
+            reviewed_delivery_plan(self.store, ticket)
+        if development and development['execution'].get('current') and not authority:
+            selected_base = development['execution']['base_commit']
+            if base and base != selected_base:
+>               raise ValueError('执行起点与负责人选择时固定的版本不同，请重新核对交接')
+E               ValueError: 执行起点与负责人选择时固定的版本不同，请重新核对交接
+
+tmh/platform/agents.py:1540: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_run_recovery.py::RunRecoveryTest::test_changed_system_contract_blocks_preflight_before_snapshot
+FAILED tests/test_run_recovery.py::RunRecoveryTest::test_selected_system_retries_snapshot_preserving_fixed_authorization
+2 failed, 7 deselected in 0.69s
