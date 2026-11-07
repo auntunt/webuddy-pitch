@@ -15,6 +15,7 @@ from types import SimpleNamespace
 from ..agent_contract import SPECS
 from .errors import ApiError
 from .store import now, _keyed
+from . import reform_api
 
 
 WRITES = frozenset(name for name, spec in SPECS.items() if spec["write"])
@@ -413,8 +414,7 @@ def _execute(P, req, actor, operation, a):
         project=_project(P,a['project'])
         if visible_ids is not None and project['id'] not in visible_ids:
             raise ApiError(403,'工具未获此项目的读取权限')
-        from .reform_api import execute
-        return execute(P,req,actor,operation,a)
+        return reform_api.execute(P,req,actor,operation,a)
     if operation == 'run_recover':
         run = _run(P,a['run_id'])
         if run['project_id'] != _project(P,a['project'])['id']:
