@@ -48,3 +48,17 @@ class DistributionTest(unittest.TestCase):
                 with self.assertRaises(FileNotFoundError):
                     install.install(project, ["codex"])
             self.assertFalse(project.exists())
+
+    def test_instruction_refresh_preserves_original_bytes_and_line_endings(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'AGENTS.md'
+            original = b'# Existing instructions\r\nKeep spaces.  \r\n\r\n\r\n'
+            path.write_bytes(original)
+            install._upsert_block(path, 'first block')
+            self.assertTrue(path.read_bytes().startswith(original))
+            suffix = b'\r\n# Customer suffix\r\n'
+            path.write_bytes(path.read_bytes() + suffix)
+            install._upsert_block(path, 'second block')
+            self.assertTrue(path.read_bytes().startswith(original))
+            self.assertTrue(path.read_bytes().endswith(suffix))
+            self.assertNotIn(b'first block', path.read_bytes())

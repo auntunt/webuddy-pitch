@@ -44,16 +44,18 @@ def _copytree(src: Path, dst: Path) -> None:
 def _upsert_block(path: Path, block: str, header: str = "") -> None:
     wrapped = "%s\n%s\n%s" % (BEGIN, block.strip(), END)
     if path.exists():
-        text = path.read_text(encoding="utf-8")
+        with path.open(encoding="utf-8", newline="") as source:
+            text = source.read()
         if BEGIN in text and END in text:
             pre, rest = text.split(BEGIN, 1)
             post = rest.split(END, 1)[1]
             text = pre + wrapped + post
         else:
-            text = text.rstrip() + "\n\n" + wrapped + "\n"
+            text = text + ("\n" if text.endswith("\n") else "\n\n") + wrapped + "\n"
     else:
         text = (header + "\n\n" if header else "") + wrapped + "\n"
-    path.write_text(text, encoding="utf-8")
+    with path.open("w", encoding="utf-8", newline="") as target:
+        target.write(text)
 
 
 # Codex hooks (.codex/hooks.json). Codex has no $CLAUDE_PROJECT_DIR, so resolve the
