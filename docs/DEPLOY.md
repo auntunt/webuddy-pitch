@@ -331,10 +331,12 @@ sudo systemctl restart webuddy
 
 ## 10. 常见问题
 
-**Q1：Windows 上测试跑不全 / `os.O_NOFOLLOW` 报错？**
-`tests/test_platform.py` 等少数用例按 Linux 设计（`os.O_NOFOLLOW`、符号链接、进程组），Windows 上会报
-`AttributeError`/skip，属已知平台限制，不是本轮改动引入。生产门禁以 Linux 为准；本地开发用 WSL2 跑全量最接近。
-`audit/ci-test-report.md` 记录了 Windows 失败分类。
+**Q1：Windows 完整测试失败或跳过，是否还能使用 MCP？**
+须区分平台服务端、项目执行机、个人 CLI/MCP 和浏览器访问。服务端仍有 POSIX API、Unix socket、私有文件描述符与文件权限依赖；不能把 Linux 的成功或 Windows 安装成功当作原生 Windows 全套通过。
+
+Windows 官方 MCP SDK 的 stdio 和生成客户端配置测试可以运行；个人连接的安全凭据存储仍明确返回 `credential_platform_unsupported`，这条接入路径尚未可用。共享令牌协议夹具通过不能替代个人项目权限、撤权与凭据保护验证。WSL/虚拟机可作为后续接入选择，但必须在实际选定环境验证，不能预先宣称完成。
+
+当前精确版本的自有测试机、GitHub Windows、跳过原因及失败原件见 [Windows 完整测试记录](self-improvement/evidence/windows-full-20261107/README.md)。该记录同时区分完整执行与全部通过。
 
 **Q2：`git` 版本太老导致平台分支工作树/候选操作失败？**
 平台大量使用 `git worktree`、`git merge-tree`、`show-ref` 等新行为。要求 **git ≥ 2.38**；

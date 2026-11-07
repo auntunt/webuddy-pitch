@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="4" tests="20" time="15.743" timestamp="2026-11-07T05:21:26.357025+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_complete_multiline_context_and_message_survive_stdio" time="1.689" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_delivery_read_roundtrip_needs_no_execution_or_write_permission" time="1.031" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_develop_scope_exposes_conversation_but_never_human_confirmation" time="0.001"><skipped type="pytest.skip" message="personal credential files require POSIX checks">D:\a\webuddy-pitch\webuddy-pitch\tests\test_workbench_mcp.py:231: personal credential files require POSIX checks</skipped></testcase><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_enabled_execution_returns_durable_receipt_without_waiting_for_model" time="1.041" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_generated_claude_configuration_launches_from_unrelated_directory" time="1.267" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_generated_codex_toml_launches_from_unrelated_directory" time="1.262" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_generated_cursor_configuration_launches_from_unrelated_directory" time="1.268" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_generated_tenant_config_launches_from_unrelated_directory_without_secret" time="0.000"><skipped type="pytest.skip" message="personal credential files require POSIX checks">D:\a\webuddy-pitch\webuddy-pitch\tests\test_workbench_mcp.py:293: personal credential files require POSIX checks</skipped></testcase><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_http_conflict_is_structured_tool_error_not_protocol_success" time="1.023" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_invalid_arguments_and_disabled_execution_never_reach_http" time="1.005" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_invalid_write_response_preserves_uncertain_outcome" time="1.018" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_local_preflight_requires_absolute_directory_and_never_starts_work" time="1.028" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_lost_write_response_is_uncertain_and_never_automatically_retried" time="1.004" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_official_client_discovers_strict_tools_and_calls_real_cli_http_adapter" time="1.028" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_read_only_hides_writes_and_rejects_direct_calls_before_http" time="1.029" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides" time="0.504"><failure message="tmh.workbench_credentials.CredentialError: 此平台无法验证 owner-only 凭据文件；请使用支持 POSIX 权限的环境">self = &lt;unittest.case._Outcome object at 0x0000026473201B50&gt;
+test_case = &lt;test_workbench_mcp.WorkbenchMCPTest testMethod=test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_workbench_mcp.WorkbenchMCPTest testMethod=test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides&gt;
+result = &lt;TestCaseFunction test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_workbench_mcp.WorkbenchMCPTest testMethod=test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides&gt;
+method = &lt;bound method WorkbenchMCPTest.test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides of &lt;test_workbench_mcp.WorkbenchMCPTest testMethod=test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if self._callMaybeAsync(method) is not None:
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\async_case.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_workbench_mcp.WorkbenchMCPTest testMethod=test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides&gt;
+func = &lt;bound method WorkbenchMCPTest.test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides of &lt;test_workbench_mcp.WorkbenchMCPTest testMethod=test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides&gt;&gt;
+args = (), kwargs = {}
+
+    def _callMaybeAsync(self, func, /, *args, **kwargs):
+        assert self._asyncioRunner is not None, 'asyncio runner is not initialized'
+        if inspect.iscoroutinefunction(func):
+&gt;           return self._asyncioRunner.run(
+                func(*args, **kwargs),
+                context=self._asyncioTestContext,
+            )
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\async_case.py:112: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;asyncio.runners.Runner object at 0x0000026473203150&gt;
+coro = &lt;coroutine object WorkbenchMCPTest.test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides at 0x00000264730622C0&gt;
+context = &lt;_contextvars.Context object at 0x00000264710FF2C0&gt;
+
+    def run(self, coro, *, context=None):
+        """Run a coroutine inside the embedded event loop."""
+        if not coroutines.iscoroutine(coro):
+            raise ValueError("a coroutine was expected, got {!r}".format(coro))
+    
+        if events._get_running_loop() is not None:
+            # fail fast with short traceback
+            raise RuntimeError(
+                "Runner.run() cannot be called from a running event loop")
+    
+        self._lazy_init()
+    
+        if context is None:
+            context = self._context
+        task = self._loop.create_task(coro, context=context)
+    
+        if (threading.current_thread() is threading.main_thread()
+            and signal.getsignal(signal.SIGINT) is signal.default_int_handler
+        ):
+            sigint_handler = functools.partial(self._on_sigint, main_task=task)
+            try:
+                signal.signal(signal.SIGINT, sigint_handler)
+            except ValueError:
+                # `signal.signal` may throw if `threading.main_thread` does
+                # not support signals (e.g. embedded interpreter with signals
+                # not registered - see gh-91880)
+                sigint_handler = None
+        else:
+            sigint_handler = None
+    
+        self._interrupt_count = 0
+        try:
+&gt;           return self._loop.run_until_complete(task)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\asyncio\runners.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;ProactorEventLoop running=False closed=True debug=True&gt;
+future = &lt;Task finished name='Task-95' coro=&lt;WorkbenchMCPTest.test_tenant_execute_scope_starts_runs_and_hands_over_but_never_de...owner-only 凭据文件；请使用支持 POSIX 权限的环境') created at C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\asyncio\runners.py:100&gt;
+
+    def run_until_complete(self, future):
+        """Run until the Future is done.
+    
+        If the argument is a coroutine, it is wrapped in a Task.
+    
+        WARNING: It would be disastrous to call run_until_complete()
+        with the same coroutine twice -- it would wrap it in two
+        different Tasks and that can't be good.
+    
+        Return the Future's result, or raise its exception.
+        """
+        self._check_closed()
+        self._check_running()
+    
+        new_task = not futures.isfuture(future)
+        future = tasks.ensure_future(future, loop=self)
+        if new_task:
+            # An exception is raised if the future didn't complete, so there
+            # is no need to log the "destroy pending task" message
+            future._log_destroy_pending = False
+    
+        future.add_done_callback(_run_until_complete_cb)
+        try:
+            self.run_forever()
+        except:
+            if new_task and future.done() and not future.cancelled():
+                # The coroutine raised a BaseException. Consume the exception
+                # to not log a warning, the caller doesn't have access to the
+                # local task.
+                future.exception()
+            raise
+        finally:
+            future.remove_done_callback(_run_until_complete_cb)
+        if not future.done():
+            raise RuntimeError('Event loop stopped before Future completed.')
+    
+&gt;       return future.result()
+               ^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\asyncio\base_events.py:654: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_workbench_mcp.WorkbenchMCPTest testMethod=test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides&gt;
+
+    async def test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides(self):
+        from tmh.workbench_credentials import save
+        self.tenant_scope = "execute"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "execute.json"
+&gt;           save(path, dict(schema=1, endpoint=self.endpoint + "/t/default", token="wbt_fixture.secret"))
+
+tests\test_workbench_mcp.py:250: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp5vkl8axt/execute.json')
+value = {'schema': 1, 'endpoint': 'http://127.0.0.1:51603/t/default', 'token': 'wbt_fixture.secret'}
+
+    def save(path, value):
+        value = document(value)
+        raw = (json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+&gt;       with _parent(path) as (target, parent_fd):
+
+tmh\workbench_credentials.py:149: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;contextlib._GeneratorContextManager object at 0x0000026473101E90&gt;
+
+    def __enter__(self):
+        # do not keep args and kwds alive unnecessarily
+        # they are only needed for recreation, which is not possible anymore
+        del self.args, self.kwds, self.func
+        try:
+&gt;           return next(self.gen)
+                   ^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\contextlib.py:137: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp5vkl8axt/execute.json')
+
+    @contextmanager
+    def _parent(path):
+        if os.name != "posix" or not hasattr(os, "O_NOFOLLOW"):
+&gt;           raise CredentialError("此平台无法验证 owner-only 凭据文件；请使用支持 POSIX 权限的环境", "credential_platform_unsupported")
+E           tmh.workbench_credentials.CredentialError: 此平台无法验证 owner-only 凭据文件；请使用支持 POSIX 权限的环境
+
+tmh\workbench_credentials.py:63: CredentialError</failure></testcase><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_tenant_mcp_uses_live_scope_and_bearer_then_rejects_revoked_connection" time="0.000"><skipped type="pytest.skip" message="personal credential files require POSIX checks">D:\a\webuddy-pitch\webuddy-pitch\tests\test_workbench_mcp.py:201: personal credential files require POSIX checks</skipped></testcase><testcase classname="tests.test_workbench_mcp.WorkbenchMCPTest" name="test_tenant_read_scope_does_not_advertise_or_call_content_tools" time="0.000"><skipped type="pytest.skip" message="personal credential files require POSIX checks">D:\a\webuddy-pitch\webuddy-pitch\tests\test_workbench_mcp.py:277: personal credential files require POSIX checks</skipped></testcase><testcase classname="tests.test_workbench_mcp.WorkbenchMCPWorkersTest" name="test_cancellation_waits_for_bounded_http_worker_and_does_not_retry" time="0.135" /><testcase classname="tests.test_workbench_mcp.WorkbenchMCPWorkersTest" name="test_http_workers_are_bounded_and_do_not_block_protocol_loop" time="0.184" /></testsuite></testsuites>

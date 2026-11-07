@@ -1,0 +1,2722 @@
+{
+  "shard2-driver.log": {
+    "bytes": 18404,
+    "sha256": "4d6c2202aa90dacaa696696bb62a618d9fdc38eecf2897dcb64507173f9b3f42"
+  },
+  "shard7-driver.log": {
+    "bytes": 18062,
+    "sha256": "a4275c071382c994108eed53dd73a9c83641771e1b464d7a155a8fcaf377237f"
+  },
+  "shard0-driver.log": {
+    "bytes": 18384,
+    "sha256": "710fbe928535b4da1f9c6e4f4ce93487207d5c74bb3b4cd8f7499bf51c14a3d3"
+  },
+  "shard5-driver.log": {
+    "bytes": 18214,
+    "sha256": "fdbc228f6b171630d1bdacfdc5185a9518cbbb309e17a3767fdfd38deab253bd"
+  },
+  "shard6-driver.log": {
+    "bytes": 18121,
+    "sha256": "b4c638eb18c97699c8e696102f165161a88818504c6fda29010c2d50303e7ae3"
+  },
+  "launch.py": {
+    "bytes": 966,
+    "sha256": "ca29ef8eeb39a3b9e577bbfeb173d6b532380abc57382b57ef04f6e7fd1027fa"
+  },
+  "dependencies.txt": {
+    "bytes": 758,
+    "sha256": "5b4ab5154967210a814af26dc5c94bc32b3327c0f8398594e6e1b49939e2e37d"
+  },
+  "complete-timeouts.py": {
+    "bytes": 2074,
+    "sha256": "19bfaaf2542def4f161b5785764878903f8c2bea6a36255a08d7631d980b8aaa"
+  },
+  "shard3-driver.log": {
+    "bytes": 17926,
+    "sha256": "303db3d3ff43b3c1defac8be8e30ce6a0877b3527d15f63d542f334aebe66296"
+  },
+  "shard4-driver.log": {
+    "bytes": 18129,
+    "sha256": "45ecee4a6936f29272a068a97b1b82db5291794df13cc1ef031ec6ea65ac24b2"
+  },
+  "run.json": {
+    "bytes": 3275,
+    "sha256": "4168f18151765ac1b8dcfeae36b5657d72255dac4b376e91edcacfe5677f5711"
+  },
+  "shard1-driver.log": {
+    "bytes": 18372,
+    "sha256": "b6a7c46ae346f7ea6eceada83233c00cbd93e6c31477a2283354bcc74a1df020"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_reform_plan_splits_by_domain_and_releases_in_waves.xml": {
+    "bytes": 378,
+    "sha256": "fec2c6523e8e5168f8f6433cba5be3283183e096994010210b87391a751c6aa3"
+  },
+  "shard7/tests__test_learning_api.log": {
+    "bytes": 4433,
+    "sha256": "c870a9679295bd5600a79a900e1fcb76417259fce3c35b945638dd922046237f"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_box_on_the_page_finds_the_backend_and_starts_a_ticket.log": {
+    "bytes": 755,
+    "sha256": "0ae72496b01ce0dfee8b9e05f9aaf0668ce5632dc32508e8da767699499b3075"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_a_ticket_s_steps_continue_one_agent_session.xml": {
+    "bytes": 11935,
+    "sha256": "c867ec234af3db5d099324f3cabac2d7d19c9208c427fe308a7c30d606df738c"
+  },
+  "shard7/tests__test_tenant_human_knowledge.xml": {
+    "bytes": 3083,
+    "sha256": "46394d8bde8d99aaf6e03740867cf93b4f0c9e4dc6cb87b7dc410d8bd667ece9"
+  },
+  "shard7/tests__test_handwork_lifecycle.log": {
+    "bytes": 1736,
+    "sha256": "5d7b28a25aac128e481e45efb7dcc4314909354d45afd3d85f48b71df2a99f4b"
+  },
+  "shard7/summary.json": {
+    "bytes": 39884,
+    "sha256": "a7f180010f233d5bb272d7ae35ba39222e822a533b86d8ee9d73b87fd6fe9034"
+  },
+  "shard7/tests__test_developer_merge.log": {
+    "bytes": 1927,
+    "sha256": "c2a00d35bf3628b050519a52bbfbf52bd8ebc22508f56514f9b22d42f17952cc"
+  },
+  "shard7/tests__test_ui_navigation.xml": {
+    "bytes": 384,
+    "sha256": "604f0b7a1bf78146d84244541c1a66d980d0389222786beae20de1db30f1db66"
+  },
+  "shard7/tests__test_org_knowledge_trust.xml": {
+    "bytes": 9494,
+    "sha256": "cef81d577952bc498fd3814ec916c31cff09200a6cdea994c95d395ff82928df"
+  },
+  "shard7/tests__test_intake_recovery_independent.xml": {
+    "bytes": 2349,
+    "sha256": "04e1add49f02ebbcabb8aaec6efa23b7067dd5debb80522108b0268464a2503a"
+  },
+  "shard7/tests__test_project_snapshot.log": {
+    "bytes": 56544,
+    "sha256": "07e4e46ee7efc5b37432f171a166810f8f3c216e0157b7300cde3ff2e29d0f91"
+  },
+  "shard7/tests__test_g4_local_pilot.log": {
+    "bytes": 1130,
+    "sha256": "aa53112d760ee27a9e98087713617ab3e6d06aad391c6be335a540d6da4f57d3"
+  },
+  "shard7/tests__test_testbox_mcp.xml": {
+    "bytes": 12399,
+    "sha256": "4f0872b9e964565808f24cf056024ba75c0ef866e4b5aeb6c5f23a5054d56b31"
+  },
+  "shard7/tests__test_lesson_renderer_labels.log": {
+    "bytes": 1404,
+    "sha256": "7403ff5492f3684e6d56e5b96a154240fead1aff74cbfb6063be27aad17f2ada"
+  },
+  "shard7/tests__test_run_truth.xml": {
+    "bytes": 767,
+    "sha256": "7f4415e84167d24a0106806adf7667b25fb93905cc5ebe7814b30f0a9df3268c"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_external_pull_request_is_drafted_approved_and_tracked_to_merge.xml": {
+    "bytes": 390,
+    "sha256": "394e6b1e31677029befa864999e75d6ab7c5d5741743a3edf9eda18e0e9efd80"
+  },
+  "shard7/tests__test_project_container.xml": {
+    "bytes": 44978,
+    "sha256": "e3f50fccc453b813763e412b632beb1a22efbf3da1a98f7be8b6d609852b3c51"
+  },
+  "shard7/tests__test_learning_experiment_gateway.xml": {
+    "bytes": 1076,
+    "sha256": "711109251ce0e3c1ddf92c0b754edb5340986d9f05adff1627efd47d1e7b7ac9"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_a_busy_model_is_waited_out_and_the_session_picked_up.log": {
+    "bytes": 912,
+    "sha256": "dde563c5187bde28f5b7e8408d2975b0828fe6ecdb7b10bcddbf50dcecd6ed9d"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_ticket_prompt_tab.log": {
+    "bytes": 685,
+    "sha256": "2baad572f580f547eacd9e453df3cb2e590fce147c834a4126c78c98c20ec896"
+  },
+  "shard7/tests__test_rsi_linux_cleanup.xml": {
+    "bytes": 2714,
+    "sha256": "4fd902d45bb4487e020a64f7c98f22c1d2cbe20ca3c3cc5d277eae309222cec7"
+  },
+  "shard7/tests__test_recheck_crash_independent.log": {
+    "bytes": 2702,
+    "sha256": "e1491eebf09a6b68b6d775f37573f9204b22daf42cc06cb3f1549a1f80991357"
+  },
+  "shard7/tests__test_statecharts.xml": {
+    "bytes": 890,
+    "sha256": "df5844587d21949ee9811968d31c11ff5c7deec690bca9460db68a527fa7f7e0"
+  },
+  "shard7/tests__test_browser_verify.xml": {
+    "bytes": 28483,
+    "sha256": "cbc52765329668aa2a49c2fc3ffbde711de110ee9c00a497df1a3261191b7b67"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_old_chats_move_into_sessions.log": {
+    "bytes": 705,
+    "sha256": "fe166062adccf904ba96723cc23ccb2ddbdf4939b161ffbf655975a47d9009c2"
+  },
+  "shard7/tests__test_review_feedback.xml": {
+    "bytes": 1127,
+    "sha256": "b5b8839f9427deb9428bdf2ae9bd8d3506c24357f8bc93e766b2442221bc2484"
+  },
+  "shard7/tests__test_learning_input_compat.xml": {
+    "bytes": 1230,
+    "sha256": "af858001e42d9f2c78028bc18eb01e356345e1af378fcd7d49736b4a0dab99c8"
+  },
+  "shard7/tests__test_context_pack.xml": {
+    "bytes": 2475,
+    "sha256": "9af5c356c6f9aafaa201830619618c2cb2f8da8326314cc026dbbe278cf412a4"
+  },
+  "shard7/tests__test_rsi_preregistration.log": {
+    "bytes": 2944,
+    "sha256": "a1e0b9ca45fb0beec250a5d7b22c964c2e523a6b960d83495a4df3c41aed75f3"
+  },
+  "shard7/tests__test_rsi_trial_integrity.xml": {
+    "bytes": 1495,
+    "sha256": "1438f8273c665a53e5eee6b3aef08da7ac7476ba89b22effa29740f133806ab8"
+  },
+  "shard7/tests__test_library_transactions.log": {
+    "bytes": 3695,
+    "sha256": "e665eeccff5309623327705e227212ef04cd7d0a8c362e6d6691d159fc2f7df2"
+  },
+  "shard7/tests__test_ui_handoffs.log": {
+    "bytes": 3183,
+    "sha256": "750388713543144d351fda2e6110165a7d14318217a94ad9afa4618073411c3e"
+  },
+  "shard7/tests__test_tool_read_mcp.log": {
+    "bytes": 880,
+    "sha256": "76090c142857a2581117016f74a9c552e60392b1713050f1deb4193cda7723c8"
+  },
+  "shard7/tests__test_delivery.xml": {
+    "bytes": 3607,
+    "sha256": "ee8e45eb0a07c999a625d97f45797100c1b08dbcf2f888a7585c9ed70ff65813"
+  },
+  "shard7/tests__test_prod_release.log": {
+    "bytes": 999,
+    "sha256": "adaf4ff346d8974fde4768daa92f81f995800cabdf4f83aa4e5680c6d21fc476"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_kb_questions_answers_and_triage.log": {
+    "bytes": 711,
+    "sha256": "501b4821e1c034dd8a16e7d44703b82f03c93236f007a5b2c6ea3c69909a5c80"
+  },
+  "shard7/tests__test_workbench_states.log": {
+    "bytes": 1960,
+    "sha256": "c1e6c5e06c72b7b84fa4bb07dcead7af5a062098f91bc46942712587a0b22bb7"
+  },
+  "shard7/tests__test_ui_tool_access.xml": {
+    "bytes": 6007,
+    "sha256": "cea966ceac48176b70c0343842a41c9542fc693ea038ce5efcae8f4356bc30e0"
+  },
+  "shard7/tests__test_browser_verify.log": {
+    "bytes": 28150,
+    "sha256": "8faa89176e7130e6ab49261f5498711dbcd70d6e2d9f088ca0dea8f3085c6051"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_old_chats_move_into_sessions.xml": {
+    "bytes": 356,
+    "sha256": "4f467e6e9dc3ca5dca9f40057077ab78688b7da1e6490612ab29b52587fe4756"
+  },
+  "shard7/tests__test_context_pack.log": {
+    "bytes": 2390,
+    "sha256": "3f097bc09f3c10cb2fc4030b1e7f178394ac89f7ebb73202ad09bb3d9d7a5f1c"
+  },
+  "shard7/tests__test_learning_input_compat.log": {
+    "bytes": 1417,
+    "sha256": "db133130cb924d4f05614e1781db3961e3df827cf4a60a29caf341f5f08c506f"
+  },
+  "shard7/tests__test_review_feedback.log": {
+    "bytes": 1309,
+    "sha256": "2519aa45cfc56b4c16c6d36a7bb86cf82f497df5cd25e4cf5041d5698ef6aae0"
+  },
+  "shard7/tests__test_rsi_preregistration.xml": {
+    "bytes": 2301,
+    "sha256": "650d5ce1d0c07ff1576081b5e59f91d7996313d162267c546a02220dad319788"
+  },
+  "shard7/tests__test_rsi_trial_integrity.log": {
+    "bytes": 1632,
+    "sha256": "d75426542420ca5dad231ae6010ce28f66b02039536a503f61656d13ca95455b"
+  },
+  "shard7/tests__test_library_transactions.xml": {
+    "bytes": 5325,
+    "sha256": "cf47f3a04956f26c70493fbe110d957d4d2e9bb8507b6fd6d447cea810e789cb"
+  },
+  "shard7/tests__test_ui_handoffs.xml": {
+    "bytes": 3365,
+    "sha256": "d120f5155e37a10280df4fe37236693aee7c1a5c7efe99d3f72d0556b00c44c5"
+  },
+  "shard7/platform-collection.log": {
+    "bytes": 5776,
+    "sha256": "bdb9afabe552a582be89e1f59f957ba1839c4f77a09e506784a0d8fc824cfb5b"
+  },
+  "shard7/tests__test_tool_read_mcp.xml": {
+    "bytes": 650,
+    "sha256": "8f948811938d4e6b30ec591b05cf906128406ae431682b18c82fe0e375489d3d"
+  },
+  "shard7/tests__test_delivery.log": {
+    "bytes": 3577,
+    "sha256": "87cc7880d21f0f075ab5c681aaa1e7e207210cb2d3b7d6f0a82f59f6d1c5326b"
+  },
+  "shard7/tests__test_prod_release.xml": {
+    "bytes": 772,
+    "sha256": "10c8c69699d10448695a25051a556099aa0c1fc827e77fe4ee3eaa150a392b42"
+  },
+  "shard7/tests__test_workbench_states.xml": {
+    "bytes": 1874,
+    "sha256": "40517cdcb94308ca8c07c3606a31f93b4ec51569e5952780eef2bf374fb469d1"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_kb_questions_answers_and_triage.xml": {
+    "bytes": 359,
+    "sha256": "ae5f32b76dcd7f04f0db773ea17aeddfc68c30af3af8887d42e51f1b6a70fa78"
+  },
+  "shard7/tests__test_ui_tool_access.log": {
+    "bytes": 5879,
+    "sha256": "47ab41bb54de5f3f88941c081678d3afd2c5a25209f4880f7e3b412f9dc67f2c"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_reform_plan_splits_by_domain_and_releases_in_waves.log": {
+    "bytes": 749,
+    "sha256": "e7084730b90555bf6102514e87f09d1ae659a62fadd3a24315bb6da3fced31cf"
+  },
+  "shard7/tests__test_learning_api.xml": {
+    "bytes": 3701,
+    "sha256": "6470c102d04c9af5627b3eeef5121c76e0f47703cb6c62bb18cd7d609102f837"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_box_on_the_page_finds_the_backend_and_starts_a_ticket.xml": {
+    "bytes": 381,
+    "sha256": "a51a14cddf5c5a586ee8a3d4d57ecb07fdeee4b01304e537361f9d2e5ddef97c"
+  },
+  "shard7/tests__test_handwork_lifecycle.xml": {
+    "bytes": 2056,
+    "sha256": "d87d0a8e1d47ce1e7d88a3495140a1c4a96607cb5ea48b5430bf1f20b2312378"
+  },
+  "shard7/tests__test_tenant_human_knowledge.log": {
+    "bytes": 2384,
+    "sha256": "560a4e82a883462ea619d3785067de1ed650abbe48f45a5f00716cbbcd5b9ab6"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_a_ticket_s_steps_continue_one_agent_session.log": {
+    "bytes": 11519,
+    "sha256": "1db885e503916d9ec6980392b36e019d0ed91f86df629f18a41ebae1cf3b47dc"
+  },
+  "shard7/tests__test_developer_merge.xml": {
+    "bytes": 1578,
+    "sha256": "6f7c7a9dfc2df48f5faecf38dee679f634bee7c5b97c38a44c170d106626e0bf"
+  },
+  "shard7/tests__test_ui_navigation.log": {
+    "bytes": 683,
+    "sha256": "2d33ce2917125e28f5f26b2bb924029a75556e011b6da8f94531a2e0b061ba27"
+  },
+  "shard7/tests__test_org_knowledge_trust.log": {
+    "bytes": 9772,
+    "sha256": "46d97b4af837bb0500894c827a6b6af5a08803a2741e43e4b9e11dbbbd32a5aa"
+  },
+  "shard7/tests__test_intake_recovery_independent.log": {
+    "bytes": 2542,
+    "sha256": "e82ae29a70f06af78e73c5429cc1880afa0c97e9beb4c22b5b9d45b8a6c76737"
+  },
+  "shard7/tests__test_project_snapshot.xml": {
+    "bytes": 58256,
+    "sha256": "998b1e3ba78063055b8700dd2c27c2fb399db11b3333f9bdb89070bd3e2fe9aa"
+  },
+  "shard7/tests__test_g4_local_pilot.xml": {
+    "bytes": 925,
+    "sha256": "fa31dae05121f72b9daf9f7bd48091d87c7687e7d93fdef152536ac58fdfba35"
+  },
+  "shard7/tests__test_testbox_mcp.log": {
+    "bytes": 12528,
+    "sha256": "0c34c4d91b5d4894d00d2cc2c1fbd17659826f14e4a594f25e21924ec82b1735"
+  },
+  "shard7/tests__test_lesson_renderer_labels.xml": {
+    "bytes": 1063,
+    "sha256": "4d8d4edf1b293e7db4d324ab6a7c1a939a8155e9e9b8ba2e85e0ba5ee0e72ab5"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_external_pull_request_is_drafted_approved_and_tracked_to_merge.log": {
+    "bytes": 773,
+    "sha256": "af3c922c14c7595a6c390825bceb4df027f511fa0a2fc57f4830da21ae7ee85c"
+  },
+  "shard7/tests__test_run_truth.log": {
+    "bytes": 993,
+    "sha256": "89990cc164e1548b5da5bd3d60862f6640cdd50a1c3c5c0508e5aad8be44e27a"
+  },
+  "shard7/tests__test_project_container.log": {
+    "bytes": 44909,
+    "sha256": "4ce10edf97137db44577764d69f8aa33e3c38fdebcdeb407c25da371df5644d0"
+  },
+  "shard7/tests__test_learning_experiment_gateway.log": {
+    "bytes": 1189,
+    "sha256": "8debf6923dbe6b24bc6616d5d88c3e77d20efac3250d711bd031853e947a5f04"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_a_busy_model_is_waited_out_and_the_session_picked_up.xml": {
+    "bytes": 586,
+    "sha256": "44647d71a4644ec2dec1282d80074627c0b2bba68feffae32a2d62824a7cb72b"
+  },
+  "shard7/tests__test_rsi_linux_cleanup.log": {
+    "bytes": 2073,
+    "sha256": "41616a7b92a2bbec5fdd29db6b875de670590480b6753be1fc22531788e4012d"
+  },
+  "shard7/tests__test_recheck_crash_independent.xml": {
+    "bytes": 3509,
+    "sha256": "97401f935694752ee0b25485572391f97db3d8ec738777fdf914209db168eb3c"
+  },
+  "shard7/tests__test_statecharts.log": {
+    "bytes": 1092,
+    "sha256": "dca9a41e8faf9cb00cffc1bf5a75fbce866c8dc7d723cc441e7c48a4eb2356e0"
+  },
+  "shard7/tests__test_platform.py__PlatformApiTest__test_ticket_prompt_tab.xml": {
+    "bytes": 345,
+    "sha256": "1d039f9339bd170cb395b19c8a314412e3ed9573a96b2fd50e564109f639c5c3"
+  },
+  "shard0/summary.json": {
+    "bytes": 40359,
+    "sha256": "59657541e198d931ab1bd1ba5b138a1a510816178d8f174f8750eaf74abe54a3"
+  },
+  "shard0/tests__test_context_quality.xml": {
+    "bytes": 1730,
+    "sha256": "b94374552390cad1f38b176929e20dbd5829210b1e5fed956cb004842469eada"
+  },
+  "shard0/tests__test_project_tests.log": {
+    "bytes": 4226,
+    "sha256": "581a4740adfe5c41ab0a0d70b4d4ba118c50793f7f228c5404b32190cf201c97"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_fix_gate_keeps_a_fail_that_named_no_blocker_for_people.xml": {
+    "bytes": 382,
+    "sha256": "04c99a5fe13ad3941ca33a6d06236a0807bb05d10fe23511ab30a2196692e2f2"
+  },
+  "shard0/tests__test_ui_access.xml": {
+    "bytes": 6418,
+    "sha256": "d6d04d229be6a8f7a5c5ab36c41a52f154a4af03e1dce00791802018e7f623bf"
+  },
+  "shard0/tests__test_tenant_login.log": {
+    "bytes": 1324,
+    "sha256": "792d62dfb86e07fc8426f580c21462ce68d9bfb66d9d6bde9586f6ca97468d90"
+  },
+  "shard0/tests__test_rsi_trial_preparation.log": {
+    "bytes": 4988,
+    "sha256": "afd9ab45fd9d85165f191f6e71add54a15b63a047c5d6c5d67d90c31c2923e73"
+  },
+  "shard0/tests__test_learning_binding.log": {
+    "bytes": 1978,
+    "sha256": "cf2e7877b6c5ec62fcbd31d4fcc2f97cf9aae6b4020e0d95fb9e8f5f024f3d52"
+  },
+  "shard0/tests__test_rsi_controller_channel.xml": {
+    "bytes": 5558,
+    "sha256": "06463eff2fa038232ca4b74ec97b986b7c3f5192d3114f6dd70fa3bffbc36b94"
+  },
+  "shard0/tests__test_learning_ledger.xml": {
+    "bytes": 3967,
+    "sha256": "4678e14a97f0925a17591523c70c9a7fcedd29c3246783c2087ba11156d851a7"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_kb_tree_and_architecture.xml": {
+    "bytes": 352,
+    "sha256": "816ce4353ebbb9fdf0ebebe4c9892bf613de52a9a4238751709b6a76768e0af5"
+  },
+  "shard0/tests__test_rsi_linux_holdout_probe.xml": {
+    "bytes": 10037,
+    "sha256": "6058ec0df06c6812ec4ce0d1cfd1d32a3b19730ccf7bf6e9381315d1d9997293"
+  },
+  "shard0/tests__test_ui_intake_permissions.log": {
+    "bytes": 1644,
+    "sha256": "076b07ebdb18525521e58927c08087f19bcbc045f257766bf9367eb8a2740394"
+  },
+  "shard0/tests__test_understand.log": {
+    "bytes": 2407,
+    "sha256": "27b0ac3cee1b71910065ebe5363036579f6c3deb069cb66404c844675bdd83f6"
+  },
+  "shard0/tests__test_login.log": {
+    "bytes": 963,
+    "sha256": "f4671e290c2a0ce312682758323778f7fa7ede776fb7f03925398e39f26de2de"
+  },
+  "shard0/tests__test_runtime_review.xml": {
+    "bytes": 3538,
+    "sha256": "2ce1acbb81f100782378cc66037a12f2326b0dc77e59b419cc8d8d362faf83a4"
+  },
+  "shard0/tests__test_intake_recovery_ui.xml": {
+    "bytes": 1351,
+    "sha256": "a2c36d8697c636dd92fed58da852f98d01d4d0e84368e4a7918bc925b3027002"
+  },
+  "shard0/tests__test_delivery_content.log": {
+    "bytes": 2561,
+    "sha256": "452eed19b8bde1f04eaf91adad1ddc16e5d5eb44b94b958d212f55b1896deaee"
+  },
+  "shard0/tests__test_phase1.xml": {
+    "bytes": 1174,
+    "sha256": "8c92a6dcc658afa677f5a9437887dcb3ebb4ae0678430afefdf15032d464709e"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_a_change_beyond_the_plan_is_flagged_and_left_to_a_person.log": {
+    "bytes": 761,
+    "sha256": "3d94a9a81e0d2f922182cf402c4c532df248fe42762fba7f38f756d1c1c9e206"
+  },
+  "shard0/tests__test_rsi_preregistration_v2.log": {
+    "bytes": 1746,
+    "sha256": "7f0b05ffb894909c432e5fa41378ee2561f4e34722705b7e6cdefd43e194d5a9"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_requirement_conversation_turns_vague_words_into_tickets_with_criteria.log": {
+    "bytes": 787,
+    "sha256": "d5c7ff20021415d4bf8ae6787702bcd5debf384985e084b5a7936bd52787348e"
+  },
+  "shard0/tests__test_candidate_memory.log": {
+    "bytes": 2085,
+    "sha256": "6af9c6edf01e9ea5acca88234f3ba6661dee33f8e692de8fb4e84987ac71c8d2"
+  },
+  "shard0/tests__test_developer_terminal.log": {
+    "bytes": 1471,
+    "sha256": "b52566a2f7ef02bc2a738ff4b7676fe54a6ba2475d1bb0a0f79d24c187d89fbd"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_business_map_writes_domains_then_overview.xml": {
+    "bytes": 371,
+    "sha256": "4505794e42378485be955596f2b23dfeb2d83358cd6fb7b905b29a24956cc474"
+  },
+  "shard0/tests__test_prod_release_integrity.xml": {
+    "bytes": 2096,
+    "sha256": "6b75954e569919bc695c8e560a40617a8866b7df3be89d7938e6354e7516dc87"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_ticket_runs_on_its_own_to_a_committed_branch.log": {
+    "bytes": 737,
+    "sha256": "266fccad173baff7e10114fa02c0f6be3badc3bf9cb96159befea5a535281851"
+  },
+  "shard0/tests__test_learning_experiment_runs.log": {
+    "bytes": 6957,
+    "sha256": "41b75ba808980a451c7aa32a9206f6553107db5228601cbd535396adc68b696b"
+  },
+  "shard0/tests__test_project_import.log": {
+    "bytes": 1247,
+    "sha256": "1dda7e3984cec043b02333e185681bd36a92c0b384f254ffbc6f7cf8f2b54d89"
+  },
+  "shard0/tests__test_static_preview.xml": {
+    "bytes": 70044,
+    "sha256": "ae1e08eb808a06400d99533b5c92f5d03ef83c1a43e05a17ebcf06078cae172b"
+  },
+  "shard0/tests__test_recheck_lifecycle_ui.xml": {
+    "bytes": 2482,
+    "sha256": "2c8f7b87055e6b16bec9eb09b79d81f0da6945502bc294288622e05352ad973a"
+  },
+  "shard0/tests__test_lesson_runtime_receipts.log": {
+    "bytes": 3981,
+    "sha256": "c95bad98bdf05979637333869b589c74276438c80effd396c2697c8ba5f0597e"
+  },
+  "shard0/tests__test_workspace.xml": {
+    "bytes": 963,
+    "sha256": "b036072ff1170f286f2a9350a1e70a0067eea4ab000c98281e59a56afde57b7a"
+  },
+  "shard0/tests__test_harness_probes.xml": {
+    "bytes": 63760,
+    "sha256": "0f11e63c96fbba7ac25e3a7ad3cf36bc4335bbe34060c490ec7d54d62a306cbc"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_acceptance_teaches_and_grows_the_eval_set.log": {
+    "bytes": 7562,
+    "sha256": "9eefaaa2e01f87d6bf9ae7736a11cab18eea4835b5c26dcb59f136cb6f67b383"
+  },
+  "shard0/tests__test_acceptance.xml": {
+    "bytes": 70335,
+    "sha256": "0cf8be0efe8e994d9b910f00705895fcfe800afba126d2b806db51f4d4171dbe"
+  },
+  "shard0/tests__test_tmh.log": {
+    "bytes": 17547,
+    "sha256": "1ee606d94cc8333b33fcab77301ac5a428dfda40c39a78acd38e44a82f3ca7d8"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_page_and_guards.xml": {
+    "bytes": 343,
+    "sha256": "ff3c0980b3fd6b441b9ea05bea04b325b4c802eb5c34fff9320d3389afe46e20"
+  },
+  "shard0/tests__test_ui_pilots.log": {
+    "bytes": 1445,
+    "sha256": "2d908821441fab0899d84f4f5bc89d3e5c3b1769851235baf29048ee66fb0166"
+  },
+  "shard0/tests__test_gates.log": {
+    "bytes": 1153,
+    "sha256": "e105819cc3a5d212e409e13407c23172bf55305d0eda83f6ec3bd656a36e873a"
+  },
+  "shard0/tests__test_delivery_content.xml": {
+    "bytes": 2595,
+    "sha256": "c1e41181758d01d4767d15e37ce58a2142ada3a65ded576100bbc4bce1918b7a"
+  },
+  "shard0/tests__test_phase1.log": {
+    "bytes": 1313,
+    "sha256": "dad0f7292923ff46ff6e4c82975e47c9480747054a76f3705acb6164c69e7344"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_requirement_conversation_turns_vague_words_into_tickets_with_criteria.xml": {
+    "bytes": 397,
+    "sha256": "9363d88c8d5fb76e2b4e08ecd3f3335c51c1eef5cec758d0f448a0d5dd020ad9"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_a_change_beyond_the_plan_is_flagged_and_left_to_a_person.xml": {
+    "bytes": 386,
+    "sha256": "79bbc5cd45022e07fed6eaa8e4f89271fa38f56a412202245d3d3d38ee062a87"
+  },
+  "shard0/tests__test_rsi_preregistration_v2.xml": {
+    "bytes": 1344,
+    "sha256": "a4446d675a5d1d86c36dfdc092c3cd775864c922cc882771b67a914bcdb92aa1"
+  },
+  "shard0/tests__test_candidate_memory.xml": {
+    "bytes": 2023,
+    "sha256": "6cbf4f081b42443c55af45fb9ab08fcf37c1bf492829ccefd9a8c0e920a7db4a"
+  },
+  "shard0/tests__test_developer_terminal.xml": {
+    "bytes": 1334,
+    "sha256": "81c28a60148aaa34acec93311b5a7e48c42e6d62bd4fcbabc803846bcb69a9a6"
+  },
+  "shard0/platform-collection.log": {
+    "bytes": 5776,
+    "sha256": "873225ae28c74bb19ebd4f1895d1ffb233ccb8aaf38d6c08b1a041b864a44bec"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_business_map_writes_domains_then_overview.log": {
+    "bytes": 731,
+    "sha256": "56a22a71544abf402409bd6a5004edca5246373bb24f64a4e0761a63aba56dbf"
+  },
+  "shard0/tests__test_prod_release_integrity.log": {
+    "bytes": 2393,
+    "sha256": "d84a41c57da7d477b65cbab35dc28df86f83f95f5988f1ffbc540d9060e2cbf6"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_ticket_runs_on_its_own_to_a_committed_branch.xml": {
+    "bytes": 374,
+    "sha256": "fedeb7466adebe196ce12f6d1843d82680c590c536e37d7926846c4bdb19935e"
+  },
+  "shard0/tests__test_project_import.xml": {
+    "bytes": 1067,
+    "sha256": "4722ce44624b398bcdbfb96b6070584293342106725ad2bba03253b1f2faec29"
+  },
+  "shard0/tests__test_static_preview.log": {
+    "bytes": 93167,
+    "sha256": "748c872919e7e89cc9e2d9b054f0d3c397284a6f52bf2b45f0573ef858d52e3d"
+  },
+  "shard0/tests__test_learning_experiment_runs.xml": {
+    "bytes": 10667,
+    "sha256": "8bf8b96b27fb666d5a526f1714c2780d21640218d71a5fa44ebcd4e2b24a797f"
+  },
+  "shard0/tests__test_lesson_runtime_receipts.xml": {
+    "bytes": 4819,
+    "sha256": "3b8d6735ae6e3533c4dc623f2c47ef2eeae04d78fb89f7b0d70db89d14b95230"
+  },
+  "shard0/tests__test_recheck_lifecycle_ui.log": {
+    "bytes": 2501,
+    "sha256": "794209a5e288e5ecf9c9b6e4d3395e3ed988371ee1279e14719149b799850a8e"
+  },
+  "shard0/tests__test_workspace.log": {
+    "bytes": 1161,
+    "sha256": "5d8abe1d85a938ce5873fca5e9cd03c6d3bd2b36e61bc59b7dc5d4ee733b4d03"
+  },
+  "shard0/tests__test_harness_probes.log": {
+    "bytes": 62462,
+    "sha256": "331dfdcc67f2a6c3aca008493af2c28741b5f5f946ff5780317f7a9d31c90878"
+  },
+  "shard0/tests__test_acceptance.log": {
+    "bytes": 66630,
+    "sha256": "103d78b93dc48896e43a28577b8b0526a36f9c13999cf605976723f5bf58a944"
+  },
+  "shard0/tests__test_tmh.xml": {
+    "bytes": 19239,
+    "sha256": "1bc72d543327691d4f0426e4ed11adc0b3658f5944dafd322ed2232d340faad6"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_acceptance_teaches_and_grows_the_eval_set.xml": {
+    "bytes": 7153,
+    "sha256": "9dd40c6b5d38e6968b81aa612b9fb9142905f267d9d6803a4d2b494677ae8dbb"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_page_and_guards.log": {
+    "bytes": 683,
+    "sha256": "b5e42e596c28d8cd322242c90f7fbeea2c726b183fe44f148ef63328a423238c"
+  },
+  "shard0/tests__test_ui_pilots.xml": {
+    "bytes": 1317,
+    "sha256": "89434d325a91fea856798d7fd54308a999b2e9fe569d8add2ed5e07b187f001c"
+  },
+  "shard0/tests__test_gates.xml": {
+    "bytes": 988,
+    "sha256": "8cc775c9060e481f0cacf25f3f521203eb486dcc70da023403c04296b3b27f52"
+  },
+  "shard0/tests__test_project_tests.xml": {
+    "bytes": 4573,
+    "sha256": "afa002571d3a28e91bf3475793bc815a0f10a7e47960fadf5f2b9eea3f4ea8a6"
+  },
+  "shard0/tests__test_context_quality.log": {
+    "bytes": 1790,
+    "sha256": "5a6ed4e3639e32dee9a6f8e880071a3ab468ac75966bd2a86f50f398e641235f"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_fix_gate_keeps_a_fail_that_named_no_blocker_for_people.log": {
+    "bytes": 757,
+    "sha256": "67c957c224dabc440e4a58af7715ee93e1357cecb21826247d162e0c6ffa289f"
+  },
+  "shard0/tests__test_ui_access.log": {
+    "bytes": 5706,
+    "sha256": "e3205a5c8bcdc1f0743a4ddc4cc0bd11083e92518c60129a545bbf0634fe78a5"
+  },
+  "shard0/tests__test_tenant_login.xml": {
+    "bytes": 1145,
+    "sha256": "c40f983c1aeaf5071cb108b4b7599a6f2dc10fba282d3969ca594918eb08889c"
+  },
+  "shard0/tests__test_rsi_trial_preparation.xml": {
+    "bytes": 5257,
+    "sha256": "cd9045534a555ce10addb70ec38e523065fa584ecac97bf66a8506f3bba60a62"
+  },
+  "shard0/tests__test_rsi_controller_channel.log": {
+    "bytes": 4077,
+    "sha256": "a9b6e57c4d8b6a2729489f583839a5846ab4d63500299be10e9b2566b23fed2e"
+  },
+  "shard0/tests__test_learning_binding.xml": {
+    "bytes": 1828,
+    "sha256": "6d5d4c20b107b120806664c3ffc08b7fbab511dffb6039ad1dd4b1dea0b12a11"
+  },
+  "shard0/tests__test_learning_ledger.log": {
+    "bytes": 3943,
+    "sha256": "73e909012054906fb31618ee22d951950a7edd69240a4b276163c2fc5c5798ed"
+  },
+  "shard0/tests__test_ui_intake_permissions.xml": {
+    "bytes": 1504,
+    "sha256": "c5e99b3d3bc15e750f90e461f2ec7d47e895dfb5766ee7bf36789a95c59f7058"
+  },
+  "shard0/tests__test_understand.xml": {
+    "bytes": 2424,
+    "sha256": "f51661d1995991e2c8bb99035f61bb69f2b16550be5a2eaea4721a1ae5c3b1d7"
+  },
+  "shard0/tests__test_login.xml": {
+    "bytes": 742,
+    "sha256": "21fde7cdd39e5553e8faad12d1e3dffd9bc2c069a027bf1ab3ed95e1f754bd44"
+  },
+  "shard0/tests__test_platform.py__PlatformApiTest__test_kb_tree_and_architecture.log": {
+    "bytes": 697,
+    "sha256": "26e415493cbfb42bcad58b9dee3cde0ff29a9d884ffd1b43e7497c2199f82ffe"
+  },
+  "shard0/tests__test_rsi_linux_holdout_probe.log": {
+    "bytes": 11314,
+    "sha256": "cae738d9ed0a5bab33ef9fe5b2ab46ab89c3c1f831a607aac6059e31c0fd5a47"
+  },
+  "shard0/tests__test_intake_recovery_ui.log": {
+    "bytes": 1512,
+    "sha256": "ae05631ff3c3ddac59a37a8dd8dcae64177a3f72ba3da48b9a57341911f89416"
+  },
+  "shard0/tests__test_runtime_review.log": {
+    "bytes": 2576,
+    "sha256": "e06c1b6f4c05b2f4db8c0ff752d43c3def0f39b02e21850e145d330899e4b906"
+  },
+  "shard1/tests__test_learning_experiment_schema.log": {
+    "bytes": 1473,
+    "sha256": "794f4fb987adeb93f2071702a9c5dc52ad250ab15925defc8e31fc5545a2d265"
+  },
+  "shard1/tests__test_project_artifact.xml": {
+    "bytes": 7420,
+    "sha256": "3f342864d3abc4df939b3844e888fe57b5061b59e74920a8eb9a11eb878b68aa"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_kb_views.log": {
+    "bytes": 676,
+    "sha256": "c31a837ca281e16ca0ebac8744ce809993bf515d663e0e4862f6d22b5b04d3f3"
+  },
+  "shard1/tests__test_tool_access.log": {
+    "bytes": 3734,
+    "sha256": "a01cd384bf1d3a4963d6f463b9dbbe8ee8558104534840749a91497c0fc7b8bc"
+  },
+  "shard1/summary.json": {
+    "bytes": 40347,
+    "sha256": "5584393ec892c70b6a9816f04f21f5c1141c8091269b32230e424253f716977d"
+  },
+  "shard1/tests__test_coordination.log": {
+    "bytes": 4355,
+    "sha256": "1d097744c9c1472ba41b613ad7e04365aeedc1c3f5b84ada803e211894ca9c92"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_timing_counts_the_time_lost_reconnecting.xml": {
+    "bytes": 368,
+    "sha256": "d993a6fed7b6c1a7651ba8f54e1b7719d4be584155f965b49e53b4332cf8c3ba"
+  },
+  "shard1/tests__test_github_import_retry.log": {
+    "bytes": 797,
+    "sha256": "6b70bf773ed64db3487f2a95a78726b7a064cabd7f24f52e80badc455efd5149"
+  },
+  "shard1/tests__test_code_review.xml": {
+    "bytes": 1897,
+    "sha256": "0228b8898b20b05b36e0ac293112890cfde2372579b0c9c56c7a569fd76d86a3"
+  },
+  "shard1/tests__test_delivery_coverage.xml": {
+    "bytes": 11473,
+    "sha256": "0468094ef059be0e80f0981dd27fdee7060c090af3b66de625e5ffbd73d68f4c"
+  },
+  "shard1/tests__test_pilots.xml": {
+    "bytes": 4416,
+    "sha256": "813f16bb03456e2434f34f3a582d8d7a6ccac1104590f5ba753c1781fca2b823"
+  },
+  "shard1/tests__test_lesson_selection.log": {
+    "bytes": 2613,
+    "sha256": "baa5b2b89b80be037f30e6a26fe6bee1b3339e84a1008328f67460373b835064"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_similar_metrics_overrule_and_bot_api.log": {
+    "bytes": 721,
+    "sha256": "e722a1f4f561d19132c626e0f8a2e07b8f0afeb455479cbf8b97cfdbce7bb8a4"
+  },
+  "shard1/tests__test_rsi_local_eval.log": {
+    "bytes": 3149,
+    "sha256": "344ce04cbdfba568ba87f65815055cf66bf2d7f6623263a8f3669ae410721042"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_a_change_is_built_again_without_being_redone.log": {
+    "bytes": 737,
+    "sha256": "f1846947849dfdd696ab32e0f5923036f70de18dddddf71eee7f47692838b446"
+  },
+  "shard1/tests__test_workspace_handoffs.xml": {
+    "bytes": 1529,
+    "sha256": "59870cfeb072dd7cf225c77b195c91c00ac258124b6c1361e1549f04bf1a937f"
+  },
+  "shard1/tests__test_harness_probes_independent.xml": {
+    "bytes": 33264,
+    "sha256": "9ddf7f61e7295908a68bfa57a7fd924292ae9b4a54fa1c044dc234b6680ddce7"
+  },
+  "shard1/tests__test_web_assistant.xml": {
+    "bytes": 1721,
+    "sha256": "5f03724595512877c788aaf3e198f3e182333aa967a95a41337c9c09191d8cd2"
+  },
+  "shard1/tests__test_ui_agent_routes.log": {
+    "bytes": 1105,
+    "sha256": "4edd8ce67f3709bddacc55d7314e900153c6c5fc665b8bb6b70dd756d2d20616"
+  },
+  "shard1/tests__test_rsi_controller_replay.log": {
+    "bytes": 3717,
+    "sha256": "06d5b6a5dac51f47a779be1cddf25bfb543bad8dc5100fe3beb4d9c54e91a6b2"
+  },
+  "shard1/tests__test_agent_api.log": {
+    "bytes": 4183,
+    "sha256": "e686e93c1b2a0a08dd666e2ce9dae6b26d4128f2dcc490d0afb4ccdd4762035b"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_change_is_split_by_file_built_and_diagnosed.xml": {
+    "bytes": 7391,
+    "sha256": "54355e7c02e09a88acb2e70aaaab01767424ae43a12157f9a4306e0d6791e461"
+  },
+  "shard1/tests__test_scoped_boards.xml": {
+    "bytes": 535,
+    "sha256": "ef944b764532d927573511eb2f2127575a9fe1cb97565b2d5a740bf2e726d6a5"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_port_in_use_is_reported_not_crashed.xml": {
+    "bytes": 8478,
+    "sha256": "c2db0ab0d192d96aff81f5fb5d4de7eec164429d1b63cd1d232180d21999f676"
+  },
+  "shard1/tests__test_development.log": {
+    "bytes": 1842,
+    "sha256": "8fd141f723e4c2781ee4cca188f86897e3b47e729adea5e2aa67f76396ef2f4f"
+  },
+  "shard1/tests__test_managed_run_registration.log": {
+    "bytes": 1145,
+    "sha256": "dd298d4ee88241e4448e50fbec4ee081b9f10e0f60f43c648f2bb91ec1e383a4"
+  },
+  "shard1/tests__test_intake_wall_clock.log": {
+    "bytes": 881,
+    "sha256": "521ab465bc43bab3c32a53f42fc4fea25d951588a80c74b8add4f7885f77fe77"
+  },
+  "shard1/tests__test_project_job.xml": {
+    "bytes": 536,
+    "sha256": "d8234b93a43ae8196c2c08bf42b2d7fc3bdde494e855a952d8b925431daf27a4"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_fix_gate_keeps_test_edits_and_deletions_for_people.log": {
+    "bytes": 749,
+    "sha256": "1b963aa89b5a55c9d4ee30681b84fbd4a1b9e556b75e7d50b343b362d11762e7"
+  },
+  "shard1/tests__test_ui_learning.log": {
+    "bytes": 3443,
+    "sha256": "7ca766b2076b526beac6e64d993028a5c82eb03b4d521b6fde65e02e9e2d16f6"
+  },
+  "shard1/tests__test_supervised_process.xml": {
+    "bytes": 5743,
+    "sha256": "c8f89b9facdf018da9666ec3968840a50ba7c1338e5cca0924692d02367e4117"
+  },
+  "shard1/tests__test_learning_context.log": {
+    "bytes": 2033,
+    "sha256": "9889140541890ec371de40ac14763be8a12e0c9dae0b0c83d8be80ae34f2948d"
+  },
+  "shard1/tests__test_rsi_proposal_root.xml": {
+    "bytes": 4267,
+    "sha256": "422a7f8133be377419c4b9ee40168bbe0c5fbc07856b510e0801de2236369f7d"
+  },
+  "shard1/tests__test_learning_lesson_inputs.xml": {
+    "bytes": 3542,
+    "sha256": "4aa2c8a099cae855839365ee27e4b4e7f8c81dcf1a486c59504ed89649a585df"
+  },
+  "shard1/tests__test_tenant_parent_loss.log": {
+    "bytes": 1315,
+    "sha256": "34fae4e274f7de22da6e52c8daece605f9ec0de408f2e8eaf045caa399fd5412"
+  },
+  "shard1/tests__test_project_verify.xml": {
+    "bytes": 100923,
+    "sha256": "6a847155cf45ec0f5b7a1b3a40bbb4bcd6d12ddb5399fc6fbfea2208fd29f94f"
+  },
+  "shard1/tests__test_recheck_operations.log": {
+    "bytes": 3782,
+    "sha256": "5e54eb02a52830e24857d85b56ea76e44c9b0a7a1011e40d30315b5ce9189544"
+  },
+  "shard1/tests__test_ui_project_learning.log": {
+    "bytes": 986,
+    "sha256": "afdc3d3222a55e4ae61eec51bf3a7576cfdbe0ab21628311fc0d8f48f23df456"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_agent_runs_wait_for_a_free_slot_ticket_steps_first.xml": {
+    "bytes": 378,
+    "sha256": "d73f5a2a0314b1d8b0e1c0618590326c5625ad91e064cab9cf2ce7f1a07a5783"
+  },
+  "shard1/tests__test_run_early_stop.log": {
+    "bytes": 1237,
+    "sha256": "233167e3907a78416b5db56fa59d6eec14b170db4f7c8a1f5e030979b9a8605a"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_change_is_split_by_file_built_and_diagnosed.log": {
+    "bytes": 7701,
+    "sha256": "e1b4ff301005c08d9643dd5686cea1fbc698a6b2f6ae312f133949faf262e205"
+  },
+  "shard1/tests__test_scoped_boards.log": {
+    "bytes": 811,
+    "sha256": "407722fce08e49b74c1ccd2e0c2798f3a216a977f05d8f1a308c1742a162be6c"
+  },
+  "shard1/tests__test_development.xml": {
+    "bytes": 1809,
+    "sha256": "d6db7a8cff73950bbdf32e496e20420327a7adb516aeb5609a9cca97315f705c"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_port_in_use_is_reported_not_crashed.log": {
+    "bytes": 8744,
+    "sha256": "4744f636c8d2e363ae923be15ecbb5f6f4a21efb54cc863770f13c6ac01537af"
+  },
+  "shard1/tests__test_intake_wall_clock.xml": {
+    "bytes": 624,
+    "sha256": "8cd688d50fa4cdd3af13788e739800fea29a6ec70921075858c3c2d3f9eb18d7"
+  },
+  "shard1/tests__test_project_job.log": {
+    "bytes": 810,
+    "sha256": "18d2b44cb4899d6bca63ab9d2e1f828a2f82e6a81139aa38119c53335a6aaea9"
+  },
+  "shard1/tests__test_managed_run_registration.xml": {
+    "bytes": 906,
+    "sha256": "70a52289e5c12df5d5b226c9d21485c05493c3ed02e4d97faf2e90b0b908a8d2"
+  },
+  "shard1/tests__test_supervised_process.log": {
+    "bytes": 3962,
+    "sha256": "cecc5c5797b78f866395929938feed52aa37911a1ea5915551d9916224a0aeba"
+  },
+  "shard1/tests__test_ui_learning.xml": {
+    "bytes": 3649,
+    "sha256": "0e40398256de089d6848c1828f9d01ec1e64ef5e837931d6313b86b16f023c59"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_fix_gate_keeps_test_edits_and_deletions_for_people.xml": {
+    "bytes": 378,
+    "sha256": "d2fd458276226c99ff5141a913c301eecb75d7cb30bda0d08ac106adf7eefec3"
+  },
+  "shard1/tests__test_learning_lesson_inputs.log": {
+    "bytes": 3503,
+    "sha256": "ca50949d400b2abdef3aefe4ea8f3ec64bee347dbf5bb7a4aba01b3eba30468e"
+  },
+  "shard1/tests__test_learning_context.xml": {
+    "bytes": 1829,
+    "sha256": "d018622403817fdc7710070e59bd525f44bdc7cff13053a4bf20c9643e521011"
+  },
+  "shard1/tests__test_rsi_proposal_root.log": {
+    "bytes": 4095,
+    "sha256": "44be9b5e6bb4276f7f9633b8a4a4224409019110c66c04939b0f6746ca3982e1"
+  },
+  "shard1/platform-collection.log": {
+    "bytes": 5776,
+    "sha256": "6f86dde31522bae5ff8c56be80c248bea1e7ff90b3f757cc4941b19ce5d92ac6"
+  },
+  "shard1/tests__test_tenant_parent_loss.xml": {
+    "bytes": 1379,
+    "sha256": "379e489a85576ee302cfaf05cf3195620cf4912ae6e5d18ee47e79b6a0f61850"
+  },
+  "shard1/tests__test_project_verify.log": {
+    "bytes": 133011,
+    "sha256": "0d323170fa86ffcc803641e21c9c14a5908f51ee3b9c2236175651352c2ebe6f"
+  },
+  "shard1/tests__test_ui_project_learning.xml": {
+    "bytes": 728,
+    "sha256": "1255194b7f27e525e45e2a10666df8a65ee27ebf41f0998b1610e61736d4821e"
+  },
+  "shard1/tests__test_recheck_operations.xml": {
+    "bytes": 5445,
+    "sha256": "efa494ccf10e80d11a0cb39b2fe2817e7169627fc102b1955bd1b83f3949b4f8"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_agent_runs_wait_for_a_free_slot_ticket_steps_first.log": {
+    "bytes": 2616,
+    "sha256": "24fa2731b966a0f30806fec50e6e5b2f1efade9c343ab034aac15c8f82434f1b"
+  },
+  "shard1/tests__test_run_early_stop.xml": {
+    "bytes": 882,
+    "sha256": "c866680bf089a1df605b0aec231003c1ee7f03b6b8bdfded12860e9899386cb8"
+  },
+  "shard1/tests__test_learning_experiment_schema.xml": {
+    "bytes": 947,
+    "sha256": "f07bfa38e56b05a962e80689ad5942118c206e172a6da04b81169c9c447aab73"
+  },
+  "shard1/tests__test_project_artifact.log": {
+    "bytes": 7536,
+    "sha256": "4f20c4fc6182fb6ebe7b841887182de94913783d259e4a61bf2af2fba19541fb"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_kb_views.xml": {
+    "bytes": 336,
+    "sha256": "4c78720c429e3c54317d7e153206da8408103717f5c1e17d871ca3c26ec51af7"
+  },
+  "shard1/tests__test_tool_access.xml": {
+    "bytes": 3885,
+    "sha256": "22deaffab96a0cb9d5394ef9156213b7610c292e390478ab9a98c7d585199a64"
+  },
+  "shard1/tests__test_github_import_retry.xml": {
+    "bytes": 515,
+    "sha256": "8e96e175abffe54fb9377832691d657d2ce40334e2deb9ac336d532c5f238f25"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_timing_counts_the_time_lost_reconnecting.log": {
+    "bytes": 729,
+    "sha256": "56914b4cf6e6790911bb5888c4621fe0786b65856257526bb72b17cca2771ee7"
+  },
+  "shard1/tests__test_coordination.xml": {
+    "bytes": 4514,
+    "sha256": "be2239dcb001bad1509216a4937b15e2b2a5e40f1cce57be50ee951570ce05c5"
+  },
+  "shard1/tests__test_code_review.log": {
+    "bytes": 1930,
+    "sha256": "7b40c097831f8216c4190529565900dd53c721866dc648f187fdd2c86cecc783"
+  },
+  "shard1/tests__test_delivery_coverage.log": {
+    "bytes": 11523,
+    "sha256": "dfd29d50fbaba784856d9a0af087cba3c0fbe29dd0b3dfa3c27a833fe564d508"
+  },
+  "shard1/tests__test_lesson_selection.xml": {
+    "bytes": 2682,
+    "sha256": "8b95061a9b91c288eefdfa4f10c731dfb641a3424cdce75894b11aee1d0df241"
+  },
+  "shard1/tests__test_pilots.log": {
+    "bytes": 4012,
+    "sha256": "234f94873e17750486b2b979d9f17c92f468510d34c809c9188011843065aec1"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_similar_metrics_overrule_and_bot_api.xml": {
+    "bytes": 364,
+    "sha256": "d2049a69f8fa4fd1427c11e795155d382b59c35588935bb81be948fbe4c223de"
+  },
+  "shard1/tests__test_platform.py__PlatformApiTest__test_a_change_is_built_again_without_being_redone.xml": {
+    "bytes": 374,
+    "sha256": "12155592e6340f30bf7fa8ac40d19cc883a19ea2be152bba95ec368fa63f2778"
+  },
+  "shard1/tests__test_rsi_local_eval.xml": {
+    "bytes": 3424,
+    "sha256": "50393b7351d92d499a8742ea21a4293244c4261456c477138c235b0740048cb8"
+  },
+  "shard1/tests__test_workspace_handoffs.log": {
+    "bytes": 1769,
+    "sha256": "63dfe1a5032c27ceaab5f3e6b3a04703b64f09b23ab110b983d87a61f8f50b85"
+  },
+  "shard1/tests__test_harness_probes_independent.log": {
+    "bytes": 32028,
+    "sha256": "e478a26d4edb786f33d1e19638635e6d820ea3b74f92ac8f50371075934ba223"
+  },
+  "shard1/tests__test_web_assistant.log": {
+    "bytes": 1780,
+    "sha256": "a8855e2dd0328fc3df54a25951d4e574def550f141b43f0c88a27d58a73beffd"
+  },
+  "shard1/tests__test_ui_agent_routes.xml": {
+    "bytes": 875,
+    "sha256": "388a909a3271fc701ab50d1fc462a27e66bbbaacea9b0246a8bf8c00eded4b27"
+  },
+  "shard1/tests__test_agent_api.xml": {
+    "bytes": 4256,
+    "sha256": "b4dd716646262d766d5f3dc03813fe8ef208070cf1fe9678877a55c7fad9e02a"
+  },
+  "shard1/tests__test_rsi_controller_replay.xml": {
+    "bytes": 5385,
+    "sha256": "f36c586b845a4d09a6569267a5e654a33f101b40ec36f0b56d49e0b5cff23794"
+  },
+  "shard6/tests__test_run_steer.xml": {
+    "bytes": 1044,
+    "sha256": "60f55b0a2c3405da55c621bcc1809c2b6a94c41192e7480785d7572a787330b2"
+  },
+  "shard6/tests__test_ui_memory.log": {
+    "bytes": 2591,
+    "sha256": "39827b2365bd06ad10be5ec6c574ec1c26227bb88b83c6152e2893ff752fa52b"
+  },
+  "shard6/tests__test_rsi_http_framing.xml": {
+    "bytes": 7876,
+    "sha256": "18ce26dfc5326e4d615ec95063bb468ec9b74a7920e2fc4f1f99de0a13fa252e"
+  },
+  "shard6/tests__test_comment_idempotency.log": {
+    "bytes": 2968,
+    "sha256": "69193432fa17a4fee06fa0fca11b32f3319025def7fcc9267b23134ceb12b1a2"
+  },
+  "shard6/tests__test_process_control.log": {
+    "bytes": 3487,
+    "sha256": "130c22ce93317b417b7fe9f2e68b977a10b0dd5106ec6d0a564e25c797ff257a"
+  },
+  "shard6/summary.json": {
+    "bytes": 39943,
+    "sha256": "a2f4006ae1dd24df522e1752f8fc717de8fb99eb735712f51236b7a2f4c712de"
+  },
+  "shard6/tests__test_lesson_input.log": {
+    "bytes": 2061,
+    "sha256": "5e3006b5fe552cf0c196e906e4349486837ac9a52ebda882da6841c57bb66981"
+  },
+  "shard6/tests__test_ui_time.log": {
+    "bytes": 16026,
+    "sha256": "36fced2e598b2b33f7ccec950e9ce647163c6ab8c5e3f13612c4fa01917f4628"
+  },
+  "shard6/tests__test_project_run_registration.log": {
+    "bytes": 30714,
+    "sha256": "595c206223ffa0bb45e3142981e088b9590f019d64c211e2aeb87d18fed13c5c"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_big_requirement_size_warning_is_logged_before_children_without_blocking.log": {
+    "bytes": 791,
+    "sha256": "7ef09451c0daaa01dedf3a885454d7ba5832a0e4b765adee6118f86ffe48b57a"
+  },
+  "shard6/tests__test_filelock.log": {
+    "bytes": 2460,
+    "sha256": "5af42345f0dbe97a55787f2f8f2891c66ac511321aeb1b6bf7f5df1ac9ede958"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection.xml": {
+    "bytes": 396,
+    "sha256": "0ca48a1d194716fcbd4c100987d53e0ac79f196ad9f9d46579895b501f541776"
+  },
+  "shard6/tests__test_criterion_evidence.log": {
+    "bytes": 2417,
+    "sha256": "eeb978081bd9850bbc0f6966bb9e60c5259ebaa755062dd2999f9f4d0178ca25"
+  },
+  "shard6/tests__test_ai_accept.xml": {
+    "bytes": 3709,
+    "sha256": "6b49f99d5fdf3206ee6a4d9ca9c8e0ccf9f7ad2084d1e00e45425981bbb31378"
+  },
+  "shard6/tests__test_handoffs.xml": {
+    "bytes": 3820,
+    "sha256": "0e82a8581b2cf8c90aaab56818e19aea3bc3712e3d51e0445cd866568820bb30"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_ticket_pinned_to_an_old_commit_runs_on_that_code.xml": {
+    "bytes": 378,
+    "sha256": "1e6d5beb54e26918c53eade729e378336f949280ecdb6a37879e3244e6854265"
+  },
+  "shard6/tests__test_learning_experiment_budget.log": {
+    "bytes": 2312,
+    "sha256": "6713014bf9ba1ec51f2c1c64140ce68287f662a75460c802f41b8bd95b728fe6"
+  },
+  "shard6/tests__test_workbench_mcp.xml": {
+    "bytes": 14804,
+    "sha256": "3081f061ea65fe9f9ca5f589cc504a78dc879f603f78e31c6de62dd9e3315451"
+  },
+  "shard6/tests__test_learning.xml": {
+    "bytes": 1620,
+    "sha256": "48a83d13ca5f347e21e2a9b9f6598b6be6b20b2dfed9965c2bab75c381ae2f3a"
+  },
+  "shard6/tests__test_learning_input_capture.log": {
+    "bytes": 2834,
+    "sha256": "75490de15eaf1bd072d6f29d50be062ae8bdac1ae6c2bdb22ba477acd8b08640"
+  },
+  "shard6/tests__test_deploy.log": {
+    "bytes": 780,
+    "sha256": "3f4f523cb24554e0445172d0c0dc54894c5ad3c3cf295a3ceb490b066388ced3"
+  },
+  "shard6/tests__test_rsi_token_budget.log": {
+    "bytes": 2979,
+    "sha256": "5047dd6ad334d2dc9e1611ac56ba932056cb86e57f1448d3562507a3c795f326"
+  },
+  "shard6/tests__test_stage.xml": {
+    "bytes": 2553,
+    "sha256": "00d413ebcbce830a10b96d88a8f2ab8ad7bc78e418a66d9b387056976bbd2ed4"
+  },
+  "shard6/tests__test_ui_dialog.log": {
+    "bytes": 1296,
+    "sha256": "68e48aedd53840a2ab5642aa1086b6d0d9bd1a056b9177cf76977728da7eb45b"
+  },
+  "shard6/tests__test_rsi_native_registered.xml": {
+    "bytes": 11061,
+    "sha256": "1af31209e46acee4dccd65eb05abc5cfe09e43e831309b4f75036bf983ab7997"
+  },
+  "shard6/tests__test_repo_sync.log": {
+    "bytes": 2280,
+    "sha256": "6935e544ddd99b1b973aa34eec4d3c13f6a4739f6549a45f0b0dd585bd6721c5"
+  },
+  "shard6/tests__test_python_pathmap_ui.log": {
+    "bytes": 2204,
+    "sha256": "28c345cd0b7bfa638c650577eaaee933a4e921f92c8dc7d7d2c31e279cd01053"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_a_review_event_with_a_stale_verification_read_is_polled_again.log": {
+    "bytes": 771,
+    "sha256": "baa6e3c2cc519c462ceea8743fa8e53dbe7fd51297792c25df73764073e7ccc9"
+  },
+  "shard6/tests__test_org_knowledge_api.log": {
+    "bytes": 1803,
+    "sha256": "7e61684878286556bc8755b49c8e2513d948023963318d366205367c77b37ddd"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_a_big_requirement_goes_from_a_spec_to_children_in_batches_and_an_overall_acceptance.log": {
+    "bytes": 815,
+    "sha256": "eb364f2b26628cac403d5762a99f04c7705aeb15c1f759d6090d81e72291cf60"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_new_ticket_flows_to_doing_by_itself.xml": {
+    "bytes": 364,
+    "sha256": "5119961575e9187a44a47305d3d624c5d7838008b2b2c37dfa976ed1f2fa7461"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_inbox_lists_what_waits_for_a_person.xml": {
+    "bytes": 363,
+    "sha256": "9f47fb6e50fa391844c4571b2f1e83a47176cfb055e2917db9572d14b25390a1"
+  },
+  "shard6/tests__test_tool_read_history.log": {
+    "bytes": 1732,
+    "sha256": "c1dcfdc692479f89f11d98a9d6e4681aa65e18cd53c7d8d3745c93d7dbde8a16"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_evidence_package_sign_off_and_ledger.log": {
+    "bytes": 6764,
+    "sha256": "5f64967d2d37a423ecd07dd402138a33eccbfc2d4fe0736e5cc9bdc858dacaec"
+  },
+  "shard6/tests__test_tenant_gateway.xml": {
+    "bytes": 7413,
+    "sha256": "7e8207e3abe2f352453c2ea6fda380ed8a118a9e4738534b45ac6dc9900a11ee"
+  },
+  "shard6/tests__test_intake_recovery_api.xml": {
+    "bytes": 3348,
+    "sha256": "763577d84e87b0462cd2f331b23e7cb875396d987300316519e8cbd60ecfd011"
+  },
+  "shard6/tests__test_library_review.xml": {
+    "bytes": 5529,
+    "sha256": "0e54459ea4cc1387571a7bc69b6d07d24ca85c5665b815ae6e9d7fd1bc437e74"
+  },
+  "shard6/tests__test_project_client.xml": {
+    "bytes": 17834,
+    "sha256": "0c5bf72cb59c8e8288a22b8c4520aa4e2e118ab0334ea3707ff5cb7b60a97ff0"
+  },
+  "shard6/tests__test_ui_dialog.xml": {
+    "bytes": 1120,
+    "sha256": "55087c0d9db458ed9a38f089ec75201ac9a46c46cebf699c2d50baf6b3b4dc54"
+  },
+  "shard6/tests__test_repo_sync.xml": {
+    "bytes": 2350,
+    "sha256": "1ac84110c199e92f861110d9dad2aafacafb406c4b0b0c576819e4b729e2b8e9"
+  },
+  "shard6/tests__test_python_pathmap_ui.xml": {
+    "bytes": 2164,
+    "sha256": "0fbf5472abffe67767ace4501bb5a4934db108856ab0b5744aeab0bfa8fc1da2"
+  },
+  "shard6/tests__test_rsi_native_registered.log": {
+    "bytes": 7123,
+    "sha256": "8e655ddd84099f8a702f156721f37a75f867e1ca3d182da0fb5a171d7e2e9e5d"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_a_review_event_with_a_stale_verification_read_is_polled_again.xml": {
+    "bytes": 391,
+    "sha256": "8c889c5253b5ecc77baef285dec423c90eec82c9fda1ecb1709ca8584bf07a4c"
+  },
+  "shard6/tests__test_org_knowledge_api.xml": {
+    "bytes": 1599,
+    "sha256": "081b26839f2e3849b42f2ca2965a71f024903a8f21087eff5c4fc72b37057254"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_a_big_requirement_goes_from_a_spec_to_children_in_batches_and_an_overall_acceptance.xml": {
+    "bytes": 413,
+    "sha256": "5a7e17eafe3f3461f6658be59f1608a2404644adcc91d5543816b2568a967828"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_inbox_lists_what_waits_for_a_person.log": {
+    "bytes": 719,
+    "sha256": "8b67a77d4b5b1c600d44e44f3aac59d747fe701162fb4e6febbe5c0a7f4d6002"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_new_ticket_flows_to_doing_by_itself.log": {
+    "bytes": 719,
+    "sha256": "5933ab96881e9bd726dc5eb4d7ca6a501ef87075e98cb790276ad9649baa1d43"
+  },
+  "shard6/platform-collection.log": {
+    "bytes": 5776,
+    "sha256": "4e826fa38d88fa6b8195b36ab647618752bec5359eabfee748d992b566365712"
+  },
+  "shard6/tests__test_tool_read_history.xml": {
+    "bytes": 1044,
+    "sha256": "095ba3c34329ad1e12963265604bbf2184da8a60052aee234407fcde1e719c13"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_evidence_package_sign_off_and_ledger.xml": {
+    "bytes": 6480,
+    "sha256": "6060d29def9704b1dbc508edd98eda52cc6cdf1e350e25b2a3645fe0a2994dc1"
+  },
+  "shard6/tests__test_tenant_gateway.log": {
+    "bytes": 4797,
+    "sha256": "f49c98995f1d90f1d2ef3eab1aa50ec17bb64e4130062536b532f407e0c45193"
+  },
+  "shard6/tests__test_testbox.log": {
+    "bytes": 1540,
+    "sha256": "c09a30e2b560cfc307d2fc7ae1c685667f0920b884a2fd7b5035566383a7e03e"
+  },
+  "shard6/tests__test_library_review.log": {
+    "bytes": 3736,
+    "sha256": "1a57fe9f87387755b13185e0fcdf40a664985b8a0fa28413a1d0bfa050c78eeb"
+  },
+  "shard6/tests__test_intake_recovery_api.log": {
+    "bytes": 2543,
+    "sha256": "b93a927fac0926d762e5bbbbb776c6744d3f666931ee438f213333dc255adbb8"
+  },
+  "shard6/tests__test_project_client.log": {
+    "bytes": 17912,
+    "sha256": "d08da660b69fdf2d628b401cbb633f4140a46beb17c2efea16db8f4193864fad"
+  },
+  "shard6/tests__test_run_steer.log": {
+    "bytes": 1198,
+    "sha256": "02d44c71416f7df00c90ee3dc33845a4cd5f648974650de5eac875d8d67712bf"
+  },
+  "shard6/tests__test_ui_memory.xml": {
+    "bytes": 2679,
+    "sha256": "9a6c5b7113cd8a93a2dc6f35422d887573b3459702d9717a79f1edf3a532ef8e"
+  },
+  "shard6/tests__test_rsi_http_framing.log": {
+    "bytes": 5158,
+    "sha256": "ec876c45a415bd5ede69db6ef9b7bba5f62d2521380dc25046cb37b303b3c520"
+  },
+  "shard6/tests__test_process_control.xml": {
+    "bytes": 5125,
+    "sha256": "402da1b42f1607706936a233509760fb7863b1190adf7b5c8f9539b13222d397"
+  },
+  "shard6/tests__test_comment_idempotency.xml": {
+    "bytes": 2641,
+    "sha256": "fc16fe9f39efebb1ec5dc54aa2f94a9f7c0ef185343a23ddf48e3adea34d75dd"
+  },
+  "shard6/tests__test_ui_time.xml": {
+    "bytes": 15861,
+    "sha256": "5b81d8639f18f2a8f664f1dcba3d6a47647de2857572adc84cfcb50aab292709"
+  },
+  "shard6/tests__test_lesson_input.xml": {
+    "bytes": 1883,
+    "sha256": "eda65c5836d56d3ae92ee67fdc33024c5db7b39a41d8f48ae483023602c1b674"
+  },
+  "shard6/tests__test_project_run_registration.xml": {
+    "bytes": 30867,
+    "sha256": "cace719f83b1693a5677f5f81dcbf5222f5454e5781d4a97f641990bd8d9c4b8"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection.log": {
+    "bytes": 785,
+    "sha256": "049b41ed2b08e19eb1694c374933e31d317feeb2daf2f09ce7050832e8fa2b52"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_big_requirement_size_warning_is_logged_before_children_without_blocking.xml": {
+    "bytes": 399,
+    "sha256": "75aa2f2660f5c10e0d0d23bb498c0dced39dd6cc552b5494f897fe7701936412"
+  },
+  "shard6/tests__test_filelock.xml": {
+    "bytes": 2672,
+    "sha256": "e9ad30db7b05df4e300f7c7beff9d83b47e83a124b853a0e9dc504015a1b1e23"
+  },
+  "shard6/tests__test_criterion_evidence.xml": {
+    "bytes": 2277,
+    "sha256": "c589fbf3154e7c0e3972a1495457cbdda5fb7d6594bea46d6ff4e918a53d17cd"
+  },
+  "shard6/tests__test_ai_accept.log": {
+    "bytes": 3960,
+    "sha256": "eb13e8b05871bceea3aa09b81fec48c1959fc0dd05cbacbcaa91fdf50219d349"
+  },
+  "shard6/tests__test_learning_experiment_budget.xml": {
+    "bytes": 2117,
+    "sha256": "5e2c90affd15755a307fce0dcea07cf932c3a68a362a72fcbff1f3edcea47614"
+  },
+  "shard6/tests__test_handoffs.log": {
+    "bytes": 3514,
+    "sha256": "fd69b7ef8012c5848f5658484c55d0d9912db6a9729064f27ab628386d57d5b1"
+  },
+  "shard6/tests__test_platform.py__PlatformApiTest__test_ticket_pinned_to_an_old_commit_runs_on_that_code.log": {
+    "bytes": 745,
+    "sha256": "b301de7205ea056f5fd3f5df093aea4cd883b9beee5f872d11a7155fd45a57e4"
+  },
+  "shard6/tests__test_learning.log": {
+    "bytes": 2016,
+    "sha256": "f1674d7aafef15fe747b161fcbd99ac0bef6201ea0da8b74edc2aafd97ea4fbf"
+  },
+  "shard6/tests__test_learning_input_capture.xml": {
+    "bytes": 2266,
+    "sha256": "609dc125c1c900fecd4082fdd59250c66e95e9d5d1a042f8c6d0d31bfca0581d"
+  },
+  "shard6/tests__test_workbench_mcp.log": {
+    "bytes": 14048,
+    "sha256": "7ebad530e057a963f7b42d491b85f16387e2e9b77a979a58237d6b725615f62d"
+  },
+  "shard6/tests__test_deploy.xml": {
+    "bytes": 511,
+    "sha256": "b10d1452e011dbb8be043df09218286650fa10e3fd85e7e6e70e649c111d6e02"
+  },
+  "shard6/tests__test_rsi_token_budget.xml": {
+    "bytes": 2989,
+    "sha256": "49957e65cc69b7a3d1f275288f3c397b5d4180e418ea544c6c84768ff5de4ea3"
+  },
+  "shard6/tests__test_stage.log": {
+    "bytes": 2406,
+    "sha256": "1b58398ce987d6f2cf7146840056fba21964f2aae378ea016e6096637cb7411b"
+  },
+  "shard3/tests__test_ui_runs_list.log": {
+    "bytes": 1214,
+    "sha256": "bf5757f97ff22ccc8665d43f9e641e45276ec7a2cf3e2d8a49fe260570978007"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_each_project_can_have_its_own_size_limit.xml": {
+    "bytes": 368,
+    "sha256": "d58d4e957523f1b00b59ae44401103c571c03daff6b3f2deb139601f441364b7"
+  },
+  "shard3/summary.json": {
+    "bytes": 39748,
+    "sha256": "9ff51d226d8b498346eeb92320af369c21ad4f5686b1ff927a3b8514eeb60897"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_full_project_analysis.log": {
+    "bytes": 691,
+    "sha256": "b5c833a9c81abf092ea9f9076df24013e25c3d6d00c4c939e31789b771eb8327"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_loop_points_assistant_and_acceptance.log": {
+    "bytes": 721,
+    "sha256": "69f55b0c79d9817e1299f2659bae81566b0c001ef0f8ef5e216bf494d9bf4c31"
+  },
+  "shard3/tests__test_project_mcp.xml": {
+    "bytes": 27341,
+    "sha256": "5dda585b6042ed831aa1f857ffa5cb8bba64188eaf94b684d7131fd597dd7b2d"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_question_words_do_not_steer_search.log": {
+    "bytes": 717,
+    "sha256": "ed71f96e3e05aeb486e38d16666e2dd5c6a73a9d91bb9554e4e1957f6176c469"
+  },
+  "shard3/tests__test_tool_execute_gateway.xml": {
+    "bytes": 626,
+    "sha256": "40631245761fc28026eb260160c5fdcb67e5f97f2f02dd328f2ed36f0104c5d5"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_a_person_writes_it_pushes_a_branch_and_the_platform_checks_reviews_and_ships_it.xml": {
+    "bytes": 614,
+    "sha256": "c642dca0bb23f5c558f16bfe02e9ef44e9b00324dd2e6994661637f482f47fb3"
+  },
+  "shard3/tests__test_jenkins_ci.xml": {
+    "bytes": 1459,
+    "sha256": "d4528381a761200713fe268d837a6c2845ab446f9016d00779d87c5242582fa7"
+  },
+  "shard3/tests__test_pinpoint.xml": {
+    "bytes": 589,
+    "sha256": "f105de58bfe1c1ec1021577dfdc0a7bce831e41db5b73967287a785f3079dc09"
+  },
+  "shard3/tests__test_intake_handoff.log": {
+    "bytes": 1657,
+    "sha256": "cca9854733d5a5bcbd06e412ed59b5c246c289d167fe43bac101b8a9c5606e8c"
+  },
+  "shard3/tests__test_run_lifecycle.xml": {
+    "bytes": 6675,
+    "sha256": "f3cca0d9a2246bc4d31618072c644e69cb0052390d7dac9fa102565ed96ee285"
+  },
+  "shard3/tests__test_native_learning_ui.xml": {
+    "bytes": 722,
+    "sha256": "3685adefaa988409ed256b0c0966dc015a32a3969410513fca5689fa7d91e382"
+  },
+  "shard3/tests__test_ui_architecture.log": {
+    "bytes": 1034,
+    "sha256": "51375ab81c710458cb6ab25a531aa2de8a41e74613a3db6bd33e15e8e1f4977f"
+  },
+  "shard3/tests__test_distribution.log": {
+    "bytes": 816,
+    "sha256": "b88829b50e44ed46a66c5e263b6af3f6252a2291b45e580de8e05f13348e1df3"
+  },
+  "shard3/tests__test_signoff_delivery_binding.log": {
+    "bytes": 2981,
+    "sha256": "0f226cc036ed0ff5e04a2f33b959e1d3b0d4fd69dbcf9af22c702e327e0aacf2"
+  },
+  "shard3/tests__test_learning_experiment_views.xml": {
+    "bytes": 3594,
+    "sha256": "7e0a8adde96f3dbc389619e04dcfc41249c676e19d4ddefaa52265c11c855dd5"
+  },
+  "shard3/tests__test_agent_receipt_migration.xml": {
+    "bytes": 926,
+    "sha256": "6c729df3e84f340778fe6cc77af9ceec0420e60ef3e9c0c05f6bccdfdc602151"
+  },
+  "shard3/tests__test_learning_eval.xml": {
+    "bytes": 2003,
+    "sha256": "3c80f095656c598105aa8889077f800389e8f3ae573edf49c0d95047e121e63c"
+  },
+  "shard3/tests__test_project_bootstrap.xml": {
+    "bytes": 36743,
+    "sha256": "d5fea80ce7539b67cce57f939c1a83a4e80576d8837f85f15d58743d8fe10ac9"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_an_accepted_change_is_merged_given_a_version_and_a_conflict_goes_back.xml": {
+    "bytes": 399,
+    "sha256": "489aa154f62b6c9663cd0266ff7b80eb65ba257c8572c10042e585a8ac5c676e"
+  },
+  "shard3/tests__test_recheck_signoff_ui.log": {
+    "bytes": 1474,
+    "sha256": "ac476e8751eb740184020d3a47a4abd162f4e9e21d6853bc79577c84470ba1dd"
+  },
+  "shard3/tests__test_ui_legacy_lessons.xml": {
+    "bytes": 1445,
+    "sha256": "8284e5c229a05a298a5bb88e84587350d30fb8671e01e69fa21ec866920cb696"
+  },
+  "shard3/tests__test_tenant_policy.xml": {
+    "bytes": 4819,
+    "sha256": "2e9ad90158cd8df7ee53f223cf601729a79e03070fc292719cb93c2bc757cf36"
+  },
+  "shard3/tests__test_crash_recovery_api.xml": {
+    "bytes": 1628,
+    "sha256": "c63e430a8c38df9cffb06a4c930acba268110546353fb0717feda1a7cdaa4062"
+  },
+  "shard3/tests__test_library_boundaries.xml": {
+    "bytes": 4512,
+    "sha256": "aaf9301c69b86f30a9e66f4be24fcc747bff6dd9458ab85f7457a6c668e7fd72"
+  },
+  "shard3/tests__test_rsi_finite_execution.xml": {
+    "bytes": 5135,
+    "sha256": "6541be11375f3c45783ab1e6c5768875e15e438eec388feac102884e61fceb73"
+  },
+  "shard3/tests__test_rsi_registered_isolation.xml": {
+    "bytes": 5371,
+    "sha256": "38ad8ed576e1af01822037ea3669dca1104451dcdbd792e982d31125fade0d92"
+  },
+  "shard3/tests__test_delivery_source.log": {
+    "bytes": 2095,
+    "sha256": "53ffd51c96585932ac360696659c5d444f672f8ff8daf3f34d7e70ba35c1b297"
+  },
+  "shard3/tests__test_rsi_native_bc_report.xml": {
+    "bytes": 7100,
+    "sha256": "669ecf3346eb20b0548c0dcab2af00022b115fcb17f3384c2c79bfcfc8a6d055"
+  },
+  "shard3/tests__test_team_workspace.log": {
+    "bytes": 5475,
+    "sha256": "d9a5f4d00cfc8cb2ca3797ef169f043bedbbdc333b30b7c8305ed51b617df804"
+  },
+  "shard3/tests__test_preview_health_independent.xml": {
+    "bytes": 1767,
+    "sha256": "c3ec99d47d3451eb68578e0c9db6b46ef9106262f45e23617475ab8fca64d3b3"
+  },
+  "shard3/tests__test_command.log": {
+    "bytes": 1089,
+    "sha256": "701bcb19da4cf88480e5a8eb1762cba1d0d85fd0c84eda8584355cbeb6621898"
+  },
+  "shard3/tests__test_workbench.xml": {
+    "bytes": 6997,
+    "sha256": "289c275bd7cfa15fe08e57de4f4bc5646446a61ff24b3dff6194cdb1b4fdc268"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_the_panel_reads_the_question_before_searching.log": {
+    "bytes": 739,
+    "sha256": "c9d338d3d2cfafa2dd1ad397680aa582cf98e45abebe2e4c080bfa21932700dd"
+  },
+  "shard3/tests__test_python_flows.log": {
+    "bytes": 2551,
+    "sha256": "2f8bc6870faeb332a54f160d4d3d941caca5fba1f184ca715cc6410ae1900fba"
+  },
+  "shard3/tests__test_learning_sessions.log": {
+    "bytes": 3073,
+    "sha256": "559b636cb249912721935e51193025806358aae21b1a6eecdeaaacbb92900564"
+  },
+  "shard3/tests__test_habits.xml": {
+    "bytes": 2361,
+    "sha256": "a80c06d4a74c0afae0976a790e4596f3b34d386a7bceca66466b5cb3d701183e"
+  },
+  "shard3/tests__test_learning_eval.log": {
+    "bytes": 2038,
+    "sha256": "e92dd2700ecb0ddeff0d1d8b3575b34dd97227be21b63e61131f171751221827"
+  },
+  "shard3/tests__test_project_bootstrap.log": {
+    "bytes": 36349,
+    "sha256": "62c87c403ed66b20a137cbce2e57ab3e5ca2462d84b0794dc089995ce9352fa8"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_an_accepted_change_is_merged_given_a_version_and_a_conflict_goes_back.log": {
+    "bytes": 787,
+    "sha256": "0e6201824fa9c1f20906ea2d83a5f0e11ae44dd733f5cb1b4be49f73e7e80f75"
+  },
+  "shard3/tests__test_recheck_signoff_ui.xml": {
+    "bytes": 1289,
+    "sha256": "43a80978d15f3ff044aade5dfbe499873c016f84845d9f6a3173db2f0e2560a2"
+  },
+  "shard3/tests__test_ui_legacy_lessons.log": {
+    "bytes": 1581,
+    "sha256": "8ab13639d6c6dbd63306ffc5fb6ce55a06094f6af882257c886c0265f36eeec3"
+  },
+  "shard3/tests__test_tenant_policy.log": {
+    "bytes": 5257,
+    "sha256": "c968715f1757619a74f1d157ac4254696a24ff2bd267c8f7484fdde8be25f01f"
+  },
+  "shard3/tests__test_crash_recovery_api.log": {
+    "bytes": 1757,
+    "sha256": "0c22cc37d64808d4fdc6b0055342428fbf3a99009348220a9f0cd3b03e4bff01"
+  },
+  "shard3/tests__test_library_boundaries.log": {
+    "bytes": 3171,
+    "sha256": "0383d6a24e4721c36c7b83912d3918b3a536a23e21c411e88c5461725e4a6cdd"
+  },
+  "shard3/tests__test_rsi_registered_isolation.log": {
+    "bytes": 3798,
+    "sha256": "cd379c4e4613a9a1d448d69d4aacfba7458dd2c52a71da2fbbd60b50a0146bc4"
+  },
+  "shard3/tests__test_delivery_source.xml": {
+    "bytes": 1930,
+    "sha256": "1614497a8fa06c6b1df1b8c4cc8e71512c08f38cd3743675675e1d7356bf9bf3"
+  },
+  "shard3/platform-collection.log": {
+    "bytes": 5776,
+    "sha256": "6f86dde31522bae5ff8c56be80c248bea1e7ff90b3f757cc4941b19ce5d92ac6"
+  },
+  "shard3/tests__test_rsi_finite_execution.log": {
+    "bytes": 3530,
+    "sha256": "75500588482dda7d681adccc43bcd8284cb2dee829932512980f5a4d6112bd49"
+  },
+  "shard3/tests__test_team_workspace.xml": {
+    "bytes": 5809,
+    "sha256": "de8eca7530a0d29732c194eacb14f25effa685300c87b2d5acc5096c27eb8f36"
+  },
+  "shard3/tests__test_rsi_native_bc_report.log": {
+    "bytes": 4695,
+    "sha256": "f708de85bf5f6f03e552e4d7a63e0e114574a00ae025a48418922ed9deae8284"
+  },
+  "shard3/tests__test_workbench.log": {
+    "bytes": 7195,
+    "sha256": "8e41db495a4b812c0f3fe697a19b1743c0f44f190d8d29d034c7c7f172153284"
+  },
+  "shard3/tests__test_preview_health_independent.log": {
+    "bytes": 2142,
+    "sha256": "cbcea67de671c40bb6c6adf8806b14cc2d9bc6cf3fc9be3b63e7e5df9cffedd3"
+  },
+  "shard3/tests__test_command.xml": {
+    "bytes": 915,
+    "sha256": "46d0d71255578045a0a04cfd018040bd0a0873d0f1e908d140db0acbb043d8e4"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_the_panel_reads_the_question_before_searching.xml": {
+    "bytes": 373,
+    "sha256": "c7eafd154ebce2bffba62ea2bc4564ed31e20287e697e77aa7c2fc95074f9021"
+  },
+  "shard3/tests__test_python_flows.xml": {
+    "bytes": 2365,
+    "sha256": "e061d506a65cb4d35550e6ff417a52b121682b64a95eced3a31ddca6f3a73d84"
+  },
+  "shard3/tests__test_habits.log": {
+    "bytes": 2293,
+    "sha256": "f70b9dc12bb03b8a1e3ff28aa381795bb3d781d2e3c44e3d0665bc15b6f963af"
+  },
+  "shard3/tests__test_learning_sessions.xml": {
+    "bytes": 3202,
+    "sha256": "ff86d5a557bee8984253231a8a08563fd0f216d37fd734d7cbbc6576431367b6"
+  },
+  "shard3/tests__test_ui_runs_list.xml": {
+    "bytes": 1011,
+    "sha256": "53ee9353c05da300e8bb6e3b43475ffb43ed3164660164e6ccd26f561d9c1dfe"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_each_project_can_have_its_own_size_limit.log": {
+    "bytes": 729,
+    "sha256": "2dec6e34346d354f225b8e210a55dbed5fea5a21649f0ce345298f30a1e780b3"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_full_project_analysis.xml": {
+    "bytes": 349,
+    "sha256": "e8105012e56c49ec1d97812b47576351922d250684c15133f1580559c4449aac"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_loop_points_assistant_and_acceptance.xml": {
+    "bytes": 364,
+    "sha256": "a836e42d7f13848845526391b7132b7a7a028c7f5990de585933df01c307502a"
+  },
+  "shard3/tests__test_project_mcp.log": {
+    "bytes": 27202,
+    "sha256": "a579e841a5b78c63fefbd5ddefbea673b56f8e85a8ab376438c4b89e5e66f701"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_question_words_do_not_steer_search.xml": {
+    "bytes": 362,
+    "sha256": "bd58f892ea18502f96cdcdaafa508531b435a1e2503df20e0ea3705253cdb1b3"
+  },
+  "shard3/tests__test_tool_execute_gateway.log": {
+    "bytes": 884,
+    "sha256": "06c7752c1882676eb21a7718e8f421809fdfd04ead21e552986f10a5e2d27855"
+  },
+  "shard3/tests__test_platform.py__PlatformApiTest__test_a_person_writes_it_pushes_a_branch_and_the_platform_checks_reviews_and_ships_it.log": {
+    "bytes": 967,
+    "sha256": "6957aa1b8d6570d143b0aa0a719420471ad17d970fc545a845d4ef56e8bda5da"
+  },
+  "shard3/tests__test_pinpoint.log": {
+    "bytes": 836,
+    "sha256": "64b0565a4e67d74b1d671f753d215d68380c8badf3fdbbd91f87c4dc529b07af"
+  },
+  "shard3/tests__test_intake_handoff.xml": {
+    "bytes": 1131,
+    "sha256": "ca35d65e2b3d2b721e75c67bc75a3f93a5aee92bec7395eee335cdec115508b5"
+  },
+  "shard3/tests__test_jenkins_ci.log": {
+    "bytes": 1672,
+    "sha256": "6a0b0464f0541bbd7af4331f5272fe345980a40927bc5d2e98aea2c0c70dc450"
+  },
+  "shard3/tests__test_run_lifecycle.log": {
+    "bytes": 4359,
+    "sha256": "e308f4baca11a76d7d98316526b3d68fe3ff0e2066968e8ccc89b0a8848468b9"
+  },
+  "shard3/tests__test_native_learning_ui.log": {
+    "bytes": 979,
+    "sha256": "e3c3a679f612d3d3dcd77213b65867571eaee20d3b1bdf0aef3f19f3aa58bc6e"
+  },
+  "shard3/tests__test_ui_architecture.xml": {
+    "bytes": 804,
+    "sha256": "2e6592bd3e80c25848b738aeb902a55000c813b397034e929f6439ea3cf23efd"
+  },
+  "shard3/tests__test_signoff_delivery_binding.xml": {
+    "bytes": 2886,
+    "sha256": "f01942df6079b8fbcedeacd6e476f09af6c13f1eb52e273226c9f0ea8ff99b1f"
+  },
+  "shard3/tests__test_distribution.xml": {
+    "bytes": 541,
+    "sha256": "8bf5c51091ceb8a0182ae5889ee4bf7604148fb3275e379373bf766ef1683351"
+  },
+  "shard3/tests__test_learning_experiment_views.log": {
+    "bytes": 3964,
+    "sha256": "36f5a64e0b45c5d753e73271967de3633fef77449910d79350f23a8919ccf1f8"
+  },
+  "shard3/tests__test_agent_receipt_migration.log": {
+    "bytes": 1164,
+    "sha256": "fdd5843b3586fb2e6e85b80b7238adda0fdc0a338a6bd153899fb057ffc20dee"
+  },
+  "shard4/tests__test_ops_diag.xml": {
+    "bytes": 2329,
+    "sha256": "fee76d1f02e2fa71d691f031092ddc056995ea226f6b0f3e3e7e1d058ab5360e"
+  },
+  "shard4/tests__test_learning_experiment_adoption.xml": {
+    "bytes": 961,
+    "sha256": "4bda156b853858280ec789cbfae06964a6405265be104e22fefff996915dc9da"
+  },
+  "shard4/tests__test_rsi_native_bc_snapshots.log": {
+    "bytes": 1416,
+    "sha256": "b4fbd3a4efa327a726b7ffb268dfcc08c5f8ec4c6afe424a26f1a6c7123cdadb"
+  },
+  "shard4/tests__test_run_recovery.xml": {
+    "bytes": 2725,
+    "sha256": "67f4fc9a583fc74b56594b4060a4767ab9a947765bda45e5b4a11e442a7a3c0d"
+  },
+  "shard4/summary.json": {
+    "bytes": 39951,
+    "sha256": "5cb46dc3c105258b5514bcfe0eea7850c7f4575a5f5d93bdd76c97eb1dc2f27b"
+  },
+  "shard4/tests__test_crash_recovery_independent.log": {
+    "bytes": 2736,
+    "sha256": "f5258e8a61c1696b692e4ad0776fd207a0dadf0b3ae6c075d5099995f93cdd8d"
+  },
+  "shard4/tests__test_project_candidates.log": {
+    "bytes": 46414,
+    "sha256": "47797f4ad3d5da373ec8f04b3008360f1ac94959dd5c001193a862b793728ff3"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_github_issues_named_by_commits_and_merged_prs_are_imported_for_replay.xml": {
+    "bytes": 397,
+    "sha256": "46d54481beab9e37d1a91e4a7723417a3b570a76f3e22c7aecc3d282e5f87fb4"
+  },
+  "shard4/tests__test_agent_routes.log": {
+    "bytes": 6025,
+    "sha256": "ef2cb441173eba6816e9f3eb82a14c785d0e8928b541aa120b37a9ade8ea9e76"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_a_rebuilt_change_the_diagnosis_judged_unsolved_still_waits_for_a_person.xml": {
+    "bytes": 605,
+    "sha256": "aec19806479b3f8a5c22c02ec5fae36159b918eb27ef67cd0867603f93eb9e21"
+  },
+  "shard4/tests__test_project_merge.xml": {
+    "bytes": 23582,
+    "sha256": "770fb988f89481b202965933e046bf84f1da4375183b7c1eee96fc4287dfd381"
+  },
+  "shard4/tests__test_external_candidates.log": {
+    "bytes": 2724,
+    "sha256": "e316bf50e2c8d1aac31962b17d8f0e719af598de954c02e30a6b55a4b0221cd3"
+  },
+  "shard4/tests__test_lesson_decision_api.log": {
+    "bytes": 4090,
+    "sha256": "22500b19ccf9abcd9248ee4b090d00383c9e497f2850f06dba3748ec5c1bdb28"
+  },
+  "shard4/tests__test_tenancy.xml": {
+    "bytes": 2983,
+    "sha256": "dd2e087ac946931969337c2362bd4b656b15dbb2200ee8088a36818c9724e2a1"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_readiness_checks_the_real_machine_worst_first.log": {
+    "bytes": 7359,
+    "sha256": "02a57eac6ec42139ab385c8497f6c1324ebe37531340911db957dd9063f7e76c"
+  },
+  "shard4/tests__test_library_integration.log": {
+    "bytes": 2521,
+    "sha256": "0e20c5d30d17f2c8ccffacb9bc74e4b3fc5c306065b95d97b2ae0b828aba5c50"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_missing_agent_fails_cleanly.log": {
+    "bytes": 7123,
+    "sha256": "da32fbb193f30cd575c10a683652031900621236f5fa055d0b52d2eb8143c7c5"
+  },
+  "shard4/tests__test_rsi_registered_trial.xml": {
+    "bytes": 5846,
+    "sha256": "40124adb1fc751e96166c7f2b9cc463a6a6365e396772bbaffd40c74e30af18c"
+  },
+  "shard4/tests__test_rsi_finite_native.log": {
+    "bytes": 898,
+    "sha256": "d2eeea8b474ff7f39debc31b1aff49580ac7c3d41ca29289a8464571481d1212"
+  },
+  "shard4/tests__test_tool_gateway.log": {
+    "bytes": 3675,
+    "sha256": "c8cf288a2f2f2fb537f678d827372ca99cef75e8c9db39678bc3a633521acd8b"
+  },
+  "shard4/tests__test_signoff_preview_binding.xml": {
+    "bytes": 1666,
+    "sha256": "0b79d26a78ee8ab96131a55ab8cffbf734e7f1bbe9aa1d3f48c7df8c95a2361b"
+  },
+  "shard4/tests__test_tenant_runner_owner_loss.log": {
+    "bytes": 1146,
+    "sha256": "8374e3e29c54fca8c67a91f8a8dde3a6fa49c9b02e2a0836048334d8b4d40d46"
+  },
+  "shard4/tests__test_platform.py__StoreTest__test_ticket_lifecycle_and_labels.log": {
+    "bytes": 691,
+    "sha256": "9980d0a51cf60a1835dd07c2853d5870abf4fcb5c2c05abc1e0eea3612610998"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_analysis_writes_the_flow_pages_it_touched.xml": {
+    "bytes": 371,
+    "sha256": "e5e94ed2edb3fedee418c7d283405302568a7c9e37462c5961321aa9c06d8bcd"
+  },
+  "shard4/tests__test_delivery_source_runner.log": {
+    "bytes": 167100,
+    "sha256": "7996832ecb3e33ecfac6c48b11359d14633b9979e61ffbb5248cdae6261de04c"
+  },
+  "shard4/tests__test_python_pathmap_api.log": {
+    "bytes": 1395,
+    "sha256": "f8ce274f688eefe2249882c492e3c57b12b14317a61a8c51cc2901b5bf7cd68b"
+  },
+  "shard4/tests__test_recheck_summary.xml": {
+    "bytes": 737,
+    "sha256": "fc1238afc11afdc380fed58570a05236d910033746139ddd1b6b7fb7505c2d75"
+  },
+  "shard4/tests__test_habits_api.log": {
+    "bytes": 1435,
+    "sha256": "a6aa1ef008dcf58426e746ca443b4719581130cdaed595d2c496c6f7da711c04"
+  },
+  "shard4/tests__test_preview_run_binding.log": {
+    "bytes": 27604,
+    "sha256": "352936f9a7a1ddb5a69f0d9b70bfeb8b424b45f06318447c808f7a0d3788b65c"
+  },
+  "shard4/tests__test_jpa.log": {
+    "bytes": 814,
+    "sha256": "ff709c01afe50ab17b66ee2b5395b9927091f0ce3c87f31cdd7daf4152299fc8"
+  },
+  "shard4/tests__test_comment_drafts.log": {
+    "bytes": 1647,
+    "sha256": "e68d0c80187997db09603faf794aa8173b7ded5a668ab7b549a26b5e0c299678"
+  },
+  "shard4/tests__test_intake_llm.xml": {
+    "bytes": 2235,
+    "sha256": "398e35f805a9a69977383605de79183d0e9812675ebc05c8fcc818c802083435"
+  },
+  "shard4/tests__test_workbench_client.xml": {
+    "bytes": 4886,
+    "sha256": "d1e0271eb00e62ff390b5192945a206def6bbbee699246560369b321588196fc"
+  },
+  "shard4/tests__test_ui_ticket_preview.xml": {
+    "bytes": 1183,
+    "sha256": "b6e00242c13f17e65c66f997eff18b7c23f6959be3c329748adacd30cb72d3af"
+  },
+  "shard4/tests__test_learning_experiments.log": {
+    "bytes": 5344,
+    "sha256": "4466bb1271da18e04df8e91e6c21252f3567ac4da259406fcbc8b349fcc3f6be"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_efficiency_metrics_baseline_and_report.xml": {
+    "bytes": 366,
+    "sha256": "af02736d335a3b43f14b549d08b8ab328aaf9d767bb8fa27bd6e4da953f15f4e"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_three_layers_only_meet_at_their_interfaces.xml": {
+    "bytes": 370,
+    "sha256": "4fb85408bdcc19ea68b61d9821fbef5ac30837013e69511e69e1e44f622ee4ad"
+  },
+  "shard4/tests__test_ui_assistant.xml": {
+    "bytes": 353,
+    "sha256": "defbc2cfdabc39246c468c0785ae9284e29826166c474e829a4b5baf0766f9d2"
+  },
+  "shard4/tests__test_ui_lesson_decisions.xml": {
+    "bytes": 10377,
+    "sha256": "de490309a699d876266b826b71997b6c2554576612b37aff4e8b299bff40ee2f"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_analysis_writes_the_flow_pages_it_touched.log": {
+    "bytes": 731,
+    "sha256": "dd1cc684b438aea4eb1d019f6032e7b50849875f7f0cf5f0e70c8adb7f08e023"
+  },
+  "shard4/tests__test_delivery_source_runner.xml": {
+    "bytes": 168726,
+    "sha256": "39189977328238ca52bc1815dd0ede2f0e2071466f82b29dd84f4e0ec781709c"
+  },
+  "shard4/tests__test_habits_api.xml": {
+    "bytes": 1330,
+    "sha256": "9879986f113d31704bc889eb76edd4fd8d986eb6580bab06aebb1a37c6341a45"
+  },
+  "shard4/tests__test_python_pathmap_api.xml": {
+    "bytes": 1211,
+    "sha256": "8fed559ce2816777e56912caa90efea4b3e2d8c53edd96341155ca25231d72ab"
+  },
+  "shard4/tests__test_recheck_summary.log": {
+    "bytes": 1120,
+    "sha256": "0ef49c1ecd7a70d9d8ead88a3590451af9ac1eb641dc479753f83c75badce1aa"
+  },
+  "shard4/tests__test_preview_run_binding.xml": {
+    "bytes": 27369,
+    "sha256": "f282429762b60ffd2ae9e167e34e2475a75a1ce9b1562490c0b1e0b4e6ef9a9c"
+  },
+  "shard4/tests__test_jpa.xml": {
+    "bytes": 572,
+    "sha256": "2664959ea67e97989597c134a9afa4fabb700ecc9a7be215e356cf3584654455"
+  },
+  "shard4/platform-collection.log": {
+    "bytes": 5776,
+    "sha256": "6f86dde31522bae5ff8c56be80c248bea1e7ff90b3f757cc4941b19ce5d92ac6"
+  },
+  "shard4/tests__test_comment_drafts.xml": {
+    "bytes": 1538,
+    "sha256": "89b4eb8868782bf89ca201677d5856262141bfb48234e413f0a28cb9d597cbc4"
+  },
+  "shard4/tests__test_intake_llm.log": {
+    "bytes": 2195,
+    "sha256": "d1ae69512505b12c10cdb9c35b304e9d83cc10443aff929fc68e251ade8ae84e"
+  },
+  "shard4/tests__test_ui_ticket_preview.log": {
+    "bytes": 1367,
+    "sha256": "6ca03351b23c0b99f88bd219d21f063728a69dc3d925a2df1aa90989d7f9bed7"
+  },
+  "shard4/tests__test_workbench_client.log": {
+    "bytes": 5271,
+    "sha256": "206e1e958d702b5464737348ac1a51e9ba4257826f1807058f87bd6a061f1075"
+  },
+  "shard4/tests__test_learning_experiments.xml": {
+    "bytes": 5104,
+    "sha256": "c91149f1990cb6b8769372f48975a71bd9baef176c3b641b827622a76f7aecb5"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_efficiency_metrics_baseline_and_report.log": {
+    "bytes": 725,
+    "sha256": "c9ba7c9bc3c20993a8091db5fae908d3a9e046e1b2caf969102a3cb7cae2a845"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_three_layers_only_meet_at_their_interfaces.log": {
+    "bytes": 733,
+    "sha256": "a88ad8022bc100431f46c0f5da46867c1c9a0287444b792af1b58300feec0a50"
+  },
+  "shard4/tests__test_ui_lesson_decisions.log": {
+    "bytes": 10015,
+    "sha256": "d1924ea0f971149b129a195d9dcc1de8f56ea2771e74186cf3afa398062a4eb4"
+  },
+  "shard4/tests__test_ui_assistant.log": {
+    "bytes": 651,
+    "sha256": "4b3ff604f5a5a5ce3e6868ab0002104ed3c3132abc421ebb76f0260850d26149"
+  },
+  "shard4/tests__test_ops_diag.log": {
+    "bytes": 2264,
+    "sha256": "64f481c768196e768eaa40904f9a6ac076e853f27bc5f5cb0d40a50a9ff1b1d8"
+  },
+  "shard4/tests__test_rsi_native_bc_snapshots.xml": {
+    "bytes": 1523,
+    "sha256": "0eefd0a9afba57b8d5b4b9c1d51608d5c727f7981fd464c9876ecf9a675c037e"
+  },
+  "shard4/tests__test_learning_experiment_adoption.log": {
+    "bytes": 1203,
+    "sha256": "d77c1b9320184d40f541fead1302fb81b47422feb7d39d989e7fdcc2685f5748"
+  },
+  "shard4/tests__test_run_recovery.log": {
+    "bytes": 2093,
+    "sha256": "192e08cfdae07f75bbf90da5c189a0e69ef32cd420968d9a52dfbd9fb12ab81f"
+  },
+  "shard4/tests__test_project_candidates.xml": {
+    "bytes": 34867,
+    "sha256": "666770506c03c835585475caedfcef319fc8a9ada5adca3327353e4df4464df2"
+  },
+  "shard4/tests__test_crash_recovery_independent.xml": {
+    "bytes": 3582,
+    "sha256": "0d6ff966ef016d0b780a21bcd361b2eceea33ac241742f7fcd1c8fdb17de7b8f"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_github_issues_named_by_commits_and_merged_prs_are_imported_for_replay.log": {
+    "bytes": 787,
+    "sha256": "ad2f882a9b38e71bd3972a137309ac558833b05f47b365cc7ba2e69bd27b77c4"
+  },
+  "shard4/tests__test_agent_routes.xml": {
+    "bytes": 6259,
+    "sha256": "6438cc84c60498ddf762c1efade3d760b5fbca0af71bfe587a346d569239344c"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_a_rebuilt_change_the_diagnosis_judged_unsolved_still_waits_for_a_person.log": {
+    "bytes": 950,
+    "sha256": "baabae419caba12ecafc2e91e8e6551bfe401934632a793b87f8bc53ff2293ad"
+  },
+  "shard4/tests__test_external_candidates.xml": {
+    "bytes": 2806,
+    "sha256": "5c302428251789bb4b6234d5d778c85cde371a079bcb4d36af572369bccbcc4e"
+  },
+  "shard4/tests__test_project_merge.log": {
+    "bytes": 23505,
+    "sha256": "659011bfe5067bbfe634d851d04150b890c35c60361e80b498c3aaedd200bff5"
+  },
+  "shard4/tests__test_lesson_decision_api.xml": {
+    "bytes": 6065,
+    "sha256": "c97f1709eba6b5691b9083c507aa58e92148248ab7da4f7a906c2373af6cfbc5"
+  },
+  "shard4/tests__test_tenancy.log": {
+    "bytes": 2820,
+    "sha256": "542fcdb061aaa7b81214aa8b6a08c4d9643b8da62322e35b78b490fc4fc4761c"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_missing_agent_fails_cleanly.xml": {
+    "bytes": 7305,
+    "sha256": "a83621bfd405ebc3e5b95fa5f9a5a18f2ab272fc60732724d38eaad554e29e21"
+  },
+  "shard4/tests__test_platform.py__PlatformApiTest__test_readiness_checks_the_real_machine_worst_first.xml": {
+    "bytes": 7009,
+    "sha256": "c95253c6a93e5d576e46cd9adf18cc8d2d65f4048385993b16b7447f9d839be2"
+  },
+  "shard4/tests__test_library_integration.xml": {
+    "bytes": 3335,
+    "sha256": "2e2630219bd28824d6923c9ce76f4c1506e01e21bb43d9c80995155e454edc2a"
+  },
+  "shard4/tests__test_rsi_registered_trial.log": {
+    "bytes": 4445,
+    "sha256": "34bbf8e6674d82c2c162c1875a6abb8601b71c2a0b1d39c5c30710550914272e"
+  },
+  "shard4/tests__test_tool_gateway.xml": {
+    "bytes": 5484,
+    "sha256": "70adbfe3bef3dfc1bc72fac9151c2e9a93be3fbc1c495b1598c40f93a52a56cd"
+  },
+  "shard4/tests__test_rsi_finite_native.xml": {
+    "bytes": 658,
+    "sha256": "426309d60ca0864e31e481fae2d5bdae3b16e3a63b60b2756be15195f9a9e66d"
+  },
+  "shard4/tests__test_tenant_runner_owner_loss.xml": {
+    "bytes": 1020,
+    "sha256": "3ccc6f64b1ca651a795cb60e15bdaab80b7ef182e70f6b570df63aa0242a70cf"
+  },
+  "shard4/tests__test_signoff_preview_binding.log": {
+    "bytes": 2388,
+    "sha256": "c80655e3d2933b3b96a98b04d99e7a7defb9b5cc5578d9e3e8240dc70c549046"
+  },
+  "shard4/tests__test_platform.py__StoreTest__test_ticket_lifecycle_and_labels.xml": {
+    "bytes": 349,
+    "sha256": "d22af7c99c1fc616eacd6898b8028abb076857a857cc6317a18534f1b1c37993"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_a_public_key_that_does_not_belong_is_refused.xml": {
+    "bytes": 361,
+    "sha256": "755bff34aa6a7d029234908c48e28d5b8620b8dcc9a508e60047a4e356a71ab9"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_first_use_from_many_threads_makes_one_matching_key.xml": {
+    "bytes": 5531,
+    "sha256": "b80aee730d22dc1d374e2b2595a6691a86ae77ea590414eff2526e80119a1e1b"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_the_change_is_sent_applied_on_its_commit_and_built_there.xml": {
+    "bytes": 3995,
+    "sha256": "290c7f924db2eed98bf1ead4a4e821e47e63ca8ae75094f90e2677482c5f282c"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_asking_for_a_key_fails_a_file_whose_signature_was_taken_off.log": {
+    "bytes": 749,
+    "sha256": "0fa25257777f07ffbf14514711ac8a5d34e56e8f15b5db195c4ef8a2c9fa1550"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_a_page_template_compiles_its_module_and_counts_as_page_only.xml": {
+    "bytes": 382,
+    "sha256": "5dab8a9f460677f3cf5da2a0d1d0e8e30175386023c7a2bfe23ff2773c75204b"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_a_change_that_never_reached_the_machine_is_not_a_failed_build.xml": {
+    "bytes": 384,
+    "sha256": "63dd4625bfecf6c17d39ccda42bba3e4db587dd6f4df72464b776f3d662652d8"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_an_ssh_config_alias_keeps_its_own_port.xml": {
+    "bytes": 5568,
+    "sha256": "03e7f95d474473b375ef55309932572e969012a0757389613ee017d6df08ec92"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_a_missing_tool_is_not_called_tampering.xml": {
+    "bytes": 355,
+    "sha256": "6f5ce2ce2eebf1d4b329955c96763a1b83d496fc8364bed79b1496b3232f1b4b"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_a_maven_project_the_plan_creates_is_compiled_but_not_before_it_exists.log": {
+    "bytes": 781,
+    "sha256": "5387bf645ab9fd121729966e364424da39dae9b27cab22213aa34887259d3f65"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_the_untouched_code_is_built_even_when_the_change_is_already_there.xml": {
+    "bytes": 11707,
+    "sha256": "cd37e4a910827d30d7da435cb24f4c9629eb59a78f081b9eb4eafe65ef65cf29"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_a_failed_hand_over_is_not_remembered_as_the_code_failing.log": {
+    "bytes": 755,
+    "sha256": "803ec7e302879edfd80317a120ce676ecfbb84b4c6347fc00a0e15672a8d332d"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_a_front_end_is_checked_the_way_the_project_builds_it.log": {
+    "bytes": 843,
+    "sha256": "ac4a6985c7b83ff3b894837682720c57c7c40169c4d99200ada89d873dc35bf9"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_commands_compile_the_maven_modules_the_change_touches.xml": {
+    "bytes": 376,
+    "sha256": "2c0c9cfb92ed663baa9fdad40539d51141718970720c047c8c32496ed769287f"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_nothing_to_sign_with_means_unsigned_and_said_so.log": {
+    "bytes": 725,
+    "sha256": "18f64153ca5f0753da08716acca6364906575c2043f5d35b9065a8c17f261b47"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_code_reaches_the_machine_even_when_its_stdin_never_ends.xml": {
+    "bytes": 6679,
+    "sha256": "762fababd081b1d6ac0a205153844fa20ec7c8cb27242a5bea453d5e2cce374b"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_with_ssh_keygen_only.log": {
+    "bytes": 14520,
+    "sha256": "238449cd1c96399982b93564f36b6901a3bb52f28a5a1983ac38b058f73cb247"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_an_unreachable_machine_says_so.xml": {
+    "bytes": 5178,
+    "sha256": "aafa854b4152c8ef140b39573ab00ce4565c56d63f65efd49d6b152860e5d602"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_with_the_cryptography_package.log": {
+    "bytes": 12252,
+    "sha256": "4eaf60d7874aad235d6e5c6816ca5affb01bebfecd6b5893af9b85bce2d9603e"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_a_maven_project_the_plan_creates_is_compiled_but_not_before_it_exists.xml": {
+    "bytes": 392,
+    "sha256": "cfebe334255e39202e0ad6e11822c766d4a10ac0e6d583e296a60e027d6f3bad"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_the_untouched_code_is_built_even_when_the_change_is_already_there.log": {
+    "bytes": 12034,
+    "sha256": "b873c6f454fe2755fdad1cc8382bcb1ba1486860ae807e739118bb6424f42466"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_a_front_end_is_checked_the_way_the_project_builds_it.xml": {
+    "bytes": 375,
+    "sha256": "ea35aa189f0b2efed020cfde1db0810862edbb1bcefaf9c22ec95a8868b3d177"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_a_failed_hand_over_is_not_remembered_as_the_code_failing.xml": {
+    "bytes": 379,
+    "sha256": "bf2a2b43da6b1bc66f575a8adabbcf7f24cfe5e8ab1aa2a438d1c4a841586ca5"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_commands_compile_the_maven_modules_the_change_touches.log": {
+    "bytes": 749,
+    "sha256": "a61cc1691f6c5800415eb8fb39c2e6a67a5a21e1a38c58cb563e34324828c7aa"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_nothing_to_sign_with_means_unsigned_and_said_so.xml": {
+    "bytes": 364,
+    "sha256": "83b325aeb766321ab8ac0337157970affb0e7c50fcc855ea73e71c54e46ce260"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_code_reaches_the_machine_even_when_its_stdin_never_ends.log": {
+    "bytes": 7027,
+    "sha256": "7dae2548d8fe95fa3ffe48351c744a8756d1b9aea4b84b1b111db5fd89f538e8"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_with_ssh_keygen_only.xml": {
+    "bytes": 14334,
+    "sha256": "2dceba9c0b51f3eeaa91a949a36e4f67c2d7ced2b04b96f994e824bb8bffceba"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_an_unreachable_machine_says_so.log": {
+    "bytes": 5502,
+    "sha256": "ac99d0c32b9c86ba80537567ac9c9b7778dc445e11a18c54996674b7c75a27ab"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_with_the_cryptography_package.xml": {
+    "bytes": 12367,
+    "sha256": "26bb03f00ae6af9e1f0e8ad6c06b4743042b1164a2b81535d418bc9e67f3dbd7"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_a_public_key_that_does_not_belong_is_refused.log": {
+    "bytes": 719,
+    "sha256": "e2283b751dd8116a473f7470a9f93d9e8adde51827aeb47558f7c1d41ceb6987"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_first_use_from_many_threads_makes_one_matching_key.log": {
+    "bytes": 5917,
+    "sha256": "493f938bcf7db922dfcbc97fbc5f24d74b3af00667e9538e5a36289c1e5c09f8"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_a_client_can_check_it_with_plain_ssh_keygen.log": {
+    "bytes": 786,
+    "sha256": "2d01b3e4b9cabec79328979a486ff4ac9023c5781766e91fff584da65b26745c"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_the_change_is_sent_applied_on_its_commit_and_built_there.log": {
+    "bytes": 4420,
+    "sha256": "4d946c2c279e05e04edb5861474d28642dabeae3a2a6e80b1c55d5a68257685a"
+  },
+  "supplement/run.json": {
+    "bytes": 16687,
+    "sha256": "98dc227521c2f8feefdcc45953221da2f6585983493be8d487e03caedf2be9e9"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_asking_for_a_key_fails_a_file_whose_signature_was_taken_off.xml": {
+    "bytes": 376,
+    "sha256": "325cc242e72d6134399951d8d26a4d1f49886848ece349e666bd942ae577144f"
+  },
+  "supplement/tests__test_testbox.py-collect.log": {
+    "bytes": 1098,
+    "sha256": "d6019282217d29a99b57f03890d4217a113c8550ae98293618cc61a9102930de"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_a_page_template_compiles_its_module_and_counts_as_page_only.log": {
+    "bytes": 761,
+    "sha256": "723065428db66c7c82c7b1e9c8332efa88ea5473a8de4f6bd76dba083f6bc543"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_a_change_that_never_reached_the_machine_is_not_a_failed_build.log": {
+    "bytes": 765,
+    "sha256": "1adbaa99945cf2e370cf1daa71ff9bd291361f5193a48e2f7a2d1bee304d85e0"
+  },
+  "supplement/tests__test_testbox.py__TestBoxTest__test_an_ssh_config_alias_keeps_its_own_port.log": {
+    "bytes": 5865,
+    "sha256": "908cf4c03dfb364799aa722c5842f7f4ebffa843ed28b14e9ae40847ccf7cb2b"
+  },
+  "supplement/tests__test_sign.py-collect.log": {
+    "bytes": 656,
+    "sha256": "d84e381bb2c887024593f2197898cc18bd66be0beed75c1ff40669d7d14e0714"
+  },
+  "supplement/tests__test_sign.py__SignTest__test_a_missing_tool_is_not_called_tampering.log": {
+    "bytes": 707,
+    "sha256": "4179b7663d0354c4c1d60227b5d4312d47c274520dc39270efd20bb27cedf2a1"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_history_tickets_become_cases_by_their_fix_commits.xml": {
+    "bytes": 378,
+    "sha256": "1ff17d117a7275357cfaee1353b78c3cf2646dfc37794422c501f09e56178a94"
+  },
+  "shard5/tests__test_comment_drafts_independent.xml": {
+    "bytes": 2428,
+    "sha256": "1bc914bc81d13757e2744c0c970da96aacd3fc100694d7be5753c04871bbfc2f"
+  },
+  "shard5/tests__test_knowledge_agent_api.log": {
+    "bytes": 3948,
+    "sha256": "55d4142edb677d3e231fdfc390bb916297d9bdec49c28197189eac347d36bae8"
+  },
+  "shard5/summary.json": {
+    "bytes": 40036,
+    "sha256": "e12729f6576ab50c9050341d8b31625fb9756e62ebcc8b90186d8f9cb5c36bf6"
+  },
+  "shard5/tests__test_run_recovery_ui.log": {
+    "bytes": 2710,
+    "sha256": "4a640c26b43259e256b536856f4f40aae352ea0188a4fd9abf29b097bc6debf4"
+  },
+  "shard5/tests__test_ui_library.log": {
+    "bytes": 4021,
+    "sha256": "0875dfdf7df3e2e2142f78ff3b7b43e5114619a74cc76266b160e2165b281e83"
+  },
+  "shard5/tests__test_learning_experiment_api.log": {
+    "bytes": 3421,
+    "sha256": "a07699ba1a98dfba0ff27852df635aaa685dd14d27318b62e1d1732722ffbab6"
+  },
+  "shard5/tests__test_private_ci.log": {
+    "bytes": 1824,
+    "sha256": "31209f9480d6bf43622ddec3009b292fc01b4b09bbd61c8f55906674fcc35cc4"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_a_requirement_said_in_the_group_chat_becomes_a_ticket_and_the_chat_hears_back.log": {
+    "bytes": 803,
+    "sha256": "03ceb02f6611050e6130f44b310fef48a0e49d71eab68c3556fb86420e9b3d24"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_ticket_flow_with_agent.log": {
+    "bytes": 11373,
+    "sha256": "f8a8797790cbd52e8534f54808cfdd3b3bf58629f592ad35cede143d4673692c"
+  },
+  "shard5/tests__test_ui_coordination.log": {
+    "bytes": 4280,
+    "sha256": "fb2fb926c7df3d889735e8b41fc2cd365e5a5951c7f2feaeefba92e14a2031e3"
+  },
+  "shard5/tests__test_rsi_native_job_bridge.xml": {
+    "bytes": 9837,
+    "sha256": "ee647dcd22be2ab3d5a465d1e6baa0d8696dc55ce790cf42d61f1d8c59603d0b"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_a_big_requirement_from_the_group_chat_is_specced_there_and_hears_each_batch.log": {
+    "bytes": 799,
+    "sha256": "273513475ab42f98e5db1e6b9bd3f5eb0aecbafd02feeaffa3a97bdc2298827c"
+  },
+  "shard5/tests__test_handoff_api.xml": {
+    "bytes": 1113,
+    "sha256": "8cead6780988ee095020966a046b6a732323f3ffacddfa06195cfe82e005e4bc"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_model_is_picked_per_run.log": {
+    "bytes": 695,
+    "sha256": "65bfb2deefff2d94257230d19abb7693d3ba826fe9a39c37455bf8f9f6ae74e0"
+  },
+  "shard5/tests__test_project_ci.log": {
+    "bytes": 1609,
+    "sha256": "102ce31fe16eab18c5bd5b997c8f776bc9e3bfc78800f2dba59062aeb2213bb7"
+  },
+  "shard5/tests__test_org_knowledge.log": {
+    "bytes": 1734,
+    "sha256": "a400d3085dea38a0aac180e1a65ecb1e1db4bbab816b3f2dacdafb794c52a7ae"
+  },
+  "shard5/tests__test_workbench_credentials.log": {
+    "bytes": 4184,
+    "sha256": "2bbd90ce4be7190a2cb8bd284231776e383537e8878f5043f37ea91c85a4ffca"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_assistant_sessions.log": {
+    "bytes": 686,
+    "sha256": "1e4518d48763821478873160eacf28021906cc9244d94330ced52c2b466c24a2"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_eval_set_replays_and_scores.log": {
+    "bytes": 15611,
+    "sha256": "5487c5fac7857e0d379e03e292ff1137b21abb05d2e7fb16cd05267a0147a420"
+  },
+  "shard5/tests__test_tool_read.xml": {
+    "bytes": 3875,
+    "sha256": "76c67765c46d93734745b2960a9e41d793811b760bb7912b33843045eb2762e3"
+  },
+  "shard5/tests__test_rsi_token_adapter.xml": {
+    "bytes": 8550,
+    "sha256": "ee29006dc5a3508f26fb0109dca32e78819b30b4821857ce58c2360e92de6fd1"
+  },
+  "shard5/tests__test_python_pathmap_independent.log": {
+    "bytes": 3474,
+    "sha256": "b225fe97af41c092b9781d8fe888525f658b66a463881dfc3a906e8bebb57c5d"
+  },
+  "shard5/tests__test_lesson_human_decisions.log": {
+    "bytes": 12180,
+    "sha256": "0a44e39e86ccee13f83abb2a1f8b8594417c6d28036c18e0aa259096872d36f2"
+  },
+  "shard5/tests__test_library_lifecycle.xml": {
+    "bytes": 4145,
+    "sha256": "6f660fc4144b2e7cebde1bb82844f74e6761841a227875c3f9cbc702fe7d4261"
+  },
+  "shard5/tests__test_agent_settings.xml": {
+    "bytes": 1072,
+    "sha256": "bfa7af3f239030d41dc7746b28d18b2cc10c7a8ae4a1dda202dac8d764740629"
+  },
+  "shard5/tests__test_crash_recovery_ui.xml": {
+    "bytes": 1220,
+    "sha256": "734b94e1e31bd29723980c7303d3bbbc720f713d80bf5663ce91ff92b2f1cf5f"
+  },
+  "shard5/tests__test_reliability_outcomes.xml": {
+    "bytes": 7132,
+    "sha256": "55ca0e16a5f2f9ff0b55e3d36de47a62e488a00c086f77f5f8af186965ca0174"
+  },
+  "shard5/tests__test_learning_facts.xml": {
+    "bytes": 4640,
+    "sha256": "8025332c50c60067067e7968614762101177a2964e7a64d3a06cd1f897974658"
+  },
+  "shard5/tests__test_tenant_runtime.log": {
+    "bytes": 3543,
+    "sha256": "7aca6d3e7f91772af1755c5831f0417ab38332f3169ccefc898d56a85cca24ee"
+  },
+  "shard5/tests__test_project_review_permissions.xml": {
+    "bytes": 8205,
+    "sha256": "23c46116638a962eb9b789a0fc44891c2915bc4eb78fe324b1a90ccacf66125c"
+  },
+  "shard5/tests__test_sqlite_snapshot.log": {
+    "bytes": 829,
+    "sha256": "1208d3d2872bd51c26a1accf893bb103c791d6df6ffcf846f01fb95e98dc96ce"
+  },
+  "shard5/tests__test_demo_operation_trace.xml": {
+    "bytes": 403,
+    "sha256": "5c80cb99e7181e037e409266f1ae3f05b3a649754d04a94140c866f1274bc402"
+  },
+  "shard5/tests__test_external_candidates_independent.log": {
+    "bytes": 9638,
+    "sha256": "c3e8677437102157aa8c0f64fcfbf583fdc45082d6ae07d573a4f298780324d5"
+  },
+  "shard5/tests__test_tenant_execution.xml": {
+    "bytes": 1002,
+    "sha256": "d2cb15f8b43f848691102a877cde2832a699fa38f7dc2304611bcd41e8b0db1d"
+  },
+  "shard5/tests__test_ui_ticket_run_sync.xml": {
+    "bytes": 1805,
+    "sha256": "21798e755e8840a0269f9a53ccf264c0eea77bfdc82169c04ed0fc2139d99859"
+  },
+  "shard5/tests__test_rsi_holdout_recapture.xml": {
+    "bytes": 3201,
+    "sha256": "96f2fb313fe8ec84eb57bd266083609f4259a6e766082741c20dc00ffae70449"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_reform_lead_goes_first_and_later_pieces_start_from_its_commit.xml": {
+    "bytes": 389,
+    "sha256": "8004155754c21356d4b61fe72e10414daa41fe4391a62fadacb80fcd295127e4"
+  },
+  "shard5/tests__test_intake_recovery.xml": {
+    "bytes": 2127,
+    "sha256": "e8429aeffe47894b262a9ab507748577ee8b6109dfc3ecbd0f98feb0b56dab98"
+  },
+  "shard5/tests__test_workbench_credentials.xml": {
+    "bytes": 6084,
+    "sha256": "21029e2324ed0e27d5cf956557bc9faec0ccf5ddeb1d7c00173fd68547e3c0ad"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_eval_set_replays_and_scores.xml": {
+    "bytes": 16093,
+    "sha256": "3dc3542203b55e61aa4e25939c5c0014edf95291897135a61a253055bbda0abe"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_assistant_sessions.xml": {
+    "bytes": 346,
+    "sha256": "5cb6e5a48b88cb396850cf6c2a1e3426ad9e7a7b6f98fa03dc90d97cfeea318a"
+  },
+  "shard5/tests__test_tool_read.log": {
+    "bytes": 4916,
+    "sha256": "16d57e660b540e1d9ba42a00a92405af7f2c21773e6abea7a205130e5c8f6c1f"
+  },
+  "shard5/tests__test_rsi_token_adapter.log": {
+    "bytes": 5518,
+    "sha256": "830fb89b15ad5e8ca91f3b66f714930b74fbbc0c784601aefed96583728b35cc"
+  },
+  "shard5/tests__test_python_pathmap_independent.xml": {
+    "bytes": 3428,
+    "sha256": "6c28744baede16ef6d196514eb3a9ef41073e11cf7465f35dffa5b397072f41a"
+  },
+  "shard5/tests__test_lesson_human_decisions.xml": {
+    "bytes": 20098,
+    "sha256": "b98b0ab4eff90a361f3ef2a867699744f4e546e43ced9096349e33ed3f631b6e"
+  },
+  "shard5/tests__test_library_lifecycle.log": {
+    "bytes": 2934,
+    "sha256": "bf6d09e20369317a2e711f8294ef91f8cd8e24799d7ae744c2093179ef59baad"
+  },
+  "shard5/platform-collection.log": {
+    "bytes": 5776,
+    "sha256": "9f0fed3f489f334ebad8715bc1dbb3efbe494a5989e33ffac1157a03da7df864"
+  },
+  "shard5/tests__test_reliability_outcomes.log": {
+    "bytes": 7332,
+    "sha256": "3c59c95bb251e371dea99ee570dcf9b623a3275a5ec14b8dbfe1ad97a060f7d2"
+  },
+  "shard5/tests__test_crash_recovery_ui.log": {
+    "bytes": 1404,
+    "sha256": "9c000e2444a06cadbcff6c06284c6c3da35c7e374f8355ead67b35cbd983dc81"
+  },
+  "shard5/tests__test_agent_settings.log": {
+    "bytes": 1253,
+    "sha256": "04582033901ba1b72f3b32f6e5d78f55d8ba07da68d9d8788fe5f91aec293e8b"
+  },
+  "shard5/tests__test_learning_facts.log": {
+    "bytes": 4906,
+    "sha256": "4e18fa59f0ebc082af74a77bd084c9283c4d3e7cea17460a3ef3802886899821"
+  },
+  "shard5/tests__test_project_review_permissions.log": {
+    "bytes": 8679,
+    "sha256": "d5bdb81c521428ef8ed83e9b44e67a88cd3691e57f675a1d1239bc3788407a95"
+  },
+  "shard5/tests__test_tenant_runtime.xml": {
+    "bytes": 3586,
+    "sha256": "d3c7ea21f8d7340ddcd704166e9b3645774eaaf71027aca0ea8d0f6bba6321c2"
+  },
+  "shard5/tests__test_sqlite_snapshot.xml": {
+    "bytes": 551,
+    "sha256": "64b537352ba528998410a5ed9bf73d21664df317e0920443f7dc5b71935ca769"
+  },
+  "shard5/tests__test_demo_operation_trace.log": {
+    "bytes": 833,
+    "sha256": "18a89900f52f59c175fbb1f0fbb8a3ab6ac1d59d85bf9464b9ca152d8191dfd4"
+  },
+  "shard5/tests__test_ui_ticket_run_sync.log": {
+    "bytes": 1894,
+    "sha256": "9086454a2c4cbe729feb7561f5a350c2e60c0a5ea1b43a508b5c8c525873393c"
+  },
+  "shard5/tests__test_tenant_execution.log": {
+    "bytes": 1677,
+    "sha256": "72ec20e4c22c95eb3bc68979b9f18de0a4b1fd930845a570b663248ce3b73baa"
+  },
+  "shard5/tests__test_external_candidates_independent.xml": {
+    "bytes": 9497,
+    "sha256": "edbf668b1aab6e755f559f4a36e941d188444b6a2e439721c0f6db3082764b9b"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_reform_lead_goes_first_and_later_pieces_start_from_its_commit.log": {
+    "bytes": 771,
+    "sha256": "34cd692e5359c1e49fefbb52d96a93034736d1f3ae4b37f928bbbb1e9f7ab85c"
+  },
+  "shard5/tests__test_rsi_holdout_recapture.log": {
+    "bytes": 2424,
+    "sha256": "4d410845c162ec479d5ba9b650e66dff2fa940b037b01467a3c16fb70526b60c"
+  },
+  "shard5/tests__test_intake_recovery.log": {
+    "bytes": 2281,
+    "sha256": "e92ef15bcb53a1ba5753d94fa7fe26b49e3f1ec0792c945c0ea2d6cdb9e160b9"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_history_tickets_become_cases_by_their_fix_commits.log": {
+    "bytes": 747,
+    "sha256": "a8ef8329c45030aec54d04ef1fb1eba595f8a2523829f0250400c37b24618490"
+  },
+  "shard5/tests__test_comment_drafts_independent.log": {
+    "bytes": 2477,
+    "sha256": "3d2b19ca5eee9e19f02a7d1dc825256bc717ea40c2a9392d46f4a0b7c259f257"
+  },
+  "shard5/tests__test_knowledge_agent_api.xml": {
+    "bytes": 2545,
+    "sha256": "654d2380229604bd6f5ce3ffd0071a78adcaeb715b2ab756847cf89658daa8be"
+  },
+  "shard5/tests__test_run_recovery_ui.xml": {
+    "bytes": 2505,
+    "sha256": "d62b22326661771bd2214b2b216f4fad686809c81dec875c5f2cf07dc2d95784"
+  },
+  "shard5/tests__test_ui_library.xml": {
+    "bytes": 4348,
+    "sha256": "3c39894c3f275eca4aca7d16e77d8aaca9d7e67c64bfdb3c9f274b927e978231"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_a_requirement_said_in_the_group_chat_becomes_a_ticket_and_the_chat_hears_back.xml": {
+    "bytes": 405,
+    "sha256": "f12194dad1eecba21d79f489cac6cf8e80cd6f269297c4f7ab4f72d14044f479"
+  },
+  "shard5/tests__test_learning_experiment_api.xml": {
+    "bytes": 3015,
+    "sha256": "01f17100b51a90a6d3b6d19321b9c894db3f569dd1d0f8dec0425849d995b7e3"
+  },
+  "shard5/tests__test_private_ci.xml": {
+    "bytes": 1436,
+    "sha256": "27e47d0bf6718b201341a2695bb8518f2acfd66a4748cae00d74036ad19422be"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_ticket_flow_with_agent.xml": {
+    "bytes": 11814,
+    "sha256": "6c47ca891b0981a1e557ffa11a6f4c1bd196d4e28bf554007f67b1ea2b31ddb2"
+  },
+  "shard5/tests__test_ui_coordination.xml": {
+    "bytes": 4674,
+    "sha256": "755edc67fc852db8d05a4ba005c891a40529c08e71e3542ac39e7ac1af96b6f6"
+  },
+  "shard5/tests__test_rsi_native_job_bridge.log": {
+    "bytes": 6316,
+    "sha256": "fa5597b0c9f41859495534ad70e523361955c0cee81e9839dfc9829edb32ec55"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_a_big_requirement_from_the_group_chat_is_specced_there_and_hears_each_batch.xml": {
+    "bytes": 403,
+    "sha256": "0a79b627303a0a4f961ac844e174d29784ac226fd30b5293db73b854ab394053"
+  },
+  "shard5/tests__test_handoff_api.log": {
+    "bytes": 1291,
+    "sha256": "40b3628da37c27e158ee0dfe4ab7f5aab18b646331f31571afba1670a506a9df"
+  },
+  "shard5/tests__test_project_ci.xml": {
+    "bytes": 1186,
+    "sha256": "37f907127e3df93f64de8accbd76a073899240310b1f27d42a6122737a4c5119"
+  },
+  "shard5/tests__test_org_knowledge.xml": {
+    "bytes": 1651,
+    "sha256": "31607d21a9139391e2556e7ad6f6058246170a9087a2fbe0c8b67fd8eb043986"
+  },
+  "shard5/tests__test_platform.py__PlatformApiTest__test_model_is_picked_per_run.xml": {
+    "bytes": 351,
+    "sha256": "115477b7ef5d7fa801edf9e96815c4b6c7d4fe39cca80d31a7f2fabcabcdaa91"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_lead_reads_response_resolution_first_fix_and_backlog.xml": {
+    "bytes": 380,
+    "sha256": "eaaaa0ea9ba9e20163d8eef5e00701078992e18346e4029ff14fb2074347ec86"
+  },
+  "shard2/summary.json": {
+    "bytes": 40379,
+    "sha256": "40631490dfeecc82d55db8707643e20f97d2cb689b7ddad22add8ac7257e9501"
+  },
+  "shard2/tests__test_windows_execution.log": {
+    "bytes": 1851,
+    "sha256": "81f61ef453d509a747d31b466f0a4dafa1933c3d8939352b3d31e84dde64f9c1"
+  },
+  "shard2/tests__test_rsi_provider_adapter.log": {
+    "bytes": 9982,
+    "sha256": "45c6746457ebc50d5de4bb6ee9e7c99e124f3261c91c7d1ab00dd5d59cd84384"
+  },
+  "shard2/tests__test_ui_learning_experiments.xml": {
+    "bytes": 3951,
+    "sha256": "22ab99a9982e2a3c9ec352c4d23b04bbbe2fc5ea0fd254459a7ad217b861b3f0"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open.xml": {
+    "bytes": 10691,
+    "sha256": "a4a10d22ce1651e6aeac4d05ae868e3fa8e49a91b086e67a6c812a509063ec39"
+  },
+  "shard2/tests__test_learning_decisions.xml": {
+    "bytes": 5662,
+    "sha256": "56348c15411cbf2c6fdb2453d04df038cb27e384f50ebbbfbafcb6ff6dcbc3e0"
+  },
+  "shard2/tests__test_preview_health_flow.xml": {
+    "bytes": 12331,
+    "sha256": "ef55b024dc56d4b1bb53ae382e7da41b49b45009844fd6b7965bb35cb96eb5d4"
+  },
+  "shard2/tests__test_lessons.log": {
+    "bytes": 2416,
+    "sha256": "0120ab6098c6b77e27ce5a0afb6b2c54a079ccc1ed712c1d27317b37bf61a885"
+  },
+  "shard2/tests__test_integrations.log": {
+    "bytes": 2470,
+    "sha256": "8b959a32c3ad2b5b31417ad4483f210879a8b596a1cae147510148a8b4958494"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_survey_resumes_after_a_restart.xml": {
+    "bytes": 5230,
+    "sha256": "4a1573d084750ccfa0411fbc4d258229a5887fbe26502ce78952c86d1ebc2bec"
+  },
+  "shard2/tests__test_tool_client.xml": {
+    "bytes": 8911,
+    "sha256": "2bb0f57d7a63c269a079116e97e1f72da385e93c1a586c3d99866c6651db4fe0"
+  },
+  "shard2/tests__test_golang.xml": {
+    "bytes": 663,
+    "sha256": "9fc40857f16e90a9a46276abb618a1913512494992c7150e31af2b360eade35f"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_project_atlas.log": {
+    "bytes": 681,
+    "sha256": "edee0c89c399fd912e81b8137bee8e9f352961c3aff85ddca12f974ac550cf8b"
+  },
+  "shard2/tests__test_systems.log": {
+    "bytes": 1863,
+    "sha256": "7153b669b2f29130743a282aa9a5a1048f3b362b5c2c8975a654dcc1042eb736"
+  },
+  "shard2/tests__test_ui_agent_settings.xml": {
+    "bytes": 802,
+    "sha256": "279bee1ca92e791ed19fb70ba68f5025ceed1607896ff43af2e0b63b058064dc"
+  },
+  "shard2/tests__test_learning_runs.log": {
+    "bytes": 9822,
+    "sha256": "c149a88fc3b026f4905ef3264cdddb7c4fc362e2c07adbfd23566db9387a4b41"
+  },
+  "shard2/tests__test_workspace_preflight.xml": {
+    "bytes": 1609,
+    "sha256": "d6eae93b74c90705b6b95c21a4f30c4d716e73e9847bce15953030f49ea5b504"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_alerts_open_deduplicated_tickets_pointing_at_code.xml": {
+    "bytes": 377,
+    "sha256": "073718fcf8a091dd0a4887f63cf82129579e9d02aff00aa7ad3293056e9637d5"
+  },
+  "shard2/tests__test_intake_form_repair.xml": {
+    "bytes": 2002,
+    "sha256": "3953cc1b90025f5dfa35dbae58e7bf5e4124c1192e346a21e39f6edacd6a0ef6"
+  },
+  "shard2/tests__test_coordination_http.xml": {
+    "bytes": 2965,
+    "sha256": "a54d4988f9c214e7063ac70741b77b69b43dc9ebf416a3246a5617bcf7e9c078"
+  },
+  "shard2/tests__test_rsi_native_admission.log": {
+    "bytes": 1139,
+    "sha256": "ed45b6fc2d973e660d0778ec77afb5e6dca9e61aa1df2037c766871fcf914683"
+  },
+  "shard2/tests__test_codex_profile_config.xml": {
+    "bytes": 992,
+    "sha256": "54a606c60b417a0112024eb4076cac8050c67abf8c59edf7b140b27a0692d526"
+  },
+  "shard2/tests__test_project_vue_diagnostic.xml": {
+    "bytes": 17255,
+    "sha256": "abcb84c3bdcea04cfaf221bcbc484d461cbec8c7692684200fffab8f1a18463b"
+  },
+  "shard2/tests__test_recheck_publication.xml": {
+    "bytes": 1229,
+    "sha256": "3bfff00c62a075e16c893519d2647099a11ab8f07bca054ccb5ddd484841dd88"
+  },
+  "shard2/tests__test_rsi_evaluator_types.xml": {
+    "bytes": 2783,
+    "sha256": "5b0644e285f0b81e8c69f60132ce947de8e2c6e6d556449696a8214e99772b68"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_full_auto_mode_gets_a_delivery_line_and_a_version_can_be_rolled_back.log": {
+    "bytes": 785,
+    "sha256": "d2fca634226d2916a0b6661de69d45a7f3e0814e1680f46f812d1760f027fb51"
+  },
+  "shard2/tests__test_delivery_design.xml": {
+    "bytes": 1676,
+    "sha256": "16b8cdfc390fab91b2709405eb80e1da578455eace948290ad870e92ff7b4b12"
+  },
+  "shard2/tests__test_pilots_http.xml": {
+    "bytes": 1680,
+    "sha256": "6254d4ae00d711e1d1ee9243abefecfa7e5b4a5a9594808951e709d24b452dd1"
+  },
+  "shard2/tests__test_project_library.log": {
+    "bytes": 3598,
+    "sha256": "ee5befdc24115852b513824e3749e2e295230043eea00dbd6a43be69cc8f3fd4"
+  },
+  "shard2/tests__test_run_handoff.log": {
+    "bytes": 2767,
+    "sha256": "41cc59d68c5b38cb73065ee996db40958be0fcf4b76e8a4facd755618457c3ec"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_command_plan_is_kept_in_the_session.log": {
+    "bytes": 719,
+    "sha256": "33058de613868f0c42ebb74eae47c713e51b85c97cffbca8e1eee271c5a01d2a"
+  },
+  "shard2/tests__test_ui_run_preview.log": {
+    "bytes": 1975,
+    "sha256": "a32859df2f5c5c7add6c162f66c258459a4d3f443d89e39ef940cb804972aa13"
+  },
+  "shard2/tests__test_agent_profiles.log": {
+    "bytes": 19616,
+    "sha256": "3c7bb0bbcdcf45421d68e5959b22c951d46068990c8186d92a38fa8f4f06f360"
+  },
+  "shard2/tests__test_memory_workspace.log": {
+    "bytes": 20031,
+    "sha256": "5db95fe2db1949144ca767223408b6e90458cef5f54c9d66b3a84637923f66bd"
+  },
+  "shard2/tests__test_learning_experiment_view_integrity.xml": {
+    "bytes": 2203,
+    "sha256": "9d0e7300ece3a6a10100ec22e44bb14ef90fabc681e4aa53f039e61811d99855"
+  },
+  "shard2/tests__test_tenant_parent_loss_fixture.log": {
+    "bytes": 911,
+    "sha256": "7e459e84ce111b4889b387a434b907f92fa422287ed75dec7d96bda095fd2863"
+  },
+  "shard2/tests__test_direct_invocation_lifecycle.xml": {
+    "bytes": 5492,
+    "sha256": "ffba0c244ad06bf3d91902ec9c4918a7b4bf2222d8804dae5b22528763985c3d"
+  },
+  "shard2/tests__test_project_authority.xml": {
+    "bytes": 51231,
+    "sha256": "bee6eb0b6a57d5f5c26eac8613726c2e80ccb425b0436356037d82ebcb6e2606"
+  },
+  "shard2/tests__test_workspace_preflight.log": {
+    "bytes": 1699,
+    "sha256": "1d3279a277c8ab4c4c1a06b13a83329cc5071feba5fcf0a351305294c313ad95"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_alerts_open_deduplicated_tickets_pointing_at_code.log": {
+    "bytes": 747,
+    "sha256": "8ed0c8653aae546e53e75d9f6b4abfbfd76c15b7c543d591559c1da5c3fea476"
+  },
+  "shard2/tests__test_ui_agent_settings.log": {
+    "bytes": 1034,
+    "sha256": "789df1ca0eda3dbebfb14e3c3af901130df640ec96448f0aa241cb4233f8134f"
+  },
+  "shard2/tests__test_learning_runs.xml": {
+    "bytes": 9899,
+    "sha256": "2bc3f75ff6e6d58270f92606c1df31a67e9f0df5d65cb7ad055e490356fe132a"
+  },
+  "shard2/tests__test_intake_form_repair.log": {
+    "bytes": 2043,
+    "sha256": "ba77b0267ac14bae797fcc66258088895977e18b01db5f62c02458d8c5feeee3"
+  },
+  "shard2/tests__test_coordination_http.log": {
+    "bytes": 2261,
+    "sha256": "6fc6108afd0fe30dfee448edefd75488d00482de96065aad7957be362dfae1e0"
+  },
+  "shard2/tests__test_rsi_native_admission.xml": {
+    "bytes": 1051,
+    "sha256": "c5252015ac04cd68828f2ddc12fbc8028c1b3ec6991c4218c9e578c286cdb437"
+  },
+  "shard2/tests__test_codex_profile_config.log": {
+    "bytes": 1312,
+    "sha256": "9cdace40ce18105e3477f4c6130d0ab99918554ce1c21cf892742ee7d314bba2"
+  },
+  "shard2/tests__test_sign.log": {
+    "bytes": 662,
+    "sha256": "6ffa6b70505e0fd6141832ca542fc765e965be2d512c31b35fcde5ca27900567"
+  },
+  "shard2/tests__test_rsi_evaluator_types.log": {
+    "bytes": 2574,
+    "sha256": "b7f1ee4e7a711be43f1f8a6f5abe21a51c9c522fbad0dd6eda3c2f2f5d6df1ed"
+  },
+  "shard2/tests__test_project_vue_diagnostic.log": {
+    "bytes": 17298,
+    "sha256": "e70fb236ebfe5eee5d1a90c37d2d9224e1b622e9854d543e2edfb53905020688"
+  },
+  "shard2/tests__test_recheck_publication.log": {
+    "bytes": 1414,
+    "sha256": "d6eb6e16b300fad85e5ba67f8d5d25986a05d8308b73606f92373e8467f6898e"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_full_auto_mode_gets_a_delivery_line_and_a_version_can_be_rolled_back.xml": {
+    "bytes": 398,
+    "sha256": "ad8fca246a6f85f7efdd6e88875e51a15e17dd73870e9eac5f0e1b3cc21162dd"
+  },
+  "shard2/tests__test_delivery_design.log": {
+    "bytes": 1786,
+    "sha256": "68d33be0ae0bf9f99945bbfb56506d525d61ff7df81306595054cc2f6ff55901"
+  },
+  "shard2/tests__test_project_library.xml": {
+    "bytes": 5304,
+    "sha256": "1f0bf1c10e7c2d16af147915f245f2eabdcfa983730a368dda33ae8837d103a7"
+  },
+  "shard2/tests__test_run_handoff.xml": {
+    "bytes": 2604,
+    "sha256": "54c0ba083feaeb967dc3579f55276f7c96c47f6ec29695f2861c8457a55f1901"
+  },
+  "shard2/tests__test_pilots_http.log": {
+    "bytes": 1471,
+    "sha256": "34858bf724da77f3d7979576bf606c576f4a3903a834aa7e6d653db3ea54cbf8"
+  },
+  "shard2/platform-collection.log": {
+    "bytes": 5776,
+    "sha256": "873225ae28c74bb19ebd4f1895d1ffb233ccb8aaf38d6c08b1a041b864a44bec"
+  },
+  "shard2/tests__test_ui_run_preview.xml": {
+    "bytes": 1914,
+    "sha256": "c22f44f6efd9afab78608cb4548295ebf9646f70ba0195855cdc13692a2f1e49"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_command_plan_is_kept_in_the_session.xml": {
+    "bytes": 363,
+    "sha256": "fb7e5aed07a7cbe7db1d108d734f042a6850aece4a2c9ef43371d395df4fb692"
+  },
+  "shard2/tests__test_agent_profiles.xml": {
+    "bytes": 21064,
+    "sha256": "f54d4e1133ae10ff27efd67552ed11db473267cbb37522808861c94a582bc6db"
+  },
+  "shard2/tests__test_tenant_parent_loss_fixture.xml": {
+    "bytes": 664,
+    "sha256": "f146f49ac64edc42c13ed9e9e7a66d3677947f07006f75b7c166ed43f3358e20"
+  },
+  "shard2/tests__test_learning_experiment_view_integrity.log": {
+    "bytes": 3419,
+    "sha256": "bbdb9c0fa020fe3daf32804b04a4b39d71f0059a0c2be747c2e7f3af8d74a062"
+  },
+  "shard2/tests__test_memory_workspace.xml": {
+    "bytes": 20406,
+    "sha256": "8d85c1f580eab28e526e06e021d85c3d4bc090e4c522ef86e6121010867c9d24"
+  },
+  "shard2/tests__test_direct_invocation_lifecycle.log": {
+    "bytes": 4296,
+    "sha256": "e0dc8425c32e7d80ff5ebf9537bec2c59668c309cdbb322879ee60086308088c"
+  },
+  "shard2/tests__test_project_authority.log": {
+    "bytes": 69610,
+    "sha256": "6ac09b55d9db5af5fdd517ed7762e18c20a523bde4c29ee958ce0d63b9fcad02"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_lead_reads_response_resolution_first_fix_and_backlog.log": {
+    "bytes": 753,
+    "sha256": "4a9232d039584e2e6eb8c0724be65f8ab356ac1070f40f63e82122d065d61f00"
+  },
+  "shard2/tests__test_windows_execution.xml": {
+    "bytes": 1788,
+    "sha256": "9953e7289acebcb21f8aad69f5d08da0cef8876f4d6b23c33cd7764e8ec2e5bf"
+  },
+  "shard2/tests__test_rsi_provider_adapter.xml": {
+    "bytes": 16487,
+    "sha256": "3e3249865d285739e0e853f4c876ad775ba7b064f69bfd2824acd005b2102bb6"
+  },
+  "shard2/tests__test_ui_learning_experiments.log": {
+    "bytes": 3855,
+    "sha256": "60e1abfc12f97e2a88091b7d07549465b0071d72cda890b9ed358e2e9bc7a5ae"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_a_change_waiting_for_acceptance_runs_as_a_preview_the_client_can_open.log": {
+    "bytes": 10598,
+    "sha256": "68aa50b9dd8a9dab811304acba650b841cfd7f723867c4735369316a28bb336b"
+  },
+  "shard2/tests__test_learning_decisions.log": {
+    "bytes": 5594,
+    "sha256": "afde5664b38f5494c6657e60ee5c83d56082e43c695224654fe2f75f23b1384e"
+  },
+  "shard2/tests__test_preview_health_flow.log": {
+    "bytes": 12513,
+    "sha256": "cdbfb438b9eda7e5ba83ffeb6d55e7033091e066045caf612f9f19ace9ccea25"
+  },
+  "shard2/tests__test_integrations.xml": {
+    "bytes": 2604,
+    "sha256": "0fe973db73f1df41adaa73bf860967014e7880d94d94142c01f4c01593e56d6c"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_survey_resumes_after_a_restart.log": {
+    "bytes": 7506,
+    "sha256": "075fa73028f4f1ffe1a367183941be8d28e61f883298e1f465b2e07e45b78414"
+  },
+  "shard2/tests__test_lessons.xml": {
+    "bytes": 2482,
+    "sha256": "918b29f62784e7c52598c135ba106f66efce4a8288efd6c4dd2cfc0c31da3ca7"
+  },
+  "shard2/tests__test_tool_client.log": {
+    "bytes": 9098,
+    "sha256": "078d293ea02bd0ea4b4a3170cae352a10ac13f72d9ddc7df18c75eb9f068764f"
+  },
+  "shard2/tests__test_golang.log": {
+    "bytes": 897,
+    "sha256": "54b07ddd2cd28f3fa2f5f99137e1f446a19f48ccb8acc300cd336aae012fc178"
+  },
+  "shard2/tests__test_systems.xml": {
+    "bytes": 1848,
+    "sha256": "3e5cd1360938a292dcd2e98afd536805f6dd54f02dbb5856762dec2882b9081c"
+  },
+  "shard2/tests__test_platform.py__PlatformApiTest__test_project_atlas.xml": {
+    "bytes": 341,
+    "sha256": "6a978ffd68c1a9af5646b91e0c417df0e5d2653634cea306fcd5dd3209379778"
+  }
+}

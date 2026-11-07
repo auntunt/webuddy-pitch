@@ -1,0 +1,154 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+[
+    {
+        "Name":  "home",
+        "Length":  null,
+        "LastWriteTime":  "\/Date(1794028835523)\/"
+    },
+    {
+        "Name":  "shard0",
+        "Length":  null,
+        "LastWriteTime":  "\/Date(1794029636063)\/"
+    },
+    {
+        "Name":  "shard1",
+        "Length":  null,
+        "LastWriteTime":  "\/Date(1794029626603)\/"
+    },
+    {
+        "Name":  "shard2",
+        "Length":  null,
+        "LastWriteTime":  "\/Date(1794029764981)\/"
+    },
+    {
+        "Name":  "shard3",
+        "Length":  null,
+        "LastWriteTime":  "\/Date(1794029638295)\/"
+    },
+    {
+        "Name":  "shard4",
+        "Length":  null,
+        "LastWriteTime":  "\/Date(1794029416623)\/"
+    },
+    {
+        "Name":  "shard5",
+        "Length":  null,
+        "LastWriteTime":  "\/Date(1794029381379)\/"
+    },
+    {
+        "Name":  "shard6",
+        "Length":  null,
+        "LastWriteTime":  "\/Date(1794029548354)\/"
+    },
+    {
+        "Name":  "shard7",
+        "Length":  null,
+        "LastWriteTime":  "\/Date(1794029575381)\/"
+    },
+    {
+        "Name":  "supplement",
+        "Length":  null,
+        "LastWriteTime":  "\/Date(1794030022740)\/"
+    },
+    {
+        "Name":  "complete-timeouts.py",
+        "Length":  2074,
+        "LastWriteTime":  "\/Date(1794029772405)\/"
+    },
+    {
+        "Name":  "dependencies.txt",
+        "Length":  758,
+        "LastWriteTime":  "\/Date(1794028858724)\/"
+    },
+    {
+        "Name":  "launch.py",
+        "Length":  966,
+        "LastWriteTime":  "\/Date(1794028858782)\/"
+    },
+    {
+        "Name":  "run.json",
+        "Length":  3275,
+        "LastWriteTime":  "\/Date(1794029765108)\/"
+    },
+    {
+        "Name":  "shard0-driver.log",
+        "Length":  18384,
+        "LastWriteTime":  "\/Date(1794029636172)\/"
+    },
+    {
+        "Name":  "shard1-driver.log",
+        "Length":  18372,
+        "LastWriteTime":  "\/Date(1794029626715)\/"
+    },
+    {
+        "Name":  "shard2-driver.log",
+        "Length":  18404,
+        "LastWriteTime":  "\/Date(1794029765065)\/"
+    },
+    {
+        "Name":  "shard3-driver.log",
+        "Length":  17926,
+        "LastWriteTime":  "\/Date(1794029638409)\/"
+    },
+    {
+        "Name":  "shard4-driver.log",
+        "Length":  18129,
+        "LastWriteTime":  "\/Date(1794029416775)\/"
+    },
+    {
+        "Name":  "shard5-driver.log",
+        "Length":  18214,
+        "LastWriteTime":  "\/Date(1794029381536)\/"
+    },
+    {
+        "Name":  "shard6-driver.log",
+        "Length":  18121,
+        "LastWriteTime":  "\/Date(1794029548579)\/"
+    },
+    {
+        "Name":  "shard7-driver.log",
+        "Length":  18062,
+        "LastWriteTime":  "\/Date(1794029575512)\/"
+    }
+]
+{
+    "module":  "tests/test_sign.py",
+    "command":  [
+                    "C:\\tmh-runner\\work\\webuddy-windows-full-venv-20261107\\Scripts\\python.exe",
+                    "-m",
+                    "pytest",
+                    "tests/test_sign.py",
+                    "-vv",
+                    "-rs",
+                    "--full-trace",
+                    "-p",
+                    "no:cacheprovider",
+                    "--junitxml=C:\\tmh-runner\\work\\webuddy-full-e282afab-proof-20261107\\shard2\\tests__test_sign.xml"
+                ],
+    "exit_code":  1,
+    "timed_out":  true,
+    "seconds":  300.125,
+    "junit_exists":  false
+}
+{
+    "module":  "tests/test_testbox.py",
+    "command":  [
+                    "C:\\tmh-runner\\work\\webuddy-windows-full-venv-20261107\\Scripts\\python.exe",
+                    "-m",
+                    "pytest",
+                    "tests/test_testbox.py",
+                    "-vv",
+                    "-rs",
+                    "--full-trace",
+                    "-p",
+                    "no:cacheprovider",
+                    "--junitxml=C:\\tmh-runner\\work\\webuddy-full-e282afab-proof-20261107\\shard6\\tests__test_testbox.xml"
+                ],
+    "exit_code":  1,
+    "timed_out":  true,
+    "seconds":  300.172,
+    "junit_exists":  false
+}
+{"script": "/private/tmp/webuddy-win-final-state.ps1", "started": "2026-11-07T05:53:42.273483+00:00", "ended": "2026-11-07T05:53:52.425627+00:00", "exit_code": 0}

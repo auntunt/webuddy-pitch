@@ -1,0 +1,24 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+source_archive_sha256=95ecb54d51de203375fcd29d2492d81d1c3ad55a749abd26582138a29d91dea3 source_commit=21f4e73ef021fc12cb29ca0ee96e381a7ee8a27d scope=tmh+official_mcp_test
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/auntu/AppData/Local/Temp/tmpjb8cn5ww/execute.json')
+
+    @contextmanager
+    def _parent(path):
+        if os.name != "posix" or not hasattr(os, "O_NOFOLLOW"):
+>           raise CredentialError("此平台无法验证 owner-only 凭据文件；请使用支持 POSIX 权限的环境", "credential_platform_unsupported")
+E           tmh.workbench_credentials.CredentialError: 此平台无法验证 owner-only 凭据文件；请使用支持 POSIX 权限的环境
+
+tmh\workbench_credentials.py:63: CredentialError
+- generated xml file: C:\tmh-runner\work\webuddy-mcp-21f4e73-20261107\mcp.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_workbench_mcp.py:231: personal credential files require POSIX checks
+SKIPPED [1] tests\test_workbench_mcp.py:293: personal credential files require POSIX checks
+SKIPPED [1] tests\test_workbench_mcp.py:201: personal credential files require POSIX checks
+SKIPPED [1] tests\test_workbench_mcp.py:277: personal credential files require POSIX checks
+================== 1 failed, 15 passed, 4 skipped in 23.36s ===================
+pytest_exit=1
+{"script": "/private/tmp/webuddy-win-mcp.ps1", "started": "2026-11-07T04:33:12.210438+00:00", "ended": "2026-11-07T04:33:48.715304+00:00", "exit_code": 1}
