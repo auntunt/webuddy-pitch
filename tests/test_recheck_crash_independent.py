@@ -185,6 +185,17 @@ class RecheckCrashIndependentTest(unittest.TestCase):
             self.observations['fixture_cleanup_signals']=signals
             self.wait_for(lambda:all(not self.process(w['pid'])['alive'] for w in self.workers()),3)
             self.observations['after_fixture_cleanup_workers']=[self.process(w['pid']) for w in self.workers()]
+            # Child exit precedes the supervisor's final receipt write. Do not
+            # race TemporaryDirectory cleanup with that still-owned writer.
+            def supervisors_stopped():
+                records=[self.json(path) for path in
+                         self.data.glob('verification-operations/runs/*/attempts/*/supervisor.json')]
+                states=[self.process(record['supervisor_pid']) for record in records
+                        if record and record.get('supervisor_pid')]
+                self.observations['after_fixture_cleanup_supervisors']=states
+                return all(not state['alive'] for state in states)
+            self.assertTrue(self.wait_for(supervisors_stopped),
+                            'fixture supervisor still writing evidence; cannot remove its directory')
             target=os.environ.get('TMH_RECHECK_EVIDENCE')
             if target:
                 folder=Path(target); folder.mkdir(parents=True,exist_ok=True)
