@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import gzip
 import http.client
 import os
 import re
@@ -119,7 +120,7 @@ class Client:
             raise ClientError("缺少独立操作者凭据，工作区Agent令牌不能代替", "operator_credential_required")
         if spec["execution"] and not self.allow_execution:
             raise ClientError("此连接未启用执行。MCP 启动时添加 --allow-execution；CLI 使用明确的 start/retry/recheck/preview --start 命令。", "execution_disabled")
-        headers = {"Content-Type": "application/json", "X-TMH": "1", "X-Webuddy-Agent": self.agent}
+        headers = {"Accept-Encoding": "gzip", "Content-Type": "application/json", "X-TMH": "1", "X-Webuddy-Agent": self.agent}
         if spec.get("operator"):
             headers.pop("X-Webuddy-Agent")
             headers["X-Webuddy-Operator"] = "1"
@@ -159,6 +160,8 @@ class Client:
             conn.request("POST", self.address.path + "/api/agent/" + operation, body=json.dumps(args, ensure_ascii=False).encode("utf-8"), headers=headers)
             response = conn.getresponse()
             raw = response.read()
+            if response.getheader("Content-Encoding", "").lower() == "gzip":
+                raw = gzip.decompress(raw)
             if expired.is_set() or time.monotonic() > deadline:
                 raise TimeoutError("deadline")
             try:

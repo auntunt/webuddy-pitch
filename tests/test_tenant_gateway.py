@@ -95,6 +95,28 @@ class TenantGatewayTest(unittest.TestCase):
     def token(self, user, tenant):
         return self.reg.context(user, tenant)["context_token"]
 
+    def test_large_authenticated_json_is_lossless_and_opt_in(self):
+        import gzip
+        root=Path(self.reg.one('SELECT path FROM tenants WHERE id=?',(self.a,))['path'])
+        store=Store(root/'platform.db')
+        original='完整历史结果，不裁剪。'*20000
+        store.update_ticket(1,'owner',body=original);store.db.close()
+        path='/t/'+self.a+'/api/tickets/SAME-1'
+        plain=self.request('GET',path,'alice',token=self.token('alice',self.a))[2]
+        conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=15)
+        try:
+            conn.request('GET',path,headers={'Cookie':self.cookies['alice'],'Accept-Encoding':'gzip','X-Webuddy-Context':self.token('alice',self.a)})
+            response=conn.getresponse();encoded=response.read()
+            self.assertEqual(response.status,200)
+            self.assertEqual(response.getheader('Content-Encoding'),'gzip')
+            self.assertEqual(json.loads(gzip.decompress(encoded)),plain)
+            self.assertIn(original,json.dumps(plain,ensure_ascii=False))
+            self.assertLess(len(encoded),len(original.encode())//2)
+        finally:conn.close()
+        code,headers,_=self.request('GET',path,'alice',token=self.token('alice',self.a),headers={'Accept-Encoding':'gzip;q=0'})
+        self.assertEqual(code,200)
+        self.assertNotIn('Content-Encoding',headers)
+
     def test_member_knowledge_catalog_and_memory_are_scoped_over_http(self):
         root = Path(self.reg.one('SELECT path FROM tenants WHERE id=?', (self.a,))['path'])
         for name in ('same', 'private'):

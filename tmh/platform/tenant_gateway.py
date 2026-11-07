@@ -4,6 +4,7 @@ No business Platform is constructed in this process. Gateway admission and
 worker execution recheck the same context under the registry guard. The worker
 owns the execution lock so gateway death cannot release an unfinished mutation.
 """
+from .http_encoding import encode_json
 from contextlib import closing
 from dataclasses import dataclass
 from http.cookies import CookieError, SimpleCookie
@@ -90,6 +91,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
             return code, body, content_type, headers
 
         def _flush(self, code, body, content_type, headers):
+            body, headers = encode_json(body, content_type, self.headers.get("Accept-Encoding", ""), headers)
             self.send_response(code)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
