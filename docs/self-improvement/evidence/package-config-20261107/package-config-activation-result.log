@@ -1,0 +1,20 @@
+Result=success
+ExecMainStatus=0
+ActiveState=inactive
+SubState=dead
+Nov 07 22:37:22 VM-0-17-ubuntu systemd[1]: Starting webuddy-package-3261e871.service - /bin/bash /tmp/package-config-final-activate.sh...
+Nov 07 22:37:22 VM-0-17-ubuntu bash[1965352]: EXACT_CI_GATE_RECEIPTS_OK
+Nov 07 22:37:23 VM-0-17-ubuntu bash[1965353]: MANIFEST_OK 4389
+Nov 07 22:37:24 VM-0-17-ubuntu bash[1965353]: DATABASE_COPIES_OK 15
+Nov 07 22:37:25 VM-0-17-ubuntu bash[1965357]: MANIFEST_OK 2950
+Nov 07 22:37:26 VM-0-17-ubuntu bash[1965357]: DATABASE_COPIES_OK 15
+Nov 07 22:37:27 VM-0-17-ubuntu bash[1965371]: MANIFEST_OK 4389
+Nov 07 22:37:28 VM-0-17-ubuntu bash[1965371]: DATABASE_COPIES_OK 15
+Nov 07 22:39:08 VM-0-17-ubuntu bash[1965721]: BACKUP_BYTES_VERIFIED 56440
+Nov 07 22:39:08 VM-0-17-ubuntu bash[1965850]: curl: (7) Failed to connect to 127.0.0.1 port 8790 after 0 ms: Couldn't connect to server
+Nov 07 22:39:09 VM-0-17-ubuntu bash[1965861]: curl: (7) Failed to connect to 127.0.0.1 port 8790 after 0 ms: Couldn't connect to server
+Nov 07 22:39:10 VM-0-17-ubuntu bash[1965876]: active
+Nov 07 22:39:10 VM-0-17-ubuntu bash[1965349]: BACKUP=/opt/webuddy/backups/pre-package-3261e871-test-20261107T143726Z
+Nov 07 22:39:10 VM-0-17-ubuntu systemd[1]: webuddy-package-3261e871.service: Deactivated successfully.
+Nov 07 22:39:10 VM-0-17-ubuntu systemd[1]: Finished webuddy-package-3261e871.service - /bin/bash /tmp/package-config-final-activate.sh.
+Nov 07 22:39:10 VM-0-17-ubuntu systemd[1]: webuddy-package-3261e871.service: Consumed 1min 18.374s CPU time, 1.0G memory peak, 0B memory swap peak.

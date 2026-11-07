@@ -1,0 +1,234 @@
+﻿2026-11-07T14:18:02.3635867Z Current runner version: '2.338.2'
+2026-11-07T14:18:02.3868875Z ##[group]Runner Image Provisioner
+2026-11-07T14:18:02.3869888Z Hosted Compute Agent
+2026-11-07T14:18:02.3870470Z Version: 20261103.629
+2026-11-07T14:18:02.3871066Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+2026-11-07T14:18:02.3871772Z Build Date: 2026-11-03T17:26:59Z
+2026-11-07T14:18:02.3872407Z Worker ID: {c72184e3-9b49-4378-9a11-7394c4280638}
+2026-11-07T14:18:02.3873393Z Region: westus
+2026-11-07T14:18:02.3873954Z Cloud: Azure
+2026-11-07T14:18:02.3874445Z ##[endgroup]
+2026-11-07T14:18:02.3876684Z ##[group]Operating System
+2026-11-07T14:18:02.3877612Z Microsoft Windows Server 2025
+2026-11-07T14:18:02.3878234Z 10.0.26100
+2026-11-07T14:18:02.3878720Z Datacenter
+2026-11-07T14:18:02.3879181Z ##[endgroup]
+2026-11-07T14:18:02.3879976Z ##[group]Runner Image
+2026-11-07T14:18:02.3880707Z Image: windows-2025-vs2026
+2026-11-07T14:18:02.3881371Z Version: 20261103.298.1
+2026-11-07T14:18:02.3882931Z Included Software: https://github.com/actions/runner-images/blob/win25-vs2026/20261103.298/images/windows/Windows2025-VS2026-Readme.md
+2026-11-07T14:18:02.3884567Z Image Release: https://github.com/actions/runner-images/releases/tag/win25-vs2026%2F20261103.298
+2026-11-07T14:18:02.3885526Z ##[endgroup]
+2026-11-07T14:18:02.3886725Z ##[group]GITHUB_TOKEN Permissions
+2026-11-07T14:18:02.3889007Z Contents: read
+2026-11-07T14:18:02.3889617Z Metadata: read
+2026-11-07T14:18:02.3890135Z Packages: read
+2026-11-07T14:18:02.3890645Z ##[endgroup]
+2026-11-07T14:18:02.3893465Z Secret source: Actions
+2026-11-07T14:18:02.3894953Z Cache mode: write
+2026-11-07T14:18:02.3895751Z Prepare workflow directory
+2026-11-07T14:18:02.5120925Z Prepare all required actions
+2026-11-07T14:18:02.5175698Z Getting action download info
+2026-11-07T14:18:02.8660141Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-07T14:18:03.0580778Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-11-07T14:18:03.5900338Z Complete job name: Windows execution and evidence (py3.11)
+2026-11-07T14:18:04.2791704Z ##[group]Run actions/checkout@v4
+2026-11-07T14:18:04.2792805Z with:
+2026-11-07T14:18:04.2793273Z   repository: auntunt/webuddy-pitch
+2026-11-07T14:18:04.2797374Z   token: ***
+2026-11-07T14:18:04.2797825Z   ssh-strict: true
+2026-11-07T14:18:04.2798271Z   ssh-user: git
+2026-11-07T14:18:04.2798718Z   persist-credentials: true
+2026-11-07T14:18:04.2799210Z   clean: true
+2026-11-07T14:18:04.2799667Z   sparse-checkout-cone-mode: true
+2026-11-07T14:18:04.2800193Z   fetch-depth: 1
+2026-11-07T14:18:04.2800617Z   fetch-tags: false
+2026-11-07T14:18:04.2801059Z   show-progress: true
+2026-11-07T14:18:04.2801506Z   lfs: false
+2026-11-07T14:18:04.2801915Z   submodules: false
+2026-11-07T14:18:04.2802367Z   set-safe-directory: true
+2026-11-07T14:18:04.2802874Z   allow-unsafe-pr-checkout: false
+2026-11-07T14:18:04.2803613Z env:
+2026-11-07T14:18:04.2804025Z   PYTHONIOENCODING: utf-8
+2026-11-07T14:18:04.2804528Z   PYTHONUTF8: 1
+2026-11-07T14:18:04.2805019Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T14:18:04.2805536Z ##[endgroup]
+2026-11-07T14:18:04.4695913Z Syncing repository: auntunt/webuddy-pitch
+2026-11-07T14:18:04.4697901Z ##[group]Getting Git version info
+2026-11-07T14:18:04.4698959Z Working directory is 'D:\a\webuddy-pitch\webuddy-pitch'
+2026-11-07T14:18:04.5757307Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-11-07T14:18:04.8954360Z git version 2.56.0.windows.4
+2026-11-07T14:18:04.9012778Z ##[endgroup]
+2026-11-07T14:18:04.9049192Z Temporarily overriding HOME='D:\a\_temp\3d73bc1a-2343-46b1-8222-822c94a59512' before making global git config changes
+2026-11-07T14:18:04.9050585Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-07T14:18:04.9051851Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\webuddy-pitch\webuddy-pitch
+2026-11-07T14:18:04.9735531Z Deleting the contents of 'D:\a\webuddy-pitch\webuddy-pitch'
+2026-11-07T14:18:04.9817281Z ##[group]Initializing the repository
+2026-11-07T14:18:04.9818177Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\webuddy-pitch\webuddy-pitch
+2026-11-07T14:18:05.0568310Z Initialized empty Git repository in D:/a/webuddy-pitch/webuddy-pitch/.git/
+2026-11-07T14:18:05.0629265Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/auntunt/webuddy-pitch
+2026-11-07T14:18:05.1389043Z ##[endgroup]
+2026-11-07T14:18:05.1389836Z ##[group]Disabling automatic garbage collection
+2026-11-07T14:18:05.1399796Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+2026-11-07T14:18:05.1811729Z ##[endgroup]
+2026-11-07T14:18:05.1813057Z ##[group]Setting up auth
+2026-11-07T14:18:05.1825127Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-11-07T14:18:05.2236383Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-11-07T14:18:06.6745052Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-07T14:18:06.7208859Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-11-07T14:18:07.3259787Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-07T14:18:07.3667623Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-11-07T14:18:08.0091477Z [command]"C:\Program Files\Git\bin\git.exe" config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2026-11-07T14:18:08.0520972Z ##[endgroup]
+2026-11-07T14:18:08.0583684Z ##[group]Fetching the repository
+2026-11-07T14:18:08.0586047Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +3261e871d33bc243493abfd1dc34f89f5b2a43b3:refs/remotes/origin/devin/1793765109-bidding-demo-ui
+2026-11-07T14:18:11.2681894Z From https://github.com/auntunt/webuddy-pitch
+2026-11-07T14:18:11.2683075Z  * [new ref]         3261e871d33bc243493abfd1dc34f89f5b2a43b3 -> origin/devin/1793765109-bidding-demo-ui
+2026-11-07T14:18:11.2731290Z ##[endgroup]
+2026-11-07T14:18:11.2731947Z ##[group]Determining the checkout info
+2026-11-07T14:18:11.2734335Z ##[endgroup]
+2026-11-07T14:18:11.2744229Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+2026-11-07T14:18:11.3309622Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+2026-11-07T14:18:11.3752992Z ##[group]Checking out the ref
+2026-11-07T14:18:11.3753963Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force -B devin/1793765109-bidding-demo-ui refs/remotes/origin/devin/1793765109-bidding-demo-ui
+2026-11-07T14:18:12.4440481Z Updating files:  56% (2565/4555)
+2026-11-07T14:18:12.4562711Z Updating files:  57% (2597/4555)
+2026-11-07T14:18:12.4684068Z Updating files:  58% (2642/4555)
+2026-11-07T14:18:12.4798270Z Updating files:  59% (2688/4555)
+2026-11-07T14:18:12.4921957Z Updating files:  60% (2733/4555)
+2026-11-07T14:18:12.5037378Z Updating files:  61% (2779/4555)
+2026-11-07T14:18:12.5156245Z Updating files:  62% (2825/4555)
+2026-11-07T14:18:12.5272846Z Updating files:  63% (2870/4555)
+2026-11-07T14:18:12.5383930Z Updating files:  64% (2916/4555)
+2026-11-07T14:18:12.5496554Z Updating files:  65% (2961/4555)
+2026-11-07T14:18:12.5679980Z Updating files:  66% (3007/4555)
+2026-11-07T14:18:12.5765135Z Updating files:  67% (3052/4555)
+2026-11-07T14:18:12.5881227Z Updating files:  68% (3098/4555)
+2026-11-07T14:18:12.5996740Z Updating files:  69% (3143/4555)
+2026-11-07T14:18:12.6118639Z Updating files:  70% (3189/4555)
+2026-11-07T14:18:12.6225806Z Updating files:  71% (3235/4555)
+2026-11-07T14:18:12.6398729Z Updating files:  72% (3280/4555)
+2026-11-07T14:18:12.6565874Z Updating files:  73% (3326/4555)
+2026-11-07T14:18:12.6730207Z Updating files:  74% (3371/4555)
+2026-11-07T14:18:12.6952349Z Updating files:  75% (3417/4555)
+2026-11-07T14:18:12.7068483Z Updating files:  76% (3462/4555)
+2026-11-07T14:18:12.7196726Z Updating files:  77% (3508/4555)
+2026-11-07T14:18:12.7348836Z Updating files:  78% (3553/4555)
+2026-11-07T14:18:12.7513440Z Updating files:  79% (3599/4555)
+2026-11-07T14:18:12.7631245Z Updating files:  80% (3644/4555)
+2026-11-07T14:18:12.7779448Z Updating files:  81% (3690/4555)
+2026-11-07T14:18:12.7905410Z Updating files:  82% (3736/4555)
+2026-11-07T14:18:12.8070160Z Updating files:  83% (3781/4555)
+2026-11-07T14:18:12.8203792Z Updating files:  84% (3827/4555)
+2026-11-07T14:18:12.8328402Z Updating files:  85% (3872/4555)
+2026-11-07T14:18:12.8453669Z Updating files:  86% (3918/4555)
+2026-11-07T14:18:12.8622035Z Updating files:  87% (3963/4555)
+2026-11-07T14:18:12.8826931Z Updating files:  88% (4009/4555)
+2026-11-07T14:18:12.8973668Z Updating files:  89% (4054/4555)
+2026-11-07T14:18:12.9129172Z Updating files:  90% (4100/4555)
+2026-11-07T14:18:12.9256207Z Updating files:  91% (4146/4555)
+2026-11-07T14:18:12.9389827Z Updating files:  92% (4191/4555)
+2026-11-07T14:18:12.9527260Z Updating files:  93% (4237/4555)
+2026-11-07T14:18:12.9670835Z Updating files:  94% (4282/4555)
+2026-11-07T14:18:12.9818574Z Updating files:  95% (4328/4555)
+2026-11-07T14:18:12.9987808Z Updating files:  96% (4373/4555)
+2026-11-07T14:18:13.0141527Z Updating files:  97% (4419/4555)
+2026-11-07T14:18:13.0343172Z Updating files:  98% (4464/4555)
+2026-11-07T14:18:13.1020761Z Updating files:  99% (4510/4555)
+2026-11-07T14:18:13.1023621Z Updating files: 100% (4555/4555)
+2026-11-07T14:18:13.1024131Z Updating files: 100% (4555/4555), done.
+2026-11-07T14:18:13.1692964Z Switched to a new branch 'devin/1793765109-bidding-demo-ui'
+2026-11-07T14:18:13.1845555Z branch 'devin/1793765109-bidding-demo-ui' set up to track 'origin/devin/1793765109-bidding-demo-ui'.
+2026-11-07T14:18:13.1966339Z ##[endgroup]
+2026-11-07T14:18:13.2643542Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+2026-11-07T14:18:13.3170598Z 3261e871d33bc243493abfd1dc34f89f5b2a43b3
+2026-11-07T14:18:13.3707007Z ##[group]Run actions/setup-python@v5
+2026-11-07T14:18:13.3707359Z with:
+2026-11-07T14:18:13.3707547Z   python-version: 3.11
+2026-11-07T14:18:13.3707763Z   check-latest: false
+2026-11-07T14:18:13.3710316Z   token: ***
+2026-11-07T14:18:13.3710510Z   update-environment: true
+2026-11-07T14:18:13.3710738Z   allow-prereleases: false
+2026-11-07T14:18:13.3710951Z   freethreaded: false
+2026-11-07T14:18:13.3711139Z env:
+2026-11-07T14:18:13.3711306Z   PYTHONIOENCODING: utf-8
+2026-11-07T14:18:13.3711509Z   PYTHONUTF8: 1
+2026-11-07T14:18:13.3711710Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T14:18:13.3711941Z ##[endgroup]
+2026-11-07T14:18:13.6368446Z ##[group]Installed versions
+2026-11-07T14:18:13.6763907Z (node:6924) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-07T14:18:13.6765153Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-07T14:18:13.6765939Z Successfully set up CPython (3.11.9)
+2026-11-07T14:18:13.6766745Z ##[endgroup]
+2026-11-07T14:18:13.7222569Z ##[group]Run python -m pip install --upgrade pip pytest
+2026-11-07T14:18:13.7223427Z [36;1mpython -m pip install --upgrade pip pytest[0m
+2026-11-07T14:18:13.8066716Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-11-07T14:18:13.8067107Z env:
+2026-11-07T14:18:13.8067310Z   PYTHONIOENCODING: utf-8
+2026-11-07T14:18:13.8067545Z   PYTHONUTF8: 1
+2026-11-07T14:18:13.8067754Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T14:18:13.8068097Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.11.9\x64
+2026-11-07T14:18:13.8068872Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.11.9\x64/lib/pkgconfig
+2026-11-07T14:18:13.8069347Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+2026-11-07T14:18:13.8069769Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+2026-11-07T14:18:13.8070184Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+2026-11-07T14:18:13.8070516Z ##[endgroup]
+2026-11-07T14:18:18.2960351Z Requirement already satisfied: pip in C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages (26.3)
+2026-11-07T14:18:18.7849763Z Collecting pytest
+2026-11-07T14:18:18.9943316Z   Downloading pytest-9.2.0-py3-none-any.whl.metadata (7.9 kB)
+2026-11-07T14:18:19.0677154Z Collecting colorama>=0.4 (from pytest)
+2026-11-07T14:18:19.0754635Z   Downloading colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+2026-11-07T14:18:19.1389857Z Collecting iniconfig>=2 (from pytest)
+2026-11-07T14:18:19.1485713Z   Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+2026-11-07T14:18:19.1964539Z Collecting packaging>=24 (from pytest)
+2026-11-07T14:18:19.2013499Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+2026-11-07T14:18:19.2478386Z Collecting pluggy<2,>=1.6 (from pytest)
+2026-11-07T14:18:19.2535253Z   Downloading pluggy-1.7.0-py3-none-any.whl.metadata (5.0 kB)
+2026-11-07T14:18:19.3058209Z Collecting pygments>=2.15 (from pytest)
+2026-11-07T14:18:19.3122115Z   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+2026-11-07T14:18:19.3391041Z Downloading pytest-9.2.0-py3-none-any.whl (411 kB)
+2026-11-07T14:18:19.4381348Z Downloading pluggy-1.7.0-py3-none-any.whl (27 kB)
+2026-11-07T14:18:19.4625328Z Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+2026-11-07T14:18:19.4868670Z Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+2026-11-07T14:18:19.5150870Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+2026-11-07T14:18:19.5363859Z Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+2026-11-07T14:18:19.5791500Z    ---------------------------------------- 1.3/1.3 MB 31.9 MB/s  0:00:00
+2026-11-07T14:18:19.8250014Z Installing collected packages: pygments, pluggy, packaging, iniconfig, colorama, pytest
+2026-11-07T14:18:22.4260371Z 
+2026-11-07T14:18:22.4274797Z Successfully installed colorama-0.4.6 iniconfig-2.3.1 packaging-26.3 pluggy-1.7.0 pygments-2.21.0 pytest-9.2.0
+2026-11-07T14:18:22.6692928Z ##[group]Run python -m pytest -q -p no:cacheprovider tests/test_windows_execution.py tests/test_code_review.py tests/test_direct_invocation_lifecycle.py tests/test_intake_recovery_independent.py tests/test_learning.py tests/test_learning_api.py tests/test_learning_decisions.py tests/test_learning_context.py tests/test_learning_facts.py tests/test_review_feedback.py
+2026-11-07T14:18:22.6695568Z [36;1mpython -m pytest -q -p no:cacheprovider tests/test_windows_execution.py tests/test_code_review.py tests/test_direct_invocation_lifecycle.py tests/test_intake_recovery_independent.py tests/test_learning.py tests/test_learning_api.py tests/test_learning_decisions.py tests/test_learning_context.py tests/test_learning_facts.py tests/test_review_feedback.py[0m
+2026-11-07T14:18:22.6771960Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-11-07T14:18:22.6772318Z env:
+2026-11-07T14:18:22.6772505Z   PYTHONIOENCODING: utf-8
+2026-11-07T14:18:22.6772777Z   PYTHONUTF8: 1
+2026-11-07T14:18:22.6772969Z   NO_PROXY: 127.0.0.1,localhost,::1
+2026-11-07T14:18:22.6773289Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.11.9\x64
+2026-11-07T14:18:22.6773726Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.11.9\x64/lib/pkgconfig
+2026-11-07T14:18:22.6774173Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+2026-11-07T14:18:22.6774564Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+2026-11-07T14:18:22.6774978Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+2026-11-07T14:18:22.6775294Z ##[endgroup]
+2026-11-07T14:20:34.0505631Z .......................ss.ssss..ss.s.ss.........................................s....................... [ 65%]
+2026-11-07T14:21:24.6249643Z .................................................. [ 96%]
+2026-11-07T14:21:28.7454646Z .....                                                                    [100%]
+2026-11-07T14:21:28.7455734Z 147 passed, 12 skipped, 134 subtests passed in 185.27s (0:03:05)
+2026-11-07T14:21:28.9123827Z Post job cleanup.
+2026-11-07T14:21:29.0577015Z (node:972) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-07T14:21:29.0577803Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-07T14:21:29.0899961Z Post job cleanup.
+2026-11-07T14:21:29.3210432Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-11-07T14:21:29.3579215Z git version 2.56.0.windows.4
+2026-11-07T14:21:29.3664635Z Temporarily overriding HOME='D:\a\_temp\3ea7e7d3-e954-495c-9ef1-fec51bc974d0' before making global git config changes
+2026-11-07T14:21:29.3666193Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-07T14:21:29.3677877Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\webuddy-pitch\webuddy-pitch
+2026-11-07T14:21:29.4109079Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-11-07T14:21:29.4511618Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-11-07T14:21:30.0569099Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-07T14:21:30.0919875Z http.https://github.com/.extraheader
+2026-11-07T14:21:30.0994946Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all http.https://github.com/.extraheader
+2026-11-07T14:21:30.1345172Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-11-07T14:21:30.6974675Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-07T14:21:30.7373282Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-11-07T14:21:31.3101627Z Cleaning up orphan processes
+2026-11-07T14:21:31.3759802Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
