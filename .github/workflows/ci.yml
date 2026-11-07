@@ -69,6 +69,7 @@ jobs:
           tests/test_lessons.py
           tests/test_filelock.py
           tests/test_windows_execution.py
+          tests/test_windows_offline_bundle.py
           tests/test_comment_drafts.py
 
   windows_contracts:
