@@ -47,7 +47,7 @@ class ReformStateTest(unittest.TestCase):
         self.assertNotEqual(current['state'],'awaiting_acceptance')
         closed=self.P.store.update_ticket(ticket['id'],'fixture',status='closed')
         historical=reform_state.ticket(self.P,self.p,closed)
-        self.assertTrue(historical['historical_acceptance'])
+        self.assertIsNone(historical['historical_acceptance'])
         self.assertEqual(historical['integrated_delivery'],'not_checked')
         self.assertEqual(historical['evidence_validity'],'not_checked')
 
@@ -60,6 +60,7 @@ class ReformStateTest(unittest.TestCase):
         self.assertEqual(current['evidence_validity'],'valid')
         self.assertEqual(current['state'],'verified')
         self.assertIn('独立复核',current['next_action'])
+        self.P.store.event(self.fixture.ticket['id'],'fixture','accept','synthetic history fixture; not a product acceptance')
         closed=self.P.store.update_ticket(self.fixture.ticket['id'],'fixture',status='closed')
         history=reform_state.ticket(self.P,self.p,closed)
         self.assertTrue(history['historical_acceptance'])

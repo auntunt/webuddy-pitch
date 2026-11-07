@@ -201,3 +201,22 @@ class ReformDurabilityTest(unittest.TestCase):
         self.assertEqual(current['batch_label'],'历史批次待核对')
         self.assertIn('固定源版本',current['blocked'])
         self.assertNotEqual(current['evidence']['integrated_delivery'],'accepted')
+
+    def test_first_acceptance_sample_uses_recorded_first_verdict_not_closed_status(self):
+        p=self.create()
+        made=reform.release(self.P,self.proj,p['id'],None,'owner')
+        for key in made:self.close(key)
+        saved=reform.plan(self.data,'RF',p['id'])
+        current=reform.view(self.P,self.proj,saved)
+        self.assertEqual(current['counts']['first_pass'],0)
+        self.assertEqual(current['counts']['first_verdict_total'],0)
+        a,b=[self.store.ticket(k) for k in made]
+        self.store.event(a['id'],'fixture','reject','synthetic first failure')
+        self.store.update_ticket(a['id'],'fixture',status='doing')
+        self.store.event(b['id'],'fixture','accept','synthetic first pass')
+        current=reform.view(self.P,self.proj,saved)
+        self.assertEqual((current['counts']['first_pass'],current['counts']['first_verdict_total']),(1,2))
+        self.store.event(a['id'],'fixture','accept','synthetic later pass')
+        self.close(a['key'])
+        current=reform.view(self.P,self.proj,saved)
+        self.assertEqual((current['counts']['first_pass'],current['counts']['first_verdict_total']),(1,2))

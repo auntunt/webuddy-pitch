@@ -670,12 +670,16 @@ def resume(P, proj, pid, by):
 
 def view(P, proj: dict, p: dict) -> dict:
     """A plan with the live state of each piece's ticket."""
-    st, rej = {}, {}
+    st, rej, first, latest = {}, {}, {}, {}
     for it in p["items"]:
         if it.get("ticket"):
             t = P.store.ticket(it["ticket"])
             st[it["ticket"]] = t["status"] if t else "gone"
-            rej[it["ticket"]] = sum(1 for e in P.store.events(t["id"]) if e["kind"] == "reject") if t else 0
+            verdicts=[e for e in P.store.events(t['id']) if e['kind'] in ('accept','reject')] if t else []
+            rej[it['ticket']]=sum(e['kind']=='reject' for e in verdicts)
+            if verdicts:
+                first[it['ticket']]=verdicts[0]['kind']
+                latest[it['ticket']]=verdicts[-1]['kind']
     dispatch = {}
     if P.store.one("SELECT name FROM sqlite_master WHERE name='reform_dispatch'"):
         dispatch = {r['item_order']:r['state'] for r in P.store.q('SELECT item_order,state FROM reform_dispatch WHERE plan_uid=?',(p['uid'],))}
@@ -686,7 +690,8 @@ def view(P, proj: dict, p: dict) -> dict:
                   evidence_validity=(current.get(it.get('ticket')) or {}).get('evidence_validity','not_checked')) for it in p["items"]]
     c = {"total": len(items), "lead": bool(_lead(p)), "released": sum(1 for i in items if i.get("ticket")), "closed": sum(1 for i in items if i["status"] == "closed"),
          "verify": sum(1 for i in items if i["status"] == "verify"), "rejected": sum(1 for i in items if i["rejects"]),
-         "first_pass": sum(1 for i in items if i["status"] == "closed" and not i["rejects"])}
+         "first_verdict_total":len(first),"first_pass":sum(kind=='accept' for kind in first.values()),
+         "business_accepted":sum(i['status']=='closed' and latest.get(i.get('ticket'))=='accept' for i in items)}
     from .reform_integration import current as integration_state
     integration = integration_state(P,proj,p) if all(i['status']=='closed' for i in items if i.get('ticket')) else {'state':'waiting','blocked':'等待本批子任务','commit':None}
     delivered=bool(c['closed']==c['total'] and integration['state']=='verified' and p.get('overall',{}).get('passed') and p['overall']['commit']==integration['commit'])
