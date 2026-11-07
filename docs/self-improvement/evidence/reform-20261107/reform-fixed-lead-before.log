@@ -1,0 +1,31 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_ ReformIntegrationTest.test_fixed_lead_does_not_move_integration_base_to_unaccepted_branch_tip _
+
+self = <test_reform_integration.ReformIntegrationTest testMethod=test_fixed_lead_does_not_move_integration_base_to_unaccepted_branch_tip>
+
+    def test_fixed_lead_does_not_move_integration_base_to_unaccepted_branch_tip(self):
+        plan=reform.create(self.P.data_dir,'EXT',{'built':'fixed','domains':[{'id':'one','title':'One','tables':0}]},
+            dict(title='Fixed lead',goal='Keep authorized base',source_version=self.fixture.base,target_environment='fixture',
+                criteria=['Only accepted code'],lead={'title':'Foundation','body':'Preserve the fixed baseline'},wave=1),'fixture-owner')
+        lead=reform.release(self.P,self.p,plan['id'],None,'fixture-owner')[0]
+        t=self.P.store.ticket(lead)
+        self.P.store.event(t['id'],'fixture','adopt','synthetic fixed lead',{'commit':self.fixture.sha,'branch':'main'})
+        self.P.store.event(t['id'],'fixture','accept','synthetic lead acceptance',{})
+        t=self.P.store.update_ticket(t['id'],'fixture',status='closed')
+        (self.fixture.repo/'app.py').write_text('VALUE = 3\n')
+        self.fixture.git('commit','-am','unaccepted branch movement fixture')
+        unaccepted=self.fixture.git('rev-parse','HEAD')
+        self.assertNotEqual(unaccepted,self.fixture.sha)
+        opened=reform.outcome(self.P,self.p,t,True,'synthetic fixed lead acceptance')
+        self.assertEqual(len(opened),1)
+        integration=self.P.store.ticket(opened[0])
+>       self.assertEqual(integration['links']['base'],self.fixture.base)
+E       AssertionError: '2b96adf396f131fa25406314be211607caef6a6a' != 'ff7b3eee7565bd23a861e1e28f4c20538767fbdd'
+E       - 2b96adf396f131fa25406314be211607caef6a6a
+E       + ff7b3eee7565bd23a861e1e28f4c20538767fbdd
+
+tests/test_reform_integration.py:155: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_reform_integration.py::ReformIntegrationTest::test_fixed_lead_does_not_move_integration_base_to_unaccepted_branch_tip
+1 failed, 6 deselected in 0.43s

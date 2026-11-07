@@ -112,3 +112,18 @@ class ReformStateTest(unittest.TestCase):
             self.assertEqual(resumed['opened'],[])
             self.assertIn('检查点提交不可访问',resumed['blocked'])
             submit.assert_not_called()
+
+    def test_initial_source_missing_blocks_resume_preview_and_actual_start(self):
+        from tmh.platform.reform_api import resume_preview
+        broken=dict(self.plan,source_version='e'*40,base='e'*40)
+        preview=resume_preview(self.P,self.p,broken)
+        self.assertIn('不可访问',preview['blocked'])
+        self.assertNotIn('start',preview['allowed_actions'])
+        with reform._transaction(self.P.data_dir,self.P.store) as db:
+            plans=reform._load(self.P.data_dir,'EXT',db)
+            plans[0].update(source_version='e'*40,base='e'*40)
+            reform._save(self.P.data_dir,'EXT',plans,db)
+        with patch.object(self.P.flow,'submit') as submit:
+            with self.assertRaisesRegex(ValueError,'不可访问'):
+                reform.release(self.P,self.p,self.plan['id'],None,'owner')
+            submit.assert_not_called()

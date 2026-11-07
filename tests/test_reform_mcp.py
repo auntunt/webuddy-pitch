@@ -159,6 +159,18 @@ class ReformMCPTest(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(scope['scope']['lead'],lead)
             self.assertEqual(self.submitted,[])
 
+    async def test_missing_initial_source_preview_and_control_agree(self):
+        async with self.session('--allow-execution') as session:
+            plan,_=await self.create(session)
+            resource=dict(project='EXT',plan_id=plan['id'])
+            changed=await self.call(session,'reform_update',dict(resource,expected_revision=plan['revision'],request_id='missing-initial-update',reason='Unfetched fixture source',changes={'source_version':'e'*40}))
+            preview=await self.call(session,'reform_resume_preview',resource)
+            self.assertIn('不可访问',preview['blocked'])
+            self.assertNotIn('start',preview['allowed_actions'])
+            failed=await self.call(session,'reform_control',dict(resource,expected_revision=changed['revision'],request_id='missing-initial-start',action='start'),True)
+            self.assertEqual(failed['status'],409)
+            self.assertEqual(self.submitted,[])
+
     def web(self,path,body=None):
         request=urllib.request.Request(self.endpoint+path,data=json.dumps(body).encode() if body is not None else None,
             headers={'X-TMH-Token':'stdio-fixture-token','X-TMH':'1','Content-Type':'application/json'})

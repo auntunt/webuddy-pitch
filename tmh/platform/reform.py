@@ -596,7 +596,8 @@ def outcome(P, proj: dict, t: dict, passed: bool, note: str, gave_up: str = "") 
             _log(p,name+'验收通过')
             if it.get('lead'):
                 p['lead_passed'] = True
-                p['base'] = _tip(P,proj,t)
+                if p.get('integration_policy')!='serial_batches':
+                    p['base'] = _tip(P,proj,t)
             if p.get('auto') and not _blocked(P,p):
                 made = _release_in_tx(P,proj,p,None,P.flow.BY,db)
         from .reform_delivery import sync

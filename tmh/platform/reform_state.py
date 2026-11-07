@@ -125,13 +125,19 @@ def checkpoint(P, project, p, reason):
 def checkpoint_preflight(P, project, p):
     from .agents import git
     value = p.get('checkpoint')
-    if not value:
+    if not value and not p.get('source_version'):
         return dict(status='missing',blocked=[],retained_commits=[])
     ctx=getattr(P,'tenant_context',None)
     if ctx is not None:
         from .tenant_runtime import ACTOR
         if not ctx.runtime_allowed(ACTOR.get()):
-            return dict(status='not_checked',checkpoint_id=value['id'],blocked=['当前连接不具备版本核验条件，请由项目执行负责人核对'],retained_commits=value['available_commits'])
+            return dict(status='not_checked',checkpoint_id=value['id'] if value else None,blocked=['当前连接不具备版本核验条件，请由项目执行负责人核对'],retained_commits=value['available_commits'] if value else [])
+    if not value:
+        source=p['source_version']
+        accessible=git(Path(project['root']),'rev-parse','--verify','--end-of-options',source+'^{commit}',check=False).strip()==source
+        return dict(status='missing' if accessible else 'blocked',source_accessibility='accessible' if accessible else 'blocked',
+            blocked=[] if accessible else ['初始固定源提交不可访问；请核对项目登记仓库与源版本：'+source],
+            retained_commits=[source] if accessible else [])
     expected = list(dict.fromkeys([value.get('source_commit')]+[x['commit'] for x in value['items'] if x.get('commit')]))
     missing = [sha for sha in expected if not sha or git(Path(project['root']),'rev-parse','--verify','--end-of-options',sha+'^{commit}',check=False).strip()!=sha]
     changed = [key for key,old in value['contract'].items() if p.get(key)!=old]

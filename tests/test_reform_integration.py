@@ -135,3 +135,24 @@ class ReformIntegrationTest(unittest.TestCase):
             signoff.record_accept(self.P,self.P.store.ticket(saved['parent']),'fixture',True,'synthetic test')
         self.assertEqual(caught.exception.code,409)
         self.assertFalse(any(e['kind']=='accept' for e in self.P.store.events(self.P.store.ticket(saved['parent'])['id'])))
+
+    def test_fixed_lead_does_not_move_integration_base_to_unaccepted_branch_tip(self):
+        plan=reform.create(self.P.data_dir,'EXT',{'built':'fixed','domains':[{'id':'one','title':'One','tables':0}]},
+            dict(title='Fixed lead',goal='Keep authorized base',source_version=self.fixture.base,target_environment='fixture',
+                criteria=['Only accepted code'],lead={'title':'Foundation','body':'Preserve the fixed baseline'},wave=1),'fixture-owner')
+        lead=reform.release(self.P,self.p,plan['id'],None,'fixture-owner')[0]
+        t=self.P.store.ticket(lead)
+        self.P.store.event(t['id'],'fixture','adopt','synthetic fixed lead',{'commit':self.fixture.sha,'branch':'main'})
+        self.P.store.event(t['id'],'fixture','accept','synthetic lead acceptance',{})
+        t=self.P.store.update_ticket(t['id'],'fixture',status='closed')
+        (self.fixture.repo/'app.py').write_text('VALUE = 3\n')
+        self.fixture.git('commit','-am','unaccepted branch movement fixture')
+        unaccepted=self.fixture.git('rev-parse','HEAD')
+        self.assertNotEqual(unaccepted,self.fixture.sha)
+        opened=reform.outcome(self.P,self.p,t,True,'synthetic fixed lead acceptance')
+        self.assertEqual(len(opened),1)
+        integration=self.P.store.ticket(opened[0])
+        self.assertEqual(integration['links']['base'],self.fixture.base)
+        saved=reform.plan(self.P.data_dir,'EXT',plan['id'])
+        self.assertEqual(saved['integrations'][0]['inputs'],[self.fixture.sha])
+        self.assertNotIn(unaccepted,saved['checkpoint']['available_commits'])
