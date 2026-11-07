@@ -1,0 +1,7 @@
+{
+  "time": "2026-11-07T17:49:13.645340+08:00",
+  "scope": "tracked tmh files only; no deployment or DB writes",
+  "exit_code": 0,
+  "stdout": "{\"checked\": 218, \"mismatches\": [], \"runtime\": \"/opt/webuddy/releases/reform-847f8605/app\"}\n",
+  "stderr": ""
+}

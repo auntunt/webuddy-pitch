@@ -54,3 +54,5 @@ JSON 报告格式：
 JSON 用例可记录 `input`、`expected`、`actual`；JUnit 可通过 testcase/properties 的 `webuddy.input`、`webuddy.expected`、`webuddy.actual` 属性记录。业务证据表只显示报告中的实际记录，不从 `pass` 生成实际值。缺字段显示“未记录”，未关联显示“未覆盖”。
 
 原始报告可在运行详情打开并按原始字节下载；接口沿用该运行的项目权限，并核对文件归属与摘要。历史报告可查阅，但不能因此恢复已失效的验收结论。配置页对非平台管理员只读；管理员可从最近运行的用例列表选择关联，历史用例 ID 不等于本次已验证。
+
+完整流程、浏览器与 computer use 的区别、人工操作留痕及 CI 判读见[验证与 Review](verification-review.md#从需求到交付的闭环)。本页只定义项目测试配置，不将可配置阶段视作已经执行。
