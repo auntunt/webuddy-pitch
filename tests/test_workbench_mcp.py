@@ -170,9 +170,12 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                         initialized = await session.initialize()
                         self.assertEqual(initialized.serverInfo.name, "webuddy_mcp")
                         tools = (await session.list_tools()).tools
-                        self.assertEqual(len(tools), 27)  # frozen report reads join the existing read-only tools
-                        self.assertIn("webuddy_reform_report_get", {t.name for t in tools})
-                        self.assertNotIn("webuddy_reform_report_create", {t.name for t in tools})
+                        from tmh.agent_contract import SPECS
+                        expected = {'webuddy_'+name for name,spec in SPECS.items() if not spec['write'] and not spec.get('operator')}
+                        self.assertEqual({t.name for t in tools}, expected | {'webuddy_workspace_preflight'})
+                        self.assertIn('webuddy_reform_report_get', {t.name for t in tools})
+                        denied = await session.call_tool('webuddy_reform_report_create', {'project':'EXT','plan_id':'r1','expected_revision':1,'request_id':'read-must-not-create'})
+                        self.assertTrue(denied.isError)
                         self.assertIn("webuddy_workspace_preflight", {t.name for t in tools})
                         self.assertTrue({"webuddy_development_get","webuddy_candidate_ci","webuddy_delivery_get"} <= {tool.name for tool in tools})
                         self.assertTrue(all(tool.annotations.readOnlyHint for tool in tools))
