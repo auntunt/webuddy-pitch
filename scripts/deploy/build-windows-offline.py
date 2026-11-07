@@ -13,6 +13,7 @@ import tarfile
 import tempfile
 import urllib.request
 import zipfile
+from customer_audit import require_clean
 
 HERE = Path(__file__).resolve().parent
 
@@ -120,9 +121,13 @@ def main():
     args = p.parse_args()
     if args.out.exists():
         p.error('Output already exists; use a new directory')
-    spec = HERE / 'windows-offline'
-    lock = json.loads((spec / 'payloads.lock.json').read_text())
     release = json.loads((args.wheel_release / 'release.json').read_text())
+    if release.get('distribution') != 'customer':
+        raise ValueError('A newly built customer wheel is required')
+    def specification(name):
+        return subprocess.check_output(['git', 'show', release['source_commit'] + ':scripts/deploy/windows-offline/' + name], cwd=HERE.parents[1])
+    lock_bytes = specification('payloads.lock.json')
+    lock = json.loads(lock_bytes)
     wheel = args.wheel_release / release['wheel']
     if digest(wheel) != release['sha256']:
         raise ValueError('Webuddy wheel checksum mismatch')
@@ -155,25 +160,27 @@ def main():
             install_wheel(archive, packages, root / 'runtime/python/Scripts')
         (root / 'runtime/python/python314._pth').write_text('python314.zip\n.\nLib/site-packages\nimport site\n', newline='\n')
         for filename in ('launcher.py', 'webuddy.cmd', 'start.cmd', 'check.cmd', 'config.example.json', 'README.txt'):
-            shutil.copy2(spec / filename, root / filename)
-        shutil.copy2(spec / 'payloads.lock.json', root / 'payloads.lock.json')
+            (root / filename).write_bytes(specification(filename))
+        (root / 'payloads.lock.json').write_bytes(lock_bytes)
         release.update(target='windows-x86_64', python=lock['python']['version'],
                        tools=dict(codex='tools/codex/package/vendor/x86_64-pc-windows-msvc/bin/codex.exe',
                                   claude='tools/claude/package/claude.exe', git='tools/git/cmd/git.exe',
                                   node='tools/node/node-' + lock['node']['version'] + '-win-x64/node.exe'))
         (root / 'release.json').write_text(json.dumps(release, indent=2) + '\n', newline='\n')
-        manifest = {f.relative_to(root).as_posix(): digest(f) for f in sorted(root.rglob('*')) if f.is_file()}
-        (root / 'MANIFEST.json').write_text(json.dumps(manifest, indent=2) + '\n')
+        manifest = {f.relative_to(root).as_posix(): digest(f) for f in sorted(root.rglob('*'), key=lambda p: p.relative_to(root).as_posix()) if f.is_file()}
+        (root / 'MANIFEST.json').write_text(json.dumps(manifest, indent=2) + '\n', newline='\n')
         args.out.mkdir(parents=True)
-        archive = args.out / ('Webuddy-windows-x64-' + release['source_commit'][:12] + '.zip')
+        archive = args.out / ('Webuddy-customer-windows-x64-' + release['source_commit'][:12] + '.zip')
         with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as output:
-            for file in sorted(root.rglob('*')):
+            for file in sorted(root.rglob('*'), key=lambda p: p.relative_to(root).as_posix()):
                 if file.is_file():
                     output.write(file, 'Webuddy/' + file.relative_to(root).as_posix())
-        receipt = dict(source_commit=release['source_commit'], bundle=archive.name, sha256=digest(archive),
+        audit = require_clean(archive, release['resources'])
+        (args.out / 'content-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
+        receipt = dict(distribution='customer', source_commit=release['source_commit'], bundle=archive.name, sha256=digest(archive),
                        bytes=archive.stat().st_size, files=len(manifest), windows_validation='pending')
         (args.out / 'bundle.json').write_text(json.dumps(receipt, indent=2) + '\n')
-        shutil.copy2(spec / 'README.txt', args.out / 'README.txt')
+        (args.out / 'README.txt').write_bytes(specification('README.txt'))
         print(json.dumps(receipt, indent=2))
 
 

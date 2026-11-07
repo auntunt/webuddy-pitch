@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 import zipfile
@@ -15,7 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def module(name, relative):
     spec = importlib.util.spec_from_file_location(name, ROOT / relative)
     result = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(result)
+    with patch.object(sys, 'path', [str(ROOT / 'scripts/deploy'), *sys.path]):
+        spec.loader.exec_module(result)
     return result
 
 

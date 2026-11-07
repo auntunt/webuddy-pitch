@@ -33,7 +33,12 @@ def _copytree(src: Path, dst: Path) -> None:
         return
     if dst.exists():
         shutil.rmtree(dst)
-    shutil.copytree(src, dst, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    prefix = src.relative_to(HOME).as_posix() + "/"
+    for source, name in resources.files(HOME):
+        if name.startswith(prefix):
+            target = dst / name[len(prefix):]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
 
 
 def _upsert_block(path: Path, block: str, header: str = "") -> None:
@@ -151,7 +156,11 @@ def vendor_tool(repo: Path, strict: bool = True) -> Path:
     if not PKG.is_relative_to(tool.resolve()):
         shutil.rmtree(tool, ignore_errors=True)
     tool.mkdir(exist_ok=True)
-    _copytree(PKG, tool / "tmh")
+    for source, relative in resources.code_files(PKG):
+        target = tool / "tmh" / relative
+        if source.resolve() != target.resolve():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
     # Keep the vendored command self-contained, including reinstallation and
     # offline-pack. Wheel assets and checkout assets have the same layout.
     for source, relative in assets:
@@ -192,14 +201,16 @@ def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]
     agents_block = (HOME / "templates" / "AGENTS.block.md").read_text(encoding="utf-8")
     (x / "docs").mkdir(exist_ok=True)
     shutil.copy(HOME / "docs" / "agent-commands.md", x / "docs" / "agent-commands.md")
+    for name in ("acceptance.md", "operating-boundaries.md"):
+        shutil.copy(HOME / "docs" / "customer" / name, x / "docs" / name)
     _upsert_block(repo / "AGENTS.md", agents_block, "# AGENTS.md")
     done.append("AGENTS.md（插入 tmh 区块，保留原有内容）")
-    skills = sorted(p for p in (HOME / "skills").iterdir() if (p / "SKILL.md").exists())
+    skills = sorted(HOME / name.rsplit("/", 1)[0] for name in resources.FILES if name.startswith("skills/") and name.endswith("/SKILL.md"))
     if "claude" in engines:
         _upsert_block(repo / "CLAUDE.md", "@AGENTS.md\n\n" + (HOME / "templates" / "CLAUDE.block.md").read_text(encoding="utf-8"), "# CLAUDE.md")
         for s in skills:
             _copytree(s, repo / ".claude" / "skills" / s.name)
-        for a in sorted((HOME / "agents").glob("*.md")):
+        for a in sorted(HOME / name for name in resources.FILES if name.startswith("agents/") and name.endswith(".md")):
             (repo / ".claude" / "agents").mkdir(parents=True, exist_ok=True)
             shutil.copy(a, repo / ".claude" / "agents" / a.name)
         _merge_hooks(repo / ".claude" / "settings.json")
@@ -209,7 +220,7 @@ def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]
         for s in skills:
             _copytree(s, repo / ".agents" / "skills" / s.name)
         done.append(".agents/skills (%d)（Codex 技能目录）" % len(skills))
-        for a in sorted((HOME / "agents").glob("*.md")):
+        for a in sorted(HOME / name for name in resources.FILES if name.startswith("agents/") and name.endswith(".md")):
             (repo / ".codex" / "agents").mkdir(parents=True, exist_ok=True)
             (repo / ".codex" / "agents" / (a.stem + ".toml")).write_text(_codex_agent(a), encoding="utf-8")
         _merge_codex_hooks(repo / ".codex" / "hooks.json")

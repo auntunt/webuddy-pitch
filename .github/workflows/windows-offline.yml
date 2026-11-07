@@ -4,6 +4,13 @@ on:
   push:
     paths:
       - 'scripts/deploy/build-windows-offline.py'
+      - 'scripts/deploy/build-package.py'
+      - 'scripts/deploy/customer_audit.py'
+      - 'tmh/resources.py'
+      - 'tmh/install.py'
+      - 'docs/customer/**'
+      - 'setup.py'
+      - 'MANIFEST.in'
       - 'scripts/deploy/windows-offline/**'
       - 'scripts/deploy/test-windows-offline.*'
       - '.github/workflows/windows-offline.yml'
@@ -46,9 +53,23 @@ jobs:
         with:
           name: windows-offline-receipts
           path: |
+            ${{ runner.temp }}/wheel/**/release.json
+            ${{ runner.temp }}/wheel/**/content-audit.json
+            ${{ runner.temp }}/bundle/content-audit.json
             ${{ runner.temp }}/bundle/bundle.json
             ${{ runner.temp }}/offline-evidence/receipt.json
             ${{ runner.temp }}/offline-evidence/**/Webuddy/MANIFEST.json
             ${{ runner.temp }}/offline-evidence/**/server-*.log
           if-no-files-found: warn
+          retention-days: 7
+      - name: Retain tested customer ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-customer-bundle
+          path: |
+            ${{ runner.temp }}/bundle/*.zip
+            ${{ runner.temp }}/bundle/bundle.json
+            ${{ runner.temp }}/bundle/README.txt
+            ${{ runner.temp }}/bundle/content-audit.json
+          if-no-files-found: error
           retention-days: 7

@@ -1308,3 +1308,8 @@ c927d8d4已普通推送并完成固定提交wheel/源码外smoke、全新server/
 - 最终入口：相邻部署包/offline-runtime-20261108/Windows-x64-093201ea-verified/。解压→check.cmd→start.cmd→127.0.0.1:8790；数据与配置外置，已有工具优先，缺少用包内版本，不改全局PATH/注册表，不含账号/密钥/业务数据。候选Mac构建移入preparation；不是Docker镜像。
 - 本机13项/2子项通过；093快速四门、安装分发两门、Windows执行两门、Linux真实MCP两门通过。常规完整CI记录时仍运行，不宣称整体CI成功。客户Win10/11桌面整包试用（现有测试机转发不稳）、模型登录/真实调用、项目沙箱及三宿主联调未计通过；原全量Windows已知限制保持。单次包检查不代表客户业务已验收。
 - 43只读复验：仍maps-9edce45a/app，229个运行文件与当前HEAD一致，PID1983706、重启0、active/running、回环200/401通过；不为打包改动重启，不动阿里云生产。技术回执见evidence/windows-offline-20261108/{delivery-receipt,windows-ci-receipt}.json及43-runtime-unchanged.log；完整材料在交付目录evidence。
+
+### 2026-11-08 客户 Windows 离线包：源头白名单及重建
+- 以最新远端54af26c05afb80a0c5fb45a39c1b2447659ba6cb隔离工作树开工；旧093201ea包与记录保留。本轮不部署、不重启服务。共享资源逐文件白名单替换递归收录，内部docs不删除；客户说明另写，原agent-commands安装路径保留。vendored模块也按产品模块/资产复制，避免生成资源和缓存扩散。
+- wheel固定Git原始blob构建，忽略宿主行尾转换；运行ZIP模板与lock绑定同一提交。构建强制客户资源审计、必需资源完整性及嵌套归档审计，只报告路径/类别。第三方许可证保留。Windows CI新增初始化/知识/官方SDK读取和禁止写操作验证，保留已有断网/完整性/配置/回收断言，并留存实际测试ZIP而非再封装。
+- 本机64项通过（分发、安装、项目导入、Windows构建/启动器、客户资源反例）。首次61项中60通过、1项因Mac /var和/private/var临时目录别名不符失败；TMPDIR=/private/tmp原断言复验64通过，不修改断言。当前尚待固定提交构建、源码外安装和真实Windows结果，不记交付完成。

@@ -1,18 +1,48 @@
-"""Runtime assets shared by source checkouts, wheels and vendored tools."""
+"""Customer distribution allowlist, shared by wheels, project installation and offline packs."""
 from pathlib import Path
-
 
 PKG = Path(__file__).resolve().parent
 DIRECTORIES = ("templates", "skills", "agents", "kb")
+# New resources require an explicit review; recursively copying these folders is not allowed.
 FILES = (
-    "tmh.py", "pyproject.toml", "setup.py", "MANIFEST.in", "README.md", "docs/platform.md",
-    "docs/knowledge-base.md", "docs/integrations.md", "docs/acceptance.md",
-    "docs/evidence-flow.md", "docs/agent-commands.md", "docs/dead-ends.md",
-    "docs/self-improvement/verification-preview-health-2026-10-19.md",
-    "docs/self-improvement/verification-runtime-2026-10-18.md",
-    "docs/self-improvement/verification-external-candidate-2026-10-19.md",
-    "docs/self-improvement/verification-harness2-2026-10-19.md",
+    'tmh.py',
+    'pyproject.toml',
+    'setup.py',
+    'MANIFEST.in',
+    'docs/agent-commands.md',
+    'docs/customer/README.md',
+    'docs/customer/installation.md',
+    'docs/customer/knowledge.md',
+    'docs/customer/acceptance.md',
+    'docs/customer/operating-boundaries.md',
+    'agents/code-cartographer.md',
+    'agents/impact-analyst.md',
+    'agents/independent-verifier.md',
+    'agents/kb-writer.md',
+    'agents/sql-dialect-converter.md',
+    'kb/crypto-sm.md',
+    'kb/db-dialects.md',
+    'kb/dotnet.md',
+    'kb/frontend.md',
+    'kb/middleware.md',
+    'kb/os-arch.md',
+    'skills/acceptance-l2/SKILL.md',
+    'skills/acceptance-route/SKILL.md',
+    'skills/business-flow/SKILL.md',
+    'skills/dotnet-modernize/SKILL.md',
+    'skills/knowledge-upkeep/SKILL.md',
+    'skills/legacy-feature/SKILL.md',
+    'skills/legacy-onboard/SKILL.md',
+    'skills/ops-tools/SKILL.md',
+    'skills/xinchuang-assess/SKILL.md',
+    'skills/xinchuang-migrate/SKILL.md',
+    'templates/AGENTS.block.md',
+    'templates/CLAUDE.block.md',
+    'templates/integration_plugin_example.py',
+    'templates/knowledge-README.md',
 )
+PACKAGE_DIRECTORIES = (".", "integrations", "platform", "probes")
+PACKAGE_ASSETS = ("rules/*.json", "platform/*.cjs", "platform/vendor/*.js", "platform/vendor/*LICENSE*")
 
 
 def root() -> Path:
@@ -21,20 +51,26 @@ def root() -> Path:
 
 
 def files(base: Path, strict: bool = True):
-    """Yield every required asset, failing before installation if one is absent (strict) or skipping it."""
-    for name in DIRECTORIES:
-        directory = base / name
-        if not directory.is_dir():
-            if not strict:
-                continue
-            raise FileNotFoundError("missing tmh resource directory: %s" % directory)
-        for path in sorted(directory.rglob("*")):
-            if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc" and path.name != ".DS_Store":
-                yield path, path.relative_to(base).as_posix()
+    """Yield approved runtime resources, never repository history or user state."""
     for name in FILES:
         path = base / name
         if not path.is_file():
             if not strict:
                 continue
-            raise FileNotFoundError("missing tmh resource file: %s" % path)
+            raise FileNotFoundError("missing tmh resource file: %s" % name)
+        if path.is_symlink():
+            raise ValueError("resource must be a regular file: %s" % name)
         yield path, name
+
+
+def code_files(base: Path):
+    """Product modules and declared runtime assets only; exclude generated resources and caches."""
+    paths = set()
+    for directory in PACKAGE_DIRECTORIES:
+        paths.update((base / directory).glob("*.py"))
+    for pattern in PACKAGE_ASSETS:
+        paths.update(base.glob(pattern))
+    for path in sorted(paths):
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("product module must be a regular file: %s" % path.relative_to(base))
+        yield path, path.relative_to(base).as_posix()

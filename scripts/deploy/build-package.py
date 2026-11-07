@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+from customer_audit import require_clean
 
 
 def main():
@@ -28,14 +29,31 @@ def main():
         resource_file = work / 'resources.py'
         resource_file.write_bytes(resource_code)
         resources = runpy.run_path(str(resource_file))
-        paths = ['tmh', *resources['DIRECTORIES'], *resources['FILES']]
-        archive = work / 'source.zip'
-        with archive.open('wb') as output:
-            subprocess.run(['git', 'archive', '--format=zip', commit, *paths], cwd=root,
-                           stdout=output, check=True)
+        # Read Git blobs directly: archive attributes and host line-ending settings
+        # must not change the customer source snapshot.
+        entries = subprocess.check_output(['git', 'ls-tree', '-rz', commit], cwd=root).split(b'\0')
+        tree = {}
+        for entry in entries:
+            if entry:
+                header, name = entry.split(b'\t', 1)
+                tree[name.decode('utf-8')] = header.split()
+        import fnmatch
+        paths = set(resources['FILES'])
+        directories = {'tmh' if name == '.' else 'tmh/' + name for name in resources['PACKAGE_DIRECTORIES']}
+        for name in tree:
+            if name.endswith('.py') and str(Path(name).parent).replace('\\', '/') in directories:
+                paths.add(name)
+            if any(fnmatch.fnmatchcase(name, 'tmh/' + pattern) for pattern in resources['PACKAGE_ASSETS']):
+                paths.add(name)
         source = work / 'source'
-        with zipfile.ZipFile(archive) as package:
-            package.extractall(source)
+        for name in sorted(paths):
+            mode, kind, blob = tree[name]
+            if mode not in (b'100644', b'100755') or kind != b'blob':
+                raise ValueError('Customer source must be a regular Git blob: ' + name)
+            target = source / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(subprocess.check_output(['git', 'cat-file', 'blob', blob.decode()], cwd=root))
+            target.chmod(int(mode, 8))
         wheels = work / 'wheels'
         subprocess.run([sys.executable, '-m', 'pip', 'wheel', '--no-deps', '--wheel-dir', str(wheels),
                         str(source)], check=True)
@@ -44,10 +62,12 @@ def main():
             for asset in ('tmh/platform/vendor/pele.global.js', 'tmh/platform/vendor/pele-LICENSE',
                           'tmh/platform/project_test_runner.cjs'):
                 assert package.read(asset) == (source / asset).read_bytes(), asset
-        manifest = dict(source_commit=commit, wheel=wheel.name,
+        audit = require_clean(wheel, resources['FILES'])
+        manifest = dict(source_commit=commit, distribution='customer', resources=list(resources['FILES']), wheel=wheel.name,
                         sha256=hashlib.sha256(wheel.read_bytes()).hexdigest(), bytes=wheel.stat().st_size)
         destination.mkdir(parents=True)
         shutil.copy2(wheel, destination / wheel.name)
+        (destination / 'content-audit.json').write_text(json.dumps(audit, indent=2) + '\n')
         (destination / 'release.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print(json.dumps(dict(manifest, output=str(destination)), indent=2))
 

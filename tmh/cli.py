@@ -935,7 +935,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("title", nargs="?")
     p.add_argument("--kind", default="feature", choices=["feature", "migration", "bugfix", "refactor", "upgrade"])
     p.add_argument("--request", help="需求原文")
-    p = add("accept", cmd_accept, "验收状态机：检查 AC、入口路径检查、推进状态；关单只认用户确认（docs/acceptance.md）")
+    p = add("accept", cmd_accept, "验收状态机：检查 AC、入口路径检查、推进状态；关单只认用户确认（.tmh/docs/acceptance.md）")
     p.add_argument("action", choices=["status", "check", "path-check", "advance", "reject", "confirm", "close", "correct", "propose-confirm", "evidence"],
                    help="status 看状态（--build 按构建列）；check 检查 AC；path-check 改动是否接上契约入口；advance --to 推进；"
                         "reject 退回实现；confirm/close 由人确认、关单；correct 记一次纠错；propose-confirm 由人确认草稿；evidence 看证据包和哈希链")

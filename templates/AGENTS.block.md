@@ -7,7 +7,7 @@
 - `.tmh/knowledge/` 是项目知识唯一来源，按原文读、引用页面 id，不另做摘要、技能或第二份笔记。过期页以代码为准，待确认页须核实；覆盖不足用 legacy-onboard，新增理解用 kb next/done 补入，代码变更用 knowledge-upkeep 修订。
 - 业务需求预判：`tmh kb triage "原文"`。涉及资金/审批/口径、依据未经人确认或仍有未答问题，交人判断，不直接回复业务方。未知规则用 kb ask 记录，不猜；人通过 kb answer/平台写回答复后再修订，由人确认。
 - 工单/构建失败用 tmh ticket / tmh build failure 对应业务流。凭据只放环境变量，不索要、不落文件；评论、流转、触发构建、通知默认演练，执行前征得用户同意。
-- 需要查命令时读 `.tmh/docs/agent-commands.md`（源文件 `docs/agent-commands.md`）。
+- 需要查命令时读 `.tmh/docs/agent-commands.md`。
 
 ### 硬性规则
 - 先契约后代码：tmh task new 写清要改变、必须保持、验收方式、受影响业务流；问题未答不动代码。

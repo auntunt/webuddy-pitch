@@ -1,4 +1,4 @@
-Webuddy Windows x64 离线运行包
+Webuddy Windows x64 客户离线运行包
 
 适用：Windows 10/11 x64。本包不支持 Windows ARM、Windows 7、WSL 或 Linux。
 
@@ -52,3 +52,13 @@ MANIFEST.json 记录每个运行文件的 SHA256，check/start 每次检查后�
 它检测损坏，不代替可信分发：下载后请同时核对包外 bundle.json 的整个 ZIP 哈希。
 licenses 与各工具目录保留上游许可；第三方工具受各自使用条款约束。
 本包只交付 Windows 程序，不更新测试站或生产服务器。
+
+客户手册位于 runtime\python\Lib\site-packages\tmh\_resources\docs\customer\README.md，
+包含安装配置、知识构建、验收边界和升级说明。
+本包包含产品 Python 源码，不提供源码混淆、编译保护或许可证系统。
+不预置客户业务数据、项目知识、账号、登录态或个人配置。
+本地网页与项目命令支持 Windows；多租户 worker 依赖 Unix socket，需部署到受支持的服务端，
+Windows 客户端可通过 MCP 连接该服务端。项目生成的 shell hooks 仍需兼容 shell/python3，
+直接命令与 MCP 可使用本包 Python 的绝对路径；未声明原生 Windows hooks 宿主已验证。
+升级：先停止旧包并备份外部数据/配置，再解压新包到新目录，check 后指定原配置启动。
+保留旧包；回退仅切程序目录，数据库变更须按对应版本的兼容说明核对。

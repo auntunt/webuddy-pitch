@@ -3197,7 +3197,7 @@ def api_testbox_save(P, req):
     """Where the test machine is: {host: "user@host" or an ~/.ssh/config alias, port (empty: the alias's own), dir}; an empty host turns it off. Key login only."""
     host = str(req.body.get("host") or "").strip()
     if host and not re.match(r"^[\w.-]+@[\w.-]+$", host):
-        raise ApiError(400, "地址写成 用户名@主机，比如 auntu@43.153.76.85")
+        raise ApiError(400, "地址写成 用户名@主机，比如 user@build-host.example.invalid")
     from .util_conf import update_autoflow
     try:
         if host:

@@ -6,7 +6,7 @@ The machine may start empty: `check` lists what it has, `install` puts the missi
 and pnpm) as unpacked archives under its folder, without administrator rights and without touching the system.
 
 Settings, in <data>/autoflow.json:
-    "testbox": {"host": "user@43.153.76.85", "port": 12022, "dir": "C:/tmh-runner"}
+    "testbox": {"host": "user@build-host.example.invalid", "port": 12022, "dir": "C:/tmh-runner"}
 Only key login is used (BatchMode): the platform never sends or keeps a password. Windows machines run PowerShell,
 others sh; which one is found out on the first contact.
 
