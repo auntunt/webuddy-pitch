@@ -26,7 +26,11 @@ def inspect_zip(package, *, resource_files=None, prefix='', official_stdlib=Fals
         if name in seen or '..' in parts or name.startswith(('/', '\\')):
             findings.append(dict(path=path, category='unsafe_or_duplicate_path'))
         seen.add(name)
-        if any(p in FORBIDDEN_PARTS for p in lower) or any(p in {'cache', 'worker-logs'} for p in lower):
+        # npm ships cache implementation modules; these are source, not cached state.
+        npm_cache_module = (name.startswith('Webuddy/tools/node/') and name.endswith('.js') and
+                            any(segment in name for segment in ('/node_modules/make-fetch-happen/lib/cache/',
+                                                               '/node_modules/undici/lib/web/cache/')))
+        if any(p in FORBIDDEN_PARTS for p in lower) or 'worker-logs' in lower or ('cache' in lower and not npm_cache_module):
             findings.append(dict(path=path, category='internal_or_generated_directory'))
         if name.lower().endswith(STATE_SUFFIXES) and not (official_stdlib and name.endswith('.pyc')):
             findings.append(dict(path=path, category='state_or_build_cache'))
