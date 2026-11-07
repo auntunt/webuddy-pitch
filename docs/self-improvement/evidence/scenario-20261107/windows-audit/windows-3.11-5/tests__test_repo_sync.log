@@ -1,0 +1,28 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 18 items
+
+tests/test_repo_sync.py::ParseTest::test_forms PASSED                    [  5%]
+tests/test_repo_sync.py::ParseTest::test_links PASSED                    [ 11%]
+tests/test_repo_sync.py::ParseTest::test_own_machine_over_ssh PASSED     [ 16%]
+tests/test_repo_sync.py::ParseTest::test_refuses_credentials_and_other_hosts PASSED [ 22%]
+tests/test_repo_sync.py::PushTest::test_bind_makes_a_private_key_and_pushing_waits_for_a_passed_check PASSED [ 27%]
+tests/test_repo_sync.py::PushTest::test_failed_check_turns_pushing_off PASSED [ 33%]
+tests/test_repo_sync.py::PushTest::test_own_machine_pins_its_host_key_and_pushes_without_links PASSED [ 38%]
+tests/test_repo_sync.py::PushTest::test_push_is_a_plain_fast_forward_of_named_refs PASSED [ 44%]
+tests/test_repo_sync.py::AnnounceTest::test_a_failing_send_never_raises PASSED [ 50%]
+tests/test_repo_sync.py::AnnounceTest::test_bound_group_hears_with_a_link_and_the_ticket_notes_it PASSED [ 55%]
+tests/test_repo_sync.py::AnnounceTest::test_only_the_projects_own_reachable_groups_can_be_bound PASSED [ 61%]
+tests/test_repo_sync.py::AnnounceTest::test_without_a_ticket_the_card_opens_webuddy PASSED [ 66%]
+tests/test_repo_sync.py::CardTest::test_feishu_card_has_a_title_and_a_button_to_webuddy PASSED [ 72%]
+tests/test_repo_sync.py::CardTest::test_intake_may_answer_with_a_card PASSED [ 77%]
+tests/test_repo_sync.py::CardTest::test_other_channels_get_the_link_as_markdown PASSED [ 83%]
+tests/test_repo_sync.py::CardTest::test_plain_card_without_title_or_link PASSED [ 88%]
+tests/test_repo_sync.py::BriefTest::test_brief_counts_each_project PASSED [ 94%]
+tests/test_repo_sync.py::BriefTest::test_platform_questions_are_told_apart_from_requirements PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_repo_sync.xml -
+============================= 18 passed in 17.57s =============================

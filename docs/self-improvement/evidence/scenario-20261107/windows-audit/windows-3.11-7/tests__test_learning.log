@@ -1,0 +1,23 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 10 items
+
+tests/test_learning.py::LearningTests::test_capture_is_complete_idempotent_and_project_scoped PASSED [ 10%]
+tests/test_learning.py::LearningTests::test_evidence_missing_or_symlink_or_secret_is_not_silently_ignored 
+tests/test_learning.py::LearningTests::test_evidence_missing_or_symlink_or_secret_is_not_silently_ignored PASSED [ 20%]
+tests/test_learning.py::LearningTests::test_lesson_full_text_and_status_remain_ledger_owned PASSED [ 30%]
+tests/test_learning.py::LearningTests::test_migration_is_repeatable_and_ddl_failure_rolls_back PASSED [ 40%]
+tests/test_learning.py::LearningTests::test_partial_lesson_proposal_is_a_complete_parent_based_revision 
+tests/test_learning.py::LearningTests::test_partial_lesson_proposal_is_a_complete_parent_based_revision PASSED [ 50%]
+tests/test_learning.py::LearningTests::test_policy_allowlist_rejects_boolean_unknown_and_out_of_range 
+tests/test_learning.py::LearningTests::test_policy_allowlist_rejects_boolean_unknown_and_out_of_range PASSED [ 60%]
+tests/test_learning.py::LearningTests::test_proposal_never_mutates_page_or_inherits_confirmation PASSED [ 70%]
+tests/test_learning.py::LearningTests::test_read_is_pure_and_old_confirmation_is_not_machine_pass PASSED [ 80%]
+tests/test_learning.py::LearningTests::test_registration_failure_does_not_leak_partial_revision PASSED [ 90%]
+tests/test_learning.py::LearningTests::test_source_content_workspace_and_reference_changes_invalidate PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning.xml -
+=================== 10 passed, 12 subtests passed in 7.95s ====================

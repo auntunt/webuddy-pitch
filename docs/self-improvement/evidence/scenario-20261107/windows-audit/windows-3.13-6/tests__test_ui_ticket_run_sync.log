@@ -1,0 +1,20 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 10 items
+
+tests/test_ui_ticket_run_sync.py::TicketRunSyncUiTest::test_current_adopted_fix_never_uses_another_runs_branch_or_auto_claim PASSED [ 10%]
+tests/test_ui_ticket_run_sync.py::TicketRunSyncUiTest::test_failure_retry_and_completion_refresh_summary_and_preserve_typed_drafts PASSED [ 20%]
+tests/test_ui_ticket_run_sync.py::TicketRunSyncUiTest::test_member_claim_points_to_codex_and_preserves_run_results PASSED [ 30%]
+tests/test_ui_ticket_run_sync.py::TicketRunSyncUiTest::test_member_does_not_request_starter_and_related_ignores_departed_page PASSED [ 40%]
+tests/test_ui_ticket_run_sync.py::TicketRunSyncUiTest::test_new_unadopted_fix_takes_precedence_over_old_verify_state PASSED [ 50%]
+tests/test_ui_ticket_run_sync.py::TicketRunSyncUiTest::test_refresh_for_departed_ticket_does_not_touch_new_page PASSED [ 60%]
+tests/test_ui_ticket_run_sync.py::TicketRunSyncUiTest::test_slow_older_refresh_cannot_replace_newer_summary PASSED [ 70%]
+tests/test_ui_ticket_run_sync.py::TicketRunSyncUiTest::test_summary_refresh_does_not_overwrite_an_unsaved_status_choice PASSED [ 80%]
+tests/test_ui_ticket_run_sync.py::TicketRunSyncUiTest::test_unchanged_summary_does_not_repaint_or_clear_focus PASSED [ 90%]
+tests/test_ui_ticket_run_sync.py::TicketRunSyncUiTest::test_unrelated_run_modal_does_not_refresh_the_ticket PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_ui_ticket_run_sync.xml -
+============================= 10 passed in 2.34s ==============================

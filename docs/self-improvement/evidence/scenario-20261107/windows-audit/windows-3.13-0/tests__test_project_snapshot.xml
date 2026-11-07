@@ -1,0 +1,921 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="9" skipped="0" tests="30" time="31.027" timestamp="2026-11-07T12:38:44.819592+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_project_snapshot.ProjectSnapshotTest" name="test_business_data_and_example_names_are_not_mistaken_for_secrets" time="0.008" /><testcase classname="tests.test_project_snapshot.ProjectSnapshotTest" name="test_code_expression_does_not_hide_quoted_or_template_credentials" time="21.503"><failure message="AssertionError: False != True :   File &quot;&lt;string&gt;&quot;, line 4&#10;    base=['git','--no-optional-locks','-c','safe.directory=C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression0','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-C','C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression0']&#10;                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;[+1 more line; full report in element text]">self = &lt;unittest.case._Outcome object at 0x00000260E5655F90&gt;
+test_case = &lt;unittest.case._SubTest testMethod=runTest&gt;, subTest = True
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+msg = &lt;object object at 0x00000260E1BF1300&gt;, params = {'index': 0}
+
+    @contextlib.contextmanager
+    def subTest(self, msg=_subtest_msg_sentinel, **params):
+        """Return a context manager that will return the enclosed block
+        of code in a subtest identified by the optional message and
+        keyword parameters.  A failure in the subtest marks the test
+        case as failed but resumes execution at the end of the enclosed
+        block, allowing further test code to be executed.
+        """
+        if self._outcome is None or not self._outcome.result_supports_subtests:
+            yield
+            return
+        parent = self._subtest
+        if parent is None:
+            params_map = _OrderedChainMap(params)
+        else:
+            params_map = parent.params.new_child(params)
+        self._subtest = _SubTest(self, msg, params_map)
+        try:
+            with self._outcome.testPartExecutor(self._subtest, subTest=True):
+&gt;               yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:556: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+
+    def test_code_expression_does_not_hide_quoted_or_template_credentials(self):
+        secret='synthetic'+'z'*24
+        cases=[
+            ('component.vue', '&lt;script&gt;\nconst label = `welcome`;\nchangePassword = invokePasswordChangeDialog()\n&lt;/script&gt;\n', True),
+            ('component.ts', 'changePassword = invokePasswordChangeDialog()\n', True),
+            ('component.js', 'password = "'+secret+'"\n', False),
+            ('component.js', "password = '"+secret+"'\n", False),
+            ('component.js', 'const text = `\npassword = '+secret+'()\n`;\n', False),
+            ('settings.env', 'PASSWORD='+secret+'\n', False),
+            ('component.js', 'password = '+secret+'\n', False),
+            ('component.vue', '&lt;script&gt;\nchangePassword = "/api/account/changePassword"\n&lt;/script&gt;\n', True),
+            ('component.ts', 'updatePassword = "/api/account/updatePassword"\n', True),
+            ('component.js', 'password = "/api/account/changePassword"\n', False),
+            ('component.js', 'updatePassword = "/api/account/getUserProfile"\n', False),
+            ('component.js', 'updatePassword = "/api/account/'+secret+'"\n', False),
+            ('component.js', 'updatePassword = "/api/account/updatePassword?token='+secret+'"\n', False),
+            ('component.js', 'updatePassword = "//remoteexamplelonghostname/account/changePassword"\n', False),
+            ('component.js', 'const text = `\nupdatePassword = "/api/account/updatePassword"\n`;\n', False),
+        ]
+        for index,(name,content,allowed) in enumerate(cases):
+            with self.subTest(index=index):
+                repo=self.root/('expression'+str(index));repo.mkdir()
+                def git(*args):
+                    return subprocess.run(['git','-C',str(repo),*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                git('init','-q');(repo/name).write_text(content);git('add',name)
+                git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture')
+                result=subprocess.run(['python3','-I','-c',EXPORT.replace('/source',str(repo)),'HEAD'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+&gt;               self.assertEqual(result.returncode==0,allowed,result.stderr.decode(errors='replace'))
+
+tests\test_project_snapshot.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+first = False, second = True
+msg = '  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+    def assertEqual(self, first, second, msg=None):
+        """Fail if the two objects are unequal as determined by the '=='
+           operator.
+        """
+        assertion_func = self._getAssertEqualityFunc(first, second)
+&gt;       assertion_func(first, second, msg=msg)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:907: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+first = False, second = True
+msg = 'False != True :   File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Us...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+    def _baseAssertEqual(self, first, second, msg=None):
+        """The default assertEqual implementation, not type specific."""
+        if not first == second:
+            standardMsg = '%s != %s' % _common_shorten_repr(first, second)
+            msg = self._formatMessage(msg, standardMsg)
+&gt;           raise self.failureException(msg)
+E           AssertionError: False != True :   File "&lt;string&gt;", line 4
+E               base=['git','--no-optional-locks','-c','safe.directory=C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression0','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-C','C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression0']
+E                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 17-18: truncated \UXXXXXXXX escape
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:900: AssertionError</failure><failure message="AssertionError: False != True :   File &quot;&lt;string&gt;&quot;, line 4&#10;    base=['git','--no-optional-locks','-c','safe.directory=C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression1','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-C','C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression1']&#10;                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;[+1 more line; full report in element text]">self = &lt;unittest.case._Outcome object at 0x00000260E5655F90&gt;
+test_case = &lt;unittest.case._SubTest testMethod=runTest&gt;, subTest = True
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+msg = &lt;object object at 0x00000260E1BF1300&gt;, params = {'index': 1}
+
+    @contextlib.contextmanager
+    def subTest(self, msg=_subtest_msg_sentinel, **params):
+        """Return a context manager that will return the enclosed block
+        of code in a subtest identified by the optional message and
+        keyword parameters.  A failure in the subtest marks the test
+        case as failed but resumes execution at the end of the enclosed
+        block, allowing further test code to be executed.
+        """
+        if self._outcome is None or not self._outcome.result_supports_subtests:
+            yield
+            return
+        parent = self._subtest
+        if parent is None:
+            params_map = _OrderedChainMap(params)
+        else:
+            params_map = parent.params.new_child(params)
+        self._subtest = _SubTest(self, msg, params_map)
+        try:
+            with self._outcome.testPartExecutor(self._subtest, subTest=True):
+&gt;               yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:556: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+
+    def test_code_expression_does_not_hide_quoted_or_template_credentials(self):
+        secret='synthetic'+'z'*24
+        cases=[
+            ('component.vue', '&lt;script&gt;\nconst label = `welcome`;\nchangePassword = invokePasswordChangeDialog()\n&lt;/script&gt;\n', True),
+            ('component.ts', 'changePassword = invokePasswordChangeDialog()\n', True),
+            ('component.js', 'password = "'+secret+'"\n', False),
+            ('component.js', "password = '"+secret+"'\n", False),
+            ('component.js', 'const text = `\npassword = '+secret+'()\n`;\n', False),
+            ('settings.env', 'PASSWORD='+secret+'\n', False),
+            ('component.js', 'password = '+secret+'\n', False),
+            ('component.vue', '&lt;script&gt;\nchangePassword = "/api/account/changePassword"\n&lt;/script&gt;\n', True),
+            ('component.ts', 'updatePassword = "/api/account/updatePassword"\n', True),
+            ('component.js', 'password = "/api/account/changePassword"\n', False),
+            ('component.js', 'updatePassword = "/api/account/getUserProfile"\n', False),
+            ('component.js', 'updatePassword = "/api/account/'+secret+'"\n', False),
+            ('component.js', 'updatePassword = "/api/account/updatePassword?token='+secret+'"\n', False),
+            ('component.js', 'updatePassword = "//remoteexamplelonghostname/account/changePassword"\n', False),
+            ('component.js', 'const text = `\nupdatePassword = "/api/account/updatePassword"\n`;\n', False),
+        ]
+        for index,(name,content,allowed) in enumerate(cases):
+            with self.subTest(index=index):
+                repo=self.root/('expression'+str(index));repo.mkdir()
+                def git(*args):
+                    return subprocess.run(['git','-C',str(repo),*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                git('init','-q');(repo/name).write_text(content);git('add',name)
+                git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture')
+                result=subprocess.run(['python3','-I','-c',EXPORT.replace('/source',str(repo)),'HEAD'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+&gt;               self.assertEqual(result.returncode==0,allowed,result.stderr.decode(errors='replace'))
+
+tests\test_project_snapshot.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+first = False, second = True
+msg = '  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+    def assertEqual(self, first, second, msg=None):
+        """Fail if the two objects are unequal as determined by the '=='
+           operator.
+        """
+        assertion_func = self._getAssertEqualityFunc(first, second)
+&gt;       assertion_func(first, second, msg=msg)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:907: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+first = False, second = True
+msg = 'False != True :   File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Us...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+    def _baseAssertEqual(self, first, second, msg=None):
+        """The default assertEqual implementation, not type specific."""
+        if not first == second:
+            standardMsg = '%s != %s' % _common_shorten_repr(first, second)
+            msg = self._formatMessage(msg, standardMsg)
+&gt;           raise self.failureException(msg)
+E           AssertionError: False != True :   File "&lt;string&gt;", line 4
+E               base=['git','--no-optional-locks','-c','safe.directory=C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression1','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-C','C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression1']
+E                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 17-18: truncated \UXXXXXXXX escape
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:900: AssertionError</failure><failure message="AssertionError: False != True :   File &quot;&lt;string&gt;&quot;, line 4&#10;    base=['git','--no-optional-locks','-c','safe.directory=C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression7','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-C','C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression7']&#10;                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;[+1 more line; full report in element text]">self = &lt;unittest.case._Outcome object at 0x00000260E5655F90&gt;
+test_case = &lt;unittest.case._SubTest testMethod=runTest&gt;, subTest = True
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+msg = &lt;object object at 0x00000260E1BF1300&gt;, params = {'index': 7}
+
+    @contextlib.contextmanager
+    def subTest(self, msg=_subtest_msg_sentinel, **params):
+        """Return a context manager that will return the enclosed block
+        of code in a subtest identified by the optional message and
+        keyword parameters.  A failure in the subtest marks the test
+        case as failed but resumes execution at the end of the enclosed
+        block, allowing further test code to be executed.
+        """
+        if self._outcome is None or not self._outcome.result_supports_subtests:
+            yield
+            return
+        parent = self._subtest
+        if parent is None:
+            params_map = _OrderedChainMap(params)
+        else:
+            params_map = parent.params.new_child(params)
+        self._subtest = _SubTest(self, msg, params_map)
+        try:
+            with self._outcome.testPartExecutor(self._subtest, subTest=True):
+&gt;               yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:556: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+
+    def test_code_expression_does_not_hide_quoted_or_template_credentials(self):
+        secret='synthetic'+'z'*24
+        cases=[
+            ('component.vue', '&lt;script&gt;\nconst label = `welcome`;\nchangePassword = invokePasswordChangeDialog()\n&lt;/script&gt;\n', True),
+            ('component.ts', 'changePassword = invokePasswordChangeDialog()\n', True),
+            ('component.js', 'password = "'+secret+'"\n', False),
+            ('component.js', "password = '"+secret+"'\n", False),
+            ('component.js', 'const text = `\npassword = '+secret+'()\n`;\n', False),
+            ('settings.env', 'PASSWORD='+secret+'\n', False),
+            ('component.js', 'password = '+secret+'\n', False),
+            ('component.vue', '&lt;script&gt;\nchangePassword = "/api/account/changePassword"\n&lt;/script&gt;\n', True),
+            ('component.ts', 'updatePassword = "/api/account/updatePassword"\n', True),
+            ('component.js', 'password = "/api/account/changePassword"\n', False),
+            ('component.js', 'updatePassword = "/api/account/getUserProfile"\n', False),
+            ('component.js', 'updatePassword = "/api/account/'+secret+'"\n', False),
+            ('component.js', 'updatePassword = "/api/account/updatePassword?token='+secret+'"\n', False),
+            ('component.js', 'updatePassword = "//remoteexamplelonghostname/account/changePassword"\n', False),
+            ('component.js', 'const text = `\nupdatePassword = "/api/account/updatePassword"\n`;\n', False),
+        ]
+        for index,(name,content,allowed) in enumerate(cases):
+            with self.subTest(index=index):
+                repo=self.root/('expression'+str(index));repo.mkdir()
+                def git(*args):
+                    return subprocess.run(['git','-C',str(repo),*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                git('init','-q');(repo/name).write_text(content);git('add',name)
+                git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture')
+                result=subprocess.run(['python3','-I','-c',EXPORT.replace('/source',str(repo)),'HEAD'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+&gt;               self.assertEqual(result.returncode==0,allowed,result.stderr.decode(errors='replace'))
+
+tests\test_project_snapshot.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+first = False, second = True
+msg = '  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+    def assertEqual(self, first, second, msg=None):
+        """Fail if the two objects are unequal as determined by the '=='
+           operator.
+        """
+        assertion_func = self._getAssertEqualityFunc(first, second)
+&gt;       assertion_func(first, second, msg=msg)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:907: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+first = False, second = True
+msg = 'False != True :   File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Us...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+    def _baseAssertEqual(self, first, second, msg=None):
+        """The default assertEqual implementation, not type specific."""
+        if not first == second:
+            standardMsg = '%s != %s' % _common_shorten_repr(first, second)
+            msg = self._formatMessage(msg, standardMsg)
+&gt;           raise self.failureException(msg)
+E           AssertionError: False != True :   File "&lt;string&gt;", line 4
+E               base=['git','--no-optional-locks','-c','safe.directory=C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression7','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-C','C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression7']
+E                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 17-18: truncated \UXXXXXXXX escape
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:900: AssertionError</failure><failure message="AssertionError: False != True :   File &quot;&lt;string&gt;&quot;, line 4&#10;    base=['git','--no-optional-locks','-c','safe.directory=C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression8','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-C','C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression8']&#10;                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;[+1 more line; full report in element text]">self = &lt;unittest.case._Outcome object at 0x00000260E5655F90&gt;
+test_case = &lt;unittest.case._SubTest testMethod=runTest&gt;, subTest = True
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+msg = &lt;object object at 0x00000260E1BF1300&gt;, params = {'index': 8}
+
+    @contextlib.contextmanager
+    def subTest(self, msg=_subtest_msg_sentinel, **params):
+        """Return a context manager that will return the enclosed block
+        of code in a subtest identified by the optional message and
+        keyword parameters.  A failure in the subtest marks the test
+        case as failed but resumes execution at the end of the enclosed
+        block, allowing further test code to be executed.
+        """
+        if self._outcome is None or not self._outcome.result_supports_subtests:
+            yield
+            return
+        parent = self._subtest
+        if parent is None:
+            params_map = _OrderedChainMap(params)
+        else:
+            params_map = parent.params.new_child(params)
+        self._subtest = _SubTest(self, msg, params_map)
+        try:
+            with self._outcome.testPartExecutor(self._subtest, subTest=True):
+&gt;               yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:556: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+
+    def test_code_expression_does_not_hide_quoted_or_template_credentials(self):
+        secret='synthetic'+'z'*24
+        cases=[
+            ('component.vue', '&lt;script&gt;\nconst label = `welcome`;\nchangePassword = invokePasswordChangeDialog()\n&lt;/script&gt;\n', True),
+            ('component.ts', 'changePassword = invokePasswordChangeDialog()\n', True),
+            ('component.js', 'password = "'+secret+'"\n', False),
+            ('component.js', "password = '"+secret+"'\n", False),
+            ('component.js', 'const text = `\npassword = '+secret+'()\n`;\n', False),
+            ('settings.env', 'PASSWORD='+secret+'\n', False),
+            ('component.js', 'password = '+secret+'\n', False),
+            ('component.vue', '&lt;script&gt;\nchangePassword = "/api/account/changePassword"\n&lt;/script&gt;\n', True),
+            ('component.ts', 'updatePassword = "/api/account/updatePassword"\n', True),
+            ('component.js', 'password = "/api/account/changePassword"\n', False),
+            ('component.js', 'updatePassword = "/api/account/getUserProfile"\n', False),
+            ('component.js', 'updatePassword = "/api/account/'+secret+'"\n', False),
+            ('component.js', 'updatePassword = "/api/account/updatePassword?token='+secret+'"\n', False),
+            ('component.js', 'updatePassword = "//remoteexamplelonghostname/account/changePassword"\n', False),
+            ('component.js', 'const text = `\nupdatePassword = "/api/account/updatePassword"\n`;\n', False),
+        ]
+        for index,(name,content,allowed) in enumerate(cases):
+            with self.subTest(index=index):
+                repo=self.root/('expression'+str(index));repo.mkdir()
+                def git(*args):
+                    return subprocess.run(['git','-C',str(repo),*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                git('init','-q');(repo/name).write_text(content);git('add',name)
+                git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture')
+                result=subprocess.run(['python3','-I','-c',EXPORT.replace('/source',str(repo)),'HEAD'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+&gt;               self.assertEqual(result.returncode==0,allowed,result.stderr.decode(errors='replace'))
+
+tests\test_project_snapshot.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+first = False, second = True
+msg = '  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+    def assertEqual(self, first, second, msg=None):
+        """Fail if the two objects are unequal as determined by the '=='
+           operator.
+        """
+        assertion_func = self._getAssertEqualityFunc(first, second)
+&gt;       assertion_func(first, second, msg=msg)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:907: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_code_expression_does_not_hide_quoted_or_template_credentials&gt;
+first = False, second = True
+msg = 'False != True :   File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Us...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+    def _baseAssertEqual(self, first, second, msg=None):
+        """The default assertEqual implementation, not type specific."""
+        if not first == second:
+            standardMsg = '%s != %s' % _common_shorten_repr(first, second)
+            msg = self._formatMessage(msg, standardMsg)
+&gt;           raise self.failureException(msg)
+E           AssertionError: False != True :   File "&lt;string&gt;", line 4
+E               base=['git','--no-optional-locks','-c','safe.directory=C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression8','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-C','C:\Users\runneradmin\AppData\Local\Temp\tmp6i_q3ek1\expression8']
+E                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 17-18: truncated \UXXXXXXXX escape
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:900: AssertionError</failure></testcase><testcase classname="tests.test_project_snapshot.ProjectSnapshotTest" name="test_existing_workspace_is_never_overwritten" time="0.002" /><testcase classname="tests.test_project_snapshot.ProjectSnapshotTest" name="test_exporter_rejects_secret_content_even_in_example_without_echoing_it" time="1.546"><failure message="AssertionError: b'.env.example' not found in b'  File &quot;&lt;string&gt;&quot;, line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpk5l0afke\\repo\',\'-c\',\'core.hooksPath=/dev/null\',\'-c\',\'core.fsmonitor=false\',\'-C\',\'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpk5l0afke\\repo\']\r\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nSyntaxError: (unicode err...&#10;[truncated; full report in element text]">self = &lt;unittest.case._Outcome object at 0x00000260E5675350&gt;
+test_case = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_exporter_rejects_secret_content_even_in_example_without_echoing_it&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_exporter_rejects_secret_content_even_in_example_without_echoing_it&gt;
+result = &lt;TestCaseFunction test_exporter_rejects_secret_content_even_in_example_without_echoing_it&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_exporter_rejects_secret_content_even_in_example_without_echoing_it&gt;
+method = &lt;bound method ProjectSnapshotTest.test_exporter_rejects_secret_content_even_in_example_without_echoing_it of &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_exporter_rejects_secret_content_even_in_example_without_echoing_it&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_exporter_rejects_secret_content_even_in_example_without_echoing_it&gt;
+
+    def test_exporter_rejects_secret_content_even_in_example_without_echoing_it(self):
+        repo = self.root / 'repo'
+        repo.mkdir()
+        def git(*args):
+            return subprocess.run(['git', '-C', str(repo), *args], check=True,
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        git('init', '-q')
+        synthetic = 'fake-' + 'a' * 24
+        (repo / '.env.example').write_text('API_KEY=' + synthetic + '\n')
+        git('add', '.env.example')
+        git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-qm', 'fixture')
+        result = subprocess.run(['python3', '-I', '-c', EXPORT.replace('/source', str(repo)), 'HEAD'],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.assertNotEqual(result.returncode, 0)
+&gt;       self.assertIn(b'.env.example', result.stderr)
+
+tests\test_project_snapshot.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_exporter_rejects_secret_content_even_in_example_without_echoing_it&gt;
+member = b'.env.example'
+container = b'  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmi...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+msg = None
+
+    def assertIn(self, member, container, msg=None):
+        """Just like self.assertTrue(a in b), but with a nicer default message."""
+        if member not in container:
+            standardMsg = '%s not found in %s' % (safe_repr(member),
+                                                  safe_repr(container))
+&gt;           self.fail(self._formatMessage(msg, standardMsg))
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:1174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_exporter_rejects_secret_content_even_in_example_without_echoing_it&gt;
+msg = 'b\'.env.example\' not found in b\'  File "&lt;string&gt;", line 4\\r\\n    base=[\\\'git\\\',\\\'--no-optional-locks\\\',\\...ode error) \\\'unicodeescape\\\' codec can\\\'t decode bytes in position 17-18: truncated \\\\UXXXXXXXX escape\\r\\n\''
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: b'.env.example' not found in b'  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpk5l0afke\\repo\',\'-c\',\'core.hooksPath=/dev/null\',\'-c\',\'core.fsmonitor=false\',\'-C\',\'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpk5l0afke\\repo\']\r\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nSyntaxError: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:732: AssertionError</failure></testcase><testcase classname="tests.test_project_snapshot.ProjectSnapshotTest" name="test_exports_exact_regular_files_and_version" time="0.004" /><testcase classname="tests.test_project_snapshot.ProjectSnapshotTest" name="test_lfs_original_is_verified_preserved_and_never_runs_project_filter" time="2.768"><failure message="AssertionError: 1 != 0 :   File &quot;&lt;string&gt;&quot;, line 4&#10;    base=['git','--no-optional-locks','-c','safe.directory=C:\Users\runneradmin\AppData\Local\Temp\tmp61ooh75h\lfs-repo','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-C','C:\Users\runneradmin\AppData\Local\Temp\tmp61ooh75h\lfs-repo']&#10;                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&#10;[+1 more line; full report in element text]">self = &lt;unittest.case._Outcome object at 0x00000260E5607650&gt;
+test_case = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_lfs_original_is_verified_preserved_and_never_runs_project_filter&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_lfs_original_is_verified_preserved_and_never_runs_project_filter&gt;
+result = &lt;TestCaseFunction test_lfs_original_is_verified_preserved_and_never_runs_project_filter&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_lfs_original_is_verified_preserved_and_never_runs_project_filter&gt;
+method = &lt;bound method ProjectSnapshotTest.test_lfs_original_is_verified_preserved_and_never_runs_project_filter of &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_lfs_original_is_verified_preserved_and_never_runs_project_filter&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_lfs_original_is_verified_preserved_and_never_runs_project_filter&gt;
+
+    def test_lfs_original_is_verified_preserved_and_never_runs_project_filter(self):
+        repo=self.root/'lfs-repo';repo.mkdir();workspace=self.root/'lfs-workspace'
+        env=dict(os.environ,GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL='/dev/null',GIT_TERMINAL_PROMPT='0')
+        def git(*args):
+            return subprocess.run(['git','-C',str(repo),*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env)
+        git('init','-q');original=bytes(range(256))*4;oid=hashlib.sha256(original).hexdigest()
+        pointer=('version https://git-lfs.github.com/spec/v1\noid sha256:'+oid+'\nsize '+str(len(original))+'\n').encode()
+        (repo/'.gitattributes').write_text('*.bin filter=lfs -text\n');(repo/'image.bin').write_bytes(pointer)
+        (repo/'app.py').write_text('old\n');git('add','.gitattributes','image.bin','app.py')
+        git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture')
+        commit=git('rev-parse','HEAD').stdout.decode().strip()
+        object_path=repo/'.git/lfs/objects'/oid[:2]/oid[2:4]/oid;object_path.parent.mkdir(parents=True);object_path.write_bytes(original)
+        sentinel=self.root/'filter-ran';git('config','filter.lfs.clean','touch '+str(sentinel))
+        cmd=['python3','-I','-c',EXPORT.replace('/source',str(repo)),'HEAD']
+        exported=subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env)
+&gt;       self.assertEqual(exported.returncode,0,exported.stderr.decode(errors='replace'))
+
+tests\test_project_snapshot.py:198: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_lfs_original_is_verified_preserved_and_never_runs_project_filter&gt;
+first = 1, second = 0
+msg = '  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+    def assertEqual(self, first, second, msg=None):
+        """Fail if the two objects are unequal as determined by the '=='
+           operator.
+        """
+        assertion_func = self._getAssertEqualityFunc(first, second)
+&gt;       assertion_func(first, second, msg=msg)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:907: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_lfs_original_is_verified_preserved_and_never_runs_project_filter&gt;
+first = 1, second = 0
+msg = '1 != 0 :   File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\ru...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+    def _baseAssertEqual(self, first, second, msg=None):
+        """The default assertEqual implementation, not type specific."""
+        if not first == second:
+            standardMsg = '%s != %s' % _common_shorten_repr(first, second)
+            msg = self._formatMessage(msg, standardMsg)
+&gt;           raise self.failureException(msg)
+E           AssertionError: 1 != 0 :   File "&lt;string&gt;", line 4
+E               base=['git','--no-optional-locks','-c','safe.directory=C:\Users\runneradmin\AppData\Local\Temp\tmp61ooh75h\lfs-repo','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-C','C:\Users\runneradmin\AppData\Local\Temp\tmp61ooh75h\lfs-repo']
+E                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 17-18: truncated \UXXXXXXXX escape
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:900: AssertionError</failure></testcase><testcase classname="tests.test_project_snapshot.ProjectSnapshotTest" name="test_prefixed_environment_and_json_credentials_are_blocked_without_echo" time="3.213"><failure message="AssertionError: b'settings.env' not found in b'  File &quot;&lt;string&gt;&quot;, line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpcge1mn2b\\repo0\',\'-c\',\'core.hooksPath=/dev/null\',\'-c\',\'core.fsmonitor=false\',\'-C\',\'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpcge1mn2b\\repo0\']\r\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nSyntaxError: (unicode ...&#10;[truncated; full report in element text]">self = &lt;unittest.case._Outcome object at 0x00000260E5666360&gt;
+test_case = &lt;unittest.case._SubTest testMethod=runTest&gt;, subTest = True
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_prefixed_environment_and_json_credentials_are_blocked_without_echo&gt;
+msg = &lt;object object at 0x00000260E1BF1300&gt;, params = {'name': 'settings.env'}
+
+    @contextlib.contextmanager
+    def subTest(self, msg=_subtest_msg_sentinel, **params):
+        """Return a context manager that will return the enclosed block
+        of code in a subtest identified by the optional message and
+        keyword parameters.  A failure in the subtest marks the test
+        case as failed but resumes execution at the end of the enclosed
+        block, allowing further test code to be executed.
+        """
+        if self._outcome is None or not self._outcome.result_supports_subtests:
+            yield
+            return
+        parent = self._subtest
+        if parent is None:
+            params_map = _OrderedChainMap(params)
+        else:
+            params_map = parent.params.new_child(params)
+        self._subtest = _SubTest(self, msg, params_map)
+        try:
+            with self._outcome.testPartExecutor(self._subtest, subTest=True):
+&gt;               yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:556: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_prefixed_environment_and_json_credentials_are_blocked_without_echo&gt;
+
+    def test_prefixed_environment_and_json_credentials_are_blocked_without_echo(self):
+        value='synthetic-'+'q'*24
+        cases=[('settings.env','OPENAI_API_KEY='+value+'\n'),
+               ('settings.json',json.dumps({'api_key':value}))]
+        for index,(name,content) in enumerate(cases):
+            with self.subTest(name=name):
+                repo=self.root/('repo'+str(index));repo.mkdir()
+                def git(*args):
+                    return subprocess.run(['git','-C',str(repo),*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                git('init','-q');(repo/name).write_text(content);git('add',name)
+                git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture')
+                result=subprocess.run(['python3','-I','-c',EXPORT.replace('/source',str(repo)),'HEAD'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                self.assertNotEqual(result.returncode,0)
+&gt;               self.assertIn(name.encode(),result.stderr)
+
+tests\test_project_snapshot.py:149: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_prefixed_environment_and_json_credentials_are_blocked_without_echo&gt;
+member = b'settings.env'
+container = b'  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmi...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+msg = None
+
+    def assertIn(self, member, container, msg=None):
+        """Just like self.assertTrue(a in b), but with a nicer default message."""
+        if member not in container:
+            standardMsg = '%s not found in %s' % (safe_repr(member),
+                                                  safe_repr(container))
+&gt;           self.fail(self._formatMessage(msg, standardMsg))
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:1174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_prefixed_environment_and_json_credentials_are_blocked_without_echo&gt;
+msg = 'b\'settings.env\' not found in b\'  File "&lt;string&gt;", line 4\\r\\n    base=[\\\'git\\\',\\\'--no-optional-locks\\\',\\...ode error) \\\'unicodeescape\\\' codec can\\\'t decode bytes in position 17-18: truncated \\\\UXXXXXXXX escape\\r\\n\''
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: b'settings.env' not found in b'  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpcge1mn2b\\repo0\',\'-c\',\'core.hooksPath=/dev/null\',\'-c\',\'core.fsmonitor=false\',\'-C\',\'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpcge1mn2b\\repo0\']\r\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nSyntaxError: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:732: AssertionError</failure><failure message="AssertionError: b'settings.json' not found in b'  File &quot;&lt;string&gt;&quot;, line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpcge1mn2b\\repo1\',\'-c\',\'core.hooksPath=/dev/null\',\'-c\',\'core.fsmonitor=false\',\'-C\',\'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpcge1mn2b\\repo1\']\r\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nSyntaxError: (unicode...&#10;[truncated; full report in element text]">self = &lt;unittest.case._Outcome object at 0x00000260E5666360&gt;
+test_case = &lt;unittest.case._SubTest testMethod=runTest&gt;, subTest = True
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_prefixed_environment_and_json_credentials_are_blocked_without_echo&gt;
+msg = &lt;object object at 0x00000260E1BF1300&gt;, params = {'name': 'settings.json'}
+
+    @contextlib.contextmanager
+    def subTest(self, msg=_subtest_msg_sentinel, **params):
+        """Return a context manager that will return the enclosed block
+        of code in a subtest identified by the optional message and
+        keyword parameters.  A failure in the subtest marks the test
+        case as failed but resumes execution at the end of the enclosed
+        block, allowing further test code to be executed.
+        """
+        if self._outcome is None or not self._outcome.result_supports_subtests:
+            yield
+            return
+        parent = self._subtest
+        if parent is None:
+            params_map = _OrderedChainMap(params)
+        else:
+            params_map = parent.params.new_child(params)
+        self._subtest = _SubTest(self, msg, params_map)
+        try:
+            with self._outcome.testPartExecutor(self._subtest, subTest=True):
+&gt;               yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:556: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_prefixed_environment_and_json_credentials_are_blocked_without_echo&gt;
+
+    def test_prefixed_environment_and_json_credentials_are_blocked_without_echo(self):
+        value='synthetic-'+'q'*24
+        cases=[('settings.env','OPENAI_API_KEY='+value+'\n'),
+               ('settings.json',json.dumps({'api_key':value}))]
+        for index,(name,content) in enumerate(cases):
+            with self.subTest(name=name):
+                repo=self.root/('repo'+str(index));repo.mkdir()
+                def git(*args):
+                    return subprocess.run(['git','-C',str(repo),*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                git('init','-q');(repo/name).write_text(content);git('add',name)
+                git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture')
+                result=subprocess.run(['python3','-I','-c',EXPORT.replace('/source',str(repo)),'HEAD'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                self.assertNotEqual(result.returncode,0)
+&gt;               self.assertIn(name.encode(),result.stderr)
+
+tests\test_project_snapshot.py:149: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_prefixed_environment_and_json_credentials_are_blocked_without_echo&gt;
+member = b'settings.json'
+container = b'  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmi...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+msg = None
+
+    def assertIn(self, member, container, msg=None):
+        """Just like self.assertTrue(a in b), but with a nicer default message."""
+        if member not in container:
+            standardMsg = '%s not found in %s' % (safe_repr(member),
+                                                  safe_repr(container))
+&gt;           self.fail(self._formatMessage(msg, standardMsg))
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:1174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_prefixed_environment_and_json_credentials_are_blocked_without_echo&gt;
+msg = 'b\'settings.json\' not found in b\'  File "&lt;string&gt;", line 4\\r\\n    base=[\\\'git\\\',\\\'--no-optional-locks\\\',\...ode error) \\\'unicodeescape\\\' codec can\\\'t decode bytes in position 17-18: truncated \\\\UXXXXXXXX escape\\r\\n\''
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: b'settings.json' not found in b'  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpcge1mn2b\\repo1\',\'-c\',\'core.hooksPath=/dev/null\',\'-c\',\'core.fsmonitor=false\',\'-C\',\'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpcge1mn2b\\repo1\']\r\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nSyntaxError: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:732: AssertionError</failure></testcase><testcase classname="tests.test_project_snapshot.ProjectSnapshotTest" name="test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree" time="1.777"><failure message="AssertionError: b'app.py' not found in b'  File &quot;&lt;string&gt;&quot;, line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpuyxb6nce\\repo\',\'-c\',\'core.hooksPath=/dev/null\',\'-c\',\'core.fsmonitor=false\',\'-C\',\'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpuyxb6nce\\repo\']\r\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nSyntaxError: (unicode error) \'...&#10;[truncated; full report in element text]">self = &lt;unittest.case._Outcome object at 0x00000260E56668B0&gt;
+test_case = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree&gt;
+result = &lt;TestCaseFunction test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree&gt;
+method = &lt;bound method ProjectSnapshotTest.test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree of &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree&gt;
+
+    def test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree(self):
+        repo = self.root / 'repo'
+        repo.mkdir()
+        def git(*args):
+            return subprocess.run(['git', '-C', str(repo), *args], check=True,
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        git('init', '-q')
+        (repo / 'app.py').write_text('committed\n')
+        git('add', 'app.py')
+        git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-qm', 'fixture')
+        commit = git('rev-parse', 'HEAD').stdout.decode().strip()
+        (repo / 'app.py').write_text('uncommitted\n')
+        env = dict(os.environ, GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL='/dev/null', GIT_TERMINAL_PROMPT='0')
+        command = ['python3', '-I', '-c', EXPORT.replace('/source', str(repo)), 'HEAD']
+        dirty = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+        self.assertNotEqual(dirty.returncode, 0)
+&gt;       self.assertIn(b'app.py', dirty.stderr)
+
+tests\test_project_snapshot.py:95: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree&gt;
+member = b'app.py'
+container = b'  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmi...Error: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+msg = None
+
+    def assertIn(self, member, container, msg=None):
+        """Just like self.assertTrue(a in b), but with a nicer default message."""
+        if member not in container:
+            standardMsg = '%s not found in %s' % (safe_repr(member),
+                                                  safe_repr(container))
+&gt;           self.fail(self._formatMessage(msg, standardMsg))
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:1174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_snapshot.ProjectSnapshotTest testMethod=test_real_git_export_uses_committed_bytes_and_rejects_sensitive_tree&gt;
+msg = 'b\'app.py\' not found in b\'  File "&lt;string&gt;", line 4\\r\\n    base=[\\\'git\\\',\\\'--no-optional-locks\\\',\\\'-c\\...ode error) \\\'unicodeescape\\\' codec can\\\'t decode bytes in position 17-18: truncated \\\\UXXXXXXXX escape\\r\\n\''
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: b'app.py' not found in b'  File "&lt;string&gt;", line 4\r\n    base=[\'git\',\'--no-optional-locks\',\'-c\',\'safe.directory=C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpuyxb6nce\\repo\',\'-c\',\'core.hooksPath=/dev/null\',\'-c\',\'core.fsmonitor=false\',\'-C\',\'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmpuyxb6nce\\repo\']\r\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nSyntaxError: (unicode error) \'unicodeescape\' codec can\'t decode bytes in position 17-18: truncated \\UXXXXXXXX escape\r\n'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:732: AssertionError</failure></testcase><testcase classname="tests.test_project_snapshot.ProjectSnapshotTest" name="test_sensitive_special_duplicate_and_traversal_fail_without_partial_export" time="0.016" /></testsuite></testsuites>

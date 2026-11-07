@@ -1,0 +1,331 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 3 items
+
+tests/test_ui_time.py::ChinaTimeTest::test_daily_counts_use_china_midnight_without_rewriting_records FAILED [ 33%]
+tests/test_ui_time.py::ChinaTimeTest::test_month_filter_uses_china_calendar PASSED [ 66%]
+tests/test_ui_time.py::ChinaTimeTest::test_offsets_day_boundary_and_relative_time_in_three_browser_zones 
+tests/test_ui_time.py::ChinaTimeTest::test_offsets_day_boundary_and_relative_time_in_three_browser_zones PASSED [100%]
+
+================================== FAILURES ===================================
+_ ChinaTimeTest.test_daily_counts_use_china_midnight_without_rewriting_records _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4q96evs1'
+onexc = <function TemporaryDirectory._rmtree.<locals>.onexc at 0x00000200925B5C60>
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4q96evs1\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:625: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000200921AF620>
+test_case = <test_ui_time.ChinaTimeTest testMethod=test_daily_counts_use_china_midnight_without_rewriting_records>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_ui_time.ChinaTimeTest testMethod=test_daily_counts_use_china_midnight_without_rewriting_records>
+result = <TestCaseFunction test_daily_counts_use_china_midnight_without_rewriting_records>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_ui_time.ChinaTimeTest testMethod=test_daily_counts_use_china_midnight_without_rewriting_records>
+method = <bound method ChinaTimeTest.test_daily_counts_use_china_midnight_without_rewriting_records of <test_ui_time.ChinaTimeTest testMethod=test_daily_counts_use_china_midnight_without_rewriting_records>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_ui_time.ChinaTimeTest testMethod=test_daily_counts_use_china_midnight_without_rewriting_records>
+
+    def test_daily_counts_use_china_midnight_without_rewriting_records(self):
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from tmh.platform.store import Store
+>       with tempfile.TemporaryDirectory() as folder:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_ui_time.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4q96evs1'>
+exc = None, value = None, tb = None
+
+    def __exit__(self, exc, value, tb):
+        if self._delete:
+>           self.cleanup()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:952: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4q96evs1'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:956: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4q96evs1'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onexc(func, path, exc):
+            # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+            if isinstance(exc, (PermissionError, IsADirectoryError)):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        if not _os.path.isdir(path) or _os.path.isjunction(path):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif isinstance(exc, FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onexc=onexc)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:936: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4q96evs1'
+ignore_errors = False, onerror = None
+onexc = <function TemporaryDirectory._rmtree.<locals>.onexc at 0x00000200925B5C60>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, onexc=None, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onexc or
+        onerror is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        the value of exc_info describes the exception. For onexc it is the
+        exception instance, and for onerror it is a tuple as returned by
+        sys.exc_info().  If ignore_errors is false and both onexc and
+        onerror are None, the exception is reraised.
+    
+        onerror is deprecated and only remains for backwards compatibility.
+        If both onerror and onexc are set, onerror is ignored and onexc is used.
+        """
+    
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onexc(*args):
+                pass
+        elif onerror is None and onexc is None:
+            def onexc(*args):
+                raise
+        elif onexc is None:
+            if onerror is None:
+                def onexc(*args):
+                    raise
+            else:
+                # delegate to onerror
+                def onexc(*args):
+                    func, path, exc = args
+                    if exc is None:
+                        exc_info = None, None, None
+                    else:
+                        exc_info = type(exc), exc, exc.__traceback__
+                    return onerror(func, path, exc_info)
+    
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            stack = [(os.lstat, dir_fd, path, None)]
+            try:
+                while stack:
+                    _rmtree_safe_fd(stack, onexc)
+            finally:
+                # Close any file descriptors still on the stack.
+                while stack:
+                    func, fd, path, entry = stack.pop()
+                    if func is not os.close:
+                        continue
+                    try:
+                        os.close(fd)
+                    except OSError as err:
+                        onexc(os.close, path, err)
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                st = os.lstat(path)
+            except OSError as err:
+                onexc(os.lstat, path, err)
+                return
+            try:
+                if _rmtree_islink(st):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError as err:
+                onexc(os.path.islink, path, err)
+                # can't continue even if onexc hook returns
+                return
+>           return _rmtree_unsafe(path, onexc)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:790: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4q96evs1'
+onexc = <function TemporaryDirectory._rmtree.<locals>.onexc at 0x00000200925B5C60>
+
+    def _rmtree_unsafe(path, onexc):
+        def onerror(err):
+            if not isinstance(err, FileNotFoundError):
+                onexc(os.scandir, err.filename, err)
+        results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+        for dirpath, dirnames, filenames in results:
+            for name in dirnames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.rmdir(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+                    onexc(os.rmdir, fullname, err)
+            for name in filenames:
+                fullname = os.path.join(dirpath, name)
+                try:
+                    os.unlink(fullname)
+                except FileNotFoundError:
+                    continue
+                except OSError as err:
+>                   onexc(os.unlink, fullname, err)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4q96evs1\\platform.db'
+exc = PermissionError(13, 'The process cannot access the file because it is being used by another process')
+
+    def onexc(func, path, exc):
+        # On DragonFly BSD, UF_NOUNLINK removal fails with EISDIR, not EPERM.
+        if isinstance(exc, (PermissionError, IsADirectoryError)):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4q96evs1\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py:911: PermissionError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_ui_time.xml -
+=============== 1 failed, 2 passed, 3 subtests passed in 2.88s ================

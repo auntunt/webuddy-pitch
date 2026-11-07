@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 6 items
+
+tests/test_recheck_publication.py::RecheckPublicationTest::test_current_verification_publication_failure_keeps_sealed_artifact_and_old_bytes PASSED [ 16%]
+tests/test_recheck_publication.py::RecheckPublicationTest::test_matching_artifacts_with_wrong_checked_commit_do_not_inherit_operation PASSED [ 33%]
+tests/test_recheck_publication.py::RecheckPublicationTest::test_matching_artifacts_with_wrong_source_run_do_not_inherit_operation PASSED [ 50%]
+tests/test_recheck_publication.py::RecheckPublicationTest::test_operation_artifact_publication_failure_cannot_revive_old_pass PASSED [ 66%]
+tests/test_recheck_publication.py::RecheckPublicationTest::test_sealed_artifact_tamper_fails_closed PASSED [ 83%]
+tests/test_recheck_publication.py::RecheckPublicationTest::test_thread_start_failure_seals_without_mutating_original_run PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_recheck_publication.xml -
+============================= 6 passed in 46.72s ==============================

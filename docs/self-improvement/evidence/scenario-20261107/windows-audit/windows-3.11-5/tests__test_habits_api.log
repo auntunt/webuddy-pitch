@@ -1,0 +1,19 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 9 items
+
+tests/test_habits_api.py::HabitsApiTest::test_cross_project_aggregation_on_team_view PASSED [ 11%]
+tests/test_habits_api.py::HabitsApiTest::test_default_user_is_the_requester PASSED [ 22%]
+tests/test_habits_api.py::HabitsApiTest::test_explicit_unredacted_view_names_the_person PASSED [ 33%]
+tests/test_habits_api.py::HabitsApiTest::test_personal_view_is_redacted_by_default_and_never_returns_raw_text PASSED [ 44%]
+tests/test_habits_api.py::HabitsApiTest::test_readonly_snapshot_unchanged PASSED [ 55%]
+tests/test_habits_api.py::HabitsApiTest::test_small_sample_withholds_shares PASSED [ 66%]
+tests/test_habits_api.py::HabitsApiTest::test_team_view_is_anonymous_and_sample_disciplined PASSED [ 77%]
+tests/test_habits_api.py::HabitsApiTest::test_unknown_project_is_404 PASSED [ 88%]
+tests/test_habits_api.py::HabitsApiTest::test_without_token_is_401 PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_habits_api.xml -
+============================== 9 passed in 2.51s ==============================

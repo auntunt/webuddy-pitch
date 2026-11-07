@@ -1,0 +1,32 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 21 items
+
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_any_frozen_prompt_or_contract_tampering_prevents_execution PASSED [  4%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_candidate_only_overlay_preserves_attachments_and_null PASSED [  9%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_captured_origin_outside_first_500_is_not_inserted PASSED [ 14%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_currentness_rejects_same_second_public_take_aba_without_private_leak PASSED [ 19%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_currentness_without_original_regular_lock_fails_without_writing PASSED [ 23%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_exact_final_prompt_utf8_limit_not_just_guidance_limit PASSED [ 28%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_final_prompt_limit_preserves_pair_and_denominator PASSED [ 33%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_freeze_full_real_selected_payload_and_prompt PASSED [ 38%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_frozen_prompt_and_currentness_ignore_new_cards_and_usage PASSED [ 42%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_generation_cases_do_not_prepare_model_input PASSED [ 47%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_invalid_proposed_utf8_is_diagnosed_before_revision_write PASSED [ 52%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_new_capture_preserves_missing_null_and_empty PASSED [ 57%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_null_title_kept_in_content_while_registry_label_remains_text PASSED [ 61%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_pair_utf8_boundary_and_one_sided_limit PASSED [ 66%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_payload_and_render_receipts_must_agree_even_with_recomputed_outer_digest PASSED [ 71%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_preparation_does_not_write_business_ledger_or_tickets PASSED [ 76%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_selected_unusable_managed_card_is_omitted_without_refill PASSED [ 80%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_self_consistent_rewrite_cannot_change_actual_candidate_or_bound_pool 
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_self_consistent_rewrite_cannot_change_actual_candidate_or_bound_pool PASSED [ 85%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_single_candidate_arm_limit_never_calls_shorter_baseline PASSED [ 90%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_unselected_candidate_is_not_forced_into_guidance PASSED [ 95%]
+tests/test_learning_lesson_inputs.py::LessonInputsTests::test_v2_baseline_descriptor_is_lossless_while_legacy_keeps_literal_defaults PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_lesson_inputs.xml -
+=================== 21 passed, 5 subtests passed in 18.22s ====================

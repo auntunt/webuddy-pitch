@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="61" time="42.788" timestamp="2026-11-07T12:30:33.742579+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_active_ancestor_manual_blocks_descendant_seal_without_mutating_job" time="1.443" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_active_claimed_descendant_manual_blocks_parent_seal_until_terminal" time="1.521" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_active_sibling_and_unrelated_manual_do_not_block_seal" time="1.537" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_ancestry_blocks_new_adoption_and_proposal_without_changing_old_reads" time="1.360" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_ancestry_missing_cross_project_and_cycles_fail_closed" time="1.446" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_authorization_exit_after_commit_keeps_unknown_not_rollback_classification" time="1.351" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_cancel_after_intent_keeps_job_running_until_stopping_evidence" time="1.561" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_cancel_between_t2_and_intent_ends_all_registered_records" time="1.496" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_changed_candidate_asset_key_cannot_downgrade_sealed_revision_to_manual" time="1.377" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_concurrent_seal_same_request_creates_one_plan" time="1.292" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_deadline_anchor_cannot_be_extended_or_recreated" time="1.293"><failure message="AssertionError: 119.98499999999996 not less than or equal to 119.97235321998596">self = &lt;unittest.case._Outcome object at 0x000001E1A4355E50&gt;
+test_case = &lt;test_learning_experiments.ExperimentLedgerTests testMethod=test_deadline_anchor_cannot_be_extended_or_recreated&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_learning_experiments.ExperimentLedgerTests testMethod=test_deadline_anchor_cannot_be_extended_or_recreated&gt;
+result = &lt;TestCaseFunction test_deadline_anchor_cannot_be_extended_or_recreated&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_learning_experiments.ExperimentLedgerTests testMethod=test_deadline_anchor_cannot_be_extended_or_recreated&gt;
+method = &lt;bound method ExperimentLedgerTests.test_deadline_anchor_cannot_be_extended_or_recreated of &lt;test_learning_experiments.ExperimentLedgerTests testMethod=test_deadline_anchor_cannot_be_extended_or_recreated&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_learning_experiments.ExperimentLedgerTests testMethod=test_deadline_anchor_cannot_be_extended_or_recreated&gt;
+
+    def test_deadline_anchor_cannot_be_extended_or_recreated(self):
+        value = self.seal()
+        exp = self.exp(value['experiment_id'])
+        with self.store.lock:
+            remaining = X.remaining_in_tx(self.store.db, exp)
+        with patch.object(X.time, 'time', return_value=exp['deadline']-10000):
+&gt;           self.assertLessEqual(X.remaining_in_tx(self.store.db, exp), remaining)
+
+tests\test_learning_experiments.py:297: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_learning_experiments.ExperimentLedgerTests testMethod=test_deadline_anchor_cannot_be_extended_or_recreated&gt;
+a = 119.98499999999996, b = 119.97235321998596, msg = None
+
+    def assertLessEqual(self, a, b, msg=None):
+        """Just like self.assertTrue(a &lt;= b), but with a nicer default message."""
+        if not a &lt;= b:
+            standardMsg = '%s not less than or equal to %s' % (safe_repr(a), safe_repr(b))
+&gt;           self.fail(self._formatMessage(msg, standardMsg))
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:1265: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_learning_experiments.ExperimentLedgerTests testMethod=test_deadline_anchor_cannot_be_extended_or_recreated&gt;
+msg = '119.98499999999996 not less than or equal to 119.97235321998596'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: 119.98499999999996 not less than or equal to 119.97235321998596
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError</failure></testcase><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_descendant_manual_registration_loses_to_parent_seal_commit" time="1.325" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_draft_and_metadata_replay_reauthorize_and_keep_full_material" time="1.293" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_experiment_material_uses_own_capture_not_a_fake_manual_job" time="1.370" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_exposure_is_explicit_actor_epoch_bound_and_atomic" time="1.352" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_four_table_migration_rolls_back_each_statement" time="2.214" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_manual_start_rechecks_ownership_after_seal_barrier" time="1.361" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_missing_candidate_asset_cannot_downgrade_sealed_revision_to_manual" time="1.373" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_not_written_only_after_absent_request_and_proven_rollback" time="1.298" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_partial_table_or_false_partial_index_fails_without_ddl" time="1.294" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_participant_epoch_change_prevents_replay_and_dispatch" time="1.601" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_real_manager_can_prepare_but_cannot_bypass_execution_gate" time="1.337" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_receipts_echo_exact_action_and_request_identity" time="1.416" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_rehashed_candidate_inner_revision_cannot_claim_another_revision" time="1.345" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_second_draft_cannot_seal_same_or_declared_descendant_candidate" time="1.426" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_strict_contract_rejects_paid_arbitrary_and_lossy_inputs_without_writes" time="1.276" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_t1_one_job_all_repeats_atomic_and_idempotent" time="1.357" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_t2_registers_run_inputs_step_slot_budget_in_one_commit" time="1.610" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_unknown_request_query_commit_and_rollback_errors_never_claim_not_written" time="1.212" /><testcase classname="tests.test_learning_experiments.ExperimentLedgerTests" name="test_unsealed_contract_and_unrelated_revision_keep_manual_ownership" time="1.353" /></testsuite></testsuites>

@@ -1,0 +1,14 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 4 items
+
+tests/test_prod_release.py::ProdReleaseTest::test_deploy_command_runs_after_approval PASSED [ 25%]
+tests/test_prod_release.py::ProdReleaseTest::test_reject_needs_reason_and_allows_new_request PASSED [ 50%]
+tests/test_prod_release.py::ProdReleaseTest::test_request_approve_deployed_is_traced_on_tickets PASSED [ 75%]
+tests/test_prod_release.py::ProdReleaseTest::test_request_needs_verification_note_and_known_version PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_prod_release.xml -
+============================== 4 passed in 3.73s ==============================

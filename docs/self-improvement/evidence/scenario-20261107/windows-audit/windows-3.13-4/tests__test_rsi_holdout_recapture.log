@@ -1,0 +1,25 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 7 items
+
+tests/test_rsi_holdout_recapture.py::RecaptureTests::test_attempted_root_missing_stable_anchor_cannot_backfill_or_replace_exposed_cases SKIPPED [ 14%]
+tests/test_rsi_holdout_recapture.py::RecaptureTests::test_distinct_ticketless_training_material_remains_supported SKIPPED [ 28%]
+tests/test_rsi_holdout_recapture.py::RecaptureTests::test_distinct_training_task_with_more_history_is_allowed_and_root_cases_do_not_change SKIPPED [ 42%]
+tests/test_rsi_holdout_recapture.py::RecaptureTests::test_missing_original_sealed_capture_denies_instead_of_using_a_recaptured_replacement SKIPPED [ 57%]
+tests/test_rsi_holdout_recapture.py::RecaptureTests::test_recaptured_holdout_is_refused_for_judge_probe_and_retry_without_new_attempts SKIPPED [ 71%]
+tests/test_rsi_holdout_recapture.py::RecaptureTests::test_same_sealed_task_with_changed_effective_history_is_still_not_training SKIPPED [ 85%]
+tests/test_rsi_holdout_recapture.py::RecaptureTests::test_unused_history_recapture_cannot_expose_presealed_task_to_A SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_holdout_recapture.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rsi_holdout_recapture.py:75: private catalog and supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_holdout_recapture.py:83: private catalog and supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_holdout_recapture.py:60: private catalog and supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_holdout_recapture.py:90: private catalog and supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_holdout_recapture.py:41: private catalog and supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_holdout_recapture.py:53: private catalog and supervised loopback require POSIX
+SKIPPED [1] tests\test_rsi_holdout_recapture.py:24: private catalog and supervised loopback require POSIX
+============================= 7 skipped in 0.25s ==============================

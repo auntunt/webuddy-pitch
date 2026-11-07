@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="27" time="7.358" timestamp="2026-11-07T12:44:57.027498+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_changed_identity_without_page_reload_mounts_new_context_once" time="0.278" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_confirm_binds_actual_dirty_fields_and_review_keeps_real_line_breaks" time="0.271" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_confirm_binds_the_displayed_snapshot" time="0.271" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_existing_reread_cannot_discard_a_later_unknown_intent" time="0.273" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_late_reread_cannot_expose_discard_button_for_unknown_post" time="0.266" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_legacy_account_change_uses_separate_storage_and_keeps_original_retry" time="0.304" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_legacy_session_expiry_also_clears_private_lesson_state" time="0.253" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_malformed_or_misbound_receipts_remain_unknown" time="0.290" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_missing_snapshot_only_reads_without_automatically_confirming" time="0.262" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_noop_empty_field_receipt_keeps_original_missing_field" time="0.264" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_permission_clear_scrubs_pending_drafts_and_late_response" time="0.270" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_readonly_role_cannot_submit_even_by_invoking_handler" time="0.281" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_real_ledger_receipt_is_accepted_and_later_retire_is_not_reversed" time="0.053"><failure message="tmh.platform.learn.LessonDecisionError: 此平台尚未验证原子经验登记与目录同步；未执行本次决定">self = &lt;unittest.case._Outcome object at 0x0000021A4F061390&gt;
+test_case = &lt;test_ui_lesson_decisions.LessonDecisionUiTests testMethod=test_real_ledger_receipt_is_accepted_and_later_retire_is_not_reversed&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_ui_lesson_decisions.LessonDecisionUiTests testMethod=test_real_ledger_receipt_is_accepted_and_later_retire_is_not_reversed&gt;
+result = &lt;TestCaseFunction test_real_ledger_receipt_is_accepted_and_later_retire_is_not_reversed&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_ui_lesson_decisions.LessonDecisionUiTests testMethod=test_real_ledger_receipt_is_accepted_and_later_retire_is_not_reversed&gt;
+method = &lt;bound method LessonDecisionUiTests.test_real_ledger_receipt_is_accepted_and_later_retire_is_not_reversed of &lt;test_ui_lesson_decisions.LessonDecisionUiTests testMethod=test_real_ledger_receipt_is_accepted_and_later_retire_is_not_reversed&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_ui_lesson_decisions.LessonDecisionUiTests testMethod=test_real_ledger_receipt_is_accepted_and_later_retire_is_not_reversed&gt;
+
+    def test_real_ledger_receipt_is_accepted_and_later_retire_is_not_reversed(self):
+        from tmh.platform import learn
+    
+        with tempfile.TemporaryDirectory() as directory:
+            data = Path(directory)
+            card = learn.add_lesson(data, {"project": "APP", "title": "真实账本回执", "status": "candidate",
+                                          "symptom": "保留\r\n原文  ", "fix": "原办法", "cause": None,
+                                          "applicability": "条件\u2028第二行", "source": {"number": 1.0},
+                                          "files": [f"full-{i}.py" for i in range(12)]})
+            original = learn.lesson_snapshot(data, "APP", card["id"])
+            fields = {"fix": "此次人工修订"}
+&gt;           learn.human_decision(data, "APP", card["id"], "alice", "confirm", original["expected_token"],
+                                 "lesson-real-ledger", fields=fields)
+
+tests\test_ui_lesson_decisions.py:224: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+data_dir = WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmpkf1nhr62')
+project = 'APP', lid = 'L1', actor = 'alice', action = 'confirm'
+expected_token = 'a2d93c1ba3d7e95d20eb578015a150414877f25c223612addf937c5966618a81'
+request_id = 'lesson-real-ledger', fields = {'fix': '此次人工修订'}, reason = ''
+
+    def human_decision(data_dir: Path, project: str, lid: str, actor: str, action: str,
+                       expected_token: str, request_id: str, *, fields=None, reason="") -&gt; dict:
+        request = _human_request(project, lid, actor, action, expected_token, request_id, fields, reason)
+&gt;       _require_human_storage()
+
+tmh\platform\learn.py:660: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _require_human_storage():
+        if os.name != "posix" or not callable(getattr(os, "fchmod", None)):
+&gt;           raise LessonDecisionError(503, "lesson_storage_unsupported",
+                                      "此平台尚未验证原子经验登记与目录同步；未执行本次决定")
+E           tmh.platform.learn.LessonDecisionError: 此平台尚未验证原子经验登记与目录同步；未执行本次决定
+
+tmh\platform\learn.py:612: LessonDecisionError</failure></testcase><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_reopen_storage_failure_preserves_original_request_and_snapshot" time="0.245" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_replayed_receipt_cannot_claim_retired_card_is_active" time="0.276" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_request_conflict_and_history_error_cannot_generate_new_intent" time="0.267" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_restore_is_separate_and_preserves_full_reason" time="0.275" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_review_includes_complete_conditions_files_and_source" time="0.251" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_same_version_draft_restores_but_new_version_never_inherits_it" time="0.260" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_saved_receipt_is_not_trusted_without_server_revalidation" time="0.257" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_server_identity_change_clears_original_request_instead_of_retrying_as_new_user" time="0.260" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_stale_version_requires_explicit_reread_and_never_rebinds" time="0.264" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_storage_failure_prevents_post" time="0.267" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_unchanged_browser_normalized_crlf_is_not_written_as_edit" time="0.262" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_unknown_request_survives_remount_and_rechecks_server" time="0.268" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_unknown_result_retries_exact_original_intent" time="0.258" /><testcase classname="tests.test_ui_lesson_decisions.LessonDecisionUiTests" name="test_untrusted_saved_target_does_not_write_another_resource" time="0.263" /></testsuite></testsuites>

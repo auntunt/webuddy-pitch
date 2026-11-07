@@ -1,0 +1,41 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 29 items
+
+tests/test_coordination.py::CoordinationTest::test_actor_and_owner_are_rechecked_after_entering_write_transaction PASSED [  3%]
+tests/test_coordination.py::CoordinationTest::test_actual_handoff_receipt_stales_brief_and_preserves_old_source PASSED [  6%]
+tests/test_coordination.py::CoordinationTest::test_brief_full_versions_do_not_change_task_or_acceptance PASSED [ 10%]
+tests/test_coordination.py::CoordinationTest::test_brief_on_closed_task_is_annotation_not_reopen_or_acceptance PASSED [ 13%]
+tests/test_coordination.py::CoordinationTest::test_brief_replay_is_payload_exact_and_does_not_need_new_source PASSED [ 17%]
+tests/test_coordination.py::CoordinationTest::test_brief_rollback_and_concurrent_cas PASSED [ 20%]
+tests/test_coordination.py::CoordinationTest::test_brief_source_binds_assignment_discussion_project_and_meeting_relation PASSED [ 24%]
+tests/test_coordination.py::CoordinationTest::test_brief_source_changes_reject_old_draft_and_mark_history_stale PASSED [ 27%]
+tests/test_coordination.py::CoordinationTest::test_brief_source_is_read_only_database_snapshot_not_technical_verification PASSED [ 31%]
+tests/test_coordination.py::CoordinationTest::test_concurrent_identical_create_and_brief_are_idempotent PASSED [ 34%]
+tests/test_coordination.py::CoordinationTest::test_concurrent_identical_publish_returns_original_receipt PASSED [ 37%]
+tests/test_coordination.py::CoordinationTest::test_concurrent_publish_one_winner_and_single_ticket PASSED [ 41%]
+tests/test_coordination.py::CoordinationTest::test_create_failure_rolls_back_original_candidates_and_request PASSED [ 44%]
+tests/test_coordination.py::CoordinationTest::test_create_replay_and_cross_resource_request_ids PASSED [ 48%]
+tests/test_coordination.py::CoordinationTest::test_cross_project_meeting_and_action_ids_do_not_escape_scope PASSED [ 51%]
+tests/test_coordination.py::CoordinationTest::test_dates_and_revision_validation_without_silent_normalization PASSED [ 55%]
+tests/test_coordination.py::CoordinationTest::test_disabled_legacy_account_and_brief_project_viewer_are_read_only PASSED [ 58%]
+tests/test_coordination.py::CoordinationTest::test_failure_rolls_back_published_ticket_event_link_revision_and_receipt PASSED [ 62%]
+tests/test_coordination.py::CoordinationTest::test_full_original_and_only_explicit_candidates_no_hidden_limit PASSED [ 65%]
+tests/test_coordination.py::CoordinationTest::test_list_pagination_is_explicit_and_project_scoped PASSED [ 68%]
+tests/test_coordination.py::CoordinationTest::test_manual_actions_history_withdraw_and_immutable_original PASSED [ 72%]
+tests/test_coordination.py::CoordinationTest::test_meeting_cas_covers_different_actions PASSED [ 75%]
+tests/test_coordination.py::CoordinationTest::test_oversized_numeric_identifiers_fail_as_validation_not_server_error PASSED [ 79%]
+tests/test_coordination.py::CoordinationTest::test_personal_identity_and_payload_spoofing_fail_closed 
+tests/test_coordination.py::CoordinationTest::test_personal_identity_and_payload_spoofing_fail_closed PASSED [ 82%]
+tests/test_coordination.py::CoordinationTest::test_publication_creates_one_new_ticket_atomically_without_automation PASSED [ 86%]
+tests/test_coordination.py::CoordinationTest::test_publish_requires_complete_current_owner_and_development_project PASSED [ 89%]
+tests/test_coordination.py::CoordinationTest::test_schema_atomic_failure_nested_guard_and_legacy_data_preservation PASSED [ 93%]
+tests/test_coordination.py::CoordinationTest::test_source_ranges_validate_actual_text_and_cannot_forge_quote 
+tests/test_coordination.py::CoordinationTest::test_source_ranges_validate_actual_text_and_cannot_forge_quote PASSED [ 96%]
+tests/test_coordination.py::CoordinationTest::test_tenant_project_permissions_directory_and_live_revocation PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_coordination.xml -
+=================== 29 passed, 12 subtests passed in 22.43s ===================

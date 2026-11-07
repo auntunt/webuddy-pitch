@@ -1,0 +1,1009 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="8" time="15.730" timestamp="2026-11-07T12:42:19.604406+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_project_authority.ProjectAuthorityTest" name="test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed" time="1.866"><failure message="AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?">self = &lt;unittest.case._Outcome object at 0x000001E4896A6E40&gt;
+test_case = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed&gt;
+result = &lt;TestCaseFunction test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+&gt;                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed&gt;
+
+    def _callSetUp(self):
+&gt;       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed&gt;
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+&gt;       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest&gt;
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+&gt;       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tmh.platform.tenant_runtime.Workers object at 0x000001E4896A74D0&gt;
+registry = &lt;tmh.platform.tenancy.Registry object at 0x000001E4896A7380&gt;
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+&gt;           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError</failure></testcase><testcase classname="tests.test_project_authority.ProjectAuthorityTest" name="test_authenticated_http_runner_records_synthetic_result" time="1.849"><failure message="AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?">self = &lt;unittest.case._Outcome object at 0x000001E48986EC10&gt;
+test_case = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_runner_records_synthetic_result&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_runner_records_synthetic_result&gt;
+result = &lt;TestCaseFunction test_authenticated_http_runner_records_synthetic_result&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+&gt;                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_runner_records_synthetic_result&gt;
+
+    def _callSetUp(self):
+&gt;       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_runner_records_synthetic_result&gt;
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+&gt;       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest&gt;
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+&gt;       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tmh.platform.tenant_runtime.Workers object at 0x000001E48986F250&gt;
+registry = &lt;tmh.platform.tenancy.Registry object at 0x000001E48986F110&gt;
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+&gt;           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError</failure></testcase><testcase classname="tests.test_project_authority.ProjectAuthorityTest" name="test_codex_profile_and_selected_or_default_model_are_preserved" time="1.811"><failure message="AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?">self = &lt;unittest.case._Outcome object at 0x000001E48986F750&gt;
+test_case = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_codex_profile_and_selected_or_default_model_are_preserved&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_codex_profile_and_selected_or_default_model_are_preserved&gt;
+result = &lt;TestCaseFunction test_codex_profile_and_selected_or_default_model_are_preserved&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+&gt;                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_codex_profile_and_selected_or_default_model_are_preserved&gt;
+
+    def _callSetUp(self):
+&gt;       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_codex_profile_and_selected_or_default_model_are_preserved&gt;
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+&gt;       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest&gt;
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+&gt;       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tmh.platform.tenant_runtime.Workers object at 0x000001E48999C050&gt;
+registry = &lt;tmh.platform.tenancy.Registry object at 0x000001E48986FD90&gt;
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+&gt;           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError</failure></testcase><testcase classname="tests.test_project_authority.ProjectAuthorityTest" name="test_nonmember_cannot_enter_runner_path" time="1.862"><failure message="AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?">self = &lt;unittest.case._Outcome object at 0x000001E4898E4FC0&gt;
+test_case = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_nonmember_cannot_enter_runner_path&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_nonmember_cannot_enter_runner_path&gt;
+result = &lt;TestCaseFunction test_nonmember_cannot_enter_runner_path&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+&gt;                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_nonmember_cannot_enter_runner_path&gt;
+
+    def _callSetUp(self):
+&gt;       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_nonmember_cannot_enter_runner_path&gt;
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+&gt;       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest&gt;
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+&gt;       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tmh.platform.tenant_runtime.Workers object at 0x000001E4898E5220&gt;
+registry = &lt;tmh.platform.tenancy.Registry object at 0x000001E4898E4D60&gt;
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+&gt;           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError</failure></testcase><testcase classname="tests.test_project_authority.ProjectAuthorityTest" name="test_route_configuration_is_bound" time="1.818"><failure message="AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?">self = &lt;unittest.case._Outcome object at 0x000001E4898E5810&gt;
+test_case = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_route_configuration_is_bound&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_route_configuration_is_bound&gt;
+result = &lt;TestCaseFunction test_route_configuration_is_bound&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+&gt;                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_route_configuration_is_bound&gt;
+
+    def _callSetUp(self):
+&gt;       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_route_configuration_is_bound&gt;
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+&gt;       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest&gt;
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+&gt;       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tmh.platform.tenant_runtime.Workers object at 0x000001E4898E56E0&gt;
+registry = &lt;tmh.platform.tenancy.Registry object at 0x000001E4898E4180&gt;
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+&gt;           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError</failure></testcase><testcase classname="tests.test_project_authority.ProjectAuthorityTest" name="test_runner_uses_personal_grant_and_preserves_unpublished_marker" time="2.185"><failure message="AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?">self = &lt;unittest.case._Outcome object at 0x000001E4895168D0&gt;
+test_case = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_runner_uses_personal_grant_and_preserves_unpublished_marker&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_runner_uses_personal_grant_and_preserves_unpublished_marker&gt;
+result = &lt;TestCaseFunction test_runner_uses_personal_grant_and_preserves_unpublished_marker&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+&gt;                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_runner_uses_personal_grant_and_preserves_unpublished_marker&gt;
+
+    def _callSetUp(self):
+&gt;       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_runner_uses_personal_grant_and_preserves_unpublished_marker&gt;
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+&gt;       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest&gt;
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+&gt;       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tmh.platform.tenant_runtime.Workers object at 0x000001E489516450&gt;
+registry = &lt;tmh.platform.tenancy.Registry object at 0x000001E489517530&gt;
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+&gt;           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError</failure></testcase><testcase classname="tests.test_project_authority.ProjectAuthorityTest" name="test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do" time="1.827"><failure message="AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?">self = &lt;unittest.case._Outcome object at 0x000001E4899B9260&gt;
+test_case = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do&gt;
+result = &lt;TestCaseFunction test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+&gt;                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do&gt;
+
+    def _callSetUp(self):
+&gt;       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do&gt;
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+&gt;       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest&gt;
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+&gt;       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tmh.platform.tenant_runtime.Workers object at 0x000001E4899B9370&gt;
+registry = &lt;tmh.platform.tenancy.Registry object at 0x000001E4899B86B0&gt;
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+&gt;           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError</failure></testcase><testcase classname="tests.test_project_authority.ProjectAuthorityTest" name="test_viewer_and_cross_project_job_cannot_execute" time="1.835"><failure message="AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?">self = &lt;unittest.case._Outcome object at 0x000001E4893AB8A0&gt;
+test_case = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_viewer_and_cross_project_job_cannot_execute&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_viewer_and_cross_project_job_cannot_execute&gt;
+result = &lt;TestCaseFunction test_viewer_and_cross_project_job_cannot_execute&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+&gt;                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_viewer_and_cross_project_job_cannot_execute&gt;
+
+    def _callSetUp(self):
+&gt;       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_authority.ProjectAuthorityTest testMethod=test_viewer_and_cross_project_job_cannot_execute&gt;
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+&gt;       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest&gt;
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+&gt;       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tmh.platform.tenant_runtime.Workers object at 0x000001E4899B96A0&gt;
+registry = &lt;tmh.platform.tenancy.Registry object at 0x000001E4899B9D00&gt;
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+&gt;           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError</failure></testcase></testsuite></testsuites>

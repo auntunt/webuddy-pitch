@@ -1,0 +1,875 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 5 items
+
+tests/test_project_candidates.py::ProjectCandidateRegistrationTest::test_broken_evidence_chain_never_supplies_criteria FAILED [ 20%]
+tests/test_project_candidates.py::ProjectCandidateRegistrationTest::test_confirmed_full_criteria_registers_original_author_without_human_decision FAILED [ 40%]
+tests/test_project_candidates.py::ProjectCandidateRegistrationTest::test_missing_or_unconfirmed_criteria_never_installs_candidate FAILED [ 60%]
+tests/test_project_candidates.py::ProjectCandidateRegistrationTest::test_revocation_before_install_refuses_without_mutation FAILED [ 80%]
+tests/test_project_candidates.py::ProjectCandidateRegistrationTest::test_source_changes_after_git_install_preserves_uncertain_receipt_without_registration FAILED [100%]
+
+================================== FAILURES ===================================
+_ ProjectCandidateRegistrationTest.test_broken_evidence_chain_never_supplies_criteria _
+
+self = <unittest.case._Outcome object at 0x000002372A9AD010>
+test_case = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_broken_evidence_chain_never_supplies_criteria>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_broken_evidence_chain_never_supplies_criteria>
+result = <TestCaseFunction test_broken_evidence_chain_never_supplies_criteria>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_broken_evidence_chain_never_supplies_criteria>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_broken_evidence_chain_never_supplies_criteria>
+
+    def setUp(self):
+>       fixture=fixture_module.ProjectAuthorityTest('runTest');fixture.setUp();self.addCleanup(fixture.doCleanups)
+                                                               ^^^^^^^^^^^^^^^
+
+tests\test_project_candidates.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_project_authority.ProjectAuthorityTest testMethod=runTest>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000002372A9AD7F0>
+registry = <tmh.platform.tenancy.Registry object at 0x000002372A9AD6A0>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+_ ProjectCandidateRegistrationTest.test_confirmed_full_criteria_registers_original_author_without_human_decision _
+
+self = <unittest.case._Outcome object at 0x000002372AC34410>
+test_case = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_confirmed_full_criteria_registers_original_author_without_human_decision>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_confirmed_full_criteria_registers_original_author_without_human_decision>
+result = <TestCaseFunction test_confirmed_full_criteria_registers_original_author_without_human_decision>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_confirmed_full_criteria_registers_original_author_without_human_decision>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_confirmed_full_criteria_registers_original_author_without_human_decision>
+
+    def setUp(self):
+>       fixture=fixture_module.ProjectAuthorityTest('runTest');fixture.setUp();self.addCleanup(fixture.doCleanups)
+                                                               ^^^^^^^^^^^^^^^
+
+tests\test_project_candidates.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_project_authority.ProjectAuthorityTest testMethod=runTest>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000002372AC34B90>
+registry = <tmh.platform.tenancy.Registry object at 0x000002372AC34A50>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+_ ProjectCandidateRegistrationTest.test_missing_or_unconfirmed_criteria_never_installs_candidate _
+
+self = <unittest.case._Outcome object at 0x000002372AC35090>
+test_case = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_missing_or_unconfirmed_criteria_never_installs_candidate>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_missing_or_unconfirmed_criteria_never_installs_candidate>
+result = <TestCaseFunction test_missing_or_unconfirmed_criteria_never_installs_candidate>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_missing_or_unconfirmed_criteria_never_installs_candidate>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_missing_or_unconfirmed_criteria_never_installs_candidate>
+
+    def setUp(self):
+>       fixture=fixture_module.ProjectAuthorityTest('runTest');fixture.setUp();self.addCleanup(fixture.doCleanups)
+                                                               ^^^^^^^^^^^^^^^
+
+tests\test_project_candidates.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_project_authority.ProjectAuthorityTest testMethod=runTest>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000002372AC35A90>
+registry = <tmh.platform.tenancy.Registry object at 0x000002372AC35810>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+_ ProjectCandidateRegistrationTest.test_revocation_before_install_refuses_without_mutation _
+
+self = <unittest.case._Outcome object at 0x000002372AABB360>
+test_case = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_revocation_before_install_refuses_without_mutation>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_revocation_before_install_refuses_without_mutation>
+result = <TestCaseFunction test_revocation_before_install_refuses_without_mutation>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_revocation_before_install_refuses_without_mutation>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_revocation_before_install_refuses_without_mutation>
+
+    def setUp(self):
+>       fixture=fixture_module.ProjectAuthorityTest('runTest');fixture.setUp();self.addCleanup(fixture.doCleanups)
+                                                               ^^^^^^^^^^^^^^^
+
+tests\test_project_candidates.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_project_authority.ProjectAuthorityTest testMethod=runTest>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000002372AABB950>
+registry = <tmh.platform.tenancy.Registry object at 0x000002372AABB5C0>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+_ ProjectCandidateRegistrationTest.test_source_changes_after_git_install_preserves_uncertain_receipt_without_registration _
+
+self = <unittest.case._Outcome object at 0x000002372AABBCE0>
+test_case = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_source_changes_after_git_install_preserves_uncertain_receipt_without_registration>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_source_changes_after_git_install_preserves_uncertain_receipt_without_registration>
+result = <TestCaseFunction test_source_changes_after_git_install_preserves_uncertain_receipt_without_registration>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:647: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_source_changes_after_git_install_preserves_uncertain_receipt_without_registration>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:603: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_candidates.ProjectCandidateRegistrationTest testMethod=test_source_changes_after_git_install_preserves_uncertain_receipt_without_registration>
+
+    def setUp(self):
+>       fixture=fixture_module.ProjectAuthorityTest('runTest');fixture.setUp();self.addCleanup(fixture.doCleanups)
+                                                               ^^^^^^^^^^^^^^^
+
+tests\test_project_candidates.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_project_authority.ProjectAuthorityTest testMethod=runTest>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000002372BF71220>
+registry = <tmh.platform.tenancy.Registry object at 0x000002372BF70770>
+
+    def __init__(self, registry):C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x2372c077fc0; dead>
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 625, in _rmtree_unsafe
+    os.unlink(fullname)
+    ~~~~~~~~~^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-5eltjmio\\control\\access.db'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\weakref.py", line 590, in __call__
+    return info.func(*info.args, **(info.kwargs or {}))
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 941, in _cleanup
+    cls._rmtree(name, ignore_errors=ignore_errors)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 936, in _rmtree
+    _shutil.rmtree(name, onexc=onexc)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 790, in rmtree
+    return _rmtree_unsafe(path, onexc)
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+    onexc(os.unlink, fullname, err)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 911, in onexc
+    _os.unlink(path)
+    ~~~~~~~~~~^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-5eltjmio\\control\\access.db'
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x2372bf78960; dead>
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 625, in _rmtree_unsafe
+    os.unlink(fullname)
+    ~~~~~~~~~^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-0m82te4z\\control\\access.db'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\weakref.py", line 590, in __call__
+    return info.func(*info.args, **(info.kwargs or {}))
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 941, in _cleanup
+    cls._rmtree(name, ignore_errors=ignore_errors)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 936, in _rmtree
+    _shutil.rmtree(name, onexc=onexc)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 790, in rmtree
+    return _rmtree_unsafe(path, onexc)
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+    onexc(os.unlink, fullname, err)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 911, in onexc
+    _os.unlink(path)
+    ~~~~~~~~~~^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-0m82te4z\\control\\access.db'
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x2372bfbf2e0; dead>
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 625, in _rmtree_unsafe
+    os.unlink(fullname)
+    ~~~~~~~~~^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-0mhc6wf0\\control\\access.db'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\weakref.py", line 590, in __call__
+    return info.func(*info.args, **(info.kwargs or {}))
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 941, in _cleanup
+    cls._rmtree(name, ignore_errors=ignore_errors)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 936, in _rmtree
+    _shutil.rmtree(name, onexc=onexc)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 790, in rmtree
+    return _rmtree_unsafe(path, onexc)
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+    onexc(os.unlink, fullname, err)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 911, in onexc
+    _os.unlink(path)
+    ~~~~~~~~~~^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-0mhc6wf0\\control\\access.db'
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x2372a82e0e0; dead>
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 625, in _rmtree_unsafe
+    os.unlink(fullname)
+    ~~~~~~~~~^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-81cn0wmk\\control\\access.db'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\weakref.py", line 590, in __call__
+    return info.func(*info.args, **(info.kwargs or {}))
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 941, in _cleanup
+    cls._rmtree(name, ignore_errors=ignore_errors)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 936, in _rmtree
+    _shutil.rmtree(name, onexc=onexc)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 790, in rmtree
+    return _rmtree_unsafe(path, onexc)
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+    onexc(os.unlink, fullname, err)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 911, in onexc
+    _os.unlink(path)
+    ~~~~~~~~~~^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-81cn0wmk\\control\\access.db'
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+============================== warnings summary ===============================
+tests/test_project_candidates.py::ProjectCandidateRegistrationTest::test_missing_or_unconfirmed_criteria_never_installs_candidate
+  C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x2372bffad80; dead>
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 625, in _rmtree_unsafe
+      os.unlink(fullname)
+      ~~~~~~~~~^^^^^^^^^^
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-jfqk4hlh\\control\\access.db'
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\weakref.py", line 590, in __call__
+      return info.func(*info.args, **(info.kwargs or {}))
+             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 941, in _cleanup
+      cls._rmtree(name, ignore_errors=ignore_errors)
+      ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 936, in _rmtree
+      _shutil.rmtree(name, onexc=onexc)
+      ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 790, in rmtree
+      return _rmtree_unsafe(path, onexc)
+    File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+      onexc(os.unlink, fullname, err)
+      ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\tempfile.py", line 911, in onexc
+      _os.unlink(path)
+      ~~~~~~~~~~^^^^^^
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-jfqk4hlh\\control\\access.db'
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_project_candidates.xml -
+======================== 5 failed, 1 warning in 9.50s =========================

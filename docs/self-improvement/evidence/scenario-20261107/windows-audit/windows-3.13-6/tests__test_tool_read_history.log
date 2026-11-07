@@ -1,0 +1,19 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 5 items
+
+tests/test_tool_read_history.py::NestedToolHistoryTests::test_deep_probe_source_keeps_valid_json_and_checks_leaf_types 
+tests/test_tool_read_history.py::NestedToolHistoryTests::test_deep_probe_source_keeps_valid_json_and_checks_leaf_types PASSED [ 20%]
+tests/test_tool_read_history.py::NestedToolHistoryTests::test_nested_foreign_recheck_binding_is_rejected_in_both_artifact_copies 
+tests/test_tool_read_history.py::NestedToolHistoryTests::test_nested_foreign_recheck_binding_is_rejected_in_both_artifact_copies PASSED [ 40%]
+tests/test_tool_read_history.py::NestedToolHistoryTests::test_own_prior_round_and_unbound_legacy_history_keep_complete_originals PASSED [ 60%]
+tests/test_tool_read_history.py::NestedToolHistoryTests::test_probe_artifact_source_requires_json_type_identity 
+tests/test_tool_read_history.py::NestedToolHistoryTests::test_probe_artifact_source_requires_json_type_identity PASSED [ 80%]
+tests/test_tool_read_history.py::NestedToolHistoryTests::test_top_and_nested_declared_project_and_ticket_are_bound 
+tests/test_tool_read_history.py::NestedToolHistoryTests::test_top_and_nested_declared_project_and_ticket_are_bound PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_tool_read_history.xml -
+=================== 5 passed, 262 subtests passed in 9.88s ====================

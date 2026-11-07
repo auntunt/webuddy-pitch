@@ -1,0 +1,23 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 6 items
+
+tests/test_rsi_linux_cleanup.py::LinuxCleanupTests::test_failed_privileged_launch_still_closes_fixture_and_stderr_permissions SKIPPED [ 16%]
+tests/test_rsi_linux_cleanup.py::LinuxCleanupTests::test_normal_fixed_outputs_keep_all_bytes_and_ownership SKIPPED [ 33%]
+tests/test_rsi_linux_cleanup.py::LinuxCleanupTests::test_root_path_replacement_only_tightens_pinned_original SKIPPED [ 50%]
+tests/test_rsi_linux_cleanup.py::LinuxCleanupTests::test_work_path_replacement_during_traversal_cannot_escape SKIPPED [ 66%]
+tests/test_rsi_linux_cleanup.py::LinuxCleanupTests::test_worker_directory_link_does_not_touch_outside_tree SKIPPED [ 83%]
+tests/test_rsi_linux_cleanup.py::LinuxCleanupTests::test_worker_file_link_never_requests_outside_ownership_change SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_linux_cleanup.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rsi_linux_cleanup.py:116: Linux cleanup directory-descriptor contract requires POSIX
+SKIPPED [1] tests\test_rsi_linux_cleanup.py:95: Linux cleanup directory-descriptor contract requires POSIX
+SKIPPED [1] tests\test_rsi_linux_cleanup.py:110: Linux cleanup directory-descriptor contract requires POSIX
+SKIPPED [1] tests\test_rsi_linux_cleanup.py:113: Linux cleanup directory-descriptor contract requires POSIX
+SKIPPED [1] tests\test_rsi_linux_cleanup.py:106: Linux cleanup directory-descriptor contract requires POSIX
+SKIPPED [1] tests\test_rsi_linux_cleanup.py:102: Linux cleanup directory-descriptor contract requires POSIX
+============================= 6 skipped in 0.06s ==============================

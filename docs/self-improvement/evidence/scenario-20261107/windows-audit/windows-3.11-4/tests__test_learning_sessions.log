@@ -1,0 +1,29 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 19 items
+
+tests/test_learning_sessions.py::LearningSessionTests::test_busy_retry_checks_learning_again_after_the_wait PASSED [  5%]
+tests/test_learning_sessions.py::LearningSessionTests::test_changed_receipt_or_foreign_ticket_parent_is_not_trusted PASSED [ 10%]
+tests/test_learning_sessions.py::LearningSessionTests::test_copied_conclusion_is_an_ancestor_even_without_cli_resume PASSED [ 15%]
+tests/test_learning_sessions.py::LearningSessionTests::test_current_fact_can_resume_but_revoke_removes_session_and_old_conclusion PASSED [ 21%]
+tests/test_learning_sessions.py::LearningSessionTests::test_excluded_receipt_does_not_claim_hidden_knowledge_was_injected PASSED [ 26%]
+tests/test_learning_sessions.py::LearningSessionTests::test_extra_fix_context_keeps_both_old_and_new_receipts PASSED [ 31%]
+tests/test_learning_sessions.py::LearningSessionTests::test_fix_loop_keeps_parent_receipt_and_stops_after_revoke PASSED [ 36%]
+tests/test_learning_sessions.py::LearningSessionTests::test_later_manual_confirmation_is_checked_as_its_own_exact_content PASSED [ 42%]
+tests/test_learning_sessions.py::LearningSessionTests::test_latest_invalid_step_does_not_fall_back_to_an_older_session PASSED [ 47%]
+tests/test_learning_sessions.py::LearningSessionTests::test_local_lesson_revoke_starts_new_session PASSED [ 52%]
+tests/test_learning_sessions.py::LearningSessionTests::test_lost_session_fallback_does_not_resend_stale_full_prompt PASSED [ 57%]
+tests/test_learning_sessions.py::LearningSessionTests::test_new_receipt_does_not_erase_a_resumed_ancestors_knowledge PASSED [ 63%]
+tests/test_learning_sessions.py::LearningSessionTests::test_old_unreceipted_session_is_kept_only_before_learning_history PASSED [ 68%]
+tests/test_learning_sessions.py::LearningSessionTests::test_policy_change_does_not_reuse_the_old_policy_session PASSED [ 73%]
+tests/test_learning_sessions.py::LearningSessionTests::test_queued_run_with_stale_frozen_prompt_never_invokes_a_model PASSED [ 78%]
+tests/test_learning_sessions.py::LearningSessionTests::test_shared_copy_and_take_receipt_are_bound_even_with_same_revision PASSED [ 84%]
+tests/test_learning_sessions.py::LearningSessionTests::test_source_and_page_changes_each_invalidate_the_exact_fact PASSED [ 89%]
+tests/test_learning_sessions.py::LearningSessionTests::test_unknown_memory_does_not_become_safe_after_shared_take_withdrawal PASSED [ 94%]
+tests/test_learning_sessions.py::LearningSessionTests::test_withdrawing_cross_project_take_invalidates_old_memory PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_sessions.xml -
+============================= 19 passed in 24.67s =============================

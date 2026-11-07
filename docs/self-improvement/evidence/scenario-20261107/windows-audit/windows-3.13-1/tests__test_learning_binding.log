@@ -1,0 +1,22 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 9 items
+
+tests/test_learning_binding.py::LearningBindingTests::test_bare_git_repository_still_binds_actual_head 
+tests/test_learning_binding.py::LearningBindingTests::test_bare_git_repository_still_binds_actual_head PASSED [ 11%]
+tests/test_learning_binding.py::LearningBindingTests::test_broken_ancestor_marker_cannot_be_downgraded_to_plain_manifest PASSED [ 22%]
+tests/test_learning_binding.py::LearningBindingTests::test_broken_git_marker_never_becomes_plain_manifest PASSED [ 33%]
+tests/test_learning_binding.py::LearningBindingTests::test_dangling_git_marker_never_becomes_plain_manifest SKIPPED [ 44%]
+tests/test_learning_binding.py::LearningBindingTests::test_git_metadata_subdirectory_is_not_treated_as_plain_manifest PASSED [ 55%]
+tests/test_learning_binding.py::LearningBindingTests::test_nested_git_directory_binds_real_head PASSED [ 66%]
+tests/test_learning_binding.py::LearningBindingTests::test_nested_git_without_head_cannot_be_downgraded_to_plain_manifest PASSED [ 77%]
+tests/test_learning_binding.py::LearningBindingTests::test_non_git_manifest_never_starts_a_process PASSED [ 88%]
+tests/test_learning_binding.py::LearningBindingTests::test_unreadable_ancestor_metadata_cannot_be_assumed_absent PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_binding.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_learning_binding.py:98: fixture requires unprivileged POSIX symlink creation
+============== 8 passed, 1 skipped, 2 subtests passed in 17.71s ===============

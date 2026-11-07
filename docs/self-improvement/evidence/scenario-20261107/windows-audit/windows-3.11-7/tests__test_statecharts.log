@@ -1,0 +1,15 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 5 items
+
+tests/test_statecharts.py::StatechartTests::test_bad_files_are_reported_not_hidden PASSED [ 20%]
+tests/test_statecharts.py::StatechartTests::test_chart_mode_is_a_writing_run_with_the_format PASSED [ 40%]
+tests/test_statecharts.py::StatechartTests::test_load_flags_charts_whose_cited_code_changed PASSED [ 60%]
+tests/test_statecharts.py::StatechartTests::test_page_has_the_states_route_and_lazy_renderer PASSED [ 80%]
+tests/test_statecharts.py::StatechartTests::test_path_marks_rule_broken_and_maps_pele_edges PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_statecharts.xml -
+============================== 5 passed in 2.40s ==============================

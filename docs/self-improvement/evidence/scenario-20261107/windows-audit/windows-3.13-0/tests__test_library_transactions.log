@@ -1,0 +1,37 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 13 items
+
+tests/test_library_transactions.py::LibraryTransactionTest::test_candidate_input_failure_rolls_back_run_candidate_event_and_ticket SKIPPED [  7%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_candidate_preview_obeys_currentness_recheck_after_source_lock SKIPPED [ 15%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_candidate_records_exact_references_and_rejects_revocation SKIPPED [ 23%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_candidate_rejects_workspace_switched_after_git_preparation SKIPPED [ 30%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_commit_busy_rolls_back_run_inputs_and_retry_slot SKIPPED [ 38%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_currentness_cannot_mix_grants_from_different_database_snapshots SKIPPED [ 46%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_currentness_snapshot_never_commits_its_callers_transaction SKIPPED [ 53%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_failed_migration_preserves_legacy_rows_and_can_be_retried SKIPPED [ 61%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_grant_merge_and_reference_are_rolled_back_together SKIPPED [ 69%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_legacy_candidate_is_usable_only_before_workspace_replacement SKIPPED [ 76%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_legacy_fallback_still_requires_a_real_run_from_this_project SKIPPED [ 84%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_missing_legacy_binding_cannot_be_filled_with_current_workspace SKIPPED [ 92%]
+tests/test_library_transactions.py::LibraryTransactionTest::test_new_candidate_in_maintained_workspace_can_really_verify SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_library_transactions.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_library_transactions.py:100: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:267: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:248: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:122: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:321: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:176: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:383: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:344: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:300: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:213: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:167: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:149: requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_transactions.py:85: requires POSIX supervision and local Git
+============================= 13 skipped in 0.21s =============================

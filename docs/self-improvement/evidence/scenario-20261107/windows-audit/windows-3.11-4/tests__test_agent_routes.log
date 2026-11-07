@@ -1,0 +1,55 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 41 items
+
+tests/test_agent_routes.py::AgentRoutesTest::test_a_diagnosis_without_its_block_is_repaired_once_from_its_own_answer PASSED [  2%]
+tests/test_agent_routes.py::AgentRoutesTest::test_a_diagnosis_wrapped_in_a_json_block_under_its_own_name_is_read PASSED [  4%]
+tests/test_agent_routes.py::AgentRoutesTest::test_a_doubt_is_advice_and_does_not_send_the_work_back PASSED [  7%]
+tests/test_agent_routes.py::AgentRoutesTest::test_a_fail_that_names_no_blocker_is_no_verdict PASSED [  9%]
+tests/test_agent_routes.py::AgentRoutesTest::test_a_fail_whose_blocking_is_not_a_list_is_no_verdict PASSED [ 12%]
+tests/test_agent_routes.py::AgentRoutesTest::test_a_plan_that_lists_no_files_is_built_on_the_test_machine_from_what_was_changed PASSED [ 14%]
+tests/test_agent_routes.py::AgentRoutesTest::test_a_repair_that_still_gives_no_block_leaves_no_verdict PASSED [ 17%]
+tests/test_agent_routes.py::AgentRoutesTest::test_absent_configuration_keeps_legacy_explicit_and_fallback PASSED [ 19%]
+tests/test_agent_routes.py::AgentRoutesTest::test_an_analysis_that_asks_a_person_stops_before_the_plan PASSED [ 21%]
+tests/test_agent_routes.py::AgentRoutesTest::test_api_ticket_submission_remains_held_without_model_execution PASSED [ 24%]
+tests/test_agent_routes.py::AgentRoutesTest::test_blockers_without_a_criterion_or_scenario_are_no_blockers_and_wait_for_a_person PASSED [ 26%]
+tests/test_agent_routes.py::AgentRoutesTest::test_codex_only_route_blocks_direct_api_chooser_and_model_triage PASSED [ 29%]
+tests/test_agent_routes.py::AgentRoutesTest::test_command_rules_are_explicit_when_direct_api_disabled PASSED [ 31%]
+tests/test_agent_routes.py::AgentRoutesTest::test_criteria_the_client_confirmed_let_a_plan_without_its_own_go_on_to_the_fix PASSED [ 34%]
+tests/test_agent_routes.py::AgentRoutesTest::test_default_inheritance_and_allowed_explicit_request PASSED [ 36%]
+tests/test_agent_routes.py::AgentRoutesTest::test_each_criterion_is_put_to_the_diagnosis_and_its_answer_shown PASSED [ 39%]
+tests/test_agent_routes.py::AgentRoutesTest::test_explicit_eval_engine_can_override_unavailable_default_when_allowed PASSED [ 41%]
+tests/test_agent_routes.py::AgentRoutesTest::test_failed_builds_with_passing_diagnoses_are_not_called_circling PASSED [ 43%]
+tests/test_agent_routes.py::AgentRoutesTest::test_fix_loop_reviews_small_unbuilt_changes_with_or_without_a_separate_engine 
+tests/test_agent_routes.py::AgentRoutesTest::test_fix_loop_reviews_small_unbuilt_changes_with_or_without_a_separate_engine PASSED [ 46%]
+tests/test_agent_routes.py::AgentRoutesTest::test_fix_loop_sends_diagnose_to_the_step_agent_and_keeps_the_change_on_the_main_one PASSED [ 48%]
+tests/test_agent_routes.py::AgentRoutesTest::test_flow_intake_and_handwork_select_route_without_other_provider PASSED [ 51%]
+tests/test_agent_routes.py::AgentRoutesTest::test_http_entry_denies_wrong_engine_before_start_or_ticket_write PASSED [ 53%]
+tests/test_agent_routes.py::AgentRoutesTest::test_malformed_configuration_fails_closed 
+tests/test_agent_routes.py::AgentRoutesTest::test_malformed_configuration_fails_closed PASSED [ 56%]
+tests/test_agent_routes.py::AgentRoutesTest::test_one_earlier_pass_breaks_the_circle PASSED [ 58%]
+tests/test_agent_routes.py::AgentRoutesTest::test_only_a_diagnosis_without_the_blocking_field_keeps_a_bare_fail PASSED [ 60%]
+tests/test_agent_routes.py::AgentRoutesTest::test_project_metadata_is_scoped_and_does_not_probe_or_execute PASSED [ 63%]
+tests/test_agent_routes.py::AgentRoutesTest::test_project_override_is_scoped_and_does_not_change_other_projects PASSED [ 65%]
+tests/test_agent_routes.py::AgentRoutesTest::test_route_configuration_never_grants_tenant_execution 
+tests/test_agent_routes.py::AgentRoutesTest::test_route_configuration_never_grants_tenant_execution PASSED [ 68%]
+tests/test_agent_routes.py::AgentRoutesTest::test_steps_fail_closed_outside_the_allowlist_or_on_unknown_modes 
+tests/test_agent_routes.py::AgentRoutesTest::test_steps_fail_closed_outside_the_allowlist_or_on_unknown_modes PASSED [ 70%]
+tests/test_agent_routes.py::AgentRoutesTest::test_steps_route_modes_to_their_agent_inside_the_allowlist PASSED [ 73%]
+tests/test_agent_routes.py::AgentRoutesTest::test_survey_and_eval_defaults_obey_project_route PASSED [ 75%]
+tests/test_agent_routes.py::AgentRoutesTest::test_the_next_change_is_diagnosed_against_the_last_blockers_and_circling_is_called_out PASSED [ 78%]
+tests/test_agent_routes.py::AgentRoutesTest::test_ticket_and_project_start_use_route_but_retain_legacy_defaults PASSED [ 80%]
+tests/test_agent_routes.py::AgentRoutesTest::test_ticket_handed_back_while_doing_goes_on_from_analysis_to_plan PASSED [ 82%]
+tests/test_agent_routes.py::AgentRoutesTest::test_unconfigured_direct_api_remains_available PASSED [ 85%]
+tests/test_agent_routes.py::AgentRoutesTest::test_with_page_checks_the_diagnosis_is_told_they_come_after_the_commit PASSED [ 87%]
+tests/test_agent_routes.py::AgentRoutesTest::test_wrong_engine_and_missing_configured_engine_never_fall_back PASSED [ 90%]
+tests/test_agent_routes.py::FileLineTest::test_code_locations_written_the_chinese_way_count_as_evidence PASSED [ 92%]
+tests/test_agent_routes.py::FileLineTest::test_the_analysis_report_names_the_code_locations PASSED [ 95%]
+tests/test_agent_routes.py::ReportRepairTest::test_only_a_missing_block_is_asked_for_and_only_once PASSED [ 97%]
+tests/test_agent_routes.py::ReportRepairTest::test_the_analysis_prompt_asks_for_the_report PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_agent_routes.xml -
+=================== 41 passed, 18 subtests passed in 42.81s ===================

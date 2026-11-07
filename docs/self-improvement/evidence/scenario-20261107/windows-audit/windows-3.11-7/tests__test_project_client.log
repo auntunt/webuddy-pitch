@@ -1,0 +1,326 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 2 items
+
+tests/test_project_client.py::ProjectClientTest::test_initialize_erases_file_before_tools_and_runs_project_separately FAILED [ 50%]
+tests/test_project_client.py::ProjectClientTest::test_profile_and_model_are_bound_and_temporary_profile_is_erased FAILED [100%]
+
+================================== FAILURES ===================================
+_ ProjectClientTest.test_initialize_erases_file_before_tools_and_runs_project_separately _
+
+self = <unittest.case._Outcome object at 0x000002237A3CE150>
+test_case = <test_project_client.ProjectClientTest testMethod=test_initialize_erases_file_before_tools_and_runs_project_separately>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_client.ProjectClientTest testMethod=test_initialize_erases_file_before_tools_and_runs_project_separately>
+result = <TestCaseFunction test_initialize_erases_file_before_tools_and_runs_project_separately>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_client.ProjectClientTest testMethod=test_initialize_erases_file_before_tools_and_runs_project_separately>
+method = <bound method ProjectClientTest.test_initialize_erases_file_before_tools_and_runs_project_separately of <test_project_client.ProjectClientTest testMethod=test_initialize_erases_file_before_tools_and_runs_project_separately>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_client.ProjectClientTest testMethod=test_initialize_erases_file_before_tools_and_runs_project_separately>
+
+    def test_initialize_erases_file_before_tools_and_runs_project_separately(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw).resolve()
+            workspace = root / 'project'
+            workspace.mkdir()
+            (workspace / 'app.py').write_text('safe\n')
+            config = root / 'provider.toml'
+            config.write_text('model_provider="fixture"\n[model_providers.fixture]\nname="fixture"\n[model_providers.fixture.http_headers]\nx-test="synthetic-canary"\n')
+            config.chmod(0o600)
+            engine = ClientEngine()
+            output = []
+            job = BoundJob('LYB', 'JB', workspace, 'sha256:'+'a'*64)
+>           result = run(job, config, 'synthetic task', 5, base_commit='b'*40, authorize=lambda j: j == job,
+                         output=output.append, engine=engine, volume_factory=FakeVolume)
+
+tests\test_project_client.py:79: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+job = BoundJob(principal='LYB', project='JB', workspace=WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp0ke4x6sg/project'), image_id='sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+provider_config = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp0ke4x6sg/provider.toml')
+prompt = 'synthetic task', seconds = 5
+base_commit = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+authorize = <function ProjectClientTest.test_initialize_erases_file_before_tools_and_runs_project_separately.<locals>.<lambda> at 0x000002237A3C9D00>
+profile = '', model = '', expected_binding = None
+cancel = <function <lambda> at 0x000002237A3C8D60>
+output = <built-in method append of list object at 0x000002237A397500>
+tool_output = <function <lambda> at 0x000002237A3C93A0>
+engine = <test_project_client.ClientEngine object at 0x000002237A3CE610>
+volume_factory = <class 'test_project_client.FakeVolume'>
+
+    def run(job: BoundJob, provider_config, prompt, seconds, *, base_commit, authorize, profile='', model='',
+            expected_binding=None, cancel=lambda: False,
+            output=lambda chunk: None, tool_output=lambda chunk: None, engine=None, volume_factory=ProjectVolume):
+        if not isinstance(prompt, str) or not prompt.strip() or seconds <= 0:
+            raise ValueError('项目执行需要完整任务和正数时限')
+        if authorize(job) is not True or not validate_workspace(job.workspace):
+            raise ValueError('项目授权或隔离工作区不可用')
+        if not isinstance(base_commit, str) or not re.fullmatch('[0-9a-f]{40}', base_commit):
+            raise ValueError('项目执行需要固定基线提交')
+        engine = engine or Engine()
+        deadline = time.monotonic() + seconds
+        pending = bytearray()
+        state = {'completed':False, 'failed':False, 'answer':False}
+        def observe(chunk):
+            output(chunk)
+            pending.extend(chunk)
+            while b'\n' in pending:
+                line, _, rest = pending.partition(b'\n')
+                pending[:] = rest
+                try:
+                    event = json.loads(line)
+                except (ValueError, UnicodeDecodeError):
+                    continue
+                if isinstance(event, dict):
+                    kind = event.get('type')
+                    state['completed'] |= kind == 'turn.completed'
+                    state['failed'] |= kind == 'turn.failed'
+                    item = event.get('item') or {}
+                    if kind == 'item.completed' and isinstance(item, dict):
+                        state['answer'] |= item.get('type') == 'agent_message' and bool(str(item.get('text') or '').strip())
+            if len(pending) > 4 * 1024 * 1024:
+                raise ValueError('客户端输出单行超出限制')
+        def stopped():
+            return cancel() or time.monotonic() >= deadline
+        with volume_factory(engine, job.image_id, job.workspace, seconds, stopped) as volume:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise ValueError('准备项目工作区时已超过总时限')
+>           receipt = _run(job, provider_config, prompt, remaining, authorize=authorize, cancel=stopped,
+                           output=observe, tool_output=tool_output, engine=engine, volume=volume,
+                           profile=profile,model=model,expected_binding=expected_binding)
+
+tmh\platform\project_client.py:151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+job = BoundJob(principal='LYB', project='JB', workspace=WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp0ke4x6sg/project'), image_id='sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+provider_config = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp0ke4x6sg/provider.toml')
+prompt = 'synthetic task', seconds = 5.0
+authorize = <function ProjectClientTest.test_initialize_erases_file_before_tools_and_runs_project_separately.<locals>.<lambda> at 0x000002237A3C9D00>
+cancel = <function run.<locals>.stopped at 0x000002237A3C9E40>
+output = <function run.<locals>.observe at 0x000002237A3C9EE0>
+tool_output = <function <lambda> at 0x000002237A3C93A0>
+engine = <test_project_client.ClientEngine object at 0x000002237A3CE610>
+volume = <test_project_client.FakeVolume object at 0x000002237A3CEB10>
+profile = '', model = '', expected_binding = None
+
+    def _run(job, provider_config, prompt, seconds, *, authorize, cancel, output, tool_output, engine, volume,
+             profile, model, expected_binding):
+        stop = threading.Event()
+        connections = []
+        errors = []
+        tool_receipts = []
+        erased = threading.Event()
+        with tempfile.TemporaryDirectory(prefix='webuddy-client-') as raw:
+            root = Path(raw).resolve()
+            for name in ('empty', 'client', 'channel', 'credentials'):
+                (root / name).mkdir(mode=0o700)
+            (root / 'client/driver.py').write_text(DRIVER, encoding='utf-8')
+            (root / 'client/prompt').write_text(prompt, encoding='utf-8')
+            (root / 'client/options.json').write_text(json.dumps({'profile':profile,'model':model}),encoding='utf-8')
+            (root / 'channel/client.py').write_text(RELAY, encoding='utf-8')
+            config = root / 'credentials/config.toml'
+>           base_text,profile_text,binding=provider_binding(provider_config,profile,model)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\project_client.py:181: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp0ke4x6sg/provider.toml')
+profile = '', model = ''
+
+    def provider_binding(path, profile='', model=''):
+        if profile and not re.fullmatch('[A-Za-z0-9_-]{1,64}',profile):
+            raise ValueError('项目 Codex profile 名称不正确')
+        if model and not re.fullmatch('[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}',model):
+            raise ValueError('项目模型名称不正确')
+        if tomllib is None:
+            raise RuntimeError('项目 Codex 执行配置需要 Python 3.11 以上（tomllib）')
+>       path=Path(path);text=_secure_config(path);config=tomllib.loads(text)
+                             ^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\project_client.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp0ke4x6sg/provider.toml')
+
+    def _secure_config(path):
+        path = Path(path)
+        info = path.lstat()
+>       if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid()
+                                                             ^^^^^^^^^
+                or stat.S_IMODE(info.st_mode) & 0o077 or path.is_symlink()):
+E               AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\project_client.py:78: AttributeError
+_ ProjectClientTest.test_profile_and_model_are_bound_and_temporary_profile_is_erased _
+
+self = <unittest.case._Outcome object at 0x000002237A602710>
+test_case = <test_project_client.ProjectClientTest testMethod=test_profile_and_model_are_bound_and_temporary_profile_is_erased>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_client.ProjectClientTest testMethod=test_profile_and_model_are_bound_and_temporary_profile_is_erased>
+result = <TestCaseFunction test_profile_and_model_are_bound_and_temporary_profile_is_erased>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_client.ProjectClientTest testMethod=test_profile_and_model_are_bound_and_temporary_profile_is_erased>
+method = <bound method ProjectClientTest.test_profile_and_model_are_bound_and_temporary_profile_is_erased of <test_project_client.ProjectClientTest testMethod=test_profile_and_model_are_bound_and_temporary_profile_is_erased>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_client.ProjectClientTest testMethod=test_profile_and_model_are_bound_and_temporary_profile_is_erased>
+
+    def test_profile_and_model_are_bound_and_temporary_profile_is_erased(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root=Path(raw).resolve();workspace=root/'project';workspace.mkdir();(workspace/'a').write_text('safe')
+            config=root/'config.toml';config.write_text('model_provider="fixture"\n[model_providers.fixture]\nname="fixture"\n');config.chmod(0o600)
+            profile=root/'team.config.toml';profile.write_text('model="profile-model"\nmodel_provider="fixture"\napproval_policy="never"\n');profile.chmod(0o600)
+>           _,_,binding=provider_binding(config,'team','selected-model');engine=ClientEngine()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_client.py:98: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp21x0447m/config.toml')
+profile = 'team', model = 'selected-model'
+
+    def provider_binding(path, profile='', model=''):
+        if profile and not re.fullmatch('[A-Za-z0-9_-]{1,64}',profile):
+            raise ValueError('项目 Codex profile 名称不正确')
+        if model and not re.fullmatch('[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}',model):
+            raise ValueError('项目模型名称不正确')
+        if tomllib is None:
+            raise RuntimeError('项目 Codex 执行配置需要 Python 3.11 以上（tomllib）')
+>       path=Path(path);text=_secure_config(path);config=tomllib.loads(text)
+                             ^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\project_client.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp21x0447m/config.toml')
+
+    def _secure_config(path):
+        path = Path(path)
+        info = path.lstat()
+>       if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid()
+                                                             ^^^^^^^^^
+                or stat.S_IMODE(info.st_mode) & 0o077 or path.is_symlink()):
+E               AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\project_client.py:78: AttributeError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_project_client.xml -
+============================== 2 failed in 0.29s ==============================

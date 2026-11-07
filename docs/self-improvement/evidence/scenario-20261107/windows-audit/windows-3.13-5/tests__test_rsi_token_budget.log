@@ -1,0 +1,29 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 18 items
+
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_all_remaining_phases_share_the_original_root_and_complete_text_binding PASSED [  5%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_boolean_or_missing_usage_is_not_a_zero 
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_boolean_or_missing_usage_is_not_a_zero PASSED [ 11%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_cancel_after_intent_preserves_max_hold_and_blocks PASSED [ 16%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_cancel_before_intent_releases_hold_but_not_attempt_count PASSED [ 22%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_cancelled_eight_calls_exhaust_attempt_limit_with_explicit_reason PASSED [ 27%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_concurrent_requests_cannot_both_reserve_or_overspend PASSED [ 33%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_exact_100m_counts_a_and_terminal_then_one_token_over_refuses_before_intent PASSED [ 38%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_explicit_no_price_or_money_limit_no_fake_zero_and_old_root_preserved PASSED [ 44%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_invalid_and_over_cap_usage_never_refunds_max_hold PASSED [ 50%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_original_window_and_generation_cannot_restart PASSED [ 55%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_prior_confirmed_is_cumulative_and_prior_unknown_blocks_new_dispatch PASSED [ 61%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_provider_money_is_preserved_without_becoming_a_permission_gate PASSED [ 66%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_same_authorization_cannot_start_another_root_project_or_model PASSED [ 72%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_scope_budget_auth_and_window_cannot_change_on_same_root PASSED [ 77%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_token_limit_and_prior_shape_are_explicit_and_bounded PASSED [ 83%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_two_connections_competing_roots_share_one_authorization PASSED [ 88%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_unknown_max_hold_and_late_settlement_never_reopen_dispatch PASSED [ 94%]
+tests/test_rsi_token_budget.py::TokenBudgetTests::test_usage_without_money_still_counts_all_cached_input_and_output PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_token_budget.xml -
+=================== 18 passed, 9 subtests passed in 21.68s ====================

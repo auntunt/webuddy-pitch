@@ -1,0 +1,90 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 40 items
+
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_actor_namespaces_and_cross_project_request_binding SKIPPED [  2%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_ambiguous_old_history_is_preserved_and_never_signed SKIPPED [  5%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_combined_edit_confirmation_binds_full_reviewed_b_not_base_a SKIPPED [  7%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_confirm_cannot_serve_as_restore SKIPPED [ 10%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_corrupt_envelope_or_rewritten_prefix_never_reverts_to_prior_state SKIPPED [ 12%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_create_validates_complete_input_before_any_append SKIPPED [ 15%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_creation_after_valid_unterminated_original_preserves_both_cards SKIPPED [ 17%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_directory_fsync_failure_is_unknown_and_retry_cannot_reactivate SKIPPED [ 20%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_duplicate_card_ids_and_unreadable_raw_source_are_rejected SKIPPED [ 22%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_durable_replay_needs_no_second_publication SKIPPED [ 25%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_each_utf8_tail_cut_fails_closed_without_loss SKIPPED [ 27%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_exact_duplicate_envelope_applies_once_but_conflicting_copy_fails SKIPPED [ 30%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_first_log_creation_syncs_file_and_directory_preserves_modes_prefix SKIPPED [ 32%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_first_writer_between_raw_and_log_reads_recaptures_under_real_lock SKIPPED [ 35%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_fixed_projection_and_human_confirm_share_one_cas_lock SKIPPED [ 37%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_forged_consistent_hashes_cannot_change_base_or_reviewed_types SKIPPED [ 40%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_invalid_action_with_fields_has_no_partial_edit SKIPPED [ 42%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_invalid_old_content_has_diagnostic_error_without_token_or_loss SKIPPED [ 45%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_invalid_requests_preserve_all_bytes SKIPPED [ 47%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_legacy_retire_and_human_confirm_serialize_without_revival SKIPPED [ 50%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_missing_directory_read_and_invalid_write_create_nothing SKIPPED [ 52%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_missing_lock_read_does_not_pair_old_card_with_new_token SKIPPED [ 55%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_nonfinite_derived_history_or_shared_copy_cannot_escape_snapshot SKIPPED [ 57%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_noop_receipt_preserves_token_revision_and_usage_window SKIPPED [ 60%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_old_ids_positions_and_projection_are_not_reindexed SKIPPED [ 62%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_process_exit_before_and_after_replace_have_no_partial_decision SKIPPED [ 65%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_replay_cannot_clear_later_projection_or_usage SKIPPED [ 67%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_replay_retains_original_receipt_and_reports_current_card SKIPPED [ 70%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_restore_requires_explicit_new_intent_reason_and_current_version SKIPPED [ 72%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_same_request_id_changed_intent_rejected_before_stale_token SKIPPED [ 75%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_snapshot_and_creation_are_full_readonly_consistent_material SKIPPED [ 77%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_snapshot_token_matches_legacy_after_each_supported_transition SKIPPED [ 80%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_stale_confirmation_never_confirms_replacement_text SKIPPED [ 82%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_successful_old_request_cannot_restore_retired_card SKIPPED [ 85%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_temp_fsync_and_replace_failure_preserve_formal_history SKIPPED [ 87%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_two_process_same_request_publishes_once SKIPPED [ 90%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_two_process_same_token_only_one_new_decision SKIPPED [ 92%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_usage_other_cards_and_aba_content SKIPPED [ 95%]
+tests/test_lesson_human_decisions.py::LessonHumanDecisionTests::test_valid_unterminated_log_and_old_partial_projection_keep_prefix SKIPPED [ 97%]
+tests/test_lesson_human_decisions.py::LessonDecisionStorageBoundaryTests::test_unsupported_storage_fails_before_creation_or_publication PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_lesson_human_decisions.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_lesson_human_decisions.py:186: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:385: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:151: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:95: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:505: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:427: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:331: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:468: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:405: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:447: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:397: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:492: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:480: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:291: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:553: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:366: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:90: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:412: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:239: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:544: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:265: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:272: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:435: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:206: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:316: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:533: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:217: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:167: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:195: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:176: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:250: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:349: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:74: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:82: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:457: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:527: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:520: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:227: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+SKIPPED [1] tests\test_lesson_human_decisions.py:339: 人工经验决定尚未验证 Windows 原子替换和目录 fsync；该平台明确拒绝写入
+======================== 1 passed, 39 skipped in 0.11s ========================

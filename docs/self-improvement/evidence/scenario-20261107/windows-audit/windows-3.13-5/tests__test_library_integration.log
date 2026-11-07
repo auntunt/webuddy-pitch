@@ -1,0 +1,25 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 7 items
+
+tests/test_library_integration.py::LibraryIntegrationTest::test_agent_task_packet_exposes_fixed_references_and_matches_requirement_identity SKIPPED [ 14%]
+tests/test_library_integration.py::LibraryIntegrationTest::test_derived_workspace_archives_source_decisions_and_requires_new_confirmation SKIPPED [ 28%]
+tests/test_library_integration.py::LibraryIntegrationTest::test_legacy_requirement_hash_is_preserved_and_reference_changes_invalidate_it SKIPPED [ 42%]
+tests/test_library_integration.py::LibraryIntegrationTest::test_real_signed_login_session_authorizes_management_without_an_operator_header SKIPPED [ 57%]
+tests/test_library_integration.py::LibraryIntegrationTest::test_reference_workflow_rejects_legacy_writes_and_allows_fixed_library_build_reads SKIPPED [ 71%]
+tests/test_library_integration.py::LibraryIntegrationTest::test_runner_binds_two_sources_and_refuses_a_stale_plan_before_fix_execution SKIPPED [ 85%]
+tests/test_library_integration.py::LibraryIntegrationTest::test_workspace_api_token_and_fake_human_name_cannot_authorize_sensitive_library_operations SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_library_integration.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_library_integration.py:209: integration builds require POSIX supervision and local Git
+SKIPPED [1] tests\test_library_integration.py:133: integration builds require POSIX supervision and local Git
+SKIPPED [1] tests\test_library_integration.py:52: integration builds require POSIX supervision and local Git
+SKIPPED [1] tests\test_library_integration.py:302: integration builds require POSIX supervision and local Git
+SKIPPED [1] tests\test_library_integration.py:232: integration builds require POSIX supervision and local Git
+SKIPPED [1] tests\test_library_integration.py:85: integration builds require POSIX supervision and local Git
+SKIPPED [1] tests\test_library_integration.py:276: integration builds require POSIX supervision and local Git
+============================= 7 skipped in 0.19s ==============================

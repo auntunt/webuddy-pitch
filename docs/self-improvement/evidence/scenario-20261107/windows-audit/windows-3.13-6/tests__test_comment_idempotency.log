@@ -1,0 +1,28 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 15 items
+
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_a_page_not_shown_the_path_confirms_the_workspace_by_its_id PASSED [  6%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_different_requests_can_intentionally_send_identical_comments PASSED [ 13%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_expected_author_mismatch_is_409_before_any_write_or_replay 
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_expected_author_mismatch_is_409_before_any_write_or_replay PASSED [ 20%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_expected_workspace_mismatch_is_409_without_write_or_replay 
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_expected_workspace_mismatch_is_409_without_write_or_replay PASSED [ 26%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_http_session_author_beats_body_and_header_and_switch_is_rejected PASSED [ 33%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_invalid_token_or_empty_text_has_no_writes 
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_invalid_token_or_empty_text_has_no_writes PASSED [ 40%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_legacy_call_keeps_response_and_exact_text_without_deduplication PASSED [ 46%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_lost_reply_then_new_process_replays_the_committed_comment PASSED [ 53%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_old_page_cannot_write_same_ticket_key_after_workspace_switch PASSED [ 60%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_process_dies_before_receipt_commit_then_retry_has_no_partial_write PASSED [ 66%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_receipt_failure_rolls_back_comment_and_touch PASSED [ 73%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_request_is_scoped_to_real_user_ticket_and_database PASSED [ 80%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_same_request_changed_text_conflicts_without_touching PASSED [ 86%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_same_request_returns_same_receipt_and_touches_once PASSED [ 93%]
+tests/test_comment_idempotency.py::CommentIdempotencyTest::test_separate_processes_racing_same_request_write_one_comment PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_comment_idempotency.xml -
+=================== 15 passed, 21 subtests passed in 21.81s ===================

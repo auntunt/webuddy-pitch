@@ -1,0 +1,1303 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 8 items
+
+tests/test_project_authority.py::ProjectAuthorityTest::test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed FAILED [ 12%]
+tests/test_project_authority.py::ProjectAuthorityTest::test_authenticated_http_runner_records_synthetic_result FAILED [ 25%]
+tests/test_project_authority.py::ProjectAuthorityTest::test_codex_profile_and_selected_or_default_model_are_preserved FAILED [ 37%]
+tests/test_project_authority.py::ProjectAuthorityTest::test_nonmember_cannot_enter_runner_path FAILED [ 50%]
+tests/test_project_authority.py::ProjectAuthorityTest::test_route_configuration_is_bound FAILED [ 62%]
+tests/test_project_authority.py::ProjectAuthorityTest::test_runner_uses_personal_grant_and_preserves_unpublished_marker FAILED [ 75%]
+tests/test_project_authority.py::ProjectAuthorityTest::test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do FAILED [ 87%]
+tests/test_project_authority.py::ProjectAuthorityTest::test_viewer_and_cross_project_job_cannot_execute FAILED [100%]
+
+================================== FAILURES ===================================
+_ ProjectAuthorityTest.test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed _
+
+self = <unittest.case._Outcome object at 0x000001F027F8E790>
+test_case = <test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed>
+result = <TestCaseFunction test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:619: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:576: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_member_fix_reaches_runner_and_other_modes_remain_closed>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000001F027C0FB50>
+registry = <tmh.platform.tenancy.Registry object at 0x000001F027051A90>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+_ ProjectAuthorityTest.test_authenticated_http_runner_records_synthetic_result _
+
+self = <unittest.case._Outcome object at 0x000001F0281B9AD0>
+test_case = <test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_runner_records_synthetic_result>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_runner_records_synthetic_result>
+result = <TestCaseFunction test_authenticated_http_runner_records_synthetic_result>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:619: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_runner_records_synthetic_result>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:576: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_authenticated_http_runner_records_synthetic_result>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000001F0281BB9D0>
+registry = <tmh.platform.tenancy.Registry object at 0x000001F0281BAF10>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+_ ProjectAuthorityTest.test_codex_profile_and_selected_or_default_model_are_preserved _
+
+self = <unittest.case._Outcome object at 0x000001F0281BC3D0>
+test_case = <test_project_authority.ProjectAuthorityTest testMethod=test_codex_profile_and_selected_or_default_model_are_preserved>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_codex_profile_and_selected_or_default_model_are_preserved>
+result = <TestCaseFunction test_codex_profile_and_selected_or_default_model_are_preserved>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:619: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_codex_profile_and_selected_or_default_model_are_preserved>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:576: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_codex_profile_and_selected_or_default_model_are_preserved>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000001F027CB4A90>
+registry = <tmh.platform.tenancy.Registry object at 0x000001F0281BD910>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+________ ProjectAuthorityTest.test_nonmember_cannot_enter_runner_path _________
+
+self = <unittest.case._Outcome object at 0x000001F0286C6A10>
+test_case = <test_project_authority.ProjectAuthorityTest testMethod=test_nonmember_cannot_enter_runner_path>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_nonmember_cannot_enter_runner_path>
+result = <TestCaseFunction test_nonmember_cannot_enter_runner_path>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:619: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_nonmember_cannot_enter_runner_path>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:576: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_nonmember_cannot_enter_runner_path>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000001F027051A90>
+registry = <tmh.platform.tenancy.Registry object at 0x000001F0286C5710>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+___________ ProjectAuthorityTest.test_route_configuration_is_bound ____________
+
+self = <unittest.case._Outcome object at 0x000001F027C24710>
+test_case = <test_project_authority.ProjectAuthorityTest testMethod=test_route_configuration_is_bound>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_route_configuration_is_bound>
+result = <TestCaseFunction test_route_configuration_is_bound>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:619: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_route_configuration_is_bound>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:576: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_route_configuration_is_bound>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000001F0281BB110>
+registry = <tmh.platform.tenancy.Registry object at 0x000001F0281BACD0>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+_ ProjectAuthorityTest.test_runner_uses_personal_grant_and_preserves_unpublished_marker _
+
+self = <unittest.case._Outcome object at 0x000001F028314890>
+test_case = <test_project_authority.ProjectAuthorityTest testMethod=test_runner_uses_personal_grant_and_preserves_unpublished_marker>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_runner_uses_personal_grant_and_preserves_unpublished_marker>
+result = <TestCaseFunction test_runner_uses_personal_grant_and_preserves_unpublished_marker>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:619: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_runner_uses_personal_grant_and_preserves_unpublished_marker>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:576: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_runner_uses_personal_grant_and_preserves_unpublished_marker>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000001F0281BB2D0>
+registry = <tmh.platform.tenancy.Registry object at 0x000001F028317590>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+_ ProjectAuthorityTest.test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do _
+
+self = <unittest.case._Outcome object at 0x000001F027C0FB50>
+test_case = <test_project_authority.ProjectAuthorityTest testMethod=test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do>
+result = <TestCaseFunction test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:619: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:576: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_unrelated_project_changes_do_not_invalidate_but_revoke_and_regrant_do>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000001F028559AD0>
+registry = <tmh.platform.tenancy.Registry object at 0x000001F027FFE3D0>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\tenant_runtime.py:183: AttributeError
+____ ProjectAuthorityTest.test_viewer_and_cross_project_job_cannot_execute ____
+
+self = <unittest.case._Outcome object at 0x000001F028304CD0>
+test_case = <test_project_authority.ProjectAuthorityTest testMethod=test_viewer_and_cross_project_job_cannot_execute>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_viewer_and_cross_project_job_cannot_execute>
+result = <TestCaseFunction test_viewer_and_cross_project_job_cannot_execute>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+>                   self._callSetUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:619: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_viewer_and_cross_project_job_cannot_execute>
+
+    def _callSetUp(self):
+>       self.setUp()
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:576: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_authority.ProjectAuthorityTest testMethod=test_viewer_and_cross_project_job_cannot_execute>
+
+    def setUp(self):
+        gateway=gateway_fixture.TenantGatewayTest('runTest')
+>       gateway.setUp();self.addCleanup(gateway.doCleanups);self.gateway=gateway
+        ^^^^^^^^^^^^^^^
+
+tests\test_project_authority.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest>
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+>       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.tenant_runtime.Workers object at 0x000001F0283073D0>
+registry = <tmh.platform.tenancy.Registry object at 0x000001F028305250>
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+>           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\tenant_runtime.pyC:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x1f028360e60; dead>
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 632, in _rmtree_unsafe
+    os.unlink(fullname)
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-k82bz1u7\\control\\access.db'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\weakref.py", line 590, in __call__
+    return info.func(*info.args, **(info.kwargs or {}))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 933, in _cleanup
+    cls._rmtree(name, ignore_errors=ignore_errors)
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 929, in _rmtree
+    _shutil.rmtree(name, onerror=onerror)
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 787, in rmtree
+    return _rmtree_unsafe(path, onerror)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+    _rmtree_unsafe(fullname, onerror)
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 634, in _rmtree_unsafe
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 893, in onerror
+    _os.unlink(path)
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-k82bz1u7\\control\\access.db'
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x1f0296bae00; dead>
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 632, in _rmtree_unsafe
+    os.unlink(fullname)
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-rxk_3elt\\control\\access.db'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\weakref.py", line 590, in __call__
+    return info.func(*info.args, **(info.kwargs or {}))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 933, in _cleanup
+    cls._rmtree(name, ignore_errors=ignore_errors)
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 929, in _rmtree
+    _shutil.rmtree(name, onerror=onerror)
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 787, in rmtree
+    return _rmtree_unsafe(path, onerror)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+    _rmtree_unsafe(fullname, onerror)
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 634, in _rmtree_unsafe
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 893, in onerror
+    _os.unlink(path)
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-rxk_3elt\\control\\access.db'
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x1f0285cc740; dead>
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 632, in _rmtree_unsafe
+    os.unlink(fullname)
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-wuilmskk\\control\\access.db'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\weakref.py", line 590, in __call__
+    return info.func(*info.args, **(info.kwargs or {}))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 933, in _cleanup
+    cls._rmtree(name, ignore_errors=ignore_errors)
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 929, in _rmtree
+    _shutil.rmtree(name, onerror=onerror)
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 787, in rmtree
+    return _rmtree_unsafe(path, onerror)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+    _rmtree_unsafe(fullname, onerror)
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 634, in _rmtree_unsafe
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 893, in onerror
+    _os.unlink(path)
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-wuilmskk\\control\\access.db'
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+:183: AttributeError
+============================== warnings summary ===============================
+tests/test_project_authority.py::ProjectAuthorityTest::test_codex_profile_and_selected_or_default_model_are_preserved
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x1f02858bd40; dead>
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 632, in _rmtree_unsafe
+      os.unlink(fullname)
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-6c7l3iuv\\control\\access.db'
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\weakref.py", line 590, in __call__
+      return info.func(*info.args, **(info.kwargs or {}))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 933, in _cleanup
+      cls._rmtree(name, ignore_errors=ignore_errors)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 929, in _rmtree
+      _shutil.rmtree(name, onerror=onerror)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 787, in rmtree
+      return _rmtree_unsafe(path, onerror)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+      _rmtree_unsafe(fullname, onerror)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 634, in _rmtree_unsafe
+      onerror(os.unlink, fullname, sys.exc_info())
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 893, in onerror
+      _os.unlink(path)
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-6c7l3iuv\\control\\access.db'
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+
+tests/test_project_authority.py::ProjectAuthorityTest::test_codex_profile_and_selected_or_default_model_are_preserved
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x1f027db6e80; dead>
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 632, in _rmtree_unsafe
+      os.unlink(fullname)
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-xfb2vvn1\\control\\access.db'
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\weakref.py", line 590, in __call__
+      return info.func(*info.args, **(info.kwargs or {}))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 933, in _cleanup
+      cls._rmtree(name, ignore_errors=ignore_errors)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 929, in _rmtree
+      _shutil.rmtree(name, onerror=onerror)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 787, in rmtree
+      return _rmtree_unsafe(path, onerror)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+      _rmtree_unsafe(fullname, onerror)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 634, in _rmtree_unsafe
+      onerror(os.unlink, fullname, sys.exc_info())
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 893, in onerror
+      _os.unlink(path)
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-xfb2vvn1\\control\\access.db'
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+
+tests/test_project_authority.py::ProjectAuthorityTest::test_runner_uses_personal_grant_and_preserves_unpublished_marker
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x1f02852c260; dead>
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 632, in _rmtree_unsafe
+      os.unlink(fullname)
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-uvvjyl_9\\control\\access.db'
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\weakref.py", line 590, in __call__
+      return info.func(*info.args, **(info.kwargs or {}))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 933, in _cleanup
+      cls._rmtree(name, ignore_errors=ignore_errors)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 929, in _rmtree
+      _shutil.rmtree(name, onerror=onerror)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 787, in rmtree
+      return _rmtree_unsafe(path, onerror)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+      _rmtree_unsafe(fullname, onerror)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 634, in _rmtree_unsafe
+      onerror(os.unlink, fullname, sys.exc_info())
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 893, in onerror
+      _os.unlink(path)
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-uvvjyl_9\\control\\access.db'
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+
+tests/test_project_authority.py::ProjectAuthorityTest::test_runner_uses_personal_grant_and_preserves_unpublished_marker
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x1f028094880; dead>
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 632, in _rmtree_unsafe
+      os.unlink(fullname)
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-p_hn7j4o\\control\\access.db'
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\weakref.py", line 590, in __call__
+      return info.func(*info.args, **(info.kwargs or {}))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 933, in _cleanup
+      cls._rmtree(name, ignore_errors=ignore_errors)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 929, in _rmtree
+      _shutil.rmtree(name, onerror=onerror)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 787, in rmtree
+      return _rmtree_unsafe(path, onerror)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+      _rmtree_unsafe(fullname, onerror)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 634, in _rmtree_unsafe
+      onerror(os.unlink, fullname, sys.exc_info())
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 893, in onerror
+      _os.unlink(path)
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-p_hn7j4o\\control\\access.db'
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+
+tests/test_project_authority.py::ProjectAuthorityTest::test_runner_uses_personal_grant_and_preserves_unpublished_marker
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\unraisableexception.py:63: PytestUnraisableExceptionWarning: Exception ignored in: <finalize object at 0x1f0286a7b20; dead>
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 632, in _rmtree_unsafe
+      os.unlink(fullname)
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-p5sd2qdq\\control\\access.db'
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\weakref.py", line 590, in __call__
+      return info.func(*info.args, **(info.kwargs or {}))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 933, in _cleanup
+      cls._rmtree(name, ignore_errors=ignore_errors)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 929, in _rmtree
+      _shutil.rmtree(name, onerror=onerror)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 787, in rmtree
+      return _rmtree_unsafe(path, onerror)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 629, in _rmtree_unsafe
+      _rmtree_unsafe(fullname, onerror)
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py", line 634, in _rmtree_unsafe
+      onerror(os.unlink, fullname, sys.exc_info())
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py", line 893, in onerror
+      _os.unlink(path)
+  PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmh-gateway-p5sd2qdq\\control\\access.db'
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_project_authority.xml -
+================== 8 failed, 5 warnings in 60.64s (0:01:00) ===================

@@ -1,0 +1,35 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 12 items
+
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_actual_cancel_reaps_original_and_never_reissues SKIPPED [  8%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_actual_timeout_retains_unknown_and_never_reissues SKIPPED [ 16%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_complete_messages_with_missing_usage_needs_no_bound_and_can_bind SKIPPED [ 25%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_explicit_broker_entry_does_not_relax_old_token_entry SKIPPED [ 33%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_finite_call_plan_remains_cumulative_even_for_missing_usage SKIPPED [ 41%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_null_cap_is_explicit_and_old_contract_is_unchanged SKIPPED [ 50%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_original_time_generation_and_preintent_cancel_do_not_refresh_plan SKIPPED [ 58%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_reported_usage_above_old_100m_does_not_become_a_new_cap SKIPPED [ 66%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_request_byte_limit_refuses_before_reserve_without_truncation SKIPPED [ 75%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_responses_partial_usage_preserved_unknown_not_a_dispatch_blocker SKIPPED [ 83%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_same_request_concurrency_returns_one_actual_transport SKIPPED [ 91%]
+tests/test_rsi_finite_execution.py::FiniteExecutionTests::test_unknown_transport_cannot_repeat_or_continue SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_finite_execution.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rsi_finite_execution.py:155: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:170: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:60: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:132: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:99: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:50: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:120: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:75: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:107: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:85: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:142: private registry and real supervision require POSIX
+SKIPPED [1] tests\test_rsi_finite_execution.py:113: private registry and real supervision require POSIX
+============================= 12 skipped in 0.23s =============================

@@ -1,0 +1,3693 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 16 items
+
+tests/test_reform_durability.py::ReformDurabilityTest::test_active_archive_refused_and_old_identity_never_reused FAILED [  6%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_claim_without_completion_is_unknown_and_is_never_replayed FAILED [ 12%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_concurrent_duplicate_outcomes_release_one_wave FAILED [ 18%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_create_request_id_is_bound_to_project_and_original_inputs FAILED [ 25%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_first_acceptance_sample_uses_recorded_first_verdict_not_closed_status FAILED [ 31%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_full_contract_is_not_truncated_and_explicit_empty_scope_is_empty FAILED [ 37%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_imported_issued_plan_is_not_projected_as_draft_or_currently_verified FAILED [ 43%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_legacy_import_preserves_original_file_history_and_identity FAILED [ 50%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_pause_completed_wave_resume_advances_without_another_event FAILED [ 56%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_pending_dispatch_survives_disconnect_and_resumes_same_tickets PASSED [ 62%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_preview_and_saved_plan_share_the_complete_lead_and_scope PASSED [ 68%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_preview_revision_conflict_keeps_the_full_original_contract FAILED [ 75%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_restart_exposes_submitted_thread_without_run_as_unresolved FAILED [ 81%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_restart_reconciles_known_run_without_replaying_unknown_claim FAILED [ 87%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_save_failure_after_ticket_insert_rolls_back_all_business_work PASSED [ 93%]
+tests/test_reform_durability.py::ReformDurabilityTest::test_wrong_ticket_cannot_advance_a_plan FAILED [100%]
+
+================================== FAILURES ===================================
+_ ReformDurabilityTest.test_active_archive_refused_and_old_identity_never_reused _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp90eowdrh'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7D21C60>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp90eowdrh\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A7AFCE10>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_active_archive_refused_and_old_identity_never_reused>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_active_archive_refused_and_old_identity_never_reused>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_active_archive_refused_and_old_identity_never_reused>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp90eowdrh'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp90eowdrh'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp90eowdrh'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp90eowdrh'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7D21C60>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp90eowdrh'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7D21C60>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp90eowdrh\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A79D0AC0>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp90eowdrh\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ReformDurabilityTest.test_claim_without_completion_is_unknown_and_is_never_replayed _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp840wbt8g'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7DD5E40>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp840wbt8g\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A7EFBD90>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_claim_without_completion_is_unknown_and_is_never_replayed>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_claim_without_completion_is_unknown_and_is_never_replayed>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_claim_without_completion_is_unknown_and_is_never_replayed>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp840wbt8g'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp840wbt8g'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp840wbt8g'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp840wbt8g'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7DD5E40>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp840wbt8g'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7DD5E40>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp840wbt8g\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A7EFAD40>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp840wbt8g\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+__ ReformDurabilityTest.test_concurrent_duplicate_outcomes_release_one_wave ___
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp0n6t32ty'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7B06F20>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp0n6t32ty\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A79EE250>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_concurrent_duplicate_outcomes_release_one_wave>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_concurrent_duplicate_outcomes_release_one_wave>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_concurrent_duplicate_outcomes_release_one_wave>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp0n6t32ty'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp0n6t32ty'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp0n6t32ty'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp0n6t32ty'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7B06F20>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp0n6t32ty'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7B06F20>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp0n6t32ty\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A7AFC080>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp0n6t32ty\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ReformDurabilityTest.test_create_request_id_is_bound_to_project_and_original_inputs _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpila0lqpz'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0EE80>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpila0lqpz\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A814D810>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_create_request_id_is_bound_to_project_and_original_inputs>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_create_request_id_is_bound_to_project_and_original_inputs>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_create_request_id_is_bound_to_project_and_original_inputs>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpila0lqpz'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpila0lqpz'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpila0lqpz'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpila0lqpz'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0EE80>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpila0lqpz'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0EE80>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpila0lqpz\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A814F940>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpila0lqpz\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ReformDurabilityTest.test_first_acceptance_sample_uses_recorded_first_verdict_not_closed_status _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpdizu5bdf'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0EDE0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpdizu5bdf\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A823B1D0>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_first_acceptance_sample_uses_recorded_first_verdict_not_closed_status>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_first_acceptance_sample_uses_recorded_first_verdict_not_closed_status>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_first_acceptance_sample_uses_recorded_first_verdict_not_closed_status>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpdizu5bdf'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpdizu5bdf'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpdizu5bdf'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpdizu5bdf'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0EDE0>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpdizu5bdf'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0EDE0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpdizu5bdf\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A48A3C00>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpdizu5bdf\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ReformDurabilityTest.test_full_contract_is_not_truncated_and_explicit_empty_scope_is_empty _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpw32okww9'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0F060>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpw32okww9\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A79EF390>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_full_contract_is_not_truncated_and_explicit_empty_scope_is_empty>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_full_contract_is_not_truncated_and_explicit_empty_scope_is_empty>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_full_contract_is_not_truncated_and_explicit_empty_scope_is_empty>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpw32okww9'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpw32okww9'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpw32okww9'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpw32okww9'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0F060>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpw32okww9'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0F060>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpw32okww9\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A804FF00>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpw32okww9\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ReformDurabilityTest.test_imported_issued_plan_is_not_projected_as_draft_or_currently_verified _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6ew5dvk1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0EF20>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6ew5dvk1\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A803D650>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_imported_issued_plan_is_not_projected_as_draft_or_currently_verified>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_imported_issued_plan_is_not_projected_as_draft_or_currently_verified>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_imported_issued_plan_is_not_projected_as_draft_or_currently_verified>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6ew5dvk1'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6ew5dvk1'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6ew5dvk1'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6ew5dvk1'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0EF20>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6ew5dvk1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0EF20>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6ew5dvk1\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A803C040>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6ew5dvk1\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ReformDurabilityTest.test_legacy_import_preserves_original_file_history_and_identity _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpmro3p3pt'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7DD5E40>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpmro3p3pt\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A9312D90>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_legacy_import_preserves_original_file_history_and_identity>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_legacy_import_preserves_original_file_history_and_identity>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_legacy_import_preserves_original_file_history_and_identity>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpmro3p3pt'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpmro3p3pt'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpmro3p3pt'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpmro3p3pt'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7DD5E40>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpmro3p3pt'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7DD5E40>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpmro3p3pt\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A9313D00>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpmro3p3pt\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ReformDurabilityTest.test_pause_completed_wave_resume_advances_without_another_event _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmph19vbqc3'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F389A0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmph19vbqc3\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A7D2D2D0>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_pause_completed_wave_resume_advances_without_another_event>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_pause_completed_wave_resume_advances_without_another_event>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_pause_completed_wave_resume_advances_without_another_event>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmph19vbqc3'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmph19vbqc3'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmph19vbqc3'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmph19vbqc3'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F389A0>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmph19vbqc3'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F389A0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmph19vbqc3\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A7E03EC0>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmph19vbqc3\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ReformDurabilityTest.test_preview_revision_conflict_keeps_the_full_original_contract _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4r7ye_n_'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F38F40>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4r7ye_n_\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A7D7B110>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_preview_revision_conflict_keeps_the_full_original_contract>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_preview_revision_conflict_keeps_the_full_original_contract>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_preview_revision_conflict_keeps_the_full_original_contract>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4r7ye_n_'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4r7ye_n_'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4r7ye_n_'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4r7ye_n_'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F38F40>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4r7ye_n_'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F38F40>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4r7ye_n_\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A812ED00>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp4r7ye_n_\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ReformDurabilityTest.test_restart_exposes_submitted_thread_without_run_as_unresolved _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpa7rxng5m'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F39260>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpa7rxng5m\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A7D78550>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_restart_exposes_submitted_thread_without_run_as_unresolved>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_restart_exposes_submitted_thread_without_run_as_unresolved>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_restart_exposes_submitted_thread_without_run_as_unresolved>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpa7rxng5m'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpa7rxng5m'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpa7rxng5m'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpa7rxng5m'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F39260>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpa7rxng5m'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F39260>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpa7rxng5m\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A4ACDB40>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpa7rxng5m\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ReformDurabilityTest.test_restart_reconciles_known_run_without_replaying_unknown_claim _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6h534tpw'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0F920>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6h534tpw\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A7D7AB90>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_restart_reconciles_known_run_without_replaying_unknown_claim>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_restart_reconciles_known_run_without_replaying_unknown_claim>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_restart_reconciles_known_run_without_replaying_unknown_claim>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6h534tpw'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6h534tpw'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6h534tpw'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6h534tpw'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0F920>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6h534tpw'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7E0F920>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6h534tpw\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A823BFC0>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6h534tpw\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+________ ReformDurabilityTest.test_wrong_ticket_cannot_advance_a_plan _________
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpaau3yi4u'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F38FE0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpaau3yi4u\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x00000206A804E0D0>
+test_case = <test_reform_durability.ReformDurabilityTest testMethod=test_wrong_ticket_cannot_advance_a_plan>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_wrong_ticket_cannot_advance_a_plan>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_reform_durability.ReformDurabilityTest testMethod=test_wrong_ticket_cannot_advance_a_plan>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpaau3yi4u'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpaau3yi4u'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpaau3yi4u'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpaau3yi4u'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F38FE0>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpaau3yi4u'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x00000206A7F38FE0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpaau3yi4u\\platform.db'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x00000206A804E380>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmpaau3yi4u\\platform.db'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_reform_durability.xml -
+======================== 13 failed, 3 passed in 36.14s ========================

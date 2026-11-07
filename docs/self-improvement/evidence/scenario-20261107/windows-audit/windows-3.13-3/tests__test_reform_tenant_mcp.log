@@ -1,0 +1,15 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 2 items
+
+tests/test_reform_tenant_mcp.py::ReformTenantMCPTest::test_legacy_accepted_lead_does_not_crash_read_only_worker_startup SKIPPED [ 50%]
+tests/test_reform_tenant_mcp.py::ReformTenantMCPTest::test_tenant_reconnect_worker_restart_project_scope_and_revocation SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_reform_tenant_mcp.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_reform_tenant_mcp.py:54: POSIX private worker and .[mcp] required
+SKIPPED [1] tests\test_reform_tenant_mcp.py:87: POSIX private worker and .[mcp] required
+============================= 2 skipped in 0.22s ==============================

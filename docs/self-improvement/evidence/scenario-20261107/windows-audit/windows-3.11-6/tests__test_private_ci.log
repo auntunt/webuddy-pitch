@@ -1,0 +1,22 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 9 items
+
+tests/test_private_ci.py::PrivateCITest::test_connection_change_invalidates_configuration_revision PASSED [ 11%]
+tests/test_private_ci.py::PrivateCITest::test_gitea_commit_and_all_required_statuses PASSED [ 22%]
+tests/test_private_ci.py::PrivateCITest::test_gitlab_exact_sha_encoded_repository_and_jobs PASSED [ 33%]
+tests/test_private_ci.py::PrivateCITest::test_invalid_destination_rejected_at_configuration 
+tests/test_private_ci.py::PrivateCITest::test_invalid_destination_rejected_at_configuration PASSED [ 44%]
+tests/test_private_ci.py::PrivateCITest::test_latest_pipeline_must_finish_and_rerun_can_replace_failure PASSED [ 55%]
+tests/test_private_ci.py::PrivateCITest::test_no_pipeline_missing_job_failure_skip_cancel_pending 
+tests/test_private_ci.py::PrivateCITest::test_no_pipeline_missing_job_failure_skip_cancel_pending PASSED [ 66%]
+tests/test_private_ci.py::PrivateCITest::test_pagination_does_not_accept_partial_results PASSED [ 77%]
+tests/test_private_ci.py::PrivateCITest::test_redirect_credentials_revocation_and_project_grant PASSED [ 88%]
+tests/test_private_ci.py::PrivateCITest::test_wrong_pipeline_and_job_binding_never_pass 
+tests/test_private_ci.py::PrivateCITest::test_wrong_pipeline_and_job_binding_never_pass PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_private_ci.xml -
+==================== 9 passed, 13 subtests passed in 0.20s ====================

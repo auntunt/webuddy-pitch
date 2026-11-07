@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 6 items
+
+tests/test_review_feedback.py::ReviewFeedbackTests::test_changed_review_rejects_old_save_and_removes_current_totals PASSED [ 16%]
+tests/test_review_feedback.py::ReviewFeedbackTests::test_invalidation_unassessed_and_empty_are_not_success PASSED [ 33%]
+tests/test_review_feedback.py::ReviewFeedbackTests::test_latest_per_reviewer_without_double_counting_history PASSED [ 50%]
+tests/test_review_feedback.py::ReviewFeedbackTests::test_project_summary_does_not_include_another_project PASSED [ 66%]
+tests/test_review_feedback.py::ReviewFeedbackTests::test_records_are_idempotent_and_do_not_accept_work PASSED [ 83%]
+tests/test_review_feedback.py::ReviewFeedbackTests::test_rejects_agent_missing_finding_or_unexplained_verdict PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_review_feedback.xml -
+============================== 6 passed in 4.72s ==============================

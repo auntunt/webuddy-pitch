@@ -1,0 +1,549 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 11 items
+
+tests/test_testbox.py::TestBoxTest::test_a_change_that_never_reached_the_machine_is_not_a_failed_build PASSED [  9%]
+tests/test_testbox.py::TestBoxTest::test_a_failed_hand_over_is_not_remembered_as_the_code_failing PASSED [ 18%]
+tests/test_testbox.py::TestBoxTest::test_a_front_end_is_checked_the_way_the_project_builds_it 
+tests/test_testbox.py::TestBoxTest::test_a_front_end_is_checked_the_way_the_project_builds_it PASSED [ 27%]
+tests/test_testbox.py::TestBoxTest::test_a_maven_project_the_plan_creates_is_compiled_but_not_before_it_exists PASSED [ 36%]
+tests/test_testbox.py::TestBoxTest::test_a_page_template_compiles_its_module_and_counts_as_page_only PASSED [ 45%]
+tests/test_testbox.py::TestBoxTest::test_an_ssh_config_alias_keeps_its_own_port FAILED [ 54%]
+tests/test_testbox.py::TestBoxTest::test_an_unreachable_machine_says_so PASSED [ 63%]
+tests/test_testbox.py::TestBoxTest::test_code_reaches_the_machine_even_when_its_stdin_never_ends FAILED [ 72%]
+tests/test_testbox.py::TestBoxTest::test_commands_compile_the_maven_modules_the_change_touches PASSED [ 81%]
+tests/test_testbox.py::TestBoxTest::test_the_change_is_sent_applied_on_its_commit_and_built_there FAILED [ 90%]
+tests/test_testbox.py::TestBoxTest::test_the_untouched_code_is_built_even_when_the_change_is_already_there FAILED [100%]
+
+================================== FAILURES ===================================
+___________ TestBoxTest.test_an_ssh_config_alias_keeps_its_own_port ___________
+
+self = <unittest.case._Outcome object at 0x00000231ADB469F0>
+test_case = <test_testbox.TestBoxTest testMethod=test_an_ssh_config_alias_keeps_its_own_port>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_an_ssh_config_alias_keeps_its_own_port>
+result = <TestCaseFunction test_an_ssh_config_alias_keeps_its_own_port>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_an_ssh_config_alias_keeps_its_own_port>
+method = <bound method TestBoxTest.test_an_ssh_config_alias_keeps_its_own_port of <test_testbox.TestBoxTest testMethod=test_an_ssh_config_alias_keeps_its_own_port>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_an_ssh_config_alias_keeps_its_own_port>
+
+    def test_an_ssh_config_alias_keeps_its_own_port(self):
+        seen = self.tmp / "args"
+        (self.tmp / "bin" / "ssh").write_text('#!/bin/sh\necho "$@" > %s\n' % seen)
+        testbox.TestBox({"host": "laptop", "port": 0, "dir": "", "timeout": 30}, self.tmp)._ssh("echo hi")
+>       self.assertNotIn("-p", seen.read_text().split())
+                               ^^^^^^^^^^^^^^^^
+
+tests\test_testbox.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmp6qtiepg9/args')
+encoding = 'utf-8', errors = None, newline = None
+
+    def read_text(self, encoding=None, errors=None, newline=None):
+        """
+        Open the file in text mode, read it, and close the file.
+        """
+        # Call io.text_encoding() here to ensure any warning is raised at an
+        # appropriate stack level.
+        encoding = io.text_encoding(encoding)
+>       return PathBase.read_text(self, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\pathlib\_local.py:546: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmp6qtiepg9/args')
+encoding = 'utf-8', errors = None, newline = None
+
+    def read_text(self, encoding=None, errors=None, newline=None):
+        """
+        Open the file in text mode, read it, and close the file.
+        """
+>       with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\pathlib\_abc.py:632: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmp6qtiepg9/args')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp6qtiepg9\\args'
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\pathlib\_local.py:537: FileNotFoundError
+__ TestBoxTest.test_code_reaches_the_machine_even_when_its_stdin_never_ends ___
+
+self = <unittest.case._Outcome object at 0x00000231ADD99480>
+test_case = <test_testbox.TestBoxTest testMethod=test_code_reaches_the_machine_even_when_its_stdin_never_ends>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_code_reaches_the_machine_even_when_its_stdin_never_ends>
+result = <TestCaseFunction test_code_reaches_the_machine_even_when_its_stdin_never_ends>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_code_reaches_the_machine_even_when_its_stdin_never_ends>
+method = <bound method TestBoxTest.test_code_reaches_the_machine_even_when_its_stdin_never_ends of <test_testbox.TestBoxTest testMethod=test_code_reaches_the_machine_even_when_its_stdin_never_ends>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_code_reaches_the_machine_even_when_its_stdin_never_ends>
+
+    def test_code_reaches_the_machine_even_when_its_stdin_never_ends(self):
+        # Windows OpenSSH may not pass on the end of stdin: a remote side that reads stdin to the end then hangs
+        (self.tmp / "bin" / "ssh").write_text(FAKE_SSH.replace('exec sh -c "$1"', 'exec sh -c "$1" < /dev/zero'))
+        box = testbox.TestBox({"host": "u@h", "port": 22, "dir": str(self.tmp / "remote"), "timeout": 20}, self.tmp)
+        patch = b"diff --git a/app/core/A.java b/app/core/A.java\n--- a/app/core/A.java\n+++ b/app/core/A.java\n@@ -1 +1 @@\n-class A {}\n+class A { int x; }\n"
+>       res = box.run("JB", self.repo, self.base, patch, [("build", "grep -q 'int x' app/core/A.java")], 20)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_testbox.py:181: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.testbox.TestBox object at 0x00000231ADB61950>, key = 'JB'
+repo = WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmp0e1qk7kh/repo')
+base = '65082ee2499cc30b399623d8e33b1aa06d312abd'
+patch = b'diff --git a/app/core/A.java b/app/core/A.java\n--- a/app/core/A.java\n+++ b/app/core/A.java\n@@ -1 +1 @@\n-class A {}\n+class A { int x; }\n'
+seq = [('build', "grep -q 'int x' app/core/A.java")], timeout = 20
+say = <function TestBox.run.<locals>.<lambda> at 0x00000231ADDB3920>
+
+    def run(self, key: str, repo: Path, base: str, patch: bytes, seq: list, timeout: int, say=None) -> list:
+        """Apply `patch` on `base` in the machine's working copy and run [(kind, command)] there, in order, stopping
+        at the first failure. Returns the results in the shape the fix loop uses."""
+        say = say or (lambda s: None)
+        with self._lock(key):
+>           why = self.prepare(key, repo, base)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\testbox.py:224: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.testbox.TestBox object at 0x00000231ADB61950>, key = 'JB'
+repo = WindowsPath('C:/Users/RUNNER~1/AppData/Local/Temp/tmp0e1qk7kh/repo')
+base = '65082ee2499cc30b399623d8e33b1aa06d312abd'
+
+    def prepare(self, key: str, repo: Path, base: str) -> str:
+        """Make sure the machine's clone of project `key` has commit `base` and its working copy sits on it. "" or why not."""
+>       win = self._detect() == "windows"
+              ^^^^^^^^^^^^^^
+
+tmh\platform\testbox.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.testbox.TestBox object at 0x00000231ADB61950>
+
+    def _detect(self) -> str:
+        if not self.os:
+            code, out = self._ssh("echo %OS%")
+            if code == 255 or code == -1 or code == 127:
+>               raise RuntimeError(out)
+E               RuntimeError: 连不上测试机（u@h:22）：ssh: Could not resolve hostname h: No such host is known.
+
+tmh\platform\testbox.py:109: RuntimeError
+__ TestBoxTest.test_the_change_is_sent_applied_on_its_commit_and_built_there __
+
+self = <unittest.case._Outcome object at 0x00000231ADD86150>
+test_case = <test_testbox.TestBoxTest testMethod=test_the_change_is_sent_applied_on_its_commit_and_built_there>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_the_change_is_sent_applied_on_its_commit_and_built_there>
+result = <TestCaseFunction test_the_change_is_sent_applied_on_its_commit_and_built_there>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_the_change_is_sent_applied_on_its_commit_and_built_there>
+method = <bound method TestBoxTest.test_the_change_is_sent_applied_on_its_commit_and_built_there of <test_testbox.TestBoxTest testMethod=test_the_change_is_sent_applied_on_its_commit_and_built_there>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_the_change_is_sent_applied_on_its_commit_and_built_there>
+
+    def test_the_change_is_sent_applied_on_its_commit_and_built_there(self):
+        box = testbox.TestBox({"host": "u@h", "port": 22, "dir": str(self.tmp / "remote"), "timeout": 120}, self.tmp)
+>       self.assertEqual(box.check()["os"], "posix")
+                         ^^^^^^^^^^^^^^^^^
+E       KeyError: 'os'
+
+tests\test_testbox.py:164: KeyError
+_ TestBoxTest.test_the_untouched_code_is_built_even_when_the_change_is_already_there _
+
+self = <unittest.case._Outcome object at 0x00000231ADDD5400>
+test_case = <test_testbox.TestBoxTest testMethod=test_the_untouched_code_is_built_even_when_the_change_is_already_there>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_the_untouched_code_is_built_even_when_the_change_is_already_there>
+result = <TestCaseFunction test_the_untouched_code_is_built_even_when_the_change_is_already_there>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_the_untouched_code_is_built_even_when_the_change_is_already_there>
+method = <bound method TestBoxTest.test_the_untouched_code_is_built_even_when_the_change_is_already_there of <test_testbox.TestBoxTest testMethod=test_the_untouched_code_is_built_even_when_the_change_is_already_there>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_testbox.TestBoxTest testMethod=test_the_untouched_code_is_built_even_when_the_change_is_already_there>
+
+    def test_the_untouched_code_is_built_even_when_the_change_is_already_there(self):
+        # building a finished change again: its worktree already holds the change, which must not count as the
+        # commit's own result (else a broken change reads as "the original code fails" for every later ticket)
+        from tmh.platform.fixloop import FixLoop
+        (self.repo / "app" / "core" / "A.java").write_text("class A { broken }\n")
+        (self.repo / "java").mkdir()
+        (self.repo / "java" / "pom.xml").write_text("<project/>")  # a module the change creates
+        base_ok = [("build", "grep -q 'class A {}' app/core/A.java")]
+        for box in (testbox.TestBox({"host": "u@h", "port": 22, "dir": str(self.tmp / "remote"), "timeout": 60}, self.tmp), None):
+            fl = FixLoop.__new__(FixLoop)
+            runner, project, rid = self.runner_fixture("data%d" % bool(box))
+            fl.wt, fl.r, fl.p, fl.rid, fl.box, fl.base, fl.set = self.repo, runner, project, rid, box, self.base, {"check_timeout": 60}
+            fl.say = lambda s: None
+>           self.assertEqual(fl.baseline(base_ok + [("build", "cd java && mvn -B -q compile -DskipTests")]), "", "box" if box else "local")
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_testbox.py:158: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.fixloop.FixLoop object at 0x00000231ADB54AD0>
+seq = [('build', "grep -q 'class A {}' app/core/A.java")]
+
+    def baseline(self, seq: list) -> str:
+        """Run the commands on the untouched code once per commit: "" when they pass, otherwise why they can't be used."""
+        if seq and seq[0][1].startswith("project-tests:"):
+            import copy
+            import tempfile
+            clean = Path(tempfile.mkdtemp(prefix="baseline-", dir=self.r.data_dir)) / "source"
+            git(self.wt, "worktree", "add", "--detach", str(clean), self.base)
+            baseline_loop = copy.copy(self)
+            baseline_loop.wt = clean
+            try:
+                res = baseline_loop.execute(seq)
+                self.baseline_result = {"base": self.base, "commands": res,
+                    "state": "pass" if res and all(x["exit_code"] == 0 for x in res) else "fail"}
+            finally:
+                git(self.wt, "worktree", "remove", "--force", str(clean), check=False)
+                clean.parent.rmdir()
+            # A new requirement may legitimately fail on the original code.
+            # Keep that observation, and still run the candidate's checks.
+            return ""
+        seq = [x for x in seq if testbox.runs_on(self.wt, x[1], "HEAD")]  # a module the change creates has nothing to build yet
+        if not seq:
+            return ""
+        head = git(self.wt, "rev-parse", "HEAD").strip()
+        # "untouched": records from before the baseline was always built without the change (a rebuilt change's
+        # own failure was once kept as the commit's) are not reused
+        key = hashlib.sha1(json.dumps([head, seq, "untouched", testbox.settings(self.r.data_dir), self.set.get("check_timeout")]).encode()).hexdigest()[:16]
+        f = self.r.data_dir / "checks" / ("%s-%s.json" % (self.p["key"], key))
+        res = json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
+        if res and not any(x.get("kind") == "setup" for x in res):  # an old record of a failed hand-over says nothing about the code
+            self.say("原代码的构建测试结果沿用之前的记录")
+        else:
+            self.say("先在没改过的代码上跑一遍构建测试，确认这台机器能跑通")
+>           res = self.execute(seq, untouched=True)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\fixloop.py:487: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.fixloop.FixLoop object at 0x00000231ADB54AD0>
+seq = [('build', "grep -q 'class A {}' app/core/A.java")], untouched = True
+
+    def execute(self, seq: list, untouched: bool = False) -> list:
+        """Run the build commands on the change, or with `untouched` on the commit without it (the working tree may
+        already hold the change, as when a finished change is built again)."""
+        from .reform_authority import run as reform_authority
+        if getattr(self.r,'tenant_context',None) is not None:
+            reform_authority(self.r,self.p,self.t)
+        if seq and seq[0][1].startswith("project-tests:"):
+            from . import project_tests
+            try:
+                profile = project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["profile"]
+                if not profile or seq[0][1] != "project-tests:" + project_tests.digest(profile):
+                    raise ValueError("测试配置已变化，请重新验证")
+                result = project_tests.execute(self, profile)
+                if project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["revision"] != project_tests.digest(profile):
+                    raise ValueError("测试期间配置已变化，请重新验证")
+                return result + (self.execute(seq[1:]) if len(seq) > 1 else [])
+            except (ValueError, OSError) as exc:
+                return [{"kind": "test", "command": "项目测试", "exit_code": 1, "seconds": 0, "output": str(exc), "verification_state": "blocked"}]
+        if self.box:
+            git(self.wt, "add", "-A", "-N", ".")
+            patch = b"" if untouched else subprocess.run(["git", "-C", str(self.wt), "diff", "--binary", "HEAD"], capture_output=True).stdout
+>           return self.box.run(self.p["key"], Path(self.p["root"]), self.base, patch, seq,
+                                int(self.set.get("check_timeout") or 1200), self.say)
+
+tmh\platform\fixloop.py:415: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.testbox.TestBox object at 0x00000231ADD52C40>, key = 'JB'
+repo = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp00c01_im/repo')
+base = '43c8bfb4ff074814c3b99c70d8bf27492a5c05a2', patch = b''
+seq = [('build', "grep -q 'class A {}' app/core/A.java")], timeout = 60
+say = <function TestBoxTest.test_the_untouched_code_is_built_even_when_the_change_is_already_there.<locals>.<lambda> at 0x00000231ADA9D620>
+
+    def run(self, key: str, repo: Path, base: str, patch: bytes, seq: list, timeout: int, say=None) -> list:
+        """Apply `patch` on `base` in the machine's working copy and run [(kind, command)] there, in order, stopping
+        at the first failure. Returns the results in the shape the fix loop uses."""
+        say = say or (lambda s: None)
+        with self._lock(key):
+>           why = self.prepare(key, repo, base)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\testbox.py:224: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.testbox.TestBox object at 0x00000231ADD52C40>, key = 'JB'
+repo = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp00c01_im/repo')
+base = '43c8bfb4ff074814c3b99c70d8bf27492a5c05a2'
+
+    def prepare(self, key: str, repo: Path, base: str) -> str:
+        """Make sure the machine's clone of project `key` has commit `base` and its working copy sits on it. "" or why not."""
+>       win = self._detect() == "windows"
+              ^^^^^^^^^^^^^^
+
+tmh\platform\testbox.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tmh.platform.testbox.TestBox object at 0x00000231ADD52C40>
+
+    def _detect(self) -> str:
+        if not self.os:
+            code, out = self._ssh("echo %OS%")
+            if code == 255 or code == -1 or code == 127:
+>               raise RuntimeError(out)
+E               RuntimeError: 连不上测试机（u@h:22）：ssh: Could not resolve hostname h: No such host is known.
+
+tmh\platform\testbox.py:109: RuntimeError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_testbox.xml -
+=============== 4 failed, 7 passed, 3 subtests passed in 27.98s ===============

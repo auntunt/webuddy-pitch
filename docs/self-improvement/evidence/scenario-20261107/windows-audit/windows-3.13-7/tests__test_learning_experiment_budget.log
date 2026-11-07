@@ -1,0 +1,22 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 9 items
+
+tests/test_learning_experiment_budget.py::ExperimentBudgetLineageTests::test_active_manual_step_still_blocks_child_seal_at_invoke_boundary PASSED [ 11%]
+tests/test_learning_experiment_budget.py::ExperimentBudgetLineageTests::test_damaged_parent_chain_cannot_be_used_to_admit_reverse_budget 
+tests/test_learning_experiment_budget.py::ExperimentBudgetLineageTests::test_damaged_parent_chain_cannot_be_used_to_admit_reverse_budget PASSED [ 22%]
+tests/test_learning_experiment_budget.py::ExperimentBudgetLineageTests::test_legacy_queued_parent_cannot_resume_claim_or_register_a_step PASSED [ 33%]
+tests/test_learning_experiment_budget.py::ExperimentBudgetLineageTests::test_manual_registration_rechecks_reverse_lineage_inside_writer_transaction PASSED [ 44%]
+tests/test_learning_experiment_budget.py::ExperimentBudgetLineageTests::test_preexisting_parent_draft_cannot_seal_after_descendant PASSED [ 55%]
+tests/test_learning_experiment_budget.py::ExperimentBudgetLineageTests::test_reverse_lineage_blocks_new_manual_budget_before_configuration PASSED [ 66%]
+tests/test_learning_experiment_budget.py::ExperimentBudgetLineageTests::test_sealed_child_blocks_new_parent_budget_without_reclassifying_history PASSED [ 77%]
+tests/test_learning_experiment_budget.py::ExperimentBudgetLineageTests::test_siblings_and_legacy_terminal_manual_receipts_keep_original_contract PASSED [ 88%]
+tests/test_learning_experiment_budget.py::ExperimentBudgetLineageTests::test_two_independent_processes_sealing_reverse_lineage_create_one_budget SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_learning_experiment_budget.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_learning_experiment_budget.py:196: two real interpreters use inherited socket barriers
+============== 8 passed, 1 skipped, 2 subtests passed in 14.71s ===============

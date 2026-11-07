@@ -1,0 +1,16 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 6 items
+
+tests/test_command.py::CommandRuleTest::test_comment_fills_then_waits_for_confirm PASSED [ 16%]
+tests/test_command.py::CommandRuleTest::test_model_steps_are_validated PASSED [ 33%]
+tests/test_command.py::CommandRuleTest::test_navigation_and_kb_search PASSED [ 50%]
+tests/test_command.py::CommandRuleTest::test_new_ticket_and_sessions PASSED [ 66%]
+tests/test_command.py::CommandRuleTest::test_questions_stay_questions PASSED [ 83%]
+tests/test_command.py::CommandRuleTest::test_saving_fields_need_confirmation PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_command.xml -
+============================== 6 passed in 0.10s ==============================

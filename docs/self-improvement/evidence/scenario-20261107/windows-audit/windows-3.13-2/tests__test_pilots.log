@@ -1,0 +1,40 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 30 items
+
+tests/test_pilots.py::PilotsTest::test_atomic_event_failure_rolls_back_head_revision_and_payload PASSED [  3%]
+tests/test_pilots.py::PilotsTest::test_authorship_payload_agent_and_legacy_are_not_personal_authority PASSED [  6%]
+tests/test_pilots.py::PilotsTest::test_before_after_or_parallel_dates_cannot_fake_comparable_periods PASSED [ 10%]
+tests/test_pilots.py::PilotsTest::test_competing_corrections_keep_one_effect_and_original_overlap_protection PASSED [ 13%]
+tests/test_pilots.py::PilotsTest::test_correction_cannot_move_original_cost_to_other_pilot_or_revision PASSED [ 16%]
+tests/test_pilots.py::PilotsTest::test_cross_connection_cas_and_identical_request_have_one_event PASSED [ 20%]
+tests/test_pilots.py::PilotsTest::test_cross_period_work_remains_whole_and_unallocated_until_person_splits PASSED [ 23%]
+tests/test_pilots.py::PilotsTest::test_damaged_original_hash_cannot_confirm_or_replay PASSED [ 26%]
+tests/test_pilots.py::PilotsTest::test_empty_draft_is_usable_and_no_automatic_start_or_signoff PASSED [ 30%]
+tests/test_pilots.py::PilotsTest::test_end_retains_history_and_retroactive_correction_is_explicit PASSED [ 33%]
+tests/test_pilots.py::PilotsTest::test_exact_idempotency_conflict_and_reauthorization_before_replay PASSED [ 36%]
+tests/test_pilots.py::PilotsTest::test_frozen_ticket_id_does_not_rebind_reused_key PASSED [ 40%]
+tests/test_pilots.py::PilotsTest::test_full_sources_and_revisions_are_immutable_and_confirmation_is_per_person PASSED [ 43%]
+tests/test_pilots.py::PilotsTest::test_labor_is_own_append_only_and_overlap_including_other_pilots_rejected PASSED [ 46%]
+tests/test_pilots.py::PilotsTest::test_legacy_missing_complexity_read_preserves_protocol_hash_and_rows PASSED [ 50%]
+tests/test_pilots.py::PilotsTest::test_missing_complexity_draft_remains_readable_and_incomplete PASSED [ 53%]
+tests/test_pilots.py::PilotsTest::test_moved_task_keeps_frozen_denominator_without_other_project_details PASSED [ 56%]
+tests/test_pilots.py::PilotsTest::test_new_draft_does_not_strand_original_active_trial PASSED [ 60%]
+tests/test_pilots.py::PilotsTest::test_only_manager_changes_lifecycle_and_sources_are_scoped PASSED [ 63%]
+tests/test_pilots.py::PilotsTest::test_partial_fill_never_claims_completeness_and_export_keeps_original_cutoff PASSED [ 66%]
+tests/test_pilots.py::PilotsTest::test_protected_experiment_run_cannot_leak_through_new_report PASSED [ 70%]
+tests/test_pilots.py::PilotsTest::test_reacceptance_does_not_erase_first_acceptance_rework PASSED [ 73%]
+tests/test_pilots.py::PilotsTest::test_report_preserves_failed_exited_unfinished_and_immature_denominator PASSED [ 76%]
+tests/test_pilots.py::PilotsTest::test_requirement_change_prevents_confirm_and_freeze_and_keeps_old_source PASSED [ 80%]
+tests/test_pilots.py::PilotsTest::test_revoke_regrant_epoch_and_unrelated_grant_confirmation_semantics PASSED [ 83%]
+tests/test_pilots.py::PilotsTest::test_schema_atomic_partial_refusal_and_read_is_no_business_mutation PASSED [ 86%]
+tests/test_pilots.py::PilotsTest::test_start_rechecks_authority_and_source_and_freeze_is_prospective PASSED [ 90%]
+tests/test_pilots.py::PilotsTest::test_validation_rejects_invalid_types_duplicate_tasks_and_no_silent_trim PASSED [ 93%]
+tests/test_pilots.py::PilotsTest::test_waiting_preserves_open_and_received_block_is_not_wait PASSED [ 96%]
+tests/test_pilots.py::PilotsTest::test_zero_unknown_future_timezone_and_outside_period_are_not_conflated PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_pilots.xml -
+============================= 30 passed in 33.34s =============================

@@ -1,0 +1,14 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 4 items
+
+tests/test_ui_agent_settings.py::AgentSettingsUiTest::test_edit_and_save_actual_payload PASSED [ 25%]
+tests/test_ui_agent_settings.py::AgentSettingsUiTest::test_failure_preserves_form_and_member_does_not_request PASSED [ 50%]
+tests/test_ui_agent_settings.py::AgentSettingsUiTest::test_load_error_and_readonly PASSED [ 75%]
+tests/test_ui_agent_settings.py::AgentSettingsUiTest::test_saved_result_survives_refresh_failure_and_create_becomes_update PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_ui_agent_settings.xml -
+============================== 4 passed in 1.39s ==============================

@@ -1,0 +1,22 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 8 items
+
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_corrupt_package_revokes_gateway_and_existing_cookie PASSED [ 12%]
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_delivery_without_full_commit_cannot_receive_or_reuse_preview_grants 
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_delivery_without_full_commit_cannot_receive_or_reuse_preview_grants PASSED [ 25%]
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_new_evidence_package_revokes_old_link_and_cookie_even_with_same_code_commit PASSED [ 37%]
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_ordinary_legacy_link_and_preview_remain_usable_until_revoked_or_expired 
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_ordinary_legacy_link_and_preview_remain_usable_until_revoked_or_expired PASSED [ 50%]
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_retracted_review_revokes_live_signer_cookies_and_blocks_get_and_post PASSED [ 62%]
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_unbound_or_wrong_commit_signer_grant_cannot_be_bridged_to_another_version 
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_unbound_or_wrong_commit_signer_grant_cannot_be_bridged_to_another_version PASSED [ 75%]
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_valid_signer_gets_exact_commit_cookie_and_can_read_and_save_on_both_origins 
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_valid_signer_gets_exact_commit_cookie_and_can_read_and_save_on_both_origins PASSED [ 87%]
+tests/test_signoff_preview_binding.py::SignoffPreviewBindingTest::test_wrong_or_legacy_preview_never_receives_a_signoff_grant PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_signoff_preview_binding.xml -
+==================== 8 passed, 9 subtests passed in 16.48s ====================

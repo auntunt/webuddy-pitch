@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="4.572" timestamp="2026-11-07T12:31:55.618463+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_platform.PlatformApiTest" name="test_missing_agent_fails_cleanly" time="4.175"><failure message="AssertionError: '启动' not found in 'Traceback (most recent call last):\r\n  File &quot;D:\\a\\webuddy-pitch\\webuddy-pitch\\tmh\\platform\\windows_process.py&quot;, line 190, in &lt;module&gt;\r\n    child=subprocess.Popen(request[\'command\'],stdin=subprocess.PIPE if data is not None else subprocess.DEVNULL)\r\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File &quot;C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\subprocess.py&quot;, line 10...&#10;[truncated; full report in element text]">self = &lt;unittest.case._Outcome object at 0x000001D339648850&gt;
+test_case = &lt;test_platform.PlatformApiTest testMethod=test_missing_agent_fails_cleanly&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_platform.PlatformApiTest testMethod=test_missing_agent_fails_cleanly&gt;
+result = &lt;TestCaseFunction test_missing_agent_fails_cleanly&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_platform.PlatformApiTest testMethod=test_missing_agent_fails_cleanly&gt;
+method = &lt;bound method PlatformApiTest.test_missing_agent_fails_cleanly of &lt;test_platform.PlatformApiTest testMethod=test_missing_agent_fails_cleanly&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_platform.PlatformApiTest testMethod=test_missing_agent_fails_cleanly&gt;
+
+    def test_missing_agent_fails_cleanly(self):
+        self.project()
+        code, t = self.call("POST", "/api/tickets", {"project": "OA", "title": "随便看看"})
+        (self.data / "agents.json").write_text(json.dumps({"ghost": {"cmd": ["/nonexistent/agent-bin", "{prompt_file}"]},
+                                                           "fake": json.loads((self.data / "agents.json").read_text())["fake"]}), encoding="utf-8")
+        code, run = self.call("POST", "/api/tickets/%s/runs" % t["key"], {"agent": "ghost", "mode": "analyze"})
+        r = self.wait_run(run["id"])
+        self.assertEqual(r["status"], "failed")
+&gt;       self.assertIn("启动", r["result"])
+
+tests\test_platform.py:1902: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_platform.PlatformApiTest testMethod=test_missing_agent_fails_cleanly&gt;
+member = '启动'
+container = 'Traceback (most recent call last):\r\n  File "D:\\a\\webuddy-pitch\\webuddy-pitch\\tmh\\platform\\windows_process.py"...  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nFileNotFoundError: [WinError 2] The system cannot find the file specified'
+msg = None
+
+    def assertIn(self, member, container, msg=None):
+        """Just like self.assertTrue(a in b), but with a nicer default message."""
+        if member not in container:
+            standardMsg = '%s not found in %s' % (safe_repr(member),
+                                                  safe_repr(container))
+&gt;           self.fail(self._formatMessage(msg, standardMsg))
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:1140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_platform.PlatformApiTest testMethod=test_missing_agent_fails_cleanly&gt;
+msg = '\'启动\' not found in \'Traceback (most recent call last):\\r\\n  File "D:\\\\a\\\\webuddy-pitch\\\\webuddy-pitch\\\\tm...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\r\\nFileNotFoundError: [WinError 2] The system cannot find the file specified\''
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+&gt;       raise self.failureException(msg)
+E       AssertionError: '启动' not found in 'Traceback (most recent call last):\r\n  File "D:\\a\\webuddy-pitch\\webuddy-pitch\\tmh\\platform\\windows_process.py", line 190, in &lt;module&gt;\r\n    child=subprocess.Popen(request[\'command\'],stdin=subprocess.PIPE if data is not None else subprocess.DEVNULL)\r\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File "C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\subprocess.py", line 1026, in __init__\r\n    self._execute_child(args, executable, preexec_fn, close_fds,\r\n  File "C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\subprocess.py", line 1538, in _execute_child\r\n    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,\r\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nFileNotFoundError: [WinError 2] The system cannot find the file specified'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError</failure></testcase></testsuite></testsuites>

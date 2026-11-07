@@ -1,0 +1,20 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 10 items
+
+tests/test_workspace_preflight.py::WorkspacePreflightTest::test_changed_confirmation_during_check PASSED [ 10%]
+tests/test_workspace_preflight.py::WorkspacePreflightTest::test_clean_bound_repository PASSED [ 20%]
+tests/test_workspace_preflight.py::WorkspacePreflightTest::test_credentials_not_normalized_into_identity PASSED [ 30%]
+tests/test_workspace_preflight.py::WorkspacePreflightTest::test_dirty_and_untracked_preserved PASSED [ 40%]
+tests/test_workspace_preflight.py::WorkspacePreflightTest::test_foreign_repository_rejected PASSED [ 50%]
+tests/test_workspace_preflight.py::WorkspacePreflightTest::test_head_mismatch_and_knowledge_mismatch PASSED [ 60%]
+tests/test_workspace_preflight.py::WorkspacePreflightTest::test_missing_repo_and_knowledge_are_explicit PASSED [ 70%]
+tests/test_workspace_preflight.py::WorkspacePreflightTest::test_relative_directory_rejected PASSED [ 80%]
+tests/test_workspace_preflight.py::WorkspacePreflightTest::test_unselected_does_not_probe_git_or_library PASSED [ 90%]
+tests/test_workspace_preflight.py::WorkspacePreflightTest::test_worktree_directory_is_actual_root PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_workspace_preflight.xml -
+============================= 10 passed in 28.14s =============================

@@ -1,0 +1,26 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 15 items
+
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_corrupt_delivery_package_cannot_be_accepted_from_internal_button PASSED [  6%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_delivery_without_current_package_cannot_be_accepted_from_internal_button PASSED [ 13%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_invalid_delivery_never_falls_back_to_ordinary_runs PASSED [ 20%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_old_link_cannot_sign_new_package_even_after_current_chain_is_reviewed PASSED [ 26%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_ordinary_ticket_keeps_latest_run_behavior_and_legacy_compatibility PASSED [ 33%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_quality_revision_invalidates_live_link_and_hides_sign_form PASSED [ 40%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_removed_delivery_binding_cannot_reuse_an_existing_signature PASSED [ 46%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_sign_page_only_offers_the_exact_bound_preview 
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_sign_page_only_offers_the_exact_bound_preview PASSED [ 53%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_unrelated_later_plan_fix_and_adoption_do_not_replace_reviewed_sources PASSED [ 60%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryBindingTest::test_upstream_or_verification_invalidation_removes_current_signoff_without_erasing_history PASSED [ 66%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryIntegrationTest::test_changed_quality_receipt_invalidates_the_existing_signature PASSED [ 73%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryIntegrationTest::test_failed_verification_prevents_old_link_signing_and_source_fallback PASSED [ 80%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryIntegrationTest::test_parse_gate_reads_the_resolved_object_even_with_a_hex_named_branch PASSED [ 86%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryIntegrationTest::test_real_delivery_sources_ignore_a_later_ordinary_plan PASSED [ 93%]
+tests/test_signoff_delivery_binding.py::SignoffDeliveryIntegrationTest::test_upstream_revision_invalidates_current_reviewed_chain PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_signoff_delivery_binding.xml -
+============== 15 passed, 2 subtests passed in 150.28s (0:02:30) ==============

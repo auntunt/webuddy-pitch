@@ -1,0 +1,40 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 30 items
+
+tests/test_ui_coordination.py::CoordinationUiTest::test_action_switch_preserves_distinct_editor_drafts PASSED [  3%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_all_projects_requires_explicit_project_before_read PASSED [  6%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_bad_utf8_and_late_import_do_not_overwrite_input PASSED [ 10%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_complete_page_wires_surfaces_and_parses PASSED [ 13%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_complete_utf8_file_and_xss_preserved_without_loss PASSED [ 16%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_conflict_keeps_draft_and_never_automatically_rebinds PASSED [ 20%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_context_or_route_change_discards_late_reads PASSED [ 23%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_coverage_binds_exact_version_and_source_and_requires_note PASSED [ 26%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_draft_namespace_is_tenant_user_project_and_object PASSED [ 30%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_existing_manual_material_crlf_survives_title_only_edit PASSED [ 33%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_explicit_meeting_project_link_never_falls_back_to_other_scope PASSED [ 36%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_historical_sources_are_full_and_escaped PASSED [ 40%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_imported_crlf_survives_browser_textarea_normalization PASSED [ 43%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_late_success_refreshes_remounted_live_view PASSED [ 46%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_legacy_execution_controls_disabled_while_manual_content_remains_writable PASSED [ 50%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_malformed_receipt_remains_unknown_and_double_submit_is_single PASSED [ 53%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_manual_creation_unknown_result_has_one_fixed_request PASSED [ 56%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_manual_material_preserves_full_body_and_exact_basis PASSED [ 60%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_pending_replay_available_when_remount_initial_read_fails PASSED [ 63%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_publish_uses_existing_action_and_actual_ticket_assignee PASSED [ 66%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_readonly_has_no_write_or_file_import PASSED [ 70%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_refresh_preserves_input_and_keyboard_focus PASSED [ 73%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_revocation_clears_new_caches_and_outstanding_views PASSED [ 76%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_stale_material_cannot_be_verified_and_template_is_explicit PASSED [ 80%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_success_cleanup_storage_failure_never_reopens_creation PASSED [ 83%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_success_refresh_failure_does_not_duplicate_write PASSED [ 86%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_unavailable_storage_blocks_write_with_visible_preserved_input PASSED [ 90%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_unknown_mutation_retries_identical_body_after_remount PASSED [ 93%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_unreadable_saved_receipt_fails_closed_without_new_creation PASSED [ 96%]
+tests/test_ui_coordination.py::CoordinationUiTest::test_upgrade_restores_full_old_material_draft_without_silent_binding PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_ui_coordination.xml -
+============================= 30 passed in 8.97s ==============================

@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="3.484" timestamp="2026-11-07T12:38:05.042247+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_platform.PlatformApiTest" name="test_kb_questions_answers_and_triage" time="3.368" /></testsuite></testsuites>

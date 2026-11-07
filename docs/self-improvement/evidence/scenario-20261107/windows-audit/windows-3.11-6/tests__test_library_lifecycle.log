@@ -1,0 +1,29 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 9 items
+
+tests/test_library_lifecycle.py::LibraryLifecycleTest::test_cancel_accepted_while_queued_is_not_erased_by_first_launch SKIPPED [ 11%]
+tests/test_library_lifecycle.py::LibraryLifecycleTest::test_first_lease_io_error_preserves_error_and_closes_descriptor_without_launch SKIPPED [ 22%]
+tests/test_library_lifecycle.py::LibraryLifecycleTest::test_incomplete_supervisor_cleanup_never_authorizes_resume SKIPPED [ 33%]
+tests/test_library_lifecycle.py::LibraryLifecycleTest::test_missing_final_supervisor_receipt_never_authorizes_resume SKIPPED [ 44%]
+tests/test_library_lifecycle.py::LibraryLifecycleTest::test_published_revision_cannot_be_resumed_or_have_its_evidence_rewritten SKIPPED [ 55%]
+tests/test_library_lifecycle.py::LibraryLifecycleTest::test_resume_rechecks_ready_after_waiting_between_row_read_and_lease SKIPPED [ 66%]
+tests/test_library_lifecycle.py::LibraryLifecycleTest::test_tampered_index_is_unavailable_and_cannot_return_forged_evidence SKIPPED [ 77%]
+tests/test_library_lifecycle.py::LibraryLifecycleTest::test_worker_detects_analyzer_change_after_real_analysis_before_publication SKIPPED [ 88%]
+tests/test_library_lifecycle.py::LibraryLifecycleTest::test_worker_refuses_a_recorded_analyzer_that_is_not_actually_running SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_library_lifecycle.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_library_lifecycle.py:124: real library lifecycle requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_lifecycle.py:145: real library lifecycle requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_lifecycle.py:240: real library lifecycle requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_lifecycle.py:232: real library lifecycle requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_lifecycle.py:254: real library lifecycle requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_lifecycle.py:163: real library lifecycle requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_lifecycle.py:264: real library lifecycle requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_lifecycle.py:215: real library lifecycle requires POSIX supervision and local Git
+SKIPPED [1] tests\test_library_lifecycle.py:206: real library lifecycle requires POSIX supervision and local Git
+============================= 9 skipped in 0.07s ==============================

@@ -1,0 +1,69 @@
+REQUEST /t/default/api/agent/status 400402.159530041
+RESPONSE 200 2684 None 400402.554174458
+REQUEST /t/default/api/agent/status 400403.718996541
+RESPONSE 200 2684 None 400405.736035958
+INITIALIZED 37 tools
+REQUEST /t/default/api/agent/status 400407.281962666
+RESPONSE 200 2684 None 400409.061015166
+READ_OK webuddy_status 
+REQUEST /t/default/api/agent/projects_list 400413.338612625
+RESPONSE 200 2256 None 400413.731615666
+READ_OK webuddy_projects_list project_count=8
+REQUEST /t/default/api/agent/projects_list 400415.48686825
+RESPONSE 200 2256 None 400415.878786166
+REQUEST /t/default/api/agent/reforms_list 400417.035805083
+RESPONSE 200 70 None 400417.428918375
+REQUEST /t/default/api/agent/reforms_list 400418.589276708
+RESPONSE 200 1938 None 400419.50488325
+REQUEST /t/default/api/agent/reform_resume_preview 400422.057405083
+RESPONSE 200 2212 None 400422.483788208
+REQUEST /t/default/api/agent/reform_get 400424.025829708
+RESPONSE 200 7550177 gzip 400427.934800416
+  + Exception Group Traceback (most recent call last):
+  |   File "/private/tmp/scenario-installed-trace.py", line 43, in <module>
+  |     asyncio.run(main())
+  |     ~~~~~~~~~~~^^^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py", line 205, in run
+  |     return runner.run(main)
+  |            ~~~~~~~~~~^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py", line 128, in run
+  |     return self._loop.run_until_complete(task)
+  |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+  |     return future.result()
+  |            ~~~~~~~~~~~~~^^
+  |   File "/private/tmp/scenario-installed-trace.py", line 9, in main
+  |     async with stdio_client(params) as (read,write):
+  |                ~~~~~~~~~~~~^^^^^^^^
+  |   File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/client/stdio/__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "/private/tmp/scenario-installed-trace.py", line 10, in main
+    |     async with ClientSession(read,write,read_timeout_seconds=timedelta(seconds=40)) as session:
+    |                ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/mcp/shared/session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/private/tmp/webuddy-developer-mcp-venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 871, in __aexit__
+    |     raise BaseExceptionGroup(
+    |         "unhandled errors in a TaskGroup", self._exceptions
+    |     ) from None
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/private/tmp/scenario-installed-trace.py", line 36, in main
+      |     if result.isError: raise RuntimeError('authorized scenario report read failed: '+str(result.content))
+      |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      | RuntimeError: authorized scenario report read failed: [TextContent(type='text', text='{"ok": false, "code": "connection_error", "error": "连接或响应失败（BrokenPipeError）。请检查工作台地址和服务状态。", "status": 0, "uncertain": false}', annotations=None, meta=None)]
+      +------------------------------------

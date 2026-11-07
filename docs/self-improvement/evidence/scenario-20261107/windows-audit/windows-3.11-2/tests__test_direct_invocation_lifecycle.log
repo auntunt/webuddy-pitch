@@ -1,0 +1,39 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 16 items
+
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_cancel_after_zero_exit_remains_cancelled_when_direct_finalize_runs SKIPPED [  6%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_cancel_before_deadline_stays_cancelled_when_deadline_also_expires SKIPPED [ 12%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_configured_model_process_budget_stops_before_second_launch PASSED [ 18%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_evaluation_cancelled_then_invoke_exception_still_seals_lifecycle SKIPPED [ 25%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_evaluation_exception_records_error_and_finishes_its_created_run SKIPPED [ 31%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_evaluation_success_finishes_lifecycle_and_removes_only_its_temporary_worktree SKIPPED [ 37%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_evaluation_timeout_or_cancel_never_reports_successful_execution SKIPPED [ 43%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_answer_just_before_deadline_is_still_accepted PASSED [ 50%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_cancel_after_slow_supervisor_startup_keeps_successful_process_evidence PASSED [ 56%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_cancelled_then_invoke_exception_still_seals_lifecycle SKIPPED [ 62%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_invoke_exception_still_finishes_run_and_keeps_original_process_evidence SKIPPED [ 68%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_success_seals_lifecycle_and_applies_actual_reader_output PASSED [ 75%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_intake_timeout_or_cancel_cannot_apply_a_late_successful_answer SKIPPED [ 81%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers 
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_real_stream_callback_failure_is_cleaned_up_and_finalized_by_both_callers PASSED [ 87%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_success_is_finished_and_later_wall_time_does_not_reclassify_it SKIPPED [ 93%]
+tests/test_direct_invocation_lifecycle.py::DirectInvocationLifecycleTest::test_timeout_after_zero_exit_overrides_success_before_direct_finalize SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_direct_invocation_lifecycle.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:183: supervised execution requires POSIX
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:191: supervised execution requires POSIX
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:295: supervised execution requires POSIX
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:285: supervised execution requires POSIX
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:268: supervised execution requires POSIX
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:277: supervised execution requires POSIX
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:260: supervised execution requires POSIX
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:249: supervised execution requires POSIX
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:222: supervised execution requires POSIX
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:162: supervised execution requires POSIX
+SKIPPED [1] tests\test_direct_invocation_lifecycle.py:173: supervised execution requires POSIX
+============== 5 passed, 11 skipped, 2 subtests passed in 10.28s ==============

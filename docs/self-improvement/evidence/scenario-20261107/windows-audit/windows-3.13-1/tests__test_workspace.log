@@ -1,0 +1,15 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 5 items
+
+tests/test_workspace.py::WorkspaceTests::test_attention_unifies_owner_and_reviewer_without_duplicate_counts PASSED [ 20%]
+tests/test_workspace.py::WorkspaceTests::test_invalid_scope_and_pagination_fail_actionably PASSED [ 40%]
+tests/test_workspace.py::WorkspaceTests::test_large_queue_is_paginated_without_losing_tasks_or_inflating_search_count PASSED [ 60%]
+tests/test_workspace.py::WorkspaceTests::test_personal_queues_use_verified_identity_and_preserve_scope PASSED [ 80%]
+tests/test_workspace.py::WorkspaceTests::test_review_queue_does_not_count_work_assigned_to_someone_else PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_workspace.xml -
+============================= 5 passed in 17.72s ==============================

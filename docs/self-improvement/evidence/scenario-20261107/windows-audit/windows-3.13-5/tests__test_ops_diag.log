@@ -1,0 +1,26 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 14 items
+
+tests/test_ops_diag.py::RunSteerTest::test_a_word_said_after_the_last_look_is_flagged_unread <- tests\test_run_steer.py SKIPPED [  7%]
+tests/test_ops_diag.py::RunSteerTest::test_finished_run_refuses <- tests\test_run_steer.py PASSED [ 14%]
+tests/test_ops_diag.py::RunSteerTest::test_hint_only_for_working_modes <- tests\test_run_steer.py PASSED [ 21%]
+tests/test_ops_diag.py::RunSteerTest::test_say_reaches_notes_log_and_ticket <- tests\test_run_steer.py PASSED [ 28%]
+tests/test_ops_diag.py::RunSteerTest::test_timing_counts_only_what_came_after_the_last_look <- tests\test_run_steer.py PASSED [ 35%]
+tests/test_ops_diag.py::OpsDiagTest::test_a_word_said_after_the_last_look_is_flagged_unread <- tests\test_run_steer.py SKIPPED [ 42%]
+tests/test_ops_diag.py::OpsDiagTest::test_an_ops_ticket_with_open_criteria_does_not_promise_to_start_on_the_answer PASSED [ 50%]
+tests/test_ops_diag.py::OpsDiagTest::test_auto_line_leaves_ops_tickets_alone PASSED [ 57%]
+tests/test_ops_diag.py::OpsDiagTest::test_lists_the_tables_that_can_be_queried PASSED [ 64%]
+tests/test_ops_diag.py::OpsDiagTest::test_no_source_configured PASSED    [ 71%]
+tests/test_ops_diag.py::OpsDiagTest::test_only_reads PASSED              [ 78%]
+tests/test_ops_diag.py::OpsDiagTest::test_query_conclude_and_distill PASSED [ 85%]
+tests/test_ops_diag.py::OpsDiagTest::test_timing_counts_only_what_came_after_the_last_look <- tests\test_run_steer.py PASSED [ 92%]
+tests/test_ops_diag.py::OpsDiagUiTest::test_a_rerender_keeps_the_typed_query_and_its_result PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_ops_diag.xml -
+=========================== short test summary info ===========================
+SKIPPED [2] tests\test_run_steer.py:70: supervised execution requires POSIX
+======================== 12 passed, 2 skipped in 5.88s ========================

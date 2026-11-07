@@ -1,0 +1,602 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 7 items
+
+tests/test_project_mcp.py::PrototypeTest::test_binary_output_preserves_original_bytes FAILED [ 14%]
+tests/test_project_mcp.py::PrototypeTest::test_client_disconnect_cancels_and_cleans FAILED [ 28%]
+tests/test_project_mcp.py::PrototypeTest::test_cross_project_and_untrusted_env_are_denied PASSED [ 42%]
+tests/test_project_mcp.py::PrototypeTest::test_live_revocation_cancels_and_hides_output FAILED [ 57%]
+tests/test_project_mcp.py::PrototypeTest::test_mcp_cancel_cleans_job FAILED [ 71%]
+tests/test_project_mcp.py::PrototypeTest::test_stdio_and_scoped_execution FAILED [ 85%]
+tests/test_project_mcp.py::PrototypeTest::test_timeout_fails_and_cleanup_confirmed FAILED [100%]
+
+================================== FAILURES ===================================
+__________ PrototypeTest.test_binary_output_preserves_original_bytes __________
+
+self = <unittest.case._Outcome object at 0x0000021C00D33620>
+test_case = <test_project_mcp.PrototypeTest testMethod=test_binary_output_preserves_original_bytes>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_binary_output_preserves_original_bytes>
+result = <TestCaseFunction test_binary_output_preserves_original_bytes>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_binary_output_preserves_original_bytes>
+method = <bound method PrototypeTest.test_binary_output_preserves_original_bytes of <test_project_mcp.PrototypeTest testMethod=test_binary_output_preserves_original_bytes>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_binary_output_preserves_original_bytes>
+
+    def test_binary_output_preserves_original_bytes(self):
+        import base64
+        self.engine.mode='binary';data=json.loads(self.call()['result']['content'][0]['text'])
+>       self.assertEqual(data['output_encoding'],'base64');self.assertEqual(base64.b64decode(data['output']),b'\xff\x00')
+                         ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'output_encoding'
+
+tests\test_project_mcp.py:58: KeyError
+___________ PrototypeTest.test_client_disconnect_cancels_and_cleans ___________
+
+self = <unittest.case._Outcome object at 0x0000021C00E6CF50>
+test_case = <test_project_mcp.PrototypeTest testMethod=test_client_disconnect_cancels_and_cleans>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_client_disconnect_cancels_and_cleans>
+result = <TestCaseFunction test_client_disconnect_cancels_and_cleans>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_client_disconnect_cancels_and_cleans>
+method = <bound method PrototypeTest.test_client_disconnect_cancels_and_cleans of <test_project_mcp.PrototypeTest testMethod=test_client_disconnect_cancels_and_cleans>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_client_disconnect_cancels_and_cleans>
+
+    def test_client_disconnect_cancels_and_cleans(self):
+        self.engine.mode='wait';self.client.send('tools/call',12,{'name':'project_exec','arguments':{'project':'JB','argv':['true'],'timeout_seconds':2}})
+>       self.assertTrue(self.engine.started.wait(2));self.client.writer.close()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_mcp.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_client_disconnect_cancels_and_cleans>
+expr = False, msg = 'False is not true'
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+_________ PrototypeTest.test_live_revocation_cancels_and_hides_output _________
+
+self = <unittest.case._Outcome object at 0x0000021C00F94770>
+test_case = <test_project_mcp.PrototypeTest testMethod=test_live_revocation_cancels_and_hides_output>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_live_revocation_cancels_and_hides_output>
+result = <TestCaseFunction test_live_revocation_cancels_and_hides_output>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_live_revocation_cancels_and_hides_output>
+method = <bound method PrototypeTest.test_live_revocation_cancels_and_hides_output of <test_project_mcp.PrototypeTest testMethod=test_live_revocation_cancels_and_hides_output>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_live_revocation_cancels_and_hides_output>
+
+    def test_live_revocation_cancels_and_hides_output(self):
+        self.engine.mode='wait';self.client.send('tools/call',10,{'name':'project_exec','arguments':{'project':'JB','argv':['true'],'timeout_seconds':2}})
+>       self.assertTrue(self.engine.started.wait(2));self.allowed=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_mcp.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_live_revocation_cancels_and_hides_output>
+expr = False, msg = 'False is not true'
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+__________________ PrototypeTest.test_mcp_cancel_cleans_job ___________________
+
+self = <unittest.case._Outcome object at 0x0000021C00F95220>
+test_case = <test_project_mcp.PrototypeTest testMethod=test_mcp_cancel_cleans_job>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_mcp_cancel_cleans_job>
+result = <TestCaseFunction test_mcp_cancel_cleans_job>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_mcp_cancel_cleans_job>
+method = <bound method PrototypeTest.test_mcp_cancel_cleans_job of <test_project_mcp.PrototypeTest testMethod=test_mcp_cancel_cleans_job>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_mcp_cancel_cleans_job>
+
+    def test_mcp_cancel_cleans_job(self):
+        self.engine.mode='wait';self.client.send('tools/call',11,{'name':'project_exec','arguments':{'project':'JB','argv':['true'],'timeout_seconds':2}})
+>       self.assertTrue(self.engine.started.wait(2));self.client.send('notifications/cancelled',params={'requestId':11})
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_mcp.py:79: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_mcp_cancel_cleans_job>
+expr = False, msg = 'False is not true'
+
+    def assertTrue(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: False is not true
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:744: AssertionError
+________________ PrototypeTest.test_stdio_and_scoped_execution ________________
+
+self = <unittest.case._Outcome object at 0x0000021C00ECE330>
+test_case = <test_project_mcp.PrototypeTest testMethod=test_stdio_and_scoped_execution>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_stdio_and_scoped_execution>
+result = <TestCaseFunction test_stdio_and_scoped_execution>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_stdio_and_scoped_execution>
+method = <bound method PrototypeTest.test_stdio_and_scoped_execution of <test_project_mcp.PrototypeTest testMethod=test_stdio_and_scoped_execution>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_stdio_and_scoped_execution>
+
+    def test_stdio_and_scoped_execution(self):
+        self.client.send('tools/list',2);self.assertEqual(self.client.recv()['result']['tools'][0]['name'],'project_exec')
+>       result=self.call();self.assertFalse(result['result']['isError'])
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_mcp.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_stdio_and_scoped_execution>
+expr = True, msg = 'True is not false'
+
+    def assertFalse(self, expr, msg=None):
+        """Check that the expression is false."""
+        if expr:
+            msg = self._formatMessage(msg, "%s is not false" % safe_repr(expr))
+>           raise self.failureException(msg)
+E           AssertionError: True is not false
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:738: AssertionError
+___________ PrototypeTest.test_timeout_fails_and_cleanup_confirmed ____________
+
+self = <unittest.case._Outcome object at 0x0000021C00E7E470>
+test_case = <test_project_mcp.PrototypeTest testMethod=test_timeout_fails_and_cleanup_confirmed>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_timeout_fails_and_cleanup_confirmed>
+result = <TestCaseFunction test_timeout_fails_and_cleanup_confirmed>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_timeout_fails_and_cleanup_confirmed>
+method = <bound method PrototypeTest.test_timeout_fails_and_cleanup_confirmed of <test_project_mcp.PrototypeTest testMethod=test_timeout_fails_and_cleanup_confirmed>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_timeout_fails_and_cleanup_confirmed>
+
+    def test_timeout_fails_and_cleanup_confirmed(self):
+        self.engine.mode='wait';result=self.call(timeout=.12)
+        data=json.loads(result['result']['content'][0]['text'])
+>       self.assertEqual(data['status'],'timeout');self.assertTrue(data['cleanup']);self.assertTrue(self.engine.cleaned.is_set())
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_mcp.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_timeout_fails_and_cleanup_confirmed>
+first = 'error', second = 'timeout', msg = None
+
+    def assertEqual(self, first, second, msg=None):
+        """Fail if the two objects are unequal as determined by the '=='
+           operator.
+        """
+        assertion_func = self._getAssertEqualityFunc(first, second)
+>       assertion_func(first, second, msg=msg)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:907: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_timeout_fails_and_cleanup_confirmed>
+first = 'error', second = 'timeout', msg = None
+
+    def assertMultiLineEqual(self, first, second, msg=None):
+        """Assert that two multi-line strings are equal."""
+        self.assertIsInstance(first, str, "First argument is not a string")
+        self.assertIsInstance(second, str, "Second argument is not a string")
+    
+        if first != second:
+            # Don't use difflib if the strings are too long
+            if (len(first) > self._diffThreshold or
+                len(second) > self._diffThreshold):
+                self._baseAssertEqual(first, second, msg)
+    
+            # Append \n to both strings if either is missing the \n.
+            # This allows the final ndiff to show the \n difference. The
+            # exception here is if the string is empty, in which case no
+            # \n should be added
+            first_presplit = first
+            second_presplit = second
+            if first and second:
+                if first[-1] != '\n' or second[-1] != '\n':
+                    first_presplit += '\n'
+                    second_presplit += '\n'
+            elif second and second[-1] != '\n':
+                second_presplit += '\n'
+            elif first and first[-1] != '\n':
+                first_presplit += '\n'
+    
+            firstlines = first_presplit.splitlines(keepends=True)
+            secondlines = second_presplit.splitlines(keepends=True)
+    
+            # Generate the message and diff, then raise the exception
+            standardMsg = '%s != %s' % _common_shorten_repr(first, second)
+            diff = '\n' + ''.join(difflib.ndiff(firstlines, secondlines))
+            standardMsg = self._truncateMessage(standardMsg, diff)
+>           self.fail(self._formatMessage(msg, standardMsg))
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:1273: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_project_mcp.PrototypeTest testMethod=test_timeout_fails_and_cleanup_confirmed>
+msg = "'error' != 'timeout'\n- error\n+ timeout\n"
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+>       raise self.failureException(msg)
+E       AssertionError: 'error' != 'timeout'
+E       - error
+E       + timeout
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:732: AssertionError
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_project_mcp.xml -
+========================= 6 failed, 1 passed in 6.34s =========================

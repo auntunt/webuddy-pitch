@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="11" time="13.946" timestamp="2026-11-07T12:33:35.341052+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_project_review_permissions.ProjectReviewPermissionsTest" name="test_forged_agent_identity_and_revoked_project_are_rejected" time="1.960" /><testcase classname="tests.test_project_review_permissions.ProjectReviewPermissionsTest" name="test_managed_agent_author_is_the_initiating_member_not_a_display_alias" time="3.898" /><testcase classname="tests.test_project_review_permissions.ProjectReviewPermissionsTest" name="test_member_review_requires_explicit_independent_assignment" time="3.048" /><testcase classname="tests.test_project_review_permissions.ProjectReviewPermissionsTest" name="test_personal_review_does_not_grant_model_build_or_merge_execution" time="1.204" /><testcase classname="tests.test_project_review_permissions.ProjectReviewPermissionsTest" name="test_reassignment_cannot_make_original_implementation_author_reviewer" time="1.285" /><testcase classname="tests.test_project_review_permissions.ProjectReviewHttpTest" name="test_real_sessions_review_without_execution_and_revocation_is_immediate" time="2.270"><failure message="AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?">self = &lt;unittest.case._Outcome object at 0x000001C9EBD377A0&gt;
+test_case = &lt;test_project_review_permissions.ProjectReviewHttpTest testMethod=test_real_sessions_review_without_execution_and_revocation_is_immediate&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_review_permissions.ProjectReviewHttpTest testMethod=test_real_sessions_review_without_execution_and_revocation_is_immediate&gt;
+result = &lt;TestCaseFunction test_real_sessions_review_without_execution_and_revocation_is_immediate&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            start_time = time.perf_counter()
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:651: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_review_permissions.ProjectReviewHttpTest testMethod=test_real_sessions_review_without_execution_and_revocation_is_immediate&gt;
+method = &lt;bound method ProjectReviewHttpTest.test_real_sessions_review_without_execution_and_revocation_is_immediate of &lt;test_p..._permissions.ProjectReviewHttpTest testMethod=test_real_sessions_review_without_execution_and_revocation_is_immediate&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.13.17\x64\Lib\unittest\case.py:606: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_review_permissions.ProjectReviewHttpTest testMethod=test_real_sessions_review_without_execution_and_revocation_is_immediate&gt;
+
+    def test_real_sessions_review_without_execution_and_revocation_is_immediate(self):
+        gateway = gateway_fixture.TenantGatewayTest('runTest')
+        self.addCleanup(gateway.doCleanups)
+&gt;       gateway.setUp()
+
+tests\test_project_review_permissions.py:89: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_tenant_gateway.TenantGatewayTest testMethod=runTest&gt;
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory(prefix="tmh-gateway-")
+        self.addCleanup(tmp.cleanup)
+        self.data = Path(tmp.name)
+        password = login.hash_password("synthetic-password")
+        login._save_users(self.data, {name: {"pw": password, "updated": "2026-10-23"} for name in ("owner", "alice", "bob", "outsider")})
+        self.reg = tenancy.Registry(self.data, bootstrap_owner="owner")
+        self.addCleanup(self.reg.close)
+        self.serial = 0
+        self.a = self.change("tenant_create", name="组织甲")["tenant_id"]
+        self.b = self.change("tenant_create", name="组织乙", admin="bob")["tenant_id"]
+        self.change("member_set", tenant=self.a, user="alice", role="member")
+        for user in ("alice", "bob", "outsider"):
+            self.change("member_remove", user=user)
+        for tenant, title in ((self.a, "甲的真实记录"), (self.b, "乙的真实记录")):
+            root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (tenant,))["path"])
+            root.mkdir(parents=True)
+            (root / "repositories" / "same").mkdir(parents=True)
+            (root / "repositories" / "private").mkdir()
+            store = Store(root / "platform.db")
+            try:
+                project = store.add_project("SAME", title, str(root / "repositories" / "same"))
+                store.create_ticket(project["id"], title, author="owner")
+                store.add_project("PRIVATE", "不可见项目", str(root / "repositories" / "private"))
+            finally:
+                store.db.close()
+        self.change("project_grant", tenant=self.a, user="alice", project_id=1, role="contributor")
+&gt;       self.workers = Workers(self.reg)
+                       ^^^^^^^^^^^^^^^^^
+
+tests\test_tenant_gateway.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tmh.platform.tenant_runtime.Workers object at 0x000001C9EC305550&gt;
+registry = &lt;tmh.platform.tenancy.Registry object at 0x000001C9EBD7F230&gt;
+
+    def __init__(self, registry):
+        self.registry = registry
+        self.lock = threading.RLock()
+        self.live = {}
+        self.instance_lock = (registry.path.parent / 'gateway.lock').open('a+b')
+        try:
+            if filelock.try_lock(self.instance_lock, blocking=False) is False:
+                raise ValueError('此数据目录已经有一个租户入口在运行')
+        except BaseException:
+            self.instance_lock.close()
+            raise
+        try:
+            label = hashlib.sha256(str(registry.path).encode()).hexdigest()[:20]
+&gt;           self.socket_dir = Path('/tmp') / ('tmh-tenants-' + str(os.getuid()) + '-' + label)
+                                                                   ^^^^^^^^^
+E           AttributeError: module 'os' has no attribute 'getuid'. Did you mean: 'getpid'?
+
+tmh\platform\tenant_runtime.py:183: AttributeError</failure></testcase></testsuite></testsuites>

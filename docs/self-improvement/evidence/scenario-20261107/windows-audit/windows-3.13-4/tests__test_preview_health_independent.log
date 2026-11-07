@@ -1,0 +1,21 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 9 items
+
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_completed_error_responses_release_keepalive_connections PASSED [ 11%]
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_http_401_404_and_503_cannot_be_reported_up 
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_http_401_404_and_503_cannot_be_reported_up PASSED [ 22%]
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_incomplete_200_is_unhealthy_bounded_and_closes_connection PASSED [ 33%]
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_old_preview_binding_is_rejected_before_any_application_request PASSED [ 44%]
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_only_the_exact_prefixed_endpoint_is_checked PASSED [ 55%]
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_redirects_do_not_inherit_success_or_contact_the_target 
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_redirects_do_not_inherit_success_or_contact_the_target PASSED [ 66%]
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_status_ignores_environment_proxy PASSED [ 77%]
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_unhealthy_then_recovery_is_read_only_for_business_and_saved_preview PASSED [ 88%]
+tests/test_preview_health_independent.py::PreviewHealthIndependentTest::test_watcher_does_not_promote_from_an_unrelated_successful_root PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_preview_health_independent.xml -
+==================== 9 passed, 8 subtests passed in 10.30s ====================

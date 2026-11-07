@@ -1,0 +1,30 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 14 items
+
+tests/test_rsi_preregistration.py::PreregistrationTests::test_cli_exit_codes_and_original_byte_hash_without_echo PASSED [  7%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_cli_missing_file_returns_invalid_receipt PASSED [ 14%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_complete_declarations_still_never_verify_or_authorize PASSED [ 21%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_custodian_cannot_be_optimizer PASSED [ 28%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_exact_duplicate_inputs_cannot_be_independent_cases PASSED [ 35%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_forbids_inline_answers_keys_unknown_fields_and_bad_shapes 
+tests/test_rsi_preregistration.py::PreregistrationTests::test_forbids_inline_answers_keys_unknown_fields_and_bad_shapes PASSED [ 42%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_no_bool_float_negative_or_zero_budget 
+tests/test_rsi_preregistration.py::PreregistrationTests::test_no_bool_float_negative_or_zero_budget PASSED [ 50%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_preserves_three_holdout_minimum_and_both_families PASSED [ 57%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_real_roles_and_time_periods_must_be_declared 
+tests/test_rsi_preregistration.py::PreregistrationTests::test_real_roles_and_time_periods_must_be_declared PASSED [ 64%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_strict_json_duplicate_keys_and_nan 
+tests/test_rsi_preregistration.py::PreregistrationTests::test_strict_json_duplicate_keys_and_nan PASSED [ 71%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_template_blocks_without_fabricating_people_or_authority PASSED [ 78%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_training_holdout_and_followup_disjoint 
+tests/test_rsi_preregistration.py::PreregistrationTests::test_training_holdout_and_followup_disjoint PASSED [ 85%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_unknown_identity_price_cap_or_review_stays_blocked 
+tests/test_rsi_preregistration.py::PreregistrationTests::test_unknown_identity_price_cap_or_review_stays_blocked PASSED [ 92%]
+tests/test_rsi_preregistration.py::PreregistrationTests::test_whitespace_cannot_disguise_training_overlap PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_preregistration.xml -
+=================== 14 passed, 88 subtests passed in 1.01s ====================

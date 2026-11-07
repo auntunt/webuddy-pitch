@@ -1,0 +1,43 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 16 items
+
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_all_pairs_passing_without_improvement_is_not_qualified SKIPPED [  6%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_an_ordinary_personal_passed_report_cannot_be_relabelled_as_this_native_report SKIPPED [ 12%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_attempt_arriving_at_final_commit_cannot_be_omitted_from_a_passed_report SKIPPED [ 18%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_changed_original_evaluator_output_is_not_a_report SKIPPED [ 25%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_changed_original_provider_response_is_not_semantic_evidence SKIPPED [ 31%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_complete_universe_and_nonweakened_explicit_thresholds SKIPPED [ 37%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_evaluator_does_not_write_bytecode_in_a_fresh_import_tree SKIPPED [ 43%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_fixed_worker_rejects_no_improvement_and_any_regression SKIPPED [ 50%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_late_registration_cannot_backfill_after_proposal SKIPPED [ 56%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_missing_arm_or_unknown_attempt_refuses_without_evaluator_launch SKIPPED [ 62%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_no_registration_or_changed_thresholds_cannot_qualify SKIPPED [ 68%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_original_two_arm_assertions_execute_in_supervised_worker_and_replay_without_http SKIPPED [ 75%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_personal_exact_report_reference_is_readonly_and_never_grants_live_d_from_an_ordinary_job SKIPPED [ 81%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_personal_reference_to_another_report_is_rejected_without_rewriting_the_decision SKIPPED [ 87%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_report_event_failure_keeps_original_intent_and_never_reruns_worker SKIPPED [ 93%]
+tests/test_rsi_native_bc_report.py::NativeReportTests::test_unknown_evaluator_does_not_rerun_or_create_a_passed_report SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_rsi_native_bc_report.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rsi_native_bc_report.py:79: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:148: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:153: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:119: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:113: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:68: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:174: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:84: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:55: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:102: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:62: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:43: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:133: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:91: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:163: native private registry and supervised worker require POSIX
+SKIPPED [1] tests\test_rsi_native_bc_report.py:125: native private registry and supervised worker require POSIX
+============================= 16 skipped in 0.19s =============================

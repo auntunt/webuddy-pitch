@@ -1,0 +1,21 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 11 items
+
+tests/test_web_assistant.py::WebAssistantTest::test_cross_project_tool_call_is_denied PASSED [  9%]
+tests/test_web_assistant.py::WebAssistantTest::test_human_approval_and_shell_are_never_tools PASSED [ 18%]
+tests/test_web_assistant.py::WebAssistantTest::test_limit_rejects_unsolicited_tool_and_stop_preserves_completed_answer PASSED [ 27%]
+tests/test_web_assistant.py::WebAssistantTest::test_network_failure_keeps_turn_for_resume PASSED [ 36%]
+tests/test_web_assistant.py::WebAssistantTest::test_pending_call_replays_same_request_after_lost_receipt PASSED [ 45%]
+tests/test_web_assistant.py::WebAssistantTest::test_permissions_rechecked_after_model_reply PASSED [ 54%]
+tests/test_web_assistant.py::WebAssistantTest::test_project_lists_are_filtered_before_model_sees_them PASSED [ 63%]
+tests/test_web_assistant.py::WebAssistantTest::test_real_mcp_create_and_duplicate_step_have_one_receipt PASSED [ 72%]
+tests/test_web_assistant.py::WebAssistantTest::test_stop_and_session_isolation PASSED [ 81%]
+tests/test_web_assistant.py::WebAssistantTest::test_unknown_model_tool_and_parallel_calls_execute_nothing PASSED [ 90%]
+tests/test_web_assistant.py::WebAssistantTest::test_viewer_cannot_write PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_web_assistant.xml -
+============================= 11 passed in 7.31s ==============================

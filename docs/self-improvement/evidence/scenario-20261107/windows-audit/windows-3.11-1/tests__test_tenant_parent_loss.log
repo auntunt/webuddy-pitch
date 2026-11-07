@@ -1,0 +1,17 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 3 items
+
+tests/test_tenant_parent_loss.py::TenantParentLossTest::test_gateway_admission_lock_is_not_worker_write_barrier SKIPPED [ 33%]
+tests/test_tenant_parent_loss.py::TenantParentLossTest::test_sigkill_gateway_does_not_release_active_worker_authorization SKIPPED [ 66%]
+tests/test_tenant_parent_loss.py::TenantParentLossTest::test_sigkill_idle_gateway_orphan_worker_exits SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_tenant_parent_loss.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_tenant_parent_loss.py:241: tenant workers require POSIX Unix sockets
+SKIPPED [1] tests\test_tenant_parent_loss.py:209: tenant workers require POSIX Unix sockets
+SKIPPED [1] tests\test_tenant_parent_loss.py:205: tenant workers require POSIX Unix sockets
+============================= 3 skipped in 0.15s ==============================

@@ -1,0 +1,29 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 18 items
+
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_abbreviated_adoption_commit_is_an_object_identity_not_a_branch_name PASSED [  5%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_dirty_checkout_does_not_replace_candidate_source PASSED [ 11%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_dynamic_dispatch_stays_unknown_even_if_method_name_exists PASSED [ 16%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_full_hash_object_cannot_be_shadowed_by_a_named_branch PASSED [ 22%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_method_reachability_does_not_claim_specific_url_or_correct_behavior PASSED [ 27%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_missing_commit_or_valid_but_wrong_candidate_cannot_verify_diff 
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_missing_commit_or_valid_but_wrong_candidate_cannot_verify_diff PASSED [ 33%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_no_selected_entry_cannot_be_silently_replaced_with_suggestions PASSED [ 38%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_only_reachable_half_of_product_changes_cannot_pass PASSED [ 44%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_outer_factory_span_cannot_cover_an_uninvoked_nested_function PASSED [ 50%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_parse_failure_elsewhere_in_product_is_visible_and_blocks_complete_mapping PASSED [ 55%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_reachable_addition_cannot_hide_a_deletion_in_an_unreachable_function PASSED [ 61%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_registered_class_method_replaced_before_server_is_unknown PASSED [ 66%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_registered_dispatcher_reaches_changed_method_with_complete_source_identity PASSED [ 72%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_replacing_recorded_selection_does_not_keep_an_unchecked_technical_entry PASSED [ 77%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_same_file_unreachable_method_does_not_pass PASSED [ 83%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_tests_only_changes_do_not_count_as_product_reachability PASSED [ 88%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_unknown_decorator_cannot_be_assumed_to_call_original_method PASSED [ 94%]
+tests/test_python_pathmap_independent.py::IndependentPythonPathMapTest::test_unregistered_protocol_handler_is_not_a_verified_entry PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_python_pathmap_independent.xml -
+============== 18 passed, 2 subtests passed in 78.53s (0:01:18) ===============

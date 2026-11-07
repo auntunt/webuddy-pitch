@@ -1,0 +1,751 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="14" time="12.150" timestamp="2026-11-07T12:34:19.773373+00:00" hostname="runnervmm7ud1"><testcase classname="tests.test_project_container.ContainerBoundaryTest" name="test_metadata_allowlist_excludes_writes_shell_and_option_injection" time="0.001" /><testcase classname="tests.test_project_container.ContainerBoundaryTest" name="test_model_job_never_inherits_host_environment_or_control_mounts" time="0.003"><failure message="ValueError: 隔离挂载路径包含不支持的字符">self = &lt;unittest.case._Outcome object at 0x000001243719C990&gt;
+test_case = &lt;test_project_container.ContainerBoundaryTest testMethod=test_model_job_never_inherits_host_environment_or_control_mounts&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ContainerBoundaryTest testMethod=test_model_job_never_inherits_host_environment_or_control_mounts&gt;
+result = &lt;TestCaseFunction test_model_job_never_inherits_host_environment_or_control_mounts&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ContainerBoundaryTest testMethod=test_model_job_never_inherits_host_environment_or_control_mounts&gt;
+method = &lt;bound method ContainerBoundaryTest.test_model_job_never_inherits_host_environment_or_control_mounts of &lt;test_project_container.ContainerBoundaryTest testMethod=test_model_job_never_inherits_host_environment_or_control_mounts&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ContainerBoundaryTest testMethod=test_model_job_never_inherits_host_environment_or_control_mounts&gt;
+
+    def test_model_job_never_inherits_host_environment_or_control_mounts(self):
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ,{'OPENAI_API_KEY':'fixture-host-secret'}):
+&gt;           spec=specification('sha256:'+'a'*64,['codex','--version'],Path(folder).resolve(),10)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_container.py:19: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+image = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+command = ['codex', '--version']
+workspace = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp7ue_vwfs')
+seconds = 10, writable = False, mounts = ()
+
+    def specification(image, command, workspace, seconds, *, writable=False, mounts=()):
+        """No raw Docker options, host env, network, devices or arbitrary targets."""
+        if not isinstance(image, str) or not re.fullmatch(r'sha256:[0-9a-f]{64}', image):
+            raise ValueError('项目执行镜像必须固定到完整 image ID')
+        if not isinstance(command, list) or not command or any(not isinstance(x, str) or '\0' in x for x in command):
+            raise ValueError('隔离命令必须是字符串列表')
+        if not math.isfinite(seconds) or seconds &lt;= 0:
+            raise ValueError('隔离任务需要正数总时限')
+&gt;       bindings = [{'Type':'bind', 'Source':_path(workspace), 'Target':'/workspace', 'ReadOnly':not writable}]
+                                             ^^^^^^^^^^^^^^^^
+
+tmh\platform\project_container.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/tmp7ue_vwfs')
+
+    def _path(path):
+        path = Path(path)
+        if not path.is_absolute() or any(p.is_symlink() for p in (path, *path.parents)):
+            raise ValueError('隔离挂载路径必须是无符号链接的绝对路径')
+        if ',' in str(path) or ':' in str(path) or '\n' in str(path):
+&gt;           raise ValueError('隔离挂载路径包含不支持的字符')
+E           ValueError: 隔离挂载路径包含不支持的字符
+
+tmh\platform\project_container.py:72: ValueError</failure></testcase><testcase classname="tests.test_project_container.ContainerBoundaryTest" name="test_mutable_image_unapproved_mount_and_symlink_fail_closed" time="0.005" /><testcase classname="tests.test_project_container.ContainerBoundaryTest" name="test_rootful_daemon_is_refused_before_allocating_container" time="0.000"><failure message="AttributeError: module 'os' has no attribute 'getuid'">self = &lt;unittest.case._Outcome object at 0x00000124374631D0&gt;
+test_case = &lt;test_project_container.ContainerBoundaryTest testMethod=test_rootful_daemon_is_refused_before_allocating_container&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ContainerBoundaryTest testMethod=test_rootful_daemon_is_refused_before_allocating_container&gt;
+result = &lt;TestCaseFunction test_rootful_daemon_is_refused_before_allocating_container&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ContainerBoundaryTest testMethod=test_rootful_daemon_is_refused_before_allocating_container&gt;
+method = &lt;bound method ContainerBoundaryTest.test_rootful_daemon_is_refused_before_allocating_container of &lt;test_project_container.ContainerBoundaryTest testMethod=test_rootful_daemon_is_refused_before_allocating_container&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ContainerBoundaryTest testMethod=test_rootful_daemon_is_refused_before_allocating_container&gt;
+
+    def test_rootful_daemon_is_refused_before_allocating_container(self):
+&gt;       engine=Engine();calls=[]
+               ^^^^^^^^
+
+tests\test_project_container.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tmh.platform.project_container.Engine object at 0x00000124374624D0&gt;
+path = None
+
+    def __init__(self, path=None):
+&gt;       self.path = Path(path or '/run/user/%d/docker.sock' % os.getuid())
+                                                              ^^^^^^^^^
+E       AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\project_container.py:111: AttributeError</failure></testcase><testcase classname="tests.test_project_container.ManagedCandidateAuthorTest" name="test_non_git_project_keeps_materials_and_cannot_gain_candidate_permission" time="0.724"><failure message="AttributeError: module 'os' has no attribute 'getuid'">self = &lt;unittest.case._Outcome object at 0x00000124372A4310&gt;
+test_case = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_non_git_project_keeps_materials_and_cannot_gain_candidate_permission&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_non_git_project_keeps_materials_and_cannot_gain_candidate_permission&gt;
+result = &lt;TestCaseFunction test_non_git_project_keeps_materials_and_cannot_gain_candidate_permission&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_non_git_project_keeps_materials_and_cannot_gain_candidate_permission&gt;
+method = &lt;bound method ManagedCandidateAuthorTest.test_non_git_project_keeps_materials_and_cannot_gain_candidate_permission of ...ainer.ManagedCandidateAuthorTest testMethod=test_non_git_project_keeps_materials_and_cannot_gain_candidate_permission&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_non_git_project_keeps_materials_and_cannot_gain_candidate_permission&gt;
+
+    def test_non_git_project_keeps_materials_and_cannot_gain_candidate_permission(self):
+        fixture=policy_fixture.TenantPolicyTest('runTest');self.addCleanup(fixture.doCleanups);fixture.setUp()
+        team_fixture.team.schema(fixture.P)
+        project=fixture.projects['ALPHA'];root=Path(project['root']);material=root/'materials.txt';material.write_text('original public material')
+        config=fixture.P.data_dir/'project-execution.json'
+        config.write_text(json.dumps({'schema':1,'image':'sha256:'+'a'*64,'projects':['ALPHA']}));config.chmod(0o600)
+&gt;       self.assertFalse(project_git.available(fixture.P,project,'bob'))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_container.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(store=&lt;tmh.platform.store.Store object at 0x00000124372A52D0&gt;, data_dir=WindowsPath('C:/Users/RUNNER~1/AppDa...Temp/tmh-tenant-policy-i524zxrr/data'), tenant_context=&lt;tests.test_tenant_policy.Context object at 0x00000124372A7210&gt;)
+project = {'id': 1, 'key': 'ALPHA', 'name': 'ALPHA', 'root': 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmh-tenant-policy-i524zxrr\\approved\\ALPHA', ...}
+user = 'bob'
+
+    def available(P, project, user):
+        from .tenant_policy import require_member
+        require_member(P,user,project,'contributor')
+&gt;       value=settings(P)
+              ^^^^^^^^^^^
+
+tmh\platform\project_git.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(store=&lt;tmh.platform.store.Store object at 0x00000124372A52D0&gt;, data_dir=WindowsPath('C:/Users/RUNNER~1/AppDa...Temp/tmh-tenant-policy-i524zxrr/data'), tenant_context=&lt;tests.test_tenant_policy.Context object at 0x00000124372A7210&gt;)
+
+    def settings(P):
+        path=Path(P.data_dir)/'project-execution.json'
+        try:
+            info=path.lstat()
+        except FileNotFoundError:
+            return None
+&gt;       if not stat.S_ISREG(info.st_mode) or info.st_uid!=os.getuid() or stat.S_IMODE(info.st_mode)&amp;0o077:
+                                                          ^^^^^^^^^
+E       AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\project_git.py:45: AttributeError</failure></testcase><testcase classname="tests.test_project_container.ManagedCandidateAuthorTest" name="test_only_personal_verdicts_gain_project_metadata_permission" time="4.726"><failure message="AttributeError: module 'os' has no attribute 'getuid'">self = &lt;unittest.case._Outcome object at 0x000001243758F050&gt;
+test_case = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_only_personal_verdicts_gain_project_metadata_permission&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_only_personal_verdicts_gain_project_metadata_permission&gt;
+result = &lt;TestCaseFunction test_only_personal_verdicts_gain_project_metadata_permission&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_only_personal_verdicts_gain_project_metadata_permission&gt;
+method = &lt;bound method ManagedCandidateAuthorTest.test_only_personal_verdicts_gain_project_metadata_permission of &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_only_personal_verdicts_gain_project_metadata_permission&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_only_personal_verdicts_gain_project_metadata_permission&gt;
+
+    def test_only_personal_verdicts_gain_project_metadata_permission(self):
+        fixture=team_fixture.TeamWorkspaceTest('runTest');self.addCleanup(fixture.doCleanups);fixture.setUp()
+        fixture.candidate()
+        context=policy_fixture.Context(fixture.repo)
+        context.people['bob']['project_grants']={'TEAM':'contributor'}
+        context.people['reader']['project_grants']={'TEAM':'viewer'}
+        fixture.P.tenant_context=context
+        config=fixture.P.data_dir/'project-execution.json'
+        config.write_text(json.dumps({'schema':1,'image':'sha256:'+'a'*64,'projects':['TEAM']}));config.chmod(0o600)
+        policy=policy_fixture.policy
+        for action in ('review','candidate_assess','business_accept'):
+            body={'action':action,'ticket':fixture.ticket['key'],'candidate_id':fixture.cid}
+&gt;           self.assertEqual(policy.authorize(fixture.P,'POST','/api/team',{},body,'bob')['allowed_project_keys'],['TEAM'])
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_container.py:120: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = &lt;tmh.platform.server.Platform object at 0x00000124370C69D0&gt;, method = 'POST'
+path = '/api/team', query = {}
+body = {'action': 'review', 'ticket': 'TEAM-1', 'candidate_id': 1}
+actor = 'bob'
+
+    def authorize(P, method, path, query, body, actor):
+        """Return scope before invoking handlers; unknown routes never inherit admin.
+    
+        The adapter MUST apply allowed_project_keys to FILTERED_LISTS before reads,
+        counts and pagination. Other global projections are intentionally admin-only.
+        Public capability endpoints need their separate tenant-bound ticket check;
+        this function refuses to authorize them with an ordinary session.
+        """
+        if not enabled(P):
+            return {"legacy": True, "actor": actor, "filter_required": False}
+        who = identity(P, actor)
+        method = "GET" if method == "HEAD" else method
+        if not isinstance(query, dict) or not isinstance(body, dict):
+            raise ApiError(400, "请求参数必须是对象")
+        template, params = _match(method, path)
+        projects = P.store.projects()
+        allowed = {p["key"]: _effective(who, p["key"]) for p in projects if _effective(who, p["key"])}
+        scope = {"tenant_id": who["tenant_id"], "actor": actor, "tenant_role": who["role"],
+                 "platform_owner": who["platform_owner"], "authz_revision": who["authz_revision"],
+                 "allowed_project_keys": sorted(allowed), "project_roles": allowed,
+                 "filter_required": method == "GET" and template in FILTERED_LISTS | ALL_PROJECT_PATHS,
+                 "route": template}
+        if template == "/api/agent/&lt;operation&gt;":
+            _agent(P, who, params["operation"], body)
+            return scope
+        if method == "POST" and who["role"] == "viewer":
+            raise ApiError(403, "只读成员不能修改项目")
+        personal_static_preview = False
+        if method == 'POST' and template == '/api/team' and body.get('action') == 'candidate_preview':
+            from .static_preview import profile
+            target = _resource_project(P, 'candidate', body.get('candidate_id'))
+            _check(P, who, target, 'contributor')
+            personal_static_preview = bool(not who.get('tool_connection') and profile(P.data_dir, target['key']))
+        if method == "POST" and (
+                template in ("/api/projects/&lt;key&gt;/shares", "/api/projects/&lt;key&gt;/capture-token", "/api/tickets/&lt;key&gt;/ask-client") or
+                template in ("/api/tickets/&lt;key&gt;/preview", "/api/projects/&lt;key&gt;/standing") and body.get("action") == "start" or
+                template == "/api/team" and body.get("action") == "candidate_preview" and not personal_static_preview or
+                template == "/api/tickets/&lt;key&gt;/evidence" and body.get("kind") == "link" or
+                template == "/api/intake/&lt;sid&gt;" and body.get("action") == "ask_client"):
+            raise ApiError(403, "公开链接和预览尚未接入租户隔离，暂不签发票据或启动服务")
+        if template in ADMIN_GLOBAL or template.startswith("/api/clients/") or template == "/api/learn/holdout" or template.startswith("/api/testbox/"):
+            if who["role"] != "admin":
+                raise ApiError(403, "此汇总或配置接口仅租户管理员可用")
+        if template == "/api/workbench/intake" and (body.get("client") or body.get("client_name")) and who["role"] != "admin":
+            # Client associations remain tenant-wide; a project selector does not scope them.
+            raise ApiError(403, "此目录或客户关联尚未提供项目权限过滤")
+        # The legacy assistant GET creates a default session when one is missing.
+        level = "viewer" if method == "GET" and template != "/api/assist" else "contributor"
+        if method == "POST" and (template == "/api/team" and body.get("action") == "assign" or
+                template.endswith("/library") or template.endswith("/shares") or template.endswith("/capture-token") or
+                template.endswith("/lessons/&lt;lid&gt;") or template.endswith("/preview-conf") or
+                template.endswith("/prod-requests") and body.get("action") in ("approve", "reject") or
+                template == "/api/tickets/&lt;key&gt;" and "assignee" in body or
+                template == "/api/projects/&lt;key&gt;/reforms/&lt;pid&gt;" and body.get("action") in ("archive", "remove") or
+                template == "/api/memory" and body.get("action") in ("lesson_share", "lesson_unshare", "lesson_take", "lesson_untake")):
+            level = "manager"
+        targets = []
+        def add(kind, value):
+            if value not in (None, ""):
+                targets.append(_check(P, who, _resource_project(P, kind, value), level))
+        if "key" in params:
+            if method == "GET" and template in ALL_PROJECT_PATHS and params["key"] in ("*", "all"):
+                scope["filter_required"] = True
+            else:
+                add("ticket" if template.startswith(("/api/tickets/", "/e/")) else "project", params["key"])
+        for prefix, name, kind in (("/api/runs/", "rid", "run"), ("/api/sessions/", "sid", "session"),
+                                   ("/api/intake/", "sid", "intake"), ("/api/pins/", "pid", "pin"),
+                                   ("/api/deliveries/", "did", "delivery")):
+            if template.startswith(prefix):
+                add(kind, params[name])
+        values = body if method == "POST" else {key: _arg(query, key) for key in query}
+        if template == "/api/team" and method == "GET" and values.get("request_id"):
+            if P.store.one("SELECT name FROM sqlite_master WHERE type='table' AND name='team_requests'"):
+                receipt = P.store.one("SELECT ticket_id FROM team_requests WHERE actor=? AND request_id=?", (actor, values["request_id"]))
+                if receipt:
+                    add("ticket", receipt["ticket_id"])
+        for field, kind in (("project", "project"), ("ticket", "ticket"), ("run_id", "run"), ("session", "session"),
+                            ("candidate_id", "candidate"), ("probe_id", "probe"), ("matter_id", "matter"), ("source_id", "source")):
+            value = values.get(field)
+            if field == "project" and value in ("*", "all"):
+                if template not in FILTERED_LISTS and who["role"] != "admin":
+                    raise ApiError(403, "此汇总尚未提供项目权限过滤")
+            else:
+                add(kind, value)
+        cross_project = template == "/api/projects/&lt;key&gt;/library" and values.get("action") in ("grant", "revoke")
+        if not cross_project and len({p["id"] for p in targets}) &gt; 1:
+            raise ApiError(400, "请求中的资源不属于同一项目")
+        if not targets and template not in FILTERED_LISTS | ALL_PROJECT_PATHS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap") and not (method == "GET" and template in ("/api/org/knowledge", "/api/memory")) and not (method == "POST" and template.startswith("/api/projects/import")):
+            if who["role"] != "admin":
+                raise ApiError(403, "请明确选择获准的项目或工单")
+        if template == "/api/agent-settings" and method == "POST" and not who["platform_owner"]:
+            raise ApiError(403, "智能体配置只能由平台管理员管理")
+        if method == "GET":
+            if template in ("/p/&lt;key&gt;/report/&lt;path&gt;", "/p/&lt;key&gt;/code.bundle"):
+                # Reports are active same-origin content; bundles invoke Git.
+                require_execution(P, actor)
+            return scope
+        action = body.get("action")
+        path_config = template.startswith("/api/projects/import") or template in ("/api/projects", "/api/projects/bootstrap", "/api/projects/&lt;key&gt;/preview-conf", "/api/projects/&lt;key&gt;/tests", "/api/testbox") or (
+            template.endswith("/library") and action in ("configure", "add_source", "derive", "maintain"))
+        if path_config:
+            if not who["platform_owner"]:
+                raise ApiError(403, "工作区和命令配置只能由平台管理员管理")
+            roots = [body["root"]] if body.get("root") else [p["root"] for p in targets]
+            if template == "/api/projects/bootstrap":
+                key = body.get("key")
+                if not isinstance(key, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9]{0,9}", key):
+                    raise ApiError(400, "项目代号不正确")
+                roots = [str(Path(P.data_dir) / "projects" / key.upper())]
+            if template.startswith("/api/projects/import"):
+                key = body.get("key")
+                if template == "/api/projects/import" and (not isinstance(key, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9]{0,9}", key)):
+                    raise ApiError(400, "项目代号不正确")
+                roots = [str(Path(P.data_dir) / "repositories" / (key.upper() if template == "/api/projects/import" else ""))]
+            if not roots and template != "/api/testbox":
+                raise ApiError(403, "没有获准的工作区")
+            for root in roots:
+                require_workspace(P, actor, root)
+            if template.endswith("/library") and action in ("derive", "maintain"):
+                require_workspace(P, actor, Path(P.data_dir) / "project-library" / "workspaces")
+        if template.endswith("/library") and action == "reference" and body.get("grant") is True:
+            _check(P, who, _resource_project(P, "revision", body.get("revision_id")), "manager")
+        if template.endswith("/library") and action == "build":
+            root = _row(P, "project_sources", body["source_id"])["root"] if body.get("source_id") else targets[0]["root"]
+            require_workspace(P, actor, root)
+        for field in ("assignee", "reviewer", "receiver"):
+            if body.get(field):
+                for p in targets:
+                    require_member(P, body[field], p, "contributor")
+        safe = template in SAFE_POSTS or personal_static_preview
+        safe |= template == "/api/tickets" and (body.get("handwork") is True or body.get("auto") is False and not (body.get("agent") and body.get("mode"))) and not body.get("code_at")
+        if template == "/api/projects/&lt;key&gt;/ci" and method == 'POST':
+            _check(P,who,_project(P,params['key']),'manager')
+        safe |= template == '/api/projects/&lt;key&gt;/reforms'  # draft creation and read-only preview
+        safe |= template == '/api/projects/&lt;key&gt;/reforms/&lt;pid&gt;' and action in ('update','archive','remove')
+        safe |= template in ("/api/tickets/&lt;key&gt;/development", "/api/projects/&lt;key&gt;/ci")
+        safe |= template == "/api/team" and action == "assign"
+        safe |= template == "/api/team" and action == "comment"
+        if (template == "/api/tickets/&lt;key&gt;/claim" and body.get("on", True) is True
+                and len(targets) == 1 and not who.get("tool_connection")):
+            from .project_git import available
+            # Claiming stops automatic work and marks a personal assignee. Handing
+            # the ticket back may restart automation and retains the normal gate.
+            safe |= available(P, targets[0], actor)
+        if (template == "/api/tickets/&lt;key&gt;/runs" and body.get("mode", "analyze") == "fix"
+                and len(targets) == 1 and not who.get("tool_connection")):
+            from .project_git import available
+            # This only admits the separately isolated personal Runner path. The
+            # worker subprocess audit gate and all other execution modes remain.
+            safe |= available(P, targets[0], actor)
+        if template == "/api/runs/&lt;rid&gt;/cancel" and not who.get("tool_connection"):
+            run = P.store.run(int(params["rid"]))
+            # Members may stop their own isolated run, not arbitrary host runs.
+            safe |= bool(run and run.get("author") == actor and
+                         (run.get("batch") or "").startswith("member:"))
+        if template == "/api/team" and action in ("review","candidate_assess","business_accept") and targets and len({p['id'] for p in targets})==1:
+            from .project_git import available
+            # These three actions write personal verdicts only. Their Git reads
+            # are confined to project_git; merge/verify/preview and legacy accept
+            # still require their original execution authorization.
+&gt;           safe |= available(P,targets[0],actor)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\tenant_policy.py:701: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = &lt;tmh.platform.server.Platform object at 0x00000124370C69D0&gt;
+project = {'id': 1, 'key': 'TEAM', 'name': 'Team fixture', 'root': 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmh-team-t9tpehnu\\repo', ...}
+user = 'bob'
+
+    def available(P, project, user):
+        from .tenant_policy import require_member
+        require_member(P,user,project,'contributor')
+&gt;       value=settings(P)
+              ^^^^^^^^^^^
+
+tmh\platform\project_git.py:58: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = &lt;tmh.platform.server.Platform object at 0x00000124370C69D0&gt;
+
+    def settings(P):
+        path=Path(P.data_dir)/'project-execution.json'
+        try:
+            info=path.lstat()
+        except FileNotFoundError:
+            return None
+&gt;       if not stat.S_ISREG(info.st_mode) or info.st_uid!=os.getuid() or stat.S_IMODE(info.st_mode)&amp;0o077:
+                                                          ^^^^^^^^^
+E       AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\project_git.py:45: AttributeError</failure></testcase><testcase classname="tests.test_project_container.ManagedCandidateAuthorTest" name="test_read_projection_batches_but_verdict_checks_never_reuse_old_git_answer" time="0.732"><failure message="AttributeError: module 'os' has no attribute 'getuid'">self = &lt;unittest.case._Outcome object at 0x0000012436E15C50&gt;
+test_case = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_read_projection_batches_but_verdict_checks_never_reuse_old_git_answer&gt;
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+&gt;           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_read_projection_batches_but_verdict_checks_never_reuse_old_git_answer&gt;
+result = &lt;TestCaseFunction test_read_projection_batches_but_verdict_checks_never_reuse_old_git_answer&gt;
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+&gt;                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_read_projection_batches_but_verdict_checks_never_reuse_old_git_answer&gt;
+method = &lt;bound method ManagedCandidateAuthorTest.test_read_projection_batches_but_verdict_checks_never_reuse_old_git_answer of...iner.ManagedCandidateAuthorTest testMethod=test_read_projection_batches_but_verdict_checks_never_reuse_old_git_answer&gt;&gt;
+
+    def _callTestMethod(self, method):
+&gt;       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;test_project_container.ManagedCandidateAuthorTest testMethod=test_read_projection_batches_but_verdict_checks_never_reuse_old_git_answer&gt;
+
+    def test_read_projection_batches_but_verdict_checks_never_reuse_old_git_answer(self):
+        fixture=policy_fixture.TenantPolicyTest('runTest');self.addCleanup(fixture.doCleanups);fixture.setUp()
+        candidates.schema(fixture.store)
+        (Path(fixture.projects['ALPHA']['root'])/'.git').mkdir()
+        config=fixture.P.data_dir/'project-execution.json'
+        config.write_text(json.dumps({'schema':1,'image':'sha256:'+'a'*64,'projects':['ALPHA']}));config.chmod(0o600)
+        reference='refs/webuddy/candidates/'+'b'*64
+        calls=[]
+        class ChangingGit:
+            def run(self,spec,seconds,output):
+                command=json.loads(spec['Cmd'][1]);calls.append(command)
+                sha=('%040x' % len(calls))+'\n'
+                output((json.dumps({ref:[0,sha] for ref in json.loads(command[3])}) if command[:2]==['python3','-c'] else sha).encode())
+                return {'reason':'exited','returncode':0,'cleanup':True}
+        @project_git.scoped
+        def dispatch_read(P,body,user):
+            return [project_git.read(fixture.projects['ALPHA']['root'],('rev-parse',reference),text=True).stdout for _ in range(2)]
+        @project_git.scoped
+        def dispatch_action(P,body,user):
+            return [project_git.read(fixture.projects['ALPHA']['root'],('rev-parse',reference),text=True).stdout for _ in range(2)]
+        with patch('tmh.platform.project_git.Engine',ChangingGit):
+&gt;           old=dispatch_read(fixture.P,{},'bob')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_container.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(store=&lt;tmh.platform.store.Store object at 0x0000012436E15590&gt;, data_dir=WindowsPath('C:/Users/RUNNER~1/AppDa...Temp/tmh-tenant-policy-tulhm9go/data'), tenant_context=&lt;tests.test_tenant_policy.Context object at 0x0000012437414E50&gt;)
+args = ({}, 'bob'), kwargs = {}
+
+    @wraps(fn)
+    def wrapped(P, *args, **kwargs):
+        user=kwargs.get('user',kwargs.get('viewer',args[1] if len(args)&gt;1 else ''))
+        previous=SCOPE.get()
+        if previous and previous['platform'] is P and previous['user']==user:
+            return fn(P,*args,**kwargs)
+        readonly=fn.__name__ in ('item','dispatch_read') or fn.__module__.endswith('.workspace') and fn.__name__=='read'
+        token=SCOPE.set({'platform':P,'user':user,'readonly':readonly,'snapshots':{},'failed_roots':set()})
+&gt;       try: return fn(P,*args,**kwargs)
+                    ^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\project_git.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(store=&lt;tmh.platform.store.Store object at 0x0000012436E15590&gt;, data_dir=WindowsPath('C:/Users/RUNNER~1/AppDa...Temp/tmh-tenant-policy-tulhm9go/data'), tenant_context=&lt;tests.test_tenant_policy.Context object at 0x0000012437414E50&gt;)
+body = {}, user = 'bob'
+
+    @project_git.scoped
+    def dispatch_read(P,body,user):
+&gt;       return [project_git.read(fixture.projects['ALPHA']['root'],('rev-parse',reference),text=True).stdout for _ in range(2)]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_container.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+.0 = &lt;range_iterator object at 0x0000012437546C30&gt;
+
+&gt;   return [project_git.read(fixture.projects['ALPHA']['root'],('rev-parse',reference),text=True).stdout for _ in range(2)]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_project_container.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmh-tenant-policy-tulhm9go\\approved\\ALPHA'
+args = ('rev-parse', 'refs/webuddy/candidates/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+text = True
+
+    def read(root, args, *, text=False):
+        try:
+&gt;           return _read(root,args,text=text)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tmh\platform\project_git.py:144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\tmh-tenant-policy-tulhm9go\\approved\\ALPHA'
+args = ('rev-parse', 'refs/webuddy/candidates/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+text = True
+
+    def _read(root, args, *, text=False):
+        active=SCOPE.get()
+        if not active: return None
+        P,user=active['platform'],active['user']
+        managed=getattr(P,'tenant_context',None)
+        if not managed or managed.runtime_allowed(user): return None
+        from .tenant_policy import require_member
+        project=next((p for p in P.store.projects() if Path(p['root'])==Path(root)),None)
+        if not project: raise ApiError(403,'Git 证据目录不属于已授权项目')
+        require_member(P,user,project,'viewer')
+&gt;       value=settings(P)
+              ^^^^^^^^^^^
+
+tmh\platform\project_git.py:176: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+P = namespace(store=&lt;tmh.platform.store.Store object at 0x0000012436E15590&gt;, data_dir=WindowsPath('C:/Users/RUNNER~1/AppDa...Temp/tmh-tenant-policy-tulhm9go/data'), tenant_context=&lt;tests.test_tenant_policy.Context object at 0x0000012437414E50&gt;)
+
+    def settings(P):
+        path=Path(P.data_dir)/'project-execution.json'
+        try:
+            info=path.lstat()
+        except FileNotFoundError:
+            return None
+&gt;       if not stat.S_ISREG(info.st_mode) or info.st_uid!=os.getuid() or stat.S_IMODE(info.st_mode)&amp;0o077:
+                                                          ^^^^^^^^^
+E       AttributeError: module 'os' has no attribute 'getuid'
+
+tmh\platform\project_git.py:45: AttributeError</failure></testcase><testcase classname="tests.test_project_container.ManagedCandidateAuthorTest" name="test_reassignment_never_allows_managed_initiator_to_sign_own_candidate" time="5.623" /></testsuite></testsuites>

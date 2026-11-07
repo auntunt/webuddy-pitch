@@ -1,0 +1,41 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 15 items
+
+tests/test_supervised_process.py::SupervisedProcessTest::test_cancel_after_worker_timeout_uses_sealed_receipt_not_broken_pipe SKIPPED [  6%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_cancel_and_blocked_stdin_do_not_block_group_cleanup SKIPPED [ 13%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_cancellation_already_requested_never_starts_target SKIPPED [ 20%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_deadline_includes_supervisor_startup SKIPPED [ 26%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_environment_is_not_persisted_and_existing_evidence_is_never_overwritten SKIPPED [ 33%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_missing_executable_returns_launch_error_and_proven_no_spawn SKIPPED [ 40%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_modified_nonce_or_raw_output_is_never_accepted_as_complete SKIPPED [ 46%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_output_callback_failure_cleans_target_while_retaining_original_binary SKIPPED [ 53%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_owner_loss_drains_term_handler_output_and_never_recovers_exit_zero_as_success SKIPPED [ 60%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_raw_binary_output_and_full_stdin_survive_independent_worker SKIPPED [ 66%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_service_dies_after_supervisor_spawn_before_ack_never_starts_target SKIPPED [ 73%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_service_dies_in_spawn_callback_still_has_owner_lost_receipt SKIPPED [ 80%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_service_sigkill_cleans_ignoring_group_and_preserves_live_raw_bytes SKIPPED [ 86%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_spawn_callback_failure_reclaims_target_and_keeps_receipt SKIPPED [ 93%]
+tests/test_supervised_process.py::SupervisedProcessTest::test_unexpected_supervisor_death_reports_unknown_cleanup_without_pid_reaping SKIPPED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_supervised_process.xml -
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_supervised_process.py:204: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:173: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:184: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:161: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:267: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:230: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:278: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:248: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:140: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:70: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:117: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:132: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:84: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:258: requires POSIX process groups
+SKIPPED [1] tests\test_supervised_process.py:292: requires POSIX process groups
+============================= 15 skipped in 0.15s =============================

@@ -1,0 +1,38 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.17, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.13.17\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 24 items
+
+tests/test_ai_accept.py::AiAcceptGateTest::test_anything_short_of_full_evidence_stays_with_people 
+tests/test_ai_accept.py::AiAcceptGateTest::test_anything_short_of_full_evidence_stays_with_people PASSED [  4%]
+tests/test_ai_accept.py::AiAcceptGateTest::test_full_evidence_lets_ai_accept PASSED [  8%]
+tests/test_ai_accept.py::AiAcceptGateTest::test_switch_is_per_project PASSED [ 12%]
+tests/test_ai_accept.py::AiAcceptFlowTest::test_a_page_only_change_needs_page_checks_to_be_signed PASSED [ 16%]
+tests/test_ai_accept.py::AiAcceptFlowTest::test_keep_criteria_need_their_own_page_evidence_even_when_suite_passes PASSED [ 20%]
+tests/test_ai_accept.py::AiAcceptFlowTest::test_leaves_it_for_people_when_off_taken_over_or_package_is_for_another_run 
+tests/test_ai_accept.py::AiAcceptFlowTest::test_leaves_it_for_people_when_off_taken_over_or_package_is_for_another_run PASSED [ 25%]
+tests/test_ai_accept.py::AiAcceptFlowTest::test_signs_closes_and_ships_with_the_basis PASSED [ 29%]
+tests/test_ai_accept.py::AiAcceptFlowTest::test_suite_and_diagnosis_without_item_evidence_do_not_auto_accept PASSED [ 33%]
+tests/test_ai_accept.py::AiAcceptFlowTest::test_the_page_check_runs_on_the_commit_adopted_from_this_run PASSED [ 37%]
+tests/test_ai_accept.py::AiAcceptFlowTest::test_with_a_verification_host_a_reproduced_failure_or_anything_unproven_leaves_it_for_people 
+tests/test_ai_accept.py::AiAcceptFlowTest::test_with_a_verification_host_a_reproduced_failure_or_anything_unproven_leaves_it_for_people PASSED [ 41%]
+tests/test_ai_accept.py::AiAcceptFlowTest::test_with_a_verification_host_an_unverified_diagnosis_criterion_no_longer_blocks_but_a_failed_one_does 
+tests/test_ai_accept.py::AiAcceptFlowTest::test_with_a_verification_host_an_unverified_diagnosis_criterion_no_longer_blocks_but_a_failed_one_does PASSED [ 45%]
+tests/test_ai_accept.py::AiAcceptFlowTest::test_with_a_verification_host_only_a_real_all_pass_signs_and_its_basis_is_the_real_run PASSED [ 50%]
+tests/test_ai_accept.py::AutoflowPerProjectTest::test_a_managed_worker_runs_the_line_only_for_the_trusted_default_tenant_and_never_merges PASSED [ 54%]
+tests/test_ai_accept.py::AutoflowPerProjectTest::test_on_can_name_projects PASSED [ 58%]
+tests/test_ai_accept.py::AutoflowPerProjectTest::test_the_switches_survive_reading_autoflow_json PASSED [ 62%]
+tests/test_ai_accept.py::ShadowAcceptTest::test_full_evidence_is_said_but_not_signed PASSED [ 66%]
+tests/test_ai_accept.py::ShadowAcceptTest::test_on_wins_over_observe_and_neither_does_nothing PASSED [ 70%]
+tests/test_ai_accept.py::ShadowAcceptTest::test_short_evidence_says_why_it_would_not PASSED [ 75%]
+tests/test_ai_accept.py::ShadowCompareTest::test_a_person_s_verdict_is_set_against_the_last_shadow_once PASSED [ 79%]
+tests/test_ai_accept.py::ShadowCompareTest::test_disagreement_is_said_and_ai_s_own_verdict_or_no_shadow_is_not_compared PASSED [ 83%]
+tests/test_ai_accept.py::ShadowModeSwitchTest::test_observe_runs_the_line_without_ai_signing_or_merging PASSED [ 87%]
+tests/test_ai_accept.py::MandateTest::test_the_fingerprint_covers_only_this_project_s_switches_and_names_who_set_the_mode PASSED [ 91%]
+tests/test_ai_accept.py::MandateOnVerdictTest::test_an_unchanged_policy_is_not_called_changed PASSED [ 95%]
+tests/test_ai_accept.py::MandateOnVerdictTest::test_the_verdict_carries_the_mandate_and_says_when_it_changed_since_the_start PASSED [100%]
+
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_ai_accept.xml -
+=================== 24 passed, 18 subtests passed in 0.39s ====================

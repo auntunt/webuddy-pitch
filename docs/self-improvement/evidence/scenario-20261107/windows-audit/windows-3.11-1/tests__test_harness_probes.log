@@ -1,0 +1,3874 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.2.0, pluggy-1.7.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+rootdir: D:\a\webuddy-pitch\webuddy-pitch
+configfile: pyproject.toml
+plugins: anyio-4.16.0
+collecting ... collected 7 items
+
+tests/test_harness_probes.py::HarnessProbeTest::test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass FAILED [ 14%]
+tests/test_harness_probes.py::HarnessProbeTest::test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass ERROR [ 14%]
+tests/test_harness_probes.py::HarnessProbeTest::test_execution_permission_recipe_scope_and_replay FAILED [ 28%]
+tests/test_harness_probes.py::HarnessProbeTest::test_execution_permission_recipe_scope_and_replay ERROR [ 28%]
+tests/test_harness_probes.py::HarnessProbeTest::test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence FAILED [ 42%]
+tests/test_harness_probes.py::HarnessProbeTest::test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence ERROR [ 42%]
+tests/test_harness_probes.py::HarnessProbeTest::test_probe_invalidates_previous_assessment_then_requires_new_observations FAILED [ 57%]
+tests/test_harness_probes.py::HarnessProbeTest::test_probe_invalidates_previous_assessment_then_requires_new_observations ERROR [ 57%]
+tests/test_harness_probes.py::HarnessProbeTest::test_real_probe_distinguishes_behavior_with_both_generic_tests_green FAILED [ 71%]
+tests/test_harness_probes.py::HarnessProbeTest::test_real_probe_distinguishes_behavior_with_both_generic_tests_green ERROR [ 71%]
+tests/test_harness_probes.py::HarnessProbeTest::test_tampered_evidence_and_changed_recipe_invalidate_current_gate FAILED [ 85%]
+tests/test_harness_probes.py::HarnessProbeTest::test_tampered_evidence_and_changed_recipe_invalidate_current_gate ERROR [ 85%]
+tests/test_harness_probes.py::HarnessProbeTest::test_total_timeout_returns_unknown_and_reaps_processes FAILED [100%]
+tests/test_harness_probes.py::HarnessProbeTest::test_total_timeout_returns_unknown_and_reaps_processes ERROR [100%]
+
+=================================== ERRORS ====================================
+_ ERROR at teardown of HarnessProbeTest.test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767B7AB60>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x000001F7679C1C10>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767B7AB60>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767B7AB60>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc\\data'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767B7AB60>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc\\data\\verification-operations'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767B7AB60>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc\\data\\verification-operations\\runs'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767B7AB60>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767B7AB60>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc\\data\\verification-operations\\runs\\1\\owner.lock'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x000001F767CD0500>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-us2vuwyc\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ERROR at teardown of HarnessProbeTest.test_execution_permission_recipe_scope_and_replay _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76906C860>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x000001F767A22D50>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_execution_permission_recipe_scope_and_replay>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_execution_permission_recipe_scope_and_replay>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_execution_permission_recipe_scope_and_replay>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76906C860>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76906C860>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc\\data'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76906C860>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc\\data\\verification-operations'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76906C860>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc\\data\\verification-operations\\runs'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76906C860>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76906C860>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc\\data\\verification-operations\\runs\\1\\owner.lock'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x000001F769090D80>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-crrv8kmc\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ERROR at teardown of HarnessProbeTest.test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767D8B380>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x000001F76908A5D0>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767D8B380>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767D8B380>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt\\data'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767D8B380>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt\\data\\verification-operations'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767D8B380>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt\\data\\verification-operations\\runs'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767D8B380>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767D8B380>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt\\data\\verification-operations\\runs\\1\\owner.lock'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x000001F767CF4B40>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-gk97fbbt\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ERROR at teardown of HarnessProbeTest.test_probe_invalidates_previous_assessment_then_requires_new_observations _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76907F1A0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x000001F767CF5AD0>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_probe_invalidates_previous_assessment_then_requires_new_observations>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_probe_invalidates_previous_assessment_then_requires_new_observations>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_probe_invalidates_previous_assessment_then_requires_new_observations>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76907F1A0>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76907F1A0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh\\data'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76907F1A0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh\\data\\verification-operations'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76907F1A0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh\\data\\verification-operations\\runs'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76907F1A0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76907F1A0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh\\data\\verification-operations\\runs\\1\\owner.lock'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x000001F768F9C9C0>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-hyrjdtdh\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ERROR at teardown of HarnessProbeTest.test_real_probe_distinguishes_behavior_with_both_generic_tests_green _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76911F600>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x000001F767DA2790>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_real_probe_distinguishes_behavior_with_both_generic_tests_green>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_real_probe_distinguishes_behavior_with_both_generic_tests_green>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_real_probe_distinguishes_behavior_with_both_generic_tests_green>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76911F600>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76911F600>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz\\data'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76911F600>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz\\data\\verification-operations'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76911F600>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz\\data\\verification-operations\\runs'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76911F600>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F76911F600>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz\\data\\verification-operations\\runs\\1\\owner.lock'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x000001F767D922C0>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-v4lkh6vz\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ERROR at teardown of HarnessProbeTest.test_tampered_evidence_and_changed_recipe_invalidate_current_gate _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767DAF9C0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x000001F76908AA50>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_tampered_evidence_and_changed_recipe_invalidate_current_gate>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_tampered_evidence_and_changed_recipe_invalidate_current_gate>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_tampered_evidence_and_changed_recipe_invalidate_current_gate>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767DAF9C0>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767DAF9C0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by\\data'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767DAF9C0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by\\data\\verification-operations'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767DAF9C0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by\\data\\verification-operations\\runs'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767DAF9C0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F767DAF9C0>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by\\data\\verification-operations\\runs\\1\\owner.lock'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x000001F767F5E6C0>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-t_w3j2by\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+_ ERROR at teardown of HarnessProbeTest.test_total_timeout_returns_unknown_and_reaps_processes _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F768F83420>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+>                   os.unlink(fullname)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:632: PermissionError
+
+During handling of the above exception, another exception occurred:
+
+self = <unittest.case._Outcome object at 0x000001F767F5CDD0>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_total_timeout_returns_unknown_and_reaps_processes>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_total_timeout_returns_unknown_and_reaps_processes>
+
+    def doCleanups(self):
+        """Execute all cleanup functions. Normally called for you after
+        tearDown."""
+        outcome = self._outcome or _Outcome()
+        while self._cleanups:
+            function, args, kwargs = self._cleanups.pop()
+            with outcome.testPartExecutor(self):
+>               self._callCleanup(function, *args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:659: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_total_timeout_returns_unknown_and_reaps_processes>
+function = <bound method TemporaryDirectory.cleanup of <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui'>>
+args = (), kwargs = {}
+
+    def _callCleanup(self, function, /, *args, **kwargs):
+>       function(*args, **kwargs)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:587: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <TemporaryDirectory 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui'>
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+>           self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:947: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'tempfile.TemporaryDirectory'>
+name = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui'
+ignore_errors = False, repeated = False
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onerror(func, path, exc_info):
+            if issubclass(exc_info[0], PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+    
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+    
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        try:
+                            st = _os.lstat(path)
+                        except OSError:
+                            if ignore_errors:
+                                return
+                            raise
+                        if (_stat.S_ISLNK(st.st_mode) or
+                            not _stat.S_ISDIR(st.st_mode) or
+                            (hasattr(st, 'st_file_attributes') and
+                             st.st_file_attributes & _stat.FILE_ATTRIBUTE_REPARSE_POINT and
+                             st.st_reparse_tag == _stat.IO_REPARSE_TAG_MOUNT_POINT)
+                        ):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif issubclass(exc_info[0], FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+    
+>       _shutil.rmtree(name, onerror=onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:929: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui'
+ignore_errors = False
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F768F83420>
+dir_fd = None
+
+    def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
+        """Recursively delete a directory tree.
+    
+        If dir_fd is not None, it should be a file descriptor open to a directory;
+        path will then be relative to that directory.
+        dir_fd may not be implemented on your platform.
+        If it is unavailable, using it will raise a NotImplementedError.
+    
+        If ignore_errors is set, errors are ignored; otherwise, if onerror
+        is set, it is called to handle the error with arguments (func,
+        path, exc_info) where func is platform and implementation dependent;
+        path is the argument to that function that caused it to fail; and
+        exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+        is false and onerror is None, an exception is raised.
+    
+        """
+        sys.audit("shutil.rmtree", path, dir_fd)
+        if ignore_errors:
+            def onerror(*args):
+                pass
+        elif onerror is None:
+            def onerror(*args):
+                raise
+        if _use_fd_functions:
+            # While the unsafe rmtree works fine on bytes, the fd based does not.
+            if isinstance(path, bytes):
+                path = os.fsdecode(path)
+            # Note: To guard against symlink races, we use the standard
+            # lstat()/open()/fstat() trick.
+            try:
+                orig_st = os.lstat(path, dir_fd=dir_fd)
+            except Exception:
+                onerror(os.lstat, path, sys.exc_info())
+                return
+            try:
+                fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dir_fd)
+                fd_closed = False
+            except Exception:
+                onerror(os.open, path, sys.exc_info())
+                return
+            try:
+                if os.path.samestat(orig_st, os.fstat(fd)):
+                    _rmtree_safe_fd(fd, path, onerror)
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        # close() should not be retried after an error.
+                        fd_closed = True
+                        onerror(os.close, path, sys.exc_info())
+                    fd_closed = True
+                    try:
+                        os.rmdir(path, dir_fd=dir_fd)
+                    except OSError:
+                        onerror(os.rmdir, path, sys.exc_info())
+                else:
+                    try:
+                        # symlinks to directories are forbidden, see bug #1669
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                    except OSError:
+                        onerror(os.path.islink, path, sys.exc_info())
+            finally:
+                if not fd_closed:
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        onerror(os.close, path, sys.exc_info())
+        else:
+            if dir_fd is not None:
+                raise NotImplementedError("dir_fd unavailable on this platform")
+            try:
+                if _rmtree_islink(path):
+                    # symlinks to directories are forbidden, see bug #1669
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, path, sys.exc_info())
+                # can't continue even if onerror hook returns
+                return
+>           return _rmtree_unsafe(path, onerror)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F768F83420>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui\\data'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F768F83420>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui\\data\\verification-operations'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F768F83420>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui\\data\\verification-operations\\runs'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F768F83420>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+>               _rmtree_unsafe(fullname, onerror)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:629: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui\\data\\verification-operations\\runs\\1'
+onerror = <function TemporaryDirectory._rmtree.<locals>.onerror at 0x000001F768F83420>
+
+    def _rmtree_unsafe(path, onerror):
+        try:
+            with os.scandir(path) as scandir_it:
+                entries = list(scandir_it)
+        except OSError:
+            onerror(os.scandir, path, sys.exc_info())
+            entries = []
+        for entry in entries:
+            fullname = entry.path
+            if _rmtree_isdir(entry):
+                try:
+                    if entry.is_symlink():
+                        # This can only happen if someone replaces
+                        # a directory with a symlink after the call to
+                        # os.scandir or entry.is_dir above.
+                        raise OSError("Cannot call rmtree on a symbolic link")
+                except OSError:
+                    onerror(os.path.islink, fullname, sys.exc_info())
+                    continue
+                _rmtree_unsafe(fullname, onerror)
+            else:
+                try:
+                    os.unlink(fullname)
+                except OSError:
+>                   onerror(os.unlink, fullname, sys.exc_info())
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\shutil.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+func = <built-in function unlink>
+path = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui\\data\\verification-operations\\runs\\1\\owner.lock'
+exc_info = (<class 'PermissionError'>, PermissionError(13, 'The process cannot access the file because it is being used by another process'), <traceback object at 0x000001F768F9F780>)
+
+    def onerror(func, path, exc_info):
+        if issubclass(exc_info[0], PermissionError):
+            if repeated and path == name:
+                if ignore_errors:
+                    return
+                raise
+    
+            try:
+                if path != name:
+                    _resetperms(_os.path.dirname(path))
+                _resetperms(path)
+    
+                try:
+>                   _os.unlink(path)
+E                   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\webuddy-harness-probe-eqdy3uui\\data\\verification-operations\\runs\\1\\owner.lock'
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\tempfile.py:893: PermissionError
+================================== FAILURES ===================================
+_ HarnessProbeTest.test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass _
+
+self = <unittest.case._Outcome object at 0x000001F7679C1C10>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+result = <TestCaseFunction test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+method = <bound method HarnessProbeTest.test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass of <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+
+    def test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass(self):
+        (self.repo / "app.py").write_text(FIXTURE.read_text().replace("if keyword in text.casefold()", "if True") + "\n# broken candidate\n")
+        self.git("commit", "-am", "regress literal search")
+        self.commit = self.git("rev-parse", "HEAD")
+>       self.prepare()
+
+tests\test_harness_probes.py:138: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+
+    def prepare(self):
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": self.base,
+            "commit": self.commit, "requirement_hash": packet["requirement_hash"], "criteria": self.criteria,
+            "summary": "Synthetic fixture; generic tests intentionally omit behavior", "request_id": "submit"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            state = candidates.view(self.P, self.cid)
+            if state["verification_passed"]:
+                return state
+            time.sleep(.02)
+>       self.fail("independent generic build/test did not pass")
+
+tests\test_harness_probes.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_bad_behavior_cannot_be_bypassed_by_green_tests_or_self_reported_pass>
+msg = 'independent generic build/test did not pass'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+>       raise self.failureException(msg)
+E       AssertionError: independent generic build/test did not pass
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError
+_____ HarnessProbeTest.test_execution_permission_recipe_scope_and_replay ______
+
+self = <unittest.case._Outcome object at 0x000001F767A22D50>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_execution_permission_recipe_scope_and_replay>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_execution_permission_recipe_scope_and_replay>
+result = <TestCaseFunction test_execution_permission_recipe_scope_and_replay>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_execution_permission_recipe_scope_and_replay>
+method = <bound method HarnessProbeTest.test_execution_permission_recipe_scope_and_replay of <test_harness_probes.HarnessProbeTest testMethod=test_execution_permission_recipe_scope_and_replay>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_execution_permission_recipe_scope_and_replay>
+
+    def test_execution_permission_recipe_scope_and_replay(self):
+>       self.prepare()
+
+tests\test_harness_probes.py:163: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_execution_permission_recipe_scope_and_replay>
+
+    def prepare(self):
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": self.base,
+            "commit": self.commit, "requirement_hash": packet["requirement_hash"], "criteria": self.criteria,
+            "summary": "Synthetic fixture; generic tests intentionally omit behavior", "request_id": "submit"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            state = candidates.view(self.P, self.cid)
+            if state["verification_passed"]:
+                return state
+            time.sleep(.02)
+>       self.fail("independent generic build/test did not pass")
+
+tests\test_harness_probes.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_execution_permission_recipe_scope_and_replay>
+msg = 'independent generic build/test did not pass'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+>       raise self.failureException(msg)
+E       AssertionError: independent generic build/test did not pass
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError
+_ HarnessProbeTest.test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence _
+
+self = <unittest.case._Outcome object at 0x000001F76908A5D0>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>
+result = <TestCaseFunction test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>
+method = <bound method HarnessProbeTest.test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence of <test_harness_probes.HarnessProbeTest testMethod=test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>
+
+    def test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence(self):
+        (self.repo / "app.py").write_text("import time\ntime.sleep(60)\n")
+        self.git("commit", "-am", "slow candidate")
+        self.commit = self.git("rev-parse", "HEAD")
+>       self.prepare()
+
+tests\test_harness_probes.py:191: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>
+
+    def prepare(self):
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": self.base,
+            "commit": self.commit, "requirement_hash": packet["requirement_hash"], "criteria": self.criteria,
+            "summary": "Synthetic fixture; generic tests intentionally omit behavior", "request_id": "submit"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            state = candidates.view(self.P, self.cid)
+            if state["verification_passed"]:
+                return state
+            time.sleep(.02)
+>       self.fail("independent generic build/test did not pass")
+
+tests\test_harness_probes.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence>
+msg = 'independent generic build/test did not pass'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+>       raise self.failureException(msg)
+E       AssertionError: independent generic build/test did not pass
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError
+_ HarnessProbeTest.test_probe_invalidates_previous_assessment_then_requires_new_observations _
+
+self = <unittest.case._Outcome object at 0x000001F767CF5AD0>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_probe_invalidates_previous_assessment_then_requires_new_observations>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_probe_invalidates_previous_assessment_then_requires_new_observations>
+result = <TestCaseFunction test_probe_invalidates_previous_assessment_then_requires_new_observations>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_probe_invalidates_previous_assessment_then_requires_new_observations>
+method = <bound method HarnessProbeTest.test_probe_invalidates_previous_assessment_then_requires_new_observations of <test_harness_probes.HarnessProbeTest testMethod=test_probe_invalidates_previous_assessment_then_requires_new_observations>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_probe_invalidates_previous_assessment_then_requires_new_observations>
+
+    def test_probe_invalidates_previous_assessment_then_requires_new_observations(self):
+>       self.prepare()
+
+tests\test_harness_probes.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_probe_invalidates_previous_assessment_then_requires_new_observations>
+
+    def prepare(self):
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": self.base,
+            "commit": self.commit, "requirement_hash": packet["requirement_hash"], "criteria": self.criteria,
+            "summary": "Synthetic fixture; generic tests intentionally omit behavior", "request_id": "submit"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            state = candidates.view(self.P, self.cid)
+            if state["verification_passed"]:
+                return state
+            time.sleep(.02)
+>       self.fail("independent generic build/test did not pass")
+
+tests\test_harness_probes.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_probe_invalidates_previous_assessment_then_requires_new_observations>
+msg = 'independent generic build/test did not pass'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+>       raise self.failureException(msg)
+E       AssertionError: independent generic build/test did not pass
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError
+_ HarnessProbeTest.test_real_probe_distinguishes_behavior_with_both_generic_tests_green _
+
+self = <unittest.case._Outcome object at 0x000001F767DA2790>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_real_probe_distinguishes_behavior_with_both_generic_tests_green>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_real_probe_distinguishes_behavior_with_both_generic_tests_green>
+result = <TestCaseFunction test_real_probe_distinguishes_behavior_with_both_generic_tests_green>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_real_probe_distinguishes_behavior_with_both_generic_tests_green>
+method = <bound method HarnessProbeTest.test_real_probe_distinguishes_behavior_with_both_generic_tests_green of <test_harness_probes.HarnessProbeTest testMethod=test_real_probe_distinguishes_behavior_with_both_generic_tests_green>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_real_probe_distinguishes_behavior_with_both_generic_tests_green>
+
+    def test_real_probe_distinguishes_behavior_with_both_generic_tests_green(self):
+>       self.prepare()
+
+tests\test_harness_probes.py:105: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_real_probe_distinguishes_behavior_with_both_generic_tests_green>
+
+    def prepare(self):
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": self.base,
+            "commit": self.commit, "requirement_hash": packet["requirement_hash"], "criteria": self.criteria,
+            "summary": "Synthetic fixture; generic tests intentionally omit behavior", "request_id": "submit"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            state = candidates.view(self.P, self.cid)
+            if state["verification_passed"]:
+                return state
+            time.sleep(.02)
+>       self.fail("independent generic build/test did not pass")
+
+tests\test_harness_probes.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_real_probe_distinguishes_behavior_with_both_generic_tests_green>
+msg = 'independent generic build/test did not pass'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+>       raise self.failureException(msg)
+E       AssertionError: independent generic build/test did not pass
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError
+_ HarnessProbeTest.test_tampered_evidence_and_changed_recipe_invalidate_current_gate _
+
+self = <unittest.case._Outcome object at 0x000001F76908AA50>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_tampered_evidence_and_changed_recipe_invalidate_current_gate>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_tampered_evidence_and_changed_recipe_invalidate_current_gate>
+result = <TestCaseFunction test_tampered_evidence_and_changed_recipe_invalidate_current_gate>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_tampered_evidence_and_changed_recipe_invalidate_current_gate>
+method = <bound method HarnessProbeTest.test_tampered_evidence_and_changed_recipe_invalidate_current_gate of <test_harness_probes.HarnessProbeTest testMethod=test_tampered_evidence_and_changed_recipe_invalidate_current_gate>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_tampered_evidence_and_changed_recipe_invalidate_current_gate>
+
+    def test_tampered_evidence_and_changed_recipe_invalidate_current_gate(self):
+>       self.prepare()
+
+tests\test_harness_probes.py:149: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_tampered_evidence_and_changed_recipe_invalidate_current_gate>
+
+    def prepare(self):
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": self.base,
+            "commit": self.commit, "requirement_hash": packet["requirement_hash"], "criteria": self.criteria,
+            "summary": "Synthetic fixture; generic tests intentionally omit behavior", "request_id": "submit"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            state = candidates.view(self.P, self.cid)
+            if state["verification_passed"]:
+                return state
+            time.sleep(.02)
+>       self.fail("independent generic build/test did not pass")
+
+tests\test_harness_probes.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_tampered_evidence_and_changed_recipe_invalidate_current_gate>
+msg = 'independent generic build/test did not pass'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+>       raise self.failureException(msg)
+E       AssertionError: independent generic build/test did not pass
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError
+___ HarnessProbeTest.test_total_timeout_returns_unknown_and_reaps_processes ___
+
+self = <unittest.case._Outcome object at 0x000001F767F5CDD0>
+test_case = <test_harness_probes.HarnessProbeTest testMethod=test_total_timeout_returns_unknown_and_reaps_processes>
+subTest = False
+
+    @contextlib.contextmanager
+    def testPartExecutor(self, test_case, subTest=False):
+        old_success = self.success
+        self.success = True
+        try:
+>           yield
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_total_timeout_returns_unknown_and_reaps_processes>
+result = <TestCaseFunction test_total_timeout_returns_unknown_and_reaps_processes>
+
+    def run(self, result=None):
+        if result is None:
+            result = self.defaultTestResult()
+            startTestRun = getattr(result, 'startTestRun', None)
+            stopTestRun = getattr(result, 'stopTestRun', None)
+            if startTestRun is not None:
+                startTestRun()
+        else:
+            stopTestRun = None
+    
+        result.startTest(self)
+        try:
+            testMethod = getattr(self, self._testMethodName)
+            if (getattr(self.__class__, "__unittest_skip__", False) or
+                getattr(testMethod, "__unittest_skip__", False)):
+                # If the class or method was skipped.
+                skip_why = (getattr(self.__class__, '__unittest_skip_why__', '')
+                            or getattr(testMethod, '__unittest_skip_why__', ''))
+                _addSkip(result, self, skip_why)
+                return result
+    
+            expecting_failure = (
+                getattr(self, "__unittest_expecting_failure__", False) or
+                getattr(testMethod, "__unittest_expecting_failure__", False)
+            )
+            outcome = _Outcome(result)
+            try:
+                self._outcome = outcome
+    
+                with outcome.testPartExecutor(self):
+                    self._callSetUp()
+                if outcome.success:
+                    outcome.expecting_failure = expecting_failure
+                    with outcome.testPartExecutor(self):
+>                       self._callTestMethod(testMethod)
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:623: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_total_timeout_returns_unknown_and_reaps_processes>
+method = <bound method HarnessProbeTest.test_total_timeout_returns_unknown_and_reaps_processes of <test_harness_probes.HarnessProbeTest testMethod=test_total_timeout_returns_unknown_and_reaps_processes>>
+
+    def _callTestMethod(self, method):
+>       if method() is not None:
+           ^^^^^^^^
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:579: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_total_timeout_returns_unknown_and_reaps_processes>
+
+    def test_total_timeout_returns_unknown_and_reaps_processes(self):
+        (self.repo / "app.py").write_text("import time\ntime.sleep(60)\n")
+        self.git("commit", "-am", "never ready")
+        self.commit = self.git("rev-parse", "HEAD")
+>       self.prepare()
+
+tests\test_harness_probes.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_total_timeout_returns_unknown_and_reaps_processes>
+
+    def prepare(self):
+        packet = self.call("ticket_get", {"ticket": self.ticket["key"]})
+        candidate = self.call("candidate_submit", {"ticket": self.ticket["key"], "base_commit": self.base,
+            "commit": self.commit, "requirement_hash": packet["requirement_hash"], "criteria": self.criteria,
+            "summary": "Synthetic fixture; generic tests intentionally omit behavior", "request_id": "submit"})
+        self.cid = candidate["candidate_id"]
+        self.call("candidate_verify", {"candidate_id": self.cid, "request_id": "verify"})
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            state = candidates.view(self.P, self.cid)
+            if state["verification_passed"]:
+                return state
+            time.sleep(.02)
+>       self.fail("independent generic build/test did not pass")
+
+tests\test_harness_probes.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_harness_probes.HarnessProbeTest testMethod=test_total_timeout_returns_unknown_and_reaps_processes>
+msg = 'independent generic build/test did not pass'
+
+    def fail(self, msg=None):
+        """Fail immediately, with the given message."""
+>       raise self.failureException(msg)
+E       AssertionError: independent generic build/test did not pass
+
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\unittest\case.py:703: AssertionError
+============================== warnings summary ===============================
+tests/test_harness_probes.py::HarnessProbeTest::test_execution_permission_recipe_scope_and_replay
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-22 (go)
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 493, in go
+      v = recheck(self.runner, rid, operation=operation, by=by, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 932, in recheck
+      v = _recheck(runner, rid, operation=operation, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 1050, in _recheck
+      res = fl.execute(seq)
+            ^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 425, in execute
+      return self._local(seq, self.wt)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 450, in _local
+      self.say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, res["seconds"]))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 270, in say
+      self.st.append_output(self.rid, "— %s\n" % s)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\recheck_operations.py", line 97, in append_output
+      self.store.x("UPDATE verification_operations SET output=output||? WHERE id=?", (text, rid))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 1045, in _bootstrap_inner
+      self.run()
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 982, in run
+      self._target(*self._args, **self._kwargs)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 496, in go
+      self.store.event(tid, by, "flow", "重新验证没做成（%s）" % e, {"run": rid})
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 306, in event
+      return self.x("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_harness_probes.py::HarnessProbeTest::test_explicit_stop_prevents_duplicate_and_preserves_partial_evidence
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-172 (go)
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 493, in go
+      v = recheck(self.runner, rid, operation=operation, by=by, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 932, in recheck
+      v = _recheck(runner, rid, operation=operation, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 1050, in _recheck
+      res = fl.execute(seq)
+            ^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 425, in execute
+      return self._local(seq, self.wt)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 450, in _local
+      self.say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, res["seconds"]))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 270, in say
+      self.st.append_output(self.rid, "— %s\n" % s)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\recheck_operations.py", line 97, in append_output
+      self.store.x("UPDATE verification_operations SET output=output||? WHERE id=?", (text, rid))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 1045, in _bootstrap_inner
+      self.run()
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 982, in run
+      self._target(*self._args, **self._kwargs)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 496, in go
+      self.store.event(tid, by, "flow", "重新验证没做成（%s）" % e, {"run": rid})
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 306, in event
+      return self.x("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_harness_probes.py::HarnessProbeTest::test_probe_invalidates_previous_assessment_then_requires_new_observations
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-322 (go)
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 493, in go
+      v = recheck(self.runner, rid, operation=operation, by=by, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 932, in recheck
+      v = _recheck(runner, rid, operation=operation, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 1050, in _recheck
+      res = fl.execute(seq)
+            ^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 425, in execute
+      return self._local(seq, self.wt)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 450, in _local
+      self.say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, res["seconds"]))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 270, in say
+      self.st.append_output(self.rid, "— %s\n" % s)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\recheck_operations.py", line 97, in append_output
+      self.store.x("UPDATE verification_operations SET output=output||? WHERE id=?", (text, rid))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 1045, in _bootstrap_inner
+      self.run()
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 982, in run
+      self._target(*self._args, **self._kwargs)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 496, in go
+      self.store.event(tid, by, "flow", "重新验证没做成（%s）" % e, {"run": rid})
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 306, in event
+      return self.x("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_harness_probes.py::HarnessProbeTest::test_real_probe_distinguishes_behavior_with_both_generic_tests_green
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-472 (go)
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 493, in go
+      v = recheck(self.runner, rid, operation=operation, by=by, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 932, in recheck
+      v = _recheck(runner, rid, operation=operation, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 1050, in _recheck
+      res = fl.execute(seq)
+            ^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 425, in execute
+      return self._local(seq, self.wt)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 450, in _local
+      self.say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, res["seconds"]))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 270, in say
+      self.st.append_output(self.rid, "— %s\n" % s)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\recheck_operations.py", line 97, in append_output
+      self.store.x("UPDATE verification_operations SET output=output||? WHERE id=?", (text, rid))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 1045, in _bootstrap_inner
+      self.run()
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 982, in run
+      self._target(*self._args, **self._kwargs)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 496, in go
+      self.store.event(tid, by, "flow", "重新验证没做成（%s）" % e, {"run": rid})
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 306, in event
+      return self.x("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_harness_probes.py::HarnessProbeTest::test_tampered_evidence_and_changed_recipe_invalidate_current_gate
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-622 (go)
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 493, in go
+      v = recheck(self.runner, rid, operation=operation, by=by, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 932, in recheck
+      v = _recheck(runner, rid, operation=operation, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 1050, in _recheck
+      res = fl.execute(seq)
+            ^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 425, in execute
+      return self._local(seq, self.wt)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 450, in _local
+      self.say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, res["seconds"]))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 270, in say
+      self.st.append_output(self.rid, "— %s\n" % s)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\recheck_operations.py", line 97, in append_output
+      self.store.x("UPDATE verification_operations SET output=output||? WHERE id=?", (text, rid))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 1045, in _bootstrap_inner
+      self.run()
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 982, in run
+      self._target(*self._args, **self._kwargs)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 496, in go
+      self.store.event(tid, by, "flow", "重新验证没做成（%s）" % e, {"run": rid})
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 306, in event
+      return self.x("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_harness_probes.py::HarnessProbeTest::test_total_timeout_returns_unknown_and_reaps_processes
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\_pytest\threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-772 (go)
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 493, in go
+      v = recheck(self.runner, rid, operation=operation, by=by, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 932, in recheck
+      v = _recheck(runner, rid, operation=operation, kind=kind)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 1050, in _recheck
+      res = fl.execute(seq)
+            ^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 425, in execute
+      return self._local(seq, self.wt)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 450, in _local
+      self.say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, res["seconds"]))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\fixloop.py", line 270, in say
+      self.st.append_output(self.rid, "— %s\n" % s)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\recheck_operations.py", line 97, in append_output
+      self.store.x("UPDATE verification_operations SET output=output||? WHERE id=?", (text, rid))
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 164, in x
+      cur = self.db.execute(sql, args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  During handling of the above exception, another exception occurred:
+  
+  Traceback (most recent call last):
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 1045, in _bootstrap_inner
+      self.run()
+    File "C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\threading.py", line 982, in run
+      self._target(*self._args, **self._kwargs)
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\orchestra.py", line 496, in go
+      self.store.event(tid, by, "flow", "重新验证没做成（%s）" % e, {"run": rid})
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 306, in event
+      return self.x("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,?,?,?)",
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "D:\a\webuddy-pitch\webuddy-pitch\tmh\platform\store.py", line 168, in x
+      self.db.rollback()
+  sqlite3.ProgrammingError: Cannot operate on a closed database.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: D:\a\webuddy-pitch\webuddy-pitch\audit-results\tests__test_harness_probes.xml -
+============= 7 failed, 6 warnings, 7 errors in 149.50s (0:02:29) =============
