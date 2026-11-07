@@ -1,0 +1,20 @@
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+{
+  exceptionId: 2,
+  text: 'Uncaught',
+  lineNumber: 0,
+  columnNumber: 93,
+  scriptId: '79',
+  exception: {
+    type: 'object',
+    subtype: 'error',
+    className: 'ReferenceError',
+    description: 'ReferenceError: info is not defined\n    at <anonymous>:1:94',
+    objectId: '2784463557188702236.12.2'
+  }
+}
+
+Node.js v24.16.0
