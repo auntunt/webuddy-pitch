@@ -159,7 +159,8 @@ def main():
         for archive in archives:
             install_wheel(archive, packages, root / 'runtime/python/Scripts')
         (root / 'runtime/python/python314._pth').write_text('python314.zip\n.\nLib/site-packages\nimport site\n', newline='\n')
-        for filename in ('launcher.py', 'webuddy.cmd', 'start.cmd', 'check.cmd', 'config.example.json', 'README.txt'):
+        for filename in ('launcher.py', 'webuddy.cmd', 'start.cmd', 'check.cmd', 'config.example.json', 'README.txt',
+                         'configure-firewall.ps1', 'show-network-access.ps1'):
             (root / filename).write_bytes(specification(filename))
         (root / 'payloads.lock.json').write_bytes(lock_bytes)
         release.update(target='windows-x86_64', python=lock['python']['version'],
