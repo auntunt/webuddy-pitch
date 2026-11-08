@@ -44,7 +44,7 @@ def configuration(root, filename):
     if not isinstance(host, str) or not 1 <= port <= 65535:
         raise ValueError('Invalid host or port')
     tools = config.get('tools', {})
-    if set(tools) - {'codex', 'claude', 'git', 'node'}:
+    if set(tools) - {'codex', 'claude', 'git', 'node', 'cursor'}:
         raise ValueError('Unknown tool override')
     return config, env, data, host, port
 
@@ -63,8 +63,19 @@ def resolve_tools(root, overrides, environment):
         if not path.is_file():
             raise ValueError('Tool not found: ' + name)
         selected[name] = dict(path=str(path), source='configured' if explicit else 'local' if local else 'bundled')
+    explicit = overrides.get('cursor')
+    if explicit and not Path(explicit).is_absolute():
+        raise ValueError('Tool override must be an absolute path: cursor')
+    local = explicit or shutil.which('agent', path=env.get('PATH', '')) or shutil.which('cursor-agent', path=env.get('PATH', ''))
+    if local:
+        if not Path(local).is_file():
+            raise ValueError('Tool not found: cursor')
+        selected['cursor'] = dict(path=str(local), source='configured' if explicit else 'local', available=True)
+        env['WEBUDDY_CURSOR_BIN'] = str(local)
+    else:
+        selected['cursor'] = dict(source='not_installed', available=False)
     # Explicit selection must win over PATH. This only affects this process tree.
-    dirs = [str(Path(row['path']).parent) for row in selected.values()]
+    dirs = [str(Path(row['path']).parent) for row in selected.values() if row.get('path')]
     dirs += [str(root / 'tools/codex/package/vendor/x86_64-pc-windows-msvc/codex-path')]
     env['PATH'] = os.pathsep.join(dirs + [env.get('PATH', '')])
     if not env.get('CLAUDE_CODE_GIT_BASH_PATH'):
@@ -74,6 +85,8 @@ def resolve_tools(root, overrides, environment):
             bash = root / 'tools/git/bin/bash.exe'
         env['CLAUDE_CODE_GIT_BASH_PATH'] = str(bash)
     for name, row in selected.items():
+        if not row.get('path'):
+            continue
         result = subprocess.run([row['path'], '--version'], env=env, capture_output=True,
                                 encoding='utf-8', errors='replace', timeout=30)
         if result.returncode:
@@ -95,8 +108,8 @@ def main(argv=None):
     config, env, data, host, port = configuration(ROOT, args.config)
     selected, env = resolve_tools(ROOT, config.get('tools', {}), env)
     if args.action == 'tool':
-        if not args.arguments or args.arguments[0] not in selected:
-            raise ValueError('tool requires codex, claude, git or node, followed by its arguments')
+        if not args.arguments or args.arguments[0] not in selected or not selected[args.arguments[0]].get('path'):
+            raise ValueError('tool requires an installed codex, claude, git, node or cursor, followed by its arguments')
         return subprocess.call([selected[args.arguments[0]]['path'], *args.arguments[1:]], env=env)
     from tmh.deployment import check_config, load_secrets
     report = dict(bundle_files_verified=count, tools=selected, data_dir=str(data),

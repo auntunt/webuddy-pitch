@@ -55,7 +55,7 @@ BUILTIN = {
                             "edit": "sonnet", "diagnose": "opus", "understand": "sonnet"}},
     "codex": {"title": "Codex", "bin": "codex",
               "models": [["gpt-5-codex", "GPT-5 Codex"], ["gpt-5", "GPT-5"]], "defaults": {}},
-    "cursor": {"title": "Cursor Agent（只读）", "bin": "cursor-agent", "models": [], "defaults": {},
+    "cursor": {"title": "Cursor Agent", "bin": "agent", "models": [], "defaults": {},
                "resume": False, "retry_busy": False},
 }
 MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:\-\[\]/]{0,79}$")  # alias or full id; passed as one argv item
@@ -74,7 +74,7 @@ def engine_name(agent: str, config: dict) -> str:
         if not isinstance(args, list) or any(not isinstance(arg, str) for arg in args):
             raise ValueError("独立执行器 args 必须是字符串列表")
     if engine == "cursor" and config.get("args"):
-        raise ValueError("Cursor 不支持额外命令参数；模型请使用模型配置，审批策略由 Cursor 管理")
+        raise ValueError("Cursor 不支持额外命令参数；模型请使用模型配置，执行权限由平台任务模式决定")
     if "profile" in config:
         profile = config["profile"]
         if engine != "codex" or "cmd" in config or not isinstance(profile, str) or not PROFILE_ID.fullmatch(profile):
@@ -313,6 +313,16 @@ def load_config(data_dir: Path) -> dict:
     return conf
 
 
+def executable(engine: str, config: dict) -> str:
+    exe = config.get("bin", "agent" if engine == "cursor" else engine)
+    if engine == "cursor" and exe in ("agent", "cursor-agent"):
+        configured = os.environ.get("WEBUDDY_CURSOR_BIN")
+        if configured:
+            return configured
+        return shutil.which("agent") or shutil.which("cursor-agent") or "agent"
+    return exe
+
+
 def available(data_dir: Path) -> list:
     out = []
     for name, c in load_config(data_dir).items():
@@ -321,10 +331,12 @@ def available(data_dir: Path) -> list:
             engine = engine_name(name, c)
         except ValueError as exc:
             engine, error = "", str(exc)
-        exe = (c.get("cmd") or [c.get("bin", engine or name)])[0]
+        exe = (c.get("cmd") or [executable(engine or name, c)])[0]
         item = {"name": name, "title": c.get("title", name), "available": not error and bool(shutil.which(exe)),
                 "custom": "cmd" in c, "models": c.get("models") or [], "defaults": c.get("defaults") or {},
                 "engine": engine, "profile": c.get("profile", "")}
+        if engine == "cursor" and item["title"] == "Cursor Agent（只读）":
+            item["title"] = "Cursor Agent"
         if error:
             item["configuration_error"] = error
         out.append(item)
@@ -649,7 +661,7 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
         sub = {"{prompt}": prompt, "{prompt_file}": str(prompt_file), "{workdir}": str(workdir), "{mode}": mode, "{model}": model,
                "{resume}": resume}
         return [sub.get(a, a) for a in c["cmd"]]
-    exe = c.get("bin", engine)
+    exe = executable(engine, c)
     extra = list(c.get("args") or [])
     if model:  # the model picked for this run wins over one fixed in agents.json args
         for flag in ("--model", "-m"):
@@ -679,10 +691,9 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
         return [exe, "exec", "--sandbox", sandbox, "--skip-git-repo-check", "-C", str(workdir),
                 "--output-last-message", str(last_msg)] + extra + (["resume", resume] if resume else []) + [prompt_arg]
     if engine == "cursor":
-        # Headless writes require --force. Keep them blocked until governed approval is supported.
-        if mode in ("fix", "edit", "kb", "chart"):
-            raise ValueError("Cursor 当前只接入只读任务；无交互写入需要强制审批参数，本接入不自动授权。请使用 Cursor 人工交互或已有写入执行器")
-        return [exe, "--print", "--output-format", "stream-json", "--sandbox", "enabled", "--mode", "ask"] + extra + (["--resume", resume] if resume else []) + [prompt]
+        # Platform authorization selects the mode; readonly calls never receive write permission.
+        policy = ["--force"] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]
+        return [exe, "--print", "--output-format", "stream-json", "--sandbox", "enabled"] + policy + extra + (["--resume", resume] if resume else [])
     raise ValueError("智能体 %s 没有配置 cmd" % agent)
 
 
@@ -2174,7 +2185,7 @@ class Runner:
                 st.append_output(rid, "".join(buf))
                 buf, last = [], time.monotonic()
         custom = conf[agent].get("cmd")
-        use_stdin = custom is None and (engine == "claude" or conf[agent].get("prompt_transport") == "stdin")
+        use_stdin = custom is None and (engine in ("claude", "cursor") or conf[agent].get("prompt_transport") == "stdin")
         transport = (["stdin"] if use_stdin else ["argv"]) if custom is None else (
             (["argv"] if "{prompt}" in custom else []) + (["prompt_file_argument"] if "{prompt_file}" in custom else []))
         try:

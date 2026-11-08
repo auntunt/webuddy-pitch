@@ -1903,7 +1903,7 @@ async function agentSettingsLoad(){
     el.innerHTML=`<div class="hdr"><h2 class="grow">智能体</h2><button id="agentRefresh">刷新状态</button>${d.can_edit?'<button id="agentAdd">添加执行器</button>':''}</div>
       ${route.agent?`<p>默认执行器：<b>${h(route.agent)}</b></p>`:''}
       ${d.agents.map(a=>`<div class="flowrow"><span class="grow"><b>${h(a.title)}</b><span class="sub"> · ${h(a.name)}</span><div class="sub">${h(a.engine||'自定义命令')}${a.profile?' · '+h(a.profile):''}</div></span><span class="tag ${a.available?'':'warn'}">${a.available?'命令已安装':a.configuration_error?'配置错误':'命令未找到'}</span><button data-agent-edit="${h(a.name)}">${d.can_edit?'配置':'查看'}</button></div>`).join('')}
-      <p class="sub">安装状态不代表账号已登录或模型调用成功。凭据沿用服务器现有配置。Cursor 当前支持只读分析与问答，写入任务受阻；使用安装机器上的 CLI 和登录账号。</p><div id="agentSettingsError" role="status"></div>`;
+      <p class="sub">安装状态不代表账号已登录或模型调用成功。凭据沿用服务器现有配置。Cursor 使用安装机器上的 agent 命令与登录账号；修改任务仍须具备项目执行权限。</p><div id="agentSettingsError" role="status"></div>`;
     $('#agentRefresh').onclick=agentSettingsLoad;
     if($('#agentAdd'))$('#agentAdd').onclick=()=>agentSettingsEdit(d,null);
     el.querySelectorAll('[data-agent-edit]').forEach(b=>b.onclick=()=>agentSettingsEdit(d,d.agents.find(a=>a.name===b.dataset.agentEdit)));
@@ -1913,7 +1913,7 @@ function agentSettingsEdit(d,a){
   let fresh=!a;a=a||{name:'',title:'',engine:'codex',profile:'',models:[],defaults:{},timeout:1800};
   const labels={analyze:'分析',plan:'方案',fix:'修改',edit:'编辑',diagnose:'诊断',ask:'问答',kb:'知识',chart:'图解',understand:'需求理清'};
   modal(`<h2>${fresh?'添加执行器':h(a.title)}</h2><form id="agentForm" class="form">
-    ${fresh?'<label>执行引擎<select id="agentEngine"><option value="codex">Codex</option><option value="cursor">Cursor Agent（只读）</option></select></label>':''}
+    ${fresh?'<label>执行引擎<select id="agentEngine"><option value="codex">Codex</option><option value="cursor">Cursor Agent</option></select></label>':''}
     <label>代号<input class="full" id="agentName" value="${h(a.name)}" ${fresh?'required':'readonly'}></label>
     <label>显示名称<input class="full" id="agentTitle" value="${h(a.title)}" required maxlength="100"></label>
     ${a.engine==='codex'&&!a.custom?`<label id="agentProfileField">Codex 配置档<input class="full" id="agentProfile" value="${h(a.profile)}" placeholder="留空沿用默认配置"></label>`:''}

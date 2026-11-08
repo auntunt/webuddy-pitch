@@ -120,6 +120,31 @@ class WindowsOfflineBundleTest(unittest.TestCase):
                     launcher.resolve_tools(root, {}, environment)
                 self.assertNotIn('private', str(raised.exception))
 
+    def test_cursor_agent_is_optional_detected_and_explicit_config_reaches_runner(self):
+        from tmh.platform import agents
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            tools = {name: name+'.exe' for name in ('node', 'git', 'codex', 'claude')}
+            for name in tools.values():
+                (root/name).touch()
+            (root/'release.json').write_text(json.dumps(dict(tools=tools)))
+            cli = root/'agent.cmd'
+            cli.touch()
+            probe = subprocess.CompletedProcess([], 0, stdout='fixture version', stderr='')
+            with patch.object(launcher.shutil, 'which', return_value=None), patch.object(launcher.subprocess, 'run', return_value=probe):
+                selected, env = launcher.resolve_tools(root, {}, {'PATH':''})
+                self.assertFalse(selected['cursor']['available'])
+                selected, env = launcher.resolve_tools(root, {'cursor':str(cli)}, {'PATH':''})
+                self.assertEqual(selected['cursor']['source'], 'configured')
+                with patch.dict(os.environ, env):
+                    self.assertEqual(agents.executable('cursor', {'bin':'cursor-agent'}), str(cli))
+                with self.assertRaisesRegex(ValueError, 'absolute'):
+                    launcher.resolve_tools(root, {'cursor':'relative.cmd'}, {'PATH':''})
+            with patch.object(launcher.shutil, 'which', side_effect=lambda name, **kw: str(cli) if name=='agent' else None), patch.object(launcher.subprocess, 'run', return_value=probe):
+                selected, env = launcher.resolve_tools(root, {}, {'PATH':''})
+                self.assertTrue(selected['cursor']['available'])
+                self.assertEqual(selected['cursor']['path'], str(cli))
+
 
 if __name__ == '__main__':
     unittest.main()

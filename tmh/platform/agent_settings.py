@@ -79,7 +79,7 @@ def save(data_dir, body):
             if engine == 'codex':
                 c['prompt_transport'] = 'stdin'
             else:
-                c['bin'] = 'cursor-agent'
+                c['bin'] = 'agent'
         if 'profile' in value:
             profile = value['profile']
             if not isinstance(profile, str) or profile and not agents.PROFILE_ID.fullmatch(profile):

@@ -49,7 +49,8 @@ def main():
     env = default_env.copy()
     env['PATH'] = os.environ['SystemRoot'] + r'\System32'
     records['bundled'] = json.loads(call('check', env=env).stdout)
-    assert all(row['source'] == 'bundled' for row in records['bundled']['tools'].values())
+    assert all(records['bundled']['tools'][name]['source'] == 'bundled' for name in ('node', 'git', 'codex', 'claude'))
+    assert records['bundled']['tools']['cursor']['available'] is False
     wrapped = subprocess.run([str(root / 'webuddy.cmd'), 'tool', 'codex', '--version'],
                              env=env, capture_output=True, text=True, timeout=90)
     assert wrapped.returncode == 0, (wrapped.stdout, wrapped.stderr)

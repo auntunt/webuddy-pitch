@@ -24,7 +24,7 @@ check 只检查可执行文件和配置；不证明模型已登录或项目沙�
 也可以设置 WEBUDDY_CONFIG 环境变量再双击 start.cmd。
 config 字段：data_dir、host、port、environment、tools。
 相对 data_dir 相对于当前工作目录；建议使用绝对路径。
-tools 中可以填写 codex、claude、git、node 的完整可执行文件路径。
+tools 中可以填写 codex、claude、git、node、cursor 的完整可执行文件路径。
 environment 中填写所需环境变量（值为字符串），或从启动终端继承。
 例如 TMH_TOKEN_FILE、CODEX_HOME、ANTHROPIC_BASE_URL、ANTHROPIC_API_KEY。
 TMH_TOKEN 与 TMH_TOKEN_FILE 只能设置一个，文件中的值不会打印。
@@ -62,3 +62,13 @@ Windows 客户端可通过 MCP 连接该服务端。项目生成的 shell hooks 
 直接命令与 MCP 可使用本包 Python 的绝对路径；未声明原生 Windows hooks 宿主已验证。
 升级：先停止旧包并备份外部数据/配置，再解压新包到新目录，check 后指定原配置启动。
 保留旧包；回退仅切程序目录，数据库变更须按对应版本的兼容说明核对。
+
+Cursor Agent：本包支持调用本机 agent 命令（兼容 cursor-agent），不内置 Cursor CLI 安装包或账号。
+check.cmd 会显示 Cursor 检测结果；未安装不影响其他执行器启动。
+自定义路径可在包外配置 tools.cursor 为 agent 的绝对可执行文件路径；其他已有字段保留。
+  webuddy.cmd tool cursor --version
+  webuddy.cmd tool cursor login
+仅安装 Cursor 编辑器不等于已安装 CLI；请在运行 Webuddy 的同一系统账号完成登录。
+设置页中的 Cursor 支持分析与获准的修改任务。只读任务使用 Ask 模式；修改任务传 --force，
+始终启用 Cursor 沙箱，仍须满足项目执行权限、需求确认、候选验证和人工验收门禁。
+不自动批准工作区信任或 MCP 服务。真实 Cursor 模型与客户设备调用须按现场实际结果核对。
