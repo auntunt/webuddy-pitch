@@ -53,3 +53,15 @@ getHandler=url=>{if(url==='/api/meta')throw Error('刷新失败');return data};a
 assert.equal(mutations[0].body.action,'create');assert.match($('#agentSaveState').textContent,/配置已保存；状态刷新失败/);
 await submit('#agentForm');assert.equal(mutations[1].body.action,'update');assert.equal(mutations[1].body.revision,'two');
 ''')
+
+    def test_cursor_create_uses_engine_without_codex_profile(self):
+        self.run_js(r'''
+await agentSettingsLoad();agentSettingsEdit(data,null);
+$('#agentEngine').value='cursor';$('#agentEngine').onchange();
+assert.equal($('#agentProfile').disabled,true);
+$('#agentName').value='team-cursor';$('#agentTitle').value='Cursor';
+postHandler=()=>({...data,revision:'two'});await submit('#agentForm');
+assert.equal(mutations[0].body.config.engine,'cursor');
+assert.equal('profile' in mutations[0].body.config,false);
+assert.equal($('#agentEngine').disabled,true);
+''')

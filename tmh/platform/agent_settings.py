@@ -45,8 +45,8 @@ def save(data_dir, body):
     name, value = body['name'], body['config']
     if not isinstance(name, str) or not agent_routes.AGENT.fullmatch(name):
         raise ApiError(400, '智能体代号只能使用字母、数字、短横线和下划线')
-    if not isinstance(value, dict) or set(value) - {'title', 'models', 'defaults', 'timeout', 'profile'}:
-        raise ApiError(400, '仅支持名称、模型、步骤默认模型、超时和 Codex 配置档')
+    if not isinstance(value, dict) or set(value) - {'title', 'models', 'defaults', 'timeout', 'profile', 'engine'}:
+        raise ApiError(400, '仅支持名称、模型、步骤默认模型、超时、执行引擎和 Codex 配置档')
     title, models, defaults, timeout = (value.get(k) for k in ('title', 'models', 'defaults', 'timeout'))
     if not isinstance(title, str) or not title.strip() or len(title) > 100:
         raise ApiError(400, '填写不超过 100 字的显示名称')
@@ -71,8 +71,15 @@ def save(data_dir, body):
         if body['action'] == 'update' and not existing:
             raise ApiError(404, '智能体不存在，请重新读取配置')
         c = dict(agents.BUILTIN.get(name, {}), **raw.get(name, {}))
+        engine = value.get('engine', 'codex' if not existing else agents.engine_name(name, c))
+        if 'engine' in value and (engine not in ('codex', 'cursor') or existing and engine != agents.engine_name(name, c)):
+            raise ApiError(400, '已有执行器不能更换引擎；新执行器支持 codex/cursor')
         if not existing:
-            c.update(engine='codex', prompt_transport='stdin', resume=False, retry_busy=False)
+            c.update(engine=engine, resume=False, retry_busy=False)
+            if engine == 'codex':
+                c['prompt_transport'] = 'stdin'
+            else:
+                c['bin'] = 'cursor-agent'
         if 'profile' in value:
             profile = value['profile']
             if not isinstance(profile, str) or profile and not agents.PROFILE_ID.fullmatch(profile):

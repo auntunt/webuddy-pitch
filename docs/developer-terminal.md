@@ -223,3 +223,29 @@ Windows 使用安装包的 `runtime\python\python.exe` 代替 `python3`。安装
 这是 Cursor 本地开发和 MCP 接入，不等于平台已获得无人值守调用 Cursor 的能力。本次不安装模拟的 Codex/Claude 钩子，也不把提示词当作只读隔离。自动执行适配还需验证 Cursor CLI 的工具限制、取消回收、运行回执和用量；完成前不作为平台只读 Review 执行器。
 
 验证边界：安装/刷新、中文空格路径、其他 MCP 配置保留、本地实际 stdio 和平台正式 SDK 读取已验证；实际 Cursor CLI 非交互调用遇到登录提示，宿主完整读写链路仍待验证。配置生成与协议测试不代表实际 Cursor 已完成业务任务。
+
+
+## Webuddy 调用 Cursor Agent
+
+这是平台执行器，区别于 Cursor 通过 MCP 读取 Webuddy。管理员在“设置 → 智能体”可配置内置 `cursor`，也可“添加执行器 → Cursor Agent”，设置模型和任务超时。平台原有项目执行器选择会展示它；受个人 Codex 隔离策略约束的连接仍只提供 Codex，不自动扩权。
+
+先在**运行 Webuddy 的机器、运行 Webuddy 的系统账号**中安装并登录 Cursor Agent CLI。仅在另一台电脑安装 Cursor 编辑器，不能让服务器获得执行能力。按 [Cursor 官方安装说明](https://cursor.com/docs/cli/installation)安装，执行 `cursor-agent --help`，确认支持 `--print`、`--output-format stream-json`、`--sandbox enabled` 和 `--mode ask`，再执行 `cursor-agent login`。账号登录由本人完成，不把登录态、API Key 或个人路径提交仓库。
+
+若官方安装只提供 `agent`，或 Webuddy 的服务 PATH 找不到命令，由主机维护者在外部数据目录的 `agents.json` 配置准确的绝对路径；此配置不进入客户程序包。例如以下占位路径须替换为本机实际位置，其他现有配置保留：
+
+```json
+{
+  "cursor": {
+    "bin": "/absolute/path/to/agent",
+    "models": [],
+    "defaults": {},
+    "run_timeout": 1800
+  }
+}
+```
+
+Windows 使用对应可执行文件的绝对路径；本轮没有完成原生 Windows Cursor CLI 或 WSL 的真实模型联调，不把本机协议替身验证当作平台支持证明。命令与工作区必须能被 Webuddy 所在系统直接访问。
+
+执行采用已有 Runner 的隔离工作树、运行日志、预算、超时和停止回执。只读任务使用 Ask 模式并要求启用 Cursor 沙箱。当前明确拒绝 fix/edit/kb/chart 写入任务：[官方无交互说明](https://cursor.com/docs/cli/headless)要求写入使用 `--force`，本接入不以此替代人工审批。因此当前支持分析、方案、问答和诊断，不宣称已接通 Cursor 自动改码。不添加 `--force`、`--yolo`、`--trust` 或 `--approve-mcps`，不修改用户的 Cursor 审批策略。需要登录、信任或工具授权时，应先由本人按 Cursor 规则处理；平台不自动批准。旧 CLI 不支持所需参数时会失败，不降级到无保护执行。
+
+仅退出码为零且收到完整成功结果才记为执行成功。模型结果、会话编号、原始输出和停止过程随运行保存；成功执行仍不等于测试通过或业务验收。默认关闭 Cursor 会话自动续接与繁忙自动重试，恢复通过平台既有检查和新运行进行。已有 MCP、候选、人工验收和发布权限边界保持不变。

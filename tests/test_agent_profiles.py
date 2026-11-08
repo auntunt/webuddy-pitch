@@ -159,8 +159,8 @@ class AgentProfilesTest(unittest.TestCase):
         seen = []
         with mock.patch.object(agents.shutil, 'which', side_effect=lambda name: seen.append(name) or '/synthetic/' + name):
             available = agents.available(self.data)
-        self.assertEqual(seen, ['claude', 'codex', 'codex'])
-        self.assertEqual({a['name'] for a in available}, {'claude', 'codex', 'cloudwave-codex'})
+        self.assertEqual(seen, ['claude', 'codex', 'cursor-agent', 'codex'])
+        self.assertEqual({a['name'] for a in available}, {'claude', 'codex', 'cursor', 'cloudwave-codex'})
         alias = next(a for a in available if a['name'] == 'cloudwave-codex')
         self.assertTrue(alias['available'])
         self.assertEqual((alias['engine'], alias['profile']), ('codex', 'webuddy-cloudwave'))

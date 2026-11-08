@@ -55,6 +55,8 @@ BUILTIN = {
                             "edit": "sonnet", "diagnose": "opus", "understand": "sonnet"}},
     "codex": {"title": "Codex", "bin": "codex",
               "models": [["gpt-5-codex", "GPT-5 Codex"], ["gpt-5", "GPT-5"]], "defaults": {}},
+    "cursor": {"title": "Cursor Agent（只读）", "bin": "cursor-agent", "models": [], "defaults": {},
+               "resume": False, "retry_busy": False},
 }
 MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:\-\[\]/]{0,79}$")  # alias or full id; passed as one argv item
 PROFILE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
@@ -63,14 +65,16 @@ PROFILE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 def engine_name(agent: str, config: dict) -> str:
     """An alias is a route identity; its engine controls the official CLI protocol."""
     engine = config.get("engine", agent)
-    if "engine" in config and (engine != "codex" or "cmd" in config):
-        raise ValueError("独立执行器只支持 engine=codex，不能同时配置 cmd")
+    if "engine" in config and (engine not in ("codex", "cursor") or "cmd" in config):
+        raise ValueError("独立执行器只支持 engine=codex/cursor，不能同时配置 cmd")
     if "engine" in config or "profile" in config:
         args = config.get("args")
         if args is None:
             args = []
         if not isinstance(args, list) or any(not isinstance(arg, str) for arg in args):
             raise ValueError("独立执行器 args 必须是字符串列表")
+    if engine == "cursor" and config.get("args"):
+        raise ValueError("Cursor 不支持额外命令参数；模型请使用模型配置，审批策略由 Cursor 管理")
     if "profile" in config:
         profile = config["profile"]
         if engine != "codex" or "cmd" in config or not isinstance(profile, str) or not PROFILE_ID.fullmatch(profile):
@@ -674,6 +678,11 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
         prompt_arg = "-" if c.get("prompt_transport") == "stdin" else prompt
         return [exe, "exec", "--sandbox", sandbox, "--skip-git-repo-check", "-C", str(workdir),
                 "--output-last-message", str(last_msg)] + extra + (["resume", resume] if resume else []) + [prompt_arg]
+    if engine == "cursor":
+        # Headless writes require --force. Keep them blocked until governed approval is supported.
+        if mode in ("fix", "edit", "kb", "chart"):
+            raise ValueError("Cursor 当前只接入只读任务；无交互写入需要强制审批参数，本接入不自动授权。请使用 Cursor 人工交互或已有写入执行器")
+        return [exe, "--print", "--output-format", "stream-json", "--sandbox", "enabled", "--mode", "ask"] + extra + (["--resume", resume] if resume else []) + [prompt]
     raise ValueError("智能体 %s 没有配置 cmd" % agent)
 
 
@@ -721,7 +730,7 @@ class StreamParser:
                     self.text.append(text + "\n")
                     return text + "\n"
                 return ""
-        if self.agent != "claude":
+        if self.agent not in ("claude", "cursor"):
             self.text.append(line)
             m = None if self.session else re.match(r"\s*session id:\s*(\S+)", line)
             if m:
@@ -745,6 +754,10 @@ class StreamParser:
                     out.append("▸ %s %s\n" % (b.get("name"), _brief(b.get("input"))))
             return "".join(out)
         if t == "result":
+            if self.agent == "cursor":
+                self.completed = ev.get("subtype") == "success" and ev.get("is_error") is False
+                self.failed = not self.completed
+                self.session = ev.get("session_id") or self.session
             self.result = ev.get("result") or ""
             cost = ev.get("total_cost_usd")
             self.reported_cost_usd = cost if type(cost) in (int,float) and math.isfinite(cost) and cost>=0 else None
@@ -2219,9 +2232,9 @@ class Runner:
         if process.reason != "exited":
             st.append_output(rid, "— " + self.stop_message(rid) + "\n")
         code = process.returncode
-        if conf[agent].get("engine") == "codex" and code == 0 and (parser.failed or not parser.completed or not model_reply):
+        if (conf[agent].get("engine") == "codex" or engine == "cursor") and code == 0 and (parser.failed or not parser.completed or not model_reply):
             code = 1
-            result = (result + "\nCodex 没有返回完整的成功回执，请检查原始输出。\n").strip()
+            result = (result + "\n%s 没有返回完整的成功回执，请检查原始输出。\n" % engine).strip()
         return code, result, parser, timing
 
     def _finish_event(self, ticket, rid, agent, mode, status, result, has_diff=False):
