@@ -1901,35 +1901,73 @@ async function agentSettingsLoad(){
   if(S.meta.access&&!S.meta.access.can_manage){el.innerHTML='<h2>智能体</h2><p>请联系管理员查看和配置智能体。项目中的执行器选择仍按你的权限提供。</p>';return}
   try{const d=await get('/api/agent-settings');if($('#agentSettings')!==el)return;
     const route=d.route||{};
-    el.innerHTML=`<div class="hdr"><h2 class="grow">智能体</h2><button id="agentRefresh">刷新状态</button>${d.can_edit?'<button id="agentAdd">添加执行器</button>':''}</div>
+    el.innerHTML=`<div class="hdr"><h2 class="grow">智能体</h2><button id="agentRefresh">刷新状态</button>${d.can_edit?'<button id="agentScan">扫描本机</button><button id="agentAdd">添加执行器</button>':''}</div>
       ${route.agent?`<p>默认执行器：<b>${h(route.agent)}</b></p>`:''}
       ${d.agents.map(a=>`<div class="flowrow"><span class="grow"><b>${h(a.title)}</b><span class="sub"> · ${h(a.name)}</span><div class="sub">${h(a.engine||'自定义命令')}${a.profile?' · '+h(a.profile):''}</div></span><span class="tag ${a.available?'':'warn'}">${a.available?'命令已安装':a.configuration_error?'配置错误':'命令未找到'}</span><button data-agent-edit="${h(a.name)}">${d.can_edit?'配置':'查看'}</button></div>`).join('')}
       <p class="sub">安装状态不代表账号已登录或模型调用成功。凭据沿用服务器现有配置。Cursor 使用安装机器上的 agent 命令与登录账号；修改任务仍须具备项目执行权限。</p><div id="agentSettingsError" role="status"></div>`;
     $('#agentRefresh').onclick=agentSettingsLoad;
+    if($('#agentScan'))$('#agentScan').onclick=()=>agentSettingsScan(d);
     if($('#agentAdd'))$('#agentAdd').onclick=()=>agentSettingsEdit(d,null);
     el.querySelectorAll('[data-agent-edit]').forEach(b=>b.onclick=()=>agentSettingsEdit(d,d.agents.find(a=>a.name===b.dataset.agentEdit)));
   }catch(e){if($('#agentSettings')===el){el.innerHTML='<h2>智能体</h2><p role="alert">'+h(e.message)+'</p><button id="agentRefresh">重试</button>';$('#agentRefresh').onclick=agentSettingsLoad}}
 }
+function agentSettingsScan(d){
+  modal('<h2>扫描本机</h2><div id="scanBox" class="form"><p class="sub">正在查找本机的执行器与配置…</p></div>');
+  get('/api/agent-scan').then(scan=>{if(!$('#scanBox'))return;
+    $('#scanBox').innerHTML=['codex','claude','cursor'].map(e=>{const s=scan[e]||{};const names={codex:'Codex',claude:'Claude Code',cursor:'Cursor Agent'};
+      return `<div class="card" style="margin-bottom:10px"><h3 style="margin:0 0 6px">${names[e]}</h3>
+        ${(s.executables||[]).map(x=>`<div class="sub">命令：<code>${h(x)}</code></div>`).join('')||'<div class="sub">未找到命令</div>'}
+        ${s.version?`<div class="sub">版本：${h(s.version)}</div>`:''}
+        ${s.home?`<div class="sub">配置目录：<code>${h(s.home)}</code>${s.exists?'':'（不存在）'}</div>`:''}
+        ${s.model?`<div class="sub">模型：${h(s.model)}</div>`:''}${s.model_provider?`<div class="sub">提供方：${h(s.model_provider)}</div>`:''}
+        ${s.base_url?`<div class="sub">API 地址：${h(s.base_url)}</div>`:''}${s.wire_api?`<div class="sub">协议：${h(s.wire_api)}</div>`:''}
+        <div class="sub">${s.auth_present||s.credentials_present||s.token_set||s.api_key_set||s.logged_in?'已发现凭据':'未发现凭据'}</div>
+        <button data-scan-adopt="${e}">采用</button></div>`}).join('')||'<p>没有可识别的执行器。</p>';
+    $('#scanBox').querySelectorAll('[data-scan-adopt]').forEach(b=>b.onclick=()=>{
+      const e=b.dataset.scanAdopt,s=scan[e]||{};const a=d.agents.find(x=>x.name===e)||d.agents.find(x=>x.engine===e);
+      const adopt={name:e,title:(a&&a.title)||e,engine:e,profile:'',models:a&&a.models.length?a.models:(s.model?[[s.model,s.model]]:[]),defaults:(a&&a.defaults)||{},timeout:(a&&a.timeout)||1800,
+        bin:(s.executables||[])[0]||'',environment:{},secrets_set:a&&a.secrets_set};
+      if(e==='codex'&&s.home&&s.exists)adopt.environment.CODEX_HOME=s.home;
+      if(e==='claude'&&s.home&&s.exists)adopt.environment.CLAUDE_CONFIG_DIR=s.home;
+      closeModal();agentSettingsEdit(d,adopt)});
+  }).catch(e=>{if($('#scanBox'))$('#scanBox').innerHTML='<p role="alert">'+h(e.message)+'</p>'});
+}
 function agentSettingsEdit(d,a){
-  let fresh=!a;a=a||{name:'',title:'',engine:'codex',profile:'',models:[],defaults:{},timeout:1800};
+  let fresh=!a;a=a||{name:'',title:'',engine:'codex',profile:'',models:[],defaults:{},timeout:1800,bin:'',environment:{}};
   const labels={analyze:'分析',plan:'方案',fix:'修改',edit:'编辑',diagnose:'诊断',ask:'问答',kb:'知识',chart:'图解',understand:'需求理清'};
+  const secretFields={codex:[['base_url','API 地址'],['api_key','API 密钥'],['model','模型'],['wire_api','协议（responses 或 chat）']],
+    claude:[['base_url','API 地址（ANTHROPIC_BASE_URL）'],['api_key','令牌（ANTHROPIC_AUTH_TOKEN）'],['model','模型']],
+    cursor:[['api_key','API Key（CURSOR_API_KEY）']]};
+  const sf=secretFields[a.engine]||[];
   modal(`<h2>${fresh?'添加执行器':h(a.title)}</h2><form id="agentForm" class="form">
     ${fresh?'<label>执行引擎<select id="agentEngine"><option value="codex">Codex</option><option value="cursor">Cursor Agent</option></select></label>':''}
     <label>代号<input class="full" id="agentName" value="${h(a.name)}" ${fresh?'required':'readonly'}></label>
     <label>显示名称<input class="full" id="agentTitle" value="${h(a.title)}" required maxlength="100"></label>
+    <label>执行命令（绝对路径或命令名）<input class="full" id="agentBin" value="${h(a.bin||'')}" placeholder="沿用默认查找"></label>
     ${a.engine==='codex'&&!a.custom?`<label id="agentProfileField">Codex 配置档<input class="full" id="agentProfile" value="${h(a.profile)}" placeholder="留空沿用默认配置"></label>`:''}
-    <label>模型列表（每行一个模型 ID，可在空格后填写名称）<textarea class="full" id="agentModels" rows="4">${h(a.models.map(m=>m[0]+' '+m[1]).join('\n'))}</textarea></label>
+    ${(a.engine==='codex'||a.engine==='claude')?`<label>配置目录（${a.engine==='codex'?'CODEX_HOME':'CLAUDE_CONFIG_DIR'}）<input class="full" id="agentEnv" value="${h((a.environment||{})[a.engine==='codex'?'CODEX_HOME':'CLAUDE_CONFIG_DIR']||'')}" placeholder="留空沿用系统默认目录"></label>`:''}
+    <label>模型列表（每行一个模型 ID，可在空格后填写名称${a.engine==='cursor'?'；留空用 Cursor 账号默认模型':''}）<textarea class="full" id="agentModels" rows="4">${h(a.models.map(m=>m[0]+' '+m[1]).join('\n'))}</textarea></label>
     <div class="grid2">${d.modes.map(m=>`<label>${h(labels[m]||m)}默认模型<input class="full" data-agent-mode="${h(m)}" value="${h(a.defaults[m]||'')}" placeholder="沿用执行器配置"></label>`).join('')}</div>
     <label>任务超时（秒）<input id="agentTimeout" type="number" min="1" max="86400" value="${h(a.timeout)}" required></label>
+    ${sf.length?`<fieldset style="border:1px solid var(--line);border-radius:8px;padding:10px;margin:10px 0"><legend>连接配置${a.secrets_set?'（已设置，留空不改动）':''}</legend>
+      ${sf.map(([k,l])=>`<label>${h(l)}<input class="full" data-secret="${k}" type="${k==='api_key'?'password':'text'}" autocomplete="off" placeholder="${a.secrets_set?'已设置，留空不改动':'未设置'}"></label>`).join('')}
+      </fieldset>`:''}
     ${a.configuration_error?`<p role="alert">${h(a.configuration_error)}</p>`:''}
-    <div id="agentSaveState" role="status"></div>${d.can_edit?'<button class="primary" type="submit" id="agentSave">保存配置</button>':'<p>仅平台管理员可修改配置。</p>'}</form>`);
+    <div id="agentSaveState" role="status"></div>${d.can_edit?`<button class="primary" type="submit" id="agentSave">保存配置</button><button type="button" id="agentTest">测试连接</button>`:'<p>仅平台管理员可修改配置。</p>'}</form>`);
   const form=$('#agentForm');
+  if($('#agentTest'))$('#agentTest').onclick=async()=>{const st=$('#agentSaveState');st.textContent='测试连接中…';
+    try{const r=await post('/api/agent-test',{name:$('#agentName').value.trim()});st.textContent=r.ok?'连接正常':'连接失败：'+(r.error||r.error_excerpt||'')}catch(e){st.textContent='连接失败：'+e.message}};
   if($('#agentEngine'))$('#agentEngine').onchange=()=>{const cursor=$('#agentEngine').value==='cursor';$('#agentProfile').disabled=cursor;$('#agentProfileField').hidden=cursor};
   if(!d.can_edit){form.querySelectorAll('input').forEach(x=>x.disabled=true);$('#agentModels').disabled=true;return}
   form.onsubmit=async e=>{e.preventDefault();const button=$('#agentSave'),status=$('#agentSaveState');button.disabled=true;status.textContent='保存中…';
     const models=$('#agentModels').value.split('\n').map(x=>x.trim()).filter(Boolean).map(x=>{const [id,...name]=x.split(/\s+/);return [id,name.join(' ')||id]});
     const defaults={};form.querySelectorAll('[data-agent-mode]').forEach(x=>defaults[x.dataset.agentMode]=x.value.trim());
     const config={title:$('#agentTitle').value.trim(),models,defaults,timeout:Number($('#agentTimeout').value)};
+    if($('#agentBin'))config.bin=$('#agentBin').value.trim();
+    if($('#agentEnv')){const env={};const v=$('#agentEnv').value.trim();
+      if(v)env[a.engine==='codex'?'CODEX_HOME':'CLAUDE_CONFIG_DIR']=v;config.environment=env}
+    const secrets={};form.querySelectorAll('[data-secret]').forEach(x=>{if(x.value.trim())secrets[x.dataset.secret]=x.value.trim()});
+    if(Object.keys(secrets).length)config.secrets=secrets;
     if($('#agentEngine'))config.engine=$('#agentEngine').value;
     if($('#agentProfile')&&!$('#agentProfile').disabled)config.profile=$('#agentProfile').value.trim();
     try{const saved=await post('/api/agent-settings',{action:fresh?'create':'update',name:$('#agentName').value.trim(),revision:d.revision,config});d.revision=saved.revision;fresh=false;

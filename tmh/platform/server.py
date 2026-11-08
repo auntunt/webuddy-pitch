@@ -2966,6 +2966,33 @@ def api_agent_settings(P, req):
     return data
 
 
+@route("GET", "/api/agent-scan")
+def api_agent_scan(P, req):
+    """Local executor discovery: paths, versions, non-secret config, credential booleans."""
+    _platform_admin(P, req, "扫描本机执行器")
+    from . import executor_setup
+    return executor_setup.scan()
+
+
+@route("POST", "/api/agent-test")
+def api_agent_test(P, req):
+    """One no-tools marker request through a configured executor; PASS only on the marker."""
+    _platform_admin(P, req, "测试执行器连接")
+    from . import agents, executor_setup
+    name = str(req.body.get("name") or "")
+    conf = agents.load_config(P.data_dir)
+    if name not in conf:
+        raise ApiError(404, "没有这个执行器")
+    c = conf[name]
+    engine = agents.engine_name(name, c)
+    if engine not in ("codex", "claude", "cursor") or "cmd" in c:
+        raise ApiError(400, "这个执行器暂不支持连接测试")
+    exe = c.get("bin") or agents.executable(engine, c)
+    env = dict(os.environ)
+    env.update(executor_setup.spawn_env(P.data_dir, name, c))
+    return executor_setup.probe(engine, exe, env)
+
+
 @route("POST", "/api/agent-settings")
 def api_agent_settings_save(P, req):
     _platform_admin(P, req, "配置智能体")

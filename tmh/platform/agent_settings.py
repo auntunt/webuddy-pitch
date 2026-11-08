@@ -6,7 +6,7 @@ import tempfile
 import threading
 from pathlib import Path
 
-from . import agents, agent_routes
+from . import agents, agent_routes, executor_setup
 from .errors import ApiError
 
 _LOCK = threading.Lock()
@@ -30,10 +30,13 @@ def view(data_dir):
     configs = {k: dict(v) for k, v in agents.BUILTIN.items()}
     for name, value in raw.items():
         configs.setdefault(name, {}).update(value)
+    from . import executor_setup
     items = []
     for item in agents.available(data_dir):
         c = configs[item['name']]
-        items.append(dict(item, timeout=c.get('run_timeout') or c.get('timeout') or 1800))
+        items.append(dict(item, timeout=c.get('run_timeout') or c.get('timeout') or 1800,
+                          bin=c.get('bin', ''), environment=c.get('environment') or {},
+                          secrets_set=executor_setup.secrets_set(data_dir, item['name'])))
     return {'agents': items, 'revision': revision, 'route': agent_routes.route(data_dir), 'modes': list(MODES)}
 
 
@@ -45,8 +48,8 @@ def save(data_dir, body):
     name, value = body['name'], body['config']
     if not isinstance(name, str) or not agent_routes.AGENT.fullmatch(name):
         raise ApiError(400, '智能体代号只能使用字母、数字、短横线和下划线')
-    if not isinstance(value, dict) or set(value) - {'title', 'models', 'defaults', 'timeout', 'profile', 'engine'}:
-        raise ApiError(400, '仅支持名称、模型、步骤默认模型、超时、执行引擎和 Codex 配置档')
+    if not isinstance(value, dict) or set(value) - {'title', 'models', 'defaults', 'timeout', 'profile', 'engine', 'bin', 'environment', 'secrets'}:
+        raise ApiError(400, '仅支持名称、模型、步骤默认模型、超时、执行引擎、Codex 配置档、执行命令、配置目录和连接配置')
     title, models, defaults, timeout = (value.get(k) for k in ('title', 'models', 'defaults', 'timeout'))
     if not isinstance(title, str) or not title.strip() or len(title) > 100:
         raise ApiError(400, '填写不超过 100 字的显示名称')
@@ -88,7 +91,20 @@ def save(data_dir, body):
                 c['profile'] = profile
             else:
                 c.pop('profile', None)
+        if 'bin' in value:
+            executor_setup.validate_bin(value['bin'])
+            c['bin'] = value['bin'].strip()
+        if 'environment' in value:
+            executor_setup.validate_environment(value['environment'])
+            if value['environment']:
+                c['environment'] = {k: v.strip() for k, v in value['environment'].items()}
+            else:
+                c.pop('environment', None)
         c.update(title=title.strip(), models=models, defaults=defaults, run_timeout=timeout)
+        if value.get('secrets'):
+            engine = agents.engine_name(name, c)
+            c['environment'] = {**(c.get('environment') or {}),
+                                **executor_setup.set_secret(data_dir, name, engine, value['secrets'])}
         try:
             agents.engine_name(name, c)
         except ValueError as exc:

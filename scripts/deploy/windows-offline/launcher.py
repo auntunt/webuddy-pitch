@@ -194,6 +194,11 @@ def main(argv=None):
     report = dict(bundle_files_verified=count, tools=selected, data_dir=str(data),
                   url='http://%s:%s/' % (host, port), configuration=check_config(data),
                   model_access='not_checked', authentication='not_checked')
+    try:
+        from tmh.platform.executor_setup import scan as executor_scan
+        report['executor_scan'] = executor_scan()
+    except Exception as exc:  # noqa: BLE001 - a scanner hiccup must not mask the bundle report
+        report['executor_scan'] = {'error': str(exc)}
     if selected['cursor'].get('path'):
         # Reported, never blocking: one real no-tools Cursor request proves the
         # model connection; a version number or saved login does not.
