@@ -205,3 +205,21 @@ Gitea 将 provider 改为 `gitea`，仓库只能为 `owner/repo`，required-chec
 个人连接可按 `read/content/execute/develop` 的交集使用改造计划读取、内容修订及执行管理能力，并非笼统只读。`--allow-writes`、`--allow-execution`、当前项目权限和受管隔离要求继续生效。实际工具、输入示例、冲突/幂等、重连与分页规则见 [长期改造管理](workbench-agent.md#长期改造管理本轮实现候选验收进展见进度记录)。
 
 网页与MCP都指向同一 `#/projects/<project>/reforms/<plan_id>`；换客户端后按计划、请求和运行编号找回。业务验收、独立技术复核、合并及发布不包含在普通计划管理工具中。三个桌面宿主联调与浏览器工作区验收状态见实施证据，官方SDK协议通过不替代宿主实测。
+
+## Cursor 项目接入
+
+Cursor 与 Codex、Claude Code 共用 Webuddy 的工单、知识来源、候选、测试和人工验收规则。新版本默认初始化三个宿主；已有项目可补装：
+
+```sh
+python3 -m tmh install --repo /path/to/project --engines cursor
+```
+
+Windows 使用安装包的 `runtime\python\python.exe` 代替 `python3`。安装生成 `.cursor/skills/` 与 `.cursor/mcp.json`，共用项目 `AGENTS.md`；保留其他 MCP 服务和原有指令。Java 迁移、信创适配技能及参考材料一并安装。MCP 使用安装时的 Python 和项目绝对路径，无需 `sh`；移动项目或 Python 后重新执行安装刷新路径，并在 Cursor 重新加载 MCP。
+
+- 本地 `tmh` MCP：读取当前项目的知识、代码来源、业务流及影响范围。
+- 平台 `webuddy` MCP：沿用个人工具连接；执行 `webuddy config cursor`，把输出中的 `webuddy` 服务合入 Cursor 的 `mcpServers`。不要覆盖已有 `tmh` 或其他服务。令牌不写进项目配置，原生 Windows 个人凭据的既有限制仍适用。
+- 处理真实任务前先调用平台工作目录预检，核对项目、仓库、版本和未提交改动；候选同步及验收沿用既有流程。宿主审批拒绝时停止对应操作，查询回执，不改审批策略。
+
+这是 Cursor 本地开发和 MCP 接入，不等于平台已获得无人值守调用 Cursor 的能力。本次不安装模拟的 Codex/Claude 钩子，也不把提示词当作只读隔离。自动执行适配还需验证 Cursor CLI 的工具限制、取消回收、运行回执和用量；完成前不作为平台只读 Review 执行器。
+
+验证边界：安装/刷新、中文空格路径、其他 MCP 配置保留、本地实际 stdio 和平台正式 SDK 读取已验证；实际 Cursor CLI 非交互调用遇到登录提示，宿主完整读写链路仍待验证。配置生成与协议测试不代表实际 Cursor 已完成业务任务。

@@ -16,3 +16,5 @@ runtime\python\python.exe -m tmh kb read index --repo "D:\项目"
 后续通过 kb next/done 完善业务理解；确有人工确认后才执行确认。改动代码后重建，指纹变化会使关联知识过期。未确认、过期、未知和已验证必须分别呈现。`kb read` 读取完整页面，`context` 按需求检索。
 
 产品 `kb/` 目录是通用技术适配参考，不是客户项目知识快照。数据库、操作系统及密码适配要以客户目标版本和实际环境核对。
+
+默认初始化同时安装 Codex、Claude Code 和 Cursor 的项目技能。只补装 Cursor 时，在安装命令后加 `--engines cursor`。Cursor 使用 `.cursor/skills/` 与 `.cursor/mcp.json`，读取同一份项目知识和 `AGENTS.md`。移动项目或 Python 后重新初始化刷新 MCP 绝对路径，并重连 Cursor。平台个人任务连接另按《开发者终端协作》配置，不把本地知识 MCP 当成平台个人身份授权。

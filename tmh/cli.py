@@ -908,7 +908,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--source-db", choices=cfgmod.CHOICES["db"])
     p.add_argument("--name")
     p = add("install", cmd_install, "把 harness 安装进目标仓库（技能/子代理/钩子/AGENTS.md）")
-    p.add_argument("--engines", default="claude,codex")
+    p.add_argument("--engines", default="claude,codex,cursor", help="逗号分隔：claude,codex,cursor")
     p.add_argument("--git-hook", action="store_true", help="同时安装 git pre-commit 保护")
     add("assess", cmd_assess, "信创评估：技术栈 + 规则扫描 + 分波次报告 + 工作项")
     add("map", cmd_map, "生成项目地图（入口、任务、数据访问、表→代码）")

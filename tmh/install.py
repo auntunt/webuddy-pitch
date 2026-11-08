@@ -1,8 +1,9 @@
-"""Install the harness into a target repository for Claude Code and/or Codex."""
+"""Install the harness into a target repository for Claude Code, Codex and Cursor."""
 from __future__ import annotations
 
 import json
 import shutil
+import sys
 from pathlib import Path
 
 from . import config as cfgmod
@@ -120,6 +121,18 @@ def _write_claude_mcp(repo: Path) -> None:
     p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def _write_cursor_mcp(repo: Path) -> None:
+    """Direct stdio launch works with spaces and native Windows, without sh."""
+    path = repo / ".cursor" / "mcp.json"
+    data = json.loads(path.read_text(encoding="utf-8") or "{}") if path.exists() else {}
+    data.setdefault("mcpServers", {})["tmh"] = {
+        "command": sys.executable,
+        "args": [str(repo / ".tmh" / "tool" / "tmh.py"), "mcp", "--repo", str(repo)],
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
 def _write_codex_mcp(repo: Path) -> None:
     """[mcp_servers.tmh] in .codex/config.toml. Codex passes only a few env vars to MCP servers,
     so the credential variable names configured in integrations are forwarded via env_vars."""
@@ -177,6 +190,8 @@ def vendor_tool(repo: Path, strict: bool = True) -> Path:
 
 
 def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]:
+    if set(engines) - {"claude", "codex", "cursor"}:
+        raise ValueError("支持的宿主为 claude、codex、cursor")
     repo = repo.resolve()
     done = []
     x = cfgmod.tmh_dir(repo)
@@ -218,6 +233,11 @@ def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]
         _merge_hooks(repo / ".claude" / "settings.json")
         _write_claude_mcp(repo)
         done.append("CLAUDE.md、.claude/skills (%d)、.claude/agents、.claude/settings.json 钩子、.mcp.json（tmh MCP 服务）" % len(skills))
+    if "cursor" in engines:
+        for skill in skills:
+            _copytree(skill, repo / ".cursor" / "skills" / skill.name)
+        _write_cursor_mcp(repo)
+        done.append(".cursor/skills (%d)、.cursor/mcp.json（本地知识 MCP）；共用 AGENTS.md，不修改 Cursor 审批策略" % len(skills))
     if "codex" in engines:
         for s in skills:
             _copytree(s, repo / ".agents" / "skills" / s.name)
