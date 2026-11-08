@@ -22,6 +22,7 @@ import re
 from collections import OrderedDict
 from pathlib import Path
 
+from . import entry_rules
 from . import golang
 from . import mapper as mapmod
 from .codeindex import build_index
@@ -274,6 +275,21 @@ class FlowBuilder:
             todo += c["bases"]
         return []
 
+    def _fields(self, cls_name: str) -> dict:
+        """Fields a class can see: its own plus inherited; nearest definition wins."""
+        out, seen, todo = {}, {cls_name}, [cls_name]
+        while todo:
+            c = self._class(todo.pop(0))
+            if not c:
+                continue
+            for f, info in c["fields"].items():
+                out.setdefault(f, info["type"])
+            for b in c["bases"]:
+                if b not in seen:
+                    seen.add(b)
+                    todo.append(b)
+        return out
+
     def _layer(self, cls: dict) -> str:
         if cls.get("lang") in ("go", "python"):
             return cls.get("layer") or "service"
@@ -353,9 +369,7 @@ class FlowBuilder:
         self._rules(m, key, flow)
         self._effects(m, key, flow)
         self._sql_in_body(m, key, nid, flow)
-        types = {}
-        for f, info in owner["fields"].items():
-            types[f] = info["type"]
+        types = self._fields(owner["name"])
         types.update(m["params"])
         go = owner.get("lang") == "go"
         if not go:
@@ -801,6 +815,9 @@ def build_flows(root: Path, project_map: dict | None = None, index: dict | None 
                 continue
         kept.append(e)
     entries = kept
+    # Stored model-detected rules (.tmh/entry-rules.json) add candidates the
+    # deterministic scanners missed; they stay labelled 待核实.
+    entries += entry_rules.apply_rules(root, fb)
     flows = []
     used = set()
     for e in entries:
@@ -820,7 +837,8 @@ def build_flows(root: Path, project_map: dict | None = None, index: dict | None 
         crud = {}
         for op in t["data_ops"]:
             crud.setdefault(op["table"], set()).add(op["op"])
-        kind = "约定入口（待核实）" if e.get("scope") == "source-backed-action-candidate" else e["kind"]
+        kind = {"source-backed-action-candidate": "约定入口（待核实）",
+                entry_rules.SCOPE: entry_rules.KIND}.get(e.get("scope"), e["kind"])
         flows.append({"id": fid, "kind": kind, "trigger": e["trigger"], "handler": "%s.%s" % (e["class"], e["method"]),
                       "name": name, "name_source": "代码注释" if name else "", "file": e["file"], "line": e["line"],
                       "crud": {k: "".join(sorted(v, key="CRUDP".index)) for k, v in sorted(crud.items())},
@@ -829,6 +847,13 @@ def build_flows(root: Path, project_map: dict | None = None, index: dict | None 
               "diagnostics": fb.idx.get("diagnostics", [])}
     if m.get("struts_analysis") or ambiguous:
         result["struts_analysis"] = dict(m.get("struts_analysis", {}), ambiguous_candidates=ambiguous)
+    # Entry coverage audit: likely entry classes that produced no flow. Informational only.
+    map_named = set()
+    for source in (m.get("endpoints") or []) + (m.get("jobs") or []) + (m.get("listeners") or []):
+        handler = source.get("handler") or source.get("class") or ""
+        if handler:
+            map_named.add(handler.rsplit(".", 1)[0].split(".")[-1])
+    result["entry_coverage"] = entry_rules.coverage(fb.classes, flows, map_named)
     return result
 
 

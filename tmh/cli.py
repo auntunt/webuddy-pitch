@@ -507,6 +507,23 @@ def _load_flows(root: Path) -> dict:
 
 
 
+def cmd_entries(a) -> int:
+    """`tmh entries detect`: ask the configured router model for declarative entry rules."""
+    from . import entry_rules, kbqa
+    root = _root(a)
+    if a.entries_action == "detect":
+        try:
+            result = entry_rules.detect(root, kbqa.router_conf(root))
+        except ValueError as exc:
+            print(str(exc))
+            return 1
+        print("模型识别入口规则 %d 条（%s，%s），已写入 %s" % (result["rules"], result["framework"], result["model"], result["stored"]))
+        print("未覆盖入口：检测前 %d 个，应用规则后 %d 个（重新构建知识图谱后生效）" % (result["coverage_before"], result["coverage_after"]))
+        return 0
+    print("用法：tmh entries detect")
+    return 2
+
+
 def cmd_flows(a) -> int:
     from . import flow, webreport
     root = _root(a)
@@ -1001,6 +1018,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--line", type=int)
     p.add_argument("--limit", type=int, default=60)
     p = add("context", cmd_context, "按需求/关键词取出相关的知识页、业务流、表和代码位置（任务开始时先用它）")
+    p = add("entries", cmd_entries, "入口识别规则：detect 用配置的直连模型生成 .tmh/entry-rules.json")
+    p.add_argument("entries_action", nargs="?", default="", choices=["", "detect"])
     p.add_argument("query", nargs="+")
     p.add_argument("--budget", type=int, default=8000)
     p.add_argument("--json", action="store_true", help="输出结构化 context pack（来源/版本/逐条溯源/遗漏清单）")

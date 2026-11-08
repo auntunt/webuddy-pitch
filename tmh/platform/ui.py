@@ -1621,6 +1621,11 @@ async function vMap(did){
         <section><h2>高频数据表</h2><p class="arch-caption">按关联业务流数量排序 · ${a.top_tables.length} / ${a.tables} 张</p><dl>${a.top_tables.map(([name,n])=>`<div><dt><a href="#/kb/${encodeURIComponent('tbl:'+name)}">${h(name)}</a></dt><dd>${n}<span> 条</span></dd></div>`).join('')||'<p class="sub">未识别数据表关联</p>'}</dl></section>
         <section><h2>外部调用</h2><dl>${a.ext.map(e=>`<div><dt>${h(e.title)}</dt><dd>${e.users}<span> 处</span></dd></div>`).join('')||'<p class="sub">未识别外部调用</p>'}</dl></section>
       </aside></div>
+    ${(a.entry_coverage&&a.entry_coverage.total)?`<details class="arch-basis"><summary>可能漏掉的入口 ${a.entry_coverage.total} 个<span></span></summary>
+      <div class="sub">${Object.entries(a.entry_coverage.per_module||{}).map(([m,n])=>`${h(m||'根目录')} ${n}`).join(' · ')}</div>
+      <dl>${a.entry_coverage.uncovered.map(u=>`<div><dt><code>${h(u.class)}</code></dt><dd class="sub">${h(u.why)} · ${h(u.file)}</dd></div>`).join('')}</dl>
+      <div class="row"><button id="entryDetect">让直连模型识别入口规则</button><span id="entryDetectState" class="sub"></span></div>
+    </details>`:''}
     <details class="arch-basis"><summary>分析依据${a.unresolved?' · '+a.unresolved+' 处调用待核对':''}<span>${h(a.built_at)}</span></summary>
       <p>统计来自源码解析，分组名称和说明沿用知识库；分组不等同于已确认的业务边界，也不表示应用组件或部署架构。</p>
       <p>${a.unresolved?`${a.unresolved} 处调用未能静态解析，相关路径需要进一步核对。`:'静态分析未报告断开的调用；动态行为仍需结合运行结果核对。'} 部署包与源码版本的一致性尚需核实。</p>
@@ -1631,6 +1636,9 @@ async function vMap(did){
     $('#archDomains').innerHTML=archDomainCards(domains)||(query?'<div class="arch-empty"><p>没有匹配的功能分组</p><button id="archClear">清除搜索</button></div>':'<div class="arch-empty">尚未划分功能分组</div>');
     if($('#archClear'))$('#archClear').onclick=()=>{$('#archSearch').value='';paint();$('#archSearch').focus()}};
   $('#archSearch').oninput=paint;paint();
+  if($('#entryDetect'))$('#entryDetect').onclick=async()=>{const st=$('#entryDetectState');st.textContent='模型识别中…';
+    try{const r=await post('/api/projects/'+encodeURIComponent(project)+'/entries/detect',{});
+      st.textContent=`识别规则 ${r.rules} 条（${r.framework}）：未覆盖入口 ${r.coverage_before} → ${r.coverage_after}，重新构建后生效`}catch(e){st.textContent=e.message}};
 }
 function archDomainCards(domains){
   return domains.map(d=>`<a class="arch-domain" href="#/map/${encodeURIComponent(d.id)}"><div class="arch-domain-title"><h3>${h(d.title)}</h3><span aria-hidden="true">↗</span></div>

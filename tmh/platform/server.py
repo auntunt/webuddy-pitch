@@ -1711,6 +1711,20 @@ def api_statechart_renderer(P, req, key):
     return {"js": (Path(__file__).parent / "vendor" / "pele.global.js").read_text(encoding="utf-8")}
 
 
+@route("POST", "/api/projects/<key>/entries/detect")
+def api_entries_detect(P, req, key):
+    """Model-detected entry rules: writes .tmh/entry-rules.json; needs the router model configured."""
+    _platform_admin(P, req, "检测未覆盖入口")
+    from .. import entry_rules
+    from . import llm
+    p = P.project(key)
+    conf = llm.conf(P, p)
+    try:
+        return entry_rules.detect(Path(p["root"]), conf)
+    except ValueError as exc:
+        raise ApiError(400, str(exc))
+
+
 @route("GET", "/api/projects/<key>/arch")
 def api_arch(P, req, key):
     return P.kb.arch(P.project(key))

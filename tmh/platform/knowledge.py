@@ -275,9 +275,17 @@ class Knowledge:
         ext = [{"id": n["id"], "title": n["label"] or n["name"], "users": len(g.inn(n["id"]))} for n in g.nodes("ext")]
         unresolved = sum(int(f["data"].get("unresolved") or 0) for f in flows)
         ix = reg.get("index", {})
+        coverage = {}
+        fj = root / ".tmh" / "flows.json"
+        if fj.exists():
+            try:
+                coverage = (json.loads(fj.read_text(encoding="utf-8")) or {}).get("entry_coverage") or {}
+            except ValueError:
+                coverage = {}
         return {"built": True, "entries": entries.most_common(), "flows": len(flows), "domains": doms,
                 "tables": len(g.nodes("tbl")), "top_tables": uses.most_common(8), "ext": sorted(ext, key=lambda e: -e["users"]),
                 "classes": len(g.nodes("cls")), "methods": len(g.nodes("fn")), "unresolved": unresolved,
+                "entry_coverage": coverage,
                 "overview": ix.get("summary", ""), "overview_status": self._kb_status(ix) if ix else "",
                 "report": (root / ".tmh" / "report" / "index.html").exists(), "built_at": self.kb_overview(p).get("built_at", "")}
 
