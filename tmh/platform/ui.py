@@ -888,18 +888,19 @@ async function promptPane(t,scene){
   let r;try{r=await get('/api/tickets/'+t.key+'/prompt?scene='+(scene||'bugfix'))}catch(e){if(current()){host.innerHTML='<div role="alert">提示词读取失败：'+h(e.message)+' <button id="promptRetry">重试</button></div>';$('#promptRetry').onclick=()=>promptPane(t,scene)}return}if(!current())return;const w=r.written||{};
   const sc=r.scenes.find(s=>s.key===r.scene)||{};
   const KS={flow:'业务流',tbl:'表',code:'代码',page:'知识页'};
+  const claudeOn=(S.meta.agents||[]).some(a=>a.name==='claude'||a.engine==='claude');
   const inProj=w.cursor||w.claude;
   $('#pp').innerHTML=`<div class="pgrid"><div class="card" style="min-width:0">
     <div class="hdr" style="margin-bottom:8px"><h2 class="grow" style="margin:0">按场景生成的提示词</h2><div class="seg">${r.scenes.map(s=>`<button data-s="${s.key}" class="${s.key===r.scene?'on':''}" title="${h(s.hint)}">${h(s.label)}</button>`).join('')}</div></div>
-    <div class="sub" style="margin-bottom:10px">${h(sc.hint)}工单内容、关联的业务流、表、代码位置和知识页已经拼好，可以直接粘贴到 Cursor、Claude Code、Codex 或任何对话里。</div>
+    <div class="sub" style="margin-bottom:10px">${h(sc.hint)}工单内容、关联的业务流、表、代码位置和知识页已经拼好，可以直接粘贴到 ${claudeOn?'Cursor、Claude Code、Codex':'Cursor、Codex'} 或任何对话里。</div>
     <textarea id="ptx" class="ptx" readonly aria-label="提示词">${h(r.text)}</textarea>
-    <div class="row" style="gap:8px;margin-top:10px;align-items:center"><button class="primary" id="pcp">复制提示词</button><button id="pcu">写入 Cursor 规则</button><button id="pcl">写入 CLAUDE.md</button><span class="grow"></span><span class="sub">${r.chars.toLocaleString()} 字</span></div></div>
+    <div class="row" style="gap:8px;margin-top:10px;align-items:center"><button class="primary" id="pcp">复制提示词</button><button id="pcu">写入 Cursor 规则</button>${claudeOn?'<button id="pcl">写入 CLAUDE.md</button>':''}<span class="grow"></span><span class="sub">${r.chars.toLocaleString()} 字</span></div></div>
    <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
     <div class="card"><h2>写进项目</h2>
      ${inProj?`<div style="margin-bottom:8px"><span class="ev-tag ${w.ticket===t.key?'ok':'warn'}">项目里现在是 ${h(w.ticket||'某张工单')} 的段落</span></div>
-       <div class="sub">${[w.cursor?'<code>.cursor/rules/tmh-ticket.mdc</code>':'',w.claude?'<code>CLAUDE.md</code> 末尾的临时段落':''].filter(Boolean).join('、')}。在这个项目里打开的 Cursor 或 Claude Code 会自动带上它，IDE 里调用 tmh MCP 工具也会记到这张工单上。</div>
+       <div class="sub">${[w.cursor?'<code>.cursor/rules/tmh-ticket.mdc</code>':'',w.claude?'<code>CLAUDE.md</code> 末尾的临时段落':''].filter(Boolean).join('、')}。在这个项目里打开的 Cursor${claudeOn?' 或 Claude Code':''} 会自动带上它，IDE 里调用 tmh MCP 工具也会记到这张工单上。</div>
        <button class="ghost" id="pclr" style="margin-top:8px">从项目里清除</button>`
-     :`<div class="sub">还没有写入。写入后，在这个项目里打开的 Cursor 或 Claude Code 会自动带上这张工单的上下文；IDE 里调用 tmh MCP 工具也会记到这张工单上。只会写 <code>.cursor/rules/tmh-ticket.mdc</code> 和 <code>CLAUDE.md</code> 里带标记的一段，不碰其他内容。</div>`}
+     :`<div class="sub">还没有写入。写入后，在这个项目里打开的 Cursor${claudeOn?' 或 Claude Code':''} 会自动带上这张工单的上下文；IDE 里调用 tmh MCP 工具也会记到这张工单上。只会写 <code>.cursor/rules/tmh-ticket.mdc</code>${claudeOn?' 和 <code>CLAUDE.md</code>':''} 里带标记的一段，不碰其他内容。</div>`}
      <div class="hint" style="margin-top:10px">复制和写入都会记在工单动态里，计入提效报告的 AI 参与率。</div></div>
     <div class="card"><h2>带上的依据</h2>${r.sources.length?r.sources.map(x=>`<div class="flowrow"><span class="tag">${KS[x.kind]||x.kind}</span><span class="grow" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${h(x.id)}">${h(x.title||x.id)}</span></div>`).join(''):'<div class="sub">知识库里没有检索到依据，提示词只带了工单本身。</div>'}</div>
    </div></div>`;
@@ -908,7 +909,7 @@ async function promptPane(t,scene){
   $('#pcp').onclick=async()=>{const ta=$('#ptx');let ok=false;try{await navigator.clipboard.writeText(ta.value);ok=true}catch(e){ta.focus();ta.select();try{ok=document.execCommand('copy')}catch(x){}}
     toast(ok?'已复制「'+sc.label+'」提示词':'没能自动复制，已选中全文，请按 Ctrl+C');if(ok)use('copy')};
   const wr=async a=>{const x=await use(a);if(x){toast('已写入 '+x.files.join('、'));promptPane(t,r.scene)}};
-  $('#pcu').onclick=()=>wr('cursor');$('#pcl').onclick=()=>wr('claude');
+  $('#pcu').onclick=()=>wr('cursor');if($('#pcl'))$('#pcl').onclick=()=>wr('claude');
   if($('#pclr'))$('#pclr').onclick=async()=>{const x=await use('clear');if(x){toast('已清除');promptPane(t,r.scene)}}}
 function mrBlock(d){
   const f=d.runs.find(r=>r.mode==='fix');if(!f)return '';

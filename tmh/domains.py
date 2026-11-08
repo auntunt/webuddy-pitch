@@ -61,8 +61,21 @@ class _UF:
             self.p[rb] = ra
 
 
+def _source_module(flow: dict) -> str:
+    """A convention entry's module is its source directory; shared tables never merge modules."""
+    if flow.get("scope") != "source-backed-action-candidate":
+        return ""
+    return flow.get("file", "").replace("\\", "/").split("/")[0]
+
+
 def cluster(flows: list[dict], nodes: dict) -> tuple[list[list[str]], dict]:
     """Automatic clusters of flow ids, plus each flow's business key."""
+    modules = defaultdict(list)
+    rest = []
+    for f in flows:
+        mod = _source_module(f)
+        (modules[mod].append(f) if mod else rest.append(f))
+    flows = rest
     uf = _UF()
     keys = {}
     for f in flows:
@@ -115,7 +128,11 @@ def cluster(flows: list[dict], nodes: dict) -> tuple[list[list[str]], dict]:
     groups = defaultdict(list)
     for f in flows:
         groups[uf.find(f["id"])].append(f["id"])
-    return list(groups.values()), keys
+    out = list(groups.values())
+    for mod, candidates in sorted(modules.items()):
+        out.append([f["id"] for f in candidates])
+        keys.update({f["id"]: mod for f in candidates})
+    return out, keys
 
 
 def assign(root: Path, flows: list[dict], nodes: dict, common_pkg: list[str]) -> dict:

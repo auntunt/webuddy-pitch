@@ -18,6 +18,7 @@ under 智能体运行 like any other. The survey itself only keeps progress in m
 """
 from __future__ import annotations
 
+import datetime
 import json
 import threading
 import time
@@ -61,6 +62,7 @@ class Survey:
         self.stop_flag = threading.Event()
         self.hit_limit = False  # stopped because this round's page limit was reached, not because the queue is empty
         self.resumed = False
+        self.queue_wait = {}  # worker -> why the remaining pages could not be claimed (leases, dependencies)
 
     # ------------------------------------------------------------ surviving a restart
     @staticmethod
@@ -120,6 +122,7 @@ class Survey:
                     "hit_limit": self.hit_limit, "resumed": self.resumed,
                     "ok": sum(1 for f in self.finished if f["ok"]), "failed": sum(1 for f in self.finished if not f["ok"]),
                     "pending": (len(self._todo_top()) if self.scope == "top" else len(kb.pending(self.root, reg))) if reg else None,
+                    "queue_wait": json.loads(json.dumps(self.queue_wait)),
                     "coverage": kb.coverage(reg) if reg else None}
 
     @property
@@ -172,6 +175,13 @@ class Survey:
             self._end("failed")
 
     def _end(self, state: str) -> None:
+        from .. import kb
+        if state == "done":
+            remaining = len(self._todo_top()) if self.scope == "top" else len(kb.pending(self.root, kb.load_registry(self.root)))
+            if remaining:  # pending pages never report a finished batch
+                self.say("%s；仍有 %d 页待写，请处理领取或前置内容后继续分析。"
+                         % ("已达到本轮页数上限" if self.hit_limit else "本轮未完成全部待写页面", remaining))
+                state = "stopped"
         self.state, self.ended = state, now()
         ok = sum(1 for f in self.finished if f["ok"])
         self.say({"done": "全项目分析结束", "stopped": "已停止", "failed": "全项目分析中断"}[state] +
@@ -196,10 +206,47 @@ class Survey:
         for pid in r["jobs"]:
             if pid not in self.taken:
                 self.taken.add(pid)
+                with self.lock:
+                    self.queue_wait.pop(who, None)
                 return [pid] + self._siblings(who, pid, min(room, GROUP) - 1), ""
         if r["remaining"] == 0:
+            with self.lock:
+                self.queue_wait.pop(who, None)
             return [], "empty"
+        with self.lock:
+            self.queue_wait[who] = self._queue_wait(who, r)
         return [], "wait"
+
+    def _queue_wait(self, who: str, r: dict) -> dict:
+        """Why pages remain: another owner's live lease vs a failed prerequisite. Leases are never deleted."""
+        from .. import kb
+        record = {"remaining": r["remaining"], "dependencies": list(r.get("waiting", [])), "claims": [], "read_error": ""}
+        try:
+            pending = set(kb.pending(self.root, kb.load_registry(self.root)))
+            claims_path = kb._claims_path(self.root)
+            claims = json.loads(claims_path.read_text(encoding="utf-8")) if claims_path.exists() else {}
+            now = time.time()
+            for pid, claim in claims.items():
+                expires = float(claim["at"]) + 30 * 60
+                if pid in pending and expires > now and claim["by"] != "tmh-" + who:
+                    record["claims"].append({"page": pid, "owner": claim["by"],
+                                             "expires_at": datetime.datetime.fromtimestamp(expires).strftime("%Y-%m-%d %H:%M:%S")})
+        except (OSError, ValueError) as exc:
+            record["read_error"] = type(exc).__name__
+        return record
+
+    def _wait_message(self, who: str) -> str:
+        with self.lock:
+            wait = dict(self.queue_wait.get(who, {}))
+        reasons = []
+        if wait.get("claims"):
+            reasons.append("页面仍被领取：" + "；".join("%s（领取者 %s，到期 %s）" % (c["page"], c["owner"], c["expires_at"])
+                                                    for c in wait["claims"][:5]))
+        if wait.get("dependencies"):
+            reasons.append("等待前置内容：" + "、".join(wait["dependencies"][:5]))
+        if not reasons:
+            reasons.append("仍有待写页面但暂时无法领取；请检查页面领取与依赖状态")
+        return "%s：%s。本轮暂停，未启动的页面不计入成功或失败；领取到期后可继续分析。" % (who, "；".join(reasons))
 
     def _siblings(self, who: str, pid: str, n: int) -> list:
         """Other unwritten flow pages from the same source file as this one, claimed for the same run."""
@@ -269,7 +316,7 @@ class Survey:
                 if not others:
                     idle += 1
                     if idle > 2:
-                        self.say("%s：剩下的页面都在等前面失败的页面，先停在这里" % who)
+                        self.say(self._wait_message(who))
                         return
                 if self.stop_flag.wait(5):
                     return

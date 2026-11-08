@@ -133,6 +133,87 @@ def _write_cursor_mcp(repo: Path) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def _write_cursor_permissions(repo: Path) -> None:
+    """Cursor rejects a cli.json whose permissions lack `deny`; merge the narrow
+    rules a Webuddy knowledge run needs, preserving existing allow/deny entries."""
+    path = repo / ".cursor" / "cli.json"
+    data = json.loads(path.read_text(encoding="utf-8") or "{}") if path.exists() else {}
+    permissions = data.setdefault("permissions", {})
+    allow = permissions.setdefault("allow", [])
+    deny = permissions.setdefault("deny", [])
+    if not isinstance(allow, list) or not isinstance(deny, list):
+        raise ValueError("Invalid Cursor permissions in " + str(path))
+    for token in ("Shell(tmh-kb.cmd)", "Write(.tmh/knowledge/**)"):
+        if token not in allow:
+            allow.append(token)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+KB_BRIDGE = '''"""Knowledge command bridge for Windows Cursor runs; accepts only fixed subcommands."""
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+PAGE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,200}")
+
+
+def validate(args):
+    if args in (["notes"], ["status"]):
+        return
+    if len(args) == 3 and args[:2] == ["next", "--page"]:
+        page = args[2]
+    elif len(args) == 2 and args[0] == "done":
+        page = args[1]
+    else:
+        raise ValueError("Allowed: notes | status | next --page ID | done ID")
+    if not PAGE.fullmatch(page):
+        raise ValueError("Invalid page ID")
+
+
+def main(args):
+    validate(args)
+    if Path.cwd().resolve() != ROOT:
+        raise ValueError("Knowledge bridge must run in the project root")
+    if args == ["status"]:
+        print("WEBUDDY_KB_BRIDGE_OK")
+        return 0
+    if args == ["notes"]:
+        name = os.environ.get("TMH_NOTES")
+        if not name:
+            print("No notes configured")
+            return 0
+        path = Path(name).resolve()
+        if path.name != "notes.md" or path.parent.parent.name != "runs" or not path.parent.name.isdigit():
+            raise ValueError("Notes must be a Webuddy run notes.md file")
+        print(path.read_text(encoding="utf-8") if path.is_file() else "No notes")
+        return 0
+    tool = ROOT / ".tmh" / "tool" / "tmh.py"
+    return subprocess.call([sys.executable, "-B", str(tool), "kb", *args, "--repo", str(ROOT)], cwd=str(ROOT))
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main(sys.argv[1:]))
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        raise SystemExit(2)
+'''
+
+
+def _write_kb_bridge(repo: Path) -> None:
+    """`.tmh/tool/tmh-kb.cmd`: the only Shell entry a Windows Cursor knowledge run
+    needs. It pins the platform's own interpreter, never `python3` (WindowsApps stub)."""
+    tool = cfgmod.tmh_dir(repo) / "tool"
+    tool.mkdir(parents=True, exist_ok=True)
+    (tool / "tmh_kb_bridge.py").write_text(KB_BRIDGE, encoding="utf-8")
+    cmd = '@echo off\r\n"%s" -B "%%~dp0tmh_kb_bridge.py" %%*\r\nexit /b %%ERRORLEVEL%%\r\n' % sys.executable
+    (tool / "tmh-kb.cmd").write_text(cmd, encoding="utf-8")
+
+
 def _write_codex_mcp(repo: Path) -> None:
     """[mcp_servers.tmh] in .codex/config.toml. Codex passes only a few env vars to MCP servers,
     so the credential variable names configured in integrations are forwarded via env_vars."""
@@ -237,7 +318,9 @@ def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]
         for skill in skills:
             _copytree(skill, repo / ".cursor" / "skills" / skill.name)
         _write_cursor_mcp(repo)
-        done.append(".cursor/skills (%d)、.cursor/mcp.json（本地知识 MCP）；共用 AGENTS.md，不修改 Cursor 审批策略" % len(skills))
+        _write_cursor_permissions(repo)
+        _write_kb_bridge(repo)
+        done.append(".cursor/skills (%d)、.cursor/mcp.json（本地知识 MCP）、.cursor/cli.json 权限、.tmh/tool/tmh-kb.cmd（Windows 知识命令入口）；共用 AGENTS.md，不修改其他 Cursor 审批策略" % len(skills))
     if "codex" in engines:
         for s in skills:
             _copytree(s, repo / ".agents" / "skills" / s.name)

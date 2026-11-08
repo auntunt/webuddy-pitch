@@ -51,22 +51,32 @@ def _agents(P) -> list:
     ags = available(P.data_dir)
     ok = [a for a in ags if a["available"]]
     if not ok:
+        if not ags:
+            return [_item("agent", "智能体", "bad", "所有执行器已在 agents.json 中禁用",
+                          "在“设置 → 智能体”里启用一个执行器", "#/settings")]
         return [_item("agent", "智能体", "bad", "这台机器上找不到 %s 命令" % "、".join(a["name"] for a in ags),
                       "装好 Claude Code 或 Codex 并登录一次，再刷新这页", "#/settings")]
     out = [_item("agent", "智能体", "ok", "命令都在：" + "、".join(a["title"] for a in ok))]
     for a in ok:  # a command on the PATH is not an agent that runs: its own latest run says whether it can sign in
         last = P.store.one("SELECT id, status, substr(output, -1200) AS output, substr(result, 1, 600) AS result FROM runs r "
                            "WHERE " + ordinary + " AND agent=? AND status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 1", (a["name"], INTERRUPTED))
-        why = signin(" ".join((last.get("output") or "", last.get("result") or ""))) if last and last["status"] == "failed" else ""
+        text = " ".join((last.get("output") or "", last.get("result") or "")) if last else ""
+        why = signin(text) if last and last["status"] == "failed" else ""
+        if last and last["status"] == "failed" and "Workspace Trust Required" in text:
+            why = ("项目工作区尚未信任", "在该项目目录交互运行一次这个执行器，核对目录后确认信任，再重试任务")
         if why:
             out.append(_item("agent:" + a["name"], a["title"], "bad", "%s 跑不起来（运行 #%d）：%s" % (a["title"], last["id"], why[0]), why[1]))
     # a run the platform cut off by restarting says nothing about the agent; only the end of the log is needed
+    names = tuple(a["name"] for a in ags)
     runs = P.store.q("SELECT status, substr(output, -400) AS output, substr(result, 1, 400) AS result, ended FROM runs r "
-                     "WHERE " + ordinary + " AND status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 5", (INTERRUPTED,))
+                     "WHERE " + ordinary + " AND agent IN (" + ",".join("?" for _ in names) + ") "
+                     "AND status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 5", names + (INTERRUPTED,))
     if len(runs) >= 3 and all(r["status"] == "failed" for r in runs[:3]):  # the latest three in a row: it is not one bad ticket
         tail = ((runs[0].get("output") or runs[0].get("result") or "").strip().splitlines() or [""])[-1][:160]
+        fix = ("查看具体任务日志确认中断原因；运行被中断不等于额度不足" if re.search(r"KeyboardInterrupt|interrupted|中断|取消", tail, re.I)
+               else "多半是智能体没登录或额度用完：在这台机器上手动跑一次当前启用的执行器看提示")
         out.append(_item("runs", "最近的运行", "bad", "最近 %d 次连续失败%s" % (sum(1 for _ in itertools.takewhile(lambda r: r["status"] == "failed", runs)), "，最后一次：" + tail if tail else ""),
-                         "多半是智能体没登录或额度用完：在这台机器上手动跑一次 claude 或 codex 看提示"))
+                         fix))
     elif runs:
         f = sum(1 for r in runs if r["status"] == "failed")
         out.append(_item("runs", "最近的运行", "warn" if f >= 2 else "ok", "最近 %d 次里 %d 次失败" % (len(runs), f)))

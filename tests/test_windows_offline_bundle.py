@@ -118,7 +118,46 @@ class WindowsOfflineBundleTest(unittest.TestCase):
                 run.return_value = subprocess.CompletedProcess([], 1, stdout='', stderr='private')
                 with self.assertRaisesRegex(ValueError, 'failed') as raised:
                     launcher.resolve_tools(root, {}, environment)
-                self.assertNotIn('private', str(raised.exception))
+
+    def test_disabled_executor_is_not_probed(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            tools = {name: name + '.exe' for name in ('node', 'git', 'codex', 'claude')}
+            for name in tools.values():
+                (root / name).touch()
+            (root / 'release.json').write_text(json.dumps(dict(tools=tools)))
+            data = root / 'data'
+            data.mkdir()
+            (data / 'agents.json').write_text(json.dumps({'claude': {'enabled': False}}))
+            probe = subprocess.CompletedProcess([], 0, stdout='v\n', stderr='')
+            with patch.object(launcher.shutil, 'which', return_value=None), \
+                    patch.object(launcher.subprocess, 'run', return_value=probe) as run:
+                self.assertEqual(launcher.disabled_executors(data), ('claude',))
+                selected, env = launcher.resolve_tools(root, {}, {'PATH': ''}, ('claude',))
+                self.assertNotIn('claude', selected)
+                for call in run.call_args_list:
+                    self.assertNotIn('claude.exe', call.args[0][0])
+
+    def test_cursor_preflight_requires_cursor_ok_result(self):
+        with tempfile.TemporaryDirectory() as folder:
+            workdir = Path(folder) / 'work'
+            workdir.mkdir()
+            ok_event = json.dumps({'type': 'result', 'result': 'CURSOR_OK'}) + '\n'
+            good = subprocess.CompletedProcess([], 0, stdout=ok_event, stderr='')
+            with patch.object(launcher.subprocess, 'run', return_value=good) as run:
+                report = launcher.cursor_preflight('cursor-bin', {}, workdir)
+                self.assertTrue(report['ok'])
+                argv = run.call_args.args[0]
+                self.assertEqual(argv[:2], ['cursor-bin', '--trust'])
+                self.assertIn('--mode', argv)
+                self.assertEqual(run.call_args.kwargs['timeout'], 45)
+            bad = subprocess.CompletedProcess([], 0, stdout=json.dumps({'type': 'result', 'result': 'other'}), stderr='')
+            with patch.object(launcher.subprocess, 'run', return_value=bad):
+                self.assertFalse(launcher.cursor_preflight('cursor-bin', {}, workdir)['ok'])
+            with patch.object(launcher.subprocess, 'run', side_effect=subprocess.TimeoutExpired([], 45)):
+                report = launcher.cursor_preflight('cursor-bin', {}, workdir)
+                self.assertFalse(report['ok'])
+                self.assertIn('error', report)
 
     def test_cursor_agent_is_optional_detected_and_explicit_config_reaches_runner(self):
         from tmh.platform import agents

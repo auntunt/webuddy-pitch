@@ -22,7 +22,13 @@ class CursorInstallTests(unittest.TestCase):
             self.assertEqual(result['mcpServers']['customer'],custom['mcpServers']['customer'])
             self.assertEqual(result['other'],'preserved')
             self.assertTrue((root/'AGENTS.md').read_bytes().startswith(original))
-            self.assertFalse((root/'.cursor/cli.json').exists())
+            permissions=json.loads((root/'.cursor/cli.json').read_text())['permissions']
+            self.assertIsInstance(permissions['allow'],list)
+            self.assertIsInstance(permissions['deny'],list)
+            self.assertIn('Shell(tmh-kb.cmd)',permissions['allow'])
+            self.assertIn('Write(.tmh/knowledge/**)',permissions['allow'])
+            self.assertTrue((root/'.tmh/tool/tmh-kb.cmd').is_file())
+            self.assertTrue((root/'.tmh/tool/tmh_kb_bridge.py').is_file())
             self.assertFalse((root/'.cursor/hooks.json').exists())
             for name in ('legacy-feature','migrate-to-java','xinchuang-migrate'):
                 self.assertTrue((root/'.cursor/skills'/name/'SKILL.md').is_file())

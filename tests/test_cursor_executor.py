@@ -19,7 +19,10 @@ class CursorExecutorTest(unittest.TestCase):
         conf = {'cursor': dict(agents.BUILTIN['cursor'], bin='fixture-cursor')}
         for mode in ('ask', 'analyze'):
             cmd = agents.command(conf, 'cursor', mode, 'prompt', Path('prompt'), Path('.'), Path('last'), model='sonnet')
-            self.assertEqual(cmd[:6], ['fixture-cursor', '--print', '--output-format', 'stream-json', '--sandbox', 'enabled'])
+            self.assertEqual(cmd[:6], ['fixture-cursor', '--trust', '--print', '--output-format', 'stream-json', '--sandbox'])
+            self.assertEqual(cmd[6], 'enabled')
+            self.assertEqual(cmd[cmd.index('--model') + 1], 'sonnet')
+            self.assertNotIn('-m', cmd)
             self.assertIn('--mode', cmd)
             self.assertNotIn('--force', cmd)
             self.assertNotIn('--approve-mcps', cmd)
@@ -34,6 +37,29 @@ class CursorExecutorTest(unittest.TestCase):
                 agents.engine_name('team-cursor', dict(engine='cursor', **changes))
         with self.assertRaises(ValueError):
             agents.member_codex_binding({'engine':'cursor'}, '')
+
+    def test_windows_cursor_allowlist_mode(self):
+        """Windows: --sandbox disabled, no --force; read-only keeps --mode ask."""
+        conf = {'cursor': dict(agents.BUILTIN['cursor'], bin='fixture-cursor'),
+                'codex': dict(agents.BUILTIN['codex'], bin='fixture-codex'),
+                'claude': dict(agents.BUILTIN['claude'], bin='fixture-claude')}
+        build = lambda agent, mode='ask', **kw: agents.command(
+            conf, agent, mode, 'test', Path('prompt'), Path('.'), Path('last'), **kw)
+        codex_before, claude_before = build('codex'), build('claude')
+        with patch.object(sys, 'platform', 'win32'):
+            for mode in ('ask', 'analyze', 'plan', 'diagnose', 'understand', 'fix', 'edit', 'kb', 'chart'):
+                cmd = build('cursor', mode)
+                self.assertEqual(cmd[cmd.index('--sandbox') + 1], 'disabled', cmd)
+                self.assertEqual(cmd.count('--sandbox'), 1)
+                self.assertIn('--trust', cmd)
+                self.assertNotIn('--force', cmd)
+                if mode not in ('fix', 'edit', 'kb', 'chart'):
+                    self.assertEqual(cmd[cmd.index('--mode') + 1], 'ask')
+            cmd = build('cursor', 'edit', model='auto', resume='test-session')
+            self.assertEqual(cmd[cmd.index('--model') + 1], 'auto')
+            self.assertEqual(cmd[cmd.index('--resume') + 1], 'test-session')
+            self.assertEqual(build('codex'), codex_before)
+            self.assertEqual(build('claude'), claude_before)
 
     def test_agent_command_and_legacy_name_share_discovery(self):
         with patch.dict(os.environ, {}, clear=True), patch.object(agents.shutil, 'which', side_effect=lambda name: '/fixture/agent' if name == 'agent' else None):

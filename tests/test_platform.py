@@ -1915,7 +1915,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             if v["state"] in ("done", "stopped", "failed"):
                 break
             time.sleep(0.1)
-        self.assertEqual(v["state"], "done", v["log"])
+        self.assertEqual(v["state"], "stopped", v["log"])  # pending pages remain: not a finished batch
         self.assertEqual((v["ok"], v["failed"]), (3, 0), v["log"])
         self.assertEqual(v["pending"], before - 3)
         self.assertTrue(all(kb.load_registry(self.repo)[f["page"]]["status"] == "待确认" for f in v["finished"]))
@@ -1943,10 +1943,10 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         Survey.resume_all(self.P)  # what Platform() does on start
         v = self.wait_survey(key)
         self.assertTrue(v["resumed"])
-        self.assertEqual((v["state"], v["ok"]), ("done", 2), v["log"])
+        self.assertEqual((v["state"], v["ok"]), ("stopped", 2), v["log"])
         self.assertTrue(v["hit_limit"])
         self.assertIn(first, [f["page"] for f in v["finished"]])  # the old claim did not block it
-        self.assertIn("不是全部写完", "\n".join(v["log"]))
+        self.assertIn("页待写", "\n".join(v["log"]))
         self.assertNotIn(str(pid), json.loads((self.data / "surveys.json").read_text()))
 
     def wait_survey(self, key):

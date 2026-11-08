@@ -236,7 +236,7 @@ def run_process(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None,
         if __package__:
             from .windows_process import run
         else:
-            from windows_process import run
+            from tmh.platform.windows_process import run
         return run(cmd, cwd=cwd, env=env, timeout=timeout, cancel_event=cancel_event,
                    stdin=stdin, on_output=on_output, on_spawn=on_spawn,
                    terminate_grace=terminate_grace, on_bytes=on_bytes)

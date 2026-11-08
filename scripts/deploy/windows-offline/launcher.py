@@ -1,12 +1,15 @@
 """Portable Windows launcher. No downloads, system installation or account copying."""
 import argparse
+import datetime
 import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parent
@@ -49,12 +52,21 @@ def configuration(root, filename):
     return config, env, data, host, port
 
 
-def resolve_tools(root, overrides, environment):
+def disabled_executors(data):
+    """Executors switched off per install (<data>/agents.json enabled:false)."""
+    try:
+        raw = json.loads((Path(data) / 'agents.json').read_text(encoding='utf-8-sig'))
+    except FileNotFoundError:
+        return ()
+    return tuple(name for name, c in raw.items() if isinstance(c, dict) and c.get('enabled') is False)
+
+
+def resolve_tools(root, overrides, environment, disabled=()):
     release = json.loads((root / 'release.json').read_text(encoding='utf-8'))
     env = environment.copy()
     selected = {}
     # Resolve every local executable BEFORE adding any private fallback to PATH.
-    for name in ('node', 'git', 'codex', 'claude'):
+    for name in (n for n in ('node', 'git', 'codex', 'claude') if n not in disabled):
         explicit = overrides.get(name)
         if explicit and not Path(explicit).is_absolute():
             raise ValueError('Tool override must be an absolute path: ' + name)
@@ -96,6 +108,73 @@ def resolve_tools(root, overrides, environment):
     return selected, env
 
 
+def _preflight_excerpt(output):
+    lines = []
+    for line in output.splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            if re.search(r'error|fail|trust|auth|login|permission|denied|timed? out|connect|workspace', line, re.I):
+                lines.append(line)
+            continue
+        if isinstance(event, str):
+            lines.append(event)
+            continue
+        if not isinstance(event, dict):
+            continue
+        if event.get('type') == 'result' or event.get('is_error') or event.get('type') == 'error':
+            value = event.get('result') or event.get('error') or event.get('message') or event.get('subtype')
+            if value:
+                lines.append(str(value))
+    text = '\n'.join(lines[-6:])[-2000:]
+    text = re.sub(r'(?i)(Bearer\s+)\S+', r'\1[REDACTED]', text)
+    text = re.sub(r'\b(?:sk-|cur_)[A-Za-z0-9_-]+', '[REDACTED]', text)
+    text = re.sub(r'(?i)((?:api[_-]?key|access_token|refresh_token|authorization)[\s\"\x27:=]+)[^\s,\"\x27]+', r'\1[REDACTED]', text)
+    return text
+
+
+def cursor_preflight(cursor_bin, env, workdir):
+    """One no-tools request in a fresh empty directory; PASS only on CURSOR_OK.
+
+    --trust is scoped to this newly created diagnostic workspace only; project
+    trust, global Cursor settings and tool permissions are unchanged."""
+    workdir = Path(workdir)
+    if workdir.is_symlink() or any(workdir.iterdir()):
+        raise RuntimeError('Diagnostic workspace is not a fresh empty directory')
+    prompt = 'Reply with exactly CURSOR_OK. Do not use tools, read files, or modify files.'
+    cmd = [cursor_bin, '--trust', '--print', '--output-format', 'stream-json',
+           '--sandbox', 'disabled', '--mode', 'ask']
+    report = {'checked_at': datetime.datetime.now().isoformat(timespec='seconds'),
+              'ok': False, 'command': cmd}
+    try:
+        result = subprocess.run(cmd, input=prompt, cwd=str(workdir), env=env,
+                                capture_output=True, encoding='utf-8', errors='replace', timeout=45)
+        replies = []
+        for line in result.stdout.splitlines():
+            try:
+                event = json.loads(line)
+            except ValueError:
+                continue
+            if event.get('type') == 'result' and not event.get('is_error'):
+                replies.append(str(event.get('result', '')))
+        report.update(returncode=result.returncode,
+                      ok=result.returncode == 0 and any('CURSOR_OK' in value for value in replies))
+        if not report['ok']:
+            report['error_excerpt'] = _preflight_excerpt(result.stdout + result.stderr)
+            text = (result.stdout + result.stderr).lower()
+            if 'uv_os_get_passwd' in text:
+                report['error'] = 'Cursor could not read Windows user information (uv_os_get_passwd).'
+            elif 'not logged in' in text or 'unauthenticated' in text:
+                report['error'] = 'Cursor authentication failed; use Cursor login or a supported Cursor API key.'
+            elif 'sandbox mode is enabled but not available' in text:
+                report['error'] = 'Unsupported sandbox mode.'
+            else:
+                report['error'] = 'No successful CURSOR_OK result; inspect the evidence directory.'
+    except (OSError, subprocess.SubprocessError) as exc:
+        report['error'] = type(exc).__name__ + ': ' + str(exc)
+    return report
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', default=os.environ.get('WEBUDDY_CONFIG'), help='External UTF-8 JSON; never overwritten')
@@ -106,7 +185,7 @@ def main(argv=None):
         raise ValueError('This bundle supports Windows x86_64 only')
     count = verify(ROOT)
     config, env, data, host, port = configuration(ROOT, args.config)
-    selected, env = resolve_tools(ROOT, config.get('tools', {}), env)
+    selected, env = resolve_tools(ROOT, config.get('tools', {}), env, disabled_executors(data))
     if args.action == 'tool':
         if not args.arguments or args.arguments[0] not in selected or not selected[args.arguments[0]].get('path'):
             raise ValueError('tool requires an installed codex, claude, git, node or cursor, followed by its arguments')
@@ -115,6 +194,12 @@ def main(argv=None):
     report = dict(bundle_files_verified=count, tools=selected, data_dir=str(data),
                   url='http://%s:%s/' % (host, port), configuration=check_config(data),
                   model_access='not_checked', authentication='not_checked')
+    if selected['cursor'].get('path'):
+        # Reported, never blocking: one real no-tools Cursor request proves the
+        # model connection; a version number or saved login does not.
+        workdir = Path(tempfile.mkdtemp(prefix='cursor-connection-'))
+        report['cursor_connection'] = cursor_preflight(selected['cursor']['path'], env, workdir)
+        report['cursor_connection']['evidence_dir'] = str(workdir)
     print(json.dumps(report, ensure_ascii=False, indent=2), flush=True)
     if not report['configuration']['ok']:
         return 1

@@ -25,15 +25,17 @@ from pathlib import Path
 
 if __package__:
     from .process_control import ProcessResult, run_process
-else:  # The worker is launched by absolute filename, independent of target cwd.
-    from process_control import ProcessResult, run_process
+else:  # The worker is launched by absolute filename; embedded Python (._pth)
+    # does not put the script's directory on sys.path, so import the package.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from tmh.platform.process_control import ProcessResult, run_process
 
 
 if os.name == "nt":
     if __package__:
         from .windows_process import receipt_lock
     else:
-        from windows_process import receipt_lock
+        from tmh.platform.windows_process import receipt_lock
 else:
     def receipt_lock(path):
         return nullcontext()

@@ -37,6 +37,7 @@ import re
 import secrets
 import shutil
 import subprocess
+import sys
 import threading
 import time
 import math
@@ -323,9 +324,16 @@ def executable(engine: str, config: dict) -> str:
     return exe
 
 
+def enabled(config: dict) -> bool:
+    """An executor entry stays in agents.json but leaves the active catalog when disabled."""
+    return config.get("enabled", True) is not False
+
+
 def available(data_dir: Path) -> list:
     out = []
     for name, c in load_config(data_dir).items():
+        if not enabled(c):
+            continue
         error = ""
         try:
             engine = engine_name(name, c)
@@ -372,7 +380,7 @@ def _fence(text: str) -> str:
     return (text or "").replace("<<<", "‹‹‹").replace(">>>", "›››").replace("```", "ˋˋˋ")
 
 
-def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None, isolated=False, historical_case=False) -> str:
+def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None, isolated=False, historical_case=False, engine: str = "") -> str:
     from . import project_library as library
     if reference_inputs is None:
         reference_inputs = library.bindings(store, project)
@@ -395,10 +403,24 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         if development['state'] != 'not_selected':
             out.append("## 开发人员确认稿与问答（当前状态：%s）\n%s" % (development['state'], json.dumps(development['payload'],ensure_ascii=False)))
     tool = root / ".tmh" / "tool" / "tmh.py"
+    # Cursor on Windows gets the narrow tmh-kb.cmd bridge: its permissions only
+    # allow that entry point, and python3 resolves to the WindowsApps stub.
+    cursor_kb_bridge = (sys.platform == "win32" and engine == "cursor" and mode == "kb"
+                        and tool.with_name("tmh-kb.cmd").is_file())
     if isolated:
         out.append("平台知识以本任务中实际提供的上下文和来源为准；隔离工作区不包含 .tmh 工具。缺少的依据应明确说明。")
+    elif cursor_kb_bridge:
+        out.append("Windows 知识任务命令入口已配置到 PATH：`tmh-kb.cmd`。"
+                   "先运行 `tmh-kb.cmd status` 和 `tmh-kb.cmd notes`，然后立即领取指定页面。"
+                   "领取与校验分别使用 `tmh-kb.cmd next --page 页面ID`、`tmh-kb.cmd done 页面ID`。"
+                   "读取和检索使用内置文件工具，写入仅限任务指定的 .tmh/knowledge 页面。"
+                   "不要尝试 python/python3、Bash 或其他 Shell 命令。"
+                   "如果命令返回 rejected，立即报告具体被拒绝的命令并结束，不要反复尝试或无止境扫描。")
     elif tool.is_file():
-        out.append("查业务流、表和影响面用 `python3 %s <子命令> --repo %s`（下文写作 `tmh <子命令>`）。" % (tool, root))
+        if sys.platform == "win32":  # python3 on Windows resolves to a non-working WindowsApps stub
+            out.append("查业务流、表和影响面用 `\"%s\" %s <子命令> --repo %s`（下文写作 `tmh <子命令>`）。" % (sys.executable, tool, root))
+        else:
+            out.append("查业务流、表和影响面用 `python3 %s <子命令> --repo %s`（下文写作 `tmh <子命令>`）。" % (tool, root))
     else:
         out.append("这个项目尚未安装 tmh 项目工具；下文的 tmh 查询要求改用项目内代码、引用与测试核对。不要执行不存在的工具，也不要为此搜索其他项目或安装工具。")
     out.append("")
@@ -499,7 +521,8 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
     if delivery_context:
         out += [delivery_context, ""]
     if mode == "kb" and len(target.split()) > 1:  # several small pages of one source file in one run (see survey.py)
-        out.append(KB_MANY.replace("{targets}", "\n".join("- " + t for t in target.split())).replace("{first}", target.split()[0]))
+        many = KB_MANY.replace("{targets}", "\n".join("- " + t for t in target.split())).replace("{first}", target.split()[0])
+        out.append(many.replace("tmh kb ", "tmh-kb.cmd ") if cursor_kb_bridge else many)
     else:
         instruction = MODE_TEXT[mode]
         if isolated and mode == 'fix':
@@ -509,6 +532,8 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
                 instruction = DELIVERY_ASK
             elif links.get("greenfield") and mode in ("plan", "fix"):
                 instruction = GREENFIELD_PLAN if mode == "plan" else GREENFIELD_FIX
+        if cursor_kb_bridge:
+            instruction = instruction.replace("tmh kb ", "tmh-kb.cmd ")
         out.append(instruction.replace("{target}", target or "<页面 id>"))
     return "\n".join(out)
 
@@ -656,6 +681,8 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
     c = conf.get(agent)
     if not c:
         raise ValueError("没有这个智能体：%s" % agent)
+    if not enabled(c):
+        raise ValueError("执行器 %s 已在 agents.json 中禁用（enabled: false）" % agent)
     engine = engine_name(agent, c)
     if "cmd" in c:
         sub = {"{prompt}": prompt, "{prompt_file}": str(prompt_file), "{workdir}": str(workdir), "{mode}": mode, "{model}": model,
@@ -668,7 +695,7 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
             while flag in extra:
                 i = extra.index(flag)
                 del extra[i:i + 2]
-        extra = (["--model", model] if engine == "claude" else ["-m", model]) + extra
+        extra = (["--model", model] if engine in ("claude", "cursor") else ["-m", model]) + extra
     if engine == "claude":
         read = READ_TOOLS + (["Bash(python3 %s:*)" % tool] if tool else [])
         cmd = [exe, "-p", "--output-format", "stream-json", "--verbose"] + (["--resume", resume] if resume else [])  # prompt on stdin
@@ -692,8 +719,14 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
                 "--output-last-message", str(last_msg)] + extra + (["resume", resume] if resume else []) + [prompt_arg]
     if engine == "cursor":
         # Platform authorization selects the mode; readonly calls never receive write permission.
+        # --trust is scoped to this run's workspace, which the platform controls.
+        # Native Windows has no Cursor OS sandbox: keep CLI permissions and drop
+        # --force (user approved running Cursor's own checks instead).
+        if sys.platform == "win32":
+            policy = [] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]
+            return [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "disabled"] + policy + extra + (["--resume", resume] if resume else [])
         policy = ["--force"] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]
-        return [exe, "--print", "--output-format", "stream-json", "--sandbox", "enabled"] + policy + extra + (["--resume", resume] if resume else [])
+        return [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "enabled"] + policy + extra + (["--resume", resume] if resume else [])
     raise ValueError("智能体 %s 没有配置 cmd" % agent)
 
 
@@ -948,10 +981,16 @@ CONTINUES = {"plan": ("analyze",), "fix": ("plan", "analyze")}  # a step continu
 STEER_MODES = ("analyze", "plan", "fix", "understand", "chart", "kb")
 
 
-def steer_hint(mode: str) -> str:
+def steer_hint(mode: str, engine: str = "") -> str:
     """People can add a word while a run is going (POST /api/runs/<rid>/say); the agent reads it between steps."""
     if mode not in STEER_MODES:
         return ""
+    if sys.platform == "win32":
+        read = ("tmh-kb.cmd notes" if engine == "cursor" else
+                '"%s" -B -c "import os,sys;sys.stdout.write(open(os.environ[\'TMH_NOTES\'],encoding=\'utf-8\').read())"' % sys.executable)
+        return ("\n\n## 执行中人可能插话\n负责的人会在你执行过程中补充要求或纠正方向，写在环境变量 TMH_NOTES 指向的文件里。"
+                "开始时和每做完一步（改文件、跑命令之前），运行 `%s` 看有没有新的话；"
+                "有就以最新的话为准调整做法，并在最后的回复里写明收到了哪句话、怎么处理的。文件不存在或为空就照原计划做。\n" % read)
     return ("\n\n## 执行中人可能插话\n负责的人会在你执行过程中补充要求或纠正方向，写在环境变量 TMH_NOTES 指向的文件里。"
             "开始时和每做完一步（改文件、跑命令之前），运行 `cat \"$TMH_NOTES\" 2>/dev/null` 看有没有新的话；"
             "有就以最新的话为准调整做法，并在最后的回复里写明收到了哪句话、怎么处理的。文件不存在或为空就照原计划做。\n")
@@ -1599,9 +1638,9 @@ class Runner:
         if authority:
             from .project_git import personal_scope
             with personal_scope(ctx.platform,author):
-                prompt = build_prompt(self.store,project,ticket,mode,target,question,history,reference_inputs=reference_inputs,isolated=True)
+                prompt = build_prompt(self.store,project,ticket,mode,target,question,history,reference_inputs=reference_inputs,isolated=True,engine=engine)
         else:
-            prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
+            prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history, reference_inputs=reference_inputs, engine=engine)
         if library.bindings(self.store, project) != reference_inputs:
             raise ValueError('组装提示词期间参考知识已变化，请重新启动任务')
         def contract_marker(rid):
@@ -1674,7 +1713,7 @@ class Runner:
                 source.update(workdir=str(view), actual_commit=actual["commit"], actual_tree=actual["tree"], prepared_at=now())
                 prompt_project = dict(project, root=str(view))
                 reset_context_meta()
-                prompt = build_prompt(self.store, prompt_project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
+                prompt = build_prompt(self.store, prompt_project, ticket, mode, target, question, history, reference_inputs=reference_inputs, engine=engine)
                 _record_context(self.store, self.data_dir, run["id"], take_context_meta())
                 prompt += ("\n\n## 本次检查的固定代码版本\n提交：%s\n实现运行：#%s；方案运行：%s。\n"
                            "只检查目录 %s 中的这次提交。主干、其他分支和旧知识库不能替代本次代码证据。"
@@ -2144,17 +2183,17 @@ class Runner:
         st = self.store
         rdir = self.data_dir / "runs" / str(rid)
         pf, lm = rdir / ("prompt%s.md" % tag), rdir / ("last-message%s.md" % tag)
+        engine = engine_name(agent, conf[agent])
         if not tag and not resume:  # a retry or resumed session already carries it
-            prompt += steer_hint(mode)
+            prompt += steer_hint(mode, engine)
         from . import testbox, testbox_mcp
-        remote_testing = mode == 'fix' and engine_name(agent, conf[agent]) == 'codex' and 'cmd' not in conf[agent] and bool(testbox.settings(self.data_dir))
+        remote_testing = mode == 'fix' and engine == 'codex' and 'cmd' not in conf[agent] and bool(testbox.settings(self.data_dir))
         if remote_testing:
             prompt += testbox_mcp.INSTRUCTION
         pf.write_bytes(prompt.encode("utf-8"))
         if lm.exists():
             # Earlier attempt copies remain in attempts/, including an interrupted final answer.
             lm.unlink()
-        engine = engine_name(agent, conf[agent])
         parser, clock = StreamParser(engine), Timing(resume, notes_file(self.data_dir, rid))
         try:
             cmd = command(conf, agent, mode, prompt, pf, workdir, lm, str(Path(project["root"]) / ".tmh" / "tool" / "tmh.py"), model, resume)
@@ -2167,6 +2206,9 @@ class Runner:
         tool = Path(project["root"]) / ".tmh" / "tool"
         if tool.is_dir():
             env["PYTHONPATH"] = str(tool) + os.pathsep + env.get("PYTHONPATH", "")
+            if sys.platform == "win32" and engine == "cursor" and (tool / "tmh-kb.cmd").is_file():
+                # Cursor's shell resolves the knowledge bridge by name on Windows.
+                env["PATH"] = str(tool) + os.pathsep + env.get("PATH", "")
         pending, buf, last = "", [], time.monotonic()
         def output(chunk, final=False):
             nonlocal pending, buf, last

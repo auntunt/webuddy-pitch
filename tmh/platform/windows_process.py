@@ -91,7 +91,7 @@ def run(cmd, *, cwd=None, env=None, timeout=None, cancel_event=None, stdin=None,
     if __package__:
         from .process_control import ProcessResult
     else:
-        from process_control import ProcessResult
+        from tmh.platform.process_control import ProcessResult
     start = time.monotonic()
     cleanup = dict(trigger=None, term_sent=False, kill_sent=False, signals=[], errors=[],
                    remaining_group=False, output_complete=False, reaped=False, complete=False)

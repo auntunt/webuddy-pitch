@@ -1726,10 +1726,52 @@ def api_kb_page(P, req, key):
     return P.kb.kb_page(P.project(key), req.arg("id"))
 
 
+def _kb_confirm_actor(P, req):
+    """Who confirms a knowledge page.
+
+    With no accounts, no tenant and no session, an explicit same-origin browser POST
+    from the machine itself is allowed and recorded as a local operator — not a
+    verified personal account or a supplied display name. Every account, tenant,
+    agent or forwarded request keeps the original personal-login rule."""
+    from . import login
+    handler = getattr(req, "h", None)
+    headers = getattr(handler, "headers", {})
+    if (getattr(P, "tenant_context", None) is not None or login.has_accounts(P.data_dir)
+            or _session_actor(req) or headers.get("X-Webuddy-Agent") or str(req.user).startswith("agent:")):
+        return _human_action(P, req, strict=True)
+    import ipaddress
+    from urllib.parse import urlsplit
+
+    def loopback(value):
+        try:
+            return ipaddress.ip_address(value).is_loopback
+        except (ValueError, TypeError):
+            return False
+
+    peer = getattr(handler, "client_address", ("",))[0]
+    bound = getattr(getattr(handler, "server", None), "server_address", ("",))[0]
+    origin, host = headers.get("Origin", ""), headers.get("Host", "")
+    try:
+        source = urlsplit(origin)
+        target = urlsplit("http://" + host)
+        same_origin = (source.scheme == "http" and source.netloc == host and
+                       source.path in ("", "/") and not source.query and not source.fragment and
+                       not source.username and not target.username and
+                       (target.hostname == "localhost" or loopback(target.hostname)))
+    except ValueError:
+        same_origin = False
+    # A LAN listener can still serve a loopback-only browser operation.
+    if not (loopback(peer) and (loopback(bound) or bound in ("0.0.0.0", "::")) and same_origin and
+            headers.get("X-TMH") == "1" and headers.get("Sec-Fetch-Site") == "same-origin" and
+            not headers.get("Forwarded") and not headers.get("X-Forwarded-For")):
+        raise ApiError(403, "免账号知识确认仅支持本机单用户网页，请从本机地址打开知识页后手动确认")
+    return "本机操作者(%s)" % (os.environ.get("USERNAME") or os.environ.get("USER") or "local")
+
+
 @route("POST", "/api/projects/<key>/kb/confirm")
 def api_kb_confirm(P, req, key):
     from .. import kb
-    actor = _human_action(P, req, strict=True)
+    actor = _kb_confirm_actor(P, req)
     if req.body.get("by") not in (None, "", actor):
         raise ApiError(403, "人工确认必须记在当前登录账号下，不能代用他人姓名")
     p = P.project(key)
