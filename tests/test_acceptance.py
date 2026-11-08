@@ -71,7 +71,7 @@ class AcceptanceTest(unittest.TestCase):
         cfg = config.load(self.root)
         script = self.root / "check_fixture.py"
         script.write_text("import json, pathlib\np=pathlib.Path('.tmh/test-output/cases.json');p.parent.mkdir(parents=True,exist_ok=True)\nassert pathlib.Path('src/main/java/com/acme/oa/controller/LeaveController.java').is_file()\np.write_text(json.dumps({'cases':[{'id':'entry-exists','status':'pass'}]}))\n")
-        cfg["commands"].update(test=shlex.quote(sys.executable) + " check_fixture.py", test_report={"path":".tmh/test-output/cases.json", "format":"json"}, criteria={"A1":["entry-exists"]})
+        cfg["commands"].update(test=(subprocess.list2cmdline([sys.executable, "check_fixture.py"]) if os.name == "nt" else shlex.quote(sys.executable) + " check_fixture.py"), test_report={"path":".tmh/test-output/cases.json", "format":"json"}, criteria={"A1":["entry-exists"]})
         config.save(self.root, cfg)
         g("add", "check_fixture.py")
         g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "test fixture")

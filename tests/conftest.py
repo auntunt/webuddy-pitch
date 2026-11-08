@@ -25,3 +25,10 @@ urllib.request.proxy_bypass = _loopback_proxy_bypass
 # Child processes spawned by tests (python -m tmh ...) inherit the environment, not this module-level patch.
 os.environ.setdefault("NO_PROXY", "127.0.0.1,localhost,::1")
 os.environ.setdefault("no_proxy", "127.0.0.1,localhost,::1")
+
+
+def pytest_runtest_logreport(report):
+    # Native crashes can prevent pytest's final summary. Preserve each failure
+    # as it happens so a later crash cannot erase the earlier diagnostics.
+    if report.failed:
+        print(f"\nFAILED IMMEDIATELY: {report.nodeid} [{report.when}]\n{report.longrepr}", flush=True)

@@ -1375,6 +1375,7 @@ class Runner:
         self.store = store
         self.data_dir = Path(data_dir)
         self.procs = {}
+        self.threads = {}  # thread completion includes events, charging and callbacks
         self.controls = {}  # one execution budget across calls, retries and local checks
         self.owners = {}  # per-run OS leases; a second service cannot recover a live owner
         self.member_authorities = {}  # in-memory personal grants; never replay after service loss
@@ -1685,8 +1686,25 @@ class Runner:
         if then:
             self.after[run["id"]] = then
         th = threading.Thread(target=self._run, args=(run["id"], project, ticket, agent, mode, prompt, conf, model, explicit, base), daemon=True)
-        th.start()
+        with self.lock:
+            self.threads = {rid: worker for rid, worker in self.threads.items() if worker.is_alive()}
+            self.threads[run["id"]] = th
+            th.start()
         return self.store.run(run["id"])
+
+    def wait_for_idle(self, timeout: float) -> bool:
+        """Wait for launched threads, not just terminal run rows. Does not cancel work."""
+        deadline = time.monotonic() + timeout
+        while True:
+            with self.lock:
+                self.threads = {rid: th for rid, th in self.threads.items() if th.is_alive()}
+                pending = list(self.threads.values())
+            if not pending:
+                return True
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or threading.current_thread() in pending:
+                return False
+            pending[0].join(remaining)
 
     def _run(self, rid, project, ticket, agent, mode, prompt, conf, model="", explicit=False, base=""):
         """Waits for a free slot (ticket steps go before knowledge pages), then runs."""
