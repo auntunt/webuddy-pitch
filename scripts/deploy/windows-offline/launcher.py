@@ -105,12 +105,13 @@ def lan_addresses(rows):
 
 
 def windows_adapter_rows():
-    script = ("Get-NetIPConfiguration | ForEach-Object { [pscustomobject]@{ alias=$_.InterfaceAlias; "
+    # Adapter names are localised (e.g. 以太网); force UTF-8 so decoding never depends on the console code page.
+    script = ("[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-NetIPConfiguration | ForEach-Object { [pscustomobject]@{ alias=$_.InterfaceAlias; "
               "description=$_.InterfaceDescription; ipv4=($_.IPv4Address | Select-Object -First 1).IPAddress; "
               "gateway=($_.IPv4DefaultGateway | Select-Object -First 1).NextHop; "
               "up=($_.NetAdapter.Status -eq 'Up') } } | ConvertTo-Json -Compress")
     try:
-        out = subprocess.run(['powershell', '-NoProfile', '-Command', script], capture_output=True, text=True, timeout=20).stdout
+        out = subprocess.run(['powershell', '-NoProfile', '-Command', script], capture_output=True, encoding='utf-8', errors='replace', timeout=20).stdout
         data = json.loads(out or '[]')
     except (OSError, ValueError, subprocess.SubprocessError):
         return []

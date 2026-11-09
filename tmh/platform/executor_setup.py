@@ -56,7 +56,7 @@ def _restrict(path):
     if sys.platform == "win32":
         me = subprocess.run(["powershell.exe", "-NoLogo", "-NoProfile", "-Command",
                              "[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value"],
-                            capture_output=True, text=True, check=True).stdout.strip()
+                            capture_output=True, encoding="utf-8", errors="replace", check=True).stdout.strip()
         subprocess.run(["icacls", str(path), "/inheritance:r", "/grant:r",
                         "*" + me + ":F", "*S-1-5-18:F"], capture_output=True, check=True)
     else:
@@ -137,7 +137,7 @@ def spawn_env(data_dir, name, conf_entry):
 
 def _version(exe):
     try:
-        result = subprocess.run([exe, "--version"], capture_output=True, text=True, timeout=15)
+        result = subprocess.run([exe, "--version"], capture_output=True, encoding="utf-8", errors="replace", timeout=15)
         line = (result.stdout or result.stderr).strip().splitlines()
         return (line[0] if line else "")[:120]
     except (OSError, subprocess.SubprocessError):
@@ -262,7 +262,7 @@ def scan():
     if cursor["executables"]:
         try:
             status = subprocess.run([cursor["executables"][0], "status"], capture_output=True,
-                                    text=True, timeout=15)
+                                    encoding="utf-8", errors="replace", timeout=15)
             out = (status.stdout + status.stderr).lower()
             cursor["logged_in"] = status.returncode == 0 and "logged in" in out and "not" not in out.split("logged in")[0][-10:]
         except (OSError, subprocess.SubprocessError):
