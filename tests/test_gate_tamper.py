@@ -229,3 +229,25 @@ class CandidateReportTest(GateTamperTest):
         manifest = self.call("candidate_report_create", {"candidate_id": a["candidate_id"], "request_id": "exp"})
         with self.assertRaises(ApiError):
             self.call("candidate_report_get", {"candidate_id": 999999, "export_id": manifest["export_id"]})
+
+    def test_resolve_ref_names_and_technical_only(self):
+        # branch/tag names resolve to SHAs server-side, read-only
+        self.git("branch", "feat-candidate")
+        self.git("tag", "v-base", self.base)
+        r = self.call("candidate_resolve", {"ticket": self.ticket["key"], "base": "v-base", "commit": "feat-candidate"})
+        self.assertEqual(r["base"]["commit"], self.base)
+        self.assertEqual(r["commit"]["commit"], self.sha)
+        bad = self.call("candidate_resolve", {"ticket": self.ticket["key"], "base": "no-such", "commit": self.sha})
+        self.assertFalse(bad["base"]["resolved"])
+        # criteria omitted -> technical-only submission, conformance unknown
+        runs_before = [r["id"] for r in self.P.store.q("SELECT id FROM runs")]
+        a = self.submit(criteria=[])
+        self.assertEqual(a["execution_started"], False)
+        v = self.view(a["candidate_id"])
+        self.assertEqual(v["criteria"], [])
+        runs_after = [r for r in self.P.store.q("SELECT id,mode,status FROM runs") if r["id"] not in runs_before]
+        # exactly one record is created — the candidate receipt itself (status done,
+        # never 'running'): no writer/fix run is started
+        self.assertEqual(len(runs_after), 1)
+        self.assertEqual(runs_after[0]["status"], "done")
+        self.assertEqual(runs_after[0]["mode"], "fix")

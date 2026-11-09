@@ -369,6 +369,19 @@ def execute(P, actor, op, a, mutation=lambda: None):
                 "next_after": rows[min(len(rows), a["limit"]) - 1]["id"] if rows else a["after"]}
     if op == "candidate_get":
         return view(P, a["candidate_id"])
+    if op == "candidate_resolve":
+        t = P.store.ticket(a["ticket"])
+        if not t:
+            raise ApiError(404, "没有这个工单")
+        root = Path(P.store.project(t["project_id"])["root"])
+        out = {}
+        for key, name in (("base", a["base"]), ("commit", a["commit"])):
+            try:
+                sha = _git(root, "rev-parse", "--verify", "--end-of-options", name + "^{commit}").strip()
+                out[key] = {"name": name, "commit": sha, "resolved": True}
+            except ApiError:
+                out[key] = {"name": name, "commit": "", "resolved": False}
+        return out
     if op == "candidate_submit":
         result = submit(P, actor, a, mutation)
         if not result.get('reused'):

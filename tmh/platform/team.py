@@ -303,7 +303,10 @@ def _action(P, t, b, user, mutation):
                   "candidate_assess": ("candidate_id", "verification_hash", "preview_hash", "results", "note", "request_id"),
                   "candidate_verify": ("candidate_id", "request_id"), "candidate_cancel": ("candidate_id", "request_id"),
                   "candidate_preview": ("candidate_id", "request_id"),
-                  "candidate_gate_ack": ("candidate_id", "reason", "request_id")}.get(op)
+                  "candidate_gate_ack": ("candidate_id", "reason", "request_id"),
+                  "candidate_resolve": ("ticket", "base", "commit"),
+                  "candidate_report_create": ("candidate_id", "request_id"),
+                  "candidate_report_get": ("candidate_id", "export_id", "file", "offset")}.get(op)
         if not fields:
             raise ApiError(400, "未知团队操作")
         args = {k: b[k] for k in fields if k in b}
