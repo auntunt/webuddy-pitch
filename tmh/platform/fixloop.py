@@ -167,7 +167,7 @@ PAGE_CHECKS_LATER = """## 之后还有页面实测
 
 
 def settings(data_dir: Path) -> dict:
-    conf = {"check": "", "rounds": 3, "check_timeout": 1200, "recheck_timeout": 0, "max_files": 16, "split_from": 5}
+    conf = {"check": "", "rounds": 3, "check_timeout": 1200, "recheck_timeout": 0, "max_files": 16, "split_from": 5, "maven_mirror": ""}
     f = Path(data_dir) / "autoflow.json"
     if f.exists():
         try:
@@ -426,7 +426,8 @@ class FixLoop:
         from . import toolchain
         out = []
         base, diff = git(where, "rev-parse", "HEAD").strip(), worktree_diff(where)
-        prepared = toolchain.prepare(where, Path(self.r.data_dir) / "toolchains")
+        prepared = toolchain.prepare(where, Path(self.r.data_dir) / "toolchains",
+                                     str(self.set.get("maven_mirror") or ""), Path(self.r.data_dir) / "toolchains" / "tasks" / str(self.rid))
         self.say("环境准备：" + ("；".join(prepared["notes"]) or "无需额外工具"))
         child_env = dict(os.environ, **prepared["env"])
         for kind, cmd in seq:
@@ -434,6 +435,8 @@ class FixLoop:
                 break
             self.say("构建测试：%s" % cmd)
             t0 = time.time()
+            if prepared["env"].get("TMH_MAVEN_SETTINGS") and re.match(r"^(cd \S+ && )?(\./|\.\\)?mvnw?(\.cmd)?\b", cmd):
+                cmd = cmd.replace("mvn", "mvn -s \"$TMH_MAVEN_SETTINGS\"", 1) if os.name != "nt" else cmd.replace("mvn", "mvn -s \"%TMH_MAVEN_SETTINGS%\"", 1)
             shell = (subprocess.list2cmdline([os.environ.get("COMSPEC", "cmd.exe")]) + ' /d /s /c "' + cmd + '"'
                      if os.name == "nt" else ["/bin/sh", "-c", cmd])
             r, folder = self.r.run_command(self.rid, shell, where,

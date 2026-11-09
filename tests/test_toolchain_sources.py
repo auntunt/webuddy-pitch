@@ -101,3 +101,41 @@ class ToolchainSourcesTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MavenMirrorTest(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory(prefix="tmh-mirror-")
+        self.addCleanup(temp.cleanup)
+        self.root = Path(temp.name) / "app"
+        self.root.mkdir()
+        (self.root / "pom.xml").write_text("<project/>", encoding="utf-8")
+        self.task = Path(temp.name) / "task"
+
+    def test_no_mirror_means_no_settings_file(self):
+        self.assertIsNone(toolchain.maven_settings(self.task, ""))
+
+    def test_mirror_writes_task_local_settings_and_points_the_environment_at_it(self):
+        with patch.object(toolchain, "_fetch", return_value=(self.task, "已有")), \
+                patch.object(toolchain.shutil, "which", return_value=None):
+            result = toolchain.prepare(self.root, Path(self.task) / "tools", "https://maven.aliyun.com/repository/public", self.task)
+        settings = Path(result["env"]["TMH_MAVEN_SETTINGS"])
+        self.assertTrue(settings.is_file())
+        text = settings.read_text(encoding="utf-8")
+        self.assertIn("<mirrorOf>central</mirrorOf>", text)
+        self.assertIn("https://maven.aliyun.com/repository/public", text)
+
+    def test_non_http_mirror_is_refused(self):
+        with self.assertRaises(ApiError):
+            toolchain.maven_settings(self.task, "file:///etc/passwd")
+
+
+class MavenSettingsFlagTest(unittest.TestCase):
+    def test_mvn_check_gets_the_settings_flag_only_when_a_mirror_is_set(self):
+        import re
+        pattern = r"^(cd \S+ && )?(\./|\.\\)?mvnw?(\.cmd)?\b"
+        self.assertTrue(re.match(pattern, "mvn -q -B test"))
+        self.assertTrue(re.match(pattern, "cd sub && ./mvnw -q test"))
+        self.assertFalse(re.match(pattern, "npm test"))
+        cmd = "mvn -q -B test".replace("mvn", 'mvn -s "$TMH_MAVEN_SETTINGS"', 1)
+        self.assertEqual(cmd, 'mvn -s "$TMH_MAVEN_SETTINGS" -q -B test')

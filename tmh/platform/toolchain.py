@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import shutil
 import urllib.request
 import zipfile
@@ -92,8 +93,32 @@ def _extract(archive: Path, home: Path, pin: dict) -> Path:
     return home / pin["folder"]
 
 
-def prepare(root: Path, home: Path) -> dict:
-    """Environment for a task's commands: JAVA_HOME and PATH entries. Reuses an installed toolchain first."""
+MAVEN_SETTINGS = """<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+  <mirrors>
+    <mirror>
+      <id>tmh-mirror</id>
+      <mirrorOf>central</mirrorOf>
+      <url>%s</url>
+    </mirror>
+  </mirrors>
+</settings>
+"""
+
+
+def maven_settings(task_dir: Path, mirror: str) -> Path | None:
+    """A task-local settings.xml routing Maven Central through the configured mirror; None when no mirror is set."""
+    if not mirror:
+        return None
+    if not re.match(r"^https?://[^\s<>\"]+$", mirror):
+        raise ApiError(400, "Maven 镜像地址必须是 http:// 或 https:// 开头的网址")
+    task_dir.mkdir(parents=True, exist_ok=True)
+    path = task_dir / "settings.xml"
+    path.write_text(MAVEN_SETTINGS % mirror, encoding="utf-8")
+    return path
+
+
+def prepare(root: Path, home: Path, maven_mirror: str = "", task_dir: Path | None = None) -> dict:
+    """Environment for a task's commands: JAVA_HOME, PATH and, when a Maven mirror is set, the settings file to use."""
     env, notes = {}, []
     paths = []
     if "jdk" in needs(root):
@@ -115,4 +140,8 @@ def prepare(root: Path, home: Path) -> dict:
             notes.append("Maven %s（%s）" % (MAVEN["version"], "已有" if source == "已有" else "来源：" + source))
     if paths:
         env["PATH"] = os.pathsep.join(paths + [os.environ.get("PATH", "")])
+    settings = maven_settings(task_dir, maven_mirror) if task_dir and "maven" in needs(root) else None
+    if settings:
+        env["TMH_MAVEN_SETTINGS"] = str(settings)
+        notes.append("Maven 依赖镜像：%s" % maven_mirror)
     return {"env": env, "notes": notes}
