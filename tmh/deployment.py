@@ -18,13 +18,25 @@ def check_config(data_dir):
         except FileNotFoundError:
             files.append(dict(file=name, state='not_configured'))
         except json.JSONDecodeError as exc:
-            files.append(dict(file=name, state='invalid_json', line=exc.lineno, column=exc.colno))
+            bom = path.read_bytes()[:3] == b'\xef\xbb\xbf'
+            files.append(dict(file=name, state='bom' if bom else 'invalid_json', line=exc.lineno, column=exc.colno))
         except (OSError, UnicodeError):
             files.append(dict(file=name, state='unreadable'))
         else:
             files.append(dict(file=name, state='valid_object' if isinstance(value, dict) else 'invalid_type'))
     return dict(ok=all(item['state'] in ('not_configured', 'valid_object') for item in files),
                 check='json_syntax_and_top_level_type', files=files)
+
+
+def strip_config_bom(data_dir):
+    """Notepad and PowerShell 5 save UTF-8 with a BOM; every platform reader expects plain UTF-8."""
+    fixed = []
+    for name in CONFIG_FILES:
+        path = Path(data_dir) / name
+        if path.is_file() and path.read_bytes()[:3] == b'\xef\xbb\xbf':
+            path.write_bytes(path.read_bytes()[3:])
+            fixed.append(name)
+    return fixed
 
 
 def load_secrets(environment=None):

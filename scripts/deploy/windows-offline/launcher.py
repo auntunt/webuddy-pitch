@@ -327,7 +327,10 @@ def main(argv=None):
         if not args.arguments or args.arguments[0] not in selected or not selected[args.arguments[0]].get('path'):
             raise ValueError('tool requires an installed codex, claude, git, node or cursor, followed by its arguments')
         return subprocess.call([selected[args.arguments[0]]['path'], *args.arguments[1:]], env=env)
-    from tmh.deployment import check_config, load_secrets
+    from tmh.deployment import check_config, load_secrets, strip_config_bom
+    if args.action == 'start':
+        for name in strip_config_bom(data):
+            print('已去掉 %s 开头的 BOM（记事本保存的 UTF-8）' % name)
     report = dict(tools=selected, data_dir=str(data),
                   url='http://%s:%s/' % (host, port), configuration=check_config(data),
                   model_access='not_checked', authentication='not_checked')
