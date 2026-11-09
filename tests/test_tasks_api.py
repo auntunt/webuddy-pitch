@@ -39,3 +39,14 @@ class TaskApiTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TaskSecretsRouteTest(TaskApiTest):
+    def test_secret_values_stay_out_of_the_ticket_and_events(self):
+        created = tasks.api_new_task(self.P, self.req({"title": "改测试库", "body": "完成修改后测试", "goal": "出方案",
+                                                       "secrets": [{"name": "db_password", "value": "PW-TASK-ROUTE-77"}]}), "TSK")
+        self.assertEqual(created["secret_names"], ["db_password"])
+        ticket = self.P.store.ticket(created["key"])
+        events = " ".join(str(e) for e in self.P.store.events(ticket["id"]))
+        self.assertIn("db_password", events)
+        self.assertNotIn("PW-TASK-ROUTE-77", events + str(ticket))
