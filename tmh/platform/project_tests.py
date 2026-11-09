@@ -291,7 +291,11 @@ def execute(loop, profile):
                 body = ';'.join("Remove-Item (Join-Path $HOME '%s') -Force" % n for n in names) if loop.box.os == 'windows' else 'rm -f ' + ' '.join('"$HOME/%s"' % n for n in names)
                 loop.box.script(body)
     else:
-        process, receipt = loop.r.run_command(loop.rid, ['node', str(folder / 'runner.cjs'), str(folder / 'plan.json')], loop.wt, timeout=timeout, kind='project-tests')
+        from . import toolchain
+        prepared = toolchain.prepare(Path(loop.wt), Path(loop.r.data_dir) / 'toolchains')
+        loop.say('环境准备：' + ('；'.join(prepared['notes']) or '无需额外工具'))
+        child_env = dict(os.environ, **prepared['env'])
+        process, receipt = loop.r.run_command(loop.rid, ['node', str(folder / 'runner.cjs'), str(folder / 'plan.json')], loop.wt, timeout=timeout, kind='project-tests', env=child_env)
         result = {'exit_code': process.returncode, 'output': process.output, 'tail': process.output}
     output = result.get('output', '')
     (folder / 'transport.txt').write_text(output, encoding='utf-8')
