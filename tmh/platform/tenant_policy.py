@@ -605,6 +605,8 @@ def authorize(P, method, path, query, body, actor):
             template == "/api/projects/<key>/reforms/<pid>" and body.get("action") in ("archive", "remove") or
             template == "/api/memory" and body.get("action") in ("lesson_share", "lesson_unshare", "lesson_take", "lesson_untake")):
         level = "manager"
+    if method == "POST" and template == "/api/team" and body.get("action") in ("candidate_resolve", "candidate_report_get"):
+        level = "viewer"  # read-only team actions: no execution, no receipt, no Git write
     targets = []
     def add(kind, value):
         if value not in (None, ""):
@@ -689,6 +691,7 @@ def authorize(P, method, path, query, body, actor):
     safe |= template in ("/api/tickets/<key>/development", "/api/projects/<key>/ci")
     safe |= template == "/api/team" and action == "assign"
     safe |= template == "/api/team" and action == "comment"
+    safe |= template == "/api/team" and action in ("candidate_resolve", "candidate_report_get", "candidate_report_create")  # like reform report actions: no model or process
     if (template == "/api/tickets/<key>/claim" and body.get("on", True) is True
             and len(targets) == 1 and not who.get("tool_connection")):
         from .project_git import available

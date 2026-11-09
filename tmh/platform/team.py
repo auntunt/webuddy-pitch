@@ -328,6 +328,9 @@ def _action(P, t, b, user, mutation):
     return candidates.execute(P, user, op, args, mutation)
 
 
+READ_ACTIONS = ("candidate_resolve", "candidate_report_get")
+
+
 @scoped
 def dispatch_action(P, body, user):
     require_user(P, user)
@@ -335,13 +338,17 @@ def dispatch_action(P, body, user):
         raise ApiError(400, "请选择团队操作")
     t = _ticket(P, body.get("ticket"))
     from .tenant_policy import require_member
-    require_member(P, user, t["project_id"], "manager" if body["action"] == "assign" else "contributor")
+    read = body["action"] in READ_ACTIONS
+    require_member(P, user, t["project_id"], "viewer" if read else "manager" if body["action"] == "assign" else "contributor")
     schema(P)
     from .project_library import require_development
     try:
         require_development(P.store, P.store.project(t["project_id"]))
     except ValueError as exc:
         raise ApiError(409, str(exc)) from exc
+    if read:
+        # Read-only: no request receipt, no ticket lock, no Git fetch or write.
+        return {"result": _action(P, t, body, user, lambda: None)}
     with _guard(P, t["id"]):
         result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
     return {"result": result, "item": item(P, _ticket(P, t["id"]), user)}

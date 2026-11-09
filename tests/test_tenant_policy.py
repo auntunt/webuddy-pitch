@@ -500,6 +500,44 @@ class TenantPolicyTest(unittest.TestCase):
             policy._agent(self.P, tool("bob", "develop"), "candidate_resolve", {"ticket": alpha["key"], "base": "main", "commit": "main"})
         self.assertEqual(caught.exception.code, 403)
 
+    def test_candidate_resolve_and_report_actions_are_ungated_and_project_scoped(self):
+        from tmh.platform import candidates
+        candidates.schema(self.store)
+        alpha = self.tickets["ALPHA"]
+        self.store.x("INSERT INTO code_candidates(ticket_id,run_id,agent,base_commit,commit_sha,requirement_hash,configuration_hash,criteria,summary,fingerprint,ref,artifact_dir,created) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                     (alpha["id"], self.runs["ALPHA"]["id"], "agent:writer", "a" * 40, "b" * 40, "r", "c", "[]", "s", "f2", "refs/y", "/tmp/y", "2026-11-10 00:00:00"))
+        cid = self.store.one("SELECT id FROM code_candidates WHERE ticket_id=?", (alpha["id"],))["id"]
+        def team(action, actor, **extra):
+            return self.auth("/api/team", method="POST", actor=actor, body=dict({"ticket": "ALPHA-1", "action": action, "request_id": "r-" + action}, **extra))
+        self.assertEqual(self.context.tenant_id, "customer")
+        self.context.people["watcher"] = {"role": "member", "project_grants": {"ALPHA": "viewer"}}
+        for actor in ("watcher", "bob", "alice"):
+            team("candidate_resolve", actor, base="main", commit="main")
+            team("candidate_report_get", actor, candidate_id=cid, export_id="a" * 64)
+        self.denied("/api/team", method="POST", actor="outsider", body={"ticket": "ALPHA-1", "action": "candidate_resolve", "base": "main", "commit": "main", "request_id": "r-o"})
+        self.denied("/api/team", method="POST", actor="outsider", body={"ticket": "ALPHA-1", "action": "candidate_report_get", "candidate_id": cid, "export_id": "a" * 64, "request_id": "r-o2"})
+        team("candidate_report_create", "bob", candidate_id=cid)
+        self.denied("/api/team", method="POST", actor="watcher", body={"ticket": "ALPHA-1", "action": "candidate_report_create", "request_id": "r-rc"})
+        self.denied("/api/team", method="POST", actor="reader", body={"ticket": "ALPHA-1", "action": "candidate_resolve", "base": "main", "commit": "main", "request_id": "r-rv"})
+        self.denied("/api/team", method="POST", actor="outsider", body={"ticket": "ALPHA-1", "action": "candidate_report_create", "request_id": "r-oc"})
+
+    def test_candidate_resolve_dispatch_only_runs_rev_parse(self):
+        from unittest import mock
+        from tmh.platform import candidates, team
+        calls = []
+        def fake_git(root, *args):
+            calls.append(args)
+            return "c" * 40 + "\n"
+        with mock.patch.object(candidates, "_git", fake_git), \
+             mock.patch.object(team, "_request", side_effect=AssertionError("read must not write a receipt")), \
+             mock.patch.object(team, "_guard", side_effect=AssertionError("read must not take the ticket lock")):
+            self.context.people["watcher"] = {"role": "member", "project_grants": {"ALPHA": "viewer"}}
+            result = team.dispatch_action(self.P, {"ticket": "ALPHA-1", "action": "candidate_resolve", "base": "main", "commit": "main", "request_id": "r-d"}, "watcher")
+        self.assertTrue(result["result"]["base"]["resolved"])
+        self.assertEqual([c[0] for c in calls], ["rev-parse", "rev-parse"])
+        self.assertTrue(all("--verify" in c for c in calls))
+        self.assertEqual(self.store.one("SELECT COUNT(*) AS n FROM team_requests")["n"] if self.store.one("SELECT name FROM sqlite_master WHERE type='table' AND name='team_requests'") else 0, 0)
+
     def test_entries_detect_is_project_scoped_and_execution_gated(self):
         path = "/api/projects/ALPHA/entries/detect"
         self.assertNotIn(("/api/projects/<key>/entries/detect"), policy.SAFE_POSTS)
