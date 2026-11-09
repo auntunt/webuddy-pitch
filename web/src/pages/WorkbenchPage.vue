@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { get, post, ApiError } from '../api/client'
+import { get, post, ApiError, appUrl } from '../api/client'
 import { app, legacyUrl, selectProject } from '../app'
+import DocumentText from '../components/DocumentText.vue'
+import RequirementBatch from '../components/RequirementBatch.vue'
 import type { Ticket } from '../api/types'
 
-type Run = { id: number; mode: string; status: string; result?: string; diff?: string; output?: string; verification?: Record<string, unknown> | null }
-type Detail = { ticket: Ticket & { body?: string }; runs: Run[]; auto_next?: string; plain_state?: unknown }
+type Run = { id: number; mode: string; status: string; result?: string; diff?: string; output?: string; verification?: Record<string, unknown> | null; decision?: string; can_retry?: boolean; recheck?: { running?: boolean }; commit?: string }
+type Detail = { ticket: Ticket & { body?: string }; runs: Run[]; auto_next?: string; plain_state?: unknown; events?: { author: string; body: string; created: string }[]; epic?: { children: {key:string; title:string; status:string; after:string[]}[]; paused:string }; parent?: {key:string;title:string} }
 const props = defineProps<{ pkey: string }>()
 const router = useRouter()
 const tickets = ref<Ticket[]>([])
@@ -22,6 +24,10 @@ const error = ref('')
 const loading = ref(false)
 const composing = ref(false)
 const tab = ref('result')
+const batch = ref(false), comment = ref(''), notice = ref('')
+type Preview = {url?:string;preview: {state?:string;why?:string;error?:string}}
+const preview = ref<Preview | null>(null)
+
 let generation = 0
 let runRequest = 0
 let timer: ReturnType<typeof setTimeout> | undefined
@@ -48,11 +54,18 @@ async function refresh() {
     const value = await get<Detail>(`/api/tickets/${encodeURIComponent(key)}`)
     if (stamp !== generation || key !== selected.value) return
     detail.value = value
+    const listed = tickets.value.find(t => t.key === key)
+    if (listed) Object.assign(listed, value.ticket)
     const current = value.runs.find(r => r.id === run.value?.id) || value.runs[0]
     if (current) await loadRun(current.id)
     if (stamp !== generation) return
+    if (preview.value && run.value) {
+      const state = await get<Preview>(`/api/tickets/${encodeURIComponent(key)}/preview?run_id=${run.value.id}`)
+      if (stamp !== generation) return
+      preview.value = state
+    }
     clearPoll()
-    if (value.runs.some(r => ['queued', 'running'].includes(r.status))) timer = setTimeout(refresh, 3000)
+    if (value.runs.some(r => ['queued', 'running'].includes(r.status)) || run.value?.recheck?.running || preview.value?.preview.state === 'starting') timer = setTimeout(refresh, 3000)
   } catch (e) { if (stamp === generation) error.value = message(e) }
 }
 async function choose(key: string) {
@@ -62,6 +75,9 @@ async function choose(key: string) {
   detail.value = null
   run.value = null
   composing.value = false
+  batch.value = false
+  preview.value = null
+  notice.value = ''
   error.value = ''
   await refresh()
 }
@@ -73,6 +89,9 @@ async function loadProject() {
   run.value = null
   tickets.value = []
   composing.value = false
+  batch.value = false
+  preview.value = null
+  notice.value = ''
   error.value = ''
   loading.value = true
   selectProject(props.pkey)
@@ -114,6 +133,25 @@ async function start(mode: string) {
   } catch (e) { if (stamp === generation) error.value = message(e) }
   finally { busy.value = '' }
 }
+async function perform(action: string, payload: unknown = {}) {
+  if (busy.value) return
+  const stamp = generation
+  busy.value = action; error.value = ''; notice.value = ''
+  try {
+    const ticketPath = `/api/tickets/${encodeURIComponent(selected.value)}`
+    const path = action === 'auto' ? ticketPath : action === 'comments' ? ticketPath + '/comments' : action.startsWith('epic-') ? ticketPath + '/epic' : `/api/runs/${run.value!.id}/${action}`
+    await post(path, action === 'auto' ? {auto:'go'} : action.startsWith('epic-') ? {action:action.slice(5)} : payload)
+    if(stamp !== generation)return
+    notice.value = '操作已提交'; comment.value = ''; await refresh()
+  } catch(e) { if(stamp === generation)error.value=message(e) } finally {busy.value=''}
+}
+async function previewRun() {
+  if(!run.value || busy.value)return
+  const stamp=generation
+  busy.value='preview';error.value=''
+  try { const result=await post<Preview>(`/api/tickets/${encodeURIComponent(selected.value)}/preview`,{action:'start',run_id:run.value.id}); if(stamp===generation){preview.value=result;await refresh()} } catch(e) {error.value=message(e)} finally {busy.value=''}
+}
+async function batchCreated(key:string) { await loadProject(); if(key)await choose(key) }
 function verify() { router.push({ path: `/p/${encodeURIComponent(props.pkey)}/verify`, query: { ticket: selected.value } }) }
 watch(() => props.pkey, loadProject, { immediate: true })
 onUnmounted(() => { generation++; clearPoll() })
@@ -121,8 +159,8 @@ onUnmounted(() => { generation++; clearPoll() })
 
 <template>
   <section>
-    <header class="heading"><h1>开发工作台</h1><button class="btn btn-primary" @click="composing = true">新需求</button></header>
-    <p v-if="error" class="error" role="alert">{{ error }}</p>
+    <header class="heading"><h1>开发工作台</h1><button class="btn btn-primary" @click="composing = true; batch = false">新需求</button></header>
+    <p v-if="error" class="error" role="alert">{{ error }}</p><p v-if="notice" class="note" role="status">{{ notice }}</p>
     <div class="workbench">
       <aside class="queue" aria-label="需求列表">
         <input v-model="query" class="search" aria-label="搜索需求" placeholder="搜索需求" />
@@ -134,8 +172,9 @@ onUnmounted(() => { generation++; clearPoll() })
         <a :href="legacyUrl('/tickets')" class="all-tickets">查看全部工单</a>
       </aside>
       <div class="desk">
-        <form v-if="composing" class="compose" @submit.prevent="create">
-          <h2>这次要改什么？</h2>
+        <RequirementBatch v-if="batch" :pkey="pkey" @created="batchCreated" />
+        <form v-else-if="composing" class="compose" @submit.prevent="create">
+          <h2>这次要改什么？</h2><button type="button" class="text-button" @click="batch=true">多项相关需求一起处理</button>
           <label class="field">需求名称<input v-model="title" required placeholder="例如：导出金额跟随税率配置" /></label>
           <label class="field">需求与项目说明<textarea v-model="body" rows="8" placeholder="描述现在的情况、希望改成什么。可以补充实际子项目目录、启动方式和不能改变的规则。" /></label>
           <div class="actions"><button class="btn btn-primary" :disabled="!!busy || !title.trim()">{{ busy === 'create' ? '保存中…' : '保存需求' }}</button><button v-if="selected" type="button" class="btn" @click="composing = false">返回</button></div>
@@ -143,11 +182,13 @@ onUnmounted(() => { generation++; clearPoll() })
         <template v-else-if="detail">
           <header class="task-heading"><span class="muted">{{ detail.ticket.key }}</span><h2>{{ detail.ticket.title }}</h2></header>
           <details v-if="detail.ticket.body" class="requirement"><summary>需求原文</summary><pre>{{ detail.ticket.body }}</pre></details>
-          <div class="toolbar">
+          <p v-if="detail.parent"><button class="text-button" @click="choose(detail.parent.key)">返回 {{ detail.parent.title }}</button></p>
+          <section v-if="detail.epic" class="panel"><h3>子任务与依赖</h3><p v-if="detail.epic.paused" class="error">{{ detail.epic.paused }}</p><div v-for="child in detail.epic.children" :key="child.key" class="child-task"><button class="text-button" @click="choose(child.key)">{{ child.title }}</button><span>{{ states[child.status] || child.status }}</span><span v-if="child.after.length" class="muted">依赖 {{ child.after.join('、') }}</span></div><div class="actions"><button class="btn" :disabled="!!busy" @click="perform('epic-release')">推进下一批</button><button class="btn" :disabled="!!busy" @click="perform('epic-resume')">恢复协作</button></div></section>
+          <div v-else class="toolbar">
             <label class="field executor">执行器<select v-model="agent" :disabled="!!busy || active"><option value="">项目默认</option><option v-for="a in agents" :key="a.name" :value="a.name">{{ a.title }}</option></select></label>
             <div class="actions">
               <button v-for="mode in ['analyze', 'plan', 'fix']" :key="mode" class="btn" :disabled="!!busy || active" @click="start(mode)">{{ busy === mode ? '启动中…' : ({ analyze: '分析需求', plan: '生成方案', fix: '开始开发' }[mode]) }}</button>
-              <button class="btn" @click="verify">验证现有改动</button>
+              <button class="btn" :disabled="!!busy || active" @click="perform('auto')">继续自动处理</button><button class="btn" @click="verify">验证现有改动</button>
             </div>
           </div>
           <div class="run-heading"><h3>执行记录</h3><button class="text-button" :disabled="!!busy" @click="refresh">刷新</button></div>
@@ -156,13 +197,18 @@ onUnmounted(() => { generation++; clearPoll() })
           </div>
           <p v-else class="empty">需求已保存。先分析需求或生成方案。</p>
           <template v-if="run">
+            <div class="actions run-actions"><button v-if="['running','queued'].includes(run.status)" class="btn" :disabled="!!busy" @click="perform('cancel')">停止运行</button><button v-if="run.can_retry" class="btn" :disabled="!!busy" @click="perform('retry')">重试本次运行</button><button v-if="run.mode==='fix' && run.status==='done'" class="btn" :disabled="!!busy || run.recheck?.running" @click="perform('recheck',{kind:'tests'})">{{run.recheck?.running?'正在验证…':'运行项目检查'}}</button><button v-if="run.mode==='fix' && run.status==='done' && !run.decision" class="btn" :disabled="!!busy" @click="perform('decide',{decision:'accept'})">采纳当前改动</button><button v-if="run.decision?.startsWith('accept')" class="btn" :disabled="!!busy" @click="previewRun">启动预览</button><a v-if="preview?.url" class="btn" :href="appUrl(preview.url)" target="_blank" rel="noopener">打开预览</a></div>
+            <p v-if="preview?.preview.error" class="error">{{preview.preview.error}}</p>
+
             <nav class="tabs" aria-label="运行产物"><button v-for="[key, label] in [['result','结果'], ['diff','代码差异'], ['verification','验证回执'], ['output','执行日志']]" :key="key" :class="{ current: tab === key }" @click="tab = key!">{{ label }}</button></nav>
-            <pre v-if="tab === 'result' && run.result" class="artifact">{{ run.result }}</pre>
+            <DocumentText v-if="tab === 'result' && run.result" class="artifact" :text="run.result" />
             <pre v-else-if="tab === 'diff' && run.diff" class="artifact diff"><span v-for="(line, index) in run.diff.split('\n')" :key="index" class="diff-line" :class="{ added: line.startsWith('+'), removed: line.startsWith('-'), hunk: line.startsWith('@@') }">{{ line }}{{ '\n' }}</span></pre>
             <pre v-else-if="tab === 'verification' && run.verification" class="artifact">{{ JSON.stringify(run.verification, null, 2) }}</pre>
             <pre v-else-if="tab === 'output' && run.output" class="artifact logs">{{ run.output }}</pre>
             <p v-else class="empty">{{ tab === 'verification' ? '暂无验证回执。执行结束不代表验证通过。' : tab === 'diff' ? '本次运行暂无代码差异。' : ['queued','running'].includes(run.status) ? '正在执行，结果会自动更新。' : '本次运行未产生这项内容。' }}</p>
           </template>
+          <form class="discussion" @submit.prevent="perform(run && ['running','queued'].includes(run.status) ? 'say' : 'comments',run && ['running','queued'].includes(run.status)?{text:comment}:{body:comment})"><label class="field">{{run && ['running','queued'].includes(run.status)?'补充给正在执行的智能体':'讨论与补充'}}<textarea v-model="comment" :maxlength="active?2000:undefined" placeholder="补充要求、说明问题或记录复核意见" /></label><button class="btn" :disabled="!!busy || !comment.trim()">发送补充</button></form>
+          <details v-if="detail.events?.length" class="history"><summary>完整操作记录</summary><article v-for="(event,i) in detail.events" :key="i"><strong>{{event.author}} · {{event.created}}</strong><DocumentText :text="event.body || ''" /></article></details>
         </template>
         <p v-else-if="!loading" class="empty">选择一项需求，或创建新需求。</p>
       </div>
@@ -171,6 +217,7 @@ onUnmounted(() => { generation++; clearPoll() })
 </template>
 
 <style scoped>
+.run-actions { margin:16px 0; }.discussion { border-top:1px solid var(--line); padding-top:20px; margin-top:28px; }.history { margin-top:20px; }.child-task { display:flex; flex-wrap:wrap; gap:16px; margin:12px 0; }
 .heading,.task-heading,.run-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .heading { margin-bottom:24px; }.heading h1 { margin:0; }
 .workbench { display:grid; grid-template-columns:260px minmax(0,1fr); background:var(--panel); border:1px solid var(--line); border-radius:10px; min-height:65vh; overflow:hidden; }

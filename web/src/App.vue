@@ -11,8 +11,8 @@ const nav = computed(() => {
   return [
     { to: key ? `/p/${encodeURIComponent(key)}/work` : '/', label: '开发工作台', internal: true },
     { to: verify, label: '验证现有改动', internal: true },
-    { href: legacyUrl('/#/kb'), label: '知识库' },
-    { href: legacyUrl('/#/settings'), label: '设置' },
+    { to: key ? `/p/${encodeURIComponent(key)}/knowledge` : '/', label: '知识库', internal: true },
+    { to: key ? `/p/${encodeURIComponent(key)}/settings` : '/settings', label: '设置', internal: true },
   ]
 })
 
@@ -26,10 +26,10 @@ onMounted(() => {
 <template>
   <div class="shell">
     <header class="topbar">
-      <a class="brand" :href="legacyUrl('/workspace')" :aria-label="app.meta?.brand || 'Webuddy'">
+      <router-link class="brand" to="/" :aria-label="app.meta?.brand || 'Webuddy'">
         <span class="brand-mark" aria-hidden="true">W</span>
         <span>{{ app.meta?.brand || 'Webuddy' }}</span>
-      </a>
+      </router-link>
       <label class="project-picker">
         <span class="sr">项目</span>
         <select :value="route.params.key || app.project" @change="selectProject(($event.target as HTMLSelectElement).value); $router.push({ path: `/p/${encodeURIComponent(($event.target as HTMLSelectElement).value)}/work` })">
@@ -44,8 +44,7 @@ onMounted(() => {
     <div class="body">
       <nav class="sidenav" aria-label="主导航">
         <template v-for="item in nav" :key="item.label">
-          <router-link v-if="item.internal" :to="item.to" :class="{ active: isActive(item.to) }" class="navlink">{{ item.label }}</router-link>
-          <a v-else :href="item.href" class="navlink">{{ item.label }}</a>
+          <router-link :to="item.to" :class="{ active: isActive(item.to) }" class="navlink">{{ item.label }}</router-link>
         </template>
       </nav>
       <main class="content">
@@ -56,8 +55,7 @@ onMounted(() => {
     </div>
     <nav class="bottomnav" aria-label="主导航">
       <template v-for="item in nav" :key="item.label">
-        <router-link v-if="item.internal" :to="item.to" :class="{ active: isActive(item.to) }">{{ item.label }}</router-link>
-        <a v-else :href="item.href">{{ item.label }}</a>
+        <router-link :to="item.to" :class="{ active: isActive(item.to) }">{{ item.label }}</router-link>
       </template>
     </nav>
   </div>

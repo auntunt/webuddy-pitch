@@ -25,8 +25,9 @@ export async function loadApp() {
     try {
       const list = await get<{ items?: Project[] } | Project[]>('/api/projects')
       app.projects = Array.isArray(list) ? list : list.items || []
-    } catch {
+    } catch (e) {
       app.projects = []
+      throw e
     }
     const saved = localStorage.getItem('tmh.proj')
     app.project = app.projects.find(p => p.key === saved)?.key || app.projects[0]?.key || ''

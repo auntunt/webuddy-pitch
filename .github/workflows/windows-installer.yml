@@ -1,0 +1,65 @@
+name: Windows standard installer
+on:
+  push:
+    branches: ['codex/huairou-product-v2']
+    paths:
+      - 'scripts/deploy/windows-installer/**'
+      - 'scripts/deploy/windows-offline/**'
+      - '.github/workflows/windows-installer.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  installer:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      NO_PROXY: '127.0.0.1,localhost,::1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build standard offline runtime
+        shell: pwsh
+        run: |
+          python -m pip install packaging
+          python scripts/deploy/build-package.py --ref $env:GITHUB_SHA --out "$env:RUNNER_TEMP/wheel"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $release = Get-ChildItem "$env:RUNNER_TEMP/wheel" -Directory | Select-Object -First 1
+          python scripts/deploy/build-windows-offline.py --wheel-release $release.FullName --cache "$env:RUNNER_TEMP/payload-cache" --sevenzip 'C:\Program Files\7-Zip\7z.exe' --out "$env:RUNNER_TEMP/bundle"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $archive = Get-ChildItem "$env:RUNNER_TEMP/bundle/*.zip" | Select-Object -First 1
+          Expand-Archive -LiteralPath $archive.FullName -DestinationPath "$env:RUNNER_TEMP/payload"
+      - name: Compile installer
+        shell: pwsh
+        run: |
+          $iscc = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+          if (!(Test-Path $iscc)) { choco install innosetup --no-progress -y; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
+          & $iscc "/DBundleRoot=$env:RUNNER_TEMP/payload/Webuddy" "/DOutputRoot=$env:RUNNER_TEMP/installer" "/DCommit=$($env:GITHUB_SHA.Substring(0,12))" scripts/deploy/windows-installer/Webuddy.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install start restart and preserve data
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem "$env:RUNNER_TEMP/installer/*.exe" | Select-Object -First 1
+          python scripts/deploy/windows-installer/smoke.py $installer.FullName "$env:RUNNER_TEMP/installer-smoke"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Retain installer and receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: webuddy-standard-installer
+          path: |
+            ${{ runner.temp }}/installer/*.exe
+            ${{ runner.temp }}/bundle/bundle.json
+            ${{ runner.temp }}/installer-smoke/receipt.json
+          retention-days: 7
+      - name: Retain failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-diagnostics
+          path: |
+            ${{ runner.temp }}/installer-smoke/**/*.log
+            ${{ runner.temp }}/installer-smoke/receipt.json

@@ -324,14 +324,10 @@ def executable(engine: str, config: dict) -> str:
         configured = os.environ.get("WEBUDDY_CURSOR_BIN")
         if configured:
             return configured
-        found = shutil.which("agent") or shutil.which("cursor-agent")
+        from .executor_setup import _cursor_candidates
+        found = _cursor_candidates()
         if found:
-            return found
-        if sys.platform == "win32":
-            local = os.environ.get("LOCALAPPDATA", "")
-            for cand in (local + r"\cursor-agent\agent.cmd", local + r"\cursor-agent\cursor-agent.cmd") if local else ():
-                if Path(cand).is_file():
-                    return cand
+            return found[0]
         return "agent"
     return exe
 

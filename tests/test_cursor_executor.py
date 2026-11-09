@@ -156,7 +156,8 @@ elif prompt.startswith('complete'):
         self.assertTrue(all('SJJH21' not in a and '安装包' not in a for a in cmd))
         self.assertNotIn('cmd', cmd[:1])  # no cmd /c wrapping: Popen runs .cmd directly
         with tempfile.TemporaryDirectory() as folder:  # LOCALAPPDATA discovery for agent.cmd
-            agent = Path(folder + r'\cursor-agent\agent.cmd')  # Windows path = one filename on POSIX
+            agent = Path(folder) / 'cursor-agent' / 'agent.cmd'
+            agent.parent.mkdir()
             agent.write_text('@echo off\n')
             env = patch.dict(os.environ, {'LOCALAPPDATA': folder})
             with env, patch.object(sys, 'platform', 'win32'), patch('shutil.which', return_value=None):

@@ -168,7 +168,9 @@ def resolve_tools(root, overrides, environment, disabled=()):
     explicit = overrides.get('cursor')
     if explicit and not Path(explicit).is_absolute():
         raise ValueError('Tool override must be an absolute path: cursor')
-    local = explicit or shutil.which('agent', path=env.get('PATH', '')) or shutil.which('cursor-agent', path=env.get('PATH', ''))
+    from tmh.platform.executor_setup import _cursor_candidates
+    discovered = _cursor_candidates() if not explicit and 'cursor' not in disabled else []
+    local = (explicit or next(iter(discovered), None)) if 'cursor' not in disabled else None
     if local:
         if not Path(local).is_file():
             raise ValueError('Tool not found: cursor')
@@ -180,7 +182,7 @@ def resolve_tools(root, overrides, environment, disabled=()):
     dirs = [str(Path(row['path']).parent) for row in selected.values() if row.get('path')]
     dirs += [str(root / 'tools/codex/package/vendor/x86_64-pc-windows-msvc/codex-path')]
     env['PATH'] = os.pathsep.join(dirs + [env.get('PATH', '')])
-    if not env.get('CLAUDE_CODE_GIT_BASH_PATH'):
+    if 'git' in selected and not env.get('CLAUDE_CODE_GIT_BASH_PATH'):
         git_root = Path(selected['git']['path']).parent.parent
         bash = git_root / 'bin/bash.exe'
         if not bash.is_file():
@@ -289,7 +291,7 @@ def main(argv=None):
         report['executor_scan'] = executor_scan()
     except Exception as exc:  # noqa: BLE001 - a scanner hiccup must not mask the bundle report
         report['executor_scan'] = {'error': str(exc)}
-    if selected['cursor'].get('path'):
+    if args.action == 'check' and selected['cursor'].get('path'):
         # Reported, never blocking: one real no-tools Cursor request proves the
         # model connection; a version number or saved login does not.
         workdir = Path(tempfile.mkdtemp(prefix='cursor-connection-'))
