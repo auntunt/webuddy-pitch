@@ -293,7 +293,7 @@ def cursor_failure(text):
     return ()
 
 
-def probe(engine, exe, env, timeout=45):
+def probe(engine, exe, env, timeout=120):
     """One no-tools request; PASS only when the exact marker is returned."""
     workdir = Path(tempfile.mkdtemp(prefix="tmh-probe-"))
     prompt = "Reply with exactly %s. Do not use tools, read files, or modify files." % MARKER
