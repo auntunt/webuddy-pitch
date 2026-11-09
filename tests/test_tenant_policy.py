@@ -521,6 +521,17 @@ class TenantPolicyTest(unittest.TestCase):
         self.denied("/api/team", method="POST", actor="reader", body={"ticket": "ALPHA-1", "action": "candidate_resolve", "base": "main", "commit": "main", "request_id": "r-rv"})
         self.denied("/api/team", method="POST", actor="outsider", body={"ticket": "ALPHA-1", "action": "candidate_report_create", "request_id": "r-oc"})
 
+    def test_static_next_shell_is_read_only_for_tenant_members_only(self):
+        for actor in ("alice", "bob", "reader", "outsider", "owner"):
+            for path in ("/next", "/next/", "/next/p/ALPHA/verify", "/next/assets/index-abc.js"):
+                with self.subTest(actor=actor, path=path):
+                    self.assertEqual(self.auth(path, actor=actor)["route"], "/next" if path == "/next" else "/next/<path>")
+        for path in ("/next/p/ALPHA/verify", "/next/assets/index-abc.js"):
+            self.denied(path, actor="not-a-member")
+            self.denied(path, actor="")
+            self.denied(path, actor="alice", method="POST", body={"x": 1})
+        self.denied("/next/", actor="alice", method="PUT")
+
     def test_candidate_resolve_dispatch_only_runs_rev_parse(self):
         from unittest import mock
         from tmh.platform import candidates, team

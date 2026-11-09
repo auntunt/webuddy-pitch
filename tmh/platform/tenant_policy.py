@@ -276,6 +276,9 @@ SPECIAL_ROUTES = (
     ("GET", "/p/<key>/code.bundle", r"/p/(?P<key>[A-Za-z0-9]+)/code\.bundle"),
     ("GET", "/p/<key>/report/<path>", r"/p/(?P<key>[^/]+)/report/.*"),
     ("GET", "/p/<key>/efficiency", r"/p/(?P<key>[^/]+)/efficiency"),
+    # Static shell of the new UI: read-only, no project target, executes nothing.
+    ("GET", "/next", r"/next"),
+    ("GET", "/next/<path>", r"/next/.*"),
 )
 
 
@@ -639,7 +642,7 @@ def authorize(P, method, path, query, body, actor):
     cross_project = template == "/api/projects/<key>/library" and values.get("action") in ("grant", "revoke")
     if not cross_project and len({p["id"] for p in targets}) > 1:
         raise ApiError(400, "请求中的资源不属于同一项目")
-    if not targets and template not in FILTERED_LISTS | ALL_PROJECT_PATHS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap") and not (method == "GET" and template in ("/api/org/knowledge", "/api/memory")) and not (method == "POST" and template.startswith("/api/projects/import")):
+    if not targets and template not in FILTERED_LISTS | ALL_PROJECT_PATHS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap", "/next", "/next/<path>") and not (method == "GET" and template in ("/api/org/knowledge", "/api/memory")) and not (method == "POST" and template.startswith("/api/projects/import")):
         if who["role"] != "admin":
             raise ApiError(403, "请明确选择获准的项目或工单")
     if (template == "/api/agent-settings" and method == "POST" or template == "/api/access-config" and method == "POST"
