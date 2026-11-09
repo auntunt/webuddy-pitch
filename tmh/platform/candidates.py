@@ -387,6 +387,16 @@ def execute(P, actor, op, a, mutation=lambda: None):
                 raise ApiError(403, '只能停止自己发起的隔离验证')
             mutation()
             return P.flow.rechecks.runner.cancel(operation["id"], actor)
+        if op == "candidate_report_get":
+            from . import report_exports
+            t = P.store.ticket(row["ticket_id"])
+            return report_exports.read(P, P.store.project(t["project_id"]),
+                                       {"id": "candidate:%d" % row["id"]}, a)
+        if op == "candidate_report_create":
+            from . import report_exports
+            t = P.store.ticket(row["ticket_id"])
+            mutation()
+            return report_exports.create_candidate(P, P.store.project(t["project_id"]), row, actor, a)
         if not v["current"]:
             raise ApiError(409, "；".join(v["blocked"]))
         if op == "candidate_verify":

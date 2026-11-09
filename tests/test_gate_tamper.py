@@ -179,3 +179,53 @@ class GateClassificationTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CandidateReportTest(GateTamperTest):
+    def test_create_read_resume_sha_and_frozen(self):
+        a = self.submit()
+        cid = a["candidate_id"]
+        manifest = self.call("candidate_report_create", {"candidate_id": cid, "request_id": "exp"})
+        self.assertEqual(manifest["candidate_id"], cid)
+        self.assertIn("report.md", {f["name"] for f in manifest["files"]})
+        self.assertIn("candidate.json", {f["name"] for f in manifest["files"]})
+        # idempotent replay of the same request
+        self.assertEqual(self.call("candidate_report_create",
+                         {"candidate_id": cid, "request_id": "exp"})["export_id"], manifest["export_id"])
+        # different body under the same request id conflicts
+        with self.assertRaises(ApiError):
+            self.call("candidate_report_create", {"candidate_id": cid, "request_id": "exp", "extra": "x"})
+        # manifest read without file arg
+        m2 = self.call("candidate_report_get", {"candidate_id": cid, "export_id": manifest["export_id"]})
+        self.assertEqual(m2["export_id"], manifest["export_id"])
+        # fetch the whole report.md in 48KiB segments and verify file sha
+        entry = next(f for f in manifest["files"] if f["name"] == "report.md")
+        body = b""
+        import base64
+        offset = 0
+        while True:
+            seg = self.call("candidate_report_get", {"candidate_id": cid,
+                            "export_id": manifest["export_id"], "file": "report.md", "offset": offset})
+            part = base64.b64decode(seg["data_base64"])
+            self.assertEqual(len(part), seg["bytes"])
+            body += part
+            if not seg["next_offset"]:
+                break
+            offset = seg["next_offset"]
+        import hashlib
+        self.assertEqual(hashlib.sha256(body).hexdigest(), entry["sha256"])
+        text = body.decode()
+        self.assertIn("候选验证报告", text)
+        self.assertIn("控制点", text)
+        # frozen after invalidation: submit a newer candidate, export unchanged
+        (self.repo / "app.py").write_text("VALUE = 3\n")
+        self.git("commit", "-am", "newer")
+        self.submit(commit=self.git("rev-parse", "HEAD"), request_id="submit2")
+        m3 = self.call("candidate_report_get", {"candidate_id": cid, "export_id": manifest["export_id"]})
+        self.assertEqual(m3["files"], manifest["files"])
+
+    def test_other_project_export_id_denied(self):
+        a = self.submit()
+        manifest = self.call("candidate_report_create", {"candidate_id": a["candidate_id"], "request_id": "exp"})
+        with self.assertRaises(ApiError):
+            self.call("candidate_report_get", {"candidate_id": 999999, "export_id": manifest["export_id"]})
