@@ -157,6 +157,7 @@ GET /api/projects/<key>/ledger
 POST /api/projects/<key>/entries/detect
 POST /api/tickets/<key>
 GET /api/agent-settings
+GET /api/agent-page
 POST /api/agent-settings
 GET /api/access-config
 POST /api/access-config

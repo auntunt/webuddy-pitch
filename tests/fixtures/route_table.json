@@ -730,6 +730,11 @@
   "api_agent_test"
  ],
  [
+  "GET",
+  "^/api/agent-page$",
+  "api_agent_page"
+ ],
+ [
   "POST",
   "^/api/agent-settings$",
   "api_agent_settings_save"

@@ -60,7 +60,17 @@ def api_agent_test(P, req):
     exe = c.get("bin") or agents.executable(engine, c)
     env = dict(os.environ)
     env.update(executor_setup.spawn_env(P.data_dir, name, c))
-    return executor_setup.probe(engine, exe, env)
+    from .. import agent_page
+    result = executor_setup.probe(engine, exe, env)
+    agent_page.record_test(P.data_dir, name, result)
+    return result
+
+
+@route("GET", "/api/agent-page")
+def api_agent_page(P, req):
+    _platform_admin(P, req, "查看智能体页面")
+    from .. import agent_page
+    return agent_page.view(P)
 
 
 @route("POST", "/api/agent-settings")
