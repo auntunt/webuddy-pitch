@@ -36,3 +36,4 @@ def api_new_task(P, req, key):
     if goal == "修改并测试":
         P.flow.submit(p, t)
     return {"key": t["key"], "goal": goal, "secret_names": names}
+

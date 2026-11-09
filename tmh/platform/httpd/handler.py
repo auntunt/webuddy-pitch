@@ -360,6 +360,22 @@ def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
                 except ValueError:
                     return self._json(400, {"error": "请求不是 JSON"})
             user = self._who or unquote(self.headers.get("X-TMH-User") or "") or P.user or "我"
+            m = re.fullmatch(r"/api/projects/([^/]+)/tasks/([^/]+)/return/(patch|files|archive)", path)
+            if m and method == "GET":  # read-only downloads of a task's committed change; nothing is written
+                from .. import code_return
+                from pathlib import Path as _P
+                try:
+                    root = _P(P.project(unquote(m.group(1)))["root"])
+                    kind, tkey = m.group(3), unquote(m.group(2))
+                    if kind == "patch":
+                        data, ctype, name = code_return.patch(root, tkey), "text/x-patch; charset=utf-8", tkey + ".patch"
+                    elif kind == "files":
+                        data, ctype, name = code_return.changed_files_zip(root, tkey), "application/zip", tkey + "-changed.zip"
+                    else:
+                        data, ctype, name = code_return.full_archive(root, tkey), "application/zip", tkey + ".zip"
+                except ApiError as e:
+                    return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
+                return self._send(200, data, ctype, {"Content-Disposition": 'attachment; filename="%s"' % name})
             for mth, rx, fn in ROUTES:
                 if mth != method:
                     continue
