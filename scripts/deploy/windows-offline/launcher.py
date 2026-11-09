@@ -105,8 +105,11 @@ def primary_ipv4():
     return ''
 
 
-def lan_bootstrap(filename, config, env, host, port):
-    """LAN default: persist a generated token + public URL into the resolved config."""
+def lan_bootstrap(filename, config, env, host, port, persist=True):
+    """LAN default: persist a generated token + public URL into the resolved config.
+
+    An explicit --config/WEBUDDY_CONFIG file stays read-only (persist=False): the
+    token still applies to this session, it is just not written into a user file."""
     if host not in ('0.0.0.0', '::'):
         return None
     changed = False
@@ -118,7 +121,7 @@ def lan_bootstrap(filename, config, env, host, port):
         if address:
             env['TMH_PUBLIC_URL'] = 'http://%s:%d' % (address, port)
             changed = True
-    if changed:
+    if changed and persist:
         target = Path(filename)
         target.parent.mkdir(parents=True, exist_ok=True)
         written = dict(config)
@@ -301,7 +304,8 @@ def main(argv=None):
     if args.arguments:
         raise ValueError('start takes no additional arguments')
     load_secrets(env)
-    public = lan_bootstrap(filename or config_path(ROOT, env), config, env, host, port)
+    public = lan_bootstrap(filename or config_path(ROOT, env), config, env, host, port,
+                           persist=not args.config)  # explicit --config/WEBUDDY_CONFIG stays read-only
     os.environ.update(env)
     if host in ('0.0.0.0', '::'):
         # A token-protected server answers 401 to the bare loopback address too.
