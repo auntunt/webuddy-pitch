@@ -448,9 +448,13 @@ class FixLoop:
                    "reason": r.reason, "evidence": str(folder.relative_to(getattr(self.r, "evidence_root", self.r.data_dir))), "cleanup": r.cleanup}
             if code in (124, 127) or (os.name == "nt" and code == 9009) or r.reason in ("timeout", "cancelled"):
                 res['verification_state'] = 'blocked'
-            if git(where, "rev-parse", "HEAD").strip() != base or worktree_diff(where) != diff:
-                res.update(exit_code=1, verification_state="blocked", code_changed=True,
-                           output=text + "\n检查期间代码变化，本轮结果无效")
+            head_now, diff_now = git(where, "rev-parse", "HEAD").strip(), worktree_diff(where)
+            if head_now != base or diff_now != diff:
+                changed = sorted(set(re.findall(r"^diff --git a/(\S+)", diff_now, re.M)) ^ set(re.findall(r"^diff --git a/(\S+)", diff, re.M)))
+                changed = changed or sorted({m for m in re.findall(r"^diff --git a/(\S+)", diff_now, re.M)})
+                why = "提交从 %s 变为 %s" % (base[:8], head_now[:8]) if head_now != base else "文件：" + "、".join(changed[:20])
+                res.update(exit_code=1, verification_state="blocked", code_changed=True, changed_files=changed,
+                           output=text + "\n检查期间代码变化，本轮结果无效（%s）" % why)
                 code = 1
             out.append(res)
             self.say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, res["seconds"]))
