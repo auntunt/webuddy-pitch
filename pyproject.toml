@@ -18,7 +18,7 @@ tmh = "tmh.cli:main"
 webuddy = "tmh.workbench:main"
 
 [tool.setuptools]
-packages = ["tmh", "tmh.integrations", "tmh.platform", "tmh.probes"]
+packages = ["tmh", "tmh.integrations", "tmh.platform", "tmh.platform.api", "tmh.platform.httpd", "tmh.probes"]
 
 [tool.setuptools.package-data]
 tmh = ["rules/*.json"]
