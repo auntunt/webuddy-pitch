@@ -57,3 +57,21 @@ class TaskSecretsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TaskSecretsSpawnTest(unittest.TestCase):
+    def test_subprocess_env_has_values_and_names_only_elsewhere(self):
+        import subprocess
+        import sys
+        import tempfile
+        from pathlib import Path
+        from tmh.platform import task_secrets
+        with tempfile.TemporaryDirectory(prefix="tmh-spawn-") as folder:
+            data = Path(folder)
+            task_secrets.save(data, "TSK-9", [{"name": "db_password", "value": "SPAWN-VALUE-42"}])
+            env = dict(__import__("os").environ, **task_secrets.environment(data, "TSK-9"))
+            out = subprocess.run([sys.executable, "-c", "import os;print(os.environ['TMH_ENV_DB_PASSWORD'])"],
+                                 env=env, capture_output=True, text=True).stdout.strip()
+            self.assertEqual(out, "SPAWN-VALUE-42")
+            self.assertEqual(task_secrets.names(data, "TSK-9"), ["db_password"])
+            self.assertNotIn("SPAWN-VALUE-42", str(task_secrets.names(data, "TSK-9")))

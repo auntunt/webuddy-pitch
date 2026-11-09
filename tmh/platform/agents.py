@@ -2236,6 +2236,9 @@ class Runner:
         env = dict(os.environ, TMH_RUN=str(rid), TMH_TICKET=ticket["key"] if ticket else "", TMH_NOTES=str(notes_file(self.data_dir, rid)))
         from . import executor_setup
         env.update(executor_setup.spawn_env(self.data_dir, agent, conf[agent]))
+        if ticket:
+            from . import task_secrets
+            env.update(task_secrets.environment(self.data_dir, ticket["key"]))
         tool = Path(project["root"]) / ".tmh" / "tool"
         if tool.is_dir():
             env["PYTHONPATH"] = str(tool) + os.pathsep + env.get("PYTHONPATH", "")
