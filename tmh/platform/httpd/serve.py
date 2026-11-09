@@ -14,7 +14,23 @@ from .preview import make_preview_handler
 
 def serve(data_dir: Path, host: str = "127.0.0.1", port: int = 8790, user: str = "", project: Path | None = None,
           key: str = "", open_browser: bool = False, brand: str = "", preview_port: int = 0) -> int:
-    if (Path(data_dir).expanduser() / "control" / "access.db").is_file():
+    tenant_mode = (Path(data_dir).expanduser() / "control" / "access.db").is_file()
+    from .. import login
+    if tenant_mode and login.registration_enabled():
+        # LAN accounts share the registry, but do not opt into tenant workers.
+        from ..tenancy import Registry
+        reg = Registry(data_dir)
+        try:
+            tenants = reg.q("SELECT id,path,status,runtime FROM tenants")
+            if len(tenants) != 1 or dict(tenants[0]) != {
+                "id": "default", "path": str(Path(data_dir).expanduser().resolve()),
+                "status": "active", "runtime": "legacy",
+            }:
+                raise ValueError("局域网注册模式仅用于独立实例，不能接管已有多租户或隔离配置")
+        finally:
+            reg.close()
+        tenant_mode = False
+    if tenant_mode:
         from ..tenant_gateway import serve as serve_tenants
         if project or preview_port:
             print("多租户模式请从管理入口登记项目；预览需独立隔离环境")

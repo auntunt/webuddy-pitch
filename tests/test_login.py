@@ -129,5 +129,43 @@ class LanRegistrationTest(LoginTest):
                 platform.store.db.close()
 
 
+
+
+class LanRestartTest(unittest.TestCase):
+    def test_registered_instance_restarts_as_standalone(self):
+        import importlib
+        serve = importlib.import_module('tmh.platform.httpd.serve')
+        with tempfile.TemporaryDirectory() as d, patch.dict('os.environ', {'WEBUDDY_LAN_SIGNUP': 'admin'}):
+            data = Path(d)
+            login.register(data, 'pilot', 'pilot-password')
+            cookie = login.make_session(data, 'pilot')
+            with patch.object(serve, 'Platform', side_effect=RuntimeError('standalone-selected')):
+                with self.assertRaisesRegex(RuntimeError, 'standalone-selected'):
+                    serve.serve(data)
+            self.assertEqual(login.read_session(data, cookie), 'pilot')
+            self.assertTrue(login.verify(data, 'pilot', 'pilot-password'))
+            with patch.dict('os.environ', {'WEBUDDY_LAN_SIGNUP': ''}), patch('tmh.platform.tenant_gateway.serve', return_value=7) as gateway:
+                self.assertEqual(serve.serve(data), 7)
+                gateway.assert_called_once()
+
+    def test_registration_flag_cannot_bypass_tenant_isolation(self):
+        import importlib
+        from tmh.platform.tenancy import Registry
+        serve = importlib.import_module('tmh.platform.httpd.serve')
+        with tempfile.TemporaryDirectory() as d, patch.dict('os.environ', {'WEBUDDY_LAN_SIGNUP': 'admin'}):
+            data = Path(d)
+            login.register(data, 'pilot', 'pilot-password')
+            reg = Registry(data)
+            try:
+                with reg.transaction() as db:
+                    db.execute("UPDATE tenants SET runtime='isolated' WHERE id='default'")
+            finally:
+                reg.close()
+            with patch.object(serve, 'Platform') as platform:
+                with self.assertRaisesRegex(ValueError, '不能接管'):
+                    serve.serve(data)
+                platform.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()
