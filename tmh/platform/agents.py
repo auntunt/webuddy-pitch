@@ -404,6 +404,11 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         delivery_context = prompt_context(store.path.parent, links["delivery"])
     out = (["你在维护项目「%s」（代码目录 %s）。" % (project["name"], root)] if isolated else
            ["你在维护项目「%s」（目录 %s）。业务知识库在 %s。" % (project["name"], root, root / ".tmh" / "knowledge")])
+    if ticket and not historical_case:
+        from . import task_secrets
+        env_names = [task_secrets.env_name(n) for n in task_secrets.names(store.path.parent, ticket["key"])]
+        if env_names:
+            out.append("本任务的测试环境信息已作为环境变量提供：%s；在配置和测试命令中直接引用这些变量，不要向用户索要这些值，也不要把值写进代码或提交。" % "、".join(env_names))
     # Historical inputs carry case provenance, never a persistent ticket identity.
     if ticket and not historical_case:
         from .development import read

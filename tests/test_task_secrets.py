@@ -75,3 +75,25 @@ class TaskSecretsSpawnTest(unittest.TestCase):
             self.assertEqual(out, "SPAWN-VALUE-42")
             self.assertEqual(task_secrets.names(data, "TSK-9"), ["db_password"])
             self.assertNotIn("SPAWN-VALUE-42", str(task_secrets.names(data, "TSK-9")))
+
+
+class TaskPromptTest(unittest.TestCase):
+    def test_prompt_names_variables_and_never_contains_values(self):
+        import tempfile
+        from pathlib import Path
+        from tmh.platform import agents, task_secrets
+        from tmh.platform.store import Store
+        with tempfile.TemporaryDirectory(prefix="tmh-prompt-") as folder:
+            data = Path(folder)
+            (data / "app").mkdir()
+            store = Store(data / "platform.db")
+            project = store.add_project("PRM", "prompt sample", str(data / "app"))
+            ticket = store.create_ticket(project["id"], "task", "alice", body="改订单")
+            task_secrets.save(data, ticket["key"], [{"name": "db_password", "value": "PROMPT-VALUE-88"},
+                                                    {"name": "db_host", "value": "10.9.8.7"}])
+            prompt = agents.build_prompt(store, project, ticket, "fix", reference_inputs=[])
+            self.assertIn("TMH_ENV_DB_PASSWORD", prompt)
+            self.assertIn("TMH_ENV_DB_HOST", prompt)
+            self.assertNotIn("PROMPT-VALUE-88", prompt)
+            self.assertNotIn("10.9.8.7", prompt)
+            store.db.close()
