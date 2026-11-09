@@ -13,7 +13,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from tmh.platform import agent_api, tenant_policy, tool_access
+from tmh.platform import agent_api, candidates, tenant_policy, tool_access
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
 from tests.sqlite_snapshot import dump_store as snapshot
@@ -176,6 +176,9 @@ class ToolReadTests(unittest.TestCase):
         (self.data/'app'/'refund.py').write_text('def refund():\n    return 1250\n')
         graph.build(self.data/'app')
         saved_map=code_maps.create(self.P,self.p,self.actor,dict(project='APP',question='refund',request_id='read-map'))
+        from tmh.platform import report_exports
+        cand_manifest=report_exports.create_candidate(self.P,self.p,candidates._row(self.P,self.cid),self.actor,dict(candidate_id=self.cid,request_id='read-only-candidate-export'))
+        cases['candidate_report_get']={'candidate_id':self.cid,'export_id':cand_manifest['export_id']}
         cases['maps_list']={'project':'APP'}
         cases['map_get']={'project':'APP','map_id':saved_map['id']}
         self.assertEqual(set(cases), set(tool_access.READ_OPERATIONS))

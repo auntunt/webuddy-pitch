@@ -469,6 +469,15 @@ def _execute(P, req, actor, operation, a):
     if operation.startswith("harness_"):
         from .harness_probes import execute
         return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
+    if operation == 'candidate_report_get':
+        from . import report_exports
+        from .candidates import _row
+        row = _row(P, a['candidate_id'])
+        ticket = st.ticket(row['ticket_id'])
+        if tool:
+            from . import tool_read
+            tool_read.ticket(P, ticket['key'], visible_ids)
+        return report_exports.read(P, st.project(ticket['project_id']), {'id': 'candidate:%d' % row['id']}, a)
     if operation == 'candidate_ci':
         from .candidates import _row
         from .project_ci import check
@@ -480,6 +489,10 @@ def _execute(P, req, actor, operation, a):
         return check(P.data_dir,st.project(ticket['project_id'])['key'],candidate['commit_sha'])
     if operation.startswith("candidate_") or operation == "candidates_list":
         from .candidates import execute
+        if tool and operation == 'candidate_report_create':
+            from . import tool_read
+            from .candidates import _row
+            tool_read.ticket(P, st.ticket(_row(P, a['candidate_id'])['ticket_id'])['key'], visible_ids)
         try:
             return execute(P, actor, operation, a, lambda: setattr(req, "agent_side_effect_started", True))
         except ValueError as exc:

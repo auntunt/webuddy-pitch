@@ -61,6 +61,9 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                             allowed += ["ticket_hold", "run_cancel", "run_recheck", "candidate_decide"]
                         if owner.tenant_scope == "develop":
                             allowed += ["development_get","development_start","development_propose","development_answer","candidate_submit","candidate_verify"]
+                        if getattr(owner, "report_ops", False):
+                            from tmh.platform import tool_access
+                            allowed += [op for op in ("candidate_report_get", "candidate_report_create") if op in tool_access.allowed_operations(owner.tenant_scope)]
                         payload.update(tool_connection=dict(id="fixture", user="member", tenant="default",
                             scope=owner.tenant_scope, project_ids=[1], expires_at=1800000000, status="active",
                             execution=owner.tenant_scope in ("execute", "develop")),
@@ -71,6 +74,10 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                 elif operation == "message_send":
                     payload = {"ok": True, "event_id": 91, "request_id": body["request_id"],
                                "body": body["body"], "kind": body["kind"]}
+                elif operation == "candidate_report_create":
+                    payload = {"export_id": "e" * 64, "candidate_id": body["candidate_id"], "request_id": body["request_id"]}
+                elif operation == "candidate_report_get":
+                    payload = {"export_id": body["export_id"], "candidate_id": body["candidate_id"], "files": []}
                 elif operation == "run_start":
                     payload = {"ok": True, "run_id": 17, "state": "queued", "request_id": body["request_id"]}
                 else:
@@ -246,6 +253,40 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse({"webuddy_development_confirm","webuddy_candidate_decide","webuddy_candidate_assess","webuddy_candidate_merge"} & names)
                 result=await session.call_tool("webuddy_development_start",dict(ticket="AGENT-1",request_id="select-once"))
                 self.assertFalse(result.isError)
+
+    async def test_candidate_report_ops_follow_candidate_scopes_and_round_trip(self):
+        from tmh.platform import tool_access
+        for scope in ("read", "content", "execute"):
+            self.assertIn("candidate_report_get", tool_access.allowed_operations(scope))
+            self.assertNotIn("candidate_report_create", tool_access.allowed_operations(scope))
+        self.assertIn("candidate_report_create", tool_access.allowed_operations("develop"))
+        from tmh.workbench_credentials import save
+        self.report_ops = True
+        for scope, expect_create in (("execute", False), ("develop", True)):
+            self.tenant_scope = scope
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory).resolve() / (scope + ".json")
+                save(path, dict(schema=1, endpoint=self.endpoint + "/t/default", token="wbt_fixture.secret"))
+                async with self.session("--endpoint", self.endpoint + "/t/default", "--credential-file", str(path), "--allow-execution") as session:
+                    names = {tool.name for tool in (await session.list_tools()).tools}
+                    self.assertIn("webuddy_candidate_report_get", names)
+                    self.assertEqual("webuddy_candidate_report_create" in names, expect_create)
+                    if expect_create:
+                        made = await session.call_tool("webuddy_candidate_report_create", dict(candidate_id=1, request_id="report-once"))
+                        self.assertFalse(made.isError)
+                        read = await session.call_tool("webuddy_candidate_report_get", dict(candidate_id=1, export_id=made.structuredContent["export_id"]))
+                        self.assertFalse(read.isError)
+                        self.assertEqual(read.structuredContent["export_id"], "e" * 64)
+                    else:
+                        denied = await session.call_tool("webuddy_candidate_report_create", dict(candidate_id=1, request_id="no"))
+                        self.assertTrue(denied.isError)
+                        self.assertEqual(denied.structuredContent["code"], "tool_not_enabled")
+
+    async def test_candidate_report_create_hidden_in_read_only_local_mode(self):
+        async with self.session("--read-only") as session:
+            names = {tool.name for tool in (await session.list_tools()).tools}
+            self.assertIn("webuddy_candidate_report_get", names)
+            self.assertNotIn("webuddy_candidate_report_create", names)
 
     async def test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides(self):
         from tmh.workbench_credentials import save

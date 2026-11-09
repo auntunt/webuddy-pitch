@@ -193,9 +193,11 @@ class WorkbenchClientTest(unittest.TestCase):
         from tmh.agent_contract import validate
         args = dict(ticket='EXT-1', base_commit='a' * 40, commit='b' * 40, requirement_hash='c' * 64,
                     criteria=[{'id': 'A1', 'text': 'Business behavior', 'check': 'HTTP observation'}], summary='fixture', request_id='submit')
-        for criteria in ([], [dict(args['criteria'][0], arbitrary_url='http://other')], [dict(args['criteria'][0], text=' ')], [True]):
+        for criteria in ([dict(args['criteria'][0], arbitrary_url='http://other')], [dict(args['criteria'][0], text=' ')], [True]):
             with self.assertRaises(ValueError):
                 validate('candidate_submit', dict(args, criteria=criteria))
+        # G2: no criteria is a valid technical-only submission (business conformance unknown)
+        self.assertEqual(validate('candidate_submit', dict(args, criteria=[]))['criteria'], [])
 
     def cli(self, *args, input=None, cwd=None):
         env = dict(os.environ, PYTHONPATH=str(ROOT), WEBUDDY_TOKEN='fixture-secret-token')
