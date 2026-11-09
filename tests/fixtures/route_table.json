@@ -710,6 +710,11 @@
   "api_task_executors"
  ],
  [
+  "POST",
+  "^/api/projects/(?P<key>[^/]+)/tasks/(?P<tkey>[^/]+)/push$",
+  "api_task_push"
+ ],
+ [
   "GET",
   "^/api/agent-settings$",
   "api_agent_settings"

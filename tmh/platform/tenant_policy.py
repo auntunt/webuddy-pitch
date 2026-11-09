@@ -160,6 +160,7 @@ GET /api/agent-settings
 GET /api/agent-page
 GET /api/members
 GET /api/task-executors
+POST /api/projects/<key>/tasks/<tkey>/push
 POST /api/agent-login
 GET /api/agent-login/<sid>
 POST /api/agent-gateway/models

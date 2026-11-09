@@ -80,3 +80,15 @@ def api_task_executors(P, req):
     models = next((r["models"] for r in rows if r["name"] == agent), [])
     return {"executors": rows, "default_agent": agent,
             "default_model": (conf.get(agent, {}).get("defaults") or {}).get("plan") or (models[0] if models else "")}
+
+
+@route("POST", "/api/projects/<key>/tasks/<tkey>/push")
+def api_task_push(P, req, key, tkey):
+    from .. import git_push
+    from pathlib import Path as _P
+    p = P.project(key)
+    ticket = P.store.ticket_by_key(tkey) if hasattr(P.store, "ticket_by_key") else None
+    run_id = int(req.body.get("run") or 0)
+    if not run_id:
+        raise ApiError(400, "需要指定任务的运行编号")
+    return git_push.push_task_branch(_P(p["root"]), tkey, run_id)
