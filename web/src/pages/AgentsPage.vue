@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { get, post, ApiError } from '../api/client'
+import { reactive } from 'vue'
 
 interface Executor {
   name: string; title: string; engine: string; installed: boolean; version: string; path: string
@@ -12,6 +13,82 @@ interface Page { executors: Executor[]; usage: { days: number; by_executor: Reco
 const page = ref<Page | null>(null)
 const error = ref('')
 const testing = ref('')
+const loginLines = ref<Record<string, string[]>>({})
+const apiForm = reactive<Record<string, { base_url: string; api_key: string; model: string }>>({})
+const gatewayUrl = ref('http://127.0.0.1:3425')
+const gatewayKey = ref('')
+const gatewayModels = ref<string[]>([])
+const gatewayEngine = ref('')
+
+async function login(name: string) {
+  error.value = ''
+  try {
+    const r = await post<{ session: string; command: string }>('/api/agent-login', { name })
+    loginLines.value[name] = ['$ ' + r.command]
+    await pollLogin(name, r.session)
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : '本机登录没有启动。'
+  }
+}
+
+async function pollLogin(name: string, sid: string) {
+  for (let i = 0; i < 300; i++) {
+    const r = await get<{ lines: string[]; done: boolean }>('/api/agent-login/' + encodeURIComponent(sid))
+    loginLines.value[name] = ['$ ' + (loginLines.value[name]?.[0] ?? ''), ...r.lines]
+    if (r.done) return
+    await new Promise((res) => setTimeout(res, 1000))
+  }
+}
+
+function form(name: string) {
+  if (!apiForm[name]) apiForm[name] = { base_url: '', api_key: '', model: '' }
+  return apiForm[name]
+}
+
+async function currentRevision(): Promise<number> {
+  const r = await get<{ revision: number }>('/api/agent-settings')
+  return r.revision
+}
+
+async function saveApi(name: string) {
+  const f = form(name)
+  if (!f.base_url || !f.api_key || !f.model) {
+    error.value = '填写 API 地址、密钥和模型。'
+    return
+  }
+  error.value = ''
+  try {
+    await post('/api/agent-settings', { action: 'update', name, revision: await currentRevision(), config: {
+      title: name, models: [[f.model, f.model]], defaults: {}, timeout: 1800,
+      engine: name, secrets: { base_url: f.base_url, api_key: f.api_key, model: f.model } } })
+    await test(name)
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : '保存失败。'
+  }
+}
+
+async function probeGateway(name: string) {
+  error.value = ''
+  gatewayEngine.value = name
+  try {
+    const r = await post<{ models: string[] }>('/api/agent-gateway/models', { url: gatewayUrl.value, key: gatewayKey.value })
+    gatewayModels.value = r.models
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : '网关探测失败。'
+  }
+}
+
+async function saveGateway(name: string, model: string) {
+  error.value = ''
+  try {
+    await post('/api/agent-settings', { action: 'update', name, revision: await currentRevision(), config: {
+      title: name, models: [[model, model]], defaults: {}, timeout: 1800,
+      engine: 'codex', secrets: { base_url: gatewayUrl.value, api_key: gatewayKey.value || 'gateway', model } } })
+    await test(name)
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : '保存网关配置失败。'
+  }
+}
 
 async function load() {
   error.value = ''
@@ -70,7 +147,27 @@ onMounted(load)
             </template>
             <span v-else class="muted">无记录</span>
           </td>
-          <td><button class="btn" :disabled="testing !== ''" @click="test(e.name)">{{ testing === e.name ? '测试中…' : '测试连接' }}</button></td>
+          <td>
+            <button class="btn" :disabled="testing !== ''" @click="test(e.name)">{{ testing === e.name ? '测试中…' : '测试连接' }}</button>
+            <button class="btn" @click="login(e.name)">本机登录</button>
+            <pre v-if="loginLines[e.name]" class="login">{{ loginLines[e.name].join('\n') }}</pre>
+            <details>
+              <summary>API 方式</summary>
+              <label class="field">API 地址<input v-model="form(e.name).base_url" /></label>
+              <label class="field">密钥<input type="password" autocomplete="off" v-model="form(e.name).api_key" /></label>
+              <label class="field">模型<input v-model="form(e.name).model" /></label>
+              <button class="btn" @click="saveApi(e.name)">保存并测试</button>
+            </details>
+            <details>
+              <summary>本机网关</summary>
+              <label class="field">网关地址<input v-model="gatewayUrl" /></label>
+              <label class="field">网关密钥（可空）<input type="password" autocomplete="off" v-model="gatewayKey" /></label>
+              <button class="btn" @click="probeGateway(e.name)">读取模型</button>
+              <div v-if="gatewayEngine === e.name && gatewayModels.length">
+                <button v-for="m in gatewayModels" :key="m" class="btn" @click="saveGateway(e.name, m)">用 {{ m }} 保存并测试</button>
+              </div>
+            </details>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -78,6 +175,7 @@ onMounted(load)
 </template>
 
 <style scoped>
+.login { white-space: pre-wrap; max-height: 240px; overflow: auto; background: var(--soft); padding: 8px; }
 .agents { width: 100%; border-collapse: collapse; background: var(--panel); }
 .agents th, .agents td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 </style>

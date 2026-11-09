@@ -406,3 +406,32 @@ def api_members_save(P, req):
     except ValueError as e:
         raise ApiError(400, str(e))
     return {"members": members.view(P.data_dir)}
+
+
+@route("POST", "/api/agent-login")
+def api_agent_login(P, req):
+    _platform_admin(P, req, "配置智能体")
+    from .. import agents, executor_setup, agent_connect
+    name = str(req.body.get("name") or "")
+    conf = agents.load_config(P.data_dir)
+    if name not in conf:
+        raise ApiError(404, "没有这个执行器")
+    engine = agents.engine_name(name, conf[name])
+    exe = conf[name].get("bin") or agents.executable(engine, conf[name])
+    env = dict(os.environ)
+    env.update(executor_setup.spawn_env(P.data_dir, name, conf[name]))
+    return agent_connect.start_login(engine, exe, env)
+
+
+@route("GET", "/api/agent-login/<sid>")
+def api_agent_login_read(P, req, sid):
+    _platform_admin(P, req, "查看登录过程")
+    from .. import agent_connect
+    return agent_connect.read_login(sid)
+
+
+@route("POST", "/api/agent-gateway/models")
+def api_agent_gateway_models(P, req):
+    _platform_admin(P, req, "配置智能体")
+    from .. import agent_connect
+    return {"models": agent_connect.probe_gateway(str(req.body.get("url") or "").strip(), str(req.body.get("key") or "").strip())}

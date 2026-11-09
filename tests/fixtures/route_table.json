@@ -866,6 +866,21 @@
  ],
  [
   "POST",
+  "^/api/agent-login$",
+  "api_agent_login"
+ ],
+ [
+  "GET",
+  "^/api/agent-login/(?P<sid>[^/]+)$",
+  "api_agent_login_read"
+ ],
+ [
+  "POST",
+  "^/api/agent-gateway/models$",
+  "api_agent_gateway_models"
+ ],
+ [
+  "POST",
   "^/api/tickets/(?P<key>[^/]+)/comments$",
   "api_comment"
  ],

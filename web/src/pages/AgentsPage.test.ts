@@ -26,3 +26,13 @@ describe('AgentsPage', () => {
     expect(w.text()).not.toMatch(/token/i)
   })
 })
+
+describe('AgentsPage connection methods', () => {
+  it('has local login, API and gateway controls', async () => {
+    const w = mount(AgentsPage)
+    await flushPromises()
+    expect(w.text()).toContain('本机登录')
+    expect(w.text()).toContain('API 方式')
+    expect(w.text()).toContain('本机网关')
+  })
+})
