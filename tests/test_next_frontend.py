@@ -113,3 +113,48 @@ class NextFrontendTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+class NextLoginRedirectTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from tmh.platform import login
+        cls.tmp = TemporaryDirectory()
+        cls.P = Platform(Path(cls.tmp.name), "tester")
+        login.set_user(Path(cls.tmp.name), "alice", "synthetic-password")
+        cls.opener = urllib.request.build_opener(_NoRedirect)
+        cls.servers = {}
+        for prefix in ("", "/t/acme"):
+            httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(cls.P, TOKEN, web_prefix=prefix))
+            threading.Thread(target=httpd.serve_forever, daemon=True).start()
+            cls.servers[prefix] = httpd
+
+    @classmethod
+    def tearDownClass(cls):
+        for httpd in cls.servers.values():
+            httpd.shutdown()
+        cls.tmp.cleanup()
+
+    def location(self, prefix, path):
+        base = "http://127.0.0.1:%d" % self.servers[prefix].server_address[1]
+        try:
+            self.opener.open(urllib.request.Request(base + path), timeout=10)
+        except urllib.error.HTTPError as e:
+            return e.code, e.headers.get("Location")
+        raise AssertionError("expected a redirect")
+
+    def test_anonymous_next_redirects_to_login_with_the_full_path(self):
+        from urllib.parse import quote
+        self.assertEqual(self.location("", "/next/p/E2E/verify?ticket=E2E-1"), (303, "/login?next=" + quote("/next/p/E2E/verify?ticket=E2E-1", safe="")))
+        self.assertEqual(self.location("", "/next/"), (303, "/login?next=" + quote("/next/", safe="")))
+        self.assertEqual(self.location("", "/"), (303, "/login"))
+
+    def test_tenant_worker_keeps_the_tenant_prefix_in_next(self):
+        from urllib.parse import quote
+        self.assertEqual(self.location("/t/acme", "/next/p/E2E/verify"), (303, "/login?next=" + quote("/t/acme/next/p/E2E/verify", safe="")))
+        self.assertEqual(self.location("/t/acme", "/"), (303, "/login"))

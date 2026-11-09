@@ -230,6 +230,14 @@ class TenantGatewayTest(unittest.TestCase):
         self.assertEqual(status, 200, empty)
         self.assertEqual((empty["total"], empty["projects"]), (0, 0))
 
+    def test_anonymous_next_shell_redirects_to_login_like_home(self):
+        for path in ("/next/p/E2E/verify?ticket=E2E-1", "/next", "/t/" + self.a + "/next/p/E2E/verify?ticket=E2E-1", "/t/" + self.a + "/next/"):
+            with self.subTest(path=path):
+                status, headers, _ = self.request("GET", path)
+                self.assertEqual(status, 303)
+                self.assertEqual(dict(headers)["Location"], "/login?next=" + quote(path, safe=""))
+        self.assertEqual(self.request("GET", "/t/" + self.a + "/")[1]["Location"], "/login?next=" + quote("/t/" + self.a + "/", safe=""))
+
     def test_global_login_home_membership_and_no_token_fallback(self):
         status, headers, _ = self.request("POST", "/login", body={"username": "alice", "password": "synthetic-password", "next": "//bad.invalid"}, form=True)
         self.assertEqual((status, headers["Location"]), (303, "/"))

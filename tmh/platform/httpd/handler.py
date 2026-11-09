@@ -85,7 +85,7 @@ def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
                 extra["Set-Cookie"] = "tmh_token=%s; Path=/; HttpOnly; SameSite=Strict" % token
             if not self._authorized(q):
                 if L.has_accounts(P.data_dir):
-                    nxt = path + (("?" + u.query) if u.query else "")
+                    nxt = (web_prefix + path) + (("?" + u.query) if u.query else "")
                     return self._send(303, b"", "text/plain", {"Location": "/login?next=" + quote(nxt, safe="")})
                 return self._send(401, "需要访问令牌：在地址后加 ?token=…".encode("utf-8"), "text/plain; charset=utf-8")
             if path.startswith("/next/assets/"):

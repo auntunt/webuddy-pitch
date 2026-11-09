@@ -318,7 +318,8 @@ def make_handler(registry, workers, *, brand="webuddy"):
                     return response(reg, static[1], int(static[2]), static[3], user,
                                     self._scheme()+'://'+self.headers.get('Host',''))
                 if not user:
-                    if method == "GET" and (url.path == "/" or re.fullmatch(r"/t/[A-Za-z0-9_-]+/?", url.path)):
+                    if method == "GET" and (url.path == "/" or re.fullmatch(r"/t/[A-Za-z0-9_-]+/?", url.path)
+                                            or re.fullmatch(r"(?:/t/[A-Za-z0-9_-]+)?/next(?:/.*)?", url.path)):
                         return self._send(303, headers={"Location": "/login?next=" + quote(self.path, safe="")})
                     raise error(401, "请使用个人账号登录", "session_invalid")
                 if url.path == "/logout":
