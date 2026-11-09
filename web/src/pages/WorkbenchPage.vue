@@ -2,13 +2,13 @@
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { get, post, ApiError, appUrl } from '../api/client'
-import { app, legacyUrl, selectProject } from '../app'
+import { app, legacyUrl, selectProject, prepareLegacy } from '../app'
 import DocumentText from '../components/DocumentText.vue'
 import RequirementBatch from '../components/RequirementBatch.vue'
 import type { Ticket } from '../api/types'
 
 type Run = { id: number; mode: string; status: string; result?: string; diff?: string; output?: string; verification?: Record<string, unknown> | null; decision?: string; can_retry?: boolean; recheck?: { running?: boolean }; commit?: string }
-type Detail = { ticket: Ticket & { body?: string }; runs: Run[]; auto_next?: string; plain_state?: unknown; events?: { author: string; body: string; created: string }[]; epic?: { children: {key:string; title:string; status:string; after:string[]}[]; paused:string }; parent?: {key:string;title:string} }
+type Detail = { ticket: Ticket & { body?: string; type?: string }; team_assignment?: {assignee:string;reviewer:string}; stage?: {label:string}; runs: Run[]; auto_next?: string; plain_state?: unknown; events?: { author: string; body: string; created: string }[]; epic?: { children: {key:string; title:string; status:string; after:string[]}[]; paused:string }; parent?: {key:string;title:string} }
 const props = defineProps<{ pkey: string; ticketKey?: string; compose?: boolean }>()
 const router = useRouter()
 const tickets = ref<Ticket[]>([])
@@ -17,6 +17,8 @@ const detail = ref<Detail | null>(null)
 const run = ref<Run | null>(null)
 const title = ref('')
 const body = ref('')
+const taskType = ref('auto'), acceptance = ref('')
+const taskTypes: Record<string,string> = {auto:'自动识别',feature:'需求开发',bug:'缺陷修复',change:'变更',ops:'运维与数据问题',question:'咨询与排查'}
 const query = ref('')
 const agent = ref('')
 const busy = ref('')
@@ -112,11 +114,15 @@ async function create() {
   error.value = ''
   const project = props.pkey
   try {
-    const value = await post<Ticket>('/api/tickets', { project, title: title.value.trim(), body: body.value, auto: false })
+    const criteria = acceptance.value.trim()
+    const description = body.value + (criteria ? '\n\n## 验收标准（提单人填写）\n' + criteria.split('\n').filter(line => line.trim()).map((line,i) => `- A${i+1} ${line}`).join('\n') : '')
+    const value = await post<Ticket>('/api/tickets', { project, title: title.value.trim(), body: description, auto: false, ...(taskType.value !== 'auto' ? {type:taskType.value} : {}) })
     if (project !== props.pkey) return
     tickets.value.unshift(value)
     title.value = ''
     body.value = ''
+    acceptance.value = ''
+    taskType.value = 'auto'
     await choose(value.key)
   } catch (e) { error.value = message(e) }
   finally { busy.value = '' }
@@ -171,18 +177,24 @@ onUnmounted(() => { generation++; clearPoll() })
           <strong>{{ item.title }}</strong><span>{{ item.key }} <span v-if="item.status">· {{ states[item.status] || item.status }}</span></span>
         </button>
         <p v-if="!loading && !visible.length" class="empty">{{ query ? '没有匹配的需求' : '从一个小需求开始' }}</p>
-        <a :href="legacyUrl('/tickets')" class="all-tickets">查看全部工单</a>
+        <a :href="legacyUrl('/tickets')" class="all-tickets" @click="prepareLegacy(pkey)">查看全部工单</a>
       </aside>
       <div class="desk">
         <RequirementBatch v-if="batch" :pkey="pkey" @created="batchCreated" />
         <form v-else-if="composing" class="compose" @submit.prevent="create">
-          <h2>这次要改什么？</h2><button type="button" class="text-button" @click="batch=true">多项相关需求一起处理</button>
-          <label class="field">需求名称<input v-model="title" required placeholder="例如：导出金额跟随税率配置" /></label>
+          <h2>这次要处理什么？</h2><button type="button" class="text-button" @click="batch=true">多项相关需求一起处理</button>
+          <label class="field">任务名称<input v-model="title" required placeholder="例如：导出金额跟随税率配置" /></label>
+          <label class="field">任务类型<select v-model="taskType"><option v-for="(label,key) in taskTypes" :key="key" :value="key">{{label}}</option></select></label>
           <label class="field">需求与项目说明<textarea v-model="body" rows="8" placeholder="描述现在的情况、希望改成什么。可以补充实际子项目目录、启动方式和不能改变的规则。" /></label>
+          <label class="field">验收目标<textarea v-model="acceptance" rows="3" placeholder="每行一项可核对的结果，例如：同一标书的金额单位在页面和导出中一致。" /></label>
           <div class="actions"><button class="btn btn-primary" :disabled="!!busy || !title.trim()">{{ busy === 'create' ? '保存中…' : '保存需求' }}</button><button v-if="selected" type="button" class="btn" @click="composing = false">返回</button></div>
         </form>
         <template v-else-if="detail">
           <header class="task-heading"><span class="muted">{{ detail.ticket.key }}</span><h2>{{ detail.ticket.title }}</h2></header>
+          <section class="responsibility" aria-label="处理与交接">
+            <dl><div><dt>类型</dt><dd>{{taskTypes[detail.ticket.type || ''] || '未登记'}}</dd></div><div><dt>负责人</dt><dd>{{detail.team_assignment?.assignee || detail.ticket.assignee || '待分配'}}</dd></div><div><dt>复核人</dt><dd>{{detail.team_assignment?.reviewer || '待分配'}}</dd></div><div><dt>当前进展</dt><dd>{{detail.stage?.label || states[detail.ticket.status || ''] || '待处理'}}</dd></div></dl>
+            <div class="actions"><a class="btn" :href="legacyUrl('/team/ticket/'+encodeURIComponent(detail.ticket.key))" @click="prepareLegacy(pkey)">分配与复核</a><a class="btn" :href="legacyUrl('/t/'+encodeURIComponent(detail.ticket.key))" @click="prepareLegacy(pkey)">交接与验收</a></div>
+          </section>
           <details v-if="detail.ticket.body" class="requirement"><summary>需求原文</summary><pre>{{ detail.ticket.body }}</pre></details>
           <p v-if="detail.parent"><button class="text-button" @click="choose(detail.parent.key)">返回 {{ detail.parent.title }}</button></p>
           <section v-if="detail.epic" class="panel"><h3>子任务与依赖</h3><p v-if="detail.epic.paused" class="error">{{ detail.epic.paused }}</p><div v-for="child in detail.epic.children" :key="child.key" class="child-task"><button class="text-button" @click="choose(child.key)">{{ child.title }}</button><span>{{ states[child.status] || child.status }}</span><span v-if="child.after.length" class="muted">依赖 {{ child.after.join('、') }}</span></div><div class="actions"><button class="btn" :disabled="!!busy" @click="perform('epic-release')">推进下一批</button><button class="btn" :disabled="!!busy" @click="perform('epic-resume')">恢复协作</button></div></section>
@@ -228,6 +240,7 @@ onUnmounted(() => { generation++; clearPoll() })
 .ticket { width:100%; text-align:left; border:0; border-radius:6px; background:transparent; padding:13px 10px; cursor:pointer; margin-bottom:5px; }
 .ticket strong { display:block; font-size:14px; font-weight:550; line-height:1.5; overflow-wrap:anywhere; }.ticket>span { display:block; color:var(--sub); font-size:12px; margin-top:6px; }.ticket:hover,.ticket.selected { background:var(--accent-soft); }.ticket.selected strong { color:var(--accent); }
 .all-tickets { display:block; padding:14px 10px; font-size:13px; }
+.responsibility{padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:16px}.responsibility dl{display:flex;gap:16px 32px;flex-wrap:wrap;margin:0 0 14px}.responsibility dt{font-size:12px;color:var(--sub)}.responsibility dd{margin:4px 0 0;overflow-wrap:anywhere}
 .desk { min-width:0; padding:24px; }.compose { max-width:680px; }.compose h2 { margin-top:0; font-size:22px; }.task-heading { display:block; }.task-heading h2 { margin:5px 0 20px; font-size:22px; overflow-wrap:anywhere; }
 .requirement { border-bottom:1px solid var(--line); padding:0 0 16px; margin-bottom:18px; }.requirement summary { cursor:pointer; color:var(--sub); }.requirement pre { white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; }
 .toolbar { display:flex; flex-wrap:wrap; align-items:end; gap:14px; }.executor { min-width:160px; margin:0; }.actions { display:flex; gap:8px; flex-wrap:wrap; }.actions .btn { font-size:13px; }

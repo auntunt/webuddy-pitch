@@ -47,3 +47,18 @@ it('normalizes legacy navigation without duplicate hash prefixes', () => {
   expect(legacyUrl('/workspace')).toBe('/#/workspace')
   expect(legacyUrl('#/team/ticket/P-1')).toBe('/#/team/ticket/P-1')
 })
+
+it('preserves the original request and adds explicit operations criteria without running it', async () => {
+  getMock.mockImplementation((url:string)=>Promise.resolve(url.startsWith('/api/tickets?')?[]:{ticket:{key:'P-1',title:'金额单位排查',type:'ops',body:'原文'},team_assignment:{assignee:'工程师',reviewer:'复核人'},stage:{label:'待核对'},runs:[]}))
+  postMock.mockResolvedValue({key:'P-1',title:'金额单位排查'})
+  const wrapper=mount(WorkbenchPage,{props:{pkey:'P'}});await flushPromises()
+  await wrapper.get('.compose input').setValue('金额单位排查')
+  await wrapper.get('.compose select').setValue('ops')
+  await wrapper.findAll('.compose textarea')[0]!.setValue('客户原话：显示金额不对，不确定原因。')
+  await wrapper.findAll('.compose textarea')[1]!.setValue('页面与导出单位一致\n核对原始数据')
+  await wrapper.get('form').trigger('submit');await flushPromises()
+  expect(postMock).toHaveBeenCalledExactlyOnceWith('/api/tickets',{project:'P',title:'金额单位排查',type:'ops',auto:false,body:'客户原话：显示金额不对，不确定原因。\n\n## 验收标准（提单人填写）\n- A1 页面与导出单位一致\n- A2 核对原始数据'})
+  expect(wrapper.get('[aria-label="处理与交接"]').text()).toContain('工程师')
+  expect(wrapper.get('[aria-label="处理与交接"]').text()).toContain('复核人')
+  wrapper.unmount()
+})
