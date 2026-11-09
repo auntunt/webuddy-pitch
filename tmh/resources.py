@@ -53,8 +53,9 @@ FILES = (
     'templates/integration_plugin_example.py',
     'templates/knowledge-README.md',
 )
-PACKAGE_DIRECTORIES = (".", "integrations", "platform", "probes")
-PACKAGE_ASSETS = ("rules/*.json", "platform/*.cjs", "platform/vendor/*.js", "platform/vendor/*LICENSE*")
+PACKAGE_DIRECTORIES = (".", "integrations", "platform", "platform/api", "platform/httpd", "probes")
+PACKAGE_ASSETS = ("rules/*.json", "platform/*.cjs", "platform/vendor/*.js", "platform/vendor/*LICENSE*",
+                  "platform/web_dist/*.html", "platform/web_dist/assets/*")
 
 
 def root() -> Path:

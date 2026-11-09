@@ -31,6 +31,18 @@ class CustomerDistributionTest(unittest.TestCase):
             self.assertIn('docs/agent-commands.md', resources.FILES)
             self.assertNotIn('README.md', resources.FILES)
 
+    def test_split_platform_packages_and_web_bundle_are_copied(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            shipped = ('tmh/platform/api/workspace.py', 'tmh/platform/httpd/handler.py',
+                       'tmh/platform/web_dist/index.html', 'tmh/platform/web_dist/assets/index-abc.js')
+            for name in shipped:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('x')
+            copied = {'tmh/' + n for _, n in resources.code_files(root / 'tmh')}
+            self.assertTrue(set(shipped) <= copied)
+
     def test_nested_private_material_is_reported_without_contents(self):
         inner = io.BytesIO()
         with zipfile.ZipFile(inner, 'w') as z:
