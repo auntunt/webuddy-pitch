@@ -66,3 +66,20 @@ class ToolchainTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MavenProvidedByToolchainTest(unittest.TestCase):
+    def test_maven_project_without_mvn_on_path_is_still_a_runnable_check(self):
+        from unittest.mock import patch
+        from tmh.platform import fixloop
+        root = Path(tempfile.mkdtemp(prefix="tmh-mvn-")) / "app"
+        root.mkdir()
+        (root / "pom.xml").write_text("<project/>", encoding="utf-8")
+        loop = fixloop.FixLoop.__new__(fixloop.FixLoop)
+        loop.wt, loop.p, loop.box, loop.set = root, {"key": "T", "root": str(root)}, None, {}
+        loop.r = type("R", (), {"data_dir": root})()
+        with patch.object(toolchain.shutil, "which", return_value=None), \
+                patch("tmh.verify.detect_commands", return_value={"build": "", "test": "mvn -q -B test"}), \
+                patch("tmh.platform.project_tests.view", return_value={"profile": None}):
+            seq, skip = loop.commands({})
+        self.assertEqual(seq, [("test", "mvn -q -B test")], skip)

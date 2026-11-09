@@ -342,7 +342,7 @@ class FixLoop:
         """[(kind, command)] to build and test the change, or ([], why not)."""
         from .. import config as cfgmod
         from ..verify import detect_commands
-        from . import project_tests
+        from . import project_tests, toolchain
         profile = project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["profile"]
         if profile:
             project_tests.validate(profile)
@@ -382,7 +382,8 @@ class FixLoop:
                 seq.append((k, given[k]))
             elif found.get(k):
                 exe = shlex.split(found[k], posix=os.name != "nt")[0].strip('"')
-                if (exe.startswith(("./", ".\\")) and (self.wt / where / exe).exists()) or shutil.which(exe):
+                provided = exe in ("mvn", "gradle") and bool(toolchain.needs(self.wt / where))
+                if (exe.startswith(("./", ".\\")) and (self.wt / where / exe).exists()) or shutil.which(exe) or provided:
                     seq.append((k, ("cd %s && %s" % (shlex.quote(where), found[k])) if where else found[k]))
                 else:
                     missing.append(exe)
