@@ -78,7 +78,54 @@ def configuration(root, filename):
     return config, env, data, host, port
 
 
+VIRTUAL_NAMES = re.compile(r'vEthernet|WSL|Hyper-V|VMware|VirtualBox|TAP|TUN|Meta|Clash|Wintun|Loopback|Bluetooth', re.I)
+VPN_TUNNEL = ipaddress.ip_network('198.18.0.0/15')
+
+
+def lan_addresses(rows):
+    """Usable LAN IPv4 addresses from Get-NetIPConfiguration rows (dicts with alias, description, ipv4, gateway, up).
+    Adapters must be up with a default gateway; virtual, tunnel and benchmark ranges are excluded. RFC 1918 first."""
+    found = []
+    for row in rows:
+        address = str(row.get('ipv4') or '')
+        if not row.get('up') or not row.get('gateway'):
+            continue
+        if VIRTUAL_NAMES.search('%s %s' % (row.get('alias') or '', row.get('description') or '')):
+            continue
+        try:
+            ip = ipaddress.ip_address(address)
+        except ValueError:
+            continue
+        if ip.version != 4 or ip.is_loopback or ip.is_link_local or ip in VPN_TUNNEL:
+            continue
+        if address not in found:
+            found.append(address)
+    private = [a for a in found if ipaddress.ip_address(a).is_private]
+    return private + [a for a in found if a not in private]
+
+
+def windows_adapter_rows():
+    script = ("Get-NetIPConfiguration | ForEach-Object { [pscustomobject]@{ alias=$_.InterfaceAlias; "
+              "description=$_.InterfaceDescription; ipv4=($_.IPv4Address | Select-Object -First 1).IPAddress; "
+              "gateway=($_.IPv4DefaultGateway | Select-Object -First 1).NextHop; "
+              "up=($_.NetAdapter.Status -eq 'Up') } } | ConvertTo-Json -Compress")
+    try:
+        out = subprocess.run(['powershell', '-NoProfile', '-Command', script], capture_output=True, text=True, timeout=20).stdout
+        data = json.loads(out or '[]')
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return []
+    return [data] if isinstance(data, dict) else data
+
+
 def primary_ipv4():
+    """First usable LAN address; see lan_addresses for the filter."""
+    if os.name == 'nt':
+        found = lan_addresses(windows_adapter_rows())
+        return found[0] if found else ''
+    return _default_route_ipv4()
+
+
+def _default_route_ipv4():
     """IPv4 of the interface with the default route; link-local/loopback skipped."""
     try:
         probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -310,8 +357,8 @@ def main(argv=None):
     if host in ('0.0.0.0', '::'):
         # A token-protected server answers 401 to the bare loopback address too.
         print('本机地址：http://127.0.0.1:%d/?token=%s' % (port, env['TMH_TOKEN']))
-        if public:
-            print('局域网地址：%s/?token=%s' % (public, env['TMH_TOKEN']))
+        for address in (lan_addresses(windows_adapter_rows()) if os.name == 'nt' else []) or ([public] if public else []):
+            print('局域网地址：http://%s:%d/?token=%s' % (address, port, env['TMH_TOKEN']))
         print('如果其他电脑无法连接：请以管理员身份运行 configure-firewall.ps1（或在 Windows 防火墙提示时允许 Python）')
     from tmh.cli import main as cli
     from tmh.platform.windows_process import receipt_lock

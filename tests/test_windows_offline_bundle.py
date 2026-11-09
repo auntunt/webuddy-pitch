@@ -25,6 +25,22 @@ launcher = module('windows_launcher', 'scripts/deploy/windows-offline/launcher.p
 builder = module('windows_builder', 'scripts/deploy/build-windows-offline.py')
 
 
+class LanAddressTest(unittest.TestCase):
+    def test_default_gateway_adapters_only_and_private_first(self):
+        rows = [
+            dict(alias='Clash Meta', description='Meta Tunnel', ipv4='198.18.0.1', gateway='198.18.0.2', up=True),
+            dict(alias='vEthernet (WSL)', description='Hyper-V', ipv4='172.25.48.1', gateway='172.25.48.2', up=True),
+            dict(alias='WLAN', description='Intel Wi-Fi', ipv4='192.168.33.94', gateway='192.168.33.1', up=True),
+            dict(alias='Ethernet 2', description='Realtek', ipv4='203.0.113.7', gateway='203.0.113.1', up=True),
+            dict(alias='Ethernet', description='Realtek', ipv4='10.0.0.5', gateway='', up=True),
+            dict(alias='Ethernet 3', description='Realtek', ipv4='10.1.0.5', gateway='10.1.0.1', up=False),
+            dict(alias='Local', description='x', ipv4='169.254.10.10', gateway='10.2.0.1', up=True),
+        ]
+        self.assertEqual(launcher.lan_addresses(rows), ['192.168.33.94', '203.0.113.7'])
+
+    def test_no_usable_adapter_returns_nothing(self):
+        self.assertEqual(launcher.lan_addresses([dict(alias='vEthernet (WSL)', description='', ipv4='172.25.48.1', gateway='x', up=True)]), [])
+
 class WindowsOfflineBundleTest(unittest.TestCase):
     def test_corrupt_cache_is_rejected_without_download_or_replacement(self):
         with tempfile.TemporaryDirectory() as folder:
