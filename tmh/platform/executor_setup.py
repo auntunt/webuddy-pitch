@@ -301,7 +301,7 @@ def probe(engine, exe, env, timeout=45):
         cmd = [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "disabled", "--mode", "ask"]
         stdin = prompt
     elif engine == "codex":
-        cmd = [exe, "exec", "--sandbox", "read-only", prompt]
+        cmd = [exe, "exec", "--sandbox", "read-only", "--skip-git-repo-check", prompt]
         stdin = None
     else:  # claude
         cmd = [exe, "-p", prompt, "--allowedTools", ""]

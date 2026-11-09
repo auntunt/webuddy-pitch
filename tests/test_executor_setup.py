@@ -263,3 +263,19 @@ def test_cursor_failure_mapping():
             assert reason in got[0], (text, got)
         else:
             assert got == ()
+
+
+class CodexProbeCommandTest(unittest.TestCase):
+    def test_codex_probe_runs_outside_a_git_repo_and_read_only(self):
+        from unittest.mock import patch
+        from tmh.platform import executor_setup
+        captured = {}
+
+        def fake_run(cmd, **kwargs):
+            captured["cmd"] = cmd
+            return type("R", (), {"returncode": 0, "stdout": executor_setup.MARKER, "stderr": ""})()
+
+        with patch.object(executor_setup.subprocess, "run", side_effect=fake_run):
+            executor_setup.probe("codex", "codex", {})
+        self.assertIn("--skip-git-repo-check", captured["cmd"])
+        self.assertIn("read-only", captured["cmd"])
