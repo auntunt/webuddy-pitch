@@ -226,14 +226,14 @@ def make_handler(registry, workers, *, brand="webuddy"):
                 cookies.append(self._cookie("", 0, feishu_login.BIND_COOKIE, "/login"))
             return self._send(303, headers={"Location": nxt, "Set-Cookie": cookies if pending else cookies[0]})
 
-        def _home(self, user):
+        def _home(self, user, destination="/"):
             rows = reg.q("SELECT t.id,t.name FROM tenants t JOIN memberships m ON m.tenant_id=t.id WHERE m.user=? AND t.status='active' ORDER BY t.created,t.id", (user,))
             if len(rows) == 1:
-                return self._send(303, headers={"Location": "/t/" + rows[0]["id"] + "/"})
+                return self._send(303, headers={"Location": "/t/" + rows[0]["id"] + destination})
             owner = reg.one("SELECT 1 FROM platform_owners WHERE name=?", (user,))
             if not rows and owner:
                 return self._send(303, headers={"Location": "/t/default/#/access"})
-            links = "".join('<li><a href="/t/%s/">%s</a></li>' % (html.escape(t["id"]), html.escape(t["name"])) for t in rows)
+            links = "".join('<li><a href="%s">%s</a></li>' % (html.escape("/t/" + t["id"] + destination, quote=True), html.escape(t["name"])) for t in rows)
             content = '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>选择组织</title><h1>选择组织</h1>' + ("<ul>" + links + "</ul>" if links else "<p>当前账号尚未加入有效组织，请联系管理员分配访问权限。</p>") + '<a href="/logout">退出账号</a></html>'
             return self._send(200, content.encode(), "text/html; charset=utf-8")
 
@@ -324,11 +324,11 @@ def make_handler(registry, workers, *, brand="webuddy"):
                     raise error(401, "请使用个人账号登录", "session_invalid")
                 if url.path == "/logout":
                     return self._send(303, headers={"Location": "/login?out=1", "Set-Cookie": self._cookie("", 0)})
-                if url.path == "/" and method == "GET":
+                if method == "GET" and (url.path == "/" or re.fullmatch(r"/next(?:/.*)?", url.path)):
                     with reg.authorization_guard():
                         if self._session() != user:
                             raise error(401, "登录已失效", "session_invalid")
-                        return self._home(user)
+                        return self._home(user, "/next/" + ("?" + url.query if url.query else "") if url.path == "/next" else self.path)
                 match = re.fullmatch(r"/t/([A-Za-z0-9_-]+)(/.*)?", url.path)
                 if not match:
                     raise error(404, "请通过固定租户地址访问", "route_denied")

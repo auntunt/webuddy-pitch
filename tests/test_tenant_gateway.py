@@ -238,6 +238,29 @@ class TenantGatewayTest(unittest.TestCase):
                 self.assertEqual(dict(headers)["Location"], "/login?next=" + quote(path, safe=""))
         self.assertEqual(self.request("GET", "/t/" + self.a + "/")[1]["Location"], "/login?next=" + quote("/t/" + self.a + "/", safe=""))
 
+    def test_logged_in_next_preserves_path_and_serves_tenant_shell(self):
+        path = "/next/p/SAME/work?ticket=SAME-1"
+        status, headers, _ = self.request("GET", path, "alice")
+        destination = "/t/" + self.a + path
+        self.assertEqual((status, headers["Location"]), (303, destination))
+        status, _, content = self.request("GET", destination, "alice")
+        self.assertEqual(status, 200, content)
+        self.assertIn('<base href="/t/' + self.a + '/next/">', content)
+        self.assertEqual(self.request("GET", "/next", "alice")[1]["Location"], "/t/" + self.a + "/next/")
+
+    def test_next_multiple_memberships_require_choice_and_keep_destination(self):
+        self.change("member_set", tenant=self.b, user="alice", role="member")
+        status, _, content = self.request("GET", "/next/?q=a&other=b", "alice")
+        self.assertEqual(status, 200)
+        for tenant in (self.a, self.b):
+            self.assertIn('href="/t/' + tenant + '/next/?q=a&amp;other=b"', content)
+
+    def test_next_without_membership_does_not_choose_a_tenant(self):
+        status, _, content = self.request("GET", "/next/", "outsider")
+        self.assertEqual(status, 200)
+        self.assertIn("尚未加入", content)
+        self.assertNotIn('/next/">', content)
+
     def test_global_login_home_membership_and_no_token_fallback(self):
         status, headers, _ = self.request("POST", "/login", body={"username": "alice", "password": "synthetic-password", "next": "//bad.invalid"}, form=True)
         self.assertEqual((status, headers["Location"]), (303, "/"))
