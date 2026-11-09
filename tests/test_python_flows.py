@@ -163,7 +163,10 @@ server = HTTPServer(('localhost', 0), Handler)
         self.boot()
         a = graph.build(self.root, use_cache=True)
         b = graph.build(self.root, use_cache=True)
-        self.assertEqual(a['flows'], b['flows'])
+        for flows in (a['flows'], b['flows']):
+            self.assertTrue(flows['provenance']['generated_at'])
+        without_build_time = lambda flows: dict(flows, provenance={k: v for k, v in flows['provenance'].items() if k != 'generated_at'})
+        self.assertEqual(without_build_time(a['flows']), without_build_time(b['flows']))
         self.assertEqual(a['diagnostics'], b['diagnostics'])
         self.assertGreater(b['cached'], 0)
 
