@@ -726,6 +726,8 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
         return cmd + extra
     if engine == "codex":
         sandbox = "workspace-write" if mode in ("fix", "edit", "kb", "chart") else "read-only"
+        if sys.platform == "win32":
+            sandbox = "danger-full-access"  # the Windows sandbox blocks every shell call; read-only is enforced by readonly_guard
         if c.get("profile"):
             extra = ["--profile", c["profile"]] + extra
         if c.get("engine") == "codex" and "--json" not in extra:
@@ -2279,6 +2281,9 @@ class Runner:
         use_stdin = custom is None and (engine in ("claude", "cursor") or conf[agent].get("prompt_transport") == "stdin")
         transport = (["stdin"] if use_stdin else ["argv"]) if custom is None else (
             (["argv"] if "{prompt}" in custom else []) + (["prompt_file_argument"] if "{prompt_file}" in custom else []))
+        from . import readonly_guard
+        read_only = sys.platform == "win32" and mode not in ("fix", "edit", "kb", "chart")
+        before = readonly_guard.snapshot(workdir) if read_only else None
         try:
             process, folder = self.run_command(rid, cmd, workdir, env=env,
                 stdin=prompt if use_stdin else None,
@@ -2292,6 +2297,12 @@ class Runner:
             return 127, msg, parser, clock.done()
         finally:
             output("", final=True)
+        if read_only:
+            touched = readonly_guard.changed(before, readonly_guard.snapshot(workdir))
+            if touched:
+                msg = "只读步骤修改了文件：%s。平台未自动撤销，请人工核对。" % "、".join(touched)
+                st.append_output(rid, "— %s\n" % msg)
+                return 1, msg, parser, clock.done()
         result = parser.final()
         model_reply = parser.result.strip()
         if lm.exists():
