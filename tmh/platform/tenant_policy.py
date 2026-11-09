@@ -158,6 +158,8 @@ POST /api/projects/<key>/entries/detect
 POST /api/tickets/<key>
 GET /api/agent-settings
 GET /api/agent-page
+GET /api/members
+POST /api/members
 POST /api/agent-settings
 GET /api/access-config
 POST /api/access-config

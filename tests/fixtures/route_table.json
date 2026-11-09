@@ -855,6 +855,16 @@
   "api_testbox_act"
  ],
  [
+  "GET",
+  "^/api/members$",
+  "api_members"
+ ],
+ [
+  "POST",
+  "^/api/members$",
+  "api_members_save"
+ ],
+ [
   "POST",
   "^/api/tickets/(?P<key>[^/]+)/comments$",
   "api_comment"

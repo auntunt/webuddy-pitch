@@ -86,8 +86,44 @@ def set_user(data: Path, name: str, pw: str) -> None:
         local_set_user(data, name, pw)
         return
     users = _legacy_users(data)
-    users[name] = {"pw": hash_password(pw), "updated": time.strftime("%Y-%m-%d %H:%M:%S")}
+    role = role_of(data, name) or ("owner" if not users else "editor")
+    users[name] = {"pw": hash_password(pw), "updated": time.strftime("%Y-%m-%d %H:%M:%S"), "role": role}
     _save_users(data, users)
+
+
+ROLES = ("owner", "editor", "viewer")
+OWNER_ONLY = ("/api/agent-settings", "/api/agent-page", "/api/agent-test", "/api/agent-scan", "/api/access-config", "/api/members")
+
+
+def role_of(data: Path, name: str) -> str:
+    """Single-machine roles. The first account is the owner; an account without a stored role is an editor."""
+    users = _legacy_users(data)
+    if name not in users:
+        return ""
+    if users[name].get("role") in ROLES:
+        return users[name]["role"]
+    return "owner" if next(iter(users)) == name else "editor"
+
+
+def set_role(data: Path, name: str, role: str) -> None:
+    if role not in ROLES:
+        raise ValueError("角色只能是 owner、editor 或 viewer")
+    users = _legacy_users(data)
+    if name not in users:
+        raise ValueError("没有这个账号")
+    users[name]["role"] = role
+    _save_users(data, users)
+
+
+def allowed(role: str, method: str, path: str) -> bool:
+    """HTTP rule for single-machine mode: viewers read; editors change anything but owner-only settings and members."""
+    if role == "owner":
+        return True
+    if any(path == p or path.startswith(p + "/") for p in OWNER_ONLY):
+        return False
+    if role == "editor":
+        return True
+    return method in ("GET", "HEAD")
 
 
 def del_user(data: Path, name: str) -> bool:

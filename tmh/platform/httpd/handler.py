@@ -341,6 +341,10 @@ def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
                 return self._send(404, b"not found", "text/plain")
             if not self._authorized(q):
                 return self._json(401, {"error": "需要访问令牌"})
+            if getattr(P, "tenant_context", None) is None and self._who:
+                role = L.role_of(P.data_dir, self._who)
+                if not L.allowed(role, method, path):
+                    return self._json(403, {"error": "当前账号的角色不能做这个操作", "code": "role_denied"})
             if not os.environ.get("TMH_PUBLIC_URL"):  # where people reach us (learnt from them, not from strangers): chat links
                 host = (self.headers.get("Host") or "").strip()
                 if host and re.fullmatch(r"[A-Za-z0-9.\-\[\]:]+", host) and not _private(host):

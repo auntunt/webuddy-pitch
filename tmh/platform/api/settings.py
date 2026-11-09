@@ -379,3 +379,30 @@ def api_testbox_act(P, req, action):
     r["configuration"] = conf
     (P.data_dir / "testbox-check.json").write_text(json.dumps(r, ensure_ascii=False), encoding="utf-8")
     return r
+
+
+@route("GET", "/api/members")
+def api_members(P, req):
+    from .. import members
+    return {"members": members.view(P.data_dir)}
+
+
+@route("POST", "/api/members")
+def api_members_save(P, req):
+    from .. import members
+    b = req.body or {}
+    action = b.get("action")
+    try:
+        if action == "add":
+            members.add(P.data_dir, str(b.get("name") or ""), str(b.get("password") or ""), str(b.get("role") or ""))
+        elif action == "remove":
+            members.remove(P.data_dir, str(b.get("name") or ""), req.user)
+        elif action == "role":
+            members.set_role(P.data_dir, str(b.get("name") or ""), str(b.get("role") or ""), req.user)
+        elif action == "reset_password":
+            members.reset_password(P.data_dir, str(b.get("name") or ""), str(b.get("password") or ""))
+        else:
+            raise ApiError(400, "操作只能是 add、remove、role 或 reset_password")
+    except ValueError as e:
+        raise ApiError(400, str(e))
+    return {"members": members.view(P.data_dir)}

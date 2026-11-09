@@ -224,6 +224,8 @@ from .api.tickets import (  # noqa: F401
 from .api.settings import (  # noqa: F401
     api_access_config,
     api_agent_page,
+    api_members,
+    api_members_save,
     api_access_config_save,
     api_agent_scan,
     api_agent_settings,
